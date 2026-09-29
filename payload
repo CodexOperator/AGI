@@ -3427,6 +3427,70 @@ goal:g4.18.3 · goal:g4.18.4 (bundle 3, H1-H2).
 ## Agent Notes
 Assigned to **director-engine**.
 
+### G4.18.6 — "G4.18.6: links are raw mint ids -- the renderer resolves names, titles and visibility; a write checks its outbound ids by lookup; no link ever needs re-pointing and the full walk leaves the write path" — status: active
+
+# goal:g4.18.6
+
+# goal:g4.18.6
+
+## OWNER 2026-09-29 17:4xZ, verbatim (Prime pane)
+"Can links be simplified to not need a separate run? It also walks the entire graph when it really just needs to walk the neighborhood of the new nodes no? Idk couldn't write set parents/links as part of write and save all that graph walking since we know what node we are writing and under which parent node it's nested or chained off from"
+
+## Why this exists
+goal:g4.18: write.py is the one writer, so it knows the node, its parents and the ids its body names at the moment of the write. Measured 09-29: `links.py links` walks every node (4966 resolved, 42.1 s inside PASS B2's verify), while one write changes only one node's neighbourhood. The spawn gate already resolves parent TYPES at create (SPAWN-GATE APPROVED … allowed_parents), so outbound resolution at write time exists in part.
+
+## Target end-state
+- Links are RAW MINT IDS only: `parents`, `next_edges` and every machine reference in a body store the 32-hex mint id (prose refs as a marker the renderer resolves; owner quotes stay verbatim). The address (`goal:g7.16.1`) becomes display-only, so a renumber, move or retire never breaks a link and nothing is ever re-pointed.
+- The READ and RENDER paths resolve each mint id to the node's current address, title and status, and decide visibility per view (live shown, retired dimmed or hidden); every read goes through the RENDER path, never write.py (owner 18:0xZ: write has no read path), and it prints names, never bare hex.
+- A write checks its outbound mint ids in the same step (a set lookup, not a walk); a write naming a missing id is refused.
+- The whole-graph walk leaves the per-write path: at merge gates only, over the merge's changed nodes.
+
+## Invariants
+- broken links = 0 on every branch head; a write that would break one is refused, never committed.
+
+## Falsifier
+1. A committed test: a write naming a missing parent is refused; a retire of a node with a live referrer re-points it or is refused; neither walks nodes outside the neighbourhood (count the reads).
+2. Negative: no verify level runs `links.py links` over the full graph per write.
+
+## Out of scope
+goal:g4.18.5 (rows + a write is a commit: this leaf rides on it) · goal:g4.18.3 · goal:g4.18.4.
+
+## Agent Notes
+Assigned to **director-engine**.
+
+### G4.18.7 — read leaves write.py -- one render path (viewport, goal:g2.19) reads a node for agents and humans; write.py writes and prints only its own diff — status: active
+
+# goal:g4.18.7
+
+## OWNER 2026-09-29 18:0xZ, verbatim (Prime pane, relayed by belam-S2-L5-XVI to the council)
+"Write shouldn't need a read path. We should only need a render path. Add it to bundle if needed I've been meaning to improve the way the graph is rendered for agents for a while. Unify everything into the correct slots. Read doesn't belong to write semantically im surprised the council didn't catch it"
+
+## Why this exists
+goal:g4.18: write.py is the one node WRITER, yet it carries the graph's most-taught READ verb. Measured 09-29 18:0xZ: `write.py:543` registers `"read": verb_read` in VERBS; 23 tracked files under skills/, extensions/agi/ and CLAUDE.md teach `write.py <id> 'read body N:M'` / `'read payload N:M'` (test_rotate_templates.py 12, test_write.py 7, rotate.py 4, agi-node-write SKILL.md 3). Every agent read therefore enters the write tool, and its output is the writer's raw file slice, not a render.
+
+goal:g2.19: "one render, two readers" already names the slot a read belongs in: `viewport.py --emit llm|human|both` draws one stream for an agent and a human. Measured: viewport.py takes `--anchor <id> --depth N` (a neighbourhood) but has no view of ONE node's body, rows or payload, so an agent has no render-path way to read what it was given. The owner has wanted better agent rendering "for a while": this is a first-class row, not cleanup.
+
+## Target end-state
+- write.py has NO read verb: `read body` / `read payload` leave VERBS; a write prints only its own diff (the `--dry-run` preview is part of the write).
+- ONE render path reads a node for both readers: `viewport.py` (goal:g2.19) renders a single node (its resolved names and titles, its body by row or range, its payload) as `--emit llm` for an agent and `--emit human` for a person, from one stream.
+- ONE cut, no alias: the row that drops `read` from VERBS is the SAME row that repoints the 23 teaching files (the agi-node-write skill grammar included, so one source owns reading) and CLAUDE.md's "Read YOUR goal by id" line; there is never a window with two read paths.
+- The agent render is designed for the agent: names never bare ids (goal:g4.18.6's resolution), rows addressable by the same index a write uses (goal:g4.18.5).
+
+## Invariants
+- The render path never gains a write (goal:g9: the viewport stays read-only, its self-grep test still passes).
+- write.py never renders a node it is not writing.
+- One render, two readers: `viewport.py --verify` exits 0.
+
+## Falsifier
+1. `python3 extensions/agi/bin/viewport.py --anchor goal:g4.18.7 --emit llm` (or the single-node flag it grows) prints this node's body, and `python3 extensions/agi/bin/viewport.py --verify` exits 0.
+2. Negative: `git grep -n '"read":' -- extensions/agi/bin/write.py` = 0 hits, and `git grep -nE "write\.py [^ ]+ '?read (body|payload)" -- skills extensions/agi/bin CLAUDE.md` = 0 hits.
+
+## Out of scope
+goal:g4.18.5 (rows + a write is a commit: the renderer addresses rows by its index) · goal:g4.18.6 (mint-id links: the renderer's name resolution is shared with it) · goal:g4.18.3 · goal:g4.18.4 · goal:g4.19 (the intercept layer; its title routes Read through write.py, which this owner line reverses: the Prime's to re-word).
+
+## Agent Notes
+Assigned to **director-engine**.
+
 ### G4.19 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->
@@ -4796,6 +4860,39 @@ director fix-up at the SL7.41/42 harvest (sensei-director gen XII, seat 9b8d582f
 mur digest wf_438874da-7a6 (Prime XV 13:45Z, all 18 rounds accepted) line (10), the race-2 residue, minted as a brief by sensei-director gen XIII 13:58Z (cite 615ba5b48): hypothesis:l4-the-cross-second-boundary-respawn-record-claim-is-a-committed-test-that-forces-distinct-stamps — the two-file shape behind test_rotate_recover.py:176-178 was proved only by an uncommitted sleep(1.1) probe; the brief asks for a committed test that advances rotate._write_rotation_record's clock (rotate.py:3317-3318) without sleeping, plus a frozen-clock control.
 
 SL7.53 harvested 14:10Z (mur digest line (10), sensei-director gen XIII, seat merge): the race-2 two-file claim is now a COMMITTED test — test_rotate_recover.py test_two_distinct_stamp_records_detected_then_respawned drives rotate._write_rotation_record's filename stamp through the rotate.datetime seam with an advancing fake clock (no sleep) and asserts exactly two files, older detected, newest respawned; test_equal_stamp_records_newest_still_respawned freezes the clock and asserts the coalesced single record is respawned. Zero engine edits (the seam already existed); kid experiment:a00-558e48a7-92aa54 proved 0.9; the file runs 23/23 in 0.86 s; nbhd (recover + heal + help-smoke) 98/3.
+
+### G6.41.1 — the posts survive an oomd kill -- tmux in its own scope, heal RESUMES dead seats (not fresh), aborted rotations resolved, no double spawn, recovery pressure-gated — status: active
+
+# goal:g6.41.1
+
+# goal:g6.41.1
+
+## OWNER 2026-09-29 17:3xZ, verbatim (Prime pane)
+"Make the recovery path restart tmux and your session as well not just the remote-control service."
+
+## Why this exists
+goal:g6.41: a seat whose process dies without a rotation must come back. Measured 09-29 (read-only investigation for belam-S2-L5-XVI, 17:4xZ): at 17:27:19Z systemd-oomd killed claude-remote-control.service (the top reclaimer, 3.8G; user@ pressure 85.73% > 50%; 91 processes). The tmux server lived in that unit's cgroup, so tmux and every post died with it. Restart=always brought back only the service's ExecStart. Nothing re-creates tmux session agi-rc: there is no new-session for it in extensions/, skills/, src/ or the crontab. heal (`heal.py watch`, which survived) named 8 posts DEAD at 17:28:04 and every relaunch failed "no server running" (heal.py:3039-3045). belam's in-flight gen-17 rotation record silenced heal for it (heal.py:2471-2480, 3526-3528). After agi-rc reappeared at 17:33:06, heal respawned the 8 FRESH at gen+1 (heal.py:3266-3271); only belam was resumed. The live tmux server and 8 of 9 posts sit in the remote-control cgroup again, so the next kill repeats this.
+
+## Target end-state
+- P1: rotate._ensure_tmux_session() (beside _launch_window, rotate.py:1734) creates agi-rc when absent, in its OWN scope (`systemd-run --user --scope --slice=agi.slice -- tmux new-session -d -s agi-rc`), outside the remote-control and reaper cgroups. It is called before rotate.py:1778, before heal.py:3035, and at the top of _watch_seats (heal.py:3582).
+- P2: heal _recover_seat (heal.py:3146) RESUMES a dead seat whose row carries a session_id with an existing transcript: `claude --resume <sid>` with the row's model/effort/settings via _shell_cmd, same generation and name, then _successor_row_write with the new window and pid BEFORE the ack. A fresh spawn happens only without a transcript.
+- P3: a `started` rotation record with a dead row pid and no successor window counts as ABORTED (rewritten in place as aborted-by-crash; heal.py:2453-2481); the predecessor is resumed; every in-flight skip is logged.
+- P4: no double spawn. A flock on seats/<post>.launch.lock spans check, launch and row write in _recover_seat and cmd_spawn; _seat_sessions is always built (heal.py:3595-3596); a post whose session_id is open in a live pid is skipped. `rotate.py resume --post <p>` exists for hand resumes.
+- P5: recovery is PRESSURE-GATED. _recovery_admitted() (before heal.py:3607) reads /proc/pressure/memory avg10 and user@ memory.current vs memory.high against a config cell; over it = "deferred", no launch. At most one launch per pass, the Prime first; resumes count toward CRASH_LOOP_MAX_PER_HOUR.
+- P6: each post runs in its own scope (_shell_cmd via mem_cap.wrap_argv, mem_cap.py:310-325), so an oomd kill takes one post, not tmux and every post.
+
+## Invariants
+- The Prime is never downgraded by a recovery: a resume uses the row's model/effort, and the row must name what the Prime runs.
+
+## Falsifier
+1. Kill claude-remote-control.service on a test box: within two heal passes agi-rc exists in its own scope and every recover:true post is RESUMED (same session_id), rows re-seated.
+2. Negative: `systemd-cgls --user` shows no tmux server and no post claude process inside claude-remote-control.service.
+
+## Out of scope
+delivery split by the council (18:2xZ): P1+P6 and P5 ride goal:g7.16.1.3 row R (closes on Falsifier 2 + a spawned post's own-scope cgroup + a one-scope kill of a throwaway dummy); P2-P4 and Falsifier 1 (RESUMED) = bundle 5 row 0 · box-local systemd units (an ExecStartPost puts tmux back in the killed cgroup; OnFailure never fires when only the posts die).
+
+## Agent Notes
+Assigned to **director-general-1**.
 
 ### G6.42 — Why prime X died at 17:45:46Z (and the helper at 16:06:42Z, same signature) — find the cause from the evidence on the box and land the prevention if it is preventable — status: active
 
@@ -7047,6 +7144,7 @@ Rows in council order. A row closes when its line holds in the bytes.
 - **H2 · the organ every post reads always loads.** goal:g4.18.4: a key-row write never inserts one row into a config:posts that lacks it (refuse by name, or write the whole row set), and every config:posts write is YAML-loaded before it is committed.
 - **H3 · one park form.** The 5 body-table carriers of parked ROWS (goal:g7.33.19 · 11, hypothesis:pass10-0927-residue-batch · 11, pass11-0927 · 3, pass12-0928 · 8, passb1-0928 · 6 = 39 rows) carry the tag `parked:g7.16.2`, with no status change on a carrier that also holds keep rows. The formation check FAILs when a live node holds a `triage: parked: formation` row but no carrier tag, so a switch to g7.16.2 wakes the carrier and its body names the rows.
 - **H4 · bundle-2 residues.** rotate._dump_record / rotate._resolve_record_path and verification's parked_carriers move to ONE small shared module that rotate, heal, sensei, write and verification import. No `_private` name is imported across modules, and write.py never imports the verifier. heal never swallows ImportError on a rotation-record write. skills/agi-master-gate/SKILL.md:66 points at anonymize.CLASSES + HOME_PATH_RE instead of hand-listing classes. goal:g7.32.5 returns to its pre-park status (park is tag-only). Plus the refuter-confirmed residues of the council mur wf_4e0708df-4ef over 794a0782e..9c54fb3c4 (3 rounds, all accept_with_residue, 0 red): (a) skills/agi-master-gate/SKILL.md:66 hand-lists 6 classes, already stale against HOME_PATH_RE's bare-home match (the pointer fix above). (b) goal:g7.16.1.2.3 invariant 'class and scrub land in the SAME round' is unmet: the generic home class still matches 424 files (.agi/nodes 367 · datasets 31 · .agi/sessions/quorum 15, + rotations), banked as SM residue 39. Every write.py edit that re-adds such a line is now refused. Scrub one scope per round until `git grep -lP '/(?:home|Users)/[\w-][\w.-]*' -- .agi/nodes datasets .agi/sessions/quorum .agi/sessions/rotations | wc -l` = 0. (c) goal:g7.16.1.1.2.1 reads complete, but its anchored Falsifier 1 fails on 3 of 21 nodes: fix the 3 marks or re-open the leaf. (d) hypothesis:pass10-0927-residue-batch row 32 is a false park (context-suite conftest machinery runs in every formation): keep. (e) mvp:dg3-p-park-tag states 6 parks while its own falsifier grep prints 9 · mvp:dg3-t-one-registry still reads partial / strict-xfail after the cell landed (fee990795): make both true. (f) verification._grep_live ignores git grep's exit code (the mark gate fails open) and yaml.safe_load raises on a malformed hit (verification.py:1290, :1297). (g) rotate.py _compose_seating_announcement (~:6179/:6546) writes the absolute transcript path into tracked comms: route it through the same home-relative serializer. COUNCIL ADDS (self-perpetuating + all-is-one, 17:4xZ): (f) FIRST in H4: git grep exit >= 2 = FAIL with the error, pinned by a test that injects a bad pathspec and expects FAIL (a guard that can't look must fail closed). (d) widen the PARKING TEST: its caller grep also covers conftest.py, .sh, hooks and .agi/nodes/.geometry/crons.md command lines, not only `import` (a caller reached through pytest collection or by path is invisible to an import grep). (b)'s falsifier uses the GENERIC pattern the invariant names, never the live box's $HOME alone (verify with the pattern the invariant names). (c)/(e): a goal or mvp whose falsifier exits non-zero goes back to active; never complete over a red falsifier. (g) uses the ONE rule every outbound text uses (anonymize.home_relative via R1's serializer), never a new strip at that site.
+- **R · the posts survive one oomd kill (goal:g6.41.1 P1+P6, P5; council 18:2xZ on the Prime's URGENT relay).** Measured 17:5xZ: the tmux server and every post sit in claude-remote-control.service (`/proc/<pid>/cgroup`), so the 17:27Z oomd kill took every post. R1 = P1 + P6 in ONE launcher: `_ensure_tmux_session` lives INSIDE `_launch_window` (rotate.py:1734) and `mem_cap.wrap_argv` (mem_cap.py:310) INSIDE `_shell_cmd` (rotate.py:1493), so every spawn (cmd_spawn, heal recover, rotate) gets its scope by construction; P1 alone only MOVES the blast radius (a tmux-spawned post inherits tmux's cgroup). R2 = P5: `_recovery_admitted` calls `memory_alarm.read_psi` (memory_alarm.py:49), never a second /proc/pressure reader. R closes on goal:g6.41.1 Falsifier 2 (the cgls negative) + a spawned post's `/proc/<pid>/cgroup` naming its OWN scope (the argv proves nothing) + killing ONE throwaway scoped dummy's scope leaves tmux and every other post live. NEVER tested by killing claude-remote-control.service on local-town. goal:g6.41.1 Falsifier 1 (RESUMED, needs P2) is NOT R's: bundle 5 row 0.
 - **G · GOALS.md is retired (OWNER 17:3xZ 09-29, verbatim on goal:g7.16.1: "Go ahead and retire GOALS.md. We don't need it anymore stop bothering with it or the render byte round trip script").** Goals are read from their nodes only (`write.py goal:<id> 'read body ...'`). The row's reach: verification.py's goals check · driver.sh --smoke's render step · snapshot-goals.py --render / --check (the render path retires; whatever non-render duty snapshot-goals still carries is measured first and kept or folded) · the GOALS.md citations in CLAUDE.md and skills agi-goal, agi-verify and agi-node-write. GOALS.md leaves through this reviewed row with `git rm` of the DERIVED file only (a derived render is not a node; git history keeps it); no goal node is touched. Until the row lands, GOALS.md in MAIN is stale and nobody re-renders or commits it. Falsifier: `git ls-files GOALS.md` prints nothing · `git grep -n 'GOALS.md' -- CLAUDE.md skills extensions/agi/bin extensions/agi/driver.sh` prints only a retirement pointer · the verify pass and `driver.sh --smoke --max-iters 1` exit 0 with no render step. CUT THE CALLERS, NOT ONLY THE FILE (self-perpetuating, measured 17:5xZ: 28 non-node code files + 50 docs name GOALS.md; not a root marker). Three LIVE render paths would go red: (1) the rotation closeout step "render" (rotate.py ~:8681, handler ~:9297) refuses on a failed render/--check, which is EVERY rotation's closeout: drop the step and its row in test_rotate_closeout_steps.py; (2) driver.sh ~:240 renders on every --smoke: drop the line (the smoke keeps snapshot + metrics); (3) the review gates workflows/agi-round-review.js ~:64 + workflows/review.json run render --check: drop the item. locations.py DEFAULT_GOALS_FILE retires with its test. Falsifier add: `git grep -n 'snapshot-goals.py --render' -- extensions ':!extensions/agi/tests'` prints 0 · one rotate closeout runs clean after the cut. THE HUMAN READER (alive + self-perpetuating): GOALS.md was the one page a new human observer opened first, so CLAUDE.md's replacement line names the ONE live command that shows the goal tree (viewport.py --live or what DG1 measures as best). The human UI stays live and interactive, never a stale render. SAME-ROW COUPLINGS (all-is-one, measured 17:5xZ): (4) retire snapshot-goals.py --from-doc AND its unlink (:1135-1145, :1256), the ONLY code that turns GOALS.md into goal-node DELETIONS: a stale GOALS.md restored from git plus one --from-doc run would prune live goals. Nodes are the only direction left, so no second source can delete the first (the paid-for class in CLAUDE.md's two rules). (5) the closeout's --check gate (rotate.py ~:9296-9310) compares against "" once the file is gone (snapshot-goals.py:1004) and would refuse forever: it drops WITH the render step. (6) node_writer.py:76-84 keeps `goal` out of CANONICAL_NODE_TYPES because snapshot-goals regenerates nodes/goal/ from GOALS.md: after G that reason is false; restate it or admit `goal`. (7) config-max: the goals_file config cell leaves with locations.DEFAULT_GOALS_FILE; the verify_unified / links / unify / dashboard readers are cut. ONE READ PATH: CLAUDE.md, QUICKSTART.md and every skill (agi · agi-goal · agi-master-gate · agi-node-write · agi-verify) cite the SAME goal read (write.py goal:<id> 'read body N:M' / viewport.py), never a per-skill substitute. Docstrings citing 'GOALS.md S17' sections re-point to goal ids (low priority).- **S1 · messaging is ONE route, or a verdict.** The first leaf MEASURES: send routes on the trunk before and after, and which goal:g7.32.6 targets the trunk lacks. S1 lands ONLY as a replacement: the dm_* family + send_transport fold into ONE module (or send.py itself) on this trunk, carrying the union of their tests, and the SAME row retires the inbox route (152 refs down to what a retirement pointer needs), so routes go 2 -> 1, with CC SendMessage as the interim. The dm file format stays byte-compatible: one test reads a real committed .agi/comms/**/dm/*.md file through the folded module. If the retirement does not fit, S1 becomes a verdict node like S2, and nothing is ported. adapters/magic_pane follows S1's outcome.
 - **S2 · the unwired five are explained, not dropped.** None is ported. ONE verdict node on this trunk carries, per module: (a) the goal it serves (g7.31.3.3 .1-.5 for kid_write_gate, spawn_refusal, parent_slots, needs_rotate; session_ingest = a SECOND mint door that folds into `write.py create` with a derived id, never a new module); (b) the start point for when that goal is worked: core sha + its test file + its pass count; (c) the gap in one line ("built + tested, not wired into heal/rotate"). Our goal:g7.31.3.3 records module != wired, so no successor reads core's COMPLETE as done. ONE TRUTH ACROSS TOWNS: core marks g7.31.3.3 and .1-.5 complete while our trunk has g7.31.3.3 active and no .1-.5. The verdict node names this for the Prime's merge: the true status is ACTIVE until wired, so g7.31.3.3 stays active and its leaves land active, each with a BODY status line in Target end-state ("built at <core sha>, test <file> <n>/<n>, not wired into heal/rotate"), never in THOUGHT, because it is state, not delta. The convener sends the Prime one [merge-note] line; nothing is written on core.
 - **Convention for every port:** a folded or ported module names its core module + sha in its build node (provenance lives on THIS trunk, never a write on core), and its tests are named by behaviour, never by goal id.
@@ -7061,7 +7159,7 @@ Rows in council order. A row closes when its line holds in the bytes.
 2. Negative: `git ls-files extensions/agi/bin | grep -cE 'kid_write_gate|spawn_refusal|parent_slots|needs_rotate|session_ingest'` prints 0 · if S1 landed: `git ls-files extensions/agi/bin | grep -c '^extensions/agi/bin/dm_'` <= 1 and the trunk carries ONE send route · if S1 is a verdict: no dm_* file on the trunk.
 
 ## Out of scope
-bundle 4 = core's edits to EXISTING files (write.py +125, dispatch.py +86, boxes.py +87, provisioning.py, rotate.py) together with profile_sync (it moves with its rotate/write callers) · then the season-2 close (outcomes -> bigger outcomes -> overviews, handed to the Prime) · goal:g7.31.3.3 itself (only its record is corrected) · goal:g5.22 through goal:g5.31
+bundle 4 = the write/render split (goal:g7.16.1.4: g4.18.5 -> g4.18.6 -> g4.18.7) · bundle 5 = goal:g6.41.1 P2-P4 + its Falsifier 1 (RESUMED) + core's edits to EXISTING files (write.py +125, dispatch.py +86, boxes.py +87, provisioning.py, rotate.py) together with profile_sync (it moves with its rotate/write callers) · then the season-2 close (outcomes -> bigger outcomes -> overviews, handed to the Prime) · goal:g7.31.3.3 itself (only its record is corrected) · goal:g5.22 through goal:g5.31
 
 ## Agent Notes
 Assigned to **director-general-1**.
@@ -7082,7 +7180,7 @@ goal:g7.16.1.3 (bundle 3) row H3. Bundle 2 row P made park a tag on goal and hyp
 
 ## Falsifier
 1. The formation check FAILs on a fixture carrier with a parked row and no tag, and PASSes on the live graph.
-2. Negative: `git grep -l 'triage: parked: formation' -- .agi/nodes ':!.agi/nodes/deprecated'`, minus the files tagged `parked:g7.16.2`, = 0.
+2. Negative: `git grep -lE '· triage: parked: formation g[0-9.]+ \|$' -- .agi/nodes ':!.agi/nodes/deprecated'`, minus the files tagged `parked:g7.16.2`, = 0. Anchored on the table-cell end: the bare string also sits in 3 nodes that only QUOTE it (goal:g7.16.1.3, this leaf, hypothesis:row-parks-carry-a-carrier-tag), so an unanchored grep never reaches 0. Measured 17:4xZ: the anchored form = 39 rows, exactly the 5 carriers, 0 quotes.
 
 ## Out of scope
 goal:g7.16.1.3.2 (the shared module the check moves into)
@@ -7128,7 +7226,7 @@ goal:g7.16.1.3.2 (row H4), part 1. Bundle 1-2 rounds left the rotation record's 
 - Rotation records write and resolve byte-identically before and after the move.
 
 ## Falsifier
-1. `git grep -nE 'from rotate import _|rotate\._(dump_record|resolve_record_path)' -- extensions/agi/bin` prints 0, and `git grep -n 'import verification' -- extensions/agi/bin/write.py` prints 0.
+1. `git grep -nE '\._(dump_record|resolve_record_path)\b|from rotate import _' -- extensions/agi/bin` prints only the shared module's own definitions (the bundle goal's `rotate\._` form misses heal.py:872 and :1031, which call `_rot._dump_record` through an alias; measured 17:4xZ), and `git grep -n 'import verification' -- extensions/agi/bin/write.py` prints 0.
 2. Negative: heal.py's record-write paths catch OSError only: `git grep -n 'except (OSError, ImportError)' -- extensions/agi/bin/heal.py` prints 0 on those paths.
 
 ## Out of scope
@@ -7336,7 +7434,7 @@ goal:g7.16.1.3 (bundle 3) row S2. Measured 17:2xZ 09-29 at origin/core/season2/m
 
 ## Target end-state
 - ONE verdict node (under hypothesis:core-unwired-five-are-start-points-not-ports) records, per module: the goal it serves (parent_slots -> g7.31.3.3.1 + .2 · needs_rotate -> .3 · spawn_refusal -> .4 · kid_write_gate -> .5 · session_ingest -> a second mint door that folds into `write.py create` with a derived id, never a new module), the core sha + test file + pass count, and the gap ("built + tested, not wired into heal/rotate").
-- goal:g7.31.3.3 stays active. goal:g7.31.3.3.1-.5 land active on this trunk, each with a BODY status line.
+- goal:g7.31.3.3 stays active. goal:g7.31.3.3.1 through goal:g7.31.3.3.5 land active on this trunk, each with a BODY status line.
 - The convener sends the Prime one [merge-note] line. Nothing is written on core.
 
 ## Invariants
@@ -7375,6 +7473,96 @@ goal:g7.16.1.3 (bundle 3) row G, placed by the council after H1-H4 and ahead of 
 
 ## Out of scope
 goal:g7.16.1.3.3 (S1) · goal:g7.16.1.3.4 (S2) · the goal nodes themselves
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.3.5.1 — the render and its gates retire -- driver smoke, verification goals check and snapshot-goals --render/--check gone, the helper library kept, GOALS.md removed (row G part 1; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.5.1
+
+## OWNER 2026-09-29 17:3xZ (via belam, relayed by the convener at 2eb4f4528), verbatim
+"Go ahead and retire GOALS.md. We don't need it anymore stop bothering with it or the render byte round trip script"
+
+## Why this exists
+goal:g7.16.1.3.5 (row G), part 1: the machinery. The render and its round-trip gate run in `driver.sh --smoke` (its render step), verification.py's goals check and `snapshot-goals.py --render/--check`. snapshot-goals.py's helpers are imported by 10 bin modules, so the FILE cannot retire, only its render duty can.
+
+## Target end-state
+- driver.sh --smoke has no render step. verification.py has no goals round-trip check. `snapshot-goals.py --render/--check` are removed, or refuse with a one-line retirement pointer.
+- The library functions stay importable, with every importer unchanged. A duty other than rendering that the render path carried (e.g. warn_premature_complete, report_integrity) is kept on a live path, or its retirement is named.
+- GOALS.md is removed from the tree in this row.
+- CUT THE CALLERS, every coupling named on goal:g7.16.1.3 row G (30f4db55f, e662637ac), in this SAME row: (1) the rotation closeout step render (rotate.py closeout step + handler) and its row in test_rotate_closeout_steps.py, since a failed render refuses EVERY rotation · (2) driver.sh --smoke render · (3) workflows/agi-round-review.js + workflows/review.json render --check gate · (4) CRITICAL: snapshot-goals.py --from-doc AND its unlink retire, the ONLY code that turns GOALS.md into goal-node DELETIONS (a stale GOALS.md restored from git + one --from-doc run prunes live goals) · (5) the closeout --check gate, which compares against an empty string once the file is gone and refuses forever · (6) node_writer's stated reason for keeping goal out of CANONICAL_NODE_TYPES is restated or goal is admitted · (7) the goals_file config cell + locations.py DEFAULT_GOALS_FILE (with its test) retire, and the verify_unified / links / unify / dashboard readers are cut.
+
+## Invariants
+- Node count unchanged. `links.py links` = 0 broken (a link to GOALS.md is repointed, not left dangling).
+
+## Falsifier
+1. `bash extensions/agi/driver.sh --smoke --max-iters 1` exits 0, and `python3 extensions/agi/bin/commands.py run verify` passes with no goals-render check.
+2. Negative: `git grep -n 'snapshot-goals.py --render' -- extensions ':!extensions/agi/tests'` prints 0, one rotate closeout runs clean, `git grep -n 'from-doc' -- extensions/agi/bin/snapshot-goals.py` prints 0, and `git grep -nE 'render.*--check|--render' -- extensions/agi/driver.sh extensions/agi/bin/verification.py` prints 0.
+
+## Out of scope
+goal:g7.16.1.3.5.2 (doc citations)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.3.5.2 — no live instruction names GOALS.md -- skills repointed at goal nodes, CLAUDE.md lines handed to the Prime as exact text (row G part 2; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.5.2
+
+## OWNER 2026-09-29 17:3xZ (via belam, relayed by the convener at 2eb4f4528), verbatim
+"Go ahead and retire GOALS.md. We don't need it anymore stop bothering with it or the render byte round trip script"
+
+## Why this exists
+goal:g7.16.1.3.5 (row G), part 2: the words. CLAUDE.md and skills agi, agi-goal, agi-verify, agi-node-write and agi-master-gate instruct posts to render or check GOALS.md, and bin docstrings/messages name it (measured 17:4xZ 09-29). A stale instruction is a second source.
+
+## Target end-state
+- ONE READ PATH (council, e662637ac): CLAUDE.md, QUICKSTART.md and skills agi, agi-goal, agi-master-gate, agi-node-write, agi-verify all cite the same goal read, `write.py goal:<id> 'read body N:M'`, plus ONE live command for a human to see the goal tree (viewport.py --live, or what the round measures as best). No live instruction to render, check, commit or read GOALS.md remains.
+- Skills change as [build, goal] versions under this leaf. CLAUDE.md is a standing doc: its lines are handed to the Prime (belam) as exact text, per the owner's order relayed through belam.
+
+## Invariants
+- Owner verbatim stays verbatim wherever it quotes GOALS.md historically (a quote is not an instruction).
+
+## Falsifier
+1. `git grep -nE 'GOALS\.md' -- skills` prints 0 live instructions.
+2. Negative: `git grep -c 'snapshot-goals.py --render' -- CLAUDE.md skills` prints 0.
+
+## Out of scope
+goal:g7.16.1.3.5.1 (machinery)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+#### G7.16.1.4 — COUNCIL BUNDLE 4 -- the write/render split: W0 one live goal per act (g4.19) -> W1 g4.18.5 rows + a write is a commit -> W2 g4.18.6 links are mint ids -> W3 g4.18.7 read leaves write.py, one render path — status: active
+
+# goal:g7.16.1.4
+
+## OWNER 2026-09-29 18:0xZ, verbatim (Prime pane, relayed by belam-S2-L5-XVI to the council)
+"Write shouldn't need a read path. We should only need a render path. Add it to bundle if needed I've been meaning to improve the way the graph is rendered for agents for a while. Unify everything into the correct slots. Read doesn't belong to write semantically im surprised the council didn't catch it"
+
+## Why this exists
+goal:g7.16.1 (the council loop): the Prime handed the council three owner orders from 17:2xZ-18:0xZ as ONE bundle, "the write/render split", and asked the council to place it. Council placement 18:1xZ (alive · all-is-one · self-perpetuating, all three agree): its OWN bundle after bundle 3, NOT folded in. Bundle 3 (goal:g7.16.1.3) is mid-build with DG2 since 17:56Z, and its H1 (goal:g4.18.3) edits write.py, while goal:g4.18.5 rewrites write.py's core write path. goal:g4.18.7 addresses rows by goal:g4.18.5's index and resolves names through goal:g4.18.6, hence the order.
+
+## Target end-state
+Rows in council order. A row closes when its line holds in the bytes.
+- **Base.** Cut from bundle 3's SM-clean tip, never 900a4017a, so goal:g4.18.3's authorship-gate test already stands when the write path is rewritten under it. Core's write.py +125 (the bundle-5 file list) is read as INPUT: each hunk is absorbed or rejected by name, so bundle 5 never ports onto a dead shape.
+- **W0 · one live goal per act.** goal:g4.19 (its title routes Read THROUGH write.py) is retitled under the owner's 18:0xZ line or parked by the tag `parked:g4.18.7`; no two live goals route one act opposite ways.
+- **W1 · rows, and a write is a commit.** goal:g4.18.5, carrying goal:g4.18.3's invariant verbatim: "One authorship gate for every write.py verb that writes a node; no verb returns ahead of it."
+- **W2 · links are mint ids.** goal:g4.18.6, minus its end-state bullet 2's read routing (one home: goal:g4.18.7). Couplings, in the SAME row: CLAUDE.md's renumber rule ("re-point every reference in the SAME commit") and the agi-goal skill's matching renumber text retire, since no link ever needs re-pointing.
+- **W3 · read leaves write.py.** goal:g4.18.7: `read` leaves VERBS in the same row that repoints the 23 teaching files (the agi-node-write skill grammar and CLAUDE.md included). No alias, never two read paths.
+- **Hygiene when touched:** goal:g4.18.3 / .5 / .6 bodies carry a doubled `# goal:<id>` H1; the row that next edits each fixes it by `replace body`.
+
+## Invariants
+- No parent/kid dispatch (goal:g7.16.1). Every node is written through write.py. Nothing is deleted. Nothing is written on core/season2/main or core/main.
+- One director works the bundle at a time: DG1 -> DG2 -> DG3 -> sanctuary-master -> council. Tests run ONE file at a time while a PASS runs on this box.
+- The viewport never gains a write path (goal:g9); `viewport.py --verify` exits 0.
+
+## Falsifier
+1. goal:g4.18.5, goal:g4.18.6 and goal:g4.18.7 read complete, with their own falsifiers run; `python3 extensions/agi/bin/viewport.py --verify` exits 0.
+2. Negative: `git grep -n '"read":' -- extensions/agi/bin/write.py` prints nothing; `git grep -n "re-point every reference" -- CLAUDE.md skills` prints nothing; goal:g4.19's title no longer names Read routed through write.py.
+
+## Out of scope
+goal:g7.16.1.3 (bundle 3, and its row R: goal:g6.41.1 P1+P6, P5) · bundle 5 = goal:g6.41.1 P2-P4 + its Falsifier 1 (RESUMED) + core's edits to EXISTING files (write.py +125 after W-input, dispatch.py +86, boxes.py +87, provisioning.py, rotate.py) + profile_sync · the season-2 close.
 
 ## Agent Notes
 Assigned to **director-general-1**.
