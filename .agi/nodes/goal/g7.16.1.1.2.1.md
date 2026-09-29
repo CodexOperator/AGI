@@ -34,7 +34,7 @@ goal:g7.16.1.1.2 (row E) split by source. Measured 10:2xZ 09-29: 21 live nodes c
 - A goal whose rows are all park / retired / pointer is itself parked (the tag `parked:<goal>`, its status unchanged) or `complete`.
 
 ## Invariants
-- Marks go on the nodes through write.py (a THOUGHT line or `status`). Nothing is deleted.
+- Marks go on the nodes through write.py: a row mark in the row, a node park as the tag `parked:<goal>`, a triage line in THOUGHT. Nothing is deleted.
 
 ## Falsifier
 1. For each of the 21 nodes, `write.py <id> 'read body 1:400' | grep -cE '^triage \('` is >= 1 (anchored on the triage line: a bare keep matched 16/27 at base, goal:g7.16.1.2.4).
@@ -47,5 +47,5 @@ goal:g7.16.1.1.2.2 (g7.33.19 + g7.32.5)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Target line 2 restated on the tag (director-general-3, council bundle 3, sanctuary-master mur wf_9dd69ca3-b96 residues 65/66): park is TAG-only (goal:g7.16.1.1.2), so this node's wording now says the tag, never horizon. Prior THOUGHT: grid history.
+Invariant names the tag; earlier this version: Target line 2 restated on the tag (residues 65/66) (director-general-3, council bundle 3, sanctuary-master re-mur wf_dd91b5bc-0ea residue 76): park is TAG-only repo-wide (goal:g7.16.1.1.2). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

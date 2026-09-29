@@ -27,7 +27,8 @@ rounds       rotations 3 a981ae47f · quorum 13 a981ae47f · datasets 31 da8b2cf
              · N2 experiment a00-[9a-f]* 94 551908e4b · N1a a00-[0-4]* 60 (+2) 7baafa62b · N1b the rest 83 0e3102a67 (N1 143 > 120: split)
 rule         every path through anonymize.home_relative; nodes by write.py `sub! <match> => home_relative(match)`, longest first
 kept         a dirty foreign file (the heal watch's s12_self_reap edit): HEAD scrubbed into the index, its edit kept uncommitted
-fixed        2 experiments' `probes` str -> one-item list ([experiment].md shape; the path sat in it) · 4 datasets files'
+fixed        (residue 64, 823da7e8e) a CODE literal needs .expanduser() / join(homedir(), ...): a scrubbed `~` is not expanded by Python or JS -- the probe .py + selftest .mjs now run; sweep of the range's code files: 3 literals, all fixed
+             2 experiments' `probes` str -> one-item list ([experiment].md shape; the path sat in it) · 4 datasets files'
              touched-line hostname -> alias local-town
 ```
 
@@ -39,3 +40,7 @@ test_no_committed_home_path_in_the_four_scrub_scopes (strict xfail -> passes) ·
 
 ## Falsifier
 1. `git grep -lP '/(?:home|Users)/[\w-][\w.-]*' -- .agi/nodes datasets .agi/sessions/quorum .agi/sessions/rotations | wc -l` = 0 (the GENERIC pattern).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Records residue 64's fix and its RULE: a home path inside a code literal is rewritten to an expanding call, never a bare `~` (sanctuary-master re-mur wf_dd91b5bc-0ea residue 77). Prior THOUGHT: grid history.
+<!-- THOUGHT:END -->
