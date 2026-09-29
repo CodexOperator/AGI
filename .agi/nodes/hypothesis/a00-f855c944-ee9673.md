@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.14
 next_edges: []
 confidence: 0.85
-edited_by: director-engine
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f855c944-js-half
 loop: goal:g7.33.14@s2
@@ -49,7 +49,7 @@ line to the 9 remaining scripts.
 
 ## What would prove it
 
-1. `grep -rn /home/ubuntu/work/agi extensions/agi/workflows/` = 0 (both halves).
+1. `grep -rn <home>/work/agi extensions/agi/workflows/` = 0 (both halves).
 2. Every one of the 9 declares the ROOT seam, before first use (TDZ).
 3. Every one of the 9 still parses (`node --check` on the export-stripped,
    async-wrapped body) — a botched string split shows up here, not in a run.

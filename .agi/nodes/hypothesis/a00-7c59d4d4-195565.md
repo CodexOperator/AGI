@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.14
 next_edges: []
 confidence: 0.9
-edited_by: director-engine
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-7c59d4d4-json-half
 loop: goal:g7.33.14@s2
@@ -34,7 +34,7 @@ every stage still renders.
 ## Conjuncts
 
 - **C1** each of the 7 manifests renders its root reference from the injected
-  `{project_root}`, and contains no `/home/ubuntu/work/agi` literal (raw file
+  `{project_root}`, and contains no `<home>/work/agi` literal (raw file
   or rendered output).
 - **C2** rendering is unbroken: `render_stage_prompt(st, {"project_root": R})`
   emits R for every migrated stage (no ``, no `cd  &&`), and the
@@ -44,7 +44,7 @@ every stage still renders.
 
 ## Falsifier
 
-Any residual `grep -rn /home/ubuntu/work/agi extensions/agi/workflows/*.json`
+Any residual `grep -rn <home>/work/agi extensions/agi/workflows/*.json`
 hit; any rendered stage missing R; any failing test in
 `test_workflow.py` / the new guard.
 
@@ -54,8 +54,8 @@ proved by experiment:a00-7c59d4d4-json-half — 12 literals across 7 files
 replaced (10 production lines), 5 new guard tests, 126 passed.
 
 ## Agent Notes
-Migrated 7 workflow .json manifests off /home/ubuntu/work/agi onto the existing {project_root} seam (10 production lines, no new resolver); added test_workflow_template_seam_json.py (5 tests); test_workflow.py + guard = 126 passed. The 9 agi-*.js siblings are still stale and belong to kid 2.
+Migrated 7 workflow .json manifests off <home>/work/agi onto the existing {project_root} seam (10 production lines, no new resolver); added test_workflow_template_seam_json.py (5 tests); test_workflow.py + guard = 126 passed. The 9 agi-*.js siblings are still stale and belong to kid 2.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 8 row 50: the note "the 9 agi-*.js siblings are still stale" was true when written and is not now -- measured gen 24: 14 agi-*.js, 0 carry /home/ubuntu/work/agi or the "/" + ROOT + "" concat (git grep). The .js half landed via hypothesis:a00-f855c944-ee9673 + 34ceccce2.
+PASS 8 row 50: the note "the 9 agi-*.js siblings are still stale" was true when written and is not now -- measured gen 24: 14 agi-*.js, 0 carry <home>/work/agi or the "/" + ROOT + "" concat (git grep). The .js half landed via hypothesis:a00-f855c944-ee9673 + 34ceccce2.
 <!-- THOUGHT:END -->

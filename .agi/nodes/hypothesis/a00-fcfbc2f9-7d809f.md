@@ -6,7 +6,7 @@ parents:
   - goal:g7.25.1
 next_edges: []
 confidence: 0.9
-edited_by: a00-11ad274b
+edited_by: director-general-3
 evidence_runs:
   - experiment:grok-bot-bare-bin-config-max
 loop: goal:g7.25.1@s2
@@ -26,7 +26,7 @@ verdict: proved
 
 ## SM.125 three-part line
 
-`config-max`: the box path `/home/ubuntu/.npm-global/bin/grok-bot` moves to the
+`config-max`: the box path `<home>/.npm-global/bin/grok-bot` moves to the
 `harnesses.grok-bot.bin` config cell (owned by `goal:g17.14.2`); the adapter file
 keeps only the bare PATH name `"grok-bot"`. / `template-max`: nothing moves to a
 template line — the argv template `<bin> [--model M] -p <context_file>` is
@@ -42,7 +42,7 @@ that rebuilds that same argv, as `goal:g4.7` requires.
 ## Hypothesis
 
 Adopting `grok_bot_adapter.py` with a **bare** `DEFAULT_BIN = "grok-bot"`
-(1) removes the `config_max` box literal `/home/ubuntu/.npm-global/bin/grok-bot`
+(1) removes the `config_max` box literal `<home>/.npm-global/bin/grok-bot`
 from the file — the box path lives in the `harnesses.grok-bot.bin` cell — while
 `resolve_bin`'s precedence stays exactly
 `$GROK_BOT_BIN > harness["bin"] > DEFAULT_BIN`; (2) the module still satisfies

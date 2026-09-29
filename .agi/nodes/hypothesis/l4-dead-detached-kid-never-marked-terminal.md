@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - idea:l4-dead-detached-kid-never-marked-terminal
 next_edges: []
-edited_by: sanctuary-helper
+edited_by: director-general-3
 scaffold_hash: da6d2a5214a5a3bf
 season: 2
 testable_claim: "A detached kid's agent.json stays status:running forever if the kid process dies without calling cli.py done, because no reaper phase watches kids -- only dispatch.py's parent-facing reaper (_reaper_phase/_reap_one/_reap_one_impl, dispatch.py:1705-1940+) does, and a parent instructed to poll its kids until each is done or failed polls a dead one forever by construction. Reproduced live by the assigning director: a kid died on an upstream 404, its agent.json read status:running/finished_at:null two minutes after the pid was confirmed dead, cli.py status echoed the stale status, and the parent polled the corpse for ~9 minutes before being killed by hand. ROOT-CAUSED FURTHER: the primitive to detect this already exists and is already imported by stall_detect.py's own module -- spawn_budget._pid_alive(pid) (spawn_budget.py:208-244), a zombie-aware, EPERM-aware liveness check, already the thing dispatch.py's parent reaper effectively relies on. A kid's own agent.json record already carries a `pid` field (confirmed against the preserved evidence -- see brief). Falsifiable: (1) a fixture built from the frozen real evidence at .agi/sessions/iter-L4.85/ under the a00-e9572046 worktree (read-only, do not modify) is detected as this state; (2) a fixture where the pid IS alive is not; (3) a test that the recorded label is absent from spawn_budget.TERMINAL; (4) a test that nothing is killed, restarted, or committed when it fires. Open design question, explicitly NOT resolved here, this round's to decide from the code: does one primitive (pid-liveness against the record's own status) cleanly unify with, or replace, hypothesis:l4-stalled-is-a-state-the-harness-can-see's (L4.78) and hypothesis:l4-stall-before-work's (L4.82) detectors, or is a third sibling detector -- mirroring their exact established pattern -- the better shape? Both are legitimate outcomes; an unjustified choice either way is not."
@@ -62,7 +62,7 @@ own `agent.json` record already carries a `pid` field -- confirmed directly
 against the frozen evidence below, this is not an assumption.
 
 EVIDENCE, PRESERVED AND READ-ONLY, USE IT RATHER THAN A SYNTHETIC FIXTURE:
-`/home/ubuntu/work/agi/.agi/worktrees/a00-e9572046/.agi/sessions/iter-L4.85/`
+`<home>/work/agi/.agi/worktrees/a00-e9572046/.agi/sessions/iter-L4.85/`
 -- the real manifest and the real kid `agent.json`
 (`a00-d0a67d4f/agent.json`), frozen at `status: running`, `pid: 2130989`
 (confirmed dead), no `finished_at`. 🔴 DO NOT MODIFY OR DELETE THAT

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-meter-pinned-another-sessions-transcript
   - goal:g7.16
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: cfc753c4e0356011
 season: 2
 status: inconclusive_lean_proved:85
@@ -37,7 +37,7 @@ WHAT THE ROUND GOT RIGHT, and it is the load-bearing half: the handed transcript
 
 **DEFECT 2 — THE EMITTED COMMAND COULD NOT RUN.** It printed `--seat <s> --pin --session-log <path>`, and `--pin` TAKES A PATH, so it swallowed the `--session-log` flag as its own value. P5 — hand over a copy-pasteable next command — is the hook's whole reason to exist, so an unrunnable command is not a typo, it is the deliverable failing. Identical in shape to the guard whose printed remedy did not clear the guard, repaired in L4.98 item 2 four hours earlier: the reader does exactly what the tool said and it does not work, and concludes the tool is broken.
 
-**DEFECT 3 — THE PIN PATH WAS WORKTREE-LOCAL, and I only found it because I ran the repaired hook and read the path it printed.** It computed `root / "sessions"`, but pins are SHARED state and `rotate._sessions_dir` routes them to the MAIN checkout via `locations.git_common_root`. The emitted command would have written a pin to `…/worktrees/seat-<name>/.agi/sessions/` — where nothing looks — instead of `/home/ubuntu/work/agi/.agi/sessions/`. **A round about the meter capturing the wrong transcript nearly shipped a command that pins to a path no reader consults.** The repair ASKS `rotate._sessions_dir` rather than reimplementing it (a sixth private copy of a path rule is how this project keeps paying for the same defect) and returns None rather than guessing when it cannot, falling back to the seat-less form. **Never guess a pin path** is the whole chain's lesson.
+**DEFECT 3 — THE PIN PATH WAS WORKTREE-LOCAL, and I only found it because I ran the repaired hook and read the path it printed.** It computed `root / "sessions"`, but pins are SHARED state and `rotate._sessions_dir` routes them to the MAIN checkout via `locations.git_common_root`. The emitted command would have written a pin to `…/worktrees/seat-<name>/.agi/sessions/` — where nothing looks — instead of `<home>/work/agi/.agi/sessions/`. **A round about the meter capturing the wrong transcript nearly shipped a command that pins to a path no reader consults.** The repair ASKS `rotate._sessions_dir` rather than reimplementing it (a sixth private copy of a path rule is how this project keeps paying for the same defect) and returns None rather than guessing when it cannot, falling back to the seat-less form. **Never guess a pin path** is the whole chain's lesson.
 
 🔴 THE FINDING THAT OUTLIVES THIS ROUND: **THE ROUND'S EIGHT TESTS PASS IDENTICALLY BEFORE AND AFTER A 141x CORRECTION.** They are not bad tests; they are tests whose fixtures carry one or two assistant messages, where the sum and the latest are the same number. A suite that cannot distinguish the defect from the fix is not testing the claim — and it is green either way, which is the dangerous part. This is the sharpest instance yet of "run the thing against the real tree before you believe its tests", and the two repair tests I added are built so the WRONG implementation fails them: a 200-turn fixture where sum and latest differ by construction, and a check that the emitted argv PARSES against rotate.py's own parser rather than merely looking right.
 

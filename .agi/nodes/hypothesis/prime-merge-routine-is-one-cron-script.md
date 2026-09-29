@@ -6,7 +6,7 @@ parents:
   - goal:g15
 next_edges: []
 confidence: 0.7
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: 6f3986e6d4fbfc17
 season: 2
 testable_claim: "A single cron-driven script (prime_merge.py tick) reproduces the Prime's hand merge routine end-to-end on local-town: given a town trunk ahead of season2/main with landed experiments it sends the 5 h notice once, runs the merge-up-review in <=6-round chunks at run_at, merges --no-ff by SHA into season2/main only on all-GO, verifies, pushes, and never merges on a red -- proved by its own tests on a temp repo and one live tick."
@@ -30,9 +30,9 @@ State `.agi/sessions/prime-merge.state.json` {root, town, last_merged_town_sha, 
 Tests: temp repo with root + town branches; fake runner via env `PRIME_MERGE_WORKFLOW_CMD`; transitions no-delta / notice / wait / run-GO / run-red; never-merge-on-red; ancestry refusal; chunking 13 → 6+6+1.
 
 ## Limitations measured by the Prime on local-town (candidate follow-up rounds, assigned to director-engine)
-- L1 `workflow.py:1381` `_pi_harness_cfg` is config-over-env: `workflow.py run --harness pi` launches the config's `/home/ubuntu/.npm-global/bin/pi` even with PI_BIN set (pi_adapter.resolve_bin is env-over-config; heal.py:3113 env-first). Works here only because that path was made to exist by hand. Fix = env-over-config + one test.
+- L1 `workflow.py:1381` `_pi_harness_cfg` is config-over-env: `workflow.py run --harness pi` launches the config's `<home>/.npm-global/bin/pi` even with PI_BIN set (pi_adapter.resolve_bin is env-over-config; heal.py:3113 env-first). Works here only because that path was made to exist by hand. Fix = env-over-config + one test.
 - L2 crons.py: the optional `log:` cell is not placeholder-rendered — `{logs}` reached the crontab literally (01:5xZ 09-21); the cell was dropped. Fix = render `log` like `cmd`, or refuse an unrendered brace.
-- L3 `.agi/config.json` `box.*` and `harnesses.*.bin` are core-town literals (/home/ubuntu…) in a tracked, merge-shared file; per-box values need the box overlay or `{user}`/`$PATH` resolution.
+- L3 `.agi/config.json` `box.*` and `harnesses.*.bin` are core-town literals (<home>…) in a tracked, merge-shared file; per-box values need the box overlay or `{user}`/`$PATH` resolution.
 - L4 integration-branch names (`season2/main`, `season/s2`) omit the town trunk: `commands.py run verify` never stamps node-count on local-maxxing/season2/main; `verification.py window` reads season2/main's tip. The routine verifies in the season2/main worktree; the town trunk stays unstamped.
 - L5 `bin-suite-fresh` fails on local-town: no suite timestamp was ever recorded here (5804/18/26 at 701ac93bc ran by hand). The routine does not run the suite (one runner per tree).
 - L6 rotate-self `--force` into the prime slot wrote the successor as a spawn row at gen 1 (record gen_before 3 / gen_after 1; 0899a142e): the gen counter reset.

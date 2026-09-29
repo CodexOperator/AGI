@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - idea:domain-renderers
 domain: renderers
-edited_by: season.py
+edited_by: director-general-3
 season: 1
 spawns: []
 status: open
@@ -57,7 +57,7 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 from graph_core.loader import load_directory
 from renderers import render_mermaid, build_representation
 
-NODES_DIR = '/home/ubuntu/.hermes/agi-tree/nodes'
+NODES_DIR = '<home>/.hermes/agi-tree/nodes'
 
 graph, _ = load_directory(NODES_DIR)
 rep = build_representation(graph)

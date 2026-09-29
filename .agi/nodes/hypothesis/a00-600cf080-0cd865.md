@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.14
 next_edges: []
 confidence: 0.8
-edited_by: a00-bbdd35c4
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-600cf080-0cd865-exp
 loop: goal:g7.33.14@s2
@@ -32,7 +32,7 @@ residue it counts has already changed kind.**
 `goal:g7.33.14` clause 1 is the 0-grep-hits clause (the id it was written
 against, `goal:g73314-a-nonworkflow-residue`, was never minted; it was renamed
 to `goal:g7.33.14` in that goal's own THOUGHT — PASS 8 item 4). It asks for
-**0 hits** of `/home/ubuntu/work/agi` over `extensions/ .claude/ .agi/config.json`.
+**0 hits** of `<home>/work/agi` over `extensions/ .claude/ .agi/config.json`.
 **The 22 below was measured over a NARROWER set**
 (`extensions/agi/{bin,hooks,briefs,tests}` + `.agi/config.json`), not the
 clause's set, which held 46 at this round's base with 24 in
@@ -84,11 +84,11 @@ defending a path literal that no executing line reads.
 `bin/unify.py:409 _real_repos()` (409 at this tip; 407 at the 2026-09-25 base)
 reads the forbidden set from the `box.root` cell via `boxes.box_cells` and
 unions git's own common root with it (config-max, `goal:g15.29.2`). The
-hardcoded `/home/ubuntu/work/agi` in `test_unify.py` was therefore a *second,
+hardcoded `<home>/work/agi` in `test_unify.py` was therefore a *second,
 box-specific copy* of a set the engine already resolves from config.
 **PASS 8 item 2 — the mechanism in the sentence this replaces was WRONG.** It
 did not pass "because this box happens to sit at that path": this box is
-`/data/work/agi` and `/home/ubuntu/work/agi` does not exist here. It passed
+`/data/work/agi` and `<home>/work/agi` does not exist here. It passed
 because the `box.root` CELL was stale (`unify.py:426` freezes
 `_FORBIDDEN_REAL_PATHS` at import). The cleanup this node then instructed is
 DANGEROUS: correcting the cell makes `test_unify.py:529` fail — `preflight`

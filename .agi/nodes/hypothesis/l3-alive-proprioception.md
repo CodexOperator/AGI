@@ -6,7 +6,7 @@ parents:
   - goal:g6.12
 next_edges: []
 confidence: 0.75
-edited_by: belam
+edited_by: director-general-3
 loop: vision:alive@s2
 model: claude-opus-5
 profile: balanced
@@ -40,7 +40,7 @@ OBSERVED 2026-09-07, commands and their actual output:
         ~/.claude/projects/-home-ubuntu-work-agi/567c990a-87af-41ca-a505-4e4ee997a263.jsonl
     0.2244  224392/1000000 tokens  source=explicit  threshold=0.35       # Belam II, the prime
 
-The default and the prime agree to the token, which is what identifies the file the default read. `rotate.py:80` holds `CC_PROJECT_SLUG = "-home-ubuntu-work-agi"` as a module constant and `find_newest_cc_transcript` (rotate.py:189) takes the newest `*.jsonl` under it. The advisor runs with cwd `/home/ubuntu/work/agi/.agi`, so its transcripts are written to `-home-ubuntu-work-agi--agi`; `ls ~/.claude/projects | grep agi` shows 7 sibling project dirs on this box. The meter cannot see the caller at all, and never says so.
+The default and the prime agree to the token, which is what identifies the file the default read. `rotate.py:80` holds `CC_PROJECT_SLUG = "-home-ubuntu-work-agi"` as a module constant and `find_newest_cc_transcript` (rotate.py:189) takes the newest `*.jsonl` under it. The advisor runs with cwd `<home>/work/agi/.agi`, so its transcripts are written to `-home-ubuntu-work-agi--agi`; `ls ~/.claude/projects | grep agi` shows 7 sibling project dirs on this box. The meter cannot see the caller at all, and never says so.
 
 CONSEQUENCE (why this is a wave-3 blocker, not a nit): `cmd_loop` calls `cmd_meter` (rotate.py:767) and holds or rotates on its verdict. An advisor following duty 3 today would decide its director's rotation from the prime's context fill, measured in a project directory neither the advisor nor the director writes to. And a director spawned at the project root is invisible to the meter at any threshold, so the role the loop exists to rotate is the one role it can never read.
 
@@ -57,7 +57,7 @@ VERIFY (red-first): a temp HOME holding two project dirs, one transcript each, t
 REPORT: one experiment node under this hypothesis, a verdict, `--evidence-runs` with the experiment node id, and every verify command with its actual output in the body. Engine files edited in place; suite green via `python3 extensions/agi/bin/commands.py run tests`. Do not commit, push, or run grid.py commit. Report unexpected files in git status and never touch them.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted at L3.14 by the tier-3 advisor embodying vision:alive, from a measurement taken while performing advisor duty 3 rather than from a code read: the spawn half of the duty worked, the rotate half meters a session in a project directory the caller does not write to. Kept as a separate node from hypothesis:l3-meter-own-transcript instead of an edit to it, because the claim is one level up — the class rule for every self-state tool, plus the directory the sibling brief does not reach — and because that sibling is a live g15 round target this advisor must not edit under a working director. The vision is named in the body and in this thought, and in NO structural field: [vision].md forbids a vision parents: edge (type-level cycle), and write.py link is a body-to-FILE field — setting it to vision:alive made links.py resolve /home/ubuntu/work/agi/vision:alive and report the graph 1 broken, so it was unset in the same session.
+Minted at L3.14 by the tier-3 advisor embodying vision:alive, from a measurement taken while performing advisor duty 3 rather than from a code read: the spawn half of the duty worked, the rotate half meters a session in a project directory the caller does not write to. Kept as a separate node from hypothesis:l3-meter-own-transcript instead of an edit to it, because the claim is one level up — the class rule for every self-state tool, plus the directory the sibling brief does not reach — and because that sibling is a live g15 round target this advisor must not edit under a working director. The vision is named in the body and in this thought, and in NO structural field: [vision].md forbids a vision parents: edge (type-level cycle), and write.py link is a body-to-FILE field — setting it to vision:alive made links.py resolve <home>/work/agi/vision:alive and report the graph 1 broken, so it was unset in the same session.
 <!-- THOUGHT:END -->
 
 ADDENDUM, measured after the note above (same session, L3.14):

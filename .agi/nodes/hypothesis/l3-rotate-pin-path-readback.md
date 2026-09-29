@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g6.10
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: 603453b796ff7953
 season: 2
 testable_claim: After the fix, rotate.py loop meters the caller's own transcript with no --session-log (pin resolves under <root>/.agi/sessions/<name>.meter, never <root>/.agi/.agi/sessions) and the successor read-back skips bracketed log lines such as [DEBUG] MDM settings load completed, reporting continue when the successor's first bare answer line is continue; proved by red-first tests in test_rotate.py and a dry rotate.py meter --check run with no --session-log.
@@ -24,7 +24,7 @@ CLAIM
 After the fix, `rotate.py loop` meters the caller's own transcript with no `--session-log`: the pin file resolves under `<root>/.agi/sessions/<name>.meter` (never `<root>/.agi/.agi/sessions`), and the successor read-back skips bracketed log lines such as `[DEBUG] MDM settings load completed`, reporting `continue` when the successor's first bare answer line is `continue`.
 
 WHY
-Belam III's rotation to Belam IV (2026-09-07 14:04 UTC, `rotate.py loop --role prime_director --name belam-S1-L3-IV`) hit both defects in one run and Belam III reported them by DM: (1) the loop's meter step failed with "could not read the pinned transcript (pin file under /home/ubuntu/work/agi/.agi/.agi/sessions) not found" — the L3.15 resolver joins a root that already ends in `.agi` with `.agi/sessions`; (2) the read-back captured `[DEBUG] MDM settings load completed` from the successor's pane instead of its single-word answer and printed "handoff needs change" although the successor had answered `continue` and carried on. A rotation primitive that cannot meter itself or hear its successor is a seat-rotation loop (goal:g17, `l3w4-seat-rotation-loops`) that fails on its first turn.
+Belam III's rotation to Belam IV (2026-09-07 14:04 UTC, `rotate.py loop --role prime_director --name belam-S1-L3-IV`) hit both defects in one run and Belam III reported them by DM: (1) the loop's meter step failed with "could not read the pinned transcript (pin file under <home>/work/agi/.agi/.agi/sessions) not found" — the L3.15 resolver joins a root that already ends in `.agi` with `.agi/sessions`; (2) the read-back captured `[DEBUG] MDM settings load completed` from the successor's pane instead of its single-word answer and printed "handoff needs change" although the successor had answered `continue` and carried on. A rotation primitive that cannot meter itself or hear its successor is a seat-rotation loop (goal:g17, `l3w4-seat-rotation-loops`) that fails on its first turn.
 
 FILES
 extensions/agi/bin/rotate.py :: resolve_transcript / the pin-file resolver added in L3.15 (path join), cmd_loop (read-back), cmd_meter
