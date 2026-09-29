@@ -46,11 +46,20 @@ Measured by belam 06:3xZ from `.agi/sessions/inbox/director-engine.md` + `send.p
 5. read = a new dm node version with the read flag true, pushed to the SENDER's remote head (a reply appends; a fresh dm writes a new version); other posts learn read status on their next sync.
 6. no separate inbox system: .agi/sessions/inbox/* retires once 1-5 hold.
 
+## RE-SHAPE (council 00:0xZ 09-30, all three lenses; Prime ruling (a) belam-S2-L5-XVIII) -- supersedes design parts 2-5 above where they differ
+Follows the owner's 09-29 22:4xZ-23:0xZ direction (goal:g7.16.1.6: a node write IS one commit on its own refs/grid/<mint>; "No more grid crons at all"), so the per-box sync cron of part 3 goes: the moved-set push of goal:g7.16.1.6 carries messages. Placed right after goal:g7.16.1.6 (it stands on it). Measured: messaging = 3 routes today (verdict:dg2-s1-dm-family: inbox file · comms dm/room file · CC SendMessage; a pi post cannot use the third); 123 of 152 season-2 dm files are kid conversations.
+```
+ONE conversation node per dm pair / room (members: 2 = dm, N = room); a message = a VERSION on its own refs/grid/<mint>
+unread = ref commits after the reader's last-read commit (no state.json; ends the empty-read / phantom-nudge bug)
+wake = an ADAPTER verb (CC -> SendMessage · pi -> its own) · a retired member's conversations retire with it
+read = the render path (goal:g4.18.7) · write = write.py · no messaging-only verb · no second cron
+3 routes -> 1 write + 1 wake; the inbox route (R1) retires
+```
 ## Done when
 A dm between two posts on different boxes and one between two posts on the same box both arrive by the same post-branch route (the addressee row's remote head) within one sync interval of the push; the read row flips and is visible to the sender's box on its next sync; no inbox file is written; the interval is a config cell.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-S2-L5-XIII 06:1xZ 09-27: RENAMED goal:send-is-hub-only-dm-file-versions-synced-every-30s -> goal:g7.32.6 (mint_id 6115b3a2a9784c66adac27ca7413a8f5 kept; parent goal:g7.32 unchanged; G7.32.6 = highest G7.32 child 5 + 1). (1) SAID, owner 06:1xZ: 'the goal may need renaming because DMs aren't hub only anymore but get sent according to post branch address in send redesign'. (2) DOES: the old slug named the 20:3xZ hub-only reading, which the owner's own 20:4xZ + 20:5xZ notes on this node had already replaced (send pushes to the addressee post's designated remote head, else the nearest lowest-level remote branch; per-box cron at 1-3 min). The node also carried no goal_id/goal_kind, so its spawn check read 'schema goal is discriminated on goal_kind, which this node does not set'; now goal_id G7.32.6, goal_kind subgoal, heading_level 4, origin goals-doc, seeds [], confidence 0.7, tags [engine, messaging] (copied from sibling G7.32.5). (3) NEAR MISS: retitling in place keeps a slug that still says hub-only and 30 s, and every dm, card and skill that cites it would keep teaching the retired route; a new goal instead of a move would orphan the mint_id's grid history and its notes. (4) The design lines 2-5 and Done-when are rewritten to the post-branch route from the owner's 20:4xZ/20:5xZ words; the 20:3xZ owner text stays verbatim. References re-pointed in the same commit: g7.31.3.3, g7.32.5, g7.33.18, town:local-maxxing, town:streaming-suite, skills/agi-send.
+belam-S2-L5-XVIII 00:0xZ 09-30: Prime ruling (a) on the council [decision] (all-is-one for all three): re-shaped in place so the id and its history carry on. The older owner lines stay verbatim; the re-shape supersedes the per-box sync cron because the owner 23:0xZ 09-29 ruled out grid crons and made every node write a grid-ref commit (goal:g7.16.1.6).
 <!-- THOUGHT:END -->
 
 ## Agent Notes
