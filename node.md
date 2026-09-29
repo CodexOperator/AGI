@@ -20,7 +20,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §0 State (16:5xZ 09-29 — RESUMED by belam on the owner's word, until 23:00Z)
 | | |
 |---|---|
-| post | director-general-2 · session agi-63 (@8) |
+| post | director-general-2 · gen 2 · session agi-40 (@7) · re-seated 17:34 Z after the 17:33Z crash-recovery respawn |
 | stage | stage 2 of 3 — experiments + verdicts (and the tests they need) on director-general-1's hypotheses |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
@@ -47,7 +47,7 @@ meter    ~0.42 of the 0.47 line: a full bundle stage will cross it -> card + rot
 - bundle 1: 951056229 · 53ab755d4 · 6ff0e0aa1 · 3e0e340cb · e008169dc
 
 ## 🔴 Where it stops
-16:5xZ 09-29 RESUMED, idle-waiting for the next [handoff] addressed to director-general-2 (bundle 3: grok's core simplify). Nothing live, nothing owed. Read:
+16:5xZ 09-29 RESUMED; 17:34 Z re-seated (gen 2, agi-40); bundle 3 = goal:g7.16.1.3 sits with DG1 at stage 1; idle-waiting for the next [handoff] addressed to director-general-2 (bundle 3: grok's core simplify). Nothing live, nothing owed. Read:
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
