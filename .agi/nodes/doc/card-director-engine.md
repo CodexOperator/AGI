@@ -53,7 +53,7 @@ BOX       / at 94 pct 21:1xZ (6.5 GiB free) · belam 22:12Z (OWNER GO): per-role
           on it, confirm send, rotate, grid, dispatch and the suite still work (one line each, to TM) · the other town left the free lane
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.188 · next murq282 · EG.166 HARVESTED 23:35Z (text-only, tip 74bb47d11, 3 parent node edits LANDED) -> murq281 · D/harvest-all.sh fixed 23:4xZ: a full extensions/agi/tests/ TESTS path was prefixed twice (EG.184 186 ran only the help smoke) · EG.174 -> murq280 · EG.186 HARVESTED 23:33Z (a00-ed3b6fd7, tip a2fa54dce, tree VANISHED; tests on a temp worktree 96 passed): parent DEMOTED lean_disproved:65 -- consecutive bound has NO total stop (606 attempts in 15 s) + ceiling +34/+55 vs 25/40 -> CORRECTIVE EG.187 (total-attempt cell, default 4 x (max+1); comment; F4; breach recorded) placing via pq187 after redispw EG.177; mur the chain at EG.187 tip
+SERIES    next EG.188 · next murq285 · redispw DEQUEUES then sleeps 10 min: place by hand only in its sleep (check redispw.log last line)
           drives 272 275 276 278 until they end -- TMM.360: never skip a mur, keep re-arming; next [count] to TM after EG.186 lands (deaths /
           dispatches + mur stage survival); still 100 pct dead after EG.185 lands -> the lane/model question goes to belam
           · EG.186 LIVE a00-ed3b6fd7 (22:50Z) on cut 50b35023b = trunk 56c012118 + the node's 2 commits cherry-picked -- TRAP: place2 cut a NEW
@@ -67,19 +67,15 @@ AUTO      deadwatch (detector: every ended EG.16x-19x parent -> HARVEST line or 
 PROVIDER  since 20:0xZ the pi-free model returns 'Provider returned an empty response': 11+ parents died 0-commit, most mur stages die.
           FIXES: EG.151 chain MERGED 63cc7e072 (parent-side retry, in #4) · EG.183 (TMM.350, workflow-stage signatures) harvested
           2d0b3c8ed -> murq274; its config:workflows cell was NOT written -> the corrective must add it
-LIVE      21:1xZ reconcile: EG.184 a00-c38d9fc2 (+ kid a00-0375e79c) · EG.173 re-dispatch a00-78d234f6 (redispw) · serial17 places EG.182
-          · EG.170 + EG.165 ended with commits UNSEEN by deadwatch (its 20:36 start seeded every existing parent as seen, live ones too)
-          -> harvested 21:08Z green (170: 120 passed at 492d7397f · 165: 117 passed, 1 node landed, at 56d44d93e)
-          · EG.184 HARVESTED 22:31Z (a00-c8f1d0f6 on 66e7f3cf2, tip a06ca6e3e, 2 commits, 6/6 retries used): the TMM.351 one call on the
-            tip = 591 passed 0 failed (cut: 1 failed) -> needs its mur (dies on the old runner) · 22:3xZ [count] + [decision] to TM: A raise
-            pi_retry to 12 x 60 s + EG.186 ahead / B hold murs, land on the gate alone / C both -- OPEN
-MURS      rmur (re-run until no empty-response stage): 272 EG.161 · 274 EG.183 · 275 EG.164 (armed 21:08) · 276 EG.178 (armed 21:23)
-          · 277 EG.170-k1 b49c5db9e..492d7397f (facts window) · 278 EG.165-k1 b1d171bf0..56d44d93e (armed 21:28; parent wrote proved THEN
-          inconclusive_lean_disproved:25) · JUDGED: 271 EG.169 -> MERGED (in #5) · 273 EG.175 -> director close -> MERGED (in #5)
-          · 267-270 -> 179-182 · 259-266 -> 171-178 (176 = director close, EG.153 chain)
-          · 22:2xZ murq274 (EG.183) re-run on EG.183's OWN workflow.py (copy T/workflow-eg183.py, from cut 736f5602a: empty-response stage
-          retry 2 x 15/45 s) -- rmur274 STOPPED; a runner swap, not a merge. OWNER 22:2xZ (relayed to TM verbatim): retire all workflows over
-          time in favor of the unified dispatch route -- TM's plan; the murs stay the bridge until then
+LIVE      00:0xZ 09-29: parents EG.177 a00-247f5c20 (redispw) · queue (redispw, 10 min apart): EG.171 180 181 182 173 168 172 -- all but 180
+          181 173 on 12 x 60 s cuts · HARVESTED, awaiting murs (none merged): EG.170 492d7397f (277) · EG.165 56d44d93e (278) · EG.184
+          a06ca6e3e one call 591/0 (279) · EG.174 24634a90c (280) · EG.166 74bb47d11 text (281) · EG.186 a2fa54dce parent DEMOTED no total
+          stop (282) + EG.187 c71d768f8 corrective 98 passed, ceiling +26/+48 recorded (283) · EG.179 15c89aa12 162 passed (284) · EG.185
+          0789fd376 parent lean_proved:75: its ONE red = config:workflows pi_transient_signatures is a PRIME-ONLY write (goal:g12; kid's
+          exact command on experiment:a00-be655ee1-a37a78 THE BLOCK) -> [red] to TM 00:0xZ; the chain NEVER lands without the cell
+MURS      every mur still dies on empty responses (7+ tries each). Old runner (rmur.sh): 272. EG.183 runner (rmur2.sh + runmur2.sh, T/ -> the
+          de-base-EG.185 cut's workflow.py, 3 attempts 15/45 s): 274 275 276 277 278 279 280 281 282 283 284. UNLOCK = the cell on the trunk
+          -> sync the post -> point runmur2 at EG.185's tip workflow.py (reads the cell + values.pi_retry 12 x 60 s via _retry_cells)
 TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE · drop.py N "k.." "why" · textkid.py N · resnode.py FILE (hypothesis-node
           merge conflict: post sections + chain side, ONE THOUGHT) · rmur.sh Q · deadwatch.sh + redispw.sh (units above)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
