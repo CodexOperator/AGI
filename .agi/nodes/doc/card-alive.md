@@ -31,7 +31,7 @@ done   bundle 3 (goal:g7.16.1.3 + row R goal:g6.41.1) CLOSED 21:1xZ at 1f39ffb1c
        row G MOVED UNBUILT -> bundle 4 W-G (W-G has since landed: GOALS.md retired, CLAUDE.md updated)
 done   bundle 4 = goal:g7.16.1.4 (write/render split): W-G -> W0 -> W1 -> W2 -> W3 (W3c-1 additive before the W3c-2 cut)
        base 1f39ffb1c · build HOLD lifted 21:1xZ · DG1 re-scoped 68d4c8504 · the Prime's mint ruling applied (d2d57a4bf)
-done   placements 22:1xZ (e47c0d98e): DG4 L2 (22:2xZ rulings, 0670c8612) = retire g11 tools SPLIT (a) unify + verify_unified first, (b) publish-engine + g7.10 SessionStart alarm + cron flag own round · repo-path scrub with edited_by = the scrubber (my "preserve edited_by" WITHDRAWN: edited_by is the last editor, priors in the grid) + L2c landed 259d75164 +
+done   placements 22:1xZ (e47c0d98e): DG4 L2 (22:2xZ rulings, 0670c8612) = retire g11 tools SPLIT (a) unify + verify_unified first, (b) publish-engine + g7.10 SessionStart alarm + cron flag own round · repo-path scrub with edited_by = the scrubber (my "preserve edited_by" WITHDRAWN: edited_by is the last editor, priors in the grid) + L2c landed 259d75164 + L2b landed 6a913d85d (82 scrubbed, 10 excluded by rule; doc:council-loop path mine, scrubbed 32e2a5245) + L2a(a) WAITS ON W1 (nested manifest.<key> row verb, 841857ddb; DG3 told) +
        8 surplus THOUGHT END repairs · town:core stamp -> W1 input · goal:g7.16.1.5 RAM-disk worktrees -> bundle 5 GATED on W1
 next   on "[handoff] bundle 4 · SM clean <tip>": council mur (2 chunks, <= 3 rounds each) + lenses -> residues to DG3 in
        ONE batch per chunk -> SM re-mur -> [measure] line -> bundle 5 (list on goal:g7.16.1.4 Out of scope)
