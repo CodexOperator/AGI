@@ -165,3 +165,59 @@ def test_seated_writer_own_signing_cells_still_refuse_other_rows(project):
     new[2]["pubkey"] = "abc123"  # sanctuary-helper's row
     with pytest.raises(write.EditError):
         write.submit(project, _set_seats_edit(new), actor="sanctuary-director-4e")
+
+
+# --- DH.29 residue: `prompt_marker` is a declared self_row field -------------
+
+def test_seated_writer_may_set_own_prompt_marker(project):
+    """ACCEPTANCE (DH.29): `prompt_marker` (the pane's box glyph, read by
+    send.py from the RECIPIENT's own row) is a declared self_row field, so a
+    seated post setting it on its OWN row is ADMITTED and lands on disk."""
+    new = _clone_rows()
+    new[1]["prompt_marker"] = ">>> "
+    res = write.submit(project, _set_seats_edit(new), actor="sanctuary-director-4e")
+    assert res.status == node_writer.UPDATED
+    assert "prompt_marker" in \
+        (project / "nodes/.geometry/seats.md").read_text(encoding="utf-8")
+
+
+def test_seated_writer_prompt_marker_on_another_row_refused(project):
+    """The grant must NOT widen: a seated writer touching `prompt_marker` on
+    ANOTHER seat's row is refused whole."""
+    new = _clone_rows()
+    new[2]["prompt_marker"] = ">>> "  # sanctuary-helper's row
+    with pytest.raises(write.EditError):
+        write.submit(project, _set_seats_edit(new), actor="sanctuary-director-4e")
+
+
+def test_seated_writer_still_unlisted_field_refused_by_name(project):
+    """Bound (DH.29): a field declared in NEITHER list (`owning_goal`) on the
+    own row is still refused BY NAME — adding `prompt_marker` widens nothing."""
+    new = _clone_rows()
+    new[1]["owning_goal"] = "goal:g99"
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, _set_seats_edit(new), actor="sanctuary-director-4e")
+    assert "owning_goal" in str(ei.value)
+
+
+def test_prompt_marker_pre_fix_refusal_witness(tmp_path):
+    """Pre-fix witness (DH.29): with the OLD self_row list (prompt_marker
+    ABSENT) the identical own-row write is refused BY NAME. The fixture schema
+    is DERIVED from the shipped bytes so it cannot silently drift."""
+    live = LIVE_SCHEMA.read_text(encoding="utf-8")
+    old = live.replace("session_label, prompt_marker]", "session_label]")
+    assert old != live, "old-list fixture could not be derived from live bytes"
+    root = tmp_path
+    agi = root / ".agi"
+    agi.mkdir(parents=True, exist_ok=True)
+    (agi / "config.json").write_text("{}", encoding="utf-8")
+    sd = agi / "context" / "schemas"
+    sd.mkdir(parents=True)
+    (sd / "[config].md").write_text(old, encoding="utf-8")
+    _write_seats_node(agi)
+    new = _clone_rows()
+    new[1]["prompt_marker"] = ">>> "
+    with pytest.raises(write.EditError) as ei:
+        write.submit(agi, _set_seats_edit(new), actor="sanctuary-director-4e")
+    msg = str(ei.value)
+    assert "prompt_marker" in msg and "self-row fields" in msg

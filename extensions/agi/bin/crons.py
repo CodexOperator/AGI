@@ -91,7 +91,7 @@ from frontmatter import split_frontmatter  # noqa: E402
 # which is what makes "running apply twice is byte-identical" true regardless
 # of how the node happens to order its `cadences:` mapping.
 KNOWN_JOBS = ("grid_sync", "branch_push", "publish_engine", "engine_push",
-              "mail_poll", "nudge_sweep")
+              "mail_poll", "nudge_sweep", "dm_sync")
 
 #: Relative to the project root `locations.find_project_root` resolves.
 #: `rglob("*.md")` traverses dot-directories (confirmed against `level3.py`),
@@ -960,6 +960,26 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         sched = _schedule_expr(jobs["nudge_sweep"])
         lines.append(
             f"{sched} cd {root} && python3 {send_py} wake --all-local "
+            f">> {log} 2>&1"
+        )
+
+    if "dm_sync" in jobs and jobs["dm_sync"]["enabled"] and _on_this_box(jobs["dm_sync"], own):
+        # g7.32.6.8: ONE per-box DM sync cron. Interval prefers the job's
+        # every_mins; else values.dm.sync_interval_min via dm_engine.
+        send_py = Path(engine_root) / "extensions" / "agi" / "bin" / "send.py"
+        job = dict(jobs["dm_sync"])
+        if job.get("every_mins") is None and job.get("schedule") is None:
+            try:
+                import json as _json
+                import dm_engine
+                cfg_path = Path(root) / ".agi" / "config.json"
+                cfg = _json.loads(cfg_path.read_text()) if cfg_path.is_file() else {}
+                job["every_mins"] = dm_engine.sync_interval_min(cfg)
+            except Exception:
+                job["every_mins"] = 3
+        sched = _schedule_expr(job)
+        lines.append(
+            f"{sched} cd {root} && python3 {send_py} dm-sync "
             f">> {log} 2>&1"
         )
 
