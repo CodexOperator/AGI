@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.8
 demote_reason: "parent review: honest that the integration was pre-existing committed work (18921b3c), but its 'SKIP_ENGINE_DRIFT_CHECK skip' test is false for drift_check.py (only driver.sh honors the env var — I re-ran it and the warning still fires under the flag). No new implementation; magnitude reduced 90→80."
 demoted_from: inconclusive_lean_proved:90
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 14eb0da6ba346d19
 season: 1
 thought_session: season
@@ -31,7 +31,7 @@ verdict: inconclusive_lean_proved:80
 ### Test 1 — Matching case (config pins actual HEAD)
 ```
 $ python3 extensions/agi/bin/drift_check.py
-[drift] OK: engine at /home/ubuntu/work/agi HEAD 179f95602839 matches pinned 179f95602839
+[drift] OK: engine at <home>/work/agi HEAD 179f95602839 matches pinned 179f95602839
 EXIT: 0
 ```
 Silent success. No false positive when engine is up to date.
@@ -39,8 +39,8 @@ Silent success. No false positive when engine is up to date.
 ### Test 2 — Drifted case (config pins `000000000000`)
 ```
 $ python3 extensions/agi/bin/drift_check.py
-[drift] WARNING: engine at /home/ubuntu/work/agi HEAD is 179f95602839 but config pins 000000000000
-[drift]   To update: git -C /home/ubuntu/work/agi pull  (or update config's engine_commit to 179f9560283936fae421e08002ef9db38d7f1e25)
+[drift] WARNING: engine at <home>/work/agi HEAD is 179f95602839 but config pins 000000000000
+[drift]   To update: git -C <home>/work/agi pull  (or update config's engine_commit to 179f9560283936fae421e08002ef9db38d7f1e25)
 EXIT: 0
 ```
 Non-fatal warning emitted to stderr (exit 0, matching the "never block, never fail" requirement).
@@ -59,13 +59,13 @@ All existing tests pass — the drift check is additive and touches no existing 
 ```
 === Test 1: MATCHING ===
 $ python3 extensions/agi/bin/drift_check.py
-[drift] OK: engine at /home/ubuntu/work/agi HEAD 179f95602839 matches pinned 179f95602839
+[drift] OK: engine at <home>/work/agi HEAD 179f95602839 matches pinned 179f95602839
 EXIT: 0
 
 === Test 2: DRIFTED ===
 $ python3 extensions/agi/bin/drift_check.py
-[drift] WARNING: engine at /home/ubuntu/work/agi HEAD is 179f95602839 but config pins 000000000000
-[drift]   To update: git -C /home/ubuntu/work/agi pull  (or update config's engine_commit to 179f9560283936fae421e08002ef9db38d7f1e25)
+[drift] WARNING: engine at <home>/work/agi HEAD is 179f95602839 but config pins 000000000000
+[drift]   To update: git -C <home>/work/agi pull  (or update config's engine_commit to 179f9560283936fae421e08002ef9db38d7f1e25)
 EXIT: 0
 
 === Test 3: TEST SUITE ===
