@@ -70,12 +70,14 @@ PROVIDER  since 20:0xZ the pi-free model returns 'Provider returned an empty res
 LIVE      00:0xZ 09-29: parents EG.177 a00-247f5c20 (redispw) · queue (redispw, 10 min apart): EG.171 180 181 182 173 168 172 -- all but 180
           181 173 on 12 x 60 s cuts · HARVESTED, awaiting murs (none merged): EG.170 492d7397f (277) · EG.165 56d44d93e (278) · EG.184
           a06ca6e3e one call 591/0 (279) · EG.174 24634a90c (280) · EG.166 74bb47d11 text (281) · EG.186 a2fa54dce parent DEMOTED no total
-          stop (282) + EG.187 c71d768f8 corrective 98 passed, ceiling +26/+48 recorded (283) · EG.179 15c89aa12 162 passed (284) · EG.185
-          0789fd376 parent lean_proved:75: its ONE red = config:workflows pi_transient_signatures is a PRIME-ONLY write (goal:g12; kid's
-          exact command on experiment:a00-be655ee1-a37a78 THE BLOCK) -> [red] to TM 00:0xZ; the chain NEVER lands without the cell
+          stop (282) + EG.187 c71d768f8 corrective 98 passed, ceiling +26/+48 recorded (283) · EG.179 15c89aa12 162 passed (284) · EG.185 0789fd376 parent lean_proved:75: its ONE red (the signature cell) -> TMM.361: thought-master put
+          values.pi_retry.transient_signatures in .agi/config.json (trunk ee40e8211, post 9020a6702) -> CORRECTIVE EG.188 (reader via _loc.load_config
+          like _pi_retry_policy; guard; re-pin the test; drop the geometry key) on cut 27beb2eb0 (= 0789fd376 + trunk, branch de-cut-EG.188),
+          placing via pq188 after redispw's next spawn; LAND before 01:43Z or after PASS B2 · EG.177 89614e720 smoke 72 passed (285;
+          it touched GOALS.md = derived: expect a finding)
 MURS      every mur still dies on empty responses (7+ tries each). Old runner (rmur.sh): 272. EG.183 runner (rmur2.sh + runmur2.sh, T/ -> the
-          de-base-EG.185 cut's workflow.py, 3 attempts 15/45 s): 274 275 276 277 278 279 280 281 282 283 284. UNLOCK = the cell on the trunk
-          -> sync the post -> point runmur2 at EG.185's tip workflow.py (reads the cell + values.pi_retry 12 x 60 s via _retry_cells)
+          de-base-EG.185 cut's workflow.py, 3 attempts 15/45 s): 274 275 276 277 278 279 280 281 282 283 284. UNLOCK = EG.188 harvested -> point
+          runmur2 at ITS tip's workflow.py (signatures from values.pi_retry.transient_signatures + 12 x 60 s via _pi_retry_policy)
 TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE · drop.py N "k.." "why" · textkid.py N · resnode.py FILE (hypothesis-node
           merge conflict: post sections + chain side, ONE THOUGHT) · rmur.sh Q · deadwatch.sh + redispw.sh (units above)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
