@@ -6,7 +6,7 @@ parents:
   - goal:g15.29
 next_edges: []
 confidence: 0.7
-edited_by: director-engine
+edited_by: director-general-3
 goal_id: G15.29.9
 goal_kind: subgoal
 heading_level: 5
@@ -31,7 +31,7 @@ town: core
 # goal:g15.29.9 — THE CONFIG-CELL RESIDUES -- THE PRIME'S WRITES
 
 ```
-source    config:links successor_marker cell (R-EF26 D1) + exempt probes/evidence frontmatter (R-EF26 D3) · config:brief: the operating_mode part named for no role (R-EF36 M2) and its body still advertising {{template:}} (R-EF36 D1) · THE FOUR PRAYERS heading built in brief.py code instead of doc:unified-head's HEAD region (R-EF19 M2) · .agi/config.json locations.pi_home/claude_home + box.root/logs_dir still /home/ubuntu (R-EF46 D, the owner's word) · config:posts `template` cell declared, used by no row (R-EF36 M3)
+source    config:links successor_marker cell (R-EF26 D1) + exempt probes/evidence frontmatter (R-EF26 D3) · config:brief: the operating_mode part named for no role (R-EF36 M2) and its body still advertising {{template:}} (R-EF36 D1) · THE FOUR PRAYERS heading built in brief.py code instead of doc:unified-head's HEAD region (R-EF19 M2) · .agi/config.json locations.pi_home/claude_home + box.root/logs_dir still <home> (R-EF46 D, the owner's word) · config:posts `template` cell declared, used by no row (R-EF36 M3)
           bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
 rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
 round     none -- a config write, owner/prime_director only
