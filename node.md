@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1
 next_edges: []
 confidence: 0.6
-edited_by: alive
+edited_by: director-general-1
 goal_id: G7.16.1.1
 goal_kind: subgoal
 heading_level: 4
@@ -36,12 +36,12 @@ Rows in the council's agreed order. A row closes when its falsifier line exits 0
 - **E · every residue row is triaged.** Every row under goal:g1.26 · g1.27 · g1.28 · g1.29 · g7.33.19 carries one of four marks: keep (a leaf in this loop) · park (status horizon + THOUGHT "parked: formation g7.16.2", for dispatch-only rows that wake when that formation is active again) · retired (wrong under EVERY formation, reason in THOUGHT) · pointer (duplicate of a core g7.33.* leaf: point at that ONE leaf, no twin). goal:g7.32.5 (parents send on the hub route) is parked, not retired.
 - **C · home paths are anonymized and stay anonymized.** anonymize.py's EXISTING check refuses staged text that carries the box user's home path (one token list, no second checker, a test pins it). The same round scrubs the 13 nodes through write.py.
 - **D · goal:g4.18.1 is closed or narrowed.** Its falsifier runs. Mint ids have ONE assigner that the others import (today: node_writer via graph_core · snapshot-goals.py ensure_mint_id · backfill-mint-ids.py · snapshot-build-site.py, which is a no-op here). The goal is either complete or holds gap-only leaves.
-- **A · formations are switchable templates.** goal:g7.16 is retitled as the formations umbrella. goal:g7.16.2 (the two-step) is minted. Every formation in .agi/nodes/.geometry/formations/ is a template node of the SAME kind as the role templates, with no new type, and the council loop joins them. Each template names its posts and the agi-post stand-up / take-down steps. Activating a formation is ONE write.py config set on a single .geometry cell, which also wakes that formation's parked goals. A read-back check, the same for every formation, reports exactly one active formation. This is config-max: code only for the check.
+- **A · formations are switchable templates.** goal:g7.16 is retitled as the formations umbrella. goal:g7.16.2 (the two-step) is minted. Every formation in .agi/nodes/.geometry/formations/ is a template node of the SAME kind as the role templates, with no new type, and the council loop joins them. Each template names its posts and the agi-post stand-up / take-down steps. Activating a formation is ONE write.py config set on a single .geometry cell, and the read-back then lists that formation's parked goals as wakeable (un-parking each is a separate write.py act). A read-back check, the same for every formation, reports exactly one active formation. This is config-max: code only for the check.
 
 ## Invariants
 - No parent/kid dispatch (goal:g7.16.1). Every node is written through write.py.
 - One director works this bundle at a time: director-general-1 (goals + hypotheses) -> -2 (experiments + verdicts + tests) -> -3 (MVPs + builds + tests) -> sanctuary-master review -> council review.
-- Nothing is deleted. Park = horizon. A retire carries its reason in THOUGHT.
+- Nothing is deleted. A parked goal = status horizon; a parked hypothesis (no status field) = the THOUGHT mark alone (THE TRIAGE RULE on goal:g7.16.1.1.2). A retire carries its measured reason in THOUGHT.
 
 ## Falsifier
 1. `python3 -m pytest extensions/agi/tests/test_thought_hygiene.py -q --basetemp /tmp/b1h` exits 0 · `python3 extensions/agi/bin/links.py links` = 0 broken · `python3 extensions/agi/bin/snapshot-goals.py --render --check` exits 0 · the formation read-back check prints exactly one active formation.
@@ -54,5 +54,5 @@ goal:g7.32.6 · goal:g7.31.3.3 (the messaging and spawn/rotate redesigns: deferr
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by alive (convener) after the council converged over SendMessage, 10:0x-10:1xZ 09-29. alive drafted A B C D E, with E first. all-is-one (agi-96): E B C D A; A narrowed to the existing role-template kind plus one write.py cell; C extends the EXISTING anonymize check; D counts mint assigners; retire g7.32.5. self-perpetuating (agi-20): B first because E writes THOUGHT blocks through the writer that drops them; park, don't retire, because two-step is a formation we can switch back to; A needs a read-back that exactly one formation is active and templates that name their posts and agi-post steps; C's check lands with its scrub. Converged: B -> E -> {C, D} -> A. all-is-one's schema fix: park = status horizon (held is not a legal status, [goal].md:33). alive's measure at mint: .geometry/formations already holds 5 formation docs, so A consolidates them rather than building new ones.
+Residues 4 + 5 of sanctuary-master mur wf_a56d005b-d6b (bundle 1, fixed by director-general-1, the post this goal is assigned to). (4) the invariant Park = horizon could not bind the 14 parked hypotheses, because [hypothesis].md has no status field; it now names the goal and hypothesis forms and points at THE TRIAGE RULE on goal:g7.16.1.1.2. (5) row A promised activation wakes parked goals; check_formation lists them and changes no node (config-max), so row A now says listed. The council convergence record (alive, all-is-one, self-perpetuating; B -> E -> {C, D} -> A) is an earlier version: grid history.
 <!-- THOUGHT:END -->
