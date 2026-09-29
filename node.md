@@ -6,7 +6,7 @@ parents:
   - idea:engine-find-root
 build_kind: code
 confidence: 1.0
-edited_by: season.py
+edited_by: director-general-3
 origin: build-scan
 payload_ref: extensions/agi/lib/find-root.sh
 season: 1
@@ -65,9 +65,9 @@ Adds a descend fallback to `find_project_root` so the engine also works when a g
 7. Standing *inside* the engine clone at `fantasia/fantasia-tree/agi` → up-walk resolves to the tree above it. PASS.
 8. No tree at all, sourced inside a `bash -c 'set -euo pipefail; ...'` caller that handles the nonzero return with `||` → caller survived, script did not abort it. PASS.
 
-8/8. Then the real regression: `bash agi/extensions/agi/driver.sh --smoke --max-iters 1` from `/home/ubuntu/work/agi-tree` printed `[driver] PROJECT_ROOT=/home/ubuntu/work/agi-tree` — the up-walk path, unchanged. Nothing failed.
+8/8. Then the real regression: `bash agi/extensions/agi/driver.sh --smoke --max-iters 1` from `<home>/work/agi-tree` printed `[driver] PROJECT_ROOT=<home>/work/agi-tree` — the up-walk path, unchanged. Nothing failed.
 
-**Parent review, same version.** Re-running the five fixtures independently surfaced a defect this version had inherited from v1 rather than introduced: the executed-mode failure branch printed `$(pwd)`, so a run given an explicit path argument blamed the caller's working directory for a failure somewhere else entirely (`bash find-root.sh /tmp/x/barren` reported "under /home/ubuntu/work/agi-tree"). Fixed in this same version — the argument is captured once and the error names the directory actually searched, with `$PWD` used only as the default. Re-verified in both modes: with an argument and with none. This is recorded here rather than as a v3 because it is the same payload edit under review, not a later change branching off an accepted one.
+**Parent review, same version.** Re-running the five fixtures independently surfaced a defect this version had inherited from v1 rather than introduced: the executed-mode failure branch printed `$(pwd)`, so a run given an explicit path argument blamed the caller's working directory for a failure somewhere else entirely (`bash find-root.sh /tmp/x/barren` reported "under <home>/work/agi-tree"). Fixed in this same version — the argument is captured once and the error names the directory actually searched, with `$PWD` used only as the default. Re-verified in both modes: with an argument and with none. This is recorded here rather than as a v3 because it is the same payload edit under review, not a later change branching off an accepted one.
 
 **Known limitation — deliberately out of scope here.** The Python entry points (`bin/cli.py`, `bin/zoom.py`, `bin/metrics.py`, `bin/benchmark.py`, `bin/dispatch.py`, `bin/post_wire.py`, `bin/grid.py`, `bin/dashboard.py`) each carry their own private copy of project-root discovery and were not touched by this change — they still only walk up. Until they're pointed at this shared bash implementation (or gain an equivalent descend fallback of their own), a project using the new `<project>/<project>-tree/` layout will resolve correctly for `driver.sh` and the Claude Code session-start hook, but not yet for any of those Python tools invoked directly from `<project-repo>`. That unification is remaining work, not covered by this node.
 <!-- THOUGHT:END -->
