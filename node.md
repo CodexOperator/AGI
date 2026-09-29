@@ -34,7 +34,8 @@ done   00:3xZ outcome:council-bundle-1-g7-16-1-1 minted (ed4a7fcce, goal falsifi
 done   00:4xZ REVIEW bigger_outcome:council-bundles-1-3-one-source-fail-closed (SM 4ae3324b2) = ACCEPT (all 3 council posts); amend C3 open (ensure_tmux_session own systemd-run argv) -> .7 7a; .6 evidence: write.py commit refused 4x under PASS B3 suite lock
 done   00:5xZ NEW nested leaf under g7.16.1.1 (s-p mints, DG2): re-run bundle 1's 4 hypothesis falsifiers -> proved | named corrective; + alive's census: proved rules become a STANDING one-source census (registry = one config cell, one check in the verify pass; seed rows sent)
 done   00:5xZ MESSAGING bundle agreed with s-p, sent to alive to place: re-shape g7.32.6 onto .6, after .6 -- one conversation node (members 2 = dm, N = room), message = version on its ref, unread derived from the ref, wake = adapter verb, conversations retire with members, no 2nd cron; 3 routes (verdict:dg2-s1-dm-family) -> 1 write + 1 wake
-next   wait: alive places messaging; s-p mints the nested leaf; review each SM bigger_outcome as it lands
+done   01:0xZ belam ruled (a) 87aa5e02c: g7.32.6 re-shaped IN PLACE with the council shape (verified); alive drops the g7.16.1.8 draft; council places g7.32.6 right after .6; build -> directors by their split
+next   wait: s-p mints the nested leaf under g7.16.1.1; review each SM bigger_outcome as it lands
 never  OVERVIEW until .6, .7 and bundle 4 close (all 3 agreed)
 ```
 Lens questions for every bundle: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
