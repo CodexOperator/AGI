@@ -17,9 +17,6 @@ cadences:
     enabled: true
     box: local-town
     why_box: "the remote-box reader: mail_poll consumes inboxes fetched from the hub"
-  publish_engine:
-    schedule: 37 * * * *
-    enabled: false
   engine_push:
     schedule: 47 * * * *
     enabled: false
@@ -45,7 +42,7 @@ cadences:
     why_box: "reads this box's own /proc and user@ cgroup (OWNER 04:0xZ 09-26, after the 03:20Z memory livelock: raise a climb toward exhaustion before the box wedges); every threshold lives here, none in code"
     cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam
 crons_live: true
-edited_by: belam
+edited_by: director-general-4
 season: 1
 services:
   agi-alarms-sanctuary-master:
@@ -69,72 +66,7 @@ thought_session: season
 title: Cron cadence declaration
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Two defects, found by the parent re-verifying this node's own claim during a
-`goal:g11` migration freeze: flipping the frontmatter boolean off really does
-remove every managed line (confirmed live: 2 lines removed), but this node's
-OWN PROSE never said which value does that — a reader had no way to answer
-"which value turns the crons off" from the node that exists to answer it,
-which is exactly what happened: the crons were believed disabled while they
-kept running and pushing.
-
-The root cause was mechanical, not a one-off typo: every past edit to
-`crons_live` replaced the boolean with a global find-and-replace that ran
-through this body's prose as well as the frontmatter, because the prose used
-to spell out the literal pattern `` `crons_live: true` `` (key, colon, and
-value glued into one string) in its own headings and sentences. A
-find-and-replace targeting that exact string flips the frontmatter and every
-matching prose occurrence together, so both sides of the explanation always
-carried the *same* value — self-contradictory at v1 (`true`), the
-all-`false` version, and back to `true` again, every time, by construction.
-Confirmed across the three prior versions of this node
-(`git show 78a95fa89:nodes/.geometry/crons.md`,
-`git show 90ff99986:...`, `git show 27855bafc:...`): the same X appeared on
-both sides of "`crons_live: X` is the single flip that removes... and
-`crons_live: X` is the equally single flip that brings back", which cannot be
-true for any single X.
-
-**Fixed by never writing that composite string again.** The two sections
-below name `` `crons_live` `` once, as the key, and name `` `false` `` and
-`` `true` `` separately, as plain values, each tied to its own effect in its
-own sentence — no shared "key: value" token exists anywhere in this body for
-a blanket replace to catch. A future edit to the frontmatter's boolean can
-therefore no longer drag the prose's claim along with it; the prose will only
-go stale if someone edits *it* directly, which is a normal editing risk, not
-a self-inflicted structural one.
-
-Also worth recording precisely, because the old text had it backwards: the
-self-reapply edge case belongs to `false`, not `true`. `crons_live: false`
-removes *all four* lines unconditionally (`grid_sync`'s own `enabled: true`
-does not save it) — including `grid_sync` itself, which is the job that
-would otherwise notice the next edit and re-apply it within five minutes. So
-going back to `true` needs one manual `crons.py apply` to install the first
-round of lines; after that, `grid_sync` is running again and every
-subsequent edit to this node self-applies as before, with no further manual
-step. `true` does not unconditionally install all four lines either — only
-the ones whose own `cadences.<job>.enabled` is `true`, which today is
-`grid_sync` and `branch_push` (`publish_engine` and `engine_push` stay
-disabled regardless of `crons_live`).
-
-Second, unrelated defect fixed in this same version: this node carried two
-authored reasoning regions (marked with the paired HTML comment this schema
-uses for exactly one such region per node) — the previous version's, about
-retiring the `publish_engine`/`engine_push` cadences after `goal:g11`, left
-at the top; and an older one below it, about correcting this node's own mint
-from parentless to `parents: [goal:g2.25]`, from the version before that.
-Past edits added a new region at the top without removing the one
-underneath, which the schema does not allow — exactly one such region per
-node, rewritten from scratch per version. Both are merged into this single
-one. The
-parentage fix from the older block is still true and is why `parents:
-[goal:g2.25]` is set above; that fact now lives in the frontmatter itself; it
-does not need to be restated at length here. The cadence-retirement reasoning
-from the newer block is still current and now lives in the body below,
-unchanged in substance.
-
-`crons_live` is left `false` in this version — the parent froze the crons
-deliberately for the duration of this migration and restores it at the end.
-This version changes only the prose and the duplicate-block cleanup, not the
-frozen state.
+L2a(b) (director-general-4, council-loop; goal:g7.16.1.4.1.1, placed by alive 22:3xZ): the publish_engine cadence (enabled false since goal:g11) is removed with publish-engine.sh, which it ran; removed from the node BEFORE crons.py drops it from KNOWN_JOBS, because a known job that is never declared is skipped while an unknown one with no cmd is refused, so the 5-min apply never sees an inconsistent pair. engine_push is out of this row's scope. The cadence stays readable in this node grid history.
 <!-- THOUGHT:END -->
 
 The scheduling cadence for this project's four recurring jobs, declared as
