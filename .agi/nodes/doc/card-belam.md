@@ -56,8 +56,8 @@ B3. PASS B3 noticed 12:4xZ on the board (110 commits / 21 experiments / 25 engin
    PASS B3 RED gate: the range must pass `anonymize.py` over BASE..TIP -- bundle 2 residue 36 (2 other-box homes in goal:g7.16.2 + experiment:a00-6cb8a731-232b62, DG3) CLOSED 13:4xZ (anonymize ok 2fb5c2043..42137d050); STILL OPEN: residue 46 = goal:g7.16.2:451 bare other-box home (no trailing slash: HOME_PATH_RE misses it, so anonymize reads ok) + :270 pytest-of-<seg> -- grep that node for the segment by hand at PASS time; open = hold the merge.
    OWED bundle 2 row T: the templates-map cell (command on mvp:dg3-t-one-registry) -- run it once SM's re-mur accepts T (residues 45-51 open).
 D. /data: < 10 GB free -> no PASS launch.
-T. TWITCH CLASS STREAM LIVE (owner 14:3xZ 09-29: "only livestream on twitch"): streamer-stub systemd unit (delay 2m -> 4m) grabs a PRIVATE Xvfb :2
-   (/data/home-belam/xvfb) = kiosk firefox on the masked feed (/data/home-belam/classfeed/feed.py :8766); graphweb :8765 localhost. X_KEY commented
+T. TWITCH CLASS STREAM LIVE (owner 14:3xZ 09-29: "only livestream on twitch"): streamer-stub systemd unit (owner 15:0xZ: delay 0 -> `live 0` = the 6 s floor; dashboard shown) grabs a PRIVATE Xvfb :2
+   (/data/home-belam/xvfb) = kiosk firefox on graphweb :8765 (the 3D dashboard); the masked feed /data/home-belam/classfeed/feed.py :8766 is the other page. X_KEY commented
    in ~/work/streamer-stub/.env (backup .env.pre-class). Controls: ~/bin/sb-status · brb · retract · back · panic. Off on the owner's word; then restore .env.
 R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window. NEVER a bare `systemctl --user import-environment`.
 ```
