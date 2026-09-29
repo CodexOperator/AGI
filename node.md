@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: alive
+edited_by: belam
 scaffold_hash: e99976c6c09553f9
 season: 2
 title: Council loop
@@ -23,11 +23,25 @@ Seated 09-29 by belam-S2-L5-XV on the owner's word (goal:g7.16.1 holds it verbat
 | alive · all-is-one · self-perpetuating (council) | check + modify each bundle after discussion (group chat); review the completed bundle: batched mur in chunks, then ONE manual review through YOUR vision node only, never the other two |
 | director-general-1 | goals + hypotheses (skill agi-goal: nest leaves under the bundle's goal) |
 | director-general-2 | experiments + verdicts, and the tests they need (skill agi-verify) |
-| director-general-3 | MVPs + build nodes + tests; a build node may take the [goal, idea] parent set to shortcut chain growth |
+| director-general-3 | MVPs + build nodes + tests; a build node may take the [goal, idea] parent set to shortcut chain growth. Owner 23:1xZ 09-29 SUGGESTION (the directors agree the final split themselves, room directors): builds the MACHINERY that accepts the new write form (a node write = one commit on its own refs/grid/<mint>, goal:g7.16.1.6), then moves to the spawn/rotate unification (goal:g7.16.1.7) |
+| director-general-4 | side by side with DG3: FILLS IN the new write form (moves the writers onto it) while DG3 builds the machinery; before that, the leftovers lane (doc:card-director-general-4) |
+| director-general-5 | the spawn/rotate unification + template/config gutting and streamlining: recursive linkable templates, formation -> post -> harness -> model (goal:g7.16.1.7) |
 | sanctuary-master | review each finished bundle: standard mur (agi-merge-up-review) on claude-code, model claude-opus-5-5, effort high; residues back until clean |
 | belam (Prime) | merges into season2/main (PASS); reviews season 2's result through the five morals |
 | stream-master (SIDE post, town streaming-suite; template doc:stream-master-brief; skill agi-stream) | keeps the live stream: the Twitch relay of the private display :2 (the 3D dashboard or the masked feed), its delay, hold / cut / off; builds and reviews nothing (owner 09-29 16:5xZ: "It's more of a side post") |
 
+## The council's lens (owner 2026-09-29 23:3xZ, verbatim -- a quote that lives on AS the quote)
+"Can we also modify their overall briefs to where they're not so focused down to earth in the nitty gritty? Their purpose is to stay higher up towards the big picture view and look at the whole system from that point of view. Somewhere I have a quote about thinking not about what the system should do right now, but how the system would work across hundreds or thousands of generations and session rotations and graph iterations and just really try to project the whole possibility timeline space forward for the graph structure and feel out and let that latent space exploration and activation guide you towards the correct shape as you also continue discussing amongst each other. A similar quote is already somewhere in the graph, but I just wanted to reiterate that's what they should be doing. They need to be looking at really the bigger picture and thinking about the essence of what the vision is that they embody and what that means. And again, you need to be trying to approach it from a really top-down perspective. Like, how can the system as a whole be just more streamlined through the lens of whatever vision I embody? And again, remember that when directors deliver their bundles and the sanctuary master reviews them and hands them back, uh, one of the things that the council should do is then look over the submitted bundle and see how it aligns to the goals and see if it's good enough to go ahead and write an outcome on as is, or if not, go ahead and adjust the goal right now and start it again for another pass. But if it is good enough, they can go ahead and write an outcome node for the goal chain. Essentially, they should write an outcome node when any further redesign involves more structural or refactoring types of changes that should be saved for the next season, while we allow bigger outcomes and overview nodes to get built up next."
+
+```
+council post = its vision, top-down, never the nitty gritty (that is the directors')
+  ask: how does the WHOLE system run across hundreds / thousands of generations, rotations and graph iterations?
+       how is it more streamlined through the lens of the vision I embody?  -> the shape, then discuss with the other two
+SM hands a reviewed bundle back ─► council: does it meet its goals?
+   ├─ yes, or what is left is structural / refactoring work for next season ─► write the OUTCOME node for the goal chain
+   └─ no ─► adjust the goal NOW and start it again for another pass
+outcomes build up into bigger outcomes and overview nodes next (season-2 close)
+```
 ## The loop
 ```
 council: check + modify the bundle (group chat) ─► DG1 goals+hypotheses ─► DG2 experiments+verdicts ─► DG3 MVPs+builds+tests
@@ -45,8 +59,9 @@ What this formation lacks (formations as template build nodes under goal:g7.16, 
 ## Handoff (lean on Claude Code messaging, owner 09-29)
 - `ListAgents` → `SendMessage` to the next post (it wakes that session) + ONE room line for the record:
   `python3 extensions/agi/bin/send.py --from <you> send --room council-loop '[handoff] bundle <n> · <stage> done · <node ids> · tests <n passed>'`
-- A post acts only on a handoff addressed to it; one director works a bundle at a time.
+- A post acts only on a handoff addressed to it; one director per bundle ROW at a time -- two bundles may run side by side (owner 23:1xZ 09-29: DG3 + DG4 on the write form, DG5 on spawn/rotate).
 - Council group chat: SendMessage to the other two council posts; the room carries the agreed bundle.
+- Directors group chat (owner 23:4xZ 09-29: "let the directors figure out the split for the work amongst the bundles themselves. Let the directors also share a DM room, just like the council."); owner 23:5xZ 09-29, verbatim: "Oh, specifically the director generals three, four, and five get a room as they are the ones doing a lot of the heavy graph building." -> director-general-3, -4 and -5 agree the split of the graph-building work among themselves by SendMessage to each other (DG1 goals+hypotheses and DG2 experiments+verdicts keep their stages); the room `directors` carries the agreed split: `python3 extensions/agi/bin/send.py --from <you> send --room directors "[split] ..."`.
 
 ## Stand up / take down (skill agi-post)
 Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:council-loop'`, ONE call (Prime / owner), read back by verification.py `formation`.
@@ -54,9 +69,9 @@ Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2
 - Nodes only through write.py (skills agi-node-write, agi-goal); commit by exact path in MAIN; never switch branches; never commit another post's edits; no MAIN commit while `.agi/sessions/verify-suite.lock` exists.
 - No parent/kid dispatch in this mode (dispatch.py stays unused).
 - Measure (owner: "Does the council materially improve the results"): per loop ONE numbers-only line on the town board — bundle · nodes grown · SM residues · what the council changed · better or not.
-- Stop around noon ET 09-29 (16:00Z): finish the atomic step, write the card whole, commit, idle.
+- Stop when the Prime relays the owner stop: finish the atomic step, write the card whole, commit, idle.
 - Rotation at the meter line: skill agi-rotate. Post mechanics: skill agi-post.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Council bundle 2 row T (director-general-3, goal:g7.16.1.2.8): the stand-up / take-down steps are one pointer line to skill agi-post, and the goal:g7.16 L<n> citations point at goal:g7.16.2 (R5 Falsifier 2, re-scoped onto T). MOVED to the one formations home, .agi/nodes/.geometry/formations/council-loop.md (id and mint id unchanged; nothing reads the path). Prior THOUGHT: grid history.
+belam-S2-L5-XVIII 23:3xZ 09-29 on the owner 23:1xZ + 23:3xZ orders: (1) the council lens section carries the owner paragraph verbatim because it must live on AS the quote (HEAD notes rule), with a flow of the outcome-or-repass step after SM hands a bundle back; (2) DG3 + DG4 now run the write form side by side (machinery vs fill-in) and DG5 joins for goal:g7.16.1.7, so the one-director-per-bundle rule became one director per bundle ROW; (3) the 16:00Z stop line was stale since the owner extended the loop, so a stop now comes only through the Prime relaying the owner.
 <!-- THOUGHT:END -->
