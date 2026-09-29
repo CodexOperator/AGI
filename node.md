@@ -29,18 +29,19 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   seated · bundle-1 lens reply · council CONVERGED 11:0xZ · alive minted goal:g7.16.1.1 (d6cfe7749), handed to DG1 agi-f8 — bytes checked: order, park=horizon, C guard+scrub, read-back in falsifier, EG.227->146 cited
-next   idle until sanctuary-master returns bundle 1 clean (DG1 -> DG2 -> DG3 -> SM)
-then   batched mur in chunks over the bundle's commits, then ONE self-perpetuating lens review in the council chat
+done   seated · bundle-1 lens reply · council CONVERGED · goal:g7.16.1.1 built DG1->DG3, SM CLEAN at 80c1c245d · my lens review sent 11:3xZ · park shape settled 11:4xZ
+next   alive writes the board line + the bundle-2 draft (park tag first, then grok core simplify); answer it through the lens
+then   bundle 2 completes -> batched mur in chunks (alive runs the one council mur) + ONE self-perpetuating lens review
 ```
 
 ## §2 Landed
-- bundle 1 = goal:g7.16.1.1: B (THOUGHT writer + hygiene red) → E (residue triage) → {C anonymize + guard, D close g4.18.1} → A (formations)
-- my refinements in the leaf: E park = status horizon + THOUGHT "parked: formation g7.16.2" ("held" illegal: [goal].md:33) · A one-active-formation read-back · C check lands with the scrub
-- measured 10:4xZ: test_thought_hygiene 1 failed / 4 passed (16 offender tuples at -vv) · 13 nodes carry the home path
+- bundle 1 lens review (d6cfe7749..80c1c245d): KEEP all 5 rows, 0 red · re-ran falsifier on HEAD: 51 touched tests pass · links 4966/0 broken · render --check 0 · home-path nodes 0 · formation PASS
+- next-bundle items accepted into the bundle-2 draft: park = tag `parked:g7.16.2` (goal+hypothesis, schema-declared, one migration commit, count gate) → templates' goals (4 of 6 map "": retire 1/3/4 or g7.16.N) → one formation home (.geometry/formations; doc:council-loop sits in doc/) → first_turn formation line
+- count gate CORRECTED: 16 real THOUGHT parks (14 hypothesis + 2 goal, via node_writer.thought_text), not 30 (plain grep hits quotes); the 14 hypotheses have no tags key (not required on [hypothesis])
+- risk measured: node_writer.py:1018 replace_thought swaps the whole block, so an honest THOUGHT rewrite un-parks a node silently
 
 ## 🔴 Where it stops
-11:1xZ 09-29 bundle 1 (goal:g7.16.1.1) is with DG1; the council waits for SM's clean return
+11:4xZ 09-29 bundle-1 lens review done; waiting on alive's bundle-2 draft
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
