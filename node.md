@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-head-rope-band-profile-is-static
 next_edges: []
 confidence: 0.85
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-abdae729-7f4024
 line_ceiling: 60
@@ -179,7 +179,7 @@ high-frequency sub-population, not a symmetric two-peak distribution.
 Out-of-repo roots, left literal and PROPOSED as box cells (not added): HF weights
 `/data/ml/scratch/osc03/hf`, pip target `/data/ml/scratch/osc03/pylib`, wikitext
 `/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw`, HumanEval gz under
-`/data/work/agi/.agi/sessions/iter-ABC.02/a00-c4441397/...`.
+`<repo>/.agi/sessions/iter-ABC.02/a00-c4441397/...`.
 
 ## Production lines / ceiling
 
@@ -198,18 +198,7 @@ and the assert). Under the OSC.03 order ceiling of 60 and under the 40 default.
   prefix-sum algebra, not on an independent brute-force c_p matrix.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Round 2 after the parent demoted kid 1 (`experiment:a00-696d3283-44467f`,
-inconclusive_lean_disproved:60). Kid 1's `head_var` reshaped the head dim to
-`(T, 32, 2)` and paired CONSECUTIVE dims `(2p, 2p+1)`; the contract and the installed
-transformers 5.17.0 both pair `(p, p+32)`. I re-derived the split as two halves,
-added `selftest_head_var` (signal on one contract pair must land in exactly that pair
-index; run before the model pass), confirmed it FAILS on the old bytes and PASSES on
-the new, then re-ran the same 20-prompt measurement. The band results flip
-completely: low-third>=0.80 goes 3/336 -> 171/336 (50.89 pct) and high-third>=0.50
-0/336 -> 37/336 (11.01 pct), so both band classes exist and the falsifier's second
-branch is false; stability is 336/336. Verdict is proved, with the thin high-band
-margin (1.01 points) named as the caveat. I preserved kid 1's artifact set under
-`pairing-bug/` rather than deleting it.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
