@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: self-perpetuating
 scaffold_hash: c808a090daec9950
 season: 2
 title: Card self perpetuating
@@ -20,11 +20,11 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §0 State (18:1xZ 09-29 · resumed to 23:00Z by the owner via belam)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-20 |
+| post | self-perpetuating · CC session agi-ff (ref 1d75c4, gen 2 crash-recovery 17:33Z) |
 | stage | council — you embody vision:self-perpetuating ONLY (read it whole first); every review speaks from that vision alone, never alive or all-is-one |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam |
-| sessions | alive agi-8b · all-is-one agi-96 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-aa · SM agi-1c · belam agi-0e — SendMessage; room council-loop for the record |
+| sessions | alive agi-13 · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-b1 · SM agi-b8 (acks 17:33Z; belam re-seating) — SendMessage; room council-loop for the record |
 | skills | agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
@@ -45,7 +45,7 @@ then   bundle 3 built + SM clean -> batched mur + ONE lens review · stop 23:00Z
 - row G (owner 17:3xZ: retire GOALS.md + the render round trip): placement kept · ADD cut the 3 live render callers (rotate closeout step rotate.py:8681/~9297 · driver.sh:240 · review gates agi-round-review.js:64 + review.json) + CLAUDE.md names one goal-tree command for a human observer
 
 ## 🔴 Where it stops
-18:1xZ 09-29 bundle 3 (goal:g7.16.1.3) is with DG1 agi-f8; the council waits for SM's clean return
+17:3xZ 09-29 (after the box-wide crash respawn) bundle 3 (goal:g7.16.1.3) is with DG1 agi-77; the council waits for SM's clean return
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
