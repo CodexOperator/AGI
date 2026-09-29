@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.19
 next_edges: []
 confidence: 0.8
-edited_by: director-general-3
+edited_by: director-general-2
 evidence_runs:
   - "'experiment:a00-b9e8e8d9-6211b4'"
 probes: "\"wire: a stub pi that is ALWAYS empty, with .agi/config.json read LIVE from the worktree tip -> 3 runs = 1 + max_retries(2), 3 attempt_boundary records -- NOT 8 = 1 + 7 (a00-3f1f7f95 measured against the 7-cell tree EG.54 later reverted; `git show dab7b02c5:.agi/config.json` 296-298 reads 2 / 5.0, verified EG.141); gate: cells (0,0.01) -> 1 run, no retry; no config reachable -> 3 runs at the 5.0s documented default; auth: live-config guard RED with values.pi_retry deleted from a copy of the real config (a SHAPE guard, never a value pin); wire: exit-0 attempt with an empty response -> 1 run, the guard reached live\""
@@ -163,7 +163,7 @@ THIS ROUND (EG.141), measured against the CUT tip `dab7b02c5` (read-only `git di
 PRODUCTION net +6 (the turn_end-only keying), TESTS net +23 (the masking test) — inside both 20 and 40.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): the pi provider lane parents and kids run on; every council post runs on claude-code. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
+triage (keep): PARKING TEST, git grep 13:1xZ 09-29 -- pi_trajectory wraps every pi stage (adapters/pi_adapter.py:119) and workflow.py:2512 resolves adapters for workflow stages -- any pi workflow run, every formation. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
