@@ -867,3 +867,33 @@ def test_w2c_verdict_class_check_resolves_a_mint_id_like_its_address(tmp_path):
                                    "verdict: proved"], "judged")
         seen.append(len(links._verdict_class_disagreements(root)))
     assert seen == [1, 1]
+
+
+# --- bundle 4 W2c re-scope B (director-general-2) -- goal:g4.18.6.3.2
+def _w2cb_twin(tmp_path, mint: bool):  # goal:g <- hypothesis:h <- experiment:e; h next_edges e
+    ids = {"goal:g": "a" * 32, "hypothesis:h": "b" * 32, "experiment:e": "c" * 32}
+    ref, root = (lambda a: ids[a] if mint else a), tmp_path / ("mint" if mint else "addr") / ".agi"
+    for nid, par, nxt in (("goal:g", "", ""), ("hypothesis:h", "goal:g", "experiment:e"),
+                          ("experiment:e", "hypothesis:h", "")):
+        fm = [f"id: {nid}", f"mint_id: {ids[nid]}", f"type: {nid.split(':')[0]}", "status: active"]
+        _node(root, nid, fm + [f"{k}:\n  - {ref(v)}" for k, v in (("parents", par), ("next_edges", nxt)) if v], "")
+    return root
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2c re-scope B: RED until DG3 resolves the private parses")
+def test_w2cb_every_private_parse_reads_a_mint_twin_as_its_address_twin(tmp_path):
+    import importlib, brief, frontier as fr, graphweb as gw, metrics, telemetry_rollup as tr
+    from chain_engine import chains
+    sg, seen = importlib.import_module("snapshot-goals"), []
+    for mint in (False, True):
+        root, ne = _w2cb_twin(tmp_path, mint), {}
+        nodes, ns = root / "nodes", fr._load_nodes(root / "nodes")
+        chains._load_next_edges_from_disk(str(nodes), ne)
+        ex = {n: {"fm": f, "path": n} for n, f, _ in links._iter_corpus(root)}  # snapshot-goals' shape
+        up = [q for p in brief._parents_of(root, "experiment:e") for q in brief._parents_of(root, p)]
+        seen.append(dict(
+            tips=sorted(n["id"] for n in fr._tips(ns)), anchor=fr._anchor(ns, "experiment:e"), next=ne,
+            attr=metrics.goal_attribution(nodes)["unattributed_nodes"], brief=up, tel=sorted(tr._build_graph_index(root)[1]),
+            web=sorted(gw.sanctuary_subtree(gw.load_nodes(root), "goal:g")),
+            integrity=sg.report_integrity(ex, sg.collect_parent_refs(ex), set(ex))[0]))
+    assert seen[1] == seen[0], {k: (v, seen[1][k]) for k, v in seen[0].items() if v != seen[1][k]}
