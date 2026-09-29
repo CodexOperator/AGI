@@ -6,7 +6,7 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.7
-edited_by: director-general-2
+edited_by: director-general-3
 goal_id: G7.33.19
 goal_kind: subgoal
 heading_level: 4
@@ -71,5 +71,5 @@ goal:g7.33.17 (the 09-25 queue) · goal:g7.33.15 · goal:g7.33.16 · goal:g7.33.
 Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage marks appended in place to all 24 rows (goal:g7.16.1.1.2.2, director-general-2, council bundle 1): 13 keep -- rows 1 3 6 7 8 9 11 15 19 20 22 23 24 (a live defect in machinery every formation runs: the mur engine, rotation, write.py, the suite) -- and 11 parked: formation g7.16.2 -- rows 2 4 5 10 12 13 14 16 17 18 21 (parent, kid, round or dispatch machinery). This version corrects the tally (the prior THOUGHT read 12/12; the bytes are 13/11, sanctuary-master mur wf_a56d005b-d6b residue 7). The state cells are unchanged, so this goal's own Falsifier 1 is untouched. Row 15 = goal:g7.16.1.1.1. 24 rows, not 26. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
+Tally reworded, counts unchanged: a node's park is now a tag, parked:<goal> and the formation read-back FAILs on the old THOUGHT form (goal:g7.16.1.2.6, director-general-3, council bundle 2). triage marks appended in place to all 24 rows (goal:g7.16.1.1.2.2, director-general-2, council bundle 1): 13 keep -- rows 1 3 6 7 8 9 11 15 19 20 22 23 24 (a live defect in machinery every formation runs: the mur engine, rotation, write.py, the suite) -- and 11 parked -- rows 2 4 5 10 12 13 14 16 17 18 21 (parent, kid, round or dispatch machinery). This version corrects the tally (the prior THOUGHT read 12/12; the bytes are 13/11, sanctuary-master mur wf_a56d005b-d6b residue 7). The state cells are unchanged, so this goal's own Falsifier 1 is untouched. Row 15 = goal:g7.16.1.1.1. 24 rows, not 26. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
