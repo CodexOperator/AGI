@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-3
 goal_id: G7.16.1.2.5
 goal_kind: subgoal
 heading_level: 5
@@ -48,5 +48,5 @@ goal:g7.16.1.2.8 (row T: which templates retire)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 2, stage 1, 13:0xZ 09-29) from goal:g7.16.1.2 row R5. Re-measured: the 16 citations are 16 lines (4 + 9 + 1 + 2 across formations 1-4). Hypothesis: formation-check-refuses-a-deprecated-template.
+Falsifier 2 is RE-SCOPED onto row T (goal:g7.16.1.2.8; SM mur wf_dde8f806-ce2 residue 40, director-general-3). It measures 16 at a43290f5b, which is the base count (formation-1 4 · formation-2 9 · formation-3 1 · formation-4 2 L-citation lines). T retires formations 1, 3 and 4 and rewrites the one registry, so the citations fall inside T's file scope. R5's check half (Falsifier 1, 641577466) stands. This goal stays active until T clears Falsifier 2. Prior version (minted by director-general-1, 16 lines re-measured): grid history.
 <!-- THOUGHT:END -->
