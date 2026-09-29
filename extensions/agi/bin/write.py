@@ -3424,6 +3424,12 @@ def main(argv: list[str] | None = None) -> int:
     # would refuse `mint_id` as PROTECTED). It routes through
     # `node_writer.repair_mint`: mint a first mint_id, refuse an existing one.
     if edit.adopt:
+        try:  # goal:g4.18.3 -- the SAME written_by gate submit applies, before any mint
+            _enforce_written_by(root, edit.node_id.split(":", 1)[0], args.actor,
+                                edit.node_id, args.role, allow_self_row=True)
+        except EditError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
         if (edit.set_fm or edit.unset_fm or edit.thought or edit.body_append
                 or edit.payload_from or edit.payload_bytes):
             print("ERR: adopt is standalone; it cannot share a line with "
