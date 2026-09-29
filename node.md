@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: a00-4453045a
+edited_by: director-engine
 scaffold_hash: 64e9569c214cb9cf
 season: 2
 status: open
@@ -31,9 +31,10 @@ CEILING    HARD CAP: 1 kid · <= 10 production lines net · <= 30 test lines · 
 ANON       no user name, home or repo path value, host, IP or hardware name; patterns write <user>
 PARENT     paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit AND every node/config edit on the loop branch before you exit
 
-## STATUS — the STATUS block below is the state; the heading names no round, so a later ROUNDS entry can never outrun it again
-STATUS    LANDED at 03ab636aa: experiment:a00-9db7337e-cc325e (both floor readers route through `_prov_cell`, cfg= wins over root; parent-reviewed inconclusive_lean_proved:70). EG.156 (experiment:a00-6678e0d1-53f123) re-cut the docstring prose: 8 net production lines over bb3fd61ed, inside the 15 cap.
-ROUNDS    this post's rounds on this node: DH.673 -> EG.123 (landed) -> EG.156 (text-fix corrective, closes mur-eg-59 accept_with_residue) -> EG.164 (record-fix, kid a00-34601654; accepted on a DISCARDED worktree) -> EG.193 (record-fix, kid a00-ff2a5bfc: the EG.164 claims re-grounded in the merged bytes, the review paragraph moved INSIDE the THOUGHT block) -> EG.206 (record-fix, kid a00-4453045a: the demotion of a00-34601654 that EG.193 CLAIMED was never written — the node still read proved / 0.85 in the merged tree; it lands HERE as inconclusive_lean_proved:40 / 0.4, and the false "demoted at EG.193" clause is deleted from this line). The mechanism claim under STATUS is unchanged and still probe-grounded; every item this round fixed was a record defect, not a code one.
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.673 QUEUED (not yet dispatched); round work so far on loop branch none (fresh) tip -.
+ROUNDS    this post's rounds on this node: DH.673; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
 
 ## CORRECTIVE DH.EG.81 -- closes mur-eg-22 DH.673 accept_with_residue
@@ -81,5 +82,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 03ab636aa · <= 40 
 KID       you are a TEXT-FIX KID (skill agi-corrective 3a): text only -- node prose via write.py, and in provisioning.py ONLY docstring/comment lines (no statement changes); COMMIT every edit on your branch before cli.py done
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-EG.193 record-fix (kid a00-ff2a5bfc) CORRECTS the EG.164 parent review by a00-3ba810fd, which cited "the KID WORKTREE BYTES" as its source. That review verified nothing about the deliverable: every fix it read was seen in a kid worktree that was never committed, and at the cut tip 17124cc46 the merged tree carried NONE of them -- experiment:a00-6678e0d1-53f123 had no verdict/confidence/evidence_runs, its row 2 still cited provisioning.py:533-536, and experiment:a00-9db7337e-cc325e Agent Notes still read 28 prod / 39 test net. The review therefore accepted a record that does not exist in the branch. The mechanism itself is NOT in doubt: the parent probes (WIRE 100 live calls, len(sys.path) delta 0; GATE cfg= beats root 2.5 and a declared 0.0 stays 0.0; AUTH an unauthorised caller gets the declared default 1.0, no raise; ROUTE exactly one sys.path.insert at provisioning.py:67, module scope) all hold on the merged bytes. The failure is the RECORD, not the code, and it recurred: the salvage that rescues a kid which exits with no commit fired at EG.156 and again at EG.164, with no detector added either time. EG.193 re-grounds every claim in the merged bytes and moves this paragraph INSIDE the THOUGHT block -- it had been written AFTER THOUGHT:END, so extract_thought() returned the stale EG.156 text and strip_thought() left the review as unattributed prose riding in every rendered document, which test_thought_hygiene.py cannot see (it only counts BEGIN blocks).
+corrective EG.156: mur-eg-59 EG.123-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
