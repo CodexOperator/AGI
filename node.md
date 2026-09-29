@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-band-pruned-heads-keep-next-token-agreement
 next_edges: []
 confidence: 0.9
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-fa4bb880-d965dd
 line_ceiling: 150
@@ -141,7 +141,7 @@ is the natural next candidate; the K-side union table above is what hop 3 needs.
 - Out-of-repo roots left literal and proposed as box cells (not added): HF weights
   `/data/ml/scratch/osc03/hf`, pip target `/data/ml/scratch/osc03/pylib`, wikitext
   `/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw`, HumanEval gz under
-  `/data/work/agi/.agi/sessions/iter-ABC.02/a00-c4441397/...`.
+  `<repo>/.agi/sessions/iter-ABC.02/a00-c4441397/...`.
 
 ## Production lines / ceiling
 
@@ -159,7 +159,7 @@ embedded per-pair + mask selftest plus the energy_1000 no-op anchor.
 - K is not masked in this run, so `dropped_k` is a projection, not a measured effect.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought, closing thought-master's TMM.55 review: the TMM.54 close's THOUGHT said the Agent Notes were fixed, but the kid's own Verdict sentence and its Agent Notes still placed the 98 pct crossing in the 3.1-9.4 pct gap; both now say between 0 and 3.125 pct dropped, with a correction marker beside the kid's text. git grep for the old phrasing over .agi/nodes returns 0.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
