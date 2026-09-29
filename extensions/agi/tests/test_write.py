@@ -2327,18 +2327,8 @@ def test_w2b_a_set_naming_a_missing_id_is_refused(project, key):
     assert rc != 0 and node.read_text() == before, "a missing id was written"
 
 
-@pytest.mark.xfail(strict=True, reason=_W2B)
-def test_w2b_a_create_reads_no_node_outside_its_neighbourhood(project, monkeypatch):
-    import io
-    _schemas(project)
-    far = project / "nodes" / "doc"
-    far.mkdir()
-    for i in range(3):
-        (far / f"far{i}.md").write_text(f'---\nid: "doc:far{i}"\ntype: doc\n---\n')
-    seen, real = [], io.open
-    monkeypatch.setattr(io, "open", lambda f, *a, **k: (seen.append(str(f)), real(f, *a, **k))[1])
-    assert write.create(project, "hypothesis", "near", ["goal:g1"])[0].written
-    assert [s for s in seen if "/nodes/doc/" in s] == []
+# (the W2b neighbourhood row was retired in the re-scope: a per-read index opens every file once,
+# so zero opens of unrelated files can never hold -- evidence: experiment:dg2b4-w2b2-baseline)
 
 
 # --- bundle 4 W3c (director-general-2) --------------------------------------
@@ -2376,3 +2366,54 @@ def test_b4_w1a_row_verb_replaces_exactly_one_row(project, tmp_path):
     assert write._read_body_text(project, "hypothesis:h1") == \
         body.replace("| b | 2 |", "| b | 20 |")
 
+
+
+# --- bundle 4 W2b re-scope (director-general-2) -----------------------------
+# W2b1 hypothesis:set-link-fields-refuse-a-missing-id (goal:g4.18.6.2.1);
+# W2b2 hypothesis:create-reads-the-one-index-not-a-walk (goal:g4.18.6.2.2).
+def _b4_walks(monkeypatch):
+    """Every Path.rglob caller, by code object: one entry per node-tree walk."""
+    seen, real = [], Path.rglob
+    monkeypatch.setattr(Path, "rglob", lambda s, *a, **k: (
+        seen.append(sys._getframe(1).f_code), real(s, *a, **k))[1])
+    return seen
+
+
+def test_w2b1_a_set_naming_only_live_ids_still_lands(project):
+    _schemas(project)
+    assert write.main(["hypothesis:h1", "set parents [goal:g1]", "--root", str(project)]) == 0
+    assert "goal:g1" in (project / "nodes/hypothesis/h1.md").read_text()
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2b1: RED until DG3 builds set's missing-id refusal on create's lookup")
+def test_w2b1_set_refuses_a_missing_id_by_name_with_creates_one_lookup(project, monkeypatch, capsys):
+    _schemas(project)
+    walks, node = _b4_walks(monkeypatch), project / "nodes/hypothesis/h1.md"
+    assert write.create(project, "hypothesis", "near", ["goal:g1"])[0].written
+    create_walk, before, walks[:] = set(walks), node.read_text(), []
+    rc = write.main(["hypothesis:h1", "set next_edges [goal:g1, goal:nope]", "--root", str(project)])
+    assert rc != 0 and node.read_text() == before and "goal:nope" in capsys.readouterr().err
+    assert set(walks) <= create_walk, "set grew a second lookup"
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2b2: RED until DG3 routes create's gate through goal:g4.18.6.1's one index")
+def test_w2b2_create_walks_only_the_one_index_and_still_refuses_by_name(project, monkeypatch):
+    import io
+    import links
+    import spawn_gate
+    _schemas(project)
+    (project / "nodes/doc").mkdir()
+    (project / "nodes/doc/far.md").write_text(f'---\nid: "doc:far"\ntype: doc\nmint_id: {"f" * 32}\n---\n')
+    walks, seen, real = _b4_walks(monkeypatch), [], io.open
+    assert links.resolve_mint(project, "f" * 32)[0] == "doc:far"
+    one, walks[:] = set(walks), []
+
+    def banned(*_a):
+        raise AssertionError("spawn_gate.build_type_index ran on a create")
+    monkeypatch.setattr(spawn_gate, "build_type_index", banned)
+    monkeypatch.setattr(io, "open", lambda f, *a, **k: (seen.append(str(f)), real(f, *a, **k))[1])
+    assert write.create(project, "hypothesis", "near", ["goal:g1"])[0].written
+    res = write.create(project, "hypothesis", "orphan", ["goal:nope"])[0]
+    assert res.rejected and "goal:nope" in res.reason
+    assert set(walks) <= one, "create walked beyond the one index"
+    assert sum(s.endswith("nodes/doc/far.md") for s in seen) <= 2, "a far node parsed twice per create"
