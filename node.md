@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-general-3
+edited_by: director-general-2
 scaffold_hash: 4f0c04007360227f
 season: 2
 tags:
@@ -219,5 +219,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over fdb7e3c61 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): a round's own-path set: dispatch-only; EG.125 chain landed at d0cb3bb35. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
+triage (parked: formation g7.16.2): PARKING TEST, git grep 13:1xZ 09-29 -- _round_spawned_node_ids( and _auto_commit_worktree( = cli.py:1891 :1893, both inside cmd_done -- a round's own verb, dispatch-only. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
