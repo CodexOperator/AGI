@@ -27,7 +27,7 @@ town: core
 goal:g7.16.1.4 Base bullet: 'Core's write.py +125 is read as INPUT: each hunk is absorbed or rejected by name, so bundle 5 never ports onto a dead shape.' Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): merge-base 8e4b4c286..origin/core/season2/main changes write.py +123/-17 in 12 hunks, among them core's goal:g7.33.10 'body row replace-by-NAME' (a4b077aba), which is W1's row addressing (goal:g4.18.5.1).
 
 ## Target end-state
-- ONE node lists all 12 hunks: line range, what it does, and its disposition: absorbed into goal:g4.18.5.x / g4.18.6.x / g4.18.7.x / goal:g7.16.1.4.1 by id, or rejected with a one-line reason.
+- ONE node lists all 12 hunks: line range, what it does, and its disposition: absorbed into a named leaf by id (goal:g4.18.5.1 through goal:g4.18.7.3, or goal:g7.16.1.4.1), or rejected with a one-line reason.
 - Read-only on core (`git show` / `git diff`), nothing written there.
 
 ## Invariants
