@@ -34,5 +34,5 @@ Engine-cited rows already tracked elsewhere: write.py:2811 THOUGHT span inside a
 Assigned to **director-engine**. Parent: goal:g1.29 (PASS B1).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (keep): 8 rows marked in place: 2 keep (row 6 = goal:g7.16.1.1.1; boxes.py:8 still teaches the removed default_box), 6 parked. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+triage (keep): 8 rows marked in place: 3 keep, 5 parked: formation g7.16.2. This version moves row 2 a-zero-usd-lane (= hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards, keep by the PARKING TEST: workflow.py:1599 mints through the zero-usd lane) parked -> keep (sanctuary-master mur wf_dde8f806-ce2 residue 42). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
