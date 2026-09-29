@@ -42,10 +42,8 @@ goal:g4 (the engine's own tooling) is its parent: every agent Read/Write/Edit on
 - write.py never gains a read path (owner 18:0xZ above).
 
 ## Falsifier
-1. `python3 extensions/agi/bin/write_guard.py check --strict` exits 0: no node write went around write.py (Write/Edit through the one writer).
-2. `! git grep -qn -E '"read":' -- extensions/agi/bin/write.py` exits 0: write.py carries no read verb, so Read is never routed through it (true once goal:g4.18.7 lands).
-3. Negative: `grep -cE '^title:.*Read[^|]*through[^|]*write\.py' .agi/nodes/goal/g4.19.md` prints 0 (anchored on this node alone, so goal:g7.16.1.4.2's "not write.py" title cannot match).
-The intercept's fine-tune record has no CLI yet: its falsifier belongs to the hypothesis minted under idea:l4b15-intercept-layer.
+1. `python3 -m pytest extensions/agi/tests/test_intercept_layer.py -q` exits 0: the committed test drives one Read, one Write and one Edit through the intercept and finds exactly one fine-tune record per act, the Read taken from the render path (goal:g4.18.7) and the Write/Edit from write.py. The file does not exist yet, so this stays red until the intercept is built (its hypothesis goes under idea:l4b15-intercept-layer).
+2. Negative: `grep -cE '^title:.*Read[^|]*through[^|]*write\.py' .agi/nodes/goal/g4.19.md` prints 0 (anchored on this node alone, so goal:g7.16.1.4.2's "not write.py" title cannot match).
 
 ## Out of scope
 goal:g4.18.7 (the read path itself) · goal:g4.18.5 (rows, and a write is a commit)
