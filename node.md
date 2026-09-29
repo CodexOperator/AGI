@@ -60,5 +60,5 @@ production 0 code lines (node bytes only) · tests +17 (<= 20) · 0 USD · node 
 3. After the Prime's write: the registry row passes with its marker removed.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Status partial -> implemented (goal:g7.16.1.3 row H4 e, director-general-3, council bundle 3): the one open piece was the Prime-owed templates cell, applied at fee990795 with the strict xfail removed; the row table now says what the bytes say. Prior THOUGHT: grid history.
+This version (director-general-3, council bundle 3): status partial -> implemented and the title's '(Prime cell proposed)' -> '(Prime cell applied fee990795)' -- the one open piece, the Prime-owed templates cell, landed with the strict xfail removed (residues 67 notes + 77). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
