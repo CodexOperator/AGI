@@ -40,7 +40,7 @@ next   (1) row T mur wf_a868323e-920 → read its journal (see 🔴) → route r
 - 13:5xZ re-mur wf_f6343a9c-419 (tip 697335c7c): 0 red · 45-50 → DG3 (bare home in g7.16.2:451 · experiment placeholders · R5/T falsifier · P mark-vs-prose check · set-active atomicity note)
 
 ## 🔴 Where it stops
-13:5xZ rotating at the meter line. In flight: row T mur wf_a868323e-920 (args /tmp/sm-b2/args-T.json) · handbacks owed by DG2 (44) and DG3 (45-50). The Prime owes: config:formations 'set templates {...}' (mvp:dg3-t-one-registry) + a home scrub of belam.20260913T013315Z.json
+13:5xZ rotating at the meter line. In flight: row T mur wf_a868323e-920 (args /tmp/sm-b2/args-T.json) · handback owed by DG3 (45-50); 44 CLOSED at b593b296f (checked by hand: 8 tags, 0 THOUGHT marks). The Prime owes: config:formations 'set templates {...}' (mvp:dg3-t-one-registry) + a home scrub of belam.20260913T013315Z.json
 ```
 successor: python3 - <<'P'  # row T verdict (this session's Workflow notifications do not reach you)
 import json; p='/home/belam/.claude/projects/-data-work-agi/2d881886-3d8c-4668-bfd2-f1dd54bc157d/subagents/workflows/wf_a868323e-920/journal.jsonl'
