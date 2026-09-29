@@ -151,8 +151,9 @@ class Edit:
     #: BUILD1 (goal:g7.16.1.4 W1, alive 841857ddb) -- `row <top>.<key> <src|->`:
     #: a NESTED frontmatter row (command:commands `manifest.<key>`), resolved
     #: once by `_resolve_fm_row` into `set_fm[<top>]`, so every set gate runs
-    fm_row: str = ""
-    fm_row_from: str = ""
+    #: one (ref, source) per `row <top>.<key>` verb, applied in order (DG4
+    #: 00:0xZ: a single slot kept only the LAST row of a script -- silent loss)
+    fm_rows: list = field(default_factory=list)
     fm_row_resolved: bool = False
     replace_from: str = ""
     replace_text: str = ""
@@ -199,7 +200,7 @@ class Edit:
                     or self.patch_from or self.patch_diff
                     or self.body_patch_from or self.body_patch_diff
                     or self.read_target or self.read_range
-                    or self.replace_target or self.sub_old or self.fm_row)
+                    or self.replace_target or self.sub_old or self.fm_rows)
 
 
 # --------------------------------------------------------------------------
@@ -476,10 +477,14 @@ def verb_row(edit: Edit, ref: str, source: str) -> Edit:
     instead: `<src>` is the row's new YAML value, an EMPTY source removes the
     row; resolved by `_resolve_fm_row` into `set_fm[<top>]`."""
     if re.fullmatch(r"[A-Za-z_][\w-]*\..+", ref):
-        edit.fm_row, edit.fm_row_from = ref, source.strip()
+        if any(ref == seen for seen, _ in edit.fm_rows):
+            raise EditError(f"row {ref} twice in one script")
+        edit.fm_rows.append((ref, source.strip()))
         return edit
     if not re.fullmatch(r"\d+(:\d+-\d+)?", ref):
         raise EditError(f"row wants <n> or <n>:<i>-<j>, got {ref!r}")
+    if edit.row_ref or edit.replace_target:
+        raise EditError("one body row or replace per script: the body is spliced once")
     edit.replace_target, edit.row_ref = "body", ref
     edit.replace_from, edit.replace_force = source.strip(), True
     return edit
@@ -503,42 +508,47 @@ def _row_range(body: str, row_ref: str) -> str:
 
 
 def _resolve_fm_row(root, edit: Edit) -> None:
-    """BUILD1: `row <top>.<key>` -> `set_fm[<top>]` = the node's `<top>`
+    """BUILD1: each `row <top>.<key>` -> `set_fm[<top>]` = the node's `<top>`
     mapping with row `<key>` replaced by the source's YAML value (order kept),
-    or dropped when the source is empty. Idempotent (main resolves it for its
-    preview, submit again for an API caller). Refuses by EditError: `<top>`
+    or dropped when the source is empty. Rows apply IN ORDER onto one mapping,
+    so several rows of one script all land. Idempotent (main resolves it for
+    its preview, submit again for an API caller). Refuses by EditError: `<top>`
     absent or not a mapping, `<key>` not a row of it, the same line setting or
     unsetting `<top>` too, a source that is unreadable or not YAML."""
-    if not edit.fm_row or edit.fm_row_resolved:
+    if not edit.fm_rows or edit.fm_row_resolved:
         return
     import yaml  # noqa: PLC0415
     from graph_core.persistence import frontmatter as fm_reader  # noqa: PLC0415
-    top, key = edit.fm_row.split(".", 1)
-    if top in edit.set_fm or top in edit.unset_fm:
-        raise EditError(f"row {edit.fm_row} cannot share a line with set/unset {top}")
     path = node_writer.find_node_file(Path(root), edit.node_id)
     if path is None:
         raise EditError(f"no node file for {edit.node_id}")
-    table = fm_reader.load_node_file(path, body=False).frontmatter.get(top)
-    if not isinstance(table, dict):
-        raise EditError(f"row {edit.fm_row}: {edit.node_id} has no {top} mapping")
-    if key not in table:
-        raise EditError(f"row {edit.fm_row}: {top} has no row {key!r}")
-    if edit.fm_row_from == "-":
-        text = sys.stdin.read()
-    else:
-        try:
-            text = Path(edit.fm_row_from).read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError) as exc:
-            raise EditError(f"row {edit.fm_row}: cannot read {edit.fm_row_from}: {exc}")
-    if text.strip():
-        try:
-            value = yaml.safe_load(text)
-        except yaml.YAMLError as exc:
-            raise EditError(f"row {edit.fm_row}: source is not YAML: {exc}")
-        edit.set_fm[top] = {k: (value if k == key else v) for k, v in table.items()}
-    else:
-        edit.set_fm[top] = {k: v for k, v in table.items() if k != key}
+    current = fm_reader.load_node_file(path, body=False).frontmatter
+    tables: dict = {}
+    for ref, src in edit.fm_rows:
+        top, key = ref.split(".", 1)
+        if top not in tables and (top in edit.set_fm or top in edit.unset_fm):
+            raise EditError(f"row {ref} cannot share a line with set/unset {top}")
+        table = tables.get(top, current.get(top))
+        if not isinstance(table, dict):
+            raise EditError(f"row {ref}: {edit.node_id} has no {top} mapping")
+        if key not in table:
+            raise EditError(f"row {ref}: {top} has no row {key!r}")
+        if src == "-":
+            text = sys.stdin.read()
+        else:
+            try:
+                text = Path(src).read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError) as exc:
+                raise EditError(f"row {ref}: cannot read {src}: {exc}")
+        if text.strip():
+            try:
+                value = yaml.safe_load(text)
+            except yaml.YAMLError as exc:
+                raise EditError(f"row {ref}: source is not YAML: {exc}")
+            tables[top] = {k: (value if k == key else v) for k, v in table.items()}
+        else:
+            tables[top] = {k: v for k, v in table.items() if k != key}
+    edit.set_fm.update(tables)
     edit.fm_row_resolved = True
 
 
@@ -3466,7 +3476,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # BUILD1: a nested frontmatter row becomes a `set_fm` entry HERE, before
     # the set schema gate, so it is judged exactly like a `set`.
-    if edit.fm_row:
+    if edit.fm_rows:
         try:
             _resolve_fm_row(root, edit)
         except EditError as exc:
@@ -3621,10 +3631,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.dry_run:
         print(f"{edit.node_id}:")
         for k, v in edit.set_fm.items():
-            if edit.fm_row and k == edit.fm_row.split(".", 1)[0]:
-                _, _key = edit.fm_row.split(".", 1)
-                print(f"  row    {edit.fm_row} "
-                      f"({'replace' if _key in v else 'remove'})")
+            _mine = [ref for ref, _ in edit.fm_rows if ref.split(".", 1)[0] == k]
+            if _mine:
+                for ref in _mine:
+                    print(f"  row    {ref} "
+                          f"({'replace' if ref.split('.', 1)[1] in v else 'remove'})")
                 continue
             print(f"  set    {k} = {v!r}")
         for k in edit.unset_fm:

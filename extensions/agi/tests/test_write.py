@@ -2443,16 +2443,31 @@ def test_build1_row_empty_source_removes_the_row(project, tmp_path):
     assert _b1_changed(before, node.read_text()) == ["-  b.py::", "-    cli: b.py", "-    verb: x"]
 
 
-def test_build1_row_refuses_and_writes_nothing(project, tmp_path):
+# DG4 00:0xZ: two rows in ONE script both land (a single slot kept only the last).
+def test_build1_two_rows_in_one_script_both_land(project, tmp_path, capsys):
+    node = _b1_node(project)
+    (tmp_path / "e.yaml").write_text("")
+    (tmp_path / "v.yaml").write_text("cli: c2.py\n")
+    assert write.main(["hypothesis:h1", f"row manifest.a.py {tmp_path / 'e.yaml'} && "
+                       f"row manifest.c.py {tmp_path / 'v.yaml'}", "--root", str(project)]) == 0, \
+        capsys.readouterr().err
+    man = yaml.safe_load(node.read_text().split("---\n")[1])["manifest"]
+    assert man == {"b.py:": {"cli": "b.py", "verb": "x"}, "c.py": {"cli": "c2.py"}}
+    for script in (f"row manifest.b.py: {tmp_path / 'e.yaml'} && row manifest.b.py: {tmp_path / 'v.yaml'}",
+                   f"row 1 {tmp_path / 'v.yaml'} && row 2 {tmp_path / 'v.yaml'}"):
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+
+
+def test_build1_row_refuses_and_writes_nothing(project, tmp_path, capsys):
     node = _b1_node(project)
     before = node.read_text()
     (tmp_path / "v.yaml").write_text("cli: z\n")
     for script in (f"row manifest.nope.py {tmp_path / 'v.yaml'}",          # no such row
                    f"row title.x {tmp_path / 'v.yaml'}",                    # not a mapping
-                   f"row manifest.a.py: {tmp_path / 'missing.yaml'}"):      # unreadable source
+                   f"row manifest.a.py {tmp_path / 'missing.yaml'}",        # unreadable source
+                   f"set manifest {{}} && row manifest.a.py {tmp_path / 'v.yaml'}"):  # set + row
         assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
-    assert write.main(["hypothesis:h1", f"row manifest.a.py: {tmp_path / 'v.yaml'}",
-                       "set manifest {}", "--root", str(project)]) == 2
+        assert "ERR: row " in capsys.readouterr().err, script
     assert node.read_text() == before
 
 
