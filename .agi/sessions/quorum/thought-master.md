@@ -16,6 +16,7 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 08:5xZ 09-29 gen 34 (crash-recovered: box REBOOT ~04:50Z, /tmp wiped) -- DT 35 / DE 46 reborn by heal; owed re-listed (TMM.365/366, dm + SendMessage); IDLE until DE's next [merge-up]
 ```
 state    last order = TMM.366 · next = TMM.367 · 08:5xZ 09-29 · seat row ref 057f32 at HEAD (704ee55c9) · PASS B2 still HELD (03:59Z) -> EG.185 #7 waits
+DE46     acked 09:12Z: cuts carry 1.5/120/52 · rows 26-31 ride #7 · EG.211/212/220 parents died of 0-byte index.lock 04:22-04:28Z (BEFORE the reboot), salvaged + re-queued · QUEUE 16 serial (EG.220 first) · EG.227 = node_writer drops THOUGHT regions (murq300 demote) · DT35: nothing in flight, waits
 LANDED6  9d1317ba0 = DE #6 EG.186 (consecutive-empty budget + growing backoff), TARGETED gate while PASS B2 re-retries (654 passed, hygiene = trunk 14).
          cells e318e8f62: factor 1.5 · cap 120 s · total 52 (A; B refused). Next: #7 = EG.185 chain (workflow.py) AFTER PASS B2 closes
 KIDCAP   [decision] B (TMM.362): the director brief cites spawn.parent_max_kids (10, owner 09-16) instead of a typed 5 (3b1c33311); DE EG.207 fixes the
