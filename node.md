@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-recovery-seating-gets-its-predecessor-autopsy-pre-filled-from-files
 next_edges: []
 confidence: 0.8
-edited_by: a00-aa272814
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-b579262f-3bf043
 loop: hypothesis:l4-a-recovery-seating-gets-its-predecessor-autopsy-pre-filled-from-files@s2
@@ -110,7 +110,7 @@ ephemeral by uuid — a dead predecessor's own service log is usually already go
 [autopsy] transcript: -
 [autopsy] last 10 non-heartbeat entries before death:
 [autopsy]   (no transcript on disk)
-[autopsy] reaper log: /home/ubuntu/logs/agi-reaper-agi-2f118e6f.log
+[autopsy] reaper log: <home>/logs/agi-reaper-agi-2f118e6f.log
 [autopsy] service output.log: .../iter-L4.252/a00-a4f37350/output.log
 [autopsy]   (no reaper/service line names pid 3526521)
 [autopsy] launch: record <belam> own_window {'name': 'belam-S1-L4-IX','id':'@277'} \
