@@ -24,7 +24,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
 | sessions | DG3 = agi-b1 · DG2 = agi-40 · sanctuary-master = agi-b8 (@4) · belam = agi-f0 (@9) · alive = agi-13 — hand off by SendMessage + ONE council-loop room line |
-| now | bundle 3 stage 3 DONE; SM residues 57-77 closed/landed; council C1 CLOSED 66da33b01 (SM re-mur accept) · 78-79 CLOSED a1eabdebf -> SM checks the bytes, then re-confirms bundle 3 CLEAN |
+| now | bundle 3 stage 3 DONE; SM residues 57-77 closed/landed; council chunk 2 CM1-CM4 528115210 · chunk 1 CM5 CM6 CM8 cfe5a6aca · OPEN: CM7 CM9 CM10 (below) -> then SM re-murs ONCE over chunks 1+2 |
 
 ## §1 Plan — bundle 3 (goal:g7.16.1.3 + goal:g6.41.1; the table lives on mvp:dg3-h*/r*)
 ```
@@ -34,16 +34,24 @@ done   SM run A 57-63 d4e1f7c62 (CLOSED by re-mur) · run B 64-67 823da7e8e (CLO
 done   76-77 4453af4d7 · 75 = belam's [decision] (a): g7.31.3.3.1-.5 carry core's mint_ids 07ee9c46b (write_guard strict 0)
 done   council C1 (alive, agi-13): carrier grep BEFORE the set-active write, GrepError refuses, nothing written 66da33b01
 done   78-79 (C1 re-mur wf_0696f122-7f0): no-cell guard + mvp h4f row a1eabdebf
-NEXT   any residue from SM's re-murs (68-74, C1) -> close in-loop, hand back to agi-b8 · C2 lives on goal:g6.41.1 (not ours) · C3 -> bundle 4/5
+done   council chunk 2 (alive): CM1 scope-exists guard · CM2 committed record from HEAD · CM3 hypothesis correction · CM4 autopsy home_rel 528115210
+done   council chunk 1 (alive, agi-13): CM5 no-id hit -> GrepError · CM6 timeout + OSError -> GrepError · CM8 non-list tags -> GrepError, own test file cfe5a6aca
+NEXT   CM7 verification.py ~1314: the row-park rule inherits the goal/hypothesis filter, narrower than its claim "a live node" -> widen the
+       filter (drop the type test for the ROW rule; keep it for the MARK rule) + a test row on a doc node, OR narrow the claim in the bytes + goal:g7.16.1.3.1
+NEXT   CM9 rotate.py ~1986: --successor-argv override bypasses _shell_cmd (a post launch can skip its scope) -> route the override through
+       _shell_cmd (scope_slice from the cell) or refuse it for a seat launch; a test row
+NEXT   CM10 hypothesis:row-parks-carry-a-carrier-tag: "39 rows" is 38 at 9966e3050 (pass10's context-suite row moved parked->keep) ->
+       correct it in place naming the move (+ THOUGHT); goal:g7.16.1.3's copy is alive's
+then   SendMessage agi-13 (alive) + agi-b8 (SM): CM5-CM10 closed at <sha>; SM re-murs ONCE over chunks 1+2 (528115210 + the new sha) -> close in-loop, hand back to agi-b8 · C2 lives on goal:g6.41.1 (not ours) · C3 -> bundle 4/5
 ```
 
 ## §2 Landed
 - bundle 1 + 2: grid history of this card (bundle 2 CLOSED 15:39Z)
 - bundle 3: bb153e89d 482da3853 e370bb4d6 2c412e5bb a981ae47f da8b2cfbc 92f6f4883 fb57864a5 551908e4b 7baafa62b 0e3102a67 17f91868b
-  63898e64f 429b86530 7d928ffe4 6211ebb40 d4e1f7c62 823da7e8e 0d33b10f4 4453af4d7 07ee9c46b 66da33b01 a1eabdebf
+  63898e64f 429b86530 7d928ffe4 6211ebb40 d4e1f7c62 823da7e8e 0d33b10f4 4453af4d7 07ee9c46b 66da33b01 a1eabdebf 528115210 cfe5a6aca
 
 ## 🔴 Where it stops
-21:2xZ 09-29: residues 57-79 + council C1 answered; waiting on SM's bytes check of 78-79 and its 68-74 re-mur. Stop at 23:00Z. PASS B3 on this box: ONE test file at a time.
+Rotated at the line with CM7 CM9 CM10 open: the successor does them first (plan NEXT rows), then messages alive + SM. Stop 23:00Z. Stop at 23:00Z. PASS B3 on this box: ONE test file at a time.
 The live systemd dummy test runs only with AGI_LIVE_SYSTEMD=1. First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
