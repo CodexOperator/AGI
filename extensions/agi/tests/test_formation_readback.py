@@ -190,7 +190,7 @@ def test_the_live_formation_home_holds_pointers_not_copies():
 
 
 @pytest.mark.parametrize("rel,nid,thought,status", [
-    ("goal/g6.md", "goal:g6", "why\ntriage (parked: formation g7.16.2): x", "FAIL"),  # 52: line 2
+    ("goal/g6.md", "goal:g6", "why\nparked: formation g7.16.2 -- x", "FAIL"),  # 52: line 2 (re.M only)
     ("goal/g6.md", "goal:g6", "parked: formation g7.16.2 -- why", "FAIL"),           # the ^ branch
     ("build/b.md", "build:b", "triage (parked: formation g7.16.2)", "PASS"),         # not a carrier type
     ("goal/g6.md", "goal:g6", "11 parked: formation g7.16.2 -- rows 2 4", "PASS"),   # a tally
@@ -203,16 +203,21 @@ def test_only_the_mark_shape_on_a_carrier_trips_the_check(groot, rel, nid, thoug
     assert verification.check_formation(groot).status == status
 
 
-def test_a_rejected_carrier_is_named_on_stderr(groot, monkeypatch, capsys):
-    """Residue 54: the set-active hook reports a carrier update_node REJECTS."""
+@pytest.mark.parametrize("how", ["rejected", "oserror"])
+def test_a_rejected_carrier_is_named_on_stderr(groot, monkeypatch, capsys, how):
+    """Residue 54: the set-active hook names a carrier update_node REJECTS or
+    whose write raises OSError, and goes on (the loop is never aborted)."""
     import node_writer, write
     (groot / "config.json").write_text("{}\n", "utf-8")
     _cell(groot, "doc:council-loop")
     real = node_writer.update_node
 
     def refuse_g1(root, nid, **kw):
-        return node_writer.NodeWrite(status=node_writer.REJECTED, node_id=nid, reason="probe") \
-            if nid == "goal:g1" else real(root, nid, **kw)
+        if nid != "goal:g1":
+            return real(root, nid, **kw)
+        if how == "oserror":
+            raise OSError("probe")
+        return node_writer.NodeWrite(status=node_writer.REJECTED, node_id=nid, reason="probe")
     monkeypatch.setattr(node_writer, "update_node", refuse_g1)
     write.submit(groot, write.Edit(node_id="config:formations", set_fm={"active": "doc:two-step"}),
                  actor="test", role="director")
