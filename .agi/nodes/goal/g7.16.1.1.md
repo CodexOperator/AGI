@@ -54,5 +54,5 @@ goal:g7.32.6 · goal:g7.31.3.3 (the messaging and spawn/rotate redesigns: deferr
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 (00:3xZ 09-30) under the owner's 23:5xZ loop: no nested-subgoal residue (leaves .1 .3 .4 .5 closed on their re-run falsifiers; the rest already complete), no hypothesis without a verdict, SM mur CLEAN at 80c1c245d. Outcome: outcome:council-bundle-1-g7-16-1-1 (adopted).
+Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop: no nested-subgoal residue (leaves .1 .3 .4 .5 closed on their re-run falsifiers; the rest already complete), no hypothesis without a verdict, SM mur CLEAN at 80c1c245d. Outcome: outcome:council-bundle-1-g7-16-1-1 (adopted).
 <!-- THOUGHT:END -->
