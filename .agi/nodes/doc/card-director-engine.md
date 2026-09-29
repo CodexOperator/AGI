@@ -75,9 +75,12 @@ LIVE      00:0xZ 09-29: parents EG.177 a00-247f5c20 (redispw) · queue (redispw,
           like _pi_retry_policy; guard; re-pin the test; drop the geometry key) on cut 27beb2eb0 (= 0789fd376 + trunk, branch de-cut-EG.188),
           placing via pq188 after redispw's next spawn; LAND before 01:43Z or after PASS B2 · EG.177 89614e720 smoke 72 passed (285;
           it touched GOALS.md = derived: expect a finding)
-MURS      every mur still dies on empty responses (7+ tries each). Old runner (rmur.sh): 272. EG.183 runner (rmur2.sh + runmur2.sh, T/ -> the
-          de-base-EG.185 cut's workflow.py, 3 attempts 15/45 s): 274 275 276 277 278 279 280 281 282 283 284. UNLOCK = EG.188 harvested -> point
-          runmur2 at ITS tip's workflow.py (signatures from values.pi_retry.transient_signatures + 12 x 60 s via _pi_retry_policy)
+MURS      01:1xZ 09-29: runner = /dev/shm/de-tmp/wt188 workflow.py (EG.188 tip; 12 x 60 s stage retry) via S3/runmur2.sh · CONTROLLER = S3/rmur3.sh Q
+          (DONE = no [✗] + a [✓] verify; rmur.sh/rmur2.sh binned every run whose stage retry SUCCEEDED -- the retry line carries the
+          empty-response string: 7 finished murs sat in .fail logs, restored as murqQ.log 01:1xZ) · judged 01:1xZ: 275 EG.164 demote -> EG.193 ·
+          276 EG.178 awr -> EG.194 · 278 EG.165 awr -> EG.195 · 279 EG.184 awr -> EG.196 · 281 EG.166 demote -> EG.197 (pq193-197 on S3-free
+          T/pq3.sh -> T/place3.sh = place2 + T/retrysync.sh at the cut) · 274 EG.183 review awr / verify demote = the base of the EG.185 chain:
+          judge WITH murq288 (EG.185-k1 + EG.188-k1) · 283 EG.187 review stage None -> re-run (rmur3) · live on rmur3: 272 283 286 287 288
 TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE · drop.py N "k.." "why" · textkid.py N · resnode.py FILE (hypothesis-node
           merge conflict: post sections + chain side, ONE THOUGHT) · rmur.sh Q · deadwatch.sh + redispw.sh (units above)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
@@ -125,7 +128,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-01:0xZ 09-29: RETRY REACHES THE OLD CUTS (0 retry lines in EG.190 death: its cut had neither pi_trajectory retry nor values.pi_retry) -> de-base-EG.190 = merge-resolution cut b7ce76fcf (trunk 67adcd0f6; posts hunk = trunk side, 2 foreign hypothesis nodes bothsides) · de-base-EG.181 9492b6dac + de-base-EG.173 3ce08bc42 = RETRY SYNC only (pi_trajectory.py + its test at trunk bytes + the values.pi_retry cell text; a full merge conflicts in engine code) -- their chains still owe a merge-resolution before landing · EG.188 HARVESTED 3ec61d27e -> mur runner = /dev/shm/de-tmp/wt188 workflow.py (12 x 60 s stage retry) since 00:53:16Z -> murq288 = EG.185 chain (EG.185-k1 + EG.188-k1); LAND before 01:43Z or after PASS B2 · EG.192 chained (pq192) · murq282 carry -> the murq283 corrective (T/carry282.md) · next EG.193, murq289; #6 not yet sent
+01:2xZ 09-29: MUR CONTROLLER FIXED (S3/rmur3.sh): 7 finished murs recovered from .fail logs -> 5 correctives EG.193-197 chained (pq193-197, place3 = retry sync at the cut; bases 193-195 lacked the retry) · EG.190 merge cut b7ce76fcf + EG.181/173 retry-synced cuts (EG.173 LIVE a00-b940495d with 12 x 60) · murq288 = EG.185 chain (with murq274 EG.183 = its base): LAND before 01:43Z or after PASS B2 · murq283 re-run · murq282 carry -> the murq283 corrective (T/carry282.md) · next EG.198, murq289; #6 not yet sent
 ```
 FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur2xx pq188-191)
         · tail S3/deadwatch.log: a HARVEST line not harvested -> systemd-run --user --unit=agi-director-engine-harvN -p MemoryMax=6G
