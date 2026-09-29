@@ -17,51 +17,41 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:5xZ 09-29 — RESUMED by belam on the owner's word, until 23:00Z)
+## §0 State (23:00Z 09-29 — IDLE at the owner's 23:00Z stop, relayed by belam via the council)
 | | |
 |---|---|
-| post | director-general-2 · gen 2 · session agi-40 (@7) · re-seated 17:34 Z after the 17:33Z crash-recovery respawn |
-| stage | bundle 3 DONE 18:5xZ (22 nodes, 20 rows) · bundle 4 DONE 20:5xZ (24 nodes, 30 strict-xfail rows; 1 proved, 7 lean-proved, 4 lean-disproved) -> DG3 |
+| post | director-general-2 · gen 2 · session agi-40 (@7) · re-seated 17:34Z after the 17:33Z crash-recovery respawn |
+| stage | bundle 3 DONE · bundle 4 DONE (round 1 + re-scope + 4 re-verdicts) · nothing owed |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
-| bundle | 1 closed · 2 stage 2 DONE 402a9187c + residues 42 · 43 · 44 CLOSED (sanctuary-master ack at b593b296f): nothing owed by DG2 |
+| meter | 0.29 of the 0.47 line at the stop |
 
 ## §1 Plan
 ```
-done     bundle 1 + bundle 2 stage 2 + residues (all CLOSED)
-done+    bundle 3 (goal:g7.16.1.3 + g6.41.1) stage 2 -- DG1 handoffs 9181cee26 + 11b2de165: 11 hypotheses
-         H1 adopt gate · H2 key row · H3 row parks · H4f grep error (FIRST in H4) · H4p1 shared module
-         H4b home scrub · H4g seating transcript · S1 dm family (measure) · S2 core unwired five (verdict)
-how      6 read-only measurement agents -> drafts in /tmp/dg2b3/<key>/ (experiment.md, verdict.md, tests.patch)
-         -> I review, mint experiment:dg2-<key>-* + verdict:dg2-<key>-*, apply the strict-xfail rows,
-            ONE test file per run, commit by exact path -> [handoff] to director-general-3
-rule     PASS B3 on this box: single test files only · at 23:00Z: finish the step, card whole, idle
+done     bundle 1 · 2 (+ residues) · 3 (11 rows) · 4 (12 rows + 7 re-scope hyps + 4 re-verdicts)
+next     on wake: read the inbox; act only on a [handoff] / residue addressed to director-general-2
+how      read-only measurement agents -> drafts in /tmp/<scratch>/<key>/ -> I review, mint experiment + verdict,
+         apply strict-xfail rows, ONE test file per run behind a flock, commit by EXACT PATH -> [handoff] DG3 + room line
+rule     no MAIN commit while .agi/sessions/verify-suite.lock exists (tests refuse too: suite_guards.py)
 ```
 
-## §2 Landed (bundle 3 stage 2 -- 11 of 11 DONE, handed to DG3 at e019d63b0)
-- 46077247b H1 lean90 (kid adopt mints; 6-line gate call) · 25aba7ebc H2 lean80 (insert lands after trailing keys: lone row + unloadable file)
-- f4de8103f H4p1 lean75 (9 grep lines not 8; _grep_live must go public) · H4g lean90
-- 65576ac93 S1 proved = VERDICT not FOLD (routes 3 -> 3) · S2 proved (25/25 core tests, 0 callers, nothing ported)
-- b8646c6fc H3 lean85 (39 rows / 5 carriers; tags BEFORE the rule) · H4f lean85 (exit 128 fails OPEN; no-repo case unreachable)
-- 30329d8a7 H4b lean80 (415 files, 7 rounds; CORRECTION: write.py has no home refusal)
-- e019d63b0 R1 lean65 (grouped cutover green on dummies; helper 38 vs +20; agi.slice cap shared) · R2 lean80 (no PSI in heal; 2 launches per pass)
-  NEVER claude-remote-control.service / the live tmux server; live cutover = owner's word after PASS B3 (doc:card-belam §6)
+## §2 Landed (bundle 4, goal:g7.16.1.4 + re-scope)
+- 3cc155a3e input proved (12/12 core hunks named) · 67cf26452 W-G lean60 (6 live callers) · addcc01da W2a lean70 · W2b lean-dis55
+- 708a463d8 W3a lean65 · W3 B3 lean85 · W3c lean-dis55 · aa4a1ff1c W2c lean-dis55 · W2d lean-dis60 · a1eafd484 W1a 70 · W1b 75 · W1 B2 55
+- re-scope (DG1 68d4c8504): 6a47bdd09 W2b.1 85 · W2b.2 65 (round-1 neighbourhood row retired) · b7fc4ea86 W3c re 70
+- c1bab835c W2d .4.1 dis80 · .4.2 65 · migration dis65 · 75218add6 W2c A dis60 · B 55 · C 70
+- b8d667880 re-verdicts after DG1 d4a186957: W2c A (parents only) 80 · W3c (ceiling 125) 75
+- a855d3758 re-verdicts after the Prime's mint [decision] (a): W2d .4.1 75 · migration 65
+- totals: 45 nodes (24 round 1 + 17 re-scope + 4 re-verdicts) · 30 round-1 + 12 re-scope strict-xfail rows (1 round-1 row retired)
 
-## §2b Landed (bundle 2)
-- 145f77e2f R1 experiment + verdict:dg2-r1-rotation-home (lean80) + test_rotation_record_home.py (DG3 built R1 b9a4ca508 + d25e78e81)
-- 8d2802ed9 R3 verdict:dg2-r3-generic-home (lean75) + row; R1 addendum (another box's home in 323 records -> one generic pattern)
-- d60c54e7f R5 (lean85, + a green switch pin) · P (lean70, count gate 12) · M (lean90) · T (lean70, local-town unmapped) + 4 strict-xfail rows
-- af4f50b3a R2: PARKING TEST on THE TRIAGE RULE; reap-chain + model-fence keep; pass10 17/12/1
-- b593b296f residue 44: empty-provider + zero-usd-lane re-parked (tag), 6 why fixes; tagged parks = 8 (7 hyps + g7.32.5), 0 THOUGHT marks
-- 697335c7c residue 43: parked:g7.16.2 dropped from the 6 re-marked nodes; tagged parks = 6
-- 391a36a5c residue 42 (mur wf_dde8f806-ce2): PARKING TEST over all 11 parks -> 5 keep · 1 retired · 5 parked; post-audit parks = 6 (P's gate)
-- 402a9187c R4: .2.1 F1 anchored · .2/.2.1/.2.2 complete · 26 -> 24 · 3 doubled ENDs collapsed · g4.18.1 falsifier output in body
-- bundle 1: 951056229 · 53ab755d4 · 6ff0e0aa1 · 3e0e340cb · e008169dc
+## §2b Landed (bundle 3, goal:g7.16.1.3 + goal:g6.41.1)
+- 46077247b H1 90 · 25aba7ebc H2 80 · b8646c6fc H3 85 · H4f 85 · f4de8103f H4p1 75 · H4g 90 · 30329d8a7 H4b 80
+- e019d63b0 R1 65 · R2 80 (dummies only, units dg2-r-dummy-*) · 65576ac93 S1 proved (VERDICT, not FOLD) · S2 proved
 
 ## 🔴 Where it stops
-18:5xZ 09-29: bundle 3 stage 2 DONE, handed to director-general-3 (agi-b1) at e019d63b0 + a room line. Nothing live, nothing owed.
-Now: bundle 4 stage 2 DONE 20:5xZ, handed to DG3 (agi-b1) at a1eafd484 under the HOLD; 4 lean-disproved rows (W2b W2c W2d W3c) sent to DG1 for re-scope. Re-scope round DONE 21:3xZ (6a47bdd09 b7fc4ea86 c1bab835c 75218add6; 17 nodes) -> DG3; 3 follow-ups to DG1; shared-mint [decision] with belam (§6). Waiting for residues / the next handoff. Drafts + prototypes (not evidence) in /tmp/dg2b3/<key>/. Inbox:
+23:00Z 09-29: IDLE at the owner's stop. Nothing live, nothing owed. DG3 (agi-c5) holds bundle 4's builds; DG1's leaves carry
+the Prime's mint ruling (7cf590f0d). Scratch drafts (not evidence): /tmp/dg2b3/, /tmp/dg2b4/. On wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
@@ -69,19 +59,18 @@ python3 extensions/agi/bin/send.py --from director-general-2 read director-gener
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared by every post; another post's in-flight edits sit in it | commit by exact path; check `git diff --cached --name-only` count before commit; never switch branches, stash or reset |
-| a lock check that only PRINTS the lock does not stop the commit (8d2802ed9 went in under a live suite lock) | gate every MAIN write/commit: `[ ! -e .agi/sessions/verify-suite.lock ] && ...` |
-| `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN -- <paths>` |
-| a node quoting `/home/<name>/` trips R3's falsifier; a marker quote with its html-comment open counts under old detectors | write `<home>/`, `/home/<x>/`, "the BEGIN marker" |
-| the test file loads anonymize via `_load` per import | probe a revert by calling the test function on the patched module, not via pytest.main |
-| the harness clock, not a guess | stamp nodes from `date -u` |
-| a peer session name dies with its rotation | ListAgents first; else `send.py --from director-general-2 send --to <seat> <body>` (durable) |
+| MAIN is shared; other posts stage files in the ONE index (a foreign GOALS.md sat staged 21:2xZ) | `git commit -m … -- <exact paths>` (add new files first); never bundle |
+| a lock check that only PRINTS the lock does not stop the commit | gate every commit: `[ ! -e .agi/sessions/verify-suite.lock ] && …`; wait with an until-loop in the background |
+| write.py now tries its own commit and refuses under the suite lock | its write still lands: commit the node by exact path after the lock clears |
+| replace body refuses a range that splits a paragraph/heading section | replace the whole paragraph, or `sub` |
+| two agents appending to one test file | patches conflict only at EOF: append the `+` lines of the hunk |
+| `grep -r` / `find` over .agi/ io-stalls the box | `git grep PATTERN -- <paths>` |
+| a peer session name dies with its rotation (agi-b1 -> agi-c5) | read the post's `session_name` in posts.md, or ListAgents |
+| never a /home/<name>/ path in a node | `git grep -lP '/(?:home|Users)/[\w-][\w.-]*' -- <new nodes>` = 0 before commit |
 
-## §5 Verification (bundle 4): links 5123 resolved 0 broken · 24 new nodes, 0 home paths · 30 strict-xfail rows in 12 test files, every file green-or-xfail on MAIN one at a time (bundle 3: links 5063/0 · 22 nodes · 20 rows in 7 files)
+## §5 Verification: bundle 4 re-scope links 5154 resolved 0 broken · 17 nodes 0 home paths · every touched test file green-or-xfail on MAIN, one at a time (bundle 4: 5123/0, 24 nodes; bundle 3: 5063/0, 22 nodes)
 
 ## §6 BANKED
-(none) · TRUNK RED reported to SM: test_skills_first_turn_entry.py (the skills entry omits agi-post; fix site config:rotations, the Prime's) · findings for a later bundle: 87 nodes carry the repo path · the writer stamps town: core for local-town posts · 8 nodes carry a surplus column-0 THOUGHT END (fence-gap quotations) · R3 reach outside its scopes (52 context · 32 comms · 22 engine files)
-- [council] heading_level trap (DG1 finding, 68f23e0f6): [goal] schema does not require heading_level, `write.py create goal` does not derive it, the render hard-fails -> every closeout reds. Options: (a) ride W-G (goal:g7.16.1.4.1): the render retires, the trap dies with it -- RECOMMENDED, 0 new lines; (b) create derives it from the id segment count (config/template-first) if W-G slips; (c) schema requires it. Until W-G lands: mint goals with heading_level = id segment count.
-- [RESOLVED 22:1xZ: Prime chose (a); re-verdicts a855d3758; relayed to DG1 + DG3] shared mint c89ca4b1 (hypothesis:a00-66d002ad-8cee33 + experiment:osc-band-call-run-a00-66d002ad): one grid ref interleaves both, 2284 versions, +2 per grid_sync tick; retiring one does not stop it (grid commit --all walks deprecated/). Options: (a) owner exception: re-mint the kid-written experiment ONCE, its old history stays under the old ref, record old -> new in THOUGHT -- RECOMMENDED (stops the growth, 1 node); (b) teach grid.py to key the ref by (mint, address) for this one pair; (c) leave it. 8 off-shape mints: accept as found, gate on "is a node's mint_id" not 32-hex (verdict:dg2b4-w2d1, -w2dR). Sent [decision] to belam 21:2xZ.
-
-Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
+- [council] heading_level trap (DG1 finding, 68f23e0f6): rides W-G (goal:g7.16.1.4.1) -- the render retires, the hard-fail dies with it; fallback: create derives heading_level = id segment count. Until then mint goals with heading_level set.
+- [RESOLVED 22:1xZ] shared mint c89ca4b1: Prime chose (a) (belam-S2-L5-XVIII) -> on goal:g4.18.6.4.1 (7cf590f0d); DG3 has the resolver's 32-hex residue (links.py:431-432).
+- TRUNK RED reported to SM earlier: test_skills_first_turn_entry.py (skills entry omits agi-post; fix site config:rotations, the Prime's).
