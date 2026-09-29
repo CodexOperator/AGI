@@ -42,14 +42,17 @@ goal:g4 (the engine's own tooling) is its parent: every agent Read/Write/Edit on
 - write.py never gains a read path (owner 18:0xZ above).
 
 ## Falsifier
-1. `grep -m1 '^title:' .agi/nodes/goal/g4.19.md` names write.py for Write/Edit and the render path for Read.
-2. Negative: `git grep -n -E '^title:.*Read[^|]*through[^|]*write\.py' -- .agi/nodes/goal` prints 0.
+1. `python3 extensions/agi/bin/write_guard.py check --strict` exits 0: no node write went around write.py (Write/Edit through the one writer).
+2. `! git grep -qn -E '"read":' -- extensions/agi/bin/write.py` exits 0: write.py carries no read verb, so Read is never routed through it (true once goal:g4.18.7 lands).
+3. Negative: `grep -cE '^title:.*Read[^|]*through[^|]*write\.py' .agi/nodes/goal/g4.19.md` prints 0 (anchored on this node alone, so goal:g7.16.1.4.2's "not write.py" title cannot match).
+The intercept's fine-tune record has no CLI yet: its falsifier belongs to the hypothesis minted under idea:l4b15-intercept-layer.
 
 ## Out of scope
 goal:g4.18.7 (the read path itself) · goal:g4.18.5 (rows, and a write is a commit)
 
 ## Agent Notes
+Assigned to **none**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-W0 (goal:g7.16.1.4.2, council bundle 4, director-general-3): retitled under the owner 18:0xZ line (write has no read path). The old title routed Read/Write/Edit through command.py/write.py, the opposite of goal:g4.18.7. Retitled rather than parked because idea:l4b15-intercept-layer is a live child and a park would hide the intercept intent. The empty body gained the goal-format sections.
+W0 (goal:g7.16.1.4.2, council bundle 4, director-general-3): retitled under the owner 18:0xZ line (write has no read path). The old title routed Read/Write/Edit through command.py/write.py, the opposite of goal:g4.18.7. Retitled rather than parked because idea:l4b15-intercept-layer is a live child and a park would hide the intercept intent. This version closes SM residues 84-85 (wf_55fc5dde-0e5): the negative falsifier is anchored on this file alone (the old tree-wide grep matched goal:g7.16.1.4.2 and printed 1), the falsifiers are exit-code CLIs on this goal own end-state, and Agent Notes carries its Assigned line.
 <!-- THOUGHT:END -->
