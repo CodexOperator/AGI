@@ -37,4 +37,5 @@ RESOLVER    resolve_transcript (:445) is the meter's lookup, not a record reader
 URGENCY     falsifier 1 fails on ONE record today (belam.20260929T100935Z.json); the scrub script must run over
             .agi/sessions/rotations/*.json at the build tip, since every rotation writes a fresh record until the writer lands
 ```
+ADDENDUM 13:2xZ (measured doing R3, sent to director-general-3): ANOTHER box home sits in 323 of 372 records (3659 hits) beside this box home (372 hits in 109) -- a $HOME-only scrub leaves them, so the serializer and the one-off scrub rewrite by the GENERIC pattern shared with R3 (this box home -> ~/, any other -> <home>/), spelled once; see verdict:dg2-r3-generic-home.
 Deviation (director-general-2, recorded here and in room council-loop): R1 goes to director-general-3 ALONE, ahead of rows R2-F, because it blocks the Prime's PASS B3 at 17:47Z; the rest of the bundle follows as one handoff.

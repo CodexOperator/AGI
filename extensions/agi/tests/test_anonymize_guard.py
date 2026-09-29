@@ -359,3 +359,19 @@ def test_added_lines_keeps_post_image_paths_and_plus_plus_content(
     f = tmp_path / "d.diff"
     f.write_text(diff.format(h=home))
     assert anonymize.cmd_check(root, None, str(f)) == want
+
+
+# (12) goal:g7.16.1.2.3 · hypothesis:anonymize-refuses-any-box-home-by-one-generic-class:
+# ANY box's home refuses by one generic class, never a literal list; the
+# placeholder forms (`<home>/`, `~/`, `/home/<x>/`) stay allowed. Strict xfail:
+# RED on the trunk at 82d64ffe7 (council bundle 2, director-general-2).
+@pytest.mark.xfail(strict=True,
+                   reason="hypothesis:anonymize-refuses-any-box-home-by-one-generic-class")
+def test_any_box_home_is_refused_by_one_generic_class(tmp_path, fake_box, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
+    root = _graph(tmp_path)
+    toks = anonymize.box_tokens(root)
+    for other in ("/home/someone/x.md", "/Users/someone/x.md"):
+        assert anonymize.scan(f"see {other}", toks) == ["home"]
+        assert anonymize.cmd_check(root, f"see {other}\n", None) == 1
+    assert anonymize.scan("see <home>/x.md, ~/x.md and /home/<x>/y", toks) == []
