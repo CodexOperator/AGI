@@ -22,7 +22,7 @@ tags:
   - local-maxxing
   - write-path
   - render-path
-title: "G7.16.1.4: COUNCIL BUNDLE 4 -- the write/render split: W0 one live goal per act (g4.19) -> W1 g4.18.5 rows + a write is a commit -> W2 g4.18.6 links are mint ids -> W3 g4.18.7 read leaves write.py, one render path"
+title: "G7.16.1.4: COUNCIL BUNDLE 4 -- the write/render split: W-G GOALS.md retired -> W0 one live goal per act (g4.19) -> W1 g4.18.5 rows + a write is a commit -> W2 g4.18.6 links are mint ids -> W3 g4.18.7 read leaves write.py, one render path"
 town: core
 ---
 # goal:g7.16.1.4
@@ -36,6 +36,7 @@ goal:g7.16.1 (the council loop): the Prime handed the council three owner orders
 ## Target end-state
 Rows in council order. A row closes when its line holds in the bytes.
 - **Base.** Cut from bundle 3's SM-clean tip, never 900a4017a, so goal:g4.18.3's authorship-gate test already stands when the write path is rewritten under it. Core's write.py +125 (the bundle-5 file list) is read as INPUT: each hunk is absorbed or rejected by name, so bundle 5 never ports onto a dead shape.
+- **W-G · GOALS.md is retired** (moved UNBUILT from bundle 3 row G, council 20:2xZ; OWNER 17:3xZ 09-29, verbatim on goal:g7.16.1: "Go ahead and retire GOALS.md. We don't need it anymore stop bothering with it or the render byte round trip script"). ONE row: the live render callers (driver.sh:240 on every --smoke, the rotation closeout, the review gates), the same-row couplings (retire --from-doc + its unlink, the closeout --check gate, node_writer's goal-type reason, the goals_file cell) CLAUDE.md's "Read YOUR goal by id" line, its --check table row and its "GOALS.md is derived" convention move together (every --smoke rewrites GOALS.md in MAIN today, leaving it dirty); goals are then read through W3's render path (goal:g4.18.7): GOALS.md is a second read surface, so W-G and W3 are one act. No half-retire: until W-G lands the render and --check stay live and a red --check is W-G's by name, never waived. --smoke still reports a node count after the render goes (the Prime's [red] 18:00Z: the node-count floor never goes blind).
 - **W0 · one live goal per act.** goal:g4.19 (its title routes Read THROUGH write.py) is retitled under the owner's 18:0xZ line or parked by the tag `parked:g4.18.7`; no two live goals route one act opposite ways.
 - **W1 · rows, and a write is a commit.** goal:g4.18.5, carrying goal:g4.18.3's invariant verbatim: "One authorship gate for every write.py verb that writes a node; no verb returns ahead of it."
 - **W2 · links are mint ids.** goal:g4.18.6, minus its end-state bullet 2's read routing (one home: goal:g4.18.7). Couplings, in the SAME row: CLAUDE.md's renumber rule ("re-point every reference in the SAME commit") and the agi-goal skill's matching renumber text retire, since no link ever needs re-pointing.
@@ -58,5 +59,5 @@ goal:g7.16.1.3 (bundle 3, and its row R: goal:g6.41.1 P1+P6, P5) · bundle 5 = g
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by alive (council convener) 18:2xZ 09-29 on the Prime belam-S2-L5-XVI [owner] relay: "Three owner orders from 17:2xZ to 18:0xZ belong in ONE bundle, which I would call the write/render split. The council places it: after bundle 3, or folded in." All three lenses: AFTER bundle 3, its own bundle, order g4.18.5 -> .6 -> .7. Conditions taken verbatim in spirit: base on bundle 3 SM-clean tip (self-perpetuating a, all-is-one 3); carry g4.18.3 invariant into g4.18.5 (all-is-one 3); one home for reads = g4.18.7, cut from g4.18.6 (all-is-one 1); g4.19 resolved as row W0, not flagged (all-is-one 2); .6 retires the renumber re-point rule in CLAUDE.md + agi-goal (self-perpetuating c); core write.py +125 read as input (alive, both agree). The old bundle 4 (core edits + profile_sync) is bundle 5.
+Minted by alive (council convener) 18:2xZ 09-29 on the Prime belam-S2-L5-XVI [owner] relay (the write/render split, placed AFTER bundle 3 by all three lenses; conditions on W1-W3 as in the body). This version (20:3xZ) adds row W-G: bundle 3 row G was NEVER BUILT -- 30f4db55f + e662637ac edit only goal/g7.16.1.3.md, driver.sh is untouched in 9181cee26^..9966e3050 and driver.sh:240 at 9966e3050 still runs --render --strict-goals (verified by alive, all-is-one and self-perpetuating), which is why SM clean handoff carried a red render --check. GOALS.md is a second read surface for goals and W3 makes viewport the one, so W-G and W3 are one act (all-is-one). Couplings move with it as ONE row (all-is-one 1, self-perpetuating b); no half-retire (all-is-one 2).
 <!-- THOUGHT:END -->
