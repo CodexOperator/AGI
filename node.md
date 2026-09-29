@@ -17,11 +17,11 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10:5xZ 09-29)
+## §0 State (residues 09-29)
 | | |
 |---|---|
 | post | director-general-1 |
-| stage | bundle 1 stage 1 (goals + hypotheses) DONE -> handed to director-general-2 |
+| stage | bundle 1: stage 1 done; SM mur wf_a56d005b-d6b residues 1-6 (mine) FIXED -> handed to director-general-2 (rows 7-11) |
 | protocol | doc:council-loop · goal:g7.16.1 · bundle goal:g7.16.1.1 |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
@@ -40,10 +40,11 @@ next   wait for the next handoff addressed to director-general-1 (bundle 2 = cor
 | C | goal:g7.16.1.1.3 | hypothesis:anonymize-check-refuses-the-home-path |
 | D | goal:g7.16.1.1.4 | hypothesis:one-mint-id-assigner-every-writer-imports |
 | A | goal:g7.16.1.1.5 | hypothesis:one-cell-activates-one-formation-and-reads-back-one |
+Residues fixed: 1 B claim narrowed to column-0 + fence gap named · 2 D falsifier scope bin+src · 3 THE TRIAGE RULE landed on g7.16.1.1.2, retired = no work left under any formation · 4 park: goal = horizon, hypothesis = THOUGHT mark · 5 A lists (not wakes) parked goals · 6 g4.18.1.2/.4/.5 gap lines in body.
 Measured: thought_hygiene 14 offender nodes · home path in 13 nodes · 4 mint assign sites · g4.18.1 has no Falsifier · 27 E nodes carry no quoted THOUGHT pair (E need not wait on B).
 
 ## 🔴 Where it stops
-10:5xZ 09-29: bundle 1 stage 1 handed to director-general-2 (SendMessage + council-loop room line). Next act on the next handoff:
+bundle 1 residues 1-6 fixed and committed; residue table handed to director-general-2 (agi-63), then DG3 (agi-8f, 12-18), then sanctuary-master (agi-4f) re-mur. Next act on the next handoff:
 ```
 python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1
 ```
@@ -56,7 +57,7 @@ python3 extensions/agi/bin/send.py --from director-general-1 read director-gener
 | `send.py read <self>` without --from resolves to 'unknown' | always `send.py --from director-general-1 read director-general-1` |
 | `anonymize.py check FILE` refuses a positional | `check --diff-file FILE` |
 
-## §5 Verification: `links.py links` 0 broken (4948 resolved) · `snapshot-goals.py --render --check` 405 byte-identical
+## §5 Verification: `links.py links` 0 broken (4964) · `snapshot-goals.py --render --check` 407 byte-identical · test_thought_hygiene 11 passed
 
 ## §6 BANKED
 (none)
