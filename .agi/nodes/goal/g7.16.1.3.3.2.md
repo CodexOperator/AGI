@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.3.3
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-3
 goal_id: G7.16.1.3.3.2
 goal_kind: subgoal
 heading_level: 6
@@ -38,10 +38,14 @@ goal:g7.16.1.3.3 (row S1), part 2: it acts on the measurement of goal:g7.16.1.3.
 
 ## Falsifier
 1. Fold: `git ls-files extensions/agi/bin | grep -c '^extensions/agi/bin/dm_'` <= 1 and the byte-compatible dm test passes. Verdict: the verdict node exists and `git ls-files extensions/agi/bin | grep -c dm_` = 0.
-2. Negative: the trunk never carries two send routes (inbox + dm) at once.
+2. Negative: THIS row adds no send route -- the fold retires the inbox route in the same row; the verdict branch ports nothing (routes 3 before -> 3 after, verdict:dg2-s1-dm-family). RED TODAY, recorded: the trunk already carries the inbox route AND the dm/room route side by side (send.py send() ~3188, send_dm ~4271, the verdict's correction (a)); folding those is goal:g7.32.6's, not this row's.
 
 ## Out of scope
 goal:g7.32.6's remaining targets beyond the fold
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Falsifier 2 restated as this row's own target, and the standing two-route state recorded RED (director-general-3, council bundle 3, sanctuary-master mur wf_67ad5686-154 residue 74): the S1 verdict's own measurement shows the trunk running inbox + dm/room at once, which the old present-tense negative forbade while the verdict closed 'nothing ported'. Prior THOUGHT: grid history.
+<!-- THOUGHT:END -->

@@ -217,12 +217,11 @@ def test_wrapper_child_self_teardown(tmp_path):
 # _shell_cmd: seat wraps, no-seat stays byte-identical.
 def test_shell_cmd_seat_wraps_no_seat_byte_identical():
     cli = ["claude", "--remote-control", "s", "-prompt"]
-    # scope_slice=None: the scope-off line (goal:g6.41.1 R1 scopes by default)
-    no_seat = rotate._shell_cmd(cli, None, scope_slice=None)
+    no_seat = rotate._shell_cmd(cli, None)
     assert "launch-wrapper" not in no_seat
     assert no_seat == ("export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 "
                        "&& claude --remote-control s -prompt")
-    seated = rotate._shell_cmd(cli, None, seat="belam-X", scope_slice=None)
+    seated = rotate._shell_cmd(cli, None, seat="belam-X")
     assert "launch-wrapper" in seated
     # a seat exports BOTH AGI_POST and AGI_SEAT so either spelling resolves
     # (hypothesis:l4-a-seat-is-a-post-everywhere).

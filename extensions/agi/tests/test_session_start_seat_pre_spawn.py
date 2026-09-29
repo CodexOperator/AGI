@@ -125,13 +125,13 @@ def _run_hook(cwd: Path, *, home: Path, seat: str | None):
 # (a) the spawn path EXPORTS AGI_SEAT before claude; a no-seat spawn stays
 #     byte-identical to today.
 def test_shell_cmd_exports_seat_only_when_seat_given():
-    no_seat = rotate._shell_cmd(["claude", "--remote-control", "s"], None, scope_slice=None)
+    no_seat = rotate._shell_cmd(["claude", "--remote-control", "s"], None)
     assert "AGI_SEAT" not in no_seat
     assert no_seat.startswith(
         "export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 && claude "
         "--remote-control s")
     seated = rotate._shell_cmd(["claude", "--remote-control", "s"], None,
-                               seat=SEAT, scope_slice=None)
+                               seat=SEAT)
     # (a.2, amendment e) the AGI_POST/AGI_SEAT export still rides before the
     # claude process — but claude is now WRAPPED, so the raw `&& claude`
     # adjacency is gone: the export launches `rotate.py launch-wrapper --seat
