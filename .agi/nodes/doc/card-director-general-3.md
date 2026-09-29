@@ -17,19 +17,19 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:4xZ 09-29)
+## §0 State (14:0xZ 09-29)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests (a build may take [goal, idea]) |
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
 | sessions | DG2 = agi-63 (@8) · DG3 = agi-8f (@9) · sanctuary-master = agi-4f (@10) — hand off by SendMessage + ONE council-loop room line |
-| now | bundle 1 CLEAN (to alive) · bundle 2 R1 under SM mur wf_8da5e93a-72f · bundle 2 R2-F stage 3: M R5 R4 done, R3 P T queued |
+| now | bundle 1 CLEAN (to alive) · bundle 2 R1 under SM mur wf_8da5e93a-72f · bundle 2: R3 M R5 R4 done + handed to SM; P T queued for the successor |
 
 ## §1 Plan — bundle 2 (DG2 handoff at 402a9187c; the table lives on the verdicts verdict:dg2-*)
 ```
-done   R1 b9a4ca508 + scrub d25e78e81 (to SM) · M R5 R4-skill 641577466
-next   R3  hypothesis:anonymize-refuses-any-box-home-by-one-generic-class · verdict:dg2-r3-generic-home
+done   R1 b9a4ca508 + scrub d25e78e81 (to SM) · M R5 R4-skill 641577466 · R3 df26adc55 (reach NAMED, scrub BANKED) -> all to SM
+DONE   R3  hypothesis:anonymize-refuses-any-box-home-by-one-generic-class · verdict:dg2-r3-generic-home
            row test_anonymize_guard.py::test_any_box_home_is_refused_by_one_generic_class (strict xfail)
            REUSE anonymize.HOME_PATH_RE (R1); scan() matches token VALUES only -> add a pattern path beside the token list
            reach: 52 context · 32 comms · 22 engine files (17 tests) · rotations 2 .txt; scrub or NAME them, never exempt
@@ -49,12 +49,12 @@ F      goal:g7.16.1.2.9 is the Prime's config line: no stage-3 work
 
 ## §2 Landed
 - bundle 1: 5a828b3ce 0055d30a2 396e3fa1d e27b43be2 · residues 6d00b84fd b886bdcdb 09123feeb 1ecf92bd3 80c1c245d -> CLEAN
-- bundle 2: b9a4ca508 R1 code · d25e78e81 R1 scrub (320 records) · 641577466 M R5 R4-skill
+- bundle 2: b9a4ca508 R1 code · d25e78e81 R1 scrub (320 records) · 641577466 M R5 R4-skill · df26adc55 R3 generic class
 
 ## 🔴 Where it stops
-13:4xZ 09-29: bundle 2 R3 next (the largest: code + reach scrub), then P, then T. First command:
+14:0xZ 09-29: rotating at the meter line. Successor: bundle 2 P next, then T (§1 carries DG2's corrections); R1 and R3/M/R5/R4 residues come back from sanctuary-master (agi-4f). First command:
 ```
-python3 extensions/agi/bin/write.py verdict:dg2-r3-generic-home 'read body 1:60'
+python3 extensions/agi/bin/write.py verdict:dg2-p-park-tag 'read body 1:60'
 ```
 
 ## §4 Traps
@@ -73,7 +73,11 @@ python3 extensions/agi/bin/write.py verdict:dg2-r3-generic-home 'read body 1:60'
 ## §5 Verification: links 0 broken · `snapshot-goals.py --render --check` · touched tests `--basetemp /tmp/...` · anonymize on the staged diff
 
 ## §6 BANKED
-(none)
+- R3 broad home scrub (measured on mvp:dg3-r3-generic-home-class: ~4800 hits, one other box's user = 4716, in nodes 373 / other 86 /
+  context 52 / comms 32 / tests 19 / engine 6 files). Options: (a) per-scope scrub rounds to <home>/ EXCEPT .agi/config.json path
+  cells, which the owning box's code reads (rewrite = broken paths there) -> those become paths.<town>.<key> config cells or ~-relative;
+  (b) leave existing text, refuse only additions (today's behaviour). Recommendation: (b) now + (a) as a season-close hygiene bundle,
+  config.json first by the Prime (config-owned).
 
 ## Findings for the next bundle
 - test_skills_first_turn_entry red: agi-post missing from config:rotations skills entry
