@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-real-box-half-of-remote-now-agi-cloned-on-the-town-box-with-its-own-sessions-env-crons-and-keys-and-a-core-town-dm-read-there-in-one-tick
 next_edges: []
 confidence: 0.7
-edited_by: a00-4922be82
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-4922be82-9f3b11
 line_ceiling: 40
@@ -85,7 +85,7 @@ provisioning slot's emptiness is reported as an optional note, exactly as
   `branch_push` and the `mail_poll` fetch+read line. `crons.py apply` installed
   those 2. Box crontab total = 4 lines (2 comment markers + 2 jobs).
 - Core-town's crontab was never edited or applied; its `agi-crons` block still
-  names project `/home/ubuntu/work/agi` and its own 7 rendered lines. Claim 2
+  names project `<home>/work/agi` and its own 7 rendered lines. Claim 2
   holds, but note it holds *because the trunk is still single-box*: with no
   core box declared, the box needed a box-local declaration to be gated at all.
 
