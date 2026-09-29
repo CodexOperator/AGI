@@ -2,7 +2,7 @@
 name: agi-verify
 description: >
   Verify the agi graph and engine after a landing: the one verify command and what each
-  check means, the node-count floor, links, GOALS.md round trip, the suite lock and the
+  check means, the node-count floor, links, the suite lock and the
   engine test suite. Use after any merge, node migration, retag or engine edit, and before
   claiming a landing is clean.
 ---
@@ -16,7 +16,6 @@ python3 extensions/agi/bin/commands.py run verify
 | check | green means |
 |---|---|
 | links | `broken=0` (`links.py links`) |
-| goals-check | `GOALS.md` ⇄ goal nodes byte-identical (`snapshot-goals.py --render --check`) |
 | smoke / node-count | active + deprecated never dropped (`driver.sh --smoke --max-iters 1`); stamped only on the integration branch |
 | viewport-verify | one render, two readers (goal:g2.19) |
 | write-guard · dispatch-help · budget · anonymize · seat-model · node-dirs | each tool's own invariant |
@@ -34,7 +33,7 @@ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/<file>.py -q   #
   once TERM'd the Prime's pane from inside it).
 
 ## 3 · Also
-`links.py schema` (which nodes violate their type's required list, dry) · `snapshot-goals.py --render --check` ·
+`links.py schema` (which nodes violate their type's required list, dry) ·
 `envfile.py --check` (presence, not validity) · `provisioning.py status` · `spawn_budget.py status` ·
 `crons.py show` · guard: `~/work/.sanctuary/guard/guard-init.sh --status` + `tail ~/logs/memory-alarm-alerts.log | cut -d" " -f1,3-` (drop column 2: every line carries the host name, TM [red] 02:36Z 09-27).
 Report outcomes faithfully: a FAIL is quoted with its line, never summarised away.
