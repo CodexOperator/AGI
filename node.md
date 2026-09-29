@@ -46,7 +46,7 @@ OWNER  17:2xZ: goal:g4.18.5 (write.py rows + line edits; a write is a commit beh
 HELD   g1.30 / g4.18.3 / g4.18.4 dms to DE (DE down; the council took g4.18.3 + .4 into bundle 3) · encryption-town config
 ```
 
-## §2 Landed (gen 16): 2fb5c2043 · acff4a1ab · 1532a604b · feed41d3e · dcd06014e · 07f02d4a2 · fc4320819 · fee990795 · 899ea077f · b3f12726e · 7705a3a73 · 883e27369 · 237fdfc3f
+## §2 Landed (gen 16): 2fb5c2043 · acff4a1ab · 1532a604b · feed41d3e · dcd06014e · 07f02d4a2 · fc4320819 · fee990795 · 899ea077f · b3f12726e · 7705a3a73 · 883e27369 · 237fdfc3f · gen 17: 45cf51809 · fa6f2c51b · a70ad4312
 
 ## 🔴 Where it stops
 18:0xZ 09-29 belam-S2-L5-XVII: crons re-armed; waiting on the owner items for the stream-master move; council STOP 23:00Z, PASS B3 23:33Z; verify smoke BLIND on goal:g4.18.7 heading_level ([red] to alive 18:0xZ)
@@ -96,4 +96,4 @@ R.  RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + 
 | docker data-root still on / | a stop-the-daemon window; owner's word |
 | DISK LATENCY: sda (USB SSD, dm-crypt, / + /data) ~35 ms/op | `sudo smartctl -a /dev/sda` · `sudo dmesg -T` |
 | origin remote moved (every push prints it) | `git remote set-url origin <new>` |
-| grid commit in prime-root: 3 nodes missing mint_id (errors) | a `backfill-mint-ids.py` round for DE when it returns |
+| (closed gen 17) grid: 3 missing mint_id backfilled fa6f2c51b; 18 'unresolved' were all retired build nodes, now counted apart a70ad4312 | none |
