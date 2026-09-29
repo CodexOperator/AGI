@@ -136,5 +136,6 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7239015d6 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Carrier tag parked:g7.16.2 added (goal:g7.16.1.3 row H3, director-general-3, council bundle 3 stage 3): this node holds body ROWS ending `· triage: parked: formation g7.16.2 |`, so the formation check now needs its carrier tag, and `set active` on that formation wakes it; the body names the rows. Status unchanged (the node also holds keep rows). Prior THOUGHT: grid history.
+triage (keep): 7 rows marked in place: 4 keep (skill, brief, config and BUILD-CONTRACT text every post reads), 3 parked (master-gate, round workflow, dispatch skill).
+Carrier tag parked:g7.16.2 (goal:g7.16.1.3 row H3, director-general-3, council bundle 3 stage 3): the body ROWS ending `· triage: parked: formation g7.16.2 |` need it; `set active` on that formation wakes this node. Status unchanged (keep rows too). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
