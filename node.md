@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-producing-git-stage-is-argument-restricted
 next_edges: []
 confidence: 0.95
-edited_by: a00-b0b3b931
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-5aeff71c-3c0295
 loop: hypothesis:l4-a-producing-git-stage-is-argument-restricted@s2
@@ -69,7 +69,7 @@ The specific file, `python3 -m pytest extensions/agi/tests/test_rotate_startup.p
 `48 passed`.
 
 ## Agent Notes
-FIX: git branch of _producing_refusal now 'continue's on a benign unit (was return, letting a benign first ;-unit bypass later units); -C <path> value now scanned for $/backtick/~. git status -sb; git log -p -- .env -> NAMED refusal; git -C /home/ubuntu status -sb -> NAMED refusal; positives all None. 238 rotate tests pass.
+FIX: git branch of _producing_refusal now 'continue's on a benign unit (was return, letting a benign first ;-unit bypass later units); -C <path> value now scanned for $/backtick/~. git status -sb; git log -p -- .env -> NAMED refusal; git -C <home> status -sb -> NAMED refusal; positives all None. 238 rotate tests pass.
 
 Parent review L4.195: kid 1 demoted proved -> lean_proved:80 (; -unit bypass via `return`), kid 2 re-briefed and independently verified (24 must-refuse / 12 must-pass, 0 escapes; 48 startup / 243 rotate tests green). Accepted proved.
 
