@@ -53,7 +53,7 @@ BOX       / at 94 pct 21:1xZ (6.5 GiB free) · belam 22:12Z (OWNER GO): per-role
           on it, confirm send, rotate, grid, dispatch and the suite still work (one line each, to TM) · the other town left the free lane
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.191 · next murq287 · PLACING CHAIN (detached, serial): pq188 EG.188 -> pq189 EG.189 (murq284 EG.179 awr, 5 text) -> pq190 EG.190 (murq277 EG.170 facts window, accept + verify awr, 4 items; 2 6 demoted by design) -- each waits for the previous unit AND a fresh redispw spawn · EG.171 HARVESTED 00:26Z 9b61ad910 76 passed (item 2 git mv reported unlanded) -> murq286
+SERIES    next EG.192 · next murq287 · murq280 EG.174 awr -> EG.191 (7 text items) via pq191 · PLACING CHAIN (detached, serial): pq188 EG.188 -> pq189 EG.189 (murq284 EG.179 awr, 5 text) -> pq190 EG.190 (murq277 EG.170 facts window, accept + verify awr, 4 items; 2 6 demoted by design) -- each waits for the previous unit AND a fresh redispw spawn · EG.171 HARVESTED 00:26Z 9b61ad910 76 passed (item 2 git mv reported unlanded) -> murq286
           drives 272 275 276 278 until they end -- TMM.360: never skip a mur, keep re-arming; next [count] to TM after EG.186 lands (deaths /
           dispatches + mur stage survival); still 100 pct dead after EG.185 lands -> the lane/model question goes to belam
           · EG.186 LIVE a00-ed3b6fd7 (22:50Z) on cut 50b35023b = trunk 56c012118 + the node's 2 commits cherry-picked -- TRAP: place2 cut a NEW
@@ -125,19 +125,23 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-21:0xZ: #5 sent (clean landing branch de-mu-EG151 3ad3bf41a); EG.184 fixes the EG.153 gate reds; pi-free empty responses still kill rounds
+00:3xZ 09-29: 11 chains harvested await murs on EG.183's runner; correctives EG.188-191 placing serially; #6 not yet sent
 ```
-FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur* serial* gmurq*/murq* pq*)
-        · tail <scratchpad 3e232af5>/deadwatch.log: each HARVEST line not yet harvested -> systemd-run --user --unit=agi-director-engine-harvN
-          -- bash <scratchpad 8884a411>/memgate-harv.sh EG.N · DEAD lines = redispw's (never redispatch by hand)
-        · EG.184 harvested -> mur -> clean = stack its tip on de-mu-EG151 (merge-tree first) + the one-call line (TMM.351) -> [merge-up] #6
-        · murq274 (EG.183) verdict -> corrective MUST add config:workflows pi_transient_signatures (write.py set; the kid commits it)
-        · EG.170 (facts window, TMM.348) ended -> harvest -> mur b49c5db9e..tip -> [merge-up] naming the chain tip + a1ccc2dee
-        · send.py read director-engine once per nudge (TM owes the gate of #5)
-THEN    per ended mur: D/verd.py Q -> clean/prose-only = director close (TMM.327) on the loop tip, stack on de-mu-EG151 AND merge into the
-        post (trio = POST side; hypothesis node = S3/resnode.py) + [merge-up] · residue = T/genbatch.py N:Q + S3/drop.py + S3/textkid.py
-        (pure text) + ONE serial pq.sh unit   [S3 = <scratchpad 3e232af5>]
-NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · a bare & watcher · parallel placements
+FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur2xx pq188-191)
+        · tail S3/deadwatch.log: a HARVEST line not harvested -> systemd-run --user --unit=agi-director-engine-harvN -p MemoryMax=6G
+          -- bash G/memgate-harv.sh EG.N (G = <scratchpad 8884a411>) · DEAD lines are redispw's -- never redispatch by hand
+        · every rmurQ ENDED 'done' -> D/verd.py Q -> T/genbatch.py NEXT:Q -> S3/drop.py (by-design items) -> chain ONE pq unit after
+          the last pq unit AND a fresh redispw spawn (see pq191's command in systemctl show) · rmurQ ended after 8 tries -> re-arm on
+          S3/rmur2.sh Q (sleep-staggered)
+        · EG.188 harvested (TMM.361 reader) -> run its TESTS on a temp worktree -> sed runmur2.sh to ITS tip's workflow.py (the unlock:
+          signatures from values.pi_retry.transient_signatures + 12 x 60 s) -> mur the EG.185 chain (c2404cc17..EG.188 tip); LAND the
+          EG.185 chain before 01:43Z or after PASS B2 closes -- never mid-pass (TMM.353/361)
+        · send.py read director-engine once per nudge
+THEN    a CLEAN chain (review accept + verify accept, or prose-only residues closed by director close TMM.327) -> merge-tree onto
+        de-mu-EG151 tip + merge --no-ff into the post -> ONE [merge-up] #6 to TM: chain tips + mur keys + verdicts + rows 24 25 (TMM.352)
+        + the one-call line for EG.184 (TMM.351). Next [count] to TM after EG.186's chain lands (deaths / dispatches + mur stage survival)
+NEVER   place by hand while redispw is inside redispatch2 · restart a q-unit without reading its log · edit a RUNNING unit's script ·
+        cut a NEW node from the trunk without its node commits (dispatch: 'no context for target') · write .agi/config.json (TM's)
 ```
 
 ## §4 TRAPS
