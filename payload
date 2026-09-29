@@ -54,8 +54,11 @@ def grep_live(groot: Path, needle: str) -> list[tuple[str, Path, dict]]:
     not load (goal:g7.16.1.3 row H4 f)."""
     import yaml
     import node_writer
-    r = subprocess.run(["git", "grep", "--no-index", "-lzF", "-e", needle, "--", "."],
-                       cwd=groot / "nodes", capture_output=True, text=True)
+    try:  # CM6: bounded, and a launch failure (e.g. no nodes/) is a named FAIL
+        r = subprocess.run(["git", "grep", "--no-index", "-lzF", "-e", needle, "--", "."],
+                           cwd=groot / "nodes", capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise GrepError(f"git grep could not run: {exc}") from None
     if r.returncode >= 2 or (r.returncode == 1 and r.stderr.strip()):
         raise GrepError(f"git grep exit {r.returncode}: {r.stderr.strip()}")
     hits = []
@@ -69,8 +72,9 @@ def grep_live(groot: Path, needle: str) -> list[tuple[str, Path, dict]]:
                 fm = yaml.safe_load(split[0])
             except (yaml.YAMLError, OSError) as exc:
                 raise GrepError(f"{rel}: frontmatter does not load: {exc}") from None
-            if isinstance(fm, dict) and fm.get("id"):
-                hits.append((str(fm["id"]), f, fm))
+            if not (isinstance(fm, dict) and fm.get("id")):  # CM5: never silently dropped
+                raise GrepError(f"{rel}: frontmatter carries no id")
+            hits.append((str(fm["id"]), f, fm))
     return sorted(hits, key=lambda h: h[0])
 
 
@@ -78,5 +82,11 @@ def parked_carriers(groot: Path, goal: str) -> list[tuple[str, Path, list]]:
     """goal:g7.16.1.2.6 -- live nodes whose `tags` hold `parked:<goal>` (the
     tag form in [goal].md / [hypothesis].md) -> (id, file, tags)."""
     tag = f"parked:{goal}"
-    return [(i, f, list(fm.get("tags") or [])) for i, f, fm in grep_live(groot, tag)
-            if tag in (fm.get("tags") or [])]
+    out = []
+    for i, f, fm in grep_live(groot, tag):
+        tags = fm.get("tags") or []
+        if not isinstance(tags, list):  # CM8: a string would explode into characters
+            raise GrepError(f"{i}: `tags` is {type(tags).__name__}, not a list")
+        if tag in tags:
+            out.append((i, f, list(tags)))
+    return out
