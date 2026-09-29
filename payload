@@ -1716,8 +1716,6 @@ W1A_BODY = ("\n# hypothesis:h2\n\n## Table\n\n| k | v |\n|---|---|\n| a | 1 |\n"
             "why\nmore why\n<!-- THOUGHT:END -->\n")
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W1a: RED until DG3 builds "
-                   "node_writer.body_rows (the one row index)")
 def test_b4_w1a_one_row_per_table_row_list_item_and_block():
     lines = W1A_BODY.split("\n")
     spans = [lines[a - 1:b] for a, b in nw.body_rows(W1A_BODY)]
@@ -1726,8 +1724,6 @@ def test_b4_w1a_one_row_per_table_row_list_item_and_block():
         assert spans.count(one) == 1, (one, spans)
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W1a: RED until DG3 builds "
-                   "node_writer.body_rows, defined once")
 def test_b4_w1a_the_row_index_has_one_definition():
     import ast
     defs = [p.name for p in sorted(BIN.glob("*.py"))
