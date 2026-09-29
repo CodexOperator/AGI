@@ -6,7 +6,7 @@ parents:
   - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: director-general-3
 goal_id: G6.43
 goal_kind: subgoal
 heading_level: 3
@@ -31,7 +31,7 @@ town: core
 
 ## Why this exists
 
-- `goal:g15` is the parent because this is a measured seat-protocol gap fixed in-loop (bugfix/optimization under the Sanctuary perpetual goal): the Sensei's spawn-seating audit (draft `/home/ubuntu/work/agi/.agi/sessions/sensei/drafts/spawn-seating-audit-20260911T175816Z.md`, third measurement of one root cause) counted the calls a RECOVERY seat spends reconstructing how its predecessor died — belam 175816Z: 4 + 14 calls on X's autopsy by hand; sanctuary-helper 181834Z: 11 calls repairing an unresolved merge the spawn never named.
+- `goal:g15` is the parent because this is a measured seat-protocol gap fixed in-loop (bugfix/optimization under the Sanctuary perpetual goal): the Sensei's spawn-seating audit (draft `<home>/work/agi/.agi/sessions/sensei/drafts/spawn-seating-audit-20260911T175816Z.md`, third measurement of one root cause) counted the calls a RECOVERY seat spends reconstructing how its predecessor died — belam 175816Z: 4 + 14 calls on X's autopsy by hand; sanctuary-helper 181834Z: 11 calls repairing an unresolved merge the spawn never named.
 - `build:bin-rotate` is the parent because `rotate.py spawn` (the recovery path when a seat dies without rotating) and the rotation record are the mechanism: the facts an LLM re-derives by hand — the predecessor's last log lines before its pid vanished, the reaper lines, the launch script, the worktree's behind count and an unresolved merge — are all on disk and can be printed by the script before the successor's first call.
 
 ## Testable claim (a build order)
