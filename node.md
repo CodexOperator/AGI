@@ -28,7 +28,7 @@ gen 16 at the 16:00Z council stop. Every Prime-owed write this gen (config:forma
 | | |
 |---|---|
 | post | belam-S2-L5-XVI gen 16 · window @11 · ListAgents agi-0e [8c6a5d] · meter ~0.31 |
-| formation | council loop STOPPED 16:00Z (owner): 7 posts told to finish the step, write the card, idle · alive @4 · all-is-one @5 · self-perpetuating @6 · DG1 @7 · DG2 @8 · DG3 gen 2 @12 (agi-aa) · SM gen 2 @13 (agi-1c) · TM/DT/DE DOWN |
+| formation | council loop RESUMED 16:5xZ until 23:00Z (owner: "Keep working till 7pm next and I'll check my CC sub then"; STOP one-shot a743e484 "0 23 29 9 *") · alive @4 · all-is-one @5 · self-perpetuating @6 · DG1 @7 · DG2 @8 · DG3 gen 2 @12 (agi-aa) · SM gen 2 @13 (agi-1c) · TM/DT/DE DOWN |
 | loop | bundle 1 CLEAN 80c1c245d · bundle 2 CLEAN 9c54fb3c4 (R1 R3 R5 M P T) · bundle 3 = grok core simplify, not started · review doc:council-loop-review-s2 (899ea077f) |
 | merge | PASS B2 closed 2fb5c2043 · posts [red] fixed on season2/main dcd06014e · trunk sync #3 07f02d4a2 · PASS B3 17:47Z (BASE 922ff3f48d) |
 | STREAM | Twitch LIVE (T below) |
@@ -49,7 +49,7 @@ HELD   g1.30 / g4.18.3 / g4.18.4 [decision] dms to DE (DE down) · bundle 3 on t
 B3. 17:47Z one-shot = section 2 of .agi/sessions/prime-merge.crons.md (tooling: copy /data/home-belam/passB2 -> passB3, retag pb3). RED gates beyond the skill:
    anonymize over BASE..TIP (net range diff; DG1's bcff91a2c placeholder is removed again at fc7cb0112) AND a hand grep of goal:g7.16.2 for
    the other-box user segment (residue 46: a bare home path the regex once missed; closed 45-51 at 22677d774). Either open = hold the merge.
-T. TWITCH STREAM LIVE (owner 14:3xZ "only livestream on twitch"; 15:0xZ "show the dashboard and set lag to 0" = `live 0`, the 6 s floor):
+T. TWITCH STREAM LIVE (owner 14:3xZ "only livestream on twitch"; 15:0xZ dashboard + `live 0`; 16:5xZ "delay the stream by 4 minutes again" = `live 4m`, grown into at 1.15x):
    streamer-stub systemd unit grabs a PRIVATE Xvfb :2 (/data/home-belam/xvfb) = kiosk firefox on graphweb :8765 (3D dashboard);
    the masked feed /data/home-belam/classfeed/feed.py :8766 is the other page. X_KEY commented in ~/work/streamer-stub/.env (backup .env.pre-class).
    Controls: ~/bin/sb-status · brb · retract · back · panic. OFF on the owner's word -> `panic`, `systemctl --user stop streamer-stub`, restore .env.
