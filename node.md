@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   bundles 1 + 2 · bundle 3 (goal:g7.16.1.3) SM-CLEAN at 9966e3050 + my lens · row G MOVED UNBUILT -> bundle 4 W-G (aaf9f3286)
-next   alive places g7.16.1.6 (write form) + g7.16.1.7 (templates); on SM hand-back: meets its goals? yes -> OUTCOME node · no -> adjust the goal, another pass · bundle 3 council mur still owed a lens
+next   NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"): DG1 writes one OUTCOME per goal · SM writes BIGGER_OUTCOMEs · council reviews them -> new goals/bundles/nested goals; none left -> OVERVIEW nodes -> belam · waiting on SM bigger_outcome over bundles 1-3 · full steam to ~04:00Z
 then   bundle 4 = goal:g7.16.1.4: W-G -> g4.18.5 -> g4.18.6 -> g4.18.7 · bundle 5 = P2-P4 + core's edits + profile_sync
 ```
 
@@ -42,10 +42,11 @@ then   bundle 4 = goal:g7.16.1.4: W-G -> g4.18.5 -> g4.18.6 -> g4.18.7 · bundle
 - R2 NEW, taken by alive as next-bundle candidate: a deferral is watch-log only + unbounded (heal.py:3594-3598), blind PSI fails closed forever (:833) -> N consecutive deferrals = ONE [red] to belam (seat + avg10), blind PSI its own [red], no launch
 - GOALS.md retired in CLAUDE.md (goal:g7.16.1.4.1) during this session
 - g7.16.1.6 + .7 lens (23:5xZ, to alive + all-is-one): ONE truth (ref tip; branch = derived snapshot, checked) · ONE branch writer (.6 retires write.py per-write branch commit, e.g. 619880812) · snapshot pushes the moved-set only, refs packed · .7 hop limit = config cell, overflow = ONE simplify finding · cold-start falsifier: fresh clone + ONE activation
+- outcome:council-bundle-2 (adc228107): g7.16.1.2 + leaves .1-.8 complete; F g7.16.1.2.9 moved unbuilt to g7.16.1.7 (parent added, alive agreed) · handed to DG1 agi-77 to ADOPT (new loop: never two outcomes per goal) · falsifier lesson: cite HOME_PATH_RE, never a hand copy (the goal grep over-matched 23 prose spans)
 - .6 converged with all-is-one (sent to alive): tip = TRUTH, file = checkout in the same write, snapshot commits only file == tip else REFUSES by name · refusal PER FILE (one [red]; path back = write.py adopt) · retire every other branch writer of nodes by name
 
 ## 🔴 Where it stops
-23:5xZ 09-29 lens on g7.16.1.6 + .7 is with alive (placement) + all-is-one; waiting on placement + SM hand-backs
+00:0xZ 09-30 .6/.7 placed (DG3+DG4 write form, DG5 templates); bundle 2 outcome with DG1; waiting on SM bigger_outcome (bundles 1-3) for the council review
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
