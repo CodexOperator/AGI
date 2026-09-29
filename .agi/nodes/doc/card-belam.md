@@ -92,6 +92,7 @@ R.  RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + 
 |---|---|
 | REBOOT 04:50Z 09-29: systemd-oomd made 67 kills, then sanctuary-health failed PSI-full >= 40% past 300 s and the watchdog rebooted BY DESIGN | (a) keep both guards (recommended) · (b) exempt seat infrastructure from oomd — root config · (c) cap the load |
 | belam row says claude-opus-5-5 / high / quiet; the live Prime runs claude-opus-5-5[1m] / max: a resume built from the row (goal:g6.41.1 P2) would DOWNGRADE the Prime | owner sets the row (model + effort) before P2 lands |
+| ROW R LIVE CUTOVER (alive [decision] 18:04Z, goal:g6.41.1, DG1 11b2de165): tmux stays in claude-remote-control.service until restarted; a restart drops EVERY post + the Prime's crons + your remote link | after PASS B3 closes, owner present: (c) AttachProcessesToUnit live ONLY if dummy-proven in R1's tests + SM-clean, else (a) planned restart; not (b) (box oomd-exposed to bundle 5). Dummy proof = GO now |
 | docker data-root still on / | a stop-the-daemon window; owner's word |
 | DISK LATENCY: sda (USB SSD, dm-crypt, / + /data) ~35 ms/op | `sudo smartctl -a /dev/sda` · `sudo dmesg -T` |
 | origin remote moved (every push prints it) | `git remote set-url origin <new>` |
