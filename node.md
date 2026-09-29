@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.75
 contradicts: []
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - exp:exp-a00-4125fa6d-005488
 lean_strength: 75
@@ -31,13 +31,13 @@ verdict: inconclusive_lean_proved:75
 - 3/4 R1 criteria passed (75%)
 - Verdict state readable from YAML frontmatter
 - Chain context fully extractable from node files
-- pi agent dir at `/home/ubuntu/.pi/agent` enables file-based dispatch integration
+- pi agent dir at `<home>/.pi/agent` enables file-based dispatch integration
 
 ### What Was Proved
 
 1. **Verdict state is machine-readable**: YAML frontmatter with verdict, confidence, evidence_runs fields parse cleanly
 2. **Chain context is accessible**: node type, spawns, parents, next_edges all extractable for routing decisions
-3. **pi agent dir exists**: `/home/ubuntu/.pi/agent` provides integration point for programmatic dispatch
+3. **pi agent dir exists**: `<home>/.pi/agent` provides integration point for programmatic dispatch
 
 ### What Remains Open
 
