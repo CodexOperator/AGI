@@ -472,6 +472,23 @@ def verb_row(edit: Edit, ref: str, source: str) -> Edit:
     return edit
 
 
+def _row_range(body: str, row_ref: str) -> str:
+    """`<n>[:<i>-<j>]` -> the read-body range `a:b` it names, or EditError when
+    row n or the sub-range is out of bounds. ONE resolver for `submit` and the
+    `--dry-run` preview, so a preview shows the range the write would take."""
+    n, _, sub = row_ref.partition(":")
+    rows = node_writer.body_rows(body)
+    if not 1 <= int(n) <= len(rows):
+        raise EditError(f"row {n}: the body has {len(rows)} row(s)")
+    a, b = rows[int(n) - 1]
+    if sub:
+        i, j = (int(x) for x in sub.split("-"))
+        if not 1 <= i <= j <= b - a + 1:
+            raise EditError(f"row {row_ref}: row {n} has {b - a + 1} line(s)")
+        a, b = a + i - 1, a + j - 1
+    return f"{a}:{b}"
+
+
 def verb_sub(edit: Edit, spec: str) -> Edit:
     """`sub <old> => <new>` -- one literal occurrence."""
     text = spec.strip()
@@ -2318,17 +2335,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         _current = _target_text(root, edit, edit.replace_target,
                                 payload_ref, location)
         if edit.row_ref:   # goal:g4.18.5.1: the index picks the range
-            n, _, sub = edit.row_ref.partition(":")
-            rows = node_writer.body_rows(_current)
-            if not 1 <= int(n) <= len(rows):
-                raise EditError(f"row {n}: the body has {len(rows)} row(s)")
-            a, b = rows[int(n) - 1]
-            if sub:
-                i, j = (int(x) for x in sub.split("-"))
-                if not 1 <= i <= j <= b - a + 1:
-                    raise EditError(f"row {edit.row_ref}: row {n} has {b - a + 1} line(s)")
-                a, b = a + i - 1, a + j - 1
-            edit.replace_range = f"{a}:{b}"
+            edit.replace_range = _row_range(_current, edit.row_ref)
         # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-
         # splices -- the body-only structural guard, before the splice and
         # before any write. A payload is arbitrary bytes and is never
@@ -3565,6 +3572,13 @@ def main(argv: list[str] | None = None) -> int:
         if edit.body_patch_from and not edit.body_patch_diff:
             print(f"  body_patch from {edit.body_patch_from}")
         if edit.replace_target:
+            if edit.row_ref:   # residue 96: the preview resolves the row too
+                try:
+                    edit.replace_range = _row_range(
+                        _target_text(root, edit, "body"), edit.row_ref)
+                except EditError as exc:
+                    print(f"ERR: {exc}", file=sys.stderr)
+                    return 2
             if edit.replace_target == "body" and not edit.replace_force:
                 _refusal = _body_range_refusal(
                     _target_text(root, edit, "body"), edit.replace_range)
