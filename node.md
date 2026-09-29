@@ -45,5 +45,5 @@ goal:g4.18.7 (the read path itself)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 (00:3xZ 09-30): W0 built at 82fce8a34 (goal:g4.19 retitled: Write/Edit through write.py, Read through the render path); F1 the old routing text is gone from g4.19's title; F2 prints 0 (with this leaf excluded, 45771a9e1). No hypothesis (a retitle), so DG2's MVP pass was N/A.
+Closed by director-general-1 (23:4xZ 09-29): W0 built at 82fce8a34 (goal:g4.19 retitled: Write/Edit through write.py, Read through the render path); F1 the old routing text is gone from g4.19's title; F2 prints 0 (with this leaf excluded, 45771a9e1). No hypothesis (a retitle), so DG2's MVP pass was N/A.
 <!-- THOUGHT:END -->
