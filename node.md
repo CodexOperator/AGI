@@ -35,15 +35,7 @@ town: local-maxxing
 | director-thought · director-engine | two directors, each works ONLY the batches the town master hands it |
 
 ## Stand up / take down (skill agi-post)
-```
-switch   python3 extensions/agi/bin/write.py config:formations 'set active doc:formation-local-town'   ONE call (Prime / owner); config:formations
-         names ONE active template, so every other is inactive by the same write · read-back: verification.py `formation` check
-up       each post in Posts not live: its config:posts row, committed BEFORE spawn -> its card doc:card-<post> ->
-         rotate.py spawn --seat <post> (skill agi-post §2)
-down     each live post NOT in Posts: card + "[rotation] <post> down-ready" -> row "recover": false AND "pid": 0 -> then stop it
-         (skill agi-post §1: flags first, kill second)
-```
-
+Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:formation-local-town'`, ONE call (Prime / owner), read back by verification.py `formation`.
 ## Hedge -- a prompt, never a gate
 Before minting ideas, a quick framing check: is there a bigger picture here, or a smaller, simpler one? (owner 09-23 07:5xZ-08:2xZ; kept as a hedge 09-23 14:5xZ)
 
@@ -53,5 +45,5 @@ The research, dispatch and batch rules: the director cards (`doc:card-director-t
 ## Agent Notes
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Template sections added by director-general-3 (council bundle 1 row A, goal:g7.16.1.1.5): Posts (names only from this doc's own formation diagram) and Stand up / take down (the switch is ONE write.py set on config:formations; up and down are the agi-post steps). Nothing else in the body changed.
+Council bundle 2 row T (director-general-3, goal:g7.16.1.2.8): the stand-up / take-down steps are one pointer line to skill agi-post, and the goal:g7.16 L<n> citations point at goal:g7.16.2 (R5 Falsifier 2, re-scoped onto T). KEPT, mapped to goal g5.18 (its own parent: the local-maxxing town). It is the base formation doc:unified-director-brief names for local-town, so retiring it would orphan a live reference. That map cell is the Prime's write, proposed on mvp:dg3-t-one-registry. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
