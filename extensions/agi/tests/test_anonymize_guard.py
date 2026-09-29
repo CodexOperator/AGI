@@ -334,3 +334,23 @@ def test_the_staged_diff_is_judged_on_added_lines_only(tmp_path, fake_box, monke
         monkeypatch.setattr(anonymize, "_run",
                             lambda argv, d=diff: d if "--cached" in argv else "")
         assert anonymize.cmd_check(root, None, None) == rc
+
+
+# (12) re-mur wf_aa3f01d4-2aa residue 22: added-lines-only must not loosen the
+# guard. A post-image PATH (new file, '+++ b/', 'rename to') and an added
+# content line that starts '++' (shown '+++...') still refuse; a pre-image
+# path (the file a scrub renames away) does not.
+@pytest.mark.parametrize("diff, want", [
+    ("diff --git a/n b/{h}/n\nnew file mode 100644\n--- /dev/null\n+++ b/{h}/n\n@@ -0,0 +1 @@\n+x\n", 1),
+    ("diff --git a/n b/m\nsimilarity index 100%\nrename from n\nrename to {h}/m\n", 1),
+    ("diff --git a/n b/n\n--- a/n\n+++ b/n\n@@ -1 +1 @@\n-x\n+++{h}\n", 1),
+    ("diff --git a/{h}/n b/n\nsimilarity index 100%\nrename from {h}/n\nrename to n\n", 0),
+])
+def test_added_lines_keeps_post_image_paths_and_plus_plus_content(
+        tmp_path, fake_box, monkeypatch, diff, want):
+    home = str(tmp_path / "home" / "someuser")
+    monkeypatch.setenv("HOME", home)
+    root = _graph(tmp_path)
+    f = tmp_path / "d.diff"
+    f.write_text(diff.format(h=home))
+    assert anonymize.cmd_check(root, None, str(f)) == want
