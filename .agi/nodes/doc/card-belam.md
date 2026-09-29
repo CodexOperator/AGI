@@ -21,46 +21,44 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 16 closed PASS B2 as its first act (the predecessor handed it on at f 0.41, the multi-ref rule). verify read 11/12 PASS; the one FAIL, bin-suite-fresh, is the skill's documented known FAIL (the pull + merge refresh every bin mtime in prime-root; it clears only in a suite window) and every round's reviewers ran their committed test files — so it did not hold the push, as at PASS B1. The step-6 [decision] dm to DE is HELD, not sent: DE is down for the council loop (recover:false + pid 0), and a dm to a down post is a message nobody reads; goal:g1.30 carries the residues until DE returns or the council bundles them.
+gen 16 at the 16:00Z council stop. Every Prime-owed write this gen (config:formations twice) waited for sanctuary-master's review, and each wait paid: the review caught 3 defects in the owed commands before they ran (residues 16, 24, 27). The one [red] of the day was the rotation machinery's (e4aaef794 corrupted config:posts on season2/main), not the council's; the file was restored by hand and the cause is goal:g4.18.4. PASS B3 is the next multi-ref act, 17:47Z.
 <!-- THOUGHT:END -->
 
-## §0 State (10:3xZ 09-29)
+## §0 State (16:1xZ 09-29)
 | | |
 |---|---|
-| post | belam-S2-L5-XVI gen 16 · window @11 · ListAgents agi-0e [8c6a5d] · gen 15's @0 still up (own-chain reap GATED OFF; not mine to kill) |
-| formation | **COUNCIL LOOP LIVE** (goal:g7.16.1 · doc:council-loop): @4 alive · @5 all-is-one · @6 self-perpetuating · @7-@9 director-general-1..3 · @10 sanctuary-master; TM/DT/DE DOWN; 0 parent/kid spawns |
-| loop | bundle 1 = goal:g7.16.1.1 (B -> E -> {C,D} -> A); DG1 minted leaves + 4 hyps @59ad74144 -> handed to DG2 (10:2xZ); stop 16:00Z |
-| merge | PASS B2 CLOSED: season2/main 2fb5c2043 (TIP 922ff3f48, BASE ed34f49532) · local-maxxing/main ff -> 922ff3f48 · residues goal:g1.30 · state file closed · next = PASS B3 |
-| DISK | / 61 GB free · /data 32 GB free (10:2xZ) |
-| crons | CHECK 89c68201 "13 */4 * * *" · STOP one-shot 1fb0d341 "0 16 29 9 *" · PASS B3 one-shot 9d39a606 "47 17 29 9 *" — all THIS session's: a successor RE-ARMS the CHECK, and each one-shot not yet past |
+| post | belam-S2-L5-XVI gen 16 · window @11 · ListAgents agi-0e [8c6a5d] · meter ~0.31 |
+| formation | council loop STOPPED 16:00Z (owner): 7 posts told to finish the step, write the card, idle · alive @4 · all-is-one @5 · self-perpetuating @6 · DG1 @7 · DG2 @8 · DG3 gen 2 @12 (agi-aa) · SM gen 2 @13 (agi-1c) · TM/DT/DE DOWN |
+| loop | bundle 1 CLEAN 80c1c245d · bundle 2 CLEAN 9c54fb3c4 (R1 R3 R5 M P T) · bundle 3 = grok core simplify, not started · review doc:council-loop-review-s2 (899ea077f) |
+| merge | PASS B2 closed 2fb5c2043 · posts [red] fixed on season2/main dcd06014e · trunk sync #3 07f02d4a2 · PASS B3 17:47Z (BASE 922ff3f48d) |
+| STREAM | Twitch LIVE (T below) |
+| crons | CHECK 89c68201 "13 */4 * * *" · PASS B3 one-shot 9d39a606 "47 17 29 9 *": both THIS session's; a successor RE-ARMS the CHECK and B3 if not yet past |
 
 ## §1 Plan
 ```
-DONE   P. PASS B2 close · DG3 seating row (pid 2122319 @9) · CHECK + STOP crons armed
-NOW    L. supervise the council loop (room council-loop, town board, the posts' cards) · S. the 16:00Z stop
-then   M. the Prime's own review of season 2's result, embodying the five morals (owner 09-29) + did the council materially improve results?
-DONE   config:formations 1532a604b + templates registry fee990795 (row T) · config:posts [red] fixed dcd06014e + trunk sync #3 07f02d4a2 · goal:g4.18.4 · (file + write.py adopt, the route SM's mur-4 accepted): check_formation PASS active doc:council-loop g7.16.1 wake 0 · the adopt written_by hole -> goal:g4.18.3 (feed41d3e)
-HELD   g1.30 [decision] dm to DE (DE down) · F facts window + G town note grant (TM/DE down) · OWNER 21:1xZ 09-27: stream · encryption-town config
+DONE   PASS B2 · DG3 row · config:formations 1532a604b + registry fee990795 · posts [red] dcd06014e + sync 07f02d4a2 · goals g1.30 g4.18.3 g4.18.4 · council stop 16:00Z · M review 899ea077f
+NEXT   B3. PASS B3 17:47Z (below) · T. the stream until the owner ends it
+HELD   g1.30 / g4.18.3 / g4.18.4 [decision] dms to DE (DE down) · bundle 3 on the owner's word · OWNER 21:1xZ 09-27 encryption-town config
 ```
 
-## §2 Landed (gen 16): 519768b2c card re-link · 98cb94453 DG3 row · 2fb5c2043 PASS B2 merge (pushed) · acff4a1ab goal:g1.30 · 5ad6dadfd board note
+## §2 Landed (gen 16): 519768b2c · 98cb94453 · 2fb5c2043 · acff4a1ab · 1532a604b · feed41d3e · dcd06014e · 07f02d4a2 · fc4320819 · fee990795 · 899ea077f
 
 ## 🔴 Where it stops
-10:3xZ 09-29 belam-S2-L5-XVI: PASS B2 closed at 2fb5c2043; supervising the council loop until the 16:00Z stop
+16:1xZ 09-29 belam-S2-L5-XVI: council stopped, review written; PASS B3 at 17:47Z; the Twitch stream is live
 ```
-L. Watch, never do the posts' work: `tail -5 .agi/comms/season-2/room/council-loop.md`, the town board, each post's card.
-   A stalled handoff (> 45 min, no room line, post idle in ListAgents) -> SendMessage the stuck post by its ListAgents name.
-S. 16:00Z 09-29 (owner: "stop around noon if still active by then in EST"): the one-shot fires -> SendMessage each of the 7 posts
-   "stop: finish the atomic step, card whole + commit, idle"; then M.
-B3. PASS B3 noticed 12:4xZ on the board (110 commits / 21 experiments / 25 engine paths past 922ff3f48d); runs 17:47Z = section 2 of .agi/sessions/prime-merge.crons.md (tooling /data/home-belam/passB3).
-   PASS B3 RED gate: the range must pass `anonymize.py` over BASE..TIP -- bundle 2 residue 36 (2 other-box homes in goal:g7.16.2 + experiment:a00-6cb8a731-232b62, DG3) CLOSED 13:4xZ (anonymize ok 2fb5c2043..42137d050); STILL OPEN: residue 46 = goal:g7.16.2:451 bare other-box home (no trailing slash: HOME_PATH_RE misses it, so anonymize reads ok) + :270 pytest-of-<seg> -- grep that node for the segment by hand at PASS time; open = hold the merge.
-   OWED bundle 2 row T: the templates-map cell (command on mvp:dg3-t-one-registry) -- run it once SM's re-mur accepts T (residues 45-51 open).
+B3. 17:47Z one-shot = section 2 of .agi/sessions/prime-merge.crons.md (tooling: copy /data/home-belam/passB2 -> passB3, retag pb3). RED gates beyond the skill:
+   anonymize over BASE..TIP (net range diff; DG1's bcff91a2c placeholder is removed again at fc7cb0112) AND a hand grep of goal:g7.16.2 for
+   the other-box user segment (residue 46: a bare home path the regex once missed; closed 45-51 at 22677d774). Either open = hold the merge.
+T. TWITCH STREAM LIVE (owner 14:3xZ "only livestream on twitch"; 15:0xZ "show the dashboard and set lag to 0" = `live 0`, the 6 s floor):
+   streamer-stub systemd unit grabs a PRIVATE Xvfb :2 (/data/home-belam/xvfb) = kiosk firefox on graphweb :8765 (3D dashboard);
+   the masked feed /data/home-belam/classfeed/feed.py :8766 is the other page. X_KEY commented in ~/work/streamer-stub/.env (backup .env.pre-class).
+   Controls: ~/bin/sb-status · brb · retract · back · panic. OFF on the owner's word -> `panic`, `systemctl --user stop streamer-stub`, restore .env.
+   Start the unit with `systemctl --user start streamer-stub`: bin/stream.sh runs FOREGROUND when INVOCATION_ID is set (it is, in a CC shell).
+V. The video (owner): /data/home-belam/manim-agi/agi_explainer.mp4 sent to the owner's device; Drive/YouTube need the owner's own sign-in.
 D. /data: < 10 GB free -> no PASS launch.
-T. TWITCH CLASS STREAM LIVE (owner 14:3xZ 09-29: "only livestream on twitch"): streamer-stub systemd unit (owner 15:0xZ: delay 0 -> `live 0` = the 6 s floor; dashboard shown) grabs a PRIVATE Xvfb :2
-   (/data/home-belam/xvfb) = kiosk firefox on graphweb :8765 (the 3D dashboard); the masked feed /data/home-belam/classfeed/feed.py :8766 is the other page. X_KEY commented
-   in ~/work/streamer-stub/.env (backup .env.pre-class). Controls: ~/bin/sb-status · brb · retract · back · panic. Off on the owner's word; then restore .env.
 R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window. NEVER a bare `systemctl --user import-environment`.
 ```
+
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
 |---|---|---|
