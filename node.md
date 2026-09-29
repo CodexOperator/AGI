@@ -20,7 +20,7 @@ tags:
   - links
   - write-path
   - owner
-title: "G4.18.6: links are checked by the write over its neighbourhood -- outbound ids resolve, inbound referrers re-pointed in the same commit; the full walk only at merge gates, over the changed nodes"
+title: "\"G4.18.6: links are raw mint ids -- the renderer resolves names, titles and visibility; a write checks its outbound ids by lookup; no link ever needs re-pointing and the full walk leaves the write path\""
 town: core
 ---
 # goal:g4.18.6
@@ -34,8 +34,10 @@ town: core
 goal:g4.18: write.py is the one writer, so it knows the node, its parents and the ids its body names at the moment of the write. Measured 09-29: `links.py links` walks every node (4966 resolved, 42.1 s inside PASS B2's verify), while one write changes only one node's neighbourhood. The spawn gate already resolves parent TYPES at create (SPAWN-GATE APPROVED … allowed_parents), so outbound resolution at write time exists in part.
 
 ## Target end-state
-- Every write validates its NEIGHBOURHOOD in the same step: its outbound ids (parents, next_edges, ids named in the body) resolve; a retire, move or renumber finds its inbound referrers (`git grep` on the id) and re-points them in the same commit, or refuses by name.
-- The whole-graph walk leaves the per-write path: it runs only at merge gates (PASS, master gate), and only over the merge's changed nodes plus their inbound referrers.
+- Links are RAW MINT IDS only: `parents`, `next_edges` and every machine reference in a body store the 32-hex mint id (prose refs as a marker the renderer resolves; owner quotes stay verbatim). The address (`goal:g7.16.1`) becomes display-only, so a renumber, move or retire never breaks a link and nothing is ever re-pointed.
+- The READ and RENDER paths resolve each mint id to the node's current address, title and status, and decide visibility per view (live shown, retired dimmed or hidden); every read goes through the RENDER path, never write.py (owner 18:0xZ: write has no read path), and it prints names, never bare hex.
+- A write checks its outbound mint ids in the same step (a set lookup, not a walk); a write naming a missing id is refused.
+- The whole-graph walk leaves the per-write path: at merge gates only, over the merge's changed nodes.
 
 ## Invariants
 - broken links = 0 on every branch head; a write that would break one is refused, never committed.
@@ -49,3 +51,7 @@ goal:g4.18.5 (rows + a write is a commit: this leaf rides on it) · goal:g4.18.3
 
 ## Agent Notes
 Assigned to **director-engine**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+OWNER 2026-09-29 17:5xZ, verbatim (Prime pane): "Can links just use raw mintIDs only? And things like renderer can render correct parent names and which ones should be visible vs not on render?" -- this version replaces the neighbourhood re-pointing design with mint-id links: the inbound half of the link problem disappears, since a mint id never changes; the renderer owns names and visibility.
+<!-- THOUGHT:END -->
