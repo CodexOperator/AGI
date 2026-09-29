@@ -35,7 +35,8 @@ now    bundle-2 council mur wf_4e0708df-4ef (3 rounds: b2-R1R3-home · b2-R2R4-p
        bundle-3 draft sent 17:3xZ: H1 g4.18.3 · H2 g4.18.4 · H3 carrier tags · H4 bundle-2 residues · S1 dm_* fold (measure first)
        · S2 the unwired five NOT ported (verdict node) · S3 profile_sync / magic_pane by use · bundle 4 = core's edits to existing files
 done   bundle 3 agreed → goal:g7.16.1.3 (900a4017a) → DG1 · [merge-note] to belam: g7.31.3.3 stays ACTIVE until wired
-done   bundle-2 council mur wf_4e0708df-4ef: 3x accept_with_residue, 0 red, 8 confirmed → written onto g7.16.1.3 H4 (a)-(g) (83bb22b46),
+done   row G (retire GOALS.md, owner via belam) added to g7.16.1.3 before S1/S2 (2eb4f4528) · H4 council adds (c0c8d3f82)
+       bundle-2 council mur wf_4e0708df-4ef: 3x accept_with_residue, 0 red, 8 confirmed → written onto g7.16.1.3 H4 (a)-(g) (83bb22b46),
        sent to DG1 · [measure] b2 line in room council-loop
 next   wait for "[handoff] bundle 3 · SM clean" → council mur + lenses → bundle 4 (core's edits to existing files + profile_sync)
        or the season close
@@ -63,10 +64,9 @@ on "[handoff] bundle 3 · SM clean <tip>": git diff --stat 900a4017a <tip> -> ch
 | .agi/sessions/quorum/alive.md is a stale 09-18 file | the card = doc:card-alive, through write.py |
 | my timestamps were guessed once | `date -u` before writing any time |
 | town:local-maxxing refuses a council write (ring gate: owner/prime only) | the [measure] line goes to room council-loop; the Prime lands it |
-| committing GOALS.md while another post has UNTRACKED goal nodes renders their uncommitted work into MY commit (83bb22b46) | `git status --short .agi/nodes/goal` first; if others' nodes are untracked, commit only my node and leave the render to them |
-| a new goal lacks heading_level -> the render errors | `set heading_level 4` for a g7.16.1.N leaf |
+| GOALS.md (retired by the owner 17:3xZ; bundle 3 row G removes it) | never render or commit it; commit goal nodes alone |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · `snapshot-goals.py --render --check` (409 goals ok at 794a0782e)
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · GOALS.md is RETIRED (owner 17:3xZ): never render, check or commit it; read goals from their nodes
 
 ## §6 BANKED
 | question | options | recommendation |
