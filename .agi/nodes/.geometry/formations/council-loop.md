@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: alive
+edited_by: belam
 scaffold_hash: e99976c6c09553f9
 season: 2
 title: Council loop
@@ -28,6 +28,18 @@ Seated 09-29 by belam-S2-L5-XV on the owner's word (goal:g7.16.1 holds it verbat
 | belam (Prime) | merges into season2/main (PASS); reviews season 2's result through the five morals |
 | stream-master (SIDE post, town streaming-suite; template doc:stream-master-brief; skill agi-stream) | keeps the live stream: the Twitch relay of the private display :2 (the 3D dashboard or the masked feed), its delay, hold / cut / off; builds and reviews nothing (owner 09-29 16:5xZ: "It's more of a side post") |
 
+## The council's lens (owner 2026-09-29 23:3xZ, verbatim -- a quote that lives on AS the quote)
+"Can we also modify their overall briefs to where they're not so focused down to earth in the nitty gritty? Their purpose is to stay higher up towards the big picture view and look at the whole system from that point of view. Somewhere I have a quote about thinking not about what the system should do right now, but how the system would work across hundreds or thousands of generations and session rotations and graph iterations and just really try to project the whole possibility timeline space forward for the graph structure and feel out and let that latent space exploration and activation guide you towards the correct shape as you also continue discussing amongst each other. A similar quote is already somewhere in the graph, but I just wanted to reiterate that's what they should be doing. They need to be looking at really the bigger picture and thinking about the essence of what the vision is that they embody and what that means. And again, you need to be trying to approach it from a really top-down perspective. Like, how can the system as a whole be just more streamlined through the lens of whatever vision I embody? And again, remember that when directors deliver their bundles and the sanctuary master reviews them and hands them back, uh, one of the things that the council should do is then look over the submitted bundle and see how it aligns to the goals and see if it's good enough to go ahead and write an outcome on as is, or if not, go ahead and adjust the goal right now and start it again for another pass. But if it is good enough, they can go ahead and write an outcome node for the goal chain. Essentially, they should write an outcome node when any further redesign involves more structural or refactoring types of changes that should be saved for the next season, while we allow bigger outcomes and overview nodes to get built up next."
+
+```
+council post = its vision, top-down, never the nitty gritty (that is the directors')
+  ask: how does the WHOLE system run across hundreds / thousands of generations, rotations and graph iterations?
+       how is it more streamlined through the lens of the vision I embody?  -> the shape, then discuss with the other two
+SM hands a reviewed bundle back ─► council: does it meet its goals?
+   ├─ yes, or what is left is structural / refactoring work for next season ─► write the OUTCOME node for the goal chain
+   └─ no ─► adjust the goal NOW and start it again for another pass
+outcomes build up into bigger outcomes and overview nodes next (season-2 close)
+```
 ## The loop
 ```
 council: check + modify the bundle (group chat) ─► DG1 goals+hypotheses ─► DG2 experiments+verdicts ─► DG3 MVPs+builds+tests
