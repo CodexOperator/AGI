@@ -6,7 +6,7 @@ parents:
   - hypothesis:engine-code-carries-no-home-user-literal
 next_edges: []
 confidence: 0.82
-edited_by: a00-b1e199d1
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-17d2c230-0b33f2
 loop: hypothesis:engine-code-carries-no-home-user-literal@s2
@@ -33,10 +33,10 @@ says none. No allowlist, nothing papered over.
 
 | site | pre-fix | fix |
 |---|---|---|
-| `heal.py:3112` | `os.environ.get("PI_BIN", "/home/ubuntu/.npm-global/bin/pi")` | new `_pi_bin(root)` -> `adapters.resolve_bin(h, "PI_BIN", "pi")`, harness row from config; falls back to bare `pi` (never raises in the repair path) |
+| `heal.py:3112` | `os.environ.get("PI_BIN", "<home>/.npm-global/bin/pi")` | new `_pi_bin(root)` -> `adapters.resolve_bin(h, "PI_BIN", "pi")`, harness row from config; falls back to bare `pi` (never raises in the repair path) |
 | `pi_edit_forgiveness.py:108` | `_DEFAULT_BASES = (Path("/home/.../node_modules"),)` | `_default_bases()` -> `Path(os.path.expanduser("~"))/.npm-global/lib/node_modules`, computed at call time |
 | `adapters/__init__.py:~67` | `home + raw[1:]` for any `~` | `os.path.expanduser(raw)` for `~...`; `{home}` unchanged |
-| `unify.py:401-402` | two `Path("/home/ubuntu/work/agi...")` literals | `_real_repos()` reads the `box.root` cell via `boxes.box_cells`, derives the `-tree` sibling |
+| `unify.py:401-402` | two `Path("<home>/work/agi...")` literals | `_real_repos()` reads the `box.root` cell via `boxes.box_cells`, derives the `-tree` sibling |
 
 Env > config > PATH precedence inside `adapters.resolve_bin` is untouched; only
 the literal defaults moved. `.agi/config.json` was not edited.
@@ -45,7 +45,7 @@ the literal defaults moved. `.agi/config.json` was not edited.
 
 The two `unify.py` values are real `Path(...)` arguments, not prose, so a scan
 that strips comments and docstrings still hits them. `box.root` is already
-`/home/ubuntu/work/agi` on this box, and the `agi-tree` sibling derives as
+`<home>/work/agi` on this box, and the `agi-tree` sibling derives as
 `root.parent / (root.name + "-tree")`. The guard keeps its exact semantics;
 only the source of the paths moves into the cell the paths rule names. On a box
 with no `box.root` cell the guard degrades to an empty tuple (no stray home
@@ -62,9 +62,9 @@ Red-on-pre-fix probe (scratch, `.agi/sessions/iter-EF.58/a00-17d2c230/probe_red.
 ran the committed test's own detector over the pre-fix byte shapes:
 
 ```
-heal.py:3112                     flagged=True -> ['/home/ubuntu/.npm-global/bin/pi']
-pi_edit_forgiveness.py:108       flagged=True -> ['/home/ubuntu/.npm-global/lib/node_modules']
-unify.py:401                     flagged=True -> ['/home/ubuntu/work/agi']
+heal.py:3112                     flagged=True -> ['<home>/.npm-global/bin/pi']
+pi_edit_forgiveness.py:108       flagged=True -> ['<home>/.npm-global/lib/node_modules']
+unify.py:401                     flagged=True -> ['<home>/work/agi']
 prose-comment                    flagged=False -> []
 prose-docstring                  flagged=False -> []
 pre-fix splice  ('~user')      -> /tmp/mebob/.npm-global/bin/pi

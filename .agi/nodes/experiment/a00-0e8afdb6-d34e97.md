@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-delete-old-requires-content-containment-every-job-ancestor-of-successor-or-trunk
 next_edges: []
 confidence: 0.88
-edited_by: a00-09056a37
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-0e8afdb6-d34e97
 loop: hypothesis:l4-delete-old-requires-content-containment-every-job-ancestor-of-successor-or-trunk@s2
@@ -76,7 +76,7 @@ still green.
 **Live READ-ONLY check** (dry-run against the live tree, deletes nothing):
 
 ```
-python3 extensions/agi/bin/cli.py branch-reshuffle --root /home/ubuntu/work/agi/.agi \
+python3 extensions/agi/bin/cli.py branch-reshuffle --root <home>/work/agi/.agi \
     --dry-run --delete-old --kinds towns,posts,loops
 ```
 

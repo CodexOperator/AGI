@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-db12df62-1859fd
 next_edges: []
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-25c44a94-f4f545
 scaffold_hash: 639a4b57ab3de253
@@ -82,7 +82,7 @@ Script: `sessions/iter-1015/a00-25c44a94/lockstep_experiment.py`
 Full output:
 
 ```
-Loading nodes from: /home/ubuntu/work/agi/.agi/nodes
+Loading nodes from: <home>/work/agi/.agi/nodes
 Loaded 1006 nodes, graph has 1006 nodes
 
 === PHASE 0: Baseline fidelity (reproduce a00-e773e914) ===

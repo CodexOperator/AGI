@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-reshuffle-delete-old-is-never-unfiltered-and-post-n-maps-to-season2-posts
 next_edges: []
 confidence: 0.9
-edited_by: a00-d5b6e48c
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-3e3acdf1-143c07
 loop: hypothesis:l4-reshuffle-delete-old-is-never-unfiltered-and-post-n-maps-to-season2-posts@s2
@@ -74,7 +74,7 @@ The `season2/main` lines and the one `loop/...` line above appear ONLY as token 
 
 ## Evidence
 
-- `--dry-run` real run paste above (from `/home/ubuntu/work/agi/.agi/worktrees/a00-d5b6e48c`), NO `--kinds`, exit 0, 5 jobs (3 posts + 2 towns), no loop/main rename job, defaulting line printed. Full output saved at `/tmp/reshuffle_dryrun.txt`.
+- `--dry-run` real run paste above (from `<home>/work/agi/.agi/worktrees/a00-d5b6e48c`), NO `--kinds`, exit 0, 5 jobs (3 posts + 2 towns), no loop/main rename job, defaulting line printed. Full output saved at `/tmp/reshuffle_dryrun.txt`.
 - Both required pytest suites green.
 - NEVER ran `--apply` or `--delete-old` against the real tree (held); the delete-old path is proven only via the tmp-fixture tests.
 

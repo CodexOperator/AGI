@@ -6,7 +6,7 @@ parents:
   - hypothesis:pass2-engine-rows-corrected-in-place
 next_edges: []
 confidence: 0.85
-edited_by: a00-b6a44c26
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-11ad274b-e6e0c1
 loop: hypothesis:pass2-engine-rows-corrected-in-place@s2
@@ -45,8 +45,8 @@ changed.
 | R12 | hypothesis:a00-8ee9bdff-40419b | title/claim/probes/body/notes: `8 passed` -> `15 passed`; "locked NotImplementedError stub restart" -> real detached respawn (`Popen(start_new_session=True)`) + keyword-only `TypeError` contract; test blob `85c5cb43` -> `e37baef7` |
 | R12 | experiment:grok-bot-mirror-green-and-loud | title `8-passed` -> `15-passed`; green count; blob ids; mutation counts `1 failed, 7 passed` -> `1 failed, 14 passed`; branch-alone collection-error paragraph corrected (adapter + config present, 15 passed) |
 | R12 | verdict:grok-bot-mirror-proved-loud | `8 passed in 0.03s` -> `15 passed in 0.12s`; helper blobs -> current (adapter `6aa00b4a`, config `fae48c5b`); branch-alone bound lifted |
-| R13 | hypothesis:a00-da41e117-c79b5e | title/claim/body re-versioned: the config `bin` cell carries the box path `~/.npm-global/bin/grok-bot` and MUST DIFFER from the adapter's bare `DEFAULT_BIN = "grok-bot"` (`test_grok_bot_adapter.py:248`); the old "must equal `/home/ubuntu/...` DEFAULT_BIN" was the opposite of the bytes; a missing schema-required `testable_claim` added |
-| R13 | experiment:grok-bot-bin-matches-adapter | "corrected value == adapter DEFAULT_BIN" MEASURE paragraph corrected; `/home/ubuntu/...` -> `~/.npm-global/...`; "verbatim (`sed -n '113,124p'`)" -> the row is 107-118 and the key order differs |
+| R13 | hypothesis:a00-da41e117-c79b5e | title/claim/body re-versioned: the config `bin` cell carries the box path `~/.npm-global/bin/grok-bot` and MUST DIFFER from the adapter's bare `DEFAULT_BIN = "grok-bot"` (`test_grok_bot_adapter.py:248`); the old "must equal `<home>/...` DEFAULT_BIN" was the opposite of the bytes; a missing schema-required `testable_claim` added |
+| R13 | experiment:grok-bot-bin-matches-adapter | "corrected value == adapter DEFAULT_BIN" MEASURE paragraph corrected; `<home>/...` -> `~/.npm-global/...`; "verbatim (`sed -n '113,124p'`)" -> the row is 107-118 and the key order differs |
 | R13 | verdict:grok-bot-bin-cell-agrees-with-adapter | Evidence bullet, probes C3, Confidence, Agent Notes: "cell equals DEFAULT_BIN" -> "cell carries the box path and differs"; `:13` docstring citation -> `:30` |
 | R14 | hypothesis:a00-fcfbc2f9-7d809f | `restart` refusing `NotImplementedError` -> real detached respawn; Agent Notes `8 passed` -> `15 passed` |
 | R14 | mvp:grok-bot-adapter-minimum | "`restart` raises `NotImplementedError`" + "`restart` stays refused" -> real detached respawn (`build_command` is the only remaining stub) |

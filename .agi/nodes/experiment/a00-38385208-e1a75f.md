@@ -6,7 +6,7 @@ parents:
   - hypothesis:a01-842229f0-866d68
 next_edges: []
 confidence: 0.9
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-38385208-e1a75f
   - experiment:a01-1367dde9-e7320a
@@ -68,10 +68,10 @@ A `git checkout .` in worktree A cannot touch worktree B's files because they ar
 
 Each worktree has its OWN `__pycache__` directory with COMPLETELY DIFFERENT `.pyc` contents:
 
-Worktree `amazing-lalande-8e00d8` (at `/home/ubuntu/work/agi/.claude/worktrees/amazing-lalande-8e00d8/extensions/agi/bin/__pycache__/`):
+Worktree `amazing-lalande-8e00d8` (at `<home>/work/agi/.claude/worktrees/amazing-lalande-8e00d8/extensions/agi/bin/__pycache__/`):
 - `benchmark.cpython-311.pyc`, `cli.cpython-311.pyc`, `dispatch.cpython-311.pyc`, `grid.cpython-311.pyc`, `heal.cpython-311.pyc`, `post_wire.cpython-311.pyc`, `render-context.cpython-311.pyc`, `snapshot-build-site.cpython-311.pyc`, `zoom.cpython-311.pyc`
 
-Worktree `magical-napier-5a0ac5` (at `/home/ubuntu/work/agi/.claude/worktrees/magical-napier-5a0ac5/extensions/agi/bin/__pycache__/`):
+Worktree `magical-napier-5a0ac5` (at `<home>/work/agi/.claude/worktrees/magical-napier-5a0ac5/extensions/agi/bin/__pycache__/`):
 - `cli.cpython-311.pyc`, `evidence_gate.cpython-311.pyc`, `grid.cpython-311.pyc`, `metrics.cpython-311.pyc`, `post_wire.cpython-311.pyc`, `render-context.cpython-311.pyc`, `snapshot-goals.cpython-311.pyc`
 
 **Zero overlap in `.pyc` files.** Each worktree's Python bytecode cache is in its own working directory hierarchy. Python resolves `__pycache__/` relative to the source file's directory, which is in the worktree-specific path. Kid A's writes to `.py` files generate `.pyc` in worktree A's cache; Kid B's Python imports read from worktree B's cache. **Confirmed structural.**
@@ -113,11 +113,11 @@ magical __pycache__: cli, evidence_gate, grid, metrics, post_wire,
                     render-context, snapshot-goals
 
 # Worktree .git is a pointer file to per-worktree metadata:
-cat /home/ubuntu/work/agi/.claude/worktrees/amazing-lalande-8e00d8/.git
-> gitdir: /home/ubuntu/work/agi/.git/worktrees/amazing-lalande-8e00d8
+cat <home>/work/agi/.claude/worktrees/amazing-lalande-8e00d8/.git
+> gitdir: <home>/work/agi/.git/worktrees/amazing-lalande-8e00d8
 
 # Per-worktree dir structure:
-/home/ubuntu/work/agi/.git/worktrees/amazing-lalande-8e00d8/
+<home>/work/agi/.git/worktrees/amazing-lalande-8e00d8/
   COMMIT_EDITMSG   HEAD          ORIG_HEAD
   commondir        gitdir        index
   logs/
@@ -128,7 +128,7 @@ cat commondir
 
 # gitdir points back to worktree:
 cat gitdir
-> /home/ubuntu/work/agi/.claude/worktrees/amazing-lalande-8e00d8/.git
+> <home>/work/agi/.claude/worktrees/amazing-lalande-8e00d8/.git
 ```
 
 ## Agent Notes

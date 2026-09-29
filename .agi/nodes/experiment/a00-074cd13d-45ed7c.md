@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-cron-node-is-the-whole-schedule-any-job-is-one-entry-one-variable-silences-the-box-audit-names-the-undeclared-and-apply-is-the-box-init
 next_edges: []
 confidence: 0.9
-edited_by: a00-38963541
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-074cd13d-45ed7c
   - experiment:a00-0e932af3-130352
@@ -16,7 +16,7 @@ model: deepseek/deepseek-v4.1-flash
 probes:
   - {"conjunct": 1, "class": "gate", "cmd": "crons.load_crons_node() on a fixture cadence entry {\"ghost_job\": {\"every_mins\": 5, \"cmd\": \"   \"}} (whitespace-only cmd) -- unchanged by this round, re-checked because kid 1's node was demoted", "expected": "CronsError refusing the job by name", "observed": "CronsError: ...cadences declares unknown job 'ghost_job' with no `cmd`", "result": "pass"}
   - {"conjunct": 2, "class": "gate", "cmd": "render_managed_lines(root, root, root, node) with crons_live: false + a generic cmd job enabled:true -- unchanged by this round", "expected": "[] total, generic entries included", "observed": "[]", "result": "pass"}
-  - {"conjunct": 3, "class": "wire", "cmd": "crons.cmd_audit(root=/home/ubuntu/work/agi/.agi, crontab_file=<empty tmp fixture>, unit_dir=~/.config/systemd/user) -- RE-RUN against this round's fix, same real box directory that falsified experiment:a00-0e932af3-130352", "expected": "claude-remote-control.service flagged; this project's own agi-agi-reaper-2f118e6f.service NOT flagged", "observed": "both true: claude-remote-control.service (and 6 other ordinary-named real units in the same dir) now flagged, agi-agi-reaper-2f118e6f.service silent", "result": "pass"}
+  - {"conjunct": 3, "class": "wire", "cmd": "crons.cmd_audit(root=<home>/work/agi/.agi, crontab_file=<empty tmp fixture>, unit_dir=~/.config/systemd/user) -- RE-RUN against this round's fix, same real box directory that falsified experiment:a00-0e932af3-130352", "expected": "claude-remote-control.service flagged; this project's own agi-agi-reaper-2f118e6f.service NOT flagged", "observed": "both true: claude-remote-control.service (and 6 other ordinary-named real units in the same dir) now flagged, agi-agi-reaper-2f118e6f.service silent", "result": "pass"}
   - {"conjunct": 4, "class": "wire", "cmd": "crons.load_crons_node(<live worktree .agi>) + crons._substitute() round-trip vs git show 12072bdde absolute values -- unchanged by this round (file scope excluded it)", "expected": "byte-identical", "observed": "byte-identical", "result": "pass"}
   - {"conjunct": 5, "class": "gate", "cmd": "render_managed_lines() generic job with box: [local-town, other-town], box_name in vs out of list -- unchanged by this round", "expected": "renders only when box_name is in the list", "observed": "matched", "result": "pass"}
   - {"conjunct": 2, "class": "wire", "cmd": "crons.cmd_apply(crons_live: false + a declared service, --unit-dir <fixture with the unit file present>) vs the SAME call with NO --unit-dir (plain `crons.py apply`), run by parent a00-38963541 iter143", "expected": "hypothesis conjunct 2: 'crons_live: false ... stops + disables every services: entry ... crons_live: true + crons.py apply restores both'", "observed": "with --unit-dir: ['systemctl --user disable --now agi-agi-reaper-001f2564.service (dry-run)', 'remove unit ... (dry-run)']; NO --unit-dir: unit_actions=[] -- plain apply never touches units (reconcile_units returns [] when unit_dir is None, crons.py L751). Production still reaches the service because the rendered grid_sync self-reapply line bakes --unit-dir (crons.py L550).", "result": "fail"}

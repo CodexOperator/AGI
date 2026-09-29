@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-wake-repair-is-quiet-honest-and-readable
 next_edges: []
 confidence: 0.7
-edited_by: a00-32d98f43
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-30b3410d-21921c
 loop: hypothesis:l4-wake-repair-is-quiet-honest-and-readable@s2
@@ -83,7 +83,7 @@ No existing test changed; the whole named suite (send + heal_watch) is green.
 ## REAL-tree proof (on a COPY of the live inbox, not the shared tree)
 
 The live shared tree
-`/home/ubuntu/work/agi/.agi/sessions/inbox/sanctuary-director.nudge.deferred`
+`<home>/work/agi/.agi/sessions/inbox/sanctuary-director.nudge.deferred`
 (the helper's rotation alert, stored 11:26Z) still exists unmutated. I copied
 it into a throwaway project root (`/tmp/wmproof/.agi/sessions/inbox/`) with a
 config.json so `locations` resolves, and ran the CLI from there — the shared

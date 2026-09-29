@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps
 next_edges: []
 confidence: 0.9
-edited_by: a00-d7f4b9bf
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-29845d37-a5cd4f
 loop: hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps@s2
@@ -35,14 +35,14 @@ From THIS worktree (`a00-d7f4b9bf`):
     tip: season/s2 = 0b19ff1542... (MAIN HEAD 9ac39fdb0c... != tip → no)
     baseline: none recorded (verify-count.json absent)
 
-From MAIN (`--root /home/ubuntu/work/agi`):
+From MAIN (`--root <home>/work/agi`):
 
     GRANT sanctuary-director — merge-up window open
     lock: free
     tip: season/s2 = 0b19ff1542... (MAIN HEAD 0b19ff1542... == tip → yes)
     baseline: active=2162 deprecated=195 total=2357 stamped sha=4f1fd8d5...
 
-Proof: `git -C <worktree> rev-parse HEAD` = 9ac39fdb0c... while `git -C <main> rev-parse HEAD` = 0b19ff1542... (== tip). `verify-count.json` exists only at `/home/ubuntu/work/agi/.agi/sessions/`. Both defects confirmed.
+Proof: `git -C <worktree> rev-parse HEAD` = 9ac39fdb0c... while `git -C <main> rev-parse HEAD` = 0b19ff1542... (== tip). `verify-count.json` exists only at `<home>/work/agi/.agi/sessions/`. Both defects confirmed.
 
 ### FIX (verification.py `render_window` ONLY; print-only kept)
 
@@ -65,7 +65,7 @@ Falsifier run on the real tree, post-fix — the baseline and tip/MAIN-HEAD line
     baseline: active=2162 deprecated=195 total=2357 stamped sha=4f1fd8d55ffb40e1e46c54f55c65ae951696a311 reason=kept (on season/s2, HEAD pushed)
 
     $ # from MAIN
-    $ python3 .../verification.py window --root /home/ubuntu/work/agi --grant sanctuary-director
+    $ python3 .../verification.py window --root <home>/work/agi --grant sanctuary-director
     GRANT sanctuary-director — merge-up window open
     lock: free
     tip: season/s2 = 0b19ff1542475331c56b05c837a1b97030fa3f2f (MAIN HEAD 0b19ff1542475331c56b05c837a1b97030fa3f2f == tip → yes)
