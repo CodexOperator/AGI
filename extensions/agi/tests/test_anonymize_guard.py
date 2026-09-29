@@ -319,3 +319,18 @@ def test_a_diff_is_judged_on_added_lines_only(tmp_path, fake_box, monkeypatch):
     leak = tmp_path / "leak.diff"
     leak.write_text(f"diff --git a/n.md b/n.md\n@@ -1 +1 @@\n-see <home>/x\n+see {home}/x\n")
     assert anonymize.cmd_check(root, None, str(leak)) == 1
+
+
+# (11) re-mur wf_aa3f01d4-2aa residue 21: the STAGED branch -- the one
+# verification runs, cmd_check(root, None, None) -> `git diff --cached` -- is
+# judged on added lines too; _run is stubbed, no real git or index is read.
+def test_the_staged_diff_is_judged_on_added_lines_only(tmp_path, fake_box, monkeypatch):
+    home = str(tmp_path / "home" / "someuser")
+    monkeypatch.setenv("HOME", home)
+    root = _graph(tmp_path)
+    for staged, rc in ((f"-see {home}/x\n+see <home>/x\n", 0),
+                       (f"-see <home>/x\n+see {home}/x\n", 1)):
+        diff = f"diff --git a/n.md b/n.md\n@@ -1 +1 @@\n{staged}"
+        monkeypatch.setattr(anonymize, "_run",
+                            lambda argv, d=diff: d if "--cached" in argv else "")
+        assert anonymize.cmd_check(root, None, None) == rc
