@@ -15,7 +15,9 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 21:2xZ 09-28 gen 33 -- DE #5 LANDED b0aa2c178 (pushed, Prime told); IDLE until DE's next [merge-up] (queue in TMM.353)
 ```
-state    last order = TMM.361 · next = TMM.362
+state    last order = TMM.363 · next = TMM.364 · 03:5xZ 09-29
+KIDCAP   [decision] B (TMM.362): the director brief cites spawn.parent_max_kids (10, owner 09-16) instead of a typed 5 (3b1c33311); DE EG.207 fixes the
+         agi-dispatch skill row + prime-director-successor.md row 25 by name. EG.205 = EG.185 chain corrective; that chain lands after PASS B2
 SIGS     ee40e8211: values.pi_retry.transient_signatures (5 fragments) set by me -- EG.185 had them on config:workflows (Prime-only, refused);
          corrective on EG.185 = reader -> config.json cell, test re-pinned. EG.185 [merge-up] waits its mur; workflow.py never lands mid-PASS B2
 PI_RETRY 86bbc1bd8: 12 x 60 s (6/6 = the edge: EG.185 parent died 6/6 exhausted, EG.184 survived on its 6th; per-RUN budget; empty rate unchanged after the
