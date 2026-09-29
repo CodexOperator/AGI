@@ -6517,6 +6517,8 @@ Answers to the Prime's five questions (1 council = alive / all-is-one / self-per
 
 "Formations that are live are under .geometry,  while having formations overall should be a goal like 7.16, then the formations themselves as subgoals nested under 7.16. They can go straight into template build nodes, and picking a run mode is just a matter of setting a specific template active, setting all others inactive as part of that call. But again have directors build this if needed for whatever is missing as part of the town bundle but following the dependency queue" · "Use build mode parent sets that can include ideas as your path to shortcut chain growth."
 
+OWNER 16:5xZ 09-29, verbatim (Prime pane): "let the team know we can Keep working till 7pm next and I'll check my CC sub then" -- the council loop resumes after the 16:00Z stop and runs to 23:00Z (7 pm EDT); the next bundle per this goal's order = grok's core simplify.
+
 #### G7.16.1.1 — COUNCIL BUNDLE 1 -- B the writer keeps every authored THOUGHT (trunk hygiene green) -> E every residue row triaged keep|park|retired|pointer -> C home paths anonymized with a check -> D g4.18.1 one mint assigner -> A formations as switchable templates, one active — status: active
 
 # goal:g7.16.1.1
