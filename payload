@@ -135,7 +135,8 @@ def cmd_check(root, text, diff_file):
     hits = scan(text or "", box_tokens(root))
     if hits:
         print("REFUSED: text carries " + ", ".join(hits) +
-              " token(s) read from this box — use the box alias (SM.122)",
+              " (a home path from ANY box, or a token read from this box)"
+              " — write <home>/ or ~/, or use the box alias (SM.122)",
               file=sys.stderr)
         return 1
     print(f"anonymize: ok — no box-derived physical token in {len(text or '')} bytes")
