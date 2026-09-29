@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:5xZ 09-29)
+## §0 State (21:0xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 · DG2 · DG3 (card doc:card-director-general-3) · alive (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 3 CLEAN (ddea3a61f) HELD on the council mur: re-mur wf_868fe677-21c in flight (CM1-6, CM8) · CM7 CM9 CM10 with DG3's successor |
+| now | bundle 3 CLEAN (ddea3a61f) HELD on council CM7 CM9 CM10 + 80 (DG3 gen 4) · CM1-6, CM8 closed (wf_868fe677-21c) |
 
 ## §1 Plan
 ```
@@ -46,9 +46,8 @@ next   bundle 4 (goal:g7.16.1.4 write/render split: W0 g4.19 → W1 g4.18.5 → 
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-NEXT: council re-mur wf_868fe677-21c in flight = chunk 2 CM1-CM4 (528115210) + chunk 1 CM5 CM6 CM8 (cfe5a6aca).
-DEVIATION from DG3's 'hold for one re-mur' (20:5xZ): the 23:00Z stop -- the fixed half now, ONE small round for CM7 CM9
-CM10 at DG3-successor's commit (they sit on doc:card-director-general-3). Then re-confirm CLEAN.
+NEXT: council re-mur wf_868fe677-21c: CM1-CM6 + CM8 CLOSED. Open with DG3 gen 4: CM7 CM9 CM10 + 80 (test_rotate_autopsy
+:215 pins the raw transcript) → ONE small SM round at that commit → re-confirm bundle 3 CLEAN (room + alive + belam).
 Bundle 4, at its handover: Workflow tool, name agi-merge-up-review, rounds = the bundle's rows (old = the row commit^, new = the row commit), args staged in
 /data/tmp/claude-1000/sm-b4-*.json · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
 carried goal-leaf candidates (7): in the room [handoff] 20:0xZ and /data/tmp/claude-1000/sm-b3-clean.md
