@@ -10362,6 +10362,24 @@ def test_r1_spawn_window_threads_the_cell(tmp_path, monkeypatch, capsys, live):
     assert ("systemd-run" in shell) is live, shell   # cell off: no scope at all
 
 
+# council mur CM9: the --successor-argv stand-in runs in the SAME post scope
+# as the real launch; cell off -> the override string stays verbatim.
+@pytest.mark.parametrize("live", [False, True])
+def test_r1_successor_argv_override_keeps_the_post_scope(tmp_path, monkeypatch, live):
+    import mem_cap, shlex
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: True)
+    g = tmp_path / ".agi"
+    g.mkdir()
+    (g / "config.json").write_text(json.dumps({"spawn": {"post_scope": {"live": live, "slice": "agi.slice"}}}))
+    rc, shell = rotate.spawn_window(name="p1", tier="parent", prompt_file=None, dry_run=True, root=g, seat="p1",
+                                    successor_argv="echo stand-in")
+    if live:
+        assert rc == 0 and shlex.split(shell)[:5] == ["systemd-run", "--user", "--scope", "-q", "--slice=agi.slice"], shell
+        assert "--unit=agi-post-p1-" in shell and shlex.split(shell)[-3:] == ["bash", "-c", "echo stand-in"], shell
+    else:
+        assert (rc, shell) == (0, "echo stand-in")
+
+
 def test_r1_cutover_plan_gives_each_post_tree_its_own_scope():
     procs = {10: (1, "sleep"), 20: (10, "tmux: server"), 30: (20, "claude"), 31: (30, "node"), 40: (20, "claude"), 41: (40, "sleep"), 50: (20, "bash")}  # {pid: (ppid, comm)}
     plan = rotate._cutover_plan(procs, keep=10, posts={30: "belam"})

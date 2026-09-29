@@ -1528,7 +1528,7 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
     is None = unscoped, today's line; spawn_window, the ONE caller, passes the
     `spawn.post_scope` cell (live:false -> None).
     """
-    unit = f"agi-post-{re.sub(r'[^\w.-]', '_', seat)}-{int(time.time())}" if seat else None
+    unit = _post_unit(seat)
     joined = " ".join(shlex.quote(c) for c in mem_cap.scope_argv(claude_cmd, scope_slice))
     # AGI_SEAT rides FIRST in the export chain, so it is set before the
     # reaper/ultracode knobs and the claude process — composed the same way
@@ -1542,6 +1542,12 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
     if _is_ultracode(settings):
         return ULTRACODE_ENV_EXPORT + " && " + reaper
     return reaper
+
+
+def _post_unit(seat: str | None) -> str | None:
+    """A seat launch's scope unit name (None = no seat, no unit): the ONE
+    spelling `_shell_cmd` and the `successor_argv` stand-in share (CM9)."""
+    return f"agi-post-{re.sub(r'[^\w.-]', '_', seat)}-{int(time.time())}" if seat else None
 
 
 def _launch_wrapper_argv(seat: str, child_cmd: list[str]) -> list[str]:
@@ -1983,8 +1989,14 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     # successor-override): the override REPLACES the claude argv entirely.
     # It only takes effect when passed explicitly — the default below is
     # byte-for-byte today's real claude successor.
+    # The post scope applies to BOTH branches (council mur CM9): a stand-in
+    # never skips the scope the real launch would run in.
+    scope_slice = mem_cap.resolve_post_scope(_config_json(root) if root is not None else {})
     if successor_argv is not None:
-        shell_cmd = successor_argv
+        inner = ["bash", "-c", successor_argv]
+        scoped = mem_cap.scope_argv(inner, scope_slice, _post_unit(seat))
+        # cell off (or no usable systemd-run): the override stays verbatim
+        shell_cmd = successor_argv if scoped is inner else " ".join(shlex.quote(c) for c in scoped)
     else:
         # A third harness resolves its own bin (the copilot binary/row); the
         # claude path passes None and stays byte-identical. The raw cell is
@@ -2021,8 +2033,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
             )
 
         # Quote for shell display (ultracode roles are env-gated + keyworded)
-        shell_cmd = _shell_cmd(claude_cmd, settings, seat=seat, scope_slice=mem_cap.resolve_post_scope(
-            _config_json(root) if root is not None else {}))
+        shell_cmd = _shell_cmd(claude_cmd, settings, seat=seat, scope_slice=scope_slice)
 
     if dry_run:
         print(shell_cmd)
