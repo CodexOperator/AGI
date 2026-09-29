@@ -13,11 +13,13 @@ The two invariants worth testing are the two the goal states in bold:
 from __future__ import annotations
 
 import ast
+import difflib
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -2404,6 +2406,54 @@ def test_b4_w1a_row_dry_run_resolves_and_refuses(project, tmp_path, capsys):
                        "--root", str(project), "--dry-run"]) == 2
     assert node.read_text() == before
 
+
+
+# BUILD1 (goal:g7.16.1.4 W1, alive 841857ddb): `row <top>.<key> <src>` edits ONE
+# nested frontmatter row (command:commands `manifest.<key>`); an empty source
+# removes it; every other frontmatter line stays byte-identical.
+def _b1_node(project):
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    head, rest = node.read_text().split("---\n", 2)[1:]
+    fm = head + "manifest:\n  a.py:\n    cli: a.py\n  b.py::\n    cli: b.py\n    verb: x\n  c.py:\n    cli: c.py\n"
+    node.write_text("---\n" + fm + "---\n" + rest)
+    write.main(["hypothesis:h1", "note x", "--root", str(project)])   # canonical render once
+    return node
+
+
+def _b1_changed(before, after):
+    return [l for l in difflib.unified_diff(before.split("\n"), after.split("\n"), lineterm="", n=0)
+            if l[:1] in "+-" and l[:3] not in ("+++", "---") and "edited_by" not in l]
+
+
+def test_build1_row_replaces_one_nested_frontmatter_row(project, tmp_path):
+    node = _b1_node(project)
+    before = node.read_text()
+    (tmp_path / "v.yaml").write_text("cli: b.py\nverb: y\n")
+    assert write.main(["hypothesis:h1", f"row manifest.b.py: {tmp_path / 'v.yaml'}", "--root", str(project)]) == 0
+    after = node.read_text()
+    assert _b1_changed(before, after) == ["-    verb: x", "+    verb: y"]
+    assert list(yaml.safe_load(after.split("---\n")[1])["manifest"]) == ["a.py", "b.py:", "c.py"]
+
+
+def test_build1_row_empty_source_removes_the_row(project, tmp_path):
+    node = _b1_node(project)
+    before = node.read_text()
+    (tmp_path / "e.yaml").write_text("")
+    assert write.main(["hypothesis:h1", f"row manifest.b.py: {tmp_path / 'e.yaml'}", "--root", str(project)]) == 0
+    assert _b1_changed(before, node.read_text()) == ["-  b.py::", "-    cli: b.py", "-    verb: x"]
+
+
+def test_build1_row_refuses_and_writes_nothing(project, tmp_path):
+    node = _b1_node(project)
+    before = node.read_text()
+    (tmp_path / "v.yaml").write_text("cli: z\n")
+    for script in (f"row manifest.nope.py {tmp_path / 'v.yaml'}",          # no such row
+                   f"row title.x {tmp_path / 'v.yaml'}",                    # not a mapping
+                   f"row manifest.a.py: {tmp_path / 'missing.yaml'}"):      # unreadable source
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+    assert write.main(["hypothesis:h1", f"row manifest.a.py: {tmp_path / 'v.yaml'}",
+                       "set manifest {}", "--root", str(project)]) == 2
+    assert node.read_text() == before
 
 
 # --- bundle 4 W2b re-scope (director-general-2) -----------------------------

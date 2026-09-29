@@ -148,6 +148,12 @@ class Edit:
     #: goal:g4.18.5.1 -- `row <n>[:<i>-<j>]`: resolved to replace_range at
     #: submit, on node_writer.body_rows of the body as it is then
     row_ref: str = ""
+    #: BUILD1 (goal:g7.16.1.4 W1, alive 841857ddb) -- `row <top>.<key> <src|->`:
+    #: a NESTED frontmatter row (command:commands `manifest.<key>`), resolved
+    #: once by `_resolve_fm_row` into `set_fm[<top>]`, so every set gate runs
+    fm_row: str = ""
+    fm_row_from: str = ""
+    fm_row_resolved: bool = False
     replace_from: str = ""
     replace_text: str = ""
     # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
@@ -193,7 +199,7 @@ class Edit:
                     or self.patch_from or self.patch_diff
                     or self.body_patch_from or self.body_patch_diff
                     or self.read_target or self.read_range
-                    or self.replace_target or self.sub_old)
+                    or self.replace_target or self.sub_old or self.fm_row)
 
 
 # --------------------------------------------------------------------------
@@ -464,7 +470,14 @@ def verb_row(edit: Edit, ref: str, source: str) -> Edit:
     ONE row index, goal:g4.18.5.1); `row <n>:<i>-<j> <path|->` replaces lines
     i..j INSIDE row n (a block row: THOUGHT, a fence). Every other byte stays.
     It rides the replace path (one reader, one splice, the same gate); the
-    index, not a counted offset, picks the range, so the offset guard skips."""
+    index, not a counted offset, picks the range, so the offset guard skips.
+
+    `row <top>.<key> <src|->` (BUILD1) addresses a NESTED frontmatter row
+    instead: `<src>` is the row's new YAML value, an EMPTY source removes the
+    row; resolved by `_resolve_fm_row` into `set_fm[<top>]`."""
+    if re.fullmatch(r"[A-Za-z_][\w-]*\..+", ref):
+        edit.fm_row, edit.fm_row_from = ref, source.strip()
+        return edit
     if not re.fullmatch(r"\d+(:\d+-\d+)?", ref):
         raise EditError(f"row wants <n> or <n>:<i>-<j>, got {ref!r}")
     edit.replace_target, edit.row_ref = "body", ref
@@ -487,6 +500,46 @@ def _row_range(body: str, row_ref: str) -> str:
             raise EditError(f"row {row_ref}: row {n} has {b - a + 1} line(s)")
         a, b = a + i - 1, a + j - 1
     return f"{a}:{b}"
+
+
+def _resolve_fm_row(root, edit: Edit) -> None:
+    """BUILD1: `row <top>.<key>` -> `set_fm[<top>]` = the node's `<top>`
+    mapping with row `<key>` replaced by the source's YAML value (order kept),
+    or dropped when the source is empty. Idempotent (main resolves it for its
+    preview, submit again for an API caller). Refuses by EditError: `<top>`
+    absent or not a mapping, `<key>` not a row of it, the same line setting or
+    unsetting `<top>` too, a source that is unreadable or not YAML."""
+    if not edit.fm_row or edit.fm_row_resolved:
+        return
+    import yaml  # noqa: PLC0415
+    from graph_core.persistence import frontmatter as fm_reader  # noqa: PLC0415
+    top, key = edit.fm_row.split(".", 1)
+    if top in edit.set_fm or top in edit.unset_fm:
+        raise EditError(f"row {edit.fm_row} cannot share a line with set/unset {top}")
+    path = node_writer.find_node_file(Path(root), edit.node_id)
+    if path is None:
+        raise EditError(f"no node file for {edit.node_id}")
+    table = fm_reader.load_node_file(path, body=False).frontmatter.get(top)
+    if not isinstance(table, dict):
+        raise EditError(f"row {edit.fm_row}: {edit.node_id} has no {top} mapping")
+    if key not in table:
+        raise EditError(f"row {edit.fm_row}: {top} has no row {key!r}")
+    if edit.fm_row_from == "-":
+        text = sys.stdin.read()
+    else:
+        try:
+            text = Path(edit.fm_row_from).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            raise EditError(f"row {edit.fm_row}: cannot read {edit.fm_row_from}: {exc}")
+    if text.strip():
+        try:
+            value = yaml.safe_load(text)
+        except yaml.YAMLError as exc:
+            raise EditError(f"row {edit.fm_row}: source is not YAML: {exc}")
+        edit.set_fm[top] = {k: (value if k == key else v) for k, v in table.items()}
+    else:
+        edit.set_fm[top] = {k: v for k, v in table.items() if k != key}
+    edit.fm_row_resolved = True
 
 
 def verb_sub(edit: Edit, spec: str) -> Edit:
@@ -635,7 +688,7 @@ VERB_EXAMPLES = {
     #: note/thought/body_patch (one body writer per submit). The rendered
     #: NOTES block below carries that rule into `-h`.
     "replace": "replace body 4:9 path/to/file",
-    "row": "row 3 path/to/file",
+    "row": "row 3 path/to/file  |  row manifest.<key> path/to/value.yaml (empty file = remove)",
     "adopt": "adopt",
 }
 
@@ -2208,6 +2261,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # conjunct 1: resolve `sub` BEFORE the outside-ref gate, on the API path
     # too; main already resolved it for its preview (idempotent).
     _resolve_sub(root, edit)
+    _resolve_fm_row(root, edit)   # BUILD1, idempotent likewise
 
     # A link_ref/payload_ref resolving outside the repo tree is refused before
     # any write; the SAME predicate links.py's schema report calls. It judges
@@ -3402,6 +3456,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
 
+    # BUILD1: a nested frontmatter row becomes a `set_fm` entry HERE, before
+    # the set schema gate, so it is judged exactly like a `set`.
+    if edit.fm_row:
+        try:
+            _resolve_fm_row(root, edit)
+        except EditError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
+
     # goal:g7.33.10 round B -- the SET half of the schema-checked-rows gate.
     # `edit.set_fm` is fully accumulated now (every `set` in the script has
     # landed), so one pass here judges every row before anything reaches
@@ -3550,6 +3613,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.dry_run:
         print(f"{edit.node_id}:")
         for k, v in edit.set_fm.items():
+            if edit.fm_row and k == edit.fm_row.split(".", 1)[0]:
+                _, _key = edit.fm_row.split(".", 1)
+                print(f"  row    {edit.fm_row} "
+                      f"({'replace' if _key in v else 'remove'})")
+                continue
             print(f"  set    {k} = {v!r}")
         for k in edit.unset_fm:
             print(f"  unset  {k}")
