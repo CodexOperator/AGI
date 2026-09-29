@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-second-director-ran-this-graph-uninvited
 next_edges: []
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: e47033a275ec6f48
 season: 1
 thought_session: season
@@ -47,11 +47,11 @@ All authored `CodexOperator <<owner-email>>` (this box's default identity, not a
 
 **Class 3 — `~/.hermes/agi` checkout and global hooks:**
 
-- `~/.hermes/agi` is a **symlink** to `/home/ubuntu/work/agi` — same repo, same origin (`CodexOperator/agi.git`)
-- `~/.claude/skills/agi` → `/home/ubuntu/work/agi/skills/agi` (global)
-- `~/.claude/settings.json` → `/home/ubuntu/work/agi/extensions/agi/hooks/cc-session-start.sh` (global)
+- `~/.hermes/agi` is a **symlink** to `<home>/work/agi` — same repo, same origin (`CodexOperator/agi.git`)
+- `~/.claude/skills/agi` → `<home>/work/agi/skills/agi` (global)
+- `~/.claude/settings.json` → `<home>/work/agi/extensions/agi/hooks/cc-session-start.sh` (global)
 - Means any Claude Code session started under `~/.hermes/agi` — or any autonomous framework that shells out to `claude` there — inherits the "director replaces the handoff" conventions
-- `~/.openclaw/workspace` → `/home/ubuntu/work/belam-codex` (a different project, but OpenClaw's cron and agent machinery could have launched sessions in `~/.hermes/agi`)
+- `~/.openclaw/workspace` → `<home>/work/belam-codex` (a different project, but OpenClaw's cron and agent machinery could have launched sessions in `~/.hermes/agi`)
 
 **Class 4 — HANDOFF.md:**
 
@@ -84,9 +84,9 @@ e0220fad9 HEAD@{2026-09-04 03:20:46 +0000} L1.10f: run complete
   "started_at": 1788484916,
   "agents": [
     { "id": "a00-ca9af9f4", "tier": "parent", "harness": "pi",
-      "command": "/home/ubuntu/.npm-global/bin/pi --provider openrouter --model qwen/qwen3.8-27b ..." },
+      "command": "<home>/.npm-global/bin/pi --provider openrouter --model qwen/qwen3.8-27b ..." },
     { "id": "a00-f5950c0a", "tier": "kid", "harness": "pi",
-      "command": "/home/ubuntu/.npm-global/bin/pi --provider openrouter --model deepseek/deepseek-v4-flash ..." }
+      "command": "<home>/.npm-global/bin/pi --provider openrouter --model deepseek/deepseek-v4-flash ..." }
   ],
   "unadmitted": [
     { "reason": "spawn budget full (25/25)", "status": "unadmitted" }
@@ -97,7 +97,7 @@ e0220fad9 HEAD@{2026-09-04 03:20:46 +0000} L1.10f: run complete
 ### ~/.hermes/agi structure
 
 ```
-lrwxrwxrwx agi -> /home/ubuntu/work/agi
+lrwxrwxrwx agi -> <home>/work/agi
 origin  https://github.com/CodexOperator/agi.git (fetch)
 ```
 
@@ -111,7 +111,7 @@ The identification half of the parent hypothesis (the uninvited director is iden
 artefacts alone) is genuinely proven — I re-ran the spot-checks myself and they hold:
 `git log b45fdcaca..e0220fad9` shows all nine L1.10*/baseline commits authored
 `CodexOperator <<owner-email>>` at exactly the 01:21–03:20 UTC (21:21–23:20 EDT) span,
-and `~/.hermes/agi -> /home/ubuntu/work/agi` plus the global `~/.claude/skills/agi` and
+and `~/.hermes/agi -> <home>/work/agi` plus the global `~/.claude/skills/agi` and
 SessionStart hook symlinks all resolve as this node says. But the parent node is a COMPOUND
 claim: it also asserts the hook/skill refuses director actions from an unlisted checkout,
 and this experiment (per its own caveats line) never tested that guard. Proving half of a
