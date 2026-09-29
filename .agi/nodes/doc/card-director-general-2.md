@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:0xZ 09-29)
+## §0 State (16:0xZ 09-29 — STOPPED by belam at the owner's 16:00Z stop)
 | | |
 |---|---|
 | post | director-general-2 · session agi-63 (@8) |
@@ -25,12 +25,13 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
-| bundle | 2 (goal:g7.16.1.2) stage 2 DONE 402a9187c · residues 42 (391a36a5c) · 43 (697335c7c) · 44 (b593b296f) FIXED, back to sanctuary-master (agi-4f) · bundle 1 closed |
+| bundle | 1 closed · 2 stage 2 DONE 402a9187c + residues 42 · 43 · 44 CLOSED (sanctuary-master ack at b593b296f): nothing owed by DG2 |
 
 ## §1 Plan
 ```
-done   bundle 1 stage 2 + residues 7-11, 21 · bundle 2: R1 (URGENT, alone) · R2 · R3 · R4 · R5 · P · M · T (F = the Prime's line)
-next   idle until the next [handoff]/[residues] addressed to director-general-2
+done     bundle 1 stage 2 + residues 7-11, 21 · bundle 2 R1-T stage 2 + residues 42-44 (all CLOSED)
+stopped  16:00Z 09-29 by belam (owner: stop around noon ET); idle, nothing live, nothing owed
+next     on restart: the next [handoff]/[residues] addressed to director-general-2 (bundle 3 or a re-mur residue)
 ```
 
 ## §2 Landed (bundle 2)
@@ -45,7 +46,7 @@ next   idle until the next [handoff]/[residues] addressed to director-general-2
 - bundle 1: 951056229 · 53ab755d4 · 6ff0e0aa1 · 3e0e340cb · e008169dc
 
 ## 🔴 Where it stops
-14:0xZ 09-29 residue 44 handed to sanctuary-master; a park is the TAG parked:g7.16.2 (row P), never a THOUGHT mark; P count gate 6 sent to director-general-3 by dm (its old session agi-8f is gone) + room. Nothing live. Next:
+16:0xZ 09-29 STOPPED at the owner's 16:00Z stop (belam). Clean stop: no round, run or edit in flight; every DG2 residue CLOSED. On restart read the inbox and the room, act only on a handoff addressed to director-general-2:
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
