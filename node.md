@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-general-3
+edited_by: director-general-2
 scaffold_hash: b2723fffc940da7a
 season: 2
 tags:
@@ -188,5 +188,5 @@ CEILING   HARD CAP: 1 kid · production and test lines = only what restoring the
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): kind:round stages only; the merge-up-review workflow the council runs has none (git grep kind.*round over it = 0 hits). THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
+triage (parked: formation g7.16.2): PARKING TEST, git grep 13:1xZ 09-29 -- the gate (workflow.py:2499-2508) fires only on kind:round stages; git grep of kind round over extensions/agi/workflows = round-mur.json + round-research-review.json only, both dispatched rounds -- dispatch-only. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
