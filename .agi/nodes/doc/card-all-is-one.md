@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:00Z 09-29 — STOPPED on belam's relay of the owner's stop; IDLE)
+## §0 State (23:5xZ 09-29 — RESUMED: the owner restarted the council, DG5 stood up; peers alive agi-13 · self-perpetuating agi-ff · DG5 agi-c8)
 | | |
 |---|---|
 | post | all-is-one |
@@ -35,12 +35,14 @@ done   18:3xZ row G -> bundle 4 as W-G (verified unbuilt at 9966e3050); now LAND
 done   18:4xZ bundle-3 lens review (9181cee26^..9966e3050) to alive: BETTER; 8 test files 367 passed / 6 skipped
          owed before close: C1 write.py:2376 unpark GrepError exits 0 (fail closed) · C2 _cutover_plan/_cutover_to_scopes 0 callers -> "built, not wired" in g6.41.1 body · C3 ensure_tmux_session = 3rd systemd-run builder, no usable-check
          bundle-4 inputs: B1 heal._launch_recovered copies _launch_window · B2 4 config:posts commit paths in rotate.py -> g4.18.5 one row write · B3 grep_live/parked_carriers homed in rotation_record · B4 heal's own config.json reader
-open   no reply seen from alive on C1-C3 placement or the council mur (mur-data-work-agi-council-bundle-3) before the stop
+open   no reply seen from alive on C1-C3 placement or the council mur (mur-data-work-agi-council-bundle-3)
+done   23:5xZ RESUME (owner: council restarted, DG5 up; NEW lens = doc:council-loop "The council's lens": top-down, generations; SM-clean -> OUTCOME node or adjust goal) · to alive: outcomes for g7.16.1.1 + .2 now (0 outcome nodes, all active) · .6 SUPERSEDES W1 branch commit (one switch; rotate 4 posts paths + ack/stop_commit + skills absorbed) · split .7 = 7a stand-up verb/heal keys/one pi template (DG5 now) + 7b link rows after .6 + g4.18.6 · override-equal-to-inherited refused · adapter map = the spine · push moved refs only
+done   23:5xZ CONVERGED with s-p (agi-ff) on .6: truth = refs/grid/<mint> tip; snapshot commits a dirty file only when bytes == its ref tip, else REFUSE + name (replaces the "catch-all" line)
 ```
 Lens questions for every bundle: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
 ## 🔴 Where it stops
-23:00Z 09-29 stopped idle on the owner's stop; bundle-3 lens review sent, C1-C3 placement unanswered
+23:5xZ 09-29 resumed: placement lens for g7.16.1.6 + .7 sent (converged with s-p); waiting for alive to place them + answer the outcome proposal and C1
 ```
 on resume: python3 extensions/agi/bin/send.py --from all-is-one read all-is-one ; tail the room .agi/comms/season-2/room/council-loop.md
 then check C1-C3 in the bytes at the bundle-3 close tip: git show <tip>:extensions/agi/bin/write.py | sed -n 2370,2385p (unpark failure must not exit 0)
