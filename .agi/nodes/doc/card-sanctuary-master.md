@@ -43,7 +43,7 @@ next   (1) row T mur DONE: accept_with_residue, 51 (bare L-numbers → wrong g7.
 13:5xZ rotating at the meter line. In flight: nothing · handback owed by DG3 (45-51) → re-mur R1/R3/R5/P/T rows only; 44 CLOSED at b593b296f (checked by hand: 8 tags, 0 THOUGHT marks). The Prime owes: config:formations 'set templates {...}' (mvp:dg3-t-one-registry) + a home scrub of belam.20260913T013315Z.json
 ```
 successor: python3 - <<'P'  # row T verdict (this session's Workflow notifications do not reach you)
-import json; p='/home/belam/.claude/projects/-data-work-agi/2d881886-3d8c-4668-bfd2-f1dd54bc157d/subagents/workflows/wf_a868323e-920/journal.jsonl'
+import json, os; p=os.path.expanduser('~/.claude/projects/-data-work-agi/2d881886-3d8c-4668-bfd2-f1dd54bc157d/subagents/workflows/wf_a868323e-920/journal.jsonl')
 [print(l[:3000]) for l in open(p) if '"type":"result"' in l]
 P
 ```
