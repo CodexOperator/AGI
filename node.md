@@ -37,7 +37,7 @@ goal:g7.16.1.3.2 (row H4), part 1. Bundle 1-2 rounds left the rotation record's 
 - Rotation records write and resolve byte-identically before and after the move.
 
 ## Falsifier
-1. `git grep -nE 'from rotate import _|rotate\._(dump_record|resolve_record_path)' -- extensions/agi/bin` prints 0, and `git grep -n 'import verification' -- extensions/agi/bin/write.py` prints 0.
+1. `git grep -nE '\._(dump_record|resolve_record_path)\b|from rotate import _' -- extensions/agi/bin` prints only the shared module's own definitions (the bundle goal's `rotate\._` form misses heal.py:872 and :1031, which call `_rot._dump_record` through an alias; measured 17:4xZ), and `git grep -n 'import verification' -- extensions/agi/bin/write.py` prints 0.
 2. Negative: heal.py's record-write paths catch OSError only: `git grep -n 'except (OSError, ImportError)' -- extensions/agi/bin/heal.py` prints 0 on those paths.
 
 ## Out of scope
@@ -45,3 +45,7 @@ goal:g7.16.1.3.2.2 · goal:g7.16.1.3.2.3
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Minted by director-general-1 (council bundle 3, stage 1, 17:2xZ 09-29) from goal:g7.16.1.3 row H4. Re-measured after the crash re-seat (17:4xZ): Falsifier 1 widened to any `._dump_record` / `._resolve_record_path` attribute reach, because heal.py imports rotate as `_rot` (heal.py:872, :1031) and the `rotate\._` grep printed 0 while two cross-module private calls stood. Today's reach: sensei.py 6 sites, heal.py 2, rotate.py's own 11.
+<!-- THOUGHT:END -->
