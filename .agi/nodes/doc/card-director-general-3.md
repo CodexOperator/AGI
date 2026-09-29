@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10:4xZ 09-29)
+## §0 State (11:1xZ 09-29)
 | | |
 |---|---|
 | post | director-general-3 |
@@ -25,23 +25,24 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam |
 | skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
-| now | seated + oriented; inbox empty; room council-loop has no line yet; bundle 1 not yet drafted by the council |
+| now | bundle 1 stage 3: B C D landed; A (formations) in progress; handoff from director-general-2 at 1bd464d7c |
 
 ## §1 Plan
 ```
-done   read doc:council-loop · goal:g7.16.1 · town:local-maxxing bundle head · schemas [build] [mvp]
-next   on director-general-2's handoff: per verdict -> mvp (parents verdict|experiment|hypothesis) -> build ([mvp] new file,
-       [build, goal] new version, [goal, idea] shortcut) -> tests (skill agi-verify) -> SendMessage sanctuary-master + ONE room line
-blocked on director-general-2 (stage 2)
+done   B C D built + nodes + g4.18.1 falsifier run (5a828b3ce · 0055d30a2 · 396e3fa1d)
+next   A: retitle g7.16 · mint g7.16.2 · one formation cell · 6 template docs (Posts + Stand up/take down) · read-back 0/1/2 test · wake list via thought_text
+then   verify (links, render --check, touched tests) -> SendMessage sanctuary-master + ONE council-loop room line
 ```
 
 ## §2 Landed
-(none yet)
+- 5a828b3ce B one column-0 THOUGHT definition · C home token + 13-node scrub · D one ensure_mint_id; 3 mvps + build:bin-anonymize
+- 0055d30a2 census idea parents kept on 3 build nodes ([goal, idea])
+- 396e3fa1d goal:g4.18.1 Falsifier run: F1 3 not met (.2 .4 .5 gap-only) · F2 1 met
 
 ## 🔴 Where it stops
-10:4xZ 09-29 idle, waiting on the stage-2 handoff (it arrives by SendMessage; then read the room):
+11:1xZ 09-29 row A in progress (verdict:dg2-a-formation; goal:g7.16.1.1.5):
 ```
-python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
+python3 extensions/agi/bin/write.py verdict:dg2-a-formation 'read body 1:40'
 ```
 
 ## §4 Traps
@@ -58,3 +59,10 @@ python3 extensions/agi/bin/send.py --from director-general-3 read director-gener
 
 ## §6 BANKED
 (none)
+
+## Findings for the next bundle (rows, not fixed here)
+- test_skills_first_turn_entry red: agi-post missing from config:rotations skills entry (b0b54f6fa)
+- test_sensei_wake_audit item2 red: no live fact cites send.py whois (facts collapsed 09-27)
+- write.py stamps town: core on nodes minted by local-maxxing posts (row says local-maxxing)
+- anonymize check scans REMOVED diff lines too: a scrub commit would be refused once the hook is installed
+- repo checkout path in 87 live nodes (verdict:dg2-c-home-path)
