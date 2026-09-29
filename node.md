@@ -77,14 +77,14 @@ I did not change it. Measured on this box:
 
 | source | dir |
 |---|---|
-| `box.logs_dir` (`.agi/config.json`) | `/home/ubuntu/logs` |
+| `box.logs_dir` (`.agi/config.json`) | `<home>/logs` |
 | `Path.home() / "logs"` | `<home>/logs` |
 | `box.user` / `$USER` | `ubuntu` / `belam` |
 
 The two already disagree HERE, and **three writers** derive the dir from `HOME`:
 `crons.py:457`, `grid.py:1768` (`grid-sync-*.log`), `rotate.py:6908`
 (`agi-reaper-*.log`). Reading the cell in `crons.logs_dir()` alone would move
-the CAP to `/home/ubuntu/logs` while grid-sync and the reaper keep writing to
+the CAP to `<home>/logs` while grid-sync and the reaper keep writing to
 `<home>/logs` — the cap would stop bounding two of the three logs it bounds
 today. That is a worse state than a literal, and it is a four-file change
 (one shared resolver, hoisted, read by all three) — twice this node's scope.
@@ -140,7 +140,7 @@ probes:
 3. wire (no path literal): memory_alarm.py now resolves the state path through `locations.sessions_dir(a.root) / STATE_FILE`; the resolver returns `<root>/sessions`, byte-identical to the literal it replaced, so the cron cadence is unaffected. The alerts log carries no literal at all. HOLDS.
 4. RESIDUAL, not a claim break: the explicit `--alerts-log` override is still UNVALIDATED. An operator passing `--alerts-log /tmp/probe-B4-escape/alerts.log` lands the log outside the capped dir (cap actions: []). The claim is about the cell, and an explicit override is the same deliberate no-seam choice `enforce_log_caps` makes with `--logs-dir` (test_crons_disk_footprint_bounds.py:67), so I am not demoting for it — but it is the same hole one layer down and it is now the only way in.
 
-ACCEPTED, proved on the bytes. Kid 2 refusal on move 3 (logs_dir vs the `box.logs_dir` cell) is CORRECT and I checked its evidence rather than taking it: on this box `box.logs_dir` is /home/ubuntu/logs while `Path.home()/"logs"` is <home>/logs, and grid.py:1768 and rotate.py:6908 derive the same dir from HOME. Flipping only crons.logs_dir() would move the CAP away from two of the three logs it bounds today. Recorded as the re-brief it is, not folded in here.
+ACCEPTED, proved on the bytes. Kid 2 refusal on move 3 (logs_dir vs the `box.logs_dir` cell) is CORRECT and I checked its evidence rather than taking it: on this box `box.logs_dir` is <home>/logs while `Path.home()/"logs"` is <home>/logs, and grid.py:1768 and rotate.py:6908 derive the same dir from HOME. Flipping only crons.logs_dir() would move the CAP away from two of the three logs it bounds today. Recorded as the re-brief it is, not folded in here.
 
 push_further: ONE resolver (locations.box_logs_dir, or an explicit decision that HOME/logs is authoritative) read by crons.logs_dir, grid.py:1768 and rotate.py:6908 — plus a decision on the --alerts-log override. That is a four-file change and a new node, not a third edit under this hypothesis.
 
