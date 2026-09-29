@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.31.3.3
 next_edges: []
-edited_by: thought-master
+edited_by: director-engine
 scaffold_hash: 99f721ebee0a9eb8
 season: 2
 testable_claim: prune clean non-live kid worktrees; spawn reads paths.<town>.worktrees_root via locations.py (no literal at dispatch.py:754); guard.env GUARD_WORKTREE_TMPFS_<host>=4G mounted and charged to user@; post worktrees stay on disk; worktree prune on reboot
@@ -295,10 +295,26 @@ FILE SCOPE extensions/agi/tests/test_kid_worktrees_root.py · .agi/nodes/hypothe
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 8662c971b · <= 40 test lines net over 8662c971b · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 8662c971b <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.178: mur-eg-x1553709-5782f0 EG.159-k1 residues batched into one corrective (orders above, generated from the verdict files).
 
-OWNER 21:0xZ 09-28 to belam, verbatim: "Otherwise yes let them know hopefully the free lane should have more use now" -- relayed by belam 22:12Z with the OWNER GO (split, belam), verbatim: "per-role worktree roots go AHEAD of the tmpfs step (no RAM cost): kids stay as-is until tmpfs; DE + parents /data; belam + TM /mnt/agi-flash, mount check first. The tmpfs step keeps its TMM.313 gate." This version adds the order that re-sequences the round: roots before RAM.
+## CORRECTIVE DH.EG.194 -- closes mur-eg-x315028-299616 EG.178-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-c95b45a5 tip 1b960b342 (branch de-base-EG.194; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. New orphan-arm self-check repeats a config VALUE, so a legal seat-lane move turns the pin red (test_kid_worktrees_root.py:386)
+2. 3. Citation range off by the try: line (a00-91932850-05ee99.md:72)
+3. MISSED, mechanism, NEW: the new node's frontmatter key is MALFORMED and the schema-declared field is lost -- .agi/nodes/experiment/a00-843ee8ee-7b8a11.md:15 begins `probes:["parent-a00-c95b45a5: "GATE probe_e: ...`. yaml.safe_load on that frontmatter succeeds but returns NO `probes` key: the parsed keys are id, mint_id, type, parents, next_edges, confidence, edited_by, evidence_runs, loop, model, note, 'probes:["parent-a00-c95b45a5', production_lines, profile, role, scaffold_hash, season, title, town, verdict. Every reader of the declared field sees nothing: [experiment].md:18-22 declares `probes: {type: list}` with each = {conjunct, class, cmd, expected, observed, result}, and extensions/agi/bin/cli.py:1214 (`rec.get("probes")`) and :1629 (the done-path writer) consume it. Second defect in the same line: even with the key repaired the value is ONE prose string, not a list of dicts, so a later `cli.py done` on this node would count zero conjuncts covered. The five probe records (parent-a00-c95b45a5 probe_c/d/e/f + the WIRE control) exist only as that unreadable blob and as prose at :15 -- they are otherwise unbacked.
+4. MISSED, extension of defect 3: the SAME off-by-try citation ':386-391' the reviewer found only on a00-91932850-05ee99.md:72 is carried twice more in the round's OWN new node -- a00-843ee8ee-7b8a11.md:14 (parent-review note, 'each arm carries its own self-check at :386-391 and :396-400') and :107 ('an orphan ANSWERING the worktrees root must raise (:386-391), a models_dir outside the lane must NOT (:393)'). The new node is where the next reader starts, and it is the node item 3 was written to correct; a fix applied to a00-91932850 alone leaves two live copies of the wrong range (honest: :385-393).
+5. MISSED, unbacked claim in the round's own prose (not just brittle code): a00-843ee8ee-7b8a11.md:132 asserts 'the VALUE is still read live, and the value-scoped lane is what keeps the arm honest about it', and the parent note at :14 repeats the framing. The measurement above refutes it -- the self-check at :386-387 does not read the value, it freezes it -- so the round ships a NOTE-level claim ('a relocating rename must edit this pin', :133-134) whose own premise the same commit's code contradicts. Reviewer item 1 named the code line, not the false sentence that will be believed by the next agent.
+DEMOTED   by the director at triage: generated items 6 = checked clean/cleared by the verify stage (no residue)
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_kid_worktrees_root.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_kid_worktrees_root.py · .agi/nodes/experiment/a00-843ee8ee-7b8a11.md · .agi/nodes/experiment/a00-91932850-05ee99.md · .agi/nodes/hypothesis/kid-worktrees-resolve-from-one-cell-and-can-live-in-ram.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1b960b342 · <= 40 test lines net over 1b960b342 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 1b960b342 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective EG.194: mur-eg-x315028-299616 EG.178-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
