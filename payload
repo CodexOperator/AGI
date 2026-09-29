@@ -1328,7 +1328,7 @@ def check_formation(groot: Path) -> CheckResult:
                            note=f"want ONE active registered template, got {active!r}")
     # the MARK shape only (THOUGHT start or "(" before it), on park carriers only:
     # a tally ("11 parked: ...") or prose naming the mark never trips it
-    mark = re.compile(r"(?:^|\()parked: formation g\d")
+    mark = re.compile(r"(?:^|\()parked: formation g\d", re.M)  # any THOUGHT line
     marks = [i for i, f, _ in _grep_live(groot, "parked: formation")
              if i.split(":")[0] in ("goal", "hypothesis")
              and mark.search(node_writer.thought_text(f.read_text("utf-8", "replace")) or "")]
