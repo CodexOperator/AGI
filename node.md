@@ -24,8 +24,6 @@ town: core
 ---
 # goal:g7.16.1.7.1.1
 
-# goal:g7.16.1.7.1.1
-
 ## Why this exists
 goal:g7.16.1.7.1 (7a, NOW in the council placement): the placement (alive 23:4xZ) absorbs by name, from the old bundle-5 list on goal:g7.16.1.4: B1 one launcher (heal._launch_recovered -> rotate._launch_window) · C3 one scope-argv builder through mem_cap · the R2 alert (N deferred recoveries -> ONE [red]) · SM's rotate candidates (_launch_window ensure_tmux_session without root; same-second unit names; the rotation announcement's absolute handoff path). Also absorbs goal:g6.41.1 P2-P4 (one launcher, resume) and heal's launcher copy. Council (alive 23:4xZ): ONE stand-up verb for spawn, rotate, heal recover and hand restart; the harness adapter map is the spine (no harness-only verbs).
 
