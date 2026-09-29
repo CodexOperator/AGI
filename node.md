@@ -35,7 +35,7 @@ goal:g4.18.6.4 on verdict:dg2b4-w2d (DG2 verdicts 20:5xZ 09-29 (a1eafd484)): 5 w
 - No writer mints an address link after this row.
 
 ## Falsifier
-1. A test per writer: the written parents item is 32-hex.
+1. A test per writer: the written parents item is a node's mint_id (resolves through goal:g4.18.6.1), never an address.
 2. Negative: `git grep` finds a writer appending an address string to parents.
 
 ## Out of scope
