@@ -5,19 +5,21 @@ type: goal
 parents:
   - goal:g7.33
 next_edges: []
-confidence: 0.7
-edited_by: director-engine
+confidence: 0.95
+edited_by: belam
 goal_id: G7.33.14
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
 scaffold_hash: 5b913738aea99943
 season: 2
-seeds: []
-status: active
+seeds:
+  - hypothesis:a00-d089cf46-707110
+status: complete
 tags:
   - local-maxxing
   - engine
+thought_session: belam-g73314-close-20260929T000354Z
 title: "G7.33.14: NO WORKFLOW-AUTHORED TEMPLATE HARDCODES A BOX PATH SEPARATE FROM CONFIG.JSON'S ROOT -- ~15 review/investigation templates carried a stale /home/ubuntu/work/agi literal; kid/parent dispatch was never affected"
 town: core
 ---
@@ -78,20 +80,7 @@ goal:g7.16) -- 3 parents split this goal's remaining work into 3 disjoint file g
 mints its own sub-subgoal before proceeding to hypothesis -> kids as normal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This version harvests the owner-directed parent-swarm trial (DH.364/365/366, room swarm-g73314):
-merged all 3 parent branches here, one real conflict (test_provisioning.py's ROOT line, two
-independently-correct fixes for the same line -- kept DH.364's form, folded DH.365's box.*
-rationale into the comment). Also fixed a defect the swarm itself produced but never landed: all
-9 kid hypotheses across all 3 parents reference a sub-subgoal (goal:g7-33-14-a-box-cells,
-goal:g7.33.14.1-workflow-template-seam, goal:g73314-a-nonworkflow-residue) that each parent's
-own message claimed to mint, but none of the three actually exists anywhere in the tree --
-verified by grep across the merged nodes, not assumed from the parents' self-reports.
-Re-pointed all 9 `parents:`/`loop:` fields to this node (the real, existing ancestor) rather than
-fabricate three retroactive subgoal nodes I'd have to guess the content of -- parent 2 and
-parent 3 also collided on the same goal_id (G7.33.14.1) for their two intended subgoals, so
-inventing them now would need a new decision the original kids never made either.
-Rewrote Falsifier 1 and 3 per parent 2's own finding (lifted here as it explicitly asked,
-hypothesis:a00-d089cf46-707110): both were unsatisfiable as originally written against fixtures
-that assert the literal's absence, and against an environmental (TYPESAFE_KEY) test failure
-unrelated to this goal.
+Box-local config.local.json overlay lands the residue hyp a00-d089cf46 named: shared config.json keeps foreign-reference box.root; THIS box authority is untracked local (local-wins per key). boxes._box merges; worktrees resolve main via git common-dir. Do NOT write /data/work/agi into shared config. Falsifier 1: config.json cell stays as designed B exemption; production templates/guards already zero outside named fixtures. Focused tests 5/5 + retired-prefix + paths_audit green.
 <!-- THOUGHT:END -->
+
+CLOSED NO-PI 20260929T000354Z: box-local root override via .agi/config.local.json (gitignored). Shared box.root untouched. Live overlay on encryption-town: root=/data/work/agi user=belam logs=/home/belam/logs. Seeds: hypothesis:a00-d089cf46-707110.
