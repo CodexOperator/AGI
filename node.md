@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g6
 confidence: 1.0
-edited_by: belam
+edited_by: director-general-3
 goal_id: S19
 goal_kind: short-term
 heading_level: 2
@@ -100,11 +100,11 @@ this defect invisibly, which is the exact shape of the original bug. Eight call
 sites moved; `_unparse_safe` survives only as the fallback.
 
 **The falsifier passes.** Three runs against the live corpus, from
-`/home/ubuntu/work/agi-tree`, all with
-`--project . --engine-root /home/ubuntu/work/agi --from-grid`:
+`<home>/work/agi-tree`, all with
+`--project . --engine-root <home>/work/agi --from-grid`:
 
     /usr/bin/python3 payloads/extensions/agi/bin/level3.py ...              (3.12.3)
-    /home/ubuntu/.hermes/hermes-agent/venv/bin/python3 ... level3.py ...    (3.11.15)
+    <home>/.hermes/hermes-agent/venv/bin/python3 ... level3.py ...    (3.11.15)
     /usr/bin/python3 payloads/extensions/agi/bin/level3.py ...              (3.12.3)
 
 `diff -r` of `nodes/` across all three: **empty**. Before the change the same
