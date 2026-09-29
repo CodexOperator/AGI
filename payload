@@ -2366,12 +2366,17 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # its `parked:<goal>` tag leaves every carrier in the same call.
     if (edit.node_id == "config:formations" and "active" in edit.set_fm
             and res.status != node_writer.REJECTED):
-        import verification
+        import rotation_record  # the shared carrier grep: write never imports the verifier
         cell = node_writer.find_node_file(root, "config:formations")
         from graph_core.persistence import frontmatter as _fmr
         table = _fmr.load_node_file(cell, body=False).frontmatter.get("templates") or {}
         goal = str(table.get(edit.set_fm["active"]) or "")
-        for nid, _f, tags in (verification.parked_carriers(root, goal) if goal else []):
+        try:
+            carriers = rotation_record.parked_carriers(root, goal) if goal else []
+        except rotation_record.GrepError as exc:  # set active stands; the wake is named as failed
+            carriers = []
+            print(f"unpark FAILED (parked:{goal}): {exc}", file=sys.stderr)
+        for nid, _f, tags in carriers:
             try:
                 w = node_writer.update_node(root, nid, set_fm={
                     "tags": [t for t in tags if t != f"parked:{goal}"],
@@ -3419,6 +3424,12 @@ def main(argv: list[str] | None = None) -> int:
     # would refuse `mint_id` as PROTECTED). It routes through
     # `node_writer.repair_mint`: mint a first mint_id, refuse an existing one.
     if edit.adopt:
+        try:  # goal:g4.18.3 -- the SAME written_by gate submit applies, before any mint
+            _enforce_written_by(root, edit.node_id.split(":", 1)[0], args.actor,
+                                edit.node_id, args.role, allow_self_row=True)
+        except EditError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
         if (edit.set_fm or edit.unset_fm or edit.thought or edit.body_append
                 or edit.payload_from or edit.payload_bytes):
             print("ERR: adopt is standalone; it cannot share a line with "
