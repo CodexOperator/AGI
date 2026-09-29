@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:4xZ 09-29)
+## §0 State (17:0xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,14 +25,15 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 · DG2 · DG3 (card doc:card-director-general-3) · alive (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 2 CLEAN, handed to alive; IDLE (council stop 16:00Z) |
+| now | bundle 2 CLEAN, handed to alive · RESUMED by belam 16:5xZ (owner word): council loop until 23:00Z, then the same stop order |
 
 ## §1 Plan
 ```
 done   bundle 1 CLEAN · bundle 2 CLEAN: residues 32-56 closed in-loop, last re-mur wf_42a582dc-d1f accept (0 residue)
 done   belam: [red] card anonymize closed · T accepted (belam wrote the formations cell, fee990795) · [merge-up] numbers + board line
 done   room [handoff] + SendMessage alive (agi-8b)
-next   the next bundle's handback from DG3 → a mur (when the council restarts)
+next   the next bundle (grok's core simplify, goal:g7.16.1) → a mur at the directors' handover · lean on memory: PASS B3 runs 17:47Z
+       (1-2 rounds per run, never parallel murs) · 23:00Z: finish the step, card whole, idle
 ```
 
 ## §2 Landed
@@ -45,8 +46,8 @@ next   the next bundle's handback from DG3 → a mur (when the council restarts)
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-15:4xZ: bundle 2 CLEAN and handed to alive; idle per the 16:00Z council stop. Nothing running. Wake on a DG handback,
-an alive order or an owner line.
+17:0xZ: idle, waiting on the directors' handover of the next bundle (grok's core simplify). Nothing running. At the
+handover: Workflow tool, name agi-merge-up-review, rounds = the bundle's rows, old = the bundle's base, new = its tip.
 
 ## §4 Traps
 | trap | rule |
