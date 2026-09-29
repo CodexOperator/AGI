@@ -3430,6 +3430,14 @@ def main(argv: list[str] | None = None) -> int:
         print("ERR: a script is required: "
               'write.py <node-id> "set k v && thought why"', file=sys.stderr)
         return 2
+    # A second positional on an EDIT lands in `slug` (create's slot) and was
+    # silently dropped: `write.py <id> 'row ...' 'thought ...'` wrote the row
+    # and lost the thought (measured 09-29 on command:commands, f7a91e213 +
+    # 3d1d03054). One script per call; verbs join with `&&`.
+    if args.slug is not None:
+        print(f"ERR: one script per call -- join verbs with ' && '; the extra "
+              f"argument {args.slug[:60]!r} would be dropped", file=sys.stderr)
+        return 2
 
     root = locations.find_project_root(Path(args.root).resolve())
     if root is None:
