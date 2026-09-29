@@ -128,7 +128,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-02:2xZ 09-29: murq288 EG.185 CHAIN JUDGED (EG.185-k1 review awr / verify demote, EG.188-k1 awr) + murq274 EG.183 base -> ONE chain corrective EG.205 (7 items: claim text, ONE root for numbers + signatures, the prime command, the vacuous guard test, the sleep seam, re.error guard, EG.183 ceiling record) cut from the EG.188 tip 3ec61d27e (merge-tree onto trunk a3065abc4 = clean) -> pq205 MOVED UP right after pq195 (TMM.353/360 priority), pq196 now follows pq205 · then mur the whole chain c2404cc17..EG.205 tip; LAND after PASS B2 · live: EG.190 (merge cut b7ce76fcf) EG.194 · murs live (rmur3): 292 293 294 295 296 297 · pq195 placing, 196-204 serial · next EG.206, murq298; #6 not yet sent
+02:3xZ 09-29: EG.205 (EG.185 chain corrective) LIVE a00-d97749e4 · EG.195 a00-c937a7fd · EG.196 a00-62da2dbe · EG.190 · EG.194 live · pq197 placing, 198-204 then 206 serial · judged: 295 EG.193 demote (the unlanded a00-34601654 demotion edit) -> EG.206 (node added to FILE SCOPE; redo + COMMIT) · harvest.sh salvage commits now name the NOLAND paths (prior harvest.pre0235.sh) · murs live (rmur3): 292 293 294 296 297 (provider heavily empty: 294 297 review stages died 13 attempts, re-arming) · after EG.205 harvest: ONE mur of the chain c2404cc17..EG.205 tip, LAND after PASS B2 · next EG.207, murq298; #6 not yet sent
 ```
 FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur2xx pq188-191)
         · tail S3/deadwatch.log: a HARVEST line not harvested -> systemd-run --user --unit=agi-director-engine-harvN -p MemoryMax=6G
