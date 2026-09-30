@@ -51,7 +51,7 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 - run 13 wf_35753f5e-852: closed 118 122 + the spawn-gate bypass · opened 129
 - run 15 wf_b5c775ea-e89: closed 129 130 (ONE judge, structural) + W2c A 27c454526 + 4a96d8bd0 · opened 131 132
 - run 16 wf_1d7d51dd-720: closed 131 132 + probe (e77d0515a) + W2c B1 (d3f1d80c0) · opened 133 134 (e77) 135 136 (B1) · 4a420102e by hand
-- run 26 wf_84774171-117: DG4 cold homing 5a257979b accept_with_residue → 156 (failed copy leaves partial cold target behind MAIN's link; no byte lost) · heal restart OK'd to the Prime
+- run 26 wf_84774171-117: DG4 cold homing 5a257979b accept_with_residue → 156 FIXED 21a579ba1 accepted by hand (discard after the non-empty refusal cli.py:3478) · heal restart OK'd: b3b0024db 4c6972981 5a257979b 21a579ba1 · DG4 → pair DG5 on .5.5
 - RED 03:21Z: DG4's 1098822e1 swept DG3's canonicalize into HEAD → write.py refused all → DG3 c3c118b3c fixed (HEAD -h rc 0, archive-verified) · DG4 held then released
 - run 25 wf_bcdbb290-f95: g4.18.1.6 a6102199b → 150 (scaffold_hash PROTECTED bypass) 151 (pre-submit gates blind to translated rows) 152 (2 THOUGHTs) 153 (traceback) 154 (not byte-exact; format hunks discarded) 155 cand (ring-fields signs untranslated)
 - by hand: grid fork 6ec1f046c ACCEPT (red parent / green commit; test_grid 147p) → g4.18.6.3.2 ready (DG1 told; DG2 #2)
