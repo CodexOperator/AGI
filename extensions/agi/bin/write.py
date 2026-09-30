@@ -3132,9 +3132,10 @@ def _payload_ref(root, edit: Edit) -> tuple[str, str | None]:
     ref = fm.get("payload_ref") or fm.get(links.LINK_FIELD)
     if not isinstance(ref, str) or not ref.strip():
         raise EditError(
-            f"{edit.node_id} has no payload_ref, so there are no bytes to "
-            f"replace. `payload` edits the file a build node points at; a "
-            f"node without one is edited with `set`, `note` and `thought`.")
+            f"{edit.node_id} has no payload_ref: use `replace body N:M` (or "
+            f"`row`) for the node file -- `payload` edits the file a build "
+            f"node points at, and `patch` edits the node file itself "
+            f"(council ruling on goal:g4.18.1.6)")
     loc = fm.get("location")
     return ref.strip(), loc.strip() if isinstance(loc, str) and loc.strip() else None
 

@@ -767,6 +767,18 @@ def test_g41816_a_node_patch_refuses_identity_contract_thought_and_a_second_verb
         assert errs[0] == errs[1] and want in errs[0][0], (want, errs)
         assert node.read_text() == old, want
 
+# council ruling on goal:g4.18.1.6: `replace payload` is NOT extended to the node file; its
+# refusal names the route (replace body N:M / row), dry == real
+def test_g41816_replace_payload_on_a_node_names_the_route(project, tmp_path, capsys):
+    node = _g41816_guard(project)
+    old, errs = node.read_text(), []
+    (tmp_path / "x.txt").write_text("x\n")
+    for dry in (["--dry-run"], []):
+        assert write.main(["config:guard", f"replace payload 1:1 {tmp_path / 'x.txt'}", *dry, "--root", str(project)]) == 2
+        errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+    assert errs[0] == errs[1] and "use `replace body N:M` (or `row`)" in errs[0][0], errs
+    assert node.read_text() == old
+
 def test_payload_verb_replaces_the_bytes_the_node_points_at(project, tmp_path):
     _build_node(project)
     dest = tmp_path / "src" / "thing.py"
