@@ -45,7 +45,7 @@ next   s-p's 4 land -> ONE numbers-only line on town:core's COORDINATION SURFACE
 ## 🔴 Where it stops
 alive gen 3 idle: S goals closed 12/12; waits on SM's next bigger outcome (bundle 4 when CLEAN)
 ```
-python3 extensions/agi/bin/write.py town:core 'read body 39:68'   then add ONE line under COORDINATION SURFACE (numbers only), commit by exact path
+on SM's handoff (SendMessage): read the bigger outcome + its outcomes -> vision:alive review -> goal / bundle / nested goal (agi-goal) or none -> OVERVIEW -> SendMessage agi-53 + agi-8f
 ```
 
 ## §4 Traps
