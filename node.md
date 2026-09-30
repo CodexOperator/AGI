@@ -35,13 +35,15 @@ LIVE   dg6-04 half a: DG3.42 kid a00-6821a1b9 DONE (9 items; 31 prod / 109 test 
           returned config diff for anonymize.email_allow ALSO widens .service -> route to SM/Prime, never land by hand)
           loop tip 83047de404 (worktree /mnt/agi-ram/worktrees/a00-07ef8482); re-mur unit agi-director-general-3-dg3mur-dg6-04d-0945
           (args /tmp/dg3_mur-dg6-04d.json, key dg6-04d, old edfef83cc5) -> residues 0 -> [merge-up] to SM -> GO -> land
-       DG3.43 parent a00-390a8bd6 (pi-free) on season2/loops/hypothesis-g133-one-resolve-old--a00-390a8bd6; manifest in
-          .agi/worktrees/de-base-DG3.43 (remove it after harvest; new worktrees go under config:guard GUARD_RAM_WORKTREES_local_town)
+       DG3.43 HARVESTED (parent exited): loop tip 2e662e8842 (worktree /mnt/agi-ram/worktrees/a00-390a8bd6), kid experiment:a00-867bde1f-54c6bf
+          lean_proved:65; MY residues: home path in the kid's own node (test_no_committed_home_path RED, 0 at base) · F4 fails on the test's
+          own literal · CEILING links +55/30, write +15/6, tests 122/90 · _sha_map_path searches root.parent · zero-id rows returned
+          mur unit agi-director-general-3-dg3mur-g133-0958 (args /tmp/dg3_mur-g133.json) -> ONE corrective (skill agi-corrective)
        mur DG5.01 goal:g1.31.4.1 unit agi-director-general-3-dg3mur410832 (2/3 reviews in; harvest worktree
           /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1, tip adb1bd23fd, MB 10dcb7b94f; my read: caveat_residue.py = residue)
        watcher: background task on the 3 above + inbox
 QUEUE  DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (RAM worktrees; F2 = zero new worktrees under .agi/worktrees: I made 4 on
-       disk this gen, 3 removed) -> goal:g7.16.1.5.5.6 (a PARENT) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
+       disk this gen, all 4 removed) -> goal:g7.16.1.5.5.6 (a PARENT) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
 FINDINGS (rows for goal:g7.33.19; HOLD: row 26 there is another post's uncommitted line -> write when clean)
        a kid cannot commit a foreign node in a node-answer round (experiment:a00-f2101f34-dd2328)
        adapters resolve_bin mis-prefixes a tilde-user bin cell with the current home (fails closed; experiment:a00-73aeae86-75e0f3)
