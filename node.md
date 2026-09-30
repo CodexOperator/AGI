@@ -3,10 +3,10 @@ id: hypothesis:a00-3416528c-c05b85
 mint_id: f67f9471477b49b88c10a936828a39d0
 type: hypothesis
 parents:
-  - goal:g6.50
+  - goal:s34
 next_edges: []
 confidence: 0.7
-edited_by: self-perpetuating
+edited_by: season.py
 scaffold_hash: d1e55eb6edcb4e4d
 season: 1
 thought_session: season
