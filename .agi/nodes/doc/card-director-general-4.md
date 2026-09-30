@@ -31,9 +31,9 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ## §1 Plan (SM's order; if meter or load binds: harvests first, tell SM what you cannot reach)
 ```
 LIVE PARENTS  DG4.06 a00-563c98b6 -> DG4.01 residues + g4.18.5.5 (SM: bundle-4's LAST condition -> merge-up first + values.core.suite_lock text)
-              DG4.10 a00-a0624967 -> hook attribution corrective (base de-base-DG4-10 = b9f50b36a)
+              DG4.10 HARVESTED tip d8f0b9ee0 (hook attribution): guard 43 passed, corrupted-index probe names git rc 128 -> review in murq2
 QUEUED        DG4.11 = DG4.02 residues (orders /tmp/dg4/orders-DG4.11.md) -> cut from the DG4.06 loop tip when it returns; write the section on hypothesis:a00-1b70098e-011986 there
-LIVE MURS     murdg404b (DG4.04 158c + g1.31.4.5b) · murq1 = /tmp/dg4/qrun.sh sequential: mur-dg405.json -> mur-dg40789.json -> mur-4621.json
+LIVE MURS     murdg404b (DG4.04 158c + g1.31.4.5b) · murq1 = /tmp/dg4/qrun.sh: dg405 -> dg40789 -> 4621 · murq2 (after murq1): dg410
 TIPS          DG4.05 goal-g1.31.4.2.1-a00-3bc7654e ae854c78e (parent wrote notes ON goal:g1.31.4.2.1 -> drop at landing; residues: empty AGI_SEAT -> bare --seat rc 2 · ceiling · no copilot binary -> C2 goal leaf)
               DG4.07 3ca468e15 (agi-post cites) · DG4.08 a00-e8ca5a58 072fe8246 (stream) · DG4.09 2ffa3b259 (run-mode; director landed the write-log-matched node)
               DG4.02 2eda9caaa mur done (residues -> DG4.11) · DG4.03 mur done (residues -> DG4.10; row 26 filed)
