@@ -2520,6 +2520,63 @@ def _rotation_in_flight(root: Path, seat: str, _rotate,
     return False
 
 
+def _successor_window_present(rec: dict, seat: str,
+                              windows: list[tuple[str, str]]) -> bool:
+    """A `started` record's successor window is open: its recorded
+    `handover.successor_window` @id, or a window carrying that name or the
+    seat's own name. A name match counts as PRESENT on purpose -- a false
+    "present" only keeps the in-flight skip, never a second spawn."""
+    succ = (rec.get("handover") or {}).get("successor_window") or {}
+    sid = str(succ.get("id") or "").strip()
+    names = {seat, str(succ.get("name") or "").strip()} - {""}
+    return any((sid and wid == sid) or name in names
+               for wid, name in windows)
+
+
+def _abort_crashed_rotations(root: Path, seat: str, row: dict,
+                             windows: list[tuple[str, str]], _rotate,
+                             now: float, pid_alive) -> list[Path]:
+    """goal:g7.16.1.7.1.1.3 (goal:g6.41.1 P3): a `started` rotation record
+    whose row pid is dead AND whose successor window is absent is ABORTED,
+    not in flight: rewritten IN PLACE (rotate's own record writer) as
+    `aborted-by-crash` and logged, so `_rotation_in_flight` stops shielding
+    the seat and recovery resumes the predecessor (P2). Returns the paths
+    rewritten. Only a record inside SEAT_DEAD_WINDOW_S is judged; an older
+    one is already no guard."""
+    pid = int(row.get("pid", 0) or 0)
+    if pid <= 0 or pid_alive(pid):
+        return []
+    rot = _rotate._rotations_dir(root)
+    if not rot.is_dir():
+        return []
+    aborted: list[Path] = []
+    for path in sorted(rot.glob(f"{seat}.*.json")):
+        try:
+            rec = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        if rec.get("result") != "started":
+            continue
+        ts = _parse_record_ts(rec.get("recorded_at", ""))
+        if ts is None or (now - ts) > SEAT_DEAD_WINDOW_S:
+            continue
+        if _successor_window_present(rec, seat, windows):
+            continue
+        rec["result"] = "aborted-by-crash"
+        rec["aborted_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ",
+                                          time.gmtime(now))
+        rec["aborted_reason"] = (f"row pid {pid} dead and no successor "
+                                 f"window")
+        _rotate._write_rotation_record(root, rec, path=path)
+        line = (f"aborted rotation seat {seat}: {path.name} started "
+                f"{rec.get('recorded_at', '')} -> aborted-by-crash (row pid "
+                f"{pid} dead, no successor window)")
+        print(line, file=sys.stderr)
+        _watch_log(f"watch: {line}")
+        aborted.append(path)
+    return aborted
+
+
 # ---------------------------------------------------------------------------
 # hypothesis:l4-the-pin-is-the-lease, KID 1 — the TABLES + the JUDGEMENT.
 # Pure functions (no reap, no write, no dm, no live process); KID 2 consumes
@@ -3521,8 +3578,17 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
         print(line, file=sys.stderr)
         _watch_log(f"watch: {line}")
         return {}
-    # (1d) a rotation in flight is not a crash.
+    # (1d) a rotation in flight is not a crash -- unless it ABORTED (P3: row
+    # pid dead, no successor window), then the record is rewritten and the
+    # predecessor recovers. Every remaining in-flight skip is logged.
+    _abort_crashed_rotations(root, seat, row, windows, _rotate, now,
+                             pid_alive)
     if _rotation_in_flight(root, seat, _rotate, now, row=row):
+        line = (f"in-flight seat {seat}: started rotation record inside "
+                f"{SEAT_DEAD_WINDOW_S}s with its successor window open -- "
+                f"skipped")
+        print(line, file=sys.stderr)
+        _watch_log(f"watch: {line}")
         return {}
     # (2b) the DEAD path still names WHY, even when the record was not a
     # rotation: the record's succ-dead arm proved the row IS the successor

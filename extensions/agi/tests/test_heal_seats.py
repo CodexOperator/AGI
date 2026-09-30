@@ -198,20 +198,71 @@ def test_row_window_id_present_nothing(graph):
     assert acted == []
 
 
-def test_rotation_started_3min_ago_nothing(graph):
-    """(1d) a `started` rotation record within 10 min means in-flight, not a
-    crash -> nothing."""
-    _write_seats(graph, [{"name": "seat-a", "pid": 424242,
-                          "window": "@50"}])
-    _write_record(
-        graph, "seat-a",
-        {"rotation": "rotate-self", "seat": "seat-a", "result": "started",
+def _started_3min_ago(graph: Path, seat: str = "seat-a") -> Path:
+    return _write_record(
+        graph, seat,
+        {"rotation": "rotate-self", "seat": seat, "result": "started",
          "recorded_at": time.strftime(
              "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 180)),
          "steps_reached": ["spawn"]},
         time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(time.time() - 180)))
-    acted = _scan(graph, dead=True, window_names=("", "@1 other"))
+
+
+def test_rotation_started_3min_ago_nothing(graph, capsys):
+    """(1d) a `started` rotation record within 10 min whose successor window
+    is open means in-flight, not a crash -> nothing, and the skip is logged."""
+    _write_seats(graph, [{"name": "seat-a", "pid": 424242,
+                          "window": "@50"}])
+    rec = _started_3min_ago(graph)
+    acted = _scan(graph, dead=True, window_names=("", "@1 other", "@2 seat-a"))
     assert acted == []
+    assert json.loads(rec.read_text())["result"] == "started"
+    assert "in-flight seat seat-a" in capsys.readouterr().err
+
+
+def test_aborted_rotation_is_rewritten_and_recovered(graph, capsys):
+    """goal:g7.16.1.7.1.1.3 P3: a `started` record with a dead row pid and NO
+    successor window is ABORTED: rewritten in place `aborted-by-crash`, no
+    record left `started`, and the seat is recovered."""
+    _write_seats(graph, [{"name": "seat-a", "pid": 424242,
+                          "window": "@50"}])
+    rec = _started_3min_ago(graph)
+    launched: list = []
+    acted = _scan(graph, dead=True, window_names=("", "@1 other"),
+                  records=launched)
+    assert len(acted) == 1 and len(launched) == 1, (acted, launched)
+    got = json.loads(rec.read_text())
+    assert got["result"] == "aborted-by-crash" and got["aborted_at"], got
+    assert not [p for p in _crash_records(graph, "seat-a")
+                if json.loads(p.read_text()).get("result") == "started"]
+    assert "aborted rotation seat seat-a" in capsys.readouterr().err
+
+
+def test_aborted_rotation_resumes_the_predecessor(graph, monkeypatch):
+    """P3 + P2: the aborted rotation's predecessor (the row's session_id with
+    a transcript) comes back by `--resume`, same generation."""
+    import rotate
+    sid = "0f0f0f0f-1111-2222-3333-555555555555"
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", graph.parent / "projects")
+    tp = Path(rotate.transcript_from_registry_dict(
+        {"cwd": str(heal._seat_tree_dir(graph, {"worktree": ""})),
+         "session_id": sid}))
+    tp.parent.mkdir(parents=True, exist_ok=True)
+    tp.write_text("{}\n")
+    _write_seats(graph, [{"name": "seat-a", "pid": 424242, "window": "@50",
+                          "session_id": sid, "generation": 3,
+                          "model": "m-1"}])
+    _started_3min_ago(graph)
+    cmds: list = []
+
+    def launch(root, name, shell_cmd, window_path=None, cwd=None):
+        cmds.append(shell_cmd or "")
+        return 424243, "@556"
+
+    acted = _scan(graph, dead=True, window_names=("", "@1 other"),
+                  launcher=launch)
+    assert len(acted) == 1 and len(cmds) == 1, (acted, cmds)
+    assert f"--resume {sid}" in cmds[0], cmds[0]
 
 
 def test_old_started_rotation_is_no_guard(graph):
