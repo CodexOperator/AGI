@@ -24,7 +24,7 @@ town: core
 - `extensions/agi/tests/test_ram_worktrees.py` pins the one scope-argv builder for dispatch; no row drives the guard scripts.
 
 ## CLAIM
-(1) ONE shell-reachable entry, `python3 extensions/agi/bin/mem_cap.py ram-exec -- <argv...>`, execs `<argv>` through `locations.ram_write_argv` (so through `scope_argv` + RAM_SLICE; no usable systemd-run = argv unchanged). (2) Every write INTO the RAM dir in ram-main.sh (the DISK -> RAM rsync passes) and in session-sweep.sh (a move/copy whose DESTINATION is under the RAM dir) runs through that entry; a write whose destination is on disk is untouched. (3) `mem_cap.py ram-recharge <dir>` rewrites each regular file under `<dir>` as copy + rename INSIDE the same RAM scope (content and mode kept, the old charge released); on demand only, never a timer.
+(1) ONE shell-reachable entry, `python3 extensions/agi/bin/mem_cap.py ram-exec -- <argv...>`, execs `<argv>` through `locations.ram_write_argv` (so through `scope_argv` + RAM_SLICE; no usable systemd-run = argv unchanged). (2) Every write INTO the RAM dir in ram-main.sh (the DISK -> RAM rsync passes) and in session-sweep.sh (a move/copy whose DESTINATION is under the RAM dir) runs through that entry; a write whose destination is on disk is untouched. (3) MOVED -- the ram-recharge conjunct left this round at DH.DG3.48 for goal:g7.16.1.5.5.6.1.
 
 ## Dispatch line
 config-max: none -- RAM_SLICE and GUARD_RAM_DIR already live in config:guard; no new cell / template-max: none / code: the `ram-exec` verb (ram-recharge MOVED to goal:g7.16.1.5.5.6.1) (the trigger a shell script lacks) and the two scripts' call sites.
