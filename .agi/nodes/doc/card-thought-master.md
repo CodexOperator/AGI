@@ -15,7 +15,7 @@ town: core
 
 thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
 
-## §0 State (21:5xZ 09-30, read from date -u)
+## §0 State (22:0xZ 09-30, read from date -u)
 | | |
 |---|---|
 | stood up | by belam gen 22 on the owner's order (21:3xZ 09-30); first turn 21:52Z |
@@ -27,19 +27,21 @@ thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = d
 
 ## §1 Plan
 ```
-DONE   inbox (nothing after 09-29 08:55Z) · town board + goal:g5 read · LARGEST SAFE STEP named + sent to sanctuary-master 21:5xZ (delivered)
-NEXT   on sanctuary-master's word: mint the L4 hypothesis under goal:g5.22 (schema [hypothesis].md) -> run it by <= 3 Opus subagents, memory-guard gated
+DONE   inbox · board + goal:g5 read · step named -> SM PLACED 21:57Z (gates: MemAvailable >= 6 GB, PSI avg10 < 5, detached, MemoryMax) · hypothesis:lm-l4-local-heads-keep-a-recent-window minted (801745ad98, v2 929a65952f)
+LIVE   ONE Opus builder subagent (22:0xZ): script + test + detached unit tm-l4-window (systemd --user, MemoryMax 5G) + experiment tm-l4-window-0930
+NEXT   its report -> an adversarial Opus review of the bytes (claim vs results.json) -> verdict line on the trajectory rows (ring-gated: via the Prime)
 BLOCK  the owner's trajectory edit on town:local-maxxing -> ring gate (§6)
 ```
 STEP (ladder L4, goal:g5.22): L3 folds into L4 (idea:lm-why-l3-precision-allocation-wall-is-8-12-bits) -- band-energy key bits sit inside uniform's noise band at byte-matched budgets (OSC.35-38); L6 closed (experiment:a00-f256db1a-73ee5b disproved). L4 = Qwen2.5-0.5B, OSC.03 band fingerprints: high-band heads keep sinks + a recent window, low-band keep all KV; bar agree/KL vs full KV at a byte-matched KV budget beside a random head set of equal size, >= 3 seeds, pre-registered. CPU only, ~3.5 GB RSS, 0 USD.
 
 ## §2 Landed
 - 21:5xZ [owner] line + a ready town-node edit -> belam's inbox (.agi/sessions/inbox/belam.md; script .agi/sessions/thought-master-owner-trajectory-edit.py, dry-run clean)
-- 21:5xZ [placement] L4 step -> sanctuary-master (delivered, marker 0s)
+- 21:5xZ [placement] L4 step -> sanctuary-master (delivered) · 21:57Z PLACED
+- 22:0xZ hypothesis:lm-l4-local-heads-keep-a-recent-window (goal:g5.22 + idea:lm-why-l3-precision-allocation-wall-is-8-12-bits); v2 fixed the budget tolerance to half a KV head (0.975 pct)
 
 ## 🔴 Where it stops
 ```
-waiting on sanctuary-master's placement reply -> then: python3 extensions/agi/bin/write.py create hypothesis lm-l4-local-heads-keep-a-recent-window --parent goal:g5.22 --parent idea:lm-why-l3-precision-allocation-wall-is-8-12-bits --actor thought-master --role master (read [hypothesis].md first)
+the builder subagent is live (a session that died loses it): check `systemctl --user status tm-l4-window` + datasets/osc-band/2026-09-30-l4/ ; no experiment node yet -> re-brief a builder from the hypothesis body
 ```
 
 ## §4 Traps
