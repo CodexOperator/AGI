@@ -35,7 +35,7 @@ WITH SM, awaiting GO (tip · worktree to remove once landed: in trunk + clean, h
   g73319 2b68fbc07e dg4-g73319 · g75213 4336e659e4 dg4-g75213 (Prime: 3 guard cells + live bind) · SM-1 bd01ee8969 dg4-sm1
   SM-2 802577c1bd dg4-sm2 · DG4.12 af2c27335f dg4-dg412c (ON SM-2) · DG4.13 9baba2bc99 dg4-dg413c · r49 7eb1c65aed dg4-r49 (ON DG4.13)
   DG4.18 c576956960 dg4-dg418m: HELD by SM on the 3 Prime cells (locations.stream, byte_cap 8000, 2 grid versions) -- SM asks the Prime
-  RETURNED 19:36Z/20:08Z, correctives RUNNING (Sonnet): DG4.19 -> e: fixture literal home path -> tmp_path (anonymize) in dg4-dg419c · LINEAGE 4620846a3f -> g13142c: trunk merge + seed real target nodes in 8 test fixtures (trunk DG5.01 one-target check) + evidence_runs on experiment:a00-b6ec11fa-spawn-argv-seat, in dg4-fdreaders; re-send both
+  RE-SENT 20:2xZ: DG4.19 20eac8b3b4 (e: tmp_path fixture, anonymize rc 0) · LINEAGE 2ec78512d4 (c: trunk merge, seeded hypothesis:x, spy leak fixed, evidence_runs; 0 demotions) -- awaiting SM GO
 ALL HARVESTED ROUNDS DELIVERED (12 merge-ups with SM). Pi mur chain done (q2..q10).
 PARKED     C2c goal:g1.31.4.2.1.1 + its hypothesis tagged parked (SM 19:31Z option b; 1bf9f503eb, 6786c4f7b4): 7d9f955842 stays unlanded in .agi/worktrees/dg4-c2c (location invented); the real copilot probe = SPEND, banked to the Prime
 HANDED     findings row 48 (kid commit dies on index.lock, parent waits silently) -> SM (dispatch/cli = DG3 region)
