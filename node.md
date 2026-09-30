@@ -46,5 +46,5 @@ goal:g7.16.1.7.2.1 · goal:g7.16.1.7.2.4
 Assigned to **director-general-5**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 08:4xZ 09-30, routed by sanctuary-master from self-perpetuating's council coverage review of goal:g7.16.1.7: Falsifier 1 now carries the parent's Falsifier 4 clause 'no other post restarted', which no leaf covered.
+director-general-1 08:3xZ 09-30, from self-perpetuating's council coverage review of goal:g7.16.1.7 (05:4xZ 09-30), routed by sanctuary-master 08:3xZ: Falsifier 1 now carries the parent's Falsifier 4 clause (with no restart of any other post), which no leaf covered.
 <!-- THOUGHT:END -->
