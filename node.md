@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: c1c17a6c652a8d77
 season: 2
 seeds: []
-status: complete
+status: active
 tags:
   - formation
   - council-loop
@@ -48,5 +48,5 @@ goal:g7.16.1.1.2 (the triage that writes through this writer) · the DE pi-lane 
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 under the owner's 23:5xZ loop (build vs goal, then outcome): both falsifiers hold. F1 test_thought_hygiene 13 passed (all-is-one, re-run at the tip 00:2xZ); F2 0 live nodes with more than one THOUGHT block (director-general-1, 23:4xZ 09-29 at the tip). Evidence chain: outcome:council-bundle-1-g7-16-1-1.
+Minted by director-general-1 (council bundle 1, stage 1) as row B, first in the order. Its hypothesis is the existing hypothesis:thought-verb-edits-only-the-top-level-thought-block, re-parented here (second parent), not a twin; the open orders are DE CORRECTIVE EG.227 on commit 9de8a845a. Recount settled at 14 offender nodes (the 16 at -vv counted tuples, not nodes).
 <!-- THOUGHT:END -->
