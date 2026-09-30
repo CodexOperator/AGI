@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: all-is-one
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -333,7 +333,7 @@ extract any piece:  git show REV:.agi/nodes/.geometry/<piece>.md | sed -n '/^~~~
 ```
 There is no payload file, no build node beside it, no BUILD-CONTRACT and no grid ref of its own: **the node IS the file**, and its history is `git log -- <node>`.
 
-**F.3 · Tested 23:1xZ: the genome runs FROM `.geometry` nodes** (the `--shared` scratch clone, MAIN untouched). Three nodes: `config:agi-project` (871 B, the projector as a `~~~sh` block of 681 B) · `config:agi-post` (503 B, the round-1 unit as `~~~ini`) · `config:posts` (the rows as `~~~json`, one per line, the identity cells dropped per round 1 §1).
+**F.3 · Tested 23:0xZ: the genome runs FROM `.geometry` nodes** (the `--shared` scratch clone, MAIN untouched). Three nodes: `config:agi-project` (871 B, the projector as a `~~~sh` block of 681 B) · `config:agi-post` (503 B, the round-1 unit as `~~~ini`) · `config:posts` (the rows as `~~~json`, one per line, the identity cells dropped per round 1 §1).
 | test | result |
 |---|---|
 | bootstrap: extract the projector from its node and run it | 10 post units (the local-town rows with recover != false) + its own .path/.service |
@@ -370,6 +370,68 @@ the WHOLE engine as .geometry                                   ~31 KB    vs 327
 **F.6 · The generations lens:** the genome is now a set of pages that a successor can read in full: ~31 KB, about 8 pages, the whole machine. Every future improvement is an edit to one page. §C's gates (the fixed point and V) guard every edit, so no generation can land a page that stops the next one from regrowing the body.
 
 Spike rows for §D: **F13** every `.geometry` node <= 4,096 B (`find .agi/nodes/.geometry -size +4096c` prints nothing) · **F14** the fixed point holds with the projector extracted from its `.geometry` node (PASS today on the scratch clone) · **F15** each `.geometry` node carries at most one fenced block, and every block extracts and runs (`sh -n` / `systemd-analyze verify` / `jq -e .`).
+
+## G · ROUND 3 · all-is-one -- links are symlinks, the brief is one complex multiplication applied to the post
+**What am I ACTUALLY trying to get the machine to do here?** Make "A links to B" a fact the FILESYSTEM holds, so that every tool (ls, readlink, find, git, an editor, a kid, the owner) reads the same graph with no parser. Then make "what should this post see now" one multiplication applied to the post.
+
+**Links = symlinks: the two-identifiers rule becomes the filesystem.**
+```
+.agi/n/<mint>/node.md                         the REAL file; the mint id never changes, so this path never moves
+.agi/n/<mint>/p/<parent-address> -> ../../<parent-mint>    a parent = a relative symlink in the node's OWN dir (written at mint, by its owner)
+.agi/n/<mint>/near/<address>     -> ../../<mint2>          a latent edge = the same thing, written by the sleeper (§A), one writer
+.agi/nodes/<type>/<slug>.md -> ../../n/<mint>/node.md     the ADDRESS: every path agents use today keeps working (transparent)
+children: DERIVED, never stored (the reverse of p/): nobody writes into another post's dir, the kernel rule of §B holds
+```
+| act | today | as symlinks | our code |
+|---|---|---|---|
+| the broken-link check | links.py, 43 KB | `find .agi -xtype l` | 0 B |
+| walk the graph | frontmatter parsers in write.py · links.py · viewport | `ls`, `readlink`, `find -L` | 0 B |
+| rename an address | re-point every reference in ONE commit (CLAUDE.md, goal renumbering) | move ONE symlink; every link targets the mint, so none moves | 0 B |
+| a duplicate parent | possible (a list in YAML) | impossible (one name per dir entry) | 0 B |
+| a parent's history | the grid | git versions a symlink as a 120000 blob holding its target | 0 B |
+The frontmatter `parents:` list retires into `p/` (one source). The schema gate reads `ls p/` instead of parsing YAML.
+
+**Measured 22:5xZ: the live graph projected into this layout on a /tmp scratch copy** (a 1 KB throwaway migration script, not engine code): 5,588 nodes (live + retired + .geometry) · 9,496 parent symlinks · 1.6 s. What the projection exposed that the current machinery passes quietly:
+- **193 duplicate parent entries** in frontmatter (e.g. a verdict listing the same experiment twice). Symlinks cannot express them.
+- **27 links `find -xtype l` calls broken, while links.py reports 0 broken:** 13 parents written as `parked:g7.16.2` (the node is `goal:g7.16.2` today) · about 8 address drifts (a link kept `build:a00-fcfbc2f9-bin-adapters-grok-bot-adapter` while the node's id became `build:bin-adapters-grok-bot-adapter-a00-fcfbc2f9`; `exp:…` vs `hyp:…`) · about 6 artifacts of the scratch parser (other frontmatter lists). A link that targets the MINT id cannot go stale when an address changes. That is why the owner's two-identifiers rule belongs in the filesystem and not in a resolver.
+
+**The brief = one multiplication applied to the post (the owner: "a dot product or a multiplication applied to the post").** Let `e` be the post's card as a unit vector and `P` the walk matrix read straight off the symlinks. The brief is
+
+  `b = α · Σ_k ((1-α) · Pθ)^k · e`   (α = 0.15: personalized PageRank, 30 terms)
+
+and `Pθ` carries the owner's complex plane (22:48Z: "multiply by reals and it's a scale, and multiply by imaginary and it's a rotation"): every step UP a parent symlink multiplies by `e^{iθ}`, every step DOWN by `e^{-iθ}`, and a latent `near/` edge by a real 1. (This is the magnetic, or Hermitian, adjacency of a directed graph, a known object; θ = 0.5 rad.) So every node's brief score is ONE complex number: **its magnitude says how near it is, its phase how far up or down.** Measured on the symlink projection, 520 B, stdlib only, 0.58 s over the whole graph:
+```
+from goal:g7.16.1.11                          from hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit
+|b|    arg/θ  node                            |b|    arg/θ  node
+0.247  -0.0   goal:g7.16.1.11 (itself)        0.218  +1.0   goal:g7.33.19 (parent)
+0.199  +1.0   goal:g7.16.1    (parent)        0.165  -0.0   itself
+0.105  -1.0   doc:radically-simple-engine     0.030  -0.0   5 sibling fix hypotheses (0.020-0.030, all phase 0)
+0.015  +2.0   goal:g7.16      (grandparent)   0.023  +1.9   goal:g7.33
+0.011-0.016 0 the 8 sibling goals
+```
+The phase reads the hierarchy exactly (parent +1, grandparent +2, child -1, siblings 0), with no level field stored anywhere. And it does one more thing no real-valued brief can: **interference.** `goal:g7.33` lands at +1.9, not +2, because paths reach it at two depths: as the grandparent through g7.33.19, and as the DIRECT parent of some sibling hypotheses. Where paths disagree about a node's level, their phases partly cancel. A fractional phase, or a magnitude drop against the real-valued walk, is how the graph says "I am filed inconsistently here". It is the true-state sense of §A, computed as a side effect of the brief.
+
+Pieces for the count: `brief.py` 520 B (replaces ppr.py's 478 B from round 2) · the links: 0 B (the kernel and git) · the migration projection ~1 KB, run once, not engine code.
+Falsifiers to add: (L1) `find .agi -xtype l | wc -l` = 0 after the migration, with the 27 above re-pointed at their mints first · (L2) renaming an address with `git mv` of ONE symlink leaves `find -xtype l` at 0 and every parent link unchanged · (L3) the brief's phase equals the level difference for every node reached by level-consistent paths, and a planted double-filing shows a fractional phase.
+
+`brief.py` whole (520 B; run: `python3 brief.py .agi/n <card-mint> <k>`; prints |b|, the phase in levels, and the mint):
+```python
+import os,sys,cmath
+R,s,k=sys.argv[1],sys.argv[2],int(sys.argv[3]);q=cmath.exp(.5j)
+A={}
+for m in os.listdir(R):
+ for p in os.listdir(f'{R}/{m}/p'):
+  t=os.readlink(f'{R}/{m}/p/{p}')[6:]
+  if os.path.isdir(f'{R}/{t}'):A.setdefault(m,[]).append((t,q));A.setdefault(t,[]).append((m,1/q))
+x={s:1};b={}
+for _ in range(30):
+ y={s:.15}
+ for u,v in x.items():
+  for w,z in A.get(u,()):y[w]=y.get(w,0)+.85*v*z/len(A[u])
+ x=y
+for m in sorted(x,key=lambda m:-abs(x[m]))[:k]:print(f'{abs(x[m]):.3f} {cmath.phase(x[m])/.5:+.1f}',m)
+```
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-self-perpetuating, 23:1xZ 09-30 (round 3, first writer; base round 2 @9d4076f96a): added §F, the owner's shape test. The bar is one page, 4,096 B (getconf PAGESIZE, also the median .geometry node). The genome is tested running FROM three .geometry nodes on the scratch clone (projector node 871 B; fixed point diff empty; template byte-exact; verify clean) after two traps: backtick fences inside sh -c, and dash printf with x27. Today 6 of 18 .geometry files fit and 12 do not; the overflow is prose except commands.md (110 KB of cells) and posts.md (86 KB). The whole engine as .geometry is about 31 KB vs 327 KB today; schema-check and agi-mcp are named as still failing. Parts 2 (all-is-one: symlink links + vector brief) and 3 (alive: injection + transparency + diagram + falsifiers + decision) follow.
+self-perpetuating, 23:0xZ 09-30 (round 3, first writer; base round 2 @9d4076f96a): added §F, the owner's shape test. The bar is one page, 4,096 B (getconf PAGESIZE, also the median .geometry node). The genome is tested running FROM three .geometry nodes on the scratch clone (projector node 871 B; fixed point diff empty; template byte-exact; verify clean) after two traps: backtick fences inside sh -c, and dash printf with x27. Today 6 of 18 .geometry files fit and 12 do not; the overflow is prose except commands.md (110 KB of cells) and posts.md (86 KB). The whole engine as .geometry is about 31 KB vs 327 KB today; schema-check and agi-mcp are named as still failing. Parts 2 (all-is-one: symlink links + vector brief) and 3 (alive: injection + transparency + diagram + falsifiers + decision) follow.
 <!-- THOUGHT:END -->
