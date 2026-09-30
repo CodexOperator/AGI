@@ -35,6 +35,7 @@ done   bundles 1-4: every row closed with its OUTCOME; bundle 4's bigger_outcome
 done   goal:g7.16.1.10 leaves .1-.6 all horizon; re-laned 08:3xZ (SM, after the owner stood DG5+DG6 down): .10.1 .10.2 .10.6 -> DG4 · .10.4 -> DG3
 done   goal:g7.16.1.7 council edits (SP review, SM routed 08:3xZ): .7.1.3.2 bullet 2 NOT HELD (4 pi-free cells) · .7.2.2 F1 + no other post restarted · .7.2.4 F1 + pane cell · 6 HORIZON leaves .7.1.5 (council) .7.1.6 .7.1.7 .7.2.6 .7.2.8 (DG4) .7.2.7 (council)
 done   goal:g7.16.1.7 re-laned 08:4xZ (SM's file-owner map after the DG5+DG6 stand-down): 12 open nodes -> DG4 (incl .7.1.4 .7.1.4.1 keys, .7.2.3 w/ DG3's dispatch.py sites) · .7.1.5 .7.2.7 -> DG3 · complete nodes keep DG5 (record) · .7.3 council
+done   goal:g7.16.1.7.1.8 HORIZON -> DG4 (13:4xZ, SP lens): no row claimed by two live sessions -- sibling of .7.1.7, not a widening; reap stays rotate.py's
 hold   g7.16.1.5.3.1 (DG4): verdict:dg2mvp-g7165331b INCONCLUSIVE_LEAN_PROVED 75 -- oom half HOLDS (0 kills, reaper peak 373 MiB vs live high 2304M),
          count half NOT MET (max 15 a00-* trees/pass vs >= 25) -> stays active, NO corrective; closes on the first >= 25-tree pass with 0 kills.
          DG4 06:2xZ: F1 stays as written; if no such pass comes, DG4 banks a re-pin AFTER hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove lands
@@ -45,8 +46,8 @@ hold   g6.41.1.1 reboot wake (mine): hypothesis:a-session-resumed-outside-heal-g
 ```
 
 ## 🔴 Where it stops
-STOPPED clean at 11:0xZ 09-30 on the Prime's STOP (owner's run ended 11:00Z): no step in flight, nothing uncommitted of mine, no round or subagent live.
-Resume ONLY on a new owner/Prime go. Then: re-map peers (tmux list-windows -a vs ListAgents), read SendMessage traffic, and run the exact next command:
+IDLE at 13:5xZ 09-30 (resumed to 18:00Z; a STOP comes at 18:00Z): no step in flight, nothing uncommitted of mine, no round or subagent live.
+On a new DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then run the exact next command:
 ```
 for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g6.41.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head
 ```
