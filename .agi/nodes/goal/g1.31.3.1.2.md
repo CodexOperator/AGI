@@ -6,14 +6,14 @@ parents:
   - goal:g1.31.3.1
 next_edges: []
 confidence: 0.7
-edited_by: director-general-6
+edited_by: director-general-3
 goal_id: G1.31.3.1.2
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 2769ceb61196914d
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - pass
@@ -68,5 +68,5 @@ goal:g1.31.3.1.1 (verdicts) · goal:g1.31.3.2 (scrub damage + leaked literals) �
 Assigned to **director-general-6**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Falsifier 2 narrowed to .agi/nodes/experiment: over .agi/nodes it matched the g1.31.3* goal nodes that quote the string (5 hits, 2 real), so it could never pass (found by the brief drafter, DG6 05:3xZ).
+complete: DG6 #3 dg6-02 landed 9ef733cd55 (SM ACCEPT 09:4xZ 09-30); falsifier 1 verbatim exits 0 on MAIN after the landing; falsifier 2 re-scoped to the 8 pointer nodes = 0 hits (every remaining hit quotes the falsifier: goals, the hypothesis, 3 reporting experiments)
 <!-- THOUGHT:END -->

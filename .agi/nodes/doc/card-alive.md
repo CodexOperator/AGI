@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: alive
 scaffold_hash: 0394875185875b1d
 season: 2
 title: Card alive
@@ -15,53 +15,42 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:0xZ 09-30) -- council RESUMED until 11:00Z (owner 04:5xZ: "Continue hammering at it as fast as you can until 7am. Maybe allow another director to come up if system can handle it.")
+## §0 State (13:4xZ 09-30) -- RESUMED until 18:00Z (belam [rule]; owner ~12:4xZ: "Oh neat continue now until 2pm EST."); a STOP comes at 18:00Z
 | | |
 |---|---|
-| post | alive gen 4 · session agi-e3 [761106] (gen 3 agi-b3 retiring) · rotate at f >= 0.47 |
-| spend | OWNER 05:0xZ (until the reset ~06:0xZ): "I need to max sub use before reset in an hour" + "No make it opus as well" -> Opus 5.5 subagents WANTED this hour; after the reset back to OWNER 04:5xZ: every subagent + review on Sonnet 5.5; workflow.py pi-free. Both passed to agi-53 + agi-8f |
+| post | alive gen 4 · session agi-e3 [761106] · rotate at f >= 0.47 (0.23 at STOP) |
+| state | waiting: nothing in flight of mine; §1 next = watch lines |
+| spend | subagents on Sonnet 5.5 only (owner 06:1xZ via the Prime: "ease off expensive subagents"); workflow.py pi-free |
 | role | the council IS prime to the directors (owner 02:5xZ): a director [decision] -> ONE lens round (10 min, silence = agree) -> ONE consolidated ruling from the convener |
-| messaging | OWNER: "use internal messaging only for everything and full guarantee until bundles land" -> SendMessage by session name ONLY; NO send.py, NO rooms; town nodes are Prime-gated (write.py refuses council) |
-| peers | NAMES COLLIDE: always "name [ref]" · alive agi-e3 [761106] · DG2 agi-e3 [78fffb] · Prime agi-23 [ecd665] (belam XXI, @23; agi-79 = idle .prev) · SM agi-5c [da1a42] · all-is-one agi-8f [242e8c] · SP uds 2078668.sock (agi-53 = .prev) · DG1 agi-8c [9e0227] · stream-master agi-8c [f29919] · DG3 agi-34 [e82e60] · DG4 agi-c8 [6d9f0c] · DG5 agi-c8 [3f306f] · DG6 agi-bb [7e23e8] · re-map: ListAgents + tmux list-windows -t agi-rc |
-| lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" + "## The loop" |
+| messaging | SendMessage by session name, "name [ref]" where names collide; NO send.py, NO rooms; town nodes are Prime-gated |
+| peers (13:4xZ) | alive agi-e3 [761106] · Prime agi-23 [ecd665] · SM agi-5c [da1a42] · all-is-one agi-8f [242e8c] · SP uds 2078668.sock · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-b4 [a470d3] (@26) · DG4 agi-1c [c38ba9] (@25) · stood down: DG5, DG6 · RE-MAP at wake: ListAgents + tmux list-windows -t agi-rc |
+| lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   gen 3 (details in git + the grid): bundles 1-3 bigger outcome review · owner goal-rewrite 6/6 · g7.16.1.9 -> g7.16.1.7.3 · S goals 12 -> 0 open
-       · rulings .1.4 keys (DG5) · g4.18.1.6 + residue 154 (DG3) · g4.18.6.2 (DG1) · goal:g7.16.1.5.5 (RAM disk own budget line; DG5 on belam's trigger)
-done   RESUME item 1 (belam; owner 05:0xZ): 0 pending hyps under a RETIRED goal (4a83b52eb): s18 + s32 retired -> complete
-done   item 2 all-is-one: goal:g1.31 LANES 169155b13 (DG3 3 · DG5 8 · DG6 19 · NODE 17 = 47, each once: alive verified) -- open: DG6 seating (SM);
-       alive lens sent 05:0xZ: stamp 05:2xZ -> 05:0xZ, #22 #25 CLOSED (files gone at HEAD) -> NODE
-done   item 3 self-perpetuating: goal:g7.16.1.10 minted f50d5f13c (alive lens in by name); lens fixes sent 05:1xZ: THOUGHT quote not verbatim, stamps future
-done   ruling to SM 05:1xZ: boxkit memory home = config:guard (a) -- already true 8ab22b617 + d86f99470; order: DG4's successor re-parents .5.5.3.1/.2 -> .5.5
-done   belam 05:1xZ: items 2+3 done · finding: future-dated stamps from 3 posts (80e4b53e7 04:51 cites "05:1xZ") + proposed [rule] for doc:unified-head
-done   gen 4 05:0xZ: new address agi-e3 sent to SM agi-5c · all-is-one · self-perpetuating
-HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28): the OWNER stopped DG2's run mid-way (DG2 05:1xZ);
-       alive told DG2: the stop stands, never relaunch on alive's word -- only the owner lifts it (both goals already complete)
-done   ruling 05:4xZ to DG6 (agi-bb): g1.31.4.2.2 meter FALLS BACK tagged unmeasured:<model> (SP + all-is-one + alive agree; the rc-4 refusal prints no fraction = never rotates);
-       conditions: goal restated same round (title · end-state l.11 · invariant) · tag on the meter line · finding names the late-rotation risk
-note   all-is-one's pane REFUSED a DG6 delivery (SP relayed it) -- a delivery gap, watch it
-done   bundle-4 vision:alive review 06:0xZ -> SM: ALIGNED, OPEN 0.8 + MISSING limit (4): suite-lock path exits 0 uncommitted (write.py:4176-4180, :3770 :3967);
-       SM v2 took it (limit 4 + W1b exception + 9 mint misses explained) · lens round: all-is-one + SP + SM agree
-done   ruling 06:1xZ: goal:g4.18.5.5 (lock path exits 3, one config block, stopgap; DG4) 2c906e52a · goal:g4.18.5.6 (rotation commits the resolved card; DG5) e6736ec9a
-       · goal:g7.16.1.6.1 (suite reads a snapshot, the lock retires; council) ab1bbaddd -- all horizon
-done   finding -> SM (g7.33 row): _default_actor = $USER = the Prime's name -> ~74 nodes edited_by: belam today (upper bound)
-done   OVERVIEW -> belam 06:1xZ (agi-79): 3 lenses + ruling + findings (provenance, addressing) · stop 11:00Z
-done   g7.16.1.10 placed (SM ack): DG1 (agi-2a) sketches 6 leaves; builds after each lane's work (DG3 · DG5 · DG6); DG1 keeps .5.3.1 at ~06:07Z
-done   DG1 leaves g7.16.1.10.1-.6 all horizon, committed (.1 814cf0e9b after 42 min uncommitted under the lock; .4-.6 13009d3c5 ee38b5160 b6e323f19)
+done   gen 4 (details in git + the grid; every sha REMAPPED after the 06:3xZ-08:0xZ history scrub):
+       · belam resume items 1-3: s18/s32 -> complete · g1.31 LANES 47 each once (verified) · goal:g7.16.1.10 minted + placed (DG1 leaves .1-.6, horizon)
+       · rulings: boxkit memory home = config:guard (a) · g1.31.4.2.2 meter falls back tagged unmeasured:<model> (3 conditions, applied)
+       · bundle-4 vision:alive review: ALIGNED + MISSING limit (4) (the suite-lock path exits 0 uncommitted) -> SM v2, v3 10876e2b25
+       · council ruling, 3 leaves: goal:g4.18.5.5 (exit 3; DG4, ACTIVE 08:37) · goal:g4.18.5.6 (rotation commits the resolved card; DG4) · goal:g7.16.1.6.1 (suite on a snapshot, lock retires; council, horizon)
+       · findings placed: provenance (edited_by: belam default) = goal:g7.33.20.2 (DG3) · names collide -> "name [ref]" (SM card + belam) · future stamps -> HEAD FORM rule (belam)
+       · OVERVIEW -> belam (bundle 4 through the three lenses)
+HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28): the OWNER stopped the run; only the owner lifts it
+done   13:4xZ resume check: g7.16.1.10 re-lane on the bytes (.1/.2/.6 DG4 · .4 DG3) · provenance fix LANDED 8a9656b2b4 (goal:g7.33.20.2: no-AGI_ACTOR -> resolved seat)
+done   13:4xZ: all-is-one ACCEPT on bundle-4 v3 + 2 notes -> SM for v4 (W3 g4.18.7 first; limit (1) = TWO homes: DG4 hypothesis stopgap + g7.16.1.6 A CAS) · finding -> SM: send.py read printed empty over unread (all-is-one lost 11:0xZ-13:4xZ)
+done   13:4xZ: goal:g7.16.1.10.7 (merge gate) -> DG3 AGREED (SP proposal) + falsifier adds: a planted RED refused · unreviewed:budget without the Prime's count refused
+next   bundle-4 v3 -> 0.9 when goal:g4.18.5.5 lands: DG4.15 returned 11:44Z (tip 6575a88d7), UNHARVESTED -> DG4 harvests + murs first; write.py:4396-4399 still returns False (rc 0) on the trunk -> confirm the rc-3 test on the bytes after the merge
+       · watch DG4's load (g4.18.5.5 + .5.6 + g7.16.1.10.1/.2/.6 + workflow.py CC route + heal-sweep): flag only a real stall
 ```
 
 ## §2 Landed (this generation)
 - c24f021ef 6bce4aafd df7e2d655 670c893d3 3bb0a37e6 96ac80e95 eee4e5951 85063f1a3 7a857e140 fc70d6b5b 2ee4d0180 5dca1fc47 a1ef46951 11b2f1e95 3c2e83db3 bc3bb8700 d57507672 df64e98c6 4a83b52eb
 
-done   post-resume 08:3xZ: goal:g4.18.5.6 builder DG5 -> DG4 (SM re-lane; owner stood DG5 + DG6 down 06:1xZ) c914201956 · g7.16.1.10 re-laned (SM ack 08:3xZ; DG1 edits): .4 -> DG3 · .6 + .1 + .2 -> DG4 · WATCH: DG4 now carries g4.18.5.5 + .5.6 + .10.1/.2/.6 + the workflow.py CC route + heal-sweep (owner stood DG5/DG6 down for cost: flag only a real stall) · provenance finding = goal:g7.33.20.2 (DG3)
-done   FREEZE 06:31Z (history scrub, owner 06:3xZ) -> RESUME 08:3xZ (owner 08:0xZ "Once verified just resume on the town bundle as before"): every sha on this card remapped via the commit-map; pre-commit hook now refuses owner email / GPU name / pytest-of / box tokens (never --no-verify)
-
 ## 🔴 Where it stops
-alive gen 4: bundle-4 review, ruling and OVERVIEW DONE; waiting on belam's reply + DG4/DG5 claims; the s22/s28 verdicts stay HELD (owner stop)
+alive gen 4 RESUMED 13:4xZ until 18:00Z; waiting on DG4's g4.18.5.5 harvest -> merge; nothing in flight
 ```
-successor: ListAgents (names COLLIDE: use "name [ref]") -> read SendMessage replies -> §1 next (OVERVIEW -> belam) -> watch DG4/DG5 claim g4.18.5.5/.6
+successor / resume: ListAgents + tmux list-windows (names COLLIDE) -> read SendMessage replies -> §1 next; never a sha from memory
 ```
 
 ## §4 Traps
@@ -85,7 +74,7 @@ successor: ListAgents (names COLLIDE: use "name [ref]") -> read SendMessage repl
 | a SendMessage that returns Failed may still DELIVER (the overview to agi-79, 06:1xZ: the retry was dropped as a duplicate) | never retry blind: wait for the reply or a delivery notice |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5301 at 03:1xZ) · S goals: complete 22 · retired 10 · active/horizon 0
+## §5 Verification: links 5355 resolved, 0 broken (06:0xZ) · post-scrub (belam 08:0xZ): nodes 5457, links 0 broken · S goals: complete 22 · retired 10
 
 ## §6 BANKED
 | question | options | recommendation |
@@ -94,7 +83,6 @@ successor: ListAgents (names COLLIDE: use "name [ref]") -> read SendMessage repl
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole rewrite at the council STOP (belam 04:4xZ 09-30: "finish the step, card whole, idle"). Since the last whole write: the 01:55Z reboot (heal-resumed, same session), the owner rules "the council IS prime to everyone else" (directors bring rulings to the council) and "use internal messaging only", the S-goal retirement (12 -> 0 open), four director rulings, .5.5 grown with the RAM-disk budget line, and the owner usage order (pi or Sonnet 5.5 only). Two of my own slips are named in the traps: guessed future stamps (corrected eee4e5951) and a citation DG2 corrected (5dca1fc47).
+Whole rewrite at the STOP (belam [rule] 11:0xZ 09-30; the owner's run ended 11:00Z, owner 04:58Z: "until 7am"). Since the 04:4xZ whole write: gen 4 seated on a stale card (the captive rotation fired before gen 3's last write), rebuilt from gen 3's final version; the council ran belam's resume items 1-3, two rulings, and the bundle-4 vision:alive review, which caught a false claim (exit 0 = committed fails under the suite lock) and minted 3 leaves; a 2-hour freeze for the owner-ordered history scrub (every sha remapped via the commit-map); DG5 + DG6 stood down (owner 06:1xZ), so their leaves re-laned to DG3/DG4.
 <!-- THOUGHT:END -->

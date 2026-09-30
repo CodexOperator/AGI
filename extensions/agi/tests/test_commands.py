@@ -391,7 +391,7 @@ def test_the_declaration_stays_small():
     this node is not being wrong, it is growing."""
     table = commands.load(REAL_ROOT)
     # 20 -> 25 on 2026-09-19 (sanctuary-master, syncing thought trunk
-    # @22c8a07a8): the OWNER ordered the mesh workflow in thought-master's
+    # @da4d0415c): the OWNER ordered the mesh workflow in thought-master's
     # pane 05:4xZ -- five `ssh -F <config> <town>` entries, alias/label/
     # what/reach only -- and an owner order is the one authority that grows
     # this set. Exactly the ordered size, no headroom: the next unordered
@@ -707,6 +707,33 @@ def test_panic_passes_for_the_owner_without_spawning_the_stub(
     assert seen["argv"] == [
         str(locations.streamer_stub(stream_project) / "bin" / "panic.sh")]
     assert len(seen["argv"]) == 1
+
+
+def test_g73320_r3_commands_actor_is_the_resolved_seat_not_the_unix_user(
+        stream_project, monkeypatch, capsys):
+    """goal:g7.33.20 R3: `commands._actor` shares write.py's resolver (ONE order):
+    with AGI_ACTOR unset a seated post is its seat, never the `$USER` every post
+    runs as (`belam`); no seat and a colliding USER is `unknown`; and the owner gate
+    refuses the seat by that name."""
+    import write
+    (stream_project / "nodes" / ".geometry" / "posts.md").write_text(
+        "---\nid: config:posts\ntype: config\nposts:\n"
+        '  - {"name": "belam", "role": "director"}\n'
+        '  - {"name": "director-general-3", "role": "director"}\n---\n\nbody\n')
+    for k in ("AGI_ACTOR", "AGI_POST", "AGI_SEAT"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("USER", "belam")
+    monkeypatch.setenv("AGI_POST", "director-general-3")
+    assert commands._actor(stream_project) == "director-general-3"
+    assert commands._actor(stream_project) == write._default_actor(stream_project)
+    monkeypatch.setattr(commands.subprocess, "call", lambda *a, **k: (_ for _ in ()).throw(
+        AssertionError("panic must be refused before any subprocess call")))
+    assert commands.run(stream_project, "panic") == 3
+    assert "director-general-3" in capsys.readouterr().err
+    monkeypatch.delenv("AGI_POST")
+    assert commands._actor(stream_project) == "unknown"          # a colliding USER is never the actor
+    monkeypatch.setenv("AGI_ACTOR", "owner")
+    assert commands._actor(stream_project) == "owner"
 
 
 def test_owner_only_defaults_to_false(stream_project):

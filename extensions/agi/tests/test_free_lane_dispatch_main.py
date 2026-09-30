@@ -19,6 +19,9 @@ sys.path.insert(0, str(BIN))
 import dispatch  # noqa: E402
 import provisioning  # noqa: E402
 
+_REAL_RUN = dispatch.subprocess.run  # captured before any patch: links' bytes-mode grep
+_REAL_POPEN = dispatch.subprocess.Popen  # run() rides on Popen: the same grep needs the real one
+
 MODEL = "~deepseek/deepseek-v4-flash-latest"
 # CAP_USD != provisioning.DEFAULT_ZERO_USD_KEY_LIMIT_USD on purpose: a literal
 # 0.01 baked into the mint site then turns this suite RED.
@@ -65,8 +68,12 @@ def _harness(monkeypatch, tmp_path, *, zero_usd, mints, calls):
         def is_alive(self, pid):
             return True
     monkeypatch.setattr(dispatch.adapters, "load", lambda name: _Adapter())
-    monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _Proc())
-    monkeypatch.setattr(dispatch.subprocess, "run", lambda *a, **k: _Run())
+    monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: (
+        _REAL_POPEN(*a, **k) if list(a[0][:2]) == ["git", "grep"] else _Proc()))
+    # dispatch.subprocess IS the global module: links.frontmatter_rows' bytes-mode
+    # grep (write_node -> gate_for_root) must reach the real run, not a str fake.
+    monkeypatch.setattr(dispatch.subprocess, "run", lambda *a, **k: (
+        _REAL_RUN(*a, **k) if list(a[0][:2]) == ["git", "grep"] else _Run()))
     monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
     monkeypatch.delenv("AGI_SEAT", raising=False)

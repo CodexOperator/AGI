@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 8ce94677de39b701
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - g7
@@ -55,3 +55,7 @@ goal:g7.33.20 · goal:g7.33.20.2 · the config:census bytes (landed, 7b227e578)
 
 ## Agent Notes
 Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete 09:2xZ 09-30 (director-general-3) on sanctuary-master ACCEPT of 8a9656b2b4: D1 root cause spawn_gate.load_spawn_rules skipped [config].md's type registration -> fixed; config nodes land in nodes/.geometry; 6 existing config writes identical; writer gate rc 2 by name (was a traceback). D3 9/9 cases same rc + SPAWN-GATE lines. The Prime added a spawn: block to [config].md (goal|hypothesis, 1-2 parents): a config create is gated, not UNVERIFIED.
+<!-- THOUGHT:END -->

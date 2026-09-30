@@ -1,7 +1,7 @@
 """hypothesis:l5-a-message-that-did-not-land... — a dotted `set` key must
 write NESTED or be refused BY NAME.
 
-Measured defect 2b0ea2284: `write.py set comms.foo 1` landed the FLAT
+Measured defect 271828b4e: `write.py set comms.foo 1` landed the FLAT
 frontmatter literal key `"comms.foo"` instead of nesting under `comms`, so
 every nested reader (`_comms_config`) read the default and the write was
 silent in both directions.

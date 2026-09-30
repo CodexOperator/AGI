@@ -32,8 +32,17 @@ def _load(name, filename=None):
     path = BIN / (filename or f"{name}.py")
     spec = importlib.util.spec_from_file_location(name, path)
     mod = importlib.util.module_from_spec(spec)
+    prior = sys.modules.get(name)
     sys.modules[name] = mod
-    spec.loader.exec_module(mod)
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        # A private copy must not REPLACE the process-wide module: a sibling file
+        # (test_write.py) that already imported `write` holds the original
+        # `node_writer`, and its `_ID_INDEX` is the one `write.main` reads. Leaving
+        # this copy in sys.modules split the two (hypothesis:trunk-red-g73320-...).
+        if prior is not None:
+            sys.modules[name] = prior
     return mod
 
 
@@ -1775,7 +1784,7 @@ def test_b4_w2db_no_writer_assigns_a_bare_address_parent():
     assert '"parents": [f"idea:domain-' not in sbs and '"parents": [parent_hyp] if' not in sbs
 
 
-# goal:g4.18.1.6 R3 (SM review of d8b22ae96): render_frontmatter / canonicalize used to UNQUOTE a string
+# goal:g4.18.1.6 R3 (SM review of 1abe85b1a): render_frontmatter / canonicalize used to UNQUOTE a string
 # whose bare spelling re-reads as another type -- '0.8' -> float, 'yes' -> bool, 'null' -> None.
 @pytest.mark.parametrize("s", ["0.8", "yes", "no", "on", "null", "~", "true", "False", "1e3", "0x1F", "1:30",
                                "2026-09-30", "007", "1_000", ".inf", "Null"])

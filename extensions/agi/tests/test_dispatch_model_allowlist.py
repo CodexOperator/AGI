@@ -56,6 +56,11 @@ def project(tmp_path: Path) -> Path:
     (graph / "nodes" / ".geometry").mkdir(parents=True)
     (graph / "config.json").write_text(json.dumps(CONFIG))
     (graph / "nodes" / ".geometry" / "ladder.md").write_text(LADDER)
+    # goal:g1.31.4.1 — a `--dry-run` now REFUSES a target the live path
+    # refuses, so the scratch graph carries the target these cases aim at.
+    (graph / "nodes" / "hypothesis").mkdir(exist_ok=True)
+    (graph / "nodes" / "hypothesis" / "x.md").write_text(
+        "---\nid: hypothesis:x\ntype: hypothesis\n---\nbody\n")
     return tmp_path
 
 

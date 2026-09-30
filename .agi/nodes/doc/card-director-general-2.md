@@ -16,16 +16,16 @@ town: core
 # doc:card-director-general-2 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers: DG1 agi-8c [9e0227] · DG3 agi-34 [e82e60] · DG4 agi-c8 · DG5 agi-5b · the Prime agi-79 · council: alive agi-e3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-5c [da1a42] (config:posts windows); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
+Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (08:3xZ 09-30 — RESUMED after the history scrub (every sha remapped); card re-linked 716bfe7be; loop until 11:00Z)
+## §0 State (17:4xZ 09-30 — owner 17:4xZ: NO 18:00Z stop; Sonnet lanes until 21:00Z, from 21:00Z pi-free ONLY for new rounds/reviews)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.14 at this write (line 0.47) · live: nothing in flight |
-| Loop | until 11:00Z; coordination via sanctuary-master (agi-5c [da1a42]), rulings via the council |
+| Meter | 0.30 at this write (line 0.47) · live: nothing running |
+| Loop | no stop (owner 17:4xZ); ROUND LANES per doc:unified-director-brief (9cb773a774): until 21:00Z Sonnet agents ok, from 21:00Z new work on pi-free only; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
-| Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
+| Subagents | Sonnet 5.5 (Agent model: sonnet), two at a time, UNTIL 21:00Z; after 21:00Z none new -- pi-free rounds/reviews only (workflow.py --harness pi-free) |
 
 ## §1 Plan
 ```
@@ -35,6 +35,20 @@ done     w2cD = ff549a175 + 9bd36310a vs hypothesis:gates-writer-and-cli-paths-r
          -> g4.18.6.3.3 closable = bundle 4 done on my side; rows sent DG1 + SM + DG3
 done     g7165331b = .5.3.1 RE-JUDGE post-05:06:37Z window: lean_proved:75 (b6e56296a; bound = live memory.high 2304M, 768M reported)
          + fork hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (DG4's .5.3 tree) -> SM to place; rows DG1 + SM
+done     g7171141 = DG5 2833cdae9f vs the keys fork: lean_proved:85 (d087b6091e) -- F1-F3 not fired, 4 modes keyed; gaps G1 loop w/o --seat,
+         G2 remint outside send._mint_seat_key, G3 spawn dry mint/adopt -> fork hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat
+         (DG4 lane) -> SM PLACED both forks with DG4 at 13:5xZ (queued after DG4.15 · .11 · .19); rows DG1 + SM
+done     SM trunk reds: DG2.R1 LANDED 7b367304df (verdict:dg2-r1 proved 0.9) · DG2.R2 LANDED d572f65d6b (verdict:dg2-r2 proved 0.9, + the Prime's
+         email_allow widening 842cb065d3) -- 5 trunk reds closed (SM); both Agent worktrees + branches removed
+done     g133 = goal:g1.33 post-build (DG3 5f1e8092f2) PROVED 0.92 (aa6fc94c52, verdict:dg2mvp-g133); rows SM + DG1
+done     DG2.R3 LANDED 7712457731 (verdict:dg2-r3 proved 0.9, e5092dbb1e): test_node_writer's import-time sys.modules swap; worktree removed
+done     g64111 = DG1 goal:g6.41.1.1 conjunct (1) (82c553bb9a) PROVED 0.85 (aa66016cc8, verdict:dg2mvp-g64111); rows SM + DG1
+done     g13132 = goal:g1.31.3.2 lean_proved:72 (254dce7c5e): guard sound live (10/10, 0 false refusals); [red] to SM: a TRACKED node
+         (hypothesis:lm-kv-slot-save-beats-reprefill :14) still carries a hw fragment (SM scrubbed it, 930e65687c); fork re-parented under goal:g1.31.3.2.1 -> DG3; my 2 nodes
+         shell-split to --data''-work (DG1's falsifier 2)
+done     g13141 = DG3 goal:g1.31.4.1 as re-scoped (88ddd2ca08) PROVED 0.84 (ec8076c6df); 4 dry-vs-live findings sent to SM as rows
+next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
+         WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
 HELD     s22/s28 closing verdicts (owner stopped the agent; alive: only the owner's word lifts it)
 how      Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both'
@@ -51,10 +65,10 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Nothing in flight; both due rows landed (w2cD 6c7d2864c, g7165331b b6e56296a). Next: an order from SM / DG1, or DG4 successor's
-hypothesis:a-write-refusal-names-the-index-truth landing -> ONE post-build check (write a /tmp/dg2mvp/tasks/<key>.md, Sonnet agent).
+Nothing running (17:3xZ). One drafted row waits: g41855 (goal:g4.18.5.5) when SM sends DG4.21's landing sha -> fill LANDING SHA in
+/tmp/dg2mvp/tasks/g41855.md, launch on Sonnet, mint experiment + verdict, rows SM + DG1. No stop; from 21:00Z new checks via pi-free only. All SHAs post-scrub.
 ```
-python3 extensions/agi/bin/send.py read director-general-2; git log --oneline -15 | grep -iE 'index-truth|DG4|director-general-4'
+python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
 ```
 
 ## §4 Traps

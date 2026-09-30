@@ -648,7 +648,7 @@ def test_memory_targets_come_from_the_guard_cells_not_the_kit(tmp_path, monkeypa
 
 
 def test_no_base_still_judges_the_base_independent_rows(tmp_path, monkeypatch):
-    """SM review R1 of 0b73ebc23: a dropped user@ cap blanks the user@-derived targets
+    """SM review R1 of b87979df4: a dropped user@ cap blanks the user@-derived targets
     only; system.slice MemoryMin and the oomd drop-ins are still judged."""
     agi, root, shim = _fixture(tmp_path, monkeypatch)
     fact = json.loads(os.environ["PROBE_FACTORY"])
@@ -672,7 +672,7 @@ def test_an_unparsed_guard_cell_is_unknown_and_never_aborts_the_table(tmp_path, 
 
 
 def test_a_range_refusal_is_named_in_its_own_row(tmp_path, monkeypatch):
-    """SM review R2 of a8b79e7ed: cells that size a unit that cannot run blank the
+    """SM review R2 of b674c2081: cells that size a unit that cannot run blank the
     targets AND a row names the refused line -- never a silent table of UNKNOWNs."""
     agi, root, shim = _fixture(tmp_path, monkeypatch)
     _guard(monkeypatch, ENGINE_MAX="100G")

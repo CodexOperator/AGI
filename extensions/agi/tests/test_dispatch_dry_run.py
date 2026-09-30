@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -68,11 +69,24 @@ CONFIG = {
 
 @pytest.fixture()
 def project(tmp_path: Path) -> Path:
-    """A scratch agi project: `.agi/` with a config and a ladder roles table."""
+    """A scratch agi project: `.agi/` with a config and a ladder roles table.
+
+    goal:g1.31.4.1 — the graph carries the two targets the cases below aim
+    at, because a `--dry-run` now REFUSES a target the live path refuses:
+    the fixture projects were dispatching at node ids that did not exist.
+    """
     graph = tmp_path / ".agi"
     (graph / "nodes" / ".geometry").mkdir(parents=True)
     (graph / "config.json").write_text(json.dumps(CONFIG))
     (graph / "nodes" / ".geometry" / "ladder.md").write_text(LADDER)
+    (graph / "nodes" / "hypothesis").mkdir()
+    (graph / "nodes" / "vision").mkdir()
+    (graph / "nodes" / "hypothesis" / "x.md").write_text(
+        "---\nid: hypothesis:x\ntype: hypothesis\ntitle: fixture target\n---\n\n"
+        "body\n")
+    (graph / "nodes" / "vision" / "alive.md").write_text(
+        "---\nid: vision:alive\ntype: vision\ntitle: fixture vision\n---\n\n"
+        "body\n")
     return tmp_path
 
 
@@ -428,7 +442,11 @@ def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
     assert m_id, f"dry-run env must export AGI_AGENT_ID:\n{out}"
     assert m_actor, f"dry-run env must export AGI_ACTOR:\n{out}"
     aid, actor = m_id.group(1), m_actor.group(1)
-    assert aid.startswith("dry") and len(aid) >= 10, f"not an agent id: {aid}"
+    # goal:g1.31.4.1: the dry report mints the id the LIVE path mints
+    # (`a<NN>-<hex>`). The retired `dry<NN>-<hex>` nonce was a second dialect
+    # no live spawn ever produced, so every reader keyed on the live grammar
+    # had to special-case a dry run.
+    assert _re.fullmatch(r"a\d\d-[0-9a-f]{8}", aid), f"not a live agent id: {aid}"
     assert actor == aid, "AGI_ACTOR must equal the minted agent id"
 
     # Feed the producer's OWN exported values to the readers — no invented id.
@@ -491,8 +509,11 @@ def _g15_project(tmp_path: Path) -> Path:
     cloned-engine boundary the hypothesis names).
     """
     graph = tmp_path / ".agi"
-    (graph / "nodes" / "goal").mkdir(parents=True)
-    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    # exist_ok: goal:g1.31.4.1 — the `project` fixture now also carries a
+    # hypothesis target, so this lineage overlay lands on a graph that
+    # already has the node dirs.
+    (graph / "nodes" / "goal").mkdir(parents=True, exist_ok=True)
+    (graph / "nodes" / "hypothesis").mkdir(parents=True, exist_ok=True)
     (graph / "nodes" / "goal" / "g15.md").write_text(
         "---\nid: goal:g15\ntype: goal\n---\nbody\n", encoding="utf-8")
     (graph / "nodes" / "hypothesis" / "x.md").write_text(
@@ -723,3 +744,207 @@ def _brief_line_count(out: str) -> str:
     m = _re.search(r"brief: tier=\S+ (\d+) lines", out)
     assert m, out
     return m.group(1)
+
+
+# goal:g1.31.4.1 conjunct 1 — `--branch --dry-run` names the branch, the
+# base and the worktree a LIVE `--branch` spawn would take, through the SAME
+# resolvers the live path calls.
+
+
+def _branch_facts(out: str) -> dict:
+    import re as _re
+    m = _re.search(r"^  branch: (\S+) base=(\S.*?) worktree=(\S+)$",
+                   out, _re.M)
+    assert m, "the dry report names no branch facts:\n" + out
+    return {"branch": m.group(1), "base": m.group(2),
+            "worktree": m.group(3)}
+
+
+def test_dry_run_names_branch(project):
+    """The three facts, and each equal to what the LIVE resolver returns for
+    the same inputs — asserted against dispatch's own functions, so changing
+    `spawner_base_branch` / `loop_branch_name` / the worktree grammar fails
+    this test instead of quietly changing the report."""
+    sys.path.insert(0, str(BIN))
+    import dispatch
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--branch", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    facts = _branch_facts(r.stdout)
+
+    # base == spawner_base_branch(cwd) — the LIVE base, not a hardcode.
+    assert facts["base"] == (dispatch.spawner_base_branch(Path.cwd())
+                             or facts["base"])
+
+    # branch == loop_branch_name(target, <this slot's agent id>, season 2):
+    # the agent id rides in the branch, so pull it back out of the worktree
+    # path and re-derive the branch through the same grammar.
+    agent_id = Path(facts["worktree"]).name
+    season = 2  # LADDER above: current_season: 2
+    assert facts["branch"] == dispatch.loop_branch_name(
+        "hypothesis:x", agent_id, season), facts
+    assert facts["worktree"] == str(dispatch.branch_worktree_link(
+        Path(project) / ".agi", agent_id)), facts
+    # the worktree link lives under MAIN's .agi, one helper for both paths
+    assert facts["worktree"].endswith(f".agi/worktrees/{agent_id}")
+
+    # gate probe: WITHOUT --branch the report names no branch at all, so the
+    # line is not unconditional decoration.
+    plain = _run(project, "--harness", "pi", "--tier", "kid",
+                 "--target", "hypothesis:x", "--dry-run")
+    assert plain.returncode == 0, plain.stderr
+    assert "  branch: " not in plain.stdout
+
+    # auth probe: a DETACHED HEAD yields None from spawner_base_branch, and
+    # the report must SAY so rather than print a fabricated base. Point the
+    # dispatch cwd at a scratch dir whose git HEAD is detached.
+    import subprocess as _sp
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as td:
+        _sp.run(["git", "init", "-q", td], check=True, capture_output=True)
+        _sp.run(["git", "-C", td, "-c", "user.email=a@b", "-c", "user.name=a",
+                 "commit", "-q", "--allow-empty", "-m", "x"], check=True,
+                capture_output=True)
+        head = _sp.run(["git", "-C", td, "rev-parse", "HEAD"], check=True,
+                       capture_output=True, text=True).stdout.strip()
+        _sp.run(["git", "-C", td, "checkout", "-q", "--detach", head],
+                check=True, capture_output=True)
+        # premise: a detached HEAD resolves no base, else the probe is vacuous
+        assert dispatch.spawner_base_branch(Path(td)) is None
+        det = _sp.run([sys.executable, str(BIN / "dispatch.py"),
+                       str(project), "1", "--harness", "pi", "--tier", "kid",
+                       "--target", "hypothesis:x", "--branch", "--dry-run"],
+                      capture_output=True, text=True, cwd=td)
+    assert det.returncode == 0, det.stderr   # never crashes
+    dbase = _branch_facts(det.stdout)["base"]
+    # goal:g1.31.4.1 — ONE wording for the detached-HEAD refusal, read from
+    # the constant the live spawn prints, not a second copy of the sentence.
+    assert dbase == f"NONE ({dispatch.DETACHED_HEAD_REFUSAL})", dbase
+    assert dispatch.spawner_base_branch is not None  # live resolver exists
+
+
+def test_dry_run_refuses_unknown_target(project):
+    """goal:g1.31.4.1 conjunct 2 — a dry run REFUSES what the live path
+    refuses. Measured pre-fix: `--dry-run --target <bogus>` exited 0, wrote
+    the placeholder context and reported a spawn that could never happen;
+    the caveat on `.agi/nodes/experiment/a00-eccace59-e6cb6a.md` ("bad
+    --target is not caught by dry-run") held. The refusal must be the SAME
+    line the live spawn prints (`_no_context_refusal`, the live call at
+    dispatch.py:2678) and exit non-zero — while still creating nothing."""
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:no-such-node", "--dry-run")
+    assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
+    assert ("ERR: no context for target 'hypothesis:no-such-node' at level "
+            "small:") in r.stderr, r.stderr
+    # the same wording zoom itself renders for an unknown target
+    assert "not found in the graph loaded from" in r.stderr, r.stderr
+    assert "Refusing to fall back to the whole graph" in r.stderr, r.stderr
+    # gate probe: the resolvable target still reports and still exits 0, so
+    # the refusal is a resolution, not a blanket refusal of every dry run.
+    ok = _run(project, "--harness", "pi", "--tier", "kid",
+              "--target", "hypothesis:x", "--dry-run")
+    assert ok.returncode == 0, (ok.returncode, ok.stdout, ok.stderr)
+    assert "[dry-run] slot=0" in ok.stdout
+
+    # invariant: a refused dry run still takes no session dir, no manifest and
+    # no budget slot — the refusal happens inside the report, before anything.
+    sessions = project / ".agi" / "sessions"
+    assert not sessions.exists() or not list(sessions.rglob("context.md")), (
+        "a refused dry run rendered a context file")
+
+
+def test_dry_run_branch_creates_no_worktree(project):
+    """The report NAMES a worktree it must not have created."""
+    import subprocess as _sp
+    _sp.run(["git", "init", "-q", str(project)], check=True, capture_output=True)
+    before = sorted(p.name for p in (project / ".agi").iterdir())
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--branch", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert not (project / ".agi" / "worktrees").exists()
+    assert sorted(p.name for p in (project / ".agi").iterdir()) == before
+
+
+# --- goal:g1.31.4.1 — the dry report is the live path, spelled the same ----
+
+
+def test_auto_level_refuses_a_bad_target_a_live_round_would_refuse(project):
+    """`--level auto` used to be forced to `big`, so a bogus target passed dry.
+
+    The live loop resolves `auto` per slot; the dry report now resolves it
+    through the SAME function, and an `auto` slot is target-checked either
+    way — the small draw is reachable, so a target the round may refuse must
+    not pass a dry run just because this draw rolled big.
+    """
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:nope", "--level", "auto", "--dry-run")
+    assert r.returncode != 0, r.stdout
+    assert "hypothesis:nope" in r.stderr
+
+
+def test_auto_level_reports_the_level_it_resolved(project):
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--level", "auto", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert "level=big (from auto)" in r.stdout or "level=small (from auto)" in r.stdout
+
+
+def test_dry_agent_id_uses_the_live_id_grammar(project):
+    """No `dry<NN>-<hex>` nonce: the id a reader sees is the LIVE id's shape."""
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert not re.search(r"\bdry\d\d-", r.stdout), r.stdout
+    assert re.search(r"AGI_AGENT_ID=a\d\d-[0-9a-f]{8}", r.stdout), r.stdout
+
+
+def test_resolve_auto_level_is_the_one_resolver_both_paths_call():
+    """One function decides `auto` for the live loop AND `--dry-run`.
+
+    A second copy of this rule in either path is exactly how the two drifted.
+    """
+    sys.path.insert(0, str(BIN))
+    import dispatch  # noqa: PLC0415
+
+    assert dispatch.resolve_auto_level("small", 0.3, "hypothesis:x",
+                                       draw=lambda: 0.0) == "small"
+    assert dispatch.resolve_auto_level("auto", 0.3, "hypothesis:x",
+                                       draw=lambda: 0.9) == "small"
+    assert dispatch.resolve_auto_level("auto", 0.3, "hypothesis:x",
+                                       draw=lambda: 0.1) == "big"
+    assert dispatch.resolve_auto_level("auto", 0.3, None,
+                                       draw=lambda: 0.9) == "big", (
+        "no target -> big: a small zoom has nothing to bind to")
+
+
+def test_split_cell_resolves_through_the_one_helper(project, monkeypatch, capsys):
+    """One helper serves BOTH paths: a dry `main()` calls it at its own
+    live-loop site (before the dry return) and again in the report."""
+    (project / ".agi" / "config.json").write_text(
+        json.dumps({**CONFIG, "big_idea_vs_small_idea_split": 0.0}))
+    sys.path.insert(0, str(BIN))
+    import dispatch  # noqa: PLC0415
+    seen, real = [], dispatch.big_split_threshold
+    monkeypatch.setattr(dispatch, "big_split_threshold",
+                        lambda c: (seen.append(1), real(c))[1])
+    monkeypatch.setattr(sys, "argv", [
+        "dispatch.py", str(project), "1", "--harness", "pi", "--tier", "kid",
+        "--target", "hypothesis:x", "--level", "auto", "--dry-run"])
+    assert dispatch.main() == 0 and len(seen) == 2, seen
+    assert "level=small (from auto)" in capsys.readouterr().out
+
+
+def test_branch_dry_run_checks_the_dispatchers_own_checkout(project):
+    """`--branch` must not move the graph a dry target check reads: from a REAL
+    linked worktree holding a node main lacks, verdicts agree with and without it."""
+    wt = project.with_name(project.name + "-wt")
+    for a in ("init -q", "add -A", "commit -qm m", f"worktree add -q -b wt {wt}"):
+        subprocess.run(["git", "-C", str(project), "-c", "user.email=a@b", "-c",
+                        "user.name=a", *a.split()], check=True, capture_output=True)
+    (wt / ".agi/nodes/hypothesis/wt-only.md").write_text(
+        "---\nid: hypothesis:wt-only\ntype: hypothesis\ntitle: wt\n---\n\nbody\n")
+    for extra in ([], ["--branch"]):
+        for tgt, code in (("hypothesis:wt-only", 0), ("hypothesis:absent", 1)):
+            r = _run(wt, "--harness", "pi", "--tier", "kid", "--target", tgt,
+                     "--dry-run", *extra)
+            assert r.returncode == code, (extra, tgt, r.stdout, r.stderr)
