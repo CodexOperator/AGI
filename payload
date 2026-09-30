@@ -1226,6 +1226,28 @@ _NODE_ID_RE = re.compile(r"^[A-Za-z][\w.-]*:\S+$")
 _ID_ROW_RE = re.compile(r"^id[ \t]*:[ \t]*(.*?)[ \t]*$")
 
 
+def _same_node_id(root, val: str, derived: str, path) -> bool:
+    """An id row is the path's own when it IS the derived id; or the same slug under
+    an ALIAS of the same type (`hyp:` / `exp:`: node_writer.ID_PREFIX_ALIASES, then
+    the canonical-type rule); or any other valid id that RESOLVES (find_node_file:
+    the one lookup every verb uses) to THIS file -- the legacy nodes whose file
+    carries a descriptive stem. An id naming a DIFFERENT node (another file holds it)
+    or none is not the path's own."""
+    if val == derived:
+        return True
+    vp, _, vs = val.partition(":")
+    dp, _, ds = derived.partition(":")
+    def _ty(p):
+        return node_writer.canonical_node_type(node_writer.ID_PREFIX_ALIASES.get(p, p))
+    if vs == ds and _ty(vp) == _ty(dp):
+        return True
+    try:
+        hit = node_writer.find_node_file(root, val)
+    except Exception:  # noqa: BLE001
+        return False
+    return hit is not None and Path(hit).resolve() == Path(path).resolve()
+
+
 def _own_id_refusal(root, node_id: str) -> str | None:
     """goal:g7.33.20 -- the READ-time check, ONCE, for every verb: a node whose
     own `id` row is not a valid node id (unparseable, not `type:slug`, or not the
@@ -1262,11 +1284,12 @@ def _own_id_refusal(root, node_id: str) -> str | None:
     if parsed is not None and "id" in parsed:
         val = parsed["id"]
         if not isinstance(val, str) or not _NODE_ID_RE.match(val) or (
-                direct and val != derived):
+                direct and not _same_node_id(root, val, derived, path)):
             bad = val
     elif parsed is None and raw is not None:
         val = raw.strip("\"'")
-        if not _NODE_ID_RE.match(val) or (direct and val != derived):
+        if not _NODE_ID_RE.match(val) or (
+                direct and not _same_node_id(root, val, derived, path)):
             bad = raw
     if bad is None:
         return None
@@ -3258,9 +3281,11 @@ def _body_opens_frontmatter_refusal(root, node_id: str, body: str) -> str | None
     rows would forge them past the row gates. Refused by name, before any write, unless
     the node's CURRENT body already opens with that same block (an edit elsewhere in
     such a body is not this forgery)."""
-    # R1b: the next write re-reads with universal newlines, so a CRLF / lone-CR opener
-    # IS an LF opener by then -- judge the body as that reader will see it (ONE recognizer).
-    body = body.replace("\r\n", "\n").replace("\r", "\n")
+    # R1b/R1c: the next write re-reads with frontmatter._parse_md's `str.splitlines()`,
+    # which breaks on CRLF, CR, VT, FF, FS, GS, RS, NEL, LS and PS alike -- so any of
+    # them before `---` IS an LF opener by then. Judge the body as that reader will
+    # see it: the SAME split, ONE recognizer.
+    body = "\n".join(body.splitlines())
     rows, rest, _ = node_writer._absorb_leading_frontmatter({}, body)
     if rest == body:
         return None
