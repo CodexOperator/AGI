@@ -63,8 +63,14 @@ log "agi: $n moved (idle ${idle} min)"
 m=0; PAIRS=$(cell SWEEP_PAIRS); [ -z "$PAIRS" ] && [ -n "$CC_ARCH" ] && PAIRS="$HOME/.claude/projects=>$CC_ARCH"
 for pair in $PAIRS; do src=${pair%%=>*}; dest=${pair#*=>}; [ -d "$src" ] || continue
   while read -r d; do
-    recent "$d" "$CC_IDLE" && continue; held "$d" && continue
-    move "$d" "$dest/$(basename "$d")" || continue; m=$((m+1))
+    if ! recent "$d" "$CC_IDLE" && ! held "$d"; then
+      move "$d" "$dest/$(basename "$d")" && m=$((m+1)); continue; fi
+    # the dir stays (one live file keeps it): its IDLE children move one by one (owner 02:0xZ: the RAM disk
+    # held ~1.1 GB of transcripts idle > 24 h inside dirs that also hold a live one)
+    while read -r c; do
+      recent "$c" "$CC_IDLE" && continue; held "$c" && continue
+      move "$c" "$dest/$(basename "$d")/$(basename "$c")" && m=$((m+1))
+    done < <(find "$d/" -mindepth 1 -maxdepth 1 \( -type f -o -type d \))
   done < <(find "$src/" -mindepth 1 -maxdepth 1 -type d)
 done
 log "harness: $m moved (idle ${CC_IDLE} min)"
