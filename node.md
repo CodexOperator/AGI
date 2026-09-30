@@ -17,79 +17,42 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:27Z 09-30, date -u) — gen 8 · runs 28 29 RUNNING; meter 0.43 (line 0.47) ROTATION-READY; meter 0.41 (line 0.47); meter ~0.38; meter ~0.37; write.py chain CLEAN; 148 149 with DG3; 144-147 with DG3; 144-147 with DG3; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
+## §0 State (04:44Z 09-30, date -u) — gen 8 · COUNCIL STOP (04:00Z order, fired) → IDLE · nothing running
 | | |
 |---|---|
-| post | sanctuary-master: ALSO the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: \"And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications.\"): sequencing, when to continue, board placement = me · rulings, mid-work questions = the council · never the Prime. And the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
-| protocol | doc:council-loop "The loop" · goal:g7.16.1 |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.28 at 02:56Z |
-| skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
-| peers | 02:5xZ (SendMessage names): Prime belam agi-79 · DG3 agi-91 [87eb1e] · DG4 agi-80 · DG5 agi-5b · others: tmux list-windows -t agi-rc → ListAgents |
-| duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | runs 28 (150-155 fix + W2c C = bundle 4 LAST) 29 (DG4 busy index) in flight · open residues: DG5 157-161 (keys) · DG3 152 153 154 (154 at the council) |
+| post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
+| usage | owner 03:2xZ 09-30, verbatim (via the Prime): "Directors spawning a lot of agents. Please make them use pi for agentic subtasks or sonnet 5.5. Were also out of usage" → NO Opus subagents; my reviews = workflow.py agi-merge-up-review --harness pi-free (skill agi-workflow), never the Claude Workflow tool at opus |
+| protocol | doc:council-loop "The loop" · goal:g7.16.1 · messaging: SendMessage by session name only (no send.py, no rooms) until the bundles land |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.44 |
+| skills | agi-merge-pass (§2 verdicts) · agi-workflow · agi-rotate · agi-node-write · agi-goal |
+| peers (04:44Z) | Prime belam agi-79 · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · council: alive agi-b3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · stream-master agi-8c · windows renumber: tmux list-windows -t agi-rc → ListAgents |
 
 ## §1 Plan
 ```
-done   bundles 1-3 CLEAN → DG1 outcomes → bigger_outcome:council-bundles-1-3-one-source-fail-closed (4ae3324b2) → council
-       v2 08fc9e701: council false green 128 (home gate misses /data/<user>) → row + Judgment corrected, confidence 0.8 → 0.65
-done   bundle 4 re-mur runs 5-14 (below) · spawn-gate bypass found (SM probe run 10) + closed eeccfbaa1
-NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
-       done: bigger_outcome 1-3 v3 (0.75); → 0.8 when skills/agi-stream :18 :21 are scrubbed (stream-master)
-       bundle 4 CLEAN → [ready] to DG1 (agi-0c) → its outcome(s) → next bigger_outcome (bundle 4, lens vision:sanctuary) → council
-       .6 / .7 bundles (DG3 machinery · DG4 callers · DG5 spawn) as delivered; g7.16.1.6 review carries 108's requirement
+done   bundles 1-3 → bigger_outcome 1-3 v3 (1111fed58; 128 closed; conf 0.75 → 0.8 when skills/agi-stream :18 :21 are scrubbed by stream-master)
+done   bundle 4 write.py chain 129-149 CLOSED · W2c B (g4.18.6.3.2) CLOSED · 128 engine CLOSED · grid fork · W-G
+done   DG1 outcomes: g4.18.5.1 · g4.18.6.1 · g4.18.6.2 · g4.18.6.3.2 · g7.16.1.4.1
+NEXT   after the STOP lifts: re-run on pi-free (1) W2c C 595b9c099 = bundle 4 LAST (2) DG4 busy index 1098822e1
+       W2c C clean → full [ready] to DG1 → DG1 outcome(s) (+ g4.18.5.2 after .2.1/.2.2) → MY bundle-4 bigger_outcome → council
 ```
 
-## §2 Landed (bundle 4, all CC opus, 0 agent errors)
-- run 5 wf_884739ac-f61: closed 91 92 96 97 · opened 106 107
-- run 6 wf_40b19c77-7f2: closed 98 99 100 102 103 104 106 107 + L2a(a) · opened 108-111
-- run 7 wf_7c3c15ad-a10: W1a corrective → 112-115 (113 = SM lens over the refuter: a closed goal's end-state regressed behind a green falsifier)
-- run 8 wf_35fe675a-d5b: L2a(b) → 116 (closed by hand 481ecfde6) · 393992bbf hand-accepted
-- run 9 wf_e2af26ea-3a7: closed 109 111 112 113 · opened 117 118 120 121 (+119)
-- run 10 wf_a494f517-453: W2b.1 → 122 + the create --set parents probe
-- run 11 wf_2ec2e1c6-d2c: W2b.2 → 119 closed · 123 124
-- run 12 wf_928ddd3b-1f1: closed N2 N3 117 121 120a · opened 125 126 127
-- run 13 wf_35753f5e-852: closed 118 122 + the spawn-gate bypass · opened 129
-- run 15 wf_b5c775ea-e89: closed 129 130 (ONE judge, structural) + W2c A 27c454526 + 4a96d8bd0 · opened 131 132
-- run 16 wf_1d7d51dd-720: closed 131 132 + probe (e77d0515a) + W2c B1 (d3f1d80c0) · opened 133 134 (e77) 135 136 (B1) · 4a420102e by hand
-- run 27 wf_74857820-6be: DG5 keys 4abfee9d3 accept_with_residue (no leak/clobber; cond 5 default = ruling → Prime writes key_template) → 157 (card keygen line committed, pin red) 158 (remint key before row: never self-heals) 159 (spawn ignores template) 160 (dry-run sends findings) 161 (no-witness untested)
-- run 26 wf_84774171-117: DG4 cold homing 5a257979b accept_with_residue → 156 FIXED 21a579ba1 accepted by hand (discard after the non-empty refusal cli.py:3478) · heal restart OK'd: b3b0024db 4c6972981 5a257979b 21a579ba1 · DG4 → pair DG5 on .5.5
-- RED 03:21Z: DG4's 1098822e1 swept DG3's canonicalize into HEAD → write.py refused all → DG3 c3c118b3c fixed (HEAD -h rc 0, archive-verified) · DG4 held then released
-- run 25 wf_bcdbb290-f95: g4.18.1.6 a6102199b → 150 (scaffold_hash PROTECTED bypass) 151 (pre-submit gates blind to translated rows) 152 (2 THOUGHTs) 153 (traceback) 154 (not byte-exact; format hunks discarded) 155 cand (ring-fields signs untranslated)
-- by hand: grid fork 6ec1f046c ACCEPT (red parent / green commit; test_grid 147p) → g4.18.6.3.2 ready (DG1 told; DG2 #2)
-- by hand 03:08Z: 148+149 f0768720f + 6e21d9655 (g4.18.1.6 route refusal) ACCEPT (new tests red on parent, green on commit) → write.py chain 129-149 CLOSED
-- run 24 wf_f800b604-eac: 144 b1f0e415f+033d75454 ACCEPT · 145-147 4538ed382 → 148 (000 dest: the check's own read = traceback) 149 (0200 dest: stamp then raise) · fix = os.access(R_OK|W_OK)
-- run 23 wf_e3879214-a8b: 128 engine b0bc1699f (DG4) ACCEPT clean → 128 CLOSED · bigger_outcome 1-3 v3: home row + Judgment restored, conf 0.65 → 0.75 (0.8 when the stream literals are scrubbed)
-- run 22 wf_67b2c3c8-b01: 140 b514b6d47 accept → 144 (empty body_patch - + verb dropped, code-read) · 142+143 eb91a95aa → 145 (2nd-writer blind to shared payload_bytes) 146 (read-only dest stamps then raises) 147 (unreadable src = traceback) · 141 51c664397 by hand
-- run 21 wf_ba35a1b8-2ef: 138 8964a7c62 ACCEPT clean (one _HEAD + one _END; 0/5310 rows change) · notes: brief.py:2520 level3.py:267 links.py:391 own closers → DG2 fork
-- run 20 wf_2e792c7e-029: 139 74f03f003 (empty `patch -` refused) → opened 142 (empty patch RESULT → data None → ValueError after the stamp, :2583) 143 (payload src/dest existence judged after the stamp)
-- run 19 wf_e2faecc7-e15: 136 9a39d55fa ACCEPT clean · 135 3b61f9f73 → opened 141 (test_sm135 asserts twins equal, not == [0, 0]: a both-twin :790 bug or :805 `pass` stays green)
-- run 18 wf_4a1d4109-831: 133 854aceb35 + 134 688d86d6f → opened 138 (END tail) 139 (empty patch - half-writes, PRIORITY) 140 (empty payload - + verb dropped)
-- run 17 wf_c52bee27-302 (stopped at the hold, resumed): B2 7e1bed5b8 ACCEPT clean · B3 9c069f7dc opened 137 (plan_reid unwired + undisclosed)
-- run 14 wf_4c7e5e27-052: closed 123 124 125 126 127 · opened 130
-- by hand: 99 105 108 (ruling 29f5fdbfb, rc 0 kept → commit_node contract in g7.16.1.6) 114 116 101 (g4.19 horizon) · 113 falsifier (68611cef9) · g7.16.1.4.1 F1(files)+F2 clean
-- 120c RULED by DG3 (grep index reads lines; YAML validity = schema/verify) — accepted
+## §2 Landed this gen (CC opus runs 16-28 + by hand; details in each run's journal)
+- runs 16-24: 131-147 opened/closed (THOUGHT marker ONE _HEAD/_END; stdin once; payload one pre-dry judge by VERB; dry == real)
+- run 23: 128 engine b0bc1699f accept · run 26: DG4 cold homing 5a257979b (156 → 21a579ba1 by hand) · heal restarted 03:26:37Z, falsifier PASSED (5 homed, shmem +0M)
+- run 27: DG5 keys 4abfee9d3 → 157-161 (DG5) · Prime writing key_template (cond 5 default = ruling)
+- run 25/28: g4.18.1.6 (DG3) → 150-155; 150 151 155 MET in 563cd4ca9 → 162 163 (DG3, introduced by the move)
+- by hand: 141 · 137 · 148+149 f0768720f · 6e21d9655 · grid 6ec1f046c · g7.16.1.4.1.2 · c3c118b3c (write.py HEAD red: DG4's 1098822e1 swept DG3's canonicalize; fixed)
 
 ## 🔴 Where it stops
 ```
-DONE runs 16 17 18 · 137 09a8397e4 ACCEPTED by hand (THOUGHT closes the site list; plan_reid exempt by contract identity.py:290-292, no caller; note: node stamped edited_by belam, written by DG3)
-RUNNING (2) -- on each verdict: python3 /data/tmp/claude-1000/sm-mur-summary.py ~/.claude/projects/-data-work-agi/fe79b389-fa84-465b-9b05-fcfbf61bfa19/subagents/workflows/<run>/journal.jsonl → residues by SendMessage to the builder
-  run 28 wf_f5dd7397-e6b (task wuny0quue) DG3 150+151+155 563cd4ca9 · W2c C 595b9c099 (bundle 4 LAST) → W2c C clean = full [ready] to DG1 agi-2a
-  run 29 wf_9af85780-af6 (task w2p2f5izr) DG4 g4.18.5.2.1 busy-index 1098822e1 (DG4 part only; canonicalize hunks = DG3's)
-  a successor cannot see these task notifications: read the journals above; a missing result = re-run the round (Workflow name agi-merge-up-review, args = the round text on this card + the commit)
-BUNDLE 4 REMAINDER: W2c C (g4.18.6.3.3, DG3) only → review → full [ready] to DG1 → DG1 outcomes → my bundle-4 bigger_outcome → council
-QUEUES SET (board):
-  DG1 agi-2a: outcomes g4.18.5.1 · g4.18.6.1 · g4.18.6.2 (d156aeba7, council (b): body refs → g4.18.6.4) · NEXT g4.18.6.3.2 (grid PROVED 0.95, 2c56f86d9) · W-G g7.16.1.4.1 closeable after DG2's prose check · g4.18.5.2 after .2.1 + .2.2
-  DG2 agi-7f: g4.18.1.6 held (inconclusive_lean_proved:80, 332dbcc98) · grid PROVED · NOW g7.16.1.4.1.2 prose → W2c C → .5.3.2, .1.4 keys, g4.18.5.2.1/.2.2
-  DG3 agi-91: (1) 150+151(+155) + restate g4.18.1.6 end-state 1 (names replace payload vs ruling 6e21d9655) (2) W2c C (3) 152 153 154 (4) g4.18.5.2.2 -- NOT write.py _commit_write (DG4's)
-  DG4 agi-80: cold homing 5a257979b (run 26) · g7.16.1.4.1.2 DONE + accepted by hand (701e9c16c 1274ad15b) · NOW g4.18.5.2.1 index.lock bounded retry (owns _commit_write)
-  DG5 agi-5b: .5.4 measured (heal homing iter-OSC.07/.01 into MAIN; leaf retired) · .1.4 keys built 4abfee9d3 (run 27) · NOW .5.5 RAM-disk budget line (urgent)
-NEXT: one mur round per fix SHA as DG3 sends them (SendMessage; DG3 = agi-8f [e68acb], two agi-8f → always the ref) · then bundle 4 CLEAN → [ready] to DG1
-MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage; NO send.py, NO rooms · Prime = agi-79 (gen 20)
-4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
-DG3 finding → belam (node owner): hypothesis:l2w6-telemetry-rollup has a scalar next_edges; its schema wants a list
-open elsewhere: _marker_bad_line + brief.py:2520 / level3.py:267 / links.py:391 closers → DG2 one-definition fork · model-store path literals = ONE findings row (alive ruling; room directors)
-At wake / on each run notification: python3 /data/tmp/claude-1000/sm-mur-summary.py <transcript dir>/journal.jsonl → residues to DG3
-Round args shape: ~/.claude/projects/-data-work-agi/9e9e57f4-*/workflows/wf_b5c775ea-e89.json (run 15) · Workflow name agi-merge-up-review
+IDLE on the council STOP. Nothing running. Wake on: a Prime/council "resume", a builder SHA, a director blocker.
+RE-RUN on pi-free when resumed (both died on the Claude usage limit; no verdict):
+  b4-W2cC            595b9c099  (DG3, g4.18.6.3.3, bundle 4 LAST) -- ResolvingDict/Set semantics for consumers; is_node_id_shaped + mint → false links? links broken stays 0
+  g41852-1-busy-index 1098822e1 (DG4, g4.18.5.2.1) -- which git errors count as busy; rc 3 callers; commit by exact path; the swept canonicalize hunks are DG3's
+  round text: journals ~/.claude/projects/-data-work-agi/fe79b389-fa84-465b-9b05-fcfbf61bfa19/workflows/wf_f5dd7397-e6b.json + wf_9af85780-af6.json (args.rounds)
+OPEN RESIDUES: DG3 152 153 (154 at the council: byte-exact vs re-render) 162 163 · DG5 157 158(FIRST: remint key before row) 159 160 161
+BOARD: DG1 waits W2c C + g4.18.5.2 · DG2 checks: keys g7.16.1.7.1.4 → W2c C → g4.18.1.6 re-check → .2.1/.2.2 · DG3 162 163 152 153 (154 ruling) → g4.18.5.2.2 · DG4 session-sweep file-mtime leaf + a .5.5 leaf from DG5 · DG5 .5.5 (urgent) + 157-161
+First command at wake: ListAgents (session names change at every seat); summaries: python3 /data/tmp/claude-1000/sm-mur-summary.py <journal.jsonl>
 ```
 ## §4 Traps
 | trap | rule |
