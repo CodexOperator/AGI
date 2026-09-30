@@ -68,11 +68,24 @@ CONFIG = {
 
 @pytest.fixture()
 def project(tmp_path: Path) -> Path:
-    """A scratch agi project: `.agi/` with a config and a ladder roles table."""
+    """A scratch agi project: `.agi/` with a config and a ladder roles table.
+
+    goal:g1.31.4.1 — the graph carries the two targets the cases below aim
+    at, because a `--dry-run` now REFUSES a target the live path refuses:
+    the fixture projects were dispatching at node ids that did not exist.
+    """
     graph = tmp_path / ".agi"
     (graph / "nodes" / ".geometry").mkdir(parents=True)
     (graph / "config.json").write_text(json.dumps(CONFIG))
     (graph / "nodes" / ".geometry" / "ladder.md").write_text(LADDER)
+    (graph / "nodes" / "hypothesis").mkdir()
+    (graph / "nodes" / "vision").mkdir()
+    (graph / "nodes" / "hypothesis" / "x.md").write_text(
+        "---\nid: hypothesis:x\ntype: hypothesis\ntitle: fixture target\n---\n\n"
+        "body\n")
+    (graph / "nodes" / "vision" / "alive.md").write_text(
+        "---\nid: vision:alive\ntype: vision\ntitle: fixture vision\n---\n\n"
+        "body\n")
     return tmp_path
 
 
@@ -491,8 +504,11 @@ def _g15_project(tmp_path: Path) -> Path:
     cloned-engine boundary the hypothesis names).
     """
     graph = tmp_path / ".agi"
-    (graph / "nodes" / "goal").mkdir(parents=True)
-    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    # exist_ok: goal:g1.31.4.1 — the `project` fixture now also carries a
+    # hypothesis target, so this lineage overlay lands on a graph that
+    # already has the node dirs.
+    (graph / "nodes" / "goal").mkdir(parents=True, exist_ok=True)
+    (graph / "nodes" / "hypothesis").mkdir(parents=True, exist_ok=True)
     (graph / "nodes" / "goal" / "g15.md").write_text(
         "---\nid: goal:g15\ntype: goal\n---\nbody\n", encoding="utf-8")
     (graph / "nodes" / "hypothesis" / "x.md").write_text(
@@ -798,6 +814,36 @@ def test_dry_run_names_branch(project):
     dbase = _branch_facts(det.stdout)["base"]
     assert dbase == "NONE (detached HEAD — a live --branch spawn would refuse)", dbase
     assert dispatch.spawner_base_branch is not None  # live resolver exists
+
+
+def test_dry_run_refuses_unknown_target(project):
+    """goal:g1.31.4.1 conjunct 2 — a dry run REFUSES what the live path
+    refuses. Measured pre-fix: `--dry-run --target <bogus>` exited 0, wrote
+    the placeholder context and reported a spawn that could never happen;
+    the caveat on `.agi/nodes/experiment/a00-eccace59-e6cb6a.md` ("bad
+    --target is not caught by dry-run") held. The refusal must be the SAME
+    line the live spawn prints (`_no_context_refusal`, the live call at
+    dispatch.py:2678) and exit non-zero — while still creating nothing."""
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:no-such-node", "--dry-run")
+    assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
+    assert ("ERR: no context for target 'hypothesis:no-such-node' at level "
+            "small:") in r.stderr, r.stderr
+    # the same wording zoom itself renders for an unknown target
+    assert "not found in the graph loaded from" in r.stderr, r.stderr
+    assert "Refusing to fall back to the whole graph" in r.stderr, r.stderr
+    # gate probe: the resolvable target still reports and still exits 0, so
+    # the refusal is a resolution, not a blanket refusal of every dry run.
+    ok = _run(project, "--harness", "pi", "--tier", "kid",
+              "--target", "hypothesis:x", "--dry-run")
+    assert ok.returncode == 0, (ok.returncode, ok.stdout, ok.stderr)
+    assert "[dry-run] slot=0" in ok.stdout
+
+    # invariant: a refused dry run still takes no session dir, no manifest and
+    # no budget slot — the refusal happens inside the report, before anything.
+    sessions = project / ".agi" / "sessions"
+    assert not sessions.exists() or not list(sessions.rglob("context.md")), (
+        "a refused dry run rendered a context file")
 
 
 def test_dry_run_branch_creates_no_worktree(project):

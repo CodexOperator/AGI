@@ -53,6 +53,7 @@ import geometry_config  # noqa: E402
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it without importing it)
 import node_writer  # noqa: E402
+import zoom  # noqa: E402 -- goal:g1.31.4.1 conj 2: the ONE target resolver
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
 import stall_detect  # noqa: E402 -- hyp:l4-stalled-is-a-state-the-harness-can-see (record, don't repair)
@@ -464,6 +465,15 @@ def zoom_command(root: Path, iter_n: int, agent_id: str,
     # (SL7.111 threaded --tier here too, for the parent "Your Task" prose;
     # SL7.109's block above is the ONE pass-through -- unioned at harvest.)
     return cmd
+
+
+def _no_context_refusal(target, level, detail: str) -> str:
+    """goal:g1.31.4.1 conjunct 2 — ONE refusal line, printed by the LIVE
+    spawn when `zoom_command` fails and by `--dry-run` when the same target
+    fails to resolve, so a dry run is a faithful preview of the refusal and
+    not a second wording of it.
+    """
+    return f"ERR: no context for target {target!r} at level {level}: {detail}"
 
 
 # hypothesis:l3w4-parent-branch-merge-up — per-parent git worktree on a
@@ -1440,6 +1450,19 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         if level == "auto":
             # Resolution-only: we need one deterministic level for the report.
             level = "big"
+        # goal:g1.31.4.1 conjunct 2 — a dry run REFUSES a target the live
+        # path refuses, through the SAME resolver the render path uses
+        # (`zoom.target_resolves`, called by zoom._compose_small) and the
+        # SAME refusal line the live spawn prints (_no_context_refusal).
+        # In-process on purpose: rendering through `zoom_command` would mkdir
+        # the session dir (zoom.py:496), which a dry run must never do.
+        if level == "small":
+            _refused = zoom.target_resolves(root, target)
+            if _refused is not None:
+                print(_no_context_refusal(
+                    target, level, zoom.unavailable_stderr(_refused)),
+                    file=sys.stderr)
+                return 1
         agent_id = f"dry{slot:02d}-{uuid.uuid4().hex[:8]}"
         brief_tier = _brief_tier_for(args.tier, tier_eff, target)
         with tempfile.TemporaryDirectory() as td:
@@ -2675,8 +2698,8 @@ def main() -> int:
             # scoring can only return ids it just read out of the graph, but a
             # hand-passed `--target` can name anything. Say which id failed
             # instead of surfacing a CalledProcessError traceback.
-            print(f"ERR: no context for target {target!r} at level {level}: "
-                  f"{(exc.stderr or '').strip()}", file=sys.stderr)
+            print(_no_context_refusal(
+                target, level, (exc.stderr or "").strip()), file=sys.stderr)
             if branch_ref:
                 drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
