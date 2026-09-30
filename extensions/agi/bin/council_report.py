@@ -164,11 +164,12 @@ def add(root: Path, run_key: str, args: dict, writer=write_body, reader=None) ->
                                       RESIDUE_HEADER, unique=True)
             writer(root, leaf, cache[leaf])
             out.append(f"{key}: {source} residue -> {leaf} ({title})")
-        landed = sum(1 for ln in (read(root, leaf) if r["residues"] else "").splitlines()
-                     if ln.strip().startswith("|") and f"| {key} |" in ln)
-        if landed != len({(s, t) for t, s in r["residues"]}):
-            raise SystemExit(f"council_report: round {key} counts "
-                             f"{len(r['residues'])} residues, {landed} landed")
+        want = {f"| {key} | {s} | {t} |" for t, s in r["residues"]}   # THIS run's rows only
+        landed = len(want & {ln.strip() for ln in (read(root, leaf) if want else "").splitlines()})
+        rep_ok = row in read(root, report)   # the report row is re-read too
+        if landed != len(want) or not rep_ok:
+            raise SystemExit(f"council_report: round {key} counts {len(want)} residues, "
+                             f"{landed} landed, report row {'ok' if rep_ok else 'MISSING'}")
         out.append(f"{key}: {row}")
     return out
 
