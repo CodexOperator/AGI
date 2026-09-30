@@ -4020,6 +4020,23 @@ def _commit_wait_s(root) -> float:
         return 30.0
 
 
+def _commit_message(root, node_id: str, actor: str = "") -> str:
+    """goal:g4.18.5.2.2 -- a write's commit message, from the ONE cell
+    `write.commit_message` (+ `write.commit_actor`) in the project's
+    .agi/config.json, else the engine repo's own (a cloned engine carries it).
+    No template literal here: a config without the cell names the node alone."""
+    import json
+    for cfg in (Path(root) / "config.json", Path(__file__).resolve().parents[3] / ".agi" / "config.json"):
+        try:
+            cell = json.loads(cfg.read_text(encoding="utf-8")).get("write") or {}
+        except (OSError, ValueError, AttributeError):
+            continue
+        if cell.get("commit_message"):
+            by = cell.get("commit_actor", "").format(actor=actor) if actor else ""
+            return cell["commit_message"].format(node_id=node_id, actor=by)
+    return node_id
+
+
 def _commit_write(root, node_id: str, res, actor: str = "") -> tuple[str | None, bool]:
     """goal:g4.18.5.2 -- the CLI write, after the gate, is ONE commit of its
     own node (+ its payload) by exact path. In main() only: submit() is the
@@ -4041,7 +4058,7 @@ def _commit_write(root, node_id: str, res, actor: str = "") -> tuple[str | None,
                                     capture_output=True, text=True)
     if not paths or git("rev-parse", "--is-inside-work-tree").returncode:
         return None, False
-    msg = f"write.py: {node_id}" + (f" ({actor})" if actor else "")
+    msg = _commit_message(root, node_id, actor)
     recover = (f"git -C {root} add -- {' '.join(paths)} && "
                f"git -C {root} commit -q -m {shlex.quote(msg)} -- {' '.join(paths)}")
     import verification  # noqa: PLC0415 -- the ONE live-holder read (residue 93)
