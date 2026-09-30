@@ -157,6 +157,7 @@ class Edit:
     fm_row_resolved: bool = False
     replace_from: str = ""
     replace_text: str = ""
+    replace_stdin_read: bool = False   # `replace ... -` consumed stdin (possibly empty)
     # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
     # the explicit consent that admits a body range the structural guard
     # would otherwise refuse (`_body_range_refusal`). Spelled as a prefix on
@@ -2292,11 +2293,8 @@ def _resolve_replace_text(edit: Edit) -> None:
         # Same stdin contract as `payload -` / `patch -`: replacement text is
         # arbitrary content and cannot ride an `&&` script chunk.
         edit.replace_text = sys.stdin.read()
-        if edit.replace_text == "":   # SM 132 probe: fail-closed like an empty file, read ONCE
-            raise EditError("replace source '-' (stdin) is empty — refusing to replace a "
-                            "range with an empty source (it would delete the range). "
-                            "Nothing written.")
-        return
+        edit.replace_stdin_read = True   # SM 132 probe: an EMPTY stdin is resolved too (a
+        return                           # deliberate deletion, pinned) -- never read twice
     try:
         text = Path(edit.replace_from).read_text(encoding="utf-8")
     except OSError as exc:
