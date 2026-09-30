@@ -42,8 +42,9 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           -> GO -> land -> goal:g1.31.3.2 complete; email_allow cell (systemd-unit address shape) owed by the Prime -> SM/Prime with the merge-up
               g7556: DG3.50 tip 574a307b1c -> mur g7556d FAILED 15:51Z (memcap verify timed out; review + shell verify accept_with_residue) ->
           director moved the ram-recharge conjunct out of the hypothesis (-> goal:g7.16.1.5.5.6.1) -> CORRECTIVE DH.DG3.57 on loop tip 2d76bf17b4
-          (liveness not presence, fail-open fstype_at/execvp, mount escapes, one ramw file, node verdicts) -> parent a00-b9773bd6 from
-          /mnt/agi-ram/worktrees/de-base-DG3.57 -> harvest -> re-mur 2d76bf17b4..tip -> residues 0 -> [merge-up] -> GO -> land -> goal:g7.16.1.5.5.6 complete
+          (liveness not presence, fail-open fstype_at/execvp, mount escapes, one ramw file, node verdicts) -> HARVESTED 16:07Z tip 2f46e5f159
+          (131p/8s, caps met, item-5 nodes landed by director) -> re-mur unit agi-director-general-3-dg3mur-g7556e-1608 (/tmp/dg3_mur-g7556e.json)
+          worktree /mnt/agi-ram/worktrees/a00-b9773bd6 -> residues 0 -> [merge-up] -> GO -> land -> goal:g7.16.1.5.5.6 complete
        g7.16.1.10.3 (queue 1, CLAIMED active 9a8b4559cc): hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model 5a6fecd879 ->
           DG3.51 HARVESTED 14:59Z tip 2f375f5154 -> mur h10103 DONE 15:29Z: both slices accept_with_residue, verify upheld 12 items -> CORRECTIVE
           DH.DG3.54 on the loop tip 8725ffca96 (findings rows 39 + 40) -> parent a00-9ed505e4 from /mnt/agi-ram/worktrees/de-base-DG3.54
@@ -53,7 +54,9 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           a00-22bc89b4 from /mnt/agi-ram/worktrees/de-base-DG3.56 -> harvest -> re-mur 7e014c3646..tip; the dropped conjunct = goal:g1.31.4.1.1 (horizon, 4f235b7bc1)
           -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g1.31.4.1 + g7.16.1.5.4 complete
 LIVE   g7.16.1.10.5 (CLAIMED 66443d8fa8): hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-residues 50603f2b1e ->
-          DG3.53 parent a00-af9ca035 (branch season2/loops/hypothesis-g716105-council-repor-a00-af9ca035) -> harvest -> mur; cell council.residue_leaves -> SM/Prime
+          DG3.53 HARVESTED 16:03Z tip 79500d258c: parent DEMOTED (residue rows keyed by round), council_report.py 218/120, 2 kids/1 (row 41);
+          doc:council-report landed by director 1077e45cb1 (bytes == log) -> CORRECTIVE DH.DG3.58 on 53e048ed8c -> parent a00-f43e8762
+          (/mnt/agi-ram/worktrees/de-base-DG3.58) -> harvest -> ONE mur 66443d8fa8..tip over the chain; cell council.residue_leaves -> SM/Prime
 QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 (mechanical REDs) -> .10.5 (ONE council report node)
        FIRST after dg6-04 lands (SM 15:23Z): hypothesis:g73320-write-rows-pass-in-the-full-suite-once-the-poisoning-leak-is-fixed 7773a02da9 (trunk red, write.py lane)
        -> .10.7 (THE MERGE GATE: refusal logic + retire skills/agi-merge-pass §2 steps 2-4 + 6 by name in the same commit; §2 step 5 stays
@@ -72,7 +75,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 LANDED 15:23Z;LIVE: re-mur dg6-04g, parents DG3.53 a00-af9ca035 + DG3.54 a00-9ed505e4 + DG3.56 a00-22bc89b4 + DG3.57 a00-b9773bd6. First command on wake:
+g133 LANDED 15:23Z;LIVE: re-murs dg6-04g + g7556e, parents DG3.58 a00-f43e8762 + DG3.54 a00-9ed505e4 + DG3.56 a00-22bc89b4. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
