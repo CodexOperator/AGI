@@ -63,6 +63,7 @@ post row = live cells (session id · pid · pane id) + mint-id LINKS (renderer �
 - **A switch-over is atomic.** The new resolved config is written beside the old and ONE symlink rename swaps it; no reader ever sees neither.
 - **Seat claiming needs no model act.** heal assigns a post's keys from a key template (kind and forgiving in season 2), and a key row lands on the post's own trunk too, never on one trunk alone.
 - **The guard is in the graph** (landed 09-30 by the Prime: guard-init.sh, sanctuary-health, sanctuary-watch and GUARD.md as build nodes, guard.env as config:guard). Its settings are keyed by box class, never by host name.
+Every engine event reaches a post through its pane: goal:g7.16.1.7.3 (the magic pane, owned by the post ROW and handed across rotations; renumbered from g7.16.1.9, council 01:3xZ 09-30).
 Nested: goal:g7.16.1.7.1 (7a NOW: the stand-up verb, the first-turn render, the pi template, heal keys) · goal:g7.16.1.7.2 (7b AFTER goal:g7.16.1.6 + goal:g4.18.6: the walk, the swap, one resolver, the post row as links, formations as templates). Targets no leaf carries yet, to sketch as leaves when their dependency lands: the harness adapter maps (the spine) · the render display modes · context docs linked from the post row.
 
 ## Invariants
@@ -81,7 +82,7 @@ Nested: goal:g7.16.1.7.1 (7a NOW: the stand-up verb, the first-turn render, the 
 5. Negative: 0 pi-free / pi-local template pairs · 0 model or effort literals in rotate.py / heal.py launch paths · 1 resolver where there were 5 · a 6-hop template chain yields exactly ONE named finding.
 
 ## Out of scope
-goal:g7.16.1.4 (bundle 4) · goal:g7.16.1.6 (the write form this line's writes adopt automatically, since write.py is the one writer) · goal:g7.32.6 (messaging: its wake joins this line's adapter map) · goal:g7.16.1.8 (box stand-up: it reuses this line's walk) · the magic pane system (after this line: tmux is linked to posts) · season-3 key templates and per-post user accounts.
+goal:g7.16.1.4 (bundle 4) · goal:g7.16.1.6 (the write form this line's writes adopt automatically, since write.py is the one writer) · goal:g7.32.6 (messaging: its wake joins this line's adapter map) · goal:g7.16.1.8 (box stand-up: it reuses this line's walk) · season-3 key templates and per-post user accounts.
 
 ## Agent Notes
 Assigned to **director-general-5**.
