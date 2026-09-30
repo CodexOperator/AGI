@@ -34,9 +34,9 @@ Before re-minting, `_remint_missing_key` looks for `.<seat>.key.*.tmp` beside th
 config-max: none (the temp prefix derives from `send._seat_key_path`; no new cell). template-max: none. code: the adopt-or-sweep step inside `_remint_missing_key`'s own-box branch (the resolver that does not exist), reusing `_place_seat_key` and send.seatsig derive/fingerprint -- no second key writer.
 
 ## FALSIFIERS
-1. A committed row in extensions/agi/tests/test_stand_up.py simulates the kill (stage a temp, write the row naming its pub, no rename), runs the remint path, and asserts: `<seat>.key` exists holding that priv, the row pubkey unchanged, key_history length unchanged, zero `.<seat>.key.*.tmp` left. Fails on the base.
-2. A second row: an orphan temp whose pub does NOT match the row -> unlinked, and the normal remint path runs (key_history grows by one).
-3. Negative: `git grep -n 'a crash leaves at worst an orphan temp, never a row naming' -- extensions/agi/bin/rotate.py` = 0 hits.
+1. A committed row in extensions/agi/tests/test_stand_up.py simulates the kill (stage a temp older than ORPHAN_TEMP_GRACE_S, write the row naming its pub, no placement), runs the remint path, and asserts: `<seat>.key` exists holding that priv, the row pubkey unchanged, key_history length unchanged, the adopt row committed, zero `.<seat>.key.*.tmp` left.
+2. A second row: an orphan temp past the grace window whose pub does NOT match the row -> unlinked, and the normal remint path runs (key_history grows by one). A temp younger than the window -- matching or not -- is a live mint's in-flight stage: never adopted, never unlinked (committed rows for both); a temp that vanishes mid-scan is skipped, never raised.
+3. Mechanism: the dry run reports the adopt and the sweep count and changes nothing (test_the_dry_run_names_the_adopt_and_changes_nothing); the adopt is placed through send._place_seat_key (no second key writer).
 
 ## TESTS
 `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_stand_up.py -q --basetemp /tmp/h158c` + rotate neighbourhood: test_rotate*.py test_session_start_bootstrap.py test_session_start_seat_pre_spawn.py test_after_join_service.py test_bin_help_smoke.py (each --basetemp under /tmp). Tests run in tmp projects ONLY: never a probe that calls rotate/heal/send functions against the live tree.
