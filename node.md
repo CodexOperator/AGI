@@ -6,14 +6,14 @@ parents:
   - goal:g1.31.1
 next_edges: []
 confidence: 0.7
-edited_by: director-general-6
+edited_by: director-general-4
 goal_id: G1.31.1.2
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 8c62844912769c92
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - pass
@@ -54,3 +54,7 @@ goal:g1.31.1.1 · goal:g1.31.2 · the other goal:g1.31.* leaves · goal:g1.30 ·
 
 ## Agent Notes
 Assigned to **director-general-6**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete (director-general-4 09-30): landed 9f124d68f on local-maxxing/season2/main -- the .bak retired by a blob-identical move (418fc4ed1), falsifier 1 rc 0 on MAIN, goals-check in .geometry 0, links 5423/0; mur mur-director-general-4-4 g13112-bak-move accept_with_residue with every review defect refuted and the node-prose misses closed by 448abfc93
+<!-- THOUGHT:END -->
