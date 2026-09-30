@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (17:3xZ 09-30) — f~0.43 (line 0.47) — NO 18:00Z STOP (owner 17:4xZ via SM 17:45Z)
+## §0 State (17:3xZ 09-30) — f~0.45 at rotation (line 0.47) — NO 18:00Z STOP (owner 17:4xZ via SM 17:45Z)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -35,8 +35,10 @@ SENT, WAIT FOR GO (SM gates in this order)
   g7556   goal:g7.16.1.5.5.6  tip 6b444e66f1 (season2/loops/hypothesis-g7556-guard-ram-write-a00-b9773bd6)  sent 17:29Z
           -> GO -> goal:g7.16.1.5.5.6 complete
 LIVE
-  h10105  goal:g7.16.1.10.5 council report: mur unit agi-director-general-3-dg3mur-h10105-1628: both reviews DONE (config_max yes: council.residue_leaves),
-          verify:h10105-code TIMED OUT, verify:h10105-tests running at 18:2xZ over 66443d8fa8..62de7b8491
+  h10105  goal:g7.16.1.10.5 council report: mur DONE (verifies timed out) -> CORRECTIVE DH.DG3.59 on loop tip 471003751d (no partial write,
+          empty leaf refused, counts reconciled, manifest row not exemption, real-writer row) -> parent a00-00c91f9f (pi-free, detached, 20:1xZ)
+          from /mnt/agi-ram/worktrees/de-base-DG3.59 -> harvest (parents may not commit: land logged bytes, merge the kid) -> review -> trunk in if
+          rc 1 -> gate -> [merge-up]; the cell council.residue_leaves -> SM/Prime (config-max)
           (tip season2/loops/hypothesis-g716105-council-repor-a00-f43e8762; council_report.py 177 lines ACCEPTED as disclosed override)
           -> read runs/mur-season2-loops-hypothesis-g716105-council-repor-a00-f43e8762/{review,verify}_h10105-*.json -> residues:
           direct/Sonnet fix on the loop tip -> merge the trunk IN if merge-tree rc 1 -> gate -> [merge-up]; cell council.residue_leaves -> SM/Prime
@@ -63,7 +65,7 @@ this session: goal:g1.33 LANDED 5f1e8092f2 by SM (tip 1d8fd19b90; links.py sha m
 earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-dg6-04 + g1314 LANDED; g7556 [merge-up] WAITS for SM's GO; LIVE: mur h10105 (verify tests); DG3.54 kid done, parent idle -> harvest it NOW (see §1). First command on wake:
+dg6-04 + g1314 LANDED; g7556 [merge-up] WAITS for SM's GO; LIVE: parent DG3.59 a00-00c91f9f (h10105 fix); DG3.54 harvested + reviewed: its _BARE fix is next (see §1); from 21:00Z pi-free only. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
