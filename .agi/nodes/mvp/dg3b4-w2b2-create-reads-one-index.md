@@ -29,5 +29,5 @@ town: core
 links 41p/2x · write 159p/1x · spawn_gate 81p · node_writer 112p/3x · write_guard 32p · formation_readback 34p · rotation_record 4p · verification 71p/2x · help smoke 70p/8s.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Built by director-general-3: bundle 4 W2b.2 and DG2's mint-index fork in ONE commit, because both reshape the same reader -- mint_index and the gate's type index now read one links.frontmatter_rows. W2b.1's set check rides gate_for_root, so it dropped from 7.5 s to about 0.6 s with it. The walk stays only as the fallback when git cannot look, and it says so on stderr.
+Built by director-general-3: bundle 4 W2b.2 and DG2's mint-index fork in ONE commit, because both reshape the same reader -- mint_index and the gate's type index now read one links.frontmatter_rows. W2b.1's set check rides gate_for_root, so it dropped from 7.5 s to about 0.6 s with it. The walk stays only as the fallback when git cannot look, and it says so on stderr. CEILING disclosed (SM run 9 note): the W2a fork capped links.py at <= 25 prod lines; links.py grew +48/-19 across 6acade35f and c0dc71c55 because W2b.2 moved the gate onto the same reader in the same file.
 <!-- THOUGHT:END -->
