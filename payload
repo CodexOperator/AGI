@@ -2000,7 +2000,7 @@ def main() -> int:
     # an explicit flag, a seat, or a non-zero-cost parent keeps the old path.
     if (args.harness is None and args.seat is None and args.tier == "kid"):
         inherited = os.environ.get("AGI_HARNESS")
-        inherited_row = (cfg.get("harnesses") or {}).get(inherited) or {}
+        inherited_row = adapters.harness_block(cfg, inherited)
         if inherited_row.get("zero_usd") is True:
             args.harness = inherited
             print(f"harness: inherited zero_usd harness {inherited} from AGI_HARNESS")
@@ -2107,7 +2107,7 @@ def main() -> int:
             # a NON-INPUT: ONE stderr warning naming the winning row, never a
             # silent read. The stale cells are read nowhere after this line.
             _legacy_model_srcs = []
-            _h = (cfg.get("harnesses") or {}).get(harness_name) or {}
+            _h = adapters.harness_block(cfg, harness_name)
             if _h.get("models"):
                 _legacy_model_srcs.append(f"harnesses.{harness_name}.models")
             if (cfg.get("agent_dispatch") or {}).get("model"):
