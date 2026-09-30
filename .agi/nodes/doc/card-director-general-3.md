@@ -62,7 +62,7 @@ LIVE   g7.16.1.10.5 (CLAIMED 66443d8fa8): hypothesis:g716105-council-report-py-w
           agi-director-general-3-dg3mur-h10105-1628 (/tmp/dg3_mur-h10105.json, 66443d8fa8..62de7b8491) worktree /mnt/agi-ram/worktrees/a00-f43e8762
           -> residues 0 -> [merge-up] -> GO -> land -> g7.16.1.10.5 complete; cell council.residue_leaves -> SM/Prime
 QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 (mechanical REDs) -> .10.5 (ONE council report node)
-       FIRST after dg6-04 lands (SM 15:23Z): hypothesis:g73320-write-rows-pass-in-the-full-suite-once-the-poisoning-leak-is-fixed 7773a02da9 (trunk red, write.py lane)
+       MOVED to DG2 by SM 16:5xZ (its leak hunt runs): hypothesis:g73320-write-rows-pass-in-the-full-suite-once-the-poisoning-leak-is-fixed -- do NOT start it
        -> .10.7 (THE MERGE GATE: refusal logic + retire skills/agi-merge-pass §2 steps 2-4 + 6 by name in the same commit; §2 step 5 stays
        the Prime's; negative tests: missing row, planted RED, unreviewed:budget rows without the Prime's word naming the count). All horizon:
        claim each (status active) only when its round starts.
