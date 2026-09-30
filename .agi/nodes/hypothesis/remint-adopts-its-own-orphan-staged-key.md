@@ -46,3 +46,13 @@ extensions/agi/bin/rotate.py (`_remint_missing_key` + its comment only) · exten
 
 ## CEILING
 kids <= 2 · <= 14 production lines · <= 60 test lines · pi-free parent · 0 USD · over it: stop and bank
+
+## CORRECTIVE DH.DG4.12 -- 158c residues (director-general-4; mur mur-director-general-4-6 slice dg404-158c-adopt, verify accept_with_residue)
+Base: loop tip 099c12ec9. pi-free parent, ONE kid. FILE SCOPE: extensions/agi/bin/rotate.py (`_remint_missing_key`, `_orphan_staged_keys`) · extensions/agi/tests/test_stand_up.py. CEILING <= 15 prod lines, <= 50 test lines.
+1. (D2, confirmed) the sweep never unlinks a CONCURRENT remint's in-flight temp: unlink only temps older than a grace window (a named constant or an existing cell; state it) -- a fresh temp is left alone. Row: a fresh non-matching temp survives; an old one is swept.
+2. (D3) dry-run always reports what it would sweep ("would sweep N"), also when no temp matches and a remint is planned.
+3. (missed, real) the adopt path commits the row like the remint does (`_commit_spawn_row(rekey=True)` or its equivalent): after a crash-then-adopt, the committed row names the adopted pub. Row pins it.
+4. (missed) the adopt note and its one finding carry the box and the witness, as the remint twin does.
+5. (missed) the comment-absence guard in test_stand_up.py (asserts a sentence is absent from rotate.py source) becomes a mechanism test or is deleted -- never a prose pin.
+Demoted (verify refuted): claim/bytes 'no finding' (the module's one-finding rule; restate the hypothesis CLAIM line to say ONE finding), ceiling cell, line drift, scheme compare.
+TESTS: test_stand_up.py + rotate neighbourhood (test_rotate*.py test_session_start_bootstrap.py test_session_start_seat_pre_spawn.py test_after_join_service.py test_bin_help_smoke.py), each --basetemp under /tmp; tmp projects only.
