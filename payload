@@ -179,6 +179,9 @@ class Edit:
     sub_resolved: bool = False
     # conjunct 3: one `(target, old, new, all)` op per `sub`; applied in order.
     sub_ops: list = field(default_factory=list)
+    # SM 145: every payload-writing VERB as parsed -- `payload`, `payload -` and
+    # `payload_text` all fill payload_bytes, so the fields cannot count them
+    payload_verbs: list = field(default_factory=list)
     # hypothesis:l4-a-ring-decision-carries-m-of-n-signatures -- the ring
     # signatures backing a non-self-row config write that a `ring:`-declaring
     # schema demands (rung 2). Each is `<post>:<scheme>:<sig_hex>` over the
@@ -359,6 +362,7 @@ def verb_payload_text(edit: Edit, text: str) -> Edit:
     (`payload -`). The Python API has no such limit.
     """
     edit.payload_bytes = text if text.endswith("\n") else text + "\n"
+    edit.payload_verbs.append("payload_text")
     return edit
 
 
@@ -400,6 +404,7 @@ def verb_patch(edit: Edit, source: str) -> Edit:
     grid version all happen exactly as they do today.
     """
     edit.patch_from = source
+    edit.payload_verbs.append("patch")
     return edit
 
 
@@ -466,6 +471,8 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     edit.replace_target = target
     edit.replace_range = rng
     edit.replace_from = source
+    if target == "payload":
+        edit.payload_verbs.append("replace payload")
     return edit
 
 
@@ -652,6 +659,8 @@ def verb_sub(edit: Edit, spec: str) -> Edit:
     if not old:
         raise EditError("sub `<old>` is empty -- nothing written")
     edit.sub_ops.append((target, old, new, False))
+    if target == "payload":
+        edit.payload_verbs.append("sub payload")
     edit.sub_target, edit.sub_old, edit.sub_new = target, old, new
     return edit
 
@@ -710,6 +719,7 @@ def verb_payload(edit: Edit, source: str) -> Edit:
     front end rather than a second way in.
     """
     edit.payload_from = source
+    edit.payload_verbs.append("payload")
     return edit
 
 
@@ -2468,7 +2478,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         raise EditError("payload - (stdin) is empty: no bytes to write -- nothing written")
     _writers = [bool(edit.payload_from), bool(edit.payload_bytes),
                 bool(edit.patch_from or edit.patch_diff), edit.replace_target == "payload"]
-    if sum(_writers) > 1:   # SM 143: two sources raised ValueError AFTER update_node stamped the node
+    _verbs = edit.payload_verbs   # SM 145: repeated `sub payload` ops compose; any other pair drops one
+    if sum(_writers) > 1 or len(set(_verbs)) > 1 or sum(v != "sub payload" for v in _verbs) > 1:
         raise EditError("one payload writer per submit: payload, payload_text, patch and "
                         "replace payload cannot share a line -- nothing written")
     touches_payload = any(_writers)
@@ -2557,9 +2568,14 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         if edit.payload_from:
             if not Path(edit.payload_from).is_file():
                 raise EditError(f"payload source {edit.payload_from} is not a file -- nothing written")
-            payload_data = Path(edit.payload_from).read_bytes()
+            try:
+                payload_data = Path(edit.payload_from).read_bytes()
+            except OSError as exc:   # SM 147: rc 2 + ERR, never a traceback
+                raise EditError(f"payload source {edit.payload_from} cannot be read ({exc}) -- nothing written")
         else:
             payload_data = edit.payload_bytes.encode()
+        if not os.access(_dest, os.W_OK) and _dest.read_bytes() != payload_data:   # SM 146: replace_payload
+            raise EditError(f"payload {_dest} is not writable -- nothing written")   # writes in place
 
     # PRIME RULING 2026-09-11 facts-region gate: a master-sensei BODY edit on
     # a `master_sensei_row`-governed node may change ONLY the `## facts`
