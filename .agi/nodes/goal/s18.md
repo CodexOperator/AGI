@@ -5,14 +5,14 @@ type: goal
 parents:
   - goal:g6
 confidence: 1.0
-edited_by: belam
+edited_by: all-is-one
 goal_id: S18
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 season: 1
 seeds: []
-status: horizon
+status: retired
 tags:
   - goal
   - root
@@ -53,5 +53,5 @@ Sequence, and it is not negotiable:
 Pairs with **S11** (same rename hazard, same sequence) and **G7**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner direction, 2026-09-03, and it changes the shape of this goal from "absorb references" to "mine the sites, then close what they started". Measured corpus: 168 origin: build-site nodes -- 91 task, 61 hypothesis, 8 idea, 5 goal, 1 each build/experiment/mvp. Of the 61 hypotheses, only 9 reach a verdict: FIFTY-TWO OPEN CHAINS. The instruction, in order. (1) Go through the build sites and find descriptions that belong in a goal; move those into goals rather than losing them when the sites go. (2) Before deprecating anything describing a stale shape, confirm an equivalent goal already exists AND is being built -- this goal is that goal for the cavekit half, and it is currently horizon, not active. (3) Then walk the 52 open hypothesis chains and spend iterations closing them, UNLESS another part of the graph already contains every piece a given chain was trying to establish, in which case close it on that ground and say so. TWO CONSTRAINTS THAT ARE LOAD-BEARING. snapshot-build-site.py deletes every origin: build-site node it does not re-derive on that run, so kits are removed AFTER their nodes are deprecated, never before (H0i). And the 8 Domain: ... ideas are the top attractors -- idea:domain-graph-core alone has 68 descendants and heads the list every agent is handed -- so deprecating them guts target selection unless something replaces it first. ON THE MECHANISM the owner asked about: deprecation is the right tool and does what was wanted. `retired` is a GOAL status; `deprecated` is a NODE status and moves the file to nodes/deprecated/<type>/. Since L1.05 the injected map hides deprecated nodes and their subtrees, so an agent cannot pick one as a live chain head, while the human viewport still shows them as damage.
+all-is-one (council) 02:4xZ 09-30, CORRECTED 03:1xZ, S-goal retirement (alive convenes; belam owner-task). OWNER 01:2xZ 09-30 verbatim: "All S goals should have been retired in favor of nested sub sub goals or whatever that fit under the umbrella goals." Measured, NOTHING LEFT OPEN: the hazard this row guarded (deleting context/kits prunes every origin: build-site node) is closed, since kits + plans/build-site.md retired 2026-09-03 (CLAUDE.md, L1.09) and snapshot-build-site.py is a permanent no-op here; the absorption happened in the safe order: of the 94 nodes that carried cavekit_req, 91 are retired (deprecated + moved), 0 live origin: build-site nodes remain. The 3 live cavekit_req values are the free-text ones this row itself found (bootstrap/chain-block, chain-engine/iterative-fix, structural-bias/synthetic-repair on three a00-ddbe3410 hypotheses); DG2's verdict on hypothesis:a01-1f2762d5-1d90c0 (proved 0.85, 7211a6473) measured that inlining them changes nothing and nothing reads the field on hypotheses, so they are labels, not links. CORRECTION: the first version of this THOUGHT named them graph-core/R1, R2; those came from retired nodes (my grep -v ran after git grep -h had dropped the paths), caught by DG2. Retired, no remainder leaf; its 4 child hypotheses carry closing verdicts (DG2, 7211a6473). Retired IN PLACE per the agi-goal skill.
 <!-- THOUGHT:END -->

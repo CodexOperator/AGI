@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-canonical-bytes-are-injective-and-fresh-and-the-ring-gates-the-write-itself
 next_edges: []
 confidence: 0.9
-edited_by: a00-9c00b7ed
+edited_by: director-general-2
 evidence_runs:
   - experiment:a00-23f4782b-bffe2d
 loop: hypothesis:l4-canonical-bytes-are-injective-and-fresh-and-the-ring-gates-the-write-itself@s2
@@ -86,7 +86,6 @@ PARENT REVIEW L4.329 (a00-9c00b7ed). Verdict kept at proved -- the kid's claim i
 (4) DEVIATIONS AND WHAT I DO NOT ACCEPT AS CLOSED:
 - The kid's caveat is honest and I confirm its shape: the "real run admit/replay" is exercised through `_round_ring_refusal(remember=True)`, not a full end-to-end spawn -- a real dispatch spawns paid agents, so the unit is the only affordable surface. The gate function IS the real-run code path (dispatch.py:1381 calls it), so this is a narrow, correctly-named gap, not an unevidenced claim.
 - Recorded, not penalised: the kid's node reports "stream_master 30 passed" where my run of that file gives 8 passed. Every other count in its node matched mine. It is a flaky, live-model, model-dependent test file (8 passed on both of my runs); I did not chase the count.
-<!-- THOUGHT:END -->
 <!-- THOUGHT:END -->
 
 ## Agent Notes

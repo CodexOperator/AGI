@@ -5,7 +5,7 @@ type: experiment
 parents:
   - goal:g2.14
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 season: 1
 tags:
@@ -40,7 +40,7 @@ node ids silently shadowed on disk, and whether chain search got cut short.
 ACTIVITY reads `git log -1 --format=... -- nodes` (read-only) with an mtime
 fallback for non-git projects, named explicitly in the output either way.
 
-**Measured, against `/home/ubuntu/work/agi-tree` (534 graph nodes, 552 files
+**Measured, against `<home>/work/agi-tree` (534 graph nodes, 552 files
 on disk, 18 goals):**
 
 - runtime: **~2.0s** (`time python3 dashboard.py --project agi-tree --no-color`, wall clock, cold)

@@ -1230,3 +1230,52 @@ def test_nof_flag_default_resolves_a_valid_env_root(tmp_path):
                        env=env)
     assert r.returncode == 0, r.stderr
     assert f"target dir: {proj / '.agi' / 'nodes' / 'build'}" in r.stdout
+
+
+# --- bundle 4 W2c (director-general-2)
+# GREEN since goal:g4.18.6.3.3 (level3.read_mvp_map keeps a mint id as written)
+def test_w2c_mvp_map_accepts_a_mint_id_like_an_address(tmp_path):
+    f = tmp_path / "mvp-map.txt"
+    f.write_text("bin/ | mvp:engine-bin\n")
+    addr = l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f))
+    f.write_text("bin/ | " + "c" * 32 + "\n")
+    assert addr == "mvp:engine-bin" and l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f))
+
+
+# --- bundle 4 W2d-b (director-general-2) -- goal:g4.18.6.4.2
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2d-b: RED until DG3 builds "
+                   "level3's parent address -> mint_id resolve (level3.py:1127)")
+def test_b4_w2db_build_node_parent_is_the_census_ideas_mint_id(project, engine):
+    run(project, engine)
+    mint = fm_of(project / "nodes" / "idea" / "engine-graph-core.md")["mint_id"]
+    _path, fm = level3_nodes(project)["build:src-graph-core-node"]
+    assert identity.is_valid_mint_id(mint) and fm["parents"] == [mint]
+
+
+# --- bundle 4 W2c re-scope C (director-general-2) -- goal:g4.18.6.3.3
+def _w2cc_twin(tmp_path, mint: bool):  # vision:v <- goal:g, experiment:e; links as addresses or mint ids
+    ids = {"vision:v": "a" * 32, "goal:g": "b" * 32, "experiment:e": "c" * 32}
+    ref, root = (lambda a: ids[a] if mint else a), tmp_path / ("mint" if mint else "addr")
+    for nid, par in (("vision:v", ""), ("goal:g", "vision:v"), ("experiment:e", "")):
+        t, s = nid.split(":")
+        (root / "nodes" / t).mkdir(parents=True, exist_ok=True)
+        (root / "nodes" / t / f"{s}.md").write_text(f"---\nid: {nid}\nmint_id: {ids[nid]}\ntype: {t}\n"
+                                                    f"parents: [{ref(par) if par else ''}]\n---\n")
+    (root / "sd").mkdir()
+    (root / "sd" / "[shape].md").write_text("---\nparentless_types: [moral]\nmax_parents_ceiling: 2\n---\n")
+    (root / "sd" / "[hypothesis].md").write_text("---\nname: hypothesis\nspawn: {allowed_parents: [goal], "
+                                                 "min_parents: 1, max_parents: 1}\n---\n")
+    return root, ref("goal:g"), [ref("experiment:e")]
+
+
+# GREEN since goal:g4.18.6.3.3 (spawn_gate + evidence_gate read mint ids through links.resolving)
+def test_w2cc_gates_pass_a_mint_id_parent_exactly_as_its_address_twin(tmp_path):
+    import evidence_gate as eg, spawn_gate as sg  # bin/ is on sys.path via level3.py:88
+    seen = []
+    for mint in (False, True):
+        root, gp, ev = _w2cc_twin(tmp_path, mint)
+        nd, rules = root / "nodes", sg.load_spawn_rules(root / "sd", root=root)
+        seen.append((sg.check_spawn("hypothesis", [gp], rules=rules, type_index=sg.build_type_index(nd)).status,
+                     sg.nearest_vision(nd, [gp]), eg.normalize_evidence_runs(ev, corpus=eg.build_corpus(nd)),
+                     len(eg.evidence_runs_violations(ev))))
+    assert seen[0] == ("approved", ("vision:v", "core"), 1, 0) and seen[1] == seen[0], seen

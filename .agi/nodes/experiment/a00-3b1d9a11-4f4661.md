@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-graph-as-a-golden-3d-web-in-two-layers
 next_edges: []
 confidence: 0.85
-edited_by: a00-be97b565
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-3b1d9a11-4f4661
 loop: hypothesis:l4-the-graph-as-a-golden-3d-web-in-two-layers@s2
@@ -47,7 +47,7 @@ Rewrote `test_cache_returns_same_object_until_mtime_changes` (its rebuild-on-mti
 
 BEFORE (old O(n^2) cold build, this worktree's .agi, 2145 nodes / 2172 edges):
 ```
-time python3 -c 'import graphweb; graphweb.build_graph(graphweb.find_root("/home/ubuntu/work/agi/.agi/worktrees/a00-be97b565"))'
+time python3 -c 'import graphweb; graphweb.build_graph(graphweb.find_root("<home>/work/agi/.agi/worktrees/a00-be97b565"))'
 nodes 2145 edges 2172
 real	3m24.323s        <- 204 s
 user	2m59.759s

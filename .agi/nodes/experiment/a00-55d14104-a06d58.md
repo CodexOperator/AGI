@@ -6,7 +6,7 @@ parents:
   - hypothesis:sensei-wake-audit-subcommand
 next_edges: []
 confidence: 0.8
-edited_by: a00-5580112e
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-55d14104-a06d58
 loop: hypothesis:sensei-wake-audit-subcommand@s2
@@ -73,7 +73,7 @@ Command:
 
     python3 extensions/agi/bin/sensei.py wake-audit --seat sanctuary-director \
       --gen 14 --transcript \
-      /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/914d302a-b33f-4c5f-b78d-a8b7320df6c5.jsonl
+      <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/914d302a-b33f-4c5f-b78d-a8b7320df6c5.jsonl
 
 (the live sanctuary-director gen-XIV transcript). Real output:
 
@@ -84,10 +84,10 @@ Command:
        1 [b] ListAgents: {}
        2 [c] Bash: {"command": "grep -o '\"name\": \"sanctuary-director\"[^}]*' .agi/nodes/.geometry/seats.md; echo \"---\"; ls -…
        3 [b] Bash: {"command": "python3 extensions/agi/bin/rotate.py ack --seat sanctuary-director --gen 14 --ref 7aeee9 continue…
-       4 [b] Bash: {"command": "n=0; until [ $n -ge 8 ]; do r=$(ls -t /home/ubuntu/work/agi/.agi/sessions/rotations/sanctuary-dir…
+       4 [b] Bash: {"command": "n=0; until [ $n -ge 8 ]; do r=$(ls -t <home>/work/agi/.agi/sessions/rotations/sanctuary-dir…
        5 [b] Bash: {"command": "ps -o pid,ppid,etimes,stat,comm -p 2151405,2151413,2151417 2>/dev/null; echo \"---\"; tmux list-p…
        6 [b] Bash: {"command": "tmux list-windows -a -F '#{session_name} #{window_id} #{window_name} #{window_panes} #{window_act…
-       7 [b] Bash: {"command": "ls -la /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director…
+       7 [b] Bash: {"command": "ls -la <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director…
        8 [c] Bash: {"command": "python3 extensions/agi/bin/send.py -h 2>&1 | head -40", "description": "Show send.py usage"}
        9 [c] Bash: {"command": "python3 extensions/agi/bin/send.py send -h 2>&1 | head -30; echo \"--- how did XIII address IX (g…
       10 [b] ToolSearch: {"max_results": 1, "query": "select:SendMessage"}

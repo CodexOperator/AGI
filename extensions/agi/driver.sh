@@ -228,17 +228,9 @@ iter_run() {
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
   echo "=== iter $n_display @ $ts ===" | tee -a "$LOG"
 
-  # 1a. Render GOALS.md FROM nodes/goal/ (goal:g6.9 — the nodes are the source;
-  #     the document is a flat reading convenience). This direction cannot
-  #     prune: it only ever writes the document. The legacy GOALS.md -> nodes
-  #     import is `--from-doc` and is NOT run by the loop, because it deletes
-  #     every goal node the document fails to mention (H0i's shape).
-  #     Plugin-only, no project-local override on purpose — project-local
-  #     bin/*.py overrides are the H0 data-loss defect.
-  if [[ -f "$PLUGIN_ROOT/bin/snapshot-goals.py" ]]; then
-    AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" \
-      python3 "$PLUGIN_ROOT/bin/snapshot-goals.py" --render --strict-goals 2>&1 | tee -a "$LOG"
-  fi
+  # 1a. (retired, goal:g7.16.1.4.1 W-G) GOALS.md is no longer rendered: the owner
+  #     retired it 2026-09-29 17:3xZ. Goals are read by id through write.py;
+  #     emit_metrics below still prints the node count (the floor never goes blind).
 
   # 1. Refresh nodes/ from build-site (idempotent rebuild)
   # Plugin scripts are canonical; project-local copies override if present.

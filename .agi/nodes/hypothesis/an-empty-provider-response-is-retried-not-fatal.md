@@ -5,12 +5,20 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: director-engine
+confidence: 0.8
+edited_by: director-general-2
+evidence_runs:
+  - "'experiment:a00-b9e8e8d9-6211b4'"
+probes: "\"wire: a stub pi that is ALWAYS empty, with .agi/config.json read LIVE from the worktree tip -> 3 runs = 1 + max_retries(2), 3 attempt_boundary records -- NOT 8 = 1 + 7 (a00-3f1f7f95 measured against the 7-cell tree EG.54 later reverted; `git show dab7b02c5:.agi/config.json` 296-298 reads 2 / 5.0, verified EG.141); gate: cells (0,0.01) -> 1 run, no retry; no config reachable -> 3 runs at the 5.0s documented default; auth: live-config guard RED with values.pi_retry deleted from a copy of the real config (a SHAPE guard, never a value pin); wire: exit-0 attempt with an empty response -> 1 run, the guard reached live\""
+push_further: "\"EG.141 closed items (1) and (3) of this list, so this is what is actually OPEN, in order. (1) STRUCTURAL, not the detector: the live-config guard resolves through rotate.ENGINE_ROOT, the WORKING TREE, so a green run of it can never certify a commit (a00-8825ba12-ca762b item 7) -- and because EG.54 reverted the cell to the module default (2 / 5.0), no live probe in this worktree can distinguish the cell being read from the default being used; only a rig that writes its own tmp config (test_pi_trajectory_retry.py _project) proves the cells are read. (2) THE WIRE: no LIVE empty provider response has yet been retried end to end; every run in this chain is a stub, which is why the verdict is a lean and not proved. (3) PROCESS: the +30/-5 and +50 breach is recorded, not cut (CEILING section below), and the source edits are COMMITTED at dab7b02c5 -- the old claim that they sit uncommitted was false. (4) COSMETIC, cheap: a00-f7fcb77c-d36728 carries its whole report twice because that file has no BODY:END marker, a defect in the node WRITER, not in the round\""
 scaffold_hash: 91bb770a1fb1bf7b
 season: 2
+tags:
+  - parked:g7.16.2
 testable_claim: an empty-response stopReason=error is retried a bounded, config-set number of times with backoff and logged; other errors end the round as today
 title: "An empty provider response is retried, not fatal (EG.30, TMM.317, assigned: director-engine)"
 town: core
+verdict: inconclusive_lean_proved:85
 ---
 # hypothesis:an-empty-provider-response-is-retried-not-fatal
 
@@ -22,8 +30,7 @@ FIRST ACT  MEASURE before any code: find where pi_trajectory.py (or the harness 
 FALSIFIERS the retry fires on a non-empty-response error · no bound (an always-empty provider loops forever) · the retry count is a literal · a retried round's log does not show the retries
 TESTS      the new test file + test_bin_help_smoke.py (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); stub pi only, never the live provider
 FILE SCOPE extensions/agi/bin/pi_trajectory.py · its new test under extensions/agi/tests/ · .agi/config.json (the retry cells only) · the kid's own node
-CEILING    HARD CAP: 1 kid · <= 25 production lines net · <= 60 test lines · pi-free tier-0 · 0 USD -- measure against the cut tip, paste the numstat
-ANON       no user name, home or repo path value, host, IP or hardware name; patterns write <user>
+CEILING    HARD CAP: 1 kid · <= 25 production lines net · <= 60 test lines · pi-free tier-0 · 0 USD -- measure against the cut tip, paste the numstat  [RECORD of the EG.30 order; NOT the governing ceiling -- see "## CEILING — the ONE governing line" below]
 PARENT     paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit; check git status -s in the KID worktree before you accept
 
 
@@ -90,6 +97,74 @@ FILE SCOPE extensions/agi/bin/pi_trajectory.py · extensions/agi/tests/test_live
 CEILING   HARD CAP: 1 kid · <= 20 production lines net over 65bcfbf19 (director: two detectors + turn_end keying) · <= 40 test lines net over 65bcfbf19 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 65bcfbf19 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.141 -- closes mur-eg-43 EG.104-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-an-empty-provider-res-a00-123593bc tip dab7b02c5 (branch de-base-EG.141; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. push_further item (3) is false in the commit that ships it (hypothesis node:13 says pi_trajectory.py +30/-5 and the +50 test lines 'sit uncommitted')
+2. 3. Near-miss (b) + FOR THE NEXT ROUND are stale in the same commit (experiment node:128, :131)
+3. PRIORITY -- Ordered item 7 unfixed: _ended_on_empty still keys on ('turn_end','message_end'); _attempt:155 lets a later message_end overwrite empty=True; no test carries that ordering
+4. RECORDED CEILING BREACH (TMM.315), NO CUT: +30/-5 vs 20 and +50 vs 40 stay recorded; item on the THREE contradictory ceilings = state ONE governing line on the hypothesis, label the rest as their rounds' records.
+5. FALSE EVIDENCE ROW IN THE NODE THIS COMMIT VERSIONS, uncorrected: hypothesis:12 claims 'shipped .agi/config.json read live from THIS worktree -> 8 runs = 1 + max_retries(7)' and hypothesis:39 claims 'config.json:296-299 now carries values.pi_retry = 7 / 0.01'. The config at BOTH 65bcfbf19 and dab7b02c5 reads 2 / 5.0 (`git show dab7b02c5:.agi/config.json` lines 296-299), and 65bcfbf19's own commit message is 'salvage EG.54's in-scope values.pi_retry cell (2 / 5.0 s) left uncommitted by the kid's done commit'. This commit edits and versions that node (frontmatter + Agent Notes) and leaves the false row standing -- the identical class of defect the order named for a00-8825ba12 at bc790428a ('false wire evidence ... an owner/evidence line that is wrong should be corrected in place on the node that produced it'). The first reviewer did not name it.
+6. SECOND ALREADY-FALSE RESIDUE in the same node: hypothesis:42 says 'the live-config test pins the cell to the literal (7, 0.01), so an operator tuning the cell turns the suite red'. extensions/agi/tests/test_live_config_cells.py at dab7b02c5:52-70 asserts SHAPE and never VALUE, and its own docstring says so ('It asserts SHAPE, never VALUE'). The claim is already false in the tip and no one corrected it.
+7. THREE CONTRADICTORY CEILINGS IN ONE CHAIN, only one of which governs: hyp:31 '25 net / 60 test' (EG.30), hyp:41 '12/15 ... 52 net vs 40' (EG.34), exp:110 'ceiling 40, test file excluded' (this round, wrong axis), exp:129 '20-line cap ... +50 against 40' (the governing one, from bc790428a). The first reviewer cited the right pair but did not notice the shipped node contradicting its own gate three more times -- which is the record a merge reader will hit first.
+8. THE RED RIG HEADLINE IS A RIG ARTIFACT: exp:83-86 pastes 'FAILED test_the_bound_is_the_config_cell_and_holds / 3 failed, 8 passed'. I re-ran the committed file with AGI_TRAJ_WRAPPER against 65bcfbf19's bytes placed in a bin/ tree (so locations.py resolves): 2 failed, 9 passed -- the third failure exists only because the scratch wrapper sat outside bin/ and fell back to the module defaults, which exp:90-92 does explain. The claim itself survives; the pasted count does not.
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_pi_trajectory_retry.py test_pi_trajectory.py test_live_config_cells.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/pi_trajectory.py · .agi/nodes/experiment/a00-8825ba12-ca762b.md (its false probe row only) · extensions/agi/tests/test_pi_trajectory_retry.py · .agi/nodes/experiment/a00-b9e8e8d9-6211b4.md · .agi/nodes/hypothesis/an-empty-provider-response-is-retried-not-fatal.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over dab7b02c5 · <= 40 test lines net over dab7b02c5 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat dab7b02c5 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+
+## CORRECTIVE DH.EG.151 -- closes mur-eg-55 EG.141-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-an-empty-provider-res-a00-5bd860ef tip 7575b0795 (branch de-base-EG.151; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. The hypothesis's own Agent Notes still asserts the fix is unfixed, and names a line number this same merge changes -- .agi/nodes/hypothesis/an-empty-provider-response-is-retried-not-fatal.md:74 -- "ordered item 7 is still unfixed -- _ended_on_empty still returns on (\"turn_end\",\"message_end\") at pi_trajectory.py:89-90" is false at 7575b0795, where pi_trajectory.py:96 reads `!= "turn_end"`. The round annotated every other stale headline it touched (a00-b9e8e8d9, the 8-run row, the (7,0.01) pin) and left the one in the node it edited unannotated; a reader resolving that line against the tip gets a wrong statement about the shipped bytes.
+2. The proved experiment's fixture order is the reverse of what the chain itself measured on the wire -- .agi/nodes/experiment/a00-4339e263-fd74ee.md:35 -- The node concludes "the empty LAST turn went unretried and the round died on exactly the failure this chain exists to prevent" under verdict: proved, on a fixture (test:232) that puts a toolResult message_end AFTER an empty turn_end. The chain's own measurement says the opposite: hypothesis node line 74, "every toolResult message_end precedes its own turn_end -- latent rather than live". No production log is cited for the post-turn_end ordering; the NESTED_TURN_EMPTY shape is measured (EG.104 log, test:36-39), the ordering is not. The code change is a strict narrowing and is correct; the proof framing is not measured. Expected fix: mark the experiment's claim as a latent-shape fix, not a live failure, or cite a log in which a toolResult message_end follows a turn_end.
+3. Ordered item (2) dropped from the tracker with the refuted claim left live in the graph -- .agi/nodes/experiment/a00-8825ba12-ca762b.md:18 -- The parent's push_further ordered "correct a00-8825ba12-ca762b:18 in place with write.py -- it still labels a FLAT stub the real pi --mode json shape, which two production logs refute". The node is unchanged at the tip (probes[conjunct 4] still carries that label with result HOLD) and the rewritten push_further (hypothesis frontmatter:13) no longer lists it, so a claim two production logs refute is now both live and untracked.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_pi_trajectory_retry.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/pi_trajectory.py · extensions/agi/tests/test_pi_trajectory_retry.py · .agi/nodes/experiment/a00-4339e263-fd74ee.md · .agi/nodes/hypothesis/an-empty-provider-response-is-retried-not-fatal.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7575b0795 · <= 40 test lines net over 7575b0795 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 7575b0795 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+## CEILING — the ONE governing line, and the records it supersedes (written EG.141, kid a00-4339e263)
+
+GOVERNING: the ceiling the shipped bytes were actually built against, recorded on
+`experiment:a00-b9e8e8d9-6211b4:129` — **20 production lines net, 40 test lines net**, the test
+file excluded from the production count. Every other number attached to this chain is that
+round's RECORD, kept because a round's number is evidence about that round, never the standing
+ceiling:
+
+| where | ceiling recorded there | status EG.141 |
+|---|---|---|
+| this node, EG.30 order (the CEILING line above) | 25 production / 60 test | RECORD of the EG.30 order |
+| this node, EG.34 review, thoughts (3) and (4) | 15 production / 40 test; built 12/15 production, 52 net test | RECORD of EG.34 |
+| experiment:a00-b9e8e8d9-6211b4:110 | "ceiling 40, test file excluded" | RECORD, and contradicted by its own :129 (the production cap there was 20, not 40) |
+| **experiment:a00-b9e8e8d9-6211b4:129** | **20 production / 40 test** | **GOVERNING** |
+
+RECORDED CEILING BREACH (TMM.315), NO CUT: against that 20/40, EG.104 shipped
+`extensions/agi/bin/pi_trajectory.py` +30/-5 and `extensions/agi/tests/test_pi_trajectory_retry.py`
++50. The numbers stay on the record as the record; the over-cap lines are the `_stop_fields`
+docstring quoting the measurement, not extra scope.
+
+THIS ROUND (EG.141), measured against the CUT tip `dab7b02c5` (read-only `git diff --numstat`):
+
+```
+10	4	extensions/agi/bin/pi_trajectory.py
+23	0	extensions/agi/tests/test_pi_trajectory_retry.py
+```
+
+PRODUCTION net +6 (the turn_end-only keying), TESTS net +23 (the masking test) — inside both 20 and 40.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.104: mur-eg-27 EG.54-k1 residues batched into one corrective (orders above, generated from the verdict files).
+triage (parked, by tag): PARKING TEST, git grep 13:5xZ 09-29 -- the retry lives in pi_trajectory, reached ONLY via pi_adapter.build_command (pi_adapter.py:230 -> :119), whose only callers are dispatch.py:1414 :2669 :4381; workflow pi stages build their own argv (workflow.py:1944-1949) and never wrap it, and workflow.py:2512 is adapters.resolve, a config lookup -- dispatch-only (this version re-parks it: residue 44a, the keep call cited the wrong reach). Sanctuary-master mur wf_9a00e1d9-91a residue 44 (bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+EG.104 (parent a00-123593bc, review of experiment:a00-b9e8e8d9-6211b4; the earlier EG.54 delta item was ordered but NOT done by the kid, so it is recorded here by the parent). The chain was DEAD ON THE WIRE until this round: both detectors read ev.get("stopReason") at the TOP level while real pi nests the stop fields under event["message"] (measured on two independent production logs: iter-EG.23/a00-bfab7d4a/output.log:7-8 and this round a00-b9e8e8d9s own log), so the retry never fired and the docstrings fatality count was never a match. The kid added one helper _stop_fields (top, then nested, then ev["error"]) that both detectors call, +30/-5 production and +50 test lines, and my own rig -- stub pi emitting the nested shape at exit 0 with the shipped config read live (2 / 5.0s) -- now gives 3 runs and 2 retry lines, where the pre-fix bytes from 65bcfbf19 give 1 run and 0 retries; a nested non-empty error still gives 1 run. Verdict raised 80 -> 85, still a lean, for two reasons: no LIVE empty response has yet been retried end to end (every run is a stub or a pre-fix one), and ordered item 7 is still unfixed -- _ended_on_empty still returns on ("turn_end","message_end") at pi_trajectory.py:89-90, latent rather than live because every toolResult message_end precedes its own turn_end. [STALE AS OF 7575b0795 -- annotated by CORRECTIVE EG.151, kid a00-725399ca: the last clause is FALSE at this tip. extensions/agi/bin/pi_trajectory.py:96 reads `if not isinstance(ev, dict) or ev.get("type") != "turn_end":`, so _ended_on_empty keys on turn_end and NOTHING ELSE and ordered item 7 IS fixed (EG.141, kid a00-4339e263). Everything before that clause still stands, including 'latent rather than live' -- a production log has never shown a toolResult message_end following a turn_end, so the hazard was real but unexercised. The sentence is kept as the record EG.104 wrote, not as a statement about the shipped bytes.]

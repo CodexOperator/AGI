@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+# ram-main.sh -- goal:g7.16.1.5.1 (owner 2026-09-30 01:3xZ, option B): MAIN's working files live on the RAM disk
+# under MAIN's OWN path, so every path (Claude project keys, worktree gitdirs, git-common-dir/.., cron cwds) is unchanged.
+#
+#   DISK = <parent of MAIN>/.<name>-disk   a PRIVATE bind of MAIN's disk dir: the hidden copy, .git, .agi/worktrees, .env
+#   RAM  = <ram dir>/<name>                the working files; DISK's .git, .agi/worktrees and .env are bound into it
+#   MAIN                                   RAM rbind-mounted over it (private), so a commit lands on disk at once
+#
+# Usage: ram-main.sh status | up | sync | revert | install        (up / revert / install call sudo)
+#   up       cutover now, or the boot restore: rebuild RAM from DISK, bind, overmount. A no-op when already up.
+#   sync     RAM -> DISK working files, one sequential rsync batch (the timer; iter-* dirs are left to session-sweep.sh)
+#   revert   full sync back (iter-* included), then unmount everything; MAIN is its disk dir again
+#   install  the boot unit (system, before cron + user@), the sync timer and the session-sweep timer (user)
+# Cells (config:guard, keyed by box): GUARD_RAM_MAIN_<box> (empty = off), GUARD_RAM_DIR_<box>, GUARD_RAM_SYNC_MIN_<box>.
+set -euo pipefail
+HERE=$(cd "$(dirname "$0")" && pwd)
+NODE=${GUARD_ENV_NODE:-$HERE/../../../.agi/nodes/.geometry/guard.md}
+box=${GUARD_BOX:-$(cat /etc/sanctuary-guard/box 2>/dev/null || hostname -s)}; key=$(printf %s "$box" | tr -c 'A-Za-z0-9' '_')
+[ -f "$NODE" ] && eval "$(awk '/^```sh guard.env$/{f=1;next} f&&/^```$/{exit} f' "$NODE")"
+cell() { local v="GUARD_${1}_${key}"; eval "printf '%s' \"${!v:-${2:-}}\""; }
+
+MAIN=$(cell RAM_MAIN); RAM_DIR=$(cell RAM_DIR /mnt/agi-ram); SYNC_MIN=$(cell RAM_SYNC_MIN 10)
+[ -n "$MAIN" ] || { echo "ram-main: GUARD_RAM_MAIN_$key is empty -- off on this box"; exit 0; }
+DISK="$(dirname "$MAIN")/.$(basename "$MAIN")-disk"; RAM="$RAM_DIR/$(basename "$MAIN")"
+STATE="$DISK/.agi/sessions/ram-main"   # on disk: survives a reboot
+EXCL=(--exclude=/.git --exclude=/.agi/worktrees --exclude=/.env)
+KEEP=(--exclude=/.agi/sessions/ram-main)   # STATE lives on DISK only: a RAM -> DISK --delete must never remove it
+ev() { mkdir -p "$STATE"; echo "$(date -u +%FT%TZ) $*" | tee -a "$STATE/events.log"; }
+is_up() { [ "$(findmnt -rn --mountpoint "$MAIN" -o FSTYPE 2>/dev/null | head -1)" = tmpfs ]; }
+bind_in() { [ -e "$DISK/$1" ] || return 0; if [ -d "$DISK/$1" ]; then mkdir -p "$RAM/$1"; else mkdir -p "$(dirname "$RAM/$1")"; touch "$RAM/$1"; fi
+  mountpoint -q "$RAM/$1" || sudo mount --bind "$DISK/$1" "$RAM/$1"; }
+
+case "${1:-status}" in
+status)
+  is_up && echo "UP   $MAIN -> tmpfs ($RAM)" || echo "DOWN $MAIN is its disk dir"
+  { findmnt -rn -R "$MAIN" -o TARGET,SOURCE 2>/dev/null || true; } | sed "s/^/     /"
+  df -h --output=used,size,pcent "$RAM_DIR" | tail -1 | sed 's/^/     tmpfs /'
+  { tail -3 "$STATE/events.log" 2>/dev/null || true; } | sed "s/^/     /" ;;
+up)
+  is_up && { echo "ram-main: already up"; exit 0; }
+  findmnt -rn --mountpoint "$RAM_DIR" -o FSTYPE | grep -qx tmpfs || { echo "ram-main: $RAM_DIR is not a tmpfs -- refused"; exit 2; }
+  mkdir -p "$DISK"; mountpoint -q "$DISK" || { sudo mount --bind "$MAIN" "$DISK"; sudo mount --make-private "$DISK"; }
+  need=$(du -xsm --exclude=.git --exclude=worktrees --exclude='iter-*' "$DISK" 2>/dev/null | cut -f1)   # name patterns: an estimate
+  need=$(( need + $(find "$DISK/.agi/sessions" -maxdepth 1 -name 'iter-*' -type d -exec du -xsm {} + 2>/dev/null | awk '{s+=$1} END{print s+0}') ))
+  avail=$(( $(df -m --output=avail "$RAM_DIR" | tail -1) ))
+  [ "$need" -lt $(( avail * 60 / 100 )) ] || { echo "ram-main: needs ${need}M, tmpfs has ${avail}M free (60% line) -- run session-sweep.sh first"; exit 3; }
+  before=$(git -C "$DISK" status --porcelain 2>/dev/null | wc -l)
+  ev "up: start need=${need}M avail=${avail}M porcelain_before=$before"
+  mkdir -p "$RAM"; ionice -c3 rsync -a --delete "${EXCL[@]}" "$DISK/" "$RAM/"    # bulk, while writers run
+  rsync -a --delete "${EXCL[@]}" "$DISK/" "$RAM/"                                  # the short catch-up pass
+  bind_in .git; bind_in .agi/worktrees; bind_in .env
+  sudo mount --rbind "$RAM" "$MAIN"; sudo mount --make-rprivate "$MAIN"
+  touch "$STATE/last-sync"
+  after=$(git -C "$MAIN" status --porcelain | wc -l); top=$(git -C "$MAIN" rev-parse --show-toplevel)
+  ev "up: done porcelain $before -> $after toplevel=$top"
+  [ "$top" = "$MAIN" ] || { ev "up: TOPLEVEL MISMATCH -- revert"; exit 4; } ;;
+sync)
+  is_up || exit 0
+  # a process that kept its pre-cutover cwd writes into DISK: name those files before RAM overwrites them
+  if [ -f "$STATE/last-sync" ]; then
+    find "$DISK" -xdev \( -path "$DISK/.git" -o -path "$DISK/.agi/worktrees" -o -path "$DISK/.agi/sessions/iter-*" \) -prune -o \
+      -type f -newer "$STATE/last-sync" -print 2>/dev/null | head -50 > "$STATE/stale-cwd-writes.new" || true
+    [ -s "$STATE/stale-cwd-writes.new" ] && { ev "sync: $(wc -l < "$STATE/stale-cwd-writes.new") file(s) written to DISK by a stale cwd"; cat "$STATE/stale-cwd-writes.new" >> "$STATE/stale-cwd-writes"; }
+  fi
+  touch "$STATE/last-sync.next"
+  ionice -c3 nice -n19 rsync -a --delete "${EXCL[@]}" "${KEEP[@]}" --exclude='/.agi/sessions/iter-*' "$MAIN/" "$DISK/"
+  mv "$STATE/last-sync.next" "$STATE/last-sync" ;;
+revert)
+  is_up || { echo "ram-main: not up"; exit 0; }
+  ev "revert: full sync back"
+  rsync -a --delete "${EXCL[@]}" "${KEEP[@]}" "$MAIN/" "$DISK/"
+  sudo umount -R "$MAIN"
+  for p in .env .agi/worktrees .git; do mountpoint -q "$RAM/$p" && sudo umount "$RAM/$p"; done
+  sudo umount "$DISK" && rmdir "$DISK"; rm -rf "$RAM"
+  ev "revert: done -- $MAIN is its disk dir" ;;
+install)
+  u=$(id -un); uid=$(id -u); self="$HERE/ram-main.sh"; ramunit=$(systemd-escape -p --suffix=mount "$RAM_DIR"); flashunit=$(systemd-escape -p --suffix=mount "$(findmnt -rn -T "$(cell TIER_COLD /mnt/agi-flash)" -o TARGET | head -1)")
+  sudo tee /etc/systemd/system/agi-ram-main.service >/dev/null <<EOF
+[Unit]
+Description=agi: MAIN working files on the RAM disk (goal:g7.16.1.5.1)
+After=local-fs.target $ramunit $flashunit
+Requires=$ramunit
+Before=cron.service user@$uid.service
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=$u
+ExecStart=$self up
+ExecStart=$HERE/ram-tier.sh ensure
+# a clean shutdown flushes RAM to disk/flash first: a planned reboot loses nothing (stops run before the mounts go)
+ExecStop=$HERE/ram-tier.sh sync
+ExecStop=$self sync
+TimeoutStopSec=300
+[Install]
+WantedBy=multi-user.target
+EOF
+  mkdir -p ~/.config/systemd/user
+  printf '[Unit]\nDescription=agi: RAM MAIN -> disk sync (goal:g7.16.1.5.1)\n[Service]\nType=oneshot\nSlice=agi-engine.slice\nExecStart=%s sync\nExecStart=%s ensure\nExecStart=%s sync\n' "$self" "$HERE/ram-tier.sh" "$HERE/ram-tier.sh" > ~/.config/systemd/user/agi-ram-sync.service
+  printf '[Unit]\nDescription=agi: RAM MAIN -> disk sync every %s min\n[Timer]\nOnBootSec=5min\nOnUnitActiveSec=%smin\n[Install]\nWantedBy=timers.target\n' "$SYNC_MIN" "$SYNC_MIN" > ~/.config/systemd/user/agi-ram-sync.timer
+  printf '[Unit]\nDescription=agi: idle session sweep to /data (goal:g7.16.1.5.2)\n[Service]\nType=oneshot\nSlice=agi-engine.slice\nNice=19\nIOSchedulingClass=idle\nExecStart=%s\n' "$HERE/session-sweep.sh" > ~/.config/systemd/user/agi-session-sweep.service
+  printf '[Unit]\nDescription=agi: idle session sweep, hourly\n[Timer]\nOnCalendar=*:37\nPersistent=true\n[Install]\nWantedBy=timers.target\n' > ~/.config/systemd/user/agi-session-sweep.timer
+  sudo systemctl daemon-reload && sudo systemctl enable agi-ram-main.service && sudo systemctl start agi-ram-main.service
+  systemctl --user daemon-reload && systemctl --user enable --now agi-ram-sync.timer agi-session-sweep.timer
+  echo "installed: agi-ram-main.service (boot, before cron + user@$uid) · agi-ram-sync.timer every ${SYNC_MIN} min · agi-session-sweep.timer hourly :37" ;;
+*) sed -n '2,15p' "$0"; exit 1 ;;
+esac

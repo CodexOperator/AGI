@@ -24,7 +24,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/director-sanctuary.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/director-sanctuary.log",
     "d_stale_continue_cursor": {
       "start_offset": 4114869,
       "read_before_write": true,
@@ -77,16 +77,16 @@
       "window_id": "@459",
       "pid": 1343126,
       "session_id": "a606aa82-ce56-47a2-8622-7a95aa74926a",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/a606aa82-ce56-47a2-8622-7a95aa74926a.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/a606aa82-ce56-47a2-8622-7a95aa74926a.jsonl",
       "name": "post-sensei-director-4d",
-      "path": "/home/ubuntu/.claude/sessions/1343126.json",
+      "path": "<home>/.claude/sessions/1343126.json",
       "note": "joined by @459 in registry file 1343126.json"
     },
     "successor_row": "config:seats row 'director-sanctuary': session_ref= session_name=post-sensei-director-4d session_label=director-sanctuary session_id=a606aa82-ce56-47a2-8622-7a95aa74926a pid=1343126 generation=7 window='@459' source=registry pubkey=89c896c13e344fa5... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha 71b4bb6cd, retried 0) -- own-row only: director-sanctuary spawn row: gen 7, session_id a606aa82-ce56-47a2-8622-7a95aa74926a, window @459, pid 1343126\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/director-sanctuary.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.a606aa82.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/director-sanctuary.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/director-sanctuary.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/director-sanctuary.ack.a606aa82.json",
     "own_authority_released": "generation 6 of seat 'director-sanctuary' retired; successor generation 7 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch core/season2/posts/sensei-director/main",
     "livestream_repoint": {
@@ -108,7 +108,7 @@
       "verdict": "ok",
       "confirm_at": "after_join"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/director-sanctuary.bootstrap.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -143,7 +143,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/director-sanctuary.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/a606aa82-ce56-47a2-8622-7a95aa74926a.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/director-sanctuary.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/a606aa82-ce56-47a2-8622-7a95aa74926a.jsonl",
         "rc": 0,
         "output": "0.0836\t83584/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

@@ -47,7 +47,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/d74d6d20-6b2e-467a-a4f3-85318b612a7f.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log ~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/d74d6d20-6b2e-467a-a4f3-85318b612a7f.jsonl",
         "rc": 0,
         "output": "0.0670\t66999/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

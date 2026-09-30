@@ -2,7 +2,7 @@
 """dashboard.py — a read-only terminal view of the graph, built for a HUMAN (G9.1).
 
 Every other artefact in this system is written for an agent: `INJECTION.md` is
-a spawn prompt, `GOALS.md` and `TODO.md` are dense on purpose, the ASCII map
+a spawn prompt and `TODO.md` are dense on purpose, the ASCII map
 caps at 200 lines and truncates silently. None of them assume the reader is a
 person who has never seen this project's vocabulary. This script does.
 
@@ -647,10 +647,13 @@ def gather(root: Path) -> dict:
     m = metrics.compute(root)
     nodes_dir = root / "nodes"
     resolved = resolved_evidence_stats(nodes_dir, g)
-    fm_by_id = {}
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.2: parents through the one resolver)
+    fm_by_id, r = {}, links.address_resolver(root)
     for nf, fm in metrics._iter_frontmatter(nodes_dir):
         nid = fm.get("id")
         if isinstance(nid, str):
+            if isinstance(fm.get("parents"), list):   # resolved ONCE, for every reader below
+                fm = dict(fm, parents=[r(p) or p if isinstance(p, str) else p for p in fm["parents"]])
             fm_by_id[nid] = (nf, fm)
     act = recent_activity(root)
     return {

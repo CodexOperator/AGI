@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: belam
+edited_by: director-general-4
 scaffold_hash: 7a1588253f33e864
 season: 2
 status: active
@@ -68,7 +68,7 @@ NEVER       ──▶ update_state profile / UpdateAgent for spine after bootstr
 ```
 you       ──▶ town:core
 location  ──▶ encryption-town  (town.location — pull town:core)
-HOST      ──▶ SSH encryption-town → /data/work/agi  (never /workspace/agi)
+HOST      ──▶ SSH encryption-town → <repo>  (never /workspace/agi)
 ```
 
 ## BRANCH
@@ -115,7 +115,7 @@ After ANY graph SoT modification (standing / internals / town) — ALL three rol
        helper → local-only (never new remote head)
   3. ALWAYS sync ALL post worktrees to that tip:
        seat-director-belam · seat-director-helper · any other grok post WTs
-       (paths under /data/work/agi/.agi/worktrees/)
+       (paths under <repo>/.agi/worktrees/)
        HARD sync = git merge tip (NEVER ff-only · ff ruins grid history)
          keep WIP · never reset --hard
        CROSS-DIR LOCAL SYNC ALLOWED: either director may merge-keep-WIP (NEVER ff-only)
@@ -182,4 +182,5 @@ Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 owner FULL STOP 2026-09-28: NO-PI HARD — no durable pi parent/harness until owner lifts · ACTIVE⇒SPAWN = self-work/non-pi only · Belam directs tree · keep merge-not-ff · disk 50-80GB · harvest-clean · caps ≤10/≤20 · skill refs
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 2 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-node-without-mint-id
 next_edges: []
 confidence: 0.9
-edited_by: ubuntu
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-feee859f-5f2eca
 loop: hypothesis:l3-node-without-mint-id@s2
@@ -74,7 +74,7 @@ $ python3 -m pytest extensions/agi/tests/ -q
 
 ### LIVE PROOF on the real orphan
 ```
-$ python3 extensions/agi/bin/write.py experiment:a00-230456c1-1abcda adopt --root /home/ubuntu/work/agi/.agi
+$ python3 extensions/agi/bin/write.py experiment:a00-230456c1-1abcda adopt --root <home>/work/agi/.agi
 adopted experiment:a00-230456c1-1abcda: minted 50952ab682bc4860bd74a65bf29c2d4a
 adopted: experiment:a00-230456c1-1abcda mint_id=50952ab682bc4860bd74a65bf29c2d4a   (exit=0)
 $ python3 extensions/agi/bin/write.py experiment:a00-230456c1-1abcda adopt --root .agi

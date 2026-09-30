@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.7
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-751bdc47-46be5e
 scaffold_hash: 357c50ba3b0d6c32
@@ -40,7 +40,7 @@ Tested the full surface of `derive-commands.py --all` against CLAUDE.md and QUIC
    Restored node → `--all` → flux command removed from all 3 files → exit=0
 
 6. **Absolute path defect confirmed**: Every rendered command uses literal
-   `/home/ubuntu/work/agi/...` paths rather than `<engine>` placeholder.
+   `<home>/work/agi/...` paths rather than `<engine>` placeholder.
    The node stores `<engine>`, but `Command.shell()` resolves it at render
    time, violating `goal:g1.24`.
 
@@ -50,7 +50,7 @@ Tested the full surface of `derive-commands.py --all` against CLAUDE.md and QUIC
 
 - **The absolute-path defect is not fixed — and this run spread it.** All
   three derived files (SKILL.md, CLAUDE.md, QUICKSTART.md) now carry literal
-  `/home/ubuntu/work/agi/...` paths where the node stores `<engine>`. A fresh
+  `<home>/work/agi/...` paths where the node stores `<engine>`. A fresh
   clone is handed commands that do not exist on its machine: a `goal:g1.24`
   violation, and a false instruction delivered at the scale this goal exists
   to remove. The defect pre-existed in SKILL.md; deriving two more files
@@ -71,7 +71,7 @@ Tested the full surface of `derive-commands.py --all` against CLAUDE.md and QUIC
 - VERIFY: `--check --all` → exit=0 immediately after
 - EDIT CYCLE: add command → check exit=1 → all patch → check exit=0 → restore → all sync → check exit=0
 - ROWS: 15 commands rendered identically in CLAUDE.md + QUICKSTART.md COMMANDS blocks
-- Absolute paths confirmed: `bash /home/ubuntu/work/agi/extensions/agi/driver.sh --smoke ...`
+- Absolute paths confirmed: `bash <home>/work/agi/extensions/agi/driver.sh --smoke ...`
   (node stores `<engine>/extensions/...` but shell() resolves it at render time)
 - `python3 -m pytest extensions/agi/tests/ -q` → 1464 passed
 
@@ -94,4 +94,4 @@ a number.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-Tested derive-commands.py --all against CLAUDE.md + QUICKSTART.md: --check --all detected stale (exit=1), --all patched both + SKILL.md (exit=0), --check --all confirmed current (exit=0). Edit cycle verified: add command → stale detected → re-patch → current. Absolute path defect confirmed (goal:g1.24 violation: <engine> placeholder resolved to /home/ubuntu/work/agi/ literal paths). 1464 tests pass.
+Tested derive-commands.py --all against CLAUDE.md + QUICKSTART.md: --check --all detected stale (exit=1), --all patched both + SKILL.md (exit=0), --check --all confirmed current (exit=0). Edit cycle verified: add command → stale detected → re-patch → current. Absolute path defect confirmed (goal:g1.24 violation: <engine> placeholder resolved to <home>/work/agi/ literal paths). 1464 tests pass.

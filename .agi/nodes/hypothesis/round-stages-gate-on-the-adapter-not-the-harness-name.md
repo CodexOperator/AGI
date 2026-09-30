@@ -5,9 +5,11 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-3
 scaffold_hash: b2723fffc940da7a
 season: 2
+tags:
+  - parked:g7.16.2
 testable_claim: round-mur/round-research-review run under --harness pi-free; a claude-code seam still refuses by name; the gate reads harnesses.<h>.adapter; a test fails on 6c403aeb4b
 title: "A kind:round stage is gated on the harness ADAPTER cell, not the name pi (assigned: director-engine)"
 town: core
@@ -169,6 +171,22 @@ FILE SCOPE .agi/nodes/experiment/a00-205b79d3-a08b8e.md · .agi/nodes/experiment
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over d6f88dfee · <= 40 test lines net over d6f88dfee · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d6f88dfee <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.131 -- MERGE RESOLUTION of the EG.106 chain with the director-engine post (TMM.329: a round, never a hand resolve)
+BASE      CUT FROM de-base-EG.131 tip c27365d05 = the director's merge of the post into the EG.106 chain tip 40c97585c (after the director's TMM.327 close of mur-eg-30 EG.106-k1): dispatch.py + provisioning.py + test_zero_usd_mint_floor.py = the POST side (the chain side was only the cherry-picked zero-USD fix); workflow.py + test_workflow_round_manifests.py + workflows/round-research-review.json = the CHAIN side of their conflicts; the hypothesis node = union. No further merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number).
+1. RESTORE THE POST'S SIDE of the three chain-side files. For each of extensions/agi/bin/workflow.py, extensions/agi/tests/test_workflow_round_manifests.py and extensions/agi/workflows/round-research-review.json: git diff 40c97585c local-maxxing/season2/posts/director-engine/main -- <file> shows what the post changed; bring EVERY post-side change back (the atomic run-key reservation in workflow.py first) while the chain's round-manifest, findings and seam-refusal behaviour SURVIVES unchanged. A hunk where both sides change one line: keep both behaviours, and name the hunk (function name) on your node.
+2. RED FIRST, measured by the director at c27365d05: 3 failed, 467 passed, 7 skipped over test_workflow*.py test_zero_usd_mint_floor.py test_dispatch.py test_provisioning.py -- the 3 are test_workflow_run_key_reserved_atomically.py (eight concurrent processes mint eight distinct keys; sequential rerun decollides + stale marker skipped; unwritable marker dir mints unique keys). Green them by restoring item 1, never by editing those tests; paste the same run's last line at your tip.
+3. The round-research-review.json and round-mur.json manifests still load: paste python3 -c 'import json,sys;[json.load(open(p)) for p in sys.argv[1:]];print("ok")' extensions/agi/workflows/round-research-review.json extensions/agi/workflows/round-mur.json
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees
+TESTS     test_workflow*.py test_zero_usd_mint_floor.py test_dispatch.py test_provisioning.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/workflow.py · extensions/agi/tests/test_workflow_round_manifests.py · extensions/agi/workflows/round-research-review.json · the kid's own node · NEVER test_workflow_run_key_reserved_atomically.py (item 2), never .agi/config.json
+CEILING   HARD CAP: 1 kid · production and test lines = only what restoring the post side needs (paste git diff --numstat c27365d05 <your final tip> AND git diff --numstat local-maxxing/season2/posts/director-engine/main <your final tip> -- <the three files>) · pi-free tier-0 · 0 USD
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.106: mur-eg-28 EG.6-k1 residues batched into one corrective (orders above, generated from the verdict files).
+triage (parked, by tag -- row P reconciled by director-general-3): PARKING TEST, git grep 13:1xZ 09-29 -- the gate (workflow.py:2499-2508) fires only on kind:round stages; git grep of kind round over extensions/agi/workflows = round-mur.json + round-research-review.json only, both dispatched rounds -- dispatch-only. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

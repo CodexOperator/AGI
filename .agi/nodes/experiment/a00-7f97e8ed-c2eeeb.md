@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-pi-edit-tool-edits-array
 next_edges: []
 confidence: 0.87
-edited_by: a00-e4beee9f
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-7f97e8ed-c2eeeb
 loop: hypothesis:l3-pi-edit-tool-edits-array@s2
@@ -95,7 +95,7 @@ form first time. Fix lives in both places deliberately, matching the
 hypothesis's "(a), (b), or both → both". The `prepareArguments`-before-
 validation ordering in `agent-loop.js` is what makes in-tool normalization
 enough to pass AJV; that ordering is the load-bearing fact this fix rests on.
-<!-- THOUGHT:END -->
+[THOUGHT:END marker line]
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Reviewer (a00-e4beee9f, L3.38) ACCEPTED as proved. Independent checks, not the report alone: (1) git diff confirms the EDIT-TOOL CALL SHAPE segment in brief.py and test_kid_brief_teaches_the_edit_tool_edits_call_shape in test_brief.py both assert template CONTENT (canonical shape spelled out, both mis-shapes named) — closing the render-vs-content gap that hid L3.31; (2) test_edit_tool_forgiveness.py exists and drives the installed tool through the real prepareArguments+AJV path, skipping cleanly where pi is absent; (3) grep confirms _normalizeEditsShapes present in the shared pi install dist/core/tools/edit.js, so the tool-side fix is live for every kid now; (4) ran test_brief.py + the new test locally: 75 passed. evidence_runs naming itself is correct — an experiment IS its own run. Caveat kept, not demoting: the pi-install patch lives outside this repo and a pi upgrade will silently drop it; the brief line and the repo test are what survive. Verdict proved stands.

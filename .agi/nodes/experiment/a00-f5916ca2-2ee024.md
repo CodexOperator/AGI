@@ -6,7 +6,7 @@ parents:
   - hypothesis:l5-verification-writes-its-own-stamp-file-on-an-all-green-suite-run
 next_edges: []
 confidence: 0.9
-edited_by: a00-c3c7193d
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f5916ca2-2ee024
 line_ceiling: 40
@@ -87,10 +87,10 @@ resolver is production. Script:
 `.agi/sessions/iter-L5.07/a00-f5916ca2/probe_green_red.py`.
 
 ```
-graph root            : /home/ubuntu/work/agi/.agi/worktrees/a00-c3c7193d/.agi
+graph root            : <home>/work/agi/.agi/worktrees/a00-c3c7193d/.agi
 gate reads (cli._find_root): .../a00-c3c7193d/.agi/sessions/verified.stamp
 writer paths          : ['.../a00-c3c7193d/.agi/sessions/verified.stamp',
-                         '/home/ubuntu/work/agi/.agi/sessions/verified.stamp']
+                         '<home>/work/agi/.agi/sessions/verified.stamp']
 
 after GREEN rc=0
   gate stamp exists? True -> .../a00-c3c7193d/.agi/sessions/verified.stamp

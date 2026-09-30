@@ -55,7 +55,7 @@ PLUGIN_ROOT = BIN_DIR.parent  # .../extensions/agi
 _graph_core_src = str(PLUGIN_ROOT / "src")
 if _graph_core_src not in sys.path:
     sys.path.insert(0, _graph_core_src)
-from graph_core.identity import mint_permanent_id  # noqa: E402
+from graph_core.identity import ensure_mint_id  # noqa: E402
 from frontmatter import split_frontmatter  # noqa: E402
 
 # --- reuse snapshot-goals.py's write_frontmatter, by file path (see module
@@ -109,13 +109,12 @@ def backfill(project_root: Path, write: bool) -> dict:
         if isinstance(existing, str) and existing.strip():
             already += 1
             continue  # idempotent: never re-minted, never rewritten
-        new_id = mint_permanent_id()
+        new_fm = ensure_mint_id(fm)
+        new_id = new_fm["mint_id"]
         minted += 1
         verb = "MINT" if write else "WOULD-MINT"
         print(f"{verb}  {fm.get('id', path.name)}  mint_id={new_id}")
         if write:
-            new_fm = dict(fm)
-            new_fm["mint_id"] = new_id
             write_frontmatter(path, new_fm, body)
     return {
         "total": total,

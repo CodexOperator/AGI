@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g25.legacy-direct
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: 0b3bc71128d7c27b
 season: 2
 status: deprecated
@@ -50,7 +50,7 @@ It died at the FIRST read stage:
 
 And the resolved command it printed shows the second half:
 
-    /home/ubuntu/.npm-global/bin/pi -p --provider openrouter --model sonnet --thinking high ...
+    <home>/.npm-global/bin/pi -p --provider openrouter --model sonnet --thinking high ...
 
 TWO MORE CONSEQUENCES, AND THEY ARE NOT SEPARATE BUGS. Everything in this node has ONE cause: **`workflow.py` spawns pi directly instead of going through `dispatch.py`.** Every capability that lives in dispatch is therefore absent, and they are absent all at once:
 - no spawn_budget lease, so `status` reports an idle box (defect 2 above);

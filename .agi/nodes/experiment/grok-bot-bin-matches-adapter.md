@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-da41e117-c79b5e
 next_edges: []
 confidence: 0.9
-edited_by: a00-11ad274b
+edited_by: director-general-3
 evidence_runs:
   - experiment:grok-bot-bin-matches-adapter
 loop: goal:g7.25.2@s2
@@ -25,7 +25,7 @@ verdict: proved
 ## Experiment
 
 Corrected ONE cell in `.agi/config.json`: the `harnesses."grok-bot".bin`
-value, from the pre-existing `/home/ubuntu/.npm-global/bin/grok` to the box
+value, from the pre-existing `<home>/.npm-global/bin/grok` to the box
 path `~/.npm-global/bin/grok-bot` (no per-box `/home` literal). Nothing else was touched: no
 `adapter`, `models`, `allowed_extra` or any other row; no `dispatch.py`
 edit; no `grok_bot_adapter.py` created (owned by `goal:g17.14.1`); no test
@@ -42,7 +42,7 @@ precedence:
         $GROK_BOT_BIN > harness['bin'] > DEFAULT_BIN = "grok-bot"   (bare PATH fallback; the box path is this config cell)
 
 Sibling parent `a00-597f6b8f` originally described the default as the box path
-`/home/ubuntu/.npm-global/bin/grok-bot`. The adapter as it actually landed
+`<home>/.npm-global/bin/grok-bot`. The adapter as it actually landed
 (`grok_bot_adapter.py:30`) declares `DEFAULT_BIN = "grok-bot"` — a BARE PATH
 fallback — and the box path lives only in this config cell. The cell WINS over
 the bare fallback, so it must DIFFER from `DEFAULT_BIN`, exactly as the
@@ -143,5 +143,5 @@ node.
 Corrected harnesses.grok-bot.bin from .../bin/grok to the box path ~/.npm-global/bin/grok-bot (no /home literal); the cell DIFFERS from the adapter's bare DEFAULT_BIN "grok-bot" as test_grok_bot_adapter.py:248 asserts; resolve(grok-bot).bin asserted, pi & copilot-cli intact, json valid, dispatch.py grok-free.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-R13 correction applied in place by EF.53 a00-11ad274b under hypothesis:pass2-engine-rows-corrected-in-place. Re-checked live bytes: .agi/config.json:107-118 holds the grok-bot row with "bin": "~/.npm-global/bin/grok-bot" (line 113, no /home literal); grok_bot_adapter.py:30 is DEFAULT_BIN = "grok-bot" (bare PATH fallback); test_grok_bot_adapter.py:248 asserts live_bin != grok.DEFAULT_BIN. Corrected in place: the false "corrected value == the adapter DEFAULT_BIN" MEASURE paragraph, the /home/ubuntu/bin value in the probe asserts and recorded output, and the "verbatim from the file (sed -n '113,124p')" pointer (the row is 107-118 and the key order differs). The historical one-cell correction from .../bin/grok, and the pi/copilot-cli + dispatch.py probes, are kept as the record. No verdict/lean/confidence field touched.
+R13 correction applied in place by EF.53 a00-11ad274b under hypothesis:pass2-engine-rows-corrected-in-place. Re-checked live bytes: .agi/config.json:107-118 holds the grok-bot row with "bin": "~/.npm-global/bin/grok-bot" (line 113, no /home literal); grok_bot_adapter.py:30 is DEFAULT_BIN = "grok-bot" (bare PATH fallback); test_grok_bot_adapter.py:248 asserts live_bin != grok.DEFAULT_BIN. Corrected in place: the false "corrected value == the adapter DEFAULT_BIN" MEASURE paragraph, the <home>/bin value in the probe asserts and recorded output, and the "verbatim from the file (sed -n '113,124p')" pointer (the row is 107-118 and the key order differs). The historical one-cell correction from .../bin/grok, and the pi/copilot-cli + dispatch.py probes, are kept as the record. No verdict/lean/confidence field touched.
 <!-- THOUGHT:END -->

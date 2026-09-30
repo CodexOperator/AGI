@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-agent-id-never-exported
 next_edges: []
 confidence: 0.9
-edited_by: a00-35d0994b
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f9b4361b-949e45
 loop: hypothesis:l3-agent-id-never-exported@s2
@@ -85,7 +85,7 @@ AGI_LADDER_TIER=0
 AGI_LOOP=hypothesis:l3-agent-id-never-exported@s2
 AGI_MODEL=~deepseek/deepseek-v4-flash-latest
 AGI_PROFILE=balanced
-AGI_PROJECT_ROOT=/home/ubuntu/work/agi/.agi
+AGI_PROJECT_ROOT=<home>/work/agi/.agi
 AGI_ROLE=kid
 AGI_SEASON=2
 AGI_TIER=kid

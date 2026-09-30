@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-join-matches-the-delimited-window-token-and-keep-both-is-tested
 next_edges: []
 confidence: 0.9
-edited_by: a00-3cf95563
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-5e1a3534-d342eb
 loop: hypothesis:l4-a-join-matches-the-delimited-window-token-and-keep-both-is-tested@s2
@@ -39,12 +39,12 @@ ACCIDENT of ordering. The test never falsified the substring bug.
 the Clause A fixture so the join for `@30` MUST fail on pre-fix bytes. Now TWO
 raw files BOTH contain the substring `@30`, and the `@302` file sorts FIRST:
 
-    _reg_file(reg, 10001, "sid-threeoh-two", "/home/u/two", "@302")  # raw ...view:@302.%0
-    _reg_file(reg, 10002, "sid-thirty",     "/home/u/one", "@30")   # raw ...view:@30.%0
+    _reg_file(reg, 10001, "sid-threeoh-two", "<home>/two", "@302")  # raw ...view:@302.%0
+    _reg_file(reg, 10002, "sid-thirty",     "<home>/one", "@30")   # raw ...view:@30.%0
 
-- 10001.json raw = `{"session_id":"sid-threeoh-two","cwd":"/home/u/two","tmux":"view:@302.%0"}`
+- 10001.json raw = `{"session_id":"sid-threeoh-two","cwd":"<home>/two","tmux":"view:@302.%0"}`
   (contains substring `@30`, sorts first)
-- 10002.json raw = `{"session_id":"sid-thirty","cwd":"/home/u/one","tmux":"view:@30.%0"}`
+- 10002.json raw = `{"session_id":"sid-thirty","cwd":"<home>/one","tmux":"view:@30.%0"}`
   (the plain @30 file, sorts second)
 
 Assertions kept: `@30` → pid 10002 (the @30 file) NOT 10001; `@302` → pid

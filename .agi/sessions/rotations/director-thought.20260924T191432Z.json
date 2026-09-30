@@ -71,9 +71,9 @@
       "window_id": "@42",
       "pid": 1810119,
       "session_id": "2f367151-bef9-4afb-9e48-b28bd5aaf93e",
-      "transcript": "/home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/2f367151-bef9-4afb-9e48-b28bd5aaf93e.jsonl",
+      "transcript": "~/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/2f367151-bef9-4afb-9e48-b28bd5aaf93e.jsonl",
       "name": "post-director-thought-4f",
-      "path": "/home/belam/.claude/sessions/1810119.json",
+      "path": "~/.claude/sessions/1810119.json",
       "note": "joined by @42 in registry file 1810119.json"
     },
     "successor_row": "config:seats row 'director-thought': session_ref= session_name=post-director-thought-4f session_label=director-thought session_id=2f367151-bef9-4afb-9e48-b28bd5aaf93e pid=1810119 generation=24 window='@42' source=registry pubkey=d45dcbf2fd6b085e... key_history=5",
@@ -139,9 +139,9 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-thought.meter --session-log /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/2f367151-bef9-4afb-9e48-b28bd5aaf93e.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-thought.meter --session-log ~/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/2f367151-bef9-4afb-9e48-b28bd5aaf93e.jsonl",
         "rc": 0,
-        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/2f367151-bef9-4afb-9e48-b28bd5aaf93e.jsonl (via claude-code transcript (explicit)).",
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in ~/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/2f367151-bef9-4afb-9e48-b28bd5aaf93e.jsonl (via claude-code transcript (explicit)).",
         "truncated": false,
         "byte_cap": 8000
       },

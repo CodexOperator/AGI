@@ -24,7 +24,7 @@ generalises that from one node type to every node type.
    body it is handed — this module never writes a body at all.
 2. **A goal node links to itself** — `link_ref: self`. The body *is* the data,
    said uniformly rather than as an absent field, so `goal:g6.9` stands and
-   `GOALS.md` keeps rendering *from* goal bodies. **A reader never branches on
+   the goal body is the whole goal (GOALS.md retired). **A reader never branches on
    `type == goal`;** it resolves `self` like any other link. That is the whole
    difference between an exception with a name and a hole.
 3. **A missing link raises where a caller can act and is counted where it
@@ -88,6 +88,23 @@ class MissingLink(Exception):
             f"(goal:g13); either restore the file or clear its {LINK_FIELD}."
         )
 
+
+class MalformedNode(Exception):
+    """A frontmatter key the sanctioned writer could never have written.
+
+    Raised by `resolve` on the single-node path BY NAME (node id + key), so a
+    glued line is refused here instead of riding on as a defaulted `self` link
+    with nothing anywhere saying so (hypothesis:a-node-frontmatter-that-is-
+    not-the-writers-shape-is-refused). The rule is
+    `node_writer.writer_key_shape` — the writer owns it; links asks. NOT a
+    `MissingLink`: damage to the NODE, not a missing payload, so it is never
+    counted as a broken link.
+    """
+
+
+def off_shape_keys(frontmatter: dict) -> list[str]:
+    """Keys of one node's frontmatter that `set` could never have written."""
+    return [str(k) for k in frontmatter if not node_writer.writer_key_shape(k)]
 
 @dataclass(frozen=True)
 class MissingLinkSentinel:
@@ -164,6 +181,12 @@ def resolve(root, node_id: str, frontmatter: dict, body: str) -> Link:
     and can act on the answer.
     """
     ref, source = link_ref(frontmatter)
+    off = off_shape_keys(frontmatter)
+    if off:
+        raise MalformedNode(
+            f"{node_id}: frontmatter key(s) not in the sanctioned writer's "
+            f"shape (a hand-appended line, not a `set` field): "
+            + ", ".join(k[:60] for k in off))
     if ref == SELF:
         return Link(node_id=node_id, ref=SELF, source=source, path=None,
                     content=body)
@@ -261,8 +284,29 @@ def _iter_corpus(root):
             # already counted there. Skipping it here keeps this metric about
             # links and nothing else.
             continue
+        if off_shape_keys(nf.frontmatter):
+            # A key `set` could never have written resolves as a defaulted
+            # `self` link and reads clean: refuse it, and NAME it below.
+            continue
         node_id = str(nf.frontmatter.get("id") or path.stem)
         yield node_id, nf.frontmatter, nf.body
+
+
+def off_shape_nodes(root) -> list[str]:
+    """`node_id: key` for every corpus node whose frontmatter is off-shape —
+    the name the links read path owes the corpus, even though such a node is
+    excluded from the link metrics (as an unparseable one always was)."""
+    from graph_core.persistence import frontmatter as fm_reader
+
+    out = []
+    for path in sorted((Path(root) / "nodes").rglob("*.md")):
+        try:
+            fm = fm_reader.load_node_file(path).frontmatter
+        except Exception:
+            continue
+        for key in off_shape_keys(fm):
+            out.append(f"{fm.get('id') or path.stem}: {key[:60]}")
+    return out
 
 
 #: The ONE `links` config cell, on a `config` NODE -- `.agi/config.json` is refused by `done`.
@@ -315,8 +359,8 @@ def scan_retired_refs(root, cfg=None) -> list[tuple[str, int, str, str]]:
     for nid, fm, body in _iter_corpus(root):   # deprecated tree is status: deprecated
         known.add(nid)
         if str(fm.get("status") or "").lower() == "retired":
-            b = re.search(r"THOUGHT:BEGIN(.*?)THOUGHT:END", body, re.S)
-            retired[nid] = _successor(b.group(1)) if b else "none"
+            b = node_writer.thought_text(body)
+            retired[nid] = _successor(b) if b is not None else "none"
     src, nodes = locations.source_root(Path(root)), Path(root) / "nodes"
     no_path = [str(e) for e in cfg["exempt"] if str(e).endswith("/")]
     no_field = {str(e) for e in cfg["exempt"] if not str(e).endswith("/") and e != "THOUGHT"}
@@ -377,13 +421,177 @@ def set_link(root, node_id: str, ref: str) -> Path:
     return path
 
 
+def frontmatter_rows(nodes_dir) -> "dict[str, dict]":
+    """rel path -> {id, mint_id, type, title, status} of every node file under
+    `nodes_dir`, from ONE `git grep` (no yaml, no cache, no walk). FRONTMATTER
+    lines only: a key counts between line 1's `---` and the next fence, so a
+    body line `mint_id: x` is never read. A grep that cannot look raises
+    rotation_record.GrepError (fails closed). goal:g4.18.6.1 + .2.2."""
+    import subprocess
+    import rotation_record
+    try:
+        # SM 127: -a -- a NUL byte anywhere in a file's first 8 KB made git print
+        # "Binary file <path> matches" instead of its rows: the node vanished
+        r = subprocess.run(["git", "grep", "--no-index", "-aznE",
+                            r"^(---\s*$|(id|mint_id|type|title|status):)", "--", "*.md"],
+                           cwd=Path(nodes_dir), capture_output=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise rotation_record.GrepError(f"git grep could not run: {exc}") from None
+    err = r.stderr.decode("utf-8", "surrogateescape").strip()
+    if r.returncode >= 2 or (r.returncode == 1 and err):
+        raise rotation_record.GrepError(f"git grep exit {r.returncode}: {err}")
+    files: dict = {}
+    # SM 121: split on \n only (str.splitlines also splits U+2028, \x0c, a bare
+    # \r) and never raise on a non-UTF-8 byte -- one odd byte is no collision
+    for line in r.stdout.decode("utf-8", "surrogateescape").split("\n"):
+        if line.count("\0") < 2:
+            continue
+        rel, n, text = line.split("\0", 2)
+        fm = files.setdefault(rel, {"_fences": 0})
+        if text.rstrip() == "---":
+            fm["_fences"] += 1 if (fm["_fences"] or n == "1") else 2
+        elif fm["_fences"] == 1:
+            key, _, val = text.partition(":")
+            fm.setdefault(key, _scalar(val.strip()))
+    for rel in [k for k, fm in files.items() if fm["_fences"] == 1]:   # SM 120a
+        _warn_once(nodes_dir, f"warn: {rel}: frontmatter never closes -- not indexed")
+        del files[rel]
+    return files
+
+
+def _scalar(val: str) -> str:
+    """One frontmatter scalar as YAML reads it: a quoted one is YAML-decoded
+    (escapes like \" -- the quoted titles, DG2; `'it''s'`), a plain one ends
+    at YAML's comment (` #`, SM 123: an unquoted title holding ` ## x`)."""
+    if val[:1] in "\"'":
+        import yaml  # noqa: PLC0415
+        try:
+            out = yaml.safe_load(val)
+            return val if out is None else str(out)
+        except yaml.YAMLError:
+            return val[1:-1] if len(val) > 1 and val[0] == val[-1] else val
+    return "" if val.startswith("#") else re.split(r"\s#", val, maxsplit=1)[0].rstrip()
+
+
+_WARNED: set = set()
+
+
+def _warn_once(where, line: str) -> None:
+    """An index warning, once per process and tree -- never once per create /
+    resolve (SM run 12 note)."""
+    if (key := (str(Path(where).resolve()), line)) not in _WARNED:
+        _WARNED.add(key)
+        print(line, file=sys.stderr)
+
+
+def mint_index(root) -> "dict[str, list[tuple[str, str, str, str, bool]]]":
+    """goal:g4.18.6.1 -- mint_id -> [(id, type, title, status, retired)], every
+    node carrying it, read off `frontmatter_rows` (one grep per read). A list,
+    so a collision stays visible."""
+    out: dict = {}
+    for rel, fm in frontmatter_rows(Path(root) / "nodes").items():
+        if fm.get("mint_id") and not fm.get("id"):   # SM 120b: named, never silent
+            _warn_once(root, f"warn: {rel}: mint_id {fm['mint_id']} but no id -- not indexed")
+        if fm.get("mint_id") and fm.get("id"):
+            out.setdefault(fm["mint_id"], []).append(
+                (fm["id"], fm.get("type", ""), fm.get("title", ""), fm.get("status", ""),
+                 rel.startswith("deprecated/")))
+    return out
+
+
+def resolve_mint(root, mint: str, *, index=None) -> "tuple[str, str, str] | None":
+    """goal:g4.18.6.1 -- THE mint-id resolver: mint_id -> (id, title, status)
+    of the ONE node carrying it, read off `mint_index`: LIVE first, then a
+    retired sibling under deprecated/ (CLAUDE.md: a grid ref outlives its file;
+    SM 104) -- `status` says which. NO shape check: off-shape mints are
+    accepted as found, the gate is "is a node's mint_id" (the Prime, signed
+    22:1xZ 09-29, verbatim on goal:g4.18.6.4.1). A mint two nodes of one tier carry raises ValueError by
+    name, never a silent pick; empty or absent -> None; a grep that cannot look
+    raises GrepError (fails closed). `index` = a prebuilt mint_index, so a
+    batch reader pays ONE grep, never one per item (DG2 fork)."""
+    if not (mint or "").strip():
+        return None
+    hits = (mint_index(root) if index is None else index).get(mint, [])
+    for tier in (False, True):
+        same = [h for h in hits if h[4] == tier]
+        if len(same) > 1:
+            raise ValueError(f"mint id {mint} is carried by {len(same)} "
+                             f"{'retired' if tier else 'live'} nodes: "
+                             + ", ".join(sorted(h[0] for h in same)))
+        if same:
+            i, _type, title, status, _ = same[0]
+            return (i, title, status or ("deprecated" if tier else ""))
+    return None
+
+
+def address_resolver(root):
+    """goal:g4.18.6.3.1 -- the `resolve` a graph_core loader takes: an id ->
+    the address of the ONE node whose mint_id it is, else None. The one index
+    is built on the first call only (a graph with no mint-id parent pays no
+    grep); a collision answers None, so the item stays dangling, never picked.
+    An address (`type:slug`) answers None at once: no live mint carries a ':'
+    (5284/5284, 09-30), so a family-B caller's `resolve(x) or x` greps nothing
+    for a graph written in addresses (goal:g4.18.6.3.2)."""
+    index = []
+
+    def resolve(ref: str):
+        if not isinstance(ref, str) or ":" in ref or not ref.strip():
+            return None
+        if not index:
+            index.append(mint_index(root))
+        try:
+            hit = resolve_mint(root, ref, index=index[0])
+        except ValueError:
+            return None
+        return hit[0] if hit else None
+    return resolve
+
+
+from graph_core.identity import is_valid_mint_id as is_mint_id  # noqa: E402  (node_writer put src on the path)
+
+
+class _ByAddress:
+    """goal:g4.18.6.3.3 -- an address-keyed index (a gate's type index, the
+    evidence corpus) that answers a MINT id as its address twin, through THE
+    resolver: a key it lacks goes to address_resolver (lazy -- an index read
+    only by addresses never greps; a collision stays a miss)."""
+    _resolve = staticmethod(lambda k: None)
+
+    def address(self, k):
+        return k if super().__contains__(k) else (self._resolve(k) or k)
+
+    def __contains__(self, k):
+        return super().__contains__(self.address(k))
+
+
+class ResolvingDict(_ByAddress, dict):
+    def get(self, k, default=None):
+        return super().get(self.address(k), default)
+
+    def __getitem__(self, k):
+        return super().__getitem__(self.address(k))
+
+
+class ResolvingSet(_ByAddress, frozenset):
+    pass
+
+
+def resolving(index, root):
+    """`index` (a dict or a frozenset) behind the one resolver for `root`."""
+    out = (ResolvingDict if isinstance(index, dict) else ResolvingSet)(index)
+    out._resolve = address_resolver(root)
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     """`write.py links [--broken]` — report the corpus's link state."""
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("action", nargs="?", default="links",
-                    choices=["links", "schema", "roles"])
+                    choices=["links", "schema", "roles", "mint"])
+    ap.add_argument("mint_id", nargs="?", default="",
+                    help="mint: the mint id to resolve, any shape (goal:g4.18.6.1)")
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--broken", action="store_true", help="list broken links only")
     ap.add_argument("--strict", action="store_true",
@@ -404,6 +612,22 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.action == "roles":
         return _roles_report(root)
+
+    if args.action == "mint":   # goal:g4.18.6.1: a link is a mint id
+        import rotation_record
+        try:
+            hit = resolve_mint(root, args.mint_id)
+        except ValueError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
+        except rotation_record.GrepError as exc:   # SM 102: never a traceback, never rc 1
+            print(f"ERR: mint lookup could not look: {exc}", file=sys.stderr)
+            return 2
+        if hit is None:
+            print(f"ERR: no live node carries mint id {args.mint_id}", file=sys.stderr)
+            return 1
+        print("\t".join(hit))
+        return 0
 
     resolved, broken = resolve_many(root, _iter_corpus(root))
     by_source: dict[str, int] = {}
@@ -427,6 +651,12 @@ def main(argv: list[str] | None = None) -> int:
         for rel, lineno, old, succ in retired_refs:
             print("  " + cfg["line_template"].format(
                 file=rel, line=lineno, old=old, succ=succ))
+        off = off_shape_nodes(root)
+        if off:
+            print(f"off-shape: {len(off)} frontmatter key(s) refused by name "
+                  f"(not the writer's shape; not link damage)")
+            for name in off:
+                print(f"  MALFORMED {name}")
     for sentinel in live_broken:
         print(f"  BROKEN {sentinel.node_id} -> {sentinel.ref} ({sentinel.path})")
     for sentinel in retired_broken:
@@ -445,12 +675,12 @@ def _verdict_class_disagreements(root) -> list[str]:
     k = lambda v: str(v or "").strip().split(":")[0]
     norm = lambda v: v if isinstance(v, list) else ([] if v is None else [v])
     corpus = {nid: fm for nid, fm, _ in _iter_corpus(root)}
-    out = []
+    out, r = [], address_resolver(root)   # goal:g4.18.6.3.2: a mint-id ref reads as its address
     for nid, fm in corpus.items():
         if fm.get("type") != "verdict":
             continue
         refs = norm(fm.get("evidence_runs")) + norm(fm.get("parents"))
-        for ref in dict.fromkeys(str(x) for x in refs):
+        for ref in dict.fromkeys(r(str(x)) or str(x) for x in refs):
             ef = corpus.get(ref) or {}
             ec = k(ef.get("verdict"))
             if ef.get("type") == "experiment" and ec and ec != k(fm.get("verdict")) and ec != k(fm.get("demoted_from")):

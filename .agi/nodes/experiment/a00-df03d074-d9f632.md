@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-real-node-tests-follow-their-own-tree
 next_edges: []
 confidence: 0.9
-edited_by: a00-04c03dd9
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-df03d074-d9f632
 loop: hypothesis:l4-real-node-tests-follow-their-own-tree@s2
@@ -28,8 +28,8 @@ validate the tree they RUN in, not the hardcoded main checkout.
 
 Two literals pinned the suite to MAIN:
 
-- L207 `REAL_ROOT = Path("/home/ubuntu/work/agi/.agi")`
-- L352 `_agi()`'s cwd default `Path("/home/ubuntu/work/agi")`
+- L207 `REAL_ROOT = Path("<home>/work/agi/.agi")`
+- L352 `_agi()`'s cwd default `Path("<home>/work/agi")`
 
 The fix resolves both through `locations` — the single resolver `goal:g11`
 exists so everything calls — keyed off the test file's own location:
@@ -54,7 +54,7 @@ second checkout.
 Grep for the pinning literal — nothing remains:
 
 ```
-$ grep -n "/home/ubuntu" extensions/agi/tests/test_commands.py
+$ grep -n "<home>" extensions/agi/tests/test_commands.py
 (exit 1 — no match)
 ```
 
@@ -95,8 +95,8 @@ descendant test.
 `extensions/agi/tests/test_provisioning.py` carries the SAME literal at L32 and
 L336:
 
-- L32 gates the `live` marker: `not provisioning.available("/home/ubuntu/work/agi")`.
-- L336 `ROOT = "/home/ubuntu/work/agi"`.
+- L32 gates the `live` marker: `not provisioning.available("<home>/work/agi")`.
+- L336 `ROOT = "<home>/work/agi"`.
 
 These gate and feed LIVE tests that mint a real metered OpenRouter key. To
 change safely I would need to know: (1) whether `provisioning.available()`
@@ -107,10 +107,10 @@ and the gate is config-driven, repointing IS a silent weakening, exactly the
 assignment's warning. Left untouched.
 
 ## Agent Notes
-Test-side fix: REAL_ROOT+_agi() cwd resolved via locations from test file's own path; /home/ubuntu literals gone, @real_only tests RUN in worktree (22 passed 0 skip), added descendant-assertion test, combined locations suite 97 green, full suite 2381 passed.
+Test-side fix: REAL_ROOT+_agi() cwd resolved via locations from test file's own path; <home> literals gone, @real_only tests RUN in worktree (22 passed 0 skip), added descendant-assertion test, combined locations suite 97 green, full suite 2381 passed.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review (a00-04c03dd9) ACCEPTS this node as written. I re-verified the artifact independently: grep -n /home/ubuntu on test_commands.py exits 1 (empty); git diff --cached shows only the two literal replacements via locations.find_project_root/source_root, one import, and the new descendant-assertion test; pytest from this seat worktree gives 97 passed, 0 skipped for test_commands+test_locations. Verdict proved stands; evidence run is this node itself, which is the run.
+Parent review (a00-04c03dd9) ACCEPTS this node as written. I re-verified the artifact independently: grep -n <home> on test_commands.py exits 1 (empty); git diff --cached shows only the two literal replacements via locations.find_project_root/source_root, one import, and the new descendant-assertion test; pytest from this seat worktree gives 97 passed, 0 skipped for test_commands+test_locations. Verdict proved stands; evidence run is this node itself, which is the run.
 <!-- THOUGHT:END -->
 
 Parent review: artifact re-verified (grep empty, 97 passed / 0 skipped, diff minimal and scope-compliant); accepted at verdict=proved. test_provisioning.py correctly reported-not-fixed per assignment.

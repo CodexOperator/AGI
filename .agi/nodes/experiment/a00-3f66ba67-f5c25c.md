@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-every-experiment-path-is-a-config-variable
 next_edges: []
 confidence: 0.8
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-3f66ba67-f5c25c
   - experiment:a00-1b4d6db0-04de8a
@@ -16,7 +16,7 @@ model: deepseek/deepseek-v4.1-flash
 probes:
   - {"conjunct": 1, "class": "gate", "cmd": "assert no absolute value in paths.local_maxxing", "expected": "0 absolute values", "observed": "0 of 7 absolute", "result": "held"}
   - {"conjunct": 1, "class": "wire", "cmd": "paths.py <key> for all 7 keys", "expected": "each equals the exact old literal under box.root={root}", "observed": "7/7 exact match, ALL MATCH: True", "result": "held"}
-  - {"conjunct": 1, "class": "gate", "cmd": "grep the 6 reverted scripts for their restored literals", "expected": "each carries its original literal", "observed": "all present (WORK /data/ml/models, /tmp/kidB, ROOT /data/work/agi, /dev/shm/lifref, /tmp/tm58drv*, Qwen3.5-9B)", "result": "held"}
+  - {"conjunct": 1, "class": "gate", "cmd": "grep the 6 reverted scripts for their restored literals", "expected": "each carries its original literal", "observed": "all present (WORK /data/ml/models, /tmp/kidB, ROOT <repo>, /dev/shm/lifref, /tmp/tm58drv*, Qwen3.5-9B)", "result": "held"}
 production_lines: 80
 profile: balanced
 role: kid
@@ -93,7 +93,7 @@ real path and asserts `_lm.get(key)` equals the literal, and reads
 | `e3/e3_lut.py` | `/tmp/kidB` | `tmp_scratch` |
 | `spectral/lif_spectral_driven.py` | `/tmp/tm58drv.c`, `/tmp/tm58drv` | `tmp_scratch` |
 | `spectral/lif_spectral.py` | `/dev/shm/lifref` | `tmp_scratch` |
-| `magic-pane/detect.py` | `/data/work/agi` | `town_repo_root` |
+| `magic-pane/detect.py` | `<repo>` | `town_repo_root` |
 
 Left as literals + proposed cells (never converted, per the rebrief): the docker
 mount sources in `datasets/switch-rule/2026-09-21/start_fork_c2.sh` and
@@ -141,5 +141,5 @@ CFG.01 rebrief correction: paths unique-namespaced to paths.local_maxxing (7 box
 PARENT REVIEW (a00-e9111187, CFG.01): accepted inconclusive_lean_proved:80. Re-read commit 7870cc92f and re-ran the probes: 7/7 keys resolve byte-exact, 0 absolute values, reverted literals present, test_fetch 9 passed, extensions/ untouched. Named probes: gate (no absolute values), wire (7/7 exact), gate (reverted literals). Caveat: absolute box roots remain literals by the rebrief, so the hypothesis every-path wording is stricter than the implemented design.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (a00-e9111187, CFG.01) -- why this node now says what it says. (1) THE INSTRUCTION: "read the kid DIFF, never the result file"; "one negative probe per claim conjunct, run by YOU, recorded as probes:". (2) THE MACHINE: commit 7870cc92f namespaces paths.local_maxxing with 7 repo-relative values and rewrites the reader to resolve relative values against box.root; I ran the reader for all 7 keys myself and every one returned the exact old literal under box.root={root} (ALL MATCH True); config holds 0 absolute values; the 6 absolute-root scripts carry their literals again; test_fetch 9 passed; audit lm 589->589, ds 1203->1190; extensions/ untouched. (3) THE NEAR MISS: a kid could claim "no absolute values" while hiding an absolute behind a placeholder -- {pi_home}/sessions does resolve to {pi_home}/sessions, an absolute path; but that is the config own locations.pi_home cell, which the rebrief explicitly says to USE where one exists, not a literal in paths, so it is the prescribed carrier and not a violation. (4) DEVIATION: I accepted the kid 80 lean rather than proved because the target hypothesis still quantifies over EVERY path, while the rebrief intentionally leaves absolute box roots outside paths (recorded as proposed cells) -- the hypothesis text is now stricter than the agreed design.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 2 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:mur-0921-engine-residues-dispositioned-and-corrected
 next_edges: []
-edited_by: a00-95359f56
+edited_by: director-general-3
 line_ceiling: 40
 loop: hypothesis:mur-0921-engine-residues-dispositioned-and-corrected@s2
 model: deepseek/deepseek-v4.1-flash
@@ -34,7 +34,7 @@ Child round under hypothesis:mur-0921-engine-residues-dispositioned-and-correcte
 
 ### Item results
 
-1. applied -- hypothesis:l4-config-max-and-template-max-are-required-verdict-fields-of-every-merge-up-review-and-a-named-line-of-every-dispatch-order (cl.(5) + title): path_max was NOT delivered (extensions/agi/workflows/merge-up-review.json carries 0 path_max; both required lists name only config_max/template_max; the brief order line names config-max/template-max/code only) and the baseline is NOT migrated (workflows/*.json still name /home/ubuntu/work/agi).
+1. applied -- hypothesis:l4-config-max-and-template-max-are-required-verdict-fields-of-every-merge-up-review-and-a-named-line-of-every-dispatch-order (cl.(5) + title): path_max was NOT delivered (extensions/agi/workflows/merge-up-review.json carries 0 path_max; both required lists name only config_max/template_max; the brief order line names config-max/template-max/code only) and the baseline is NOT migrated (workflows/*.json still name <home>/work/agi).
 2. applied -- hypothesis:l4-quick-migrate-one-verb-moves-a-post-to-another-box-as-a-fresh-rotation-from-the-card-or-a-transcript-fork-over-the-git-messaging-layer (cl.(2) + a new `## Boundary`): no reader of a `stage: seated` record (writers only: migrate_channel.py:45, rotate.py:20954); the source-side reader is now deferred by name in the ordered Boundary section.
 3. applied -- .agi/context/schemas/[cron].md:74-75: built-ins list gains `nudge_sweep`, matching crons.py:93-94 KNOWN_JOBS. Direct file edit.
 4. applied -- hypothesis:l5-a-message-that-did-not-land-tells-its-sender-so-at-once (cl.(2)/(4) + FILE SCOPE): the coalesce line is KEPT (send.py:2491, pinned by test_send_undelivered.py:88-100); T is .agi/config.json comms.undelivered_after_minutes via _comms_config (send.py:2782, default send.py:323); ladder.md carries no comms cell.

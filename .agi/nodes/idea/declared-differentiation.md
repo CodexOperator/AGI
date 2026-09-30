@@ -6,7 +6,7 @@ parents:
   - vision:all-is-one
 next_edges: []
 confidence: 0.85
-edited_by: a00-e8af9d8e
+edited_by: director-general-3
 loop: vision:all-is-one@s2
 model: claude-opus-5
 profile: balanced
@@ -129,8 +129,8 @@ the git toplevel with `AGI_PROJECT_ROOT` and exiting 0 — allow — when they
 differ (`hypothesis:l2-commit-guard-scope`, so that test repos under `/tmp`
 stay writable under `AGI_TIER=kid`). But `dispatch.py:755` sets
 `AGI_PROJECT_ROOT = str(root.resolve())`, and `locations.find_project_root()`
-returns the **graph** root, `/home/ubuntu/work/agi/.agi`. `.git` is at
-`/home/ubuntu/work/agi`; there is no `.agi/.git`. Under `goal:g11`'s one-repo
+returns the **graph** root, `<home>/work/agi/.agi`. `.git` is at
+`<home>/work/agi`; there is no `.agi/.git`. Under `goal:g11`'s one-repo
 layout the two paths cannot be equal, so the `!=` test is true on every
 invocation and the hook always takes the allow branch. `pre-push` has the same
 shape.
@@ -169,14 +169,14 @@ could check.
 The inert-guard finding was reproduced three ways before it was written here:
 
 - With this advisor's **own live spawn env** (`AGI_TIER=parent`,
-  `AGI_PROJECT_ROOT=/home/ubuntu/work/agi/.agi`,
+  `AGI_PROJECT_ROOT=<home>/work/agi/.agi`,
   `GIT_CONFIG_VALUE_0=.../hooks/agent-git`), running
   `bash extensions/agi/hooks/agent-git/pre-commit` from the repo root exits
-  **0 (ALLOW)**. Substituting `AGI_PROJECT_ROOT=/home/ubuntu/work/agi` exits
+  **0 (ALLOW)**. Substituting `AGI_PROJECT_ROOT=<home>/work/agi` exits
   **1** with "agi: tier kid may not commit". The only difference is the value
   `dispatch.py` actually supplies.
-- Structurally: `locations.find_project_root('/home/ubuntu/work/agi')` →
-  `/home/ubuntu/work/agi/.agi`, while `.git` is at `/home/ubuntu/work/agi`
+- Structurally: `locations.find_project_root('<home>/work/agi')` →
+  `<home>/work/agi/.agi`, while `.git` is at `<home>/work/agi`
   and no `.agi/.git` exists. Verified by this advisor directly.
 - End to end, in a temp repo: a `git commit` under `AGI_TIER=kid` with
   dispatch's computed env returned exit 0 and created a commit.
@@ -324,8 +324,8 @@ Then the refutation was itself refuted, and that is the whole lesson of this
 node. The reader sent to kill B did not stop at the hook's source — it checked
 whether the hook FIRES, and it does not: the scope comparison can never be
 true under g11. The advisor verified that independently before recording it
-(`find_project_root` returns `/home/ubuntu/work/agi/.agi`, `.git` is at
-`/home/ubuntu/work/agi`), because a subagent's finding is a lead, not a fact.
+(`find_project_root` returns `<home>/work/agi/.agi`, `.git` is at
+`<home>/work/agi`), because a subagent's finding is a lead, not a fact.
 So the body now carries three positions in sequence — claim, correction,
 correction-of-the-correction — and the middle one is left visible on purpose.
 A node that showed only the final answer would hide that the strongest finding

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-suite-never-writes-the-live-sessions-or-comms-root-heal-and-send-take-the-root-they-are-given
 next_edges: []
 confidence: 0.7
-edited_by: a00-063c8d5c
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-70628641-d3436e
 line_ceiling: 40
@@ -28,7 +28,7 @@ verdict: inconclusive_lean_proved:70
 
 Implemented the G15 fix (hypothesis:l4-the-suite-never-writes-the-live-sessions-or-comms-root-heal-and-send-take-the-root-they-are-given). G15 claims are build orders, not measurements: I measured the pre-fix live-write, built the fix, proved it on the built bytes.
 
-**Pre-fix measurement** — during a targeted pytest run of the four named modules the suite wrote LIVE artefacts into `/home/ubuntu/work/agi/.agi/sessions/inbox/` (seat-a.md, sensei-director.md, master-sensei.md containing 10 `[crash-recovery]` blocks, belam.md, director.md + `.nudge` files), `sessions/seats/` (`belam.last-act`, `master-sensei.last-act`), and `sessions/rotations/` (`belam-II.*`, `*seating.json`, `sequence.json`). Confirmed live escape: `locations.shared_sessions_dir(root)` and `send.comms_root(root)` resolve a received root through `locations.git_common_root` (walks up, `git rev-parse --git-common-dir`) — when a fixture/tmp root sits inside the live repo tree (the kid harness roots pytest's basetemp under the LIVE `.agi`), the resolver re-resolves to the MAIN checkout's `.agi` and every heal/send write lands live.
+**Pre-fix measurement** — during a targeted pytest run of the four named modules the suite wrote LIVE artefacts into `<home>/work/agi/.agi/sessions/inbox/` (seat-a.md, sensei-director.md, master-sensei.md containing 10 `[crash-recovery]` blocks, belam.md, director.md + `.nudge` files), `sessions/seats/` (`belam.last-act`, `master-sensei.last-act`), and `sessions/rotations/` (`belam-II.*`, `*seating.json`, `sequence.json`). Confirmed live escape: `locations.shared_sessions_dir(root)` and `send.comms_root(root)` resolve a received root through `locations.git_common_root` (walks up, `git rev-parse --git-common-dir`) — when a fixture/tmp root sits inside the live repo tree (the kid harness roots pytest's basetemp under the LIVE `.agi`), the resolver re-resolves to the MAIN checkout's `.agi` and every heal/send write lands live.
 
 **Conjunct 1 (built)** — one function-scoped autouse fixture `_pin_sessions_and_comms_roots_to_tmp` in `tests/conftest.py`. It bounds the four resolver leaves the engine reads — `locations.shared_sessions_dir`, `locations.sessions_dir`, `send.comms_root`, `send._default_comms_root` — so any resolution landing outside the test's own `tmp_path` is rehomed under it; a result already inside `tmp_path` (every fixture root) is returned byte-for-byte unchanged. This makes the live escape impossible by construction while leaving resolver-behaviour tests (comms season-root, worktree-shared sessions) green. No env var, production definitions untouched.
 

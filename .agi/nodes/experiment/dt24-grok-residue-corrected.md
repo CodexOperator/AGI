@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-8f215541-f95365
 next_edges: []
-edited_by: a00-1dc1a409
+edited_by: director-general-4
 line_ceiling: 40
 loop: goal:g7.25.1@s2
 model: deepseek/deepseek-v4.1-flash
@@ -73,7 +73,7 @@ updated: build:tests-test-grok-bot-adapter
 ```
 
 Write-log entries, read from the ABSOLUTE worktree path
-`/data/work/agi/.agi/worktrees/a00-1dc1a409/.agi/sessions/write-log.jsonl`:
+`<repo>/.agi/worktrees/a00-1dc1a409/.agi/sessions/write-log.jsonl`:
 ```
 {"actor": "a00-8f215541", "mint_id": "93a56c119e7442f6bdb844afbf08832f",
  "node_id": "build:bin-adapters-grok-bot-adapter", "operation": "update_node",
@@ -87,7 +87,7 @@ Write-log entries, read from the ABSOLUTE worktree path
  "ts": "2026-09-20T20:59:49.669656Z"}
 ```
 
-The box-shared `/data/work/agi/.agi/sessions/write-log.jsonl` (2449 lines)
+The box-shared `<repo>/.agi/sessions/write-log.jsonl` (2449 lines)
 does NOT show either id: `grep -c 93a56c11\|e6590851` returns 0. The worktree
 log is a separate file; it carried one line (this round's scaffold
 `write_node`) before the first corrective write.
@@ -117,15 +117,5 @@ SKIPPED [1] extensions/agi/tests/test_grok_bot_adapter.py:245: harnesses.grok-bo
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review, DT.24, agent a00-1dc1a409. I read the BYTES (git diff 4e6536769 against the working tree), not the result file, and ran one negative probe per claim conjunct (recorded as probes: on hypothesis:a00-8f215541-f95365, which owns the claim).
-
-WHAT THE INSTRUCTION SAID (dispatch orders, verbatim): residue 1 "claims merge-tree vs DT.22 tip 1e9e94b75 exits 0; measured ... exits 1 (add/add on .agi/nodes/build/bin-adapters-grok-bot-adapter.md). Correct the CAVEAT/evidence to the measured fact. Keep the true claim that merge-tree vs core 7d35ae4f9 exits 0"; residue 2 "Re-land via sanctioned writer so write-log records them ... Prefer in-place upgrade; do not mint duplicate build ids"; residue 3 "Fix counts to measured or explicitly defer as note-only".
-
-WHAT THE MACHINE ACTUALLY DOES (artifacts I ran, this review): git merge-tree --write-tree 1e9e94b75 4e6536769 exits 1 with CONFLICT (add/add) on .agi/nodes/build/bin-adapters-grok-bot-adapter.md, and 7d35ae4f9 4e6536769 exits 0 (probe 1). The worktree write-log carries two update_node entries keyed to mint ids 93a56c119e7442f6bdb844afbf08832f and e659085120824239a16e616608262610; the box-shared log carries neither; each canonical mint_id occurs in exactly one build node file (probe 2). .agi/config.json is byte-unchanged from 4e6536769 and carries no harnesses.grok-bot row (probe 3). Build-node frontmatter parents/payload_ref/link_ref/build_kind/origin/mint_id are untouched vs 4e6536769, and the adapter stays sha256 66b7891f4f19a0628a0410bf6e9203536d4504b40b0e85185b27bc310826081c / 162 lines (probe 4). links.py at the review tip reads 3810 resolved, 0 broken (probe 5).
-
-THE NEAR MISS: a caveat that KEPT "merge-tree vs the DT.22 tip exits 0" while appending a correction would satisfy "correct the caveat" in wording and leave the false sentence live; and a re-land that ran write.py but let the update change payload_ref, or minted a fresh mint id, would satisfy "write-log records them" and break the canonical identity the DT.21/DT.22 lineage keys on. Neither is present: the only occurrence of "DT.22 tip exits 0" is now the sentence naming it FALSE, and no invariant frontmatter field moved.
-
-DEVIATION, named: the writes are logged at <worktree>/.agi/sessions/write-log.jsonl, not the box-shared /data/work/agi/.agi/sessions/write-log.jsonl, because node_writer logs beside the node (l2w15-write-guard). The kid states this honestly. The director should read the round worktree log for the sanction; I do not fake the shared log.
-
-VERDICT: accept. hypothesis:a00-8f215541-f95365 verdict=proved is backed by a resolving evidence_runs list (this node) and survives all probes. D1 corrected, D2 sanctioned in place with no duplicate mint, D3 re-measured with the base deferred as note-only.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 3 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

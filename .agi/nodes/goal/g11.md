@@ -4,7 +4,7 @@ mint_id: 5fb040638ce5429e9240a07b47fb5195
 type: goal
 parents: []
 confidence: 1.0
-edited_by: belam
+edited_by: director-general-3
 goal_id: G11
 goal_kind: long-term
 heading_level: 2
@@ -105,7 +105,7 @@ isolate the engine the tests run against, so the isolation is not real.
 | engine repo | 154 KiB, 203 commits |
 | `payload_ref` values to rewrite | **0** — see below; the first estimate of 375 was wrong |
 | top-level name collisions between the two repos | 2 — `.gitignore`, `context/` |
-| crons hard-coding `/home/ubuntu/work/agi-tree` | 4 (`*/5`, `:07`, `:37`, `:47`) |
+| crons hard-coding `<home>/work/agi-tree` | 4 (`*/5`, `:07`, `:37`, `:47`) |
 | baseline corpus | 792 nodes, `outcome_coverage` 0.255 |
 
 Both collisions disappear once the tree sits in `.agi/` rather than at a repo
@@ -193,7 +193,7 @@ One concrete before/after, and it is the whole goal in miniature — resolving
 from inside the engine checkout:
 
 ```
-$ find-root.sh /home/ubuntu/work/agi/extensions/agi/bin
+$ find-root.sh <home>/work/agi/extensions/agi/bin
 ERR: no project found          # today: the engine is not in any graph
                                # after G11: <repo>/.agi, its own graph
 ```

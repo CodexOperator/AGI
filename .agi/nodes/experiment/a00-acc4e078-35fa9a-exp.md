@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-acc4e078-35fa9a
 next_edges: []
-edited_by: a00-64cdf8ed
+edited_by: director-general-4
 loop: goal:g7.33.14@s2
 model: stealth/space-bunny-alpha
 production_lines: 0
@@ -45,12 +45,12 @@ They now use the seam the test four lines below already used,
 ```python
 here = unify._git_common_root()
 assert here is not None, "git must name the repo this checkout belongs to"
-result = unify.preflight(here, tree)                       # was Path("/home/ubuntu/work/agi")
-result = unify.preflight(engine, here)                      # was Path("/home/ubuntu/work/agi-tree")
+result = unify.preflight(here, tree)                       # was Path("<home>/work/agi")
+result = unify.preflight(engine, here)                      # was Path("<home>/work/agi-tree")
 result = unify.preflight(unify._git_common_root(), tree, force=True)
 ```
 
-This is **idempotent w.r.t. group A**: `/data/work/agi` (and this worktree's
+This is **idempotent w.r.t. group A**: `<repo>` (and this worktree's
 main repo) is in `_FORBIDDEN_REAL_PATHS` today through the git-derived branch
 of `_real_repos()`, and stays in it after `.agi/config.json:188` is corrected.
 So the tests pass both before and after the config fix — the coupling is
@@ -83,10 +83,10 @@ $ python3 -m pytest extensions/agi/tests/test_retired_box_prefix.py \
 The 5 skips are the `@live` real-API provisioning tests, still skipped.
 
 **PROBE A — the gate still bites on a new live hit.** Appended
-`RETIRED_PREFIX_PROBE = "/home/ubuntu/work/agi"` to `extensions/agi/bin/commands.py`:
+`RETIRED_PREFIX_PROBE = "<home>/work/agi"` to `extensions/agi/bin/commands.py`:
 
 ```
-E  extensions/agi/bin/commands.py:673: RETIRED_PREFIX_PROBE = "/home/ubuntu/work/agi"
+E  extensions/agi/bin/commands.py:673: RETIRED_PREFIX_PROBE = "<home>/work/agi"
 1 failed, 4 passed
 ```
 
@@ -106,3 +106,7 @@ Both probes restored the tree byte-for-byte (`md5sum -c` OK on
 - `.claude/` is still unscanned (0 hits today, so latent).
 - `P` (11) and `F` (4) exemptions are still prose/inert data that could be
   rewritten in a later round; one class per node.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-rotate-pin-path-readback
 next_edges: []
 confidence: 0.9
-edited_by: a00-77504d09
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-9c4586d4-5ee144
 loop: hypothesis:l3-rotate-pin-path-readback@s2
@@ -69,7 +69,7 @@ claude_code_adapter.py`, `extensions/agi/tests/test_rotate.py`,
   heuristic` (documented WARN fall-through), output `0.1713 ... source=claude
   code transcript (newest heuristic)`, and grep for `/.agi/.agi` finds nothing
   → **no doubled path**. `_sessions_dir(find_project_root())` resolves to
-  `/home/ubuntu/work/agi/.agi/sessions` (undoubled, exists) — the same dir the
+  `<home>/work/agi/.agi/sessions` (undoubled, exists) — the same dir the
   real `remote-control.log` and debug logs live in.
 - Leftover pre-fix pins still sit at `<graph>/.agi/sessions/` (old doubled
   path, `.agi/.agi/sessions/{a00-7f4c272e,a00-830ffdb0,a00-cad6f7ba}.meter`);

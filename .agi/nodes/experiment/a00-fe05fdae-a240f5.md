@@ -6,13 +6,15 @@ parents:
   - hypothesis:qwen2-np32-seed-band-4-budgets
 next_edges: []
 confidence: 0.5
-edited_by: director-thought
+edited_by: a00-1556127c
 evidence_runs:
   - experiment:a00-fe05fdae-a240f5
 loop: hypothesis:qwen2-np32-seed-band-4-budgets@s2
 model: stealth/space-bunny-alpha
-probes=["wire: (parent a00-a0e8250e, RAN) - recomputed both calls from band.json independently - MARGIN full range (adopted) 3/4, RANGE 1/4, HALF-RANGE 2/4; the node table reproduces exactly", "gate (parent, RAN) - sampler.log shows ONE 1.4 GiB weight-load step at 17:57:37Z and ONE compute window to 18:06:17Z, so VmHWM_children 2713.8 MiB is the successful run max, not a max over the disclosed double launch", "gate (parent, RAN) - mem.json scope_peak after 1769.3 MiB is BELOW this run own VmHWM 2713.8 MiB, so the cell note claiming the model_slot child chain shares that scope is FALSE and the scope figure does not bound the run; the headline peak is unaffected"]
-probes=["wire:: "recomputed both calls from band.json independently \\u2014 MARGIN(full range, adopted) 3/4, RANGE 1/4, HALF-RANGE 2/4; the node's table reproduces exactly\", \"gate: sampler.log shows ONE 1.4 GiB weight-load step (17:57:37Z) and one compute window to 18:06:17Z, so VmHWM_children 2713.8 MiB is the successful run's max, not a max over the disclosed double launch\", \"gate: mem.json scope_peak after 1769.3 MiB is BELOW this run's own VmHWM 2713.8 MiB, so its note 'model_slot child chain shares it' is false and the scope figure does not bound the run; the headline peak is unaffected\"]"
+probes:
+  - "wire: (parent a00-a0e8250e, RAN) - recomputed both calls from band.json independently - MARGIN full range (adopted) 3/4, RANGE 1/4, HALF-RANGE 2/4; the node table reproduces exactly"
+  - gate (parent, RAN) - sampler.log shows ONE 1.4 GiB weight-load step at 17:57:37Z and ONE compute window to 18:06:17Z, so VmHWM_children 2713.8 MiB is the successful run max, not a max over the disclosed double launch
+  - gate (parent, RAN) - mem.json scope_peak after 1769.3 MiB is BELOW this run own VmHWM 2713.8 MiB, so the cell note claiming the model_slot child chain shares that scope is FALSE and the scope figure does not bound the run; the headline peak is unaffected
 production_lines: 86
 profile: balanced
 role: kid

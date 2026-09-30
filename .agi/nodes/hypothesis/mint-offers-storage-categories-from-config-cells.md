@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.1.3
 next_edges: []
 confidence: 0.8
-edited_by: director-engine
+edited_by: director-general-4
 scaffold_hash: 4a56d56600042137
 season: 2
 tags:
@@ -198,7 +198,7 @@ For EACH item: fix it in the bytes, OR -- when the item is already true, refuted
 2. locations.py:638 — `int(text) == row["n"]` is guarded by `text.isdigit()`, but isdigit() and int() do not agree: '²' (U+00B2) is isdigit()==True and int('²') raises ValueError, so `--storage-pick ²` falls into the ERR path. main catches it (locations.py:1147-1150), so the consequence is a graceful but opaque `ERR: invalid literal for int() with base 10: '²'`, rc 1, not a traceback — note-level, and PRE-EXISTING (the diff changes no behaviour line). UNVERIFIED by any committed test; the probe I WOULD run is an in-process `locations.resolve_storage_category('²', None, cfg)` — I did NOT run it as a round probe; I verified only the `str.isdigit`/`int` semantics.
 3. a00-eea0b2c4-0b4709.md:221 — `## Agent Notes` is the LAST `#`-starting line in the 226-line file, so `_agent_notes_block` (season.py:1565-1571, break at the first line starting with '#') returns lines 222-226 which INCLUDE a second `<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective EG.88: mur-eg-19 EG.61-k1 residues batched into one corrective (orders above, generated from the verdict files).
-<!-- THOUGHT:END -->
+[THOUGHT:END marker line]
 
 ## CORRECTIVE EG.25 -- closes the DH.659 PARENT DEMOTE (a00-9147b8b2: inconclusive_lean_disproved:60; items 1 and 3 claimed fixed but NOT in the bytes)
 BASE      CUT FROM season2/loops/hypothesis-mint-offers-storage-c-a00-9147b8b2 tip b5a2856ac (branch de-base-EG.25). No merge. Never rebase.

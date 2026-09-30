@@ -34,6 +34,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
 from frontmatter import read_frontmatter, split_frontmatter  # noqa: E402
+import node_writer  # noqa: E402 -- the ONE THOUGHT definition (goal:g2.11)
 from evidence_gate import (  # noqa: E402
     DECISIVE_VERDICTS,
     build_corpus,
@@ -47,18 +48,6 @@ DEFAULT_METRIC_PRIMARY = "outcome_coverage"
 
 #: Metrics that are descriptive only and must never be primary.
 GAMEABLE_METRICS = ("longest_chain_length",)
-
-#: Where `publish-engine.sh` used to record the outcome of every run it made
-#: (goal:g7.10, pre-goal:g11). Kept only because `publish-engine.sh` itself and
-#: its own test suite (`test_publish_alarm.py`) still read/write this path —
-#: **metrics.py no longer turns it into a METRIC line** (goal:g11 residual,
-#: see below). Generated state, gitignored, sitting beside
-#: `context/INJECTION.md` because that is where this repo already keeps
-#: generated state. Deliberately **not** under `nodes/`: gate 0 of
-#: publish-engine.sh refuses on any uncommitted change under `nodes/`, so a
-#: publish marker written there would arm, on every single run, the exact gate
-#: it exists to report on.
-PUBLISH_STATE_PATH = ("context", "publish-state.json")
 
 #: `unpushed_commits` when the gap could not be measured at all.
 #:
@@ -144,13 +133,16 @@ def _load_graph(root: Path):
     from graph_core.loader import load_directory
     from graph_core.edge import Edge
 
-    g, loaded = load_directory(root / "nodes")
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.1: the loader's parents post-pass)
+    g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
     traversable = _load_traversable_fields(root)
 
     # Build node-id -> values for non-parents traversable fields from frontmatter.
     # These are fields like `next_edges` that are ``role: lineage`` and
     # ``traversable: true`` but are not the primary ``parents`` field.
     import yaml
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.2: next_edges through the one resolver)
+    r = links.address_resolver(root)
     extra_forward: dict[str, list[str]] = {}
     other_fields = traversable - FALLBACK_TRAVERSABLE_FIELDS
     if other_fields:
@@ -172,9 +164,9 @@ def _load_graph(root: Path):
                 if isinstance(raw, list):
                     for v in raw:
                         if isinstance(v, str) and v.strip():
-                            vals.append(v.strip())
+                            vals.append(r(v.strip()) or v.strip())
                 elif isinstance(raw, str) and raw.strip():
-                    vals.append(raw.strip())
+                    vals.append(r(raw.strip()) or raw.strip())
             if vals:
                 extra_forward[nid] = vals
 
@@ -259,8 +251,6 @@ def _iter_frontmatter(nodes_dir: Path):
         yield nf, fm
 
 
-_THOUGHT_RE = re.compile(
-    r"<!--\s*THOUGHT:BEGIN(.*?)<!--\s*THOUGHT:END\s*-->", re.DOTALL)
 
 
 def thought_stats(nodes_dir: Path) -> dict:
@@ -287,8 +277,7 @@ def thought_stats(nodes_dir: Path) -> dict:
         if not text.startswith("---"):
             continue
         total += 1
-        m = _THOUGHT_RE.search(text)
-        if m and m.group(1).replace("-->", "").strip():
+        if node_writer.thought_text(text):
             filled += 1
     return {
         "thought_coverage": round(filled / total, 3) if total else 0.0,
@@ -778,6 +767,8 @@ def goal_attribution(nodes_dir: Path) -> dict:
     # when walking UP from B.
     extra_ascendants: dict[str, list[str]] = {}
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.2: ids through the one resolver)
+    r = links.address_resolver(nodes_dir.parent)
     for _nf, fm in _iter_frontmatter(nodes_dir):
         nid = fm.get("id")
         if not isinstance(nid, str) or not nid.strip():
@@ -785,7 +776,7 @@ def goal_attribution(nodes_dir: Path) -> dict:
         nid = nid.strip()
         types[nid] = str(fm.get("type") or "")
         raw = fm.get("parents")
-        parents[nid] = [p.strip() for p in raw if isinstance(p, str) and p.strip()] \
+        parents[nid] = [r(p.strip()) or p.strip() for p in raw if isinstance(p, str) and p.strip()] \
             if isinstance(raw, (list, tuple)) else []
         # Additional traversable fields: build inverse relationships for
         # forward-pointing edges so the upward walk can reach the source node.
@@ -796,7 +787,7 @@ def goal_attribution(nodes_dir: Path) -> dict:
             if isinstance(raw_other, list):
                 for v in raw_other:
                     if isinstance(v, str) and v.strip():
-                        tid = v.strip()
+                        tid = r(v.strip()) or v.strip()
                         extra_ascendants.setdefault(tid, []).append(nid)
         st = fm.get("status")
         # Same predicate as `deprecated_node_ids`, over an iteration this

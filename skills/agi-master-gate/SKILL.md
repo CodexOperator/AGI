@@ -3,7 +3,7 @@ name: agi-master-gate
 description: >
   A master's gate for a director's merge-up onto its town trunk: the merge-tree / commit-tree
   landing that never stages a merge, what the range carries (config:posts cells, evidence
-  demotions, kid-committed nodes, stale GOALS.md), the suite on tmpfs and how to attribute a
+  demotions, kid-committed nodes), the suite on tmpfs and how to attribute a
   red, the .agi/context runs the engine suite cannot see, and reading verdicts, reviews and
   residues from the bytes. Use whenever a master gates, lands or returns a merge-up.
 ---
@@ -30,9 +30,7 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
              · locations.shared_project_root(<any worktree>) = MAIN's .agi: a gate-worktree run reads MAIN's config -> to measure a config
              change before landing, patch locations.load_config in-process with the gated config.json
              · a PARTIAL research round may land when its node says pending by its own preregistered rule; the landing message says what is missing
-             · a tip's GOALS.md can be STALE against its own goal-node edits (mu 12, gen 27: --check MISMATCH on the gate tree) -> render in a
-               SECOND worktree of M, hash-object -w, land T2 with that blob swapped in (temp index), name it; tell the director the rule
-             · EVERY landing runs snapshot-goals.py --render --check, code merge-ups too: #13 minted goal:g7.33.12 without heading_level and the render has refused since
+             · GOALS.md and its render --check gate retired 2026-09-29 (goal:g7.16.1.4.1): no landing renders or checks it
              · commit-tree <gated tree> -p HEAD is ONLY safe when HEAD^{tree} == the gated base tree: ASSERT it and ABORT on a mismatch
                (13:31Z 09-27: the watch committed DE's gen-30 rotation between gate + land; my `[ ] && echo` printed nothing and I landed anyway
                -> reverted 3 rotation files, pushed; restored d0c1eba0b) -- else re-derive T2 = merge-tree(live HEAD, gated commit)
@@ -63,7 +61,7 @@ posts        a director tip can REVERT prime/owner-only config:posts cells throu
 kid commits  DH.386 (DE, lands with e362e7947): `cli.py done` auto-commits the round's NAMED nodes -- a kid-supplied --parent resolves ANY id
              (config:posts, config:rotations, doc:unified-head, town:local-maxxing, goal:g5 measured) until DH.390 lands -> at every gate
              list changed .geometry / doc:unified-* / town:* / goal:* files and read each
-anonymize    anonymize.py guards hostname / ip / mac / board / secret (loopback exempt); it takes NO file args: git diff <merge-base> <tip> > F; anonymize.py check --root <gate> --diff-file F · the model name needs its own grep: grep the added lines ('^+') for the box's GPU model name yourself (anonymize.py does not cover it; never write the pattern into a node)
+anonymize    anonymize.py guards the classes named in anonymize.CLASSES (loopback exempt); the home class is anonymize.HOME_PATH_RE (ANY box, bare or with a path) -- read them there, never a list here; it takes NO file args: git diff <merge-base> <tip> > F; anonymize.py check --root <gate> --diff-file F · the model name needs its own grep: grep the added lines ('^+') for the box's GPU model name yourself (anonymize.py does not cover it; never write the pattern into a node)
 evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOTES a proved / disproved verdict without a resolvable
              evidence_runs (a JSON list of existing type:slug ids) IN MAIN'S WORKING TREE, uncommitted, 'caught at grid commit' -> gate
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)
@@ -103,7 +101,7 @@ detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashbo
              · test_crons_log_cap_long_lived_writer::test_f1_rename_mode... = a load flake (the test_f1c race at another site; gen 27: 1 red
                in the full suite, 5/5 alone) until DE freezes its writer (TMM.241)
 reds         attribute each: which range touches the test / its code (git diff --quiet <base> <tip> -- <file>) · re-run it ALONE (a load
-             flake passes alone) · run it on MAIN + another range too: red there = the trunk's · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
+             flake passes alone) · run it on MAIN + another range too: red there = the trunk's · test_thought_hygiene counts node_writer.thought_blocks per node (BOTH markers at column 0; the column-0 BEGIN count must equal it): an indented or inline quoted marker never trips it
 context      a green main suite + verification's context suite (system python, NO torch) cannot see a .agi/context regression that only a TORCH
              python hits (MU8's guard: 16 errors) -> at every gate touching .agi/context/conftest.py or a context test's imports, run DT's seeds
              tests with the osc pythonpath from a neutral cwd in the gate tree -- never the whole context dir under torch during a model hold

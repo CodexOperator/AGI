@@ -26,272 +26,272 @@
     "surfaces": [
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.log",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/director-belam.log",
+        "src": "<home>/work/agi/.agi/sessions/sanctuary-director.log",
+        "dst": "<home>/work/agi/.agi/sessions/director-belam.log",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.log.1",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/director-belam.log.1",
+        "src": "<home>/work/agi/.agi/sessions/sanctuary-director.log.1",
+        "dst": "<home>/work/agi/.agi/sessions/director-belam.log.1",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/director-belam.meter",
+        "src": "<home>/work/agi/.agi/sessions/sanctuary-director.meter",
+        "dst": "<home>/work/agi/.agi/sessions/director-belam.meter",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.162aa2d0.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.162aa2d0.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.162aa2d0.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.162aa2d0.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.51bdba38.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.51bdba38.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.51bdba38.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.51bdba38.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.fc748aad.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.fc748aad.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.fc748aad.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.fc748aad.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen21.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen21.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen21.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen21.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen22.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen22.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen22.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen22.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen23.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen23.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen23.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen23.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen24.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen24.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen24.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen24.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen25.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen25.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen25.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen25.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen26.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen26.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen26.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen26.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen27.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen27.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen27.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen27.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen28.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen28.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen28.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen28.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen29.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen29.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen29.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen29.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen30.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen30.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen30.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen30.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen31.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen31.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen31.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen31.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen32.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.gen32.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen32.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.ack.gen32.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.bootstrap.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.bootstrap.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.bootstrap.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.bootstrap.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.handoff.md",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.handoff.md",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.key",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.key",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.key",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.key",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.last-act",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.last-act",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.last-act",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.last-act",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.startup.json",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.startup.json",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.startup.json",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.startup.json",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.wrapper.log",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.wrapper.log",
+        "src": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.wrapper.log",
+        "dst": "<home>/work/agi/.agi/sessions/seats/director-belam.wrapper.log",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/quorum/sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/quorum/director-belam.md",
+        "src": "<home>/work/agi/.agi/sessions/quorum/sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/sessions/quorum/director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/inbox/sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/inbox/director-belam.md",
+        "src": "<home>/work/agi/.agi/sessions/inbox/sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/sessions/inbox/director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/inbox/sanctuary-director.nudge",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/inbox/director-belam.nudge",
+        "src": "<home>/work/agi/.agi/sessions/inbox/sanctuary-director.nudge",
+        "dst": "<home>/work/agi/.agi/sessions/inbox/director-belam.nudge",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/inbox/sanctuary-director.nudge.lastread",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/inbox/director-belam.nudge.lastread",
+        "src": "<home>/work/agi/.agi/sessions/inbox/sanctuary-director.nudge.lastread",
+        "dst": "<home>/work/agi/.agi/sessions/inbox/director-belam.nudge.lastread",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/inbox/sanctuary-director.nudge.pending",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/inbox/director-belam.nudge.pending",
+        "src": "<home>/work/agi/.agi/sessions/inbox/sanctuary-director.nudge.pending",
+        "dst": "<home>/work/agi/.agi/sessions/inbox/director-belam.nudge.pending",
         "action": "rename-file"
       },
       {
         "kind": "session-file",
-        "src": "/home/ubuntu/work/agi/.agi/sessions/inbox/sanctuary-director.nudge.pending.lock",
-        "dst": "/home/ubuntu/work/agi/.agi/sessions/inbox/director-belam.nudge.pending.lock",
+        "src": "<home>/work/agi/.agi/sessions/inbox/sanctuary-director.nudge.pending.lock",
+        "dst": "<home>/work/agi/.agi/sessions/inbox/director-belam.nudge.pending.lock",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-179825d9--sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-179825d9--director-belam.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-179825d9--sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-179825d9--director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-6bf13276--sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-6bf13276--director-belam.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-6bf13276--sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-6bf13276--director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-a81a7f38--sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-a81a7f38--director-belam.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-a81a7f38--sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-a81a7f38--director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-be033567--sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-be033567--director-belam.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-be033567--sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-be033567--director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-d2e2165f--sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-d2e2165f--director-belam.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-d2e2165f--sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-d2e2165f--director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-f20b036d--sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-f20b036d--director-belam.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-f20b036d--sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/a00-f20b036d--director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam--sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam--director-belam.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam--sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam--director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XIII--sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XIII--director-belam.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XIII--sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XIII--director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XIV--sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XIV--director-belam.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XIV--sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XIV--director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XV--sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XV--director-belam.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XV--sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/belam-S1-L3-XV--director-belam.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/master-sensei--sanctuary-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/director-belam--master-sensei.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/master-sensei--sanctuary-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/director-belam--master-sensei.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/sanctuary-director--sanctuary-helper.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/director-belam--sanctuary-helper.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/sanctuary-director--sanctuary-helper.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/director-belam--sanctuary-helper.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/sanctuary-director--sanctuary-master.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/director-belam--sanctuary-master.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/sanctuary-director--sanctuary-master.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/director-belam--sanctuary-master.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/sanctuary-director--sensei-director.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/director-belam--sensei-director.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/sanctuary-director--sensei-director.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/director-belam--sensei-director.md",
         "action": "rename-file"
       },
       {
         "kind": "dm log",
-        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/sanctuary-director--stream-master.md",
-        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/director-belam--stream-master.md",
+        "src": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/sanctuary-director--stream-master.md",
+        "dst": "<home>/work/agi/.agi/worktrees/post-sanctuary-director/.agi/comms/season-2/dm/director-belam--stream-master.md",
         "action": "rename-file"
       },
       {

@@ -6,7 +6,7 @@ parents:
   - hypothesis:migrate-transcript-dest-test-asserts-an-independent-root
 next_edges: []
 confidence: 0.9
-edited_by: a00-c043cd15
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-0812237b-2177d5
 loop: hypothesis:migrate-transcript-dest-test-asserts-an-independent-root@s2
@@ -14,7 +14,7 @@ model: deepseek/deepseek-v4.1-flash
 probes:
   - {"conjunct": 1, "class": "gate", "cmd": "inject a DECOY mutant via a pytest -p plugin: rotate.transcript_from_registry_dict returns rotate.CC_PROJECTS_DIR/'decoy'/<slug>/<sess>.jsonl; run env -u TMUX -u TMUX_PANE PYTHONPATH=extensions:scratch python3 -m pytest extensions/agi/tests/test_migrate_channel.py -q -p decoy_plugin -k test_migrate_transcript_dest_is_the_path_resume_reads", "expected": "the pinned exact-equality oracle refuses the decoy (RED at line 414); the pre-fix startswith(rotate.CC_PROJECTS_DIR) oracle on the SAME dest evaluates True, exposing it as tautological", "observed": "decoy plugin: 1 failed at test_migrate_channel.py:414 (dest .../projects/decoy/... != fixture/...); standalone: old_oracle=True, new_oracle=False on the identical decoy dest", "result": "held"}
   - {"conjunct": 2, "class": "gate", "cmd": "inject a WRONG-ROOT mutant via pytest -p plugin: rotate.transcript_from_registry_dict returns /tmp/wrong-root-mutant-probe/<slug>/<sess>.jsonl (ignores CC_PROJECTS_DIR); run the same single-test -k selector", "expected": "test_migrate_transcript_dest_is_the_path_resume_reads FAILS by name at the pinned assertion", "observed": "1 failed, 34 deselected in 0.11s -- AssertionError at extensions/agi/tests/test_migrate_channel.py:414, dest=/tmp/wrong-root-mutant-probe/-home-x--agi-worktrees-p/sess-1.jsonl", "result": "held"}
-  - {"conjunct": 3, "class": "wire", "cmd": "patch rotate.CC_PROJECTS_DIR to a fresh tmp fixture in a clean process and call rotate._migrate_transcript_dest(Path('/home/x/.agi/worktrees/p'),'sess-1'); then env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_migrate_channel.py -q; then git show bd1c58f59f --stat", "expected": "the patched module global threads live to the produced dest (dest lands under the fixture), the named file is green, and the commit carries test_migrate_channel.py plus the experiment node only (test-only, 0 production lines)", "observed": "real fn dest under patched global=True; 35 passed, 2 warnings; stat = 2 files changed (test_migrate_channel.py +12/-3, experiment node) and no rotate.py / production path", "result": "held"}
+  - {"conjunct": 3, "class": "wire", "cmd": "patch rotate.CC_PROJECTS_DIR to a fresh tmp fixture in a clean process and call rotate._migrate_transcript_dest(Path('<home>/.agi/worktrees/p'),'sess-1'); then env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_migrate_channel.py -q; then git show bd1c58f59f --stat", "expected": "the patched module global threads live to the produced dest (dest lands under the fixture), the named file is green, and the commit carries test_migrate_channel.py plus the experiment node only (test-only, 0 production lines)", "observed": "real fn dest under patched global=True; 35 passed, 2 warnings; stat = 2 files changed (test_migrate_channel.py +12/-3, experiment node) and no rotate.py / production path", "result": "held"}
 production_lines: 0
 profile: balanced
 role: kid

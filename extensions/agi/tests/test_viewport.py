@@ -734,3 +734,173 @@ def test_town_is_derived_via_the_shared_helper_from_the_frame(tmp_path):
     # Without a nodes_dir the annotation is absent, not guessed.
     frames_no_src = V.frame_stream(g, fm, "goal:g", 3)
     assert frames_no_src[0].town == ""
+
+
+# --- bundle 4 W3a (director-general-2) --------------------------------------
+# hypothesis:viewport-renders-one-node-for-both-readers (goal:g4.18.7.1). The
+# single-node flag is pinned as `--node` (`--range N:M` for a body slice);
+# DG3 may rename both in the build commit that flips these rows.
+_W3A = "bundle 4 W3a: RED until DG3 builds the viewport's single-node render"
+
+
+def _w3_project(tmp_path):
+    root = tmp_path / ".agi"
+    (root / "nodes" / "goal").mkdir(parents=True)
+    (root / "nodes" / "build").mkdir()
+    (root / "config.json").write_text("{}")
+    (tmp_path / "p.txt").write_text("PAY-ONE\nPAY-TWO\n")
+    for nid, extra, body in (("goal:p", "", "PARENT-BODY"),
+                             ("goal:x", "\nparents:\n  - goal:p", "## Why\nBODY-ONE\n\n| r | c |\n|---|---|\n| r1 | ROW-TWO |")):
+        (root / "nodes" / "goal" / f"{nid[5:]}.md").write_text(
+            f"---\nid: {nid}\ntype: goal\ntitle: 'G-{nid[5:].upper()}: t'\nstatus: active{extra}\n---\n# {nid}\n\n{body}\n")
+    (root / "nodes" / "build" / "b.md").write_text(
+        "---\nid: build:b\ntype: build\ntitle: B\npayload_ref: p.txt\n---\n# build:b\n")
+    return root
+
+
+def _w3_view(root, *argv):
+    import subprocess
+    r = subprocess.run([sys.executable, str(BIN / "viewport.py"), "--project", str(root), *argv],
+                       capture_output=True, text=True, timeout=120)
+    return r.returncode, r.stdout
+
+
+@pytest.mark.xfail(strict=True, reason=_W3A)
+@pytest.mark.parametrize("emit", ["llm", "human"])
+def test_w3a_one_node_renders_body_and_resolved_parent_for_each_reader(tmp_path, emit):
+    rc, out = _w3_view(_w3_project(tmp_path), "--node", "goal:x", "--emit", emit)
+    assert rc == 0 and "BODY-ONE" in out and "ROW-TWO" in out
+    assert "G-P: t" in out and "PARENT-BODY" not in out  # the parent by name, never its body
+
+
+@pytest.mark.xfail(strict=True, reason=_W3A)
+def test_w3a_one_build_node_renders_its_payload(tmp_path):
+    rc, out = _w3_view(_w3_project(tmp_path), "--node", "build:b", "--emit", "llm")
+    assert rc == 0 and "PAY-ONE" in out and "PAY-TWO" in out
+
+
+def test_w3a_verify_still_exits_zero_on_a_tiny_project(tmp_path):
+    assert _w3_view(_w3_project(tmp_path), "--verify")[0] == 0
+
+
+# --- bundle 4 W3c (director-general-2) --------------------------------------
+# hypothesis:read-leaves-write-py-with-every-teacher-in-one-row (goal:g4.18.7.3):
+# the render's --range is replace's coordinates, so `read N:M` -> `replace N:M`
+# survives the cut as render N:M -> replace N:M (fixture: _w3_project above).
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 builds the render's --range")
+@pytest.mark.parametrize("rng", ["1:3", "4:5", "7:9"])
+def test_w3c_the_render_range_is_the_replace_coordinates(tmp_path, rng):
+    import write
+    root = _w3_project(tmp_path)
+    want = write._slice_range(write._read_body_text(root, "goal:x"), rng)
+    rc, out = _w3_view(root, "--node", "goal:x", "--range", rng, "--emit", "llm")
+    assert rc == 0 and all(ln in out for ln in want.splitlines() if ln.strip())
+    assert all((s in out) == (s in want) for s in ("BODY-ONE", "ROW-TWO"))  # only that slice
+
+
+# --- bundle 4 W2c (director-general-2)
+def _w2c_twin(tmp_path, mint: bool):
+    """goal:a <- hypothesis:h1, the parent written as an address or as goal:a's mint id."""
+    ids = {"goal:a": "a" * 32, "hypothesis:h1": "b" * 32}
+    root = tmp_path / ("mint" if mint else "addr") / ".agi"
+    for nid, par in (("goal:a", None), ("hypothesis:h1", "goal:a")):
+        ntype, slug = nid.split(":")
+        (root / "nodes" / ntype).mkdir(parents=True, exist_ok=True)
+        plines = f"parents:\n  - {ids[par] if mint else par}\n" if par else "parents: []\n"
+        (root / "nodes" / ntype / f"{slug}.md").write_text(
+            f"---\nid: {nid}\nmint_id: {ids[nid]}\ntype: {ntype}\n{plines}"
+            f"title: {slug}\n---\n# {nid}\n")
+    return root
+
+
+# hypothesis:loader-post-pass-sqlite-index-once-and-collision-are-pinned: (a) DBLoader runs the post-pass
+# (b) ONE mint_index build per load, 0 for addresses (c) a colliding / unknown mint parent stays as written
+def test_w2ca_pins_sqlite_post_pass_one_index_build_and_collision(tmp_path, monkeypatch):
+    import links, yaml
+    from graph_core import db_loader, loader
+    from graph_core.persistence.frontmatter import NodeFile
+    from graph_core.persistence.sqlite_backend import SQLiteBackend
+    builds, real = [], links.mint_index
+    monkeypatch.setattr(links, "mint_index", lambda root: builds.append(1) or real(root))
+    def sqlite_parents(root):
+        db = SQLiteBackend(root.parent / "n.db")
+        for f in sorted((root / "nodes").rglob("*.md")):
+            fm = yaml.safe_load(f.read_text().split("---")[1])
+            db.save(fm["id"], NodeFile(fm, "", ".md"))
+        builds.clear()
+        g, _ = db_loader.DBLoader(db).load_directory(resolve=links.address_resolver(root))
+        return sorted(g.get_node("hypothesis:h1").parents), len(builds)
+    assert [sqlite_parents(_w2c_twin(tmp_path, m)) for m in (False, True)] == [(["goal:a"], 0), (["goal:a"], 1)]
+    root, a, d = _w2c_twin(tmp_path / "c", True), "a" * 32, "d" * 32
+    (root / "nodes" / "goal" / "twin.md").write_text(f"---\nid: goal:twin\nmint_id: {a}\ntype: goal\ntitle: t\n---\n")
+    h = root / "nodes" / "hypothesis" / "h1.md"
+    h.write_text(h.read_text().replace(f"  - {a}\n", f"  - {a}\n  - {d}\n"))
+    builds.clear()   # two mint refs in one load: still ONE build
+    g, _ = loader.load_directory(root / "nodes", resolve=links.address_resolver(root))
+    assert sorted(g.get_node("hypothesis:h1").parents) == [a, d] and len(builds) == 1
+
+
+# GREEN since goal:g4.18.6.3.1 (graph_core's parents post-pass, the resolver passed in by zoom)
+def test_w2c_a_mint_id_parent_renders_exactly_as_its_address_twin(tmp_path):
+    import zoom
+    seen = []
+    for mint in (False, True):
+        root = _w2c_twin(tmp_path, mint)
+        g, _ = zoom._load_wired_graph(root)
+        seen.append([(f.node_id, f.depth, f.damaged) for f in
+                     V.frame_stream(g, {}, "goal:a", 3, nodes_dir=str(root / "nodes"))])
+    assert len(seen[0]) == 2 and seen[1] == seen[0]
+
+
+# --- bundle 4 W3c payload (director-general-2) ------------------------------
+# CLAIM (6): the cut lands only after the render ranges a PAYLOAD too --
+# config:rotations' `skills` first_turn reads 12 payload ranges at every wake.
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 builds the render's payload --range")
+def test_w3c_the_render_ranges_a_payload_too(tmp_path):
+    rc, out = _w3_view(_w3_project(tmp_path), "--node", "build:b", "--payload", "--range", "2:2", "--emit", "llm")
+    assert rc == 0 and "PAY-TWO" in out and "PAY-ONE" not in out
+
+
+# --- bundle 4 W2c re-scope A (director-general-2) -- goal:g4.18.6.3.1
+
+
+def _w2ca_twin(tmp_path, mint):  # _w2c_twin + idea:i, reached from hypothesis:h1 by next_edges only
+    root = _w2c_twin(tmp_path, mint)
+    (root / "nodes" / "idea").mkdir()
+    (root / "nodes" / "idea" / "i.md").write_text(f"---\nid: idea:i\nmint_id: {'c' * 32}\ntype: idea\n---\n")
+    h = root / "nodes" / "hypothesis" / "h1.md"
+    h.write_text(h.read_text().replace("title:", f"next_edges:\n  - {'c' * 32 if mint else 'idea:i'}\ntitle:"))
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "context" / "schemas" / "[shape].md").write_text(
+        "---\nedge_fields:\n  parents: {traversable: true}\n  next_edges: {traversable: true}\n---\n")
+    return root
+
+
+def test_sm135_goal_attribution_follows_a_mint_next_edge_like_its_address(tmp_path):
+    import metrics   # SM 135: metrics.goal_attribution's forward ascendant (next_edges) resolves
+    seen = [metrics.goal_attribution(_w2ca_twin(tmp_path, m) / "nodes")["unattributed_nodes"] for m in (False, True)]
+    assert seen == [0, 0], seen   # SM 141: the absolute value -- a fault in BOTH twins agrees at 1 == 1
+
+
+def test_sm136_load_graph_wires_a_scalar_mint_next_edge_like_its_address(tmp_path):
+    import re, metrics   # SM 136: metrics._load_graph's SCALAR next_edges branch
+    seen = []
+    for mint in (False, True):
+        root = _w2ca_twin(tmp_path, mint)
+        h = root / "nodes" / "hypothesis" / "h1.md"
+        h.write_text(re.sub(r"next_edges:\n  - (\S+)\n", r"next_edges: \1\n", h.read_text()))
+        seen.append(sorted(metrics._load_graph(root).get_node("hypothesis:h1").children))
+    assert seen[1] == seen[0] == ["idea:i"]
+
+
+@pytest.mark.parametrize("edge", ["parents", "next_edges"])   # next_edges: family B, g4.18.6.3.2 B1
+def test_w2ca_family_a_wires_a_mint_twin_as_its_address_twin_with_no_reader_resolving(tmp_path, edge):
+    import inspect, dashboard, metrics, zoom
+    seen = []
+    for mint in (False, True):
+        g = metrics._load_graph(_w2ca_twin(tmp_path / edge, mint))
+        seen.append((sorted(g.get_node("goal:a").children), len(dashboard.dangling_and_orphans(g)["dangling"]),
+                     V.default_roots(g, {})) if edge == "parents" else sorted(g.get_node("hypothesis:h1").children))
+    assert seen[1] == seen[0] == ((["hypothesis:h1"], 0, ["goal:a", "idea:i"]) if edge == "parents" else ["idea:i"])
+    readers = (zoom._load_wired_graph, metrics._load_graph, V._damage_of, V.default_roots, dashboard.dangling_and_orphans)
+    assert not [f.__name__ for f in readers if "mint" in inspect.getsource(f)]  # the loader resolves, no reader does

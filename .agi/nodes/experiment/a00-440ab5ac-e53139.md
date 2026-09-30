@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi
 next_edges: []
 confidence: 0.8
-edited_by: a00-cd9b4aa1
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-440ab5ac-e53139
 loop: hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi@s2
@@ -73,7 +73,7 @@ spawn must carry a token. `child_env` resolves one (env first, then
 $ python3 -c "... cp.child_env(harness={'adapter':'copilot_cli'}, base={}) ..."
 GH_TOKEN present: True len 40 prefix gho_
 needs_credential: False
-resolve_bin no-harness: /home/ubuntu/.npm-global/bin/copilot
+resolve_bin no-harness: <home>/.npm-global/bin/copilot
 ```
 
 `needs_credential` returns False for the same reason Claude Code's does:
@@ -101,7 +101,7 @@ dispatcher already owns it.
 $ python3 extensions/agi/bin/dispatch.py . L4.366 --harness copilot-cli --tier kid --dry-run
 harness: --harness copilot-cli overrides ladder row harness pi (using copilot-cli models for tier kid)
 [dry-run] slot=0 harness=copilot-cli tier=kid role=kid ladder_tier=0 level=big target=- brief_tier=kid
-  command: /home/ubuntu/.npm-global/bin/copilot --model auto --allow-all-tools -p '# dry-run context (placeholder, no zoom render)
+  command: <home>/.npm-global/bin/copilot --model auto --allow-all-tools -p '# dry-run context (placeholder, no zoom render)
 ...
 dry-run: nothing spawned, nothing written, no budget slot taken
 ```
@@ -195,6 +195,6 @@ not trust the line.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-Built the third harness: new adapters/copilot_cli_adapter.py + config row, dispatch.py untouched; dry-run prints /home/ubuntu/.npm-global/bin/copilot --model auto --allow-all-tools -p '<brief>'; 21 new fixture-only tests, 245 green across covering files; hooks parity ships as the allowed prompt-injection fallback.
+Built the third harness: new adapters/copilot_cli_adapter.py + config row, dispatch.py untouched; dry-run prints <home>/.npm-global/bin/copilot --model auto --allow-all-tools -p '<brief>'; 21 new fixture-only tests, 245 green across covering files; hooks parity ships as the allowed prompt-injection fallback.
 
-PARENT REVIEW PROBES (a00-cd9b4aa1, 2026-09-14): wire — live dry-run "dispatch.py . L4.366 --harness copilot-cli --tier kid --dry-run" independently emits "/home/ubuntu/.npm-global/bin/copilot --model auto --allow-all-tools -p ..." (config row reaches the built argv; dispatch.py untouched). gate — unknown tier raises KeyError "declares no model for tier nonesuch"; missing context file raises FileNotFoundError (refuses a spawn without its map). auth — needs_credential({}) False (no OpenRouter key minted). Test bytes inspected: fake copilot shell script on PATH, Popen faked, no live copilot call. ACCEPTED conjuncts 4+7. Conjunct 5 is the claim-allowed fallback (prompt injection + no meter wired) and is stated plainly. Remaining: conjunct 6 rotate shape -> kid 3.
+PARENT REVIEW PROBES (a00-cd9b4aa1, 2026-09-14): wire — live dry-run "dispatch.py . L4.366 --harness copilot-cli --tier kid --dry-run" independently emits "<home>/.npm-global/bin/copilot --model auto --allow-all-tools -p ..." (config row reaches the built argv; dispatch.py untouched). gate — unknown tier raises KeyError "declares no model for tier nonesuch"; missing context file raises FileNotFoundError (refuses a spawn without its map). auth — needs_credential({}) False (no OpenRouter key minted). Test bytes inspected: fake copilot shell script on PATH, Popen faked, no live copilot call. ACCEPTED conjuncts 4+7. Conjunct 5 is the claim-allowed fallback (prompt injection + no meter wired) and is stated plainly. Remaining: conjunct 6 rotate shape -> kid 3.

@@ -34,12 +34,13 @@ import time
 from pathlib import Path
 
 try:  # runs from extensions/agi/bin/ as part of the package
-    from . import locations, node_writer, rotate, send as _send, geometry_config
+    from . import locations, node_writer, rotate, rotation_record, send as _send, geometry_config
     from .frontmatter import split_frontmatter
 except ImportError:  # runs as a plain script from a checkout
     import locations  # type: ignore
     import node_writer  # type: ignore
     import rotate  # type: ignore
+    import rotation_record  # type: ignore
     import send as _send  # type: ignore
     import geometry_config  # type: ignore
     from frontmatter import split_frontmatter  # type: ignore
@@ -573,27 +574,27 @@ def _record_transcript(rec: dict) -> Path | None:
     for key in ("session_log",):
         v = rec.get(key)
         if v:
-            return Path(str(v)).expanduser()
+            return Path(rotation_record.resolve_record_path(v))
     ho = rec.get("handover")
     if isinstance(ho, dict):
         v = ho.get("session_log")
         if v:
-            return Path(str(v)).expanduser()
+            return Path(rotation_record.resolve_record_path(v))
         j = ho.get("join") or {}
         if isinstance(j, dict):
             v = j.get("transcript")
             if v:
-                return Path(str(v)).expanduser()
+                return Path(rotation_record.resolve_record_path(v))
     # the first-seating shape: the top-level path is the FALLBACK, read only
     # when no `handover.join.transcript` was present above.
     v = rec.get("transcript_path")
     if v:
-        return Path(str(v)).expanduser()
+        return Path(rotation_record.resolve_record_path(v))
     obs = rec.get("observations")
     if isinstance(obs, dict):
         v = obs.get("c_readback_log_path")
         if v and str(v).lower().endswith(".jsonl"):
-            return Path(str(v)).expanduser()
+            return Path(rotation_record.resolve_record_path(v))
     return None
 
 
@@ -1695,9 +1696,11 @@ def audit_finding_line(seat: str, side: str, record_stamp: str | None,
 def write_audit_into_record(rec_path, side: str, payload: dict) -> None:
     """Read-modify-write the ONE top-level `audit` key of a rotation record.
 
-    `rotate.py` writes every rotation record as
-    `json.dumps(record, indent=2) + "\n"` (rotate.py:4566,5304), so parsing
-    and re-dumping with the SAME call is byte-preserving for every other key.
+    `rotate.py` writes every rotation record through ONE serializer,
+    `rotation_record.dump_record` (indent 2, home-relative), and this re-dump uses
+    that SAME serializer: every other key is byte-preserved EXCEPT a raw home
+    path a legacy record still carries, which is rewritten `~` / `<home>/`
+    (bundle 2 R1 residue 33 -- the point of the one serializer).
     `audit` is assigned LAST, so a fresh record gains the key after its
     existing keys; on a re-run the existing `audit` dict keeps its position
     and only its OWN side is replaced -- a re-run replaces its side and never
@@ -1727,7 +1730,7 @@ def write_audit_into_record(rec_path, side: str, payload: dict) -> None:
         audit = {}
     audit[side] = payload
     rec["audit"] = audit
-    p.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    p.write_text(rotation_record.dump_record(rec), encoding="utf-8")  # the ONE serializer
 
 
 def _unstage_audit_record(top, rel: str) -> None:

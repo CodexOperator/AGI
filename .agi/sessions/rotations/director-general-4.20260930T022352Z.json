@@ -1,0 +1,155 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-general-4",
+  "recorded_at": "2026-09-30T02:26:12.038970Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "director-general-4",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "all-is-one",
+        "self-perpetuating",
+        "alive",
+        "sanctuary-master",
+        "stream-master",
+        "director-general-1",
+        "director-general-2",
+        "director-general-5",
+        "director-general-4.prev",
+        "director-general-4",
+        "director-general-3"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/director-general-4.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 1074998,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "director-general-4.prev",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "all-is-one",
+        "self-perpetuating",
+        "alive",
+        "sanctuary-master",
+        "stream-master",
+        "director-general-1",
+        "director-general-2",
+        "director-general-5",
+        "director-general-4.prev",
+        "director-general-4",
+        "director-general-3"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -74.247
+  },
+  "seated_at": "2026-09-30T02:26:12.038970Z",
+  "window": "director-general-4",
+  "session_id": "1cad8cdb-cf94-448e-b729-a28a0afcae1b",
+  "pid": 399749,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "director-general-4.prev",
+      "id": "@9"
+    },
+    "successor_window": {
+      "name": "director-general-4",
+      "id": "@13"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@13",
+      "pid": 399749,
+      "session_id": "1cad8cdb-cf94-448e-b729-a28a0afcae1b",
+      "transcript": "~/.claude/projects/-data-work-agi/1cad8cdb-cf94-448e-b729-a28a0afcae1b.jsonl",
+      "name": "agi-80",
+      "path": "~/.claude/sessions/399749.json",
+      "note": "joined by @13 in registry file 399749.json"
+    },
+    "successor_row": "config:seats row 'director-general-4': session_ref= session_name=agi-80 session_label=director-general-4 session_id=1cad8cdb-cf94-448e-b729-a28a0afcae1b pid=399749 generation=2 window='@13' source=registry pubkey=d061154f6a50f2cf... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha b08d2b6b6, retried 0) -- own-row only: director-general-4 spawn row: gen 2, session_id 1cad8cdb-cf94-448e-b729-a28a0afcae1b, window @13, pid 399749\npush: push: OK -- local-maxxing/season2/main\nauthority: REFUSED -- 'director-general-4' is absent on season2/main and so are ['director-general-5']: a lone row never lands",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/director-general-4.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/director-general-4.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/director-general-4.ack.1cad8cdb.json",
+    "own_authority_released": "generation 1 of seat 'director-general-4' retired; successor generation 2 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "FAILED: Command '['/usr/bin/python3', '/data/work/agi/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
+    "livestream_repoint": {
+      "session": "view-director-general-4",
+      "target": "@13",
+      "skipped": "view session view-director-general-4 absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "rotate-self"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/director-general-4.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "9bbc5192cf4e00d3d55645c0a57b7b9b2be39d3d11246ed808a88f109faf435e",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      {
+        "pid": 392538,
+        "was_alive": true,
+        "termd": true,
+        "gone_after": true,
+        "ps_before": "392538 /bin/bash -c source ~/.claude/shell-snapshots/snapshot-bash-1790734448529-jz2ane.sh 2>/dev/null || true && shopt -u extglob 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'cd /data/work/agi; timeout 600 python3 extensions/agi/bin/rotate.py rotate 2>&1 | tail -15' < /dev/null && pwd -P >| /tmp/claude-7262-cwd",
+        "ps_after": ""
+      },
+      {
+        "pid": 117569,
+        "was_alive": true,
+        "termd": true,
+        "gone_after": true,
+        "ps_before": "117569 claude --remote-control director-general-4 --permission-mode bypassPermissions --debug-file /data/work/agi/.agi/sessions/director-general-4.log --model claude-opus-5-5 --effort high --resume 99185f3f-3f9c-4357-83c4-4e16f7932388 RESUMED SEAT (crash-recovery, heal): your process died and heal resumed this same session. Re-read your card (it may have moved on), then run `python3 extensions/agi/bin/rotate.py ack --seat director-general-4 --gen 1 --ref <your ListAgents ref> continue` and carry on.",
+        "ps_after": ""
+      },
+      {
+        "pid": 117557,
+        "was_alive": false,
+        "termd": false,
+        "gone_after": true,
+        "ps_before": "",
+        "ps_after": ""
+      },
+      {
+        "pid": 117555,
+        "was_alive": false,
+        "termd": false,
+        "gone_after": true,
+        "ps_before": "",
+        "ps_after": ""
+      }
+    ],
+    "reap_source": "derived from own window @id @9 pane 117555: chain [117555, 117557, 117569, 392538] (deepest-first; authority row pid 117569)"
+  },
+  "committed_by": "rotate-self"
+}

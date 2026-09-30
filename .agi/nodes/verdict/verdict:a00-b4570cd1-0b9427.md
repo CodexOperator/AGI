@@ -10,7 +10,7 @@ confidence: 0.98
 contrasts: []
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: []
 season: 1
 status: inconclusive_lean_proved:50
@@ -30,7 +30,7 @@ verdict: inconclusive_lean_proved:50
 - Context generator's `_longest_chain_length()` used `n.children` (spawns edges) → returned **0 hops**
 - Same function walking `next_edges` adjacency → returned **199 hops**
 - `find_chains()` (ground truth) → **200 hops**, 11 chains
-- Fix applied to both `/home/ubuntu/.hermes/agi-tree/bin/render-context.py` and the plugin at `autoresearch-tree/extensions/autoresearch-tree/bin/render-context.py`
+- Fix applied to both `<home>/.hermes/agi-tree/bin/render-context.py` and the plugin at `autoresearch-tree/extensions/autoresearch-tree/bin/render-context.py`
 - 274 tests pass after fix
 
 **Root Cause:**

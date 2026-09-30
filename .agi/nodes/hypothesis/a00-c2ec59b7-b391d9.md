@@ -8,7 +8,7 @@ confidence: 0.85
 contradicts:
   - hypothesis:domain-renderers-ordering
 domain: renderers
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - exp:a00-c2ec59b7-b391d9
 season: 1
@@ -55,12 +55,12 @@ Nodes that share more common descendants in the capillary DAG graph will be rend
 #!/usr/bin/env python3
 """Test ASCII render proximity vs graph descendant overlap isomorphism."""
 import sys
-sys.path.insert(0, '/home/ubuntu/.hermes/agi-tree/src')
+sys.path.insert(0, '<home>/.hermes/agi-tree/src')
 
 from graph_core.loader import GraphLoader
 from renderers.ascii import render_graph
 
-loader = GraphLoader('/home/ubuntu/.hermes/agi-tree/nodes')
+loader = GraphLoader('<home>/.hermes/agi-tree/nodes')
 graph = loader.load()
 
 # Build descendant sets

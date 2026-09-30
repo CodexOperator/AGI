@@ -1,0 +1,29 @@
+{
+  "rotation": "rotate-self",
+  "seat": "belam",
+  "recorded_at": "2026-09-29T17:26:35.139457Z",
+  "result": "started",
+  "steps_reached": [
+    "2",
+    "handoff",
+    "spawn"
+  ],
+  "box": {
+    "loadavg": [
+      14.933,
+      15.489,
+      15.522
+    ],
+    "cores": 16
+  },
+  "template_source": "worktree (geometry current)",
+  "stops_sha256": "33485a85e79dd3e1d63dee4efc6583042a85ae5231913b904cec1c318bbd3fac",
+  "gen_before": 16,
+  "gen_after": 17,
+  "swept_latches": [],
+  "inherited": true,
+  "after_join": {
+    "skipped": "no live session",
+    "age_s": 395.4496293067932
+  }
+}

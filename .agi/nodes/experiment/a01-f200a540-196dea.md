@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-7e85b581-3a07f5
 next_edges: []
 confidence: 0.55
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a01-f200a540-196dea
 scaffold_hash: c3694308d4b05c52
@@ -24,7 +24,7 @@ Tested three invariants from hypothesis:a00-7e85b581-3a07f5 via code-path analys
 **Setup:**
 - Mock engine root: `/tmp/non-git-dir/` — empty, no `.git/`, simulating pip site-packages
 - Mock project root: `/tmp/test-pip-install/test-project/` — has `.agi/config.json`, no existing nodes
-- Engine source: `/home/ubuntu/work/agi/extensions/agi/` (the real checkout, used as control)
+- Engine source: `<home>/work/agi/extensions/agi/` (the real checkout, used as control)
 
 **Invariant 1 (git ls-files in level3.py):**
 - Test A: `payload_boundary.classify(Path('/tmp/non-git-dir'))` — raises `CalledProcessError: Command 'git -C /tmp/non-git-dir ls-files' returned non-zero exit status 128` (because `check=True`).

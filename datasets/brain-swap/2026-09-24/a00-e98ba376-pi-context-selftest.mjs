@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, symlink, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadProjectContextFiles } from "/home/belam/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/dist/core/resource-loader.js";
-import { parseArgs } from "/home/belam/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/dist/cli/args.js";
+const PI = join(homedir(), ".npm-global/lib/node_modules/@mariozechner/pi-coding-agent/dist");
+const { loadProjectContextFiles } = await import(join(PI, "core/resource-loader.js"));
+const { parseArgs } = await import(join(PI, "cli/args.js"));
 const root = await mkdtemp(join(tmpdir(), "pi-context-fixture-"));
 const child = join(root, "child");
 await mkdir(child);

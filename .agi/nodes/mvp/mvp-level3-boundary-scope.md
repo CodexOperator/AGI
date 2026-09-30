@@ -5,7 +5,7 @@ type: mvp
 parents:
   - goal:g6.8
 confidence: 0.85
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: []
 season: 1
 subgraph: false
@@ -538,8 +538,8 @@ produced this run — nothing stale, nothing pruned.
 
 ## Dry-run result
 
-Real numbers, from `python3 level3.py --project /home/ubuntu/work/agi-tree
---engine-root /home/ubuntu/work/agi --dry-run` (full log in
+Real numbers, from `python3 level3.py --project <home>/work/agi-tree
+--engine-root <home>/work/agi --dry-run` (full log in
 `sessions/iter-9011/kid-l/dryrun-output.txt`):
 
 - **files scanned: 177** (was 74)

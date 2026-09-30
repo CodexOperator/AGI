@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-sb-status-is-both-halves
 next_edges: []
 confidence: 0.92
-edited_by: sanctuary-director
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-748cd31f-ceab40
 loop: hypothesis:l4-sb-status-is-both-halves@s2
@@ -47,8 +47,8 @@ legal way for `commands.py run sb-status` to reach BOTH halves is for the one
 ```
 
 Verified the spelling on the real path before committing to it:
-`os.path.normpath('/home/ubuntu/work/streamer-stub/../../bin/sb-status')`
-→ `/home/ubuntu/bin/sb-status`, `os.path.isfile` True, `os.access(X_OK)` True
+`os.path.normpath('<home>/work/streamer-stub/../../bin/sb-status')`
+→ `<home>/bin/sb-status`, `os.path.isfile` True, `os.access(X_OK)` True
 (the stub default `~/work/streamer-stub`'s parent's parent is `~`, so
 `<stub>/../../bin/sb-status` spells `~/bin/sb-status`). No engine
 change was needed; the flat single-argv model already absorbs this.
@@ -110,7 +110,7 @@ PARENT REVIEW a00-120cd87b L4.165 DEMOTES proved to inconclusive_lean_proved:85.
 
 (1) WHAT THE INSTRUCTION SAID - hypothesis:l4-sb-status-is-both-halves: CLAIM the fragment sb-status line names both halves with their argv, and the resolves-to-executables test asserts BOTH resolve (a fragment naming only one half fails).
 
-(2) WHAT THE MACHINE ACTUALLY DOES - the fragment sb-status entry now carries ONE argv, [<stub>/../../bin/sb-status]; commands.Command.argv (extensions/agi/bin/commands.py, load()) is a flat list with exactly one argv[0] and _substitute expands only <root>/<engine>/<stub>. The two halves are reached TRANSITIVELY through the wrapper, not named in the fragment. Independent checks, run by me not read from the kid report: os.path.normpath(/home/ubuntu/work/streamer-stub/../../bin/sb-status) = /home/ubuntu/bin/sb-status, isfile True, X_OK True, wrapper body exactly the hold.sh --status + panic.sh --status pair; pytest extensions/agi/tests/test_commands.py -q = 33 passed; mutation check done by me - reverting the fragment to the hold-half-only spelling turned BOTH real-fragment tests red (2 failed, 31 deselected) and restoring left the file byte-identical (md5 cec1734eaafbe53ea51477fbe6bc14d4). The second conjunct of the claim IS satisfied.
+(2) WHAT THE MACHINE ACTUALLY DOES - the fragment sb-status entry now carries ONE argv, [<stub>/../../bin/sb-status]; commands.Command.argv (extensions/agi/bin/commands.py, load()) is a flat list with exactly one argv[0] and _substitute expands only <root>/<engine>/<stub>. The two halves are reached TRANSITIVELY through the wrapper, not named in the fragment. Independent checks, run by me not read from the kid report: os.path.normpath(<home>/work/streamer-stub/../../bin/sb-status) = <home>/bin/sb-status, isfile True, X_OK True, wrapper body exactly the hold.sh --status + panic.sh --status pair; pytest extensions/agi/tests/test_commands.py -q = 33 passed; mutation check done by me - reverting the fragment to the hold-half-only spelling turned BOTH real-fragment tests red (2 failed, 31 deselected) and restoring left the file byte-identical (md5 cec1734eaafbe53ea51477fbe6bc14d4). The second conjunct of the claim IS satisfied.
 
 (3) THE NEAR MISS - a reader accepts proved because both halves now resolve and the user-visible defect is closed; that satisfies the words of g15-23 and loses the claim letter, which asks the FRAGMENT to name both argv. It cannot: one commands entry carries one argv[0], and extending the schema to a compound argv was outside the declared file scope (fragment + L4.143 test). The claim as minted was unsatisfiable within its own scope, so the honest label is a lean, not a proof. The kid hit this class of trap itself: its first mutation died on a stray colon in the about line (yaml.scanner.ScannerError), a red for the wrong reason that would have certified nothing; it caught that and redid it cleanly.
 
@@ -119,4 +119,4 @@ PARENT REVIEW a00-120cd87b L4.165 DEMOTES proved to inconclusive_lean_proved:85.
 RESIDUAL, not a reason for the lean: <stub>/../../bin/sb-status spells the home bin wrapper only when the stub sits two levels under the home dir (the code default ~/work/streamer-stub). A configured locations.streamer_stub at any other depth resolves the declared sb-status to a missing path, and the stub_only guard plus the default-config temp graph in test_real_fragment_resolves_through_commands_py_and_owner_gate would not catch it. That is a follow-up hypothesis, not a defect in this fix.
 <!-- THOUGHT:END -->
 
-**2026-09-11T08:30Z director review at harvest (sanctuary-director gen XII, L4.165).** Re-ran on the round bytes and the merged seat bytes: `python3 -m pytest extensions/agi/tests/test_commands.py -q` → 33 passed. Real-tree probe: the fragment's `<stub>/../../bin/sb-status` with the real stub `/home/ubuntu/work/streamer-stub` normalises to `/home/ubuntu/bin/sb-status` — exists, executable, 131 bytes, and its whole body is the two halves (`hold.sh --status` then `panic.sh --status`). The parent's :85 is accepted: the claim letter asked the fragment to name both argv, which one commands entry cannot; routing through the wrapper is the fix the schema allows and the prime's g15-23 words (sb-status = both halves of ~/bin/sb-status) are met. Merged into the seat.
+**2026-09-11T08:30Z director review at harvest (sanctuary-director gen XII, L4.165).** Re-ran on the round bytes and the merged seat bytes: `python3 -m pytest extensions/agi/tests/test_commands.py -q` → 33 passed. Real-tree probe: the fragment's `<stub>/../../bin/sb-status` with the real stub `<home>/work/streamer-stub` normalises to `<home>/bin/sb-status` — exists, executable, 131 bytes, and its whole body is the two halves (`hold.sh --status` then `panic.sh --status`). The parent's :85 is accepted: the claim letter asked the fragment to name both argv, which one commands entry cannot; routing through the wrapper is the fix the schema allows and the prime's g15-23 words (sb-status = both halves of ~/bin/sb-status) are met. Merged into the seat.

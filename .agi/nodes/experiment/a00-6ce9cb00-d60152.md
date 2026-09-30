@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box
 next_edges: []
 confidence: 0.7
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-6ce9cb00-d60152
 line_ceiling: 40
@@ -116,7 +116,7 @@ llama.cpp container with GPU access (`optimistic_poincare`) was Up during the wi
   adapter-gate row, tenancy row).
 - 5 gate completions at B and C scales 0/1/2/3: `.agi/context/local-maxxing/bonsai/abc/` (26 files +
   `PROMPTS.md`).
-- Session scratch: `/data/work/agi/.agi/worktrees/a00-944318b2/.agi/sessions/iter-ABC.01/a00-6ce9cb00/`
+- Session scratch: `<repo>/.agi/worktrees/a00-944318b2/.agi/sessions/iter-ABC.01/a00-6ce9cb00/`
   (`gate.py`, `gate_scales.py`, `gate2.py`, `bench2.py`, `bench16k.py`, `probs2.py`, armB/C json).
 
 ### Restore (required before done)
@@ -141,5 +141,5 @@ next kid. Lean: **inconclusive_lean_proved:70** — direction positive for the t
 Steps 1/2/4 only: 27B ternary loads at -c 65536 fully on GPU (n_layer=64, 0 CPU offload, 0 OOM, 7268 MiB); abliteration LoRA IS routed (scale-0 == arm B byte-identical on 5 prompts, scale-3 empty) but scales 1-2 are byte-identical to base at the token level though logprobs move; B pp512 259.2/tg128 23.0 tok/s, 7.43 J/tok, C(1) 241.0/22.1, ~160W. Stock :8080 restored healthy. HumanEval (step 3) not run.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-TMM.56 (thought-master, 09-23 17:54Z) -- the anonymize rule, nodes carry the class label GPU2070S and never the hardware model name: the model name at :30 is now GPU2070S; a pure substitution, no other content changed.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

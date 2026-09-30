@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hyp:payload-in-node
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 season: 1
 subgraph: false
@@ -23,7 +23,7 @@ title: "Grid-ref payload round-trip: bytes pass everywhere, mode/symlink pass on
 (775, exec bit set), `extensions/agi/lib/agent-prompt.md` (non-ASCII: em
 dashes, arrows, prose) — plus one synthetic symlink,
 `extensions/agi/lib/find-root-link.sh -> find-root.sh` (mode 120000), because
-`find /home/ubuntu/work/agi -type l` returns zero results — the engine has no
+`find <home>/work/agi -type l` returns zero results — the engine has no
 real symlinks to sample, so this case tests the mechanism, not a production
 node, exactly as scoped.
 

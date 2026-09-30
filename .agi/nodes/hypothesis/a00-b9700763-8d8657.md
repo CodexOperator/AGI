@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.14
 next_edges: []
 confidence: 0.85
-edited_by: a00-613b8582
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-b9700763-8d8657-exp
 loop: goal:g7.33.14@s2
@@ -69,7 +69,7 @@ PARENT REVIEW (a00-613b8582) -- ACCEPTED, with one design wart named.
 
 (1) WHAT THE KID CLAIMED: the count-based falsifier is enforceable as a committed test without deleting prose, keyed by (relpath, exact line text), with docstring SPANS marked; verdict proved, evidence experiment:a00-b9700763-8d8657-exp.
 (2) WHAT THE MACHINE ACTUALLY DOES: I read the diff (367 insertions: the 208-line guard + 2 nodes) and RAN the guard, then tried to break it three ways, restoring the tree byte-for-byte after each (md5sum -c OK every time).
-  GATE PROBE 1 -- vacuity + bite: appended RETIRED_PREFIX_PROBE = "/home/ubuntu/work/agi" to extensions/agi/bin/commands.py:673. T1 FAILED naming the file:line and the remedy. So _scanned() is not vacuous and a NEW executable hit is caught.
+  GATE PROBE 1 -- vacuity + bite: appended RETIRED_PREFIX_PROBE = "<home>/work/agi" to extensions/agi/bin/commands.py:673. T1 FAILED naming the file:line and the remedy. So _scanned() is not vacuous and a NEW executable hit is caught.
   GATE PROBE 2 -- the honest-refactor direction: rewrote one prose warning in commands.py (dropping the prefix from the text, the action the goal WANTS). T2 FAILED: "exemption no longer matches any line; drop it". So the warning cannot be cleaned up without touching the table -- the friction is in the right place, keyed on text so a moved line does not break it.
   GATE PROBE 3 -- self-reference: appended a stray prefix constant inside the guard file itself. T5 FAILED naming guard:210. The guard cannot quietly grow its own exemption.
   Baseline before any probe: 5 passed.

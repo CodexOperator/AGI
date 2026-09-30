@@ -231,44 +231,12 @@ def test_source_root_override_beats_the_layout_default(tmp_path):
     assert locations.source_root(graph) == repo / "vendor"
 
 
-# --- goals_path ------------------------------------------------------------
+# --- goals_path: retired with GOALS.md (goal:g7.16.1.4.1 W-G) -------------
 
 
-def test_goals_render_to_the_repo_root_not_inside_dot_agi(tmp_path):
-    """The reason `goals_path` exists at all."""
-    repo = tmp_path / "fantasia"
-    graph = make_graph_dir(repo)
-    assert locations.goals_path(graph) == repo / "GOALS.md"
-
-
-def test_goals_stay_at_the_graph_root_under_the_legacy_layout(tmp_path):
-    root = make_legacy(tmp_path / "proj")
-    assert locations.goals_path(root) == root / "GOALS.md"
-
-
-def test_goals_file_override_resolves_the_dropin_collision(tmp_path):
-    """A repo that already ships its own GOALS.md keeps both documents."""
-    repo = tmp_path / "fantasia"
-    graph = make_graph_dir(repo, goals_file="AGI-GOALS.md")
-    assert locations.goals_path(graph) == repo / "AGI-GOALS.md"
-    assert locations.goals_path(graph).name != "GOALS.md"
-
-
-def test_goals_file_with_a_separator_is_relative_to_the_graph_root(tmp_path):
-    repo = tmp_path / "repo"
-    graph = make_graph_dir(repo, goals_file="docs/GOALS.md")
-    assert locations.goals_path(graph) == graph / "docs" / "GOALS.md"
-
-
-def test_goals_file_absolute_is_used_as_is(tmp_path):
-    target = tmp_path / "anywhere" / "G.md"
-    root = make_legacy(tmp_path / "proj", goals_file=str(target))
-    assert locations.goals_path(root) == target
-
-
-def test_blank_goals_file_falls_back_to_the_default(tmp_path):
-    root = make_legacy(tmp_path / "proj", goals_file="   ")
-    assert locations.goals_path(root) == root / "GOALS.md"
+def test_goals_path_and_its_cell_are_retired():
+    assert not hasattr(locations, "goals_path")
+    assert not hasattr(locations, "DEFAULT_GOALS_FILE")
 
 
 # --- config loading --------------------------------------------------------
@@ -588,8 +556,8 @@ def test_symlinked_start_resolves_like_python(tmp_path):
 def test_cli_what_prints_one_path(tmp_path, capsys):
     repo = tmp_path / "fantasia"
     make_graph_dir(repo)
-    assert locations.main([str(repo), "--what", "goals"]) == 0
-    assert capsys.readouterr().out.strip() == str(repo / "GOALS.md")
+    assert locations.main([str(repo), "--what", "repo"]) == 0
+    assert capsys.readouterr().out.strip() == str(repo)
 
 
 def test_cli_json_reports_the_layout(tmp_path, capsys):

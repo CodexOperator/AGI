@@ -69,9 +69,9 @@
       "window_id": "@38",
       "pid": 92461,
       "session_id": "8884a411-240c-46b0-8a11-7fa806127484",
-      "transcript": "/home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/8884a411-240c-46b0-8a11-7fa806127484.jsonl",
+      "transcript": "~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/8884a411-240c-46b0-8a11-7fa806127484.jsonl",
       "name": "post-director-engine-6d",
-      "path": "/home/belam/.claude/sessions/92461.json",
+      "path": "~/.claude/sessions/92461.json",
       "note": "joined by @38 in registry file 92461.json"
     },
     "successor_row": "config:seats row 'director-engine': session_ref= session_name=post-director-engine-6d session_label=director-engine session_id=8884a411-240c-46b0-8a11-7fa806127484 pid=92461 generation=41 window='@38' source=registry pubkey=9cbf2cf3753cfb77... key_history=5",
@@ -115,7 +115,7 @@
         "was_alive": true,
         "termd": true,
         "gone_after": true,
-        "ps_before": "88430 /bin/bash -c source /home/belam/.claude/shell-snapshots/snapshot-bash-1790599324124-g9qhhn.sh 2>/dev/null || true && shopt -u extglob 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'timeout 600 python3 extensions/agi/bin/rotate.py rotate 2>&1 | sed -E '\"'\"'s/[0-9a-f]{40,}/<hex>/g'\"'\"' | tail -12 | cut -c1-250' < /dev/null && pwd -P >| /tmp/claude-fbd4-cwd",
+        "ps_before": "88430 /bin/bash -c source ~/.claude/shell-snapshots/snapshot-bash-1790599324124-g9qhhn.sh 2>/dev/null || true && shopt -u extglob 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'timeout 600 python3 extensions/agi/bin/rotate.py rotate 2>&1 | sed -E '\"'\"'s/[0-9a-f]{40,}/<hex>/g'\"'\"' | tail -12 | cut -c1-250' < /dev/null && pwd -P >| /tmp/claude-fbd4-cwd",
         "ps_after": ""
       },
       {
@@ -162,7 +162,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/8884a411-240c-46b0-8a11-7fa806127484.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log ~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/8884a411-240c-46b0-8a11-7fa806127484.jsonl",
         "rc": 0,
         "output": "0.0962\t96186/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

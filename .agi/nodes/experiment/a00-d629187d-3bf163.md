@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-is-written
 next_edges: []
 confidence: 0.85
-edited_by: a00-25d39101
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-d629187d-3bf163
 line_ceiling: 40
@@ -104,7 +104,7 @@ $ find <scratch>/probe-proj/.agi/nodes -maxdepth 1 -type d | sort
 <root>/.agi/nodes/idea
 ```
 
-`nodes/notown` did not survive. Live invariant honoured: `ls /home/ubuntu/work/agi/.agi/nodes | grep -i notown` → no match, before and after; every probe ran under `.agi/sessions/iter-SD.10/a00-d629187d/` or pytest's `tmp_path`.
+`nodes/notown` did not survive. Live invariant honoured: `ls <home>/work/agi/.agi/nodes | grep -i notown` → no match, before and after; every probe ran under `.agi/sessions/iter-SD.10/a00-d629187d/` or pytest's `tmp_path`.
 
 Production-line measurement (`git diff --numstat`, read-only): `extensions/agi/bin/node_writer.py` 33 added / 1 removed = net 32 lines, inside the 40-line ceiling. Tests: +85 lines, excluded from the measurement.
 

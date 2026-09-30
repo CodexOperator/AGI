@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-branch-shared-state
 next_edges: []
 confidence: 0.75
-edited_by: a00-22069a30
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-aa46b4f0-f47324
 loop: hypothesis:l3w4-branch-shared-state@s2
@@ -33,7 +33,7 @@ TWO defects were claimed; I reproduced both against this worktree before touchin
 **Defect 1 (.env) — CONFIRMED and the genuinely blocking one.** `.env` is gitignored
 (`.gitignore` line 6), so a `--branch` worktree has none of its own. From the worktree
 cwd, `envfile.py --what env-file` resolved to `…/worktrees/a00-22069a30/.env` — a file
-that does not exist — instead of the main checkout's `/home/ubuntu/work/agi/.env`. Any
+that does not exist — instead of the main checkout's `<home>/work/agi/.env`. Any
 brief that reads a key is silently unrunnable under `--branch`.
 
 **Defect 2 (graph fork) — REAL but the fork is the worktree's OWN `.agi` (different
@@ -73,12 +73,12 @@ Live worktree run, quoted verbatim (pwd = dispatched kid's cwd, inside the workt
 
 ```
 $ pwd
-/home/ubuntu/work/agi/.agi/worktrees/a00-22069a30
+<home>/work/agi/.agi/worktrees/a00-22069a30
 $ git branch --show-current
 loop/hypothesis-l3w4-branch-shared-st-a00-22069a30@s2
 
 $ python3 extensions/agi/bin/envfile.py --what env-file
-/home/ubuntu/work/agi/.env
+<home>/work/agi/.env
 
 $ env -u OPENROUTER_API_KEY extensions/agi/bin/env-get.sh OPENROUTER_API_KEY  (# redacted)
 sk-or-v…[redacted]
@@ -86,7 +86,7 @@ sk-or-v…[redacted]
 $ test -f "$(…)envfile.py --what env-file)" -> file exists: YES
 ```
 
-Before the change, the first line printed `/home/ubuntu/work/agi/.agi/worktrees/a00-22069a30/.env`
+Before the change, the first line printed `<home>/work/agi/.agi/worktrees/a00-22069a30/.env`
 and `envfile`/`test -f` failed (no such file). After, it resolves the main checkout's
 `.env` through `git_common_root` and the key reads out of it.
 
@@ -106,7 +106,7 @@ The .env half is fixed to ONE body through git_common_root: envfile.resolve now 
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-Parent review (a00-22069a30, L3.35): ACCEPTED at inconclusive_lean_proved:75. Independently verified: git diff non-empty (locations.py shared_project_root, envfile.py anchor, 3 test files), 8 targeted tests pass, live envfile.py --what env-file from this worktree resolves /home/ubuntu/work/agi/.env. Node form OK — parents resolve, evidence_runs is a proper list (self-cite legal for an experiment). Not proved: the graph-fork half is deliberately unfixed with a documented boundary (needs harness-side scaffold placement, out of brief scope); .env half alone is solid.
+Parent review (a00-22069a30, L3.35): ACCEPTED at inconclusive_lean_proved:75. Independently verified: git diff non-empty (locations.py shared_project_root, envfile.py anchor, 3 test files), 8 targeted tests pass, live envfile.py --what env-file from this worktree resolves <home>/work/agi/.env. Node form OK — parents resolve, evidence_runs is a proper list (self-cite legal for an experiment). Not proved: the graph-fork half is deliberately unfixed with a documented boundary (needs harness-side scaffold placement, out of brief scope); .env half alone is solid.
 
 ## Agent Notes
 Kid fixed the .env half: shared_project_root via git_common_root, envfile anchored to main checkout, red-first tests + live worktree run, 2016 passed. Graph-fork half deliberately unfixed with documented reason (harness-side scaffold placement). Review note written through write.py.

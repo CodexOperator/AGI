@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hyp:level3-node-anatomy
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 season: 1
 tags:
@@ -46,7 +46,7 @@ existing `idea:engine-*` census nodes (written by `decompose-engine.py`):
 exact match for `bin_script`, longest directory-prefix match for
 `src_package`. No match → parentless, printed as `NO_PARENT`, never guessed.
 
-**Run — real, against `/home/ubuntu/work/agi-tree`:**
+**Run — real, against `<home>/work/agi-tree`:**
 
 ```
 files scanned: 72

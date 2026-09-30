@@ -69,9 +69,9 @@
       "window_id": "@22",
       "pid": 4003298,
       "session_id": "244a153d-437b-41e5-98a0-745b892d0bcd",
-      "transcript": "/home/belam/.claude/projects/-data-work-agi/244a153d-437b-41e5-98a0-745b892d0bcd.jsonl",
+      "transcript": "~/.claude/projects/-data-work-agi/244a153d-437b-41e5-98a0-745b892d0bcd.jsonl",
       "name": "agi-f8",
-      "path": "/home/belam/.claude/sessions/4003298.json",
+      "path": "~/.claude/sessions/4003298.json",
       "note": "joined by @22 in registry file 4003298.json"
     },
     "successor_row": "config:seats row 'belam': session_ref= session_name=agi-f8 session_label= session_id=244a153d-437b-41e5-98a0-745b892d0bcd pid=4003298 generation=13 window='@22' source=registry pubkey=3823a2376bdac021... key_history=5",
@@ -133,7 +133,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/belam.meter --session-log /home/belam/.claude/projects/-data-work-agi/244a153d-437b-41e5-98a0-745b892d0bcd.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/belam.meter --session-log ~/.claude/projects/-data-work-agi/244a153d-437b-41e5-98a0-745b892d0bcd.jsonl",
         "rc": 0,
         "output": "0.0763\t76293/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,
@@ -200,7 +200,7 @@
           "was_alive": true,
           "termd": true,
           "gone_after": true,
-          "ps_before": "100492 /home/belam/.local/share/GitKrakenCLI/gk mcp --plugin --host=claude",
+          "ps_before": "100492 ~/.local/share/GitKrakenCLI/gk mcp --plugin --host=claude",
           "ps_after": ""
         },
         {
@@ -208,7 +208,7 @@
           "was_alive": true,
           "termd": true,
           "gone_after": true,
-          "ps_before": "100483 /home/belam/.npm/_npx/f5cec77757ac662d/node_modules/@gitkraken/gk/bin/gk mcp --plugin --host=claude",
+          "ps_before": "100483 ~/.npm/_npx/f5cec77757ac662d/node_modules/@gitkraken/gk/bin/gk mcp --plugin --host=claude",
           "ps_after": ""
         },
         {
@@ -216,7 +216,7 @@
           "was_alive": true,
           "termd": true,
           "gone_after": true,
-          "ps_before": "100475 node /home/belam/.npm/_npx/f5cec77757ac662d/node_modules/.bin/gk mcp --plugin --host=claude",
+          "ps_before": "100475 node ~/.npm/_npx/f5cec77757ac662d/node_modules/.bin/gk mcp --plugin --host=claude",
           "ps_after": ""
         },
         {

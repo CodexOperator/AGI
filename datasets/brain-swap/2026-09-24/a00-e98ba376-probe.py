@@ -2,7 +2,7 @@
 """Record pi's first request with and without project context; no real model call."""
 import hashlib, http.server, json, os, pathlib, subprocess, tempfile, threading
 
-PI = pathlib.Path("/home/belam/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/dist/cli.js")
+PI = pathlib.Path("~/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/dist/cli.js").expanduser()
 ROOT = pathlib.Path.cwd()
 OUT = pathlib.Path("datasets/brain-swap/2026-09-24")
 requests = []

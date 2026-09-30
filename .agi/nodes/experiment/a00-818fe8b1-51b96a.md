@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council
 next_edges: []
 confidence: 0.7
-edited_by: ubuntu
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-818fe8b1-51b96a
 loop: hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council@s2
@@ -59,8 +59,8 @@ definition:
 
 Resolved argv (live, same code path as the geometry node):
 ```
-stub resolved   : /home/ubuntu/work/streamer-stub
-sb-status argv  : ['/home/ubuntu/work/streamer-stub', 'sb-status']
+stub resolved   : <home>/work/streamer-stub
+sb-status argv  : ['<home>/work/streamer-stub', 'sb-status']
 placeholders    : '<stub>' sb-status      # docs still show the token
 panic owner_only: True
 ```
@@ -98,7 +98,7 @@ PARENT REVIEW (a00-8bb07b82, L4.124 = the L4.117b fix-only re-dispatch). ACCEPTE
 
 (1) WHAT THE INSTRUCTION SAID. Residue 6: "commands.py resolves <stub> from locations.streamer_stub and refuses panic for any actor but the owner (machine-readable owner-only flag)"; and my brief: "NEVER execute `panic`, not even once, not even dry. The stream is LIVE. Your tests must assert the refusal path WITHOUT spawning the stub ... Do not run `sb-status`/`brb`/`back` either".
 
-(2) WHAT THE MACHINE ACTUALLY DOES — re-run by me on this tree, not read off the report. `locations.py:481 streamer_stub(root)` is one resolver reading `locations.streamer_stub` with the `~/work/streamer-stub` fallback; on this checkout it returns `/home/ubuntu/work/streamer-stub`. `commands.py:_substitute` now appends `.replace("<stub>", str(locations.streamer_stub(root)))`, keeping the two-form contract: `Command.argv` resolves the path while `raw_argv`/`shell(placeholders=True)` keep the token. I built a temp graph carrying `sb-status`/`panic` and loaded it: `sb-status.argv == ['/home/ubuntu/work/streamer-stub', 'sb-status']`, `shell(placeholders=True) == "'<stub>' sb-status"`, `panic.owner_only is True`. `commands.py:run` refuses any actor but `owner` with exit 3 BEFORE the `subprocess.call` line, naming the flag. The kid's tests monkeypatch `commands.subprocess.call` to FAIL if reached for the refusal case, which is the correct shape for a live-stream constraint — the stub was never executed by me either. Full merged-tree suite after all four kids: 2723 passed, 1 skipped; `links.py links`: 2067 resolved, 0 broken.
+(2) WHAT THE MACHINE ACTUALLY DOES — re-run by me on this tree, not read off the report. `locations.py:481 streamer_stub(root)` is one resolver reading `locations.streamer_stub` with the `~/work/streamer-stub` fallback; on this checkout it returns `<home>/work/streamer-stub`. `commands.py:_substitute` now appends `.replace("<stub>", str(locations.streamer_stub(root)))`, keeping the two-form contract: `Command.argv` resolves the path while `raw_argv`/`shell(placeholders=True)` keep the token. I built a temp graph carrying `sb-status`/`panic` and loaded it: `sb-status.argv == ['<home>/work/streamer-stub', 'sb-status']`, `shell(placeholders=True) == "'<stub>' sb-status"`, `panic.owner_only is True`. `commands.py:run` refuses any actor but `owner` with exit 3 BEFORE the `subprocess.call` line, naming the flag. The kid's tests monkeypatch `commands.subprocess.call` to FAIL if reached for the refusal case, which is the correct shape for a live-stream constraint — the stub was never executed by me either. Full merged-tree suite after all four kids: 2723 passed, 1 skipped; `links.py links`: 2067 resolved, 0 broken.
 
 (3) THE NEAR MISS. Enforcing owner-only inside the four stream specs as prose plus a caller-side check would satisfy "panic has owner protection" and lose the machine half the prime demanded: the flag has to live on the `Command` object so a future runner (not this one) can see it without re-parsing the node. The other near miss: substituting `<stub>` into `raw_argv` too would have made the rendered/declared form machine-specific, which is the exact thing `<root>`/`<engine>`'s placeholder mode exists to prevent (goal:g1.24).
 

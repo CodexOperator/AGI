@@ -311,14 +311,15 @@ def load_nodes(graph_root: Path) -> dict:
     file (~ms) — the whole point is that a single-node edit must not cost a
     full re-read of every node file on the next /graph.json request.
     """
-    out: dict = {}
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.2: per call, never in the per-file cache)
+    out, r = {}, links.address_resolver(graph_root)
     for p in _iter_active_node_files(graph_root):
         rec = _read_node_file(p)
         if rec is None or rec["status"] == "deprecated":
             continue
         out[rec["id"]] = {
             "id": rec["id"], "type": rec["type"],
-            "title": rec["title"], "parents": rec["parents"],
+            "title": rec["title"], "parents": [r(x) or x for x in rec["parents"]],
         }
     return out
 

@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g6.11
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: e7ad6b68845087ed
 season: 2
 testable_claim: "After the change, no workflow stage can spawn a pi child whose --model is outside the provider's namespace: the pi harness resolves its model from harnesses.pi.models (or an explicit per-harness key) rather than from the harness-agnostic workflows.<name>.model, and a model the provider cannot own is a loud refusal before any network call, proven red-first."
@@ -37,7 +37,7 @@ THE PRICE, read live from `https://openrouter.ai/api/v1/models` on 2026-09-08:
 THE PART THAT MAKES IT A DESIGN DEFECT AND NOT A TYPO. `.agi/config.json` ALREADY declares the correct slugs, in the same file, one block away: `harnesses.pi.models` = `{kid: ~deepseek/deepseek-v4-flash-latest, parent: ~z-ai/glm-flash-latest}`. `_pi_harness_cfg` reads `bin`, `provider` and `thinking` out of that block and never reads `models`. The one place the right models are written is the one place this code path ignores. Meanwhile `workflows.NAME.model` is a SINGLE field read by TWO harnesses whose model namespaces are disjoint — `sonnet` is correct for `provider: claude-code` (drafting) and catastrophic for `provider: pi`. One field cannot mean both.
 
 EVIDENCE ON DISK, not inference. Belam X's scratchpad holds the actual spawn line from the first live deep-search run:
-    /home/ubuntu/.npm-global/bin/pi -p --provider openrouter --model sonnet --thinking high ...
+    <home>/.npm-global/bin/pi -p --provider openrouter --model sonnet --thinking high ...
 `--thinking high` is `workflows.deep-search.effort: high` through `_effort_to_thinking`, which identifies the run.
 
 WHAT IT COST, measured from the OpenRouter API the same day. The `.env` key (label `backup`, created 2026-09-08T00:18) reads `limit: 5`, `usage: 5.016`, `limit_remaining: 0` — it burned its entire monthly cap in that one run and now returns 402 on everything. The `/api/v1/activity` feed shows ZERO anthropic rows on every day it covers through 2026-09-07; all prior spend in this project's life is qwen, deepseek, glm and codex. So this had never happened before, and the only thing that stopped it was a $5 cap that the owner had set for an unrelated reason.

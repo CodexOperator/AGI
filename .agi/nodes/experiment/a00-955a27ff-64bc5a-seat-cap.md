@@ -1,14 +1,16 @@
 ---
-id: experiment:a00-955a27ff-64bc5a-seat-cap
-type: experiment
+id: "experiment:a00-955a27ff-64bc5a-seat-cap"
+loop: "goal:g7.33.17@s2"
+mint_id: 40df344fd91b4a3cb7a26f061067a715
+model: stealth/space-bunny-alpha
 parents:
   - hypothesis:a00-955a27ff-64bc5a
-loop: goal:g7.33.17@s2
-model: stealth/space-bunny-alpha
 profile: balanced
 role: kid
 title: "The seat wrapper child is capped with its pid contract intact: systemd-run --scope execs in place"
+type: experiment
 ---
+
 # experiment:a00-955a27ff-64bc5a-seat-cap
 
 The run behind `hypothesis:a00-955a27ff-64bc5a` (files below are excluded from the production count).

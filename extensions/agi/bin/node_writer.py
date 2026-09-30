@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""node_writer.py — THE routine that creates a node file (GOALS.md S17).
+"""node_writer.py — THE routine that creates a node file (goal:s17).
 
 Every path that mints a new node calls `write_node()`. There is exactly one
 of these, and it is gated.
@@ -68,16 +68,17 @@ from frontmatter import split_frontmatter  # noqa: E402
 # from a backfill run afterwards. The ENGINE's graph_core, never a project's
 # vendored src/ (which predates `mint_permanent_id` entirely).
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from graph_core.identity import mint_permanent_id  # noqa: E402
+from graph_core.identity import ensure_mint_id  # noqa: E402
 
 
 # goal:s17 -- underscore is canonical (`context/schemas/[shape].md`).
 #
-# `goal` and `level3` are deliberately absent. Both are *derived*:
-# `snapshot-goals.py` regenerates `nodes/goal/` from GOALS.md and deletes every
-# `origin: goals-doc` node it does not re-derive, and `level3.py` regenerates
-# the census. A hand-scaffolded node of either type is a stray the next loop
-# run silently removes -- offering the option would be offering a trap.
+# `goal` and `level3` are deliberately absent, each with its own writer:
+# a goal is minted through `write.py create goal` against the [goal] schema
+# (skill agi-goal: fields, legal parents, the fixed body order), and
+# `level3.py` regenerates the census. A generic scaffold of either type skips
+# that writer's contract -- offering the option would be offering a trap.
+# (GOALS.md and its import direction retired 2026-09-29, goal:g7.16.1.4.1.)
 CANONICAL_NODE_TYPES = (
     "idea", "hypothesis", "task", "experiment", "verdict", "mvp", "outcome",
     "bigger_outcome", "overview", "vision",
@@ -422,10 +423,62 @@ def _render_value(key: str, v, indent: str = "") -> list[str]:
     return [f"{indent}{key}: {_scalar(v)}"]
 
 
+def writer_key_shape(key) -> bool:
+    """True iff the sanctioned writer could have written `key` as a field.
+
+    🔴 **THE one definition of the field shape** — readers ASK it (cli.py,
+    links.py) instead of restating it, because a second copy drifts from the
+    writer it claims to check (hypothesis:a-node-frontmatter-that-is-not-the-
+    writers-shape-is-refused). Two writer facts: a field arrives as
+    `write.py <node> 'set <key> <value>'` (one whitespace token; `set k=v` is
+    explicitly NOT that grammar), and `_render_value` above writes keys BARE,
+    so a key carrying structure is a line no `set` could produce. The second
+    test is the writer's own `yaml` round-trip, not a second character class.
+
+    🔴 The round-trip is compared AS THE WRITER RENDERED IT, not as the reader
+    re-parsed it (2026-09-27, a00-3e7b260e ITEM 4). YAML 1.1 coerces a BARE
+    boolean/null word into a Python `bool`/`None`, so the line this function
+    emits for `on` reads back as `{True: "x"}`; `list(back) == [k]` then
+    refused a field `set on <v>` legally writes and `_ensure_frontmatter`
+    blocked the node on it. Every such collapse is forgiven, not just
+    bool/None: `2024`/`1.5`/`2024-01-01` are equally legal under `set` (no key
+    character class) and equally refused by a bool-only set (DH.605 ITEMS 1/2/8).
+    """
+    import yaml
+
+    k = str(key)
+    if not k or "=" in k or len(k.split()) != 1:
+        return False
+    try:
+        back = yaml.safe_load("".join(l + "\n" for l in _render_value(k, "x")))
+    except Exception:
+        return False
+    if not isinstance(back, dict) or list(back.values()) != ["x"]:
+        return False
+    got = next(iter(back))
+    # The collapse is forgiven whenever the RESOLVER invented a type the
+    # writer never spells: `_render_value` writes a key bare, so YAML 1.1 is
+    # free to hand back bool/int/float/date/None and the field is still one
+    # `set <key> <value>` could have produced. A `str` back is the only
+    # spelling that must match exactly. ITEM 7: the check belongs on the
+    # RESOLVER's output, not on the input -- `k = str(key)` above makes any
+    # isinstance test on `k` dead, since the raw bool key is already spelled.
+    return got == k or not isinstance(got, str)
+
+
 def render_frontmatter(fm: dict) -> list[str]:
-    """`fm` -> the lines between the `---` markers. Deterministic."""
+    """`fm` -> the lines between the `---` markers. Deterministic.
+
+    🔴 Keys order by their RENDERED spelling, never by their Python type
+    (DH.605 ITEM 2). A `set on yes` field comes back from `yaml` as the bool
+    key `True`, and `sorted()` then raised `TypeError: '<' not supported
+    between 'bool' and 'str'` -- killing `done` on a legal write the moment
+    the block carried one other non-leading key. A collapsed key still renders
+    BARE (`True: v`), which re-reads to the same collapsed type: the field
+    round-trips, it is merely re-spelled.
+    """
     ordered = [k for k in LEADING_KEYS if k in fm]
-    ordered += sorted(k for k in fm if k not in LEADING_KEYS)
+    ordered += sorted((k for k in fm if k not in LEADING_KEYS), key=str)
     lines = []
     for k in ordered:
         lines.extend(_render_value(k, fm[k]))
@@ -614,6 +667,12 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
 #: transcribing it (one source per rule).
 MINTED_IDENTITY = ("id", "mint_id", "next_edges", "scaffold_hash")
 
+#: THE gated rows: the spawn gate judges `type` and `parents` from write_node's
+#: own arguments, so a caller row naming one would land a node the gate never
+#: judged (`create --parent goal:real --set parents=[goal:nope]`, SM run 10).
+#: write.py's `--set` refusal reads it from HERE.
+GATED_ROWS = ("type", "parents")
+
 
 def write_node(
     root,
@@ -664,6 +723,12 @@ def write_node(
     node_id = f"{ntype}:{slug}"
     res = NodeWrite(node_id=node_id, node_type=ntype, slug=str(slug),
                     parents=list(plist))
+    gated = sorted(set(extra_fm or {}) & set(GATED_ROWS))
+    if gated:
+        res.status = REJECTED
+        res.reason = (f"extra_fm names {gated}: the spawn gate judges the create's own "
+                      f"type and parents, and a row never overwrites them after it")
+        return res
 
     current_season = None
     if rules is None or type_index is None:
@@ -768,9 +833,8 @@ def write_node(
             res.reason = f"{node_file} already exists"
             return res
 
-    fm = {
-        "id": node_id,
-        "mint_id": mint_permanent_id(),
+    fm = ensure_mint_id({"id": node_id})   # always fresh: the id is new
+    fm.update({
         "type": ntype,
         "parents": list(plist),
         "next_edges": [],
@@ -778,7 +842,7 @@ def write_node(
         # from the scaffold placeholder", and the placeholder's identity is
         # captured here, at write time, not re-derived at check time.
         "scaffold_hash": scaffold_hash(scaffold_body),
-    }
+    })
     fm.update(extra_fm or {})
     assert set(MINTED_IDENTITY) <= set(fm), (
         "MINTED_IDENTITY names a row write_node does not build")
@@ -927,11 +991,32 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None,
 #      `grid.py commit --all` does not mint a version recording no change.
 # ---------------------------------------------------------------------------
 
-#: The authored region, matched exactly as `snapshot-goals.py` and `metrics.py`
-#: match it. One spelling, three readers -- a fourth regex here would be the
-#: hand-maintained second copy this project keeps paying for (`goal:s17`).
+#: The authored region: BOTH markers at column 0. An indented or inline marker
+#: is a QUOTATION -- review evidence pasted into a body, or prose naming the
+#: marker -- never the authored block
+#: (hypothesis:thought-verb-edits-only-the-top-level-thought-block). Fences are
+#: NOT tracked: 3 real blocks sit after an unbalanced fence (measured 09-29).
+#: The ONE definition: brief.py, links.py, metrics.py, snapshot-goals.py and
+#: graph2sql.py read it through the functions below (`goal:s17`).
+#: The two marker strings a writer emits -- the ONE spelling (moved verbatim
+#: from snapshot-goals.py, goal:g7.16.1.2; that file and write.py import them).
+THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
+                 "regenerating scans. The reasoning behind THIS version. -->")
+THOUGHT_END = "<!-- THOUGHT:END -->"
+#: a marker LINE, BEGIN or END -- the one line-level spelling (SM 113; write.py imports it)
+#: THE marker head, ONE constant both regexes are built from: `[ \t]*`, never
+#: `\s*`, so a marker never spans a newline (SM 131: `<!--\nTHOUGHT:BEGIN` was a
+#: block start but no marker line) and `\b`, so `THOUGHT:BEGIN_x` is neither (SM 129).
+#: _END is THE closer tail, ONE constant for every reader (SM 138): `END.`,
+#: `END trailing -->` or `END` with `-->` on the next line closes nothing.
+_HEAD = r"^<!--[ \t]*"
+_MARK = _HEAD + r"THOUGHT:"
+_END = r"END[ \t]*-->"
+THOUGHT_MARKER_LINE_RE = re.compile(_MARK + r"(BEGIN\b|" + _END + r")")
 _THOUGHT_RE = re.compile(
-    r"<!--\s*THOUGHT:BEGIN.*?<!--\s*THOUGHT:END\s*-->", re.DOTALL)
+    _MARK + r"BEGIN\b.*?" + _MARK + _END,
+    re.DOTALL | re.MULTILINE)
+_THOUGHT_STRIP_RE = re.compile(r"\n*" + _THOUGHT_RE.pattern, _THOUGHT_RE.flags)
 
 
 def extract_thought(body: str) -> str | None:
@@ -942,6 +1027,72 @@ def extract_thought(body: str) -> str | None:
     """
     match = _THOUGHT_RE.search(body or "")
     return match.group(0) if match else None
+
+
+def thought_blocks(text: str) -> list[str]:
+    """Every authored region in `text`; the schema allows at most one."""
+    return _THOUGHT_RE.findall(text or "")
+
+
+_ROW_ITEM = re.compile(r"^\s{0,3}([-*+]|\d+[.)])\s")
+_ROW_BLOCK = re.compile(_HEAD + r"([A-Z][A-Z-]*):BEGIN\b")   # SM 131: one line, a whole word
+
+
+def body_rows(body: str) -> list[tuple[int, int]]:
+    """goal:g4.18.5.1 -- THE row index: `body` -> [(start, end)], 1-based and
+    inclusive in `read body N:M` coordinates, document order. One row = a
+    heading line, a table row, a list item (with its indented continuation),
+    a whole `<!-- X:BEGIN -->`..`X:END -->` or fenced block (an unpaired BEGIN
+    marker is one line), or a paragraph.
+    Blank lines are never rows. write.py's `row` verb addresses by it."""
+    lines, rows, i = body.split("\n"), [], 0
+    while i < len(lines):
+        ln, start = lines[i], i
+        if not ln.strip():
+            i += 1
+            continue
+        if (m := _ROW_BLOCK.match(ln)) or ln.startswith("```"):
+            end = re.compile(_HEAD + re.escape(m.group(1)) + ":" + _END if m else r"^```")   # SM 133/138: like _THOUGHT_RE
+            # residue 95: the END marker LINE, never the substring (a THOUGHT quoting it)
+            j = next((k for k in range(i + 1, len(lines)) if end.match(lines[k])), None)
+            i = i if j is None else j   # an unpaired BEGIN (BODY) is one line
+        elif _ROW_ITEM.match(ln):
+            while i + 1 < len(lines) and lines[i + 1].startswith("  ") and lines[i + 1].strip() \
+                    and not _ROW_ITEM.match(lines[i + 1]):
+                i += 1
+        elif not (ln.startswith("#") or ln.startswith("|")):
+            while i + 1 < len(lines) and lines[i + 1].strip() and not (
+                    lines[i + 1][:1] in "#|" or _ROW_ITEM.match(lines[i + 1])
+                    or lines[i + 1].startswith(("<!--", "```"))):
+                i += 1
+        rows.append((start + 1, i + 1))
+        i += 1
+    return rows
+
+
+def thought_text(body: str) -> str | None:
+    """The authored words: the region minus both marker comments, stripped."""
+    block = extract_thought(body)
+    if block is None:
+        return None
+    inner = block.split("-->", 1)[1]
+    return inner[: inner.rfind("<!--")].strip()
+
+
+def strip_thought(text: str) -> str:
+    """`text` without its authored region(s) or the newlines leading into them."""
+    return _THOUGHT_STRIP_RE.sub("", text or "")
+
+
+def replace_thought(body: str, block: str) -> str:
+    """`body` with its authored region replaced by `block`, else `block` appended.
+
+    Span-based: a quotation of the old block elsewhere in the body is untouched.
+    """
+    match = _THOUGHT_RE.search(body or "")
+    if match is None:
+        return (body or "").rstrip() + "\n\n" + block + "\n"
+    return body[: match.start()] + block + body[match.end():]
 
 
 def _carry_thought(old_body: str, new_body: str) -> str:
@@ -1203,8 +1354,8 @@ def repair_mint(root, node_id, *, announce=True) -> NodeWrite:
                       "a mint id is assigned once and never changed "
                       "(goal:g2.5) -- refusing")
         return res
-    mint = mint_permanent_id()
-    fm["mint_id"] = mint
+    fm = ensure_mint_id(fm)
+    mint = fm["mint_id"]
     # Stamp as complete, not as an untouched scaffold: this node already holds
     # real content (the reason it is being adopted at all), so the stamp is
     # the *placeholder* hash -- completion reads "body differs from stamp" ->

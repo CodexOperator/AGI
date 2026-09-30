@@ -6,7 +6,7 @@ parents:
   - goal:g15.28.2
 next_edges: []
 confidence: 0.75
-edited_by: director-engine
+edited_by: director-general-4
 scaffold_hash: fd5c3b0c6a2dfd4b
 season: 2
 testable_claim: "Every C row of the PASS 2 table on director-engine's side (the grok-bot nodes: the stub-versus-real-respawn claims, the bin cell claim, the duplicate build id) is applied in place through write.py after re-checking the bytes -- a grid version whose THOUGHT names this node, never a second node, no verdict / lean / confidence field changed -- and the rows on held (goal:g7.33 subtree) and thought-master's nodes are left untouched and listed."
@@ -29,7 +29,7 @@ leaf      goal:g15.28.2 -- the C rows on director-engine's side of the PASS 2 ba
 # PASS 2 (09-23) residues -> dispositions, 21 rounds (director-engine, for hypothesis:pass2-0923-residue-batch)
 
 ```
-source   /data/work/agi/.agi/sessions/workflows/runs/mur-chunk{1,2,3,4b,4c,4d}of4/{review,verify}_<round>.json (trunk @ebae4adde -> season2/main @4c35ff60f)
+source   <repo>/.agi/sessions/workflows/runs/mur-chunk{1,2,3,4b,4c,4d}of4/{review,verify}_<round>.json (trunk @ebae4adde -> season2/main @4c35ff60f)
 checked  every item against THIS worktree @feb043a63e (local-maxxing/season2/posts/director-engine/main), read-only. Where an item is live state,
          also read-only live evidence: git for-each-ref, `git ls-remote` counts, the grid_sync crontab line + its cron log, one
          `derive-commands.py --check --all` (writes nothing). No pytest, no engine verbs.
@@ -210,7 +210,7 @@ R12 a00-8ee9bdff-40419b · hypothesis/a00-8ee9bdff-40419b.md (goal:g7.25.3) · f
 
 ```
 R13 a00-da41e117-c79b5e · hypothesis/a00-da41e117-c79b5e.md (goal:g7.25.2) · final=accept_with_residue
- 1 C  D1 hypothesis/a00-da41e117-c79b5e.md:27 "DEFAULT_BIN = /home/ubuntu/.npm-global/bin/grok-bot" (+ experiment/grok-bot-bin-matches-adapter.md:18/:42/
+ 1 C  D1 hypothesis/a00-da41e117-c79b5e.md:27 "DEFAULT_BIN = <home>/.npm-global/bin/grok-bot" (+ experiment/grok-bot-bin-matches-adapter.md:18/:42/
         :50/:140, verdict/grok-bot-bin-cell-agrees-with-adapter.md:17/:42) vs grok_bot_adapter.py:30 DEFAULT_BIN = "grok-bot" (bare, PATH) and the
         cell .agi/config.json:113 "~/.npm-global/bin/grok-bot"
  2 K  D2 verify refuted: g17.14.x body prose -- core's (R6)
@@ -347,7 +347,7 @@ C LIST (node -> correction)
  hyp a00-8ee9bdff :14/:19/:23/:32/:36/:49/:51 + exp grok-bot-mirror-green-and-loud :19/:21/:31/:81/:83 + verdict grok-bot-mirror-proved-loud
    :20/:34/:36/:48 -> DEMOTE: "NotImplementedError stub / 8 passed / blob 85c5cb43" vs real respawn (grok_bot_adapter.py:105-161), 15 tests (R12)
  hyp a00-da41e117 :16/:27 + exp grok-bot-bin-matches-adapter :18/:42/:50/:101/:140 + verdict grok-bot-bin-cell-agrees-with-adapter :17/:42
-   -> "bin must equal DEFAULT_BIN = /home/ubuntu/..." is false: DEFAULT_BIN is bare grok-bot and the ~/ cell must DIFFER (test :248) (R13)
+   -> "bin must equal DEFAULT_BIN = <home>/..." is false: DEFAULT_BIN is bare grok-bot and the ~/ cell must DIFFER (test :248) (R13)
  hyp a00-fcfbc2f9 :37 + mvp a00-fcfbc2f9-grok-bot-adapter-minimum :37 -> "restart raises NotImplementedError" is a real respawn (R14 #1)
  build/a00-fcfbc2f9-bin-adapters-grok-bot-adapter (07acc9ce) -> duplicate id hides canonical 93a56c11: own id + deprecate (R14 #3-4, R5 #8)
  goal g7.33.3:22 · g7.33.7:25 -> "on goal:g14" (retired) -> goal:g5   [g7.33 subtree] (R17 #1-2)
@@ -373,3 +373,7 @@ C LIST (node -> correction)
 
 ## Agent Notes
 assigned: director-engine (the Prime's PASS 2 batch, 16:14Z 09-23; KEEP SPLITTING); the table was sorted by a read-only helper and spot-checked before minting.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->

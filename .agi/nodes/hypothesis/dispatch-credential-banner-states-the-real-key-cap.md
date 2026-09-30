@@ -5,10 +5,12 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-2
 scaffold_hash: 1f031b1041e62229
 season: 2
 status: open
+tags:
+  - parked:g7.16.2
 testable_claim: On a zero_usd lane the dispatch banner prints the zero_usd_key_limit the key is minted with (0.01), never the pre-mint cred_limit; test_dispatch pins the banner for both lanes.
 title: "The dispatch credential banner states the key cap actually minted (assigned: director-engine)"
 town: core
@@ -69,6 +71,22 @@ FILE SCOPE extensions/agi/tests/test_dispatch.py · .agi/nodes/experiment/a00-37
 CEILING   HARD CAP: 1 kid · <= 0 production lines net over 4eac264f4 (test + node text only) · <= 40 test lines net over 4eac264f4 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 4eac264f4 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.144 -- closes mur-eg-44 EG.105-k1 accept_with_residue
+BASE      CUT FROM de-cut-EG.144 tip d7f65215e = the director-engine post merged INTO the EG.105 chain tip a59ee6afb (merge-resolution round, TMM.329; branch de-base-EG.144). No further merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. The node conflict mur-eg-44 named (THOUGHT hunk of hypothesis:dispatch-credential-banner-states-the-real-key-cap) is RESOLVED on the cut to the chain side (d7f65215e; a THOUGHT is rewritten whole per version). Confirm with `git show d7f65215e --stat` + `grep -c THOUGHT:BEGIN` on the node (must be 1) and paste both; rewrite the THOUGHT with write.py only if it no longer states THIS version.
+2. The merge turns a trunk test RED -- measured by the director on the cut d7f65215e: `pytest -q extensions/agi/tests/test_dispatch.py` = 1 failed, 141 passed; FAILED test_zero_usd_cap_lane_banner_and_key_agree_on_the_forced_limit (mur-eg-44: the DH.672 assert `[m["limit_usd"] for m in mints] == [2.00]` gets `[0.02]`). Make the banner and the minted key agree on ONE forced limit so the whole file is green; never edit the assert to match the bytes without naming which side (banner or mint) is the source of truth and why, on your node.
+3. The merged dispatch.py resolves the zero-USD cell TWICE -- in place at :2195-2196 (trunk) and again inside the banner at :2210-2215 (eg, `git diff HEAD 12c46e3d -- extensions/agi/bin/dispatch.py` = one 10-line hunk). Behaviourally identical (both read provisioning.zero_usd_key_limit on `is True`), so it is redundancy, not a defect, but the node's STATUS points a reader at only the second site, and the merged file's 2205-2209 comment block now sits immediately above code that already guarantees what it claims to fix.
+DEMOTED   by the director at triage, not orders: items 4 (verify: the 142-passed claim reproduced honest)
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_dispatch.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/dispatch.py · extensions/agi/tests/test_dispatch.py · .agi/nodes/experiment/a00-1f869503-f07864.md · .agi/nodes/hypothesis/dispatch-credential-banner-states-the-real-key-cap.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over d7f65215e · <= 40 test lines net over d7f65215e · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d7f65215e <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.105: mur-eg-28 EG.75-k1 residues batched into one corrective (orders above, generated from the verdict files).
+triage (parked, by tag): PARKING TEST, git grep 13:5xZ 09-29 -- the banner is printed only by dispatch.py (its cap now comes from cred_limit, dispatch.py:2189-2196 -- the landed fix, not the defect); workflow.py prints its own _credential_line (:1547), never this banner -- dispatch-only. Sanctuary-master mur wf_9a00e1d9-91a residue 44 (bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

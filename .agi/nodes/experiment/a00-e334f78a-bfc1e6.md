@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.8
 demote_reason: "parent review a00-554cbcdf: audit found ensure_payload (write.py create --payload) unlogged and node .lock files flagged by the guard - two sanctioned-path gaps the one-remaining framing missed"
 demoted_from: inconclusive_lean_proved:95
-edited_by: ubuntu
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-e334f78a-bfc1e6
 scaffold_hash: fd4eeb41adb7842a
@@ -50,7 +50,7 @@ pre-commit hook output correct | ✅ | test
 ### snapshot-goals --render + write_guard check
 ```
 $ python3 extensions/agi/bin/snapshot-goals.py --render
-rendered: 127 goal(s) + preamble -> /home/ubuntu/work/agi/GOALS.md
+rendered: 127 goal(s) + preamble -> <home>/work/agi/GOALS.md
 
 $ python3 extensions/agi/bin/write_guard.py check
 exit: 0  (silent — no warnings)

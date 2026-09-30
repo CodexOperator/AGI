@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: ac8fae699c4998f6
 season: 1
 thought_session: season
@@ -41,7 +41,7 @@ Third independent verification of the EmbedProjectCache hypothesis, using the **
 
 ### Command
 ```
-cd /home/ubuntu/work/agi && PYTHONPATH=extensions/agi/src python3 /tmp/embed_cache_real_pipeline.py
+cd <home>/work/agi && PYTHONPATH=extensions/agi/src python3 /tmp/embed_cache_real_pipeline.py
 ```
 
 Script: `/tmp/embed_cache_real_pipeline.py`

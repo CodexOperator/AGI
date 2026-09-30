@@ -19,7 +19,16 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 from pathlib import Path
+
+
+def _stamp(line: str) -> str:
+    """goal:g6.41.2 (owner 2026-09-30: "Need to add timestamps to heal log"): every
+    line opens with its UTC second, so a boot's passes can be lined up against
+    crash-recovery records and the journal. One prefix here stamps every writer
+    that shares this sink (heal watch, send.py wake)."""
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ ", time.gmtime()) + line
 
 
 def log(line: str) -> None:
@@ -31,9 +40,9 @@ def log(line: str) -> None:
             p = Path(log)
             p.parent.mkdir(parents=True, exist_ok=True)
             with open(p, "a", encoding="utf-8") as fh:
-                fh.write(line.rstrip("\n") + "\n")
+                fh.write(_stamp(line).rstrip("\n") + "\n")
             return
         except Exception as exc:                          # noqa: BLE001
             print(f"reaper: log write failed ({exc}); "
                   f"falling back to stderr", file=sys.stderr)
-    print(line, file=sys.stderr)
+    print(_stamp(line), file=sys.stderr)

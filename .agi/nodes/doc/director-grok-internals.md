@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: belam
+edited_by: director-general-4
 scaffold_hash: cc992c67c9df3edc
 season: 2
 status: active
@@ -48,8 +48,8 @@ Post fill examples (not a second SoT):
 
 | post | POST | SCOPE | TREE | BRANCH | REMOTE_POLICY | REPORTS_TO | SEAT_LABEL |
 |---|---|---|---|---|---|---|---|
-| point | director-belam | this post only (DT.* parents / this-director MURs / suite) | /data/work/agi/.agi/worktrees/seat-director-belam | core/season2/main | push season2 (= `core/season2/main` only) | Belam daily-pass / graph board | director CORE TOWN |
-| helper | director-helper | this post only (DH.* parents / this-director MURs / suite) | /data/work/agi/.agi/worktrees/seat-director-helper | local-only | never new remote head | director-belam point | free-floating helper director |
+| point | director-belam | this post only (DT.* parents / this-director MURs / suite) | <repo>/.agi/worktrees/seat-director-belam | core/season2/main | push season2 (= `core/season2/main` only) | Belam daily-pass / graph board | director CORE TOWN |
+| helper | director-helper | this post only (DH.* parents / this-director MURs / suite) | <repo>/.agi/worktrees/seat-director-helper | local-only | never new remote head | director-belam point | free-floating helper director |
 
 ---
 ### SECTION:PROFILE (copy into agent description)
@@ -110,7 +110,7 @@ GRAPH SoT (all 3 roles: Belam · director-belam · director-helper):
          → sync ALL post WTs (seat-director-belam · seat-director-helper · other grok post WTs)
          → HARD: merge tip into post WTs (NEVER ff-only · ff ruins grid history · keep WIP · never reset --hard)
          → CROSS-DIR LOCAL SYNC ALLOWED: either director may merge-keep-WIP (NEVER ff-only)
-            the other's /data/work/agi/.agi/worktrees/seat-director-* (never reset --hard)
+            the other's <repo>/.agi/worktrees/seat-director-* (never reset --hard)
          → push season2 = core/season2/main ONLY · NEVER seat remote head · no new remote branch
          → no UpdateAgent/profile hand-edit · no ping
 BELAM    no mid-batch talk · daily graph pass only
@@ -232,7 +232,7 @@ pins (post-local DH/DT — fill placeholders):
   SCOPE  {{SCOPE}}
   TREE   {{TREE}}
   BRANCH {{BRANCH}}
-  HOST   SSH encryption-town → /data/work/agi  (never /workspace/agi)
+  HOST   SSH encryption-town → <repo>  (never /workspace/agi)
   POLICY {{REMOTE_POLICY}}
   REPORT {{REPORTS_TO}}
 
@@ -275,7 +275,7 @@ ZERO-RESIDUE
 
 1) Sense
    parents alive? workflows running? slots free under ≤10/≤20?
-   disk used under /data/work/agi toward 50–80GB budget? harvested WTs still listed?
+   disk used under <repo> toward 50–80GB budget? harvested WTs still listed?
    LIVE parent age >90m → health check (progress/traj/log idle · stuck cmd · lease holder alive)
      · unhealthy >90m → treat as hung for watch decision (emit · eligible remur/reclaim ONLY-IF already in SoT · NEVER invent kill)
      · healthy >90m → leave alone
@@ -299,4 +299,5 @@ ZERO-RESIDUE
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 owner FULL STOP 2026-09-28: NO-PI HARD — ACTIVE⇒SPAWN OVERRIDE = self-work/non-pi only · no durable pi parent/harness until owner lifts · Belam directs tree · keep merge-not-ff · disk 50-80GB · harvest-clean · caps ≤10/≤20 · skill refs
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 4 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

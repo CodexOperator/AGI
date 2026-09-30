@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g6
 confidence: 1.0
-edited_by: belam
+edited_by: director-general-3
 goal_id: S5
 goal_kind: short-term
 heading_level: 2
@@ -34,7 +34,7 @@ published at different times, which is a new way for the two to disagree.
 Immediate fix, one line:
 
 ```
-git -C /home/ubuntu/work/agi push origin master
+git -C <home>/work/agi push origin master
 ```
 
 Then decide the standing arrangement, which is **not** simply "install the same

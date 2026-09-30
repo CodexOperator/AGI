@@ -5,12 +5,22 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-4
+evidence_runs:
+  - experiment:a00-84c9c98d-34018e
+  - experiment:a00-1556127c-9fb395
+  - experiment:a00-3e7b260e-2cce33
+  - experiment:a00-879cb9e8-625883
+  - experiment:a00-85c23976-f70650
+  - experiment:a00-342e0860-956c66
+  - experiment:a00-3e239d1d-9407b0
+  - experiment:a00-7a12aad2-6a3a17
 scaffold_hash: fcaf2289ca35b7cc
 season: 2
 testable_claim: a frontmatter list not in node_writer shape is refused by name at load/links; the corrupted node is repaired
 title: "A node frontmatter the sanctioned writer could not have produced is refused (assigned: director-engine)"
 town: core
+verdict: inconclusive_lean_proved:75
 ---
 # hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
 
@@ -137,7 +147,7 @@ For EACH item: fix it in the bytes, OR -- when the item is already true, refuted
 4. OVERCLAIMED COMMENT: cli.py:286-287 says the mtime stamp means "a rule edited mid-process is re-read rather than served stale". Measured: an in-place write leaves the dir mtime unchanged (1790564979920563105 before and after); only create/rename does. It happens to hold because node_writer writes tmp+rename (node_writer.py:1176-1179, 1252-1255), which is a different fact from the one the comment gives.
 5. UNREAD READER, not in the node's own residue list: extensions/agi/bin/brief.py:397 carries a SECOND, unrelated `_load_frontmatter(text) -> dict` that reads node frontmatter with no shape gate at all (callers brief.py:427, 1111, 1307). Nobody in this round names it. The engine's canonical reader graph_core.persistence.frontmatter.load_node_file (node_writer._build_id_index node_writer.py:172, links.py) is likewise untouched, so "load" in the testable_claim means exactly two call sites (cli.py:458, cli.py:1975).
 6. ONE-SOURCE DRIFT, four implementations: node_writer.writer_key_shape (keys), cli._off_shape_values (values, new), links.off_shape_keys (keys, links.py:105/184/287/307), and test_links._writer_shaped_probes (values, test-side) now each answer "is this the writer's shape?" independently. The new test's own docstring (test_links.py:590-593) says "Ask the WRITER rather than restate list-ness" while restating list-ness in the test helper. A 4th copy is the residue the node does not name.
-7. UNVERIFIED PROVENANCE of the hand-landing commit e6af7ba46: its message claims "TMM.268: bytes == last write-log sha", but the only write-log in the tree (/data/work/agi/.agi/sessions/write-log.jsonl, 1184 lines, mtime 2026-09-28 00:46) contains NO entry for nodes/experiment/a00-85c23976-f70650.md, and the sha256 of the landed bytes (55082f89f0645177cbccfc5b0dd7d9d5b6c7a393611f857d6aa5eca565210239) appears nowhere in it; the seat worktree that would hold its own log is gone. PROBE I WOULD RUN (not run): `grep 55082f89 <seat-worktree>/.agi/sessions/write-log.jsonl` on the preserved a00-342e0860 worktree, else `python3 extensions/agi/bin/write_guard.py check` on e6af7ba46 to confirm the node bytes came from a write.py call and not a hand edit.
+7. UNVERIFIED PROVENANCE of the hand-landing commit e6af7ba46: its message claims "TMM.268: bytes == last write-log sha", but the only write-log in the tree (<repo>/.agi/sessions/write-log.jsonl, 1184 lines, mtime 2026-09-28 00:46) contains NO entry for nodes/experiment/a00-85c23976-f70650.md, and the sha256 of the landed bytes (55082f89f0645177cbccfc5b0dd7d9d5b6c7a393611f857d6aa5eca565210239) appears nowhere in it; the seat worktree that would hold its own log is gone. PROBE I WOULD RUN (not run): `grep 55082f89 <seat-worktree>/.agi/sessions/write-log.jsonl` on the preserved a00-342e0860 worktree, else `python3 extensions/agi/bin/write_guard.py check` on e6af7ba46 to confirm the node bytes came from a write.py call and not a hand edit.
 8. BOOKKEEPING TENSION: the hypothesis verdict was RAISED :75 -> :80 on a claim whose second conjunct ("the corrupted node is repaired") this diff makes FALSE by construction (cli.py:461-468 converts repair into refusal) and whose "links" half is untouched; the claim text on the node is unchanged and still asserts both. The experiment node's own frontmatter records `rebrief_answer: cut` and the bytes landed anyway (96aae6f0a, bf50b57f6, e6af7ba46). Honest in the THOUGHT, but the number moved the wrong way relative to the claim.
 OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
@@ -185,6 +195,53 @@ FILE SCOPE .agi/nodes/experiment/a00-1556127c-9fb395.md · .agi/nodes/experiment
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 850091463 <your final tip>` on your node (an empty range is not a measurement)
 COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.133 -- closes mur-eg-27 EG.82-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-node-frontmatter-th-a00-16a744c6 tip ea58d21fe (branch de-base-EG.133; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 2. Published pytest summaries omit `1 skipped` — .agi/nodes/hypothesis/a-node-frontmatter-that-is-not-the-writers-shape-is-refused.md:49
+2. The falsified ground of a standing demotion was recorded but the number was left. a00-7a12aad2-6a3a17.md:25 still reads `verdict: inconclusive_lean_disproved:65`, and the sole stated ground is probes[2] (:17) 'the file is still ` M` in the working tree' — which this very round falsifies at :181 and which `git show --stat 850091463` (the parent's own done commit, carrying a00-3e239d1d-9407b0.md at 6/6) shows was voided by the parent itself. The hypothesis then lists that demoted node as evidence (hypothesis:17) while its own verdict sits at :23. The round's table settles item 3 as 'SETTLED' on the fact only; nothing in it (items 2/8 name only the byte restores) names the verdict re-judge for the parent — the drift the graph itself names as fatal at hypothesis:45 ('verdict is the number a later reader reads first'). Parent action, not a demote of this round.
+3. The THOUGHT was appended to, not rewritten whole. hypothesis:38 opens `THOUGHT-begin`, :39 is the prior author's header ('PARENT, EG.28, a00-7a69e3ca'), the new COUNT CORRECTION is accreted at :51, :54 closes the block — one THOUGHT now carries two rounds' deltas, against the G2.11 rule quoted in AGENTS.md ('body is state, thought is delta … rewritten whole'). The round declared the method ('counts corrected in place; old counts kept in quotes as the record', a00-16a744c6-447f40.md:34) but did not name the convention it traded away, and a00-7a12aad2's own THOUGHT is left with the same accretion shape at :190-195.
+4. RECORDED, NO ACTION (g7.33.19 row 13, the director's findings row): the round's deliverable did not ride its done commit; do not re-land or rewrite history -- name it once on your node.
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_links.py (paste its WHOLE last line, skipped count included) + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-16a744c6-447f40.md · .agi/nodes/experiment/a00-7a12aad2-6a3a17.md · .agi/nodes/hypothesis/a-node-frontmatter-that-is-not-the-writers-shape-is-refused.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over ea58d21fe · <= 40 test lines net over ea58d21fe · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat ea58d21fe <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.82: mur-eg-23 EG.44-k1 residues batched into one corrective (orders above, generated from the verdict files).
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 2 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+PARENT REVIEW DH.640 (a00-7674caf6) of kid a00-85c23976 / experiment:a00-85c23976-f70650 — DEMOTED proved -> inconclusive_lean_proved:70.
+
+WHAT THE KID CLAIMED, quoted from its node: "proved"; "the gate asks the WRITER: render the value the way node_writer would and read it back"; ITEM 3 "MEASURED (pasted)".
+
+WHAT THE MACHINE ACTUALLY DOES, from the diff (git diff 62ff98b23..8b0a08cb2, 3 files, 37 lines in test_links.py, 0 production lines) and artifacts I BUILT AND RAN (parent-probes-DH640.py, tmp graphs only, run against the kid branch):
+  P1 GATE (fallback path):  scalar -> None, mapping -> None, list -> picked, [] -> picked, [1,2] -> picked, bare `probes:` -> None.  The fix HOLDS: truthiness is gone.
+  P2 WIRE (the NAMED path):  the first branch `if named.is_file(): return named, "the named artifact"` at test_links.py:614 carries NO shape check at all.  A named artifact whose `probes:` is the SCALAR `one` is returned as the recovered artifact, and `cli._load_frontmatter` on that same node returns ok=True, defect=None, probes="one" — so the live pin that consumes it (assert fm["probes"] truthy, assert _off_shape_keys == []) PASSES on a corrupted named artifact.  The hypothesis claim is therefore NOT closed on the production side.
+  P3 AUTH:  an off-shape key `probes=glued` riding a perfect list is refused by name — holds.
+  P4 the shape helper itself:  ["one"]/[]/[1,2]/[True]/[{"a":1}]/["a: 1"] all True; "one"/{"a":1}/None all False.  No over- and no under-refusal in the helper.
+
+ITEM 3 SETTLED INDEPENDENTLY by me, in my own checkout:  `git show --stat 47cb34e34 -- nopin | tail -1` -> " 582 files changed, 281158 deletions(-)"; `git ls-tree -d --name-only 47cb34e34^ -- nopin` -> nopin; same on 47cb34e34 -> empty.  The kid paste is faithful; the 582/281,158 figure is measured, not prose.  `git diff --stat 62ff98b23 HEAD -- nopin | tail -1` is empty in both checkouts (base tip == HEAD there), which is why the settling command had to name the earlier commit 47cb34e34.  The sibling claim "both commits are pathspec-scoped" stays UNVERIFIED and is named for the findings row.
+
+THE NEAR MISS the kid fell into:  a shape gate applied to the FALLBACK branch only.  It satisfies every word of the report ("the recovered-probes gate asks the writer for a list") and loses the mechanism, because the resolver has two exits and only one of them asks.  The same near miss is what kept the defect alive: cli._load_frontmatter (cli.py:279-311) still certifies a scalar `probes` as ok — the whole hypothesis claim is about a VALUE the writer could not have produced, and no production byte moved this round.
+
+DEVIATION:  the contract says "Do not edit any other checkout".  The kid ran with --branch, so experiment:a00-85c23976-f70650 exists only in <repo>/.agi/worktrees/a00-85c23976 and this review could not be written into it through the sanctioned writer without breaking that rule.  It is recorded here, on the node that carries the round verdict, instead of in the kid node.
+
+THIS ROUND'S NET MOVEMENT ON THE CLAIM, from the corrective kid experiment:a00-3e239d1d-9407b0 (its diff, and my own re-run of its deletions): the load-path half is no longer deletable-with-no-red -- deleting the no-rebuild guard turns test_links.py red, deleting only the writer round-trip clause turns it red -- and the fail-open multi-root cache is closed and my probe discriminates old bytes from new. COUNT CORRECTED by experiment:a00-7a12aad2-6a3a17 (EG.44): the counts written here before that correction, '1 failed, 33 passed' and '2 failed, 32 passed', do NOT reproduce on tip 2d5c5a81c. Re-measured on a clean /tmp copy of that tip, test_links.py only: guard deleted -> 1 failed, 34 passed (test_an_off_shape_value_is_REFUSED_and_the_file_is_left_alone, 'AssertionError: frontmatter repaired'); round-trip CLAUSE deleted -> 1 failed, 34 passed (test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type); round-trip COMPUTATION deleted -> 1 failed, 34 passed (the pre-existing test_a_declared_container_field_off_the_writers_shape_is_refused_by_name); both deleted -> 1 failed, 34 passed. Every natural deletion takes exactly ONE test red, never two. The load-bearing claim reproduces under all four; only the arithmetic did not. Both were pin-tests, not mechanism, which is why the number moves only 5 points and not to `proved`. The claim's other two halves are untouched: `links` and `repair`.
+
+EG.133 parent round (a00-98a14a87) — CORRECTIVE DH.EG.133 closed on this node.
+
+| item | disposition | evidence |
+|---|---|---|
+| 1 · published pytest summaries omit `1 skipped` | SETTLED, no edit | `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_links.py -q --basetemp=/tmp/eg133-parent-links` -> "36 passed, 9 warnings in 0.30s" (whole last line). No `skipped` token exists to omit; the only published lines on this chain that carry one already carry it (a00-16a744c6-447f40.md:62 "1 failed, 72 passed, 6 skipped"; a00-7a12aad2-6a3a17.md:152 "1 failed, 108 passed, 6 skipped"). |
+| 2 · a falsified demotion ground with the number left | FIXED | experiment:a00-7a12aad2-6a3a17.md:25 now `verdict: inconclusive_lean_proved:80`, `confidence: 0.8`. The demotion's sole ground (its probes[2] P3, "the file is still ` M`") is false of the bytes on disk: a00-3e239d1d-9407b0.md:16 carries the CORRECTION to P2 and :20 the CORRECTED NUMBER for P4b, in text, committed. |
+| 3 · THOUGHT accreted, not rewritten | FIXED | the THOUGHT block on this node is rewritten whole and carries one round's delta; the count record it dropped is in the Agent Notes paragraph of this node, which is body. |
+| 4 · deliverable did not ride its done commit | RECORDED, NO ACTION (g7.33.19 row 13) | commit 850091463 names experiment:a00-1556127c-9fb395; the EG.44 parent verdict lives on a00-7a12aad2-6a3a17. History is not rewritten, nothing re-landed. |
+
+THIS ROUND'S NET MOVEMENT ON THE CLAIM: none, and the number says so (:75 held). The one kid (a00-381638dd, experiment:a00-381638dd-55286c) spent its round on a measurement instead of the corrective text, and its measurement is the fourth round in a row to find the `links` half untouched. I re-ran it myself in a tmp graph (four probes recorded on that node): `cli._load_frontmatter` refuses the scalar `probes` by name (ok=False, "frontmatter value(s) not in the sanctioned writer's shape ...: probes"); `cli._off_shape_values` -> `['probes']`; `links.off_shape_keys` -> `[]` because links.py:103-106 never reads a value; and `cli._declared_types` -> `{}` for any root with no `context/schemas`, which turns the whole value gate off with no message (cli.py:300-302, bare except). That last one is latent -- cli.py:376/464/471/1981 all pass the graph root -- and it is the smallest live mechanism left on this claim.

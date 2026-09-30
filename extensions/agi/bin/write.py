@@ -52,7 +52,11 @@ delivered the convenience and none of the reason.
 from __future__ import annotations
 
 import difflib
+import json
 import os
+import shlex
+import subprocess
+import time
 import re
 import sys
 from dataclasses import dataclass, field
@@ -145,8 +149,19 @@ class Edit:
     # payload file is editable by exactly the routine a node body is.
     replace_target: str = ""
     replace_range: str = ""
+    #: goal:g4.18.5.1 -- `row <n>[:<i>-<j>]`: resolved to replace_range at
+    #: submit, on node_writer.body_rows of the body as it is then
+    row_ref: str = ""
+    #: BUILD1 (goal:g7.16.1.4 W1, alive 841857ddb) -- `row <top>.<key> <src|->`:
+    #: a NESTED frontmatter row (command:commands `manifest.<key>`), resolved
+    #: once by `_resolve_fm_row` into `set_fm[<top>]`, so every set gate runs
+    #: one (ref, source) per `row <top>.<key>` verb, applied in order (DG4
+    #: 00:0xZ: a single slot kept only the LAST row of a script -- silent loss)
+    fm_rows: list = field(default_factory=list)
+    fm_row_resolved: bool = False
     replace_from: str = ""
     replace_text: str = ""
+    replace_stdin_read: bool = False   # `replace ... -` consumed stdin (possibly empty)
     # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
     # the explicit consent that admits a body range the structural guard
     # would otherwise refuse (`_body_range_refusal`). Spelled as a prefix on
@@ -173,6 +188,11 @@ class Edit:
     sub_resolved: bool = False
     # conjunct 3: one `(target, old, new, all)` op per `sub`; applied in order.
     sub_ops: list = field(default_factory=list)
+    # SM 145: every payload-writing VERB as parsed -- `payload`, `payload -` and
+    # `payload_text` all fill payload_bytes, so the fields cannot count them
+    payload_verbs: list = field(default_factory=list)
+    # council ruling on SM 154: re-render the node in the ONE canonical form
+    canonicalize: bool = False
     # hypothesis:l4-a-ring-decision-carries-m-of-n-signatures -- the ring
     # signatures backing a non-self-row config write that a `ring:`-declaring
     # schema demands (rung 2). Each is `<post>:<scheme>:<sig_hex>` over the
@@ -195,7 +215,8 @@ class Edit:
                     or self.patch_from or self.patch_diff
                     or self.body_patch_from or self.body_patch_diff
                     or self.read_target or self.read_range
-                    or self.replace_target or self.sub_old)
+                    or self.replace_target or self.sub_old or self.fm_rows
+                    or self.canonicalize)
 
 
 # --------------------------------------------------------------------------
@@ -252,27 +273,32 @@ def _refuse_marker_value(key: str, value) -> str | None:
 
 def verb_set(edit: Edit, key: str, value: str) -> Edit:
     """`set <key> <value>` — one frontmatter field."""
+    refusal = _row_refusal(key, _coerce(value))
+    if refusal:
+        raise EditError(refusal)
+    edit.set_fm[key] = _coerce(value)
+    return edit
+
+
+def _row_refusal(key: str, coerced) -> str | None:
+    """The row checks `set` runs, ONE definition (SM 150: a node patch runs them
+    too): a dotted key, a PROTECTED key, a marker-shaped value."""
     if "." in key:
         # hypothesis:l4-a-message-that-did-not-land...: a dotted key used to
         # land as a FLAT frontmatter literal (`comms.foo` as one key), which
         # no nested reader could ever find. Refuse by name instead: the
         # caller sets the parent mapping (key.split(".")[0]) as one object.
-        raise EditError(
+        return (
             f"cannot set {key!r}: dotted keys are not written as flat "
             f"frontmatter literals — set the parent mapping "
             f"{key.split('.', 1)[0]!r} as one object")
     if key in PROTECTED:
-        raise EditError(
+        return (
             f"{key!r} is identity or completion state and no verb may set it. "
             f"A mint id is assigned once (goal:g2.5); scaffold_hash is how "
             f"completion is detected, and edit mode is not a loophole in the "
             f"rule the kid brief already follows.")
-    coerced = _coerce(value)
-    refusal = _refuse_marker_value(key, coerced)
-    if refusal:
-        raise EditError(refusal)
-    edit.set_fm[key] = coerced
-    return edit
+    return _refuse_marker_value(key, coerced)
 
 
 def verb_unset(edit: Edit, key: str) -> Edit:
@@ -353,6 +379,19 @@ def verb_payload_text(edit: Edit, text: str) -> Edit:
     (`payload -`). The Python API has no such limit.
     """
     edit.payload_bytes = text if text.endswith("\n") else text + "\n"
+    edit.payload_verbs.append("payload_text")
+    return edit
+
+
+def verb_canonicalize(edit: Edit, *extra: str) -> Edit:
+    """`canonicalize` -- re-render the node file in the ONE canonical form
+    (node_writer.render_frontmatter + _serialize_node) and change nothing
+    else. The canonical form drops frontmatter comments and non-significant
+    quoting. A node `patch` refuses on a non-canonical node and names this
+    verb (council ruling on SM 154, goal:g4.18.1.6)."""
+    if extra:
+        raise EditError(f"canonicalize takes no arguments, got: {' '.join(extra)}")
+    edit.canonicalize = True
     return edit
 
 
@@ -394,6 +433,7 @@ def verb_patch(edit: Edit, source: str) -> Edit:
     grid version all happen exactly as they do today.
     """
     edit.patch_from = source
+    edit.payload_verbs.append("patch")
     return edit
 
 
@@ -452,6 +492,8 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     if target not in ("payload", "body"):
         raise EditError(
             f"replace target must be 'payload' or 'body', got {target!r}")
+    if edit.row_ref or edit.replace_target:   # SM N2: one target per script
+        raise EditError("one body row or replace per script: the body is spliced once")
     # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
     # `--force` rides the source argument as a PREFIX (`... 4:9 --force -`),
     # the one free-text positional, so the range/target grammar does not
@@ -478,7 +520,180 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     _parse_range(rng)   # validates and raises early, so a typo refuses here
     edit.replace_range = rng
     edit.replace_row_name = ""
+    if target == "payload":
+        edit.payload_verbs.append("replace payload")
     return edit
+
+
+def verb_row(edit: Edit, ref: str, source: str) -> Edit:
+    """`row <n> <path|->` -- replace body row n of node_writer.body_rows (the
+    ONE row index, goal:g4.18.5.1); `row <n>:<i>-<j> <path|->` replaces lines
+    i..j INSIDE row n (a block row: THOUGHT, a fence). Every other byte stays.
+    It rides the replace path (one reader, one splice, the same gate); the
+    index, not a counted offset, picks the range, so the offset guard skips.
+
+    `row <top>.<key> <src|->` (BUILD1) addresses a NESTED frontmatter row
+    instead: `<src>` is the row's new YAML value; resolved by `_resolve_fm_row` into `set_fm[<top>]`; `--remove` as
+    the source removes the row (an empty source refuses, SM 110)."""
+    if re.fullmatch(r"[A-Za-z_][\w-]*\..+", ref):
+        if any(ref == seen for seen, _ in edit.fm_rows):
+            raise EditError(f"row {ref} twice in one script")
+        edit.fm_rows.append((ref, source.strip()))
+        return edit
+    if not re.fullmatch(r"\d+(:\d+-\d+)?|name:.+", ref):
+        raise EditError(f"row wants <n>, <n>:<i>-<j> or name:<NAME>, got {ref!r}")
+    if edit.row_ref or edit.replace_target:
+        raise EditError("one body row or replace per script: the body is spliced once")
+    edit.replace_target, edit.row_ref = "body", ref
+    edit.replace_from, edit.replace_force = source.strip(), True
+    return edit
+
+
+def _row_range(body: str, row_ref: str) -> str:
+    """`<n>[:<i>-<j>]` -> the read-body range `a:b` it names, or EditError when
+    row n or the sub-range is out of bounds. ONE resolver for `submit` and the
+    `--dry-run` preview, so a preview shows the range the write would take."""
+    rows = node_writer.body_rows(body)
+    if row_ref.startswith("name:"):   # goal:g4.18.5.1.2: the ONE table row whose first cell is NAME
+        name, lines = row_ref[5:], body.split("\n")
+        hits = [a for a, b in rows if a == b and lines[a - 1].lstrip().startswith("|")
+                and lines[a - 1].strip().strip("|").split("|")[0].strip() == name
+                and not set(name) <= set("-: ")]   # a separator row is never a name
+        if len(hits) != 1:
+            raise EditError(f"row {row_ref}: {len(hits)} table rows are named {name!r}, want 1")
+        return f"{hits[0]}:{hits[0]}"
+    n, _, sub = row_ref.partition(":")
+    if not 1 <= int(n) <= len(rows):
+        raise EditError(f"row {n}: the body has {len(rows)} row(s)")
+    a, b = rows[int(n) - 1]
+    if sub:
+        i, j = (int(x) for x in sub.split("-"))
+        if not 1 <= i <= j <= b - a + 1:
+            raise EditError(f"row {row_ref}: row {n} has {b - a + 1} line(s)")
+        a, b = a + i - 1, a + j - 1
+    return f"{a}:{b}"
+
+
+def _resolve_fm_row(root, edit: Edit) -> None:
+    """BUILD1: each `row <top>.<key>` -> `set_fm[<top>]` = the node's `<top>`
+    mapping with row `<key>` replaced by the source's YAML value (order kept),
+    or dropped when the source is `--remove`. Rows apply IN ORDER onto one mapping,
+    so several rows of one script all land. Idempotent (main resolves it for
+    its preview, submit again for an API caller). Refuses by EditError: `<top>`
+    absent or not a mapping, `<key>` not a row of it, the same line setting or
+    unsetting `<top>` too, a source that is unreadable or not YAML."""
+    if not edit.fm_rows or edit.fm_row_resolved:
+        return
+    import yaml  # noqa: PLC0415
+    from graph_core.persistence import frontmatter as fm_reader  # noqa: PLC0415
+    path = node_writer.find_node_file(Path(root), edit.node_id)
+    if path is None:
+        raise EditError(f"no node file for {edit.node_id}")
+    current = fm_reader.load_node_file(path, body=False).frontmatter
+    tables: dict = {}
+    for ref, src in edit.fm_rows:
+        top, key = ref.split(".", 1)
+        if top not in tables and (top in edit.set_fm or top in edit.unset_fm):
+            raise EditError(f"row {ref} cannot share a line with set/unset {top}")
+        table = tables.get(top, current.get(top))
+        if not isinstance(table, dict):
+            raise EditError(f"row {ref}: {edit.node_id} has no {top} mapping")
+        if key not in table:
+            raise EditError(f"row {ref}: {top} has no row {key!r}")
+        if src == "--remove":   # SM 110: removal is explicit, never an empty source
+            tables[top] = {k: v for k, v in table.items() if k != key}
+            continue
+        if src == "-":
+            text = sys.stdin.read()
+        else:
+            try:
+                text = Path(src).read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError) as exc:
+                raise EditError(f"row {ref}: cannot read {src}: {exc}")
+        if not text.strip():
+            raise EditError(f"row {ref}: the source is empty -- to remove the row, "
+                            f"pass --remove as the source")
+        try:
+            value = yaml.safe_load(text)
+        except yaml.YAMLError as exc:
+            raise EditError(f"row {ref}: source is not YAML: {exc}")
+        refusal = _refuse_marker_value(ref, value)   # SM 111: the set/sub guard
+        if refusal:
+            raise EditError(refusal)
+        tables[top] = {k: (value if k == key else v) for k, v in table.items()}
+    edit.set_fm.update(tables)
+    edit.fm_row_resolved = True
+
+
+def _stdin_refusal(edit: Edit) -> str | None:
+    """stdin feeds ONE verb per script: a second `-` source reads '' and its
+    verb is silently lost (SM 110 + 117) -- judged right after parsing and in
+    submit, whatever verbs carry the `-`."""
+    dashes = [f for _, f in edit.fm_rows] + [edit.replace_from, edit.payload_from,
+                                              edit.patch_from, edit.body_patch_from]
+    if sum(x == "-" for x in dashes) > 1:
+        return "stdin feeds ONE verb per script: pass the other sources as files"
+    return None
+
+
+def _standalone_refusal(edit: Edit) -> str | None:
+    """replace body / row is the one body writer of its submit -- judged in
+    submit AND before the --dry-run preview, so both refuse alike (SM N1)."""
+    if edit.replace_target == "body" and (edit.body_append or edit.thought
+                                          or edit.body_patch_from or edit.body_patch_diff
+                                          or edit.sub_body):
+        return ("replace body is standalone; it cannot share a line with "
+                "note, thought or body_patch (one body writer per submit)")
+    if (edit.body_patch_from or edit.body_patch_diff) and (edit.body_append or edit.thought
+                                                           or edit.sub_body):
+        return ("body_patch is standalone; it cannot share a line with note, "
+                "thought or sub (one body writer per submit)")
+    return None
+
+
+def _missing_link_refusal(root, set_fm: dict) -> str | None:
+    """goal:g4.18.6.2.1 -- `set parents` / `set next_edges` naming an id no node
+    carries refuses by name, judged by create's ONE lookup (the type index
+    spawn_gate.gate_for_root builds for create's gate), never a second walk."""
+    ids = [i for k in ("parents", "next_edges") if k in set_fm
+           for i in ([set_fm[k]] if isinstance(set_fm[k], str) else set_fm[k] or [])
+           if isinstance(i, str) and i.strip()]
+    if not ids:
+        return None
+    import spawn_gate  # noqa: PLC0415
+    index = spawn_gate.gate_for_root(root)[1]   # SM 122: built ONCE per command, never per id
+    missing = [i for i in ids if i not in index]
+    return (f"cannot set: {missing} name no node -- create it first, or name an id "
+            f"that exists (goal:g4.18.6.2.1)") if missing else None
+
+
+def _thought_marker_refusal(body: str, rng: str, new_text: str) -> str | None:
+    """goal:g4.18.5.1.1 -- a body range holding a THOUGHT marker LINE refuses:
+    update_node carries the old THOUGHT back, so the block would duplicate.
+    Lines strictly inside the markers stay admitted; so does a range holding
+    both markers when the new text brings a block. Whatever the range, the
+    SPLICED body adds no block and no stray marker line: at most one block, or
+    as many as the body already held (SM 112; SM 118: a body QUOTING a column-0
+    pair beside its real block keeps a write path; hypothesis:body-replace-
+    lands-at-most-one-well-formed-thought-and-row-name-skips-the-separator)."""
+    lo, hi = _parse_range(rng)
+    mark = node_writer.THOUGHT_MARKER_LINE_RE
+    marks = [ln for ln in body.split("\n")[(lo or 1) - 1:hi] if mark.match(ln)]
+    try:
+        out = _splice_range(body, rng, new_text or "")
+    except EditError as exc:
+        return str(exc)
+
+    def _shape(text: str) -> tuple[int, int]:   # (blocks, marker lines outside a block)
+        n = len(node_writer.thought_blocks(text))
+        return n, sum(bool(mark.match(ln)) for ln in text.split("\n")) - 2 * n
+    (was, was_stray), (now, stray) = _shape(body), _shape(out)
+    if ((not marks or (len(marks) == 2 and node_writer._THOUGHT_RE.search(new_text or "")))
+            and now <= max(1, was) and stray <= was_stray):
+        return None
+    return (f"body {rng} would leave the THOUGHT malformed (a marker line in the range, "
+            f"a second block or a stray marker): rewrite it with the `thought` verb, "
+            f"and replace only the lines around it")
 
 
 def verb_sub(edit: Edit, spec: str) -> Edit:
@@ -493,6 +708,8 @@ def verb_sub(edit: Edit, spec: str) -> Edit:
     if not old:
         raise EditError("sub `<old>` is empty -- nothing written")
     edit.sub_ops.append((target, old, new, False))
+    if target == "payload":
+        edit.payload_verbs.append("sub payload")
     edit.sub_target, edit.sub_old, edit.sub_new = target, old, new
     return edit
 
@@ -551,6 +768,7 @@ def verb_payload(edit: Edit, source: str) -> Edit:
     front end rather than a second way in.
     """
     edit.payload_from = source
+    edit.payload_verbs.append("payload")
     return edit
 
 
@@ -563,11 +781,13 @@ VERBS = {
     "thought": verb_thought,
     "note": verb_note,
     "payload": verb_payload,
+    "canonicalize": verb_canonicalize,
     "payload_text": verb_payload_text,
     "patch": verb_patch,
     "body_patch": verb_body_patch,
     "read": verb_read,
     "replace": verb_replace,
+    "row": verb_row,
     "adopt": verb_adopt,
 }
 
@@ -583,7 +803,7 @@ VERBS = {
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
          "sub": 1, "sub!": 1,
          "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
-         "read": 2, "replace": 3, "adopt": 0}
+         "read": 2, "replace": 3, "row": 2, "adopt": 0, "canonicalize": 0}
 #: hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
 #: begins-a-verb -- a `&&` separates chunks ONLY when what follows, stripped,
 #: is a known verb name ending at whitespace or end-of-string; any other `&&`
@@ -627,7 +847,9 @@ VERB_EXAMPLES = {
     #: NOTES block below carries that rule into `-h`. goal:g7.33.10 also
     #: admits replace body NAME path (table first-cell NAME).
     "replace": "replace body 4:9 path/to/file",
+    "row": "row 3 f  |  row 2:1-3 f  |  row name:<NAME> f  |  row manifest.<key> value.yaml|--remove",
     "adopt": "adopt",
+    "canonicalize": "canonicalize",
 }
 
 
@@ -1881,6 +2103,12 @@ def _schema_field_refusal(schema, node_type: str, key, value, *,
                     or re.fullmatch(pattern, value) is None):
         return (f"{verb} {node_type} refused by name: {key!r} must match "
                 f"{pattern!r}, got {value!r} (schema validation.regex)")
+    # goal:g7.16.1.2.6 -- a list field's ITEM form (the park tag parked:<goal>)
+    item = (validation.get("item_regex") or {}).get(key)
+    for v in (value if item and isinstance(value, list) else []):
+        if re.fullmatch(item, str(v)) is None:
+            return (f"{verb} {node_type} refused by name: {key!r} item {v!r} must "
+                    f"match {item!r} (schema validation.item_regex)")
     return None
 
 
@@ -1910,6 +2138,9 @@ def _refuse_authored_identity(key: str, source: str) -> str | None:
         return (f"create --{source} refused by name: {key!r} is MINTED by "
                 f"node_writer ({', '.join(sorted(_ANSWERS_IDENTITY))}) and is "
                 "never authorable")
+    if key in node_writer.GATED_ROWS:
+        return (f"create --{source} refused by name: {key!r} is judged by the spawn "
+                "gate -- pass it as the create's type or --parent, never as a row")
     return None
 
 
@@ -2115,7 +2346,7 @@ def _resolve_replace_text(edit: Edit) -> None:
     """
     if not edit.replace_from:
         return
-    if edit.replace_text:
+    if edit.replace_text or edit.replace_stdin_read:
         # Already resolved — by main() for its --dry-run preview, or by an
         # API caller that set the text directly. Never re-read: a second
         # stdin read for `-` would consume nothing and hang the caller.
@@ -2124,7 +2355,8 @@ def _resolve_replace_text(edit: Edit) -> None:
         # Same stdin contract as `payload -` / `patch -`: replacement text is
         # arbitrary content and cannot ride an `&&` script chunk.
         edit.replace_text = sys.stdin.read()
-        return
+        edit.replace_stdin_read = True   # SM 132 probe: an EMPTY stdin is resolved too (a
+        return                           # deliberate deletion, pinned) -- never read twice
     try:
         text = Path(edit.replace_from).read_text(encoding="utf-8")
     except OSError as exc:
@@ -2176,8 +2408,14 @@ def _resolve_api_root(root) -> Path:
 
 
 def submit(root, edit: Edit, actor: str = "", session: str = "",
-           role: str = "", ring_fresh: tuple | None = None) -> object:
+           role: str = "", ring_fresh: tuple | None = None,
+           dry_run: bool = False) -> object:
     """Write the accumulated edit. **The only thing in this module that writes.**
+
+    `dry_run` = THE preview judge (SM 130: the third preview/write drift): every
+    refusal below runs, then it returns None just before the first write; the
+    ring gate runs as its preview (no nonce spent, its refusal is the preview
+    line `_preview_dry_run_gate` prints).
 
     Returns `node_writer`'s own result object, so a caller sees `UPDATED`,
     `UNCHANGED` or `REJECTED` and the reason — the same statuses every other
@@ -2193,6 +2431,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # conjunct 1: resolve `sub` BEFORE the outside-ref gate, on the API path
     # too; main already resolved it for its preview (idempotent).
     _resolve_sub(root, edit)
+    if _stdin_refusal(edit):   # SM 117, for an API caller too
+        raise EditError(_stdin_refusal(edit))
+    _resolve_fm_row(root, edit)   # BUILD1, idempotent likewise
+    _patch_the_node_itself(root, edit)   # goal:g4.18.1.6, idempotent: clears the patch it translates
 
     # A link_ref/payload_ref resolving outside the repo tree is refused before
     # any write; the SAME predicate links.py's schema report calls. It judges
@@ -2240,7 +2482,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
                                       or edit.replace_target == "body"),
                         signatures=getattr(edit, "signatures", []),
                         out_decision=_ring_out,
-                        ring_fresh=ring_fresh)
+                        ring_fresh=ring_fresh, preview=dry_run)
 
     set_fm = dict(edit.set_fm)
     # RUNG 2 claim (2): when a `ring:`-declaring schema admitted this
@@ -2274,10 +2516,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         # through `update_node` below, so the THOUGHT region is carried across
         # and write_guard sees a sanctioned write. Exclusive with note/thought:
         # one body writer per submit keeps a single writer author of the body.
-        if edit.body_append or edit.thought or edit.sub_body:
-            raise EditError(
-                "body_patch is standalone; it cannot share a line with note, "
-                "thought or sub (one body writer per submit)")
+        if _standalone_refusal(edit):
+            raise EditError(_standalone_refusal(edit))
         body = apply_unified_diff(_read_body_text(root, edit.node_id),
                                   edit.body_patch_diff)
 
@@ -2285,9 +2525,19 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # payload swap that lands next to a rejected node edit is a file whose
     # reason never made it into the graph, which is the exact split this verb
     # exists to close.
-    touches_payload = bool(edit.payload_from or edit.payload_bytes
-                           or edit.patch_from or edit.patch_diff
-                           or edit.replace_target == "payload")
+    if edit.patch_from == "-" and not edit.patch_diff:   # SM 139: refused BEFORE any write, dry and real
+        raise EditError("patch - (stdin) is empty: no diff to apply -- nothing written")
+    if edit.body_patch_from == "-" and not edit.body_patch_diff:   # SM 144: 139's sibling (an API caller sets the diff)
+        raise EditError("body_patch - (stdin) is empty: no diff to apply -- nothing written")
+    if edit.payload_from == "-":   # SM 140: main() reads stdin; `-` survives only an empty read
+        raise EditError("payload - (stdin) is empty: no bytes to write -- nothing written")
+    _writers = [bool(edit.payload_from), bool(edit.payload_bytes),
+                bool(edit.patch_from or edit.patch_diff), edit.replace_target == "payload"]
+    _verbs = edit.payload_verbs   # SM 145: repeated `sub payload` ops compose; any other pair drops one
+    if sum(_writers) > 1 or len(set(_verbs)) > 1 or sum(v != "sub payload" for v in _verbs) > 1:
+        raise EditError("one payload writer per submit: payload, payload_text, patch and "
+                        "replace payload cannot share a line -- nothing written")
+    touches_payload = any(_writers)
     payload_ref, location = _payload_ref(root, edit) if touches_payload else ("", None)
 
     # hypothesis:l3-write-partial-diffs-as-writes -- a `patch` computes the
@@ -2311,14 +2561,12 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # refused above; `_splice_range` refuses a range past EOF before anything
     # is written, so a bad range leaves the node and the payload untouched.
     if edit.replace_target:
-        if edit.replace_target == "body" and (edit.body_append or edit.thought
-                                              or edit.body_patch_diff
-                                              or edit.sub_body):
-            raise EditError(
-                "replace body is standalone; it cannot share a line with "
-                "note, thought or body_patch (one body writer per submit)")
+        if _standalone_refusal(edit):
+            raise EditError(_standalone_refusal(edit))
         _current = _target_text(root, edit, edit.replace_target,
                                 payload_ref, location)
+        if edit.row_ref:   # goal:g4.18.5.1: the index picks the range
+            edit.replace_range = _row_range(_current, edit.row_ref)
         # goal:g7.33.10 — resolve body row NAME -> N:N against CURRENT body
         # before the structural guard and the splice, so a rename of an
         # earlier line cannot desync the selection from what the caller
@@ -2327,6 +2575,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         if edit.replace_row_name:
             edit.replace_range = _resolve_body_row_range(
                 _current, edit.replace_row_name)
+        if edit.replace_target == "body":
+            _refusal = _thought_marker_refusal(_current, edit.replace_range, edit.replace_text)
+            if _refusal:
+                raise EditError(_refusal)
         # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-
         # splices -- the body-only structural guard, before the splice and
         # before any write. A payload is arbitrary bytes and is never
@@ -2371,6 +2623,30 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     if "location" in set_fm:
         location = set_fm["location"]
 
+    # SM 142 + 143: every payload input resolves BEFORE the dry return -- the
+    # destination exists, the source is a file and its bytes are read -- so
+    # update_node is only ever followed by a payload write already known to
+    # land. An EMPTY result (a patch deleting every line) is b"", never None.
+    payload_data = None
+    if payload_ref:
+        _dest = locations.resolve_payload_path(Path(root), payload_ref, location)
+        if not _dest.is_file():
+            raise EditError(f"payload {_dest} does not exist -- `payload` replaces bytes, it never "
+                            f"creates (a new file is `write.py create --payload`); nothing written")
+        if edit.payload_from:
+            if not Path(edit.payload_from).is_file():
+                raise EditError(f"payload source {edit.payload_from} is not a file -- nothing written")
+            try:
+                payload_data = Path(edit.payload_from).read_bytes()
+            except OSError as exc:   # SM 147: rc 2 + ERR, never a traceback
+                raise EditError(f"payload source {edit.payload_from} cannot be read ({exc}) -- nothing written")
+        else:
+            payload_data = edit.payload_bytes.encode()
+        if not os.access(_dest, os.R_OK):   # SM 148/149: replace_payload READS the dest first (same-bytes check)
+            raise EditError(f"payload {_dest} is not readable -- nothing written")
+        if not os.access(_dest, os.W_OK) and _dest.read_bytes() != payload_data:   # SM 146: replace_payload
+            raise EditError(f"payload {_dest} is not writable -- nothing written")   # writes in place
+
     # PRIME RULING 2026-09-11 facts-region gate: a master-sensei BODY edit on
     # a `master_sensei_row`-governed node may change ONLY the `## facts`
     # section. Written here (post-composition) because the body bytes only
@@ -2378,6 +2654,27 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
+    # goal:g7.16.1.2.6 -- `set active` wakes that formation's parked nodes. The
+    # carrier grep runs BEFORE the write and fails CLOSED (council C1 on bundle
+    # 3, check_formation's stance): a grep that cannot look refuses the set,
+    # nothing written -- never rc 0 with every carrier still parked.
+    wake_goal, carriers = "", []
+    if edit.node_id == "config:formations" and "active" in edit.set_fm:
+        import rotation_record  # the shared carrier grep: write never imports the verifier
+        from graph_core.persistence import frontmatter as _fmr
+        cell = node_writer.find_node_file(root, "config:formations")
+        # no cell -> no table -> no grep (the empty-goal path): residue 79
+        table = (edit.set_fm["templates"] if "templates" in edit.set_fm else
+                 (_fmr.load_node_file(cell, body=False).frontmatter.get("templates") if cell else None)) or {}
+        wake_goal = str(table.get(edit.set_fm["active"]) or "")
+        try:
+            carriers = rotation_record.parked_carriers(root, wake_goal) if wake_goal else []
+        except rotation_record.GrepError as exc:
+            raise EditError(f"set active refused: the parked-carrier grep for parked:{wake_goal} "
+                            f"failed ({exc}); nothing written -- the wake cannot be delivered")
+
+    if dry_run:   # every refusal above has run; nothing is written
+        return None
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
@@ -2396,13 +2693,24 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         # change.
         mint = _node_mint_id(root, edit.node_id)
         dest, changed = node_writer.replace_payload(
-            root, payload_ref, edit.payload_from or None,
-            location=location,
-            data=edit.payload_bytes.encode() if edit.payload_bytes else None,
+            root, payload_ref, None, location=location,
+            data=payload_data,   # resolved above, before the dry return (SM 142/143)
             mint_id=mint,
             log_extra=_log_provenance(actor))
         res.payload_changed = changed
         res.payload_path = str(dest)
+    # ... and, the set written, its `parked:<goal>` tag leaves every carrier found above.
+    goal = wake_goal
+    if res.status != node_writer.REJECTED:
+        for nid, _f, tags in carriers:
+            try:
+                w = node_writer.update_node(root, nid, set_fm={
+                    "tags": [t for t in tags if t != f"parked:{goal}"],
+                    PROVENANCE_ACTOR: actor or _default_actor()}, log_extra=_log_provenance(actor))
+            except OSError as exc:  # one carrier's failed write never aborts the rest
+                w = node_writer.NodeWrite(status=node_writer.REJECTED, node_id=nid, reason=str(exc))
+            print(f"unpark REJECTED {nid} (parked:{goal}): {w.reason}" if w.status == node_writer.REJECTED
+                  else f"unparked {nid} (parked:{goal})", file=sys.stderr)
     if res.status != node_writer.REJECTED:
         try:
             profile_sync.sync_node(root, edit.node_id)
@@ -2943,11 +3251,74 @@ def _payload_ref(root, edit: Edit) -> tuple[str, str | None]:
     ref = fm.get("payload_ref") or fm.get(links.LINK_FIELD)
     if not isinstance(ref, str) or not ref.strip():
         raise EditError(
-            f"{edit.node_id} has no payload_ref, so there are no bytes to "
-            f"replace. `payload` edits the file a build node points at; a "
-            f"node without one is edited with `set`, `note` and `thought`.")
+            f"{edit.node_id} has no payload_ref: use `replace body N:M` (or "
+            f"`row`) for the node file -- `payload` edits the file a build "
+            f"node points at, and `patch` edits the node file itself "
+            f"(council ruling on goal:g4.18.1.6)")
     loc = fm.get("location")
     return ref.strip(), loc.strip() if isinstance(loc, str) and loc.strip() else None
+
+
+_CONTRACT_RE = re.compile(r"^<!--[ \t]*BUILD-CONTRACT:BEGIN\b.*?^<!--[ \t]*BUILD-CONTRACT:END[ \t]*-->",
+                          re.DOTALL | re.MULTILINE)
+
+
+def _patch_the_node_itself(root, edit: Edit) -> None:
+    """goal:g4.18.1.6 (owner 09-30: "The node location just becomes the node
+    itself."): a `patch` on a node with NO payload_ref applies to the node file
+    and lands as the rows and body it changed -- through update_node and every
+    gate after this call (ring, schema, THOUGHT carry, provenance). A build
+    node keeps patching its payload. Identity rows, a BUILD-CONTRACT block and
+    the THOUGHT markers refuse by name; so does another verb on the same line."""
+    if not (edit.patch_from or edit.patch_diff):
+        return
+    path = node_writer.find_node_file(root, edit.node_id)
+    if path is None or path.suffix != ".md":
+        return
+    from graph_core.persistence import frontmatter as _fmr
+    old = _fmr.load_node_file(path)
+    if old.frontmatter.get("payload_ref") or old.frontmatter.get(links.LINK_FIELD):
+        return
+    if edit.payload_verbs != ["patch"] or edit.set_fm or edit.unset_fm or edit.body_append or edit.thought \
+            or edit.body_patch_from or edit.body_patch_diff or edit.replace_target or edit.sub_ops:
+        raise EditError(f"{edit.node_id} has no payload_ref, so `patch` edits the node file itself "
+                        f"and is standalone: no other verb on its line -- nothing written")
+    if edit.patch_from == "-" and not edit.patch_diff:
+        return   # SM 139 refuses it by name below
+    try:   # SM 153: a bad source or a patch that breaks the frontmatter is an ERR, never a traceback
+        diff = edit.patch_diff or Path(edit.patch_from).read_text(encoding="utf-8")
+        applied = apply_unified_diff(path.read_text(encoding="utf-8"), diff)
+        new = _fmr._parse_md(applied, ".md", True)
+    except (OSError, UnicodeDecodeError, _fmr.FrontmatterError) as exc:
+        raise EditError(f"patch on {edit.node_id} cannot apply: {exc} -- nothing written")
+    ofm, nfm = old.frontmatter, new.frontmatter
+    for k in sorted(set(ofm) | set(nfm)):   # SM 150: every row `set`/`unset` would judge, judged alike
+        if ofm.get(k) != nfm.get(k) or (k in ofm) != (k in nfm):
+            refusal = _row_refusal(k, nfm.get(k)) if k in nfm else (
+                f"{k!r} may not be unset — see `set`." if k in PROTECTED else None)
+            if refusal:
+                raise EditError(f"patch: {refusal}")
+    if _CONTRACT_RE.findall(old.body) != _CONTRACT_RE.findall(new.body):
+        raise EditError("patch touches the BUILD-CONTRACT block, which is regenerated -- nothing written")
+    def _stray(b):   # marker lines outside a well-formed block (_thought_marker_refusal's shape)
+        return sum(bool(node_writer.THOUGHT_MARKER_LINE_RE.match(ln)) for ln in b.split("\n")) \
+            - 2 * len(node_writer.thought_blocks(b))
+    ob, nb = len(node_writer.thought_blocks(old.body)), len(node_writer.thought_blocks(new.body))
+    if _stray(new.body) > _stray(old.body) or nb > max(1, ob) or nb < ob:   # SM 152: never a 2nd block
+        raise EditError("patch would leave the THOUGHT malformed: rewrite it with the `thought` verb -- nothing written")
+    canon = node_writer._serialize_node(node_writer.render_frontmatter(nfm), new.body)
+    if canon != applied:   # council ruling on SM 154: one serializer, fail-closed, never a silent discard
+        drift = [ln for ln in difflib.unified_diff(applied.split("\n"), canon.split("\n"), lineterm="", n=0)
+                 if ln[:1] in "+-" and ln[:3] not in ("+++", "---")][:4]
+        raise EditError(f"patch result is not in the canonical form, so it would not land as written "
+                        f"(re-render: {drift}): run `write.py {edit.node_id} canonicalize` first, then "
+                        f"re-cut the diff -- the canonical form drops frontmatter comments and "
+                        f"non-significant quoting; nothing written")
+    edit.set_fm.update({k: v for k, v in nfm.items() if ofm.get(k) != v})
+    edit.unset_fm.extend(k for k in ofm if k not in nfm)
+    if new.body != old.body:
+        edit.sub_body = new.body   # the body writer update_node already takes (sub's slot)
+    edit.patch_from, edit.patch_diff, edit.payload_verbs = "", "", []
 
 
 def _default_actor() -> str:
@@ -3007,15 +3378,9 @@ def _compose_body(root, edit: Edit) -> str:
             body = body.rstrip() + f"\n\n{NOTES_HEADING}\n{note}\n"
 
     if edit.thought:
-        block = (node_writer._THOUGHT_RE.pattern and
-                 "<!-- THOUGHT:BEGIN — authored, not derived; carried across "
-                 "regenerating scans. The reasoning behind THIS version. -->\n"
-                 f"{edit.thought}\n<!-- THOUGHT:END -->")
-        existing = node_writer.extract_thought(body)
-        if existing:
-            body = body.replace(existing, block)
-        else:
-            body = body.rstrip() + "\n\n" + block + "\n"
+        block = (f"{node_writer.THOUGHT_BEGIN}\n{edit.thought}\n"
+                 f"{node_writer.THOUGHT_END}")
+        body = node_writer.replace_thought(body, block)
     return body
 
 
@@ -3392,11 +3757,24 @@ def main(argv: list[str] | None = None) -> int:
         print(f"created: {res.node_id} -> {res.path}")
         if made is not None:
             print(f"created: {made} (empty; the node points at it)")
-        return 0
+        from types import SimpleNamespace  # noqa: PLC0415 -- residue 92: create commits too
+        _note, _unc = _commit_write(root, res.node_id, SimpleNamespace(
+            path=res.path, payload_changed=made is not None, payload_path=str(made or "")), args.actor)
+        if _note:
+            print(_note, file=sys.stderr)
+        return EXIT_UNCOMMITTED if _unc else 0
 
     if not args.script:
         print("ERR: a script is required: "
               'write.py <node-id> "set k v && thought why"', file=sys.stderr)
+        return 2
+    # A second positional on an EDIT lands in `slug` (create's slot) and was
+    # silently dropped: `write.py <id> 'row ...' 'thought ...'` wrote the row
+    # and lost the thought (measured 09-29 on command:commands, f7a91e213 +
+    # 3d1d03054). One script per call; verbs join with `&&`.
+    if args.slug is not None:
+        print(f"ERR: one script per call -- join verbs with ' && '; the extra "
+              f"argument {args.slug[:60]!r} would be dropped", file=sys.stderr)
         return 2
 
     root = locations.find_project_root(Path(args.root).resolve())
@@ -3404,10 +3782,49 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
 
+    if ":" not in (args.node_id or "") and not node_writer.find_node_file(root, args.node_id):
+        # goal:g4.18.6.1: a mint id addresses its node (any shape: the Prime, 22:1xZ)
+        import links  # noqa: PLC0415
+        import rotation_record  # noqa: PLC0415
+        try:
+            hit = links.resolve_mint(root, args.node_id)
+        except ValueError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
+        except rotation_record.GrepError as exc:   # SM 102: never a traceback
+            print(f"ERR: mint lookup could not look: {exc}", file=sys.stderr)
+            return 2
+        if hit is None:
+            print(f"ERR: no node carries mint id {args.node_id}", file=sys.stderr)
+            return 2
+        args.node_id = hit[0]
     edit = Edit(node_id=args.node_id)
     try:
         for name, verb_args in parse_script(args.script):
             apply_verb(edit, name, verb_args)
+    except EditError as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 2
+
+    if _stdin_refusal(edit):   # SM 117: before ANY verb reads stdin
+        print(f"ERR: {_stdin_refusal(edit)}", file=sys.stderr)
+        return 2
+    # BUILD1: a nested frontmatter row becomes a `set_fm` entry HERE, before
+    # the set schema gate, so it is judged exactly like a `set`.
+    if edit.fm_rows:
+        try:
+            _resolve_fm_row(root, edit)
+        except EditError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
+    # SM 151 + 155: `patch -` reads its diff HERE (once: SM 132), and a patch on a
+    # node with no payload_ref becomes its rows + body BEFORE the set gates and
+    # --ring-fields read edit.set_fm (submit's own call stays idempotent)
+    if edit.patch_from == "-":
+        # a diff can contain the doubled ampersand, so it rides stdin, like `payload -`
+        edit.patch_diff = sys.stdin.read()
+    try:
+        _patch_the_node_itself(root, edit)
     except EditError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
@@ -3419,7 +3836,8 @@ def main(argv: list[str] | None = None) -> int:
     # (`goal:g7.2` -> `goal`), the same shortcut node_writer already uses.
     if edit.set_fm and ":" in args.node_id:
         node_type = args.node_id.split(":", 1)[0]
-        refusal = _enforce_set_schema_gate(root, node_type, edit.set_fm)
+        refusal = (_enforce_set_schema_gate(root, node_type, edit.set_fm)
+                   or _missing_link_refusal(root, edit.set_fm))
         if refusal:
             print(f"ERR: {refusal}", file=sys.stderr)
             return 2
@@ -3434,6 +3852,11 @@ def main(argv: list[str] | None = None) -> int:
         except EditError as exc:
             print(f"ERR: {exc}", file=sys.stderr)
             return 2
+    # SM N1 + 125: the preview refuses what submit refuses, judged in submit's
+    # order -- AFTER the sub resolves, so its `sub_body` clause is seen
+    if _standalone_refusal(edit):
+        print(f"ERR: {_standalone_refusal(edit)}", file=sys.stderr)
+        return 2
 
     # hypothesis:l4-...-the-write-itself, SIGNER'S VIEW (kid D): `--ring-fields`
     # prints the EXACT config-write decision bytes a `ring:`-declaring schema's
@@ -3497,6 +3920,12 @@ def main(argv: list[str] | None = None) -> int:
     # would refuse `mint_id` as PROTECTED). It routes through
     # `node_writer.repair_mint`: mint a first mint_id, refuse an existing one.
     if edit.adopt:
+        try:  # goal:g4.18.3 -- the SAME written_by gate submit applies, before any mint
+            _enforce_written_by(root, edit.node_id.split(":", 1)[0], args.actor,
+                                edit.node_id, args.role, allow_self_row=True)
+        except EditError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
         if (edit.set_fm or edit.unset_fm or edit.thought or edit.body_append
                 or edit.payload_from or edit.payload_bytes):
             print("ERR: adopt is standalone; it cannot share a line with "
@@ -3526,13 +3955,10 @@ def main(argv: list[str] | None = None) -> int:
         except Exception:
             pass
         print(f"adopted: {edit.node_id} mint_id={mint or '(written)'}")
-        return 0
-
-    if edit.patch_from == "-":
-        # `patch -` reads the diff from stdin, the way `payload -` already
-        # does: a diff is bytes that can contain almost any character, so it
-        # cannot ride an `&&` script chunk (the doubled ampersand splits it).
-        edit.patch_diff = sys.stdin.read()
+        _note, _unc = _commit_write(root, edit.node_id, res, args.actor)   # residue 92
+        if _note:
+            print(_note, file=sys.stderr)
+        return EXIT_UNCOMMITTED if _unc else 0
 
     # hypothesis:l4-replace-api-drops-source — ONE resolver, not a second
     # read. Delegate to the same function `submit` uses, so dry-run shows the
@@ -3548,9 +3974,37 @@ def main(argv: list[str] | None = None) -> int:
     # payload ref is resolved) rather than here, so a refused diff is still
     # refused before consuming it.
 
+    # SM 132: stdin is read ONCE, here, BEFORE the one judge -- a dry run judges
+    # the same bytes the write lands (a `body_patch -` diff that does not apply
+    # refuses in both)
+    _stdin: set = set()   # SM 134: which sources came off stdin -- the preview labels them
+    if edit.payload_from == "-":
+        # The CLI layer reads stdin; the library never does. `payload -` is
+        # for content that cannot ride in an argv chunk -- anything with `&&`
+        # in it, or a whole file being piped in.
+        _data = sys.stdin.read()
+        _stdin.add("payload")
+        if _data:   # SM 140: an EMPTY read keeps `-`, and submit refuses it by name, dry and real
+            edit.payload_from, edit.payload_bytes = "", _data
+
+    if edit.body_patch_from == "-":
+        # Same stdin contract as `payload -` / `patch -`: the diff bytes ride
+        # stdin because a diff can contain the doubled ampersand that would
+        # split the `&&` script form. Read once, here, never in the library.
+        _diff = sys.stdin.read()
+        _stdin.add("body_patch")
+        if _diff:   # SM 144: as 140 -- an EMPTY read keeps `-`, and submit refuses it by name
+            edit.body_patch_from, edit.body_patch_diff = "", _diff
+
     if args.dry_run:
         print(f"{edit.node_id}:")
         for k, v in edit.set_fm.items():
+            _mine = [ref for ref, _ in edit.fm_rows if ref.split(".", 1)[0] == k]
+            if _mine:
+                for ref in _mine:
+                    print(f"  row    {ref} "
+                          f"({'replace' if ref.split('.', 1)[1] in v else 'remove'})")
+                continue
             print(f"  set    {k} = {v!r}")
         for k in edit.unset_fm:
             print(f"  unset  {k}")
@@ -3560,19 +4014,27 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  note    ({len(edit.body_append)} chars)")
         if edit.payload_from:
             print(f"  payload from {edit.payload_from}")
-        if edit.payload_bytes:
-            print(f"  payload  ({len(edit.payload_bytes)} bytes, inline)")
+        if edit.payload_bytes or "payload" in _stdin:
+            _src4 = "stdin" if "payload" in _stdin else "inline"
+            print(f"  payload  ({len(edit.payload_bytes or '')} bytes, {_src4})")
         if edit.patch_diff:
             _src = "stdin" if edit.patch_from == "-" else edit.patch_from
             print(f"  patch   ({len(edit.patch_diff)} bytes of diff, {_src})")
         if edit.patch_from and not edit.patch_diff:
             print(f"  patch   from {edit.patch_from}")
-        if edit.body_patch_diff:
-            _src2 = "stdin" if edit.body_patch_from == "-" else edit.body_patch_from
+        if edit.body_patch_diff or "body_patch" in _stdin:
+            _src2 = "stdin" if "body_patch" in _stdin else edit.body_patch_from
             print(f"  body_patch ({len(edit.body_patch_diff)} bytes of diff, {_src2})")
         if edit.body_patch_from and not edit.body_patch_diff:
             print(f"  body_patch from {edit.body_patch_from}")
         if edit.replace_target:
+            if edit.row_ref:   # residue 96: the preview resolves the row too
+                try:
+                    edit.replace_range = _row_range(
+                        _target_text(root, edit, "body"), edit.row_ref)
+                except EditError as exc:
+                    print(f"ERR: {exc}", file=sys.stderr)
+                    return 2
             if edit.replace_target == "body":
                 _cur = _target_text(root, edit, "body")
                 if edit.replace_row_name:
@@ -3588,6 +4050,8 @@ def main(argv: list[str] | None = None) -> int:
                     if _refusal:
                         print(f"ERR: {_refusal}", file=sys.stderr)
                         return 2
+            if edit.row_ref:
+                print(f"  row    {edit.row_ref} -> {edit.replace_range}")
             _src3 = "stdin" if edit.replace_from == "-" else edit.replace_from
             _rng = (edit.replace_row_name or edit.replace_range)
             print(f"  replace {edit.replace_target} {_rng} "
@@ -3611,21 +4075,13 @@ def main(argv: list[str] | None = None) -> int:
                 sys.stdout.write("\n")
             print(f"  sub     {edit.sub_count} match(es) of "
                   f"{edit.sub_old!r} -> {edit.sub_new!r}")
+        try:   # SM 130: the preview refuses by submit's OWN judgement, never a mirror
+            submit(root, edit, actor=args.actor, session=args.session,
+                   role=args.role, dry_run=True)
+        except (EditError, FileNotFoundError) as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
         return _preview_dry_run_gate(root, edit, args)
-
-    if edit.payload_from == "-":
-        # The CLI layer reads stdin; the library never does. `payload -` is
-        # for content that cannot ride in an argv chunk -- anything with `&&`
-        # in it, or a whole file being piped in.
-        edit.payload_from = ""
-        edit.payload_bytes = sys.stdin.read()
-
-    if edit.body_patch_from == "-":
-        # Same stdin contract as `payload -` / `patch -`: the diff bytes ride
-        # stdin because a diff can contain the doubled ampersand that would
-        # split the `&&` script form. Read once, here, never in the library.
-        edit.body_patch_from = ""
-        edit.body_patch_diff = sys.stdin.read()
 
     try:
         edit.signatures = args.ring_sigs
@@ -3650,8 +4106,82 @@ def main(argv: list[str] | None = None) -> int:
     if res.payload_changed is not None:
         print(f"payload: {res.payload_path} "
               + ("replaced" if res.payload_changed else "unchanged"))
+    if res.status == node_writer.UPDATED or res.payload_changed:   # goal:g4.18.5.2 (+ residue 91: payload-only)
+        _note, _unc = _commit_write(root, edit.node_id, res, args.actor)
+        if _note:
+            print(_note, file=sys.stderr)
+        if _unc:
+            return EXIT_UNCOMMITTED
     return 1 if res.status == node_writer.REJECTED else 0
 
+
+#: goal:g4.18.5.2.1 -- the node is written but NOT committed (a busy index
+#: past the `values.core.write_commit_wait_s` budget): never exit 0 over it.
+EXIT_UNCOMMITTED = 3
+
+
+def _commit_wait_s(root) -> float:
+    """`values.core.write_commit_wait_s` (goal:g4.18.5.2.1), default 30."""
+    try:
+        cfg = json.loads(locations.config_path(Path(root)).read_text(encoding="utf-8"))
+        v = float(((cfg.get("values") or {}).get("core") or {})["write_commit_wait_s"])
+        return v if v >= 0 else 30.0
+    except (OSError, TypeError, ValueError, KeyError, AttributeError, json.JSONDecodeError):
+        return 30.0
+
+
+def _commit_write(root, node_id: str, res, actor: str = "") -> tuple[str | None, bool]:
+    """goal:g4.18.5.2 -- the CLI write, after the gate, is ONE commit of its
+    own node (+ its payload) by exact path. In main() only: submit() is the
+    library rotate.py and send.py call on shared files. `git commit -- <paths>`
+    commits those paths alone: never -a, never a file another post staged. A
+    held verify-suite.lock refuses the commit by name (the write stays on
+    disk; the ONE sanctioned exit 0 over an uncommitted node). Not a git
+    checkout = nothing to commit. Unpark carriers a formation switch writes
+    are other nodes: they stay out.
+
+    goal:g4.18.5.2.1: an `index.lock` refusal (concurrent writers) is
+    retried with jittered backoff inside `values.core.write_commit_wait_s`;
+    past it the write refuses by name. Returns `(note, uncommitted)` --
+    `uncommitted` True = the caller exits EXIT_UNCOMMITTED. Every printed
+    recovery line ADDS the paths first, so it works for a create (untracked)."""
+    paths = [str(p if Path(p).is_absolute() else Path(root) / p)
+             for p in (res.path, res.payload_changed and res.payload_path) if p]
+    git = lambda *a: subprocess.run(["git", "-C", str(root), *a],  # noqa: E731
+                                    capture_output=True, text=True)
+    if not paths or git("rev-parse", "--is-inside-work-tree").returncode:
+        return None, False
+    msg = f"write.py: {node_id}" + (f" ({actor})" if actor else "")
+    recover = (f"git -C {root} add -- {' '.join(paths)} && "
+               f"git -C {root} commit -q -m {shlex.quote(msg)} -- {' '.join(paths)}")
+    import verification  # noqa: PLC0415 -- the ONE live-holder read (residue 93)
+    holder = verification.suite_lock_holder(Path(root))
+    if holder:
+        return (f"commit refused: {Path(root) / 'sessions' / verification.SUITE_LOCK} is held "
+                f"by live pid {holder} -- the write landed uncommitted; commit it by "
+                f"exact path: {recover}"), False
+    import random  # noqa: PLC0415
+    deadline = time.monotonic() + _commit_wait_s(root)
+    tries = 0
+    while True:
+        tries += 1
+        add = git("add", "--", *paths)
+        done = add if add.returncode else git("commit", "-q", "-m", msg, "--", *paths)
+        if done.returncode == 0:
+            return None, False
+        busy = "index.lock" in (done.stderr or "") + (done.stdout or "")
+        if not busy or time.monotonic() >= deadline:
+            break
+        time.sleep(min(2.0, 0.05 * 2 ** min(tries, 6)) * (0.5 + random.random()))
+    # residue 90: never left STAGED in a shared index; residue 98: a reset
+    # that fails too (index.lock held) is said loudly, never claimed as done
+    reset = git("reset", "-q", "--", *paths)
+    state = ("unstaged" if reset.returncode == 0 else
+             f"STILL STAGED, reset failed rc {reset.returncode} -- run "
+             f"git reset -q -- {' '.join(paths)}")
+    return (f"commit failed after {tries} tr{'y' if tries == 1 else 'ies'} ({state}; "
+            f"the write stays on disk UNCOMMITTED -- exit {EXIT_UNCOMMITTED}; recover: "
+            f"{recover}): {(done.stderr or done.stdout).strip()[:300]}"), True
 
 if __name__ == "__main__":
     raise SystemExit(main())

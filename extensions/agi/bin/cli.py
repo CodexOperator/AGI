@@ -266,9 +266,86 @@ _BODY_BEGIN = "<!-- BODY:BEGIN -->"
 _FM_REQUIRED = ("id", "type", "parents")
 #: write-log operation for a sanctioned frontmatter repair.
 _FM_REPAIR_OP = "repair-frontmatter"
+#: A key the sanctioned writer could never have written is refused BY NAME.
+#: The rule itself is `node_writer.writer_key_shape` — the writer owns it and
+#: this file only asks, so the shape cannot drift from the renderer it checks
+#: (hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused).
+#: PASS 10 c15 measured 14 such nodes live (a hand-appended `probes=["wire:
+#: ...` line YAML folded into the mapping); every one passed every gate here.
+def _off_shape_keys(fm: dict) -> list[str]:
+    """Keys of `fm` the sanctioned writer could never have written."""
+    return [str(k) for k in fm if not node_writer.writer_key_shape(k)]
 
 
-def _load_frontmatter(text: str) -> tuple[bool, dict | None, str]:
+#: The schema's own WORDS for a CONTAINER field, mapped to what the sanctioned
+#: writer writes for them -- read from `[<type>].md`, never restated per key
+#: (hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused).
+#: SCALARS are absent on purpose: `confidence: 1` is not a defect, and the type
+#: YAML hands back for a bare word is the resolver's collapse, already forgiven
+#: in `node_writer.writer_key_shape`.
+_FM_TYPE_WORDS = {"list": list, "mapping": dict, "dict": dict}
+#: (schemas-dir, its mtime_ns) -> declared types. Two ROOTS in one process are
+#: keyed apart: materialising the same tree twice (`tar`, `cp -a`, `git
+#: archive`) shares the dir mtime, and a bare mtime key would then serve one
+#: root's table to the other -- deciding against ANOTHER root's schema.
+#: Re-read on a NEW mtime, which create/rename inside the dir does; an in-place
+#: write of a rule does NOT change the dir mtime, and is re-read because
+#: `node_writer` writes tmp+rename, not because this stamp promises it.
+_FM_TYPES_CACHE: dict = {}
+
+
+def _declared_types(root, node_type) -> dict:
+    """`key -> container type` from the `fields:` block of `[<type>].md`."""
+    if not root or not node_type:
+        return {}
+    try:
+        from schema_registry import load_schemas_from_dir
+        sdir = Path(root) / "context" / "schemas"
+        stamp = sdir.stat().st_mtime_ns
+    except Exception:
+        return {}
+    key = (str(sdir), stamp)
+    table = _FM_TYPES_CACHE.get(key)
+    if table is None:
+        table = {}
+        try:
+            reg = load_schemas_from_dir(sdir)
+            for name in list(getattr(reg, "schemas", {}) or {}):
+                fields = (getattr(reg.get(name), "frontmatter", {}) or {}).get("fields") or {}
+                table[node_writer.canonical_node_type(name)] = {
+                    str(k): _FM_TYPE_WORDS[spec["type"]] for k, spec in fields.items()
+                    if isinstance(spec, dict) and spec.get("type") in _FM_TYPE_WORDS}
+        except Exception:
+            pass
+        _FM_TYPES_CACHE.clear()
+        _FM_TYPES_CACHE[key] = table
+    return table.get(node_writer.canonical_node_type(node_type), {})
+
+
+def _off_shape_values(fm: dict, types: dict) -> list[str]:
+    """Keys of `fm` whose VALUE the sanctioned writer could not have written.
+
+    ASK, do not restate: the writer renders the block the way `set` does
+    (`node_writer.render_frontmatter`), it is read back, and the type it must
+    carry is read from the schema. A round-trip ALONE cannot see `probes: one`
+    -- the writer renders the scalar it is handed and reads it back perfectly
+    -- so the declaration is the only thing that can name it. An EMPTY list
+    stays legal (a goal with no seeds IS `seeds: []`): the CONSUMER decides
+    whether an empty field is evidence.
+    """
+    import yaml
+    if not types:
+        return []
+    try:
+        back = yaml.safe_load("".join(l + "\n" for l in node_writer.render_frontmatter(fm)))
+    except Exception:
+        return []
+    return [str(k) for k, v in fm.items()
+            if types.get(str(k)) and v is not None
+            and (not isinstance(v, types[str(k)]) or back.get(str(k)) != v)]
+
+
+def _load_frontmatter(text: str, root=None) -> tuple[bool, dict | None, str]:
     """Parse a node file's leading frontmatter block.
 
     Returns ``(ok, fm, defect)``. ``ok=True`` means the ``---`` block is
@@ -292,6 +369,16 @@ def _load_frontmatter(text: str) -> tuple[bool, dict | None, str]:
         return False, None, f"frontmatter YAML parse failure: {exc}"
     if not isinstance(fm, dict):
         return False, None, "frontmatter is not a YAML mapping"
+    off = _off_shape_keys(fm)
+    if off:
+        return False, fm, ("frontmatter key(s) not in the sanctioned writer's "
+                           "shape (a hand-appended line, not a `set` field): "
+                           + ", ".join(k[:60] for k in off))
+    badv = _off_shape_values(fm, _declared_types(root, fm.get("type")))
+    if badv:
+        return False, fm, ("frontmatter value(s) not in the sanctioned writer's "
+                           "shape (a hand-appended line, not a `set` field): "
+                           + ", ".join(k[:60] for k in badv))
     missing = [k for k in _FM_REQUIRED if not fm.get(k)]
     if missing:
         return False, fm, "frontmatter missing required field(s): " + ", ".join(missing)
@@ -334,6 +421,19 @@ def _salvage_frontmatter(header: str) -> dict:
     """
     out: dict = {}
     for line in header.splitlines():
+        # A raw append glued the value onto the key with `=` (`probes=["wire:
+        # ...`); the writer never spells a field that way, but the value is
+        # intact and recoverable, so salvage it under the real key rather than
+        # dropping the kid's evidence.
+        m = re.match(r"^([A-Za-z_][\w\-.]*)=(.*)$", line)
+        if m:
+            key, raw = m.group(1), m.group(2)
+            # FIRST wins, not last: a repeated glued append is the lossy
+            # one (its quotes are already doubled), so the intact list
+            # earlier in the block is the value worth keeping.
+            if raw.strip() and key not in out:
+                out[key] = _coerce_fm_value(raw)
+            continue
         m = re.match(r"^([A-Za-z][\w\-]*):\s*(.*?)\s*$", line)
         if not m:
             continue
@@ -362,9 +462,17 @@ def _ensure_frontmatter(root: Path, node_file: Path, ap: Path,
     swallow the kid's work, which is worse than the defect.
     """
     text = node_file.read_text(errors="replace")
-    ok, _fm, defect = _load_frontmatter(text)
+    ok, _fm, defect = _load_frontmatter(text, root)
     if ok:
         return True, "frontmatter ok"
+    # A VALUE off the writer's shape is a REFUSAL, never a rebuild: the repair
+    # below re-renders the very value the gate just rejected, so it cannot fix
+    # the defect and would churn a parseable block for nothing.
+    if isinstance(_fm, dict) and _off_shape_values(
+            _fm, _declared_types(root, _fm.get("type"))):
+        return False, (f"{node_file.name}: {defect} -- not repaired here; a "
+                       "value the sanctioned writer could not have written is "
+                       "recovered by hand, never by rebuilding the block")
 
     # Determine the body. A *cleanly closed* `---` block delimits it as
     # `parts[2]` even when the block itself is YAML-broken or missing required
@@ -396,6 +504,16 @@ def _ensure_frontmatter(root: Path, node_file: Path, ap: Path,
     # Preserve a block that parsed (it may just be missing fields); salvage
     # line-by-line only when it did not parse at all.
     new_fm = dict(_fm) if isinstance(_fm, dict) else _salvage_frontmatter(header or "")
+    # A parsed block can still carry keys the writer could not have produced
+    # (the `probes=["wire` append). Re-salvaging the header drops them and
+    # recovers the glued value under its real key; the render below would
+    # otherwise write the same garbage back out.
+    if _off_shape_keys(new_fm):
+        salvaged = _salvage_frontmatter(header or "")
+        for k in _off_shape_keys(new_fm):
+            new_fm.pop(k, None)
+        for k, v in salvaged.items():
+            new_fm.setdefault(k, v)
     nid = manifest.get("node_id") or node_id or new_fm.get("id") or ""
     ntype = manifest.get("scaffolded_node_type") or (_fm or {}).get("type") or new_fm.get("type")
     if ":" in str(nid) and not ntype:
@@ -1769,9 +1887,16 @@ def cmd_done(args: argparse.Namespace) -> int:
     # action, so it owns the worktree commit too. Commits the linked worktree
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
+    # DH.552 (chain d91b942f3) + the commit-fail handling, composed: the
+    # round's own NAMED set, plus -- ONLY when this round passed `--owns`,
+    # the ids of the agents THIS round spawned (a parent commit carries its
+    # kids' files; binding `--owns` to the dispatch record alone refused it).
+    _named = _round_named_node_ids(rec, args.parent)
+    if args.owns:
+        _named = _named + _round_spawned_node_ids(root, args.agent_id,
+                                                  args.iter_n)
     _commit_out = _auto_commit_worktree(root, args.agent_id, args.node_id,
-                                        args.owns, verdict,
-                                        _round_named_node_ids(rec, args.parent),
+                                        args.owns, verdict, _named,
                                         refused=[args.parent] if args.parent else None)
     commit_fail = _commit_out if isinstance(_commit_out, str) else None
     if commit_fail:
@@ -1912,7 +2037,7 @@ def _missing_after_lift(root, node_id) -> list[str]:
     path = node_writer.find_node_file(root, node_id)
     if path is None:
         return []
-    ok, fm, _ = _load_frontmatter(path.read_text())
+    ok, fm, _ = _load_frontmatter(path.read_text(), root)
     if not ok or not fm:
         return []
     ntype = node_writer.canonical_node_type(fm.get("type") or path.parent.name)
@@ -2235,6 +2360,42 @@ def _round_named_node_ids(rec, parent) -> list:
     return out
 
 
+def _round_spawned_node_ids(root: Path, agent_id: str | None,
+                            iter_n: int | str | None = None) -> list:
+    """DH.514 correction: the ids of the agents THIS round spawned. A parent
+    round's `--owns <kid node id>` is the flow the commit exists for (one
+    parent commit carries 4 kid files), and binding `--owns` to the parent's
+    OWN dispatch record alone refused it. Dispatch stamps every agent it
+    spawns into a session record under `sessions/iter-*/<agent>/agent.json`
+    with `spawned_by_agent` -- the same manifest the parent already reads for
+    the owned-branch merge. Only records THIS agent spawned widen the set; an
+    id no dispatch record names is still refused by name. Ids only, no path
+    literal, no config cell.
+
+    DH.552, two bounds the DH.514 form lacked (both measured on the bytes,
+    probe pasted on the node): `dispatch_node_id` ONLY -- the `rec["node_id"]`
+    leg read a KID's line and returned `hypothesis:kid-writable`; and THIS
+    round's iteration dir, not `iter-*` -- a seat's `spawned_by_agent` is the
+    SEAT NAME, so the unbounded glob handed back an old iteration's kid id.
+    `iter_n` is already in `cmd_done` (an id, not a path): no new literal, no
+    new config cell. NO iteration in hand -> empty, i.e. it refuses by name.
+    """
+    out: list = []
+    if not agent_id or iter_n is None:
+        return out
+    for ap in sorted(locations.iteration_dir(root, iter_n).glob("*/agent.json")):
+        try:
+            r = json.loads(ap.read_text())
+        except (OSError, ValueError):
+            continue
+        if not isinstance(r, dict) or r.get("spawned_by_agent") != agent_id:
+            continue
+        v = r.get("dispatch_node_id")
+        if isinstance(v, str) and ":" in v and v not in out:
+            out.append(v)
+    return out
+
+
 def _round_committable(root: Path, nid: str) -> bool:
     """May a round's `done` commit sweep node id `nid`? Three DATA gates, no
     type list in code (hypothesis:a-rounds-named-node-set-is-its-dispatch-time-
@@ -2367,7 +2528,7 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
         if not nid or nid in seen:
             continue
         seen.add(nid)
-        if nid == node_id and agent_id and nid not in (named or []):
+        if nid == node_id and nid not in (named or []):
             # DH.414 residue (a): the `--node-id` SEED. `node_id` is the
             # KID's line, and the type gate alone let `done --node-id
             # hypothesis:<foreign>` ride a foreign node into this round's
@@ -2376,9 +2537,11 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
             # carry this round's id was skipped. It seeds the sweep only if
             # DISPATCH named this id (`named`) or the node file's basename
             # carries this round's agent id -- the same agent-id rule
-            # `_round_scope_ok` applies. With no agent id in hand (a direct
-            # call, a test fixture) the pre-existing behaviour stands and the
-            # type gate still applies.
+            # `_round_scope_ok` applies. DH.514: with no agent id in hand (a
+            # direct call, a test fixture) the guard REFUSES BY NAME too --
+            # an absent agent id used to skip the guard entirely, which is a
+            # silent FAIL-OPEN (measured: a foreign `hypothesis:` swept in,
+            # stderr empty).
             base = Path(_find_node_file(root, nid) or "").name
             if not (agent_id and agent_id in base):
                 print(f"round-commit gate: refusing {nid} — a --node-id "
@@ -2390,10 +2553,24 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
             # A kid-supplied id (`done --parent`) NEVER widens the set, even
             # for a round-committable type -- judged by the type gate it let
             # a foreign `hypothesis:` ride into this round's commit (DH.390
-            # harvest). Named, never swept.
+            # harvest). Named, never swept. DH.514: this runs BEFORE the
+            # `--owns` guard so each id is named for the route it took; the
+            # other order printed the `--owns` sentence here and made the
+            # `--parent` message dead code.
             print(f"round-commit gate: refusing {nid} — a kid-supplied "
                   f"--parent never widens this round's done commit",
                   file=sys.stderr)
+            continue
+        if nid != node_id and nid not in (named or []):
+            # DH.514: `--owns` is a THIRD kid-supplied route into the set and
+            # the agent-id-in-basename rule above cannot cover it (one parent
+            # commit carries 4 kid files). It is bound to the dispatch-time
+            # `named` set -- this round's own ids PLUS the ids of the agents
+            # this round spawned (`_round_spawned_node_ids`): named
+            # elsewhere, still refused by name.
+            print(f"round-commit gate: refusing {nid} — --owns is bound to "
+                  f"the ids dispatch named for this round and the ids of the "
+                  f"agents it spawned", file=sys.stderr)
             continue
         if not _round_committable(root, nid):
             print(f"round-commit gate: refusing {nid} — not "
@@ -3245,6 +3422,27 @@ _MSG_DONE = "migrated"
 _MSG_REFUSE = "REFUSE"
 
 
+def _discard_target(target: Path) -> None:
+    """Discard a failed session-complete target, sources intact. A SYMLINKED
+    target (heal's pre-link into the cold sessions home, goal:g7.16.1.5.3.2)
+    is emptied THROUGH the link -- shutil.rmtree refuses a symlink, so
+    `rmtree(target, ignore_errors=True)` silently kept the partial copy while
+    printing 'no target left' (SM residue 156); the link and its now-empty
+    dir are the linker's to undo. A real target goes whole, as before."""
+    if not target.is_symlink():
+        shutil.rmtree(target, ignore_errors=True)
+        return
+    real = target.resolve()
+    for child in (list(real.iterdir()) if real.is_dir() else []):
+        if child.is_dir() and not child.is_symlink():
+            shutil.rmtree(child, ignore_errors=True)
+        else:
+            try:
+                child.unlink()
+            except OSError:
+                pass
+
+
 def _session_complete(
     main_graph: Path,
     iter_n,
@@ -3378,8 +3576,11 @@ def _session_complete(
     # verifies is any source removed, and only its own contribution's.
     try:
         target.parent.mkdir(parents=True, exist_ok=True)
-        if target.is_dir():
-            target.rmdir()  # clear a pre-created empty placeholder only
+        # clear a pre-created empty placeholder only; an empty SYMLINKED dir
+        # stays -- heal pre-links MAIN's entry into the cold sessions home so
+        # the copy lands on disk, never the RAM disk (goal:g7.16.1.5.3.2)
+        if target.is_dir() and not target.is_symlink():
+            target.rmdir()
         for rel, wsrc in win.items():
             dp = target / rel
             dp.parent.mkdir(parents=True, exist_ok=True)
@@ -3394,7 +3595,7 @@ def _session_complete(
     except (OSError, shutil.Error) as exc:
         print(f"session-complete: copy failed -> {target}: {exc}; "
               f"sources intact, no target left")
-        shutil.rmtree(target, ignore_errors=True)
+        _discard_target(target)
         return 1
 
     # The whole-round verification (the multi-source take on `_trees_match`).
@@ -3408,7 +3609,7 @@ def _session_complete(
     if not landed:
         print(f"session-complete: VERIFY FAILED -> {target} -- source and "
               f"target differ; removing target, all sources intact")
-        shutil.rmtree(target, ignore_errors=True)
+        _discard_target(target)
         return 1
 
     # 🔴 PER-SOURCE removal. A source is removed only when ITS OWN
@@ -4769,9 +4970,15 @@ def _dead_kid_worktrees(repo: Path) -> list[Path]:
             ent["detached"] = True
     if ent:
         entries.append(ent)
+    # goal:g7.16.1.5.4: a round worktree may check out on the RAM disk
+    # (config:guard GUARD_RAM_WORKTREES); a reboot empties it, so its stale
+    # registrations are enumerated here too.
+    ram = locations.guard_cell(repo / ".agi", "RAM_WORKTREES") \
+        if wt_root is not None else ""
+    roots = [str(r) for r in (wt_root, Path(ram) if ram else None) if r]
     for e in entries:
         path = Path(e.get("path") or "").resolve()
-        if wt_root is None or not str(path).startswith(str(wt_root)) \
+        if not any(str(path).startswith(r) for r in roots) \
                 or "a00-" not in path.name:
             continue  # never a kid worktree; a post/worktree is not ours
         stale = not path.is_dir() or bool(e.get("detached"))

@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery
 next_edges: []
 confidence: 0.5
-edited_by: a00-ec374f61
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-5f73ccd9-bc9dc8
 line_ceiling: 40
@@ -96,10 +96,10 @@ It skips every prompt already present, appends the rest in official order.
 When 541/541 exist, score ONCE with the unchanged official harness:
 
 ```
-cd /data/work/agi/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval
+cd <repo>/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval
 ../ifeval_venv/bin/python evaluation_main.py \
-  --input_data=/data/work/agi/datasets/switch-rule/2026-09-21/ifeval_input_data.jsonl \
-  --input_response_data=/data/work/agi/datasets/switch-rule/2026-09-21/armB_bonsai27b-ptq1.ifeval.responses.jsonl \
+  --input_data=<repo>/datasets/switch-rule/2026-09-21/ifeval_input_data.jsonl \
+  --input_response_data=<repo>/datasets/switch-rule/2026-09-21/armB_bonsai27b-ptq1.ifeval.responses.jsonl \
   --output_dir=<scratch>/armB_score
 ```
 
@@ -133,7 +133,7 @@ once, record the caveat, do not average.
 Resumed arm B IFEval gen on the SWR-B.02 config (fork llama-prism-b10685-7dffb15, -c 65536 -np 1, no LoRA): 110 -> 295/541 in-window (+185 this round), 17.4 s/prompt, 0 errors, file still an exact prefix of official 541-prompt order; no numeric row written (partial numerator would overstate); fork-bonsai (:8899) and the detached generator LEFT RUNNING under the authorized 180-min resume, router :8080 untouched/healthy; scorer venv+harness verified importable; langdetect unseeded = +/-0.4pp floor on any future row
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review SWR-B.03 (a00-ec374f61). Mechanism: the node title/body say 283/541 at window close while the Agent Notes say 295 -- both were true at different instants, because the detached generator appends LIVE and kept writing during the kid finalization (the file was already 297 at 11:35Z and 309 while I probed). I retitled to drop the stale number rather than pick one. The body numbers are a snapshot; the file is the state. My probes, run by me not re-run from the kid: (A) gate -- the responses file is an exact prefix of the official 541-prompt order, keys unique, every row {prompt,response} nonempty: HOLDS at 309. (B) gate -- no numeric arm B IFEval row in gap_table.md and no eval_results_*armB* file: HOLDS, no partial score fabricated. (C) wire -- datasets/switch-rule/2026-09-21/start_fork_np.sh byte-identical to the SWR-B.02 source, and docker inspect fork-bonsai shows the live cmd `-c 65536 -ngl 99 -fa on -np 1 -ctk q4_0 -ctv q4_0 --jinja` with n_ctx=65536 total_slots=1: HOLDS, generation is really on the single-stream 64K config the byte-comparability argument requires. Verdict stays pending: 232 prompts remain and the generator is alive, exactly as the briefs allow.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 3 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 PARENT REVIEW SWR-B.03 (a00-ec374f61): ACCEPTED, verdict pending unchanged, no demotion. Probes hold: (gate) responses file an exact prefix of the official 541-prompt order, unique keys, {prompt,response} nonempty; (gate) no numeric arm B IFEval row and no eval_results_*armB* pre-round; (wire) start_fork_np.sh byte-identical to the SWR-B.02 source and docker inspect shows -c 65536 -np 1 --jinja with n_ctx=65536 total_slots=1. Count in the body (283) vs Agent Notes (295) is a live-append race, not a fabrication; retitled to drop the stale number.

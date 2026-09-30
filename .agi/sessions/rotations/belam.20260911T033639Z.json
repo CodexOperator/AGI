@@ -24,7 +24,7 @@
       "before": 0,
       "after": 8
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/belam.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/belam.log",
     "d_stale_continue_cursor": {
       "start_offset": 40503,
       "read_before_write": true,
@@ -70,13 +70,13 @@
       "session_id": "2aeaecba-9db0-4755-8e41-37806a3ae852",
       "transcript": "",
       "name": "agi-b1",
-      "path": "/home/ubuntu/.claude/sessions/4158336.json",
+      "path": "<home>/.claude/sessions/4158336.json",
       "note": "joined by @272 in registry file 4158336.json"
     },
     "successor_row": "config:seats row 'belam': session_ref=2aeaecba-9db0-4755-8e41-37806a3ae852 session_id=2aeaecba-9db0-4755-8e41-37806a3ae852 pid=4158336 generation=8 window='belam-S1-L4-VIII' source=registry",
     "model_confirm": "skipped: no assistant turn in the successor transcript \u2014 cannot confirm model/effort",
     "meter_pin": "skipped: no successor transcript from the JOIN",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.ack.json",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/belam.ack.json",
     "own_authority_released": "generation 0 of seat 'belam' retired; successor generation 8 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "reap_own_pid": {
       "pid": null,
@@ -119,7 +119,7 @@
         "@247 0"
       ]
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/belam.bootstrap.json"
   },
   "s12_self_reap": {
     "order": "deepest-first",

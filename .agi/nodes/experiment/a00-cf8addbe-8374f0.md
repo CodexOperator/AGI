@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-same-harness-handback-a-claude-code-caller-gets-one-exact-native-workflow-call-every-engine-js-is-registered-and-a-hook-closes-the-record
 next_edges: []
 confidence: 0.85
-edited_by: director-sanctuary
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-cf8addbe-8374f0
 line_ceiling: 60
@@ -84,7 +84,7 @@ file is global to every concurrent agent, so prepare + disclose only).
   "hooks": [
     {
       "type": "command",
-      "command": "python3 /home/ubuntu/work/agi/extensions/agi/hooks/workflow_note.py",
+      "command": "python3 <home>/work/agi/extensions/agi/hooks/workflow_note.py",
       "timeout": 10,
       "statusMessage": "agi workflow note..."
     }
@@ -108,7 +108,7 @@ are untouched. Diff (tmp copy, reproduced under
 +        "hooks": [
 +          {
 +            "type": "command",
-+            "command": "python3 /home/ubuntu/work/agi/extensions/agi/hooks/workflow_note.py",
++            "command": "python3 <home>/work/agi/extensions/agi/hooks/workflow_note.py",
 +            "timeout": 10,
 +            "statusMessage": "agi workflow note..."
 +          }

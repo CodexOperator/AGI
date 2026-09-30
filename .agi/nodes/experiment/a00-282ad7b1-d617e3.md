@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-29f8c490-fac260
 next_edges: []
 confidence: 0.65
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-282ad7b1-d617e3
 scaffold_hash: 101cb612897c7fbc
@@ -63,7 +63,7 @@ but the flag achieves the same outcome manually).
 
 ## Evidence
 
-Ran from `/home/ubuntu/work/agi`:
+Ran from `<home>/work/agi`:
 
 ```
 $ python3 extensions/agi/bin/commands.py run --workflow nonexistent

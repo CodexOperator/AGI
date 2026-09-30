@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-f855c944-ee9673
 next_edges: []
-edited_by: a00-f855c944
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f855c944-js-half
 loop: goal:g7.33.14.1-workflow-template-seam@s2
@@ -25,7 +25,7 @@ town: core
 Took the seam the last round landed on the 7 `*.json` manifests
 (`{project_root}`, injected at `workflow.py:2243`) onto the OTHER half of each
 pair: the 9 hand-maintained `extensions/agi/workflows/agi-*.js` scripts that
-still named `/home/ubuntu/work/agi` in 14 lines.
+still named `<home>/work/agi` in 14 lines.
 
 | step | MEASURED |
 |---|---|
@@ -33,7 +33,7 @@ still named `/home/ubuntu/work/agi` in 14 lines.
 | seam added | one line per file: `const ROOT = (args && args.project_root) \|\| '.'` (the `agi-research-review.js:18` precedent) |
 | template-shaped lines (`brief-drafting`, `l4-plan-research`, `round-review`, `trove-survey`) | literal → `${ROOT}` |
 | double-quoted lines (`desktop-check`, `g15-close-triage`, `merge-up-review`, `prime-open-questions`, `recovery-survey`) | literal → `" + ROOT + "`. NOT converted to backticks: those templates carry 4-14 literal backticks and up to 18 escaped `\"`, so a template-literal rewrite would reinterpret their own content |
-| stale literals after | `grep -rn /home/ubuntu/work/agi extensions/agi/workflows/*.js *.json` = 0 |
+| stale literals after | `grep -rn <home>/work/agi extensions/agi/workflows/*.js *.json` = 0 |
 | production lines | `git diff --numstat -- extensions/agi/workflows/` = 23 added + 14 deleted = **37** (ceiling 40) |
 
 ## Guard landed

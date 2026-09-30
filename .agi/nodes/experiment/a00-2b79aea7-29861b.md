@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w3-advisor-brief
 next_edges: []
 confidence: 0.7
-edited_by: ubuntu
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-2b79aea7-29861b
 loop: hypothesis:l3w3-advisor-brief@s2
@@ -93,7 +93,7 @@ YOUR DUTIES
      python3 extensions/agi/bin/send.py read --room tier3-quorum --me a00-2b79aea7
 2. The prime is inbox-only; ... `extensions/agi/bin/send.py audience prime --reason <why> [--morals]`; ... Belam.
 3. Perpetual-goal assignment — you are PINNED to goal:g15 — G15: Bugfix and optimization.
-     python3 extensions/agi/bin/dispatch.py /home/ubuntu/work/agi/.agi L3.13 --tier director --role director --ladder-tier 1 --target goal:g15 --detach
+     python3 extensions/agi/bin/dispatch.py <home>/work/agi/.agi L3.13 --tier director --role director --ladder-tier 1 --target goal:g15 --detach
      python3 extensions/agi/bin/rotate.py loop --role director
    Review each director's rounds ... with `extensions/agi/bin/season.py judge` ...
    WAVE-3 GATE: one short-term subgoal under the perpetual goal closed with a judged outcome and no human hand on a node.

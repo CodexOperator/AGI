@@ -5,14 +5,14 @@ type: hypothesis
 parents:
   - goal:g7.25.2
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 loop: goal:g7.25.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
 role: kid
 scaffold_hash: 686d3725ece63589
 season: 2
-testable_claim: "The harnesses.grok-bot row is the FIRST-CLASS cell adapters.resolve reads: inserting exactly the parent-supplied row (adapter grok_bot, bin /home/ubuntu/.npm-global/bin/grok-bot, models kid grok-4-fast parent grok-4, allowed_extra [grok-4, grok-4-fast], NO provider key) into an in-memory copy of the live .agi/config.json makes resolve(cfg,\"grok-bot\") return (\"grok-bot\", row) with row[\"adapter\"]==\"grok_bot\" and row[\"bin\"]==\"/home/ubuntu/.npm-global/bin/grok-bot\" (E1), all four peers still resolve (E2), the dash-name to underscore-module default survives deleting row[\"adapter\"] (E3); GATE: a decisive verdict carries evidence_runs as a LIST of node ids and probes as a list of per-conjunct dicts, and dispatch.py stays grok-free, zero edits (E4) -- the exact shape the MUR defect lacked (scalar evidence_runs + uncommitted harness row); WIRE: on the REAL loaded cfg without the row resolve raises AdapterError naming the declared harnesses and with the row it resolves, and .agi/config.json stays byte-identical to HEAD because cli.py round-scope excludes it, so the row can only land via a director-owned commit and merge-up must preserve it (E5)."
+testable_claim: "The harnesses.grok-bot row is the FIRST-CLASS cell adapters.resolve reads: inserting exactly the parent-supplied row (adapter grok_bot, bin <home>/.npm-global/bin/grok-bot, models kid grok-4-fast parent grok-4, allowed_extra [grok-4, grok-4-fast], NO provider key) into an in-memory copy of the live .agi/config.json makes resolve(cfg,\"grok-bot\") return (\"grok-bot\", row) with row[\"adapter\"]==\"grok_bot\" and row[\"bin\"]==\"<home>/.npm-global/bin/grok-bot\" (E1), all four peers still resolve (E2), the dash-name to underscore-module default survives deleting row[\"adapter\"] (E3); GATE: a decisive verdict carries evidence_runs as a LIST of node ids and probes as a list of per-conjunct dicts, and dispatch.py stays grok-free, zero edits (E4) -- the exact shape the MUR defect lacked (scalar evidence_runs + uncommitted harness row); WIRE: on the REAL loaded cfg without the row resolve raises AdapterError naming the declared harnesses and with the row it resolves, and .agi/config.json stays byte-identical to HEAD because cli.py round-scope excludes it, so the row can only land via a director-owned commit and merge-up must preserve it (E5)."
 thought_session: parent-residue-g14-g17-remap
 title: Grok-bot config row is a first-class landable resolve cell and its verdict must carry list evidence_runs
 town: core
@@ -28,7 +28,7 @@ LANDABLE BUILD, not a decoration, and a decisive verdict about it must carry
 
 (a) **AUTH — the row is the cell `adapters.resolve` reads.** Adding exactly
     the parent-supplied row (`adapter: grok_bot`, `bin:
-    /home/ubuntu/.npm-global/bin/grok-bot`, `models.kid: grok-4-fast`,
+    <home>/.npm-global/bin/grok-bot`, `models.kid: grok-4-fast`,
     `models.parent: grok-4`, `allowed_extra: [grok-4, grok-4-fast]`, NO
     `provider` key) to an in-memory copy of the live config makes
     `resolve(cfg, "grok-bot")` return `("grok-bot", row)` with

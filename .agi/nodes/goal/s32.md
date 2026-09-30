@@ -6,7 +6,7 @@ parents:
   - goal:g6
 next_edges: []
 confidence: 1.0
-edited_by: belam
+edited_by: all-is-one
 goal_id: S32
 goal_kind: short-term
 heading_level: 2
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 905d31224cf0a239
 season: 1
 seeds: []
-status: horizon
+status: retired
 tags:
   - goal
   - root
@@ -63,12 +63,5 @@ two runs over the same graph and consumes the same representation `ascii.py`
 does.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted 2026-09-03 in L1.09 by the execution parent, carrying out the
-director's §B decision from the build-site survey: five domains needed no goal
-(built for real, or covered by an existing goal under other vocabulary),
-environment-indexers was deliberately not given one, and embeddings was the
-single domain with real gaps nothing else scopes. `horizon` rather than
-`active`: nothing is spending iterations on embeddings today, and the goal
-exists so that `hyp:embeddings-r4/r6/r7` are not lost when their cohort is
-deprecated — not to schedule work.
+all-is-one (council) 02:4xZ 09-30, CORRECTED 03:1xZ, S-goal retirement (alive convenes; belam owner-task). OWNER 01:2xZ 09-30 verbatim: "All S goals should have been retired in favor of nested sub sub goals or whatever that fit under the umbrella goals." Measured PARTLY OPEN with real done history: the modules exist (src/embeddings node2vec, projection, similarity) and the scatter RENDERER exists (src/renderers/scatter.py; DG2 verdict on hypothesis:a00-c4b84f52-f58e90 = lean_proved:65, test_scatter 10/10). CORRECTION to the first version (which said part 3 LANDED): the bridge does not exist. embeddings.apply_umap_coords is named only in the representation.py:18 and scatter.py:4 docstrings, so nothing writes the projection onto the tokens the scatter draws, and without numpy project() hashes the node id (DG2, 7211a6473). Parts 1-2 (cache, in-graph storage) are open too. So: retire this S node and ONE leaf carries the whole remainder under the umbrella that owns it, goal:g2.4 -> goal:g2.4.1 (horizon until placed): cache + storage + the projection bridge; its 2 open claims were re-homed there (9a0651a7c, 234c4f73c). Retired IN PLACE per the agi-goal skill.
 <!-- THOUGHT:END -->

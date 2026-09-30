@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-2
 scaffold_hash: 0c80f78e61f472c0
 season: 2
 testable_claim: "a TERM-honouring member third in a 3-member reap chain is never SIGKILLed (fixed rotate.py:11547-11548 shared chain clock: 15/3/0 s at the live cells); a SIGKILLed chain records reaped True; the new fixture test is RED on 6c403aeb4b, GREEN on the fix"
@@ -184,6 +184,23 @@ FILE SCOPE = (repo-root stray, git rm only) · extensions/agi/tests/test_rotate_
 CEILING   HARD CAP: 1 kid · 0 production lines net over 45d9be0d7 · <= 40 test lines net over 45d9be0d7 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 45d9be0d7 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.135 -- closes mur-eg-37 EG.96-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-reap-chain-members-ge-a00-333770f1 tip b9eebb9f0 (branch de-base-EG.135; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. A THIRD copy of the narrowed rationale survives, in the round's OWN hypothesis: .agi/nodes/hypothesis/reap-chain-members-get-their-full-term-grace-again.md:21 testable_claim still reads 'a floor of inf makes the shared-clock clamp unbindable and a TERM-immune member waits forever' — the exact claim item 3 narrowed in the two copies the round edited (a00-0b430fab-dc64a0.md:35 says 'TWO copies'). The hypothesis node is not in the round's declared file scope, so this is a named residue for the next round, not a merge blocker; but every agent that reads the hypothesis is still handed the narrowed-away rationale. Same claim also survives frozen at experiment/a00-d27ace25-5a431b.md:45.
+2. The NEW coverage-limit paragraph carries a stale line citation into the very file this diff shifted: verdict/a00-10f10d63-aada19.md:91-92 points at experiment:a00-25537ced-86b6d8 'NEXT ROUND'S WORK item 2, body ~176-195', but this diff added +18 lines to that node, so the section heading is now at :194 and item 2's body at :202-205+; :176-195 is the budget table (:176-180) and the OUTSIDE FILE SCOPE list (:182-192). A reader following the pointer lands one item short of the OPEN ceiling hole the paragraph exists to name. The pre-existing citation in the same file at :240 ('still there at :184-191') is stale for the same reason. Prose-only, low severity.
+3. SKILL ROW (thought-master TMM.336 (5)): add ONE row to skills/agi-corrective/SKILL.md, in the section on reading residues and machine cells: a machine cell (probes / evidence) is checked with the engine's OWN reader, never a second parser (mur-eg-30 EG.100: a test re-implemented frontmatter parsing). One row, no other edit to the skill.
+4. SKILL ROW (thought-master TMM.336 (8)): add ONE row to skills/agi-corrective/SKILL.md, in the section that says how orders are written onto the node: a resolution note ('(Resolved: ...)') goes in the node's ## CORRECTIVE section, never appended to the hypothesis's Dispatch line (mur-eg-30 EG.106 M1).
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_rotate_term_grace.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE skills/agi-corrective/SKILL.md (items 3-4 only: two added rows) · = · extensions/agi/tests/test_rotate_term_grace.py · .agi/nodes/experiment/a00-0b430fab-dc64a0.md · .agi/nodes/experiment/a00-25537ced-86b6d8.md · .agi/nodes/verdict/a00-10f10d63-aada19.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over b9eebb9f0 · <= 40 test lines net over b9eebb9f0 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat b9eebb9f0 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.96: mur-eg-25 EG.48-k1 residues batched into one corrective (orders above, generated from the verdict files).
+triage (keep): the PARKING TEST fails -- git grep -n '_reap_chain(' -- 'extensions/agi/bin/*.py' (13:0xZ 09-29) = heal.py:989 and :2751 (heal, every formation) + rotate.py:11766 and :20830 (rotation, every formation); no caller is dispatch-only. This version moves the mark parked -> keep (council lens review, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2 (council bundle 2). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

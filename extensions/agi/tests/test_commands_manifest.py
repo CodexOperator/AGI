@@ -282,7 +282,7 @@ _LISTED_CLIS += [
 
 # EF.48 CLI GROUP B. Appended, like GROUP A, so sibling edits cannot collide.
 _LISTED_CLIS += [
-    "sensei.py", "post_wire.py", "node_writer.py", "metrics.py", "unify.py",
+    "sensei.py", "post_wire.py", "node_writer.py", "metrics.py",
     "hierarchy.py", "handoff.py", "benchmark.py", "anonymize.py",
 ]
 
@@ -314,7 +314,7 @@ _LISTED_CLIS += [
 _LISTED_CLIS += [
     "lm_bench.py", "mail_alert.py", "payload_boundary.py", "plan_master.py",
     "reconciler.py", "rolslice.py", "seat_status.py", "stall_detect.py",
-    "success_metrics.py", "telemetry_rollup.py", "verify_unified.py",
+    "success_metrics.py", "telemetry_rollup.py",
     "ws_raw_client.py",
 ]
 
@@ -862,6 +862,14 @@ def test_operator_verbs_are_declared_not_proposable_with_a_reason():
 
 
 _BOX_LABELS = ("GPU2070S", "ARM4C", "CPU8G", "EDGE")
+# a dotted quad standing alone: never a slice of a longer dotted run, so a
+# 5+-part goal id (goal:g7.16.1.4.1 -> 16.1.4.1) is not an address (SM 107)
+_DOTTED_QUAD = re.compile(r"(?<![\w.])\d{1,3}(?:\.\d{1,3}){3}(?!\.?\d)")
+
+
+def test_dotted_quad_guard_skips_goal_ids_and_still_catches_an_address():
+    assert _DOTTED_QUAD.findall("goal:g7.16.1.4.1.1 and goal:g7.16.1.4.1") == []
+    assert _DOTTED_QUAD.findall("at 10.0.0.1, then 192.168.1.20.") == ["10.0.0.1", "192.168.1.20"]
 
 
 def test_rendered_manifest_names_no_box_detail():
@@ -872,7 +880,7 @@ def test_rendered_manifest_names_no_box_detail():
     text = commands.render_manifest(root)
     hits = [tok for tok in _BOX_LABELS if tok in text]
     hits += ["ip:" + m
-             for m in re.findall(r"\b\d{1,3}(?:\.\d{1,3}){3}\b", text)]
+             for m in _DOTTED_QUAD.findall(text)]
     assert hits == [], hits
 
 

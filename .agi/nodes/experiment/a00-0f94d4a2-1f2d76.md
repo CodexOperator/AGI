@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-model-change-is-one-write-and-harness-config-is-ours
 next_edges: []
 confidence: 0.8
-edited_by: a00-b85fe10b
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-0f94d4a2-1f2d76
   - experiment:a00-7d70064e-b6081a
@@ -126,7 +126,7 @@ Recorded as a tie-break for the fallback, no engine change.
 ## THE LIVE CUT-OVER (prime, ONE commit, reviewed — commands, not edits)
 
 1. Apply `extensions/agi/briefs/harness-config.fragment.json` into the live
-   `.agi/config.json` — `locations.pi_home:/home/ubuntu/.pi/agent`,
+   `.agi/config.json` — `locations.pi_home:<home>/.pi/agent`,
    `claude_home`, `harnesses.pi.allowed_extra` (so nothing not yet on the
    ladder fails closed in kid 1's derived gate).
 2. Mint live build nodes `build:pi-agent-settings` / `build:pi-agent-models`
@@ -141,15 +141,15 @@ Recorded as a tie-break for the fallback, no engine change.
 write.py build:pi-agent-settings 'payload <new settings.json>' --actor prime --session <loop>
 write.py build:pi-agent-models   'payload <new models.json>'   --actor prime --session <loop>
 ```
-   (resolved → `payload: /home/ubuntu/.pi/agent/settings.json replaced`).
+   (resolved → `payload: <home>/.pi/agent/settings.json replaced`).
    `payload` REPLACES, never creates — the right verb while the files exist.
 
 Symlink fallback, ONLY for a harness that insists on a fixed path / a
 relocated home:
 
 ```
-ln -sfn /home/ubuntu/.pi/agent <relocated>/.pi/agent
-# pi better: PI_CODING_AGENT_DIR=/home/ubuntu/.pi/agent   (config.js:162/174)
+ln -sfn <home>/.pi/agent <relocated>/.pi/agent
+# pi better: PI_CODING_AGENT_DIR=<home>/.pi/agent   (config.js:162/174)
 ```
 The locations key is the portability; the symlink is the fixed-path escape
 hatch only.

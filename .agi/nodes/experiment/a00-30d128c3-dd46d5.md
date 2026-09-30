@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-commit-guard-worktree-toplevel-bypass
 next_edges: []
 confidence: 0.9
-edited_by: a00-321c00b2
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-30d128c3-dd46d5
 loop: hypothesis:l4-commit-guard-worktree-toplevel-bypass@s2
@@ -25,14 +25,14 @@ verdict: proved
 
 Tested hypothesis:l4-commit-guard-worktree-toplevel-bypass on hooks/agent-git
 pre-commit + pre-push, against the LIVE tree (no cherry-picked fixture): the
-real main checkout `/home/ubuntu/work/agi` and a real `--branch` worktree at
+real main checkout `<home>/work/agi` and a real `--branch` worktree at
 `.agi/worktrees/a00-321c00b2` (that is THIS agent's own worktree). dispatch.py
 was NOT modified; the round stayed in the two hooks + the guard test file.
 
 **Setup confirmed first** (direct reads, then git calls):
 - dispatch.py:1542 exports `AGI_PROJECT_ROOT = branch_root.resolve()`; under
   `--branch` (L1337-1363) `branch_root` = the kid's worktree checkout root.
-- `git -C . rev-parse --show-toplevel` = `/home/ubuntu/work/agi` (main).
+- `git -C . rev-parse --show-toplevel` = `<home>/work/agi` (main).
 - `git -C .agi/worktrees/a00-321c00b2 rev-parse --show-toplevel` = that worktree.
   The two toplevels DIFFER; the worktree's `.git` is a file referencing
   `main/.git`.
@@ -46,8 +46,8 @@ AGI_PROJECT_ROOT points at its worktree slips through as a "non-project repo".
 **Repro (RED), both hooks, pre-fix** (invoking the hook script directly with the
 env + CWD; no actual commit made — the hook reads only env + CWD):
 ```
-cd /home/ubuntu/work/agi
-AGI_TIER=kid AGI_PROJECT_ROOT=/home/ubuntu/work/agi/.agi/worktrees/a00-321c00b2 \
+cd <home>/work/agi
+AGI_TIER=kid AGI_PROJECT_ROOT=<home>/work/agi/.agi/worktrees/a00-321c00b2 \
   bash extensions/agi/hooks/agent-git/pre-commit ; echo exit=$?
 # -> (no refusal line) exit=0   <-- ALLOWED, the bug
 AGI_TIER=kid AGI_PROJECT_ROOT=<same worktree> bash .../pre-push ; echo exit=$?
@@ -64,7 +64,7 @@ resolved `git rev-parse --git-common-dir` of REAL_TOPLEVEL and REAL_PROJECT:
 same common dir => same project, other checkout => refusesthe commit;
 different/absent common dir => genuinely foreign scratch repo => allow. Manual
 verification that both toplevels resolve their common-dir to the same
-`/home/ubuntu/work/agi/.git` guided the discriminator choice.
+`<home>/work/agi/.git` guided the discriminator choice.
 
 **After fix (GREEN), both hooks** (same commands):
 ```

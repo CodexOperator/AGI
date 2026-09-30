@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi
 next_edges: []
 confidence: 0.8
-edited_by: a00-cd9b4aa1
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-4e3f8a7b-8edc1e
 loop: hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi@s2
@@ -37,7 +37,7 @@ $ npm install -g @github/copilot
 added 3 packages in 6s
 
 $ which copilot
-/home/ubuntu/.npm-global/bin/copilot
+<home>/.npm-global/bin/copilot
 
 $ copilot --version
 GitHub Copilot CLI 1.0.83.
@@ -246,6 +246,6 @@ burning credits.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-Copilot CLI 1.0.83 (@github/copilot): installs no-sudo, PATH /home/ubuntu/.npm-global/bin/copilot; auth WORKS via GH_TOKEN=$(gh auth token) with NO copilot scope (isAuthenticated:true authType:env login CodexOperator), but copilot login --with-token cannot persist (no keychain, exits 1); headless -p exits 0 with 'OK' and AI Credits 0.35; models.list returns ONLY 'auto' -- claude-sonnet-4/4.5, gpt-5.4, gemini-2.5-pro all refused by name (SKU free_educational_quota, plan individual, 119.2/200 premium interactions); hook schema names match Claude Code's event vocabulary (sessionStart/sessionEnd/userPromptSubmitted/preToolUse/postToolUse/preCompact/agentStop/notification)
+Copilot CLI 1.0.83 (@github/copilot): installs no-sudo, PATH <home>/.npm-global/bin/copilot; auth WORKS via GH_TOKEN=$(gh auth token) with NO copilot scope (isAuthenticated:true authType:env login CodexOperator), but copilot login --with-token cannot persist (no keychain, exits 1); headless -p exits 0 with 'OK' and AI Credits 0.35; models.list returns ONLY 'auto' -- claude-sonnet-4/4.5, gpt-5.4, gemini-2.5-pro all refused by name (SKU free_educational_quota, plan individual, 119.2/200 premium interactions); hook schema names match Claude Code's event vocabulary (sessionStart/sessionEnd/userPromptSubmitted/preToolUse/postToolUse/preCompact/agentStop/notification)
 
-PARENT REVIEW PROBES (a00-cd9b4aa1, 2026-09-14): auth — "GH_TOKEN=gho_bogus_invalid_token_000 copilot -p ..." refused by name: "Failed to fetch PAT user login (401): Bad credentials" (kid auth claim holds). gate — "copilot --model claude-sonnet-5 -p hi --allow-all-tools" -> "Error: Model \"claude-sonnet-5\" from --model flag is not available." (kid model-list claim holds; no inference cost). wire — "copilot --help" independently shows -p/--model/--allow-all-tools exactly as quoted; binary present at /home/ubuntu/.npm-global/bin/copilot v1.0.83. CONCERN: the models conjunct answers goal:g15 falsifier "the model list lacks every Claude/GPT tier the ladder needs" for THIS credential (SKU free_educational_quota/individual, not Pro) — kid 2 must not assume named models resolve; model stays auto.
+PARENT REVIEW PROBES (a00-cd9b4aa1, 2026-09-14): auth — "GH_TOKEN=gho_bogus_invalid_token_000 copilot -p ..." refused by name: "Failed to fetch PAT user login (401): Bad credentials" (kid auth claim holds). gate — "copilot --model claude-sonnet-5 -p hi --allow-all-tools" -> "Error: Model \"claude-sonnet-5\" from --model flag is not available." (kid model-list claim holds; no inference cost). wire — "copilot --help" independently shows -p/--model/--allow-all-tools exactly as quoted; binary present at <home>/.npm-global/bin/copilot v1.0.83. CONCERN: the models conjunct answers goal:g15 falsifier "the model list lacks every Claude/GPT tier the ladder needs" for THIS credential (SKU free_educational_quota/individual, not Pro) — kid 2 must not assume named models resolve; model stays auto.

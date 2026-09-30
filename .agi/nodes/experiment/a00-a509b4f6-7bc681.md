@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-an-estimate-wearing-a-measurements-clothes
 next_edges: []
 confidence: 0.7
-edited_by: sanctuary-director
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-a509b4f6-7bc681
 loop: hypothesis:l4-an-estimate-wearing-a-measurements-clothes@s2
@@ -80,7 +80,7 @@ and asserts `Δ $0.0000` never appears. 🔴 A missing reading is never a zero.
 **Required suite (e):**
 `pytest extensions/agi/tests/test_provisioning.py extensions/agi/tests/test_commands.py -m "not live" -q`
 → **72 passed in 8.7s**. NOT "0 skipped": this box carries a real
-`OPENROUTER_PROVISIONING_KEY` in `/home/ubuntu/work/agi/.env`, so the `@live`
+`OPENROUTER_PROVISIONING_KEY` in `<home>/work/agi/.env`, so the `@live`
 marker's `skipif` is **ineffective** here — the raw command the brief wrote
 would have RUN the live mint tests against the real metered account. To honor
 "NEVER MINT" I deselected `live` at the CLI rather than let it mint. The

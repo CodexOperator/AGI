@@ -13,11 +13,13 @@ The two invariants worth testing are the two the goal states in bold:
 from __future__ import annotations
 
 import ast
+import difflib
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 BIN = Path(__file__).resolve().parent.parent / "bin"
 SRC = Path(__file__).resolve().parent.parent / "src"
@@ -585,6 +587,247 @@ def _build_node(project: Path, ref: str = "src/thing.py") -> None:
         f'payload_ref: {ref}\n---\n\nthe body\n')
 
 
+# SM 139: an empty `patch -` refuses dry AND real, by name, before any write (was: node
+# stamped + write-log appended, then replace_payload raised ValueError, rc 1)
+def test_sm139_an_empty_patch_stdin_refuses_before_any_write(project, tmp_path, monkeypatch, capsys):
+    import io
+    _build_node(project)
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "src" / "thing.py").write_text("old\n")
+    node, before = project / "nodes" / "build" / "b1.md", None
+    before = node.read_bytes()
+    errs = []
+    for dry in (["--dry-run"], []):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+        assert write.main(["build:b1", "patch - && note n", *dry, "--root", str(project)]) == 2, dry
+        errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+    assert errs[0] == errs[1] and "patch - (stdin) is empty" in errs[0][0], errs
+    assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n"
+
+# SM 140: an EMPTY `payload -` beside another verb was dropped (touches_payload False) while
+# the note landed; it refuses by name before any write, dry and real, as `patch -` does
+def test_sm140_an_empty_payload_stdin_refuses_before_any_write(project, tmp_path, monkeypatch, capsys):
+    import io
+    _build_node(project)
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "src" / "thing.py").write_text("old\n")
+    node, log = project / "nodes" / "build" / "b1.md", project / "sessions" / "write-log.jsonl"
+    before, log_before = node.read_bytes(), log.read_bytes() if log.exists() else None
+    for script in ("payload - && note n", "note n && payload -", "payload -"):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+            assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and "payload - (stdin) is empty" in errs[0][0], (script, errs)
+    assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n"
+    assert (log.read_bytes() if log.exists() else None) == log_before
+    monkeypatch.setattr(sys, "stdin", io.StringIO("new\n"))   # a non-empty read still lands
+    assert write.main(["build:b1", "payload - && note n", "--root", str(project)]) == 0
+    assert (tmp_path / "src" / "thing.py").read_text() == "new\n"
+
+# SM 142: an EMPTY payload result (a patch deleting every line) is b"", never None --
+# was: dry rc 0, real rc 1 + ValueError traceback AFTER update_node stamped the node
+def test_sm142_a_patch_to_an_empty_payload_lands_dry_and_real(project, tmp_path, capsys):
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    dest = tmp_path / "src" / "thing.py"
+    (tmp_path / "all.diff").write_text("--- a\n+++ b\n@@ -1,1 +0,0 @@\n-old\n")
+    (tmp_path / "empty.diff").write_text("")
+    for start, diff in (("old\n", "all.diff"), ("", "empty.diff")):
+        _build_node(project)
+        dest.write_text(start)
+        for dry in (["--dry-run"], []):
+            rc = write.main(["build:b1", f"patch {tmp_path / diff} && note n", *dry, "--root", str(project)])
+            assert rc == 0, (diff, dry, capsys.readouterr().err)
+        assert dest.read_text() == "", diff
+
+
+# SM 143: every payload input resolves BEFORE the dry return -- a missing or non-file
+# source, an absent destination and two payload writers on one line refuse alike dry
+# and real, and nothing is stamped, spliced or logged
+def test_sm143_payload_inputs_refuse_before_any_write(project, tmp_path, capsys):
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "new.py").write_text("new\n")
+    log = project / "sessions" / "write-log.jsonl"
+    for ref, script, want in (
+            ("src/thing.py", f"payload {tmp_path / 'missing.py'} && note n", "is not a file"),
+            ("src/thing.py", f"payload {tmp_path / 'src'} && note n", "is not a file"),
+            ("src/absent.py", "payload_text x && note n", "never creates"),
+            ("src/absent.py", f"payload {tmp_path / 'new.py'}", "never creates"),
+            ("src/thing.py", f"payload {tmp_path / 'new.py'} && payload_text x", "one payload writer")):
+        _build_node(project, ref=ref)
+        (tmp_path / "src" / "thing.py").write_text("old\n")
+        node = project / "nodes" / "build" / "b1.md"
+        before, log_before = node.read_bytes(), log.read_bytes() if log.exists() else None
+        errs = []
+        for dry in (["--dry-run"], []):
+            assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and want in errs[0][0], (script, errs)
+        assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n"
+        assert (log.read_bytes() if log.exists() else None) == log_before, script
+        assert not (tmp_path / "src" / "absent.py").exists()
+
+# SM 145 + 146 + 147: the pre-dry payload judge counts VERBS (`payload -`, `payload_text`
+# and `sub payload` share one field), refuses a read-only destination whose bytes would
+# change, and maps an unreadable source to rc 2 + ERR -- dry == real, nothing stamped
+def test_sm145_to_147_payload_verbs_and_modes_refuse_before_any_write(project, tmp_path, monkeypatch, capsys):
+    import io, os
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    dest, src, log = tmp_path / "src" / "thing.py", tmp_path / "new.py", project / "sessions" / "write-log.jsonl"
+    src.write_text("new\n")
+    for script, mode, want in (("payload_text x && payload -", None, "one payload writer"),
+                               ("payload - && payload_text x", None, "one payload writer"),
+                               ("payload_text x && sub payload old => y", None, "one payload writer"),
+                               ("sub payload old => y && payload -", None, "one payload writer"),
+                               ("payload_text x && payload_text y", None, "one payload writer"),
+                               ("payload_text x && note n", (dest, 0o444), "is not writable"),
+                               (f"payload {src} && note n", (src, 0o000), "cannot be read")):
+        _build_node(project)
+        dest.write_text("old\n")
+        node = project / "nodes" / "build" / "b1.md"
+        before, log_before, errs = node.read_bytes(), log.read_bytes() if log.exists() else None, []
+        if mode:
+            os.chmod(*mode)
+        try:
+            for dry in (["--dry-run"], []):
+                monkeypatch.setattr(sys, "stdin", io.StringIO("z\n"))
+                assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+                errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        finally:
+            os.chmod(dest, 0o644), os.chmod(src, 0o644)
+        assert errs[0] == errs[1] and want in errs[0][0], (script, errs)
+        assert node.read_bytes() == before and dest.read_text() == "old\n"
+        assert (log.read_bytes() if log.exists() else None) == log_before, script
+    dest.write_text("old\n")   # repeated `sub payload` ops still compose
+    assert write.main(["build:b1", "sub payload o => O && sub payload d => D", "--root", str(project)]) == 0
+    assert dest.read_text() == "OlD\n"
+
+# SM 144: an EMPTY `body_patch -` beside another verb was dropped (main cleared its `-`,
+# submit skipped the empty diff) while the other verb landed; refused by name, dry and real
+def test_sm144_an_empty_body_patch_stdin_refuses_beside_any_verb(project, tmp_path, monkeypatch, capsys):
+    import io
+    _build_node(project)
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "src" / "thing.py").write_text("old\n")
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    for script in ("note n && body_patch -", "set title u && body_patch -", "payload_text x && body_patch -"):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+            assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and errs[0], (script, errs)
+        assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n", script
+        if "note" not in script:   # a note is refused earlier, as body_patch's second body writer
+            assert "body_patch - (stdin) is empty" in errs[0][0], (script, errs)
+
+# goal:g4.18.1.6 (owner 09-30: "The node location just becomes the node itself."): `patch` on a
+# node with no payload_ref edits the node file, byte-exact, through update_node's gates
+def _g41816_guard(project):
+    d = project / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "guard.md").write_text("---\nid: config:guard\ntype: config\nmint_id: " + "e" * 32 +
+                                "\nlimit: 384M\n---\n\n# config:guard\n\nold line\n\n" + THOUGHT + "\n")
+    assert write.main(["config:guard", "set note_row x", "--root", str(project)]) == 0   # canonical form
+    return d / "guard.md"
+
+def _g41816_diff(old, new):
+    import difflib
+    return "".join(difflib.unified_diff(old.splitlines(True), new.splitlines(True), "a", "b"))
+
+def test_g41816_patch_lands_on_a_config_node_itself_byte_exact(project, monkeypatch, capsys):
+    import io
+    node = _g41816_guard(project)
+    old = node.read_text()
+    want = old.replace("limit: 384M", "limit: 1G").replace("old line", "new line")
+    for dry in (["--dry-run"], []):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, want)))
+        assert write.main(["config:guard", "patch -", *dry, "--root", str(project)]) == 0, capsys.readouterr().err
+        assert node.read_text() == (old if dry else want)
+
+def test_g41816_a_node_patch_refuses_identity_contract_thought_and_a_second_verb(project, monkeypatch, capsys):
+    import io
+    node = _g41816_guard(project)
+    old = node.read_text()
+    beg = THOUGHT.split("\n")[0]
+    node.write_text(old.replace("old line", "old line\n\n<!-- BUILD-CONTRACT:BEGIN -->\nc\n<!-- BUILD-CONTRACT:END -->"))
+    old = node.read_text()
+    for script, new, want in (("patch -", old.replace("e" * 32, "f" * 32), "is identity or completion state"),
+                              ("patch -", old.replace("type: config", "type: goal"), "is identity or completion state"),
+                              ("patch -", old.replace("limit: 384M", "limit: 384M\nscaffold_hash: x"), "SM150"),
+                              ("patch -", old.replace("limit: 384M", "limit: 384M\na.b: x"), "dotted keys"),
+                              ("patch -", old.replace("limit: 384M", "limit: 384M\nparents:\n- goal:nonexist"), "name no node"),
+                              ("patch -", old.replace("\nc\n", "\nd\n"), "BUILD-CONTRACT"),
+                              ("patch -", old.replace(beg + "\n", ""), "THOUGHT malformed"),
+                              ("patch -", old.replace("old line", f"old line\n{beg}"), "THOUGHT malformed"),
+                              ("patch - && note n", old.replace("old line", "x"), "standalone")):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, new)))
+            assert write.main(["config:guard", script, *dry, "--root", str(project)]) == 2, (want, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        want = "is identity or completion state" if want == "SM150" else want   # scaffold_hash is PROTECTED
+        assert errs[0] == errs[1] and want in errs[0][0], (want, errs)
+        assert node.read_text() == old, want
+
+
+# SM 150 / 151 / 155: a node patch is judged by the rows it becomes -- a PROTECTED row already on
+# the node can neither change nor go; --ring-fields shows the translated rows the ring gate judges
+def test_sm150_155_a_node_patch_is_judged_as_its_rows(project, monkeypatch, capsys):
+    import io
+    node = _g41816_guard(project)
+    node.write_text(node.read_text().replace("limit: 384M", "limit: 384M\nscaffold_hash: h1"))
+    old = node.read_text()
+    for new in (old.replace("scaffold_hash: h1", "scaffold_hash: h2"), old.replace("scaffold_hash: h1\n", "")):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, new)))
+        assert write.main(["config:guard", "patch -", "--root", str(project)]) == 2
+        assert "scaffold_hash" in capsys.readouterr().err and node.read_text() == old
+    monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, old.replace("limit: 384M", "limit: 2G"))))
+    write.main(["config:guard", "patch -", "--ring-fields", "--root", str(project)])
+    assert "2G" in capsys.readouterr().out
+
+# council ruling on goal:g4.18.1.6: `replace payload` is NOT extended to the node file; its
+# refusal names the route (replace body N:M / row), dry == real
+def test_g41816_replace_payload_on_a_node_names_the_route(project, tmp_path, capsys):
+    node = _g41816_guard(project)
+    old, errs = node.read_text(), []
+    (tmp_path / "x.txt").write_text("x\n")
+    for dry in (["--dry-run"], []):
+        assert write.main(["config:guard", f"replace payload 1:1 {tmp_path / 'x.txt'}", *dry, "--root", str(project)]) == 2
+        errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+    assert errs[0] == errs[1] and "use `replace body N:M` (or `row`)" in errs[0][0], errs
+    assert node.read_text() == old
+
+# SM 148 + 149: a destination the writer cannot READ (000, or write-only 0200) refuses before any
+# write, dry == real; 146's carve-out: the same bytes on a read-only (444) dest is a legal re-log
+def test_sm148_149_an_unreadable_payload_dest_refuses_and_same_bytes_444_relogs(project, tmp_path, capsys):
+    import os
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    dest, log = tmp_path / "src" / "thing.py", project / "sessions" / "write-log.jsonl"
+    for mode in (0o000, 0o200):
+        _build_node(project)
+        dest.write_text("old\n")
+        node = project / "nodes" / "build" / "b1.md"
+        before, log_before, errs = node.read_bytes(), log.read_bytes() if log.exists() else None, []
+        os.chmod(dest, mode)
+        try:
+            for dry in (["--dry-run"], []):
+                assert write.main(["build:b1", "payload_text x && note n", *dry, "--root", str(project)]) == 2, oct(mode)
+                errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        finally:
+            os.chmod(dest, 0o644)
+        assert errs[0] == errs[1] and "is not readable" in errs[0][0], (oct(mode), errs)
+        assert node.read_bytes() == before and dest.read_text() == "old\n"
+        assert (log.read_bytes() if log.exists() else None) == log_before, oct(mode)
+    os.chmod(dest, 0o444)
+    try:
+        assert write.main(["build:b1", "payload_text old", "--root", str(project)]) == 0, capsys.readouterr().err
+        assert dest.read_text() == "old\n" and '"changed": false' in log.read_text().splitlines()[-1]
+    finally:
+        os.chmod(dest, 0o644)
+
 def test_payload_verb_replaces_the_bytes_the_node_points_at(project, tmp_path):
     _build_node(project)
     dest = tmp_path / "src" / "thing.py"
@@ -637,9 +880,11 @@ def test_payload_refuses_a_missing_source_rather_than_emptying_the_file(
     dest.write_text("precious\n")
     edit = write.apply_verb(write.Edit("build:b1"), "payload",
                             [str(tmp_path / "typo.py")])
-    with pytest.raises(FileNotFoundError):
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    with pytest.raises(write.EditError, match="is not a file"):   # SM 143: before update_node
         write.submit(project, edit)
-    assert dest.read_text() == "precious\n"
+    assert dest.read_text() == "precious\n" and node.read_bytes() == before
 
 
 def test_payload_never_creates_a_file_that_is_not_there(project, tmp_path):
@@ -649,9 +894,11 @@ def test_payload_never_creates_a_file_that_is_not_there(project, tmp_path):
     src = tmp_path / "new.py"
     src.write_text("x\n")
     edit = write.apply_verb(write.Edit("build:b1"), "payload", [str(src)])
-    with pytest.raises(FileNotFoundError, match="never creates"):
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    with pytest.raises(write.EditError, match="never creates"):   # SM 143: before update_node
         write.submit(project, edit)
-    assert not (tmp_path / "src" / "absent.py").exists()
+    assert not (tmp_path / "src" / "absent.py").exists() and node.read_bytes() == before
 
 
 def test_payload_text_writes_the_bytes_inline_with_no_scratch_file(project,
@@ -1209,6 +1456,30 @@ def test_adopt_dry_run_writes_nothing(project):
     assert rc == 0
     text = (project / "nodes/experiment/e2.md").read_text()
     assert "mint_id:" not in text
+
+
+# hypothesis:adopt-runs-the-written-by-gate-before-it-mints (bundle 3 H1)
+def test_adopt_by_actor_outside_written_by_is_refused_nothing_minted(
+        project, capsys):
+    _written_by_schema(project, "config", "[owner, prime_director]")
+    _seats_fixture(project, [("belam", "prime_director"), ("kidpost", "kid")])
+    _write_no_mint_kid(project, "config:tmpcfg")
+    rc = write.main(["config:tmpcfg", "adopt", "--root", str(project),
+                     "--actor", "kidpost-a00", "--role", "kid"])
+    assert rc != 0
+    err = capsys.readouterr().err
+    assert "kidpost-a00" in err and "config" in err  # names actor + type
+    assert "mint_id:" not in (project / "nodes/config/tmpcfg.md").read_text()
+
+
+def test_prime_adopt_of_a_config_node_still_mints(project):
+    _written_by_schema(project, "config", "[owner, prime_director]")
+    _seats_fixture(project, [("belam", "prime_director"), ("kidpost", "kid")])
+    _write_no_mint_kid(project, "config:tmpcfg")
+    rc = write.main(["config:tmpcfg", "adopt", "--root", str(project),
+                     "--actor", "belam-S2-L5-XVI"])
+    assert rc == 0
+    assert "mint_id:" in (project / "nodes/config/tmpcfg.md").read_text()
 
 
 # --- a kid in a linked worktree addresses its own node without --root (l3w4)
@@ -2281,3 +2552,472 @@ def test_empty_source_guards_are_asymmetric_file_refused_stdin_lands(
     assert rc == 0, f"empty STDIN must land; got rc={rc}"
     after = write._read_body_text(project, "hypothesis:h1")
     assert "the body" not in after, "the range must actually be gone"
+
+
+# --- bundle 4 W2b (director-general-2) ------------------------------------
+
+
+def test_w2b_a_create_onto_a_missing_parent_is_refused_by_name(project):
+    _schemas(project)
+    res, _ = write.create(project, "hypothesis", "orphan", ["goal:nope"])
+    assert res.rejected and "goal:nope" in res.reason
+    assert not (project / "nodes/hypothesis/orphan.md").exists()
+
+
+@pytest.mark.parametrize("key", ["parents", "next_edges"])
+def test_w2b_a_set_naming_a_missing_id_is_refused(project, key):
+    node = project / "nodes/hypothesis/h1.md"
+    before = node.read_text()
+    rc = write.main(["hypothesis:h1", f"set {key} [goal:nope]",
+                     "--root", str(project)])
+    assert rc != 0 and node.read_text() == before, "a missing id was written"
+
+
+# (the W2b neighbourhood row was retired in the re-scope: a per-read index opens every file once,
+# so zero opens of unrelated files can never hold -- evidence: experiment:dg2b4-w2b2-baseline)
+
+
+# --- bundle 4 W3c (director-general-2) --------------------------------------
+# hypothesis:read-leaves-write-py-with-every-teacher-in-one-row (goal:g4.18.7.3):
+# the verb and every teacher leave in ONE row, so one test pins both. CLAUDE.md
+# is the Prime's (CLAIM 4): checked on the Prime's commit, not here.
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 cuts read from VERBS with every teacher in one row")
+def test_w3c_read_leaves_verbs_and_every_teaching_site_in_one_row():
+    assert "read" not in write.VERBS and not hasattr(write, "verb_read")  # no alias
+    import re
+    r = BIN.parents[2]
+    files = [*r.glob("skills/*/SKILL.md"), *r.glob(".agi/nodes/.geometry/*.md"), r / "QUICKSTART.md",
+             *BIN.glob("*.py"), *(BIN.parent / "workflows").glob("*.*")]
+    hits = [f"{p.name}:{i}" for p in files if p.is_file() for i, ln in enumerate(
+        p.read_text("utf-8", "replace").splitlines(), 1) if re.search(r"(?i)\bread <?(body|payload)\b", ln)]
+    assert not hits, hits
+
+
+# --- bundle 4 W1a (director-general-2) ---------------------------------------
+# goal:g4.18.5.1: `row <n> <file>` replaces row n of node_writer.body_rows only.
+def test_b4_w1a_row_verb_replaces_exactly_one_row(project, tmp_path):
+    body = ("\n# hypothesis:h1\n\n## Table\n\n| k | v |\n|---|---|\n| a | 1 |\n"
+            "| b | 2 |\n\n## List\n\n- one\n- two\n\n" + THOUGHT + "\n")
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    body = write._read_body_text(project, "hypothesis:h1")
+    lines = body.split("\n")
+    n = next(i for i, (a, b) in enumerate(node_writer.body_rows(body), 1)
+             if lines[a - 1:b] == ["| b | 2 |"])
+    (tmp_path / "row.txt").write_text("| b | 20 |\n")
+    assert write.main(["hypothesis:h1", f"row {n} {tmp_path / 'row.txt'}",
+                       "--root", str(project)]) == 0
+    assert write._read_body_text(project, "hypothesis:h1") == \
+        body.replace("| b | 2 |", "| b | 20 |")
+
+
+# goal:g4.18.5.1 conjunct (3), DG3's own row: `row <n>:<i>-<j>` edits lines
+# INSIDE a block row (the THOUGHT block), every other byte identical; a row
+# past the index and a sub-range past the row refuse, nothing written.
+def test_b4_w1a_row_sub_range_edits_inside_a_block_row(project, tmp_path):
+    body = "\n# hypothesis:h1\n\n- one\n\n" + THOUGHT + "\n"
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    body = write._read_body_text(project, "hypothesis:h1")
+    rows = node_writer.body_rows(body)
+    n, (a, b) = len(rows), rows[-1]
+    assert body.split("\n")[a - 1].startswith("<!-- THOUGHT:BEGIN") and b - a >= 2
+    (tmp_path / "in.txt").write_text("rewritten why\n")
+    assert write.main(["hypothesis:h1", f"row {n}:2-2 {tmp_path / 'in.txt'}", "--root", str(project)]) == 0
+    after = write._read_body_text(project, "hypothesis:h1").split("\n")
+    before = body.split("\n")
+    assert after[a] == "rewritten why" and after[:a] == before[:a] and after[a + 1:] == before[a + 1:]
+    for ref in (f"{n + 1}", f"{n}:1-{b - a + 5}"):
+        assert write.main(["hypothesis:h1", f"row {ref} {tmp_path / 'in.txt'}", "--root", str(project)]) != 0
+    assert write._read_body_text(project, "hypothesis:h1").split("\n") == after
+
+
+# residue 96 (SM): `row --dry-run` previews the range the write would take and
+# refuses an out-of-range row (rc 2) instead of an empty range and rc 0.
+def test_b4_w1a_row_dry_run_resolves_and_refuses(project, tmp_path, capsys):
+    body = "\n# hypothesis:h1\n\n- one\n- two\n"
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    before = node.read_text()
+    body = write._read_body_text(project, "hypothesis:h1")
+    rows = node_writer.body_rows(body)
+    (tmp_path / "in.txt").write_text("- zwei\n")
+    a, b = rows[-1]
+    write.main(["hypothesis:h1", f"row {len(rows)} {tmp_path / 'in.txt'}",
+                "--root", str(project), "--dry-run"])
+    assert f"replace body {a}:{b} " in capsys.readouterr().out
+    assert write.main(["hypothesis:h1", f"row {len(rows) + 1} {tmp_path / 'in.txt'}",
+                       "--root", str(project), "--dry-run"]) == 2
+    assert node.read_text() == before
+
+
+
+# goal:g4.18.5.1.1 + .1.2 (hypothesis:row-refuses-thought-markers-and-resolves-a-
+# table-name): a range holding a THOUGHT marker refuses (the old block would be
+# carried back); `row name:<NAME>` picks the ONE table row whose first cell is NAME.
+def _w1c_node(project):
+    body = ("\n# hypothesis:h1\n\n| k | v |\n|---|---|\n| alpha | 1 |\n| beta | 2 |\n| beta | 3 |\n\n"
+            + THOUGHT + "\n\n## After\n\ntail\n")
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    return node, write._read_body_text(project, "hypothesis:h1")
+
+
+def test_w1a_fix_a_range_holding_a_thought_marker_refuses(project, tmp_path):
+    node, body = _w1c_node(project)
+    before, lines = node.read_text(), body.split("\n")
+    n, (a, b) = next((i, r) for i, r in enumerate(node_writer.body_rows(body), 1)
+                     if lines[r[0] - 1].startswith("<!-- THOUGHT:BEGIN"))
+    (tmp_path / "x.txt").write_text("x\n")
+    for script in (f"row {n} {tmp_path / 'x.txt'}", f"row {n}:1-1 {tmp_path / 'x.txt'}",
+                   f"replace body {a - 1}:{a} --force {tmp_path / 'x.txt'}"):
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+        assert write.main(["hypothesis:h1", script, "--dry-run", "--root", str(project)]) == 2, script
+    assert node.read_text() == before
+    (tmp_path / "whole.txt").write_text(THOUGHT.replace("the old reason", "a new reason") + "\n")
+    assert write.main(["hypothesis:h1", f"row {n} {tmp_path / 'whole.txt'}", "--root", str(project)]) == 0
+    after = write._read_body_text(project, "hypothesis:h1")
+    assert after.count("THOUGHT:BEGIN") == 1 and "a new reason" in after and "the old reason" not in after
+
+
+def test_w1a_fix_row_name_picks_one_table_row(project, tmp_path, capsys):
+    node, body = _w1c_node(project)
+    (tmp_path / "r.txt").write_text("| alpha | 10 |\n")
+    write.main(["hypothesis:h1", f"row name:alpha {tmp_path / 'r.txt'}", "--dry-run", "--root", str(project)])
+    a = body.split("\n").index("| alpha | 1 |") + 1
+    assert f"row    name:alpha -> {a}:{a}" in capsys.readouterr().out
+    assert write.main(["hypothesis:h1", f"row name:alpha {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    after = write._read_body_text(project, "hypothesis:h1")
+    assert after == body.replace("| alpha | 1 |", "| alpha | 10 |")
+    for name in ("gamma", "beta", "k-"):
+        assert write.main(["hypothesis:h1", f"row name:{name} {tmp_path / 'r.txt'}", "--root", str(project)]) == 2
+    assert write._read_body_text(project, "hypothesis:h1") == after
+
+
+# SM 112 + hypothesis:body-replace-lands-at-most-one-well-formed-thought-and-row-
+# name-skips-the-separator: the SPLICED body holds at most one well-formed block
+# and no stray marker line; a separator row is never a name.
+def test_w1a_fix2_the_spliced_body_keeps_one_well_formed_thought(project, tmp_path, capsys):
+    node, body = _w1c_node(project)
+    before, lines = node.read_text(), body.split("\n")
+    n = next(i for i, (a, _) in enumerate(node_writer.body_rows(body), 1)
+             if lines[a - 1].startswith("<!-- THOUGHT:BEGIN"))
+    beg, end = THOUGHT.split("\n")[0], "<!-- THOUGHT:END -->"
+    tail = next(i for i, (a, _) in enumerate(node_writer.body_rows(body), 1) if lines[a - 1] == "tail")
+    for i, text in ((n, THOUGHT + "\n\n" + THOUGHT), (n, f"{beg}\n{beg}\nx\n{end}"),
+                    (n, f"{end}\n{THOUGHT}"), (tail, THOUGHT), (tail, beg),
+                    (n, f"<!-- THOUGHT:BEGIN_ r\nx\n{end}"),              # SM 129: a pseudo-BEGIN
+                    (n, f"<!-- THOUGHT:BEGIN_ r\nx\n{end}\n{end}"),      # ... + a lone END
+                    (n, f"<!--\nTHOUGHT:BEGIN r\nx\n{end}"),                # SM 131: a BEGIN split over 2 lines
+                    (n, f"{beg}\nx\n<!--\nTHOUGHT:END -->")):               # ... an END split over 2 lines
+        (tmp_path / "t.txt").write_text(text + "\n")
+        for dry in ([], ["--dry-run"]):
+            assert write.main(["hypothesis:h1", f"row {i} {tmp_path / 't.txt'}", *dry,
+                               "--root", str(project)]) == 2, text
+            assert "`thought` verb" in capsys.readouterr().err
+    assert node.read_text() == before
+
+
+# SM 118: a body QUOTING a column-0 THOUGHT pair (plain or fenced) beside its real
+# block keeps a body write path; the splice still adds no block and no stray marker.
+def test_sm118_a_body_quoting_a_thought_pair_keeps_a_body_write_path(project, tmp_path, capsys):
+    node, _ = _w1c_node(project)
+    quoted = THOUGHT.replace("the old reason", "a quoted reason")
+    beg = THOUGHT.split("\n")[0]
+    for wrap in ("{}", "```\n{}\n```"):
+        node.write_text(node.read_text().replace("## After", "## Quoted\n\n" + wrap.format(quoted)
+                                                 + "\n\n## After", 1))
+        body = write._read_body_text(project, "hypothesis:h1")
+        assert len(node_writer.thought_blocks(body)) == 2
+        n = body.split("\n").index("tail") + 1
+        (tmp_path / "t.txt").write_text("new tail\n")
+        assert write.main(["hypothesis:h1", f"replace body {n}:{n} {tmp_path / 't.txt'}",
+                           "--root", str(project)]) == 0, wrap
+        after = write._read_body_text(project, "hypothesis:h1")
+        assert after.split("\n") == [("new tail" if ln == "tail" else ln) for ln in body.split("\n")], wrap
+        before = node.read_text()
+        for text in (THOUGHT, beg):   # a third block, a stray marker: refused
+            (tmp_path / "t.txt").write_text(text + "\n")
+            for dry in ([], ["--dry-run"]):
+                assert write.main(["hypothesis:h1", f"replace body {n}:{n} {tmp_path / 't.txt'}",
+                                   *dry, "--root", str(project)]) == 2, (wrap, text)
+                assert "`thought` verb" in capsys.readouterr().err
+        assert node.read_text() == before
+        node.write_text(before.replace("## Quoted\n\n" + wrap.format(quoted) + "\n\n", "")
+                        .replace("new tail", "tail"))
+
+
+# SM N1-N3: --dry-run refuses what submit refuses -- a row beside a note, a row
+# beside a replace payload (either order), a sub-range past its row.
+def test_row_dry_run_refuses_like_submit(project, tmp_path):
+    node, body = _w1c_node(project)
+    before = node.read_text()
+    (tmp_path / "x.txt").write_text("| alpha | 5 |\n")
+    x = tmp_path / "x.txt"
+    for script in (f"row name:alpha {x} && note n", f"row name:alpha {x} && replace payload 1:1 {x}",
+                   f"replace payload 1:1 {x} && row name:alpha {x}", f"row 1:1-9 {x}"):
+        for dry in (["--dry-run"], []):
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+    assert node.read_text() == before
+    for script in ("replace body 1:1 - && payload -", "replace body 1:1 - && body_patch -"):  # SM 117
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+    assert node.read_text() == before
+
+
+
+# SM 125: a `sub` beside a row / replace body refuses alike in the preview and
+# the write -- rc AND stderr (the preview used to judge before the sub resolved)
+def test_sm125_a_sub_beside_a_body_writer_refuses_alike_dry_and_real(project, tmp_path, capsys):
+    node, _ = _w1c_node(project)
+    before, x = node.read_text(), tmp_path / "x.txt"
+    x.write_text("| alpha | 5 |\n")
+    for script in (f"row name:alpha {x} && sub tail => TAIL", f"sub tail => TAIL && row name:alpha {x}",
+                   f"replace body 6:6 {x} && sub tail => TAIL"):
+        errs = []
+        for dry in (["--dry-run"], []):
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and "standalone" in errs[0][0], (script, errs)
+    assert node.read_text() == before
+
+
+# SM 130: ONE judge -- `--dry-run` runs submit's own refusals (submit(dry_run=True)),
+# so every refusal a write raises, the preview raises: rc AND the ERR lines.
+def test_sm130_every_submit_refusal_previews_alike(project, tmp_path, capsys, monkeypatch):
+    node, body = _w1c_node(project)
+    before, lines = node.read_text(), body.split("\n")
+    x, d = tmp_path / "x.txt", tmp_path / "d.diff"
+    x.write_text("x\n")
+    d.write_text("--- a\n+++ b\n@@ -1 +1 @@\n-nope\n+yes\n")
+    n = next(i for i, (a, _) in enumerate(node_writer.body_rows(body), 1)
+             if lines[a - 1].startswith("<!-- THOUGHT:BEGIN"))
+    for script in (f"replace body 6:6 {x} && note n",                 # replace body standalone
+                   f"body_patch {d} && sub tail => TAIL",              # 130
+                   f"sub tail => TAIL && body_patch {d}",
+                   f"body_patch {d} && note n",                         # body_patch standalone
+                   f"row {n} {x}",                                      # THOUGHT marker in range
+                   f"replace body 999:999 {x}",                         # past EOF
+                   "sub no-such-text => y",                             # 0 matches
+                   "set link_ref /etc/hostname",                        # outside the repo
+                   "set parents [goal:nope]",                           # missing id
+                   f"body_patch {d}"):                                  # a diff that does not apply
+        errs = []
+        for dry in (["--dry-run"], []):
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and errs[0], (script, errs)
+    import io   # SM 132 + probe: stdin read ONCE, before the one judge
+    for script, stdin in ((f"body_patch -", d.read_text()),):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(stdin))
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and errs[0], (script, errs)
+    reads = []   # an EMPTY stdin replace (a deliberate deletion) is read once, never twice
+
+    class _Once(io.StringIO):
+        def read(self, *a):
+            reads.append(1)
+            assert len(reads) == 1, "stdin read twice"
+            return ""
+    monkeypatch.setattr(sys, "stdin", _Once())
+    capsys.readouterr()
+    rc = write.main(["hypothesis:h1", "replace body 6:6 --force -", "--dry-run", "--root", str(project)])
+    assert rc == 0 and len(reads) == 1 and node.read_text() == before, capsys.readouterr().err
+
+# SM 134: the dry preview labels a stdin source `stdin`, an empty one included
+def test_sm134_the_preview_labels_a_stdin_source(project, monkeypatch, capsys):
+    import io
+    _w1c_node(project)
+    for script, stdin, want in (("body_patch -", "", "body_patch (0 bytes of diff, stdin)"),
+                                ("body_patch -", "x\n", "body_patch (2 bytes of diff, stdin)"),
+                                ("payload -", "abc", "payload  (3 bytes, stdin)")):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(stdin))
+        write.main(["hypothesis:h1", script, "--dry-run", "--root", str(project)])
+        assert want in capsys.readouterr().out, (script, stdin)
+
+# SM 133: a block ROW ends on the END marker LINE as _THOUGHT_RE reads it -- one line, a whole word
+def test_sm133_a_block_row_ends_where_the_thought_block_ends():
+    beg = THOUGHT.split("\n")[0]
+    for fake in ("<!-- THOUGHT:END_x -->", "<!--\vTHOUGHT:END -->"):
+        body = f"# h\n\n{beg}\nx\n{fake}\ny\n<!-- THOUGHT:END -->\n\ntail"
+        block = node_writer.thought_blocks(body)[0]
+        start = body.split("\n").index(beg) + 1
+        row = next(r for r in node_writer.body_rows(body) if r[0] == start)
+        assert "\n".join(body.split("\n")[row[0] - 1:row[1]]) == block, fake
+
+# SM 138: ONE closer tail (node_writer._END) for _THOUGHT_RE, THOUGHT_MARKER_LINE_RE and
+# body_rows -- a near-closer is no marker, ends no row and closes no block
+_SM138_FAKES = ("<!-- THOUGHT:END trailing -->", "<!-- THOUGHT:END.", "<!-- THOUGHT:END-x -->",
+                "<!-- THOUGHT:END-- -->", "<!-- THOUGHT:END\n-->")
+
+def test_sm138_every_reader_ends_a_thought_on_one_closer():
+    beg = THOUGHT.split("\n")[0]
+    for fake in _SM138_FAKES:
+        body = f"# h\n\n{beg}\nx\n{fake}\ny\n<!-- THOUGHT:END -->\n\ntail"
+        block = node_writer.thought_blocks(body)[0]
+        assert block.endswith("y\n<!-- THOUGHT:END -->"), fake
+        start = body.split("\n").index(beg) + 1
+        row = next(r for r in node_writer.body_rows(body) if r[0] == start)
+        assert "\n".join(body.split("\n")[row[0] - 1:row[1]]) == block, fake
+        assert not node_writer.THOUGHT_MARKER_LINE_RE.match(fake.split("\n")[0]), fake
+    for real in ("<!-- THOUGHT:END-->", "<!--\tTHOUGHT:END \t-->", "<!-- THOUGHT:END --> after"):
+        body = f"{beg}\nx\n{real}\ny"
+        assert node_writer.thought_blocks(body) and node_writer.body_rows(body)[0] == (1, 3), real
+        assert node_writer.THOUGHT_MARKER_LINE_RE.match(real), real
+    assert (BIN / "node_writer.py").read_text(encoding="utf-8").count("END[ \\t]*-->") == 1
+
+def test_sm138_row_verb_counts_a_near_closer_inside_the_thought(project, tmp_path):
+    node, _ = _w1c_node(project)
+    node.write_text(node.read_text().replace(
+        "the old reason\n", "the old reason\n<!-- THOUGHT:END trailing -->\ny\n"))
+    body = write._read_body_text(project, "hypothesis:h1")
+    (tmp_path / "r.txt").write_text("## Later\n")
+    assert write.main(["hypothesis:h1", f"row 8 {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    assert write._read_body_text(project, "hypothesis:h1") == body.replace("## After", "## Later")
+
+def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp_path):
+    node, body = _w1c_node(project)
+    (tmp_path / "r.txt").write_text("| write.py | 9 |\n")
+    assert write.main(["hypothesis:h1", f"row name:--- {tmp_path / 'r.txt'}", "--root", str(project)]) == 2
+    node.write_text(node.read_text().replace("|---|---|", "| :---: | --- |"))   # DG2: a real :---: row
+    assert write.main(["hypothesis:h1", f"row name::---: {tmp_path / 'r.txt'}", "--root", str(project)]) == 2
+    node.write_text(node.read_text().replace("| :---: | --- |", "|---|---|"))
+    assert write.main(["hypothesis:h1", f"row name:alpha {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    assert write.main(["hypothesis:h1", f"row name:write.py {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    assert write._read_body_text(project, "hypothesis:h1") == body.replace("| alpha | 1 |", "| write.py | 9 |")
+
+
+# BUILD1 (goal:g7.16.1.4 W1, alive 841857ddb): `row <top>.<key> <src>` edits ONE
+# nested frontmatter row (command:commands `manifest.<key>`); an empty source
+# removes it; every other frontmatter line stays byte-identical.
+def _b1_node(project):
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    head, rest = node.read_text().split("---\n", 2)[1:]
+    fm = head + "manifest:\n  a.py:\n    cli: a.py\n  b.py::\n    cli: b.py\n    verb: x\n  c.py:\n    cli: c.py\n"
+    node.write_text("---\n" + fm + "---\n" + rest)
+    write.main(["hypothesis:h1", "note x", "--root", str(project)])   # canonical render once
+    return node
+
+
+def _b1_changed(before, after):
+    return [l for l in difflib.unified_diff(before.split("\n"), after.split("\n"), lineterm="", n=0)
+            if l[:1] in "+-" and l[:3] not in ("+++", "---") and "edited_by" not in l]
+
+
+def test_build1_row_replaces_one_nested_frontmatter_row(project, tmp_path):
+    node = _b1_node(project)
+    before = node.read_text()
+    (tmp_path / "v.yaml").write_text("cli: b.py\nverb: y\n")
+    assert write.main(["hypothesis:h1", f"row manifest.b.py: {tmp_path / 'v.yaml'}", "--root", str(project)]) == 0
+    after = node.read_text()
+    assert _b1_changed(before, after) == ["-    verb: x", "+    verb: y"]
+    assert list(yaml.safe_load(after.split("---\n")[1])["manifest"]) == ["a.py", "b.py:", "c.py"]
+
+
+def test_build1_row_remove_source_removes_the_row(project, tmp_path):
+    node = _b1_node(project)
+    before = node.read_text()
+    assert write.main(["hypothesis:h1", "row manifest.b.py: --remove", "--root", str(project)]) == 0
+    assert _b1_changed(before, node.read_text()) == ["-  b.py::", "-    cli: b.py", "-    verb: x"]
+
+
+# DG4 00:0xZ: two rows in ONE script both land (a single slot kept only the last).
+def test_build1_two_rows_in_one_script_both_land(project, tmp_path, capsys):
+    node = _b1_node(project)
+    (tmp_path / "v.yaml").write_text("cli: c2.py\n")
+    assert write.main(["hypothesis:h1", "row manifest.a.py --remove && "
+                       f"row manifest.c.py {tmp_path / 'v.yaml'}", "--root", str(project)]) == 0, \
+        capsys.readouterr().err
+    man = yaml.safe_load(node.read_text().split("---\n")[1])["manifest"]
+    assert man == {"b.py:": {"cli": "b.py", "verb": "x"}, "c.py": {"cli": "c2.py"}}
+    for script in (f"row manifest.b.py: --remove && row manifest.b.py: {tmp_path / 'v.yaml'}",
+                   f"row 1 {tmp_path / 'v.yaml'} && row 2 {tmp_path / 'v.yaml'}"):
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+
+
+def test_build1_row_refuses_and_writes_nothing(project, tmp_path, capsys):
+    node = _b1_node(project)
+    before = node.read_text()
+    (tmp_path / "v.yaml").write_text("cli: z\n")
+    (tmp_path / "empty.yaml").write_text("")
+    (tmp_path / "fence.yaml").write_text("argv:\n  - \"a\\n---\\nb\"\n")
+    for script in (f"row manifest.nope.py {tmp_path / 'v.yaml'}",          # no such row
+                   f"row title.x {tmp_path / 'v.yaml'}",                    # not a mapping
+                   f"row manifest.a.py {tmp_path / 'missing.yaml'}",        # unreadable source
+                   f"set manifest {{}} && row manifest.a.py {tmp_path / 'v.yaml'}",  # set + row
+                   f"row manifest.a.py {tmp_path / 'empty.yaml'}",                   # SM 110: empty never removes
+                   "row manifest.a.py - && row manifest.c.py -",                     # SM 110: one stdin per script
+                   f"row manifest.a.py {tmp_path / 'fence.yaml'}"):                  # SM 111: marker guard
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+        assert "ERR: " in capsys.readouterr().err, script
+    assert node.read_text() == before
+
+
+# A second positional on an edit was silently dropped (a lost THOUGHT, measured
+# twice on command:commands 09-29): it refuses, nothing written.
+def test_edit_refuses_a_second_script_argument(project):
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    before = node.read_text()
+    assert write.main(["hypothesis:h1", "note one", "thought two", "--root", str(project)]) == 2
+    assert node.read_text() == before
+
+
+# --- bundle 4 W2b re-scope (director-general-2) -----------------------------
+# W2b1 hypothesis:set-link-fields-refuse-a-missing-id (goal:g4.18.6.2.1);
+# W2b2 hypothesis:create-reads-the-one-index-not-a-walk (goal:g4.18.6.2.2).
+def _b4_walks(monkeypatch):
+    """Every Path.rglob caller, by code object: one entry per node-tree walk."""
+    seen, real = [], Path.rglob
+    monkeypatch.setattr(Path, "rglob", lambda s, *a, **k: (
+        seen.append(sys._getframe(1).f_code), real(s, *a, **k))[1])
+    return seen
+
+
+def test_w2b1_a_set_naming_only_live_ids_still_lands(project):
+    _schemas(project)
+    assert write.main(["hypothesis:h1", "set parents [goal:g1]", "--root", str(project)]) == 0
+    assert "goal:g1" in (project / "nodes/hypothesis/h1.md").read_text()
+
+
+def test_w2b1_set_refuses_a_missing_id_by_name_with_creates_one_lookup(project, monkeypatch, capsys):
+    _schemas(project)
+    walks, node = _b4_walks(monkeypatch), project / "nodes/hypothesis/h1.md"
+    assert write.create(project, "hypothesis", "near", ["goal:g1"])[0].written
+    create_walk, before, walks[:] = set(walks), node.read_text(), []
+    rc = write.main(["hypothesis:h1", "set next_edges [goal:g1, goal:nope]", "--root", str(project)])
+    assert rc != 0 and node.read_text() == before and "goal:nope" in capsys.readouterr().err
+    assert set(walks) <= create_walk, "set grew a second lookup"
+
+
+def test_sm122_set_builds_the_one_index_once_whatever_the_id_count(project, monkeypatch):
+    import spawn_gate
+    _schemas(project)
+    calls, real = [], spawn_gate.gate_for_root
+    monkeypatch.setattr(spawn_gate, "gate_for_root", lambda *a, **k: (calls.append(a), real(*a, **k))[1])
+    script = "set parents [goal:g1, goal:g1b, goal:nope] && set next_edges [goal:g1, goal:nope2]"
+    assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2
+    assert len(calls) == 1, f"the index was built {len(calls)} times for 5 ids"
+
+
+def test_w2b2_create_walks_only_the_one_index_and_still_refuses_by_name(project, monkeypatch):
+    import io
+    import links
+    import spawn_gate
+    _schemas(project)
+    (project / "nodes/doc").mkdir()
+    (project / "nodes/doc/far.md").write_text(f'---\nid: "doc:far"\ntype: doc\nmint_id: {"f" * 32}\n---\n')
+    walks, seen, real = _b4_walks(monkeypatch), [], io.open
+    assert links.resolve_mint(project, "f" * 32)[0] == "doc:far"
+    one, walks[:] = set(walks), []
+
+    def banned(*_a):
+        raise AssertionError("spawn_gate.build_type_index ran on a create")
+    monkeypatch.setattr(spawn_gate, "build_type_index", banned)
+    monkeypatch.setattr(io, "open", lambda f, *a, **k: (seen.append(str(f)), real(f, *a, **k))[1])
+    assert write.create(project, "hypothesis", "near", ["goal:g1"])[0].written
+    res = write.create(project, "hypothesis", "orphan", ["goal:nope"])[0]
+    assert res.rejected and "goal:nope" in res.reason
+    assert set(walks) <= one, "create walked beyond the one index"
+    assert sum(s.endswith("nodes/doc/far.md") for s in seen) <= 2, "a far node parsed twice per create"

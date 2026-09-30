@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-sb-status-reads-the-configured-stub
 next_edges: []
 confidence: 0.8
-edited_by: a00-cdbed097
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-c6a65634-9218b7
 loop: hypothesis:l4-sb-status-reads-the-configured-stub@s2
@@ -27,7 +27,7 @@ Build-order on hypothesis:l4-sb-status-reads-the-configured-stub: the generated
 `$HOME/bin/sb-status` wrapper baked in the INSTALL-TIME streamer-stub path, so
 a project that configures `locations.streamer_stub` elsewhere got status from
 one stub while brb/back/panic acted on another. Fix: rewrote the wrapper
-TEMPLATE in `/home/ubuntu/work/streamer-stub/bin/install-cli.sh` so it resolves
+TEMPLATE in `<home>/work/streamer-stub/bin/install-cli.sh` so it resolves
 the stub at RUN time the way commands.py does — walk up from cwd for the nearest
 `.agi/config.json`, read `locations.streamer_stub` (expand `~`), fall back to
 the install-time stub only when no project resolves. The install-time fallback
@@ -35,7 +35,7 @@ is spelled `$HOME`-relative when it lives under home, so the wrapper body
 carries NO absolute path.
 
 Changed files:
-- /home/ubuntu/work/streamer-stub/bin/install-cli.sh (the wrapper template)
+- <home>/work/streamer-stub/bin/install-cli.sh (the wrapper template)
 - extensions/agi/tests/test_commands.py: `_check_sb_status_wrapper` now asserts
   the body names NO absolute stub path (was `str(stub) in hold_line`, now
   backwards), plus a new sandbox reinstall test.
@@ -44,11 +44,11 @@ Changed files:
 
 RED (pre-fix wrapper-body check, real ~/bin/sb-status still the stale artifact):
 `test_stream_fragment_argv_resolves_to_executable_files` →
-  AssertionError: sb-status wrapper: hold half hardcodes the stub path ... "/home/ubuntu/work/streamer-stub/bin/hold.sh" --status
+  AssertionError: sb-status wrapper: hold half hardcodes the stub path ... "<home>/work/streamer-stub/bin/hold.sh" --status
 (and panic half identically). The OLD installed wrapper body was exactly:
   #!/usr/bin/env bash
-  "/home/ubuntu/work/streamer-stub/bin/hold.sh" --status
-  "/home/ubuntu/work/streamer-stub/bin/panic.sh" --status
+  "<home>/work/streamer-stub/bin/hold.sh" --status
+  "<home>/work/streamer-stub/bin/panic.sh" --status
 
 GREEN (post-fix, fresh sandbox install of the new template):
 `test_sb_status_wrapper_resolves_the_configured_stub` PASSED — reinstalls

@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery
 next_edges: []
 confidence: 0.9
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-b52705a2-91b5e6
 line_ceiling: 40
@@ -82,7 +82,7 @@ the first 10 rows produced `KeyError` on the first missing prompt, exit 1, and
 **File gate.** 541 rows, exact official prompt order, unique, nonempty — OK.
 
 **Scored ONCE** with the unchanged official harness at
-`/data/work/agi/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval`
+`<repo>/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval`
 (`../ifeval_venv/bin/python evaluation_main.py`), output to this round's scratch.
 A first attempt crashed after printing strict `0.798521` because its output dir
 did not exist; it wrote nothing. The complete run (disclosed, not averaged):
@@ -132,3 +132,7 @@ through the prism fork.
 Arm C2 (Bonsai 2 27B + OrcaBonsai LoRA s2) IFEval 541/541 single-stream in ~2h33m; official harness unchanged: strict 0.802218 (434/541) = 92.34%% of ref, loose 0.837338, instruction-level 0.866906; threshold 0.781886 (423/541) -> FIRES. With C2's HumanEval 92.9%% rel, C2 clears BOTH evals (owner-added arm; C1 IFEval still unmeasured). Row in gap_table.md; fork-bonsai removed, :8080 restored.
 
 CORRECTION (TMM.38(3) + TMM.41, thought-master 09-23; confirmed by mur-director-thought-2; applied by director-thought): (1) the run-to-run IFEval floor is keywords:letter_frequency stdlib random PLUS langdetect, not langdetect alone; (2) this node's FIRES rests on one unseeded run -- under the master CI rule (TMM.32) it is established by SWR-RS.01, experiment:a00-1864ce6e-9139b7: seeded N=10 mean 0.800185, CI [0.799209, 0.801161], fires on every seed; (3) the two dataset helpers are committed with this round, not untracked; (4) production_lines 29 -> 68 by the harvest rule, over the line_ceiling of 40.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->

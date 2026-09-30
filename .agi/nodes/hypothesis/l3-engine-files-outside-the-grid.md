@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g6.10
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: e077642e6d37617e
 season: 2
 testable_claim: After the change, every tracked engine file that the project intends to grid-version has a build node whose payload_ref resolves to it, proven by a checker that enumerates tracked engine files, subtracts every declared payload_ref, and exits nonzero on any remainder outside a declared exclusion list -- with the remainder at zero and level3.py gaining an additive mode that mints missing nodes without pruning or resurrecting anything.
@@ -167,9 +167,9 @@ MEASURED BY THE DIRECTOR BEFORE DISPATCH. Do not re-derive any of it; verify by 
 **3. THE WORKING PRECEDENT — copy this shape.** `build:drafting.json` is a non-code `.json` payload that works today. Its frontmatter carries BOTH `link_ref` and `payload_ref` set to the SAME repo-root-relative path, plus `location: source_root`, a single mvp parent (`mvp:workflows-are-graph-payloads`), and tag `prose` rather than `code`. Proof it round-trips: `grid.py payload build:drafting.json` returns the file bytes.
 
 **4. LOCATION — a measured deviation from the dispatch order, and the reason.**
-The order said config.json resolves under `location: graph_root`. It must NOT. `grid.py resolve_payload` is location-BLIND: it resolves `engine_root / payload_ref` with `engine_root == /home/ubuntu/work/agi`. Measured both shapes:
+The order said config.json resolves under `location: graph_root`. It must NOT. `grid.py resolve_payload` is location-BLIND: it resolves `engine_root / payload_ref` with `engine_root == <home>/work/agi`. Measured both shapes:
 - `location: graph_root` + `payload_ref: config.json` -> write.py resolves to the real file, but `grid.py` returns **None**. `grid.py commit --all` warns "resolves nowhere" and `grid.py payload` returns nothing. **The acceptance test fails.**
-- `location: source_root` + `payload_ref: .agi/config.json` -> write.py AND grid.py both resolve `/home/ubuntu/work/agi/.agi/config.json`. **Passes.**
+- `location: source_root` + `payload_ref: .agi/config.json` -> write.py AND grid.py both resolve `<home>/work/agi/.agi/config.json`. **Passes.**
 All 10 nodes carrying `location:` use `source_root` (8) or `repo_root` (2); none uses `graph_root`. **Use `source_root` and a repo-root-relative payload_ref for both files.** Record this deviation and its reason in the node THOUGHT block.
 
 **5. PARENTS — goal:s29 shape is exactly ONE mvp parent.**

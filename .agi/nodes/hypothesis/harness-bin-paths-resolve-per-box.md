@@ -7,7 +7,7 @@ parents:
 next_edges: []
 assigned: "director-engine (the Prime 09-23; owner 10:1xZ relay, goal:g5): after the key round; build loop; one [merge-up] to thought-master."
 ceiling: 3 USD, <= 5 kids, pi parents (raised from 1 USD / <= 2 kids under the owner 10:3xZ "ceiling set to something silly"; round 3 = the raw-cell readers outside the adapters)
-edited_by: director-engine
+edited_by: director-general-3
 scaffold_hash: 459950905e195a44
 season: 2
 tags:
@@ -29,7 +29,7 @@ town: local-maxxing
 
 ## Measured (the Prime, 10:1xZ)
 ```
-config   harnesses.{pi, pi-local, copilot-cli, grok-bot}.bin = /home/ubuntu/.npm-global/bin/... — core-town's user; this box runs as belam
+config   harnesses.{pi, pi-local, copilot-cli, grok-bot}.bin = <home>/.npm-global/bin/... — core-town's user; this box runs as belam
 today    PI_BIN (profile + tmux -g) overrides pi dispatch here; nothing expands ~ in dispatch.py / workflow.py
 ```
 
@@ -54,5 +54,5 @@ the adapter's bin resolution · `.agi/config.json` bins · tests.
 <= 2 kids · 10-12 production lines per conjunct · pi parents · 1 USD
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ceiling raised 1 USD / <= 2 kids -> 3 USD / <= 5 kids for round 3. MEASURED 11:4xZ 09-23 on the director-engine post branch: after round 1 moved the config bins to ~/.npm-global/bin/<tool>, workflow.py _pi_harness (workflow.py:1381) still reads the RAW cell (config before PI_BIN, a /home/ubuntu literal fallback) and execs it at :1793 -- every mur died at once with pi exited rc=1; rotate.py:1868 and harness_template.py:223 read the raw cell too. The claim (every harnesses.<h>.bin resolves through ONE resolver) is not met until they do. Owner 10:3xZ (verbatim on goal:g5): ceilings may be set silly so work continues.
+ceiling raised 1 USD / <= 2 kids -> 3 USD / <= 5 kids for round 3. MEASURED 11:4xZ 09-23 on the director-engine post branch: after round 1 moved the config bins to ~/.npm-global/bin/<tool>, workflow.py _pi_harness (workflow.py:1381) still reads the RAW cell (config before PI_BIN, a <home> literal fallback) and execs it at :1793 -- every mur died at once with pi exited rc=1; rotate.py:1868 and harness_template.py:223 read the raw cell too. The claim (every harnesses.<h>.bin resolves through ONE resolver) is not met until they do. Owner 10:3xZ (verbatim on goal:g5): ceilings may be set silly so work continues.
 <!-- THOUGHT:END -->

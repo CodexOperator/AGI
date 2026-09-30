@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 """verification.py — ONE command replaces the four-tool rotation ritual.
 
-This is NOT `verify_unified.py`. `verify_unified.py` is the `goal:g11`
-migration checker — it proves the old staged-checkout repo collapsed into one
-tree, and it has nothing to do with rotation. `verification.py` is the
-rotation/health-check round; the two names are one keystroke apart and must
-never be merged or shared. `hypothesis:l4-unified-verification`, for
+`verify_unified.py`, the `goal:g11` one-repo migration checker, is retired
+(goal:g7.16.1.4.1.1; its bytes at deprecated/build/bin-verify-unified). This
+file never was it: `verification.py` is the rotation/health-check round,
+nothing to do with the migration. `hypothesis:l4-unified-verification`, for
 `goal:g1.10`: a successor runs ONE command at rotation and spends tokens on one
 summary block, not four scrollbacks, and every check it runs is resolved
 THROUGH `commands.py` from `command:commands`
 (`.agi/nodes/.geometry/commands.md`) — never argv written literally here.
 
 Levels (`--level quick|rotation|full`, default `rotation`):
-  quick    = links + goals-check + write-guard + anonymize   (pre-commit set)
+  quick    = links + write-guard + anonymize   (pre-commit set; the GOALS.md round trip retired, W-G)
   rotation = quick + smoke + viewport-verify + dispatch-help + budget
   full     = rotation + schema + credentials + secrets + crons
 NO level runs pytest. `--suite` is OPT-IN and ORTHOGONAL to level: it adds the
@@ -50,6 +49,7 @@ import locations  # noqa: E402
 import commands  # noqa: E402
 import spawn_budget  # noqa: E402 -- the ONE budget-dir reader (never re-globbed)
 import rotate  # noqa: E402  -- _sessions_dir (the ONE resolver the pins share)
+import rotation_record  # noqa: E402  -- grep_live + parked_carriers (goal:g7.16.1.3 H4)
 import branches  # noqa: E402  -- ref_candidates (canonical-first season grammar)
 import schema_registry  # noqa: E402  -- the ONE schema reader the gates use
 
@@ -66,10 +66,10 @@ SUITE_TIMEOUT = 1800
 #: How each level is composed. Names are COMMAND NAMES resolved through
 #: `commands.py` against the node — never argv written here.
 LEVELS: dict[str, list[str]] = {
-    "quick": ["links", "goals-check", "write-guard"],
-    "rotation": ["links", "goals-check", "write-guard",
+    "quick": ["links", "write-guard"],
+    "rotation": ["links", "write-guard",
                  "smoke", "viewport-verify", "dispatch-help", "budget"],
-    "full": ["links", "goals-check", "write-guard",
+    "full": ["links", "write-guard",
              "smoke", "viewport-verify", "dispatch-help", "budget",
              "schema", "credentials", "secrets", "crons"],
 }
@@ -225,8 +225,8 @@ def _parse_pytest_durations(output: str) -> list[dict]:
 def _parse_number(name: str, exitcode: int, output: str) -> dict | None:
     """The one number each check exists to produce.
 
-    Four checks carry a real number: smoke's active/deprecated/total triple,
-    links' broken count, goals-check's byte-identity yes/no, and the suite's
+    Three checks carry a real number: smoke's active/deprecated/total triple,
+    links' broken count, and the suite's
     pytest counts (passed/skipped/failed/errors). Everywhere else the exit
     code is the fact and the number column is empty. A `tests` count is a
     number for the reader, never a verdict — pass/fail still comes from the
@@ -245,8 +245,6 @@ def _parse_number(name: str, exitcode: int, output: str) -> dict | None:
     if name == "links":
         m = re.search(r"(\d+)\s+broken", output)
         return {"broken": int(m.group(1)) if m else -1}
-    if name == "goals-check":
-        return {"byte-identical": 1 if exitcode == 0 else 0}
     return None
 
 
@@ -1282,6 +1280,62 @@ def check_anonymize(groot: Path) -> CheckResult:
                        note="" if proc.returncode == 0 else (tail[-1] if tail else ""))
 
 
+def check_formation(groot: Path) -> CheckResult:
+    """goal:g7.16.1.1.5 -- exactly ONE formation is active: config:formations
+    `active` names a template registered in its `templates` map that exists.
+    Then lists as wakeable every live node tagged `parked:<that template's
+    goal>` (goal:g7.16.1.2.6); FAIL while any THOUGHT still carries the retired
+    `parked: formation` mark, while a body row parked for a formation lacks its
+    carrier's tag (goal:g7.16.1.3 H3), or when the live-node grep cannot look
+    (H4 f). No cell = SKIP: a project that runs no formations."""
+    import yaml
+    import node_writer
+    t0 = time.monotonic()
+    cell = node_writer.find_node_file(groot, "config:formations")
+    if cell is None:
+        return CheckResult("formation", "SKIP", 0.0, note="no config:formations cell")
+    fm = yaml.safe_load(node_writer.split_frontmatter(cell.read_text("utf-8"))[0]) or {}
+    active, table = fm.get("active"), fm.get("templates") or {}
+    tpl = node_writer.find_node_file(groot, active) if isinstance(active, str) else None
+    if (tpl is None or active not in table     # a RETIRED template never runs (R5)
+            or tpl.relative_to(groot / "nodes").parts[0] == "deprecated"):
+        return CheckResult("formation", "FAIL", time.monotonic() - t0,
+                           note=f"want ONE active registered template, got {active!r}")
+    # the MARK shape only (THOUGHT start or "(" before it), on park carriers only:
+    # a tally ("11 parked: ...") or prose naming the mark never trips it
+    mark = re.compile(r"(?:^|\()parked: formation g\d", re.M)  # any THOUGHT line
+    # a body ROW parked for a formation needs its carrier's tag (goal:g7.16.1.3
+    # row H3), anchored at the row's end: a node QUOTING the string never trips it
+    row = re.compile(r"· triage: parked: formation (g\d+(?:\.\d+)*) \|$", re.M)
+    try:
+        # the ROW rule reads EVERY live node (its claim: "a live node", CM7);
+        # the MARK rule stays on the carrier types (goal/hypothesis)
+        hits = [(i, f) for i, f, _ in rotation_record.grep_live(groot, "parked: formation")]
+        live = [(i, f) for i, f in hits if i.split(":")[0] in ("goal", "hypothesis")]
+        goal = str(table[active] or "")
+        # rows parked for the ACTIVE formation's own goal are awake: `set active`
+        # drops that tag (write.py) while the rows stay, so they never FAIL here
+        rows = {i: sorted(set(row.findall(f.read_text("utf-8", "replace"))) - {goal}) for i, f in hits}
+        tagged = {g: {c for c, _, _ in rotation_record.parked_carriers(groot, g)}
+                  for g in {g for gs in rows.values() for g in gs}}
+        untagged = [f"untagged {i} (parked:{g})" for i, gs in rows.items()
+                    for g in gs if i not in tagged[g]]
+        marks = [f"mark {i}" for i, f in live
+                 if mark.search(node_writer.thought_text(f.read_text("utf-8", "replace")) or "")]
+        wake = [i for i, _, _ in rotation_record.parked_carriers(groot, goal)] if goal else []
+    except rotation_record.GrepError as exc:  # a guard that cannot look fails closed
+        return CheckResult("formation", "FAIL", time.monotonic() - t0,
+                           note="the live-node grep failed", message=str(exc))
+    if marks or untagged:
+        return CheckResult("formation", "FAIL", time.monotonic() - t0,
+                           note=f"{len(marks)} THOUGHT park mark(s), {len(untagged)} untagged row-park "
+                                f"carrier(s): the park is the tag parked:<goal>",
+                           message="\n".join(marks + untagged))
+    return CheckResult("formation", "PASS", time.monotonic() - t0, number={"wake": len(wake)},
+                       note=f"active {active} {goal or '-'}",
+                       message="\n".join(f"wake {w}" for w in wake))
+
+
 def check_seat_model(groot: Path) -> CheckResult:
     """FAIL when any config:seats row's live transcript model drifted from its
     declared model; PASS otherwise. Detect, never repair. (Surface 2 of
@@ -1703,6 +1757,7 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
     # a graph-wide directory scan. Read-only, so it is safe at rotation.
     if level in ("rotation", "full"):
         results.append(check_node_dirs(groot))
+        results.append(check_formation(groot))   # goal:g7.16.1.1.5
     smoke = next((r for r in results if r.name == "smoke"), None)
     current = smoke.number if smoke is not None else None
     # --stamp FORCED smoke above, so `current` is this run's fresh count and a
