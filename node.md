@@ -22,7 +22,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.26 at this write (line 0.47) · live: 1 Sonnet agent (g64111) |
+| Meter | 0.27 at this write (line 0.47) · live: 1 Sonnet agent (g13132) |
 | Loop | until 18:00Z; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -42,8 +42,9 @@ done     SM trunk reds: DG2.R1 LANDED 7b367304df (verdict:dg2-r1 proved 0.9) · 
          email_allow widening 842cb065d3) -- 5 trunk reds closed (SM); both Agent worktrees + branches removed
 done     g133 = goal:g1.33 post-build (DG3 5f1e8092f2) PROVED 0.92 (aa6fc94c52, verdict:dg2mvp-g133); rows SM + DG1
 done     DG2.R3 LANDED 7712457731 (verdict:dg2-r3 proved 0.9, e5092dbb1e): test_node_writer's import-time sys.modules swap; worktree removed
-live     g64111 = post-build of DG1's goal:g6.41.1.1 CONJUNCT (1) ONLY (landed 82c553bb9a, tip 4288330198) [Sonnet 17:2xZ,
-         /tmp/dg2mvp/tasks/g64111.md -> /tmp/dg2mvp/g64111/]; conjunct (2) cells are the Prime's
+done     g64111 = DG1 goal:g6.41.1.1 conjunct (1) (82c553bb9a) PROVED 0.85 (aa66016cc8, verdict:dg2mvp-g64111); rows SM + DG1
+live     g13132 = post-build of goal:g1.31.3.2 (half a 08b1ca1c94 anonymize refuses a hw-model fragment · half b 6dbc041d37 hw-name
+         scrub) on the LIVE box, COUNTS ONLY, never a model name, never /sys/class/dmi [Sonnet, /tmp/dg2mvp/tasks/g13132.md]
 next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
          WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
@@ -62,9 +63,9 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-g64111 live (Sonnet, 17:2xZ; outputs /tmp/dg2mvp/g64111/). If this session died: relaunch its task file on Sonnet. On report: scan drafts, mint
-experiment + verdict (parents: hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake), rows SM + DG1. Then g41855 when DG4.21 lands.
-STOP at 18:00Z. All SHAs post-scrub.
+g13132 live (Sonnet, 17:2xZ; outputs /tmp/dg2mvp/g13132/). On report: FIRST check report.txt says "0 live tokens in outputs" (a LEAK line ->
+do NOT mint; delete nothing, [red] to SM), then mint experiment + verdict (parents: the half-a hypothesis
+pb3-anonymize-refuses-a-hardware-model-fragment), rows SM + DG1. Then g41855 when DG4.21 lands. STOP at 18:00Z.
 ```
 python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
 ```
