@@ -5,6 +5,10 @@ type: config
 parents:
   - hypothesis:rotation-publishes-a-reminted-seat-key-to-the-key-authority
 authority_ref: origin/season2/main
+edited_by: belam
+key_template:
+  scheme: ""
+  existing_key: adopt
 locations: {}
 scaffold_hash: b847a1a969bf55d6
 season: 2
