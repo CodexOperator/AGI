@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """verification.py — ONE command replaces the four-tool rotation ritual.
 
-This is NOT `verify_unified.py`. `verify_unified.py` is the `goal:g11`
-migration checker — it proves the old staged-checkout repo collapsed into one
-tree, and it has nothing to do with rotation. `verification.py` is the
-rotation/health-check round; the two names are one keystroke apart and must
-never be merged or shared. `hypothesis:l4-unified-verification`, for
+`verify_unified.py`, the `goal:g11` one-repo migration checker, is retired
+(goal:g7.16.1.4.1.1; its bytes at deprecated/build/bin-verify-unified). This
+file never was it: `verification.py` is the rotation/health-check round,
+nothing to do with the migration. `hypothesis:l4-unified-verification`, for
 `goal:g1.10`: a successor runs ONE command at rotation and spends tokens on one
 summary block, not four scrollbacks, and every check it runs is resolved
 THROUGH `commands.py` from `command:commands`
