@@ -17,6 +17,7 @@ import tempfile
 import time
 
 _PROBE: "bool | None" = None
+_UMR: "bool | None" = None
 _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
 
 #: The probe's scope carries a FIXED unit name so its failed unit can be
@@ -402,7 +403,7 @@ def fstype_at(path: str) -> str:
     """The FILESYSTEM holding `path`, asked of the mount table -- never of a path
     prefix (the RAM tree is an rbind overmount AT MAIN). A path that does not
     exist yet is answered by its nearest existing parent; the table is
-    overridable (AGI_MEMCAP_MOUNTINFO) so a row can name a tmpfs without one."""
+    overridable (AGI_MEMCAP_MOUNTINFO) so a row can name a tmpfs without one. Octal escapes are DECODED before comparing (a space would never match); an unreadable table fails OPEN, said once, never a traceback."""
     p = os.path.realpath(os.path.abspath(path))
     while not os.path.isdir(p):
         n = os.path.dirname(p)
@@ -411,19 +412,30 @@ def fstype_at(path: str) -> str:
         p = n
     table = os.environ.get("AGI_MEMCAP_MOUNTINFO", "/proc/self/mountinfo")
     best, kind = "", ""
-    with open(table) as fh:
-        for line in fh:
-            f = line.split()
-            mp = (f[4].rstrip("/") or "/") if len(f) > 9 and "-" in f else None
-            if mp and len(mp) > len(best) and (p == mp or p.startswith(mp + "/")):
-                best, kind = mp, f[f.index("-") + 1]
+    try:
+        with open(table) as fh:
+            for line in fh:
+                f = line.split()
+                mp = re.sub(r"\\([0-7]{3})", lambda m: chr(int(m[1], 8)), f[4].rstrip("/") or "/") if len(f) > 9 and "-" in f else None
+                if mp and len(mp) > len(best) and (p == mp or p.startswith(mp + "/")):
+                    best, kind = mp, f[f.index("-") + 1]
+    except OSError as exc:
+        sys.stderr.write(f"mem_cap.py fstype_at: {exc} -- dst fs UNKNOWN\n")
+        return ""
     return kind
 
 
 def user_manager_reachable() -> bool:
-    """THIS uid's user manager: the bus, else its socket -- reachability, which scope_argv's launchability probe never asks."""
-    bus, rt = os.environ.get("DBUS_SESSION_BUS_ADDRESS"), os.environ.get("XDG_RUNTIME_DIR", "")
-    return bool(bus) or bool(rt) and os.path.exists(f"{rt}/systemd/private")
+    """LIVENESS, not presence: the manager is ASKED, once per process -- a set-but-dead bus address is not one (systemd-run behind it exits 1 and the argv never runs, C2)."""
+    global _UMR
+    if _UMR is None:
+        try:
+            _UMR = subprocess.run(
+                ["systemctl", "--user", "show", "-p", "Version", "--value"],
+                capture_output=True, timeout=10).returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            _UMR = False
+    return _UMR
 
 
 def ram_argv(argv: list) -> list:
@@ -450,7 +462,11 @@ def _verb_ram_exec(argv: list, to: str | None = None) -> int:
     if why or list(scoped) == list(argv):
         sys.stderr.write(f"mem_cap.py ram-exec: {why or 'no usable scope'} -- argv ran UNWRAPPED\n")
         return subprocess.run(argv).returncode
-    os.execvp(scoped[0], scoped)
+    try:
+        os.execvp(scoped[0], scoped)
+    except OSError as exc:      # fail OPEN, never a traceback off a write
+        sys.stderr.write(f"mem_cap.py ram-exec: {exc} -- argv ran UNWRAPPED\n")
+        return subprocess.run(argv).returncode
 
 
 if __name__ == "__main__":

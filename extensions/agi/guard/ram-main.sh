@@ -26,12 +26,8 @@ STATE="$DISK/.agi/sessions/ram-main"   # on disk: survives a reboot
 EXCL=(--exclude=/.git --exclude=/.agi/worktrees --exclude=/.env)
 KEEP=(--exclude=/.agi/sessions/ram-main)   # STATE lives on DISK only: a RAM -> DISK --delete must never remove it
 ev() { mkdir -p "$STATE"; echo "$(date -u +%FT%TZ) $*" | tee -a "$STATE/events.log"; }
-# a write INTO the tmpfs is charged to the ramdisk.slice through ONE shell
-# entry, which asks the FILESYSTEM about the destination (`--to`), never a
-# path prefix (hypothesis:g7556-...).
-# --- guard-ram-write: begin (session-sweep.sh carries the same line: one rule, one spelling)
-ramw() { local p=$1; shift; python3 "$HERE/../bin/mem_cap.py" ram-exec --to "$p" -- "$@"; }
-# --- guard-ram-write: end
+# the one RAM-write rule, ONE spelling shared with session-sweep.sh
+. "$HERE/ram-write.sh"
 is_up() { [ "$(findmnt -rn --mountpoint "$MAIN" -o FSTYPE 2>/dev/null | head -1)" = tmpfs ]; }
 bind_in() { [ -e "$DISK/$1" ] || return 0; if [ -d "$DISK/$1" ]; then ramw "$RAM/$1" mkdir -p "$RAM/$1"; else ramw "$(dirname "$RAM/$1")" mkdir -p "$(dirname "$RAM/$1")"; ramw "$RAM/$1" touch "$RAM/$1"; fi
   mountpoint -q "$RAM/$1" || sudo mount --bind "$DISK/$1" "$RAM/$1"; }

@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import pathlib
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -18,6 +19,7 @@ import pytest
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 BIN = ROOT / "extensions" / "agi" / "bin"
 GUARD = ROOT / "extensions" / "agi" / "guard"
+SHARED = GUARD / "ram-write.sh"
 MEM_CAP = BIN / "mem_cap.py"
 SCOPE_FLAG = "--slice=ramdisk.slice"
 BUS = "unix:path=/run/user/1000/bus"          # the user manager IS there
@@ -25,6 +27,8 @@ _WRITERS = ("mv", "cp", "mkdir", "rm", "ln", "touch", "rsync", "ionice")
 #: a manager that is NOT there: systemd-run exits 1 and the argv behind `--`
 #: NEVER runs -- the silent vanishing C2 pins shut
 _DOWN = '#!/bin/sh\necho "Failed to connect to bus: No such file or directory" >&2; exit 1\n'
+#: a LIVE user manager: the call mem_cap asks, answered (the liveness probe)
+_LIVE = "#!/bin/sh\necho 256\n"
 _SCOPE_RUN = """#!/bin/sh
 printf '%s\\n' "$*" >> "$AGI_FAKE_LOG"
 while [ "$1" != "--" ]; do shift; done; shift
@@ -45,6 +49,7 @@ def fake(tmp_path):
     for name, body in (("systemd-run", _SCOPE_RUN), ("sudo", "exit 0"),
                        ("mount", "exit 0"), ("mountpoint", "exit 0")):
         _install(d, name, body if name == "systemd-run" else _RECORD.format(body="exit 0"))
+    _install(d, "systemctl", _LIVE)          # the user manager ANSWERS
     for name in _WRITERS:
         real = shutil.which(name)
         if real is not None:
@@ -94,9 +99,11 @@ def _block(script: str, name: str) -> str:
             break
     return "\n".join(lines[start:end + 1]) + "\n"
 
-def _funcs(tmp_path, script, *names) -> pathlib.Path:
-    p = tmp_path / f"funcs-{pathlib.Path(script).name}.sh"
-    p.write_text("\n".join(_block(script, n) for n in names) + "\n"); return p
+def _funcs(tmp_path, *pairs) -> pathlib.Path:
+    """One extraction file from (function, script) pairs -- `ramw` comes from the ONE
+    shared file, `move`/`bind_in` from the script that carries them."""
+    p = tmp_path / "funcs.sh"
+    p.write_text("\n".join(_block(s, n) for n, s in pairs) + "\n"); return p
 
 def _snippet(src, dest, funcs: pathlib.Path) -> str:
     return (f"\nset -euo pipefail\nHERE=$(dirname {GUARD / 'session-sweep.sh'})\n. {funcs}\n"
@@ -127,7 +134,7 @@ def test_G_move_charges_exactly_the_tmpfs_side(fake, tmp_path, src_on_ram):
     src = (ram / "keep" / "iter-x") if src_on_ram else (disk / "iter-x")
     src.mkdir(parents=True); (src / "a.txt").write_text("a")
     dest = (disk / "arch" / "iter-x") if src_on_ram else (ram / "arch" / "iter-x")
-    body = _snippet(src, dest, _funcs(tmp_path, GUARD / "session-sweep.sh", "ramw", "move"))
+    body = _snippet(src, dest, _funcs(tmp_path, ("ramw", SHARED), ("move", GUARD / "session-sweep.sh")))
     r = _run(_shell_env(fake, tmp_path, ram), body)
     assert r.returncode == 0, r.stderr
     assert (dest / "a.txt").read_text() == "a"
@@ -154,7 +161,7 @@ def test_U2_bind_in_and_the_up_rsync_write_in_the_scope(fake, tmp_path):
     ram, disk = _ram_disk(tmp_path)
     (disk / ".git").mkdir(parents=True); (disk / ".env").write_text("k=1")
     env = dict(_shell_env(fake, tmp_path, ram), HERE=str(GUARD), DISK=str(disk), RAM=str(ram))
-    body = (f". {_funcs(tmp_path, GUARD / 'ram-main.sh', 'ramw', 'bind_in')}\n"
+    body = (f". {_funcs(tmp_path, ('ramw', SHARED), ('bind_in', GUARD / 'ram-main.sh'))}\n"
             'ramw "$RAM" mkdir -p "$RAM"\nbind_in .git\nbind_in .env\n')
     r = _run(env, "set -euo pipefail\n" + body)
     assert r.returncode == 0, r.stderr
@@ -171,34 +178,64 @@ def test_U2_bind_in_and_the_up_rsync_write_in_the_scope(fake, tmp_path):
     assert [l for l in _entries(fake) if SCOPE_FLAG in l] == [], _entries(fake)
     assert any(_writes_under(l, ram) for l in _entries(fake)), "the writes did not run"
 
-def test_C1_and_C2_an_unusable_or_unreachable_scope_runs_the_real_argv(fake, tmp_path):
-    """C1 no usable scope: argv UNWRAPPED, rc kept, said ONCE. C2 (DG3.50) manager DOWN: reachability decided BEFORE wrapping, so argv runs plain (own marker, rc 7) instead of vanishing."""
+def test_C1_no_usable_scope_runs_the_real_argv(fake, tmp_path):
+    """C1 -- no usable scope: argv UNWRAPPED, its own rc, said ONCE, nothing claimed the scope."""
     ram, _ = _ram_disk(tmp_path); env = _shell_env(fake, tmp_path, ram)
     r = _run(dict(env, AGI_MEMCAP_SYSTEMD_RUN="0"),
              f"{sys.executable} {MEM_CAP} ram-exec --to {ram} -- sh -c 'exit 3'")
-    assert r.returncode == 3, (r.returncode, r.stderr)
-    assert r.stderr.count("UNWRAPPED") == 1, r.stderr
-    assert _entries(fake) == [], _entries(fake)      # nothing claimed the scope
-    # the manager is DOWN now: systemd-run itself exits 1, and tmp_path (as the
-    # runtime dir) carries no systemd/private, so bus AND socket are unreachable
-    _install(fake["dir"], "systemd-run", _DOWN)
-    r = _run(dict(env, DBUS_SESSION_BUS_ADDRESS="", XDG_RUNTIME_DIR=str(tmp_path)),
+    assert r.returncode == 3 and r.stderr.count("UNWRAPPED") == 1, (r.returncode, r.stderr)
+    assert [l for l in _entries(fake) if SCOPE_FLAG in l] == [], _entries(fake)
+
+@pytest.mark.parametrize("live", [True, False], ids=["P1-live-manager", "P1-dead-manager"])
+def test_P1_reachability_is_liveness_not_presence(fake, tmp_path, live):
+    """P1 (the banked DG3.50 hole) -- the manager is ASKED, not read off the env: the bus address stays SET and a `systemd/private` socket is present in BOTH rows."""
+    ram, _ = _ram_disk(tmp_path)
+    rt = tmp_path / "rt"; (rt / "systemd").mkdir(parents=True); (rt / "systemd" / "private").write_text("")
+    _install(fake["dir"], "systemctl", _LIVE if live else _DOWN)
+    r = _run(dict(_shell_env(fake, tmp_path, ram), XDG_RUNTIME_DIR=str(rt)),
              f"{sys.executable} {MEM_CAP} ram-exec --to {ram} -- "
              "sh -c 'echo CHILD-RAN >> \"$AGI_FAKE_LOG\"; exit 7'")
-    assert r.returncode == 7, (r.returncode, r.stderr)      # argv's rc, not 1
-    assert r.stderr.count("UNREACHABLE") == 1, r.stderr
-    assert "CHILD-RAN" in fake["log"].read_text(), _entries(fake)
-    assert not pathlib.Path(str(fake["log"]) + ".nested").exists(), "it was scoped"
+    nested = pathlib.Path(str(fake["log"]) + ".nested")
+    seen = fake["log"].read_text() + (nested.read_text() if nested.exists() else "")
+    assert r.returncode == 7, (r.returncode, r.stderr)     # argv's rc, never 1
+    assert "CHILD-RAN" in seen, seen        # it RAN either way: the C2 guarantee
+    assert ([l for l in _entries(fake) if SCOPE_FLAG in l] != []) is live, _entries(fake)
+    assert r.stderr.count("UNREACHABLE") == (0 if live else 1), r.stderr
 
-def test_N1_no_scope_argv_in_shell_and_no_second_rule(fake, tmp_path):
-    """N1 -- no scope argv in shell, one spelling of the caller, recharge gone."""
-    bodies = []
+def test_F1_and_F2_the_rest_of_the_path_fails_open(fake, tmp_path):
+    """F1 an unreadable mount TABLE and F2 a scope that cannot be exec'd: each runs argv UNWRAPPED, ONE stderr line, NO traceback, rc still argv's."""
+    ram, _ = _ram_disk(tmp_path); env = _shell_env(fake, tmp_path, ram)
+    py = f"{sys.executable} {MEM_CAP} ram-exec --to"
+    r = _run(dict(env, AGI_MEMCAP_MOUNTINFO=str(tmp_path / "gone")), f"{py} {ram} -- /bin/sh -c 'exit 5'")
+    assert r.returncode == 5, (r.returncode, r.stderr)
+    assert "Traceback" not in r.stderr and r.stderr.count("fstype_at") == 1, r.stderr
+    bare = tmp_path / "bare"; bare.mkdir()          # systemd-run nowhere on PATH
+    os.symlink(shutil.which("bash"), bare / "bash"); _install(bare, "systemctl", _LIVE)
+    r = _run(dict(env, PATH=str(bare)), f"{py} {ram} -- /bin/sh -c 'exit 6'")
+    assert r.returncode == 6, (r.returncode, r.stderr)
+    assert "Traceback" not in r.stderr and r.stderr.count("UNWRAPPED") == 1, r.stderr
+
+def test_M1_a_mount_point_with_a_space_is_found(fake, tmp_path):
+    """M1 -- the table's octal escapes are DECODED, so a tmpfs mounted at a path holding a space is found and its writes still charge."""
+    ram = tmp_path / "ram tree"; (ram / "keep").mkdir(parents=True)
+    mi = tmp_path / "spaceinfo"
+    mi.write_text("8 35 0:29 / %s rw,nosuid - tmpfs tmpfs rw\n" % str(ram / "keep").replace(" ", "\\040"))
+    src = tmp_path / "src.txt"; src.write_text("page")
+    r = _run(dict(_shell_env(fake, tmp_path, ram), AGI_MEMCAP_MOUNTINFO=str(mi)),
+             f"q={shlex.quote(str(ram / 'keep'))}; "
+             f"{sys.executable} {MEM_CAP} ram-exec --to \"$q\" -- cp {src} \"$q/page\"")
+    assert (r.returncode, (ram / "keep" / "page").read_text()) == (0, "page"), r.stderr
+    assert [l for l in _entries(fake) if SCOPE_FLAG in l], _entries(fake)
+
+def test_N1_one_rule_sourced_by_both_and_no_scope_argv_in_shell(fake, tmp_path):
+    """N1 -- no scope argv in shell, and the rule that used to be spelled twice lives in ONE file the test extracts by its markers, SOURCED by both."""
+    text = SHARED.read_text()
+    assert "hypothesis:g7556" in text and text.count("guard-ram-write:") == 2, text
     for s in (GUARD / "ram-main.sh", GUARD / "session-sweep.sh"):
-        text = s.read_text()
-        assert "systemd-run" not in text, s
-        assert 'case "$p" in' not in text, s      # the prefix rule is gone
-        bodies.append(_block(s, "ramw"))
-    assert bodies[0] == bodies[1], bodies         # one spelling of the caller
+        body = s.read_text()
+        assert "systemd-run" not in body and 'case "$p" in' not in body, s
+        assert '. "$HERE/ram-write.sh"' in body and "ramw() {" not in body, s
+        assert "guard-ram-write" not in body, s
     rc = _rc(["ram-recharge", str(tmp_path)])
     assert rc.returncode != 0 and "ram-recharge" in rc.stderr
 
