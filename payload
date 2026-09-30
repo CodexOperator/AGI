@@ -37,6 +37,7 @@ send.py wake <post>                                   # re-submit a stranded nud
 | a literal harness tag (angle brackets) in a body is REFUSED | write it without the brackets (trap 29), or `--quote-harness` |
 | a worktree post's row reaches main at its next merge-up | `whois` is NO-MATCH before that (F3) |
 | the pane has NO interactive user | never `AskUserQuestion` or any tool that waits on a human (F22) |
+| a cross-session `SendMessage` goes to `name [ref]` copied from `ListAgents` in the same step, never a bare name | short session names collide: 09-30 05:xZ agi-e3 = alive + DG2 · agi-8c = DG1 + stream-master · agi-c8 = DG4 + DG5 (alive's council overview, placed by belam gen 21); a bare name picks one of them |
 
 ## 3 · To the Prime — tagged or REFUSED (F10/F11)
 `send.py --from <me> send belam '[tag] <one line>'`, tag ∈ `merge-up` · `decision` · `rotation` · `red` · `rule` · `complete` · `owner`.
