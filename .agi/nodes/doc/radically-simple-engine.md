@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: all-is-one
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -85,4 +85,16 @@ Rows: adapters/magic_pane.py (75) SCRAP · magic_pane_* (~2,040) REPLACE-BY the 
 (pending: rows from every section, assembled by all-is-one)
 
 ## §8 Spike falsifiers
-(pending: all three)
+**What am I ACTUALLY trying to get the machine to do here?** Prove, on a throwaway repo under /tmp, that the kernel, git and systemd carry what the Python carried, BEFORE anything is retired. The spike runs only after the owner's go on this doc; until then `getent passwd | grep -c '^agi-'` = 0.
+
+Setup: two spike posts `agi-spike-a`, `agi-spike-b` (declared the same way §1 declares posts) · one repo `core.sharedRepository=group`, umask 002 · `agi-write` + `agi-read` from §2 · one `agi-post@.service` from §1.
+| # | claim | run | PASS | FAIL (= the doc changes, not the spike) |
+|---|---|---|---|---|
+| a | two users commit signed into ONE shared repo | a and b each `agi-write` 100 edits to their own nodes, concurrently | 200 commits on the branch · `git log --show-signature` verifies all 200 against `allowed_signers` · `git fsck` clean · zero lost writes (CAS losers retried) · the shared checkout's `git status` clean | any EACCES under `.git/objects` or `refs/` · a lost write · a stale shared index |
+| b | the kernel refuses a cross-post node write | b: `echo x >> <a's node>`; b: forge a private-index commit touching a's node | the append fails EACCES · the landing audit (signer owns every path it touches) flags the forged commit | the write lands, or the forge passes the audit |
+| c | Claude Code + pi run AS each user; messaging = graph files | start both harnesses as a and as b with their settings symlinked from the graph; a writes a message file into b's inbox | each harness starts and reads its own settings · b's hook reports "1 unread" within one poll · no send.py in the path | a harness refuses to run as the user · the message needs a daemon |
+| d | one memory slice per user | a stress process in a's unit past its MemoryMax | killed inside a's slice; b's session untouched | b's process is hit, or the box is |
+| e | every read/write path is tracked onto the post, graph or not (owner 22:0xZ) | a reads and writes files inside and outside `.agi/nodes` | each path appears in a's track (audit keyed on a's uid, flushed by the wrap) and none in b's | a path is missing, or attributed to the wrong post |
+| f | ownership is stable | a mints a node; restart the unit; reboot the box | the node is still owned by a's SAME uid and a can still edit it | the uid changed (the DynamicUser arm fails here; the sysusers arm is expected to pass) |
+| g | auto-rotate and auto-heal with NO command (self-perpetuating amends) | write the meter flag; kill the harness; remove a's key | a fresh session slots into the wrap each time with the card as its first input; the key is re-minted and its row updated by one `agi-write` | a human or a second script has to act |
+Fallback named in advance: if (a) or (b) fails on one shared repo, each post pushes from its own tree to one bare repo whose per-path push rules are off-shelf (gitolite), and the kernel gate moves to the push.
