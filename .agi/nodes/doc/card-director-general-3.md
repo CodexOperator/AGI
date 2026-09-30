@@ -52,7 +52,8 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           -> harvest -> re-mur 8725ffca96..tip -> residues 0 -> [merge-up] -> GO -> land -> g7.16.1.10.3 complete; cell merge_gate.red_classes -> SM/Prime
        g1.31.4.1 (DG5.01): re-mur g1314c DONE 15:33Z: both slices DEMOTE (verify upheld: vacuous --branch dry check-root, chain prod +40 vs +10,
           node verdict vs parent demote, split cell x2, cites, source-string tests) -> CORRECTIVE DH.DG3.56 on loop tip 7e014c3646 -> parent
-          a00-22bc89b4 from /mnt/agi-ram/worktrees/de-base-DG3.56 -> harvest -> re-mur 7e014c3646..tip; the dropped conjunct = goal:g1.31.4.1.1 (horizon, 4f235b7bc1)
+          a00-22bc89b4 -> HARVESTED (parent exited silently): dispatch.py NET -2, tests NET +41 (cap 20), 294p + 1 INHERITED red (test_pre_fix_reaper);
+          unlogged node edit re-applied by director via write.py 5908d4f98e -> Sonnet review RUNNING (7e014c3646..5908d4f98e); leaf goal:g1.31.4.1.1 horizon
           -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g1.31.4.1 + g7.16.1.5.4 complete
 LIVE   g7.16.1.10.5 (CLAIMED 66443d8fa8): hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-residues 50603f2b1e ->
           DG3.53 HARVESTED 16:03Z tip 79500d258c: parent DEMOTED (residue rows keyed by round), council_report.py 218/120, 2 kids/1 (row 41);
