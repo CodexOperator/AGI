@@ -4035,6 +4035,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"adopt {edit.node_id}: would mint a first mint_id "
                   "(refuses if one exists)")
             return 0
+        _pre_a = _pre_dirty(root, edit.node_id)   # goal:g1.31.5.1.3: BEFORE repair_mint
         try:
             res = node_writer.repair_mint(root, edit.node_id, announce=True)
         except Exception as exc:
@@ -4055,7 +4056,8 @@ def main(argv: list[str] | None = None) -> int:
         except Exception:
             pass
         print(f"adopted: {edit.node_id} mint_id={mint or '(written)'}")
-        _note, _unc = _commit_write(root, edit.node_id, res, args.actor)   # residue 92
+        _note, _unc = _commit_write(root, edit.node_id, res, args.actor,   # residue 92
+                                    _pre_a)                      # g1.31.5.1.3
         if _note:
             print(_note, file=sys.stderr)
         return EXIT_UNCOMMITTED if _unc else 0
@@ -4175,6 +4177,7 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as _ve:
             print(f"ERR: {_ve}", file=sys.stderr)
             return 2
+        _pre = _pre_dirty(root, edit.node_id, edit)   # goal:g1.31.5.1.3: BEFORE the write
         res = submit(root, edit, actor=args.actor, session=args.session,
                      role=args.role, ring_fresh=_fresh)
     except (EditError, FileNotFoundError) as exc:
@@ -4191,7 +4194,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"payload: {res.payload_path} "
               + ("replaced" if res.payload_changed else "unchanged"))
     if res.status == node_writer.UPDATED or res.payload_changed:   # goal:g4.18.5.2 (+ residue 91: payload-only)
-        _note, _unc = _commit_write(root, edit.node_id, res, args.actor)
+        _note, _unc = _commit_write(root, edit.node_id, res, args.actor, _pre)
         if _note:
             print(_note, file=sys.stderr)
         if _unc:
@@ -4242,7 +4245,33 @@ def _commit_message(root, node_id: str, actor: str = "") -> str:
     return node_id
 
 
-def _commit_write(root, node_id: str, res, actor: str = "") -> tuple[str | None, bool]:
+def _pre_dirty(root, node_id: str, edit=None) -> set:
+    """goal:g1.31.5.1.3 -- the paths ALREADY dirty against HEAD when this write
+    began, sampled by the CALLER, never here: `_commit_write` runs AFTER the
+    node is rewritten, so a sample taken there is always dirty (this write made
+    it dirty) and would refuse every write. Untracked/absent = CLEAN."""
+    out: set = set()
+    paths = [node_writer.find_node_file(root, node_id)]
+    if edit is not None and (edit.payload_from or edit.payload_bytes or edit.patch_from):
+        try:
+            ref, loc = _payload_ref(root, edit)
+            paths.append(locations.resolve_payload_path(Path(root), ref, loc) if ref else None)
+        except EditError:
+            pass
+    git = lambda *a: subprocess.run(["git", "-C", str(root), *a],  # noqa: E731
+                                    capture_output=True, text=True)
+    for p in paths:
+        if p is None:
+            continue
+        p = os.path.abspath(str(p))
+        if not git("ls-files", "--error-unmatch", "--", p).returncode and \
+                git("--no-optional-locks", "diff", "--quiet", "HEAD", "--", p).returncode:
+            out.add(p)
+    return out
+
+
+def _commit_write(root, node_id: str, res, actor: str = "",
+                  pre_dirty: set = frozenset()) -> tuple[str | None, bool]:
     """goal:g4.18.5.2 -- the CLI write, after the gate, is ONE commit of its
     own node (+ its payload) by exact path. In main() only: submit() is the
     library rotate.py and send.py call on shared files. `git commit -- <paths>`
@@ -4272,6 +4301,13 @@ def _commit_write(root, node_id: str, res, actor: str = "") -> tuple[str | None,
         return (f"commit refused: {Path(root) / 'sessions' / verification.SUITE_LOCK} is held "
                 f"by live pid {holder} -- the write landed uncommitted; commit it by "
                 f"exact path: {recover}"), False
+    # goal:g1.31.5.1.3: a path ALREADY dirty against HEAD before this write is
+    # a hand edit; committing it launders it and write_guard stops listing it.
+    laundered = [p for p in paths if os.path.abspath(p) in pre_dirty]
+    if laundered:
+        return (f"commit refused: {' '.join(laundered)} was already dirty against HEAD "
+                f"before this write (a hand edit rides along) -- the write landed "
+                f"UNCOMMITTED; exit {EXIT_UNCOMMITTED}; recover: {recover}"), True
     import random  # noqa: PLC0415
     deadline = time.monotonic() + _commit_wait_s(root)
     tries = 0

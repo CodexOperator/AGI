@@ -807,3 +807,28 @@ def test_b4_w1b_create_commits_its_new_node(project):
     assert g("show", "--name-only", "--format=", "HEAD").split() == [".agi/nodes/hypothesis/h10.md"]
     assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
 
+
+
+# goal:g1.31.5.1.3 -- a hand edit to the SAME node a write.py verb names is
+# never laundered into that write's commit: the write lands on disk, stays
+# UNCOMMITTED and is refused by name (exit 3), so write_guard still lists it.
+def test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered(project, capsys):
+    g, _head = _w1b(project)
+    node = ".agi/nodes/hypothesis/h9.md"
+    (project / node).write_text(
+        (project / node).read_text() + "HANDEDIT-FIXTURE\n")
+    listed = lambda: g("diff", "--name-only", "HEAD", "--", node).split()   # noqa: E731
+    assert listed() == [node]      # dirty BEFORE the write
+    assert write.main(["hypothesis:h9", "set confidence 0.4", "--root", str(project)]) == 3
+    assert listed() == [node], "the hand edit must stay listed"
+    assert not g("grep", "-n", "HANDEDIT-FIXTURE", "HEAD", "--", ".agi/nodes").strip(), \
+        "no commit may carry the hand-edit bytes"
+    assert "0.4" in (project / node).read_text(), "the write still landed on disk"
+    assert node in "".join(capsys.readouterr()), "refused BY NAME"
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+    # control: the same verb on a CLEAN node is ONE exact-path commit
+    g("add", "--", node), g("commit", "-qm", "hand edit landed")
+    n = g("rev-list", "--count", "HEAD").strip()
+    assert write.main(["hypothesis:h9", "set confidence 0.7", "--root", str(project)]) == 0
+    assert g("rev-list", "--count", "HEAD").strip() == str(int(n) + 1)
+    assert g("show", "--name-only", "--format=", "HEAD").split() == [node]
