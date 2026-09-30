@@ -26,7 +26,7 @@ town: core
 config-max: none. template-max: write.py VERB_EXAMPLES `row` line (-h) gains `row 2:1-3 f | row name:<NAME> f`. code: ONE THOUGHT-marker guard in the shared body-replace path (so `replace body a:b` AND `row`, which rides it via replace_target=body, both refuse -- goal:g4.18.5.1.1) + the name:<NAME> lookup in `_row_range` (goal:g4.18.5.1.2) + verb_row's ref regex.
 
 ## FALSIFIERS
-- `row <n>` or `row <n>:<i>-<j>` whose range holds a THOUGHT marker exits 0, or changes any byte
+- `row <n>` or `row <n>:<i>-<j>` whose range holds a THOUGHT marker exits 0 (other than the admitted whole-block rewrite above), or changes any byte outside the admitted rewrite
 - `row name:<NAME>` writes when NAME matches 0 or >1 table rows, or changes a byte outside that row
 - a second body row parser appears (`git grep -n "def body_rows\|_resolve_body_row_range"` != 1 line)
 
