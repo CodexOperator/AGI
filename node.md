@@ -89,6 +89,10 @@ Round 1 = doc:radically-simple-engine @45282a4661 (wrap 1,432 B, post 34 B, both
 ## Round 3
 The next version of doc:radically-simple-engine (round 2 @9d4076f96a kept in the grid). The SHAPE TEST (owner): every engine piece fits as a .geometry node -- one that does not is not radically simple enough yet. Links become filesystem pointers (symlinks git already versions); the session-start brief is a vector product applied to the post, injected by the harness on every session start; agents use plain paths, and the graph stays current by itself.
 
+## OWNER 2026-09-30 23:08Z, verbatim (the shape test is light)
+"Well, hold on. Is that dot geometry requirement  too deep Because, I mean, it sounds kind of like we are just using all these raw commands anyway. And mostly just, like, wrapping small templates or things like that over them. The .sh file is essentially just a template."
+Reading (belam): the shape test is LIGHT for the new design -- every piece is a small template over raw commands, kept in a .geometry node with the parameters that fill it; round 2's 17 files (4,253 B) already fit in one node. The test only bites on the old Python engine, which it retires.
+
 ## Sequence
 ```
 1 the council (alive · all-is-one · self-perpetuating) writes the design doc, discussed through the three lenses
