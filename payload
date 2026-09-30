@@ -3541,9 +3541,18 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                     "blind" if why.startswith(PSI_BLIND) else "psi")
             return {"seat": seat, "probable_cause": cause, "recorded": False,
                     "deferred": why, "defer_kind": kind}
-    outcome = _recover_seat(root, row, cause, _rotate, windows=windows,
-                            window_path=window_path, launcher=launcher,
-                            now=now)
+    # goal:g7.16.1.7.1.1.2 (goal:g6.41.1 P4): the post's ONE launch lock spans
+    # the checks, the launch and the row write -- a spawn or a second heal of
+    # this post already in flight refuses this one by name (recorded
+    # `detected`: the next pass retries).
+    with _rotate.post_launch_lock(root, seat) as held:
+        outcome = (_recover_seat(root, row, cause, _rotate, windows=windows,
+                                 window_path=window_path, launcher=launcher,
+                                 now=now) if held else
+                   {"respawned": False, "name": "", "generation": 0, "row": "skipped",
+                    "reason": f"launch lock held: another stand-up of {seat} is in flight"})
+    if not held:
+        _watch_log(f"watch: {seat} recovery refused: {outcome['reason']}")
     if admission is not None and outcome.get("respawned"):
         # only a launch that HAPPENED spends the pass's one slot: a refused
         # recovery (records "detected") never starves the seats behind it
