@@ -219,7 +219,7 @@ drift.
 **What is collapsed, and what is not.** Before G11 the ancestor walk existed
 eleven times — ten `CONFIG_NAMES`-plus-walk copies under `bin/`
 (`benchmark.py`, `cli.py`, `dispatch.py`, `metrics.py`, `post_wire.py`,
-`render-context.py`, `snapshot-build-site.py`, `snapshot-goals.py`,
+`render-context.py` (retired, L1.05), `snapshot-build-site.py`, `snapshot-goals.py`,
 `spawn_gate.py`, `zoom.py`), plus `lib/find-root.sh`. That shell file is not
 one of the residuals — it is the deliberate bash half of the same rule,
 cross-checked against `locations.py` by `test_bash_and_python_agree` rather
@@ -299,8 +299,7 @@ rewritten from scratch on each change, not accumulated.
   scalar `thought_session:` is reserved there for goal:g2.7 / goal:g10.1 to
   point at the chat that produced a version; it is not populated yet.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever. The retired goal render (goal:g7.16.1.4.1) stripped it via
-  `strip_thought()`; `render-context.py` and `zoom.py` never see it because
-  they read frontmatter only (`load_node_file(..., body=False)`) and so carry
-  no body text at all. The rule binds any future reader that *does* read
-  bodies.
+  reader carries forever. `brief.py` strips it from every body it renders via
+  `node_writer.strip_thought()`; `zoom.py` never sees it because it reads
+  frontmatter only (`load_node_file(..., body=False)`). The rule binds any
+  future reader that *does* read bodies.

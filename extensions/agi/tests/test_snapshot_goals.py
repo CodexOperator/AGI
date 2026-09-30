@@ -406,7 +406,8 @@ def test_wg_from_doc_and_goals_file_retire():  # GREEN since DG3 W-G.2
 
 
 def test_wg_reader_lines_only_point_at_the_retirement():
-    docs = ["CLAUDE.md", "QUICKSTART.md", ".agi/context/schemas/[goal].md", ".agi/context/schemas/[config].md"] + [
+    schemas = sorted(p.relative_to(_WG_REPO).as_posix() for p in (_WG_REPO / ".agi/context/schemas").glob("*.md"))
+    docs = ["CLAUDE.md", "QUICKSTART.md"] + schemas + [
         f"skills/{s}/SKILL.md" for s in ("agi", "agi-goal", "agi-master-gate", "agi-node-write", "agi-verify")]
     # residue 81: anchored on the retirement POINTER, never the substring "retire"
     # (a goal-status line "active | horizon | retired" passed vacuously)
@@ -415,3 +416,6 @@ def test_wg_reader_lines_only_point_at_the_retirement():
     ptr = re.compile(r"g7\.16\.1\.4\.1(?!\.?\d)")   # the leaf itself, never its child .4.1.1
     assert [(d, ln) for d in docs for ln in _wg_text(d).splitlines()
             if re.search(r"GOALS\.md|--render", ln) and not ptr.search(ln)] == []
+    # render-context.py retired at L1.05: a schema names it only beside that pointer
+    assert [(d, ln) for d in schemas for ln in _wg_text(d).splitlines()
+            if "render-context.py" in ln and "L1.05" not in ln] == []
