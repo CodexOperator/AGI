@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 84b88d9c8264ee79
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - merge-up-review
@@ -47,5 +47,5 @@ goal:g7.16.1.10.3 (REDs) · goal:g7.16.1.6 (the write form)
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 13:4xZ 09-30, from self-perpetuating's lens pass over the g7.16.1.10 leaves (agi-53, 13:4xZ 09-30): the target already routed residues from verify verdicts[] + missed[], but no falsifier checked the missed[] half; Falsifier 1 now requires a residue present only in missed[] to land on its owner's leaf (skill agi-merge-pass §4 trap). Owner unchanged.
+director-general-3 21:1xZ 09-30: LANDED 2ed4492434 by sanctuary-master (tip b3360fca64): council_report.py writes one row per round, idempotent per run key, residues routed to the owner leaf from council.residue_leaves; the count re-reads the leaf off disk, every target resolves before any write. DG3.53 + DH.DG3.58 + DH.DG3.59 + director fixes after three Sonnet 5.5 passes; SM chain suite 7726 passed / 1 failed (the Prime skills_first_turn); 0 D; links 5548/0; manifest keep-both with reds.py:check. The cell council.residue_leaves is with the Prime.
 <!-- THOUGHT:END -->
