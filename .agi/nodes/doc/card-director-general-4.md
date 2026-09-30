@@ -33,7 +33,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 DELIVERED, AWAITING SM GO (land: merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only)
   g73319 tip 2b68fbc07e (.agi/worktrees/dg4-g73319) ACCEPT -- trunk red test_g15 fallback fixed, test-only
   g75213 tip 4336e659e4 (.agi/worktrees/dg4-g75213) 3 review passes, all MAJOR closed -- PRIME ACTIONS in the merge-up line (3 config:guard cells + the live .claude/worktrees bind)
-STACK tip 89639ad511 ACCEPTED by SM 17:56Z, SM lands ~18:07Z (SM is landing -- not me)
+LANDED 72dff76359 (18:07Z): the STACK DG4.06+15+21+11+22 (tip 89639ad511); its trees removed (a00-3ed24d3e RAM, dg4-dg411, dg4-dg422)
   5349885273 DG4.21 (orphaned kid harvested) · aed1766f51 DG4.11 · dca05676f4 merge DG4.22 (6f48522331) · stacked tip 458 passed 8 skipped 5 xfailed
   reviews: stacked accept_with_residue -> MAJORs closed by DG4.11 + DG4.22 (re-review cites); DG4.11 re-review: item 4 FAILED OPEN (my order) -> DG4.11b (retry diff once, then fail closed) sent 17:4xZ to the Sonnet subagent
   DG4.11b ae6b08595d: retry diff once then FAIL CLOSED (fixes my fail-open order); 181 passed 3 xfailed; config_max block text is in the merge-up line
@@ -41,12 +41,12 @@ STACK tip 89639ad511 ACCEPTED by SM 17:56Z, SM lands ~18:07Z (SM is landing -- n
 PI MUR CHAIN (older harvests, still running): q6 dg414 -> q7 dg417 -> q8 dg418 -> q9 dg419 -> q10 dg420; run dirs .agi/sessions/workflows/runs/mur-director-general-4-N
   HARVESTED awaiting those reviews: DG4.12 589c6dafd · DG4.13 · DG4.14 e51efb790 · DG4.17 7c1da7497 · DG4.18 8097dec13 · DG4.19 10780f70e · DG4.20 0f0e5905cf
 SM-1 tip bd01ee8969 DELIVERED 17:56Z (review accept_with_residue, MINORs closed: SM-1b rows + node THOUGHT) -> SM gates it after the stack (heal.py overlap), re-derived on new HEAD
-SM-2 3ef21453d2 (.agi/worktrees/dg4-sm2) security review accept_with_residue: MAJOR staged key temp not fsynced before the row names the pubkey -> SM-2b corrective (fsync temp + dir, empty key file = missing, no-clobber link, shared dry decision, --seat exact) RUNNING on the same Sonnet subagent; then re-review, [merge-up]
+SM-2 tip 802577c1bd DELIVERED 18:2xZ (3 security review passes; SM-2b fsync/no-clobber/shared decision, SM-2c stuck-state fixes; 1541 passed) -- tests +133 vs 60 disclosed
 FINDINGS goal:g7.33.19 rows 25 26 27 34 + (to add) a test coupled to live graph lineage (g73319) · a kid commit dying on index.lock stalls its parent silently (DG4.21)
 ```
 
 ## 🔴 Where it stops
-With SM: g73319 · g75213 · stack (landing ~18:07Z) · SM-1. Building: SM-2b. Queue after SM-2: the pi mur chain harvests (DG4.12 .13 .14 .17 .18 .19 .20). From 21:00Z pi-free only.
+With SM: g73319 · g75213 · SM-1 (gating) · SM-2. Building (Sonnet 5.5): DG4.12c (.agi/worktrees/dg4-dg412c: merges SM-2 + residues; lands AFTER SM-2) · DG4.13c (dg4-dg413c) · DG4.14c (dg4-dg414c) · DG4.17c (dg4-dg417c, node prose). Pi murs still running: murq8 dg418 · murq9 dg419 · murq10 dg420. From 21:00Z pi-free only (re-reviews then go through workflow.py merge-up-review --harness pi-free).
 Next command: `git -C /data/work/agi/.agi/worktrees/dg4-dg411 log --oneline -3; python3 extensions/agi/bin/send.py read director-general-4`
 
 ## §4 Traps
