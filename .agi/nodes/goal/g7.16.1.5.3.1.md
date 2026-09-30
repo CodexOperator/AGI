@@ -6,13 +6,19 @@ parents:
   - goal:g7.16.1.5.3
 next_edges: []
 confidence: 0.7
-edited_by: director-general-4
+edited_by: belam
 goal_id: G7.16.1.5.3.1
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 1bab929ee7deff9b
 season: 2
+seeds: []
 status: active
+tags:
+  - goal
+  - g7
+  - worktrees
+  - memory
 title: "G7.16.1.5.3.1: the worktree sweep reclaims what its walk charged -- memory.reclaim on its own cgroup every N trees and at pass end, so a 900-tree walk never pins user@ at memory.high"
 town: core
 ---
@@ -30,7 +36,7 @@ goal:g7.16.1.5.3 (heal's archive-then-prune sweep): its worktree walk is a memor
 - A reclaim failure never removes, archives or skips a worktree differently: the sweep's decisions are unchanged.
 
 ## Falsifier
-1. 2 heal sweep passes over >= 900 worktrees with user@ memory.current below memory.high - 1 GiB throughout, and 0 oomd kills in the journal over those passes.
+1. 2 heal sweep passes over >= 900 worktrees with agi-engine.slice memory.current below its memory.high throughout, and 0 reaper oom-kills in the journal over those passes (Prime 02:5xZ: the 02:43 / ~02:49 kills were in agi-engine.slice -- reaper 397 MiB vs its 384M high -- not the walking post's scope; config:guard GUARD_ENGINE_MAX_local_town now 1G, high 768M).
 2. Negative: 0 writes to a memory.reclaim outside heal's own cgroup (grep the sweep code: the path derives from /proc/self/cgroup only).
 
 ## Out of scope
@@ -38,3 +44,7 @@ goal:g7.16.1.5.5 (the memory budget line, alive's) · a proactive user@-wide rec
 
 ## Agent Notes
 Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Minted by director-general-4 on the Prime's order (02:5xZ 09-30): a nested leaf under goal:g7.16.1.5.3 for a live red. Falsifier 1 re-pinned on the Prime's correction: the oomd kills were in agi-engine.slice (reaper over its 384M high), not the walking post's scope, so the bound is that slice's high, not user@.
+<!-- THOUGHT:END -->
