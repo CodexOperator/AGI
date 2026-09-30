@@ -803,6 +803,25 @@ def test_a_bare_value_file_source_is_read_in_the_real_on_box_format(
         {"sources": [["@" + str(keyed), "model_name"]]}) == [FAKE_HW]
 
 
+def test_a_mixed_file_source_is_not_a_bare_value_source(tmp_path, monkeypatch):
+    """dh347 item 1, the near miss of the bare-value fallback. The on-box shape
+    of `/sys/class/dmi/id/board_name` is ONE bare value line; a rule that took
+    EVERY colon-free line of ANY file read a config file's prose as model names
+    and denied innocent lines, and a MIXED file (a keyed file whose field this
+    rule misspells) is exactly that case. Both files here are synthetic."""
+    _stub_box(tmp_path, monkeypatch)
+    mixed = tmp_path / "mixed"
+    mixed.write_text("model_name: %s\nfree prose: none\n%s\n" % (FAKE_HW, FAKE_CPU))
+    src = ["@" + str(mixed), "board_name"]
+    assert anonymize._read_hw_sources({"sources": [src]}) == [], \
+        "a mixed file yielded a bare value"
+    two = tmp_path / "two-bare"
+    two.write_text("%s\n%s\n" % (FAKE_CPU, FAKE_BOARD))
+    assert anonymize._read_hw_sources(
+        {"sources": [["@" + str(two), "board_name"]]}) == [FAKE_CPU], \
+        "the bare fallback must take the FIRST line only"
+
+
 def test_the_fixture_path_and_the_live_path_expand_one_rule(tmp_path, monkeypatch):
     """dg6-04 residue 8: fixture and live both go through _hw_tokens with the
     SAME cell, so with no `anonymize.hardware` cell a fixture name and a
@@ -820,9 +839,13 @@ def test_the_fixture_path_and_the_live_path_expand_one_rule(tmp_path, monkeypatc
     fixture = anonymize.box_tokens(root)
     assert sorted(v for c, v in live if c == "hardware") and \
         sorted(v for c, v in fixture if c == "hardware")
-    assert set(v for c, v in live if c == "hardware") <= \
+    # EQUALITY, not subset: this is a SYMMETRY row -- one rule, two paths -- so
+    # the live half is pinned to EXACTLY what the rule expands for the one
+    # synthetic name it read, and a subset assert let a second source (a DMI
+    # leak, a widened rule) ride in unnoticed (dh347 item 5)
+    assert set(v for c, v in live if c == "hardware") == \
         set(v for _, v in anonymize._hw_tokens([FAKE_CPU], {}))
-    assert set(v for c, v in fixture if c == "hardware") <= \
+    assert set(v for c, v in fixture if c == "hardware") == \
         set(v for _, v in anonymize._hw_tokens([FAKE_HW], {}))
 
 

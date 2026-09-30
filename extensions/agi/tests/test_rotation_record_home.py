@@ -178,22 +178,52 @@ def test_b3_rotation_record_keeps_only_the_record_helpers():
 
 
 def test_the_sanctioned_writer_applies_the_user_root_remedy(tmp_path, monkeypatch):
-    """dg6-04 residue 3: the refusal names `home_relative(text, root=ROOT)` for
-    the `user` class, but the ONE writer rotate calls passed no root, so the
-    remedy the guard advertises was unreachable from it. This row goes through
-    the REAL caller -- rotate._write_rotation_record, the writer rotate/heal/
-    sensei all share -- against a tmp project whose cell carries user_roots."""
+    """dg6-04 residue 3, dh347 item 2: the refusal names `home_relative(text,
+    root=ROOT)` for the `user` class, but the ONE writer rotate calls passed no
+    root, so the remedy the guard advertises was unreachable from it. This row
+    goes through the REAL caller -- rotate._write_rotation_record, the writer
+    rotate/heal/sensei all share -- and drives the DEFAULT branch of
+    `_cell_root`: NOTHING is stubbed, the cell read is the LIVE one, so the row
+    goes red the moment the writer stops resolving from its own path."""
     import rotation_record
     monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
     root = tmp_path / "proj"
     (root / ".agi" / "sessions").mkdir(parents=True)
-    (root / ".agi" / "config.json").write_text(json.dumps(
-        {"anonymize": {"user_roots": ["/" + "tmp/pytest-of-"]}}), encoding="utf-8")
-    monkeypatch.setattr(rotation_record, "_cell_root", lambda given=None: root)
     text = "basetemp " + "/" + "tmp/pytest-of-" + "fixtureuser/pytest-3"
-    path = rotate._write_rotation_record(root.parent / (".agi"), {"seat": "probe", "cmd": text})
+    path = rotate._write_rotation_record(root / ".agi", {"seat": "probe", "cmd": text})
     written = json.loads(path.read_text(encoding="utf-8"))["cmd"]
     assert "fixtureuser" not in written, "the user segment survived the writer"
     assert written.endswith("<user>/pytest-3")
-    assert rotation_record.dump_record({"cmd": text}, root=root) == json.dumps(
+    assert rotation_record.dump_record({"cmd": text}) == json.dumps(
         {"cmd": written}, indent=2) + "\n"
+
+
+def test_the_writer_resolves_its_own_project_once_per_record(tmp_path, monkeypatch):
+    """dh347 items 2 and 3, the two halves a stub could not see. (a) From a
+    DIFFERENT project's directory -- one holding its own competing cell -- the
+    writer still honours the cell of the project it lives in: a CWD-derived
+    root would read the other project's `anonymize` and rewrite nothing.
+    (b) ONE resolution per record, not one per string leaf: two records of the
+    same shape, one 8x longer, must resolve the root the SAME number of times
+    (the record still reads the LIVE cell -- only the PATH lookup is cached)."""
+    import locations, rotation_record
+    elsewhere = tmp_path / "elsewhere"
+    (elsewhere / ".agi").mkdir(parents=True)
+    (elsewhere / ".agi" / "config.json").write_text(
+        json.dumps({"anonymize": {"user_roots": ["/" + "opt/other/"]}}),
+        encoding="utf-8")
+    monkeypatch.chdir(elsewhere)
+    assert rotation_record._cell_root() != elsewhere, "the root came from the CWD"
+    calls = []
+    real = locations.find_project_root
+    monkeypatch.setattr(locations, "find_project_root",
+                        lambda start=None: (calls.append(start), real(start))[1])
+    rotation_record._CELL_ROOT.clear()
+    import anonymize
+    anonymize._project.cache_clear()   # the PATH cache, cold for this row
+    rotation_record.dump_record({"log": [{"cmd": "x " * 6} for _ in range(5)]})
+    first = len(calls)
+    assert first <= 3, "the project root was resolved %d times for one small record" % first
+    rotation_record.dump_record({"log": [{"cmd": "x " * 6} for _ in range(40)]})
+    assert len(calls) == first, \
+        "the resolution scales with the record: %d -> %d" % (first, len(calls))

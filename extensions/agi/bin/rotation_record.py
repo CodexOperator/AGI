@@ -19,16 +19,20 @@ class GrepError(RuntimeError):
     frontmatter does not load. A guard that cannot look fails closed."""
 
 
+#: the ONE resolution per process, keyed by the None the caller left (dg347)
+_CELL_ROOT = {}
+
+
 def _cell_root(root=None):
-    """The project root whose `anonymize` cell this writer honours. A caller
-    that names one gets that one; otherwise the project this writer lives in
-    -- so the `user` remedy the refusal names is reachable from the sanctioned
-    writer with no new argument at any of its call sites (dg6-04 residue 3)."""
+    """The project root whose `anonymize` cell this writer honours: the one the
+    caller names, else the WRITER's own project -- never the CWD; None = no cell."""
     if root is not None:
         return root
-    import locations
-    return (locations.shared_project_root()
-            or locations.find_project_root(Path(__file__).resolve().parent))
+    if None not in _CELL_ROOT:
+        import locations
+        _CELL_ROOT[None] = locations.find_project_root(
+            Path(__file__).resolve().parent)
+    return _CELL_ROOT[None]
 
 
 def home_rel(obj, root=None):

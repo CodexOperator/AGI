@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """anonymize.py — physical-token guard at the write seam (SM.122)."""
 from __future__ import annotations
-import argparse, ipaddress, json, os, pwd, re, socket, subprocess, sys
+import argparse, functools, ipaddress, json, os, pwd, re, socket, subprocess, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import envfile, locations
@@ -23,6 +23,11 @@ MIN_TOKEN = 4
 #: (SM residue 128: a home outside /home and /Users passed the gate): the two
 #: conventional roots + the config cell `anonymize.home_roots` (path prefixes a
 #: user-name segment follows) + this box's own login homes, from pwd and $HOME.
+@functools.lru_cache(maxsize=None)   # once per PROCESS, not once per string leaf
+def _project(start):
+    return locations.find_project_root(Path(start).resolve())
+
+
 def _anonymize_cell(root=None, live=False):
     """THE ONE `anonymize` cell read: home_roots, hardware and user_roots. No
     `root` reads NO cell -- a caller that never named a project never gets this
@@ -30,8 +35,7 @@ def _anonymize_cell(root=None, live=False):
     if not root and not live:
         return {}
     try:
-        base = (locations.find_project_root(Path(root).resolve()) if root
-                else locations.find_project_root(Path(__file__).resolve().parent))
+        base = _project(root or Path(__file__).resolve().parent)
         cfg = locations.config_path(base) if base else None
         if cfg is not None and cfg.is_file():
             cell = json.loads(cfg.read_text(encoding="utf-8")).get("anonymize") or {}
@@ -73,7 +77,7 @@ EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-
 def _email_allow(root=None):
     out = []
     try:
-        base = root or locations.find_project_root(Path(__file__).resolve().parent)
+        base = _project(root or Path(__file__).resolve().parent)
         cfg = locations.config_path(base) if base else None
         if cfg is not None and cfg.is_file():
             cell = json.loads(cfg.read_text(encoding="utf-8")).get("anonymize") or {}
@@ -202,11 +206,11 @@ def _read_hw_sources(rule):
             continue
         picked = [ln.split(":", 1)[1].strip() for ln in lines
                   if ln.lower().startswith(field.lower() + ":")]
-        # the REAL on-box shape of a /sys/class/dmi file is ONE bare value line,
-        # no colon: a `field` that matches nothing must not make the source
-        # inert and the board name unguarded (dg6-04 residue 2)
-        names += picked or [ln.strip() for ln in lines
-                            if ln.strip() and ":" not in ln]
+        # ONE bare value line, and only from a file with NO colon line at all:
+        # a MIXED file is keyed, not bare (dh347)
+        bare = [ln.strip() for ln in lines if ln.strip() and ":" not in ln]
+        names += picked or (bare[:1] if bare and
+                            not any(":" in ln for ln in lines) else [])
     return names
 def _hw_fragments(name, min_words, core_digits):
     """NAME -> every run of >= min_words consecutive words holding a word of
