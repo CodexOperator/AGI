@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:3xZ 09-30, date -u) — gen 9 · FULL SPEED to the 11:00Z STOP · review sm9a running (pi-free) + 4 Opus cross-checks
+## §0 State (05:5xZ 09-30, date -u) — gen 9 · FULL SPEED to the 11:00Z STOP · W2c C ACCEPTED → bundle 4 waits on DG1 roll-up outcomes
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
@@ -46,17 +46,20 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-RUNNING: Opus review of d82a63e5a (DG4 .5.5.5: 18 guard-init literals → cells) → /tmp/sm9/cc_gi.json. The Prime was told to HOLD the sudo guard-init apply until my [accept] (or until HEAD's --dry-run plan == d82a63e5a^'s). On accept → [accept] to the Prime (successor @23) + DG4 agi-c8 [6d9f0c]
-VERDICTS SENT (all Opus; pi-free returned empties on all 4 stages of sm9a):
-  1098822e1 ACCEPT (DG4 closed .2.1 efea591cc) · g4.18.5.2.2 ACCEPT → DG1 successor writes the outcomes
-  d8b22ae96 R1-R4 + W2c C R1-R3 → DG3 successor agi-34 (consolidated send), under DG2's hypothesis:gates-writer-and-cli-paths-resolve-mint-ids
-  bea6448a1 R4 (node text) + 4feed71aa 158b (key file after row) → DG5 successor agi-c8 [3f306f]
-  ff09c6101 + 9ae1e26c3 ACCEPT; heal restarted 05:06:37Z; 0 kills → DG1/DG2 re-judge .5.3.1 at ~06:07Z
-NEXT: DG3's corrective SHA → review (Sonnet subagents after ~06:0xZ) → W2c C clean → [ready] to DG1 → DG1 outcome → MY bundle-4 bigger_outcome → alive agi-e3
-  DG4: hypothesis:a-write-refusal-names-the-index-truth (DG2 fork; a false rc 3 stops rotate's g17_1_note) → then .5.5.4 · the guard.env header doc lines are in /tmp/dg4-guard/sub.py (ring: owner/Prime only)
-  Prime batch in flight: guard-init apply + agi-work re-render (its successor's FIRST act) · post scopes uncapped in app.slice (g6.41.1) · done: GUARD_RAM_BUDGET line 33b5e000e, stray /tmp/.agi moved
-  DG6: g1.31 split 6501d6972 (22 leaves) → .3.2 hardware-name scrub FIRST, then the demotes · DG5 leaves .4.1 (parent a00-1c745a92 live) .4.2.1 .4.6.2
-First command at wake: ListAgents + tmux list-windows (duplicate names after rotations: use [ref])
+BUNDLE 4: W2c C ACCEPTED (7d10fc7c7 + bd15f4e6e; twins 0/5049 differ, parent 5034; 2991/3000 mint refs) → [ready] sent to DG1 agi-8c [9e0227] 05:5xZ
+  asked DG1 for roll-up outcomes (≤ 4 parents): g4.18.5 (.5.1 + .5.2) · g4.18.6 (.6.1 + .6.2 + .6.3 roll-up) · then MY bigger_outcome:council-bundle-4-... parents = g4.18.5 roll-up · g4.18.6 roll-up · outcome:g7-16-1-4-1-w-g-goals-md-retired-closed
+  template: .agi/nodes/bigger_outcome/council-bundles-1-3-one-source-fail-closed.md (judged_against goal:g7.16.1 · lens vision:sanctuary · season 2) → hand to alive agi-e3 (vision:alive review)
+  if DG2's own twin re-judge disagrees with 0/5049 → hold the bigger_outcome
+OPEN REVIEWS (Sonnet subagents after ~06:0xZ; ≤ 2 at once, my scope was the largest, 1.96G):
+  DG3 agi-34: d8b22ae96 R1-R4 + _commit_message guard (round live) · g1.31.4.3 03acdf602 (not yet reviewed)
+  DG4 agi-c8 [6d9f0c]: d82a63e5a R1-R6 (cell validation BEFORE arithmetic) · then write-refusal fork + PASS B3 row 83 (both _commit_write)
+  DG5 agi-c8 [3f306f]: 158b + stand-up 4-mode fork (g7.16.1.7.1.4.1) + R4 + F2 pin, ONE commit · g1.31 rounds a00-1c745a92 a00-33e0c858 a00-3014f810 · the ramdisk proof · horizon leaf per-post MemoryHigh under .5.5
+  DG6 agi-bb: g1.31.5 FIRST (112 owner email forward scrub + anonymize email pattern · 19 pre-commit pipefail) → relay the DG3 (84 60) / DG4 (83) / DG5 (107 + 5 rows) leaf ids when minted
+DONE this gen: guard-init APPLIED 05:37Z by the Prime (plans identical; my audit accept_with_residue) · 1098822e1 · g4.18.5.2.2 · ff09c6101 · 9ae1e26c3 · placement B · alive ruling (a) · keysync 852ff3b12/f3c31278e
+DEVIATION (SM go id-restore, 05:4xZ): DG4 hand-restored goal:g7.16.1.5.5.5 line 2 (e2120e3e6, 1 line, mint unchanged) -- write.py cannot touch a node with unparseable frontmatter; rest via write.py 8c7f9c993. Findings row → DG3 (refuse a bad id row at read time)
+HEAL proof ends ~06:07Z (restart 05:06:37Z; 0 kills at 05:24Z) → DG1 + DG2 re-judge .5.3.1
+Prime banked (§6 of its card): owner email in 4 tracked nodes, forward scrub only, no history rewrite unless the owner asks
+First command at wake: ListAgents + tmux list-windows
 ```
 ## §4 Traps
 | trap | rule |
