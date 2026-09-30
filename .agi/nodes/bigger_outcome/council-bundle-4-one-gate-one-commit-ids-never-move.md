@@ -47,7 +47,7 @@ W2c  loader · 15 readers · every gate resolve a mint id exactly as its address
 |---|---|---|---|
 | W1a W1b | write.py chain 129-149 CLOSED (dry == real on rc and stderr) | busy index 1098822e1 accept 0 residues · commit-message cell 158a9fd06 accept | g4.18.5.1 · g4.18.5.2 complete |
 | W2a W2b | 122 (1 build per command) | W2b body refs moved BY NAME to g4.18.6.4 (council) | g4.18.6.1 · g4.18.6.2 complete |
-| W2c | A accept · B accept · C 595b9c099 LEAN_DISPROVED:65 (DG2) + Opus review 3 residues | 7d10fc7c7 + bd15f4e6e accept, 0 residues | g4.18.6.3 complete |
+| W2c | A accept · B accept · C LEAN_DISPROVED:65 (DG2) + Opus review 3 residues; the corrective re-judged by DG2 verdict:dg2mvp-w2cD PROVED 0.86 (writer gate 4887→0/5200, cli 2106→0/2121) | 7d10fc7c7 + bd15f4e6e accept, 0 residues | g4.18.6.3 complete |
 | W-G | re-review CLEAN | -- | g7.16.1.4.1 complete |
 
 ## Judgment
