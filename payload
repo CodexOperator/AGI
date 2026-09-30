@@ -24,6 +24,7 @@ MAIN=$(cell RAM_MAIN); RAM_DIR=$(cell RAM_DIR /mnt/agi-ram); SYNC_MIN=$(cell RAM
 DISK="$(dirname "$MAIN")/.$(basename "$MAIN")-disk"; RAM="$RAM_DIR/$(basename "$MAIN")"
 STATE="$DISK/.agi/sessions/ram-main"   # on disk: survives a reboot
 EXCL=(--exclude=/.git --exclude=/.agi/worktrees --exclude=/.env)
+KEEP=(--exclude=/.agi/sessions/ram-main)   # STATE lives on DISK only: a RAM -> DISK --delete must never remove it
 ev() { mkdir -p "$STATE"; echo "$(date -u +%FT%TZ) $*" | tee -a "$STATE/events.log"; }
 is_up() { [ "$(findmnt -rn --mountpoint "$MAIN" -o FSTYPE 2>/dev/null | head -1)" = tmpfs ]; }
 bind_in() { [ -e "$DISK/$1" ] || return 0; if [ -d "$DISK/$1" ]; then mkdir -p "$RAM/$1"; else mkdir -p "$(dirname "$RAM/$1")"; touch "$RAM/$1"; fi
@@ -62,12 +63,12 @@ sync)
     [ -s "$STATE/stale-cwd-writes.new" ] && { ev "sync: $(wc -l < "$STATE/stale-cwd-writes.new") file(s) written to DISK by a stale cwd"; cat "$STATE/stale-cwd-writes.new" >> "$STATE/stale-cwd-writes"; }
   fi
   touch "$STATE/last-sync.next"
-  ionice -c3 nice -n19 rsync -a --delete "${EXCL[@]}" --exclude='/.agi/sessions/iter-*' "$MAIN/" "$DISK/"
+  ionice -c3 nice -n19 rsync -a --delete "${EXCL[@]}" "${KEEP[@]}" --exclude='/.agi/sessions/iter-*' "$MAIN/" "$DISK/"
   mv "$STATE/last-sync.next" "$STATE/last-sync" ;;
 revert)
   is_up || { echo "ram-main: not up"; exit 0; }
   ev "revert: full sync back"
-  rsync -a --delete "${EXCL[@]}" "$MAIN/" "$DISK/"
+  rsync -a --delete "${EXCL[@]}" "${KEEP[@]}" "$MAIN/" "$DISK/"
   sudo umount -R "$MAIN"
   for p in .env .agi/worktrees .git; do mountpoint -q "$RAM/$p" && sudo umount "$RAM/$p"; done
   sudo umount "$DISK" && rmdir "$DISK"; rm -rf "$RAM"
