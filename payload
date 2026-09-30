@@ -476,7 +476,7 @@ def verb_row(edit: Edit, ref: str, source: str) -> Edit:
     `row <top>.<key> <src|->` (BUILD1) addresses a NESTED frontmatter row
     instead: `<src>` is the row's new YAML value; resolved by `_resolve_fm_row` into `set_fm[<top>]`; `--remove` as
     the source removes the row (an empty source refuses, SM 110)."""
-    if re.fullmatch(r"[A-Za-z_][\w-]*\..+", ref) and not ref.startswith("name:"):
+    if re.fullmatch(r"[A-Za-z_][\w-]*\..+", ref):
         if any(ref == seen for seen, _ in edit.fm_rows):
             raise EditError(f"row {ref} twice in one script")
         edit.fm_rows.append((ref, source.strip()))
@@ -498,7 +498,8 @@ def _row_range(body: str, row_ref: str) -> str:
     if row_ref.startswith("name:"):   # goal:g4.18.5.1.2: the ONE table row whose first cell is NAME
         name, lines = row_ref[5:], body.split("\n")
         hits = [a for a, b in rows if a == b and lines[a - 1].lstrip().startswith("|")
-                and lines[a - 1].strip().strip("|").split("|")[0].strip() == name]
+                and lines[a - 1].strip().strip("|").split("|")[0].strip() == name
+                and not set(name) <= set("-: ")]   # a separator row is never a name
         if len(hits) != 1:
             raise EditError(f"row {row_ref}: {len(hits)} table rows are named {name!r}, want 1")
         return f"{hits[0]}:{hits[0]}"
@@ -573,14 +574,25 @@ def _thought_marker_refusal(body: str, rng: str, new_text: str) -> str | None:
     """goal:g4.18.5.1.1 -- a body range holding a THOUGHT marker LINE refuses:
     update_node carries the old THOUGHT back, so the block would duplicate.
     Lines strictly inside the markers stay admitted; so does a range holding
-    the WHOLE block when the new text brings its own complete block."""
+    both markers when the new text brings a block. Whatever the range, the
+    SPLICED body must hold at most one well-formed block and no stray marker
+    line (SM 112; hypothesis:body-replace-lands-at-most-one-well-formed-
+    thought-and-row-name-skips-the-separator)."""
     lo, hi = _parse_range(rng)
-    seg = body.split("\n")[(lo or 1) - 1:hi]
-    marks = [ln for ln in seg if re.match(r"<!--\s*THOUGHT:(BEGIN|END)\b", ln)]
-    if not marks or (len(marks) == 2 and node_writer._THOUGHT_RE.search(new_text or "")):
+    mark = node_writer.THOUGHT_MARKER_LINE_RE
+    marks = [ln for ln in body.split("\n")[(lo or 1) - 1:hi] if mark.match(ln)]
+    try:
+        out = _splice_range(body, rng, new_text or "")
+    except EditError as exc:
+        return str(exc)
+    blocks = node_writer.thought_blocks(out)
+    if ((not marks or (len(marks) == 2 and node_writer._THOUGHT_RE.search(new_text or "")))
+            and len(blocks) <= 1
+            and sum(bool(mark.match(ln)) for ln in out.split("\n")) == 2 * len(blocks)):
         return None
-    return (f"body {rng} holds a THOUGHT marker line: rewrite the THOUGHT with the "
-            f"`thought` verb, and replace only the lines around it")
+    return (f"body {rng} would leave the THOUGHT malformed (a marker line in the range, "
+            f"a second block or a stray marker): rewrite it with the `thought` verb, "
+            f"and replace only the lines around it")
 
 
 def verb_sub(edit: Edit, spec: str) -> Edit:
