@@ -1391,6 +1391,44 @@ def _sweep_iter_home(wt_iter: Path, target: Path) -> bool:
     return True
 
 
+def _sweep_cold_link(root: Path, main_sessions: Path, iter_name: str):
+    """goal:g7.16.1.5.3.2 -- when config:guard names the cold sessions home
+    (`GUARD_AGI_SESSIONS_ARCHIVE_<box>`, the goal:g7.16.1.5.2 cell) and MAIN
+    has no entry for `iter_name` yet, create `<cold>/<iter>` and symlink
+    MAIN's entry to it, so session-complete's copy lands on disk -- never a
+    real dir on the RAM disk. Returns `(link, dest)` for the rollback, or
+    None (no cell, an entry already there, or the link failed)."""
+    cold = locations.guard_cell(root, "AGI_SESSIONS_ARCHIVE")
+    link = main_sessions / iter_name
+    if not cold or link.exists() or link.is_symlink():
+        return None
+    dest = Path(cold) / iter_name
+    if dest.exists() or dest.is_symlink():  # never write into a foreign dir
+        dest = Path(cold) / f"{iter_name}.{int(time.time())}"
+    try:
+        dest.mkdir(parents=True)
+        link.parent.mkdir(parents=True, exist_ok=True)
+        link.symlink_to(dest)
+    except OSError as exc:
+        with contextlib.suppress(OSError):
+            dest.rmdir()
+        _watch_log(f"[sweep] cold link refused {iter_name}: {exc.strerror or exc}")
+        return None
+    return link, dest
+
+
+def _sweep_cold_unlink(linked) -> None:
+    """Undo `_sweep_cold_link` after a homing that did not land -- ONLY while
+    the cold dir is still EMPTY: a dir holding any byte may hold a source's
+    verified contribution, so it and its link stay (no byte is lost)."""
+    link, dest = linked
+    with contextlib.suppress(OSError):
+        if not any(dest.iterdir()):
+            dest.rmdir()
+            if link.is_symlink():
+                link.unlink()
+
+
 def _sweep_bring_home(root: Path, main_sessions: Path, wt_iter: Path,
                       dry_run: bool, homed: dict) -> str | None:
     """hypothesis:l4-a-finished-rounds-session-dir-comes-home-before-the-\
@@ -1433,6 +1471,7 @@ sweep-judges-it.
     except Exception as exc:  # noqa: BLE001
         homed[iter_name] = f"cli import failed ({exc})"
         return homed[iter_name]
+    linked = None if dry_run else _sweep_cold_link(root, main_sessions, iter_name)
     try:
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
@@ -1441,6 +1480,8 @@ sweep-judges-it.
                 worktree=None, dry_run=dry_run)
         text = buf.getvalue()
     except Exception as exc:  # noqa: BLE001 — session-complete raised
+        if linked:
+            _sweep_cold_unlink(linked)
         homed[iter_name] = f"home failed (raised: {exc})"
         return homed[iter_name]
     if dry_run:
@@ -1459,6 +1500,8 @@ sweep-judges-it.
             wt_iter, main_sessions / iter_name):
         homed[iter_name] = ""
         return None
+    if linked:
+        _sweep_cold_unlink(linked)
     homed[iter_name] = _sweep_refusal_reason(text)
     return homed[iter_name]
 
