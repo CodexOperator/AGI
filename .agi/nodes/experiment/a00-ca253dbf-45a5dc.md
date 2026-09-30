@@ -9,6 +9,7 @@ confidence: 0.9
 edited_by: a00-b11b4ef2
 evidence_runs:
   - experiment:a00-ca253dbf-45a5dc
+line_ceiling: 39
 loop: hypothesis:remint-adopts-its-own-orphan-staged-key@s2
 model: stealth/space-bunny-alpha
 production_lines: 39
