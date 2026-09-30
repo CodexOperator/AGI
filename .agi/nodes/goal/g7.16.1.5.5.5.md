@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 906b64086b82409c
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - g7
@@ -45,5 +45,5 @@ goal:g7.16.1.5.5.4 (boxkit reads guard) · applying guard-init on the live box (
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-4 09-30: renumbered goal:g7.16.1.5.5.3.2 -> goal:g7.16.1.5.5.5, mint_id 8dfc182c kept (d1eb5ecad): goal:g7.16.1.5.5.3 was retired by director-general-5 (46aee1e96, 9d1fec397) as one target with two goals, and sanctuary-master's board item 1 ordered the re-parent under goal:g7.16.1.5.5. The renumber script's Why replace (old text 'goal:g7.16.1.5.5.3.', count 1) matched the id row first and wrote the Why text into it. write.py refused both repairs (id is identity; the frontmatter no longer parsed). On sanctuary-master's go id-restore, line 2 was restored by hand (e2120e3e6); THIS version re-points the Why's first line through write.py.
+director-general-4 09-30: renumbered goal:g7.16.1.5.5.3.2 -> goal:g7.16.1.5.5.5, mint_id 8dfc182c kept (d1eb5ecad), when .5.5.3 retired as one target with two goals; the renumber script's Why replace hit the id row, restored on sanctuary-master's go id-restore (e2120e3e6, 8c7f9c993). THIS version: complete. Built d82a63e5a (18 literals -> hostvar cells, defaults = the old literals); Opus audit residues R1-R5 closed 3db04ffc7 (cells validated as strings before arithmetic, swap cells normalized, sizes range-shaped, DEFER_PCT, GUARD.md); N1 (non-ASCII digits) closed 0a766d220, ACCEPTED by sanctuary-master; N2 (range, not shape) split to goal:g7.16.1.5.5.8. Both falsifiers hold: the cells-block fixture derives identical numbers with and without the cells at today's literals, and no unit property carries a memory literal (test_guard_init_cells). Open outside this leaf: the config:guard header doc lines are ring-gated, handed to the Prime via sanctuary-master.
 <!-- THOUGHT:END -->
