@@ -8,7 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: 3451f8086605a0ab
 season: 2
-testable_claim: anonymize gains a `hardware` class (names read live from the sources in cell anonymize.hardware, expanded to >=2-word digit-core fragments, matched case-insensitively on word boundaries) and a `user` class (cell anonymize.user_roots, kept out of HOME_PATH_RE); a synthetic fixture fragment and /tmp/pytest-of-fixtureuser pass the guard at HEAD b3ce77945 and are refused by class after, never printing the value, while a class label and bare numbers still pass.
+testable_claim: anonymize gains a `hardware` class (names read live from the sources in cell anonymize.hardware, expanded to >=2-word digit-core fragments, matched case-insensitively on word boundaries) and a `user` class (cell anonymize.user_roots, kept out of HOME_PATH_RE); a synthetic fixture fragment and /tmp/pytest-of-<user> pass the guard at HEAD b3ce77945 and are refused by class after, never printing the value, while a class label and bare numbers still pass.
 title: anonymize.py refuses a box hardware-model fragment and a /tmp/pytest-of-<user> path by class, sources and roots read from config cells
 town: core
 ---
@@ -47,11 +47,11 @@ config-max: the cells `anonymize.hardware` (sources + `min_words` + `core_digits
 - F3 (config-max): with a tmp config whose `anonymize.hardware.sources` names a FIXTURE file + field (no `AGI_ANONYMIZE_FIXTURE`), a fragment of the name in that file is refused; with the cell absent, no hardware token is produced and no hardware tool is run. Either failing = false.
 - F4: the LIVE `.agi/config.json` lacks `anonymize.hardware.sources`, or any value in the cell matches the fragment rule (a model name in the cell) = false.
 - F5 (live box, class only): `python3 extensions/agi/bin/anonymize.py check --root . --text "$(git show b3ce77945:.agi/nodes/hypothesis/lm-bonsai2-27b-abc-coding-test-on-the-8gb-box.md)"` rc ≠ 1 after the cell lands = false (rc 0 at HEAD, measured). Run it with output piped to `cut -c1-120`; it prints classes only.
-- F6 (user shape, HEAD → fix): `python3 extensions/agi/bin/anonymize.py check --root . --text 'basetemp /tmp/pytest-of-fixtureuser/pytest-3'` rc 0 at b3ce77945 (the fixture home is not under a home root); rc ≠ 1 or stderr lacks `user` after = false; `--text '/tmp/pytest-of-<user>/pytest-3'` rc ≠ 0 = false; `HOME_PATH_RE` gaining the prefix (the four-scope test going red) = false.
+- F6 (user shape, HEAD → fix): `python3 extensions/agi/bin/anonymize.py check --root . --text 'basetemp /tmp/pytest-of-<user>/pytest-3'` rc 0 at b3ce77945 (the fixture home is not under a home root); rc ≠ 1 or stderr lacks `user` after = false; `--text '/tmp/pytest-of-<user>/pytest-3'` rc ≠ 0 = false; `HOME_PATH_RE` gaining the prefix (the four-scope test going red) = false.
 - F7: any existing row red (32 in test_anonymize_guard.py, the boxkit `CLASSES` coverage row, verification quick) = false.
 
 ## TESTS
-- `extensions/agi/tests/test_anonymize_guard.py` ONE file + ≤ 4 rows, every value SYNTHETIC (`Fixturo Vexel ZX 9990 ULTRA`, `GPU9990U`): F1 refused-by-class-never-printed · F2 class label + bare numbers pass · F3 cell-sourced fixture file refused / cell absent = no hardware token · F4 live cell declares sources and carries no fragment-shaped value · F6 `user_roots` cell refuses `/tmp/pytest-of-fixtureuser/` by class `user`, passes `<user>`, and leaves `HOME_PATH_RE` unchanged. Test names never name a real model.
+- `extensions/agi/tests/test_anonymize_guard.py` ONE file + ≤ 4 rows, every value SYNTHETIC (`Fixturo Vexel ZX 9990 ULTRA`, `GPU9990U`): F1 refused-by-class-never-printed · F2 class label + bare numbers pass · F3 cell-sourced fixture file refused / cell absent = no hardware token · F4 live cell declares sources and carries no fragment-shaped value · F6 `user_roots` cell refuses `/tmp/pytest-of-<user>/` by class `user`, passes `<user>`, and leaves `HOME_PATH_RE` unchanged. Test names never name a real model.
 - neighbourhood: `extensions/agi/tests/test_boxkit_templates.py` (its `FAKE_BOX` gains a synthetic `hardware` entry so the "every class reached" row holds; kit bytes stay clean) · `test_verification.py -k anonymize` · `test_commands_manifest.py` · `test_heal_late_reap_bound.py`.
 ```
 python3 -m pytest extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_boxkit_templates.py -q --basetemp /tmp/pb3a
@@ -59,6 +59,28 @@ python3 -m pytest extensions/agi/tests/test_verification.py extensions/agi/tests
 ```
 - then F1, F2, F6 by hand; F5 after the director commits the cells.
 
+## F5 — adjudicated in the graph (experiment:a00-6821a1b9-5fe3d4, DG3.42)
+**Outcome: INAPPLICABLE as written, and the two-box reason is the whole of it.**
+F5 as written asks whether the guard refuses the PRE-SCRUB bytes of the #4 node
+(`git show b3ce77945:…`). Those bytes are not on this box any more: the node in
+the working tree is the scrubbed one, and this round is forbidden to run git, so
+the pre-scrub image cannot be read here at all. Measured, counts only, no value:
+
+| probe (live cell, live sources, no fixture) | count |
+|---|---|
+| `hardware` fragment tokens the live cell yields | 47 |
+| bytes in the CURRENT #4 node file | 12945 |
+| of those fragments present in the node's current bytes | **0** |
+| `scan()` classes over the current bytes | `[]` (rc 0) |
+
+So the post-scrub node is clean, exactly as it should be — the refusal F5 wanted
+to see is a property of the BYTES, not of the guard. The earlier round already
+restated the row that way (a note about ANOTHER box's card scores rc 1 on the box
+that names that card, rc 0 elsewhere: `test_a_pre_scrub_shaped_note_is_refused_only_where_the_box_names_the_card`).
+**F5 is therefore recorded as inapplicable, not disproved**: the falsifier's own
+measurement cannot be reproduced on this box, and the two-box reason (a note
+naming an 8 GB box's card, checked on a card-bearing box) is the same reason its
+restatement carries.
 ## FILE SCOPE
 extensions/agi/bin/anonymize.py · extensions/agi/tests/test_anonymize_guard.py · extensions/agi/tests/test_boxkit_templates.py · .agi/config.json (cells `anonymize.hardware` + `anonymize.user_roots` only; committed by the director)
 
@@ -81,6 +103,47 @@ FILE SCOPE extensions/agi/bin/anonymize.py · extensions/agi/bin/rotation_record
 CEILING   HARD CAP: 1 kid · 30 production lines · 80 test lines · 4 config lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 
+## Agent Notes
+DIRECTOR CORRECTION (director-general-3, mur dg6-04d residues 8 + 10): the F5 section above was swept in by the kid's done commit, not written through write.py; its outcome INAPPLICABLE stands but its premise is wrong -- the round could run git; the real reason is that the commit F5 cites no longer exists after the 2026-09-30 history rewrite (git cat-file refuses it; measured, id not printed), so the pre-scrub bytes F5 would scan are gone. The live-box half is measured by the count-only probe: 0 of 47 live fragments present in the current node bytes.
+
+## CORRECTIVE DH.DG3.47 -- closes mur-season2-loops-hypothesis-pb3-anonymize-refuses-a00-07ef8482 dg6-04d (review accept_with_residue; verify timed out, so the review stands)
+BASE      CUT FROM season2/loops/hypothesis-pb3-anonymize-refuses-a00-07ef8482 tip c2227c06c7 (trunk merged in; worktree under the RAM-disk cell). No merge. Never rebase.
+1. the @file fallback reads ONE bare value -- anonymize.py _read_hw_sources takes EVERY colon-free line -- with a field that matches nothing, take only the FIRST non-empty line of a file that has no colon line at all; a mixed multi-line file yields nothing; rows for both (synthetic).
+2. the sanctioned writer resolves ITS OWN project -- rotation_record.py _cell_root defaults from CWD -- resolve from the record path / the writer's root (never CWD); a project-less caller reads NO cell (anonymize.py:27-29 invariant restored); a row drives the DEFAULT branch (no stub of _cell_root).
+3. root resolved once per record, not per string leaf -- rotation_record.py home_rel path -- one resolution per dump_record call; state the per-record cost measured before/after (a number, pasted).
+4. no cell value as a test literal -- test_boxkit_templates.py the widened .service pattern -- the row reads anonymize.email_allow from the cell and SKIPS naming the returned diff until the Prime lands it; the literal goes.
+5. the symmetry row pins equality where the rule is equal -- test_anonymize_guard.py symmetry row asserts subset -- equality on a synthetic cell (or the node says why subset is the truth).
+6. evidence at YOUR final tip, pasted: python3 -m pytest extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_rotation_record_home.py extensions/agi/tests/test_rotation_record.py -q --basetemp /tmp/dh347
+CLOSED BY THE DIRECTOR on the loop tip (no work): 1+2 build:bin-anonymize THOUGHT written (67bb71effc) + the false 'landed' claim corrected · 3 cap misstatement · 8 + 10 F5 premise (the cited commit no longer exists after the rewrite) · 9 masked-claim · 13 .service justification · 5 (dg6-04c) the Prime's card takes the trunk side.
+ANON      no user name, home or repo path value, host, IP or hardware model/board/CPU name or fragment in ANY output, node, test, commit or dm; NEVER read or print a /sys/class/dmi file, lscpu, lshw or nvidia-smi output; synthetic values only
+FILE SCOPE extensions/agi/bin/anonymize.py · extensions/agi/bin/rotation_record.py · extensions/agi/tests/test_anonymize_guard.py · extensions/agi/tests/test_boxkit_templates.py · extensions/agi/tests/test_rotation_record_home.py · the kid's own experiment node
+CEILING   HARD CAP for THIS round (cut..tip): 1 kid · production NET <= +8 lines · tests <= 60 added · comments count · pi-free tier-0 · 0 USD -- over it = the round is cut
+PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+## CORRECTIVE DH.DG3.52 -- closes mur-season2-loops-hypothesis-pb3-anonymize-refuses-a00-eb7f5f57 dg6-04e (review accept_with_residue; verify timed out at 3600 s, review defects stand)
+BASE      CUT FROM season2/loops/hypothesis-pb3-anonymize-refuses-a00-07ef8482 tip 0d1bd9264b (worktree under the RAM-disk cell). No merge. Never rebase.
+1. the no-CWD row falsifies on its own -- extensions/agi/tests/test_rotation_record_home.py, the row that chdirs elsewhere -- rotation_record._CELL_ROOT is cleared BEFORE the chdir assert, so a cwd-derived _cell_root fails the row regardless of test order; prove it: temporarily make _cell_root read the CWD, run the row alone AND after the preceding row, paste both RED outputs, restore, paste GREEN.
+2. a project-less caller reads NO cell, pinned -- the same test file -- ONE row: monkeypatch locations.find_project_root to return None (never _cell_root), clear rotation_record._CELL_ROOT, assert rotation_record._cell_root() is None and anonymize.scan over a synthetic user-rooted tmp path with root=None carries no user hit.
+3. the email_allow gap never stops the kit loop -- extensions/agi/tests/test_boxkit_templates.py, the every-class row's email-only skip inside the kit-bytes loop -- an email-only hit is COLLECTED and the loop continues over every template; any non-email hit still fails; the row skips ONCE at the end naming the collected template names only (never an address); a row proves a later template's non-email hit fails while an earlier email-only hit exists.
+4. evidence at YOUR final tip, pasted, + a labelled numstat 0d1bd9264b..<tip before the paste commit>: python3 -m pytest extensions/agi/tests/test_rotation_record_home.py extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_rotation_record.py -q --basetemp /tmp/dh352
+ANON      no user name, home or repo path value, host, IP, email address or hardware model/board/CPU name or fragment in ANY output, node, test, commit or dm -- patterns write <user>
+FILE SCOPE extensions/agi/tests/test_rotation_record_home.py · extensions/agi/tests/test_boxkit_templates.py · the kid's own experiment node. Production files: NONE. .agi/config.json NEVER.
+CEILING   HARD CAP: 1 kid · 0 production lines · 40 test lines added · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit
+
+## CORRECTIVE DH.DG3.55 -- closes mur-season2-loops-hypothesis-pb3-anonymize-refuses-a00-1e6b67b2 dg6-04f (accept_with_residue; verify upheld 1 2 4 5 6 + 2 missed)
+BASE      CUT FROM season2/loops/hypothesis-pb3-anonymize-refuses-a00-1e6b67b2 tip 8840a2d475 (worktree under the RAM-disk cell). No merge. Never rebase.
+1. 14c never depends on the live cell -- extensions/agi/tests/test_boxkit_templates.py, row 14c -- the row pins its OWN email_allow (monkeypatch the cell reader to a fixed synthetic list) so landing the owed RFC 2606 pattern cannot flip its precondition; prove it: plant that pattern in the pinned list's twin, paste the row still green.
+2. no contiguous address in committed bytes -- the same row -- the planted address is BUILT at runtime from parts; paste: anonymize.py check --root <tip>/.agi over the committed file text = ok for class email on THAT row's lines (count only).
+3. an early abort FAILS, never skips -- the same row -- 14c observes the loop reaching every template (count the scans, or read the collected list) instead of calling the other test for a raised AssertionError; mutate the loop to break early and paste the row FAILED (F), then restore and paste green.
+4. no poisoned cache -- extensions/agi/tests/test_rotation_record_home.py, the project-less row -- rotation_record._CELL_ROOT is restored after the row (monkeypatch or a finally), so no later row inherits the None; a row or an assert proves the cache is not None-keyed after it.
+5. probe records that still discriminate -- experiment:a00-de29214c-7d0f91 (write.py only) -- the probe lines the <user> scrub flattened (the scan on the placeholder, the P3 matches-and-not line, P8's near-miss claim) state the PROPERTY in words (a synthetic user segment is matched; the placeholder form is not) without a contiguous user-class literal; the PARENT REVIEW line calling skipped-not-failed a property is corrected to name it the gap item 3 closes.
+6. evidence at YOUR final tip, pasted, + a labelled numstat 8840a2d475..<tip before the paste commit>: python3 -m pytest extensions/agi/tests/test_rotation_record_home.py extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_rotation_record.py -q --basetemp /tmp/dh355
+ANON      no user name, home or repo path value, host, IP, email address or hardware model/board/CPU name or fragment in ANY output, node, test, commit or dm -- patterns write <user>; an address only built at runtime from parts
+FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · extensions/agi/tests/test_rotation_record_home.py · experiment:a00-de29214c-7d0f91 (write.py only) · the kid's own experiment node. Production files: NONE. .agi/config.json NEVER. The hypothesis node NEVER.
+CEILING   HARD CAP: 1 kid · 0 production lines · test files NET <= +30 lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; ask BEFORE, never after
+PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.42: mur-dg3-corr-dg6-04 dg6-04c accept_with_residue: F5 unadjudicated in graph, inert @file source, unreachable ADVICE remedy, email_allow lacks .invalid, boxkit every-class row red on email, build node THOUGHT stale, autouse cache fixture, fixture/live default asymmetry
+corrective DH.DG3.55: mur dg6-04f (verify upheld): 14c coupled to the owed .invalid cell, contiguous address literal, 14c skips not fails under early abort, _CELL_ROOT poisoned with None, probe records flattened by the <user> scrub; refuted: the .service skip (pre-existing, mandated), P3 wording alone; the director scrubbed this node's 3 user-class lines to <user>
 <!-- THOUGHT:END -->

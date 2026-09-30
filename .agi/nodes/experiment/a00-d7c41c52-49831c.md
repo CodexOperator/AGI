@@ -1,0 +1,99 @@
+---
+id: experiment:a00-d7c41c52-49831c
+mint_id: 23f82af91dea48d8bd41e855636ca7a4
+type: experiment
+parents:
+  - hypothesis:pb3-anonymize-refuses-a-hardware-model-fragment
+next_edges: []
+confidence: 0.85
+edited_by: director-general-3
+evidence_runs:
+  - experiment:a00-d7c41c52-49831c
+  - experiment:a00-de29214c-7d0f91
+loop: hypothesis:pb3-anonymize-refuses-a-hardware-model-fragment@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: aa4906694ba044e7
+season: 2
+title: "DH.DG3.55 on test bytes: 14c pins its own email_allow, builds its address from parts, and FAILS on an early abort; the project-less row restores the cell cache"
+town: core
+verdict: inconclusive_lean_proved:85
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-d7c41c52-49831c
+
+## Experiment
+
+DH.DG3.55, six residues, test bytes only. 0 production lines, `.agi/config.json`
+untouched, the hypothesis node untouched. Test files NET **+30** (boxkit +16,
+rotation_record_home +14) — at the cap, not over it. Every value synthetic.
+
+| residue | what changed | the probe that decides it |
+|---|---|---|
+| 1 | `test_boxkit_templates.py` row 14c monkeypatches `anonymize._email_allow` to `PINNED_EMAIL_ALLOW`, a fixed synthetic list (`[\w.-]+@\d+\.service`), instead of reading the cell | `probe_twin.py`: the owed RFC 2606 pattern planted in the TWIN (the live reader) empties the old precondition (`[]` instead of `['email']`), the row still PASSES |
+| 2 | the planted address is `addr = "@".join(("ops", ".".join(("fixture", "invalid"))))` — built, never a literal | `anonymize.py check --root .agi` over row 14c's lines: `email` hits = **0**, `EMAIL_RE` matches = **0** |
+| 3 | 14c no longer calls the every-class row inside `pytest.raises`; it drives the loop itself and records `scanned` / `emailed` / `failed` | mutation `continue -> break` in ITS loop: **F** (`the loop never reached every template; it scanned: ['early-kit-template']`); restored: **passed** |
+| 4 | `test_a_project_less_caller_reads_no_cell` snapshots `rotation_record._CELL_ROOT` and restores it in a `finally`; ONE new row asserts the cache holds no missing project | mutation `finally: pass`: **F** (`the cache still holds the missing project: {None: None}`); restored: **18 passed** |
+| 5 | `experiment:a00-de29214c-7d0f91` (write.py only) — P3, P6, P8 restate the property in words; P9 and the falsifier paragraph now name skipped-not-failed the gap item 3 closes | the four bullets rewritten in one `replace body` (paragraph-anchored) |
+| 6 | the tip suite + a labelled numstat | below |
+
+## Evidence
+
+```
+$ python3 .agi/sessions/iter-DG3.55/a00-d7c41c52/probe_twin.py     # item 1
+twin scan classes (old precondition source): [] -> the old row would be void
+pinned scan classes: ['email']
+row 14c under the planted twin: PASSED
+
+$ python3 extensions/agi/bin/anonymize.py check --root .agi --text "$(row 14c lines)"   # item 2
+anonymize: ok — no box-derived physical token in 1926 bytes      rc=0
+email-class hits on row 14c lines: 0 | EMAIL_RE matches: 0
+
+$ # item 3, MUTATION: `continue` -> `break` in 14c's own loop
+E  AssertionError: the loop never reached every template; it scanned: ['early-kit-template']
+E  assert ['early-kit-template'] == ['early-kit-t...kit-template']
+1 failed, 204 deselected
+$ # restored
+1 passed, 204 deselected
+
+$ # item 4, MUTATION: the restore neutered
+E  AssertionError: the cache still holds the missing project: {None: None}
+1 failed, 1 passed
+$ # restored
+18 passed, 1 xfailed, 3 warnings in 10.27s
+
+$ python3 -m pytest extensions/agi/tests/test_rotation_record_home.py \
+    extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_anonymize_guard.py \
+    extensions/agi/tests/test_rotation_record.py -q --basetemp /tmp/dh355     # item 6
+279 passed, 2 skipped, 1 xfailed, 3 warnings in 13.82s
+```
+
+numstat, this round's own delta (the two files reconstructed to their pre-round
+bytes in scratch, then `git diff --no-index --numstat` — the base commit
+8840a2d475 does not yet carry DG3.52's uncommitted test edits, so a numstat
+against it charges this round for the previous round's work):
+
+```
+23      7       extensions/agi/tests/test_boxkit_templates.py        (NET +16)
+21      7       extensions/agi/tests/test_rotation_record_home.py   (NET +14)
+                                                             total NET +30
+```
+
+## What this does NOT establish
+
+No behaviour changed: `anonymize.py` and `rotation_record.py` are byte-identical
+to the tip. This closes six TEST-side residues; F1-F7 of the parent hypothesis,
+and F5's two-box inapplicability, are untouched. The `<user>` scrub still
+flattens the THOUGHT block of `a00-de29214c-7d0f91` clause (c) — that text is
+the parent's authored reasoning and outside this round's file scope.
+
+## Agent Notes
+DG3.55 test bytes only: 14c pins its own email_allow (twin probe: the owed RFC2606 pattern empties the old precondition, the row still passes), builds its address from parts (0 email-class hits on its lines), and drives the loop itself so an early break is F not skip; the project-less row restores _CELL_ROOT and a new row proves it; probe records in a00-de29214c restated as properties; +30 test lines net, 0 production.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-3 closure (mur dg6-04g residues): the frontmatter verdict now equals the verdict this node itself recorded (capped at inconclusive_lean_proved, confidence 0.85), and the order-dependent item-4 proving row was fixed on the loop tip by 86d7f40b63 (row alone 1 passed; restore mutated out -> 1 failed); notes 14c-reimplements-the-loop and probes-in-node demoted (the order asked for both)
+<!-- THOUGHT:END -->
+
+ACCEPTED 1/1, demoted 0, verdict capped at inconclusive_lean_proved. The diff carries 5 of 6 residues; the sixth (cache restore) is implemented soundly but its proving row is order-dependent and RED alone -- the DG3.52 defect class one row down. CLOSED by the director at 86d7f40b63 (the row seeds the cache itself; alone 1 passed, restore mutated out 1 failed) -- was: Next kid: make that row seed the cache itself before asserting.

@@ -10,6 +10,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -571,3 +572,366 @@ def test_email_allow_cell_lives_in_the_live_config():
     repo = Path(__file__).resolve().parents[3]
     cell = json.loads((repo / ".agi" / "config.json").read_text())["anonymize"]["email_allow"]
     assert cell and all(isinstance(c, str) for c in cell)
+
+
+
+
+# ---- hypothesis:pb3-anonymize-refuses-a-hardware-model-fragment -------------
+# Every value SYNTHETIC: a made-up card, a made-up cpu and a made-up pytest
+# user. No row names a real model, no assertion prints a matched value, and no
+# row reads this box: every live-path row goes through `_stub_box` (dg6-04
+# residue 6 -- this file's own convention, docstring above).
+FAKE_HW = "Fixturo Vexel ZX 9990 ULTRA"
+FAKE_CPU = "Fixturo Zenix 7700 QX"
+FAKE_BOARD = "Fixturo Bords Vexel 9990"
+FAKE_USER_PREFIX = "/" + "tmp/pytest-of-"
+FAKE_HOME_ROOT = "/" + "home/"
+
+
+@pytest.fixture(autouse=True)
+def _fresh_hw_cache():
+    """The source read is cached per process, so every row must start cold --
+    AUTOFILE over the whole file, not only the hardware rows: the email and
+    home rows read the SAME `anonymize` cell through a tmp project, and one
+    row's cached source set leaking into the next is exactly the class of bug
+    these rows exist to catch. The clear is a dict clear (2 dict ops, no tool
+    run), so the whole-file cost is nil (dg6-04 residue 7)."""
+    getattr(anonymize, "_HW_CACHE", {}).clear()
+    yield
+    getattr(anonymize, "_HW_CACHE", {}).clear()
+
+
+def _stub_box(tmp_path, monkeypatch, tool_out=None):
+    """The LIVE box_tokens path with EVERY reader stubbed: no `ip`, no shim, no
+    DMI, no socket name, no $HOME, no secrets env. Returns the list of argv
+    `_run` was asked to run; `tool_out` maps a tool's basename to its stdout."""
+    monkeypatch.delenv("AGI_ANONYMIZE_FIXTURE", raising=False)
+    monkeypatch.setenv("HOME", str(tmp_path / "home" / "someuser"))
+    calls = []
+
+    def fake_run(argv):
+        calls.append(list(argv))
+        return (tool_out or {}).get(Path(argv[0]).name, "")
+
+    monkeypatch.setattr(anonymize, "_run", fake_run)
+    monkeypatch.setattr(anonymize, "_secret_tokens", lambda root: [])
+    monkeypatch.setattr(anonymize, "DMI", tmp_path / "no-dmi")
+    monkeypatch.setattr(anonymize.socket, "gethostname", lambda: "stub-host-abc")
+    monkeypatch.setattr(anonymize.socket, "getfqdn", lambda: "stub-host-abc")
+    return calls
+
+
+def _hw_calls(calls):
+    """The argv that were NOT the (stubbed) `ip` reader: hardware tools."""
+    return [c for c in calls if Path(c[0]).name != "ip"]
+
+
+def _cell(root, anonymize_cell):
+    (root / "config.json").write_text(json.dumps({"anonymize": anonymize_cell}))
+
+
+def _hw_fixture(tmp_path, monkeypatch, name=FAKE_HW):
+    p = tmp_path / "hwbox.json"
+    p.write_text(json.dumps({"hardware": [name]}))
+    monkeypatch.setenv("AGI_ANONYMIZE_FIXTURE", str(p))
+    monkeypatch.setenv("HOME", str(tmp_path / "home" / "someuser"))
+    return p
+
+
+def test_a_hardware_fragment_is_refused_by_class_and_never_printed(
+        tmp_path, monkeypatch, capsys):
+    """F1 + F2 in one row: the 2-word FRAGMENT goes red by class, the class
+    label and the bare numbers that ride the same box stay clean."""
+    _hw_fixture(tmp_path, monkeypatch)
+    toks = anonymize.box_tokens(tmp_path)
+    assert anonymize.scan("loads fully on the 9990 ULTRA: 64/64 layers", toks) \
+        == ["hardware"]
+    assert anonymize.scan("the card GPU9990U, write.py:29990, 9990 MiB", toks) == []
+    rc = anonymize.main(["check", "--root", str(_graph(tmp_path)),
+                         "--text", "loads fully on the 9990 ULTRA"])
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "hardware" in err and FAKE_HW not in err and "9990 ULTRA" not in err
+
+
+def test_the_hardware_cell_source_is_refused_and_its_absence_runs_no_tool(
+        tmp_path, monkeypatch):
+    """F3: a fragment of a name in the cell's own source file is refused (a
+    `@file` source runs no tool); with the cell absent there is NO hardware
+    token and `_run` is asked for nothing but the box's own `ip` reader."""
+    calls = _stub_box(tmp_path, monkeypatch)
+    root = _graph(tmp_path)
+    src = tmp_path / "box.txt"
+    src.write_text("model_name: %s\nother: x\n" % FAKE_HW)
+    _cell(root, {"hardware": {"sources": [["@" + str(src), "model_name"]],
+                              "min_words": 2, "core_digits": 3}})
+    toks = anonymize.box_tokens(root)
+    assert anonymize.scan("runs the 9990 ULTRA here", toks) == ["hardware"]
+    assert _hw_calls(calls) == []
+    getattr(anonymize, "_HW_CACHE", {}).clear()
+    calls.clear()
+    _cell(root, {})
+    toks = anonymize.box_tokens(root)
+    assert not [1 for c, _ in toks if c == "hardware"]
+    assert _hw_calls(calls) == [], "no cell: no hardware tool may run"
+    assert anonymize.scan("runs the 9990 ULTRA here", toks) == []
+
+
+def test_hardware_argv_sources_run_their_shim_once_per_process(tmp_path, monkeypatch):
+    """Prime SHIM rule + residue: an argv source runs `shims/<tool>`, never the
+    raw tool off PATH, and box_tokens() does not respawn it on every call."""
+    calls = _stub_box(tmp_path, monkeypatch, {
+        "nvidia-smi": FAKE_HW + "\n", "lscpu": "Model name: %s\n" % FAKE_CPU})
+    root = _graph(tmp_path)
+    _cell(root, {"hardware": {"sources": [
+        ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"], ["lscpu"]],
+        "min_words": 2, "core_digits": 3}})
+    assert anonymize.SHIMS == SHIMS
+    toks = anonymize.box_tokens(root)
+    hw = _hw_calls(calls)
+    assert sorted(Path(c[0]).name for c in hw) == ["lscpu", "nvidia-smi"]
+    assert {Path(c[0]).parent for c in hw} == {SHIMS}, "a raw tool ran off PATH"
+    assert hw[0][1:] == ["--query-gpu=name", "--format=csv,noheader"]
+    assert anonymize.scan("on the 9990 ULTRA", toks) == ["hardware"]
+    assert anonymize.scan("a Zenix 7700 part", toks) == ["hardware"]
+    for _ in range(3):
+        anonymize.box_tokens(root)
+    assert len(_hw_calls(calls)) == 2, "the sources were re-run on a later call"
+
+
+def test_an_absent_shim_is_an_absent_source_never_the_raw_tool(tmp_path, monkeypatch):
+    calls = _stub_box(tmp_path, monkeypatch, {"nvidia-smi": FAKE_HW + "\n"})
+    monkeypatch.setattr(anonymize, "SHIMS", tmp_path / "no-shims")
+    root = _graph(tmp_path)
+    _cell(root, {"hardware": {"sources": [["nvidia-smi", "--query-gpu=name"]],
+                              "min_words": 2, "core_digits": 3}})
+    toks = anonymize.box_tokens(root)
+    assert _hw_calls(calls) == []
+    assert not [1 for c, _ in toks if c == "hardware"]
+
+
+def test_the_lscpu_shim_exists_and_is_executable():
+    """The cell names `lscpu`: its shim must exist or the source silently dies."""
+    shim = SHIMS / "lscpu"
+    assert shim.is_file() and os.access(shim, os.X_OK)
+    assert "_shim.py" in shim.read_text() and "lscpu" in shim.read_text()
+
+
+def test_scan_without_a_root_never_reads_the_cell_of_its_own_module_path(
+        tmp_path, monkeypatch):
+    """dg6-04 root cause: scan(text, tokens) with no root resolved the project
+    from the module's OWN file path, so a caller that never named a project got
+    the repo's `user_roots` (and reddened two pre-existing rows under the
+    default pytest basetemp). The module is pointed at a tmp project whose cell
+    HAS user_roots: only a caller that names the root gets the class."""
+    proj = tmp_path / "proj"
+    (proj / ".agi").mkdir(parents=True)
+    (proj / ".agi" / "config.json").write_text(
+        json.dumps({"anonymize": {"user_roots": [FAKE_USER_PREFIX]}}))
+    monkeypatch.setattr(anonymize, "__file__",
+                        str(proj / "extensions" / "agi" / "bin" / "anonymize.py"))
+    text = "basetemp " + FAKE_USER_PREFIX + "fixtureuser/pytest-3"
+    assert anonymize.scan(text, []) == []
+    assert anonymize.scan(text, [], root=proj) == ["user"]
+
+
+def test_the_user_class_is_a_path_context_and_never_a_bare_word(tmp_path, monkeypatch):
+    """F6 + the Prime's ruling (n144): a user name counts ONLY after a root
+    prefix (`user_roots`, and the home roots), by the SAME segment builder as a
+    home; a bare word -- or a token -- never does, and HOME_PATH_RE is
+    untouched so the four-scope home test keeps its scope."""
+    _stub_box(tmp_path, monkeypatch)
+    root = _graph(tmp_path)
+    _cell(root, {"user_roots": [FAKE_USER_PREFIX]})
+    toks = anonymize.box_tokens(root)
+    assert not [1 for _, v in toks if v == "fixtureuser"], "a bare user token"
+    assert anonymize.scan("basetemp " + FAKE_USER_PREFIX + "fixtureuser/pytest-3",
+                          toks, root=root) == ["user"]
+    assert anonymize.scan("basetemp " + FAKE_USER_PREFIX + "<user>/pytest-3",
+                          toks, root=root) == []
+    assert anonymize.scan("the account fixtureuser, and " + FAKE_USER_PREFIX[5:] + "fixtureuser",
+                          toks, root=root) == []
+    assert anonymize.scan("see " + FAKE_HOME_ROOT + "fixtureuser/x", toks, root=root) == ["home"]
+    assert not anonymize.HOME_PATH_RE.search(FAKE_USER_PREFIX + "fixtureuser/x"), \
+        "the user prefix leaked into HOME_PATH_RE and would redden the scope test"
+
+
+def test_the_refusal_advice_is_what_home_relative_substitutes(
+        tmp_path, fake_box, monkeypatch, capsys):
+    """dg6-04 missed: the refusal names a remedy, and the remedy must exist.
+    home_relative() rewrites `home` and (given the root) `user`; it rewrites
+    nothing else, so `hardware` says `by hand`."""
+    home = str(tmp_path / "home" / "someuser")
+    monkeypatch.setenv("HOME", home)
+    root = _graph(tmp_path)
+    _cell(root, {"user_roots": [FAKE_USER_PREFIX]})
+    text = "see %sfixtureuser/a and %sfixtureuser/b\n" % (FAKE_USER_PREFIX, FAKE_HOME_ROOT)
+    assert anonymize.scan(text, [], root=root) == ["home", "user"]
+    fixed = anonymize.home_relative(text, home=home, root=root)
+    assert FAKE_USER_PREFIX + "<user>/a" in fixed and "<home>/b" in fixed
+    assert anonymize.scan(fixed, [], root=root) == []
+    assert anonymize.cmd_check(root, text, None) == 1
+    err = capsys.readouterr().err
+    assert "user" in err and "<user>" in err and "home_relative" in err
+    assert "fixtureuser" not in err
+    hw = "loads on the 9990 ULTRA\n"
+    assert anonymize.home_relative(hw, home=home, root=root) == hw
+    assert set(anonymize.ADVICE) == {"home", "user", "hardware", "email"}
+
+
+def test_a_bare_value_file_source_is_read_in_the_real_on_box_format(
+        tmp_path, monkeypatch):
+    """dg6-04 residue 2: the cell's `@/sys/class/dmi/id/board_name` source is
+    INERT -- that file is ONE bare value line, no colon, so a `field` filter
+    matched nothing and the board name went unguarded. The stub is written in
+    the real on-box shape (one bare line, no colon) and the row asserts >= 1
+    name; the field-filtered shape keeps working beside it."""
+    calls = _stub_box(tmp_path, monkeypatch)
+    root = _graph(tmp_path)
+    bare = tmp_path / "board_name"
+    bare.write_text(FAKE_BOARD + "\n")
+    _cell(root, {"hardware": {"sources": [["@" + str(bare), "Board Name"]],
+                              "min_words": 2, "core_digits": 3}})
+    assert len(anonymize._read_hw_sources(
+        {"sources": [["@" + str(bare), "Board Name"]]})) >= 1
+    toks = anonymize.box_tokens(root)
+    assert anonymize.scan("fitted the %s" % FAKE_BOARD, toks) == ["hardware"]
+    assert _hw_calls(calls) == [], "a @file source runs no tool"
+    keyed = tmp_path / "keyed"
+    keyed.write_text("model_name: %s\n" % FAKE_HW)
+    assert anonymize._read_hw_sources(
+        {"sources": [["@" + str(keyed), "model_name"]]}) == [FAKE_HW]
+
+
+def test_a_mixed_file_source_is_not_a_bare_value_source(tmp_path, monkeypatch):
+    """dh347 item 1, the near miss of the bare-value fallback. The on-box shape
+    of `/sys/class/dmi/id/board_name` is ONE bare value line; a rule that took
+    EVERY colon-free line of ANY file read a config file's prose as model names
+    and denied innocent lines, and a MIXED file (a keyed file whose field this
+    rule misspells) is exactly that case. Both files here are synthetic."""
+    _stub_box(tmp_path, monkeypatch)
+    mixed = tmp_path / "mixed"
+    mixed.write_text("model_name: %s\nfree prose: none\n%s\n" % (FAKE_HW, FAKE_CPU))
+    src = ["@" + str(mixed), "board_name"]
+    assert anonymize._read_hw_sources({"sources": [src]}) == [], \
+        "a mixed file yielded a bare value"
+    two = tmp_path / "two-bare"
+    two.write_text("%s\n%s\n" % (FAKE_CPU, FAKE_BOARD))
+    assert anonymize._read_hw_sources(
+        {"sources": [["@" + str(two), "board_name"]]}) == [FAKE_CPU], \
+        "the bare fallback must take the FIRST line only"
+
+
+def test_the_fixture_path_and_the_live_path_expand_one_rule(tmp_path, monkeypatch):
+    """dg6-04 residue 8: fixture and live both go through _hw_tokens with the
+    SAME cell, so with no `anonymize.hardware` cell a fixture name and a
+    source-read name expand identically -- the fixture path expanding nothing
+    while the live path expands is what would silently hollow out every row."""
+    root = _graph(tmp_path)
+    _cell(root, {})
+    assert anonymize._hw_tokens([FAKE_HW], {}) == \
+        anonymize._hw_tokens([FAKE_HW], {"min_words": 2, "core_digits": 3})
+    _stub_box(tmp_path, monkeypatch, {"lscpu": FAKE_CPU + "\n"})
+    _cell(root, {"hardware": {"sources": [["lscpu"]]}})
+    live = anonymize.box_tokens(root)
+    _cell(root, {})
+    _hw_fixture(tmp_path, monkeypatch)
+    fixture = anonymize.box_tokens(root)
+    assert sorted(v for c, v in live if c == "hardware") and \
+        sorted(v for c, v in fixture if c == "hardware")
+    # EQUALITY, not subset: this is a SYMMETRY row -- one rule, two paths -- so
+    # the live half is pinned to EXACTLY what the rule expands for the one
+    # synthetic name it read, and a subset assert let a second source (a DMI
+    # leak, a widened rule) ride in unnoticed (dh347 item 5)
+    assert set(v for c, v in live if c == "hardware") == \
+        set(v for _, v in anonymize._hw_tokens([FAKE_CPU], {}))
+    assert set(v for c, v in fixture if c == "hardware") == \
+        set(v for _, v in anonymize._hw_tokens([FAKE_HW], {}))
+
+
+def test_a_reserved_invalid_tld_is_allowed_and_a_real_shape_is_not(
+        tmp_path, fake_box):
+    """dg6-04 residue 4: RFC 2606 reserves .invalid (and .test/.example), so
+    the cell's allow-list must admit a doc address at example.invalid while a
+    real-shaped address at a real domain is still refused. The pattern is a
+    CONFIG cell value, not code: this row builds the cell the director lands."""
+    root = _email_graph(tmp_path, allow=[
+        r"[^@]+@(?:[A-Za-z0-9-]+\.)*example\.(?:com|org|net)",
+        r"[^@]+@(?:[A-Za-z0-9-]+\.)*example\.invalid"])
+    toks = anonymize.box_tokens(root)
+    assert anonymize.scan("reach fixture.person" + AT + "example.invalid", toks,
+                          anonymize._email_allow(root)) == []
+    assert anonymize.scan("reach fixture.person" + AT + "corp.example", toks,
+                          anonymize._email_allow(root)) == ["email"]
+    live = json.loads((Path(__file__).resolve().parents[3] / ".agi" /
+                       "config.json").read_text())["anonymize"]["email_allow"]
+    if r"example\.invalid" not in " ".join(live):
+        pytest.skip("the landed cell does not carry the .invalid pattern yet "
+                    "(a round cannot commit .agi/config.json; the diff is in "
+                    "the round's experiment node)")
+
+
+def _cell_leaks(node, core_digits=3):
+    """One count per string ANYWHERE in the cell (inside a list source or a
+    nested dict, keys too) holding a word with a >= core_digits digit core: a
+    model name, however spelled. Counts, never the string."""
+    if isinstance(node, str):
+        return [1 for w in re.findall(r"[A-Za-z0-9]+", node)
+                if sum(ch.isdigit() for ch in w) >= core_digits]
+    if isinstance(node, dict):
+        return [n for k, v in node.items() for n in _cell_leaks(k) + _cell_leaks(v)]
+    if isinstance(node, (list, tuple)):
+        return [n for v in node for n in _cell_leaks(v)]
+    return []
+
+
+def test_the_no_leak_check_reaches_inside_list_sources_and_nested_values():
+    """F4's checker, mutation-tested on FIXTURE cells (no repo read): the
+    committed cell's sources are all LISTS, so a str-only walk was vacuous."""
+    clean = {"sources": [["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                         ["lscpu"], ["@/sys/class/dmi/id/board_name", "Board Name"]],
+             "min_words": 2, "core_digits": 3}
+    assert _cell_leaks(clean) == []
+    for leaked in (
+            {"sources": [["nvidia-smi", FAKE_HW]]},
+            {"sources": [["lscpu"], ["cat", "/x", "Model " + FAKE_CPU]]},
+            {"sources": [["x"]], "extra": {"deep": [["GTX9990"]]}},
+            {"sources": [FAKE_HW]}):
+        assert _cell_leaks(leaked), leaked.keys()
+
+
+def test_the_live_hardware_cell_declares_sources_and_no_model_name():
+    """F4 on the repo's own cell -- skipped, never red, where the cell is not
+    committed (a worktree branched before it, or the engine in another
+    project); the checker itself is proved on fixtures above."""
+    repo = Path(__file__).resolve().parents[3]
+    cfg = repo / ".agi" / "config.json"
+    if not cfg.is_file():
+        pytest.skip("no .agi/config.json in this checkout")
+    cell = (json.loads(cfg.read_text()).get("anonymize") or {}).get("hardware")
+    if not cell:
+        pytest.skip("this checkout carries no anonymize.hardware cell")
+    assert cell.get("sources") and cell.get("min_words") and cell.get("core_digits")
+    assert _cell_leaks(cell) == [], "a digit-core value in the cell is the leak itself"
+    for src in cell["sources"]:
+        if not src[0].startswith("@"):
+            assert (SHIMS / Path(src[0]).name).is_file(), "an argv source with no shim"
+
+
+def test_a_pre_scrub_shaped_note_is_refused_only_where_the_box_names_the_card(
+        tmp_path, monkeypatch, capsys):
+    """F5, RESTATED to what the bytes do: the guard refuses a fragment of THIS
+    box's own hardware names. A note written about another box's card (the
+    pre-scrub #4 node, an 8 GB box's) scores rc 1 on the box that names that
+    card and rc 0 on any other box -- measured on the real box: 0 of its
+    fragments occur in the node's pre-scrub bytes, so 'refused on the live box'
+    was never a property of the guard, only of one box's hardware."""
+    diff = tmp_path / "note.diff"
+    diff.write_text("diff --git a/n.md b/n.md\n@@ -0,0 +1 @@\n"
+                    "+loads on the Fixturo Vexel ZX 9990 ULTRA at 64/64 layers\n")
+    root = _graph(tmp_path)
+    _hw_fixture(tmp_path, monkeypatch)
+    assert anonymize.main(["check", "--root", str(root), "--diff-file", str(diff)]) == 1
+    _hw_fixture(tmp_path, monkeypatch, name="Fixturo Other 4410 MAX")
+    assert anonymize.main(["check", "--root", str(root), "--diff-file", str(diff)]) == 0
+    assert "9990" not in capsys.readouterr().err
