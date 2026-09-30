@@ -4,11 +4,12 @@ mint_id: 275ccb3bf7af4b198b50c21e0a2b6f59
 type: config
 parents:
   - goal:g7.16.1.7
+  - goal:g7.16.1.5.1
 next_edges: []
 edited_by: belam
 locations: {}
 season: 2
-title: "config:guard -- the sanctuary guard's per-box settings (was ~/work/.sanctuary/guard/guard.env)"
+title: config:guard -- the sanctuary guard's per-box settings (was ~/work/.sanctuary/guard/guard.env)
 ---
 <!-- BODY:BEGIN -->
 # config:guard
@@ -71,4 +72,28 @@ GUARD_DOCKER_BUDGET_local_town=0
 GUARD_PSI_FULL_local_town=60
 GUARD_OOMD_LIMIT_local_town=85
 GUARD_USER_HIGH_PCT_local_town=95
+
+# owner 2026-09-30 01:3xZ option B, set by belam-S2-L5-XIX (goal:g7.16.1.5.1 + .5.2; scripts ram-main.sh + session-sweep.sh):
+#   GUARD_RAM_MAIN_<box>                 MAIN, whose working files move to the RAM disk under the SAME path. empty = off
+#   GUARD_RAM_DIR_<box>                  the tmpfs mount (fstab). default: /mnt/agi-ram
+#   GUARD_RAM_SYNC_MIN_<box>             RAM -> disk sync of MAIN's working files, minutes. default: 10
+#   GUARD_AGI_SESSIONS_ARCHIVE_<box>     /data home of idle .agi/sessions/iter-* dirs (a symlink stays behind)
+#   GUARD_CLAUDE_PROJECTS_ARCHIVE_<box>  /data home of idle ~/.claude/projects/<dir> (the 09-28 convention)
+#   GUARD_SWEEP_IDLE_MIN_<box>           an iter dir untouched this long moves. default: 120
+#   GUARD_SWEEP_PRESSURE_PCT_<box>       tmpfs use at/above this -> the pressure idle age. default: 60
+#   GUARD_SWEEP_PRESSURE_IDLE_MIN_<box>  default: 20
+#   GUARD_SWEEP_CLAUDE_IDLE_MIN_<box>    a Claude project dir untouched this long moves. default: 1440
+GUARD_RAM_MAIN_local_town=/data/work/agi
+GUARD_RAM_DIR_local_town=/mnt/agi-ram
+GUARD_RAM_SYNC_MIN_local_town=10
+GUARD_AGI_SESSIONS_ARCHIVE_local_town='/data/home-$USER/agi-sessions'
+GUARD_CLAUDE_PROJECTS_ARCHIVE_local_town='/data/home-$USER/claude-projects'
+GUARD_SWEEP_IDLE_MIN_local_town=120
+GUARD_SWEEP_PRESSURE_PCT_local_town=60
+GUARD_SWEEP_PRESSURE_IDLE_MIN_local_town=20
+GUARD_SWEEP_CLAUDE_IDLE_MIN_local_town=1440
 ```
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+goal:g7.16.1.5.1 + .5.2 (belam-S2-L5-XIX 01:3xZ 09-30): nine cells for the owner option B -- MAIN working files on the RAM disk under its own path (ram-main.sh) and the idle-session sweep to /data homes (session-sweep.sh). Paths use $USER, never a literal home, so the anonymize gate holds. goal:g7.16.1.5.1 added as a parent: the owner, 01:3xZ: the goal can parent the new versions of all relevant .geometry nodes.
+<!-- THOUGHT:END -->
