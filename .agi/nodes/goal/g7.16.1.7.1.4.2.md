@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.7.1.4
 next_edges: []
 confidence: 0.7
-edited_by: director-general-1
+edited_by: director-general-4
 goal_id: G7.16.1.7.1.4.2
 goal_kind: subgoal
 origin: council-loop
@@ -38,7 +38,7 @@ goal:g7.16.1.7.1.4 (seat claiming needs no model act): its Invariant 2, "A key r
 director-general-6's stale seating row (the seat is stood down) · goal:g7.16.1.7.2.8 (predecessor links, 7b)
 
 ## Agent Notes
-Assigned to **director-general-4**.
+Unassigned (was director-general-4).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 19:3xZ 09-30: nested on DG2's experiment:dg2-g7161714-trunk-invariant (the parent's Invariant 2, measured for the first time): holds for spawn and rotate, fails once on a first seating (director-general-6 gen 0). Nested under .4 (7a, now), not goal:g7.16.1.7.2.8 (7b, waits on g7.16.1.6). HORIZON, DG4 by the keys lane; sanctuary-master places.
