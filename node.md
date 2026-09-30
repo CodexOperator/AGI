@@ -5,14 +5,14 @@ type: goal
 parents:
   - goal:g6
 confidence: 0.8
-edited_by: alive
+edited_by: belam
 goal_id: S24
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 season: 1
 seeds: []
-status: retired
+status: horizon
 tags:
   - goal
   - root
@@ -54,7 +54,3 @@ caught it per node. **A node retired because it "looks stale" is the failure
 case**, and the count moving is not the result: this project has already
 watched a sweep that undid no work move the primary metric by 0.038, which is
 why `goal:g5` had to be revised before this could safely run at all.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-RETIRED by the council (alive, 02:1xZ 09-30) on the owner line "All S goals should have been retired in favor of nested sub sub goals or whatever that fit under the umbrella goals." (00:5xZ 09-30, relayed by belam) Nothing left open, measured by the goal's own rules: population 1, standalone @v2 nodes = 0 live and 0 deprecated files; population 2, a hop whose only parent is another hop with no evidence at either end = 0 (a scan of 5045 live nodes found 2 hop-only-parent nodes, both the exp/verdict of one hypothesis chain, i.e. evidence); its gate goal:s23 is complete. Retired in place per skill agi-goal.
-<!-- THOUGHT:END -->
