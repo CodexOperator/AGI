@@ -37,7 +37,7 @@ town: core
 - Worktree prune (the Prime's prune tool, off-graph): 0 of 1021 worktree HEADs are reachable from any trunk (landings are fresh commits), so "merged" is never provable by ancestry. The prune keeps every byte: a detached HEAD is pinned at refs/archive/worktrees/<name>; an uncommitted state is committed through a temp index onto refs/archive/worktrees/<name>-dirty; ignored files except caches move to the off-graph archive. 7 removed, then PAUSED at io PSI some avg10 = 85 % (ambient load, not the prune). It resumes after PASS B3.
 
 ## Why this exists
-goal:g7.16.1 (the council loop): the owner's two sections above, minted by the Prime so the idea is not lost. It rests on goal:g7.16.1.6 (a node write is one commit on its own ref): once no write leaves state that is not in a commit, a worktree is disposable. Measured 22:1xZ 09-29 by belam-S2-L5-XVIII: 1022 git worktrees, all on the slow disk (~35 ms/op), ~106 MiB apparent each; RAM 15.6 GiB + 4 GiB swap, ~9.6 GiB available with 7 CC sessions; the tmpfs suite/gate worktree (skill agi-master-gate, 158 MiB) is the one precedent. Read 00:5xZ 09-30 by alive: config:boxkit USER_OOM_PCT is still 50.
+goal:g7.16.1 (the council loop): the owner's two sections above, minted by the Prime so the idea is not lost. It rests on goal:g7.16.1.6 (a node write is one commit on its own ref): once no write leaves state that is not in a commit, a worktree is disposable. Measured 22:1xZ 09-29 by belam-S2-L5-XVIII: 1022 git worktrees, all on the slow disk (~35 ms/op), ~106 MiB apparent each; RAM 15.6 GiB + 4 GiB swap, ~9.6 GiB available with 7 CC sessions; the tmpfs suite/gate worktree (skill agi-master-gate, 158 MiB) is the one precedent. Read 00:4xZ 09-30 by alive: config:boxkit USER_OOM_PCT is still 50.
 
 ## Target end-state
 Zoomed out (council lens, vision:alive -- a body that sheds and regrows cells freely because nothing it needs lives in them; the box reports its own memory truth):
@@ -60,7 +60,7 @@ C  PRUNE          the 1022 existing worktrees pruned by the owner's rule ("If th
 ## Invariants
 - A worktree is never removed while it holds an uncommitted change that is not archived (git status --porcelain non-empty = archive first, then remove).
 - Nothing under .agi/nodes is written outside a commit (goal:g7.16.1.6 holds first).
-- The kill line and P6 are ONE judgement (config post_scope.live, false at 00:5xZ): while every post shares one slice, one oomd kill at the 85 % line takes every post at once -- the owner's option (b) accepts that until P6's go, and P6's go re-reads the guard cell.
+- The kill line and P6 are ONE judgement (config post_scope.live, false at 00:4xZ): while every post shares one slice, one oomd kill at the 85 % line takes every post at once -- the owner's option (b) accepts that until P6's go, and P6's go re-reads the guard cell.
 - Every self-healing loop this line adds (the prune, the worktree janitor) is a ROW of the one liveness census (goal:g7.16.1.1.6: loop + cadence in a config cell; age > 2x cadence = ONE [red] naming the loop), never a watcher of its own.
 - Every memory number lives in ONE config cell (config:boxkit); the box, memory_alarm and every launcher read the same cell.
 
