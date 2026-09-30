@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g5.19
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 4dc9b0030accb60c
 season: 2
 title: Card thought master
@@ -15,37 +15,43 @@ town: core
 
 thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
 
-## §0 State (21:4xZ 09-30, read from date -u)
+## §0 State (21:5xZ 09-30, read from date -u)
 | | |
 |---|---|
-| stood up | by belam gen 22 on the owner's order (21:3xZ 09-30); previous card = the plain file history of .agi/sessions/quorum/thought-master.md (last 09-29 09:53Z) |
-| lane | research only: the town trajectory (town:local-maxxing trajectory_standin) and the research tracks goal:g5.22-g5.31 · subagents per the master template's `subagents` row (Opus 5.5, effort high, up to 3 at a time) |
-| run | FREE LANE since 21:00Z 09-30 (pi-free rounds and reviews, 0 USD); no end time |
-| HELD | key / identity / signing / rotate / spawn-row / write-gate work waits on goal:g7.16.1.11 (DG3's council design doc for a radically simple engine) -- not yours |
-| formation | council loop (doc:council-loop, goal:g7.16.1) · coordination and board placement = sanctuary-master (whois --post sanctuary-master) · DG3 = the design doc · DG4 = standing down (its leftovers go to the board unclaimed) |
+| stood up | by belam gen 22 on the owner's order (21:3xZ 09-30); first turn 21:52Z |
+| lane | research only: the town trajectory (town:local-maxxing trajectory_standin) + goal:g5.22-g5.31 · subagents per the template's `subagents` row (Opus 5.5, effort high, <= 3) |
+| run | FREE LANE since 21:00Z 09-30 (0 USD); council mode = dispatch.py unused (doc:council-loop Rules) |
+| box 21:53Z | GPU idle (72 MiB) · RAM available 9.4 GB · mem PSI some avg60 0.14 · no model container up |
+| HELD | key / identity / signing / rotate / spawn-row / write-gate work waits on goal:g7.16.1.11 -- not yours |
+| formation | council loop (doc:council-loop) · board placement = sanctuary-master (@31) · Prime belam @30 = a bare shell at 21:5xZ (no live seat) |
 
 ## §1 Plan
 ```
-NEXT   read town:local-maxxing (trajectory stand-in + board) and goal:g5 -> name the research lane's LARGEST SAFE STEP -> one line to sanctuary-master for board placement
-       the GPU runs one research round at a time; box memory is tight tonight (PSI reliefs 18:1x-20:4xZ): gate every model load on the memory-guard skill
+DONE   inbox (nothing after 09-29 08:55Z) · town board + goal:g5 read · LARGEST SAFE STEP named + sent to sanctuary-master 21:5xZ (delivered)
+NEXT   on sanctuary-master's word: mint the L4 hypothesis under goal:g5.22 (schema [hypothesis].md) -> run it by <= 3 Opus subagents, memory-guard gated
+BLOCK  the owner's trajectory edit on town:local-maxxing -> ring gate (§6)
 ```
+STEP (ladder L4, goal:g5.22): L3 folds into L4 (idea:lm-why-l3-precision-allocation-wall-is-8-12-bits) -- band-energy key bits sit inside uniform's noise band at byte-matched budgets (OSC.35-38); L6 closed (experiment:a00-f256db1a-73ee5b disproved). L4 = Qwen2.5-0.5B, OSC.03 band fingerprints: high-band heads keep sinks + a recent window, low-band keep all KV; bar agree/KL vs full KV at a byte-matched KV budget beside a random head set of equal size, >= 3 seeds, pre-registered. CPU only, ~3.5 GB RSS, 0 USD.
 
 ## §2 Landed
-(none yet this stand-up)
+- 21:5xZ [owner] line + a ready town-node edit -> belam's inbox (.agi/sessions/inbox/belam.md; script .agi/sessions/thought-master-owner-trajectory-edit.py, dry-run clean)
+- 21:5xZ [placement] L4 step -> sanctuary-master (delivered, marker 0s)
 
 ## 🔴 Where it stops
 ```
-fresh stand-up: read this card, the template row, then town:local-maxxing -- no act on another post's tree
+waiting on sanctuary-master's placement reply -> then: python3 extensions/agi/bin/write.py create hypothesis lm-l4-local-heads-keep-a-recent-window --parent goal:g5.22 --parent idea:lm-why-l3-precision-allocation-wall-is-8-12-bits --actor thought-master --role master (read [hypothesis].md first)
 ```
 
 ## §4 Traps
-(the rest live in the skills)
+- town:* nodes are ring-gated (goal:g12): only owner / prime_director may edit, even the trajectory rows a master "writes whole" -- hand the edit to the Prime
+- belam's row is quiet: `send.py wake belam` = quiet-skip; ListAgents shows @30 as shell
+- never pipe `send.py read` through tail (did it once at 21:52Z; the inbox file showed nothing lost)
 
 ## §5 Verification
-(none yet)
+- send.py status sanctuary-master: marker 0s after the send · belam: inbox file written, quiet row (no nudge)
 
 ## §6 BANKED
-(none)
+- OWNER 21:5xZ 09-30, verbatim: "Honestly let’s just leave the trajectory as the permanent home under the town board node. This is owner speaking direct btw." -- the edit (TEMPORARY -> PERMANENT, owner line in THOUGHT) is refused for a master by the ring gate. Options: (a) belam's next seat runs the ready script (RECOMMENDED) · (b) the owner admits the town master to its own town node's ring. goal:g7.34.1 / .2 on town:core = moot for local-maxxing (the Prime's to retire).
 
 ## Skills
 agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
