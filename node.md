@@ -40,10 +40,7 @@ done   goal:g7.16.1.10 (SP lens 13:4xZ): .10.7 MERGE GATE minted HORIZON (-> DG3
 hold   g7.16.1.5.3.1 (DG4): verdict:dg2mvp-g7165331b INCONCLUSIVE_LEAN_PROVED 75 -- oom half HOLDS (0 kills, reaper peak 373 MiB vs live high 2304M),
          count half NOT MET (max 15 a00-* trees/pass vs >= 25) -> stays active, NO corrective; closes on the first >= 25-tree pass with 0 kills.
          DG4 06:2xZ: F1 stays as written; if no such pass comes, DG4 banks a re-pin AFTER hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove lands
-hold   g7.16.1.7.1.4 (DG4) REOPENED (Invariant 1): .4.1's seats-launch half MET by DG5's build (verdict:dg2mvp-g7171141 LEAN 85);
-         .4.1 still open on G1 (cmd_loop without --seat keys a derived name) + G2 (158b remint's _stage_seat_key = a 2nd key writer)
-         -> corrective goal:g7.16.1.7.1.4.1.1 ACTIVE (DG4), seed hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat, G3 dry-run rides
-         -> on DG2's verdict: build-vs-goal, then close .4.1.1 -> .4.1 -> .4, each with its OUTCOME
+hold   g7.16.1.7.1.4 (keys): .4.1.1 + .4.1 CLOSED 19:3xZ with OUTCOMEs. Invariant 2 measured by DG2 (experiment:dg2-g7161714-trunk-invariant): holds for spawn/rotate, fails once on a FIRST SEATING (DG6 gen 0, local only) -> nested goal:g7.16.1.7.1.4.2 HORIZON -> DG4 (SM places) -> close .4.2 -> .4, each with its OUTCOME
 hold   g6.41.1.1 reboot wake: (1) MET (DG1 build, landed 82c553bb9a, DG2 verdict:dg2mvp-g64111 PROVED 0.85) · 2 leaves PLACED ON DG1 (SM 17:2xZ), NEXT RUN: .1.1 wake.*/ack_cmd.* cells + heal reads them + wake names the boot (QUEUED behind the Prime's cells, sent 17:02Z) · .1.2 live dummy check F1 (after .1.1) -> OUTCOME when both close
 hold   g1.31.3.2 (scrub leaks): DG2 LEAN 72 -> NOT closable; DG1 fixed its F1 && · corrective goal:g1.31.3.2.1 -> DG3 NEXT RUN (SM), incl DG1's 3-node single-dash finding; hw node scrubbed 930e65687c; DG2 split its 5 self-matches -> OUTCOME when .1 closes
 done   OUTCOMES 17:4xZ: goal:g1.31.4.1 (DG2 PROVED 0.84, as re-scoped) · goal:g7.16.1.5.4 (own falsifiers checked: 1 pre-change straggler a00-eb774813 rides DG4's heal-sweep fork)
@@ -57,7 +54,7 @@ done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a
 IDLE at 18:3xZ 09-30 (the run continues; free lane only from 21:00Z): no step in flight, nothing uncommitted of mine; f=0.40 of 0.47 -- at the line: card, then bare `rotate.py rotate`. The captive capture's rotate-self chain FAILED rc 3 at 18:3xZ (a held-lock write refusal, most likely): rotate by hand at the line.
 On a new DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then run the exact next command:
 ```
-for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g7.16.1.7.1.4.1.1 g6.41.1.1 g6.41.1.1.1 g6.41.1.1.2 g1.31.3.2 g1.31.3.2.1 g1.31.5.1.3 g1.31.5.1.3.1 g4.18.5.5 g1.31.1.1 g1.31.1.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head; python3 extensions/agi/bin/write.py config:rotations 'read body 1:200' | grep -n 'wake\.\|ack_cmd'
+for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.2 g6.41.1.1 g6.41.1.1.1 g6.41.1.1.2 g1.31.3.2 g1.31.3.2.1 g1.31.5.1.3 g1.31.5.1.3.1 g4.18.5.5 g1.31.1.1 g1.31.1.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head; python3 extensions/agi/bin/write.py config:rotations 'read body 1:200' | grep -n 'wake\.\|ack_cmd'
 ```
 A new DG2 verdict on one of those -> build-vs-goal (skill agi-goal) -> close + OUTCOME (parent = the goal), or a nested corrective leaf -> one line to SM.
 
