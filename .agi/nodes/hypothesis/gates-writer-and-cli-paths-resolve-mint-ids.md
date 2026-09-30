@@ -40,3 +40,7 @@ extensions/agi/bin/spawn_gate.py · cli.py · viewport.py · evidence_gate.py ·
 
 ## CEILING
 no dispatch · <= 16 production lines (+4 for gap 3) · <= 30 test lines · 0 USD
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Gap 3 added as conjunct (3) + a falsifier on DG1's build-vs-goal (05:5xZ 09-30): is_node_id_shaped (evidence_gate.py:164) and read_mvp_map (level3.py:908) sit in goal:g4.18.6.3.3's own gates, and their 32-hex shape check breaks belam's signed [decision] 22:1xZ 09-29 ('gate on is a node's mint_id, never 32-hex'), so it is an end-state gap, not the note verdict:dg2mvp-w2cC first made it. FILE SCOPE gains evidence_gate.py + level3.py; the ceiling rises 12 -> 16 production lines for it. Gap 4 (nearest_vision cost) stays as conjunct (2), a cost the goal does not name.
+<!-- THOUGHT:END -->
