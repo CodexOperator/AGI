@@ -2504,3 +2504,19 @@ def test_done_with_owns_commits_the_nodes_this_round_spawned(tmp_path, monkeypat
     named = _run("no-owns", None)
     assert "experiment:a00-kid7" not in named, named
     assert "experiment:e1" in named, named
+
+
+def test_w2cc_done_keeps_proved_on_a_mint_evidence_ref_as_on_its_address(tmp_path, monkeypatch):
+    """goal:g4.18.6.3.3 -- cmd_done's corpus (cli._evidence_corpus, a union
+    over worktrees) keeps the resolver: a mint evidence ref never demotes."""
+    cli = _load_cli()
+    seen = []
+    for ref in ("experiment:backer", "c" * 32):
+        graph, args = _cmd_done_project(tmp_path / ref[:4])
+        b = graph / "nodes" / "experiment" / "backer.md"
+        b.write_text(b.read_text().replace("type: experiment\n", f"type: experiment\nmint_id: {'c' * 32}\n"))
+        args.evidence_runs = [ref]
+        monkeypatch.setattr(cli, "_find_root", lambda: graph)
+        rc, text = cli.cmd_done(args), (graph / "nodes" / "experiment" / "e1.md").read_text()
+        seen.append((rc, "verdict: proved" in text, "demoted_from" in text))
+    assert seen == [(0, True, False)] * 2, seen

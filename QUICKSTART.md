@@ -181,7 +181,7 @@ git config core.hooksPath .githooks
 ```
 
 ## 🔴 PRIME FALLBACK ON COPILOT — owner order 2026-09-14 15:4xZ (verbatim in doc:l4-owner-decisions tail)
-If the Claude subscription runs out, the Prime pane (`belam-S1-L4-<N>`, tmux session `agi-rc`) stays UP but answers nothing. The thought-master brings the Prime back on the Copilot CLI in two commands, from MAIN (`/home/ubuntu/work/agi`):
+If the Claude subscription runs out, the Prime pane (`belam-S1-L4-<N>`, tmux session `agi-rc`) stays UP but answers nothing. The thought-master brings the Prime back on the Copilot CLI in two commands, from MAIN (`<home>/work/agi`):
 ```bash
 tmux kill-window -t agi-rc:"$(tmux list-windows -t agi-rc -F "#{window_id} #{window_name}" | awk "/ belam-S1-L4-/{print \$1; exit}")"   # the dead Prime: the spawn gate (g15.21) refuses while its pid or window lives — this is the ONE owner-ordered exception to never-kill-a-predecessor
 python3 extensions/agi/bin/rotate.py spawn --seat belam --harness copilot-cli --dry-run   # read the built command: copilot --model auto --effort max --allow-all --remote -i <the Prime brief + handoff>; the name belam-S1-L4-<next numeral> is derived

@@ -217,6 +217,7 @@ def _evidence_corpus(root: Path) -> frozenset:
     dangling id resolve.
     """
     corpus = set(evidence_gate.build_corpus(root / "nodes"))
+    trees = [root / "nodes"]
     wt_root = root / "worktrees"
     if wt_root.is_dir():
         for tree in sorted(wt_root.glob("*")):
@@ -227,10 +228,12 @@ def _evidence_corpus(root: Path) -> frozenset:
                 continue
             try:
                 corpus |= set(evidence_gate.build_corpus(nodes))
+                trees.append(nodes)
             except evidence_gate.CorpusRootError:
                 # A stray root with a nodes/ child, not a real worktree graph.
                 continue
-    return frozenset(corpus)
+    # goal:g4.18.6.3.3: the union keeps every tree's resolver -- a mint ref counts as its address
+    return links.resolving(frozenset(corpus), *trees)
 
 
 def _node_evidence_runs_raw(root: Path, node_id: str | None):

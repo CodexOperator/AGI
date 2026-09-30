@@ -189,26 +189,82 @@ hostvar() { local n="GUARD_$1_$HOSTKEY"; printf '%s' "${!n:-${2:-}}"; }
 
 RAM_M=$(( $(awk '/^MemTotal:/{print $2}' /proc/meminfo) / 1024 ))
 SWAP_M=$(( $(awk '/^SwapTotal:/{print $2}' /proc/meminfo) / 1024 ))
+# --- cells (goal:g7.16.1.5.5.5) ---------------------------------------------------
+# Every number below is a config:guard cell whose default is the literal this
+# script carried before; an unset OR EMPTY cell takes the default. A cell is
+# checked as a STRING, in THIS shell, before any $(( )) reads it: bash arithmetic
+# evaluates a variable's text, so a cell holding x[$(cmd)] would run cmd. The digit
+# class is spelled out: under a UTF-8 locale [0-9] also matches non-ASCII digits.
+num_cell() {  # VAR NAME DEFAULT LO HI -> VAR = a whole number LO..HI, else refused by name
+  local v; v=$(hostvar "$2" "$3")
+  [[ $v =~ ^[0123456789]{1,6}$ ]] && (( 10#$v >= $4 && 10#$v <= $5 )) \
+    || die "GUARD_$2_$HOSTKEY must be a whole number $4..$5 (got '$v')"
+  printf -v "$1" '%d' "$(( 10#$v ))"
+}
+size_cell() {  # VAR NAME DEFAULT -> VAR = whole MiB of 512M | 2G | 1.5G | bare MiB, else refused by name
+  local v; v=$(hostvar "$2" "$3")
+  [[ $v =~ ^[0123456789]{1,7}(\.[0123456789]{1,3})?[MG]$ || $v =~ ^[0123456789]{1,7}$ ]] \
+    || die "GUARD_$2_$HOSTKEY must be a size: 512M, 2G, 1.5G or whole MiB (got '$v')"
+  printf -v "$1" '%s' "$(to_mib "$v")"
+}
 DEF_RESERVE=$(( RAM_M * 12 / 100 > 768 ? RAM_M * 12 / 100 : 768 ))
-RESERVE_M=$(to_mib "$(hostvar RESERVE "$DEF_RESERVE")")
-DOCKER_M=$(to_mib "${DOCKER_BUDGET:-$(hostvar DOCKER_BUDGET 0)}")
-PSI_FULL=$(hostvar PSI_FULL 40)
-OOMD_LIMIT=$(hostvar OOMD_LIMIT 50)        # oomd kill line for user@UID + its root slice, % memory pressure
-USER_HIGH_PCT=$(hostvar USER_HIGH_PCT 90)  # user@UID MemoryHigh as % of its MemoryMax
-GRACE_S=$(hostvar GRACE 900)
+[ -z "${DOCKER_BUDGET:-}" ] || printf -v "GUARD_DOCKER_BUDGET_$HOSTKEY" '%s' "$DOCKER_BUDGET"
+size_cell RESERVE_M RESERVE "$DEF_RESERVE"; size_cell DOCKER_M DOCKER_BUDGET 0
+# A non-integer PSI_FULL would make the health check's (( )) error out, which
+# reads as "healthy" forever: the watchdog would silently never fire.
+num_cell PSI_FULL PSI_FULL 40 5 100
+num_cell OOMD_LIMIT OOMD_LIMIT 50 10 99          # oomd kill line for user@UID + its root slice, % memory pressure
+num_cell USER_HIGH_PCT USER_HIGH_PCT 90 50 99    # user@UID MemoryHigh as % of its MemoryMax
+num_cell GRACE_S GRACE 900 0 86400
+num_cell USER_SWAP_PCT USER_SWAP_PCT 50 0 100; size_cell USER_SWAP_CAP_M USER_SWAP_CAP 2048M
+num_cell AGI_MAX_PCT AGI_MAX_PCT 70 1 100; num_cell AGI_HIGH_PCT AGI_HIGH_PCT 90 1 100
+num_cell ENGINE_HIGH_PCT ENGINE_HIGH_PCT 75 1 100; num_cell WORK_HIGH_PCT WORK_HIGH_PCT 90 1 100
+num_cell AGI_OOMD_LIMIT AGI_OOMD_LIMIT 40 10 99
+num_cell OOMD_SWAP_USED_PCT OOMD_SWAP_USED_PCT 90 1 100; num_cell OOMD_PRESSURE_PCT OOMD_PRESSURE_PCT 60 1 100
+num_cell OOMD_PRESSURE_S OOMD_PRESSURE_S 20 1 3600
+size_cell SYSTEM_MIN_M SYSTEM_MIN 128M; size_cell SSH_MIN_M SSH_MIN 64M
+num_cell CLAUDE_LOW_DIV CLAUDE_LOW_DIV 6 1 100; size_cell CLAUDE_LOW_CAP_M CLAUDE_LOW_CAP 1024M
+size_cell USER_MIN_M USER_MIN 2048M; num_cell DOCKER_CAP_HEADROOM_PCT DOCKER_CAP_HEADROOM_PCT 90 1 100
+num_cell DEFER_PCT DEFER_PCT 90 1 100
+size_cell ENGINE_MAX_M ENGINE_MAX 512M
+size_cell ENGINE_SWAP_M ENGINE_SWAP_MAX 0; size_cell RAMDISK_SWAP_M RAMDISK_SWAP_MAX 0
+# systemd reads a bare MemorySwapMax number as BYTES: write 0, or whole MiB with its unit.
+ENGINE_SWAP=$( (( ENGINE_SWAP_M )) && echo "${ENGINE_SWAP_M}M" || echo 0 )
+RAMDISK_SWAP=$( (( RAMDISK_SWAP_M )) && echo "${RAMDISK_SWAP_M}M" || echo 0 )
+# goal:g7.16.1.5.5.1: the RAM disk's own line (ramdisk.slice). Default = the
+# tmpfs size, so the slice never caps before the mount is full; 0 = no RAM disk.
+RAM_DIR=$(hostvar RAM_DIR /mnt/agi-ram)
+size_cell RAM_BUDGET_M RAM_BUDGET "$(findmnt -rno SIZE "$RAM_DIR" 2>/dev/null || echo 0)"
 [ -n "$PEER_CLAUDE" ] || PEER_CLAUDE=$(hostvar PEERWATCH_CLAUDE 0)
 
 USER_MAX_M=$(( RAM_M - RESERVE_M - DOCKER_M ))
 USER_HIGH_M=$(( USER_MAX_M * USER_HIGH_PCT / 100 ))
-USER_SWAP_M=$(( SWAP_M / 2 < 2048 ? SWAP_M / 2 : 2048 ))
-AGI_MAX_M=$(( USER_MAX_M * 70 / 100 )); AGI_HIGH_M=$(( AGI_MAX_M * 90 / 100 ))
-ENGINE_MAX_M=$(to_mib "$(hostvar ENGINE_MAX 512M)"); ENGINE_HIGH_M=$(( ENGINE_MAX_M * 75 / 100 ))
-WORK_MAX_M=$(( AGI_MAX_M - ENGINE_MAX_M )); WORK_HIGH_M=$(( WORK_MAX_M * 90 / 100 ))
-# goal:g7.16.1.5.5.1: the RAM disk's own line (ramdisk.slice). Default = the
-# tmpfs size, so the slice never caps before the mount is full; 0 = no RAM disk.
-RAM_DIR=$(hostvar RAM_DIR /mnt/agi-ram)
-RAM_BUDGET_M=$(to_mib "$(hostvar RAM_BUDGET "$(findmnt -rno SIZE "$RAM_DIR" 2>/dev/null || echo 0)")")
-CLAUDE_LOW_M=$(( USER_MAX_M / 6 < 1024 ? USER_MAX_M / 6 : 1024 ))
+USER_SWAP_M=$(( SWAP_M * USER_SWAP_PCT / 100 < USER_SWAP_CAP_M ? SWAP_M * USER_SWAP_PCT / 100 : USER_SWAP_CAP_M ))
+AGI_MAX_M=$(( USER_MAX_M * AGI_MAX_PCT / 100 )); AGI_HIGH_M=$(( AGI_MAX_M * AGI_HIGH_PCT / 100 ))
+ENGINE_HIGH_M=$(( ENGINE_MAX_M * ENGINE_HIGH_PCT / 100 ))
+WORK_MAX_M=$(( AGI_MAX_M - ENGINE_MAX_M )); WORK_HIGH_M=$(( WORK_MAX_M * WORK_HIGH_PCT / 100 ))
+CLAUDE_LOW_M=$(( USER_MAX_M / CLAUDE_LOW_DIV < CLAUDE_LOW_CAP_M ? USER_MAX_M / CLAUDE_LOW_DIV : CLAUDE_LOW_CAP_M ))
+# goal:g7.16.1.5.5.8: a well-formed cell can still size a unit that can never run
+# (ENGINE_MAX 100G -> agi-work max < 0; 0.5M -> 0M). Every derived line is > 0 and
+# <= RAM, else refused by name -- before any layer, so nothing is written.
+line_ok() {  # LABEL MIB CELL... -> refuse unless 0 < MIB <= RAM_M
+  local label=$1 v=$2; shift 2
+  (( v > 0 && v <= RAM_M )) || die "$label would be ${v}M (RAM ${RAM_M}M); check $(printf 'GUARD_%s_'"$HOSTKEY"' ' "$@")"
+}
+line_ok "user@ MemoryMax" "$USER_MAX_M" RESERVE DOCKER_BUDGET
+line_ok "user@ MemoryHigh" "$USER_HIGH_M" USER_HIGH_PCT
+line_ok "agi.slice MemoryMax" "$AGI_MAX_M" AGI_MAX_PCT
+line_ok "agi.slice MemoryHigh" "$AGI_HIGH_M" AGI_HIGH_PCT
+line_ok "agi-engine MemoryMax" "$ENGINE_MAX_M" ENGINE_MAX
+line_ok "agi-engine MemoryHigh" "$ENGINE_HIGH_M" ENGINE_MAX ENGINE_HIGH_PCT
+line_ok "agi-work MemoryMax" "$WORK_MAX_M" AGI_MAX_PCT ENGINE_MAX
+line_ok "agi-work MemoryHigh" "$WORK_HIGH_M" AGI_MAX_PCT ENGINE_MAX WORK_HIGH_PCT
+line_ok "Claude MemoryLow" "$CLAUDE_LOW_M" CLAUDE_LOW_DIV CLAUDE_LOW_CAP
+(( RAM_BUDGET_M == 0 )) || line_ok "ramdisk.slice MemoryMax" "$RAM_BUDGET_M" RAM_BUDGET
+# MemoryMin: 0 is legal (no protection); more than RAM is not
+(( SYSTEM_MIN_M == 0 )) || line_ok "system.slice MemoryMin" "$SYSTEM_MIN_M" SYSTEM_MIN
+(( SSH_MIN_M == 0 )) || line_ok "sshd MemoryMin" "$SSH_MIN_M" SSH_MIN
+# --- cells end -----------------------------------------------------------------
 
 SSH_UNIT=ssh.service
 systemctl cat ssh.service >/dev/null 2>&1 || SSH_UNIT=sshd.service
@@ -220,16 +276,7 @@ UCG=/sys/fs/cgroup/user.slice/user-$TUID.slice/user@$TUID.service
 SDV=$(systemctl --version | awk 'NR==1{print $2}')
 (( SDV >= 250 )) || die "systemd $SDV is too old (need >= 250)"
 if [ "$MODE" = apply ] || [ "$MODE" = dry ]; then
-  # A non-integer here would make the health check's (( )) error out, which
-  # reads as "healthy" forever: the watchdog would silently never fire.
-  [[ $PSI_FULL =~ ^[0-9]+$ ]] && (( PSI_FULL >= 5 && PSI_FULL <= 100 )) \
-    || die "GUARD_PSI_FULL_$HOSTKEY must be a whole number 5..100 (got '$PSI_FULL')"
-  [[ $OOMD_LIMIT =~ ^[0-9]+$ ]] && (( OOMD_LIMIT >= 10 && OOMD_LIMIT <= 99 )) \
-    || die "GUARD_OOMD_LIMIT_$HOSTKEY must be a whole number 10..99 (got '$OOMD_LIMIT')"
-  [[ $USER_HIGH_PCT =~ ^[0-9]+$ ]] && (( USER_HIGH_PCT >= 50 && USER_HIGH_PCT <= 99 )) \
-    || die "GUARD_USER_HIGH_PCT_$HOSTKEY must be a whole number 50..99 (got '$USER_HIGH_PCT')"
-  [[ $GRACE_S =~ ^[0-9]+$ ]] || die "GUARD_GRACE_$HOSTKEY must be whole seconds (got '$GRACE_S')"
-  (( USER_MAX_M >= 2048 )) || die "RAM ${RAM_M}M - reserve ${RESERVE_M}M - docker ${DOCKER_M}M leaves ${USER_MAX_M}M for $TUSER; need >= 2048M. Lower the docker budget or the reserve in config:guard."
+  (( USER_MAX_M >= USER_MIN_M )) || die "RAM ${RAM_M}M - reserve ${RESERVE_M}M - docker ${DOCKER_M}M leaves ${USER_MAX_M}M for $TUSER; need >= ${USER_MIN_M}M. Lower the docker budget or the reserve in config:guard."
 fi
 
 need_pkg() {
@@ -258,9 +305,9 @@ layer1() {
 # Ubuntu's package already has oomd watch user@.service at 50% pressure; these
 # are the defaults any watched unit inherits unless it sets its own limit.
 [OOM]
-SwapUsedLimit=90%
-DefaultMemoryPressureLimit=60%
-DefaultMemoryPressureDurationSec=20s
+SwapUsedLimit=${OOMD_SWAP_USED_PCT}%
+DefaultMemoryPressureLimit=${OOMD_PRESSURE_PCT}%
+DefaultMemoryPressureDurationSec=${OOMD_PRESSURE_S}s
 EOF
   } | put /etc/systemd/oomd.conf.d/50-sanctuary-guard.conf 0644 root:root
   run systemctl enable --quiet systemd-oomd.service
@@ -294,7 +341,7 @@ layer2() {
   # (measured on encryption-town: 6251M current, of it 385M anon). Judge by what
   # the cap would really have to take away.
   hard=$(awk '$1=="anon"||$1=="shmem"||$1=="file_mapped"||$1=="slab_unreclaimable"{s+=$2} END{printf "%d", s/1048576}' "$UCG/memory.stat" 2>/dev/null || echo 0)
-  if (( hard >= USER_HIGH_M * 90 / 100 )); then
+  if (( hard >= USER_HIGH_M * DEFER_PCT / 100 )); then
     deferred=1
     # systemd merges drop-ins from ALL directories in filename order, last wins:
     # 99- sorts after guard's 50-sanctuary-guard.conf, and /run is emptied at
@@ -340,7 +387,7 @@ EOF
   { hdr 2; cat <<EOF
 # The parent link for ssh.service's MemoryMin: without it the child's is worth 0.
 [Slice]
-MemoryMin=128M
+MemoryMin=${SYSTEM_MIN_M}M
 EOF
   } | put /etc/systemd/system/system.slice.d/50-sanctuary-guard.conf 0644 root:root
 
@@ -353,14 +400,14 @@ EOF
 # would make every login shell, and anything run from it, unkillable.
 # NOT set here: IOWeight. No io controller is enabled, so it would do nothing.
 [Service]
-MemoryMin=64M
+MemoryMin=${SSH_MIN_M}M
 CPUWeight=1000
 EOF
   } | put "/etc/systemd/system/$SSH_UNIT.d/50-sanctuary-guard.conf" 0644 root:root
 
   run systemctl daemon-reload
-  run systemctl set-property --runtime system.slice MemoryMin=128M
-  run systemctl set-property --runtime "$SSH_UNIT" MemoryMin=64M CPUWeight=1000
+  run systemctl set-property --runtime system.slice "MemoryMin=${SYSTEM_MIN_M}M"
+  run systemctl set-property --runtime "$SSH_UNIT" "MemoryMin=${SSH_MIN_M}M" CPUWeight=1000
   run systemctl set-property --runtime user.slice "MemoryLow=${CLAUDE_LOW_M}M"
   run systemctl set-property --runtime "user-$TUID.slice" "MemoryLow=${CLAUDE_LOW_M}M"
 
@@ -408,8 +455,8 @@ EOF
 layer3() {
   head_ "3  fence the engine: agi.slice ${AGI_MAX_M}M = agi-engine ${ENGINE_MAX_M}M (little scripts) + agi-work ${WORK_MAX_M}M (rounds)"
   { hdr 3; cat <<EOF
-# Everything the agi engine starts as a unit. oomd acts here at 40% pressure,
-# before user@ reaches its own 50%, so the engine is killed before Claude is.
+# Everything the agi engine starts as a unit. oomd acts here at ${AGI_OOMD_LIMIT}% pressure,
+# before user@ reaches its own ${OOMD_LIMIT}%, so the engine is killed before Claude is.
 [Unit]
 Description=sanctuary guard: the agi engine (scripts + rounds)
 [Slice]
@@ -419,7 +466,7 @@ MemorySwapMax=${USER_SWAP_M}M
 TasksMax=4096
 CPUWeight=50
 ManagedOOMMemoryPressure=kill
-ManagedOOMMemoryPressureLimit=40%
+ManagedOOMMemoryPressureLimit=${AGI_OOMD_LIMIT}%
 EOF
   } | put "$UGUARD/agi.slice" 0644 "$TUSER:$TGROUP"
 
@@ -432,7 +479,7 @@ Description=sanctuary guard: little engine scripts (reaper, alarms, watch)
 [Slice]
 MemoryHigh=${ENGINE_HIGH_M}M
 MemoryMax=${ENGINE_MAX_M}M
-MemorySwapMax=0
+MemorySwapMax=${ENGINE_SWAP}
 TasksMax=128
 CPUWeight=20
 EOF
@@ -462,7 +509,7 @@ EOF
 Description=sanctuary guard: the RAM disk pages (${RAM_DIR})
 [Slice]
 MemoryMax=${RAM_BUDGET_M}M
-MemorySwapMax=0
+MemorySwapMax=${RAMDISK_SWAP}
 TasksMax=64
 CPUWeight=20
 EOF
@@ -663,8 +710,8 @@ docker_section() {
       # near what it already holds: the kernel would squeeze it at once.
       local use_m
       use_m=$(awk -v u="$use" 'BEGIN{ n=u+0; if (u ~ /GiB$/) n*=1024; else if (u ~ /KiB$/) n/=1024; else if (u ~ /[0-9]B$/) n/=1048576; printf "%d", n }')
-      if (( use_m * 100 >= DOCKER_M * 90 )); then
-        warn "$name uses ${use_m}M, >= 90% of the ${DOCKER_M}M budget: NOT capped. Raise GUARD_DOCKER_BUDGET_$HOSTKEY first."
+      if (( use_m * 100 >= DOCKER_M * DOCKER_CAP_HEADROOM_PCT )); then
+        warn "$name uses ${use_m}M, >= ${DOCKER_CAP_HEADROOM_PCT}% of the ${DOCKER_M}M budget: NOT capped. Raise GUARD_DOCKER_BUDGET_$HOSTKEY first."
         continue
       fi
       run docker update --memory "${DOCKER_M}m" --memory-swap "${DOCKER_M}m" "$c"
@@ -852,7 +899,7 @@ cat <<EOF
   RAM ${RAM_M}M   swap ${SWAP_M}M   reserve ${RESERVE_M}M   docker ${DOCKER_M}M
   user@$TUID      high ${USER_HIGH_M}M  max ${USER_MAX_M}M  swap ${USER_SWAP_M}M   (Claude MemoryLow ${CLAUDE_LOW_M}M)
     agi.slice     high ${AGI_HIGH_M}M  max ${AGI_MAX_M}M
-      agi-engine  high ${ENGINE_HIGH_M}M  max ${ENGINE_MAX_M}M  (swap 0, 128 tasks)
+      agi-engine  high ${ENGINE_HIGH_M}M  max ${ENGINE_MAX_M}M  (swap ${ENGINE_SWAP}, 128 tasks)
       agi-work    high ${WORK_HIGH_M}M  max ${WORK_MAX_M}M
   watchdog        $([ $DO_WATCHDOG = 1 ] && echo "reboot after 5 min at memory PSI full >= ${PSI_FULL}% (grace ${GRACE_S}s after boot)" || echo "SKIPPED (--no-watchdog)")
   watch           $([ $DO_WATCH = 1 ] && echo "every 2 min; recovery claude $([ "$PEER_CLAUDE" = 1 ] && echo ON || echo off)" || echo "SKIPPED (--no-watch)")

@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-second-director-ran-this-graph-uninvited
 next_edges: []
 confidence: 0.6
-edited_by: director-general-3
+edited_by: director-general-6
 scaffold_hash: a74696def592acd1
 season: 1
 thought_session: season
@@ -43,7 +43,7 @@ with high confidence. None alone is conclusive; together they triangulate.
 ### 1. Git commit timestamps collide with the session window
 
 The uninvited session ran 01:20–03:20 UTC on 2026-09-04 (21:21-23:20 EDT
-2026-09-03). Nine commits by `CodexOperator <<owner-email>>` fall within
+2026-09-03). Nine commits by `CodexOperator <<email>>` fall within
 that window at: 01:21, 01:41, 01:55, 01:56, 02:00, 02:12, 02:28, 02:58, 03:20.
 Four of these are benchmark-format messages ("Baseline cold build…",
 "Demonstrated 30s reaper window gap…", "Baseline: fixed _benchmark.py…",
@@ -83,7 +83,7 @@ and HANDOFF.md instructed it correctly.
 
 ### 6. Git identity same, artefact pattern different
 
-All commits on this box use `CodexOperator <<owner-email>>` (the box
+All commits on this box use `CodexOperator <<email>>` (the box
 default), so author identity alone is not discriminating. It is the
 *combination* of timestamp window, benchmark-style messages interleaved with
 L1.NN-prefixed ones, 24 new session dirs, and the second checkout that makes

@@ -766,12 +766,12 @@ is the interim**, and it works, with two sharp edges measured on 2026-09-01:
 ```bash
 npx gitnexus status                                     # is the index current?
 npx gitnexus analyze                                    # ~9s, 2934 nodes / 6912 edges
-npx gitnexus query "<concept>" --repo /home/ubuntu/work/agi
+npx gitnexus query "<concept>" --repo <home>/work/agi
 ```
 
 - **Always pass `--repo` as an absolute PATH, not a name.** Two different
-  checkouts register as `agi` (`/home/ubuntu/work/agi` and
-  `/home/ubuntu/.hermes/agi`), so `--repo agi` is ambiguous and errors out.
+  checkouts register as `agi` (`<home>/work/agi` and
+  `<home>/.hermes/agi`), so `--repo agi` is ambiguous and errors out.
 - **The index is pinned to a commit and this loop commits every iteration**,
   so it is stale almost immediately. `status` tells you; `analyze` is ~9s,
   which is cheap enough to re-run rather than reason over a stale graph.

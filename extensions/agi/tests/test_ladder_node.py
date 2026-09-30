@@ -67,7 +67,7 @@ def test_ladder_node_declares_roles_table(engine_on_path):
     assert prime.get("harness") == "claude-code"
     assert prime.get("model") == "claude-fable-5-1"
     assert prime.get("effort") == "max"
-    # commit 20283d21b (2026-09-27) DROPPED settings from BOTH tier-3 rows:
+    # commit 1073d3687 (2026-09-27) DROPPED settings from BOTH tier-3 rows:
     # ultracode reaches a real launch flag (dispatch.py:2093-2094), so a
     # config cell named it changes how the PRIME starts under an orders
     # condition that said 'CHANGES NO PAID/ZERO-USD LANE'. The cell was

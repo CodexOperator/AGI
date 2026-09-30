@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: belam
+edited_by: director-general-3
 excluded:
   write.py:patch:
     cli: write.py
@@ -975,6 +975,18 @@ manifest:
     purpose: adopt the current on-disk payload/body bytes as this node's version
     side_effects: graph-write
     proposable: true
+  write.py:canonicalize:
+    cli: write.py
+    verb: canonicalize
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write.py
+      - <node-id>
+      - canonicalize
+    args: []
+    purpose: re-render the node file in the ONE canonical form (node_writer.render_frontmatter + _serialize_node) and change nothing else; a node patch refuses on a non-canonical node and names this verb (council ruling on SM 154, goal:g4.18.1.6)
+    side_effects: graph-write
+    proposable: true
   cli.py:branch-reshuffle:
     cli: cli.py
     verb: branch-reshuffle
@@ -1432,6 +1444,20 @@ manifest:
       - {"name": "mint_id", "type": "str", "required": true, "choices": []}
       - {"name": "root", "type": "str", "required": false, "choices": []}
     purpose: resolve a mint id to the one live node carrying it (id, title, status)
+    side_effects: read
+    proposable: true
+  links.py:sha:
+    cli: links.py
+    verb: sha
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/links.py
+      - sha
+      - <mint_id>
+    args:
+      - {"name": "mint_id", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: resolve a cited commit id (known, or pre-rewrite through the cell-named local map) to its commit; never prints a map line
     side_effects: read
     proposable: true
   links.py:schema:

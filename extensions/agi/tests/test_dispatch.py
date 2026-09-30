@@ -1559,7 +1559,7 @@ def test_dispatch_mints_an_across_k_ceiling_slice_on_the_kid_node(
 
     monkeypatch.setattr(dispatch.adapters, "load", lambda name: _Adapter())
     monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _Proc())
-    grep = type("_Grep", (), {"returncode": 1, "stdout": b"", "stderr": b""})   # the index grep reads bytes (9e668770f): no match
+    grep = type("_Grep", (), {"returncode": 1, "stdout": b"", "stderr": b""})   # the index grep reads bytes (ba232c339): no match
     monkeypatch.setattr(dispatch.subprocess, "run", lambda *a, **k: (
         grep() if list(a[0][:2]) == ["git", "grep"] else _Run()))
     monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
@@ -3086,17 +3086,16 @@ def _turn_end_round(tmp_path, last_event=None, kid=True, kid_pid=555):
     return graph, it, rec
 
 
-#: The round base tip at authoring time (`git rev-parse HEAD`), hardcoded so the
-#: red-on-pre-fix proof is reproducible forever.
-_PRE_ROUND_SHA = "6e6ef7fe5ba06fae83918b430cb646e9e52df4ca"
+#: The round base tip's `extensions/agi/bin/dispatch.py`, pinned to BYTES (a
+#: committed fixture, not `git show <sha>`) so the red-on-pre-fix proof is
+#: reproducible forever and survives a history rewrite (goal:g1.32).
+_PRE_ROUND_DISPATCH_FIXTURE = (
+    Path(__file__).resolve().parent / "fixtures" / "dispatch_pre_round_dispatch.py.txt")
 
 
 def _load_base_dispatch(tmp_path):
-    """Load dispatch.py's PRE-FIX bytes from the round base as a tmp module."""
-    repo = Path(__file__).resolve().parents[3]
-    src = subprocess.run(
-        ["git", "show", f"{_PRE_ROUND_SHA}:extensions/agi/bin/dispatch.py"],
-        cwd=repo, capture_output=True, text=True, check=True).stdout
+    """Load dispatch.py's PRE-FIX bytes (the pinned round-base fixture) as a tmp module."""
+    src = _PRE_ROUND_DISPATCH_FIXTURE.read_text()
     tmp_mod = tmp_path / "base_dispatch.py"
     tmp_mod.write_text(src)
     spec = importlib.util.spec_from_file_location("agi_dispatch_base", tmp_mod)

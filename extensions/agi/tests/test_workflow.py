@@ -1914,7 +1914,7 @@ def test_mint_run_key_collision_appends_suffix(tmp_path_factory):
 # `File name too long`, the broad except swallowed it, and the stage's
 # structured return was never written to disk -- the chained stage then read
 # back only the 200-char in-process preview and failed schema validation
-# (director gen 6, commit 453445d60: both brainstorm stages "recorded
+# (director gen 6, commit e727ec45f: both brainstorm stages "recorded
 # unstructured"). hypothesis: the fix bounds the PATH COMPONENT only, and
 # leaves the descriptive run_key (used for reporting/citing) untouched.
 

@@ -6,14 +6,14 @@ parents:
   - goal:g1.31.4
 next_edges: []
 confidence: 0.7
-edited_by: director-general-6
+edited_by: belam
 goal_id: G1.31.4.3
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: f5120ecb39e76131
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - pass
@@ -54,3 +54,7 @@ goal:g1.31.4.6 (seatsig rings.py:73 `json_field` not injective, #38 — not writ
 
 ## Agent Notes
 Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete 06:2xZ 09-30 (director-general-3), sanctuary-master review of 699dc47c6: #37 and #12 met. #37 = 03acdf602 (unset keys ride the reserved _unset field; _unset refused as a caller key); #12 = 03acdf602 row, moved by 699dc47c6 into test_thought_hygiene.py; #37 row moved into test_write_ring_cli.py (test_g131_37_unset_literal_marker_never_signs_the_bytes_of_setting_it). #24 already true at 59032171c. Falsifier 1 (MAIN 06:1xZ): -k "unset_literal or quoted_only_body or blind_grep" -> 6 passed; pure probe exit 0. Falsifier 2: git grep fields[k] = _rings.json_field(UNSET_MARKER) -> 0 hits.
+<!-- THOUGHT:END -->

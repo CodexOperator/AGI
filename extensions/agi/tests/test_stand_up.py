@@ -36,9 +36,9 @@ def calls(monkeypatch):
     seen: list = []
     real = rotate.stand_up
 
-    def counting(root, post, body, *, mode):
+    def counting(root, post, body, *, mode, **kw):
         seen.append((post, mode))
-        return real(root, post, body, mode=mode)
+        return real(root, post, body, mode=mode, **kw)
 
     monkeypatch.setattr(rotate, "stand_up", counting)
     return seen
@@ -110,7 +110,7 @@ def test_rotate_self_successor_is_a_stand_up(_fix, tmp_path, monkeypatch):
 
     seen: list = []
 
-    def stop(root, post, body, *, mode):
+    def stop(root, post, body, *, mode, **kw):
         seen.append((post, mode))
         raise _Stop
 
@@ -206,6 +206,68 @@ def test_key_template_defaults_forgiving_and_reads_the_node(graph, tmp_path):
                  '{"existing_key": "leave", "junk": 1}\n---\n', encoding="utf-8")
     assert rotate.key_template(graph) == dict(rotate.KEY_TEMPLATE_DEFAULT,
                                               existing_key="leave")
+
+
+@pytest.mark.parametrize("mode", rotate.STAND_UP_MODES)
+def test_every_stand_up_mode_keys_an_unkeyed_row(graph, mode):
+    """hypothesis:stand-up-verb-keys-every-mode-through-key-template: spawn
+    (cmd_seats_launch), rotate (cmd_loop, rotate-self), recover and restart
+    all key an unkeyed row through key_template before the body runs."""
+    seen: list = []
+    held, _ = rotate.stand_up(graph, "seat-a",
+                              lambda: seen.append(_row(graph, "seat-a")),
+                              mode=mode)
+    assert held and seen[0].get("pubkey"), seen
+    assert _verifies(graph, "seat-a").startswith("VERIFIED seat-a")
+
+
+def test_a_body_that_keys_itself_is_not_keyed_twice(graph):
+    rotate.stand_up(graph, "seat-a", lambda: None, mode="spawn",
+                    keyed_in_body=True)
+    assert "pubkey" not in _row(graph, "seat-a")
+
+
+def _stand_up_calls() -> dict:
+    """{caller function: [keyed_in_body value]} for every stand_up call."""
+    out: dict = {}
+    tree = ast.parse((BIN / "rotate.py").read_text(encoding="utf-8"))
+    for fn in ast.walk(tree):
+        if not isinstance(fn, ast.FunctionDef):
+            continue
+        for node in ast.walk(fn):
+            if (isinstance(node, ast.Call)
+                    and getattr(node.func, "id", None) == "stand_up"):
+                kib = [k.value.value for k in node.keywords
+                       if k.arg == "keyed_in_body"]
+                out.setdefault(fn.name, []).extend(kib or [False])
+    return out
+
+
+def test_only_the_seating_spawn_keys_in_its_body():
+    """seats-launch and loop go through stand_up's key step; only cmd_spawn
+    (its ONE seating commit) keys in its body, via the same template step."""
+    calls = _stand_up_calls()
+    assert calls["cmd_spawn"] == [True]
+    for fn in ("cmd_seats_launch", "cmd_loop", "cmd_rotate_self", "cmd_stand_up"):
+        assert calls.get(fn) == [False], (fn, calls)
+    fn = ast.parse(inspect.getsource(rotate._first_seating_key).lstrip())
+    called = {getattr(n.func, "attr", None) or getattr(n.func, "id", None)
+              for n in ast.walk(fn) if isinstance(n, ast.Call)}
+    assert "_mint_seat_key" not in called and "_template_key" in called
+
+
+@pytest.mark.parametrize("pre_key", [False, True])
+def test_dry_stand_up_names_the_real_decision(graph, pre_key, capsys):
+    """dry == real on the decision: mint or adopt."""
+    import send
+    if pre_key:
+        send._mint_seat_key(graph, "seat-a", send.seatsig.DEFAULT_SCHEME)
+    dry = rotate._stand_up_key_plan(graph, "seat-a")
+    assert "pubkey" not in _row(graph, "seat-a")
+    assert dry in capsys.readouterr().err
+    real = rotate.ensure_post_key(graph, "seat-a")
+    word = "adopt" if pre_key else "mint"
+    assert f"would {word}" in dry and f"{word}ed its" in real, (dry, real)
 
 
 def test_a_post_with_no_row_is_never_keyed(graph):
@@ -357,9 +419,47 @@ def test_own_box_without_a_witness_refuses(graph, monkeypatch):
     sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
     monkeypatch.setenv("AGI_BOX", "town-x")
     monkeypatch.setattr(rotate, "_box_cell_witness", lambda root, seat, box: "")
+    pub_before = _row(graph, "seat-a").get("pubkey")
     note = rotate.ensure_post_key(graph, "seat-a")
     assert "no commit witnesses" in note and "REFUSED" in note, note
     assert len(sent) == 1 and not send._seat_key_path(graph, "seat-a").exists()
+    assert _row(graph, "seat-a").get("pubkey") == pub_before
+
+
+def test_a_failed_rename_leaves_no_row_naming_a_lost_key(graph, monkeypatch):
+    """158b: the key is staged before the row write and renamed after; a
+    failed rename restores the row and leaves no temp file behind, and a
+    same-process retry then remints cleanly."""
+    import send
+    _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    pub_before = _row(graph, "seat-a").get("pubkey")
+    real = rotate._place_seat_key
+
+    def boom(src, dst):
+        raise OSError("rename refused")
+    monkeypatch.setattr(rotate, "_place_seat_key", boom)
+    note = rotate.ensure_post_key(graph, "seat-a")
+    assert "remint held" in note and "row restored" in note, note
+    key = send._seat_key_path(graph, "seat-a")
+    assert not key.exists()
+    assert not list(key.parent.glob(f".{key.name}.*"))
+    assert _row(graph, "seat-a").get("pubkey") == pub_before
+    monkeypatch.setattr(rotate, "_place_seat_key", real)
+    assert "reminted" in rotate.ensure_post_key(graph, "seat-a")
+    assert _verifies(graph, "seat-a").startswith("VERIFIED seat-a")
+    assert not list(key.parent.glob(f".{key.name}.*"))
+
+
+def test_a_refused_row_unlinks_the_staged_key(graph, monkeypatch):
+    """158b: a refused row write unlinks the staged temp -- nothing left."""
+    import send
+    _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    monkeypatch.setattr(rotate, "_write_identity_cells", lambda *a, **k: False)
+    assert "remint held" in rotate.ensure_post_key(graph, "seat-a")
+    key = send._seat_key_path(graph, "seat-a")
+    assert not key.exists() and not list(key.parent.glob(f".{key.name}.*"))
 
 
 def test_the_seating_keys_from_the_template_too(graph, monkeypatch):

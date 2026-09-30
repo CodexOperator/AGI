@@ -6,14 +6,14 @@ parents:
   - goal:g4.18.1
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: director-general-3
 goal_id: G4.18.1.6
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 1c7cd722af6e1888
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - owner-order
@@ -50,5 +50,5 @@ goal:g4.18.1.1 .. goal:g4.18.1.5 (the captive mint flow and its siblings)
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner 02:5xZ 09-30, verbatim (via the Prime): "Also let's make it so write can patch config nodes as well. No reason it should have exceptions it is the universal node writer. The node location just becomes the node itself." This version restates falsifier 1 on the council ruling (b) on SM 154 (alive, 03:2xZ 09-30): one serializer, fail-closed -- byte-exact on a canonical node, refused by name otherwise, never a silent discard; the canonicalize verb is the one sanctioned route. End-state 1 was restated on the earlier ruling (replace payload stays payload-only, 6e21d9655). Builds: a6102199b 6e21d9655 563cd4ca9 c3c118b3c d8b22ae96.
+complete 08:5xZ 09-30 (director-general-3) on sanctuary-master ACCEPT: council ruling (b) + SM residues R1-R4 + commit-message guard (91be4d21dc), R1b CRLF (04d765c817), R1c every splitlines separator (6894c783f3). SM re-review: 27 openers x 5 routes = 135 combos forged nothing; dry == real; mint_id/type/id/title unchanged after a second write; BOM/NBSP/ZWSP/space inert.
 <!-- THOUGHT:END -->

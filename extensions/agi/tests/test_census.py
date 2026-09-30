@@ -17,7 +17,7 @@ whose default level is `rotation`. The census is a built-in check appended by
 The next rule is a config row, not code: no rule name, home or pattern is a
 literal in verification.py (test_the_check_carries_no_rule_literal).
 
-Every row is strict-xfail until the DG3/DG4 build leaf lands the check + cell.
+The check + cell landed in goal:g7.16.1.1.6.1; the strict-xfail marker is lifted.
 """
 from __future__ import annotations
 
@@ -35,10 +35,6 @@ sys.path.insert(0, str(SRC))
 import verification  # noqa: E402
 
 ENGINE_ROOT = Path(__file__).resolve().parents[3]
-
-pytestmark = pytest.mark.xfail(
-    strict=True,
-    reason="goal:g7.16.1.1.6 part 2: check_census + config:census not built yet")
 
 # Spelled in pieces so this file never carries a one-line definition of its
 # own (the live cell also excludes the tests dir; belt and braces).

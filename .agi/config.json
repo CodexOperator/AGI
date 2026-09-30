@@ -59,14 +59,15 @@
     "claude-code": {
       "adapter": "claude_code",
       "models": {
-        "kid": "claude-opus-5-5",
-        "parent": "claude-opus-5-5",
-        "director": "claude-fable-5-1"
+        "kid": "claude-sonnet-5-5",
+        "parent": "claude-sonnet-5-5",
+        "director": "claude-sonnet-5-5"
       },
       "effort": {
         "director": "max"
       },
       "allowed_models": [
+        "claude-sonnet-5-5",
         "claude-sonnet-5",
         "claude-opus-5",
         "claude-opus-5-5",
@@ -193,7 +194,12 @@
     }
   },
   "anonymize": {
-    "home_roots": ["/data/home-"]
+    "home_roots": ["/data/home-"],
+    "email_allow": [
+      "[^@]+@(?:[A-Za-z0-9-]+\\.)*example\\.(?:com|org|net)",
+      "[^@]+@openssh\\.com",
+      "[^@]+@(?:[0-9]+|UID)\\.service"
+    ]
   },
   "reaper": {
     "max_restarts": 0,
@@ -240,6 +246,7 @@
       "fixtures_dir": "extensions/agi/tests/fixtures/boxkit"
     },
     "local_maxxing": {
+      "scrub_commit_map": "/data/agi-maps/scrub-2026-09-30.commit-map",
       "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
       "worktree_a00_48ed5e56_nodes": ".agi/worktrees/a00-48ed5e56/.agi/nodes",
       "sessions_dir": ".agi/sessions",
@@ -301,27 +308,10 @@
       ]
     },
     "boxkit": {
-      "user_high_ratio": 0.9,
-      "swap_ratio": 0.5,
-      "agi_high_ratio": 0.63,
-      "agi_max_ratio": 0.7,
-      "work_high_ratio": 0.5673,
-      "work_max_ratio": 0.6305,
-      "MEM_LOW": "1024M",
       "USER_TASKS": "16384",
-      "USER_OOM_PCT": "50",
-      "SYSTEM_MIN": "128M",
-      "SSH_MIN": "64M",
       "SSH_CPU_WEIGHT": "1000",
-      "OOMD_SWAP_PCT": "90",
-      "OOMD_PRESSURE_PCT": "60",
-      "OOMD_PRESSURE_SEC": "20s",
       "AGI_TASKS": "4096",
       "AGI_CPU_WEIGHT": "50",
-      "AGI_OOM_PCT": "40",
-      "ENGINE_HIGH": "384M",
-      "ENGINE_MAX": "512M",
-      "ENGINE_SWAP": "0",
       "ENGINE_TASKS": "128",
       "ENGINE_CPU_WEIGHT": "20",
       "WORK_TASKS": "2048",
@@ -337,8 +327,6 @@
       "WD_REPAIR_MAX": "1",
       "WD_PRIORITY": "1",
       "WD_LOG_DIR": "/var/log/watchdog",
-      "HEALTH_LIMIT": "40",
-      "HEALTH_GRACE": "900",
       "HEALTH_ENV": "/etc/sanctuary-guard/health.env",
       "HEALTH_DISABLE": "/etc/sanctuary-guard/watchdog.disable",
       "HEALTH_LOG": "/var/log/sanctuary-health.log",

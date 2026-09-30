@@ -189,6 +189,9 @@ assert _leaks("cd %s/notes\n" % GUARD_PREFIX), \
 
 # A probe identity: contract tests need SOME value for REPO_ROOT/GUARD_SRC to render
 # at all, and a probe is not the answer -- the wire test below supplies nothing.
+# The measured box sets no memory cell in config:guard, so its fixtures render with
+# guard-init's defaults: pinned here, never read from THIS box (goal:g7.16.1.5.5.4).
+GUARD = {}
 PROBE = {"OWNER_USER": "probe", "UID": "4242", "REPO_ROOT": "/probe/repo",
          "GUARD_SRC": "/probe/.sanctuary/guard/guard-init.sh"}
 
@@ -196,7 +199,7 @@ PROBE = {"OWNER_USER": "probe", "UID": "4242", "REPO_ROOT": "/probe/repo",
 def _v(**over):
     o = dict(PROBE)
     o.update(over)
-    return R.values(CFG, MEASURED, o)
+    return R.values(CFG, MEASURED, o, guard=GUARD)
 
 
 def _vs(**over):
@@ -204,7 +207,7 @@ def _vs(**over):
     fixed stand-ins. This is the OFF-BOX comparison -- the bytes a second box gets."""
     o = dict(STANDINS)
     o.update(over)
-    return R.values(CFG, MEASURED, o)
+    return R.values(CFG, MEASURED, o, guard=GUARD)
 
 
 def _payload(text):
@@ -308,6 +311,63 @@ def test_sizing_reproduces_the_measured_knobs():
     assert mib["AGI_MAX"] == int(0.70 * mib["USER_MAX"]) != round(0.70 * mib["USER_MAX"])
 
 
+# 5b -- goal:g7.16.1.5.5.4: every memory number is config:guard's, through guard-init's
+# own arithmetic; values.boxkit keeps none, and the defaults are guard-init's own lines
+def test_values_boxkit_carries_no_memory_number():
+    assert not set(R.MEMORY) & set(CFG["values"]["boxkit"])
+    assert not [k for k in CFG["values"]["boxkit"]
+                if re.search(r"OOM_PCT|_high_ratio|_max_ratio|_ratio$", k)]
+
+
+def test_every_cell_sizing_reads_is_parsed_from_guard_init():
+    """A guard-init cell line whose format drifts from CELL drops out of guard_defaults:
+    red here, and a named refusal in sizing() -- never a bare KeyError."""
+    assert set(R.SIZING_CELLS) <= set(R.guard_defaults())
+    g = R.guard_defaults()
+    g.pop("SSH_MIN")
+    with pytest.raises(R.KitError, match="guard-init cell line\\(s\\) SSH_MIN not parsed"):
+        R.sizing(7365, 4095, g)
+
+
+def test_no_base_blanks_only_the_base_derived_targets():
+    out = R.sizing(None, None, R.guard_defaults())
+    assert not set(R.FROM_BASE) & set(out) and "USER_SWAP" not in out
+    assert (out["SYSTEM_MIN"], out["SSH_MIN"], out["ENGINE_MAX"], out["OOMD_SWAP_PCT"]) == \
+        ("128M", "64M", "512M", "90")
+
+
+def test_a_guard_cell_moves_the_render():
+    v = R.values(CFG, MEASURED, PROBE, guard={"USER_HIGH_PCT": "95", "ENGINE_MAX": "3G",
+                                             "OOMD_LIMIT": "85", "PSI_FULL": "60"})
+    user_max = int(v["USER_MAX"].rstrip("M"))
+    agi_max = user_max * 70 // 100
+    assert v["USER_HIGH"] == "%dM" % (user_max * 95 // 100)
+    assert (v["ENGINE_MAX"], v["ENGINE_HIGH"]) == ("3072M", "2304M")
+    assert v["WORK_MAX"] == "%dM" % (agi_max - 3072)
+    assert (v["USER_OOM_PCT"], v["HEALTH_LIMIT"]) == ("85", "60")
+
+
+def test_a_guard_cell_sizing_a_unit_out_of_range_is_refused():
+    """goal:g7.16.1.5.5.8: the kit refuses what guard-init refuses (range, not shape)."""
+    for cells in ({"ENGINE_MAX": "100G"}, {"ENGINE_MAX": "0.5M"}):
+        with pytest.raises(R.KitError) as err:
+            R.values(CFG, MEASURED, PROBE, guard=cells)
+        assert "config:guard sizes" in str(err.value) and \
+            ("WORK_MAX" in str(err.value) or "ENGINE_MAX" in str(err.value)), str(err.value)
+    with pytest.raises(R.KitError, match="SSH_MIN"):          # MemoryMin > RAM (0 stays legal)
+        R.values(CFG, MEASURED, PROBE, guard={"SSH_MIN": "%dM" % (MEASURED["MEM_TOTAL"] + 1)})
+    assert R.values(CFG, MEASURED, PROBE, guard={"SSH_MIN": "0"})["SSH_MIN"] == "0M"
+
+
+def test_guard_none_reads_this_boxs_cells(monkeypatch):
+    seen = []
+    monkeypatch.setattr(R, "guard_cells", lambda root=None: seen.append(root) or
+                        {**R.guard_defaults(), "AGI_MAX_PCT": "60"})
+    v = R.values(CFG, MEASURED, PROBE)
+    assert seen == [None]
+    assert v["AGI_MAX"] == "%dM" % (int(v["USER_MAX"].rstrip("M")) * 60 // 100)
+
+
 # 6 -- THE FIXTURE IS THE RENDER, NOT A COPY OF THE TEMPLATE. The previous version
 # asserted template == fixture, i.e. X == X: it could never fail. A fixture here is the
 # ANONYMIZED RENDERED bytes -- template rendered with the measured inputs and the fixed
@@ -404,7 +464,7 @@ def test_the_stand_ins_are_constants_and_not_this_box():
     assert STANDINS["UID"] != UID and STANDINS["OWNER_USER"] != OWNER
     assert STANDINS["REPO_ROOT"] != str(R.engine_checkout())
     piece = BY_NAME["user-slice-guard"]
-    assert R.rendered(piece, R.values(CFG, MEASURED, R.host_tokens(CFG))) != \
+    assert R.rendered(piece, R.values(CFG, MEASURED, R.host_tokens(CFG), guard=GUARD)) != \
         (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
 
 
@@ -438,7 +498,8 @@ def _with_the_whole_stand_in_set(piece, tokens):
     occurrence count is for); the collision fallback reaches them by re-rendering here.
     A key with no {{K}} site is harmless: a value no placeholder consumes never lands."""
     return R.rendered(piece, R.values(CFG, MEASURED,
-                                      {**tokens, **{k: STANDINS[k] for k in IDENTITY}}))
+                                      {**tokens, **{k: STANDINS[k] for k in IDENTITY}},
+                                      guard=GUARD))
 
 
 def _anonymized_live_render(piece, tokens=None):
@@ -455,7 +516,7 @@ def _anonymized_live_render(piece, tokens=None):
     row 7f walks it."""
     tokens = R.host_tokens(CFG) if tokens is None else dict(tokens)
     body = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
-    live = R.rendered(piece, R.values(CFG, MEASURED, tokens))
+    live = R.rendered(piece, R.values(CFG, MEASURED, tokens, guard=GUARD))
     masked, clean = [], {}
     for k in IDENTITY:
         sites = len(re.findall(r"\{\{%s\}\}" % k, body))
@@ -510,7 +571,7 @@ def test_the_collision_fallback_re_renders_with_the_whole_stand_in_set():
     tokens["OWNER_USER"] = collides
     body = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
     sites = len(re.findall(r"\{\{OWNER_USER\}\}", body))
-    live = R.rendered(piece, R.values(CFG, MEASURED, tokens))
+    live = R.rendered(piece, R.values(CFG, MEASURED, tokens, guard=GUARD))
     assert live.count(collides) > sites, (
         "the synthetic collision did not force the fallback: %d occurrence(s) of %r, "
         "%d site(s)" % (live.count(collides), collides, sites))
@@ -999,9 +1060,17 @@ def test_the_anonymized_live_render_substitutes_through_the_longest_first_helper
 # row 4 CLEAN. This row runs anonymize.scan -- the guard's own function, MIN_TOKEN and
 # CLASSES -- against a FAKE box denylist reached through anonymize's own
 # AGI_ANONYMIZE_FIXTURE seam, so it reads no physical value of this box and prints none.
-FAKE_BOX = {"hostname": ["boxkit-fake-host"], "ip": ["198.51.100.7"],
-            "mac": ["02:00:5e:10:00:01"], "board": ["BOXKIT-FAKE-BOARD"],
-            "secret": ["sk-boxkit-fake-key"]}
+# The fake denylist is DERIVED from anonymize.CLASSES -- one obviously synthetic value
+# per class, never a typed class list -- so a class added to the guard needs no edit here
+# (email arrived after the hand list and reddened row 14). No value is a real host,
+# address, email, key or path, and none is an email shape, so a planted one is named
+# by its own class alone.
+def _fake_value(cls):
+    return "boxkit-fake-%s-token" % cls
+
+
+def _fake_box(classes):
+    return {c: [_fake_value(c)] for c in classes}
 
 
 @pytest.fixture
@@ -1022,9 +1091,9 @@ def anonymize():
 
 
 @pytest.fixture
-def fake_box(tmp_path, monkeypatch):
+def fake_box(tmp_path, monkeypatch, anonymize):
     p = tmp_path / "boxkit-fake-box.json"
-    p.write_text(json.dumps(FAKE_BOX), encoding="utf-8")
+    p.write_text(json.dumps(_fake_box(anonymize.CLASSES)), encoding="utf-8")
     monkeypatch.setenv("AGI_ANONYMIZE_FIXTURE", str(p))
     return p
 
@@ -1047,7 +1116,7 @@ def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
     toks = anonymize.box_tokens(PROJECT)
     assert sorted({c for c, _ in toks}) == sorted(anonymize.CLASSES), \
         "the fake denylist did not reach every class; the row would be vacuous"
-    cls, value = "ip", FAKE_BOX["ip"][0]
+    cls, value = "ip", _fake_value("ip")
     src = TEMPLATES / BY_NAME["oomd-guard"]["template"]
     clean = src.read_text(encoding="utf-8")
     planted = tmp_path / "planted" / src.name
@@ -1086,7 +1155,7 @@ def _kit_token():
 def test_the_kit_denylist_and_the_engine_denylist_are_disjoint_in_both_directions(
         cls, fake_box, anonymize):
     toks = anonymize.box_tokens(PROJECT)
-    value, kit = FAKE_BOX[cls][0], _kit_token()
+    value, kit = _fake_value(cls), _kit_token()
     clean = (TEMPLATES / BY_NAME["oomd-guard"]["template"]).read_text(encoding="utf-8")
     planted = clean + "\n# a planted %s token: %s\n" % (cls, value)
     assert anonymize.scan(planted, toks) == [cls], cls

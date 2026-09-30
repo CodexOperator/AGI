@@ -47,6 +47,30 @@ and is read only when this node is missing.
 #   GUARD_GRACE_<box>              seconds after boot the watchdog never judges. default: 900
 #   GUARD_PEERWATCH_CLAUDE_<box>   1 = the first outage of another town launches ONE
 #                                  recovery claude. Set it on ONE box only. default: 0
+#   goal:g7.16.1.5.5.5 -- every other memory number guard-init.sh applies (default = its old literal;
+#   an unset OR EMPTY cell takes the default; a bad value is refused by name before any arithmetic):
+#   GUARD_OOMD_LIMIT_<box>         oomd kill line for user@ + its root slice, % pressure, 10..99. default: 50
+#   GUARD_USER_HIGH_PCT_<box>      user@ MemoryHigh, % of its MemoryMax, 50..99. default: 90
+#   GUARD_AGI_MAX_PCT_<box>        agi.slice max, % of user@'s max. default: 70
+#   GUARD_AGI_HIGH_PCT_<box>       agi.slice high, % of its max. default: 90
+#   GUARD_ENGINE_HIGH_PCT_<box>    agi-engine.slice high, % of GUARD_ENGINE_MAX. default: 75
+#   GUARD_WORK_HIGH_PCT_<box>      agi-work.slice high, % of its max (agi max - engine max). default: 90
+#   GUARD_AGI_OOMD_LIMIT_<box>     oomd kill line for agi.slice, % pressure, 10..99; below GUARD_OOMD_LIMIT
+#                                  so the engine is killed before Claude. default: 40
+#   GUARD_USER_SWAP_PCT_<box>      user@ + agi.slice MemorySwapMax = min(swap x PCT / 100, CAP). default: 50
+#   GUARD_USER_SWAP_CAP_<box>      default: 2048M
+#   GUARD_CLAUDE_LOW_DIV_<box>     Claude's MemoryLow chain = min(user@ max / DIV, CAP). default: 6
+#   GUARD_CLAUDE_LOW_CAP_<box>     default: 1024M
+#   GUARD_OOMD_SWAP_USED_PCT_<box> oomd.conf SwapUsedLimit. default: 90
+#   GUARD_OOMD_PRESSURE_PCT_<box>  oomd.conf DefaultMemoryPressureLimit. default: 60
+#   GUARD_OOMD_PRESSURE_S_<box>    oomd.conf DefaultMemoryPressureDurationSec, seconds. default: 20
+#   GUARD_SYSTEM_MIN_<box>         system.slice MemoryMin (the parent link of sshd's). default: 128M
+#   GUARD_SSH_MIN_<box>            sshd MemoryMin. default: 64M
+#   GUARD_ENGINE_SWAP_MAX_<box>    agi-engine.slice MemorySwapMax, written as 0 or whole MiB. default: 0
+#   GUARD_RAMDISK_SWAP_MAX_<box>   ramdisk.slice MemorySwapMax, written as 0 or whole MiB. default: 0
+#   GUARD_USER_MIN_<box>           the least user@ may be left with; below it guard-init refuses. default: 2048M
+#   GUARD_DOCKER_CAP_HEADROOM_PCT_<box>  a container using this % of the docker budget is not capped live. default: 90
+#   GUARD_DEFER_PCT_<box>          user@'s new cap waits for the next boot when hard use >= this % of the new high. default: 90
 #
 # Re-run guard-init.sh on a box after changing its lines. Never key a line by host name.
 
@@ -97,6 +121,7 @@ GUARD_SWEEP_IDLE_MIN_local_town=120
 GUARD_SWEEP_PRESSURE_PCT_local_town=60
 GUARD_SWEEP_PRESSURE_IDLE_MIN_local_town=20
 GUARD_SWEEP_CLAUDE_IDLE_MIN_local_town=1440
+#   GUARD_RAM_BUDGET_<box>              goal:g7.16.1.5.5.1 (DG5): ramdisk.slice MemoryMax, the RAM disk's OWN budget line (guard-init layer 3). default: the tmpfs size of GUARD_RAM_DIR
 #   GUARD_RAM_WORKTREES_<box>            goal:g7.16.1.5.4 (DG5, bfa89533e): new ROUND worktrees check out here, .agi/worktrees/<agent> is a symlink to it. empty = off (disk)
 #   GUARD_RAM_WT_HOLD_PCT_<box>          tmpfs used-% at/above which dispatch HOLDS a round launch (recorded unadmitted). default: 80
 GUARD_RAM_WORKTREES_local_town=/mnt/agi-ram/worktrees

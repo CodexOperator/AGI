@@ -640,7 +640,7 @@ def _live_recovered_probes_node(root, cli):
 def test_the_LIVE_repaired_artifact_is_still_in_shape():
     """ITEM 6: the round DELETED the file's only live pin on
     `.agi/nodes/experiment/a00-fe05fdae-a240f5.md` -- the exact artifact the
-    parent claim's repair conjunct is about, hand-landed at 5a24ccfbd. With
+    parent claim's repair conjunct is about, hand-landed at 2497e2212. With
     it gone nothing held that repair in place. Restored, and narrow: it
     reads the LIVE file and asserts only that a real recovered `probes` list
     still loads clean and in shape. It SKIPS rather than divides when there
@@ -1042,3 +1042,28 @@ def test_w2cb_snapshot_goals_integrity_reads_a_mint_twin_as_its_address_twin(tmp
         ex = {n: {"fm": f, "path": n} for n, f, _ in links._iter_corpus(root)}
         seen.append(sg.report_integrity(ex, sg.collect_parent_refs(ex), set(ex))[0])
     assert seen[1] == seen[0] == 0
+
+
+
+def test_w2cc_a_resolving_index_never_raises_on_a_miss(tmp_path, monkeypatch):
+    import evidence_gate, links, rotation_record, spawn_gate   # goal:g4.18.6.3.3
+    g = tmp_path / "graph" / "goal"   # a nodes dir NOT named `nodes`: no resolver, a plain miss
+    g.mkdir(parents=True)
+    (g / "g.md").write_text(f"---\nid: goal:g\nmint_id: {'b' * 32}\ntype: goal\n---\n")
+    seen = [k in spawn_gate.build_type_index(g.parent) for k in ("b" * 32, "bare", "goal:g")]
+    (tmp_path / "graph").rename(tmp_path / "nodes")   # the real layout, but the grep cannot look
+    monkeypatch.setattr(links, "mint_index", lambda r: (_ for _ in ()).throw(rotation_record.GrepError("x")))
+    idx = evidence_gate.build_corpus(tmp_path / "nodes")
+    seen += [k in idx for k in ("b" * 32, "bare", "goal:g")]
+    assert seen == [False, False, True] * 2, seen
+
+
+def test_frontmatter_rows_a_failing_grep_raises_greperror_from_bytes_stderr(tmp_path, monkeypatch):
+    """rc 2 + BYTES stderr (the real run's mode, incl. a non-UTF-8 byte) fails closed as
+    rotation_record.GrepError -- never AttributeError (hypothesis:trunk-red-free-lane-fakes-...)."""
+    import subprocess
+    import rotation_record
+    R = type("R", (), {"returncode": 2, "stdout": b"", "stderr": b"fatal: bad \xff path\n"})
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: R())
+    with pytest.raises(rotation_record.GrepError, match="git grep exit 2: fatal: bad"):
+        links.frontmatter_rows(tmp_path)
