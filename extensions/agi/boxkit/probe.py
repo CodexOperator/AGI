@@ -18,28 +18,30 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "bin"))
 import mem_cap  # noqa: E402
 import crons  # noqa: E402
+sys.path.insert(0, str(HERE))
+import render  # noqa: E402  the kit's sizing(): the ONE memory arithmetic
 
 SCALERS = {"": 1 / 1048576.0, "K": 1 / 1024.0, "M": 1.0, "G": 1024.0, "T": 1048576.0}
 OK_TOL = 0.05                      # MiB: the installer writes whole MiB, off-by-one IS drift
 READ_VERBS = ("show", "is-active")  # the ONLY verbs this probe may ever call
 
 # (row, unit, manager "s"|"u", prop, kind, target)  kind: ratio | swap | mem | eq |
-# is-active | present.  A target is a DSL over the `values.boxkit.*` cells -- no
-# sizing constant is written in this file:  "base" the installed user@ max
-# itself, "ratio:<cell>" a fraction of it, "swap:<cell>" a fraction of SwapTotal,
-# "mem:<cell>" a systemd memory string, "eq:<cell>" an exact string, "lit:<v>" a
+# is-active | present.  A target is a DSL over the `values.boxkit.*` cells and the
+# memory targets render.sizing() derives from config:guard on the installed user@
+# max (goal:g7.16.1.5.5.4) -- no sizing constant is written in this file:  "base"
+# the installed user@ max itself, "mem:<cell>" a systemd memory string, "eq:<cell>" an exact string, "lit:<v>" a
 # fact with no cell behind it, None no target at all.  No cell -> INFORMATION.
 UNITS = [
     ("user@ MemoryMax", "user@{uid}.service", "s", "MemoryMax", "ratio", "base"),
-    ("user@ MemoryHigh", "user@{uid}.service", "s", "MemoryHigh", "ratio", "ratio:user_high_ratio"),
-    ("user@ MemorySwapMax", "user@{uid}.service", "s", "MemorySwapMax", "swap", "swap:swap_ratio"),
+    ("user@ MemoryHigh", "user@{uid}.service", "s", "MemoryHigh", "ratio", "mem:USER_HIGH"),
+    ("user@ MemorySwapMax", "user@{uid}.service", "s", "MemorySwapMax", "swap", "mem:USER_SWAP"),
     ("user@ MemoryLow", "user@{uid}.service", "s", "MemoryLow", "mem", "mem:MEM_LOW"),
     ("user@ TasksMax", "user@{uid}.service", "s", "TasksMax", "eq", "eq:USER_TASKS"),
     ("user.slice MemoryLow", "user.slice", "s", "MemoryLow", "mem", "mem:MEM_LOW"),
     ("user-<uid>.slice MemoryLow", "user-{uid}.slice", "s", "MemoryLow", "mem", "mem:MEM_LOW"),
     ("system.slice MemoryMin", "system.slice", "s", "MemoryMin", "mem", "mem:SYSTEM_MIN"),
-    ("agi.slice MemoryHigh", "agi.slice", "u", "MemoryHigh", "ratio", "ratio:agi_high_ratio"),
-    ("agi.slice MemoryMax", "agi.slice", "u", "MemoryMax", "ratio", "ratio:agi_max_ratio"),
+    ("agi.slice MemoryHigh", "agi.slice", "u", "MemoryHigh", "ratio", "mem:AGI_HIGH"),
+    ("agi.slice MemoryMax", "agi.slice", "u", "MemoryMax", "ratio", "mem:AGI_MAX"),
     ("agi-memguard.service active", "agi-memguard.service", "s", None, "is-active", "lit:active"),
     ("OOMPolicy claude-remote-control", "claude-remote-control.service", "u", "OOMPolicy", "eq", "eq:OOM_POLICY"),
     ("OOMPolicy streamer-stub", "streamer-stub.service", "u", "OOMPolicy", "eq", "eq:OOM_POLICY"),
@@ -140,14 +142,8 @@ def resolve(vals, spec, base, swap):
     cell = vals.get(arg)
     if cell is None:
         return None, True                   # no cell for this row
-    if mode in ("ratio", "swap"):
-        total = base if mode == "ratio" else swap
-        if total is None:
-            return None, False             # the cell exists; the BASE is what is missing
-        try:
-            return float(round(float(cell) * total)), False
-        except (TypeError, ValueError):
-            return None, True               # an unparseable cell is not a target
+    if cell == "":
+        return None, False                  # a sized target whose BASE is missing: UNKNOWN
     return cell, False                      # mem / eq: a systemd string, parsed later
 
 
@@ -222,7 +218,14 @@ def rows(root: pathlib.Path, install_root: pathlib.Path, systemctl: str = "syste
     swap = meminfo(install_root, "SwapTotal")
     total = meminfo(install_root, "MemTotal")
     cfg_all = json.loads((root / "config.json").read_text())
-    vals = (cfg_all.get("values") or {}).get("boxkit") or {}
+    vals = dict((cfg_all.get("values") or {}).get("boxkit") or {})
+    # goal:g7.16.1.5.5.4: every memory target is guard-init's own arithmetic over THIS
+    # box's config:guard cells on the INSTALLED user@ max -- never a boxkit number. No
+    # base (or no SwapTotal) = an empty target, which judges UNKNOWN, never ok.
+    sized = render.sizing(base, swap or 0, render.guard_cells(root)) if base is not None else {}
+    if swap is None:
+        sized.pop("USER_SWAP", None)
+    vals.update({k: sized.get(k, "") for k in render.MEMORY})
     # g7.33.18 9b03554ac: the reserve is DERIVED, never a fixed 2 GiB and never
     # a default.  `held_outside_user_mib` is a PER-BOX INPUT with no config cell
     # yet, so it is a REQUIRED flag: without it the reserve is UNKNOWN -- never

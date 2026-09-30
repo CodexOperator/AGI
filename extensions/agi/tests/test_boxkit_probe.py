@@ -22,12 +22,9 @@ import mem_cap  # noqa: E402
 CELLS = {"install_root": "/", "sbin_dir": "usr/local/sbin",
          "systemd_system_dir": "etc/systemd/system", "systemd_conf_dir": "etc/systemd",
          "user_systemd_dir": "{home}/.config/systemd/user", "watchdog_conf": "etc/watchdog.conf"}
-# the SIZING cells the probe judges against, read at runtime and UNIT-NORMALISED
-# ("1024M" parses; it never string-compares against a parsed value)
-VALUES = {"user_high_ratio": 0.9, "swap_ratio": 0.5, "agi_high_ratio": 0.63,
-          "agi_max_ratio": 0.7, "MEM_LOW": "1024M", "USER_TASKS": "16384",
-          "SYSTEM_MIN": "128M", "OOM_POLICY": "continue", "OOMD_SWAP_PCT": "90",
-          "OOMD_PRESSURE_PCT": "60", "OOMD_PRESSURE_SEC": "20s"}
+# the kit's non-memory cells; every MEMORY target is render.sizing() over config:guard
+# (goal:g7.16.1.5.5.4) -- this tmp root has no guard node, so guard-init's defaults apply
+VALUES = {"USER_TASKS": "16384", "OOM_POLICY": "continue"}
 HELD = 0.0                  # MiB held outside user@ on the fixture box
 HELD_FLAG = ["--held-outside-user-mib", str(HELD)]
 BASE = 7365.0                 # MiB, the INSTALLED user@ MemoryMax the stub reports
@@ -47,7 +44,9 @@ FACTORY = {
         "agi-memguard.service": {"active": True},
     },
     "user": {
-        "agi.slice": {"MemoryHigh": f"{round(BASE * 0.63)}M", "MemoryMax": f"{round(BASE * 0.70)}M"},
+        # guard-init truncates at each step: max = BASE*70//100, high = max*90//100
+        "agi.slice": {"MemoryHigh": f"{int(BASE) * 70 // 100 * 90 // 100}M",
+                      "MemoryMax": f"{int(BASE) * 70 // 100}M"},
         "claude-remote-control.service": {"OOMPolicy": "continue"},
         "streamer-stub.service": {"OOMPolicy": "continue"},
         "streamer-stub-watch.service": {"OOMPolicy": "continue"},
@@ -496,18 +495,22 @@ FILES_SRC = {r[2] for r in probe.FILES} | {r[1] for r in probe.UNITS}   # dest_r
 
 
 
+def _guard(monkeypatch, **cells):
+    """THIS box's config:guard cells, as the probe reads them (render.guard_cells)."""
+    monkeypatch.setattr(probe.render, "guard_cells",
+                        lambda root=None: {**probe.render.guard_defaults(), **cells})
+
+
 def test_a_target_cell_is_read_from_the_config_and_unit_normalised(tmp_path, monkeypatch):
-    """The same value in BYTES and in "1024M" is the same target: a string cell
+    """goal:g7.16.1.5.5.4: the target is config:guard's cell through guard-init's
+    arithmetic.  The same size as "1G" and "1024M" is the same target: a size cell
     PARSES.  Change the cell and the row's want moves with it."""
     agi, root, shim = _fixture(tmp_path, monkeypatch)
     want = _by_name(probe.rows(agi, root, shim, HELD))["user@ MemoryLow"][1]
     assert probe.as_mib(want) == pytest.approx(1024.0), want
-    cfg = json.loads((agi / "config.json").read_text())
-    cfg["values"]["boxkit"]["MEM_LOW"] = str(1024 * 1024 * 1024)      # bytes, not "1024M"
-    (agi / "config.json").write_text(json.dumps(cfg))
+    _guard(monkeypatch, CLAUDE_LOW_CAP="1G")                          # 1G, not "1024M"
     assert _by_name(probe.rows(agi, root, shim, HELD))["user@ MemoryLow"][2] == "ok"
-    cfg["values"]["boxkit"]["MEM_LOW"] = "2048M"
-    (agi / "config.json").write_text(json.dumps(cfg))
+    _guard(monkeypatch, CLAUDE_LOW_CAP="2048M")       # min(7365 // 6, 2048) = 1227M
     assert _by_name(probe.rows(agi, root, shim, HELD))["user@ MemoryLow"][2] == "DRIFT"
 
 
@@ -515,13 +518,9 @@ def test_a_percent_cell_and_a_percent_drop_in_are_the_same_target(tmp_path, monk
     """The live box's finding: the cell is '90', the drop-in writes '90%'.  A
     string compare drifts on the '%' and that drift is noise, not a fact."""
     agi, root, shim = _fixture(tmp_path, monkeypatch)
-    assert _by_name(probe.rows(agi, root, shim, HELD))["oomd SwapUsedLimit"][2] == "ok"
-    cfg = json.loads((agi / "config.json").read_text())
-    cfg["values"]["boxkit"]["OOMD_SWAP_PCT"] = "90%"      # the other spelling
-    (agi / "config.json").write_text(json.dumps(cfg))
-    assert _by_name(probe.rows(agi, root, shim, HELD))["oomd SwapUsedLimit"][2] == "ok"
-    cfg["values"]["boxkit"]["OOMD_SWAP_PCT"] = "80"       # a real difference
-    (agi / "config.json").write_text(json.dumps(cfg))
+    row = _by_name(probe.rows(agi, root, shim, HELD))["oomd SwapUsedLimit"]
+    assert (row[1], row[2]) == ("90", "ok")               # cell 90, drop-in 90%
+    _guard(monkeypatch, OOMD_SWAP_USED_PCT="80")          # a real difference
     assert _by_name(probe.rows(agi, root, shim, HELD))["oomd SwapUsedLimit"][2] == "DRIFT"
 
 
@@ -529,14 +528,14 @@ def test_a_row_with_no_target_cell_is_info_and_never_ok(tmp_path, monkeypatch, c
     """A cell the kit does not carry is INFORMATION.  It may not read `ok`."""
     agi, root, shim = _fixture(tmp_path, monkeypatch)
     cfg = json.loads((agi / "config.json").read_text())
-    cfg["values"]["boxkit"].pop("SYSTEM_MIN")
+    cfg["values"]["boxkit"].pop("USER_TASKS")     # a kit cell (memory targets always exist)
     (agi / "config.json").write_text(json.dumps(cfg))
     assert _run(agi, root, shim) == 0             # info does not fail the table
     table = _by_name(probe.rows(agi, root, shim, HELD))
-    assert table["system.slice MemoryMin"][1] is None
-    assert table["system.slice MemoryMin"][2] == "info"
+    assert table["user@ TasksMax"][1] is None
+    assert table["user@ TasksMax"][2] == "info"
     line = [ln for ln in capsys.readouterr().out.splitlines()
-            if ln.startswith("system.slice MemoryMin ")][0]
+            if ln.startswith("user@ TasksMax ")][0]
     assert not line.endswith(" ok"), line
 
 
@@ -631,3 +630,18 @@ def test_a_mutation_verb_never_reaches_the_box():
         with pytest.raises(ValueError):
             probe.run("/bin/false", bad)      # a verb that would fail if it ran
     assert probe.READ_VERBS == ("show", "is-active")
+
+
+def test_memory_targets_come_from_the_guard_cells_not_the_kit(tmp_path, monkeypatch):
+    """goal:g7.16.1.5.5.4 falsifier 2: a box guard-init sized with ITS cells reads
+    clean -- here the owner's leeway cells (user@ high 95 %, engine 3G)."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    _guard(monkeypatch, USER_HIGH_PCT="95", AGI_MAX_PCT="70", ENGINE_MAX="3G")
+    fact = json.loads(os.environ["PROBE_FACTORY"])
+    fact["system"][f"user@{os.getuid()}.service"]["MemoryHigh"] = f"{int(BASE) * 95 // 100}M"
+    os.environ["PROBE_FACTORY"] = json.dumps(fact)
+    table = _by_name(probe.rows(agi, root, shim, HELD))
+    assert table["user@ MemoryHigh"][2] == "ok"
+    assert not {k: v for k, v in table.items() if v[2] == "DRIFT"}
+    assert not set(probe.render.MEMORY) & set(json.loads((agi / "config.json").read_text())
+                                              ["values"]["boxkit"])

@@ -189,6 +189,9 @@ assert _leaks("cd %s/notes\n" % GUARD_PREFIX), \
 
 # A probe identity: contract tests need SOME value for REPO_ROOT/GUARD_SRC to render
 # at all, and a probe is not the answer -- the wire test below supplies nothing.
+# The measured box sets no memory cell in config:guard, so its fixtures render with
+# guard-init's defaults: pinned here, never read from THIS box (goal:g7.16.1.5.5.4).
+GUARD = {}
 PROBE = {"OWNER_USER": "probe", "UID": "4242", "REPO_ROOT": "/probe/repo",
          "GUARD_SRC": "/probe/.sanctuary/guard/guard-init.sh"}
 
@@ -196,7 +199,7 @@ PROBE = {"OWNER_USER": "probe", "UID": "4242", "REPO_ROOT": "/probe/repo",
 def _v(**over):
     o = dict(PROBE)
     o.update(over)
-    return R.values(CFG, MEASURED, o)
+    return R.values(CFG, MEASURED, o, guard=GUARD)
 
 
 def _vs(**over):
@@ -204,7 +207,7 @@ def _vs(**over):
     fixed stand-ins. This is the OFF-BOX comparison -- the bytes a second box gets."""
     o = dict(STANDINS)
     o.update(over)
-    return R.values(CFG, MEASURED, o)
+    return R.values(CFG, MEASURED, o, guard=GUARD)
 
 
 def _payload(text):
@@ -308,6 +311,42 @@ def test_sizing_reproduces_the_measured_knobs():
     assert mib["AGI_MAX"] == int(0.70 * mib["USER_MAX"]) != round(0.70 * mib["USER_MAX"])
 
 
+# 5b -- goal:g7.16.1.5.5.4: every memory number is config:guard's, through guard-init's
+# own arithmetic; values.boxkit keeps none, and the defaults are guard-init's own lines
+def test_values_boxkit_carries_no_memory_number():
+    assert not set(R.MEMORY) & set(CFG["values"]["boxkit"])
+    assert not [k for k in CFG["values"]["boxkit"]
+                if re.search(r"OOM_PCT|_high_ratio|_max_ratio|_ratio$", k)]
+
+
+def test_every_default_is_read_from_guard_init():
+    d = R.guard_defaults()
+    src = R.GUARD_INIT.read_text(encoding="utf-8")
+    for name, default in d.items():
+        assert re.search(r"_cell [A-Z_0-9]+ %s %s\b" % (name, re.escape(default)), src), name
+    assert {"USER_HIGH_PCT", "AGI_MAX_PCT", "ENGINE_MAX", "OOMD_LIMIT", "PSI_FULL"} <= set(d)
+
+
+def test_a_guard_cell_moves_the_render():
+    v = R.values(CFG, MEASURED, PROBE, guard={"USER_HIGH_PCT": "95", "ENGINE_MAX": "3G",
+                                             "OOMD_LIMIT": "85", "PSI_FULL": "60"})
+    user_max = int(v["USER_MAX"].rstrip("M"))
+    agi_max = user_max * 70 // 100
+    assert v["USER_HIGH"] == "%dM" % (user_max * 95 // 100)
+    assert (v["ENGINE_MAX"], v["ENGINE_HIGH"]) == ("3072M", "2304M")
+    assert v["WORK_MAX"] == "%dM" % (agi_max - 3072)
+    assert (v["USER_OOM_PCT"], v["HEALTH_LIMIT"]) == ("85", "60")
+
+
+def test_guard_none_reads_this_boxs_cells(monkeypatch):
+    seen = []
+    monkeypatch.setattr(R, "guard_cells", lambda root=None: seen.append(root) or
+                        {**R.guard_defaults(), "AGI_MAX_PCT": "60"})
+    v = R.values(CFG, MEASURED, PROBE)
+    assert seen == [None]
+    assert v["AGI_MAX"] == "%dM" % (int(v["USER_MAX"].rstrip("M")) * 60 // 100)
+
+
 # 6 -- THE FIXTURE IS THE RENDER, NOT A COPY OF THE TEMPLATE. The previous version
 # asserted template == fixture, i.e. X == X: it could never fail. A fixture here is the
 # ANONYMIZED RENDERED bytes -- template rendered with the measured inputs and the fixed
@@ -404,7 +443,7 @@ def test_the_stand_ins_are_constants_and_not_this_box():
     assert STANDINS["UID"] != UID and STANDINS["OWNER_USER"] != OWNER
     assert STANDINS["REPO_ROOT"] != str(R.engine_checkout())
     piece = BY_NAME["user-slice-guard"]
-    assert R.rendered(piece, R.values(CFG, MEASURED, R.host_tokens(CFG))) != \
+    assert R.rendered(piece, R.values(CFG, MEASURED, R.host_tokens(CFG), guard=GUARD)) != \
         (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
 
 
@@ -438,7 +477,8 @@ def _with_the_whole_stand_in_set(piece, tokens):
     occurrence count is for); the collision fallback reaches them by re-rendering here.
     A key with no {{K}} site is harmless: a value no placeholder consumes never lands."""
     return R.rendered(piece, R.values(CFG, MEASURED,
-                                      {**tokens, **{k: STANDINS[k] for k in IDENTITY}}))
+                                      {**tokens, **{k: STANDINS[k] for k in IDENTITY}},
+                                      guard=GUARD))
 
 
 def _anonymized_live_render(piece, tokens=None):
@@ -455,7 +495,7 @@ def _anonymized_live_render(piece, tokens=None):
     row 7f walks it."""
     tokens = R.host_tokens(CFG) if tokens is None else dict(tokens)
     body = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
-    live = R.rendered(piece, R.values(CFG, MEASURED, tokens))
+    live = R.rendered(piece, R.values(CFG, MEASURED, tokens, guard=GUARD))
     masked, clean = [], {}
     for k in IDENTITY:
         sites = len(re.findall(r"\{\{%s\}\}" % k, body))
@@ -510,7 +550,7 @@ def test_the_collision_fallback_re_renders_with_the_whole_stand_in_set():
     tokens["OWNER_USER"] = collides
     body = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
     sites = len(re.findall(r"\{\{OWNER_USER\}\}", body))
-    live = R.rendered(piece, R.values(CFG, MEASURED, tokens))
+    live = R.rendered(piece, R.values(CFG, MEASURED, tokens, guard=GUARD))
     assert live.count(collides) > sites, (
         "the synthetic collision did not force the fallback: %d occurrence(s) of %r, "
         "%d site(s)" % (live.count(collides), collides, sites))
