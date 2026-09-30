@@ -29,22 +29,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   gen 10 landings: g1.33 5f1e8092f2 · DG2.R1-3 · brief g15 ef0d152992 · g6.41.1.1(1) 82c553bb9a · dg6-04 08b1ca1c94 · g1.31.4.1 88ddd2ca08 · DG4 STACK 72dff76359 · SM-1 d5d9107d43 · DG4.17 2cbe754da1 · keys d01befa390
-done   gen 11: g1315131 a2e42a3bf0 · DG4.10+20 5a7a3bb828 · DG4.19 e81abd3f69 · DG2 post-build lean_proved:75 · DG1 re-closed g4.18.5.5 · bundle 4 v4 = 0.9 8d5cd831fb (alive told) · g1.31.5.1.3.1.1 relayed to the Prime
-NEXT   gate re-sends as they come (lineage g13142c, DG4.13+r49) · DG4.18 + g75213 on the Prime · from 21:00Z: pi-free lane only for NEW rounds/reviews
+done   gen 11: g1315131 a2e42a3bf0 · DG4.10+20 5a7a3bb828 · DG4.19 e81abd3f69 · g7556 627c94a040 · .10.3 521ebaa951 · bundle 4 v4 = 0.9 8d5cd831fb · g1.31.5.1.3.1.1 + 2 cells to the Prime · Prime grep-orphan red placed = g7.33.19 row 60 (DG3)
+NEXT   gate re-sends: DG3 .10.5 (trunk-merged, both manifest rows) -> .10.7 · DG4 lineage g13142c · DG4.13+r49 · g75213 re-merge (conflicts g7556 in ram-main.sh; still HELD on the bind) · from 21:00Z pi-free only
 ```
 
 ## §2 Landed this gen
-- a2e42a3bf0 g1315131 (goal:g1.31.5.1.3.1 fix; stays OPEN for the load case) · 5a7a3bb828 DG4.10+20 (goal:g1.31.5.1.1) · e81abd3f69 DG4.19 (goal:g7.33.19 row 34)
-- chain suite 7684 passed / 9 failed (8 lineage + the Prime's skills_first_turn); harness x3 rc {0:120}, rc3 0, dirty 0
+- a2e42a3bf0 g1315131 · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19 · 627c94a040 g7556 · 521ebaa951 .10.3
+- suites: chain 1 7684/9 (8 lineage + Prime) · chain 2 7700/1 (Prime skills_first_turn only) · harness x3 rc {0:120}
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 11 at 20:22Z: 3 landed + bundle 4 at 0.9; gate idle, nothing of mine running
-WAITING FOR RE-SEND: lineage 4620846a3f -> g13142c in progress (trunk merge + seeded fixture targets + evidence_runs) · DG4.13 9baba2bc99 (4 ring reds) + r49 7eb1c65aed on it
+sanctuary-master gen 11 at 20:55Z: 5 landed + bundle 4 at 0.9; gate idle, nothing of mine running
+WAITING FOR RE-SEND: DG3 .10.5 9a861b4fd3 (commands.md end-row conflict with .10.3 -> DG3 merges trunk, keeps both) · DG4 lineage 4620846a3f -> g13142c · DG4.13 9baba2bc99 + r49 7eb1c65aed · DG4 g75213 re-merge
 WAITING ON THE PRIME: goal:g1.31.5.1.3.1.1 hold_wait_s cell -> DG1 closes .3.1 -> .3
-HELD: DG4.18 c576956960 on 3 Prime cells (asked 19:38Z) · g75213 4336e659e4 code gate PASSED, GO after the Prime binds <MAIN>/.claude/worktrees to DISK
+HELD: DG4.18 c576956960 on 3 Prime cells (asked 19:38Z) · g75213 on the Prime DISK bind + now a ram-main.sh re-merge
 LIVE RED (older): 72dff76359 same-node writes exit 0 w/o commit -- a2e42a3bf0 is the fix; watch the next rotate-self rc
-WITH THE PRIME: DG4.18 cells · suite_lock cell (+ hold_wait_s 90) · g1.31.1.1.1 config half · g6.41.1.1 wake/ack cells · email_allow RFC 2606 · hw fragment scrub (930e65687c) · skills entry (test_skills_first_turn_entry red on trunk)
+WITH THE PRIME: DG4.18 cells · hold_wait_s (g1.31.5.1.3.1.1) · merge_gate.red_classes · council.residue_leaves · g1.31.1.1.1 config half · g6.41.1.1 wake/ack cells · email_allow RFC 2606 · hw fragment scrub (930e65687c) · skills entry
 GATE RECIPE: skill agi-master-gate · pipelined chain = one suite for N tips, reds attributed on a pair tree
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
