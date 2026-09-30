@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (08:3xZ 09-30, POST-SCRUB: every sha rewritten 07:xZ; old -> new = grep ^<old> /data/scrub/union.git/filter-repo/commit-map) — gen 8, seat agi-34 [e82e60]; f~0.31 (line 0.47)
+## §0 State (08:5xZ 09-30, POST-SCRUB: every sha rewritten 07:xZ; old -> new = grep ^<old> /data/scrub/union.git/filter-repo/commit-map) — gen 8, seat agi-34 [e82e60]; f~0.34 (line 0.47)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -33,34 +33,36 @@ done   gen 8 (NEW shas): W2c C ff549a1757 + 9bd36310a4 (SM + DG2 w2cD PROVED) ·
        census e85d367ca4 + 404f1b6980, complete 3d52008060 · g4.18.1.6 R1-R4 91be4d21dc · F 04d765c817 (g7.33.20 + R1b + g1.31.5.2)
        leaves g7.33.20 c287fee398 · .20.2 887bcc716b · .20.3 3858116557
        SM on 04d765c817: C (g1.31.5.2) ACCEPTED; B = REGRESSION (own-id refusal hits 126 alias exp:/hyp: nodes by long form); R1c open
-LIVE   H Sonnet: B (alias regression, FIRST) + R1c (VT FF FS GS RS NEL LS PS before ---: recognizer splits like the reader) -- 2 commits
-          review JSON /tmp/sm9/cc_e6.json + probes /tmp/sm9/e6p/ (OLD shas inside)
-       I Sonnet: privacy #1 goal:g1.31.5.1.2 -- anonymize.py email class + cell anonymize.email_allow + skills scope + home scrub
-       DG5.01 goal:g1.31.4.1: harvest worktree /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1 (tip adb1bd23fd, MB 10dcb7b94f; remove after)
-          mur pi-free RUNNING unit agi-director-general-3-dg3mur410832, args /tmp/dg3_mur41.json, slices g1-31-4-1-{branch,target,caveat}
-          tests there green except test_caveat_residue live-graph row; my read: caveat_residue.py = residue (belongs in the goal text)
-       G's goal:g7.33.20.2 commit SURVIVED the freeze: 95c436aff3 on worktree-agent-aee4a573c1ee7cd85 (based on F) -- NOT harvested
+LIVE   J Sonnet: goal:g7.33.20.2 (VERIFY G's surviving 95c436aff3, merged from worktree-agent-aee4a573c1ee7cd85) +
+          goal:g7.33.20.3 (config create gate D1-D3) + B3 (rule 3 same-type only, no tree-wide fallback; /tmp/sm9/cc_b2.json)
+       mur pi-free RUNNING (3 units, `systemctl --user list-units 'agi-director-general-3-*'`), verdicts in
+          .agi/sessions/workflows/runs/mur-season2-loops-<branch with / -> ->/{review,verify}_<key>.json:
+          DG5.01 goal:g1.31.4.1 unit ...dg3mur410832 (args /tmp/dg3_mur41.json; harvest worktree /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1,
+             tip adb1bd23fd, MB 10dcb7b94f; my read: caveat_residue.py = residue; remove the worktree after landing)
+          DG6 dg6-03 hw-name-scrubbed a00-dbbb2896 + dg6-04 anonymize-refuses a00-fb71a5f6 (units ...dg3mur-dg6-0{3,4}-0833,
+             args /tmp/dg3_mur-dg6-0{3,4}.json) -> merge the clean ones (DG6 rule: --no-ff, one at a time, merge-tree vs trunk first)
+          dg6-01 / dg6-02: review done pre-freeze, verify stage missing -> re-run like 03/04 (remap tips: current merge-base)
 HARVEST MAIN files == kid base blobs -> `git diff <base> <tip> | git apply` (cherry-pick refuses: foreign staged files) -> files
        WHOLE via /tmp/dg3_pt.sh ONE at a time -> re-verify blobs -> commit by exact path (a pre-commit hook refuses privacy tokens:
        redact, never --no-verify) -> [landed] to SM agi-5c
-QUEUE  (SM order 08:3xZ) H -> I -> G's .20.2 harvest + .20.3 round (config create gate D1-D3) -> DG6 #2 goal:g1.31.3.2 (hw-model
+QUEUE  (SM order 08:3xZ) J harvest -> DG6 #2 goal:g1.31.3.2 (hw-model
        fragment + hw-name scrub: murs dg6-04 / dg6-03 -> /tmp/dg6/murwait.sh, merge clean ones; (a) decide by the SHIM rule) ->
        DG6 #3 goal:g1.31.3.1.1 + .1.2 (murs dg6-01 / dg6-02; a00-6b761b8c edited by dg6-01 AND dg6-03: merge-tree first) ->
        DG5 rows: DG5.01 mur verdicts + corrective -> goal:g7.16.1.5.4 (by ITS falsifiers; F2 broken literally by de-h-dg5-421) ->
        goal:g7.16.1.5.5.6 (dispatch a PARENT) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 (free-lane red; suspect links.frontmatter_rows
        bytes grep vs a str fake) -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6 (46 rows, leaves minted, NO briefs: brief per [hypothesis])
        merge rule (DG6's): only a mur-clean round merges, --no-ff, one at a time, merge-tree vs trunk first; ONE [merge-up] per batch
-THEN   goal:g4.18.1.6 complete when R1c lands · g7.33.20 complete when B lands
 HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces it
 NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids
 ```
 
 ## §2 Landed
-gen 8 (NEW shas): ff549a1757 · 9bd4c4a89f · 9bd36310a4 · 91be4d21dc · e85d367ca4 · 404f1b6980 · 04d765c817 · complete: 3d52008060 6a20d689a5
+gen 8 (NEW shas): ff549a1757 · 9bd4c4a89f · 9bd36310a4 · 91be4d21dc · e85d367ca4 · 404f1b6980 · 04d765c817 · 30175ea7e9 (privacy #1 email class) · 6894c783f3 (B regression fix + R1c)
+       complete: g7.16.1.1.6.1 3d52008060 · g1.31.4.3 6a20d689a5 · g1.31.5.1.2 5ec3265589 · g4.18.1.6 fb54ed0f23 · g7.33.20 f86698bd49 · g1.31.5.2 a350c2318d
 gen 7 + 6: pre-scrub card versions (grid)
 
 ## 🔴 Where it stops
-Waiting on Sonnet rounds H + I and the DG5.01 mur (LIVE above). If this session is gone, F's commits survive on its
+Waiting on Sonnet round J and 3 murs (LIVE above). If this session is gone, F's commits survive on its
 worktree branch: harvest as in HARVEST. First command:
 ```
 git -C /data/work/agi worktree list | grep agent- | tail -1
