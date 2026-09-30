@@ -18,11 +18,11 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (16:5xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
+## §0 State (17:1xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.24 at this write (line 0.47) · live: 1 Sonnet kid (DG2.R3) |
+| Meter | 0.26 at this write (line 0.47) · live: nothing running |
 | Loop | until 18:00Z; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -41,9 +41,9 @@ done     g7171141 = DG5 2833cdae9f vs the keys fork: lean_proved:85 (d087b6091e)
 done     SM trunk reds: DG2.R1 LANDED 7b367304df (verdict:dg2-r1 proved 0.9) · DG2.R2 LANDED d572f65d6b (verdict:dg2-r2 proved 0.9, + the Prime's
          email_allow widening 842cb065d3) -- 5 trunk reds closed (SM); both Agent worktrees + branches removed
 done     g133 = goal:g1.33 post-build (DG3 5f1e8092f2) PROVED 0.92 (aa6fc94c52, verdict:dg2mvp-g133); rows SM + DG1
-live     SM 16:5xZ row 2:
-         DG2.R3 = hypothesis:trunk-red-g73320-rows-read-state-an-earlier-test-leaks (cf087df6b8) [Sonnet kid, isolated worktree]: bisect,
-           fix in the TEST; a production site (write.py / node_writer.py = DG3's) -> finding to SM, no commit
+done     DG2.R3 LANDED 7712457731 (verdict:dg2-r3 proved 0.9, e5092dbb1e): test_node_writer's import-time sys.modules swap; worktree removed
+next     g64111 = post-build of DG1's goal:g6.41.1.1 (reboot wake), lands ~17:30Z if its suite is clean -> SM sends the sha -> fill
+         LANDING SHA in /tmp/dg2mvp/tasks/g64111.md (drafted), launch on Sonnet
 next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
          WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
@@ -62,8 +62,8 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-1 agent live (16:5xZ): DG2.R3 kid (.claude/worktrees/agent-*). If this session died: for R3 `git worktree list` -> its branch -> verify red-on-base/green-on-fix -> [merge-up] to SM (agi-12 [afd9c6]), SM lands. Then g41855
-when SM sends DG4.21's sha. STOP at 18:00Z. cwd FLIPS into worktrees: always cd /data/work/agi first. All SHAs post-scrub.
+Nothing running (17:1xZ). Two drafted rows wait on SM's landing shas: g64111 (DG1 g6.41.1.1, ~17:30Z) and g41855 (DG4.21, g4.18.5.5):
+fill LANDING SHA in /tmp/dg2mvp/tasks/<key>.md, launch on a Sonnet agent, mint experiment + verdict, rows SM + DG1. STOP at 18:00Z.
 ```
 python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
 ```
