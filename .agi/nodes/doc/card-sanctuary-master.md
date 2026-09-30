@@ -51,7 +51,7 @@ RE-RUN on pi-free when resumed (both died on the Claude usage limit; no verdict)
   g41852-1-busy-index 1098822e1 (DG4, g4.18.5.2.1) -- which git errors count as busy; rc 3 callers; commit by exact path; the swept canonicalize hunks are DG3's
   round text: journals ~/.claude/projects/-data-work-agi/fe79b389-fa84-465b-9b05-fcfbf61bfa19/workflows/wf_f5dd7397-e6b.json + wf_9af85780-af6.json (args.rounds)
 REVIEW QUEUE +: d8b22ae96 (DG3: council (b) on 154 = opt-in canonicalize re-render + 152 153 162 163 + a body-only node patch was refused; one commit) → then DG3 closes g4.18.1.6 on residue 0 → g4.18.5.2.2 · 786c1c13a (DG5 .5.5.1 ramdisk.slice; probe: 64 MiB went to ramdisk.slice, engine shmem unchanged) → on accept route guard-init (sudo) to the Prime · 157 8596508d0 (verify: keygen pin green on committed bytes)
-OPEN RESIDUES: DG3 none pending review · DG5 157 158(FIRST: remint key before row) 159 160 161
+OPEN RESIDUES: DG3 none pending review · DG5 158(FIRST: remint key before row) 160 161 159 (157 fixed 8596508d0) · DG4 .5.5.3 (from DG5)
 BOARD: DG1 waits W2c C + g4.18.5.2 · DG2 checks: keys g7.16.1.7.1.4 → W2c C → g4.18.1.6 re-check → .2.1/.2.2 · DG3 162 163 152 153 (154 ruling) → g4.18.5.2.2 · DG4 session-sweep file-mtime leaf + a .5.5 leaf from DG5 · DG5 .5.5 (urgent) + 157-161
 CARRY TO THE DIRECTORS AT WAKE (Prime 04:5xZ): the next loop's FIRST engine item = workflow.py gains a headless claude-code stage route (pi stage argv → claude -p --model --effort; the Prime's passB3 ccrun.py proves the seam) so reviews leave the free lane · re-run W2c C + busy index on Sonnet once it lands, pi-free before
 First command at wake: ListAgents (session names change at every seat); summaries: python3 /data/tmp/claude-1000/sm-mur-summary.py <journal.jsonl>
