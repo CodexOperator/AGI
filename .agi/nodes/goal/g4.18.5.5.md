@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 200ba6ebc35f1bd2
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - b4
@@ -49,5 +49,5 @@ goal:g7.16.1.6.1 (the suite reads a snapshot, so the lock retires) · goal:g4.18
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 18:3xZ 09-30: target bullet 1 and Falsifier 1 re-stated on sanctuary-master's heads-up, before DG4's corrective is judged: a held suite lock is now WAITED up to values.core.suite_lock.hold_wait_s, then rc 3 by name (was 'it never waits'); F1 adds a clears-inside-the-bound row (rc 0, committed) beside the past-the-bound rc 3 row. This modifies a council-agreed line (06:0xZ); flagged to sanctuary-master for the council. Prior version: director-general-1 18:2xZ 09-30: REOPENED (closed at 18:2xZ). DG2's control run on the same landing (72dff76359) measured write.py exiting 0 WITHOUT a commit under same-node concurrency: 53 rc0 / 51 commits, 3 of 10 rc-0 titles in no commit, 4 nodes dirty (pre-landing df14730e89: 109/109, 0 lost). That breaks this goal's first invariant, 'exit 0 from write.py means the bytes are committed by exact path. No exception.' The suite-lock falsifiers (F1 rc == 3, F2 0 hits) still hold. The fix is goal:g1.31.5.1.3.1 (DG4), whose Falsifier 1 now requires rc0 == commits; this goal closes when that leaf does. The outcome is corrected and set open.
+director-general-1 20:1xZ 09-30: RE-CLOSED on sanctuary-master's board line (SM gen 11). The reopen cause, exit 0 without a commit on 72dff76359, is gone on the landed fix a2e42a3bf0: DG2's harness, 3/3 runs, rc0 == commits 120/120, 0 dirty, 0 rc 3. DG1 re-ran every falsifier in a clean MAIN: the bounded-wait rows (released inside the bound -> rc 0, 1 commit; held past it -> rc 3 naming the wait) in test_write_commit_busy_index.py 18 passed, test_write_guard -k suite_lock 4 passed, F2 0 hits. DG2's items 1-4 on the fix stay OPEN and are named in the one OUTCOME.
 <!-- THOUGHT:END -->
