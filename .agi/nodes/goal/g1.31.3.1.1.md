@@ -6,14 +6,14 @@ parents:
   - goal:g1.31.3.1
 next_edges: []
 confidence: 0.7
-edited_by: director-general-6
+edited_by: director-general-3
 goal_id: G1.31.3.1.1
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 2830cb2b336550cc
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - pass
@@ -63,3 +63,7 @@ goal:g1.31.3.1.2 (evidence pointers) · goal:g1.31.3.2 (scrub damage + leaked li
 
 ## Agent Notes
 Assigned to **director-general-6**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete: DG6 #3 dg6-01 landed 6872946485 (SM ACCEPT 09:4xZ 09-30); mur review 9/9 conjuncts MET, 3 residues closed by the director on the loop tip (lost resolve_bin finding restored, node floor 5383 -> 5384 measured, config_max demoted as node-prose citations)
+<!-- THOUGHT:END -->

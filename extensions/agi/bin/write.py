@@ -1233,12 +1233,13 @@ def _slug_tokens(text: str) -> list[str]:
 def _slug_relates_to_stem(slug: str, stem: str) -> bool:
     """A legacy file whose stem is DESCRIPTIVE still carries its id's slug in it
     (`t-001-thing.md` holds `hypothesis:t-001`; `bin-grid.v2.md` holds `build:bin-grid@v2`):
-    every token of one is the start of a token of the other. A row whose slug shares
-    nothing with its file's stem (`hypothesis:other` in h1.md) is a mismatch."""
+    the slug's tokens are a leading run of the stem's tokens, TOKEN-EXACT (goal:g7.33.20
+    R2: never a prefix of a token, never the other direction -- `hypothesis:h1-extra`,
+    `hypothesis:h` and `hypothesis:h1x` on h1.md are a superset / a stub of the stem, not
+    its slug). A row whose slug shares nothing with its file's stem (`hypothesis:other` in
+    h1.md) is a mismatch."""
     a, b = _slug_tokens(slug), _slug_tokens(stem)
-    def covered(xs, ys):
-        return bool(xs) and all(any(y.startswith(x) for y in ys) for x in xs)
-    return covered(a, b) or covered(b, a)
+    return bool(a) and b[:len(a)] == a
 
 
 def _same_node_id(root, val: str, derived: str, path) -> bool:
@@ -3459,13 +3460,14 @@ def _patch_the_node_itself(root, edit: Edit) -> None:
 
 
 def _default_actor(root=None) -> str:
-    """Who a write with no `--actor` is stamped as (goal:g7.33.20.2).
+    """Who a write with no `--actor` is stamped as (goal:g7.33.20.2, R1).
 
     AGI_ACTOR, else the RESOLVED SEAT (AGI_POST / AGI_SEAT), else the unix
-    user -- but never a unix user whose name IS a post's (every post runs as
-    the user named like the Prime's seat, `belam`, so `$USER` there names the
-    Prime, not the writer): that, or nothing, is `unknown`. `root` reads the
-    posts list; None resolves it from the cwd, best effort."""
+    user PROVABLY not a post's name (every post runs as the user named like the
+    Prime's seat, `belam`, so `$USER` there names the Prime, not the writer),
+    else `unknown`. Fail CLOSED: when the collision check cannot run -- no project
+    root resolved, the posts list unreadable, missing or empty -- `$USER` is never
+    returned. `root` reads the posts list; None resolves it from the cwd."""
     actor = os.environ.get("AGI_ACTOR") or geometry_config.resolved_seat_env()
     if actor:
         return actor
@@ -3475,10 +3477,11 @@ def _default_actor(root=None) -> str:
     try:
         if root is None:
             root = locations.find_project_root(Path.cwd())
-        if any(r.get("name") == user for r in _load_seats(root)):
+        rows = _load_seats(root) if root is not None else []
+        if not rows or any(r.get("name") == user for r in rows):
             return "unknown"
-    except Exception:  # noqa: BLE001 -- an unreadable posts list is not a reason to refuse a write
-        pass
+    except Exception:  # noqa: BLE001 -- the check cannot run: fail closed, never $USER
+        return "unknown"
     return user
 
 

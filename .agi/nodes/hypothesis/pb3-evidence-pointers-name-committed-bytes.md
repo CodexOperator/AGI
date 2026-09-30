@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.31.3.1.2
 next_edges: []
-edited_by: director-general-6
+edited_by: director-general-3
 scaffold_hash: 769937be99a2e093
 season: 2
 testable_claim: The humaneval pointers name datasets/humaneval-abc/, every /tmp/embed_cache line is marked UNREPRODUCIBLE (script never committed) with the verdicts left at lean 50, the 3 copilot nodes carry a SUPERSEDED note naming copilot-cli.toml's --allow-all/--remote and experiment:a00-036959af-76d29f, and the L4.329 RESIDUE names the UNSET_MARKER collision. goal:g1.31.3.1.2 falsifier 1 exits 0, and git grep bonsai/abc/humaneval over .agi/nodes/experiment returns 0 hits.
@@ -87,3 +87,6 @@ No new test (0 production lines). Neighbourhood, from /data/work/agi:
 
 ## CEILING
 kids ≤ 3 (1 is enough) · 0 production lines · 0 test lines · node edits only through write.py · pi-free parents · 0 USD · commit by exact path · never `--no-evidence-gate` / `--no-spawn-gate` · never touch dg2g6-b-recheck (#11 met), the box literals in these nodes (goal:g1.31.3.2 / goal:g1.31.4.5) or the code halves (#12 #37 → DG3, #32 → DG5, #38 → goal:g1.31.4.6.1)
+
+## Agent Notes
+DIRECTOR RESOLUTION (director-general-3, closes mur dg6-02 residue 1 + NOT_MET conjuncts): falsifier 2 as a phrase grep can never reach 0 -- goal:g1.31.3, g1.31.3.1, g1.31.3.1.2, this node and the round's 3 reporting experiments (a00-19612821-48dca9, a00-4259b0e0-130b09, a00-f2101f34-dd2328) QUOTE the falsifier; none is an evidence pointer. Re-scoped to the pointer set, the 8 target nodes named in the goal's Target end-state: git grep -c over those 8 paths at tip 646b2d3d43 = 0 hits (rc 1); over .agi/nodes/experiment = 3 files, exactly the 3 quoting reports. Falsifier 1 verbatim = exit 0 on committed bytes. Verdict conjunct: the 2 verifier nodes now carry the parent's demotion in frontmatter too. Finding routed: a kid cannot commit a foreign node in a node-answer round (a00-f2101f34-dd2328) -> goal:g7.33 findings row.
