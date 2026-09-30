@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.34.3
 next_edges: []
-edited_by: director-helper
+edited_by: belam
 scaffold_hash: temp-coord-board-2026-09-21
 season: 2
 status: temp
@@ -15,7 +15,7 @@ tags:
   - tracker
   - geometry
   - town
-thought_session: belam-daily-town-pass-2026-09-29
+thought_session: belam-lm-theirs-board-a-20260930
 title: TOTAL GOAL BUNDLE ASSIGNMENT TRACKER — town:core (TEMP until g7.34.3)
 town: core
 ---
@@ -24,6 +24,9 @@ town: core
 > **TEMP until `goal:g7.34.3`.** Path `.agi/nodes/.geometry/towns/core.md` =
 > **TOTAL GOAL BUNDLE ASSIGNMENT TRACKER** for `town:core`.
 > Stand-in until Pass-1 raw `.self` exists — not the lasting geometry-town schema.
+>
+> **Board A (OWNER GO 2026-09-30):** flattened to LM flat ASSIGNMENT shape
+> (one table; no stop-line/parked fence). CORE completion stamps preserved.
 
 ## WHAT THIS SURFACE IS
 
@@ -42,14 +45,17 @@ NOT this file:  DT.*/MUR columns · tip/suite tracking · what's-running board
 YES this file:  tops / major splits only (leaves shift — keep them on goal nodes)
 ```
 
-## CURRENT STOP-LINE — active bundle (directors stop here)
-
-Owner 2026-09-23: **stop work once these 3 trunks (+ nested kids) are done.**
-Do **not** claim or deepen parked/horizon tops below to "fill."
+## ASSIGNMENT — tops / major splits
 
 | goal | seat | status | what |
 |---|---|---|---|
+| g7.25 | unassigned | horizon | Grok Bot third-party harness adapter (umbrella) |
+| g7.25.1–.3 | — | complete | adapter surface · config row · mirror tests |
+| g7.26 | unassigned | horizon | Post briefs self-sufficient |
+| g7.27 | unassigned | horizon | Templates sole harness arg builders |
 | g7.28 | helper | complete | Dispatch persistent mode |
+| g7.29 | unassigned | horizon | Shrink rotate.py orchestration |
+| g7.30 | unassigned | horizon | Land grok-bot adapter + post template |
 | g7.31 | belam | active | Pane = seat spine (umbrella) |
 | g7.31.1 | belam | active | Measured CLI + durable pane hold |
 | g7.31.2 | helper | complete | Pane anchor ↔ post/pin/formation |
@@ -57,22 +63,33 @@ Do **not** claim or deepen parked/horizon tops below to "fill."
 | g7.31.4 | helper | complete | Native handbacks SSH-or-not |
 | g7.31.5 | helper | complete | Graph↔harness-doc sync |
 | g7.32 | helper | active | Session ingest + messaging + pane methods + send router |
+| g7.32.1–.4 | helper | complete | ingest · magic-pane · pane methods · send router |
+| g7.33 | unassigned | horizon | ENGINE FIXES — nested G7.33.* live on nodes; board row horizon until owner re-opens assign |
+| g7.34 | unassigned | horizon | geometry-town + trajectory spine — parked |
+| g7.34.1–.5 | unassigned | horizon | minted; no impl yet |
 
 ```
-town:core ACTIVE STOP-LINE                 seat          status
+town:core bundle                         seat          status
 ────────────────────────────────────────────────────────────────
-g7.28  dispatch persistent ★               helper        complete
-g7.31  pane = seat spine ★                 belam         active
-  ├─ .1  measured CLI + durable hold ★     belam         active
-  ├─ .2  pane anchor ★                     helper        complete
-  ├─ .3  five engine routes ★              belam         complete
-  ├─ .4  native handbacks ★                helper        complete
-  └─ .5  graph↔harness sync ★              helper        complete
-g7.32  ingest/messaging/pane/send ★        helper        active
-  └─ .1–.4  (same seat/status) ★           helper        active
+g7.25  harness adapter                   unassigned    horizon
+  └─ .1–.3                               —             complete
+g7.26–.27/.29–.30                        unassigned    horizon
+g7.28  dispatch persistent ★             helper        complete
+g7.31  pane = seat spine ★               belam         active
+  ├─ .1  measured CLI + durable hold ★   belam         active
+  ├─ .2  pane anchor ★                   helper        complete
+  ├─ .3  five engine routes ★            belam         complete
+  ├─ .4  native handbacks ★              helper        complete
+  └─ .5  graph↔harness sync ★            helper        complete
+g7.32  ingest/messaging/pane/send ★      helper        active
+  └─ .1–.4                               helper        complete
+g7.33  engine fixes                      unassigned    horizon
+g7.34  geometry + trajectory             unassigned    horizon
+  └─ .1–.5  (minted; no impl yet)        unassigned    horizon
 ```
-**vocab:** `active` = seat owns the top · stop-line = only rows above  
-**seat:** `belam` | `helper` — coarse assignment only (not mid-batch who)
+**vocab:** `active` = seat owns the top · `horizon` = free/claimable · `complete` = done
+**seat:** `belam` | `helper` | `unassigned` — coarse assignment only (not mid-batch who)
+**focus (thin callout, not a fence):** deepen `g7.31.1*` + `g7.32` umbrella; do not treat horizon rows as claim-blocked — claim order still REOPENED > smallest leaf under a live hot top.
 
 ## LIVE ACTIVITY → GRAPH (not here)
 
@@ -88,9 +105,8 @@ Do **not** put DT.*/MUR / tip / suite / residues columns back on this surface.
 Full spine: `doc:director-grok-internals`. Standing stub: `doc:standing-llm-ops`.
 
 ```
-CLAIM   REOPENED (Prime) > smallest unclaimed leaf under live/hot STOP-LINE top
-        deepen hot stop-line top before opening a second STOP-LINE top
-        when g7.28 + g7.31* + g7.32* done → STOP (do not open parked section)
+CLAIM   REOPENED (Prime) > smallest unclaimed leaf under live/hot top
+        deepen hot top before opening a second top
 DONE    residues=0 · format✓ · suite green on tip
         → version goal Agent Notes · mark status to fit schema
         → update THIS assignment row only if seat/status changed
@@ -105,42 +121,9 @@ talk    Belam? NEVER mid-batch (exposed keys / cred leak ONLY)
 - Director CLAIM/DONE + loop spine → `doc:director-grok-internals`
 - Unified director role → `doc:unified-director-brief`
 
-## HORIZON / INACTIVE — parked below stop-line
-
-> **DO NOT TOUCH · NOT IN CURRENT STOP-LINE.**  
-> Structural park only (goal `status` stays horizon). No claim / assign / spawn
-> from this section until owner re-opens a top into the active stop-line.
-
-| goal | seat | status | what |
-|---|---|---|---|
-| g7.25 | unassigned | horizon | Grok Bot third-party harness adapter (umbrella) |
-| g7.25.1–.3 | — | complete | adapter surface · config row · mirror tests |
-| g7.26 | unassigned | horizon | Post briefs self-sufficient |
-| g7.27 | unassigned | horizon | Templates sole harness arg builders |
-| g7.29 | unassigned | horizon | Shrink rotate.py orchestration |
-| g7.30 | unassigned | horizon | Land grok-bot adapter + post template |
-| g7.33 | unassigned | horizon | ENGINE FIXES — parked; do not assign yet |
-| g7.34 | unassigned | horizon | geometry-town + trajectory spine — parked |
-| g7.34.1–.5 | unassigned | horizon | minted; no impl yet |
-
-```
-PARKED (not stop-line)                     seat          status
-────────────────────────────────────────────────────────────────
-g7.25  harness adapter                     unassigned    horizon
-  └─ .1–.3                                 —             complete
-g7.26–.27 / g7.29–.30                      unassigned    horizon
-g7.33  engine fixes (parked)               unassigned    horizon
-g7.34  geometry + trajectory (parked)      unassigned    horizon
-  └─ .1–.5  (minted; no impl yet)          unassigned    horizon
-```
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Belam daily 2026-09-29: assignment SoT updated (helper g7.28/g7.31.2/.4/.5 complete · belam g7.31.3 complete · belam g7.31.1* still active · helper g7.32 umbrella active kids .1-.4/.6 complete); merges=helper-seat→season2@d114a810c0→main@628b4772fb; verify FAIL tip 628b4772fb; reopen/mint=none
+Board A flatten 2026-09-30 OWNER GO: LM flat ASSIGNMENT shape; CORE stamps kept (g7.28/.31.2/.31.3/.31.4/.31.5/.32.1-.4 complete; g7.31.1* + g7.31/g7.32 umbrellas active). Dropped stop-line/parked fence.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-helper 18:14ET: g7.33.9 foundation director-direct no-pi; goal:g7.33 active on node (board parked row lag).
-
-helper 18:20ET: g7.33.9.2 adoption complete (write-log audit + stop-line seeds/schema via write.py); g7.33.9.1+.2 complete; remaining_live_dh_pi=0; board g7.33 still parked-row lag.
-
-helper 18:26ET FULL STOP breach: external fill4-1716ET.sh spawned DH.469-473 via dispatch.good+pi (not this wake). stopped fill4+units. remaining should be 0.
+Board A flatten 2026-09-30: LM flat assignment; CORE completion stamps preserved.
