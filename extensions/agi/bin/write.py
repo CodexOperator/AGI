@@ -4333,19 +4333,21 @@ def _commit_write(root, node_id: str, res, actor: str = "",
         # it is simply unread by the index (measured: skip-worktree + a held
         # index.lock gave rc 0 "clean at HEAD" with HEAD holding the OLD bytes).
         # Only a plain `H` row per path is the index's truth.
-        flags = [ln[:1] for ln in git("ls-files", "-v", "--", *paths)
-                 .stdout.splitlines() if ln.strip()]
-        at_head = (len(flags) == len(paths) and all(f == "H" for f in flags)
-                   and not git("--no-optional-locks", "status", "--porcelain",
-                               "--", *paths).stdout.strip())
-        # asked at the DEADLINE too, not only on the cheap path: `busy` is a read
-        # of git's error STRING, and a third writer taking index.lock in the
-        # instant a peer commits turns a committed write into an UNCOMMITTED
-        # refusal. At the deadline the index is the only truth left to ask.
-        if at_head and (not busy or time.monotonic() >= deadline):
-            return (f"commit skipped: {node_id} is clean at HEAD (a peer committed "
-                    f"these bytes -- nothing to commit) -- exit 0"), False
+        # asked only on the two paths that can RETURN on it: a non-busy failure
+        # and the DEADLINE (a third writer taking index.lock in the instant a
+        # peer commits turns a committed write into a refusal, and `busy` is a
+        # read of git's error STRING). A backoff retry pays NOTHING: the read
+        # used to run on every try, so the cheap path paid the very read it was
+        # widened to avoid (residue 5).
         if not busy or time.monotonic() >= deadline:
+            flags = [ln[:1] for ln in git("ls-files", "-v", "--", *paths)
+                     .stdout.splitlines() if ln.strip()]
+            at_head = (len(flags) == len(paths) and all(f == "H" for f in flags)
+                       and not git("--no-optional-locks", "status", "--porcelain",
+                                   "--", *paths).stdout.strip())
+            if at_head:
+                return (f"commit skipped: {node_id} is clean at HEAD (a peer committed "
+                        f"these bytes -- nothing to commit) -- exit 0"), False
             break
         time.sleep(min(2.0, 0.05 * 2 ** min(tries, 6)) * (0.5 + random.random()))
     # residue 90: never left STAGED in a shared index; residue 98: a reset

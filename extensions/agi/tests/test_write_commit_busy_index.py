@@ -166,11 +166,12 @@ def test_an_IGNORED_node_never_exits_0_over_uncommitted_bytes(tmp_path):
                    check=True, capture_output=True)
     assert subprocess.run(["git", "-C", str(repo), "ls-files", "--error-unmatch", "--",
                            str(node)], capture_output=True).returncode != 0, "untracked"
-    hook = repo / ".git" / "hooks" / "pre-commit"
-    hook.write_text("#!/bin/sh\nexit 1\n")
-    hook.chmod(0o755)
-    subprocess.run(["git", "-C", str(repo), "config", "core.hooksPath",
-                    str(repo / ".git" / "hooks")], check=True, capture_output=True)
+    # NO hook fixture: the session exports GIT_CONFIG_COUNT/KEY_0/VALUE_0 =
+    # core.hooksPath, and command line config outranks repo config, so a
+    # core.hooksPath set HERE never fires -- the row used to pass for a reason
+    # its docstring did not claim. What actually refuses is `git add` on an
+    # ignored path (rc 1, "use -f"), so the assertion rests on that: no ls-files
+    # row means the index does not hold the path, hence not clean at HEAD.
     r = _write(repo, "doc:w0", 'set title "ignored"')
     assert r.returncode == 3, (r.returncode, r.stderr[-300:])
     assert "UNCOMMITTED" in r.stderr, r.stderr[-300:]
@@ -203,7 +204,11 @@ def test_a_third_writer_locking_the_peer_commit_instant_still_exits_0_at_the_dea
     r = _write(repo, "doc:w0", 'set title "mine"')
     assert r.returncode == 0, (r.returncode, r.stderr[-400:])
     assert "UNCOMMITTED" not in r.stderr, r.stderr[-400:]
-    assert "clean at HEAD" in r.stdout + r.stderr, (r.stdout + r.stderr)[-400:]
+    # the PROPERTY, not the note string: between the peer unlinking index.lock
+    # and writer C re-taking it a backoff retry can slip through and make this
+    # writer's own real commit -- both outcomes are a commit of these bytes, and
+    # git cannot commit at all while C's lock is held, so the window is closed
+    # by asserting the index's truth rather than by ordering the fixture.
     assert _dirty(repo) == [], "HEAD holds the write and the tree is clean"
     assert "mine" in subprocess.run(["git", "-C", str(repo), "show", "HEAD:.agi/nodes/doc/w0.md"],
                                     capture_output=True, text=True).stdout
@@ -250,3 +255,37 @@ def test_a_payload_OUTSIDE_the_work_tree_never_says_STILL_STAGED(tmp_path):
         path=node, payload_changed=True, payload_path="/etc/hosts"))
     assert uncommitted and "STILL STAGED" not in note, note[-300:]
     assert "STAGED check itself failed" in note, note[-300:]
+
+
+def test_a_BUSY_retry_pays_no_index_read(tmp_path):
+    """Row 5: the at_head read must run only on a path that can return on it
+    (a non-busy failure, or the deadline). A retry under a held index.lock used
+    to pay `ls-files -v` + `status` on EVERY try -- the cheap backoff path paid
+    the very read it was widened to avoid."""
+    sys.path.insert(0, str(BIN))
+    import write  # noqa: PLC0415
+    from types import SimpleNamespace  # noqa: PLC0415
+    repo = _repo(tmp_path, wait_s=10)
+    node = repo / ".agi" / "nodes" / "doc" / "w0.md"
+    # the write has already rewritten the node, as main() does before _commit_write
+    node.write_text(node.read_text().replace('title: "w0"', 'title: "mine"'))
+    lock = repo / ".git" / "index.lock"
+    lock.write_text("held across several retries")
+    threading.Timer(2.0, lock.unlink).start()
+    seen: list = []
+    real = subprocess.run
+
+    def spy(*a, **k):
+        argv = a[0] if a else k.get("args")
+        if isinstance(argv, list) and "ls-files" in argv:
+            seen.append(argv)
+        return real(*a, **k)
+
+    write.subprocess.run = spy
+    try:
+        note, uncommitted = write._commit_write(repo, "doc:w0", SimpleNamespace(
+            path=node, payload_changed=False, payload_path=None))
+    finally:
+        write.subprocess.run = real
+    assert not uncommitted and not seen, (note[-200:], seen)
+    assert _dirty(repo) == [], "the retry landed the write committed"
