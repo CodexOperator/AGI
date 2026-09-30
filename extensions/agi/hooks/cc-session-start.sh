@@ -47,7 +47,8 @@ fi
 # No network: `push_gap_stats` reads local remote-tracking refs and never
 # fetches, so a session start costs no round trip and works offline.
 #
-# Best-effort by the same argument as the block above, and silent on anything
+# Best-effort by construction (`|| true` plus a python that catches everything:
+# a hook that can fail is a hook that gets uninstalled), and silent on anything
 # it cannot measure: a fork with no remote configured is unconfigured, not
 # stranded, and a banner it can never clear is how this gets switched off.
 AGI_PROJECT_ROOT="$PROJECT_ROOT" AGI_METRICS_PY="$PLUGIN_ROOT/bin/metrics.py" \
