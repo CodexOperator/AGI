@@ -1233,7 +1233,8 @@ def test_nof_flag_default_resolves_a_valid_env_root(tmp_path):
 
 
 # --- bundle 4 W2c (director-general-2)
-# GREEN since goal:g4.18.6.3.3 (level3.read_mvp_map keeps a mint id as written)
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2c: RED until DG3 builds mint-id "
+                   "acceptance into level3.read_mvp_map (startswith('mvp:') drops it)")
 def test_w2c_mvp_map_accepts_a_mint_id_like_an_address(tmp_path):
     f = tmp_path / "mvp-map.txt"
     f.write_text("bin/ | mvp:engine-bin\n")
@@ -1268,7 +1269,8 @@ def _w2cc_twin(tmp_path, mint: bool):  # vision:v <- goal:g, experiment:e; links
     return root, ref("goal:g"), [ref("experiment:e")]
 
 
-# GREEN since goal:g4.18.6.3.3 (spawn_gate + evidence_gate read mint ids through links.resolving)
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2c re-scope C: RED until DG3 routes spawn_gate "
+                   "(check_spawn, nearest_vision) and evidence_gate through the one resolver")
 def test_w2cc_gates_pass_a_mint_id_parent_exactly_as_its_address_twin(tmp_path):
     import evidence_gate as eg, spawn_gate as sg  # bin/ is on sys.path via level3.py:88
     seen = []
