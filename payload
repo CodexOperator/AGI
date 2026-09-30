@@ -904,3 +904,20 @@ def test_w2ca_family_a_wires_a_mint_twin_as_its_address_twin_with_no_reader_reso
     assert seen[1] == seen[0] == ((["hypothesis:h1"], 0, ["goal:a", "idea:i"]) if edge == "parents" else ["idea:i"])
     readers = (zoom._load_wired_graph, metrics._load_graph, V._damage_of, V.default_roots, dashboard.dangling_and_orphans)
     assert not [f.__name__ for f in readers if "mint" in inspect.getsource(f)]  # the loader resolves, no reader does
+
+
+def test_w2cc_frame_stream_builds_one_mint_index_per_render(tmp_path, monkeypatch):
+    import links, metrics   # goal:g4.18.6.3.3: viewport's per-node town walk shares ONE resolver
+    seen = []
+    for mint in (False, True):
+        root = _w2c_twin(tmp_path, mint)
+        h = root / "nodes" / "hypothesis" / "h1.md"
+        for i in (2, 3, 4):
+            (h.parent / f"h{i}.md").write_text(h.read_text().replace("hypothesis:h1", f"hypothesis:h{i}")
+                                               .replace("b" * 32, f"{i}" * 32))
+        g, builds, real = metrics._load_graph(root), [], links.mint_index
+        monkeypatch.setattr(links, "mint_index", lambda r: builds.append(1) or real(r))
+        frames = V.frame_stream(g, {}, "goal:a", 3, nodes_dir=str(root / "nodes"))
+        monkeypatch.setattr(links, "mint_index", real)
+        seen.append((len(frames), len(builds)))
+    assert seen == [(5, 0), (5, 1)], seen
