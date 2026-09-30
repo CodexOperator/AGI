@@ -15,8 +15,8 @@ import anonymize, links, locations  # noqa: E402
 
 CLASSES = ("secrets", "node_deletion", "broken_link")
 _ASSIGN = re.compile(r"""(?:^|[\s"'`])([A-Za-z_]\w*)\s*[:=]\s*["']?([\w./+:-]{8,})""")
-#: the value half of `_ASSIGN`, for a BARE key-shaped value (bytes with no `name =` in front).
-_BARE = re.compile(r"""[\w./+:-]{8,}""")
+#: a BARE key-shaped value (no `name =` in front); `: / .` split, so `x:sk-..` / `h/sk-..` still start `sk-`.
+_BARE = re.compile(r"""[\w+-]{8,}""")
 
 
 def _git(repo, *args, binary=False):

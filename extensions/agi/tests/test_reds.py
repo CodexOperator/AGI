@@ -241,14 +241,15 @@ def test_f8_a_parents_id_with_no_node_is_a_broken_link(proj):
     assert _run(proj, base2).returncode == 0, _run(proj, base2).stdout
 
 
-# F9 -- a BARE key-shaped value is a RED: no `name =` in front of the bytes.
+# F9 -- a BARE key-shaped value is a RED: no `name =` in front, or glued behind `x:` `h/` `a.`.
 def test_f9_a_bare_key_shaped_token_on_an_added_line_is_a_secret(proj):
-    (proj / "notes" / "bare.txt").write_text("the value is " + KEY + "\n")
+    lines = ["the value is " + KEY, "x:" + KEY, "https://h/" + KEY, "a." + KEY, "disk-usage-report-v2"]
+    (proj / "notes" / "bare.txt").write_text("\n".join(lines) + "\n")
     base = _git(proj, "rev-parse", "HEAD").strip()
     _commit(proj, "a bare key-shaped value")
     r = _run(proj, base)
     assert r.returncode == 1, r.stdout + r.stderr
-    assert "RED secrets 1" in r.stdout and "bare.txt" in r.stdout, r.stdout
+    assert "RED secrets 4" in r.stdout and "bare.txt:5" not in r.stdout, r.stdout
     assert KEY not in r.stdout + r.stderr
 
 
