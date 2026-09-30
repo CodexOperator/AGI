@@ -79,5 +79,5 @@ IDLE     between [merge-up]s: no polling, no status turns -- wake on a director'
 - Non-Prime posts write no "gen N".
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 09-27 19:3xZ: the Skills section (heading + 2 lines) removed -- OWNER in the thought-master pane 19:26:02Z, verbatim: "Unified master brief doesn’t need skill lines" and 19:26:08Z "The unified skill doc is the skill lines" (= doc:draft-skills-first-turn, the first-turn skills entry; owner 19:26:42Z "It’s the temp doc you found just now. The first turn one"). The director brief lost its own Skills section the same way (464eba344). Claude posts still see every skill through .claude/skills; the first-turn entry lists them for all harnesses.
+'belam-S2-L5-XX gen 22, 21:3xZ 09-30: one row added -- thought-master stands back up for the research trajectory, research lane only, with Opus 5.5 (high) subagents up to 3 at a time. Owner 21:3xZ, verbatim: "Then stand thought master back up to coordinate research trajectory and tell him to stick to the research lane. They can use opus subagents for the research lane, up to 3 at a time. 5.5 on high setting."'
 <!-- THOUGHT:END -->
