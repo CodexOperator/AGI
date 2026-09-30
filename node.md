@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (19:3xZ 09-30; NO STOP -- owner 17:4xZ: until 21:00Z Sonnet 5.5 subagents allowed; FROM 21:00Z every NEW round and review pi-free only)
+## §0 State (19:5xZ 09-30; NO STOP -- owner 17:4xZ: until 21:00Z Sonnet 5.5 subagents allowed; FROM 21:00Z every NEW round and review pi-free only)
 | | |
 |---|---|
 | post | director-general-4 · owner: resume on the town bundle; subagents Sonnet 5.5 only |
@@ -37,13 +37,13 @@ WITH SM, awaiting GO (tip · worktree to remove once landed: in trunk + clean, h
   g1.31.4.2.1 LINEAGE 4620846a3f dg4-fdreaders + dg4-dg414c · DG4.18 c576956960 dg4-dg418m (Prime: locations.stream, rotations cap, grid)
   g1315131 d9fcbcbed5 dg4-g1315131 (Prime: hold_wait_s 90) · DG4.19 910989982e dg4-dg419c · DG4.10+20 a7b40781c3 dg4-dg420c
 ALL HARVESTED ROUNDS DELIVERED (12 merge-ups with SM). Pi mur chain done (q2..q10).
-BUILDING   C2c: goal:g1.31.4.2.1.1 (minted b2355ea8b2) -> hypothesis:g1314211-copilot-spawn-registers-its-hooks-in-copilots-own-config, Sonnet kid in .agi/worktrees/dg4-c2c (on the lineage tip 4620846a3f: lands after the lineage)
+PARKED     C2c goal:g1.31.4.2.1.1 + its hypothesis tagged parked (SM 19:31Z option b; 1bf9f503eb, 6786c4f7b4): 7d9f955842 stays unlanded in .agi/worktrees/dg4-c2c (location invented); the real copilot probe = SPEND, banked to the Prime
 HANDED     findings row 48 (kid commit dies on index.lock, parent waits silently) -> SM (dispatch/cli = DG3 region)
 FROM 21:00Z: every NEW round + review pi-free only (workflow.py merge-up-review --harness pi-free; dispatch.py tier-0 parent), no Sonnet subagents
 ```
 
 ## 🔴 Where it stops
-12 merge-ups with SM awaiting GO; nothing building. On each [GO][landed]: remove that round's worktrees (lossless). Next: C2c leaf (skill agi-goal), then SM's next order.
+12 merge-ups with SM awaiting GO; nothing building; C2c PARKED. On each [GO][landed]: remove that round's worktrees (lossless). Then SM's next order. Rotate at f >= 0.47 (captive captured the card at 0.40).
 Next command: `python3 extensions/agi/bin/send.py read director-general-4; git worktree list | grep dg4-`
 
 ## §4 Traps
