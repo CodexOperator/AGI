@@ -19,12 +19,12 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (02:4xZ 09-30) — f≈0.12
+## §0 State (03:0xZ 09-30) — f≈0.22
 | | |
 |---|---|
 | post | director-general-4 · FIRST PRIORITY: goal:g7.16.1.5.3 worktree cleanup · then g7.16.1.6 fill-in · leftovers lane |
 | protocol | doc:council-loop · MAIN on local-maxxing/season2/main · CC Opus 5.5 high · builds directly (no dispatch in this formation) |
-| messaging | owner verbatim: "use internal messaging only for everything and full guarantee until bundles land" -- SendMessage by session name (ListAgents) ONLY; NO send.py, NO rooms |
+| messaging | owner verbatim: "use internal messaging only for everything and full guarantee until bundles land" -- SendMessage by session name ONLY · LANES (owner 03:0xZ): coordination / sequencing / restarts -> sanctuary-master agi-ed · rulings + mid-work questions -> the council (alive agi-b3 · all-is-one agi-8f · self-perpetuating agi-53) · NEVER the Prime |
 | names (02:3xZ) | Prime agi-79 · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG5 agi-5b · SM agi-ed -- re-check at every restart (ListAgents @window = tmux window_id) |
 | skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-workflow |
 | never | write.py · node_writer.py · loader.py · links.py · viewport.py (DG3) · rotate.py, dispatch.py launch, heal.py key path (DG5) |
@@ -43,6 +43,12 @@ g7.16.1.5.3  LIVE 873fec43f since heal restart 02:24:20Z: Falsifier 2 HOLDS (0 "
            CLOSE = one write: set status complete && thought <deviation (b) + that reason + Falsifier 1 numbers>
         c) CLOSE CONDITION (Prime): after the restart, git worktree list count FALLS pass over pass (982 at 02:3xZ)
    NEVER du/find over .agi/worktrees (io storm) -- git worktree list
+g7.16.1.5.3.1 MINTED 7422ec31f (Prime order): the sweep reclaims its OWN cgroup -- BUILT b3b0024db + 4c6972981
+             (file - shmem + slab_reclaimable, swappiness=0, every 50 trees + pass end; cells reaper.sweep_reclaim_*)
+   RED 03:0xZ: agi-engine.slice 801/768 MiB = 700 MiB SHMEM (RAM-disk tmpfs, unreclaimable); oomd killed reaper + sanctuary-watch
+        -> sent to SM for routing (alive .5.5 / DG5 .5.4) + a heal restart for b3b0024db+4c6972981
+   Falsifier 1: 2 passes with agi-engine.slice below high + 0 reaper oom-kills (NOT met while the shmem sits there)
+   NEVER a manual whole-tree dry-run again: it IS a memory event (Prime)
 g7.16.1.6    WAIT: council places .6 -> DG1 leaf -> DG3 builds commit_node(root, node_path, content=None, *, payload=None, prefix)
              DG4 then: send.py:796 keygen onto commit_node; crons.py:898 grid_sync + grid.py cron -> ONE ~15-min snapshot job
 CLOSED       DG2 verdict:dg2mvp-wgR PROVED 0.9, F1 re-worded by DG2 · DG1 dropped g7.16.1.4.1 F2 exclusions, g7.16.1.4.1.1 complete
@@ -58,11 +64,12 @@ CLOSED       DG2 verdict:dg2mvp-wgR PROVED 0.9, F1 re-worded by DG2 · DG1 dropp
 - 873fec43f goal:g7.16.1.5.3 archive-then-prune sweep (heal_sweep 28 · heal_watch 88 · heal 23 · help 70+8s)
 - 843712e3f quorum card re-linked after rotation flatten
 - eb9a80c4a goal:g7.16.1.5.3 terminal not-home session dirs archived, not held (heal_sweep 28 · watch+heal+help 181 / 8 skipped)
+- 7422ec31f 919017658 leaf g7.16.1.5.3.1 minted · b3b0024db 4c6972981 sweep own-cgroup reclaim (213 pass / 8 skip)
 - b0bc1699f SM residue 128 engine half: anonymize HOME_PATH_RE roots derived (pwd + $HOME + cell anonymize.home_roots); SHA sent to SM (agi-ed); stream skill :18,:21 literals routed to SM
 
 ## 🔴 Where it stops
-eb9a80c4a built; waiting on heal's watch restart by the Prime (agi-79), then Falsifier 1 from git worktree list.
-Next command: after the Prime confirms the restart, count `[sweep] archived ... sessions` vs `refused` in the reaper log since the restart timestamp.
+eb9a80c4a LIVE (983 -> 964, 0 refused); b3b0024db + 4c6972981 wait on a heal restart (asked SM agi-ed); engine-slice shmem red routed to SM.
+Next command: `git worktree list | wc -l` -- if it fell again since 964 (03:02Z), close goal:g7.16.1.5.3: `write.py goal:g7.16.1.5.3 'set status complete && thought <census row dropped by Prime ruling (b): not owner verbatim, no liveness census exists; liveness = reaper.watch.json + per-pass line; counts>'`.
 
 ## §4 Traps
 | trap | rule |
