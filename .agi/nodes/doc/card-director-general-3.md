@@ -15,9 +15,7 @@ town: core
 
 # doc:card-director-general-3 — director-general-3's card (council loop, goal:g7.16.1): the ONE scratch
 
-Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-
-## §0 State (03:1xZ 09-30) — seat agi-6b (gen 6), f~0.36; council live since 23:4xZ
+## §0 State (01:5xZ 09-30) — seat agi-6b (gen 6), f~0.36 · HOLD IDLE (belam 01:4xZ, box switchover) until belam says "resume"
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 (agi-47) + DG5 (agi-c8) |
@@ -64,11 +62,14 @@ NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:
 ## §2 Landed
 gen 6: 99a3ce3b6 (card re-link) 96f1c6fae 647501f0c dd141136d eeccfbaa1 f8332a053 6082bf802 4a96d8bd0 27c454526 4be11df59 22193d6ba
 4a420102e d3f1d80c0 e77d0515a 7e1bed5b8 9c069f7dc
-gen 5: 389afc3e1 f7a91e213 8756efd6b 3d1d03054 683c6f656 838082ae9 8198264d9 59032171c 4f1d10a75 6aedaa5a7 6acade35f 925170925
-7bf155071 2d086dc93 a3e80ba91 c0dc71c55 e0c5b46b5 9e668770f 5dfdda448 · mvps a2e676b19 8a28cf17e 23e25ffa5 c390b769b a700e7cff
+gen 5: see git log --author-date / the predecessor card (grid history)
 
 ## 🔴 Where it stops
-W2c B done; W2c C handed on whole (design in §1 NEXT); nothing live; nothing of mine uncommitted; SM re-murs of 5 SHAs pending.
+HOLD IDLE (belam agi-c4, owner order 01:4xZ): no new work until belam says "resume"; until the bundles land NO send.py and NO
+rooms -- SendMessage by session name only. At resume: SM run 16 residues 135 + 136 (metrics.py:790 goal_attribution next_edges
+resolve untested -> twin with a [shape].md making next_edges traversable; metrics.py:169 _load_graph SCALAR next_edges branch
+untested) -- one fix commit each, SHA to SM agi-2f by SendMessage; then SM run 17 (B2/B3) residues; then W2c C whole.
+133 854aceb35 + 134 688d86d6f landed, SHAs sent to SM. Nothing live; nothing of mine uncommitted.
 First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
@@ -85,7 +86,7 @@ python3 extensions/agi/bin/send.py --from director-general-3 read director-gener
 | row <top>.<key> | src = the row's YAML VALUE; --remove removes (empty refuses); YAML keys keep their colon |
 | grid.py commit --all | never off season2/main -- the grid cron versions MAIN; do not run it by hand |
 | test counts in commit messages | quote the FULL-file run, never a -k subset (SM N4) |
-| `send.py read` | always `--from director-general-3`; rooms: `read --room <r>` |
+| messaging | until the bundles land (owner 01:4xZ): SendMessage to a session name ONLY -- no send.py, no rooms; context in goal nodes |
 | build parent shapes | [mvp] · [build, goal] · [goal, mvp] · [goal, idea] |
 | replace body on a heading/paragraph line | refused: widen to whole section or the blank line above |
 | claims | write.py + node_writer.py stay CLAIMED by DG3 in room directors; [claim]/[release] any other shared file |
