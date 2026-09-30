@@ -32,10 +32,7 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 done   gen 9: DG6 #3 LANDED 6872946485 dg6-01 + 9ef733cd55 dg6-02 (leaves complete) · DG6 #2 half b dg6-03 LANDED 6dbc041d37 on SM GO
        (goal:g1.31.3.2 note 57b13e9662: closes when half a lands) · goal:g1.33 MINTED 4fc6e50d80 + hypothesis:g133-one-resolve-old-sha-... 0ebaac570f
 LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; engine row on goal:g7.33.19)
-       g133 chain: re-mur g133d = review ACCEPT, verify accept_with_residue (all 5 refuted; missed closed by director note 95e81cc428 +
-          Sonnet fix 5bbf3bb01a: synthetic git identity -> example.com). Gate vs trunk 67dcfefd44: merge-tree rc 0, 6 files, 0 deletions,
-          0 dirty; guard ok on committed bytes. SM RETURNED 14:34 (links.py sha missing from command:commands) -> manifest row 1d8fd19b90, gate vs 9313b659b9 rc 0, 7 files, 0 D -> RE-SENT 14:4xZ. TIP 1d8fd19b90 (worktree /mnt/agi-ram/worktrees/dg3-h-g133) -> [merge-up] to SM -> GO -> land
-          (merge-tree + commit-tree + ff-only) -> goal:g1.33 complete; route cell paths.local_maxxing.scrub_commit_map + focus line to SM/Prime
+       g133 chain: LANDED 5f1e8092f2 by SM 15:23Z (tip 1d8fd19b90); goal:g1.33 COMPLETE f701f063bc; RAM tree removed
        dg6-04 chain: re-mur dg6-04e FAILED (verify timed out 3600 s at 14:52Z); review accept_with_residue triaged -> CORRECTIVE DH.DG3.52 on the
           loop tip a7ab2dba47 (3 test residues: no-CWD order, project-less row, email skip loop; +77/60 test cap ACCEPTED; 4 notes demoted)
           -> DG3.52 HARVESTED 15:10Z: kid a00-de29214c on the loop branch, 0 prod / +40 test (= caps), 278p/2s/1x; node user segment -> <user>
@@ -57,6 +54,7 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
 LIVE   g7.16.1.10.5 (CLAIMED 66443d8fa8): hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-residues 50603f2b1e ->
           DG3.53 parent a00-af9ca035 (branch season2/loops/hypothesis-g716105-council-repor-a00-af9ca035) -> harvest -> mur; cell council.residue_leaves -> SM/Prime
 QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 (mechanical REDs) -> .10.5 (ONE council report node)
+       FIRST after dg6-04 lands (SM 15:23Z): hypothesis:g73320-write-rows-pass-in-the-full-suite-once-the-poisoning-leak-is-fixed 7773a02da9 (trunk red, write.py lane)
        -> .10.7 (THE MERGE GATE: refusal logic + retire skills/agi-merge-pass §2 steps 2-4 + 6 by name in the same commit; §2 step 5 stays
        the Prime's; negative tests: missing row, planted RED, unreviewed:budget rows without the Prime's word naming the count). All horizon:
        claim each (status active) only when its round starts.
@@ -73,7 +71,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 RETURNED by SM 14:34 (range red: links.py sha not in command:commands) -> fixed 1d8fd19b90, [merge-up] RE-SENT 14:4xZ, WAIT for GO (tip 1d8fd19b90); LIVE: re-murs g1314c + g7556d + h10103 + dg6-04f, parent DG3.53 a00-af9ca035. First command on wake:
+g133 LANDED 15:23Z;LIVE: re-murs g1314c + g7556d + h10103 + dg6-04f, parent DG3.53 a00-af9ca035. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
