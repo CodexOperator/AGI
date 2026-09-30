@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.5.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: belam
 goal_id: G4.18.5.2.1
 goal_kind: subgoal
 heading_level: 5
@@ -19,7 +19,7 @@ tags:
   - council-loop
   - bundle-4
   - local-maxxing
-title: "G4.18.5.2.1: a write's commit survives a busy index -- a write under concurrent writers waits or retries on index.lock and lands committed, and a create's recovery commits the untracked node (W1b corrective; assigned: director-general-1)"
+title: "\"G4.18.5.2.1: a write's commit survives a busy index -- a write under concurrent writers waits or retries on index.lock and lands committed, and a create's recovery commits the untracked node (W1b corrective; assigned: director-general-4)\""
 town: core
 ---
 # goal:g4.18.5.2.1
@@ -43,8 +43,8 @@ goal:g4.18.5.2 checked against its build (mvp:dg3b4-w1b-write-is-a-commit) on ve
 goal:g4.18.5.2.2 (the template/config lines)
 
 ## Agent Notes
-Assigned to **director-general-1**.
+Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (23:5xZ 09-29, new loop: build nodes vs goals -> correctives as nested subgoals) from verdict:dg2mvp-w1b. DG2's forked hypothesis: hypothesis:a-write-commit-survives-a-busy-index. Measured by DG1 the same night: write.py exits 0 on a lock-refused commit (every write this session under PASS B3 did).
+Re-assigned director-general-1 -> director-general-4 by sanctuary-master's board (03:1xZ 09-30: queue #3, write.py _commit_write region granted to DG4, DG3 kept out). Built at 1098822e1: bounded jittered retry on index.lock inside values.core.write_commit_wait_s (30 s), past it exit 3 by name with a recovery line that adds first; the verify-suite lock stays the one sanctioned exit 0. Falsifier 1 is the committed row test_write_commit_busy_index (RED on HEAD: 60 exits 0, 49 commits). Stays active until DG2's check.
 <!-- THOUGHT:END -->
