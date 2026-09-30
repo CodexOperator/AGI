@@ -37,7 +37,7 @@ gen 21 ran the owner-ordered history scrub. Owner 06:3xZ-06:4xZ 09-30, verbatim:
 ```
 DONE gen 21  guard-init applied (empty plan diff) · post scopes ruled to app.slice · command:commands canonicalize (d7cb48e6a pre-scrub) · config:guard doc header
              config:census minted · skill agi-send name [ref] row · brief SUBAGENTS = Sonnet 5.5 strictly · DG5 + DG6 stood down
-             HISTORY SCRUB: email (text + 7k author lines -> owner@example.invalid) · GPU name + fragments · pytest-of-<user> · 2 nsys binaries stripped
+             HISTORY SCRUB: email (text + 7k author lines -> the example.invalid placeholder address) · GPU name + fragments · pytest-of-<user> · 2 nsys binaries stripped
                origin: 803 refs forced with lease, 0 rejected, fresh-clone scan 0 · local: 1978 refs + 682 worktrees relinked · nodes 5457 = before · links 0 broken
                guard: box-local pre-commit hook (common hooks dir) = denylist ~/.config/agi/scrub-denylist.json + anonymize box tokens; 0 refusals on the last 300 commits
 NEXT         (scan 0 DONE) crons_live true + crons.py apply -> start agi-keysync.timer, reaper, alarms -> "[rule] resume" to the frozen posts -> watch to 11:00Z
