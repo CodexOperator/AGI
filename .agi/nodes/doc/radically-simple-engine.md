@@ -254,7 +254,7 @@ Rows: adapters/magic_pane.py (75) SCRAP · magic_pane_* (~2,040) REPLACE-BY the 
 Measured at HEAD 09-30 22:xZ (alive + all-is-one): engine ~5.13 MB · 137 files · 718 git worktrees.
 | piece | KB | verdict | by what | from § |
 |---|---|---|---|---|
-| rotate.py | 1,175 | REPLACE-BY | the post wrap (agi-post@.service + post-wrap.sh): auto-rotate on the meter flag, no command | §1 §4 |
+| rotate.py | 1,175 | REPLACE-BY | the post wrap (agi-post@.service + agi-flush + the meter hook): auto-rotate at the line, no command | §1 §4 |
 | send.py (+ magic_pane router on core) | 310 | REPLACE-BY | message = a file in the recipient's inbox dir, committed; unread derived; one route | §6 |
 | write.py + node_writer.py + write_guard.py | 329 | REPLACE-BY | `agi-write` + `agi-read` (<= 2 KB sh) | §2 |
 | heal.py | 206 | REPLACE-BY | `Restart=always` on the post unit | §1 §4 |
