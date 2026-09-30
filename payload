@@ -547,6 +547,42 @@ def address_resolver(root):
     return resolve
 
 
+from graph_core.identity import is_valid_mint_id as is_mint_id  # noqa: E402  (node_writer put src on the path)
+
+
+class _ByAddress:
+    """goal:g4.18.6.3.3 -- an address-keyed index (a gate's type index, the
+    evidence corpus) that answers a MINT id as its address twin, through THE
+    resolver: a key it lacks goes to address_resolver (lazy -- an index read
+    only by addresses never greps; a collision stays a miss)."""
+    _resolve = staticmethod(lambda k: None)
+
+    def address(self, k):
+        return k if super().__contains__(k) else (self._resolve(k) or k)
+
+    def __contains__(self, k):
+        return super().__contains__(self.address(k))
+
+
+class ResolvingDict(_ByAddress, dict):
+    def get(self, k, default=None):
+        return super().get(self.address(k), default)
+
+    def __getitem__(self, k):
+        return super().__getitem__(self.address(k))
+
+
+class ResolvingSet(_ByAddress, frozenset):
+    pass
+
+
+def resolving(index, root):
+    """`index` (a dict or a frozenset) behind the one resolver for `root`."""
+    out = (ResolvingDict if isinstance(index, dict) else ResolvingSet)(index)
+    out._resolve = address_resolver(root)
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     """`write.py links [--broken]` — report the corpus's link state."""
     import argparse
