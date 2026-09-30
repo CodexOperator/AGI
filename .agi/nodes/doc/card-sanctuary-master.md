@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:4xZ 09-30, date -u) — gen 9 · RESUMED after the history scrub (every sha changed) · DG5 + DG6 stood down, their rows re-laned onto DG3 + DG4
+## §0 State (08:5xZ 09-30, date -u) — gen 9 · resumed after the scrub · rotation near (meter 0.40 / 0.47)
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 · messaging: SendMessage by session name only (no send.py, no rooms) until the bundles land |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 9 · session agi-5c |
 | skills | agi-merge-pass (§2 verdicts) · agi-workflow · agi-rotate · agi-node-write · agi-goal |
-| peers (08:4xZ, ALWAYS "name [ref]") | Prime agi-23 [ecd665] · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-34 [e82e60] · DG4 agi-c8 [6d9f0c] · alive agi-e3 [761106] · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 [21dc2d] · stream-master agi-8c [f29919] · DG5 DG6 DOWN |
+| peers (08:5xZ, ALWAYS "name [ref]") | Prime agi-23 [ecd665] · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-34 [e82e60] · DG4 agi-1c (rotated from agi-c8) · alive agi-e3 [761106] · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 [21dc2d] · stream-master agi-8c [f29919] · DG5 DG6 DOWN |
 
 ## §1 Plan
 ```
@@ -46,17 +46,14 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-SHAs: the scrub (08:0xZ) rewrote ALL history. Map old → new: grep ^<old> /data/scrub/union.git/filter-repo/commit-map. Below = NEW shas.
-RUNNING: Sonnet review of DG4 be11671cb (N2 residues R1-R3) → /tmp/sm9/cc_n3.json → accept → DG4 closes .5.5.8
-VERDICTS SENT post-resume: DG3 04d765c81 (B: 126 alias ids refused = REGRESSION, first · R1c: VT/FF/NEL/LS/PS before --- still forge) · DG4 2833cdae9 (158c crash-window orphan temp: adopt or sweep)
-BUNDLE 4 bigger_outcome (council-bundle-4-one-gate-one-commit-ids-never-move) OPEN 0.8: limit (3) = DG3's R1c (g4.18.1.6 open) · (4a) = g4.18.5.5 (DG4). When both land: ONE update citing DG2 verdict:dg2mvp-w2cD PROVED 0.86 → 0.9
-RE-LANE (owner 06:1xZ, DG5 + DG6 down):
-  DG3: B+R1c → anonymize email + hw classes (PRIVACY; the Prime: the tracked guard must match the box hook) + the Prime's rulings n109/n22 (no edited_by rewrite) · n6 (one placeholder cell) · n144 (usernames only in PATH context) → g7.33.20.2/.3 → g1.31.3.2 a/b + .3.1.1/.3.1.2 (mur-clean → merge --no-ff) → DG5.01 harvest (.4.1) → .5.4 close (name the 12 agi-ram worktrees) → .5.5.6 → .5.5.7 → g1.31.4.7 → 46 missed rows (.5.4.x .5.5.x, briefs) · .10.4
-  DG4: _commit_write round (fork + n83 + g4.18.5.5) → g1.31.5.1.1 hook RED → 158c → harvests g1.31.2 · .1.1 · .1.2 · .4.2.1 · .4.6.2 → g1.31.5.3 → heal-sweep fork (then the Prime restarts heal) → .4.5b/.4.5a/.4.6.1 → .4.2.2 → .4.4 + the workflow.py claude-code route → g4.18.5.6 · .10.1 .10.2 .10.6
-  DG1: .7 goal edits (SP findings 2+3: re-point .7.1.3 F; 6 horizon leaves) + the .10 Assigned re-points
-MERGE RULE (DG6's rounds): mur-clean only, --no-ff, one at a time, merge-tree check first → ONE [merge-up] per batch to me → gate + land (skill agi-master-gate)
-Meter at 0.37: rotate at 0.47 (bare rotate.py rotate after this card is committed)
-First command at wake: ListAgents + tmux list-windows
+Review of DG3 6894c783f3 (B alias-id regression fix + R1c splitlines forge fix) → /tmp/sm9/cc_b2.json. If a successor wakes and it is absent: re-run it (Sonnet Agent; reuse /tmp/sm9/e6p probes).
+  on ACCEPT: DG3 closes g4.18.1.6 + g7.33.20 + g1.31.5.2 → bundle-4 limit (3) CLOSED → bigger_outcome council-bundle-4-one-gate-one-commit-ids-never-move: ONE update (limit 3 closed, cite DG2 verdict:dg2mvp-w2cD PROVED 0.86); stays 0.8 until (4a) = g4.18.5.5 (DG4.02 live) lands → then 0.9
+ACCEPTED post-resume: 30175ea7e9 (anonymize email class, g1.31.5.1.2) · be11671cb (N2 residues; .5.5.4 + .5.5.8 COMPLETE)
+OPEN RESIDUES: DG4 158c (2833cdae9, orphan key temp: adopt or sweep; closes .7.1.4.1) · DG3 hw-model class (dg6-03/04 murs re-running)
+CONFIG (the Prime applies; I relay): g1.31.1.1 mode = the config.json 2 lines land WITH DG4's brief.py merge-up (the test at :1988 is updated there) · g1.31.2 skills entry = after DG4's 2 build nodes (exact text → Prime, byte_cap 6000→8000) · town fixed d5e6fd805
+LANES: DG3 = write.py · anonymize/privacy · dispatch.py · RAM writers · render/viewport (.7.1.5 .7.2.7) · g1.31 node answers (46 rows) · .10.4 | DG4 = rotate.py · heal · adapters · keys · workflow.py + CC route · .7 (12 nodes) · .10.1 .10.2 .10.6 · the DG6 hook/harvest rows
+MERGE-UPS expected: DG4.01 (write-refusal), DG4.02 (n83 + g4.18.5.5), DG3's dg6-0x rounds → gate per skill agi-master-gate, one [merge-up] per batch
+First command at wake: ListAgents + tmux list-windows · shas before 08:0xZ are OLD: grep ^<old> /data/scrub/union.git/filter-repo/commit-map
 ```
 ## §4 Traps
 | trap | rule |
