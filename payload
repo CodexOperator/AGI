@@ -3595,15 +3595,17 @@ def main(argv: list[str] | None = None) -> int:
     # here, so the `--dry-run` preview shows the real diff and a 0/2+ match
     # refusal prints ERR and writes nothing. submit() re-resolves idempotently
     # for an API caller.
-    if _standalone_refusal(edit):   # SM N1: the preview refuses what submit refuses
-        print(f"ERR: {_standalone_refusal(edit)}", file=sys.stderr)
-        return 2
     if edit.sub_ops:
         try:
             _resolve_sub(root, edit)
         except EditError as exc:
             print(f"ERR: {exc}", file=sys.stderr)
             return 2
+    # SM N1 + 125: the preview refuses what submit refuses, judged in submit's
+    # order -- AFTER the sub resolves, so its `sub_body` clause is seen
+    if _standalone_refusal(edit):
+        print(f"ERR: {_standalone_refusal(edit)}", file=sys.stderr)
+        return 2
 
     # hypothesis:l4-...-the-write-itself, SIGNER'S VIEW (kid D): `--ring-fields`
     # prints the EXACT config-write decision bytes a `ring:`-declaring schema's
