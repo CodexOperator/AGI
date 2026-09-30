@@ -92,6 +92,10 @@ CANONICAL_NODE_TYPES = (
 TYPE_ALIASES = {"bigger-outcome": "bigger_outcome",
                 "app-purpose": "vision",
                 "app_purpose": "vision"}
+#: Abbreviated ID prefixes the corpus carries in frontmatter (80 `exp:`, 46 `hyp:`
+#: live nodes whose file lives under nodes/experiment|hypothesis/): the same node,
+#: spelled short. Deliberately NOT in TYPE_ALIASES (that is the input/`choices` surface).
+ID_PREFIX_ALIASES = {"hyp": "hypothesis", "exp": "experiment"}
 #: What an argparse `choices=` should accept: canonical + aliases.
 NODE_TYPES = CANONICAL_NODE_TYPES + tuple(TYPE_ALIASES)
 
