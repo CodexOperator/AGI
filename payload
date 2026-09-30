@@ -3098,3 +3098,54 @@ def test_w2cc_set_parents_to_a_mint_lands_as_its_address(project):
     assert write.main(["hypothesis:h1", "set parents [goal:g2]", "--root", str(project)]) == 0
     assert write.main(["hypothesis:h1", f"set parents [{mint}]", "--root", str(project)]) == 0
     assert mint in node.read_text()
+
+
+# g1.31 #37 (PASS B3, verify_l4-canonical-bytes-are-injective-and-fresh-and-
+# the-ring-gate): `unset k` carried k: "<unset>" and json_field passes a str
+# through, so it signed the SAME canonical bytes as `set k <unset>`. The unset
+# keys now ride one reserved `_unset` field (refused as a caller key both
+# ways), so the literal is a legal value and never reads as an unset.
+def test_g131_37_an_unset_never_signs_the_bytes_of_setting_the_literal_marker():
+    from seatsig import rings
+
+    def canon(set_fm, unset_fm):
+        return rings.canonical_bytes("config-write", write._config_write_fields(
+            "config:seats", set_fm, unset_fm, ts="T", nonce="n"))
+    assert canon({"k": "<unset>"}, None) != canon(None, ["k"])
+    assert canon({"k": "<unset>", "j": "1"}, None) != canon({"j": "1"}, ["k"])
+    assert write._config_write_fields("config:seats", {"k": "<unset>"})["k"] == "<unset>"
+    assert canon(None, ["b", "a", "a"]) == canon(None, ["a", "b"]), "order never signs"
+    assert canon(None, ["a"]) != canon(None, ["b"]) != canon(None, ["a", "b"])
+    for set_fm, unset_fm in (({"_unset": '["a"]'}, None), (None, ["_unset"])):
+        with pytest.raises(write.EditError, match="'_unset'.*REFUSED"):
+            write._config_write_fields("config:seats", set_fm, unset_fm)
+
+
+# g1.31 #12 (PASS B3, verify_thought-verb-edits-only-the-top-level-thought-block):
+# falsifier 2's second half had no row -- a body that only QUOTES a THOUGHT pair
+# (indented or `> `-quoted, never column 0) and holds NO real block: `thought`
+# ADDS one top-level block (replace_thought's append branch, reached through
+# _compose_body) and leaves the quotation byte-identical, the quote at the end
+# of the body too; the dry run writes nothing.
+@pytest.mark.parametrize("quote", [
+    "    <!-- THOUGHT:BEGIN -->\n    quoted review evidence\n    <!-- THOUGHT:END -->",
+    "> <!-- THOUGHT:BEGIN -->\n> quoted review evidence\n> <!-- THOUGHT:END -->"])
+@pytest.mark.parametrize("tail", ["\n\nafter the quote\n", "\n"])
+def test_g131_12_thought_on_a_quoted_only_body_adds_one_block_and_keeps_the_quote(project, quote, tail):
+    node = project / "nodes/hypothesis/h1.md"
+    body = "\n# h1\n\n## Review\n\n" + quote + tail
+    node.write_text(node.read_text().split("\n---\n", 1)[0] + "\n---\n" + body)
+    assert node_writer.thought_blocks(body) == [] and node_writer.extract_thought(body) is None
+    before, root = node.read_text(), ["--root", str(project)]
+    assert write.main(["hypothesis:h1", "thought the new reason", "--dry-run"] + root) == 0
+    assert node.read_text() == before
+    assert write.main(["hypothesis:h1", "thought the new reason"] + root) == 0
+    after = write._read_body_text(project, "hypothesis:h1")
+    blocks = node_writer.thought_blocks(after)
+    assert len(blocks) == 1 and "the new reason" in blocks[0], after
+    assert after.count(quote) == 1 and after.index(quote) < after.index(blocks[0]), after
+    assert after.count("quoted review evidence") == 1
+    assert ("after the quote" in after) == (tail != "\n"), after
+    block = f"{node_writer.THOUGHT_BEGIN}\nv\n{node_writer.THOUGHT_END}"
+    out = node_writer.replace_thought(body, block)   # the reviewer's pure-function probe
+    assert out.count(quote) == 1 and node_writer.thought_blocks(out) == [block]
