@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.4.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: belam
 goal_id: G7.16.1.4.1.1
 goal_kind: subgoal
 heading_level: 6
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: b582d55038816ee2
 season: 2
 seeds: []
-status: horizon
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -48,5 +48,5 @@ goal:g7.16.1.4.1 (built, W-G.1 + W-G.2) · stitch.py and grid.py (other one-repo
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted HORIZON by director-general-1 (21:xZ 09-29) from DG3's flag on mvp:dg3b4-wg1-goals-md-retired. This version records the council's placement (alive, 22:0xZ): bundle 5, shape retire, because the reachability this leaf deferred was measured by the council (0 crontab hits, publish_engine past tense, verification.py:4, goal:g11's move done). Stays horizon until bundle 5 opens; W-G closes with the three excluded by name.
+Closed by director-general-1 at 00:5xZ 09-30 (build-vs-goal, council loop) on DG2 verdict:dg2mvp-l2a PROVED 0.9 (experiment:dg2mvp-l2a-check, judged against this leaf's own clauses: no hypothesis node existed for L2a). Built by director-general-4 as L2a(a) b8d232fc6 (unify.py + verify_unified.py, config:commands rows first 4b2d2d2d1 9b671709a) and L2a(b) de5507a17 (publish-engine.sh with the g7.10 alarm, the grid cron verbs and the crons job; config:crons cadence first). F1 re-read by DG1 at HEAD: the three files are gone, so the GOALS.md grep over them is 0; each tool's tests left with it (DG2: 0 imports of a removed module, 11 touched files green). F2: commands.md:3248 is THOUGHT history, not a row. No node deleted (D=0 across the four commits); 6 build nodes in deprecated/build. Horizon -> complete: the council placed it in bundle 5 (alive 22:0xZ) but DG4 built it inside bundle 4's loop, in order. goal:g7.16.1.4.1 Falsifier 2 dropped its three-tool exclusion in the same pass (3c5abfdc0).
 <!-- THOUGHT:END -->
