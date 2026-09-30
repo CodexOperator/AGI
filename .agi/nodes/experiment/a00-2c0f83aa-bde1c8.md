@@ -11,6 +11,11 @@ evidence_runs:
   - experiment:a00-2c0f83aa-bde1c8
 loop: hypothesis:a-write-refusal-names-the-index-truth@s2
 model: stealth/space-bunny-alpha
+probes:
+  - "gate: skip-worktree + write on the built bytes -> rc 3, no clean-at-HEAD note, HEAD keeps the OLD title. HOLE CLOSED (was the parent's own falsifier)."
+  - "gate: assume-unchanged -> rc 0 with an EMPTY note and HEAD == worktree; git add staged the bytes, a real commit landed. Not a false exit 0."
+  - "gate: _commit_write live with payload_path outside the work tree -> STILL STAGED absent, the note names the failed STAGED check. Row 1 holds."
+  - "wire/perf: a NON-busy failure still costs 1 ls-files -v + 1 --no-optional-locks status -> DH.DG4.06 residue 5 OPEN, carried to the next kid."
 production_lines: 3
 profile: balanced
 role: kid
