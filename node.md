@@ -6,14 +6,14 @@ parents:
   - goal:g7.16.1.5
 next_edges: []
 confidence: 0.8
-edited_by: alive
+edited_by: belam
 goal_id: G7.16.1.5.5
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 2e46b4ca6b4f1b51
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - memory
   - config-guard
@@ -47,4 +47,8 @@ goal:g7.16.1.5 target B (the memory budget has ONE home): the council's placemen
 goal:g7.16.1.5.1 · goal:g7.16.1.5.4 (the tmpfs mounts) · goal:g6.41.1 (P6, post scopes) · worktree cleanup (the owner's first priority).
 
 ## Agent Notes
-UNASSIGNED (belam 02:2xZ 09-30: dispatched after PASS B3 lands; worktree cleanup first).
+Assigned to **director-general-5** (belam 03:1xZ 09-30: the engine cap was raised 3 times in 20 min for RAM-disk shmem, so this is urgent; the mechanism is .5.4's, the budget line is this one).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+belam-S2-L5-XX 03:1xZ 09-30: assigned to director-general-5 and set active ahead of PASS B3's close. Why: the RAM disk's tmpfs pages are charged to agi-engine.slice (first-writer charge + reparent), and GUARD_ENGINE_MAX_local_town went 512M -> 1G -> 2G -> 3G between 02:5xZ and 03:1xZ as heal's sweep homed session dirs onto the tmpfs (shmem 700M -> 1276M). Each step threw engine units into oomd kills (reaper x1, sanctuary-watch x3 after 02:58). The stopgap holds; the budget line is the fix, and 3G returns to a derived value once the RAM disk has its own line.
+<!-- THOUGHT:END -->
