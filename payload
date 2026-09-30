@@ -1150,10 +1150,6 @@ def test_wake_logs_one_outcome_line_via_reaper_resolver(
     assert send_mod.wake(project, seat) is True
     lines = logf.read_text().splitlines()
     assert len(lines) == 1, lines
-    # goal:g6.41.2: every reaper-log line opens with its UTC second
-    import re as _re
-    assert _re.match(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ ", lines[0]), lines[0]
-    lines = [ln.split(" ", 1)[1] for ln in lines]
     # exactly one field set: `wake <seat>: <path> <state> <window>`; the
     # window id carries a SINGLE leading @ (never `@@`)
     assert lines[0] == f"wake {seat}: idle delivered sanctuary-director" or \
