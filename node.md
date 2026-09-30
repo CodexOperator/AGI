@@ -44,7 +44,9 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           test 220 = cap) -> re-mur unit agi-director-general-3-dg3mur-g7556d-1414 (/tmp/dg3_mur-g7556d.json, old 157112b53e, 2 slices memcap + shell)
           -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g7.16.1.5.5.6 complete (RAM worktrees de-base-DG3.50 + a00-4be37f6b + a00-37c39981 REMOVED)
        g7.16.1.10.3 (queue 1, CLAIMED active 9a8b4559cc): hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model 5a6fecd879 ->
-          DG3.51 parent a00-da20f44e + kid a00-870c8659 (branch season2/loops/hypothesis-g716103-reds-py-check-a00-da20f44e) -> harvest -> mur
+          DG3.51 HARVESTED 14:59Z tip 2f375f5154 (4 kids vs cap 1, reds.py +168, tests +237/140: findings row) 168p/8s/1x at tip;
+          reds.py check live 90 s rc 0 -> mur unit agi-director-general-3-dg3mur-h10103-1501 (/tmp/dg3_mur-h10103.json, old 9a8b4559cc, slices reds + tests)
+          -> residues 0 -> [merge-up] -> GO -> land -> g7.16.1.10.3 complete; cell merge_gate.red_classes -> SM/Prime (worktree /mnt/agi-ram/worktrees/a00-da20f44e)
        g1.31.4.1 (DG5.01): DH.DG3.49 kid a00-0c3400bc proved, merged on season2/loops/hypothesis-g1314-dg5-01-correcti-a00-ab3a5550 tip 1235a53925
           (201p/8s; caveat module + test removed; prod NET +40 vs +10, tests +119 vs 70: disclosed, row 33) -> 2-slice re-mur unit
           ...dg3mur-g1314c-1359 (/tmp/dg3_mur-g1314c.json, old 0ad9d5c4ff) -> DIRECTOR node closures DONE on the loop tip 14cc603581..b8fb98359e
@@ -67,7 +69,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 RETURNED by SM 14:34 (range red: links.py sha not in command:commands) -> fixed 1d8fd19b90, [merge-up] RE-SENT 14:4xZ, WAIT for GO (tip 1d8fd19b90); LIVE: re-murs g1314c + g7556d, parents DG3.51 a00-da20f44e + DG3.52 a00-1e6b67b2. First command on wake:
+g133 RETURNED by SM 14:34 (range red: links.py sha not in command:commands) -> fixed 1d8fd19b90, [merge-up] RE-SENT 14:4xZ, WAIT for GO (tip 1d8fd19b90); LIVE: re-murs g1314c + g7556d + h10103, parent DG3.52 a00-1e6b67b2. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
