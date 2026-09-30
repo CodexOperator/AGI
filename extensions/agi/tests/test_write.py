@@ -702,6 +702,26 @@ def test_sm145_to_147_payload_verbs_and_modes_refuse_before_any_write(project, t
     assert write.main(["build:b1", "sub payload o => O && sub payload d => D", "--root", str(project)]) == 0
     assert dest.read_text() == "OlD\n"
 
+# SM 144: an EMPTY `body_patch -` beside another verb was dropped (main cleared its `-`,
+# submit skipped the empty diff) while the other verb landed; refused by name, dry and real
+def test_sm144_an_empty_body_patch_stdin_refuses_beside_any_verb(project, tmp_path, monkeypatch, capsys):
+    import io
+    _build_node(project)
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "src" / "thing.py").write_text("old\n")
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    for script in ("note n && body_patch -", "set title u && body_patch -", "payload_text x && body_patch -"):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+            assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and errs[0], (script, errs)
+        assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n", script
+        if "note" not in script:   # a note is refused earlier, as body_patch's second body writer
+            assert "body_patch - (stdin) is empty" in errs[0][0], (script, errs)
+
 def test_payload_verb_replaces_the_bytes_the_node_points_at(project, tmp_path):
     _build_node(project)
     dest = tmp_path / "src" / "thing.py"

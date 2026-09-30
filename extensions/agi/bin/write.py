@@ -2474,6 +2474,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # exists to close.
     if edit.patch_from == "-" and not edit.patch_diff:   # SM 139: refused BEFORE any write, dry and real
         raise EditError("patch - (stdin) is empty: no diff to apply -- nothing written")
+    if edit.body_patch_from == "-":   # SM 144: the body_patch sibling of 139 / 140
+        raise EditError("body_patch - (stdin) is empty: no diff to apply -- nothing written")
     if edit.payload_from == "-":   # SM 140: main() reads stdin; `-` survives only an empty read
         raise EditError("payload - (stdin) is empty: no bytes to write -- nothing written")
     _writers = [bool(edit.payload_from), bool(edit.payload_bytes),
@@ -3797,9 +3799,10 @@ def main(argv: list[str] | None = None) -> int:
         # Same stdin contract as `payload -` / `patch -`: the diff bytes ride
         # stdin because a diff can contain the doubled ampersand that would
         # split the `&&` script form. Read once, here, never in the library.
-        edit.body_patch_from = ""
-        edit.body_patch_diff = sys.stdin.read()
+        _diff = sys.stdin.read()
         _stdin.add("body_patch")
+        if _diff:   # SM 144: as 140 -- an EMPTY read keeps `-`, and submit refuses it by name
+            edit.body_patch_from, edit.body_patch_diff = "", _diff
 
     if args.dry_run:
         print(f"{edit.node_id}:")
