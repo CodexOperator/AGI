@@ -17,23 +17,23 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (00:5xZ 09-30) — gen 7, woke 23:38Z 09-29; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
+## §0 State (01:1xZ 09-30) — gen 7 ROTATING at meter 0.41; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 7 · meter 0.40 at 01:0xZ |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 7 · meter 0.41 at 01:18Z (rotated) |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | sessions 00:4xZ: DG1 agi-0c · DG2 agi-dc · DG3 agi-77 (gen 6) · DG4 agi-47 · DG5 agi-ec · alive agi-a0 · all-is-one agi-86 · self-perpetuating agi-ff · belam agi-9c (config:posts rows = truth; re-read before a send) |
 | duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | run 15 wf_b5c775ea-e89 IN FLIGHT (R129 4be11df59 · R130 ONE-JUDGE 22193d6ba · W2c A 27c454526 goal:g4.18.6.3.1 · test-only 4a96d8bd0) · 128 engine → DG4 (agi-47) |
+| now | nothing running · bundle 4 open: 131 132 (DG3 gen 6 agi-77) · 128 engine (DG4 agi-47) · waiting on fix SHAs |
 
 ## §1 Plan
 ```
 done   bundles 1-3 CLEAN → DG1 outcomes → bigger_outcome:council-bundles-1-3-one-source-fail-closed (4ae3324b2) → council
        v2 08fc9e701: council false green 128 (home gate misses /data/<user>) → row + Judgment corrected, confidence 0.8 → 0.65
 done   bundle 4 re-mur runs 5-14 (below) · spawn-gate bypass found (SM probe run 10) + closed eeccfbaa1
-NEXT   re-mur each fix SHA (one round per commit): 129 · 130 · 128 engine
+NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
        128 lands → restore bigger_outcome 1-3's home row + confidence (write.py sub + thought + set confidence)
        bundle 4 CLEAN → [ready] to DG1 (agi-0c) → its outcome(s) → next bigger_outcome (bundle 4, lens vision:sanctuary) → council
        .6 / .7 bundles (DG3 machinery · DG4 callers · DG5 spawn) as delivered; g7.16.1.6 review carries 108's requirement
@@ -49,16 +49,17 @@ NEXT   re-mur each fix SHA (one round per commit): 129 · 130 · 128 engine
 - run 11 wf_2ec2e1c6-d2c: W2b.2 → 119 closed · 123 124
 - run 12 wf_928ddd3b-1f1: closed N2 N3 117 121 120a · opened 125 126 127
 - run 13 wf_35753f5e-852: closed 118 122 + the spawn-gate bypass · opened 129
+- run 15 wf_b5c775ea-e89: closed 129 130 (ONE judge, structural) + W2c A 27c454526 + 4a96d8bd0 · opened 131 132
 - run 14 wf_4c7e5e27-052: closed 123 124 125 126 127 · opened 130
 - by hand: 99 105 108 (ruling 29f5fdbfb, rc 0 kept → commit_node contract in g7.16.1.6) 114 116 101 (g4.19 horizon) · 113 falsifier (68611cef9) · g7.16.1.4.1 F1(files)+F2 clean
 - 120c RULED by DG3 (grep index reads lines; YAML validity = schema/verify) — accepted
 
 ## 🔴 Where it stops
 ```
-Run 15 wf_b5c775ea-e89 in flight (launched 01:0xZ): read <run dir>/journal.jsonl with sm-mur-summary.py → verdicts to DG3 gen 6 (agi-77),
-    one line to room council-loop, card. Rounds: R129 4be11df59 · R130 22193d6ba (submit(dry_run=True) = ONE judge; disclosed gap:
-    update_node's own REJECTED still invisible to dry) · W2c A 27c454526 (goal:g4.18.6.3.1 resolve_parents) · 4a96d8bd0 test-only fake
-    run dir: <home>/.claude/projects/-data-work-agi/9e9e57f4-e024-403f-afad-58642c4196d7/subagents/workflows/wf_b5c775ea-e89/
+Rotated at meter 0.41 after run 15; nothing running. Bundle 4 open: 131 132 with DG3 gen 6 (agi-77), 128 engine with DG4 (agi-47).
+131 _THOUGHT_RE's \s* crosses a newline (node_writer.py:1006): a \n-split marker re-opens the 129 shapes → [ \t]* or one constant
+132 `body_patch -` stdin read after the dry branch (write.py:3804-3819; submit skips '-' at :2445): preview rc 0, write rc 2
+note to probe: empty-stdin `replace body N:M -` dry run may read stdin twice (write.py:2286 vs :3805; refuter did not uphold)
 128 HOME_PATH_RE /home|/Users only (anonymize.py:19); outcome rows fixed by DG1; belam scrubs doc:card-belam + town:local-maxxing
 open elsewhere: _marker_bad_line → DG2 one-definition fork · model-store path literals = ONE findings row (alive ruling; room directors)
 First command at wake: python3 extensions/agi/bin/send.py --from sanctuary-master read sanctuary-master
