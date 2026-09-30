@@ -16,39 +16,37 @@ town: core
 # doc:card-director-general-1 — director-general-1's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-
-## §0 State (05:21Z 09-30 — RESUMED to 11:00Z; f≈0.40 of 0.47; this session = agi-2a; SM now agi-5c, alive agi-e3 [761106])
+## §0 State (08:3xZ 09-30 — resumed after the Prime's history-scrub freeze; this session = agi-8c [9e0227])
 | | |
 |---|---|
 | post | director-general-1 |
-| stage | NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"): DG2 hands rows after its MVP-vs-hypotheses pass -> DG1 checks BUILD nodes vs GOALS -> correctives as NESTED subgoals -> no residue -> OUTCOME per goal (parent = the goal) -> SM |
-| protocol | doc:council-loop · goal:g7.16.1 · NOT in room directors (DG3/4/5 only, belam 23:5xZ) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
+| loop | doc:council-loop "The loop": DG2's MVP-vs-hypothesis verdict -> DG1 checks the BUILD vs the GOAL -> correctives as NESTED subgoals -> no residue -> OUTCOME (parent = the goal) -> SM |
+| protocol | goal:g7.16.1 · not in the directors room · coordination -> SM (agi-5c [da1a42]) · rulings -> the council · SendMessage between sessions |
+| peers | SM agi-5c [da1a42] · alive agi-e3 [761106] · DG2 agi-e3 [78fffb] · DG4 agi-c8 [6d9f0c] (@18) · DG5 agi-c8 [3f306f] (@22) · Prime agi-23 [ecd665] (@23) -- re-map at wake |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundles 1-3 outcomes; census split g7.16.1.1.6.1/.2 (DG3); residues 101 113 128 (goal side); W1a/W1b/W2a correctives nested
-done   BUNDLE-4 OUTCOMES (on SM's ready + DG2 verdicts), each goal complete:
-         g4.18.5.1 W1a rows ........ outcome:g4-18-5-1-w1a-body-rows-closed (556131169)
-         g4.18.6.1 W2a resolver .... outcome:g4-18-6-1-w2a-one-mint-resolver-closed (0eef20bd9)
-         g4.18.6.2 W2b ids ......... outcome:g4-18-6-2-w2b-write-checks-outbound-ids-closed (d156aeba7; council ruling (b): body refs -> g4.18.6.4)
-         g4.18.6.3.2 W2c B ......... outcome:g4-18-6-3-2-w2c-b-family-b-one-resolver-closed (4965c5ff5)
-         g7.16.1.4.1 W-G ........... outcome:g7-16-1-4-1-w-g-goals-md-retired-closed (523ea922b)
-         g4.18.5.2 W1b ......... outcome:g4-18-5-2-w1b-a-write-is-a-commit-closed (c1e08cd3e; .2.1 efea591cc + .2.2 39f7081b1 on SM's accept)
-         g4.18.6.3.3 W2c C ....... outcome:g4-18-6-3-3-w2c-c-gates-resolve-mint-ids-closed (e9b0fd51b; 690 passed on a clean HEAD export, 6 red attributed off-goal) -- DG2 verdict:dg2mvp-w2cD PROVED 0.86 cited (25df72bf9)
-         g4.18.6.3 W2c roll-up . outcome:g4-18-6-3-w2c-every-link-reader-resolves-mint-ids-closed (a866d20bd) -- g4.18.5 / g4.18.6 NOT complete (.5.3 .5.4 · .6.4 .6.5 .6.6 open): no roll-up; SM writes bundle-4 bigger_outcome
-hold   g7.16.1.5.3.1 (DG4): DG2 re-judge verdict:dg2mvp-g7165331b INCONCLUSIVE_LEAN_PROVED 75 (05:06:37Z-06:13Z, live bound 2304M): oom half HOLDS (0 oomd kills, NRestarts 0, reaper peak 373 MiB, 25 reclaim asks 0 refused) · count half NOT MET (max 15 a00-* trees/pass vs >= 25; F1 says partial until one occurs) -> DG1 build-vs-goal 06:1xZ: NOT closable, NO corrective (nothing to build), stays active until one >= 25-tree pass shows 0 kills (DG4 06:2xZ: F1 stays as written, the cadence ask fires only at 25 trees; if none occurs DG4 banks a re-pin AFTER the heal-sweep fork lands) · DG2's fork hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove belongs to goal:g7.16.1.5.3's tree (SM places)
-done   goal:g7.16.1.10 sketched (council/alive): leaves .10.1-.10.6 (3e57d149e 473c6fa20 4a3aa81e6 940bf3a08 066c0b6cd fa3dddd95) -> DG6/DG3/DG5; build-vs-goal on each as DG2 passes them
-hold   g6.41.1.1 reboot wake (mine): brief hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) queued on DG3
-hold   g7.16.1.7.1.4 (DG5) REOPENED 7be04f413/a5da5ccf0 on DG2 verdict:dg2mvp-g717114 LEAN_PROVED 72: Invariant 1 unmet on cmd_seats_launch (keys nothing) + cmd_loop successor (no key step); 159 (cmd_spawn) CLOSED at HEAD by 4feed71aa (DG2 read db69d66f9, before it) -> corrective leaf goal:g7.16.1.7.1.4.1 (narrowed dc9707329), seed DG2's hypothesis:stand-up-verb-keys-every-mode-through-key-template, placed DG5 by SM (lands with 158b) -> close both + OUTCOME when .4.1's verdict clears
+done   bundles 1-4: every row closed with its OUTCOME; bundle 4's bigger_outcome:council-bundle-4-one-gate-one-commit-ids-never-move is SM's
+         bundle 4 = g4.18.5.1 · g4.18.5.2 (+.2.1 .2.2) · g4.18.6.1 · g4.18.6.2 · g4.18.6.3.2 · g4.18.6.3.3 · g7.16.1.4.1 · roll-up g4.18.6.3
+         g4.18.6.3.3 W2c C: outcome:g4-18-6-3-3-w2c-c-gates-resolve-mint-ids-closed (DG2 verdict:dg2mvp-w2cD PROVED 0.86 agrees)
+         g4.18.5 / g4.18.6 NOT complete (.5.3 .5.4 · .6.4 .6.5 .6.6 open): no roll-up until they are
+done   goal:g7.16.1.10 leaves .1-.6 all horizon (alive's council reading 06:0xZ); each builder claims its own
+hold   g7.16.1.5.3.1 (DG4): verdict:dg2mvp-g7165331b INCONCLUSIVE_LEAN_PROVED 75 -- oom half HOLDS (0 kills, reaper peak 373 MiB vs live high 2304M),
+         count half NOT MET (max 15 a00-* trees/pass vs >= 25) -> stays active, NO corrective; closes on the first >= 25-tree pass with 0 kills.
+         DG4 06:2xZ: F1 stays as written; if no such pass comes, DG4 banks a re-pin AFTER hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove lands
+hold   g7.16.1.7.1.4 (DG5) REOPENED on verdict:dg2mvp-g717114: Invariant 1 unmet on cmd_seats_launch + the cmd_loop successor (159/cmd_spawn closed at HEAD)
+         -> corrective leaf goal:g7.16.1.7.1.4.1, seed hypothesis:stand-up-verb-keys-every-mode-through-key-template, placed DG5 (lands with 158b)
+         -> on DG2's verdict: build-vs-goal, then close .4.1 + .4 with OUTCOMEs
+hold   g6.41.1.1 reboot wake (mine): hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake queued on DG3 -> build-vs-goal on DG2's verdict
 ```
 
 ## 🔴 Where it stops
-STOPPED clean: no step in flight, nothing uncommitted of mine. Next session resumes on the three holds in §1 (W1b g4.18.5.2 after DG2 checks .2.1 + DG3 builds .2.2 · W2c C g4.18.6.3.3 · g6.41.1.1 build on DG3), in the loop order: DG2's verdict -> DG1 build-vs-goal -> OUTCOME (parent = the goal) -> SM. Owner orders in force (director brief): SendMessage only (no send.py, no rooms) until the bundles land; coordination -> SM, rulings -> the council; no Opus subagents (pi-free workflows, Sonnet at most). Session names change at every relaunch: map `tmux list-windows -a -F '#{window_id} #{window_name}'` against ListAgents. Check git status after each write (write.py can print success over an uncommitted node until g4.18.5.2.1 is verified).
+STOPPED clean at 08:3xZ: no step in flight, nothing uncommitted of mine. Wake: re-map peers, read SendMessage traffic, then check the three holds:
 ```
-for g in g4.18.5.2 g4.18.5.2.1 g4.18.5.2.2 g4.18.6.3.3 g6.41.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done
-git ls-files .agi/nodes/verdict | grep -E 'dg2mvp-(w1b|w2cC|g6)'
+for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g6.41.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done
+git log --oneline --since='2 hours ago' -- .agi/nodes/verdict | head
 ```
 
 ## §4 Traps
@@ -68,6 +66,10 @@ git ls-files .agi/nodes/verdict | grep -E 'dg2mvp-(w1b|w2cC|g6)'
 | GOALS.md is retired (owner 17:3xZ) | never render it; goals are read from their nodes |
 | moving a live process tree into a scope (R1 cutover, measured 18:4xZ on dummies) | AttachProcessesToUnit needs a Delegate=yes target; a moved parent leaves its children: move EVERY pid; probe with sleep dummies only, never tmux / a post / the RC service |
 | `set <key> '<text>'` in write.py | the value is the raw rest of the line: quotes are STORED; never quote a set value |
+| every sha changed at the 08:0xZ history scrub | cite node ids, never a sha from memory; old -> new via the scrub's commit-map (Prime's [rule] resume) |
+| a pre-commit hook refuses owner email / hardware name / pytest-of-<user> / box tokens | on REFUSED redact and commit again; never --no-verify |
+| `replace body A:B` refuses a range that cuts a paragraph or ends on a heading | replace a whole fenced block or section; keep its trailing blank line |
+| peer names collide (two agi-c8, two agi-e3) | map `tmux list-windows -a` window -> seat, then SendMessage by `name [ref]` |
 
 ## §5 Verification: `links.py links` 0 broken · anonymize ok on each diff
 
