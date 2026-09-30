@@ -206,24 +206,36 @@ def test_the_writer_resolves_its_own_project_once_per_record(tmp_path, monkeypat
     (b) ONE resolution per record, not one per string leaf: two records of the
     same shape, one 8x longer, must resolve the root the SAME number of times
     (the record still reads the LIVE cell -- only the PATH lookup is cached)."""
-    import locations, rotation_record
+    import anonymize, locations, rotation_record
     elsewhere = tmp_path / "elsewhere"
     (elsewhere / ".agi").mkdir(parents=True)
     (elsewhere / ".agi" / "config.json").write_text(
         json.dumps({"anonymize": {"user_roots": ["/" + "opt/other/"]}}),
         encoding="utf-8")
+    # dg352 item 1: COLD before the chdir assert; and `find_project_root` answers with the `.agi` DIR, so `!= elsewhere` held for a CWD root too.
+    rotation_record._CELL_ROOT.clear()
+    anonymize._project.cache_clear()   # the PATH cache, cold for this row
     monkeypatch.chdir(elsewhere)
-    assert rotation_record._cell_root() != elsewhere, "the root came from the CWD"
+    assert Path(str(rotation_record._cell_root())).resolve() != (
+        elsewhere / ".agi").resolve(), "the root came from the CWD"
     calls = []
     real = locations.find_project_root
     monkeypatch.setattr(locations, "find_project_root",
                         lambda start=None: (calls.append(start), real(start))[1])
-    rotation_record._CELL_ROOT.clear()
-    import anonymize
-    anonymize._project.cache_clear()   # the PATH cache, cold for this row
     rotation_record.dump_record({"log": [{"cmd": "x " * 6} for _ in range(5)]})
     first = len(calls)
     assert first <= 3, "the project root was resolved %d times for one small record" % first
     rotation_record.dump_record({"log": [{"cmd": "x " * 6} for _ in range(40)]})
     assert len(calls) == first, \
         "the resolution scales with the record: %d -> %d" % (first, len(calls))
+
+
+def test_a_project_less_caller_reads_no_cell(monkeypatch):
+    """dg352 item 2: no project, no cell, no `user` class; the seam patched is `find_project_root`."""
+    import anonymize, locations, rotation_record
+    monkeypatch.setattr(locations, "find_project_root", lambda *a, **k: None)
+    rotation_record._CELL_ROOT.clear()
+    assert rotation_record._cell_root() is None
+    hits = anonymize.scan("basetemp /" + "tmp/pytest-of-" + "fixtureuser/pytest-3",
+                          [], root=None)
+    assert "user" not in hits, "no project, no cell, yet user fired: %r" % (hits,)

@@ -1126,12 +1126,17 @@ def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
     # gap -- it does not name a compensating diff either; that diff is the
     # cell edit the Prime owes, recorded in its own node, not a test literal.
     allow = anonymize._email_allow(PROJECT)
+    # dg352 item 3: an email-ONLY hit is COLLECTED (the loop CONTINUES over every template), a non-email hit still fails, ONE notice at the end.
+    emailed = []
     for path, text in _kit_bytes():   # the kit's OWN bytes, incl. the clean src
         hits = anonymize.scan(text, toks, allow)
         if hits == ["email"]:
-            pytest.skip("the landed anonymize.email_allow does not cover the "
-                        "systemd-unit address shape in %s yet" % path.name)
+            emailed.append(path.name)
+            continue
         assert hits == [], path.name
+    if emailed:
+        pytest.skip("the landed anonymize.email_allow does not yet cover the "
+                    "systemd-unit address shape in: %s" % ", ".join(emailed))
 
 
 # 14b -- THE DISJOINTNESS itself, BOTH directions, EVERY class. Direction 1 is per class.
@@ -1197,3 +1202,19 @@ def test_the_row_inventory_here_lists_every_row_the_file_names():
     assert last == highest, (
         "the header declares rows %d-%d but the highest row this file names is %d: "
         "move the header, do not leave a second copy" % (first, last, highest))
+
+
+# 14c -- dg352 item 3 FALSIFIER: a skip firing EARLY (or on any hit) passes here while a real leak rides past.
+def test_a_later_non_email_hit_fails_while_an_earlier_email_only_hit_exists(
+        fake_box, anonymize, tmp_path, monkeypatch):
+    clean = (TEMPLATES / BY_NAME["oomd-guard"]["template"]).read_text(encoding="utf-8")
+    email_text = clean + "\n# ops@fixture.invalid\n"
+    monkeypatch.setattr(sys.modules[__name__], "_kit_bytes", lambda: [
+        (Path("early-kit-template"), email_text),
+        (Path("late-kit-template"), clean + "\n# %s\n" % FAKE_BOX["ip"][0])],
+        raising=False)
+    toks, allow = anonymize.box_tokens(PROJECT), anonymize._email_allow(PROJECT)
+    assert anonymize.scan(email_text, toks, allow) == ["email"], "not email-ONLY; vacuous"
+    with pytest.raises(AssertionError, match="late-kit-template"):
+        test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
+            fake_box, anonymize, tmp_path)
