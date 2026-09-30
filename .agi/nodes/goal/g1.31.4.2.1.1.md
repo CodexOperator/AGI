@@ -16,6 +16,7 @@ seeds: []
 status: active
 tags:
   - engine
+  - parked
 title: "G1.31.4.2.1.1: a copilot-cli spawn registers the [hooks] sessionStart + userPromptSubmitted commands in copilot's own hooks config, from the one template table"
 town: core
 ---
@@ -41,3 +42,7 @@ goal:g1.31.4.2.2
 
 ## Agent Notes
 Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARKED (sanctuary-master 19:31Z 09-30, option b): the repo records no copilot hooks config location or shape; the built round 7d9f955842 (.agi/worktrees/dg4-c2c) invented it (COPILOT_HOME + hooks.json cells), so it stays unlanded and is never a merge-up while the location is invented. Un-park when one real copilot-cli probe of where it reads hooks is authorised (SPEND, banked to the Prime) or copilot comes into use; then a corrective on that tree, plus dispatch.py passing sess_dir to child_env (DG3 file).
+<!-- THOUGHT:END -->
