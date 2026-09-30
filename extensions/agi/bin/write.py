@@ -2382,6 +2382,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     if _stdin_refusal(edit):   # SM 117, for an API caller too
         raise EditError(_stdin_refusal(edit))
     _resolve_fm_row(root, edit)   # BUILD1, idempotent likewise
+    _patch_the_node_itself(root, edit)   # goal:g4.18.1.6, idempotent: clears the patch it translates
 
     # A link_ref/payload_ref resolving outside the repo tree is refused before
     # any write; the SAME predicate links.py's schema report calls. It judges
@@ -3136,6 +3137,53 @@ def _payload_ref(root, edit: Edit) -> tuple[str, str | None]:
             f"node without one is edited with `set`, `note` and `thought`.")
     loc = fm.get("location")
     return ref.strip(), loc.strip() if isinstance(loc, str) and loc.strip() else None
+
+
+_CONTRACT_RE = re.compile(r"^<!--[ \t]*BUILD-CONTRACT:BEGIN\b.*?^<!--[ \t]*BUILD-CONTRACT:END[ \t]*-->",
+                          re.DOTALL | re.MULTILINE)
+
+
+def _patch_the_node_itself(root, edit: Edit) -> None:
+    """goal:g4.18.1.6 (owner 09-30: "The node location just becomes the node
+    itself."): a `patch` on a node with NO payload_ref applies to the node file
+    and lands as the rows and body it changed -- through update_node and every
+    gate after this call (ring, schema, THOUGHT carry, provenance). A build
+    node keeps patching its payload. Identity rows, a BUILD-CONTRACT block and
+    the THOUGHT markers refuse by name; so does another verb on the same line."""
+    if not (edit.patch_from or edit.patch_diff):
+        return
+    path = node_writer.find_node_file(root, edit.node_id)
+    if path is None or path.suffix != ".md":
+        return
+    from graph_core.persistence import frontmatter as _fmr
+    old = _fmr.load_node_file(path)
+    if old.frontmatter.get("payload_ref") or old.frontmatter.get(links.LINK_FIELD):
+        return
+    if edit.payload_verbs != ["patch"] or edit.set_fm or edit.unset_fm or edit.body_append or edit.thought \
+            or edit.body_patch_from or edit.body_patch_diff or edit.replace_target or edit.sub_ops:
+        raise EditError(f"{edit.node_id} has no payload_ref, so `patch` edits the node file itself "
+                        f"and is standalone: no other verb on its line -- nothing written")
+    if edit.patch_from == "-" and not edit.patch_diff:
+        return   # SM 139 refuses it by name below
+    diff = edit.patch_diff or Path(edit.patch_from).read_text(encoding="utf-8")
+    new = _fmr._parse_md(apply_unified_diff(path.read_text(encoding="utf-8"), diff), ".md", True)
+    ofm, nfm = old.frontmatter, new.frontmatter
+    bad = [k for k in ("id", "mint_id", "type") if ofm.get(k) != nfm.get(k)]
+    if bad:
+        raise EditError(f"patch would change {bad} of {edit.node_id}: identity rows never move -- nothing written")
+    if _CONTRACT_RE.findall(old.body) != _CONTRACT_RE.findall(new.body):
+        raise EditError("patch touches the BUILD-CONTRACT block, which is regenerated -- nothing written")
+    def _stray(b):   # marker lines outside a well-formed block (_thought_marker_refusal's shape)
+        return sum(bool(node_writer.THOUGHT_MARKER_LINE_RE.match(ln)) for ln in b.split("\n")) \
+            - 2 * len(node_writer.thought_blocks(b))
+    if _stray(new.body) > _stray(old.body) or (node_writer.thought_blocks(old.body)
+                                               and len(node_writer.thought_blocks(new.body)) != 1):
+        raise EditError("patch would leave the THOUGHT malformed: rewrite it with the `thought` verb -- nothing written")
+    edit.set_fm.update({k: v for k, v in nfm.items() if ofm.get(k) != v})
+    edit.unset_fm.extend(k for k in ofm if k not in nfm)
+    if new.body != old.body:
+        edit.sub_body = new.body   # the body writer update_node already takes (sub's slot)
+    edit.patch_from, edit.patch_diff, edit.payload_verbs = "", "", []
 
 
 def _default_actor() -> str:
