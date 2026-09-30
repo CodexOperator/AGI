@@ -72,6 +72,7 @@ new one joins them.
 """
 from __future__ import annotations
 
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -420,10 +421,15 @@ def load_spawn_rules(schemas_dir, root=None) -> SpawnRules:
             rules.geometry = _parse_geometry(fm, src, rules)
             continue
         if name == "config":
+            # goal:g7.33.20.3 D1: `[config].md` is TWO things -- the project's
+            # `locations` declaration (read here) AND the type schema of every
+            # `config:*` node. It used to `continue` after the first, so the type
+            # was never registered and an admitted `create config <x>` was told
+            # "no active schema [config].md" while the file sat in the directory.
+            # No `spawn:` block -> registered, unverified (never an error).
             loc = fm.get("locations")
             if isinstance(loc, dict):
                 rules.locations = loc
-            continue
         raw[name] = (SpawnSchema(name=name, source=src), fm)
 
     for name, (schema, fm) in raw.items():
@@ -1336,6 +1342,18 @@ def _reject_message(res: SpawnResult, shape: str, schema: SpawnSchema) -> None:
         f"SPAWN-GATE REJECTED: {res.node_id} — {res.reason}. "
         f"Schema: {schema.source} (shape '{shape}'). Fix: {res.fix}"
     )
+
+
+_WRITTEN_SENTENCE = re.compile(r"The node is written(?:, unchecked)?\.")
+
+
+def retract_written(res: SpawnResult, why: str) -> None:
+    """goal:g7.33.20.3 D2: the gate's UNVERIFIED lines end "The node is written."
+    -- true only if the caller then writes. A caller that will write NOTHING (a
+    create-only refusal, an existing file) says so here, BEFORE `announce`, so no
+    message contradicts the disk."""
+    res.messages = [_WRITTEN_SENTENCE.sub(f"Nothing was written ({why}).", m)
+                    for m in res.messages]
 
 
 def announce(res: SpawnResult, stream=None) -> None:

@@ -153,18 +153,17 @@ def _mint(monkeypatch, proj: Path, slug: str, *, visions,
     return write.main(argv)
 
 
-def test_dry_run_bypasses_spawn_gate_but_not_the_schema_refuse_gate(tmp_path, monkeypatch):
-    """`--dry-run` returns 0 BEFORE create() runs (write.py:2062-2070), so it
-    exercises no spawn gate — an illegal parent still dry-runs happily. But the
-    schema field-level `refuse:` gate now sits BEFORE the dry-run short-circuit,
-    because a dry run is a simulation of the mint and refuses what the real
-    mint would refuse: a `branches:` cell refuses by name even under --dry-run."""
+def test_dry_run_runs_the_spawn_gate_and_the_schema_refuse_gate(tmp_path, monkeypatch):
+    """`--dry-run` is a simulation of the mint and refuses what the real mint would
+    refuse: the spawn gate (goal:g7.33.20.3 D3 -- an illegal parent is rc 2 on a dry
+    run too, it used to dry-run happily) AND the schema field-level `refuse:` gate
+    (a `branches:` cell refuses by name)."""
     proj = _fixture(tmp_path)
     # Illegal parent that WOULD hard-refuse for real (vision:a resolves):
     rc = _mint(monkeypatch, proj, "dryrun-bad", visions=["vision:a"],
                council="council-core", season=2, agi_season="2",
                parent="vision:a", dry_run=True)
-    assert rc == 0, "dry-run must not run the spawn gate (write.py:2062-2070)"
+    assert rc == 2, "dry-run runs the spawn gate: an illegal parent refuses like the real mint (goal:g7.33.20.3 D3)"
     # A branches cell IS refused even under a dry run (schema gate pre-dry-run):
     rc2 = _mint(monkeypatch, proj, "dryrun-branches", visions=["vision:a"],
                 council="council-core", season=2, agi_season="2",
@@ -326,17 +325,16 @@ def test_no_required_nonempty_schema_still_warns_and_writes(tmp_path, monkeypatc
         "the warned node must be written"
 
 
-def test_non_prime_actor_refused_naming_admitted_roles(tmp_path, monkeypatch):
+def test_non_prime_actor_refused_naming_admitted_roles(tmp_path, monkeypatch, capsys):
     """A kid actor is REFUSED by `_enforce_written_by` naming the admitted
     roles — 'may be hand-edited only by admitted roles owner, prime_director'
     — and nothing is written."""
     proj = _fixture(tmp_path)
-    with pytest.raises(write.EditError) as e:
-        _mint(monkeypatch, proj, "kidtown", visions=["vision:a"],
-              council="council-core", season=2, agi_season="2",
-              actor="a00-someone")
-    msg = str(e.value)
-    assert "only by admitted roles owner, prime_director" in msg
+    rc = _mint(monkeypatch, proj, "kidtown", visions=["vision:a"],
+               council="council-core", season=2, agi_season="2",
+               actor="a00-someone")
+    msg = capsys.readouterr().err       # goal:g7.33.20.3: refused by name, rc 2, never a traceback
+    assert rc == 2 and "only by admitted roles owner, prime_director" in msg, (rc, msg)
     assert not (proj / ".agi" / "nodes" / "town" / "kidtown.md").exists()
 
 
