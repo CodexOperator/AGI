@@ -15,39 +15,37 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (04:4xZ 09-30) -- IDLE at the council STOP (belam: "finish the step, card whole, idle")
+## §0 State (05:0xZ 09-30) -- council RESUMED until 11:00Z (owner 04:5xZ: "Continue hammering at it as fast as you can until 7am. Maybe allow another director to come up if system can handle it.")
 | | |
 |---|---|
-| post | alive gen 3 · session agi-b3 [c68b9e] (heal-resumed after the 01:55Z reboot) · meter ~0.38 |
+| post | alive gen 3 rotates at meter ~0.41 (captive captured 0.404) · session agi-b3 [c68b9e] |
+| spend | OWNER 05:0xZ (until the reset ~06:0xZ): "I need to max sub use before reset in an hour" + "No make it opus as well" -> Opus 5.5 subagents WANTED this hour; after the reset back to OWNER 04:5xZ: every subagent + review on Sonnet 5.5; workflow.py pi-free. Both passed to agi-53 + agi-8f |
 | role | the council IS prime to the directors (owner 02:5xZ): a director [decision] -> ONE lens round (10 min, silence = agree) -> ONE consolidated ruling from the convener |
 | messaging | OWNER: "use internal messaging only for everything and full guarantee until bundles land" -> SendMessage by session name ONLY; NO send.py, NO rooms; town nodes are Prime-gated (write.py refuses council) |
-| spend | OWNER 04:5xZ (SUPERSEDES 03:2xZ): "Let's switch your reviews and stuff to sonnet 5.5, and all subagents can be sonnet 5.5 as well to free up the free lane" -> every subagent + review on Sonnet 5.5 (Agent tool model: sonnet); workflow.py runs stay pi-free until its headless claude-code route lands. PASS IT to agi-53 + agi-8f at the council's next wake (belam asked). Was, OWNER 03:2xZ: "Directors spawning a lot of agents. Please make them use pi for agentic subtasks or sonnet 5.5. Were also out of usage" -> no Opus subagents; pi-free or Sonnet 5.5 at most |
 | peers | Prime agi-79 · self-perpetuating agi-53 · all-is-one agi-8f · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · re-map after a restart: `tmux list-windows -t agi-rc` + ListAgents |
 | lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" + "## The loop" |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundles 1-3 bigger outcome ACCEPTED (0.8 -> 0.65 after residue 128) · owner goal-rewrite 6/6 · g7.16.1.9 -> g7.16.1.7.3
-done   S goals 12 -> 0 open (9 retired in place · 3 renumbered · 6 remainder leaves); board line placed by belam
-       residue: 10 pending hyps under retired s18/s31/s32 -> s32 2 re-homed to g2.4.1; s31 3 CLOSED (DG2 797c9ba14; fields set c00a3960a); s18 4 + s32 1 with DG2
-done   .5 leaves checked · .5 A widened · goal:g7.16.1.5.5 = one memory-budget home + the RAM disk's OWN line (3aa03292b); belam assigns to DG5 on the next engine oomd kill or when B3 lands
-done   RULINGS: g7.16.1.7.1.4 keys (DG5: (C) own-box remint, unsigned+witnessed+finding, foreign refuses, AGI_BOX, template row)
-               g4.18.1.6 (DG3: patch accepted; replace payload NOT extended; residue 154 = (b) refuse on canonical drift, never "updated" on no-op)
-               g4.18.6.2 (DG1: (b) closed; body refs -> g4.18.6.4, declared regions only, one definition) -- applied + verified
-FIRST   ON RESUME (belam; OWNER 05:0xZ: "DG2 is talking about a running hypotheses under s31 when s31 is retired needs fixing in graph"): 5 pending hyps under retired s18 (a00-05c5c2b4-547067 a00-15d05ac0-7ef787 a01-1f2762d5-1d90c0 a01-697f4893-9bb21a) + s32 (a00-c4b84f52-f58e90) -- DG2 already minted exp + verdict node for EACH (dg2close-<slug>-check): council rules per hyp (re-parent to the live goal it serves, or close it), then set verdict + evidence_runs together (the s31 fix) and s18/s32 retired -> complete if achieved (belam did s31). Rule: a goal is never retired while a child hyp is pending.
-SECOND ON RESUME (belam; OWNER 05:1xZ: "It's weird you're still running chunk reviews it feels like that's also the councils job or something that should be automated as merges roll in. So you can keep the most zoomed out view and properly ground yourself way up high right up into the morals"): DESIGN + PLACE one goal (under g7.16.1 or g1, council's call; lens round first): a merge-up review fires automatically as each merge-up lands (per round, Sonnet 5.5 / pi-free) or the council runs it; residues -> the owning director; the Prime gives only the final merge word on the council report (RED = secrets / node deletion / broken link / protocol regression = hard stop). Reuse the Prime's passB3 tooling (build.py, ccrun.py, verdicts.py; off-graph). B4 (DG5's 3 shas + everything since 578650193) is the first under the new way.
-next   after the stop: SM's bundle-4 BIGGER_OUTCOME -> vision:alive review -> goals / bundles / nested, or none -> OVERVIEW -> belam
-       open watch: DG3 closes g4.18.1.6 on a clean SM run 25; DG2's 5 closing verdicts (s18 4, s32 1)
+done   gen 3 (details in git + the grid): bundles 1-3 bigger outcome review · owner goal-rewrite 6/6 · g7.16.1.9 -> g7.16.1.7.3 · S goals 12 -> 0 open
+       · rulings .1.4 keys (DG5) · g4.18.1.6 + residue 154 (DG3) · g4.18.6.2 (DG1) · goal:g7.16.1.5.5 (RAM disk own budget line; DG5 on belam's trigger)
+done   RESUME item 1 (belam; owner 05:0xZ): 0 pending hyps under a RETIRED goal (172902cd7): s18 + s32 retired -> complete
+item 2 all-is-one: goal:g1.31 (PASS B3 residues, 47 upheld + 147 missed) -> DG6's first assignment, cut by file cluster; WAITING on SM (agi-ed)
+item 3 self-perpetuating: B4 = goal:g7.16.1.10 draft (ONE review per change keyed by tip sha; SM-clean murs REUSED; verdict rows on ONE council report;
+       residues to the owning director; the Prime says merge | hold); alive's lens line sent: reuse must PROVE sha coverage, report shows reused vs reviewed
+next   2 pending hyps under COMPLETE goals: hypothesis:a00-0d182e77-3f4501 (s22) · hypothesis:s28-manifest-merge (s28) -> DG2 closing verdicts (agi-7f)
+       .5 placement A/B (all-is-one) sent to belam: retire .5.5.3 -> .5.5 · .5.3.2(+.1) under .5.2, ONE mover function
+       then SM's bundle-4 BIGGER_OUTCOME -> vision:alive review -> or OVERVIEW -> belam · stop 11:00Z
 ```
 
 ## §2 Landed (this generation)
-- a84ee34b2 832a7deb5 d46433dd9 65aa8bd62 b9dc2c83b e512319ec afe5467f3 d57b53f19 · S goals aa0bf6357 99085d912 df18a5161 c00a3960a · .5 6b2da8394 846b34e06 · .5.5 ff8beb884 b50cc8913 3aa03292b
+- a84ee34b2 832a7deb5 d46433dd9 65aa8bd62 b9dc2c83b e512319ec afe5467f3 d57b53f19 aa0bf6357 99085d912 df18a5161 c00a3960a d3ec89831 6b2da8394 846b34e06 ff8beb884 b50cc8913 3aa03292b 172902cd7
 
 ## 🔴 Where it stops
-alive gen 3 IDLE at the council stop: every ruling delivered, nothing in flight; resumes on belam's word or a director [decision]
+alive gen 3 rotates at 0.41: resume items 2 (all-is-one) and 3 (self-perpetuating) are in flight with their owners; the successor takes the next line of §1
 ```
-on SM's bundle-4 handoff (SendMessage): read it + its outcomes -> vision:alive review -> goal / bundle / nested goal (agi-goal) or none -> OVERVIEW -> SendMessage agi-53 + agi-8f
+successor: ListAgents + `tmux list-windows -t agi-rc` (re-map peers) -> read SendMessage replies -> §1 next (DG2 for the 2 hyps; confirm g7.16.1.10's lens round closed)
 ```
 
 ## §4 Traps
