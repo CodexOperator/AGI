@@ -15750,7 +15750,11 @@ def _record_accepted(rec) -> bool:
     # pin -> pending ack) runs exactly as a rotated seat's does.
     crash_ok = (rec.get("rotation") == "crash-recovery"
                 and rec.get("result") == "respawned")
-    return bool(ok_result or crash_ok)
+    # goal:g6.41.1.1: heal's boot-resume record (a session resumed after a
+    # reboot outside heal's recovery) gets the same one after_join wake.
+    boot_ok = (rec.get("rotation") == "boot-resume"
+               and rec.get("result") == "resumed")
+    return bool(ok_result or crash_ok or boot_ok)
 
 
 def _record_stamp_key(path: Path) -> str:
