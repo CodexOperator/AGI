@@ -3490,7 +3490,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     # goal:g7.16.1.7.1.1.4: the loop's successor launch is a
     # `stand_up(mode="rotate")` keyed on the seat (else the successor name).
     # the row is the RESOLVED seat (`seat-a-II` keys `seat-a`'s row)
-    _key_seat = _resolve_seat_for_name(root, getattr(args, "seat", None) or name)
+    _key_seat = getattr(args, "seat", None) or _resolve_seat_for_name(root, name)
     if args.dry_run:
         _stand_up_key_plan(root, _key_seat)
         rc, _ = _launch_successor()
@@ -7024,14 +7024,14 @@ def _first_seating_key(root: Path, seat: str,
     # own-box remint rule (its own rekey commit), an existing key file on an
     # unkeyed row is adopted, the template names the scheme.
     if row.get("pubkey"):
-        if send._seat_key_path(root, seat).exists():
+        if _key_present(send, root, seat):
             return {}, ""
         return {}, _rotate_first_key(root, None, seat, row, dry_run=dry_run)
     tmpl = key_template(root)
     if dry_run:  # the plan names the decision the real run takes
-        have = send._seat_key_path(root, seat).exists()
-        if not have or tmpl.get("existing_key") == "adopt":
-            print(f"would key {seat}: would {'adopt' if have else 'mint'}")
+        verb = _key_decision(send, root, seat, tmpl)[0]
+        if verb != "leave":
+            print(f"would key {seat}: would {verb}")
         return {}, ""
     scheme = str(row.get("sig_scheme") or tmpl.get("scheme")
                  or send.seatsig.DEFAULT_SCHEME)
@@ -17860,6 +17860,9 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     # failed rename unlinks the temp (and restores the row), so a crash leaves
     # at worst an orphan temp, never a row naming a key that does not exist.
     scheme = row.get("sig_scheme") or tmpl.get("scheme") or send.seatsig.DEFAULT_SCHEME
+    kp = send._seat_key_path(root, seat)
+    if kp.exists() and not kp.stat().st_size:  # a crash-left empty file is missing
+        kp.unlink()
     try:
         staged = send._mint_seat_key(root, seat, scheme, stage=True)
     except OSError as exc:
@@ -17887,6 +17890,8 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
         send._place_seat_key(tmp, send._seat_key_path(root, seat))
     except OSError as exc:
         tmp.unlink(missing_ok=True)
+        what = ("a key file appeared" if isinstance(exc, FileExistsError)
+                else f"key file not placed ({exc})")
         back = {"pubkey": old, "sig_scheme": row.get("sig_scheme") or scheme,
                 "enc_scheme": row.get("enc_scheme") or "none",
                 "key_history": list(row.get("key_history") or [])}
@@ -17896,7 +17901,7 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
                 cells=back))
         except Exception:  # noqa: BLE001
             restored = False
-        return (f"seat {seat!r}: remint held -- key file not placed ({exc}); "
+        return (f"seat {seat!r}: remint held -- {what}; "
                 f"row {'restored' if restored else 'NOT restored'} to {entry['fp']}")
     note = (f"seat {seat!r}: key file absent on own box {own}; reminted "
             f"{send.seatsig.fingerprint(pub)}, old key {entry['fp']} retired "
@@ -17914,18 +17919,35 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     return note
 
 
+def _key_present(send, root: Path, seat: str) -> bool:
+    """A key file that holds bytes (a zero-length crash leftover is missing)."""
+    p = send._seat_key_path(root, seat)
+    return p.exists() and p.stat().st_size > 0
+
+
+def _key_decision(send, root: Path, seat: str, tmpl: dict):
+    """The ONE mint | adopt | leave decision of an unkeyed row, shared by the
+    real run and every dry plan: `(verb, found)`, `found` = the adopted
+    `(scheme, pub)`."""
+    if not send._seat_key_path(root, seat).exists():
+        return "mint", None
+    found = (_existing_seat_key(send, root, seat)
+             if tmpl.get("existing_key") == "adopt" else None)
+    return ("adopt", found) if found else ("leave", None)
+
+
 def _template_key(send, root: Path, seat: str, scheme: str, tmpl: dict):
     """The ONE key step of an unkeyed row (seating and every stand-up):
     mint through `send._mint_seat_key`, or -- a key file already there --
     adopt it when the template says `existing_key: adopt`. Returns
     `(scheme, pub, path, verb)`, or None (the key file is left alone)."""
-    minted = send._mint_seat_key(root, seat, scheme)
-    if minted is not None:
-        path, pub = minted
-        return scheme, pub, path, "minted its first key"
-    found = (_existing_seat_key(send, root, seat)
-             if tmpl.get("existing_key") == "adopt" else None)
-    if found is None:
+    verb, found = _key_decision(send, root, seat, tmpl)
+    if verb == "mint":
+        minted = send._mint_seat_key(root, seat, scheme)
+        if minted is None:
+            return None
+        return scheme, minted[1], minted[0], "minted its first key"
+    if verb == "leave":
         return None
     return (*found, send._seat_key_path(root, seat), "adopted its existing key")
 
@@ -17972,12 +17994,11 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
         return ""
     import send  # local: same dir, no import cycle (send.py pattern)
     if row.get("pubkey"):
-        if send._seat_key_path(root, seat).exists():
+        if _key_present(send, root, seat):
             return ""
         return _remint_missing_key(send, root, seat, row, key_template(root),
                                    dry_run=dry_run)
     tmpl = key_template(root)
-    adopt = tmpl.get("existing_key") == "adopt"
     scheme = (row.get("sig_scheme") or tmpl.get("scheme")
               or send.seatsig.DEFAULT_SCHEME)
     if dry_run:
@@ -17985,9 +18006,10 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
         # do, but mint NOTHING and write NO row cell. Already-keyed rows
         # (above) and idempotent re-rotates (key file already exists, so the
         # live path would mint nothing) both return '' -- nothing to report.
-        if send._seat_key_path(root, seat).exists():
+        verb = _key_decision(send, root, seat, tmpl)[0]
+        if verb != "mint":
             return (f"(dry-run) seat {seat!r} is unkeyed; would adopt its "
-                    f"existing key -- NOTHING done") if adopt else ""
+                    f"existing key -- NOTHING done") if verb == "adopt" else ""
         return (f"(dry-run) seat {seat!r} is unkeyed; would mint its first "
                 f"key at {send._seat_key_path(root, seat)} (0600) and write "
                 f"its pubkey cells -- NOTHING done")

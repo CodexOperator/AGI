@@ -527,3 +527,59 @@ def test_a_dry_spawn_names_mint_or_adopt(graph, pre_key, capsys):
     assert f"would {word}" in capsys.readouterr().out
     assert "pubkey" not in _row(graph, "seat-a")
     assert f"{word}ed its" in rotate.ensure_post_key(graph, "seat-a")
+
+
+def test_a_dry_spawn_declined_adopt_prints_nothing(graph, monkeypatch, capsys):
+    """the dry plan shares the real decision, incl. an adopt that finds nothing"""
+    import send
+    send._mint_seat_key(graph, "seat-a", send.seatsig.DEFAULT_SCHEME)
+    monkeypatch.setattr(rotate, "_existing_seat_key", lambda *a: None)
+    rotate._first_seating_key(graph, "seat-a", dry_run=True)
+    assert "would" not in capsys.readouterr().out
+    assert rotate.ensure_post_key(graph, "seat-a") == ""
+
+
+def test_a_loop_with_an_explicit_seat_keys_that_exact_seat(graph, monkeypatch):
+    seen: list = []
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    monkeypatch.setattr(rotate, "stand_up", lambda root, post, body, **k: (
+        seen.append(post), (True, (1, "")))[1])
+    rotate.cmd_loop(NS(
+        session_log=None, force=False, role="director", name=None,
+        seat="seat-a-x", name_prefix="seat-a", model=None, effort=None,
+        settings=None, prompt_file=None, tmux_session="agi-rc",
+        window_path=str(graph / "windows.txt"), debug_file=None,
+        dry_run=False, timeout=1), graph)
+    assert seen == ["seat-a-x"]
+
+
+def test_the_staged_key_is_0600_and_place_never_clobbers(graph):
+    import send
+    tmp, _pub = send._mint_seat_key(graph, "seat-a", send.seatsig.DEFAULT_SCHEME,
+                                    stage=True)
+    assert tmp.stat().st_mode & 0o777 == 0o600 and tmp.stat().st_size
+    key = send._seat_key_path(graph, "seat-a")
+    key.write_text("existing")          # the target appeared after the stage
+    with pytest.raises(FileExistsError):
+        send._place_seat_key(tmp, key)
+    assert not tmp.exists() and key.read_text() == "existing"
+
+
+def test_the_remint_holds_when_a_key_file_appears_and_redoes_an_empty_one(
+        graph, monkeypatch):
+    import send
+    _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    key = send._seat_key_path(graph, "seat-a")
+    pub_before = _row(graph, "seat-a")["pubkey"]
+    real = send._place_seat_key
+    monkeypatch.setattr(send, "_place_seat_key",
+                        lambda t, d: (d.write_text("other"), real(t, d)))
+    note = rotate.ensure_post_key(graph, "seat-a")
+    assert "remint held -- a key file appeared" in note, note
+    assert key.read_text() == "other" and not _temps(graph, send)
+    assert _row(graph, "seat-a")["pubkey"] == pub_before
+    monkeypatch.setattr(send, "_place_seat_key", real)
+    key.write_text("")                  # a crash-left empty file is missing
+    assert "reminted" in rotate.ensure_post_key(graph, "seat-a")
+    assert key.stat().st_size

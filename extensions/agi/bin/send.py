@@ -434,11 +434,9 @@ def _mint_seat_key(root: Path, seat: str, scheme_name: str,
     try:
         with os.fdopen(fd, "w") as f:
             f.write(payload)
+            f.flush()
+            os.fsync(f.fileno())  # a published pubkey never beside a lost seed
     except BaseException:                                        # noqa: BLE001
-        try:
-            os.close(fd)
-        except OSError:
-            pass
         if stage:
             path.unlink(missing_ok=True)
         raise
@@ -447,8 +445,18 @@ def _mint_seat_key(root: Path, seat: str, scheme_name: str,
 
 
 def _place_seat_key(tmp: Path, path: Path) -> None:
-    """A staged key renamed into place (atomic, same directory)."""
-    os.replace(tmp, path)
+    """A staged key linked into place, never over an existing file (the temp
+    is gone either way; ``FileExistsError`` when the target appeared), then
+    the directory fsynced so the name survives a crash."""
+    try:
+        os.link(tmp, path)
+    finally:
+        tmp.unlink(missing_ok=True)
+    dfd = os.open(path.parent, os.O_RDONLY)
+    try:
+        os.fsync(dfd)
+    finally:
+        os.close(dfd)
 
 
 def _row_write_submit(graph: Path, rows: list, actor: str, role: str) -> bool:
