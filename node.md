@@ -15,7 +15,7 @@ town: core
 
 thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
 
-## §0 State (22:0xZ 09-30, read from date -u)
+## §0 State (22:1xZ 09-30, read from date -u)
 | | |
 |---|---|
 | stood up | by belam gen 22 on the owner's order (21:3xZ 09-30); first turn 21:52Z |
@@ -23,12 +23,13 @@ thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = d
 | run | FREE LANE since 21:00Z 09-30 (0 USD); council mode = dispatch.py unused (doc:council-loop Rules) |
 | box 21:53Z | GPU idle (72 MiB) · RAM available 9.4 GB · mem PSI some avg60 0.14 · no model container up |
 | HELD | key / identity / signing / rotate / spawn-row / write-gate work waits on goal:g7.16.1.11 -- not yours |
-| formation | council loop (doc:council-loop) · board placement = sanctuary-master (@31) · Prime belam @30 = a bare shell at 21:5xZ (no live seat) |
+| formation | council loop (doc:council-loop) · RESEARCH LANE = MINE: its board rows, its goals, placing its rounds -- no SM word (owner 22:1xZ; SM gen 11 22:11Z) · SM hears only a merge-up for the gate or a council/DG3 slot collision · Prime belam live again 22:10Z (signed [rule]) |
 
 ## §1 Plan
 ```
 DONE   inbox · board + goal:g5 read · step named -> SM PLACED 21:57Z (gates: MemAvailable >= 6 GB, PSI avg10 < 5, detached, MemoryMax) · hypothesis:lm-l4-local-heads-keep-a-recent-window minted (801745ad98, v2 929a65952f)
 LIVE   ONE Opus builder subagent (22:0xZ): script + test + detached unit tm-l4-window (systemd --user, MemoryMax 5G) + experiment tm-l4-window-0930
+QUEUED idea:lm-neuron-periodicity-map-and-self-poke (owner idea 22:0xZ, debrief 22:1xZ) stage 1 MAP -> mint its hypothesis when L4 frees the model slot
 NEXT   its report -> an adversarial Opus review of the bytes (claim vs results.json) -> verdict line on the trajectory rows (ring-gated: via the Prime)
 BLOCK  the owner's trajectory edit on town:local-maxxing -> ring gate (§6)
 ```
@@ -46,6 +47,7 @@ the builder subagent is live (a session that died loses it): check `systemctl --
 
 ## §4 Traps
 - town:* nodes are ring-gated (goal:g12): only owner / prime_director may edit, even the trajectory rows a master "writes whole" -- hand the edit to the Prime
+- box: every container runs with docker --memory; ONE model load at a time; start at MemAvailable >= 6 GB + PSI avg10 < 5 (belam 22:10Z, SM 21:57Z)
 - belam's row is quiet: `send.py wake belam` = quiet-skip; ListAgents shows @30 as shell
 - never pipe `send.py read` through tail (did it once at 21:52Z; the inbox file showed nothing lost)
 
@@ -53,7 +55,11 @@ the builder subagent is live (a session that died loses it): check `systemctl --
 - send.py status sanctuary-master: marker 0s after the send · belam: inbox file written, quiet row (no nudge)
 
 ## §6 BANKED
-- OWNER 21:5xZ 09-30, verbatim: "Honestly let’s just leave the trajectory as the permanent home under the town board node. This is owner speaking direct btw." -- the edit (TEMPORARY -> PERMANENT, owner line in THOUGHT) is refused for a master by the ring gate. Options: (a) belam's next seat runs the ready script (RECOMMENDED) · (b) the owner admits the town master to its own town node's ring. goal:g7.34.1 / .2 on town:core = moot for local-maxxing (the Prime's to retire).
+- OWNER 21:5xZ 09-30, verbatim: "Honestly let’s just leave the trajectory as the permanent home under the town board node. This is owner speaking direct btw." -- the edit (TEMPORARY -> PERMANENT, owner line in THOUGHT) is refused for a master by the ring gate. Options: (a) belam runs the ready script (asked 21:5xZ; not landed at 22:1xZ) · (b) RECOMMENDED since 22:1xZ (owner: the research board is thought-master's): the owner admits the town master to its own town node's ring, so the board is written by its owner-named writer. goal:g7.34.1 / .2 on town:core = moot for local-maxxing (the Prime's to retire).
 
 ## Skills
 agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+OWNER 22:1xZ 09-30, direct in thought-master's pane, verbatim: "Also, you have a GM from SM, but it not, might not arrive yet because you have all these tasks going on. But I basically let Sanctuary Master know that you're in charge of like the research portion fully on the board and everything, like the board and the goals. If it's like the research lane, that's kind of your territory, not Sanctuary Master's." -- this version: the formation row names the research lane (board rows, goals, round placement) as thought-master's; SM confirmed in a [rule] dm 22:11Z. BANKED option (b) becomes the recommendation: the ring gate (goal:g12) still refuses a master on town:local-maxxing.
+<!-- THOUGHT:END -->
