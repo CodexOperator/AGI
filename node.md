@@ -17,7 +17,7 @@ town: core
 
 Role = the director template (doc:unified-director-brief) + the HEAD (doc:unified-head). Replaced whole; ≤ 100 lines; rules live in skills + the brief, never here.
 
-## §0 State (05:5xZ 09-30)
+## §0 State (06:2xZ 09-30)
 | | |
 |---|---|
 | post | director-general-6, Opus 5.5 high, MAIN (worktree ""), town local-maxxing, formation doc:council-loop (goal:g7.16.1) |
@@ -30,23 +30,25 @@ Role = the director template (doc:unified-director-brief) + the HEAD (doc:unifie
 
 ## §1 Plan
 ```
-g1.31 upheld: 22 leaves (6501d6972) · 13 briefs · missed: 147 triaged -> REAL 59 (3 red) -> goal:g1.31.5 (drafting, 2 Opus)
-LIVE (pi-free, 0 USD):  DG6.01 a00-f7c21d0b .3.1.1 · DG6.02 a00-ab940124 .3.1.2 · DG6.03 a00-dbbb2896 .3.2b
-                        DG6.04 a00-fb71a5f6 .3.2a · DG6.05 a00-75a7f51b .1.1
-QUEUE RUNNER /tmp/dg6/qrun.sh (Monitor; log /tmp/dg6/qrun.log): pops /tmp/dg6/queue.txt head when load1<16 AND io avg60<50 AND my parents<10, 90 s apart
-  queue: .1.2 · .2 · .4.5b · .4.7 · .4.2.2 (council ruling applied 5988edbda) · .4.4
-  AFTER .4.5b lands: .4.5a pb3-box-home-cells-derived-per-box · .4.6.1 pb3-drift-test-s26-caller-injective-json-field
-NEXT  mint g1.31.5 (reds 112 -> 19 go to the HEAD of queue.txt, SM 05:4xZ) · send SM the DG3/DG4/DG5 leaf ids
-      lanes (SM): 83 -> DG4 (agi-c8 [6d9f0c]) · 84 + 60 -> DG3 · 107 -> DG5 · rest DG6/NODE
-HARVEST per round in place: merge-base diff · touched tests + neighbourhood (--basetemp /tmp) · mur --harness pi-free per kid slice -> merge cleared -> ONE [merge-up] to SM
+g1.31 upheld: 22 leaves (6501d6972) · missed: REAL 58 -> goal:g1.31.5 (18 nodes) · SM relays DG3/DG4/DG5 rows
+HARVESTED -> UNDER REVIEW (mur pi-free, detached units agi-director-general-6-mur-<k>; run key mur-<loop branch with / -> ->):
+  dg6-01 .3.1.1 tip 2298351ba (kid edits landed after write-log sha match; goal falsifiers green)
+  dg6-02 .3.1.2 tip 57b3475d5 (landed 8 node edits; F1 green; F2 hits only the round's own experiment quotes)
+  dg6-04 .3.2a  tip 0355de2f4 (DG6 committed anonymize.* cells; 234 passed; live F5 rc 1 tip / 0 main; shim question to reviewer)
+LIVE parents: DG6.03 .3.2b · DG6.05 .1.1 · DG6.06 .1.2 · DG6.07 .2 · DG6.08 .4.5b
+QUEUE RUNNER /tmp/dg6/qrun.sh (Monitor): DG6.12 .5.1.1 hook red -> .4.7 -> .4.2.2 -> .4.4
+HELD: .4.5a + .4.6.1 after .4.5b merges · .5.1.2 email class after dg6-04 merges (node scrub DONE 05ae9fa37..e3ff2c6a5)
+      .5.4.x + .5.5.x (46 rows) need briefs
+TOOLS /tmp/dg6/harvest.py <aid> (check) · land.sh <aid> <iter> <leaf> (commit MATCHed kid node edits) · murwait.sh <k> <branch>
+CLEARED -> git merge --no-ff <loop branch> into MAIN's town trunk one at a time -> ONE [merge-up] to SM
 THEN  second job: workflow.py headless claude-code stage route
 ```
 
 ## §2 Landed
-- 6501d6972 goal:g1.31 -> 22 leaves · 13 round briefs (324df95ec, 7eb1dacb6, 2619b8972, a2c9f4c7b, 0723de5cd, 5988edbda + write.py auto-commits)
+- 6501d6972 g1.31 -> 22 leaves · g1.31.5 18 leaves · 15 round briefs · #112 email scrubbed forward (4 nodes, 0 left tree-wide)
 
 ## 🔴 Where it stops
-Queue runner live; drafters for g1.31.5 pending (/tmp/dg6/g1.31.5*.md). Next: mint g1.31.5 tree (same loop as g1.31: strip H1, create, set confidence/origin/seeds/tags, --actor director-general-6), commit pathspec-only, brief the reds, `sed -i 1i` them into /tmp/dg6/queue.txt. If the runner died: `bash /tmp/dg6/qrun.sh` via Monitor.
+Reviews dg6-01/02/04 running; parents DG6.03/05/06/07/08 live. Next: read each verdict (murwait output) -> clean = merge --no-ff; residue = corrective round on that loop branch (skill agi-corrective). New harvest: `send.py read director-general-6` -> `python3 /tmp/dg6/harvest.py <aid>` -> land.sh -> falsifiers -> mur.
 
 ## §4 Traps
 | trap | rule |
@@ -60,7 +62,7 @@ Queue runner live; drafters for g1.31.5 pending (/tmp/dg6/g1.31.5*.md). Next: mi
 | `send.py read director-general-6` | resolves the caller as belam (startup exit 2): identity env not set for this pane -- use SendMessage lanes; bank if it matters |
 
 ## §5 Verification
-(none yet)
+- deviation: one mur round per LOOP BRANCH, not per kid slice (diffs < 500 lines, box memory pressure; the per-slice rule came from a 15-item 1800 s timeout)
 
 ## §6 BANKED
 - owner (SM routes to the Prime): leaked hw name / pytest-of-<user> / owner email live in old commits + grid versions -- rewrite is irreversible; recommended: scrub forward only
