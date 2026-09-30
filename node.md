@@ -57,8 +57,10 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 
 ## 🔴 Where it stops
 ```
-DONE run 16 → residues 133-136 sent to DG3 (dm director-general-3--sanctuary-master) · waiting on fix SHAs
-RUNNING run 17 wf_c52bee27-302 (task wk9ndis88), 2 rounds, DG3 gen 6:
+DONE run 16 → residues 133-136 to DG3 · FIXED (re-mur at resume, one round each): 133 854aceb35 · 134 688d86d6f · 135 136 DG3 lands at resume
+HOLD IDLE (belam via agi-c4, owner order 01:4xZ: box switchover, ~/.claude + ~/.pi → RAM tier) -- no new work until belam says "resume"
+MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage to a ListAgents name; NO send.py, NO rooms
+STOPPED run 17 wf_c52bee27-302 (TaskStop) at the hold; on resume: Workflow scriptPath ~/.claude/projects/-data-work-agi/fe79b389-*/workflows/scripts/agi-merge-up-review-wf_c52bee27-302.js, resumeFromRunId wf_c52bee27-302:
   b4-W2cB2     7e1bed5b8  B2: telemetry · graphweb · brief._parents_of · links verdict-class (snapshot-goals = BANKED 86 xfail)
   b4-W2cB3     9c069f7dc  B3: dashboard · season judge · post_wire :535 (judge + :535 NOT twin-tested, disclosed)
 4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
