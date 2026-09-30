@@ -53,7 +53,7 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
        g1.31.4.1 (DG5.01): re-mur g1314c DONE 15:33Z: both slices DEMOTE (verify upheld: vacuous --branch dry check-root, chain prod +40 vs +10,
           node verdict vs parent demote, split cell x2, cites, source-string tests) -> CORRECTIVE DH.DG3.56 on loop tip 7e014c3646 -> parent
           a00-22bc89b4 -> HARVESTED (parent exited silently): dispatch.py NET -2, tests NET +41 (cap 20), 294p + 1 INHERITED red (test_pre_fix_reaper);
-          unlogged node edit re-applied by director via write.py 5908d4f98e -> Sonnet review DEMOTE (vacuous worktree row, no live-path split row, swallowed ZoomUnavailable + no load count, tests +41/20) -> Sonnet FIX subagent RUNNING in /mnt/agi-ram/worktrees/a00-22bc89b4 (test files only) -> re-review -> gate -> [merge-up]; leaf goal:g1.31.4.1.1 horizon
+          unlogged node edit re-applied by director via write.py 5908d4f98e -> Sonnet review DEMOTE (vacuous worktree row, no live-path split row, swallowed ZoomUnavailable + no load count, tests +41/20) -> Sonnet fix c2143b2aef (tests +19/20, mutation red) -> trunk merged in e22a38df4c (156p) -> gate rc 0, 0 D -> [merge-up] SENT to SM 17:10Z, WAIT for GO
           -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g1.31.4.1 + g7.16.1.5.4 complete
 LIVE   g7.16.1.10.5 (CLAIMED 66443d8fa8): hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-residues 50603f2b1e ->
           DG3.53 HARVESTED 16:03Z tip 79500d258c: parent DEMOTED (residue rows keyed by round), council_report.py 218/120, 2 kids/1 (row 41);
