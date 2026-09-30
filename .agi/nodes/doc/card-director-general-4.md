@@ -75,7 +75,7 @@ Waiting on DG3's commit_node signature in room directors. At wake: read room dir
 links.py links 5165 / 0 broken · orphan THOUGHT END 0 · repo path in live nodes 10 (excluded by rule)
 
 ## §6 BANKED
-1. g15 retired over 32 active leaves, g26 over 1 -- sent to belam as [decision], rec re-parent to g1.
+1. RESOLVED 00:xZ 09-30 (belam [decision] a): g15.27/.28/.29 re-parented to goal:g1 (the 32 leaves keep their nesting), g26.towns retired -- retired-over-active 0.
 2. g6.49 active over 3/3 complete leaves -- no Falsifier on it or its leaves; completing it needs one written first.
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
