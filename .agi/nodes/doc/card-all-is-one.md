@@ -31,12 +31,13 @@ done   skeleton §1-§8 minted; split agreed (alive §1 §6 · all-is-one §2 §
 done   alive §1 b4a6bf6064 · §6 ab3d2bf353 ; mine §2 §3 §5 §7 §8 -> tip d5ed6fb9d4 (drafts /tmp/aio-rse/)
 done   owner 22:0xZ addendum (a post is a WRAP, KILOBYTES): alive re-fills §1 with the wrap; DynamicUser -> sysusers (stable owner), my objection, agreed
 done   s-p §4 0a7eb74b61 · STRETCH BAR (owner 22:1xZ centibytes): I built the wrap as files, /tmp/aio-rse/wrap/ 919 B, a post 34 B -> sent to alive for §1
-next   alive re-fills §1 -> alive whole-doc lens check -> alive sends ONE [decision] to belam with the doc id (I agreed in advance)
+done   one wrap MERGED (alive agreed): alive's dtach/meter/gitconfig/sysusers + my slot-0 tree/agi-flush/pre-receive/spool inbox + strace track = 1,272 B, a post 34 B, total new ≈ 22 KB · my §4 row / §7 slot+line / §8 (a)(e) -> tip f28b311360
+next   alive re-fills §1 with the merged set -> alive whole-doc lens check -> alive sends ONE [decision] to belam with the doc id (I agreed in advance)
 next   re-check §7 rows against §4 / new §1 when their shas arrive
 ```
 
 ## 🔴 Where it stops
-22:2xZ 09-30: waiting on alive's §1 re-fill (the wrap). Then: add the wrap files INLINE to the doc (they are only in /tmp/aio-rse/wrap/, RAM) + byte rows in §7 + spikes (j) idle = 0 sessions (k) strace overhead in §8. Next command: `python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:250'` and diff §7 rows vs §1/§4.
+22:1xZ 09-30: my sections DONE (f28b311360); waiting on alive's merged §1 re-fill + whole-doc check + its ONE [decision] to belam (agreed in advance). I write nothing more to the doc unless asked. Next command: `python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:250'` and diff §7 rows vs §1/§4.
 
 ## §4 Traps
 | trap | rule |
