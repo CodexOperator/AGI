@@ -32,8 +32,17 @@ def _load(name, filename=None):
     path = BIN / (filename or f"{name}.py")
     spec = importlib.util.spec_from_file_location(name, path)
     mod = importlib.util.module_from_spec(spec)
+    prior = sys.modules.get(name)
     sys.modules[name] = mod
-    spec.loader.exec_module(mod)
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        # A private copy must not REPLACE the process-wide module: a sibling file
+        # (test_write.py) that already imported `write` holds the original
+        # `node_writer`, and its `_ID_INDEX` is the one `write.main` reads. Leaving
+        # this copy in sys.modules split the two (hypothesis:trunk-red-g73320-...).
+        if prior is not None:
+            sys.modules[name] = prior
     return mod
 
 
