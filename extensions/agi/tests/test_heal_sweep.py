@@ -283,11 +283,12 @@ def test_sweep_reclaims_on_cadence_and_decides_the_same(
     log = graph / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     assert heal._sweep_finished_worktrees(graph) == (3, 0, 1)
-    # 4 trees x 2 walks = 8 steps -> 4 cadence asks + 1 at pass end
-    assert asks == [64] * 5
+    # 4 trees x 2 walks = 8 steps -> 4 cadence asks + 1 after each of the
+    # 2 archives (B dirty, D unmerged) + 1 at pass end
+    assert asks == [64] * 7
     assert (cg / "memory.reclaim").read_text() == "64M swappiness=0"
     text = log.read_text()
-    assert "[sweep] reclaimed own cgroup: 5 ask(s), 320 MiB asked over 8 tree steps" in text
+    assert "[sweep] reclaimed own cgroup: 7 ask(s), 448 MiB asked over 8 tree steps" in text
     assert "sweep: removed=3 archived=2 refused=0 kept-live=1" in text
 
 
