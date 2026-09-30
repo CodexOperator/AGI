@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (17:3xZ 09-30) — f~0.43 (line 0.47) — NO 18:00Z STOP (owner 17:4xZ via SM 17:45Z)
+## §0 State (17:3xZ 09-30) — f~0.45 at rotation (line 0.47) — NO 18:00Z STOP (owner 17:4xZ via SM 17:45Z)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
