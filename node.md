@@ -36,13 +36,14 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           (/tmp/dg3_mur-g133d.json, old d8ab866399) -> residues 0 -> [merge-up] to SM -> GO -> land; route the cell + focus line
        dg6-04 chain: DH.DG3.47 kid a00-eb7f5f57 proved, tip 0d1bd9264b (ff'd into /mnt/agi-ram/worktrees/dg3-h-dg6-04; net prod +8, tests +77/60
           disclosed), 276p; re-mur unit ...dg3mur-dg6-04e-1345 (old c51ea3367d) -> [merge-up] half a -> GO -> land -> goal:g1.31.3.2 complete
-       g7556: DH.DG3.48 parent a00-4be37f6b (base /mnt/agi-ram/worktrees/de-base-DG3.48) -> harvest the kid branch -> re-mur 157112b53e..tip
+       g7556: DH.DG3.48 kid a00-46137558 DEMOTED by its parent (item 3 refuted: execvp -> a failing systemd-run never runs argv; fstype_at
+          ValueError); chain over every cap (mem_cap +58/35, scripts 32/16, tests 332/200) -> DH.DG3.50 parent a00-37c39981 from tip 1e8e34c555
+          (base /mnt/agi-ram/worktrees/de-base-DG3.50) -> harvest -> re-mur 157112b53e..tip (the whole corrective chain)
        g1.31.4.1 (DG5.01): 3 slices = target DEMOTE, caveat DEMOTE, branch accept_with_residue -> brief hypothesis:g1314-dg5-01-corrective-...
           (f5e649cb1b, cherry-picked onto the base) -> DH.DG3.49 parent a00-ab3a5550 (base /mnt/agi-ram/worktrees/de-base-DG3.49)
           DIRECTOR after harvest (node prose, a kid cannot commit these): false greens (scoped-falsifier2 node, a00-160ddb8a-6d1eaf), the
           'RESTORED VERBATIM' mislabel on a00-eccace59-e6cb6a, testable_claim on a00-50a86053-4d374b + a00-da06914d-d133b6, mint_id on the
           branch-dry-run experiment, duplicated Agent Notes + wrong count, goal:g1.31.4.1 falsifier 2 -> a named-line assertion
-       old worktree to remove at harvest: /mnt/agi-ram/worktrees/de-base-DG3.46
 QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 (mechanical REDs) -> .10.5 (ONE council report node)
        -> .10.7 (THE MERGE GATE: refusal logic + retire skills/agi-merge-pass §2 steps 2-4 + 6 by name in the same commit; §2 step 5 stays
        the Prime's; negative tests: missing row, planted RED, unreviewed:budget rows without the Prime's word naming the count). All horizon:
@@ -60,7 +61,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-Working until the 18:00Z STOP: 2 re-murs (g133d, dg6-04e) + 2 parents (DG3.48, DG3.49) LIVE above. First command on wake:
+Working until the 18:00Z STOP: 2 re-murs (g133d, dg6-04e) + 2 parents (DG3.49, DG3.50) LIVE above. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
