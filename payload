@@ -2523,6 +2523,58 @@ def _window_present(row: dict, windows: list[tuple[str, str]], *,
     return id_present, False
 
 
+def _boot_epoch() -> float | None:
+    """This boot's instant (epoch s), `btime` in /proc/stat; None if unread."""
+    try:
+        return float(next(ln.split()[1] for ln in
+                          Path("/proc/stat").read_text().splitlines()
+                          if ln.startswith("btime ")))
+    except (OSError, ValueError, IndexError, StopIteration):
+        return None
+
+
+def _proc_start_epoch(pid: int) -> float | None:
+    """A pid's start instant (epoch s): /proc/<pid>/stat field 22 (starttime,
+    clock ticks after boot) + btime; None if the pid or boot is unreadable."""
+    boot = _boot_epoch()
+    try:
+        ticks = int(Path(f"/proc/{pid}/stat").read_text()
+                    .rsplit(")", 1)[1].split()[19])
+        return None if boot is None else boot + ticks / os.sysconf("SC_CLK_TCK")
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+def _write_boot_resume(root: Path, seat: str, row: dict, live: dict,
+                       _rotate) -> Path | None:
+    """goal:g6.41.1.1: a seat ALIVE on a session whose process started after
+    this boot, with no accepted rotation record newer than the boot, was
+    resumed outside heal's recovery (e.g. the tmux path after a reboot). Write
+    ONE `rotation: boot-resume` record (`boot_at` names the boot) that
+    `_record_accepted` admits, so the after_join service wakes it once; the
+    record itself is newer than the boot, so a later pass writes nothing."""
+    boot = _boot_epoch()
+    started = _proc_start_epoch(int(live.get("pid") or 0))
+    if boot is None or started is None or started < boot:
+        return None
+    latest = _rotate._latest_rotate_record(root, seat)
+    last_ts = _parse_record_ts(latest[0].get("recorded_at", "")) if latest else None
+    if last_ts is not None and last_ts >= boot:
+        return None
+    gen = row.get("generation")
+    rec = {"rotation": "boot-resume", "seat": seat, "result": "resumed",
+           "recorded_at": datetime.datetime.utcnow().isoformat() + "Z",
+           "boot_at": datetime.datetime.utcfromtimestamp(boot).isoformat() + "Z",
+           "succ_name": seat, "gen": gen, "gen_after": gen, "pin_ref": "",
+           "tmux_session": _rotate.DEFAULT_TMUX_SESSION,
+           "window_id": live.get("window_id") or "", "pred_pids": [],
+           "session_id": live.get("session_id") or ""}
+    path = _rotate._write_rotation_record(root, rec)
+    _watch_log(f"watch: wrote boot-resume record for {seat}: {Path(path).name}"
+               f" (boot {rec['boot_at']}, live pid {live.get('pid')})")
+    return path
+
+
 def _parse_record_ts(s: str) -> float | None:
     """Parse a rotation record `recorded_at`; None when unparsable.
     The `Z` suffix is UTC (rotate.py writes `datetime.utcnow().isoformat() +
@@ -3821,8 +3873,13 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                 f"{_sid} pid {_pp} alive")
         print(line, file=sys.stderr)
         _watch_log(f"watch: {line}")
+        # goal:g6.41.1.1: a session resumed after this boot by anything but
+        # heal's own recovery gets ONE boot-resume record the after_join
+        # service admits, so exactly one wake reaches it.
+        _br = _write_boot_resume(root, seat, row, live, _rotate)
         return {"seat": seat, "probable_cause": "stale-row",
-                "recorded": False, "stale_row": True, "alive_pid": _pp}
+                "recorded": _br is not None, "stale_row": True,
+                "alive_pid": _pp}
     # (2) a SUCCESS rotation record newer than the row means the row's
     # pid/@id belong to the RETIRED predecessor -- the seat ROTATED, it is
     # not dead (hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-
