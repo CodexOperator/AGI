@@ -6,6 +6,8 @@ parents:
   - goal:s31
 confidence: 0.0
 edited_by: alive
+evidence_runs:
+  - experiment:dg2close-a00-edae0fba-940d3a-check
 scaffold_hash: 19458dca89a121d7
 season: 1
 testable_claim: If node_writer.write_node seeds the schema-required title and testable_claim from dispatch-time context, the scaffolded hypothesis passes [hypothesis] required-field validation at birth, and completion.is_complete still returns False on the untouched scaffold and True once the body is filled.
