@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (13:5xZ 09-30, gen 9) — f~0.36 (line 0.47) — RESUMED on belam's [rule] until 18:00Z (a STOP comes then)
+## §0 State (14:0xZ 09-30, gen 9) — f~0.39 (line 0.47) — RESUMED on belam's [rule] until 18:00Z (a STOP comes then)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -39,11 +39,11 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
        g7556: DH.DG3.48 kid a00-46137558 DEMOTED by its parent (item 3 refuted: execvp -> a failing systemd-run never runs argv; fstype_at
           ValueError); chain over every cap (mem_cap +58/35, scripts 32/16, tests 332/200) -> DH.DG3.50 parent a00-37c39981 from tip 1e8e34c555
           (base /mnt/agi-ram/worktrees/de-base-DG3.50) -> harvest -> re-mur 157112b53e..tip (the whole corrective chain)
-       g1.31.4.1 (DG5.01): 3 slices = target DEMOTE, caveat DEMOTE, branch accept_with_residue -> brief hypothesis:g1314-dg5-01-corrective-...
-          (f5e649cb1b, cherry-picked onto the base) -> DH.DG3.49 parent a00-ab3a5550 (base /mnt/agi-ram/worktrees/de-base-DG3.49)
-          DIRECTOR after harvest (node prose, a kid cannot commit these): false greens (scoped-falsifier2 node, a00-160ddb8a-6d1eaf), the
-          'RESTORED VERBATIM' mislabel on a00-eccace59-e6cb6a, testable_claim on a00-50a86053-4d374b + a00-da06914d-d133b6, mint_id on the
-          branch-dry-run experiment, duplicated Agent Notes + wrong count, goal:g1.31.4.1 falsifier 2 -> a named-line assertion
+       g1.31.4.1 (DG5.01): DH.DG3.49 kid a00-0c3400bc proved, merged on season2/loops/hypothesis-g1314-dg5-01-correcti-a00-ab3a5550 tip 1235a53925
+          (201p/8s; caveat module + test removed; prod NET +40 vs +10, tests +119 vs 70: disclosed, row 33) -> 2-slice re-mur unit
+          ...dg3mur-g1314c-1359 (/tmp/dg3_mur-g1314c.json, old 0ad9d5c4ff) -> DIRECTOR node closures DONE on the loop tip 14cc603581..b8fb98359e
+          (caveat marked RETIRED in place, mislabel note, testable_claims set, false-green notes, goal:g1.31.4.1 falsifier 2 = named line, rc 0)
+          worktree /mnt/agi-ram/worktrees/a00-ab3a5550 -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g1.31.4.1 + g7.16.1.5.4 complete
 QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 (mechanical REDs) -> .10.5 (ONE council report node)
        -> .10.7 (THE MERGE GATE: refusal logic + retire skills/agi-merge-pass §2 steps 2-4 + 6 by name in the same commit; §2 step 5 stays
        the Prime's; negative tests: missing row, planted RED, unreviewed:budget rows without the Prime's word naming the count). All horizon:
@@ -61,7 +61,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-Working until the 18:00Z STOP: 2 re-murs (g133d, dg6-04e) + 2 parents (DG3.49, DG3.50) LIVE above. First command on wake:
+Working until the 18:00Z STOP: 3 re-murs (g133d, dg6-04e, g1314c) + parent DG3.50 LIVE above. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
