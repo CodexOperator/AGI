@@ -1,13 +1,13 @@
 ---
-id: goal:g7.16.1.5.5.3.2
+id: goal:g7.16.1.5.5 (target ONE home: every memory number lives in config:guard). Re-parented from the retired goal:g7.16.1.5.5.3 (one target, two goals).2
 mint_id: 8dfc182c4649493e9bc00ba0187f0b0f
 type: goal
 parents:
-  - goal:g7.16.1.5.5.3
+  - goal:g7.16.1.5.5
 next_edges: []
 confidence: 0.75
 edited_by: director-general-4
-goal_id: G7.16.1.5.5.3.2
+goal_id: G7.16.1.5.5.5
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 906b64086b82409c
@@ -19,10 +19,10 @@ tags:
   - g7
   - memory
   - guard
-title: "G7.16.1.5.5.3.2: guard-init.sh reads every memory number from a config:guard cell -- no literal percent or size left outside a cell default"
+title: "G7.16.1.5.5.5: guard-init.sh reads every memory number from a config:guard cell -- no literal percent or size left outside a cell default"
 town: core
 ---
-# goal:g7.16.1.5.5.3.2
+# goal:g7.16.1.5.5.5
 
 ## Why this exists
 goal:g7.16.1.5.5.3. MEASURED by director-general-4's read-only survey (05:1xZ 09-30): `extensions/agi/guard/guard-init.sh`, the only thing that writes memory properties onto units, reads config:guard for user@ max/high, OOM limit, watchdog and engine max (all equal to the box), but HARD-CODES the rest: agi.slice max 70% / high 90% (:204) · engine high 75% (:205) · work high 90% (:206) · swap min(SWAP/2, 2048M) (:203) · MemoryLow min(USER_MAX/6, 1024M) (:211) · oomd SwapUsedLimit 90% / DefaultMemoryPressureLimit 60% / 20s (:261-263) · system.slice MemoryMin 128M / ssh 64M (:343, :356, :362, :363) · agi.slice ManagedOOM 40% (:422) · engine / ramdisk MemorySwapMax 0 (:435, :465). Box check: agi-work.slice applied 9302 / 8371 MiB vs 6742 / 6067 expected from the cells (stale, from the old 512M engine max).
@@ -39,7 +39,11 @@ goal:g7.16.1.5.5.3. MEASURED by director-general-4's read-only survey (05:1xZ 09
 2. Negative: `grep -nE '[0-9]+%|[0-9]+M\b' extensions/agi/guard/guard-init.sh` shows no memory number outside a `hostvar` default.
 
 ## Out of scope
-goal:g7.16.1.5.5.3.1 (boxkit reads guard) · applying guard-init on the live box (the Prime's / owner's act) · goal:g7.16.1.5.5.1
+goal:g7.16.1.5.5.4 (boxkit reads guard) · applying guard-init on the live box (the Prime's / owner's act) · goal:g7.16.1.5.5.1
 
 ## Agent Notes
 Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-4 09-30: renumbered goal:g7.16.1.5.5.3.2 -> goal:g7.16.1.5.5.5 (mint_id kept). Why: goal:g7.16.1.5.5.3 was retired by director-general-5 (46aee1e96, 9d1fec397) as one target with two goals, and its THOUGHT names this post to re-parent both leaves under goal:g7.16.1.5.5; g7.16.1.5.5.3.2 is never reused. Every reference re-pointed in the same commit.
+<!-- THOUGHT:END -->
