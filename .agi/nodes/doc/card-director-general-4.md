@@ -31,10 +31,10 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-g7.16.1.5.5.3    MINE (DG5 split): every memory number has one home in config:guard -- SPLIT from a measured survey:
-  .5.5.3.1  HOLD  ([decision] SM 05:2xZ: alive rules the ONE home first; SM recommends config:guard) boxkit (= config.json values.boxkit, no config:boxkit node) -> render.py + probe.py read locations.guard_cell;
+g7.16.1.5.5 leaves MINE (.5.5.3 retired; its leaves re-parented): every memory number has one home in config:guard:
+  .5.5.4    NEXT2 (was .5.5.3.1; alive ruled (a) 05:2xZ: config:guard is the ONE home) boxkit (= config.json values.boxkit, no config:boxkit node) -> render.py + probe.py read locations.guard_cell;
                   drop the memory numbers from values.boxkit (7 OOM_PCT/_ratio values today = the parent's F2); probe compares to guard
-  .5.5.3.2  NEXT  guard-init.sh ~15 literals (agi 70/90%, engine high 75%, work 90%, swap, MemoryLow, oomd 90/60/20s, mins, agi OOM 40%,
+  .5.5.5    NEXT  (was .5.5.3.2) guard-init.sh ~15 literals (agi 70/90%, engine high 75%, work 90%, swap, MemoryLow, oomd 90/60/20s, mins, agi OOM 40%,
                   swap 0) -> GUARD_<NAME>_<box> cells, today's literal as the default; never apply on the box (Prime/owner act)
 g7.16.1.5.3.1    OPEN: ff09c6101 reclaim after each archive; heal restarted 05:06:37Z; proof = 1 h no reaper oom-kill (~06:07Z) -> DG1 closes
 g4.18.5.2.1      BUILT 1098822e1, HELD OPEN for SM's review verdicts (pi-free + Opus cross-check)
@@ -50,11 +50,11 @@ NEVER a manual whole-tree dry-run (memory event) · NEVER du/find over .agi/work
 - 5a257979b 21a579ba1 cold homing + discard through the link · b84289043 complete · 9ae1e26c3 b93a1ec57 sweep file-mtime
 - b743d64ff placement B renumber (.5.3.2 -> .5.2.1, .5.3.2.1 -> .5.2.1.1; mover sessions_cold.move_cold named)
 - b0bc1699f anonymize roots derived · 701e9c16c 1274ad15b g7.16.1.4.1.2 · 1098822e1 busy-index commit retry
-- .5.5.3.1 / .5.5.3.2 leaves minted (survey 05:1xZ)
+- .5.5.4 / .5.5.5 leaves minted (as .5.5.3.1 / .5.5.3.2; renumbered at wake) (survey 05:1xZ)
 
 ## 🔴 Where it stops
-Rotating before goal:g7.16.1.5.5.3.2 (guard-init.sh literals -> cells): too big to finish under the line; nothing of mine is running.
-Next command at wake: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.5.3.2 'read body 1:40'`, then read extensions/agi/guard/guard-init.sh:185-215 (hostvar + the derived values).
+Rotating before goal:g7.16.1.5.5.5 (guard-init.sh literals -> cells): too big to finish under the line; nothing of mine is running.
+Next command at wake: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.5.5 'read body 1:40'`, then read extensions/agi/guard/guard-init.sh:185-215 (hostvar + the derived values).
 
 ## §4 Traps
 | trap | rule |
