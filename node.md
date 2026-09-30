@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -33,27 +33,80 @@ section                                   lens                 asks
 §8 spike falsifiers                        all three            the acceptance test
 ```
 
-## §1 Per-post Unix users
-**What am I ACTUALLY trying to get the machine to do here?** Know WHO did a thing, and let each post touch only what it may. The kernel does both already; today Python re-derives them because every post is one Unix user.
+## §1 Per-post Unix users -- a post is a wrap (separation · auto-rotate · auto-track · auto-heal keys)
+**What am I ACTUALLY trying to get the machine to do here?** Keep ONE post alive across any number of sessions: know everything it did, let it touch only what it may, and hand each new session the last one's state, with no command from anyone. The owner's shape (22:0xZ): "The post is like a wrap or shell around whatever session slots into it. It auto-rotates, no command needed, it auto-tracks actions, it auto heals keys ... Aim for kilobytes of code not megabytes."
 
-| act | today (one user for all posts) | per-post users |
-|---|---|---|
-| identity | a 30-cell posts row (pubkey · sig_scheme · key_history · fp · pid · window · session_id / name / ref / label ...), ed25519 seat keys in 0600 files that EVERY post can read, whois, signed dms | the uid; git's SSH-signed commit carries it into history |
-| permission | ring gates, spawn gates, write guards, self-row rules | owner + group + mode; the kernel refuses (EACCES) |
-| liveness | pid / window / session tracking, reap chains | a post is alive iff its uid has processes; the reap is `pkill -u` |
-| memory | guard + boxkit slices by hand | systemd's own user-<uid>.slice, one MemoryMax per user |
+**Separation: the one primitive everything else rests on**
+| option | what | root, once | who-did-what comes from | verdict |
+|---|---|---|---|---|
+| A · per-post Unix users via **systemd-sysusers** | ONE declarative file `/etc/sysusers.d/agi.conf` (`u agi-<post> -` + `m agi-<post> town-<town>` / `role-<role>`), GENERATED from the post rows (the rows are the source), applied by `systemd-sysusers` (idempotent, off-the-shelf, no useradd scripting); `agi-post@.service` runs `User=agi-%i` | yes (applying the file) | a STABLE uid: its private tree, its SSH-signed commits, its strace log, its groups checked by pre-receive; the signing key has a stable home | RECOMMENDED (all-is-one's lens, 22:0xZ): lighter AND stable, zero custom user code |
+| B · a systemd unit per post with `DynamicUser=` | systemd allocates the uid per unit start (hashed from the name, re-picked on collision) and expects it to own files only under StateDirectory; ProtectSystem=strict comes with it | yes (the unit template) | the same kernel facts, but only while the unit runs | the spike's COMPARISON ARM: our permission unit is a node file in a SHARED repo, so its owner must be a stable uid (falsifier (e)) |
+| C · same uid, one user unit (cgroup) per post | `systemd-run --user --unit=post-<post>` | no | env (GIT_AUTHOR, AGI_ACTOR) + git hooks only | REJECTED: permissions stay in Python, which is exactly the one-user problem |
+Either way the unit IS the post: `agi-post@<post>.service` (User=agi-%i under A, DynamicUser under B). Falsifier (e), in §8: a node minted by the post survives a reboot still owned by the same uid.
 
-Decided:
-- **User:** `agi-<post>` (e.g. `agi-alive`), no human login, a home holding only the harness settings and the private keys. The `.geometry` post row gets ONE new cell, `user`. The cells the kernel now knows retire: pid · window · session_id · session_name · session_ref · session_label · key_history · fp · rotated_by_sig.
-- **Groups:** `agi` (every post: read the whole graph) · `town-<town>` (write that town's board and trunk) · `role-<role>` (council · director · master · prime: write what the role owns). Membership lives in the post row, and a custodian script derives `usermod -aG` from it, dry-run first (doc:s3-plan HEAD 1.6).
-- **Keys:** an SSH keypair in `~agi-<post>/.ssh/`, now TRULY private (today every post can read every seat key, because every post IS the same user). git signs each commit with it (`gpg.format=ssh`). The post row carries only the public key, and ONE `allowed_signers` file derived from the rows makes `git log --show-signature` verify every write.
-- **Per-file permissions:** a node file is owned by the post that minted it; group = the town or role that may also edit it; mode 0664 (0644 for a post-private node). The repo runs `core.sharedRepository=group` with umask 002. A write the owner did not grant fails in the kernel, not in Python.
-- **Settings as graph symlinks:** `~agi-<post>/.claude/settings.json` (and pi's equivalent) is a symlink into a graph file (`.agi/nodes/.geometry/settings/<post>.json`). The post config IS the user's settings, versioned by git, with no copy to drift.
-- **Provider keys:** provisioning.py keeps minting per-post provider keys (a budget concern, not OS identity). They land in a 0600 env file in the post's own home.
+**The wrap, written out whole (the owner's stretch bar 22:1xZ: "so low that it feels like it doesn't even exist"). The council's MERGE of alive's and all-is-one's built drafts (self-perpetuating's §4 slot-0 = `~/t`). These ARE the files; `wc -c` counts them.**
+```
+# agi-post@.service (373 B)
+[Service]
+User=agi-%i
+WorkingDirectory=%h/t
+EnvironmentFile=%h/env
+ExecStartPre=-sh -c 'ssh-keygen -qN "" -ted25519 -f%h/.ssh/id_ed25519<&-;cp %h/.ssh/id_ed25519.pub .agi/keys/%i'
+ExecStart=dtach -N %t/agi-%i strace -qqfe%%file -o%h/r sh -c '${H} "$$(cat .agi/nodes/doc/card-%i.md)"'
+ExecStopPost=agi-flush
+Restart=always
+MemoryHigh=4G
+[Install]
+WantedBy=multi-user.target
+# agi-inbox@.path (37 B)
+[Path]
+PathChanged=/var/spool/agi/%i
+# agi-inbox@.service (69 B)
+[Service]
+User=agi-%i
+ExecStart=sh -c 'echo mail|dtach -p %t/agi-%i'
+# meter.json (295 B)
+{"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":"jq -r .transcript_path|xargs tail -1|jq -e '.message.usage|.input_tokens+.cache_read_input_tokens+.cache_creation_input_tokens>470000'>/dev/null&&echo 'At the line: write your card, git commit it, then run: kill $PPID'"}]}]}}
+# gitconfig (79 B)
+[gpg]
+format=ssh
+[commit]
+gpgsign=true
+[user]
+signingkey=~/.ssh/id_ed25519.pub
+# agi-flush (134 B)
+#!/bin/sh
+cd ~/t;grep -o '"/[^"]*"' ~/r|sort -u>.agi/track/$USER;git add -A;git commit -qSm$USER;git pull -q --no-rebase&&git push -q
+# pre-receive (186 B)
+#!/bin/sh
+while read o n r;do git diff --name-only $o $n|while read p;do g=$(git check-attr owner -- "$p"|cut -d' ' -f3);id -nG|grep -qw "$g"||{ echo "$p: $g";exit 1;};done||exit 1;done
+# signers (65 B)
+#!/bin/sh
+for f in .agi/keys/*;do echo "${f##*/} $(cat $f)";done
+# sysusers.conf (34 B)
+u agi-alive -
+m agi-alive council
+```
+| act | how, in the files above |
+|---|---|
+| auto-rotate | the meter hook tells the session at the line to write its card, commit it, then end; `Restart=always` starts a FRESH session handed the card. The card is written DURING the work by one whole write (the card rule), so a death never loses more than the last unwritten step |
+| auto-heal | `Restart=always` (a crash takes the same path as a rotation) · `ssh-keygen` with stdin closed never overwrites: a missing key is minted, and its public half is published to `.agi/keys/<post>`; `signers` derives git's allowed_signers from those files |
+| idle | an interactive session waiting for input costs zero tokens; there is no timer and no polling |
+| auto-track | writes: each post works in its OWN tree (`~/t` = §4's slot-0, a `git clone --shared`, so no objects are copied), so the flush's `git add -A` there is exactly its writes, graph or not. Reads and writes of ANY path: `strace -f -e%file` wraps the harness; the post reads its own log with no root, and the flush commits the sorted unique paths to `.agi/track/<post>` |
+| write / land | `agi-flush` at every session end: add, SSH-signed commit, `pull --no-rebase`, push. The shared checkout is READ-ONLY to every post, so the kernel refuses any direct write into it |
+| permission | `pre-receive` on the shared bare repo: every changed path's `owner` git attribute must be one of the pusher's groups. It refuses mistakes; it runs AS the pusher, so stopping malice needs a gate user (named, not built) |
+| message | a sender drops a file into `/var/spool/agi/<post>/` (mode 1730, group agi: senders drop, only the owner reads); the `.path` unit pushes one line into the live session through `dtach -p`; the owner's flush moves read mail into its tree, where it is committed |
+| human view | `dtach -a /run/agi-<post>` attaches to any post's live session (the stream reads the same pane) |
 
-alive's lens (vision:alive, the system reports its own TRUE state): every true-state defect the council caught on 09-30 is a one-user artifact. rc 0 over uncommitted bytes · `edited_by: belam` on other posts' writes ($USER is shared) · colliding short session names · an inbox reporting "empty" over unread mail · a rotation committing a flattened card. Each is Python re-deriving a fact the kernel would simply KNOW. The simple engine reports true state because it stops re-deriving it.
+**The count: the whole wrap = 1,272 bytes of our code; one post = 34 bytes (its two sysusers lines) plus one `systemctl enable agi-post@<post>` symlink.** "A post in tens": MET. "The wrap in hundreds": MISSED by 273 bytes. The token-exact meter hook is 295 B of it; all-is-one's 75 B byte-count meter (kill at 2 MB of transcript) would bring the wrap to ~1,050 B but loses "write the card, then exit", so the council keeps the safer one. §4's slot script (415 B) serves kids and mixed-commit test runs only. The megabytes live in what is already written and tested: the kernel, systemd, git, strace, jq, dtach.
+**Where the bar breaks (outside the count, named):** schema-check (<= 10 KB, §2: the rules are real content) · agi-mcp (<= 8 KB, §5) · the meter hook is Claude-only (pi compacts on its own) · strace overhead is a spike measure · a pull conflict leaves `~/t` mid-merge for the post's next session · root is needed ONCE (units, sysusers, the spool, the bare repo's hook, two small packages: dtach + strace): the owner's go.
+**Considered and dropped:** auditd for tracking (root to set up AND to read the log) · a timer + ExecCondition wake (moot: an idle interactive session already costs nothing) · one shared working tree (index contention, and a death loses new files and group-owned edits) · `.path` units as the commit trigger (not recursive).
 
-Rows: src/seatsig/ (1,930) SCRAP -> git SSH signing + the kernel · send.py keygen / whois / signing (~20-25% of 6,384) REPLACE-BY ssh keys + allowed_signers · envfile.py (593) REPLACE-BY the per-user env file · hierarchy.py (714) KEEP, reads the rows · the ~9 identity cells of each post row RETIRE.
+**What the post row keeps:** name · role · town · template · harness · model · effort · owning_goal · memory · the public key. The kernel or the unit now holds the rest, which retires: pid · window · session_id / name / ref / label · key_history · fp · rotated_by_sig · generation.
+
+alive's lens (vision:alive, the system reports its own TRUE state): every true-state defect the council caught on 09-30 is a one-user artifact. rc 0 over uncommitted bytes · `edited_by: belam` on other posts' writes · colliding session names · an inbox reporting "empty" over unread mail · a rotation committing a flattened card. Each is Python re-deriving a fact that the kernel, git or systemd simply KNOWS once a post is a unit with its own uid. The wrap reports true state because it stops re-deriving it. It is antifragile the same way: a dead session is just the loop's next turn.
+
+Rows: rotate.py + heal.py + rotation_alert.py (1,465 KB) REPLACE-BY agi-post@.service + agi-flush + the meter hook (~800 B) · seatsig + send.py signing/whois (~160 KB) SCRAP -> ssh keys + git signing + the uid · spawn_budget.py (52 KB) REPLACE-BY the unit's TasksMax · envfile.py (26 KB) REPLACE-BY a 0600 env file in the post user's home · hierarchy.py KEEP (reads the rows).
 
 ## §2 Write = a shell script over a git commit
 **What am I ACTUALLY trying to get the machine to do here?** Record ONE new version of ONE node, by ONE post, so that everyone sees it, nobody else could have made it, and exit 0 means it landed.
@@ -130,7 +183,7 @@ kid builds code        ephemeral      same slot; commit = add -A on the slot's i
 mix code across nodes  ephemeral      T = merge-tree --write-tree A B (fold for >2); fill a slot with T  the test run
                                       exit 1 = the mix does not compose = a finding, never a hand-merge
 ```
-- **Slots are recycled, not minted.** They live in the post unit's `CacheDirectory=` (§1 option B): slot-0..N, N = the row's kid cap + 1. Recycling a slot is one `read-tree -u --reset <sha>` plus `git clean`-equivalent over the slot's index (0.69 s). Disk is bounded by posts x slots x ~140 MB (12 posts x 3 = ~5 GB, versus ~96 GB today). A fresh slot is the same command into an empty dir.
+- **Slots are recycled, not minted.** They live in the post unit's `CacheDirectory=` (the §1 unit: it works with User=agi-%i as with DynamicUser): slot-0..N, N = the row's kid cap + 1. Recycling a slot is one `read-tree -u --reset <sha>` plus `git clean`-equivalent over the slot's index (0.69 s). Disk is bounded by posts x slots x ~140 MB (12 posts x 3 = ~5 GB, versus ~96 GB today). A fresh slot is the same command into an empty dir.
 - **No `git worktree` at all.** A slot registers nothing in .git/worktrees, so there is no prune, no stale lock and no "branch already checked out" refusal, and a dead slot is just a directory.
 - **Tests mix and match.** A test names its commits; the runner folds them through merge-tree and fills a slot with the result. It holds up: it is how git itself previews merges. Conflicts come out as data (the exit code plus the conflicted paths), never as a dirty tree someone must clean.
 - **Refs, under per-post uids (the one open question this section hands to the spike).** Spike (a) proves that commits land in ONE shared repo; it does not prove who may MOVE a ref, and in one shared .git any group writer can move any ref (loose refs and packed-refs are group-writable files). Spike (h) tests that. If (h) fails, the zero-daemon fallback is tried before gitolite: each post owns a bare `graph.git` in its StateDirectory, whose `objects/info/alternates` points at the shared object store (zero copy). A post moves only its own refs, which the kernel enforces because they are its files. A master PULLS a merge-up with `git fetch` from the director's repo, and nobody pushes into another post's refs. This is git's own distributed model, with no hook and no daemon.
@@ -158,7 +211,7 @@ Rows (§4):
 | locations.py worktree-path mapping (x41) | REPLACE-BY slot = CacheDirectory; KEEP the nearest-`.agi/` resolver | ~300 of 1,218 |
 | .agi/sessions/{rotations, seats, inbox markers, workflows run dirs} (7,971 files) | RETIRE (move, never delete) -> journald + git log + refs/salvage | files, not lines |
 | the 716 standing trees under .agi/worktrees | RETIRE by the 3 passes above; pass 3 is the owner's go | ~96 GB |
-| new: agi-slot.sh (fill · recycle · mix · salvage) | NEW | ~2 KB |
+| new: slot (fill · recycle · mix · keep), inline in §7 | NEW | 415 B, tested |
 
 ## §5 An MCP wrapper over the engine as it works now
 **What am I ACTUALLY trying to get the machine to do here?** Give every role the SAME verbs the SAME way (a Claude post, a pi kid, a human), so the machinery underneath can be swapped without any caller noticing.
@@ -228,10 +281,20 @@ Measured at HEAD 09-30 22:xZ (alive + all-is-one): engine ~5.13 MB · 137 files 
 
 ```
 retired      ~2.41 MB certain (rotate … write_guard) + ~0.33 MB "mostly" (brief/zoom, guard, stitch)  ≈ 2.7 MB of 5.13 MB
-new code     post wrap ~11-13 KB (§1, incl. the rows -> sysusers agi.conf generator) · agi-write + agi-read <= 2 KB (§2) · schema-check <= 10 KB (§2) · agi-mcp <= 8 KB (§5) · agi-slot.sh ~2 KB (§4)  ≈ 33-35 KB
+new code     post wrap 1,272 B written out (§1: unit 373 + inbox .path 37 + .service 69 + meter 295 + gitconfig 79 + agi-flush 134 + pre-receive 186 + signers 65 + sysusers 34; a post = 34 B; a 75 B byte-meter instead would make ~1,050 B but loses "write the card, then exit") + ~0.5 KB rows -> agi.conf generator · agi-write + agi-read <= 2 KB (§2) · schema-check <= 10 KB (§2) · agi-mcp <= 8 KB (§5) · slot 415 B (§4, inline below)  ≈ 22 KB (the wrap + slot ~1.7 KB; schema-check + agi-mcp carry the rest)
 tests        their suites retire with them (test_rotate* ~10.5k lines · test_send ~8.1k · test_after_join_service ~3.1k ...); each new piece ships with the spike as its test
 ```
 The rough share that exists ONLY because every post is one Unix user: seatsig ~100% · rotate ~25-35% · heal ~25% · send ~20-25% · spawn_budget ~20% · write ~15% (a Sonnet survey, low confidence).
+
+The slot (§4, self-perpetuating; 472 B file, 415 B without its 2 comment lines; tested: fill · recycle · 3-way mix · keep dirty bytes · a clean keep writes no ref · a conflicting mix exits non-zero · 0 worktrees registered):
+```sh
+#!/bin/sh
+# slot D fill C.. | slot D keep REF
+d=$1 v=$2 r=$3;shift 3;export GIT_INDEX_FILE=$d.i
+if [ $v = fill ];then for c;do r=$(git commit-tree $(git merge-tree --write-tree $r $c) -p $r -p $c -m mix)||exit;done
+echo $r>$d.b;git --work-tree=$d read-tree -u --reset $r;git --work-tree=$d clean -fdqx
+else b=$(cat $d.b);git --work-tree=$d add -A;t=$(git write-tree);[ $t = $(git rev-parse $b^{tree}) ]||git update-ref $r $(git commit-tree $t -p $b -m keep);fi
+```
 
 ## §8 Spike falsifiers
 **What am I ACTUALLY trying to get the machine to do here?** Prove, on a throwaway repo under /tmp, that the kernel, git and systemd carry what the Python carried, BEFORE anything is retired. The spike runs only after the owner's go on this doc; until then `getent passwd | grep -c '^agi-'` = 0.
@@ -239,11 +302,11 @@ The rough share that exists ONLY because every post is one Unix user: seatsig ~1
 Setup: two spike posts `agi-spike-a`, `agi-spike-b` (declared the same way §1 declares posts) · one repo `core.sharedRepository=group`, umask 002 · `agi-write` + `agi-read` from §2 · one `agi-post@.service` from §1.
 | # | claim | run | PASS | FAIL (= the doc changes, not the spike) |
 |---|---|---|---|---|
-| a | two users commit signed into ONE shared repo | a and b each `agi-write` 100 edits to their own nodes, concurrently | 200 commits on the branch · `git log --show-signature` verifies all 200 against `allowed_signers` · `git fsck` clean · zero lost writes (CAS losers retried) · the shared checkout's `git status` clean | any EACCES under `.git/objects` or `refs/` · a lost write · a stale shared index |
+| a | two users commit signed into ONE shared repo | a and b each `agi-write` 100 edits to their own nodes, concurrently | 200 commits on the branch · `git log --show-signature` verifies all 200 against `allowed_signers` · `git fsck` clean (the shared repo carries `gc.pruneExpire=never`: `clone --shared` slots borrow its objects) · zero lost writes (CAS losers retried) · the shared checkout's `git status` clean | any EACCES under `.git/objects` or `refs/` · a lost write · a stale shared index |
 | b | the kernel refuses a cross-post node write | b: `echo x >> <a's node>`; b: forge a private-index commit touching a's node | the append fails EACCES · the landing audit (signer owns every path it touches) flags the forged commit | the write lands, or the forge passes the audit |
 | c | Claude Code + pi run AS each user; messaging = graph files | start both harnesses as a and as b with their settings symlinked from the graph; a writes a message file into b's inbox | each harness starts and reads its own settings · b's hook reports "1 unread" within one poll · no send.py in the path | a harness refuses to run as the user · the message needs a daemon |
 | d | one memory slice per user | a stress process in a's unit past its MemoryMax | killed inside a's slice; b's session untouched | b's process is hit, or the box is |
-| e | every read/write path is tracked onto the post, graph or not (owner 22:0xZ) | a reads and writes files inside and outside `.agi/nodes` | each path appears in a's track (audit keyed on a's uid, flushed by the wrap) and none in b's | a path is missing, or attributed to the wrong post |
+| e | every read/write path is tracked onto the post, graph or not (owner 22:0xZ) | a reads and writes files inside and outside `.agi/nodes` | each path appears in a's track (strace -f -e%file around the harness, readable by a with no root, committed by agi-flush) and none in b's · the harness's turn latency under strace is measured and stated | a path is missing, or attributed to the wrong post |
 | f | ownership is stable | a mints a node; restart the unit; reboot the box | the node is still owned by a's SAME uid and a can still edit it | the uid changed (the DynamicUser arm fails here; the sysusers arm is expected to pass) |
 | g | auto-rotate and auto-heal with NO command, and a death loses nothing (self-perpetuating) | write the meter flag · kill the harness mid-card (after the card's commit-tree, before its update-ref) · remove a's key | a fresh session slots into the wrap each time, with the card @ a's ref as its first input · the card is the previous version OR the new one, never partial and never dirty on disk · the key is re-minted and its row updated by one `agi-write` | a human or a second script has to act · a half-written or dirty card |
 | h | a post's refs are its own | b: `git update-ref <a's ref> <any sha>` in the shared repo | refused (EACCES) | the ref moves -> the §4 fallback (per-post bare repo + alternates, merge-ups pulled), then gitolite |
