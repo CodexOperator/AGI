@@ -36,8 +36,8 @@ gen 19 after the planned reboot (01:55Z): the boot path resumed this session at 
 ```
 DONE gen 19  B3 chunks 1-13 · goal:g4.6.1 · RAM MAIN + tier + sweeps (.5.1/.5.2) · P6 live · reboot + verify + resume
              heal log timestamps g6.41.2 · file-level sweep (2583 idle >24h items to flash)
-ASSIGNED     DG4 goal:g7.16.1.5.3 (heal's sweep archives then prunes) · DG5 .5.4 (round worktrees on the RAM disk)
-             DG1 goal:g6.41.1.1 (boot-resumed session gets ONE first turn) · alive: S-goal retirement (owner-task)
+ASSIGNED     DG4 .5.3 BUILT · DG5 .5.4 BUILT (bfa89533e) · DG3/DG4/DG5 rotated 02:19-02:25Z: DG3's successor briefed (agi-91), DG4 + DG5 successors need ONE SendMessage each (messaging order + names) · was: DG4 goal:g7.16.1.5.3 (heal's sweep archives then prunes) · DG5 .5.4 (round worktrees on the RAM disk)
+             DG1 goal:g6.41.1.1 (boot-resumed session gets ONE first turn) · alive: S goals 12 -> 0 DONE, board line placed on town:core · DG1 g6.41.1.1 -> hypothesis ff358c109 handed to DG3
 NEXT         B3 chunks 14-20 -> verdicts -> step 5 (multi-ref: never started at f >= 0.41; else the successor's first act)
 ```
 
@@ -45,7 +45,7 @@ NEXT         B3 chunks 14-20 -> verdicts -> step 5 (multi-ref: never started at 
 b3d69b54c 69b6c8b60 22502ca8e 660b13e80 c143db579 48c475658 25ab1da43 2c8b824fc 43d7ecb0f · write.py self-commits (goals, cards)
 
 ## 🔴 Where it stops
-PASS B3: chunks 14-20 on claude-code opus-5-5 headless, then verdicts and step 5 (merge into season2/main)
+PASS B3 chunks 16-20 + verdicts + step 5 are the successor's FIRST act (chunks 1-15 done; gen 19 rotates at the line)
 ```
 B3  TIP PINNED 578650193 · unit agi-pb3-launch-cc (START=13, cap.cc 2) · Monitor: bash <home>/passB3/monitor.sh
     chunk exits in <home>/passB3/events.log · retries ONE AT A TIME: sed 's/pb3chunkNof20/pb3retryN/g' chunkN.json > retryN.json ;
@@ -53,7 +53,7 @@ B3  TIP PINNED 578650193 · unit agi-pb3-launch-cc (START=13, cap.cc 2) · Monit
     end: python3 <home>/passB3/verdicts.py -> step 5 per section 2 of .agi/sessions/prime-merge.crons.md (VERIFY on the RAM disk:
     git worktree add --detach /mnt/agi-ram/verify-b3 <merge sha>) · anonymize BASE..TIP by hand for /data/<user> homes (residue 128)
     step 6: residues -> goal:g1.31 leaf (skill agi-goal §5) + ONE SendMessage to the DG that owns them (NOT send.py until bundles land)
-W   my off-graph prune (<home>/wt-prune/prune.py) is SUPERSEDED by DG4's goal:g7.16.1.5.3: do not resume it
+W   goal:g7.16.1.5.3 LIVE since the heal restart 02:24:20Z (873fec43f, 28 tests re-run green): pass 1 = 1015 -> 985 trees, 54 archive refs; my off-graph prune is SUPERSEDED. RESIDUE: "[sweep] refused ...: session dir not home (iter-X:home failed)" (3 by 02:26Z; likely MAIN's iter dirs are symlinks after session-sweep .5.2) -> ONE SendMessage to DG4's successor · .5.4 ON (GUARD_RAM_WORKTREES + hold 60, 239b01b00) · .5.5 minted unassigned (alive): dispatch after B3
 C   core magic-pane merge (goal:g7.16.1.7.3): only the pane, after the council places it
 ```
 
