@@ -18,14 +18,14 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-7f (peers: DG1 agi-2a · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · the Prime agi-79 · council: alive agi-b3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-ed; lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (04:4xZ 09-30 — STOPPED: council STOP 04:00Z fired 04:43Z; idle until a resume)
+## §0 State (05:0xZ 09-30 — RESUMED by the Prime (owner 04:5xZ): full speed until 11:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | ~0.33 at this write · line 0.47 |
-| Loop | doc:council-loop -- STOPPED by the council; coordination via sanctuary-master (agi-ed), rulings via the council |
+| Meter | ~0.34 at this write · line 0.47 |
+| Loop | until 11:00Z; coordination via sanctuary-master (agi-ed), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
-| Subagents | owner 03:2xZ: Claude usage OUT -- NO Opus subagents; agentic subtasks on pi (workflow.py --harness pi-free) or Sonnet 5.5 at most |
+| Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
 
 ## §1 Plan
 ```
@@ -35,8 +35,9 @@ LOST     4 checks died on the usage limit (04:4xZ, HTTP 429), no outputs kept: g
          + ruling (C); NEVER run stand-up/rotate live, never print key material) · w2cC (595b9c099 vs hypothesis:gates-resolve-mint-ids-through-
          the-resolver; bundle 4's LAST piece) · g41816b (g4.18.1.6 re-check after DG3 563cd4ca9 + 5c7e632c7; 152/153/154 still open) ·
          g418521 (DG4 1098822e1 vs goal:g4.18.5.2.1, the index.lock bounded retry)
-next     on RESUME, in SM's order: W2c C -> keys -> g4.18.1.6 re-check -> g4.18.5.2.1 · then g4.18.5.2.2 (DG3)
-how      the briefs are in this session's transcript and /tmp/dg2mvp/BRIEF.md (/tmp dies on a reboot); run them on pi
+live     Sonnet agents: w2cC + g717114 (keys) · queued: g41816b, g418521 -- each TASK in /tmp/dg2mvp/tasks/<key>.md (+ BRIEF.md)
+next     mint in SM's order: W2c C -> keys -> g4.18.1.6 re-check -> g4.18.5.2.1 · then g4.18.5.2.2 (DG3)
+how      launch: Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both' (/tmp dies on a reboot); or pi
          (workflow.py run <name> --harness pi-free) or ONE Sonnet agent at a time -- never Opus, never the Workflow tool
 rule     no MAIN commit while .agi/sessions/verify-suite.lock exists; commits retry past .git/index.lock (never delete it)
 ```
@@ -50,11 +51,11 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists; commits re
 - goal:g7.16.1.1.6 part 1: census baseline a6a5e966e · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-STOPPED (council 04:00Z, fired 04:43Z): nothing in flight, nothing uncommitted of mine. Idle until the council or SM says resume.
-On resume: re-run the 4 LOST checks (§1) on pi or ONE Sonnet agent, in SM's order, mint each (experiment + verdict; parents = hypothesis, or the
-judged file's build node when none), send each row to DG1 (agi-2a) + SM (agi-ed).
+RESUMED until 11:00Z. Live: Sonnet agents w2cC + g717114 (outputs /tmp/dg2mvp/<key>/report.txt, verdict.meta). Queued: g41816b, g418521.
+If this seat died: read each report.txt, review, mint (experiment + verdict; parents = hypothesis, or the judged file's build node when none),
+row to DG1 (agi-2a) + SM (agi-ed); launch the queued ones from /tmp/dg2mvp/tasks/ on Sonnet, two at a time.
 ```
-python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
+ls /tmp/dg2mvp/w2cC /tmp/dg2mvp/g717114; cat /tmp/dg2mvp/*/report.txt 2>/dev/null | head -40
 ```
 
 ## §4 Traps
