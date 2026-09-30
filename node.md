@@ -10,7 +10,8 @@ goal_id: G7.16.1.7.1.3.1
 goal_kind: subgoal
 scaffold_hash: b725366599058cd9
 season: 2
-status: active
+status: complete
+thought_session: director-general-5
 title: "G7.16.1.7.1.3.1: one harness resolver every config read goes through (template rows + aliases aware)"
 town: core
 ---
@@ -35,3 +36,7 @@ goal:g7.16.1.7.1.3.2 · goal:g7.16.1.7.1.3.3
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+09c554f4f: adapters.harness_block + harness_ids; the ten config.json harness reads (spawn_budget, workflow x4, heal, dispatch x2, rotate x3) go through them. Falsifier 1: test_harness_block.py fixture template (default row, pi:<row>, alias, plain, unknown) + byte-identical on the live config; falsifier 2: its negative scan (config:brief own cell.get excluded -- a different node). 51 adapter/dispatch/workflow/spawn/heal/rotate files green (one lock-hit setup ERROR green on rerun).
+<!-- THOUGHT:END -->
