@@ -21,5 +21,5 @@ town: core
 `skills/agi-goal/SKILL.md` — a flow skill (goal:g4.18.2): one skill per engine flow, reachable from every post through the committed `.claude/skills/agi-goal` symlink. Posts' cards list it instead of carrying its rules.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 06:4xZ 09-28 to belam, verbatim: "Again DE needs to use the board to post progress updates. Maybe add a correction to the goal harvest or goal lifecycle skill to remind roles to use the town board for progress tracking to help keep cards trim." -- ONE rule, one source: the progress row lives in agi-dispatch 5 (the harvest table, where progress happens); agi-goal carries a one-line pointer to it. Near miss: a line only in agi-goal satisfies the words and never fires, because a director reads agi-goal when it MINTS a goal, not when it harvests one.
+goal:g4.18.5.2.2 -- the skill teaches the self-committing write and points at the config cell (158a9fd06), never the template; was: a hand commit / the grid cron as the normal path.
 <!-- THOUGHT:END -->
