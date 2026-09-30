@@ -1336,6 +1336,99 @@ def check_formation(groot: Path) -> CheckResult:
                        message="\n".join(f"wake {w}" for w in wake))
 
 
+def _census_rows(cen) -> tuple[list, list, dict] | str:
+    """(scanned, exclude, rules) of a config:census `census` value, or the
+    reason it is unusable (a row the check cannot run fails closed)."""
+    if not isinstance(cen, dict):
+        return "`census` is not a mapping"
+    scanned, exclude, rules = cen.get("scanned"), cen.get("exclude") or [], cen.get("rules")
+    for key, val in (("scanned", scanned), ("exclude", exclude)):
+        if not isinstance(val, list) or not all(isinstance(v, str) and v for v in val):
+            return f"census.{key} is not a list of repo-relative strings"
+    if not scanned or not isinstance(rules, dict) or not rules:
+        return "census.scanned or census.rules is empty"
+    for name, row in rules.items():
+        if not (isinstance(row, dict) and all(isinstance(row.get(k), str) and row.get(k)
+                                             for k in ("home", "pattern"))):
+            return f"rule {name!r}: wants a mapping with a home and a pattern"
+    return [str(s) for s in scanned], [str(e) for e in exclude], rules
+
+
+def _census_hits(base: Path, pattern: str, scanned: list, skip) -> list[tuple[str, int]]:
+    """(repo-relative file, line) of every match of the ERE `pattern` over the
+    scanned pathspecs, ONE `git grep --no-index` (untracked copies count, no
+    rglob), minus what `skip(file)` drops. Raises rotation_record.GrepError
+    when the grep cannot look: a bad pattern, an unreadable file, no git."""
+    try:
+        r = subprocess.run(["git", "grep", "--no-index", "--exclude-standard", "-I", "-nE",
+                            "-e", pattern, "--", *scanned],
+                           cwd=base, capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise rotation_record.GrepError(f"git grep could not run: {exc}") from None
+    if r.returncode >= 2 or (r.returncode == 1 and r.stderr.strip()):
+        raise rotation_record.GrepError(f"git grep exit {r.returncode}: {r.stderr.strip()}")
+    hits = []
+    for ln in r.stdout.splitlines():
+        rel, _, rest = ln.partition(":")
+        num = rest.partition(":")[0]
+        if rel and num.isdigit() and not skip(rel):
+            hits.append((rel, int(num)))
+    return hits
+
+
+def check_census(groot: Path) -> CheckResult:
+    """goal:g7.16.1.1.6.1 -- the one-source census. config:census names the
+    `scanned` pathspecs, the `exclude` prefixes and one `rules` row per rule
+    (`home`, `pattern`); per row exactly ONE hit in its home is ok. A second
+    hit FAILs naming each file:line; none, or one outside the home, FAILs; a
+    bad row or a grep that cannot look FAILs naming the rule (closed). No cell
+    = SKIP. The cell's own file is never counted (it quotes every pattern).
+    The next rule is a cell row, never code."""
+    import yaml
+    import node_writer
+    t0 = time.monotonic()
+
+    def _res(status, **kw):
+        return CheckResult("census", status, time.monotonic() - t0, **kw)
+    cell = node_writer.find_node_file(groot, "config:census")
+    if cell is None:
+        return _res("SKIP", note="no config:census cell")
+    try:
+        split = node_writer.split_frontmatter(cell.read_text("utf-8"))
+        rows = _census_rows((yaml.safe_load(split[0]) or {}).get("census")
+                            if split else None)
+    except (OSError, yaml.YAMLError) as exc:
+        rows = f"the cell does not load: {exc}"
+    if isinstance(rows, str):
+        return _res("FAIL", note="config:census is unusable", message=rows)
+    scanned, exclude, rules = rows
+    base = groot.parent if groot.name == ".agi" else locations.source_root(groot)
+    try:
+        own = cell.resolve().relative_to(base.resolve()).as_posix()
+    except ValueError:
+        own = ""
+    prefixes = tuple(e.strip("/").removeprefix("./") + "/" for e in exclude)
+    skip = lambda rel: rel == own or rel.startswith(prefixes) or rel in exclude   # noqa: E731
+    bad = []
+    for name, row in rules.items():
+        home = row["home"].removeprefix("./")
+        try:
+            hits = _census_hits(base, row["pattern"], scanned, skip)
+        except rotation_record.GrepError as exc:
+            bad.append(f"{name}: the grep cannot look: {exc}")
+            continue
+        if len(hits) == 1 and hits[0][0] == home:
+            continue
+        where = ", ".join(f"{f}:{n}" + (" (home)" if f == home else "") for f, n in hits)
+        bad.append(f"{name}: {len(hits)} definition(s), want ONE in {home}" +
+                   (f" -- {where}" if hits else " -- none (the home moved without its row?)"))
+    if bad:
+        return _res("FAIL", note=f"{len(bad)} of {len(rules)} census rule(s) broken",
+                    message="\n".join(bad))
+    return _res("PASS", number={"rules": len(rules)},
+                note=f"{len(rules)} rule(s), one definition each")
+
+
 def check_seat_model(groot: Path) -> CheckResult:
     """FAIL when any config:seats row's live transcript model drifted from its
     declared model; PASS otherwise. Detect, never repair. (Surface 2 of
@@ -1758,6 +1851,7 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
     if level in ("rotation", "full"):
         results.append(check_node_dirs(groot))
         results.append(check_formation(groot))   # goal:g7.16.1.1.5
+        results.append(check_census(groot))      # goal:g7.16.1.1.6.1
     smoke = next((r for r in results if r.name == "smoke"), None)
     current = smoke.number if smoke is not None else None
     # --stamp FORCED smoke above, so `current` is this run's fresh count and a
