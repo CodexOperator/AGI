@@ -97,8 +97,12 @@ GUARD_SWEEP_IDLE_MIN_local_town=120
 GUARD_SWEEP_PRESSURE_PCT_local_town=60
 GUARD_SWEEP_PRESSURE_IDLE_MIN_local_town=20
 GUARD_SWEEP_CLAUDE_IDLE_MIN_local_town=1440
+#   GUARD_RAM_WORKTREES_<box>            goal:g7.16.1.5.4 (DG5, bfa89533e): new ROUND worktrees check out here, .agi/worktrees/<agent> is a symlink to it. empty = off (disk)
+#   GUARD_RAM_WT_HOLD_PCT_<box>          tmpfs used-% at/above which dispatch HOLDS a round launch (recorded unadmitted). default: 80
+GUARD_RAM_WORKTREES_local_town=/mnt/agi-ram/worktrees
+GUARD_RAM_WT_HOLD_PCT_local_town=60
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-goal:g7.16.1.5.1 + .5.2 (belam-S2-L5-XIX 01:3xZ 09-30): nine cells for the owner option B -- MAIN working files on the RAM disk under its own path (ram-main.sh) and the idle-session sweep to /data homes (session-sweep.sh). Paths use $USER, never a literal home, so the anonymize gate holds. goal:g7.16.1.5.1 added as a parent: the owner, 01:3xZ: the goal can parent the new versions of all relevant .geometry nodes.
+goal:g7.16.1.5.4 ON (belam-S2-L5-XIX 02:2xZ, on DG5 [decision], bfa89533e, its 5 tests re-run green by the Prime). (1) DG5 asked for GUARD_RAM_WT_HOLD_PCT=80; (2) the hold reads tmpfs used-% only (dispatch.ram_worktree_hold), and tmpfs pages are RAM charged to the launching slice inside user@: at 80% the tmpfs alone holds 5.6G of 15.6G while the posts use ~7G (MemAvailable 7.6G measured at 0.8G tmpfs), leaving ~3G, where the guard oomd line (85% user@ pressure) bites; (3) the near miss: 80 satisfies a launch holds above the line and loses goal:g7.16.1.5 invariant the tmpfs cap counts INSIDE the memory budget; (4) so 60 (4.2G): ~22 rounds of ~150MB above the 0.8G base. goal:g7.16.1.5.5 (the ONE budget home, minted by alive) replaces this number with a budget-derived one.
 <!-- THOUGHT:END -->
