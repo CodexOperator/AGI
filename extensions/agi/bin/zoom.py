@@ -636,7 +636,7 @@ def _target_not_found(root: Path, target: str) -> str:
     return base
 
 
-def target_resolves(root: Path, target: str | None) -> str | None:
+def target_resolves(root: Path, target: str | None, g=None) -> str | None:
     """ONE resolver for "does this --target resolve in THIS graph?".
 
     goal:g1.31.4.1 conjunct 2 — the render paths (`_compose_small`,
@@ -644,11 +644,15 @@ def target_resolves(root: Path, target: str | None) -> str | None:
     refuses exactly what a live spawn refuses. Returns None when the target
     resolves, else the refusal text (what the render raises as
     ZoomUnavailable). Pure read: no session dir, no context file, no spawn.
+
+    `g` is the graph the caller ALREADY holds (`_compose_small` /
+    `_compose_parent` / `_render_level` load it themselves): passing it keeps
+    ONE graph load per render instead of one per render plus one per check.
     """
     if not target:
         return "--target required for --level small"
     try:
-        g, _loaded = _load_wired_graph(root)
+        g = _load_wired_graph(root)[0] if g is None else g
     except ZoomUnavailable as e:
         return str(e)
     if not g.has_node(target):
@@ -675,7 +679,7 @@ def _compose_small(root: Path, args: argparse.Namespace) -> str:
     g, _loaded = _load_wired_graph(root)
 
     target = args.target
-    _refused = target_resolves(root, target)
+    _refused = target_resolves(root, target, g)
     if _refused is not None:
         raise ZoomUnavailable(_refused)
 
@@ -821,7 +825,7 @@ def _compose_parent(root: Path, args: argparse.Namespace) -> str:
     """
     g, _loaded = _load_wired_graph(root)
     target = args.target
-    _refused = target_resolves(root, target)
+    _refused = target_resolves(root, target, g)
     if _refused is not None:
         raise ZoomUnavailable(_refused)
     tn = g.get_node(target)
@@ -971,9 +975,12 @@ def _render_level(root: Path, args: argparse.Namespace, level: int) -> str:
     info = LEVEL_INFO[level]
     g, _loaded = _load_wired_graph(root)
 
+    # ONE target-existence check, the same one the small/parent shapes and the
+    # dry report use (goal:g1.31.4.1): a numeric level that loses its target
+    # must refuse in the same words, not in a second private wording.
     target = args.target
-    if target and not g.has_node(target):
-        raise ZoomUnavailable(_target_not_found(root, target))
+    if target and (_refused := target_resolves(root, target, g)) is not None:
+        raise ZoomUnavailable(_refused)
 
     fm_by_id = _frontmatter_for(root, info["dir_name"])
 

@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -441,7 +442,11 @@ def test_dry_run_exports_identity_and_readers_agree(project, monkeypatch):
     assert m_id, f"dry-run env must export AGI_AGENT_ID:\n{out}"
     assert m_actor, f"dry-run env must export AGI_ACTOR:\n{out}"
     aid, actor = m_id.group(1), m_actor.group(1)
-    assert aid.startswith("dry") and len(aid) >= 10, f"not an agent id: {aid}"
+    # goal:g1.31.4.1: the dry report mints the id the LIVE path mints
+    # (`a<NN>-<hex>`). The retired `dry<NN>-<hex>` nonce was a second dialect
+    # no live spawn ever produced, so every reader keyed on the live grammar
+    # had to special-case a dry run.
+    assert _re.fullmatch(r"a\d\d-[0-9a-f]{8}", aid), f"not a live agent id: {aid}"
     assert actor == aid, "AGI_ACTOR must equal the minted agent id"
 
     # Feed the producer's OWN exported values to the readers — no invented id.
@@ -812,7 +817,9 @@ def test_dry_run_names_branch(project):
                       capture_output=True, text=True, cwd=td)
     assert det.returncode == 0, det.stderr   # never crashes
     dbase = _branch_facts(det.stdout)["base"]
-    assert dbase == "NONE (detached HEAD — a live --branch spawn would refuse)", dbase
+    # goal:g1.31.4.1 — ONE wording for the detached-HEAD refusal, read from
+    # the constant the live spawn prints, not a second copy of the sentence.
+    assert dbase == f"NONE ({dispatch.DETACHED_HEAD_REFUSAL})", dbase
     assert dispatch.spawner_base_branch is not None  # live resolver exists
 
 
@@ -856,3 +863,58 @@ def test_dry_run_branch_creates_no_worktree(project):
     assert r.returncode == 0, r.stderr
     assert not (project / ".agi" / "worktrees").exists()
     assert sorted(p.name for p in (project / ".agi").iterdir()) == before
+
+
+# --- goal:g1.31.4.1 — the dry report is the live path, spelled the same ----
+
+
+def test_auto_level_refuses_a_bad_target_a_live_round_would_refuse(project):
+    """`--level auto` used to be forced to `big`, so a bogus target passed dry.
+
+    The live loop resolves `auto` per slot; the dry report now resolves it
+    through the SAME function, and an `auto` slot is target-checked either
+    way — the small draw is reachable, so a target the round may refuse must
+    not pass a dry run just because this draw rolled big.
+    """
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:nope", "--level", "auto", "--dry-run")
+    assert r.returncode != 0, r.stdout
+    assert "hypothesis:nope" in r.stderr
+
+
+def test_auto_level_reports_the_level_it_resolved(project):
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--level", "auto", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert "level=big (from auto)" in r.stdout or "level=small (from auto)" in r.stdout
+
+
+def test_dry_agent_id_uses_the_live_id_grammar(project):
+    """No `dry<NN>-<hex>` nonce: the id a reader sees is the LIVE id's shape."""
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert not re.search(r"\bdry\d\d-", r.stdout), r.stdout
+    assert re.search(r"AGI_AGENT_ID=a\d\d-[0-9a-f]{8}", r.stdout), r.stdout
+
+
+def test_resolve_auto_level_is_the_one_resolver_both_paths_call():
+    """One function decides `auto` for the live loop AND `--dry-run`.
+
+    A second copy of this rule in either path is exactly how the two drifted.
+    """
+    sys.path.insert(0, str(BIN))
+    import dispatch  # noqa: PLC0415
+
+    assert dispatch.resolve_auto_level("small", 0.3, "hypothesis:x",
+                                       draw=lambda: 0.0) == "small"
+    assert dispatch.resolve_auto_level("auto", 0.3, "hypothesis:x",
+                                       draw=lambda: 0.9) == "small"
+    assert dispatch.resolve_auto_level("auto", 0.3, "hypothesis:x",
+                                       draw=lambda: 0.1) == "big"
+    assert dispatch.resolve_auto_level("auto", 0.3, None,
+                                       draw=lambda: 0.9) == "big", (
+        "no target -> big: a small zoom has nothing to bind to")
+    src = (BIN / "dispatch.py").read_text(encoding="utf-8")
+    assert src.count('random.random() < big_split') == 0, (
+        "the auto rule is duplicated inline instead of resolved once")

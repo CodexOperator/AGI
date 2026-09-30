@@ -173,7 +173,8 @@ def _death_class(worktree, agent_id, runtime_s, agent_dir=None) -> dict:
                 krec = json.loads(ap.read_text())
             except (OSError, ValueError):
                 continue
-            # The SPAWNING agent is `spawned_by_agent` (dispatch.py:2368);
+            # The SPAWNING agent is `spawned_by_agent` (the manifest row
+            # `main` writes);
             # `dispatched_by` names the SEAT to alarm. Match the real field
             # first, and keep `dispatched_by` as a fallback for any record
             # written before spawned_by_agent existed -- an agent id never
@@ -775,7 +776,8 @@ def ram_worktree_hold(root: Path) -> str | None:
             f"(GUARD_RAM_WT_HOLD_PCT)") if pct >= line else None
 
 
-def branch_worktree_link(root: Path, agent_id: str) -> Path:
+def branch_worktree_link(root: Path, agent_id: str,
+                         main: Path | None = None) -> Path:
     """Where a `--branch` spawn's checkout WOULD live — WITHOUT creating it.
 
     goal:g1.31.4.1 conjunct 1: the dry report must name the worktree a live
@@ -783,9 +785,11 @@ def branch_worktree_link(root: Path, agent_id: str) -> Path:
     helper the live path asks, so the path grammar stays ONE resolver shared
     by the spawner and the report (no second copy of the `main/.agi/worktrees`
     or RAM spelling). Returns the reader-visible link (RAM-backed parents get
-    the symlink path, the dir itself on the tmpfs), and touches no disk.
+    the symlink path, the dir itself on the tmpfs), and touches no disk. `main`
+    lets a caller that already resolved `git_common_root` pass it in, so one
+    spawn resolves the main checkout ONCE.
     """
-    main = locations.git_common_root(root)  # main checkout, from any depth
+    main = main or locations.git_common_root(root)  # main checkout, from any depth
     return main / ".agi" / "worktrees" / agent_id
 
 
@@ -803,7 +807,7 @@ def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
     created.
     """
     main = locations.git_common_root(root)  # main checkout, for `git -C`
-    link = branch_worktree_link(root, agent_id)
+    link = branch_worktree_link(root, agent_id, main=main)
     # goal:g7.16.1.5.4: with the RAM cell set the checkout lives on the tmpfs
     # and `.agi/worktrees/<agent>` is a symlink to it, so every reader that
     # globs .agi/worktrees is unchanged; the objects stay in MAIN's .git.
@@ -1383,6 +1387,27 @@ def apply_orders_env(args) -> str | None:
     return text
 
 
+# The ONE wording of "a --branch spawn has no branch to cut a child from" —
+# the live spawn and the dry report's `base=` line say the same words.
+DETACHED_HEAD_REFUSAL = ("--branch requires a checked-out branch (detached "
+                         "HEAD?) to cut a child from")
+
+
+def resolve_auto_level(level: str, big_split: float, target: str | None,
+                       draw=random.random) -> str:
+    """`auto` -> the concrete level, for the live loop AND `--dry-run`.
+
+    goal:g1.31.4.1: the dry path used to force `auto` to `big`, so a target
+    the live loop refuses at its `small` draw passed dry. Both paths resolve
+    through THIS function. A slot with no target falls back to `big` because
+    a small zoom has nothing to bind to.
+    """
+    if level != "auto":
+        return level
+    resolved = "big" if draw() < big_split else "small"
+    return "big" if resolved == "small" and target is None else resolved
+
+
 def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                     dispatch_harness: dict, adapter: object, args,
                     targets, tier_eff: int) -> int:
@@ -1426,6 +1451,7 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         root / "nodes" if root else None)
     if current_season is None:
         current_season = 1
+    big_split = float(cfg.get("big_idea_vs_small_idea_split", 0.3))
     cap = spawn_budget.max_live(cfg)
     parallel = adapters.parallelism(cfg)
     # hypothesis:l3-parent-never-told-to-iterate -- the per-dispatch kid
@@ -1447,23 +1473,35 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             level, target, strategy, _role = target_entry
         else:
             level, target, strategy = target_entry
-        if level == "auto":
-            # Resolution-only: we need one deterministic level for the report.
-            level = "big"
-        # goal:g1.31.4.1 conjunct 2 — a dry run REFUSES a target the live
-        # path refuses, through the SAME resolver the render path uses
-        # (`zoom.target_resolves`, called by zoom._compose_small) and the
-        # SAME refusal line the live spawn prints (_no_context_refusal).
-        # In-process on purpose: rendering through `zoom_command` would mkdir
-        # the session dir (zoom.py:496), which a dry run must never do.
-        if level == "small":
-            _refused = zoom.target_resolves(root, target)
+        # goal:g1.31.4.1 — the dry id is spelled the way a LIVE id is
+        # (`a<NN>-<hex>`): the retired `dry<NN>-<hex>` nonce was a dialect no
+        # live spawn produces, and the report says `dry-run` in its own words.
+        agent_id = f"a{slot:02d}-{uuid.uuid4().hex[:8]}"
+        # conjunct 9 — a `--branch` dry run must refuse against the SAME graph
+        # the live spawn renders from: the worktree's, when one is already cut
+        # (never cut one here — a dry run writes nothing).
+        check_root = root
+        if getattr(args, "branch", False):
+            _wt_graph = locations.find_project_root(
+                branch_worktree_link(root, agent_id))
+            if _wt_graph is not None:
+                check_root = _wt_graph
+        # ONE level resolver, shared with the live loop, so `--level auto` in
+        # dry IS a level the round can take. An `auto` slot is target-checked
+        # either way: the small draw is reachable, so a target the round may
+        # refuse must not pass dry because THIS draw rolled big.
+        auto = level == "auto"
+        level = resolve_auto_level(level, big_split, target)
+        if level == "small" or auto:
+            _refused = zoom.target_resolves(check_root, target)
             if _refused is not None:
                 print(_no_context_refusal(
                     target, level, zoom.unavailable_stderr(_refused)),
                     file=sys.stderr)
+                if check_root is not root:
+                    print(f"note: target checked against the worktree graph "
+                          f"at {check_root}", file=sys.stderr)
                 return 1
-        agent_id = f"dry{slot:02d}-{uuid.uuid4().hex[:8]}"
         brief_tier = _brief_tier_for(args.tier, tier_eff, target)
         with tempfile.TemporaryDirectory() as td:
             sess_dir = Path(td)
@@ -1566,7 +1604,8 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
 
         print(f"[dry-run] slot={slot} harness={harness_name} "
               f"tier={args.tier} role={args.role} ladder_tier={tier_eff} "
-              f"level={level} target={target or '-'} "
+              f"level={level}{' (from auto)' if auto else ''} "
+              f"target={target or '-'} "
               f"brief_tier={brief_tier}")
         # Compact: pi inlines every brief segment as its own flag, so the raw
         # command would print hundreds of lines of the brief itself. The brief
@@ -1586,23 +1625,20 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         # fresh inline `git rev-parse`. The worktree is only NAMED
         # (branch_worktree_for_spawn, which runs `git worktree add`, is NOT
         # called). The stale-base refusal is deliberately NOT mirrored: the
-        # live call at `dispatch.py:2608` (_stale_base_spawn, return 3 at
-        # :2620) FETCHES origin
+        # live call to `_stale_base_spawn` (which returns 3) FETCHES origin
         # and a dry run must not touch the network, so the report says so
         # rather than passing silently.
         if getattr(args, "branch", False):
             _dbase = spawner_base_branch(Path.cwd())
             _dbranch = loop_branch_name(target, agent_id, current_season)
-            _dbase_shown = _dbase or ("NONE (detached HEAD — a live "
-                                      "--branch spawn would refuse)")
+            _dbase_shown = _dbase or f"NONE ({DETACHED_HEAD_REFUSAL})"
             print(f"  branch: {_dbranch} base={_dbase_shown} "
                   f"worktree={branch_worktree_link(root, agent_id)}")
             print(f"  branch context: the live spawn re-roots the graph to "
                   f"that worktree, so this dry report's placeholder context "
                   f"is NOT the graph the child would see; stale-base not "
-                  f"evaluated here (live: _stale_base_spawn at "
-                  f"dispatch.py:2608) to keep the dry "
-                  f"run off the network")
+                  f"evaluated here (live: `_stale_base_spawn`, return 3) to "
+                  f"keep the dry run off the network")
         export_keys = ["AGI_TIER", "AGI_ROLE", "AGI_LADDER_TIER",
                        "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
                        "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
@@ -2542,11 +2578,9 @@ def main() -> int:
         else:
             level, target, strategy = target_entry
             role = None
-        # Decide big-vs-small based on config split when "auto"
-        if level == "auto":
-            level = "big" if random.random() < big_split else "small"
-            if level == "small" and target is None:
-                level = "big"  # no target → fall back to big
+        # Decide big-vs-small when "auto" through the resolver the dry run
+        # shares, so a dry report's level is a level this round can take.
+        level = resolve_auto_level(level, big_split, target)
 
         agent_id = f"a{slot:02d}-{uuid.uuid4().hex[:8]}"
         sess_dir = iter_dir / agent_id
@@ -2618,9 +2652,8 @@ def main() -> int:
         if args.branch:
             base = spawner_base_branch(Path.cwd())
             if not base:
-                print(f"ERR {agent_id} slot={slot}: --branch requires a "
-                      f"checked-out branch (detached HEAD?) to cut a child "
-                      f"from", file=sys.stderr)
+                print(f"ERR {agent_id} slot={slot}: {DETACHED_HEAD_REFUSAL}",
+                      file=sys.stderr)
                 spawn_budget.release(lease)
                 return 1
             # hypothesis:l4-a-round-is-cut-from-the-branch-you-are-on
@@ -4058,7 +4091,7 @@ def _attractiveness(desc: int, recency_boost: float, diversity: float,
     The recency leaf boost used to be `desc * 1.2` — and `_descendant_count`
     returns 0 for a leaf, so `0 * 1.2 == 0.0` and the boost never fired:
     every chain tip scored 0 and sorted last (idea:frontier-invitation
-    measured this at dispatch.py:1466). Flooring the descendant term at 1
+    measured this in `_pick_targets`). Flooring the descendant term at 1
     is what lets a leaf's boost mean anything: a leaf scores 1.2 (not 0.0)
     and can rank. The floor is identity for every non-leaf, which already
     has desc >= 1, so nothing else changes.

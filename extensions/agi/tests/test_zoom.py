@@ -21,6 +21,7 @@ Two things matter more than any single level's exact wording:
 
 from __future__ import annotations
 
+import argparse
 import subprocess
 import sys
 from pathlib import Path
@@ -616,3 +617,57 @@ def test_no_source_comment_cites_an_unresolvable_tier_node_id():
         )
         assert real_prefix in text, f"corrected id missing from {src.name} comment"
         assert real_tail in text, f"corrected id truncated in {src.name} comment"
+
+
+# --- goal:g1.31.4.1 — ONE load, ONE check, ONE resolver (this round) ------
+
+
+def test_one_graph_load_per_small_and_parent_render(project, monkeypatch):
+    """The render must load the wired graph ONCE.
+
+    `target_resolves` used to call `_load_wired_graph` itself, so every
+    small/parent render paid for two full graph loads — one it held and one
+    the check made. The check now takes the graph the caller already has.
+    """
+    sys.path.insert(0, str(BIN))
+    sys.path.insert(0, str(BIN.parent / "src"))
+    import zoom  # noqa: PLC0415 — imported in-process on purpose
+
+    calls: list[int] = []
+    real = zoom._load_wired_graph
+    monkeypatch.setattr(zoom, "_load_wired_graph",
+                        lambda r: (calls.append(1), real(r))[1])
+    args = argparse.Namespace(target="goal:g1", iter_n="1", agent_id="a00-x",
+                              tier="kid", push_further=False, runtime="pi",
+                              level="small")
+    for compose in (zoom._compose_small, zoom._compose_parent):
+        calls.clear()
+        compose(project, args)
+        assert len(calls) == 1, (
+            f"{compose.__name__} loaded the wired graph {len(calls)}x")
+
+
+def test_has_node_target_lives_only_in_target_resolves():
+    """ONE target-existence check: `target_resolves`, and nowhere else.
+
+    `_render_level` kept a private `g.has_node(target)`, so a numeric level
+    refused in its own words rather than the one the dry run previews.
+    """
+    assert SOURCE.count("has_node(target)") == 1, (
+        "a second `has_node(target)` call site re-opened a private "
+        "target-existence check outside `target_resolves`")
+
+
+def test_render_level_refuses_through_target_resolves(project, monkeypatch):
+    sys.path.insert(0, str(BIN))
+    sys.path.insert(0, str(BIN.parent / "src"))
+    import zoom  # noqa: PLC0415
+
+    monkeypatch.setattr(zoom, "target_resolves",
+                        lambda root, target, g=None: "the ONE refusal")
+    args = argparse.Namespace(target="goal:g1", iter_n="1", agent_id="a00-x",
+                              tier="kid", push_further=False, runtime="pi",
+                              level="1")
+    with pytest.raises(zoom.ZoomUnavailable) as exc:
+        zoom._render_level(project, args, 1)
+    assert str(exc.value) == "the ONE refusal"
