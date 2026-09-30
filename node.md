@@ -6,14 +6,14 @@ parents:
   - goal:g7.16.1.10
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-3
 goal_id: G7.16.1.10.7
 goal_kind: subgoal
 origin: council-loop
 scaffold_hash: 21109a3e9b3e8039
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - templates
 title: "G7.16.1.10.7: the merge gate -- the PASS gives ONE word from the council report; a RED or a commit with no row refuses the merge by name"
