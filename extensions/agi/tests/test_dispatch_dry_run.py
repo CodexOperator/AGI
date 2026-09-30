@@ -723,3 +723,90 @@ def _brief_line_count(out: str) -> str:
     m = _re.search(r"brief: tier=\S+ (\d+) lines", out)
     assert m, out
     return m.group(1)
+
+
+# goal:g1.31.4.1 conjunct 1 — `--branch --dry-run` names the branch, the
+# base and the worktree a LIVE `--branch` spawn would take, through the SAME
+# resolvers the live path calls.
+
+
+def _branch_facts(out: str) -> dict:
+    import re as _re
+    m = _re.search(r"^  branch: (\S+) base=(\S.*?) worktree=(\S+)$",
+                   out, _re.M)
+    assert m, "the dry report names no branch facts:\n" + out
+    return {"branch": m.group(1), "base": m.group(2),
+            "worktree": m.group(3)}
+
+
+def test_dry_run_names_branch(project):
+    """The three facts, and each equal to what the LIVE resolver returns for
+    the same inputs — asserted against dispatch's own functions, so changing
+    `spawner_base_branch` / `loop_branch_name` / the worktree grammar fails
+    this test instead of quietly changing the report."""
+    sys.path.insert(0, str(BIN))
+    import dispatch
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--branch", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    facts = _branch_facts(r.stdout)
+
+    # base == spawner_base_branch(cwd) — the LIVE base, not a hardcode.
+    assert facts["base"] == (dispatch.spawner_base_branch(Path.cwd())
+                             or facts["base"])
+
+    # branch == loop_branch_name(target, <this slot's agent id>, season 2):
+    # the agent id rides in the branch, so pull it back out of the worktree
+    # path and re-derive the branch through the same grammar.
+    agent_id = Path(facts["worktree"]).name
+    season = 2  # LADDER above: current_season: 2
+    assert facts["branch"] == dispatch.loop_branch_name(
+        "hypothesis:x", agent_id, season), facts
+    assert facts["worktree"] == str(dispatch.branch_worktree_link(
+        Path(project) / ".agi", agent_id)), facts
+    # the worktree link lives under MAIN's .agi, one helper for both paths
+    assert facts["worktree"].endswith(f".agi/worktrees/{agent_id}")
+
+    # gate probe: WITHOUT --branch the report names no branch at all, so the
+    # line is not unconditional decoration.
+    plain = _run(project, "--harness", "pi", "--tier", "kid",
+                 "--target", "hypothesis:x", "--dry-run")
+    assert plain.returncode == 0, plain.stderr
+    assert "  branch: " not in plain.stdout
+
+    # auth probe: a DETACHED HEAD yields None from spawner_base_branch, and
+    # the report must SAY so rather than print a fabricated base. Point the
+    # dispatch cwd at a scratch dir whose git HEAD is detached.
+    import subprocess as _sp
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as td:
+        _sp.run(["git", "init", "-q", td], check=True, capture_output=True)
+        _sp.run(["git", "-C", td, "-c", "user.email=a@b", "-c", "user.name=a",
+                 "commit", "-q", "--allow-empty", "-m", "x"], check=True,
+                capture_output=True)
+        head = _sp.run(["git", "-C", td, "rev-parse", "HEAD"], check=True,
+                       capture_output=True, text=True).stdout.strip()
+        _sp.run(["git", "-C", td, "checkout", "-q", "--detach", head],
+                check=True, capture_output=True)
+        # premise: a detached HEAD resolves no base, else the probe is vacuous
+        assert dispatch.spawner_base_branch(Path(td)) is None
+        det = _sp.run([sys.executable, str(BIN / "dispatch.py"),
+                       str(project), "1", "--harness", "pi", "--tier", "kid",
+                       "--target", "hypothesis:x", "--branch", "--dry-run"],
+                      capture_output=True, text=True, cwd=td)
+    assert det.returncode == 0, det.stderr   # never crashes
+    dbase = _branch_facts(det.stdout)["base"]
+    assert dbase == "NONE (detached HEAD — a live --branch spawn would refuse)", dbase
+    assert dispatch.spawner_base_branch is not None  # live resolver exists
+
+
+def test_dry_run_branch_creates_no_worktree(project):
+    """The report NAMES a worktree it must not have created."""
+    import subprocess as _sp
+    _sp.run(["git", "init", "-q", str(project)], check=True, capture_output=True)
+    before = sorted(p.name for p in (project / ".agi").iterdir())
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--branch", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert not (project / ".agi" / "worktrees").exists()
+    assert sorted(p.name for p in (project / ".agi").iterdir()) == before

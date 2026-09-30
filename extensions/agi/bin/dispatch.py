@@ -765,6 +765,20 @@ def ram_worktree_hold(root: Path) -> str | None:
             f"(GUARD_RAM_WT_HOLD_PCT)") if pct >= line else None
 
 
+def branch_worktree_link(root: Path, agent_id: str) -> Path:
+    """Where a `--branch` spawn's checkout WOULD live — WITHOUT creating it.
+
+    goal:g1.31.4.1 conjunct 1: the dry report must name the worktree a live
+    spawn would take, and the only honest way to name it is to ask the same
+    helper the live path asks, so the path grammar stays ONE resolver shared
+    by the spawner and the report (no second copy of the `main/.agi/worktrees`
+    or RAM spelling). Returns the reader-visible link (RAM-backed parents get
+    the symlink path, the dir itself on the tmpfs), and touches no disk.
+    """
+    main = locations.git_common_root(root)  # main checkout, from any depth
+    return main / ".agi" / "worktrees" / agent_id
+
+
 def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
                               base_branch: str) -> Path:
     """`git worktree add <main>/.agi/worktrees/<agent> -b <branch> <base>`.
@@ -778,8 +792,8 @@ def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
     RuntimeError naming the branch and base when the worktree cannot be
     created.
     """
-    main = locations.git_common_root(root)  # main checkout, from any depth
-    link = main / ".agi" / "worktrees" / agent_id
+    main = locations.git_common_root(root)  # main checkout, for `git -C`
+    link = branch_worktree_link(root, agent_id)
     # goal:g7.16.1.5.4: with the RAM cell set the checkout lives on the tmpfs
     # and `.agi/worktrees/<agent>` is a symlink to it, so every reader that
     # globs .agi/worktrees is unchanged; the objects stay in MAIN's .git.
@@ -1542,6 +1556,30 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 return q[:180] + f"...<{len(q)} chars>"
             return q
         print(f"  command: {' '.join(_compact(a) for a in cmd)}")
+        # goal:g1.31.4.1 conjunct 1 — a `--branch --dry-run` names the three
+        # facts the LIVE spawn would act on, through the SAME resolvers
+        # (spawner_base_branch :480, loop_branch_name :723,
+        # branch_worktree_link :768) — no hand-built `loop/<slug>` string, no
+        # fresh inline `git rev-parse`. The worktree is only NAMED
+        # (branch_worktree_for_spawn, which runs `git worktree add`, is NOT
+        # called). The stale-base refusal is deliberately NOT mirrored: the
+        # live call at `dispatch.py:2608` (_stale_base_spawn, return 3 at
+        # :2620) FETCHES origin
+        # and a dry run must not touch the network, so the report says so
+        # rather than passing silently.
+        if getattr(args, "branch", False):
+            _dbase = spawner_base_branch(Path.cwd())
+            _dbranch = loop_branch_name(target, agent_id, current_season)
+            _dbase_shown = _dbase or ("NONE (detached HEAD — a live "
+                                      "--branch spawn would refuse)")
+            print(f"  branch: {_dbranch} base={_dbase_shown} "
+                  f"worktree={branch_worktree_link(root, agent_id)}")
+            print(f"  branch context: the live spawn re-roots the graph to "
+                  f"that worktree, so this dry report's placeholder context "
+                  f"is NOT the graph the child would see; stale-base not "
+                  f"evaluated here (live: _stale_base_spawn at "
+                  f"dispatch.py:2608) to keep the dry "
+                  f"run off the network")
         export_keys = ["AGI_TIER", "AGI_ROLE", "AGI_LADDER_TIER",
                        "AGI_SEASON", "AGI_LOOP", "AGI_MODEL",
                        "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
