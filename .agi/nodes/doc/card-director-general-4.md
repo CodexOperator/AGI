@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (19:1xZ 09-30; NO STOP -- owner 17:4xZ: until 21:00Z Sonnet 5.5 subagents allowed; FROM 21:00Z every NEW round and review pi-free only)
+## §0 State (19:2xZ 09-30; NO STOP -- owner 17:4xZ: until 21:00Z Sonnet 5.5 subagents allowed; FROM 21:00Z every NEW round and review pi-free only)
 | | |
 |---|---|
 | post | director-general-4 · owner: resume on the town bundle; subagents Sonnet 5.5 only |
@@ -30,25 +30,20 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan (SM's order; lanes per §0)
 ```
-LANDED 72dff76359: STACK DG4.06+15+21+11+22
-WITH SM (delivered, awaiting GO / gating): g73319 2b68fbc07e · g75213 4336e659e4 (Prime: 3 guard cells + live bind) · SM-1 bd01ee8969 · SM-2 802577c1bd
-  · DG4.17 2c4c5d34bb · DG4.13 9baba2bc99 · DG4.12 af2c27335f (STACKED ON SM-2: land after it) · g1.31.4.2.1 LINEAGE 4620846a3f (orig+DG4.05+DG4.14+14c+g13142+b)
-BUILDING (Sonnet 5.5 subagents; on their report: verify bytes + tests -> [merge-up] with review badge)
-  g1315131b .agi/worktrees/dg4-g1315131  SM [red+] goal:g1.31.5.1.3.1; tip 6815fde7b1 met F1 (HARD 3/3, false rc3 5/0/0); review accept_with_residue
-            (latency MAJOR-leaning) -> b: hold_wait_s 90, non-finite refused, pid<=0 stale, lock re-check per commit attempt, own-marker clear
-            -> then [merge-up]; Prime cell: values.core.suite_lock.hold_wait_s = 90; ceiling 53/30 prod disclosed
-  DG4.19d   .agi/worktrees/dg4-dg419c    tip 64b8f3c0a9 (+THOUGHT 1301b3a9bc) review accept_with_residue -> d: heal skip also already_gone, guarded pre-kill record write -> [merge-up]
-  DG4.18c   .agi/worktrees/dg4-dg418m    DG4.18 8097dec13 + trunk merge c576956960 (de-based branch fixed, 0 D); NEW red test_commands::test_a_bare_first_word_runs_a_declared_command
-            (passes on trunk) -> c fixes it; test_engine_for_resolves_the_engine_enclosing_the_graph is RED ON TRUNK too (not ours)
-            -> [merge-up] + Prime items: locations.stream cell, rotations.md skills cap 6000->8000 (g1.31.2), grid versions of 2 experiment nodes
-PI MUR     murq10 dg420 running (DG4.20 0f0e5905cf comment-only) -> accept -> [merge-up]
-FINDINGS   goal:g7.33.19 rows 47-50 (bfd33b11f7)
-FROM 21:00Z: every NEW round + review pi-free only (workflow.py merge-up-review --harness pi-free; dispatch.py tier-0 parent)
+LANDED 72dff76359 STACK DG4.06+15+21+11+22 · 2cbe754da1 DG4.17 (trees removed)
+WITH SM, awaiting GO (each: tip · worktree to remove after it lands, lossless: in trunk + clean, harvest iter-* first)
+  g73319 2b68fbc07e dg4-g73319 · g75213 4336e659e4 dg4-g75213 (Prime: 3 guard cells + live bind) · SM-1 bd01ee8969 dg4-sm1
+  SM-2 802577c1bd dg4-sm2 · DG4.12 af2c27335f dg4-dg412c (STACKED ON SM-2) · DG4.13 9baba2bc99 dg4-dg413c
+  g1.31.4.2.1 LINEAGE 4620846a3f dg4-fdreaders (+ dg4-dg414c) · DG4.18 c576956960 dg4-dg418m (Prime: locations.stream cell, rotations skills cap, grid versions)
+  g1315131 d9fcbcbed5 dg4-g1315131 (Prime cell values.core.suite_lock.hold_wait_s = 90) · DG4.19 910989982e dg4-dg419c
+PI MUR     murq10 dg420 running (DG4.20 0f0e5905cf, comment-only hook text) -> on accept: [merge-up] (verdict files: .agi/sessions/workflows/runs/mur-director-general-4-<newest>)
+OWED       C2c copilot goal leaf (g1.31.4.2.1: hooks printed, not registered in copilot's own config) · findings rows 48, 49 OWED on goal:g7.33.19
+FROM 21:00Z: every NEW round + review pi-free only (workflow.py merge-up-review --harness pi-free; dispatch.py tier-0 parent), no Sonnet subagents
 ```
 
 ## 🔴 Where it stops
-8 merge-ups with SM; 3 correctives building (g1315131b · DG4.19d · DG4.18c); DG4.20 pi mur running. A subagent's report lands in THIS session only -- a successor re-derives from the branches: `git -C <tree> log --oneline -3` per tree above.
-Next command: `python3 extensions/agi/bin/send.py read director-general-4; for t in dg4-g1315131 dg4-dg419c dg4-dg418m; do git -C .agi/worktrees/$t log --oneline -2; done`
+10 merge-ups with SM awaiting GO; nothing building; DG4.20's pi mur running. On each [GO][landed]: remove that round's worktrees (lossless). Queue after: C2c leaf, rows 48/49 as rounds (pi-free after 21:00Z).
+Next command: `python3 extensions/agi/bin/send.py read director-general-4; systemctl --user list-units 'agi-director-general-4-*' --no-pager`
 
 ## §4 Traps
 | trap | rule |
