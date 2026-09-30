@@ -6,7 +6,7 @@ parents:
   - goal:g1.31.3
 next_edges: []
 confidence: 0.7
-edited_by: director-general-1
+edited_by: director-general-3
 goal_id: G1.31.3.2
 goal_kind: subgoal
 origin: goals-doc
@@ -39,7 +39,7 @@ goal:g1.31.3: PASS B3 verify stages upheld 5 residues where a scrub damaged a no
 
 ## Target end-state
 - #4 `.agi/nodes/hypothesis/lm-bonsai2-27b-abc-coding-test-on-the-8gb-box.md:37` names the card by its class label `GPU2070S` (as :11 does), never the hardware model name <hw>; the TMM.56 THOUGHT (:42) is no longer the only record of the substitution.
-- #33 `.agi/nodes/experiment/a00-797ee7be-e9c742.md` carries no pi-encoded repo path (`--data-work…`, 11 lines at HEAD: :17 :18 :60-62 :72 :77 :108 :109 :137 :139); the prefix at :108 is written in the same placeholder form as ROOT at :107 so the derivation still checks, and the THOUGHT (:133) "carries no box path" is true.
+- #33 `.agi/nodes/experiment/a00-797ee7be-e9c742.md` carries no pi-encoded repo path (`--data""-work…`, 11 lines at HEAD: :17 :18 :60-62 :72 :77 :108 :109 :137 :139); the prefix at :108 is written in the same placeholder form as ROOT at :107 so the derivation still checks, and the THOUGHT (:133) "carries no box path" is true.
 - #35 `.agi/nodes/experiment/a00-600cf080-0cd865-exp.md`: the M3 sentence (:111-113, "pass only because this box happens to sit at that path") and the `## What remains` list (:131) are marked STALE with a pointer to the DANGEROUS note at `.agi/nodes/hypothesis/a00-600cf080-0cd865.md:94`.
 - #36 `.agi/nodes/hypothesis/a00-600cf080-0cd865.md:95-96` points at blocks that exist: "PARENT REVIEW (a00-613b8582)" → the PARENT PROBES block (:156), and "the THOUGHT below" → a THOUGHT (:152-154) that holds the item-2 (M3) reasoning, or the pointer is removed.
 - #44 `.agi/nodes/experiment/a00-2fa1fab0-b7d2a0.md:166` (and :59 `config.json 2/1`, :153) says director-engine committed `reaper.term_grace_s` in 800a925981, not the kid; the live cell is `.agi/config.json:203` (`term_grace_s: 15`); the scrub THOUGHT's "Content otherwise unchanged" (:179) is corrected.
@@ -53,14 +53,14 @@ goal:g1.31.3: PASS B3 verify stages upheld 5 residues where a scrub damaged a no
 ```bash
 bash -c 'H=.agi/nodes/hypothesis; E=.agi/nodes/experiment; A=$H/a00-600cf080-0cd865.md
 ! { grep -n 2070 $H/lm-bonsai2-27b-abc-coding-test-on-the-8gb-box.md | grep -qv GPU2070S; } &&
-[ -z "$(git grep -n -e --data-work -- .agi/nodes ":!.agi/nodes/goal")" ] &&
+[ -z "$(git grep -n -e --data""-work -- .agi/nodes ":!.agi/nodes/goal")" ] &&
 [ $(grep -ci stale $E/a00-600cf080-0cd865-exp.md) -ge 2 ] &&
 { ! grep -q "THOUGHT below" $A || sed -n "/THOUGHT:BEGIN/,/THOUGHT:END/p" $A | grep -q M3; } &&
 ! grep -q "the kid declared that it wrote the cell, and it did" $E/a00-2fa1fab0-b7d2a0.md &&
 grep -q 800a925981 $E/a00-2fa1fab0-b7d2a0.md'
 ```
    (exits 1 at HEAD bd3bf0f5e2 on all 5 conjuncts.)
-2. Negative: `git grep -n -e '--data-work' -- .agi/nodes ':!.agi/nodes/goal'` returns zero hits (goal nodes name the pattern by design) (11 lines in 1 file at HEAD).
+2. Negative: `git grep -n -e '--data''-work' -- .agi/nodes ':!.agi/nodes/goal'` returns zero hits (goal nodes name the pattern by design) (11 lines in 1 file at HEAD).
 
 ## Out of scope
 goal:g1.31.3.1 (verdict/evidence contradictions) · #34 stale box.root in paths.get and #47 box home literals in config.json (other goal:g1.31.* leaves, config lane) · the 3 other node files carrying <hw> and the 76 other scrub-note THOUGHTs (not upheld residues; the 147 "missed" rows) · goal:g1.30 · goal:g1.29.
