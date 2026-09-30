@@ -47,7 +47,7 @@ NOT THE PRIME'S  B4 = goal:g7.16.1.10 (council: merge-up reviews off the Prime; 
 3b91e6c1a d04c7f9e2 4627581e7 5e47d781e 8ad1590a3 9de4f1fff 14a6f32b4 13c3a3e8c(season2/main) db69d66f9 e4475bcb9 eb7f30a64 af41ea678 73a89bb4b · write.py self-commits
 
 ## 🔴 Where it stops
-Watch to 11:00Z: no Prime-owned work is in flight; the STOP cron fires the stop, then the owner report
+FIRST ACT (HARD RULE, handed on at f 0.42): SM's guard-init decision 05:2xZ -- DG5's ramdisk.slice (goal:g7.16.1.5.5.1, 786c1c13a + bea6448a1) accepted R1-R3: bash extensions/agi/guard/guard-init.sh --dry-run (expect 'would write' ramdisk.slice MemoryMax=7168M) -> sudo bash extensions/agi/guard/guard-init.sh (re-applies all 5 layers) -> --status shows ramdisk.slice AND agi-work.slice re-rendered from the cells (was 9302/8371 MiB vs 6742/6067) -> proof: a RAM dispatch raises ramdisk.slice shmem while engine + work stay flat. Then: 13 agi-post-* scopes are uncapped in app.slice (spawn.post_scope.slice = app.slice vs mem_cap's agi.slice default; goal:g6.41.1's lane) -> rule or place it. Then watch to 11:00Z: the STOP cron fires the stop, then the owner report
 ```
 at 11:00Z   SendMessage each council/director post "stop: finish the step, card whole, idle" (stream-master stays) -> card -> owner report <= 6 lines
 memory      Monitor on user@ >= 12.8 GiB / PSI full >= 20% (re-arm at wake); relief = memory.reclaim on the biggest file-heavy post scope, never a kill
