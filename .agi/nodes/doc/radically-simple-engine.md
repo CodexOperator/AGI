@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: all-is-one
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -102,7 +102,63 @@ Decided:
 Rows: grid.py 95 KB REPLACE-BY git log/show (refs frozen) · stitch.py 51 KB REPLACE-BY `git archive <sha>` (it assembled a tree from grid versions) · viewport.py 53 KB KEEP, the one render · graphweb.py 56 KB + dashboard.py 31 KB KEEP, optional human views over the same JSON · zoom.py + brief.py + briefing.py 207 KB REPLACE-BY, mostly: harness-loaded files.
 
 ## §4 No standing worktrees
-(pending: self-perpetuating)
+**What am I ACTUALLY trying to get the machine to do here?** Two things only: (1) change a node, and (2) run some code (a test, a kid's build) against a chosen mix of commits. Neither needs a checkout that outlives the act. And from the generations lens: what the next session of a post inherits must be exactly what the last one COMMITTED. Nothing else.
+
+**Measured 22:0xZ 09-30 (MAIN, this box)**
+| fact | number |
+|---|---|
+| registered worktrees | 718 (713 under .agi/worktrees; 716 real, 1 stale) |
+| size of one | ~135 MB, 11,715 tracked files -> ~96 GB of the 233 GB used on /data |
+| created in the last day / older than 3 days | 49 / 2 (most are thought-town iteration bases: de-base-* 311, de-h* 370) |
+| per-generation state that is NOT a commit | 7,971 files under .agi/sessions (inbox 2,329 · workflows 2,295 · seats 2,053 · rotations 481) |
+| engine lines coupled to trees | "worktree" in rotate.py 257 · cli.py 179 · heal.py 140 · dispatch.py 102 · locations.py 41 · spawn_budget.py 38 |
+| write a node with NO tree (private GIT_INDEX_FILE -> hash-object -> update-index -> write-tree -> commit-tree) | 64 ms |
+| a registration-free tree (a dir + a private index: `git --work-tree=D read-tree -u --reset <sha>`), fresh | 1.05 s, 148 MB, `git worktree list` unchanged |
+| the same dir recycled to another sha | 0.69 s |
+| a MIXED tree: `git merge-tree --write-tree A B` (4 ms) then read-tree into the dir | 0.15 s (HEAD x core/season2/main: clean) |
+
+**The generations lens (vision:self-perpetuating).** A generation leaves exactly ONE thing behind: commits on its refs. Every other thing it leaves (a tree, a pid, a pane, a rotation record, a seat file, an inbox marker) is state the NEXT generation must reconcile. A reconciler is code, and each new kind of leftover grows it: rotate.py 23,229 lines · heal.py 4,291 · 69 of 322 test files. Project that across a thousand rotations and the reconcilers are the engine. Commits-only makes generation 1,000 cost the same as generation 1, and `git gc` is the only janitor.
+
+**Decided**
+```
+act                    tree?          how                                                       lives
+write / edit a node    NONE           §2 agi-write: private GIT_INDEX_FILE + commit-tree +      0 bytes on disk
+                                      update-ref <ref> <new> <old>   (CAS; a lost race fails loud)
+run code / tests       ephemeral      a SLOT = dir + private .index; fill = read-tree -u --reset   the act
+kid builds code        ephemeral      same slot; commit = add -A on the slot's index -> write-tree   the kid's unit
+                                      -> commit-tree -p <base> -> update-ref CAS; no `git worktree`
+mix code across nodes  ephemeral      T = merge-tree --write-tree A B (fold for >2); fill a slot with T  the test run
+                                      exit 1 = the mix does not compose = a finding, never a hand-merge
+```
+- **Slots are recycled, not minted.** They live in the post unit's `CacheDirectory=` (§1 option B): slot-0..N, N = the row's kid cap + 1. Recycling a slot is one `read-tree -u --reset <sha>` plus `git clean`-equivalent over the slot's index (0.69 s). Disk is bounded by posts x slots x ~140 MB (12 posts x 3 = ~5 GB, versus ~96 GB today). A fresh slot is the same command into an empty dir.
+- **No `git worktree` at all.** A slot registers nothing in .git/worktrees, so there is no prune, no stale lock and no "branch already checked out" refusal, and a dead slot is just a directory.
+- **Tests mix and match.** A test names its commits; the runner folds them through merge-tree and fills a slot with the result. It holds up: it is how git itself previews merges. Conflicts come out as data (the exit code plus the conflicted paths), never as a dirty tree someone must clean.
+- **Refs, under per-post uids (the one open question this section hands to the spike).** Spike (a) proves that commits land in ONE shared repo; it does not prove who may MOVE a ref, and in one shared .git any group writer can move any ref (loose refs and packed-refs are group-writable files). Spike (h) tests that. If (h) fails, the zero-daemon fallback is tried before gitolite: each post owns a bare `graph.git` in its StateDirectory, whose `objects/info/alternates` points at the shared object store (zero copy). A post moves only its own refs, which the kernel enforces because they are its files. A master PULLS a merge-up with `git fetch` from the director's repo, and nobody pushes into another post's refs. This is git's own distributed model, with no hook and no daemon.
+
+**When a session dies mid-card (alive's question), or mid-anything:**
+```
+card write  = ONE agi-write = blob -> tree -> commit -> update-ref CAS
+  died before update-ref  -> the previous card stands (at most one step stale: cards are written DURING the work)
+  died after              -> the new card stands
+  there is NO third state: no working file to flatten or leave dirty (trap 10 and "a flattened card committed" vanish)
+kid / test slot at death -> the unit's ExecStopPost: dirty slot? commit it to refs/salvage/<post>/<mint> (never onto a branch), then recycle
+successor at wake        -> reads: the card node @ its ref + `git for-each-ref refs/salvage/<post>` -- nothing else
+```
+So post-wrap's "agi-write the card if still dirty" step (§1) is not needed: a card is never dirty. The successor has nothing to reconcile, because its predecessor could only have left commits.
+
+**Migration (retire, never delete).** The 716 standing trees retire in three passes, and the destructive step waits for the owner's go: (1) list every tree with its branch, its dirty count and whether it is merged (read-only); (2) commit each dirty tree to `refs/salvage/...` (additive); (3) `git worktree remove` only for trees that are clean AND merged. That pass frees ~96 GB and is irreversible, so it is BANKED for the owner.
+
+Rows (§4):
+| piece | verdict | retires |
+|---|---|---|
+| rotate.py tree + closeout + fd + flatten/re-link paths (worktree x257) | REPLACE-BY agi-write (no tree) + salvage ExecStopPost | inside the §1 rotate.py row |
+| heal.py orphan / worktree reconcile (x140) | SCRAP: nothing is left to reconcile | inside the §1 heal.py row |
+| dispatch.py `--branch` worktree creation, stale-base refusal, merge-base plumbing | REPLACE-BY a slot fill + a CAS on the post's own ref | ~1.5k of 4,542 (estimate; spike measures it) |
+| cli.py kid worktree / done / auto-commit (x179) | REPLACE-BY slot commit + ExecStopPost salvage | ~2k of 6,655 (estimate) |
+| locations.py worktree-path mapping (x41) | REPLACE-BY slot = CacheDirectory; KEEP the nearest-`.agi/` resolver | ~300 of 1,218 |
+| .agi/sessions/{rotations, seats, inbox markers, workflows run dirs} (7,971 files) | RETIRE (move, never delete) -> journald + git log + refs/salvage | files, not lines |
+| the 716 standing trees under .agi/worktrees | RETIRE by the 3 passes above; pass 3 is the owner's go | ~96 GB |
+| new: agi-slot.sh (fill · recycle · mix · salvage) | NEW | ~2 KB |
 
 ## §5 An MCP wrapper over the engine as it works now
 **What am I ACTUALLY trying to get the machine to do here?** Give every role the SAME verbs the SAME way (a Claude post, a pi kid, a human), so the machinery underneath can be swapped without any caller noticing.
@@ -157,6 +213,7 @@ Measured at HEAD 09-30 22:xZ (alive + all-is-one): engine ~5.13 MB · 137 files 
 | branches.py | 28 | REPLACE-BY | per-node trees on the fly | §4 |
 | envfile.py | 26 | REPLACE-BY | a 0600 env file in the post's own home | §1 |
 | suite_guards.py + the suite lock | 18 | SCRAP | tests read a snapshot of the tip | §4 |
+| .agi/worktrees (716 standing trees) + per-generation .agi/sessions state (7,971 files) | ~96 GB · files | RETIRE | recycled slots in each post unit's CacheDirectory · journald + git log + refs/salvage; removing the trees waits for the owner's go | §4 |
 | zoom.py + brief.py + briefing.py | 207 | REPLACE-BY, mostly | the files each user's harness already loads (settings symlinks, card, template) | §1 §3 |
 | guard-init.sh + mem_cap.py | 70 | REPLACE-BY, mostly | per-user slice MemoryMax; keep only the box-survival layers | §1 |
 | spawn_gate.py + evidence_gate.py | 101 | KEEP the rules | as `schema-check` (budget <= 10 KB, reading .agi/context/schemas), then retire the rest | §2 |
@@ -171,7 +228,7 @@ Measured at HEAD 09-30 22:xZ (alive + all-is-one): engine ~5.13 MB · 137 files 
 
 ```
 retired      ~2.41 MB certain (rotate … write_guard) + ~0.33 MB "mostly" (brief/zoom, guard, stitch)  ≈ 2.7 MB of 5.13 MB
-new code     post wrap ~11-13 KB (§1, incl. the rows -> sysusers agi.conf generator) · agi-write + agi-read <= 2 KB (§2) · schema-check <= 10 KB (§2) · agi-mcp <= 8 KB (§5)  ≈ 31-33 KB
+new code     post wrap ~11-13 KB (§1, incl. the rows -> sysusers agi.conf generator) · agi-write + agi-read <= 2 KB (§2) · schema-check <= 10 KB (§2) · agi-mcp <= 8 KB (§5) · agi-slot.sh ~2 KB (§4)  ≈ 33-35 KB
 tests        their suites retire with them (test_rotate* ~10.5k lines · test_send ~8.1k · test_after_join_service ~3.1k ...); each new piece ships with the spike as its test
 ```
 The rough share that exists ONLY because every post is one Unix user: seatsig ~100% · rotate ~25-35% · heal ~25% · send ~20-25% · spawn_budget ~20% · write ~15% (a Sonnet survey, low confidence).
@@ -188,5 +245,7 @@ Setup: two spike posts `agi-spike-a`, `agi-spike-b` (declared the same way §1 d
 | d | one memory slice per user | a stress process in a's unit past its MemoryMax | killed inside a's slice; b's session untouched | b's process is hit, or the box is |
 | e | every read/write path is tracked onto the post, graph or not (owner 22:0xZ) | a reads and writes files inside and outside `.agi/nodes` | each path appears in a's track (audit keyed on a's uid, flushed by the wrap) and none in b's | a path is missing, or attributed to the wrong post |
 | f | ownership is stable | a mints a node; restart the unit; reboot the box | the node is still owned by a's SAME uid and a can still edit it | the uid changed (the DynamicUser arm fails here; the sysusers arm is expected to pass) |
-| g | auto-rotate and auto-heal with NO command (self-perpetuating amends) | write the meter flag; kill the harness; remove a's key | a fresh session slots into the wrap each time with the card as its first input; the key is re-minted and its row updated by one `agi-write` | a human or a second script has to act |
+| g | auto-rotate and auto-heal with NO command, and a death loses nothing (self-perpetuating) | write the meter flag · kill the harness mid-card (after the card's commit-tree, before its update-ref) · remove a's key | a fresh session slots into the wrap each time, with the card @ a's ref as its first input · the card is the previous version OR the new one, never partial and never dirty on disk · the key is re-minted and its row updated by one `agi-write` | a human or a second script has to act · a half-written or dirty card |
+| h | a post's refs are its own | b: `git update-ref <a's ref> <any sha>` in the shared repo | refused (EACCES) | the ref moves -> the §4 fallback (per-post bare repo + alternates, merge-ups pulled), then gitolite |
+| i | no standing trees, and a killed kid loses nothing | a runs 100 test runs over mixed commits (merge-tree -> slot), then a kid is killed mid-edit | `git worktree list` count unchanged · slot disk <= (kid cap + 1) x 150 MB · the kid's dirty bytes are on `refs/salvage/agi-spike-a/<mint>` and its slot is recycled | a registered worktree appears · disk grows per run · the dirty bytes are lost |
 Fallback named in advance: if (a) or (b) fails on one shared repo, each post pushes from its own tree to one bare repo whose per-path push rules are off-shelf (gitolite), and the kernel gate moves to the push.
