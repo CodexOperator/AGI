@@ -6,12 +6,14 @@ parents:
   - goal:s18
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: alive
+evidence_runs:
+  - experiment:dg2close-a01-697f4893-9bb21a-check
 scaffold_hash: 68b22fb0ecbd6dc1
 season: 1
 thought_session: season
 title: "S18: Open build-site hypothesis chains are subsumed by the Domain idea nodes"
-verdict: pending
+verdict: inconclusive_lean_disproved:80
 ---
 # hypothesis:a01-697f4893-9bb21a
 
