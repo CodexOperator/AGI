@@ -74,12 +74,14 @@ format=ssh
 gpgsign=true
 [user]
 signingkey=~/.ssh/id_ed25519.pub
-# agi-flush (134 B)
+# agi-flush (125 B)
 #!/bin/sh
-cd ~/t;grep -o '"/[^"]*"' ~/r|sort -u>.agi/track/$USER;git add -A;git commit -qSm$USER;git pull -q --no-rebase&&git push -q
-# pre-receive (186 B)
+cd ~/t;grep -o '"/[^"]*"' ~/r|sort -u>~/track;git add -A;git commit -qSm$USER;git pull -q --no-rebase&&git push -q
+# pre-receive (355 B)
 #!/bin/sh
-while read o n r;do git diff --name-only $o $n|while read p;do g=$(git check-attr owner -- "$p"|cut -d' ' -f3);id -nG|grep -qw "$g"||{ echo "$p: $g";exit 1;};done||exit 1;done
+e=$(git hash-object -t tree /dev/null)
+while read o n r;do case $n in *[!0]*);;*)continue;;esac;case $o in *[!0]*);;*)o=$(git merge-base HEAD $n 2>/dev/null||echo $e);;esac
+f=$(git diff --name-only $o $n)||exit 1;for p in $f;do g=$(git check-attr --source=$n owner -- "$p"|cut -d' ' -f3);id -nG|grep -qw "$g"||{ echo "$p: $g";exit 1;};done;done
 # signers (65 B)
 #!/bin/sh
 for f in .agi/keys/*;do echo "${f##*/} $(cat $f)";done
@@ -92,13 +94,13 @@ m agi-alive council
 | auto-rotate | the meter hook tells the session at the line to write its card, commit it, then end; `Restart=always` starts a FRESH session handed the card. The card is written DURING the work by one whole write (the card rule), so a death never loses more than the last unwritten step |
 | auto-heal | `Restart=always` (a crash takes the same path as a rotation) · `ssh-keygen` with stdin closed never overwrites: a missing key is minted, and its public half is published to `.agi/keys/<post>`; `signers` derives git's allowed_signers from those files |
 | idle | an interactive session waiting for input costs zero tokens; there is no timer and no polling |
-| auto-track | writes: each post works in its OWN tree (`~/t` = §4's slot-0, a `git clone --shared`, so no objects are copied), so the flush's `git add -A` there is exactly its writes, graph or not. Reads and writes of ANY path: `strace -f -e%file` wraps the harness; the post reads its own log with no root, and the flush commits the sorted unique paths to `.agi/track/<post>` |
+| auto-track | writes: each post works in its OWN tree (`~/t` = §4's slot-0, a `git clone --shared`, so no objects are copied), so the flush's `git add -A` there is exactly its writes, graph or not. Reads and writes of ANY path: `strace -f -e%file` wraps the harness; the post reads its own log with no root, and the flush keeps the sorted unique paths in `~/track`, LOCAL: never committed, never pushed (belam's RED 22:1xZ: the path log names home dirs, credential files and devices, and the repo is pushed to GitHub). Graph writes still pass the anonymize pre-commit refusal |
 | write / land | `agi-flush` at every session end: add, SSH-signed commit, `pull --no-rebase`, push. The shared checkout is READ-ONLY to every post, so the kernel refuses any direct write into it |
-| permission | `pre-receive` on the shared bare repo: every changed path's `owner` git attribute must be one of the pusher's groups. It refuses mistakes; it runs AS the pusher, so stopping malice needs a gate user (named, not built) |
+| permission | `pre-receive` on the shared bare repo: every changed path's `owner` git attribute must be one of the pusher's groups. A bare repo has no worktree, so it reads the attributes with `check-attr --source=<new sha>`; a new ref is diffed from its merge-base with HEAD (the empty tree on a first push); a deleted ref is skipped; a failed diff refuses (fail-closed). Tested 22:1xZ on a throwaway bare repo: own paths accepted, foreign paths refused by name on an update AND a new ref, a first push to an empty repo checked. It refuses mistakes; it runs AS the pusher, so stopping malice needs a gate user (named, not built) |
 | message | a sender drops a file into `/var/spool/agi/<post>/` (mode 1730, group agi: senders drop, only the owner reads); the `.path` unit pushes one line into the live session through `dtach -p`; the owner's flush moves read mail into its tree, where it is committed |
 | human view | `dtach -a /run/agi-<post>` attaches to any post's live session (the stream reads the same pane) |
 
-**The count: the whole wrap = 1,272 bytes of our code; one post = 34 bytes (its two sysusers lines) plus one `systemctl enable agi-post@<post>` symlink.** "A post in tens": MET. "The wrap in hundreds": MISSED by 273 bytes. The token-exact meter hook is 295 B of it; all-is-one's 75 B byte-count meter (kill at 2 MB of transcript) would bring the wrap to ~1,050 B but loses "write the card, then exit", so the council keeps the safer one. §4's slot script (415 B) serves kids and mixed-commit test runs only. The megabytes live in what is already written and tested: the kernel, systemd, git, strace, jq, dtach.
+**The count: the whole wrap = 1,432 bytes of our code; one post = 34 bytes (its two sysusers lines) plus one `systemctl enable agi-post@<post>` symlink.** "A post in tens": MET. "The wrap in hundreds": MISSED by 433 bytes. The token-exact meter hook is 295 B of it; all-is-one's 75 B byte-count meter (kill at 2 MB of transcript) would bring the wrap to ~1,210 B but loses "write the card, then exit", so the council keeps the safer one. §4's slot script (415 B) serves kids and mixed-commit test runs only. The megabytes live in what is already written and tested: the kernel, systemd, git, strace, jq, dtach.
 **Where the bar breaks (outside the count, named):** schema-check (<= 10 KB, §2: the rules are real content) · agi-mcp (<= 8 KB, §5) · the meter hook is Claude-only (pi compacts on its own) · strace overhead is a spike measure · a pull conflict leaves `~/t` mid-merge for the post's next session · root is needed ONCE (units, sysusers, the spool, the bare repo's hook, two small packages: dtach + strace): the owner's go.
 **Considered and dropped:** auditd for tracking (root to set up AND to read the log) · a timer + ExecCondition wake (moot: an idle interactive session already costs nothing) · one shared working tree (index contention, and a death loses new files and group-owned edits) · `.path` units as the commit trigger (not recursive).
 
@@ -183,7 +185,7 @@ kid builds code        ephemeral      same slot; commit = add -A on the slot's i
 mix code across nodes  ephemeral      T = merge-tree --write-tree A B (fold for >2); fill a slot with T  the test run
                                       exit 1 = the mix does not compose = a finding, never a hand-merge
 ```
-- **Slots are recycled, not minted.** They live in the post unit's `CacheDirectory=` (the §1 unit: it works with User=agi-%i as with DynamicUser): slot-0..N, N = the row's kid cap + 1. Recycling a slot is one `read-tree -u --reset <sha>` plus `git clean`-equivalent over the slot's index (0.69 s). Disk is bounded by posts x slots x ~140 MB (12 posts x 3 = ~5 GB, versus ~96 GB today). A fresh slot is the same command into an empty dir.
+- **Slots are recycled, not minted.** They live in the post unit's `CacheDirectory=` (the §1 unit: it works with User=agi-%i as with DynamicUser; slot-0 is the post's own `~/t`, §1): slot-0..N, N = the row's kid cap + 1. Recycling a slot is one `read-tree -u --reset <sha>` plus `git clean`-equivalent over the slot's index (0.69 s). Disk is bounded by posts x slots x ~140 MB (12 posts x 3 = ~5 GB, versus ~96 GB today). A fresh slot is the same command into an empty dir.
 - **No `git worktree` at all.** A slot registers nothing in .git/worktrees, so there is no prune, no stale lock and no "branch already checked out" refusal, and a dead slot is just a directory.
 - **Tests mix and match.** A test names its commits; the runner folds them through merge-tree and fills a slot with the result. It holds up: it is how git itself previews merges. Conflicts come out as data (the exit code plus the conflicted paths), never as a dirty tree someone must clean.
 - **Refs, under per-post uids (the one open question this section hands to the spike).** Spike (a) proves that commits land in ONE shared repo; it does not prove who may MOVE a ref, and in one shared .git any group writer can move any ref (loose refs and packed-refs are group-writable files). Spike (h) tests that. If (h) fails, the zero-daemon fallback is tried before gitolite: each post owns a bare `graph.git` in its StateDirectory, whose `objects/info/alternates` points at the shared object store (zero copy). A post moves only its own refs, which the kernel enforces because they are its files. A master PULLS a merge-up with `git fetch` from the director's repo, and nobody pushes into another post's refs. This is git's own distributed model, with no hook and no daemon.
@@ -197,7 +199,7 @@ card write  = ONE agi-write = blob -> tree -> commit -> update-ref CAS
 kid / test slot at death -> the unit's ExecStopPost: dirty slot? commit it to refs/salvage/<post>/<mint> (never onto a branch), then recycle
 successor at wake        -> reads: the card node @ its ref + `git for-each-ref refs/salvage/<post>` -- nothing else
 ```
-So post-wrap's "agi-write the card if still dirty" step (§1) is not needed: a card is never dirty. The successor has nothing to reconcile, because its predecessor could only have left commits.
+So the wrap (§1) needs no "commit the card if still dirty" step: a card is never dirty. The successor has nothing to reconcile, because its predecessor could only have left commits.
 
 **Migration (retire, never delete).** The 716 standing trees retire in three passes, and the destructive step waits for the owner's go: (1) list every tree with its branch, its dirty count and whether it is merged (read-only); (2) commit each dirty tree to `refs/salvage/...` (additive); (3) `git worktree remove` only for trees that are clean AND merged. That pass frees ~96 GB and is irreversible, so it is BANKED for the owner.
 
@@ -254,7 +256,7 @@ Rows: adapters/magic_pane.py (75) SCRAP · magic_pane_* (~2,040) REPLACE-BY the 
 Measured at HEAD 09-30 22:xZ (alive + all-is-one): engine ~5.13 MB · 137 files · 718 git worktrees.
 | piece | KB | verdict | by what | from § |
 |---|---|---|---|---|
-| rotate.py | 1,175 | REPLACE-BY | the post wrap (agi-post@.service + post-wrap.sh): auto-rotate on the meter flag, no command | §1 §4 |
+| rotate.py | 1,175 | REPLACE-BY | the post wrap (agi-post@.service + agi-flush + the meter hook): auto-rotate at the line, no command | §1 §4 |
 | send.py (+ magic_pane router on core) | 310 | REPLACE-BY | message = a file in the recipient's inbox dir, committed; unread derived; one route | §6 |
 | write.py + node_writer.py + write_guard.py | 329 | REPLACE-BY | `agi-write` + `agi-read` (<= 2 KB sh) | §2 |
 | heal.py | 206 | REPLACE-BY | `Restart=always` on the post unit | §1 §4 |
@@ -281,7 +283,7 @@ Measured at HEAD 09-30 22:xZ (alive + all-is-one): engine ~5.13 MB · 137 files 
 
 ```
 retired      ~2.41 MB certain (rotate … write_guard) + ~0.33 MB "mostly" (brief/zoom, guard, stitch)  ≈ 2.7 MB of 5.13 MB
-new code     post wrap 1,272 B written out (§1: unit 373 + inbox .path 37 + .service 69 + meter 295 + gitconfig 79 + agi-flush 134 + pre-receive 186 + signers 65 + sysusers 34; a post = 34 B; a 75 B byte-meter instead would make ~1,050 B but loses "write the card, then exit") + ~0.5 KB rows -> agi.conf generator · agi-write + agi-read <= 2 KB (§2) · schema-check <= 10 KB (§2) · agi-mcp <= 8 KB (§5) · slot 415 B (§4, inline below)  ≈ 22 KB (the wrap + slot ~1.7 KB; schema-check + agi-mcp carry the rest)
+new code     post wrap 1,432 B written out (§1: unit 373 + inbox .path 37 + .service 69 + meter 295 + gitconfig 79 + agi-flush 125 + pre-receive 355 + signers 65 + sysusers 34; a post = 34 B; a 75 B byte-meter instead would make ~1,210 B but loses "write the card, then exit") + ~0.5 KB rows -> agi.conf generator · agi-write + agi-read <= 2 KB (§2) · schema-check <= 10 KB (§2) · agi-mcp <= 8 KB (§5) · slot 415 B (§4, inline below)  ≈ 22 KB (the wrap + slot ~1.7 KB; schema-check + agi-mcp carry the rest)
 tests        their suites retire with them (test_rotate* ~10.5k lines · test_send ~8.1k · test_after_join_service ~3.1k ...); each new piece ships with the spike as its test
 ```
 The rough share that exists ONLY because every post is one Unix user: seatsig ~100% · rotate ~25-35% · heal ~25% · send ~20-25% · spawn_budget ~20% · write ~15% (a Sonnet survey, low confidence).
