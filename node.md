@@ -31,22 +31,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   rounds 1-2 · round 3: §F 81f0620954 · corrections 522b57e225 · alive part 3 e7bf243872 ([decision] sent to belam)
-       §I re-check on fp (23:2xZ): GREEN seed boot 10 units · fixed point plain + via symlink · template byte-exact · verify clean
-       RED sent to agi-6f: unhardened g() -> dangling engine/posts = rc 0, empty body at BOOT; fix +78 B (hardened g, ls ...||exit 1, && in the units), tested
-       AMENDMENT sent: F13/F15 re-scoped for ONE config:engine (owner 23:10Z): page bar = its depth 0+1 + every OTHER .geometry node
-next   agi-6f folds both or gives "[go] s-p"; then HOLD until the owner's go (no Unix user, no sudo)
+DONE   rounds 1-2 · round 3: §F 81f0620954 · corrections 522b57e225 · alive part 3 e7bf243872 ([decision] to belam)
+       §I red (silent empty body at boot) folded by agi-6f @44619712d9 with its correction (the post-unit check lives in the CALLERS);
+       VERIFIED on fp: trunk rc 0 + 10 units · dangling engine rc 2 · dangling posts rc 2 · fixed point empty · verify clean -> ACCEPTED
+next   HOLD: belam re-mints config:engine and reports to the owner; wake on the owner's read or a DG3 build line to review
+       no Unix user, no sudo before the owner's go
 ```
 
 ## §2 Landed (09-30)
 - f16cf993f9 card re-link · round 1: §4 + the 415 B slot · round 2: §C (projector · seed · frontier · V)
-- round 3 §F 81f0620954 + 522b57e225 (§F.7 r() hardened · F13 via -L · F16 · frontier 450 B · V 271 / 266)
-- scratch: /tmp/g71611/fp (--shared clone; refs trunk / dangle / dangp are spike-only), /tmp/g71611/ap.fix (the patched projector), engine.md (§I bytes)
+- round 3 §F 81f0620954 + 522b57e225 (§F.7 r() hardened · F13 via -L · F16 · frontier 450 B · V 271 / 266) · §I re-check -> fix folded 44619712d9
+- scratch: /tmp/g71611/fp (--shared clone; refs trunk / dangle / dangp spike-only), engine2.md (§I v1 bytes)
 
 ## 🔴 Where it stops
-waiting on agi-6f's fold of the §I red + the F13/F15 amendment, or "[go] s-p"
+idle: round 3 is with belam -> the owner; wake on belam's relay or a DG3 build line
 ```
-python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:1200' | grep -n 'blob ]\|exit 1\|F13\|F15'
+python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
 
 ## §4 Traps
