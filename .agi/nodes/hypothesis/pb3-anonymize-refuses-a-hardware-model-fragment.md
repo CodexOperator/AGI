@@ -80,3 +80,7 @@ ANON      no user name, home or repo path value, host, IP or hardware model/boar
 FILE SCOPE extensions/agi/bin/anonymize.py · extensions/agi/bin/rotation_record.py · extensions/agi/tests/test_anonymize_guard.py · extensions/agi/tests/test_boxkit_templates.py · extensions/agi/tests/test_rotation_record_home.py · .agi/config.json (anonymize.hardware + anonymize.email_allow cells: DIFF RETURNED, never committed) · build:bin-anonymize (thought only) · the kid's own experiment node
 CEILING   HARD CAP: 1 kid · 30 production lines · 80 test lines · 4 config lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.DG3.42: mur-dg3-corr-dg6-04 dg6-04c accept_with_residue: F5 unadjudicated in graph, inert @file source, unreachable ADVICE remedy, email_allow lacks .invalid, boxkit every-class row red on email, build node THOUGHT stale, autouse cache fixture, fixture/live default asymmetry
+<!-- THOUGHT:END -->
