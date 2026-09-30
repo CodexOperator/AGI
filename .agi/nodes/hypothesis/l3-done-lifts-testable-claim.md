@@ -7,6 +7,8 @@ parents:
   - hypothesis:born-valid-without-touching-frontmatter
 next_edges: []
 edited_by: alive
+evidence_runs:
+  - experiment:dg2close-l3-done-lifts-testable-claim-check
 loop: goal:g15@s2
 model: claude-fable-5-1
 profile: balanced
