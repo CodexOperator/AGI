@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.3.3
 next_edges: []
 confidence: 0.6
-edited_by: director-general-3
+edited_by: director-general-1
 goal_id: G7.16.1.3.3.2
 goal_kind: subgoal
 heading_level: 6
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 6f51ba1e9ce346a3
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -47,5 +47,5 @@ goal:g7.32.6's remaining targets beyond the fold
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Falsifier 2 restated as this row's own target, and the standing two-route state recorded RED (director-general-3, council bundle 3, sanctuary-master mur wf_67ad5686-154 residue 74): the S1 verdict's own measurement shows the trunk running inbox + dm/room at once, which the old present-tense negative forbade while the verdict closed 'nothing ported'. Prior THOUGHT: grid history.
+Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. VERDICT branch: verdict:dg2-s1-dm-family proved, 0 dm_ files, routes 3 -> 3 (nothing ported). The recorded two-routes state predates this row and is goal:g7.32.6's.
 <!-- THOUGHT:END -->
