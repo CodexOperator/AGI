@@ -625,6 +625,48 @@ def test_sm140_an_empty_payload_stdin_refuses_before_any_write(project, tmp_path
     assert write.main(["build:b1", "payload - && note n", "--root", str(project)]) == 0
     assert (tmp_path / "src" / "thing.py").read_text() == "new\n"
 
+# SM 142: an EMPTY payload result (a patch deleting every line) is b"", never None --
+# was: dry rc 0, real rc 1 + ValueError traceback AFTER update_node stamped the node
+def test_sm142_a_patch_to_an_empty_payload_lands_dry_and_real(project, tmp_path, capsys):
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    dest = tmp_path / "src" / "thing.py"
+    (tmp_path / "all.diff").write_text("--- a\n+++ b\n@@ -1,1 +0,0 @@\n-old\n")
+    (tmp_path / "empty.diff").write_text("")
+    for start, diff in (("old\n", "all.diff"), ("", "empty.diff")):
+        _build_node(project)
+        dest.write_text(start)
+        for dry in (["--dry-run"], []):
+            rc = write.main(["build:b1", f"patch {tmp_path / diff} && note n", *dry, "--root", str(project)])
+            assert rc == 0, (diff, dry, capsys.readouterr().err)
+        assert dest.read_text() == "", diff
+
+
+# SM 143: every payload input resolves BEFORE the dry return -- a missing or non-file
+# source, an absent destination and two payload writers on one line refuse alike dry
+# and real, and nothing is stamped, spliced or logged
+def test_sm143_payload_inputs_refuse_before_any_write(project, tmp_path, capsys):
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "new.py").write_text("new\n")
+    log = project / "sessions" / "write-log.jsonl"
+    for ref, script, want in (
+            ("src/thing.py", f"payload {tmp_path / 'missing.py'} && note n", "is not a file"),
+            ("src/thing.py", f"payload {tmp_path / 'src'} && note n", "is not a file"),
+            ("src/absent.py", "payload_text x && note n", "never creates"),
+            ("src/absent.py", f"payload {tmp_path / 'new.py'}", "never creates"),
+            ("src/thing.py", f"payload {tmp_path / 'new.py'} && payload_text x", "one payload writer")):
+        _build_node(project, ref=ref)
+        (tmp_path / "src" / "thing.py").write_text("old\n")
+        node = project / "nodes" / "build" / "b1.md"
+        before, log_before = node.read_bytes(), log.read_bytes() if log.exists() else None
+        errs = []
+        for dry in (["--dry-run"], []):
+            assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and want in errs[0][0], (script, errs)
+        assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n"
+        assert (log.read_bytes() if log.exists() else None) == log_before, script
+        assert not (tmp_path / "src" / "absent.py").exists()
+
 def test_payload_verb_replaces_the_bytes_the_node_points_at(project, tmp_path):
     _build_node(project)
     dest = tmp_path / "src" / "thing.py"
@@ -677,9 +719,11 @@ def test_payload_refuses_a_missing_source_rather_than_emptying_the_file(
     dest.write_text("precious\n")
     edit = write.apply_verb(write.Edit("build:b1"), "payload",
                             [str(tmp_path / "typo.py")])
-    with pytest.raises(FileNotFoundError):
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    with pytest.raises(write.EditError, match="is not a file"):   # SM 143: before update_node
         write.submit(project, edit)
-    assert dest.read_text() == "precious\n"
+    assert dest.read_text() == "precious\n" and node.read_bytes() == before
 
 
 def test_payload_never_creates_a_file_that_is_not_there(project, tmp_path):
@@ -689,9 +733,11 @@ def test_payload_never_creates_a_file_that_is_not_there(project, tmp_path):
     src = tmp_path / "new.py"
     src.write_text("x\n")
     edit = write.apply_verb(write.Edit("build:b1"), "payload", [str(src)])
-    with pytest.raises(FileNotFoundError, match="never creates"):
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    with pytest.raises(write.EditError, match="never creates"):   # SM 143: before update_node
         write.submit(project, edit)
-    assert not (tmp_path / "src" / "absent.py").exists()
+    assert not (tmp_path / "src" / "absent.py").exists() and node.read_bytes() == before
 
 
 def test_payload_text_writes_the_bytes_inline_with_no_scratch_file(project,
