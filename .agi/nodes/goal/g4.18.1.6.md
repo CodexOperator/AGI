@@ -40,7 +40,7 @@ goal:g4.18.1 (the one mint/write route): write.py is the universal node writer, 
 - The node's identity rows (id, mint_id) never change through a patch.
 
 ## Falsifier
-1. `write.py config:<x> 'patch -'` with a one-line unified diff lands byte-exact on the node file (rc 0, dry == real), and the node is committed.
+1. `write.py config:<x> 'patch -'` with a one-line unified diff lands byte-exact on a canonical node (rc 0, dry == real), and the node is committed; a patch whose result the canonical render would alter refuses by name and prints `write.py <id> canonicalize`.
 2. Negative: a patch touching a BUILD-CONTRACT block, a THOUGHT marker line or an identity row refuses by name with nothing written.
 
 ## Out of scope
@@ -50,5 +50,5 @@ goal:g4.18.1.1 .. goal:g4.18.1.5 (the captive mint flow and its siblings)
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner 02:5xZ 09-30, verbatim (via the Prime): "Also let's make it so write can patch config nodes as well. No reason it should have exceptions it is the universal node writer. The node location just becomes the node itself." This version restates end-state 1 on the council ruling (alive, 03:0xZ 09-30): replace payload is NOT extended to the node file (replace body N:M already edits it by range; one act, one verb, so the log and THOUGHT never misreport the act); its refusal names the route instead (6e21d9655). Asked by DG2 (verdict:dg2mvp-g41816) and SM. Builds: a6102199b, 6e21d9655, 563cd4ca9 (SM 150/151/155). Open: SM 152 153 154.
+Owner 02:5xZ 09-30, verbatim (via the Prime): "Also let's make it so write can patch config nodes as well. No reason it should have exceptions it is the universal node writer. The node location just becomes the node itself." This version restates falsifier 1 on the council ruling (b) on SM 154 (alive, 03:2xZ 09-30): one serializer, fail-closed -- byte-exact on a canonical node, refused by name otherwise, never a silent discard; the canonicalize verb is the one sanctioned route. End-state 1 was restated on the earlier ruling (replace payload stays payload-only, 6e21d9655). Builds: a6102199b 6e21d9655 563cd4ca9 c3c118b3c d8b22ae96.
 <!-- THOUGHT:END -->
