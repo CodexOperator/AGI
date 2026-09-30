@@ -574,17 +574,14 @@ def _suite_lock_held(root: Path) -> bool:
         return False
     try:
         import verification  # noqa: PLC0415 -- bin/ is on sys.path above; the ONE resolver
-        name = verification.suite_lock_name(root)
+        name, rule = verification.suite_lock_name(root), verification._lock_held_by
     except Exception:  # P7: never raises; fail safe on the default name
-        name = "verify-suite.lock"  # documented fail-safe fallback ONLY (resolver unimportable)
+        name, rule = "verify-suite.lock", lambda _root, pid: _pid_alive(pid)  # fallback ONLY
     lock = s / name
-    if not lock.exists():
-        return False
     try:
-        holder = int(lock.read_text(encoding="utf-8").strip())
-    except (OSError, ValueError):
+        return bool(rule(root, int(lock.read_text(encoding="utf-8").strip())))
+    except Exception:
         return False
-    return _pid_alive(holder)
 
 
 def _season_unpushed_count(root: Path) -> int:
