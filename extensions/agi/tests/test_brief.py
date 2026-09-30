@@ -1927,11 +1927,11 @@ def test_the_mechanism_slot_does_not_displace_the_parents_last_line():
 MODES_FIXTURE = {
     "operating_modes": {
         "alpha": {"name": "alpha mode", "seats": "one seat",
-                  "models": "m", "source": "s1"},
+                  "models": "m", "source": "s1", "formation": "doc:A"},
         "beta": {"name": "beta mode", "seats": "two seats",
-                 "models": "n", "source": "s2"},
+                 "models": "n", "source": "s2", "formation": "doc:B",
+                 "profile": "survival"},
     },
-    "active_operating_mode": "alpha",
 }
 
 
@@ -1941,10 +1941,23 @@ def _write_modes(root: Path, data: dict) -> Path:
     return cfg
 
 
+def _write_formations(root: Path, active: str = "doc:A") -> None:
+    """config:formations `active` — the ONE run-mode switch
+    (hypothesis:pb3-run-mode-reads-one-formation-cell)."""
+    path = root / "nodes" / ".geometry" / "formations.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f"---\nid: config:formations\nactive: {active}\n"
+        f"templates:\n  {active}: g9.9\n---\n# config:formations\n",
+        encoding="utf-8")
+
+
 def test_mode_renders_the_active_declaration_from_a_fixture(tmp_path):
     """The rendered brief block carries the ACTIVE mode's text, taken from
-    the declaration, not from any string a caller passed in."""
+    the declaration, not from any string a caller passed in. The block rendered
+    is the one BOUND to config:formations `active`, so the switch is one cell."""
     _write_modes(tmp_path, MODES_FIXTURE)
+    _write_formations(tmp_path, "doc:A")
     block = brief._operating_mode_block(project_root=tmp_path)
     assert "OPERATING MODE" in block
     assert "alpha mode" in block
@@ -1955,17 +1968,52 @@ def test_mode_renders_the_active_declaration_from_a_fixture(tmp_path):
 def test_flipping_the_declared_active_mode_changes_the_render(tmp_path):
     """hypothesis:l4-the-mode-is-declared-not-remembered (c) — THE ONE THAT
     MATTERS. A test that only asserts today's string would pass a hardcoded
-    mode; flipping `active_operating_mode` in the SAME fixture config and
-    seeing the render change proves it is READ, not remembered."""
-    cfg = _write_modes(tmp_path, MODES_FIXTURE)
+    mode; flipping the config:formations `active` cell in the SAME fixture
+    root and seeing the render change proves it is READ, not remembered."""
+    _write_modes(tmp_path, MODES_FIXTURE)
+    _write_formations(tmp_path, "doc:A")
     assert "alpha mode" in brief._operating_mode_block(project_root=tmp_path)
-    cfg.write_text(
-        json.dumps({**MODES_FIXTURE, "active_operating_mode": "beta"}),
-        encoding="utf-8")
+    _write_formations(tmp_path, "doc:B")
     block = brief._operating_mode_block(project_root=tmp_path)
     assert "beta mode" in block
     assert "two seats" in block
     assert "alpha mode" not in block
+    # the same switch carries the PROFILE (one resolver, both answers)
+    assert brief._configured_profile(project_root=tmp_path) == "survival"
+
+
+def test_an_unbound_active_formation_renders_nothing_and_stays_full(tmp_path):
+    """hypothesis:pb3-run-mode-reads-one-formation-cell: `active` naming a
+    template no block binds is a project running that formation, not a mode
+    declaration — the block renders nothing and the profile stays `full`."""
+    _write_modes(tmp_path, MODES_FIXTURE)
+    _write_formations(tmp_path, "doc:C")
+    assert brief._operating_mode_block(project_root=tmp_path) == ""
+    assert brief._effective_profile(project_root=tmp_path) == "full"
+
+
+def test_two_blocks_bound_to_the_same_active_formation_are_ambiguous(tmp_path, capsys):
+    """hypothesis:pb3-run-mode-reads-one-formation-cell: two `operating_modes`
+    blocks carrying the SAME `formation` cell as `active` leave the cell unable
+    to say WHICH mode is in force. Neither renders, the profile stays `full`,
+    and the one stderr line names BOTH colliding keys — dict order is not a
+    tie-break and the ambiguity is never silent."""
+    dup = dict(MODES_FIXTURE["operating_modes"]["alpha"])
+    _write_modes(tmp_path, {"operating_modes": {
+        "alpha": MODES_FIXTURE["operating_modes"]["alpha"],
+        "alpha_too": dup, "beta": MODES_FIXTURE["operating_modes"]["beta"]}})
+    _write_formations(tmp_path, "doc:A")
+    # ONE resolution attempt -> ONE stderr line. Count the lines, never compare a
+    # set: a set of one passes when the same line is printed twice. Each of the
+    # three calls below is its own attempt, so each names the collision once.
+    assert brief._in_force_mode(tmp_path) is None
+    err = capsys.readouterr().err.strip().splitlines()
+    assert len(err) == 1
+    assert set(err) == {
+        "brief: ambiguous active mode for formation 'doc:A': alpha, alpha_too"}
+    assert brief._operating_mode_block(project_root=tmp_path) == ""
+    assert brief._configured_profile(tmp_path) is None
+    assert len(capsys.readouterr().err.strip().splitlines()) == 2
 
 
 def test_absent_declaration_renders_nothing_and_raises_nothing(tmp_path):
@@ -1976,22 +2024,36 @@ def test_absent_declaration_renders_nothing_and_raises_nothing(tmp_path):
     root.mkdir(parents=True)
     # absent file
     assert brief._operating_mode_block(project_root=root) == ""
-    # config present but no operating_modes / active key
-    (root / "config.json").write_text('{"operating_mode": "full"}',
-                                      encoding="utf-8")
+    # config present but no operating_modes key
+    (root / "config.json").write_text('{"brief": {}}', encoding="utf-8")
     assert brief._operating_mode_block(project_root=root) == ""
-    # config present but active names an undeclared mode
-    _write_modes(root, {**MODES_FIXTURE, "active_operating_mode": "nope"})
+    # config + cell present, but no block binds the active template
+    _write_modes(root, MODES_FIXTURE)
+    _write_formations(root, "doc:NOPE")
     assert brief._operating_mode_block(project_root=root) == ""
 
 
 def test_assemble_carries_the_live_active_mode_into_the_brief():
-    """The rendered block reaches the assembled brief for every tier, driven
-    by the LIVE config declaration (enhanced survival is in force)."""
+    """The rendered block reaches the assembled brief for every tier, and
+    the mode it names is the ONE the live config:formations cell has in
+    force — never a mode name hardcoded here or remembered in config.json
+    (hypothesis:pb3-run-mode-reads-one-formation-cell)."""
+    from node_writer import find_node_file  # noqa: PLC0415
+    root = Path(__file__).resolve().parents[3] / ".agi"
+    cell = find_node_file(root, "config:formations")
+    active = str((brief.read_frontmatter(cell.read_text(encoding="utf-8"))
+                  or {}).get("active") or "")
+    modes = json.loads((root / "config.json").read_text(
+        encoding="utf-8")).get("operating_modes") or {}
+    bound = {k: b for k, b in modes.items()
+             if isinstance(b, dict) and b.get("formation") == active}
     for tier in ("kid", "parent", "director", "prime_director"):
         text = _text(tier, scaffold=SCAFFOLD)
-        assert "OPERATING MODE" in text, tier
-        assert "enhanced survival" in text, tier
+        if not bound:
+            assert "OPERATING MODE" not in text, tier
+            continue
+        key, block = next(iter(bound.items()))
+        assert f"ACTIVE: {block.get('name') or key}" in text, tier
 
 
 _G15_RULE = "THIS KID MUST IMPLEMENT THE FIX"
