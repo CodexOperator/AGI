@@ -152,3 +152,15 @@ def test_guard_init_writes_the_ram_slice_without_an_oomd_kill():
     # R2: --uninstall removes it, --status reads it
     assert src.count('"$UGUARD/ramdisk.slice"') >= 2
     assert "show -p MemoryMax --value ramdisk.slice" in src
+
+
+def test_no_systemd_run_argv_outside_mem_cap():
+    """goal:g7.16.1.7.1.1 falsifier 2, pinned (SM review of bea6448a1): a
+    "systemd-run" argv literal lives ONLY in mem_cap.py -- the one scope-argv
+    builder -- so a second builder cannot creep back in unnoticed."""
+    import ast
+    hits = [f"{f.relative_to(BIN)}:{n.lineno}"
+            for f in sorted(BIN.rglob("*.py")) if f.name != "mem_cap.py"
+            for n in ast.walk(ast.parse(f.read_text(encoding="utf-8")))
+            if isinstance(n, ast.Constant) and n.value == "systemd-run"]
+    assert hits == []
