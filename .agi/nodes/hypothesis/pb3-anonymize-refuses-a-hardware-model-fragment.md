@@ -132,5 +132,5 @@ CEILING   HARD CAP: 1 kid · 0 production lines · 40 test lines added · pi-fre
 PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.47: mur dg6-04d (verify timed out, review stands): @file fallback one bare line only, rotation_record resolves its own project never CWD, root once per record, no cell value as a test literal, symmetry equality; node-prose residues closed by the director on the loop tip
+corrective DH.DG3.52: mur dg6-04e (verify timed out at 3600 s, review stands): no-CWD row order-dependent, project-less caller unpinned, email_allow skip aborts the kit loop; test cap +77 vs 60 in DH.DG3.47 ACCEPTED by the director (disclosed, tests only, no production risk); 4 notes demoted (caches keyed safely today, live-cell dependency, a transient unreproduced error)
 <!-- THOUGHT:END -->
