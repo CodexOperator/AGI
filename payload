@@ -476,13 +476,13 @@ def verb_row(edit: Edit, ref: str, source: str) -> Edit:
     `row <top>.<key> <src|->` (BUILD1) addresses a NESTED frontmatter row
     instead: `<src>` is the row's new YAML value, an EMPTY source removes the
     row; resolved by `_resolve_fm_row` into `set_fm[<top>]`."""
-    if re.fullmatch(r"[A-Za-z_][\w-]*\..+", ref):
+    if re.fullmatch(r"[A-Za-z_][\w-]*\..+", ref) and not ref.startswith("name:"):
         if any(ref == seen for seen, _ in edit.fm_rows):
             raise EditError(f"row {ref} twice in one script")
         edit.fm_rows.append((ref, source.strip()))
         return edit
-    if not re.fullmatch(r"\d+(:\d+-\d+)?", ref):
-        raise EditError(f"row wants <n> or <n>:<i>-<j>, got {ref!r}")
+    if not re.fullmatch(r"\d+(:\d+-\d+)?|name:.+", ref):
+        raise EditError(f"row wants <n>, <n>:<i>-<j> or name:<NAME>, got {ref!r}")
     if edit.row_ref or edit.replace_target:
         raise EditError("one body row or replace per script: the body is spliced once")
     edit.replace_target, edit.row_ref = "body", ref
@@ -494,8 +494,15 @@ def _row_range(body: str, row_ref: str) -> str:
     """`<n>[:<i>-<j>]` -> the read-body range `a:b` it names, or EditError when
     row n or the sub-range is out of bounds. ONE resolver for `submit` and the
     `--dry-run` preview, so a preview shows the range the write would take."""
-    n, _, sub = row_ref.partition(":")
     rows = node_writer.body_rows(body)
+    if row_ref.startswith("name:"):   # goal:g4.18.5.1.2: the ONE table row whose first cell is NAME
+        name, lines = row_ref[5:], body.split("\n")
+        hits = [a for a, b in rows if a == b and lines[a - 1].lstrip().startswith("|")
+                and lines[a - 1].strip().strip("|").split("|")[0].strip() == name]
+        if len(hits) != 1:
+            raise EditError(f"row {row_ref}: {len(hits)} table rows are named {name!r}, want 1")
+        return f"{hits[0]}:{hits[0]}"
+    n, _, sub = row_ref.partition(":")
     if not 1 <= int(n) <= len(rows):
         raise EditError(f"row {n}: the body has {len(rows)} row(s)")
     a, b = rows[int(n) - 1]
@@ -550,6 +557,20 @@ def _resolve_fm_row(root, edit: Edit) -> None:
             tables[top] = {k: v for k, v in table.items() if k != key}
     edit.set_fm.update(tables)
     edit.fm_row_resolved = True
+
+
+def _thought_marker_refusal(body: str, rng: str, new_text: str) -> str | None:
+    """goal:g4.18.5.1.1 -- a body range holding a THOUGHT marker LINE refuses:
+    update_node carries the old THOUGHT back, so the block would duplicate.
+    Lines strictly inside the markers stay admitted; so does a range holding
+    the WHOLE block when the new text brings its own complete block."""
+    lo, hi = _parse_range(rng)
+    seg = body.split("\n")[(lo or 1) - 1:hi]
+    marks = [ln for ln in seg if re.match(r"<!--\s*THOUGHT:(BEGIN|END)\b", ln)]
+    if not marks or (len(marks) == 2 and node_writer._THOUGHT_RE.search(new_text or "")):
+        return None
+    return (f"body {rng} holds a THOUGHT marker line: rewrite the THOUGHT with the "
+            f"`thought` verb, and replace only the lines around it")
 
 
 def verb_sub(edit: Edit, spec: str) -> Edit:
@@ -698,7 +719,7 @@ VERB_EXAMPLES = {
     #: note/thought/body_patch (one body writer per submit). The rendered
     #: NOTES block below carries that rule into `-h`.
     "replace": "replace body 4:9 path/to/file",
-    "row": "row 3 path/to/file  |  row manifest.<key> path/to/value.yaml (empty file = remove)",
+    "row": "row 3 f  |  row 2:1-3 f  |  row name:<NAME> f  |  row manifest.<key> value.yaml (empty = remove)",
     "adopt": "adopt",
 }
 
@@ -2400,6 +2421,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
                                 payload_ref, location)
         if edit.row_ref:   # goal:g4.18.5.1: the index picks the range
             edit.replace_range = _row_range(_current, edit.row_ref)
+        if edit.replace_target == "body":
+            _refusal = _thought_marker_refusal(_current, edit.replace_range, edit.replace_text)
+            if _refusal:
+                raise EditError(_refusal)
         # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-
         # splices -- the body-only structural guard, before the splice and
         # before any write. A payload is arbitrary bytes and is never
@@ -3670,12 +3695,17 @@ def main(argv: list[str] | None = None) -> int:
                 except EditError as exc:
                     print(f"ERR: {exc}", file=sys.stderr)
                     return 2
-            if edit.replace_target == "body" and not edit.replace_force:
-                _refusal = _body_range_refusal(
-                    _target_text(root, edit, "body"), edit.replace_range)
+            if edit.replace_target == "body":
+                _refusal = _thought_marker_refusal(
+                    _target_text(root, edit, "body"), edit.replace_range, edit.replace_text)
+                if not _refusal and not edit.replace_force:
+                    _refusal = _body_range_refusal(
+                        _target_text(root, edit, "body"), edit.replace_range)
                 if _refusal:
                     print(f"ERR: {_refusal}", file=sys.stderr)
                     return 2
+            if edit.row_ref:
+                print(f"  row    {edit.row_ref} -> {edit.replace_range}")
             _src3 = "stdin" if edit.replace_from == "-" else edit.replace_from
             print(f"  replace {edit.replace_target} {edit.replace_range} "
                   f"({len(edit.replace_text)} chars, {_src3})")
