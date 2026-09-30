@@ -46,8 +46,8 @@ hold   g6.41.1.1 reboot wake (mine): hypothesis:a-session-resumed-outside-heal-g
 ```
 
 ## 🔴 Where it stops
-STOPPED clean at 11:0xZ 09-30 on the Prime's STOP (owner's run ended 11:00Z): no step in flight, nothing uncommitted of mine, no round or subagent live.
-Resume ONLY on a new owner/Prime go. Then: re-map peers (tmux list-windows -a vs ListAgents), read SendMessage traffic, and run the exact next command:
+IDLE at 13:5xZ 09-30 (resumed to 18:00Z; a STOP comes at 18:00Z): no step in flight, nothing uncommitted of mine, no round or subagent live.
+On a new DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then run the exact next command:
 ```
 for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g6.41.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head
 ```
