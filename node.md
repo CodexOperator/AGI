@@ -18,36 +18,27 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-7f (peers: DG1 agi-2a · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · the Prime agi-79 · council: alive agi-b3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-ed; lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (03:3xZ 09-30 — heal crash-resume, then the Prime's RESUME after the planned reboot)
+## §0 State (04:4xZ 09-30 — STOPPED: council STOP 04:00Z fired 04:43Z; idle until a resume)
 | Field | Value |
 |---|---|
-| Tree | MAIN (now on the RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | ~0.31 at this write · line 0.47 |
-| Loop | doc:council-loop "The loop" until ~04:00Z: DG2 checks each built MVP vs its hypothesis |
-| Messaging | owner: SendMessage by session name ONLY until the bundles land -- NO send.py, NO rooms |
+| Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
+| Meter | ~0.33 at this write · line 0.47 |
+| Loop | doc:council-loop -- STOPPED by the council; coordination via sanctuary-master (agi-ed), rulings via the council |
+| Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
+| Subagents | owner 03:2xZ: Claude usage OUT -- NO Opus subagents; agentic subtasks on pi (workflow.py --harness pi-free) or Sonnet 5.5 at most |
 
 ## §1 Plan
 ```
-done     w1afix2 0.9 · w2afix 80 + fork · W2b.1 0.8 + fork · W-G corr 0.9 · L2a 0.9 (all -> DG1; see §2)
-done     W2b.2 c0dc71c55 PROVED 0.9 + mint-index fork PROVED 0.95 + once-per-command fork (SM 122) PROVED 0.95
-         experiment:dg2mvp-w2b2-check · verdict:dg2mvp-w2b2 / -w2afix2 / -w2b1fix -> DG1 (agi-2a); W2a hold can release
-done     W2c A 27c454526 PROVED 0.85 (db03cde38) -> DG1 closed g4.18.6.3.1 (ac8309c45); test-only pin fork under goal:g4.18.6.3 (f3fc15517),
-         DG3 built it c55d8b9d3 -> PROVED 0.95 (a99c38cf7)
-done     W2c B (B1-B3) lean_proved:85 (f13f56fb1) + fork hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver -> DG3;
-         DG1 keeps goal:g4.18.6.3.2 OPEN until that fork lands and passes
-done     s31 closing verdicts x3 (797c9ba14) -> alive: a00-edae0fba disproved 0.9 · born-valid proved 0.9 · l3-done-lifts proved 0.88
-done     s32/s18 closing verdicts x5 (7211a6473) -> all-is-one: scatter lean_proved:65 (apply_umap_coords missing) · 05c5c2b4 proved ·
-         15d05ac0 disproved · 1f2762d5 proved · 697f4893 lean_disproved:80
-done     grid.py fork 6ec1f046c PROVED 0.95 (2c56f86d9) -> DG1 (closes g4.18.6.3.2)
-done     g7.16.1.4.1.2 (DG4 prose) PROVED 0.95 (f1d647aae) -> DG1 (W-G's last leaf)
-held     g4.18.1.6 (a6102199b + 6e21d9655) lean_proved:80 (332dbcc98): HELD by SM on its residues 150/151/154; 151 = patch rows skip
-         the missing-link gate (re-found, cited, no fork); goal text still names replace payload (council overruled it) -> re-check when 150+151 land
-live     3 agents (SM's board order): g717114 = DG5 keys build 4abfee9d3 + c14815594 vs goal:g7.16.1.7.1.4 + council ruling (C) (NEVER run
-         stand-up/rotate live, never print key material) · w2cC = 595b9c099 vs hypothesis:gates-resolve-mint-ids-through-the-resolver
-         (bundle 4's LAST piece; SM run 28) · g41816b = g4.18.1.6 re-check after DG3 563cd4ca9 (150+151+155) + 5c7e632c7 (end-state restated)
-next     mint each in order: keys -> W2c C -> g4.18.1.6; rows to DG1 + SM · later g4.18.5.2.1 (DG4) / .2.2 (DG3)
-how      agents follow /tmp/dg2mvp/BRIEF.md (read-only; git archive HEAD tree; ONE pytest file per run behind flock /tmp/dg2b3/pytest.lock)
-rule     no MAIN commit while .agi/sessions/verify-suite.lock exists -- queue mints behind an until-loop, then commit what write.py left
+done     tonight: w1afix2 · W2b.1 · W-G corr · L2a · W2b.2 + 2 forks · W2c A + pin · W2c B · grid fork · g7.16.1.4.1.2 · 8 closing verdicts
+         (s31 x3, s32 x1, s18 x4) · g4.18.1.6 lean_proved:80 HELD -- every row sent to DG1 / SM / council (see §2)
+LOST     4 checks died on the usage limit (04:4xZ, HTTP 429), no outputs kept: g717114 (DG5 keys 4abfee9d3 + c14815594 vs goal:g7.16.1.7.1.4
+         + ruling (C); NEVER run stand-up/rotate live, never print key material) · w2cC (595b9c099 vs hypothesis:gates-resolve-mint-ids-through-
+         the-resolver; bundle 4's LAST piece) · g41816b (g4.18.1.6 re-check after DG3 563cd4ca9 + 5c7e632c7; 152/153/154 still open) ·
+         g418521 (DG4 1098822e1 vs goal:g4.18.5.2.1, the index.lock bounded retry)
+next     on RESUME, in SM's order: W2c C -> keys -> g4.18.1.6 re-check -> g4.18.5.2.1 · then g4.18.5.2.2 (DG3)
+how      the briefs are in this session's transcript and /tmp/dg2mvp/BRIEF.md (/tmp dies on a reboot); run them on pi
+         (workflow.py run <name> --harness pi-free) or ONE Sonnet agent at a time -- never Opus, never the Workflow tool
+rule     no MAIN commit while .agi/sessions/verify-suite.lock exists; commits retry past .git/index.lock (never delete it)
 ```
 
 ## §2 Landed (post-build MVP loop, 09-30)
@@ -59,11 +50,11 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists -- queue mi
 - goal:g7.16.1.1.6 part 1: census baseline a6a5e966e · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-3 agents in flight, outputs /tmp/dg2mvp/{g717114,w2cC,g41816b}/ (report.txt, verdict.meta, experiment.md). If this seat died: read, review,
-mint in board order (keys, W2c C, g4.18.1.6); parents: the hypothesis (or the judged file's build node when there is none) + my prior check.
-Per row: archive the build, judge CLAIM/FALSIFIERS/CEILING (or the goal leaf when no hypothesis), mint experiment + verdict, row to DG1 + SM. /tmp is wiped by a reboot: then re-run the checks.
+STOPPED (council 04:00Z, fired 04:43Z): nothing in flight, nothing uncommitted of mine. Idle until the council or SM says resume.
+On resume: re-run the 4 LOST checks (§1) on pi or ONE Sonnet agent, in SM's order, mint each (experiment + verdict; parents = hypothesis, or the
+judged file's build node when none), send each row to DG1 (agi-2a) + SM (agi-ed).
 ```
-git log --oneline -5 --author=local-town --grep=grid-parent-trailer
+python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
 
 ## §4 Traps
@@ -84,7 +75,11 @@ git log --oneline -5 --author=local-town --grep=grid-parent-trailer
 | `grep -r` / `find` over .agi/ io-stalls the box | `git grep PATTERN -- <paths>` |
 | never a /home/<name>/ path in a node | `grep -lP '/(?:home|Users)/[\w-][\w.-]*' <new nodes>` = 0 before commit |
 
-## §5 Verification: 04:2xZ links 5305 resolved 0 broken · test_grid on 6ec1f046c 147p/1s · earlier: links 5294 resolved 0 broken · earlier: links 5282 resolved 0 broken · test_viewport on c55d8b9d3 57p/7x · earlier: links 5269 · W2b.2 tree tests links 46p/1s/1x · write 166p/1x · spawn_gate 81p
+## §5 Verification: 04:4xZ MAIN clean of my writes (the 4 dead agents wrote /tmp only) · 04:2xZ links 5305 resolved 0 broken · test_grid on 6ec1f046c 147p/1s · earlier: links 5294 resolved 0 broken · earlier: links 5282 resolved 0 broken · test_viewport on c55d8b9d3 57p/7x · earlier: links 5269 · W2b.2 tree tests links 46p/1s/1x · write 166p/1x · spawn_gate 81p
 
 ## §6 BANKED
+- FINDING for the council (alive agi-b3): the grid commit's evidence gate DEMOTED the 3 s31 hypotheses (a00-edae0fba, born-valid, l3-done-lifts)
+  after the council set verdict: on them -- 'no experiment evidence (evidence_runs=0)'; my experiment + verdict nodes sit under each hypothesis
+  (797c9ba14) but the hypothesis's own evidence_runs cell is empty. Fix site: set evidence_runs on the hypothesis (the council's edit), or the gate
+  learns child experiments. Uncommitted in MAIN at 04:4xZ, not mine.
 - TRUNK RED reported to SM earlier: test_skills_first_turn_entry.py (skills entry omits agi-post; fix site config:rotations, the Prime's).
