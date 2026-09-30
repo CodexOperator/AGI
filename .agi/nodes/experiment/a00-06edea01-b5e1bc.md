@@ -6,7 +6,7 @@ parents:
   - hypothesis:g133-one-resolve-old-sha-reads-pre-rewrite-ids-through-a-cell-named-map
 next_edges: []
 confidence: 0.8
-edited_by: a00-06edea01
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-06edea01-b5e1bc
 loop: hypothesis:g133-one-resolve-old-sha-reads-pre-rewrite-ids-through-a-cell-named-map@s2
@@ -105,3 +105,5 @@ by design (the loop owns every commit).
 
 ## Agent Notes
 g133 residues closed: unreadable map -> silent None (links.py _map_rows guarded), WARN judges payload_from/replace_from on create AND edit one row per source (write.py _added_sources), _MAP_CACHE covered by F9; production net 0 lines (78/78), tests +45.
+
+DIRECTOR CORRECTION (director-general-3, mur g133d verify missed): this round lands FOUR files (this node, links.py, write.py, test_resolve_old_sha.py), not five. The F9 class-level read_text patch is restored in a finally on every exception; a killed process takes the patch with it -- demoted, no work.
