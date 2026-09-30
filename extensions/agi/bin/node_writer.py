@@ -999,11 +999,13 @@ THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
                  "regenerating scans. The reasoning behind THIS version. -->")
 THOUGHT_END = "<!-- THOUGHT:END -->"
 #: a marker LINE, BEGIN or END -- the one line-level spelling (SM 113; write.py imports it)
-THOUGHT_MARKER_LINE_RE = re.compile(r"^<!--\s*THOUGHT:(BEGIN|END)\b")
-#: a block opens on a marker LINE only: the \b THOUGHT_MARKER_LINE_RE has, so a
-#: `THOUGHT:BEGIN_x` line is neither (SM 129: the two disagreed, a stray count went -1)
+#: THE marker head, ONE constant both regexes are built from: `[ \t]*`, never
+#: `\s*`, so a marker never spans a newline (SM 131: `<!--\nTHOUGHT:BEGIN` was a
+#: block start but no marker line) and `\b`, so `THOUGHT:BEGIN_x` is neither (SM 129)
+_MARK = r"^<!--[ \t]*THOUGHT:"
+THOUGHT_MARKER_LINE_RE = re.compile(_MARK + r"(BEGIN|END)\b")
 _THOUGHT_RE = re.compile(
-    r"^<!--\s*THOUGHT:BEGIN\b.*?^<!--\s*THOUGHT:END\s*-->",
+    _MARK + r"BEGIN\b.*?" + _MARK + r"END[ \t]*-->",
     re.DOTALL | re.MULTILINE)
 _THOUGHT_STRIP_RE = re.compile(r"\n*" + _THOUGHT_RE.pattern, _THOUGHT_RE.flags)
 
@@ -1024,7 +1026,7 @@ def thought_blocks(text: str) -> list[str]:
 
 
 _ROW_ITEM = re.compile(r"^\s{0,3}([-*+]|\d+[.)])\s")
-_ROW_BLOCK = re.compile(r"^<!--\s*([A-Z][A-Z-]*):BEGIN")
+_ROW_BLOCK = re.compile(r"^<!--[ \t]*([A-Z][A-Z-]*):BEGIN\b")   # SM 131: one line, a whole word
 
 
 def body_rows(body: str) -> list[tuple[int, int]]:

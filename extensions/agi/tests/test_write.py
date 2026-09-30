@@ -2461,7 +2461,9 @@ def test_w1a_fix2_the_spliced_body_keeps_one_well_formed_thought(project, tmp_pa
     for i, text in ((n, THOUGHT + "\n\n" + THOUGHT), (n, f"{beg}\n{beg}\nx\n{end}"),
                     (n, f"{end}\n{THOUGHT}"), (tail, THOUGHT), (tail, beg),
                     (n, f"<!-- THOUGHT:BEGIN_ r\nx\n{end}"),              # SM 129: a pseudo-BEGIN
-                    (n, f"<!-- THOUGHT:BEGIN_ r\nx\n{end}\n{end}")):     # ... + a lone END
+                    (n, f"<!-- THOUGHT:BEGIN_ r\nx\n{end}\n{end}"),      # ... + a lone END
+                    (n, f"<!--\nTHOUGHT:BEGIN r\nx\n{end}"),                # SM 131: a BEGIN split over 2 lines
+                    (n, f"{beg}\nx\n<!--\nTHOUGHT:END -->")):               # ... an END split over 2 lines
         (tmp_path / "t.txt").write_text(text + "\n")
         for dry in ([], ["--dry-run"]):
             assert write.main(["hypothesis:h1", f"row {i} {tmp_path / 't.txt'}", *dry,
@@ -2535,7 +2537,7 @@ def test_sm125_a_sub_beside_a_body_writer_refuses_alike_dry_and_real(project, tm
 
 # SM 130: ONE judge -- `--dry-run` runs submit's own refusals (submit(dry_run=True)),
 # so every refusal a write raises, the preview raises: rc AND the ERR lines.
-def test_sm130_every_submit_refusal_previews_alike(project, tmp_path, capsys):
+def test_sm130_every_submit_refusal_previews_alike(project, tmp_path, capsys, monkeypatch):
     node, body = _w1c_node(project)
     before, lines = node.read_text(), body.split("\n")
     x, d = tmp_path / "x.txt", tmp_path / "d.diff"
@@ -2558,7 +2560,25 @@ def test_sm130_every_submit_refusal_previews_alike(project, tmp_path, capsys):
             assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
             errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
         assert errs[0] == errs[1] and errs[0], (script, errs)
-    assert node.read_text() == before
+    import io   # SM 132 + probe: stdin read ONCE, before the one judge
+    for script, stdin in ((f"body_patch -", d.read_text()),):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(stdin))
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and errs[0], (script, errs)
+    reads = []   # an EMPTY stdin replace (a deliberate deletion) is read once, never twice
+
+    class _Once(io.StringIO):
+        def read(self, *a):
+            reads.append(1)
+            assert len(reads) == 1, "stdin read twice"
+            return ""
+    monkeypatch.setattr(sys, "stdin", _Once())
+    capsys.readouterr()
+    rc = write.main(["hypothesis:h1", "replace body 6:6 --force -", "--dry-run", "--root", str(project)])
+    assert rc == 0 and len(reads) == 1 and node.read_text() == before, capsys.readouterr().err
 
 def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp_path):
     node, body = _w1c_node(project)

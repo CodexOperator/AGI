@@ -157,6 +157,7 @@ class Edit:
     fm_row_resolved: bool = False
     replace_from: str = ""
     replace_text: str = ""
+    replace_stdin_read: bool = False   # `replace ... -` consumed stdin (possibly empty)
     # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
     # the explicit consent that admits a body range the structural guard
     # would otherwise refuse (`_body_range_refusal`). Spelled as a prefix on
@@ -2283,7 +2284,7 @@ def _resolve_replace_text(edit: Edit) -> None:
     """
     if not edit.replace_from:
         return
-    if edit.replace_text:
+    if edit.replace_text or edit.replace_stdin_read:
         # Already resolved — by main() for its --dry-run preview, or by an
         # API caller that set the text directly. Never re-read: a second
         # stdin read for `-` would consume nothing and hang the caller.
@@ -2292,7 +2293,8 @@ def _resolve_replace_text(edit: Edit) -> None:
         # Same stdin contract as `payload -` / `patch -`: replacement text is
         # arbitrary content and cannot ride an `&&` script chunk.
         edit.replace_text = sys.stdin.read()
-        return
+        edit.replace_stdin_read = True   # SM 132 probe: an EMPTY stdin is resolved too (a
+        return                           # deliberate deletion, pinned) -- never read twice
     try:
         text = Path(edit.replace_from).read_text(encoding="utf-8")
     except OSError as exc:
@@ -3739,6 +3741,23 @@ def main(argv: list[str] | None = None) -> int:
     # payload ref is resolved) rather than here, so a refused diff is still
     # refused before consuming it.
 
+    # SM 132: stdin is read ONCE, here, BEFORE the one judge -- a dry run judges
+    # the same bytes the write lands (a `body_patch -` diff that does not apply
+    # refuses in both)
+    if edit.payload_from == "-":
+        # The CLI layer reads stdin; the library never does. `payload -` is
+        # for content that cannot ride in an argv chunk -- anything with `&&`
+        # in it, or a whole file being piped in.
+        edit.payload_from = ""
+        edit.payload_bytes = sys.stdin.read()
+
+    if edit.body_patch_from == "-":
+        # Same stdin contract as `payload -` / `patch -`: the diff bytes ride
+        # stdin because a diff can contain the doubled ampersand that would
+        # split the `&&` script form. Read once, here, never in the library.
+        edit.body_patch_from = ""
+        edit.body_patch_diff = sys.stdin.read()
+
     if args.dry_run:
         print(f"{edit.node_id}:")
         for k, v in edit.set_fm.items():
@@ -3808,20 +3827,6 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ERR: {exc}", file=sys.stderr)
             return 2
         return _preview_dry_run_gate(root, edit, args)
-
-    if edit.payload_from == "-":
-        # The CLI layer reads stdin; the library never does. `payload -` is
-        # for content that cannot ride in an argv chunk -- anything with `&&`
-        # in it, or a whole file being piped in.
-        edit.payload_from = ""
-        edit.payload_bytes = sys.stdin.read()
-
-    if edit.body_patch_from == "-":
-        # Same stdin contract as `payload -` / `patch -`: the diff bytes ride
-        # stdin because a diff can contain the doubled ampersand that would
-        # split the `&&` script form. Read once, here, never in the library.
-        edit.body_patch_from = ""
-        edit.body_patch_diff = sys.stdin.read()
 
     try:
         edit.signatures = args.ring_sigs
