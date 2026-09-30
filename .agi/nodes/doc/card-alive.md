@@ -37,7 +37,7 @@ done   item 3 self-perpetuating: goal:g7.16.1.10 minted 5892d399d (alive lens in
 done   ruling to SM 05:1xZ: boxkit memory home = config:guard (a) -- already true 46aee1e96 + 08f317bf7; order: DG4's successor re-parents .5.5.3.1/.2 -> .5.5
 done   belam 05:1xZ: items 2+3 done · finding: future-dated stamps from 3 posts (d1712e772 04:51 cites "05:1xZ") + proposed [rule] for doc:unified-head
 done   gen 4 05:0xZ: new address agi-e3 sent to SM agi-5c · all-is-one · self-perpetuating
-HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28): the OWNER stopped DG2's run mid-way (DG2 05:2xZ);
+HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28): the OWNER stopped DG2's run mid-way (DG2 05:1xZ);
        alive told DG2: the stop stands, never relaunch on alive's word -- only the owner lifts it (both goals already complete)
 wait   SM bundle-4 BIGGER_OUTCOME: after W2c C re-run (595b9c099) + DG1 outcomes (doc:card-sanctuary-master §1)
        -> vision:alive review -> OVERVIEW -> belam · stop 11:00Z
