@@ -779,6 +779,34 @@ def test_g41816_replace_payload_on_a_node_names_the_route(project, tmp_path, cap
     assert errs[0] == errs[1] and "use `replace body N:M` (or `row`)" in errs[0][0], errs
     assert node.read_text() == old
 
+# SM 148 + 149: a destination the writer cannot READ (000, or write-only 0200) refuses before any
+# write, dry == real; 146's carve-out: the same bytes on a read-only (444) dest is a legal re-log
+def test_sm148_149_an_unreadable_payload_dest_refuses_and_same_bytes_444_relogs(project, tmp_path, capsys):
+    import os
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    dest, log = tmp_path / "src" / "thing.py", project / "sessions" / "write-log.jsonl"
+    for mode in (0o000, 0o200):
+        _build_node(project)
+        dest.write_text("old\n")
+        node = project / "nodes" / "build" / "b1.md"
+        before, log_before, errs = node.read_bytes(), log.read_bytes() if log.exists() else None, []
+        os.chmod(dest, mode)
+        try:
+            for dry in (["--dry-run"], []):
+                assert write.main(["build:b1", "payload_text x && note n", *dry, "--root", str(project)]) == 2, oct(mode)
+                errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        finally:
+            os.chmod(dest, 0o644)
+        assert errs[0] == errs[1] and "is not readable" in errs[0][0], (oct(mode), errs)
+        assert node.read_bytes() == before and dest.read_text() == "old\n"
+        assert (log.read_bytes() if log.exists() else None) == log_before, oct(mode)
+    os.chmod(dest, 0o444)
+    try:
+        assert write.main(["build:b1", "payload_text old", "--root", str(project)]) == 0, capsys.readouterr().err
+        assert dest.read_text() == "old\n" and '"changed": false' in log.read_text().splitlines()[-1]
+    finally:
+        os.chmod(dest, 0o644)
+
 def test_payload_verb_replaces_the_bytes_the_node_points_at(project, tmp_path):
     _build_node(project)
     dest = tmp_path / "src" / "thing.py"
