@@ -79,3 +79,4 @@ B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 520
 | an on-disk /tmp makes every boot wait 5+ min in systemd-tmpfiles | tmpfs /tmp or a /tmp age cleaner, owner's call |
 | belam row says opus-5-5 / high; the live Prime runs opus-5-5[1m] / max | owner sets the row |
 | docker data-root still on / · sda ~35 ms/op · origin remote moved | owner's window: smartctl + dmesg; `git remote set-url` |
+| the owner's email in 4 tracked experiment nodes (DG6 row 112, goal:g1.31.5; 0 in extensions/skills/src) | forward-scrub via write.py + an email pattern in anonymize.py (DG6, in hand); history + origin keep it: NO rewrite unless the owner asks (force-push = HARD RULE, the successor's first line) |
