@@ -906,6 +906,37 @@ def test_w2a_mint_index_is_frontmatter_only_typed_and_fresh(project, capsys):
     assert "open.md: frontmatter never closes" in capsys.readouterr().err
 
 
+
+# SM 123 124 126 127: every indexed title equals yaml's reading of it; a NUL byte
+# hides no node; index= answers like no index, collisions included; the id-less
+# warning is named once per process.
+def test_sm123_to_127_the_index_reads_like_yaml_and_hides_no_node(project, capsys):
+    import yaml
+    titles = {"goal:y1": "done body shape ## Measured", "goal:y2": "'it''s'",   # 123 · 124a
+              "goal:y3": '"say \\"hi\\" # not a comment"', "goal:y4": "plain # a comment",
+              "goal:y5": "#only a comment"}
+    for i, (nid, title) in enumerate(titles.items()):
+        _node(project, nid, [f'id: "{nid}"', "type: goal", f"mint_id: {str(i) * 32}",
+                             f"title: {title}"], "b\n")
+    idx = links.mint_index(project)
+    for i, (nid, title) in enumerate(titles.items()):   # 124b: yaml is the oracle, never a literal
+        want = yaml.safe_load(f"title: {title}")["title"]
+        assert idx[str(i) * 32][0][2] == ("" if want is None else str(want)), (nid, title)
+    nul = project / "nodes" / "goal" / "z1.md"   # 127: one NUL in the body, a mint twin of goal:y1
+    nul.write_bytes(b'---\nid: "goal:z1"\ntype: goal\nmint_id: ' + b"0" * 32 + b"\n---\n\na\x00b\n")
+    idx = links.mint_index(project)
+    assert sorted(h[0] for h in idx["0" * 32]) == ["goal:y1", "goal:z1"]
+    for index in (None, idx):   # 124c: the same answers with and without index=
+        with pytest.raises(ValueError, match="carried by 2 live"):
+            links.resolve_mint(project, "0" * 32, index=index)
+        assert links.resolve_mint(project, "1" * 32, index=index)[0] == "goal:y2"
+        assert links.resolve_mint(project, "f" * 32, index=index) is None
+    capsys.readouterr()
+    (project / "nodes/goal/noid.md").write_text("---\nmint_id: " + "6" * 32 + "\n---\n")
+    links.mint_index(project)
+    links.mint_index(project)   # 126: named, and once per process, never per read
+    assert capsys.readouterr().err.count(f"noid.md: mint_id {'6' * 32} but no id -- not indexed") == 1
+
 def test_w2a_one_resolver_def_and_links_and_write_call_it():
     import re
     src = {p.name: p.read_text() for p in BIN.glob("*.py")}
