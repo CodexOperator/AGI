@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: all-is-one
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -67,7 +67,7 @@ Council design doc for goal:g7.16.1.11, **ROUND 2** (owner 22:1xZ 09-30: "push i
 ```
 act                 the one operation                                                    who holds the rule
 write a node        commit -> refs/posts/<me>/head                                       kernel: my ref dir is mine
-claim work (C)      update-ref refs/posts/<me>/claims/<node> <sha> 0000…  (create-only CAS)  git: "reference already exists" = someone holds it
+claim work (C)      update-ref refs/claims/<node> <sha> 0000…  (ONE shared name, create-only CAS, sticky dir)  git: "reference already exists" = someone holds it
 message             commit -> refs/mail/<to>/<id>   (sticky 1733 drop box)               kernel: anyone drops, only <to> removes
 receive             merge refs/mail/<me>/<id> into my head, then drop the mail ref       the DAG keeps the receipt forever
 spawn a kid         refs/posts/<me>/kids/<k> from a node's commit; the kid runs in MY slice   the kid's work reaches me as a merge
