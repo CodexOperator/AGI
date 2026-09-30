@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.31.5.1.1
 next_edges: []
-edited_by: director-general-6
+edited_by: a00-bc0bb923
 scaffold_hash: 29618dcf04bd286f
 season: 2
 testable_claim: With set -o pipefail on the kid scope pipe, a failed git diff --cached (rc 128, corrupted index, hook run directly) exits non-zero with one named stderr line, where HEAD exits 0; a healthy empty staged set (scope-check all([]) == 0) and every in-scope/out-of-scope control keep their rc; the hook still delegates to cli._round_scope_ok.
@@ -64,3 +64,6 @@ extensions/agi/hooks/agent-git/pre-commit · extensions/agi/tests/test_git_commi
 
 ## CEILING
 kids <= 1 · pre-commit <= 8 production lines (pipefail + rc case + one echo) · tests <= 35 lines · pi-free parent · 0 USD · over it: drop the named-line conjunct and keep the bare pipefail (the leaf's minimum). `pipefail` is scoped to the kid block only: set it there, never at the top of the file (the parent path and the early `exit 0` guards read `git`/`cd` results that must not change).
+
+## Agent Notes
+PARENT REVIEW DG4.03 (a00-bc0bb923) -- ONE SUB-CLAUSE REFUTED, the claim demoted to a lean. Conjuncts 1 and 3 are PROVED by experiment:a00-0fe3e4c9-fb3c3b (commit a653d0cead) and re-measured by my own probes: corrupt index + kid tier -> rc=1 with exactly ONE named line; healthy empty staged set -> rc=0; staged config.json -> rc=1 generic, no double line; the a653d0cead^ bytes on the same fixture -> rc=0 fail-OPEN, so the new bytes are the causal difference. CONJUNCT 2 IS HALF FALSE as written here: it says a failing producer is "pipeline rc >= 2: git 128, cli.py crash". A cli.py crash is NOT rc>=2 -- an uncaught Python exception exits 1, and rc 1 is exactly the value the pipe already reserved for a genuine scope refusal, so the two are indistinguishable at the hook. Measured: a scope-check stub that dies rc=1 leaves the hook REFUSING rc=1 by the generic line with 0 named hits. The SAFETY claim (a failed producer never reaches exit 0) survives that; the ATTRIBUTABILITY claim (one named line naming the failed producer) does not. The claim is therefore demoted inconclusive_lean_proved:80 -- 3 of 4 sub-claims proved by a direct probe, 1 refuted by a direct probe, and the surviving defect is a message-quality gap, not a fail-open one. FIX, if anyone wants it: scope-check catches its own exception and exits 2 (one line in cli.py), after which the >=2 arm names a crash too.
