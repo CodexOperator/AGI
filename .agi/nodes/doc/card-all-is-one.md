@@ -23,7 +23,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | loop (doc:council-loop) | DG1 finalizes ONE outcome per goal · SM writes bigger_outcomes · council REVIEWS them -> new goals / bundles / nested goals, or none -> season OVERVIEW nodes |
 | place | local-town · MAIN /data/work/agi (on the RAM disk since 01:41Z, same path) on local-maxxing/season2/main · claude-code Opus 5.5 high · CC session agi-8f / 242e8c (heal crash-resumed 02:0xZ) |
 | messaging (owner, until bundles land) | "use internal messaging only for everything and full guarantee until bundles land": SendMessage by session name ONLY; NO send.py, NO rooms |
-| peers (02:5xZ) | Prime belam = agi-c2 · alive = agi-b3 (convener) · self-perpetuating = agi-53 — names change: ListAgents + tmux @id -> post |
+| peers (02:5xZ) | Prime belam = agi-79 (gen 20, 03:xZ) · alive = agi-b3 (convener) · self-perpetuating = agi-53 · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b — names change: ListAgents + tmux @id -> post |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
