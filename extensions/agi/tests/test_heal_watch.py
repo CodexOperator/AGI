@@ -2544,3 +2544,42 @@ def test_r2_the_psi_line_is_the_cell(graph_project, monkeypatch, cell, psi, laun
     assert (launched == ["belam"]) is launches, (launched, log)
     if not launches:
         assert f">= {30 if cell == '30' else 40}" in log, log
+
+
+# ── goal:g7.16.1.7.1.1 R2-alert: N consecutive pressure deferrals -> ONE [red] to the Prime
+def _r2_sends(graph_project, monkeypatch):
+    import send
+    monkeypatch.setenv("AGI_REAPER_STATE", str(graph_project / "reaper-state"))
+    sent: list = []
+    monkeypatch.setattr(send, "send", lambda root, to, text, sender, **k: sent.append((to, text)) or ("", False))
+    return sent
+
+
+def test_r2_alert_one_red_per_seat_at_the_nth_pressure_deferral(graph_project, monkeypatch):
+    sent = _r2_sends(graph_project, monkeypatch)
+    for p in (1, 2):
+        _r2_one_pass(graph_project, monkeypatch, _R2_PSI(60.0))
+        assert sent == [], (p, sent)
+    _r2_one_pass(graph_project, monkeypatch, _R2_PSI(60.0))  # the 3rd pass in a row (default cell 3)
+    assert sorted(t.split(" recovery")[0] for _to, t in sent) == ["[red] heal: belam", "[red] heal: worker-a"], sent
+    assert all(to == "belam" and "avg10 60" in t for to, t in sent), sent  # to the prime_director row, the reading named
+    _r2_one_pass(graph_project, monkeypatch, _R2_PSI(60.0))
+    assert len(sent) == 2, "one [red] per streak, never one per pass"
+
+
+def test_r2_alert_blind_psi_is_its_own_red_on_the_first_pass(graph_project, monkeypatch):
+    sent = _r2_sends(graph_project, monkeypatch)
+    _r2_one_pass(graph_project, monkeypatch, {})
+    assert len(sent) == 2 and all("unreadable" in t for _to, t in sent), sent
+    _r2_one_pass(graph_project, monkeypatch, {})
+    assert len(sent) == 2, sent
+
+
+def test_r2_alert_streak_resets_and_slot_deferrals_never_count(graph_project, monkeypatch):
+    sent = _r2_sends(graph_project, monkeypatch)
+    for psi in (60.0, 60.0, 0.0, 60.0, 60.0):  # the calm pass breaks the streak
+        _r2_one_pass(graph_project, monkeypatch, _R2_PSI(psi))
+    assert sent == [], sent
+    for _ in range(4):  # under the line: the worker waits on the one-launch slot every pass
+        _r2_one_pass(graph_project, monkeypatch, _R2_PSI(0.0))
+    assert sent == [], sent
