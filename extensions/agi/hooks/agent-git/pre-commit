@@ -76,9 +76,11 @@ if [ "${AGI_TIER}" = "kid" ] && [ -n "${AGI_TREE_PROJECT_ROOT:-}" ] && [ -n "${A
         # hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff — the
         # `if` tested only the LAST pipe stage, so a `git diff --cached` that
         # FAILED fed scope-check an EMPTY list, `all([])` allowed, `exit 0`.
-        # pipefail (scoped to THIS block: the parent path above reads git/cd
-        # results that must not change) carries the failing rc; rc >= 2 is a
-        # failed DIFF, not a scope refusal — one named line, then refuse.
+        # PIPESTATUS carries each stage's rc: git stage != 0 -> the git line;
+        # scope-check >= 2 -> the scope-check line; 1 = a scope refusal, which
+        # falls through to the generic line. pipefail is inert now (PIPESTATUS
+        # does not need it); it stays set only as a belt, scoped to THIS block
+        # (the parent path below reads git/cd results that must not change).
         # Per-stage attribution: PIPESTATUS must be read as the VERY NEXT
         # statement (any command first clobbers it to its own rc), and each
         # stage gets its OWN name — a dead scope-check is not a scope verdict.

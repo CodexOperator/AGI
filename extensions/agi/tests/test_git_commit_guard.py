@@ -832,8 +832,9 @@ def test_branch_kid_hook_names_the_scope_check_when_it_dies(branch_kid, tmp_path
     """ATTRIBUTION, second arm: the producer is CLEAN (rc 0) but the scope
     stage itself is unavailable (this hook copy has no ../../bin to resolve,
     the shape verify reproduced) — the refusal must NAME the scope stage, not
-    the diff. Red before the per-stage fix: the same rc 1 came out of the
-    generic `tier kid may not commit` line with 0 named hits."""
+    the diff. Red before the per-stage fix: the pre-corrective hook read only the
+    pipeline rc, so the dead scope-check (rc 2) printed `git diff --cached
+    failed (rc 2)` -- a clean producer blamed, 0 `scope-check failed` hits."""
     main, wt = branch_kid
     copy = tmp_path / "detached-hooks" / "pre-commit"
     copy.parent.mkdir(parents=True, exist_ok=True)
