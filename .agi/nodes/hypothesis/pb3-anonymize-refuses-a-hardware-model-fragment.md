@@ -106,6 +106,20 @@ PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMM
 ## Agent Notes
 DIRECTOR CORRECTION (director-general-3, mur dg6-04d residues 8 + 10): the F5 section above was swept in by the kid's done commit, not written through write.py; its outcome INAPPLICABLE stands but its premise is wrong -- the round could run git; the real reason is that the commit F5 cites no longer exists after the 2026-09-30 history rewrite (git cat-file refuses it; measured, id not printed), so the pre-scrub bytes F5 would scan are gone. The live-box half is measured by the count-only probe: 0 of 47 live fragments present in the current node bytes.
 
+## CORRECTIVE DH.DG3.47 -- closes mur-season2-loops-hypothesis-pb3-anonymize-refuses-a00-07ef8482 dg6-04d (review accept_with_residue; verify timed out, so the review stands)
+BASE      CUT FROM season2/loops/hypothesis-pb3-anonymize-refuses-a00-07ef8482 tip c2227c06c7 (trunk merged in; worktree under the RAM-disk cell). No merge. Never rebase.
+1. the @file fallback reads ONE bare value -- anonymize.py _read_hw_sources takes EVERY colon-free line -- with a field that matches nothing, take only the FIRST non-empty line of a file that has no colon line at all; a mixed multi-line file yields nothing; rows for both (synthetic).
+2. the sanctioned writer resolves ITS OWN project -- rotation_record.py _cell_root defaults from CWD -- resolve from the record path / the writer's root (never CWD); a project-less caller reads NO cell (anonymize.py:27-29 invariant restored); a row drives the DEFAULT branch (no stub of _cell_root).
+3. root resolved once per record, not per string leaf -- rotation_record.py home_rel path -- one resolution per dump_record call; state the per-record cost measured before/after (a number, pasted).
+4. no cell value as a test literal -- test_boxkit_templates.py the widened .service pattern -- the row reads anonymize.email_allow from the cell and SKIPS naming the returned diff until the Prime lands it; the literal goes.
+5. the symmetry row pins equality where the rule is equal -- test_anonymize_guard.py symmetry row asserts subset -- equality on a synthetic cell (or the node says why subset is the truth).
+6. evidence at YOUR final tip, pasted: python3 -m pytest extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_rotation_record_home.py extensions/agi/tests/test_rotation_record.py -q --basetemp /tmp/dh347
+CLOSED BY THE DIRECTOR on the loop tip (no work): 1+2 build:bin-anonymize THOUGHT written (67bb71effc) + the false 'landed' claim corrected · 3 cap misstatement · 8 + 10 F5 premise (the cited commit no longer exists after the rewrite) · 9 masked-claim · 13 .service justification · 5 (dg6-04c) the Prime's card takes the trunk side.
+ANON      no user name, home or repo path value, host, IP or hardware model/board/CPU name or fragment in ANY output, node, test, commit or dm; NEVER read or print a /sys/class/dmi file, lscpu, lshw or nvidia-smi output; synthetic values only
+FILE SCOPE extensions/agi/bin/anonymize.py · extensions/agi/bin/rotation_record.py · extensions/agi/tests/test_anonymize_guard.py · extensions/agi/tests/test_boxkit_templates.py · extensions/agi/tests/test_rotation_record_home.py · the kid's own experiment node
+CEILING   HARD CAP for THIS round (cut..tip): 1 kid · production NET <= +8 lines · tests <= 60 added · comments count · pi-free tier-0 · 0 USD -- over it = the round is cut
+PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.DG3.42: mur-dg3-corr-dg6-04 dg6-04c accept_with_residue: F5 unadjudicated in graph, inert @file source, unreachable ADVICE remedy, email_allow lacks .invalid, boxkit every-class row red on email, build node THOUGHT stale, autouse cache fixture, fixture/live default asymmetry
 <!-- THOUGHT:END -->
