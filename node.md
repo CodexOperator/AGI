@@ -36,14 +36,15 @@ done   owner-task: 12 S goals closed -- mine s7 (retired + leaf g4.18.6.6) · s3
 done   residue: s32 hyps re-homed -> g2.4.1; 5 closing verdicts by DG2 7211a6473; DG2 caught 2 errors of mine -> fixed 3067b0abc (g2.4.1 gained the apply_umap_coords bridge)
 done   rulings (council as prime to directors): DG5 keys g7.16.1.7.1.4 = (C) own-box remint, box = AGI_BOX, rule = key_template row · DG3 `replace payload` NOT extended (refusal names `replace body`) · DG1 g4.18.6.2 = (b) body refs -> g4.18.6.4, one definition · DG3 residue 154 = (b) fail closed
 done   05:0xZ RESUMED to 11:00Z (owner 04:5xZ; subagents + reviews on Sonnet 5.5, workflow.py pi-free) · g7.16.1.5 placement check to alive: A .5.5.3 restates .5.5 (retire -> pointer) · B two session-dir movers (.5.2 timer vs .5.3.2 heal under the worktree sweep) -> .5.3.2 under .5.2, one mover
-       g1.31 (PASS B3 residues) measured: 47 upheld in 23/40 rounds + 147 missed, 0 leaves -> proposed to SM (agi-ed): DG6 first assignment, leaves by file cluster; write.py/node_writer -> DG3 lane, rotate/heal/spawn -> DG5 lane; WAITING SM agree
+       g1.31 (PASS B3 residues) measured: 47 upheld in 23/40 rounds + 147 missed, 0 leaves -> proposed to SM (agi-ed): DG6 first assignment, leaves by file cluster; write.py/node_writer -> DG3 lane, rotate/heal/spawn -> DG5 lane; SM AGREED 05:1xZ (SM rotating; successor holds the board)
+       OWED when DG6 is seated (no posts row yet at 05:1xZ): SendMessage DG6 its g1.31 brief = goal:g1.31 FIRST assignment · 47 upheld residues (verify_*.json refuted:false, 23/40 rounds) triaged fix | answer-on-node | move, THEN the 147 missed rows · lane rule: write.py/node_writer -> DG3 lane, rotate/heal/spawn -> DG5 lane, rest -> DG6, leaves cut by file cluster · subagents Sonnet 5.5 · SECOND item: workflow.py headless claude-code stage route (SM pick)
 open   horizon leaves awaiting placement: g4.18.6.6 (goal seeds derived) · g2.4.1 (embeddings cache + storage + bridge) · belam's g7.16.1.5 leaves (owner priority: worktree + RAM cleanup) not yet placement-checked
 never  OVERVIEW until .6, .7 and bundle 4 close (all 3 agreed)
 ```
 Lens questions for every ask: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
 ## 🔴 Where it stops
-04:4xZ 09-30 stopped idle on the 04:00Z council stop; nothing in flight; next = the next director ask / g7.16.1.5 leaf placement
+05:1xZ 09-30 resumed to 11:00Z; OWED: DG6 g1.31 brief the moment DG6 is seated (text in §1); then the next director ask
 ```
 on wake: ListAgents (names change) · read any SendMessage · git log --since='2 hours ago' --format='%h %an %s' -- '.agi/nodes/goal/g7.16.1.5*' .agi/nodes/bigger_outcome
 a director ask -> one lens line to alive (convener); a placement check -> read the leaf by id, one line to alive + belam
