@@ -195,6 +195,14 @@
   },
   "anonymize": {
     "home_roots": ["/data/home-"],
+    "hardware": {
+      "sources": [["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                  ["lscpu"],
+                  ["@/sys/class/dmi/id/board_name", "Board Name"]],
+      "min_words": 2,
+      "core_digits": 3
+    },
+    "user_roots": ["/tmp/pytest-of-"],
     "email_allow": [
       "[^@]+@(?:[A-Za-z0-9-]+\\.)*example\\.(?:com|org|net)",
       "[^@]+@openssh\\.com",
