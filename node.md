@@ -1298,7 +1298,6 @@ manifest:
     args:
       - {"name": "action", "type": "str", "required": true, "choices": ["install", "show", "remove"]}
       - {"name": "snapshot_mins", "type": "str", "required": false, "choices": []}
-      - {"name": "publish_engine", "type": "bool", "required": false, "choices": []}
     purpose: grid.py cron
     side_effects: destructive
     proposable: false
