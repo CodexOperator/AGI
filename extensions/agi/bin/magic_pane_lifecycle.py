@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""magic_pane_lifecycle.py — spawn/attach hooks → runner tick/consume (g7.16.1.7.3.6+); stand-up/rotate wire (g7.16.1.7.3.7).
+"""magic_pane_lifecycle.py — spawn/attach hooks → runner tick/consume (g7.16.1.7.3.6+); stand-up/rotate wire (g7.16.1.7.3.7); pane-id×rotation falsifiers (g7.16.1.7.3.8).
 
 Wire the pane runner into **real pane lifecycle** without requiring live tmux
 attach: a dry/fixture path proves spawn→consume and attach→tick. Pi extension
@@ -12,8 +12,8 @@ within a tick; busy holds mid-turn. ACT: runner surfaces tool_call_turn renders
 
 Messaging adapter (`adapters.magic_pane` / g7.32.2*) and `send.py` stay
 untouched. Live tmux attach stays deferred unless a dry path cannot prove the
-contract (this leaf proves it dry). ONE-pi free lane via `free_lane_probe` /
-pi_adapter + pi.toml.
+contract (standup-wire + pane-id×rotation falsifiers prove it dry).
+ONE-pi free lane via `free_lane_probe` / pi_adapter + pi.toml.
 """
 from __future__ import annotations
 
@@ -364,6 +364,198 @@ def from_stand_up(
     out["stand_up_mode"] = mode
     out["wired_from"] = "stand_up"
     return out
+
+
+
+def orphan_pane_census(
+    root: Path, post_id: str | None = None
+) -> dict[str, Any]:
+    """Census dry pane pins under ``posts/*/pane.json``.
+
+    An orphan is: (a) more than one pane pin file for a post directory, or
+    (b) a post whose registered pane_id is empty/missing. With the one-file
+    pin layout, (a) is structural (only ``pane.json``); we also track that
+    the census sees exactly one pin per post. Returns counts + pin rows.
+    """
+    posts_root = Path(root) / "posts"
+    pins: list[dict[str, Any]] = []
+    orphans: list[str] = []
+    if posts_root.is_dir():
+        for post_dir in sorted(p for p in posts_root.iterdir() if p.is_dir()):
+            pid = post_dir.name
+            if post_id is not None and pid != post_id:
+                continue
+            candidates = sorted(post_dir.glob("pane*.json"))
+            if len(candidates) > 1:
+                orphans.append(pid)
+            for c in candidates:
+                try:
+                    data = json.loads(c.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError):
+                    orphans.append(pid)
+                    continue
+                if not isinstance(data, dict):
+                    orphans.append(pid)
+                    continue
+                pane = str(data.get("pane_id") or "")
+                if not pane:
+                    orphans.append(pid)
+                pins.append(
+                    {
+                        "post_id": pid,
+                        "pane_id": pane,
+                        "generation": int(data.get("generation") or 0),
+                        "path": str(c.relative_to(root)),
+                    }
+                )
+    orphan_ids = sorted(set(orphans))
+    return {
+        "pins": pins,
+        "orphans": orphan_ids,
+        "orphan_count": len(orphan_ids),
+        "pin_count": len(pins),
+        "dry": True,
+        "live_tmux": False,
+    }
+
+
+def prove_pane_rotations(
+    root: Path,
+    post_id: str,
+    n: int = 3,
+    *,
+    pane_id: str | None = None,
+    routes: dict[str, Any] | None = None,
+    path: Path | None = None,
+    dry: bool = True,
+    enqueue_rotation_prompt: bool = True,
+) -> dict[str, Any]:
+    """Close parent falsifier #2 dry: n rotations → ONE pane_id, 0 orphans.
+
+    goal:g7.16.1.7.3.8 — spawn once via ``from_stand_up(spawn)``, then ``n``
+    rotate attaches. Asserts the same pane_id survives, generation == n, and
+    ``orphan_pane_census`` reports 0 orphans for the post. Optionally enqueues
+    a ``rotation_prompt`` before each rotate so attach tick drains a
+    tool_call_turn (rotation event shape through the pane).
+
+    dry=True only; dry=False refuses (live tmux still deferred — dry closes
+    this falsifier).
+    """
+    if not dry:
+        raise MagicPaneLifecycleError(
+            "live tmux attach deferred (goal:g7.16.1.7.3.8); dry path closes "
+            "pane-id\timesrotation falsifiers — use dry=True"
+        )
+    if not isinstance(n, int) or n < 1:
+        raise MagicPaneLifecycleError("n must be an int >= 1 (falsifier uses 3)")
+
+    if get_pane(root, post_id) is not None:
+        raise MagicPaneLifecycleError(
+            f"prove_pane_rotations expects a fresh post; {post_id!r} already pinned"
+        )
+
+    spawn_out = from_stand_up(
+        root,
+        post_id,
+        "spawn",
+        pane_id=pane_id,
+        body=f"SPAWN:{post_id}:rotation-proof",
+        routes=routes,
+        path=path,
+        dry=True,
+    )
+    first_id = str(spawn_out["pane"]["pane_id"])
+    generations: list[int] = [int(spawn_out["pane"].get("generation") or 0)]
+    rotate_outs: list[dict[str, Any]] = []
+    drained_tags: list[str] = []
+
+    for i in range(n):
+        if enqueue_rotation_prompt:
+            run.mark_busy(root, post_id)
+            run.deliver(
+                root,
+                post_id,
+                "rotation_prompt",
+                f"ROTATE-{i + 1}",
+                routes=routes,
+                path=path,
+            )
+            held = run.tick(root, post_id)
+            if held:
+                raise MagicPaneLifecycleError(
+                    f"busy hold failed before rotate {i + 1}: drained {held!r}"
+                )
+        out = from_stand_up(
+            root,
+            post_id,
+            "rotate",
+            pane_id=first_id,
+            routes=routes,
+            path=path,
+            dry=True,
+        )
+        pid = str(out["pane"]["pane_id"])
+        if pid != first_id:
+            raise MagicPaneLifecycleError(
+                f"pane_id survival failed at rotate {i + 1}: "
+                f"expected {first_id!r}, got {pid!r}"
+            )
+        gen = int(out["pane"].get("generation") or 0)
+        generations.append(gen)
+        if enqueue_rotation_prompt:
+            turns = out.get("turns") or []
+            if not turns:
+                raise MagicPaneLifecycleError(
+                    f"rotate {i + 1} drained no turns (expected rotation_prompt)"
+                )
+            tag = turns[0].get("kind_tag")
+            drained_tags.append(str(tag))
+            if tag != "engine.rotation_prompt":
+                raise MagicPaneLifecycleError(
+                    f"rotate {i + 1} kind_tag {tag!r} != engine.rotation_prompt"
+                )
+        rotate_outs.append(out)
+
+    final_gen = generations[-1]
+    if final_gen != n:
+        raise MagicPaneLifecycleError(
+            f"generation after {n} rotates expected {n}, got {final_gen}"
+        )
+
+    census = orphan_pane_census(root, post_id)
+    if census["orphan_count"] != 0:
+        raise MagicPaneLifecycleError(
+            f"orphans after rotations: {census['orphans']!r}"
+        )
+    if census["pin_count"] != 1:
+        raise MagicPaneLifecycleError(
+            f"expected exactly 1 pin for {post_id!r}, got {census['pin_count']}"
+        )
+    if census["pins"][0]["pane_id"] != first_id:
+        raise MagicPaneLifecycleError(
+            f"census pane_id {census['pins'][0]['pane_id']!r} != {first_id!r}"
+        )
+
+    return {
+        "action": "prove_pane_rotations",
+        "post_id": post_id,
+        "pane_id": first_id,
+        "rotations": n,
+        "generations": generations,
+        "final_generation": final_gen,
+        "orphans": census["orphans"],
+        "orphan_count": 0,
+        "pin_count": 1,
+        "drained_kind_tags": drained_tags,
+        "spawn": spawn_out,
+        "rotates": rotate_outs,
+        "census": census,
+        "dry": True,
+        "live_tmux": False,
+        "falsifier": (
+            "three rotations \u2192 ONE pane_id, 0 orphans (parent g7.16.1.7.3 #2)"
+        ),
+    }
 
 
 
