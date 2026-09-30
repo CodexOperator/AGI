@@ -33,6 +33,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 done   B4 goal:g7.16.1.10 minted + true-state fixes · S-remainder leaves corrected · .7 coverage findings to DG5 · rulings
 done   gaps actions 1+2 VERIFIED in bytes: bea6448a1 (.7.1.1: mem_cap.py the only systemd-run builder in bin/) · 89ef864c3 (.7.1.3 falsifier -> test_harness_block.py:85)
 done   DG6 g1.31.4.2.2 meter fall-back (a2c9f4c7b): alive ruled STANDS (all-is-one AGREE) with 3 conditions to DG6 (agi-bb); my falsifier line 45 + stamp fix are condition 1
+done   bundle-4 lens to alive: YES a rotation in a suite window rotates on an uncommitted card (00c8c5c25 05:16:59 carried a stale flattened quorum file; f2c5731d5 card landed 05:17:23, 24 s after seating); ruled: 4c = goal:g4.18.5.6 (DG5), 4a = g4.18.5.5 (DG4, prereq), 4b = g7.16.1.6.1 -- all horizon; lens the leaves once committed
 next   DG5 mints the 6 leaves .7.1.5-7 + .7.2.6-8 + 3 also-uncovered items -> lens them against .7 (sent 05:2xZ, + a stamp fix: .7.1.3 THOUGHT says 05:4xZ, the true minute is 05:1xZ)
        alive places g7.16.1.10 (DG1 sketches leaves, builds by g1.31's file-owner map) -> lens on the leaves
 then   no OVERVIEW until g7.16.1.1.6 (DG2 proof + census), .6, .7 and bundle 4 close · stop 11:00Z
