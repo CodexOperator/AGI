@@ -62,7 +62,7 @@ absent below, so it goes RED instead of stale.
     template naming this box's hostname, a NIC address, a board serial or a key id
     passes row 4 CLEAN. ONE row runs anonymize.scan -- the guard's own function,
     MIN_TOKEN and CLASSES -- against a FAKE box denylist (this box's values are never
-    read into the test): it plants one FAKE_BOX value in a COPY of one template and
+    read into the test): it plants one _fake_value in a COPY of one template and
     asserts scan names the CLASS, and asserts the UNPLANTED kit bytes stay clean. It
     guards a PLANTED COPY: the kit's own bytes could only go red on a real denylist.
 15: THIS INVENTORY IS CHECKED: every `row N` the file names must be listed above, or the
@@ -1113,7 +1113,7 @@ def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
         fake_box, anonymize, tmp_path):
     """Both directions in ONE row. The kit's OWN bytes can only go red on a real box's
     denylist, unreadable here, so ability-to-go-red is shown on a PLANTED COPY of one
-    template (one FAKE_BOX value, one class) and the clean half on the kit's own bytes."""
+    template (one _fake_value, one class) and the clean half on the kit's own bytes."""
     toks = anonymize.box_tokens(PROJECT)
     assert sorted({c for c, _ in toks}) == sorted(anonymize.CLASSES), \
         "the fake denylist did not reach every class; the row would be vacuous"
