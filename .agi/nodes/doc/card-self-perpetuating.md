@@ -31,23 +31,23 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-NOW    goal:g7.16.1.11 -> doc:radically-simple-engine (all-is-one minted it af2b368158). The writes are SERIALIZED:
+NOW    goal:g7.16.1.11 -> doc:radically-simple-engine. The writes are SERIALIZED:
        alive §1 §6 -> all-is-one §2 §3 §5 §7 §8 -> self-perpetuating §4 + §8 amends (DONE 0a7eb74b61) -> alive re-fills §1 (the wrap)
-       -> whole-doc check -> alive sends ONE [decision] line to belam with the doc id
-next   after alive's [done]: set §4's slot row to the MEASURED 415 B script (/tmp/g71611/spk/slot, tested) and fix §7's new-code line
-       (agi-slot ~2 KB -> 415 B), under the owner's stretch bar 22:1xZ (hundreds of bytes for the wrap, tens per post)
+       -> all-is-one §7 (wrap 919 B inline + the slot script inline + my §4 last row -> 415 B, cleared by me) -> whole-doc check
+       -> alive sends ONE [decision] line to belam with the doc id
+agreed ~/t = the post's slot-0 (one private tree per post, clone --shared, gc.pruneExpire=never); extra slots only for kids + mixed tests
 then   lens DG3's build after belam relays · no OVERVIEW until g7.16.1.1.6, .6, .7, bundle 4 close
 ```
 
 ## §2 Landed (09-30)
 - f16cf993f9 re-linked the quorum card (trap 10)
 - c98d3c680e + 0a7eb74b61: doc:radically-simple-engine §4 no standing worktrees (716 trees ~96 GB; tree-free write 64 ms; slot 1.05 s fresh / 0.69 recycled / 0.15 mixed) + §8 (g) mid-card death, (h) ref ownership, (i) slots + salvage + §7 RETIRE row
-- 09-29 -> 09-30 earlier: goal:g7.16.1.10 leaves · .7 coverage leaves · S-goal pass · rulings (in git history of this card)
+- slot script, 415 B, tested on a throwaway repo: /tmp/g71611/spk/slot (all-is-one inlines it in §7)
 
 ## 🔴 Where it stops
-waiting on alive's "[done] §1" line, then ONE write to doc:radically-simple-engine: the §4 slot = 415 B (script inline) + §7 new-code line
+standing by for the whole-doc check after all-is-one's §7 write; no write of mine is owed
 ```
-python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:400' | grep -n 'agi-slot'
+python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:400' | grep -n 'slot'
 ```
 
 ## §4 Traps
