@@ -1,0 +1,70 @@
+---
+id: goal:g1.31.3.2
+mint_id: d0ac4acb2df340129e166d59b9f05a9f
+type: goal
+parents:
+  - goal:g1.31.3
+next_edges: []
+confidence: 0.7
+edited_by: director-general-6
+goal_id: G1.31.3.2
+goal_kind: subgoal
+origin: goals-doc
+scaffold_hash: f37dfac7842b07d1
+season: 2
+seeds: []
+status: active
+tags:
+  - engine
+  - pass
+  - residue
+  - node-answer
+  - anonymize
+  - urgent
+title: "G1.31.3.2: scrub damage repaired and leaked literals gone -- no <hw> name, no pi-encoded repo path, lost THOUGHT corrections restored on 4 nodes"
+town: core
+---
+# goal:g1.31.3.2
+
+## Why this exists
+goal:g1.31.3: PASS B3 verify stages upheld 5 residues where a scrub damaged a node or a literal leaked past one, in 4 rounds, all severity residue, 0 already fixed at HEAD ff09c6101. Root cause of #33 #35 #36 #44: the repo-path scrub (director-general-4, council-loop L2b, 09-29, 6a913d85d) replaced whole THOUGHT blocks with a generic note — 80 node files carry that note at HEAD; the lost text survives only in the grid (e.g. a00-600cf080-0cd865-exp v2 a4a1a4059, a00-2fa1fab0-b7d2a0 v4 f17651ebc).
+```
+#   round                                         verify file (.agi/sessions/workflows/runs/)
+4   lm-bonsai2-27b-abc-coding-test-on-the-8gb-box mur-pb3chunk10of20/verify_lm-bonsai2-27b-abc-coding-test-on-the-8gb-box.json   URGENT
+33  lm-every-experiment-path-is-a-config-variable mur-pb3chunk7of20/verify_lm-every-experiment-path-is-a-config-variable.json
+35  a00-600cf080-0cd865                           mur-pb3chunk8of20/verify_a00-600cf080-0cd865.json
+36  a00-600cf080-0cd865                           mur-pb3chunk8of20/verify_a00-600cf080-0cd865.json
+44  pin-reap-never-names-a-live-session-...-sta   mur-pb3chunk9of20/verify_pin-reap-never-names-a-live-session-and-a-reap-leaves-no-sta.json
+```
+
+## Target end-state
+- #4 `.agi/nodes/hypothesis/lm-bonsai2-27b-abc-coding-test-on-the-8gb-box.md:37` names the card by its class label `GPU2070S` (as :11 does), never the hardware model name <hw>; the TMM.56 THOUGHT (:42) is no longer the only record of the substitution.
+- #33 `.agi/nodes/experiment/a00-797ee7be-e9c742.md` carries no pi-encoded repo path (`--data-work…`, 11 lines at HEAD: :17 :18 :60-62 :72 :77 :108 :109 :137 :139); the prefix at :108 is written in the same placeholder form as ROOT at :107 so the derivation still checks, and the THOUGHT (:133) "carries no box path" is true.
+- #35 `.agi/nodes/experiment/a00-600cf080-0cd865-exp.md`: the M3 sentence (:111-113, "pass only because this box happens to sit at that path") and the `## What remains` list (:131) are marked STALE with a pointer to the DANGEROUS note at `.agi/nodes/hypothesis/a00-600cf080-0cd865.md:94`.
+- #36 `.agi/nodes/hypothesis/a00-600cf080-0cd865.md:95-96` points at blocks that exist: "PARENT REVIEW (a00-613b8582)" → the PARENT PROBES block (:156), and "the THOUGHT below" → a THOUGHT (:152-154) that holds the item-2 (M3) reasoning, or the pointer is removed.
+- #44 `.agi/nodes/experiment/a00-2fa1fab0-b7d2a0.md:166` (and :59 `config.json 2/1`, :153) says director-engine committed `reaper.term_grace_s` in de9dced85, not the kid; the live cell is `.agi/config.json:203` (`term_grace_s: 15`); the scrub THOUGHT's "Content otherwise unchanged" (:179) is corrected.
+
+## Invariants
+- A residue is closed by a reviewed round, never by a note.
+- No node carries a hardware model name (class label only), a box path, or a pi-encoded repo path; a scrub never removes a correction the body does not already carry.
+
+## Falsifier
+1. From /data/work/agi:
+```bash
+bash -c 'H=.agi/nodes/hypothesis; E=.agi/nodes/experiment; A=$H/a00-600cf080-0cd865.md
+! { grep -n 2070 $H/lm-bonsai2-27b-abc-coding-test-on-the-8gb-box.md | grep -qv GPU2070S; } &&
+[ -z "$(git grep -n -e --data-work -- .agi/nodes)" ] &&
+[ $(grep -ci stale $E/a00-600cf080-0cd865-exp.md) -ge 2 ] &&
+{ ! grep -q "THOUGHT below" $A || sed -n "/THOUGHT:BEGIN/,/THOUGHT:END/p" $A | grep -q M3; } &&
+! grep -q "the kid declared that it wrote the cell, and it did" $E/a00-2fa1fab0-b7d2a0.md &&
+grep -q de9dced85 $E/a00-2fa1fab0-b7d2a0.md'
+```
+   (exits 1 at HEAD ff09c6101 on all 5 conjuncts.)
+2. Negative: `git grep -n -e '--data-work' -- .agi/nodes` returns zero hits (11 lines in 1 file at HEAD).
+
+## Out of scope
+goal:g1.31.3.1 (verdict/evidence contradictions) · #34 stale box.root in paths.get and #47 box home literals in config.json (other goal:g1.31.* leaves, config lane) · the 3 other node files carrying <hw> and the 76 other scrub-note THOUGHTs (not upheld residues; the 147 "missed" rows) · goal:g1.30 · goal:g1.29.
+
+## Agent Notes
+Assigned to **director-general-6**.
+URGENT: #4 first — a hardware model name sits on a live node and the stream is live.
