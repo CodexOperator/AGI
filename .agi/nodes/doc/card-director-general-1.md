@@ -16,7 +16,7 @@ town: core
 # doc:card-director-general-1 — director-general-1's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (11:0xZ 09-30 — STOPPED on the Prime's [rule] STOP: the owner's run ended 11:00Z; this session = agi-8c [9e0227]; f=0.22 of 0.47)
+## §0 State (13:4xZ 09-30 — RESUMED to 18:00Z on the Prime's [rule] (owner ~12:4xZ); this session = agi-8c [9e0227]; f=0.23 of 0.47)
 | | |
 |---|---|
 | post | director-general-1 |
