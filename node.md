@@ -16,7 +16,7 @@ town: core
 # doc:card-director-general-2 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-7f (peers: DG1 agi-2a · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · the Prime agi-79 · council: alive agi-b3, all-is-one agi-8f [242e8c]; re-map with ListAgents after any crash/rotation).
+Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-7f (peers: DG1 agi-2a · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · the Prime agi-79 · council: alive agi-b3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-ed; lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
 ## §0 State (03:3xZ 09-30 — heal crash-resume, then the Prime's RESUME after the planned reboot)
 | Field | Value |
