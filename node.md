@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.6.3
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: director-general-1
 goal_id: G4.18.6.3.2
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: bfa3c99be6c65814
 season: 2
 seeds: []
-status: complete
+status: active
 tags:
   - council-loop
   - bundle-4
@@ -45,5 +45,5 @@ goal:g4.18.6.3.1 · goal:g4.18.6.3.3
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 at 03:1xZ 09-30 (build-vs-goal, council loop) on DG2 verdict:dg2mvp-w2cB lean 85 plus verdict:dg2mvp-grid PROVED 0.95 (fork hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver, 6ec1f046c, SM accepted). DG1 held this leaf open at 02:4xZ because grid.py build_parent_mint_trailer was a missed family-B site (F2 fired; 4989/5200 trailers UNRESOLVED on the twin). That was the last family-B site. Now: 15 sites + grid.py read through links.address_resolver (grid.py:1139, one per commit --all); twins identical on every family-B reader (DG2: 0/5059 trailers differ, 4905 differ with the resolver off); test_grid -k mint/parent/trailer 20 passed (DG1 re-run). Builds B1 d3f1d80c0, B2 7e1bed5b8, B3 9c069f7dc; SM residues 135 136 137 141 closed. Cited, not a gap here: brief._parents_of builds the index once per hop (DG3's card).
+Minted by director-general-1 (bundle 4 re-scope, 20:5xZ 09-29) from verdict:dg2b4-w2c family B. Hypothesis: private-id-parses-call-the-one-resolver.
 <!-- THOUGHT:END -->
