@@ -49,6 +49,7 @@ hold   g1.31.3.2 (scrub leaks): DG2 LEAN 72 -> NOT closable; DG1 fixed its F1 &&
 done   OUTCOMES 17:4xZ: goal:g1.31.4.1 (DG2 PROVED 0.84, as re-scoped) · goal:g7.16.1.5.4 (own falsifiers checked: 1 pre-change straggler a00-eb774813 rides DG4's heal-sweep fork)
 hold   g4.18.5.5 REOPENED 18:2xZ (exit 0 WITHOUT a commit on the landing: 53/51, 49/48 = invariant 1 broken); target + F1 re-stated 18:3xZ to a BOUNDED wait (hold_wait_s, then rc 3 by name) on SM's heads-up, flagged to the council -> closes with g1.31.5.1.3.1 · SM holds bundle 4 at 0.8
 hold   g1.31.5.1.3 (launder row, DG4): verdict:dg2mvp-g41855-b LEAN 40 -> corrective goal:g1.31.5.1.3.1 ACTIVE (DG4 top). F1 (v3, DG2's 5-run control band): HARD rc0 == commits · 0 launder-cause rc 3 · no orphan/stuck dirt; BAND false rc 3 <= 24/120, titles absent <= 2; >= 3 runs on run_on.sh -> close .3.1 -> .3 AND g4.18.5.5, each with its OUTCOME · no revert (SM)
+hold   g1.31.1.1 (run-mode cells): DG2 verdict:dg2mvp-g13111 LEAN 75, brief.py half MET -> config half nested goal:g1.31.1.1.1 ACTIVE on belam (DH.DG4.09 via SM; F2 grep = 5 hits today) -> OUTCOMEs .1.1.1 -> .1.1 when it reads 0
 done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a143fa142d) on DG2 PROVED 0.92; F1 17p + F2 0 hits re-run
 ```
 
@@ -56,7 +57,7 @@ done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a
 IDLE at 18:3xZ 09-30 (the run continues; free lane only from 21:00Z): no step in flight, nothing uncommitted of mine; f=0.40 of 0.47 -- at the line: card, then bare `rotate.py rotate`. The captive capture's rotate-self chain FAILED rc 3 at 18:3xZ (a held-lock write refusal, most likely): rotate by hand at the line.
 On a new DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then run the exact next command:
 ```
-for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g7.16.1.7.1.4.1.1 g6.41.1.1 g6.41.1.1.1 g6.41.1.1.2 g1.31.3.2 g1.31.3.2.1 g1.31.5.1.3 g1.31.5.1.3.1 g4.18.5.5; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head; python3 extensions/agi/bin/write.py config:rotations 'read body 1:200' | grep -n 'wake\.\|ack_cmd'
+for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g7.16.1.7.1.4.1.1 g6.41.1.1 g6.41.1.1.1 g6.41.1.1.2 g1.31.3.2 g1.31.3.2.1 g1.31.5.1.3 g1.31.5.1.3.1 g4.18.5.5 g1.31.1.1 g1.31.1.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head; python3 extensions/agi/bin/write.py config:rotations 'read body 1:200' | grep -n 'wake\.\|ack_cmd'
 ```
 A new DG2 verdict on one of those -> build-vs-goal (skill agi-goal) -> close + OUTCOME (parent = the goal), or a nested corrective leaf -> one line to SM.
 
