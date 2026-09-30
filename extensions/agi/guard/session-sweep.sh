@@ -2,7 +2,7 @@
 # session-sweep.sh -- goal:g7.16.1.5.2 (owner 2026-09-30 01:3xZ: "auto-sweep old sessions into the standard session
 # directory for Claude in /data"). Moves IDLE session dirs to their /data homes and leaves a symlink behind:
 #   MAIN/.agi/sessions/iter-*   -> GUARD_AGI_SESSIONS_ARCHIVE_<box>
-#   ~/.claude/projects/<dir>    -> GUARD_CLAUDE_PROJECTS_ARCHIVE_<box>   (the 09-28 claude-projects convention)
+#   harness session dirs        -> GUARD_SWEEP_PAIRS_<box> 'SRC=>DEST ...' (~/.claude/projects, ~/.pi/agent/sessions)
 # Idle = no file written within the idle age AND no live process with its cwd or an open file inside.
 # Under tmpfs pressure (MAIN up on the RAM disk and use >= GUARD_SWEEP_PRESSURE_PCT) the agi sweep uses the shorter
 # GUARD_SWEEP_PRESSURE_IDLE_MIN, oldest first, and stops 10 points under the line.
@@ -59,12 +59,12 @@ while read -r d; do
 done < <(find "$MAIN/.agi/sessions" -maxdepth 1 -name 'iter-*' -type d -printf '%T@ %p\n' | sort -n | cut -d' ' -f2-)
 log "agi: $n moved (idle ${idle} min)"
 
-# 2. Claude Code project dirs
-m=0
-if [ -n "$CC_ARCH" ] && [ -d "$HOME/.claude/projects" ]; then
+# 2. harness session dirs: GUARD_SWEEP_PAIRS_<box> = 'SRC=>DEST ...' (e.g. ~/.claude/projects=>COLD/claude-projects)
+m=0; PAIRS=$(cell SWEEP_PAIRS); [ -z "$PAIRS" ] && [ -n "$CC_ARCH" ] && PAIRS="$HOME/.claude/projects=>$CC_ARCH"
+for pair in $PAIRS; do src=${pair%%=>*}; dest=${pair#*=>}; [ -d "$src" ] || continue
   while read -r d; do
     recent "$d" "$CC_IDLE" && continue; held "$d" && continue
-    move "$d" "$CC_ARCH/$(basename "$d")" || continue; m=$((m+1))
-  done < <(find "$HOME/.claude/projects" -mindepth 1 -maxdepth 1 -type d)
-fi
-log "claude: $m moved (idle ${CC_IDLE} min)"
+    move "$d" "$dest/$(basename "$d")" || continue; m=$((m+1))
+  done < <(find "$src/" -mindepth 1 -maxdepth 1 -type d)
+done
+log "harness: $m moved (idle ${CC_IDLE} min)"

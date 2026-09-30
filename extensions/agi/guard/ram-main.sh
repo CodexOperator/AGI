@@ -10,7 +10,7 @@
 #   up       cutover now, or the boot restore: rebuild RAM from DISK, bind, overmount. A no-op when already up.
 #   sync     RAM -> DISK working files, one sequential rsync batch (the timer; iter-* dirs are left to session-sweep.sh)
 #   revert   full sync back (iter-* included), then unmount everything; MAIN is its disk dir again
-#   install  the boot unit (system, before cron + user@) and the sync timer (user)
+#   install  the boot unit (system, before cron + user@), the sync timer and the session-sweep timer (user)
 # Cells (config:guard, keyed by box): GUARD_RAM_MAIN_<box> (empty = off), GUARD_RAM_DIR_<box>, GUARD_RAM_SYNC_MIN_<box>.
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -73,11 +73,11 @@ revert)
   sudo umount "$DISK" && rmdir "$DISK"; rm -rf "$RAM"
   ev "revert: done -- $MAIN is its disk dir" ;;
 install)
-  u=$(id -un); uid=$(id -u); self="$HERE/ram-main.sh"; ramunit=$(systemd-escape -p --suffix=mount "$RAM_DIR")
+  u=$(id -un); uid=$(id -u); self="$HERE/ram-main.sh"; ramunit=$(systemd-escape -p --suffix=mount "$RAM_DIR"); flashunit=$(systemd-escape -p --suffix=mount "$(findmnt -rn -T "$(cell TIER_COLD /mnt/agi-flash)" -o TARGET | head -1)")
   sudo tee /etc/systemd/system/agi-ram-main.service >/dev/null <<EOF
 [Unit]
 Description=agi: MAIN working files on the RAM disk (goal:g7.16.1.5.1)
-After=local-fs.target $ramunit
+After=local-fs.target $ramunit $flashunit
 Requires=$ramunit
 Before=cron.service user@$uid.service
 [Service]
@@ -85,14 +85,21 @@ Type=oneshot
 RemainAfterExit=yes
 User=$u
 ExecStart=$self up
+ExecStart=$HERE/ram-tier.sh ensure
+# a clean shutdown flushes RAM to disk/flash first: a planned reboot loses nothing (stops run before the mounts go)
+ExecStop=$HERE/ram-tier.sh sync
+ExecStop=$self sync
+TimeoutStopSec=300
 [Install]
 WantedBy=multi-user.target
 EOF
   mkdir -p ~/.config/systemd/user
-  printf '[Unit]\nDescription=agi: RAM MAIN -> disk sync (goal:g7.16.1.5.1)\n[Service]\nType=oneshot\nSlice=agi-engine.slice\nExecStart=%s sync\n' "$self" > ~/.config/systemd/user/agi-ram-sync.service
+  printf '[Unit]\nDescription=agi: RAM MAIN -> disk sync (goal:g7.16.1.5.1)\n[Service]\nType=oneshot\nSlice=agi-engine.slice\nExecStart=%s sync\nExecStart=%s ensure\nExecStart=%s sync\n' "$self" "$HERE/ram-tier.sh" "$HERE/ram-tier.sh" > ~/.config/systemd/user/agi-ram-sync.service
   printf '[Unit]\nDescription=agi: RAM MAIN -> disk sync every %s min\n[Timer]\nOnBootSec=5min\nOnUnitActiveSec=%smin\n[Install]\nWantedBy=timers.target\n' "$SYNC_MIN" "$SYNC_MIN" > ~/.config/systemd/user/agi-ram-sync.timer
-  sudo systemctl daemon-reload && sudo systemctl enable agi-ram-main.service
-  systemctl --user daemon-reload && systemctl --user enable --now agi-ram-sync.timer
-  echo "installed: agi-ram-main.service (boot, before cron + user@$uid) · agi-ram-sync.timer every ${SYNC_MIN} min" ;;
+  printf '[Unit]\nDescription=agi: idle session sweep to /data (goal:g7.16.1.5.2)\n[Service]\nType=oneshot\nSlice=agi-engine.slice\nNice=19\nIOSchedulingClass=idle\nExecStart=%s\n' "$HERE/session-sweep.sh" > ~/.config/systemd/user/agi-session-sweep.service
+  printf '[Unit]\nDescription=agi: idle session sweep, hourly\n[Timer]\nOnCalendar=*:37\nPersistent=true\n[Install]\nWantedBy=timers.target\n' > ~/.config/systemd/user/agi-session-sweep.timer
+  sudo systemctl daemon-reload && sudo systemctl enable agi-ram-main.service && sudo systemctl start agi-ram-main.service
+  systemctl --user daemon-reload && systemctl --user enable --now agi-ram-sync.timer agi-session-sweep.timer
+  echo "installed: agi-ram-main.service (boot, before cron + user@$uid) · agi-ram-sync.timer every ${SYNC_MIN} min · agi-session-sweep.timer hourly :37" ;;
 *) sed -n '2,15p' "$0"; exit 1 ;;
 esac
