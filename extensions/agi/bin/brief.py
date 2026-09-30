@@ -93,22 +93,50 @@ def _paid_for_path_guard(project_root: Path | None = None) -> str:
 
 
 
-def _configured_profile(project_root: Path | None = None) -> str | None:
-    """Read the durable operating mode from ``.agi/config.json``.
+def _in_force_mode(project_root: Path | None = None) -> tuple[str, dict] | None:
+    """The ONE run mode in force: the ``.agi/config.json`` ``operating_modes``
+    block whose ``formation`` cell names the config:formations ``active``
+    template (hypothesis:pb3-run-mode-reads-one-formation-cell). The switch
+    lives in ONE cell, so a brief cannot print a mode the loop is not running.
 
-    The config may declare ``operating_mode`` with values full | survival |
-    ultimate_survival (hypothesis:l4b18-survival-modes). Config is the
-    durable default; the ``AGI_BRIEF_PROFILE`` env var layers on top as a
-    per-process override. Returns one of PROFILES via config, or None if the
-    config is missing, unreadable or does not declare the key.
+    Returns ``(key, block)``, or None when config, the cell, or any binding
+    is absent -- an absent binding renders nothing and leaves the profile at
+    its ``full`` default.
     """
-    cfg = _resolve_graph_root(project_root) / "config.json"
+    root = _resolve_graph_root(project_root)
     try:
-        data = json.loads(cfg.read_text(encoding="utf-8"))
+        data = json.loads((root / "config.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    mode = data.get("operating_mode")
-    return mode if mode in PROFILES else None
+    from node_writer import find_node_file  # noqa: PLC0415
+    cell = find_node_file(root, "config:formations")
+    if cell is None:
+        return None
+    active = str((read_frontmatter(cell.read_text(encoding="utf-8"))
+                  or {}).get("active") or "")
+    modes = data.get("operating_modes")
+    if not active or not isinstance(modes, dict):
+        return None
+    for key, block in modes.items():
+        if isinstance(block, dict) and block.get("formation") == active:
+            return key, block
+    return None
+
+
+def _configured_profile(project_root: Path | None = None) -> str | None:
+    """The durable profile: the ``profile`` cell on the ONE in-force mode
+    block (hypothesis:pb3-run-mode-reads-one-formation-cell), i.e. read
+    through the same resolver as the rendered block
+    (hypothesis:l4b18-survival-modes). The ``AGI_BRIEF_PROFILE`` env var
+    layers on top as a per-process override, never a cell. Returns one of
+    PROFILES, or None when no block is in force or it declares no profile --
+    the caller then falls back to ``full``.
+    """
+    found = _in_force_mode(project_root)
+    if found is None:
+        return None
+    profile = found[1].get("profile")
+    return profile if profile in PROFILES else None
 
 
 def _config_data(project_root: Path | None = None) -> dict:
@@ -646,26 +674,18 @@ def _operating_mode_block(project_root: Path | None = None) -> str:
     goal:g17.1 a third (enhanced survival), and the one IN FORCE was being
     remembered in prose by whoever wrote each brief. This renders it from the
     declaration instead, so an agent READS the mode from the brief it was
-    given and flipping `active_operating_mode` in config changes the render
-    with no second copy of the prose in code.
+    given, and the mode in force is whichever block is bound to the
+    config:formations `active` template (hypothesis:pb3-run-mode-reads-one-
+    formation-cell) -- one switch, one answer.
 
     Returns an empty string (else a block starting with the marker line)
     when no declaration exists — an absent declaration renders NOTHING and
     raises nothing, so a project that has not declared modes is unchanged.
     """
-    root = _resolve_graph_root(project_root)
-    cfg_path = root / "config.json"
-    try:
-        data = json.loads(cfg_path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, FileNotFoundError):
+    found = _in_force_mode(project_root)
+    if found is None:
         return ""
-    modes = data.get("operating_modes")
-    active = data.get("active_operating_mode")
-    if not isinstance(modes, dict) or not active:
-        return ""
-    block = modes.get(active)
-    if not isinstance(block, dict):
-        return ""
+    active, block = found
     lines = [
         "─── OPERATING MODE (declared in .agi/config.json) ───",
         f"ACTIVE: {block.get('name') or active}",
