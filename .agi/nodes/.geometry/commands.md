@@ -3062,6 +3062,24 @@ manifest:
     reason: runs the whole engine suite under the one-runner suite lock -- opt-in, never proposed
     side_effects: read
     proposable: false
+  reds.py:check:
+    cli: reds.py
+    verb: check
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/reds.py
+      - check
+      - <old>
+      - <new>
+    args:
+      - {"name": "old", "type": "str", "required": true, "choices": []}
+      - {"name": "new", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+      - {"name": "repo", "type": "str", "required": false, "choices": []}
+    purpose: goal:g7.16.1.10.3 — a range's mechanical reds (secrets, node_deletion, broken_link) before any model; rc 1 = a RED, rc 2 = cannot answer
+    side_effects: read
+    proposable: false
+    reason: run by the merge gate over a landed range (goal:g7.16.1.10.7), never proposed at a seat
 ordered:
   - verify
 placement:
