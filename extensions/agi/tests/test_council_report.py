@@ -1,9 +1,7 @@
 """hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-
-residues — one report row per round, every residue on its OWNER's leaf.
-
-One falsifier per test, every value synthetic, a tmp project and tmp run dir;
-the LIVE graph is never written (the node writer is a recording seam, and the
-one test that calls the real writer runs it against a tmp node file).
+residues — one report row per round, every residue on its OWNER's leaf. One
+falsifier per test, synthetic values, a tmp project and tmp git repo; the LIVE
+graph is never written.
 """
 from __future__ import annotations
 
@@ -27,7 +25,8 @@ LEAVES = {"director-engine": "goal:g9.2", "post-a": "goal:g7.9",
 def _project(tmp_path: Path, *, cell=True, title="round brief (assigned: post-a)"):
     root = tmp_path / "proj"
     (root / ".agi" / "nodes" / "goal").mkdir(parents=True)
-    cfg = {"council": {"residue_leaves": dict(LEAVES)}} if cell else {}
+    leaves = dict(LEAVES) if cell is True else (cell or {})
+    cfg = {"council": {"residue_leaves": leaves}} if cell else {}
     (root / ".agi" / "config.json").write_text(json.dumps(cfg))
     for nid, slug in (("doc:council-report", "council-report"),
                       ("goal:g7.9", "g7.9"), ("goal:g9.2", "g9.2"),
@@ -50,9 +49,46 @@ def _run(root: Path, key="k1", label="a1", review=None, verify=None):
     return d
 
 
-def _writer(store=None):
-    store = store if store is not None else {}
-    return lambda root, node_id, body: store.__setitem__(node_id, body)
+def _writer(store=None, mangle=False):
+    """A recording writer; `mangle=True` REPORTS a body it did not land."""
+    store = {} if store is None else store
+    def write(root, node_id, body):
+        store[node_id] = body.split("\n")[0] if mangle else body
+        return store[node_id]
+    return write
+
+
+def test_c1_an_incomplete_cell_refuses_rc2_with_nothing_written(tmp_path):
+    root = _project(tmp_path, cell={**LEAVES, "post-a": ""})   # a hole
+    _run(root, verify={"final_recommendation": "accept", "missed": ["x"]})
+    store = {}
+    with pytest.raises(SystemExit) as exc:
+        cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+    assert "post-a" in str(exc.value) and store == {}     # no partial row
+
+
+def test_c2_a_post_with_no_leaf_and_no_default_is_refused_by_name():
+    with pytest.raises(SystemExit) as exc:
+        cr.leaf_for("post-zzz", {"post-a": "goal:g7.9"})
+    assert "post-zzz" in str(exc.value) and cr.LEAF_CELL in str(exc.value)
+
+
+def test_c3_counts_reconcile_or_rc2_naming_the_round(tmp_path):
+    """A writer landing fewer rows than the run files name is rc 2, by round."""
+    root = _project(tmp_path)
+    _run(root, verify={"final_recommendation": "accept", "missed": ["miss A"]})
+    with pytest.raises(SystemExit) as exc:
+        cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer({}, True))
+    assert "k1/a1" in str(exc.value)
+
+
+def test_c5_the_real_write_py_writer_lands_the_row_on_a_tmp_node(tmp_path):
+    """Corrective 5: the REAL write.py writer, on a tmp project + tmp git repo."""
+    root = _project(tmp_path)
+    cr.subprocess.run(["git", "init", "-q", str(root)], check=True, capture_output=True)
+    _run(root, verify={"final_recommendation": "accept", "missed": ["miss A"]})
+    cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=cr.write_body)
+    assert "| k1/a1 | verify | miss A |" in cr.node_body(root / ".agi", "goal:g7.9")
 
 
 def test_f1_one_row_per_round_and_a_re_add_never_duplicates(tmp_path):
@@ -170,6 +206,5 @@ def test_write_body_is_a_no_op_when_the_body_is_unchanged(tmp_path, monkeypatch)
 
 @pytest.mark.parametrize("script", ["--help"])
 def test_help(script):
-    import subprocess
-    assert subprocess.run([sys.executable, str(_BIN / "council_report.py"), script],
-                          capture_output=True).returncode == 0
+    assert cr.subprocess.run([sys.executable, str(_BIN / "council_report.py"), script],
+                              capture_output=True).returncode == 0

@@ -70,8 +70,13 @@ def owner_post(assigned: str, subject: str) -> str:
     return FALLBACK_POST if post == PRIME_POST else post
 
 def leaf_for(post: str, cell: dict) -> str:
-    """The owner's leaf from the ONE cell; a post absent = `default`."""
-    return str(cell.get(post) or cell.get("default") or "")
+    """The owner's leaf from the ONE cell; a post absent = `default`; NEITHER
+    is rc 2 naming the post -- an empty id is refused, never written."""
+    leaf = str(cell.get(post) or cell.get("default") or "").strip()
+    if not leaf:
+        raise SystemExit(f"council_report: {LEAF_CELL} has no leaf id for post "
+                         f"{post!r} and no default -- nothing written")
+    return leaf
 
 def merge_table(body: str, new_rows: list[str], header: tuple,
                 unique: bool = False) -> str:
@@ -124,6 +129,10 @@ def add(root: Path, run_key: str, args: dict, writer=write_body) -> list[str]:
                  or {}).get("residue_leaves"))
         if not isinstance(cell, dict):
             raise KeyError(LEAF_CELL)
+        bad = sorted(k for k, v in cell.items() if not str(v or "").strip())
+        if bad:   # the WHOLE cell is judged BEFORE any write, never half-way
+            raise SystemExit(f"council_report: {LEAF_CELL} rows {bad} carry no "
+                             "leaf id -- nothing written")
     except KeyError as exc:
         raise SystemExit(f"council_report: config cell {exc} is absent — add it "
                          "(default goal:g7.33.19) before routing any residue")
@@ -149,8 +158,14 @@ def add(root: Path, run_key: str, args: dict, writer=write_body) -> list[str]:
             cache[leaf] = merge_table(body_of(leaf),
                                       [f"| {key} | {source} | {title} |"],
                                       RESIDUE_HEADER, unique=True)
-            writer(root, leaf, cache[leaf])
+            wrote = writer(root, leaf, cache[leaf])  # a writer may REPORT what it landed
+            cache[leaf] = wrote if isinstance(wrote, str) else cache[leaf]
             out.append(f"{key}: {source} residue -> {leaf} ({title})")
+        landed = sum(1 for ln in cache.get(leaf, "").splitlines()
+                     if ln.strip().startswith("|") and f"| {key} |" in ln)
+        if landed != len({(s, t) for t, s in r["residues"]}):
+            raise SystemExit(f"council_report: round {key} counts "
+                             f"{len(r['residues'])} residues, {landed} landed")
         out.append(f"{key}: {row}")
     return out
 
