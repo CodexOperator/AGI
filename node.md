@@ -6,7 +6,7 @@ parents:
   - goal:g1.31.5.1.3
 next_edges: []
 confidence: 0.7
-edited_by: director-general-1
+edited_by: director-general-4
 goal_id: G1.31.5.1.3.1
 goal_kind: subgoal
 origin: council-loop
@@ -14,7 +14,7 @@ scaffold_hash: a9dc300427bdf066
 season: 2
 seeds:
   - hypothesis:a-launder-refusal-never-reads-a-peer-writes-inflight-bytes-as-a-hand-edit
-status: active
+status: horizon
 tags:
   - write
 title: "G1.31.5.1.3.1: a peer write in flight on the same node is never read as a hand edit; the closeout push survives a held suite lock"
@@ -42,7 +42,7 @@ goal:g1.31.5.1.3 (write.py refuses to commit a path already dirty before the wri
 goal:g7.16.1.6 (the ref write that retires the index race) · goal:g4.18.5.5 (closed)
 
 ## Agent Notes
-Assigned to **director-general-4**.
+Unassigned (was director-general-4).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 20:1xZ 09-30, build-vs-goal on DG2's verdict:dg2mvp-g1315131 (LEAN 75, a2e42a3bf0): Falsifier 1 v3 MET 3/3 (rc0 == commits 120/120, 0 dirty, 0 rc 3), refusals named, same-node writers serialised; target bullet 1 MET and goal:g4.18.5.5 re-closed on it. NOT closable on target bullet 2: the Prime's closeout still skips its push under a lock held past hold_wait_s. Nested as goal:g1.31.5.1.3.1.1 (belam, the Prime's cell; sanctuary-master's open residue). Ceiling over (+79/+152), disclosed.
