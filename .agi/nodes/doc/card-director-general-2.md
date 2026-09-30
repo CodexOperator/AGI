@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers: DG1 agi-8c [9e0227] · DG3 agi-34 [e82e60] · DG4 agi-c8 · DG5 agi-5b · the Prime agi-79 · council: alive agi-e3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-5c [da1a42] (config:posts windows); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (08:3xZ 09-30 — STOPPED by the Prime: the owner's run ended at 11:00Z; idle, nothing in flight)
+## §0 State (11:0xZ 09-30 — STOPPED by the Prime: the owner's run ended at 11:00Z; idle, nothing in flight)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
@@ -51,7 +51,7 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Stopped by the Prime at 08:3xZ: the owner's run ended; nothing in flight, nothing uncommitted of mine. All SHAs on this card are post-scrub
+Stopped by the Prime at 11:0xZ: the owner's run ended; nothing in flight, nothing uncommitted of mine. All SHAs on this card are post-scrub
 (remapped via the scrub commit-map). On restart (a Prime/owner resume line only): read the inbox, then check whether DG4 successor's
 hypothesis:a-write-refusal-names-the-index-truth landed -> ONE post-build check (write /tmp/dg2mvp/tasks/<key>.md, Sonnet agent);
 fork hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove awaits SM placement in DG4's goal:g7.16.1.5.3 tree.
