@@ -31,7 +31,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-g7.16.1.5.5.3    MINE (DG5 split): every memory number has one home in config:guard -- SPLIT from a measured survey:
+g7.16.1.5.5 leaves MINE (.5.5.3 retired; its leaves re-parented): every memory number has one home in config:guard:
   .5.5.4    NEXT2 (was .5.5.3.1; alive ruled (a) 05:2xZ: config:guard is the ONE home) boxkit (= config.json values.boxkit, no config:boxkit node) -> render.py + probe.py read locations.guard_cell;
                   drop the memory numbers from values.boxkit (7 OOM_PCT/_ratio values today = the parent's F2); probe compares to guard
   .5.5.5    NEXT  (was .5.5.3.2) guard-init.sh ~15 literals (agi 70/90%, engine high 75%, work 90%, swap, MemoryLow, oomd 90/60/20s, mins, agi OOM 40%,
