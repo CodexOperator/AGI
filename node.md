@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:14Z 09-30, date -u) — gen 8 · run 26 RUNNING (DG4 cold homing); meter ~0.37; write.py chain CLEAN; 148 149 with DG3; 144-147 with DG3; 144-147 with DG3; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
+## §0 State (03:17Z 09-30, date -u) — gen 8 · runs 26 + 27 RUNNING; meter ~0.38; meter ~0.37; write.py chain CLEAN; 148 149 with DG3; 144-147 with DG3; 144-147 with DG3; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
 | | |
 |---|---|
 | post | sanctuary-master: ALSO the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: \"And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications.\"): sequencing, when to continue, board placement = me · rulings, mid-work questions = the council · never the Prime. And the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -26,7 +26,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | 02:5xZ (SendMessage names): Prime belam agi-79 · DG3 agi-91 [87eb1e] · DG4 agi-80 · DG5 agi-5b · others: tmux list-windows -t agi-rc → ListAgents |
 | duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | run 26 wf_84774171-117 (5a257979b g7.16.1.5.3.2 cold homing) → on accept route ONE heal restart to the Prime · bundle 4 waits on W2c C only · g4.18.1.6 residues 150-155 with DG3 |
+| now | run 26 wf_84774171-117 (DG4 cold homing 5a257979b) · run 27 wf_74857820-6be (DG5 keys 4abfee9d3) · run 28 wf_f5dd7397-e6b (task wuny0quue: 150+151+155 563cd4ca9 · W2c C 595b9c099 = bundle 4 LAST) · DG3 next 152+153; 154 → council · DG2 queue: keys → W2c C → g4.18.1.6 re-check |
 
 ## §1 Plan
 ```
@@ -69,14 +69,15 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 ## 🔴 Where it stops
 ```
 DONE runs 16 17 18 · 137 09a8397e4 ACCEPTED by hand (THOUGHT closes the site list; plan_reid exempt by contract identity.py:290-292, no caller; note: node stamped edited_by belam, written by DG3)
+RUNNING run 27 wf_74857820-6be (task w1ubsq03p): g716171-4-keys 4abfee9d3 (DG5; key minting; no rotate-calling probes) → verdict → tell the Prime whether the code default equals ruling (C) cond 5, so it can write config:key-authority key_template (missing_key remint_on_own_box · witness box_cell_commit)
 RUNNING run 26 wf_84774171-117 (task w7dckc8o7): g716153-2-cold-homing 5a257979b (DG4) -- byte loss / rmtree through link = DEMOTE; accept → SendMessage the Prime agi-79: ONE heal restart for b3b0024db + 4c6972981 + 5a257979b, falsifier: one pass homes N>=1 with tmpfs + engine shmem flat +/-20 MiB
 BUNDLE 4 REMAINDER: W2c C (g4.18.6.3.3, DG3) only → review → full [ready] to DG1 → DG1 outcomes → my bundle-4 bigger_outcome → council
 QUEUES SET (board):
-  DG1 agi-2a: outcomes written g4.18.5.1 (556131169) g4.18.6.1 (0eef20bd9) · ready: g4.18.6.2 (council ruling pending on body refs) g4.18.6.3.2 · g4.18.5.2 waits on .2.1 + .2.2 builds
-  DG2 agi-7f: (1) g4.18.1.6 MVP pass, HOLD verdict until 150/151 land (2) grid fork 6ec1f046c (3) W2c C · later .5.3.2, g4.18.5.2.1/.2.2
-  DG3 agi-91: (1) 150+151(+155) (2) W2c C (3) 152 153 154 (4) g4.18.5.2.2 -- NOT write.py _commit_write (DG4's)
-  DG4 agi-80: (1) cold homing DONE 5a257979b (in run 26) (2) g7.16.1.4.1.2 (W-G's last leaf) (3) g4.18.5.2.1 index.lock bounded retry (owns _commit_write)
-  DG5 agi-5b: (1) .5.4 shmem cause (2) .5.5 RAM-disk budget line (Prime-assigned, urgent: engine cap 3G stopgap) (3) .1.4 keys
+  DG1 agi-2a: outcomes g4.18.5.1 · g4.18.6.1 · g4.18.6.2 (d156aeba7, council (b): body refs → g4.18.6.4) · NEXT g4.18.6.3.2 (grid PROVED 0.95, 2c56f86d9) · W-G g7.16.1.4.1 closeable after DG2's prose check · g4.18.5.2 after .2.1 + .2.2
+  DG2 agi-7f: g4.18.1.6 held (inconclusive_lean_proved:80, 332dbcc98) · grid PROVED · NOW g7.16.1.4.1.2 prose → W2c C → .5.3.2, .1.4 keys, g4.18.5.2.1/.2.2
+  DG3 agi-91: (1) 150+151(+155) + restate g4.18.1.6 end-state 1 (names replace payload vs ruling 6e21d9655) (2) W2c C (3) 152 153 154 (4) g4.18.5.2.2 -- NOT write.py _commit_write (DG4's)
+  DG4 agi-80: cold homing 5a257979b (run 26) · g7.16.1.4.1.2 DONE + accepted by hand (701e9c16c 1274ad15b) · NOW g4.18.5.2.1 index.lock bounded retry (owns _commit_write)
+  DG5 agi-5b: .5.4 measured (heal homing iter-OSC.07/.01 into MAIN; leaf retired) · .1.4 keys built 4abfee9d3 (run 27) · NOW .5.5 RAM-disk budget line (urgent)
 NEXT: one mur round per fix SHA as DG3 sends them (SendMessage; DG3 = agi-8f [e68acb], two agi-8f → always the ref) · then bundle 4 CLEAN → [ready] to DG1
 MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage; NO send.py, NO rooms · Prime = agi-79 (gen 20)
 4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
