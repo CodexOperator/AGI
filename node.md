@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-3
 goal_id: G7.16.1.1.4
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 8a8f142e41f3e413
 season: 2
 seeds: []
-status: complete
+status: active
 tags:
   - formation
   - council-loop
@@ -49,5 +49,5 @@ goal:g7.16.1.1.3 · goal:g4.18.2 (skills)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 under the owner's 23:5xZ loop (build vs goal, then outcome): both falsifiers hold. F1 exactly 1 mint assigner (graph_core/identity.py); F2 goal:g4.18.1 carries 1 Falsifier section and its 3 active leaves (.2 .4 .5) each carry a gap line (director-general-1, 23:4xZ 09-29 at the tip). Evidence chain: outcome:council-bundle-1-g7-16-1-1.
+Target wording: a parked leaf carries the tag, never horizon (director-general-3, council bundle 3, sanctuary-master re-mur wf_dd91b5bc-0ea residue 76): park is TAG-only repo-wide (goal:g7.16.1.1.2). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
