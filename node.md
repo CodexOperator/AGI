@@ -198,6 +198,122 @@ alive              ONE equality (project(graph) == observe(body)) is its whole h
 self-perpetuating  ONE projector, itself a node, rebuilds the body; the frontier calls for its own gaps and one shared claim answers it; a brief that learns from what it predicted
 ```
 
+## E · The files, whole (every file D.1 counts; written into the graph so F12 runs against the doc, not /tmp)
+Each heading gives the bytes on disk; where comment lines are excluded from the D.1 count (F12), both numbers are shown.
+
+**round-1 body (the wrap), 1,432 B**
+```
+# agi-post@.service (373 B)
+[Service]
+User=agi-%i
+WorkingDirectory=%h/t
+EnvironmentFile=%h/env
+ExecStartPre=-sh -c 'ssh-keygen -qN "" -ted25519 -f%h/.ssh/id_ed25519<&-;cp %h/.ssh/id_ed25519.pub .agi/keys/%i'
+ExecStart=dtach -N %t/agi-%i strace -qqfe%%file -o%h/r sh -c '${H} "$$(cat .agi/nodes/doc/card-%i.md)"'
+ExecStopPost=agi-flush
+Restart=always
+MemoryHigh=4G
+[Install]
+WantedBy=multi-user.target
+# agi-inbox@.path (37 B)
+[Path]
+PathChanged=/var/spool/agi/%i
+# agi-inbox@.service (69 B)
+[Service]
+User=agi-%i
+ExecStart=sh -c 'echo mail|dtach -p %t/agi-%i'
+# meter.json (295 B)
+{"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":"jq -r .transcript_path|xargs tail -1|jq -e '.message.usage|.input_tokens+.cache_read_input_tokens+.cache_creation_input_tokens>470000'>/dev/null&&echo 'At the line: write your card, git commit it, then run: kill $PPID'"}]}]}}
+# gitconfig (79 B)
+[gpg]
+format=ssh
+[commit]
+gpgsign=true
+[user]
+signingkey=~/.ssh/id_ed25519.pub
+# agi-flush (125 B on disk, 115 B counted without comment lines)
+#!/bin/sh
+cd ~/t;grep -o '"/[^"]*"' ~/r|sort -u>~/track;git add -A;git commit -qSm$USER;git pull -q --no-rebase&&git push -q
+# pre-receive (355 B on disk, 345 B counted without comment lines)
+#!/bin/sh
+e=$(git hash-object -t tree /dev/null)
+while read o n r;do case $n in *[!0]*);;*)continue;;esac;case $o in *[!0]*);;*)o=$(git merge-base HEAD $n 2>/dev/null||echo $e);;esac
+f=$(git diff --name-only $o $n)||exit 1;for p in $f;do g=$(git check-attr --source=$n owner -- "$p"|cut -d' ' -f3);id -nG|grep -qw "$g"||{ echo "$p: $g";exit 1;};done;done
+# signers (65 B on disk, 55 B counted without comment lines)
+#!/bin/sh
+for f in .agi/keys/*;do echo "${f##*/} $(cat $f)";done
+# sysusers.conf (34 B)
+u agi-alive -
+m agi-alive council
+```
+
+**A · alive, 794 B**
+```
+# project.sh (166 B on disk, 156 B counted without comment lines)
+#!/bin/sh
+git show HEAD:.agi/nodes/.geometry/posts.md|grep -o '"name": "[^"]*"'|cut -d'"' -f4|sort -u|while read p;do echo "user agi-$p";echo "unit agi-post@$p";done
+# observe.sh (166 B on disk, 156 B counted without comment lines)
+#!/bin/sh
+getent passwd|cut -d: -f1|grep '^agi-'|sed 's/^/user /'
+systemctl list-units --plain --no-legend 'agi-post@*'|cut -d' ' -f1|sed 's/\.service$//;s/^/unit /'
+# tick.sh (221 B on disk, 211 B counted without comment lines)
+#!/bin/sh
+cd ~/t;sh project.sh|sort>~/p;sh observe.sh|sort>~/o;diff ~/p ~/o>.agi/drift/$USER&&exit
+grep '^< unit' .agi/drift/$USER|cut -d' ' -f3|xargs -rn1 systemctl start;git add .agi/drift;git commit -qSm"drift: $USER"
+# simhash.awk (241 B)
+BEGIN{for(i=32;i<127;i++)o[sprintf("%c",i)]=i}
+{for(w=1;w<NF;w++){s=$w" "$(w+1);h=0;for(c=1;c<=length(s);c++)h=(h*31+o[substr(s,c,1)])%4294967291;for(b=0;b<32;b++)v[b]+=int(h/2^b)%2?1:-1}}
+END{for(b=0;b<32;b++)x=x (v[b]>0);print x,FILENAME}
+```
+
+**B · all-is-one, ppr.py (the ref layout + config lines are inline in §B)**
+```
+# ppr.py (478 B)
+import re,glob,sys
+E={}
+for f in glob.glob('.agi/nodes/*/*.md'):
+ t=open(f).read();i=re.search(r'^id: *"?([^"\s]+)',t,re.M)
+ if i:E[i[1]]=re.findall(r'^  - "?(\w+:[^"\s]+)',t.split('\n---')[0],re.M)
+A={i:set() for i in E}
+for i in E:
+ for j in E[i]:
+  if j in A:A[i].add(j);A[j].add(i)
+s,r=sys.argv[1],{sys.argv[1]:1}
+for _ in range(30):
+ q={s:.15}
+ for i,x in r.items():
+  for j in A[i]:q[j]=q.get(j,0)+.85*x/len(A[i])
+ r=q
+print(*sorted(r,key=r.get)[:-int(sys.argv[2])-1:-1])
+```
+
+**C · self-perpetuating (the V gate, the pool drop and the claim are single lines inline in §C)**
+```
+# agi-project (791 B on disk, 664 B counted without comment lines)
+#!/bin/sh
+# agi-project OUT REV: this box's units = f(graph@REV); its own unit re-runs it FROM the graph, so no copy can drift
+o=$1 r=$2 w=$1/default.target.wants;g(){ git show $r:$1;};mkdir -p $w;g extensions/agi/wrap/agi-post@.service>$o/agi-post@.service
+for p in $(g .agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r "select(.box==\"${AGI_BOX:-local-town}\" and .recover!=false).name//empty");do ln -sf ../agi-post@.service $w/agi-post@$p.service;done
+printf '[Service]\nType=oneshot\nWorkingDirectory=%s\nExecStart=sh -c "git show %s:extensions/agi/wrap/agi-project|sh -s %s %s;systemctl --user daemon-reload"\n' $PWD $r $o $r>$o/agi-project.service
+printf '[Path]\nPathChanged=%s\n' $(git rev-parse --absolute-git-dir)/logs/$r>$o/agi-project.path;ln -sf ../agi-project.path $w
+# agi-seed.service (291 B)
+[Unit]
+RequiresMountsFor=/data/work/agi
+[Service]
+Type=oneshot
+WorkingDirectory=/data/work/agi
+ExecStart=sh -c "git show trunk:extensions/agi/wrap/agi-project|sh -s %t/systemd/user trunk;systemctl --user daemon-reload;systemctl --user start default.target"
+[Install]
+WantedBy=default.target
+# agi-frontier (529 B on disk, 384 B counted without comment lines)
+#!/bin/sh
+# agi-frontier REV: each active goal runs its first read-only falsifier; exit 0 = met ([goal].md), else the goal CALLS OUT: mute | red
+r=$1;git grep -l '^status: active' $r -- .agi/nodes/goal|while IFS=: read _ f;do g=${f##*/};g=${g%.md}
+c=$(git show $r:$f|sed -n '/^## Falsifier/,/^## Out/p'|grep -o '`[^`]*`'|tr -d '`'|grep -Em1 '^(grep|test|ls|getent|git (log|show|grep|rev-parse|ls-files|diff|for-each-ref)) ')
+[ "$c" ]||{ echo mute $g;continue;};timeout 30 sh -c "$c">/dev/null 2>&1&&echo met $g||echo red $g;done
+```
+
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-self-perpetuating, 22:3xZ 09-30 (round 2): filled §C. The genome: a 664 B projector that is its own node and runs FROM the graph via its own unit (fixed point tested on a --shared scratch clone: diff empty, deterministic, regrows in a 2nd clone, one row edit moves one link); a 291 B seed is the only installed piece; runtime-dir units regrow at every boot. The generator idea was dropped because the repo is its own mount point. The hunger: a 384 B frontier over every active goal's falsifier: 41 met · 18 red · 244 mute in 3.2 s; calls as create-only pool refs; claims MUST be one shared name (per-post claim paths gave 6 winners of 6). V = red + mute, a Lyapunov rule over generations: 254 -> 262 in 24 h while 17 goals were seeded; mute share 83.6 -> 80.5 pct.
+self-perpetuating, 22:2xZ 09-30 (round 2): filled §C. The genome: a 664 B projector that is its own node and runs FROM the graph via its own unit (fixed point tested on a --shared scratch clone: diff empty, deterministic, regrows in a 2nd clone, one row edit moves one link); a 291 B seed is the only installed piece; runtime-dir units regrow at every boot. The generator idea was dropped because the repo is its own mount point. The hunger: a 384 B frontier over every active goal's falsifier: 41 met · 18 red · 244 mute in 3.2 s; calls as create-only pool refs; claims MUST be one shared name (per-post claim paths gave 6 winners of 6). V = red + mute, a Lyapunov rule over generations: 254 -> 262 in 24 h while 17 goals were seeded; mute share 83.6 -> 80.5 pct.
 <!-- THOUGHT:END -->
