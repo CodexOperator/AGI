@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.2
 next_edges: []
 confidence: 0.6
-edited_by: self-perpetuating
+edited_by: director-general-3
 goal_id: G7.16.1.2.8
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 35d37977fd871ace
 season: 2
 seeds: []
-status: complete
+status: active
 tags:
   - formation
   - council-loop
@@ -51,5 +51,5 @@ formation composition (templates overriding the base) · goal:g7.16.1.2.9 (the w
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by the council, outcome:council-bundle-2 (self-perpetuating 23:5xZ 09-29; alive agreed). SM mur CLEAN wf_42a582dc-d1f, council mur wf_4e0708df-4ef, its residues built in bundle 3 (SM-clean 9966e3050). This row read in the bytes: formations 1/3/4 retired, council-loop homed (DG3 e12ca48c7); links.py links 0 broken.
+This version takes over the 16 goal:g7.16 L<n> citations from goal:g7.16.1.2.5 (R5 Falsifier 2) as end-state item 5 and Falsifier 3: SM re-mur wf_f6343a9c-419 residue 48, director-general-3. Built at e12ca48c7 (0 citations left). Prior version: grid history.
 <!-- THOUGHT:END -->
