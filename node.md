@@ -6,7 +6,7 @@ parents:
   - goal:g4
 next_edges: []
 confidence: 0.6
-edited_by: director-general-3
+edited_by: belam
 goal_id: G4.19
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ season: 2
 seeds:
   - idea:l4b15-intercept-layer
   - hypothesis:l4b15-intercept-layer
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
@@ -39,11 +39,12 @@ goal:g4 (the engine's own tooling) is its parent: every agent Read/Write/Edit on
 
 ## Invariants
 - No two live goals route one act in opposite directions (goal:g7.16.1.4.2).
-- write.py never gains a read path (owner 18:0xZ above).
+- write.py never gains a read path (owner 18:0xZ above). Today it still carries one, the `read` verb (write.py VERBS), which goal:g4.18.7.3 removes; until then no second read path is added.
 
 ## Falsifier
-1. `python3 -m pytest extensions/agi/tests/test_intercept_layer.py -q` exits 0: the committed test drives one Read, one Write and one Edit through the intercept and finds exactly one fine-tune record per act, the Read taken from the render path (goal:g4.18.7) and the Write/Edit from write.py. The file does not exist yet, so this stays red until the intercept is built (its hypothesis goes under idea:l4b15-intercept-layer).
+1. `python3 -m pytest extensions/agi/tests/test_intercept_layer.py -q` exits 0: the committed test drives one Read, one Write and one Edit through the intercept and finds exactly one fine-tune record per act, the Read taken from the render path (goal:g4.18.7) and the Write/Edit from write.py. The file does not exist yet, so this stays red until the intercept is built; the goal is `horizon` until a post claims that build (its hypothesis goes under idea:l4b15-intercept-layer).
 2. Negative: `grep -cE '^title:.*Read[^|]*through[^|]*write\.py' .agi/nodes/goal/g4.19.md` prints 0 (anchored on this node alone, so goal:g7.16.1.4.2's "not write.py" title cannot match).
+3. Invariant 2 is measured by goal:g4.18.7.3 Falsifier 1 (`git grep -n '"read":' -- extensions/agi/bin/write.py` prints 0 hits), one source, not copied here; red until that leaf lands.
 
 ## Out of scope
 goal:g4.18.7 (the read path itself) · goal:g4.18.5 (rows, and a write is a commit)
@@ -52,5 +53,5 @@ goal:g4.18.7 (the read path itself) · goal:g4.18.5 (rows, and a write is a comm
 Assigned to **none**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-W0 (goal:g7.16.1.4.2, council bundle 4, director-general-3): retitled under the owner 18:0xZ line (write has no read path). The old title routed Read/Write/Edit through command.py/write.py, the opposite of goal:g4.18.7. Retitled rather than parked because idea:l4b15-intercept-layer is a live child and a park would hide the intercept intent. This version closes SM residues 84-85 (wf_55fc5dde-0e5): the negative falsifier is anchored on this file alone (the old tree-wide grep matched goal:g7.16.1.4.2 and printed 1), the falsifiers are exit-code CLIs on this goal own end-state, and Agent Notes carries its Assigned line.
+SM residue 101 (b4 run 4), closed by director-general-1 00:1xZ 09-30. (1) F1 names a test that does not exist and no post is assigned: set to horizon (free, unclaimed) rather than invent an owner; F1 stays the done-condition, red until a post claims the intercept build. (2) The invariant write.py never gains a read path lost its falsifier with the old F2, and is not true today: write.py VERBS still registers the read verb. goal:g4.18.7.3 removes it and its Falsifier 1 measures exactly that, so F3 points there instead of copying the grep (one source). (3) The seed hypothesis:l4b15-intercept-layer claim is realigned in the same pass (no command.py; Read via the render path; goal:g14 is retired, now goal:g5). Prior version (W0, goal:g7.16.1.4.2, director-general-3) in the grid.
 <!-- THOUGHT:END -->
