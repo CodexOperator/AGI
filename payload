@@ -1222,6 +1222,62 @@ def _read_node_fm(root, node_id):
         return None
 
 
+_NODE_ID_RE = re.compile(r"^[A-Za-z][\w.-]*:\S+$")
+_ID_ROW_RE = re.compile(r"^id[ \t]*:[ \t]*(.*?)[ \t]*$")
+
+
+def _own_id_refusal(root, node_id: str) -> str | None:
+    """goal:g7.33.20 -- the READ-time check, ONCE, for every verb: a node whose
+    own `id` row is not a valid node id (unparseable, not `type:slug`, or not the
+    id its file path derives) refuses BEFORE any verb runs, naming the file, the
+    line of the row, the bad value, the id the path derives and the repair.
+
+    Only a DIRECT path hit (`nodes/<type>/<slug>.md` for the asked id) has a
+    path-derived id to disagree with; a file found by its frontmatter scan is
+    found BY its row. A node whose row is valid reads exactly as before (None),
+    even when its frontmatter is unparseable for another reason.
+    """
+    path = node_writer.find_node_file(root, node_id)
+    if path is None or path.suffix != ".md":
+        return None
+    prefix, _, slug = node_id.partition(":")
+    direct = path.stem == slug and path.parent.name in (
+        prefix.strip(), node_writer.canonical_node_type(prefix))
+    derived = f"{path.parent.name}:{path.stem}" if direct else node_id
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    parts = frontmatter.split_frontmatter(text)
+    if parts is None:
+        return None
+    line, raw = None, None
+    for i, ln in enumerate(parts[0].split("\n")):
+        m = _ID_ROW_RE.match(ln)
+        if m:
+            line, raw = i + 2, m.group(1)
+            break
+    parsed = frontmatter.read_frontmatter(text)
+    bad = None
+    if parsed is not None and "id" in parsed:
+        val = parsed["id"]
+        if not isinstance(val, str) or not _NODE_ID_RE.match(val) or (
+                direct and val != derived):
+            bad = val
+    elif parsed is None and raw is not None:
+        val = raw.strip("\"'")
+        if not _NODE_ID_RE.match(val) or (direct and val != derived):
+            bad = raw
+    if bad is None:
+        return None
+    return (f"{path}:{line if line is not None else '?'}: this node's own `id` row "
+            f"is broken -- {bad!r} is not the node id its file path derives "
+            f"({derived!r}); nothing was read or written. Repair by hand: restore "
+            f"line {line if line is not None else '(the id row)'} of {path} to "
+            f"`id: {derived}` -- the mint_id is kept, no verb touches it -- then "
+            f"re-run")
+
+
 def _master_sensei_templates_refusal(root, schema, actor, set_fm, unset_fm,
                                      where: str):
     """The master-sensei templates carve-out (PRIME RULING 2026-09-11,
@@ -2647,7 +2703,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         try:
             carriers = rotation_record.parked_carriers(root, wake_goal) if wake_goal else []
         except rotation_record.GrepError as exc:
-            raise EditError(f"set active refused: the parked-carrier grep for parked:{wake_goal} "
+            raise EditError(f"set active refused: the parked-carrier grep for {rotation_record.parked_tag(wake_goal)} "
                             f"failed ({exc}); nothing written -- the wake cannot be delivered")
 
     if dry_run:   # every refusal above has run; nothing is written
@@ -2674,14 +2730,15 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     goal = wake_goal
     if res.status != node_writer.REJECTED:
         for nid, _f, tags in carriers:
+            ptag = rotation_record.parked_tag(goal)   # goal:g1.31.5.2: the ONE spelling, rotation_record's
             try:
                 w = node_writer.update_node(root, nid, set_fm={
-                    "tags": [t for t in tags if t != f"parked:{goal}"],
+                    "tags": [t for t in tags if t != ptag],
                     PROVENANCE_ACTOR: actor or _default_actor()}, log_extra=_log_provenance(actor))
             except OSError as exc:  # one carrier's failed write never aborts the rest
                 w = node_writer.NodeWrite(status=node_writer.REJECTED, node_id=nid, reason=str(exc))
-            print(f"unpark REJECTED {nid} (parked:{goal}): {w.reason}" if w.status == node_writer.REJECTED
-                  else f"unparked {nid} (parked:{goal})", file=sys.stderr)
+            print(f"unpark REJECTED {nid} ({ptag}): {w.reason}" if w.status == node_writer.REJECTED
+                  else f"unparked {nid} ({ptag})", file=sys.stderr)
     return res
 
 
@@ -2803,6 +2860,11 @@ def _resolve_sub(root, edit: Edit) -> None:
         if not old_fm or new_fm is None or set(old_fm) != set(new_fm):
             raise EditError(f"sub would break frontmatter in {node_label} -- "
                             f"nothing written")
+        if old_fm.get("id") != new_fm.get("id"):   # goal:g7.33.20: by name, before the class
+            raise EditError(f"sub would rewrite {node_label}'s own `id` row "
+                            f"({old_fm.get('id')!r} -> {new_fm.get('id')!r}); "
+                            f"a node's id is its identity and no verb changes it "
+                            f"-- nothing written")
         if any(old_fm.get(k) != new_fm.get(k) for k in PROTECTED):
             raise EditError("sub cannot change id/mint_id/type/scaffold_hash "
                             "-- nothing written")
@@ -3196,6 +3258,9 @@ def _body_opens_frontmatter_refusal(root, node_id: str, body: str) -> str | None
     rows would forge them past the row gates. Refused by name, before any write, unless
     the node's CURRENT body already opens with that same block (an edit elsewhere in
     such a body is not this forgery)."""
+    # R1b: the next write re-reads with universal newlines, so a CRLF / lone-CR opener
+    # IS an LF opener by then -- judge the body as that reader will see it (ONE recognizer).
+    body = body.replace("\r\n", "\n").replace("\r", "\n")
     rows, rest, _ = node_writer._absorb_leading_frontmatter({}, body)
     if rest == body:
         return None
@@ -3440,6 +3505,23 @@ def _baseline_node_text(root, node_id: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _strip_own_h1(node_type: str, slug: str, body: str | None) -> str | None:
+    """goal:g7.33.20: `write_node` prepends the node's `# <id>` heading to ANY
+    supplied body, so a body whose first line is already `# <id>` landed TWO H1s
+    (140 hypothesis + 56 experiment nodes measured 09-30). Strip that one leading
+    heading (and the blank lines after it): dry and real both call this."""
+    if not body:
+        return body
+    ids = {f"{node_type}:{slug}",
+           f"{node_writer.canonical_node_type(node_type)}:{slug}"}
+    for nid in ids:
+        m = re.match(r"(?:[ \t]*\r?\n)*# " + re.escape(nid) + r"[ \t]*\r?(?:\n|\Z)"
+                     r"(?:[ \t]*\r?\n)*", body)
+        if m:
+            return body[m.end():]
+    return body
+
+
 def create(root, node_type: str, slug: str, parents: list[str], *,
            set_fm: dict | None = None, payload: str | None = None,
            body: str | None = None,
@@ -3485,7 +3567,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
 
     res = node_writer.write_node(root, node_type, slug, parents,
                                  extra_fm=extra or None, bypass=bypass,
-                                 body=body,
+                                 body=_strip_own_h1(node_type, slug, body),
                                  log_extra=_log_provenance(actor))
     if res.rejected or not res.written:
         if created_file is not None:
@@ -3719,7 +3801,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  parents  {parents or '(none)'}")
             print(f"  payload  {args.payload or answers.get('payload') or ''}")
             if args.body_file is not None:
-                print(f"  body-file {args.body_file}")
+                _stripped = ""
+                try:   # dry == real: say the leading `# <id>` real would strip
+                    _bf = Path(args.body_file).read_text(encoding="utf-8")
+                    if _strip_own_h1(script, slug, _bf) != _bf:
+                        _stripped = (f" (leading '# {script}:{slug}' stripped: "
+                                     "create adds the one H1)")
+                except (OSError, UnicodeDecodeError):
+                    pass
+                print(f"  body-file {args.body_file}{_stripped}")
             elif answers.get("body") is not None:
                 print("  body     (from --answers)")
             for k, v in set_fm.items():
@@ -3803,6 +3893,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ERR: no node carries mint id {args.node_id}", file=sys.stderr)
             return 2
         args.node_id = hit[0]
+    _own_id = _own_id_refusal(root, args.node_id)   # goal:g7.33.20: ONE read-time gate, every verb
+    if _own_id:
+        print(f"ERR: {_own_id}", file=sys.stderr)
+        return 2
     edit = Edit(node_id=args.node_id)
     try:
         for name, verb_args in parse_script(args.script):
