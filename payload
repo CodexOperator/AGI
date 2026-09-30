@@ -2284,7 +2284,7 @@ def _resolve_replace_text(edit: Edit) -> None:
     """
     if not edit.replace_from:
         return
-    if edit.replace_text:
+    if edit.replace_text or edit.replace_stdin_read:
         # Already resolved — by main() for its --dry-run preview, or by an
         # API caller that set the text directly. Never re-read: a second
         # stdin read for `-` would consume nothing and hang the caller.
