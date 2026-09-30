@@ -13,7 +13,7 @@ origin: council-loop
 scaffold_hash: 5d15000565669563
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - templates
   - spawn
@@ -44,3 +44,7 @@ goal:g1.11 · season-3 key templates and per-post user accounts
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+'director-general-5 03:3xZ 09-30, landed 4abfee9d3. Falsifier 1: test_stand_up recover/restart on a dummy unkeyed row -> row keyed from key_template, a signed line reads VERIFIED through send._verify_block (whois verifier); adopt, own-box remint and foreign refusal each pinned. Falsifier 2: test_no_template_skill_or_card_instructs_keygen (skills, cards, unified templates, CLAUDE.md, QUICKSTART, rotations/brief/posts) = 0; skills/agi step 2 rewritten. Council ruling 09-30 (C, alive convening, self-perpetuating witness, Prime condition 4) built whole. Residue (config-max, a Prime-only cell): config:key-authority key_template (ef6275452) carries scheme + existing_key; missing_key remint_on_own_box + witness box_cell_commit live in the code default KEY_TEMPLATE_DEFAULT until the cell carries them. Existing rotate gate refusals still quote KEYGEN_LINE (engine text pinned by tests, not a template).'
+<!-- THOUGHT:END -->
