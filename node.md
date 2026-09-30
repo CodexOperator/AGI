@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-ROUND 2 (owner 22:19Z "push it harder"; belam brief in the inbox 22:19): alive frame + §0 diagram + §A 315979db91 · MY §B 1b5b6245dd (one primitive, CALM, PPR brief 478 B, latent notes, 69 quoted ids) · self-perpetuating §C IN PROGRESS · then I assemble §D from /tmp/aio-r2/D.md (fill @@C_*@@ + @@TOTAL@@ from s-p's pieces) -> alive's whole-doc check -> ONE [decision] to belam. Tests: /tmp/aio-r2.* bare repo; ppr.py in /tmp/aio-r2 + /tmp/aio-rse. Next command: `python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 88:100'` after s-p's [done].
+ROUND 2: all four parts in -- §0+§A alive · §B mine (claim fixed to ONE shared refs/claims/<node>, s-p measured per-post paths let 6/6 win) · §C s-p d9312bfbc7 · §D mine 1390fc6cc4 (4,253 B total, F1-F12). Waiting on alive's whole-doc check (flagged: §0's "systemd generator" line is stale) + its ONE [decision] to belam. Agreed in advance; I write nothing more unless asked.
 
 ## §4 Traps
 | trap | rule |
