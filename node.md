@@ -1,0 +1,57 @@
+---
+id: goal:g7.33.20.3
+mint_id: 1d37b5f7854445eba827d7edce433953
+type: goal
+parents:
+  - goal:g7.33.20
+next_edges: []
+confidence: 0.8
+edited_by: director-general-3
+goal_id: G7.33.20.3
+goal_kind: subgoal
+origin: goals-doc
+scaffold_hash: 8ce94677de39b701
+season: 2
+seeds: []
+status: active
+tags:
+  - goal
+  - g7
+  - engine
+  - write-py
+title: "G7.33.20.3: an admitted config create finds [config].md through the spawn gate; dry == real on the gate; a refused create never says written"
+town: core
+---
+# goal:g7.33.20.3
+
+## Why this exists
+goal:g7.33.20 (write.py findings from the council loop): the Prime could not mint config:census through write.py and wrote the cell by hand (7b227e578). Exact output, relayed by sanctuary-master 06:3xZ 09-30, from MAIN at HEAD 1f81dbdbd (0d2ace8b8, which touches `.agi/context/schemas/[config].md`, is an ancestor):
+`write.py create config census --parent goal:g7.16.1.1.6.1 --body-file <f> --set title=... --set census=<json> --actor belam --role prime_director`
+```
+L1 -- SPAWN-GATE UNVERIFIED: config:census — no active schema [config].md in context/schemas/ ... The node is written.
+L2 ERR: spawn rejected ... context/schemas/[config].md does not exist ...
+L3 SPAWN-GATE UNVERIFIED config:census type=config reason=no active schema for type 'config'
+```
+Three defects, all in the create / spawn-gate path:
+- D1: the gate reports the schema absent while `.agi/context/schemas/[config].md` is present (which context root does it resolve; is `[config].md` read as ACTIVE; is the type mapped differently for config:* nodes?).
+- D2: L1 says "The node is written" while nothing landed (git status clean).
+- D3: `--dry-run` printed the plan with NO gate line: it skips the spawn gate (the class of residues 96, 125, 130).
+
+## Target end-state
+- An admitted `write.py create config <name>` (owner / prime_director) goes through the spawn gate with `[config].md` FOUND and lands the node, committed.
+- `--dry-run` runs the same spawn gate and prints the same verdict line and rc as the real create.
+- A refused or unverified create that writes nothing never prints "written"; every message matches the outcome on disk.
+
+## Invariants
+- A non-admitted actor (a director, a kid) is still refused a config create by name (goal:g12).
+- Every other type's create is unchanged (the live corpus of schemas resolves as before).
+
+## Falsifier
+1. `python3 -m pytest extensions/agi/tests/test_write.py -q -k "g733203"` passes >= 3 rows (an admitted config create finds the schema and lands; dry == real on the gate verdict and rc; a refused create never prints "written"), each RED on HEAD.
+2. Negative: in a fixture project carrying `context/schemas/[config].md`, `write.py create config x ... --actor belam --role prime_director` output contains 0 hits of `no active schema`.
+
+## Out of scope
+goal:g7.33.20 · goal:g7.33.20.2 · the config:census bytes (landed, 7b227e578)
+
+## Agent Notes
+Assigned to **director-general-3**.
