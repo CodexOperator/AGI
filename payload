@@ -473,9 +473,9 @@ def resolve_mint(root, mint: str, *, index=None) -> "tuple[str, str, str] | None
     """goal:g4.18.6.1 -- THE mint-id resolver: mint_id -> (id, title, status)
     of the ONE node carrying it, read off `mint_index`: LIVE first, then a
     retired sibling under deprecated/ (CLAUDE.md: a grid ref outlives its file;
-    SM 104) -- `status` says which. NO shape check (the Prime, signed 22:1xZ
-    09-29: "8 off-shape mints: accept as found, gate on 'is a node's mint_id',
-    never 32-hex"). A mint two nodes of one tier carry raises ValueError by
+    SM 104) -- `status` says which. NO shape check: off-shape mints are
+    accepted as found, the gate is "is a node's mint_id" (the Prime, signed
+    22:1xZ 09-29, verbatim on goal:g4.18.6.1). A mint two nodes of one tier carry raises ValueError by
     name, never a silent pick; empty or absent -> None; a grep that cannot look
     raises GrepError (fails closed). `index` = a prebuilt mint_index, so a
     batch reader pays ONE grep, never one per item (DG2 fork)."""
