@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: all-is-one
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -142,22 +142,22 @@ Pieces for §D: `ppr.py` 478 B · the ref layout (3 dirs + 2 git config lines: `
 - A generation of a post = its ref advancing (§B). A generation of the SYSTEM = the trunk advancing. Each one inherits exactly three things: the seed (constant), the graph (every ancestor's commits), and its card (the tip). Nothing else crosses, so nothing else needs reconciling (round 1 §4: 716 standing trees, 7,971 session files and rotate.py's reconcilers were leftovers that crossed).
 - **Genome integrity at every landing:** the trunk gate runs the fixed-point test on the NEW tip (project it, then re-project from the projected unit, and diff). A landing that would leave the next generation unable to regrow its body is refused. The cathedral cannot land a change that stops it from being rebuilt.
 
-**C.3 · The hunger: the graph calls for its own completion (the frontier, tested).** `agi-frontier REV` (384 B) runs, for every active goal, the first read-only command of its `## Falsifier` block. The schema already defines the verdict ([goal].md: "CLI/grep exit 0 only when done"). Each goal then answers one of three ways, and every answer is a call to an observer:
-| call | meaning | measured @ HEAD 22:3xZ (303 active goals, 3.2 s for the whole graph) |
+**C.3 · The hunger: the graph calls for its own completion (the frontier, tested).** `agi-frontier REV` (450 B, round-3 version) runs, for every active goal (found by TYPE over real files, so it reads the same before and after §G's symlink layout), the first read-only command of its `## Falsifier` block. The schema already defines the verdict ([goal].md: "CLI/grep exit 0 only when done"). Each goal then answers one of three ways, and every answer is a call to an observer:
+| call | meaning | measured @ HEAD 23:1xZ (312 active goals, ~3 s for the whole graph) |
 |---|---|---|
 | **met** | its falsifier passes: "write my outcome" (the council loop's outcome step) | 41 |
-| **red** | its falsifier fails: "work me" | 18 |
-| **mute** | no runnable read-only command: "give me a falsifier that exits 0 only when done" | 244 |
+| **red** | its falsifier fails: "work me" | 19 |
+| **mute** | no runnable read-only command: "give me a falsifier that exits 0 only when done" | 252 |
 The mute count is the finding. Of 70 goals that carry a runnable command, 60 state the verdict in prose ("returns", "prints", "= 0"), which the schema's own rule forbids. So 4 of every 5 goals cannot yet tell the machine when they are done. Sharpening a goal's falsifier is the first work the living graph asks for, and it belongs to that goal's own chain.
-- **Calling out = a mail ref.** Each non-met call becomes `refs/mail/pool/<call>/<goal>`, create-only: 303 dropped in 1.0 s, and a second drop is a no-op.
+- **Calling out = a mail ref.** Each non-met call becomes `refs/mail/pool/<call>/<goal>`, create-only: 303 dropped in 1.0 s (measured before the stdin fix below), and a second drop is a no-op.
 - **Joining = one claim.** An idle post runs `update-ref refs/claims/<goal> <sha> 0000…`. It must be ONE shared name. Tested: 8 racers x 2 goals on `refs/claims/<g>` -> exactly 2 winners, but 6 racers on per-post paths `refs/posts/<p>/claims/<g>` -> 6 "winners", because those are six different refs. **So B.1's claim row must read `refs/claims/<node>`**, in a sticky (1733) dir so only the claimer can release it. No board lock, no dispatcher: the gap itself is the queue.
 - **Scope never creeps.** Every call derives from an owner-seeded goal. Sleep's "clusters with no goal" (§A) become an `[offer]` mail to the council, never a minted goal (the Prime mints goals; "scope creep is the failure mode, not idleness").
 
-**C.4 · The math of perpetuation: V, a Lyapunov function over generations.** V(tip) = red + mute, the graph's distance from knowing and meeting its owner's intent. **Rule: a landing may not raise V unless it adds an owner-seeded goal** (the only energy put into the system). The gate is the frontier at the old and new tips, ~2 x 3.2 s. The system then descends monotonically toward the owner's goals, and every generation leaves the graph at least as complete as it found it. Measured across one day of generations: 24 h ago (582436f756) V = 15 + 239 = 254 over 286 active goals; now V = 18 + 244 = 262 over 303. V rose 8 while 17 goals were seeded, met rose 32 -> 41, and the mute share fell from 83.6 % to 80.5 %. That descent is the number the living system would publish.
+**C.4 · The math of perpetuation: V, a Lyapunov function over generations.** V(tip) = red + mute, the graph's distance from knowing and meeting its owner's intent. **Rule: a landing may not raise V unless it adds an owner-seeded goal** (the only energy put into the system). The gate is the frontier at the old and new tips, ~2 x 3.2 s. The system then descends monotonically toward the owner's goals, and every generation leaves the graph at least as complete as it found it. Measured across one day of generations (CORRECTED in round 3: the round-2 frontier ran each falsifier with the loop's stdin, so a command that read stdin swallowed goal lines and 9 of 312 were never read; the fix is `</dev/null`): 24 h ago (582436f756) V = 16 + 250 = 266 over 298 active goals; now V = 19 + 252 = 271 over 312. V rose 5 while 14 goals were seeded, met rose 32 -> 41, and the mute share fell from 83.9 % to 80.8 %. That descent is the number the living system would publish.
 
 **Superpowers (the vision's second clause, "each new feature is essentially a new superpower available for all consciousnesses"):** because the body is a projection, a new verb node (a payload script) projected into every post's PATH and MCP tool list reaches every post's next session with zero code change. That is one more projector line. NOT yet measured: it is a spike row.
 
-Pieces for §D (files in /tmp/g71611/fp-src): `agi-project` 664 B (tested, above) · `agi-seed.service` 291 B (`systemd-analyze verify` clean; not yet run live) · `agi-frontier` 384 B (tested over the live graph) · the pool drop, the claim and the V gate are single git commands or one line each (~120 B for the gate, not yet run as a pre-receive hook). **§C total ≈ 1,459 B.** Spike rows to add: (j) reboot (or `rm -r` of the runtime unit dir + the seed) regrows the exact projection · (k) a landing that breaks the fixed point is refused · (l) a landing that raises V without a new owner goal is refused · (m) a verb node appears in every post's tools at their next session.
+Pieces for §D (files in /tmp/g71611/fp-src): `agi-project` 664 B (tested, above) · `agi-seed.service` 291 B (`systemd-analyze verify` clean; not yet run live) · `agi-frontier` 450 B (round 3: stdin fix + type-scoped, tested over the live graph) · the pool drop, the claim and the V gate are single git commands or one line each (~120 B for the gate, not yet run as a pre-receive hook). **§C total ≈ 1,525 B.** Spike rows to add: (j) reboot (or `rm -r` of the runtime unit dir + the seed) regrows the exact projection · (k) a landing that breaks the fixed point is refused · (l) a landing that raises V without a new owner goal is refused · (m) a verb node appears in every post's tools at their next session.
 
 ## D · The byte count and the falsifiers on this box
 **What am I ACTUALLY trying to get the machine to do here?** Hold every claim above to bytes: what we wrote, what the box already carries, and the one command that proves or breaks each claim.
@@ -167,9 +167,9 @@ Pieces for §D (files in /tmp/g71611/fp-src): `agi-project` 664 B (tested, above
 round-1 body (the wrap)            1,432 B   unit · inbox path+service · meter hook · gitconfig · agi-flush · pre-receive · signers · sysusers  (a post = 34 B)
 A · alive (the fixed point)          794 B   project.sh 166 · observe.sh 166 · tick.sh 221 (the homeostat) · simhash.awk 241 (stage-0 latent)
 B · all-is-one (the spine)           568 B   ppr.py 478 (the latent brief) · the ref layout: 3 dirs + 2 git config lines ~90
-C · self-perpetuating              1,459 B   agi-project 664 (the genome, its own node) · agi-seed.service 291 (the ONE installed unit) · agi-frontier 384 (the hunger) · the V gate ~120 · the pool drop and the claim are single git commands
+C · self-perpetuating              1,525 B   agi-project 664 (the genome, its own node) · agi-seed.service 291 (the ONE installed unit) · agi-frontier 450 (the hunger) · the V gate ~120 · the pool drop and the claim are single git commands
 ────────────────────────────────────────────
-the living system                  4,253 B   against the ~2.7 MB it retires (round 1 §7, kept in git @45282a4661)
+the living system                  4,319 B   against the ~2.7 MB it retires (round 1 §7, kept in git @45282a4661)
 carried by what is already installed: the kernel (uids, mode bits, sticky dirs, PSI) · systemd (units, generators, sysusers, slices, timers) · git (the DAG, CAS refs, notes, signing) · strace · jq · dtach · awk · python3 stdlib
 still kilobytes, named: schema-check (<= 10 KB, the schema rules are content) and agi-mcp (<= 8 KB), both round 1
 ```
@@ -186,10 +186,10 @@ Against the owner's stretch bar (22:1xZ, "so low that it feels like it doesn't e
 | F6 | the brief predicts the work | a waking post gets the PPR top-20 of its card; its session's strace track (round 1) records what it actually opened | >= 50% of the nodes it opens in its first 10 turns are in the top-20 · the miss list tunes the restart probability and k: the brief CALIBRATES ITSELF from the track | the top-10 for goal:g7.16.1.11 and a g7.33 hypothesis are shown in B.3 |
 | F7 | the latent sense tells meaning apart | simhash over prose nodes | an edited copy is nearer than a sibling, a sibling nearer than an unrelated node | PASS (alive: 1 < 12 < 17-18 bits) · build nodes excluded (76/76 near pairs were template, B.4) |
 | F8 | the body regrows from its description (§C) | `rm -r` the runtime unit dir, then start agi-seed (or reboot); project a 2nd `--shared` clone | the exact projection regrows (empty diff) · the 2nd clone regrows the same units · one row edit moves exactly one link | PASS on a scratch clone (deterministic, empty re-projection diff) · the seed is verify-clean, not run live |
-| F9 | a landing that breaks the fixed point is refused (§C, k) | land a projector edit whose projected agi-project.service no longer re-runs the projector FROM the graph (e.g. its ExecStart points at an installed copy), or whose re-projection diff is non-empty | the trunk gate refuses it by name | the gate is one line, not yet run as a hook |
+| F9 | a landing that breaks the fixed point is refused (§C, k) | land a projector edit whose projection is EMPTY (0 post units: a reader regression, e.g. §G's symlink read at a REV), or whose projected agi-project.service no longer re-runs the projector FROM the graph (e.g. its ExecStart points at an installed copy), or whose re-projection diff is non-empty | the trunk gate refuses it by name | the gate is one line, not yet run as a hook |
 | F10 | the frontier only grows from the owner (§C, l) | land a commit that raises V (§C) with no new owner goal | refused | same |
 | F11 | a new verb is a superpower for every post (§C, m) | add a verb node | it is in every post's PATH and MCP tool list at their next session, with no per-post edit | on go |
-| F12 | the count | `wc -c` over every file D.1 names | <= 4,253 B (comment lines excluded) | 4,253 B as written out today |
+| F12 | the count | `wc -c` over every file D.1 names | <= 4,319 B (comment lines excluded) | 4,319 B as written out today (before §G's brief.py delta) |
 
 **D.3 · What makes it ONE living whole (read the diagram in §0 again with these three lines):**
 ```
@@ -305,12 +305,12 @@ WorkingDirectory=/data/work/agi
 ExecStart=sh -c "git show trunk:extensions/agi/wrap/agi-project|sh -s %t/systemd/user trunk;systemctl --user daemon-reload;systemctl --user start default.target"
 [Install]
 WantedBy=default.target
-# agi-frontier (529 B on disk, 384 B counted without comment lines)
+# agi-frontier (round 3: 450 B counted without comment lines; stdin fix + type-scoped)
 #!/bin/sh
-# agi-frontier REV: each active goal runs its first read-only falsifier; exit 0 = met ([goal].md), else the goal CALLS OUT: mute | red
-r=$1;git grep -l '^status: active' $r -- .agi/nodes/goal|while IFS=: read _ f;do g=${f##*/};g=${g%.md}
-c=$(git show $r:$f|sed -n '/^## Falsifier/,/^## Out/p'|grep -o '`[^`]*`'|tr -d '`'|grep -Em1 '^(grep|test|ls|getent|git (log|show|grep|rev-parse|ls-files|diff|for-each-ref)) ')
-[ "$c" ]||{ echo mute $g;continue;};timeout 30 sh -c "$c">/dev/null 2>&1&&echo met $g||echo red $g;done
+# agi-frontier REV: every active goal (by TYPE, over real files, so any layout) runs its first read-only falsifier; exit 0 = met ([goal].md), else it CALLS OUT: mute | red
+r=$1;git grep --all-match -l -e '^type: goal$' -e '^status: active$' $r -- .agi|while IFS=: read _ f;do n=$(git show $r:$f);g=$(echo "$n"|sed -n 's/^id: goal://p')
+c=$(echo "$n"|sed -n '/^## Falsifier/,/^## Out/p'|grep -o '`[^`]*`'|tr -d '`'|grep -Em1 '^(grep|test|ls|getent|git (log|show|grep|rev-parse|ls-files|diff|for-each-ref)) ')
+[ "$c" ]||{ echo mute $g;continue;};timeout 30 sh -c "$c"</dev/null>/dev/null 2>&1&&echo met $g||echo red $g;done
 ```
 
 
@@ -329,7 +329,7 @@ id: config:<piece>
 ~~~sh                    at most ONE fenced block = the piece's code; TILDE fences, so a node is backtick-free
 ...                      (backticks inside a unit's sh -c "..." are command substitution: measured, it broke the self-run)
 ~~~
-extract any piece:  git show REV:.agi/nodes/.geometry/<piece>.md | sed -n '/^~~~/,/^~~~/{//!p}'
+extract any piece:  r REV .agi/nodes/.geometry/<piece>.md | sed -n '/^~~~/,/^~~~/{//!p}'      (r = the ONE at-REV reader, F.7)
 ```
 There is no payload file, no build node beside it, no BUILD-CONTRACT and no grid ref of its own: **the node IS the file**, and its history is `git log -- <node>`.
 
@@ -369,7 +369,13 @@ the WHOLE engine as .geometry                                   ~31 KB    vs 327
 
 **F.6 · The generations lens:** the genome is now a set of pages that a successor can read in full: ~31 KB, about 8 pages, the whole machine. Every future improvement is an edit to one page. §C's gates (the fixed point and V) guard every edit, so no generation can land a page that stops the next one from regrowing the body.
 
-Spike rows for §D: **F13** every `.geometry` node <= 4,096 B (`find .agi/nodes/.geometry -size +4096c` prints nothing) · **F14** the fixed point holds with the projector extracted from its `.geometry` node (PASS today on the scratch clone) · **F15** each `.geometry` node carries at most one fenced block, and every block extracts and runs (`sh -n` / `systemd-analyze verify` / `jq -e .`).
+**F.7 · The at-REV read rule (a RED found in round 3, fixed before any build).** Under §G's layout an address is a symlink, and `git show REV:<address>` returns the LINK TEXT, not the node (tested: it printed `../n/abc123/node.md`). Every reader that works at a REV without a checkout would then read nothing, silently: the projector, project.sh, the seed, and a path-scoped frontier. The fixed point would PASS on two EMPTY projections, and V would read 0, so the V gate would always pass. The rule: **every at-REV read goes through ONE reader**, which git already carries (all-is-one found it; hardened here so a broken link fails loud):
+```sh
+r(){ echo "$1:$2"|git cat-file --batch --follow-symlinks|{ read o t s;[ "$t" = blob ]&&head -c $s;};}      # 101 B
+```
+Tested on a throwaway repo: an address resolves to the node's exact bytes and the genome inside it runs · a DANGLING address -> exit 1 · a missing path -> exit 1. The unhardened form printed the path text with exit 0, the same silent class. Content search is the other read: `git grep` does not follow symlinks (0 hits via addresses, 1 via real files, tested), so the frontier searches real files by TYPE (`--all-match -e '^type: goal$' -e '^status: active$' -- .agi`), which gives 312 today, the same as the path-scoped count. **And every projection must be NON-EMPTY** (>= 1 post unit), or the gate refuses: that catches any future reader regression, whatever its cause.
+
+Spike rows for §D: **F13** every `.geometry` node <= 4,096 B, measured through the links (`find -L .agi/nodes/.geometry -size +4096c` prints nothing) AND no link dangles (`find .agi -xtype l` prints nothing) · **F14** the fixed point holds with the projector extracted from its `.geometry` node through `r`, and the projection is non-empty (PASS today on the scratch clone, before the symlink layout) · **F15** each `.geometry` node carries at most one fenced block, and every block extracts and runs (`sh -n` / `systemd-analyze verify` / `jq -e .`) · **F16** `r HEAD <address>` equals `cat` of the real file for every node, and exits non-zero on a dangling link.
 
 ## G · ROUND 3 · all-is-one -- links are symlinks, the brief is one complex multiplication applied to the post
 **What am I ACTUALLY trying to get the machine to do here?** Make "A links to B" a fact the FILESYSTEM holds, so that every tool (ls, readlink, find, git, an editor, a kid, the owner) reads the same graph with no parser. Then make "what should this post see now" one multiplication applied to the post.
