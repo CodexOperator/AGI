@@ -81,6 +81,32 @@ def test_f2_a_residue_only_in_verify_missed_lands_on_the_owner_leaf(tmp_path):
     assert "the blind spot" in store["goal:g7.9"]
 
 
+def test_f2b_every_residue_of_a_round_reaches_the_leaf(tmp_path):
+    """The falsifier for the round-keyed merge: ONE round, THREE residues."""
+    root = _project(tmp_path)
+    _run(root, "k2", label="b1", verify={"final_recommendation": "accept", "verdicts": [
+        {"defect": {"title": "the defect"}}, {"defect": {"title": "z"}, "refuted": True}],
+        "missed": ["miss A", "miss B"]})
+    store = {}
+    cr.add(root / ".agi", "k2", {"parent": "goal:g7.9"}, writer=_writer(store))
+    leaf = store["goal:g7.9"]
+    assert leaf.count("| k2/b1 |") == 3                 # 3 residues, 3 rows
+    for title in ("the defect", "miss A", "miss B"):
+        assert title in leaf
+    assert "z" not in leaf
+    assert store["doc:council-report"].count("| k2/b1 |") == 1   # one report row
+
+
+def test_f2c_a_residue_re_added_twice_is_one_row(tmp_path):
+    root = _project(tmp_path)
+    _run(root, "k2", label="b1", verify={"final_recommendation": "accept",
+                                   "missed": ["miss A", "miss A"]})
+    store = {}
+    cr.add(root / ".agi", "k2", {"parent": "goal:g7.9"}, writer=_writer(store))
+    cr.add(root / ".agi", "k2", {"parent": "goal:g7.9"}, writer=_writer(store))
+    assert store["goal:g7.9"].count("| k2/b1 |") == 1
+
+
 def test_f3_a_refuted_verdict_lands_nowhere(tmp_path):
     root = _project(tmp_path)
     _run(root, verify={"final_recommendation": "accept",

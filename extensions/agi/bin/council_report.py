@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
-"""council_report.py -- ONE report row per council round + ONE owner leaf per
-verify residue (hypothesis:g716105-council-report-py-writes-one-row-per-round-
-and-routes-residues). `add --run KEY --args FILE [--root R]`.
-
-Residues read VERIFY, never the review list alone (skill agi-merge-pass S4):
-`missed[]` items are residues, `refuted: true` is not, and the review defects
-are read only when there is no verify file. Owner of a round = the parent goal
-title's `(assigned: <post>)`, else the post at the end of new_tip's commit
-subject, else director-engine; the Prime never owns a residue. The leaf comes
-from the ONE cell `council.residue_leaves`, and an absent cell refuses rc 2 by
-name rather than dropping the residue. Every write goes through write.py.
+"""council_report.py -- ONE report row per council round + ONE leaf row per
+verify residue (hypothesis:g716105-...-routes-residues). `add --run KEY --args
+FILE [--root R]`. Residues come from VERIFY, never the review list alone
+(skill agi-merge-pass S4): `missed[]` are residues, `refuted: true` is not,
+review defects only when there is no verify file. Owner = the parent goal
+title's `(assigned: <post>)`, else the commit subject's post, else
+director-engine; the Prime never owns a residue. The leaf is the ONE cell
+`council.residue_leaves`; absent = rc 2 naming it. Writes go through write.py.
 """
 from __future__ import annotations
 
@@ -45,8 +42,8 @@ def rounds(rundir: Path) -> list[dict]:
                      if p.name.startswith(("review_", "verify_"))})
     out = []
     for label in labels:
-        review = _read(rundir / f"review_{label}.json")
-        verify = _read(rundir / f"verify_{label}.json")
+        review, verify = _read(rundir / f"review_{label}.json"), _read(
+            rundir / f"verify_{label}.json")
         residues, verdict, state = [], "", "REVIEWED:review-only"
         if verify:
             state, verdict = "REVIEWED", str(verify.get("final_recommendation", ""))
@@ -73,15 +70,9 @@ def _title(defect) -> str:
 
 def owner_post(assigned: str, subject: str) -> str:
     """The ONE owner of a round's residues; the Prime never owns one."""
-    post = ""
     m = re.search(r"\(assigned:\s*([\w-]+)\)", assigned or "")
-    if m:
-        post = m.group(1)
-    if not post:
-        m = re.search(r"\(([\w-]+)\)\s*$", (subject or "").strip())
-        if m:
-            post = m.group(1)
-    post = post or FALLBACK_POST
+    m = m or re.search(r"\(([\w-]+)\)\s*$", (subject or "").strip())
+    post = (m.group(1) if m else "") or FALLBACK_POST
     return FALLBACK_POST if post == PRIME_POST else post
 
 
@@ -91,26 +82,29 @@ def leaf_for(post: str, cell: dict) -> str:
 
 
 def cell_of(root: Path) -> dict:
-    """`root` is the GRAPH root (the `.agi` dir, the one locations resolves).
-
-    The cell is the dotted path `council` -> `residue_leaves`, so a config with
-    no council table and one with the table but no leaves are the SAME absence.
-    """
-    cfg = json.loads((root / "config.json").read_text())
-    cell = (cfg.get("council") or {}).get("residue_leaves")
+    """The `council` -> `residue_leaves` table; no table and no leaves are the
+    SAME absence. `root` is the GRAPH root (the `.agi` dir locations resolves)."""
+    cell = (json.loads((root / "config.json").read_text()).get("council")
+            or {}).get("residue_leaves")
     if not isinstance(cell, dict):
         raise KeyError(LEAF_CELL)
     return cell
 
 
-def merge_table(body: str, new_rows: list[str], header: tuple) -> str:
-    """Fold new_rows into the node's ONE table, keyed on the round cell: the
-    same round twice is the same row, so a re-add replaces, never duplicates."""
+def merge_table(body: str, new_rows: list[str], header: tuple,
+                unique: bool = False) -> str:
+    """Fold new_rows into the node's ONE table.
+
+    The key is the FIRST cell -- the round -- so a re-add of a round REPLACES
+    its row instead of duplicating it. A residue leaf carries MANY rows per
+    round, so `unique=True` keys the whole row there: one row per residue.
+    """
+    key = (lambda r: r) if unique else (lambda r: r.split("|")[1].strip())
     lines = body.splitlines()
     tbl = [i for i, line in enumerate(lines) if line.strip().startswith("|")]
-    rows = {lines[i].split("|")[1].strip(): lines[i] for i in tbl[2:]}
+    rows = {key(lines[i]): lines[i] for i in tbl[2:]}
     for row in new_rows:
-        rows[row.split("|")[1].strip()] = row
+        rows[key(row)] = row
     keep = [l for l in lines if not l.strip().startswith("|")]
     while keep and not keep[-1].strip():
         keep.pop()
@@ -119,31 +113,29 @@ def merge_table(body: str, new_rows: list[str], header: tuple) -> str:
 
 
 def node_body(root: Path, node_id: str) -> str:
-    """The node body as write.py's `body_patch` sees it -- the CANONICAL reader
-    (`load_node_file(...).body`), not `split_frontmatter`, whose body keeps the
-    blank line after the closing `---` and would offset every diff line."""
+    """The node body as write.py's `replace body` sees it -- the CANONICAL
+    reader (`load_node_file(...).body`), not `split_frontmatter`, whose body
+    keeps the blank line after the closing `---` and would offset every range."""
     path = node_writer.find_node_file(root, node_id)
     return fm_reader.load_node_file(path).body if path else ""
 
 
 def _title_of(root: Path, node_id: str) -> str:
+    """The node's frontmatter title, else its H1, else "" (never raises)."""
     path = node_writer.find_node_file(root, node_id) if node_id else None
     if path is None:
         return ""
     text = path.read_text()
     fm = frontmatter.read_frontmatter(text) or {}
-    if fm.get("title"):
-        return str(fm["title"])
     m = re.search(r"^#\s+(.+)$", text, re.M)
-    return m.group(1) if m else ""
+    return str(fm.get("title") or (m.group(1) if m else ""))
 
 
 def write_body(root: Path, node_id: str, body: str) -> None:
-    """The ONE writer: write.py, `replace body 1:<n>` on the whole body (the
-    sanctioned splice; `body_patch` was tried first and its line splitter
-    refuses a body whose last line has no newline of its own). An unchanged
-    body writes nothing at all, and a refusal is LOUD, never a silent no-op.
-    """
+    """The ONE writer: write.py `replace body 1:<n>` on the whole body (the
+    sanctioned splice; `body_patch`'s splitter refuses a body whose last line
+    has no newline of its own). An unchanged body writes nothing, and a refusal
+    is LOUD, never a silent no-op."""
     old = node_body(root, node_id)
     if old == body:
         return
@@ -175,9 +167,10 @@ def add(root: Path, run_key: str, args: dict, writer=write_body) -> list[str]:
     leaf = leaf_for(owner_post(assigned, args.get("subject", "")), cell)
     out, cache = [], {}
 
-    def _body(node_id: str) -> str:
-        """ONE read per node per add: the table is folded in memory, so a
-        second row of the same run is never built from a stale body."""
+    def body_of(node_id: str) -> str:
+        """ONE read per node per add, and the FOLDED body afterwards: the next
+        row of the same run merges onto the rows already written, never onto a
+        stale copy that would drop them."""
         if node_id not in cache:
             cache[node_id] = node_body(root, node_id)
         return cache[node_id]
@@ -186,28 +179,24 @@ def add(root: Path, run_key: str, args: dict, writer=write_body) -> list[str]:
         key = f"{run_key}/{r['label']}"
         row = (f"| {key} | {old}..{new} | {r['state']} | {r['verdict']} | "
                f"{len(r['residues'])} | unchecked |")
-        cache[report] = merge_table(_body(report), [row], HEADER)
+        cache[report] = merge_table(body_of(report), [row], HEADER)
         writer(root, report, cache[report])
         for title, source in r["residues"]:
-            cache[leaf] = merge_table(_body(leaf),
+            cache[leaf] = merge_table(body_of(leaf),
                                       [f"| {key} | {source} | {title} |"],
-                                      RESIDUE_HEADER)
+                                      RESIDUE_HEADER, unique=True)
             writer(root, leaf, cache[leaf])
             out.append(f"{key}: {source} residue -> {leaf} ({title})")
         out.append(f"{key}: {row}")
     return out
 
 
-def _graph_root(root: Path) -> Path:
-    return root if (root / "nodes").is_dir() else root / ".agi"
-
-
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
     add_p = sub.add_parser("add", help="one row per round, residues to owners")
-    add_p.add_argument("--run", required=True, help="the mur run key")
-    add_p.add_argument("--args", required=True, help="JSON args file")
+    for flag in ("--run", "--args"):
+        add_p.add_argument(flag, required=True)
     add_p.add_argument("--root", default="", help="project root")
     ns = ap.parse_args(argv)
     args = json.loads(Path(ns.args).read_text())
@@ -219,6 +208,10 @@ def main(argv=None) -> int:
         print(exc)
         return 2
     return 0
+
+
+def _graph_root(root: Path) -> Path:
+    return root if (root / "nodes").is_dir() else root / ".agi"
 
 
 if __name__ == "__main__":
