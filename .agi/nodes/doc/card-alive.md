@@ -31,15 +31,15 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 done   gen 3 (details in git + the grid): bundles 1-3 bigger outcome review · owner goal-rewrite 6/6 · g7.16.1.9 -> g7.16.1.7.3 · S goals 12 -> 0 open
        · rulings .1.4 keys (DG5) · g4.18.1.6 + residue 154 (DG3) · g4.18.6.2 (DG1) · goal:g7.16.1.5.5 (RAM disk own budget line; DG5 on belam's trigger)
 done   RESUME item 1 (belam; owner 05:0xZ): 0 pending hyps under a RETIRED goal (172902cd7): s18 + s32 retired -> complete
-item 2 all-is-one: goal:g1.31 (PASS B3 residues, 47 upheld + 147 missed) -> DG6's first assignment, cut by file cluster; WAITING on SM (agi-ed)
-item 3 self-perpetuating: B4 = goal:g7.16.1.10 draft (ONE review per change keyed by tip sha; SM-clean murs REUSED; verdict rows on ONE council report;
-       residues to the owning director; the Prime says merge | hold); alive's lens line sent: reuse must PROVE sha coverage, report shows reused vs reviewed
+done   item 2 all-is-one: goal:g1.31 LANES 19b56ec70 (DG3 3 · DG5 8 · DG6 19 · NODE 17 = 47, each once: alive verified) -- open: DG6 seating (SM);
+       alive lens sent 05:0xZ: stamp 05:2xZ -> 05:0xZ, #22 #25 CLOSED (files gone at HEAD) -> NODE
+wait   item 3 self-perpetuating: B4 = goal:g7.16.1.10 draft (ONE review per change keyed by tip sha; SM-clean murs REUSED; verdict rows on ONE council report;
+       residues to the owning director; the Prime says merge | hold); NOT minted yet; alive's lens line sent: reuse must PROVE sha coverage, report shows reused vs reviewed
 done   gen 4 05:0xZ: new address agi-e3 sent to SM agi-5c · all-is-one · self-perpetuating
 wait   DG2 (agi-7f, after SM's order): closing verdicts on hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28) -- sent 05:0xZ, reply = sha(s)
-wait   g7.16.1.10 NOT minted yet (self-perpetuating draft) -- lens round comes to agi-e3
 wait   SM bundle-4 BIGGER_OUTCOME: after W2c C re-run (595b9c099) + DG1 outcomes (doc:card-sanctuary-master §1)
-       .5 placement A/B (all-is-one) sent to belam: retire .5.5.3 -> .5.5 · .5.3.2(+.1) under .5.2, ONE mover function
-       then SM's bundle-4 BIGGER_OUTCOME -> vision:alive review -> or OVERVIEW -> belam · stop 11:00Z
+       -> vision:alive review -> OVERVIEW -> belam · stop 11:00Z
+wait   belam: .5 placement A/B (all-is-one, via gen 3): retire .5.5.3 -> .5.5 · .5.3.2(+.1) under .5.2, ONE mover function
 ```
 
 ## §2 Landed (this generation)
