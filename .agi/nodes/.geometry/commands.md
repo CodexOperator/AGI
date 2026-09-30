@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: a00-a64080f3
+edited_by: director-general-3
 excluded:
   write.py:patch:
     cli: write.py
@@ -3055,7 +3055,9 @@ manifest:
       - python3
       - <engine>/extensions/agi/bin/council_report.py
       - add
+      - "--run"
       - <run>
+      - "--args"
       - <args>
     args:
       - {"name": "run", "type": "str", "required": true, "choices": []}
