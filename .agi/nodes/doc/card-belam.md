@@ -48,7 +48,8 @@ DONE gen 21  guard-init applied (empty plan diff) · post scopes ruled to app.sl
 14:xZ: RAM disk 4.1G -> 2.3G (13 clean idle Agent worktrees removed; DG4 row: bind <repo>/.claude/worktrees from disk) · paths.local_maxxing.scrub_commit_map 1b14a0048 · SLO8 whois fact restored d71e39b69 · 8 trunk reds laned by SM (links.py:440 decode -> DG2; brief g15 -> DG4; boxkit anonymize fake denylist -> DG2)
              STILL MINE: config:rotations skills entry (:83 + :123) + agi-post, agi-stream, byte_cap 6000 -> 8000, THOUGHT -- only once DG4 lands build:skills-agi-post-SKILL.md + build:skills-agi-stream-SKILL.md (SM sends the exact text)
 16:4xZ owner opened round lanes past pi-free (claude-code Sonnet 5.5 kids; parents+kids once proven; subagents or direct): brief SUBAGENTS row 6db908311, relayed via SM · email_allow user@UID.service 842cb065d · memory relief now PSI-gated (>= 10%): cache at user@ high with PSI 0 is normal, never churn on it
-NEXT         the watch to 18:00Z, then STOP + owner report
+gen 22 17:4xZ-21:0xZ: owner extended the cutoff to 21:00Z then FREE LANE (brief 9cb773a774) · 5 ORPHAN grep|head scopes stopped 20:4xZ (2.8-6.8 h, D state, 115 GB read, ~3 GB cache refill -> 2 PSI REDs 27 / 22 pct) -> [red] + g1 line to SM · CHECK 20:4xZ: BASE 1f2b49ffc (post-scrub id of 578650193) .. TIP b6e1020cc2 = 2160 commits / 107 exp / 157 engine paths / 2 D = goal renames (s1 -> g1.6.1, s33 -> g4.18.2.1) -> the council's review, not the Prime's
+NEXT         free lane, no end time: CHECK every 4 h, memory Monitor, the final merge word when the council reports
 NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) -> SM lanes to DG3/DG4 · anonymize install-hook checks MAIN's diff, not the committing worktree's (a g7.33 row)
 ```
 
@@ -56,11 +57,10 @@ NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) 
 post-scrub: ec09d0290 (.gitignore) · every pre-scrub SHA is REWRITTEN: old -> new = grep ^<sha> /data/scrub/union.git/filter-repo/commit-map (ONE union pass over local + origin; a first per-repo pass diverged and was replaced)
 
 ## 🔴 Where it stops
-Re-arm at wake (before 21:00Z): LANE-SWITCH one-shot "2 21 30 9 *" + CHECK "13 */4 * * *" + the memory Monitor. After 21:00Z: CHECK + Monitor only -- the free lane has no end time, so there is NO STOP to arm
+Re-arm at wake: CHECK "13 */4 * * *" + the memory Monitor (auto-reclaim variant, bodies in this session's transcript: PSI full avg60 >= 10% -> memory.reclaim "400M swappiness=0" on the top 3 app.slice scopes by file - shmem, <= 1 per 5 min). FREE LANE has no end time: NO STOP, no lane switch to arm
 ```
-at 21:00Z   ONE SendMessage to sanctuary-master agi-12 [afd9c6]: "free lane NOW" (pi-free only, no claude-code dispatch, no Sonnet subagents; live claude-code rounds finish) -> spawn_budget.py status: new parents pi-free -> card run row -> one owner line
-memory      Monitor on PSI full avg60 >= 10% (relief) / >= 20% (red); user@ at high with PSI ~0 = page cache, never act; relief = memory.reclaim on the biggest file-heavy post scope, never a kill
-addressing  SendMessage by "name [ref]" from ListAgents (agi-c8 / agi-8c / agi-e3 each name two posts)
+memory      the cause 18:1x-20:4xZ was ORPHAN grep|head scopes (ppid user systemd, cwd MAIN, D state): list run-*.scope by comm + cwd + age, stop by systemctl --user stop (skill agi-memory-guard §2-3); page cache at user@ high with PSI ~0 = normal, never act
+addressing  SendMessage by "name [ref]" from ListAgents; resolve a post's window with send.py whois --post <post> (sessions rotate: SM agi-12 -> agi-e0 by 21:0xZ)
 ```
 
 ## §4 Traps (the rest live in the skills)
