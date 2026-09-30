@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:1xZ 09-30, date -u) — gen 9 · FULL SPEED to the 11:00Z STOP · bundle-4 bigger_outcome v2 OPEN 0.8 (alive: aligned)
+## §0 State (06:3xZ 09-30, date -u) — gen 9 · FROZEN for the Prime's history rewrite (owner 06:3xZ) · idle until "[rule] resume"
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
@@ -46,16 +46,14 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-BUNDLE 4: bigger_outcome:council-bundle-4-one-gate-one-commit-ids-never-move v2 (limits 1-4; alive ALIGNED, OPEN 0.8). DG2 verdict:dg2mvp-w2cD PROVED 0.86 agrees (4887→0/5200, 2106→0/2121)
-  → 0.9 when limit (3) = DG3 699dc47c6 ACCEPTED (Sonnet review /tmp/sm9/cc_rb2.json RUNNING) AND (4a) g4.18.5.5 lands; ONE node update citing dg2mvp-w2cD + both
-COUNCIL (limit 4, all horizon): g4.18.5.5 suite-lock rc 3 → DG4 (sent) · g4.18.5.6 rotate-out commits the RESOLVED card, no flatten → DG5 (SEND FAILED: fold into the 1f81dbdbd verdict) · g7.16.1.6.1 suite on a tip snapshot, the lock retires → council after .5
-REVIEWS: RUNNING rb2 (DG3 699dc47c6 → close g4.18.1.6 + g1.31.4.3) · bk (DG4 0b73ebc23 boxkit .5.5.4) · QUEUED DG5 1f81dbdbd (158b + 4-mode fork + R4 + F2 pin; ramdisk proof 675→739→675, engine/work flat) -- ≤ 2 subagents at once (Sonnet now)
-ACCEPTED this gen: 1098822e1 · g4.18.5.2.2 · ff09c6101 · 9ae1e26c3 · 7d10fc7c7 · bd15f4e6e · d82a63e5a+3db04ffc7+0a766d220 (guard cells; N2 → .5.5.8, NOT .5.5.6 = DG5's) · bea6448a1 R1-R3 · 4feed71aa (158b fixed in 1f81dbdbd)
-PRIME DONE: guard-init apply 05:37Z · config:guard header · canonicalize manifest d7cb48e6a · config:census 7b227e578 · keysyncs · email banked (forward scrub only)
-DG3 agi-34: g7.33.20 (read-time bad id · own-id sub · create one-H1 · [config] schema · edited_by falls back to $USER=belam, ~74 nodes) + g1.31.5.2 round LIVE
-DG4: N2 .5.5.8 → _commit_write round (write-refusal fork + n83 + g4.18.5.5) · DG5: 3 harvests → g1.31.5.3 → g4.18.5.6 → .5.5.7 · DG6: g1.31.5 (112 email, 19 hook) first
-HEAL: DG2 re-judges .5.3.1 on the post-05:06:37Z window (in flight)
-First command at wake: ListAgents + tmux list-windows
+FROZEN 06:31Z (Prime [red] FREEZE, owner 06:3xZ: whole-history scrub of the owner email + hardware name + pytest-of path). NO git writes until the Prime's "[rule] resume". EVERY sha below is PRE-rewrite: re-find by commit subject (git log --grep) before acting.
+AT RESUME: ListAgents + tmux list-windows · re-read this card + git log · then:
+  review verdicts in /tmp/sm9/: cc_k2.json (DG5 1f81dbdbd keys → residues to DG4) · cc_e6.json (DG3 eff6255e3: g7.33.20 + R1b + g1.31.5.2 → if R1b clean: g4.18.1.6 closes AND bundle-4 limit (3) closes)
+  bundle-4 bigger_outcome (council-bundle-4-one-gate-one-commit-ids-never-move): ONE update citing DG2 verdict:dg2mvp-w2cD PROVED 0.86 + limit (3) closed; 0.9 only when g4.18.5.5 (4a, DG4) also lands
+DONE since last card: N2 a8b79e7ed accept_with_residue (R1 SYSTEM_MIN/SSH_MIN unranged · R2 probe names a refused cell · R3 test precedence) → .5.5.4 CLOSE · f4b5cc215 accept · .5.5.5 COMPLETE · census COMPLETE · g1.31.4.3 COMPLETE · spawn-gate D1-D3 → g7.33.20.3 (DG3)
+OWNER 06:1xZ: DG5 + DG6 stand down; Sonnet 5.5 subagents only. DG5 handover (card e4f52f044) re-laned: rotate.py + heal key path → DG4 (g1.31.4.2.1 harvest · .4.6.2 harvest · g1.31.5.3 · g4.18.5.6) · dispatch.py + RAM writers → DG3 (DG5.01 harvested, mur running · .5.4 close after naming the 12 agi-ram worktrees · .5.5.6 · .5.5.7)
+DG6 handover NOT yet received → on arrival re-lane: email scrub FIRST (may be moot after the rewrite), then g1.31 residues, then the workflow.py CC route
+DG4 queue: _commit_write round (write-refusal fork + n83 + g4.18.5.5) → DG5 rows → heal-sweep fork (then the Prime restarts heal) · DG3 queue: g7.33.20.2 (edited_by) + .20.3 round → DG5 rows
 ```
 ## §4 Traps
 | trap | rule |
