@@ -53,3 +53,5 @@ goal:g7.16.1.5 A (round worktrees on RAM) · B (budget) · C (prune) · goal:g7.
 
 ## Agent Notes
 Assigned to **belam**.
+
+OWNER 01:4xZ verbatim: "If needed we can somehow let symlink reads/writes cue on the RAM disk via git maybe somehow and get written or read in sequential batches" -- the sync timer is that batch writer for working files (one sequential rsync per interval); batching COMMITS is the async queue in goal:g7.16.1.6 scope.
