@@ -192,6 +192,9 @@
       "note": "defaults for the deep-search workflow; question, facts, lenses and refute_n arrive via --args, never here or in either workflow file (hypothesis:l3-deep-search-workflow-harness-agnostic), 2026-09-07. No 'model' here on purpose, same reason as workflows.review: provider is pi, model comes from harnesses.pi.models by role (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     }
   },
+  "anonymize": {
+    "home_roots": ["/data/home-"]
+  },
   "reaper": {
     "max_restarts": 0,
     "late_reap_wait_max_s": 1800,
