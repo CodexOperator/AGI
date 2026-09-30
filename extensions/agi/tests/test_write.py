@@ -2533,6 +2533,33 @@ def test_sm125_a_sub_beside_a_body_writer_refuses_alike_dry_and_real(project, tm
     assert node.read_text() == before
 
 
+# SM 130: ONE judge -- `--dry-run` runs submit's own refusals (submit(dry_run=True)),
+# so every refusal a write raises, the preview raises: rc AND the ERR lines.
+def test_sm130_every_submit_refusal_previews_alike(project, tmp_path, capsys):
+    node, body = _w1c_node(project)
+    before, lines = node.read_text(), body.split("\n")
+    x, d = tmp_path / "x.txt", tmp_path / "d.diff"
+    x.write_text("x\n")
+    d.write_text("--- a\n+++ b\n@@ -1 +1 @@\n-nope\n+yes\n")
+    n = next(i for i, (a, _) in enumerate(node_writer.body_rows(body), 1)
+             if lines[a - 1].startswith("<!-- THOUGHT:BEGIN"))
+    for script in (f"replace body 6:6 {x} && note n",                 # replace body standalone
+                   f"body_patch {d} && sub tail => TAIL",              # 130
+                   f"sub tail => TAIL && body_patch {d}",
+                   f"body_patch {d} && note n",                         # body_patch standalone
+                   f"row {n} {x}",                                      # THOUGHT marker in range
+                   f"replace body 999:999 {x}",                         # past EOF
+                   "sub no-such-text => y",                             # 0 matches
+                   "set link_ref /etc/hostname",                        # outside the repo
+                   "set parents [goal:nope]",                           # missing id
+                   f"body_patch {d}"):                                  # a diff that does not apply
+        errs = []
+        for dry in (["--dry-run"], []):
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and errs[0], (script, errs)
+    assert node.read_text() == before
+
 def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp_path):
     node, body = _w1c_node(project)
     (tmp_path / "r.txt").write_text("| write.py | 9 |\n")

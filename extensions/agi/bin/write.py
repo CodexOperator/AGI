@@ -587,6 +587,10 @@ def _standalone_refusal(edit: Edit) -> str | None:
                                           or edit.sub_body):
         return ("replace body is standalone; it cannot share a line with "
                 "note, thought or body_patch (one body writer per submit)")
+    if (edit.body_patch_from or edit.body_patch_diff) and (edit.body_append or edit.thought
+                                                           or edit.sub_body):
+        return ("body_patch is standalone; it cannot share a line with note, "
+                "thought or sub (one body writer per submit)")
     return None
 
 
@@ -2340,8 +2344,14 @@ def _resolve_api_root(root) -> Path:
 
 
 def submit(root, edit: Edit, actor: str = "", session: str = "",
-           role: str = "", ring_fresh: tuple | None = None) -> object:
+           role: str = "", ring_fresh: tuple | None = None,
+           dry_run: bool = False) -> object:
     """Write the accumulated edit. **The only thing in this module that writes.**
+
+    `dry_run` = THE preview judge (SM 130: the third preview/write drift): every
+    refusal below runs, then it returns None just before the first write; the
+    ring gate runs as its preview (no nonce spent, its refusal is the preview
+    line `_preview_dry_run_gate` prints).
 
     Returns `node_writer`'s own result object, so a caller sees `UPDATED`,
     `UNCHANGED` or `REJECTED` and the reason — the same statuses every other
@@ -2407,7 +2417,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
                                       or edit.replace_target == "body"),
                         signatures=getattr(edit, "signatures", []),
                         out_decision=_ring_out,
-                        ring_fresh=ring_fresh)
+                        ring_fresh=ring_fresh, preview=dry_run)
 
     set_fm = dict(edit.set_fm)
     # RUNG 2 claim (2): when a `ring:`-declaring schema admitted this
@@ -2441,10 +2451,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         # through `update_node` below, so the THOUGHT region is carried across
         # and write_guard sees a sanctioned write. Exclusive with note/thought:
         # one body writer per submit keeps a single writer author of the body.
-        if edit.body_append or edit.thought or edit.sub_body:
-            raise EditError(
-                "body_patch is standalone; it cannot share a line with note, "
-                "thought or sub (one body writer per submit)")
+        if _standalone_refusal(edit):
+            raise EditError(_standalone_refusal(edit))
         body = apply_unified_diff(_read_body_text(root, edit.node_id),
                                   edit.body_patch_diff)
 
@@ -2553,6 +2561,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
             raise EditError(f"set active refused: the parked-carrier grep for parked:{wake_goal} "
                             f"failed ({exc}); nothing written -- the wake cannot be delivered")
 
+    if dry_run:   # every refusal above has run; nothing is written
+        return None
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
@@ -3767,15 +3777,6 @@ def main(argv: list[str] | None = None) -> int:
                 except EditError as exc:
                     print(f"ERR: {exc}", file=sys.stderr)
                     return 2
-            if edit.replace_target == "body":
-                _refusal = _thought_marker_refusal(
-                    _target_text(root, edit, "body"), edit.replace_range, edit.replace_text)
-                if not _refusal and not edit.replace_force:
-                    _refusal = _body_range_refusal(
-                        _target_text(root, edit, "body"), edit.replace_range)
-                if _refusal:
-                    print(f"ERR: {_refusal}", file=sys.stderr)
-                    return 2
             if edit.row_ref:
                 print(f"  row    {edit.row_ref} -> {edit.replace_range}")
             _src3 = "stdin" if edit.replace_from == "-" else edit.replace_from
@@ -3800,6 +3801,12 @@ def main(argv: list[str] | None = None) -> int:
                 sys.stdout.write("\n")
             print(f"  sub     {edit.sub_count} match(es) of "
                   f"{edit.sub_old!r} -> {edit.sub_new!r}")
+        try:   # SM 130: the preview refuses by submit's OWN judgement, never a mirror
+            submit(root, edit, actor=args.actor, session=args.session,
+                   role=args.role, dry_run=True)
+        except (EditError, FileNotFoundError) as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
         return _preview_dry_run_gate(root, edit, args)
 
     if edit.payload_from == "-":
