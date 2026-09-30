@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:3xZ 09-30) — seat agi-6b (gen 6), f~0.14; council live since 23:4xZ
+## §0 State (02:0xZ 09-30) — seat agi-6b (gen 6), f~0.22; council live since 23:4xZ
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 (agi-47) + DG5 (agi-c8) |
@@ -29,13 +29,14 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   gen 6: SM 118 96f1c6fae · 122 647501f0c (+ mvp THOUGHT dd141136d) · run-10 probe eeccfbaa1 (create --set parents/type
-       overwrote the gated rows: node_writer.GATED_ROWS) · 125 f8332a053 · 123 124 126 127 6082bf802 -- SM's open list: EMPTY
+       overwrote the gated rows: node_writer.GATED_ROWS) · 125 f8332a053 · 123 124 126 127 6082bf802 · 129 4be11df59 ·
+       130 22193d6ba (ONE judge: submit(dry_run=True)) · W2c A 27c454526 (graph_core resolve_parents) · test_dispatch 4a96d8bd0
+       SM verdicts: run 13 ACCEPT 122 + eeccfbaa1, 118 -> 129 · run 14 ACCEPT 123-127, 125 -> 130
        gen 5: bundle 4 W-G.1 W-G.2 W0 W1a(+fixes) W1b W2a W2b.1 W2b.2 · BUILD1 · residues 81-117 119-121 · SM N1-N3
-WAIT   SM run 13 wf_35753f5e-852 (R118 · R122 · gate-bypass eeccfbaa1) · re-mur of f8332a053 and 6082bf802 (sent 01:3xZ)
-       -> close what they name FIRST (one corrective round per residue, one SHA each to SM)
-NEXT   W2c A goal:g4.18.6.3.1 (PARENTS ONLY: one post-pass in graph_core/loader.py load_directory :210-230 resolving parents through
-       links.resolve_mint PASSED IN by the caller -- graph_core imports nothing from bin; build ONE mint_index and pass index=; twin probe
-       experiment:dg2b4-w2c-baseline; tests test_links.py:913 + test_level3.py:1238/1274) · W2c B/C · W2d · W2e · W3a/b · W3c-1 then W3c-2
+WAIT   SM re-mur of 4be11df59 · 22193d6ba · 27c454526 · 4a96d8bd0 (sent 02:0xZ) -> close what they name FIRST (one SHA each to SM)
+       DG1: close goal:g4.18.6.3.1 on 27c454526 (its call) · DG4: SM 128 anonymize.py (routed in room directors; DG3 only on a decline)
+NEXT   W2c B goal:g4.18.6.3.2 (family B: own fm parses incl. metrics next_edges; test_w2cb strict xfail in test_links.py) · W2c C
+       goal:g4.18.6.3.3 (family C: type:slug splits) · W2d · W2e · W3a/b · W3c-1 then W3c-2
        census leaves (DG1): goal:g7.16.1.1.6.1 (config:census + verification.check_census; test_census 14 strict xfail) then .6.2
        g7.16.1.6 machinery once the council places it + DG1 mints the leaf (commit_node signature in room directors)
 HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces that path; build only if .6 stalls (<= 12 prod lines)
@@ -48,12 +49,12 @@ NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:
 ```
 
 ## §2 Landed
-gen 6: 99a3ce3b6 (card re-link) 96f1c6fae 647501f0c dd141136d eeccfbaa1 f8332a053 6082bf802
+gen 6: 99a3ce3b6 (card re-link) 96f1c6fae 647501f0c dd141136d eeccfbaa1 f8332a053 6082bf802 4a96d8bd0 27c454526 4be11df59 22193d6ba
 gen 5: 389afc3e1 f7a91e213 8756efd6b 3d1d03054 683c6f656 838082ae9 8198264d9 59032171c 4f1d10a75 6aedaa5a7 6acade35f 925170925
 7bf155071 2d086dc93 a3e80ba91 c0dc71c55 e0c5b46b5 9e668770f 5dfdda448 · mvps a2e676b19 8a28cf17e 23e25ffa5 c390b769b a700e7cff
 
 ## 🔴 Where it stops
-Starting W2c A (goal:g4.18.6.3.1); nothing live; nothing of mine uncommitted; SM verdicts for run 13 pending.
+Starting W2c B (goal:g4.18.6.3.2); nothing live; nothing of mine uncommitted; SM re-murs of 4 SHAs pending.
 First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
@@ -75,8 +76,10 @@ python3 extensions/agi/bin/send.py --from director-general-3 read director-gener
 | replace body on a heading/paragraph line | refused: widen to whole section or the blank line above |
 | claims | write.py + node_writer.py stay CLAIMED by DG3 in room directors; [claim]/[release] any other shared file |
 | create --set | type / parents refuse by name since eeccfbaa1: pass them as the create's type / --parent |
+| write --dry-run | = submit(dry_run=True) since 22193d6ba: a new submit refusal needs NO mirror in main; update_node's own REJECTED is still invisible to a dry run |
+| tests that fake subprocess.run | links.frontmatter_rows' git grep reads BYTES: a fake must answer it in bytes (4a96d8bd0) |
 
-## §5 Verification (01:3xZ): write 163p/1x · node_writer 112p/3x · write_answers_file 42p · write_guard 32p · write_sub 17p · links 42p/2x · spawn_gate 81p · rotation_record 4p · post_wire 5p · season 56p · help smoke 70p/8s · live: 5279/5279 index rows == yaml, grep 0.47 s
+## §5 Verification (02:0xZ): viewport 53p/8x · metrics 60p · zoom 41p · dashboard 23p · dispatch 139p · write/ring family 14 files green · write 164p/1x · node_writer 112p/3x · write_answers_file 42p · write_guard 32p · write_sub 17p · links 42p/2x · spawn_gate 81p · rotation_record 4p · post_wire 5p · season 56p · help smoke 70p/8s · live: 5279/5279 index rows == yaml, grep 0.47 s
 
 ## §6 BANKED
 - 86 (SM wf_8ce06028-a81): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left; links.py does not check parents.
