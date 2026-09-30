@@ -11,6 +11,11 @@ evidence_runs:
   - experiment:a00-75ddec76-9fccbd
 loop: hypothesis:pb3-node-verdicts-match-bytes-1-6-13-46@s2
 model: stealth/space-bunny-alpha
+probes:
+  - "gate (parent a00-f7c21d0b): goal:g1.31.3.1.1 falsifier 1 verbatim in the edited worktree -> exit 0; same falsifier in /data/work/agi, the tree of record -> exit 1, the four edits are uncommitted. Blocker state present, nothing staged."
+  - "gate: find .agi/nodes -name a00-76bbb729-a84e2a.md = 1 copy under deprecated/experiment/; grep -nx status: deprecated hits line 18; the live experiment/ path is gone."
+  - "wire: yaml.safe_load of a00-73aeae86-75e0f3.md frontmatter yields verdict == inconclusive_lean_proved:90 -- a consumer reads the bytes the kid wrote, not a cached render."
+  - "gate: falsifier 2a zero hits; falsifier 4 counts exactly 1 mur-pb3 verify name per node; frontmatter delta is verdict/status/edited_by only."
 profile: balanced
 role: kid
 scaffold_hash: fb3f42d1c696fc2d
