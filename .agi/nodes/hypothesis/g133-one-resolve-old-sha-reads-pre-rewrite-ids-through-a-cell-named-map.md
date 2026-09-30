@@ -67,3 +67,7 @@ ANON      no user name, home or repo path value, host, IP, hardware name, real m
 FILE SCOPE extensions/agi/bin/links.py · extensions/agi/bin/write.py · extensions/agi/tests/test_resolve_old_sha.py · the kid's own experiment node (and the prior kid node, item 2 only)
 CEILING   HARD CAP (director's disclosed override of the round ceiling, whole chain vs base 0ebaac570f): 1 kid · links.py <= 45 added lines · write.py <= 22 · tests <= 170 · comments count as lines · pi-free tier-0 · 0 USD -- over it = the round is cut
 PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.DG3.44: mur g133 demote -- WARN unreachable on create, home path in the kid node (guard red), F3/F4 letter, zero-id rows, hex gate, WARN on added text only over every source, one config rule, cached map, bare sha refused, evidence at the final tip; ceiling override disclosed
+<!-- THOUGHT:END -->
