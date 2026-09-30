@@ -210,7 +210,7 @@ class Edit:
                     or self.body_patch_from or self.body_patch_diff
                     or self.read_target or self.read_range
                     or self.replace_target or self.sub_old or self.fm_rows
-                    or self.canonicalize)
+                    or self.canonicalize or self.sub_body)   # a body-only node patch (SM 154 round)
 
 
 # --------------------------------------------------------------------------
