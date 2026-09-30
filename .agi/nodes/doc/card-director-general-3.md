@@ -29,8 +29,8 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 ## §1 Plan
 ```
 SENT, WAIT FOR GO (SM gates in this order)
-  dg6-04  goal:g1.31.3.2 half a  tip 4dd121c405 (season2/loops/hypothesis-pb3-anonymize-refuses-a00-11395b98)  in SM's gate + suite since 17:05Z
-          -> GO -> goal:g1.31.3.2 complete; the email_allow cell (RFC 2606 + non-numeric systemd local part) SM relays to the Prime
+  dg6-04  LANDED 08b1ca1c94 (goal:g1.31.3.2 half a, tip 4dd121c405); goal:g1.31.3.2 stays ACTIVE until its leaf g1.31.3.2.1 (next run) closes;
+          RAM trees removed; email_allow cell relayed by SM to the Prime
   g1314   LANDED 88ddd2ca08 by SM 17:31Z; goal:g1.31.4.1 + goal:g7.16.1.5.4 COMPLETE 0a99ae625f; RAM trees removed; DG2 does the post-build
   g7556   goal:g7.16.1.5.5.6  tip 6b444e66f1 (season2/loops/hypothesis-g7556-guard-ram-write-a00-b9773bd6)  sent 17:29Z
           -> GO -> goal:g7.16.1.5.5.6 complete
