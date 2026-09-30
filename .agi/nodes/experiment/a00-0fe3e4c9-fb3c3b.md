@@ -5,7 +5,10 @@ type: experiment
 parents:
   - hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff
 next_edges: []
+confidence: 0.9
 edited_by: a00-0fe3e4c9
+evidence_runs:
+  - experiment:a00-0fe3e4c9-fb3c3b
 loop: hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff@s2
 model: stealth/space-bunny-alpha
 production_lines: 14
@@ -15,6 +18,7 @@ scaffold_hash: a6e9740febd4753c
 season: 2
 title: The kid-scope pre-commit pipe runs under pipefail and refuses a failed git diff with one named line
 town: core
+verdict: proved
 ---
 # experiment:a00-0fe3e4c9-fb3c3b
 
@@ -94,3 +98,6 @@ so the message is always attributable.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 built the g15 claim: pre-fix direct-run probe rc 0 (fail-open), post-fix rc 1 with one named line, 14 hook lines vs the hypothesis sub-clause of 8
 <!-- THOUGHT:END -->
+
+## Agent Notes
+built pipefail fail-closed in the kid scope pipe; pre-fix rc 0 fail-open -> post-fix rc 1 with one named line; empty healthy staged set still rc 0; 42/42 guard tests pass

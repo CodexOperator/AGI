@@ -789,6 +789,45 @@ def test_branch_kid_refuses_staged_config_json(branch_kid):
     assert "kid may not commit" in res.stderr
 
 
+def _run_hook_direct(wt: Path, env: dict):
+    """Run the pre-commit hook SCRIPT, bypassing `git commit` (git reads the
+    index itself before any hook and dies first on a corrupt one, so the
+    guard is only reachable through the script for this row)."""
+    return subprocess.run(
+        ["bash", str(HOOKS / "pre-commit")], cwd=wt, capture_output=True, text=True, env=env,
+    )
+
+
+def test_branch_kid_hook_refuses_on_a_failing_diff(branch_kid):
+    """hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff — a
+    `git diff --cached` that FAILS (corrupt index -> rc 128) used to feed
+    scope-check an empty path list, `all([])` allowed it, and the kid
+    branch exited 0: fail-OPEN. Under pipefail the pipeline carries 128, the
+    hook prints ONE named line and refuses. Red before the fix (rc 0, no
+    line)."""
+    main, wt = branch_kid
+    index = subprocess.run(
+        ["git", "rev-parse", "--git-path", "index"], cwd=wt,
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    Path(wt / index).write_text("this is not an index\n")
+    res = _run_hook_direct(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode != 0, f"hook failed OPEN on a failing diff: {res.stdout}"
+    named = [ln for ln in res.stderr.splitlines() if "git diff --cached failed" in ln]
+    assert len(named) == 1, f"expected exactly ONE named line, got {named!r}"
+
+
+def test_branch_kid_empty_staged_set_still_allowed(branch_kid):
+    """The control: a healthy index with NOTHING staged is `all([])` -> 0 and
+    must still exit 0 (`git commit --allow-empty` reaches the hook). The
+    fail-closed fix must not turn an empty-but-successful diff into a
+    refusal."""
+    main, wt = branch_kid
+    res = _run_hook_direct(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 0, f"empty healthy staged set refused: {res.stderr}"
+    assert "git diff --cached failed" not in res.stderr
+
+
 def test_branch_kid_refuses_another_authors_node(branch_kid):
     """Out-of-scope (b): a path under `.agi/nodes/` whose basename does not
     contain AGI_AGENT_ID is another author's node — refused by name."""
