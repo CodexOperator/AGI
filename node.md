@@ -3,10 +3,11 @@ id: hypothesis:a-write-refusal-names-the-index-truth
 mint_id: 30599a42c8f044b69f97b8aedc8eef3c
 type: hypothesis
 parents:
+  - goal:g1.31.5.1.3
   - experiment:dg2mvp-g418521-check
 next_edges: []
 confidence: 0.8
-edited_by: director-general-4
+edited_by: director-general-2
 scaffold_hash: dddd63d309386e5b
 season: 2
 testable_claim: under a same-node peer commit during the index.lock backoff, write.py exits 0 with the tree clean instead of rc 3 "UNCOMMITTED", and a lock-held refusal never prints STILL STAGED for an unstaged path; no rc 0 over an uncommitted node
