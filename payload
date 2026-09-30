@@ -1161,6 +1161,13 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
                                dispatch_py=dispatch_py, cli_py=cli_py,
                                project_root=project_root)
+        # goal:g7.16.1.7.1.2: a refused render still carries the post's live
+        # card, through brief's own card resolver (never a raw file read).
+        try:
+            parts.append(brief.card_text(
+                brief._resolve_graph_root(project_root), name, card_file))
+        except Exception:  # noqa: BLE001 -- no card is the legacy body, as before
+            pass
         body = "\n\n".join(parts)
     if _is_ultracode(settings):
         # keyword as the first line of the user turn (see _successor_command)
