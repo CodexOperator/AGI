@@ -211,3 +211,27 @@ def test_f7b_a_known_class_narrows_but_an_unknown_name_still_warns(proj):
     assert r.returncode == 1, r.stdout + r.stderr
     assert "secrets" in line and "node_deletion" not in line and "broken_link" not in line
     assert r.stderr.count("WARN") == 1 and "nonsense" in r.stderr, r.stderr
+
+
+# F8 (P13) -- a `parents:` id resolving to NO node is a broken_link: the graph
+# edge broken_by_status cannot see. Broken since OLD is still not counted.
+def _child(nid, mint, parents):
+    lst = "".join(f"  - {p}\n" for p in parents)
+    return f"---\nid: {nid}\nmint_id: {mint}\ntype: idea\nparents:\n{lst}---\n\nbody\n"
+
+
+def test_f8_a_parents_id_with_no_node_is_a_broken_link(proj):
+    g = proj / ".agi" / "nodes/idea"
+    (g / "old-broken.md").write_text(_child("idea:oldbroken", "d" * 32, ["hypothesis:gone"]))
+    _commit(proj, "a node whose parent already resolved nowhere")
+    base = _git(proj, "rev-parse", "HEAD").strip()
+    (g / "new-broken.md").write_text(_child("idea:newbroken", "e" * 32, ["hypothesis:absent"]))
+    _commit(proj, "a node whose parent never existed")
+    r = _run(proj, base)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "RED broken_link 1: idea:newbroken->hypothesis:absent" in r.stdout, r.stdout
+    assert "idea:oldbroken" not in r.stdout          # broken since OLD
+    (g / "new-broken.md").write_text(_child("idea:newbroken", "e" * 32, ["idea:one"]))
+    base2 = _git(proj, "rev-parse", "HEAD").strip()
+    _commit(proj, "point the parent at a node that exists")
+    assert _run(proj, base2).returncode == 0, _run(proj, base2).stdout

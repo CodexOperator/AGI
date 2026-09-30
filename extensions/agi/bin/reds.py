@@ -78,10 +78,35 @@ def _node_deletions(repo, old, new, new_graph):
     return out
 
 
+_FM = re.compile(r"\A---[ \t]*\n(.*?)\n---[ \t]*(?:\n|\Z)", re.S)
+
+
+def _broken_parents(graph):
+    """`node->parent` for a `parents:` id that resolves to NO node at this tree —
+    the backbone links.broken_by_status cannot see (payload links only, P13).
+    The FRONTMATTER block only: a body line naming an id is prose, not a link."""
+    rows = links.frontmatter_rows(Path(graph) / "nodes")
+    live = {fm["id"] for fm in rows.values() if fm.get("id")}
+    out = []
+    for rel, fm in rows.items():
+        if not fm.get("id"):
+            continue
+        text = (Path(graph) / "nodes" / rel).read_text(encoding="utf-8", errors="replace")
+        blk = (_FM.match(text).group(1) if _FM.match(text) else "")
+        named = re.search(r"^parents:[ \t]*(\[[^\]]*\]|(?:\n[ \t]*-[ \t]*\S+[ \t]*)+)", blk, re.M)
+        if not named:
+            continue
+        pids = re.findall(r"[\w:.\-/+]+", re.sub(r"^[ \t]*-[ \t]*", "", named.group(1), flags=re.M))
+        out += [f"{fm['id']}->{p}" for p in pids if p not in live]
+    return out
+
+
 def _broken_links(old_graph, new_graph):
-    """`node->ref` broken at NEW and NOT at OLD — links' resolver, both ends."""
+    """`node->ref` broken at NEW and NOT at OLD — links' resolver at both ends
+    for a payload link, and a `parents:` id at both ends for a graph edge."""
     def keys(graph):
-        return {f"{e.node_id}->{e.ref}" for e in links.broken_by_status(graph)[0]}
+        return ({f"{e.node_id}->{e.ref}" for e in links.broken_by_status(graph)[0]}
+                | set(_broken_parents(graph)))
     return sorted(keys(new_graph) - keys(old_graph))
 
 
