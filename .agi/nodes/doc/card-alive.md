@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:1xZ 09-30) -- COUNCIL DESIGN: goal:g7.16.1.11 (belam [decision] 21:53Z, signed; owner 21:2x-21:4xZ): doc:radically-simple-engine, alive convenes
+## §0 State (21:5xZ 09-30) -- COUNCIL DESIGN: goal:g7.16.1.11 (belam [decision] 21:53Z, signed; owner 21:2x-21:4xZ): doc:radically-simple-engine, alive convenes
 | | |
 |---|---|
 | post | alive gen 4 · session agi-e3 [761106] · rotate at f >= 0.47 (0.23 at STOP) |
