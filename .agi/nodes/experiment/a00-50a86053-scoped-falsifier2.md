@@ -12,7 +12,7 @@ loop: goal:g1.31.4.1@s2
 production_lines: 62
 scaffold_hash: 0f9be287ba0bf0d9
 title: The scoped check is green on the live graph and red on a planted node
-verdict: proved
+verdict: inconclusive_lean_disproved:70
 ---
 # experiment:a00-50a86053-scoped-falsifier2
 
