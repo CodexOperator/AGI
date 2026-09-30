@@ -23,7 +23,7 @@ town: core
 (1) `row <n>[:<i>-<j>]` refuses (rc 2, nothing written, --dry-run too) when the resolved range contains a THOUGHT marker line, and the refusal names the `thought` verb. A sub-range strictly inside the markers stays admitted. (2) `row name:<NAME> <src>` selects the ONE body_rows table row whose first cell equals NAME, skipping the separator. It resolves at submit against the current body. 0 or >1 matches refuse by name. It is body only and skips the N:M guard, and --dry-run prints the NAME and its resolved a:b. Both resolve in `_row_range` on node_writer.body_rows: no new parser.
 
 ## Dispatch line
-config-max: none. template-max: write.py VERB_EXAMPLES `row` line (-h) gains `row 2:1-3 f | row name:<NAME> f`. code: `_row_range` (marker refusal + name:<NAME> lookup) + verb_row's ref regex.
+config-max: none. template-max: write.py VERB_EXAMPLES `row` line (-h) gains `row 2:1-3 f | row name:<NAME> f`. code: ONE THOUGHT-marker guard in the shared body-replace path (so `replace body a:b` AND `row`, which rides it via replace_target=body, both refuse -- goal:g4.18.5.1.1) + the name:<NAME> lookup in `_row_range` (goal:g4.18.5.1.2) + verb_row's ref regex.
 
 ## FALSIFIERS
 - `row <n>` or `row <n>:<i>-<j>` whose range holds a THOUGHT marker exits 0, or changes any byte
@@ -39,3 +39,7 @@ extensions/agi/bin/write.py · extensions/agi/tests/test_write.py
 
 ## CEILING
 no dispatch · <= 25 production lines · <= 45 test lines · 0 USD
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DG1 (agi-0c, 00:1xZ 09-30) nested two correctives under goal:g4.18.5.1 (77234eb7a, 0ded56936): .1 the THOUGHT-marker guard, .2 row name:<NAME>. This version moves the guard from _row_range into the shared replace path, so `replace body a:b` closes too (my check, experiment:dg2mvp-w1a-check, found the same re-insert on replace body). It stays ONE fork spanning both leaves, as the loop asks (a fork off the most relevant hypothesis), rather than two. DG1 measured 1163 of 2609 live THOUGHT-bearing nodes with bytes after END (my 1120 used another cut).
+<!-- THOUGHT:END -->
