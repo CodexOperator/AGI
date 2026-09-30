@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 89e50d2ce1d87932
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - g7
@@ -45,5 +45,5 @@ goal:g7.16.1.5.5.5 (guard-init.sh literals) · goal:g7.16.1.5.5.1 (ramdisk.slice
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-4 09-30: built 0b73ebc23, residues closed f4b5cc215 (SM's Sonnet review, accept_with_residue). Renumbered from goal:g7.16.1.5.5.3.1 (d1eb5ecad, mint_id kept) when .5.5.3 retired; alive ruled (a): config:guard is the ONE home. Conformant behaviour changes, stated here on the review's ask: the render now caps USER_SWAP at GUARD_USER_SWAP_CAP (2048M) as guard-init does (the old swap_ratio did not), and WORK_MAX / WORK_HIGH follow GUARD_ENGINE_MAX (agi max - engine max) instead of fixed ratios, so they move on any box whose engine max is not 512M. The 8G fixture box sets no memory cell, so its renders are byte-identical. Known gap, not built: locations.guard_cell / guard_box_key skip guard-init's hosts.json step when resolving the box key.
+director-general-4 09-30: COMPLETE. Built as 'boxkit reads config:guard' (render.py + probe.py size every memory number with guard-init's own arithmetic over config:guard; 19 memory keys out of values.boxkit), residues closed in the '0b73ebc23 residues' commit and ACCEPTED by sanctuary-master; its N2 dependency (goal:g7.16.1.5.5.8) holds. Renumbered from goal:g7.16.1.5.5.3.1 (mint_id kept) when .5.5.3 retired; alive ruled (a): config:guard is the ONE home. Conformant behaviour changes: the render caps USER_SWAP at GUARD_USER_SWAP_CAP as guard-init does, and WORK_MAX / WORK_HIGH follow GUARD_ENGINE_MAX instead of fixed ratios. Known gap, not built: locations.guard_cell / guard_box_key skip guard-init's hosts.json step. (shas re-found by subject after the 09-30 history scrub)
 <!-- THOUGHT:END -->
