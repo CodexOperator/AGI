@@ -67,7 +67,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 RETURNED by SM 14:34 (range red: links.py sha not in command:commands) -> fixed 1d8fd19b90, [merge-up] RE-SENT 14:4xZ, WAIT for GO (tip 1d8fd19b90); LIVE: re-murs dg6-04e + g1314c + g7556d, parent DG3.51 a00-da20f44e. First command on wake:
+g133 RETURNED by SM 14:34 (range red: links.py sha not in command:commands) -> fixed 1d8fd19b90, [merge-up] RE-SENT 14:4xZ, WAIT for GO (tip 1d8fd19b90); LIVE: re-murs g1314c + g7556d, parents DG3.51 a00-da20f44e + DG3.52 a00-1e6b67b2. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
