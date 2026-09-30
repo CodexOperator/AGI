@@ -172,10 +172,25 @@ def walk_node_files(directory: str | Path) -> list[Path]:
     return out
 
 
+def resolve_parents(g: Graph, loaded: list[LoadedNode], resolve=None) -> None:
+    """goal:g4.18.6.3.1 -- THE post-pass: a parents item naming no loaded node is
+    handed to ``resolve`` (the caller's id resolver -- graph_core imports nothing
+    from bin); an address it returns that IS a loaded node replaces the item, any
+    other answer leaves it as written (a dangling parent stays visible)."""
+    if resolve is None:
+        return
+    for ln in loaded:
+        for p in [p for p in ln.node.parents if not g.has_node(p)]:
+            if (addr := resolve(p)) and g.has_node(addr):
+                ln.node.parents.discard(p)
+                ln.node.parents.add(addr)
+
+
 def load_directory(
     directory: str | Path,
     registry: Optional[IdRegistry] = None,
     strict: bool = False,
+    resolve=None,
 ) -> tuple[Graph, list[LoadedNode]]:
     """Load every .md/.json node file under ``directory`` into a Graph (T-011 / R6).
 
@@ -227,4 +242,5 @@ def load_directory(
     g.duplicate_ids = duplicates
     if strict and duplicates:
         raise DuplicateIdError(duplicates)
+    resolve_parents(g, loaded, resolve)
     return g, loaded
