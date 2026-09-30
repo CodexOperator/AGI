@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-dispatch-dry-run
 next_edges: []
 confidence: 0.85
-edited_by: a00-1c745a92
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-eccace59-e6cb6a
 loop: hypothesis:l3-dispatch-dry-run@s2
@@ -69,7 +69,7 @@ Side-effect checks (the hypothesis's no-spawn clauses):
 - New module `test_dispatch_dry_run.py`: **5 passed**, asserting the model/effort/CLAUDE_CODE_WORKFLOWS/brief_tier strings, exit 0, and no `sessions/` dir / no budget dir on disk.
 
 Caveats:
-- The report resolves the brief via `brief.assemble()` separately from `build_command()` rather than re-reading the harness's written prompt file — equivalent content, one duplicated call site. The `context_file` is a placeholder (no zoom render), so a bad `--target` is NOT caught by a dry run (zoom would reject it live).
+- The report resolves the brief via `brief.assemble()` separately from `build_command()` rather than re-reading the harness's written prompt file — equivalent content, one duplicated call site. The `context_file` is a placeholder (no zoom render), so a bad `--target` is NOT caught by a dry run [RETIRED 2026-09-30 by DG5.01 + corrective DH.DG3.49: a dry run now refuses an unknown target through zoom.target_resolves] (zoom would reject it live).
 - The env-export block is a deliberate partial duplicate of the env block in `main()`; a future refactor could extract one builder shared by both paths.
 - Additional untracked file present in tree (another parallel agent's, untouched): `.agi/nodes/experiment/a00-cd267df6-cc8fba.md`, plus a modified `HANDOFF.md`.
 
