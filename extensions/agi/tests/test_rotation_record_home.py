@@ -175,3 +175,25 @@ def test_b3_rotation_record_keeps_only_the_record_helpers():
     import rotation_record
     assert not {"grep_live", "parked_carriers", "GrepError"} & set(vars(rotation_record))
     assert all(callable(getattr(rotation_record, n)) for n in ("home_rel", "dump_record", "resolve_record_path"))
+
+
+def test_the_sanctioned_writer_applies_the_user_root_remedy(tmp_path, monkeypatch):
+    """dg6-04 residue 3: the refusal names `home_relative(text, root=ROOT)` for
+    the `user` class, but the ONE writer rotate calls passed no root, so the
+    remedy the guard advertises was unreachable from it. This row goes through
+    the REAL caller -- rotate._write_rotation_record, the writer rotate/heal/
+    sensei all share -- against a tmp project whose cell carries user_roots."""
+    import rotation_record
+    monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
+    root = tmp_path / "proj"
+    (root / ".agi" / "sessions").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"anonymize": {"user_roots": ["/" + "tmp/pytest-of-"]}}), encoding="utf-8")
+    monkeypatch.setattr(rotation_record, "_cell_root", lambda given=None: root)
+    text = "basetemp " + "/" + "tmp/pytest-of-" + "fixtureuser/pytest-3"
+    path = rotate._write_rotation_record(root.parent / (".agi"), {"seat": "probe", "cmd": text})
+    written = json.loads(path.read_text(encoding="utf-8"))["cmd"]
+    assert "fixtureuser" not in written, "the user segment survived the writer"
+    assert written.endswith("<user>/pytest-3")
+    assert rotation_record.dump_record({"cmd": text}, root=root) == json.dumps(
+        {"cmd": written}, indent=2) + "\n"

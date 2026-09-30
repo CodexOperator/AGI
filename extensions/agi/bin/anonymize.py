@@ -10,6 +10,10 @@ DMI_FILES = ("board_name", "board_serial", "board_vendor", "product_name",
              "product_serial", "product_uuid", "chassis_serial")
 SECRETS_NODE = Path("nodes") / ".geometry" / "secrets.md"
 CLASSES = ("hostname", "ip", "mac", "board", "secret", "home", "email", "hardware")
+#: CLASSES with NO token source: `scan()` judges them by pattern, so
+#: box_tokens() can never carry one. A "every class reached" row subtracts
+#: THIS constant rather than naming a class (dg6-04 residue 5).
+SCAN_ONLY_CLASSES = ("email",)
 MIN_TOKEN = 4
 #: ONE spelling of a home-directory path, ANY box (goal:g7.16.1.2.1): the
 #: rotation-record writer rewrites it and the check (R3) reuses it. A BARE
@@ -196,8 +200,13 @@ def _read_hw_sources(rule):
                                                errors="replace").splitlines()
         except OSError:
             continue
-        names += [ln.split(":", 1)[1].strip() for ln in lines
+        picked = [ln.split(":", 1)[1].strip() for ln in lines
                   if ln.lower().startswith(field.lower() + ":")]
+        # the REAL on-box shape of a /sys/class/dmi file is ONE bare value line,
+        # no colon: a `field` that matches nothing must not make the source
+        # inert and the board name unguarded (dg6-04 residue 2)
+        names += picked or [ln.strip() for ln in lines
+                            if ln.strip() and ":" not in ln]
     return names
 def _hw_fragments(name, min_words, core_digits):
     """NAME -> every run of >= min_words consecutive words holding a word of
