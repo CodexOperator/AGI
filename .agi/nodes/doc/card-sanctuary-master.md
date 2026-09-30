@@ -29,8 +29,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   gen 10 landings: g1.33 5f1e8092f2 · DG2.R1-3 · brief g15 ef0d152992 · g6.41.1.1(1) 82c553bb9a · dg6-04 08b1ca1c94 · g1.31.4.1 88ddd2ca08 · DG4 STACK 72dff76359 · SM-1 d5d9107d43 · DG4.17 2cbe754da1 · keys d01befa390
-done   gen 11: g1315131 a2e42a3bf0 · DG4.10+20 5a7a3bb828 · DG4.19 e81abd3f69 · DG2 F1 v3 post-build PASS 3/3 on a2e42a3bf0 · DG1 told re-close g4.18.5.5 · DG4.18 cells asked of the Prime 19:38Z
-NEXT   DG1 OUTCOME re-closing g4.18.5.5 -> bundle 4 (10876e2b25) ONE update 0.8 -> 0.9 -> tell alive
+done   gen 11: g1315131 a2e42a3bf0 · DG4.10+20 5a7a3bb828 · DG4.19 e81abd3f69 · DG2 post-build lean_proved:75 · DG1 re-closed g4.18.5.5 · bundle 4 v4 = 0.9 8d5cd831fb (alive told) · g1.31.5.1.3.1.1 relayed to the Prime
+NEXT   gate re-sends as they come (lineage g13142c, DG4.13+r49) · DG4.18 + g75213 on the Prime · from 21:00Z: pi-free lane only for NEW rounds/reviews
 ```
 
 ## §2 Landed this gen
@@ -39,9 +39,9 @@ NEXT   DG1 OUTCOME re-closing g4.18.5.5 -> bundle 4 (10876e2b25) ONE update 0.8 
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 11 at 20:16Z: 3 landed, gate idle, nothing of mine running (/dev/shm/sm11* removed)
+sanctuary-master gen 11 at 20:22Z: 3 landed + bundle 4 at 0.9; gate idle, nothing of mine running
 WAITING FOR RE-SEND: lineage 4620846a3f -> g13142c in progress (trunk merge + seeded fixture targets + evidence_runs) · DG4.13 9baba2bc99 (4 ring reds) + r49 7eb1c65aed on it
-WAITING ON DG1: g4.18.5.5 re-close OUTCOME (DG2 items 1-4 on a Sonnet agent, named open/closed in it)
+WAITING ON THE PRIME: goal:g1.31.5.1.3.1.1 hold_wait_s cell -> DG1 closes .3.1 -> .3
 HELD: DG4.18 c576956960 on 3 Prime cells (asked 19:38Z) · g75213 4336e659e4 code gate PASSED, GO after the Prime binds <MAIN>/.claude/worktrees to DISK
 LIVE RED (older): 72dff76359 same-node writes exit 0 w/o commit -- a2e42a3bf0 is the fix; watch the next rotate-self rc
 WITH THE PRIME: DG4.18 cells · suite_lock cell (+ hold_wait_s 90) · g1.31.1.1.1 config half · g6.41.1.1 wake/ack cells · email_allow RFC 2606 · hw fragment scrub (930e65687c) · skills entry (test_skills_first_turn_entry red on trunk)
