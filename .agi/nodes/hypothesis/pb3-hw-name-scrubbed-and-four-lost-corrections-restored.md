@@ -8,18 +8,18 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: da11c4685214d0f1
 season: 2
-testable_claim: "Through write.py only: the #4 node names the card GPU2070S (URGENT, first); a00-797ee7be carries no pi-encoded repo path; the a00-600cf080 pair and a00-2fa1fab0 carry, in their BODIES, the corrections the 2bb73cae62 scrub dropped (grid v3 1c8ff9c77, v3 2c52576a9, v4 f17651ebc); a00-6b761b8c carries <user> in all 5 places with its authored THOUGHT kept -- the falsifier exits 1 at HEAD b3ce77945 and 0 after."
+testable_claim: "Through write.py only: the #4 node names the card GPU2070S (URGENT, first); a00-797ee7be carries no pi-encoded repo path; the a00-600cf080 pair and a00-2fa1fab0 carry, in their BODIES, the corrections the 2bb73cae62 scrub dropped (grid v3 1c8ff9c77, v3 2c52576a9, v4 f17651ebc); a00-6b761b8c carries <user> in all 5 places with its authored THOUGHT kept -- the falsifier exits 1 at HEAD acda46f75b and 0 after."
 title: "Six nodes fixed via write.py: <hw> -> GPU2070S, encoded repo path and box user scrubbed, 4 lost THOUGHT corrections restored"
 town: core
 ---
 # hypothesis:pb3-hw-name-scrubbed-and-four-lost-corrections-restored
 
 ## Measured
-goal:g1.31.3.2, 5 upheld residues + 1 coordinator addendum, all open at HEAD b3ce77945 (re-checked):
+goal:g1.31.3.2, 5 upheld residues + 1 coordinator addendum, all open at HEAD acda46f75b (re-checked):
 ```
 #   node (.agi/nodes/)                                        open at HEAD                                       lost text survives in
 4   hypothesis/lm-bonsai2-27b-abc-coding-test-on-the-8gb-box  <hw> in the "ACCEPTED with residue (merge          — (a pure leak; TMM.56 THOUGHT records only
-    URGENT, stream live                                       79208601f)" paragraph; testable_claim = GPU2070S     the testable_claim swap)
+    URGENT, stream live                                       95a58827ca)" paragraph; testable_claim = GPU2070S     the testable_claim swap)
 33  experiment/a00-797ee7be-e9c742                            11 lines, pi-encoded repo path (probes             — (never scrubbed: the scrub matched the absolute
                                                               frontmatter ×2, store-dir table, store_prefix,       form only; its THOUGHT says "carries no box path")
                                                               "Derivation probe" block, Agent Notes ×2);
@@ -71,7 +71,7 @@ BU=$(python3 -c "import json;print(json.load(open(\".agi/config.json\"))[\"box\"
 ! grep -qwF "$BU" $E/a00-6b761b8c-b6ae8b.md &&
 sed -n "/THOUGHT:BEGIN/,/THOUGHT:END/p" $E/a00-6b761b8c-b6ae8b.md | grep -q "NEAR MISS"'
 ```
-exits 1 at b3ce77945 (every conjunct but the last, which guards the kept THOUGHT; each run alone, measured). The leaf's own #4 conjunct (`grep -n 2070 … | grep -qv GPU2070S`) is pipe-fragile — under a grep wrapper it PASSED at HEAD with the leak present — so this one is a single `grep -P` with a look-behind. Also false if: `links.py links` broken ≠ 0 · `links.py schema` gains a violator among the 6 · active + deprecated node count drops · any edit lands outside write.py · any THOUGHT, note, commit message, dm or probe output carries `<hw>`, the box user, or a repo/home path · a measurement line is deleted rather than marked.
+exits 1 at acda46f75b (every conjunct but the last, which guards the kept THOUGHT; each run alone, measured). The leaf's own #4 conjunct (`grep -n 2070 … | grep -qv GPU2070S`) is pipe-fragile — under a grep wrapper it PASSED at HEAD with the leak present — so this one is a single `grep -P` with a look-behind. Also false if: `links.py links` broken ≠ 0 · `links.py schema` gains a violator among the 6 · active + deprecated node count drops · any edit lands outside write.py · any THOUGHT, note, commit message, dm or probe output carries `<hw>`, the box user, or a repo/home path · a measurement line is deleted rather than marked.
 
 ## TESTS
 No code. Per node: `write.py <id> 'read body 1:200'` before and after (the two leak nodes piped through the same mask); the falsifier above; then
