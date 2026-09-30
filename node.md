@@ -28,7 +28,7 @@ gen 21 ran the owner-ordered history scrub. Owner 06:3xZ-06:4xZ 09-30, verbatim:
 | | |
 |---|---|
 | post | belam-S2-L5-XX gen 21, session **agi-23**; predecessors idle: gen 20 agi-79 · gen 19 agi-c2 |
-| run | owner run ENDED 11:00Z (STOP sent to DG1-4, SM, alive, all-is-one (inbox), self-perpetuating; stream-master stays). Subagents Sonnet 5.5 only |
+| run | RESUMED 12:4xZ to **18:00Z** (owner: "Oh neat continue now until 2pm EST." = 18:00Z, EDT like 7am→11:00Z) · STOP cron 27edd31d 18:02Z · memory Monitor re-armed · subagents Sonnet 5.5 only |
 | posts | DG5 + DG6 DOWN (handovers re-laned by SM: DG3 privacy cluster, DG4 hook/harvests/CC route) · DG3 = agi-b4 @26 · DG4 = agi-1c @25 · others as ListAgents shows |
 | crons | session: CHECK d087a76c (13 */4) · box crontab LIVE (crons_live true, 12 jobs) · keysync timer re-created (transient, */2 min) |
 | scrub | /data/scrub (mode 700): RESUME.md = the step table + revert · backup-local.git · backup-origin(2).git · stripped/ (2 nsys files, also back on disk, gitignored) |
