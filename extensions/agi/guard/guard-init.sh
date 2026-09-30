@@ -244,6 +244,23 @@ AGI_MAX_M=$(( USER_MAX_M * AGI_MAX_PCT / 100 )); AGI_HIGH_M=$(( AGI_MAX_M * AGI_
 ENGINE_HIGH_M=$(( ENGINE_MAX_M * ENGINE_HIGH_PCT / 100 ))
 WORK_MAX_M=$(( AGI_MAX_M - ENGINE_MAX_M )); WORK_HIGH_M=$(( WORK_MAX_M * WORK_HIGH_PCT / 100 ))
 CLAUDE_LOW_M=$(( USER_MAX_M / CLAUDE_LOW_DIV < CLAUDE_LOW_CAP_M ? USER_MAX_M / CLAUDE_LOW_DIV : CLAUDE_LOW_CAP_M ))
+# goal:g7.16.1.5.5.8: a well-formed cell can still size a unit that can never run
+# (ENGINE_MAX 100G -> agi-work max < 0; 0.5M -> 0M). Every derived line is > 0 and
+# <= RAM, else refused by name -- before any layer, so nothing is written.
+line_ok() {  # LABEL MIB CELL... -> refuse unless 0 < MIB <= RAM_M
+  local label=$1 v=$2; shift 2
+  (( v > 0 && v <= RAM_M )) || die "$label would be ${v}M (RAM ${RAM_M}M); check $(printf 'GUARD_%s_'"$HOSTKEY"' ' "$@")"
+}
+line_ok "user@ MemoryMax" "$USER_MAX_M" RESERVE DOCKER_BUDGET
+line_ok "user@ MemoryHigh" "$USER_HIGH_M" USER_HIGH_PCT
+line_ok "agi.slice MemoryMax" "$AGI_MAX_M" AGI_MAX_PCT
+line_ok "agi.slice MemoryHigh" "$AGI_HIGH_M" AGI_HIGH_PCT
+line_ok "agi-engine MemoryMax" "$ENGINE_MAX_M" ENGINE_MAX
+line_ok "agi-engine MemoryHigh" "$ENGINE_HIGH_M" ENGINE_MAX ENGINE_HIGH_PCT
+line_ok "agi-work MemoryMax" "$WORK_MAX_M" AGI_MAX_PCT ENGINE_MAX
+line_ok "agi-work MemoryHigh" "$WORK_HIGH_M" AGI_MAX_PCT ENGINE_MAX WORK_HIGH_PCT
+line_ok "Claude MemoryLow" "$CLAUDE_LOW_M" CLAUDE_LOW_DIV CLAUDE_LOW_CAP
+(( RAM_BUDGET_M == 0 )) || line_ok "ramdisk.slice MemoryMax" "$RAM_BUDGET_M" RAM_BUDGET
 # --- cells end -----------------------------------------------------------------
 
 SSH_UNIT=ssh.service

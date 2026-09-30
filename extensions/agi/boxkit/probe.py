@@ -222,7 +222,10 @@ def rows(root: pathlib.Path, install_root: pathlib.Path, systemctl: str = "syste
     # goal:g7.16.1.5.5.4: every memory target is guard-init's own arithmetic over THIS
     # box's config:guard cells on the INSTALLED user@ max -- never a boxkit number. No
     # base (or no SwapTotal) = an empty target, which judges UNKNOWN, never ok.
-    sized = render.sizing(base, swap or 0, render.guard_cells(root)) if base is not None else {}
+    try:
+        sized = render.sizing(base, swap or 0, render.guard_cells(root), total) if base is not None else {}
+    except render.KitError:
+        sized = {}                          # cells that size a unit that cannot run: UNKNOWN
     if swap is None:
         sized.pop("USER_SWAP", None)
     vals.update({k: sized.get(k, "") for k in render.MEMORY})

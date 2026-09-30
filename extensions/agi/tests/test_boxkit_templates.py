@@ -338,6 +338,15 @@ def test_a_guard_cell_moves_the_render():
     assert (v["USER_OOM_PCT"], v["HEALTH_LIMIT"]) == ("85", "60")
 
 
+def test_a_guard_cell_sizing_a_unit_out_of_range_is_refused():
+    """goal:g7.16.1.5.5.8: the kit refuses what guard-init refuses (range, not shape)."""
+    for cells in ({"ENGINE_MAX": "100G"}, {"ENGINE_MAX": "0.5M"}):
+        with pytest.raises(R.KitError) as err:
+            R.values(CFG, MEASURED, PROBE, guard=cells)
+        assert "config:guard sizes" in str(err.value) and "WORK_MAX" in str(err.value) \
+            or "ENGINE_MAX" in str(err.value), str(err.value)
+
+
 def test_guard_none_reads_this_boxs_cells(monkeypatch):
     seen = []
     monkeypatch.setattr(R, "guard_cells", lambda root=None: seen.append(root) or

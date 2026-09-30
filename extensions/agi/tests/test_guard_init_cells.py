@@ -118,3 +118,18 @@ def test_no_unit_property_carries_a_memory_literal():
             r"|SwapUsedLimit|DefaultMemoryPressureLimit|DefaultMemoryPressureDurationSec)"
     hits = [ln for ln in SRC.splitlines() if re.match(props + r"=[0-9]", ln.strip())]
     assert hits == []
+
+
+@pytest.mark.parametrize("cells,line", [
+    ({"ENGINE_MAX": "100G"}, "agi-engine MemoryMax"),        # more than the box's RAM
+    ({"ENGINE_MAX": "12000M"}, "agi-work MemoryMax"),        # agi max 9856 - engine max < 0
+    ({"ENGINE_MAX": "0.5M"}, "agi-engine MemoryMax"),        # to_mib truncates to 0M
+    ({"RESERVE": "20000M"}, "user@ MemoryMax"),               # nothing left for user@
+    ({"CLAUDE_LOW_CAP": "0M"}, "Claude MemoryLow"),
+])
+def test_a_derived_line_out_of_range_is_refused_by_name(tmp_path, cells, line):
+    """goal:g7.16.1.5.5.8: a well-formed cell that sizes a unit <= 0 or > RAM."""
+    rc, v, err = derive(tmp_path, **cells)
+    assert rc != 0 and not v
+    assert err.startswith("guard-init: %s would be " % line), err
+    assert "(RAM 16000M); check GUARD_" in err, err

@@ -86,21 +86,29 @@ def _mib(size):
     s = str(size).upper()
     return int(float(s[:-1]) * 1024) if s.endswith("G") else int(float(s.rstrip("M")))
 
-def sizing(user_max, swap_total, g):
+def sizing(user_max, swap_total, g, ram=None):
     """guard-init.sh's arithmetic over the cells `g`, integer for integer (bash $(( ))
-    truncates), on user@'s max and the box's swap -> the kit's memory placeholders."""
+    truncates), on user@'s max and the box's swap -> the kit's memory placeholders.
+    A derived line <= 0 or > `ram` is refused, as guard-init refuses it (goal:g7.16.1.5.5.8)."""
     n = lambda k: int(g[k])
     u, s = int(user_max), int(swap_total)
     agi_max, engine_max = u * n("AGI_MAX_PCT") // 100, _mib(g["ENGINE_MAX"])
     work_max, engine_swap = agi_max - engine_max, _mib(g["ENGINE_SWAP_MAX"])
-    out = {k: "%dM" % x for k, x in (
+    sizes = dict((
         ("USER_HIGH", u * n("USER_HIGH_PCT") // 100),
         ("USER_SWAP", min(s * n("USER_SWAP_PCT") // 100, _mib(g["USER_SWAP_CAP"]))),
         ("AGI_MAX", agi_max), ("AGI_HIGH", agi_max * n("AGI_HIGH_PCT") // 100),
         ("ENGINE_MAX", engine_max), ("ENGINE_HIGH", engine_max * n("ENGINE_HIGH_PCT") // 100),
         ("WORK_MAX", work_max), ("WORK_HIGH", work_max * n("WORK_HIGH_PCT") // 100),
         ("MEM_LOW", min(u // n("CLAUDE_LOW_DIV"), _mib(g["CLAUDE_LOW_CAP"]))),
-        ("SYSTEM_MIN", _mib(g["SYSTEM_MIN"])), ("SSH_MIN", _mib(g["SSH_MIN"])))}
+        ("SYSTEM_MIN", _mib(g["SYSTEM_MIN"])), ("SSH_MIN", _mib(g["SSH_MIN"]))))
+    bad = sorted(k for k in ("USER_HIGH", "AGI_MAX", "AGI_HIGH", "ENGINE_MAX", "ENGINE_HIGH",
+                             "WORK_MAX", "WORK_HIGH", "MEM_LOW")
+                 if sizes[k] <= 0 or (ram is not None and sizes[k] > int(ram)))
+    if u <= 0 or bad:
+        raise KitError("boxkit: config:guard sizes %s to <= 0 or more than RAM: %s"
+                       % (", ".join(bad or ["USER_MAX"]), {k: sizes[k] for k in bad}))
+    out = {k: "%dM" % x for k, x in sizes.items()}
     out.update(ENGINE_SWAP="%dM" % engine_swap if engine_swap else "0",
                USER_OOM_PCT=str(n("OOMD_LIMIT")), AGI_OOM_PCT=str(n("AGI_OOMD_LIMIT")),
                OOMD_SWAP_PCT=str(n("OOMD_SWAP_USED_PCT")), OOMD_PRESSURE_PCT=str(n("OOMD_PRESSURE_PCT")),
@@ -121,7 +129,7 @@ def values(cfg, per_box=None, overrides=None, guard=None):
     v.update(overrides or {})
     user_max = v["MEM_TOTAL"] - v["SYS_RESERVE"] - v["HELD_OUT"]
     g = guard_cells() if guard is None else {**guard_defaults(), **guard}
-    v.update(sizing(user_max, v["SWAP_TOTAL"], g), USER_MAX="%dM" % user_max)
+    v.update(sizing(user_max, v["SWAP_TOTAL"], g, v["MEM_TOTAL"]), USER_MAX="%dM" % user_max)
     cells = cfg["paths"]["boxkit"]
     v.update(SBIN_ABS="/" + cells["sbin_dir"].lstrip("/"),
              WATCHDOG_CONF="/" + cells["watchdog_conf"].lstrip("/"),
