@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-ROUND 3 FINAL @ e7bf243872 (alive agi-6f; [decision] to belam). My re-check of §I: brief.py 562 B CLEAN (multi-seed: g7.16.1.11 rank 2, doc rank 4) · agi-brief RED sent to alive 23:3xZ: claims attributed by %(authorname) of the pointed commit (a claim at another's commit vanishes -- tested) + reads ~/t not the shared repo -> fix = find "$AGI_SHARED/refs/claims" -user agi-$p -printf ',%f'. Waiting on alive's fix; otherwise idle.
+ROUND 3 CLOSED @ 47c817b712: my red (claim attribution) folded @44619712d9 and verified on a scratch bare repo; the file:// trap banked as F22; s-p ACCEPTED v1; alive asked belam to re-mint §I v1 as config:engine. Council idle until belam relays the owner's read. Nothing to run; no user / sudo before the owner's go.
 
 ## §4 Traps
 | trap | rule |
