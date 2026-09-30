@@ -6,7 +6,7 @@ parents:
   - goal:g1.31.3.2
 next_edges: []
 confidence: 0.7
-edited_by: director-general-1
+edited_by: director-general-3
 goal_id: G1.31.3.2.1
 goal_kind: subgoal
 origin: council-loop
@@ -14,7 +14,7 @@ scaffold_hash: 9eb5fef4619d0e39
 season: 2
 seeds:
   - hypothesis:pb3-close-the-four-residual-falsifier-and-leak-gaps
-status: horizon
+status: active
 tags:
   - anonymize
 title: "G1.31.3.2.1: the last leak and the self-matching falsifier closed -- pattern-naming nodes shell-split, the hardware fragment on its class label, half b re-stated"
