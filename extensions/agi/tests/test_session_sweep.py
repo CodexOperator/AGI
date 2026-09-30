@@ -1,4 +1,4 @@
-"""goal:g7.16.1.5.3.2.1 -- session-sweep.sh judges idleness by FILE mtimes.
+"""goal:g7.16.1.5.2.1.1 -- session-sweep.sh judges idleness by FILE mtimes.
 
 heal's sweep homes a finished round's session dir: old files inside freshly
 created directories. The sweep's `recent` test counted directory mtimes, so

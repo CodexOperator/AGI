@@ -3401,7 +3401,7 @@ _MSG_REFUSE = "REFUSE"
 
 def _discard_target(target: Path) -> None:
     """Discard a failed session-complete target, sources intact. A SYMLINKED
-    target (heal's pre-link into the cold sessions home, goal:g7.16.1.5.3.2)
+    target (heal's pre-link into the cold sessions home, goal:g7.16.1.5.2.1)
     is emptied THROUGH the link -- shutil.rmtree refuses a symlink, so
     `rmtree(target, ignore_errors=True)` silently kept the partial copy while
     printing 'no target left' (SM residue 156); the link and its now-empty
@@ -3555,7 +3555,7 @@ def _session_complete(
         target.parent.mkdir(parents=True, exist_ok=True)
         # clear a pre-created empty placeholder only; an empty SYMLINKED dir
         # stays -- heal pre-links MAIN's entry into the cold sessions home so
-        # the copy lands on disk, never the RAM disk (goal:g7.16.1.5.3.2)
+        # the copy lands on disk, never the RAM disk (goal:g7.16.1.5.2.1)
         if target.is_dir() and not target.is_symlink():
             target.rmdir()
         for rel, wsrc in win.items():

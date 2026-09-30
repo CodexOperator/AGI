@@ -852,7 +852,7 @@ def test_sweep_empty_target_homes_content_before_removal(repo_root, monkeypatch)
 
 
 def _cold_cell(repo: Path, tmp_path: Path, monkeypatch) -> Path:
-    """goal:g7.16.1.5.3.2 -- config:guard names a cold sessions home for a
+    """goal:g7.16.1.5.2.1 -- config:guard names a cold sessions home for a
     fixture box (the goal:g7.16.1.5.2 cell), under tmp."""
     cold = tmp_path / "cold-sessions"
     geo = _graph(repo) / "nodes" / ".geometry"
@@ -866,7 +866,7 @@ def _cold_cell(repo: Path, tmp_path: Path, monkeypatch) -> Path:
 
 def test_sweep_homes_onto_the_cold_home_never_the_ram_disk(repo_root, tmp_path,
                                                            monkeypatch):
-    """goal:g7.16.1.5.3.2 -- with the cold-home cell set and no MAIN entry,
+    """goal:g7.16.1.5.2.1 -- with the cold-home cell set and no MAIN entry,
     the homed bytes land in <cold>/<iter> and MAIN keeps ONLY a symlink (no
     real dir is ever created under MAIN's sessions); byte-equal, the source
     and the tree removed."""
@@ -888,7 +888,7 @@ def test_sweep_homes_onto_the_cold_home_never_the_ram_disk(repo_root, tmp_path,
 
 
 def test_sweep_cold_link_rolls_back_a_refused_homing(repo_root, tmp_path, monkeypatch):
-    """goal:g7.16.1.5.3.2 -- a homing session-complete refuses (a non-terminal
+    """goal:g7.16.1.5.2.1 -- a homing session-complete refuses (a non-terminal
     round) leaves no empty cold dir and no dangling link; the tree stands."""
     repo = repo_root
     graph = _graph(repo)

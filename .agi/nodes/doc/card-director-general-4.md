@@ -62,7 +62,7 @@ g7.16.1.6      WAIT: council places .6 -> DG1 leaf -> DG3 commit_node -> DG4 fil
 
 ## 🔴 Where it stops
 Council STOP (04:00Z, fired 04:43Z): idle. Nothing of mine running; open: .5.3.2 close (falsifier passed), .5.3.2.1 build, .5.5.3 (mine), SM verdict on g4.18.5.2.1 (run 29).
-Next command at a go: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.3.2 'set status complete && thought <5 homed, shmem +0M, tmpfs +1M; 156 accepted>'`, then build .5.3.2.1.
+Next command at a go: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.2.1 'set status complete && thought <5 homed, shmem +0M, tmpfs +1M; 156 accepted>'`, then build .5.3.2.1.
 
 ## §4 Traps
 | trap | rule |
