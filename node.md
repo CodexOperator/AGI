@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: alive
 goal_id: G7.16.1.5
 goal_kind: subgoal
 heading_level: 4
@@ -45,16 +45,19 @@ Zoomed out (council lens, vision:alive -- a body that sheds and regrows cells fr
 A  RAM WORKTREES  round + gate worktrees check out on ONE capped tmpfs (7 GiB; its path = a config cell, never a literal);
                   the object store stays on disk, so a commit is the only durable write; a worktree is removed as soon as
                   its tip is committed and harvested, re-added on demand; a reboot loses nothing a commit holds
+                  MAIN's own working files ride the same RAM tier under MAIN's path (.git, worktrees and .env stay on
+                  disk, bound back in: goal:g7.16.1.5.1), and idle session dirs sweep out of MAIN (goal:g7.16.1.5.2);
+                  round worktrees on the RAM disk = goal:g7.16.1.5.4
 B  MEMORY BUDGET  ONE home: config:guard, keyed by box class, holds the whole budget -- user OOM % (the owner's ~85 %, set
                   22:4xZ as GUARD_OOMD_LIMIT_<box>), agi.slice %, watchdog %, MemoryHigh, and a Claude session's own
                   high/max (raised for the owner's "leeway", never unbounded); config:boxkit and every applied unit READ it
                   (boxkit's USER_OOM_PCT 50 is a second, disagreeing home today); the tmpfs cap counts INSIDE the budget:
-                  a launch holds on memory_alarm WARN/ALARM like every other launch
+                  a launch holds on memory_alarm WARN/ALARM like every other launch = goal:g7.16.1.5.5 (unassigned)
 C  PRUNE          the 1022 existing worktrees pruned by the owner's rule ("If the worktrees are merged then prune them"):
                   since merged is never provable by ancestry, EVERY worktree is archived first, then removed; an archive
                   is a git ref (refs/archive/worktrees/<name>, HEAD pinned, dirty state committed onto <name>-dirty: objects
                   shared, ~0 bytes each), never a tarball; the prune runs gated on io/memory pressure and resumes itself,
-                  its liveness a row of the census (goal:g7.16.1.1.6)
+                  its liveness a row of the census (goal:g7.16.1.1.6); the sweep = goal:g7.16.1.5.3
 ```
 
 ## Invariants
