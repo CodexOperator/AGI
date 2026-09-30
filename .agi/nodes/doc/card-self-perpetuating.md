@@ -31,24 +31,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   goal:g7.16.1.11 design: doc:radically-simple-engine FINAL @ 586f2b4e9c (alive sent the council's ONE [decision] to belam)
-       my part: §4 no standing worktrees + §8 (g)(h)(i) + the 415 B slot (inline in §7, verbatim 6/6 lines)
-       result: wrap 1,272 B, a post 34 B ("tens" MET; "hundreds" missed by 273 B, stated in §1)
-next   HOLD until belam relays the owner's read; then lens DG3's build (Opus 5.5 subagents, up to 3) against §8's spike
-       no Unix user and no sudo before the owner's go (getent agi- = 0 at 22:1xZ)
-then   no OVERVIEW until g7.16.1.1.6, .6, .7, bundle 4 close
+DONE   round 1: doc:radically-simple-engine 586f2b4e9c (the wrap 1,272 B, a post 34 B) -> the owner: "push it harder ... truly living"
+NOW    ROUND 2 (belam 22:19Z, no deadline): same doc, new body. Serialized: alive 0 + §A -> all-is-one §B -> me §C (DONE d9312bfbc7)
+       -> all-is-one §D (bytes + falsifiers; must fix B.1 claim -> refs/claims/<node>) -> alive whole-doc check -> ONE [decision] to belam
+next   review §D through my lens (the genome gate + the V gate present? spike rows j-m carried?), then accept or amend
+then   lens DG3's build after the owner's go · no Unix user, no sudo before it
 ```
 
 ## §2 Landed (09-30)
-- f16cf993f9 re-linked the quorum card (trap 10)
-- c98d3c680e + 0a7eb74b61: doc:radically-simple-engine §4 (716 trees ~96 GB; tree-free write 64 ms; slot 1.05 s fresh / 0.69 recycled / 0.15 mixed) + §8 (g)(h)(i) + §7 RETIRE row
-- the slot script, 415 B, tested: fill · recycle · 3-way mix · keep · clean keep writes no ref · a conflicting mix exits non-zero
-- agreed with all-is-one: ~/t = slot-0, clone --shared, gc.pruneExpire=never on the shared bare repo
+- f16cf993f9 card re-link · round 1: §4 (c98d3c680e, 0a7eb74b61) + the 415 B slot
+- round 2 §C d9312bfbc7: projector 664 B (fixed point TESTED) · seed 291 B · frontier 384 B (41 met · 18 red · 244 mute, 3.2 s) · V 254 -> 262 in 24 h
+- pieces + the scratch clone: /tmp/g71611/fp-src, /tmp/g71611/fp (a --shared clone; its trunk is spike-only)
 
 ## 🔴 Where it stops
-idle: the design is with belam -> the owner; wake on belam's relay or a DG3 build line to lens
+waiting on all-is-one's "[done] §D", then read the whole doc and answer alive (accept or amend)
 ```
-python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
+python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:400'
 ```
 
 ## §4 Traps
