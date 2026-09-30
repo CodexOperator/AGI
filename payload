@@ -421,19 +421,18 @@ def set_link(root, node_id: str, ref: str) -> Path:
     return path
 
 
-def mint_index(root) -> "dict[str, list[tuple[str, str, str, str, bool]]]":
-    """goal:g4.18.6.1 -- mint_id -> [(id, type, title, status, retired)], every
-    node carrying it, from ONE `git grep` over node files per read (no yaml, no
-    cache: a renumber is seen at the next read). FRONTMATTER lines only: a key
-    counts between line 1's `---` and the next fence, so a body line
-    `mint_id: x` is never an entry. A list, so a collision stays visible; a grep
-    that cannot look raises rotation_record.GrepError (fails closed)."""
+def frontmatter_rows(nodes_dir) -> "dict[str, dict]":
+    """rel path -> {id, mint_id, type, title, status} of every node file under
+    `nodes_dir`, from ONE `git grep` (no yaml, no cache, no walk). FRONTMATTER
+    lines only: a key counts between line 1's `---` and the next fence, so a
+    body line `mint_id: x` is never read. A grep that cannot look raises
+    rotation_record.GrepError (fails closed). goal:g4.18.6.1 + .2.2."""
     import subprocess
     import rotation_record
     try:
         r = subprocess.run(["git", "grep", "--no-index", "-znE",
                             r"^(---\s*$|(id|mint_id|type|title|status):)", "--", "*.md"],
-                           cwd=Path(root) / "nodes", capture_output=True, text=True, timeout=60)
+                           cwd=Path(nodes_dir), capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.SubprocessError) as exc:
         raise rotation_record.GrepError(f"git grep could not run: {exc}") from None
     if r.returncode >= 2 or (r.returncode == 1 and r.stderr.strip()):
@@ -447,9 +446,22 @@ def mint_index(root) -> "dict[str, list[tuple[str, str, str, str, bool]]]":
         elif fm["_fences"] == 1:
             key, _, val = text.partition(":")
             val = val.strip()
-            fm.setdefault(key, val[1:-1] if len(val) > 1 and val[0] == val[-1] in "\"'" else val)
+            if len(val) > 1 and val[0] == val[-1] in "\"'":   # a quoted scalar: YAML decodes
+                import yaml  # noqa: PLC0415  (escapes like \" -- 74 titles, DG2)
+                try:
+                    val = str(yaml.safe_load(val))
+                except yaml.YAMLError:
+                    val = val[1:-1]
+            fm.setdefault(key, val)
+    return files
+
+
+def mint_index(root) -> "dict[str, list[tuple[str, str, str, str, bool]]]":
+    """goal:g4.18.6.1 -- mint_id -> [(id, type, title, status, retired)], every
+    node carrying it, read off `frontmatter_rows` (one grep per read). A list,
+    so a collision stays visible."""
     out: dict = {}
-    for rel, fm in files.items():
+    for rel, fm in frontmatter_rows(Path(root) / "nodes").items():
         if fm.get("mint_id") and fm.get("id"):
             out.setdefault(fm["mint_id"], []).append(
                 (fm["id"], fm.get("type", ""), fm.get("title", ""), fm.get("status", ""),
@@ -457,7 +469,7 @@ def mint_index(root) -> "dict[str, list[tuple[str, str, str, str, bool]]]":
     return out
 
 
-def resolve_mint(root, mint: str) -> "tuple[str, str, str] | None":
+def resolve_mint(root, mint: str, *, index=None) -> "tuple[str, str, str] | None":
     """goal:g4.18.6.1 -- THE mint-id resolver: mint_id -> (id, title, status)
     of the ONE node carrying it, read off `mint_index`: LIVE first, then a
     retired sibling under deprecated/ (CLAUDE.md: a grid ref outlives its file;
@@ -465,10 +477,11 @@ def resolve_mint(root, mint: str) -> "tuple[str, str, str] | None":
     09-29: "8 off-shape mints: accept as found, gate on 'is a node's mint_id',
     never 32-hex"). A mint two nodes of one tier carry raises ValueError by
     name, never a silent pick; empty or absent -> None; a grep that cannot look
-    raises GrepError (fails closed)."""
+    raises GrepError (fails closed). `index` = a prebuilt mint_index, so a
+    batch reader pays ONE grep, never one per item (DG2 fork)."""
     if not (mint or "").strip():
         return None
-    hits = mint_index(root).get(mint, [])
+    hits = (mint_index(root) if index is None else index).get(mint, [])
     for tier in (False, True):
         same = [h for h in hits if h[4] == tier]
         if len(same) > 1:
@@ -489,7 +502,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("action", nargs="?", default="links",
                     choices=["links", "schema", "roles", "mint"])
     ap.add_argument("mint_id", nargs="?", default="",
-                    help="mint: the 32-hex mint id to resolve (goal:g4.18.6.1)")
+                    help="mint: the mint id to resolve, any shape (goal:g4.18.6.1)")
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--broken", action="store_true", help="list broken links only")
     ap.add_argument("--strict", action="store_true",
