@@ -3379,7 +3379,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
             croot=send.comms_root(root, getattr(args, "comms_root", None)),
             seat=ack_seat, successor=name, gen_before=None, gen_after=None,
             trigger="--force" if getattr(args, "force", False) else "meter due",
-            handoff_path=str(Path(ack_path).expanduser().resolve()),
+            handoff_path=_tree_rel(root, ack_path),
             in_flight=("successor acked `diff-empty`; handoff stood"
                        if reply == "diff-empty"
                        else "successor acked `continue`; handoff stood"),
@@ -6064,6 +6064,21 @@ def _successor_address(name: str, ref: str = "",
         return (f"{name} @{window} (pre-join: successor ref "
                 f"not yet resolved)")
     return f"{name} (pre-join: successor ref not yet resolved)"
+
+
+def _tree_rel(root: Path, p) -> str:
+    """A path as a peer reads it in an announcement: relative to the MAIN
+    checkout, else to its own repo; outside both -> the file name only
+    (goal:g7.16.1.7.1.1, SM rotate candidate: the absolute handoff path carried
+    the box's home layout into every peer's inbox). Never raises."""
+    p = Path(p).expanduser()
+    for base in (lambda r: locations.repo_root(locations.git_common_root(r)),
+                 locations.repo_root):  # no git: git_common_root is the graph dir itself
+        try:
+            return str(p.resolve().relative_to(Path(base(root)).resolve()))
+        except Exception:  # noqa: BLE001 -- not under it / not a repo: next base
+            continue
+    return p.name
 
 
 def _compose_announcement(*, seat, successor, gen_before, gen_after,
@@ -20806,7 +20821,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         croot=send.comms_root(root, getattr(args, "comms_root", None)),
         seat=seat, successor=spawn_name, gen_before=gen_before, gen_after=gen,
         trigger=getattr(args, "trigger", "rotate-self"),
-        handoff_path=str(_sessions_dir(root) / "seats" / f"{seat}.handoff.md"),
+        handoff_path=_tree_rel(root, _sessions_dir(root) / "seats" / f"{seat}.handoff.md"),
         in_flight=getattr(args, "in_flight",
                           f"successor {seat} confirmed; gen {gen}"),
         live_names=succ.get("names", []),
