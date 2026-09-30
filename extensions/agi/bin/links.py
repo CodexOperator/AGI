@@ -423,22 +423,33 @@ def set_link(root, node_id: str, ref: str) -> Path:
 
 def resolve_mint(root, mint: str) -> "tuple[str, str, str] | None":
     """goal:g4.18.6.1 -- THE mint-id resolver: mint_id -> (id, title, status)
-    of the ONE live node carrying it. Read fresh on every call (one git grep,
-    no process cache), so a renumber is seen at once. NO shape check (the
+    of the ONE node carrying it, LIVE first, then a retired sibling under
+    deprecated/ (CLAUDE.md: a grid ref outlives its file; SM 104) -- `status`
+    says which. Read fresh on every call (one git grep over node files, no
+    process cache), so a renumber is seen at once. NO shape check (the
     Prime, signed 22:1xZ 09-29: "8 off-shape mints: accept as found, gate on
-    'is a node's mint_id', never 32-hex"). A mint two live nodes carry raises
-    ValueError by name, never a silent pick; empty or absent -> None; a grep
-    that cannot look raises GrepError (fails closed)."""
+    'is a node's mint_id', never 32-hex"). A mint two nodes of one tier carry
+    raises ValueError by name, never a silent pick; empty or absent -> None;
+    a grep that cannot look raises GrepError (fails closed)."""
     if not (mint or "").strip():
         return None
     import rotation_record
-    hits = [(i, fm) for i, _f, fm in rotation_record.grep_live(Path(root), mint)
+    hits = [(i, f, fm) for i, f, fm in rotation_record.grep_live(Path(root), mint, retired=True)
             if str(fm.get("mint_id", "")) == mint]
-    if len(hits) > 1:
-        raise ValueError(f"mint id {mint} is carried by {len(hits)} live nodes: "
-                         + ", ".join(i for i, _ in hits))
-    return (hits[0][0], str(hits[0][1].get("title", "")),
-            str(hits[0][1].get("status", ""))) if hits else None
+    def _retired(f):
+        return f.relative_to(Path(root) / "nodes").parts[0] == "deprecated"
+    for tier in (False, True):
+        same = [(i, fm) for i, f, fm in hits if _retired(f) == tier]
+        if len(same) > 1:
+            raise ValueError(f"mint id {mint} is carried by {len(same)} "
+                             f"{'retired' if tier else 'live'} nodes: "
+                             + ", ".join(i for i, _ in same))
+        if same:
+            i, fm = same[0]
+            status = str(fm.get("status", ""))
+            return (i, str(fm.get("title", "")),
+                    status or ("deprecated" if tier else ""))
+    return None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -472,10 +483,14 @@ def main(argv: list[str] | None = None) -> int:
         return _roles_report(root)
 
     if args.action == "mint":   # goal:g4.18.6.1: a link is a mint id
+        import rotation_record
         try:
             hit = resolve_mint(root, args.mint_id)
         except ValueError as exc:
             print(f"ERR: {exc}", file=sys.stderr)
+            return 2
+        except rotation_record.GrepError as exc:   # SM 102: never a traceback, never rc 1
+            print(f"ERR: mint lookup could not look: {exc}", file=sys.stderr)
             return 2
         if hit is None:
             print(f"ERR: no live node carries mint id {args.mint_id}", file=sys.stderr)

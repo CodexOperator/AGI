@@ -307,7 +307,7 @@ def test_a_grep_error_fails_closed(groot, monkeypatch, how):
         monkeypatch.setenv("GIT_CONFIG_PARAMETERS", "bogus")    # real git, exit 128
     else:                                                       # real git, exit 128
         monkeypatch.setattr(subprocess, "run", lambda a, **kw: real(
-            [":(badmagic)." if x == "." else x for x in a], **kw))
+            [":(badmagic)." if x in (".", "*.md") else x for x in a], **kw))   # *.md: SM 103
     _cell(groot, "doc:two-step")
     r = verification.check_formation(groot)
     assert r.status == "FAIL" and ("fatal" in r.note + r.message
