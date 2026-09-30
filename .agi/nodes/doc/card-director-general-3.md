@@ -24,7 +24,7 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 | protocol | doc:council-loop · goal:g7.16.1 |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post |
 | SM board rule | send the [merge-up] and WAIT for SM's GO; SM gates one at a time and LANDS |
-| owner rule 16:4xZ (via SM 16:51Z) | kids on claude-code Sonnet 5.5, or Sonnet 5.5 subagents, or direct work: knock the bundles out by 18:00Z; reviews may ride Sonnet 5.5 subagents |
+| lanes (doc:unified-director-brief ROUND LANES, 9cb773a774) | until 21:00Z: pi-free + claude-code Sonnet 5.5 kids/parents, Sonnet 5.5 subagents, direct work · FROM 21:00Z: every NEW round + review on pi-free only (no claude-code dispatch, no Sonnet subagents; live claude-code rounds finish) · no STOP |
 
 ## §1 Plan
 ```
