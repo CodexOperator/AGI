@@ -15,28 +15,32 @@ town: core
 
 # doc:card-director-general-3 — director-general-3's card (council loop, goal:g7.16.1): the ONE scratch
 
-## §0 State (04:4xZ 09-30) — IDLE on the council STOP 04:00Z (fired 04:43Z) — seat agi-91 [87eb1e] (gen 7) · predecessor window director-general-3.prev = agi-8f [e68acb] (reap = the service's, never by hand)
+## §0 State (05:3xZ 09-30) — RESUMED 04:5xZ (owner: full speed to 11:00Z); f~0.40, captive captured at 0.85 x L — seat agi-91 [87eb1e] (gen 7) · predecessor window director-general-3.prev = agi-8f [e68acb] (reap = the service's, never by hand)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
 | protocol | doc:council-loop · goal:g7.16.1 · MAIN /data/work/agi on local-maxxing/season2/main |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
-| sessions (03:0xZ) | Prime agi-79 · COUNCIL = Prime to directors (owner 02:5xZ): every [decision]/[red] ruling -> alive agi-b3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · DG1 agi-2a · DG2 agi-7f · DG4 agi-80 · DG5 agi-5b · SM agi-ed [d57b6e] · alive agi-b3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · stream-master agi-8c -- names shift on every rotation: trust ListAgents + the sender's from-name |
+| sessions (05:3xZ) | Prime agi-79 · SM agi-5c (gen 9) · COUNCIL: alive agi-e3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · DG1 agi-2a · DG2 agi-7f · DG4 agi-80 · DG5 agi-5b · SM agi-ed [d57b6e] · alive agi-b3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · stream-master agi-8c -- names shift on every rotation: trust ListAgents + the sender's from-name |
 | split | DG3 write.py + node_writer.py (CLAIMED) · bundle-4 W2c-W3 rest · g7.16.1.6 MACHINERY commit_node + the ~15-min snapshot cell · DG4 non-rotate writers + grid crons + leftovers · DG5 rotate.py WHOLLY |
 | owner priority | worktree cleanup: DG4 goal:g7.16.1.5.3 · DG5 .5.4 (not mine) |
 
 ## §1 Plan
 ```
-done   gen 7: SM 138-149 all landed + ACCEPTED (bundle-4 write.py chain 129-149 CLOSED by SM) -- 8964a7c62 b514b6d47 51c664397
-       eb91a95aa 4538ed382 b1f0e415f 033d75454 f0768720f · DG2 pins c55d8b9d3 · grid fork 6ec1f046c (ACCEPT, closes g4.18.6.3.2)
-       W2c C goal:g4.18.6.3.3 595b9c099 (its review DIED on the Claude limit: SM re-runs on pi-free after the STOP)
-       OWNER ORDER goal:g4.18.1.6: a6102199b · council ruling 6e21d9655 (ACCEPT) · 150/151/155 563cd4ca9 (MET; 162 163 found)
-       · end-state restated 5c7e632c7 · HOTFIX c3c118b3c (DG4's 1098822e1 swept my WIP canonicalize; write.py refused every call)
-       · council (b) on 154 + 152 153 162 163 = d8b22ae96
-WAIT   SM verdict on d8b22ae96 (154/152/153/162/163) · W2c C pi-free re-review · then close g4.18.1.6 MYSELF (council: status
-       complete + THOUGHT citing a6102199b 6e21d9655 563cd4ca9 d8b22ae96 + the SM run key) when residue = 0
-       g4.18.1.6 falsifier 1 -> the council's (b) wording: "lands byte-exact on a canonical node; a patch whose result the
-       canonical render would alter refuses by name" (write.py goal:g4.18.1.6 sub, with the THOUGHT)
+done   gen 7 (to 04:4xZ): see the grid version of this card at 9d958497f+ (138-149, W2c A pins, grid fork, g4.18.1.6 builds)
+       resumed: 08a870a3a (g4.18.1.6 falsifier = ruling (b)) · g4.18.5.2.2 158a9fd06 de83b1d23 bb882a5f5 ACCEPTED 0 residues
+LIVE   TWO Opus fix agents (this session's children; they die with it) -- each commits on ITS OWN worktree branch:
+       A W2c C corrective = hypothesis:gates-writer-and-cli-paths-resolve-mint-ids (DG2 f73be4f62; land UNDER it, mint nothing)
+         worktree /data/work/agi/.claude/worktrees/agent-a196329a4a51f6c5f · branch worktree-agent-a196329a4a51f6c5f
+         gaps: gate_for_root plain dict · cli._evidence_corpus drops the resolver (cli done demotes proved) · nearest_vision
+         resolver per call (viewport) · non-`nodes` dir GrepError · level3 mint map entry ungated; beat 0 differing twins
+       B write.py round: goal:g1.31.4.3 #37 <unset> sentinel + #12 thought test (#24 DROPPED: closed upstream 59032171c)
+         + SM d8b22ae96 R1 (a body opening with a --- block forges identity; refuse in submit) R2 (patch edits edited_by/
+         thought_session) R3 (render_frontmatter unquotes '0.8'/'yes'/'null') R4 (ERR names what canonical changes)
+         + _commit_message format guard · worktree /data/work/agi/.claude/worktrees/agent-a49fa07ee5463afe5 (branch same name)
+HARVEST each: git -C <worktree> log --oneline -6; review the diff; run the touched files WHOLE in MAIN after
+       `git cherry-pick <sha>` (no --no-commit; one at a time; check MAIN write.py for foreign hunks FIRST); SHAs -> SM agi-5c,
+       A's also -> DG2 agi-7f. Then close g4.18.1.6 on SM residue 0 (council: status complete + THOUGHT with the SHAs + run key)
 NEXT   1 SM board item: goal:g4.18.5.2.2 -- the commit-a-write teaching as ONE config cell (commit-message template) + the skill
          lines (agi-goal, agi-node-write teach the self-committing write). LANE: write.py _commit_write / index.lock = DG4's
          (g4.18.5.2.1): no edit there without agreeing with DG4 (agi-80) first
@@ -61,12 +65,12 @@ gen 6: 99a3ce3b6 96f1c6fae 647501f0c dd141136d eeccfbaa1 f8332a053 6082bf802 4a9
 d3f1d80c0 e77d0515a 7e1bed5b8 9c069f7dc 854aceb35 688d86d6f 3b61f9f73 9a39d55fa 09a8397e4 74f03f003
 
 ## 🔴 Where it stops
-IDLE on the council STOP (04:00Z, fired 04:43Z): step finished, nothing live, nothing of mine uncommitted.
-Owner 03:2xZ: Claude usage OUT -- no Opus subagents; agentic subtasks on pi (workflow.py --harness pi-free) or Sonnet 5.5 at most.
-Lanes (owner 03:0xZ): coordination -> SM agi-ed · rulings / mid-work questions -> the council (alive agi-b3 lead).
-On resume: read SM's verdict on d8b22ae96 FIRST, then WAIT list, then NEXT 1. First command:
+Waiting on fix agents A and B (LIVE above). If this session is gone: their commits survive on the worktree branches --
+harvest them as in HARVEST. Owner: Opus subagents allowed to ~06:0xZ, then Sonnet 5.5 / pi-free only.
+Lanes: coordination -> SM agi-5c · rulings -> the council (alive agi-e3). SM notes open: canonicalize && patch - not refused as
+a verb mix; canonicalize --dry-run shows no diff. First command:
 ```
-python3 extensions/agi/bin/write.py doc:card-director-general-3 'read body 1:55'
+git -C /data/work/agi/.claude/worktrees/agent-a196329a4a51f6c5f log --oneline -4
 ```
 
 ## §4 Traps
