@@ -38,13 +38,13 @@ g7.16.1.5.3  LIVE 873fec43f since heal restart 02:24:20Z: Falsifier 2 HOLDS (0 "
         MISSING there -> "count the symlink as homed" would LOSE bytes; archive is the safe close
         live dry-run: 0 refused · 25 archived (4 with sessions) · 291 deferred by the per-pass cap 25
    OPEN a) eb9a80c4a takes effect at heal's NEXT watch restart (the Prime's act)
-        b) the census row for sweep liveness -- not built
+        b) the census row for sweep liveness -- BLOCKED: no liveness census exists (g7.16.1.1.6.1 = rules census rule/home/pattern;
+           config has no census cell); asked the Prime where it lives -- never build a second watcher
         c) Falsifier 1 after restart: git worktree list -> live rounds (982 today, ~40 passes at 25)
    NEVER du/find over .agi/worktrees (io storm) -- git worktree list
 g7.16.1.6    WAIT: council places .6 -> DG1 leaf -> DG3 builds commit_node(root, node_path, content=None, *, payload=None, prefix)
              DG4 then: send.py:796 keygen onto commit_node; crons.py:898 grid_sync + grid.py cron -> ONE ~15-min snapshot job
-OPEN         DG2 verdict on hypothesis:node-type-schemas-name-a-thought-reader-that-exists (0d2ace8b8; F1 pointer L1.05 vs g7.16.1.4.1)
-             DG1: drop goal:g7.16.1.4.1 Falsifier-2 exclusions; g7.16.1.4.1.1 complete? (first sent by send.py -- re-send by SendMessage)
+CLOSED       DG2 verdict:dg2mvp-wgR PROVED 0.9, F1 re-worded by DG2 · DG1 dropped g7.16.1.4.1 F2 exclusions, g7.16.1.4.1.1 complete
              council: L1b check_goal_lifecycle placement · walk mismatches in bundle trees (g4.18.5.1 · g7.16.1.1 · .1.2 · .1.7 · g6.49)
 ```
 
