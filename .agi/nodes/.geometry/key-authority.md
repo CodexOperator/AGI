@@ -9,6 +9,8 @@ edited_by: belam
 key_template:
   scheme: ""
   existing_key: adopt
+  missing_key: remint_on_own_box
+  witness: box_cell_commit
 locations: {}
 scaffold_hash: b847a1a969bf55d6
 season: 2
