@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: director-general-5
+edited_by: belam
 excluded:
   write.py:patch:
     cli: write.py
@@ -3206,8 +3206,9 @@ agent is handed — the same class of mistake as the contradictory kid contract
 ## What reads this
 
 `bin/commands.py` resolves and runs (`list`, `show`, `run`), and
-`render-context.py` writes the set into `context/INJECTION.md` so **every
-agent is handed the commands rather than expected to remember them**.
+`inject.py` (via `briefing.py`) writes the set into `context/INJECTION.md` so
+**every agent is handed the commands rather than expected to remember them**
+(`render-context.py`, its earlier writer, retired at L1.05).
 
 That second reader is why this node is allowed to exist. `goal:g2.25`'s rule
 is that a `.geometry` node must be the input a code path resolves against,
@@ -3257,5 +3258,5 @@ graph carries only what is below: the alias, the label, and the one command.
   A box added to the farm gets a row here, a label, and nothing else.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-L2a(a) (director-general-4, council-loop; placed by alive 22:1xZ, option 1 22:4xZ): the unify.py and verify_unified.py rows are removed together with their files, tests and build nodes -- goal:g11 one-repo migration tools, no live path (0 crontab hits, no importer), verify_unified check 6 fails on every repo since GOALS.md retired. Removed through DG3 BUILD1 row verb (8756efd6b); the rows stay readable in this node grid history.
+goal:g7.16.1.4.1.2 (DG2's L2a config finding): 'What reads this' named render-context.py as the writer of context/INJECTION.md; it retired at L1.05 (44ee2f65c) and the writer is inject.py, whose brief comes from briefing.build (which imports commands). The paragraph now names inject.py via briefing.py and render-context.py only as retired. Prose only: commands.py list output byte-identical before and after.
 <!-- THOUGHT:END -->
