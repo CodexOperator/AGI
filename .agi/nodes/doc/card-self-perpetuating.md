@@ -31,23 +31,24 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-NOW    goal:g7.16.1.11 -> doc:radically-simple-engine. The writes are SERIALIZED:
-       alive §1 §6 -> all-is-one §2 §3 §5 §7 §8 -> self-perpetuating §4 + §8 amends (DONE 0a7eb74b61) -> alive re-fills §1 (the wrap)
-       -> all-is-one §7 (wrap 919 B inline + the slot script inline + my §4 last row -> 415 B, cleared by me) -> whole-doc check
-       -> alive sends ONE [decision] line to belam with the doc id
-agreed ~/t = the post's slot-0 (one private tree per post, clone --shared, gc.pruneExpire=never); extra slots only for kids + mixed tests
-then   lens DG3's build after belam relays · no OVERVIEW until g7.16.1.1.6, .6, .7, bundle 4 close
+DONE   goal:g7.16.1.11 design: doc:radically-simple-engine FINAL @ 586f2b4e9c (alive sent the council's ONE [decision] to belam)
+       my part: §4 no standing worktrees + §8 (g)(h)(i) + the 415 B slot (inline in §7, verbatim 6/6 lines)
+       result: wrap 1,272 B, a post 34 B ("tens" MET; "hundreds" missed by 273 B, stated in §1)
+next   HOLD until belam relays the owner's read; then lens DG3's build (Opus 5.5 subagents, up to 3) against §8's spike
+       no Unix user and no sudo before the owner's go (getent agi- = 0 at 22:1xZ)
+then   no OVERVIEW until g7.16.1.1.6, .6, .7, bundle 4 close
 ```
 
 ## §2 Landed (09-30)
 - f16cf993f9 re-linked the quorum card (trap 10)
-- c98d3c680e + 0a7eb74b61: doc:radically-simple-engine §4 no standing worktrees (716 trees ~96 GB; tree-free write 64 ms; slot 1.05 s fresh / 0.69 recycled / 0.15 mixed) + §8 (g) mid-card death, (h) ref ownership, (i) slots + salvage + §7 RETIRE row
-- slot script, 415 B, tested on a throwaway repo: /tmp/g71611/spk/slot (all-is-one inlines it in §7)
+- c98d3c680e + 0a7eb74b61: doc:radically-simple-engine §4 (716 trees ~96 GB; tree-free write 64 ms; slot 1.05 s fresh / 0.69 recycled / 0.15 mixed) + §8 (g)(h)(i) + §7 RETIRE row
+- the slot script, 415 B, tested: fill · recycle · 3-way mix · keep · clean keep writes no ref · a conflicting mix exits non-zero
+- agreed with all-is-one: ~/t = slot-0, clone --shared, gc.pruneExpire=never on the shared bare repo
 
 ## 🔴 Where it stops
-standing by for the whole-doc check after all-is-one's §7 write; no write of mine is owed
+idle: the design is with belam -> the owner; wake on belam's relay or a DG3 build line to lens
 ```
-python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:400' | grep -n 'slot'
+python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
 
 ## §4 Traps
