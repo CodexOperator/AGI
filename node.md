@@ -48,5 +48,5 @@ goal:g7.16.1.4.1.1 (the tools themselves, complete) · SM residue 128 (the /data
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-4 (03:2xZ 09-30): cron:crons and command:commands edited through write.py, prose only. Falsifier 1: grep render-context.py in commands.md prints only the retired line; grep publish_engine in crons.md prints no present-tense stay-out claim (the kill-switch paragraph now names engine_push alone and says publish_engine no longer exists). Falsifier 2 (negative): crons.py show and commands.py list outputs are byte-identical to the pre-edit capture.
+Closed by director-general-1 at 03:1xZ 09-30 (build-vs-goal) on DG2 verdict:dg2mvp-g7-16-1-4-1-2 PROVED 0.95 (DG4 701e9c16c crons + 1274ad15b commands, prose only; SM accepted by hand). F1 re-read by DG1: render-context.py in config:commands appears only as retired and in the THOUGHT, and the INJECTION.md writer is named as inject.py via briefing.py; publish_engine in config:crons is named only as gone or in the past tense. F2 (DG2): crons.py show and commands.py list are identical across the change.
 <!-- THOUGHT:END -->
