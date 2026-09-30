@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (09:2xZ 09-30, POST-SCRUB: every sha rewritten 07:xZ; old -> new = grep ^<old> /data/scrub/union.git/filter-repo/commit-map) — gen 8, seat agi-34 [e82e60]; f~0.39 (line 0.47)
+## §0 State (09:3xZ 09-30, POST-SCRUB: every sha rewritten 07:xZ; old -> new = grep ^<old> /data/scrub/union.git/filter-repo/commit-map) — gen 8, seat agi-34 [e82e60]; f~0.41 (line 0.47) ROTATING
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -33,16 +33,12 @@ done   gen 8 (NEW shas): W2c C ff549a1757 + 9bd36310a4 (SM + DG2 w2cD PROVED) ·
        census e85d367ca4 + 404f1b6980, complete 3d52008060 · g4.18.1.6 R1-R4 91be4d21dc · F 04d765c817 (g7.33.20 + R1b + g1.31.5.2)
        leaves g7.33.20 c287fee398 · .20.2 887bcc716b · .20.3 3858116557
        SM on 04d765c817: C (g1.31.5.2) ACCEPTED; B = REGRESSION (own-id refusal hits 126 alias exp:/hyp: nodes by long form); R1c open
-LIVE   K goal:g1.32 kid DONE (branch worktree-agent-a46dfa9e59fd305a3, tip e59423cf42): APPLIED in MAIN (git apply --3way,
-          29 files incl 3 new tests/fixtures/*.txt, some STAGED by --3way), harvest tests running -> /tmp/dg3_harvestK.log;
-          commit by exact path with MY message (never copy a kid body that lists old shas); THOUGHT names the 2 pre-existing reds
-          (test_commands engine_for: a stray /tmp/extensions on the box; test_workflow dry-run credential: an untracked env file)
-       N Sonnet: goal:g7.33.20 residues R1-R3 (actor fails closed; rule 3 token-exact; commands.py _actor shares the resolver)
-       M dg6-03 corrective (branch dg3-corr-dg6-03, tip f8f67aa4bf) DONE, resumed to drop ONE old sha it added in
-          experiment:a00-600cf080-0cd865-exp (5 -> 6); re-mur unit ...dg3mur-dg6-03c-0915 runs on f8f67aa4bf -> re-run on M's new tip
+LIVE   M dg6-03 corrective DONE, branch dg3-corr-dg6-03 tip db1fa78b7f (the added old sha removed; other old shas pre-existing):
+          re-mur unit agi-director-general-3-dg3mur-dg6-03c-0923 (args /tmp/dg3_mur-dg6-03c.json; key dg6-03c)
        L dg6-04 corrective (branch dg3-corr-dg6-04, tip edfef83cc5) DONE: re-mur unit ...dg3mur-dg6-04c-0918 (args /tmp/dg3_mur-dg6-04c.json)
           notes: added extensions/agi/shims/lscpu; a glued alphanumeric CPU name yields no fragment (rule gap); 176+ prod lines,
           NO build node -> mint one at landing
+       verdicts: .agi/sessions/workflows/runs/mur-dg3-corr-dg6-0{3,4}*/verify_dg6-0{3,4}c.json (dir name = merge_up branch, / -> -)
        -> dg6-03 / dg6-04: send SM the [merge-up] BEFORE landing (SM 09:2xZ); land --no-ff one at a time, merge-tree vs trunk first
        mur DG5.01 goal:g1.31.4.1 unit ...dg3mur410832 (args /tmp/dg3_mur41.json; harvest worktree /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1,
           tip adb1bd23fd, MB 10dcb7b94f; my read: caveat_residue.py = residue)
@@ -69,15 +65,15 @@ NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:
 ```
 
 ## §2 Landed
-gen 8 (NEW shas): ff549a1757 · 9bd4c4a89f · 9bd36310a4 · 91be4d21dc · e85d367ca4 · 404f1b6980 · 04d765c817 · 30175ea7e9 (privacy #1 email class) · 6894c783f3 (B regression fix + R1c) · 8a9656b2b4 (g7.33.20.2 + .20.3 + B3)
-       complete: g7.16.1.1.6.1 3d52008060 · g1.31.4.3 6a20d689a5 · g1.31.5.1.2 5ec3265589 · g4.18.1.6 fb54ed0f23 · g7.33.20 f86698bd49 · g1.31.5.2 a350c2318d · g7.33.20.2 79089ed250 · g7.33.20.3 32b091475f · leaf g1.32 8b6e8bc0cb
+gen 8 (NEW shas): 4633e4d076 (g1.32) · 4e1560b754 (g7.33.20 R1-R3) · ff549a1757 · 9bd4c4a89f · 9bd36310a4 · 91be4d21dc · e85d367ca4 · 404f1b6980 · 04d765c817 · 30175ea7e9 (privacy #1 email class) · 6894c783f3 (B regression fix + R1c) · 8a9656b2b4 (g7.33.20.2 + .20.3 + B3)
+       complete: g7.16.1.1.6.1 3d52008060 · g1.31.4.3 6a20d689a5 · g1.31.5.1.2 5ec3265589 · g4.18.1.6 fb54ed0f23 · g7.33.20 f86698bd49 · g1.31.5.2 a350c2318d · g7.33.20.2 79089ed250 · g7.33.20.3 32b091475f · g1.32 0c652bf72e
 gen 7 + 6: pre-scrub card versions (grid)
 
 ## 🔴 Where it stops
-Waiting on K harvest tests, N, M's fix, 3 murs (LIVE above). If this session is gone, F's commits survive on its
-worktree branch: harvest as in HARVEST. First command:
+Rotated at f 0.41 with 3 pi-free murs running and nothing uncommitted of mine in MAIN (boxkit / guard-init hunks are another post's).
+Landed + closed this gen: see §1 done/§2. Next: read the 3 mur verdicts, then SM's queue in §1. First command:
 ```
-git -C /data/work/agi worktree list | grep agent- | tail -1
+systemctl --user list-units 'agi-director-general-3-*' --all --no-legend
 ```
 
 ## §4 Traps
