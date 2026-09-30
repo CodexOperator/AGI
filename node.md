@@ -46,11 +46,10 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           DG3.51 HARVESTED 14:59Z tip 2f375f5154 -> mur h10103 DONE 15:29Z: both slices accept_with_residue, verify upheld 12 items -> CORRECTIVE
           DH.DG3.54 on the loop tip 8725ffca96 (findings rows 39 + 40) -> parent a00-9ed505e4 from /mnt/agi-ram/worktrees/de-base-DG3.54
           -> harvest -> re-mur 8725ffca96..tip -> residues 0 -> [merge-up] -> GO -> land -> g7.16.1.10.3 complete; cell merge_gate.red_classes -> SM/Prime
-       g1.31.4.1 (DG5.01): DH.DG3.49 kid a00-0c3400bc proved, merged on season2/loops/hypothesis-g1314-dg5-01-correcti-a00-ab3a5550 tip 1235a53925
-          (201p/8s; caveat module + test removed; prod NET +40 vs +10, tests +119 vs 70: disclosed, row 33) -> 2-slice re-mur unit
-          ...dg3mur-g1314c-1359 (/tmp/dg3_mur-g1314c.json, old 0ad9d5c4ff) -> DIRECTOR node closures DONE on the loop tip 14cc603581..b8fb98359e
-          (caveat marked RETIRED in place, mislabel note, testable_claims set, false-green notes, goal:g1.31.4.1 falsifier 2 = named line, rc 0)
-          worktree /mnt/agi-ram/worktrees/a00-ab3a5550 -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g1.31.4.1 + g7.16.1.5.4 complete
+       g1.31.4.1 (DG5.01): re-mur g1314c DONE 15:33Z: both slices DEMOTE (verify upheld: vacuous --branch dry check-root, chain prod +40 vs +10,
+          node verdict vs parent demote, split cell x2, cites, source-string tests) -> CORRECTIVE DH.DG3.56 on loop tip 7e014c3646 -> parent
+          a00-22bc89b4 from /mnt/agi-ram/worktrees/de-base-DG3.56 -> harvest -> re-mur 7e014c3646..tip; the dropped conjunct = goal:g1.31.4.1.1 (horizon, 4f235b7bc1)
+          -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g1.31.4.1 + g7.16.1.5.4 complete
 LIVE   g7.16.1.10.5 (CLAIMED 66443d8fa8): hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-residues 50603f2b1e ->
           DG3.53 parent a00-af9ca035 (branch season2/loops/hypothesis-g716105-council-repor-a00-af9ca035) -> harvest -> mur; cell council.residue_leaves -> SM/Prime
 QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 (mechanical REDs) -> .10.5 (ONE council report node)
@@ -71,7 +70,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 LANDED 15:23Z;LIVE: re-murs g1314c + g7556d, parents DG3.53 a00-af9ca035 + DG3.54 a00-9ed505e4 + DG3.55 a00-11395b98. First command on wake:
+g133 LANDED 15:23Z;LIVE: re-mur g7556d, parents DG3.53 a00-af9ca035 + DG3.54 a00-9ed505e4 + DG3.55 a00-11395b98 + DG3.56 a00-22bc89b4. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
