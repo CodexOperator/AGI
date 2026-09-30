@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1
 next_edges: []
 confidence: 0.6
-edited_by: alive
+edited_by: belam
 goal_id: G7.16.1.7
 goal_kind: subgoal
 heading_level: 4
@@ -41,6 +41,10 @@ town: core
 3. Yup that works.
 Restart council including DG5 stand up. Then let them tackle the bundle and see how best to streamline it further."
 Settled: (1) nearest wins -- post customizations over the harness template over the model default (the locations.py rule); (2) a link walk stops at 5 hops with a cycle guard, and needing more is itself a finding: simplify the templates; (3) a config switch writes beside the old file and swaps the symlink by one rename.
+
+## OWNER 2026-09-30 00:0xZ, verbatim (Prime pane) -- the first turn is a render tool call
+"One more simplification I wanted to add to the new rotation spawn route is that instead of doing some kind of weird hook thing to manually post all that text from the various like templates and docs into the first turn of the conversation, we should just instead have all of that be posted in at the first turn still, but instead of a chat turn, it's a tool call turn if possible. And the tool call is a render call that returns the graph slice that is all the docs that need to be put into context first thing. basically Instead of a first turn in the pane, we get to just run the tool call or the render call, and the results of that get posted in to the, if possible, tool call results as first thing. And I keep mentioning turning all these engine function clis into tools slash MCPs, same diff, but that's not needed right now. I'm not sure that seems like that's like a lot of extra setup. We should just first make sure the internals work properly. But yeah, I want more engine functions to rest on the render pipeline as well. And the render pipeline itself should have different display modes like a more graphical display mode but then also an inline display mode that just kind of shows everything in one big block like the way fresh rotations get their docs now. Also let's make it so the context docs are also linked into the posts. plus are the guard scripts and the guard dot env in the graph as a build node and a .geometry node respectively."
+Prime's answer to the last question, measured 00:0xZ: NO. guard-init.sh, sanctuary-health and sanctuary-watch live outside the repo in a directory that is not under git at all (the 09-29 option (b) change is versioned only by .bak copies); nodes only mention them. guard.env keys 5 settings by the host name, so its .geometry node must key them by box class (anonymize) before it can be committed.
 ## Why this exists
 goal:g7.16.1 (the council loop): the owner's next bundle after bundle 4 (goal:g7.16.1.4), minted by the Prime so the council places it whole. It stands on bundle 4: link rows are mint ids (goal:g4.18.6), a template is addressable by row (goal:g4.18.5 W1a), and every template version is a per-node grid commit (goal:g7.16.1.6). Today the same facts are copied across config:posts cells, config:brief parts, per-harness templates (pi-free vs pi local) and rotate.py / heal.py launch paths.
 
@@ -51,6 +55,10 @@ goal:g7.16.1 (the council loop): the owner's next bundle after bundle 4 (goal:g7
 - A harness adapter ships with a template mapping that harness's actions and hooks onto the engine's graph functions (Claude Code, pi, and later third parties).
 - Spawn and rotate are self-activated in the background: the owner or the Prime activates a formation template and chains a harness template; nothing else is typed.
 - A post's config switch-over is atomic: the new config is written beside the old one and the symlink is swapped in one rename, with no window in which a reader sees neither.
+- The first turn of a spawn or rotation is a TOOL-CALL turn, not a chat turn: a render call returns the graph slice of every doc the post needs (its linked context docs), posted as the tool result; no hook pastes template text. Turning engine CLIs into tools / MCP is later; the internals first.
+- The render pipeline has display modes: a graphical mode and an inline mode (one big block, the way fresh rotations get their docs today); more engine functions rest on it.
+- A post row links its context docs by mint id, beside its harness and renderer links.
+- The guard is in the graph: guard-init.sh, sanctuary-health and sanctuary-watch as build nodes; guard.env as a .geometry config node keyed by box class, never by host name.
 - Seat claiming needs no model act: heal assigns the post's keys from a key template (kind and forgiving in season 2; stricter templates and per-post accounts with custom write permissions are season 3).
 
 ## Invariants
