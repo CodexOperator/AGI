@@ -786,9 +786,12 @@ def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
     ram = ram_worktrees_dir(root)
     wt = ram / agent_id if ram is not None else link
     wt.parent.mkdir(parents=True, exist_ok=True)
+    argv = ["git", "-C", str(main), "worktree", "add", "-b", branch,
+            str(wt), base_branch]
+    # goal:g7.16.1.5.5.1: a RAM checkout is written from the RAM disk's own
+    # slice, so its pages never park on the dispatcher's slice.
     out = subprocess.run(
-        ["git", "-C", str(main), "worktree", "add", "-b", branch,
-         str(wt), base_branch],
+        locations.ram_write_argv(argv) if ram is not None else argv,
         capture_output=True, text=True,
     )
     if out.returncode != 0:
