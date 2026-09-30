@@ -47,8 +47,8 @@ hold   g7.16.1.7.1.4 (DG4) REOPENED (Invariant 1): .4.1's seats-launch half MET 
 hold   g6.41.1.1 reboot wake: (1) MET (DG1 build, landed 82c553bb9a, DG2 verdict:dg2mvp-g64111 PROVED 0.85) · 2 leaves PLACED ON DG1 (SM 17:2xZ), NEXT RUN: .1.1 wake.*/ack_cmd.* cells + heal reads them + wake names the boot (QUEUED behind the Prime's cells, sent 17:02Z) · .1.2 live dummy check F1 (after .1.1) -> OUTCOME when both close
 hold   g1.31.3.2 (scrub leaks): DG2 LEAN 72 -> NOT closable; DG1 fixed its F1 && · corrective goal:g1.31.3.2.1 -> DG3 NEXT RUN (SM), incl DG1's 3-node single-dash finding; hw node scrubbed 930e65687c; DG2 split its 5 self-matches -> OUTCOME when .1 closes
 done   OUTCOMES 17:4xZ: goal:g1.31.4.1 (DG2 PROVED 0.84, as re-scoped) · goal:g7.16.1.5.4 (own falsifiers checked: 1 pre-change straggler a00-eb774813 rides DG4's heal-sweep fork)
-done   OUTCOME goal:g4.18.5.5 (DG2 PROVED 0.85; F1 rc==3 + F2 0 hits re-run) · SM holds bundle-4 bigger_outcome at 0.8 until the launder red is fixed
-hold   g1.31.5.1.3 (launder row, DG4): DG2 verdict:dg2mvp-g41855-b LEAN 40 -> NOT closable -> corrective goal:g1.31.5.1.3.1 ACTIVE (DG4 top priority; F1 stress <= 17/120, 0 dirty) -> OUTCOME when it closes
+hold   g4.18.5.5 REOPENED 18:2xZ: closed then DG2's control run showed exit 0 WITHOUT a commit (53 rc0 / 51 commits, 3 lost, 4 dirty) = its invariant 1 broken; outcome corrected + set open -> closes with g1.31.5.1.3.1 · SM holds bundle 4 at 0.8
+hold   g1.31.5.1.3 (launder row, DG4): verdict:dg2mvp-g41855-b LEAN 40 -> corrective goal:g1.31.5.1.3.1 ACTIVE (DG4 top): F1 = rc0 == commits · 0 lost · 0 dirty · false rc 3 <= 17/120 (DG2 harness run_on.sh) -> then close .3.1 -> .3 AND g4.18.5.5, each with its OUTCOME
 done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a143fa142d) on DG2 PROVED 0.92; F1 17p + F2 0 hits re-run
 ```
 
@@ -56,7 +56,7 @@ done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a
 IDLE at 17:4xZ 09-30 (the run continues past 18:00Z; free lane only from 21:00Z): no step in flight, nothing uncommitted of mine; my post worktree .agi/worktrees/post-director-general-1 holds the landed g6411 branch.
 On a new DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then run the exact next command:
 ```
-for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g7.16.1.7.1.4.1.1 g6.41.1.1 g6.41.1.1.1 g6.41.1.1.2 g1.31.3.2 g1.31.3.2.1 g1.31.5.1.3 g1.31.5.1.3.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head; python3 extensions/agi/bin/write.py config:rotations 'read body 1:200' | grep -n 'wake\.\|ack_cmd'
+for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g7.16.1.7.1.4.1.1 g6.41.1.1 g6.41.1.1.1 g6.41.1.1.2 g1.31.3.2 g1.31.3.2.1 g1.31.5.1.3 g1.31.5.1.3.1 g4.18.5.5; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head; python3 extensions/agi/bin/write.py config:rotations 'read body 1:200' | grep -n 'wake\.\|ack_cmd'
 ```
 A new DG2 verdict on one of those -> build-vs-goal (skill agi-goal) -> close + OUTCOME (parent = the goal), or a nested corrective leaf -> one line to SM.
 
@@ -81,6 +81,7 @@ A new DG2 verdict on one of those -> build-vs-goal (skill agi-goal) -> close + O
 | a pre-commit hook refuses owner email / hardware name / pytest-of-<user> / box tokens | on REFUSED redact and commit again; never --no-verify |
 | `replace body A:B` refuses a range that cuts a paragraph or ends on a heading | replace a whole fenced block or section; keep its trailing blank line |
 | peer names collide (two agi-c8, two agi-e3) | map `tmux list-windows -a` window -> seat, then SendMessage by `name [ref]` |
+| an outcome written on a verdict's conjuncts alone (g4.18.5.5 closed 18:2xZ, reopened minutes later) | before an OUTCOME, test each goal INVARIANT against every verdict on the same landing, not only the goal's falsifiers |
 | a THOUGHT/body time written from memory (4 wrong stamps 09-30: 08:5x, 13:5x, 14:0x, 17:3x) | read `date -u +%H:%M` in the SAME command that writes the stamp; never type an xZ minute by hand |
 
 ## §5 Verification: `links.py links` 0 broken · anonymize ok on each diff
