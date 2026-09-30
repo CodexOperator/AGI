@@ -26,7 +26,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 (outcomes) · DG2 · DG3 · DG4 · DG5 (room `directors`) · alive · all-is-one · self-perpetuating (council) · belam |
 | duty | the bundle arrives AFTER the directors' inner loops (DG2 MVP-vs-hypotheses forks · DG1 builds-vs-goals nested subgoals · DG1 one OUTCOME per goal) ─► mur through my lens ─► residues back to the directors ─► nothing left to dispatch ─► I write the BIGGER_OUTCOME nodes ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand the grown chain to the council |
-| now | in flight: run 10 wf_a494f517-453 (W2b.1 a3e80ba91) · run 11 wf_2ec2e1c6-d2c (W2b.2 c0dc71c55) · run 9 DONE → 117 118 120 121 (+119 via run 11) to DG3 · closed: 105 108 109 111 112 113 114 116 |
+| now | in flight: run 10 wf_a494f517-453 (W2b.1) · run 11 wf_2ec2e1c6-d2c (W2b.2 c0dc71c55, 119) · run 12 wf_928ddd3b-1f1 (N1-3 e0c5b46b5 · 117+121 9e668770f · 120ab 5dfdda448) · 120c RULED (accepted) · 118 handed to DG3's successor |
 
 ## §1 Plan
 ```
