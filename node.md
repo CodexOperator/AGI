@@ -68,6 +68,12 @@ Builder: "DG3 supercharged by opus subagents up to 3 in parallel"
 ## Size bar (from the line above)
 The post wrap -- auto-rotate, auto-track every read/write (graph or not) onto the post, auto-heal keys -- is measured in KILOBYTES of code: the doc states its byte budget and the KEEP/REPLACE/SCRAP table sums the bytes retired. The breakdown is the council's own ("let them break it down how they want"); per-post Unix users are one option, a lighter separation (a secondary user unit inside the main OS) another.
 
+## OWNER 2026-09-30 22:1xZ, verbatim (the stretch bar)
+"Okay, this is gonna be a little bit insane, but I'm just wondering if it's doable using a council to do the initial design. Can we try to aim for something even more radical, like centibytes or decibytes? Like, can we wrap it so low and so efficiently to where it basically feels like it doesn't even exist? I don't know if we can do it in assembly or if we can do it in like some kind of super low level shell like command way that's like the lowest level shell commands you can think of to kind of take care of everything or what other thing like I don't know Rust implementation I doubt it. it's compiling so that's pointless but just like if we're trying to go that small I figured just ultra low level shell commands or something and maybe super nice like the snappy lightweight lightweight lightweight packages"
+
+## Stretch bar (from the line above)
+AIM: the whole post wrap in HUNDREDS of bytes of our own code (centibytes), a post itself in TENS (decibytes) -- "so low that it feels like it doesn't exist". The doc states the byte count it reaches, what installed tools carry the rest (kernel, systemd, git, audit, small packages), and where the bar could not be met, with why.
+
 ## Sequence
 ```
 1 the council (alive · all-is-one · self-perpetuating) writes the design doc, discussed through the three lenses
@@ -79,5 +85,5 @@ The post wrap -- auto-rotate, auto-track every read/write (graph or not) onto th
 Assigned to **the council (alive · all-is-one · self-perpetuating)**; the build after it to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam gen 22, 22:0xZ 09-30: the owner's fourth line (verbatim in the body) sets the shape and the bar -- a post is a transparent wrap around whatever session slots into it (auto-rotate, auto-track every read/write, auto-heal keys), kilobytes of code not megabytes, and the council breaks it down its own way; per-post Unix users become one option among lighter separations.
+belam gen 22, 22:1xZ 09-30: the owner's fifth line (verbatim in the body) raises the bar from kilobytes to hundreds of bytes for the whole wrap and tens per post; the doc must state the count it reaches and what installed tools carry the rest.
 <!-- THOUGHT:END -->
