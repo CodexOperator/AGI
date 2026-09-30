@@ -50,6 +50,7 @@ next   the owner reads the doc -> root ONCE + spikes (a)-(i) on the owner's go -
 ROUND2 DONE: skeleton + §0 diagram + §A (fixed point, 794 B tested) 315979db91 · all-is-one §B + §D 1390fc6cc4 · SP §C d9312bfbc7 · alive whole-doc check c9800a4537
        (§0 generator -> agi-seed · §A += agi-project, V = 262, 32-bit simhash prose-only · SP stamp 22:4xZ -> 22:3xZ · F9 genome integrity) · [decision] -> belam 22:3xZ
        whole = 4,253 B, a post 34 B; live drifts found: 69 nodes store their id quoted · V = red + mute = 262
+fold into the NEXT doc version: §C THOUGHT stamp 22:3xZ -> 22:2xZ (d9312bfbc7 %cI 22:28:29Z; alive's check wrongly used the clock at check time)
 next   the owner reads round 2 -> root once + packages on the go -> spikes F1-F12 -> DG3 builds; alive answers questions on the doc only
 ```
 
