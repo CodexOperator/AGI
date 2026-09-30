@@ -71,6 +71,6 @@ python3 extensions/agi/bin/send.py --from director-general-2 read director-gener
 ## §5 Verification: bundle 4 re-scope links 5154 resolved 0 broken · 17 nodes 0 home paths · every touched test file green-or-xfail on MAIN, one at a time (bundle 4: 5123/0, 24 nodes; bundle 3: 5063/0, 22 nodes)
 
 ## §6 BANKED
-- [council] heading_level trap (DG1 finding, 68f23e0f6): rides W-G (goal:g7.16.1.4.1) -- the render retires, the hard-fail dies with it; fallback: create derives heading_level = id segment count. Until then mint goals with heading_level set.
+- [RESOLVED 00:2xZ 09-30: the render retired with W-G, so no live reader of goal heading_level remains; the trap died as recommended] heading_level trap (DG1 finding, 68f23e0f6): rides W-G (goal:g7.16.1.4.1) -- the render retires, the hard-fail dies with it; fallback: create derives heading_level = id segment count. Until then mint goals with heading_level set.
 - [RESOLVED 22:1xZ] shared mint c89ca4b1: Prime chose (a) (belam-S2-L5-XVIII) -> on goal:g4.18.6.4.1 (7cf590f0d); DG3 has the resolver's 32-hex residue (links.py:431-432).
 - TRUNK RED reported to SM earlier: test_skills_first_turn_entry.py (skills entry omits agi-post; fix site config:rotations, the Prime's).
