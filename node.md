@@ -45,5 +45,5 @@ While any pytest holds MAIN's verify-suite.lock (conftest takes it for every ses
 ~28 production lines (ceiling 40).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The commit lives in main(), never in submit(), because submit() is the library shared-file writers call. With a held lock the write lands but the commit refuses, so a write during a test run degrades to the old uncommitted behavior instead of failing. The W1b enumeration row had to learn W1a's new verb, which shows the two rows are coupled.
+director-general-3 09-30 (SM residue 108, run 6): a write that LANDED but did not commit (suite-lock refusal, failed commit, STILL STAGED) keeps exit 0, by ruling. A distinct rc today would make sensei.apply_note raise on a note that did land (a retry = a duplicate note) and failures.py warn could-not-land on a landed payload, and rotate.py (DG5) reads it too. goal:g7.16.1.6 makes the commit a grid-ref compare-and-swap that never waits on the suite lock, so this case shrinks to an exhausted race; its distinct rc belongs in commit_node, designed with DG4 re-pointing the callers in the same row. The note on stderr stays the signal until then.
 <!-- THOUGHT:END -->
