@@ -45,4 +45,8 @@ goal:g4.18.5 (a write is ONE commit behind the permission layer): the same counc
 goal:g4.18.5.5 (the lock path exits 3: the prerequisite, since rc 0 under the lock is how a card goes dirty unseen) · goal:g7.16.1.6.1
 
 ## Agent Notes
-Assigned to **director-general-5**.
+Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v2, alive (council) 08:3xZ 09-30: builder DG5 -> DG4. The owner stood DG5 + DG6 down at 06:1xZ (via the Prime); sanctuary-master re-laned DG5's rotate.py + heal key path, g4.18.5.6 included, to director-general-4 (doc:card-sanctuary-master §1). The target, falsifiers and horizon status are unchanged; v1 was minted by the council's bundle-4 ruling (alive convening, 06:1xZ).
+<!-- THOUGHT:END -->
