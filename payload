@@ -54,6 +54,7 @@ from __future__ import annotations
 import difflib
 import json
 import os
+import random
 import shlex
 import subprocess
 import time
@@ -4430,10 +4431,15 @@ def _pre_dirty(root, node_id: str, edit=None) -> set:
     git = lambda *a: subprocess.run(["git", "-C", str(root), *a],  # noqa: E731
                                     capture_output=True, text=True)
     unknown = []
+    paths = [os.path.abspath(str(p)) for p in paths if p is not None]
+    import verification  # noqa: PLC0415 -- g1315131: a LIVE peer's in-flight bytes are no hand edit
+    end = time.monotonic() + verification.suite_lock_policy(root)["hold_wait_s"] + _commit_wait_s(root)
+    mine = verification.inflight_mark(root, paths)   # mark FIRST, then look: of two racing writers one sees the other
+    while verification.inflight_peers(root, paths) and time.monotonic() < end:
+        verification.inflight_clear(mine)            # only THIS call's markers
+        time.sleep(0.05 * (0.5 + 2 * random.random()))
+        mine = verification.inflight_mark(root, paths)
     for p in paths:
-        if p is None:
-            continue
-        p = os.path.abspath(str(p))
         dq = lambda: git("--no-optional-locks", "diff", "--quiet", "HEAD", "--", p).returncode  # noqa: E731
         rc = 0 if git("ls-files", "--error-unmatch", "--", p).returncode else dq()
         rc = dq() if rc > 1 else rc   # 0 clean, 1 dirty, >= 2 unknown: retry once, then FAIL CLOSED
@@ -4447,6 +4453,15 @@ def _pre_dirty(root, node_id: str, edit=None) -> set:
 
 def _commit_write(root, node_id: str, res, actor: str = "",
                   pre_dirty: set = frozenset()) -> tuple[str | None, bool]:
+    try:   # g1315131: the in-flight markers `_pre_dirty` set come off after the attempt
+        return _commit_write_body(root, node_id, res, actor, pre_dirty)
+    finally:
+        import verification  # noqa: PLC0415
+        verification.inflight_clear()
+
+
+def _commit_write_body(root, node_id: str, res, actor: str = "",
+                       pre_dirty: set = frozenset()) -> tuple[str | None, bool]:
     """goal:g4.18.5.2 -- the CLI write, after the gate, is ONE commit of its
     own node (+ its payload) by exact path. In main() only: submit() is the
     library rotate.py and send.py call on shared files. `git commit -- <paths>`
@@ -4475,11 +4490,15 @@ def _commit_write(root, node_id: str, res, actor: str = "",
     recover = (f"git -C {root} add -- {' '.join(paths)} && "
                f"git -C {root} commit -q -m {shlex.quote(msg)} -- {' '.join(paths)}")
     import verification  # noqa: PLC0415 -- the ONE live-holder read (residue 93)
-    holder = verification.suite_lock_holder(Path(root))
-    if holder:
-        return (f"commit refused: {Path(root) / 'sessions' / verification.suite_lock_name(root)} is held "
-                f"by live pid {holder} -- the write landed uncommitted; exit "
-                f"{EXIT_UNCOMMITTED}; recover: {recover}"), True
+    def held():   # g1315131: WAIT a held suite lock (bounded by hold_wait_s); the refusal if it is still held
+        holder, wait = verification.suite_lock_holder(Path(root)), verification.suite_lock_policy(root)["hold_wait_s"]
+        end = time.monotonic() + wait
+        while holder and time.monotonic() < end:
+            time.sleep(min(end - time.monotonic(), 0.25 * (0.5 + random.random())))
+            holder = verification.suite_lock_holder(Path(root))
+        return holder and (f"commit refused: {Path(root) / 'sessions' / verification.suite_lock_name(root)} is held "
+                           f"by live pid {holder} after waiting {wait:g}s (values.core.suite_lock.hold_wait_s) -- the write "
+                           f"landed uncommitted; exit {EXIT_UNCOMMITTED}; recover: {recover}", True)
     # goal:g1.31.5.1.3: a path ALREADY dirty against HEAD before this write is
     # a hand edit; committing it launders it and write_guard stops listing it.
     laundered = [p for p in paths if os.path.abspath(p) in pre_dirty]
@@ -4488,16 +4507,19 @@ def _commit_write(root, node_id: str, res, actor: str = "",
                 f"before this write (a hand edit rides along) -- the write landed "
                 f"UNCOMMITTED; exit {EXIT_UNCOMMITTED}; if the only dirt is a PRIOR uncommitted write.py write (suite-lock "
                 f"/ index.lock exhaustion left it), its `git commit -- <paths>` is in: {recover} (never auto-committed)"), True
-    import random  # noqa: PLC0415
     deadline = time.monotonic() + _commit_wait_s(root)
     tries = 0
     while True:
         tries += 1
+        if refused := held():   # F7: a lock taken mid-retry waits/refuses, never commits under it
+            git("reset", "-q", "--", *paths)
+            return refused
         add = git("add", "--", *paths)
         done = add if add.returncode else git("commit", "-q", "-m", msg, "--", *paths)
         if done.returncode == 0:
             return None, False
-        busy = "index.lock" in (done.stderr or "") + (done.stdout or "")
+        out = (done.stderr or "") + (done.stdout or "")   # g1315131d: a ref lock is as busy as the index lock
+        busy = "index.lock" in out or "cannot lock ref" in out or ".lock': File exists" in out
         # the peer's commit won the race (hypothesis:a-write-refusal-names-the-index-truth):
         # the index is the truth, and it says these bytes are already in HEAD.
         # TRACKED or not "clean": `status --porcelain` is blind to an ignored
