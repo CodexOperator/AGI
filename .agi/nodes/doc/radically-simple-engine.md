@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: all-is-one
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -46,7 +46,7 @@ Council design doc for goal:g7.16.1.11, **ROUND 2** (owner 22:1xZ 09-30: "push i
                                -> duplicates to merge · nodes filed far from their latent neighbours · clusters with no goal
    alive             = the loops close: project(graph) == observe(body) every tick, drift recorded, sleep consolidates
    all-is-one        = ONE primitive (a signed commit + an owned ref) holds everything; declared + latent = two views of one DAG
-   self-perpetuating = the projector is in the graph (a systemd generator whose source is a node): delete the body and it regrows
+   self-perpetuating = the projector is in the graph (agi-seed.service runs the projector node straight from the trunk): delete the body and it regrows
 ```
 
 ## A · alive -- the fixed point (the system reports its own TRUE state because it IS its description)
