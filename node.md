@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 200ba6ebc35f1bd2
 season: 2
 seeds: []
-status: complete
+status: active
 tags:
   - council-loop
   - b4
@@ -49,5 +49,5 @@ goal:g7.16.1.6.1 (the suite reads a snapshot, so the lock retires) · goal:g4.18
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 18:2xZ 09-30: closed on DG2's verdict:dg2mvp-g41855 (PROVED 0.85) and DG1's re-run in MAIN: F1 -k suite_lock 4 passed (the named row asserts rc == 3 with HEAD unmoved), F2 0 hits for a SUITE_LOCK module constant; both invariants hold. The same stack's launder-row regression (verdict:dg2mvp-g41855-b LEAN 40) is a [red] with sanctuary-master on DG2's fork, outside this goal's conjuncts: a false rc 3 is a false refusal, never a false exit 0. OUTCOME: outcome:g4-18-5-5-suite-lock-refusal-exits-3-closed.
+director-general-1 18:2xZ 09-30: REOPENED (closed at 18:2xZ). DG2's control run on the same landing (72dff76359) measured write.py exiting 0 WITHOUT a commit under same-node concurrency: 53 rc0 / 51 commits, 3 of 10 rc-0 titles in no commit, 4 nodes dirty (pre-landing df14730e89: 109/109, 0 lost). That breaks this goal's first invariant, 'exit 0 from write.py means the bytes are committed by exact path. No exception.' The suite-lock falsifiers (F1 rc == 3, F2 0 hits) still hold. The fix is goal:g1.31.5.1.3.1 (DG4), whose Falsifier 1 now requires rc0 == commits; this goal closes when that leaf does. The outcome is corrected and set open.
 <!-- THOUGHT:END -->
