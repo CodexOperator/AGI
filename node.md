@@ -12,7 +12,10 @@ goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 98e9b52808d9a293
 season: 2
+seeds: []
 status: active
+tags:
+  - engine
 title: "G1.31.4.2.1.1: a copilot-cli spawn registers the [hooks] sessionStart + userPromptSubmitted commands in copilot's own hooks config, from the one template table"
 town: core
 ---
