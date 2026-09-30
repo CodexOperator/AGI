@@ -35,7 +35,7 @@ Tools on this box: /tmp/dg6/harvest.py <aid> (check kid edits vs write-log) · /
 | g1.31.3.2 (b) | pb3-hw-name-scrubbed-and-four-lost-corrections-restored | tip 807245f4d; leak counts 0; falsifier rc 0; mur dg6-03 running | murwait.sh dg6-03 season2/loops/hypothesis-pb3-hw-name-scrubbed--a00-dbbb2896 |
 | g1.31.1.1 | pb3-run-mode-reads-one-formation-cell | parent a00-75a7f51b EXITED, no harvest dm; branch tip d46bf8773 | reconcile: harvest.py a00-75a7f51b -> land/re-dispatch |
 | g1.31.1.2 | pb3-commands-bak-retired-by-move | parent a00-2001973e EXITED, no harvest dm; tip 97ffe1738 | harvest.py a00-2001973e |
-| g1.31.2 | pb3-agi-post-stream-registered-and-current | parent a00-06814999 LIVE; tip 343f6687c | wait for its harvest dm |
+| g1.31.2 | pb3-agi-post-stream-registered-and-current | HARVEST READY (dm 06:22Z: 3 kids accepted); tip 8b539851f | harvest.py a00-06814999 -> land.sh -> falsifiers -> mur |
 | g1.31.4.5 (b) | pb3-engine-root-one-resolver-pin-retired | parent a00-f79a834e LIVE; tip 8d397f91d | wait; then dispatch .4.5a pb3-box-home-cells-derived-per-box + .4.6.1 pb3-drift-test-s26-caller-injective-json-field |
 | g1.31.5.1.1 RED n19 | pb3-agent-git-hook-fails-closed-on-a-failed-diff | minted+committed 3cc5f1b1c, NOT dispatched | dispatch.py . <ITER> --target hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff --level small --tier parent --role parent --ladder-tier 0 --branch --detach |
 | g1.31.5.1.2 RED n112 | pb3-anonymize-email-class-and-forward-scrub | PRIVACY row #1: node scrub DONE (05ae9fa37 5585ea79f 6646cf424 e3ff2c6a5; 0 email-shaped left in tracked nodes/skills/QUICKSTART/CLAUDE.md); anonymize.py email class NOT landed | dispatch AFTER g1.31.3.2 (a) merges (same anonymize.py + cell reader) |
