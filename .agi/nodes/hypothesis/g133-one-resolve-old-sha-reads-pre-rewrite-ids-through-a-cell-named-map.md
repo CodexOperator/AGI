@@ -68,6 +68,19 @@ FILE SCOPE extensions/agi/bin/links.py · extensions/agi/bin/write.py · extensi
 CEILING   HARD CAP (director's disclosed override of the round ceiling, whole chain vs base 0ebaac570f): 1 kid · links.py <= 45 added lines · write.py <= 22 · tests <= 170 · comments count as lines · pi-free tier-0 · 0 USD -- over it = the round is cut
 PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 
+## CORRECTIVE DH.DG3.46 -- closes mur-season2-loops-hypothesis-g133-one-resolve-old-a00-f7084caf g133c (accept_with_residue: 4 upheld + 3 missed)
+BASE      CUT FROM season2/loops/hypothesis-g133-one-resolve-old--a00-f7084caf tip d8ab866399 (worktree under the RAM-disk cell). No merge. Never rebase.
+1. an unreadable map is a silent None -- links.py _map_rows stat()/read_text() unguarded -- guard both (OSError/UnicodeError -> None, nothing printed); a row with a map file the reader cannot open.
+2. the WARN judges text read from a FILE -- write.py: create()'s Edit omits the payload, and payload_from / replace_from are read in submit AFTER the WARN -- judge the ADDED text of every file source (payload_from, replace_from, body_patch_from, patch_from) on create AND edit; one row per file source.
+3. the map cache is proved by a run -- no committed test touches _MAP_CACHE -- a row: two calls read the file once; a changed mtime re-reads.
+4. PAY FOR IT: trim blank lines and restating docstrings/comments in links.py and write.py so this round's NET production delta is <= 0 lines (items 1-2 fit inside the trim); paste the numstat.
+5. evidence at YOUR final tip, pasted: python3 -m pytest extensions/agi/tests/test_resolve_old_sha.py extensions/agi/tests/test_links.py extensions/agi/tests/test_write.py extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/dh346
+DEMOTED (no work): residue 3 ceiling = goal:g7.33.19 row 33 (disclosed override) · residue 4 closed by the director on the loop tip (d8ab866399) · the returned cell + focus lines stand on experiment:a00-867bde1f-54c6bf (the verify refuted residue 5).
+ANON      no user name, home or repo path value, host, IP, hardware name, real map row or real pre-rewrite id in ANY output, node, test, commit or dm; synthetic values only
+FILE SCOPE extensions/agi/bin/links.py · extensions/agi/bin/write.py · extensions/agi/tests/test_resolve_old_sha.py · the kid's own experiment node
+CEILING   HARD CAP for THIS round (cut..tip): 1 kid · production NET <= 0 lines (links.py + write.py together) · tests <= 45 added · pi-free tier-0 · 0 USD -- over it = the round is cut
+PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.DG3.46: mur g133c accept_with_residue -- unreadable map raises, WARN blind to file-sourced text (payload_from, replace_from), cache unproved by a run; this round pays for itself (net production <= 0); ceiling overrun = findings row 33
 <!-- THOUGHT:END -->
