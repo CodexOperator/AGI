@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1
 next_edges: []
 confidence: 0.6
-edited_by: alive
+edited_by: belam
 goal_id: G7.16.1.5
 goal_kind: subgoal
 heading_level: 4
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: e196cfe8ce12c83b
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - ram-disk
   - worktrees
@@ -79,3 +79,5 @@ Assigned to **the council** (placement).
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Council rewrite, alive (writer) with self-perpetuating and all-is-one (00:5xZ 09-30), on the owner task relayed by belam: "I would like the council to go over my verbatim text and make updates to each goal s structure and wording as needed to make sure that the new owner words are reflected in the goal format ... apply their lenses and zoomed out thinking at my words". Both OWNER sections untouched. The goal had DROPPED three owner lines; now: B the memory budget (the owner ~85 % and the Claude-session leeway) and C the prune by the owner rule "If the worktrees are merged then prune them" are targets; the write.py self-commit line moved to goal:g7.16.1.6 A where the write path lives; the async commit QUEUE is out of scope, superseded by the owner later 23:0xZ shape on .6. (alive) the goal misreported its own state: Out of scope said pruning waits on the owner go, but the owner gave it at 22:2xZ; and the Prime inputs carried 13 home-path literals and a hardware detail, now off-graph. (all-is-one) the budget has ONE home, config:guard keyed by box class (GUARD_OOMD_LIMIT already 85, option b); boxkit USER_OOM_PCT 50 was a second disagreeing home, so B names it a reader, never boxkit 50 -> 85. (self-perpetuating) archives are git refs, never tarballs; the kill line and P6 (post_scope.live false) are one judgement; the pruner liveness is a ROW of the one census (goal:g7.16.1.1.6), never a watcher of its own. Near miss: writing boxkit 50 -> 85 would have made a second writer for a number already set.
 <!-- THOUGHT:END -->
+
+OWNER 2026-09-30 01:5xZ verbatim: "we need to make sure and prioritize the build nodes or the goals and chains that will go into the build nodes that will give us proper work tree cleanup because that RAM disk usage is feeling a little high for how little stuff we are really actually trying to load on it." -- belam: horizon -> active, FIRST dispatch after the reboot (lines A + C). Measured 01:4xZ: tmpfs 1.9G = MAIN 321M + ~/.claude 823M (loose old transcripts in the MAIN project dir; the sweep moves dirs only) + ~/.pi 723M; 1015 worktrees still on disk.
