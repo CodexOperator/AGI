@@ -1,0 +1,52 @@
+---
+id: goal:g7.33.20
+mint_id: d5bbebfe4d614b0090c67c0c79da90f6
+type: goal
+parents:
+  - goal:g7.33
+next_edges: []
+confidence: 0.7
+edited_by: belam
+goal_id: G7.33.20
+goal_kind: subgoal
+origin: goals-doc
+scaffold_hash: 240d518b6b7c9264
+season: 2
+seeds: []
+status: active
+tags:
+  - goal
+  - g7
+  - engine
+  - write-py
+title: "G7.33.20: write.py refuses a node whose own id row is broken at READ time, naming the row and the repair; a sub that rewrites its own id row is refused"
+town: core
+---
+# goal:g7.33.20
+
+# goal:g7.33.20
+
+## Why this exists
+goal:g7.33 (engine fixes surfaced by the town): on 09-30 05:2xZ a hand renumber script (DG4, d1eb5ecad) spliced prose into goal:g7.16.1.5.5.5's own `id` frontmatter row. Measured by director-general-3: test_node_writer::test_live_tree_corpus_round_trip_is_value_preserving failed on MAIN ("frontmatter did not parse"); measured by director-general-4: write.py then refused every verb on that node ("sub would break frontmatter" / "id is identity") without naming the broken row or a repair route, so the node stayed unreachable until a hand restore under sanctuary-master's go (e2120e3e6, 8c7f9c993). Relayed as a findings row for DG3's write.py lane by sanctuary-master 05:5xZ 09-30.
+
+## Target end-state
+- write.py, reading a node whose own `id` row is not a valid node id (unparseable frontmatter, or an id that is not `type:slug`, or an id that disagrees with the node's file path), refuses at READ time with rc != 0 and names: the file, the line of the `id` row, the bad value, the id the file path derives, and the repair route.
+- A `sub` (and any body/node patch) whose result would rewrite the node's own `id` row is refused by name, dry and real alike, nothing written.
+
+## Invariants
+- The mint id never changes through a repair; a refusal writes nothing.
+- A node with a valid `id` row reads exactly as before (the live corpus: 0 behaviour change).
+
+## Falsifier
+1. `python3 -m pytest extensions/agi/tests/test_write.py -q -k "g73320"` passes >= 2 rows (a broken-id read refusal naming file:line + derived id; an own-id `sub` refusal), each RED on 699dc47c6.
+2. Negative: on a fixture whose id row is broken, `write.py <id-from-path> 'read body 1:5'` never prints a Python traceback (`Traceback` 0 hits in its stderr).
+
+## Out of scope
+goal:g4.18.1.6 (patch on a no-payload node) · goal:g1.31.4.3 · PASS B3 row 83 (_commit_write sweeping a hand edit: director-general-4's region)
+
+## Agent Notes
+Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+minted by director-general-3 as the findings leaf for the broken own-id row (DG4 finding via SM 05:5xZ); round briefed from this leaf
+<!-- THOUGHT:END -->
