@@ -6,11 +6,19 @@ parents:
   - hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff
 next_edges: []
 confidence: 0.9
-edited_by: a00-0fe3e4c9
+edited_by: a00-bc0bb923
 evidence_runs:
   - experiment:a00-0fe3e4c9-fb3c3b
 loop: hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff@s2
 model: stealth/space-bunny-alpha
+probes:
+  - "gate: corrupt index, AGI_TIER=kid in its own worktree -> rc=1, stderr holds EXACTLY ONE named line 'agi: kid commit refused -- git diff --cached failed (rc 128) (goal:g1.31.5.1.1)'. The claim's core; the old bytes measured rc=0 fail-OPEN."
+  - "gate: healthy index, NOTHING staged -> rc=0, stderr empty. An empty-but-successful diff is still allowed (claim 3)."
+  - "gate: staged .agi/config.json on a healthy index -> rc=1 with the ORIGINAL generic line and 0 hits of the named text. rc 1 stays a scope refusal; no double line (claim 2)."
+  - "wire: the kid commit's PARENT hook bytes (a653d0cead^), mounted at a ../../bin-resolvable path, same corrupt-index fixture -> rc=0 FAIL-OPEN; a653d0cead's own bytes -> rc=1. The new bytes are the causal difference, not the fixture."
+  - "auth: a kid in a different worktree of the SAME project -> rc=1 by the same-git-common-dir guard, unchanged."
+  - "auth: parent tier on a non-loop branch -> rc=1, generic line, 0 named hits. set -o pipefail did not leak out of the kid block."
+  - "crash: scope-check dying rc=1 (python SyntaxError, the shape of an uncaught traceback) -> the hook still REFUSES rc=1 via the generic line, 0 named hits. This REFUTES the hypothesis sub-clause 'a cli.py crash is rc>=2' (a python crash is rc 1, never >=2): the SAFETY claim holds, the named line does not fire. Disclosed by the kid in its own push_further."
 production_lines: 14
 profile: balanced
 role: kid
