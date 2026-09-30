@@ -61,11 +61,12 @@ DECLARED_ARGV_FRAGMENTS = [
 ]
 
 
-def test_docstring_disambiguates_from_verify_unified():
-    """The two names are one keystroke apart; the docstring must say so first."""
-    first_two = "\n".join(VERIFY_SOURCE.splitlines()[:6])
-    assert "verify_unified" in first_two, "first paragraph must name the twin"
-    assert "NOT" in first_two or "not" in first_two
+def test_docstring_names_verify_unified_only_as_retired():
+    """verify_unified.py is retired (goal:g7.16.1.4.1.1): the docstring may
+    name it only as retired, never as a present twin."""
+    first_lines = "\n".join(VERIFY_SOURCE.splitlines()[:8])
+    if "verify_unified" in first_lines:
+        assert "retired" in first_lines, "name verify_unified only as retired"
 
 
 def test_no_declared_argv_is_literal_in_verification_py():
