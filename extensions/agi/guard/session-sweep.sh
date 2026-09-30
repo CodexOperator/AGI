@@ -35,9 +35,13 @@ held() { grep -qF -- "$1/" "$LIVE" || grep -qxF -- "$1" "$LIVE"; }
 # directory mtime would hold it "recent" on the RAM disk for the whole idle window
 recent() { [ -n "$(find "$1" -type f -newermt "-$2 min" -print -quit 2>/dev/null)" ]; }
 
-# a write whose PATH is under the RAM dir is charged to the ramdisk.slice
-# through ONE shell entry; a disk-bound one is left alone (hypothesis:g7556-...).
-ramw() { local p=$1; shift; case "$p" in "$RAM_DIR"|"$RAM_DIR"/*) python3 "$HERE/../bin/mem_cap.py" ram-exec -- "$@" ;; *) "$@" ;; esac; }
+# a write whose DESTINATION is on the tmpfs is charged to the ramdisk.slice
+# through ONE shell entry, which asks the FILESYSTEM about the destination
+# (--to), never a path prefix: the RAM tree is an overmount AT MAIN, so
+# "$RAM_DIR"/* never names it (hypothesis:g7556-...).
+# --- guard-ram-write: begin (ram-main.sh carries the same line: one rule, one spelling)
+ramw() { local p=$1; shift; python3 "$HERE/../bin/mem_cap.py" ram-exec --to "$p" -- "$@"; }
+# --- guard-ram-write: end
 
 # move a real dir to dest (same fs: rename; else copy, verify byte count, remove), then symlink back
 move() { local src=$1 dest=$2

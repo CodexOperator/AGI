@@ -398,22 +398,26 @@ def reaped_cap_death(pid: int, cap: "str | None") -> bool:
         return False
     return os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGKILL
 
-#: The on-demand recharge, as the code the ramdisk.slice scope RUNS. A tmpfs
-#: page keeps the cgroup that first wrote it: copy the bytes to a fresh file
-#: in the SAME dir and rename it over the old one, and the charge follows the
-#: new inode. Bytes and mode are kept, so the rewrite is invisible.
-_RECHARGE_SRC = """\
-import os, pathlib, shutil, stat, sys, tempfile
-for p in sorted(pathlib.Path(sys.argv[1]).rglob("*")):
-    if p.is_symlink() or not p.is_file():
-        continue
-    mode = stat.S_IMODE(p.stat().st_mode)
-    fd, tmp = tempfile.mkstemp(dir=str(p.parent))
-    os.close(fd)
-    shutil.copyfile(str(p), tmp)
-    os.chmod(tmp, mode)
-    os.replace(tmp, str(p))
-"""
+def fstype_at(path: str) -> str:
+    """The FILESYSTEM holding `path`, asked of the mount table -- never of a path
+    prefix (the RAM tree is an rbind overmount AT MAIN). A path that does not
+    exist yet is answered by its nearest existing parent; the table is
+    overridable (AGI_MEMCAP_MOUNTINFO) so a row can name a tmpfs without one."""
+    p = os.path.realpath(os.path.abspath(path))
+    while not os.path.isdir(p):
+        n = os.path.dirname(p)
+        if n == p:
+            break
+        p = n
+    table = os.environ.get("AGI_MEMCAP_MOUNTINFO", "/proc/self/mountinfo")
+    best, kind = "", ""
+    with open(table) as fh:
+        for line in fh:
+            f = line.split()
+            mp = f[4].rstrip("/") or "/"
+            if len(mp) > len(best) and (p == mp or p.startswith(mp + "/")):
+                best, kind = mp, f[f.index("-") + 1]
+    return kind
 
 
 def ram_argv(argv: list) -> list:
@@ -424,33 +428,34 @@ def ram_argv(argv: list) -> list:
     return list(locations.ram_write_argv(list(argv)))
 
 
-def _verb_ram_exec(argv: list) -> int:
-    """exec the argv after `--` in the RAM scope. No argv -> usage, 2."""
+def _verb_ram_exec(argv: list, to: str | None = None) -> int:
+    """exec the argv after `--` in the RAM scope. No argv -> usage, 2.
+
+    `--to PATH` is THE rule for "this write lands on the tmpfs", asked of the
+    filesystem: a disk-bound destination runs argv plain, untouched, and its
+    exit code is argv's. No usable scope -> fail open, argv UNWRAPPED, said once
+    on stderr (ram-main.sh `up` runs before the user manager)."""
     if not argv:
-        sys.stderr.write("mem_cap.py ram-exec -- <argv...>\n")
+        sys.stderr.write("mem_cap.py ram-exec [--to PATH] -- <argv...>\n")
         return 2
+    if to is not None and fstype_at(to) != "tmpfs":
+        return subprocess.run(argv).returncode
     scoped = ram_argv(argv)
+    if list(scoped) == list(argv):
+        sys.stderr.write("mem_cap.py ram-exec: no usable scope -- argv ran UNWRAPPED\n")
+        return subprocess.run(argv).returncode
     os.execvp(scoped[0], scoped)
-    return 127  # execvp returns only on failure
-
-
-def _verb_ram_recharge(root: str) -> int:
-    """Recharge every regular file under `root`, on demand only, never a timer.
-    The rewrite IS the scoped child, so its pages land on the RAM disk's line."""
-    return subprocess.run(
-        ram_argv([sys.executable, "-c", _RECHARGE_SRC, str(root)])).returncode
 
 
 if __name__ == "__main__":
     import argparse
     # ram-exec carries a FOREIGN argv after `--`: argparse never sees it.
     if sys.argv[1:2] == ["ram-exec"]:
-        _i = sys.argv.index("--") + 1 if "--" in sys.argv else len(sys.argv)
-        sys.exit(_verb_ram_exec(sys.argv[_i:]))
-    _ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    _sub = _ap.add_subparsers(dest="_verb")
-    _sub.add_parser("ram-exec", help="exec <argv...> with RAM writes on the RAM slice")
-    _sub.add_parser("ram-recharge", help="rewrite a RAM dir as copy+rename in the RAM scope").add_argument("dir")
-    _a = _ap.parse_args()
-    if _a._verb == "ram-recharge":
-        sys.exit(_verb_ram_recharge(_a.dir))
+        _h = sys.argv[2:]
+        if "--" not in _h:
+            sys.stderr.write("mem_cap.py ram-exec: '--' is required\n")
+            sys.exit(2)
+        _i = _h.index("--")
+        _to = _h[1] if _h[:1] == ["--to"] and len(_h) > 1 else None
+        sys.exit(_verb_ram_exec(_h[_i + 1:], to=_to))
+    argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
