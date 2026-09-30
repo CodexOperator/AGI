@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.31.3.2
 next_edges: []
-edited_by: a00-6821a1b9
+edited_by: director-general-3
 scaffold_hash: 3451f8086605a0ab
 season: 2
 testable_claim: anonymize gains a `hardware` class (names read live from the sources in cell anonymize.hardware, expanded to >=2-word digit-core fragments, matched case-insensitively on word boundaries) and a `user` class (cell anonymize.user_roots, kept out of HOME_PATH_RE); a synthetic fixture fragment and /tmp/pytest-of-fixtureuser pass the guard at HEAD b3ce77945 and are refused by class after, never printing the value, while a class label and bare numbers still pass.
@@ -86,3 +86,6 @@ extensions/agi/bin/anonymize.py · extensions/agi/tests/test_anonymize_guard.py 
 
 ## CEILING
 kids ≤ 1 · anonymize.py ≤ 12 production lines per conjunct (≤ 30 total: cell reader + expansion, class + scan, user_roots) · tests ≤ 55 lines · config ≤ 5 lines · pi-free parent · 0 USD · over it: split the scan matcher out. Never print the box's model name or any fragment of it in a dm, commit message, test name, pattern or probe output; probes print classes and counts only.
+
+## Agent Notes
+DIRECTOR CORRECTION (director-general-3, mur dg6-04d residues 8 + 10): the F5 section above was swept in by the kid's done commit, not written through write.py; its outcome INAPPLICABLE stands but its premise is wrong -- the round could run git; the real reason is that the commit F5 cites no longer exists after the 2026-09-30 history rewrite (git cat-file refuses it; measured, id not printed), so the pre-scrub bytes F5 would scan are gone. The live-box half is measured by the count-only probe: 0 of 47 live fragments present in the current node bytes.
