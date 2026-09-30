@@ -36,8 +36,10 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           Sonnet fix 5bbf3bb01a: synthetic git identity -> example.com). Gate vs trunk 67dcfefd44: merge-tree rc 0, 6 files, 0 deletions,
           0 dirty; guard ok on committed bytes. SM RETURNED 14:34 (links.py sha missing from command:commands) -> manifest row 1d8fd19b90, gate vs 9313b659b9 rc 0, 7 files, 0 D -> RE-SENT 14:4xZ. TIP 1d8fd19b90 (worktree /mnt/agi-ram/worktrees/dg3-h-g133) -> [merge-up] to SM -> GO -> land
           (merge-tree + commit-tree + ff-only) -> goal:g1.33 complete; route cell paths.local_maxxing.scrub_commit_map + focus line to SM/Prime
-       dg6-04 chain: DH.DG3.47 kid tip 0d1bd9264b (worktree /mnt/agi-ram/worktrees/dg3-h-dg6-04, 276p) -> re-mur unit ...dg3mur-dg6-04e-1345
-          (old c51ea3367d) -> residues 0 -> [merge-up] half a -> GO -> land -> goal:g1.31.3.2 complete; email_allow diff -> SM/Prime
+       dg6-04 chain: re-mur dg6-04e FAILED (verify timed out 3600 s at 14:52Z); review accept_with_residue triaged -> CORRECTIVE DH.DG3.52 on the
+          loop tip a7ab2dba47 (3 test residues: no-CWD order, project-less row, email skip loop; +77/60 test cap ACCEPTED; 4 notes demoted)
+          -> parent a00-1e6b67b2 from /mnt/agi-ram/worktrees/de-base-DG3.52 -> harvest -> re-mur a7ab2dba47..tip -> residues 0 -> [merge-up] half a
+          -> GO -> land -> goal:g1.31.3.2 complete; email_allow cell (systemd-unit address shape) owed by the Prime -> SM/Prime with the merge-up
               g7556: DH.DG3.50 HARVESTED 14:12Z tip 574a307b1c (kid a00-14e7ff56 proved, merged by its parent; 127p/8s at tip; mem_cap NET +6 = cap,
           test 220 = cap) -> re-mur unit agi-director-general-3-dg3mur-g7556d-1414 (/tmp/dg3_mur-g7556d.json, old 157112b53e, 2 slices memcap + shell)
           -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g7.16.1.5.5.6 complete (RAM worktrees de-base-DG3.50 + a00-4be37f6b + a00-37c39981 REMOVED)
