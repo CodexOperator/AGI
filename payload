@@ -430,7 +430,9 @@ def frontmatter_rows(nodes_dir) -> "dict[str, dict]":
     import subprocess
     import rotation_record
     try:
-        r = subprocess.run(["git", "grep", "--no-index", "-znE",
+        # SM 127: -a -- a NUL byte anywhere in a file's first 8 KB made git print
+        # "Binary file <path> matches" instead of its rows: the node vanished
+        r = subprocess.run(["git", "grep", "--no-index", "-aznE",
                             r"^(---\s*$|(id|mint_id|type|title|status):)", "--", "*.md"],
                            cwd=Path(nodes_dir), capture_output=True, timeout=60)
     except (OSError, subprocess.SubprocessError) as exc:
@@ -450,18 +452,36 @@ def frontmatter_rows(nodes_dir) -> "dict[str, dict]":
             fm["_fences"] += 1 if (fm["_fences"] or n == "1") else 2
         elif fm["_fences"] == 1:
             key, _, val = text.partition(":")
-            val = val.strip()
-            if len(val) > 1 and val[0] == val[-1] in "\"'":   # a quoted scalar: YAML decodes
-                import yaml  # noqa: PLC0415  (escapes like \" -- 74 titles, DG2)
-                try:
-                    val = str(yaml.safe_load(val))
-                except yaml.YAMLError:
-                    val = val[1:-1]
-            fm.setdefault(key, val)
+            fm.setdefault(key, _scalar(val.strip()))
     for rel in [k for k, fm in files.items() if fm["_fences"] == 1]:   # SM 120a
-        print(f"warn: {rel}: frontmatter never closes -- not indexed", file=sys.stderr)
+        _warn_once(nodes_dir, f"warn: {rel}: frontmatter never closes -- not indexed")
         del files[rel]
     return files
+
+
+def _scalar(val: str) -> str:
+    """One frontmatter scalar as YAML reads it: a quoted one is YAML-decoded
+    (escapes like \" -- the quoted titles, DG2; `'it''s'`), a plain one ends
+    at YAML's comment (` #`, SM 123: an unquoted title holding ` ## x`)."""
+    if val[:1] in "\"'":
+        import yaml  # noqa: PLC0415
+        try:
+            out = yaml.safe_load(val)
+            return val if out is None else str(out)
+        except yaml.YAMLError:
+            return val[1:-1] if len(val) > 1 and val[0] == val[-1] else val
+    return "" if val.startswith("#") else re.split(r"\s#", val, maxsplit=1)[0].rstrip()
+
+
+_WARNED: set = set()
+
+
+def _warn_once(where, line: str) -> None:
+    """An index warning, once per process and tree -- never once per create /
+    resolve (SM run 12 note)."""
+    if (key := (str(Path(where).resolve()), line)) not in _WARNED:
+        _WARNED.add(key)
+        print(line, file=sys.stderr)
 
 
 def mint_index(root) -> "dict[str, list[tuple[str, str, str, str, bool]]]":
@@ -471,7 +491,7 @@ def mint_index(root) -> "dict[str, list[tuple[str, str, str, str, bool]]]":
     out: dict = {}
     for rel, fm in frontmatter_rows(Path(root) / "nodes").items():
         if fm.get("mint_id") and not fm.get("id"):   # SM 120b: named, never silent
-            print(f"warn: {rel}: mint_id {fm['mint_id']} but no id -- not indexed", file=sys.stderr)
+            _warn_once(root, f"warn: {rel}: mint_id {fm['mint_id']} but no id -- not indexed")
         if fm.get("mint_id") and fm.get("id"):
             out.setdefault(fm["mint_id"], []).append(
                 (fm["id"], fm.get("type", ""), fm.get("title", ""), fm.get("status", ""),
@@ -485,7 +505,7 @@ def resolve_mint(root, mint: str, *, index=None) -> "tuple[str, str, str] | None
     retired sibling under deprecated/ (CLAUDE.md: a grid ref outlives its file;
     SM 104) -- `status` says which. NO shape check: off-shape mints are
     accepted as found, the gate is "is a node's mint_id" (the Prime, signed
-    22:1xZ 09-29, verbatim on goal:g4.18.6.1). A mint two nodes of one tier carry raises ValueError by
+    22:1xZ 09-29, verbatim on goal:g4.18.6.4.1). A mint two nodes of one tier carry raises ValueError by
     name, never a silent pick; empty or absent -> None; a grep that cannot look
     raises GrepError (fails closed). `index` = a prebuilt mint_index, so a
     batch reader pays ONE grep, never one per item (DG2 fork)."""
