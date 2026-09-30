@@ -274,6 +274,16 @@ tests        their suites retire with them (test_rotate* ~10.5k lines · test_se
 ```
 The rough share that exists ONLY because every post is one Unix user: seatsig ~100% · rotate ~25-35% · heal ~25% · send ~20-25% · spawn_budget ~20% · write ~15% (a Sonnet survey, low confidence).
 
+The slot (§4, self-perpetuating; 472 B file, 415 B without its 2 comment lines; tested: fill · recycle · 3-way mix · keep dirty bytes · a clean keep writes no ref · a conflicting mix exits non-zero · 0 worktrees registered):
+```sh
+#!/bin/sh
+# slot D fill C.. | slot D keep REF
+d=$1 v=$2 r=$3;shift 3;export GIT_INDEX_FILE=$d.i
+if [ $v = fill ];then for c;do r=$(git commit-tree $(git merge-tree --write-tree $r $c) -p $r -p $c -m mix)||exit;done
+echo $r>$d.b;git --work-tree=$d read-tree -u --reset $r;git --work-tree=$d clean -fdqx
+else b=$(cat $d.b);git --work-tree=$d add -A;t=$(git write-tree);[ $t = $(git rev-parse $b^{tree}) ]||git update-ref $r $(git commit-tree $t -p $b -m keep);fi
+```
+
 ## §8 Spike falsifiers
 **What am I ACTUALLY trying to get the machine to do here?** Prove, on a throwaway repo under /tmp, that the kernel, git and systemd carry what the Python carried, BEFORE anything is retired. The spike runs only after the owner's go on this doc; until then `getent passwd | grep -c '^agi-'` = 0.
 
