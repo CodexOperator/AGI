@@ -2408,6 +2408,48 @@ def test_b4_w1a_row_dry_run_resolves_and_refuses(project, tmp_path, capsys):
 
 
 
+# goal:g4.18.5.1.1 + .1.2 (hypothesis:row-refuses-thought-markers-and-resolves-a-
+# table-name): a range holding a THOUGHT marker refuses (the old block would be
+# carried back); `row name:<NAME>` picks the ONE table row whose first cell is NAME.
+def _w1c_node(project):
+    body = ("\n# hypothesis:h1\n\n| k | v |\n|---|---|\n| alpha | 1 |\n| beta | 2 |\n| beta | 3 |\n\n"
+            + THOUGHT + "\n\n## After\n\ntail\n")
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    return node, write._read_body_text(project, "hypothesis:h1")
+
+
+def test_w1a_fix_a_range_holding_a_thought_marker_refuses(project, tmp_path):
+    node, body = _w1c_node(project)
+    before, lines = node.read_text(), body.split("\n")
+    n, (a, b) = next((i, r) for i, r in enumerate(node_writer.body_rows(body), 1)
+                     if lines[r[0] - 1].startswith("<!-- THOUGHT:BEGIN"))
+    (tmp_path / "x.txt").write_text("x\n")
+    for script in (f"row {n} {tmp_path / 'x.txt'}", f"row {n}:1-1 {tmp_path / 'x.txt'}",
+                   f"replace body {a - 1}:{a} --force {tmp_path / 'x.txt'}"):
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+        assert write.main(["hypothesis:h1", script, "--dry-run", "--root", str(project)]) == 2, script
+    assert node.read_text() == before
+    (tmp_path / "whole.txt").write_text(THOUGHT.replace("the old reason", "a new reason") + "\n")
+    assert write.main(["hypothesis:h1", f"row {n} {tmp_path / 'whole.txt'}", "--root", str(project)]) == 0
+    after = write._read_body_text(project, "hypothesis:h1")
+    assert after.count("THOUGHT:BEGIN") == 1 and "a new reason" in after and "the old reason" not in after
+
+
+def test_w1a_fix_row_name_picks_one_table_row(project, tmp_path, capsys):
+    node, body = _w1c_node(project)
+    (tmp_path / "r.txt").write_text("| alpha | 10 |\n")
+    write.main(["hypothesis:h1", f"row name:alpha {tmp_path / 'r.txt'}", "--dry-run", "--root", str(project)])
+    a = body.split("\n").index("| alpha | 1 |") + 1
+    assert f"row    name:alpha -> {a}:{a}" in capsys.readouterr().out
+    assert write.main(["hypothesis:h1", f"row name:alpha {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    after = write._read_body_text(project, "hypothesis:h1")
+    assert after == body.replace("| alpha | 1 |", "| alpha | 10 |")
+    for name in ("gamma", "beta", "k-"):
+        assert write.main(["hypothesis:h1", f"row name:{name} {tmp_path / 'r.txt'}", "--root", str(project)]) == 2
+    assert write._read_body_text(project, "hypothesis:h1") == after
+
+
 # BUILD1 (goal:g7.16.1.4 W1, alive 841857ddb): `row <top>.<key> <src>` edits ONE
 # nested frontmatter row (command:commands `manifest.<key>`); an empty source
 # removes it; every other frontmatter line stays byte-identical.
