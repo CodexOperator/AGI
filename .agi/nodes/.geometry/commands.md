@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: director-general-3
+edited_by: belam
 excluded:
   write.py:patch:
     cli: write.py
@@ -1434,19 +1434,18 @@ manifest:
     proposable: true
   links.py:mint:
     cli: links.py
-    verb: sha
+    verb: mint
     argv:
       - python3
       - <engine>/extensions/agi/bin/links.py
-      - sha
+      - mint
       - <mint_id>
     args:
       - {"name": "mint_id", "type": "str", "required": true, "choices": []}
       - {"name": "root", "type": "str", "required": false, "choices": []}
-    purpose: resolve a cited commit id (known, or pre-rewrite through the cell-named local map) to its commit; never prints a map line
+    purpose: resolve a mint id to the one live node carrying it (id, title, status)
     side_effects: read
     proposable: true
-    links.py:sha:
   links.py:schema:
     cli: links.py
     verb: schema
