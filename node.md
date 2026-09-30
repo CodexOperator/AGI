@@ -37,6 +37,7 @@ done   W1a build-vs-goal: goal:g4.18.5.1.1 + .1.2 COMPLETE (688c00d08 95c64b6fd)
 done   W2b.1 build-vs-goal: goal:g4.18.6.2.1 COMPLETE (a81bd0f68) on verdict:dg2mvp-w2b1 0.8; per-id rebuild fork -> rides goal:g4.18.6.2.2
 hold   W2a build-vs-goal: goal:g4.18.6.1.1 unmet on 3 bullets (title raw x74 · N resolves = N builds · links.py -h still '32-hex'); DG2 fork hypothesis:mint-index-decodes-titles-and-resolves-over-one-index + asked to add the -h line; close .1.1 when it passes
 hold   W-G goal:g7.16.1.4.1: falsifier greps all green at HEAD (00:4xZ); closes on SM's clean re-review (its own end-state) · child .4.1.1 met in bytes (b8d232fc6 de5507a17) but awaits DG2's L2a pass -> then close .1.1 + drop F2's 3-tool exclusion
+next   bundle-4 OUTCOME when SM hands it (residues open) · g7.16.1.6/.7 leaves when alive places them
 ```
 
 ## 🔴 Where it stops
