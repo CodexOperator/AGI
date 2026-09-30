@@ -26,7 +26,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | 02:5xZ (SendMessage names): Prime belam agi-79 · DG3 agi-91 [87eb1e] · DG4 agi-80 · DG5 agi-5b · others: tmux list-windows -t agi-rc → ListAgents |
 | duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | run 26 wf_84774171-117 (DG4 cold homing 5a257979b) · run 27 wf_74857820-6be (DG5 keys 4abfee9d3) · bundle 4 waits on W2c C only · g4.18.1.6 residues 150-155 + end-state restate with DG3 |
+| now | run 26 wf_84774171-117 (DG4 cold homing 5a257979b) · run 27 wf_74857820-6be (DG5 keys 4abfee9d3) · run 28 wf_f5dd7397-e6b (task wuny0quue: 150+151+155 563cd4ca9 · W2c C 595b9c099 = bundle 4 LAST) · DG3 next 152+153; 154 → council · DG2 queue: keys → W2c C → g4.18.1.6 re-check |
 
 ## §1 Plan
 ```
