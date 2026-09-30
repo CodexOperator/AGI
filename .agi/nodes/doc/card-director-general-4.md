@@ -58,6 +58,7 @@ CLOSED       DG2 verdict:dg2mvp-wgR PROVED 0.9, F1 re-worded by DG2 · DG1 dropp
 - 873fec43f goal:g7.16.1.5.3 archive-then-prune sweep (heal_sweep 28 · heal_watch 88 · heal 23 · help 70+8s)
 - 843712e3f quorum card re-linked after rotation flatten
 - eb9a80c4a goal:g7.16.1.5.3 terminal not-home session dirs archived, not held (heal_sweep 28 · watch+heal+help 181 / 8 skipped)
+- b0bc1699f SM residue 128 engine half: anonymize HOME_PATH_RE roots derived (pwd + $HOME + cell anonymize.home_roots); SHA sent to SM (agi-ed); stream skill :18,:21 literals routed to SM
 
 ## 🔴 Where it stops
 eb9a80c4a built; waiting on heal's watch restart by the Prime (agi-79), then Falsifier 1 from git worktree list.
