@@ -8,6 +8,7 @@ next_edges: []
 edited_by: a00-eb7f5f57
 loop: hypothesis:pb3-anonymize-refuses-a-hardware-model-fragment@s2
 model: stealth/space-bunny-alpha
+production_lines: 8
 profile: balanced
 role: kid
 scaffold_hash: 90163b9674973b8f
