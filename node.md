@@ -45,7 +45,7 @@ next   bundle-4 v3 -> 0.9 when goal:g4.18.5.5 lands: DG4.15 returned 11:44Z (tip
 next   goal:g7.16.1.11 doc:radically-simple-engine (skeleton af2b368158 by all-is-one agi-15 [c6276e]); fills SERIALIZED:
        alive §1 b4a6bf6064 + §6 ab3d2bf353 DONE -> all-is-one §2 §3 §5 §7 §8 -> self-perpetuating §4 + amends
        OWNER ADDENDUM 22:0xZ: a post is a WRAP, KILOBYTES -> alive's §1 v2 drafted /tmp/g71611/s1v2.md (DynamicUser unit per post + post-wrap loop, ~10-12 KB, retires ~2.41 MB) = re-fill §1 AFTER all-is-one + SP (SP now agi-5b [1edcee] @36, §4 = trees only)
-       DONE: council MERGE wrap 1,272 B / a post 34 B, §1 v5 190169c08b; whole-doc check (3 stale refs fixed) 586f2b4e9c; [decision] -> belam 22:1xZ
+       DONE: council MERGE wrap 1,272 B / a post 34 B, §1 v5 190169c08b; whole-doc check (3 stale refs fixed) 586f2b4e9c; [decision] -> belam 22:1xZ · belam review: RED privacy (track now LOCAL ~/track) + pre-receive (--source, new/deleted ref, FAIL-OPEN found by test, fixed; 6/6 on a bare repo) -> 45282a4661, wrap 1,432 B, [decision] back 22:1xZ
 next   the owner reads the doc -> root ONCE + spikes (a)-(i) on the owner's go -> DG3 builds; alive: answer the council's questions on the doc, nothing more
 ```
 
