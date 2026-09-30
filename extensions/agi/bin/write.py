@@ -2476,14 +2476,28 @@ def _resolve_replace_text(edit: Edit) -> None:
     edit.replace_text = text
 
 
-def _warn_home_path(edit: Edit) -> None:
+def _added_text(edit) -> str:
+    """hypothesis:g133 — ONLY the text a write ADDS: the `+` lines of a diff, never
+    its context or `-` lines, plus every inline source and the set values; an old
+    body is never judged."""
+    parts = [edit.body_append, edit.thought, edit.replace_text, edit.payload_bytes]
+    parts += list(edit.set_fm.values())
+    for frm, diff in ((edit.body_patch_from, edit.body_patch_diff),
+                      (edit.patch_from, edit.patch_diff)):
+        if not diff and frm and frm != "-":   # submit reads a diff FILE after this
+            try: diff = Path(frm).read_text(encoding="utf-8", errors="replace")
+            except OSError: diff = ""
+        parts += [ln[1:] for ln in (diff or "").splitlines()
+                  if ln.startswith("+") and not ln.startswith("+++")]
+    return "\n".join(str(t) for t in parts if t)
+
+
+def _warn_home_path(edit) -> None:
     """hypothesis:g133 -- ONE WARN line when a NEW write's ADDED text carries an
     absolute home-rooted path (anonymize's own pattern, reused). Never refuses;
     an old node is never swept."""
     import anonymize
-    text = "\n".join(str(t) for t in
-                     (edit.body_append, edit.thought, edit.replace_text, edit.payload_bytes)
-                     if t)
+    text = _added_text(edit)
     if text and anonymize.HOME_PATH_RE.search(text):
         print("WARN: this write carries a home-rooted path; prefer a config cell "
               "or <home>/. Not refused.", file=sys.stderr)
@@ -3971,6 +3985,10 @@ def main(argv: list[str] | None = None) -> int:
                 return 2
         elif answers.get("body") is not None:
             body = answers["body"]
+        # g133: the create branch RETURNS above every other call site, so the
+        # WARN is raised HERE too — a create IS the literal NEW write
+        _warn_home_path(Edit(node_id=f"{script}:{slug}", body_append=body or "",
+                             set_fm=set_fm))
         try:
             res, made = create(root, script, slug, parents,
                                set_fm=set_fm,

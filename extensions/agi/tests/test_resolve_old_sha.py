@@ -1,122 +1,175 @@
 """hypothesis:g133 — resolve_old_sha: the ONE pre-rewrite commit-id resolver.
 
-Every value here is SYNTHETIC (fake 40-hex old ids, a tmp git repo, a tmp
-config naming a tmp map). The real map and every real pre-rewrite id are never
-read by this file, and no real box path is printed.
+Every value here is SYNTHETIC (fake 40-hex old ids, tmp git repos, a tmp config
+naming a tmp map, a fixture user under a conventional home root joined at
+runtime). The real map and every real pre-rewrite id are never read by this file,
+and no real box path is printed.
 
-Falsifiers, one per test: F1 mapped, F2 x4 silent-None, F3 the `sha`
-subcommand's output shape, F4 no map path literal in the code, F5 write.py
-WARNs and does not refuse.
+Falsifiers: F1 mapped, F2 silent-None, F3 the `sha` subcommand's output shape and
+its refusal by name, F4 no map path literal in the code, F5 a dropped commit is
+not a commit, F6 the hex gate, F7 the write.py WARN (create path, added text only).
 """
 from __future__ import annotations
 
+import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
-BIN = Path(__file__).resolve().parent.parent / "bin"
-SRC = Path(__file__).resolve().parent.parent / "src"
+REPO = Path(__file__).resolve().parents[3]
+BIN = REPO / "extensions/agi/bin"
+SRC = REPO / "extensions/agi/src"
 sys.path.insert(0, str(BIN))
 sys.path.insert(0, str(SRC))
 
 import links  # noqa: E402
+import write as w  # noqa: E402
 
 OLD_A = "a" * 40          # synthetic pre-rewrite id
 OLD_B = "b" * 40
 OLD_C = "c" * 40
 SHARED = "deadbeef"       # two rows share this prefix -> ambiguous
+#: a home-rooted path, JOINED at runtime: no home path value is ever committed
+HOME = "/" + "home/" + "someuser"
 
 
-def _git_repo(tmp_path: Path) -> "tuple[Path, str]":
-    repo = tmp_path / "repo"
-    repo.mkdir()
+def _git_head(d: Path) -> str:
+    """Make `d` a git repo with one commit; return its full id."""
     env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
            "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t",
-           "PATH": "/usr/bin:/bin", "HOME": str(tmp_path)}
-    subprocess.run(["git", "init", "-q", str(repo)], check=True, env=env)
-    (repo / "f").write_text("x\n")
-    subprocess.run(["git", "-C", str(repo), "add", "f"], check=True, env=env)
-    subprocess.run(["git", "-C", str(repo), "commit", "-qm", "c"], check=True, env=env)
-    head = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
-                          check=True, capture_output=True, text=True,
-                          env=env).stdout.strip()
-    return repo, head
+           "PATH": "/usr/bin:/bin", "HOME": str(d)}
+    subprocess.run(["git", "init", "-q", str(d)], check=True, env=env)
+    (d / "f").write_text("x\n")
+    subprocess.run(["git", "-C", str(d), "add", "f"], check=True, env=env)
+    subprocess.run(["git", "-C", str(d), "commit", "-qm", "c"], check=True, env=env)
+    return subprocess.run(["git", "-C", str(d), "rev-parse", "HEAD"], check=True,
+                          capture_output=True, text=True, env=env).stdout.strip()
 
 
-def _project(tmp_path: Path, map_rows: list[str] | None, *, cell: bool = True) -> Path:
+def _project(tmp_path: Path, map_rows: list[str] | None, *, cell: bool = True,
+             git: bool = False) -> Path:
     """A tmp `.agi/` project whose config names a tmp map (or does not)."""
-    agi = tmp_path / "proj" / ".agi"
-    agi.mkdir(parents=True)
+    proj = tmp_path / "proj"
+    agi = proj / ".agi"
+    (agi / "nodes" / "idea").mkdir(parents=True)
+    (agi / "nodes" / "idea" / "i1.md").write_text(
+        "---\nid: idea:i1\ntype: idea\n---\n\nbody\n")
+    shutil.copytree(REPO / ".agi/context/schemas", agi / "context/schemas")
     cfg = {"paths": {"local_maxxing": {}}}
     if cell:
         cfg["paths"]["local_maxxing"]["scrub_commit_map"] = ".agi/scrub/m.tsv"
         (agi / "scrub").mkdir()
-        (agi / "scrub" / "m.tsv").write_text(
-            "".join(r + "\n" for r in (map_rows or [])))
-    (agi / "config.json").write_text(__import__("json").dumps(cfg))
-    (agi / "nodes").mkdir()
-    return agi.parent
+        (agi / "scrub" / "m.tsv").write_text("".join(r + "\n" for r in (map_rows or [])))
+    (agi / "config.json").write_text(json.dumps(cfg))
+    if git:
+        _git_head(proj)
+    return proj
 
 
 def test_f1_known_commit_answers_full_id(tmp_path):
-    repo, head = _git_repo(tmp_path)
-    root = repo
-    full = links.resolve_old_sha(root, head[:12])
-    assert full and len(full) == 40 and full == links.resolve_old_sha(root, full)
+    proj = _project(tmp_path, None, git=True)
+    head = links._git_commit(proj, "HEAD")
+    assert head and links.resolve_old_sha(proj, head[:12]) == head
 
 
 def test_f1_mapped_prefix_answers_the_rewritten_id(tmp_path):
-    _repo, head = _git_repo(tmp_path)
-    proj = _project(tmp_path, [f"{OLD_A}\t{head}"])
+    proj = _project(tmp_path, None, git=True)
+    head = links._git_commit(proj, "HEAD")
+    (proj / ".agi/scrub/m.tsv").write_text(f"{OLD_A}\t{head}\n")
     assert links.resolve_old_sha(proj, OLD_A[:9]) == head
     assert links.resolve_old_sha(proj, OLD_A) == head
 
 
 @pytest.mark.parametrize("rows,cell", [
     ([], True),                      # cell present, map empty -> unknown
-    ([f"{OLD_B}\t{OLD_C}"], True),   # id nobody knows -> unknown
+    ([f"{OLD_B}\t{OLD_C}"], True),   # a new id git does not know -> unknown
     ([f"{SHARED}01\t{OLD_A}", f"{SHARED}02\t{OLD_B}"], True),   # ambiguous
     ([f"{OLD_A}\t{OLD_C}"], False),  # cell absent
 ])
-def test_f2_falls_through_silently(tmp_path, rows, cell):
-    proj = _project(tmp_path, rows, cell=cell)
+def test_f2_falls_through_silently(tmp_path, rows, cell, capsys):
+    proj = _project(tmp_path, rows, cell=cell, git=True)
     assert links.resolve_old_sha(proj, OLD_A) is None
+    assert capsys.readouterr().out == "" and capsys.readouterr().err == ""
 
 
 def test_f2_absent_map_file_is_silent(tmp_path):
-    proj = _project(tmp_path, None)
+    proj = _project(tmp_path, None, git=True)
     (proj / ".agi" / "scrub" / "m.tsv").unlink()
     assert links.resolve_old_sha(proj, OLD_A) is None
 
 
-def test_f3_sha_subcommand_prints_only_the_new_id(tmp_path, capsys):
-    _repo, head = _git_repo(tmp_path)
-    proj = _project(tmp_path, [f"{OLD_A}\t{head}"])
-    rc = links.main(["sha", OLD_A[:8], "--root", str(proj)])
+def test_f5_a_dropped_commit_is_not_a_commit(tmp_path):
+    """item 5: an all-zero new id, and a new id git does not know, both -> None."""
+    proj = _project(tmp_path, [f"{OLD_A}\t{'0' * 40}", f"{OLD_B}\t{OLD_C}"], git=True)
+    assert links.resolve_old_sha(proj, OLD_A) is None   # zeroed row
+    assert links.resolve_old_sha(proj, OLD_B) is None   # unknown commit id
+
+
+def test_f6_a_four_hex_prefix_resolves(tmp_path):
+    """item 6: the gate is 4..40 hex, so a 6-hex abbreviated old id answers."""
+    proj = _project(tmp_path, None, git=True)
+    head = links._git_commit(proj, "HEAD")
+    (proj / ".agi/scrub/m.tsv").write_text(f"{OLD_A}\t{head}\n")
+    assert links.resolve_old_sha(proj, OLD_A[:6]) == head
+    assert links.resolve_old_sha(proj, OLD_A[:3]) is None   # under the gate
+
+
+def test_f3_sha_prints_only_the_new_id(tmp_path, capsys):
+    proj = _project(tmp_path, [f"{OLD_A}\t{'c' * 40}"], git=True)
+    head = links._git_commit(proj, "HEAD")
+    (proj / ".agi/scrub/m.tsv").write_text(f"{OLD_A}\t{head}\n")
+    assert links.main(["sha", OLD_A[:8], "--root", str(proj)]) == 0
     out = capsys.readouterr()
-    assert rc == 0 and out.out.strip() == head
-    assert OLD_A not in (out.out + out.err) and "map" not in out.out.lower()
-    rc = links.main(["sha", OLD_B, "--root", str(proj)])
+    assert out.out.strip() == head and "map" not in out.out.lower()
+    assert OLD_A not in out.out and OLD_A not in out.err   # the input id never echoes
+    assert links.main(["sha", OLD_B, "--root", str(proj)]) == 1
     out = capsys.readouterr()
-    assert rc == 1 and "unknown" in out.err
+    assert "unknown commit id" in out.err and OLD_B not in out.err and out.out == ""
+
+
+def test_f3_sha_with_no_id_is_refused_by_name(tmp_path, capsys):
+    """item 10: an absent id is refused at argv (rc 2), never resolved as ""."""
+    proj = _project(tmp_path, None, git=True)
+    assert links.main(["sha", "--root", str(proj)]) == 2
+    assert "needs a commit id" in capsys.readouterr().err
 
 
 def test_f4_no_map_path_literal_in_code():
+    """item 3: the forbidden literal is BUILT here, so grep over extensions/ is 0."""
+    forbidden = "commit" + "-map"
     src = (BIN / "links.py").read_text(encoding="utf-8")
-    assert "commit-map" not in src and "commit_map/" not in src
-    assert "scrub_commit_map" in src      # the CELL name, not a path
+    assert forbidden not in src and "scrub_commit_map" in src   # the CELL, not a path
 
 
-def test_f5_write_warns_and_does_not_refuse(tmp_path, capsys):
-    import json as _json
-    import write as w
+def test_f7_create_warns_once_and_still_writes(tmp_path, capsys):
+    """item 1: the WARN is reachable on the CREATE branch, through main, rc 0."""
     proj = _project(tmp_path, [])
-    agi = proj / ".agi"
-    (agi / "config.json").write_text(_json.dumps({"id": "n"}))
-    edit = w.Edit(node_id="n",
-                  replace_text="see /home/someone/x.log\n")
-    w._warn_home_path(edit)
+    body = tmp_path / "b.md"
+    body.write_text(f"see {HOME}/x.log\n")
+    assert w.main(["create", "hypothesis", "h-create-warn", "--parent", "idea:i1",
+                   "--body-file", str(body), "--root", str(proj)]) == 0
     err = capsys.readouterr().err
-    assert err.startswith("WARN:") and "refused" in err.lower()
+    assert err.count("WARN:") == 1 and "refused" in err.lower()
+    assert (proj / ".agi/nodes/hypothesis/h-create-warn.md").is_file()
+
+
+def test_f7_the_warn_judges_added_text_only(tmp_path, capsys):
+    """item 7: a CONTEXT line carrying a home path is not this write's text."""
+    proj = _project(tmp_path, [])
+    body = tmp_path / "b.md"
+    body.write_text(f"alpha\nbeta {HOME}/x.log\ngamma\n")
+    assert w.main(["create", "hypothesis", "h-diff-warn", "--parent", "idea:i1",
+                   "--body-file", str(body), "--root", str(proj)]) == 0
+    capsys.readouterr()
+    d = tmp_path / "d.diff"
+    d.write_text("--- a\n+++ b\n@@ -3,2 +3,2 @@\n alpha\n"
+                 f"-beta {HOME}/x.log\n+clean text\n")
+    assert w.main(["hypothesis:h-diff-warn", f"body_patch {d}", "--root", str(proj)]) == 0
+    assert capsys.readouterr().err.count("WARN:") == 0, "a context line is not added text"
+    d.write_text("--- a\n+++ b\n@@ -3,2 +3,2 @@\n alpha\n"
+                 "-clean text\n" + f"+see {HOME}/y.log\n")
+    assert w.main(["hypothesis:h-diff-warn", f"body_patch {d}", "--root", str(proj)]) == 0
+    assert capsys.readouterr().err.count("WARN:") == 1
