@@ -2514,6 +2514,23 @@ def test_row_dry_run_refuses_like_submit(project, tmp_path):
     assert node.read_text() == before
 
 
+
+# SM 125: a `sub` beside a row / replace body refuses alike in the preview and
+# the write -- rc AND stderr (the preview used to judge before the sub resolved)
+def test_sm125_a_sub_beside_a_body_writer_refuses_alike_dry_and_real(project, tmp_path, capsys):
+    node, _ = _w1c_node(project)
+    before, x = node.read_text(), tmp_path / "x.txt"
+    x.write_text("| alpha | 5 |\n")
+    for script in (f"row name:alpha {x} && sub tail => TAIL", f"sub tail => TAIL && row name:alpha {x}",
+                   f"replace body 6:6 {x} && sub tail => TAIL"):
+        errs = []
+        for dry in (["--dry-run"], []):
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and "standalone" in errs[0][0], (script, errs)
+    assert node.read_text() == before
+
+
 def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp_path):
     node, body = _w1c_node(project)
     (tmp_path / "r.txt").write_text("| write.py | 9 |\n")
