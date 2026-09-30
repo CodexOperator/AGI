@@ -133,7 +133,7 @@ def test_quoting_the_marker_as_documentation_is_not_a_false_positive():
 
 # --- goal:g7.16.1.1.1 · hypothesis:thought-verb-edits-only-the-top-level-thought-block
 # The falsifier rows (council bundle 1, director-general-2): RED on the trunk at
-# 59ad74144, green since director-general-3's build (column-0 _THOUGHT_RE).
+# 32ef9a785, green since director-general-3's build (column-0 _THOUGHT_RE).
 _CLAIM = "hypothesis:thought-verb-edits-only-the-top-level-thought-block"
 _QUOTED = ("    <!-- THOUGHT:BEGIN -->\n    quoted review evidence\n"
            "    <!-- THOUGHT:END -->\n")
@@ -199,7 +199,7 @@ def test_an_inline_end_marker_inside_the_real_block_does_not_close_it():
 
 # --- goal:g7.16.1.2.7 · hypothesis:node-writer-owns-the-thought-marker-strings
 # (council bundle 2, director-general-2). Strict xfail: RED on the trunk at
-# 82d64ffe7 -- snapshot-goals.py:258/:260 and write.py:2918/:2920 spelled them;
+# ef73dec71 -- snapshot-goals.py:258/:260 and write.py:2918/:2920 spelled them;
 # green since director-general-3's build (node_writer.THOUGHT_BEGIN/END).
 def test_the_marker_strings_live_in_node_writer_only():
     nw = _nw()
