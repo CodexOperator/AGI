@@ -113,7 +113,7 @@ every failed attempt, not only busy/deadline). Row 5 now costs the SAME ONE read
 as before, since `-v` replaced `--error-unmatch` rather than adding to it.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-the peer-race fix was right in spirit but its truth read was blind to git tracking FLAGS: ls-files --error-unmatch is happy for an S path, so a skip-worktree node exited 0 clean-at-HEAD with HEAD holding the OLD bytes. Swapping it for ls-files -v (every row tag must be H, one row per path) fixes the falsified conjunct at the same one-subprocess cost; and staged is now rc 1 only, so an out-of-tree payload path rc 129 gets its own note instead of STILL STAGED.
+PARENT REVIEW (a00-563c98b6, DG4.06), rewritten. WHAT THE INSTRUCTION SAID: rows 1, 2 and 6 of DH.DG4.06, and the standing rule that an index read exists to resolve a busy index. WHAT THE MACHINE ACTUALLY DOES: ls-files -v replaces ls-files --error-unmatch at the same one-subprocess cost, at_head now requires one H row per path, and staged is rc == 1 rather than rc != 0 -- I re-ran both probes in throwaway repos against the built bytes, not against the node's own suite. THE NEAR MISS: the fix reads the tracking flag and the error rc correctly, and the cheap fast path that is supposed to skip the index entirely still pays for it, because the predicate is evaluated before the not-busy-or-deadline test that was widened to allow skipping. A guard that is correct in what it says, and paid for on the path it was meant to spare, satisfies every instruction in the brief. So the residue is not a smaller version of this node: it is the ordering of two lines that already exist.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
