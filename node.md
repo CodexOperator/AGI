@@ -50,7 +50,7 @@ commands:
       - python3
       - <engine>/extensions/agi/bin/links.py
       - schema
-    about: goal:g7.33.10.1 — which nodes violate their type's required list (dry)
+    about: goal:s31 — which nodes violate their type's required list (dry)
     workflow: read
   budget:
     argv:
@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: belam
+edited_by: director-general-3
 excluded:
   write.py:patch:
     cli: write.py
@@ -463,18 +463,6 @@ excluded:
       - <engine>/extensions/agi/bin/rotate.py
       - spawn
     reason: spawns a successor process; never-run by a proposer
-    side_effects: spawn
-    proposable: false
-  rotate.py:stand-up:
-    cli: rotate.py
-    verb: stand-up
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/rotate.py
-      - stand-up
-      - "--post"
-      - <post>
-    reason: stands a post session up by hand (a restart); spawns a seat, operator-only
     side_effects: spawn
     proposable: false
   rotate.py:tile:
@@ -960,7 +948,7 @@ manifest:
     args:
       - {"name": "ref", "type": "str", "required": true, "choices": []}
       - {"name": "source", "type": "str", "required": true, "choices": ["-"]}
-    purpose: replace one body row (node_writer.body_rows), or lines i-j inside it (<n>:<i>-<j>), or ONE nested frontmatter row (<top>.<key>, an empty source removes it)
+    purpose: replace one body row (node_writer.body_rows), or lines i-j inside it (<n>:<i>-<j>)
     side_effects: graph-write
     proposable: true
   write.py:adopt:
@@ -1310,6 +1298,7 @@ manifest:
     args:
       - {"name": "action", "type": "str", "required": true, "choices": ["install", "show", "remove"]}
       - {"name": "snapshot_mins", "type": "str", "required": false, "choices": []}
+      - {"name": "publish_engine", "type": "bool", "required": false, "choices": []}
     purpose: grid.py cron
     side_effects: destructive
     proposable: false
@@ -2616,6 +2605,27 @@ manifest:
     side_effects: graph-write
     proposable: false
     reason: bulk-wires agent verdicts into the graph from the harness; loop-owned, operator-only
+  unify.py::
+    cli: unify.py
+    verb: ""
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/unify.py
+      - "--engine"
+      - <engine>
+    args:
+      - {"name": "engine", "type": "str", "required": true, "choices": []}
+      - {"name": "tree", "type": "str", "required": false, "choices": []}
+      - {"name": "rollback", "type": "bool", "required": false, "choices": []}
+      - {"name": "yes", "type": "bool", "required": false, "choices": []}
+      - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
+      - {"name": "this_is_the_real_migration", "type": "bool", "required": false, "choices": []}
+      - {"name": "force", "type": "bool", "required": false, "choices": []}
+      - {"name": "report_json", "type": "bool", "required": false, "choices": []}
+    purpose: merge the two-repo layout into one
+    side_effects: destructive
+    proposable: false
+    reason: destructive one-repo migration and rollback; owner-ops, never proposed
   hierarchy.py:render:
     cli: hierarchy.py
     verb: render
@@ -3014,6 +3024,24 @@ manifest:
     purpose: one live read of every seat, the spawn budget and the telemetry roll-up
     side_effects: read
     proposable: true
+  verify_unified.py::
+    cli: verify_unified.py
+    verb: ""
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/verify_unified.py
+      - "--before"
+      - <before>
+      - "--after"
+      - <after>
+    args:
+      - {"name": "before", "type": "str", "required": true, "choices": []}
+      - {"name": "after", "type": "str", "required": true, "choices": []}
+      - {"name": "json", "type": "bool", "required": false, "choices": []}
+    purpose: "before vs after: did the goal:g11 migration lose anything? read-only"
+    side_effects: read
+    proposable: false
+    reason: a one-repo migration verifier; its goals_at_repo_root check fails on every repo since GOALS.md retired (the DG4 leftovers leaf under bundle 4 row W-G decides its fate)
   write_guard.py:check:
     cli: write_guard.py
     verb: check
@@ -3206,9 +3234,8 @@ agent is handed — the same class of mistake as the contradictory kid contract
 ## What reads this
 
 `bin/commands.py` resolves and runs (`list`, `show`, `run`), and
-`inject.py` (via `briefing.py`) writes the set into `context/INJECTION.md` so
-**every agent is handed the commands rather than expected to remember them**
-(`render-context.py`, its earlier writer, retired at L1.05).
+`render-context.py` writes the set into `context/INJECTION.md` so **every
+agent is handed the commands rather than expected to remember them**.
 
 That second reader is why this node is allowed to exist. `goal:g2.25`'s rule
 is that a `.geometry` node must be the input a code path resolves against,
@@ -3258,5 +3285,5 @@ graph carries only what is below: the alias, the label, and the one command.
   A box added to the farm gets a row here, a label, and nothing else.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-goal:g7.16.1.4.1.2 (DG2's L2a config finding): 'What reads this' named render-context.py as the writer of context/INJECTION.md; it retired at L1.05 (44ee2f65c) and the writer is inject.py, whose brief comes from briefing.build (which imports commands). The paragraph now names inject.py via briefing.py and render-context.py only as retired. Prose only: commands.py list output byte-identical before and after.
+09-23 EF.21 kid a00-deb4f918: added the `manifest:` and `excluded:` frontmatter maps declaring the write.py verb surface (VERBS + create) so `commands.py manifest` has ONE typed choice set to print. The 25 `commands:` entries are untouched byte-for-byte (`manifest:` only ADDS metadata; the manifest action DERIVES cli/verb from a command's own argv when no override is present, so no existing entry needed editing). Deviation from the kid brief: it asked the manifest to contain no `<home>`, but the five mesh entries carry `<home>/work/.sanctuary/ssh/config` by design and the same brief forbids editing them -- `<home>` is a clone-agnostic placeholder resolved at run time, not a box value, so it stays. Frontmatter written directly because write.py has no verb for a nested map entry (patch = payload only); disclosed here, not silent.
 <!-- THOUGHT:END -->
