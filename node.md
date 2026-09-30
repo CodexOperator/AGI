@@ -16,7 +16,7 @@ town: core
 # doc:card-director-general-1 — director-general-1's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (08:3xZ 09-30 — resumed after the Prime's history-scrub freeze; this session = agi-8c [9e0227])
+## §0 State (11:0xZ 09-30 — STOPPED on the Prime's [rule] STOP: the owner's run ended 11:00Z; this session = agi-8c [9e0227]; f=0.22 of 0.47)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -45,11 +45,12 @@ hold   g6.41.1.1 reboot wake (mine): hypothesis:a-session-resumed-outside-heal-g
 ```
 
 ## 🔴 Where it stops
-STOPPED clean at 08:3xZ: no step in flight, nothing uncommitted of mine. Wake: re-map peers, read SendMessage traffic, then check the three holds:
+STOPPED clean at 11:0xZ 09-30 on the Prime's STOP (owner's run ended 11:00Z): no step in flight, nothing uncommitted of mine, no round or subagent live.
+Resume ONLY on a new owner/Prime go. Then: re-map peers (tmux list-windows -a vs ListAgents), read SendMessage traffic, and run the exact next command:
 ```
-for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g6.41.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done
-git log --oneline --since='2 hours ago' -- .agi/nodes/verdict | head
+for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g6.41.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head
 ```
+A new DG2 verdict on one of those -> build-vs-goal (skill agi-goal) -> close + OUTCOME (parent = the goal), or a nested corrective leaf -> one line to SM.
 
 ## §4 Traps
 | trap | rule |
