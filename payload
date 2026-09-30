@@ -732,6 +732,11 @@ def _g41816_guard(project):
     assert write.main(["config:guard", "set note_row x", "--root", str(project)]) == 0   # canonical form
     return d / "guard.md"
 
+def _g41816_render(node, **rows):   # the node + rows, in the ONE canonical form (the patch gate's)
+    from graph_core.persistence import frontmatter as fmr
+    nf = fmr.load_node_file(node)
+    return node_writer._serialize_node(node_writer.render_frontmatter({**nf.frontmatter, **rows}), nf.body)
+
 def _g41816_diff(old, new):
     import difflib
     return "".join(difflib.unified_diff(old.splitlines(True), new.splitlines(True), "a", "b"))
@@ -757,7 +762,7 @@ def test_g41816_a_node_patch_refuses_identity_contract_thought_and_a_second_verb
                               ("patch -", old.replace("type: config", "type: goal"), "is identity or completion state"),
                               ("patch -", old.replace("limit: 384M", "limit: 384M\nscaffold_hash: x"), "SM150"),
                               ("patch -", old.replace("limit: 384M", "limit: 384M\na.b: x"), "dotted keys"),
-                              ("patch -", old.replace("limit: 384M", "limit: 384M\nparents:\n- goal:nonexist"), "name no node"),
+                              ("patch -", _g41816_render(node, parents=["goal:nonexist"]), "name no node"),
                               ("patch -", old.replace("\nc\n", "\nd\n"), "BUILD-CONTRACT"),
                               ("patch -", old.replace(beg + "\n", ""), "THOUGHT malformed"),
                               ("patch -", old.replace("old line", f"old line\n{beg}"), "THOUGHT malformed"),
@@ -778,6 +783,7 @@ def test_sm150_155_a_node_patch_is_judged_as_its_rows(project, monkeypatch, caps
     import io
     node = _g41816_guard(project)
     node.write_text(node.read_text().replace("limit: 384M", "limit: 384M\nscaffold_hash: h1"))
+    assert write.main(["config:guard", "canonicalize", "--root", str(project)]) == 0   # the fixture, canonical
     old = node.read_text()
     for new in (old.replace("scaffold_hash: h1", "scaffold_hash: h2"), old.replace("scaffold_hash: h1\n", "")):
         monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, new)))
@@ -826,6 +832,40 @@ def test_sm148_149_an_unreadable_payload_dest_refuses_and_same_bytes_444_relogs(
         assert dest.read_text() == "old\n" and '"changed": false' in log.read_text().splitlines()[-1]
     finally:
         os.chmod(dest, 0o644)
+
+# council ruling on SM 154 (b) + SM 152 + 153: a patch whose canonical render differs from its applied bytes
+# refuses and names `canonicalize` verbatim (never rc 0 "updated" on a silent discard); `canonicalize`
+# then the patch lands byte-exact; no 2nd THOUGHT block; bad sources and broken frontmatter are ERRs
+def test_sm152_154_canonical_gate_thought_count_and_bad_sources(project, tmp_path, monkeypatch, capsys):
+    import io
+    node = _g41816_guard(project)
+    canon = node.read_text()
+    blocks = canon.replace("\n\n" + THOUGHT, "")
+    node.write_text(blocks)
+    assert write.main(["config:guard", "canonicalize", "--root", str(project)]) == 0
+    blocks = node.read_text()
+    hand = canon.replace("limit: 384M", "limit: '384M'   # hand")
+    for start, new, want in ((canon, canon.replace("limit: 384M", "limit: 384M # c"), "write.py config:guard canonicalize"),
+                             (hand, hand.replace("old line", "new line"), "drops frontmatter comments"),
+                             (blocks, blocks.replace("old line", f"old line\n\n{THOUGHT}\n\n{THOUGHT}"), "THOUGHT malformed"),
+                             (canon, canon.replace("\n---\n", "\n--\n", 1), "cannot apply")):
+        node.write_text(start)
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(start, new)))
+            assert write.main(["config:guard", "patch -", *dry, "--root", str(project)]) == 2, (want, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and want in errs[0][0], (want, errs)
+        assert node.read_text() == start, want
+    for src in (tmp_path, tmp_path / "missing.diff"):   # a directory, a missing file
+        assert write.main(["config:guard", f"patch {src}", "--root", str(project)]) == 2
+        assert "cannot apply" in capsys.readouterr().err
+    node.write_text(hand)   # canonicalize, then the same one-line patch lands byte-exact
+    assert write.main(["config:guard", "canonicalize", "--root", str(project)]) == 0
+    now = node.read_text()
+    monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(now, now.replace("old line", "new line"))))
+    assert write.main(["config:guard", "patch -", "--root", str(project)]) == 0
+    assert node.read_text() == now.replace("old line", "new line")
 
 def test_payload_verb_replaces_the_bytes_the_node_points_at(project, tmp_path):
     _build_node(project)
