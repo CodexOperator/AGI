@@ -122,5 +122,10 @@
     "reap_source": "SKIPPED: seat row pid 138752 not in the derived chain [43578, 43583, 43594, 1756198]; NOT TERM'd (a row that does not own the chain cannot reap it)",
     "skipped": "SKIPPED: seat row pid 138752 not in the derived chain [43578, 43583, 43594, 1756198]; NOT TERM'd (a row that does not own the chain cannot reap it)"
   },
-  "committed_by": "rotate-self"
+  "committed_by": "rotate-self",
+  "after_join": {
+    "claimed_at": "2026-09-30T05:02:48.494604+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-30T05:02:15.515243Z"
+  }
 }
