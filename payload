@@ -681,7 +681,7 @@ def load_role(root: Path | None, tier: str, field: str):
                 val = row[field]
                 break
         if val is None:
-            h = (_config_json(root).get("harnesses") or {}).get("claude-code") or {}
+            h = adapters.harness_block(_config_json(root), "claude-code")
             if field == "model":
                 models = h.get("models") or {}
                 val = models.get(tier) or models.get("director")
@@ -921,7 +921,7 @@ def _harness_row(root: Path | None, harness: str | None) -> dict:
     """
     if root is None or not harness:
         return {}
-    return ((_config_json(root).get("harnesses") or {}).get(harness) or {})
+    return adapters.harness_block(_config_json(root), harness)
 
 
 def _resolved_harness_bin(root: Path | None, harness: str | None):
@@ -1025,7 +1025,7 @@ def _validate_harness(root: Path | None,
     if root is None:
         declared = list(_known_harnesses())
     else:
-        declared = sorted((_config_json(root).get("harnesses") or {}).keys())
+        declared = adapters.harness_ids(_config_json(root))
     if harness not in declared:
         print(f"ERR: no harness {harness!r} in config; declared: {declared}",
               file=sys.stderr)
