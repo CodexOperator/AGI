@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.4
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: director-general-1
 goal_id: G7.16.1.4.1
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 9fd181800bc6f0da
 season: 2
 seeds: []
-status: complete
+status: active
 tags:
   - council-loop
   - bundle-4
@@ -40,7 +40,7 @@ goal:g7.16.1.4 row W-G, moved UNBUILT from goal:g7.16.1.3 row G (council 20:2xZ;
 
 ## Falsifier
 1. `git ls-files GOALS.md` prints nothing · `git grep -n 'snapshot-goals.py --render' -- extensions ':!extensions/agi/tests'` prints 0 · `bash extensions/agi/driver.sh --smoke --max-iters 1` exits 0 and prints a node count · one rotation closeout runs clean.
-2. Negative: `git grep -n 'GOALS.md' -- CLAUDE.md QUICKSTART.md skills extensions/agi/bin extensions/agi/driver.sh` prints only retirement pointers (no exclusion: goal:g7.16.1.4.1.1 retired the three one-repo migration tools and closed) · `git grep -n -e '--from-doc' -e 'from_doc' -- extensions/agi/bin/snapshot-goals.py` prints 0.
+2. Negative: `git grep -n 'GOALS.md' -- CLAUDE.md QUICKSTART.md skills extensions/agi/bin extensions/agi/driver.sh ':!extensions/agi/bin/unify.py' ':!extensions/agi/bin/verify_unified.py' ':!extensions/agi/bin/publish-engine.sh'` prints only retirement pointers (the three one-repo migration tools are goal:g7.16.1.4.1.1's; drop this exclusion when it closes) · `git grep -n -e '--from-doc' -e 'from_doc' -- extensions/agi/bin/snapshot-goals.py` prints 0.
 
 ## Out of scope
 goal:g4.18.7.3 (the read cut) · goal:g7.16.1.3.5 and its .1 .2 (the bundle-3 leaves this row supersedes)
@@ -49,5 +49,5 @@ goal:g4.18.7.3 (the read cut) · goal:g7.16.1.3.5 and its .1 .2 (the bundle-3 le
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 at 03:2xZ 09-30 with outcome:g7-16-1-4-1-w-g-goals-md-retired-closed. The end-state's own gate ('stays active until SM's re-review is clean') is met: SM's re-review was clean (00:5xZ). Leaves .4.1.1 (d5cfcf7d7) and .4.1.2 (3d468119d) are complete. F1: GOALS.md untracked, --render 0, smoke rc 0 with a node count (DG1), and one clean rotation closeout (the Prime's rotate-self 02:27Z, success, all steps). F2: 17 retirement pointers and no exclusion; --from-doc 0.
+Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from goal:g7.16.1.4 row W-G. The bundle calls W-G and W3 'one act'; resolved as ONE READ PATH AT EVERY MOMENT: this row points readers at the read that exists when it lands, and goal:g4.18.7.3 moves that same line in its own row. Landing W-G only with W3 would hold the owner's 17:3xZ retire behind the largest row of the bundle. Hypothesis: goals-md-retires-with-every-caller-in-one-row.
 <!-- THOUGHT:END -->
