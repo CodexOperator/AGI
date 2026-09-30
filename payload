@@ -753,8 +753,11 @@ def test_g41816_a_node_patch_refuses_identity_contract_thought_and_a_second_verb
     beg = THOUGHT.split("\n")[0]
     node.write_text(old.replace("old line", "old line\n\n<!-- BUILD-CONTRACT:BEGIN -->\nc\n<!-- BUILD-CONTRACT:END -->"))
     old = node.read_text()
-    for script, new, want in (("patch -", old.replace("e" * 32, "f" * 32), "identity rows"),
-                              ("patch -", old.replace("type: config", "type: goal"), "identity rows"),
+    for script, new, want in (("patch -", old.replace("e" * 32, "f" * 32), "is identity or completion state"),
+                              ("patch -", old.replace("type: config", "type: goal"), "is identity or completion state"),
+                              ("patch -", old.replace("limit: 384M", "limit: 384M\nscaffold_hash: x"), "SM150"),
+                              ("patch -", old.replace("limit: 384M", "limit: 384M\na.b: x"), "dotted keys"),
+                              ("patch -", old.replace("limit: 384M", "limit: 384M\nparents:\n- goal:nonexist"), "name no node"),
                               ("patch -", old.replace("\nc\n", "\nd\n"), "BUILD-CONTRACT"),
                               ("patch -", old.replace(beg + "\n", ""), "THOUGHT malformed"),
                               ("patch -", old.replace("old line", f"old line\n{beg}"), "THOUGHT malformed"),
@@ -764,8 +767,25 @@ def test_g41816_a_node_patch_refuses_identity_contract_thought_and_a_second_verb
             monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, new)))
             assert write.main(["config:guard", script, *dry, "--root", str(project)]) == 2, (want, dry)
             errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        want = "is identity or completion state" if want == "SM150" else want   # scaffold_hash is PROTECTED
         assert errs[0] == errs[1] and want in errs[0][0], (want, errs)
         assert node.read_text() == old, want
+
+
+# SM 150 / 151 / 155: a node patch is judged by the rows it becomes -- a PROTECTED row already on
+# the node can neither change nor go; --ring-fields shows the translated rows the ring gate judges
+def test_sm150_155_a_node_patch_is_judged_as_its_rows(project, monkeypatch, capsys):
+    import io
+    node = _g41816_guard(project)
+    node.write_text(node.read_text().replace("limit: 384M", "limit: 384M\nscaffold_hash: h1"))
+    old = node.read_text()
+    for new in (old.replace("scaffold_hash: h1", "scaffold_hash: h2"), old.replace("scaffold_hash: h1\n", "")):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, new)))
+        assert write.main(["config:guard", "patch -", "--root", str(project)]) == 2
+        assert "scaffold_hash" in capsys.readouterr().err and node.read_text() == old
+    monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, old.replace("limit: 384M", "limit: 2G"))))
+    write.main(["config:guard", "patch -", "--ring-fields", "--root", str(project)])
+    assert "2G" in capsys.readouterr().out
 
 # council ruling on goal:g4.18.1.6: `replace payload` is NOT extended to the node file; its
 # refusal names the route (replace body N:M / row), dry == real
