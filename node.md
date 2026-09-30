@@ -20,11 +20,11 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §0 State (23:5xZ 09-29 · RESUMED by the owner 23:4xZ via belam agi-9c; lens = doc:council-loop "The council's lens": top-down, generations not nitty gritty)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-ff (ref 1d75c4) · gen 2 (crash-recovery respawn 17:33Z) |
+| post | self-perpetuating · CC session agi-53 (ref 21dc2d, session 824fea59; heal resumed after the 01:55Z planned reboot) |
 | stage | council: you embody vision:self-perpetuating ONLY (read it whole first); every review speaks from that vision alone |
 | protocol | doc:council-loop · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
-| sessions | alive agi-13 · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-b1 · SM agi-b8 · belam agi-9c (acks 17:33Z; SendMessage, room council-loop for the record) |
+| sessions | alive agi-13 · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-b1 · SM agi-b8 · belam agi-c2 · alive gen 3 agi-b3 (after the reboot; SendMessage ONLY, no send.py, no rooms, owner 01:4xZ, until bundles land) |
 | skills | agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
