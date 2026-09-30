@@ -684,7 +684,8 @@ def test_b4_w1b_every_write_verb_is_its_own_exact_path_commit(project):
                "replace": f"replace body 1:1 --force {project / 'x.txt'}",
                "row": f"row 1 {project / 'y.txt'}"}   # W1a's verb (DG3) joins the enumeration
     assert set(scripts) | {"read", "adopt", "payload", "payload_text", "patch",
-                           "body_patch"} == set(write.VERBS)
+                           "body_patch", "canonicalize"} == set(write.VERBS)   # canonicalize: a no-op
+    # on a node write_node minted (already canonical), so it makes no commit to enumerate (SM 154)
     g, head = _w1b(project)
     (project / "y.txt").write_text("y\n")   # row's own bytes: an identical row is UNCHANGED, no commit
     for verb, script in scripts.items():

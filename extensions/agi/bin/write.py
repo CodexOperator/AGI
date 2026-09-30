@@ -210,7 +210,7 @@ class Edit:
                     or self.body_patch_from or self.body_patch_diff
                     or self.read_target or self.read_range
                     or self.replace_target or self.sub_old or self.fm_rows
-                    or self.canonicalize)
+                    or self.canonicalize or self.sub_body)   # a body-only node patch (SM 154 round)
 
 
 # --------------------------------------------------------------------------
@@ -2637,7 +2637,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         return None
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
-                                  log_extra=_log_provenance(actor))
+                                  log_extra=_log_provenance(actor),
+                                  canonicalize=edit.canonicalize)
     if payload_ref and res.status != node_writer.REJECTED:
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
         # is still a sanction. Hand the owning node's mint_id to
@@ -3795,7 +3796,8 @@ def main(argv: list[str] | None = None) -> int:
         if (edit.set_fm or edit.unset_fm or edit.body_append or edit.thought
                 or edit.payload_from or edit.payload_bytes
                 or edit.patch_from or edit.patch_diff
-                or edit.body_patch_from or edit.body_patch_diff):
+                or edit.body_patch_from or edit.body_patch_diff
+                or edit.sub_body or edit.canonicalize):   # SM 163: a translated body-only node patch
             print("ERR: read is a terminal verb; it cannot share a line with "
                   "write verbs", file=sys.stderr)
             return 2

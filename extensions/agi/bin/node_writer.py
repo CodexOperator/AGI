@@ -1198,8 +1198,11 @@ def update_node(
     validate=True,
     announce=False,
     log_extra=None,
+    canonicalize=False,
 ) -> NodeWrite:
     """Edit one existing node in place, gated. The only routine that does this.
+    `canonicalize` (write.py's verb, council ruling on SM 154): "unchanged" is
+    judged on the rendered BYTES, so a non-canonical node is re-rendered.
 
     `set_fm` is merged over the node's frontmatter; `unset_fm` names keys to
     drop. `body` replaces the body and is the one case where the authored
@@ -1256,7 +1259,9 @@ def update_node(
 
     # `assemble_node` applies the delta AFTER the absorb (never clobbered).
 
-    if fm == nf.frontmatter and new_body == nf.body:
+    if fm == nf.frontmatter and new_body == nf.body and not (
+            canonicalize and _serialize_node(render_frontmatter(fm), new_body)
+            != path.read_text(encoding="utf-8")):
         res.status = UNCHANGED
         res.reason = "nothing to change"
         return res
