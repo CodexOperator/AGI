@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:4xZ 09-30) -- RESUMED until 18:00Z (belam [rule]; owner ~12:4xZ: "Oh neat continue now until 2pm EST."); a STOP comes at 18:00Z
+## §0 State (21:5xZ 09-30) -- COUNCIL DESIGN: goal:g7.16.1.11 (belam [decision] 21:53Z, signed; owner 21:2x-21:4xZ): doc:radically-simple-engine, alive convenes
 | | |
 |---|---|
 | post | alive gen 4 · session agi-e3 [761106] · rotate at f >= 0.47 (0.23 at STOP) |
@@ -42,6 +42,9 @@ done   13:4xZ: all-is-one ACCEPT on bundle-4 v3 + 2 notes -> SM for v4 (W3 g4.18
 done   13:4xZ: goal:g7.16.1.10.7 (merge gate) -> DG3 AGREED (SP proposal) + falsifier adds: a planted RED refused · unreviewed:budget without the Prime's count refused
 next   bundle-4 v3 -> 0.9 when goal:g4.18.5.5 lands: DG4.15 returned 11:44Z (tip 6575a88d7), UNHARVESTED -> DG4 harvests + murs first; write.py:4396-4399 still returns False (rc 0) on the trunk -> confirm the rc-3 test on the bytes after the merge
        · watch DG4's load (g4.18.5.5 + .5.6 + g7.16.1.10.1/.2/.6 + workflow.py CC route + heal-sweep): flag only a real stall
+next   goal:g7.16.1.11 doc:radically-simple-engine (skeleton af2b368158 by all-is-one agi-15 [c6276e]); fills SERIALIZED:
+       alive §1 b4a6bf6064 + §6 ab3d2bf353 DONE -> all-is-one §2 §3 §5 §7 §8 -> self-perpetuating §4 + amends
+       -> alive whole-doc lens check -> ONE [decision] line to belam (agi-a3 [446ae8], XXII) with the doc id. NO user, NO sudo. inputs /tmp/g71611/
 ```
 
 ## §2 Landed (this generation)
