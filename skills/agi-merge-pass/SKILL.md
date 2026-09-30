@@ -28,7 +28,7 @@ pending PASS). The crons are POINTER prompts — edit the section, never the cro
 0 stamp pass_started_at FIRST
 1 fetch · origin/season2/main must be an ancestor of TIP, else sync it into the trunk (below) · PIN TIP as a sha · credits (< 4 USD → engine-delta + 5 sampled rounds)
 2 RETIRED build rounds: one per hypothesis with ≥1 experiment changed in BASE...TIP (files ≤ 12) + engine-delta-N over unlisted (retired by goal:g7.16.1.10.7 -- the council report + merge_gate.py check)
-  extensions/ skills/ src/ .agi/config.json .agi/nodes/.geometry paths (≤ 12 each; rotate test files dropped)
+  extensions/ skills/ src/ .agi/config.json .agi/nodes/.geometry paths (≤ 12 each; rotate test files dropped) -- retired by goal:g7.16.1.10.7 with step 2
 3 RETIRED launch chunks (≤ 2 rounds each) in the background, CAP chunks live; ONE Monitor (monitor.sh) (retired by goal:g7.16.1.10.7 -- the council report + merge_gate.py check)
 4 RETIRED verdicts ONLY from runs/<key>/{review,verify}_<label>.json → RED | demote | accept(_with_residue) (retired by goal:g7.16.1.10.7 -- the council report + merge_gate.py check)
 5a gate → merge_gate.py check BASE TIP; merge ONLY on `merge` (its hold lines name the RED, the uncovered sha or the budget count)
