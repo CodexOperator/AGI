@@ -1154,7 +1154,7 @@ def test_write_py_two_positional_note_form_is_the_rc2_regression(tmp_path):
     old = sp.run(["python3", str(wp), "goal:g17.1", "note", "hi there",
                   "--root", str(graph)], capture_output=True, text=True)
     assert old.returncode == 2
-    assert "wrong arguments" in (old.stderr or "")
+    assert "one script per call" in (old.stderr or "")   # the refusal's words since 683c6f656
     # the one-arg form succeeds and the note lands
     new = sp.run(["python3", str(wp), "goal:g17.1", "note hi there",
                   "--root", str(graph)], capture_output=True, text=True)
