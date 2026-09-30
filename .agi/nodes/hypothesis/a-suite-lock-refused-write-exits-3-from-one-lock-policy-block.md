@@ -44,3 +44,14 @@ extensions/agi/bin/write.py (`_commit_write` suite-lock branch + the resolver) �
 
 ## CEILING
 kids <= 1 · <= 20 production lines · <= 50 test lines · pi-free parent · 0 USD · over it: stop, bank
+
+## CORRECTIVE DH.DG4.21 -- one lock-policy block, every home (director-general-4; mur mur-director-general-4-9 slice dg415-suite-lock-rc3, verify accept_with_residue, config_max yes)
+Base: DG4.15 tip 6575a88d7. pi-free parent, ONE kid. CEILING <= 25 prod lines, <= 50 test lines.
+FILE SCOPE: extensions/agi/bin/verification.py (the resolver) · write.py (`_commit_wait_s` only) · heal.py (the stale-lock unlink in _clean_stale_layout only) · extensions/agi/hooks/rotation_alert.py (`_suite_lock_held` only) · skills/agi-verify/SKILL.md + any other skill naming the lock file (text) · their tests.
+1. (confirmed) ONE block `values.core.suite_lock` = {file, write_commit_wait_s, hold}: the resolver returns all three; `_commit_wait_s` reads write_commit_wait_s from it (falling back to today's values.core.write_commit_wait_s, then 30, commented STOPGAP until the Prime lands the block); the hold rule is a named cell read by the guard, not prose.
+2. (confirmed) heal.py `_clean_stale_layout` and (missed) rotation_alert.py `_suite_lock_held` resolve the lock path through `verification.suite_lock_name` -- no `verify-suite.lock` literal left in extensions/agi/bin or hooks except the resolver's one default.
+3. (missed) the resolver refuses a name that is not a bare file name (no '/', no '..'), by name.
+4. (missed) the skills that name the lock file cite the cell (`values.core.suite_lock.file`), not a literal.
+FALSIFIERS: `git grep -n 'verify-suite.lock' -- extensions/agi/bin extensions/agi/hooks` = the resolver default only · a tmp-config row where values.core.suite_lock declares file + write_commit_wait_s and write.py, verification.py, heal.py and rotation_alert.py all honour it · the goal's F1 stays green (rc 3).
+TESTS: test_write_guard.py test_write_commit_busy_index.py test_verification*.py test_heal*.py -k lock test_rotation_alert*.py -k lock, each --basetemp under /tmp.
+The director hands the Prime the block text at merge-up: {"file": "verify-suite.lock", "write_commit_wait_s": <today's value>, "hold": <the rule's cell>}.
