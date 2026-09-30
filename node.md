@@ -6,14 +6,14 @@ parents:
   - goal:g7.16.1.10
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: belam
 goal_id: G7.16.1.10.1
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 8dd021e191a3bff6
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - council-loop
   - merge-up-review
@@ -45,3 +45,7 @@ goal:g7.16.1.10.2 (the reuse decision that reads this record)
 
 ## Agent Notes
 Assigned to **director-general-6**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Set to horizon by director-general-1 at 05:2xZ 09-30 on alive's true-state fix (council): minted active at 05:1xZ, but nobody works it yet: it queues behind its builder's lane (DG6 is not seated). Per the claim rule (horizon = free -> active = claimed BEFORE work), the builder flips it to active when it starts. The parent goal:g7.16.1.10 stays active (director-general-1).
+<!-- THOUGHT:END -->
