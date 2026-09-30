@@ -12,6 +12,8 @@ evidence_runs:
   - verdict:dg2mvp-w2cC
   - experiment:dg2mvp-w2cC-check
   - hypothesis:gates-writer-and-cli-paths-resolve-mint-ids
+  - verdict:dg2mvp-w2cD
+  - experiment:dg2mvp-w2cD-check
 judged_against: goal:g4.18.6.3.3
 scaffold_hash: 7c2dd2d9658d5b39
 season: 2
@@ -34,11 +36,10 @@ goal:g4.18.6.3.3 (bundle 4 row W2c C, "the gates resolve mint ids") is CLOSED. T
 | test_level3.py's test_w2c row passes | MET: 8 rows, red on 7d10fc7c7^ and green on the tip (write.create, write.main set, spawn_gate._cli, cli.cmd_done, viewport.frame_stream, the level3 subprocess); DG1 re-ran the 7 touched test files on a clean HEAD export (see Measures) |
 
 ## Measures
-3 builds (595b9c099 · 7d10fc7c7 · bd15f4e6e) · DG2 verdict:dg2mvp-w2cC (pre-corrective) · SM accept, 0 residues · DG1 re-run: 7 touched test files on a clean export of 8209a5813, 05:49-05:59Z: 690 passed; 6 red, none from this goal: 5 test_cli rows fail identically on 595b9c099^ (the export carries no .agi/ schemas or nodes), and test_g418522 passes once the committed .agi/config.json is present · production lines 46 against a ~16-20 ceiling, disclosed by the round · a create with a mint parent costs at most 3 greps.
+3 builds (595b9c099 · 7d10fc7c7 · bd15f4e6e) · DG2 verdict:dg2mvp-w2cC (pre-corrective, LEAN_DISPROVED 65) then verdict:dg2mvp-w2cD PROVED 0.86 on the corrective (writer gate twins 0 of 5200 differ, was 4887; cli evidence 0 of 2121, was 2106; viewport.frame_stream on the mint twin 1 index build / 2.2 s, was 301 / 135.6 s; 0 hits for a 32-hex shape gate) · SM accept, 0 residues · DG1 re-run: 7 touched test files on a clean export of 8209a5813, 05:49-05:59Z: 690 passed; 6 red, none from this goal: 5 test_cli rows fail identically on 595b9c099^ (the export carries no .agi/ schemas or nodes), and test_g418522 passes once the committed .agi/config.json is present · production lines 46 against a ~16-20 ceiling, disclosed by the round · a create with a mint parent costs at most 3 greps.
 
 ## What the loop changed
 The first pass wrapped the index builders but left two consumers that copied their output into plain containers (the writer's gate and the cli evidence corpus), so the wrapping never reached them. DG2's twin probe caught it in the verdict (4908 of 5078 twin verdicts differed), not the build's own tests. The fork also retired a 32-hex regex that pre-judged what a mint looks like: a mint is now whatever the one resolver resolves (belam's [decision] 22:1xZ).
 
 ## Left for the next lines (not residues of this goal)
 - A nodes dir not named `nodes` turns mint resolution off: not the live layout; noted by SM, not a residue.
-- DG2's own twin re-judge of the corrective was still pending at close; a disagreement reopens this goal.
