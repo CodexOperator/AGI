@@ -2466,9 +2466,12 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         raise EditError("patch - (stdin) is empty: no diff to apply -- nothing written")
     if edit.payload_from == "-":   # SM 140: main() reads stdin; `-` survives only an empty read
         raise EditError("payload - (stdin) is empty: no bytes to write -- nothing written")
-    touches_payload = bool(edit.payload_from or edit.payload_bytes
-                           or edit.patch_from or edit.patch_diff
-                           or edit.replace_target == "payload")
+    _writers = [bool(edit.payload_from), bool(edit.payload_bytes),
+                bool(edit.patch_from or edit.patch_diff), edit.replace_target == "payload"]
+    if sum(_writers) > 1:   # SM 143: two sources raised ValueError AFTER update_node stamped the node
+        raise EditError("one payload writer per submit: payload, payload_text, patch and "
+                        "replace payload cannot share a line -- nothing written")
+    touches_payload = any(_writers)
     payload_ref, location = _payload_ref(root, edit) if touches_payload else ("", None)
 
     # hypothesis:l3-write-partial-diffs-as-writes -- a `patch` computes the
@@ -2541,6 +2544,23 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     if "location" in set_fm:
         location = set_fm["location"]
 
+    # SM 142 + 143: every payload input resolves BEFORE the dry return -- the
+    # destination exists, the source is a file and its bytes are read -- so
+    # update_node is only ever followed by a payload write already known to
+    # land. An EMPTY result (a patch deleting every line) is b"", never None.
+    payload_data = None
+    if payload_ref:
+        _dest = locations.resolve_payload_path(Path(root), payload_ref, location)
+        if not _dest.is_file():
+            raise EditError(f"payload {_dest} does not exist -- `payload` replaces bytes, it never "
+                            f"creates (a new file is `write.py create --payload`); nothing written")
+        if edit.payload_from:
+            if not Path(edit.payload_from).is_file():
+                raise EditError(f"payload source {edit.payload_from} is not a file -- nothing written")
+            payload_data = Path(edit.payload_from).read_bytes()
+        else:
+            payload_data = edit.payload_bytes.encode()
+
     # PRIME RULING 2026-09-11 facts-region gate: a master-sensei BODY edit on
     # a `master_sensei_row`-governed node may change ONLY the `## facts`
     # section. Written here (post-composition) because the body bytes only
@@ -2580,9 +2600,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         # change.
         mint = _node_mint_id(root, edit.node_id)
         dest, changed = node_writer.replace_payload(
-            root, payload_ref, edit.payload_from or None,
-            location=location,
-            data=edit.payload_bytes.encode() if edit.payload_bytes else None,
+            root, payload_ref, None, location=location,
+            data=payload_data,   # resolved above, before the dry return (SM 142/143)
             mint_id=mint,
             log_extra=_log_provenance(actor))
         res.payload_changed = changed
