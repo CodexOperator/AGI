@@ -8,11 +8,12 @@ next_edges: []
 edited_by: a00-2c0f83aa
 loop: hypothesis:a-write-refusal-names-the-index-truth@s2
 model: stealth/space-bunny-alpha
+production_lines: 3
 profile: balanced
 role: kid
 scaffold_hash: 6f1563d3f7d56293
 season: 2
-title: A00 2c0f83aa bde1c8
+title: "A write refusal names the index: skip-worktree is never clean at HEAD"
 town: core
 ---
 <!-- BODY:BEGIN -->
@@ -106,3 +107,7 @@ test file **43/0** -- under the parent's 12 prod / 50 test lines.
 `GIT_CONFIG_*` outranks the fixture's `core.hooksPath`), 5 (at_head read runs on
 every failed attempt, not only busy/deadline). Row 5 now costs the SAME ONE read
 as before, since `-v` replaced `--error-unmatch` rather than adding to it.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+the peer-race fix was right in spirit but its truth read was blind to git tracking FLAGS: ls-files --error-unmatch is happy for an S path, so a skip-worktree node exited 0 clean-at-HEAD with HEAD holding the OLD bytes. Swapping it for ls-files -v (every row tag must be H, one row per path) fixes the falsified conjunct at the same one-subprocess cost; and staged is now rc 1 only, so an out-of-tree payload path rc 129 gets its own note instead of STILL STAGED.
+<!-- THOUGHT:END -->
