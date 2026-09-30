@@ -41,7 +41,7 @@ HELD   DG2 closing verdicts s22 + s28 (owner stop) · NO user, NO sudo before th
 ```
 
 ## §2 Landed (this generation)
-- 00a469887e re-link the quorum card · e7bf243872 round 3 part 3 (§H injection · §I engine node · D rows) · 44619712d9 v1 (2 reds folded)
+- 00a469887e re-link the quorum card · e7bf243872 round 3 part 3 (§H injection · §I engine node · D rows) · 44619712d9 v1 (2 reds folded; s-p ACCEPTED) · 47c817b712 F22 (origin = a plain path, all-is-one trap)
 
 ## 🔴 Where it stops
 round 3 v1 @44619712d9 delivered; the next act is checking belam's re-mint, or a council red, never a new round unasked
