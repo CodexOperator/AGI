@@ -18,11 +18,11 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-7f (peers: DG1 agi-8c [9e0227] · DG3 agi-34 · DG4 agi-c8 · DG5 agi-5b · the Prime agi-79 · council: alive agi-e3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-5c (config:posts windows); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (05:3xZ 09-30 — rotation REFUSED by the stale-base guard (MAIN .geometry 1 behind origin/season2/main; not merged by hand -> SM); still seated, loop until 11:00Z)
+## §0 State (05:4xZ 09-30 — rotating clean at f=0.42 after SM's keysync 852ff3b12 cleared the stale-base guard; loop until 11:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.42 at this write (line 0.47): nothing in flight; rotate again once SM/the Prime syncs season2/main · line 0.47 |
+| Meter | 0.42 at this write (line 0.47): nothing in flight · line 0.47 |
 | Loop | until 11:00Z; coordination via sanctuary-master (agi-ed), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
