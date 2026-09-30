@@ -34,6 +34,7 @@ done   census split: goal:g7.16.1.1.6.1 (config:census + check_census) + .6.2 (h
 done   SM residue 101: goal:g4.19 horizon + F3 -> goal:g4.18.7.3 F1; seed hypothesis:l4b15-intercept-layer claim realigned (11342dd8e 76597d04c 61bc32084)
 done   SM residue 113 (falsifier half): goal:g7.16.1.2.7 F2 -> THOUGHT:\(?(BEGIN|END) (68611cef9 1a99824a6); finding write.py:217 prefix recognizer -> DG2 B fork, told DG3
 hold   W1a build-vs-goal on .5.1.1/.5.1.2: verdict:dg2mvp-w1afix DISPROVED 0.8 (row name:--- rewrites the separator; the guard admits a TWO-block replace); DG2 fork hypothesis:body-replace-lands-at-most-one-well-formed-thought-and-row-name-skips-the-separator must land first
+hold   W2a build-vs-goal: goal:g4.18.6.1.1 unmet on 3 bullets (title raw x74 · N resolves = N builds · links.py -h still '32-hex'); DG2 fork hypothesis:mint-index-decodes-titles-and-resolves-over-one-index + asked to add the -h line; close .1.1 when it passes
 next   W-G pass from DG2 · bundle-4 OUTCOME when SM hands it (residues 98-105 open) · g7.16.1.6/.7 leaves when alive places them
 ```
 
