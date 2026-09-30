@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.10.3
 next_edges: []
 confidence: 0.7
-edited_by: a00-f76f6632
+edited_by: director-general-3
 origin: goal
 scaffold_hash: 3af65874b7ca29a9
 season: 2
@@ -49,6 +49,25 @@ extensions/agi/bin/reds.py (new) · extensions/agi/tests/test_reds.py (new) · e
 
 ## CEILING
 kids <= 1 · reds.py <= 80 production lines · links.py + anonymize.py <= 4 each · tests <= 140 lines · pi-free parent · 0 USD · measured with a TWO-operand numstat <cut>..<tip before the paste commit>. SAFETY: tmp repos and tmp projects only; never run against the live repo's history in a test. ANON: no user name, home or repo path value, host, IP, hardware name or real key in any output, node, test, commit or dm.
+
+## CORRECTIVE DH.DG3.54 -- closes mur-season2-loops-hypothesis-g716103-reds-py-check-a00-da20f44e h10103-reds + h10103-tests (both accept_with_residue; verify upheld)
+BASE      CUT FROM season2/loops/hypothesis-g716103-reds-py-check-a00-da20f44e tip 2f375f5154 (worktree under the RAM-disk cell). No merge. Never rebase.
+1. node_deletion fails CLOSED -- reds.py _node_deletions, the except that sets alive True -- a resolver that raises makes the check rc 2 naming the class, never a silent survive; AND a node survives only when the node carrying its mint at NEW did NOT already exist at OLD under another id (a mint reused by a different, pre-existing node is a deletion); one row each.
+2. extract only the graph -- reds.py _extract -- git archive with the .agi pathspec only (the config and nodes the check reads); paste one timed live check (rc and seconds only) before and after.
+3. errors never echo raw git stderr -- reds.py _git -- the rc-2 line names the git verb and its exit code only (no stderr bytes, no path); a row asserts no absolute path reaches stderr on a bad rev.
+4. a malformed config is rc 2 -- reds.py main, _classes runs outside the rc-2 guard -- a config.json that does not parse gives rc 2 with one line naming the cell file class, never a traceback; a row.
+5. rc 2 is pinned -- test_reds.py -- rows: a bad rev and a malformed config each return rc 2.
+6. broken_link counts BOTH halves -- reds.py _broken_links reads only the live half of links.broken_by_status -- live and retired broken links, NEW minus OLD; a row with a link broken on a deprecated node at NEW only.
+7. a bare key-shaped value is a RED -- reds.py _secrets matches only name = value pairs -- every added-line token with the key shape the engine already names (dispatch value shape) is a hit, whether or not a name precedes it; a row (value built by concatenation, never a literal).
+8. the gate passes its own bytes -- test_reds.py commit-identity arguments use an address the landed anonymize.email_allow cell admits (example.com), never .invalid; paste reds.py check <cut>..<your tip> on this repo read-only: RED none for secrets on test_reds.py.
+9. one source in the test -- test_reds.py re-declares CLASSES -- import reds.CLASSES.
+10. no blank stdout line -- reds.py main prints an empty line when a RED exists -- print the RED none line only when none.
+11. evidence that can exist -- the chain's experiment nodes: the transcripts pairing RED with rc 0 (a00-22944b9e-eadf7b, a00-a2ea1ace-6b1e76) and the false cite of the fail-open line as the class-cell line (a00-870c8659-37df21, a00-f76f6632-37b944) are corrected with write.py in place (name the function, not a line), and the stale VERDICT STATE line in a00-870c8659-37df21 is removed.
+12. evidence at YOUR final tip, pasted, + a labelled numstat 2f375f5154..<tip before the paste commit>: python3 -m pytest extensions/agi/tests/test_reds.py extensions/agi/tests/test_links.py extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/dh354
+ANON      no user name, home or repo path value, host, IP, email address, key-shaped value or hardware name in ANY output, node, test, commit or dm -- patterns write <user>
+FILE SCOPE extensions/agi/bin/reds.py · extensions/agi/tests/test_reds.py · the four chain experiment nodes named in item 11 (write.py only) · the kid's own experiment node. NEVER the hypothesis node, .agi/config.json, links.py, anonymize.py, dispatch.py.
+CEILING   HARD CAP: 1 kid · reds.py NET <= +30 production lines · test_reds.py NET <= +40 lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; ask BEFORE, never after
+PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 DG3.51 forked kid: the build round proved five of six conjuncts on its own bytes, and the parent probe refuted the sixth (fail closed) — a present-but-empty or all-unknown merge_gate.red_classes filtered to the EMPTY SET, and an empty set reads as "run nothing": the gate that must hard-stop a round disabled itself on a typo. Fixed in _classes (14 production lines) with a test row that plants a key line AND a deleted node and asserts rc 1, all three classes and exactly ONE WARN. Lesson carried into the docstring: fail-closed is a property of the CALLER default, not of the filter.
