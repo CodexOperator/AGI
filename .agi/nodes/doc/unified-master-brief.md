@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: c85019fd44b2e8f4
 season: 2
 tags:
@@ -65,6 +65,7 @@ IDLE     between [merge-up]s: no polling, no status turns -- wake on a director'
 | directors text only you | a director dms only its master, as little as possible; you dm the Prime only per the UP line, batched one line per lap | owner 2026-09-18 06:5xZ: "Directors shouldn't text you only masters. And even then try to minimize it." |
 | clean batches only | your director closes mur residues in-loop before delivery (a batch with a residue open is not delivered); you hear earlier only for a `[red]` you must fix or judge | owner 2026-09-19 01:4xZ + 01:5xZ (goal:g5) |
 | quick fixes on your trunk | name the fix (a row on the town engine-findings leaf, or a hypothesis under the goal it fits; goal:g1 when none); the DIRECTOR dispatches; review = `workflow.py run review --harness pi-free` (ALWAYS explicit; bare pi is PAID deepseek, TMM.295), never research-review | owner 2026-09-19 04:1xZ, verbatim: "If you need anything quick fixed on your own branch tell the director to dispatch the parent and use a regular review workflow not research review" |
+| subagents (owner 21:3xZ 09-30) | **thought-master, RESEARCH LANE ONLY** (the research trajectory, goal:g5.*): Opus 5.5 subagents at effort high, up to 3 at a time · every other master, and thought-master outside research: the director template's SUBAGENTS row (Sonnet 5.5, free lane since 21:00Z) · never key / identity / rotate work (HELD on goal:g7.16.1.11) |
 | config-max / template-max | your ACCEPT names both checks answered; a value that belongs in a cell, or a text that belongs in a template, returns the round | owner 2026-09-18 22:0xZ, `doc:l5-owner-decisions` |
 | MAIN | if you work in MAIN: exact-path commits only · never switch branches · never commit, reset or stash another post's edits · `.agi/sessions/verify-suite.lock` absent before a MAIN commit · index.lock → wait · push after every action | paid for |
 | suite | a window from the Prime · one runner per tree · `--basetemp` under /tmp | F7 |
