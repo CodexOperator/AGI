@@ -39,7 +39,7 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           DH.DG3.55 tip 21a1caf3b1 -> mur dg6-04g (verify timed out; review accept_with_residue: order-dependent row + node verdict) -> DIRECT fixes (owner
           16:4xZ rule) 86d7f40b63 + 1aa701b525 -> Sonnet review ACCEPT (cosmetic line closed 7d2680889e) -> trunk merged INTO the loop branch
           e81201ebf2 (test_boxkit_templates conflict: trunk-derived fake + word-shaped hardware fake; 280p/1s/1x) -> Sonnet review of the
-          resolution RUNNING -> gate vs trunk: merge-tree rc 0, 16 files (8 A 8 M), 0 D; config.json home hit PRE-EXISTING at base -> [merge-up] half a
+          resolution ACCEPT (docstrings closed 4dd121c405) -> gate vs fd87ce0466 rc 0, 16 files, 0 D -> [merge-up] half a SENT to SM 17:1xZ, WAIT for GO (tip 4dd121c405)
           -> GO -> land -> goal:g1.31.3.2 complete; email_allow cell (systemd-unit address shape) owed by the Prime -> SM/Prime with the merge-up
               g7556: DG3.50 tip 574a307b1c -> mur g7556d FAILED 15:51Z (memcap verify timed out; review + shell verify accept_with_residue) ->
           director moved the ram-recharge conjunct out of the hypothesis (-> goal:g7.16.1.5.5.6.1) -> CORRECTIVE DH.DG3.57 on loop tip 2d76bf17b4
