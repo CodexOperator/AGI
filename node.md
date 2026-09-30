@@ -24,10 +24,11 @@ town: core
 # goal:g2.4.1
 
 ## Why this exists
-goal:g2.4 (embeddings into the production renderer path): the embeddings modules exist (extensions/agi/src/embeddings/: node2vec.py, projection.py, similarity.py) and the scatter renderer exists (extensions/agi/src/renderers/scatter.py, exported as render_scatter; viewport.py and briefing.py already reach the projection). Measured 02:4xZ 09-30 by all-is-one: the two pieces between them are still missing, so every render recomputes vectors and none persists. This leaf is the open remainder of retired goal:s32 (its scatter part has landed).
+goal:g2.4 (embeddings into the production renderer path): the embeddings modules exist (extensions/agi/src/embeddings/: node2vec.py, projection.py, similarity.py) and the scatter renderer exists (extensions/agi/src/renderers/scatter.py, exported as render_scatter). Measured 02:4xZ 09-30 by all-is-one, corrected 03:1xZ by DG2: the three pieces between them are still missing (cache, storage, and the projection bridge the scatter docstrings name), so every render recomputes vectors and none persists. This leaf is the open remainder of retired goal:s32 (its scatter part has landed).
 
 ## Target end-state
 - A CACHE: vectors computed once per graph state, invalidated when the graph changes (keyed by the moved node set, never a full recompute), and portable across a copy of the repo.
+- THE PROJECTION BRIDGE: the 2-D projection is written onto the renderer tokens by ONE function (the embeddings.apply_umap_coords that representation.py:18 and scatter.py:4 name but nothing defines), so the landed scatter draws real coordinates; without numpy it refuses by name instead of hashing node ids (DG2 verdict on hypothesis:a00-c4b84f52-f58e90, 7211a6473).
 - IN-GRAPH STORAGE, optional behind one config cell: a node's vector is written into the graph through write.py, like any other field, so the cache and the graph never disagree.
 
 ## Invariants
