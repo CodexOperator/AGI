@@ -19,32 +19,30 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (19:5xZ 09-30; NO STOP -- owner 17:4xZ: until 21:00Z Sonnet 5.5 subagents allowed; FROM 21:00Z every NEW round and review pi-free only)
+## §0 State (21:4xZ 09-30) -- STOOD DOWN (owner 21:3xZ, verbatim via the seating post: "Stand down DG 4 and pass on any leftovers back on the board as unclaimed bundle goals.")
 | | |
 |---|---|
-| post | director-general-4 · owner: resume on the town bundle; subagents Sonnet 5.5 only |
-| protocol | doc:council-loop · MAIN on local-maxxing/season2/main · SM orders parent dispatches · LAND ORDER (SM 09:2xZ): [merge-up] to SM FIRST with tip + range -> SM gates by SHA -> SM's GO -> I land (merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only; 0 dirty overlap) · pre-commit hook refuses owner email / GPU / pytest-of-<user> tokens: redact, never --no-verify |
-| messaging | SendMessage by uds address · coordination -> sanctuary-master (agi-12 [afd9c6] since gen 10, 14:xxZ; fallback: send.py --from director-general-4 send --to sanctuary-master) · rulings -> the council (alive) · NEVER the Prime |
-| skills | agi-goal · agi-node-write · agi-dispatch · agi-corrective · agi-verify · agi-send · agi-rotate · agi-workflow · agi-master-gate |
-| regions | write.py `_commit_write` · rotate.py WHOLLY + heal.py key path (from DG5) · DG6's rows below · rest of write.py = DG3 · dispatch.py / RAM writers = DG3 |
+| post | director-general-4 · DOWN: no live parent, kid, unit or subagent; nothing building |
+| leftovers | 25 open goal leaves -> status horizon, Agent Notes "Unassigned (was director-general-4)" (write.py sub, 25 commits) |
 
-## §1 Plan (SM's order; lanes per §0)
+## §1 Where everything stopped
 ```
-LANDED 72dff76359 STACK DG4.06+15+21+11+22 · 2cbe754da1 DG4.17 · a2e42a3bf0 g1315131 · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19 (trees removed)
-WITH SM, awaiting GO (tip · worktree to remove once landed: in trunk + clean, harvest iter-* first)
-  g73319 2b68fbc07e dg4-g73319 · g75213 7cd127824e dg4-g75213 (re-sent 20:3xZ after the g7556 trunk merge; HELD on the Prime live bind + 3 guard cells) · SM-1 bd01ee8969 dg4-sm1
-  SM-2 802577c1bd dg4-sm2 · DG4.12 af2c27335f dg4-dg412c (ON SM-2) · DG4.13 9baba2bc99 dg4-dg413c · r49 7eb1c65aed dg4-r49 (ON DG4.13)
-  DG4.18 c576956960 dg4-dg418m: HELD by SM on the 3 Prime cells (locations.stream, byte_cap 8000, 2 grid versions) -- SM asks the Prime
-  LINEAGE 2ec78512d4 re-sent 20:15Z (SM 20:2xZ "send when ready" crossed it: already in its queue) -- awaiting GO
-ALL HARVESTED ROUNDS DELIVERED (12 merge-ups with SM). Pi mur chain done (q2..q10).
-PARKED     C2c goal:g1.31.4.2.1.1 + its hypothesis tagged parked (SM 19:31Z option b; 1bf9f503eb, 6786c4f7b4): 7d9f955842 stays unlanded in .agi/worktrees/dg4-c2c (location invented); the real copilot probe = SPEND, banked to the Prime
-HANDED     findings row 48 (kid commit dies on index.lock, parent waits silently) -> SM (dispatch/cli = DG3 region)
-FROM 21:00Z: every NEW round + review pi-free only (workflow.py merge-up-review --harness pi-free; dispatch.py tier-0 parent), no Sonnet subagents
+LANDED on local-maxxing/season2/main: 72dff76359 STACK DG4.06+15+21+11+22 · 2cbe754da1 DG4.17 · a2e42a3bf0 g1315131 (+ Prime cell hold_wait_s 90)
+  · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19
+WITH SM (delivered, SM gates + lands them; worktree = .agi/worktrees/<name>, remove after landing, lossless):
+  g73319 2b68fbc07e dg4-g73319 · SM-1 bd01ee8969 dg4-sm1 · SM-2 802577c1bd dg4-sm2 · DG4.12 af2c27335f dg4-dg412c (ON SM-2)
+  DG4.13 9baba2bc99 dg4-dg413c · r49 7eb1c65aed dg4-r49 (ON DG4.13) · g1.31.4.2.1 LINEAGE 2ec78512d4 dg4-fdreaders (+ dg4-dg414c)
+  g75213 7cd127824e dg4-g75213: code gate green, GO = the Prime's DISK bind of <MAIN>/.claude/worktrees + 3 guard cells
+  DG4.18 c576956960 dg4-dg418m: HELD on 3 Prime cells (locations.stream, rotations byte_cap 8000, 2 grid versions)
+PARKED  goal:g1.31.4.2.1.1 (C2c copilot hooks): 7d9f955842 in dg4-c2c, location invented -> never a merge-up until a real copilot probe (SPEND, Prime)
+BACK ON THE BOARD (horizon, unassigned): active before -> g1.31.4.2.1.1 · g1.31.5.1.3.1 · g1.31.5.1.3 · g7.16.1.5.3.1 · g7.16.1.7.1.4 · g7.16.1.7.1 · g7.16.1.7
+  already horizon -> g4.18.5.6 · g7.16.1.10.1 · .10.2 · .10.6 · g7.16.1.7.1.3 · .7.1.3.3 · .7.1.4.2 · .7.1.6 · .7.1.7 · .7.1.8 · g7.16.1.7.2 · .7.2.1-.7.2.6 · .7.2.8
+  notes: g1.31.5.1.3.1's fix LANDED (a2e42a3bf0; DG2 re-runs run_on.sh x3 on it) -> likely closeable by whoever claims it
+FINDINGS goal:g7.33.19 rows 47-50 (row 48 handed to SM: DG3 region)
 ```
 
 ## 🔴 Where it stops
-12 merge-ups with SM awaiting GO; nothing building; C2c PARKED. On each [GO][landed]: remove that round's worktrees (lossless). Then SM's next order. Rotate at f >= 0.47 (captive captured the card at 0.40).
-Next command: `python3 extensions/agi/bin/send.py read director-general-4; git worktree list | grep dg4-`
+Down. A successor on these leaves starts from the board; the merge-ups above are SM's to land. No command owed by this post.
 
 ## §4 Traps
 | trap | rule |
