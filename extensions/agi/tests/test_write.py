@@ -603,6 +603,28 @@ def test_sm139_an_empty_patch_stdin_refuses_before_any_write(project, tmp_path, 
     assert errs[0] == errs[1] and "patch - (stdin) is empty" in errs[0][0], errs
     assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n"
 
+# SM 140: an EMPTY `payload -` beside another verb was dropped (touches_payload False) while
+# the note landed; it refuses by name before any write, dry and real, as `patch -` does
+def test_sm140_an_empty_payload_stdin_refuses_before_any_write(project, tmp_path, monkeypatch, capsys):
+    import io
+    _build_node(project)
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "src" / "thing.py").write_text("old\n")
+    node, log = project / "nodes" / "build" / "b1.md", project / "sessions" / "write-log.jsonl"
+    before, log_before = node.read_bytes(), log.read_bytes() if log.exists() else None
+    for script in ("payload - && note n", "note n && payload -", "payload -"):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+            assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and "payload - (stdin) is empty" in errs[0][0], (script, errs)
+    assert node.read_bytes() == before and (tmp_path / "src" / "thing.py").read_text() == "old\n"
+    assert (log.read_bytes() if log.exists() else None) == log_before
+    monkeypatch.setattr(sys, "stdin", io.StringIO("new\n"))   # a non-empty read still lands
+    assert write.main(["build:b1", "payload - && note n", "--root", str(project)]) == 0
+    assert (tmp_path / "src" / "thing.py").read_text() == "new\n"
+
 def test_payload_verb_replaces_the_bytes_the_node_points_at(project, tmp_path):
     _build_node(project)
     dest = tmp_path / "src" / "thing.py"
