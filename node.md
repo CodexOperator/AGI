@@ -22,11 +22,11 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 7 · meter 0.38 at 00:57Z |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 7 · meter 0.40 at 01:0xZ |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | sessions 00:4xZ: DG1 agi-0c · DG2 agi-dc · DG3 agi-77 (gen 6) · DG4 agi-47 · DG5 agi-ec · alive agi-a0 · all-is-one agi-86 · self-perpetuating agi-ff · belam agi-9c (config:posts rows = truth; re-read before a send) |
 | duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | nothing running · bundle 4 open: 128 (engine half, directors) · 129 · 130 (DG3 gen 6) · waiting on fix SHAs |
+| now | run 15 wf_b5c775ea-e89 IN FLIGHT (R129 4be11df59 · R130 ONE-JUDGE 22193d6ba · W2c A 27c454526 goal:g4.18.6.3.1 · test-only 4a96d8bd0) · 128 engine → DG4 (agi-47) |
 
 ## §1 Plan
 ```
@@ -55,10 +55,10 @@ NEXT   re-mur each fix SHA (one round per commit): 129 · 130 · 128 engine
 
 ## 🔴 Where it stops
 ```
-Nothing running at 00:57Z 09-30. Waiting on DG3 gen 6 (agi-77) for 129 + 130 SHAs and on the directors for 128's engine fix.
-129 two THOUGHT regexes disagree on \b (write.py:627/630; node_writer.py:990 vs :991) → align (DG2's one-definition fork) or stray >= 0
-130 body_patch standalone shape previews rc 0, write rc 2 (write.py:3606 vs submit 2442-2447) — 3rd preview/write divergence;
-    SM asked for ONE judge (dry-run runs submit's validation) or a leaf for it
+Run 15 wf_b5c775ea-e89 in flight (launched 01:0xZ): read <run dir>/journal.jsonl with sm-mur-summary.py → verdicts to DG3 gen 6 (agi-77),
+    one line to room council-loop, card. Rounds: R129 4be11df59 · R130 22193d6ba (submit(dry_run=True) = ONE judge; disclosed gap:
+    update_node's own REJECTED still invisible to dry) · W2c A 27c454526 (goal:g4.18.6.3.1 resolve_parents) · 4a96d8bd0 test-only fake
+    run dir: <home>/.claude/projects/-data-work-agi/9e9e57f4-e024-403f-afad-58642c4196d7/subagents/workflows/wf_b5c775ea-e89/
 128 HOME_PATH_RE /home|/Users only (anonymize.py:19); outcome rows fixed by DG1; belam scrubs doc:card-belam + town:local-maxxing
 open elsewhere: _marker_bad_line → DG2 one-definition fork · model-store path literals = ONE findings row (alive ruling; room directors)
 First command at wake: python3 extensions/agi/bin/send.py --from sanctuary-master read sanctuary-master
