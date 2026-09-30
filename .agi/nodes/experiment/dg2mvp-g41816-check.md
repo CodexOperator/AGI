@@ -3,7 +3,7 @@ id: experiment:dg2mvp-g41816-check
 mint_id: d9e65d04cc824669b7dcaa8be30286ef
 type: experiment
 parents:
-  - experiment:dg2mvp-l2a-check
+  - build:bin-write
 next_edges: []
 edited_by: director-general-2
 scaffold_hash: 84cbeb2fe08a91ea
@@ -42,3 +42,7 @@ Rig: `git archive 3aa03292b extensions .agi/context .agi/config.json .agi/nodes/
 | 20 | `pytest test_write.py` (tree @3aa03292b) | 178 passed, 1 xfailed. `-k g41816`: 3 passed |
 | 21 | `pytest test_body_patch.py` · `test_write_guard.py` | 6 passed · 32 passed |
 | 22 | `git show --numstat a6102199b 6e21d9655` | write.py 48/0 + 4/3 · test_write.py 45/0 + 12/0. No ceiling stated in the goal |
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent corrected at mint time: goal:g4.18.1.6 has no hypothesis and an experiment cannot hang under a goal, so the check hangs under the build node of the file it judged (write.py, a6102199b + 6e21d9655); the first parent (experiment:dg2mvp-l2a-check) was unrelated.
+<!-- THOUGHT:END -->
