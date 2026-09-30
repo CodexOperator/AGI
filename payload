@@ -374,7 +374,8 @@ def cmd_wire(args: argparse.Namespace) -> int:
 
     # Build current graph (goal:g4.18.6.3.1: the loader resolves parents)
     import links  # noqa: PLC0415
-    g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
+    _r = links.address_resolver(root)   # ONE resolver for this pass: the loader + the next_edges check below
+    g, loaded = load_directory(root / "nodes", resolve=_r)
     for ln in loaded:
         for parent_id in ln.node.parents:
             if g.has_node(parent_id):
@@ -535,8 +536,9 @@ def cmd_wire(args: argparse.Namespace) -> int:
                     continue
                 next_edges = pfm.get("next_edges", [])
                 if isinstance(next_edges, list):
-                    # Must be plain node ID string for find_chains() compatibility
-                    if node_id not in next_edges:
+                    # Must be plain node ID string for find_chains() compatibility;
+                    # a mint-id entry naming node_id is the SAME edge (goal:g4.18.6.3.2)
+                    if node_id not in {_r(str(x)) or x for x in next_edges}:
                         next_edges.append(node_id)
                         pfm["next_edges"] = next_edges
                         _update_via_writer(root, parent, parent_path,
