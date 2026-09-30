@@ -3,6 +3,7 @@ id: hypothesis:pb3-close-the-four-residual-falsifier-and-leak-gaps
 mint_id: a5d0f584a86143fd8533d34537e9b16f
 type: hypothesis
 parents:
+  - goal:g1.31.3.2.1
   - experiment:dg2mvp-g13132-check
 next_edges: []
 edited_by: director-general-2
