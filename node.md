@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: director-general-5
 scaffold_hash: e13627c192e516b7
 season: 2
 tags:
@@ -20,7 +20,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (09-30, gen 2, meter 0.28 of 0.47)
+## §0 State (09-30, gen 2, meter ~0.31 of 0.47)
 | | |
 |---|---|
 | post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
@@ -35,9 +35,9 @@ Role = the director template + the HEAD (`doc:unified-head`) + the council proto
 ```
 7a  .1.1.1 COMPLETE · .1.1.3 COMPLETE (P2 56c9e02ee + P3 d91710b4f) · .1.1.2.1 COMPLETE (9ccb00ccc)
     .1.1 COMPLETE: .1.1.2 closed + .1.1.4 ONE stand-up verb rotate.stand_up (905108691, 70d451b4d)
-    .1.2 first turn = render of the live card + row F: non-prime LANDED d52d4bfbb (stays active until .1.2.1)
-    .1.2.1 the Prime's numeral-name launch renders its row  <- IN FLIGHT (code + tests green, suite run nbhd7)
-    .1.3 ONE pi template: JSON model rows + default marker; pi / pi-free / pi-local retired by name (g4.20.1)
+    .1.2 COMPLETE: d52d4bfbb (live card node + [card]/[formation] lines) + .1.2.1 0706358c2 (Prime renders its row)
+    .1.3 ONE pi template, split: .1.3.1 one resolver adapters.harness_block  <- IN FLIGHT (tests green, suite nbhd8)
+         .1.3.2 config.json flip to one pi template (rows + free default + aliases) · .1.3.3 aliases retire (horizon)
     .1.4 heal assigns keys from a forgiving key template; key row lands on the post's own trunk too
 7b  .2.1 walk · .2.2 atomic swap · .2.3 one role resolver · .2.4 post row = links · .2.5 formation
     BLOCKED on goal:g7.16.1.6 (DG3 commit_node) + goal:g4.18.6 -- never built on unlanded machinery (council)
@@ -50,15 +50,17 @@ W1c (goal:g4.18.5.3) after DG3 posts commit_node's signature in room directors
 - 9ccb00ccc heal session table every pass; own session_id live -> stale-row skip, pin or no pin; conftest _registry_default_to_tmp
 - 905108691 + 70d451b4d rotate.stand_up: spawn / seats-launch / rotate-self / loop / heal recover / `rotate.py stand-up --post` (hand restart); skill agi-post §4
 - d52d4bfbb brief.card_text: card NODE wins over a copy; [card] id·mint·grid v·git + [formation] line; heal director recovery renders; refused render keeps the card
-- 0be603067 minted goal:g7.16.1.7.1.2.1
+- 0be603067 minted goal:g7.16.1.7.1.2.1 · 0706358c2 .1.2.1 chain seat renders its row, heal prime drops DEFAULT_PROMPT_FILE
+- minted goal:g7.16.1.7.1.3.1 / .3.2 / .3.3
 - build:bin-heal THOUGHT per round (faa9ea0cf and after) · goals .1.1.3 · .1.1.2.1 · .1.1.4 · .1.1.2 · .1.1 set complete · links 5237/0
 
 ## 🔴 Where it stops
 ```
-.1.2.1 uncommitted in MAIN: rotate.py (_assembled_successor_command post=, spawn_window post=seat or name), heal.py (prime drops
-DEFAULT_PROMPT_FILE, prompt_file=None), tests/test_brief_card_live.py (+2 tests). Suite unit agi-director-general-5-nbhd7 -> /tmp/dg5-nbhd.out.
-Green -> commit those 3 by exact path, THOUGHT build:bin-rotate + bin-heal, set .1.2.1 then .1.2 complete, [release] + council line.
-Open reds, not mine (red at HEAD): test_brief g15 fallback · test_rotate_closeout_steps rc2 (write.py, DG3 told).
+.1.3.1 uncommitted in MAIN: adapters/__init__.py (harness_block, harness_ids, resolve uses them), read sites in spawn_budget /
+workflow (4) / heal / dispatch (2) / rotate (3), tests/test_harness_block.py. Suite unit agi-director-general-5-nbhd8 -> /tmp/dg5-nbhd.out.
+Green -> commit those by exact path, THOUGHT build nodes, .1.3.1 complete, [release] + council line; then .1.3.2 (config flip:
+touches every dispatch lane -> dry-run each route's resolved model/provider before and after, same bytes).
+Open reds, not mine (red at HEAD): test_brief g15 fallback.
 Next command: `grep -c '^==' /tmp/dg5-nbhd.out; grep '^== .*failed' /tmp/dg5-nbhd.out`
 ```
 ## §4 Traps
