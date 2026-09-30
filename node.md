@@ -45,14 +45,15 @@ NEXT   after the STOP lifts: re-run on pi-free (1) W2c C 595b9c099 = bundle 4 LA
 
 ## 🔴 Where it stops
 ```
-IDLE on the council STOP. Nothing running. Wake on: a Prime/council "resume", a builder SHA, a director blocker.
-RE-RUN on pi-free when resumed (both died on the Claude usage limit; no verdict):
+RESUMED 04:58Z by the Prime, owner 04:5xZ verbatim: "Continue hammering at it as fast as you can until 7am. Maybe allow another director to come up if system can handle it." → FULL SPEED until the 11:00Z STOP (cron armed). Subagents Sonnet 5.5 · workflow.py on pi-free. A NEW director-general-6 is being stood up: its FIRST work = goal:g1.31 PASS B3 residues (AGREED with the council 05:0xZ; all-is-one sends the brief; lane rule: write.py/node_writer.py rows → DG3, rotate/heal/spawn rows → DG5, the rest DG6 by file cluster, 47 upheld then 147 missed); SECOND = the workflow.py headless claude-code stage route (or the first freed director). Check it is seated (ListAgents / tmux list-windows).
+RUN NOW on pi-free (workflow.py run agi-merge-up-review --harness pi-free, skill agi-workflow), then d8b22ae96 + 786c1c13a (queue below); both died on the Claude usage limit, no verdict:
   b4-W2cC            595b9c099  (DG3, g4.18.6.3.3, bundle 4 LAST) -- ResolvingDict/Set semantics for consumers; is_node_id_shaped + mint → false links? links broken stays 0
   g41852-1-busy-index 1098822e1 (DG4, g4.18.5.2.1) -- which git errors count as busy; rc 3 callers; commit by exact path; the swept canonicalize hunks are DG3's
   round text: journals ~/.claude/projects/-data-work-agi/fe79b389-fa84-465b-9b05-fcfbf61bfa19/workflows/wf_f5dd7397-e6b.json + wf_9af85780-af6.json (args.rounds)
 REVIEW QUEUE +: d8b22ae96 (DG3: council (b) on 154 = opt-in canonicalize re-render + 152 153 162 163 + a body-only node patch was refused; one commit) → then DG3 closes g4.18.1.6 on residue 0 → g4.18.5.2.2 · 786c1c13a (DG5 .5.5.1 ramdisk.slice; probe: 64 MiB went to ramdisk.slice, engine shmem unchanged) → on accept route guard-init (sudo) to the Prime · 157 8596508d0 (verify: keygen pin green on committed bytes)
 OPEN RESIDUES: DG3 none pending review · DG5 158(FIRST: remint key before row) 160 161 159 (157 fixed 8596508d0) · DG4 .5.5.3 (from DG5)
-BOARD: DG1 waits W2c C + g4.18.5.2 · DG2 checks: keys g7.16.1.7.1.4 → W2c C → g4.18.1.6 re-check → .2.1/.2.2 · DG3 162 163 152 153 (154 ruling) → g4.18.5.2.2 · DG4 session-sweep file-mtime leaf + a .5.5 leaf from DG5 · DG5 .5.5 (urgent) + 157-161
+ROTATION: rotate.py refused (MAIN .geometry behind origin/season2/main by 1) → asked the Prime to sync (never merge by hand) → re-run `rotate.py rotate` once synced
+BOARD: DG1 (05:0xZ) jobs: (1) g4.18.5.2.1 goal falsifiers in parallel (2) build-vs-goal on .5.3.1 + .5.3.2 with the restart numbers · waits W2c C + g4.18.5.2 · DG2 checks: keys g7.16.1.7.1.4 → W2c C → g4.18.1.6 re-check → .2.1/.2.2 · DG3 162 163 152 153 (154 ruling) → g4.18.5.2.2 · DG4 session-sweep file-mtime leaf + a .5.5 leaf from DG5 · DG5 .5.5 (urgent) + 157-161
 CARRY TO THE DIRECTORS AT WAKE (Prime 04:5xZ): the next loop's FIRST engine item = workflow.py gains a headless claude-code stage route (pi stage argv → claude -p --model --effort; the Prime's passB3 ccrun.py proves the seam) so reviews leave the free lane · re-run W2c C + busy index on Sonnet once it lands, pi-free before
 First command at wake: ListAgents (session names change at every seat); summaries: python3 /data/tmp/claude-1000/sm-mur-summary.py <journal.jsonl>
 ```
