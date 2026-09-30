@@ -1,12 +1,18 @@
 ---
 id: experiment:a00-50a86053-scoped-falsifier2
+mint_id: 2e7ad0174d184d2da4f7aebbfb604734
 type: experiment
 parents:
   - hypothesis:a00-50a86053-4d374b
+confidence: 0.85
 edited_by: a00-50a86053
+evidence_runs:
+  - experiment:a00-50a86053-scoped-falsifier2
 loop: goal:g1.31.4.1@s2
 production_lines: 62
+scaffold_hash: 0f9be287ba0bf0d9
 title: The scoped check is green on the live graph and red on a planted node
+verdict: proved
 ---
 # experiment:a00-50a86053-scoped-falsifier2
 
@@ -80,3 +86,6 @@ the parent: its `<!-- THOUGHT -->` block currently reads `-`, a placeholder.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Scope decision (mechanism: what the instruction said / what the machine does / the near miss / any rule deviation). SAID: falsifier 2 is "git grep the retired caveat over .agi/nodes, zero hits". DOES: the whole-tree grep returns 2 and both hits are inside goal/g1.31.4.1.md itself (line 33 end-state, line 42 the falsifier command) — the caveat file is clean, so the caveat IS retired and the BAR is unmeetable, not the claim false. So the check moves into a separate named artifact, extensions/agi/bin/caveat_residue.py (PHRASE, SCOPE, scan, main) plus test_caveat_residue.py, scoped to the node kinds that ASSERT findings (experiment, hypothesis, verdict, build, mvp, outcome) and excluding goal/ BY NAME, with the exclusion asserted in a test and the goal quotes proven to exist so the filter provably hides nothing. NEAR MISS: rewriting the goal line 42 to a narrower grep and calling the falsifier passed — that yields zero hits and loses the check, because the goal is the node a reader most likely reads as the definition. NOT TAKEN; the goal file is byte-identical to HEAD. DEVIATION: none to the goal; only a re-brief-free addition of one named runnable artifact.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+Falsifier 2 landed as a scoped runnable check: extensions/agi/bin/caveat_residue.py + test_caveat_residue.py (4 passed, negative self-test red on a planted node); goal:g1.31.4.1 text byte-identical.
