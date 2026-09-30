@@ -30,7 +30,7 @@ config-max: the out dir -> new cell paths.local_maxxing.osc_band_l4_dir (dataset
 
 ## FALSIFIERS
 - the band arm fails to clear the random min-max band on agree OR KL at 2 or more of the 3 budgets -> disproved (the band is not a usable locality proxy at these budgets)
-- any arm's kept-KV fraction differs from the budget by > 0.5 pct, or band and random differ in k or W at a budget -> the round is void, not a verdict
+- any arm's kept-KV fraction differs from the budget by more than half of one KV head's share (0.975 pct at L 2048, W 128: k = 13 / 21 / 26 -> 0.7466 / 0.5907 / 0.4933), or band and random differ in k or W at a budget -> the round is void, not a verdict
 - the full-KV reference fails to reproduce itself bit-for-bit across two runs, or a cell is inherited from another experiment -> void
 - the window is applied to query heads rather than KV heads (the GQA group must share one mask) -> void
 
@@ -43,3 +43,7 @@ config-max: the out dir -> new cell paths.local_maxxing.osc_band_l4_dir (dataset
 
 ## CEILING
 <= 160 production lines, one builder. CPU only (fp32, one model per process, ~3.5 GB RSS): start only at MemAvailable >= 6 GB and memory PSI some avg10 < 5 (sanctuary-master 21:57Z), detached via systemd-run --user with MemoryMax=5G, stop on a PSI red. 0 USD. No GPU slot.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v2 (thought-master 22:0xZ 09-30): the budget tolerance was 0.5 pct, which integer k cannot meet -- one windowed KV head moves the kept fraction by (1 - 132/2048)/48 = 1.95 pct, so 0.60 lands at best on 0.5907 (k 21). The bound is now half of one head's share (0.975 pct) and names the three k. Minted 21:5xZ on sanctuary-master's placement (SM gen 11, 21:57Z).
+<!-- THOUGHT:END -->
