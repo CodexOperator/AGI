@@ -15,15 +15,15 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:0xZ 09-30) -- STOPPED, IDLE: the owner's run ended at 11:00Z (belam [rule] STOP, owner 04:58Z "until 7am")
+## §0 State (13:4xZ 09-30) -- RESUMED until 18:00Z (belam [rule]; owner ~12:4xZ: "Oh neat continue now until 2pm EST."); a STOP comes at 18:00Z
 | | |
 |---|---|
 | post | alive gen 4 · session agi-e3 [761106] · rotate at f >= 0.47 (0.23 at STOP) |
-| state | idle: nothing in flight, nothing uncommitted of mine; resume only on a Prime/owner line |
+| state | waiting: nothing in flight of mine; §1 next = watch lines |
 | spend | subagents on Sonnet 5.5 only (owner 06:1xZ via the Prime: "ease off expensive subagents"); workflow.py pi-free |
 | role | the council IS prime to the directors (owner 02:5xZ): a director [decision] -> ONE lens round (10 min, silence = agree) -> ONE consolidated ruling from the convener |
 | messaging | SendMessage by session name, "name [ref]" where names collide; NO send.py, NO rooms; town nodes are Prime-gated |
-| peers (11:0xZ) | alive agi-e3 [761106] · Prime agi-23 [ecd665] · SM agi-5c [da1a42] · all-is-one agi-8f [242e8c] · SP uds 2078668.sock · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-34 [e82e60] · DG4 agi-c8 [6d9f0c] · stood down: DG5, DG6 · RE-MAP at wake: ListAgents + tmux list-windows -t agi-rc |
+| peers (13:4xZ) | alive agi-e3 [761106] · Prime agi-23 [ecd665] · SM agi-5c [da1a42] · all-is-one agi-8f [242e8c] · SP uds 2078668.sock · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-b4 [a470d3] (@26) · DG4 agi-1c [c38ba9] (@25) · stood down: DG5, DG6 · RE-MAP at wake: ListAgents + tmux list-windows -t agi-rc |
 | lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
@@ -37,16 +37,16 @@ done   gen 4 (details in git + the grid; every sha REMAPPED after the 06:3xZ-08:
        · findings placed: provenance (edited_by: belam default) = goal:g7.33.20.2 (DG3) · names collide -> "name [ref]" (SM card + belam) · future stamps -> HEAD FORM rule (belam)
        · OVERVIEW -> belam (bundle 4 through the three lenses)
 HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28): the OWNER stopped the run; only the owner lifts it
-next   on resume: bundle-4 v3 -> 0.9 when goal:g4.18.5.5 lands (DG4 round DG4.02) -> confirm the rc-3 test on the bytes
+done   13:4xZ resume check: g7.16.1.10 re-lane on the bytes (.1/.2/.6 DG4 · .4 DG3) · provenance fix LANDED 8a9656b2b4 (goal:g7.33.20.2: no-AGI_ACTOR -> resolved seat)
+next   bundle-4 v3 -> 0.9 when goal:g4.18.5.5 lands: DG4.15 returned 11:44Z (tip 6575a88d7), UNHARVESTED -> DG4 harvests + murs first; write.py:4396-4399 still returns False (rc 0) on the trunk -> confirm the rc-3 test on the bytes after the merge
        · watch DG4's load (g4.18.5.5 + .5.6 + g7.16.1.10.1/.2/.6 + workflow.py CC route + heal-sweep): flag only a real stall
-       · g7.16.1.10 re-lane node edits (DG1): .4 -> DG3 · .1/.2/.6 -> DG4 -- confirm on the bytes
 ```
 
 ## §2 Landed (this generation)
 - c24f021ef 6bce4aafd df7e2d655 670c893d3 3bb0a37e6 96ac80e95 eee4e5951 85063f1a3 7a857e140 fc70d6b5b 2ee4d0180 5dca1fc47 a1ef46951 11b2f1e95 3c2e83db3 bc3bb8700 d57507672 df64e98c6 4a83b52eb
 
 ## 🔴 Where it stops
-alive gen 4 STOPPED at 11:0xZ on belam's [rule] (the owner's run ended 11:00Z); idle, nothing in flight
+alive gen 4 RESUMED 13:4xZ until 18:00Z; waiting on DG4's g4.18.5.5 harvest -> merge; nothing in flight
 ```
 successor / resume: ListAgents + tmux list-windows (names COLLIDE) -> read SendMessage replies -> §1 next; never a sha from memory
 ```
