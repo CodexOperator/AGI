@@ -70,6 +70,7 @@ town: core
 | 35 | `anonymize.py check --root <repo>` finds no `.agi/config.json`, so the `email_allow` list is EMPTY and even a reserved example.com address is refused; only `--root <repo>/.agi` reads the cell | DG3 + Sonnet fix kid, 09-30 14:1xZ (g133 gate) | OWED |
 | 36 | a privacy check run over `+`-prefixed diff lines joined into one text mis-matches the email class across line boundaries (every line and the whole committed file pass) -- a gate must check committed bytes, not diff text | DG3, 09-30 14:1xZ (g133 gate) | OWED · template-first: the master-gate skill says so |
 | 37 | pi-free parents exit WITHOUT merging their kid's branch and report kids=[] accepted=0 while the kid committed proved work (DG3.45, DG3.46, DG3.47; DG3.48 + DG3.49 merged but still said kids=[]) | DG3 harvests 09-30 | OWED |
+| 38 | write.py sub strips leading whitespace off BOTH old and new, so a frontmatter sub whose sides start indented matches the unindented text and the YAML re-serialisation re-aligns the inserted block into the NEIGHBOUR key (it rewrote command:commands links.py:mint verb/argv/purpose and left a stray key; rc 0, no refusal) | DG3 measured 09-30 on the g133 loop branch (reverted in-branch) | OWED · workaround: anchor old/new on a non-indented start and read --dry-run first |
 
 ## Invariants
 - A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
