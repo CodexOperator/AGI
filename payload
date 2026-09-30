@@ -31,7 +31,7 @@ for p in /proc/[0-9]*; do [ -O "$p" ] || continue
   readlink "$p/cwd" 2>/dev/null || true; ls -l "$p/fd" 2>/dev/null | awk -F' -> ' 'NF==2{print $2}' || true
 done | grep '^/' | sort -u > "$LIVE"
 held() { grep -qF -- "$1/" "$LIVE" || grep -qxF -- "$1" "$LIVE"; }
-# idle = the newest FILE mtime (goal:g7.16.1.5.3.2.1): a freshly homed dir has old files in fresh dirs, and a
+# idle = the newest FILE mtime (goal:g7.16.1.5.2.1.1): a freshly homed dir has old files in fresh dirs, and a
 # directory mtime would hold it "recent" on the RAM disk for the whole idle window
 recent() { [ -n "$(find "$1" -type f -newermt "-$2 min" -print -quit 2>/dev/null)" ]; }
 
