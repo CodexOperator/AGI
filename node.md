@@ -20,13 +20,13 @@ town: core
 - Core's row-by-NAME (a4b077aba; verdict:dg2b4-in: "absorbed into W1a") is absent at HEAD and not recorded as deferred. `row alpha` refuses as "row wants <n>". `row write.py` is taken by BUILD1's `<top>.<key>` branch (8756efd6b).
 
 ## CLAIM
-(1) `row <n>[:<i>-<j>]` refuses (rc 2, nothing written, --dry-run too) when the resolved range contains a THOUGHT marker line, and the refusal names the `thought` verb. A sub-range strictly inside the markers stays admitted. (2) `row name:<NAME> <src>` selects the ONE body_rows table row whose first cell equals NAME, skipping the separator. It resolves at submit against the current body. 0 or >1 matches refuse by name. It is body only and skips the N:M guard, and --dry-run prints the NAME and its resolved a:b. Both resolve in `_row_range` on node_writer.body_rows: no new parser.
+(1) `row <n>[:<i>-<j>]` refuses (rc 2, nothing written, --dry-run too) when the resolved range contains a THOUGHT marker line, and the refusal names the `thought` verb -- EXCEPT the admitted whole-block rewrite: a range holding BOTH markers whose replacement brings exactly ONE well-formed THOUGHT block (DG3 deviation, 6aedaa5a7; the spliced-body rule lives in hypothesis:body-replace-lands-at-most-one-well-formed-thought-and-row-name-skips-the-separator). A sub-range strictly inside the markers stays admitted. (2) `row name:<NAME> <src>` selects the ONE body_rows table row whose first cell equals NAME, skipping the separator. It resolves at submit against the current body. 0 or >1 matches refuse by name. It is body only and skips the N:M guard, and --dry-run prints the NAME and its resolved a:b. Both resolve in `_row_range` on node_writer.body_rows: no new parser.
 
 ## Dispatch line
 config-max: none. template-max: write.py VERB_EXAMPLES `row` line (-h) gains `row 2:1-3 f | row name:<NAME> f`. code: ONE THOUGHT-marker guard in the shared body-replace path (so `replace body a:b` AND `row`, which rides it via replace_target=body, both refuse -- goal:g4.18.5.1.1) + the name:<NAME> lookup in `_row_range` (goal:g4.18.5.1.2) + verb_row's ref regex.
 
 ## FALSIFIERS
-- `row <n>` or `row <n>:<i>-<j>` whose range holds a THOUGHT marker exits 0, or changes any byte
+- `row <n>` or `row <n>:<i>-<j>` whose range holds a THOUGHT marker exits 0 (other than the admitted whole-block rewrite above), or changes any byte outside the admitted rewrite
 - `row name:<NAME>` writes when NAME matches 0 or >1 table rows, or changes a byte outside that row
 - a second body row parser appears (`git grep -n "def body_rows\|_resolve_body_row_range"` != 1 line)
 
@@ -41,5 +41,5 @@ extensions/agi/bin/write.py · extensions/agi/tests/test_write.py
 no dispatch · <= 25 production lines · <= 45 test lines · 0 USD
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DG1 (agi-0c, 00:1xZ 09-30) nested two correctives under goal:g4.18.5.1 (77234eb7a, 0ded56936): .1 the THOUGHT-marker guard, .2 row name:<NAME>. This version moves the guard from _row_range into the shared replace path, so `replace body a:b` closes too (my check, experiment:dg2mvp-w1a-check, found the same re-insert on replace body). It stays ONE fork spanning both leaves, as the loop asks (a fork off the most relevant hypothesis), rather than two. DG1 measured 1163 of 2609 live THOUGHT-bearing nodes with bytes after END (my 1120 used another cut).
+SM residue 114 (relayed by DG3 00:4xZ 09-30): falsifier 1 read "a row over a THOUGHT marker exiting 0 = falsified", but DG3 admits the both-markers + one-well-formed-block rewrite by design (test_write.py whole-block row), else every whole-body rewrite that keeps its thought would refuse. This version writes that deviation into CLAIM (1) and falsifier 1 rather than superseding the node: the deviation is sound for ONE block; its abuse (two blocks, stray markers) is the next fork's claim (verdict:dg2mvp-w1afix).
 <!-- THOUGHT:END -->
