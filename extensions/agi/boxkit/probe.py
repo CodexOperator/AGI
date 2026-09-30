@@ -223,10 +223,11 @@ def rows(root: pathlib.Path, install_root: pathlib.Path, systemctl: str = "syste
     # box's config:guard cells on the INSTALLED user@ max -- never a boxkit number. No
     # base (or no SwapTotal) empties only the targets derived from it: they judge
     # UNKNOWN, never ok, and every base-independent target is still judged.
+    sizing_refused = None
     try:                                    # no base -> only the base-derived targets blank
         sized = render.sizing(base, swap, render.guard_cells(root), total)
-    except render.KitError:
-        sized = {}                          # cells that size a unit that cannot run: UNKNOWN
+    except render.KitError as err:
+        sized, sizing_refused = {}, str(err)    # its targets read UNKNOWN; the row below names why
     vals.update({k: sized.get(k, "") for k in render.MEMORY})
     # g7.33.18 9b03554ac: the reserve is DERIVED, never a fixed 2 GiB and never
     # a default.  `held_outside_user_mib` is a PER-BOX INPUT with no config cell
@@ -247,6 +248,8 @@ def rows(root: pathlib.Path, install_root: pathlib.Path, systemctl: str = "syste
     # this probe never exits 2 -- every layer is read from the live installed bytes.
     man = root.parent / pathlib.Path(pb["templates_dir"]) / "manifest.json"
     out.append(("kit manifest (g7.33.18.1)", "present" if man.is_file() else "absent", "info", "info"))
+    if sizing_refused:
+        out.append(("config:guard sizing", sizing_refused, "every line sized", "UNKNOWN"))
     for name, unit_t, mgr, prop, kind, spec in UNITS:
         unit = unit_t.format(**sub)
         # user@'s caps were installed as WHOLE MiB, so 0.05 still catches an

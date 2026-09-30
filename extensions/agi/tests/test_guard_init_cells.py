@@ -126,10 +126,26 @@ def test_no_unit_property_carries_a_memory_literal():
     ({"ENGINE_MAX": "0.5M"}, "agi-engine MemoryMax"),        # to_mib truncates to 0M
     ({"RESERVE": "20000M"}, "user@ MemoryMax"),               # nothing left for user@
     ({"CLAUDE_LOW_CAP": "0M"}, "Claude MemoryLow"),
+    ({"ENGINE_MAX": "9855M"}, "agi-work MemoryHigh"),         # work max 1 -> high 1*90//100 = 0
+    ({"ENGINE_MAX": "9856M"}, "agi-work MemoryMax"),          # agi max 9856 - 9856 = 0
+    ({"RAM_BUDGET": "16001M"}, "ramdisk.slice MemoryMax"),    # RAM + 1
+    ({"SYSTEM_MIN": "16001M"}, "system.slice MemoryMin"),
+    ({"SSH_MIN": "99999M"}, "sshd MemoryMin"),
 ])
+
 def test_a_derived_line_out_of_range_is_refused_by_name(tmp_path, cells, line):
     """goal:g7.16.1.5.5.8: a well-formed cell that sizes a unit <= 0 or > RAM."""
     rc, v, err = derive(tmp_path, **cells)
     assert rc != 0 and not v
     assert err.startswith("guard-init: %s would be " % line), err
     assert "(RAM 16000M); check GUARD_" in err, err
+
+
+@pytest.mark.parametrize("cells", [
+    {"ENGINE_MAX": "9854M"},                                  # work max 2 -> high 1: the last legal
+    {"RAM_BUDGET": "16000M"},                                 # exactly RAM
+    {"SYSTEM_MIN": "0", "SSH_MIN": "0", "ENGINE_SWAP_MAX": "0", "USER_SWAP_PCT": "0"},  # legal zeros
+])
+def test_the_range_boundary_passes(tmp_path, cells):
+    rc, v, err = derive(tmp_path, **cells)
+    assert rc == 0, err

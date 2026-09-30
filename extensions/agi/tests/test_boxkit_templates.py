@@ -352,8 +352,11 @@ def test_a_guard_cell_sizing_a_unit_out_of_range_is_refused():
     for cells in ({"ENGINE_MAX": "100G"}, {"ENGINE_MAX": "0.5M"}):
         with pytest.raises(R.KitError) as err:
             R.values(CFG, MEASURED, PROBE, guard=cells)
-        assert "config:guard sizes" in str(err.value) and "WORK_MAX" in str(err.value) \
-            or "ENGINE_MAX" in str(err.value), str(err.value)
+        assert "config:guard sizes" in str(err.value) and \
+            ("WORK_MAX" in str(err.value) or "ENGINE_MAX" in str(err.value)), str(err.value)
+    with pytest.raises(R.KitError, match="SSH_MIN"):          # MemoryMin > RAM (0 stays legal)
+        R.values(CFG, MEASURED, PROBE, guard={"SSH_MIN": "%dM" % (MEASURED["MEM_TOTAL"] + 1)})
+    assert R.values(CFG, MEASURED, PROBE, guard={"SSH_MIN": "0"})["SSH_MIN"] == "0M"
 
 
 def test_guard_none_reads_this_boxs_cells(monkeypatch):

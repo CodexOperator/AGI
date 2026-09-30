@@ -123,6 +123,8 @@ def sizing(user_max, swap_total, g, ram=None):
     bad = sorted(k for k in ("USER_HIGH", "AGI_MAX", "AGI_HIGH", "ENGINE_MAX", "ENGINE_HIGH",
                              "WORK_MAX", "WORK_HIGH", "MEM_LOW")
                  if k in sizes and (sizes[k] <= 0 or (ram is not None and sizes[k] > int(ram))))
+    bad += [k for k in ("SYSTEM_MIN", "SSH_MIN")             # MemoryMin: 0 legal, > RAM not
+            if ram is not None and sizes[k] > int(ram)]
     if bad:
         raise KitError("boxkit: config:guard sizes %s to <= 0 or more than RAM: %s"
                        % (", ".join(bad), {k: sizes[k] for k in bad}))

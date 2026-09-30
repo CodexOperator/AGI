@@ -261,6 +261,9 @@ line_ok "agi-work MemoryMax" "$WORK_MAX_M" AGI_MAX_PCT ENGINE_MAX
 line_ok "agi-work MemoryHigh" "$WORK_HIGH_M" AGI_MAX_PCT ENGINE_MAX WORK_HIGH_PCT
 line_ok "Claude MemoryLow" "$CLAUDE_LOW_M" CLAUDE_LOW_DIV CLAUDE_LOW_CAP
 (( RAM_BUDGET_M == 0 )) || line_ok "ramdisk.slice MemoryMax" "$RAM_BUDGET_M" RAM_BUDGET
+# MemoryMin: 0 is legal (no protection); more than RAM is not
+(( SYSTEM_MIN_M == 0 )) || line_ok "system.slice MemoryMin" "$SYSTEM_MIN_M" SYSTEM_MIN
+(( SSH_MIN_M == 0 )) || line_ok "sshd MemoryMin" "$SSH_MIN_M" SSH_MIN
 # --- cells end -----------------------------------------------------------------
 
 SSH_UNIT=ssh.service

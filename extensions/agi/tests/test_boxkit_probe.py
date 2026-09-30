@@ -669,3 +669,13 @@ def test_an_unparsed_guard_cell_is_unknown_and_never_aborts_the_table(tmp_path, 
     table = _by_name(probe.rows(agi, root, shim, HELD))
     assert table["user@ MemoryHigh"][2] == "UNKNOWN"
     assert _run(agi, root, shim) == 3                # UNKNOWN rows: not clean, not drift
+
+
+def test_a_range_refusal_is_named_in_its_own_row(tmp_path, monkeypatch):
+    """SM review R2 of a8b79e7ed: cells that size a unit that cannot run blank the
+    targets AND a row names the refused line -- never a silent table of UNKNOWNs."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    _guard(monkeypatch, ENGINE_MAX="100G")
+    table = _by_name(probe.rows(agi, root, shim, HELD))
+    row = table["config:guard sizing"]
+    assert row[2] == "UNKNOWN" and "ENGINE_MAX" in row[0], row
