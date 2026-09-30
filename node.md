@@ -35,16 +35,20 @@ LIVE   dg6-04 half a: DG3.42 kid a00-6821a1b9 DONE (9 items; 31 prod / 109 test 
           returned config diff for anonymize.email_allow ALSO widens .service -> route to SM/Prime, never land by hand)
           loop tip 83047de404 (worktree /mnt/agi-ram/worktrees/a00-07ef8482); re-mur unit agi-director-general-3-dg3mur-dg6-04d-0945
           (args /tmp/dg3_mur-dg6-04d.json, key dg6-04d, old edfef83cc5) -> residues 0 -> [merge-up] to SM -> GO -> land
-       g133 chain: DG3.43 2e662e8842 -> mur DEMOTE -> DH.DG3.44 kid a00-12e1cdc4 lean_proved:80 -> director landed the prior-node home-path
-          scrub a298bcc6e5 (neighbourhood 376p/0f, F4 0) -> re-mur unit agi-director-general-3-dg3mur-g133c-1027 (args /tmp/dg3_mur-g133c.json)
-          CEILING over (whole chain vs 0ebaac570f: links +66/45, write +33/22, tests +175/170; kid under-reported) -> disclosed, row 33
+       g133 chain: DG3.43 -> DEMOTE -> DH.DG3.44 -> a298bcc6e5 -> mur g133c accept_with_residue -> director note d8ab866399 (numstat
+          mislabel) -> CORRECTIVE DH.DG3.46 (unreadable map silent; WARN over file-sourced text; cache row; NET prod <= 0) parent a00-082c4305
+          on season2/loops/hypothesis-g133-one-resolve-old--a00-082c4305, base /mnt/agi-ram/worktrees/de-base-DG3.46 -> re-mur d8ab866399..tip
           returned lines to route at merge-up: cell paths.local_maxxing.scrub_commit_map (Prime) + mur focus line "links.py sha, never cat-file"
        dg6-04d: review = accept_with_residue (10 residues: item 6 build THOUGHT NOT done + false 'landed'; @file fallback takes every
           colon-free line; _cell_root resolves from CWD; boxkit test literal duplicates a cell; F5 premise false; ...) -> verify pending
-       DG3.45 goal:g7.16.1.5.5.6: hypothesis:g7556-guard-ram-writes-charge-ramdisk-slice-through-one-shell-entry (2b837f66b8), parent
-          a00-60331ee3 on season2/loops/hypothesis-g7556-guard-ram-write-a00-60331ee3; base /mnt/agi-ram/worktrees/de-base-DG3.45 (remove at harvest)
-       mur DG5.01 goal:g1.31.4.1 unit agi-director-general-3-dg3mur410832 (2/3 reviews in; harvest worktree
-          /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1, tip adb1bd23fd, MB 10dcb7b94f; my read: caveat_residue.py = residue)
+       DG3.45 goal:g7.16.1.5.5.6 HARVESTED: kid a00-62441a96 proved (parent's harvest line wrongly says kids=[]), tip 157112b53e
+          (worktree /mnt/agi-ram/worktrees/a00-60331ee3); 124p/8s, bash -n ok; CEILING over (mem_cap +55/30, scripts 23/10, tests 223/90)
+          mur unit agi-director-general-3-dg3mur-g7556-1040 (args /tmp/dg3_mur-g7556.json)
+       mur DG5.01 goal:g1.31.4.1 (tip adb1bd23fd, MB 10dcb7b94f, harvest wt /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1): target verify DEMOTE
+          (double graph load zoom.py:651; --level auto dodges the dry gate; 4th target check zoom.py:975; false greens in 2 nodes; dry economy),
+          caveat review DEMOTE (caveat_residue.py lands a red test + duplicates the goal falsifier as code -> retire it, assert named lines),
+          caveat verify running in unit ...dg3mur410832; branch review TIMED OUT -> re-run alone: unit ...dg3mur-g1314-1b-1040 (/tmp/dg3_mur41b.json)
+          -> ONE corrective over all 3 slices when both land
        watcher: background task on the 3 above + inbox
 QUEUE  DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (built by DG5: closes when DG5.01 is harvested + its RAM worktree removed) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
 FINDINGS written: goal:g7.33.19 rows 28-33 (da9f4a8a4b) -- foreign-node commit, resolve_bin tilde-user, mur read DMI, mur prints old ids,
