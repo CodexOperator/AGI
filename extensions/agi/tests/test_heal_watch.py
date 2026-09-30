@@ -44,6 +44,13 @@ cli = _load("cli")
 heal = _load("heal")
 
 
+@pytest.fixture(autouse=True)
+def _no_box_pressure(monkeypatch):
+    """goal:g7.16.1.5.3: the sweep defers under real box memory/io PSI; a
+    test judges the sweep, never the box it happens to run on."""
+    monkeypatch.setattr(heal, "_sweep_pressure_ok", lambda root: (True, "test"))
+
+
 @pytest.fixture
 def graph_project(tmp_path: Path) -> Path:
     """A project whose graph root (repo/.agi) carries nodes + config so the

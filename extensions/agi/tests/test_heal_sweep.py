@@ -48,6 +48,13 @@ def _load(name):
 
 
 heal = _load("heal")
+
+
+@pytest.fixture(autouse=True)
+def _no_box_pressure(monkeypatch):
+    """goal:g7.16.1.5.3: the sweep defers under real box memory/io PSI; a
+    test judges the sweep, never the box it happens to run on."""
+    monkeypatch.setattr(heal, "_sweep_pressure_ok", lambda root: (True, "test"))
 spawn_budget = _load("spawn_budget")
 
 
@@ -171,40 +178,77 @@ def four_worktrees(repo_root: Path):
             "a00-cccc33": wt_c, "a00-dddd44": wt_d}
 
 
-def test_sweep_removes_merged_clean_homed_and_refuses_others(
+def _ref(repo, ref):
+    r = subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", "-q", ref],
+                       capture_output=True, text=True)
+    return r.stdout.strip()
+
+
+def test_sweep_archives_then_removes_unmerged_and_dirty(
         repo_root, four_worktrees, monkeypatch):
-    """A finished round's (merged, clean, homed) worktree is removed and its
-    loop branch survives; the dirty / live / unlanded ones are refused by
-    name, never forced, their bytes untouched."""
+    """goal:g7.16.1.5.3 -- "unmerged" / "dirty" are no longer terminal: the
+    merged+clean tree (A) is removed as before; the dirty one (B) and the
+    unlanded one (D) are ARCHIVED first (refs/archive/worktrees/<name>, B's
+    uncommitted bytes on <name>-dirty) and then removed; the live one (C) is
+    kept. Every loop branch survives; no byte is lost."""
     log = _graph(repo_root) / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    d_head = _ref(four_worktrees["a00-dddd44"], "HEAD")
     removed, refused, kept = heal._sweep_finished_worktrees(_graph(repo_root))
-    assert removed == 1
-    assert refused == 2   # dirty (B) + unmerged (D); live (C) is kept, not refused
-    assert kept == 1      # the live worktree
+    assert (removed, refused, kept) == (3, 0, 1)
 
-    # A removed, its loop BRANCH kept.
     assert not four_worktrees["a00-aaaa11"].exists()
+    assert not four_worktrees["a00-bbbb22"].exists()
+    assert not four_worktrees["a00-dddd44"].exists()
+    assert four_worktrees["a00-cccc33"].exists(), "a live round is never touched"
     branches = subprocess.run(
         ["git", "-C", str(repo_root), "branch", "--list", "loop/n-A@2"],
         capture_output=True, text=True).stdout
     assert "loop/n-A@2" in branches, "the loop/ branch is the history, keep it"
 
-    # B refused dirty: dir still there, modified node bytes untouched.
-    assert four_worktrees["a00-bbbb22"].exists()
-    assert "modified" in four_worktrees["a00-bbbb22"].joinpath(
-        "base.txt").read_text()
-
-    # C kept live; D kept unmerged.
-    assert four_worktrees["a00-cccc33"].exists()
-    assert four_worktrees["a00-dddd44"].exists()
+    # A merged+clean needs no archive; D pinned at its HEAD; B's dirty bytes kept.
+    assert _ref(repo_root, "refs/archive/worktrees/a00-aaaa11") == ""
+    assert _ref(repo_root, "refs/archive/worktrees/a00-dddd44") == d_head
+    b_dirty = _ref(repo_root, "refs/archive/worktrees/a00-bbbb22-dirty")
+    assert b_dirty
+    assert "modified" in subprocess.run(
+        ["git", "-C", str(repo_root), "show", f"{b_dirty}:base.txt"],
+        capture_output=True, text=True).stdout
 
     text = log.read_text()
     assert "[sweep] removed a00-aaaa11 iter=iter-001 base=season/s2" in text
-    assert "[sweep] refused a00-bbbb22: dirty (1 paths)" in text
+    assert "[sweep] archived a00-bbbb22 (dirty 1) ref=refs/archive/worktrees/a00-bbbb22 +dirty" in text
+    assert "[sweep] archived a00-dddd44 (unmerged) ref=refs/archive/worktrees/a00-dddd44" in text
     assert "[sweep] kept a00-cccc33: live" in text
-    assert "[sweep] refused a00-dddd44: unmerged" in text
-    assert "sweep: removed=1 refused=2 kept-live=1" in text
+    assert "refused a00-dddd44: unmerged" not in text
+    assert "sweep: removed=3 archived=2 refused=0 kept-live=1" in text
+
+
+def test_sweep_deferred_under_pressure_removes_nothing(
+        repo_root, four_worktrees, monkeypatch):
+    """goal:g7.16.1.5.3 -- a pass under memory/io PSI (or a blind read) is
+    deferred WHOLE: nothing archived, nothing removed, one line says why."""
+    log = _graph(repo_root) / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_sweep_pressure_ok",
+                        lambda root: (False, "io psi some.avg10 55 >= 40"))
+    assert heal._sweep_finished_worktrees(_graph(repo_root)) == (0, 0, 0)
+    assert all(w.exists() for w in four_worktrees.values())
+    assert "[sweep] deferred: io psi some.avg10 55 >= 40" in log.read_text()
+
+
+def test_sweep_failed_archive_never_removes(repo_root, four_worktrees,
+                                            monkeypatch):
+    """goal:g7.16.1.5.3 invariant: a tree that needs an archive is never
+    removed unless the archive verified -- a failed archive refuses by name."""
+    log = _graph(repo_root) / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_sweep_archive", lambda *a, **k: "update-ref failed")
+    removed, refused, kept = heal._sweep_finished_worktrees(_graph(repo_root))
+    assert (removed, refused, kept) == (1, 2, 1)   # only merged+clean A goes
+    assert four_worktrees["a00-bbbb22"].exists()
+    assert four_worktrees["a00-dddd44"].exists()
+    assert "[sweep] refused a00-dddd44: archive failed (update-ref failed)" in log.read_text()
 
 
 def _raise_budget(*args, **kwargs):
@@ -244,8 +288,11 @@ def test_sweep_dry_run_removes_nothing_but_logs(repo_root, four_worktrees,
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     removed, _, _ = heal._sweep_finished_worktrees(_graph(repo_root),
                                                    dry_run=True)
-    assert removed == 1
-    assert four_worktrees["a00-aaaa11"].exists(), "dry-run removes nothing"
+    assert removed == 3
+    assert all(w.exists() for w in four_worktrees.values()), "dry-run removes nothing"
+    assert _ref(repo_root, "refs/archive/worktrees/a00-dddd44") == "", "dry-run writes no ref"
+    assert "archived a00-dddd44 (unmerged) ref=refs/archive/worktrees/a00-dddd44 (dry-run)" in \
+        log.read_text()
     assert "removed a00-aaaa11 iter=iter-001 base=season/s2 (dry-run)" in \
         log.read_text()
 
@@ -279,9 +326,10 @@ def test_watch_once_calls_sweep_exactly_once(repo_root, four_worktrees,
                          "--once"])
     assert heal.main() == 0
     assert not four_worktrees["a00-aaaa11"].exists()
-    assert four_worktrees["a00-bbbb22"].exists()
+    assert not four_worktrees["a00-bbbb22"].exists()   # archived, then removed
     assert four_worktrees["a00-cccc33"].exists()
-    assert four_worktrees["a00-dddd44"].exists()
+    assert not four_worktrees["a00-dddd44"].exists()   # archived, then removed
+    assert _ref(repo_root, "refs/archive/worktrees/a00-dddd44")
     # one summary line => the sweep ran once.
     assert log.read_text().count("sweep: removed=") == 1
 
