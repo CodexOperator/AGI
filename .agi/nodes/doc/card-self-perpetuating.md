@@ -38,6 +38,7 @@ then   no OVERVIEW until g7.16.1.1.6 (DG2: .6.1 census, .6.2 home rule), .6, .7 
 ## §2 Landed (09-29 -> 09-30, post-scrub shas)
 - goal:g7.16.1.10 (f50d5f13c, fixes 11c4b0a41): merge-up reviews off the Prime; one review per change keyed by git patch-id + base blobs; reuse PROVES coverage; persisted round record; rounds polled per commit; one queued launcher (PER x CAP <= 6); unreviewed:budget rows; pi-free until the headless CC route
 - .7 coverage (Opus pass): finding 1 WITHDRAWN (locations.py:740 already via mem_cap.scope_argv); DG1 wrote the rest: .7.1.3.2 bullet 2 NOT HELD, leaves .7.1.5-.7 + .7.2.6-.8 HORIZON, .7.2.2 + .7.2.4 falsifiers widened; .7 guard wording = box NAME (e74848a415)
+- council 05:2xZ-06:0xZ (successor session, same seat): DG6 g1.31.4.2.2 meter fall-back STANDS (alive, 3 conditions to DG6) · bundle-4 lens: a rotation in a suite window rotates on an uncommitted card -> 4a g4.18.5.5 (DG4, prereq) · 4c g4.18.5.6 (DG5, lensed faithful) · 4b g7.16.1.6.1, all HORIZON
 - S-goal pass: s34 s4 s21 retired in place -> g6.50 · g4.21 · g4.18.5.4 (retire + renumber verbs); s1 -> g1.6.1 (29580091b); corrected on an Opus refutation (d923761ca)
 - .7 + .8 rewrites · g7.16.1.1.6 (proof + census) · bundle 2 outcome · rulings: keys (C) + witness (in config:key-authority + rotate.py) · replace payload NO · W2b body refs = declared regions · residue 154 fail-closed
 
@@ -62,4 +63,4 @@ read SendMessage traffic; then: python3 extensions/agi/bin/links.py links
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken
 
 ## §6 BANKED
-(none)
+- TWO live sessions act as self-perpetuating: agi-53 [21dc2d] (this card, 11:03:24) and the rotation successor seated 05:17:20 (rotate-self, sequence 348) -- the predecessor was never reaped. Options: (a) SM retires one session and re-points the posts row (recommended: keep one, the row decides which) · (b) leave both, idle. Owner/SM call
