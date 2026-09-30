@@ -3062,6 +3062,24 @@ manifest:
     reason: runs the whole engine suite under the one-runner suite lock -- opt-in, never proposed
     side_effects: read
     proposable: false
+  council_report.py:add:
+    cli: council_report.py
+    verb: add
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/council_report.py
+      - add
+      - "--run"
+      - <run>
+      - "--args"
+      - <args>
+    args:
+      - {"name": "run", "type": "str", "required": true, "choices": []}
+      - {"name": "args", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: one report row per round, verify residues to owner leaves
+    side_effects: graph-write
+    proposable: false
   reds.py:check:
     cli: reds.py
     verb: check
