@@ -4276,8 +4276,10 @@ def _commit_write(root, node_id: str, res, actor: str = "",
     own node (+ its payload) by exact path. In main() only: submit() is the
     library rotate.py and send.py call on shared files. `git commit -- <paths>`
     commits those paths alone: never -a, never a file another post staged. A
-    held verify-suite.lock refuses the commit by name (the write stays on
-    disk; ONE sanctioned exit 0 over an uncommitted node). The SECOND is
+    held suite lock (name from `verification.suite_lock_name`, the ONE
+    resolver) refuses the commit by name and the write exits EXIT_UNCOMMITTED
+    (3) over uncommitted bytes -- never exit 0
+    (hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block). The SECOND is
     goal:g4.18.5.2.1: a commit that failed only because a peer already holds
     these bytes at HEAD is skipped, not refused. Not a git
     checkout = nothing to commit. Unpark carriers a formation switch writes
@@ -4300,9 +4302,9 @@ def _commit_write(root, node_id: str, res, actor: str = "",
     import verification  # noqa: PLC0415 -- the ONE live-holder read (residue 93)
     holder = verification.suite_lock_holder(Path(root))
     if holder:
-        return (f"commit refused: {Path(root) / 'sessions' / verification.SUITE_LOCK} is held "
-                f"by live pid {holder} -- the write landed uncommitted; commit it by "
-                f"exact path: {recover}"), False
+        return (f"commit refused: {Path(root) / 'sessions' / verification.suite_lock_name(root)} is held "
+                f"by live pid {holder} -- the write landed uncommitted; exit "
+                f"{EXIT_UNCOMMITTED}; recover: {recover}"), True
     # goal:g1.31.5.1.3: a path ALREADY dirty against HEAD before this write is
     # a hand edit; committing it launders it and write_guard stops listing it.
     laundered = [p for p in paths if os.path.abspath(p) in pre_dirty]

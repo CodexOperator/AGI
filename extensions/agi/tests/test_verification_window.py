@@ -51,7 +51,7 @@ def _make_groot(groot: Path, *, lock: bool = False) -> None:
         "reason": "kept (on season/s2, HEAD pushed)",
     }), encoding="utf-8")
     if lock:
-        lock_path = groot / "sessions" / verification.SUITE_LOCK
+        lock_path = groot / "sessions" / verification.suite_lock_name(groot)
         # a LIVE holder that is not our own process: the parent of this pytest
         # run is guaranteed alive and != os.getpid(), so the handler reads it
         # as a real held lock rather than a stale/dead-pid read.
@@ -219,7 +219,7 @@ def _fake_proc(tmp_path: Path, pid: int, *, cwd=None, ppid=None, cmd=None) -> Pa
 def _held(tmp_path, monkeypatch, pid):
     """A fixture groot whose lock names the (live) `pid`, with `PROC` faked."""
     _make_groot(tmp_path, lock=True)
-    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock = tmp_path / "sessions" / verification.suite_lock_name(tmp_path)
     lock.write_text(str(pid), encoding="utf-8")
     return tmp_path
 

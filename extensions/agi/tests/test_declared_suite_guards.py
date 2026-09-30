@@ -94,14 +94,14 @@ def test_a_second_declared_suite_run_refuses_by_name(tmp_path, monkeypatch):
             assert True
         """)
     holder = os.getpid()          # this process is alive and is not the child
-    (groot / "sessions" / verification.SUITE_LOCK).write_text(
+    (groot / "sessions" / verification.suite_lock_name(groot)).write_text(
         str(holder), encoding="utf-8")
     monkeypatch.delenv(verification.SUITE_LOCK_MARKER, raising=False)
     res = verification.check_extra_suite(groot)
     out = f"{res.status} {res.note} {res.message}"
     assert "suite window refused" in out, out
     assert str(holder) in out, out
-    (groot / "sessions" / verification.SUITE_LOCK).unlink()
+    (groot / "sessions" / verification.suite_lock_name(groot)).unlink()
 
 
 def test_a_context_test_cannot_signal_a_real_pid_or_read_the_live_config(

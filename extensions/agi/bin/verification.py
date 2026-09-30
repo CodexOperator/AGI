@@ -88,7 +88,33 @@ STATE_FILE = "verify-count.json"        # under <groot>/sessions/
 #: Where a pid's cwd/cmdline/ppid are read (a test seam: non-Linux has none).
 PROC = Path("/proc")
 
-SUITE_LOCK = "verify-suite.lock"        # under <groot>/sessions/
+#: STOPGAP fallback of the suite lock's file name, read instead from
+#: `values.core.suite_lock.file` (hypothesis:a-suite-lock-refused-write-
+#: exits-3-from-one-lock-policy-block) until the Prime lands the block.
+#: Under <groot>/sessions/ either way. Deleted with the block's cutover.
+_DEFAULT_SUITE_LOCK_FILE = "verify-suite.lock"
+
+
+def suite_lock_name(groot) -> str:
+    """`values.core.suite_lock.file` for THIS graph root -- the ONE resolver
+    write.py names its refusal with. Absent cell = the fallback above, inside
+    this function only, so no module constant carries the policy a second
+    time (config-max: one block, one reader)."""
+    root = Path(groot)
+    for base in (root, root / locations.GRAPH_DIR_NAME):   # graph dir OR repo root
+        path = locations.config_path(base)
+        if path is None:
+            continue
+        try:
+            cell = (((json.loads(path.read_text(encoding="utf-8"))
+                      .get("values") or {}).get("core") or {}).get("suite_lock") or {})
+            name = cell.get("file")
+        except (OSError, TypeError, ValueError, AttributeError):
+            continue
+        if isinstance(name, str) and name:
+            return name
+    return _DEFAULT_SUITE_LOCK_FILE
+
 #: The env marker a caller that ALREADY holds the suite lock exports into the
 #: suite it spawns, naming its own live pid. `_suite_lock_guard` reads it so
 #: the spawned runner PROCEEDS against a lock its own caller holds, instead of
@@ -857,7 +883,7 @@ def suite_lock_holder(groot: Path) -> int | None:
     acquire-then-unlink window). Dead/absent/corrupt read as None: a probe
     refuses only on a LIVE foreign owner; stale-breaking stays in
     acquire_suite_lock, the single WRITER."""
-    path = Path(groot) / "sessions" / SUITE_LOCK
+    path = Path(groot) / "sessions" / suite_lock_name(groot)
     try:
         holder = int(path.read_text(encoding="utf-8").strip())
     except (OSError, ValueError):
@@ -879,7 +905,7 @@ def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
     Keeping `--suite` opt-in is what rules today; the lock is the mechanism
     that rules when L4.10 folds the suite into `full`.
     """
-    path = Path(groot) / "sessions" / SUITE_LOCK
+    path = Path(groot) / "sessions" / suite_lock_name(groot)
     path.parent.mkdir(parents=True, exist_ok=True)
     for _ in range(2):
         if path.exists():
@@ -934,7 +960,7 @@ def _suite_lock_guard(groot: Path) -> str | None:
         except ValueError:
             _mpid = None
         if _mpid is not None and _pid_alive(_mpid):
-            path = Path(groot) / "sessions" / SUITE_LOCK
+            path = Path(groot) / "sessions" / suite_lock_name(groot)
             try:
                 _holder = int(path.read_text(encoding="utf-8").strip())
             except (OSError, ValueError):
@@ -946,7 +972,7 @@ def _suite_lock_guard(groot: Path) -> str | None:
         try:
             since = time.strftime(
                 "%H:%M:%SZ",
-                time.gmtime((Path(groot) / "sessions" / SUITE_LOCK)
+                time.gmtime((Path(groot) / "sessions" / suite_lock_name(groot))
                             .stat().st_mtime))
         except OSError:
             since = "?"
@@ -954,13 +980,13 @@ def _suite_lock_guard(groot: Path) -> str | None:
                 " — refusing, not spawning")
     # Dead pid broken here (pinned stale test) so conftest starts clean.
     try:
-        pid = int((Path(groot) / "sessions" / SUITE_LOCK)
+        pid = int((Path(groot) / "sessions" / suite_lock_name(groot))
                   .read_text(encoding="utf-8").strip())
     except (OSError, ValueError):
         pid = None
     if pid is not None and not _pid_alive(pid):
         try:
-            (Path(groot) / "sessions" / SUITE_LOCK).unlink(missing_ok=True)
+            (Path(groot) / "sessions" / suite_lock_name(groot)).unlink(missing_ok=True)
         except OSError:
             pass
     return None
@@ -1547,7 +1573,7 @@ def render_window(groot: Path, grant: str | None = None) -> str:
     """
     lines: list[str] = []
     # lock
-    lock_path = Path(groot) / "sessions" / SUITE_LOCK
+    lock_path = Path(groot) / "sessions" / suite_lock_name(groot)
     holder: int | None = None
     try:
         holder = int(lock_path.read_text(encoding="utf-8").strip())

@@ -701,9 +701,31 @@ def test_b4_w1b_the_suite_lock_refuses_the_commit_by_name(project, capsys):
     (project / ".agi" / "sessions" / "verify-suite.lock").write_text(
         f"{__import__('os').getppid()}\n")
     g, head = _w1b(project)
-    write.main(["hypothesis:h9", "set confidence 0.5", "--root", str(project)])
+    # hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block:
+    # rc 3, never a sanctioned 0 over uncommitted bytes.
+    assert write.main(["hypothesis:h9", "set confidence 0.5", "--root", str(project)]) == 3
     assert g("rev-parse", "HEAD").strip() == head
     assert "verify-suite.lock" in "".join(capsys.readouterr())
+
+
+def test_b4_w1b_the_suite_lock_name_comes_from_one_config_block(project, capsys):
+    """`values.core.suite_lock.file` is the ONE home of the lock name: write.py
+    and verification.py both read it, and the default is only the resolver's
+    STOPGAP fallback (a row of the claim's falsifier 3)."""
+    sys.path.insert(0, str(BIN))
+    import verification  # noqa: E402 -- the resolver's own module
+    cfg = project / ".agi" / "config.json"
+    cfg.write_text(json.dumps({"values": {"core": {"suite_lock": {
+        "file": "other.lock"}}}}))
+    (project / ".agi" / "sessions").mkdir(exist_ok=True)
+    (project / ".agi" / "sessions" / "other.lock").write_text(
+        f"{__import__('os').getppid()}\n")
+    assert verification.suite_lock_name(project) == "other.lock"
+    g, head = _w1b(project)
+    assert write.main(["hypothesis:h9", "set confidence 0.5", "--root", str(project)]) == 3
+    assert g("rev-parse", "HEAD").strip() == head
+    out = "".join(capsys.readouterr())
+    assert "other.lock" in out and "verify-suite.lock" not in out
 
 
 def test_b4_w1b_dry_run_and_a_refused_gate_commit_nothing(project):
