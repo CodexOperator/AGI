@@ -813,6 +813,33 @@ def _w2c_twin(tmp_path, mint: bool):
     return root
 
 
+# hypothesis:loader-post-pass-sqlite-index-once-and-collision-are-pinned: (a) DBLoader runs the post-pass
+# (b) ONE mint_index build per load, 0 for addresses (c) a colliding / unknown mint parent stays as written
+def test_w2ca_pins_sqlite_post_pass_one_index_build_and_collision(tmp_path, monkeypatch):
+    import links, yaml
+    from graph_core import db_loader, loader
+    from graph_core.persistence.frontmatter import NodeFile
+    from graph_core.persistence.sqlite_backend import SQLiteBackend
+    builds, real = [], links.mint_index
+    monkeypatch.setattr(links, "mint_index", lambda root: builds.append(1) or real(root))
+    def sqlite_parents(root):
+        db = SQLiteBackend(root.parent / "n.db")
+        for f in sorted((root / "nodes").rglob("*.md")):
+            fm = yaml.safe_load(f.read_text().split("---")[1])
+            db.save(fm["id"], NodeFile(fm, "", ".md"))
+        builds.clear()
+        g, _ = db_loader.DBLoader(db).load_directory(resolve=links.address_resolver(root))
+        return sorted(g.get_node("hypothesis:h1").parents), len(builds)
+    assert [sqlite_parents(_w2c_twin(tmp_path, m)) for m in (False, True)] == [(["goal:a"], 0), (["goal:a"], 1)]
+    root, a, d = _w2c_twin(tmp_path / "c", True), "a" * 32, "d" * 32
+    (root / "nodes" / "goal" / "twin.md").write_text(f"---\nid: goal:twin\nmint_id: {a}\ntype: goal\ntitle: t\n---\n")
+    h = root / "nodes" / "hypothesis" / "h1.md"
+    h.write_text(h.read_text().replace(f"  - {a}\n", f"  - {a}\n  - {d}\n"))
+    builds.clear()   # two mint refs in one load: still ONE build
+    g, _ = loader.load_directory(root / "nodes", resolve=links.address_resolver(root))
+    assert sorted(g.get_node("hypothesis:h1").parents) == [a, d] and len(builds) == 1
+
+
 # GREEN since goal:g4.18.6.3.1 (graph_core's parents post-pass, the resolver passed in by zoom)
 def test_w2c_a_mint_id_parent_renders_exactly_as_its_address_twin(tmp_path):
     import zoom
