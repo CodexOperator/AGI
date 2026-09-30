@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-22:1xZ 09-30: goal:g7.16.1.11 design DONE; council idle until belam relays the owner's read. Nothing to run. Next input = belam's reply (owner go -> DG3 builds; no user / sudo before it). Wrap drafts in /tmp/aio-rse/wrap/ are superseded by the doc's §1.
+ROUND 2 (owner 22:19Z "push it harder"; belam brief in the inbox 22:19): alive frame + §0 diagram + §A 315979db91 · MY §B 1b5b6245dd (one primitive, CALM, PPR brief 478 B, latent notes, 69 quoted ids) · self-perpetuating §C IN PROGRESS · then I assemble §D from /tmp/aio-r2/D.md (fill @@C_*@@ + @@TOTAL@@ from s-p's pieces) -> alive's whole-doc check -> ONE [decision] to belam. Tests: /tmp/aio-r2.* bare repo; ppr.py in /tmp/aio-r2 + /tmp/aio-rse. Next command: `python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 88:100'` after s-p's [done].
 
 ## §4 Traps
 | trap | rule |
