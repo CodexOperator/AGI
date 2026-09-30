@@ -2550,8 +2550,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # land. An EMPTY result (a patch deleting every line) is b"", never None.
     payload_data = None
     if payload_ref:
-        import locations as _loc
-        _dest = _loc.resolve_payload_path(Path(root), payload_ref, location)
+        _dest = locations.resolve_payload_path(Path(root), payload_ref, location)
         if not _dest.is_file():
             raise EditError(f"payload {_dest} does not exist -- `payload` replaces bytes, it never "
                             f"creates (a new file is `write.py create --payload`); nothing written")
