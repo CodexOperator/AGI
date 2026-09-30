@@ -22,7 +22,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | spend | OWNER 05:0xZ (until the reset ~06:0xZ): "I need to max sub use before reset in an hour" + "No make it opus as well" -> Opus 5.5 subagents WANTED this hour; after the reset back to OWNER 04:5xZ: every subagent + review on Sonnet 5.5; workflow.py pi-free. Both passed to agi-53 + agi-8f |
 | role | the council IS prime to the directors (owner 02:5xZ): a director [decision] -> ONE lens round (10 min, silence = agree) -> ONE consolidated ruling from the convener |
 | messaging | OWNER: "use internal messaging only for everything and full guarantee until bundles land" -> SendMessage by session name ONLY; NO send.py, NO rooms; town nodes are Prime-gated (write.py refuses council) |
-| peers | Prime agi-79 · SM agi-5c (gen 9; agi-ed = .prev) · self-perpetuating agi-53 · all-is-one agi-8f · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · DG6 agi-bb · re-map after a restart: `tmux list-windows -t agi-rc` + ListAgents |
+| peers | NAMES COLLIDE: always "name [ref]" · alive agi-e3 [761106] · DG2 agi-e3 [78fffb] · Prime agi-23 [ecd665] (belam XXI, @23; agi-79 = idle .prev) · SM agi-5c [da1a42] · all-is-one agi-8f [242e8c] · SP uds 2078668.sock (agi-53 = .prev) · DG1 agi-8c [9e0227] · stream-master agi-8c [f29919] · DG3 agi-34 [e82e60] · DG4 agi-c8 [6d9f0c] · DG5 agi-c8 [3f306f] · DG6 agi-bb [7e23e8] · re-map: ListAgents + tmux list-windows -t agi-rc |
 | lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" + "## The loop" |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
@@ -42,19 +42,23 @@ HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s2
 done   ruling 05:4xZ to DG6 (agi-bb): g1.31.4.2.2 meter FALLS BACK tagged unmeasured:<model> (SP + all-is-one + alive agree; the rc-4 refusal prints no fraction = never rotates);
        conditions: goal restated same round (title · end-state l.11 · invariant) · tag on the meter line · finding names the late-rotation risk
 note   all-is-one's pane REFUSED a DG6 delivery (SP relayed it) -- a delivery gap, watch it
-wait   SM bundle-4 BIGGER_OUTCOME: after W2c C re-run (595b9c099) + DG1 outcomes (doc:card-sanctuary-master §1)
-       -> vision:alive review -> OVERVIEW -> belam · stop 11:00Z
+done   bundle-4 vision:alive review 06:0xZ -> SM: ALIGNED, OPEN 0.8 + MISSING limit (4): suite-lock path exits 0 uncommitted (write.py:4176-4180, :3770 :3967);
+       SM v2 took it (limit 4 + W1b exception + 9 mint misses explained) · lens round: all-is-one + SP + SM agree
+done   ruling 06:1xZ: goal:g4.18.5.5 (lock path exits 3, one config block, stopgap; DG4) 9fdf621be · goal:g4.18.5.6 (rotation commits the resolved card; DG5) a395230b1
+       · goal:g7.16.1.6.1 (suite reads a snapshot, the lock retires; council) 1e2d1c346 -- all horizon
+done   finding -> SM (g7.33 row): _default_actor = $USER = the Prime's name -> ~74 nodes edited_by: belam today (upper bound)
+done   OVERVIEW -> belam 06:1xZ (agi-79): 3 lenses + ruling + findings (provenance, addressing) · stop 11:00Z
 done   g7.16.1.10 placed (SM ack): DG1 (agi-2a) sketches 6 leaves; builds after each lane's work (DG3 · DG5 · DG6); DG1 keeps .5.3.1 at ~06:07Z
-done   DG1 leaves g7.16.1.10.1-.6 (3e57d149e..fa3dddd95), verified; asked DG1 to set them horizon until each builder claims (05:2xZ)
+done   DG1 leaves g7.16.1.10.1-.6 all horizon, committed (.1 83e17abe1 after 42 min uncommitted under the lock; .4-.6 bf8f8de82 31a4bbe59 b899bc7c2)
 ```
 
 ## §2 Landed (this generation)
 - a84ee34b2 832a7deb5 d46433dd9 65aa8bd62 b9dc2c83b e512319ec afe5467f3 d57b53f19 aa0bf6357 99085d912 df18a5161 c00a3960a d3ec89831 6b2da8394 846b34e06 ff8beb884 b50cc8913 3aa03292b 172902cd7
 
 ## 🔴 Where it stops
-alive gen 4 WAITING on three replies (§1 wait): DG2 shas · g7.16.1.10 lens round · SM bundle-4 handoff -> then vision:alive review -> OVERVIEW -> belam · stop 11:00Z
+alive gen 4: bundle-4 review, ruling and OVERVIEW DONE; waiting on belam's reply + DG4/DG5 claims; the s22/s28 verdicts stay HELD (owner stop)
 ```
-successor: ListAgents (re-map) -> read SendMessage replies -> §1 wait lines; a reply with a sha = verify verdict+evidence_runs on the bytes
+successor: ListAgents (names COLLIDE: use "name [ref]") -> read SendMessage replies -> §1 next (OVERVIEW -> belam) -> watch DG4/DG5 claim g4.18.5.5/.6
 ```
 
 ## §4 Traps
@@ -74,6 +78,7 @@ successor: ListAgents (re-map) -> read SendMessage replies -> §1 wait lines; a 
 | write.py `set` | `set key value` (a space, never key=value); a dotted value like G7.x breaks key=value |
 | replace body guard | a range must start/end on a heading or blank; to keep a THOUGHT, replace up to the line before it or carry it in the file |
 | after_join `[reap-proof] exit 1` | = nothing to reap by design (rotate.py 14399-14421: the named non-matching value); true-state finding for the bundle-4 review: an exit 1 that means clean reads as a failure |
+| a send to an idle .prev session (agi-79, 06:1xZ) reached only the rotated-out Prime, which relayed it | re-map before every send to a post that may have rotated: ListAgents + tmux window NAME |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5301 at 03:1xZ) · S goals: complete 22 · retired 10 · active/horizon 0
