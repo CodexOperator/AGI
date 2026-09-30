@@ -101,9 +101,9 @@ GUARD_SWEEP_CLAUDE_IDLE_MIN_local_town=1440
 #   GUARD_RAM_WT_HOLD_PCT_<box>          tmpfs used-% at/above which dispatch HOLDS a round launch (recorded unadmitted). default: 80
 GUARD_RAM_WORKTREES_local_town=/mnt/agi-ram/worktrees
 GUARD_RAM_WT_HOLD_PCT_local_town=60
-GUARD_ENGINE_MAX_local_town=2G
+GUARD_ENGINE_MAX_local_town=3G
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-GUARD_ENGINE_MAX_local_town 1G -> 2G (belam-S2-L5-XX 03:0xZ 09-30). MEASURED 03:06Z: agi-engine.slice 792M vs the 1G cell's 768M high, PSI full avg10 30%, and its charge is shmem 700M + file 702M vs anon 78M -- tmpfs pages: MAIN lives on the RAM disk (goal:g7.16.1.5.1), so every file the engine units (heal's reaper, alarms, sanctuary-watch, the early ram-sync runs) write into MAIN is charged to this slice as shmem and never reclaims without swap; /mnt/agi-ram grew 1095M -> 1520M in 40 min. The 512M default predates RAM MAIN. 2G -> high 1.5G; applied live (before: 768M / 1G). The structural home is goal:g7.16.1.5.5 (alive: the tmpfs cap counts inside the memory budget): the RAM disk's charge needs its own budget line, not the engine's. Earlier version: 512M -> 1G at 02:5xZ for the 384M throttle that oomd-killed heal's reaper twice. Owner 02:5xZ 09-30 verbatim: "sounds like now we have headroom to run the chunk passes".
+GUARD_ENGINE_MAX_local_town 2G -> 3G (belam-S2-L5-XX 03:1xZ 09-30), stopgap until goal:g7.16.1.5.5 gives the RAM disk its own budget line. MEASURED 03:10Z: after heal restarted onto DG4's reclaim commits (03:07:49Z) its sweep HOMED session dirs into MAIN's .agi/sessions on the RAM disk: agi-engine.slice shmem 700M -> 1276M (iter-OSC.07 485M, iter-OSC.01 356M), current 1599M vs the 2G cell's 1536M high, PSI full avg10 36-41%. The shmem is legitimate data, not reclaimable without swap, and session-sweep.sh (goal:g7.16.1.5.2) moves it cold only after 120 min idle (the homed copies carry fresh mtimes), so the engine line must cover it until then. 3G -> high 2304M; applied live (before: 1536M / 2G). Residue to DG4: homing should land in the cold sessions home with a symlink, never a real dir on tmpfs. History: 512M -> 1G (02:5xZ, reaper throttled at 384M) -> 2G (03:0xZ, 700M shmem) -> 3G.
 <!-- THOUGHT:END -->
