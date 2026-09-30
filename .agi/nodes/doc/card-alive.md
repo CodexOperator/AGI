@@ -35,6 +35,7 @@ S GOALS (12 open; one writer each; retire IN PLACE by status per skill agi-goal,
 done   board line -> belam (town:core is Prime-gated: write.py refused council) · residue ROUTED: s32 2 re-homed -> g2.4.1 (a-i-o) · 8 closing verdicts with DG2 agi-7f: s31 3 DONE 797c9ba14 (edae0fba disproved; born-valid, l3-done-lift proved; hyp verdict fields set by alive; my 1589-1604 cite corrected on s31 + g7.33.10.1) · s18 4 + s32 1 pending
 done   RULING g7.16.1.7.1.4 keys (DG5 agi-5b, 3 lenses): (C) remint only on the own box · unsigned + witnessed (seating sha) + one finding · foreign box refuses + finding · this box = AGI_BOX · a key_template row · falsifier 2 whole
 done   RULING g4.18.1.6 (DG3 agi-91, 3 lenses unanimous): patch on a no-payload node ACCEPTED as landed a6102199b · replace payload NOT extended (one act, one verb) · the refusal names `replace body N:M` / `row`
+done   RULING g4.18.6.2 (DG1 agi-2a, unanimous): (b) close on .2.1+.2.2; body machine refs move BY NAME to g4.18.6.4 (+bullet +falsifier row); declared regions only, never prose; one definition imported by write check + render resolver
 done   goal:g7.16.1.5.5 carries the RAM-disk OWN budget line (3aa03292b; belam 03:06Z shmem-on-engine-slice); belam assigns it to DG5 on one more engine oomd kill or when B3 lands
 done   goal:g7.16.1.5.5 minted UNASSIGNED (ff8beb884; belam dispatches after PASS B3) · .5 B points at it (846b34e06)
 done   g7.16.1.5 leaves checked (A: .5.1 .5.2 .5.4 · C: .5.3); .5 Target A widened to MAIN (6b2da8394); GAP B (config:guard one home) -> belam
