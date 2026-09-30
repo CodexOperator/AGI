@@ -65,7 +65,25 @@ Rows: src/seatsig/ (1,930) SCRAP -> git SSH signing + the kernel · send.py keyg
 (pending: self-perpetuating)
 
 ## §5 An MCP wrapper over the engine as it works now
-(pending: all-is-one)
+**What am I ACTUALLY trying to get the machine to do here?** Give every role the SAME verbs the SAME way (a Claude post, a pi kid, a human), so the machinery underneath can be swapped without any caller noticing.
+
+```
+harness (as user agi-<post>) ──stdio──▶ agi-mcp  (spawned BY the harness, so it runs AS the uid: no token, no auth layer)
+                                          │ tools (stable names)          today's body               simple body (after §1-§4)
+                                          ├ read_node(id|path)            write.py read / viewport     cat + mint->path
+                                          ├ write_node(path, why)         write.py                     agi-write (§2)
+                                          ├ children / graph(id)          links.py / viewport          viewport --emit
+                                          ├ send(to, text) · inbox()      send.py                      a file in the inbox dir (§6)
+                                          ├ dispatch(node) · status()     dispatch.py / spawn_budget   unchanged / systemctl list-units
+                                          └ log(node)                     grid.py log                  git log --follow
+```
+Decided:
+- **Build it NOW over today's CLIs** (the owner: "wrapping the whole thing in an MCP now as it works partially"): each tool is a subprocess of the existing command, a few lines each. It is the stable seam: every §1-§4 retirement swaps one tool BODY, and the tool NAMES never change.
+- **Off-shelf first:** the reference MCP filesystem and git servers already cover read / write-file / log / diff. agi-mcp adds only what they lack: schema_check, send/inbox, dispatch, status, graph.
+- **pi and scripts call the same commands the tools wrap** (the scripts ARE the API; MCP is its protocol face). Nothing is reachable through MCP that is not also one plain command, and vice versa.
+- **Not in the MCP:** rotate / spawn / key machinery (HELD, owner 21:3xZ); the magic pane (g5.24.3) later becomes the live face over the same tool names.
+
+Rows: new `agi-mcp` (budget <= 8 KB, one file) ADD · adapters/ (claude_code 39 KB + __init__ 22 KB + copilot_cli 17 KB) KEEP until the MCP covers their verbs, then trim.
 
 ## §6 Core's magic pane, read as input
 **What am I ACTUALLY trying to get the machine to do here?** Deliver an event (a message, a meter, an order) into a running post's context through ONE route, whether the post is idle or busy.
