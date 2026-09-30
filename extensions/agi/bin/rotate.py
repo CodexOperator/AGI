@@ -17860,6 +17860,9 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     # 158c: a crash between the row write and the rename left the row naming
     # a key that lives only in an orphan temp -- adopt it, sweep the rest.
     old = str(row.get("pubkey"))
+    kp = send._seat_key_path(root, seat)
+    if kp.exists() and not kp.stat().st_size:  # a crash-left empty file is missing
+        kp.unlink()                            # (before the adopt links over it)
     adopt, swept = _orphan_staged_keys(send, root, seat, old, False)
     if adopt is not None:
         try:
@@ -17882,9 +17885,6 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     # 158 + 158b: the key is STAGED (hidden 0600 temp) before the row names
     # it; a refused write or a failed rename unlinks it (row restored).
     scheme = row.get("sig_scheme") or tmpl.get("scheme") or send.seatsig.DEFAULT_SCHEME
-    kp = send._seat_key_path(root, seat)
-    if kp.exists() and not kp.stat().st_size:  # a crash-left empty file is missing
-        kp.unlink()
     try:
         staged = send._mint_seat_key(root, seat, scheme, stage=True)
     except OSError as exc:

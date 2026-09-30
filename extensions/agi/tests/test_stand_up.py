@@ -579,6 +579,24 @@ def test_a_fresh_matching_temp_is_a_live_mint_and_is_never_renamed_away(
     assert live.exists() and not gone.exists()
 
 
+def test_a_zero_byte_key_file_never_blocks_the_adopt(graph, monkeypatch):
+    """158c-3: an empty crash-left key file beside a matching aged temp -- the
+    empty file is cleared first, so the adopt's never-clobber link lands."""
+    import send
+    _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    priv, pub = _a_new_key()
+    seats = graph / "nodes" / ".geometry" / "seats.md"
+    seats.write_text(seats.read_text().replace(_row(graph, "seat-a")["pubkey"], pub),
+                     encoding="utf-8")
+    _age_orphan(_stage_orphan(graph, "seat-a", priv))
+    key = send._seat_key_path(graph, "seat-a")
+    key.write_text("")
+    assert "ADOPTED" in rotate.ensure_post_key(graph, "seat-a")
+    assert json.loads(key.read_text())["priv_hex"] == priv.hex()
+    assert _row(graph, "seat-a")["pubkey"] == pub and not _row(graph, "seat-a")["key_history"]
+
+
 def test_the_dry_run_names_the_adopt_and_changes_nothing(graph, monkeypatch):
     """158c falsifier 3 (mechanism, not prose): the dry run reports the
     adopt AND the sweep count, and unlinks/renames/finds nothing."""
