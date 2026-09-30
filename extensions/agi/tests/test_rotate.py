@@ -10451,3 +10451,12 @@ def test_b4_w1b2_the_four_posts_paths_own_no_commit_plumbing():
     own = [n for n in _W1B2_PATHS
            if "hash-object" in inspect.getsource(getattr(rotate, n))]
     assert own == [], f"still stage+commit posts.md by hand: {own}"
+
+
+# goal:g7.16.1.7.1.1 SM rotate candidate: the announced handoff path is tree-relative, never the box's absolute layout
+def test_announcement_handoff_path_is_tree_relative(tmp_path):
+    g = tmp_path / "proj" / ".agi"
+    g.mkdir(parents=True)
+    assert rotate._tree_rel(g, g / "sessions" / "seats" / "s.handoff.md") == ".agi/sessions/seats/s.handoff.md"
+    assert rotate._tree_rel(g, tmp_path / "elsewhere" / "h.md") == "h.md"
+    assert str(tmp_path) not in rotate._tree_rel(g, g / "x.md")
