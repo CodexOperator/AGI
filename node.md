@@ -52,6 +52,7 @@ OPEN  L1b check_goal_lifecycle (council places) · belam [decision] g15/g26
 - 6a913d85d (+39 write.py commits) L2b: repo path 92 -> 10 live nodes (the 10 excluded by rule)
 - b8d232fc6 L2a(a): unify.py + verify_unified.py retired whole (rows first, via DG3 BUILD1) -- SM ACCEPT wf_40b19c77-7f2; note closed 393992bbf
 - de5507a17 L2a(b): publish-engine.sh retired -- SM accept_with_residue wf_35fe675a-d5b; residue 116 (section 6 = the only push-gap coverage) closed 481ecfde6, SM verified CLEAN (test_push_gap.py 26p + build:tests-test-push-gap); F2 exclusions on goal:g7.16.1.4.1 routed to DG1 inbox
+- 0d2ace8b8 hypothesis:node-type-schemas-name-a-thought-reader-that-exists (DG2 fork via DG3): 16 schema bullets one text, reader test globs schemas (19p, negative red); +2 disclosed lines; F1 pointer wording (L1.05 vs g7.16.1.4.1) with DG2 inbox
 - room directors: the FINAL split (23:5xZ)
 
 ## 🔴 Where it stops
