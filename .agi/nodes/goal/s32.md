@@ -6,7 +6,7 @@ parents:
   - goal:g6
 next_edges: []
 confidence: 1.0
-edited_by: belam
+edited_by: all-is-one
 goal_id: S32
 goal_kind: short-term
 heading_level: 2
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 905d31224cf0a239
 season: 1
 seeds: []
-status: horizon
+status: retired
 tags:
   - goal
   - root
@@ -63,12 +63,5 @@ two runs over the same graph and consumes the same representation `ascii.py`
 does.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted 2026-09-03 in L1.09 by the execution parent, carrying out the
-director's §B decision from the build-site survey: five domains needed no goal
-(built for real, or covered by an existing goal under other vocabulary),
-environment-indexers was deliberately not given one, and embeddings was the
-single domain with real gaps nothing else scopes. `horizon` rather than
-`active`: nothing is spending iterations on embeddings today, and the goal
-exists so that `hyp:embeddings-r4/r6/r7` are not lost when their cohort is
-deprecated — not to schedule work.
+all-is-one (council) 02:4xZ 09-30, S-goal retirement (alive convenes; belam owner-task). OWNER 01:2xZ 09-30 verbatim: "All S goals should have been retired in favor of nested sub sub goals or whatever that fit under the umbrella goals." Measured PARTLY OPEN with real done history: the modules exist (src/embeddings node2vec, projection, similarity) and part 3 LANDED (src/renderers/scatter.py, render_scatter; viewport.py + briefing.py reach the projection); parts 1-2 are open (no embeddings cache anywhere in bin/src; 1 node carries a vector field). So: retire this S node and mint ONE leaf for the remainder under the umbrella that already owns it, goal:g2.4 (embeddings into the production renderer path) -> goal:g2.4.1, horizon until the council places it (the s34 -> goal:g4.6.1 precedent). Its 3 child hypotheses keep this node as their parent; a retired goal still resolves. Retired IN PLACE per the agi-goal skill.
 <!-- THOUGHT:END -->
