@@ -432,13 +432,18 @@ def frontmatter_rows(nodes_dir) -> "dict[str, dict]":
     try:
         r = subprocess.run(["git", "grep", "--no-index", "-znE",
                             r"^(---\s*$|(id|mint_id|type|title|status):)", "--", "*.md"],
-                           cwd=Path(nodes_dir), capture_output=True, text=True, timeout=60)
+                           cwd=Path(nodes_dir), capture_output=True, timeout=60)
     except (OSError, subprocess.SubprocessError) as exc:
         raise rotation_record.GrepError(f"git grep could not run: {exc}") from None
-    if r.returncode >= 2 or (r.returncode == 1 and r.stderr.strip()):
-        raise rotation_record.GrepError(f"git grep exit {r.returncode}: {r.stderr.strip()}")
+    err = r.stderr.decode("utf-8", "surrogateescape").strip()
+    if r.returncode >= 2 or (r.returncode == 1 and err):
+        raise rotation_record.GrepError(f"git grep exit {r.returncode}: {err}")
     files: dict = {}
-    for line in r.stdout.splitlines():
+    # SM 121: split on \n only (str.splitlines also splits U+2028, \x0c, a bare
+    # \r) and never raise on a non-UTF-8 byte -- one odd byte is no collision
+    for line in r.stdout.decode("utf-8", "surrogateescape").split("\n"):
+        if line.count("\0") < 2:
+            continue
         rel, n, text = line.split("\0", 2)
         fm = files.setdefault(rel, {"_fences": 0})
         if text.rstrip() == "---":

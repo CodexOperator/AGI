@@ -894,6 +894,11 @@ def test_w2a_mint_index_is_frontmatter_only_typed_and_fresh(project):
     assert idx["9" * 32][0][2] == 'say "hi" \u00e9', "a quoted title is decoded like yaml"
     assert links.resolve_mint(project, "9" * 32, index=idx)[0] == "goal:g9.3"
     assert links.resolve_mint(project, "9" * 32, index={}) is None, "the given index is the one read"
+    odd = project / "nodes" / "goal" / "g9.4.md"   # SM 121: U+2028 and a non-UTF-8 byte
+    odd.write_bytes(b'---\nid: "goal:g9.4"\ntype: goal\nmint_id: ' + b"8" * 32 +
+                    b'\ntitle: a\xe2\x80\xa8b \xff\n---\n')
+    assert links.mint_index(project)["8" * 32][0][0] == "goal:g9.4"
+    assert links.resolve_mint(project, _W2A_MINT)[0] == "goal:g9.2", "no false collision"
 
 
 def test_w2a_one_resolver_def_and_links_and_write_call_it():

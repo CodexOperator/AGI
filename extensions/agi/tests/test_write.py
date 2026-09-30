@@ -2480,6 +2480,9 @@ def test_row_dry_run_refuses_like_submit(project, tmp_path):
         for dry in (["--dry-run"], []):
             assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
     assert node.read_text() == before
+    for script in ("replace body 1:1 - && payload -", "replace body 1:1 - && body_patch -"):  # SM 117
+        assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
+    assert node.read_text() == before
 
 
 def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp_path):
