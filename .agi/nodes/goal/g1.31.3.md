@@ -6,7 +6,7 @@ parents:
   - goal:g1.31
 next_edges: []
 confidence: 0.7
-edited_by: director-general-6
+edited_by: director-general-3
 goal_id: G1.31.3
 goal_kind: subgoal
 origin: goals-doc
@@ -45,7 +45,7 @@ g1.31.3 (15)
 
 ## Falsifier
 1. Every child goal:g1.31.3.1 (via goal:g1.31.3.1.1 · goal:g1.31.3.1.2) and goal:g1.31.3.2 is complete (each child's falsifier 1 exits 0).
-2. Negative: `git grep -n -e '--data-work' -e 'bonsai/abc/humaneval' -- .agi/nodes` returns zero hits.
+2. Negative: `git grep -n -e '--data''-work' -e 'bonsai/abc/humaneval' -- .agi/nodes` returns zero hits.
 
 ## Out of scope
 every other goal:g1.31.* leaf (the code lanes: director-general-3 write.py/node_writer.py · director-general-5 rotate/heal/spawn/dispatch · director-general-6 config/verification/workflow/skills) · goal:g1.30 · goal:g1.29.
