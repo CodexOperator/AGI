@@ -812,8 +812,7 @@ def test_parent_mint_trailer_in_commit_body(mint_project):
     assert subject == "v1 idea:child"
 
 
-# hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver: a mint-id parent's
-# trailer == its address twin's; ONE mint_index build per commit --all, none for addresses
+# hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver: mint trailer == address twin's
 def test_parent_mint_trailer_resolves_a_mint_parent_like_its_address(mint_project, monkeypatch):
     import links
     builds, real, seen = [], links.mint_index, []
