@@ -62,7 +62,7 @@ this session: goal:g1.33 LANDED 5f1e8092f2 by SM (tip 1d8fd19b90; links.py sha m
 earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-3 merge-ups WAIT for SM's GO (dg6-04 -> g1314 -> g7556); LIVE: mur h10105 + parent DG3.54 a00-9ed505e4. First command on wake:
+dg6-04 + g1314 LANDED; g7556 [merge-up] WAITS for SM's GO; LIVE: mur h10105 (verify tests); DG3.54 kid done, parent idle -> harvest it NOW (see §1). First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
