@@ -1238,8 +1238,20 @@ def test_w2c_mvp_map_accepts_a_mint_id_like_an_address(tmp_path):
     f = tmp_path / "mvp-map.txt"
     f.write_text("bin/ | mvp:engine-bin\n")
     addr = l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f))
-    f.write_text("bin/ | " + "c" * 32 + "\n")
-    assert addr == "mvp:engine-bin" and l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f))
+    f.write_text("bin/ | " + "c" * 32 + "\n")   # the mint must be an mvp's (goal:g4.18.6.3.3 corrective)
+    write_node(tmp_path, "mvp/engine-bin.md", {"id": "mvp:engine-bin", "type": "mvp", "mint_id": "c" * 32})
+    assert addr == "mvp:engine-bin" and l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f, tmp_path))
+
+
+def test_w2cc_mint_missing_only_drops_a_map_mint_that_is_no_mvp(project, engine, tmp_path):
+    write_node(project, "mvp/bin.md", {"id": "mvp:bin", "type": "mvp", "mint_id": "e" * 32, "title": "t"})
+    write_node(project, "goal/g.md", {"id": "goal:g", "type": "goal", "mint_id": "f" * 32, "title": "t"})
+    m, seen = tmp_path / "mvp-map.md", []
+    for mint in ("e" * 32, "f" * 32, "0" * 32):   # an mvp's mint, a goal's mint, no node's mint
+        m.write_text(f"extensions/agi/bin/ | {mint}\n")
+        r = run(project, engine, "--mint-missing-only", "--mvp-map", str(m), "--dry-run")
+        seen.append((r.returncode, f"parent {mint}" in r.stdout))
+    assert seen == [(0, True), (0, False), (0, False)], seen
 
 
 # --- bundle 4 W2d-b (director-general-2) -- goal:g4.18.6.4.2
