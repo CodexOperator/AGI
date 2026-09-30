@@ -224,6 +224,79 @@ def test_sweep_archives_then_removes_unmerged_and_dirty(
     assert "sweep: removed=3 archived=2 refused=0 kept-live=1" in text
 
 
+def _fake_cgroup(tmp_path: Path, monkeypatch, file_mib: int, slab_mib: int) -> Path:
+    """goal:g7.16.1.5.3.1 -- a fake /proc/self/cgroup + cgroup v2 dir; the
+    test process's REAL cgroup is never written."""
+    proc = tmp_path / "proc-cgroup"
+    proc.write_text("0::/user.slice/fake.service\n")
+    cg = tmp_path / "cgfs" / "user.slice" / "fake.service"
+    cg.mkdir(parents=True)
+    (cg / "memory.stat").write_text(
+        f"anon 999999999\nfile {file_mib << 20}\nslab_reclaimable {slab_mib << 20}\n")
+    monkeypatch.setattr(heal, "SWEEP_PROC_CGROUP", proc)
+    monkeypatch.setattr(heal, "SWEEP_CGROUP_FS", tmp_path / "cgfs")
+    return cg
+
+
+def test_sweep_reclaim_asks_own_cgroup_for_file_plus_slab_capped(tmp_path, monkeypatch):
+    """goal:g7.16.1.5.3.1 -- the ask is file + slab_reclaimable of OUR cgroup
+    (never anon), capped by the cell; under 16 MiB nothing is written; no
+    cgroup v2 line = nothing asked."""
+    cg = _fake_cgroup(tmp_path, monkeypatch, file_mib=300, slab_mib=100)
+    assert heal._sweep_reclaim(256) == 256
+    assert (cg / "memory.reclaim").read_text() == "256M"
+    assert heal._sweep_reclaim(4096) == 400
+    assert (cg / "memory.reclaim").read_text() == "400M"
+    assert heal._sweep_reclaim(0) == 0
+    (cg / "memory.reclaim").unlink()
+    (cg / "memory.stat").write_text("anon 999999999\nfile 1048576\nslab_reclaimable 0\n")
+    assert heal._sweep_reclaim(256) == 0
+    assert not (cg / "memory.reclaim").exists(), "under 16 MiB: nothing written"
+    (tmp_path / "proc-cgroup").write_text("12:memory:/legacy\n")
+    assert heal._sweep_reclaim(256) == 0
+
+
+def test_sweep_reclaim_refusal_logs_one_line_and_never_raises(tmp_path, monkeypatch):
+    cg = _fake_cgroup(tmp_path, monkeypatch, file_mib=300, slab_mib=0)
+    (cg / "memory.reclaim").mkdir()  # a write that fails with an OSError
+    log = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    assert heal._sweep_reclaim(256) == 0
+    assert log.read_text().count("[sweep] reclaim refused") == 1
+
+
+def test_sweep_reclaims_on_cadence_and_decides_the_same(
+        repo_root, four_worktrees, tmp_path, monkeypatch):
+    """goal:g7.16.1.5.3.1 -- with the cells on, the walk asks every
+    `sweep_reclaim_every` trees and once at pass end, and every removal /
+    archive / keep decision is exactly the cells-off one."""
+    graph = _graph(repo_root)
+    cfg = json.loads((graph / "config.json").read_text())
+    cfg["reaper"].update(sweep_reclaim_max_mib=64, sweep_reclaim_every=2)
+    (graph / "config.json").write_text(json.dumps(cfg))
+    cg = _fake_cgroup(tmp_path, monkeypatch, file_mib=300, slab_mib=0)
+    asks = []
+    real = heal._sweep_reclaim
+    monkeypatch.setattr(heal, "_sweep_reclaim", lambda m: asks.append(m) or real(m))
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    assert heal._sweep_finished_worktrees(graph) == (3, 0, 1)
+    # 4 trees x 2 walks = 8 steps -> 4 cadence asks + 1 at pass end
+    assert asks == [64] * 5
+    assert (cg / "memory.reclaim").read_text() == "64M"
+    text = log.read_text()
+    assert "[sweep] reclaimed own cgroup: 5 ask(s), 320 MiB asked over 8 tree steps" in text
+    assert "sweep: removed=3 archived=2 refused=0 kept-live=1" in text
+
+
+def test_sweep_reclaim_writes_only_its_own_cgroup():
+    """goal:g7.16.1.5.3.1 Falsifier 2: ONE memory.reclaim write in heal, and
+    its cgroup comes from /proc/self/cgroup only."""
+    src = (BIN / "heal.py").read_text()
+    assert src.count('"memory.reclaim"') == 1
+    assert 'SWEEP_PROC_CGROUP = Path("/proc/self/cgroup")' in src
+
+
 def test_sweep_deferred_under_pressure_removes_nothing(
         repo_root, four_worktrees, monkeypatch):
     """goal:g7.16.1.5.3 -- a pass under memory/io PSI (or a blind read) is

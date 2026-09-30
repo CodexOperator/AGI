@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import datetime
+import errno
 import importlib.util
 import inspect
 import io
@@ -1564,6 +1565,47 @@ def _sweep_pressure_ok(root) -> tuple[bool, str]:
     return True, "pressure under both lines"
 
 
+# goal:g7.16.1.5.3.1 -- the walk's page cache and dentries are charged to OUR
+# cgroup; the two paths are seams for the tests, never another cgroup.
+SWEEP_PROC_CGROUP = Path("/proc/self/cgroup")
+SWEEP_CGROUP_FS = Path("/sys/fs/cgroup")
+
+
+def _sweep_reclaim(max_mib: int) -> int:
+    """goal:g7.16.1.5.3.1 -- give back what the sweep's walk charged: ask the
+    kernel to reclaim this process's OWN cgroup (cgroup v2 `0::` line) by
+    its `file + slab_reclaimable` (memory.stat), capped at `max_mib`. Anon
+    memory is never asked for; nothing is written under 16 MiB. Returns the
+    MiB asked (0 = nothing asked); best-effort, never raises -- a refusal
+    logs ONE line and the sweep's decisions are unchanged."""
+    if max_mib <= 0:
+        return 0
+    mib = 0
+    try:
+        rel = next(l[3:] for l in SWEEP_PROC_CGROUP.read_text().splitlines()
+                   if l.startswith("0::"))
+        cg = SWEEP_CGROUP_FS / rel.strip().lstrip("/")
+        stat = dict(l.split() for l in (cg / "memory.stat").read_text().splitlines()
+                    if l.count(" ") == 1)
+        mib = min(max_mib, (int(stat.get("file", 0)) +
+                            int(stat.get("slab_reclaimable", 0))) >> 20)
+        if mib < 16:
+            return 0
+        (cg / "memory.reclaim").write_text(f"{mib}M")
+        return mib
+    except StopIteration:
+        return 0  # no cgroup v2 line: nothing of ours to reclaim
+    except OSError as exc:
+        # EAGAIN = the kernel reclaimed less than asked: the ask still helped
+        if exc.errno == errno.EAGAIN:
+            return mib
+        _watch_log(f"[sweep] reclaim refused: {exc.strerror or exc}")
+        return 0
+    except ValueError as exc:
+        _watch_log(f"[sweep] reclaim refused: unreadable memory.stat ({exc})")
+        return 0
+
+
 def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
                    dirty: bool, force_paths: tuple = ()) -> str | None:
     """goal:g7.16.1.5.3 -- pin a worktree before it is removed, so no byte is
@@ -1690,6 +1732,21 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
     per_pass = int(_reaper_cell(root, "worktree_archive_per_pass", 25.0,
                                 lambda v: v >= 1))
     archived = 0
+    # goal:g7.16.1.5.3.1: every `sweep_reclaim_every` trees walked, and at
+    # pass end, give back the walk's page cache + dentries from OUR cgroup
+    # (a missing `sweep_reclaim_max_mib` cell = 0 = off).
+    reclaim_every = int(_reaper_cell(root, "sweep_reclaim_every", 100.0,
+                                     lambda v: v >= 1))
+    reclaim_mib = int(_reaper_cell(root, "sweep_reclaim_max_mib", 0.0,
+                                   lambda v: v >= 0))
+    walk = {"trees": 0, "asks": 0, "mib": 0}
+
+    def _walked() -> None:
+        walk["trees"] += 1
+        if reclaim_mib and walk["trees"] % reclaim_every == 0:
+            got = _sweep_reclaim(reclaim_mib)
+            walk["asks"] += bool(got)
+            walk["mib"] += got
     # Every worktree's branch and HEAD in ONE call, not two per tree.
     wt_heads = _sweep_worktree_heads(main_checkout)
     skipped = 0
@@ -1705,12 +1762,14 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
     # home-before-the-sweep-judges-it) keeps every tree's ancestry provable.
     base_pre: dict[str, str] = {}
     for wt_p in sorted(wt_base.glob("a00-*")):
+        _walked()
         if not wt_p.is_dir():
             continue
         b0 = wt_heads.get(wt_p.name, ("", ""))[0]
         base_pre[wt_p.name] = _sweep_worktree_base(
             root, wt_p, _sweep_season(b0))
     for wt in sorted(wt_base.glob("a00-*")):
+        _walked()
         if wt.is_symlink() and not wt.exists() and not dry_run \
                 and wt.name not in live_ids:
             # goal:g7.16.1.5.4 layout: a RAM worktree behind a symlink whose
@@ -1857,6 +1916,13 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         _watch_log(f"[sweep] removed {agent_id} "
                    f"iter={iter_name} base={base}")
         removed += 1
+    if reclaim_mib:
+        got = _sweep_reclaim(reclaim_mib)
+        walk["asks"] += bool(got)
+        walk["mib"] += got
+        if walk["asks"]:
+            _watch_log(f"[sweep] reclaimed own cgroup: {walk['asks']} ask(s), "
+                       f"{walk['mib']} MiB asked over {walk['trees']} tree steps")
     _watch_log(f"sweep: removed={removed} archived={archived} refused={refused} "
                f"kept-live={kept}{f' (unchanged={skipped})' if skipped else ''}")
     return (removed, refused, kept)

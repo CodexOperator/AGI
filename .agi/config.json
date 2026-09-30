@@ -201,7 +201,7 @@
     "recovery_psi_max_pct": 40,
     "recovery_defer_alert_after": 3,
     "term_grace_s": 15,
-    "chain_deadline_s": 20, "worktree_archive_per_pass": 25, "sweep_mem_psi_max_pct": 40, "sweep_io_psi_max_pct": 40
+    "chain_deadline_s": 20, "worktree_archive_per_pass": 25, "sweep_mem_psi_max_pct": 40, "sweep_io_psi_max_pct": 40, "sweep_reclaim_every": 50, "sweep_reclaim_max_mib": 512
   },
   "logs": {
     "cap_mb": 16,
