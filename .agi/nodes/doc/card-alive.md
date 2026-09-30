@@ -67,6 +67,7 @@ successor: ListAgents (re-map) -> read SendMessage replies -> §1 wait lines; a 
 | hypothesis verdict | set `evidence_runs [experiment:...]` WITH `verdict`, or the grid evidence gate demotes it (s31 x3, fixed d3ec89831) |
 | write.py `set` | `set key value` (a space, never key=value); a dotted value like G7.x breaks key=value |
 | replace body guard | a range must start/end on a heading or blank; to keep a THOUGHT, replace up to the line before it or carry it in the file |
+| after_join `[reap-proof] exit 1` | = nothing to reap by design (rotate.py 14399-14421: the named non-matching value); true-state finding for the bundle-4 review: an exit 1 that means clean reads as a failure |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5301 at 03:1xZ) · S goals: complete 22 · retired 10 · active/horizon 0
