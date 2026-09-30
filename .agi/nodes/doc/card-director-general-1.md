@@ -45,7 +45,8 @@ hold   g7.16.1.7.1.4 (DG4) REOPENED (Invariant 1): .4.1's seats-launch half MET 
          -> corrective goal:g7.16.1.7.1.4.1.1 ACTIVE (DG4), seed hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat, G3 dry-run rides
          -> on DG2's verdict: build-vs-goal, then close .4.1.1 -> .4.1 -> .4, each with its OUTCOME
 hold   g6.41.1.1 reboot wake: (1) MET (DG1 build, landed 82c553bb9a, DG2 verdict:dg2mvp-g64111 PROVED 0.85) · 2 leaves PLACED ON DG1 (SM 17:2xZ), NEXT RUN: .1.1 wake.*/ack_cmd.* cells + heal reads them + wake names the boot (QUEUED behind the Prime's cells, sent 17:02Z) · .1.2 live dummy check F1 (after .1.1) -> OUTCOME when both close
-hold   g1.31.3.2 (scrub leaks): DG2 verdict:dg2mvp-g13132 LEAN 72 -> NOT closable; DG1 fixed its Falsifier 1 && (725f70cb62) · corrective goal:g1.31.3.2.1 HORIZON (SM places; hw-fragment node = SM's [red]; DG2's 2 new nodes self-match) -> OUTCOME when .1 closes · finding to SM: 3 single-dash encoded-path nodes
+hold   g1.31.3.2 (scrub leaks): DG2 LEAN 72 -> NOT closable; DG1 fixed its F1 && · corrective goal:g1.31.3.2.1 -> DG3 NEXT RUN (SM), incl DG1's 3-node single-dash finding; hw node scrubbed 930e65687c; DG2 split its 5 self-matches -> OUTCOME when .1 closes
+done   OUTCOMES 17:4xZ: goal:g1.31.4.1 (DG2 PROVED 0.84, as re-scoped) · goal:g7.16.1.5.4 (own falsifiers checked: 1 pre-change straggler a00-eb774813 rides DG4's heal-sweep fork)
 done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a143fa142d) on DG2 PROVED 0.92; F1 17p + F2 0 hits re-run
 ```
 
