@@ -1574,8 +1574,9 @@ SWEEP_CGROUP_FS = Path("/sys/fs/cgroup")
 def _sweep_reclaim(max_mib: int) -> int:
     """goal:g7.16.1.5.3.1 -- give back what the sweep's walk charged: ask the
     kernel to reclaim this process's OWN cgroup (cgroup v2 `0::` line) by
-    its `file + slab_reclaimable` (memory.stat), capped at `max_mib`. Anon
-    memory is never asked for; nothing is written under 16 MiB. Returns the
+    its `file - shmem + slab_reclaimable` (memory.stat), capped at `max_mib`,
+    `swappiness=0`. Anon and tmpfs are never asked for; nothing is written
+    under 16 MiB. Returns the
     MiB asked (0 = nothing asked); best-effort, never raises -- a refusal
     logs ONE line and the sweep's decisions are unchanged."""
     if max_mib <= 0:
@@ -1587,11 +1588,19 @@ def _sweep_reclaim(max_mib: int) -> int:
         cg = SWEEP_CGROUP_FS / rel.strip().lstrip("/")
         stat = dict(l.split() for l in (cg / "memory.stat").read_text().splitlines()
                     if l.count(" ") == 1)
-        mib = min(max_mib, (int(stat.get("file", 0)) +
+        # shmem (tmpfs / the RAM disk) is charged as `file` but no reclaim
+        # frees it without swap: never ask for it (measured 09-30 03:0xZ:
+        # agi-engine.slice file 700 MiB = shmem 700 MiB)
+        mib = min(max_mib, (int(stat.get("file", 0)) - int(stat.get("shmem", 0)) +
                             int(stat.get("slab_reclaimable", 0))) >> 20)
         if mib < 16:
             return 0
-        (cg / "memory.reclaim").write_text(f"{mib}M")
+        try:  # swappiness=0: page cache + slab only, anon is never swapped
+            (cg / "memory.reclaim").write_text(f"{mib}M swappiness=0")
+        except OSError as exc:
+            if exc.errno != errno.EINVAL:  # a kernel without the key
+                raise
+            (cg / "memory.reclaim").write_text(f"{mib}M")
         return mib
     except StopIteration:
         return 0  # no cgroup v2 line: nothing of ours to reclaim
