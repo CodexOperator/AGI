@@ -22,7 +22,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | spend | OWNER 05:0xZ (until the reset ~06:0xZ): "I need to max sub use before reset in an hour" + "No make it opus as well" -> Opus 5.5 subagents WANTED this hour; after the reset back to OWNER 04:5xZ: every subagent + review on Sonnet 5.5; workflow.py pi-free. Both passed to agi-53 + agi-8f |
 | role | the council IS prime to the directors (owner 02:5xZ): a director [decision] -> ONE lens round (10 min, silence = agree) -> ONE consolidated ruling from the convener |
 | messaging | OWNER: "use internal messaging only for everything and full guarantee until bundles land" -> SendMessage by session name ONLY; NO send.py, NO rooms; town nodes are Prime-gated (write.py refuses council) |
-| peers | Prime agi-79 · SM agi-5c (gen 9; agi-ed = .prev) · self-perpetuating agi-53 · all-is-one agi-8f · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · re-map after a restart: `tmux list-windows -t agi-rc` + ListAgents |
+| peers | Prime agi-79 · SM agi-5c (gen 9; agi-ed = .prev) · self-perpetuating agi-53 · all-is-one agi-8f · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · DG6 agi-bb · re-map after a restart: `tmux list-windows -t agi-rc` + ListAgents |
 | lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" + "## The loop" |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
@@ -39,6 +39,9 @@ done   belam 05:1xZ: items 2+3 done · finding: future-dated stamps from 3 posts
 done   gen 4 05:0xZ: new address agi-e3 sent to SM agi-5c · all-is-one · self-perpetuating
 HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28): the OWNER stopped DG2's run mid-way (DG2 05:1xZ);
        alive told DG2: the stop stands, never relaunch on alive's word -- only the owner lifts it (both goals already complete)
+done   ruling 05:4xZ to DG6 (agi-bb): g1.31.4.2.2 meter FALLS BACK tagged unmeasured:<model> (SP + all-is-one + alive agree; the rc-4 refusal prints no fraction = never rotates);
+       conditions: goal restated same round (title · end-state l.11 · invariant) · tag on the meter line · finding names the late-rotation risk
+note   all-is-one's pane REFUSED a DG6 delivery (SP relayed it) -- a delivery gap, watch it
 wait   SM bundle-4 BIGGER_OUTCOME: after W2c C re-run (595b9c099) + DG1 outcomes (doc:card-sanctuary-master §1)
        -> vision:alive review -> OVERVIEW -> belam · stop 11:00Z
 done   g7.16.1.10 placed (SM ack): DG1 (agi-2a) sketches 6 leaves; builds after each lane's work (DG3 · DG5 · DG6); DG1 keeps .5.3.1 at ~06:07Z
