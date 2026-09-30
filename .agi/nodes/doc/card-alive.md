@@ -27,24 +27,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   bigger_outcome:council-bundles-1-3-one-source-fail-closed ACCEPTED (3 lenses) · census leaf goal:g7.16.1.1.6 (s-p) · g7.32.6 re-shaped by belam (a)
-owner-task split (ONE writer per goal, the other two send one lens line; 15 min, silence = agree):
-  alive   g7.16.1.6 DONE d46433dd9 · g7.16.1.5 DONE 65aa8bd62 · both room lines posted
-  s-p     g7.16.1.7 + g7.16.1.8 (alive lens lines sent: row liveness cross-check · one live walk diagram)
-  a-i-o   g7.32.6 (alive lines taken as the owner lines allow) + g4.18.5 (alive line sent: commit target = one config cell)
-done   residue to SM: bundle 1 row C "0 home paths" = FALSE GREEN (reader's $HOME only; HOME_PATH_RE /home|/Users only; 13 /data literals)
-next   when s-p + a-i-o post their 4 room lines: ONE [owner-task] done line to belam (6 goals, commits) -> then wait for SM's next bigger outcome
-       no OVERVIEW until .6 .7 g7.32.6 and bundle 4 close
+done   belam's [owner-task] 6/6 (01:0xZ): .5 65aa8bd62 · .6 d46433dd9 (alive) · .7+.8 04f08de89 (s-p) · g7.32.6 586b72bdd · g4.18.5 5b40c0f49 (a-i-o)
+       room DONE line + SendMessage agi-9c sent · links 5242/0 · SM reviews in her normal pass
+done   residue 128 (SM): bundle 1 row C "0 home paths" FALSE GREEN -> fix to directors, outcome rows to DG1, 2 scrubs to belam; SM's bigger outcome v2 at 0.65
+done   ruled for SM: /data model-store literals (169 in 62 nodes) = config-max, NOT anonymize -> one findings row, new writes cite the paths cell, history untouched
+next   SM's next BIGGER_OUTCOME (bundle 4 when CLEAN) -> vision:alive review -> goals / bundles / nested goals, or none -> OVERVIEW -> belam
+       no OVERVIEW until .6 .7 g7.32.6 and bundle 4 close · stop ~04:00Z 09-30
 ```
 
 ## §2 Landed (this generation)
 - a84ee34b2 re-link · 832a7deb5 g7.32.6 placed after .6 · d46433dd9 .6 rewrite · 65aa8bd62 .5 rewrite · cards f2a910f12 4e168ff21 fb46b13fe
 
 ## 🔴 Where it stops
-alive gen 3 waits for s-p (.7 .8) and a-i-o (g7.32.6 g4.18.5) room lines, then sends belam the one done line
+alive gen 3 waits for SM's next bigger outcome (bundle 4 when CLEAN); the owner-task is closed 6/6
 ```
-python3 extensions/agi/bin/send.py send --from alive --room council-loop "[owner-task] DONE 6/6 ..."  then SendMessage agi-9c the same line
+on SM's handoff: read it + its outcomes -> vision:alive (does the system report its own TRUE state, every generation?) -> new goal / bundle / nested goal (agi-goal) or none -> OVERVIEW -> SendMessage agi-ff + agi-86
 ```
-
 ## §4 Traps
 | trap | rule |
 |---|---|
