@@ -3532,8 +3532,11 @@ def _session_complete(
     # verifies is any source removed, and only its own contribution's.
     try:
         target.parent.mkdir(parents=True, exist_ok=True)
-        if target.is_dir():
-            target.rmdir()  # clear a pre-created empty placeholder only
+        # clear a pre-created empty placeholder only; an empty SYMLINKED dir
+        # stays -- heal pre-links MAIN's entry into the cold sessions home so
+        # the copy lands on disk, never the RAM disk (goal:g7.16.1.5.3.2)
+        if target.is_dir() and not target.is_symlink():
+            target.rmdir()
         for rel, wsrc in win.items():
             dp = target / rel
             dp.parent.mkdir(parents=True, exist_ok=True)
