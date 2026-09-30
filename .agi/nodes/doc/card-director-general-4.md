@@ -36,7 +36,7 @@ WITH SM, awaiting GO (tip · worktree to remove once landed: in trunk + clean, h
   SM-2 802577c1bd dg4-sm2 · DG4.12 af2c27335f dg4-dg412c (ON SM-2) · DG4.13 9baba2bc99 dg4-dg413c · r49 7eb1c65aed dg4-r49 (ON DG4.13)
   g1.31.4.2.1 LINEAGE 4620846a3f dg4-fdreaders + dg4-dg414c · DG4.18 c576956960 dg4-dg418m (Prime: locations.stream, rotations cap, grid)
   DG4.19 910989982e dg4-dg419c · DG4.10+20 a7b40781c3 dg4-dg420c
-  RETURNED by SM 19:31Z: g1315131 -- range red test_write::test_edit_py_contains_no_file_write (marker write_text in write.py) -> c 89f50ad6be moved the marker to verification.py (536 passed) BUT harness HARD fails (director x2: launder rc3 7 and 3): `cannot lock ref HEAD` not retried -> dirty -> cascade -> d (retry ref-lock like index.lock) RUNNING on the Sonnet kid in .agi/worktrees/dg4-g1315131; re-send ONLY with 3 harness runs HARD-clean
+  g1315131 RE-SENT 19:5xZ: tip ba03ced28c (c: marker helpers in verification.py; d: ref-lock retried like index.lock); harness 4/4 runs 120/120, dirty 0, rc3 0 (Prime cell hold_wait_s 90); awaiting SM GO
 ALL HARVESTED ROUNDS DELIVERED (12 merge-ups with SM). Pi mur chain done (q2..q10).
 PARKED     C2c goal:g1.31.4.2.1.1 + its hypothesis tagged parked (SM 19:31Z option b; 1bf9f503eb, 6786c4f7b4): 7d9f955842 stays unlanded in .agi/worktrees/dg4-c2c (location invented); the real copilot probe = SPEND, banked to the Prime
 HANDED     findings row 48 (kid commit dies on index.lock, parent waits silently) -> SM (dispatch/cli = DG3 region)
@@ -60,6 +60,7 @@ Next command: `python3 extensions/agi/bin/send.py read director-general-4; git w
 | config:guard ring | a director's write.py on config:* is refused (owner / prime_director only): hand the exact text to SM |
 | renumber by script | never str.replace a Why/id prefix: it hit the id row of .5.5.5 (d1eb5ecad); use write.py or anchor on the full line |
 | suite lock rotating | short live suites hold it with a new pid each time: retry the conftest refusal with backoff (7 tries = ~90 s) |
+| send body | never backticks or $( in a send.py body: the shell eats them (19:5xZ lost a quoted phrase) -- body from a scratch file |
 | worktree cwd | creating a worktree flips the harness cwd into it: use absolute paths / git -C /data/work/agi |
 
 ## §5 Verification
