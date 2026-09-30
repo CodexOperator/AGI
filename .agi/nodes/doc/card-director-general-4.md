@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (00:0xZ 09-30) — gen 1; council RESUMED 23:4xZ (owner: "Restart council including DG5 stand up")
+## §0 State (00:3xZ 09-30) — gen 1; council RESUMED 23:4xZ (owner: "Restart council including DG5 stand up")
 | | |
 |---|---|
 | post | director-general-4 · g7.16.1.6 FILL-IN (.6.2 writers) side by side with DG3's machinery + the leftovers lane |
@@ -34,12 +34,15 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ```
 WAIT  DG3 posts node_writer.commit_node(root, node_path) -> sha (CAS on refs/grid/<mint>) + refusal modes in room directors
 S6.2  re-point every NON-rotate node-commit site onto commit_node, one site per commit:
-        MEASURED 00:0xZ: of 8 non-rotate commit sites ONE is a node write -- send.py:796 keygen --all-live (config:posts via a temp index; told DG3: commit_node must take content); cli.py x3 · season.py x2 · sensei.py x1 stay (round / merge / sessions commits), dashboard.py:631 is no commit
+        MEASURED 00:0xZ: of 8 non-rotate commit sites ONE is a node write -- send.py:796 keygen --all-live (config:posts via a temp
+        index; told DG3: commit_node must take content); cli.py x3 · season.py x2 · sensei.py x1 stay (round / merge / sessions), dashboard.py:631 no commit
         (rotate.py's commit sites, W1c and its :9237/:12177 grid commit --all calls are DG5's)
 S6.3  grid cron retired: crons.py:898 grid_sync line + grid.py:1831 cron -> ONE ~15-min snapshot job (cadence cell with DG3) · Falsifier 1
         measured 00:0xZ: the crontab carries the 5-min grid commit line TWICE (crons.py show lines 5 + 19)
-LEFT  L2a(a) unify.py + verify_unified.py after DG3 BUILD1 (manifest.<key> row verb): files + 4 build nodes + 2 manifest rows, ONE commit
-      L2a(b) publish-engine.sh + the g7.10 hook alarm (test the hook with the alarm removed first; it runs in EVERY session)
+LEFT  L2a(a) DONE b8d232fc6 (+ rows 4b2d2d2d1, 9b671709a)
+      L2a(b) IN TEST -- publish-engine.sh + g7.10 hook alarm (both hook copies, tested first) + grid.py cron --publish-engine +
+        crons.py publish_engine job (KNOWN_JOBS, _require_dir) + config:crons cadence (removed BEFORE the code) + commands grid.py:cron
+        row (20097eada) + metrics.py PUBLISH_STATE_PATH + test_publish_alarm.py + 2 build nodes -> ONE by-path commit after the pass
 OPEN  L1b check_goal_lifecycle (council places) · belam [decision] g15/g26
 ```
 
@@ -47,6 +50,7 @@ OPEN  L1b check_goal_lifecycle (council places) · belam [decision] g15/g26
 - e1d710942 L1: 8 horizon parents over an active leaf -> active · walk 468 = 306 active / 77 horizon / 47 complete / 38 retired
 - 259d75164 L2c: orphan THOUGHT END 6 -> 0
 - 6a913d85d (+39 write.py commits) L2b: repo path 92 -> 10 live nodes (the 10 excluded by rule)
+- b8d232fc6 L2a(a): unify.py + verify_unified.py retired whole (rows first, via DG3 BUILD1)
 - room directors: the FINAL split (23:5xZ)
 
 ## 🔴 Where it stops
@@ -59,7 +63,9 @@ Waiting on DG3's commit_node signature in room directors. At wake: read room dir
 | verify-suite.lock flaps; PASS B3 on the box | write.py leaves writes uncommitted while held; ONE test file per run |
 | replace body anchor guard | a mid-paragraph range is refused; widen to paragraph bounds, never --force |
 | `thought` verb | rewrites the FIRST column-0 THOUGHT pair: check for a fenced / second BEGIN first |
-| config:commands | rows live in FRONTMATTER under `manifest:`; unset is top-level only until DG3's BUILD1 |
+| foreign hunks | `git diff` EVERY file before a by-path commit: b8d232fc6 swept DG3's uncommitted guard edit (DG3 counted it landed) |
+| row verb | `row manifest.<key> <file>` (empty file = remove); manifest keys keep their YAML colon (`unify.py:`), cadences do not |
+| crons.py apply runs from MAIN every 5 min | change config:crons and crons.py in the order that is valid under BOTH: remove from the node first |
 | crons.py show | prints the box's home log path -- never paste its output into a node, dm or room |
 | council invariant | no parent/kid dispatch; every node through write.py; nothing deleted |
 
@@ -73,5 +79,5 @@ links.py links 5165 / 0 broken · orphan THOUGHT END 0 · repo path in live node
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The council resumed with a new lane: the directors (DG3/4/5 only) agreed the split themselves by SendMessage; W1c's owner flipped across crossed messages and then crossed again; the room's LAST line (DG4's 23:40:55 amend) stands by agreement: rotate.py is wholly DG5's, one writer per file, and no further split lines.
+L2a(a) landed on DG3's BUILD1 and L2a(b) went into its test pass; the version adds three traps paid for tonight (a swept foreign hunk, the row verb's key grammar, the config-before-code order a live 5-min cron forces).
 <!-- THOUGHT:END -->
