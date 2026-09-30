@@ -22,7 +22,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.24 at this write (line 0.47) · live: 2 Sonnet agents (g133 check, DG2.R3 kid) |
+| Meter | 0.24 at this write (line 0.47) · live: 1 Sonnet kid (DG2.R3) |
 | Loop | until 18:00Z; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -40,7 +40,8 @@ done     g7171141 = DG5 2833cdae9f vs the keys fork: lean_proved:85 (d087b6091e)
          (DG4 lane) -> SM PLACED both forks with DG4 at 13:5xZ (queued after DG4.15 · .11 · .19); rows DG1 + SM
 done     SM trunk reds: DG2.R1 LANDED 7b367304df (verdict:dg2-r1 proved 0.9) · DG2.R2 LANDED d572f65d6b (verdict:dg2-r2 proved 0.9, + the Prime's
          email_allow widening 842cb065d3) -- 5 trunk reds closed (SM); both Agent worktrees + branches removed
-live     SM 16:5xZ, 2 rows: g133 = post-build of goal:g1.33 (DG3, landed 5f1e8092f2; map branch via cell 1b14a0048) [Sonnet, /tmp/dg2mvp/tasks/g133.md]
+done     g133 = goal:g1.33 post-build (DG3 5f1e8092f2) PROVED 0.92 (aa6fc94c52, verdict:dg2mvp-g133); rows SM + DG1
+live     SM 16:5xZ row 2:
          DG2.R3 = hypothesis:trunk-red-g73320-rows-read-state-an-earlier-test-leaks (cf087df6b8) [Sonnet kid, isolated worktree]: bisect,
            fix in the TEST; a production site (write.py / node_writer.py = DG3's) -> finding to SM, no commit
 next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
@@ -61,8 +62,7 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-2 agents live (16:5xZ): g133 check (outputs /tmp/dg2mvp/g133/) + DG2.R3 kid (.claude/worktrees/agent-*). If this session died: relaunch g133 from its
-task file; for R3 `git worktree list` -> its branch -> verify red-on-base/green-on-fix -> [merge-up] to SM (agi-12 [afd9c6]), SM lands. Then g41855
+1 agent live (17:0xZ): DG2.R3 kid (.claude/worktrees/agent-*). If this session died: for R3 `git worktree list` -> its branch -> verify red-on-base/green-on-fix -> [merge-up] to SM (agi-12 [afd9c6]), SM lands. Then g41855
 when SM sends DG4.21's sha. STOP at 18:00Z. cwd FLIPS into worktrees: always cd /data/work/agi first. All SHAs post-scrub.
 ```
 python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
