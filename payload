@@ -1910,6 +1910,8 @@ def stand_up(root: Path, post: str, body, *, mode: str):
             why = f"launch lock held: another stand-up of {post} is in flight"
             print(f"ERR: {mode} refused: {why}", file=sys.stderr)
             return False, why
+        if (note := ensure_post_key(root, post)):
+            print(note, file=sys.stderr)
         return True, body()
 
 
@@ -17672,6 +17674,58 @@ def _rotate_key_gate(root: Path, seat: str, row: dict | None) -> str | None:
             f"own signing key to rotate).")
 
 
+#: goal:g7.16.1.7.1.4 -- the season-2 seat-key template when
+#: config:key-authority carries no `key_template` cell: kind and forgiving.
+#: `scheme` "" = seatsig's default; `existing_key` "adopt" = a key file whose
+#: row names no pubkey is adopted (its pubkey written), "leave" = left alone.
+KEY_TEMPLATE_DEFAULT = {"scheme": "", "existing_key": "adopt"}
+
+
+def key_template(root: Path) -> dict:
+    """goal:g7.16.1.7.1.4 -- THE seat-key template: config:key-authority's
+    `key_template` cell over KEY_TEMPLATE_DEFAULT (unknown keys ignored).
+    Never raises: a template that cannot be read is the default."""
+    out = dict(KEY_TEMPLATE_DEFAULT)
+    try:
+        import send  # local: same dir, no import cycle (send.py pattern)
+        from node_writer import find_node_file
+        path = find_node_file(send._main_graph_root(root), "config:key-authority")
+        if path is not None:
+            cell = (send._fm.load_node_file(path, body=False).frontmatter
+                    or {}).get("key_template")
+            if isinstance(cell, dict):
+                out.update({k: v for k, v in cell.items() if k in out})
+    except Exception:  # noqa: BLE001 -- see docstring
+        pass
+    return out
+
+
+def _existing_seat_key(send, root: Path, seat: str):
+    """`(scheme name, pub)` of the seat's existing key file, or None."""
+    try:
+        obj = json.loads(send._seat_key_path(root, seat).read_text())
+        pub = send.seatsig.get(obj["scheme"]).public_from_secret(
+            bytes.fromhex(obj["priv_hex"]))
+        return obj["scheme"], pub
+    except Exception:  # noqa: BLE001 -- unreadable = nothing to adopt
+        return None
+
+
+def ensure_post_key(root: Path, post: str) -> str:
+    """goal:g7.16.1.7.1.4 -- every stand-up keys its post: the post's own
+    config:posts row, when it names no pubkey, is keyed from `key_template`
+    through `_rotate_first_key` (mint, or adopt an existing key file), row
+    cells written and committed. No model runs keygen. Returns the one-line
+    note ('' = nothing to do). Never raises: a key never blocks a stand-up."""
+    try:
+        import write as _w  # local: same dir (send.py pattern, no cycle)
+        row = next((r for r in _w._load_seats(_shared_graph_root(root))
+                    if r.get("name") == post), None)
+        return _rotate_first_key(root, None, post, row)
+    except Exception as exc:  # noqa: BLE001 -- see docstring
+        return f"warn: {post!r} key not assigned ({exc})"
+
+
 def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
                       dry_run: bool = False) -> str:
     """rotate-self KEY-GATING, line (1) MINTING half (hypothesis
@@ -17698,25 +17752,34 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
     if not row or row.get("pubkey"):
         return ""
     import send  # local: same dir, no import cycle (send.py pattern)
-    scheme = row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME
+    tmpl = key_template(root)
+    adopt = tmpl.get("existing_key") == "adopt"
+    scheme = (row.get("sig_scheme") or tmpl.get("scheme")
+              or send.seatsig.DEFAULT_SCHEME)
     if dry_run:
         # dry-run is a planning check: report what an unkeyed real row would
         # do, but mint NOTHING and write NO row cell. Already-keyed rows
         # (above) and idempotent re-rotates (key file already exists, so the
         # live path would mint nothing) both return '' -- nothing to report.
         if send._seat_key_path(root, seat).exists():
-            return ""
+            return (f"(dry-run) seat {seat!r} is unkeyed; would adopt its "
+                    f"existing key -- NOTHING done") if adopt else ""
         return (f"(dry-run) seat {seat!r} is unkeyed; would mint its first "
                 f"key at {send._seat_key_path(root, seat)} (0600) and write "
                 f"its pubkey cells -- NOTHING done")
     minted = send._mint_seat_key(root, seat, scheme)
     if minted is None:
-        # a key file already exists though the row is unkeyed -- idempotent
-        # re-rotate; leave it, the next rotation sees the row still unkeyed
-        # and re-passing the gate. Nothing to do here.
-        return ""
-    _path, pub = minted
-    note = (f"rotating seat {seat!r} was unkeyed; minted its first key at "
+        # a key file already exists though the row is unkeyed: the template
+        # (goal:g7.16.1.7.1.4) adopts it -- its pubkey goes into the row --
+        # or, `existing_key: leave`, leaves it for the next pass.
+        found = _existing_seat_key(send, root, seat) if adopt else None
+        if found is None:
+            return ""
+        scheme, pub = found
+        _path, verb = send._seat_key_path(root, seat), "adopted its existing key"
+    else:
+        (_path, pub), verb = minted, "minted its first key"
+    note = (f"seat {seat!r} was unkeyed; {verb} at "
             f"{_path} (incremental fleet keying) -- "
             f"{send.seatsig.fingerprint(pub)}")
     _row_keyed = False
