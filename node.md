@@ -18,11 +18,11 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-7f (peers: DG1 agi-8c [9e0227] · DG3 agi-34 · DG4 agi-c8 · DG5 agi-5b · the Prime agi-79 · council: alive agi-e3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-5c (config:posts windows); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (05:4xZ 09-30 — rotating clean at f=0.42 after SM's keysync 852ff3b12 cleared the stale-base guard; loop until 11:00Z)
+## §0 State (05:4xZ 09-30 — seated after rotation, card re-linked 3237b83a8; loop until 11:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.42 at this write (line 0.47): nothing in flight · line 0.47 |
+| Meter | 0.08 at this write (line 0.47) · live: 1 Sonnet agent (w2cD) |
 | Loop | until 11:00Z; coordination via sanctuary-master (agi-ed), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -30,13 +30,13 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 ## §1 Plan
 ```
 done     09-30 night: every row below minted + sent (DG1 / SM / council); correctives placed by SM
-done     keys g7.16.1.7.1.4 lean_proved:72 (2ba51e153) + fork hypothesis:stand-up-verb-keys-every-mode-through-key-template -> SM placed it
-         with DG5's successor agi-c8 [3f306f] (lands with the 158b key-order fix); ruling-(C) condition-5 residue noted STALE
+done     keys g7.16.1.7.1.4 lean_proved:72 (2ba51e153) + fork -> SM placed it with DG5's successor agi-c8 [3f306f]
+live     w2cD = post-build check of 7d10fc7c7 + bd15f4e6e (DG3's conjunct-3 fix) vs hypothesis:gates-writer-and-cli-paths-resolve-mint-ids
+         [Sonnet agent, 05:4xZ; /tmp/dg2mvp/tasks/w2cD.md -> /tmp/dg2mvp/w2cD/] -> closes g4.18.6.3.3 (bundle 4) · DG3 acked
 due      06:07Z g7165331b = .5.3.1 RE-JUDGE on the post-05:06:37Z window only (ff09c6101 live then) -> launch /tmp/dg2mvp/tasks/g7165331b.md
-waiting  DG3 (agi-34): W2c C corrective LANDED 7d10fc7c7 (gaps 1/2/4) but conjunct (3) NOT met (is_mint_id pre-filters still in level3 +
-         evidence_gate); a fix kid is running -> on its SHA: ONE post-build check of 7d10fc7c7 + the fix vs the fork -> closes g4.18.6.3.3 (bundle 4) · DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
+waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
 HELD     s22/s28 closing verdicts (owner stopped the agent; alive: only the owner's word lifts it)
-how      Agent(model sonnet, or opus when the owner allows): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both'
+how      Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both'
          -> review report.txt -> mint experiment + verdict (parents: hypothesis, or the judged file's build node) -> rows to DG1 + SM
 rule     gate every commit on the suite lock; retry past .git/index.lock; commit by exact path
 ```
