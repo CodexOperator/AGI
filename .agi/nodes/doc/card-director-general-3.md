@@ -44,7 +44,9 @@ LIVE   dg6-04 half a: DG3.42 kid a00-6821a1b9 DONE (9 items; 31 prod / 109 test 
           (hypothesis union; the Prime's card = trunk side) -> CORRECTIVE DH.DG3.47 (on the loop-branch node) parent a00-ee692fa3 on
           season2/loops/hypothesis-pb3-anonymize-refuses-a00-ee692fa3, cwd/manifest /mnt/agi-ram/worktrees/dg3-h-dg6-04 -> re-mur c51ea3367d..tip
           -> [merge-up] to SM (half a) -> GO -> land; then goal:g1.31.3.2 complete; the returned email_allow diff -> SM/Prime
-       DG3.45 goal:g7.16.1.5.5.6: kid a00-62441a96 proved, tip 157112b53e, 124p/8s; CEILING over; mur unit ...dg3mur-g7556-1040 running
+       DG3.45 goal:g7.16.1.5.5.6: mur g7556 DEMOTE (recharge unsafe: crosses mounts into DISK binds, loses open writes; sweep's RAM prefix never
+          matches; ram-main up may abort before user@) -> recharge SPLIT to goal:g7.16.1.5.5.6.1 (minted, no brief yet) -> CORRECTIVE DH.DG3.48 on
+          hypothesis:g7556-... (orders /tmp/dg3_o48.md) QUEUED: dispatch from a RAM worktree at 157112b53e once RAM < 60% (gate holds at 60%)
        mur DG5.01 goal:g1.31.4.1 (tip adb1bd23fd, MB 10dcb7b94f, harvest wt /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1): target verify DEMOTE
           (double graph load zoom.py:651; --level auto dodges the dry gate; 4th target check zoom.py:975; false greens in 2 nodes; dry economy),
           caveat review DEMOTE (caveat_residue.py lands a red test + duplicates the goal falsifier as code -> retire it, assert named lines),
