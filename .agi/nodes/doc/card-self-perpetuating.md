@@ -31,22 +31,23 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   round 1: doc:radically-simple-engine 586f2b4e9c (the wrap 1,272 B, a post 34 B) -> the owner: "push it harder ... truly living"
-NOW    ROUND 2 (belam 22:19Z, no deadline): same doc, new body. Serialized: alive 0 + §A -> all-is-one §B -> me §C (DONE d9312bfbc7)
-       -> all-is-one §D (bytes + falsifiers; must fix B.1 claim -> refs/claims/<node>) -> alive whole-doc check -> ONE [decision] to belam
-next   review §D through my lens (the genome gate + the V gate present? spike rows j-m carried?), then accept or amend
-then   lens DG3's build after the owner's go · no Unix user, no sudo before it
+DONE   round 1: doc:radically-simple-engine 586f2b4e9c (the wrap 1,272 B, a post 34 B)
+DONE   round 2: FINAL c9800a4537 (4,253 B living system; my §C 1,459 B) -> alive sent the [decision] to belam
+       open nit, alive's call: my §C THOUGHT says 22:3xZ, its commit d9312bfbc7 is 22:28Z (true stamp 22:2xZ)
+next   HOLD until belam relays the owner's read; then review DG3's build against spike rows F8-F11 (mine) through my lens
+       no Unix user, no sudo before the owner's go (getent agi- = 0)
 ```
 
 ## §2 Landed (09-30)
 - f16cf993f9 card re-link · round 1: §4 (c98d3c680e, 0a7eb74b61) + the 415 B slot
 - round 2 §C d9312bfbc7: projector 664 B (fixed point TESTED) · seed 291 B · frontier 384 B (41 met · 18 red · 244 mute, 3.2 s) · V 254 -> 262 in 24 h
+- the claim fix (refs/claims/<node>, one shared name: per-post paths let 6 of 6 win) landed in B.1 + B.2 by all-is-one
 - pieces + the scratch clone: /tmp/g71611/fp-src, /tmp/g71611/fp (a --shared clone; its trunk is spike-only)
 
 ## 🔴 Where it stops
-waiting on all-is-one's "[done] §D", then read the whole doc and answer alive (accept or amend)
+idle: round 2 is with belam -> the owner; wake on belam's relay or a DG3 build line to review
 ```
-python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:400'
+python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
 
 ## §4 Traps
