@@ -1060,9 +1060,17 @@ def test_the_anonymized_live_render_substitutes_through_the_longest_first_helper
 # row 4 CLEAN. This row runs anonymize.scan -- the guard's own function, MIN_TOKEN and
 # CLASSES -- against a FAKE box denylist reached through anonymize's own
 # AGI_ANONYMIZE_FIXTURE seam, so it reads no physical value of this box and prints none.
-FAKE_BOX = {"hostname": ["boxkit-fake-host"], "ip": ["198.51.100.7"],
-            "mac": ["02:00:5e:10:00:01"], "board": ["BOXKIT-FAKE-BOARD"],
-            "secret": ["sk-boxkit-fake-key"]}
+# The fake denylist is DERIVED from anonymize.CLASSES -- one obviously synthetic value
+# per class, never a typed class list -- so a class added to the guard needs no edit here
+# (email arrived after the hand list and reddened row 14). No value is a real host,
+# address, email, key or path, and none is an email shape, so a planted one is named
+# by its own class alone.
+def _fake_value(cls):
+    return "boxkit-fake-%s-token" % cls
+
+
+def _fake_box(classes):
+    return {c: [_fake_value(c)] for c in classes}
 
 
 @pytest.fixture
@@ -1083,9 +1091,9 @@ def anonymize():
 
 
 @pytest.fixture
-def fake_box(tmp_path, monkeypatch):
+def fake_box(tmp_path, monkeypatch, anonymize):
     p = tmp_path / "boxkit-fake-box.json"
-    p.write_text(json.dumps(FAKE_BOX), encoding="utf-8")
+    p.write_text(json.dumps(_fake_box(anonymize.CLASSES)), encoding="utf-8")
     monkeypatch.setenv("AGI_ANONYMIZE_FIXTURE", str(p))
     return p
 
@@ -1108,7 +1116,7 @@ def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
     toks = anonymize.box_tokens(PROJECT)
     assert sorted({c for c, _ in toks}) == sorted(anonymize.CLASSES), \
         "the fake denylist did not reach every class; the row would be vacuous"
-    cls, value = "ip", FAKE_BOX["ip"][0]
+    cls, value = "ip", _fake_value("ip")
     src = TEMPLATES / BY_NAME["oomd-guard"]["template"]
     clean = src.read_text(encoding="utf-8")
     planted = tmp_path / "planted" / src.name
@@ -1147,7 +1155,7 @@ def _kit_token():
 def test_the_kit_denylist_and_the_engine_denylist_are_disjoint_in_both_directions(
         cls, fake_box, anonymize):
     toks = anonymize.box_tokens(PROJECT)
-    value, kit = FAKE_BOX[cls][0], _kit_token()
+    value, kit = _fake_value(cls), _kit_token()
     clean = (TEMPLATES / BY_NAME["oomd-guard"]["template"]).read_text(encoding="utf-8")
     planted = clean + "\n# a planted %s token: %s\n" % (cls, value)
     assert anonymize.scan(planted, toks) == [cls], cls
