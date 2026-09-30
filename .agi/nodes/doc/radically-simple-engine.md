@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: all-is-one
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -199,7 +199,7 @@ Rows (§4):
 | locations.py worktree-path mapping (x41) | REPLACE-BY slot = CacheDirectory; KEEP the nearest-`.agi/` resolver | ~300 of 1,218 |
 | .agi/sessions/{rotations, seats, inbox markers, workflows run dirs} (7,971 files) | RETIRE (move, never delete) -> journald + git log + refs/salvage | files, not lines |
 | the 716 standing trees under .agi/worktrees | RETIRE by the 3 passes above; pass 3 is the owner's go | ~96 GB |
-| new: agi-slot.sh (fill · recycle · mix · salvage) | NEW | ~2 KB |
+| new: slot (fill · recycle · mix · keep), inline in §7 | NEW | 415 B, tested |
 
 ## §5 An MCP wrapper over the engine as it works now
 **What am I ACTUALLY trying to get the machine to do here?** Give every role the SAME verbs the SAME way (a Claude post, a pi kid, a human), so the machinery underneath can be swapped without any caller noticing.
@@ -269,7 +269,7 @@ Measured at HEAD 09-30 22:xZ (alive + all-is-one): engine ~5.13 MB · 137 files 
 
 ```
 retired      ~2.41 MB certain (rotate … write_guard) + ~0.33 MB "mostly" (brief/zoom, guard, stitch)  ≈ 2.7 MB of 5.13 MB
-new code     post wrap 1,043 B written out (§1: one unit template + inbox .path + meter hook + gitconfig + audit rule + sysusers; a post = 18 B) + ~0.5 KB rows -> agi.conf generator · agi-write + agi-read <= 2 KB (§2) · schema-check <= 10 KB (§2) · agi-mcp <= 8 KB (§5) · agi-slot.sh ~2 KB (§4)  ≈ 23-25 KB (the wrap itself ~1.5 KB; schema-check + agi-mcp carry the rest)
+new code     post wrap 1,043 B written out (§1: one unit template + inbox .path + meter hook + gitconfig + audit rule + sysusers; a post = 18 B) + ~0.5 KB rows -> agi.conf generator · agi-write + agi-read <= 2 KB (§2) · schema-check <= 10 KB (§2) · agi-mcp <= 8 KB (§5) · slot 415 B (§4, inline below)  ≈ 21-23 KB (the wrap itself ~1.5 KB; schema-check + agi-mcp carry the rest)
 tests        their suites retire with them (test_rotate* ~10.5k lines · test_send ~8.1k · test_after_join_service ~3.1k ...); each new piece ships with the spike as its test
 ```
 The rough share that exists ONLY because every post is one Unix user: seatsig ~100% · rotate ~25-35% · heal ~25% · send ~20-25% · spawn_budget ~20% · write ~15% (a Sonnet survey, low confidence).
@@ -280,7 +280,7 @@ The rough share that exists ONLY because every post is one Unix user: seatsig ~1
 Setup: two spike posts `agi-spike-a`, `agi-spike-b` (declared the same way §1 declares posts) · one repo `core.sharedRepository=group`, umask 002 · `agi-write` + `agi-read` from §2 · one `agi-post@.service` from §1.
 | # | claim | run | PASS | FAIL (= the doc changes, not the spike) |
 |---|---|---|---|---|
-| a | two users commit signed into ONE shared repo | a and b each `agi-write` 100 edits to their own nodes, concurrently | 200 commits on the branch · `git log --show-signature` verifies all 200 against `allowed_signers` · `git fsck` clean · zero lost writes (CAS losers retried) · the shared checkout's `git status` clean | any EACCES under `.git/objects` or `refs/` · a lost write · a stale shared index |
+| a | two users commit signed into ONE shared repo | a and b each `agi-write` 100 edits to their own nodes, concurrently | 200 commits on the branch · `git log --show-signature` verifies all 200 against `allowed_signers` · `git fsck` clean (the shared repo carries `gc.pruneExpire=never`: `clone --shared` slots borrow its objects) · zero lost writes (CAS losers retried) · the shared checkout's `git status` clean | any EACCES under `.git/objects` or `refs/` · a lost write · a stale shared index |
 | b | the kernel refuses a cross-post node write | b: `echo x >> <a's node>`; b: forge a private-index commit touching a's node | the append fails EACCES · the landing audit (signer owns every path it touches) flags the forged commit | the write lands, or the forge passes the audit |
 | c | Claude Code + pi run AS each user; messaging = graph files | start both harnesses as a and as b with their settings symlinked from the graph; a writes a message file into b's inbox | each harness starts and reads its own settings · b's hook reports "1 unread" within one poll · no send.py in the path | a harness refuses to run as the user · the message needs a daemon |
 | d | one memory slice per user | a stress process in a's unit past its MemoryMax | killed inside a's slice; b's session untouched | b's process is hit, or the box is |
