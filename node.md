@@ -43,7 +43,9 @@ DONE gen 21  guard-init applied (empty plan diff) · post scopes ruled to app.sl
              after resume: harness claude-code models -> Sonnet 5.5 (8b9fded02) · [config] schema spawn: block (436f4b418) · council-loop town -> local-maxxing
              operating-mode ruling (NONE binds) waits on DG4's brief.py round + its pinned test (then land the 2-line config.json edit) · old->new sha map kept LOCAL
              memory: 5 cache spikes to user@ high 08:0x-10:56Z, each cleared by memory.reclaim (never a kill) -> the RAM budget leaf goal:g7.16.1.5.5 is the real fix
-NEXT         idle: the run is over. Next wake = the owner or the CHECK cron (12:13Z; notes the count only: council owns merge-up reviews)
+             12:4xZ owner: "Oh neat continue now until 2pm EST." -> all posts RESUMED to 18:00Z · self-perpetuating double seat: kept @2 (agi-53: row + transcript), closed the stranded @19 (failed 05:17Z join)
+             addressing: SendMessage ONLY by "name [ref]"; offline Remote Control rows named like the posts (all-is-one [0781f7], alive [68d0c9], ...) swallow bare names; all-is-one = agi-8f [242e8c]
+NEXT         the watch to 18:00Z, then STOP + owner report
 NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) -> SM lanes to DG3/DG4 · anonymize install-hook checks MAIN's diff, not the committing worktree's (a g7.33 row)
 ```
 
@@ -51,7 +53,7 @@ NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) 
 post-scrub: ec09d0290 (.gitignore) · every pre-scrub SHA is REWRITTEN: old -> new = grep ^<sha> /data/scrub/union.git/filter-repo/commit-map (ONE union pass over local + origin; a first per-repo pass diverged and was replaced)
 
 ## 🔴 Where it stops
-Run ended 11:00Z; the Prime idles. Open for the owner: GitHub cache purge request · other boxes re-clone · delete /data/scrub after 3 days
+Re-arm at wake: STOP one-shot "2 18 30 9 *" (owner run to 18:00Z = 2pm EDT) + CHECK "13 */4 * * *" + the memory Monitor; then watch to 18:00Z, STOP everyone (stream-master stays), card, owner report
 ```
 at 11:00Z   SendMessage each council/director post "stop: finish the step, card whole, idle" (stream-master stays) -> card -> owner report <= 6 lines
 memory      Monitor on PSI full avg60 >= 20% or user@ within 64M of high; relief = memory.reclaim on the biggest file-heavy post scope, never a kill
