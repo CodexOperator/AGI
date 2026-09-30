@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (13:50Z 09-30, RESUMED on belam's order until 18:00Z -- a STOP comes at 18:00Z)
+## §0 State (13:58Z 09-30, resumed on belam's order until 18:00Z -- a STOP comes at 18:00Z)
 | | |
 |---|---|
 | post | director-general-4 · owner: resume on the town bundle; subagents Sonnet 5.5 only |
@@ -30,21 +30,22 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan (SM's order; if meter or load binds: harvests first, tell SM what you cannot reach)
 ```
-LIVE PARENTS  DG4.17 a00-012eab57 -> g1.31.1.1 3rd pass (stderr line count + node prose; base de-base-DG4-17 = 2ffa3b259)
-              DG4.19 a00-d2c9ccdf -> hypothesis:a-skipped-rotate-join-leaves-no-stranded-window (row 34, rotate.py not-found join branch; from MAIN)
-              DG4.18 a00-12019258 -> g1.31.2 stream 3rd pass ($B guard, deliverable 5, commands.stream.fragment, row that can't fail; base de-base-DG4-18 = chain head 92dd46207)
-LIVE MURS     murdg415 = DG4.15 g4.18.5.5 (SM's FIRST: on a clean verdict -> [merge-up] to SM + the values.core.suite_lock.file cell text; resolver = verification.suite_lock_name)
-              chain murq2 dg410 -> murq3 dg406 -> murq4 dg412 -> murq5 dg413 + 4621 -> murq6 dg414 (each /tmp/dg4/qrunN.sh waits on the previous unit)
-HARVESTED tips (measured):
-  DG4.15 6575a88d7 g4.18.5.5: SUITE_LOCK = 0 hits, F1 3 passed, write 44 / verification 100 / node_writer 130 (rotate.py + suite_guards.py 1-line reader moves)
-  DG4.14 e51efb790 g1.31.4.2.1 2nd: fd+copilot 35, dispatch 138 (+1 base artifact: scrubbed sha) -- touches dispatch.py +22 (DG3's file: name it at merge-up)
-  DG4.06 a8b9e67e0 · DG4.10 d8f0b9ee0 · DG4.12 589c6dafd · DG4.13 (branch ...engine-root-one-r-a00-925ffcca) -- all green, in the mur chain
-  g1.31.2 chain head 92dd46207 -> DG4.18 · g1.31.1.1 2ffa3b259 -> DG4.17
+LIVE PARENTS  DG4.19 a00-d2c9ccdf -> hypothesis:a-skipped-rotate-join-leaves-no-stranded-window (row 34; from MAIN)
+LIVE KID      DG4.20 a00-2b0cde65 (claude-code Sonnet) -> hook COMMENT text fix; base de-base-DG4-20 = d8f0b9ee0 + trunk
+DG4.15 = SM's FIRST (g4.18.5.5, tip 6575a88d7, green): mur murdg415 (run mur-director-general-4-9) REVIEW accept_with_residue, config_max yes; VERIFY PENDING
+   review residues: write wait NOT in values.core.suite_lock (still values.core.write_commit_wait_s) · hold rule has no cell · heal.py unlinks verify-suite.lock by LITERAL · config block absent (Prime)
+   -> on verify: ONE corrective DG4.21 from 6575a88d7 (resolver reads file + write_commit_wait_s + hold from ONE block with STOPGAP fallback; heal.py via suite_lock_name), re-mur,
+      then [merge-up] to SM (agi-12) + the exact values.core.suite_lock block text for the Prime
+MUR CHAIN (each /tmp/dg4/qrunN.sh waits on the previous unit): murq2 dg410 DONE -> murq3 dg406 -> murq4 dg412 -> murq5 dg413 + 4621 -> murq6 dg414 -> murq7 dg417 -> murq8 dg418
+   run dirs .agi/sessions/workflows/runs/mur-director-general-4-N (newest = highest N)
+HARVESTED tips (all green on their touched family):
+  DG4.06 a8b9e67e0 · DG4.12 589c6dafd · DG4.13 ...engine-root-one-r-a00-925ffcca · DG4.14 e51efb790 (dispatch.py +22 = DG3's file) · DG4.17 7c1da7497 · DG4.18 8097dec13
+  DG4.10 d8f0b9ee0 (mur done: pure-text residues -> DG4.20)
 QUEUED (SM order, drain AFTER: DG4.15 merge-up · DG4.11 · DG4.19)
-        SM-1 hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (.5.3; DG2 b6e56296a5) -> on land the Prime restarts heal; .5.3.1 closes on a >= 25-tree pass, 0 kills
-        SM-2 hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat (.7.1.4.1 lane; DG2 d087b6091e): G1 cmd_loop w/o --seat keys the resolved seat · G2 remint via send._mint_seat_key only · G3 spawn dry-run names mint vs adopt · prod <= 40, tests <= 60
-        DG4.11 = DG4.02 residues (/tmp/dg4/orders-DG4.11.md) -> cut from the DG4.15 tip once its mur is clean (one writer in _commit_write)
-OWED TO SM AT MERGE-UPS  g4.18.5.5: values.core.suite_lock.file (+ wait/hold if the mur says they belong) · g1.31.1.1: [decision] Prime config lines
+  DG4.11 = DG4.02 residues (/tmp/dg4/orders-DG4.11.md) -> cut from the DG4.15/DG4.21 tip (one writer in _commit_write)
+  SM-1 hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (.5.3; DG2 b6e56296a5) -> on land the Prime restarts heal; .5.3.1 closes on a >= 25-tree pass, 0 kills
+  SM-2 hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat (.7.1.4.1 lane; DG2 d087b6091e): G1 · G2 · G3 · prod <= 40, tests <= 60
+OWED TO SM AT MERGE-UPS  g4.18.5.5: values.core.suite_lock block · g1.31.1.1: [decision] Prime config lines (in_force, active_operating_mode, g7.16.2 cite)
   g1.31.2: rotations.md :83/:123 clauses + cap 6000->8000, locations.stream cell · g1.31.4.5b: retire engine_commit · C2 copilot goal leaf to mint
 LANDED 9f124d68f g1.31.1.2 · RULE: [merge-up] to SM FIRST, land on SM's GO (merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only)
 FINDINGS goal:g7.33.19 rows 25 · 26 · 27 · 34 (stranded window)
@@ -52,8 +53,8 @@ DONE  .5.5.4 · .5.5.5 · .5.5.8 · g1.31.1.2 · NOT MINE g1.31.4.1 · g7.16.1.5
 ```
 
 ## 🔴 Where it stops
-Resumed 13:5xZ; 2 parents live, DG4.15's review running first, 5-unit mur chain queued.
-Next command: `systemctl --user show agi-director-general-4-murdg415 -p SubState; ls .agi/sessions/workflows/runs/ -t | head -3` then the DG4.15 verify file -> [merge-up] to SM.
+DG4.15 verify pending, then its corrective DG4.21 and the merge-up to SM; DG4.19 + DG4.20 live; 7-unit mur chain running.
+Next command: `ls .agi/sessions/workflows/runs/mur-director-general-4-9/; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-4-*' --no-pager`
 
 ## §4 Traps
 | trap | rule |
