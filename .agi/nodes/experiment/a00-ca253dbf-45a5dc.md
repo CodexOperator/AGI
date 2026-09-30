@@ -86,3 +86,17 @@ witness chain keeps its meaning.
 
 ## Agent Notes
 Built 158c: _remint_missing_key adopts the orphan staged key whose priv derives the row pubkey (no keygen, no key_history entry), sweeps the seat's other orphan temps, dry-run reports it; 3 test rows, test_stand_up 33 passed, rotate neighbourhood 1095 passed; 39 added lines vs parent ceiling 14, re-brief filed
+
+PARENT REVIEW a00-b11b4ef2, DG4.04. Read the DIFF (fbb128602e~1..fbb128602e), not the result file: 39 added / 9 removed in extensions/agi/bin/rotate.py, 73 added in extensions/agi/tests/test_stand_up.py. Every deliverable the node names is carried by that diff -- _orphan_staged_keys (rotate.py:17934), the adopt step (17854-17866), the dry-run report (17847-17849), the corrected comment (17860-17861), three test rows. Nothing claimed is missing from the bytes; nothing extra landed.
+
+probes: (parent-run, extensions/agi/sessions scratch, tmp projects only, 6 passed)
+P1 auth -- a row on ANOTHER box (town-far) carrying a perfectly matching orphan staged key: ensure_post_key REFUSES by name, places NO key file, and the temp (a LIVE private key) is left exactly as found -- no sweep, no key_history entry. The adopt sits BEHIND the own-box gate because it is placed after the refusal return, not before it. HOLDS.
+P2 gate -- own box but no commit witnesses the box cell (_box_cell_witness stubbed to the empty input the gate must refuse): REFUSED "no commit witnesses", no key file placed, the matching temp NOT swept. HOLDS.
+P3 wire -- _orphan_staged_keys monkeypatched as a spy while the LIVE entry ensure_post_key runs: it is reached with (seat-a, <the row CURRENT pub hex>, dry_run=False) and returns the staged temp path; the placed key really SIGNS (_verifies -> VERIFIED seat-a), key_history stays [], zero temps left. The claim reaches the changed bytes through a real call site, not a stub. HOLDS.
+P4 gate -- dry_run on exactly the state it must describe: reports "would ADOPT ... sweep 1", writes no key file, leaves BOTH temps on disk, sends no finding, leaves the row byte-identical. HOLDS.
+P5 auth -- two temps of the SAME secret plus one temp of a different key, same seat: exactly one placed (its priv_hex is the row key), every temp gone. Adoption is on the DERIVED pubkey, never on the name. HOLDS.
+P6 gate -- a non-JSON junk file in the temp namespace: swept, no exception, the normal remint still runs and key_history grows by 1. HOLDS.
+
+CEILING RULING: 39 added / 30 net production lines against the parent CEILING of 14. I rule PROCEED at 39 (rebrief_answer: proceed with ceiling 39, line_ceiling 39). The ceiling counted the claim, not the resolver: a claim of "look, then adopt, then sweep, then report, then say so in the comment" is five mechanical obligations and a 14-line budget could not hold the LOOK that makes the adopt safe (derive pub, compare, never adopt on name). Shrinking to 14 would mean dropping the dry-run report or the comment fix -- the two conjuncts with no safety value in the swap. The overrun is the resolver the claim names; it is banked, not waived.
+
+Verdict: PROVED on the built bytes. The claim names five conjuncts (adopt on derived pub, no remint, no key_history entry, sweep every other temp, honest comment + dry-run) and each is carried by named bytes and each survived a parent probe it was not written for.
