@@ -2464,6 +2464,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # exists to close.
     if edit.patch_from == "-" and not edit.patch_diff:   # SM 139: refused BEFORE any write, dry and real
         raise EditError("patch - (stdin) is empty: no diff to apply -- nothing written")
+    if edit.payload_from == "-":   # SM 140: main() reads stdin; `-` survives only an empty read
+        raise EditError("payload - (stdin) is empty: no bytes to write -- nothing written")
     touches_payload = bool(edit.payload_from or edit.payload_bytes
                            or edit.patch_from or edit.patch_diff
                            or edit.replace_target == "payload")
@@ -3751,9 +3753,10 @@ def main(argv: list[str] | None = None) -> int:
         # The CLI layer reads stdin; the library never does. `payload -` is
         # for content that cannot ride in an argv chunk -- anything with `&&`
         # in it, or a whole file being piped in.
-        edit.payload_from = ""
-        edit.payload_bytes = sys.stdin.read()
+        _data = sys.stdin.read()
         _stdin.add("payload")
+        if _data:   # SM 140: an EMPTY read keeps `-`, and submit refuses it by name, dry and real
+            edit.payload_from, edit.payload_bytes = "", _data
 
     if edit.body_patch_from == "-":
         # Same stdin contract as `payload -` / `patch -`: the diff bytes ride
