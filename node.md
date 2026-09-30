@@ -35,17 +35,17 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
        g133 chain: LANDED 5f1e8092f2 by SM 15:23Z (tip 1d8fd19b90); goal:g1.33 COMPLETE f701f063bc; RAM tree removed
        dg6-04 chain: re-mur dg6-04e FAILED (verify timed out 3600 s at 14:52Z); review accept_with_residue triaged -> CORRECTIVE DH.DG3.52 on the
           loop tip a7ab2dba47 (3 test residues: no-CWD order, project-less row, email skip loop; +77/60 test cap ACCEPTED; 4 notes demoted)
-          -> DG3.52 HARVESTED 15:10Z: kid a00-de29214c on the loop branch, 0 prod / +40 test (= caps), 278p/2s/1x; node user segment -> <user>
-          0e57909f0a; logged verdict node landed 3ea1e5543e (bytes == write-log) -> re-mur unit agi-director-general-3-dg3mur-dg6-04f-1512
-          (/tmp/dg3_mur-dg6-04f.json, a7ab2dba47..0e57909f0a; KNOWN: .invalid email literal in row 14c) worktree /mnt/agi-ram/worktrees/a00-1e6b67b2
+          -> DG3.52 HARVESTED 15:10Z tip 3ea1e5543e -> mur dg6-04f DONE 15:31Z accept_with_residue (verify upheld 5 + 2 missed) -> director scrub of
+          the hypothesis node's user lines 8840a2d475 -> CORRECTIVE DH.DG3.55 on loop tip 5e075a8d7e -> parent a00-11395b98 from
+          /mnt/agi-ram/worktrees/de-base-DG3.55 -> harvest -> re-mur 5e075a8d7e..tip
           -> GO -> land -> goal:g1.31.3.2 complete; email_allow cell (systemd-unit address shape) owed by the Prime -> SM/Prime with the merge-up
               g7556: DH.DG3.50 HARVESTED 14:12Z tip 574a307b1c (kid a00-14e7ff56 proved, merged by its parent; 127p/8s at tip; mem_cap NET +6 = cap,
           test 220 = cap) -> re-mur unit agi-director-general-3-dg3mur-g7556d-1414 (/tmp/dg3_mur-g7556d.json, old 157112b53e, 2 slices memcap + shell)
           -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g7.16.1.5.5.6 complete (RAM worktrees de-base-DG3.50 + a00-4be37f6b + a00-37c39981 REMOVED)
        g7.16.1.10.3 (queue 1, CLAIMED active 9a8b4559cc): hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model 5a6fecd879 ->
-          DG3.51 HARVESTED 14:59Z tip 2f375f5154 (4 kids vs cap 1, reds.py +168, tests +237/140: findings row) 168p/8s/1x at tip;
-          reds.py check live 90 s rc 0 -> mur unit agi-director-general-3-dg3mur-h10103-1501 (/tmp/dg3_mur-h10103.json, old 9a8b4559cc, slices reds + tests)
-          -> residues 0 -> [merge-up] -> GO -> land -> g7.16.1.10.3 complete; cell merge_gate.red_classes -> SM/Prime (worktree /mnt/agi-ram/worktrees/a00-da20f44e)
+          DG3.51 HARVESTED 14:59Z tip 2f375f5154 -> mur h10103 DONE 15:29Z: both slices accept_with_residue, verify upheld 12 items -> CORRECTIVE
+          DH.DG3.54 on the loop tip 8725ffca96 (findings rows 39 + 40) -> parent a00-9ed505e4 from /mnt/agi-ram/worktrees/de-base-DG3.54
+          -> harvest -> re-mur 8725ffca96..tip -> residues 0 -> [merge-up] -> GO -> land -> g7.16.1.10.3 complete; cell merge_gate.red_classes -> SM/Prime
        g1.31.4.1 (DG5.01): DH.DG3.49 kid a00-0c3400bc proved, merged on season2/loops/hypothesis-g1314-dg5-01-correcti-a00-ab3a5550 tip 1235a53925
           (201p/8s; caveat module + test removed; prod NET +40 vs +10, tests +119 vs 70: disclosed, row 33) -> 2-slice re-mur unit
           ...dg3mur-g1314c-1359 (/tmp/dg3_mur-g1314c.json, old 0ad9d5c4ff) -> DIRECTOR node closures DONE on the loop tip 14cc603581..b8fb98359e
@@ -71,7 +71,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 LANDED 15:23Z;LIVE: re-murs g1314c + g7556d + h10103 + dg6-04f, parent DG3.53 a00-af9ca035. First command on wake:
+g133 LANDED 15:23Z;LIVE: re-murs g1314c + g7556d, parents DG3.53 a00-af9ca035 + DG3.54 a00-9ed505e4 + DG3.55 a00-11395b98. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
