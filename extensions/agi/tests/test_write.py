@@ -2309,7 +2309,6 @@ def test_empty_source_guards_are_asymmetric_file_refused_stdin_lands(
 
 
 # --- bundle 4 W2b (director-general-2) ------------------------------------
-_W2B = "bundle 4 W2b: RED until DG3 builds the outbound-id set-lookup check"
 
 
 def test_w2b_a_create_onto_a_missing_parent_is_refused_by_name(project):
@@ -2319,7 +2318,6 @@ def test_w2b_a_create_onto_a_missing_parent_is_refused_by_name(project):
     assert not (project / "nodes/hypothesis/orphan.md").exists()
 
 
-@pytest.mark.xfail(strict=True, reason=_W2B)
 @pytest.mark.parametrize("key", ["parents", "next_edges"])
 def test_w2b_a_set_naming_a_missing_id_is_refused(project, key):
     node = project / "nodes/hypothesis/h1.md"
@@ -2572,7 +2570,6 @@ def test_w2b1_a_set_naming_only_live_ids_still_lands(project):
     assert "goal:g1" in (project / "nodes/hypothesis/h1.md").read_text()
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W2b1: RED until DG3 builds set's missing-id refusal on create's lookup")
 def test_w2b1_set_refuses_a_missing_id_by_name_with_creates_one_lookup(project, monkeypatch, capsys):
     _schemas(project)
     walks, node = _b4_walks(monkeypatch), project / "nodes/hypothesis/h1.md"
