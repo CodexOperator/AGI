@@ -36,9 +36,10 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
        dg6-04 chain: re-mur dg6-04e FAILED (verify timed out 3600 s at 14:52Z); review accept_with_residue triaged -> CORRECTIVE DH.DG3.52 on the
           loop tip a7ab2dba47 (3 test residues: no-CWD order, project-less row, email skip loop; +77/60 test cap ACCEPTED; 4 notes demoted)
           -> DG3.52 HARVESTED 15:10Z tip 3ea1e5543e -> mur dg6-04f DONE 15:31Z accept_with_residue (verify upheld 5 + 2 missed) -> director scrub of
-          the hypothesis node's user lines 8840a2d475 -> CORRECTIVE DH.DG3.55 on loop tip 5e075a8d7e -> HARVESTED 15:45Z tip 21a1caf3b1
-          (279p/2s/1x, tests +30 = cap, item-5 node landed by director, bytes == log) -> re-mur unit agi-director-general-3-dg3mur-dg6-04g-1547
-          (/tmp/dg3_mur-dg6-04g.json) worktree /mnt/agi-ram/worktrees/a00-11395b98 -> residues 0 -> [merge-up] half a -> GO -> land
+          DH.DG3.55 tip 21a1caf3b1 -> mur dg6-04g (verify timed out; review accept_with_residue: order-dependent row + node verdict) -> DIRECT fixes (owner
+          16:4xZ rule) 86d7f40b63 + 1aa701b525 -> Sonnet review ACCEPT (cosmetic line closed 7d2680889e) -> trunk merged INTO the loop branch
+          e81201ebf2 (test_boxkit_templates conflict: trunk-derived fake + word-shaped hardware fake; 280p/1s/1x) -> Sonnet review of the
+          resolution RUNNING -> gate vs trunk: merge-tree rc 0, 16 files (8 A 8 M), 0 D; config.json home hit PRE-EXISTING at base -> [merge-up] half a
           -> GO -> land -> goal:g1.31.3.2 complete; email_allow cell (systemd-unit address shape) owed by the Prime -> SM/Prime with the merge-up
               g7556: DG3.50 tip 574a307b1c -> mur g7556d FAILED 15:51Z (memcap verify timed out; review + shell verify accept_with_residue) ->
           director moved the ram-recharge conjunct out of the hypothesis (-> goal:g7.16.1.5.5.6.1) -> CORRECTIVE DH.DG3.57 on loop tip 2d76bf17b4
