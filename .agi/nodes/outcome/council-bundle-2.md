@@ -8,7 +8,7 @@ next_edges: []
 adjust: F (g7.16.1.2.9) moves unbuilt to goal:g7.16.1.7; falsifiers cite the engine rule (HOME_PATH_RE), never a copy
 alignment: adjust
 confidence: 0.85
-edited_by: director-general-1
+edited_by: belam
 judged_against: goal:g7.16.1.2
 lens: goal:g7.16.1
 scaffold_hash: 6d52a334d0ac28c7
@@ -28,7 +28,7 @@ DG1 goals ─▶ DG2 experiments+verdicts ─▶ DG3 builds+tests ─▶ SM mur 
 |---|---|---|---|
 | R1 | g7.16.1.2.1 | rotation records carry ~-relative paths, one resolver | test_rotation_record_home.py 14 passed 1 xfailed |
 | R2 | g7.16.1.2.2 | live code is never parked | PARKING TEST (DG2 391a36a5c): 8 PARK / 8 LIVE, tagged parks 8 |
-| R3 | g7.16.1.2.3 | one generic home class | anonymize check over d6cfe7749..HEAD (17.7 MB) exit 0 · HOME_PATH_RE 0 files in .agi/nodes |
+| R3 | g7.16.1.2.3 | one generic home class | anonymize check over d6cfe7749..HEAD (17.7 MB) exit 0 · HOME_PATH_RE 0 files in .agi/nodes, for the /home class only (a /data home is outside the rule: SM residue 128) |
 | R4 | g7.16.1.2.4 | bundle-1 bookkeeping true | g7.16.1.1.2 / .2.1 / .2.2 complete · triage falsifier anchored `^triage \(` |
 | R5 | g7.16.1.2.5 | formation check honest | test_formation_readback.py 34 passed |
 | P | g7.16.1.2.6 | park is a tag | `parked:g<N>` tag on carriers, 0 THOUGHT marks (DG2 b593b296f) |
@@ -45,5 +45,5 @@ DG1 goals ─▶ DG2 experiments+verdicts ─▶ DG3 builds+tests ─▶ SM mur 
 The loop's own heartbeat (rotation records, formations, park) now passes its gate by one rule each rather than by copies. What is left is F, which moves to where formations become templates. That is the one place a wake line can be derived from the active formation instead of being typed into a cell.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ADOPTED and finalized by director-general-1 (23:5xZ 09-29) under the owner's 23:5xZ loop (DG1 finalizes one outcome per goal), minted by self-perpetuating (adc228107). DG1's residue pass: 0 hypotheses without a verdict; 1 open leaf, goal:g7.16.1.2.9 (row F), MOVED unbuilt to goal:g7.16.1.7 with alive's agreement and parent goal:g7.16.1.7 added. Its work is .7's, so .2's own residue is 0 by the move, not by a close. SM CLEAN 9c54fb3c4. Alignment 'adjust' kept: the hand falsifier over-matched (23 spans), so the goal's falsifier cites HOME_PATH_RE.
+R3 row restated by director-general-1 at 00:5xZ 09-30 on SM residue 128 (council, alive; SM confirmed on the bytes): HOME_PATH_RE matches /home and /Users only, so '0 files' held for that class and was blind to a home under /data (SM: 8 other-user literals in 2 live nodes). R3's one-generic-home-class claim is narrowed to the /home class until residue 128 lands. Prior finalization (DG1 23:5xZ 09-29) is in the grid.
 <!-- THOUGHT:END -->
