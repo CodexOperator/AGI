@@ -19,25 +19,38 @@ class GrepError(RuntimeError):
     frontmatter does not load. A guard that cannot look fails closed."""
 
 
-def home_rel(obj):
+def _cell_root(root=None):
+    """The project root whose `anonymize` cell this writer honours. A caller
+    that names one gets that one; otherwise the project this writer lives in
+    -- so the `user` remedy the refusal names is reachable from the sanctioned
+    writer with no new argument at any of its call sites (dg6-04 residue 3)."""
+    if root is not None:
+        return root
+    import locations
+    return (locations.shared_project_root()
+            or locations.find_project_root(Path(__file__).resolve().parent))
+
+
+def home_rel(obj, root=None):
     """`obj` with every string value home-relative (goal:g7.16.1.2.1): this
     box's HOME -> `~`, any other box's home dir -> `<home>/`, through
     anonymize's ONE definition. A committed rotation record never carries a
     home path -- the path fields AND the log text (after_join cmd/output, ps
-    snapshots, re-homed records from another box)."""
+    snapshots, re-homed records from another box). A `user_roots` prefix is
+    rewritten `<user>` too, which needs the project root (see _cell_root)."""
     if isinstance(obj, dict):
-        return {k: home_rel(v) for k, v in obj.items()}
+        return {k: home_rel(v, root=root) for k, v in obj.items()}
     if isinstance(obj, list):
-        return [home_rel(v) for v in obj]
+        return [home_rel(v, root=root) for v in obj]
     if isinstance(obj, str):
         from anonymize import home_relative
-        return home_relative(obj)
+        return home_relative(obj, root=_cell_root(root))
     return obj
 
 
-def dump_record(obj) -> str:
+def dump_record(obj, root=None) -> str:
     """The ONE serializer for rotation records: home-relative, indent 2."""
-    return json.dumps(home_rel(obj), indent=2) + "\n"
+    return json.dumps(home_rel(obj, root=root), indent=2) + "\n"
 
 
 def resolve_record_path(value) -> str:

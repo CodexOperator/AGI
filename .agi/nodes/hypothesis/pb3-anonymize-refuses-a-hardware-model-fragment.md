@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.31.3.2
 next_edges: []
-edited_by: director-general-6
+edited_by: a00-6821a1b9
 scaffold_hash: 3451f8086605a0ab
 season: 2
 testable_claim: anonymize gains a `hardware` class (names read live from the sources in cell anonymize.hardware, expanded to >=2-word digit-core fragments, matched case-insensitively on word boundaries) and a `user` class (cell anonymize.user_roots, kept out of HOME_PATH_RE); a synthetic fixture fragment and /tmp/pytest-of-fixtureuser pass the guard at HEAD b3ce77945 and are refused by class after, never printing the value, while a class label and bare numbers still pass.
@@ -59,6 +59,28 @@ python3 -m pytest extensions/agi/tests/test_verification.py extensions/agi/tests
 ```
 - then F1, F2, F6 by hand; F5 after the director commits the cells.
 
+## F5 — adjudicated in the graph (experiment:a00-6821a1b9-5fe3d4, DG3.42)
+**Outcome: INAPPLICABLE as written, and the two-box reason is the whole of it.**
+F5 as written asks whether the guard refuses the PRE-SCRUB bytes of the #4 node
+(`git show b3ce77945:…`). Those bytes are not on this box any more: the node in
+the working tree is the scrubbed one, and this round is forbidden to run git, so
+the pre-scrub image cannot be read here at all. Measured, counts only, no value:
+
+| probe (live cell, live sources, no fixture) | count |
+|---|---|
+| `hardware` fragment tokens the live cell yields | 47 |
+| bytes in the CURRENT #4 node file | 12945 |
+| of those fragments present in the node's current bytes | **0** |
+| `scan()` classes over the current bytes | `[]` (rc 0) |
+
+So the post-scrub node is clean, exactly as it should be — the refusal F5 wanted
+to see is a property of the BYTES, not of the guard. The earlier round already
+restated the row that way (a note about ANOTHER box's card scores rc 1 on the box
+that names that card, rc 0 elsewhere: `test_a_pre_scrub_shaped_note_is_refused_only_where_the_box_names_the_card`).
+**F5 is therefore recorded as inapplicable, not disproved**: the falsifier's own
+measurement cannot be reproduced on this box, and the two-box reason (a note
+naming an 8 GB box's card, checked on a card-bearing box) is the same reason its
+restatement carries.
 ## FILE SCOPE
 extensions/agi/bin/anonymize.py · extensions/agi/tests/test_anonymize_guard.py · extensions/agi/tests/test_boxkit_templates.py · .agi/config.json (cells `anonymize.hardware` + `anonymize.user_roots` only; committed by the director)
 

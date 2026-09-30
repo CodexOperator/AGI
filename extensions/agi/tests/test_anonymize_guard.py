@@ -537,13 +537,19 @@ def test_email_allow_cell_lives_in_the_live_config():
 # residue 6 -- this file's own convention, docstring above).
 FAKE_HW = "Fixturo Vexel ZX 9990 ULTRA"
 FAKE_CPU = "Fixturo Zenix 7700 QX"
+FAKE_BOARD = "Fixturo Bords Vexel 9990"
 FAKE_USER_PREFIX = "/" + "tmp/pytest-of-"
 FAKE_HOME_ROOT = "/" + "home/"
 
 
 @pytest.fixture(autouse=True)
 def _fresh_hw_cache():
-    """The source read is cached per process: every row starts cold."""
+    """The source read is cached per process, so every row must start cold --
+    AUTOFILE over the whole file, not only the hardware rows: the email and
+    home rows read the SAME `anonymize` cell through a tmp project, and one
+    row's cached source set leaking into the next is exactly the class of bug
+    these rows exist to catch. The clear is a dict clear (2 dict ops, no tool
+    run), so the whole-file cost is nil (dg6-04 residue 7)."""
     getattr(anonymize, "_HW_CACHE", {}).clear()
     yield
     getattr(anonymize, "_HW_CACHE", {}).clear()
@@ -725,6 +731,75 @@ def test_the_refusal_advice_is_what_home_relative_substitutes(
     hw = "loads on the 9990 ULTRA\n"
     assert anonymize.home_relative(hw, home=home, root=root) == hw
     assert set(anonymize.ADVICE) == {"home", "user", "hardware", "email"}
+
+
+def test_a_bare_value_file_source_is_read_in_the_real_on_box_format(
+        tmp_path, monkeypatch):
+    """dg6-04 residue 2: the cell's `@/sys/class/dmi/id/board_name` source is
+    INERT -- that file is ONE bare value line, no colon, so a `field` filter
+    matched nothing and the board name went unguarded. The stub is written in
+    the real on-box shape (one bare line, no colon) and the row asserts >= 1
+    name; the field-filtered shape keeps working beside it."""
+    calls = _stub_box(tmp_path, monkeypatch)
+    root = _graph(tmp_path)
+    bare = tmp_path / "board_name"
+    bare.write_text(FAKE_BOARD + "\n")
+    _cell(root, {"hardware": {"sources": [["@" + str(bare), "Board Name"]],
+                              "min_words": 2, "core_digits": 3}})
+    assert len(anonymize._read_hw_sources(
+        {"sources": [["@" + str(bare), "Board Name"]]})) >= 1
+    toks = anonymize.box_tokens(root)
+    assert anonymize.scan("fitted the %s" % FAKE_BOARD, toks) == ["hardware"]
+    assert _hw_calls(calls) == [], "a @file source runs no tool"
+    keyed = tmp_path / "keyed"
+    keyed.write_text("model_name: %s\n" % FAKE_HW)
+    assert anonymize._read_hw_sources(
+        {"sources": [["@" + str(keyed), "model_name"]]}) == [FAKE_HW]
+
+
+def test_the_fixture_path_and_the_live_path_expand_one_rule(tmp_path, monkeypatch):
+    """dg6-04 residue 8: fixture and live both go through _hw_tokens with the
+    SAME cell, so with no `anonymize.hardware` cell a fixture name and a
+    source-read name expand identically -- the fixture path expanding nothing
+    while the live path expands is what would silently hollow out every row."""
+    root = _graph(tmp_path)
+    _cell(root, {})
+    assert anonymize._hw_tokens([FAKE_HW], {}) == \
+        anonymize._hw_tokens([FAKE_HW], {"min_words": 2, "core_digits": 3})
+    _stub_box(tmp_path, monkeypatch, {"lscpu": FAKE_CPU + "\n"})
+    _cell(root, {"hardware": {"sources": [["lscpu"]]}})
+    live = anonymize.box_tokens(root)
+    _cell(root, {})
+    _hw_fixture(tmp_path, monkeypatch)
+    fixture = anonymize.box_tokens(root)
+    assert sorted(v for c, v in live if c == "hardware") and \
+        sorted(v for c, v in fixture if c == "hardware")
+    assert set(v for c, v in live if c == "hardware") <= \
+        set(v for _, v in anonymize._hw_tokens([FAKE_CPU], {}))
+    assert set(v for c, v in fixture if c == "hardware") <= \
+        set(v for _, v in anonymize._hw_tokens([FAKE_HW], {}))
+
+
+def test_a_reserved_invalid_tld_is_allowed_and_a_real_shape_is_not(
+        tmp_path, fake_box):
+    """dg6-04 residue 4: RFC 2606 reserves .invalid (and .test/.example), so
+    the cell's allow-list must admit a doc address at example.invalid while a
+    real-shaped address at a real domain is still refused. The pattern is a
+    CONFIG cell value, not code: this row builds the cell the director lands."""
+    root = _email_graph(tmp_path, allow=[
+        r"[^@]+@(?:[A-Za-z0-9-]+\.)*example\.(?:com|org|net)",
+        r"[^@]+@(?:[A-Za-z0-9-]+\.)*example\.invalid"])
+    toks = anonymize.box_tokens(root)
+    assert anonymize.scan("reach fixture.person" + AT + "example.invalid", toks,
+                          anonymize._email_allow(root)) == []
+    assert anonymize.scan("reach fixture.person" + AT + "corp.example", toks,
+                          anonymize._email_allow(root)) == ["email"]
+    live = json.loads((Path(__file__).resolve().parents[3] / ".agi" /
+                       "config.json").read_text())["anonymize"]["email_allow"]
+    if r"example\.invalid" not in " ".join(live):
+        pytest.skip("the landed cell does not carry the .invalid pattern yet "
+                    "(a round cannot commit .agi/config.json; the diff is in "
+                    "the round's experiment node)")
 
 
 def _cell_leaks(node, core_digits=3):
