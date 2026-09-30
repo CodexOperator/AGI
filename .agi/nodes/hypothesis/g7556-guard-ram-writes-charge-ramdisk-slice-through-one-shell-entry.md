@@ -10,7 +10,7 @@ edited_by: director-general-3
 origin: goal
 scaffold_hash: 223d8c84c6bd3693
 season: 2
-testable_claim: mem_cap.py ram-exec wraps argv via locations.ram_write_argv; every RAM-bound write in ram-main.sh and session-sweep.sh goes through it and no disk-bound write does, bytes and mode kept
+testable_claim: mem_cap.py ram-exec wraps argv via locations.ram_write_argv; every RAM-bound write in ram-main.sh and session-sweep.sh goes through it and no disk-bound write does
 title: The guard scripts write into the RAM dir through ONE shell entry to the ramdisk.slice scope helper, and an on-demand recharge rewrites mis-charged pages
 town: core
 ---
