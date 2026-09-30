@@ -737,6 +737,34 @@ def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
     return branches.loop_branch(season, slug, agent_id)
 
 
+def ram_worktrees_dir(root: Path) -> Path | None:
+    """goal:g7.16.1.5.4 -- the tmpfs dir a new round worktree checks out
+    under: the config:guard cell `GUARD_RAM_WORKTREES_<box>`; empty/absent,
+    or a parent dir that does not exist, = off (today's disk path)."""
+    cell = locations.guard_cell(root, "RAM_WORKTREES")
+    if not cell:
+        return None
+    d = Path(os.path.expanduser(cell))
+    return d if d.parent.is_dir() else None
+
+
+def ram_worktree_hold(root: Path) -> str | None:
+    """The HOLD reason when the RAM disk is at or over the guard's line
+    (`GUARD_RAM_WT_HOLD_PCT_<box>`, default 80), else None; None when the
+    RAM worktrees are off."""
+    d = ram_worktrees_dir(root)
+    if d is None:
+        return None
+    try:
+        line = float(locations.guard_cell(root, "RAM_WT_HOLD_PCT", "80") or 80)
+        u = shutil.disk_usage(d if d.is_dir() else d.parent)
+    except (OSError, ValueError):
+        return None
+    pct = 100.0 * u.used / u.total if u.total else 0.0
+    return (f"RAM disk {pct:.0f}% used >= hold line {line:g}% "
+            f"(GUARD_RAM_WT_HOLD_PCT)") if pct >= line else None
+
+
 def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
                               base_branch: str) -> Path:
     """`git worktree add <main>/.agi/worktrees/<agent> -b <branch> <base>`.
@@ -751,7 +779,12 @@ def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
     created.
     """
     main = locations.git_common_root(root)  # main checkout, from any depth
-    wt = main / ".agi" / "worktrees" / agent_id
+    link = main / ".agi" / "worktrees" / agent_id
+    # goal:g7.16.1.5.4: with the RAM cell set the checkout lives on the tmpfs
+    # and `.agi/worktrees/<agent>` is a symlink to it, so every reader that
+    # globs .agi/worktrees is unchanged; the objects stay in MAIN's .git.
+    ram = ram_worktrees_dir(root)
+    wt = ram / agent_id if ram is not None else link
     wt.parent.mkdir(parents=True, exist_ok=True)
     out = subprocess.run(
         ["git", "-C", str(main), "worktree", "add", "-b", branch,
@@ -761,7 +794,10 @@ def branch_worktree_for_spawn(root: Path, branch: str, agent_id: str,
     if out.returncode != 0:
         raise RuntimeError(f"git worktree add -b {branch} from {base_branch}: "
                            f"{out.stderr.strip()}")
-    return wt
+    if ram is not None:
+        link.parent.mkdir(parents=True, exist_ok=True)
+        link.symlink_to(wt)
+    return link
 
 
 def drop_branch_worktree(root: Path, worktree: Path) -> None:
@@ -778,9 +814,11 @@ def drop_branch_worktree(root: Path, worktree: Path) -> None:
         main = locations.git_common_root(root)
         subprocess.run(
             ["git", "-C", str(main), "worktree", "remove", "--force",
-             str(worktree)],
+             str(Path(worktree).resolve())],
             capture_output=True, text=True,
         )
+        if Path(worktree).is_symlink():  # goal:g7.16.1.5.4: the RAM checkout's link
+            Path(worktree).unlink()
     except (OSError, subprocess.SubprocessError):
         pass
 
@@ -2544,6 +2582,18 @@ def main() -> int:
                       f"unchecked (origin/{branches.season_main(current_season)} "
                       f"unreachable); spawn proceeds", file=sys.stderr)
             branch = loop_branch_name(target, agent_id, current_season)
+            # goal:g7.16.1.5.4: a RAM disk over the guard's line HOLDS the
+            # launch (named, recorded unadmitted), never a checkout into it.
+            _hold = ram_worktree_hold(root)
+            if _hold:
+                print(f"unadmitted {agent_id} slot={slot}: HOLD -- {_hold}",
+                      file=sys.stderr)
+                spawn_budget.release(lease)
+                unadmitted.append({"id": agent_id, "slot": slot,
+                                   "tier": args.tier, "target": target,
+                                   "status": "unadmitted", "reason": _hold,
+                                   "at": int(time.time())})
+                continue
             try:
                 wt = branch_worktree_for_spawn(root, branch, agent_id, base)
             except RuntimeError as exc:
