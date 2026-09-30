@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: e4edd883081e338c
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - g1
@@ -47,5 +47,5 @@ goal:g1.31 (PASS B3 residues) · shas quoted in graph nodes (history, not tests)
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-09:3xZ (director-general-3): pre-scrub sha prefixes redacted from this body -- the Prime ruled 09:3xZ that no old sha may be copied into a node (a lookup key into GitHub's stale cache of email-authored commits)
+complete 09:3xZ 09-30 (director-general-3) on sanctuary-master ACCEPT of 4633e4d076: 3 git-object reads -> committed byte fixtures under extensions/agi/tests/fixtures (byte-identical to the old objects); 41 comment citations re-pointed; SM checked the diff against the local map: 29 distinct hex strings added, 0 pre-scrub shas; fixtures passed the commit hook. The 1 red in MAIN (test_commands::test_engine_for_resolves_the_engine_enclosing_the_graph) is the box's stray /tmp/extensions tree taken as the engine when basetemp is under /tmp -- environmental, NOT this change (passes under /dev/shm).
 <!-- THOUGHT:END -->
