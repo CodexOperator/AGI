@@ -1563,12 +1563,16 @@ def _ring_pubkey_for_post(root):
 #: ``node`` key meant one signature authorised removing ANY key from X).
 NODE_KEY = "_node"
 
-#: The removed-marker an UNSET key carries in the signed decision, so a
-#: signature authorising "unset k" is DISTINCT in the bytes from one
-#: authorising "set k: <value>" (defect 1: the quorum must cover the keys
-#: being REMOVED, not the set keys alone -- an unset-only edit previously
-#: demanded a quorum whose bytes covered nothing).
-UNSET_MARKER = "<unset>"
+#: The reserved decision key the UNSET keys ride under in the signed
+#: decision, so a signature authorising "unset k" is DISTINCT in the bytes
+#: from one authorising "set k: <value>" (defect 1: the quorum must cover the
+#: keys being REMOVED, not the set keys alone -- an unset-only edit previously
+#: demanded a quorum whose bytes covered nothing). g1.31 #37: it was a VALUE,
+#: `k: "<unset>"`, and json_field passes a str through, so `unset k` and
+#: `set k <unset>` signed the SAME bytes. A key no caller may set or unset
+#: (refused by name, like NODE_KEY) cannot collide with any set value, and
+#: the literal string `<unset>` stays a legal value.
+UNSET_KEY = "_unset"
 
 
 def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
@@ -1576,8 +1580,9 @@ def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
     """The FULL config-write decision fields a ring's signatures cover: the
     node id (under the reserved NODE_KEY a caller's set_fm can never dispose)
     AND every key being set AND every key being unset, each value
-    string-serialized by rings.json_field (an unset key carries UNSET_MARKER,
-    so "unset k" is distinct in the bytes from "set k: <value>"). The sign
+    string-serialized by rings.json_field (the unset keys ride, sorted, under
+    the reserved UNSET_KEY, so "unset k" is distinct in the bytes from
+    "set k: <value>" for EVERY value, the literal `<unset>` too). The sign
     side, the gate, and the persisted record all use these same bytes.
     FRESH (kid B): the returned dict carries the reserved ``_fresh``
     (ts|nonce) so a persisted config-write quorum does NOT replay across
@@ -1602,6 +1607,13 @@ def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
             f"BOTH set_fm and unset_fm; REFUSED by name so the quorum never "
             f"signs one value while the write applies another (RUNG 2b "
             f"residue)")
+    for k in [*(set_fm or {}), *(unset_fm or [])]:
+        if k == UNSET_KEY:   # g1.31 #37: the unset carrier is never a caller key
+            raise EditError(
+                f"config-row write to {where}: the reserved decision key "
+                f"{UNSET_KEY!r} (which carries the keys a ring quorum "
+                f"authorises REMOVING) is REFUSED as a set or unset key so "
+                f"a caller's key cannot forge or hide an unset (g1.31 #37)")
     fields = {NODE_KEY: _rings.json_field(where)}  # _node: never displaced
     for k in (set_fm or {}):
         if k == NODE_KEY:
@@ -1624,7 +1636,8 @@ def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
                 f"config-row write to {where}: the reserved freshness key "
                 f"{_rings.FRESH_KEY!r} is REFUSED as an unset key so it cannot "
                 f"displace the ts|nonce a ring quorum covers (RUNG 2b residue)")
-        fields[k] = _rings.json_field(UNSET_MARKER)
+    if unset_fm:   # g1.31 #37: ONE reserved field, sorted + deduped (order never signs)
+        fields[UNSET_KEY] = _rings.json_field(sorted(set(unset_fm)))
     return _rings.fresh_fields(fields, ts=ts, nonce=nonce)
 
 
