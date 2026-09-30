@@ -4414,6 +4414,35 @@ def _commit_message(root, node_id: str, actor: str = "") -> str:
     return node_id
 
 
+_INFLIGHT: list = []   # g1315131: this process's markers, sessions/write-inflight/<sha1(path)[:16]>.<pid>
+
+
+def _inflight_clear() -> None:
+    while _INFLIGHT:
+        _INFLIGHT.pop().unlink(missing_ok=True)
+
+
+import atexit; atexit.register(_inflight_clear)  # noqa: E702,E402
+
+
+def _inflight(root, paths, mark=False) -> list:
+    """mark: record `paths` BEFORE their bytes move; else the LIVE peer pids on them (dead = stale, removed)."""
+    import hashlib, verification  # noqa: PLC0415,E401
+    d, live = Path(root) / "sessions" / "write-inflight", []
+    ks = {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}
+    if mark:
+        d.mkdir(parents=True, exist_ok=True)
+        for k in ks:
+            _INFLIGHT.append(d / f"{k}.{os.getpid()}")
+            _INFLIGHT[-1].write_text("")
+        return []
+    for f in d.glob("*.*"):
+        k, _, pid = f.name.partition(".")
+        if k in ks and pid.isdigit() and int(pid) != os.getpid():
+            live.append(int(pid)) if verification._pid_alive(int(pid)) else f.unlink(missing_ok=True)
+    return live
+
+
 def _pre_dirty(root, node_id: str, edit=None) -> set:
     """goal:g1.31.5.1.3 -- the paths ALREADY dirty against HEAD when this write
     began, sampled by the CALLER, never here: `_commit_write` runs AFTER the
@@ -4430,10 +4459,13 @@ def _pre_dirty(root, node_id: str, edit=None) -> set:
     git = lambda *a: subprocess.run(["git", "-C", str(root), *a],  # noqa: E731
                                     capture_output=True, text=True)
     unknown = []
+    paths = [os.path.abspath(str(p)) for p in paths if p is not None]
+    import random, verification  # noqa: PLC0415,E401 -- g1315131: a LIVE peer's in-flight bytes are no hand edit
+    end = time.monotonic() + verification.suite_lock_policy(root)["hold_wait_s"] + _commit_wait_s(root)
+    _inflight(root, paths, True)   # mark FIRST, then look: of two racing writers one sees the other
+    while _inflight(root, paths) and time.monotonic() < end:
+        _inflight_clear(); time.sleep(0.05 * (0.5 + 2 * random.random())); _inflight(root, paths, True)  # noqa: E702
     for p in paths:
-        if p is None:
-            continue
-        p = os.path.abspath(str(p))
         dq = lambda: git("--no-optional-locks", "diff", "--quiet", "HEAD", "--", p).returncode  # noqa: E731
         rc = 0 if git("ls-files", "--error-unmatch", "--", p).returncode else dq()
         rc = dq() if rc > 1 else rc   # 0 clean, 1 dirty, >= 2 unknown: retry once, then FAIL CLOSED
@@ -4447,6 +4479,14 @@ def _pre_dirty(root, node_id: str, edit=None) -> set:
 
 def _commit_write(root, node_id: str, res, actor: str = "",
                   pre_dirty: set = frozenset()) -> tuple[str | None, bool]:
+    try:   # g1315131: the in-flight markers `_pre_dirty` set come off after the attempt
+        return _commit_write_body(root, node_id, res, actor, pre_dirty)
+    finally:
+        _inflight_clear()
+
+
+def _commit_write_body(root, node_id: str, res, actor: str = "",
+                       pre_dirty: set = frozenset()) -> tuple[str | None, bool]:
     """goal:g4.18.5.2 -- the CLI write, after the gate, is ONE commit of its
     own node (+ its payload) by exact path. In main() only: submit() is the
     library rotate.py and send.py call on shared files. `git commit -- <paths>`
@@ -4475,11 +4515,17 @@ def _commit_write(root, node_id: str, res, actor: str = "",
     recover = (f"git -C {root} add -- {' '.join(paths)} && "
                f"git -C {root} commit -q -m {shlex.quote(msg)} -- {' '.join(paths)}")
     import verification  # noqa: PLC0415 -- the ONE live-holder read (residue 93)
+    import random  # noqa: PLC0415
     holder = verification.suite_lock_holder(Path(root))
+    wait = verification.suite_lock_policy(root)["hold_wait_s"]   # g1315131: WAIT a held lock, bounded
+    end = time.monotonic() + wait
+    while holder and time.monotonic() < end:
+        time.sleep(min(end - time.monotonic(), 0.25 * (0.5 + random.random())))
+        holder = verification.suite_lock_holder(Path(root))
     if holder:
         return (f"commit refused: {Path(root) / 'sessions' / verification.suite_lock_name(root)} is held "
-                f"by live pid {holder} -- the write landed uncommitted; exit "
-                f"{EXIT_UNCOMMITTED}; recover: {recover}"), True
+                f"by live pid {holder} after waiting {wait:g}s (values.core.suite_lock.hold_wait_s) -- the write landed "
+                f"uncommitted; exit {EXIT_UNCOMMITTED}; recover: {recover}"), True
     # goal:g1.31.5.1.3: a path ALREADY dirty against HEAD before this write is
     # a hand edit; committing it launders it and write_guard stops listing it.
     laundered = [p for p in paths if os.path.abspath(p) in pre_dirty]
@@ -4488,7 +4534,6 @@ def _commit_write(root, node_id: str, res, actor: str = "",
                 f"before this write (a hand edit rides along) -- the write landed "
                 f"UNCOMMITTED; exit {EXIT_UNCOMMITTED}; if the only dirt is a PRIOR uncommitted write.py write (suite-lock "
                 f"/ index.lock exhaustion left it), its `git commit -- <paths>` is in: {recover} (never auto-committed)"), True
-    import random  # noqa: PLC0415
     deadline = time.monotonic() + _commit_wait_s(root)
     tries = 0
     while True:

@@ -293,3 +293,85 @@ def test_a_BUSY_retry_pays_no_index_read(tmp_path):
         write.subprocess.run = real
     assert not uncommitted and not seen, (note[-200:], seen)
     assert _dirty(repo) == [], "the retry landed the write committed"
+
+
+# --- g1315131: a held suite lock is WAITED; a live peer's in-flight write is no hand edit ---
+def _holder(repo: Path, secs: float):
+    """A live child holding the tmp suite lock; reaped by a thread so its pid reads dead on release."""
+    p = subprocess.Popen([sys.executable, "-c", f"import time;time.sleep({secs});print(time.time())"],
+                         stdout=subprocess.PIPE, text=True)
+    (repo / ".agi" / "sessions").mkdir(exist_ok=True)
+    (repo / ".agi" / "sessions" / "verify-suite.lock").write_text(f"{p.pid}\n")
+    return p
+
+
+def _cfg(repo: Path, **cell) -> None:
+    (repo / ".agi" / "config.json").write_text(json.dumps({"values": {"core": {"suite_lock": cell}}}))
+
+
+def test_a_held_suite_lock_released_inside_the_bound_commits_after_the_release(tmp_path):
+    repo = _repo(tmp_path)
+    _cfg(repo, hold_wait_s=30)
+    p = _holder(repo, 2)
+    threading.Thread(target=p.wait).start()
+    r = _write(repo, "doc:w1", 'set title "after the release"')
+    released = float(p.stdout.read())
+    ct = float(subprocess.run(["git", "-C", str(repo), "log", "-1", "--format=%ct"],
+                              capture_output=True, text=True).stdout)
+    assert r.returncode == 0, r.stderr[-300:]
+    assert int(ct) >= int(released), "committed only after the holder was gone"
+    assert _dirty(repo) == [] and _commits(repo) == 1
+
+
+def test_a_held_suite_lock_past_the_bound_exits_3_naming_the_wait(tmp_path):
+    repo = _repo(tmp_path)
+    _cfg(repo, hold_wait_s=0.6)
+    p = _holder(repo, 30)
+    t0 = time.monotonic()
+    r = _write(repo, "doc:w1", 'set title "never"')
+    p.kill(); p.wait()
+    assert time.monotonic() - t0 >= 0.6
+    assert r.returncode == 3 and f"live pid {p.pid} after waiting 0.6s" in r.stderr, r.stderr[-300:]
+    assert _commits(repo) == 0
+
+
+def test_concurrent_same_node_writers_are_never_refused_as_a_hand_edit(tmp_path):
+    repo = _repo(tmp_path)
+    errs: list = []
+
+    def writer(i: int) -> None:
+        for n in range(4):
+            r = _write(repo, "doc:w0", f'set title "w0 {i}.{n}"')
+            errs.append((r.returncode, r.stderr))
+
+    ts = [threading.Thread(target=writer, args=(i,)) for i in range(5)]
+    [t.start() for t in ts]
+    [t.join() for t in ts]
+    assert not [e for _, e in errs if "already dirty" in e or "hand edit" in e]
+    assert all(rc == 0 for rc, _ in errs), [e[-200:] for rc, e in errs if rc]
+    assert _dirty(repo) == [] and _commits(repo) == 20
+
+
+def test_pre_dirty_waits_a_live_peer_marker_and_ignores_a_dead_one(tmp_path):
+    sys.path.insert(0, str(BIN))
+    import write  # noqa: PLC0415
+    repo = _repo(tmp_path)
+    root, node = repo / ".agi", repo / ".agi" / "nodes" / "doc" / "w1.md"
+    node.write_text(node.read_text() + "peer bytes\n")
+    peer = subprocess.Popen([sys.executable, "-c", "import time;time.sleep(30)"])
+    write._inflight(root, [str(node)], True)
+    marker = next((root / "sessions" / "write-inflight").iterdir())
+    live = marker.with_name(f"{marker.name.split('.')[0]}.{peer.pid}")
+    marker.rename(live); write._INFLIGHT.clear()
+    def peer_commits():
+        subprocess.run(["git", "-C", str(repo), "commit", "-qam", "peer"], capture_output=True)
+        live.unlink()
+    threading.Timer(0.6, peer_commits).start()
+    t0 = time.monotonic()
+    assert write._pre_dirty(root, "doc:w1") == set() and time.monotonic() - t0 >= 0.5
+    write._inflight_clear(); peer.kill(); peer.wait()
+    node.write_text(node.read_text() + "hand edit\n")                # no live marker: a real hand edit
+    dead = live.with_name(f"{live.name.split('.')[0]}.{peer.pid}")
+    dead.write_text("x")                                             # stale (dead pid): ignored + removed
+    assert write._pre_dirty(root, "doc:w1") == {str(node)} and not dead.exists()
+    write._inflight_clear()

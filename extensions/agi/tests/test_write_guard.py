@@ -700,6 +700,8 @@ def test_b4_w1b_the_suite_lock_refuses_the_commit_by_name(project, capsys):
     (project / ".agi" / "sessions").mkdir(exist_ok=True)
     (project / ".agi" / "sessions" / "verify-suite.lock").write_text(
         f"{__import__('os').getppid()}\n")
+    (project / ".agi" / "config.json").write_text(
+        json.dumps({"values": {"core": {"suite_lock": {"hold_wait_s": 0.2}}}}))   # g1315131: a held lock is waited
     g, head = _w1b(project)
     # hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block:
     # rc 3, never a sanctioned 0 over uncommitted bytes.
@@ -716,7 +718,7 @@ def test_b4_w1b_the_suite_lock_name_comes_from_one_config_block(project, capsys)
     import verification  # noqa: E402 -- the resolver's own module
     cfg = project / ".agi" / "config.json"
     cfg.write_text(json.dumps({"values": {"core": {"suite_lock": {
-        "file": "other.lock"}}}}))
+        "file": "other.lock", "hold_wait_s": 0.2}}}}))
     (project / ".agi" / "sessions").mkdir(exist_ok=True)
     (project / ".agi" / "sessions" / "other.lock").write_text(
         f"{__import__('os').getppid()}\n")
@@ -742,7 +744,7 @@ def test_b4_w1b_the_suite_lock_policy_block_carries_the_write_wait(project, caps
                                                       "hold": "live-foreign-pid"}}}}))
     assert verification.suite_lock_policy(project) == {
         "file": "other.lock", "write_commit_wait_s": 0.01,
-        "hold": "live-foreign-pid"}
+        "hold": "live-foreign-pid", "hold_wait_s": 600.0}
     assert write._commit_wait_s(project) == 0.01     # the block WINS over 99
     cfg.write_text(json.dumps({"values": {"core": {"write_commit_wait_s": 7}}}))
     assert write._commit_wait_s(project) == 7.0      # STOPGAP, absent block cell

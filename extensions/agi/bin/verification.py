@@ -110,7 +110,7 @@ def _refuse_suite_lock_cell(cell: str, value, why: str) -> None:
     print(f"WARN: values.core.suite_lock.{cell} {value!r} {why} -- refusing it", file=sys.stderr)
 
 def suite_lock_policy(groot) -> dict:
-    """`values.core.suite_lock` = {file, write_commit_wait_s, hold} -- the ONE
+    """`values.core.suite_lock` = {file, write_commit_wait_s, hold, hold_wait_s} -- the ONE
     resolver over the lock policy: the NAME, the WRITE WAIT and the HOLD RULE,
     so the rule travels with the name
     (hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block).
@@ -142,8 +142,13 @@ def suite_lock_policy(groot) -> dict:
         _refuse_suite_lock_cell("hold", hold, "is not a rule this build implements")
     if not isinstance(hold, str) or hold != DEFAULT_SUITE_LOCK_HOLD:
         hold = DEFAULT_SUITE_LOCK_HOLD
+    try:   # STOPGAP 600 s: how long a write waits a held lock (validated like write_commit_wait_s)
+        hold_wait = float(cell.get("hold_wait_s"))
+        hold_wait = hold_wait if hold_wait >= 0 else 600.0
+    except (TypeError, ValueError):
+        hold_wait = 600.0
     return {"file": file_name, "write_commit_wait_s": cell.get("write_commit_wait_s"),
-            "hold": hold}
+            "hold": hold, "hold_wait_s": hold_wait}
 
 
 def suite_lock_name(groot) -> str:
