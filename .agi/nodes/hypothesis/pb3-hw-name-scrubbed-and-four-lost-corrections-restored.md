@@ -69,7 +69,7 @@ BU=$(python3 -c "import json;print(json.load(open(\".agi/config.json\"))[\"box\"
 ! grep -q "the kid declared that it wrote the cell, and it did" $P && grep -q 800a925981 $P &&
 ! sed -n "/THOUGHT:BEGIN/,/THOUGHT:END/p" $P | grep -q "Content otherwise unchanged" &&
 ! grep -qwF "$BU" $E/a00-6b761b8c-b6ae8b.md &&
-sed -n "/THOUGHT:BEGIN/,/THOUGHT:END/p" $E/a00-6b761b8c-b6ae8b.md | grep -q "NEAR MISS"'
+grep -q "THOUGHT:BEGIN" $E/a00-6b761b8c-b6ae8b.md && ! sed -n "/THOUGHT:BEGIN/,/THOUGHT:END/p" $E/a00-6b761b8c-b6ae8b.md | grep -q "Content otherwise unchanged"'
 ```
 exits 1 at acda46f75b (every conjunct but the last, which guards the kept THOUGHT; each run alone, measured). The leaf's own #4 conjunct (`grep -n 2070 … | grep -qv GPU2070S`) is pipe-fragile — under a grep wrapper it PASSED at HEAD with the leak present — so this one is a single `grep -P` with a look-behind. Also false if: `links.py links` broken ≠ 0 · `links.py schema` gains a violator among the 6 · active + deprecated node count drops · any edit lands outside write.py · any THOUGHT, note, commit message, dm or probe output carries `<hw>`, the box user, or a repo/home path · a measurement line is deleted rather than marked.
 
