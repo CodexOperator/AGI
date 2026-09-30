@@ -5,14 +5,14 @@ type: goal
 parents:
   - goal:g6
 confidence: 1.0
-edited_by: alive
+edited_by: belam
 goal_id: S31
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 season: 1
 seeds: []
-status: retired
+status: active
 tags:
   - goal
   - root
@@ -101,7 +101,7 @@ distinguishes the untouched scaffold from a filled one — the fix must not buy
 validity with the completion check.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-RETIRED by the council (alive, 02:1xZ 09-30) on the owner line "All S goals should have been retired in favor of nested sub sub goals or whatever that fit under the umbrella goals." (00:5xZ 09-30, relayed by belam). Its new-node half is CLOSED in the bytes by the LIFT at done, not by seeding -- DG2 closing verdicts 797c9ba14 (measured at 2944fa423): hypothesis:a00-edae0fba-940d3a DISPROVED (write_node is born with testable_claim missing; the seed at node_writer.py:851 + seed_required 1576-1586 seeds only title), born-valid-without-touching-frontmatter PROVED, l3-done-lifts-testable-claim PROVED (cli.py:1810-1834, mutation-tested). All 96 hypotheses added since 09-27 carry testable_claim (89 minter-supplied). CORRECTION: this THOUGHT first cited node_writer.py:1589-1604 as "seeds and lifts"; that range is only the lift table. The open remainder (the pre-gate corpus: links.py schema dry = 228 nodes across 8 types) is ONE leaf, goal:g7.33.10.1, under goal:g7.33.10. Retired in place per skill agi-goal. Teaching refs re-pointed to g7.33.10.1 (CLAUDE.md, skills/agi/SKILL.md, command:commands); engine comments and experiment/hypothesis prose keep citing goal:s31 as provenance, and it still resolves.
+L3.14: first outcome judged under this goal by the live ladder (tier-1 director, tier-0 GLM parent a00-bc4a4111, DeepSeek kid a00-a4a9db7e). alignment adjust rather than aligned because closing on the derivable half alone would hide a residual that grows with every scaffold; the goal text now names the exact remaining step instead of the whole vice.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
