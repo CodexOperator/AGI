@@ -16,9 +16,13 @@ from pathlib import Path
 import pytest
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
-CLASSES = ["secrets", "node_deletion", "broken_link"]
+sys.path.insert(0, str(BIN))
+from reds import CLASSES  # noqa: E402  -- ONE source: the gate names the classes
 MAIL_HEAD, MAIL_TAIL = "person@ex", "ample.invalid"   # one email, two halves
 MAIL = MAIL_HEAD + MAIL_TAIL
+#: a commit-identity address the LIVE cell `anonymize.email_allow` admits
+#: (example.com). `.invalid` is not admitted, so the gate's own bytes were RED.
+WHO = "t@example.com"
 KEY = "sk-" + "SYNTHETIC" + "0123456789abcdef"      # shape only, never a real key
 
 
@@ -50,14 +54,14 @@ def proj(tmp_path):
     (repo / "notes/payload.md").write_text("payload\n")
     _git(repo.parent, "init", "-q", str(repo))
     _git(repo, "add", "-A")
-    _git(repo, "-c", "user.email=t@example.invalid", "-c", "user.name=t",
+    _git(repo, "-c", f"user.email={WHO}", "-c", "user.name=t",
          "commit", "-qm", "base")
     return repo
 
 
-def _commit(repo, msg):
-    _git(repo, "add", "-A")
-    _git(repo, "-c", "user.email=t@example.invalid", "-c", "user.name=t",
+def _commit(repo, msg, *paths):
+    _git(repo, "add", "-A", *paths)
+    _git(repo, "-c", f"user.email={WHO}", "-c", "user.name=t",
          "commit", "-qm", msg)
     return _git(repo, "rev-parse", "HEAD").strip()
 
@@ -185,11 +189,11 @@ def test_f7_a_cell_naming_no_known_class_runs_all_three_with_one_warn(proj, cell
     (proj / "notes" / "leak.py").write_text(f'TOKEN = "{KEY}"\n')
     (proj / ".agi" / "nodes" / "build" / "two.md").unlink()
     _git(proj, "add", "-A")
-    _git(proj, "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-qm", "red range")
+    _git(proj, "-c", f"user.email={WHO}", "-c", "user.name=t", "commit", "-qm", "red range")
     base = _git(proj, "rev-parse", "HEAD~1").strip()
     cfg.write_text(json.dumps({"merge_gate": {"red_classes": cell}}))
     _git(proj, "add", "-A")
-    _git(proj, "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-qm", "cell")
+    _git(proj, "-c", f"user.email={WHO}", "-c", "user.name=t", "commit", "-qm", "cell")
     r = _run(proj, base)
     line = r.stdout.splitlines()[0]
     assert r.returncode == 1, r.stdout + r.stderr
@@ -235,3 +239,77 @@ def test_f8_a_parents_id_with_no_node_is_a_broken_link(proj):
     base2 = _git(proj, "rev-parse", "HEAD").strip()
     _commit(proj, "point the parent at a node that exists")
     assert _run(proj, base2).returncode == 0, _run(proj, base2).stdout
+
+
+# F9 -- a BARE key-shaped value is a RED: no `name =` in front of the bytes.
+def test_f9_a_bare_key_shaped_token_on_an_added_line_is_a_secret(proj):
+    (proj / "notes" / "bare.txt").write_text("the value is " + KEY + "\n")
+    base = _git(proj, "rev-parse", "HEAD").strip()
+    _commit(proj, "a bare key-shaped value")
+    r = _run(proj, base)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "RED secrets 1" in r.stdout and "bare.txt" in r.stdout, r.stdout
+    assert KEY not in r.stdout + r.stderr
+
+
+# F10 -- rc 2 is PINNED: a bad rev, and no path byte in the gate's own stderr.
+def test_f10_a_bad_rev_is_rc_two_and_never_echoes_a_path(proj):
+    r = _run(proj, "HEAD", "no-such-rev")
+    assert r.returncode == 2, r.stdout + r.stderr
+    assert "Traceback" not in r.stderr, r.stderr
+    assert str(proj) not in r.stderr and str(proj.parent) not in r.stderr, r.stderr
+    assert "exit" in r.stderr, r.stderr
+
+
+# F11 -- a MALFORMED config is rc 2 naming the cell file, never a traceback.
+def test_f11_a_config_that_does_not_parse_is_rc_two(proj):
+    cfg = proj / ".agi" / "config.json"
+    base = _git(proj, "rev-parse", "HEAD").strip()
+    cfg.write_text("{not json")
+    _commit(proj, "break the config")
+    r = _run(proj, base)
+    assert r.returncode == 2, r.stdout + r.stderr
+    assert "config.json" in r.stderr and "Traceback" not in r.stderr, r.stderr
+
+
+# F12 -- node_deletion fails CLOSED on a resolver that raises, and a mint a
+# PRE-EXISTING other node carries is a deletion wearing it as a disguise.
+def test_f12_a_raising_resolver_is_rc_two_naming_the_class(proj):
+    g = proj / ".agi" / "nodes/idea"
+    (g / "one.md").unlink()
+    for nm in ("dup1", "dup2"):
+        (g / f"{nm}.md").write_text(_node(f"idea:{nm}", "a" * 32, type="idea"))
+    _commit(proj, "two live nodes take one mint")
+    r = _run(proj, "HEAD~1")
+    assert r.returncode == 2, r.stdout + r.stderr
+    assert "node_deletion" in r.stderr and "Traceback" not in r.stderr, r.stderr
+
+
+def test_f12b_a_mint_reused_by_a_pre_existing_node_is_a_deletion(proj):
+    g = proj / ".agi" / "nodes"
+    (g / "idea/one.md").unlink()
+    (g / "build/two.md").write_text(
+        _node("build:two", "a" * 32, type="build", payload_ref="notes/payload.md"))
+    _commit(proj, "another node takes the deleted node's mint")
+    r = _run(proj, "HEAD~1")
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "RED node_deletion 1: idea:one" in r.stdout, r.stdout
+
+
+# F13 -- broken_link counts BOTH halves: a link broken on a DEPRECATED node at
+# NEW only is a NEW break, not a retirement to be excluded.
+def test_f13_a_link_broken_on_a_deprecated_node_at_new_is_counted(proj):
+    g = proj / ".agi" / "nodes/deprecated/idea"
+    g.mkdir(parents=True)
+    (proj / "notes/old.md").write_text("old payload\n")
+    (g / "ret.md").write_text(
+        _node("idea:ret", "f" * 32, type="idea", status="deprecated",
+              payload_ref="notes/old.md"))
+    base = _commit(proj, "a retired node whose payload is still there")
+    assert _run(proj, base).returncode == 0, _run(proj, base).stdout
+    base = _git(proj, "rev-parse", "HEAD").strip()
+    (proj / "notes/old.md").unlink()
+    _commit(proj, "the retired node's payload is gone")
+    r = _run(proj, base)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "RED broken_link 1: idea:ret->notes/old.md" in r.stdout, r.stdout

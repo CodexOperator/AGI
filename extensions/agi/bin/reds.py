@@ -15,23 +15,41 @@ import anonymize, links, locations  # noqa: E402
 
 CLASSES = ("secrets", "node_deletion", "broken_link")
 _ASSIGN = re.compile(r"""(?:^|[\s"'`])([A-Za-z_]\w*)\s*[:=]\s*["']?([\w./+:-]{8,})""")
+#: the value half of `_ASSIGN`, for a BARE key-shaped value (bytes with no `name =` in front).
+_BARE = re.compile(r"""[\w./+:-]{8,}""")
 
 
 def _git(repo, *args, binary=False):
     p = subprocess.run(["git", "-C", str(repo), *args], capture_output=True,
                        text=not binary, timeout=300)
     if p.returncode != 0:
-        err = p.stderr if isinstance(p.stderr, str) else p.stderr.decode("utf-8", "replace")
-        raise RuntimeError(f"git {' '.join(args[:2])} failed: " + err.strip()[:160])
+        raise RuntimeError(f"git {args[0]} exit {p.returncode}")  # the VERB and the code, never git's stderr BYTES (they carry this box's absolute paths)
     return p.stdout
 
 
-def _extract(repo, rev, dest):
-    """`rev`'s tree into a tmp dir; the graph root inside it is `.agi/`."""
+def _payload_refs(graph):
+    """Every distinct ref the nodes link to — the paths broken_link must resolve,
+    read off links' OWN corpus walk (the key names are imported, not copied)."""
+    rows = (links.link_ref(fm)[0] for _i, fm, _b in links._iter_corpus(graph))
+    return sorted(set(rows) - {links.SELF})
+
+
+def _extract(repo, rev, dest, payloads=True):
+    """`rev`'s GRAPH into a tmp dir — `.agi/` plus, when broken_link is wanted, the payload paths its nodes link to — NOT the whole tree."""
     dest.mkdir(parents=True, exist_ok=True)
-    with tarfile.open(fileobj=io.BytesIO(_git(repo, "archive", "--format=tar", rev, binary=True))) as tf:
-        tf.extractall(dest, filter="data")
-    return dest / ".agi"
+    graph = dest / locations.GRAPH_DIR_NAME
+
+    def archive(paths):
+        with tarfile.open(fileobj=io.BytesIO(
+                _git(repo, "archive", "--format=tar", rev, "--", *paths, binary=True))) as tf:
+            tf.extractall(dest, filter="data")
+
+    archive([locations.GRAPH_DIR_NAME])
+    present = (set(_git(repo, "ls-tree", "-r", "--name-only", rev).splitlines())
+               if payloads else set())
+    if extra := [p for p in _payload_refs(graph) if p in present]:
+        archive(extra)
+    return graph
 
 def _added(repo, old, new):
     """[(path, line, text)] — one entry per ADDED line, never joined (row 36)."""
@@ -52,16 +70,18 @@ def _secrets(repo, old, new, root):
     toks, allow = anonymize.box_tokens(root), anonymize.email_allow(root)
     return [f"{p}:{n}" for p, n, line in _added(repo, old, new)
             if anonymize.scan(line, toks, allow)
-            or any(dispatch._looks_like_secret(nm, v) for nm, v in _ASSIGN.findall(line))]
+            or any(dispatch._looks_like_secret(nm, v) for nm, v in _ASSIGN.findall(line))
+            or any(dispatch._looks_like_secret("", v) for v in _BARE.findall(line))]
 
 
-def _node_deletions(repo, old, new, new_graph):
+def _node_deletions(repo, old, new, old_graph, new_graph):
     """Node ids whose file is gone at NEW. A move into deprecated/ KEEPS its
     mint_id, so `--no-renames` plus the mint index — not git's similarity
     guess — is what says a node survived."""
     index = links.mint_index(new_graph)
     ids = {str(fm["id"]) for fm in
            links.frontmatter_rows(Path(new_graph) / "nodes").values() if fm.get("id")}
+    at_old = {str(fm["id"]) for fm in links.frontmatter_rows(Path(old_graph) / "nodes").values() if fm.get("id")}
     out = []
     for path in _git(repo, "diff", "--diff-filter=D", "--no-renames", "--name-only",
                      old, new, "--", "*/nodes/*").splitlines():
@@ -69,10 +89,14 @@ def _node_deletions(repo, old, new, new_graph):
         mint = re.search(r"^mint_id:\s*(\S+)", text, re.M)
         node = re.search(r"^id:\s*(\S+)", text, re.M)
         try:
-            alive = (links.resolve_mint(new_graph, mint.group(1), index=index) is not None
+            hit = links.resolve_mint(new_graph, mint.group(1), index=index) if mint else None
+            # it survives only when its mint rides the SAME node, or one that did
+            # not exist at OLD: a mint a pre-EXISTING other node carries is a
+            # deletion wearing the mint as a disguise (DG3.54 item 1).
+            alive = (hit is not None and not (hit[0] != node.group(1) and hit[0] in at_old)
                      if mint else bool(node) and node.group(1) in ids)
-        except Exception:  # an index that cannot answer never claims a deletion
-            alive = True
+        except Exception as exc:  # fail CLOSED: an index that cannot answer is rc 2
+            raise RuntimeError(f"node_deletion: {type(exc).__name__}") from None
         if node and not alive:
             out.append(node.group(1))
     return out
@@ -105,8 +129,8 @@ def _broken_links(old_graph, new_graph):
     """`node->ref` broken at NEW and NOT at OLD — links' resolver at both ends
     for a payload link, and a `parents:` id at both ends for a graph edge."""
     def keys(graph):
-        return ({f"{e.node_id}->{e.ref}" for e in links.broken_by_status(graph)[0]}
-                | set(_broken_parents(graph)))
+        broken = [e for half in links.broken_by_status(graph) for e in half]  # BOTH halves: live AND retired
+        return ({f"{e.node_id}->{e.ref}" for e in broken} | set(_broken_parents(graph)))
     return sorted(keys(new_graph) - keys(old_graph))
 
 
@@ -114,8 +138,11 @@ def _classes(root):
     """The cell `merge_gate.red_classes`; absent, empty or naming no known class
     = all three + ONE WARN. A name that is not a class never SILENCES one."""
     cfg = locations.config_path(root)
-    cell = (json.loads(cfg.read_text(encoding="utf-8")).get("merge_gate") or {}
-            if cfg and cfg.is_file() else {})
+    try:
+        cell = (json.loads(cfg.read_text(encoding="utf-8")).get("merge_gate") or {}
+                if cfg and cfg.is_file() else {})
+    except ValueError as exc:  # a config that does not parse is rc 2, never a traceback
+        raise RuntimeError(f"red_classes: {cfg.name} does not parse ({type(exc).__name__})") from None
     named = cell.get("red_classes")
 
     def warn(why, extra=""):
@@ -145,13 +172,15 @@ def main(argv=None):
     if root is None:
         print("reds: no agi project found", file=sys.stderr); return 2
     repo = Path(a.repo) if a.repo else locations.source_root(root)
-    want = _classes(root)
     try:
+        want = _classes(root)
         with tempfile.TemporaryDirectory(prefix="reds-") as td:
-            old_g, new_g = _extract(repo, a.old, Path(td) / "old"), _extract(repo, a.new, Path(td) / "new")
+            pay = "broken_link" in want
+            old_g, new_g = (_extract(repo, a.old, Path(td) / "old", pay),
+                            _extract(repo, a.new, Path(td) / "new", pay))
             red = {c: (f() if c in want else []) for c, f in (
                 ("secrets", lambda: _secrets(repo, a.old, a.new, root)),
-                ("node_deletion", lambda: _node_deletions(repo, a.old, a.new, new_g)),
+                ("node_deletion", lambda: _node_deletions(repo, a.old, a.new, old_g, new_g)),
                 ("broken_link", lambda: _broken_links(old_g, new_g)))}
     except Exception as exc:  # a git that cannot answer is rc 2, never a silent 0
         print(f"reds: {exc}", file=sys.stderr); return 2
@@ -160,7 +189,8 @@ def main(argv=None):
         names = red.get(cls) or []
         if names:
             print(f"RED {cls} {len(names)}: " + " ".join(names[:20]) + (" ..." if len(names) > 20 else ""))
-    print("RED none" if not any(red.values()) else "")
+    if not any(red.values()):
+        print("RED none")
     return 1 if any(red.values()) else 0
 
 
