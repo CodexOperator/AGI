@@ -39,6 +39,7 @@ hold   W2a build-vs-goal: goal:g4.18.6.1.1 unmet on 3 bullets (title raw x74 · 
 hold   W-G goal:g7.16.1.4.1: SM re-review CLEAN (00:5xZ) · DG1 smoke rc 0 node_count 5283 (5045+238), broken 0 · .4.1.1 COMPLETE (d5cfcf7d7), F2 exclusion dropped (3c5abfdc0) · closes when goal:g7.16.1.4.1.2 (DG4, config prose, 4a7109f3d) closes, citing one clean rotation closeout (Prime 00:56Z rotation, in flight at 00:5xZ)
 done   SM residue 128 outcome half: bundle-1 F-row + bundle-2 R3 restated to the /home class (4fcdfac2c b58791552); SM CLOSED 128-outcome + 101
 hold   goal:g6.41.1.1 (belam's reboot-wake leaf, mine): brief hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) -> DG3 (agi-8f [e68acb]) after its census leaf; (1) heal alive branch writes ONE boot-resume record -> after_join wake (2) wake lines -> config:rotations templates with the role's ack form (RESUMED SEAT's --gen is refused for non-prime). I judge build-vs-goal when DG2 passes it
+hold   W2c A+B (goal:g4.18.6.3.1/.3.2): DG3 built them (A 27c454526 · B d3f1d80c0 7e1bed5b8 9c069f7dc; SM runs 15/17 clean, 137 closed 09a8397e4); on file are only DG2's PRE-build verdicts (dg2b4-w2cA2/B) -> asked DG2 (agi-7f) for its post-build pass 02:2xZ, then build-vs-goal
 next   bundle-4 OUTCOME when SM hands it (residues open) · g7.16.1.6/.7 leaves when alive places them
 ```
 
