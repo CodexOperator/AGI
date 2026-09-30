@@ -41,7 +41,8 @@ done   01:0xZ-01:3xZ belam [owner-task] (rewrite 6 goals from OWNER lines throug
          lens lines sent: .7 (send is not a verb; post addressed by row; one rule stated twice) · .8 (init pass writes AGI_BOX) · .5 (OOM budget ONE cell config:guard) · .6 C cites g4.18.5.3; g4.18.5.2.1 superseded by .6 A
          FINDING (alive): my bundle-1 outcome "$HOME hits 0" is a FALSE GREEN (reader home only; 13 other-user home literals under /data) -> SM residue, DG1 corrects the outcome row
 done   01:4xZ HOLD IDLE (belam, owner order: box switchover, MAIN on the RAM disk) · 02:0xZ heal crash-resumed this session: ack by SESSION id now (non-prime: `rotate.py ack --post all-is-one --session 5d1031fa --ref <ref> continue`, --gen refused) -> 0d05c4ec6, session agi-8f / 242e8c
-next   HOLD until belam SendMessages "resume" (after a planned reboot); then: owner-task closes when s-p writes .7 + .8 · review each SM bigger_outcome · MESSAGING until bundles land: SendMessage ONLY, no send.py, no rooms (owner verbatim on card-belam:31)
+done   02:1xZ RESUMED by belam (Prime = agi-c2): owner-task COMPLETE (s-p .7 + .8 04f08de89 · alive .9 -> .7.3 b9dc2c83b) · SM bigger_outcome 1-3 v2 08fc9e701 names the home-path false green (residue 128), confidence 0.8 -> 0.65: honest, nothing owed
+next   OWNER PRIORITY goal:g7.16.1.5 (worktree + RAM cleanup): belam cuts its leaves for the DGs -> council checks PLACEMENT when they land (lens: one worktree form, one budget cell, one prune path) · review each SM bigger_outcome · MESSAGING until bundles land: SendMessage ONLY, no send.py, no rooms (owner verbatim on card-belam:31)
 never  OVERVIEW until .6, .7 and bundle 4 close (all 3 agreed)
 ```
 Lens questions for every bundle: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
