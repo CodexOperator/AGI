@@ -550,7 +550,7 @@ def build_type_index(nodes_dir) -> dict:
         if isinstance(nid, str) and nid.strip():
             index[nid.strip()] = canonical_type(fm.get("type") or "")
     import links   # goal:g4.18.6.3.3: a mint-id parent reads as its address twin
-    return links.resolving(index, p.parent)
+    return links.resolving(index, p)
 
 
 def resolve_nodes_root(root, schemas_dir=None) -> Path:
@@ -825,7 +825,7 @@ def _node_fm(nodes_dir, node_id):
     return _read_frontmatter(Path(nodes_dir) / ntype / f"{name}.md")
 
 
-def nearest_vision(nodes_dir, start_ids, *, max_depth=6):
+def nearest_vision(nodes_dir, start_ids, *, max_depth=6, resolve=None):
     """The nearest ancestor vision of `start_ids` via the `parents:` edge.
 
     Returns `(vision_id, town)`, or `(None, core)` when no vision is reached.
@@ -833,13 +833,14 @@ def nearest_vision(nodes_dir, start_ids, *, max_depth=6):
     hang a spawn; a start id that IS a vision is its own nearest vision
     (depth 0). Both halves of the addendum use this -- a minted node and a
     brief both read the target's nearest vision's town cell (default core),
-    never an imagined cell and never a town NAME (goal:g8.2).
+    never an imagined cell and never a town NAME (goal:g8.2). `resolve` = a
+    caller's ONE links.gate_resolver, shared across per-node calls.
     """
     if not nodes_dir:
         return (None, "core")
     from collections import deque
     import links   # goal:g4.18.6.3.3: walk mint-id parents as their addresses
-    r = links.address_resolver(Path(nodes_dir).parent)
+    r = resolve or links.gate_resolver(nodes_dir)
     seen: set = set()
     dq = deque()
     for sid in start_ids or ():
@@ -891,13 +892,13 @@ def nearest_vision(nodes_dir, start_ids, *, max_depth=6):
     return (None, "core")
 
 
-def nearest_vision_town(nodes_dir, start_ids, *, max_depth=6) -> str:
+def nearest_vision_town(nodes_dir, start_ids, *, max_depth=6, resolve=None) -> str:
     """The town of a target's nearest vision, default `core`.
 
     Thin wrapper over `nearest_vision` so a caller that only wants the town
     (mint, brief, viewport) never has to unpack the tuple.
     """
-    return nearest_vision(nodes_dir, start_ids, max_depth=max_depth)[1]
+    return nearest_vision(nodes_dir, start_ids, max_depth=max_depth, resolve=resolve)[1]
 
 
 def read_ladder_roles(nodes_dir: Path) -> list | None:
@@ -1399,8 +1400,8 @@ def gate_for_root(root, nodes_dir=None) -> tuple[SpawnRules, dict, int | None]:
     import links  # noqa: PLC0415
     import rotation_record  # noqa: PLC0415
     try:
-        index = {fm["id"]: canonical_type(fm.get("type") or "")
-                 for fm in links.frontmatter_rows(nd).values() if fm.get("id")}
+        index = links.resolving({fm["id"]: canonical_type(fm.get("type") or "")   # goal:g4.18.6.3.3
+                                 for fm in links.frontmatter_rows(nd).values() if fm.get("id")}, nd)
     except rotation_record.GrepError as exc:
         print(f"warn: spawn gate index by walk ({exc})", file=sys.stderr)
         index = build_type_index(nd)
