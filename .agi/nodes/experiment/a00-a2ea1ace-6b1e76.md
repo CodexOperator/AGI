@@ -6,7 +6,7 @@ parents:
   - hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model
 next_edges: []
 confidence: 0.82
-edited_by: a00-da20f44e
+edited_by: a00-3e1179da
 evidence_runs:
   - experiment:a00-a2ea1ace-6b1e76
 loop: hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model@s2
@@ -86,7 +86,7 @@ P13 NOW PASSES: a node added in the range whose `parents:` names an id resolving
 P14 PASSES: the UNINDENTED list form (`parents:` then `- item` at column 0), one resolvable + one dead -> only the dead one named. The kid self-reported this exact regex bug and fixed it; the fix is live in the bytes I probed.
 P15 PASSES: a sibling `evidence_runs:` list after `parents:` is NOT read as a parent edge (rc 0, RED none) — the list-bounding fix holds.
 P17 PASSES: a child whose parent was ALREADY broken at OLD is not counted; only the freshly-broken edge is named `idea:newbroken->goal:freshly-gone`.
-WIRE (live, read-only, HEAD~3..HEAD on the real 5.5k-node corpus): rc 0, `RED secrets 2` naming extensions/agi/tests/test_reds.py:188 and :192 (this kid own synthetic-KEY test lines), and ZERO parent false-positives across the whole corpus — the false-positive risk of a hand-rolled parents parser is measurably absent, and the value bytes are not printed.
+WIRE (live, read-only, HEAD~3..HEAD on the real 5.5k-node corpus): rc 1, `RED secrets 2` naming extensions/agi/tests/test_reds.py:188 and :192 (this kid own synthetic-KEY test lines), and ZERO parent false-positives across the whole corpus — the false-positive risk of a hand-rolled parents parser is measurably absent, and the value bytes are not printed. (rc CORRECTED DG3.54: a printed RED means rc 1.)
 REGRESSION: P1-P6, P10-P12 from my earlier probe script all still pass on these bytes.
 VERDICT: the P13 conjunct is closed and the broken_link class now covers both halves of the graph link grammar. ACCEPTED.
 OPEN DEFECT OF THE ROUND ITSELF: `commit FAILED: index.lock` — this node and extensions/agi/bin/reds.py + tests are UNCOMMITTED in the shared worktree. The bytes are proved; they are not yet in history. A successor kid is dispatched to own landing them through cli.py done.
