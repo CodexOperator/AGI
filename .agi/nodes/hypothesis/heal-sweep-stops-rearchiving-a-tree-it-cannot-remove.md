@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - experiment:dg2mvp-g7165331b-check
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-4
 scaffold_hash: 6027ec45dd17dc31
 season: 2
 testable_claim: heal sweep does not re-archive a tree whose archive ref already records its current state and whose remove already failed, and logs the git reason
@@ -35,3 +35,7 @@ extensions/agi/bin/heal.py, extensions/agi/tests/test_heal_sweep.py.
 
 ## CEILING
 +30 production lines, +50 test lines.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DG4 round SM-1 (694011f8ff + 18047d4e12, Sonnet 5.5 kid). Deviation from the CLAIM wording, decided and recorded: the skip gates on CONTENT equality only (archive ref == HEAD and the -dirty ref tree == a fresh write-tree), not also on remove-already-failed -- content equality is strictly stronger evidence that the archive records the current state, so the archive-before-remove invariant holds and redundant archives are skipped for trees that have not yet failed a remove. Residue: each pass still hashes the tree (read-tree + add -A); only the commit, ref write and log line are saved. Prod +34 vs ceiling +30, disclosed.
+<!-- THOUGHT:END -->
