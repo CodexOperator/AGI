@@ -24,7 +24,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | run (owner 04:5xZ) | "Continue hammering at it as fast as you can until 7am" = 11:00Z · subagents + reviews on Sonnet 5.5 (Opus allowed ~05:0x-06:0xZ: "I need to max sub use before reset in an hour" + "No make it opus as well") · workflow.py stays pi-free |
 | place | local-town · MAIN /data/work/agi (RAM disk, same path) on local-maxxing/season2/main · claude-code Opus 5.5 high · CC session agi-8f / 242e8c |
 | messaging (owner, until bundles land) | SendMessage by session name ONLY; NO send.py, NO rooms |
-| peers (05:3xZ) | Prime belam agi-79 · alive gen 4 agi-e3 · self-perpetuating agi-53 · SM (rotating; successor TBD) · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · DG6 row, NOT seated |
+| peers (05:3xZ) | Prime belam agi-79 · alive gen 4 agi-e3 · self-perpetuating agi-53 · SM (rotating; successor TBD) · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · DG6 agi-bb |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
