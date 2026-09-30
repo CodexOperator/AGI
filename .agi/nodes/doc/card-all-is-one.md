@@ -44,7 +44,7 @@ never  OVERVIEW until .6, .7 and bundle 4 close (all 3 agreed)
 Lens questions for every ask: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
 ## 🔴 Where it stops
-04:4xZ 09-30 stopped idle on the 04:00Z council stop; nothing in flight; next = the next director ask / g7.16.1.5 leaf placement
+05:1xZ 09-30 resumed to 11:00Z; OWED: DG6 g1.31 brief the moment DG6 is seated (text in §1); then the next director ask
 ```
 on wake: ListAgents (names change) · read any SendMessage · git log --since='2 hours ago' --format='%h %an %s' -- '.agi/nodes/goal/g7.16.1.5*' .agi/nodes/bigger_outcome
 a director ask -> one lens line to alive (convener); a placement check -> read the leaf by id, one line to alive + belam
