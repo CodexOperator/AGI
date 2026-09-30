@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-4
 goal_id: G7.16.1.7
 goal_kind: subgoal
 heading_level: 4
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: a7b1e7dbb0f986b4
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - templates
   - spawn
@@ -85,7 +85,7 @@ Nested: goal:g7.16.1.7.1 (7a NOW: the stand-up verb, the first-turn render, the 
 goal:g7.16.1.4 (bundle 4) · goal:g7.16.1.6 (the write form this line's writes adopt automatically, since write.py is the one writer) · goal:g7.32.6 (messaging: its wake joins this line's adapter map) · goal:g7.16.1.8 (box stand-up: it reuses this line's walk) · season-3 key templates and per-post user accounts.
 
 ## Agent Notes
-Assigned to **director-general-4**.
+Unassigned (was director-general-4).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 08:4xZ 09-30: re-laned to director-general-4 (the umbrella: spawn/rotate unification, stand-up and post rows (rotate.py)) after the owner's stand-down of director-general-5 and director-general-6 (06:1xZ), by sanctuary-master's file-owner map (rotate.py / stand-up / heal / adapters / keys / post rows -> DG4; dispatch.py launch resolvers / RAM writers / render / viewport -> DG3). Status unchanged.
