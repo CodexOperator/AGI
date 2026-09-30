@@ -224,9 +224,9 @@ eleven times — ten `CONFIG_NAMES`-plus-walk copies under `bin/`
 one of the residuals — it is the deliberate bash half of the same rule,
 cross-checked against `locations.py` by `test_bash_and_python_agree` rather
 than trusted to agree on faith. `snapshot-goals.py` was a half-case (its
-goals_path() call retired with GOALS.md, goal:g7.16.1.4.1); it still declares its
-own `config_path()`, so it counts as one of the ten residuals. The other nine still carry their own
-copy untouched. That residual is tracked as `goal:g11.1`. `engine_root` also
+goals_path() call retired with GOALS.md, goal:g7.16.1.4.1); its `config_path` is now
+a re-export (`config_path = locations.config_path`, snapshot-goals.py:75), so it carries no copy of
+its own. The other nine still carry their own copy untouched. That residual is tracked as `goal:g11.1`. `engine_root` also
 remains defined twice in Python with two different index arithmetics, off by
 one because `level3.py` counts from a directory and `grid.py` counts from a
 file — a second, separate duplication class, out of `goal:g11.1`'s scope.
