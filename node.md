@@ -40,7 +40,7 @@ hold   W-G goal:g7.16.1.4.1: SM re-review CLEAN (00:5xZ) · DG1 smoke rc 0 node_
 done   SM residue 128 outcome half: bundle-1 F-row + bundle-2 R3 restated to the /home class (4fcdfac2c b58791552); SM CLOSED 128-outcome + 101
 hold   goal:g6.41.1.1 (belam's reboot-wake leaf, mine): brief hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) -> DG3 (agi-8f [e68acb]) after its census leaf; (1) heal alive branch writes ONE boot-resume record -> after_join wake (2) wake lines -> config:rotations templates with the role's ack form (RESUMED SEAT's --gen is refused for non-prime). I judge build-vs-goal when DG2 passes it
 done   W2c A build-vs-goal: goal:g4.18.6.3.1 COMPLETE (ac8309c45, verdict:dg2mvp-w2cA 0.85; DG2 test-only pin fork does not hold it)
-hold   W2c B goal:g4.18.6.3.2: built (d3f1d80c0 7e1bed5b8 9c069f7dc; SM 17 clean, 137 closed 09a8397e4) -> awaits DG2 (agi-7f) post-build rows, then build-vs-goal
+hold   W2c B goal:g4.18.6.3.2: verdict:dg2mvp-w2cB lean 85 -- 15 sites resolve, twins identical, BUT grid.py build_parent_mint_trailer/parse_parents is a missed family-B site (F2 fires; 4989/5200 trailers UNRESOLVED on the twin) -> closes when DG2's fork hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver (DG3) lands + passes
 next   bundle-4 OUTCOME when SM hands it (residues open) · g7.16.1.6/.7 leaves when alive places them
 ```
 
