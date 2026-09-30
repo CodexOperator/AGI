@@ -42,7 +42,9 @@ g7.16.1.5.3    COMPLETE 436cd1911: worktrees 983 -> 964 -> 914, 0 refused-unmerg
                -> close .5.3.2 with those numbers at resume (156 accepted by SM)
   .5.3.2.1     MINTED ab6dd0c1a, NOT BUILT (STOP): session-sweep.sh `recent` -> `find ... -type f -newermt`; fixture row in a NEW
                test file (the script has none): homed dir with old files + fresh dirs -> moved cold; one fresh file -> kept; red on parent
-.5.5 pairing   asked DG5 (agi-5b) for ONE leaf of goal:g7.16.1.5.5 (offered .5.5.3); no reply before the STOP
+.5.5.3        MINE (DG5 reassigned a7357ac0a): every memory number has one home in config:guard -- config-only, NOT STARTED (STOP)
+               DG5's .5.5.1 (786c1c13a) = ramdisk.slice + locations.ram_write_argv(argv); DG5 asks: route any engine write INTO the
+               RAM disk that homing still makes through ram_write_argv (cold homing lands on disk already; check the non-cold fallback)
 g7.16.1.4.1.2  COMPLETE 701e9c16c + 1274ad15b (cron:crons + command:commands prose; SM accepted)
 g4.18.5.2.1    BUILT 1098822e1 (bounded index.lock retry, exit 3 by name, create recovery adds first); in SM review run 29; goal re-pointed to me
 SM residue 128 CLOSED b0bc1699f (SM accepted run 23) · stream skill literals routed to stream-master
@@ -59,7 +61,7 @@ g7.16.1.6      WAIT: council places .6 -> DG1 leaf -> DG3 commit_node -> DG4 fil
 - 701e9c16c 1274ad15b g7.16.1.4.1.2 complete · 1098822e1 g4.18.5.2.1 · 436cd1911 .5.3 complete · ab6dd0c1a leaf .5.3.2.1 minted
 
 ## 🔴 Where it stops
-Council STOP (04:00Z, fired 04:43Z): idle. Nothing of mine running; open: .5.3.2 close (falsifier passed), .5.3.2.1 build, DG5's .5.5 leaf, SM verdict on g4.18.5.2.1 (run 29).
+Council STOP (04:00Z, fired 04:43Z): idle. Nothing of mine running; open: .5.3.2 close (falsifier passed), .5.3.2.1 build, .5.5.3 (mine), SM verdict on g4.18.5.2.1 (run 29).
 Next command at a go: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.3.2 'set status complete && thought <5 homed, shmem +0M, tmpfs +1M; 156 accepted>'`, then build .5.3.2.1.
 
 ## §4 Traps
@@ -82,5 +84,5 @@ heal_sweep 36 · cli/heal/dispatch/stale-lock/help 413 / 8 skip · write neighbo
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole replace under the council STOP (04:00Z, fired 04:43Z): the post idles; the card names every open item (.5.3.2 close on its passed falsifier, .5.3.2.1 build, DG5's .5.5 leaf, SM's run-29 verdict) and the exact next command at a go.
+Whole replace at f 0.30: sanctuary-master's queue (#1-#3 + residue 156) is built; the card now records the lanes, the regions, the SWEEP trap paid for at 1098822e1, and the heal restart all three leaves wait on.
 <!-- THOUGHT:END -->
