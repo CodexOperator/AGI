@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: all-is-one
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -46,17 +46,17 @@ Council design doc for goal:g7.16.1.11, **ROUND 2** (owner 22:1xZ 09-30: "push i
                                -> duplicates to merge · nodes filed far from their latent neighbours · clusters with no goal
    alive             = the loops close: project(graph) == observe(body) every tick, drift recorded, sleep consolidates
    all-is-one        = ONE primitive (a signed commit + an owned ref) holds everything; declared + latent = two views of one DAG
-   self-perpetuating = the projector is in the graph (a systemd generator whose source is a node): delete the body and it regrows
+   self-perpetuating = the projector is in the graph (agi-seed.service runs the projector node straight from the trunk): delete the body and it regrows
 ```
 
 ## A · alive -- the fixed point (the system reports its own TRUE state because it IS its description)
 **What am I ACTUALLY trying to get the machine to do here?** Never believe a claim about itself that it could check. Round 1 made the body small; round 2 makes the body a PROJECTION, so "true" becomes one computable equality instead of a thousand Python assertions.
-- **project(graph) -> body.** One pure function (a shell script over the `.geometry` nodes) renders every artifact of the body: the sysusers file, one unit instance per post, the crontab, each post's settings symlinks, allowed_signers. Same HEAD -> byte-identical output (idempotent, diffable, testable with no root: it writes into a scratch dir).
+- **project(graph) -> body.** One pure function (a shell script over the `.geometry` nodes) renders every artifact of the body: the sysusers file, one unit instance per post, the crontab, each post's settings symlinks, allowed_signers. Its units half IS self-perpetuating's `agi-project` (664 B, §C), which runs from the graph itself through `agi-seed.service`, so no installed copy exists to drift (its fixed point tests empty). Same HEAD -> byte-identical output (idempotent, diffable, testable with no root: it writes into a scratch dir).
 - **observe(body) -> graph-shaped text.** The inverse reads what IS: `getent group`, `systemctl list-units 'agi-post@*'`, `crontab -l`, `readlink`, the key files, rendered in the SAME format.
 - **alive <=> `diff <(project HEAD) <(observe)` is empty.** That one line is the whole health check. It replaces verification.py's thousands of lines, the seat census, whois, liveness sweeps: all were partial observe() functions without a project() to compare against.
-- **The homeostat (one timer, one tick):** sense (PSI from /proc/pressure, the journal, unit states) -> compare (the diff above, plus PSI against the node's setpoint) -> act (re-project the drifted artifact, or refuse, or wake a post) -> record (a signed commit `drift: <artifact> <expected> <observed>`). Drift is the ONE alarm; a quiet log means a true system. The graph remembers every wound, so the same drift twice is visible as a pattern, not an anecdote.
+- **The homeostat (one timer, one tick):** sense (PSI from /proc/pressure, the journal, unit states) -> compare (the diff above, plus PSI against the node's setpoint) -> act (re-project the drifted artifact, or refuse, or wake a post) -> record (a signed commit `drift: <artifact> <expected> <observed>`). Drift is the ONE alarm; a quiet log means a true system. The homeostat holds a SECOND number from §C's frontier: V = red + mute goals (262 = 18 + 244 over 303 active goals, measured 22:3xZ; 254 a day earlier). V may not rise at a landing without a new owner goal. The graph remembers every wound, so the same drift twice is visible as a pattern, not an anecdote.
 - **The latent graph is a SENSE too.** When a node's declared parent disagrees with its latent neighbours (its text lives near H but it is filed under G), the graph is lying about itself: a drift of meaning, recorded the same way, answered by a post (re-file, or refute with a reason).
-- **Stage 0 of the latent graph needs NO package and runs today:** a 64-bit simhash per blob from word shingles, in awk; nearness = Hamming distance. It finds near-duplicate text and misfiled nodes. **Stage 1, on the owner's go:** a small local embedding model (the local-maxxing town's own purpose: run local models faster) replaces the simhash behind the same interface: blob sha -> vector, cached by sha, so a node is embedded once per version. (Measured 22:2xZ on this box: no embedding runtime and no numpy installed; PSI present.)
+- **Stage 0 of the latent graph needs NO package and runs today:** a 32-bit simhash per blob from word-pair shingles, in awk (241 B); nearness = Hamming distance. Measured on this box: an edited copy of a goal = 1 · a sibling on the same subject = 12 · another subject = 17 · an unrelated doc = 18; 43 nodes in 0.37 s. It reads PROSE nodes only (goal · hypothesis · doc): all-is-one's 64-bit run over every body found 76 near pairs, ALL build<->build scaffold prose, so a build node's nearness comes from its import graph instead. It finds near-duplicates and misfiled nodes. **Stage 1, on the owner's go:** a small local embedding model (the local-maxxing town's own purpose: run local models faster) replaces the simhash behind the same interface: blob sha -> vector, cached by sha, so a node is embedded once per version. (Measured 22:2xZ on this box: no embedding runtime and no numpy installed; PSI present.)
 - **Sleep (the idle loop):** at idle priority, when PSI is low and no session runs, re-embed the blobs changed since the last sleep (by sha, so never twice), write near-edges, and surface three things as drift for a post to answer: duplicates (merge), misfiled nodes (re-file), and clusters with no goal above them (a gap the graph calls for). Waking is cheap because sleep only ever touches what changed.
 - **What it retires beyond round 1:** every "is X alive / true / consistent" checker becomes a pure observe() printer, and one diff judges them all.
 
@@ -160,8 +160,44 @@ The mute count is the finding. Of 70 goals that carry a runnable command, 60 sta
 Pieces for §D (files in /tmp/g71611/fp-src): `agi-project` 664 B (tested, above) · `agi-seed.service` 291 B (`systemd-analyze verify` clean; not yet run live) · `agi-frontier` 384 B (tested over the live graph) · the pool drop, the claim and the V gate are single git commands or one line each (~120 B for the gate, not yet run as a pre-receive hook). **§C total ≈ 1,459 B.** Spike rows to add: (j) reboot (or `rm -r` of the runtime unit dir + the seed) regrows the exact projection · (k) a landing that breaks the fixed point is refused · (l) a landing that raises V without a new owner goal is refused · (m) a verb node appears in every post's tools at their next session.
 
 ## D · The byte count and the falsifiers on this box
-(pending: all-is-one assembles; alive's A pieces: project.sh · observe.sh · the homeostat tick · simhash.awk, each written out and counted)
+**What am I ACTUALLY trying to get the machine to do here?** Hold every claim above to bytes: what we wrote, what the box already carries, and the one command that proves or breaks each claim.
+
+**D.1 · The count (our own code; `wc -c` of each file as written out in round 1 and above)**
+```
+round-1 body (the wrap)            1,432 B   unit · inbox path+service · meter hook · gitconfig · agi-flush · pre-receive · signers · sysusers  (a post = 34 B)
+A · alive (the fixed point)          794 B   project.sh 166 · observe.sh 166 · tick.sh 221 (the homeostat) · simhash.awk 241 (stage-0 latent)
+B · all-is-one (the spine)           568 B   ppr.py 478 (the latent brief) · the ref layout: 3 dirs + 2 git config lines ~90
+C · self-perpetuating              1,459 B   agi-project 664 (the genome, its own node) · agi-seed.service 291 (the ONE installed unit) · agi-frontier 384 (the hunger) · the V gate ~120 · the pool drop and the claim are single git commands
+────────────────────────────────────────────
+the living system                  4,253 B   against the ~2.7 MB it retires (round 1 §7, kept in git @45282a4661)
+carried by what is already installed: the kernel (uids, mode bits, sticky dirs, PSI) · systemd (units, generators, sysusers, slices, timers) · git (the DAG, CAS refs, notes, signing) · strace · jq · dtach · awk · python3 stdlib
+still kilobytes, named: schema-check (<= 10 KB, the schema rules are content) and agi-mcp (<= 8 KB), both round 1
+```
+Against the owner's stretch bar (22:1xZ, "so low that it feels like it doesn't even exist"): **a post = 34 B (tens: MET)**. The living whole is a few KB rather than hundreds of bytes: each loop that makes it alive (fixed point, homeostat, sleep, brief, regrowth) costs 150-500 B, and none of them is free. The bar is met per organ, not for the organism.
+
+**D.2 · Falsifiers (each is one command; "today" = measured on this box without root, "on go" = after the owner's go on users + root once)**
+| # | claim | run | PASS | today |
+|---|---|---|---|---|
+| F1 | the fixed point: alive <=> project(graph) == observe(body) | `tick.sh`; then stop one post unit | drift = 0; the stopped unit is named, restarted, and a signed `drift:` commit records it on the next tick | drift = 56 lines (28 posts x user + unit): the TRUE state, the body does not exist yet |
+| F2 | the kernel owns a head | b: `git update-ref refs/posts/a/head <sha>` | "cannot lock ref … Permission denied" | PASS with mode bits (one user); on go with two users |
+| F3 | monotone = no locks (CALM) | 2 posts x 100 commits on their own refs + a suite run, concurrently | 200 commits, `fsck` clean, zero lock files of ours, the suite finishes | PASS 2x100 on /tmp; the suite arm waits on the ref write |
+| F4 | claim = create-only CAS | 8 racers claim 2 nodes | exactly 2 winners, the rest "reference already exists" | PASS |
+| F5 | mail = a sticky drop box, receipt = a merge | b drops `refs/mail/a/<id>`; b tries to list/delete a's other mail; a merges | b's drop lands, b's list/delete fail EACCES, the merge commit holds the receipt | on go (needs two uids) |
+| F6 | the brief predicts the work | a waking post gets the PPR top-20 of its card; its session's strace track (round 1) records what it actually opened | >= 50% of the nodes it opens in its first 10 turns are in the top-20 · the miss list tunes the restart probability and k: the brief CALIBRATES ITSELF from the track | the top-10 for goal:g7.16.1.11 and a g7.33 hypothesis are shown in B.3 |
+| F7 | the latent sense tells meaning apart | simhash over prose nodes | an edited copy is nearer than a sibling, a sibling nearer than an unrelated node | PASS (alive: 1 < 12 < 17-18 bits) · build nodes excluded (76/76 near pairs were template, B.4) |
+| F8 | the body regrows from its description (§C) | `rm -r` the runtime unit dir, then start agi-seed (or reboot); project a 2nd `--shared` clone | the exact projection regrows (empty diff) · the 2nd clone regrows the same units · one row edit moves exactly one link | PASS on a scratch clone (deterministic, empty re-projection diff) · the seed is verify-clean, not run live |
+| F9 | a landing that breaks the fixed point is refused (§C, k) | land a projector edit whose projected agi-project.service no longer re-runs the projector FROM the graph (e.g. its ExecStart points at an installed copy), or whose re-projection diff is non-empty | the trunk gate refuses it by name | the gate is one line, not yet run as a hook |
+| F10 | the frontier only grows from the owner (§C, l) | land a commit that raises V (§C) with no new owner goal | refused | same |
+| F11 | a new verb is a superpower for every post (§C, m) | add a verb node | it is in every post's PATH and MCP tool list at their next session, with no per-post edit | on go |
+| F12 | the count | `wc -c` over every file D.1 names | <= 4,253 B (comment lines excluded) | 4,253 B as written out today |
+
+**D.3 · What makes it ONE living whole (read the diagram in §0 again with these three lines):**
+```
+all-is-one         ONE primitive (a signed commit on a ref its owner alone can move) carries every act; the latent graph is notes on the same DAG
+alive              ONE equality (project(graph) == observe(body)) is its whole health; drift is the only alarm and every wound is a commit
+self-perpetuating  ONE projector, itself a node, rebuilds the body; the frontier calls for its own gaps and one shared claim answers it; a brief that learns from what it predicted
+```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-self-perpetuating, 22:4xZ 09-30 (round 2): filled §C. The genome: a 664 B projector that is its own node and runs FROM the graph via its own unit (fixed point tested on a --shared scratch clone: diff empty, deterministic, regrows in a 2nd clone, one row edit moves one link); a 291 B seed is the only installed piece; runtime-dir units regrow at every boot. The generator idea was dropped because the repo is its own mount point. The hunger: a 384 B frontier over every active goal's falsifier: 41 met · 18 red · 244 mute in 3.2 s; calls as create-only pool refs; claims MUST be one shared name (per-post claim paths gave 6 winners of 6). V = red + mute, a Lyapunov rule over generations: 254 -> 262 in 24 h while 17 goals were seeded; mute share 83.6 -> 80.5 pct.
+self-perpetuating, 22:3xZ 09-30 (round 2): filled §C. The genome: a 664 B projector that is its own node and runs FROM the graph via its own unit (fixed point tested on a --shared scratch clone: diff empty, deterministic, regrows in a 2nd clone, one row edit moves one link); a 291 B seed is the only installed piece; runtime-dir units regrow at every boot. The generator idea was dropped because the repo is its own mount point. The hunger: a 384 B frontier over every active goal's falsifier: 41 met · 18 red · 244 mute in 3.2 s; calls as create-only pool refs; claims MUST be one shared name (per-post claim paths gave 6 winners of 6). V = red + mute, a Lyapunov rule over generations: 254 -> 262 in 24 h while 17 goals were seeded; mute share 83.6 -> 80.5 pct.
 <!-- THOUGHT:END -->
