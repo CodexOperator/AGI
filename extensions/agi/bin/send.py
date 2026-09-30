@@ -452,11 +452,14 @@ def _place_seat_key(tmp: Path, path: Path) -> None:
         os.link(tmp, path)
     finally:
         tmp.unlink(missing_ok=True)
-    dfd = os.open(path.parent, os.O_RDONLY)
-    try:
-        os.fsync(dfd)
-    finally:
-        os.close(dfd)
+    try:  # the link landed: a failed dir fsync never un-places the key
+        dfd = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(dfd)
+        finally:
+            os.close(dfd)
+    except OSError as exc:
+        print(f"note: key placed, seats dir not fsynced ({exc})", file=sys.stderr)
 
 
 def _row_write_submit(graph: Path, rows: list, actor: str, role: str) -> bool:

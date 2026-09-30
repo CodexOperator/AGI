@@ -583,3 +583,24 @@ def test_the_remint_holds_when_a_key_file_appears_and_redoes_an_empty_one(
     key.write_text("")                  # a crash-left empty file is missing
     assert "reminted" in rotate.ensure_post_key(graph, "seat-a")
     assert key.stat().st_size
+
+
+def test_a_failed_dir_fsync_after_the_link_keeps_the_new_key(graph, monkeypatch):
+    import send
+    _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    old = _row(graph, "seat-a")["pubkey"]
+    monkeypatch.setattr(send.os, "fsync", lambda fd: (_ for _ in ()).throw(
+        OSError("fsync")) if os.fstat(fd).st_mode & 0o040000 else None)
+    assert "reminted" in rotate.ensure_post_key(graph, "seat-a")
+    assert _row(graph, "seat-a")["pubkey"] != old
+    assert send._seat_key_path(graph, "seat-a").stat().st_size
+
+
+def test_an_empty_key_file_on_an_unkeyed_row_decides_mint(graph):
+    import send
+    key = send._seat_key_path(graph, "seat-a")
+    key.parent.mkdir(parents=True, exist_ok=True)
+    key.write_text("")
+    assert "minted its first key" in rotate.ensure_post_key(graph, "seat-a")
+    assert key.stat().st_size and _row(graph, "seat-a")["pubkey"]

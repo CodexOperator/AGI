@@ -17929,7 +17929,7 @@ def _key_decision(send, root: Path, seat: str, tmpl: dict):
     """The ONE mint | adopt | leave decision of an unkeyed row, shared by the
     real run and every dry plan: `(verb, found)`, `found` = the adopted
     `(scheme, pub)`."""
-    if not send._seat_key_path(root, seat).exists():
+    if not _key_present(send, root, seat):
         return "mint", None
     found = (_existing_seat_key(send, root, seat)
              if tmpl.get("existing_key") == "adopt" else None)
@@ -17943,6 +17943,7 @@ def _template_key(send, root: Path, seat: str, scheme: str, tmpl: dict):
     `(scheme, pub, path, verb)`, or None (the key file is left alone)."""
     verb, found = _key_decision(send, root, seat, tmpl)
     if verb == "mint":
+        send._seat_key_path(root, seat).unlink(missing_ok=True)  # empty leftover
         minted = send._mint_seat_key(root, seat, scheme)
         if minted is None:
             return None
