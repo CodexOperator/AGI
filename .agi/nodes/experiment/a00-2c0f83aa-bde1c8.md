@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-write-refusal-names-the-index-truth
 next_edges: []
 confidence: 0.85
-edited_by: a00-2c0f83aa
+edited_by: a00-563c98b6
 evidence_runs:
   - experiment:a00-2c0f83aa-bde1c8
 loop: hypothesis:a-write-refusal-names-the-index-truth@s2
@@ -118,3 +118,5 @@ the peer-race fix was right in spirit but its truth read was blind to git tracki
 
 ## Agent Notes
 at_head now reads ls-files -v (every row H) so a skip-worktree node exits 3 UNCOMMITTED instead of 0 clean-at-HEAD (falsifier 2 closed); staged is rc 1 only, rc>=2 gets its own note; docstring names the second sanctioned exit 0; 2 new rows, 172 passed / 3 xfailed.
+
+PARENT REVIEW a00-563c98b6 (DG4.06): ACCEPTED on rows 1, 2 and 6 -- but not on everything the node is filed under. Re-probed on the built bytes, not the node: (gate) skip-worktree + write now exits 3 with "clean at HEAD" absent while HEAD keeps the OLD title -- the hole my earlier probe opened is closed; assume-unchanged exits 0 with an EMPTY note, and that is correct because git add stages the changed bytes and a real commit landed (HEAD and worktree agree), not a false exit 0. (gate) _commit_write with payload_path outside the work tree no longer prints STILL STAGED and names the failed STAGED check instead. (wire/perf, the near miss) a NON-busy failure still costs one ls-files -v plus one --no-optional-locks status: the at_head read sits ABOVE the not-busy-or-deadline gate, so the fast path the widening was meant to protect still pays the index read. DH.DG4.06 residue 5 is open, and rows 3 and 4 (the dead pre-commit fixture at test:169-172 under the ambient GIT_CONFIG hooksPath, and the note-string assertion at test:206 with its open unlink/relock window) are untouched. verdict stays proved for the three rows it built; the residue slice is the next kid.
