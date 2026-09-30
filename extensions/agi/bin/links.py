@@ -24,7 +24,7 @@ generalises that from one node type to every node type.
    body it is handed — this module never writes a body at all.
 2. **A goal node links to itself** — `link_ref: self`. The body *is* the data,
    said uniformly rather than as an absent field, so `goal:g6.9` stands and
-   `GOALS.md` keeps rendering *from* goal bodies. **A reader never branches on
+   the goal body is the whole goal (GOALS.md retired). **A reader never branches on
    `type == goal`;** it resolves `self` like any other link. That is the whole
    difference between an exception with a name and a hole.
 3. **A missing link raises where a caller can act and is counted where it
@@ -359,8 +359,8 @@ def scan_retired_refs(root, cfg=None) -> list[tuple[str, int, str, str]]:
     for nid, fm, body in _iter_corpus(root):   # deprecated tree is status: deprecated
         known.add(nid)
         if str(fm.get("status") or "").lower() == "retired":
-            b = re.search(r"THOUGHT:BEGIN(.*?)THOUGHT:END", body, re.S)
-            retired[nid] = _successor(b.group(1)) if b else "none"
+            b = node_writer.thought_text(body)
+            retired[nid] = _successor(b) if b is not None else "none"
     src, nodes = locations.source_root(Path(root)), Path(root) / "nodes"
     no_path = [str(e) for e in cfg["exempt"] if str(e).endswith("/")]
     no_field = {str(e) for e in cfg["exempt"] if not str(e).endswith("/") and e != "THOUGHT"}
@@ -421,13 +421,35 @@ def set_link(root, node_id: str, ref: str) -> Path:
     return path
 
 
+def resolve_mint(root, mint: str) -> "tuple[str, str, str] | None":
+    """goal:g4.18.6.1 -- THE mint-id resolver: mint_id -> (id, title, status)
+    of the ONE live node carrying it. Read fresh on every call (one git grep,
+    no process cache), so a renumber is seen at once. NO shape check (the
+    Prime, signed 22:1xZ 09-29: "8 off-shape mints: accept as found, gate on
+    'is a node's mint_id', never 32-hex"). A mint two live nodes carry raises
+    ValueError by name, never a silent pick; empty or absent -> None; a grep
+    that cannot look raises GrepError (fails closed)."""
+    if not (mint or "").strip():
+        return None
+    import rotation_record
+    hits = [(i, fm) for i, _f, fm in rotation_record.grep_live(Path(root), mint)
+            if str(fm.get("mint_id", "")) == mint]
+    if len(hits) > 1:
+        raise ValueError(f"mint id {mint} is carried by {len(hits)} live nodes: "
+                         + ", ".join(i for i, _ in hits))
+    return (hits[0][0], str(hits[0][1].get("title", "")),
+            str(hits[0][1].get("status", ""))) if hits else None
+
+
 def main(argv: list[str] | None = None) -> int:
     """`write.py links [--broken]` — report the corpus's link state."""
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("action", nargs="?", default="links",
-                    choices=["links", "schema", "roles"])
+                    choices=["links", "schema", "roles", "mint"])
+    ap.add_argument("mint_id", nargs="?", default="",
+                    help="mint: the 32-hex mint id to resolve (goal:g4.18.6.1)")
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--broken", action="store_true", help="list broken links only")
     ap.add_argument("--strict", action="store_true",
@@ -448,6 +470,18 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.action == "roles":
         return _roles_report(root)
+
+    if args.action == "mint":   # goal:g4.18.6.1: a link is a mint id
+        try:
+            hit = resolve_mint(root, args.mint_id)
+        except ValueError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
+        if hit is None:
+            print(f"ERR: no live node carries mint id {args.mint_id}", file=sys.stderr)
+            return 1
+        print("\t".join(hit))
+        return 0
 
     resolved, broken = resolve_many(root, _iter_corpus(root))
     by_source: dict[str, int] = {}

@@ -828,7 +828,8 @@ def test_launch_recovered_cds_into_seat_tree(tmp_path, monkeypatch):
     captured: list = []
 
     def fake_run(cmd, **kwargs):
-        captured.append(list(cmd))
+        if "new-window" in cmd:  # the P1 has-session ensure call is not a launch
+            captured.append(list(cmd))
         return type("R", (), {"returncode": 0, "stdout": "@123\n",
                               "stderr": ""})()
 
@@ -906,7 +907,8 @@ def test_launch_recovered_never_hands_tmux_the_prompt_inline(tmp_path,
     captured: list = []
 
     def fake_run(cmd, **kwargs):
-        captured.append(list(cmd))
+        if "new-window" in cmd:  # the P1 has-session ensure call is not a launch
+            captured.append(list(cmd))
         return type("R", (), {"returncode": 0, "stdout": "@9\n",
                               "stderr": ""})()
 

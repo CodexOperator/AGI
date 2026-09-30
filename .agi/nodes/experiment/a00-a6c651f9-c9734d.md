@@ -6,6 +6,7 @@ parents:
   - hypothesis:l3w4-agent-failure-ledger
 next_edges: []
 confidence: 0.95
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-a6c651f9-c9734d
 loop: hypothesis:l3w4-agent-failure-ledger@s2
@@ -30,7 +31,7 @@ project root — derive → idempotent append → aggregate rate table →
 never existed because nothing wires `failures.py ledger` into the loop. This
 experiment answers: *can the path produce and consume a real ledger today?*
 
-Commands run from `/home/ubuntu/work/agi`, writing the ledger/rates out to
+Commands run from `<home>/work/agi`, writing the ledger/rates out to
 `/tmp/ms01-ledger` (scratch, so nothing shared is touched):
 
 ```

@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.6
 core: false
-edited_by: belam
+edited_by: director-general-3
 goal_id: G2.27
 goal_kind: subgoal
 heading_level: 3
@@ -36,7 +36,7 @@ killed relay.sh pid 3976762
 killed relay.sh pid 3976764
 killed ffmpeg pid 3968298
 killed ffmpeg pid 3976759
-note: 12 segments (~24s) still on disk in /home/ubuntu/work/streamer-stub/out/ring and were never aired.
+note: 12 segments (~24s) still on disk in <home>/work/streamer-stub/out/ring and were never aired.
       bin/panic.sh --retract deletes them; a new grab.sh run wipes the ring anyway.
 stream down (6 process(es)) issued from the Prime's pane right after the L4 completion report is pushed, so the stream shows the report and the issued command for a good minute before the hard cut. The one sanctioned Prime use of panic; everywhere else it stays the owner's alone.
 

@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.25.2
 next_edges: []
-edited_by: a00-11ad274b
+edited_by: director-general-3
 loop: goal:g7.25.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -30,7 +30,7 @@ harness['bin'] > DEFAULT_BIN`. The config `bin` cell carries the box path
 (`~/.npm-global/bin/grok-bot`, no `/home/<user>` literal) and WINS over the
 bare fallback, so the two MUST DIFFER — the committed test asserts exactly
 `assert live_bin != grok.DEFAULT_BIN` (`test_grok_bot_adapter.py:248`). The
-earlier claim that the cell must EQUAL `/home/ubuntu/.../grok-bot` was the
+earlier claim that the cell must EQUAL `<home>/.../grok-bot` was the
 opposite of the bytes: `DEFAULT_BIN` is bare, not that path.
 
 The testable claim: the ONE config cell carries the box path
@@ -48,5 +48,5 @@ Disproof: the probe assertions fail, the JSON becomes invalid, another row
 stops resolving, or a `grok` token appears in `dispatch.py`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-R13 correction applied in place by EF.53 a00-11ad274b under hypothesis:pass2-engine-rows-corrected-in-place. Re-checked live bytes: grok_bot_adapter.py:30 is DEFAULT_BIN = "grok-bot" (bare PATH fallback); .agi/config.json:113 is "bin": "~/.npm-global/bin/grok-bot"; the committed test at test_grok_bot_adapter.py:248 asserts live_bin != grok.DEFAULT_BIN. The node title and body said the opposite (config bin must EQUAL DEFAULT_BIN = /home/ubuntu/.npm-global/bin/grok-bot); title, claim and body are re-versioned to the real precedence and the test gate. The config correction itself already landed (G-row); this round rewrites node text only and touches no verdict/lean/confidence field.
+R13 correction applied in place by EF.53 a00-11ad274b under hypothesis:pass2-engine-rows-corrected-in-place. Re-checked live bytes: grok_bot_adapter.py:30 is DEFAULT_BIN = "grok-bot" (bare PATH fallback); .agi/config.json:113 is "bin": "~/.npm-global/bin/grok-bot"; the committed test at test_grok_bot_adapter.py:248 asserts live_bin != grok.DEFAULT_BIN. The node title and body said the opposite (config bin must EQUAL DEFAULT_BIN = <home>/.npm-global/bin/grok-bot); title, claim and body are re-versioned to the real precedence and the test gate. The config correction itself already landed (G-row); this round rewrites node text only and touches no verdict/lean/confidence field.
 <!-- THOUGHT:END -->

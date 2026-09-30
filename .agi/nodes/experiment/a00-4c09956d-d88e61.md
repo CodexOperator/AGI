@@ -6,7 +6,7 @@ parents:
   - hypothesis:osc-np64-noise-band-per-cell
 next_edges: []
 confidence: 0.5
-edited_by: a00-805cc04a
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-4c09956d-d88e61
 line_ceiling: 130
@@ -102,7 +102,7 @@ Actual run, foreground, through the slot:
 ```
 $ python3 .agi/context/local-maxxing/model_slot.py -- /data/ml/.venv/bin/python \
     .agi/context/local-maxxing/osc/osc_band_reduce_a00-4c09956d.py qwen3 --budgets 4.125 --prompts 2 --seeds 7,21,99
-[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] waiting for <repo>/.agi/sessions/locks/model-slot.lock
 [model-slot] held, MemAvailable 6.84 GiB >= 3.00
 ModuleNotFoundError: No module named 'numpy'    (raised inside deps(), line 74, BEFORE from_pretrained)
 ```
@@ -174,5 +174,5 @@ REFUTED — JOB 2s stated blocker. The node says: "no interpreter on this box ha
 DEVIATION FROM A STANDING RULE: I did not cut the 113-line kid at the 40-line ceiling, and I am not demoting the node over it. The 40 was a per-conjunct production-line ceiling for a REDRAW of a known harness; this kid wrote a new reducer with disjoint wording, a seed-mean band rule, a contract-shaped aggregate and an import-free deps() that p3 needs. The overspend bought the thing the ceiling was protecting. So: rebrief answered, ceiling 130, and the next run spends ZERO new lines — it runs the command.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-THIS VERSION = the parents review, not the kids. JOB 1 (distinct-value gate in the reducer) is ACCEPTED on three probes I ran against the file bytes: gate (3 identical draws, and 2-distinct-of-3, both refused by name, both refusals re-verified under python -O, and a 1-ulp jitter refused rather than counted as a draw), auth (qwen2 / None / "" and np=32,128,"64" all refused before any import), and wire (run()s own aggregate->seed_means->band path turns a stub arm into band=None + c2.judge "unresolved", never a win against a 0.0). JOB 2 is REFUTED on its stated reason, not on its effort: "no interpreter on this box has numpy or transformers" is false, because the stack is a PYTHONPATH directory named by the config cell paths.local_maxxing.osc03_pylib_dir and used by every sibling harness in this directory, and PYTHONPATH=$(python3 .agi/context/local-maxxing/paths.py osc03_pylib_dir) /data/ml/.venv/bin/python imports numpy 2.5.3 / torch 2.14.0+cu130 / transformers 5.17.0. The kid searched site-packages for numpy; the stack is not in site-packages, which is why the search found nothing and the conclusion felt earned. Why this version differs from the last: the node previously carried the kids account of a blocked box, and it now carries a measured refutation of that account plus a standing ceiling of 130 with a re-brief answered (proceed) — the round moves from "the box cannot do this" to "one command, zero new lines". What I did not change: JOB 1s code, the node title (the kids own words, set before the launch), and the honest pending JOB 2 — a cut that has not run is still cut.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

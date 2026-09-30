@@ -274,3 +274,153 @@ def test_install_hook_writes_box_local_and_refuses_foreign(tmp_path):
     foreign.mkdir()
     (foreign / "pre-commit").write_text("#!/bin/sh\necho hi\n")
     assert anonymize.cmd_install_hook(root, str(foreign)) == 1
+
+
+# (8) goal:g7.16.1.1.3 · hypothesis:anonymize-check-refuses-the-home-path: the
+# box user's home path is one more token, read from HOME in every mode (it is
+# not hardware, so the fixture path carries it too). A tmp HOME only. Strict
+# xfail on the trunk at 59ad74144; green since director-general-3's build.
+def test_check_refuses_the_home_path(tmp_path, fake_box, monkeypatch, capsys):
+    home = str(tmp_path / "home" / "someuser")
+    monkeypatch.setenv("HOME", home)
+    root = _graph(tmp_path)
+    assert anonymize.scan(f"see {home}/x.md", anonymize.box_tokens(root)) == ["home"]
+    assert anonymize.cmd_check(root, f"see {home}/x.md\n", None) == 1
+    assert home not in capsys.readouterr().err
+
+
+# (9) the home token rides the LIVE path too (anonymize.py box_tokens tail), not
+# only the fixture return (mur wf_a56d005b-d6b row 11). No fixture: the box
+# readers are stubbed, so nothing of this box is read; a tmp HOME only.
+def test_the_live_path_carries_the_home_token(tmp_path, monkeypatch):
+    home = str(tmp_path / "home" / "someuser")
+    monkeypatch.setenv("HOME", home)
+    monkeypatch.delenv("AGI_ANONYMIZE_FIXTURE", raising=False)
+    monkeypatch.setattr(anonymize, "_run", lambda argv: "")
+    monkeypatch.setattr(anonymize, "_secret_tokens", lambda root: [])
+    monkeypatch.setattr(anonymize, "DMI", tmp_path / "no-dmi")
+    monkeypatch.setattr(anonymize.socket, "gethostname", lambda: "stub-host-abc")
+    monkeypatch.setattr(anonymize.socket, "getfqdn", lambda: "stub-host-abc")
+    toks = anonymize.box_tokens(tmp_path)
+    assert ("home", home) in toks
+    assert anonymize.scan(f"see {home}/x.md", toks) == ["home"]
+
+
+# (10) sanctuary-master mur wf_a56d005b-d6b residue 12: a staged diff is judged
+# on its ADDED lines only -- a scrub removing the home path must not refuse
+# itself -- while an added line carrying it still refuses.
+def test_a_diff_is_judged_on_added_lines_only(tmp_path, fake_box, monkeypatch):
+    home = str(tmp_path / "home" / "someuser")
+    monkeypatch.setenv("HOME", home)
+    root = _graph(tmp_path)
+    scrub = tmp_path / "scrub.diff"
+    scrub.write_text(f"diff --git a/n.md b/n.md\n@@ -1 +1 @@\n-see {home}/x\n+see <home>/x\n")
+    assert anonymize.cmd_check(root, None, str(scrub)) == 0
+    leak = tmp_path / "leak.diff"
+    leak.write_text(f"diff --git a/n.md b/n.md\n@@ -1 +1 @@\n-see <home>/x\n+see {home}/x\n")
+    assert anonymize.cmd_check(root, None, str(leak)) == 1
+
+
+# (11) re-mur wf_aa3f01d4-2aa residue 21: the STAGED branch -- the one
+# verification runs, cmd_check(root, None, None) -> `git diff --cached` -- is
+# judged on added lines too; _run is stubbed, no real git or index is read.
+def test_the_staged_diff_is_judged_on_added_lines_only(tmp_path, fake_box, monkeypatch):
+    home = str(tmp_path / "home" / "someuser")
+    monkeypatch.setenv("HOME", home)
+    root = _graph(tmp_path)
+    for staged, rc in ((f"-see {home}/x\n+see <home>/x\n", 0),
+                       (f"-see <home>/x\n+see {home}/x\n", 1)):
+        diff = f"diff --git a/n.md b/n.md\n@@ -1 +1 @@\n{staged}"
+        monkeypatch.setattr(anonymize, "_run",
+                            lambda argv, d=diff: d if "--cached" in argv else "")
+        assert anonymize.cmd_check(root, None, None) == rc
+
+
+# (12) re-mur wf_aa3f01d4-2aa residue 22: added-lines-only must not loosen the
+# guard. A post-image PATH (new file, '+++ b/', 'rename to') and an added
+# content line that starts '++' (shown '+++...') still refuse; a pre-image
+# path (the file a scrub renames away) does not.
+@pytest.mark.parametrize("diff, want", [
+    ("diff --git a/n b/{h}/n\nnew file mode 100644\n--- /dev/null\n+++ b/{h}/n\n@@ -0,0 +1 @@\n+x\n", 1),
+    ("diff --git a/n b/m\nsimilarity index 100%\nrename from n\nrename to {h}/m\n", 1),
+    ("diff --git a/n b/n\n--- a/n\n+++ b/n\n@@ -1 +1 @@\n-x\n+++{h}\n", 1),
+    ("diff --git a/{h}/n b/n\nsimilarity index 100%\nrename from {h}/n\nrename to n\n", 0),
+    ("diff --git a/{h}/n b/{h}/n\ndeleted file mode 100644\n--- a/{h}/n\n+++ /dev/null\n@@ -1 +0,0 @@\n-x\n", 0),
+    # residue 31, real `git diff --cached -U0` shapes: no '+++' line for these
+    ("diff --git a/{h}/.gitkeep b/{h}/.gitkeep\nnew file mode 100644\nindex 0000000..e69de29\n", 1),
+    ("diff --git a/{h}/b.bin b/{h}/b.bin\nnew file mode 100644\nindex 0000000..bdc955b\nBinary files /dev/null and b/{h}/b.bin differ\n", 1),
+    ("diff --git a/{h}/b.bin b/{h}/b.bin\ndeleted file mode 100644\nindex bdc955b..0000000\nBinary files a/{h}/b.bin and /dev/null differ\n", 0),
+])
+def test_added_lines_keeps_post_image_paths_and_plus_plus_content(
+        tmp_path, fake_box, monkeypatch, diff, want):
+    home = str(tmp_path / "home" / "someuser")
+    monkeypatch.setenv("HOME", home)
+    root = _graph(tmp_path)
+    f = tmp_path / "d.diff"
+    f.write_text(diff.format(h=home))
+    assert anonymize.cmd_check(root, None, str(f)) == want
+
+
+# (12) goal:g7.16.1.2.3 · hypothesis:anonymize-refuses-any-box-home-by-one-generic-class:
+# ANY box's home refuses by one generic class, never a literal list; the
+# placeholder forms (`<home>/`, `~/`, `/home/<x>/`) stay allowed. Strict xfail:
+# RED on the trunk at 82d64ffe7 (council bundle 2, director-general-2);
+# green since director-general-3's build (scan's generic class).
+def test_any_box_home_is_refused_by_one_generic_class(tmp_path, fake_box, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
+    root = _graph(tmp_path)
+    toks = anonymize.box_tokens(root)
+    seg = "someone"  # a made-up segment, joined at runtime so no literal home path is committed
+    for other in ("/" + "home/" + seg + "/x.md", "/" + "Users/" + seg + "/x.md"):
+        assert anonymize.scan(f"see {other}", toks) == ["home"]
+        assert anonymize.cmd_check(root, f"see {other}\n", None) == 1
+    assert anonymize.scan("see <home>/x.md, ~/x.md and /home/<x>/y", toks) == []
+
+
+# bundle 2 residue 46 (sanctuary-master re-mur wf_f6343a9c-419): a BARE home --
+# no trailing slash -- is the same class; the rewrite keeps the terminator.
+def test_a_bare_home_is_the_same_generic_class(tmp_path, fake_box, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
+    toks = anonymize.box_tokens(_graph(tmp_path))
+    bare = "/" + "home/" + "zqxwv"  # made up, joined at runtime
+    for text in (f"for {bare}", f"pre-set for {bare} at spawn", f'"{bare}"'):
+        assert anonymize.scan(text, toks) == ["home"], text
+    assert anonymize.home_relative(f"for {bare} at spawn", home="/h/me") == "for <home> at spawn"
+    assert anonymize.scan("see /home/<seg> and ~/x", toks) == []
+
+
+def test_prose_naming_the_home_dir_is_not_a_home(tmp_path, fake_box, monkeypatch):
+    """The segment is a user name: `/home/,` in prose never matches (residue 46 follow-up)."""
+    monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
+    toks = anonymize.box_tokens(_graph(tmp_path))
+    assert anonymize.scan("anonymize grep (user name, /home/, IPs)", toks) == []
+    assert anonymize.scan("a tmp HOME: <tmp>/home/.npm-global/bin/pi", toks) == []
+    assert anonymize.home_relative("for /" + "home/zqxwv, next", home="/h/me") == "for <home>, next"
+
+
+# bundle 3 row H4 b (goal:g7.16.1.3.2.3.1): the generic home class reaches 0
+# over the four scrub scopes, read from COMMITTED bytes (`git grep HEAD`)
+# through anonymize's ONE pattern -- never a new regex. Only FILE counts per
+# scope come back; no matched text is ever printed.
+SCRUB_SCOPES = (".agi/sessions/rotations", ".agi/sessions/quorum", "datasets", ".agi/nodes")
+
+
+def test_no_committed_home_path_in_the_four_scrub_scopes():
+    repo = Path(__file__).resolve().parents[3]
+    top = subprocess.run(["git", "-C", str(repo), "rev-parse", "--show-toplevel"],
+                         capture_output=True, text=True)
+    if top.returncode != 0 or Path(top.stdout.strip()).resolve() != repo:
+        pytest.skip("not a git checkout of this repo")
+    # council CM1: a scope that no longer exists would count 0 and pass while
+    # checking nothing -- every scope must carry tracked files at HEAD first
+    for scope in SCRUB_SCOPES:
+        tracked = subprocess.run(["git", "-C", str(repo), "ls-tree", "-r", "--name-only", "HEAD", "--", scope],
+                                 capture_output=True, text=True).stdout.split()
+        assert tracked, f"scrub scope {scope!r} has no tracked file at HEAD: the guard would check nothing"
+    p = subprocess.run(["git", "-C", str(repo), "grep", "-lP",
+                        anonymize.HOME_PATH_RE.pattern, "HEAD", "--", *SCRUB_SCOPES],
+                       capture_output=True, text=True)
+    assert p.returncode in (0, 1), p.stderr[-200:]
+    per = {s: sum(1 for f in p.stdout.splitlines() if f.startswith(f"HEAD:{s}/"))
+           for s in SCRUB_SCOPES}
+    assert per == dict.fromkeys(SCRUB_SCOPES, 0)

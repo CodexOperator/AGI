@@ -74,6 +74,7 @@ import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 import harness_template  # noqa: E402 -- argv is template data (hyp:harness-arg-...)
 import adapters  # noqa: E402 -- the ONE harness bin resolver (goal:g15, round 3)
+import mem_cap  # noqa: E402 -- goal:g6.41.1: the post scope arm + its one switch
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -1490,7 +1491,8 @@ def _read_seat_pin(root: Path, seat: str, cur_gen: int | None) -> tuple[Path | N
 # --- spawn subcommand -----------------------------------------------------
 
 
-def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> str:
+def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
+               scope_slice: str | None = None) -> str:
     """The quoted shell line that launches `claude_cmd`.
 
     Three exports may ride in front of the command, and all compose:
@@ -1519,20 +1521,33 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> s
     TERM'd-FROM-OUTSIDE (signal 15 with a sender line) from the WINDOW-KILLED
     (HUP). The seatless line stays byte-identical to today — the wrapper is
     inserted only when `seat` is not None.
+
+    **With `scope_slice` set, every post runs in its OWN scope** under it
+    (goal:g6.41.1 P6, mem_cap.scope_argv; cap-free, the slice holds the cap),
+    wrapping the launch-wrapper too, so an oomd kill takes one post. The default
+    is None = unscoped, today's line; spawn_window, the ONE caller, passes the
+    `spawn.post_scope` cell (live:false -> None).
     """
-    joined = " ".join(shlex.quote(c) for c in claude_cmd)
+    unit = _post_unit(seat)
+    joined = " ".join(shlex.quote(c) for c in mem_cap.scope_argv(claude_cmd, scope_slice))
     # AGI_SEAT rides FIRST in the export chain, so it is set before the
     # reaper/ultracode knobs and the claude process — composed the same way
     # REAPER_ENV_EXPORT already composes, as one `... && ...` line.
     cmd = joined
     if seat is not None:
-        wrap = " ".join(shlex.quote(c) for c in (
-            _launch_wrapper_argv(seat, claude_cmd)))
+        wrap = " ".join(shlex.quote(c) for c in mem_cap.scope_argv(
+            _launch_wrapper_argv(seat, claude_cmd), scope_slice, unit))
         cmd = f"export AGI_POST={shlex.quote(seat)} AGI_SEAT={shlex.quote(seat)} && " + wrap
     reaper = REAPER_ENV_EXPORT + " && " + cmd
     if _is_ultracode(settings):
         return ULTRACODE_ENV_EXPORT + " && " + reaper
     return reaper
+
+
+def _post_unit(seat: str | None) -> str | None:
+    """A seat launch's scope unit name (None = no seat, no unit): the ONE
+    spelling `_shell_cmd` and the `successor_argv` stand-in share (CM9)."""
+    return f"agi-post-{re.sub(r'[^\w.-]', '_', seat)}-{int(time.time())}" if seat else None
 
 
 def _launch_wrapper_argv(seat: str, child_cmd: list[str]) -> list[str]:
@@ -1731,6 +1746,87 @@ def cmd_launch_wrapper(args, root) -> int:
 _TMUX_ARG_SAFE = 8192
 
 
+def ensure_tmux_session(tmux_session: str, root: Path | None = None) -> None:
+    """goal:g6.41.1 P1: create `tmux_session` when absent, in its OWN scope
+    (never inside the remote-control or reaper cgroup), so the next new-window
+    has a server. The slice follows the `spawn.post_scope` cell of `root` (else
+    the project found from cwd): live -> its slice; off -> NO slice, so the
+    server never lands under a shared cap the owner has not chosen (residue 68).
+    Present = no-op; a failure is a warning (the new-window names the error)."""
+    try:
+        if subprocess.run(["tmux", "has-session", "-t", tmux_session],
+                          capture_output=True, text=True, timeout=10).returncode == 0:
+            return
+        root = root if root is not None else locations.find_project_root()
+        slice_ = mem_cap.resolve_post_scope(_config_json(root) if root is not None else {})
+        r = subprocess.run(["systemd-run", "--user", "--scope", "-q",
+                            *([f"--slice={slice_}"] if slice_ else []),
+                            f"--unit=agi-tmux-{tmux_session}-{int(time.time())}", "--",
+                            "tmux", "new-session", "-d", "-s", tmux_session],
+                           capture_output=True, text=True, timeout=30)
+        if r.returncode != 0:
+            print(f"warn: could not create tmux session {tmux_session!r} in its own "
+                  f"scope: {(r.stderr or r.stdout).strip()}", file=sys.stderr)
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"warn: tmux session ensure for {tmux_session!r} failed: {exc}",
+              file=sys.stderr)
+
+
+def _cutover_plan(procs: dict, keep: int, posts: dict) -> dict:
+    """goal:g6.41.1 cutover, PURE: {pid: (ppid, comm)} -> {unit name: [pids]}.
+    A post root is a pid in `posts` ({pid: post name}) or a tmux server child
+    whose tree runs `claude`; each root's tree is its OWN unit (the post name,
+    else pid-<root>). Every other pid but `keep` (the service MainPID) is "tmux"."""
+    kids: dict = {}
+    for pid, (ppid, _c) in procs.items():
+        kids.setdefault(ppid, []).append(pid)
+
+    def tree(p):
+        return [p] + [q for k in kids.get(p, []) for q in tree(k)]
+    roots = set(posts) | {p for p, (pp, _c) in procs.items()
+                          if procs.get(pp, (0, ""))[1].startswith("tmux")
+                          and any(procs[q][1] == "claude" for q in tree(p))}
+    plan = {posts.get(r) or f"pid-{r}": sorted(tree(r)) for r in sorted(roots)}
+    moved = {q for pids in plan.values() for q in pids}
+    rest = sorted(p for p in procs if p != keep and p not in moved)
+    return {**({"tmux": rest} if rest else {}), **plan}
+
+
+def _cutover_to_scopes(cgroup_dir, keep: int, posts: dict, *,
+                       slice_: str = mem_cap.POST_SCOPE_SLICE, prefix: str = "agi-",
+                       tries: int = 5) -> dict:
+    """Move every pid of `cgroup_dir` but `keep` into its plan unit, each a
+    Delegate=yes scope under `slice_`, by StartTransientUnit(PIDs) (a new unit)
+    or AttachProcessesToUnit (one already started), repeated until only `keep`
+    is left (a fork mid-move lands next try). DUMMIES ONLY here: the live
+    cutover is the owner's word after PASS B3 (doc:card-belam §6)."""
+    procs_file, done = Path(cgroup_dir) / "cgroup.procs", {}
+    bus = ["busctl", "--user", "call", "org.freedesktop.systemd1", "/org/freedesktop/systemd1",
+           "org.freedesktop.systemd1.Manager"]
+    for _ in range(tries):
+        live = [int(x) for x in procs_file.read_text().split() if int(x) != keep]
+        if not live:
+            break
+        procs = {}
+        for pid in live + [keep]:
+            try:
+                st = Path(f"/proc/{pid}/stat").read_text()
+                procs[pid] = (int(st.rsplit(")", 1)[1].split()[1]),
+                              Path(f"/proc/{pid}/comm").read_text().strip())
+            except (OSError, ValueError, IndexError):
+                continue  # exited mid-read
+        for name, pids in _cutover_plan(procs, keep, posts).items():
+            unit, ids = f"{prefix}{name}.scope", [str(q) for q in pids]
+            argv = (bus + ["AttachProcessesToUnit", "ssau", unit, "/", str(len(ids)), *ids] if unit in done
+                    else bus + ["StartTransientUnit", "ssa(sv)a(sa(sv))", unit, "fail", "3",
+                                "PIDs", "au", str(len(ids)), *ids, "Slice", "s", slice_,
+                                "Delegate", "b", "true", "0"])
+            r = subprocess.run(argv, capture_output=True, text=True, timeout=30)
+            done[unit] = done.get(unit) or r.returncode == 0
+        time.sleep(0.5)  # the scope job settles before the re-read
+    return done
+
+
 def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
                    cwd: str | None = None) -> int:
     """Run `shell_cmd` in a new tmux window. Returns 0 on success.
@@ -1760,6 +1856,7 @@ def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
        downstream window-existence check added at L3.33 caught the *symptom*;
        this returns the *cause*.
     """
+    ensure_tmux_session(tmux_session)  # goal:g6.41.1 P1: a server first, in its own scope
     launch_cmd = f"cd {shlex.quote(cwd or os.getcwd())} && {shell_cmd}"
     if len(launch_cmd) > _TMUX_ARG_SAFE:
         fd, script = tempfile.mkstemp(prefix=f"agi-launch-{name}-",
@@ -1892,8 +1989,14 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     # successor-override): the override REPLACES the claude argv entirely.
     # It only takes effect when passed explicitly — the default below is
     # byte-for-byte today's real claude successor.
+    # The post scope applies to BOTH branches (council mur CM9): a stand-in
+    # never skips the scope the real launch would run in.
+    scope_slice = mem_cap.resolve_post_scope(_config_json(root) if root is not None else {})
     if successor_argv is not None:
-        shell_cmd = successor_argv
+        inner = ["bash", "-c", successor_argv]
+        scoped = mem_cap.scope_argv(inner, scope_slice, _post_unit(seat))
+        # cell off (or no usable systemd-run): the override stays verbatim
+        shell_cmd = successor_argv if scoped is inner else " ".join(shlex.quote(c) for c in scoped)
     else:
         # A third harness resolves its own bin (the copilot binary/row); the
         # claude path passes None and stays byte-identical. The raw cell is
@@ -1930,7 +2033,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
             )
 
         # Quote for shell display (ultracode roles are env-gated + keyworded)
-        shell_cmd = _shell_cmd(claude_cmd, settings, seat=seat)
+        shell_cmd = _shell_cmd(claude_cmd, settings, seat=seat, scope_slice=scope_slice)
 
     if dry_run:
         print(shell_cmd)
@@ -2319,8 +2422,8 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             pred_pid = int(pred_pid)
             dead = _pid_gone(pred_pid)
             _data = _registry_read(getattr(args, "registry_dir", None), pred_pid)
-            _tp = Path((_data.get("transcript") or transcript_from_registry_dict(_data)
-                        or "")).expanduser() if (_data.get("transcript")
+            _tp = Path(_resolve_record_path(_data.get("transcript")
+                        or transcript_from_registry_dict(_data))) if (_data.get("transcript")
                         or transcript_from_registry_dict(_data)) else None
             pred_death = _death_timestamp(_data, _tp)
         for ln in _compose_seating_base_block(
@@ -3008,7 +3111,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                 # The meter pin is the lease (prime XI 19:38Z): pin the
                 # successor's OWN transcript from the JOIN, but ONLY when no
                 # pin exists — never overwrite an EXISTING pin.
-                trans = join.get("transcript") or ""
+                trans = _resolve_record_path(join.get("transcript"))
                 if trans:
                     pinp = _sessions_dir(root) / f"{seat}{METER_PIN_EXT}"
                     if pinp.exists():
@@ -3076,7 +3179,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                 window_path=getattr(args, "window_path", None),
                 ref=ref,
                 session_id=(srow.get("session_id") or "") if srow else "",
-                transcript_path=((srow.get("transcript_path") or "")
+                transcript_path=(_resolve_record_path(srow.get("transcript_path"))
                                  if srow else ""),
                 registry_dir=getattr(args, "registry_dir", None),
                 generation=args.gen)
@@ -5548,6 +5651,13 @@ def _preserve_audit(rec: dict, existing_path: Path | None) -> None:
         rec["audit"] = doc["audit"]
 
 
+# the ONE record serializer + path reader live in rotation_record (goal:g7.16.1.3
+# row H4): rotate keeps its internal call names through this alias.
+from rotation_record import dump_record as _dump_record  # noqa: E402
+from rotation_record import resolve_record_path as _resolve_record_path  # noqa: E402
+from rotation_record import home_rel as _home_rel  # noqa: E402
+
+
 def _write_rotation_record(root: Path, record: dict,
                            path: Path | None = None) -> Path:
     """Write one JSON rotation record under `.agi/sessions/rotations/`.
@@ -5580,7 +5690,7 @@ def _write_rotation_record(root: Path, record: dict,
     _preserve_stops_sha(record, path)
     # (L5.02) nor the boundary rename's applied-surface table.
     _preserve_applied_rename(record, path)
-    path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    path.write_text(_dump_record(record), encoding="utf-8")
     return path
 
 
@@ -5682,7 +5792,7 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     # (L5.02) nor the boundary rename's applied-surface table.
     _preserve_applied_rename(rec, path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    path.write_text(_dump_record(rec), encoding="utf-8")
 
 
 def _preserve_stops_sha(rec: dict, existing_path: Path | None) -> None:
@@ -6339,7 +6449,7 @@ def _write_seating_record(root: Path, record: dict) -> Path:
     seat = str(record.get("seat") or "anonymous")
     stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     path = rot / f"{seat}.{stamp}.seating.json"
-    path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    path.write_text(_dump_record(record), encoding="utf-8")
     return path
 
 
@@ -6386,7 +6496,7 @@ def _seating_record_merge_handover(root: Path, record: dict) -> str:
         merged = dict(rec.get("handover") or {})
         merged.update(handover)
         rec["handover"] = merged
-        target.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+        target.write_text(_dump_record(rec), encoding="utf-8")
     except (OSError, ValueError):
         return ""
     return str(target)
@@ -6486,7 +6596,8 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
     Carries seat, window @id, ref (when the join has it, else the NAMED
     `ref: (pending ack)` — never a silently-dropped address a peer could not
     reach), the bounded pid, session id and transcript path (absent fields
-    render as `-`, honest pre-join), the durable sequence number, and what is
+    render as `-`, honest pre-join; the transcript home-relative through the
+    ONE rule, goal:g7.16.1.3 H4 g), the durable sequence number, and what is
     in flight. Pure formatting; runs nothing.
 
     WITH `--ask-diff` (SL7.06's answer contract, reused never a third shape)
@@ -6516,7 +6627,7 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
             f"{gen_field}"
             f"trigger: first-seating | pid: {pid_s} | "
             f"session: {session_id or '-'} | "
-            f"transcript: {transcript_path or '-'} | seq: {seq} | "
+            f"transcript: {_home_rel(transcript_path) or '-'} | seq: {seq} | "
             f"in flight: {in_flight}")
     if ask_diff:
         _ref = ref or "<your ListAgents ref>"
@@ -6578,7 +6689,7 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
         if join.get("found"):
             pid = join.get("pid")
             session_id = join.get("session_id") or ""
-            transcript_path = join.get("transcript") or ""
+            transcript_path = _resolve_record_path(join.get("transcript"))
     if generation is None:
         _rg = _seat_row_generation(root, seat)
         generation = _rg if _rg is not None else FIRST_SEATING_GEN
@@ -6747,7 +6858,7 @@ def transcript_from_registry_dict(data: dict) -> str:
     else `cwd` + `sessionId` derive `~/.claude/projects/<slug>/<sessionId>\n"
     `.jsonl` where slug = every '/' and '.' in cwd replaced by '-'. The
     autopsy and the join call this SAME helper — never a copy."""
-    transc = str(data.get("transcript") or data.get("transcript_path") or "")
+    transc = _resolve_record_path(data.get("transcript") or data.get("transcript_path"))
     sess = data.get("session_id") or data.get("sessionId") or ""
     if not transc and sess and data.get("cwd"):
         slug = str(data["cwd"]).replace("/", "-").replace(".", "-")
@@ -7016,7 +7127,7 @@ def _run_autopsy(*, seat: str, pid: int, registry_dir: str | None,
     lines.append(f"{AUTOPSY_TAG} predecessor pid: {pid} "
                  + (f"alive: yes" if alive else f"alive: no (gone)"))
     transc = data.get("transcript") or transcript_from_registry_dict(data) or ""
-    transc_path = Path(transc).expanduser() if transc else None
+    transc_path = Path(_resolve_record_path(transc)) if transc else None
     death = _death_timestamp(data, transc_path)
     if data.get("statusUpdatedAt") or data.get("updatedAt"):
         src = "registry updatedAt"
@@ -7025,7 +7136,8 @@ def _run_autopsy(*, seat: str, pid: int, registry_dir: str | None,
     else:
         src = "unmeasured"
     lines.append(f"{AUTOPSY_TAG} death time: {death} (source: {src})")
-    lines.append(f"{AUTOPSY_TAG} transcript: {transc_path or '-'}")
+    # printed home-relative through the ONE rule (council CM4, the H4 g class)
+    lines.append(f"{AUTOPSY_TAG} transcript: {_home_rel(str(transc_path)) if transc_path else '-'}")
     # last 10 non-heartbeat entries before death
     lines.append(f"{AUTOPSY_TAG} last {AUTOPSY_LAST_ENTRIES} non-heartbeat entries before death:")
     if transc_path is not None and transc_path.exists():
@@ -7560,7 +7672,7 @@ def _record_join(rec: dict) -> dict:
     # accessor mirrors. The RICHER `handover.join.transcript` still wins
     # below when present.
     if rec.get("transcript_path"):
-        out["transcript"] = str(rec["transcript_path"])
+        out["transcript"] = _resolve_record_path(rec["transcript_path"])
     # rotate-self shape: the RICHER handover.join.* wins when present.
     hov = rec.get("handover")
     if isinstance(hov, dict):
@@ -7573,7 +7685,7 @@ def _record_join(rec: dict) -> dict:
             if jn.get("session_id"):
                 out["session_id"] = str(jn["session_id"])
             if jn.get("transcript"):
-                out["transcript"] = str(jn["transcript"])
+                out["transcript"] = _resolve_record_path(jn["transcript"])
         # heal.py's widest read shape: successor_window.id names the same
         # successor window when handover.join carried no window_id.
         sw = hov.get("successor_window")
@@ -8630,7 +8742,6 @@ WORKTREE_POST_CLOSEOUT_STEPS = [
     "merge_up_ask",  # send.py: one merge-up ASK line to the Prime
     "wait_grant",    # poll the inbox for a signed Prime GRANT|GO, bounded
     "merge_up",      # merge --no-ff into season2/main in MAIN
-    "render_check",  # render --check
     "suite",         # verify-suite, logged to a file, waited in-process
     "grid_commit",   # grid commit --all
     "push",          # push origin season2/main and refs/grid
@@ -8648,10 +8759,10 @@ MAIN_POST_CLOSEOUT_STEPS = [
 ]
 
 #: PRIME closeout list: the Prime does not merge up / ask itself for a grant;
-#: it lands its g17.1 note, renders the goals, and pushes.
+#: it lands its g17.1 note and pushes (GOALS.md and its render retired,
+#: goal:g7.16.1.4.1 W-G).
 PRIME_CLOSEOUT_STEPS = [
     "g17_1_note",  # write.py goal:g17.1 note <the closeout numbers line>
-    "render",      # snapshot-goals.py --render
     "push",        # push origin the checked-out branch
 ]
 
@@ -9082,19 +9193,6 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
                 + (f" ({ignored} cron-owned dirty path(s) ignored)"
                    if ignored else ""))
 
-    def _render_check():
-        # run in MAIN (the tree the merge landed in) -- never the seat tree.
-        main = _closeout_main(root)
-        if main is None:
-            return (False, "refused", "render_check: could not resolve MAIN")
-        binp = Path(__file__).with_name("snapshot-goals.py")
-        res = _closeout_pop_and_run(
-            root, [sys.executable, str(binp), "--render", "--check"],
-            cwd=main)
-        if res["ok"]:
-            return (True, "ok", "render --check clean")
-        return (False, "failed", "render --check refused")
-
     def _suite():
         # verify-suite = verification.py's opt-in pytest (`--suite`), logged
         # to a file under MAIN's sessions dir and WAITED in-process (REUSE:
@@ -9266,33 +9364,11 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
                 f"g17_1_note refused: "
                 f"{(out.stderr or out.stdout).strip() or 'nonzero exit'}")
 
-    def _render():
-        # snapshot-goals.py --render with cwd=root AND the project root made
-        # explicit (--project), so a closeout run never resolves the project
-        # from the SUBPROCESS cwd (a worktree cwd would render the wrong
-        # tree); then --render --check, whose result is the verdict -- the
-        # note is only written if GOALS.md round-trips byte-identical.
-        binp = Path(__file__).with_name("snapshot-goals.py")
-        res = _closeout_pop_and_run(
-            root, [sys.executable, str(binp), "--render",
-                   "--project", str(root)], cwd=root)
-        if not res["ok"]:
-            return (False, "refused",
-                    f"render refused: {res.get('detail') or res}")
-        chk = _closeout_pop_and_run(
-            root, [sys.executable, str(binp), "--render", "--check",
-                   "--project", str(root)], cwd=root)
-        if chk["ok"]:
-            return (True, "ok", "snapshot-goals.py --render + --check clean")
-        return (False, "failed",
-                f"render --check refused: {chk.get('detail') or chk}")
-
     return {
         "post_verify": _verify,
         "merge_up_ask": _ask,
         "wait_grant": _wait_grant,
         "merge_up": _merge_up,
-        "render_check": _render_check,
         "suite": _suite,
         "grid_commit": _grid_commit,
         "push": _push,
@@ -9300,7 +9376,6 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         "numbers": _numbers,
         "pathspec_commit": _pathspec_commit,
         "g17_1_note": _g17_1_note,
-        "render": _render,
     }
 
 
@@ -9407,7 +9482,7 @@ def _record_closeout(record_path: Path | None, entries: list[dict]) -> None:
         return
     doc["closeout"] = [dict(e) for e in entries]
     try:
-        p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+        p.write_text(_dump_record(doc), encoding="utf-8")
     except Exception:  # noqa: BLE001
         pass
 
@@ -10247,6 +10322,8 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
     new_content = _seats_ownrow_content(root, top, seat)
     if new_content is None:
         return (True, "ack: no change to seats.md — nothing committed")
+    if (why := _posts_load_error(new_content)):  # goal:g4.18.4
+        return (False, f"ERR: {rel} does not load ({why}); nothing committed")
     row = _find_seat(root, seat) or {}
     gen = getattr(args, "gen", None)
     win = str(row.get("window") or "")
@@ -10447,6 +10524,34 @@ def _authority_row_content(base: str, new: str, seat: str) -> str:
     return "".join(merged_line if _own_row_line(ln, seat) else ln for ln in b)
 
 
+def _posts_load_error(content: str) -> str:
+    """'' when a posts.md text's frontmatter loads as a YAML mapping, else the
+    reason (goal:g4.18.4: a config:posts that does not load is never committed)."""
+    import yaml
+    try:
+        if not isinstance(yaml.safe_load(content.split("---\n")[1]), dict):
+            return "frontmatter is not a mapping"
+    except (yaml.YAMLError, IndexError) as exc:
+        return str(exc).splitlines()[0] if str(exc) else type(exc).__name__
+    return ""
+
+
+def _row_names(text: str) -> set:
+    """The `name` cells of every posts row line in `text` (one row per line),
+    read by PARSING each row, never by key order (a role-first council row
+    counts: sanctuary-master mur wf_a3b15e54-c65 residue 58)."""
+    names = set()
+    for ln in text.splitlines():
+        if ln.startswith("  - {"):
+            try:
+                row = yaml.safe_load(ln[4:])
+            except yaml.YAMLError:
+                continue
+            if isinstance(row, dict) and row.get("name"):
+                names.add(str(row["name"]))
+    return names
+
+
 def _insert_row_into_frontmatter(base: str, row: str) -> str:
     """`base` with `row` inserted as the LAST entry of the frontmatter before
     the closing ``---`` -- inside the `posts:` list the loader reads.
@@ -10455,14 +10560,19 @@ def _insert_row_into_frontmatter(base: str, row: str) -> str:
     ever sees: `load_node_file` stops at the closing `---` (EF.51 C4 parent
     probe -- the commit moved but `send._pushed_seats` returned no row).
     A base with no frontmatter delimiter falls back to a plain append, which
-    is the only shape left that can carry the row at all."""
+    is the only shape left that can carry the row at all.
+    goal:g4.18.4: the row lands after the LAST existing row, never merely
+    before the closing ``---`` -- keys that follow `posts:` (scaffold_hash,
+    thought_session) put a row there outside the list (e4aaef794)."""
     lines = base.splitlines(keepends=True)
     if lines and lines[0].strip() == "---":
         for i in range(1, len(lines)):
             if lines[i].strip() == "---":
                 if not row.endswith("\n"):
                     row += "\n"
-                return "".join(lines[:i]) + row + "".join(lines[i:])
+                last = max((j for j in range(1, i) if lines[j].startswith("  - {")),
+                           default=i - 1)
+                return "".join(lines[:last + 1]) + row + "".join(lines[last + 1:])
     if base and not base.endswith("\n"):
         base += "\n"
     return base + row
@@ -10538,9 +10648,18 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
             if row is None:
                 return (f"authority: REFUSED -- the new content carries no "
                         f"{seat!r} row to seat on {branch}")
+            # goal:g4.18.4: one row lands only when it completes the row set;
+            # never a lone row beside rows the authority does not hold yet
+            missing = sorted(_row_names(new_content) - _row_names(base) - {seat})
+            if missing:
+                return (f"authority: REFUSED -- {seat!r} is absent on {branch} "
+                        f"and so are {missing}: a lone row never lands")
             content = _insert_row_into_frontmatter(base, row)
         if content == base:
             return f"authority: SKIPPED -- no {seat!r} row to replace on {branch}"
+        if (why := _posts_load_error(content)):  # goal:g4.18.4
+            return (f"authority: REFUSED -- the composed {rel} does not load "
+                    f"({why}); nothing committed")
         fd, idx = tempfile.mkstemp(prefix="authrow-idx-")
         os.close(fd)
         env = dict(os.environ, GIT_INDEX_FILE=idx)
@@ -10697,6 +10816,9 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     if _head_content and _head_content == new_content:
         return ("spawn_row_commit: SKIPPED — seats.md already clean after "
                 "the write (row was byte-identical); nothing committed")
+    if (why := _posts_load_error(new_content)):  # goal:g4.18.4
+        return (f"spawn_row_commit: FAILED — seats.md does not load ({why}); "
+                "nothing committed")
     msg = (f"{seat} {verb}: gen {generation}, session_id "
            f"{session_id or ''}, window {window or ''}, pid {pid or ''}")
     import tempfile  # noqa: PLC0415  (local, mirrors _ack_commit_seats)
@@ -10919,8 +11041,7 @@ def _commit_after_join_record(root: Path, *, record: dict,
         # never attributed to a commit that did not happen.
         try:
             record["after_join"]["record_commit"] = outcome
-            rp.write_text(json.dumps(record, indent=2) + "\n",
-                          encoding="utf-8")
+            rp.write_text(_dump_record(record), encoding="utf-8")
         except Exception:  # noqa: BLE001
             pass
         return outcome
@@ -10983,8 +11104,7 @@ def _commit_rotation_record(root: Path, *, seat: str, gen_before: int,
         _r = json.loads(rec.read_text(encoding="utf-8"))
         if isinstance(_r, dict):
             _r["committed_by"] = "rotate-self"
-            rec.write_text(json.dumps(_r, indent=2) + "\n",
-                           encoding="utf-8")
+            rec.write_text(_dump_record(_r), encoding="utf-8")
     except (OSError, ValueError, json.JSONDecodeError):
         pass
     rels = [os.path.relpath(rec, top), os.path.relpath(seq, top)]
@@ -11211,7 +11331,7 @@ def _record_swept_latches(record_path: Path | None, swept: list[str]) -> None:
         return
     doc["swept_latches"] = list(swept)
     try:
-        p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+        p.write_text(_dump_record(doc), encoding="utf-8")
     except Exception:  # noqa: BLE001
         pass
 
@@ -11234,7 +11354,7 @@ def _record_s12_self_reap(record_path: Path | None, reap: dict) -> None:
         return
     doc["s12_self_reap"] = reap
     try:
-        p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+        p.write_text(_dump_record(doc), encoding="utf-8")
     except Exception:  # noqa: BLE001
         pass
 
@@ -12063,7 +12183,7 @@ def _button_down(*, root: Path, branch_allow: bool = True,
 
 
 # -- s11: the cheapest verification level rotate-self cites (<15s) -------
-VERIFICATION_LEVEL = "quick"  # links + goals-check + write-guard (verification.py:14)
+VERIFICATION_LEVEL = "quick"  # links + write-guard (verification.py:14)
 BOOTSTRAP_SHAPE = "v1"        # shape id of <sessions>/seats/<seat>.bootstrap.json
 
 
@@ -12071,7 +12191,7 @@ def _run_verification(root: Path, argv: list[str] | None = None) -> dict:
     """s11 — run verification.py at the cheapest existing level and return it.
 
     Level `quick` (`--json`) is the cheapest existing level
-    (links + goals-check + write-guard, <15s — verification.py:14) and is the
+    (links + write-guard, <15s — verification.py:14) and is the
     one this round actually cites; it never runs pytest (the suite window is
     the prime's, verification.py is read/ran, never edited). `argv` is the
     test seam (a fixture root has no graph to verify). NEVER raises: any
@@ -14434,7 +14554,7 @@ def _claim_after_join(root, seat, record_path, performer,
         "claim_key": str(rec.get("recorded_at") or ""),
     }
     try:
-        rp.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+        rp.write_text(_dump_record(rec), encoding="utf-8")
         _commit_after_join_record(root, record=rec, record_path=str(rp),
                                   seat=seat, performer=performer,
                                   commit_label="claim")
@@ -15300,7 +15420,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                     if performed_after_s is not None:
                         rec["after_join"]["age_s"] = float(performed_after_s)
                 record_commit = None
-                rp.write_text(json.dumps(rec, indent=2) + "\n",
+                rp.write_text(_dump_record(rec),
                               encoding="utf-8")
                 # (hypothesis:l4-the-after-join-record-rewrite-is-committed-
                 # by-pathspec-and-a-worktree-seats-record-names-its-committer
@@ -15586,7 +15706,7 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                     # reads `M` on the marker (a marker left local/uncommitted
                     # made the next restart RE-see the record and re-skip). On
                     # a gitless fixture the helper SKIPPEDs harmlessly.
-                    rp.write_text(json.dumps(mark, indent=2) + "\n",
+                    rp.write_text(_dump_record(mark),
                                   encoding="utf-8")
                     _commit_after_join_record(
                         root, record=mark, record_path=str(path),
@@ -18249,6 +18369,11 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
                              text=True, timeout=10)
         if _hs.returncode != 0 or _hs.stdout != own:
             _stage_seats = own   # the own row actually differs from HEAD
+    # goal:g4.18.4: a posts.md that does not load is never committed -- but the
+    # CARD (the resumability anchor) still commits alone, the refusal named
+    _seats_refused = ""
+    if _stage_seats is not None and (_why := _posts_load_error(_stage_seats)):
+        _seats_refused, _stage_seats = _why, None
     import tempfile  # noqa: PLC0415  (mirrors _ack_commit_seats / spawn_row)
     fd, tmp_index = tempfile.mkstemp(prefix="stoprow-idx-")
     os.close(fd)
@@ -18327,7 +18452,8 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
         sha = ""
     _touched = card_rel + (f", {seats_rel}" if _stage_seats is not None else "")
     return (f"stop_commit: committed {_touched} (ONE rotate-out commit "
-            f"@{sha or '?'})")
+            f"@{sha or '?'})" + (f"; own row NOT committed: {seats_rel} does not "
+                                 f"load ({_seats_refused})" if _seats_refused else ""))
 
 
 def _stops_push(root: Path, label: str = "stops") -> str | None:
@@ -19600,7 +19726,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 _rec0 = json.loads(Path(rec_path).read_text())
                 _rec0["applied_rename"] = _applied_rename
                 Path(rec_path).write_text(
-                    json.dumps(_rec0, indent=2) + "\n", encoding="utf-8")
+                    _dump_record(_rec0), encoding="utf-8")
             print(f"(0.9) rename boundary: {_applied_rename.get('old')} -> "
                   f"{seat}: {_applied_rename.get('applied')} applied, "
                   f"{_applied_rename.get('skipped')} skipped; stage consumed")

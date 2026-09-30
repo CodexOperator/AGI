@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-trimguard-subcommand
 next_edges: []
 confidence: 0.95
-edited_by: a00-698453a0
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-18b5dac7-28b90e
 loop: hypothesis:l4-trimguard-subcommand@s2
@@ -63,7 +63,7 @@ untracked script and the folded subcommand against it:
 `cli.py trimguard` subcommand supersedes it, the untracked
 `.agi/sessions/trimguard.py` should be deleted; leaving two live copies of the
 same safety check is how one gets silently stale. I did NOT delete it here:
-it lives in the MAIN checkout (`/home/ubuntu/work/agi/.agi/sessions/`), a
+it lives in the MAIN checkout (`<home>/work/agi/.agi/sessions/`), a
 different worktree this seat may not edit, so the deletion is a recorded
 recommendation for the director, not an action I take. The port is complete;
 nothing in the fold depends on the untracked file in any way (verified by
@@ -73,7 +73,7 @@ running from a clean fixture with no access to the original).
 
 Fixture `/tmp/tgfix/` = HANDOFF.md copy + `.agi/nodes/` copy + `{}` config.json.
 Commands run:
-- `python3 /home/ubuntu/work/agi/.agi/sessions/trimguard.py`  -> exit 1 then 0
+- `python3 <home>/work/agi/.agi/sessions/trimguard.py`  -> exit 1 then 0
 - `python3 extensions/agi/bin/cli.py trimguard` (cwd=/tmp/tgfix) -> exit 1 then 0
 - `diff /tmp/tg_orig{2,3}.out /tmp/tg_fold{2,3}.out` -> no differences on either path.
 - `pytest test_cli.py` -> 13 passed. `pytest test_bin_help_smoke.py` -> 57 passed, 1 skipped.

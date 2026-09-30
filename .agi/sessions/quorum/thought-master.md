@@ -13,56 +13,38 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-08:5xZ 09-29 gen 34 (crash-recovered: box REBOOT ~04:50Z, /tmp wiped) -- DT 35 / DE 46 reborn by heal; owed re-listed (TMM.365/366, dm + SendMessage); IDLE until DE's next [merge-up]
+10:1xZ 09-29 gen 34 -- DOWN-READY: owner 10:0xZ via belam, run mode -> the council loop (goal:g7.16.1); TM/DT/DE go down, the Prime takes the seat
 ```
-state    last order = TMM.366 · next = TMM.367 · 08:5xZ 09-29 · seat row ref 057f32 at HEAD (704ee55c9) · PASS B2 still HELD (03:59Z) -> EG.185 #7 waits
-LANDED6  9d1317ba0 = DE #6 EG.186 (consecutive-empty budget + growing backoff), TARGETED gate while PASS B2 re-retries (654 passed, hygiene = trunk 14).
-         cells e318e8f62: factor 1.5 · cap 120 s · total 52 (A; B refused). Next: #7 = EG.185 chain (workflow.py) AFTER PASS B2 closes
-KIDCAP   [decision] B (TMM.362): the director brief cites spawn.parent_max_kids (10, owner 09-16) instead of a typed 5 (3b1c33311); DE EG.207 fixes the
-         agi-dispatch skill row + prime-director-successor.md row 25 by name. EG.205 = EG.185 chain corrective; that chain lands after PASS B2
-SIGS     ee40e8211: values.pi_retry.transient_signatures (5 fragments) set by me -- EG.185 had them on config:workflows (Prime-only, refused);
-         corrective on EG.185 = reader -> config.json cell, test re-pinned. EG.185 [merge-up] waits its mur; workflow.py never lands mid-PASS B2
-PI_RETRY 86bbc1bd8: 12 x 60 s (6/6 = the edge: EG.185 parent died 6/6 exhausted, EG.184 survived on its 6th; per-RUN budget; empty rate unchanged after the
-         other town left). EG.186 dispatch now ahead of EG.153 = consecutive-empty budget + growing backoff, all cells. EG.185 stage retry -> SAME cells.
-         Murs 100 pct dead (7 murs, 4-8 tries). Still dead after EG.185 lands = lane/model [decision] to belam with numbers. EG.184 a06ca6e3e waits its mur
-G5.33    minted 4001b8b2b (OWNER GO 22:2xZ: retire all workflows over time for the unified route; verbatim in body + THOUGHT; belam told, mur = belam's call).
-         No round yet: EG.185 is the bridge. First leaf when DE's queue reaches it = the most-run non-mur workflow as a dispatched round, green before retiring
-PI_RETRY 9c0a427e6: values.pi_retry 2x5s -> 6x60s (DE [decision] A; pi-free empty-response outage since 20:0xZ). C = EG.186 queued after EG.185 + EG.153.
-         DE reports deaths/dispatches after an hour on 6x60; still dying = [decision] to belam with numbers (lane/model = the Prime's)
-         TMM.354's 'parents read it from MAIN' VOID (TMM.355): a round reads the config of its OWN cut (pi_trajectory.py:46 find_project_root);
-         DE re-based the queued cuts (EG.184 66e7f3cf2, EG.185 736f5602a + 7); EG.180/181/173 need merge-resolution rounds. Death count 22:3xZ
-PASS B2  belam: runs 01:43Z 09-29 (~1-3 h, holds on a memory alarm or / < 1 GB): land the TMM.350 workflow.py change BEFORE 01:43Z or after B2 closes, never mid-pass; no gate suite in its start window
-LANDED  b0aa2c178 = DE #5 a2ec45880 (EG.151 retry + values.pi_retry live; EG.150 e2e tests): suite 7345/2 trunk reds; thought_hygiene = trunk 14
-NEXT     DE queue (TMM.353): EG.183 corrective (signatures INTO workflows.pi_transient_signatures; read the cell at its gate) -> EG.153 re-send -> owed list
-EG.153   withdrawn by DE until both TMM.351 reds are fixed (test_write KeyError vs EditError; 3 order-dependent test_payload_rename reds)
-TMM.350  EG.183 harvested 2d0b3c8ed (workflow.py +53) but the config cell NOT written (list in code) -> murq274 corrective; check the cell at its gate
-LANDED   today on local-maxxing/season2/main (all pushed, all by commit-tree on a tmpfs gate): EG.186 9d1317ba0 · EG.151+150 b0aa2c178 · EG.1 57debf3a2 · EG.64 2beb0aba3 (union) · EG.95
-         c6a975721 · DH.679 e3e730e3b (prompt hook live) · EG.72 96d22cb50 · EG.88+90 51eab0b70 · EG.71 39d280fa9 · EG.83 273669575 · EG.113
-         7c812d5be (returned once) · EG.137+133 165c99e6a · EG.125 d0cb3bb35 · PASS 12 + B1 CLOSED (0 red); B2 carries EG.83 onward
-TRUNK RED test_thought_hygiene only: quoted THOUGHT markers (13+ nodes, each ONE real line-start pair) -> DE detector chain EG.121 -> EG.134 at the FRONT
-FACTS    EG.107 chain (wake-facts-collapse, EG.145 under mur) is red BY DESIGN until belam's window: cell templates.director.startup.
-         facts_pointer_target_bytes = 2000 + belam's F13 trim (region ~2001-2009 B -> 1988 B). Asked belam (TMM.346) for trim + cell on an
-         OFF-trunk SHA -> READY: local branch belam/facts-window @ a1ccc2dee (region 1988 B). DE's chain must ALSO re-pin
-         test_region_live_only_f13_is_the_one_declared_instruction (TMM.348). Gate chain + a1ccc2dee TOGETHER (merge-tree HEAD, tip, then a1ccc2dee;
-         test_rotate_templates all green), ping belam (or its successor: §🔴 F on belam's card), land both in ONE window. No test fallback (refused)
-DE OWES  EG.9 heal-sweep 0-commit fix (tmpfs GO waits on it) -> EG.128 /tmp basetemp reaper (/ filled twice 09-28) -> dispatch stamps
-         dispatch_node_id at spawn (TMM.347: until then a parent cannot --owns a dead kid's node) -> g7.33: config-cell round commit (TMM.328 b),
-         sensei whois-rederive trunk red (TMM.330), zero-USD skip list as a cell (EG.103 A), 106 off-shape old nodes repaired via write.py
-         (TMM.345), brief.py ORDERS channel + review-scaffold template (TMM.336), verb-scoped town note grant (TMM.323, belam adds grant lines)
-RULINGS  TMM.327 (C): a node-prose-only residue = ONE director commit per chain, I read its diff; behaviour/config/test claims keep corrective +
-         mur · cherry-pick rule: a file whose chain side is ONLY the zero-USD cherry-pick takes the post side · every [merge-up] lists files
-         outside its named chains
-LANE     pi-free at FULL arm (OWNER 15:51Z "No need to lighten load let’s hammer it"): box gates only, dead rounds re-dispatched
-SPEND    zero-USD sizing refusal live since EG.71: key cap 0.01 x spawn.max_live 30 = 0.30 < balance 0.6062 -> refuses EVERY zero-USD mint if
-         balance < 0.30 or max_live > 60; a 'zero-USD sizing' line = [red] at once · account 0.606 USD, no top-up (owner)
-BOX      / root fs 99-100 pct (958 MiB 13:1xZ; belam sizing /tmp) · /data 90 GB free · /dev/shm 7 GB: gate trees + TMPDIR go there
-RAMDISK  per-role ROOTS FIRST (OWNER GO via belam 22:12Z, TMM.356, order on the RAM node 8af87980f): DE + parents /data, belam + TM /mnt/agi-flash
-         (mounted, 112G), kids as-is; queued to DE after EG.185 + EG.153. tmpfs HOLD unchanged: EG.9 merged + 24 h no memory crit; KID worktrees only
-MOVE     DONE (belam 22:28Z): logs/cache -> /data/home-belam, TMPDIR /data/tmp for NEW spawns, prime-root -> /mnt/agi-flash; ~/.pi not yet.
-         My seat verified 22:3xZ: send · rotate · grid · dispatch · suite (75 passed under /data/tmp) all green -> no reply (belam: breaks only). DT told (TMM.359); DE has it in its inbox
-DT       minimal lane: <= 1 parent, model-free (TMM.276) · GATE-DT tip 09d7ed36c waits on DE's nudge fix (DH.490)
-BANKED+  home-path quotes: 13 trunk nodes carry the box user's home path; anonymize.py does not check home paths (DE findings row)
-out      python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; the card committed first)
+state    last order = TMM.367 · next = TMM.368 · nothing in flight on my side (no gate worktree, no suite, no held tip)
+LANDED   today 09-29: DE #8 1dac9eae7 (EG.206 provisioning one import route) · #6 9d1317ba0 (EG.186 consecutive-empty budget) + cells e318e8f62
+         (values.pi_retry factor 1.5 · cap 120 s · total 52) · all pushed; trunk red = test_thought_hygiene only (14 offenders, identical each gate)
+BOX      REBOOT ~04:50Z = systemd-oomd (user@1000 memory pressure; belam's card) -> /tmp wiped; / now 35 pct (61 G free); heal respawned DT 35 / DE 46
+OPEN WORK, for the council to bundle (owner of each in brackets)
+ 1 PASS B2 [belam] relaunched 09:01Z (tag pb2b) -- gates #7: workflow.py never lands mid-PASS
+ 2 DE queue [DE] 16 rounds serial: EG.220 (= EG.185 chain re-dispatch, salvage 5fd3057a9 UNREVIEWED) 211 212 214 215-219 221-227 ·
+   murs 310 315 316 re-run · EG.227 = node_writer.py drops authored THOUGHT regions (murq300 demote, 8 reds) · EG.211/212/220 parents
+   died of a 0-byte index.lock 04:22-04:28Z, BEFORE the reboot (cause unexplained)
+ 3 #7 EG.185 chain [DE -> gate] after B2: workflow.py stage retry reads the SAME values.pi_retry cells; transient_signatures reader ->
+   .agi/config.json values.pi_retry.transient_signatures (ee40e8211; config:workflows is Prime-only), test re-pinned · rides g7.33.19
+   rows 26-31 + EG.222 item 10 (agi-dispatch skill + prime-director-successor.md row 25 cite spawn.parent_max_kids by name, TMM.362 B)
+ 4 free-lane deaths [decision, lane/model = the Prime's]: murs 100 pct dead on pi-free empties (7 murs); still dead after #7 -> numbers to belam
+ 5 after the queue [DE]: EG.183 corrective (signatures cell read at its gate) -> EG.153 re-send (withdrawn until TMM.351 reds: test_write
+   KeyError vs EditError; 3 order-dependent test_payload_rename reds) -> RAMDISK per-role roots (OWNER GO, TMM.356, RAM node 8af87980f)
+ 6 DE OWES [DE]: EG.9 heal-sweep 0-commit fix (tmpfs GO waits on it + 24 h no memory crit) -> EG.128 /tmp basetemp reaper -> dispatch
+   stamps dispatch_node_id at spawn (TMM.347) -> g7.33 rows: config-cell round commit (TMM.328 b) · sensei whois-rederive red (TMM.330) ·
+   zero-USD skip list as a cell (EG.103 A) · 106 off-shape nodes via write.py (TMM.345) · brief.py ORDERS + review scaffold (TMM.336) ·
+   verb-scoped town note grant (TMM.323) · hygiene detector chain EG.121 -> EG.134 (the trunk red)
+ 7 FACTS window [DE + belam]: EG.107 chain (wake-facts-collapse, EG.145) + local branch belam/facts-window a1ccc2dee (F13 region 1988 B,
+   cell templates.director.startup.facts_pointer_target_bytes 2000) land TOGETHER in ONE window; the chain re-pins
+   test_region_live_only_f13_is_the_one_declared_instruction (TMM.348); no test fallback
+ 8 G5.33 [town] retire all workflows over time for the unified route (OWNER GO 22:2xZ 09-28, 4001b8b2b): no round yet; first leaf after #7
+   = the most-run non-mur workflow as a dispatched round, green before retiring
+ 9 DT [DT] minimal lane (<= 1 parent, model-free, TMM.276): nothing in flight; GATE-DT tip 09d7ed36c waits on DE's nudge fix (DH.490);
+   preflight retire + OSC.41 wait on it; TMM.292 dispatch hold not lifted
+10 findings [DE row]: 13 trunk nodes carry the box user's home path; anonymize.py does not check home paths
+SPEND    account 0.606 USD, no top-up; zero-USD sizing refusal live (0.01 x max_live 30 = 0.30): a 'zero-USD sizing' line = [red]
+RULINGS  TMM.327 (C): node-prose-only residue = ONE director commit per chain; behaviour/config/test claims keep corrective + mur
+out      NO self-rotate (owner via belam): the Prime takes the seat down
 ```
 
 ## Traps (post-specific, learned)

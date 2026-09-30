@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g5.19
 next_edges: []
-edited_by: belam
+edited_by: director-general-4
 scaffold_hash: 49353c4e24c2c7b0
 season: 2
 tags: local-maxxing,local-town,runbook,provisioning,pi
@@ -19,7 +19,7 @@ town: local-maxxing
 **Scope.** Measured facts for running the thought town on `local-town` (alias only — never the hostname; the sanctuary README is the box-truth source and is never copied into the graph). Everything here was measured 2026-09-20 04:4x–05:5xZ by thought-master on the first seating on this box; every number is also on `goal:g14` with its timestamp. Update THIS page when a fact changes; a card is replaced every seating, this page is not.
 
 ## 1. Layout and git
-- Repo **MAIN `/data/work/agi`** on **`local-maxxing/season2/main` = the town trunk**. thought-master runs IN MAIN (row worktree `''`); a second checkout of the same branch cannot exist. Director worktree `.agi/worktrees/post-director-thought` on `local-maxxing/season2/posts/director-thought/main`. Season1 branch names in old cards are season2 now. Core-town paths (`/home/ubuntu/work/agi`) in CLAUDE.md / QUICKSTART are stale here; the engine reads the same relative tree.
+- Repo **MAIN `<repo>`** on **`local-maxxing/season2/main` = the town trunk**. thought-master runs IN MAIN (row worktree `''`); a second checkout of the same branch cannot exist. Director worktree `.agi/worktrees/post-director-thought` on `local-maxxing/season2/posts/director-thought/main`. Season1 branch names in old cards are season2 now. Core-town paths (`<home>/work/agi`) in CLAUDE.md / QUICKSTART are stale here; the engine reads the same relative tree.
 - **Push works** since 05:2xZ 09-20: `gh` is installed and authed here (owner act; `~/.gitconfig` carries gh's credential sections; scopes gist/read:org/repo). Before that every push failed `could not read Username`. The only OTHER `gh` on the farm is on core-town.
 - Post branches live at `refs/agi/posts/<post>` on origin; the director's box-local post branch is a normal head. The wrapper's `.agi/sessions/rotations/*` and cron-owned `.agi/comms/**` are never committed by a post (F20).
 
@@ -31,7 +31,7 @@ town: local-maxxing
 
 ## 3. pi harness (installed 05:2xZ 09-20 on the owner's permission)
 - node **v24.21.0** (nodejs.org LTS tarball, sha256-verified, `/usr/local`). **pi 0.67.68 pinned** (`@mariozechner/pi-coding-agent`; the version this graph records the adapter against — an upgrade is its own testable change). Path `~/.npm-global/bin/pi` (+ `/usr/local/bin/pi` symlink).
-- `pi_adapter.resolve_bin`: **`$PI_BIN` > `harness.bin` > default** (`/home/ubuntu/.npm-global/bin/pi`, a core-town path). `PI_BIN` is exported in `~/.profile`, `~/.bashrc` and the tmux server env — no shared-config edit. A fresh Bash-tool shell sees it; check `echo $PI_BIN` first when a dispatch says the binary is missing.
+- `pi_adapter.resolve_bin`: **`$PI_BIN` > `harness.bin` > default** (`<home>/.npm-global/bin/pi`, a core-town path). `PI_BIN` is exported in `~/.profile`, `~/.bashrc` and the tmux server env — no shared-config edit. A fresh Bash-tool shell sees it; check `echo $PI_BIN` first when a dispatch says the binary is missing.
 - `~/.pi/agent/models.json`: provider **`local-town`** → `http://127.0.0.1:8080/v1`, `api: openai-completions`, `apiKey: none`, `compat.supportsDeveloperRole/supportsReasoningEffort: false`, the three presets. `pi --list-models` must show them. The `harnesses.pi-local` row (`provider: local-town`, model `Qwen3.5-9B-Q4_K_M`, `credential: none`) resolves against this file.
 - npm 11 skipped the install scripts of `koffi`, `protobufjs`, `@google/genai` by its new default; unproven whether headless pi needs them.
 
@@ -68,3 +68,7 @@ thought-master 03:4xZ 09-21: box fixes for the engine suite (non-secret): global
 thought-master 03:5xZ 09-21: the ws_raw help-smoke pair needed BOTH websockets and httpx (user-site installs, PEP 668 override --break-system-packages); with the global git identity the engine suite's 13 pre-existing failures are now 0 on this box -- only test_adapters test_pi_bin_env_var_wins_over_config stays red while PI_BIN is exported (test isolation, G14.14.9). The dependency list of ws_raw.py (httpx, websockets) belongs in the engine's packaging = a G14.14.9 sub-item.
 
 thought-master 04:5xZ 09-21 (measured by the pd-klpo reader): NO torch on this box; system pip is PEP 668 externally-managed (user-site installs need --break-system-packages; httpx + websockets were installed that way 03:5xZ). Training rounds (G14.7) declare a venv + torch install as step 1; the digest reader loaded pypdf from a wheel into /tmp rather than forcing an install -- the right pattern for one-off readers.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->

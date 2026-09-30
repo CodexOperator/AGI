@@ -820,3 +820,78 @@ def test_the_declared_type_cache_is_keyed_on_the_ROOT_not_only_the_dir_mtime(tmp
     seen_b = cli._declared_types(rootb, "experiment")
     assert seen_a.get("probes") is list, seen_a
     assert "probes" not in seen_b, f"root B was served root A's table: {seen_b}"
+
+
+# --- bundle 4 W2a (director-general-2) ------------------------------------
+_W2A = "bundle 4 W2a: RED until DG3 builds the one mint-id resolver"
+_W2A_MINT = "d" * 32
+
+
+def test_w2a_a_renumbered_mint_id_resolves_to_its_new_address(project):
+    fm = [f"mint_id: {_W2A_MINT}", "type: goal", 'title: "T"', "status: active"]
+    old = _node(project, "goal:g9.1", ['id: "goal:g9.1"'] + fm, "b\n")
+    assert links.resolve_mint(project, _W2A_MINT)[0] == "goal:g9.1"
+    old.unlink()  # the renumber: same mint id, new address, a NEW read
+    _node(project, "goal:g9.2", ['id: "goal:g9.2"'] + fm, "b\n")
+    got = links.resolve_mint(project, _W2A_MINT)
+    assert tuple(got) == ("goal:g9.2", "T", "active"), got
+
+
+def test_w2a_one_resolver_def_and_links_and_write_call_it():
+    import re
+    src = {p.name: p.read_text() for p in BIN.glob("*.py")}
+    defs = [n for n, s in src.items()
+            if re.search(r"^def resolve_mint\(", s, re.M)]
+    assert len(defs) == 1, f"one resolver, one def: {defs}"
+    callers = [n for n in ("links.py", "write.py")
+               if "resolve_mint(" in src[n].replace("def resolve_mint(", "")]
+    assert callers == ["links.py", "write.py"], callers
+
+
+# --- bundle 4 W2c (director-general-2)
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2c: RED until DG3 builds mint-id "
+                   "resolution into links._verdict_class_disagreements (parents/evidence_runs)")
+def test_w2c_verdict_class_check_resolves_a_mint_id_like_its_address(tmp_path):
+    seen = []
+    for form in ("address", "mint"):
+        root = tmp_path / form / ".agi"
+        (root / "nodes").mkdir(parents=True)
+        (root / "config.json").write_text("{}")
+        ref = "e" * 32 if form == "mint" else "experiment:e1"
+        _node(root, "experiment:e1", ["id: experiment:e1", "mint_id: " + "e" * 32,
+                                      "type: experiment", "verdict: disproved"], "run")
+        _node(root, "verdict:v1", ["id: verdict:v1", "mint_id: " + "f" * 32, "type: verdict",
+                                   "parents:", f"  - {ref}", "evidence_runs:", f"  - {ref}",
+                                   "verdict: proved"], "judged")
+        seen.append(len(links._verdict_class_disagreements(root)))
+    assert seen == [1, 1]
+
+
+# --- bundle 4 W2c re-scope B (director-general-2) -- goal:g4.18.6.3.2
+def _w2cb_twin(tmp_path, mint: bool):  # goal:g <- hypothesis:h <- experiment:e; h next_edges e
+    ids = {"goal:g": "a" * 32, "hypothesis:h": "b" * 32, "experiment:e": "c" * 32}
+    ref, root = (lambda a: ids[a] if mint else a), tmp_path / ("mint" if mint else "addr") / ".agi"
+    for nid, par, nxt in (("goal:g", "", ""), ("hypothesis:h", "goal:g", "experiment:e"),
+                          ("experiment:e", "hypothesis:h", "")):
+        fm = [f"id: {nid}", f"mint_id: {ids[nid]}", f"type: {nid.split(':')[0]}", "status: active"]
+        _node(root, nid, fm + [f"{k}:\n  - {ref(v)}" for k, v in (("parents", par), ("next_edges", nxt)) if v], "")
+    return root
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2c re-scope B: RED until DG3 resolves the private parses")
+def test_w2cb_every_private_parse_reads_a_mint_twin_as_its_address_twin(tmp_path):
+    import importlib, brief, frontier as fr, graphweb as gw, metrics, telemetry_rollup as tr
+    from chain_engine import chains
+    sg, seen = importlib.import_module("snapshot-goals"), []
+    for mint in (False, True):
+        root, ne = _w2cb_twin(tmp_path, mint), {}
+        nodes, ns = root / "nodes", fr._load_nodes(root / "nodes")
+        chains._load_next_edges_from_disk(str(nodes), ne)
+        ex = {n: {"fm": f, "path": n} for n, f, _ in links._iter_corpus(root)}  # snapshot-goals' shape
+        up = [q for p in brief._parents_of(root, "experiment:e") for q in brief._parents_of(root, p)]
+        seen.append(dict(
+            tips=sorted(n["id"] for n in fr._tips(ns)), anchor=fr._anchor(ns, "experiment:e"), next=ne,
+            attr=metrics.goal_attribution(nodes)["unattributed_nodes"], brief=up, tel=sorted(tr._build_graph_index(root)[1]),
+            web=sorted(gw.sanctuary_subtree(gw.load_nodes(root), "goal:g")),
+            integrity=sg.report_integrity(ex, sg.collect_parent_refs(ex), set(ex))[0]))
+    assert seen[1] == seen[0], {k: (v, seen[1][k]) for k, v in seen[0].items() if v != seen[1][k]}

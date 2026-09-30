@@ -23,14 +23,6 @@ commands:
       - "-q"
     about: the engine's own suite
     workflow: verify
-  goals-check:
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/snapshot-goals.py
-      - "--render"
-      - "--check"
-    about: GOALS.md and the goal nodes are byte-identical inverses
-    workflow: verify
   viewport-verify:
     argv:
       - python3
@@ -193,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: director-engine
+edited_by: director-general-3
 excluded:
   write.py:patch:
     cli: write.py
@@ -751,21 +743,29 @@ excluded:
   verification.py::
     cli: verification.py
     verb: ""
-    argv: [python3, <engine>/extensions/agi/bin/verification.py]
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/verification.py
     reason: the rotation check carries --suite, --stamp and --ring-* flags -- a proposer must not demand the engine suite under the one-runner lock, stamp the baseline or sign a ring
     side_effects: read
     proposable: false
   verification.py:window:
     cli: verification.py
     verb: window
-    argv: [python3, <engine>/extensions/agi/bin/verification.py, window]
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/verification.py
+      - window
     reason: the merge-up window shares verification.py's --suite-ring/--ring-sig signer flags -- excluded with the bare check
     side_effects: read
     proposable: false
   write_guard.py:hook:
     cli: write_guard.py
     verb: hook
-    argv: [python3, <engine>/extensions/agi/bin/write_guard.py, hook]
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write_guard.py
+      - hook
     reason: prints a pre-commit hook that installs itself -- an install, not a choice
     side_effects: graph-write
     proposable: false
@@ -935,6 +935,20 @@ manifest:
       - {"name": "range", "type": "str", "required": true, "choices": []}
       - {"name": "source", "type": "str", "required": true, "choices": ["-"]}
     purpose: replace a body or payload slice with text on stdin
+    side_effects: graph-write
+    proposable: true
+  write.py:row:
+    cli: write.py
+    verb: row
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write.py
+      - <node-id>
+      - row <ref> <source>
+    args:
+      - {"name": "ref", "type": "str", "required": true, "choices": []}
+      - {"name": "source", "type": "str", "required": true, "choices": ["-"]}
+    purpose: replace one body row (node_writer.body_rows), or lines i-j inside it (<n>:<i>-<j>)
     side_effects: graph-write
     proposable: true
   write.py:adopt:
@@ -1393,6 +1407,20 @@ manifest:
       - {"name": "broken", "type": "bool", "required": false, "choices": []}
       - {"name": "fix", "type": "bool", "required": false, "choices": []}
     purpose: links.py roles
+    side_effects: read
+    proposable: true
+  links.py:mint:
+    cli: links.py
+    verb: mint
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/links.py
+      - mint
+      - <mint_id>
+    args:
+      - {"name": "mint_id", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: resolve a mint id to the one live node carrying it (id, title, status)
     side_effects: read
     proposable: true
   links.py:schema:
@@ -1898,16 +1926,11 @@ manifest:
     argv:
       - python3
       - <engine>/extensions/agi/bin/snapshot-goals.py
-    args:
-      - {"name": "strict", "type": "bool", "required": false, "choices": []}
-      - {"name": "strict_goals", "type": "bool", "required": false, "choices": []}
-      - {"name": "project", "type": "str", "required": false, "choices": []}
-      - {"name": "render", "type": "bool", "required": false, "choices": []}
-      - {"name": "check", "type": "bool", "required": false, "choices": []}
-      - {"name": "from_doc", "type": "bool", "required": false, "choices": []}
-    purpose: snapshot-goals.py
-    side_effects: graph-write
-    proposable: true
+    args: []
+    purpose: snapshot-goals.py -- RETIRED as a command with GOALS.md (bundle 4 row W-G); the module stays as shared node-file helpers
+    side_effects: read
+    proposable: false
+    reason: GOALS.md, its render and its import are retired; the CLI only prints the retirement line
   spawn_budget.py:pause:
     cli: spawn_budget.py
     verb: pause
@@ -2751,8 +2774,6 @@ manifest:
     reason: writes a git pre-commit hook; operator-only
   smoke:
     side_effects: graph-write
-  goals-check:
-    side_effects: graph-write
   grid-commit:
     side_effects: graph-write
   session-complete:
@@ -3019,11 +3040,15 @@ manifest:
       - {"name": "json", "type": "bool", "required": false, "choices": []}
     purpose: "before vs after: did the goal:g11 migration lose anything? read-only"
     side_effects: read
-    proposable: true
+    proposable: false
+    reason: a one-repo migration verifier; its goals_at_repo_root check fails on every repo since GOALS.md retired (the DG4 leftovers leaf under bundle 4 row W-G decides its fate)
   write_guard.py:check:
     cli: write_guard.py
     verb: check
-    argv: [python3, <engine>/extensions/agi/bin/write_guard.py, check]
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write_guard.py
+      - check
     args: []
     purpose: goal:g4.18 — unsanctioned node writes; silent is healthy
     side_effects: read
@@ -3031,7 +3056,10 @@ manifest:
   verify-suite:
     cli: verification.py
     verb: "--suite"
-    argv: [python3, <engine>/extensions/agi/bin/verification.py, "--suite"]
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/verification.py
+      - "--suite"
     args: []
     reason: runs the whole engine suite under the one-runner suite lock -- opt-in, never proposed
     side_effects: read
@@ -3155,7 +3183,6 @@ workflows:
   verify:
     - smoke
     - tests
-    - goals-check
     - viewport-verify
     - grid-commit
   read:

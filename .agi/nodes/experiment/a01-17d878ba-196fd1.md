@@ -6,7 +6,7 @@ parents:
   - hypothesis:a01-ee1a02e3-4e834e
 next_edges: []
 confidence: 0.6
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 7c6e9505f31b1b5c
 season: 1
 thought_session: season
@@ -39,8 +39,8 @@ import re, json
 from pathlib import Path
 from collections import Counter
 
-nodes_dir = Path("/home/ubuntu/work/agi/.agi/nodes")
-sessions_dir = Path("/home/ubuntu/work/agi/.agi/sessions")
+nodes_dir = Path("<home>/work/agi/.agi/nodes")
+sessions_dir = Path("<home>/work/agi/.agi/sessions")
 
 all_agent_ids = set()
 for it in [d for d in sessions_dir.iterdir() if d.is_dir() and d.name.startswith("iter-")]:

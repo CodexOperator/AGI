@@ -10,9 +10,9 @@
       "windows": [
         "belam-II"
       ],
-      "source": "window-path file /home/ubuntu/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_loop_ignores_debug_reply_0/windows.txt"
+      "source": "window-path file <home>/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_loop_ignores_debug_reply_0/windows.txt"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/seats/belam-II.ack.json",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/seats/belam-II.ack.json",
     "d_reply_decision": "diff"
   }
 }

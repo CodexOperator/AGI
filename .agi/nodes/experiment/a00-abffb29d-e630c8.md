@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-predecessor-hands-over-authority
 next_edges: []
 confidence: 0.8
-edited_by: sanctuary-director
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-abffb29d-e630c8
 loop: hypothesis:l4-the-predecessor-hands-over-authority@s2
@@ -114,10 +114,10 @@ PRIME seat (`rotate-self --name belam --role prime_director --dry-run`):
 ... claude --remote-control belam-S1-L4-VIII ...
 (3) spawn successor under the numeral-chain name 'belam-S1-L4-VIII' (role 'prime_director')
 (4) ...
-    pending ack path: /home/ubuntu/work/agi/.agi/sessions/seats/belam.ack.json
+    pending ack path: <home>/work/agi/.agi/sessions/seats/belam.ack.json
     (the successor's own `rotate.py ack --seat belam --gen 8` flips it ...)
 (5) successor-window guarantee: tmux list-windows must show the numeral-chain name 'belam-S1-L4-VIII'
-(dry-run) numeral-chain seat: successor name 'belam-S1-L4-VIII', generation = numeral 8, own window @id = tmux display-message -p '#{window_id}' (knowable only live), ack path /home/ubuntu/work/agi/.agi/sessions/seats/belam.ack.json
+(dry-run) numeral-chain seat: successor name 'belam-S1-L4-VIII', generation = numeral 8, own window @id = tmux display-message -p '#{window_id}' (knowable only live), ack path <home>/work/agi/.agi/sessions/seats/belam.ack.json
 ```
 
 Measured against the previous prime dry-run (L4-VI): the successor was

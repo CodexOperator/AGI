@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-grid-storage-trunk-migration-for-local-maxxing
 next_edges: []
 confidence: 0.65
-edited_by: a00-2b472e09
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-b60c64bd-a999da
 line_ceiling: 200
@@ -92,7 +92,7 @@ python3 extensions/agi/bin/grid.py migrate-trunk --to refs/grid/local-maxxing
 ### 4. Full-scale rehearsal on a scratch MIRROR clone — NOT the live box
 
 ```
-git clone --mirror /data/work/agi <scratch>/box.git   # 3773 grid refs copied
+git clone --mirror <repo> <scratch>/box.git   # 3773 grid refs copied
 python3 <scratch>/rehearse.py <scratch>/box.git
 ```
 
@@ -106,7 +106,7 @@ python3 <scratch>/rehearse.py <scratch>/box.git
 
 ## Cross-worktree hazard — measured
 
-- `git rev-parse --git-common-dir` → `/data/work/agi/.git`; **all worktrees
+- `git rev-parse --git-common-dir` → `<repo>/.git`; **all worktrees
   share the grid ref store.** `git worktree list` shows ~20 live checkouts.
 - `.agi/config.json` is **per-worktree** (each worktree resolves its own file;
   `local-maxxing` is NOT in any config today).
@@ -130,8 +130,8 @@ to each worktree's `.agi/config.json` in the same window.
 - live refs still at `refs/grid/node/*` (3773), untouched; live config unedited
 
 ## Agent Notes
-Built grid.py migrate-trunk (89 production lines, reuses _rename_ref unchanged; ref-driven, --to or configured grid.storage_trunk, dry-run default, refuse-never-clobber, idempotent). 7 new committed tests in test_grid.py; whole file 126 passed. Live read-only dry run: 3773 WOULD-MOVE, 0 conflicts, before==after==3773. Scratch --mirror rehearsal: 3773 moved, old namespace 0, 41/41 sampled tip shas identical, second run 0 moved. Cross-worktree hazard measured: refs shared via /data/work/agi/.git across ~20 worktrees, config per-worktree -- live --write BANKED to director.
+Built grid.py migrate-trunk (89 production lines, reuses _rename_ref unchanged; ref-driven, --to or configured grid.storage_trunk, dry-run default, refuse-never-clobber, idempotent). 7 new committed tests in test_grid.py; whole file 126 passed. Live read-only dry run: 3773 WOULD-MOVE, 0 conflicts, before==after==3773. Scratch --mirror rehearsal: 3773 moved, old namespace 0, 41/41 sampled tip shas identical, second run 0 moved. Cross-worktree hazard measured: refs shared via <repo>/.git across ~20 worktrees, config per-worktree -- live --write BANKED to director.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (EF.08) -- demoted inconclusive_lean_proved:85 -> inconclusive_lean_disproved:65. (1) WHAT THE INSTRUCTION SAID: the target hypothesis says 'after .agi/config.json sets grid.storage_trunk=refs/grid/local-maxxing/ and the migration runs with --write, (a) git for-each-ref refs/grid/local-maxxing/ returns exactly 3773 refs ... (b) the OLD bare namespace returns 0'. The config-declared order is explicit: config first, then migrate. (2) WHAT THE MACHINE ACTUALLY DOES: main() resolves REF_NS from the config via apply_storage_trunk(root) at grid.py:1708 BEFORE cmd_migrate_trunk runs, and cmd_migrate_trunk takes old_ns = REF_NS as its SOURCE namespace. So with grid.storage_trunk already set, old_ns == new_ns == refs/grid/local-maxxing, the for-each-ref source list is empty, and the command reports '0 moved, 0 unchanged, 0 conflict(s)' while every ref stays under refs/grid/node/. My gate probe reproduced this exactly: apply_storage_trunk(root) then cmd_migrate_trunk(root, None, write=True) moved 0 of 2 refs and left both under the old namespace. (3) NEAR MISS: the kid's test test_migrate_trunk_uses_configured_trunk_when_to_absent calls cmd_migrate_trunk(root, None, ...) DIRECTLY, without main()'s apply_storage_trunk step, so REF_NS is still the module default refs/grid and the test passes -- a green suite that never exercises the CLI sequence the hypothesis describes. The kid's own design note ('the SOurce namespace is the REF_NS global ... still refs/grid while the config already declares the new trunk') is the opposite of what main() does. (4) DEVIATION: none of mine. The --to path is sound (wire probe held: 3773 moved, 0 conflicts, idempotent, restored cleanly); _rename_ref reuse, refuse-never-clobber and idempotency all hold. This is one fixable source-namespace bug, not a wrong approach. INCIDENT, recorded honestly: the wire probe was written for a scratch repo, but the CLI resolves AGI_TREE_PROJECT_ROOT first, so the invoked grid.py ran against the LIVE shared box and moved all 3773 refs to refs/grid/local-maxxing. The parent restored them in the same turn through grid._rename_ref (3773 moved back, 0 conflicts; sampled tips identical, refs/grid count back to 3773). No history was lost and no commit was made. This is itself a finding: any stray CLI call can move the shared ref store, which is why the live cut stays banked and must run quiesced.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 3 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

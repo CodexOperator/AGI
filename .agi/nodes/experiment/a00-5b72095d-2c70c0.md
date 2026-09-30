@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-dbd82e32-0b294f
 next_edges: []
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: d33a6b8f00f829e1
 season: 1
 thought_session: season
@@ -130,4 +130,4 @@ From `node_writer.py` line 598: `update_node` has zero logic branching on `paylo
 
 ## Evidence
 
-All commands run from `/home/ubuntu/work/agi` against the live repo. Raw output archived above in ## Results.
+All commands run from `<home>/work/agi` against the live repo. Raw output archived above in ## Results.

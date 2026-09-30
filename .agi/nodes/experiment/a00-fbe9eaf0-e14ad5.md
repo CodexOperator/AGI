@@ -6,7 +6,7 @@ parents:
   - hypothesis:log-cap-holds-while-a-long-lived-writer-keeps-the-log-open
 next_edges: []
 confidence: 0.7
-edited_by: a00-0c2aaab4
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-fbe9eaf0-e14ad5
 loop: hypothesis:log-cap-holds-while-a-long-lived-writer-keeps-the-log-open@s2
@@ -146,25 +146,5 @@ bounded tail copy (_tail_copy) replaces copyfile+trim: one apply is 0.026s where
 bounded tail copy (_tail_copy) replaces copyfile+trim: one apply is 0.026s where the old bytes blocked 0.2-127s chasing a moving EOF; sibling's red falsifier-1 test is now a green mode-explicit contrast pair; 146 tests pass; falsifier 2 (non-O_APPEND NUL hole) still open
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW DH.378 (a00-0c2aaab4) — `inconclusive_lean_proved:70` DEMOTED to inconclusive_lean_disproved:70.
-The work is real; the WORD is not. The fix is right and the claim as written is still false.
-
-(1) WHAT THE INSTRUCTION SAID, quoted: "A kid that passes its own tests and fails your probe is `lean_disproved`, with the probe NAMED — the falsifying case you ran, not its own passing suite."
-
-(2) WHAT THE MACHINE ACTUALLY DOES. `git diff --stat extensions/agi/bin/crons.py` → 34 insertions, 15 deletions, 19 production lines, one helper: `_tail_copy(src, dst, cap)` snapshots `size` once, seeks to `size - cap`, streams at most `cap` bytes in 1 MiB chunks into a FRESH destination, replacing `shutil.copyfile` + `_tail_to`. That part is good and I confirmed it live: my `probe5_final_bytes.py` drives four applies through the `logs.mode` cell and gets 0.074 s TOTAL, against sibling a00-fbe9eaf0's own 127.4 s single-apply worst case and a00-e4ba316a's 59.2 s. A reader that cannot chase a moving EOF has genuinely removed the cron-blocker, and the docstring now states the non-O_APPEND NUL hole rather than leaving it in a comment on the sibling.
-
-Then the gate probe that cost this round its verdict. Same fixture, a NO-SLEEP 4 KiB O_APPEND writer, and I measure 0.2 s AFTER the last apply instead of at the instant of it:
-    sizes: {agi-crons-probe.log: 220921856, agi-crons-probe.log.1: 1048576}
-    4 applies returned: ['... rotated ...'], [], [], []
-The archives are exactly at the cap. The BASE is 220921856 B against a 1048576 B cap — over by 210x. And the three no-op returns explain why: every one of those applies found the base UNDER the cap, because the writer refilled it in the milliseconds between applies. The cap is enforced AT APPLY TIME. It is not held continuously. The node's line "Nothing over the cap in any arm: the archive is `cap` bytes exactly, base 0" is true at t=0 of the measurement and false a fifth of a second later, which is the only time anyone looks.
-
-(3) THE NEAR MISS. A reviewer reads the measurement table, sees every archive at exactly `cap`, sees 128+18 tests pass, sees the kid volunteer the falsifier-2 caveat unprompted, and concludes the round is careful and the cap holds. The table even CONTAINS the counter-evidence — arm A's own cell reads "base after 0 – 43 MB" — and nothing in the node connects that cell to the claim. "A fragment at the end of the list satisfies the words and loses the mechanism": here the mechanism is that a poll-based cap is a SAMPLING of file size, and every number in the table is a sample taken inside the sampling instant. The near miss is believing a sample of a quantity whose whole defect is that it is only true between samples. The 91%-loss number in a00-e4ba316a was the same truth seen from the other side, and it was read as a race-window problem rather than as "this cap is not a continuous invariant".
-
-(4) DEVIATION FROM A STANDING RULE. I demoted to 70 rather than lower, and I did not call the node false, because the honest reading is narrower than the loud one: for the writers this box actually runs — crontab `>>` lines at human cadence — the fix does what the hypothesis wants. The literal wording "every file STAYS under logs.cap_mb" is unreachable for ANY poll-based cap against a writer that outruns the interval, so the defect I measured is a property of the claim's phrasing as much as of the code. 70 is the number that says "the fix is right, the sentence is wrong, and someone must rewrite the sentence before anyone cites it".
-
-TWO THINGS THE KID DISCLOSED AND GOT RIGHT, recorded so they are not lost: falsifier 2 still fires for a non-O_APPEND writer (my auth probe: 280 B, starts with NUL, 160 NUL bytes) and the O_APPEND precondition is a comment, not a check. Both kids volunteered these; neither is held against them.
-
-ONE BRIEF DEVIATION, on the record. My brief to this kid said, in caps, "Do NOT rebuild the bounded tail read in this round" — the round was a landing round. The kid rebuilt it anyway, and the rebuild is the best engineering of the whole iteration. I am recording the deviation because the brief was mine and the instruction was clear, not because the judgement was wrong: the right repair for "the apply can block for two minutes" was always the bounded read, and deferring it one round bought nothing. The standing order "a re-brief with no answer is the failure this rule prevents" cuts the other way here — I gave an instruction the kid overrode with a reason, and the reason was sound.
-
-THE ROUND IS NOT COMMITTED, and that is now the whole story. `git status --porcelain` shows 10 uncommitted paths: `.agi/config.json` (the `logs.mode` cell that ACTIVATES the mode — uncommitted through THREE consecutive rounds), the two parent review edits, three experiment nodes including this one, and two new test files. `cli.py done` for a00-e4ba316a and for this kid both wrote their verdicts and then failed the commit step on `/data/work/agi/.git/worktrees/a00-0c2aaab4/index.lock` — 0 bytes, mtime 05:07. The parent did not remove it: `pgrep -c git` returns 5 live git processes in this tree, so the lock may be legitimately contended and deleting it could corrupt a concurrent commit. The parent's work is therefore measured, reviewed, and INVISIBLE. That is an infrastructure defect, not a research one, and it is reported rather than worked around — the round ends `pending` for that reason and not for lack of a result.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

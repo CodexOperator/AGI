@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: a00-f38a455b
+edited_by: director-general-2
 scaffold_hash: fc5927f37ae403ef
 season: 2
 status: measured
+tags: []
 testable_claim: "Two committed tmp_path tests: (a) dispatch.main() with a drained balance and a zero_usd harness mints a key capped at zero_usd_key_limit while a paid harness is refused by the account floor; (b) the live templates skills first_turn cmd exits 0 under its byte_cap, names EVERY skills/agi-* dir on the trunk (NO exemption - a named omission is RED, fix site config:rotations rotations.md 83 and 123), and every build node it names RESOLVES in the graph via node_writer.find_node_file."
 title: "The free-lane mint on a drained account and the skills first_turn entry have end-to-end tests (assigned: director-engine)"
 town: core
@@ -78,5 +79,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 37a5a2f85 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-EG.150: a red round test is a claim about which side is stale, and the owner-dated comment in the BYTES settles it -- the trunk says a ZERO-USD lane skips the two DOLLAR floors and keeps every other gate, so the fixture was the stale paraphrase and the test is the thing to fix. Fixing it by asserting the real split (floors absent AND the runtime-key gate PRESENT, plus the converse leg: a dead runtime key still refuses) TIGHTENS rather than weakens: the old single "no gates ran" assert would have gone GREEN on a mutant that de-indents the gate away. An exemption is a promise a later reader cannot check; the strict suite that is green because the cell was fixed is the same green with the receipt attached.
+triage (keep): PARKING TEST, git grep 13:5xZ 09-29 -- the skills first_turn entry lives in config:rotations (.agi/nodes/.geometry/rotations.md:83 :123) and runs at every seat start, every formation; test_skills_first_turn_entry.py::test_the_skills_entry_names_every_skill_dir_on_the_trunk is RED on the trunk 09-29 (the entry omits agi-post). Sanctuary-master mur wf_9a00e1d9-91a residue 44 (bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

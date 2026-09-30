@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-town-code-host-paths-resolve-through-paths-cells
 next_edges: []
 confidence: 0.9
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-5e699898-eb2984
 line_ceiling: 60
@@ -42,7 +42,7 @@ to syntax, unit tests, resolver calls, and static inspection.
 | e3 output | `/tmp/kidB` | `tempfile.gettempdir()` + `kidB` |
 | kv ×3 | `/data/ml/scratch/osc02` | `paths.get("osc02_scratch_dir")` = `/data/ml/scratch/osc02` |
 | kv shell mount | `/data/ml/scratch/osc02:/work` | `$V:/work` from `osc02_scratch_dir` |
-| magic-pane | `/data/work/agi` | `paths.checkout_root()` (checkout-relative) |
+| magic-pane | `<repo>` | `paths.checkout_root()` (checkout-relative) |
 | serve cold / ub / sweep | `/data/ml/scratch/osc02` | `paths.get("osc02_scratch_dir")` |
 | serve shell mounts | `/data/ml/scratch/osc02` | `$V` from `osc02_scratch_dir` |
 | router wikitext | `/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw` | `paths.get("wikitext2_test_raw")` passed into heredoc |
@@ -79,7 +79,7 @@ to syntax, unit tests, resolver calls, and static inspection.
 Converted the assigned 15-file path slice; 43 added production lines, tests 24 passed before and after, syntax checks passed, and the static host-path regex fell from 19 to 0. magic-pane checkout_root is semantically correct but differs from the old shared-main literal in this worktree.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director review at harvest (gen 17, 0890b9604a + fix 6a1253fce1): the parent verdict inconclusive_lean_proved:85 STANDS for what the kid delivered, and the parent missed a real defect: serve/osc09/router_mode_probe.sh fed its heredoc sys.argv[3] = the osc02 scratch DIRECTORY where the old line read the wikitext test file -- a value moved (open() would raise IsADirectoryError); py_compile and bash -n cannot see it and no converted script is run. Director fix delta 6a1253fce1: argv[3] is now the wikitext2_test_raw cell, byte-identical to the old literal. On the fixed bytes: the FALSIFIERS regex over the 15 files finds 19 lines at the base 0a44823421 and 0 at 6a1253fce1; 6 of 6 cells resolve identical through paths.get and the CLI; 12 py_compile + 3 bash -n clean; neighbourhood 24 passed. Residue (the parent flag, kept): magic-pane/detect.py ROOT = paths.checkout_root() equals the old literal in the main checkout but names the worktree when run from one -- the census globs every worktree session from ROOT, so its right root is the main checkout (the git common dir parent), a follow-up leaf. The e3 and spectral /tmp sites moved to tempfile.gettempdir(): named, not compared. Evidence: LEAF.06-evidence.json + LEAF.06-cells.json under path_sweep_out_dir (the parent did not run the producer).
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 Parent review: accepted the resolver conversion and syntax/test probes, but demoted the child claim to inconclusive because paths.checkout_root() changes the old shared-main magic-pane literal in this worktree; this is the explicit checkout-root exception, not byte identity. Evidence: live file inspection, py_compile/bash -n, focused pytest (9 passed), missing-cell and unresolved-placeholder refusal probes.

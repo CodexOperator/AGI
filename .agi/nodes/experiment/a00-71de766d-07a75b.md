@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-kid-tier-gate-scans-every-root-it-can-reach
 next_edges: []
 confidence: 0.9
-edited_by: a00-06c44930
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-71de766d-07a75b
 loop: hypothesis:l4-the-kid-tier-gate-scans-every-root-it-can-reach@s2
@@ -29,13 +29,13 @@ root-it-can-reach). The tier gate in `extensions/agi/tests/conftest.py`
 previously resolved its agent-record root from ONE tree —
 `locations.find_project_root(Path(__file__))` (`_default_record_root` /
 `_record_root`). A kid that pointed pytest at MAIN's absolute tests dir
-(`python3 -m pytest /home/ubuntu/work/agi/extensions/agi/tests/`) loaded MAIN's
+(`python3 -m pytest <home>/work/agi/extensions/agi/tests/`) loaded MAIN's
 conftest, scanned MAIN's sessions dir, found no agent.json on its OWN pid
 chain (its record lives in ITS worktree's sessions), derived no tier, and ran
 the bare directory suite it is refused from its own worktree. MEASURED:
 my own live record is
 `.agi/sessions/iter-L4.193/a00-71de766d/agent.json` under
-`/home/ubuntu/work/agi/.agi/worktrees/a00-06c44930/` (pid 3016026, tier kid,
+`<home>/work/agi/.agi/worktrees/a00-06c44930/` (pid 3016026, tier kid,
 status running) — a path the old single-root scan from MAIN never reached.
 
 IMPLEMENTED the claim: added `_record_roots()` to conftest.py, returning the

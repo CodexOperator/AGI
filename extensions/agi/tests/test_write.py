@@ -1210,6 +1210,30 @@ def test_adopt_dry_run_writes_nothing(project):
     assert "mint_id:" not in text
 
 
+# hypothesis:adopt-runs-the-written-by-gate-before-it-mints (bundle 3 H1)
+def test_adopt_by_actor_outside_written_by_is_refused_nothing_minted(
+        project, capsys):
+    _written_by_schema(project, "config", "[owner, prime_director]")
+    _seats_fixture(project, [("belam", "prime_director"), ("kidpost", "kid")])
+    _write_no_mint_kid(project, "config:tmpcfg")
+    rc = write.main(["config:tmpcfg", "adopt", "--root", str(project),
+                     "--actor", "kidpost-a00", "--role", "kid"])
+    assert rc != 0
+    err = capsys.readouterr().err
+    assert "kidpost-a00" in err and "config" in err  # names actor + type
+    assert "mint_id:" not in (project / "nodes/config/tmpcfg.md").read_text()
+
+
+def test_prime_adopt_of_a_config_node_still_mints(project):
+    _written_by_schema(project, "config", "[owner, prime_director]")
+    _seats_fixture(project, [("belam", "prime_director"), ("kidpost", "kid")])
+    _write_no_mint_kid(project, "config:tmpcfg")
+    rc = write.main(["config:tmpcfg", "adopt", "--root", str(project),
+                     "--actor", "belam-S2-L5-XVI"])
+    assert rc == 0
+    assert "mint_id:" in (project / "nodes/config/tmpcfg.md").read_text()
+
+
 # --- a kid in a linked worktree addresses its own node without --root (l3w4)
 # `hypothesis:l3w4-branch-shared-state`: the scaffolded node a dispatched kid
 # is given lives ONLY in the kid's worktree graph (untracked, created after
@@ -2280,3 +2304,154 @@ def test_empty_source_guards_are_asymmetric_file_refused_stdin_lands(
     assert rc == 0, f"empty STDIN must land; got rc={rc}"
     after = write._read_body_text(project, "hypothesis:h1")
     assert "the body" not in after, "the range must actually be gone"
+
+
+# --- bundle 4 W2b (director-general-2) ------------------------------------
+_W2B = "bundle 4 W2b: RED until DG3 builds the outbound-id set-lookup check"
+
+
+def test_w2b_a_create_onto_a_missing_parent_is_refused_by_name(project):
+    _schemas(project)
+    res, _ = write.create(project, "hypothesis", "orphan", ["goal:nope"])
+    assert res.rejected and "goal:nope" in res.reason
+    assert not (project / "nodes/hypothesis/orphan.md").exists()
+
+
+@pytest.mark.xfail(strict=True, reason=_W2B)
+@pytest.mark.parametrize("key", ["parents", "next_edges"])
+def test_w2b_a_set_naming_a_missing_id_is_refused(project, key):
+    node = project / "nodes/hypothesis/h1.md"
+    before = node.read_text()
+    rc = write.main(["hypothesis:h1", f"set {key} [goal:nope]",
+                     "--root", str(project)])
+    assert rc != 0 and node.read_text() == before, "a missing id was written"
+
+
+# (the W2b neighbourhood row was retired in the re-scope: a per-read index opens every file once,
+# so zero opens of unrelated files can never hold -- evidence: experiment:dg2b4-w2b2-baseline)
+
+
+# --- bundle 4 W3c (director-general-2) --------------------------------------
+# hypothesis:read-leaves-write-py-with-every-teacher-in-one-row (goal:g4.18.7.3):
+# the verb and every teacher leave in ONE row, so one test pins both. CLAUDE.md
+# is the Prime's (CLAIM 4): checked on the Prime's commit, not here.
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 cuts read from VERBS with every teacher in one row")
+def test_w3c_read_leaves_verbs_and_every_teaching_site_in_one_row():
+    assert "read" not in write.VERBS and not hasattr(write, "verb_read")  # no alias
+    import re
+    r = BIN.parents[2]
+    files = [*r.glob("skills/*/SKILL.md"), *r.glob(".agi/nodes/.geometry/*.md"), r / "QUICKSTART.md",
+             *BIN.glob("*.py"), *(BIN.parent / "workflows").glob("*.*")]
+    hits = [f"{p.name}:{i}" for p in files if p.is_file() for i, ln in enumerate(
+        p.read_text("utf-8", "replace").splitlines(), 1) if re.search(r"(?i)\bread <?(body|payload)\b", ln)]
+    assert not hits, hits
+
+
+# --- bundle 4 W1a (director-general-2) ---------------------------------------
+# goal:g4.18.5.1: `row <n> <file>` replaces row n of node_writer.body_rows only.
+def test_b4_w1a_row_verb_replaces_exactly_one_row(project, tmp_path):
+    body = ("\n# hypothesis:h1\n\n## Table\n\n| k | v |\n|---|---|\n| a | 1 |\n"
+            "| b | 2 |\n\n## List\n\n- one\n- two\n\n" + THOUGHT + "\n")
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    body = write._read_body_text(project, "hypothesis:h1")
+    lines = body.split("\n")
+    n = next(i for i, (a, b) in enumerate(node_writer.body_rows(body), 1)
+             if lines[a - 1:b] == ["| b | 2 |"])
+    (tmp_path / "row.txt").write_text("| b | 20 |\n")
+    assert write.main(["hypothesis:h1", f"row {n} {tmp_path / 'row.txt'}",
+                       "--root", str(project)]) == 0
+    assert write._read_body_text(project, "hypothesis:h1") == \
+        body.replace("| b | 2 |", "| b | 20 |")
+
+
+# goal:g4.18.5.1 conjunct (3), DG3's own row: `row <n>:<i>-<j>` edits lines
+# INSIDE a block row (the THOUGHT block), every other byte identical; a row
+# past the index and a sub-range past the row refuse, nothing written.
+def test_b4_w1a_row_sub_range_edits_inside_a_block_row(project, tmp_path):
+    body = "\n# hypothesis:h1\n\n- one\n\n" + THOUGHT + "\n"
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    body = write._read_body_text(project, "hypothesis:h1")
+    rows = node_writer.body_rows(body)
+    n, (a, b) = len(rows), rows[-1]
+    assert body.split("\n")[a - 1].startswith("<!-- THOUGHT:BEGIN") and b - a >= 2
+    (tmp_path / "in.txt").write_text("rewritten why\n")
+    assert write.main(["hypothesis:h1", f"row {n}:2-2 {tmp_path / 'in.txt'}", "--root", str(project)]) == 0
+    after = write._read_body_text(project, "hypothesis:h1").split("\n")
+    before = body.split("\n")
+    assert after[a] == "rewritten why" and after[:a] == before[:a] and after[a + 1:] == before[a + 1:]
+    for ref in (f"{n + 1}", f"{n}:1-{b - a + 5}"):
+        assert write.main(["hypothesis:h1", f"row {ref} {tmp_path / 'in.txt'}", "--root", str(project)]) != 0
+    assert write._read_body_text(project, "hypothesis:h1").split("\n") == after
+
+
+# residue 96 (SM): `row --dry-run` previews the range the write would take and
+# refuses an out-of-range row (rc 2) instead of an empty range and rc 0.
+def test_b4_w1a_row_dry_run_resolves_and_refuses(project, tmp_path, capsys):
+    body = "\n# hypothesis:h1\n\n- one\n- two\n"
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    before = node.read_text()
+    body = write._read_body_text(project, "hypothesis:h1")
+    rows = node_writer.body_rows(body)
+    (tmp_path / "in.txt").write_text("- zwei\n")
+    a, b = rows[-1]
+    write.main(["hypothesis:h1", f"row {len(rows)} {tmp_path / 'in.txt'}",
+                "--root", str(project), "--dry-run"])
+    assert f"replace body {a}:{b} " in capsys.readouterr().out
+    assert write.main(["hypothesis:h1", f"row {len(rows) + 1} {tmp_path / 'in.txt'}",
+                       "--root", str(project), "--dry-run"]) == 2
+    assert node.read_text() == before
+
+
+
+# --- bundle 4 W2b re-scope (director-general-2) -----------------------------
+# W2b1 hypothesis:set-link-fields-refuse-a-missing-id (goal:g4.18.6.2.1);
+# W2b2 hypothesis:create-reads-the-one-index-not-a-walk (goal:g4.18.6.2.2).
+def _b4_walks(monkeypatch):
+    """Every Path.rglob caller, by code object: one entry per node-tree walk."""
+    seen, real = [], Path.rglob
+    monkeypatch.setattr(Path, "rglob", lambda s, *a, **k: (
+        seen.append(sys._getframe(1).f_code), real(s, *a, **k))[1])
+    return seen
+
+
+def test_w2b1_a_set_naming_only_live_ids_still_lands(project):
+    _schemas(project)
+    assert write.main(["hypothesis:h1", "set parents [goal:g1]", "--root", str(project)]) == 0
+    assert "goal:g1" in (project / "nodes/hypothesis/h1.md").read_text()
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2b1: RED until DG3 builds set's missing-id refusal on create's lookup")
+def test_w2b1_set_refuses_a_missing_id_by_name_with_creates_one_lookup(project, monkeypatch, capsys):
+    _schemas(project)
+    walks, node = _b4_walks(monkeypatch), project / "nodes/hypothesis/h1.md"
+    assert write.create(project, "hypothesis", "near", ["goal:g1"])[0].written
+    create_walk, before, walks[:] = set(walks), node.read_text(), []
+    rc = write.main(["hypothesis:h1", "set next_edges [goal:g1, goal:nope]", "--root", str(project)])
+    assert rc != 0 and node.read_text() == before and "goal:nope" in capsys.readouterr().err
+    assert set(walks) <= create_walk, "set grew a second lookup"
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2b2: RED until DG3 routes create's gate through goal:g4.18.6.1's one index")
+def test_w2b2_create_walks_only_the_one_index_and_still_refuses_by_name(project, monkeypatch):
+    import io
+    import links
+    import spawn_gate
+    _schemas(project)
+    (project / "nodes/doc").mkdir()
+    (project / "nodes/doc/far.md").write_text(f'---\nid: "doc:far"\ntype: doc\nmint_id: {"f" * 32}\n---\n')
+    walks, seen, real = _b4_walks(monkeypatch), [], io.open
+    assert links.resolve_mint(project, "f" * 32)[0] == "doc:far"
+    one, walks[:] = set(walks), []
+
+    def banned(*_a):
+        raise AssertionError("spawn_gate.build_type_index ran on a create")
+    monkeypatch.setattr(spawn_gate, "build_type_index", banned)
+    monkeypatch.setattr(io, "open", lambda f, *a, **k: (seen.append(str(f)), real(f, *a, **k))[1])
+    assert write.create(project, "hypothesis", "near", ["goal:g1"])[0].written
+    res = write.create(project, "hypothesis", "orphan", ["goal:nope"])[0]
+    assert res.rejected and "goal:nope" in res.reason
+    assert set(walks) <= one, "create walked beyond the one index"
+    assert sum(s.endswith("nodes/doc/far.md") for s in seen) <= 2, "a far node parsed twice per create"

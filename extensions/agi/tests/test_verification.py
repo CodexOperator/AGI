@@ -79,7 +79,7 @@ def test_no_declared_argv_is_literal_in_verification_py():
 def test_every_level_member_is_a_resolvable_command_name():
     """A level that names a command the node has not declared would be drifted
     graph; names must be names (dict keys), never argv."""
-    known = {"links", "goals-check", "write-guard", "smoke",
+    known = {"links", "write-guard", "smoke",
              "viewport-verify", "dispatch-help", "budget", "schema",
              "credentials", "secrets", "crons", "tests"}
     for level_names in verification.LEVELS.values():
@@ -103,8 +103,9 @@ def test_parse_number_smoke(tmp_path):
 def test_parse_number_links_and_goals(tmp_path):
     assert verification._parse_number("links", 0, "links: 1881 resolved, 0 broken")["broken"] == 0
     assert verification._parse_number("links", 0, "links: 5 resolved, 2 broken")["broken"] == 2
-    assert verification._parse_number("goals-check", 0, "round-trip") == {"byte-identical": 1}
-    assert verification._parse_number("goals-check", 1, "MISMATCH") == {"byte-identical": 0}
+    # goals-check retired with GOALS.md (goal:g7.16.1.4.1 W-G): no number, no level
+    assert verification._parse_number("goals-check", 0, "round-trip") is None
+    assert all("goals-check" not in names for names in verification.LEVELS.values())
 
 
 def test_parse_number_tests_reads_pytest_summary_in_any_order():
@@ -174,7 +175,7 @@ def test_links_pass_uses_the_count_not_the_exit_code():
     """links exits 0 even with broken links; the broken count is the fact."""
     assert verification._passed("links", 0, {"broken": 0}) is True
     assert verification._passed("links", 0, {"broken": 2}) is False
-    assert verification._passed("goals-check", 0, {"byte-identical": 1}) is True
+    assert verification._passed("write-guard", 0, None) is True
 
 
 def test_count_first_run_records_and_passes(tmp_path, monkeypatch):
@@ -1359,3 +1360,18 @@ def test_extra_suite_runs_at_suite_only(monkeypatch, tmp_path):
     on = verification.run_level(groot, "rotation", suite=True, verbose=False)
     assert "context-suite" not in [r.name for r in off]
     assert "context-suite" in [r.name for r in on]
+
+
+# --- bundle 4 W3 B3 (director-general-2) ------------------------------------
+# hypothesis:node-search-lives-beside-node-writer (goal:g4.18.7.2), CLAIM (1)(2)(4).
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3 B3: RED until DG3 moves the node search beside node_writer")
+@pytest.mark.parametrize("caller", ["verification.py", "write.py"])
+def test_b3_no_caller_reaches_the_node_search_through_rotation_record(caller):
+    import re
+    assert not re.search(r"\brotation_record\.|import rotation_record|from rotation_record", (BIN / caller).read_text())
+
+
+@pytest.mark.parametrize("fn", ["grep_live", "parked_carriers"])
+def test_b3_each_node_search_function_has_one_def(fn):
+    import re
+    assert len([p for p in BIN.glob("*.py") if re.search(rf"^def {fn}\(", p.read_text(), re.M)]) == 1

@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 526b26c7db6a7432
 season: 1
 thought_session: season
@@ -78,7 +78,7 @@ Seeding 1152 node files...
 === All 5 claims PROVED ===
 ```
 
-Command: `cd /home/ubuntu/work/agi && PYTHONPATH=extensions/agi/src python3 /tmp/embed_cache_experiment.py`
+Command: `cd <home>/work/agi && PYTHONPATH=extensions/agi/src python3 /tmp/embed_cache_experiment.py`
 
 Script at: `/tmp/embed_cache_experiment.py`
 Repo tests: 1454 passed (`python3 -m pytest extensions/agi/tests/ -q`)

@@ -55,9 +55,9 @@
       "window_id": "@1",
       "pid": 69212,
       "session_id": "82d56d5d-8330-4cfa-9cf9-e11e39510831",
-      "transcript": "/home/belam/.claude/projects/-data-work-agi/82d56d5d-8330-4cfa-9cf9-e11e39510831.jsonl",
+      "transcript": "~/.claude/projects/-data-work-agi/82d56d5d-8330-4cfa-9cf9-e11e39510831.jsonl",
       "name": "agi-ec",
-      "path": "/home/belam/.claude/sessions/69212.json",
+      "path": "~/.claude/sessions/69212.json",
       "note": "joined by @1 in registry file 69212.json"
     },
     "successor_row": "config:seats row 'belam': session_ref= session_name=agi-ec session_label= session_id=82d56d5d-8330-4cfa-9cf9-e11e39510831 pid=69212 generation=7 window='@1' source=registry pubkey=24d37939516b2891... key_history=5",
@@ -126,7 +126,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/belam.meter --session-log /home/belam/.claude/projects/-data-work-agi/82d56d5d-8330-4cfa-9cf9-e11e39510831.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/belam.meter --session-log ~/.claude/projects/-data-work-agi/82d56d5d-8330-4cfa-9cf9-e11e39510831.jsonl",
         "rc": 0,
         "output": "0.0846\t84553/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

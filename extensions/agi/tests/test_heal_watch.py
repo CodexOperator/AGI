@@ -2478,3 +2478,69 @@ def test_heal_turn_end_keeps_the_stream_error_evidence(graph_project,
     assert "h2 protocol error" in rec["death"]["evidence"]
     assert rec["death"]["evidence"] != "turn-end"
     assert rec["death"]["turn_end_kid"] == "experiment:kid-1"
+
+
+# ── bundle 3 row R2 (goal:g6.41.1 P5): recovery is admitted by the ONE PSI reader
+def _r2_one_pass(graph_project, monkeypatch, psi, refuse=()) -> tuple[list, str]:
+    """Two dead recover:true posts (a worker row FIRST, then the Prime) in ONE
+    watch pass; memory_alarm.read_psi (the one reader) is stubbed to `psi`."""
+    import memory_alarm
+    import rotate
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(memory_alarm, "read_psi", lambda path: psi)
+    rows = [{"name": n, "role": r, "model": "x", "pid": 31337 + i, "window": f"@30{i}",
+             "generation": 4, "recover": True}
+            for i, (n, r) in enumerate([("worker-a", "director"), ("belam", "prime_director")])]
+    monkeypatch.setattr(rotate, "_load_seats", lambda root: rows)
+    launched: list = []
+    monkeypatch.setattr(heal, "_recover_seat", lambda root, row, *a, **k:
+                        {"respawned": False, "name": row["name"]} if row["name"] in refuse
+                        else launched.append(row["name"]) or {"respawned": True, "name": row["name"]})
+    (graph_project / "w.txt").write_text("\n")
+    heal._watch_seats(graph_project, pid_alive=lambda p: False,
+                      window_path=str(graph_project / "w.txt"), launcher=lambda *a, **k: (1, "@1"))
+    return launched, (log.read_text() if log.exists() else "")
+
+
+_R2_PSI = lambda v: {k: {"avg10": v, "avg60": v, "avg300": v} for k in ("some", "full")}
+
+
+def test_r2_recovery_over_the_psi_cell_is_deferred_by_name(graph_project, monkeypatch):
+    launched, log = _r2_one_pass(graph_project, monkeypatch, _R2_PSI(60.0))  # at oomd's line
+    assert launched == [] and "deferred" in log and "60" in log, (launched, log)
+
+
+@pytest.mark.parametrize("psi", [{}, {"some": {}}], ids=["unreadable", "no-avg"])
+def test_r2_unreadable_psi_fails_closed_by_name(graph_project, monkeypatch, psi):
+    launched, log = _r2_one_pass(graph_project, monkeypatch, psi)
+    assert launched == [] and "deferred" in log and "psi" in log.lower(), (launched, log)
+
+
+def test_r2_under_the_cell_one_launch_per_pass_prime_first(graph_project, monkeypatch):
+    launched, _log = _r2_one_pass(graph_project, monkeypatch, _R2_PSI(0.0))
+    assert launched == ["belam"], launched
+
+
+# sanctuary-master mur wf_67ad5686-154 residue 71: a REFUSED recovery (it records
+# "detected") never spends the pass's one slot -- the next dead seat launches.
+def test_r2_a_refused_prime_never_starves_the_next_seat(graph_project, monkeypatch):
+    launched, _log = _r2_one_pass(graph_project, monkeypatch, _R2_PSI(0.0), refuse={"belam"})
+    assert launched == ["worker-a"], launched
+
+
+# residue 73: the cell is pinned -- the default line is 40, a string cell reads,
+# a malformed cell falls back to the named default.
+@pytest.mark.parametrize("cell,psi,launches", [
+    (None, 39.0, True), (None, 41.0, False),       # default line 40
+    ("30", 35.0, False), ("30", 29.0, True),       # a string cell reads numerically
+    ("abc", 39.0, True), ("abc", 41.0, False),     # malformed -> the default 40
+], ids=["default-39", "default-41", "str-35", "str-29", "bad-39", "bad-41"])
+def test_r2_the_psi_line_is_the_cell(graph_project, monkeypatch, cell, psi, launches):
+    if cell is not None:
+        (graph_project / "config.json").write_text(json.dumps(
+            {"metric_primary": "outcome_coverage", "reaper": {"recovery_psi_max_pct": cell}}))
+    launched, log = _r2_one_pass(graph_project, monkeypatch, _R2_PSI(psi))
+    assert (launched == ["belam"]) is launches, (launched, log)
+    if not launches:
+        assert f">= {30 if cell == '30' else 40}" in log, log

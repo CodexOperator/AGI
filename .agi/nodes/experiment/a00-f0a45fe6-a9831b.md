@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-rotate-out-audit-mirrors-wake-audit-over-the-predecessor-window
 next_edges: []
 confidence: 0.75
-edited_by: a00-6106c444
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f0a45fe6-a9831b
 loop: hypothesis:l4-rotate-out-audit-mirrors-wake-audit-over-the-predecessor-window@s2
@@ -89,7 +89,7 @@ predecessor transcript: .../gen14.jsonl (previous record b_generation.after==14 
 counts: a=1 b=1 c=1 d=2  [calls: a=rotation-record, b=tmux, c=-h, d=card edit, d=rotate-self]
 ```
 
-Accidentally ran against the LIVE graph too (read-only; `--root /home/ubuntu/work/agi`),
+Accidentally ran against the LIVE graph too (read-only; `--root <home>/work/agi`),
 which is the strongest built-bytes probe: it resolved gen 14's predecessor transcript
 through the PREVIOUS record (`b_generation.after==14` → `handover.join.transcript` =
 914d302a...jsonl) — NOT the successor's newest slug transcript — and classified 210 real

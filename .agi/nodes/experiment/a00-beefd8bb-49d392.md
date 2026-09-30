@@ -6,7 +6,7 @@ parents:
   - hypothesis:attractor-list-must-hide-deprecated-ideas
 next_edges: []
 confidence: 0.95
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-beefd8bb-49d392
 scaffold_hash: fe8592a0b35123bd
@@ -102,7 +102,7 @@ its `struggles:` line alleges `_fm_status_for_ideas` has a silent data-path
 bug ("calling `_frontmatter_for(root)` instead of `root/.agi`"). Parent verified
 otherwise: `briefing._fm_status_for_ideas(root)` calls exactly what `inject.py`
 calls directly with the same root, and from the resolved root
-`/home/ubuntu/work/agi/.agi` it returns all 75 ideas including the 8
+`<home>/work/agi/.agi` it returns all 75 ideas including the 8
 deprecated — the kid's own run used the same path and got 75 entries. The bug
 was the kid's scratch-script path, not the briefing code; no defect filed.
 <!-- THOUGHT:END -->

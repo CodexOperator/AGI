@@ -2347,15 +2347,16 @@ def closing_line(tier: str, agent_id: str, iter_n: int,
 # removing a part is one config line, never a code change. Writes NO file.
 BRIEF_PARTS = ("head", "operating_mode", "template", "card", "harness",
                "trajectory", "extras")
-#: G2.11 -- the authored reasoning region. A render hands a successor the
-#: node's CURRENT words, never the changelog explaining how they got there.
-_THOUGHT_RE = re.compile(
-    r"<!--\s*THOUGHT:BEGIN\b.*?<!--\s*THOUGHT:END\s*-->", re.DOTALL)
 
 
 def _strip_thought(text: str) -> str:
-    """Drop an authored THOUGHT region from node-sourced text (G2.11)."""
-    return _THOUGHT_RE.sub("", text).strip()
+    """Drop an authored THOUGHT region from node-sourced text (G2.11).
+
+    A render hands a successor the node's CURRENT words, never the changelog
+    explaining how they got there; the region is node_writer's one definition.
+    """
+    from node_writer import strip_thought
+    return strip_thought(text).strip()
 
 
 def _self_loaded_parts(harness: str | None, cell: dict) -> set[str]:

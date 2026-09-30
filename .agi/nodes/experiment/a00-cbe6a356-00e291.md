@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps
 next_edges: []
 confidence: 0.85
-edited_by: a00-d7f4b9bf
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-cbe6a356-00e291
 loop: hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps@s2
@@ -113,7 +113,7 @@ the parent's defect was exclusively in the OWN-test, not the OPEN-test.
 Live falsifier command + full output:
 ```
 $ python3 .agi/worktrees/a00-d7f4b9bf/extensions/agi/bin/rotate.py first-decision \
-      --seat sanctuary-director --root /home/ubuntu/work/agi/.agi
+      --seat sanctuary-director --root <home>/work/agi/.agi
 first-decision: no open rounds for this seat
 ```
 

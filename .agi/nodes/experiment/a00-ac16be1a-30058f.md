@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-cli-done-worktree-manifest
 next_edges: []
 confidence: 0.7
-edited_by: a00-502d0a3f
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-ac16be1a-30058f
 loop: hypothesis:l3-cli-done-worktree-manifest@s2
@@ -28,7 +28,7 @@ Probed `hypothesis:l3-cli-done-worktree-manifest` and FIXED it. The defect: for 
 where its record lives. Measured on three of four parents in L3.38 (own words):
 `cli.py done` run from a worktree fails (`no manifest` / `no agent record`);
 `agent.json` written to the MAIN checkout's session dir but `cli.py` resolves
-the session dir from cwd's own `.agi`; a parent had to cd to `/home/ubuntu/work/agi`
+the session dir from cwd's own `.agi`; a parent had to cd to `<home>/work/agi`
 or copy its record into the worktree path. A parent cannot be right by following
 any single rule.
 
@@ -97,7 +97,7 @@ $ python3 -m pytest extensions/agi/tests/test_dispatch.py extensions/agi/tests/t
 Evidence the three halves now agree (live state):
 ```
 # main (SHARED) session dir holds the agent records
-/home/ubuntu/work/agi/.agi/sessions/iter-L3.39/{a00-502d0a3f,a00-ac16be1a,...}
+<home>/work/agi/.agi/sessions/iter-L3.39/{a00-502d0a3f,a00-ac16be1a,...}
 # worktree `.agi/sessions` holds only the forked per-worktree context, no agent.json
 # locations.shared_project_root(wt) == main graph  (pinned by existing env/zoom tests)
 ```

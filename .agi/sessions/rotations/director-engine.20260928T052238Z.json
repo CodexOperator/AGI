@@ -69,9 +69,9 @@
       "window_id": "@33",
       "pid": 2787407,
       "session_id": "7e1dc560-7870-427b-9cbf-e2f959af2f23",
-      "transcript": "/home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/7e1dc560-7870-427b-9cbf-e2f959af2f23.jsonl",
+      "transcript": "~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/7e1dc560-7870-427b-9cbf-e2f959af2f23.jsonl",
       "name": "post-director-engine-55",
-      "path": "/home/belam/.claude/sessions/2787407.json",
+      "path": "~/.claude/sessions/2787407.json",
       "note": "joined by @33 in registry file 2787407.json"
     },
     "successor_row": "config:seats row 'director-engine': session_ref= session_name=post-director-engine-55 session_label=director-engine session_id=7e1dc560-7870-427b-9cbf-e2f959af2f23 pid=2787407 generation=36 window='@33' source=registry pubkey=5a0148d4e3904d74... key_history=5",
@@ -115,7 +115,7 @@
         "was_alive": true,
         "termd": true,
         "gone_after": true,
-        "ps_before": "2762350 /bin/bash -c source /home/belam/.claude/shell-snapshots/snapshot-bash-1790566764836-hey2p2.sh 2>/dev/null || true && shopt -u extglob 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'until [ ! -e /data/work/agi/.git/worktrees/post-director-engine/index.lock ]; do sleep 2; done; git merge --no-edit origin/season2/main 2>&1 | tail -2; git log -1 --format=%h; timeout 540 python3 extensions/agi/bin/rotate.py rotate 2>&1 | tail -25' < /dev/null && pwd -P >| /tmp/claude-404a-cwd",
+        "ps_before": "2762350 /bin/bash -c source ~/.claude/shell-snapshots/snapshot-bash-1790566764836-hey2p2.sh 2>/dev/null || true && shopt -u extglob 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'until [ ! -e /data/work/agi/.git/worktrees/post-director-engine/index.lock ]; do sleep 2; done; git merge --no-edit origin/season2/main 2>&1 | tail -2; git log -1 --format=%h; timeout 540 python3 extensions/agi/bin/rotate.py rotate 2>&1 | tail -25' < /dev/null && pwd -P >| /tmp/claude-404a-cwd",
         "ps_after": ""
       },
       {
@@ -162,7 +162,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/7e1dc560-7870-427b-9cbf-e2f959af2f23.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log ~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/7e1dc560-7870-427b-9cbf-e2f959af2f23.jsonl",
         "rc": 0,
         "output": "0.1265\t126477/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

@@ -125,3 +125,15 @@ def test_missing_build_site_returns_zero_and_prunes_nothing(tmp_path, monkeypatc
     assert sbs.main() == 0
     assert survivor.exists(), "a missing build site must never prune existing nodes"
     assert "goals-only" in capsys.readouterr().out
+
+
+# goal:g7.16.1.1.4 · hypothesis:one-mint-id-assigner-every-writer-imports: the
+# ONE assign-if-missing lives in graph_core.identity and never overwrites
+# (goal:g2.5). Strict xfail on the trunk at 59ad74144; green since the build.
+def test_the_one_ensure_mint_id_lives_in_graph_core_and_never_overwrites():
+    from graph_core import identity
+    valid = "0123456789abcdef0123456789abcdef"
+    assert identity.ensure_mint_id({"mint_id": valid}) == {"mint_id": valid}
+    assert identity.ensure_mint_id({"mint_id": "BAD"}) == {"mint_id": "BAD"}
+    assert identity.is_valid_mint_id(identity.ensure_mint_id({})["mint_id"])
+    assert sbs.ensure_mint_id is identity.ensure_mint_id

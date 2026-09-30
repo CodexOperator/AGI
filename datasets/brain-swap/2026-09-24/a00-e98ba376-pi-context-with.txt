@@ -10,9 +10,9 @@ Guidelines:
 - Show file paths clearly when working with files
 
 Pi documentation (read only when the user asks about pi itself, its SDK, extensions, themes, skills, or TUI):
-- Main documentation: /home/belam/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/README.md
-- Additional docs: /home/belam/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/docs
-- Examples: /home/belam/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/examples (extensions, custom tools, SDK)
+- Main documentation: ~/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/README.md
+- Additional docs: ~/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/docs
+- Examples: ~/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/examples (extensions, custom tools, SDK)
 - When asked about: extensions (docs/extensions.md, examples/extensions/), themes (docs/themes.md), skills (docs/skills.md), prompt templates (docs/prompt-templates.md), TUI components (docs/tui.md), keybindings (docs/keybindings.md), SDK integrations (docs/sdk.md), custom providers (docs/custom-provider.md), adding models (docs/models.md), pi packages (docs/packages.md)
 - When working on pi topics, read the docs and examples, and follow .md cross-references before implementing
 - Always read pi .md files completely and follow links to related docs (e.g., tui.md for TUI API details)
@@ -119,9 +119,9 @@ Everything is reachable globally, by symlink, with no second copy anywhere:
 
 | Handle | Symlink |
 |---|---|
-| `agi` skill (any session, any dir) | `~/.claude/skills/agi` → `/home/ubuntu/work/agi/skills/agi` |
-| `agi` command (on `PATH`) | `~/.local/bin/agi` → `/home/ubuntu/work/agi/extensions/agi/driver.sh` |
-| SessionStart map injection | `~/.claude/settings.json` → `/home/ubuntu/work/agi/extensions/agi/hooks/cc-session-start.sh` |
+| `agi` skill (any session, any dir) | `~/.claude/skills/agi` → `<home>/work/agi/skills/agi` |
+| `agi` command (on `PATH`) | `~/.local/bin/agi` → `<home>/work/agi/extensions/agi/driver.sh` |
+| SessionStart map injection | `~/.claude/settings.json` → `<home>/work/agi/extensions/agi/hooks/cc-session-start.sh` |
 
 One skill, one source. The hook is a silent no-op outside a project, which is
 what makes registering it globally safe.
@@ -554,9 +554,9 @@ Everything is reachable globally, by symlink, with no second copy anywhere:
 
 | Handle | Symlink |
 |---|---|
-| `agi` skill (any session, any dir) | `~/.claude/skills/agi` → `/home/ubuntu/work/agi/skills/agi` |
-| `agi` command (on `PATH`) | `~/.local/bin/agi` → `/home/ubuntu/work/agi/extensions/agi/driver.sh` |
-| SessionStart map injection | `~/.claude/settings.json` → `/home/ubuntu/work/agi/extensions/agi/hooks/cc-session-start.sh` |
+| `agi` skill (any session, any dir) | `~/.claude/skills/agi` → `<home>/work/agi/skills/agi` |
+| `agi` command (on `PATH`) | `~/.local/bin/agi` → `<home>/work/agi/extensions/agi/driver.sh` |
+| SessionStart map injection | `~/.claude/settings.json` → `<home>/work/agi/extensions/agi/hooks/cc-session-start.sh` |
 
 One skill, one source. The hook is a silent no-op outside a project, which is
 what makes registering it globally safe.

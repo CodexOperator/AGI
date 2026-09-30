@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hyp:engine-census-generated
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 season: 1
 tags:
@@ -38,7 +38,7 @@ Pruning is scoped to `origin: engine-decomp` only; a missing or non-git engine
 root returns before touching the filesystem at all (verified by test, not just
 by reading the code).
 
-**Run 1 — dry-run**, `--project /home/ubuntu/work/agi-tree`:
+**Run 1 — dry-run**, `--project <home>/work/agi-tree`:
 
 ```
 units discovered: 23
@@ -106,7 +106,7 @@ to check later, not as evidence either way.
   heuristic is explicitly advisory and the brief asks for judgement calls to
   be surfaced, not resolved by the generator.
 - **`DEFAULT_ENGINE_ROOT` was wrong by one directory level on the first
-  attempt** (`BIN_DIR.parents[3]` resolved to `/home/ubuntu/work` instead of
+  attempt** (`BIN_DIR.parents[3]` resolved to `<home>/work` instead of
   the repo root, because `BIN_DIR` is already `.../extensions/agi/bin`, not
   the file itself). Caught immediately by running the dry-run against the
   real repo — it printed the missing-engine-root no-op message instead of a

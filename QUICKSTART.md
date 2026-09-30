@@ -11,7 +11,7 @@
 | Question | Read |
 |---|---|
 | What is agi, and why is it shaped this way? | `skills/agi/SKILL.md` |
-| What is committed to, and what is being worked now? | `GOALS.md` (rendered from `.agi/nodes/goal/`) |
+| What is committed to, and what is being worked now? | the goal nodes under `.agi/nodes/goal/`, read by id: `write.py goal:<id> 'read body 1:60'` |
 | What does the repo contain, and how do I run the loop? | `CLAUDE.md` |
 | What does any given engine file do? | its build node — `.agi/nodes/build/*.md`, one per file |
 | What is the CURRENT session doing, and what is next? | `HANDOFF.md` — one section, always current |
@@ -103,7 +103,7 @@ agi --help | head -2
 
 ```
 driver.sh
-  ├─ snapshot-goals.py        GOALS.md <- nodes/goal/   (the nodes are the source)
+  ├─ snapshot-goals.py        GOALS.md render retired (goal:g7.16.1.4.1)
   ├─ snapshot-build-site.py   rebuild origin:build-site nodes from context/plans/build-site.md
   ├─ render-context.py        graph -> context/INJECTION.md (bounded ASCII map)
   ├─ metrics.py               emit METRIC lines   (benchmark.py also exists; see G-goals)
@@ -157,7 +157,6 @@ rotation unless `--morals`).
 |---|---|
 | `bash '<engine>/extensions/agi/driver.sh' --smoke --max-iters 1` | snapshot + render + metrics, no dispatch — verify the node count did not drop |
 | `python3 -m pytest '<engine>/extensions/agi/tests/' -q` | the engine's own suite |
-| `python3 '<engine>/extensions/agi/bin/snapshot-goals.py' --render --check` | GOALS.md and the goal nodes are byte-identical inverses |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --verify` | goal:g2.19 — one render, two readers |
 | `python3 '<engine>/extensions/agi/bin/grid.py' commit --all` | version every changed node and its payload |
 | `python3 '<engine>/extensions/agi/bin/links.py' links` | every node's link resolves; broken_links must be 0 |

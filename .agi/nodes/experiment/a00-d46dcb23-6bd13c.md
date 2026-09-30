@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-one-read-returns-everything-addressed-to-a-post-the-inbox-file-and-every-dm-conversation-with-unread-in-one-call
 next_edges: []
 confidence: 0.8
-edited_by: a00-d46dcb23
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-d46dcb23-6bd13c
 line_ceiling: 15
@@ -46,8 +46,8 @@ reads that same file. Measured from this worktree:
 
 ```
 $ python3 -c "import send; print(send.comms_root(Path('.')))"
-/home/ubuntu/work/agi/.agi/comms/season-2        # MAIN, not the worktree
-$ ls /home/ubuntu/work/agi/.agi/comms/season-2/dm/*.state.json | wc -l
+<home>/work/agi/.agi/comms/season-2        # MAIN, not the worktree
+$ ls <home>/work/agi/.agi/comms/season-2/dm/*.state.json | wc -l
 54     # the durable cursors, in MAIN
 $ ls .agi/comms/season-2/dm/*.state.json | wc -l
 0      # the WORKTREE's own ignored dir -- which read_dms never writes

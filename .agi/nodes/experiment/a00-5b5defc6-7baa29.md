@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-env-root-override-descends-never-ascends
 next_edges: []
 confidence: 0.92
-edited_by: a00-325a5d78
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-5b5defc6-7baa29
 loop: hypothesis:l4-env-root-override-descends-never-ascends@s2
@@ -30,9 +30,9 @@ of the two things its producers put in it, and both existing senses are
 
 **Reproduce (before fix):**
 ```
-$ AGI_TREE_PROJECT_ROOT=/home/ubuntu/work/agi/.agi/worktrees/seat-sanctuary-director \
+$ AGI_TREE_PROJECT_ROOT=<home>/work/agi/.agi/worktrees/seat-sanctuary-director \
     python3 extensions/agi/bin/snapshot-goals.py --render --check
-no origin=goals-doc goal nodes under /home/ubuntu/work/agi/.agi/worktrees/seat-sanctuary-director/nodes/goal
+no origin=goals-doc goal nodes under <home>/work/agi/.agi/worktrees/seat-sanctuary-director/nodes/goal
   — refusing to write an empty GOALS.md
 EXIT=1
 ```

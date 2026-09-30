@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-4
 scaffold_hash: 662d830b596db4ae
 season: 2
 testable_claim: N concurrent workflow.py runs with the same workflow and args get N distinct run keys via an exclusive create at mint; a single run's key is unchanged
@@ -127,7 +127,7 @@ For EACH item: fix it in the bytes, OR -- when the item is already true, refuted
 3. Node body still asserts the repairs are in the bytes — a00-33537e5f-e4b668.md:32
 4. Ordered TESTS line has no paste — test_bin_help_smoke.py never reported, one ordered run unaccounted for
 5. The node's own custody-wall claim stopped reproducing BECAUSE OF THIS ROUND: a00-33537e5f-e4b668.md:97 asserts '0 rows anywhere name a00-50c1cf74-702121 or a00-381d71db-0a613b', but a scan of all 217 write-log.jsonl files under .agi/worktrees/ finds 3 such rows in this round's OWN log, ts 2026-09-28T08:32:23Z, :32:38Z, :32:43Z — written 70s after the 08:31:13Z probe (a timestamped command in the kid's trajectory). The claim was true when measured, so it is not a falsehood, but the node states it in the present tense and a reader re-running the grep now gets the opposite answer; residue = date the claim and note the round's own rows.
-6. A stale copy of the very range corrective item 2 was ordered to correct survives inside the repaired file: /data/work/agi/.agi/worktrees/a00-33537e5f/.agi/nodes/experiment/a00-50c1cf74-702121.md:128 (DH.620 parent's THOUGHT) still cites `cli.py:2072-2080` while the fence at :45-49 was corrected to 2073-2079. The file was in FILE SCOPE and the THOUGHT is the authored region, so this is a one-line residue for the same scoped add.
+6. A stale copy of the very range corrective item 2 was ordered to correct survives inside the repaired file: <repo>/.agi/worktrees/a00-33537e5f/.agi/nodes/experiment/a00-50c1cf74-702121.md:128 (DH.620 parent's THOUGHT) still cites `cli.py:2072-2080` while the fence at :45-49 was corrected to 2073-2079. The file was in FILE SCOPE and the THOUGHT is the authored region, so this is a one-line residue for the same scoped add.
 7. A green test in the reported set certifies the gap the hypothesis cannot close: of the '4 passed' at a00-33537e5f-e4b668.md:45 and :137, test_dry_run_reserves_nothing (test_workflow_run_key_reserved_atomically.py:79-92 at 2e80f46ee) pins `--dry-run` reserving nothing as correct-by-contract, so '4 passed' is not coverage of the hypothesis. The node's :149-152 reports the pin's own numbers but not this caveat. Separately, my read of that test's bytes finds it fixture-clean (tmp_path only; :85 monkeypatches shared_project_root; :84's real .agi is only the `repo` arg to a dry-run run_workflow; no tmux, systemd, crontab or real-resource touch) — the real-resource defect class does NOT apply here.
 8. Every number or line you write is measured at YOUR final tip after your last edit and PASTED with its command (two-operand git diff); a claim you cannot re-run is narrowed or removed, never retyped.
 OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
@@ -139,5 +139,5 @@ CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §
 COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.95: mur-eg-23 DH.661-k1 residues batched into one corrective (orders above, generated from the verdict files).
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

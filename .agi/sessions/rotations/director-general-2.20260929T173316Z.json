@@ -1,0 +1,94 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "director-general-2",
+  "recorded_at": "2026-09-29T17:33:16.117182Z",
+  "result": "respawned",
+  "probable_cause": "remote-control-disconnect",
+  "succ_name": "director-general-2",
+  "gen": 2,
+  "gen_after": 2,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@7",
+  "pred_pids": [
+    2121147
+  ],
+  "row": {
+    "name": "director-general-2",
+    "role": "director",
+    "model": "claude-opus-5-5",
+    "pid": 2121147,
+    "window": "@8",
+    "session_id": "a008a8fe-ea72-476c-b189-3f59ddef2a79",
+    "generation": 1,
+    "worktree": ""
+  },
+  "respawn_outcome": {
+    "name": "director-general-2",
+    "generation": 2,
+    "pid": null,
+    "window": "@7",
+    "reason": "",
+    "row": "config:seats row 'director-general-2': session_ref= session_name= session_label=director-general-2 session_id= pid=None generation=2 window='@7' source=registry"
+  },
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep director-general-2",
+        "rc": 0,
+        "output": "@7 director-general-2\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-general-2.meter --session-log ~/.claude/projects/-data-work-agi/4020c543-7f60-4e7b-ac81-af43c473d360.jsonl",
+        "rc": 0,
+        "output": "0.0585\t58455/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post director-general-2 --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post director-general-2 --ref 3f37a8 diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "director-general-2",
+    "dm_signed": true,
+    "code_head": "5a6dd46",
+    "code_loaded": "1790688637:1134998",
+    "claimed_at": "2026-09-29T17:35:10.711352+00:00",
+    "claim_key": "2026-09-29T17:33:16.117182Z",
+    "performed_after_s": 113.82094407081604
+  },
+  "handover": {
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    }
+  }
+}

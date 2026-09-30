@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-phantom-running-record-with-a-dead-pid-is-named
 next_edges: []
 confidence: 0.95
-edited_by: a00-42265e95
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-7929b0b9-7f518e
 loop: hypothesis:l4-a-phantom-running-record-with-a-dead-pid-is-named@s2
@@ -58,7 +58,7 @@ record file still exists after the scan (not deleted).
 
 Real-tree confirmation: the run itself caught a genuine leftover phantom in
 the main graph's sessions dir and named it once on stderr:
-`tier-gate: phantom running record /home/ubuntu/work/agi/.agi/sessions/
+`tier-gate: phantom running record <home>/work/agi/.agi/sessions/
 iter-L3.39/rescued-kid-logs/.../agent.json pid=1459751 (dead) -- skipped`
 -- the behaviour working against production data.
 

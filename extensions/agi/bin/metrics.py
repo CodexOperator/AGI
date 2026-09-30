@@ -34,6 +34,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
 from frontmatter import read_frontmatter, split_frontmatter  # noqa: E402
+import node_writer  # noqa: E402 -- the ONE THOUGHT definition (goal:g2.11)
 from evidence_gate import (  # noqa: E402
     DECISIVE_VERDICTS,
     build_corpus,
@@ -259,8 +260,6 @@ def _iter_frontmatter(nodes_dir: Path):
         yield nf, fm
 
 
-_THOUGHT_RE = re.compile(
-    r"<!--\s*THOUGHT:BEGIN(.*?)<!--\s*THOUGHT:END\s*-->", re.DOTALL)
 
 
 def thought_stats(nodes_dir: Path) -> dict:
@@ -287,8 +286,7 @@ def thought_stats(nodes_dir: Path) -> dict:
         if not text.startswith("---"):
             continue
         total += 1
-        m = _THOUGHT_RE.search(text)
-        if m and m.group(1).replace("-->", "").strip():
+        if node_writer.thought_text(text):
             filled += 1
     return {
         "thought_coverage": round(filled / total, 3) if total else 0.0,

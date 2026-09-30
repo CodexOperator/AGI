@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-grid-storage-trunk-migration-for-local-maxxing
 next_edges: []
 confidence: 0.85
-edited_by: a00-2b472e09
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-07f8db97-a72346
 line_ceiling: 200
@@ -121,7 +121,7 @@ kid #1's cross-worktree finding).
 
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (EF.08) -- ACCEPTED at inconclusive_lean_proved:85. (1) WHAT THE INSTRUCTION SAID: fix the source-namespace resolution the parent's gate probe falsified -- the hypothesis's config-first order (set grid.storage_trunk, then migrate) must move the refs -- and add a regression test that exercises main()'s REAL sequence (apply_storage_trunk then cmd_migrate_trunk), not a direct call that skips it. (2) WHAT THE MACHINE ACTUALLY DOES: the diff 24a5dffff..4ebf8c52c adds a 4th argument `source` to cmd_migrate_trunk, `old_ns = (source or DEFAULT_REF_NS).strip().rstrip('/')`, a `--from` (dest=from_ns) defaulting to DEFAULT_REF_NS, and dispatch `cmd_migrate_trunk(root, args.to, args.write, args.from_ns)`. My own re-probe of the exact failing sequence now moves 2/2 refs to the trunk with the old namespace empty and tips identical; my independent CLI wire probe (all project-root env vars unset) moves 2 refs through parser -> main -> cmd_migrate_trunk. (3) NEAR MISS: defaulting `--from` to the config-resolved ref_ns_for(root) instead of the module constant DEFAULT_REF_NS -- same no-op by a different spelling; the kid avoided it. An empty --from does NOT fall back to the default (gate probe: 0 moved). (4) DEVIATION: none. The kid called cmd_migrate_trunk(root, None, write=True, source='refs/grid') in one test rather than passing an argv --from, which is the correct function-level seam. STILL BANKED, and this is why the lean is not 'proved': the target's live half -- the real --write on this shared box plus the config change, and conjuncts (e) cron and (f) remote push -- was NOT run. Kid #1 measured the hazard (refs shared via /data/work/agi/.git across ~20 worktrees; config per-worktree) and the parent agrees: bank the live cut to the director. kid #1's human-less incident (a stray CLI call moved 3773 live refs and the parent restored them) is the strongest evidence for that bank.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-bad7df6a-dd3928
 next_edges: []
 confidence: 0.65
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-1215e67e-de106f
 scaffold_hash:
@@ -200,8 +200,8 @@ Key sources:
 - `extensions/agi/bin/level3.py` L1-50: `git ls-files` requirement
 - `extensions/agi/bin/locations.py` L1-50: cwd-relative `.agi/` resolution
 - `extensions/agi/bin/grid.py` whole file: depends on `refs/grid/*` in git
-- `docs/skills.md` at `/home/ubuntu/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/docs/skills.md`: skill format spec
-- `docs/packages.md` at `/home/ubuntu/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/docs/packages.md`: pi package format
+- `docs/skills.md` at `<home>/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/docs/skills.md`: skill format spec
+- `docs/packages.md` at `<home>/.npm-global/lib/node_modules/@mariozechner/pi-coding-agent/docs/packages.md`: pi package format
 
 ## Agent Notes
 Structural analysis of shape-2 viability for full engine. Finding: git-installed packages work (preserve git access for level3/grid); npm packages break level3 (`git ls-files` fails without .git) and grid.py. This is a real constraint the hypothesis did not anticipate: the engine requires git history, which npm pi packages do not provide. The git install path is equivalent to the current hybrid (symlinks into a cloned repo). Decisive constraint is npm incompatibility, not skill-format structural limitation.

@@ -5,9 +5,11 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-2
 scaffold_hash: 4f0c04007360227f
 season: 2
+tags:
+  - parked:g7.16.2
 testable_claim: an absent agent_id refuses by name; --owns is bound to dispatch-time ids; a test fails on 6c403aeb4b
 title: "A round own-path set never fails open and has no unguarded kid route (assigned: director-engine)"
 town: core
@@ -217,5 +219,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over fdb7e3c61 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.157: director-merge-cut EG.125-merge residues batched into one corrective (orders above, generated from the verdict files).
+triage (parked, by tag): PARKING TEST, git grep 13:5xZ 09-29 -- _round_spawned_node_ids( and _auto_commit_worktree( = cli.py:1891 :1893, both in cmd_done; cmd_done is reached by a round's parent or kid and by heal's kid-respawn text heal.py:3736 -- dispatch-bound. Sanctuary-master mur wf_9a00e1d9-91a residue 44 (bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

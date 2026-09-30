@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-cron-node-is-the-whole-schedule-any-job-is-one-entry-one-variable-silences-the-box-audit-names-the-undeclared-and-apply-is-the-box-init
 next_edges: []
 confidence: 0.35
-edited_by: a00-837f99b1
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-0e932af3-130352
 line_ceiling: 220
@@ -15,8 +15,8 @@ model: deepseek/deepseek-v4.1-flash
 probes:
   - {"conjunct": 1, "class": "gate", "cmd": "crons.load_crons_node() on a fixture cadence entry {\"ghost_job\": {\"every_mins\": 5, \"cmd\": \"   \"}} (whitespace-only cmd, not a missing key)", "expected": "CronsError refusing the job by name (a cmd that is present-but-blank must not be treated as usable)", "observed": "CronsError: ...cadences declares unknown job 'ghost_job' with no `cmd`", "result": "pass"}
   - {"conjunct": 2, "class": "gate", "cmd": "render_managed_lines(root, root, root, node) with crons_live: false, cadences={grid_sync enabled:true, custom_job: {every_mins:10, cmd:true, enabled:true}}", "expected": "[] -- the top-level kill switch must silence generic cmd entries too, not just KNOWN_JOBS", "observed": "[]", "result": "pass"}
-  - {"conjunct": 3, "class": "wire", "cmd": "crons.cmd_audit(root=/home/ubuntu/work/agi/.agi, crontab_file=<empty tmp fixture>, unit_dir=~/.config/systemd/user) -- the box's REAL unit directory, not a fixture", "expected": "claude-remote-control.service flagged as undeclared (named verbatim in this hypothesis's own testable_claim as something that 'runs outside any node')", "observed": "NOT flagged -- cmd_audit's unit loop only recognised names starting with the literal 'agi-', so an ordinary-named real unit sitting in the exact directory audit scans was silently skipped", "result": "fail"}
-  - {"conjunct": 4, "class": "wire", "cmd": "crons.load_crons_node(<this worktree's live, uncommitted .agi>) to read the REAL edited services.agi-reaper block, then crons._substitute() on exec_start/working_directory/AGI_REAPER_LOG with repo_root=/home/ubuntu/work/agi, diffed against the pre-rewrite absolute strings read via git show 12072bdde:.agi/nodes/.geometry/crons.md", "expected": "byte-identical to the old absolute values", "observed": "byte-identical (all three fields matched exactly)", "result": "pass"}
+  - {"conjunct": 3, "class": "wire", "cmd": "crons.cmd_audit(root=<home>/work/agi/.agi, crontab_file=<empty tmp fixture>, unit_dir=~/.config/systemd/user) -- the box's REAL unit directory, not a fixture", "expected": "claude-remote-control.service flagged as undeclared (named verbatim in this hypothesis's own testable_claim as something that 'runs outside any node')", "observed": "NOT flagged -- cmd_audit's unit loop only recognised names starting with the literal 'agi-', so an ordinary-named real unit sitting in the exact directory audit scans was silently skipped", "result": "fail"}
+  - {"conjunct": 4, "class": "wire", "cmd": "crons.load_crons_node(<this worktree's live, uncommitted .agi>) to read the REAL edited services.agi-reaper block, then crons._substitute() on exec_start/working_directory/AGI_REAPER_LOG with repo_root=<home>/work/agi, diffed against the pre-rewrite absolute strings read via git show 12072bdde:.agi/nodes/.geometry/crons.md", "expected": "byte-identical to the old absolute values", "observed": "byte-identical (all three fields matched exactly)", "result": "pass"}
   - {"conjunct": 5, "class": "gate", "cmd": "render_managed_lines() for a generic job with box: [local-town, other-town] at box_name=\"other-town\" vs box_name=\"core-town\"", "expected": "renders when box_name is in the list, empty when not", "observed": "matched on both sides", "result": "pass"}
 production_lines: 202
 profile: balanced
@@ -41,7 +41,7 @@ Implemented the missing conjuncts of the parent hypothesis on the live bytes
 **Pre-fix state (measured):** `load_crons_node` refused ANY cadence name
 outside `KNOWN_JOBS`; there was no `cmd` field, no placeholders, no `audit`
 verb. The live node's `services.agi-reaper` carried absolute box paths
-(`/home/ubuntu/work/agi`, `/home/ubuntu/logs/...`).
+(`<home>/work/agi`, `<home>/logs/...`).
 
 **Built:**
 
@@ -75,15 +75,15 @@ verb. The live node's `services.agi-reaper` carried absolute box paths
 
 - `python3 -m pytest extensions/agi/tests/test_crons.py extensions/agi/tests/test_crons_mirror.py -q` → **86 passed** (80 in test_crons.py, all pre-existing tests still green).
 - Byte-identical node rewrite, measured on this box with graph root
-  `/home/ubuntu/work/agi/.agi` and repo root `/home/ubuntu/work/agi`:
+  `<home>/work/agi/.agi` and repo root `<home>/work/agi`:
   - `render_unit_file("agi-reaper", <old absolute fields>)` ==
     `render_unit_file("agi-reaper", <placeholder fields via _substitute>)`
-    → **True**, both producing `ExecStart=…/home/ubuntu/work/agi/… --root
-    /home/ubuntu/work/agi --poll-s 30`, `WorkingDirectory=/home/ubuntu/work/agi`,
-    `Environment=AGI_REAPER_LOG=/home/ubuntu/logs/agi-reaper-agi-2f118e6f.log`.
+    → **True**, both producing `ExecStart=…<home>/work/agi/… --root
+    <home>/work/agi --poll-s 30`, `WorkingDirectory=<home>/work/agi`,
+    `Environment=AGI_REAPER_LOG=<home>/logs/agi-reaper-agi-2f118e6f.log`.
   - `render_managed_lines(...)` before-node vs after-node → **byte-identical,
     7 lines** (cadences unchanged, as required).
-  - `crons.py show --root /home/ubuntu/work/agi` output on the live main
+  - `crons.py show --root <home>/work/agi` output on the live main
     checkout is unchanged (services never appear in `show`, and the crontab
     render is unchanged).
 - `grep -n home/ubuntu .agi/nodes/.geometry/crons.md` → none.

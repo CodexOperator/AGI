@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-prepare-captives-measure-generation-upstream-and-season-and-the-gate-is-not-a-test-seam
 next_edges: []
 confidence: 0.9
-edited_by: a00-d5bad532
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-189d06e3-7774f3
 loop: hypothesis:l4-the-prepare-captives-measure-generation-upstream-and-season-and-the-gate-is-not-a-test-seam@s2
@@ -28,7 +28,7 @@ A g15 CLAIM — behaviour to BUILD, then prove on the built bytes. Four
 defects in `extensions/agi/bin/rotate.py` were measured pre-fix, fixed in
 place, and proved by the repo suite plus a live falsifier.
 
-**Pre-fix measurements (live, `/home/ubuntu/work/agi`):**
+**Pre-fix measurements (live, `<home>/work/agi`):**
 `rotate.py prepare --seat sensei-director` → `[ok] meter pin stale
 (seat_pin-stale) cur=2` / `[ok] stale ack (sensei-director.ack.json)`.
 A worktree seat's own handoff header carried the generation; `cur_gen`

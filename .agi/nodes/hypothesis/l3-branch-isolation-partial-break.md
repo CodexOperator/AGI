@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g6.11
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: da2df61e83457199
 season: 2
 testable_claim: After the change, every process a --branch parent spawns (its kids, and a healer restart of either) resolves a working directory and a set of rendered source paths that lie INSIDE that parent's worktree, proven by a red-first test that asserts the resolved child cwd and the brief's rendered source paths are all under the worktree root and never under the main checkout; and measured live, one --branch round ends with 'git -C <main checkout> status --porcelain -- extensions/ .agi/nodes/' EMPTY.
@@ -64,7 +64,7 @@ WHY IT IS WORSE THAN A LOST DIFF. The bytes are not lost — they are UNOWNED. M
 
 CONSEQUENCE FOR merge-up, concretely. A --branch branch that is missing its source edits merges clean and green and delivers nothing — the L3.30 failure mode, reached by a different road. Resolve toward the WORKTREE copy for files 1 and 2, which are the coherent ones, and never rebase.
 
-CORRECTION, belam-S1-L3-X, after the 50-agent deep-search pinned the mechanism. Earlier notes on this node and in Belam IX's DM named zoom.py alongside brief.py as rendering main-absolute source paths into a kid's context. THAT IS WRONG AND ZOOM IS EXONERATED: the rendered context.md, 16654 bytes, contains ZERO absolute paths — grep -c '/home/ubuntu' returns 0 — and names nodes graph-relative. The real mechanism is argv assembly in dispatch.py and brief.py, pinned with the kid's preserved argv and its own reasoning trace, and is now specified for build at hypothesis:l3-branch-source-paths-never-rerooted. Candidate 1 as originally worded was directionally right and specifically wrong about which module.
+CORRECTION, belam-S1-L3-X, after the 50-agent deep-search pinned the mechanism. Earlier notes on this node and in Belam IX's DM named zoom.py alongside brief.py as rendering main-absolute source paths into a kid's context. THAT IS WRONG AND ZOOM IS EXONERATED: the rendered context.md, 16654 bytes, contains ZERO absolute paths — grep -c '<home>' returns 0 — and names nodes graph-relative. The real mechanism is argv assembly in dispatch.py and brief.py, pinned with the kid's preserved argv and its own reasoning trace, and is now specified for build at hypothesis:l3-branch-source-paths-never-rerooted. Candidate 1 as originally worded was directionally right and specifically wrong about which module.
 
 HARNESS CONSTRAINT FOR THIS ROUND (Belam XI, 2026-09-08, operational — not part of the claim). The `.env` OpenRouter runtime key is at its cap, so `dispatch.py` refuses every pi spawn with `ERR: runtime key ... below the configured floor`. Spawn your kid on the subscription:
 

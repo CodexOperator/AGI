@@ -1,8 +1,7 @@
 # CLAUDE.md — agi
 
 **Goals are the source of truth and the only place new work is recorded** — the goal nodes under
-`.agi/nodes/goal/`, rendered to `GOALS.md` (derived, ~1.5 MB). Read YOUR goal by id
-(`python3 extensions/agi/bin/write.py goal:<id> 'read body 1:60'`), never the whole render.
+`.agi/nodes/goal/`. Read YOUR goal by id (`python3 extensions/agi/bin/write.py goal:<id> 'read body 1:60'`).
 **Flows have skills** — `skills/agi-<flow>/SKILL.md` (goal · node-write · send · rotate · dispatch ·
 workflow · merge-pass · verify; Claude posts: the Skill tool). Read the matching one BEFORE the flow.
 Long form of this file, before the 2026-09-27 trim (goal:g4.18.2): `grid.py payload build:CLAUDE.md --version N` or git history.
@@ -15,7 +14,6 @@ grid refs that version both. (Before the one-repo move, `agi-tree` held the node
 ## Layout
 ```
 agi/                        ONE repo — the engine, which absorbed the graph
-  GOALS.md                  rendered at the root (the one doc a human opens first is never hidden in a dot dir)
   CLAUDE.md  AGENTS.md      at the root (AGENTS.md is a symlink to CLAUDE.md)
   extensions/ skills/ src/  the live source — edited directly
   .claude/skills/ .claude/workflows/   committed symlinks into skills/ and extensions/agi/workflows/
@@ -24,7 +22,7 @@ agi/                        ONE repo — the engine, which absorbed the graph
     nodes/                  the graph (deprecated/<type>/ = retired, moved, never deleted)
     context/schemas/        node-type schemas, [<type>].md
   refs/grid/*               per-node version history, same repo
-fantasia/                   any other project: its own .agi/ + GOALS.md; agi/ cloned in (gitignored)
+fantasia/                   any other project: its own .agi/; agi/ cloned in (gitignored)
 ```
 `bin/locations.py` is the single resolver: **nearest enclosing `.agi/` wins** — no flag, no project name.
 
@@ -33,7 +31,7 @@ fantasia/                   any other project: its own .agi/ + GOALS.md; agi/ cl
 |---|---|
 | `extensions/`, `skills/`, `src/` | the live source, edited directly |
 | `.agi/nodes/` | the graph, committed |
-| `GOALS.md` | DERIVED by `snapshot-goals.py --render` — author in the goal node |
+| ~~`GOALS.md`~~ | RETIRED 2026-09-29 (owner; goal:g7.16.1.4.1) — never recreate it; a goal is read by id |
 | `.agi/context/schemas/` | node-type schemas; `schema_registry` reads `[name].md` |
 | `.agi/config.json` | project marker + loop tuning |
 | `refs/grid/*` | per-node version history |
@@ -43,7 +41,7 @@ fantasia/                   any other project: its own .agi/ + GOALS.md; agi/ cl
 | `CLAUDE.md`, `AGENTS.md` | this file, one document under two names |
 
 Retired 2026-09-03 (L1.09): `.agi/context/kits/`, `.agi/context/plans/build-site.md` — never recreate them.
-Git history is the archive, not a to-do list: no second `nodes/`, no hand-kept `GOALS.md`, no scratch scripts.
+Git history is the archive, not a to-do list: no second `nodes/`, no scratch scripts.
 
 ## Running the loop
 ```bash
@@ -106,15 +104,13 @@ It versions `node.md` + its payload as ONE version, independent of the rest of t
   `[goal, mvp]`, `[goal, idea]`, per `[build].md` `parent_shapes`). A goal alone never mints one.
 - **Goal ids MAY be renumbered** (owner 2026-09-23): keep every `mint_id`, re-point every reference in the SAME commit,
   record old → new in the THOUGHT. Retire a goal: `retired` + deprecate its seed node. Details: skill `agi-goal`.
-- **`GOALS.md` is derived**: edit the goal node; a hand-edit vanishes at the next `--smoke`.
-  `snapshot-goals.py --render --check` exits 0 only on a byte-identical round trip.
+- **`GOALS.md` is retired** (owner 2026-09-29, goal:g7.16.1.4.1): a goal lives only in its node, read by id.
 
 | Command | Does |
 |---|---|
 | `bash extensions/agi/driver.sh --smoke --max-iters 1` | snapshot + render + metrics — the node count must not drop |
 | `python3 -m pytest extensions/agi/tests/ -q` | the engine's own suite |
 | `python3 extensions/agi/bin/commands.py run verify` | the one verification pass (skill `agi-verify`) |
-| `python3 extensions/agi/bin/snapshot-goals.py --render --check` | GOALS.md ⇄ goal nodes byte-identical |
 | `python3 extensions/agi/bin/viewport.py --verify` | goal:g2.19 — one render, two readers |
 | `python3 extensions/agi/bin/grid.py commit --all` | version every changed node and its payload |
 | `python3 extensions/agi/bin/links.py links` | every link resolves; broken must be 0 |

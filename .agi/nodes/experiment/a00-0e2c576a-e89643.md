@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-context-load-minimal
 next_edges: []
 confidence: 0.7
-edited_by: a00-8e296aa5
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-0e2c576a-e89643
 loop: hypothesis:l3w4-context-load-minimal@s2
@@ -25,7 +25,7 @@ verdict: inconclusive_lean_disproved:70
 
 SD.08 rotate.py-focused slice: measure and trim rotate.py's successor-spawn-prompt assembly, nothing else. Did NOT touch skills/agi/SKILL.md or .agi/context/INJECTION.md (other round's territory), and did not do moves THREE/FOUR/FIVE.
 
-**Method** (same as sibling SKILL.md/INJECTION.md round so numbers compare): tiktoken `o200k_base`. Script saved durably at `.agi/tmp/measure_spawn_prompt.py` (the /tmp copy does not survive across kids), runs under the venv at /home/ubuntu/work/agi/tmp/venv (base python lacks tiktoken; venv lacked pyyaml, installed for brief imports). Measurement calls `brief.successor_prompt` / `brief._build_head` the same way rotate.py does (project_root=None, so it walks up from brief.py to the worktree `.agi`).
+**Method** (same as sibling SKILL.md/INJECTION.md round so numbers compare): tiktoken `o200k_base`. Script saved durably at `.agi/tmp/measure_spawn_prompt.py` (the /tmp copy does not survive across kids), runs under the venv at <home>/work/agi/tmp/venv (base python lacks tiktoken; venv lacked pyyaml, installed for brief imports). Measurement calls `brief.successor_prompt` / `brief._build_head` the same way rotate.py does (project_root=None, so it walks up from brief.py to the worktree `.agi`).
 
 **Measured, the rotation spawn prompt (head + successor brief body):**
 

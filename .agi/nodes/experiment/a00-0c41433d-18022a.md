@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-branches-follow-the-season-grammar
 next_edges: []
 confidence: 0.85
-edited_by: a00-2be7dac6
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-0c41433d-18022a
 loop: hypothesis:l4-branches-follow-the-season-grammar@s2
@@ -105,9 +105,9 @@ refs/grid/test/deadbeef 3321c34207b351f8ba195db27761d424fd04651c
 $ python3 extensions/agi/bin/cli.py branch-reshuffle --dry-run
 branch-reshuffle (season=2): 4 legacy branch(es)   [fixture]
 ...
-[DRY ] worktree re-point: git -C /home/ubuntu/work/agi checkout season2/main
-[DRY ] worktree re-point: git -C /home/ubuntu/work/agi/.agi/worktrees/seat-sanctuary-director checkout season2/posts/sanctuary-director
-[DRY ] worktree re-point: git -C /home/ubuntu/work/agi/.agi/worktrees/seat-sensei-director checkout season2/posts/sensei-director
+[DRY ] worktree re-point: git -C <home>/work/agi checkout season2/main
+[DRY ] worktree re-point: git -C <home>/work/agi/.agi/worktrees/seat-sanctuary-director checkout season2/posts/sanctuary-director
+[DRY ] worktree re-point: git -C <home>/work/agi/.agi/worktrees/seat-sensei-director checkout season2/posts/sensei-director
 
   cell re-spellings (PRINTED ONLY, Prime applies them):
   nodes/.geometry/ladder.md:60: season/s2 -> season2/main

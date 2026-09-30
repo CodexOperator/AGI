@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-is-written
 next_edges: []
 confidence: 0.9
-edited_by: a00-25d39101
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-200ebad9-7333f7
 line_ceiling: 40
@@ -89,12 +89,12 @@ $ git diff --numstat -- extensions/agi/bin/node_writer.py \
       extensions/agi/bin/write.py extensions/agi/bin/spawn_gate.py
 (empty)
 
-$ ls -d /home/ubuntu/work/agi/.agi/nodes/notown
-ls: cannot access '/home/ubuntu/work/agi/.agi/nodes/notown': No such file or directory
+$ ls -d <home>/work/agi/.agi/nodes/notown
+ls: cannot access '<home>/work/agi/.agi/nodes/notown': No such file or directory
 ```
 
 LIVE INVARIANT held: every probe ran on `tmp_path` (the `project` fixture) or
-`/tmp/probe_root`; no node under the real `/home/ubuntu/work/agi/.agi/nodes`
+`/tmp/probe_root`; no node under the real `<home>/work/agi/.agi/nodes`
 was created, touched or probed.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->

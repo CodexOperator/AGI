@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:l4-wake-audit-reads-facts-and-defaults-to-the-latest-record
 confidence: 0.9
-edited_by: a00-dece0c4a
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-1f4edfb9-320702
 scaffold_hash: 0f36b8d8982d5678
@@ -43,7 +43,7 @@ selects the gen-12 record's join transcript via
 ## Evidence
 
 - 44/44 live rotation records lack `session_log`; 9 carry
-  `handover.join.transcript` (measured on /home/ubuntu/work/agi/.agi).
+  `handover.join.transcript` (measured on <home>/work/agi/.agi).
 - Pre-fix mehaviour (parent's measure): `sensei.py wake-audit --seat
   sanctuary-director` → `ERR: ... names no transcript` on every live seat.
 - Post-fix live run:

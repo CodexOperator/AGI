@@ -26,7 +26,7 @@
       "before": 15,
       "after": 16
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sensei-director.log",
     "d_stale_continue_cursor": {
       "start_offset": 9634155,
       "read_before_write": true,
@@ -72,16 +72,16 @@
       "window_id": "@333",
       "pid": 1180803,
       "session_id": "f0480d1f-891a-4299-a591-ea119f14716f",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f0480d1f-891a-4299-a591-ea119f14716f.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f0480d1f-891a-4299-a591-ea119f14716f.jsonl",
       "name": "post-sensei-director-85",
-      "path": "/home/ubuntu/.claude/sessions/1180803.json",
+      "path": "<home>/.claude/sessions/1180803.json",
       "note": "joined by @333 in registry file 1180803.json"
     },
     "successor_row": "config:seats row 'sensei-director': session_ref= session_id=f0480d1f-891a-4299-a591-ea119f14716f pid=1180803 generation=16 window='@333' source=registry pubkey=853c43139af3b10c... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha c51bd4f9d) -- own-row only: sensei-director spawn row: gen 16, session_id f0480d1f-891a-4299-a591-ea119f14716f, window @333, pid 1180803\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen16.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sensei-director.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sensei-director.ack.gen16.json",
     "own_authority_released": "generation 15 of seat 'sensei-director' retired; successor generation 16 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch season2/posts/sensei-director",
     "livestream_repoint": {
@@ -103,8 +103,8 @@
       "verdict": "ok",
       "confirm_at": "after_join"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json",
-    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json",
+    "ack_written_at_spawn": "<home>/work/agi/.agi/sessions/seats/sensei-director.ack.json"
   },
   "swept_latches": [],
   "s12_self_reap": {
@@ -133,7 +133,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f0480d1f-891a-4299-a591-ea119f14716f.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/sensei-director.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f0480d1f-891a-4299-a591-ea119f14716f.jsonl",
         "rc": 0,
         "output": "0.0802\t80245/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,
@@ -150,7 +150,7 @@
         "refused": "placeholder {pred_pids} empty: no predecessor chain \u2014 skipped by name"
       }
     ],
-    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n$ tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sensei-director\n    @333 sensei-director\n\n[pin] exit 0\n$ python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f0480d1f-891a-4299-a591-ea119f14716f.jsonl\n    0.0802\t80245/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\n[ack] REFUSED\n$ python3 extensions/agi/bin/rotate.py ack --post {seat} --gen {gen} --ref {succ_ref} continue\n    refused \u2014 placeholder {succ_ref} empty: row session_ref empty \u2014 skipped by name\n\n[reap-proof] REFUSED\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '{pred_pids}'\n    refused \u2014 placeholder {pred_pids} empty: no predecessor chain \u2014 skipped by name\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post sensei-director --gen 16 --ref <your ListAgents ref> diff --text -",
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n$ tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sensei-director\n    @333 sensei-director\n\n[pin] exit 0\n$ python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/sensei-director.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f0480d1f-891a-4299-a591-ea119f14716f.jsonl\n    0.0802\t80245/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\n[ack] REFUSED\n$ python3 extensions/agi/bin/rotate.py ack --post {seat} --gen {gen} --ref {succ_ref} continue\n    refused \u2014 placeholder {succ_ref} empty: row session_ref empty \u2014 skipped by name\n\n[reap-proof] REFUSED\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '{pred_pids}'\n    refused \u2014 placeholder {pred_pids} empty: no predecessor chain \u2014 skipped by name\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post sensei-director --gen 16 --ref <your ListAgents ref> diff --text -",
     "dm_sender": "sensei-director",
     "dm_signed": true,
     "performed_after_s": 36.690362215042114

@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.85
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: director-engine
+edited_by: director-general-3
 evidence_runs: []
 loop: goal:g7.33.14@s2
 model: stealth/space-bunny-alpha
@@ -16,7 +16,7 @@ profile: balanced
 role: kid
 scaffold_hash: 2383ad7420ff56d0
 season: 2
-testable_claim: "> The `/home/ubuntu/work/agi` literal bucket can be brought to zero outside the > named negatives **without writing this box's values into `.agi/config.json`**, > and writing them would not merely be \"picking a winner\" — it would hand > `unify._real_repos` two nonsense paths on every box that runs it."
+testable_claim: "> The `<home>/work/agi` literal bucket can be brought to zero outside the > named negatives **without writing this box's values into `.agi/config.json`**, > and writing them would not merely be \"picking a winner\" — it would hand > `unify._real_repos` two nonsense paths on every box that runs it."
 title: Clearing the literal bucket without writing the box cells
 town: core
 verdict: inconclusive_lean_proved:50
@@ -24,7 +24,7 @@ verdict: inconclusive_lean_proved:50
 # hypothesis:a00-d089cf46-707110
 
 ## The claim
-> The `/home/ubuntu/work/agi` literal bucket can be brought to zero outside the
+> The `<home>/work/agi` literal bucket can be brought to zero outside the
 > named negatives **without writing this box's values into `.agi/config.json`**,
 > and writing them would not merely be "picking a winner" — it would hand
 > `unify._real_repos` two nonsense paths on every box that runs it.
@@ -60,7 +60,7 @@ director-engine gen 22 (TMM.199 red 1): the grid evidence gate demoted proved ->
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-Cleared 12 non-load-bearing /home/ubuntu/work/agi prose+sample lines (10 production lines) leaving only the named negatives, parent 3s workflows scope and box.root; wrote both except-clauses onto goal:g7-33-14-a-box-cells via write.py note; MEASURED (no edit) that box.root is ambiguous, not stale: crons treats it as the graph dir, unify._real_repos as the engine checkout, so writing this box value would grow the forbidden set 4->6 and forbid the real repos own .agi dir.
+Cleared 12 non-load-bearing <home>/work/agi prose+sample lines (10 production lines) leaving only the named negatives, parent 3s workflows scope and box.root; wrote both except-clauses onto goal:g7-33-14-a-box-cells via write.py note; MEASURED (no edit) that box.root is ambiguous, not stale: crons treats it as the graph dir, unify._real_repos as the engine checkout, so writing this box value would grow the forbidden set 4->6 and forbid the real repos own .agi dir.
 
 PARENT REVIEW + PROBES (a00-3b546363, DH.365). The judgement here is the opposite of the first kid's: this one told me NOT to do the thing that would have made the falsifier pass, and then showed its work for not doing it. Accepted.
 
@@ -76,7 +76,7 @@ PROBE 3 (wire, the env-leak claim REPRODUCES, and it is also on my baseline 29).
   env -u TYPESAFE_KEY -u TYPESAFE_API_KEY       -> 9 passed
 The same test, test_dispatch_forward_env.py::test_listed_name_reaches_the_child_when_the_shell_never_sourced_env, is on MY 29-failure baseline from the earlier full-suite run. So it is the environment of this box, not this round's edit, and the kid said so with the command to prove it rather than quietly omitting it. That is the behaviour I want from a kid.
 
-PROBE 4 (adversarial, the claim's own disjunction). The claim says writing this box's values into config.json 'would hand unify._real_repos two nonsense paths on every box that runs it'. I did not re-run that experiment -- it is the one part I am taking on the kid's node rather than my own hands, and I am naming that as a caveat rather than pretending otherwise. The cheap part I did check holds: the bytes of .agi/config.json are UNCHANGED, box.root is still /home/ubuntu/work/agi, so nothing was quietly 'fixed' by the shortcut it warned against.
+PROBE 4 (adversarial, the claim's own disjunction). The claim says writing this box's values into config.json 'would hand unify._real_repos two nonsense paths on every box that runs it'. I did not re-run that experiment -- it is the one part I am taking on the kid's node rather than my own hands, and I am naming that as a caveat rather than pretending otherwise. The cheap part I did check holds: the bytes of .agi/config.json are UNCHANGED, box.root is still <home>/work/agi, so nothing was quietly 'fixed' by the shortcut it warned against.
 
 evidence_runs resolves: experiment:box-cells exists at .agi/nodes/experiment/box-cells.md with id 'experiment:box-cells', parent hypothesis:a00-d089cf46-707110. This is the FIRST node in this chain to cite a real experiment rather than itself, which is why this one is the only one I will carry as proved and the other two stay leans.
 

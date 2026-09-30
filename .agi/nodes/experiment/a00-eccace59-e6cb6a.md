@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-dispatch-dry-run
 next_edges: []
 confidence: 0.85
-edited_by: ubuntu
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-eccace59-e6cb6a
 loop: hypothesis:l3-dispatch-dry-run@s2
@@ -32,7 +32,7 @@ Edits made (in place, suite green):
 - `extensions/agi/tests/test_dispatch_dry_run.py`: new — 5 subprocess tests against a scratch project (pi + claude-code advisor).
 - `skills/agi/SKILL.md`: one CLI-table line pointing at `--dry-run`.
 
-Commands actually run (`cd /home/ubuntu/work/agi`):
+Commands actually run (`cd <home>/work/agi`):
 
 ```
 python3 extensions/agi/bin/dispatch.py . 1 --harness pi --tier parent --target hypothesis:l3-dispatch-dry-run --dry-run
@@ -57,7 +57,7 @@ Real pi dry-run output (parent, tier-1 pid row):
 
 ```
 [dry-run] slot=0 harness=pi tier=parent role=parent ladder_tier=1 level=small target=hypothesis:l3-dispatch-dry-run brief_tier=parent
-  command: /home/ubuntu/.npm-global/bin/pi --provider openrouter --model '~z-ai/glm-flash-latest' --thinking medium -p --append-system-prompt @/tmp/.../context.md --append-system-prompt '...<6383 chars> ...
+  command: <home>/.npm-global/bin/pi --provider openrouter --model '~z-ai/glm-flash-latest' --thinking medium -p --append-system-prompt @/tmp/.../context.md --append-system-prompt '...<6383 chars> ...
   env: AGI_TIER=parent AGI_ROLE=parent AGI_LADDER_TIER=1 AGI_SEASON=2 AGI_LOOP=hypothesis:l3-dispatch-dry-run@s2 AGI_MODEL=~z-ai/glm-flash-latest AGI_PROFILE=balanced GIT_CONFIG_COUNT=1
   brief: tier=parent 126 lines; first 20: ...
 ```

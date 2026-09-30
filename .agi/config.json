@@ -19,7 +19,7 @@
       "name": "enhanced survival",
       "seats": "Prime + point director (sanctuary-director) + helper director (sanctuary-helper) \u2014 the Texas two-step formation, three seats, helper answers to the point",
       "models": "Prime claude-opus-5; point director claude-opus-5 max; helper director claude-sonnet-5 max (owner verbatim: 'Helper director kid runs sonnet btw.' 'Sonnet max effort')",
-      "source": "goal:g17.1:26 ('Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work... Let the current director take point though and the other one is like a helper') and :28 ('this is just enhanced survival mode')",
+      "source": "goal:g7.16:29 ('Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work... Let the current director take point though and the other one is like a helper') and :28 ('this is just enhanced survival mode')",
       "in_force": true
     }
   },
@@ -148,7 +148,12 @@
     },
     "parent_max_kids": 10,
     "memory_max": "2G",
-    "tasks_max": 150
+    "tasks_max": 150,
+    "post_scope": {
+      "live": false,
+      "slice": "agi.slice",
+      "why": "goal:g6.41.1 P6 (director-general-3, bundle 3 R1): true = every post launch in its OWN scope under slice. OFF until the owner's word after PASS B3 (doc:card-belam s6) and the slice decision (agi.slice shares MemoryHigh 9.26G / MemoryMax 10.29G with agi-work + agi-engine on local-town)."
+    }
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,
@@ -226,6 +231,7 @@
   "reaper": {
     "max_restarts": 0,
     "late_reap_wait_max_s": 1800,
+    "recovery_psi_max_pct": 40,
     "term_grace_s": 15,
     "chain_deadline_s": 20
   },

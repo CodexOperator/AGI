@@ -15,8 +15,12 @@ would have caught it: it scans this repo's own live `.agi/nodes/`, not a
 fixture, so a future edit that reintroduces the same replace-all mistake on
 any node fails here rather than being found by inspection again.
 
-Detection matches the actual HTML comment opening tag (`<!-- THOUGHT:BEGIN`),
-not a bare substring search for `THOUGHT:BEGIN` anywhere in the file. That
+Detection is node_writer's ONE definition (`thought_blocks`): both markers at
+column 0. An indented or inline marker is a QUOTATION -- the 15 "offenders" an
+unanchored count named on 09-29 were all quoted review evidence
+(verdict:dg2-b-thought-marker), and they stay byte-unchanged. Before that,
+detection matched the HTML comment opening tag (`<!-- THOUGHT:BEGIN`), not a
+bare substring search for `THOUGHT:BEGIN` anywhere in the file. That
 distinction is not cosmetic: the node this fix itself produced
 (`mvp:g11-crons-metrics-residual`) documents the `grep -c 'THOUGHT:BEGIN'
 ...` gate command in its own body, as plain text inside a fenced code block —
@@ -36,15 +40,23 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
 
 import locations  # noqa: E402
-
-#: The real marker, anchored on its HTML comment open — not a bare substring
-#: match, which a node's own prose can legitimately quote as documentation
-#: (see module docstring).
-THOUGHT_OPEN_RE = re.compile(r"<!--\s*THOUGHT:BEGIN")
+import node_writer  # noqa: E402
 
 
 def _count_thought_blocks(text: str) -> int:
-    return len(THOUGHT_OPEN_RE.findall(text))
+    return len(node_writer.thought_blocks(text))
+
+
+#: A column-0 BEGIN line. `thought_blocks` pairs a BEGIN with the next END, so
+#: a second BEGIN with no END of its own (B,B,E) or an unclosed one (BE,B) is
+#: silently one block; counting the openers keeps the row as strict as it was
+#: before the detector moved to the one definition (mur wf_a56d005b-d6b row 9).
+_COL0_BEGIN = re.compile(r"^<!--\s*THOUGHT:BEGIN", re.MULTILINE)
+
+
+def _offends(text: str) -> bool:
+    blocks = _count_thought_blocks(text)
+    return blocks > 1 or len(_COL0_BEGIN.findall(text)) != blocks
 
 
 def _project_root() -> Path | None:
@@ -64,9 +76,10 @@ def test_the_real_corpus_has_no_node_with_two_thought_blocks():
 
     offenders = []
     for nf in sorted(nodes_dir.rglob("*.md")):
-        count = _count_thought_blocks(nf.read_text(encoding="utf-8", errors="replace"))
-        if count > 1:
-            offenders.append((str(nf.relative_to(root)), count))
+        text = nf.read_text(encoding="utf-8", errors="replace")
+        if _offends(text):
+            offenders.append((str(nf.relative_to(root)), _count_thought_blocks(text),
+                              len(_COL0_BEGIN.findall(text))))
 
     assert offenders == [], (
         "node(s) carrying more than one THOUGHT:BEGIN block (schema allows "
@@ -116,3 +129,81 @@ def test_quoting_the_marker_as_documentation_is_not_a_false_positive():
     )
     assert text.count("THOUGHT:BEGIN") == 2       # the naive count would flag this
     assert _count_thought_blocks(text) == 1        # the real count does not
+
+
+# --- goal:g7.16.1.1.1 · hypothesis:thought-verb-edits-only-the-top-level-thought-block
+# The falsifier rows (council bundle 1, director-general-2): RED on the trunk at
+# 59ad74144, green since director-general-3's build (column-0 _THOUGHT_RE).
+_CLAIM = "hypothesis:thought-verb-edits-only-the-top-level-thought-block"
+_QUOTED = ("    <!-- THOUGHT:BEGIN -->\n    quoted review evidence\n"
+           "    <!-- THOUGHT:END -->\n")
+_TOP = "<!-- THOUGHT:BEGIN -->\nreal top-level thought\n<!-- THOUGHT:END -->\n"
+
+
+def _nw():
+    import node_writer
+    return node_writer
+
+
+def test_extract_thought_skips_an_indented_quoted_pair():
+    body = "# n\n\n## Review\n" + _QUOTED + "\n" + _TOP
+    assert "real top-level thought" in (_nw().extract_thought(body) or "")
+
+
+def test_a_body_with_only_a_quoted_pair_has_no_thought():
+    assert _nw().extract_thought("# n\n\n## Review\n" + _QUOTED) is None
+
+
+def test_a_version_write_carries_the_real_block_past_a_quoted_one():
+    old = "# n\n\n## Review\n" + _QUOTED + "\n" + _TOP
+    new = "# n\n\n## Review\n" + _QUOTED + "\nbody v2\n"
+    assert "real top-level thought" in _nw()._carry_thought(old, new)
+
+
+def test_no_thought_marker_regex_outside_node_writer():
+    """A raw-string pattern carrying the marker is a regex copy. The surface is
+    every engine .py outside tests/ plus the graph's context/ tree (the sql
+    mirror lives there), not bin/ alone (mur wf_a56d005b-d6b row 10); tests/
+    holds fixture patterns by design. node_writer.py is exempt by PATH."""
+    raw = re.compile(r"""\br["'][^"']*THOUGHT:BEGIN""")
+    skip = {"tests", "__pycache__", "node_modules", ".venv", "venv"}
+    root = _project_root()
+    surfaces = [BIN.parent] + ([root / "context"] if root else [])
+    copies = [f"{p}:{i}" for s in surfaces for p in sorted(s.rglob("*.py"))
+              if p != BIN / "node_writer.py" and not skip & set(p.relative_to(s).parts)
+              for i, line in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), 1)
+              if raw.search(line)]
+    assert copies == []
+
+
+def test_a_begin_without_its_own_end_is_an_offender():
+    B, E = "<!-- THOUGHT:BEGIN -->\n", "<!-- THOUGHT:END -->\n"
+    assert _offends(B + "a\n" + B + "b\n" + E)          # B,B,E
+    assert _offends(B + "a\n" + E + B + "b\n")          # BE,B (unclosed)
+    assert not _offends(B + "a\n" + E)
+    assert not _offends(_QUOTED + B + "a\n" + E)
+
+
+def test_the_thought_verb_rewrites_the_real_block_and_leaves_the_quote():
+    body = "# n\n\n## Review\n" + _QUOTED + "\n" + _TOP
+    out = _nw().replace_thought(body, "<!-- THOUGHT:BEGIN -->\nv2\n<!-- THOUGHT:END -->")
+    assert _QUOTED in out and "\nv2\n" in out and "real top-level thought" not in out
+
+
+def test_an_inline_end_marker_inside_the_real_block_does_not_close_it():
+    """4 live experiment nodes quote the END marker inline inside their block."""
+    body = ("<!-- THOUGHT:BEGIN -->\nthe verb matched `<!-- THOUGHT:END -->` first\n"
+            "kept\n<!-- THOUGHT:END -->\n")
+    assert _nw().thought_text(body).endswith("kept")
+
+
+# --- goal:g7.16.1.2.7 · hypothesis:node-writer-owns-the-thought-marker-strings
+# (council bundle 2, director-general-2). Strict xfail: RED on the trunk at
+# 82d64ffe7 -- snapshot-goals.py:258/:260 and write.py:2918/:2920 spelled them;
+# green since director-general-3's build (node_writer.THOUGHT_BEGIN/END).
+def test_the_marker_strings_live_in_node_writer_only():
+    nw = _nw()
+    assert nw.THOUGHT_BEGIN.startswith("<!-- THOUGHT:BEGIN") and nw.THOUGHT_END == "<!-- THOUGHT:END -->"
+    for name in ("snapshot-goals.py", "write.py"):
+        text = (BIN / name).read_text(encoding="utf-8")
+        assert "<!-- THOUGHT:BEGIN" not in text and "<!-- THOUGHT:END" not in text, name

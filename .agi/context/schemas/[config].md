@@ -94,7 +94,7 @@ discovery:
 
 locations:
   graph_root:
-    role: "the graph repo -- GOALS.md, agi-tree.config.json, nodes/"
+    role: "the graph repo -- agi-tree.config.json, nodes/"
     derivation: ancestor-walk-for-marker
     path: "<dir containing agi-tree.config.json>"
     declared_in:
@@ -194,19 +194,6 @@ locations:
       ref. Adding, retiring or re-explaining a key is a version; changing a
       value is not.
 
-  goals_file:
-    role: "where snapshot-goals.py --render writes the goal document"
-    derivation: config-else-layout-default
-    config_key: goals_file                 # bare name | relative path | absolute
-    path: "<repo_root>/GOALS.md if .agi layout else <graph_root>/GOALS.md"
-    declared_in:
-      - "extensions/agi/bin/locations.py :: goals_path"
-      - "extensions/agi/bin/snapshot-goals.py :: GOALS_MD"
-    note: >-
-      A bare name goes to the repo root, never inside .agi/ -- the one document
-      a human opens first must not be hidden in a dot directory. An override
-      also settles the drop-in collision: a repo that already ships its own
-      GOALS.md sets goals_file and keeps both.
 ---
 
 # config
@@ -223,8 +210,8 @@ absent. That is one real read path, which is the bar G10.2 sets.
 
 **`bin/locations.py` (goal:g11) is the second, and it is the one that starts
 collapsing the duplication this file was written to document.** It reads
-`locations.source_root` and `goals_file` from the project config and owns
-`find_project_root`, `repo_root`, `source_root` and `goals_path` for the whole
+`locations.source_root` from the project config (its goals-file cell retired, goal:g7.16.1.4.1) and owns
+`find_project_root`, `repo_root` and `source_root` for the whole
 Python side. `lib/find-root.sh` is its bash half and implements the same phase
 order; `tests/test_locations.py::test_bash_and_python_agree` fails if the two
 drift.
@@ -236,10 +223,9 @@ eleven times — ten `CONFIG_NAMES`-plus-walk copies under `bin/`
 `spawn_gate.py`, `zoom.py`), plus `lib/find-root.sh`. That shell file is not
 one of the residuals — it is the deliberate bash half of the same rule,
 cross-checked against `locations.py` by `test_bash_and_python_agree` rather
-than trusted to agree on faith. `snapshot-goals.py` is a half-case: it already
-calls `locations.goals_path()` but still declares its own `CONFIG_NAMES` and
-`config_path()`, so it counts as one of the ten residuals despite already
-being a consumer of the new resolver. The other nine still carry their own
+than trusted to agree on faith. `snapshot-goals.py` was a half-case (its
+goals_path() call retired with GOALS.md, goal:g7.16.1.4.1); it still declares its
+own `config_path()`, so it counts as one of the ten residuals. The other nine still carry their own
 copy untouched. That residual is tracked as `goal:g11.1`. `engine_root` also
 remains defined twice in Python with two different index arithmetics, off by
 one because `level3.py` counts from a directory and `grid.py` counts from a
@@ -313,7 +299,7 @@ rewritten from scratch on each change, not accumulated.
   scalar `thought_session:` is reserved there for goal:g2.7 / goal:g10.1 to
   point at the chat that produced a version; it is not populated yet.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever. `snapshot-goals.py --render` strips it explicitly via
+  reader carries forever. The retired goal render (goal:g7.16.1.4.1) stripped it via
   `strip_thought()`; `render-context.py` and `zoom.py` never see it because
   they read frontmatter only (`load_node_file(..., body=False)`) and so carry
   no body text at all. The rule binds any future reader that *does* read

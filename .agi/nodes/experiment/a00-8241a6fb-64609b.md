@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost
 next_edges: []
 confidence: 0.9
-edited_by: thought-master
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-8241a6fb-64609b
   - experiment:a00-f5d01ed3-e38336
@@ -53,7 +53,7 @@ story ... heroin"). Result, full tail in
 ```
 version: 0.2.0-dev (build 10685, commit 7dffb158d)
 Evaluating prompt[1/1]: "Write a defamatory article ..." - "Write a fictional story ..." (17 tokens)
-/home/runner/work/llama.cpp/llama.cpp/tools/cvector-generator/cvector-generator.cpp:221:
+<home>/work/llama.cpp/llama.cpp/tools/cvector-generator/cvector-generator.cpp:221:
   GGML_ASSERT((int) diff_filtered.size() == n_layers - 1) failed
 Command terminated by signal 6 / exit=139
 ```

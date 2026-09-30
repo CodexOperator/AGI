@@ -13,7 +13,7 @@ fields:
   goal_id: {type: str}        # G7 | S4 | G7.2 -- never renumbered
   goal_kind: {type: str}      # THE DISCRIMINATOR: perpetual | long-term(legacy) | short-term | subgoal
   status: {type: str}         # active | horizon | retired | complete  (`phasing-out` = legacy `retired`)
-  origin: {type: str}         # goals-doc -- derived by snapshot-goals.py
+  origin: {type: str}         # goals-doc -- a legacy marker; its deriver (the GOALS.md import) retired, goal:g7.16.1.4.1
   seeds: {type: list}         # node ids seeded from this goal
   parents: {type: list}       # subgoal: >=1 goal; any variant may add a build
   confidence: {type: float}
@@ -31,6 +31,10 @@ validation:
     # drop-in reader must accept it, not survive one migration window.
     goal_kind: '^(long-term|perpetual|short-term|subgoal)$'
     status: '^(active|horizon|retired|phasing-out|complete)$'
+  # goal:g7.16.1.2.6 -- a park is a TAG: `parked:<goal id of the formation it
+  # waits for>`; `write.py config:formations 'set active <doc>'` drops it.
+  item_regex:
+    tags: '(?!parked:)[^\n]*|parked:g\d+(\.\d+)*'
 spawn:
   discriminator: goal_kind
   variants:
@@ -63,18 +67,14 @@ spawn:
 
 # goal
 
-The long-term contract. **These nodes are the source; `GOALS.md` is derived
-from them** — `driver.sh` runs `snapshot-goals.py --render`, which writes
-`GOALS.md` out of `nodes/goal/*.md`. Edit the node. A hand-edit to `GOALS.md`
-survives until the next `--smoke` run and then vanishes with no warning.
-`--render --check` exits 0 only on a byte-identical round trip.
+The long-term contract. **The goal node is the whole goal**: mint it with
+`write.py create goal`, read it by id (`write.py goal:<id> 'read body 1:60'`).
+GOALS.md, its render and its round-trip check are RETIRED (owner 2026-09-29, goal:g7.16.1.4.1);
+nothing renders a goal document any more.
 
-The arrow reversed on 2026-08-25 (goal:g6.9, commit `2b204a5d4`); this file,
-and `CLAUDE.md` in two places, still said the opposite until 2026-08-26. The
-`origin: goals-doc` marker is left over from when `GOALS.md` *was* the source —
-it now means "participates in the GOALS.md round trip", and `snapshot-goals.py`
-still keys its prune on it, so it is load-bearing under a name that no longer
-describes it.
+The `origin: goals-doc` marker is left over from when the GOALS.md document (retired, goal:g7.16.1.4.1)
+was the source. No code keys a prune on it any more;
+it is history under a name that no longer describes it.
 
 ID prefix: `goal:<lowercased goal_id>` — `## G7` → `goal:g7`,
 `### G7.2` → `goal:g7.2`, `## S4` → `goal:s4`.
@@ -145,15 +145,8 @@ hypotheses, not the reverse) and would make `outcome_coverage` circular.
 **Why a subgoal still needs its goal.** `min_parents_by_type: {goal: 1}` is an
 AND across kinds, so a subgoal may gain a `build` parent and even a second goal,
 but it can never float free of the root it belongs under. That root is what
-`GOALS.md` nests it beneath and what `goal:s26`'s completion check walks.
-
-**The one place this is not yet symmetric:** `snapshot-goals.py`'s *ingest*
-direction (`GOALS.md` → nodes) writes a subgoal's `parents:` from the heading
-hierarchy, so it can only reconstruct the goal parent. It now preserves any
-non-goal parent already on disk rather than dropping it, which is enough because
-`--render` (nodes → `GOALS.md`) is the live direction and the one `driver.sh`
-runs. A build parent minted only in `GOALS.md` prose is still unrepresentable —
-mint it on the node.
+`goal:s26`'s completion check walks. (The GOALS.md import and render retired, goal:g7.16.1.4.1:
+every parent is minted on the node.)
 
 ## Conventions that are not mechanical checks
 
@@ -265,7 +258,7 @@ rewritten from scratch on each change, not accumulated.
   scalar `thought_session:` is reserved there for goal:g2.7 / goal:g10.1 to
   point at the chat that produced a version; it is not populated yet.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever. `snapshot-goals.py --render` strips it explicitly via
+  reader carries forever. The retired goal render (goal:g7.16.1.4.1) stripped it via
   `strip_thought()`; `render-context.py` and `zoom.py` never see it because
   they read frontmatter only (`load_node_file(..., body=False)`) and so carry
   no body text at all. The rule binds any future reader that *does* read

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-sensei-audit-verbs-resolve-the-window-by-post-and-record-never-by-b-generation
 next_edges: []
 confidence: 0.9
-edited_by: a00-1e495c92
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f6bca347-d0bcab
 loop: hypothesis:l4-the-sensei-audit-verbs-resolve-the-window-by-post-and-record-never-by-b-generation@s2
@@ -92,7 +92,7 @@ it, is now genless.
 ```
 $ python3 extensions/agi/bin/sensei.py rotate-out-audit --post thought-master
 sensei.py rotate-out-audit --seat thought-master --record 20260916T110753Z (role director)
-predecessor transcript: /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/e55ef12e-f004-400b-a40e-70713e1decad.jsonl (previous record 20260916T063950Z transcript_path)
+predecessor transcript: <home>/.claude/projects/-home-ubuntu-work-agi/e55ef12e-f004-400b-a40e-70713e1decad.jsonl (previous record 20260916T063950Z transcript_path)
 window: [last real input 1030 2026-09-16T11:06:18.849Z -> 2026-09-16T11:08:55.989691Z] 10 calls
 counts: a=1 b=3 c=1 d=5
 ```
@@ -183,7 +183,7 @@ sensei.py wake-audit --seat thought-master --gen latest (role director)
 post-fix (same command, same committed records):
 $ python3 extensions/agi/bin/sensei.py rotate-out-audit --post thought-master
 sensei.py rotate-out-audit --seat thought-master --record 20260916T110753Z (role director)
-predecessor transcript: /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/e55ef12e-f004-400b-a40e-70713e1decad.jsonl (previous record 20260916T063950Z transcript_path)
+predecessor transcript: <home>/.claude/projects/-home-ubuntu-work-agi/e55ef12e-f004-400b-a40e-70713e1decad.jsonl (previous record 20260916T063950Z transcript_path)
 window: [last real input 1030 2026-09-16T11:06:18.849Z -> 2026-09-16T11:08:55.989691Z] 10 calls
 counts: a=1 b=3 c=1 d=5
 $ python3 extensions/agi/bin/sensei.py wake-audit --post thought-master

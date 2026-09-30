@@ -4,16 +4,17 @@ mint_id: cf528b57953144b7b05a61db21c5b693
 type: hypothesis
 parents:
   - goal:g1
+  - goal:g7.16.1.1.1
 next_edges: []
 confidence: 0.8
-edited_by: director-engine
+edited_by: director-general-4
 scaffold_hash: e1607a9463d280b3
 season: 2
 tags:
   - engine
   - write
   - thought
-testable_claim: "(1) a THOUGHT block is the authored region only when its BEGIN marker starts a line at column 0 outside an indented or fenced quote (2) write.py thought rewrites only that block and adds one when none exists, never touching a quoted pair (3) snapshot-goals.py and metrics.py read the same one definition (assigned: director-engine)"
+testable_claim: "(1) a THOUGHT block is the authored region only when BOTH its BEGIN and END markers start a line at column 0 (an indented or inline marker is a quotation); fenced code blocks are NOT tracked, so a column-0 pair inside a fence counts as authored (2) write.py thought rewrites only that block and adds one when none exists, never touching an indented pair (3) every NODE-body reader (snapshot-goals.py, metrics.py, brief.py, graph2sql.py, and links.py's retired-successor read through node_writer.thought_text) reads the one definition in node_writer; links.py's surface-file skip (plain substring tests over non-node files, DH.522 item 2) is out of scope (assigned: director-engine; bundle 1 row B: director-general-3)"
 title: "write.py thought edits only the top-level THOUGHT block -- never a pair quoted inside a review (DH.481 destroyed quoted evidence; assigned: director-engine)"
 town: core
 ---
@@ -31,10 +32,10 @@ ROUNDS    this post's rounds on this node: DH.607 DH.639 DH.658; the open round'
 - The comment at :915-917 says the spelling is shared with `snapshot-goals.py` and `metrics.py` -- "one spelling, three readers".
 
 ## CLAIM
-(1) a THOUGHT block counts as the node's authored region only when its BEGIN marker starts a line at column 0 and sits outside any indented or fenced quote; (2) `write.py <id> thought ...` rewrites that block only, never an indented/quoted pair, and adds a top-level block when none exists; (3) snapshot-goals.py and metrics.py read the same ONE definition (no second regex).
+(1) a THOUGHT block counts as the node's authored region only when BOTH its BEGIN and END markers start a line at column 0 -- an indented or inline marker is a quotation. NAMED GAP: fenced code blocks are NOT tracked (node_writer _THOUGHT_RE comment: 3 real blocks sit after an unbalanced fence, measured 09-29), so a column-0 pair inside a fence counts as authored; (2) `write.py <id> thought ...` rewrites that block only, never an indented/quoted pair, and adds a top-level block when none exists; (3) every NODE-body reader (snapshot-goals.py, metrics.py, brief.py, graph2sql.py, and links.py's retired-successor read through node_writer.thought_text) reads the same ONE definition in node_writer (no second regex). OUT OF SCOPE: links.py's surface-file skip, plain substring THOUGHT tests over non-node files (DH.522 item 2; mvp:dg3-b-one-thought-definition names it).
 
 ## Dispatch line
-config-max: none (a marker spelling is code shared by readers, not a tunable). template-max: none. code: the anchored single definition + the three readers routed through it -- the resolver that does not exist.
+config-max: none (a marker spelling is code shared by readers, not a tunable). template-max: none. code: the anchored single definition + the node-body readers named in CLAIM (3) routed through it -- the resolver that does not exist.
 
 ## FALSIFIERS
 - A body with a quoted, indented THOUGHT pair inside a review AND a top-level block: a `thought` edit changes the quoted pair.
@@ -82,7 +83,7 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 ## CORRECTIVE DH.583 -- closes mur-director-engine-27 DH.554-k1 accept_with_residue (no verify)
 BASE      CUT FROM season2/loops/hypothesis-thought-verb-edits-on-a00-4469ceda tip 5b79c031b (branch de-base-583; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
 For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. Tree-wide marker guard scans sibling agent worktrees and goes red in the canonical checkout -- extensions/agi/tests/test_thought_hygiene.py:257 -- _SKIP_DIRS omits 'worktrees' while :272 rglobs every *.py under repo_root(root); from /data/work/agi that is 278 real worktrees each holding a test_links_retired_refs.py:191 re-spelling at a rel the allowlist (:249) does not key, so the declared `pytest extensions/agi/tests/ -q` fails on the owner's own tree. One-line fix in the same merge: add 'worktrees' to _SKIP_DIRS (or key the allowlist by basename); until then this is a merge-up blocker for a green canonical suite.
+1. Tree-wide marker guard scans sibling agent worktrees and goes red in the canonical checkout -- extensions/agi/tests/test_thought_hygiene.py:257 -- _SKIP_DIRS omits 'worktrees' while :272 rglobs every *.py under repo_root(root); from <repo> that is 278 real worktrees each holding a test_links_retired_refs.py:191 re-spelling at a rel the allowlist (:249) does not key, so the declared `pytest extensions/agi/tests/ -q` fails on the owner's own tree. One-line fix in the same merge: add 'worktrees' to _SKIP_DIRS (or key the allowlist by basename); until then this is a merge-up blocker for a green canonical suite.
 2. Guard exempts the definition by FILE NAME anywhere, so a second definition under another dir is invisible -- extensions/agi/tests/test_thought_hygiene.py:256 -- _DEFINITIONS = {"node_writer.py", Path(__file__).name} combined with `path.name in _DEFINITIONS` at :274 exempts every basename match in the tree; lib/node_writer.py carrying its own marker regex would not be reported, so the falsifier 'no THOUGHT-marker regex literal outside node_writer.py' is enforced by basename, not by path.
 3. Single-line marker matcher: a re-spelling split across lines, or built from a variable, escapes the guard -- extensions/agi/tests/test_thought_hygiene.py:240 -- _MARKER_RE requires re.compile/search/match( and the marker on ONE line; `re.compile(\n r"THOUGHT:BEGIN..."\n)` or a pattern held in a constant is not an offender, so the instrument is partial against its own falsifier. The DH.481-class defect it exists for (a single-line unanchored regex) IS caught.
 OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
@@ -95,7 +96,7 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 ## CORRECTIVE DH.607 -- closes mur-director-engine-31 DH.583-k1 accept_with_residue (no verify)
 BASE      CUT FROM season2/loops/hypothesis-thought-verb-edits-on-a00-138c1736 tip ad54638d4 (branch de-base-607; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
 For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. The worktree skip is a post-walk filter, so the canonical row still walks 397 sibling checkouts -- extensions/agi/tests/test_thought_hygiene.py:292 -- `repo.rglob('*.py')` is unconditional; _SKIP_DIRS is applied per file at :294, so the rows are silenced but the cost is untouched: _marker_offenders(/data/work/agi/.agi) hit exit=124 at 600s and a bare rglob capped at 60k .py hit exit=124 at 180s. Prune dirnames in an os.walk walk (or bound the scan root) or the canonical verify inherits a 10+ minute row.
+1. The worktree skip is a post-walk filter, so the canonical row still walks 397 sibling checkouts -- extensions/agi/tests/test_thought_hygiene.py:292 -- `repo.rglob('*.py')` is unconditional; _SKIP_DIRS is applied per file at :294, so the rows are silenced but the cost is untouched: _marker_offenders(<repo>/.agi) hit exit=124 at 600s and a bare rglob capped at 60k .py hit exit=124 at 180s. Prune dirnames in an os.walk walk (or bound the scan root) or the canonical verify inherits a 10+ minute row.
 2. Round overran the corrective's HARD CAP of 40 test lines -- extensions/agi/tests/test_thought_hygiene.py:240 -- `git diff --numstat 5b79c031b ad54638d4` = 63 added / 8 deleted (net +55) against the DH.583 order (commit 8875a46b8): '<= 40 test lines ... a byte or kid over it = the round is cut'. 0 production lines and all three items verifiably fixed; the overrun ruling is the Prime's.
 OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
@@ -107,8 +108,8 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 ## CORRECTIVE DH.639 -- closes mur-director-engine-35 DH.607-k1 accept_with_residue (no verify)
 BASE      CUT FROM season2/loops/hypothesis-thought-verb-edits-on-a00-1c58fd1c tip 0140d122b (branch de-base-639; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
 For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. The live guard row is checkout-dependent and only passes post-merge by side selection, not by the fix -- extensions/agi/tests/test_thought_hygiene.py:316 -- Measured on the pre-merge season/s2 tree (/data/work/agi/.agi/worktrees/post-director-engine) the guard reports 5 real offenders (graph2sql.py:127, brief.py:2353, links.py:318, metrics.py:263, snapshot-goals.py:286); it passes at 0140d122b only because those five paths are untouched on the season/s2 side since base 027a215ae, so the branch's clean versions merge in (git merge-tree: no conflict). Any later edit to those files in season/s2 turns this row red and it is not this round's fix that keeps it green.
-2. Pasted evidence number 136 canonical .py files is not reproducible on the named root -- .agi/nodes/experiment/a00-a18b675c-1e6a45.md:16 -- The probe (and the parent review's '136 canonical .py files') does not match the committed _SKIP_DIRS: I count 658 .py under the loop worktree and 648 under /data/work/agi on the same walk. The TIME claim does reproduce (0.31-0.32 s warm; 18.2 s cold on the canonical tree), so the cost conclusion stands, but the file count in the evidence is wrong.
+1. The live guard row is checkout-dependent and only passes post-merge by side selection, not by the fix -- extensions/agi/tests/test_thought_hygiene.py:316 -- Measured on the pre-merge season/s2 tree (<repo>/.agi/worktrees/post-director-engine) the guard reports 5 real offenders (graph2sql.py:127, brief.py:2353, links.py:318, metrics.py:263, snapshot-goals.py:286); it passes at 0140d122b only because those five paths are untouched on the season/s2 side since base 027a215ae, so the branch's clean versions merge in (git merge-tree: no conflict). Any later edit to those files in season/s2 turns this row red and it is not this round's fix that keeps it green.
+2. Pasted evidence number 136 canonical .py files is not reproducible on the named root -- .agi/nodes/experiment/a00-a18b675c-1e6a45.md:16 -- The probe (and the parent review's '136 canonical .py files') does not match the committed _SKIP_DIRS: I count 658 .py under the loop worktree and 648 under <repo> on the same walk. The TIME claim does reproduce (0.31-0.32 s warm; 18.2 s cold on the canonical tree), so the cost conclusion stands, but the file count in the evidence is wrong.
 OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
 TESTS     test_thought_hygiene.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
@@ -250,5 +251,5 @@ CEILING   HARD CAP: 1 kid · <= 40 production lines net over e7db0b5c6 · <= 80 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.20: mur-eg-6 EG.14-k1 residues batched into one corrective (orders above, generated from the verdict files).
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 4 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

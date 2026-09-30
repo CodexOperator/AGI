@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-graph-as-a-golden-3d-web-in-two-layers
 next_edges: []
 confidence: 0.78
-edited_by: a00-be97b565
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-ef3aae48-dba655
 loop: hypothesis:l4-the-graph-as-a-golden-3d-web-in-two-layers@s2
@@ -44,7 +44,7 @@ A relative worktree is resolved against the candidates, in order
 `[git_common_root(graph_root), graph_root.parent]` (deduped); the first
 `<base>/<worktree>` that is a directory wins; none -> None -> `[]`.
 `locations.git_common_root` returns the MAIN CHECKOUT ROOT (measured:
-`/home/ubuntu/work/agi` from this worktree), which is the dir that owns
+`<home>/work/agi` from this worktree), which is the dir that owns
 `.agi/worktrees/`. In the repo-less fixture `git_common_root` returns
 `graph_root` unchanged and `graph_root.parent` is the fallback that catches
 the tmp fixture layout. Import guards mirror `find_root`'s existing
@@ -71,12 +71,12 @@ python3 -m pytest extensions/agi/tests/test_graphweb.py extensions/agi/tests/tes
 Real-tree proof (run from this worktree, `extensions/agi/bin` on `sys.path`):
 
 ```
-graph_root   : /home/ubuntu/work/agi/.agi/worktrees/a00-be97b565/.agi
-git_common   : /home/ubuntu/work/agi            # from locations.git_common_root
+graph_root   : <home>/work/agi/.agi/worktrees/a00-be97b565/.agi
+git_common   : <home>/work/agi            # from locations.git_common_root
 ```
 ```
 mine = '.agi/worktrees/a00-be97b565'            # the relative shape the bug broke
-_resolve_worktree(mine, root) -> /home/ubuntu/work/agi/.agi/worktrees/a00-be97b565  (is_dir True)
+_resolve_worktree(mine, root) -> <home>/work/agi/.agi/worktrees/a00-be97b565  (is_dir True)
 _worktree_modified_ids(mine, root) -> ['experiment:a00-ef3aae48-dba655']
 ```
 Direct git status of the same worktree agrees exactly:
@@ -101,7 +101,7 @@ scaffolded node added to this worktree.
 PARENT REVIEW (a00-be97b565, L4.250) — ACCEPTED, verdict kept at inconclusive_lean_proved:78.
 (1) INSTRUCTION: the AMENDED build order said "a relative worktree resolves against the SOURCE root ... with graph_root.parent as the fallback".
 (2) MACHINE: graphweb.py:342 `_resolve_worktree` builds candidates [git_common_root(graph_root), graph_root.parent], dedupes, first existing dir wins; `_worktree_modified_ids` calls it (graphweb.py:389). I re-ran the real-tree call: `_worktree_modified_ids(".agi/worktrees/a00-be97b565", root)` -> ["experiment:a00-ef3aae48-dba655"]; `pytest test_graphweb.py test_bin_help_smoke.py -q` -> 71 passed, 1 skipped, reproduced at review time. `git status` of that worktree agrees (`?? .agi/nodes/experiment/a00-ef3aae48-dba655.md`).
-(3) NEAR MISS: on THIS checkout the two candidates coincide (git_common_root == graph_root.parent == /home/ubuntu/work/agi), so the fixture cannot distinguish the ordering; an implementation joining under graph_root.parent ALONE would pass every test here and still be wrong for a graph nested below the repo root. The candidate ORDER is load-bearing and untested — that is the node's weakness, not its claim's.
+(3) NEAR MISS: on THIS checkout the two candidates coincide (git_common_root == graph_root.parent == <home>/work/agi), so the fixture cannot distinguish the ordering; an implementation joining under graph_root.parent ALONE would pass every test here and still be wrong for a graph nested below the repo root. The candidate ORDER is load-bearing and untested — that is the node's weakness, not its claim's.
 (4) DEVIATION: none. The kid split defect A from defect B on its own and said so, which is why the round needed a second kid for B.
 <!-- THOUGHT:END -->
 

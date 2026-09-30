@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-head-rope-band-profile-is-static
 next_edges: []
 confidence: 0.6
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-696d3283-44467f
 line_ceiling: 150
@@ -155,7 +155,7 @@ not this claim.
 Out-of-repo roots, left literal and PROPOSED as box cells (not added to config):
 HF weights `/data/ml/scratch/osc03/hf`, pip target `/data/ml/scratch/osc03/pylib`,
 wikitext `/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw`, HumanEval gz under
-`/data/work/agi/.agi/sessions/iter-ABC.02/a00-c4441397/...`.
+`<repo>/.agi/sessions/iter-ABC.02/a00-c4441397/...`.
 
 ## Production-line / ceiling
 
@@ -175,5 +175,5 @@ the static profile.
 Hook verified 4.3e-7; T0 Paris + ppl 25.09; T2 336/336 heads cos>=0.9 (mean 0.998, min 0.973); T3 low-third>=0.80 only 3/336=0.89 pct and high>=0.50 0/336=0 pct -> falsifier trips, disproved; profile static but multi-modal (peaks at pairs 13-15 and 28-31).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought, OSC.03 mur (mur-director-thought-6): the frontmatter verdict is the parent's demotion (inconclusive_lean_disproved:60) while the body's Verdict section still read disproved; a banner at the top of that section now states the demotion and its cause (consecutive-dim pairing) and points to the corrected re-run. The kid's own reasoning below is unchanged.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

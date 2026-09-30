@@ -5,10 +5,12 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-2
 scaffold_hash: 1f031b1041e62229
 season: 2
 status: open
+tags:
+  - parked:g7.16.2
 testable_claim: On a zero_usd lane the dispatch banner prints the zero_usd_key_limit the key is minted with (0.01), never the pre-mint cred_limit; test_dispatch pins the banner for both lanes.
 title: "The dispatch credential banner states the key cap actually minted (assigned: director-engine)"
 town: core
@@ -86,5 +88,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over d7f65215e · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.105: mur-eg-28 EG.75-k1 residues batched into one corrective (orders above, generated from the verdict files).
+triage (parked, by tag): PARKING TEST, git grep 13:5xZ 09-29 -- the banner is printed only by dispatch.py (its cap now comes from cred_limit, dispatch.py:2189-2196 -- the landed fix, not the defect); workflow.py prints its own _credential_line (:1547), never this banner -- dispatch-only. Sanctuary-master mur wf_9a00e1d9-91a residue 44 (bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

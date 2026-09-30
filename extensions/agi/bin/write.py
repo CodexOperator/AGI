@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import difflib
 import os
+import subprocess
 import re
 import sys
 from dataclasses import dataclass, field
@@ -144,6 +145,9 @@ class Edit:
     # payload file is editable by exactly the routine a node body is.
     replace_target: str = ""
     replace_range: str = ""
+    #: goal:g4.18.5.1 -- `row <n>[:<i>-<j>]`: resolved to replace_range at
+    #: submit, on node_writer.body_rows of the body as it is then
+    row_ref: str = ""
     replace_from: str = ""
     replace_text: str = ""
     # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
@@ -455,6 +459,36 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     return edit
 
 
+def verb_row(edit: Edit, ref: str, source: str) -> Edit:
+    """`row <n> <path|->` -- replace body row n of node_writer.body_rows (the
+    ONE row index, goal:g4.18.5.1); `row <n>:<i>-<j> <path|->` replaces lines
+    i..j INSIDE row n (a block row: THOUGHT, a fence). Every other byte stays.
+    It rides the replace path (one reader, one splice, the same gate); the
+    index, not a counted offset, picks the range, so the offset guard skips."""
+    if not re.fullmatch(r"\d+(:\d+-\d+)?", ref):
+        raise EditError(f"row wants <n> or <n>:<i>-<j>, got {ref!r}")
+    edit.replace_target, edit.row_ref = "body", ref
+    edit.replace_from, edit.replace_force = source.strip(), True
+    return edit
+
+
+def _row_range(body: str, row_ref: str) -> str:
+    """`<n>[:<i>-<j>]` -> the read-body range `a:b` it names, or EditError when
+    row n or the sub-range is out of bounds. ONE resolver for `submit` and the
+    `--dry-run` preview, so a preview shows the range the write would take."""
+    n, _, sub = row_ref.partition(":")
+    rows = node_writer.body_rows(body)
+    if not 1 <= int(n) <= len(rows):
+        raise EditError(f"row {n}: the body has {len(rows)} row(s)")
+    a, b = rows[int(n) - 1]
+    if sub:
+        i, j = (int(x) for x in sub.split("-"))
+        if not 1 <= i <= j <= b - a + 1:
+            raise EditError(f"row {row_ref}: row {n} has {b - a + 1} line(s)")
+        a, b = a + i - 1, a + j - 1
+    return f"{a}:{b}"
+
+
 def verb_sub(edit: Edit, spec: str) -> Edit:
     """`sub <old> => <new>` -- one literal occurrence."""
     text = spec.strip()
@@ -542,6 +576,7 @@ VERBS = {
     "body_patch": verb_body_patch,
     "read": verb_read,
     "replace": verb_replace,
+    "row": verb_row,
     "adopt": verb_adopt,
 }
 
@@ -557,7 +592,7 @@ VERBS = {
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
          "sub": 1, "sub!": 1,
          "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
-         "read": 2, "replace": 3, "adopt": 0}
+         "read": 2, "replace": 3, "row": 2, "adopt": 0}
 #: hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
 #: begins-a-verb -- a `&&` separates chunks ONLY when what follows, stripped,
 #: is a known verb name ending at whitespace or end-of-string; any other `&&`
@@ -600,6 +635,7 @@ VERB_EXAMPLES = {
     #: note/thought/body_patch (one body writer per submit). The rendered
     #: NOTES block below carries that rule into `-h`.
     "replace": "replace body 4:9 path/to/file",
+    "row": "row 3 path/to/file",
     "adopt": "adopt",
 }
 
@@ -1854,6 +1890,12 @@ def _schema_field_refusal(schema, node_type: str, key, value, *,
                     or re.fullmatch(pattern, value) is None):
         return (f"{verb} {node_type} refused by name: {key!r} must match "
                 f"{pattern!r}, got {value!r} (schema validation.regex)")
+    # goal:g7.16.1.2.6 -- a list field's ITEM form (the park tag parked:<goal>)
+    item = (validation.get("item_regex") or {}).get(key)
+    for v in (value if item and isinstance(value, list) else []):
+        if re.fullmatch(item, str(v)) is None:
+            return (f"{verb} {node_type} refused by name: {key!r} item {v!r} must "
+                    f"match {item!r} (schema validation.item_regex)")
     return None
 
 
@@ -2292,6 +2334,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
                 "note, thought or body_patch (one body writer per submit)")
         _current = _target_text(root, edit, edit.replace_target,
                                 payload_ref, location)
+        if edit.row_ref:   # goal:g4.18.5.1: the index picks the range
+            edit.replace_range = _row_range(_current, edit.row_ref)
         # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-
         # splices -- the body-only structural guard, before the splice and
         # before any write. A payload is arbitrary bytes and is never
@@ -2338,6 +2382,25 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
+    # goal:g7.16.1.2.6 -- `set active` wakes that formation's parked nodes. The
+    # carrier grep runs BEFORE the write and fails CLOSED (council C1 on bundle
+    # 3, check_formation's stance): a grep that cannot look refuses the set,
+    # nothing written -- never rc 0 with every carrier still parked.
+    wake_goal, carriers = "", []
+    if edit.node_id == "config:formations" and "active" in edit.set_fm:
+        import rotation_record  # the shared carrier grep: write never imports the verifier
+        from graph_core.persistence import frontmatter as _fmr
+        cell = node_writer.find_node_file(root, "config:formations")
+        # no cell -> no table -> no grep (the empty-goal path): residue 79
+        table = (edit.set_fm["templates"] if "templates" in edit.set_fm else
+                 (_fmr.load_node_file(cell, body=False).frontmatter.get("templates") if cell else None)) or {}
+        wake_goal = str(table.get(edit.set_fm["active"]) or "")
+        try:
+            carriers = rotation_record.parked_carriers(root, wake_goal) if wake_goal else []
+        except rotation_record.GrepError as exc:
+            raise EditError(f"set active refused: the parked-carrier grep for parked:{wake_goal} "
+                            f"failed ({exc}); nothing written -- the wake cannot be delivered")
+
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
@@ -2356,6 +2419,18 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
             log_extra=_log_provenance(actor))
         res.payload_changed = changed
         res.payload_path = str(dest)
+    # ... and, the set written, its `parked:<goal>` tag leaves every carrier found above.
+    goal = wake_goal
+    if res.status != node_writer.REJECTED:
+        for nid, _f, tags in carriers:
+            try:
+                w = node_writer.update_node(root, nid, set_fm={
+                    "tags": [t for t in tags if t != f"parked:{goal}"],
+                    PROVENANCE_ACTOR: actor or _default_actor()}, log_extra=_log_provenance(actor))
+            except OSError as exc:  # one carrier's failed write never aborts the rest
+                w = node_writer.NodeWrite(status=node_writer.REJECTED, node_id=nid, reason=str(exc))
+            print(f"unpark REJECTED {nid} (parked:{goal}): {w.reason}" if w.status == node_writer.REJECTED
+                  else f"unparked {nid} (parked:{goal})", file=sys.stderr)
     return res
 
 
@@ -2915,15 +2990,9 @@ def _compose_body(root, edit: Edit) -> str:
             body = body.rstrip() + f"\n\n{NOTES_HEADING}\n{note}\n"
 
     if edit.thought:
-        block = (node_writer._THOUGHT_RE.pattern and
-                 "<!-- THOUGHT:BEGIN — authored, not derived; carried across "
-                 "regenerating scans. The reasoning behind THIS version. -->\n"
-                 f"{edit.thought}\n<!-- THOUGHT:END -->")
-        existing = node_writer.extract_thought(body)
-        if existing:
-            body = body.replace(existing, block)
-        else:
-            body = body.rstrip() + "\n\n" + block + "\n"
+        block = (f"{node_writer.THOUGHT_BEGIN}\n{edit.thought}\n"
+                 f"{node_writer.THOUGHT_END}")
+        body = node_writer.replace_thought(body, block)
     return body
 
 
@@ -3296,6 +3365,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"created: {res.node_id} -> {res.path}")
         if made is not None:
             print(f"created: {made} (empty; the node points at it)")
+        from types import SimpleNamespace  # noqa: PLC0415 -- residue 92: create commits too
+        _note = _commit_write(root, res.node_id, SimpleNamespace(
+            path=res.path, payload_changed=made is not None, payload_path=str(made or "")), args.actor)
+        if _note:
+            print(_note, file=sys.stderr)
         return 0
 
     if not args.script:
@@ -3308,6 +3382,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
 
+    if ":" not in (args.node_id or "") and not node_writer.find_node_file(root, args.node_id):
+        # goal:g4.18.6.1: a mint id addresses its node (any shape: the Prime, 22:1xZ)
+        import links  # noqa: PLC0415
+        try:
+            hit = links.resolve_mint(root, args.node_id)
+        except ValueError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
+        if hit is None:
+            print(f"ERR: no live node carries mint id {args.node_id}", file=sys.stderr)
+            return 2
+        args.node_id = hit[0]
     edit = Edit(node_id=args.node_id)
     try:
         for name, verb_args in parse_script(args.script):
@@ -3401,6 +3487,12 @@ def main(argv: list[str] | None = None) -> int:
     # would refuse `mint_id` as PROTECTED). It routes through
     # `node_writer.repair_mint`: mint a first mint_id, refuse an existing one.
     if edit.adopt:
+        try:  # goal:g4.18.3 -- the SAME written_by gate submit applies, before any mint
+            _enforce_written_by(root, edit.node_id.split(":", 1)[0], args.actor,
+                                edit.node_id, args.role, allow_self_row=True)
+        except EditError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
         if (edit.set_fm or edit.unset_fm or edit.thought or edit.body_append
                 or edit.payload_from or edit.payload_bytes):
             print("ERR: adopt is standalone; it cannot share a line with "
@@ -3430,6 +3522,9 @@ def main(argv: list[str] | None = None) -> int:
         except Exception:
             pass
         print(f"adopted: {edit.node_id} mint_id={mint or '(written)'}")
+        _note = _commit_write(root, edit.node_id, res, args.actor)   # residue 92
+        if _note:
+            print(_note, file=sys.stderr)
         return 0
 
     if edit.patch_from == "-":
@@ -3477,6 +3572,13 @@ def main(argv: list[str] | None = None) -> int:
         if edit.body_patch_from and not edit.body_patch_diff:
             print(f"  body_patch from {edit.body_patch_from}")
         if edit.replace_target:
+            if edit.row_ref:   # residue 96: the preview resolves the row too
+                try:
+                    edit.replace_range = _row_range(
+                        _target_text(root, edit, "body"), edit.row_ref)
+                except EditError as exc:
+                    print(f"ERR: {exc}", file=sys.stderr)
+                    return 2
             if edit.replace_target == "body" and not edit.replace_force:
                 _refusal = _body_range_refusal(
                     _target_text(root, edit, "body"), edit.replace_range)
@@ -3544,7 +3646,41 @@ def main(argv: list[str] | None = None) -> int:
     if res.payload_changed is not None:
         print(f"payload: {res.payload_path} "
               + ("replaced" if res.payload_changed else "unchanged"))
+    if res.status == node_writer.UPDATED or res.payload_changed:   # goal:g4.18.5.2 (+ residue 91: payload-only)
+        _note = _commit_write(root, edit.node_id, res, args.actor)
+        if _note:
+            print(_note, file=sys.stderr)
     return 1 if res.status == node_writer.REJECTED else 0
+
+
+def _commit_write(root, node_id: str, res, actor: str = "") -> str | None:
+    """goal:g4.18.5.2 -- the CLI write, after the gate, is ONE commit of its
+    own node (+ its payload) by exact path. In main() only: submit() is the
+    library rotate.py and send.py call on shared files. `git commit -- <paths>`
+    commits those paths alone: never -a, never a file another post staged. A
+    held verify-suite.lock refuses the commit by name (the write stays on
+    disk). Not a git checkout = nothing to commit. Unpark carriers a
+    formation switch writes are other nodes: they stay out."""
+    paths = [str(p if Path(p).is_absolute() else Path(root) / p)
+             for p in (res.path, res.payload_changed and res.payload_path) if p]
+    git = lambda *a: subprocess.run(["git", "-C", str(root), *a],  # noqa: E731
+                                    capture_output=True, text=True)
+    if not paths or git("rev-parse", "--is-inside-work-tree").returncode:
+        return None
+    import verification  # noqa: PLC0415 -- the ONE live-holder read (residue 93)
+    holder = verification.suite_lock_holder(Path(root))
+    if holder:
+        return (f"commit refused: {Path(root) / 'sessions' / verification.SUITE_LOCK} is held "
+                f"by live pid {holder} -- the write landed uncommitted; commit "
+                f"{' '.join(paths)} by exact path")
+    add = git("add", "--", *paths)
+    done = add if add.returncode else git(
+        "commit", "-q", "-m", f"write.py: {node_id}" + (f" ({actor})" if actor else ""), "--", *paths)
+    if done.returncode == 0:
+        return None
+    git("reset", "-q", "--", *paths)   # residue 90: never left STAGED in a shared index
+    return (f"commit failed (unstaged; the write stays on disk): "
+            f"{(done.stderr or done.stdout).strip()[:300]}")
 
 
 if __name__ == "__main__":

@@ -212,7 +212,7 @@ def test_autopsy_full_block_from_fixture(tmp_path):
     txt = "\n".join(lines)
     assert "[autopsy] predecessor pid: 3526521 alive: no (gone)" in txt
     assert "[autopsy] death time: 2026-09-11T15:19:56Z (source: registry updatedAt)" in txt
-    assert f"[autopsy] transcript: {tp}" in txt
+    assert f"[autopsy] transcript: {rotate._home_rel(str(tp))}" in txt  # residue 80: the CM4 home rule
     # the last-10 section excludes heartbeats (5 seen above) and the two
     # after-death entries, and includes `last-before-death`
     assert "[autopsy] last 10 non-heartbeat entries before death:" in txt
@@ -763,3 +763,14 @@ def test_spawn_dead_rewind_dry_run_prints_would_and_writes_nothing(
     # dry-run: the state file on disk is UNTOUCHED
     assert json.loads(Path(str(dm) + ".state.json").read_text()) == \
         {"rewindseat": 12}
+
+
+def test_autopsy_prints_the_transcript_home_relative(tmp_path, monkeypatch):
+    """Council CM4 (the H4 g class): the autopsy's transcript line goes through
+    the ONE home rule -- a transcript under HOME prints `~/...`, never raw."""
+    root, reg, tp = _fixture(tmp_path)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    txt = "\n".join(rotate._run_autopsy(seat="deadseat", pid=DEAD_PID,
+                                        registry_dir=str(reg), root=root))
+    rel = "~/" + str(Path(tp).relative_to(tmp_path))
+    assert f"[autopsy] transcript: {rel}" in txt and str(tmp_path) + "/" not in txt.split("transcript: ", 1)[1].split("\n", 1)[0]

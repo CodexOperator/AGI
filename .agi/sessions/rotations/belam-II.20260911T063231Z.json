@@ -8,9 +8,9 @@
       "present": false,
       "window": "belam-II",
       "windows": [],
-      "source": "window-path file /home/ubuntu/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_refused_loop_does_not_adv0/windows.txt"
+      "source": "window-path file <home>/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_refused_loop_does_not_adv0/windows.txt"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_refused_loop_does_not_adv0/reply.log"
+    "c_readback_log_path": "<home>/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_refused_loop_does_not_adv0/reply.log"
   },
   "refusal_reason": "successor window absent"
 }

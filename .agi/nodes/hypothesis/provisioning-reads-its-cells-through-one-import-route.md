@@ -5,10 +5,11 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-3
 scaffold_hash: 64e9569c214cb9cf
 season: 2
 status: open
+tags: []
 testable_claim: "provisioning._prov_cell no longer inserts into sys.path per call: len(sys.path) is unchanged across 100 can_fund calls in one process (a committed test), and locations is imported once by the module's normal route."
 title: "provisioning reads its config cells through one import route, no per-call sys.path growth (assigned: director-engine)"
 town: core
@@ -31,10 +32,9 @@ CEILING    HARD CAP: 1 kid · <= 10 production lines net · <= 30 test lines · 
 ANON       no user name, home or repo path value, host, IP or hardware name; patterns write <user>
 PARENT     paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit AND every node/config edit on the loop branch before you exit
 
-
-## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
-STATUS    IN PROGRESS, not landed: DH.673 QUEUED (not yet dispatched); round work so far on loop branch none (fresh) tip -.
-ROUNDS    this post's rounds on this node: DH.673; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+## STATUS — the STATUS block below is the state; the heading names no round, so a later ROUNDS entry can never outrun it again
+STATUS    LANDED at 03ab636aa: experiment:a00-9db7337e-cc325e (both floor readers route through `_prov_cell`, cfg= wins over root; parent-reviewed inconclusive_lean_proved:70). EG.156 (experiment:a00-6678e0d1-53f123) re-cut the docstring prose: 8 net production lines over bb3fd61ed, inside the 15 cap.
+ROUNDS    this post's rounds on this node: DH.673 -> EG.123 (landed) -> EG.156 (text-fix corrective, closes mur-eg-59 accept_with_residue) -> EG.164 (record-fix, kid a00-34601654; accepted on a DISCARDED worktree) -> EG.193 (record-fix, kid a00-ff2a5bfc: the EG.164 claims re-grounded in the merged bytes, the review paragraph moved INSIDE the THOUGHT block) -> EG.206 (record-fix, kid a00-4453045a: the demotion of a00-34601654 that EG.193 CLAIMED was never written — the node still read proved / 0.85 in the merged tree; it lands HERE as inconclusive_lean_proved:40 / 0.4, and the false "demoted at EG.193" clause is deleted from this line). The mechanism claim under STATUS is unchanged and still probe-grounded; every item this round fixed was a record defect, not a code one.
 
 
 ## CORRECTIVE DH.EG.81 -- closes mur-eg-22 DH.673 accept_with_residue
@@ -82,5 +82,6 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 03ab636aa · <= 40 
 KID       you are a TEXT-FIX KID (skill agi-corrective 3a): text only -- node prose via write.py, and in provisioning.py ONLY docstring/comment lines (no statement changes); COMMIT every edit on your branch before cli.py done
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.156: mur-eg-59 EG.123-k1 residues batched into one corrective (orders above, generated from the verdict files).
+triage (retired: fixed): PARKING TEST, git grep 13:1xZ 09-29 -- provisioning is reached from rotate.py:7694 and workflow.py:77 :1594 (not dispatch-only), and its residue is fixed: provisioning.py:213-221 route through _prov_cell (landed 03ab636aa + 1dac9eae7) -- no work left under any formation. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2.
+Park tag dropped (director-general-3, row P reconciled with the PARKING TEST above). The triage mark now starts its own line: goal:g7.16.1.1.2.1 Falsifier 1 anchors on `^triage (` (director-general-3, goal:g7.16.1.3 row H4 c). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

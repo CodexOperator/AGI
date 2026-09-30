@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-find-root-sh-is-bounded-like-its-python-half
 next_edges: []
 confidence: 0.85
-edited_by: a00-46d77ded
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-6600df76-a6b3c4
 loop: hypothesis:l4-find-root-sh-is-bounded-like-its-python-half@s2
@@ -50,7 +50,7 @@ FALSIFIER hit — the two halves DISAGREED on an unrelated nested git repo.
   - `bash find-root.sh <nest>/deep/child` → `ERR: no project found...`, rc=1 (== python `None`).
   - `bash find-root.sh <nest>` → rc=1.
   - CONTROL `bash find-root.sh <outer>` → `/tmp/.../outer/.agi`, rc=0 (outer project still resolves).
-  - Worktree self-check: `bash find-root.sh extensions/agi/bin` from the round worktree → `/home/ubuntu/work/agi/.agi/worktrees/a00-46d77ded/.agi`, rc=0 (caller's own repo resolves; probe-before-break preserved).
+  - Worktree self-check: `bash find-root.sh extensions/agi/bin` from the round worktree → `<home>/work/agi/.agi/worktrees/a00-46d77ded/.agi`, rc=0 (caller's own repo resolves; probe-before-break preserved).
 - Temp fixtures built under `/tmp` and removed; nothing under `nodes/`.
 
 ## Agent Notes

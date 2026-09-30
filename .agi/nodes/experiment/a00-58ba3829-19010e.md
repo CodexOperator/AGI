@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-delete-old-requires-content-containment-every-job-ancestor-of-successor-or-trunk
 next_edges: []
 confidence: 0.7
-edited_by: a00-09056a37
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-58ba3829-19010e
 loop: hypothesis:l4-delete-old-requires-content-containment-every-job-ancestor-of-successor-or-trunk@s2
@@ -66,7 +66,7 @@ containment-checked — is real and is reported in the node caveats.
 ## Evidence
 
 1. **Live tree, read-only, after the fix** (`cli.py branch-reshuffle --root
-/home/ubuntu/work/agi/.agi --dry-run --delete-old --kinds towns,posts,loops`):
+<home>/work/agi/.agi --dry-run --delete-old --kinds towns,posts,loops`):
 
 ```
 NOTE: --delete-old would REFUSE 5 branch(es) whose v3 successor is absent on origin:

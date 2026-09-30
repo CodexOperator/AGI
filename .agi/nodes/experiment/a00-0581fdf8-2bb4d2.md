@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-rounds-own-path-set-never-fails-open
 next_edges: []
 confidence: 0.85
-edited_by: a00-0de3f8d9
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-0581fdf8-2bb4d2
 loop: hypothesis:a-rounds-own-path-set-never-fails-open@s2
@@ -174,7 +174,7 @@ DH.632 parent review (a00-ebe2ebd4) of this version, written from the DIFF 81974
 (4) DEVIATION: the corrective PARENT line tells the kid to COMMIT every edit; the round contract tells a kid to run no git at all. The contract won and the residue is located by WORKTREE PATH on the 849236cb node instead of by a sha table -- which is the right remedy for MISSED 4 anyway, since a node file digest moves on every write.py call.
 
 ACCEPTED, no demotion. The two items I do not close are the ones the kid itself declared NOT DONE and named: the DH.604 PARENT REVIEW is still outside the THOUGHT block of experiment:a00-619731a3-9d4779 (both files are in FILE SCOPE, so a next round may move it), and the verdict node still carries 9 iter-DH.578 scratch paths. The mutant proof is a hand-built copy, not a committed test, so nothing re-runs it next round -- named as the caveat, not as a falsifier.
-<!-- THOUGHT:END -->
+[THOUGHT:END marker line]
 152:## Agent Notes
 155:DH.604 PARENT REVIEW (a00-c1408ac0) - ACCEPTED, no demotion. ...
    -> the review sits AFTER `## Agent Notes` and OUTSIDE the THOUGHT, which is

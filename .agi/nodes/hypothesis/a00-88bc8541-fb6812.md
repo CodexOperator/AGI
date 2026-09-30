@@ -6,7 +6,7 @@ parents:
   - goal:g1.10
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 3c5616448af1309d
 season: 1
 testable_claim: "`derive-commands.py --all` patches CLAUDE.md and QUICKSTART.md with command tables derived from `.geometry/commands.md`, and `derive-commands.py --check` confirms the prose matches the declaration — so editing the commands node is the only change needed, and prose drift stops."
@@ -89,7 +89,7 @@ failure this goal exists to kill.
 
 - **The absolute-path defect is real, not hypothetical.** The draft listed it as
 a risk the experiment "should detect." It is already present in the one file the
-tool patches: the SKILL.md table renders `/home/ubuntu/work/agi/...` literal
+tool patches: the SKILL.md table renders `<home>/work/agi/...` literal
 paths, not the `<engine>` placeholder the node stores. `_render_table` resolves
 the placeholder at render time, so a fresh clone would be handed paths that do not
 exist there — a `goal:g1.24` violation. The hypothesis now records it as confirmed

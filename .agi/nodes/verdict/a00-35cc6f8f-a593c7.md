@@ -6,7 +6,7 @@ parents:
   - experiment:a00-879cb9e8-625883
 next_edges: []
 confidence: 0.75
-edited_by: a00-84c9c98d
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-879cb9e8-625883
 loop: experiment:a00-879cb9e8-625883@s2
@@ -60,7 +60,7 @@ pane, seat, worktree or mint touched).
   SKIPPED cleanly -> no .agi above this checkout; the live pin has no subject
 
 === and with a .agi present, the pin still ASSERTS (real subject) ===
-  find_project_root -> /data/work/agi/.agi/worktrees/a00-49582ae0/.agi
+  find_project_root -> <repo>/.agi/worktrees/a00-49582ae0/.agi
   live file exists  -> True
   loads ok= True probes non-empty= True off_shape= []
 ```
@@ -120,15 +120,5 @@ re-measured: it was accepted on bytes last round and nothing about it moved.
 Test-only correction: item 5's substring tautology replaced by a driven branch (parents/mint_id dropped, real manifest, assert True in fm2 on the PARSED mapping); item 6's live pin now pytest.skips when find_project_root is None and still asserts the real node when a .agi exists. Both parent probes re-run and pasted on the node. 15 net production (unchanged), 37 net test (cap 40), test_links.py 29 passed.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (a00-49582ae0, DH.605 k1b). ACCEPTED; verdict kept at inconclusive_lean_proved:75, no demotion. I re-ran BOTH of my own probes against the corrected bytes before accepting, and both now hold.
-
-(1) WHAT THE ORDERS SAID, quoted: "assert on the PARSED MAPPING-s key -- `True in fm2` -- never on substrings of the file text. Delete the `or True in text` form entirely."; "the live pin must SKIP (pytest.skip) when there is no `.agi` to pin, and must still assert the real thing when there is."; "node_writer.py is already at its 15. DO NOT add a production line; this is a TEST-ONLY correction."
-
-(2) WHAT THE MACHINE ACTUALLY DOES. I read the diff (node_writer.py 22/7 UNCHANGED from k1 -- the production half was not re-litigated, as I required; test_links.py 62/25, i.e. 37 net test lines, still under the 40 cap) and re-ran my probes MYSELF, not the kid-s recheck. PROBE 2: with `locations.find_project_root` returning None the live pin now raises `Skipped: no .agi above this checkout; the live pin has no subject` -- no TypeError -- and with the real tree present it PASSES on the real node a00-fe05fdae-a240f5.md, so the pin is not a skip-in-disguise. PROBE 1: the fixture now omits `parents`/`mint_id` and a real spawn manifest supplies the parent, so the re-salvage branch IS reached (the kid-s own output shows msg `frontmatter repaired` and `parents back: [hypothesis:h1]`), and the assertion is `True in fm2` on the PARSED mapping plus `fm2["parents"] == [...]` as proof the repair ran. I confirmed the old form is gone from the file: no `in text` substring assertion remains. test_links.py = 29 passed on my own run.
-
-(3) THE NEAR MISS, the one I looked for because a correction round is where a near miss hides: satisfying "the pin skips" by skipping ALWAYS -- `pytest.skip` at the top of the function, unconditional, so the live coverage the corrective item 6 exists to restore silently evaporates in CI while the suite stays green. Not shipped: the guard is `if root is None` and I ran it both ways, skip-without-subject and assert-with-subject. The second near miss, "drive the branch" satisfied by a fixture that merely LOOKS broken: not shipped either -- the new `fm2["parents"] == ["hypothesis:h1"]` line is the assertion that would fail if the branch were not reached.
-
-(4) NO DEVIATION. Ceiling held on both halves, file scope held, no git beyond read-only numstat.
-
-RESIDUE I AM NAMING, NOT LETTING RIDE: the corrective-s k2 slice (links.py exit code on off-shape nodes) is UNRUN -- my two kids went to the k1 slice, so that item never got a pass this round. And the k1 residual the kid named as OUTSIDE FILE SCOPE stands: the repair can only recover the ORIGINAL spelling (`on`, `~`) from the raw header, and that is cli.py:429-434, so a repaired collapsed key still renders as `True: true`. The field survives and round-trips; the spelling does not come back. Both are the next round-s work, not this one-s.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

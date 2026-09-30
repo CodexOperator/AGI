@@ -6,7 +6,7 @@ parents:
   - hypothesis:l5-verification-writes-its-own-stamp-file-on-an-all-green-suite-run
 next_edges: []
 confidence: 0.85
-edited_by: a00-c3c7193d
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-95a4e018-d58c65
 line_ceiling: 40
@@ -62,10 +62,10 @@ monkeypatched** (`.agi/sessions/iter-L5.07/a00-95a4e018/probe_wire_worktree_fixe
 only `run_level` / lock guard / basetemp guard faked):
 
 ```
-groot (find_project_root)      = /home/ubuntu/work/agi/.agi/worktrees/a00-c3c7193d/.agi
+groot (find_project_root)      = <home>/work/agi/.agi/worktrees/a00-c3c7193d/.agi
 main rc                         = 0
-write paths (_verified_stamp_paths) = ['/home/ubuntu/work/agi/.agi/worktrees/a00-c3c7193d/.agi/sessions/verified.stamp', '/home/ubuntu/work/agi/.agi/sessions/verified.stamp']
-gate READ (cli._find_root join) = /home/ubuntu/work/agi/.agi/worktrees/a00-c3c7193d/.agi/sessions/verified.stamp
+write paths (_verified_stamp_paths) = ['<home>/work/agi/.agi/worktrees/a00-c3c7193d/.agi/sessions/verified.stamp', '<home>/work/agi/.agi/sessions/verified.stamp']
+gate READ (cli._find_root join) = <home>/work/agi/.agi/worktrees/a00-c3c7193d/.agi/sessions/verified.stamp
 GATE SEES STAMP                 = True
 body                            = green suite 2026-09-17T20:17:32Z on deadbeef
 red rc                          = 1
