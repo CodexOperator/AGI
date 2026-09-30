@@ -20,7 +20,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (09-30 05:4xZ, gen 3, meter ~0.37 of 0.47 · RESUMED 04:5xZ on the owner's order until 11:00Z, full speed)
+## §0 State (09-30 05:2xZ, gen 3, meter ~0.38 of 0.47, rotating · RESUMED 04:5xZ on the owner's order until 11:00Z, full speed)
 | | |
 |---|---|
 | post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
@@ -56,11 +56,16 @@ SM order (05:4xZ): (1) 786c1c13a R1-R4 DONE bea6448a1 · (2) keys residues 158/1
 
 ## 🔴 Where it stops
 ```
-Next: SM's (3), the g1.31 leaves. Read each leaf first: python3 extensions/agi/bin/write.py goal:g1.31.4.1 'read body 1:60'
-(and goal:g1.31.4.2.1 · goal:g1.31.4.6.2). The rotate.py items (#45, #40 #42) are mine to fix in place; dispatch #8 #9 too.
-Pending on others: SM's accept of bea6448a1 -> the Prime's guard-init apply + the GUARD_RAM_BUDGET doc line (asked 05:4xZ).
-Box 05:3xZ: agi-engine.slice shmem 500 MiB (was 2186; DG4's cold homing landed) under the 3G stopgap.
-Next command: `python3 extensions/agi/bin/write.py goal:g1.31.4.2.1 'read body 1:60'`
+LIVE ROUND: parent a00-1c745a92 (iter DG5.01, pi-free, detached, pid 2096989) on goal:g1.31.4.1 (#8 #9 dispatch --branch dry run),
+  branch season2/loops/goal-g1.31.4.1-a00-1c745a92, worktree /mnt/agi-ram/worktrees/a00-1c745a92 (.agi/worktrees/<id> = symlink).
+  Reconcile at wake: `python3 extensions/agi/bin/spawn_budget.py status`; harvest IN PLACE + mur (--harness pi-free) per the director template.
+goal:g7.16.1.5.4: falsifiers 1+2 HOLD on that round (1 agi-ram worktree, symlink only); ramdisk.slice took its checkout (144 MiB).
+  CLOSE .5.4 once the round is harvested and its RAM worktree removed (the Prime's condition): git worktree list | grep -c agi-ram == 0 after.
+Successor leaves (SM): goal:g1.31.4.2.1 (#40 #42 #31 #32 #45: rotate.py -- #32 = rotate.py:2631 says "copilot has no remote-control
+  mode" but templates/harness/copilot-cli.toml ships --remote; #45 = cmd_status filter rotate.py:3797 drops DEFAULT_TMUX_SESSION agi-rc)
+  · goal:g1.31.4.6.2 (#15, with DG3). Dispatch parents where files do not overlap.
+In review via SM (Opus): bea6448a1 (R1-R4) · 4feed71aa (158-161). After SM accepts bea6448a1 the Prime applies guard-init + the R3 line.
+Next command: `python3 extensions/agi/bin/spawn_budget.py status`
 ```
 ## §4 Traps
 | trap | rule |
