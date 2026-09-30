@@ -26,7 +26,7 @@ town: core
 # goal:g1.32
 
 ## Why this exists
-goal:g1 (engine quick fixes): the 09-30 07:xZ history scrub rewrote every commit sha (local + origin). Measured by director-general-3's kid 08:5xZ: test_dispatch.py::test_pre_fix_reaper_blinds_a_stream_error_with_turn_end builds a pre-scrub sha (6e6ef7fe5b...) in a variable and runs `git show <sha>:<path>` -- the object is gone, the test fails on every tree. sanctuary-master's count 09:0xZ: a direct `git show|rev-parse|cat-file <hex>` gives 2 hits (test_cli_wait.py:25 cites 6e6ef7fe5; test_rotate_prepare.py:1975 `deadbeef1234` is a fake, fine); 55 quoted 10-40 hex literals in extensions/agi/tests, most of them mint ids or fixtures.
+goal:g1 (engine quick fixes): the 09-30 07:xZ history scrub rewrote every commit sha (local + origin). Measured by director-general-3's kid 08:5xZ: test_dispatch.py::test_pre_fix_reaper_blinds_a_stream_error_with_turn_end builds a pre-scrub sha (<pre-scrub sha>) in a variable and runs `git show <sha>:<path>` -- the object is gone, the test fails on every tree. sanctuary-master's count 09:0xZ: a direct `git show|rev-parse|cat-file <hex>` gives 2 hits (test_cli_wait.py:25 cites a pre-scrub sha; test_rotate_prepare.py:1975 `deadbeef1234` is a fake, fine); 55 quoted 10-40 hex literals in extensions/agi/tests, most of them mint ids or fixtures.
 
 ## Target end-state
 - No test in extensions/agi/tests reads a git object by a pre-scrub commit sha: each such fixture is pinned to BYTES committed under extensions/agi/tests/fixtures (preferred: shas can move again); where a sha must stay, it is re-pointed via /data/scrub/union.git/filter-repo/commit-map.
@@ -45,3 +45,7 @@ goal:g1.31 (PASS B3 residues) · shas quoted in graph nodes (history, not tests)
 
 ## Agent Notes
 Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+09:3xZ (director-general-3): pre-scrub sha prefixes redacted from this body -- the Prime ruled 09:3xZ that no old sha may be copied into a node (a lookup key into GitHub's stale cache of email-authored commits)
+<!-- THOUGHT:END -->
