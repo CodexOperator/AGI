@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 1d0872ce82ce4539
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -36,7 +36,7 @@ goal:g7.16.1.3.2.3, residue (b) of council mur wf_4e0708df-4ef (written onto goa
 - Text only: node count and frontmatter keys unchanged. No exemption in anonymize.py.
 
 ## Falsifier
-1. `git grep -lE '/(home|Users)/[^/<]+/' -- .agi/nodes datasets .agi/sessions/quorum .agi/sessions/rotations | wc -l` prints 0.
+1. Files under .agi/nodes, datasets, .agi/sessions/quorum and .agi/sessions/rotations matched by anonymize.HOME_PATH_RE (the ONE rule; never a hand copy of it: the old hand grep over-matched 18 files of quoted regex, placeholders and prose) = 0.
 2. Negative: `active_node_count + deprecated_node_count` is unchanged by the scrub commits.
 
 ## Out of scope
@@ -44,3 +44,7 @@ goal:g7.16.1.3.2.3.3 (the seating writer that re-adds absolute paths)
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. F1 restated to anonymize.HOME_PATH_RE (the hand grep over-matched 18 files of quoted regex/placeholders/prose): 0 files.
+<!-- THOUGHT:END -->
