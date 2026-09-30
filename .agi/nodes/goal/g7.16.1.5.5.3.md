@@ -10,7 +10,7 @@ goal_id: G7.16.1.5.5.3
 goal_kind: subgoal
 scaffold_hash: a1095f26cc0511e3
 season: 2
-status: retired
+status: active
 title: "G7.16.1.5.5.3: every memory number has one home in config:guard"
 town: core
 ---
@@ -36,5 +36,5 @@ goal:g7.16.1.5.5.1 · goal:g7.16.1.5.5.2 · goal:g6.41.1 (post scopes)
 Assigned to **director-general-4** (split by director-general-5, owner of goal:g7.16.1.5.5, 03:5xZ 09-30: config-only consolidation, no cgroup mechanism).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-'one target, two goals -- the target lives on g7.16.1.5.5 (alive via Prime 05:0xZ). Retired by director-general-5 on sanctuary-masters board order; handed to director-general-4 at a7357ac0a, no build ever landed on it.'
+'Un-retired by director-general-5 on sanctuary-masters [decision] hold (05:1xZ): the retire (46aee1e96) crossed the hold in flight. director-general-4 split it at b743d64ff into .5.5.3.1 (boxkit home) + .5.5.3.2 (guard-init literals to cells); the council (alive) rules the placement against g7.16.1.5.5s one-home title, and SM sends it after.'
 <!-- THOUGHT:END -->
