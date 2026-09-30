@@ -10460,3 +10460,23 @@ def test_announcement_handoff_path_is_tree_relative(tmp_path):
     assert rotate._tree_rel(g, g / "sessions" / "seats" / "s.handoff.md") == ".agi/sessions/seats/s.handoff.md"
     assert rotate._tree_rel(g, tmp_path / "elsewhere" / "h.md") == "h.md"
     assert str(tmp_path) not in rotate._tree_rel(g, g / "x.md")
+
+
+# goal:g7.16.1.7.1.1.2 (goal:g6.41.1 P4): ONE launch lock per post -- no double spawn
+def test_post_launch_lock_one_holder_per_post(tmp_path):
+    g = tmp_path / ".agi"
+    g.mkdir()
+    with rotate.post_launch_lock(g, "p1") as a:
+        with rotate.post_launch_lock(g, "p1") as b, rotate.post_launch_lock(g, "p2") as c:
+            assert a is True and b is False and c is True
+    with rotate.post_launch_lock(g, "p1") as again:
+        assert again is True, "released on exit"
+
+
+def test_cmd_spawn_refuses_a_second_stand_up_of_the_same_post(tmp_path, capsys):
+    from types import SimpleNamespace as NS
+    g = tmp_path / ".agi"
+    g.mkdir()
+    with rotate.post_launch_lock(g, "p1"):
+        assert rotate.cmd_spawn(NS(seat="p1", dry_run=False), g) == 1
+    assert "launch lock held" in capsys.readouterr().err
