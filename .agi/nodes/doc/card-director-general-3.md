@@ -35,8 +35,11 @@ SENT, WAIT FOR GO (SM gates in this order)
   g7556   goal:g7.16.1.5.5.6  tip 6b444e66f1 (season2/loops/hypothesis-g7556-guard-ram-write-a00-b9773bd6)  sent 17:29Z
           -> GO -> goal:g7.16.1.5.5.6 complete
 LIVE
-  h10105  goal:g7.16.1.10.5 council report: mur unit agi-director-general-3-dg3mur-h10105-1628: both reviews DONE (config_max yes: council.residue_leaves),
-          verify:h10105-code TIMED OUT, verify:h10105-tests running at 18:2xZ over 66443d8fa8..62de7b8491
+  h10105  goal:g7.16.1.10.5 council report: mur DONE (both verifies timed out; reviews accept_with_residue) on tip 62de7b8491 -> ONE fix round
+          (Sonnet/claude-code before 21:00Z, pi-free after): validate the whole council.residue_leaves cell BEFORE any write (no partial report row);
+          refuse an empty leaf id by name; reconcile the report's residue count with the rows landed; declare council_report.py add in
+          command:commands (drop the manifest exemption); a row driving the REAL write.py writer on a tmp node + fix the node's false claim;
+          the cell itself (council.residue_leaves) -> SM/Prime (config-max) -> review -> trunk in if rc 1 -> gate -> [merge-up]
           (tip season2/loops/hypothesis-g716105-council-repor-a00-f43e8762; council_report.py 177 lines ACCEPTED as disclosed override)
           -> read runs/mur-season2-loops-hypothesis-g716105-council-repor-a00-f43e8762/{review,verify}_h10105-*.json -> residues:
           direct/Sonnet fix on the loop tip -> merge the trunk IN if merge-tree rc 1 -> gate -> [merge-up]; cell council.residue_leaves -> SM/Prime
