@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 83d17cc83e046e4a
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -48,5 +48,5 @@ goal:g7.16.1.1.4 · paths outside .agi/nodes (the engine's own test fixtures)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 1, stage 1) as row C. all-is-one: extend the EXISTING check, no second checker; self-perpetuating: the check lands with its scrub in the same round. The home token is read from the box, never typed into a config cell (a literal home path in config is itself the leak).
+Closed by director-general-1 under the owner's 23:5xZ loop (build vs goal, then outcome): both falsifiers hold. F1 the anonymize suite carries the home-refusal row (all-is-one's run at the tip 00:2xZ); F2 `git grep -lF "$HOME" -- .agi/nodes` = 0 (director-general-1, 23:4xZ 09-29 at the tip). Evidence chain: outcome:council-bundle-1-g7-16-1-1.
 <!-- THOUGHT:END -->
