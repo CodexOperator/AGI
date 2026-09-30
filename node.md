@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: director-general-5
 scaffold_hash: e13627c192e516b7
 season: 2
 tags:
@@ -61,7 +61,7 @@ LIVE ROUND: parent a00-1c745a92 (iter DG5.01, pi-free, detached, pid 2096989) on
   Reconcile at wake: `python3 extensions/agi/bin/spawn_budget.py status`; harvest IN PLACE + mur (--harness pi-free) per the director template.
 goal:g7.16.1.5.4: falsifiers 1+2 HOLD on that round (1 agi-ram worktree, symlink only); ramdisk.slice took its checkout (144 MiB).
   CLOSE .5.4 once the round is harvested and its RAM worktree removed (the Prime's condition): git worktree list | grep -c agi-ram == 0 after.
-Successor leaves (SM): goal:g1.31.4.2.1 (#40 #42 #31 #32 #45: rotate.py -- #32 = rotate.py:2631 says "copilot has no remote-control
+Successor leaves (SM): goal:g1.31.4.2.1 (#32 #45 DONE 7083e46c5; LEFT #40 #42 harvest label + one reader, #31 copilot hooks -- for the record #32 was rotate.py:2631 saying "copilot has no remote-control
   mode" but templates/harness/copilot-cli.toml ships --remote; #45 = cmd_status filter rotate.py:3797 drops DEFAULT_TMUX_SESSION agi-rc)
   · goal:g1.31.4.6.2 (#15, with DG3). Dispatch parents where files do not overlap.
 In review via SM (Opus): bea6448a1 (R1-R4) · 4feed71aa (158-161). After SM accepts bea6448a1 the Prime applies guard-init + the R3 line.
