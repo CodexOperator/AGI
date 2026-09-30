@@ -1001,11 +1001,15 @@ THOUGHT_END = "<!-- THOUGHT:END -->"
 #: a marker LINE, BEGIN or END -- the one line-level spelling (SM 113; write.py imports it)
 #: THE marker head, ONE constant both regexes are built from: `[ \t]*`, never
 #: `\s*`, so a marker never spans a newline (SM 131: `<!--\nTHOUGHT:BEGIN` was a
-#: block start but no marker line) and `\b`, so `THOUGHT:BEGIN_x` is neither (SM 129)
-_MARK = r"^<!--[ \t]*THOUGHT:"
-THOUGHT_MARKER_LINE_RE = re.compile(_MARK + r"(BEGIN|END)\b")
+#: block start but no marker line) and `\b`, so `THOUGHT:BEGIN_x` is neither (SM 129).
+#: _END is THE closer tail, ONE constant for every reader (SM 138): `END.`,
+#: `END trailing -->` or `END` with `-->` on the next line closes nothing.
+_HEAD = r"^<!--[ \t]*"
+_MARK = _HEAD + r"THOUGHT:"
+_END = r"END[ \t]*-->"
+THOUGHT_MARKER_LINE_RE = re.compile(_MARK + r"(BEGIN\b|" + _END + r")")
 _THOUGHT_RE = re.compile(
-    _MARK + r"BEGIN\b.*?" + _MARK + r"END[ \t]*-->",
+    _MARK + r"BEGIN\b.*?" + _MARK + _END,
     re.DOTALL | re.MULTILINE)
 _THOUGHT_STRIP_RE = re.compile(r"\n*" + _THOUGHT_RE.pattern, _THOUGHT_RE.flags)
 
@@ -1026,7 +1030,7 @@ def thought_blocks(text: str) -> list[str]:
 
 
 _ROW_ITEM = re.compile(r"^\s{0,3}([-*+]|\d+[.)])\s")
-_ROW_BLOCK = re.compile(r"^<!--[ \t]*([A-Z][A-Z-]*):BEGIN\b")   # SM 131: one line, a whole word
+_ROW_BLOCK = re.compile(_HEAD + r"([A-Z][A-Z-]*):BEGIN\b")   # SM 131: one line, a whole word
 
 
 def body_rows(body: str) -> list[tuple[int, int]]:
@@ -1043,7 +1047,7 @@ def body_rows(body: str) -> list[tuple[int, int]]:
             i += 1
             continue
         if (m := _ROW_BLOCK.match(ln)) or ln.startswith("```"):
-            end = re.compile(rf"^<!--[ \t]*{re.escape(m.group(1))}:END\b" if m else r"^```")   # SM 133: like _MARK
+            end = re.compile(_HEAD + re.escape(m.group(1)) + ":" + _END if m else r"^```")   # SM 133/138: like _THOUGHT_RE
             # residue 95: the END marker LINE, never the substring (a THOUGHT quoting it)
             j = next((k for k in range(i + 1, len(lines)) if end.match(lines[k])), None)
             i = i if j is None else j   # an unpaired BEGIN (BODY) is one line
