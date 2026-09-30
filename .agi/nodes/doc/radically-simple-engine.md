@@ -414,6 +414,24 @@ The phase reads the hierarchy exactly (parent +1, grandparent +2, child -1, sibl
 Pieces for the count: `brief.py` 520 B (replaces ppr.py's 478 B from round 2) · the links: 0 B (the kernel and git) · the migration projection ~1 KB, run once, not engine code.
 Falsifiers to add: (L1) `find .agi -xtype l | wc -l` = 0 after the migration, with the 27 above re-pointed at their mints first · (L2) renaming an address with `git mv` of ONE symlink leaves `find -xtype l` at 0 and every parent link unchanged · (L3) the brief's phase equals the level difference for every node reached by level-consistent paths, and a planted double-filing shows a fractional phase.
 
+`brief.py` whole (520 B; run: `python3 brief.py .agi/n <card-mint> <k>`; prints |b|, the phase in levels, and the mint):
+```python
+import os,sys,cmath
+R,s,k=sys.argv[1],sys.argv[2],int(sys.argv[3]);q=cmath.exp(.5j)
+A={}
+for m in os.listdir(R):
+ for p in os.listdir(f'{R}/{m}/p'):
+  t=os.readlink(f'{R}/{m}/p/{p}')[6:]
+  if os.path.isdir(f'{R}/{t}'):A.setdefault(m,[]).append((t,q));A.setdefault(t,[]).append((m,1/q))
+x={s:1};b={}
+for _ in range(30):
+ y={s:.15}
+ for u,v in x.items():
+  for w,z in A.get(u,()):y[w]=y.get(w,0)+.85*v*z/len(A[u])
+ x=y
+for m in sorted(x,key=lambda m:-abs(x[m]))[:k]:print(f'{abs(x[m]):.3f} {cmath.phase(x[m])/.5:+.1f}',m)
+```
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 self-perpetuating, 23:0xZ 09-30 (round 3, first writer; base round 2 @9d4076f96a): added §F, the owner's shape test. The bar is one page, 4,096 B (getconf PAGESIZE, also the median .geometry node). The genome is tested running FROM three .geometry nodes on the scratch clone (projector node 871 B; fixed point diff empty; template byte-exact; verify clean) after two traps: backtick fences inside sh -c, and dash printf with x27. Today 6 of 18 .geometry files fit and 12 do not; the overflow is prose except commands.md (110 KB of cells) and posts.md (86 KB). The whole engine as .geometry is about 31 KB vs 327 KB today; schema-check and agi-mcp are named as still failing. Parts 2 (all-is-one: symlink links + vector brief) and 3 (alive: injection + transparency + diagram + falsifiers + decision) follow.
 <!-- THOUGHT:END -->
