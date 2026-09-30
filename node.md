@@ -31,7 +31,7 @@ gen 19 wakes at 01:0xZ with PASS B3 in flight (6/20 chunks launched, chunk5 -> r
 | formation | council loop LIVE to ~04:00Z (owner: "full steam ahead until about midnight Eastern") · alive · all-is-one · self-perpetuating · sanctuary-master · DG1-DG5 · stream-master (side, stream OFF) · TM/DT/DE down · session names change at every rotation: read the posts rows |
 | loop | doc:council-loop "The loop" (owner 23:5xZ): DG2 MVP-vs-hyp forks -> DG1 builds-vs-goals subgoals -> DG1 OUTCOME per goal -> SM mur -> SM BIGGER_OUTCOMEs -> council goals/bundles -> council OVERVIEWs -> belam · room `directors` = DG3-5 · the council's lens section |
 | box | guard (b) LIVE: oomd 85 %, watchdog 60 %, MemoryHigh 13319M · guard IN THE GRAPH (extensions/agi/guard + config:guard; the .sanctuary paths are symlinks) · RAM disk /mnt/agi-ram 7 GiB (unused yet) |
-| crons | session-only, RE-ARM at wake: CHECK "13 */4 * * *" · STOP "0 4 30 9 *" · B3 cap "3 4 30 9 *" (echo 3 > <home>/passB3/cap if MemAvailable >= 4000 MB) · gen 19 ids 9af306dc / c4d2319a / 8990f145 |
+| crons | session-only, RE-ARM at wake: CHECK "13 */4 * * *" · STOP "0 4 30 9 *" · gen 19 ids CHECK 9af306dc · STOP c4d2319a (B3 cap cron DELETED: it would un-park the pi launcher) |
 
 ## §1 Plan
 ```
@@ -48,9 +48,9 @@ OPEN         council/directors: g7.16.1.6 write form · .7 spawn/rotate template
 PASS B3 step 5 is the successor's FIRST act (HARD RULE: gen 18 rotated at f 0.41 with the pass in flight)
 ```
 B3  since 23:33Z: TIP PINNED 578650193 (merge only TIP) · sampled 40/257 rounds = 20 chunks, <home>/passB3 (sample.json, events.log, chunk*.log)
-    launcher unit agi-pb3-launch (CAP 2; 3 after 04:00Z) · retries ONE AT A TIME: sed 's/pb3chunkNof20/pb3retryN/g' chunkN.json > retryN.json, then
-    systemd-run --user --unit=agi-pb3-retryN --slice=agi-work.slice --working-directory=/data/work/agi --collect bash <home>/passB3/retry.sh retryN
-    so far: chunk5 -> retry5 (empty provider response)
+    OWNER 01:0xZ: chunks 7-20 on claude-code opus-5-5 HEADLESS via graph tools = <home>/passB3/ccrun.py (workflow.main, pi stage seam -> claude_code adapter argv) · unit agi-pb3-launch-cc (cap.cc 2, stays 2: cc max_live 4) · pi unit agi-pb3-launch PARKED (cap 0): stop it once chunk3 + chunk6 exit · retries ONE AT A TIME: sed 's/pb3chunkNof20/pb3retryN/g' chunkN.json > retryN.json, then
+    systemd-run --user --unit=agi-pb3-retryN --slice=agi-work.slice --working-directory=/data/work/agi --collect bash <home>/passB3/retry-cc.sh retryN
+    done pi: 1 2 4 + retry5 (4/4) · running pi: 3 6 · monitor.sh watches launch(-cc) + retry(-cc)
     at the end: verdicts.py -> RED gates: anonymize BASE..TIP (its home-path gate misses /data/<user> homes, residue 128: grep them by hand)
     · the 3 formation D paths l4-formation-1/-3/-4 by mint_id · goal:g7.16.2 other-box user segment grep -> section 2 steps 5-9 (skill agi-merge-pass)
 W   AFTER B3: resume the worktree prune (7/881 done, every byte kept under refs/archive/worktrees/*): systemd-run --user --unit=agi-wt-prune
