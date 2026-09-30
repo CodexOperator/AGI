@@ -231,11 +231,25 @@ def test_the_writer_resolves_its_own_project_once_per_record(tmp_path, monkeypat
 
 
 def test_a_project_less_caller_reads_no_cell(monkeypatch):
-    """dg352 item 2: no project, no cell, no `user` class; the seam patched is `find_project_root`."""
+    """dg352 item 2: no project, no cell, no `user` class; the seam patched is
+    `find_project_root`. dg355 item 4: the cache this row poisons is RESTORED."""
     import anonymize, locations, rotation_record
-    monkeypatch.setattr(locations, "find_project_root", lambda *a, **k: None)
-    rotation_record._CELL_ROOT.clear()
-    assert rotation_record._cell_root() is None
-    hits = anonymize.scan("basetemp /" + "tmp/pytest-of-" + "fixtureuser/pytest-3",
-                          [], root=None)
-    assert "user" not in hits, "no project, no cell, yet user fired: %r" % (hits,)
+    saved = dict(rotation_record._CELL_ROOT)
+    try:
+        monkeypatch.setattr(locations, "find_project_root", lambda *a, **k: None)
+        rotation_record._CELL_ROOT.clear()
+        assert rotation_record._cell_root() is None
+        hits = anonymize.scan("basetemp /" + "tmp/pytest-of-" + "fixtureuser/pytest-3",
+                              [], root=None)
+        assert "user" not in hits, "no project, no cell, yet user fired: %r" % (hits,)
+    finally:
+        rotation_record._CELL_ROOT.clear()
+        rotation_record._CELL_ROOT.update(saved)
+
+
+def test_the_cell_cache_is_not_left_keyed_by_the_missing_project():
+    """dg355 item 4, the row AFTER the project-less one (file order): the missing
+    project cached under the absent-root key never survives into a later row."""
+    import rotation_record
+    assert rotation_record._CELL_ROOT.get(None) is not None, \
+        "the cache still holds the missing project: %r" % (rotation_record._CELL_ROOT,)

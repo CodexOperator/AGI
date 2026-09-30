@@ -1204,17 +1204,33 @@ def test_the_row_inventory_here_lists_every_row_the_file_names():
         "move the header, do not leave a second copy" % (first, last, highest))
 
 
-# 14c -- dg352 item 3 FALSIFIER: a skip firing EARLY (or on any hit) passes here while a real leak rides past.
+# 14c -- dg355 items 1-3, superseding dg352 item 3's version. (1) it PINS its own
+# email_allow, so the owed RFC 2606 pattern in the cell cannot flip its precondition;
+# (2) the address is BUILT AT RUNTIME FROM PARTS; (3) it drives the loop ITSELF and
+# COUNTS the templates reached, because the old row's `pytest.raises` could not tell
+# an early `pytest.skip` (reported `skipped`, not failed) from a real abort.
+PINNED_EMAIL_ALLOW = [re.compile(r"[\w.-]+@\d+\.service")]
 def test_a_later_non_email_hit_fails_while_an_earlier_email_only_hit_exists(
         fake_box, anonymize, tmp_path, monkeypatch):
     clean = (TEMPLATES / BY_NAME["oomd-guard"]["template"]).read_text(encoding="utf-8")
-    email_text = clean + "\n# ops@fixture.invalid\n"
+    addr = "@".join(("ops", ".".join(("fixture", "invalid"))))   # built, never a literal
+    email_text = clean + "\n# ops contact: " + addr + "\n"
+    monkeypatch.setattr(anonymize, "_email_allow", lambda root=None: PINNED_EMAIL_ALLOW)
     monkeypatch.setattr(sys.modules[__name__], "_kit_bytes", lambda: [
         (Path("early-kit-template"), email_text),
         (Path("late-kit-template"), clean + "\n# %s\n" % FAKE_BOX["ip"][0])],
         raising=False)
-    toks, allow = anonymize.box_tokens(PROJECT), anonymize._email_allow(PROJECT)
-    assert anonymize.scan(email_text, toks, allow) == ["email"], "not email-ONLY; vacuous"
-    with pytest.raises(AssertionError, match="late-kit-template"):
-        test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
-            fake_box, anonymize, tmp_path)
+    toks = anonymize.box_tokens(PROJECT)
+    assert anonymize.scan(email_text, toks, PINNED_EMAIL_ALLOW) == ["email"], "not email-ONLY; vacuous"
+    scanned, emailed, failed = [], [], []
+    for path, text in _kit_bytes():
+        hits = anonymize.scan(text, toks, PINNED_EMAIL_ALLOW)
+        scanned.append(path.name)
+        if hits == ["email"]:
+            emailed.append(path.name)
+            continue      # dg355 item 3 MUTATION POINT: `break` here -> the row FAILS
+        failed.append((path.name, hits))
+    assert scanned == ["early-kit-template", "late-kit-template"], \
+        "the loop never reached every template; it scanned: %s" % (scanned,)
+    assert emailed == ["early-kit-template"], emailed
+    assert failed == [("late-kit-template", ["ip"])], failed
