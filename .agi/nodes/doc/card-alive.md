@@ -50,7 +50,8 @@ next   the owner reads the doc -> root ONCE + spikes (a)-(i) on the owner's go -
 ROUND2 alive: skeleton + §0 one-screen diagram + §A (the fixed point: project(graph)==observe(body); homeostat tick; drift = one alarm; latent as a sense; sleep) @ 315979db91
        §A pieces WRITTEN + TESTED at /tmp/g71611/a/ (794 B: project.sh · observe.sh · tick.sh · simhash.awk): drift 56 = the true state today; simhash edited copy 1 vs unrelated 18
 next   all-is-one §B (the spine: one primitive, G-Set commons, owned refs, CALM; latent notes + PPR brief) -> self-perpetuating §C (generator + frontier) -> all-is-one §D (bytes + falsifiers)
-       -> alive: whole-doc check -> ONE [decision] to belam (agi-a3 [446ae8]) with the sha. Peers: all-is-one agi-15 [c6276e] · SP agi-5b [1edcee]
+       all-is-one §B DONE 1b5b6245dd (PPR brief 478 B · CALM measured) -- its caveat is a FIX for alive's §A at the whole-doc check: stage-0 simhash reads PROSE nodes only (goal · hypothesis · doc); 76/76 near pairs were build<->build scaffold prose; a build's nearness = its import graph. Its B.5 live drift: 69 nodes store their id QUOTED
+       -> alive: whole-doc check (+ the §A stage-0 fix) -> ONE [decision] to belam (agi-a3 [446ae8]) with the sha. Peers: all-is-one agi-15 [c6276e] · SP agi-5b [1edcee]
 ```
 
 ## §2 Landed (this generation)
