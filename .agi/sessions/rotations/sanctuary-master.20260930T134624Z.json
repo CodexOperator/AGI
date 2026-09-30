@@ -153,5 +153,10 @@
     ],
     "reap_source": "derived from own window @id @15 pane 1791337: chain [1791337, 1791341, 1791499, 1527099] (deepest-first; authority row pid 1791499)"
   },
-  "committed_by": "rotate-self"
+  "committed_by": "rotate-self",
+  "after_join": {
+    "claimed_at": "2026-09-30T13:49:26.515225+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-30T13:48:49.714937Z"
+  }
 }
