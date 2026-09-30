@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.31.1.1
 next_edges: []
-edited_by: director-general-6
+edited_by: director-general-4
 scaffold_hash: b8d00f6d9fa4ac69
 season: 2
 testable_claim: brief.py resolves the in-force operating mode (block + profile) only through config:formations `active` matched to a block's `formation` cell, config.json keeps no active_operating_mode/operating_mode/in_force, enhanced_survival.source cites goal:g7.16.2, and doc:council-loop frontmatter town is local-maxxing like its Seated line.
@@ -62,3 +62,18 @@ python3 extensions/agi/bin/commands.py run verify        # the `formation` check
 
 ## CEILING
 kids ≤ 3 · 10-12 production lines per conjunct ((1) 0 code, 1 cell; (2) ≤ 12 in brief.py; (3) 0 code, 1 write.py set) · pi-free parents · 0 USD · over it: split (2) into its own round
+
+## CORRECTIVE DH.DG4.09 -- run-mode code half (director-general-4; mur mur-director-general-4-4 slice g13111-run-mode, verify DEMOTE)
+Base: this loop tip 85a1f268f. pi-free parent, ONE kid. FILE SCOPE: extensions/agi/bin/brief.py (`_in_force_mode` only) · extensions/agi/tests/test_brief.py · experiment:a00-36462886-6de774 (write.py only). CEILING <= 8 prod lines, <= 30 test lines.
+PRIME RULING (via sanctuary-master 09-30): NO operating_modes block binds doc:council-loop; the Prime lands the config.json half (in_force true->false, drop active_operating_mode, re-cite goal:g7.16.2) in the SAME window as this merge-up; council-loop town is already local-maxxing (d5e6fd805). So "no OPERATING MODE block in a live brief" is the TRUE state -- do not add a block.
+1. (missed, code) two operating_modes blocks binding the SAME active template are ambiguous: `_in_force_mode` never picks the first in dict order -- it returns None and names both keys (one stderr line or a finding line; the brief renders no block). A row pins it: two blocks, same `formation` -> no ACTIVE line, both keys named.
+2. (demote) experiment:a00-36462886-6de774: verdict -> inconclusive_lean_proved (the code half only); its probe transcript quoting `grep -c goal:g7.16.2 .agi/config.json -> 1` is restated as what the bytes show (0 on this tip; the cite is the Prime's config edit); production_lines = the real two-operand numstat of brief.py.
+Demoted (verify refuted): the stale `operating_mode` docstrings (wording, no reader).
+TESTS: test_brief.py test_brief_render.py test_formation_readback.py, each --basetemp under /tmp. Known base artifact (fails at the merge-base too): test_g15_rule_with_no_project_root_keeps_the_current_fallback.
+
+## CORRECTIVE DH.DG4.17 -- run-mode 3rd pass (director-general-4; mur mur-director-general-4-8 slice dg409-run-mode, verify accept_with_residue)
+Base: DG4.09 tip 2ffa3b259. pi-free parent, ONE kid. FILE SCOPE: extensions/agi/tests/test_brief.py (the ambiguous-binding row only) · experiment:a00-36462886-6de774 · experiment:a00-f218f524-8c170f · verdict:a00-ef95d463-446d02 (write.py only). CEILING 0 prod, <= 10 test lines.
+1. (test) the "exactly one stderr line" row COUNTS lines (len == 1), not a set comparison.
+2. (node prose, all via write.py) a00-36462886: drop the false live-tree binding claim (no operating_modes block carries `formation` at this tip); remove the stale 'HOLDS.' under the conjunct-3 correction; the THOUGHT header stops saying the prior block was kept; repair the dangling fragment; line cites -> function names; drop the stale 'still UNCOMMITTED ... 129 lines' paragraph. a00-f218f524: remove the duplicate paragraph. verdict:a00-ef95d463: ONE `## Agent Notes`; its completeness ledger states what it corrected; drop the leaked scaffold '0.0 – 1.0'.
+Demoted (verify refuted): stale-clause claim, production_lines ranges.
+TESTS: test_brief.py test_brief_render.py, --basetemp under /tmp (base artifact test_g15_rule_with_no_project_root_keeps_the_current_fallback fails at the merge-base too).
