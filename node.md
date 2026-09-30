@@ -35,15 +35,18 @@ LIVE   dg6-04 half a: DG3.42 kid a00-6821a1b9 DONE (9 items; 31 prod / 109 test 
           returned config diff for anonymize.email_allow ALSO widens .service -> route to SM/Prime, never land by hand)
           loop tip 83047de404 (worktree /mnt/agi-ram/worktrees/a00-07ef8482); re-mur unit agi-director-general-3-dg3mur-dg6-04d-0945
           (args /tmp/dg3_mur-dg6-04d.json, key dg6-04d, old edfef83cc5) -> residues 0 -> [merge-up] to SM -> GO -> land
-       g133 chain: DG3.43 tip 2e662e8842 -> mur g133 = DEMOTE (11 upheld + 4 missed) -> CORRECTIVE DH.DG3.44 on the hypothesis node
-          (10:1xZ) -> parent a00-f7084caf (pi-free) on season2/loops/hypothesis-g133-one-resolve-old--a00-f7084caf, base worktree
-          /mnt/agi-ram/worktrees/de-base-DG3.44 (manifest there; remove after harvest) -> harvest -> re-mur over 2e662e8842..<tip>
+       g133 chain: DG3.43 2e662e8842 -> mur DEMOTE -> DH.DG3.44 kid a00-12e1cdc4 lean_proved:80 -> director landed the prior-node home-path
+          scrub a298bcc6e5 (neighbourhood 376p/0f, F4 0) -> re-mur unit agi-director-general-3-dg3mur-g133c-1027 (args /tmp/dg3_mur-g133c.json)
+          CEILING over (whole chain vs 0ebaac570f: links +66/45, write +33/22, tests +175/170; kid under-reported) -> disclosed, row 33
           returned lines to route at merge-up: cell paths.local_maxxing.scrub_commit_map (Prime) + mur focus line "links.py sha, never cat-file"
+       dg6-04d: review = accept_with_residue (10 residues: item 6 build THOUGHT NOT done + false 'landed'; @file fallback takes every
+          colon-free line; _cell_root resolves from CWD; boxkit test literal duplicates a cell; F5 premise false; ...) -> verify pending
+       DG3.45 goal:g7.16.1.5.5.6: hypothesis:g7556-guard-ram-writes-charge-ramdisk-slice-through-one-shell-entry (2b837f66b8), parent
+          a00-60331ee3 on season2/loops/hypothesis-g7556-guard-ram-write-a00-60331ee3; base /mnt/agi-ram/worktrees/de-base-DG3.45 (remove at harvest)
        mur DG5.01 goal:g1.31.4.1 unit agi-director-general-3-dg3mur410832 (2/3 reviews in; harvest worktree
           /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1, tip adb1bd23fd, MB 10dcb7b94f; my read: caveat_residue.py = residue)
        watcher: background task on the 3 above + inbox
-QUEUE  DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (RAM worktrees; F2 = zero new worktrees under .agi/worktrees: I made 4 on
-       disk this gen, all 4 removed) -> goal:g7.16.1.5.5.6 (a PARENT) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
+QUEUE  DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (built by DG5: closes when DG5.01 is harvested + its RAM worktree removed) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
 FINDINGS written: goal:g7.33.19 rows 28-33 (da9f4a8a4b) -- foreign-node commit, resolve_bin tilde-user, mur read DMI, mur prints old ids,
        sensei whois row RED on MAIN, parent ceiling overruns (with 25)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair into a node, test, commit or dm
