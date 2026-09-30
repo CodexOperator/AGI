@@ -4,6 +4,4 @@
 # through mem_cap.py's shell entry, which asks the FILESYSTEM (--to), never a
 # path prefix -- the RAM tree is an rbind overmount AT MAIN, so "$RAM_DIR"/*
 # never names it (hypothesis:g7556-...).
-# --- guard-ram-write: begin
 ramw() { local p=$1; shift; python3 "$HERE/../bin/mem_cap.py" ram-exec --to "$p" -- "$@"; }
-# --- guard-ram-write: end

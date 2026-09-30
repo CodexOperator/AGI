@@ -403,7 +403,7 @@ def fstype_at(path: str) -> str:
     """The FILESYSTEM holding `path`, asked of the mount table -- never of a path
     prefix (the RAM tree is an rbind overmount AT MAIN). A path that does not
     exist yet is answered by its nearest existing parent; the table is
-    overridable (AGI_MEMCAP_MOUNTINFO) so a row can name a tmpfs without one. Octal escapes are DECODED before comparing (a space would never match); an unreadable table fails OPEN, said once, never a traceback."""
+    overridable (AGI_MEMCAP_MOUNTINFO) so a row can name a tmpfs without one. Octal escapes are DECODED before comparing (a space would never match); an unreadable table returns '' (fails OPEN), never a traceback."""
     p = os.path.realpath(os.path.abspath(path))
     while not os.path.isdir(p):
         n = os.path.dirname(p)
@@ -416,11 +416,10 @@ def fstype_at(path: str) -> str:
         with open(table) as fh:
             for line in fh:
                 f = line.split()
-                mp = re.sub(r"\\([0-7]{3})", lambda m: chr(int(m[1], 8)), f[4].rstrip("/") or "/") if len(f) > 9 and "-" in f else None
+                mp = re.sub(r"\\([0-7]{3})", lambda m: chr(int(m[1], 8)), f[4].rstrip("/") or "/") if len(f) > 9 and "-" in f[:-1] else None
                 if mp and len(mp) > len(best) and (p == mp or p.startswith(mp + "/")):
                     best, kind = mp, f[f.index("-") + 1]
-    except OSError as exc:
-        sys.stderr.write(f"mem_cap.py fstype_at: {exc} -- dst fs UNKNOWN\n")
+    except OSError:     # fails OPEN; ram-exec says so, once
         return ""
     return kind
 
@@ -456,7 +455,10 @@ def _verb_ram_exec(argv: list, to: str | None = None) -> int:
     if not argv:
         sys.stderr.write("mem_cap.py ram-exec [--to PATH] -- <argv...>\n")
         return 2
-    if to is not None and fstype_at(to) != "tmpfs":
+    fs = fstype_at(to) if to is not None else "tmpfs"
+    if fs != "tmpfs":
+        if not fs:
+            sys.stderr.write("mem_cap.py ram-exec: mount table unreadable -- write ran UNCHARGED\n")
         return subprocess.run(argv).returncode
     scoped, why = (ram_argv(argv), "") if user_manager_reachable() else ([], "user manager UNREACHABLE")
     if why or list(scoped) == list(argv):

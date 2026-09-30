@@ -62,7 +62,8 @@ def _install(d, name, body):
 def _mounts(tmp_path, ram: pathlib.Path, malformed: bool = False) -> str:
     """`ram` a tmpfs; `malformed` prefixes a row at the SAME mount point with no
     ` - ` separator: SKIP it (D2), never raise out of it."""
-    junk = ("31 25 0:99 / {ram} rw,relatime shared:9 ext4 /dev/broken rw\n" if malformed else "")
+    junk = {False: "", True: "31 25 0:99 / {ram} rw,relatime shared:9 ext4 /dev/broken rw\n",
+            "tail": "31 25 0:99 / {ram} rw,relatime shared:9 shared:10 shared:11 shared:12 -\n"}[malformed]
     return (junk + "21 25 0:19 / {root} rw,relatime shared:1 - ext4 /dev/root rw\n"
             "8 35 0:29 / {ram} rw,nosuid,nodev shared:4 - tmpfs tmpfs rw\n").format(
         root=os.path.realpath(tmp_path), ram=os.path.realpath(ram))
@@ -114,9 +115,9 @@ def _ram_disk(tmp_path):
     (ram / "keep").mkdir(parents=True); disk.mkdir()
     return ram, disk
 
-@pytest.mark.parametrize("malformed", [False, True], ids=["W1-table", "D2-junk-row"])
+@pytest.mark.parametrize("malformed", [False, True, "tail"], ids=["W1-table", "D2-junk-row", "D3-trailing-dash"])
 def test_W1_charge_is_a_real_filesystem_decision(fake, tmp_path, malformed):
-    """W1 tmpfs DESTINATION charged, disk-bound plain, argv's own rc. D2: a row with no ` - ` separator is SKIPPED, so the tmpfs row behind it still charges."""
+    """W1 tmpfs DESTINATION charged, disk-bound plain, argv's own rc. D2/D3: a row with no ` - ` separator, or ending ON it, is SKIPPED, so the tmpfs row behind it still charges."""
     ram, disk = _ram_disk(tmp_path)
     src = tmp_path / "src.txt"; src.write_text("page")
     py = f"{sys.executable} {MEM_CAP} ram-exec --to"
@@ -208,7 +209,7 @@ def test_F1_and_F2_the_rest_of_the_path_fails_open(fake, tmp_path):
     py = f"{sys.executable} {MEM_CAP} ram-exec --to"
     r = _run(dict(env, AGI_MEMCAP_MOUNTINFO=str(tmp_path / "gone")), f"{py} {ram} -- /bin/sh -c 'exit 5'")
     assert r.returncode == 5, (r.returncode, r.stderr)
-    assert "Traceback" not in r.stderr and r.stderr.count("fstype_at") == 1, r.stderr
+    assert "Traceback" not in r.stderr and r.stderr.count("UNCHARGED") == 1, r.stderr
     bare = tmp_path / "bare"; bare.mkdir()          # systemd-run nowhere on PATH
     os.symlink(shutil.which("bash"), bare / "bash"); _install(bare, "systemctl", _LIVE)
     r = _run(dict(env, PATH=str(bare)), f"{py} {ram} -- /bin/sh -c 'exit 6'")
@@ -228,9 +229,9 @@ def test_M1_a_mount_point_with_a_space_is_found(fake, tmp_path):
     assert [l for l in _entries(fake) if SCOPE_FLAG in l], _entries(fake)
 
 def test_N1_one_rule_sourced_by_both_and_no_scope_argv_in_shell(fake, tmp_path):
-    """N1 -- no scope argv in shell, and the rule that used to be spelled twice lives in ONE file the test extracts by its markers, SOURCED by both."""
+    """N1 -- no scope argv in shell, and the rule that used to be spelled twice lives in ONE file, SOURCED by both."""
     text = SHARED.read_text()
-    assert "hypothesis:g7556" in text and text.count("guard-ram-write:") == 2, text
+    assert "hypothesis:g7556" in text and "ramw() {" in text, text
     for s in (GUARD / "ram-main.sh", GUARD / "session-sweep.sh"):
         body = s.read_text()
         assert "systemd-run" not in body and 'case "$p" in' not in body, s
