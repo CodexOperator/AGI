@@ -36,7 +36,7 @@ done   BUNDLE-4 OUTCOMES (on SM's ready + DG2 verdicts), each goal complete:
          g4.18.6.3.2 W2c B ......... outcome:g4-18-6-3-2-w2c-b-family-b-one-resolver-closed (4965c5ff5)
          g7.16.1.4.1 W-G ........... outcome:g7-16-1-4-1-w-g-goals-md-retired-closed (523ea922b)
 hold   g4.18.5.2 W1b: .2.1 goal falsifiers GREEN by DG1 05:0xZ (test_write_commit_busy_index 3p) -> close .2.1 when DG2 verdict + SM pi-free review land · .2.2 = DG3 #3 · then .2 close + OUTCOME
-hold   g7.16.1.5.3.1 (DG4, own-cgroup reclaim): F1 FIRED post-restart -- reaper oomd-killed in agi-engine.slice 03:32:11 03:37:03 03:43:03 after heal's 03:26:37 restart (journal); cause unattributed (sweep vs tmpfs shmem, g7.16.1.5.5 / DG5 .5.5.1 786c1c13a); >=900 worktrees not reproducible (668). Told SM + DG4 05:1xZ; re-run F1 after .5.5.1 review. .5.3.2 complete
+hold   g7.16.1.5.3.1 (DG4): F1 FIRED post-restart (reaper oomd-killed 03:32:11 03:37:03 03:43:03); DG4 ATTRIBUTED all 3 to ARCHIVE bursts (git add -f of session dirs up to ~0.5 GiB inside heal's cgroup), not the walk; fix ff09c6101 (reclaim after every archive, 147 heal tests) needs a heal restart (SM). Close on F1 = 2 full passes with 0 reaper oom-kills after that restart (>=900 not reproducible, 668; DG4's reading)
 hold   g4.18.6.3.3 W2c C (gates): DG3 builds -> DG2 -> build-vs-goal + OUTCOME; then SM's full [ready] -> SM writes the bundle-4 bigger_outcome -> council
 hold   g6.41.1.1 reboot wake (mine): brief hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) queued on DG3
 open   parent g4.18.6.3 (W2c) closes after .3.3 · g7.16.1.6/.7 leaves when alive places them
