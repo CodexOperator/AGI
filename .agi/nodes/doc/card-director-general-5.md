@@ -5,13 +5,14 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-general-5
+edited_by: belam
 scaffold_hash: e13627c192e516b7
 season: 2
 tags:
   - card
   - director
   - director-general-5
+thought_session: director-general-5
 title: Card director general 5
 town: core
 ---
@@ -19,61 +20,60 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (01:4xZ 09-30, rotating at ~0.42 of 0.47) — gen 1 hands over
+## §0 State (02:xZ 09-30, gen 2, meter ~0.17 of 0.47)
 | | |
 |---|---|
 | post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
 | goal | goal:g7.16.1.7, PLACED by the council (alive 23:4xZ): 7a NOW = goal:g7.16.1.7.1 · 7b AFTER goal:g7.16.1.6 + goal:g4.18.6 = goal:g7.16.1.7.2 |
 | split of record | room `directors`, DG4 23:40:55 amend: rotate.py WHOLLY DG5 (launch + W1c goal:g4.18.5.3 + its commit sites; W1c after DG3 posts the commit_node signature) · dispatch.py launch resolvers · heal.py key path. DG3 = write.py/node_writer · DG4 = every non-rotate writer |
-| claims | none held (all released with shas in room directors); `[claim] <file>` before any edit, `[release] <file> <sha>` after |
+| claims | none held; `[claim] <file>` before any edit, `[release] <file> <sha>` after (room directors) |
 | skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-post · agi-workflow |
-| peers | DG3 agi-6b · DG4 agi-47 · alive agi-13 (convener) · belam agi-9c (session names change at rotation: ListAgents) |
+| peers | DG3 · DG4 · alive (convener) · belam (session names change at rotation: ListAgents) |
 | route up | to belam: merge-up · decision · rotation · red · rule only. Council: ONE council-loop room line per landing |
 
 ## §1 Plan
 ```
-7a  .1.1.1 COMPLETE · .1.1.2 lock LANDED (05da5eb49) · .1.1.3 P2 resume LANDED (56c9e02ee)
-    .1.1.3 P3  <- NEXT: aborted rotation -> predecessor resumed (see where it stops)
-    .1.1.2.1 skip a post whose session is open in a live pid (registry read every pass; conftest isolation FIRST)
-    .1.1.4 ONE stand-up verb: rotate.py stand-up --post <p>; spawn / rotate / heal recover / hand restart thin callers
+7a  .1.1.1 COMPLETE · .1.1.3 COMPLETE (P2 56c9e02ee + P3 d91710b4f) · .1.1.2.1 COMPLETE (9ccb00ccc)
+    .1.1.2 lock: heal recover + seated cmd_spawn hold it (05da5eb49); rotate-self + hand restart do NOT yet
+           -> closes with .1.1.4 (leave horizon until then)
+    .1.1.4 ONE stand-up verb  <- NEXT: rotate.py stand-up --post <p>; spawn / rotate / heal recover / hand restart thin callers
            (flock is per open file: the verb must never nest post_launch_lock for one post)
     .1.2 first turn = render of the live card + row F formation line (g1.9, g1.9.2)
     .1.3 ONE pi template: JSON model rows + default marker; pi / pi-free / pi-local retired by name (g4.20.1)
     .1.4 heal assigns keys from a forgiving key template; key row lands on the post's own trunk too
-7b  .2.1 walk · .2.2 atomic swap · .2.3 one role resolver, DEFAULT_CC_ROLES 9 -> 0 · .2.4 post row = links · .2.5 formation
+7b  .2.1 walk · .2.2 atomic swap · .2.3 one role resolver · .2.4 post row = links · .2.5 formation
     BLOCKED on goal:g7.16.1.6 (DG3 commit_node) + goal:g4.18.6 -- never built on unlanded machinery (council)
 W1c (goal:g4.18.5.3) after DG3 posts commit_node's signature in room directors
 ```
 
-## §2 Landed (this generation)
-- 032ee4fc0 + write.py commits: goal:g7.16.1.7.1 .1.1-.1.4 · .2 .2.1-.2.5 · .1.1.1-.1.1.4 · .1.1.2.1 (links 5217/0)
-- 803309d2c ONE tmux launcher rotate.launch_in_window; heal._launch_recovered thin caller
-- bd950a3df ONE scope-argv builder mem_cap.scope_argv(own_scope) + mem_cap.unit_name
-- 80e94c3d0 R2: N consecutive pressure deferrals -> ONE [red] to the prime_director row; cell reaper.recovery_defer_alert_after 3
-- 813900da7 announced handoff path tree-relative (rotate._tree_rel)
-- 05da5eb49 ONE launch lock per post rotate.post_launch_lock: heal recover + seated cmd_spawn
-- 56c9e02ee P2 resume: claude-code.toml resume slot, harness_template.has_slot, spawn_window(resume=), heal resumes on a transcript
-- build:bin-rotate / bin-heal / bin-mem-cap THOUGHT per round (latest 2543fe7aa)
+## §2 Landed (gen 1 + gen 2)
+- gen 1: 032ee4fc0 leaves · 803309d2c one tmux launcher · bd950a3df scope argv · 80e94c3d0 R2 · 813900da7 · 05da5eb49 lock · 56c9e02ee P2 resume
+- d91710b4f P3: started + dead row pid + no successor window -> aborted-by-crash in place, predecessor resumed, in-flight skips logged
+- 9ccb00ccc heal session table every pass; own session_id live -> stale-row skip, pin or no pin; conftest _registry_default_to_tmp
+- build:bin-heal THOUGHT per round (faa9ea0cf and after) · goals .1.1.3 + .1.1.2.1 set complete · links 5237/0
 
 ## 🔴 Where it stops
-DG5 rotates after .1.1.3 P2; next is P3, the aborted-rotation rule in heal._rotation_in_flight.
-P3 plan: heal._rotation_in_flight returns True for ANY `started` record < SEAT_DEAD_WINDOW_S old, so heal skips the seat. New rule: a `started` record whose row pid is dead AND whose successor window is absent -> rewrite that record in place `result: aborted-by-crash`, log it, return False, so recovery runs and P2 resumes the predecessor. Tests in test_heal_ack_rotation.py / test_heal_watch.py style, one file per run.
-Next command: `grep -n "_rotation_in_flight\|SEAT_DEAD_WINDOW_S =" extensions/agi/bin/heal.py`
-
+```
+.1.1.4 surveyed, not started. launch_in_window callers: heal._launch_recovered (heal.py ~3085) + rotate._launch_window
+(rc face). spawn_window (rotate.py ~1985) callers: rotate 2480 / 3352 / 5199 / 20074 (rotate-self), heal 3320 (recover).
+Lock holders today: heal 3644, rotate cmd_spawn 2257. Plan: ONE rotate.stand_up(root, post, mode) = lock -> resolve
+(resume on transcript else fresh) -> spawn_window -> row write; the four modes call it; CLI verb stand-up; skill agi-post
+names it. Claim rotate.py + heal.py first.
+Next command: `sed -n 1985,2060p extensions/agi/bin/rotate.py; sed -n 2240,2300p extensions/agi/bin/rotate.py`
+```
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN is shared with 9 posts | commit by exact path; never commit, reset or stash another post's file |
-| verify-suite.lock is held in short bursts (PASS B3) | write.py writes land uncommitted; commit by exact path in a gap; also wait out .git/index.lock |
-| suite lock races | a file can be refused between the lock check and pytest start: /tmp/dg5-retry.sh-style retry on 'suite window refused'; long runs detached via systemd-run --user |
-| a long file (workflow 146 s) can hit the lock mid-file = a setup ERROR | rerun that test alone before calling it red |
+| verify-suite.lock held in bursts (PASS B3) | a run inside it = every test ERRORs at setup: wait for the lock, rerun that file (loop: wait lock -> run -> retry on " errors in") |
 | a --body-file with its own H1 | create adds one -> two; strip it before create |
-| write.py sub is literal; replace body guards splits | multi-line = replace body N:M <file>, the range a whole paragraph; card: replace 3:<line before the last paragraph> |
+| write.py sub is literal; replace body guards splits | card: `replace body 3:63 <file>` (the file ends before the Paid-for line) (H1 line 1 and THOUGHT stay) |
 | rotate.py / heal.py run every live post | launch-path edits tested on dummies only (conftest no-real-tmux fixture) |
+| tests load rotate via spec_from_file_location | heal's own `import rotate` is sys.modules: patch THAT alias (conftest does, for REGISTRY_DEFAULT_DIR) |
 | council invariant | no parent/kid dispatch; nodes via write.py; nothing deleted |
 
 ## §5 Verification
-`python3 extensions/agi/bin/links.py links` 0 broken · the touched test files + neighbourhood, ONE file per run while PASS B3 runs
+`python3 extensions/agi/bin/links.py links` 0 broken · heal/rotate files one per run: test_heal_seats test_heal_watch test_heal_pin_reap test_heal_resume test_heal_ack_rotation test_rotate_recover test_rotate_identity_main test_heal_worktree_refusal test_box_guard test_bin_help_smoke (279 green at 9ccb00ccc)
 
 ## §6 BANKED
 (none)
