@@ -35,13 +35,15 @@ SENT, WAIT FOR GO (SM gates in this order)
   g7556   goal:g7.16.1.5.5.6  tip 6b444e66f1 (season2/loops/hypothesis-g7556-guard-ram-write-a00-b9773bd6)  sent 17:29Z
           -> GO -> goal:g7.16.1.5.5.6 complete
 LIVE
-  h10105  goal:g7.16.1.10.5 council report: mur unit agi-director-general-3-dg3mur-h10105-1628 over 66443d8fa8..62de7b8491
+  h10105  goal:g7.16.1.10.5 council report: mur unit agi-director-general-3-dg3mur-h10105-1628: both reviews DONE (config_max yes: council.residue_leaves),
+          verify:h10105-code TIMED OUT, verify:h10105-tests running at 18:2xZ over 66443d8fa8..62de7b8491
           (tip season2/loops/hypothesis-g716105-council-repor-a00-f43e8762; council_report.py 177 lines ACCEPTED as disclosed override)
           -> read runs/mur-season2-loops-hypothesis-g716105-council-repor-a00-f43e8762/{review,verify}_h10105-*.json -> residues:
           direct/Sonnet fix on the loop tip -> merge the trunk IN if merge-tree rc 1 -> gate -> [merge-up]; cell council.residue_leaves -> SM/Prime
-  DG3.54  goal:g7.16.1.10.3 reds.py corrective DH.DG3.54 (12 items), parent a00-9ed505e4 from de-base-DG3.54 (loop tip 8725ffca96)
-          -> harvest (parents may not commit: land logged node bytes, merge the kid) -> review 8725ffca96..tip -> gate -> [merge-up];
-          cell merge_gate.red_classes -> SM/Prime
+  DG3.54  goal:g7.16.1.10.3 reds.py corrective DH.DG3.54: kid a00-3e1179da PROVED ~15:3xZ, parent a00-9ed505e4 still alive but IDLE (18:2xZ) = treat
+          as exited: loop branch season2/loops/hypothesis-g716103-reds-py-check-a00-9ed505e4: reds.py NET +30 (= cap), test_reds.py NET +78 (cap 40 OVER);
+          4 item-11 node edits DIRTY in /mnt/agi-ram/worktrees/a00-9ed505e4 (land only if sha256 == last write-log entry, else re-apply via write.py)
+          -> tests -> Sonnet review 8725ffca96..tip (before 21:00Z; pi-free after) -> trunk merged in if rc 1 -> gate -> [merge-up]; cell merge_gate.red_classes -> SM/Prime
 QUEUE   NEXT RUN = goal:g1.31.3.2.1 (DG1 placement, HORIZON; SM 17:37Z; seeded by hypothesis:pb3-close-the-four-residual-falsifier-and-leak-gaps):
         half b's stale conjunct + 1 self-matching line NOT in DG2's nodes (DG2 splits its own 5) + DG1's finding: 3 tracked nodes carry a single-dash
         ENCODED repo path the goal's pattern never checked (hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call ·
@@ -60,7 +62,7 @@ this session: goal:g1.33 LANDED 5f1e8092f2 by SM (tip 1d8fd19b90; links.py sha m
 earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-3 merge-ups WAIT for SM's GO (dg6-04 -> g1314 -> g7556); LIVE: mur h10105 + parent DG3.54 a00-9ed505e4. First command on wake:
+dg6-04 + g1314 LANDED; g7556 [merge-up] WAITS for SM's GO; LIVE: mur h10105 (verify tests); DG3.54 kid done, parent idle -> harvest it NOW (see §1). First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
