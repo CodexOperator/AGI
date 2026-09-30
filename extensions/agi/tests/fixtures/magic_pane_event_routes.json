@@ -107,7 +107,7 @@
         "replaced_by": "tool_call_turn"
       }
     },
-    "note": "Code-path cutover + pane runner + dry lifecycle (spawn/attach->tick/consume). Messaging adapter (g7.32.2*) untouched. Live tmux attach still deferred.",
+    "note": "Code-path cutover + pane runner + dry lifecycle + stand-up/rotate wire. Messaging adapter (g7.32.2*) untouched. Live tmux attach still deferred; parent g7.16.1.7.3 stays horizon until live pane-id\u00d7rotation falsifiers close.",
     "runner": {
       "goal": "goal:g7.16.1.7.3.5",
       "module": "magic_pane_runner",
@@ -127,6 +127,23 @@
         "before_agent_start": "mark_busy",
         "tool_result": "mark_idle_and_tick"
       }
+    },
+    "standup_wire": {
+      "goal": "goal:g7.16.1.7.3.7",
+      "module": "magic_pane_lifecycle",
+      "entry": "from_stand_up",
+      "hooks": [
+        "spawn",
+        "attach"
+      ],
+      "path": "rotate.stand_up + dry-run spawn/rotate \u2192 from_stand_up \u2192 on_spawn/on_attach (dry/fixture; no live tmux)",
+      "modes": {
+        "spawn": "on_spawn (or on_attach if pin lingered)",
+        "rotate": "on_attach (or on_spawn if no pin)",
+        "recover": "on_attach (or on_spawn if no pin)",
+        "restart": "on_attach (or on_spawn if no pin)"
+      },
+      "dry_pane_id": "dry:{post}"
     }
   }
 }

@@ -1897,7 +1897,39 @@ STAND_UP_MODES = ("spawn", "rotate", "recover", "restart")
 KEYED_BY_STAND_UP = ("recover", "restart")
 
 
-def stand_up(root: Path, post: str, body, *, mode: str):
+def _magic_pane_after_stand_up(
+    root: Path,
+    post: str,
+    mode: str,
+    *,
+    pane_id: str | None = None,
+    dry: bool = True,
+) -> dict | None:
+    """goal:g7.16.1.7.3.7 — wire on_spawn/on_attach from stand-up/rotate paths.
+
+    Dry-safe default (no live tmux). Lifecycle errors are warn-only so a
+    pane-pin glitch never blocks seating/rotation. Returns the lifecycle
+    result dict, or None when skipped/failed.
+    """
+    try:
+        import magic_pane_lifecycle as life  # noqa: PLC0415 — bin sibling
+    except Exception as exc:  # noqa: BLE001
+        print(f"warn: magic_pane_lifecycle import failed after {mode}: {exc}",
+              file=sys.stderr)
+        return None
+    try:
+        return life.from_stand_up(
+            Path(root), post, mode, pane_id=pane_id, dry=dry
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"warn: magic_pane_lifecycle after {mode} of {post}: {exc}",
+              file=sys.stderr)
+        return None
+
+
+def stand_up(root: Path, post: str, body, *, mode: str,
+             pane_id: str | None = None, lifecycle_dry: bool = True,
+             skip_lifecycle: bool = False):
     """goal:g7.16.1.7.1.1.4 -- THE one stand-up of a post: its launch lock
     around `body()`, which resolves (resume on a transcript, else fresh),
     launches through `spawn_window` / `stand_up_launch` and writes the row.
@@ -1906,7 +1938,13 @@ def stand_up(root: Path, post: str, body, *, mode: str):
     The ONLY taker of `post_launch_lock` (a flock is per open file: a nested
     take of the same post would refuse itself). Returns `(True, body())`, or
     `(False, reason)` when another stand-up of the post holds the lock --
-    named once on stderr, nothing launched."""
+    named once on stderr, nothing launched.
+
+    goal:g7.16.1.7.3.7 — after a successful body(), wire magic_pane_lifecycle
+    on_spawn (spawn) / on_attach (rotate|recover|restart). dry-safe by
+    default; `skip_lifecycle=True` is the test seam that preserves prior
+    stand_up-only assertions.
+    """
     if mode not in STAND_UP_MODES:
         raise ValueError(f"stand_up: unknown mode {mode!r}")
     with post_launch_lock(root, post) as held:
@@ -1916,7 +1954,12 @@ def stand_up(root: Path, post: str, body, *, mode: str):
             return False, why
         if mode in KEYED_BY_STAND_UP and (note := ensure_post_key(root, post)):
             print(note, file=sys.stderr)
-        return True, body()
+        result = body()
+        if not skip_lifecycle:
+            _magic_pane_after_stand_up(
+                root, post, mode, pane_id=pane_id, dry=lifecycle_dry
+            )
+        return True, result
 
 
 def stand_up_launch(root: Path, name: str, shell_cmd: str,
@@ -2307,10 +2350,19 @@ def _seat_worktree_cwd(root: Path | None, row: dict | None) -> str | None:
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     """Build and (unless --dry-run) run a `claude --remote-control` command.
     A SEATED live spawn is a `stand_up(mode="spawn")` (goal:g7.16.1.7.1.1.4):
-    a second stand-up of the same post is refused."""
+    a second stand-up of the same post is refused.
+
+    goal:g7.16.1.7.3.7 — dry-run seated spawn still wires on_spawn (dry-safe;
+    no live tmux) so the lifecycle path is proved without a launch lock.
+    """
     seat = getattr(args, "seat", None)
-    if seat is None or root is None or getattr(args, "dry_run", False):
+    if seat is None or root is None:
         return _cmd_spawn(args, root)
+    if getattr(args, "dry_run", False):
+        rc = _cmd_spawn(args, root)
+        if rc == 0:
+            _magic_pane_after_stand_up(root, seat, "spawn", dry=True)
+        return rc
     held, out = stand_up(root, seat, lambda: _cmd_spawn(args, root),
                          mode="spawn")
     return out if held else 1
@@ -5342,8 +5394,11 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
             )
         # goal:g7.16.1.7.1.1.4: a seat's first seating is a
         # `stand_up(mode="spawn")`; a dry run launches nothing, takes no lock.
+        # goal:g7.16.1.7.3.7: dry-run still wires on_spawn (dry-safe; no tmux).
         if args.dry_run:
             rc, _ = _launch_seat()
+            if rc == 0:
+                _magic_pane_after_stand_up(root, name, "spawn", dry=True)
         else:
             held, out = stand_up(root, name, _launch_seat, mode="spawn")
             rc = out[0] if held else 1
@@ -20429,8 +20484,11 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         )
     # goal:g7.16.1.7.1.1.4: the successor launch is a `stand_up(mode="rotate")`
     # -- a heal recovery or a spawn of this post in flight refuses it by name.
+    # goal:g7.16.1.7.3.7: dry-run still wires on_attach/on_spawn (dry-safe).
     if args.dry_run:
         rc, _ = _launch_successor()
+        if rc == 0:
+            _magic_pane_after_stand_up(root, seat, "rotate", dry=True)
     else:
         held, out = stand_up(root, seat, _launch_successor, mode="rotate")
         rc = out[0] if held else 1

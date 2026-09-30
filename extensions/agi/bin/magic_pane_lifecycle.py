@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""magic_pane_lifecycle.py — spawn/attach hooks → runner tick/consume (g7.16.1.7.3.6).
+"""magic_pane_lifecycle.py — spawn/attach hooks → runner tick/consume (g7.16.1.7.3.6+); stand-up/rotate wire (g7.16.1.7.3.7).
 
 Wire the pane runner into **real pane lifecycle** without requiring live tmux
 attach: a dry/fixture path proves spawn→consume and attach→tick. Pi extension
@@ -253,6 +253,118 @@ def handle_pi_event(
             "live_tmux": False,
         }
     raise MagicPaneLifecycleError(f"unhandled action {action!r}")
+
+
+# stand_up modes (rotate.STAND_UP_MODES) → lifecycle action
+STAND_UP_SPAWN_MODES = frozenset({"spawn"})
+STAND_UP_ATTACH_MODES = frozenset({"rotate", "recover", "restart"})
+STAND_UP_LIFECYCLE_MODES = STAND_UP_SPAWN_MODES | STAND_UP_ATTACH_MODES
+
+
+def dry_pane_id(post_id: str) -> str:
+    """Stable dry fixture pane pin — survives spawn→rotate without live tmux."""
+    import magic_pane_poll as poll
+
+    poll.validate_post_id(post_id)
+    return f"dry:{post_id}"
+
+
+def from_stand_up(
+    root: Path,
+    post_id: str,
+    mode: str,
+    *,
+    pane_id: str | None = None,
+    body: str | None = None,
+    routes: dict[str, Any] | None = None,
+    path: Path | None = None,
+    dry: bool = True,
+) -> dict[str, Any]:
+    """Wire stand-up/rotate paths → on_spawn / on_attach (dry-safe).
+
+    goal:g7.16.1.7.3.7 — called from ``rotate.stand_up`` after a successful
+    body() and from dry-run spawn/rotate paths that skip the launch lock.
+    Never requires live tmux; dry=False refuses (deferred).
+
+    Mapping:
+      spawn              → on_spawn (or on_attach if a pin already lingered)
+      rotate/recover/restart → on_attach (or on_spawn if no pin yet)
+    Default pane_id = ``dry:{post}`` so ONE id survives spawn→rotate in fixtures.
+    """
+    if mode not in STAND_UP_LIFECYCLE_MODES:
+        raise MagicPaneLifecycleError(
+            f"unknown stand_up mode {mode!r}; known: "
+            f"{sorted(STAND_UP_LIFECYCLE_MODES)}"
+        )
+    if not dry:
+        raise MagicPaneLifecycleError(
+            "live tmux attach deferred (goal:g7.16.1.7.3.7); use dry=True"
+        )
+    offered = pane_id.strip() if isinstance(pane_id, str) and pane_id.strip() else None
+    existing = get_pane(root, post_id)
+
+    if mode in STAND_UP_SPAWN_MODES:
+        if existing is not None:
+            # pin lingered across a re-seat — survive the SAME pane_id
+            out = on_attach(
+                root,
+                post_id,
+                pane_id=str(existing.get("pane_id") or ""),
+                routes=routes,
+                path=path,
+                dry=True,
+            )
+            out["stand_up_mode"] = mode
+            out["wired_from"] = "stand_up"
+            return out
+        pid = offered or dry_pane_id(post_id)
+        out = on_spawn(
+            root,
+            post_id,
+            pane_id=pid,
+            body=body,
+            routes=routes,
+            path=path,
+            dry=True,
+        )
+        out["stand_up_mode"] = mode
+        out["wired_from"] = "stand_up"
+        return out
+
+    # attach-family modes
+    if existing is None:
+        pid = offered or dry_pane_id(post_id)
+        out = on_spawn(
+            root,
+            post_id,
+            pane_id=pid,
+            body=body,
+            routes=routes,
+            path=path,
+            dry=True,
+        )
+        out["stand_up_mode"] = mode
+        out["wired_from"] = "stand_up"
+        return out
+    have = str(existing.get("pane_id") or "")
+    # survival: attach with registered id (ignore a mismatched offer)
+    if offered is not None and offered != have:
+        raise MagicPaneLifecycleError(
+            f"pane_id survival failed for {post_id!r}: registered {have!r}, "
+            f"stand_up({mode}) offered {offered!r}"
+        )
+    out = on_attach(
+        root,
+        post_id,
+        pane_id=have,
+        routes=routes,
+        path=path,
+        dry=True,
+    )
+    out["stand_up_mode"] = mode
+    out["wired_from"] = "stand_up"
+    return out
+
 
 
 def free_lane_probe() -> dict[str, str]:
