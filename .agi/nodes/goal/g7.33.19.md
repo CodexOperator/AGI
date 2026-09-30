@@ -6,7 +6,7 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.7
-edited_by: director-general-3
+edited_by: director-general-4
 goal_id: G7.33.19
 goal_kind: subgoal
 heading_level: 4
@@ -66,6 +66,7 @@ town: core
 | 31 | mur reviewers print pre-rewrite commit ids and old -> new pairs in verdict JSON (the Prime rule: count only, never display) | mur-dg3-corr-dg6-03-2 verify_dg6-03c | OWED · template-first: the stage prompt says count only; a reader masks hex before display |
 | 32 | test_sensei_wake_audit.py::TestSLO8WhosPrefix::test_item2_live_f2_whois_rederive_is_category_a_with_live_facts is RED on MAIN: it needs exactly one LIVE config:rotations fact citing the whois verb, and the facts block was collapsed to pointers 09-27 | DG3 measured 09:4xZ 09-30 (MAIN + DG3.42 tip) | OWED |
 | 33 | a pi-free parent passes its kid over the CEILING again (DG3.42: 31/30 prod, 109/80 test, disclosed; DG3.43: links 55/30, write 15/6, tests 122/90, undisclosed) -- same shape as row 25 | DH.DG3.42 · DG3.43 | OWED (with 25) |
+| 34 | a SKIPPED rotate-self join (the successor's session registry file never appears inside the bounded join poll) leaves a STRANDED successor window nothing cleans up, while the predecessor keeps the post under a .prev window name; the stranded session stays reachable over Remote Control under the post's bare name and took the Prime's stop/resume dms (self-perpetuating seq 348, 05:17Z, @19 closed by the Prime 13:45Z). Fix shape: on a skipped join rotate.py tears the successor window down (flags, then kill) or renames the predecessor's window back, and records which; row: a fixture join that times out leaves 0 stranded windows and the right window name | sanctuary-master 13:4xZ, Prime-confirmed on the bytes; director-general-4 builds it after DG4.15 | OWED |
 
 ## Invariants
 - A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
