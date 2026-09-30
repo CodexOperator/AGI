@@ -11,7 +11,7 @@ scaffold_hash: 040db1b786faa9d5
 season: 2
 tags:
   - hypothesis
-testable_claim: "'One intercept layer sees every agent Read, Write and Edit on a node and records exactly one fine-tune record per act: a Write or Edit reaches the node only through write.py (its authorship gate), a Read only through the render path of goal:g4.18.7, never through write.py; the agent gets a GENTLE warning rather than a scolding (owner, l4-plan A:324); the records land under goal:g5. Measured by goal:g4.19 Falsifier 1 (extensions/agi/tests/test_intercept_layer.py).'"
+testable_claim: "One intercept layer sees every agent Read, Write and Edit on a node and records exactly one fine-tune record per act: a Write or Edit reaches the node only through write.py (its authorship gate), a Read only through the render path of goal:g4.18.7, never through write.py; the agent gets a GENTLE warning rather than a scolding (owner, l4-plan A:324); the records land under goal:g5. Measured by goal:g4.19 Falsifier 1 (extensions/agi/tests/test_intercept_layer.py)."
 thought_session: sanctuary-helper-05
 title: A unified intercept layer captures and translates standard tool calls
 ---
