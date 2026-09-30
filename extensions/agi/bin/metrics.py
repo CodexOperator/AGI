@@ -133,7 +133,8 @@ def _load_graph(root: Path):
     from graph_core.loader import load_directory
     from graph_core.edge import Edge
 
-    g, loaded = load_directory(root / "nodes")
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.1: the loader's parents post-pass)
+    g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
     traversable = _load_traversable_fields(root)
 
     # Build node-id -> values for non-parents traversable fields from frontmatter.

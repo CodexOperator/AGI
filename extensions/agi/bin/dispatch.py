@@ -3849,13 +3849,14 @@ def _research_pipeline_targets(root: Path, n: int, iter_dir: Path) -> list[tuple
         cfg = json.loads(cfg_path.read_text())
         use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.1: the loader's parents post-pass)
     if use_sqlite:
         from graph_core.persistence.sqlite_backend import SQLiteBackend
         from graph_core.db_loader import DBLoader
         db_path = root / cfg["persistence"]["path"]
-        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
+        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory(resolve=links.address_resolver(root))
     else:
-        g, loaded = load_directory(root / "nodes")
+        g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
 
     for ln in loaded:
         for parent_id in ln.node.parents:
@@ -3993,13 +3994,14 @@ def _pick_targets(root: Path, n: int) -> list[tuple[str, str | None, str]]:
         cfg = json.loads(cfg_path.read_text())
         use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.1: the loader's parents post-pass)
     if use_sqlite:
         from graph_core.persistence.sqlite_backend import SQLiteBackend
         from graph_core.db_loader import DBLoader
         db_path = root / cfg["persistence"]["path"]
-        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
+        g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory(resolve=links.address_resolver(root))
     else:
-        g, loaded = load_directory(root / "nodes")
+        g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
 
     for ln in loaded:
         for parent_id in ln.node.parents:

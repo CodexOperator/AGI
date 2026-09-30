@@ -813,8 +813,7 @@ def _w2c_twin(tmp_path, mint: bool):
     return root
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W2c: RED until DG3 builds mint-id "
-                   "resolution into zoom._load_wired_graph / viewport._damage_of")
+# GREEN since goal:g4.18.6.3.1 (graph_core's parents post-pass, the resolver passed in by zoom)
 def test_w2c_a_mint_id_parent_renders_exactly_as_its_address_twin(tmp_path):
     import zoom
     seen = []
@@ -836,7 +835,6 @@ def test_w3c_the_render_ranges_a_payload_too(tmp_path):
 
 
 # --- bundle 4 W2c re-scope A (director-general-2) -- goal:g4.18.6.3.1
-_W2CA = "bundle 4 W2c re-scope A: RED until DG3 builds graph_core's one mint-id post-pass"
 
 
 def _w2ca_twin(tmp_path, mint):  # _w2c_twin + idea:i, reached from hypothesis:h1 by next_edges only
@@ -851,8 +849,8 @@ def _w2ca_twin(tmp_path, mint):  # _w2c_twin + idea:i, reached from hypothesis:h
     return root
 
 
-@pytest.mark.xfail(strict=True, reason=_W2CA)
-@pytest.mark.parametrize("edge", ["parents", "next_edges"])
+@pytest.mark.parametrize("edge", ["parents", pytest.param("next_edges", marks=pytest.mark.xfail(
+    strict=True, reason="family B, goal:g4.18.6.3.2: metrics reads next_edges itself (Node has no field)"))])
 def test_w2ca_family_a_wires_a_mint_twin_as_its_address_twin_with_no_reader_resolving(tmp_path, edge):
     import inspect, dashboard, metrics, zoom
     seen = []

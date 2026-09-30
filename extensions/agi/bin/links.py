@@ -524,6 +524,24 @@ def resolve_mint(root, mint: str, *, index=None) -> "tuple[str, str, str] | None
     return None
 
 
+def address_resolver(root):
+    """goal:g4.18.6.3.1 -- the `resolve` a graph_core loader takes: an id ->
+    the address of the ONE node whose mint_id it is, else None. The one index
+    is built on the first call only (a graph with no mint-id parent pays no
+    grep); a collision answers None, so the item stays dangling, never picked."""
+    index = []
+
+    def resolve(ref: str):
+        if not index:
+            index.append(mint_index(root))
+        try:
+            hit = resolve_mint(root, ref, index=index[0])
+        except ValueError:
+            return None
+        return hit[0] if hit else None
+    return resolve
+
+
 def main(argv: list[str] | None = None) -> int:
     """`write.py links [--broken]` — report the corpus's link state."""
     import argparse
