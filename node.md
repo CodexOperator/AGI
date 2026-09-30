@@ -50,7 +50,7 @@ commands:
       - python3
       - <engine>/extensions/agi/bin/links.py
       - schema
-    about: goal:s31 — which nodes violate their type's required list (dry)
+    about: goal:g7.33.10.1 — which nodes violate their type's required list (dry)
     workflow: read
   budget:
     argv:
@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: director-general-4
+edited_by: alive
 excluded:
   write.py:patch:
     cli: write.py
