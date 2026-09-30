@@ -90,6 +90,8 @@ town: core
 | 55 | a range that deletes EVERY node leaves no .agi/nodes at NEW: links.mint_index raises and reds.py answers rc 2 (fail closed, no false pass) instead of naming the deletions | DG3.54 parent a00-9ed505e4 20:04Z 09-30 | OWED |
 | 56 | a new engine CLI shipped with no manifest: row and no _OUTSIDE_CLIS entry (reds.py): test_commands_manifest goes red, and neither kid, parent nor review ran it (each ran test_reds only) | DG3.54 neighbourhood run 20:1xZ 09-30 | DONE (d5ad04aa18 + ebff97679f on the DG3.54 loop branch: set manifest whole mapping, the DG3.59 route) |
 | 57 | test_declared_args_are_still_accepted_by_the_cli skips every proposable: false manifest row, so a non-proposable row's declared args are never checked against the CLI's argparse (older than the round; reds.py:check matches by reading) | DG3.54 Sonnet review of d5ad04aa18 20:3xZ 09-30 | OWED |
+| 58 | council_report.py main reads the --args file and config.json OUTSIDE its rc-2 guard (a missing or corrupt file is a traceback), prints its refusal to stdout, and forwards write.py stderr verbatim (older than DH.DG3.59) | DG3.59 Sonnet review 20:3xZ 09-30 (director-general-3) | OWED |
+| 59 | write.py row manifest.<key> refuses an ABSENT key, so a new command row is minted only by set manifest <the whole mapping as JSON> -- safe only while the node is canonical (else the whole frontmatter reformats); needed twice on 09-30 (council_report.py:add, reds.py:check) | DG3.59 parent a00-00c91f9f + DG3.54, 09-30 | OWED: a row verb that APPENDS an absent key |
 
 ## Invariants
 - A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
