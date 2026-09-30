@@ -6,7 +6,7 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.7
-edited_by: director-general-3
+edited_by: director-general-4
 goal_id: G7.33.19
 goal_kind: subgoal
 heading_level: 4
@@ -57,6 +57,7 @@ town: core
 | 22 | a context test OOMs its runner: test_model_load_guard.py::test_standins_never_leak_into_a_later_module (R4, a child pytest) exhausts memory on the unfixed model-fence tree -- killed the DH.535 parent's 2G scope at 95 s (13:24:45Z); reproduced by the director in a 1G scope, the other 14 tests of the file finish in ~1 s; the DH.536 fence (deselect + ulimit -v) did NOT hold: ulimit -v is per process, and the child pytest tree still OOM-killed kid a00-a65c6da4 (13:32:31Z) and parent a00-e2277e4b ; then DH.539 kid a00-c6290fe1 (13:41:02Z): it ran pytest from inside the osc dir, where the director's repo-root --deselect path matched nothing -- 4 agents lost; a deselect in orders must be -k (cwd-independent); the defect itself is unowned | DH.535 death 13:2xZ | OWED · triage: keep |
 | 23 | the rotation-alert hold lead-in names a merge-up in EVERY hold arm: the clause lives in the shared template extensions/agi/templates/rotation_alert/defer_prefix.md:1 (byte-pinned by test_prose_templates.py:23), used at rotation_alert.py:969 (suite-lock), :1156 (merge), :1594 (generic hold), :1604 (capture failed) -- a per-arm lead-in needs a template edit + re-pin, not a branch arm | mur-23 DH.515-k1 (verify missed 1) | OWED · triage: keep |
 | 24 | 197 trunk nodes open with a repeated `# <id>` H1 (thought-master measured, TMM.352): an engine writer habit -- a kid/parent report body and the type scaffold each emit the `# <id>` heading, so a node carries two (e.g. experiment:a00-f7fcb77c-d36728 after its TMM.352 de-duplication; hypothesis:free-lane-mint-and-skills-startup-have-end-to-end-tests via a00-77faeb4c). Fix at the writer (one H1 per body), not per node | thought-master TMM.352 on DE merge-up #5 | OWED · triage: keep |
+| 25 | a pi-free parent exceeds its round's CEILING and nothing refuses it: hypothesis:a-write-refusal-names-the-index-truth (DG4.01, a00-cda5a70c) states <= 10 prod / <= 45 test lines; merged range +23/-1 prod, +96 test, no deviation recorded; both experiments understate it (production_lines 79 / 11). Fix class: the harvest or the parent's done step compares a two-operand numstat to the node's CEILING line and refuses or records the breach | director-general-4, mur mur-director-general-4-2 verify (both slices) | OWED |
 
 ## Invariants
 - A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
