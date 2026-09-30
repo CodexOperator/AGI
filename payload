@@ -720,6 +720,27 @@ def guard_cell(root: Path, name: str, default: str = "") -> str:
     return default
 
 
+#: goal:g7.16.1.5.5.1 -- the RAM disk's OWN budget line (guard-init layer 3
+#: writes it: MemoryMax = GUARD_RAM_BUDGET, no ManagedOOM). A sibling of
+#: agi.slice, never `agi-ram.slice` (a dash nests a slice inside agi.slice's
+#: oomd kill domain).
+RAM_SLICE = "ramdisk.slice"
+
+
+def ram_write_argv(argv: list[str]) -> list[str]:
+    """goal:g7.16.1.5.5.1 -- `argv` as a transient unit under RAM_SLICE, for a
+    bulk write into the RAM disk. A tmpfs page stays charged to the cgroup
+    that first wrote it and moves to that cgroup's PARENT when the writer
+    exits, so pages written here park on the RAM disk's own line, never on
+    the engine or work slice. Waits and pipes stdio: the exit code and the
+    output are argv's. No `systemd-run` on PATH -> `argv` unchanged."""
+    import shutil
+    if shutil.which("systemd-run") is None:
+        return list(argv)
+    return ["systemd-run", "--user", f"--slice={RAM_SLICE}", "--wait",
+            "--collect", "--quiet", "--pipe", "--", *argv]
+
+
 def streamer_stub(root: Path, config: dict | None = None) -> Path:
     """The streamer stub's directory, as an absolute path. One definition.
 
