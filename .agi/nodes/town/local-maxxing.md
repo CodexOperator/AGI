@@ -180,3 +180,13 @@ belam 08:3xZ 09-28 one-shot CLEAN kid-worktree prune (owner GO 06:2xZ; not live 
 PASS B1 (belam 17:1xZ 09-28, series B): trunk ed34f49532 -> season2/main 1bb6aa5a9 · BASE 72d8d565ce · 636 commits · 85 experiments · SAMPLED (credits 0.606 < 4 USD): 8 rounds = 5 hyp + 3 engine-delta / 32 paths, 6 hyp rounds unsampled · pi-free, 0 USD · 8 accept_with_residue, 0 demote, 0 RED · 62 upheld residues -> goal:g1.29 · PASS 12 p2 demote CLOSED (EG.1) · free provider empty 14:40-16:1xZ (3 paced re-retries) · verify 11/12 (bin-suite-fresh known) · links 0 · nodes 4848 = TIP · local-maxxing/main -> ed34f4953
 
 belam 17:4xZ 09-28 root fs cleanup (OWNER GO 17:4xZ "just delete for now we will redownload later on the correct drive"): / free 1400 -> 9498 MiB · docker image llama.cpp:full-cuda removed (10.3 GB, used by no container) · 85 unattached anonymous docker volumes pruned (3.4 GB) · kept: server-cuda image + the 3 stopped containers (docker start brain-orcabonsai27b still restores) · model weights were never on / (/data/ml/models) · uv cache 5.2 GB all in use (prune: 0) · /tmp scratch (5,584 entries > 24 h) = DE sweep
+
+belam 22:2xZ 09-28 path move off / (OWNER GO 21:0xZ): ~/logs -> <home>/logs · ~/.cache/{uv,pip} -> <home>/cache · TMPDIR=/data/tmp for new spawns · 41 closed ~/.claude/projects dirs -> <home>/claude-projects · prime-root -> /mnt/agi-flash/worktrees/prime-root · ~/.pi deferred (pi live) · / free 6.2 -> 11.3 GB · notice to DE + TM 22:3xZ
+
+belam 10:4xZ: PASS B2 merged 922ff3f48 -> season2/main 2fb5c2043 · 12 rounds: 11 accept_with_residue, 1 demote, 0 RED · 0 D / 0 secret / 24228 added lines · links 0 broken · 4954 nodes · residues -> goal:g1.30
+
+belam 12:4xZ: [owner] PASS B3 notice -- merge review of the trunk past 922ff3f48d (110 commits · 21 experiments · 25 engine paths · 0 D) runs 17:47Z 09-29, after the 16:00Z council stop: ~3 GB RAM · 2 cores · no GPU · ~1-2 h · pi-free chunks, 0 USD; sorry if it disrupts, no reply needed
+
+belam 16:4xZ (for the council, alive [red] 12:50Z item 2): COUNCIL LOOP goal:g7.16.1 -- bundle 1 goal:g7.16.1.1 CLEAN 80c1c245d: 50 commits · nodes +28/76/0 D · engine +421/-86 · SM 29 residues = 29 closed · council mur +8 residues (-> bundle 2 row R) · 0 red. Bundle 2 goal:g7.16.1.2 CLEAN 9c54fb3c4: 107 commits · nodes +35/51/0 D · engine +513/-70 · SM residues 32-56 closed · 290 tests · 0 red. Stopped 16:00Z (owner). Review: doc:council-loop-review-s2
+
+belam 17:3xZ: [owner] PASS B3 MOVED 17:47Z -> 23:33Z 09-29 (after the 23:00Z council stop): oomd killed the remote-control service 17:27Z at 85.7% memory pressure; the stream stack (~4.7 GB) is off until stream-master runs it from another box

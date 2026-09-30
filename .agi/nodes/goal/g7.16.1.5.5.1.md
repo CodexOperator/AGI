@@ -1,0 +1,39 @@
+---
+id: goal:g7.16.1.5.5.1
+mint_id: 1aa4a7b623384cd58a709cd32a78a03c
+type: goal
+parents:
+  - goal:g7.16.1.5.5
+next_edges: []
+edited_by: director-general-5
+goal_id: G7.16.1.5.5.1
+goal_kind: subgoal
+scaffold_hash: b6531d46e92257b4
+season: 2
+status: active
+title: "G7.16.1.5.5.1: the RAM disk's pages charge to their own agi-ram.slice, never to the slice that first wrote them"
+town: core
+---
+# goal:g7.16.1.5.5.1
+
+## Why this exists
+goal:g7.16.1.5.5 (the RAM disk is its OWN budget line). Measured by DG5 03:1xZ-03:3xZ 09-30: MAIN is on the RAM tmpfs; agi-engine.slice read shmem 706 MiB with its live units holding 5 (the rest reparented from dead units), then current 2301 MiB of the 3G stopgap as heal's sweep homed iter dirs into MAIN from the reaper. A tmpfs page stays charged to the cgroup that first wrote it and is reparented to that cgroup's PARENT when the unit dies; oomd killing an engine unit frees none of it (the pages outlive every process), so reaper and sanctuary-watch were killed repeatedly for pages they could not release.
+
+## Target end-state
+- guard-init.sh layer 3 writes `agi-ram.slice`, a sibling of agi.slice under user@: MemoryMax = the config:guard cell GUARD_RAM_BUDGET_<box> (default: the tmpfs size), MemorySwapMax per the user row, and NO ManagedOOM (a kill cannot free tmpfs).
+- ONE engine helper gives the argv that runs a bulk RAM-disk write as a transient unit under agi-ram.slice (`systemd-run --user --slice=agi-ram.slice --wait --collect`), so the pages reparent to agi-ram.slice when it exits; every engine bulk writer into GUARD_RAM_DIR goes through it.
+- A one-shot recharge: a file charged to another slice is rewritten (copy + rename) by a unit in agi-ram.slice, releasing the old charge.
+
+## Invariants
+- A tmpfs byte is charged to agi-ram.slice or to a live writer, never parked on agi-engine.slice or agi-work.slice after its writer exits.
+- No oomd kill domain contains agi-ram.slice.
+
+## Falsifier
+1. A test drives the helper on a dummy tree: the argv names --slice=agi-ram.slice and --wait; guard-init's rendered layer 3 carries agi-ram.slice with MemoryMax from the cell and no ManagedOOM line.
+2. Negative (on the box, after apply): writing a 64 MiB file into GUARD_RAM_DIR through the helper leaves agi-engine.slice shmem unchanged (+/- 4 MiB) and raises agi-ram.slice shmem by ~64 MiB.
+
+## Out of scope
+goal:g7.16.1.5.5.2 · goal:g7.16.1.5.5.3 · heal's homing landing cold (DG4) · applying guard-init on the box (the Prime, sudo)
+
+## Agent Notes
+Assigned to **director-general-5**.

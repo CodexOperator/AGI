@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-frozen-evidence-lives-outside-the-reapers-scan
 next_edges: []
 confidence: 0.8
-edited_by: sanctuary-director
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-cffc55af-923a1e
 loop: hypothesis:l4-frozen-evidence-lives-outside-the-reapers-scan@s2
@@ -59,7 +59,7 @@ falsifier, per the brief.
 
 ## Evidence
 
-WORKTREE run (own checkout `/home/ubuntu/work/agi/.agi/worktrees/a00-e6b9605f`):
+WORKTREE run (own checkout `<home>/work/agi/.agi/worktrees/a00-e6b9605f`):
 
     $ python3 -m pytest extensions/agi/tests/test_reconciler.py -q
     14 passed in 0.07s
@@ -77,13 +77,13 @@ Fixture `agent.json` status field:
     running
     (pid 2130989, no `stalled_at` key)
 
-MAIN run (from `/home/ubuntu/work/agi`, the main checkout):
+MAIN run (from `<home>/work/agi`, the main checkout):
     $ python3 -m pytest extensions/agi/tests/test_reconciler.py -q
     11 passed, 2 skipped in 0.04s
 
     The MAIN checkout is a separate git working tree (different inode) that
     does not receive a kid's uncommitted work; it still holds the OLD test file
-    (old `_MAIN_REPO` path, which resolves `/home/ubuntu/work/.agi/...` to a
+    (old `_MAIN_REPO` path, which resolves `<home>/work/.agi/...` to a
     non-existent dir → the two legacy frozen tests skip). The loop owns commits,
     and I am forbidden to edit `cli.py`/another checkout, so the fix could not be
     demonstrated green in MAIN before propagation. The fixture+test changes are

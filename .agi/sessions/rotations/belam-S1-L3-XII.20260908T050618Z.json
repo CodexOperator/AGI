@@ -48,7 +48,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/belam-S1-L3-XII.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/belam-S1-L3-XII.log",
     "d_reply_decision": "no_reply"
   }
 }

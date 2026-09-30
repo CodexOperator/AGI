@@ -1715,3 +1715,75 @@ def test_a_project_with_no_schemas_loaded_still_writes(tmp_path):
     res = nw.write_node(tmp_path, "notown", "unconfigured", ["idea:i1"])
     assert res.written, f"{res.status}: {res.reason}"
     assert (tmp_path / "nodes" / "notown" / "unconfigured.md").exists()
+
+
+# --- bundle 4 W-G (director-general-2)
+# GREEN since DG3 W-G.1 (goal:g7.16.1.4.1)
+def test_wg_goal_type_reason_no_longer_cites_goals_md_regeneration():
+    assert "from GOALS.md" not in (BIN / "node_writer.py").read_text(encoding="utf-8")
+
+
+# --- bundle 4 W1a (director-general-2) ---------------------------------------
+# goal:g4.18.5.1 seam: nw.body_rows(body) -> [(start, end)], 1-based inclusive
+# spans in `read body N:M` coordinates, document order.
+W1A_BODY = ("\n# hypothesis:h2\n\n## Table\n\n| k | v |\n|---|---|\n| a | 1 |\n"
+            "| b | 2 |\n\n## List\n\n- one\n- two\n\n<!-- THOUGHT:BEGIN -->\n"
+            "why\nmore why\n<!-- THOUGHT:END -->\n")
+
+
+def test_b4_w1a_one_row_per_table_row_list_item_and_block():
+    lines = W1A_BODY.split("\n")
+    spans = [lines[a - 1:b] for a, b in nw.body_rows(W1A_BODY)]
+    for one in (["| a | 1 |"], ["| b | 2 |"], ["- one"], ["- two"], [
+            "<!-- THOUGHT:BEGIN -->", "why", "more why", "<!-- THOUGHT:END -->"]):
+        assert spans.count(one) == 1, (one, spans)
+
+
+# SM residue 100 (the 95 row): a THOUGHT whose prose quotes its own closer
+# stays ONE row -- only the END marker LINE closes the block.
+def test_b4_w1a_a_thought_quoting_its_closer_stays_one_row():
+    body = ("\n# x\n\n<!-- THOUGHT:BEGIN -->\nthe old note wrote <!-- THOUGHT:END --> inline\n"
+            "and went on\n<!-- THOUGHT:END -->\n\nafter\n")
+    lines = body.split("\n")
+    rows = [lines[a - 1:b] for a, b in nw.body_rows(body)]
+    assert ["<!-- THOUGHT:BEGIN -->", "the old note wrote <!-- THOUGHT:END --> inline",
+            "and went on", "<!-- THOUGHT:END -->"] in rows, rows
+
+
+def test_b4_w1a_the_row_index_has_one_definition():
+    import ast
+    defs = [p.name for p in sorted(BIN.glob("*.py"))
+            for n in ast.walk(ast.parse(p.read_text(encoding="utf-8")))
+            if isinstance(n, ast.FunctionDef)
+            and n.name in ("body_rows", "_resolve_body_row_range")]
+    assert defs == ["node_writer.py"], defs
+
+
+
+# --- bundle 4 W2d-b (director-general-2) -- goal:g4.18.6.4.2 ------------------
+_W2DB = "bundle 4 W2d-b: RED until DG3 builds the writer's address -> mint_id resolve"
+_W2DB_MINT = "0123456789abcdef0123456789abcdef"
+
+
+@pytest.mark.xfail(strict=True, reason=_W2DB + " (node_writer.py:821)")
+def test_b4_w2db_write_node_stores_the_parents_mint_id(project):
+    import yaml
+    (project / "nodes" / "idea" / "i1.md").write_text(f"---\nid: idea:i1\nmint_id: {_W2DB_MINT}\ntype: idea\n---\n")
+    res = nw.write_node(project, "hypothesis", "w2db", ["idea:i1"])
+    assert yaml.safe_load(res.path.read_text().split("---", 2)[1])["parents"] == [_W2DB_MINT]
+
+
+@pytest.mark.xfail(strict=True, reason=_W2DB + " (seatsig/veto.py:402)")
+def test_b4_w2db_veto_default_parent_is_the_mint_id_of_goal_g15(tmp_path):
+    from seatsig import veto
+    from graph_core.persistence import frontmatter
+    (tmp_path / "nodes" / "goal").mkdir(parents=True)
+    (tmp_path / "nodes" / "goal" / "g15.md").write_text(f"---\nid: goal:g15\nmint_id: {_W2DB_MINT}\ntype: goal\n---\n")
+    assert frontmatter.load_node_file(veto.save(tmp_path, {})).frontmatter["parents"] == [_W2DB_MINT]
+
+
+@pytest.mark.xfail(strict=True, reason=_W2DB + " (decompose-engine.py:385, snapshot-build-site.py:329-389)")
+def test_b4_w2db_no_writer_assigns_a_bare_address_parent():
+    de, sbs = ((BIN / f).read_text(encoding="utf-8") for f in ("decompose-engine.py", "snapshot-build-site.py"))
+    assert 'fm["parents"] = [goal_id]' not in de
+    assert '"parents": [f"idea:domain-' not in sbs and '"parents": [parent_hyp] if' not in sbs

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-worktree-looks-like-a-project-to-the-crontab
 next_edges: []
 confidence: 0.9
-edited_by: a00-ca0a2c66
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f00c554c-eb8135
 loop: hypothesis:l4-a-worktree-looks-like-a-project-to-the-crontab@s2
@@ -41,22 +41,22 @@ Proof specs, all in `extensions/agi/tests/test_crons.py` (new tests only; none e
 
 `extensions/agi/tests/test_crons.py`: 49 passed. Full suite (kid gate satisfied via `-k .`): **2527 passed, 1 skipped** in 135.78s.
 
-**REAL-TREE EVIDENCE — `crons.py show` FROM THIS SEAT WORKTREE** (`/home/ubuntu/work/agi/.agi/worktrees/a00-ca0a2c66`):
+**REAL-TREE EVIDENCE — `crons.py show` FROM THIS SEAT WORKTREE** (`<home>/work/agi/.agi/worktrees/a00-ca0a2c66`):
 
 BEFORE (renders a worktree-keyed block the apply would never install; grid step `&&`-chained):
 ```
-project: /home/ubuntu/work/agi/.agi/worktrees/a00-ca0a2c66
+project: <home>/work/agi/.agi/worktrees/a00-ca0a2c66
 crons_live: True
 installed: (none)
 desired:
-  */5 * * * * cd /home/ubuntu/work/agi/.agi/worktrees/a00-ca0a2c66/.agi && python3 .../worktrees/a00-ca0a2c66/extensions/agi/bin/grid.py commit --all --prefix 'cron: ' >> /home/ubuntu/logs/agi-crons-a00-ca0a2c66-6daae4ce.log 2>&1 && git -C ... push -q origin 'refs/grid/*:refs/grid/*' >> ... 2>&1 && python3 .../crons.py apply >> ... 2>&1
+  */5 * * * * cd <home>/work/agi/.agi/worktrees/a00-ca0a2c66/.agi && python3 .../worktrees/a00-ca0a2c66/extensions/agi/bin/grid.py commit --all --prefix 'cron: ' >> <home>/logs/agi-crons-a00-ca0a2c66-6daae4ce.log 2>&1 && git -C ... push -q origin 'refs/grid/*:refs/grid/*' >> ... 2>&1 && python3 .../crons.py apply >> ... 2>&1
   7 * * * * cd ... && git -C ... push -q origin loop/hypothesis-...-s2 >> ...
 status: DRIFT
 ```
 
 AFTER (refusal names BOTH roots, exit 1):
 ```
-ERR: crons.py: resolved repo_root /home/ubuntu/work/agi/.agi/worktrees/a00-ca0a2c66 is a LINKED GIT WORKTREE, not the common root /home/ubuntu/work/agi. The user's crontab is ONE PER USER; an apply/show from a worktree would key the managed block on a hash no other checkout uses and append a second block that could never run. Run from the main checkout instead: cd /home/ubuntu/work/agi && extensions/agi/bin/crons.py apply
+ERR: crons.py: resolved repo_root <home>/work/agi/.agi/worktrees/a00-ca0a2c66 is a LINKED GIT WORKTREE, not the common root <home>/work/agi. The user's crontab is ONE PER USER; an apply/show from a worktree would key the managed block on a hash no other checkout uses and append a second block that could never run. Run from the main checkout instead: cd <home>/work/agi && extensions/agi/bin/crons.py apply
 EXIT=1
 ```
 

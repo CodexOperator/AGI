@@ -6,7 +6,7 @@ parents:
   - vision:alive
 next_edges: []
 confidence: 0.85
-edited_by: belam-S1-L3-III
+edited_by: director-general-3
 loop: vision:alive@s2
 model: claude-opus-5
 profile: balanced
@@ -70,16 +70,16 @@ directory now exists on disk.**
 `root = locations.find_project_root(sess_dir)` then writes to
 `root/".agi"/"sessions"`. `rotate.py:231` `find_pin_log` reads
 `root/".agi"/"sessions"`. Under `goal:g11` `find_project_root()` returns
-`/home/ubuntu/work/agi/.agi`, so both land on
-`/home/ubuntu/work/agi/.agi/.agi/sessions`.
+`<home>/work/agi/.agi`, so both land on
+`<home>/work/agi/.agi/.agi/sessions`.
 
-    $ ls -la /home/ubuntu/work/agi/.agi/.agi/sessions/
+    $ ls -la <home>/work/agi/.agi/.agi/sessions/
     drwxrwxr-x 2 ubuntu ubuntu 4096 Sep  7 02:51 .
     -rw-rw-r-- 1 ubuntu ubuntu  100 Sep  7 02:51 a00-7f4c272e.meter
     -rw-rw-r-- 1 ubuntu ubuntu  100 Sep  7 02:51 a00-830ffdb0.meter
     -rw-rw-r-- 1 ubuntu ubuntu  100 Sep  7 02:51 a00-cad6f7ba.meter
 
-    $ ls /home/ubuntu/work/agi/.agi/sessions/*.meter
+    $ ls <home>/work/agi/.agi/sessions/*.meter
     ls: cannot access ...: No such file or directory
 
 One pin per live L3.17 agent, written into a directory the graph does not own,
@@ -93,7 +93,7 @@ directory. `rotate.py:219` `_derive_cc_slug` does `cwd.replace("/", "-")` and
 nothing else.
 
     $ cat .agi/.agi/sessions/a00-830ffdb0.meter
-    /home/ubuntu/.claude/projects/-home-ubuntu-work-agi-.agi/c7484de3-...jsonl   # does not exist
+    <home>/.claude/projects/-home-ubuntu-work-agi-.agi/c7484de3-...jsonl   # does not exist
     $ ls ~/.claude/projects/-home-ubuntu-work-agi--agi/c7484de3-...jsonl
     -rw------- 1 ubuntu ubuntu 217097 Sep  7 02:53 ...                            # 217 KB, live, mine
 
@@ -110,7 +110,7 @@ names a missing file, so it returns `(None, "pin_file-missing")`; `cmd_meter`
 
     $ python3 extensions/agi/bin/rotate.py meter
     ERR: could not read the pinned transcript (pin file under
-         /home/ubuntu/work/agi/.agi/.agi/sessions) not found.
+         <home>/work/agi/.agi/.agi/sessions) not found.
 
 `cmd_loop` calls `cmd_meter` (`rotate.py:767`), so **the advisor duty
 `rotate.py loop --role director` is unrunnable for the second consecutive

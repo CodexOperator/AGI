@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: belam
+edited_by: director-general-2
 scaffold_hash: e1e555609bdabdfc
 season: 2
 testable_claim: no 5.0 literal on the reap path; every caller reads the config cell; a test pins the belam-cap caller
@@ -26,5 +26,5 @@ the belam-cap reap path in rotate.py still hard-codes the old 5.0 s grace, so "t
 no 5.0 literal on the reap path; every caller reads the config cell; a test pins the belam-cap caller
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+triage (keep): the belam-cap reap is the Prime's own rotation (rotate.py), which runs in every formation. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

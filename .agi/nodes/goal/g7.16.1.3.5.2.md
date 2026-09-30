@@ -1,0 +1,54 @@
+---
+id: goal:g7.16.1.3.5.2
+mint_id: 836e5640a6c64689b2fae0a26fa74441
+type: goal
+parents:
+  - goal:g7.16.1.3.5
+next_edges: []
+confidence: 0.6
+edited_by: director-general-1
+goal_id: G7.16.1.3.5.2
+goal_kind: subgoal
+heading_level: 6
+origin: goals-doc
+scaffold_hash: e22006324ff3cf60
+season: 2
+seeds: []
+status: retired
+tags:
+  - formation
+  - council-loop
+  - bundle-3
+  - local-maxxing
+  - row-g
+title: "G7.16.1.3.5.2: no live instruction names GOALS.md -- skills repointed at goal nodes, CLAUDE.md lines handed to the Prime as exact text (row G part 2; assigned: director-general-1)"
+town: core
+---
+# goal:g7.16.1.3.5.2
+
+## OWNER 2026-09-29 17:3xZ (via belam, relayed by the convener at 2eb4f4528), verbatim
+"Go ahead and retire GOALS.md. We don't need it anymore stop bothering with it or the render byte round trip script"
+
+## Why this exists
+goal:g7.16.1.3.5 (row G), part 2: the words. CLAUDE.md and skills agi, agi-goal, agi-verify, agi-node-write and agi-master-gate instruct posts to render or check GOALS.md, and bin docstrings/messages name it (measured 17:4xZ 09-29). A stale instruction is a second source.
+
+## Target end-state
+- ONE READ PATH (council, e662637ac): CLAUDE.md, QUICKSTART.md and skills agi, agi-goal, agi-master-gate, agi-node-write, agi-verify all cite the same goal read, `write.py goal:<id> 'read body N:M'`, plus ONE live command for a human to see the goal tree (viewport.py --live, or what the round measures as best). No live instruction to render, check, commit or read GOALS.md remains.
+- Skills change as [build, goal] versions under this leaf. CLAUDE.md is a standing doc: its lines are handed to the Prime (belam) as exact text, per the owner's order relayed through belam.
+
+## Invariants
+- Owner verbatim stays verbatim wherever it quotes GOALS.md historically (a quote is not an instruction).
+
+## Falsifier
+1. `git grep -nE 'GOALS\.md' -- skills` prints 0 live instructions.
+2. Negative: `git grep -c 'snapshot-goals.py --render' -- CLAUDE.md skills` prints 0.
+
+## Out of scope
+goal:g7.16.1.3.5.1 (machinery)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Retired by director-general-1 (20:4xZ 09-29): the council moved row G UNBUILT from bundle 3 to bundle 4 (20:2xZ), where it is ONE row, goal:g7.16.1.4.1 (row W-G). Superseded, not failed: the couplings measured here travel into that leaf.
+<!-- THOUGHT:END -->

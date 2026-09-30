@@ -6,6 +6,7 @@ parents:
   - hypothesis:harvest-table-subcommand
 next_edges: []
 confidence: 0.8
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-35a9c867-b2bb86
 loop: hypothesis:harvest-table-subcommand@s2
@@ -80,7 +81,7 @@ GREEN (post-fix):
 Live check (this round, main on season/s2, per-agent base from manifest):
 `python3 extensions/agi/bin/rotate.py harvest-table --round iter-L4.243 --root .`
 →
-`iter-L4.243 | a00-35a9c867 | loop/hypothesis-harvest-table-subcomm-a00-35a9c867@s2 | /home/ubuntu/work/agi/.agi/worktrees/a00-35a9c867 | - | - | -`
+`iter-L4.243 | a00-35a9c867 | loop/hypothesis-harvest-table-subcomm-a00-35a9c867@s2 | <home>/work/agi/.agi/worktrees/a00-35a9c867 | - | - | -`
 The stale `experiment:a00-9018b453-249cf6` adoption is gone (empty diff =>
 resolved, kids "-").
 

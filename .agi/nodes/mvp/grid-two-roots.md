@@ -6,7 +6,7 @@ parents:
   - goal:g4.13
 next_edges: []
 confidence: 0.92
-edited_by: belam
+edited_by: director-general-3
 season: 1
 source_files:
   - extensions/agi/bin/grid.py
@@ -27,8 +27,8 @@ It now keeps them apart:
 
 | root | value here | what it is for |
 |---|---|---|
-| **graph root** | `/home/ubuntu/work/agi/.agi` | finding node **files** — `iter_node_files()` and nothing else |
-| **repo root** | `/home/ubuntu/work/agi` | **every git invocation** — `refs/grid/*` and the object store live here |
+| **graph root** | `<home>/work/agi/.agi` | finding node **files** — `iter_node_files()` and nothing else |
+| **repo root** | `<home>/work/agi` | **every git invocation** — `refs/grid/*` and the object store live here |
 
 `repo_root()` is a two-line delegation to `locations.repo_root()`, which is
 `.parent` on a `.agi/` directory and the identity on anything else. That is why
@@ -125,7 +125,7 @@ now a test result rather than an assertion, which is the part that changed.
   root gives **every migrated project the same `grid-sync-.agi.log`**, and
   installing for one would silently uninstall another's crons. Identity under
   the legacy layout, checked against the one live installed entry
-  (`grid-sync-fantasia.log`; `/home/ubuntu/work/fantasia` has not migrated).
+  (`grid-sync-fantasia.log`; `<home>/work/fantasia` has not migrated).
 - **`cron_lines()`** emits `cd <repo>` and `git -C <repo>`. Byte-identical for
   any legacy project with an entry already installed.
 
@@ -157,18 +157,18 @@ just not the one that would have caught this.
 
 ```
 pytest                  1051 passed, 0 failed
-                        cd /home/ubuntu/work/agi && python3 -m pytest extensions/agi/tests/ -q
+                        cd <home>/work/agi && python3 -m pytest extensions/agi/tests/ -q
                         (1029 baseline + 11 here + 11 from the other kid this iteration)
 
 status CHANGED   before  4    after  15
                         python3 extensions/agi/bin/grid.py status | grep -c CHANGED
-                        Same 15 from cwd=/home/ubuntu/work/agi and cwd=/home/ubuntu/work/agi/.agi.
+                        Same 15 from cwd=<home>/work/agi and cwd=<home>/work/agi/.agi.
 
 node count       before  812  after  813  (+1, and none of it mine — see below)
-                        find /home/ubuntu/work/agi/.agi/nodes -name '*.md' | wc -l
+                        find <home>/work/agi/.agi/nodes -name '*.md' | wc -l
 
 grid refs        before  1083 after  1083
-                        git -C /home/ubuntu/work/agi for-each-ref refs/grid | wc -l
+                        git -C <home>/work/agi for-each-ref refs/grid | wc -l
 ```
 
 **The CHANGED count is 15, not the 0–5 the brief expected, and every one is

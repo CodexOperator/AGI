@@ -195,12 +195,12 @@ def test_driver_never_raises_on_runner_exception():
     seams, _ = _fake_seams({})
     def boom():
         raise RuntimeError("fake blowup")
-    seams["render_check"] = boom
+    seams["suite"] = boom
     entries, err = rotate._closeout_run_steps(
         Path("/tmp/co-root"), "a", "parent", seams=seams)
     # the raising step is refused by name; the log stops there
-    assert err is not None and "render_check" in err
-    assert entries[-1]["step"] == "render_check"
+    assert err is not None and "suite" in err
+    assert entries[-1]["step"] == "suite"
 
 
 # ── CLI WIRING (SL7.84): `rotate-self --closeout` actually CALLS phase 3 ──
@@ -374,7 +374,7 @@ def test_step_list_is_chosen_by_seat_kind_and_template_still_wins():
         "parent", tmpl, worktree="/tmp/wt") == ["merge_up", "numbers"]
     # the three coded spellings are exactly the claim's
     assert rotate.MAIN_POST_CLOSEOUT_STEPS == ["pathspec_commit", "push"]
-    assert rotate.PRIME_CLOSEOUT_STEPS == ["g17_1_note", "render", "push"]
+    assert rotate.PRIME_CLOSEOUT_STEPS == ["g17_1_note", "push"]  # render retired (W-G)
 
 
 def test_real_seam_table_covers_every_step_of_all_three_lists():
@@ -388,7 +388,7 @@ def test_real_seam_table_covers_every_step_of_all_three_lists():
         for step in lst:
             assert step in seams, f"{step!r} missing from the real seam table"
     # the four NEW thin wrappers are present and callable
-    for step in ("pathspec_commit", "g17_1_note", "render", "push"):
+    for step in ("pathspec_commit", "g17_1_note", "push"):
         assert callable(seams[step])
 
 
@@ -509,7 +509,7 @@ def test_main_post_cli_drives_only_pathspec_commit_and_push(
         ["pathspec_commit", "push"]
     names = {e["step"] for e in rec["closeout"]}
     # no WORKTREE-ONLY step (post_verify / merge_up_ask / wait_grant /
-    # merge_up / render_check / suite / grid_commit / verify_stamp / numbers)
+    # merge_up / suite / grid_commit / verify_stamp / numbers)
     # -- `push` is shared with the worktree list by design, so exclude it
     _wt_only = set(rotate.WORKTREE_POST_CLOSEOUT_STEPS) - {"push"}
     assert not (names & _wt_only), names
@@ -517,10 +517,10 @@ def test_main_post_cli_drives_only_pathspec_commit_and_push(
     assert all(e["result"] == "ok" for e in rec["closeout"]), rec["closeout"]
 
 
-def test_prime_cli_drives_only_g17_1_note_render_push(
+def test_prime_cli_drives_only_g17_1_note_push(
         _co_rs_kind, monkeypatch):
     """(e) A prime_director fixture (no worktree cell) driven through the CLI
-    path records a closeout list of EXACTLY [g17_1_note, render, push] in
+    path records a closeout list of EXACTLY [g17_1_note, push] in
     order -- the Prime is never asked for a grant and never merges."""
     root, win = _co_rs_kind
     g = root / "nodes" / ".geometry"
@@ -533,7 +533,7 @@ def test_prime_cli_drives_only_g17_1_note_render_push(
     _drive_rotate_self_closeout(root, win, monkeypatch, "{}")
     rec = _driven_record(root)
     assert [e["step"] for e in rec["closeout"]] == \
-        ["g17_1_note", "render", "push"]
+        ["g17_1_note", "push"]
     names = {e["step"] for e in rec["closeout"]}
     _wt_only = set(rotate.WORKTREE_POST_CLOSEOUT_STEPS) - {"push"}
     assert not (names & _wt_only), names
@@ -644,7 +644,7 @@ def test_g17_1_note_runner_drives_write_py_subprocess_seam(
 # merge_up --no-ff's the seat branch into MAIN's checked-out season2/main (a
 # merge commit whose second parent is the seat tip) and refuses by name when
 # MAIN is elsewhere/dirty; the ask names seat/tip/target/record and is sent
-# AS the seat; suite/grid/stamp/render run with cwd=MAIN; push carries origin
+# AS the seat; suite/grid/stamp run with cwd=MAIN; push carries origin
 # season2/main THEN refs/grid. A pre-fix runner that ever runs a worktree
 # step in the SEAT tree, reads the Prime's own inbox, or omits refs/grid is
 # the falsifier -- each covered below.
@@ -832,8 +832,8 @@ def test_merge_up_ask_names_seat_tip_target_record_and_is_sent_as_seat(
     assert "record adv.20260912T090000Z.json" in text  # the record file name
 
 
-def test_suite_grid_stamp_render_run_in_main_cwd(tmp_path, monkeypatch):
-    """(4) suite / grid_commit / verify_stamp / render_check spawn their
+def test_suite_grid_stamp_run_in_main_cwd(tmp_path, monkeypatch):
+    """(4) suite / grid_commit / verify_stamp spawn their
     subprocess with cwd=MAIN (the tree the merge landed in), never the seat
     tree; and the suite refuses BY NAME while another live runner holds the
     verify-suite lock."""
@@ -863,17 +863,18 @@ def test_suite_grid_stamp_render_run_in_main_cwd(tmp_path, monkeypatch):
     assert "suit" in det and "lock" in det
     lock.unlink(missing_ok=True)
 
-    for step in ("suite", "grid_commit", "verify_stamp", "render_check"):
+    for step in ("suite", "grid_commit", "verify_stamp"):
         ok, res, det = seams[step]()
         assert ok is True, f"{step} failed: {det}"
     assert calls, "no post-merge subprocess was spawned"
     for _argv, cwd in calls:
         assert cwd == str(main), f"runner cwd {cwd!r} != MAIN {main!r}"
         assert "rotate.py" not in " ".join(_argv)  # sanity: a bin script
-    # the four expected bins were each invoked once, all in MAIN
+    # the expected bins were each invoked, all in MAIN; the goals render left with W-G
     joined = " ".join(str(x) for _argv, _cwd in calls for x in _argv)
-    for script in ("snapshot-goals.py", "verification.py", "grid.py"):
+    for script in ("verification.py", "grid.py"):
         assert script in joined
+    assert "snapshot-goals.py" not in joined
 
 
 def test_push_real_runner_pushes_season2_main_then_refgrids_from_main(
@@ -1153,7 +1154,7 @@ def test_write_py_two_positional_note_form_is_the_rc2_regression(tmp_path):
     old = sp.run(["python3", str(wp), "goal:g17.1", "note", "hi there",
                   "--root", str(graph)], capture_output=True, text=True)
     assert old.returncode == 2
-    assert "wrong arguments" in (old.stderr or "")
+    assert "one script per call" in (old.stderr or "")   # the refusal's words since 683c6f656
     # the one-arg form succeeds and the note lands
     new = sp.run(["python3", str(wp), "goal:g17.1", "note hi there",
                   "--root", str(graph)], capture_output=True, text=True)
@@ -1162,19 +1163,8 @@ def test_write_py_two_positional_note_form_is_the_rc2_regression(tmp_path):
     assert "hi there" in body
 
 
-def test_render_real_runner_renders_and_checks_from_root(tmp_path):
-    """(SL7.103) The render REAL runner runs snapshot-goals.py --render with
-    cwd=root and the project made explicit (--project), then --render --check,
-    and returns the CHECK's result -- on a fixture root (never a worktree/sub-
-    process cwd) so the rendered tree is the one the runner names."""
-    repo, graph = _closeout_goal_fixture(tmp_path)
-    seams = rotate._make_closeout_seams(graph, {})
-    ok, result, detail = seams["render"]()
-    assert ok is True and result == "ok", detail
-    goals = repo / "GOALS.md"
-    assert goals.exists(), "GOALS.md was not rendered at the project root"
-    assert "G17.1" in goals.read_text(encoding="utf-8")
-    # render --check on the SAME tree round-trips byte-identical (ok implies it)
+# test_render_real_runner_renders_and_checks_from_root retired with the
+# closeout render step (goal:g7.16.1.4.1 W-G; its body: git history).
 
 
 def test_pathspec_commit_refuses_naming_a_failed_record_commit(tmp_path):
@@ -1465,3 +1455,11 @@ def test_unfrozen_prime_pushes_a_trunk_resolved_stops_push(
     calls = _faked_stops_push_git(monkeypatch, "season2/main")
     assert rotate._stops_push(tmp_path, "stops") is None
     assert _pushed(calls), "an unfrozen prime's trunk push must proceed"
+
+
+# --- bundle 4 W-G (director-general-2)
+# GREEN since DG3 W-G.1 (goal:g7.16.1.4.1)
+def test_wg_closeout_has_no_render_step_or_check_gate():
+    assert "render" not in rotate.PRIME_CLOSEOUT_STEPS
+    assert "render_check" not in rotate.WORKTREE_POST_CLOSEOUT_STEPS
+    assert not {"render", "render_check"} & set(rotate._make_closeout_seams(Path("/tmp/co-root"), {}))

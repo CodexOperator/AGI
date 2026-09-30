@@ -5,7 +5,7 @@ type: mvp
 parents:
   - verdict:grok-bot-row-landable-list-evidence
 next_edges: []
-edited_by: a00-d1c9f37f
+edited_by: director-general-3
 loop: goal:g7.25.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -26,7 +26,7 @@ a sibling of `copilot-cli`, read by `adapters.resolve(cfg, "grok-bot")`:
 ```json
 "grok-bot": {
   "adapter": "grok_bot",
-  "bin": "/home/ubuntu/.npm-global/bin/grok-bot",
+  "bin": "<home>/.npm-global/bin/grok-bot",
   "models": { "kid": "grok-4-fast", "parent": "grok-4" },
   "allowed_extra": ["grok-4", "grok-4-fast"]
 }

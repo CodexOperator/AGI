@@ -5,9 +5,11 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-2
 scaffold_hash: 4f0c04007360227f
 season: 2
+tags:
+  - parked:g7.16.2
 testable_claim: an absent agent_id refuses by name; --owns is bound to dispatch-time ids; a test fails on 6c403aeb4b
 title: "A round own-path set never fails open and has no unguarded kid route (assigned: director-engine)"
 town: core
@@ -183,6 +185,39 @@ FILE SCOPE extensions/agi/tests/test_round_own_path_set_fails_closed.py · .agi/
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 039140151 · <= 40 test lines net over 039140151 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 039140151 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.125 -- closes mur-eg-30 EG.100-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-rounds-own-path-set-a00-0afd3916 tip d9393ee35 (branch de-base-EG.125; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 3. The new test raises IndexError on the file's own documented red-proof route (copy outside extensions/agi/tests) — ERROR, not the loud skip the file promises (test:320 vs docstring :29-38)
+2. 5. a00-0afd3916-9569b1.md:60 shows _probe_defect's '' as ['OK'] while the same node's notes and the test use ''
+3. 6. test:322 re-implements frontmatter parsing instead of frontmatter.read_frontmatter
+4. The pin reads LIVE node bytes by hardcoded path (test:320-321) instead of the engine's one lookup, cli._find_node_file -> node_writer.find_node_file (cli.py:1868-1878), which resolves abbreviated ids and reads the retired tree. Under retire-never-delete a retired node moves to .agi/nodes/deprecated/experiment/ and this pin turns a legitimate retirement into a hard red; it also makes the suite's result depend on the working tree at run time rather than on committed bytes.
+5. a00-0581fdf8-2bb4d2.md:15 was converted to a machine cell with result PASS while its own cmd/observed pair is not reproducible: the cmd names 'the committed test file copied OUT of extensions/agi/tests' and the observed says 'rootC control 8 passed', but the file at the cut tip holds 9 test functions (039140151) and 10 at this tip (12 cases), and the sibling cell a00-68041083-03040f.md:15 records 'control 9 passed' for the same control. My run of that exact route gave 12 passed at depth >= 4 and 9 passed / 3 failed on a copy outside the tree — never 8. An unrun observation was promoted into a machine cell without re-running it, which is the same 'claims a reader it never ran' class the corrective exists to close (item 3). UNVERIFIED whether 8 was ever true at some earlier state; the probe I would run is the cell's own cmd (copy the file at depth >= 4 outside extensions/agi/tests, PYTHONPATH/AGI_CLI_PY naming the copied cli.py, pytest -q) — that is what I ran, and it returns 12 passed.
+6. OUTSIDE, NO ACTION: the transferable rule ('a machine cell is checked with the engine's own reader, never a second parser') belongs in a template, not a node body -- the director sends it to its master as a [rule] line; do not add it to any further node.
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_round_own_path_set_fails_closed.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_round_own_path_set_fails_closed.py · .agi/nodes/experiment/a00-0581fdf8-2bb4d2.md · .agi/nodes/experiment/a00-0afd3916-9569b1.md · .agi/nodes/experiment/a00-139dd5f6-df3721.md · .agi/nodes/experiment/a00-68041083-03040f.md · .agi/nodes/verdict/a00-29a5edeb-7b795d.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over d9393ee35 · <= 40 test lines net over d9393ee35 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d9393ee35 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+
+## CORRECTIVE DH.EG.157 -- MERGE RESOLUTION of the EG.125 chain (a-rounds-own-path-set, cleared: mur-eg-x552067-87f57f + director close d91b942f3) with the director-engine post
+BASE      CUT FROM de-cut-EG.157 tip fdb7e3c61 = the post 78f1f8c61 merged INTO the chain tip d91b942f3 (branch de-base-EG.157). No further merge. Never rebase.
+MEASURED  on the cut, by the director: test_round_own_path_set_fails_closed.py test_cli.py test_zero_usd_mint_floor.py test_provisioning.py + help smoke = 258 passed, 12 skipped. dispatch.py, provisioning.py, test_zero_usd_mint_floor.py = POST side (the chain side was only the cherry-picked zero-USD fix). cli.py = every chain change kept EXCEPT its one conflicting hunk in the done path, which is the POST side.
+1. The chain's DH.552 union is LOST on the cut: at d91b942f3 the done path computes `_named = _round_named_node_ids(rec, args.parent)` and, ONLY when `args.owns` is set, adds `_round_spawned_node_ids(root, args.agent_id, args.iter_n)` before calling `_auto_commit_worktree`; the post's hunk (kept) passes `_round_named_node_ids(...)` alone and keeps `_commit_out` / `commit_fail` / the `failed` status stamp. Compose BOTH in cli.py: the `--owns`-bound union from the chain AND the post's commit-fail handling, unchanged. Paste `git show d91b942f3:extensions/agi/bin/cli.py | grep -n -A12 DH.552` and your final hunk on your node.
+2. No committed test red-flags that loss (the cut is green): add ONE test to test_cli.py (or the round's own test file) that FAILS on fdb7e3c61 and PASSES on your tip -- a round that passed `--owns` commits a node its kid spawned; a round with no `--owns` does not arm the union. Paste the red run on the cut and the green run on your tip.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees
+TESTS     test_cli.py test_round_own_path_set_fails_closed.py test_zero_usd_mint_floor.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/cli.py (the done path's commit hunk only) · extensions/agi/tests/test_cli.py · extensions/agi/tests/test_round_own_path_set_fails_closed.py · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over fdb7e3c61 · <= 40 test lines net over fdb7e3c61 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE against the CUT tip: paste `git diff --numstat fdb7e3c61 <your final tip>` on your node
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.100: mur-eg-27 EG.3-k1 residues batched into one corrective (orders above, generated from the verdict files).
+triage (parked, by tag): PARKING TEST, git grep 13:5xZ 09-29 -- _round_spawned_node_ids( and _auto_commit_worktree( = cli.py:1891 :1893, both in cmd_done; cmd_done is reached by a round's parent or kid and by heal's kid-respawn text heal.py:3736 -- dispatch-bound. Sanctuary-master mur wf_9a00e1d9-91a residue 44 (bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

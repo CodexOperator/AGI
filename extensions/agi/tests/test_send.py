@@ -1150,6 +1150,10 @@ def test_wake_logs_one_outcome_line_via_reaper_resolver(
     assert send_mod.wake(project, seat) is True
     lines = logf.read_text().splitlines()
     assert len(lines) == 1, lines
+    # goal:g6.41.2: every reaper-log line opens with its UTC second
+    import re as _re
+    assert _re.match(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ ", lines[0]), lines[0]
+    lines = [ln.split(" ", 1)[1] for ln in lines]
     # exactly one field set: `wake <seat>: <path> <state> <window>`; the
     # window id carries a SINGLE leading @ (never `@@`)
     assert lines[0] == f"wake {seat}: idle delivered sanctuary-director" or \
@@ -7820,3 +7824,294 @@ def test_authority_ref_blank_or_missing_field_stays_default(tmp_path):
     assert send_mod.authority_ref(root) == send_mod._PUSHED_SEATS
     _write_key_authority_node(root, None)
     assert send_mod.authority_ref(root) == send_mod._PUSHED_SEATS
+
+
+# ── DH.524 kid a00-a46d3b83: the read-marker rewrite and the dm pending mark ──
+
+
+def test_partial_read_keeps_the_unread_tail_and_the_trailing_newline(
+        project: Path, monkeypatch):
+    """A read whose printer stopped SHORT (walked < last block) leaves the
+    unseen blocks behind the marker -- and the file still ends in exactly ONE
+    newline, the one the writer gave it. The marker write used to splice the
+    tail back with no newline of its own, so a partial read de-newlined the
+    file and the next append fused onto the last body line."""
+    seat = "director"
+    send_mod.send(project, seat, "first body", "prime")
+    send_mod.send(project, seat, "second body", "prime")
+    inbox = send_mod._inbox_path(project, seat)
+    before = inbox.read_bytes()
+    assert before.endswith(b"\n") and not before.endswith(b"\n\n")
+
+    # a partial printer: it ran and printed block 0, then stopped.
+    monkeypatch.setattr(send_mod, "_print_blocks_with_labels",
+                        lambda root, me, blocks, wrap=160: 0)
+    send_mod.read(project, seat, "prime")
+
+    after = inbox.read_bytes()
+    marker = send_mod.READ_MARKER.encode()
+    assert b"second body" in after, "the unseen block must survive the read"
+    assert after.index(b"second body") > after.index(marker), \
+        "the unseen block must sit BEHIND the read marker"
+    assert after.endswith(b"\n") and not after.endswith(b"\n\n"), \
+        "a partial read must leave exactly one trailing newline"
+    # a later read still sees the block, and the append still starts a line
+    send_mod.send(project, seat, "third body", "prime")
+    assert inbox.read_text().endswith("third body\n")
+
+
+def test_dm_send_registers_pending_when_no_pane_ever_nudged(
+        project: Path, monkeypatch):
+    """TMM.283: a `--to` dm send that lands in the FILE while no pane
+    resolves leaves a PENDING mark for its recipient, so `send.py status`
+    reports `pending>=1` BEFORE any read. The mark is the sender's job: the
+    unread cursor only learns of it when someone reads (belam 04:31Z: two
+    dms sat in the file at 04:00:03Z/04:03:09Z with pending=0)."""
+    calls = _fake_tmux(monkeypatch, [])          # no window -> no target
+    seat = "thought-master"
+    send_mod.send_dm(project, "director-thought", seat, "merge-up body",
+                     "director-thought")
+    assert _typed(calls) == [], "no pane: nothing can be typed"
+    dm = project / "dm" / f"director-thought--{seat}.md"
+    assert dm.is_file() and "merge-up body" in dm.read_text()
+    assert send_mod._pending_more(project, seat) == 1
+    assert "pending=1" in send_mod.status(project, seat)
+
+
+def test_dm_pending_survives_a_stale_deferred_body(project: Path, monkeypatch):
+    """TMM.283 STALE-DEFERRED RESIDUE: a deferred body left by an EARLIER,
+    unrelated send must not suppress the pending mark of a NEW dm whose own
+    nudge never resolved. Old bytes asked `_read_deferred(...) is None`, so a
+    seat that already carried a stale sidecar read pending=0 with a fresh
+    unread dm in the file -- the exact symptom the TMM.283 guard was cut for.
+    The guard must judge the sidecar BEFORE/AFTER this nudge, not its mere
+    existence."""
+    _fake_tmux(monkeypatch, [])          # no window -> no target
+    seat = "thought-master"
+    assert send_mod._store_deferred(project, seat, "director-thought",
+                                    "an older stranded dm")
+    send_mod.send_dm(project, "director-thought", seat, "a brand new dm",
+                     "director-thought")
+    assert send_mod._pending_more(project, seat) == 1
+    assert "pending=1" in send_mod.status(project, seat)
+    # the stale body is untouched: the new dm is COUNTED, never merged into it
+    d = send_mod._read_deferred(project, seat)
+    assert d["body"] == "an older stranded dm", d
+
+
+def test_inbox_send_registers_pending_when_no_pane(project: Path, monkeypatch):
+    """TMM.283 INBOX HALF: the sibling sender path registers the SAME mark.
+    Old bytes only patched `send_dm`, so inside one fixture a `--to` dm read
+    pending=1 while an inbox send to the same paneless seat read pending=0
+    with an unread block in its inbox file."""
+    _fake_tmux(monkeypatch, [])          # no window -> no target
+    seat = "thought-master"
+    send_mod.send(project, seat, "wake up body", "director-engine")
+    assert send_mod._pending_more(project, seat) == 1
+    assert "pending=1" in send_mod.status(project, seat)
+
+
+def _plain_seats(project: Path, rows) -> None:
+    # TWO ROOTS, the standing trap: this writes `project/nodes/...` while the
+    # seats reader `_locally_loaded_rows` -> `_shared_seats_path` resolves
+    # `<project>/.agi/nodes/...` in a fixture project. A guard on loaded rows
+    # is therefore INERT in every test that uses this helper.
+    (project / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    (project / "nodes" / ".geometry" / "seats.md").write_text(_seats_md(rows))
+
+
+def test_self_copy_registers_no_pending_in_own_inbox(project: Path,
+                                                     monkeypatch):
+    """A seat that sends to ITSELF types no nudge ever, so an unresolved
+    mark must not land in the sender's own inbox (TMM.283 follow-up).
+    The row is PLAIN on purpose: on a `quiet-system` row `_nudge_window`
+    returns True before the target lookup, no mark is registered, and the
+    test would be green on the pre-fix bytes."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux(monkeypatch, [])          # windowless -> no target
+    send_mod.send(project, "director", "rotation self copy", "director")
+    inbox = send_mod._inbox_dir(project) / "director.md"
+    assert "rotation self copy" in inbox.read_text(), "the block IS the record"
+    assert send_mod._pending_more(project, "director") == 0, \
+        "a self-copy wakes nobody and must not count"
+    # the control: a real post to the same paneless seat still counts
+    send_mod.send(project, "director", "a post for someone", "director-engine")
+    assert send_mod._pending_more(project, "director") == 1
+
+
+def test_undecodable_deferred_sidecar_never_raises(project: Path, monkeypatch):
+    """`_deferred_blob` sat next to `_read_deferred`, which swallows
+    Exception; the blob reader caught OSError only, so a non-UTF-8
+    `.nudge.deferred` raised out of send() AFTER the block was durable."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux(monkeypatch, [])
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_bytes(b"\xff\xfe not utf-8")
+    send_mod.send(project, "director", "body after a bad sidecar",
+                  "director-engine")
+    assert "body after a bad sidecar" in (send_mod._inbox_dir(project) /
+                                          "director.md").read_text()
+
+
+def test_undecodable_deferred_sidecar_keeps_the_stranded_body(
+        project: Path, monkeypatch, capsys):
+    """MISS-1: an UNDECODABLE sidecar is a stranded body, not an empty one.
+    A busy pane made `_store_deferred` overwrite it with fresh json."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux_pane(monkeypatch, ["director"], _FixturePane(busy=True))
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_bytes(b"\xff\xfe not utf-8")
+    send_mod.send_dm(project, "ki", "director", "busy dm body", "ki")
+    assert sidecar.read_bytes() == b"\xff\xfe not utf-8", \
+        "the stranded body must survive, never be clobbered"
+    assert send_mod._pending_more(project, "director") == 1, \
+        "this dm is COUNTED instead of stored"
+    assert "unreadable" in capsys.readouterr().err
+
+
+def test_service_sender_unresolved_dm_still_counts(project: Path,
+                                                   monkeypatch):
+    """Defect 1: the mark was keyed on `_sender_class`, whose FIRST clause
+    calls every service sender 'service'. A heal dm is still an unread dm."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux(monkeypatch, [])          # windowless -> no target
+    send_mod.send(project, "director", "heal noticed a bad row", "heal")
+    assert send_mod._pending_more(project, "director") == 1
+
+
+def test_unlisted_recipient_registers_no_pending(project: Path, monkeypatch):
+    """DH.542 ITEM 3: `send_dm` writes a file for ANY name, so a recipient
+    with no seats row gained a `.nudge.pending` nobody reads."""
+    # TWO ROOTS: the table must sit under `<project>/.agi/nodes/...`, the root
+    # the reader loads -- `_plain_seats`' `project/nodes/...` is a different one.
+    seats = project / ".agi" / "nodes" / ".geometry" / "seats.md"
+    seats.parent.mkdir(parents=True, exist_ok=True)
+    seats.write_text(_seats_md([{"name": "director", "role": "director"}]))
+    _fake_tmux(monkeypatch, [])
+    send_mod.send_dm(project, "ki", "stranger", "hello?", "ki")
+    assert send_mod._pending_more(project, "stranger") == 0
+    pend = send_mod._inbox_dir(project) / "stranger.nudge.pending"
+    assert not pend.exists()
+
+
+def test_listed_recipient_still_registers_pending(project: Path, monkeypatch):
+    """The POSITIVE half of the DH.542 rows guard, which no committed test
+    covered: a seat named in the table the reader LOADS keeps its mark. The
+    assert on the loader is the precondition -- without it this test would be
+    green for the wrong reason again (see `_plain_seats`)."""
+    seats = project / ".agi" / "nodes" / ".geometry" / "seats.md"
+    seats.parent.mkdir(parents=True, exist_ok=True)
+    seats.write_text(_seats_md([{"name": "director", "role": "director"}]))
+    assert send_mod._seat_row_by_name(
+        send_mod._locally_loaded_rows(project), "director") is not None
+    _fake_tmux(monkeypatch, [])
+    send_mod.send_dm(project, "ki", "director", "a listed dm", "ki")
+    assert send_mod._pending_more(project, "director") == 1
+
+
+def test_bodyless_deferred_shell_is_taken_over(project: Path, monkeypatch,
+                                               capsys):
+    """DH.637: a PARSEABLE but BODYLESS sidecar strands nothing, and keeping
+    it called it 'unreadable' -- the seat stayed count-only for ever."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux_pane(monkeypatch, ["director"], _FixturePane(busy=True))
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_text(json.dumps({"sender": "ki", "body": ""}))
+    send_mod.send_dm(project, "ki", "director", "busy dm body", "ki")
+    assert send_mod._read_deferred(project, "director")["body"] == "busy dm body"
+    assert "unreadable" not in capsys.readouterr().err
+
+
+def test_bodyless_sidecar_with_queued_dms_is_taken_over(project: Path,
+                                                        monkeypatch,
+                                                        capsys):
+    """DH.657 MECHANISM: the bodyless-but-carrying-`others` shape does NOT pin
+    the seat to count-only. `_read_deferred` returns None for it, so no
+    undelivered notice is EVER sent, and the next typed nudge would unlink the
+    whole file -- the queued bodies were guaranteed lost. Honest behaviour: the
+    new body is STORED and the queued bodies ride along in `others`, where the
+    undelivered sweep can now reach them."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux_pane(monkeypatch, ["director"], _FixturePane(busy=True))
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_text(json.dumps({"sender": "ki", "body": "",
+                                   "others": [{"sender": "x",
+                                               "body": "queued"}]}))
+    send_mod.send_dm(project, "ki", "director", "busy dm body", "ki")
+    rec = send_mod._read_deferred(project, "director")
+    assert rec["body"] == "busy dm body", "the seat must not stay count-only"
+    assert [o["body"] for o in rec["others"]] == ["queued"], "queued dm lost"
+    assert "carrying queued dms" not in capsys.readouterr().err
+
+
+def test_read_rotates_queued_deferred_others(project: Path, capsys):
+    """EG.22 MECHANISM: a sidecar can hold MORE THAN ONE queued sender under
+    `others`, and `read` prints only the head body -- so clearing it by
+    UNLINK destroyed bodies no path had ever shown anybody. The clear must
+    ROTATE the queue: the second sender's body is delivered on the NEXT read,
+    and only the last one retires the file."""
+    root = project / ".agi"
+    assert send_mod._store_deferred(root, "director", "ki", "first body")
+    assert not send_mod._store_deferred(root, "director", "arch", "second body")
+    send_mod.read(root, "director", "prime")
+    out = capsys.readouterr().out
+    assert "first body" in out and "second body" not in out, out
+    rec = send_mod._read_deferred(root, "director")
+    assert rec is not None and rec["body"] == "second body", \
+        "the queued second sender was destroyed by the clear"
+    send_mod.read(root, "director", "prime")
+    out = capsys.readouterr().out
+    assert "second body" in out, out
+    assert send_mod._read_deferred(root, "director") is None, \
+        "the queue is empty -- the sidecar must be gone"
+
+
+def test_typed_nudge_rotates_queued_deferred_others(project: Path,
+                                                    monkeypatch):
+    """EG.22 MECHANISM, second clear site: the successful-typed nudge path
+    (`_nudge`, after Enter) clears the sidecar too, and its inline line
+    carries the HEAD body only. The queued `others` must rotate, not die."""
+    root = project / ".agi"
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    assert send_mod._store_deferred(root, "director", "ki", "first body")
+    assert not send_mod._store_deferred(root, "director", "arch", "second body")
+    pane = _FixturePane()
+    _fake_tmux_pane(monkeypatch, ["director"], pane, [])
+    send_mod.wake(root, "director")
+    rec = send_mod._read_deferred(root, "director")
+    assert rec is not None and rec["body"] == "second body", \
+        "the queued second sender was destroyed by the typed clear"
+
+
+def test_zero_byte_deferred_shell_is_taken_over(project: Path, monkeypatch,
+                                                capsys):
+    """DH.657 RESIDUE 4: `p.read_text()` on a 0-byte file is `""` and
+    `json.loads("")` raises, so a shell that strands NOTHING was kept and
+    called 'unreadable'. A 0-byte file must answer like a legal empty shell."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux_pane(monkeypatch, ["director"], _FixturePane(busy=True))
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_text("")
+    send_mod.send_dm(project, "ki", "director", "busy dm body", "ki")
+    assert send_mod._read_deferred(project, "director")["body"] == "busy dm body"
+    assert "unreadable" not in capsys.readouterr().err
+
+
+def test_undecodable_deferred_bytes_are_still_kept(project: Path, monkeypatch,
+                                                    capsys):
+    """The NEGATIVE probe: only UNDECODABLE bytes justify pinning the seat to
+    count-only. Real damage is still kept and still named on stderr."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux_pane(monkeypatch, ["director"], _FixturePane(busy=True))
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_bytes(b"\xff\xfe not json")
+    send_mod.send_dm(project, "ki", "director", "busy dm body", "ki")
+    assert send_mod._read_deferred(project, "director") is None
+    assert send_mod._pending_more(project, "director") == 1
+    assert "unreadable" in capsys.readouterr().err

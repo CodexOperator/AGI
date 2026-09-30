@@ -828,7 +828,8 @@ def test_launch_recovered_cds_into_seat_tree(tmp_path, monkeypatch):
     captured: list = []
 
     def fake_run(cmd, **kwargs):
-        captured.append(list(cmd))
+        if "new-window" in cmd:  # the P1 has-session ensure call is not a launch
+            captured.append(list(cmd))
         return type("R", (), {"returncode": 0, "stdout": "@123\n",
                               "stderr": ""})()
 
@@ -898,7 +899,7 @@ def test_launch_recovered_never_hands_tmux_the_prompt_inline(tmp_path,
                                                              monkeypatch):
     """(a) A prompt far over tmux's 64 KiB argv limit (the 22:19Z
     `command too long`) still launches: the shell line goes to a launch file
-    and tmux is handed `cd <tree> && sh <file>` — a tiny argv carrying no
+    and tmux is handed `cd <tree> && bash <file>` — a tiny argv carrying no
     prompt bytes at all. The file runs correctly and deletes itself."""
     graph = tmp_path / ".agi"
     graph.mkdir()
@@ -906,7 +907,8 @@ def test_launch_recovered_never_hands_tmux_the_prompt_inline(tmp_path,
     captured: list = []
 
     def fake_run(cmd, **kwargs):
-        captured.append(list(cmd))
+        if "new-window" in cmd:  # the P1 has-session ensure call is not a launch
+            captured.append(list(cmd))
         return type("R", (), {"returncode": 0, "stdout": "@9\n",
                               "stderr": ""})()
 
@@ -919,8 +921,8 @@ def test_launch_recovered_never_hands_tmux_the_prompt_inline(tmp_path,
     assert max(len(a) for a in tmux_argv) < 4096, \
         f"argv still carries the prompt: {[len(a) for a in tmux_argv]}"
     assert "P" * 1000 not in tmux_argv[-1], "the prompt reached tmux inline"
-    launch_file = tmux_argv[-1].split("&& sh ", 1)[1]
-    assert Path(launch_file).read_text(encoding="utf-8").startswith(big), \
+    launch_file = tmux_argv[-1].split("&& bash ", 1)[1]  # the ONE launcher (goal:g7.16.1.7.1.1)
+    assert Path(launch_file).read_text(encoding="utf-8").splitlines()[1] == big, \
         "the launch file does not carry the whole shell line"
     # it RUNS, and it leaves nothing behind
     proc = real_run(["sh", launch_file], capture_output=True, text=True,
@@ -944,7 +946,7 @@ def test_launch_recovered_refuses_loudly_when_no_launch_file(tmp_path,
     def never(cmd, **kwargs):  # pragma: no cover - the assertion is the point
         raise AssertionError(f"tmux was called with {cmd!r}")
 
-    monkeypatch.setattr(heal.tempfile, "mkstemp", boom)
+    monkeypatch.setattr(__import__("tempfile"), "mkstemp", boom)  # the ONE launcher (rotate.launch_in_window) writes it
     monkeypatch.setattr(heal.subprocess, "run", never)
     assert heal._launch_recovered(graph, "seat-wt", "echo hi", cwd=graph) \
         == (0, ""), "an unwritable launch file must read as not-spawned"
@@ -992,3 +994,20 @@ def _recording_launcher(seen: list):
         seen.append(shell_cmd)
         return 515151, "@777"
     return launch
+
+
+def test_heal_recovery_goes_through_the_one_launcher(tmp_path, monkeypatch):
+    """goal:g7.16.1.7.1.1 (B1): heal._launch_recovered builds no tmux line of
+    its own -- it calls rotate.launch_in_window once, never inline, and a
+    timeout is not a launch."""
+    import rotate
+    seen = []
+    monkeypatch.setattr(rotate, "launch_in_window",
+                        lambda *a, **k: seen.append((a, k)) or (0, "@7"))
+    assert heal._launch_recovered(tmp_path, "seat-x", "echo hi", cwd=tmp_path) == (None, "@7")
+    assert len(seen) == 1, seen
+    (_sess, name, cmd), kw = seen[0]
+    assert (name, cmd) == ("seat-x", "echo hi")
+    assert kw["inline_max"] == 0 and kw["timeout_ok"] is False and kw["cwd"] == tmp_path
+    monkeypatch.setattr(rotate, "launch_in_window", lambda *a, **k: (1, ""))
+    assert heal._launch_recovered(tmp_path, "seat-x", "echo hi", cwd=tmp_path) == (0, "")

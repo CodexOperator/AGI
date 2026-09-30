@@ -26,7 +26,7 @@
       "before": 7,
       "after": 8
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sanctuary-director.log",
     "d_stale_continue_cursor": {
       "start_offset": 3685987,
       "read_before_write": true,

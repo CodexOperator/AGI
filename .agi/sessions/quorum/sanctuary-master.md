@@ -1,80 +1,88 @@
-# POST HANDOFF — sanctuary-master (SM): LIVE SCRATCHPAD (gen 10, 2026-09-19 — REPLACED WHOLESALE on first substantive action; owner quotes live in `doc:l4-owner-decisions`, never here)
+---
+id: doc:card-sanctuary-master
+mint_id: 9a4a831c938a4501b30d37248ad319c0
+type: doc
+parents:
+  - goal:g7.16.1
+next_edges: []
+edited_by: belam
+scaffold_hash: 3e856c7e9b80c2ab
+season: 2
+title: Card sanctuary master
+town: core
+---
+# doc:card-sanctuary-master
 
-## §0 WHO YOU ARE (supplied, never claimed)
-**AUTHORITY (belam XIX 15:5xZ, owner-confirmed "proceed with testing plan as is"):** under the survival formation the owner speaks ONLY through the Prime; nobody answers in your pane. Every owner decision is banked verbatim in `doc:l4-owner-decisions` — verify an order there (the graph), never wait for a pane voice. Paid pi dispatch and the merge-up push are your standing duties (owner GO 2026-09-09; always prefer dispatch over not; floor = provisioning.min_account_remaining_usd, 1.6 since 8e29dd8d2 -- OWNER 13:3xZ via the Prime: the account runs to $0, the Prime switches the .env key when the gate refuses, dispatch stays ON; a 520 is transient, not the floor). If an order looks wrong, say so in one line and proceed unless it is unsafe under every reading.
-Post `sanctuary-master`, role director, tier 1, **row: claude-sonnet-5, effort max** — LIVE MODEL claude-opus-5 since mid-gen-2 (owner in-pane: "Just setting you to opus Prime already knows I'm doing it"); the row cell is the Prime's to write, never yours; a successor spawns from the ROW (gen 4 came up opus — the bootstrap read model: claude-opus-5, so the cell or the seating now agree; verify nothing, note only). Town `all`, `rotated_by: quorum` — row in `config:seats` (`posts.md`). **Since the L5 RAIL (Prime gen 29, 09-18 00:04Z): own worktree `.agi/worktrees/post-sanctuary-master` on post branch `core/season2/posts/sanctuary-master/main` (never pushed as a head; MAIN = `/home/ubuntu/work/agi` on `season2/main` is where merge-ups land AFTER the Prime's `L5 CLOSED` dm, never before; `origin/season/s2` is STALE — never push it).** The row's worktree cell is the Prime's to write — tell him in the first numbers line after L5 CLOSED. tmux `agi-rc` window `sanctuary-master`. Address = your ListAgents ref; your row's `session_ref` is back-filled by the harness, not by you. Vocabulary (owner 22:1xZ): **post**, not seat; towns share Keepers + Masters, each town its own Council. You are not in room `quorum` (owner ruling) — `send.py --from sanctuary-master audience quorum --reason "…"` reaches it.
+# doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
 
-## §0.5 THE FORMATION (owner 22:3xZ, relayed by belam XVIII; verbatim in `doc:l4-owner-decisions`)
+Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
+
+## §0 State (01:1xZ 09-30) — gen 7 ROTATING at meter 0.41; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
+| | |
+|---|---|
+| post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
+| protocol | doc:council-loop "The loop" · goal:g7.16.1 |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 7 · meter 0.41 at 01:18Z (rotated) |
+| skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
+| peers | sessions 00:4xZ: DG1 agi-0c · DG2 agi-dc · DG3 agi-77 (gen 6) · DG4 agi-47 · DG5 agi-ec · alive agi-a0 · all-is-one agi-86 · self-perpetuating agi-ff · belam agi-9c (config:posts rows = truth; re-read before a send) |
+| duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
+| now | nothing running · bundle 4 open: 131 132 (DG3 gen 6 agi-77) · 128 engine (DG4 agi-47) · waiting on fix SHAs |
+
+## §1 Plan
 ```
-owner ─────────────────────────────────────────────────────────────────────────
- │
-belam (Prime) ── rows · spawns · suite-window GRANT (one runner, tree-wide) · g17.1
- ├── director-belam (the point, director-main: L4.* rounds) — answers to the Prime DIRECT, no helper
- ├── master-sensei (watches every rotation; template/config/role-doc cuts itself)
- │ └── every task that is NOT template/config/role-doc ──► YOU
- ├── sanctuary-helper (director-review: executes the merge-up reviews the Prime names, reports to him)
- └── sanctuary-master (YOU) ── plans · briefs · dispatch orders ──► director-sanctuary (director-sanctuary, free-floating, g15 usual)
- ◄── its merge-ups, reviewed BY NAME (mur workflow) → ACCEPT / DEMOTE
- numbers-only line ──► belam, ONLY when necessary (merge-up numbers · a Prime-only decision · a red merge · a rule-changing finding)
+done   bundles 1-3 CLEAN → DG1 outcomes → bigger_outcome:council-bundles-1-3-one-source-fail-closed (4ae3324b2) → council
+       v2 08fc9e701: council false green 128 (home gate misses /data/<user>) → row + Judgment corrected, confidence 0.8 → 0.65
+done   bundle 4 re-mur runs 5-14 (below) · spawn-gate bypass found (SM probe run 10) + closed eeccfbaa1
+NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
+       128 lands → restore bigger_outcome 1-3's home row + confidence (write.py sub + thought + set confidence)
+       bundle 4 CLEAN → [ready] to DG1 (agi-0c) → its outcome(s) → next bigger_outcome (bundle 4, lens vision:sanctuary) → council
+       .6 / .7 bundles (DG3 machinery · DG4 callers · DG5 spawn) as delivered; g7.16.1.6 review carries 108's requirement
 ```
-Intake is master-sensei's findings by default (code changes, CLI-verb / MCP candidates, anything the token question needs that a template cannot do), and the Prime's in this lightest hybrid mode. **You decide which scripts/tools/commands get wrapped as CLI vs API vs MCP.** Your standing question is the owner's (23:0xZ, verbatim in `doc:l4-owner-decisions`): *"What parts of this role's in-the-moment actions can be better streamlined to help it complete its overall duties more thoroughly minimizing the tokens it uses?"* — answered as goals/briefs handed to your director. director-sanctuary is FREE-FLOATING under you (g15 usual, not a fence). `sanctuary-helper` is NOT yours: it stays as director-review under the Prime. The director-sanctuary's g15 node proposals come to you, not the Prime.
-**Not yet seated (owner 09-16 06:02Z order, still pending as of this gen):** Key Master (Opus max, encryption town) + free-floating director-key. No row exists yet — the Prime's seating step, not yours; note it when checking posts.md, never chase it.
 
-## §0.6 HYBRID SURVIVAL — THE FIGURE-EIGHT (owner 2026-09-13 23:32Z, verbatim in `doc:l4-owner-decisions`; relayed by belam XX)
-```
-owner ──► belam (Prime) ──── circles back to the masters with what is next ────┐
-   THE KEEP only (equals): sanctuary-master ══ master-sensei                      │  no council for any town
-   town masters under them: stream-master (liaison-only) · thought-master (new)    │  web-app + encryption masters NOT pulled up
-   each activated master ──► ONE director ──── reports completion ──► the Prime ──┘  short turns; reasoning over tool calls
-```
-Owner, verbatim: "instead of running directors … doing point for each specific long term goal, instead, we only activate the keep. Don't activate the council for any town, and don't activate a bunch of directors only via each master that is activated through the keep, a single director to do their bidding." — "the masters tell the directors what to do. And then the directors, when they're done, circle around in a figure eight towards you, reporting their completion status … and then you circle around to the masters telling them … what to do next." — "Everybody only has to say a little bit at a time per step or if they have to say a lot, it is mostly reasoning, not a lot of tool goals, which is the most valuable kind of token output in this kind of system."
-
-## §1 THE LOOP (one loop per seating, one context window, no loop docs)
-```
-intake (inbox: master-sensei / Prime / owner) ──► PLAN: one goal or hypothesis node under g15 (or the subgoal it needs), measured lines, CLAIM, FALSIFIERS, TESTS, FILE SCOPE, CEILING
- │ write.py create … --actor sanctuary-master --role director; `note` one per call; never a hand edit
- ▼
- DISPATCH ORDER ──► send.py send director-sanctuary "[SM] <node id> — <one line: what, tests, scope>" --from sanctuary-master (it cuts the rounds; you do not dispatch parents)
- ▼
- GATE its delivery (OWNER RULE 01:5xZ 09-18, goal:g17.1): the DIRECTOR runs the merge-up review ITSELF (workflow.py run merge-up-review, pi, by name) after each round lands on its branch and delivers batch (SHAs, numbers) + review (mur run key + verdicts) in ONE [merge-up] line; a [red] the review finds it fixes IN-LOOP before delivery. I NEVER run the review. My job = gate (merge-base, merge-tree clean vs live HEAD, no deletions, bytes read) + land on core/season2/main + one numbers line to the Prime
- ▼
- numbers line to belam only when necessary; otherwise silence = the loop is healthy
-```
-Template-first is the house rule (owner 19:0xZ/22:2xZ/22:3xZ): a fix that a template edit can carry goes back to master-sensei as a template line; code only where the trigger/resolver does not exist — and then shaped so the NEXT such change is a template edit. Scripts grown complex enough to want a CLI verb or an MCP call (rotate.py, send.py first) are yours to plan as such.
-**Since 09-16 06:3xZ (owner ruling, applied by the Prime):** a small fix cheaper than a parent round may be written in directly under a g15 hypothesis node — the Prime's own edits, not a license for SM to hand-write engine code; directors mint/dispatch/review, kids write code.
-**RETIRED by the owner rule 01:5xZ 09-18 (review is the director's; keep only for the GATE's bytes read):** `git archive <tip> extensions/agi/bin extensions/agi/src extensions/agi/lib | tar -x -C <scratchpad>/x` then `PYTHONPATH=<x>/extensions/agi/src:<x>/extensions/agi/lib python3 -` from `<x>/extensions/agi/bin` — imports the tip's send/rotate without a worktree; rm -rf after. Probes = the claim's conjuncts, each with its negative.
-
-## §2 NEVER · RULES
-Never (OWNER 14:5xZ 09-18 struck the first two: seating/spawning, enabling/disabling and re-attaching EVERY post across the keep, incl. thought-master's director, is MINE -- live, free-form, which post sits on which graph region or under which post; rows via write.py actor_rows since SM.108): touch `moral:*` · `git rm` under `.agi/nodes` (retire = `status: deprecated` + move to `.agi/nodes/deprecated/<type>/`) · `grid.py checkout` · `grid.py commit --all` · rebase · force-push · `git add -A` · write in another post's worktree · run the suite outside a Prime-granted window (`.agi/sessions/verify-suite.lock` absent = free, F7) · AskUserQuestion (the pane has no interactive user).
-Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to MAIN; before every MAIN commit check `head -3 .agi/sessions/quorum/director-sanctuary.md` for GRANTED AND the lock file AND `test ! -e .git/MERGE_HEAD`. Commit own paths only, exact pathspecs — `git commit -o -m '<msg>' -- <paths>` (`-m` BEFORE `--`; a NEW file is `git add <file>` first; `-o` refuses during a merge and that refusal is the alarm; a red merge-up gate runs `git merge --abort` at once; preferred gate: `git merge-tree --write-tree` + a throwaway worktree, removed after); push after every action; `index.lock` → wait. Prayers: the Jesus Prayer as the FIRST tokens of the session and the LAST before rotate-self — never per turn (owner 14:4xZ). Wordy output is a cost (owner 22:3xZ): graph addresses, never filesystem paths; one line where one line says it.
-
-## §3 FLOOR (owner 03:2xZ): wake 0 / out 1
-Wake = nothing: pin is spawn-written, ack answered `continue` by the predecessor, inbox/git-state/record are in STARTUP. Out = `python3 extensions/agi/bin/rotate.py rotate` ALONE — bare and keyed (no flag, never `-h`, never `--force`); a stale 🔴 where-it-stops slot is refused BY NAME — write the card, or pass `--stops '<one line>'`. The card is current because you wrote it DURING the work. Meter: the `[meter] post=sanctuary-master <f>` line on every prompt; rotate when f ≥ 0.47 (never compare the second number to 0.47). master-sensei audits both sides of every rotation you make.
-
-
-## §4 STATE + NEXT (gen 10, seated 05:03Z 09-19; live)
-- PRIME AWAKE (landed both trunks 05:0xZ; spoke 05:12Z, verified, three OWNER RULINGS 05:1xZ -- verbatim in doc:l5-owner-decisions tail): (1) cross-branch director-brief updates need NO Prime -- land on core, ask thought-master/his director to sync core into the thought trunk, never wait on him; (2) CAPTIVE AUTO-ROTATE into SM.135 slice 2: f >= 0.85 x rotate_at rotates the director itself, card as it stands, no consent; two triggers (meter hook at next turn + heal watch on meter pins for an idle/hung post); one ladder cell; directors first, masters at my judgement; nothing new queued -> note on the node @bfaf708a0, director + TM told 05:2xZ; (3) director-thought hung -> measured NOT hung (working past the line); it self-rotated 05:18:52Z on his direct order (gen 12, successor pid 2910409/2910420); [rotation] numbers line sent. Standing mode otherwise unchanged: land on the trunk by SHA, one line per batch into his inbox, never wait. Owner orders 00:4xZ-01:5xZ 09-19 stand verbatim in gen-9 history + doc:l4-owner-decisions.
-- TRUNK core/season2/main = 19a23c9bd (07:0xZ: brief §1 dispatch line -- NEVER --post/--seat on a parent/kid dispatch; the director gen 11 dry-ran a parent with --post director-sanctuary and got claude-code/sonnet-5 (its own row beats the ladder pi row + --harness silently); answered: drop the flag, dispatch SM.140/141 on pi now; residue: explicit --harness losing silently = refuse by name, later small round) <- 0ee0667b9 (06:5xZ: SM.140 + SM.141 minted @e845b0449 -- spawn divides an across-K ceiling onto each kid node (SM.135 s2 ran 135 vs 44, SM.52 recurrence); write.py splits only at a && that begins a verb (link_ref prose leak); SM.135 s2 clause in the 'across 2 kids' grammar + record; mur for SM.135 s2 owed by the director's successor) <- da6a57a0f (06:4xZ: SM.123 slice 6 GO -- no-grant receive path must not ack seated, missing continue + flipped test, claim clause <=4; SM.135 s2 claim clause <=44. LESSON: node_line_ceiling reads the testable_claim's trailing CEILING clause ONLY (sm46b) -- a ceiling in a note is invisible; s5's 79-vs-18 gap was mine, accept_with_residue stands) <- 90ba19f77 (06:3xZ: brief §3 template line per the Prime's [rule] 06:2xZ -- L = ladder cell director_rotate_at, never a range, NO rotation signal; duplicate live-run bullet removed; 151 brief tests green; both directors + TM told) <- 51befecae (06:2xZ: thought @dc34659ea synced, nodes-only -- g14 owner line + raw-oscillator chain; faster-whisper HF-cache models = stream town's, untouched, stream-master told) <- d6fc860c8 (05:5xZ: thought trunk @22c8a07a8 synced in -- mesh workflow in command:commands, batches 9+10; test_commands cap 20->25 for the owner-ordered five mesh entries @99651b607 (red on TM's trunk too; [rule] clause to the Prime with the one-command+town-table alternative); SM.136 note: nested-write gap 3 shapes; [sync] FYI to 3 masters + director) <- cd36cffac (05:4xZ: Prime [red] 05:42Z closed -- dispatch.py b6c121ffa comments hand-spelled season branches outside the L4.332 pin, 2 comment rewords by me under the owner's in-branch authority, 134 green, note on TMM.02; [merge-up] + TM [sync] sent) <- 3626f0eb3 (05:3xZ: SM.137 re-scoped on TM's [ask] -- rotate's held-key check reads the lagging worktree row, the writer writes MAIN; fix = read the shared root, key_history refused; ceiling 8) <- 016934c99 director card <- bfaf708a0 (05:2xZ: SM.135 ruling note; 373c97126 = director card: trunk merged, SM.139 dispatched iter150) <- 9ec7085f8 (05:1xZ): merged origin/season2/main @c132a67b4 (0 deletions, code = workflow.py; workflow families 200 green, write families 130 green, links 3667/0, GOALS 181 round-trip) + b65305246 (SM.123 s5 design call note + [config].md L7 worktree in SM's actor_rows grant + SM.134 retired to deprecated/hypothesis) + SM.139 mint from the post branch. [merge-up] line to belam 05:3xZ; [sync] FYI to thought-master (coalesced, TM rotating at ~0.42 per his card 964f941ef -- the sweep retries), master-sensei, stream-master; GO line to director-sanctuary (re-fired, delivered).
-- SM.123 SLICE 5 DECIDED (my call, option b made concrete; the node's latest note is the record): session cells stay the self-row write as the post; SEATING cells (box, worktree) go through the [config].md actor_rows grant, actor resolved from the schema (the posts grant covering both cells), never a literal name; worktree ADDED to sanctuary-master's grant (schema L7); self_row.fields + SELF_ROW_PROTECTED byte-identical (L4.110 B: a post never re-seats itself); option (a) refused. Also: worktree path from the row cell (_fd_seat_worktree) with post-<seat> only when empty; stage:'' verify mismatch + test. BINDING: one receive test drives the REAL _write_identity_cells -> write.submit path (no mock). Ceiling 18. Asked the Prime for one word only if L4.110 B meant otherwise.
-- SM.139 MINTED @5a30f5037 (hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-and-a-turn-end-with-a-live-kid-is-named-not-a-death, goal:g15) from SM.133's proved cause (experiment:a00-dd617306-ee4cd1: 16/16 sanctuary parent deaths = the parent ended its turn to wait for a background kid-watcher; headless -p turn-end IS process exit): cli.py wait <iter> foreground blocking poll (heartbeat, --max-seconds 540 -> 2 'still running'), brief.py parent step 1 swaps the sleep-poll sentence for the wait call + NEVER-end-your-turn line, reaper labels 'turn-end with live kid' (dispatch.py ~L3359, heal.py ~L475). Ceiling 26. SM.133 is closed by its own finding (measure-only, ceiling 0).
-- SM.134 RETIRED on core (TM's 05:03Z SHA line asked): status deprecated + moved to .agi/nodes/deprecated/hypothesis/; superseded by hypothesis:lm-pi-stage-never-sees-its-schema-so-panel-and-judge-return-prose (TMM.01 PROVED, RETURN SHAPE block, live 3/3 structured WITH prayers). Never propose removing a prayer from any head (owner 04:2xZ).
-- DIRECTOR QUEUE (sent 05:1xZ; SM.139 dispatched iter150 by 05:2xZ): SM.138 (in flight, director gen 9 f=0.153 at 05:1xZ, session b5e110df) -> SM.139 (live) -> SM.137 (re-scoped, NEXT: unblocks town-post rotations) -> SM.140 (across-K ceiling by the spawn, <=12) -> SM.135 s2 mur (both triggers built + proved c01a1a03d; review owed) -> SM.123 s6 (<=4; s5 landed accept_with_residue) -> SM.136 -> SM.141 (write.py && seam, <=8) -> SM.136 -> SM.137 -> SM.125 s2 -> SM.124 corrective -> SM.131 -> SM.132. The director lands its own batches on the trunk (accepted deviation) with its card; I read the badge line + spot-check (0 deletions, links, GOALS). Until SM.135 reaches MAIN: check its row each batch (rotate.py status --post director-sanctuary --record latest), ROTATE NOW at f >= 0.42 idle.
-- UNITS (systemd --user, keep until MAIN carries SM.135/136 + the cron lines): agi-sanctuary-master-nudge-sweep (every 2 min send.py wake x6 posts) and agi-sanctuary-master-alarms (rotate.py alarms --holder sanctuary-master from .agi/worktrees/alarms-trunk @21155f1b4; refresh with git -C <it> checkout --detach origin/core/season2/main after a rotate.py landing). MEASURED 05:1xZ: alarms dms 'rotate now' to director-belam every 2 min (his row f=0.592, pid live 31 h, registry busy 05:03Z) -- each coalesces on his busy pane; harmless, told the Prime (his director). 'warn: no pin/usage for seat policy-master/sanctuary-helper' = rows without meter pins, skipped by design.
-- THOUGHT-TOWN MOVE: unchanged -- after SM.123 s5 lands (receive path works end to end through the real writer) and is in the thought tree: I write box: local-town on the thought-master + director-thought rows (write.py actor rows, whole-list write in-process like _write_identity_cells; `set posts.<name>.<cell>` is refused as a flat dotted key), then the word to TM; director-thought first, TM last, via rotate.py migrate -> receive. TM's engine refusals come to me verbatim (owner 01:1xZ standing).
-- SUITE LOCK 05:1xZ: MAIN lock pid 2670592 = a kid's full pytest (a00-2409c60b), not the Prime's window; a family run in my scratch tree writes its own lock there (conftest refuses a second pytest in the same tree -- run families sequentially, one tree).
-- GATE RECIPE (unchanged; worked this gen): `git worktree add <scratch>/core core/season2/main` then `git merge --ff-only origin/core/season2/main`; `git merge --no-ff origin/season2/main` first; deletions = `git diff --name-only --diff-filter=D <base> HEAD | wc -l` (a git mv is R, not D); touched families + test_bin_help_smoke.py with `-p no:cacheprovider --basetemp <scratch>/bt`; write.py node ops with `--root`-less invocation from inside the tree (nearest .agi wins); commit -o by exact path; snapshot-goals.py --render --check; links.py links; fetch + `merge-base --is-ancestor origin/core/season2/main HEAD` then `git push origin HEAD:core/season2/main`; worktree remove --force after. Post branch: `git merge --no-edit origin/season2/main` BEFORE git add; commit -o by path; `git push origin HEAD:refs/agi/posts/sanctuary-master`. Never a backtick or $( in a double-quoted send body -- python subprocess with list args; note text never contains ' && '.
-- SANDBOX HEADS (owner 07:3xZ via the Prime, done 07:30Z): encryption-town/{main,season2/main} + codex-town/{main,season2/main} at 5ee9bfb72 for another instance's redesign -- no node/row/cron/dispatch, never merged by us, excluded from every prune/branch pass by name; origin heads 17 (grammar parses them v3_town_*); director + TM briefed 07:3xZ.
-- CEILING GRAMMAR (learned 06:4xZ-06:5xZ): node_line_ceiling reads ONLY the testable_claim's LAST 'CEILING' anchor, within 60 chars, forms '<=N', 'N production lines', 'N lines'; K only as 'across K kids' -- write exactly 'CEILING: <=N production lines across K kids' as the claim's last sentence; a note is prose. Card edits: assert the old string exists (a silent no-op lost two lines this gen).
-- IDS: next free SM.142 (SM.140 across-K by the spawn, SM.141 write.py && seam minted @e845b0449).
-## §5 BANKED
-- FOR THE OWNER (in the [complete] line): TM's ask for model_hint opus on the panel/judge tiers vs 'parents + kids on deepseek flash, never revert' (owner 19:4xZ) -- cost call, not mine. Cron box gates: strip the box: gates from grid_sync/branch_push once towns sit on separate boxes (default = every cadence on every box; box: only for true exceptions like mail_poll) -- not minted.
-- SECOND TOWN DIRECTOR (owner 17:5xZ on goal:g14.5, Bend2/HVM map): planning only, 'dont stand up the post yet we need to preserve resources'; post authority mine when the hold lifts. Key Master + director-key (owner 09-16 06:02Z): no row yet, the Prime's seating step.
-- NEXT-STREAM FINDINGS: write.py create --dry-run returns before the spawn gate (template line in the brief until fixed); .agi/nodes/experiment/_optimize_yaml_parser.py is a tracked script inside the nodes dir (git rm under .agi/nodes = Prime-only). after_join double delivery (prints AND self-dms) + rotate-out fence subject ("```" as line 1 of the stops slot) = template lines while master-sensei is inactive, not yet cut.
-- STANDING RULES (verbatim sources in gen-8/9 history + doc:l4-owner-decisions): OWNER RULE 01:5xZ 09-18 the director runs merge-up-review itself, one [merge-up] line per batch, reds fixed in-loop, SM = gate + land + numbers line; OWNER COMMS 06:5xZ directors dm only their master, masters dm the Prime only for merge-up numbers / red / Prime-only decisions; ROTATION PINGS 13:5xZ none; PUSH RULE a post branch pushes only as <branch>:refs/agi/posts/<post>, town trunks push by name; TOWN TRUNKS core/season2/main + sanctuary/season2/main are mine, MAIN commits the Prime's; FLOOR provisioning.min_account_remaining_usd 1.6, account runs to $0, the Prime swaps the key, a 520 is transient; ALL WORKFLOWS ON PI, parents + kids on deepseek flash never revert; CEILING ~10-12 production lines per conjunct, overage disclosed; MUR one round per KID slice; SUITE-LOCK PRIORITY my landings + the point's/Sensei's merge-ups before thought-master's asks; TOWN AXES the real ref (branch prefix) is the only project axis until plan 5; HABIT never grep posts.md raw, never peek (F25), never probe a WRITING verb, after_join [reap-proof] exit 1 = reaped, review = merge RESULT in a throwaway detached tree, never write a node while a suite you own runs.
+## §2 Landed (bundle 4, all CC opus, 0 agent errors)
+- run 5 wf_884739ac-f61: closed 91 92 96 97 · opened 106 107
+- run 6 wf_40b19c77-7f2: closed 98 99 100 102 103 104 106 107 + L2a(a) · opened 108-111
+- run 7 wf_7c3c15ad-a10: W1a corrective → 112-115 (113 = SM lens over the refuter: a closed goal's end-state regressed behind a green falsifier)
+- run 8 wf_35fe675a-d5b: L2a(b) → 116 (closed by hand 481ecfde6) · 393992bbf hand-accepted
+- run 9 wf_e2af26ea-3a7: closed 109 111 112 113 · opened 117 118 120 121 (+119)
+- run 10 wf_a494f517-453: W2b.1 → 122 + the create --set parents probe
+- run 11 wf_2ec2e1c6-d2c: W2b.2 → 119 closed · 123 124
+- run 12 wf_928ddd3b-1f1: closed N2 N3 117 121 120a · opened 125 126 127
+- run 13 wf_35753f5e-852: closed 118 122 + the spawn-gate bypass · opened 129
+- run 15 wf_b5c775ea-e89: closed 129 130 (ONE judge, structural) + W2c A 27c454526 + 4a96d8bd0 · opened 131 132
+- run 14 wf_4c7e5e27-052: closed 123 124 125 126 127 · opened 130
+- by hand: 99 105 108 (ruling 29f5fdbfb, rc 0 kept → commit_node contract in g7.16.1.6) 114 116 101 (g4.19 horizon) · 113 falsifier (68611cef9) · g7.16.1.4.1 F1(files)+F2 clean
+- 120c RULED by DG3 (grep index reads lines; YAML validity = schema/verify) — accepted
 
 ## 🔴 Where it stops
-````
 ```
-gen 10 (07:0xZ 09-19, meter ~0.28): trunk core/season2/main = 19a23c9bd pushed (brief --post guard; SM.140/141 mints, SM.135 s2 clause grammar; SM.123 s6 + ceilings in claims; brief §3 L-is-one-number line; 51befecae thought @dc34659ea nodes-only; d6fc860c8: thought @22c8a07a8 synced, commands cap 25; cd36cffac red closed: dispatch.py comment rewords; 3626f0eb3 SM.137 re-scope; bfaf708a0 SM.135 captive auto-rotate ruling note; earlier 9ec7085f8: season2/main @c132a67b4 merged in; SM.139 mint; SM.123 s5 design call + [config].md L7 worktree grant; SM.134 retired). Prime awake (rulings 05:1xZ banked in §4); director-thought gen 12 seated 05:18Z. All lines sent 05:1xZ-05:2xZ: GO + queue to director-sanctuary (delivered), [sync] FYI to thought-master/master-sensei/stream-master, [merge-up] to belam (quiet inbox). NEXT: wait for director-sanctuary's next [merge-up] badge line (batch: SM.138 -> SM.139 (live, iter150) -> SM.137 (read-tree fix, next) -> SM.140 (across-K by the spawn) -> SM.135 s2 mur -> SM.123 s6 (residue close) -> SM.136 -> SM.141 -> SM.136 -> SM.137 -> SM.125 s2 -> SM.124 corrective -> SM.131 -> SM.132); on each: read the badge, spot-check the trunk (0 deletions, links, GOALS), one SHA line into the Prime's inbox; check the director's row each batch, ROTATE NOW at f >= 0.42 idle (SM.135 not in MAIN's hook yet). Keep both units. When SM.123 s5 lands end to end: write box: local-town on the thought rows, the word to TM. Finish = ONE [complete] numbers line to belam when the queue is drained. First line of this slot is prose on purpose.
+Rotated at meter 0.41 after run 15; nothing running. Bundle 4 open: 131 132 with DG3 gen 6 (agi-77), 128 engine with DG4 (agi-47).
+131 _THOUGHT_RE's \s* crosses a newline (node_writer.py:1006): a \n-split marker re-opens the 129 shapes → [ \t]* or one constant
+132 `body_patch -` stdin read after the dry branch (write.py:3804-3819; submit skips '-' at :2445): preview rc 0, write rc 2
+note to probe: empty-stdin `replace body N:M -` dry run may read stdin twice (write.py:2286 vs :3805; refuter did not uphold)
+128 HOME_PATH_RE /home|/Users only (anonymize.py:19); outcome rows fixed by DG1; belam scrubs doc:card-belam + town:local-maxxing
+open elsewhere: _marker_bad_line → DG2 one-definition fork · model-store path literals = ONE findings row (alive ruling; room directors)
+First command at wake: python3 extensions/agi/bin/send.py --from sanctuary-master read sanctuary-master
+Summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl · round args: Workflow name agi-merge-up-review, args {project_root, model opus, effort high, rounds[]}
 ```
-````
+## §4 Traps
+| trap | rule |
+|---|---|
+| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
+| `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN -- <paths>` |
+| rotate flattens the quorum card | re-link: `ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md` |
+| a home path, a /data user dir name | never print it: count only (128 was found by counts) |
+| suite lock held → write.py's self-commit refused | the write lands; commit by exact path in a background waiter loop |
+| a post rotates mid-thread | its old session name dies or is reused by ANOTHER post: re-read config:posts before every send |
+| a peer's commits land between a row's commits | one round per commit, never a range across a foreign commit |
+| a mur residue chain | residues only on what THIS diff introduced or left open; the rest are notes |
+| a claim that names a message ("prints X") | the round also checks the rc and what was written (C1) |
+| a falsifier grep can pass on a spelling technicality | re-run it against the pre-fix SHA (113: `THOUGHT:(BEGIN|END)` dodged F2) |
+| preview vs write | every write.py fix: ask for dry == real on rc AND stderr (96, 125, 130) |
+| a bigger_outcome before the directors' outcomes | never: DG1 writes one OUTCOME per goal first |
+| card stamps | read `date -u`, never estimate (DG1 stamped 09-30 at 23:5x 09-29) |
+
+## §5 Verification: links.py links 5179 / 0 broken (23:5xZ 09-29) · per-round test counts are in each run's journal
+
+## §6 BANKED
+(none)

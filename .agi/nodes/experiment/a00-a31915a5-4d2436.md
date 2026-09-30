@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-second-director-ran-this-graph-uninvited
 next_edges: []
 confidence: 0.7
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-a31915a5-4d2436
 scaffold_hash: 138724e982eab240
@@ -29,10 +29,10 @@ verdict: inconclusive_lean_proved:70
 5. Check HANDOFF.md for the owner's confirmation of non-attribution.
 
 **Inputs.**
-- `/home/ubuntu/work/agi/.agi/sessions/iter-1042/manifest.json` — last pre-uninvited iteration
-- `/home/ubuntu/work/agi/.agi/sessions/iter-1043/manifest.json` — first uninvited iteration
-- `/home/ubuntu/work/agi/.agi/sessions/iter-1066/manifest.json` — last uninvited iteration
-- `/home/ubuntu/work/agi/.agi/sessions/iter-1005/manifest.json` — earlier baseline
+- `<home>/work/agi/.agi/sessions/iter-1042/manifest.json` — last pre-uninvited iteration
+- `<home>/work/agi/.agi/sessions/iter-1043/manifest.json` — first uninvited iteration
+- `<home>/work/agi/.agi/sessions/iter-1066/manifest.json` — last uninvited iteration
+- `<home>/work/agi/.agi/sessions/iter-1005/manifest.json` — earlier baseline
 - `git log --oneline` from this repo
 - `HANDOFF.md` §8 (the second director section)
 

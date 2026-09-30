@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-verification-counts-and-engine-root
 next_edges: []
 confidence: 0.75
-edited_by: a00-99a5a43d
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-386cd635-73faf9
 loop: hypothesis:l4-verification-counts-and-engine-root@s2
@@ -66,9 +66,9 @@ at module import; `_substitute` replaces `<engine>` with `ENGINE_ROOT`
 regardless of the `root` argument:
 
 ```
-ENGINE_ROOT = /home/ubuntu/work/agi/.agi/worktrees/a00-99a5a43d
+ENGINE_ROOT = <home>/work/agi/.agi/worktrees/a00-99a5a43d
 $ commands._substitute('cd <root> && python <engine>/x.py', '/tmp/elsewhere')
-cd /tmp/elsewhere && python /home/ubuntu/work/agi/.agi/worktrees/a00-99a5a43d/x.py
+cd /tmp/elsewhere && python <home>/work/agi/.agi/worktrees/a00-99a5a43d/x.py
 ```
 
 So a run of `verification.py --root <main-checkout>` from inside a worktree

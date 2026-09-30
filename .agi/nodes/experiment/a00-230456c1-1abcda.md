@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:l3-commit-guard-inert-under-g11
 confidence: 0.9
-edited_by: ubuntu
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-230456c1-1abcda
 scaffold_hash: 16d1cbb7c015ab28
@@ -24,12 +24,12 @@ and the hook exits 0 for every dispatched kid/parent.
 
 **CAUSE verified at source:**
 `extensions/agi/bin/dispatch.py:901` → `spawn_env["AGI_PROJECT_ROOT"] = str(root.resolve())`
-where `root` is the graph root. Under g11 that is `/home/ubuntu/work/agi/.agi`;
-the git toplevel is `/home/ubuntu/work/agi`. They can never be equal → hook exits 0.
+where `root` is the graph root. Under g11 that is `<home>/work/agi/.agi`;
+the git toplevel is `<home>/work/agi`. They can never be equal → hook exits 0.
 
 **LIVE PROOF before the fix** (real dispatched env, from repo root):
 ```
-$ AGI_TIER=kid AGI_PROJECT_ROOT=/home/ubuntu/work/agi/.agi bash extensions/agi/hooks/agent-git/pre-commit; echo $?
+$ AGI_TIER=kid AGI_PROJECT_ROOT=<home>/work/agi/.agi bash extensions/agi/hooks/agent-git/pre-commit; echo $?
 PRE-COMMIT exit=0          # INERT — a kid commit is allowed
 $ ... same .../pre-push; echo $?
 PRE-PUSH exit=0            # INERT — a kid push is allowed
@@ -61,11 +61,11 @@ root), under the legacy layout the identity. One-line refusal messages unchanged
 
 **LIVE PROOF after the fix:**
 ```
-$ AGI_TIER=kid AGI_PROJECT_ROOT=/home/ubuntu/work/agi/.agi bash .../pre-commit — exit=1
+$ AGI_TIER=kid AGI_PROJECT_ROOT=<home>/work/agi/.agi bash .../pre-commit — exit=1
   "agi: tier kid may not commit — automation owns git (goal:s27)"
-$ AGI_TIER=kid AGI_PROJECT_ROOT=/home/ubuntu/work/agi/.agi bash .../pre-push — exit=1
+$ AGI_TIER=kid AGI_PROJECT_ROOT=<home>/work/agi/.agi bash .../pre-push — exit=1
   "agi: tier kid may not push — automation owns git (goal:s27)"
-$ AGI_TIER=kid AGI_PROJECT_ROOT=/home/ubuntu/work/agi (legacy layout) .../pre-commit — exit=1
+$ AGI_TIER=kid AGI_PROJECT_ROOT=<home>/work/agi (legacy layout) .../pre-commit — exit=1
 ```
 
 ## Evidence
@@ -83,8 +83,8 @@ $ AGI_TIER=kid AGI_PROJECT_ROOT=/home/ubuntu/work/agi (legacy layout) .../pre-co
 
 **Verification commands (actual output):**
 ```
-AGI_TIER=kid AGI_PROJECT_ROOT=/home/ubuntu/work/agi/.agi bash extensions/agi/hooks/agent-git/pre-commit   → exit=1 (refused)
-AGI_TIER=kid AGI_PROJECT_ROOT=/home/ubuntu/work/agi/.agi bash extensions/agi/hooks/agent-git/pre-push      → exit=1 (refused)
+AGI_TIER=kid AGI_PROJECT_ROOT=<home>/work/agi/.agi bash extensions/agi/hooks/agent-git/pre-commit   → exit=1 (refused)
+AGI_TIER=kid AGI_PROJECT_ROOT=<home>/work/agi/.agi bash extensions/agi/hooks/agent-git/pre-push      → exit=1 (refused)
 python3 -m pytest extensions/agi/tests/test_git_commit_guard.py -q                                        → 17 passed
 python3 -m pytest extensions/agi/tests/ -q                                                               → 1840 passed, 1 skipped
 ```

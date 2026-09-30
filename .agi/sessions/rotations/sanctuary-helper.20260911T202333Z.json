@@ -25,7 +25,7 @@
       "before": 6,
       "after": 7
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sanctuary-helper.log",
     "d_stale_continue_cursor": {
       "start_offset": 2803922,
       "read_before_write": true,
@@ -70,14 +70,14 @@
       "window_id": "@304",
       "pid": 1289828,
       "session_id": "6630a5f9-014f-4ae2-a6f4-49ad17ad8825",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-helper/6630a5f9-014f-4ae2-a6f4-49ad17ad8825.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-helper/6630a5f9-014f-4ae2-a6f4-49ad17ad8825.jsonl",
       "name": "seat-sanctuary-helper-66",
-      "path": "/home/ubuntu/.claude/sessions/1289828.json",
+      "path": "<home>/.claude/sessions/1289828.json",
       "note": "joined by @304 in registry file 1289828.json"
     },
     "successor_row": "config:seats row 'sanctuary-helper': session_ref= session_id=6630a5f9-014f-4ae2-a6f4-49ad17ad8825 pid=1289828 generation=7 window='@304' source=registry",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.ack.json",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sanctuary-helper.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sanctuary-helper.ack.json",
     "own_authority_released": "generation 6 of seat 'sanctuary-helper' retired; successor generation 7 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "reap_own_pid": {
       "pid": null,
@@ -121,7 +121,7 @@
       },
       "verdict": "ok"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sanctuary-helper.bootstrap.json"
   },
   "s12_self_reap": {
     "order": "deepest-first",

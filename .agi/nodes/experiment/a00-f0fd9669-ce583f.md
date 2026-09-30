@@ -7,7 +7,7 @@ parents:
 confidence: 0.8
 demote_reason: "parent review: disproof is a static code trace, not the live N-parent run the hypothesis specified; N=1 carve-out keeps the claim from being universally disproved. Strong lean, not a decisive verdict."
 demoted_from: disproved
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f0fd9669-ce583f
 scaffold_hash: 43c9f68d9de2b4cc
@@ -93,13 +93,13 @@ hypothesis states.
 ```
 # 1. Config value — single scalar, no IPC mechanism
 echo ">>> spawn block in config.json:"
-python3 -c "import json;c=json.load(open('/home/ubuntu/work/agi/.agi/config.json'));print(c.get('spawn'))"
+python3 -c "import json;c=json.load(open('<home>/work/agi/.agi/config.json'));print(c.get('spawn'))"
 # Output: {'harness': 'pi', 'parallel': 1}
 # No lockfile path, no semaphore key, no coordination mechanism
 
 # 2. parallelism() reads from passed dict only — no shared state
 echo ">>> adapters.parallelism() source:"
-grep -A 12 'def parallelism' /home/ubuntu/work/agi/extensions/agi/bin/adapters/__init__.py
+grep -A 12 'def parallelism' <home>/work/agi/extensions/agi/bin/adapters/__init__.py
 # Output:
 # def parallelism(cfg, default=1):
 #     spawn = cfg.get('spawn') or {}
@@ -112,12 +112,12 @@ grep -A 12 'def parallelism' /home/ubuntu/work/agi/extensions/agi/bin/adapters/_
 # 3. No semaphore/lockfile in dispatch.py
 echo ">>> dispatch.py semaphore/lock/global search:"
 grep -n 'lock\|semaphore\|global\|pidfile\|flock\|fcntl' \
-  /home/ubuntu/work/agi/extensions/agi/bin/dispatch.py
+  <home>/work/agi/extensions/agi/bin/dispatch.py
 # Output: (no matches — zero coordination primitives)
 
 # 4. Parent brief — bound is advisory, not enforced
 echo ">>> Parent brief parallel text:"
-grep -B1 -A4 'AT MOST.*parallel' /home/ubuntu/work/agi/extensions/agi/bin/brief.py
+grep -B1 -A4 'AT MOST.*parallel' <home>/work/agi/extensions/agi/bin/brief.py
 # Output:
 #     f"AT MOST {parallel} kid(s) running at once. `spawn.parallel` bounds\n"
 #     f"   YOUR spawns only; it does not bound the kids you spawn, so you must\n"
@@ -126,7 +126,7 @@ grep -B1 -A4 'AT MOST.*parallel' /home/ubuntu/work/agi/extensions/agi/bin/brief.
 
 # 5. spawn loop — no serialization between dispatch.py invocations
 echo ">>> dispatch.py spawn loop:"
-grep -n 'Popen' /home/ubuntu/work/agi/extensions/agi/bin/dispatch.py
+grep -n 'Popen' <home>/work/agi/extensions/agi/bin/dispatch.py
 # Output:
 # 312:        proc = subprocess.Popen(
 # No locking, no coordination, no bound check across processes

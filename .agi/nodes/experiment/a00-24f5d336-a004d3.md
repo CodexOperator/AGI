@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-sb-status-wrapper-resolves-like-the-engine
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-24f5d336-a004d3
 loop: hypothesis:l4-the-sb-status-wrapper-resolves-like-the-engine@s2
@@ -31,7 +31,7 @@ implemented the three measured residues the L4.197 harvest left (verified on
 the landed bytes), then proved each on the built bytes.
 
 FILES CHANGED:
- 1. `/home/ubuntu/work/streamer-stub/bin/install-cli.sh` (FOREIGN tree —
+ 1. `<home>/work/streamer-stub/bin/install-cli.sh` (FOREIGN tree —
     separate repo, origin CodexOperator/streamer-stub, owned by a live relay
     session). The template edit is applied to the LIVE working tree and left
     UNCOMMITTED — the relay session's next commit picks it up (L4.197 measured
@@ -82,10 +82,10 @@ printing their own stub dir):
     # TEST A: relative stub -> project-root, NOT $HOME-relative
     (cd /tmp/sbtest/pa && HOME=/tmp/sbtest/home bash .../sb-status)
     STUB:/tmp/sbtest/pa/rel/stub            # == project root, graph-root-relative
-                                            # != /tmp/sbtest/home/rel/stub
+                                            # != /tmp/sbtest<home>/stub
     # TEST B: nested repo below configured project -> install-time fallback
     (cd /tmp/sbtest/anc/repo && HOME=/tmp/sbtest/home bash .../sb-status)
-    STUB:/tmp/sbtest/home/work/streamer-stub  # fallback, NOT ancestor /tmp/sbtest/alt
+    STUB:/tmp/sbtest<home>/streamer-stub  # fallback, NOT ancestor /tmp/sbtest/alt
     # TEST C: self-configured repo (has .agi config AND .git) -> config wins
     STUB:/tmp/sbtest/mine                     # own config takes precedence over boundary
     # TEST D: absolute depth-3 config (regression) -> still resolves
@@ -108,4 +108,4 @@ Implemented 3 residues in the sb-status wrapper template (foreign streamer-stub 
 DIRECTOR DEMOTION (sanctuary-director gen XIV, L4.229, 2026-09-11 13:45Z): proved -> inconclusive_lean_proved:70. The three claimed behaviours are real on the generated wrapper (relative declared stub -> project-relative; .git boundary; guard reads the executing line), but the template re-rooted the INSTALL-TIME fallback under any project that has a .agi/config.json: deployed via bin/install-cli.sh and run from the agi seat (config present, no streamer_stub cell) it failed with `<repo>/work/streamer-stub/bin/hold.sh: No such file or directory` -- the most common shape (the agi repo itself) and one the kid's tests never built. Fixed by the director in the stub template (streamer-stub 8b50fe3: `_base` is the project root only when a value was DECLARED, else $HOME), redeployed, five shapes verified. The functional falsifiers did not fire; the round's own coverage gap did.
 <!-- THOUGHT:END -->
 
-REVIEW L4.229 (a00-271916c6): accepted proved (0.9). Independently reproduced all three claims on the BUILT wrapper; suite 36 passed. RESIDUE (file scope, not the claim): /home/ubuntu/work/streamer-stub/bin/install-cli.sh is applied to the live working tree and left UNCOMMITTED -- no git run, per harness rule; the relay session next commit will sweep it (L4.197). Next round: bank the commit exception for a foreign-tree file scope, or land the template somewhere the loop can commit.
+REVIEW L4.229 (a00-271916c6): accepted proved (0.9). Independently reproduced all three claims on the BUILT wrapper; suite 36 passed. RESIDUE (file scope, not the claim): <home>/work/streamer-stub/bin/install-cli.sh is applied to the live working tree and left UNCOMMITTED -- no git run, per harness rule; the relay session next commit will sweep it (L4.197). Next round: bank the commit exception for a foreign-tree file scope, or land the template somewhere the loop can commit.

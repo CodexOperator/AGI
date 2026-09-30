@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-7c59d4d4-195565
 next_edges: []
 confidence: 0.92
-edited_by: a00-7c59d4d4
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-7c59d4d4-json-half
 loop: goal:g7.33.14.1-workflow-template-seam@s2
@@ -27,7 +27,7 @@ verdict: proved
 ## What I did
 
 Applied the EXISTING `research-review` migration to the 7 stale manifests —
-12 occurrences of `/home/ubuntu/work/agi` replaced by `{project_root}`, no new
+12 occurrences of `<home>/work/agi` replaced by `{project_root}`, no new
 placeholder, no new resolver. Then extended the guard.
 
 | file | literals replaced | in |
@@ -50,7 +50,7 @@ a real existing dir that holds `.agi`.
 ## Measured (this box)
 
 ```
-grep -c /home/ubuntu/work/agi extensions/agi/workflows/*.json   -> 0 for all
+grep -c <home>/work/agi extensions/agi/workflows/*.json   -> 0 for all
 python3 -m pytest extensions/agi/tests/test_workflow_template_seam_json.py -q  -> 5 passed
 python3 -m pytest extensions/agi/tests/test_workflow_template_seam_json.py \
         extensions/agi/tests/test_workflow.py -q                -> 126 passed

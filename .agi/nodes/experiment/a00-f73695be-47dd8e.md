@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-claude-code-session-capture-lands-scrubbed-transcripts-at-rotation
 next_edges: []
 confidence: 0.87
-edited_by: a00-5b69df90
+edited_by: director-general-2
 evidence_runs:
   - experiment:a00-f73695be-47dd8e
 line_ceiling: 200
@@ -138,7 +138,7 @@ repo has no `datasets/`; (3) `repo_root` is resolved through
 `locations.repo_root(root)` rather than the brief's `Path(root).parent`, which
 are equal for a `.agi` graph but the resolver also handles the legacy layout.
 The call site is exactly where the brief pointed; no alternative was taken.
-THOUGHT:END -->
+<!-- THOUGHT:END -->
 
 ## Agent Notes
 Built capture_session_transcript + _capture_session_safe + ONE finalize call site in rotate.py (122 prod lines, 0 removed); 4 fixtures pass (every scrub class redacted, clean byte-identical, label.json==config:posts row, capture errors never propagate); test_rotate.py 328 pass, test_rotate_selfreap.py 22 pass; env/AGI_SESSION_LOG resolve probe lands 0 residual spans.

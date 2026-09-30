@@ -4,7 +4,7 @@ description: >
   Create, edit, renumber or retire an agi GOAL node, with the [goal] schema inline
   (fields, regexes, legal parents, fixed body order). Use whenever a post mints a
   goal or subgoal, decomposes a goal into subgoals, changes a goal's status/title,
-  renumbers one, or checks GOALS.md. goal:g4.18.2 (owner 2026-09-27: "goal creation
+  renumbers one, or reads one by id. goal:g4.18.2 (owner 2026-09-27: "goal creation
   would automatically include the schema in the skill").
 ---
 
@@ -20,13 +20,12 @@ python3 extensions/agi/bin/write.py create goal <gX.Y.Z> \
   --set goal_id=<GX.Y.Z> --set goal_kind=subgoal --set status=active \
   --set 'title=<GX.Y.Z>: <target end-state in one line>' \
   --body-file <body.md> --actor <post> --role <role>        # --dry-run first
-python3 extensions/agi/bin/snapshot-goals.py --render       # GOALS.md is DERIVED
-python3 extensions/agi/bin/snapshot-goals.py --render --check   # exit 0 = byte-identical
+python3 extensions/agi/bin/write.py goal:<id> 'read body 1:60'   # read it back by id
 ```
 - `write.py` has NO goal-specific logic: `goal_id` + `goal_kind` arrive ONLY through `--set`.
   A goal minted without them (the slug alone) has no `goal_id` — fixing that later is a renumber.
 - slug = lowercased `goal_id` (`G4.18.2` → `goal:g4.18.2`); `S4` → `goal:s4`.
-- Commit the node + `GOALS.md` by exact path. Never hand-edit `GOALS.md`: the next render erases it.
+- Commit the node by exact path. GOALS.md is retired (goal:g7.16.1.4.1): never recreate it.
 
 ## 2 · The schema (as at 2026-09-27)
 ```

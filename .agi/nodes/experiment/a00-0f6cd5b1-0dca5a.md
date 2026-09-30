@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-grid-lock-doubled-path
 next_edges: []
 confidence: 0.8
-edited_by: a00-40fc2bbf
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-0f6cd5b1-0dca5a
 loop: hypothesis:l3-grid-lock-doubled-path@s2
@@ -33,9 +33,9 @@ lock to `root / ".agi" / "sessions"`, but `root` IS the graph dir
 `<repo>/.agi/.agi/sessions/.grid.lock`:
 
 ```
-graph root (find_project_root): /home/ubuntu/work/agi/.agi
-grid lock (root/.agi/sessions): /home/ubuntu/work/agi/.agi/.agi/sessions/.grid.lock
-locations.sessions_dir(root):   /home/ubuntu/work/agi/.agi/sessions
+graph root (find_project_root): <home>/work/agi/.agi
+grid lock (root/.agi/sessions): <home>/work/agi/.agi/.agi/sessions/.grid.lock
+locations.sessions_dir(root):   <home>/work/agi/.agi/sessions
 ```
 
 A throwaway G11 project confirmed `cmd_commit --all` creates the doubled file and
@@ -74,8 +74,8 @@ Both red before the fix, green after. `_grid_lock_path` refactored to resolve vi
   **104 passed**; full suite `python3 -m pytest extensions/agi/tests/ -q` →
   **1938 passed, 1 skipped**.
 - Real repo after fix: `GridLock(find_project_root())._path` =
-  `/home/ubuntu/work/agi/.agi/sessions/.grid.lock` (single, correct).
-- A pre-existing stray `/home/ubuntu/work/agi/.agi/.agi/` (untracked, predates this
+  `<home>/work/agi/.agi/sessions/.grid.lock` (single, correct).
+- A pre-existing stray `<home>/work/agi/.agi/.agi/` (untracked, predates this
   work) still exists on disk; not created by the fix and left in place.
 
 **Caveat.** The hypothesis's stated mechanism ("two files, so the flock never

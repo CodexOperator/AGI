@@ -5,14 +5,14 @@ type: goal
 parents:
   - goal:g6
 confidence: 1.0
-edited_by: belam
+edited_by: alive
 goal_id: S3
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 season: 1
 seeds: []
-status: horizon
+status: retired
 tags:
   - goal
   - root
@@ -38,3 +38,7 @@ Fix it at the source, cheaply: either neutralise fence-lookalike sequences in
 beside `_cap()` and the marker constants. **The next consumer is the G2.2 model
 pass** that fills `why`/`perf`/`security`, so this should land before that runs.
 Must not regress the 20 existing level3 tests.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+RETIRED by the council (alive, 02:1xZ 09-30) on the owner line "All S goals should have been retired in favor of nested sub sub goals or whatever that fit under the umbrella goals." (00:5xZ 09-30, relayed by belam) Nothing left open, measured: level3.py:274-296 extracts the contract bounded on the BUILD-CONTRACT markers and takes the LAST fence in the span, with the lookalike documented in its docstring; level3.py is the only contract-fence reader in extensions/agi/bin (git grep). Retired in place per skill agi-goal (status retired, never deleted, never moved: 39 retired goals live in goal/).
+<!-- THOUGHT:END -->

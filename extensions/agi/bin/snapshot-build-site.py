@@ -264,7 +264,7 @@ def main() -> int:
     # goal:g5 / L18 — a project is legitimate at three depths: goals only,
     # goals + seed ideas, goals + build site. A goals-only project is a valid
     # state, not a broken one, so a missing build site must degrade the way a
-    # missing GOALS.md already does.
+    # missing goal document did before it retired.
     #
     # Two separate defects are closed by returning here, and the second is the
     # dangerous one:

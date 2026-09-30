@@ -65,9 +65,9 @@
       "window_id": "@12",
       "pid": 1967983,
       "session_id": "f0c1d4c4-038f-4189-a4fe-03cabd1149e1",
-      "transcript": "/home/belam/.claude/projects/-data-work-agi/f0c1d4c4-038f-4189-a4fe-03cabd1149e1.jsonl",
+      "transcript": "~/.claude/projects/-data-work-agi/f0c1d4c4-038f-4189-a4fe-03cabd1149e1.jsonl",
       "name": "agi-da",
-      "path": "/home/belam/.claude/sessions/1967983.json",
+      "path": "~/.claude/sessions/1967983.json",
       "note": "joined by @12 in registry file 1967983.json"
     },
     "successor_row": "config:seats row 'thought-master': session_ref= session_name=agi-da session_label=thought-master session_id=f0c1d4c4-038f-4189-a4fe-03cabd1149e1 pid=1967983 generation=28 window='@12' source=registry pubkey=f5f8ae1abf2e6d6b... key_history=5",
@@ -128,7 +128,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/thought-master.meter --session-log /home/belam/.claude/projects/-data-work-agi/f0c1d4c4-038f-4189-a4fe-03cabd1149e1.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/thought-master.meter --session-log ~/.claude/projects/-data-work-agi/f0c1d4c4-038f-4189-a4fe-03cabd1149e1.jsonl",
         "rc": 0,
         "output": "0.0891\t89102/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

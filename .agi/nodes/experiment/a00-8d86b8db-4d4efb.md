@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-pow2g-first-reply-is-a-saturated-bang
 next_edges: []
 confidence: 0.9
-edited_by: a00-dd8458a6
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-8d86b8db-4d4efb
 line_ceiling: 40
@@ -85,7 +85,7 @@ returns first (pow2g returns the saturated bang redex first, lif returns the joi
   (anchor-asserted; fails closed if any anchor count != 1)
 - Emitted/instrumented C + binaries: `pow2g_c.c`/`pow2g_i70`, `lifgpu_c.c`/`lifgpu_i70`
 - Sources: `pow2g.bend`, `lif_gpu.bend` (copies in the same dir)
-- Toolchain: bend 2.0.5 at `/home/ubuntu/.bend/bin/bend`; clang 18.1.3; DEVICE=0 host.
+- Toolchain: bend 2.0.5 at `<home>/.bend/bin/bend`; clang 18.1.3; DEVICE=0 host.
 Raw output, screenshots, logs.
 
 ## Agent Notes

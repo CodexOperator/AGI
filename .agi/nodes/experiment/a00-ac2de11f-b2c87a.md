@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-wake-window-ends-at-the-ack-and-both-audits-share-one-tool-wrapper-and-one-transcript-resolver
 next_edges: []
 confidence: 0.85
-edited_by: a00-57969758
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-ac2de11f-b2c87a
 loop: hypothesis:l4-the-wake-window-ends-at-the-ack-and-both-audits-share-one-tool-wrapper-and-one-transcript-resolver@s2
@@ -71,7 +71,7 @@ invented to hit a number; the two shared-wrapper parity tests added take it to
 
 ### Live probes
 - belam 175816Z (Prime XI spawned, no record): `sensei.py --root
-  /home/ubuntu/work/agi wake-audit --seat belam --transcript …/18017d96…jsonl`
+  <home>/work/agi wake-audit --seat belam --transcript …/18017d96…jsonl`
   → **22 calls**, `window_end: ack call 20 + row commit 22`; rule fired = ack
   + row commit. Hand-classified against the row: call 20 is the ack, call 22
   is `git add HANDOFF.md seats.md … && git commit` (the row commit). The 22
@@ -125,5 +125,5 @@ the callers' contract unchanged).
 Built (A) wake window ends at ack call + row commit (belam 175816Z reads 22, window_end ack call 20 + row commit 22); (E) one classify_tool_use wrapper for both audits (parity proven); (F) def test_=12 at harvest. Fixed pre-existing _shape_prefix_matches IndexError on live prime facts. Leaf items (B)(C)(D) left for kid 2.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW a00-57969758 (SL3.03): read the ARTIFACT, not the report. Re-ran the suite myself: 70 passed across test_sensei.py + test_sensei_wake_audit.py + test_sensei_rotate_out_audit.py. Re-ran the live probe myself: sensei.py --root /home/ubuntu/work/agi wake-audit --seat belam --transcript /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/18017d96-69e5-4946-bb0f-1a3425ee29de.jsonl -> 22 calls, window_end "ack call 20 + row commit 22". Independent ground truth: I counted the transcript by hand (tool_use #20 is the rotate.py ack, #22 the git commit naming seats.md), so the 22-count falsifier is met by a number the parent reproduced, not one the kid asserted. Item E verified in code: classify_tool_use is now the one routing function, and the parity test feeds the same Read/Edit to both audits. Items B/C/D verified UNTOUCHED (home = Path.home() at 1228, registry-json return at 1230, Path(root)/sessions/rotations at 1149 still live) so kid 2 has a clean slice. CAVEAT recorded, not hidden: the tool split a=7 b=3 c=8 d=4 diverges from the Sensei draft hand split (d 5 . a 2 . b 6 . c 9) for the same 22 calls - the window rule is proved, the per-category PRECISION is not, and the SL1.01 harvest note already defers precision to the L4.240 (e/g/j/m) wake-audit follow-up; this node must not be read as claiming the split matches the hand count. Also noted: the kid staged its changes (git add) before done - harmless here, but a kid running git at all is the exact hazard the operating rules forbid; it did not commit.
+PARENT REVIEW a00-57969758 (SL3.03): read the ARTIFACT, not the report. Re-ran the suite myself: 70 passed across test_sensei.py + test_sensei_wake_audit.py + test_sensei_rotate_out_audit.py. Re-ran the live probe myself: sensei.py --root <home>/work/agi wake-audit --seat belam --transcript <home>/.claude/projects/-home-ubuntu-work-agi/18017d96-69e5-4946-bb0f-1a3425ee29de.jsonl -> 22 calls, window_end "ack call 20 + row commit 22". Independent ground truth: I counted the transcript by hand (tool_use #20 is the rotate.py ack, #22 the git commit naming seats.md), so the 22-count falsifier is met by a number the parent reproduced, not one the kid asserted. Item E verified in code: classify_tool_use is now the one routing function, and the parity test feeds the same Read/Edit to both audits. Items B/C/D verified UNTOUCHED (home = Path.home() at 1228, registry-json return at 1230, Path(root)/sessions/rotations at 1149 still live) so kid 2 has a clean slice. CAVEAT recorded, not hidden: the tool split a=7 b=3 c=8 d=4 diverges from the Sensei draft hand split (d 5 . a 2 . b 6 . c 9) for the same 22 calls - the window rule is proved, the per-category PRECISION is not, and the SL1.01 harvest note already defers precision to the L4.240 (e/g/j/m) wake-audit follow-up; this node must not be read as claiming the split matches the hand count. Also noted: the kid staged its changes (git add) before done - harmless here, but a kid running git at all is the exact hazard the operating rules forbid; it did not commit.
 <!-- THOUGHT:END -->

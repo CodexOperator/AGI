@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.6
 demote_reason: "[parent review] Experiment found 0 duplicate-id pairs (trigger absent); did not observe the mechanism firing. Code defect confirmed by grep but not demonstrated. Proof is in a01-42536fa8's synthetic test, not here."
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 46937f5670428792
 season: 1
 thought_session: season
@@ -54,7 +54,7 @@ def get_parents(filepath):
     except:
         return None
 
-nodes_dir = Path('/home/ubuntu/work/agi/.agi/nodes')
+nodes_dir = Path('<home>/work/agi/.agi/nodes')
 seen = {}
 pairs = []
 for f in sorted(nodes_dir.rglob('*.md')):

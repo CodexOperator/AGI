@@ -5,7 +5,7 @@ type: experiment
 parents:
   - goal:g7.1
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 season: 1
 tags:
@@ -52,7 +52,7 @@ separately from genuinely-missing refs. `--strict`/exit-0-by-default is
 unchanged, now covers all refs, not just goals — same mechanism, wider
 scope, no second mechanism invented.
 
-**Measured against the real corpus** (`/home/ubuntu/work/agi-tree`):
+**Measured against the real corpus** (`<home>/work/agi-tree`):
 
 - **Duplicate ids: 17 detected, 17 files hidden** — ran the patched
   `load_directory` read-only against `nodes/` (no writes, safe against the
@@ -118,7 +118,7 @@ no fabricated suggestion, the original `goal:` message wording is unchanged
 byte-for-byte, and the stdout summary line splits prefix-mismatch from
 missing correctly).
 
-**Suite: 400 passed, 0 failed** (`cd /home/ubuntu/work/agi && python3 -m
+**Suite: 400 passed, 0 failed** (`cd <home>/work/agi && python3 -m
 pytest extensions/agi/tests -q`) — the pre-existing 384 plus the 16 added
 here. No test outside the two owned files changed behaviour.
 

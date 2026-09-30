@@ -48,6 +48,13 @@ def _load(name):
 
 
 heal = _load("heal")
+
+
+@pytest.fixture(autouse=True)
+def _no_box_pressure(monkeypatch):
+    """goal:g7.16.1.5.3: the sweep defers under real box memory/io PSI; a
+    test judges the sweep, never the box it happens to run on."""
+    monkeypatch.setattr(heal, "_sweep_pressure_ok", lambda root: (True, "test"))
 spawn_budget = _load("spawn_budget")
 
 
@@ -171,40 +178,152 @@ def four_worktrees(repo_root: Path):
             "a00-cccc33": wt_c, "a00-dddd44": wt_d}
 
 
-def test_sweep_removes_merged_clean_homed_and_refuses_others(
+def _ref(repo, ref):
+    r = subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", "-q", ref],
+                       capture_output=True, text=True)
+    return r.stdout.strip()
+
+
+def test_sweep_archives_then_removes_unmerged_and_dirty(
         repo_root, four_worktrees, monkeypatch):
-    """A finished round's (merged, clean, homed) worktree is removed and its
-    loop branch survives; the dirty / live / unlanded ones are refused by
-    name, never forced, their bytes untouched."""
+    """goal:g7.16.1.5.3 -- "unmerged" / "dirty" are no longer terminal: the
+    merged+clean tree (A) is removed as before; the dirty one (B) and the
+    unlanded one (D) are ARCHIVED first (refs/archive/worktrees/<name>, B's
+    uncommitted bytes on <name>-dirty) and then removed; the live one (C) is
+    kept. Every loop branch survives; no byte is lost."""
     log = _graph(repo_root) / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    d_head = _ref(four_worktrees["a00-dddd44"], "HEAD")
     removed, refused, kept = heal._sweep_finished_worktrees(_graph(repo_root))
-    assert removed == 1
-    assert refused == 2   # dirty (B) + unmerged (D); live (C) is kept, not refused
-    assert kept == 1      # the live worktree
+    assert (removed, refused, kept) == (3, 0, 1)
 
-    # A removed, its loop BRANCH kept.
     assert not four_worktrees["a00-aaaa11"].exists()
+    assert not four_worktrees["a00-bbbb22"].exists()
+    assert not four_worktrees["a00-dddd44"].exists()
+    assert four_worktrees["a00-cccc33"].exists(), "a live round is never touched"
     branches = subprocess.run(
         ["git", "-C", str(repo_root), "branch", "--list", "loop/n-A@2"],
         capture_output=True, text=True).stdout
     assert "loop/n-A@2" in branches, "the loop/ branch is the history, keep it"
 
-    # B refused dirty: dir still there, modified node bytes untouched.
-    assert four_worktrees["a00-bbbb22"].exists()
-    assert "modified" in four_worktrees["a00-bbbb22"].joinpath(
-        "base.txt").read_text()
-
-    # C kept live; D kept unmerged.
-    assert four_worktrees["a00-cccc33"].exists()
-    assert four_worktrees["a00-dddd44"].exists()
+    # A merged+clean needs no archive; D pinned at its HEAD; B's dirty bytes kept.
+    assert _ref(repo_root, "refs/archive/worktrees/a00-aaaa11") == ""
+    assert _ref(repo_root, "refs/archive/worktrees/a00-dddd44") == d_head
+    b_dirty = _ref(repo_root, "refs/archive/worktrees/a00-bbbb22-dirty")
+    assert b_dirty
+    assert "modified" in subprocess.run(
+        ["git", "-C", str(repo_root), "show", f"{b_dirty}:base.txt"],
+        capture_output=True, text=True).stdout
 
     text = log.read_text()
     assert "[sweep] removed a00-aaaa11 iter=iter-001 base=season/s2" in text
-    assert "[sweep] refused a00-bbbb22: dirty (1 paths)" in text
+    assert "[sweep] archived a00-bbbb22 (dirty 1) ref=refs/archive/worktrees/a00-bbbb22 +dirty" in text
+    assert "[sweep] archived a00-dddd44 (unmerged) ref=refs/archive/worktrees/a00-dddd44" in text
     assert "[sweep] kept a00-cccc33: live" in text
-    assert "[sweep] refused a00-dddd44: unmerged" in text
-    assert "sweep: removed=1 refused=2 kept-live=1" in text
+    assert "refused a00-dddd44: unmerged" not in text
+    assert "sweep: removed=3 archived=2 refused=0 kept-live=1" in text
+
+
+def _fake_cgroup(tmp_path: Path, monkeypatch, file_mib: int, slab_mib: int) -> Path:
+    """goal:g7.16.1.5.3.1 -- a fake /proc/self/cgroup + cgroup v2 dir; the
+    test process's REAL cgroup is never written."""
+    proc = tmp_path / "proc-cgroup"
+    proc.write_text("0::/user.slice/fake.service\n")
+    cg = tmp_path / "cgfs" / "user.slice" / "fake.service"
+    cg.mkdir(parents=True)
+    (cg / "memory.stat").write_text(
+        f"anon 999999999\nfile {(file_mib + 700) << 20}\nshmem {700 << 20}\n"
+        f"slab_reclaimable {slab_mib << 20}\n")
+    monkeypatch.setattr(heal, "SWEEP_PROC_CGROUP", proc)
+    monkeypatch.setattr(heal, "SWEEP_CGROUP_FS", tmp_path / "cgfs")
+    return cg
+
+
+def test_sweep_reclaim_asks_own_cgroup_for_file_plus_slab_capped(tmp_path, monkeypatch):
+    """goal:g7.16.1.5.3.1 -- the ask is file - shmem + slab_reclaimable of OUR
+    cgroup (never anon, never tmpfs: 700 MiB of shmem is in every fixture),
+    capped by the cell, swappiness=0; under 16 MiB nothing is written; no
+    cgroup v2 line = nothing asked."""
+    cg = _fake_cgroup(tmp_path, monkeypatch, file_mib=300, slab_mib=100)
+    assert heal._sweep_reclaim(256) == 256
+    assert (cg / "memory.reclaim").read_text() == "256M swappiness=0"
+    assert heal._sweep_reclaim(4096) == 400
+    assert (cg / "memory.reclaim").read_text() == "400M swappiness=0"
+    assert heal._sweep_reclaim(0) == 0
+    (cg / "memory.reclaim").unlink()
+    (cg / "memory.stat").write_text(f"anon 999999999\nfile {701 << 20}\nshmem {700 << 20}\nslab_reclaimable 0\n")
+    assert heal._sweep_reclaim(256) == 0
+    assert not (cg / "memory.reclaim").exists(), "under 16 MiB: nothing written"
+    (tmp_path / "proc-cgroup").write_text("12:memory:/legacy\n")
+    assert heal._sweep_reclaim(256) == 0
+
+
+def test_sweep_reclaim_refusal_logs_one_line_and_never_raises(tmp_path, monkeypatch):
+    cg = _fake_cgroup(tmp_path, monkeypatch, file_mib=300, slab_mib=0)
+    (cg / "memory.reclaim").mkdir()  # a write that fails with an OSError
+    log = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    assert heal._sweep_reclaim(256) == 0
+    assert log.read_text().count("[sweep] reclaim refused") == 1
+
+
+def test_sweep_reclaims_on_cadence_and_decides_the_same(
+        repo_root, four_worktrees, tmp_path, monkeypatch):
+    """goal:g7.16.1.5.3.1 -- with the cells on, the walk asks every
+    `sweep_reclaim_every` trees and once at pass end, and every removal /
+    archive / keep decision is exactly the cells-off one."""
+    graph = _graph(repo_root)
+    cfg = json.loads((graph / "config.json").read_text())
+    cfg["reaper"].update(sweep_reclaim_max_mib=64, sweep_reclaim_every=2)
+    (graph / "config.json").write_text(json.dumps(cfg))
+    cg = _fake_cgroup(tmp_path, monkeypatch, file_mib=300, slab_mib=0)
+    asks = []
+    real = heal._sweep_reclaim
+    monkeypatch.setattr(heal, "_sweep_reclaim", lambda m: asks.append(m) or real(m))
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    assert heal._sweep_finished_worktrees(graph) == (3, 0, 1)
+    # 4 trees x 2 walks = 8 steps -> 4 cadence asks + 1 at pass end
+    assert asks == [64] * 5
+    assert (cg / "memory.reclaim").read_text() == "64M swappiness=0"
+    text = log.read_text()
+    assert "[sweep] reclaimed own cgroup: 5 ask(s), 320 MiB asked over 8 tree steps" in text
+    assert "sweep: removed=3 archived=2 refused=0 kept-live=1" in text
+
+
+def test_sweep_reclaim_writes_only_its_own_cgroup():
+    """goal:g7.16.1.5.3.1 Falsifier 2: ONE memory.reclaim write in heal, and
+    its cgroup comes from /proc/self/cgroup only."""
+    src = (BIN / "heal.py").read_text()
+    assert src.count('"memory.reclaim"') == 1
+    assert 'SWEEP_PROC_CGROUP = Path("/proc/self/cgroup")' in src
+
+
+def test_sweep_deferred_under_pressure_removes_nothing(
+        repo_root, four_worktrees, monkeypatch):
+    """goal:g7.16.1.5.3 -- a pass under memory/io PSI (or a blind read) is
+    deferred WHOLE: nothing archived, nothing removed, one line says why."""
+    log = _graph(repo_root) / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_sweep_pressure_ok",
+                        lambda root: (False, "io psi some.avg10 55 >= 40"))
+    assert heal._sweep_finished_worktrees(_graph(repo_root)) == (0, 0, 0)
+    assert all(w.exists() for w in four_worktrees.values())
+    assert "[sweep] deferred: io psi some.avg10 55 >= 40" in log.read_text()
+
+
+def test_sweep_failed_archive_never_removes(repo_root, four_worktrees,
+                                            monkeypatch):
+    """goal:g7.16.1.5.3 invariant: a tree that needs an archive is never
+    removed unless the archive verified -- a failed archive refuses by name."""
+    log = _graph(repo_root) / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_sweep_archive", lambda *a, **k: "update-ref failed")
+    removed, refused, kept = heal._sweep_finished_worktrees(_graph(repo_root))
+    assert (removed, refused, kept) == (1, 2, 1)   # only merged+clean A goes
+    assert four_worktrees["a00-bbbb22"].exists()
+    assert four_worktrees["a00-dddd44"].exists()
+    assert "[sweep] refused a00-dddd44: archive failed (update-ref failed)" in log.read_text()
 
 
 def _raise_budget(*args, **kwargs):
@@ -244,8 +363,11 @@ def test_sweep_dry_run_removes_nothing_but_logs(repo_root, four_worktrees,
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     removed, _, _ = heal._sweep_finished_worktrees(_graph(repo_root),
                                                    dry_run=True)
-    assert removed == 1
-    assert four_worktrees["a00-aaaa11"].exists(), "dry-run removes nothing"
+    assert removed == 3
+    assert all(w.exists() for w in four_worktrees.values()), "dry-run removes nothing"
+    assert _ref(repo_root, "refs/archive/worktrees/a00-dddd44") == "", "dry-run writes no ref"
+    assert "archived a00-dddd44 (unmerged) ref=refs/archive/worktrees/a00-dddd44 (dry-run)" in \
+        log.read_text()
     assert "removed a00-aaaa11 iter=iter-001 base=season/s2 (dry-run)" in \
         log.read_text()
 
@@ -279,9 +401,10 @@ def test_watch_once_calls_sweep_exactly_once(repo_root, four_worktrees,
                          "--once"])
     assert heal.main() == 0
     assert not four_worktrees["a00-aaaa11"].exists()
-    assert four_worktrees["a00-bbbb22"].exists()
+    assert not four_worktrees["a00-bbbb22"].exists()   # archived, then removed
     assert four_worktrees["a00-cccc33"].exists()
-    assert four_worktrees["a00-dddd44"].exists()
+    assert not four_worktrees["a00-dddd44"].exists()   # archived, then removed
+    assert _ref(repo_root, "refs/archive/worktrees/a00-dddd44")
     # one summary line => the sweep ran once.
     assert log.read_text().count("sweep: removed=") == 1
 
@@ -424,16 +547,26 @@ def test_sweep_bring_home_refuses_non_terminal(repo_root, monkeypatch):
     assert "non-terminal" in text
 
 
+def _archived(repo: Path, ref: str, prefix: str) -> dict:
+    """relative path (under `prefix`) -> bytes, for every file the archive
+    ref's tree holds below `prefix` (the same shape as `_snapshot`)."""
+    names = subprocess.run(
+        ["git", "-C", str(repo), "ls-tree", "-r", "--name-only", ref, "--", prefix],
+        capture_output=True, text=True, check=True).stdout.split()
+    return {n[len(prefix) + 1:]: subprocess.run(
+        ["git", "-C", str(repo), "show", f"{ref}:{n}"],
+        capture_output=True, check=True).stdout for n in names}
+
+
 def test_sweep_bring_home_never_overwrites_foreign_target(repo_root,
                                                            monkeypatch):
-    """(c, RE-PINNED L4.257 to the claim's ORIGINAL (c)) A pre-existing
-    NON-EMPTY main target is never overwritten by the sweep AND the round is
-    REFUSED: a foreign non-empty dir is NOT home (condition (4) is per-source
-    and byte-exact, `_sweep_iter_home`), so the bring-home IS attempted,
-    session-complete (whose authority stays intact) refuses the collision,
-    and the source-holding worktree is left standing with its bytes (the
-    earlier-documented 'deviation' is gone -- an on-disk target is no longer
-    home by is_dir alone)."""
+    """(c, RE-PINNED goal:g7.16.1.5.3) A pre-existing NON-EMPTY main target is
+    never overwritten by the sweep: the bring-home IS attempted, session-
+    complete (whose authority stays intact) refuses the collision ("target
+    exists"). That refusal is TERMINAL -- the round is over -- so it no longer
+    holds the tree forever (4287 of 4291 not-home refusals, 09-30): the tree's
+    OWN records ride into refs/archive/worktrees/<name>-dirty (byte-verified
+    here), THEN the tree is removed. No byte is lost on either side."""
     repo = repo_root
     graph = _graph(repo)
     wt = _cut(repo, "a00-1111aa", "loop/1-A@2", "season/s2")
@@ -442,6 +575,7 @@ def test_sweep_bring_home_never_overwrites_foreign_target(repo_root,
     tgt = graph / "sessions" / "iter-503"
     tgt.mkdir(parents=True, exist_ok=True)
     (tgt / "preexisting.txt").write_text("foreign\n")
+    src_before = _snapshot(wt / ".agi" / "sessions" / "iter-503")
     log = graph / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     removed, refused, _ = heal._sweep_finished_worktrees(graph)
@@ -449,13 +583,14 @@ def test_sweep_bring_home_never_overwrites_foreign_target(repo_root,
     # overwritten (session-complete refused the collision).
     assert (tgt / "preexisting.txt").read_text() == "foreign\n", \
         "the foreign target bytes must survive the pass untouched"
-    # ...AND the foreign dir is NOT home, so the tree is REFUSED, never reaped
-    # with its own unmigrated records.
-    assert (removed, refused) == (0, 1)
-    assert wt.exists(), "the source-holding tree is not home (foreign target)"
+    assert (removed, refused) == (1, 0)
+    assert not wt.exists(), "archived, then removed"
+    assert _archived(repo, "refs/archive/worktrees/a00-1111aa-dirty",
+                     ".agi/sessions/iter-503") == src_before, \
+        "the tree's own unmigrated records are byte-equal in the archive"
     text = log.read_text()
-    assert "[sweep] refused a00-1111aa: session dir not home" in text
-    assert "target exists" in text
+    assert "[sweep] archived a00-1111aa (sessions 1) ref=refs/archive/worktrees/a00-1111aa +dirty" in text
+    assert "session dir not home" not in text
 
 
 def test_sweep_bring_home_branch_round_calls_once(repo_root, monkeypatch):
@@ -715,11 +850,121 @@ def test_sweep_empty_target_homes_content_before_removal(repo_root, monkeypatch)
     assert "loop/f-F@2" in branches, "the loop/ branch is the history, keep it"
 
 
+def _cold_cell(repo: Path, tmp_path: Path, monkeypatch) -> Path:
+    """goal:g7.16.1.5.3.2 -- config:guard names a cold sessions home for a
+    fixture box (the goal:g7.16.1.5.2 cell), under tmp."""
+    cold = tmp_path / "cold-sessions"
+    geo = _graph(repo) / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "guard.md").write_text(
+        "# guard\n```sh guard.env\n"
+        f"GUARD_AGI_SESSIONS_ARCHIVE_fixturebox={cold}\n```\n")
+    monkeypatch.setenv("GUARD_BOX", "fixturebox")
+    return cold
+
+
+def test_sweep_homes_onto_the_cold_home_never_the_ram_disk(repo_root, tmp_path,
+                                                           monkeypatch):
+    """goal:g7.16.1.5.3.2 -- with the cold-home cell set and no MAIN entry,
+    the homed bytes land in <cold>/<iter> and MAIN keeps ONLY a symlink (no
+    real dir is ever created under MAIN's sessions); byte-equal, the source
+    and the tree removed."""
+    repo = repo_root
+    graph = _graph(repo)
+    cold = _cold_cell(repo, tmp_path, monkeypatch)
+    wt = _cut(repo, "a00-c01d77", "loop/c-C@2", "season/s2")
+    _land(repo, wt, "loop/c-C@2")
+    _stamp_complete_round(wt, "iter-801", "a00-c01d77")
+    src = _snapshot(wt / ".agi" / "sessions" / "iter-801")
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    assert heal._sweep_finished_worktrees(graph) == (1, 0, 0)
+    link = graph / "sessions" / "iter-801"
+    assert link.is_symlink() and link.resolve() == (cold / "iter-801").resolve()
+    assert _snapshot(cold / "iter-801") == src, "the homed bytes are on the cold home"
+    assert not wt.exists()
+    assert "[sweep] homed a00-c01d77 iter=iter-801" in log.read_text()
+
+
+def test_sweep_cold_link_rolls_back_a_refused_homing(repo_root, tmp_path, monkeypatch):
+    """goal:g7.16.1.5.3.2 -- a homing session-complete refuses (a non-terminal
+    round) leaves no empty cold dir and no dangling link; the tree stands."""
+    repo = repo_root
+    graph = _graph(repo)
+    cold = _cold_cell(repo, tmp_path, monkeypatch)
+    wt = _cut(repo, "a00-c02d88", "loop/d-D@2", "season/s2")
+    _land(repo, wt, "loop/d-D@2")
+    _stamp_plain_round(wt, "iter-802", "a00-c02d88")
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph / "reaper.log"))
+    made = []
+    real_link = heal._sweep_cold_link
+    monkeypatch.setattr(heal, "_sweep_cold_link",
+                        lambda *a: made.append(real_link(*a)) or made[-1])
+    removed, refused, _ = heal._sweep_finished_worktrees(graph)
+    assert any(made), "the cold link WAS made (the rollback is exercised)"
+    assert (removed, refused) == (0, 1)
+    assert not (graph / "sessions" / "iter-802").is_symlink()
+    assert not (graph / "sessions" / "iter-802").exists()
+    assert not (cold / "iter-802").exists()
+    assert wt.exists()
+
+
+def test_sweep_copy_failure_through_the_cold_link_leaves_no_partial(repo_root, tmp_path,
+                                                                    monkeypatch):
+    """SM residue 156: session-complete's copy FAILS mid-way through heal's
+    cold link. The partial copy is discarded THROUGH the link (rmtree alone
+    refuses a symlink and kept it), so the rollback finds the cold dir empty
+    and removes it and the link; the tree's own records ride its archive."""
+    import shutil as _shutil
+    repo = repo_root
+    graph = _graph(repo)
+    cold = _cold_cell(repo, tmp_path, monkeypatch)
+    wt = _cut(repo, "a00-c03d99", "loop/e-E@3", "season/s2")
+    _land(repo, wt, "loop/e-E@3")
+    _stamp_complete_round(wt, "iter-803", "a00-c03d99")
+    src = _snapshot(wt / ".agi" / "sessions" / "iter-803")
+    calls = []
+    real_copy = _shutil.copy2
+
+    def copy_then_fail(a, b, *k, **kw):
+        calls.append(b)
+        if len(calls) > 1:
+            raise OSError(28, "No space left on device (fixture)")
+        return real_copy(a, b, *k, **kw)
+    monkeypatch.setattr(_shutil, "copy2", copy_then_fail)
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    removed, refused, _ = heal._sweep_finished_worktrees(graph)
+    assert len(calls) >= 2, "the copy really failed mid-way through the link"
+    assert not (graph / "sessions" / "iter-803").is_symlink(), "no link left"
+    assert not (cold / "iter-803").exists(), "no partial copy left on the cold home"
+    assert (removed, refused) == (1, 0), "home failed -> archived, then removed"
+    assert _archived(repo, "refs/archive/worktrees/a00-c03d99-dirty",
+                     ".agi/sessions/iter-803") == src, "no byte lost"
+
+
+def test_sweep_cold_link_keeps_a_dir_holding_bytes(tmp_path):
+    """The rollback removes ONLY an empty cold dir: one byte may be a
+    source's verified contribution, so the dir and its link stay."""
+    dest = tmp_path / "cold" / "iter-9"
+    dest.mkdir(parents=True)
+    (dest / "x").write_text("landed\n")
+    link = tmp_path / "main" / "iter-9"
+    link.parent.mkdir()
+    link.symlink_to(dest)
+    heal._sweep_cold_unlink((link, dest))
+    assert link.is_symlink() and (dest / "x").read_text() == "landed\n"
+    (dest / "x").unlink()
+    heal._sweep_cold_unlink((link, dest))
+    assert not link.is_symlink() and not dest.exists()
+
+
 def test_sweep_byte_equal_copy_is_home(repo_root, monkeypatch):
     """(d) A target holding a BYTE-EQUAL copy of the source (hand-copied,
     no session-complete) IS home: the worktree is removed. A target that
     differs by one byte is NOT home: the bring-home is attempted and refused
-    (non-empty target), the tree stands."""
+    (non-empty target), so its records are archived before the tree goes
+    (goal:g7.16.1.5.3)."""
     repo = repo_root
     graph = _graph(repo)
     # -- home twin: byte-equal copy --
@@ -736,17 +981,22 @@ def test_sweep_byte_equal_copy_is_home(repo_root, monkeypatch):
     shutil.copytree(wt_b / ".agi" / "sessions" / "iter-702", tgt_b)
     (tgt_b / "output.log").write_text("foreign byte differs\n")
 
+    src_b = _snapshot(wt_b / ".agi" / "sessions" / "iter-702")
     log = graph / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     removed, refused, kept = heal._sweep_finished_worktrees(graph)
-    assert (removed, refused, kept) == (1, 1, 0)
+    assert (removed, refused, kept) == (2, 0, 0)
     assert not wt_a.exists(), "byte-equal copy is home -> removed"
-    assert wt_b.exists(), "one-byte-differing target is not home -> refused"
+    assert _ref(repo, "refs/archive/worktrees/a00-3333cc-dirty") == "", \
+        "a home tree needs no archive"
+    assert not wt_b.exists(), "not home (target exists) -> archived, removed"
+    assert _archived(repo, "refs/archive/worktrees/a00-4444dd-dirty",
+                     ".agi/sessions/iter-702") == src_b
     assert (tgt_b / "output.log").read_text() == "foreign byte differs\n", \
         "the differing foreign bytes survive untouched"
     text = log.read_text()
     assert "removed a00-3333cc iter=iter-701" in text
-    assert "refused a00-4444dd: session dir not home" in text
+    assert "archived a00-4444dd (sessions 1)" in text
 
 
 # ---------------------------------------------------------------------------

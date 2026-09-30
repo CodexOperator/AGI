@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-config-max-and-template-max-are-required-verdict-fields-of-every-merge-up-review-and-a-named-line-of-every-dispatch-order
 next_edges: []
 confidence: 0.85
-edited_by: a00-fa1b89d2
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-93e8501b-e0aa89
 line_ceiling: 10
@@ -46,7 +46,7 @@ proved on the bytes.
    and lose the cell-to-class attribution the seam is for.
 2. **The regex bug (mur's).** `classify()` matched with `\b%s\b`, and a word
    boundary needs a word character on one side — so a cell value beginning
-   with a slash (exactly `logs_dir = /home/ubuntu/logs`) could NEVER match;
+   with a slash (exactly `logs_dir = <home>/logs`) could NEVER match;
    the logs class was silently dead, cell present or not. Replaced with
    `(?<![A-Za-z0-9_])VALUE(?![A-Za-z0-9_])`, which needs no word character on
    either side and still refuses an embedded substring.
@@ -95,11 +95,11 @@ $ python3 extensions/agi/bin/paths.py audit .../probe1/src --root .../probe1/gra
 missing box cells: logs_dir, root, tmux_session, user
 rc=2                # NOT 0 -- the audit refuses to report clean
 
-# (ii) fixture literal containing the live logs_dir value /home/ubuntu/logs:
+# (ii) fixture literal containing the live logs_dir value <home>/logs:
 $ python3 extensions/agi/bin/paths.py audit .../probe2/src --root .../probe2/graph
-.../probe2/src/a.py:1: home: log = '/home/ubuntu/logs/x.log'
-.../probe2/src/a.py:1: logs: log = '/home/ubuntu/logs/x.log'
-.../probe2/src/a.py:1: user: log = '/home/ubuntu/logs/x.log'
+.../probe2/src/a.py:1: home: log = '<home>/logs/x.log'
+.../probe2/src/a.py:1: logs: log = '<home>/logs/x.log'
+.../probe2/src/a.py:1: user: log = '<home>/logs/x.log'
 rc=1                # class `logs` IS reported now
 ```
 

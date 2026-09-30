@@ -49,7 +49,6 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/grid.py payload <id> [--version N] [--out PATH]` | Read one payload back out of its ref |
 | `bin/grid.py log <id>` / `diff <id> [--back N]` / `versions <id>` / `status` | Inspect |
 | `bin/crons.py apply` / `show` / `remove` | Reconcile, inspect, or drop the crontab derived from `.agi/nodes/.geometry/crons.md` |
-| `bin/unify.py --engine E --tree T [--dry-run \| --yes]` | **One-time.** Merges a tree repo into an engine repo under `.agi/` (the one-repo move). Not a command a migrated project ever runs again. |
 | `bin/dispatch.py <project> <iter>` | Spawn pi kids (pi runtime) |
 | `bin/dispatch.py <project> <iter> --dry-run` | Resolve + print every slot's spawn (command, env, brief) with no spawn, no budget slot, no session dir — `hypothesis:l3-dispatch-dry-run` |
 | `bin/heal.py <project> <iter>` | Timeout/restart watchdog (pi runtime) |
@@ -165,12 +164,13 @@ Run these in order, from MAIN, every time a Prime is stood up on a box:
 # 0  the prayer is the first tokens of the FIRST reply (Constitution), then:
 bin/agi-boxinfo                                   # which box (AGI_BOX in MAIN's .env) — alias only
 git branch --show-current                         # the trunk this box works: season2/main on core, <town>/season2/main on a town box
-git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then links.py links + snapshot-goals.py --render --check
+git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then links.py links
 # 1  the row: box cell + identity cells through the ONE writer (write.py, actor = the prime row), never a hand edit
 #    (posts.md is config; written_by is [owner, prime_director]; a box's rows carry `box: <alias>` — a row
 #     without the cell belongs to default_box and is FOREIGN everywhere else: whois/heal/status/mail_poll skip it)
-# 2  the key: keys never cross boxes — re-mint on arrival; key_history on the row records the rotation
-send.py --from belam keygen --post belam
+# 2  the key: keys never cross boxes and no model mints one — rotate-self (step 6) and every stand-up key the row
+#    from config:key-authority key_template: on the row's OWN box (step 1's committed box cell = the witness) it is
+#    reminted, the old key retired UNSIGNED into key_history + ONE finding; a foreign box is refused + ONE finding
 # 3  the pin: the seat-stable meter pin on YOUR OWN transcript (never the newest .jsonl — that is another seat's)
 rotate.py meter --post belam --pin .agi/sessions/belam.meter --session-log ~/.claude/projects/<slug>/<own-session-id>.jsonl
 # 4  the seats you were told to stand up, each from its own card, then pin each to its own transcript
@@ -358,7 +358,7 @@ One iteration = one node per kid, reviewed and committed by the parent.
 
 1. **Snapshot + render.** `driver.sh --smoke --max-iters 1`. Records the metric baseline, refreshes `context/INJECTION.md`. **Verify the node count did not drop.**
 2. **Pick targets** from `INJECTION.md`. Slot 0 → big zoom (fresh idea or top-level fork). Slots 1..N → small zoom on the top attractor, 2-hop subtree. N = `cc_dispatch.kids_per_iter`.
-3. **Spawn kids.** Generate each kid's context with `bin/zoom.py`, then **embed the rendered map in the spawn prompt** — don't merely reference it. Each prompt must be self-contained: zoom scope, target parent node id, chain step, node file format, verdict taxonomy, project paths (`INJECTION.md`, `GOALS.md`, spec).
+3. **Spawn kids.** Generate each kid's context with `bin/zoom.py`, then **embed the rendered map in the spawn prompt** — don't merely reference it. Each prompt must be self-contained: zoom scope, target parent node id, chain step, node file format, verdict taxonomy, project paths (`INJECTION.md`, spec).
    Kid deltas from the normal rules: **do not commit**, and do not call `cli.py done` — write the node file, report, stop. The parent owns commits and record-keeping. When the job is a fix or update to an existing node rather than a new chain step, **edit that node's file in place** — never mint a second file for the new version (no `@v2` node, no `supersedes:` pair). The grid, not the filesystem, carries version history; it records the change at the parent's next `grid.py commit --all`.
 4. **Review — this is the gate.** For each node: parent link resolves, taxonomy valid, and **`proved`/`disproved` REQUIRE experiment evidence (`evidence_runs >= 1`)**. Demote unevidenced verdicts to `pending` or `inconclusive_lean_*`. Reject orphans.
    The evidence half is now enforced in code — `bin/evidence_gate.py`, applied by both writer paths (`bin/cli.py done` and `bin/post_wire.py`). An unevidenced `proved`/`disproved` is auto-demoted to `inconclusive_lean_*:50` and stamped `demoted_from` / `demote_reason`; the node is kept, only the overclaim is dropped. `--no-evidence-gate` bypasses it loudly and stamps `evidence_gate: bypassed` — treat any such node as unreviewed. Still yours by hand: parent-link resolution and orphan rejection.
@@ -422,7 +422,6 @@ out. If the project needs an engine clone, that clone sits gitignored beside
 ```
 fantasia/
   <game source>
-  GOALS.md                        long-term goals: active | horizon | retired | complete — repo root, deliberately
   .agi/
     config.json                   metrics, dispatch, timeouts
     nodes/<type>/*.md             the graph — frontmatter + body
@@ -433,8 +432,7 @@ fantasia/
 
 **`.agi` is a dot directory on purpose** — it files the graph with `.git`,
 `.github` and `.claude` rather than in the middle of the source tree.
-`GOALS.md` is the deliberate exception: it renders to the repo root, not into
-`.agi/`, because it's the one document a human is likely to open first.
+(`GOALS.md` at the repo root was the one exception; retired 2026-09-29, goal:g7.16.1.4.1.)
 
 **Two graphs, no flag.** A project with the engine cloned in holds two:
 `fantasia/.agi` and `fantasia/agi/.agi`. `bin/locations.py`'s
@@ -445,7 +443,7 @@ you get the engine's own. That is what lets the engine improve itself from
 inside a project that is using it, and nothing branches on a project's name to
 make it true — it falls out of the filesystem.
 
-**Goals are the baseline.** `GOALS.md` defines what chains are for; seed nodes reference goals by id. Retire a goal by marking it `retired` and **deprecating — never deleting** its seed node; retired chains remain prior art.
+**Goals are the baseline.** The goal nodes define what chains are for; seed nodes reference goals by id. Retire a goal by marking it `retired` and **deprecating — never deleting** its seed node; retired chains remain prior art.
 
 **Status is a four-state lifecycle:** `active` (being worked), `horizon` (declared and committed to, not yet being worked), `retired` (stopped making sense), `complete` (achieved). `horizon` is what makes goal rotation expressible — you can declare more goals than `cc_dispatch.max_goals_active` without lying about which are in flight. Unknown values are **preserved verbatim** with a stderr warning, never rejected: a typo must not be able to drop a goal from the graph. `phasing-out` is the legacy spelling of `retired` and stays accepted permanently, for projects that predate the 2026-09-02 rename.
 
@@ -469,7 +467,7 @@ project from before the one-repo move keeps resolving unchanged:
    them, never a guess.
 
 **Open, deliberately not built yet:** `agi init` — scaffolding a fresh `.agi/`
-(config, `nodes/`, a `GOALS.md` template) so this layout is reproducible
+(config, `nodes/`, a first goal node) so this layout is reproducible
 without copying a project by hand. Today: clone the engine in, `git init` if
 needed, create `.agi/` yourself. Engine-commit pinning in the project config
 (the retired forkability goal's other ask) is also not implemented.
@@ -529,7 +527,7 @@ Three rules, each with a reason that was paid for:
 
 - **Absent means empty.** Introducing the block churned 0 of 786 nodes. Never
   invent one after the fact — a fabricated thought reads as evidence.
-- **Readers strip it.** It must not ride in `GOALS.md` or injected context.
+- **Readers strip it.** It must not ride in injected context.
   Thought is provenance you zoom into, not weight every agent carries for the
   rest of the project's life — the design ethic at the top of this file,
   applied.
@@ -640,7 +638,7 @@ One namespace per runtime — `agent_dispatch.*` for pi, `cc_dispatch.*` for Cla
 
 **The config file is the project's whole customization surface.** It is per-project, owned by the project repo, and meant to be edited programmatically — the engine reads it, never writes engine behavior back into it. A project changes metrics, dispatch, and schema here; it never forks engine code to change behavior.
 
-**Two more keys exist only to override the one-repo move's defaults, both usually absent:** `locations.source_root` (where `payload_ref` resolves — defaults to the repo enclosing `.agi/`) and `goals_file` (where the rendered `GOALS.md` lands — defaults to that repo's root). A project that already ships its own `GOALS.md` sets `goals_file` and keeps both documents rather than colliding.
+**One more key exists only to override the one-repo move's defaults, usually absent:** `locations.source_root` (where `payload_ref` resolves — defaults to the repo enclosing `.agi/`). (`goals_file`, the rendered GOALS.md's path, retired with it 2026-09-29, goal:g7.16.1.4.1.)
 
 **Legacy name.** Projects created before the rename carry `autoresearch-tree.config.json`. Every engine entry point still resolves it, canonical name first, so old projects keep running unchanged. Same for `$AGI_TREE_PROJECT_ROOT`, whose legacy spelling `$AUTORESEARCH_TREE_PROJECT_ROOT` is still read and still set.
 
@@ -675,7 +673,7 @@ grid ref, so every prior version is `grid.py payload build:HANDOFF.md --version
 N`. Accumulating them in the file costs every future session context and buys
 nothing — it had reached 1,723 lines and six sections before this rule.
 
-**`GOALS.md` is the project tracker; this is only the bridge between sessions.**
+**The goal nodes are the project tracker; this is only the bridge between sessions.**
 Anything that is a commitment is a goal node. Keep it thin.
 
 **Nothing that is true across sessions goes in it.** Bootstrap and install live
@@ -801,11 +799,10 @@ npx gitnexus query "<concept>" --repo /home/ubuntu/work/agi
 |---|---|
 | `bash '<engine>/extensions/agi/driver.sh' --smoke --max-iters 1` | snapshot + render + metrics, no dispatch — verify the node count did not drop |
 | `python3 -m pytest '<engine>/extensions/agi/tests/' -q` | the engine's own suite |
-| `python3 '<engine>/extensions/agi/bin/snapshot-goals.py' --render --check` | GOALS.md and the goal nodes are byte-identical inverses |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --verify` | goal:g2.19 — one render, two readers |
 | `python3 '<engine>/extensions/agi/bin/grid.py' commit --all` | version every changed node and its payload |
 | `python3 '<engine>/extensions/agi/bin/links.py' links` | every node's link resolves; broken_links must be 0 |
-| `python3 '<engine>/extensions/agi/bin/links.py' schema` | goal:s31 — which nodes violate their type's required list (dry) |
+| `python3 '<engine>/extensions/agi/bin/links.py' schema` | goal:g7.33.10.1 — which nodes violate their type's required list (dry) |
 | `python3 '<engine>/extensions/agi/bin/spawn_budget.py' status` | goal:g4.8 — live agents against the tree-wide bound |
 | `python3 '<engine>/extensions/agi/bin/provisioning.py' status` | goal:g1.11 — whether per-spawn keys are being issued |
 | `python3 '<engine>/extensions/agi/bin/envfile.py' --check` | goal:g1.8 — required keys present, forbidden keys absent |

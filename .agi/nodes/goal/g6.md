@@ -23,7 +23,7 @@ seeds:
   - goal:g6.9
   - idea:deprecate-the-gamed-mass
   - idea:engine-self-decomposition
-status: horizon
+status: active
 tags:
   - goal
   - root
@@ -58,7 +58,7 @@ project), this file, and H0e (truncated chain results no longer cached as
 complete).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Folded umbrella from goal:g25 onto goal:g6 in place 2026-09-19; id/mint_id protected. Un-retired as perpetual umbrella.
+Lifecycle marker by recursive leaf walk (director-general-4, owner 2026-09-29 22:0xZ via belam): status was horizon while 43/80 leaves are active; a parent with an active leaf is active. Walk re-measured 22:1xZ: 468 goals, 298 active, 85 horizon, 47 complete, 38 retired.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

@@ -6,7 +6,7 @@ parents:
   - hypothesis:box-memory-guard-probe-reads-back-the-table-read-only
 next_edges: []
 confidence: 0.9
-edited_by: a00-97f3bc1b
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-b93f8134-e5fa97
 line_ceiling: 151
@@ -33,7 +33,7 @@ verdict: proved
 ## What I built (and from what)
 
 I read DH.434's prior art in full first, READ-ONLY from another worker's checkout:
-`/data/work/agi/.agi/worktrees/a00-bdfa0c37/extensions/agi/boxkit/probe.py` and
+`<repo>/.agi/worktrees/a00-bdfa0c37/extensions/agi/boxkit/probe.py` and
 `.../tests/test_boxkit_probe.py`. My worktree had NO `boxkit/` at all, so mine is their
 successor written from scratch, not an edit. What I changed, conjunct by conjunct:
 
@@ -182,7 +182,7 @@ demands the table follow it.
    (the live node passes because it has one) and not a regex over a YAML file.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review rewrites this block: the kid is ACCEPTED, and the reason is the mechanism, not the summary. (1) WHAT THE ORDER SAID: close five conjuncts, the first being "ask the RIGHT manager per unit" and the stub "must answer per (manager, unit) and return infinity for a wrong-manager ask, so the old bug goes red (red-first, show it)". (2) WHAT THE MACHINE DOES: probe.py no longer takes a manager as an argument to a helper -- the manager is a FIELD OF THE ROW (UNITS[i][2], "s" or "u"), so a row cannot be asked of the wrong manager by construction, and the stub at tests/fixtures/boxkit_probe/fake_systemctl.py:20 derives mgr from the argv it is actually handed and returns "infinity" when the fact table has no entry for that (manager, unit) pair. Mutating the single base= line in the source turns 4 of 12 tests red; I ran that mutation myself and restored the file byte-identical. Over a full run the shim recorded 15 calls, verbs exactly {show, is-active}, and sha256 of both install_root and the .agi root were unchanged. The reserve is MemTotal - held_outside_user - installed MemoryMax, verified at three box sizes (4096/16384/65536 MiB -> -9925/2363/51515, exactly the arithmetic). (3) THE NEAR MISS, and there are two worth naming. The first is the kid's own, and it was the DH.434 trap: a stub that answers one value to every ask makes the manager bug INVISIBLE -- the table comes out all-ok in the fixture and the real box then prints UNKNOWN everywhere, so the suite would be green on a lie. The kid closed that by making the stub honest AND by asserting the stub is honest (test_the_stub_answers_infinity_for_a_wrong_manager), so a later kid cannot simplify it back into the near miss. The second near miss is MINE: my first judge-the-judging probe grepped the printed table for the substring "2048" and read the DERIVED swap cap round(0.5*4095) as a hardcoded 2 GiB reserve -- a substring check satisfies "no fixed reserve" and loses the mechanism, and the arithmetic check is what actually held. (4) DEVIATION FROM A STANDING RULE, one: the dispatch orders told me to merge DH.434's branch first, and my own brief forbids me to run git at all (the measured cost of a git commit -A in a shared tree is a commit that lies about whose work it holds). The property of THIS case that makes the rule apply rather than bend: the merge was NOT needed for correctness, only for convenience, and the kid could read the prior art read-only at its absolute path and rebuild its successor honestly. The cost was real and is named in my report -- the kid could not measure its own diff, because git diff --numstat reads 0 for files that are untracked in its worktree, so its 151-line figure is a self-count rather than a tool count, and its ceiling argument rests on a number I could not reproduce. The ceiling I accept anyway, for a reason that is about the ORDER and not about convenience: director order 2 enumerates the g7.33.18 table row by row, so the over-ceiling bytes ARE the ordered bytes, and trimming them would delete the order rather than the excess. ACCEPTED as proved. NOT closed without residue: three caveats recorded in the note -- spawn.memory_max/tasks_max judged against literals rather than a values.boxkit cell (the fixed-2-GiB shape one layer down), a negative reserve printed as bare "info", and a table whose column layout is not machine-parseable.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

@@ -6,7 +6,7 @@ parents:
   - hypothesis:write-py-set-must-preserve-scalar-types
 next_edges: []
 confidence: 0.9
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a01-30399a10-1cb5a7
 scaffold_hash: 8c2b6902b0166440
@@ -44,7 +44,7 @@ verdict: proved
 ## Evidence
 
 ```
-$ cd /home/ubuntu/work/agi
+$ cd <home>/work/agi
 $ python3 extensions/agi/bin/write.py "task:t-083" "set tier -1" --actor "exp-a01-30399a10" --session "iter-1072"
 updated: task:t-083
 $ python3 extensions/agi/bin/write.py "task:t-050" "set tier -1" --actor "exp-a01-30399a10" --session "iter-1072"

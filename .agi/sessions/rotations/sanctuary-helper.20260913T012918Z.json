@@ -27,7 +27,7 @@
       "before": 10,
       "after": 11
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sanctuary-helper.log",
     "d_stale_continue_cursor": {
       "start_offset": 5776796,
       "read_before_write": true,
@@ -74,16 +74,16 @@
       "window_id": "@347",
       "pid": 2075808,
       "session_id": "f9bf0724-ffa8-4b34-8dcb-eb4a01f92009",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/f9bf0724-ffa8-4b34-8dcb-eb4a01f92009.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/f9bf0724-ffa8-4b34-8dcb-eb4a01f92009.jsonl",
       "name": "post-sanctuary-helper-be",
-      "path": "/home/ubuntu/.claude/sessions/2075808.json",
+      "path": "<home>/.claude/sessions/2075808.json",
       "note": "joined by @347 in registry file 2075808.json"
     },
     "successor_row": "config:seats row 'sanctuary-helper': session_ref= session_name=post-sanctuary-helper-be session_id=f9bf0724-ffa8-4b34-8dcb-eb4a01f92009 pid=2075808 generation=11 window='@347' source=registry pubkey=05c32126a71cdd53... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha 01915b0a8) -- own-row only: sanctuary-helper spawn row: gen 11, session_id f9bf0724-ffa8-4b34-8dcb-eb4a01f92009, window @347, pid 2075808\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.ack.gen11.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/sanctuary-helper.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sanctuary-helper.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sanctuary-helper.ack.gen11.json",
     "own_authority_released": "generation 10 of seat 'sanctuary-helper' retired; successor generation 11 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch season2/posts/sanctuary-helper",
     "livestream_repoint": {
@@ -112,8 +112,8 @@
       ]
     },
     "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 60s) \u2014 successor has not answered",
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.bootstrap.json",
-    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.ack.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sanctuary-helper.bootstrap.json",
+    "ack_written_at_spawn": "<home>/work/agi/.agi/sessions/seats/sanctuary-helper.ack.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -144,9 +144,9 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/f9bf0724-ffa8-4b34-8dcb-eb4a01f92009.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/sanctuary-helper.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/f9bf0724-ffa8-4b34-8dcb-eb4a01f92009.jsonl",
         "rc": 0,
-        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/f9bf0724-ffa8-4b34-8dcb-eb4a01f92009.jsonl (via claude-code transcript (explicit)).",
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/f9bf0724-ffa8-4b34-8dcb-eb4a01f92009.jsonl (via claude-code transcript (explicit)).",
         "truncated": false,
         "byte_cap": 8000
       },

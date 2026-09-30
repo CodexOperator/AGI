@@ -6,7 +6,7 @@ parents:
   - hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env
 next_edges: []
 confidence: 0.9
-edited_by: a00-301fe6aa
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-5571040e-f3cd53
 loop: hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env@s2
@@ -89,7 +89,7 @@ caller happens to pass. The leak is closed at the seam rather than at the
 caller, so heal.py or any future second spawner is safe by construction.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review DH.388, second kid. (1) INSTRUCTION: the previous kid auth probe -- restart(base_env=dict(os.environ)) made copilot hand the child AGI_MODEL_SLOT_LOCK, ANTHROPIC_API_KEY, AGI_ORDERS_TEXT and OPENROUTER_PROVISIONING_KEY -- so scrubbed_base had to FILTER the explicit base, not trust it, one scrub list, no copy. (2) WHAT THE MACHINE DOES: adapters/__init__.py scrubbed_base now returns dispatch.scrubbed_env() when explicit is None and otherwise {k: v for k, v in explicit.items() if k not in dispatch.ENV_VARS_TO_SCRUB} -- dispatch.ENV_VARS_TO_SCRUB, lazily imported, never a second list, idempotent over scrubbed_env output. I re-ran my own probe, the same script that failed before: copilot default {} / claude default {ANTHROPIC_API_KEY} / copilot base_env=RAW os.environ {} / claude base_env=RAW os.environ {ANTHROPIC_API_KEY}. The auth probe that FAILED on the previous kid now holds. (3) NEAR MISS: returning dict(explicit) with a docstring promising the scrub -- the words satisfied, the mechanism absent, and it survives exactly until the second spawner heal.pys precedent arrives. (4) DEVIATION: none from a standing rule; I re-ran one kid-suffixed test file myself and did not re-run their suite as evidence -- test_dispatch_forward_env.py::test_listed_name_reaches_the_child_when_the_shell_never_sourced_env is red here, and it is environment-dependent (it reads /data/work/agi/.env, which this box has no TYPESAFE_KEY in) and never reaches scrubbed_base: it calls child_env(base={}) with no explicit. Unrelated to the diff. The one residual, claude_code restoring ANTHROPIC_API_KEY from inherited (claude_code_adapter.py:378 RESTORED_NAMES), is identical on the FIRST spawn, so the restart base and the spawn base agree -- which is the property the hypothesis is actually about.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

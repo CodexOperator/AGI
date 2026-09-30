@@ -71,9 +71,9 @@
       "window_id": "@41",
       "pid": 1032977,
       "session_id": "9ced323b-d4b5-4a34-9ad3-ac4052a1bcfa",
-      "transcript": "/home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/9ced323b-d4b5-4a34-9ad3-ac4052a1bcfa.jsonl",
+      "transcript": "~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/9ced323b-d4b5-4a34-9ad3-ac4052a1bcfa.jsonl",
       "name": "post-director-engine-f2",
-      "path": "/home/belam/.claude/sessions/1032977.json",
+      "path": "~/.claude/sessions/1032977.json",
       "note": "joined by @41 in registry file 1032977.json"
     },
     "successor_row": "config:seats row 'director-engine': session_ref= session_name=post-director-engine-f2 session_label=director-engine session_id=9ced323b-d4b5-4a34-9ad3-ac4052a1bcfa pid=1032977 generation=10 window='@41' source=registry pubkey=3450ef13fd6aedc3... key_history=5",
@@ -152,7 +152,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/9ced323b-d4b5-4a34-9ad3-ac4052a1bcfa.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log ~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/9ced323b-d4b5-4a34-9ad3-ac4052a1bcfa.jsonl",
         "rc": 0,
         "output": "0.0636\t63604/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery
 next_edges: []
 confidence: 0.9
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-1864ce6e-9139b7
 line_ceiling: 40
@@ -42,7 +42,7 @@ UNCHANGED; input order untouched; responses files never regenerated.
 - wrapper: `datasets/switch-rule/2026-09-21/ifeval_seeded_wrapper.py` (11 lines)
 - rows: `datasets/switch-rule/2026-09-21/ifeval_seeded_rows.jsonl` (30 rows: 3 files x seeds 0..9)
 - table: `datasets/switch-rule/2026-09-21/gap_table.md` -> "seeded re-score N=10" (single-run rows untouched)
-- venv: `/data/work/agi/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval_venv/bin/python`
+- venv: `<repo>/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval_venv/bin/python`
 
 **Reproducibility (checked FIRST).** Both-seeded wrapper, seed 0, arm B, two runs:
 `eval_results_strict.jsonl` md5 `17964f5eb86bede8fa890b197254f9f5` both times —
@@ -81,7 +81,7 @@ Probes:
 Both-seeded wrapper (random.seed + DetectorFactory.seed) is byte-reproducible (seed0 armB md5 17964f5e twice); langdetect-only is not (run2 3d4afedf). N=10 CI: armB mean 0.777265 [0.776330,0.778200] does NOT fire (bar 0.781886; single-run 0.778189 was its max); armC2 0.800185 [0.799209,0.801161] FIRES on every seed. Deliverables: ifeval_seeded_wrapper.py, ifeval_seeded_rows.jsonl, gap_table seeded re-score N=10.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-TMM.38(2) + TMM.43 (thought-master 09-23), recorded by director-thought at the batch-B merge-up. DEVIATION accepted as documented: the dispatch orders said stop and report if the one-seed-twice byte check fails; the parent's own kid brief overrode that stop (premise incomplete, the wrapper must seed both), and the kid seeded stdlib random as well as langdetect and went on -- accepted because it removed the very defect the stop guarded against and director-thought's exact recompute of the 30 rows shows the result reproducible; a brief's stop stays a stop unless the brief says otherwise. This version also corrects the Evidence claim that seed variation is confined to letter_frequency (the floor is letter_frequency stdlib random PLUS langdetect), notes that the wrapper's default harness path is gitignored, and sets production_lines 74 -> 11 by the harvest rule -- the verifier's miss in mur-director-thought-2. The parent's original review stays in Agent Notes (PARENT REVIEW).
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 PARENT REVIEW SWR-RS.01 (a00-b83c007f): ACCEPTED, no demotion. Four parent-run probes hold: (wire) kid wrapper byte-reproducible at armB seed8 and armC2 seed4 with matching strict_n; (gate) langdetect-only wrapper varies across four runs at seed0 (2 md5s, 420/421) -- the re-score needs random.seed too; (gate) all 30 rows recompute exactly to the tabled means/CIs, armB lower 0.776330<0.781886 does not fire, armC2 lower 0.799209>bar fires; (auth) git show --stat shows only the 4 deliverable paths, no response/harness file regenerated.

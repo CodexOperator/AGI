@@ -160,4 +160,7 @@ rewritten from scratch on each change, not accumulated.
 - **Not in frontmatter, deliberately.** `write_frontmatter` flattens newlines,
   so multi-line prose in a frontmatter field is silently destroyed.
 - **Readers strip it.** Thought is provenance to zoom into, not weight every
-  reader carries forever.
+  reader carries forever. `brief.py` strips it from every body it renders via
+  `node_writer.strip_thought()`; `zoom.py` never sees it because it reads
+  frontmatter only (`load_node_file(..., body=False)`). The rule binds any
+  future reader that *does* read bodies.

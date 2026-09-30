@@ -6,7 +6,7 @@ parents:
   - goal:g26
 next_edges: []
 confidence: 0.9
-edited_by: belam
+edited_by: director-general-4
 goal_id: G7.2
 goal_kind: subgoal
 heading_level: 3
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 26775ccc72bc41be
 season: 2
 seeds: []
-status: active
+status: retired
 tags:
   - goal
   - subgoal
@@ -54,5 +54,5 @@ Under retired umbrella `goal:g26` (folded to `goal:g7`). Title clarified
 2026-09-21 Belam. Live towns: `town:core`, `town:local-maxxing`, …
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Belam 2026-09-21: clarify birth-goal wording vs goal:g7.2 duplicate-ids; town.seeds ≠ goal registry
+Retired (director-general-4 on belam [decision] 00:xZ 09-30): the one active leaf under retired goal:g26; g26 names no live successor, and this leaf shows no commit since 2026-09-21 (none since 09-26), which is the order branch for retire. No seed node to deprecate (seeds empty). Stays in the graph, leaves the score.
 <!-- THOUGHT:END -->

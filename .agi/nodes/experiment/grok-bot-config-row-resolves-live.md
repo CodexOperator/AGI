@@ -6,14 +6,14 @@ parents:
   - hypothesis:a00-89094f2f-940a6c
 next_edges: []
 confidence: 0.95
-edited_by: a00-89094f2f
+edited_by: director-general-3
 evidence_runs:
   - experiment:grok-bot-config-row-resolves-live
 line_ceiling: 40
 loop: goal:g7.25.2@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
-  - {"conjunct": 1, "class": "auth", "probe": "resolve(cfg,grok-bot) with row inserted in memory", "observed": "(grok-bot, adapter=grok_bot, bin=/home/ubuntu/.npm-global/bin/grok-bot)", "result": "pass"}
+  - {"conjunct": 1, "class": "auth", "probe": "resolve(cfg,grok-bot) with row inserted in memory", "observed": "(grok-bot, adapter=grok_bot, bin=<home>/.npm-global/bin/grok-bot)", "result": "pass"}
   - {"conjunct": 1, "class": "auth", "probe": "resolve on deep copy with row[adapter] deleted (dash default)", "observed": "adapter=grok_bot", "result": "pass"}
   - {"conjunct": 1, "class": "auth", "probe": "resolve peers pi, pi-local, claude-code, copilot-cli on live cfg", "observed": "pi->pi, pi-local->pi, claude-code->claude_code, copilot-cli->copilot_cli; no raise", "result": "pass"}
   - {"conjunct": 2, "class": "gate", "probe": "grep -Ein grok extensions/agi/bin/dispatch.py", "observed": "exit 1, no output; evidence_runs and probes are lists not scalars", "result": "pass"}
@@ -47,7 +47,7 @@ cell under test.
 
 PASS. `resolve(withrow, "grok-bot")` →
 `("grok-bot", {"adapter": "grok_bot", "bin":
-"/home/ubuntu/.npm-global/bin/grok-bot", ...})`. Both `row["adapter"] ==
+"<home>/.npm-global/bin/grok-bot", ...})`. Both `row["adapter"] ==
 "grok_bot"` and `row["bin"]` equal the parent-supplied values.
 
 ### E2 — peers intact
@@ -83,7 +83,7 @@ file are both untouched.
 ```json
 {
   "E5_norow": ["pass", "no harness 'grok-bot' in config; declared: ['claude-code', 'copilot-cli', 'pi', 'pi-local']"],
-  "E1": ["pass", {"name": "grok-bot", "adapter": "grok_bot", "bin": "/home/ubuntu/.npm-global/bin/grok-bot"}],
+  "E1": ["pass", {"name": "grok-bot", "adapter": "grok_bot", "bin": "<home>/.npm-global/bin/grok-bot"}],
   "E5_withrow": ["pass", {"name": "grok-bot", "adapter": "grok_bot"}],
   "E2_pi": ["pass", {"name": "pi", "adapter": "pi"}],
   "E2_pi-local": ["pass", {"name": "pi-local", "adapter": "pi"}],

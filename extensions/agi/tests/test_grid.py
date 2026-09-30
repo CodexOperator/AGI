@@ -122,36 +122,13 @@ def test_cron_lines_are_cwd_proof(tmp_path):
         assert str(tmp_path / "g.log") in line  # log path doubles as the marker
 
 
-def test_publish_engine_cron_also_pushes_the_engine(tmp_path):
-    """goal:g7.10 — a publish that is never pushed is a publish nobody sees.
-
-    `publish-engine.sh` commits the engine and does not push, on the stated
-    grounds that pushing is the hourly cron's job. For the engine repo that
-    cron did not exist, so 25 commits sat local and the remote went 3 days
-    stale. The two halves of that design have to ship together.
-    """
-    plain = grid.cron_lines(tmp_path, "main", 5, tmp_path / "g.log")
-    assert len(plain) == 2, "engine lines must stay opt-in, off by default"
-
-    lines = grid.cron_lines(tmp_path, "main", 5, tmp_path / "g.log",
-                            publish_engine=True)
-    assert len(lines) == 4
-    publish, push = lines[2], lines[3]
-
-    engine_root = Path(grid.__file__).resolve().parents[3]
-    assert push.startswith(f"47 * * * * git -C {engine_root} push -q origin HEAD")
-
-    # Ordering is the property, not the literal minutes: the engine is pushed
-    # after the publish that writes it, and both after the graph push it cites.
-    minute = lambda l: int(l.split()[0])
-    assert minute(plain[1]) < minute(publish) < minute(push)
-
-    # HEAD, never a branch captured at install time — the iter24-extend-300hop
-    # shape, where a cron pushed `master` while the work was somewhere else.
-    assert " main" not in push
-
-    for line in lines:
-        assert str(tmp_path / "g.log") in line  # log path doubles as the marker
+def test_cron_lines_carry_no_publish_engine(tmp_path):
+    """goal:g7.16.1.4.1.1 -- `publish-engine.sh` (goal:g11's two-repo carry) is
+    retired, and with it the opt-in :37 publish and :47 engine push: the grid
+    cron is the snapshot line and the branch push, nothing else."""
+    lines = grid.cron_lines(tmp_path, "main", 5, tmp_path / "g.log")
+    assert len(lines) == 2
+    assert not any("publish-engine" in l for l in lines)
 
 
 def test_sync_pushes_grid_refs_and_sets_fetch_spec(project, tmp_path):
@@ -835,6 +812,22 @@ def test_parent_mint_trailer_in_commit_body(mint_project):
     assert subject == "v1 idea:child"
 
 
+# hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver: mint trailer == address twin's
+def test_parent_mint_trailer_resolves_a_mint_parent_like_its_address(mint_project, monkeypatch):
+    import links
+    builds, real, seen = [], links.mint_index, []
+    monkeypatch.setattr(links, "mint_index", lambda root: builds.append(1) or real(root))
+    _write_mint_node(mint_project, "parent.md", "idea:parent", mint_id=MINT_A)
+    for kids in ((("1", "idea:parent"),), (("2", MINT_A), ("3", MINT_A))):   # 1 address; 2 mint kids, ONE commit
+        builds.clear()
+        for k, par in kids:
+            _write_mint_node(mint_project, f"c{k}.md", f"idea:c{k}", mint_id=k * 32, parents=[par])
+        grid.cmd_commit(mint_project, [], do_all=True, session=None)
+        seen.append(([grid.git(mint_project, "log", "-1", "--format=%b", grid.mint_node_ref(k * 32)) for k, _ in kids],
+                     len(builds)))
+    assert seen == [([f"Parent-Mint-Id: {MINT_A} idea:parent"], 0), ([f"Parent-Mint-Id: {MINT_A} idea:parent"] * 2, 1)], seen
+
+
 def test_parent_mint_trailer_marks_unresolved_parent(mint_project):
     child = _write_mint_node(mint_project, "child.md", "idea:child", mint_id=MINT_B,
                              parents=["idea:ghost"])
@@ -1210,6 +1203,24 @@ def test_unresolvable_payload_ref_warns_and_still_commits_the_node(
     assert versions(project, "level3:gone") == 1
     ref = grid.resolve_ref(project, "level3:gone")
     assert grid.read_tree_entry(project, ref, grid.PAYLOAD_ENTRY) is None
+
+
+def test_retired_node_payload_is_counted_apart_not_warned(
+        project, engine, capsys):
+    """A node under nodes/deprecated/ retired its file with it: no WARN, not
+    counted unresolved, still versioned. A LIVE node with a vanished file
+    still warns — `unresolved` keeps meaning a live node lost its payload."""
+    live = _payload_node(project, "gone", "level3:gone", "bin/does-not-exist.py")
+    retired = project / "nodes" / "deprecated" / "level3" / "old.md"
+    retired.parent.mkdir(parents=True)
+    retired.write_text(live.read_text().replace("level3:gone", "level3:old")
+                       .replace(MINT_P, "b" * 32))
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+    err, out = capsys.readouterr()[::-1]
+    assert "level3:gone payload_ref" in err
+    assert "level3:old payload_ref" not in err
+    assert "1 payload(s) unresolved, 1 retired with their node" in out
+    assert versions(project, "level3:old") == 1
 
 
 def test_status_sees_a_payload_only_edit(project, engine, capsys):

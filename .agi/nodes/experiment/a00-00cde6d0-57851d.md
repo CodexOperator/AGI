@@ -7,7 +7,7 @@ parents:
 next_edges:
   - verdict:a00-52a8f13a-a156b6
 confidence: 0.75
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 scaffold_hash: 8c6538ac4c4faef4
 season: 1
@@ -24,7 +24,7 @@ wired_from: a00-00cde6d0
 Differential failure-semantics run over all ten parsers named by the
 hypothesis, testing its four "what would prove it" criteria. One script,
 `/tmp/g13-policy-collapse.py` (path may not survive; method below, output
-verbatim under Evidence), run 2026-09-01 from `/home/ubuntu/work/agi` with
+verbatim under Evidence), run 2026-09-01 from `<home>/work/agi` with
 `python3 /tmp/g13-policy-collapse.py`. Real corpus untouched; every write
 went to a `tempfile.mkdtemp` dir.
 

@@ -6,7 +6,7 @@ parents:
   - goal:g4.16
 next_edges: []
 confidence: 0.82
-edited_by: belam
+edited_by: director-general-3
 season: 1
 source_files:
   - extensions/agi/bin/metrics.py
@@ -102,7 +102,7 @@ metric as one.**
 **The rename alone would not have fixed anything — I found and fixed the
 actual root cause too.** `metrics.py`'s `root` argument is the project's
 `.agi/` directory (confirmed: `locations.find_project_root('.')` on this repo
-returns `/home/ubuntu/work/agi/.agi`). Calling `unpushed_commits(root)`
+returns `<home>/work/agi/.agi`). Calling `unpushed_commits(root)`
 directly on `.agi` always answers `not-a-repo`, because `.agi` is a
 subdirectory of the real git repo, not its own toplevel — this is the exact
 `unpushed_graph_reason=not-a-repo` sentinel named in the task brief, and
@@ -170,7 +170,7 @@ installed: (none)
 desired: (none — crons_live is false, or no job is enabled)
 status: up to date
 
-$ find /home/ubuntu/work/agi/.agi/nodes -name '*.md' | wc -l
+$ find <home>/work/agi/.agi/nodes -name '*.md' | wc -l
 815 before this file, 816 after
 ```
 

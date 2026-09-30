@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-every-experiment-path-is-a-config-variable
 next_edges: []
 confidence: 0.85
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-797ee7be-e9c742
 line_ceiling: 40
@@ -66,7 +66,7 @@ Real store dirs on this box (user `belam`), under the pi sessions root (the
 pi names a store after its checkout dir (`/a/b` -> `--a-b--`). `build_corpus.py`
 now derives the prefix from the REAL discovered checkout root
 `ROOT = _find_ancestor(_HERE, ".agi/config.json")` =
-`/data/work/agi/.agi/worktrees/a00-4f6490af`, via `store_prefix(ROOT)`:
+`<repo>/.agi/worktrees/a00-4f6490af`, via `store_prefix(ROOT)`:
 
 ```
 store_prefix(ROOT) = --data-work-agi-.agi-worktrees-
@@ -104,7 +104,7 @@ Tests (committed next to the scripts):
 Derivation probe (read-only against the live box):
 
 ```
-ROOT    = /data/work/agi/.agi/worktrees/a00-4f6490af
+ROOT    = <repo>/.agi/worktrees/a00-4f6490af
 prefix  = --data-work-agi-.agi-worktrees-
 WT_RE.match('--data-work-agi-.agi-worktrees-a00-4f6490af--') = True
 WT_RE.match('--home-{user}-work-agi-.agi-worktrees-a00-4f6490af--') = False
@@ -130,7 +130,7 @@ round is **200 added vs `line_ceiling: 40` -- ABOVE the 2x hard stop (80)**, not
 it; the harvest logged `overage 200/40 no-rebrief`. Recorded, not hidden.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought, closing thought-master's batch C review item (1): the two Agent Notes that still carried the pre-correction line count now agree with the corrected Lines section -- 200 lines by the engine's count against line_ceiling 40, five times the ceiling, above the 2x hard stop, and no rebrief request was filed; the breach is stated plainly in both. The unregistered placeholder token in the first note is replaced by the plain fact (the .pi/agent dir of user belam). Results and probes unchanged.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 2 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

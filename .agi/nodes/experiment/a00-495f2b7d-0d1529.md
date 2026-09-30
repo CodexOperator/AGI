@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-session-dirs-come-home-when-the-round-is-done
 next_edges: []
 confidence: 0.85
-edited_by: sanctuary-director
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-495f2b7d-0d1529
 loop: hypothesis:l4-session-dirs-come-home-when-the-round-is-done@s2
@@ -32,9 +32,9 @@ finished round's session dir home from its worktree into the main checkout.
 build — the brief's stop-condition):
 
 ```
-$ ls /home/ubuntu/work/agi/.agi/sessions/ | grep iter-L4.6
+$ ls <home>/work/agi/.agi/sessions/ | grep iter-L4.6
    (empty — main checkout has NONE)
-$ ls /home/ubuntu/work/agi/.agi/worktrees/seat-sanctuary-director/.agi/sessions/ | grep iter-L4.6
+$ ls <home>/work/agi/.agi/worktrees/seat-sanctuary-director/.agi/sessions/ | grep iter-L4.6
 iter-L4.60 iter-L4.61 iter-L4.62 iter-L4.63 iter-L4.64 iter-L4.65 iter-L4.66
 ```
 

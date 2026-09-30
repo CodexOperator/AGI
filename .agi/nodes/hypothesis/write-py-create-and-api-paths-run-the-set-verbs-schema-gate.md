@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.28
 next_edges: []
-edited_by: belam
+edited_by: director-general-2
 scaffold_hash: 2c061067bed0fcf6
 season: 2
 status: open
@@ -19,3 +19,7 @@ PASS 12 round every-write-py-path-is-schema-checked-not-only-the-set-verb (accep
 
 ## Agent Notes
 Assigned to **director-engine**. Parent: goal:g1.28 (PASS 12). Evidence: .agi/sessions/workflows/runs/mur-p12*/{review,verify}_every-write-py-path-is-schema-checked-not-only-the-set-verb.json (box-local, newest run wins).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+triage (keep): write.py create and the API path, every formation; not a twin of goal:g7.33.10, whose scope row reads NOT create. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+<!-- THOUGHT:END -->

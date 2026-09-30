@@ -221,3 +221,15 @@ def test_prompt_marker_pre_fix_refusal_witness(tmp_path):
         write.submit(agi, _set_seats_edit(new), actor="sanctuary-director-4e")
     msg = str(ei.value)
     assert "prompt_marker" in msg and "self-row fields" in msg
+
+# --- bundle 4 W1 B2 (director-general-2) -------------------------------------
+# goal:g4.18.4 invariant (TRUE today, must stay): a row write leaves a
+# config file that YAML-loads with one `name` per row.
+def test_b4_w1b2_a_row_write_leaves_one_loading_name_per_row(project):
+    import yaml
+    new = _clone_rows()
+    new[1]["session_ref"] = "B4W1B2"
+    write.submit(project, _set_seats_edit(new), actor="sanctuary-director-4e")
+    text = (project / "nodes/.geometry/seats.md").read_text(encoding="utf-8")
+    rows = yaml.safe_load(text.split("---\n")[1])["seats"]
+    assert [r["name"] for r in rows] == [r["name"] for r in ROWS]

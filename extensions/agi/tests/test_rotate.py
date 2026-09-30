@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -94,15 +95,22 @@ def test_rotate_first_key_mints_through_send_writer(tmp_path, monkeypatch):
     assert send_pkg._seat_key_path(tmp_path, "s2").is_file()
 
 
-def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path):
+def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path, monkeypatch):
     # already-keyed row, a throwaway (empty) row, and an idempotent re-rotate
     # (key file already exists) all mint nothing -> ''.
+    # a keyed row that HOLDS its key file (goal:g7.16.1.7.1.4: a keyed row
+    # with NO key file is the missing-key rule, test_stand_up.py)
+    _mk_seat_key(tmp_path, "s1")
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s1",
                                     {"pubkey": "deadbeef", "role": "parent"}) == ""
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", {}) == ""
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", None) == ""
     from agi.bin import send
     _mk_seat_key(tmp_path, "s3")
+    # an existing key file on an unkeyed row: left alone only under the
+    # template's `existing_key: leave` (the default ADOPTS it, test_stand_up)
+    monkeypatch.setattr(rotate, "key_template", lambda root: dict(
+        rotate.KEY_TEMPLATE_DEFAULT, existing_key="leave"))
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s3",
                                     {"role": "parent"}) == ""
 
@@ -4715,8 +4723,9 @@ def test_launch_window_hands_tmux_a_short_argv_for_a_long_command(monkeypatch):
     assert rc == 0
     passed = seen["argv"][-1]
     assert len(passed) < 512, f"tmux still handed {len(passed)} bytes"
-    assert passed.startswith("bash ")
-    script = Path(passed.split(" ", 1)[1].strip("'"))
+    # goal:g7.16.1.7.1.1: the ONE launcher keeps the cd on the tmux line
+    assert passed.startswith(f"cd {os.getcwd()} && bash ")
+    script = Path(passed.rsplit(" ", 1)[1].strip("'"))
     assert script.exists(), "the script must outlive the launch call"
     assert long_cmd in script.read_text()
     script.unlink()
@@ -8471,16 +8480,19 @@ def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp
         settings=None, tmux_session="agi-rc", root=None,
         dry_run=True, seat=None,
     )[1]
+    # the seat IS the post the render reads (goal:g7.16.1.7.1.2.1), so the
+    # seated launch names the same post as the window: only the export prefix
+    # and the wrapper may differ.
     seated = rotate.spawn_window(
         name="adv", tier="prime_director", prompt_file=None,
         settings=None, tmux_session="agi-rc", root=None,
-        dry_run=True, seat="sanctuary-director",
+        dry_run=True, seat="adv",
     )[1]
     assert "AGI_SEAT=" not in base
     # a seat exports BOTH AGI_POST (primary) and AGI_SEAT (deprecated alias)
     # so either spelling resolves downstream (hypothesis:l4-a-seat-is-a-post-
     # everywhere).
-    _q = rotate.shlex.quote('sanctuary-director')
+    _q = rotate.shlex.quote('adv')
     assert f"export AGI_POST={_q} AGI_SEAT={_q} && " in seated
     # amendment e: a seat inserts BOTH identity and the launch-wrapper. The
     # wrapper is the direct parent of claude, so the ONLY thing that changes
@@ -10311,3 +10323,170 @@ def test_rename_post_default_reader_is_real_git_and_preserves_the_real_ref(
     surfs = {s["kind"]: s for s in json.loads(staged.read_text())["surfaces"]}
     assert surfs["branch"]["src"] == "season2/posts/adv", surfs["branch"]
     assert surfs["branch"]["dst"] == "season2/posts/adv2", surfs["branch"]
+
+# ── bundle 3 row R1 (goal:g6.41.1 P1+P6): every post launch in its OWN scope
+@pytest.mark.parametrize("seat", [None, "p1"])
+def test_r1_every_post_argv_is_scoped_even_when_cap_is_none(monkeypatch, seat):
+    import mem_cap  # no post cap cell here -> None; wrap_argv's shared `is argv` stays
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: True)
+    line = rotate._shell_cmd(["claude", "--remote-control", "p1"], None, seat=seat, scope_slice="agi.slice")
+    assert "--slice=agi.slice" in line and line.index("systemd-run --user --scope") < line.index("--remote-control")
+    # residue 70: the DEFAULT call is unscoped (the switch lives in the cell, not the kwarg)
+    assert "systemd-run" not in rotate._shell_cmd(["claude", "--remote-control", "p1"], None, seat=seat)
+
+
+@pytest.mark.parametrize("cell", ["agi.slice", None], ids=["cell-live", "cell-off"])
+def test_r1_launch_window_ensures_agi_rc_in_its_own_scope_first(monkeypatch, cell):
+    import mem_cap  # residue 68: the ensure's slice follows spawn.post_scope; off = own scope, NO slice
+    monkeypatch.setattr(mem_cap, "resolve_post_scope", lambda cfg: cell)
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: True)  # C3: the probe is the builder's now
+    calls = []  # agi-rc absent: has-session rc 1
+    monkeypatch.setattr(rotate.subprocess, "run", lambda a, **k: calls.append(list(a)) or subprocess.CompletedProcess(a, int("has-session" in a), stdout="@9\n", stderr=""))
+    assert rotate._launch_window("agi-rc", "p1", "echo hi") == 0
+    new, win = ([i for i, a in enumerate(calls) if k in a] for k in ("new-session", "new-window"))
+    assert len(new) == 1 and win and new[0] < win[0], calls
+    assert calls[new[0]][:3] == ["systemd-run", "--user", "--scope"]
+    assert ("--slice=agi.slice" in calls[new[0]]) is (cell is not None), calls[new[0]]
+
+
+# goal:g7.16.1.7.1.1 C3: ONE scope builder -- no usable systemd-run = a plain tmux server, never a failed scope
+def test_c3_ensure_falls_back_to_plain_tmux_without_systemd_run(monkeypatch):
+    import mem_cap
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: False)
+    calls = []
+    monkeypatch.setattr(rotate.subprocess, "run", lambda a, **k: calls.append(list(a)) or subprocess.CompletedProcess(a, int("has-session" in a), stdout="", stderr=""))
+    rotate.ensure_tmux_session("agi-rc", root=None)
+    assert calls[-1] == ["tmux", "new-session", "-d", "-s", "agi-rc"], calls
+
+
+# goal:g7.16.1.7.1.1 SM rotate candidate: two launches of one name in the same second get distinct units
+def test_unit_names_never_collide_within_one_second(monkeypatch):
+    import mem_cap
+    monkeypatch.setattr(rotate.time, "time", lambda: 1_000_000.0)  # the old int(time.time()) suffix collided here
+    a, b = rotate._post_unit("p1"), rotate._post_unit("p1")
+    assert a != b and a.startswith("agi-post-p1-") and b.startswith("agi-post-p1-"), (a, b)
+    assert mem_cap.unit_name("agi-tmux", "agi rc").startswith("agi-tmux-agi_rc-")
+
+
+# residue 70: the one switch -- resolve_post_scope and spawn_window threading it
+@pytest.mark.parametrize("cell,want", [
+    (None, None), ({"live": False, "slice": "agi.slice"}, None), ({"live": "true"}, None),
+    ({"live": True}, "agi.slice"), ({"live": True, "slice": "posts.slice"}, "posts.slice"),
+], ids=["absent", "off", "string-true", "live-default", "live-slice"])
+def test_r1_resolve_post_scope_is_the_one_switch(cell, want):
+    import mem_cap
+    assert mem_cap.resolve_post_scope({"spawn": {"post_scope": cell}} if cell is not None else {}) == want
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_r1_spawn_window_threads_the_cell(tmp_path, monkeypatch, capsys, live):
+    import mem_cap
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: True)
+    g = tmp_path / ".agi"
+    g.mkdir()
+    (g / "config.json").write_text(json.dumps({"spawn": {"post_scope": {"live": live, "slice": "agi.slice"}}}))
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("You are {name}\n")
+    rc, shell = rotate.spawn_window(name="adv-alive", tier="parent", prompt_file=str(prompt),
+                                    dry_run=True, root=g)
+    assert rc == 0 and ("--slice=agi.slice" in shell) is live, shell
+    assert ("systemd-run" in shell) is live, shell   # cell off: no scope at all
+
+
+# council mur CM9: the --successor-argv stand-in runs in the SAME post scope
+# as the real launch; cell off -> the override string stays verbatim.
+@pytest.mark.parametrize("live", [False, True])
+def test_r1_successor_argv_override_keeps_the_post_scope(tmp_path, monkeypatch, live):
+    import mem_cap, shlex
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: True)
+    g = tmp_path / ".agi"
+    g.mkdir()
+    (g / "config.json").write_text(json.dumps({"spawn": {"post_scope": {"live": live, "slice": "agi.slice"}}}))
+    rc, shell = rotate.spawn_window(name="p1", tier="parent", prompt_file=None, dry_run=True, root=g, seat="p1",
+                                    successor_argv="echo stand-in")
+    if live:
+        assert rc == 0 and shlex.split(shell)[:5] == ["systemd-run", "--user", "--scope", "-q", "--slice=agi.slice"], shell
+        assert "--unit=agi-post-p1-" in shell and shlex.split(shell)[-3:] == ["bash", "-c", "echo stand-in"], shell
+    else:
+        assert (rc, shell) == (0, "echo stand-in")
+
+
+def test_r1_cutover_plan_gives_each_post_tree_its_own_scope():
+    procs = {10: (1, "sleep"), 20: (10, "tmux: server"), 30: (20, "claude"), 31: (30, "node"), 40: (20, "claude"), 41: (40, "sleep"), 50: (20, "bash")}  # {pid: (ppid, comm)}
+    plan = rotate._cutover_plan(procs, keep=10, posts={30: "belam"})
+    assert sorted(map(sorted, plan.values())) == [[20, 50], [30, 31], [40, 41]] and any("belam" in u for u in plan)
+
+
+@pytest.mark.skipif(os.environ.get("AGI_LIVE_SYSTEMD") != "1",
+                    reason="real systemd scopes: opt in with AGI_LIVE_SYSTEMD=1 (never in the engine suite)")
+def test_r1_cutover_dummy_one_kill_is_one_post():
+    move = rotate._cutover_to_scopes  # absent -> RED before any unit exists
+    if not shutil.which("busctl") or subprocess.run(["systemctl", "--user", "is-system-running"], capture_output=True).returncode not in (0, 1): pytest.skip("no user systemd / busctl")
+    t, sh = f"dg2-r-dummy-{os.getpid()}-", 'sh -c "sleep 300 & wait"'
+    src = subprocess.Popen(["systemd-run", "--user", "--scope", "-q", f"--unit={t}src", "sh", "-c", f"{sh} & {sh} & sleep 303 & exec sleep 301"])
+    cg = lambda p: Path(f"/proc/{p}/cgroup").read_text()
+    try:
+        time.sleep(1.5)
+        # never move a cgroup that is not the dummy's own scope (the CALLER's
+        # cgroup holds tmux + the posts when the scope job lags): residue 69
+        assert f"{t}src.scope" in cg(src.pid), cg(src.pid)
+        procs = Path("/sys/fs/cgroup" + cg(src.pid).split(":", 2)[2].strip()) / "cgroup.procs"
+        pids = [int(p) for p in procs.read_text().split() if int(p) != src.pid]
+        a, b = sorted(p for p in pids if Path(f"/proc/{p}/comm").read_text().strip() == "sh")
+        move(procs.parent, src.pid, {a: "postA", b: "postB"}, slice_="app.slice", prefix=t)
+        assert procs.read_text().split() == [str(src.pid)] and all(t in cg(p) for p in pids)
+        subprocess.run(["systemctl", "--user", "stop", f"{t}postA.scope"], check=True); time.sleep(1)
+        assert f"{t}postB" in cg(b) and src.poll() is None and not (procs.parent.parent / f"{t}postA.scope").exists()
+    finally:
+        subprocess.run(["systemctl", "--user", "stop"] + [f"{t}{u}.scope" for u in ("postA", "postB", "tmux", "src")], capture_output=True)
+
+
+# --- bundle 4 W1 B2 (director-general-2) -------------------------------------
+# hypothesis:posts-rows-have-one-writer-and-one-parser (goal:g4.18.5.3).
+_W1B2_PATHS = ("_ack_commit_seats", "_publish_row_to_authority",
+               "_commit_spawn_row", "_commit_stops_row")
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W1 B2: RED until DG3 deletes "
+                   "_posts_load_error and _row_names (callers on the one parser)")
+def test_b4_w1b2_no_second_posts_parser_in_rotate():
+    src = Path(rotate.__file__).read_text(encoding="utf-8")
+    assert "def _row_names" not in src and "_posts_load_error(" not in src
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W1 B2: RED until DG3 re-points "
+                   "the 4 config:posts commit paths at the one row write")
+def test_b4_w1b2_the_four_posts_paths_own_no_commit_plumbing():
+    import inspect
+    own = [n for n in _W1B2_PATHS
+           if "hash-object" in inspect.getsource(getattr(rotate, n))]
+    assert own == [], f"still stage+commit posts.md by hand: {own}"
+
+
+# goal:g7.16.1.7.1.1 SM rotate candidate: the announced handoff path is tree-relative, never the box's absolute layout
+def test_announcement_handoff_path_is_tree_relative(tmp_path):
+    g = tmp_path / "proj" / ".agi"
+    g.mkdir(parents=True)
+    assert rotate._tree_rel(g, g / "sessions" / "seats" / "s.handoff.md") == ".agi/sessions/seats/s.handoff.md"
+    assert rotate._tree_rel(g, tmp_path / "elsewhere" / "h.md") == "h.md"
+    assert str(tmp_path) not in rotate._tree_rel(g, g / "x.md")
+
+
+# goal:g7.16.1.7.1.1.2 (goal:g6.41.1 P4): ONE launch lock per post -- no double spawn
+def test_post_launch_lock_one_holder_per_post(tmp_path):
+    g = tmp_path / ".agi"
+    g.mkdir()
+    with rotate.post_launch_lock(g, "p1") as a:
+        with rotate.post_launch_lock(g, "p1") as b, rotate.post_launch_lock(g, "p2") as c:
+            assert a is True and b is False and c is True
+    with rotate.post_launch_lock(g, "p1") as again:
+        assert again is True, "released on exit"
+
+
+def test_cmd_spawn_refuses_a_second_stand_up_of_the_same_post(tmp_path, capsys):
+    from types import SimpleNamespace as NS
+    g = tmp_path / ".agi"
+    g.mkdir()
+    with rotate.post_launch_lock(g, "p1"):
+        assert rotate.cmd_spawn(NS(seat="p1", dry_run=False), g) == 1
+    assert "launch lock held" in capsys.readouterr().err

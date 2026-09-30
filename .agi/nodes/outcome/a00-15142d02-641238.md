@@ -8,14 +8,14 @@ next_edges: []
 confidence: 0.6
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
-edited_by: a00-de1fc6db
+edited_by: director-general-3
 evidence_runs:
   - outcome:a00-15142d02-641238
 line_ceiling: 500
 loop: mvp:lm-research-review-workflow@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
-  - {"conjunct": 1, "class": "wire", "cmd": "render all 5 research-review prompts with args.project_root=/tmp/fake-worktree, and one render with no project_root", "expected": "no /home/ubuntu/work/agi literal; the 4 minting prompts carry cd /tmp/fake-worktree; no bare empty-cd fallback when unset", "observed": "main_literals=0 worktree_cd=4; bare_cd_present=False; cwd project root resolved", "result": "HOLDS - R1 fixed"}
+  - {"conjunct": 1, "class": "wire", "cmd": "render all 5 research-review prompts with args.project_root=/tmp/fake-worktree, and one render with no project_root", "expected": "no <home>/work/agi literal; the 4 minting prompts carry cd /tmp/fake-worktree; no bare empty-cd fallback when unset", "observed": "main_literals=0 worktree_cd=4; bare_cd_present=False; cwd project root resolved", "result": "HOLDS - R1 fixed"}
   - {"conjunct": 2, "class": "gate", "cmd": "RunView.stage_empty_handoff(refute, ready_batch) plus summary; REFUTE_SCHEMA root required list", "expected": "an empty batch warns without failing and the summary stays last", "observed": "warn_emitted=True summary_last=True tracked_batch_empty=True; schema root-requires batch_empty", "result": "HOLDS - R2 fixed on the pi surface"}
   - {"conjunct": 3, "class": "gate", "cmd": "parse the REFUTE_TMPL RETURN CONTRACT clause and compare with REFUTE_SCHEMA", "expected": "the contract should name batch_empty when the schema requires it, or not forbid extra keys", "observed": "contract names batch_empty=False while saying do NOT add other top-level keys; schema root-requires batch_empty", "result": "FAILS - the claude-code refute prompt contradicts its own schema (residue, cannot be verified headless)"}
 production_lines: 66
@@ -38,7 +38,7 @@ Two named residues from the parent review of
 and in the runner that feeds it (`extensions/agi/bin/workflow.py`):
 
 **R1 — a worktree run now mints into the worktree.** The four stage prompts
-that named `cd /home/ubuntu/work/agi` (review's pytest command, why's idea
+that named `cd <home>/work/agi` (review's pytest command, why's idea
 mint, brainstorm's hypothesis mint, refute's mechanical `set`) now carry
 `cd {project_root}`. The placeholder is a RUN ARG the runner injects:
 `run_workflow` sets `args["project_root"] = str(repo)` *after* the run key
@@ -83,7 +83,7 @@ Proven on committed bytes, not on a re-run of the 45-minute live chain:
 - `workflow.py run research-review --dry-run` → rc 0, five dispatch lines,
   `stages=5`, no error (manifest + `handoff_list` key survive).
 - JSON render probe: all five prompts rendered with
-  `project_root=/tmp/fake-worktree`; 0 contain `/home/ubuntu/work/agi`; the
+  `project_root=/tmp/fake-worktree`; 0 contain `<home>/work/agi`; the
   4 that carry the placeholder contain `cd /tmp/fake-worktree &&`.
 - `.js` probe (stubbed `phase/agent/pipeline/args`): five stages rendered,
   `main_literal=0`, `worktree_cd=4`.

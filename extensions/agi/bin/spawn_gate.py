@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""spawn_gate.py — the schema spawn gate (GOALS.md S17).
+"""spawn_gate.py — the schema spawn gate (goal:s17).
 
 Seven node types were in daily use and `context/schemas/` declared six —
 with `verdict`, the type `evidence_gate.py` exists to police, absent
 entirely. Nothing anywhere checked a node against a schema at write time, so
 the spawn rules were a **prose control**: real, written down, and enforced by
-whoever happened to remember. GOALS.md's design ethic forbids exactly that —
+whoever happened to remember. The goals' design ethic forbids exactly that —
 "no prose-only controls where a code control is possible".
 
 This module is that control, as code. It is deliberately shaped like
@@ -549,7 +549,8 @@ def build_type_index(nodes_dir) -> dict:
         nid = fm.get("id")
         if isinstance(nid, str) and nid.strip():
             index[nid.strip()] = canonical_type(fm.get("type") or "")
-    return index
+    import links   # goal:g4.18.6.3.3: a mint-id parent reads as its address twin
+    return links.resolving(index, p.parent)
 
 
 def resolve_nodes_root(root, schemas_dir=None) -> Path:
@@ -837,10 +838,13 @@ def nearest_vision(nodes_dir, start_ids, *, max_depth=6):
     if not nodes_dir:
         return (None, "core")
     from collections import deque
+    import links   # goal:g4.18.6.3.3: walk mint-id parents as their addresses
+    r = links.address_resolver(Path(nodes_dir).parent)
     seen: set = set()
     dq = deque()
     for sid in start_ids or ():
         sid = str(sid or "").strip()
+        sid = r(sid) or sid
         if sid and sid not in seen:
             seen.add(sid)
             dq.append((sid, 0))
@@ -880,6 +884,7 @@ def nearest_vision(nodes_dir, start_ids, *, max_depth=6):
             parents = [parents]
         for p in parents:
             p = str(p or "").strip()
+            p = r(p) or p
             if p and p not in seen:
                 seen.add(p)
                 dq.append((p, depth + 1))
@@ -1388,7 +1393,18 @@ def gate_for_root(root, nodes_dir=None) -> tuple[SpawnRules, dict, int | None]:
     rules = load_spawn_rules(schemas_dir, root=root)
     nd = Path(nodes_dir) if nodes_dir else resolve_nodes_root(root, schemas_dir)
     cs = read_ladder_season(nd)
-    return rules, build_type_index(nd), cs
+    # goal:g4.18.6.2.2: the writer paths read goal:g4.18.6.1's ONE index (one
+    # git grep, frontmatter lines only), never a per-create parse of every node
+    # file; git unable to look -> the walk, said on stderr (writes keep working)
+    import links  # noqa: PLC0415
+    import rotation_record  # noqa: PLC0415
+    try:
+        index = {fm["id"]: canonical_type(fm.get("type") or "")
+                 for fm in links.frontmatter_rows(nd).values() if fm.get("id")}
+    except rotation_record.GrepError as exc:
+        print(f"warn: spawn gate index by walk ({exc})", file=sys.stderr)
+        index = build_type_index(nd)
+    return rules, index, cs
 
 
 def _cli(argv) -> int:

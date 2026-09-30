@@ -5,7 +5,7 @@ type: experiment
 parents:
   - goal:g4.17
 confidence: 0.65
-edited_by: belam
+edited_by: director-general-3
 evidence_runs: []
 provenance: direct-engine-edit
 season: 1
@@ -18,14 +18,14 @@ thought_session: dissolve-legacy-2026-09-19
 title: "G5 lifecycle enforcement: scoring exclusion, L5 rotation, L18 degrade — landed as a direct engine edit"
 ---
 **Provenance deviation, stated first:** this work was made as a direct,
-uncommitted edit to `/home/ubuntu/work/agi` — no idea/hypothesis node preceded
+uncommitted edit to `<home>/work/agi` — no idea/hypothesis node preceded
 it, no chain led here. That is exactly the defect `goal:g6.1` names: "a change
 that appears in the engine without a node behind it is the open loop G6
 exists to close." This node is written after the fact to record what
 happened, not to manufacture the chain that should have come first. The code
 is real and tested; the process that produced it skipped the graph.
 
-**What was changed (verified against `git -C /home/ubuntu/work/agi diff`,
+**What was changed (verified against `git -C <home>/work/agi diff`,
 uncommitted at the time of writing):**
 
 1. `extensions/agi/bin/metrics.py` — new `SCORING_GOAL_STATUSES = {"active",
@@ -56,12 +56,12 @@ uncommitted at the time of writing):**
 
 **Evidence, my own run, not inherited from any prior node:**
 
-- `cd /home/ubuntu/work/agi && python3 -m pytest extensions/agi/tests/ -q`
+- `cd <home>/work/agi && python3 -m pytest extensions/agi/tests/ -q`
   → **482 passed**, 0 failed.
 - Metric effect, measured both ways on the live `agi-tree` graph
   (665 nodes, both engine copies pinned at the same base commit
-  `1029ea8`; `/home/ubuntu/work/agi-tree/agi` is the clean pre-change clone,
-  `/home/ubuntu/work/agi` is the working copy with the uncommitted diff):
+  `1029ea8`; `<home>/work/agi-tree/agi` is the clean pre-change clone,
+  `<home>/work/agi` is the working copy with the uncommitted diff):
   - Before: `outcome_coverage=0.196` (`mvp_count=20`, old `hypothesis_count`
     path).
   - After: `outcome_coverage=0.196` — **unmoved**. Not because the code is a
@@ -86,7 +86,7 @@ uncommitted at the time of writing):**
     mode the code comment names.
 
 **G5 requirements — met / not met** (checked against
-`/home/ubuntu/work/agi-tree/nodes/goal/g5-goals-are-a-lifecycle-the-engine.md`,
+`<home>/work/agi-tree/nodes/goal/g5-goals-are-a-lifecycle-the-engine.md`,
 the canonical statement — `status` here is `horizon`, not `active`, worth
 noting since the work proceeded anyway):
 
@@ -98,7 +98,7 @@ noting since the work proceeded anyway):
 | L18 — ideation-only project degrades, doesn't abort | Met | early-return guard in `snapshot-build-site.py main()`, confirmed by the diff and by the 10 new tests |
 
 **What the payload_ref drift means:** ran
-`stitch.py --project /home/ubuntu/work/agi-tree --verify --engine-root /home/ubuntu/work/agi`
+`stitch.py --project <home>/work/agi-tree --verify --engine-root <home>/work/agi`
 directly. It reports:
 
 ```

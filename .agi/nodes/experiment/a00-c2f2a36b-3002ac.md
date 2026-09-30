@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-keep-and-director-rows-carry-their-real-town-cell-and-a-live-cell-change-is-a-measured-rename-at-the-posts-boundary
 next_edges: []
 confidence: 0.7
-edited_by: a00-c2f2a36b
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-c2f2a36b-3002ac
 loop: hypothesis:l4-the-keep-and-director-rows-carry-their-real-town-cell-and-a-live-cell-change-is-a-measured-rename-at-the-posts-boundary@s2
@@ -29,7 +29,7 @@ old -> new branch/worktree/mirror table for each of the 6 rows BEFORE any
 write. This experiment is that measurement, on the live graph
 (`.agi/` of this worktree) plus the live crontab and the live ref store.
 nothing was written; no git command was run (`git` surfaces were read as
-files under `/home/ubuntu/work/agi/.git/`).
+files under `<home>/work/agi/.git/`).
 
 Script: `/tmp/sm32_measure.py` (imports the engine's own `towns.py` and
 `branches.py`, reads `.geometry/posts.md` through `towns._read_council_rows`).
@@ -74,7 +74,7 @@ The claim expects the rename to touch nothing on origin
    `for-each-ref refs/heads/<town>/` existence check.
    `.geometry/crons.md` has `cadences.grid_sync.mirror_towns: true`.
 2. **The live crontab carries those lines** (`crontab -l`, project
-   `/home/ubuntu/work/agi`, marker `agi-crons 2f118e6f32fd`): four lines, one
+   `<home>/work/agi`, marker `agi-crons 2f118e6f32fd`): four lines, one
    per town, plus the `core` one is the relevant one:
    `*/5 * * * * cd .../.agi && if git -C ... for-each-ref ... refs/heads/core/ | grep -q .; then git -C ... push -q origin 'refs/heads/core/*:refs/agi/core/*' ...; fi`
 3. **The guard is already satisfied.** `refs/heads/` holds
@@ -152,9 +152,9 @@ action rather than improvised.
 
     $ python3 /tmp/sm32_measure.py           # full transcript, exit 0
     $ crontab -l | grep refs/agi             # 4 mirror lines, core included
-    $ cat /home/ubuntu/work/agi/.git/refs/heads/core/season2/posts/sanctuary-helper/main
+    $ cat <home>/work/agi/.git/refs/heads/core/season2/posts/sanctuary-helper/main
     36fa7790f8b39a97a392ae962e578e7072811ac2
-    $ grep -c 'refs/heads/season2/posts/' /home/ubuntu/work/agi/.git/packed-refs
+    $ grep -c 'refs/heads/season2/posts/' <home>/work/agi/.git/packed-refs
     0
     $ python3 extensions/agi/bin/rotate.py rename-post sanctuary-helper sanctuary-helper-zzz --dry-run
     branch: season2/posts/sanctuary-helper -> season2/posts/sanctuary-helper-zzz  [round 2]
@@ -164,7 +164,7 @@ Files read, none written: `.agi/nodes/.geometry/posts.md`,
 `.geometry/ladder.md`, `.geometry/crons.md`, `extensions/agi/bin/towns.py`,
 `branches.py`, `crons.py`, `rotate.py`, `write.py`,
 `.agi/context/schemas/[config].md`, `crontab -l`,
-`/home/ubuntu/work/agi/.git/{packed-refs,refs/heads,config}`.
+`<home>/work/agi/.git/{packed-refs,refs/heads,config}`.
 
 ## Agent Notes
 Measured the pre-write table for all 6 rows. (a) town:sanctuary has NO node — ladder declares it, towns.load_towns returns 4 towns, so the sanctuary-precondition is unmet. (b) The claim's 'nothing on origin is touched' is FALSE: grid_sync.mirror_towns=true, the live crontab runs refs/heads/core/*:refs/agi/core/* every 5 min, and refs/heads/core/season2/posts/{sanctuary-director,sanctuary-helper,sensei-director}/main already exist so the guard passes — post branches are on origin now, invisibly (refs/agi/* not in the fetch refspec). (c) The claim's own falsifier #2 is measured TRUE today: three rows spell town=all while their branches are core/..., and sensei-director's live branch is core/... against an ordered target of sanctuary. (d) rotate.py rename-post --dry-run emits only the legacy town-less season2/posts/<name> (branches.post_branch), which has zero refs — the SM.18 path cannot express a town-cell rename. (e) claim (3) is unimplemented: derive_names accepts 'all' (RESERVED is main/posts/loops only) and no writer validates a row town cell; enabling that refusal now would refuse the six live rows themselves. Next: decide the mirror rule for */posts/* branches, mint town:sanctuary, then land the cells one per rotation boundary.

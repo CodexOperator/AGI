@@ -6,7 +6,7 @@ parents:
   - goal:g1.23
 next_edges: []
 confidence: 0.55
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: b218caef46bd956d
 season: 1
 thought_session: season
@@ -25,7 +25,7 @@ install) is decided, by adding one field (`engine_commit`, or similar) to
 `.agi/config.json` and a warn-only check in `locations.py` or `driver.sh` that
 compares it to the engine clone's current `HEAD`.
 
-Checked `/home/ubuntu/work/agi/.agi/config.json` directly: no `engine_commit`
+Checked `<home>/work/agi/.agi/config.json` directly: no `engine_commit`
 or equivalent key exists anywhere in it today, and `agent_dispatch` /
 `cc_dispatch` carry model pins but nothing about the engine's own git state —
 confirming the gap is still open, not already closed by some other node.

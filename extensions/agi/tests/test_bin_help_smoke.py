@@ -32,6 +32,8 @@ NO_HELP = {
     "prose_templates.py": "library module (the prose-template loader); no --help",
     "suite_guards.py": "library module (the suite guards in one importable home);"
                        " no --help",
+    "rotation_record.py": "library module (goal:g7.16.1.3 H4: the rotation record"
+                          " + the live-node grep); no --help",
 }
 
 

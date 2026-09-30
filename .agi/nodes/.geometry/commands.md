@@ -23,14 +23,6 @@ commands:
       - "-q"
     about: the engine's own suite
     workflow: verify
-  goals-check:
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/snapshot-goals.py
-      - "--render"
-      - "--check"
-    about: GOALS.md and the goal nodes are byte-identical inverses
-    workflow: verify
   viewport-verify:
     argv:
       - python3
@@ -58,7 +50,7 @@ commands:
       - python3
       - <engine>/extensions/agi/bin/links.py
       - schema
-    about: goal:s31 — which nodes violate their type's required list (dry)
+    about: goal:g7.33.10.1 — which nodes violate their type's required list (dry)
     workflow: read
   budget:
     argv:
@@ -193,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: director-engine
+edited_by: belam
 excluded:
   write.py:patch:
     cli: write.py
@@ -471,6 +463,18 @@ excluded:
       - <engine>/extensions/agi/bin/rotate.py
       - spawn
     reason: spawns a successor process; never-run by a proposer
+    side_effects: spawn
+    proposable: false
+  rotate.py:stand-up:
+    cli: rotate.py
+    verb: stand-up
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/rotate.py
+      - stand-up
+      - "--post"
+      - <post>
+    reason: stands a post session up by hand (a restart); spawns a seat, operator-only
     side_effects: spawn
     proposable: false
   rotate.py:tile:
@@ -751,21 +755,29 @@ excluded:
   verification.py::
     cli: verification.py
     verb: ""
-    argv: [python3, <engine>/extensions/agi/bin/verification.py]
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/verification.py
     reason: the rotation check carries --suite, --stamp and --ring-* flags -- a proposer must not demand the engine suite under the one-runner lock, stamp the baseline or sign a ring
     side_effects: read
     proposable: false
   verification.py:window:
     cli: verification.py
     verb: window
-    argv: [python3, <engine>/extensions/agi/bin/verification.py, window]
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/verification.py
+      - window
     reason: the merge-up window shares verification.py's --suite-ring/--ring-sig signer flags -- excluded with the bare check
     side_effects: read
     proposable: false
   write_guard.py:hook:
     cli: write_guard.py
     verb: hook
-    argv: [python3, <engine>/extensions/agi/bin/write_guard.py, hook]
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write_guard.py
+      - hook
     reason: prints a pre-commit hook that installs itself -- an install, not a choice
     side_effects: graph-write
     proposable: false
@@ -935,6 +947,20 @@ manifest:
       - {"name": "range", "type": "str", "required": true, "choices": []}
       - {"name": "source", "type": "str", "required": true, "choices": ["-"]}
     purpose: replace a body or payload slice with text on stdin
+    side_effects: graph-write
+    proposable: true
+  write.py:row:
+    cli: write.py
+    verb: row
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write.py
+      - <node-id>
+      - row <ref> <source>
+    args:
+      - {"name": "ref", "type": "str", "required": true, "choices": []}
+      - {"name": "source", "type": "str", "required": true, "choices": ["-"]}
+    purpose: replace one body row (node_writer.body_rows), or lines i-j inside it (<n>:<i>-<j>), or ONE nested frontmatter row (<top>.<key>, an empty source removes it)
     side_effects: graph-write
     proposable: true
   write.py:adopt:
@@ -1284,7 +1310,6 @@ manifest:
     args:
       - {"name": "action", "type": "str", "required": true, "choices": ["install", "show", "remove"]}
       - {"name": "snapshot_mins", "type": "str", "required": false, "choices": []}
-      - {"name": "publish_engine", "type": "bool", "required": false, "choices": []}
     purpose: grid.py cron
     side_effects: destructive
     proposable: false
@@ -1393,6 +1418,20 @@ manifest:
       - {"name": "broken", "type": "bool", "required": false, "choices": []}
       - {"name": "fix", "type": "bool", "required": false, "choices": []}
     purpose: links.py roles
+    side_effects: read
+    proposable: true
+  links.py:mint:
+    cli: links.py
+    verb: mint
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/links.py
+      - mint
+      - <mint_id>
+    args:
+      - {"name": "mint_id", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: resolve a mint id to the one live node carrying it (id, title, status)
     side_effects: read
     proposable: true
   links.py:schema:
@@ -1898,16 +1937,11 @@ manifest:
     argv:
       - python3
       - <engine>/extensions/agi/bin/snapshot-goals.py
-    args:
-      - {"name": "strict", "type": "bool", "required": false, "choices": []}
-      - {"name": "strict_goals", "type": "bool", "required": false, "choices": []}
-      - {"name": "project", "type": "str", "required": false, "choices": []}
-      - {"name": "render", "type": "bool", "required": false, "choices": []}
-      - {"name": "check", "type": "bool", "required": false, "choices": []}
-      - {"name": "from_doc", "type": "bool", "required": false, "choices": []}
-    purpose: snapshot-goals.py
-    side_effects: graph-write
-    proposable: true
+    args: []
+    purpose: snapshot-goals.py -- RETIRED as a command with GOALS.md (bundle 4 row W-G); the module stays as shared node-file helpers
+    side_effects: read
+    proposable: false
+    reason: GOALS.md, its render and its import are retired; the CLI only prints the retirement line
   spawn_budget.py:pause:
     cli: spawn_budget.py
     verb: pause
@@ -2582,27 +2616,6 @@ manifest:
     side_effects: graph-write
     proposable: false
     reason: bulk-wires agent verdicts into the graph from the harness; loop-owned, operator-only
-  unify.py::
-    cli: unify.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/unify.py
-      - "--engine"
-      - <engine>
-    args:
-      - {"name": "engine", "type": "str", "required": true, "choices": []}
-      - {"name": "tree", "type": "str", "required": false, "choices": []}
-      - {"name": "rollback", "type": "bool", "required": false, "choices": []}
-      - {"name": "yes", "type": "bool", "required": false, "choices": []}
-      - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
-      - {"name": "this_is_the_real_migration", "type": "bool", "required": false, "choices": []}
-      - {"name": "force", "type": "bool", "required": false, "choices": []}
-      - {"name": "report_json", "type": "bool", "required": false, "choices": []}
-    purpose: merge the two-repo layout into one
-    side_effects: destructive
-    proposable: false
-    reason: destructive one-repo migration and rollback; owner-ops, never proposed
   hierarchy.py:render:
     cli: hierarchy.py
     verb: render
@@ -2750,8 +2763,6 @@ manifest:
     proposable: false
     reason: writes a git pre-commit hook; operator-only
   smoke:
-    side_effects: graph-write
-  goals-check:
     side_effects: graph-write
   grid-commit:
     side_effects: graph-write
@@ -3003,27 +3014,13 @@ manifest:
     purpose: one live read of every seat, the spawn budget and the telemetry roll-up
     side_effects: read
     proposable: true
-  verify_unified.py::
-    cli: verify_unified.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/verify_unified.py
-      - "--before"
-      - <before>
-      - "--after"
-      - <after>
-    args:
-      - {"name": "before", "type": "str", "required": true, "choices": []}
-      - {"name": "after", "type": "str", "required": true, "choices": []}
-      - {"name": "json", "type": "bool", "required": false, "choices": []}
-    purpose: "before vs after: did the goal:g11 migration lose anything? read-only"
-    side_effects: read
-    proposable: true
   write_guard.py:check:
     cli: write_guard.py
     verb: check
-    argv: [python3, <engine>/extensions/agi/bin/write_guard.py, check]
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write_guard.py
+      - check
     args: []
     purpose: goal:g4.18 — unsanctioned node writes; silent is healthy
     side_effects: read
@@ -3031,7 +3028,10 @@ manifest:
   verify-suite:
     cli: verification.py
     verb: "--suite"
-    argv: [python3, <engine>/extensions/agi/bin/verification.py, "--suite"]
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/verification.py
+      - "--suite"
     args: []
     reason: runs the whole engine suite under the one-runner suite lock -- opt-in, never proposed
     side_effects: read
@@ -3155,7 +3155,6 @@ workflows:
   verify:
     - smoke
     - tests
-    - goals-check
     - viewport-verify
     - grid-commit
   read:
@@ -3207,8 +3206,9 @@ agent is handed — the same class of mistake as the contradictory kid contract
 ## What reads this
 
 `bin/commands.py` resolves and runs (`list`, `show`, `run`), and
-`render-context.py` writes the set into `context/INJECTION.md` so **every
-agent is handed the commands rather than expected to remember them**.
+`inject.py` (via `briefing.py`) writes the set into `context/INJECTION.md` so
+**every agent is handed the commands rather than expected to remember them**
+(`render-context.py`, its earlier writer, retired at L1.05).
 
 That second reader is why this node is allowed to exist. `goal:g2.25`'s rule
 is that a `.geometry` node must be the input a code path resolves against,
@@ -3258,5 +3258,5 @@ graph carries only what is below: the alias, the label, and the one command.
   A box added to the farm gets a row here, a label, and nothing else.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-09-23 EF.21 kid a00-deb4f918: added the `manifest:` and `excluded:` frontmatter maps declaring the write.py verb surface (VERBS + create) so `commands.py manifest` has ONE typed choice set to print. The 25 `commands:` entries are untouched byte-for-byte (`manifest:` only ADDS metadata; the manifest action DERIVES cli/verb from a command's own argv when no override is present, so no existing entry needed editing). Deviation from the kid brief: it asked the manifest to contain no `<home>`, but the five mesh entries carry `<home>/work/.sanctuary/ssh/config` by design and the same brief forbids editing them -- `<home>` is a clone-agnostic placeholder resolved at run time, not a box value, so it stays. Frontmatter written directly because write.py has no verb for a nested map entry (patch = payload only); disclosed here, not silent.
+goal:g7.16.1.4.1.2 (DG2's L2a config finding): 'What reads this' named render-context.py as the writer of context/INJECTION.md; it retired at L1.05 (44ee2f65c) and the writer is inject.py, whose brief comes from briefing.build (which imports commands). The paragraph now names inject.py via briefing.py and render-context.py only as retired. Prose only: commands.py list output byte-identical before and after.
 <!-- THOUGHT:END -->

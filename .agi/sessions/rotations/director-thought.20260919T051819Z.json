@@ -24,7 +24,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/director-thought.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/director-thought.log",
     "d_stale_continue_cursor": {
       "start_offset": 9389188,
       "read_before_write": true,
@@ -77,16 +77,16 @@
       "window_id": "@467",
       "pid": 2910420,
       "session_id": "a560e45b-259f-4713-a30f-5e1655cb4118",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-director-thought/a560e45b-259f-4713-a30f-5e1655cb4118.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-director-thought/a560e45b-259f-4713-a30f-5e1655cb4118.jsonl",
       "name": "post-director-thought-07",
-      "path": "/home/ubuntu/.claude/sessions/2910420.json",
+      "path": "<home>/.claude/sessions/2910420.json",
       "note": "joined by @467 in registry file 2910420.json"
     },
     "successor_row": "config:seats row 'director-thought': session_ref= session_name=post-director-thought-07 session_label=director-thought session_id=a560e45b-259f-4713-a30f-5e1655cb4118 pid=2910420 generation=12 window='@467' source=registry pubkey=f6b94a8f6d771597... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha 5278b75e4, retried 0) -- own-row only: director-thought spawn row: gen 12, session_id a560e45b-259f-4713-a30f-5e1655cb4118, window @467, pid 2910420\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/director-thought.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/director-thought.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/director-thought.ack.a560e45b.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/director-thought.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/director-thought.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/director-thought.ack.a560e45b.json",
     "own_authority_released": "generation 11 of seat 'director-thought' retired; successor generation 12 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch local-maxxing/season1/posts/director-thought/main",
     "livestream_repoint": {
@@ -95,7 +95,7 @@
       "skipped": "view session view-director-thought absent"
     },
     "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 60s) \u2014 successor has not answered",
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/director-thought.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/director-thought.bootstrap.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -130,9 +130,9 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/director-thought.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-director-thought/a560e45b-259f-4713-a30f-5e1655cb4118.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/director-thought.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-director-thought/a560e45b-259f-4713-a30f-5e1655cb4118.jsonl",
         "rc": 0,
-        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-director-thought/a560e45b-259f-4713-a30f-5e1655cb4118.jsonl (via claude-code transcript (explicit)).",
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-director-thought/a560e45b-259f-4713-a30f-5e1655cb4118.jsonl (via claude-code transcript (explicit)).",
         "truncated": false,
         "byte_cap": 8000
       },

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-canonical-bytes-are-injective-and-fresh-and-the-ring-gates-the-write-itself
 next_edges: []
 confidence: 0.8
-edited_by: a00-9c00b7ed
+edited_by: director-general-2
 evidence_runs:
   - experiment:a00-94617bb7-43045e
 loop: hypothesis:l4-canonical-bytes-are-injective-and-fresh-and-the-ring-gates-the-write-itself@s2
@@ -112,5 +112,4 @@ PARENT REVIEW L4.329 (a00-9c00b7ed). Verdict KEPT at inconclusive_lean_proved:80
 - The kid narrowed the veto wiring to an OPT-IN READ-SIDE guard (veto.py:299, and veto_fields stays signature-stable). That is a deviation from "the three signed records and rung 3's veto record get it through the shared path" -- but it is the right call: rung 3's own expiry_seconds/active_gates are a different lifecycle, and breaking them would break the freeze-never-frees invariant. Recorded, not penalised.
 - THE ONE I FOUND AND FOLDED FORWARD: the gates mint `_fresh` with secrets.token_hex(16) INSIDE the process, and there is no CLI seam to supply it. Two calls to dispatch._round_cut_fields with identical argv give _fresh b8d0607288b7474f3f39a46737cfc2cb and _fresh 4e5e955627e24b357d00f7b481e7bf55, and canonical_bytes differ. So no out-of-process signer can ever produce a --ring-sig that matches what --ring-gate will verify: the CLI quorum path with m>0 is un-signable. The hypothesis's own PROOF clause ("the CLI flags end-to-end untested") is therefore still open, and this is why 80 and not a clean proved. Folded into KID D, not re-cut, because the primitive is right and only the seam is missing.
 - Minor, recorded: json_field now persists a non-str value in the _enc tagged form, so a config-write field for the int 1 reads as the STRING ["int",1] in the persisted cell (was "1"). Lossless through canonical_bytes and no reader json.loads it, but it is a visible format change a human reading a persisted decision cell will notice.
-<!-- THOUGHT:END -->
 <!-- THOUGHT:END -->

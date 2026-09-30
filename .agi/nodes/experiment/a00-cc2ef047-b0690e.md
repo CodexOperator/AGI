@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-sb-status-is-both-halves
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-cc2ef047-b0690e
 loop: hypothesis:l4-sb-status-is-both-halves@s2
@@ -35,8 +35,8 @@ halves with their argv.
 * `~/bin/sb-status` — the wrapper this command is meant to stand in for:
   ```bash
   #!/usr/bin/env bash
-  "/home/ubuntu/work/streamer-stub/bin/hold.sh" --status
-  "/home/ubuntu/work/streamer-stub/bin/panic.sh" --status
+  "<home>/work/streamer-stub/bin/hold.sh" --status
+  "<home>/work/streamer-stub/bin/panic.sh" --status
   ```
   Two halves. `panic.sh --status` is a real invocation — panic.sh handles a
   `--status` mode that reports the ring/runway (its own docstring:

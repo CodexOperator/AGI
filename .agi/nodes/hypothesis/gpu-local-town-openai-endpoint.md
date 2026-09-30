@@ -8,7 +8,7 @@ next_edges: []
 ceiling: $4 OpenRouter total for parent + kids' OWN tokens across <= 2 rounds (deepseek-v4-flash class); GPU electricity is the owner's; no Camber, no new cloud providers, no public exposure (server binds 127.0.0.1 on local-town, tunnel binds 127.0.0.1 on core-town, port 22 over the overlay only); downloads <= 25 GB to /data on local-town (317 GB free), 0 bytes to core-town (26 GB free); each kid <= 40 tool calls; each ssh command <= 10 min (long pulls via nohup + poll), each script <= 20 min wall; every ssh command idempotent and logged verbatim in the node; rollback = `docker rm -f llama-server` on local-town + `systemctl --user disable --now local-town-tunnel` on core-town + restore models.json.bak + delete the one config row — nothing else changed on either box.
 demote_reason: "cleared: evidence_runs now lists the two kid experiments; the gate demoted at cron commit because the hypothesis node listed none"
 demoted_from: cleared-2026-09-16-evidence_runs-added
-edited_by: belam
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f2e3b48b-5f8ec2
   - experiment:a00-f98cb348-5f89c2
@@ -31,7 +31,7 @@ verdict: proved
 ## Measured lines (source path; read 2026-09-16 by drafters and re-read by the judge)
 - Owner aim, .agi/nodes/goal/g14.md L106: "power parents and kids efficiently enough to get off OpenRouter as far as possible, at least in bursts"; L110 gpu-8g super box in the compute inventory. Owner ~08:1xZ: "integrate the use of the gpu as an easy-to-use api inference request same as the endpoints we get for cloud providers".
 - local-town, one read-only `ssh -F <keeper-dir>/ssh/config local-town` (07:3xZ, re-run by judge): gpu-8g SUPER 8192 MiB, driver 595.84, /data 339G/317G free, /usr/bin/docker, only image nvidia/cuda:12.6.3-base-ubuntu24.04, 15 GB RAM (14 available), systemd 255 --user, no llama-server yet.
-- .agi/config.json: harnesses.pi = {adapter pi, provider "openrouter", models kid ~deepseek/deepseek-v4-flash-latest / parent deepseek/deepseek-v4.1-flash, allowed_extra}; spawn.harness pi; spawn.credential.provider openrouter; locations.pi_home /home/ubuntu/.pi/agent; agent_dispatch.ollama_max_parallel 0 (dead local path).
+- .agi/config.json: harnesses.pi = {adapter pi, provider "openrouter", models kid ~deepseek/deepseek-v4-flash-latest / parent deepseek/deepseek-v4.1-flash, allowed_extra}; spawn.harness pi; spawn.credential.provider openrouter; locations.pi_home <home>/.pi/agent; agent_dispatch.ollama_max_parallel 0 (dead local path).
 - extensions/agi/bin/adapters/pi_adapter.py L47-79: model_args emits `--provider <harness.provider> --model <models[tier]> --thinking`; L316-318 needs_credential returns True unconditionally.
 - extensions/agi/bin/adapters/__init__.py L104-116 resolve(): adapter defaults to the harness name (a new row must say "adapter": "pi"); L193-214 allowlist = ladder rows for that harness U allowed_extra; L217-236 assert_model_in_provider_namespace returns early unless provider == "openrouter".
 - extensions/agi/bin/dispatch.py L1741-1799 provider comes only from the harness row; explicit --harness beats a ladder row; L1883 "credentials: minting per spawn" prints before the L1963 --dry-run return (L1122 _dry_run_report spawns nothing); L2040 OpenRouter key/account floor guards run only for provider == "openrouter"; L2396 a key is minted iff provisioning is available AND needs_credential.

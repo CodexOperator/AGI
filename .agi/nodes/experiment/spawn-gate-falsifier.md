@@ -7,7 +7,7 @@ parents:
 next_edges:
   - verdict:spawn-gate-lands-on-writer-path
 confidence: 0.9
-edited_by: season.py
+edited_by: director-general-3
 season: 1
 subgraph: false
 tags:
@@ -26,7 +26,7 @@ legal spawn and get an explicit approval line. **If any of the three is
 silent, this is not done.**
 
 All output below is verbatim from `payloads/extensions/agi/bin/cli.py`, the
-real writer path, in `/home/ubuntu/work/agi-tree` on 2026-08-25.
+real writer path, in `<home>/work/agi-tree` on 2026-08-25.
 
 ## 1. `verdict` with no parent — REJECTED
 
@@ -73,7 +73,7 @@ This chain's own six nodes were created through the gated path. Verbatim:
 ```
 $ cli.py scaffold ... --type idea --slug schema-declared-spawn-gate --parent goal:s17
 -- SPAWN-GATE APPROVED: idea:schema-declared-spawn-gate checked against context/schemas/[idea].md [idea] — min_parents>=0; max_parents<=1; allowed_parents={goal}. parents=['goal:s17']
-scaffolded: /home/ubuntu/work/agi-tree/nodes/idea/schema-declared-spawn-gate.md
+scaffolded: <home>/work/agi-tree/nodes/idea/schema-declared-spawn-gate.md
 
 $ cli.py scaffold ... --type verdict --slug spawn-gate-lands-on-writer-path \
     --parent exp:node-type-corpus-survey --parent exp:spawn-gate-falsifier

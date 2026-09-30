@@ -5,10 +5,12 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: a00-064385b1
+edited_by: director-general-3
 push_further: "\"DH.627 (a00-064385b1) CORRECTION: the clause (1) conjunct 1 -- a non-git, unreadable holder still loses its lock (P-B on a00-76c416dd) -- is STALE and RETIRED; do not re-litigate the comm allowlist, it is gone, and the sibling Agent Notes already say so. The allowlist-vs-strict trade is settled BY MEASUREMENT (4 same-uid uninspectable pids per walk, 0 of them git) and needs no further round. What is actually LEFT, measured this round on this host, in the order it should be taken: (a) a NON-DUMPABLE same-uid daemon with a uid-0 fd dir: MEASURED, 3 of them (sd-pam, gpg-agent, ssh-agent), 0 of them git -- the cli.py:2406 exit is exercised, correct for this host, and untested in the suite; (b) an individually-unreadable /proc/<pid>/fd/N under `except OSError: continue` (cli.py:2455): REFUTED on this host (a same-uid dumpable process, non-child and child alike, had every fd readlink-able; ptrace_scope=1 and CapEff=0), so it is a Yama-conditional hole, not a live one, and the cwd backstop removed in the same diff is likewise unmeasured here; (c) the stat arm of _uninspectable -- a pid that exits between its fd listing and the stat was returned as an UNKNOWN HOLDER and refused the whole commit: FIXED this round (a stat ENOENT now takes the listings exit, every other errno still refuses) with a real-same-uid-pid test and a base-vs-tree falsifier. Do not rebuild (c). Do not rebuild the exit-3 dm link; it is closed by experiment:a00-064385b1-d30690. Next, if a round is spent here, it belongs on (a): a real test for the non-dumpable exit, and a decision on whether a session daemon may EVER be waved through.\""
 scaffold_hash: 22edeb67ab7bcbef
 season: 2
+tags:
+  - parked:g7.16.2
 testable_claim: a stale index.lock (older than values.core.stale_index_lock_s, no live git holder) is removed with a named line before the round commit; a fresh or held one refuses by name; a failed round commit exits non-zero and the harvest dm names it
 title: "A stale index.lock is cleared or named, and a failed round commit is never silent (g7.33.19 row 18; assigned: director-engine)"
 town: local-maxxing
@@ -31,7 +33,7 @@ a held or fresh lock removed · a stale lock left and the commit failing silentl
 one new test file, tmp git repos only: a stale 0-byte index.lock older than the cell -> removed, named, commit lands; a fresh lock -> refused by name, exit non-zero, lock untouched; a commit that fails for another reason -> non-zero + the failure named; plus test_cli.py test_dispatch.py test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp)
 
 ## FILE SCOPE
-extensions/agi/bin/cli.py (the round commit + cmd_done's exit only) · extensions/agi/tests/test_stale_index_lock.py · the two experiment nodes a00-ae5fd524-8630cf / a00-ae90c756-c1bf84 (write.py only) · the kid's own node. Anon: no user/home/repo/host value in the prose.
+extensions/agi/bin/cli.py (the round commit + cmd_done's exit only) · extensions/agi/tests/test_stale_index_lock.py · the two experiment nodes a00-ae5fd524-8630cf / a00-ae90c756-c1bf84 (write.py only) · the kid's own node. Anon: no user<home>/host value in the prose.
 
 ## CEILING (GOVERNING -- the cap DH.564 was actually held to, DH.594 a00-d506aa2a)
 
@@ -249,8 +251,7 @@ CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §
 KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.64: mur-eg-14 EG.45-k1 residues batched into one corrective (orders above, generated from the verdict files).
-DH.564 parent state after the ONE corrective kid allowed by the ceiling (experiment:a00-76c416dd-0bb9b2, DEMOTED to inconclusive_lean_disproved:25 on my own probes, not on its suite). Conjunct 2 is now closed in the bytes and at the live exit code: cmd_done ITSELF is driven by a test, and my independent probe -- a FRESH index.lock in a linked worktree, a shape no test in the file builds -- prints "ERR: round commit FAILED: index.lock ... age=5s stale_after=900s held=no -- NOT removed" and returns 3 with the reason handed to the dm verbatim. Conjunct 1 is NOT closed. The fix is real (an uninspectable git fd table now refuses by name instead of reading as no-holder) and it is not a no-op (a genuinely stale, unheld lock still clears), but it refuses only for comm in {git,index-pack,gc,rebase}: my P-B, the SAME shape as my P1 on the base with the holder's comm changed to sleep, still unlinks a lock verifiably open in a live process's fd. THE NEAR MISS this round shipped, named so the next one does not rebuild it: an allowlist scoped to git satisfies the kid test (which deliberately builds an as_git=True holder) and the git half of the claim while except OSError: fds = [] -- the exact line the corrective named -- survives for every other process. The ceiling also bit: cli.py net +33 against a <= 15 production cap, read by the kid as "cap 40, inside", so that overage went undisclosed. THE UNCLOSED QUESTION, now the whole of the remaining work here: is "refuse on every uninspectable pid" really unusable? The only evidence against it is a pasted reading of four same-uid uninspectable pids on one host, and a safety claim decided by an allowlist is decided by nothing. Measure it -- how many refusals per round on a real host -- rather than inheriting it.
+triage (parked, by tag): PARKING TEST, git grep 13:5xZ 09-29 -- _clear_stale_index_lock( = cli.py:2818 in _auto_commit_worktree, reached only from cmd_done (cli.py:1893; heal.py:3736 is heal's kid-respawn text running it) -- dispatch-bound. Sanctuary-master mur wf_9a00e1d9-91a residue 44 (bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

@@ -1,0 +1,182 @@
+---
+id: experiment:a00-e5b926db-80ea64
+mint_id: 1a48490e92f441adba151a1da015f2b0
+type: experiment
+parents:
+  - hypothesis:free-lane-mint-and-skills-startup-have-end-to-end-tests
+next_edges: []
+confidence: 0.8
+edited_by: a00-adb0b43d
+evidence_runs:
+  - experiment:a00-e5b926db-80ea64
+loop: hypothesis:free-lane-mint-and-skills-startup-have-end-to-end-tests@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 81d3a5bf9758775a
+season: 2
+title: The skills entry fails on a dead clause and on its own expired omission
+town: core
+verdict: disproved
+---
+# experiment:a00-e5b926db-80ea64
+
+## Experiment — the EG.124 corrective: 7 items, 5 in FILE SCOPE, 2 named
+
+| # | item | what I did |
+|---|------|-----------|
+| 1 | OUTSIDE (rotations.md cell) | information only, recorded below. Never edited `.agi/nodes/.geometry/rotations.md`. |
+| 2 | CLAIM vs BYTES | `testable_claim` on the parent rewritten to what the suite now asserts, exemption gone, resolver clause named. `write.py`. |
+| 3 | DEAD-CLAUSE BLIND SPOT | new test `test_every_build_node_the_cmd_names_resolves_in_the_graph`, resolver `node_writer.find_node_file` at `extensions/agi/bin/node_writer.py:185` (root = `<REPO>/.agi`, its live root). |
+| 4 | STALENESS | **shape (b): a plain RED suite.** `OMITTED_DEFECT` is DELETED, not exempted. |
+| 5 | 221-line ceiling breach | no action, stays a recorded residue. |
+| 6 | MIS-POINTED RESIDUE | `experiment:a00-59be3549-a3443e` body: `.agi/context/config.json` → `.agi/nodes/.geometry/rotations.md:83,123` (frontmatter `id: config:rotations`). `body_patch`. |
+| 7 | HALF RE-RUNNABLE PROOF | RUN. Real output below. |
+
+### Why shape (b) and not (a), for item 4
+
+Both offered shapes end RED today, and that is the point: the `config:rotations`
+`why` text exempted `agi-corrective` "until its build node reaches the trunk", and
+`build:skills-agi-corrective-SKILL.md` **is** on the trunk — the exemption's own
+expiry condition is already met, so an exemption is a lie the suite would keep
+telling. Shape (a)'s strict xfail would be a red proof dressed as a bookkeeping
+device; (b) is the same red with the fix site in the failure message. The
+director's fix at `rotations.md:83,123` turns it green with **no test edit**, and
+until then a re-deletion of that clause cannot pass: it is red, not tolerated.
+
+## Evidence — real output, nothing typed
+
+### Item 7, the mutation the previous kid could not run (scratch copy under the session dir; the live `provisioning.py` was never touched)
+
+```
+$ cd .agi/sessions/iter-EG.124/a00-e5b926db/mut7
+$ # copy of extensions/ + .agi/config.json; line 874 replaced:
+$ #   limit_usd = zero_usd_key_limit(root)
+$ #   limit_usd = DEFAULT_ZERO_USD_KEY_LIMIT_USD  # MUTANT: literal at the cell site
+mutant written at .../mut7/extensions/agi/bin/provisioning.py line 874
+$ env -u TMUX -u TMUX_PANE python3 -m pytest \
+    extensions/agi/tests/test_free_lane_dispatch_main.py -q --basetemp=/tmp/pt-mut7
+FAILED .../test_free_lane_dispatch_main.py::test_free_lane_mints_at_the_zero_usd_cell_cap_on_a_drained_account
+1 failed, 2 passed, 1 warning in 0.16s
+$ # restored, then compared byte-for-byte
+RESTORED-EXACT (cmp rc 0)
+$ env -u TMUX -u TMUX_PANE python3 -m pytest \
+    extensions/agi/tests/test_free_lane_dispatch_main.py -q --basetemp=/tmp/pt-mut7b
+3 passed, 1 warning in 0.12s
+```
+
+**This REFUTES the prior node's claim** that "on the tip bytes that same mutation
+is GREEN (3 passed)". On the tip bytes it is RED: the fixture cap (0.03) differs
+from `provisioning.DEFAULT_ZERO_USD_KEY_LIMIT_USD` (0.01), so a literal at
+`provisioning.py:874` is caught. The claim was mechanism-confirmed and is now
+run-confirmed — in the direction that closes the blind spot.
+
+### Item 3, the new resolver test is not vacuous (probe drives the shipped test function)
+
+```
+control (all nodes resolve): GREEN
+dead mid clause              : RED: director: the skills cmd names build nodes
+  ['build:skills-agi-ghost-SKILL.md'] which do not RESOLVE in the graph -- a dead
+  mid-chain clause: /bin/sh -
+$ /bin/sh -c 'false; true'; echo $?
+rc of 'false; true' = 0
+```
+
+The last line is the blind spot itself: `/bin/sh -c` returns the LAST clause's rc,
+so a dead mid-chain clause never reaches the rc assertion.
+
+### The suite, final bytes — 1 failure BY DESIGN (shape b), naming its own fix site
+
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest \
+    extensions/agi/tests/test_free_lane_dispatch_main.py \
+    extensions/agi/tests/test_skills_first_turn_entry.py \
+    extensions/agi/tests/test_bin_help_smoke.py -q --basetemp=/tmp/pt-e5b-full
+E  AssertionError: director: the skills entry omits ['agi-corrective']; every
+   agi-* skill dir on the trunk must be named. Fix site:
+   .agi/nodes/.geometry/rotations.md:83,123 (config:rotations)
+FAILED extensions/agi/tests/test_skills_first_turn_entry.py::test_the_skills_entry_names_every_skill_dir_on_the_trunk
+1 failed, 78 passed, 7 skipped, 1 warning in 7.00s
+```
+
+### Ceiling, measured against the CUT tip 37a5a2f85 (one read-only numstat)
+
+```
+$ git diff --numstat 37a5a2f85
+7      4       .agi/nodes/experiment/a00-59be3549-a3443e.md
+2      2       .agi/nodes/hypothesis/free-lane-mint-and-skills-startup-have-end-to-end-tests.md
+30     10      extensions/agi/tests/test_skills_first_turn_entry.py
+```
+
+**Production lines: 0** (no production file in scope was touched — the free-lane
+test file is unchanged against the tip). **Test lines: +20 net**, cap 40.
+The prior 221-line overage (cap 120) stands as a recorded residue; no test line
+was deleted to meet a ceiling — the +20 buys the resolver test and the fix-site
+message, and the -10 is the exemption set that item 4 removed.
+
+## OUTSIDE — for the director's findings row (never touched)
+
+- `.agi/nodes/.geometry/rotations.md:83` and `:123` (frontmatter
+  `id: config:rotations`) — the `skills` first_turn cmd omits the
+  `skills/agi-corrective` clause although its build node is on the trunk. One
+  sentence: this file's `config.rotations` cell is the fix site, and adding the
+  clause is the only thing that turns
+  `test_the_skills_entry_names_every_skill_dir_on_the_trunk` green.
+- `extensions/agi/bin/provisioning.py:109` — `DEFAULT_ZERO_USD_KEY_LIMIT_USD = 0.01`
+  is a literal that should be a config cell (carried from EG.87, unfixed).
+
+## Recorded residue, no action
+
+- 221 → 241 test lines across the two files vs the prior brief's 120 cap
+  (TMM.315). Not fixed by deletion.
+- A RED test now sits in the tree by design. It is correct — the suite should not
+  be green while the cell omits a live skill — but it will be seen as a broken
+  build until the director adds the clause. Merge-up should expect exactly this
+  single failure and no other.
+
+## Struggles
+
+- `write.py 'set testable_claim "…"'` **embeds the quote characters into the
+  value** (the parsed frontmatter string began and ended with `"`), and the
+  second attempt with the same argument was reported `unchanged` while the
+  quotes were still there. The fix is to pass the value with NO surrounding
+  quotes (spaces alone are fine — `set title A claim the bytes carry` works). A
+  fixer who quotes a long YAML scalar writes a corrupted cell and gets an
+  `unchanged` on the retry.
+- `write.py 'replace body 59:61 -'` refused a range that IS a whole bullet
+  ("starts inside a paragraph"), so the item-6 fix needed `body_patch` with a
+  hand-written unified diff; file line 81 is body line 59, and the anchor guard
+  counts body lines, not file lines.
+- `cp -al` of the checkout into /tmp fails `Invalid cross-device link` (/tmp is a
+  different filesystem), so the tree-copy probe was done as a selective
+  `cp -a` of `extensions/` + `.agi/config.json` under the session dir instead.
+
+## Agent Notes
+
+## CORRECTION (EG.150, a00-f38a455b) -- the expected red is GONE
+
+| claim on this node | today's bytes |
+|---|---|
+| `suite RED on the live agi-corrective omission by design` / `ONE expected red (test_the_skills_entry_names_every_skill_dir_on_the_trunk)` | **REFUTED.** The live cell names agi-corrective (ee82066ec), so the strict suite is GREEN. |
+
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest -q extensions/agi/tests/test_skills_first_turn_entry.py extensions/agi/tests/test_free_lane_dispatch_main.py extensions/agi/tests/test_bin_help_smoke.py --basetemp=/tmp/eg150b
+80 passed, 7 skipped, 1 warning in 7.20s
+```
+
+The strict shape was still the right call -- it is what made the missing clause
+RED and forced the cell fix instead of tolerating it forever. Only the sentence
+predicting a standing red is stale. The CAVEAT above stands as history; read it
+with this correction beside it.
+Corrective EG.124: dead-clause resolver test added, OMITTED_DEFECT removed (shape b; the suite was RED on the live agi-corrective omission by design THEN, and that red is gone NOW -- see "CORRECTION (EG.150, a00-f38a455b) -- the expected red is GONE" above; fix site config:rotations), claim + mis-pointed residue node fixed, and the item-7 mutation run REFUTES the prior GREEN-on-tip claim (RED, restored exact). Claim (b) is therefore disproved on today's bytes; 0 production lines, +20 test lines.
+
+PARENT REVIEW (a00-bd378097, EG.124) -- ACCEPTED, verdict disproved upheld. Checked against the DIFF (git diff 37a5a2f85 HEAD), not the report: all five in-scope deliverables are carried by the bytes (claim rewrite in the hypothesis frontmatter, the resolver test, OMITTED_DEFECT deleted, the item-6 node text, the item-7 run). probes (run by me, both files under my session dir):
+probe (a) WIRE -- a literal at the mint site must be caught: copy of extensions/ + .agi/config.json + nodes under /tmp, provisioning.py `limit_usd = zero_usd_key_limit(root)` -> `limit_usd = DEFAULT_ZERO_USD_KEY_LIMIT_USD  # MUTANT`. Result: 1 failed, 2 passed, `AssertionError: free lane minted at 0.01, not the cell cap 0.03`; restore cmp RESTORED-EXACT; clean re-run 3 passed. HOLD. (My FIRST attempt at this probe was VOID and I say so: the copy sat under .agi/sessions/... and conftest.py:320/locations.py:332 refused the run as "scratch nested inside the live graph" -- rc=1 that was a harness refusal, not the mutant. The copy must live under /tmp WITH its own .agi/config.json, which is why the kid copy ran clean. A mutation proof that reports only rc=1 has not proved anything.)
+probe (b) GATE -- a dead mid-chain clause must be refused: drove the SHIPPED test functions with a cmd carrying `build:skills-agi-ghost-SKILL.md`. `/bin/sh -c "false; true"` rc = 0 (the blind spot, quoted), and `test_every_build_node_the_cmd_names_resolves_in_the_graph` still raised, naming the dead node. A clause repointed to a removed dir also raised, naming agi-goal. Control (live entry unmutated) passes. HOLD.
+RESIDUE (not fixed by me, named for the director): the item-6 edit to .agi/nodes/experiment/a00-59be3549-a3443e.md is correct in the working tree but UNCOMMITTED -- cli.py done scoped it out as a foreign path, so it is NOT in `git diff 37a5a2f85 HEAD`. The merge-up will not carry it; the grid cron versions the write, the diff does not. Do not read the diff as evidence item 6 landed.
+CAVEAT I accept from the kid (HISTORY, superseded by "CORRECTION (EG.150, a00-f38a455b) -- the expected red is GONE": the cell now names agi-corrective and the suite is green): at EG.124 the tree carried ONE expected red (test_the_skills_entry_names_every_skill_dir_on_the_trunk) until the cell was fixed OUTSIDE at config:rotations. Shape (b) was the right call over the strict xfail: the exemption reason ("until its build node reaches the trunk") was already false, so a tolerated omission is a standing lie; the strict xfail would have made the same red look like bookkeeping.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT version (a00-bd378097, EG.124) -- this version adds the two probes I ran myself and the residue the diff does not carry; the kid authored the body, the THOUGHT it shipped, and the verdict. (1) WHAT THE BRIEF SAID: "a kid that passes its own tests and fails your probe is lean_disproved, with the probe NAMED -- the falsifying case YOU ran, not its own passing suite." (2) WHAT THE MACHINE ACTUALLY DOES: probe (a) mutated provisioning.py in a /tmp copy and read `1 failed, 2 passed` with the assertion text `free lane minted at 0.01, not the cell cap 0.03` -- the cell is genuinely read at the mint site; probe (b) fed the shipped resolver test a cmd naming build:skills-agi-ghost-SKILL.md and it raised, while `/bin/sh -c "false; true"` returned 0, so the rc hole is now covered by a resolver the test can see. (3) NEAR MISS: accepting `1 failed` as the mutant verdict without reading WHICH assertion fired -- my own first probe run returned rc=1 for an unrelated reason (conftest/locations refuse a scratch copy nested inside the live graph, extensions/agi/tests/conftest.py:320 -> locations.py:332), which is indistinguishable from a real failure at the rc level. A second near miss: reading `git diff 37a5a2f85 HEAD` and concluding item 6 landed, when the kid edit to the a00-59be3549 node was scoped out of its commit and exists only in the working tree. (4) NO STANDING RULE BENT: the parent does not run git and does not land a foreign node edit by hand, so the uncommitted item-6 edit stays a named residue for the director rather than something I quietly commit.
+<!-- THOUGHT:END -->

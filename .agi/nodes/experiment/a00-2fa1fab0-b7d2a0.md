@@ -6,7 +6,7 @@ parents:
   - hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session
 next_edges: []
 confidence: 0.6
-edited_by: director-engine
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-2fa1fab0-b7d2a0
 loop: hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session@s2
@@ -167,7 +167,7 @@ PARENT REVIEW DH.368 (a00-5aaa03c7): ACCEPTED as inconclusive_lean_proved:60 for
 
 probes: (wire) patching rot.locations.config_path to a fixture and changing the cell between two calls moves the returned grace 3.5 -> 41, so the cell is read per call through the resolver and a cached or inlined value cannot produce this [PASS]. (auth) a caller that PASSES wait_secs explicitly is not overridden: _reap_chain([pid], wait_secs=0.01) sends SIGTERM and never SIGKILL first [PASS]. (gate) six malformed cell shapes (string, bool, negative, 0, null, missing reaper block), an empty config, a non-JSON config, a config_path returning None, and a config_path that RAISES all fall back to 15.0 and never raise [PASS]. (gate) the LIVE config cell equals what the resolver returns, so the shipped cell is the read cell [PASS].
 
-Probe file (parent-run, not the kid suite): /data/work/agi/.agi/worktrees/post-director-engine/.agi/sessions/iter-DH.368/a00-5aaa03c7/probe_parent_3.py -> 4 passed.
+Probe file (parent-run, not the kid suite): <repo>/.agi/worktrees/post-director-engine/.agi/sessions/iter-DH.368/a00-5aaa03c7/probe_parent_3.py -> 4 passed.
 
 APP HALF, independently confirmed by the parent: `claude --help` on 2.1.283 lists stop / rm / attach / logs / agents as reachable ONLY for --bg (background) sessions; there is no subcommand that addresses a --remote-control app session by name or session id. The kid lean is right, and the reason it declined the `claude agents --json --all` -> `claude rm` sweep is the reason to believe it: that sweep would have been a green test over background entries while the owner-reported defect (app-side stale sessions) stayed exactly where it was, and `claude rm` deletes the session worktree. Refusing to build that is the correct call and is recorded here so a later round does not re-derive it as an oversight.
 
@@ -176,5 +176,5 @@ WIDTH, recorded not fatal: the resolver rejects v <= 0, so an owner who sets ter
 Struggle: two of my four probes were false negatives first. Patching sys.modules["locations"] does NOT touch the module object rotate.py resolves through (rotate does its own sys.path insert and plain `import locations`), so the wire probe read 15.0 twice and looked like a cached value; and this box os has NO SIGTERM attribute, so the auth probe died on _os.SIGTERM before asserting anything. Patch the module object the MODULE holds (rot.locations), and import signal, not os, for the signal constants.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 8 row 47, third clause (director-engine gen 24): the DH.368 parent review (written 02:52Z, c95c078d0) records the reaper.term_grace_s config cell as in place; it was not yet -- a round cannot commit .agi/config.json, and the director committed the cell at 02:54Z in de9dced85. The review s probes patched config_path to a fixture, so they held either way; only the "cell written" sentence was early.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

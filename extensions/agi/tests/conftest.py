@@ -363,9 +363,32 @@ def _no_real_tmux(monkeypatch):
     def _guarded_run(cmd, *a, **k):
         if isinstance(cmd, list) and cmd[:1] == ["tmux"]:
             return subprocess.CompletedProcess(cmd, 1)
+        # goal:g6.41.1 R1 (sanctuary-master mur wf_67ad5686-154 residue 69): no
+        # test moves, stops or scopes a REAL unit unless AGI_LIVE_SYSTEMD=1 --
+        # busctl, `systemctl stop|kill`, and a systemd-run that starts tmux
+        if isinstance(cmd, list) and not _LIVE_SYSTEMD_ON and (
+                cmd[:1] == ["busctl"]
+                or (cmd[:1] == ["systemctl"] and ("stop" in cmd or "kill" in cmd))
+                or (cmd[:1] == ["systemd-run"] and "tmux" in cmd)):
+            return subprocess.CompletedProcess(cmd, 1)
         return real_run(cmd, *a, **k)
 
     monkeypatch.setattr(subprocess, "run", _guarded_run)
+
+
+@pytest.fixture(autouse=True)
+def _calm_box_psi(monkeypatch, tmp_path_factory):
+    """goal:g6.41.1 R2 (sanctuary-master mur wf_67ad5686-154 residue 72): no
+    test reads the HOST /proc/pressure/memory -- heal's recovery gate would go
+    red on a pressured box for a reason unrelated to the code. memory_alarm's
+    BOX_PSI points at a zero-pressure file; a row that needs another reading
+    stubs memory_alarm.read_psi in its own body (that wins)."""
+    import memory_alarm
+    calm = tmp_path_factory.getbasetemp() / "calm-psi"
+    if not calm.exists():
+        calm.write_text("some avg10=0.00 avg60=0.00 avg300=0.00 total=0\n"
+                        "full avg10=0.00 avg60=0.00 avg300=0.00 total=0\n")
+    monkeypatch.setattr(memory_alarm, "BOX_PSI", calm)
 
 
 @pytest.fixture(autouse=True)
@@ -493,6 +516,11 @@ def _suite_basetemp_live_gate(tmp_path_factory):
 # dropped, so a developer box that has a key never spends or hits the
 # network; when it IS "1" (the real-judge ModelJudge tests run), the stub
 # stands down so the real measurement still works.
+
+#: Import-time snapshot (the AGI_REAL_JUDGE reason below: the session fixture
+#: strips every AGI_* var before a function fixture runs) of the opt-in that
+#: lets a test touch REAL systemd units (goal:g6.41.1 R1, residue 69).
+_LIVE_SYSTEMD_ON = os.environ.get("AGI_LIVE_SYSTEMD") == "1"
 
 REAL_JUDGE_FLAG = "AGI_REAL_JUDGE"
 
@@ -671,6 +699,21 @@ def pytest_unconfigure(config):
     if _IMPORT_FENCE_SAVED is not None:
         _uninstall_spawn_fence(_IMPORT_FENCE_SAVED)
         _IMPORT_FENCE_SAVED = None
+
+
+@pytest.fixture(autouse=True)
+def _registry_default_to_tmp(tmp_path, monkeypatch):
+    """goal:g7.16.1.7.1.1.2.1 -- heal builds the session table on EVERY watch
+    pass, so the registry default (`~/.claude/sessions`, the LIVE box) is
+    pointed at a per-test dir on both rotate aliases (the `_no_openrouter`
+    two-alias rule). A test that wants a registry passes `registry_dir`."""
+    for _mod in ("rotate", "agi.bin.rotate"):
+        try:
+            _r = __import__(_mod, fromlist=["_"])
+        except ImportError:
+            continue
+        monkeypatch.setattr(_r, "REGISTRY_DEFAULT_DIR",
+                            str(tmp_path / "cc-registry"))
 
 
 @pytest.fixture(autouse=True)

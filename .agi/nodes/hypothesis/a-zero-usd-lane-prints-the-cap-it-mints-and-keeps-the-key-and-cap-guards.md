@@ -5,9 +5,11 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: a00-475427c2
+edited_by: director-general-4
 scaffold_hash: 99eefc8ec1496ca4
 season: 2
+tags:
+  - parked:g7.16.2
 testable_claim: "On a zero_usd lane the banner prints the zero_usd_key_limit_usd cap; check_runtime_key_usable and the --cap guard run for every openrouter lane; only the key and account floors are skipped (assigned: director-engine)"
 title: A zero-USD lane prints the cap it mints and keeps the runtime-key and cap guards
 town: core
@@ -164,7 +166,7 @@ For EACH item: fix it in the bytes, OR -- when the item is already true, refuted
 2. NOT YOURS (director demote, measured): ladder.md:37 prime_director `settings` vs test_ladder_node.py:76 is a lineage conflict owned by hypothesis:trunk-tests-follow-the-owners-0927-ultracode-drop-and-facts-collapse (EG.56 -> EG.67, under review); the post tip carries the opposite pair. Write ONE OUTSIDE line naming it; never touch ladder.md or the test.
 3. 'verbatim' probe paste is 3 lines off the DH.638 artefact — a00-b100d6b9:99 (pasted OUTPUT is byte-identical)
 4. Evidence prose says the temp copy went to the kid's scratch dir; the pasted script hardcodes dir="/tmp"
-5. M1 (re-runnability regression, same failure mode as defect 1, in the round's OTHER headline item): probe 1's rewritten cmd at a00-6273b184:15 is 'python3 probe_settings_flag.py from the repo root (script verbatim in experiment:a00-b100d6b9-3307de, re-run EG.51 with identical output)'. There is no probe_settings_flag.py at any repo root — `ls /data/work/agi/probe_settings_flag.py` and the worktree root both miss; the only copies are inside two session dirs. The PRE-fix cmd at least named a real location ('artefact probe_settings_flag.py/.out in the DH.638 scratch dir'). So item 4 traded a located-but-uncommitted artefact for a bare unresolvable filename while asserting re-runnability, and a reader must reconstruct the script by hand from node text. The first reviewer's #1 and #5 both touch probe 1/2 but neither notices the new cmd is unrunnable as written. -> FIX: commit nothing new outside FILE SCOPE; make probe 1's cmd re-runnable by naming the exact extraction command (e.g. `python3 extensions/agi/bin/write.py experiment:a00-b100d6b9-3307de 'read body A:B' > probe_settings_flag.py` with the real A:B pasted from a read) and paste its run.
+5. M1 (re-runnability regression, same failure mode as defect 1, in the round's OTHER headline item): probe 1's rewritten cmd at a00-6273b184:15 is 'python3 probe_settings_flag.py from the repo root (script verbatim in experiment:a00-b100d6b9-3307de, re-run EG.51 with identical output)'. There is no probe_settings_flag.py at any repo root — `ls <repo>/probe_settings_flag.py` and the worktree root both miss; the only copies are inside two session dirs. The PRE-fix cmd at least named a real location ('artefact probe_settings_flag.py/.out in the DH.638 scratch dir'). So item 4 traded a located-but-uncommitted artefact for a bare unresolvable filename while asserting re-runnability, and a reader must reconstruct the script by hand from node text. The first reviewer's #1 and #5 both touch probe 1/2 but neither notices the new cmd is unrunnable as written. -> FIX: commit nothing new outside FILE SCOPE; make probe 1's cmd re-runnable by naming the exact extraction command (e.g. `python3 extensions/agi/bin/write.py experiment:a00-b100d6b9-3307de 'read body A:B' > probe_settings_flag.py` with the real A:B pasted from a read) and paste its run.
 6. M3 (byte defect this round ADDED, inside the one authored region): a00-6273b184:216 now reads '...against claims the hypothesis does not make.CONSEQUENCE (EG.51, experiment:a00-b100d6b9-3307de): cli._claim_conjunct_numbers reads...' — missing separator. At the base 377f6e201 the same line read 'does not make. This kid could not write it...'. `grep -c CONSEQUENCE` on the tip file = 1, and the diff shows this round replaced the '. This kid could not' fragment. Cosmetic, but it is a formatting regression landed in the THOUGHT block while editing that exact sentence, and THOUGHT is the one authored region.
 7. M4 (one-source residue, and the reason defect 4 is the least of the three notes): the conjunct-2 paragraph now exists in THREE places — a00-8d4fc327:107 (CAVEAT), a00-6273b184:216 (CONSEQUENCE), and the hypothesis `## OPEN` at :37-38 — with three different levels of precision. Under FORM ('one source per rule: change its node, never a copy') two of the three should be links, not copies. This is why the reviewer found a 'missing qualifier': the fix was to copy, not to link.
 8. Pin every test run and every citation to an explicit commit (`git show 5a0e89753:<path>`, or a run in YOUR kid worktree at your tip) -- never the director's post worktree, whose HEAD is a different lineage (M5).
@@ -177,5 +179,5 @@ CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §
 COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.71: mur-eg-17 EG.51-k1 residues batched into one corrective (orders above, generated from the verdict files).
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

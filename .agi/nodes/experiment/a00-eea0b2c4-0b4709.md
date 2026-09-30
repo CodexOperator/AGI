@@ -6,7 +6,7 @@ parents:
   - hypothesis:mint-offers-storage-categories-from-config-cells
 next_edges: []
 confidence: 0.7
-edited_by: a00-699af22b
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-eea0b2c4-0b4709
 loop: hypothesis:mint-offers-storage-categories-from-config-cells@s2
@@ -102,7 +102,7 @@ $ grep -n '^#' .agi/nodes/experiment/a00-d1efc345-f70244.md
 108:## Struggles
 121:## Agent Notes
 $ tail -c 40 .agi/nodes/experiment/a00-d1efc345-f70244.md
-<!-- THOUGHT:END -->
+[THOUGHT:END marker line]
 ```
 
 **Order 9 — the wrong number is durable in history. Pasting, not rewriting:**

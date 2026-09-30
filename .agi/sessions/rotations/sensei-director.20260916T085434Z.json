@@ -21,7 +21,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sensei-director.log",
     "d_stale_continue_cursor": {
       "start_offset": 5637125,
       "read_before_write": true,
@@ -71,16 +71,16 @@
       "window_id": "@389",
       "pid": 3586620,
       "session_id": "d6231fa7-9d07-45d8-9d43-487891bdb155",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/d6231fa7-9d07-45d8-9d43-487891bdb155.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/d6231fa7-9d07-45d8-9d43-487891bdb155.jsonl",
       "name": "post-sensei-director-88",
-      "path": "/home/ubuntu/.claude/sessions/3586620.json",
+      "path": "<home>/.claude/sessions/3586620.json",
       "note": "joined by @389 in registry file 3586620.json"
     },
     "successor_row": "config:seats row 'sensei-director': session_ref= session_name=post-sensei-director-88 session_label=sensei-director session_id=d6231fa7-9d07-45d8-9d43-487891bdb155 pid=3586620 generation=(none: non-prime is generation-less) window='@389' source=registry pubkey=1289e54a753c273d... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha 080c62487) -- own-row only: sensei-director spawn row: gen 25, session_id d6231fa7-9d07-45d8-9d43-487891bdb155, window @389, pid 3586620\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.d6231fa7.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sensei-director.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sensei-director.ack.d6231fa7.json",
     "own_authority_released": "generation 24 of seat 'sensei-director' retired; successor generation 25 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch core/season2/posts/sensei-director/main",
     "livestream_repoint": {
@@ -89,7 +89,7 @@
       "skipped": "view session view-sensei-director absent"
     },
     "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 60s) \u2014 successor has not answered",
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -124,9 +124,9 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/d6231fa7-9d07-45d8-9d43-487891bdb155.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/sensei-director.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/d6231fa7-9d07-45d8-9d43-487891bdb155.jsonl",
         "rc": 0,
-        "output": "pin gen 25 kept: config row reads 24 (lagging tree /home/ubuntu/work/agi/.agi)\n0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/d6231fa7-9d07-45d8-9d43-487891bdb155.jsonl (via claude-code transcript (explicit)).",
+        "output": "pin gen 25 kept: config row reads 24 (lagging tree <home>/work/agi/.agi)\n0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/d6231fa7-9d07-45d8-9d43-487891bdb155.jsonl (via claude-code transcript (explicit)).",
         "truncated": false,
         "byte_cap": 8000
       },

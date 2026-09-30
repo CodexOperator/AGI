@@ -81,7 +81,7 @@ THEN:  start HEAD 3 — mint is already done for all 5 (see §2); commit if not 
 
 1. This branch synced to `origin/season2/main` (`git fetch -q && git merge --no-edit origin/season2/main`, never rebase); FULL suite green in your own tree before the push, UNLESS the Prime has explicitly said they're taking the suite window themselves for a consolidated run (then a light verify — links + goals round-trip — is enough on your end).
 2. Confirm the advisory suite lock is free (`ls .agi/sessions/verify-suite.lock`); send `[merge-up]` with the post-branch TIP SHA + numbers, WAIT for the Prime's GO-by-SHA reply naming that exact sha — do not merge ahead of it.
-3. In MAIN (`cd /home/ubuntu/work/agi`; `git status` first; never clean/stash; re-fetch immediately before merging): `git merge --no-ff <tip-sha> -F <msg-file>` → `snapshot-goals.py --render` → `--render --check` → verify (full suite or light, per step 1) → `grid.py commit --all` → `git push origin season2/main` (+ `git push origin "refs/grid/*:refs/grid/*"` if grid produced new versions) → report `[merge-up]` with the landed SHA + numbers.
+3. In MAIN (`cd <home>/work/agi`; `git status` first; never clean/stash; re-fetch immediately before merging): `git merge --no-ff <tip-sha> -F <msg-file>` → `snapshot-goals.py --render` → `--render --check` → verify (full suite or light, per step 1) → `grid.py commit --all` → `git push origin season2/main` (+ `git push origin "refs/grid/*:refs/grid/*"` if grid produced new versions) → report `[merge-up]` with the landed SHA + numbers.
 4. For YOUR OWN post branch (not season2/main): plain `git push`, never `-u origin <name>`, never an explicit `refs/heads/...` spelling.
 5. **Never merge-then-hold.**
 

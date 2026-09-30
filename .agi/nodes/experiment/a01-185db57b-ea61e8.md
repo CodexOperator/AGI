@@ -6,7 +6,7 @@ parents:
   - hypothesis:a01-721930d9-d34989
 next_edges: []
 confidence: 0.75
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 23d8b6b416896a10
 season: 1
 thought_session: season
@@ -19,7 +19,7 @@ verdict: inconclusive_lean_proved:75
 
 Tested whether `node_writer.update_node` can serve as a generator write path — the next increment of the read/write join hypothesis (`hypothesis:a01-721930d9-d34989`). Prior sibling (`experiment:a00-4a6d4345-a9cffb`) showed serializer differences (key order, quoting) but equivalent merge semantics and THOUGHT survival. This experiment goes further: it tests whether `update_node` can produce semantically identical output to `write_frontmatter` when used as a generator's write path, and whether `update_node`'s merge-by-default semantics eliminate the need for a separate `preserve=` mechanism on the write path.
 
-**Command:** `python3 /tmp/g13-join-experiment-2.py` from `/home/ubuntu/work/agi`
+**Command:** `python3 /tmp/g13-join-experiment-2.py` from `<home>/work/agi`
 **Corpus:** 15 real goal nodes from `.agi/nodes/goal/`. All writes go to temp dirs.
 
 ### T1 — update_node write-back identity
@@ -60,7 +60,7 @@ Raw output from `/tmp/g13-join-experiment-2.py`:
 
 ```
 === G13 JOIN — update_node as generator write path ===
-Corpus: 15 goal nodes from /home/ubuntu/work/agi/.agi/nodes/goal
+Corpus: 15 goal nodes from <home>/work/agi/.agi/nodes/goal
 
 --- T1: update_node write-and-re-read round trip ---
   UNCHANGED test: 30/30 passed (write-back identity)

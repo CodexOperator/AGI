@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-2
 scaffold_hash: 234e79c9c6cfb752
 season: 2
 status: open
@@ -81,5 +81,5 @@ CEILING   HARD CAP: 1 kid · <= 0 production lines net over d5c069c73 (test + no
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Retired unmerged per thought-master TMM.338 ruling A: superseded at merge by EG.71's landed zero-USD guard code; the config-cell idea moves to one g7.33 hypothesis on top of the post.
+triage (retired: superseded -- no work left under any formation): this node's own section SUPERSEDED BY EG.71 records thought-master TMM.338 ruling A (09-28 14:2xZ): the EG.68 -> EG.103 chain is RETIRED UNMERGED, its mechanism (the provisioning.zero_usd_skip_checks cell and dispatch.py's validation of it) absent on the merge target; the split it claimed is carried and pinned by hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards. Measure: test_free_lane_dispatch_main.py:148-161 (a dead runtime key refuses even a zero_usd lane) -- the file 4 passed on the trunk 09-29. This version moves the mark parked -> retired (sanctuary-master mur wf_a56d005b-d6b residue 8). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2 (council bundle 1). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

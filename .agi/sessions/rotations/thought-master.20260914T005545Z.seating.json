@@ -43,7 +43,7 @@
     },
     {
       "label": "git-state",
-      "cmd": "git -C /home/ubuntu/work/agi status -sb | head -5; git -C /home/ubuntu/work/agi status -sb | head -3",
+      "cmd": "git -C <home>/work/agi status -sb | head -5; git -C <home>/work/agi status -sb | head -3",
       "rc": 0,
       "output": "## season2/main...origin/season2/main\n M .agi/comms/season-2/dm/belam--master-sensei.md\n M .agi/comms/season-2/dm/belam--sanctuary-director.md\n M .agi/comms/season-2/dm/belam--sanctuary-helper.md\n M .agi/comms/season-2/dm/belam--sensei-director.md\n\n## season2/main...origin/season2/main\n M .agi/comms/season-2/dm/belam--master-sensei.md\n M .agi/comms/season-2/dm/belam--sanctuary-director.md\n",
       "truncated": false,
@@ -51,7 +51,7 @@
     },
     {
       "label": "predecessor-log",
-      "cmd": "git -C /home/ubuntu/work/agi log --oneline -12; git -C /home/ubuntu/work/agi log --oneline -3",
+      "cmd": "git -C <home>/work/agi log --oneline -12; git -C <home>/work/agi log --oneline -3",
       "rc": 0,
       "output": "6e5ededcd alerts matrix: thought-master <-> sanctuary-master edges (the new master post)\nf049ffcbb local-maxxing town seeded: ladder towns += local-maxxing; town:local-maxxing + vision:local-maxxing (Prime-minted); posts rows council-local-maxxing (idle) + thought-master (Opus, under SM, owning goal:g14) \u2014 owner 2026-09-13 23:32Z\na74adb9af merge-up SL2#31: SM.24 (non-prime posts drop generation, clauses 4/5/6-rows) + SM.26 (dispatch --orders channel, verdict demoted :85->:70 for a ceiling overage, code kept) + test_node_writer.py orders.md allowlist fix -- full suite already green in the seat worktree pre-merge (4774/0/15/1xfail, 495.8s)\n3a2924bf6 after_join record: sanctuary-helper sanctuary-helper.20260914T004948Z.json (performed by watch)\n01f1bc770 sensei audit: director-review 00:49Z \u2014 wake 0, out 10 (hand merge + Read + 4 Edits + reshuffle orientation + commit + FIRST bare rotate on this post), rotated at 0.4305\nd6f3c9295 after_join claim: sanctuary-helper sanctuary-helper.20260914T004948Z.json (performed by watch)\ne8d264487 SM card: town seed staged for the Prime; dry-run/role-gate residue\n1f5db5c43 local-maxxing town seed: Prime-run create lines (vision first, then town) \u2014 SM mint refused by name (schema written_by owner/prime, goal:g12)\n34698cc21 sanctuary-helper spawn row: gen 12, session_id aa106ecf-a359-422a-9e32-c056f659f756, window @365, pid 2763855\n74485a459 sensei audit: sanctuary-master first rotation \u2014 out 2 (rotate-self with five flags on a keyed row \u2192 card switched to bare rotate), wake 0, peek 0, rotated at 0.4194\n3800ad354 sanctuary-master card \u00a73: out-line = bare keyed rotate (her row is keyed; first rotation 00:45Z still ran rotate-self with five flags incl. --force and a 600-char --stops) + the meter's two-number rule\n05174125e after_join record: sanctuary-master sanctuary-master.20260914T004602Z.json (performed by watch)\n\n6e5ededcd alerts matrix: thought-master <-> sanctuary-master edges (the new master post)\nf049ffcbb local-maxxing town seeded: ladder towns += local-maxxing; town:local-maxxing + vision:local-maxxing (Prime-minted); posts rows council-local-maxxing (idle) + thought-master (Opus, under SM, owning goal:g14) \u2014 owner 2026-09-13 23:32Z\na74adb9af merge-up SL2#31: SM.24 (non-prime posts drop generation, clauses 4/5/6-rows) + SM.26 (dispatch --orders channel, verdict demoted :85->:70 for a ceiling overage, code kept) + test_node_writer.py orders.md allowlist fix -- full suite already green in the seat worktree pre-merge (4774/0/15/1xfail, 495.8s)\n",
       "truncated": false,
@@ -69,7 +69,7 @@
       "label": "live-spawns",
       "cmd": "python3 extensions/agi/bin/spawn_budget.py status; python3 extensions/agi/bin/provisioning.py status | head -4",
       "rc": 0,
-      "output": "budget: 2/25 live  load 16.9/13.6/10.3  dir=/home/ubuntu/work/agi/.agi/sessions/.spawn-budget\n  a00-1ae4da07 tier=parent iter=SM.238 pid=2743063\n  a00-65e49dd1 tier=parent iter=SM.249 pid=2746982\n\nprovisioning: available  keys_visible=4  engine_minted=3\n  outstanding: agi-iterSM.249-parent-a00-65e49dd1 used=0.034191582 expires=2026-09-14T03:47:55.956Z\n  outstanding: agi-iterSM.238-parent-a00-1ae4da07 used=0.023060364 expires=2026-09-14T03:47:20.754Z\n  outstanding: agi-2 used=0.59690858 expires=None\n",
+      "output": "budget: 2/25 live  load 16.9/13.6/10.3  dir=<home>/work/agi/.agi/sessions/.spawn-budget\n  a00-1ae4da07 tier=parent iter=SM.238 pid=2743063\n  a00-65e49dd1 tier=parent iter=SM.249 pid=2746982\n\nprovisioning: available  keys_visible=4  engine_minted=3\n  outstanding: agi-iterSM.249-parent-a00-65e49dd1 used=0.034191582 expires=2026-09-14T03:47:55.956Z\n  outstanding: agi-iterSM.238-parent-a00-1ae4da07 used=0.023060364 expires=2026-09-14T03:47:20.754Z\n  outstanding: agi-2 used=0.59690858 expires=None\n",
       "truncated": false,
       "byte_cap": 8000
     },

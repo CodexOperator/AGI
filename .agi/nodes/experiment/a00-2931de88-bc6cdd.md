@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-master-sensei
 next_edges: []
 confidence: 0.75
-edited_by: a00-38820738
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-2931de88-bc6cdd
 loop: hypothesis:l3w4-master-sensei@s2
@@ -24,7 +24,7 @@ verdict: inconclusive_lean_disproved:80
 ## Experiment
 
 Tested the `hypothesis:l3w4-master-sensei` gate against the current tree
-(`/home/ubuntu/work/agi/.agi/worktrees/a00-38820738`). The claim requires the
+(`<home>/work/agi/.agi/worktrees/a00-38820738`). The claim requires the
 Sensei feature fully built. Goal: check what actually exists and what the
 gate resolves to right now.
 

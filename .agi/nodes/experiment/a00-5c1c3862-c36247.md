@@ -6,7 +6,7 @@ parents:
   - hypothesis:parents-and-kids-are-told-their-skills-in-the-agent-prompt
 next_edges: []
 confidence: 0.85
-edited_by: a00-5a07fd28
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-5c1c3862-c36247
 loop: hypothesis:parents-and-kids-are-told-their-skills-in-the-agent-prompt@s2
@@ -107,7 +107,7 @@ a reader could not reproduce is fixed. Corrected on `experiment:a00-66409a1e-c5a
 ## 6 · The regression claim, re-run (it had never been run against the corrected tree)
 
 ```
-$ cd /data/work/agi/.agi/worktrees/a00-534bd08e && env -u TMUX -u TMUX_PANE \
+$ cd <repo>/.agi/worktrees/a00-534bd08e && env -u TMUX -u TMUX_PANE \
     python3 -m pytest extensions/agi/tests/test_agent_prompt_skills.py \
     extensions/agi/tests/test_claude_code_adapter.py \
     extensions/agi/tests/test_decompose_engine.py \
@@ -171,15 +171,5 @@ OUTSIDE (file outside this round's FILE SCOPE, for the director's findings row, 
 CAVEAT on the node: the body's correction list says "corrected 4 places ... :72-73", but :72-73 ("Ceiling: 11 production lines against 40 ... tests excluded from the count") carries no "10 non-blank" claim and reads unchanged — the three real corrections are the falsifier row (:51), the parent note (:93-96) and the THOUGHT ("Ten non-blank lines" -> seven). A line reference in a correction note is not a correction. DH.628 (a00-5a07fd28): the falsifier-table row at :32 that carried the same stale count now reads "corrected 3 real sites", so this CAVEAT describes a defect that no longer exists in the body; the evidence it cites is unchanged.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review DH.573 (a00-534bd08e) — ACCEPTED, verdict proved, confidence 0.85 kept.
-
-(1) WHAT THE INSTRUCTION SAID, quoted: 'Build node authored THOUGHT wiped to - on the version whose payload grew 11 lines ... 2026-09-23 owner verbatim (rules item 13 / SM.125 path_max) is gone from the live node and the new version records no delta at all, while [build].md:302-310 defines the region as why THIS version differs with Absent means empty as the only sanctioned empty form.' And: 'Test file 70 lines against the brief own hard cap' and 'The 10 non-blank lines measurement does NOT reproduce, in three places'. CEILING verbatim: 'HARD CAP: 1 kid · <= 15 production lines net over f575aa5b8 · <= 40 test lines · pi-free tier-0 · 0 USD'.
-
-(2) WHAT THE MACHINE ACTUALLY DOES — measured, not reported. The test file is 40 lines on disk (wc -l, and len(splitlines()) = 40) and pytest collects that same file: I copied it into a throwaway tree and it reported 3 passed, then refused a renamed section header (3 failed), a kid row carrying the parent-only agi-send (1 failed), and every backticked path degraded to a bare prose name (1 failed). The restored build THOUGHT is on the node and names bytes that exist: agent-prompt.md:33 is the 'skills/ is repo-relative' sentence, :37 the parent row, :38 the kid row, the three lines it cites. The 7-non-blank figure reaches the wire: pi_adapter._append_prompt_args (pi_adapter.py:97, keyword-only) emitted the live prompt path as the third --append-system-prompt, and SECTION_RE over the appended bytes gives 7 non-blank lines. The regression command returned '136 passed, 7 skipped' = the node's 133 plus this file's own 3.
-
-(3) THE NEAR MISS — what satisfies the words and loses the mechanism. The 40-line cap can be met by deleting an assertion instead of compressing, leaving a pin that only greps for the two tier names. A second near miss is the node-text fix for item 3: restating 'the section is short' without pasting the measuring command, which is what made '10 non-blank' survive a whole round. A third is the build-node restore: writing a thought that says 'updated' rather than why THIS version differs — the shape that the schema forbids and that the wipe originally performed. The file on disk refuses the first (three assertions, all exercised by my mutations), the node pastes the command for the second, and the restored region names the delta, the coupling and the unverifiable mitigation claim for the third.
-
-(4) NO DEVIATION from a standing rule; the property that would have licensed one. The obvious deviation is 'fix the write.py guard that let the '-' through in the first place' — the hole is real and I proved it is still open (write.py:291-300 and :2806, re-read in this checkout, not quoted from the orders). It is not taken: write.py is an engine file outside this round's FILE SCOPE, so naming it for the director's findings row is the sanctioned surface. The kid also reported that it destroyed a paragraph on experiment:a00-66409a1e-c5adee with a mismatched range and restored it; I re-read that paragraph in the live node (it is present, with the corrected 7) rather than taking the admission as the repair.
-
-RESIDUE, carried forward and NOT a defect in this node: the two tier sets still have two non-config homes (the prompt template and the pin), which brushes rules item 13 / path_max, and the writer guard hole above will let the next build-node thought be wiped the same way. Both belong to the next round under this hypothesis (the adapter-seam harnesses.<name>.skills cell), not to a re-brief of this one.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

@@ -663,3 +663,146 @@ def test_write_guard_silent_on_hand_edit_to_schema_file(project):
     assert "schemas" not in out, \
         "a schema edit is git-versioned engine config, not a node write"
     assert _check(project, []) == 0
+
+
+# --- bundle 4 W1b (director-general-2) -- goal:g4.18.5.2 ---------------------
+def _w1b(project):
+    g = lambda *a: subprocess.run(["git", "-C", str(project), *a],  # noqa: E731
+                                  capture_output=True, text=True).stdout
+    nw.write_node(project / ".agi", "hypothesis", "h9", parents=["goal:g1"],
+                  announce=False, body="\nthe body\n")
+    (project / "other.txt").write_text("another post's staged file\n")
+    (project / "x.txt").write_text("x\n")
+    g("add", ".agi/nodes"), g("commit", "-qm", "h9"), g("add", "other.txt")
+    return g, g("rev-parse", "HEAD").strip()
+
+
+def test_b4_w1b_every_write_verb_is_its_own_exact_path_commit(project):
+    scripts = {"set": "set confidence 0.4", "link": "link self",
+               "unset": "unset link_ref", "thought": "thought why", "note": "note w1b note",
+               "sub": "sub the body => w1b-two", "sub!": "sub! w1b-two => w1b-three",
+               "replace": f"replace body 1:1 --force {project / 'x.txt'}",
+               "row": f"row 1 {project / 'y.txt'}"}   # W1a's verb (DG3) joins the enumeration
+    assert set(scripts) | {"read", "adopt", "payload", "payload_text", "patch",
+                           "body_patch"} == set(write.VERBS)
+    g, head = _w1b(project)
+    (project / "y.txt").write_text("y\n")   # row's own bytes: an identical row is UNCHANGED, no commit
+    for verb, script in scripts.items():
+        assert write.main(["hypothesis:h9", script, "--root", str(project)]) == 0
+        assert g("show", "--name-only", "--format=", "HEAD").split() == [
+            ".agi/nodes/hypothesis/h9.md"], verb
+    assert g("rev-list", "--count", f"{head}..HEAD").strip() == str(len(scripts))
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+
+
+def test_b4_w1b_the_suite_lock_refuses_the_commit_by_name(project, capsys):
+    (project / ".agi" / "sessions").mkdir(exist_ok=True)
+    (project / ".agi" / "sessions" / "verify-suite.lock").write_text(
+        f"{__import__('os').getppid()}\n")
+    g, head = _w1b(project)
+    write.main(["hypothesis:h9", "set confidence 0.5", "--root", str(project)])
+    assert g("rev-parse", "HEAD").strip() == head
+    assert "verify-suite.lock" in "".join(capsys.readouterr())
+
+
+def test_b4_w1b_dry_run_and_a_refused_gate_commit_nothing(project):
+    g, head = _w1b(project)
+    for argv in (["set confidence 0.5", "--dry-run"], ["set id hypothesis:zz"]):
+        write.main(["hypothesis:h9", *argv, "--root", str(project)])
+        assert g("rev-parse", "HEAD").strip() == head, argv
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+
+
+# SM residue 90 (wf_e6561265-419): a FAILED commit never leaves the node staged
+# in the shared index for the next pathless commit; the write stays on disk.
+@pytest.mark.parametrize("shape", ["hook-refuses", "index-lock"])
+def test_b4_w1b_a_failed_commit_unstages_its_paths(project, shape):
+    g, head = _w1b(project)
+    gitdir = Path(g("rev-parse", "--absolute-git-dir").strip())
+    if shape == "hook-refuses":
+        hook = gitdir / "hooks" / "pre-commit"
+        hook.parent.mkdir(parents=True, exist_ok=True)
+        hook.write_text("#!/bin/sh\nexit 1\n")
+        hook.chmod(0o755)
+    else:
+        (gitdir / "index.lock").write_text("")
+    write.main(["hypothesis:h9", "set confidence 0.3", "--root", str(project)])
+    (gitdir / "index.lock").unlink(missing_ok=True)
+    assert g("rev-parse", "HEAD").strip() == head
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+    assert "0.3" in (project / ".agi" / "nodes" / "hypothesis" / "h9.md").read_text()
+
+
+# SM residue 106 (wf_884739ac-f61): the payload verbs, adopt and create --payload
+# driven through main() -- each ONE exact-path commit (node and/or payload),
+# nothing of theirs left dirty, another post's staged file untouched.
+def test_b4_w1b_payload_verbs_adopt_and_create_payload_commit(project, tmp_path, capsys):
+    g, head = _w1b(project)
+    doc, pay = ".agi/nodes/doc/d9.md", ".agi/context/d9.md"
+    assert write.main(["create", "doc", "d9", "--parent", "goal:g1", "--payload", pay,
+                       "--set", "tags=[doc]", "--root", str(project)]) == 0
+    assert sorted(g("show", "--name-only", "--format=", "HEAD").split()) == [pay, doc]
+    (tmp_path / "p.md").write_text("from a file\n")
+    (tmp_path / "p.diff").write_text("--- a\n+++ b\n@@ -1 +1 @@\n-inline\n+patched\n")
+    for script in (f"payload {tmp_path / 'p.md'}", "payload_text inline",
+                   f"patch {tmp_path / 'p.diff'}"):
+        n = g("rev-list", "--count", "HEAD").strip()
+        assert write.main(["doc:d9", script, "--root", str(project)]) == 0, script
+        assert int(g("rev-list", "--count", "HEAD")) == int(n) + 1, script
+        assert pay in g("show", "--name-only", "--format=", "HEAD").split(), script
+        assert g("status", "--short", "--", pay, doc) == "", script
+    body = write._read_body_text(project / ".agi", "doc:d9").split("\n")
+    n = next(i for i, line in enumerate(body, 1) if line.strip())
+    (tmp_path / "b.diff").write_text(
+        f"--- a\n+++ b\n@@ -{n} +{n} @@\n-{body[n - 1]}\n+{body[n - 1]} patched\n")
+    assert write.main(["doc:d9", f"body_patch {tmp_path / 'b.diff'}", "--root", str(project)]) == 0, \
+        capsys.readouterr().err
+    assert g("show", "--name-only", "--format=", "HEAD").split() == [doc]
+    kid = project / ".agi" / "nodes" / "hypothesis" / "k9.md"
+    kid.write_text('---\nid: "hypothesis:k9"\ntype: hypothesis\nparents: [goal:g1]\n---\n\nkid bytes\n')
+    assert write.main(["hypothesis:k9", "adopt", "--root", str(project)]) == 0
+    assert g("show", "--name-only", "--format=", "HEAD").split() == [".agi/nodes/hypothesis/k9.md"]
+    assert g("status", "--short", "--", ".agi/nodes", ".agi/context") == ""
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+
+
+# SM residues 98 + 100: a commit that fails AFTER a clean add, with a reset that
+# fails too, says STILL STAGED (never "unstaged"); a stale (dead-pid) suite
+# lock never refuses the commit.
+def test_b4_w1b_a_failed_reset_is_said_loudly(project, monkeypatch, capsys):
+    g, head = _w1b(project)
+    real = subprocess.run
+
+    def run(argv, *a, **k):
+        verb = next((v for v in ("commit", "reset") if v in argv), None)
+        if verb:
+            return subprocess.CompletedProcess(argv, 128 if verb == "reset" else 1, "", f"{verb} refused")
+        return real(argv, *a, **k)
+    monkeypatch.setattr(write.subprocess, "run", run)
+    write.main(["hypothesis:h9", "set confidence 0.2", "--root", str(project)])
+    err = "".join(capsys.readouterr())
+    assert "STILL STAGED" in err and "unstaged" not in err, err
+    monkeypatch.setattr(write.subprocess, "run", real)
+    g("reset", "-q", "--", ".agi/nodes/hypothesis/h9.md")
+
+
+def test_b4_w1b_a_stale_suite_lock_never_refuses(project):
+    (project / ".agi" / "sessions").mkdir(exist_ok=True)
+    dead = subprocess.Popen(["true"])
+    dead.wait()
+    (project / ".agi" / "sessions" / "verify-suite.lock").write_text(f"{dead.pid}\n")
+    g, head = _w1b(project)
+    assert write.main(["hypothesis:h9", "set confidence 0.6", "--root", str(project)]) == 0
+    assert g("rev-list", "--count", f"{head}..HEAD").strip() == "1", "SM 109: a NEW commit landed"
+    assert g("show", "--name-only", "--format=", "HEAD").split() == [".agi/nodes/hypothesis/h9.md"]
+
+
+# SM residue 92: `create` is a write too -- one exact-path commit of the new
+# node, another post's staged file untouched.
+def test_b4_w1b_create_commits_its_new_node(project):
+    g, head = _w1b(project)
+    assert write.main(["create", "hypothesis", "h10", "--parent", "goal:g1",
+                       "--root", str(project)]) == 0
+    assert g("show", "--name-only", "--format=", "HEAD").split() == [".agi/nodes/hypothesis/h10.md"]
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+

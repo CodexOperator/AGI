@@ -18,7 +18,6 @@ verified against each other in `tests/test_locations.py::test_bash_and_python_ag
 |---|---|
 | Where is the graph? | `find_project_root()` — nodes, context, config |
 | Where is the source the graph describes? | `source_root()` — where `payload_ref` resolves |
-| Where does the rendered goal document go? | `goals_path()` |
 
 They used to be one question with one answer because the graph repo and the
 source repo were the same directory in the only layout that existed. They are
@@ -81,9 +80,6 @@ GRAPH_DIR_NAME = ".agi"
 #: says what it is. The prefixed names stay accepted so a tree that is moved
 #: into `.agi/` without being renamed still resolves.
 GRAPH_DIR_CONFIG_NAMES = ("config.json",) + CONFIG_NAMES
-
-#: Overridable per project via `goals_file` (see `goals_path`).
-DEFAULT_GOALS_FILE = "GOALS.md"
 
 #: Canonical first; the legacy spelling is still read and still set.
 PROJECT_ROOT_ENV_VARS = (
@@ -676,42 +672,7 @@ def resolve_payload_path(root: Path, ref: str, location: str | None = None,
     return payload_base(root, location, config) / p
 
 
-def goals_path(root: Path, config: dict | None = None) -> Path:
-    """Where the rendered goal document belongs.
-
-    The value of `goals_file` decides how it is read, and the three forms exist
-    for three real situations:
-
-    - **Absolute** — used as-is. Escape hatch; no rules applied.
-    - **Contains a separator** (`docs/GOALS.md`) — relative to the graph root.
-      Full control for a project that wants the document filed somewhere
-      specific.
-    - **A bare filename** (the default, `GOALS.md`) — placed at the layout's
-      natural home: the *repo* root under G11, the graph root under the legacy
-      layout.
-
-    The bare-name case is the one that matters and it is why this is not simply
-    `root / "GOALS.md"`. Under G11 the graph lives at `<repo>/.agi`, and a goal
-    document rendered to `<repo>/.agi/GOALS.md` would be invisible in a file
-    listing and on GitHub — for the one document in the project that a human is
-    most likely to open first. It renders to `<repo>/GOALS.md` instead.
-
-    `goals_file` also settles the collision G11 creates: dropping the engine
-    into a repo that already ships its own `GOALS.md` would otherwise have the
-    renderer overwrite it. Such a project sets `goals_file` and keeps both.
-    """
-    root = Path(root).resolve()
-    cfg = load_config(root) if config is None else config
-
-    raw = cfg.get("goals_file")
-    name = raw.strip() if isinstance(raw, str) and raw.strip() else DEFAULT_GOALS_FILE
-
-    p = Path(name).expanduser()
-    if p.is_absolute():
-        return p.resolve()
-    if len(p.parts) > 1:
-        return (root / p).resolve()
-    return repo_root(root) / p.name
+# goals_path() + the goals-file cell retired with GOALS.md (goal:g7.16.1.4.1 W-G).
 
 
 #: Where the streamer stub CLI lives when the project config does not say.
@@ -720,6 +681,64 @@ def goals_path(root: Path, config: dict | None = None) -> Path:
 #: `back`/`panic` stream command group (`command:commands`), whose argv is
 #: `<stub>/<subcommand>`.
 DEFAULT_STREAMER_STUB = "~/work/streamer-stub"
+
+
+#: goal:g7.16.1.5.4 -- config:guard's `guard.env` block, keyed by box the way
+#: extensions/agi/guard/*.sh read it: `GUARD_<NAME>_<box>`, box from
+#: $GUARD_BOX, else this file, else the short hostname; non-alnum -> `_`.
+GUARD_BOX_FILE = Path("/etc/sanctuary-guard/box")
+_GUARD_ASSIGN = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
+
+
+def guard_box_key() -> str:
+    box = os.environ.get("GUARD_BOX", "")
+    if not box:
+        try:
+            box = GUARD_BOX_FILE.read_text(encoding="utf-8").strip()
+        except OSError:
+            import socket  # noqa: PLC0415
+            box = socket.gethostname().split(".")[0]
+    return re.sub(r"[^A-Za-z0-9]", "_", box)
+
+
+def guard_cell(root: Path, name: str, default: str = "") -> str:
+    """`GUARD_<name>_<box>` from MAIN's config:guard (`.geometry/guard.md`,
+    its ```sh guard.env``` block), else `default`. A cell is box-wide, so a
+    worktree root reads MAIN's node. Plain `VAR=value` lines only (quotes
+    stripped); the node absent or unreadable -> `default`."""
+    node = git_common_root(Path(root)) / GRAPH_DIR_NAME / "nodes" / ".geometry" / "guard.md"
+    want = f"GUARD_{name}_{guard_box_key()}"
+    try:
+        text = node.read_text(encoding="utf-8")
+    except OSError:
+        return default
+    m = re.search(r"^```sh guard\.env\n(.*?)^```$", text, re.M | re.S)
+    for line in (m.group(1) if m else "").splitlines():
+        a = _GUARD_ASSIGN.match(line.strip())
+        if a and a.group(1) == want:
+            return a.group(2).strip().strip("'\"")
+    return default
+
+
+#: goal:g7.16.1.5.5.1 -- the RAM disk's OWN budget line (guard-init layer 3
+#: writes it: MemoryMax = GUARD_RAM_BUDGET, no ManagedOOM). A sibling of
+#: agi.slice, never `agi-ram.slice` (a dash nests a slice inside agi.slice's
+#: oomd kill domain).
+RAM_SLICE = "ramdisk.slice"
+
+
+def ram_write_argv(argv: list[str]) -> list[str]:
+    """goal:g7.16.1.5.5.1 -- `argv` as a transient unit under RAM_SLICE, for a
+    bulk write into the RAM disk. A tmpfs page stays charged to the cgroup
+    that first wrote it and moves to that cgroup's PARENT when the writer
+    exits, so pages written here park on the RAM disk's own line, never on
+    the engine or work slice. Waits and pipes stdio: the exit code and the
+    output are argv's. No `systemd-run` on PATH -> `argv` unchanged."""
+    import shutil
+    if shutil.which("systemd-run") is None:
+        return list(argv)
+    return ["systemd-run", "--user", f"--slice={RAM_SLICE}", "--wait",
+            "--collect", "--quiet", "--pipe", "--", *argv]
 
 
 def streamer_stub(root: Path, config: dict | None = None) -> Path:
@@ -1091,7 +1110,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("start", nargs="?", default=None,
                     help="directory to resolve from (default: cwd)")
     ap.add_argument("--json", action="store_true", help="emit JSON")
-    ap.add_argument("--what", choices=["root", "source", "goals", "repo"],
+    ap.add_argument("--what", choices=["root", "source", "repo"],
                     help="print one path and nothing else")
     ap.add_argument("--storage-categories", action="store_true",
                     help="print the numbered storage-category picker")
@@ -1183,7 +1202,6 @@ def main(argv: list[str] | None = None) -> int:
         "root": str(root),
         "repo": str(repo_root(root)),
         "source": str(source_root(root, cfg)),
-        "goals": str(goals_path(root, cfg)),
         "layout": "graph_dir" if is_graph_dir(root) else "legacy",
     }
 
@@ -1192,7 +1210,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.json:
         print(json.dumps(resolved, indent=2))
     else:
-        for k in ("layout", "root", "repo", "source", "goals"):
+        for k in ("layout", "root", "repo", "source"):
             print(f"{k}: {resolved[k]}")
     return 0
 

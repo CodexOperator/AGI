@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-second-director-ran-this-graph-uninvited
 next_edges: []
 confidence: 0.7
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 773f9dea65bcf4fe
 season: 1
 thought_session: season
@@ -46,7 +46,7 @@ Findings:
 
 2. **Commits exist**: The uninvited director's commits L1.10b (b45fdcaca) through L1.10f (e0220fad9) plus interleaved benchmark experiments ("Baseline cold build", "Demonstrated 30s reaper window gap", "Dynamic test") are all real commits in this repo's history, authored as `CodexOperator <<owner-email>>` (this box's default identity, per `git log --format=%an <%ae>`; the original draft here misattributed them to `AGI Agent agent@hermes.local`).
 
-3. **Same checkout**: `~/.hermes/agi` is a symlink to `/home/ubuntu/work/agi` — the identical checkout, not a separate clone. This confirms any Claude session started there inherits the same global agi skill and SessionStart hook.
+3. **Same checkout**: `~/.hermes/agi` is a symlink to `<home>/work/agi` — the identical checkout, not a separate clone. This confirms any Claude session started there inherits the same global agi skill and SessionStart hook.
 
 4. **Global skill injection confirmed**: `~/.claude/settings.json` registers the PreToolUse hook globally. The agi skill (`~/.claude/skills/agi`) is a global symlink. Any `claude` process started from any directory that shells into `~/.hermes/agi` or this checkout receives the full director mapping and instructions.
 
@@ -78,7 +78,7 @@ Commits in the uninvited range (b45fdcaca..e0220fad9):
 
 ~/.hermes/agi symlink:
 ```
-/home/ubuntu/.hermes/agi -> /home/ubuntu/work/agi
+<home>/.hermes/agi -> <home>/work/agi
 ```
 
 Same git HEAD: `ref: refs/heads/master`

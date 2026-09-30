@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g6.11
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: de24bb130510b6fa
 season: 2
 testable_claim: After the change, a parent running inside a --branch worktree completes 'cli.py done --owns <experiment-id>' from its own cwd with no copying and no cd to the main checkout, and the same call from the main checkout for a non-branch agent behaves exactly as it does today; proven by a red-first test for each half, with the node stating explicitly whether iteration session state was made SHARED (main-only, like the spawn budget and comms root) or FORKED (per-worktree, like the graph a kid edits) and why.
@@ -23,7 +23,7 @@ What is the testable claim? What would prove it? What would disprove it?
 BUILD, NOT A PROBE. YOUR ARTEFACT IS A DIFF. An empty `git diff --stat` at the end means you are NOT done.
 
 MEASURED ON THREE OF FOUR PARENTS IN ONE ROUND (L3.38, 2026-09-08), independently, each in its own worktree, none aware of the others. Their own words:
-  `a00-e1fc33bf`: "cli.py resolves the session manifest from cwd's `.agi/`; run from worktree it failed (`no manifest`, then `no agent record`) and I had to run `done` from `/home/ubuntu/work/agi` — the dispatch/worktree split costs every parent a turn."
+  `a00-e1fc33bf`: "cli.py resolves the session manifest from cwd's `.agi/`; run from worktree it failed (`no manifest`, then `no agent record`) and I had to run `done` from `<home>/work/agi` — the dispatch/worktree split costs every parent a turn."
   `a00-e4beee9f`: "cli.py done rejected the parent's agent record in the worktree session dir and had to be run from the main repo root".
   `a00-75ccbeaa`: "my own `agent.json` was written to the main repo's session dir, not the worktree `cli.py` resolves — `done` failed until I copied the record into the worktree path."
 

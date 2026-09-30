@@ -26,7 +26,7 @@ seeds:
   - goal:g2.9
   - idea:engine-embeddings
   - idea:engine-zoom
-status: horizon
+status: active
 tags:
   - goal
   - root
@@ -72,7 +72,7 @@ round-trips. Ground truth and scoring rule are preserved at
 Owns: **L1** (the 1..5 axis), **L2** (live IO maps as inherited contract slices).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Folded umbrella from goal:g21 onto goal:g2 in place 2026-09-19; id/mint_id protected. Un-retired as perpetual umbrella.
+Lifecycle marker by recursive leaf walk (director-general-4, owner 2026-09-29 22:0xZ via belam): status was horizon while 6/32 leaves are active; a parent with an active leaf is active. Walk re-measured 22:1xZ: 468 goals, 298 active, 85 horizon, 47 complete, 38 retired.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

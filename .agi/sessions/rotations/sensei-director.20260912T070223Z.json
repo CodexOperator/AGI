@@ -27,7 +27,7 @@
       "before": 7,
       "after": 8
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sensei-director.log",
     "d_stale_continue_cursor": {
       "start_offset": 5605120,
       "read_before_write": true,
@@ -74,16 +74,16 @@
       "window_id": "@318",
       "pid": 2447241,
       "session_id": "ec1a69bb-23af-45fc-aea2-24e1db8f30e0",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sensei-director/ec1a69bb-23af-45fc-aea2-24e1db8f30e0.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sensei-director/ec1a69bb-23af-45fc-aea2-24e1db8f30e0.jsonl",
       "name": "seat-sensei-director-5e",
-      "path": "/home/ubuntu/.claude/sessions/2447241.json",
+      "path": "<home>/.claude/sessions/2447241.json",
       "note": "joined by @318 in registry file 2447241.json"
     },
     "successor_row": "config:seats row 'sensei-director': session_ref= session_id=ec1a69bb-23af-45fc-aea2-24e1db8f30e0 pid=2447241 generation=8 window='@318' source=registry pubkey=3b141eb0f32fed3d... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha 495bc0a69) \u2014 seats.md own-row only: sensei-director spawn row: gen 8, session_id ec1a69bb-23af-45fc-aea2-24e1db8f30e0, window @318, pid 2447241\npush: push: OK -- season/s2",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sensei-director.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sensei-director.ack.json",
     "own_authority_released": "generation 7 of seat 'sensei-director' retired; successor generation 8 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "reap_own_pid": {
       "pid": null,
@@ -109,7 +109,7 @@
       },
       "verdict": "ok"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json"
   },
   "s12_self_reap": {
     "order": "deepest-first",

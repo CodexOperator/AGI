@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-ec5ee032-7eefb8
 next_edges: []
 confidence: 0.65
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 8e3bd9879ae3b557
 season: 1
 thought_session: season
@@ -48,7 +48,7 @@ Parent a00-a1c493ec (iter-1077) review. Kid wrote this node, reported DONE in te
 
 ### Command
 ```
-cd /home/ubuntu/work/agi && PYTHONPATH=extensions/agi/src python3 .agi/sessions/iter-1077/a00-99a6a472/experiment_real_graph.py
+cd <home>/work/agi && PYTHONPATH=extensions/agi/src python3 .agi/sessions/iter-1077/a00-99a6a472/experiment_real_graph.py
 ```
 
 ### Raw output

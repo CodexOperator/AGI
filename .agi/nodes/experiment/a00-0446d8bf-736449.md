@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.85
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 568b687b2034871f
 season: 1
 thought_session: season
@@ -63,7 +63,7 @@ then ProjectionConfig.seed from 42 to 99.
 
 Command:
 ```
-cd /home/ubuntu/work/agi && python3 .agi/sessions/iter-1059/a00-0446d8bf/experiment_embed_cache.py
+cd <home>/work/agi && python3 .agi/sessions/iter-1059/a00-0446d8bf/experiment_embed_cache.py
 ```
 
 ## Evidence

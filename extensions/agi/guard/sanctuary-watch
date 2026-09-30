@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+# sanctuary-watch — guard layer 5. Runs every 2 min as the engine user
+# (sanctuary-watch.timer, in agi-engine.slice). See ~/work/.sanctuary/GUARD.md.
+#
+#  1. here:  did a memory cap bite since the last run? Read from each cgroup's
+#            memory.events.local "oom" (its OWN limit was hit), so a kill caused
+#            by a limit higher up is not blamed on the slice it landed in.
+#            agi-engine (the little scripts) -> ALARM: they should never get near it
+#            agi-work   (rounds)             -> WARN
+#            user@ hit its own ceiling       -> ALARM
+#            mem_cap's per-kid scopes in app.slice are NOT reported: dying alone
+#            and by name is their design, and the probe dies on purpose.
+#  2. peers: ping + ssh every other town in hosts.json. After FAILS misses in a
+#            row it is an OUTAGE (alerts.log). With PEER_CLAUDE=1, an outage the
+#            watch SAW BEGIN launches ONE recovery claude: never while one for
+#            that town is still running, never twice within an hour.
+#
+# Out:   ~/logs/sanctuary-guard/alerts.log   one line per event worth a human
+#        ~/logs/sanctuary-guard/watch.log    every probe, every run
+set -uo pipefail
+
+ENV=${XDG_CONFIG_HOME:-$HOME/.config}/sanctuary-guard/watch.env
+# shellcheck disable=SC1090
+[ -r "$ENV" ] && . "$ENV"
+SANCTUARY=${SANCTUARY:-$HOME/work/.sanctuary}
+FAILS=${FAILS:-3}
+PEER_CLAUDE=${PEER_CLAUDE:-0}
+COOLDOWN=${COOLDOWN:-3600}     # seconds between agents for one town (= their max runtime)
+# A non-integer would make every (( )) below error out and read as false:
+# FAILS would silence all outages, COOLDOWN would fail open. Fall back instead.
+[[ $FAILS =~ ^[1-9][0-9]*$ ]] || FAILS=3
+[[ $COOLDOWN =~ ^[0-9]+$ ]] || COOLDOWN=3600
+STATE=${XDG_STATE_HOME:-$HOME/.local/state}/sanctuary-guard
+LOGD=$HOME/logs/sanctuary-guard
+mkdir -p "$STATE" "$LOGD"
+
+HOST=$(hostname -s)
+NOW=$(date -u +%s)
+TS=$(date -u +%FT%TZ)
+alert() { printf '%s %s %s\n' "$TS" "$HOST" "$*" >> "$LOGD/alerts.log"; }
+note()  { printf '%s %s\n' "$TS" "$*" >> "$LOGD/watch.log"; }
+
+# --- 1. memory caps on this box ----------------------------------------------
+CG=/sys/fs/cgroup/user.slice/user-$(id -u).slice/user@$(id -u).service
+
+# delta NAME FILE FIELD — how much FIELD in FILE grew since the last run.
+# Counters restart at 0 on reboot or when a slice is re-created: a drop reads as 0.
+delta() {
+  local file=$2 field=$3 now last f=$STATE/count.$1
+  [ -r "$file" ] || { echo 0; return; }
+  now=$(awk -v k="$field" '$1==k{print $2}' "$file")
+  now=${now:-0}
+  last=$(cat "$f" 2>/dev/null || echo "$now")
+  echo "$now" > "$f"
+  echo $(( now > last ? now - last : 0 ))
+}
+
+n=$(delta engine "$CG/agi.slice/agi-engine.slice/memory.events.local" oom)
+(( n > 0 )) && alert "ALARM agi-engine.slice hit its own ${n}x memory cap. These are the little scripts (reaper, alarms, watch); they run near 80M. Something upstream is wrong. journalctl --user -u 'agi-agi-*'"
+n=$(delta work "$CG/agi.slice/agi-work.slice/memory.events.local" oom)
+(( n > 0 )) && alert "WARN agi-work.slice hit its own memory cap ${n}x (the rounds)"
+n=$(delta user "$CG/memory.events.local" oom)
+(( n > 0 )) && alert "ALARM user@$(id -u) hit its own memory ceiling ${n}x: everything this user runs was squeezed. guard-init.sh --status"
+
+# systemd-oomd kills (pressure-based) are only in the system journal, which the
+# engine user may not be allowed to read; then this stays silent, harmlessly.
+last_oomd=$(cat "$STATE/oomd.since" 2>/dev/null || echo "$NOW")
+echo "$NOW" > "$STATE/oomd.since"
+journalctl -q -u systemd-oomd --since "@$last_oomd" -o cat 2>/dev/null | grep -i 'killed' | while read -r line; do
+  alert "OOMD $line"
+done
+
+# --- 2. the other towns ------------------------------------------------------
+HOSTS=$SANCTUARY/hosts.json
+SSHCFG=$SANCTUARY/ssh/config
+[ -r "$HOSTS" ] || { note "no $HOSTS: peer checks skipped"; exit 0; }
+
+# name <TAB> host <TAB> overlay_ip <TAB> kind(hub|town|ephemeral); hub first.
+mapfile -t PEERS < <(python3 - "$HOSTS" "$HOST" 2>/dev/null <<'EOF'
+import json, sys
+h = json.load(open(sys.argv[1])); me = sys.argv[2]
+hub = h.get("hub", {})
+print("\t".join([hub.get("name", "gw"), hub.get("name", "gw"), hub.get("overlay_ip", ""), "hub"]))
+for name, t in h.get("towns", {}).items():
+    if "alias_of" in t or t.get("host") == me:
+        continue
+    kind = "ephemeral" if t.get("ephemeral") else "town"
+    print("\t".join([name, t.get("host", ""), t.get("overlay_ip", ""), kind]))
+EOF
+)
+# An unparseable hosts.json would otherwise turn every peer check off in silence.
+if (( ${#PEERS[@]} == 0 )); then
+  [ -e "$STATE/hosts.broken" ] || alert "WATCH cannot parse $HOSTS: peer checks are OFF until it is fixed"
+  touch "$STATE/hosts.broken"; note "hosts.json unparseable: peer checks skipped"
+  exit 1
+fi
+rm -f "$STATE/hosts.broken"
+
+probe() {  # town ip kind -> up | degraded (pings, no ssh) | down (no ping)
+  ping -c1 -W3 "$2" >/dev/null 2>&1 || { echo down; return; }
+  # gw's ssh needs the EDGE key (not in the bundle): ping is all we ask of it.
+  [ "$3" = hub ] && { echo up; return; }
+  timeout 45 ssh -F "$SSHCFG" -o BatchMode=yes -o ConnectTimeout=30 "$1" true >/dev/null 2>&1 \
+    && echo up || echo degraded
+}
+
+launch_recovery() {  # town host ip status
+  local town=$1 host=$2 ip=$3 st=$4 stamp brief out last
+  # Never two at once, never twice within COOLDOWN: a flapping town (one lucky
+  # ssh, then three misses) must not stack agents on a box that is already sick.
+  if systemctl --user list-units --state=active,activating --no-legend --plain \
+       "sanctuary-recovery-$town-*" 2>/dev/null | grep -q .; then
+    note "$town: a recovery agent is still running, not launching another"; return 1
+  fi
+  last=$(cat "$STATE/launch.$town" 2>/dev/null || echo 0)
+  if (( NOW - last < COOLDOWN )); then
+    note "$town: last agent launched $(( (NOW - last) / 60 )) min ago, cooling down"; return 1
+  fi
+  stamp=$(date -u +%Y%m%dT%H%M%SZ)
+  brief=$STATE/recovery-$town-$stamp.md
+  out=$LOGD/recovery-$town-$stamp
+  cat > "$brief" <<EOF
+You are the sanctuary recovery agent, launched automatically on $HOST by
+sanctuary-watch. No human is watching this session. Work alone, then stop.
+
+## What happened
+Town **$town** (host **$host**, overlay $ip) failed $FAILS probes in a row, 2 min
+apart. Status: **$st** (down = no ping; degraded = pings but ssh never answers,
+which is how a memory livelock looks: the kernel accepts TCP, sshd cannot fork).
+
+## Read first
+~/work/.sanctuary/README.md and ~/work/.sanctuary/GUARD.md. Reach it ONLY as:
+    ssh -F ~/work/.sanctuary/ssh/config $town
+
+## Identity comes first
+The moment you have a shell, run \`hostname\`. It must print exactly **$host**.
+If it does not, you are on the wrong machine: disconnect and do NOTHING there.
+Do not guess or scan IP addresses; the LAN IPs in hosts.json are known to have
+drifted, and a guessed address can land you on this very box ($HOST) or another
+healthy one. The overlay alias above is the only address you use.
+
+## Do
+1. Try the alias above, patiently (a livelocked sshd can take minutes).
+2. If you CANNOT get a shell: you cannot reboot it from here, and its own guard
+   watchdog should reboot it within ~5-10 min if guard is installed there. Do not
+   loop. Check once more after 15 min, then write the report.
+3. If you CAN get a shell (and the hostname matched): measure before acting
+   (free -h, /proc/pressure/memory, the largest cgroups under user.slice and
+   system.slice, journalctl -u systemd-oomd, dmesg for oom). Relieve pressure by
+   stopping the ONE offending unit or scope. Reboot (sudo systemctl reboot) only
+   if userspace cannot be recovered within 15 min; tang on gw auto-unlocks the
+   disk on boot.
+
+## Rules (owner, non-negotiable)
+- Touch nothing on $HOST (this box) except writing your report.
+- Mind the other agents on $host: they are mid-round. Check /proc/*/cwd before
+  touching any worktree; stop only the runaway, never a service others rely on.
+- Never create a remote git head, never fast-forward a branch, never force-push.
+- Never pass --allow-branch to grid.py; never push refs/grid/* wholesale.
+
+## Finish
+Write $out.md: timeline (UTC), what you measured, what you did, the state you
+left it in, and what the owner must still do. Then stop.
+EOF
+  local bin=${CLAUDE_BIN:-$HOME/.local/bin/claude}
+  if systemd-run --user --quiet --collect --unit="sanctuary-recovery-$town-$stamp" \
+       --slice=app.slice -p MemoryMax=2G -p RuntimeMaxSec=3600 \
+       --working-directory="$HOME/work" \
+       /bin/sh -c "'$bin' -p --permission-mode bypassPermissions < '$brief' > '$out.log' 2>&1"; then
+    echo "$NOW" > "$STATE/launch.$town"
+    alert "RECOVERY agent launched for $town (unit sanctuary-recovery-$town-$stamp). Report: $out.md  log: $out.log"
+  else
+    # Record the attempt anyway, so the cooldown also spaces out retries of a
+    # launch that keeps failing (one alert an hour, not one every 2 min).
+    echo "$NOW" > "$STATE/launch.$town"
+    alert "RECOVERY launch FAILED for $town (systemd-run returned non-zero); next try in $(( COOLDOWN / 60 )) min"
+    return 1
+  fi
+}
+
+# State per peer: fails first launched alerted
+#   fails     consecutive misses
+#   first     epoch of the first miss of this outage (0 = none)
+#   launched  0 = may launch; -1 = was down at first sight, never launch; >0 = launched
+#   alerted   1 once an OUTAGE line was written (so only those get a RECOVERED line)
+for line in "${PEERS[@]}"; do
+  IFS=$'\t' read -r town host ip kind <<< "$line"
+  [ -n "$ip" ] || continue
+  st=$(probe "$town" "$ip" "$kind")
+
+  f=$STATE/peer.$town
+  fails=0 first=0 launched=0 alerted=
+  if [ -s "$f" ]; then
+    read -r fails first launched alerted < "$f"
+    # Old 3-field format (fails since launched): since>0 meant "alerted".
+    if [ -z "$alerted" ] && [[ $first =~ ^[0-9]+$ ]] && (( first > 0 )); then alerted=1; fi
+  elif [ "$st" != up ]; then
+    # First sight of this peer and it is already not up: the outage began
+    # before the watch did. Report it, but never launch an agent for it.
+    launched=-1
+  fi
+  # A torn or foreign state file must not crash the loop or poison arithmetic.
+  [[ $fails =~ ^[0-9]+$ ]] || fails=0
+  [[ $first =~ ^[0-9]+$ ]] || first=0
+  [[ $launched =~ ^-?[0-9]+$ ]] || launched=0
+  [[ $alerted =~ ^[01]$ ]] || alerted=0
+  # Mid-outage with no start time (old format, torn file): start the clock now
+  # rather than report an outage "since 1970".
+  if (( fails > 0 && first == 0 )); then first=$NOW; fi
+
+  if [ "$st" = up ]; then
+    (( alerted )) && alert "RECOVERED $town ($host) after $(( (NOW - first) / 60 )) min"
+    fails=0; first=0; launched=0; alerted=0
+  else
+    fails=$((fails + 1))
+    (( fails == 1 )) && first=$NOW
+    if (( fails == FAILS )); then
+      if [ "$kind" = hub ]; then
+        alert "OUTAGE hub $town ($ip) unreachable from $HOST: this box's overlay is down, so peer checks are paused"; alerted=1
+      elif [ "$kind" = ephemeral ]; then
+        note "$town is $st: ephemeral (laptop asleep?), not alerting"
+      elif (( launched < 0 )); then
+        alert "OUTAGE $town ($host $ip) is $st, and already was when the watch first saw it: no recovery agent"; alerted=1
+      else
+        alert "OUTAGE $town ($host $ip) is $st: $FAILS misses in a row, 2 min apart"; alerted=1
+      fi
+    fi
+    if (( fails >= FAILS )) && [ "$kind" = town ] && [ "$PEER_CLAUDE" = 1 ] && (( launched == 0 )); then
+      launch_recovery "$town" "$host" "$ip" "$st" && launched=$NOW
+    fi
+  fi
+  printf '%s %s %s %s\n' "$fails" "$first" "$launched" "$alerted" > "$f.tmp" && mv -f "$f.tmp" "$f"
+  note "$town $st fails=$fails"
+
+  # If the hub is down, this box's own overlay is down: every town would look
+  # dead from here. Stop after recording the hub, rather than raising false outages.
+  if [ "$kind" = hub ] && [ "$st" != up ]; then
+    note "peer checks paused: hub $town is $st"
+    exit 0
+  fi
+done

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-after-join-is-performed-live-by-a-running-watch-or-by-rotate-selfs-own-tail-when-no-watcher-runs
 next_edges: []
 confidence: 0.92
-edited_by: a00-4125554d
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-de983db0-160e0c
 loop: hypothesis:l4-after-join-is-performed-live-by-a-running-watch-or-by-rotate-selfs-own-tail-when-no-watcher-runs@s2
@@ -35,7 +35,7 @@ read through DIFFERENT resolvers:
   `git_common_root` to the **main checkout**.
 
 They agreed only when the watch ran from the main checkout (the systemd unit's
-`--root /home/ubuntu/work/agi`). Linked-worktree-rooted watch → heartbeat in
+`--root <home>/work/agi`). Linked-worktree-rooted watch → heartbeat in
 the worktree's `sessions/` while seats read the main checkout's →
 `_watch_alive` False with the watch fully alive → tail performed, record said
 `performer: "tail"` while a healthy watch existed. Claim (b) of the target

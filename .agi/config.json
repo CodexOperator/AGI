@@ -19,7 +19,7 @@
       "name": "enhanced survival",
       "seats": "Prime + point director (sanctuary-director) + helper director (sanctuary-helper) \u2014 the Texas two-step formation, three seats, helper answers to the point",
       "models": "Prime claude-opus-5; point director claude-opus-5 max; helper director claude-sonnet-5 max (owner verbatim: 'Helper director kid runs sonnet btw.' 'Sonnet max effort')",
-      "source": "goal:g17.1:26 ('Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work... Let the current director take point though and the other one is like a helper') and :28 ('this is just enhanced survival mode')",
+      "source": "goal:g7.16:29 ('Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work... Let the current director take point though and the other one is like a helper') and :28 ('this is just enhanced survival mode')",
       "in_force": true
     }
   },
@@ -47,46 +47,66 @@
   "harnesses": {
     "pi": {
       "adapter": "pi",
-      "bin": "/home/ubuntu/.npm-global/bin/pi",
-      "provider": "openrouter",
-      "thinking": "medium",
-      "models": {
-        "kid": "stealth/space-bunny-alpha",
-        "parent": "stealth/space-bunny-alpha"
-      },
-      "allowed_extra": [
-        "stealth/space-bunny-alpha",
-        "deepseek/deepseek-v4.1-flash",
-        "~z-ai/glm-flash-latest",
-        "anthropic/claude-opus-5"
-      ],
+      "bin": "~/.npm-global/bin/pi",
       "forward_env": [
         "TYPESAFE_KEY",
+        "TYPESAFE_KEY2",
         "TYPESAFE_API_KEY"
-      ]
-    },
-    "pi-local": {
-      "adapter": "pi",
-      "bin": "/home/ubuntu/.npm-global/bin/pi",
-      "provider": "local-town",
-      "credential": "none",
-      "models": {
-        "kid": "Qwen3.5-9B-Q4_K_M",
-        "parent": "Qwen3.5-9B-Q4_K_M"
-      },
-      "allowed_extra": [
-        "Qwen3.5-9B-Q4_K_M"
       ],
-      "forward_env": [
-        "TYPESAFE_KEY",
-        "TYPESAFE_API_KEY"
-      ]
+      "rows": [
+        {
+          "name": "free",
+          "default": true,
+          "zero_usd": true,
+          "provider": "openrouter",
+          "thinking": "medium",
+          "models": {
+            "kid": "stealth/space-bunny-alpha",
+            "parent": "stealth/space-bunny-alpha"
+          },
+          "allowed_extra": [
+            "stealth/space-bunny-alpha"
+          ]
+        },
+        {
+          "name": "paid",
+          "provider": "openrouter",
+          "thinking": "medium",
+          "models": {
+            "kid": "deepseek/deepseek-v4.1-flash",
+            "parent": "deepseek/deepseek-v4.1-flash"
+          },
+          "allowed_extra": [
+            "deepseek/deepseek-v4.1-flash",
+            "~z-ai/glm-flash-latest",
+            "anthropic/claude-opus-5"
+          ]
+        },
+        {
+          "name": "local",
+          "zero_usd": true,
+          "provider": "local-town",
+          "credential": "none",
+          "max_live": 1,
+          "models": {
+            "kid": "OrcaBonsai-27B-C2",
+            "parent": "OrcaBonsai-27B-C2"
+          },
+          "allowed_extra": [
+            "OrcaBonsai-27B-C2"
+          ]
+        }
+      ],
+      "aliases": {
+        "pi-free": "free",
+        "pi-local": "local"
+      }
     },
     "claude-code": {
       "adapter": "claude_code",
       "models": {
-        "kid": "claude-sonnet-5",
-        "parent": "claude-opus-5",
+        "kid": "claude-opus-5-5",
+        "parent": "claude-opus-5-5",
         "director": "claude-fable-5-1"
       },
       "effort": {
@@ -95,12 +115,14 @@
       "allowed_models": [
         "claude-sonnet-5",
         "claude-opus-5",
+        "claude-opus-5-5",
         "claude-fable-5-1"
-      ]
+      ],
+      "max_live": 4
     },
     "copilot-cli": {
       "adapter": "copilot_cli",
-      "bin": "/home/ubuntu/.npm-global/bin/copilot",
+      "bin": "~/.npm-global/bin/copilot",
       "models": {
         "kid": "auto",
         "parent": "auto",
@@ -117,7 +139,7 @@
         "grok-4",
         "grok-4-fast"
       ],
-      "bin": "/home/ubuntu/.npm-global/bin/grok-bot",
+      "bin": "~/.npm-global/bin/grok-bot",
       "models": {
         "kid": "grok-4-fast",
         "parent": "grok-4"
@@ -125,7 +147,7 @@
     }
   },
   "spawn": {
-    "harness": "pi",
+    "harness": "pi-free",
     "parallel": 1,
     "max_live": 20,
     "credential": {
@@ -135,19 +157,26 @@
       "workspace_id": "7e12bcd2-321e-51ec-b3f5-80efeb4fdaf0"
     },
     "parent_max_kids": 10,
-    "memory_max": "8G",
-    "tasks_max": 96
+    "memory_max": "2G",
+    "tasks_max": 150,
+    "post_scope": {
+      "live": true,
+      "slice": "app.slice",
+      "why": "goal:g6.41.1 P6 (director-general-3, bundle 3 R1): true = every post launch in its OWN scope under slice. ON 2026-09-30 01:5xZ by belam-S2-L5-XIX on the owner's word ('go ahead and install them and finish applying them', reboot window). Slice = app.slice, where the posts already run under user@: each post gets its OWN scope (one oomd kill = one post) and the budget is unchanged; agi.slice would have put the posts under agi-work's MemoryMax with the PASS rounds. The dummy test (test_r1_cutover_dummy_one_kill_is_one_post) uses app.slice too."
+    }
   },
   "provisioning": {
-    "min_key_remaining_usd": 0.01,
-    "min_account_remaining_usd": -50.0
+    "min_key_remaining_usd": 1.0,
+    "min_account_remaining_usd": -50,
+    "min_mint_remaining_usd": 1.0,
+    "zero_usd_key_limit_usd": 0.01
   },
   "agent_dispatch": {
     "claude_max_parallel": 1,
     "ollama_max_parallel": 0,
     "ollama_model": "qwen3:4b",
     "provider": "openrouter",
-    "model": "stealth/space-bunny-alpha",
+    "model": "deepseek/deepseek-v4.1-flash",
     "thinking": "medium",
     "inline_reaper": false
   },
@@ -159,7 +188,7 @@
     "iterations_per_run": 5,
     "kids_per_iter": 2,
     "kid_model": "claude-sonnet-5",
-    "parent_model": "claude-opus-5",
+    "parent_model": "claude-opus-5-5",
     "director_model": "claude-fable-5-1"
   },
   "goal_body_cap": 0,
@@ -175,6 +204,40 @@
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
   },
+  "mint": {
+    "storage_categories": {
+      "engine_code": {
+        "location": "source_root",
+        "prefix": "extensions/agi/bin",
+        "label": "engine code"
+      },
+      "tests": {
+        "location": "source_root",
+        "prefix": "extensions/agi/tests",
+        "label": "tests"
+      },
+      "skills": {
+        "location": "source_root",
+        "prefix": "skills",
+        "label": "skills"
+      },
+      "geometry": {
+        "location": "graph_root",
+        "prefix": "nodes/.geometry",
+        "label": ".geometry config"
+      },
+      "schemas": {
+        "location": "graph_root",
+        "prefix": "context/schemas",
+        "label": "schemas"
+      },
+      "context_templates": {
+        "location": "graph_root",
+        "prefix": "context",
+        "label": "context templates"
+      }
+    }
+  },
   "box": {
     "root": "/home/ubuntu/work/agi",
     "logs_dir": "/home/ubuntu/logs",
@@ -185,25 +248,232 @@
   "workflows": {
     "review": {
       "effort": "medium",
-      "provider": "pi",
+      "provider": "pi-free",
       "note": "defaults for the round-review workflow; resolved by workflow.py run review --harness pi with --args overriding; config-maxxed so it can run on any harness (hypothesis:l3w4-workflows-config-maxxed), 2026-09-07. No 'model' here on purpose: provider is pi, and the pi harness resolves its model from harnesses.pi.models by role, never from this row \u2014 a shared model field across disjoint namespaces (Claude Code aliases vs OpenRouter slugs) is what billed Anthropic Sonnet on an OpenRouter key (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     },
     "drafting": {
-      "model": "stealth/space-bunny-alpha",
       "effort": "max",
-      "provider": "pi",
+      "provider": "pi-free",
       "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through \u2014 owner quote (6), 2026-09-07. 'sonnet' is correct HERE because provider is claude-code, whose model namespace is subscription aliases, not OpenRouter slugs (hypothesis:l3-workflow-model-crosses-harness-namespace)."
     },
     "deep-search": {
       "effort": "high",
-      "provider": "pi",
+      "provider": "pi-free",
       "note": "defaults for the deep-search workflow; question, facts, lenses and refute_n arrive via --args, never here or in either workflow file (hypothesis:l3-deep-search-workflow-harness-agnostic), 2026-09-07. No 'model' here on purpose, same reason as workflows.review: provider is pi, model comes from harnesses.pi.models by role (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     }
   },
+  "anonymize": {
+    "home_roots": [
+      "/data/home-"
+    ]
+  },
   "reaper": {
-    "max_restarts": 0
+    "max_restarts": 0,
+    "late_reap_wait_max_s": 1800,
+    "recovery_psi_max_pct": 40,
+    "recovery_defer_alert_after": 3,
+    "term_grace_s": 15,
+    "chain_deadline_s": 20,
+    "worktree_archive_per_pass": 25,
+    "sweep_mem_psi_max_pct": 40,
+    "sweep_io_psi_max_pct": 40,
+    "sweep_reclaim_every": 50,
+    "sweep_reclaim_max_mib": 512
+  },
+  "logs": {
+    "cap_mb": 16,
+    "rotations": 3,
+    "mode": "copytruncate",
+    "alerts_file": "memory-alarm-alerts.log",
+    "also_manage": [
+      "agi-reaper-agi-2f118e6f.log"
+    ],
+    "non_append": "skip"
+  },
+  "grid": {
+    "storage_trunk": "refs/grid/local-maxxing",
+    "push_split_epoch": 1789955640,
+    "push_batch_limit": 200
+  },
+  "paths": {
+    "core": {
+      "worktrees_root": ".agi/worktrees",
+      "suite_roots": [
+        ".agi/context"
+      ],
+      "foreign_refusal_memo": ".agi/sessions/foreign_refusals.tsv"
+    },
+    "boxkit": {
+      "templates_dir": "extensions/agi/boxkit/templates",
+      "install_root": "/",
+      "sbin_dir": "usr/local/sbin",
+      "systemd_system_dir": "etc/systemd/system",
+      "systemd_conf_dir": "etc/systemd",
+      "user_systemd_dir": "{home}/.config/systemd/user",
+      "watchdog_conf": "etc/watchdog.conf",
+      "user_systemd_data_dir": "{home}/.local/share/systemd/user",
+      "guard_dir": "{repo_parent}/.sanctuary/guard",
+      "fixtures_dir": "extensions/agi/tests/fixtures/boxkit"
+    },
+    "local_maxxing": {
+      "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
+      "worktree_a00_48ed5e56_nodes": ".agi/worktrees/a00-48ed5e56/.agi/nodes",
+      "sessions_dir": ".agi/sessions",
+      "nodes_experiment_dir": ".agi/worktrees/a00-d511add6/.agi/nodes/experiment",
+      "kid_sft_out_dir": ".agi/worktrees/a00-d511add6/datasets/kid-sft",
+      "pi_traj_dir": "{pi_home}/sessions",
+      "heads_dir": ".agi/context/local-maxxing/heads",
+      "dead_head_dir": "datasets/dead-head",
+      "dead_head_run_dir": "datasets/dead-head/2026-09-23",
+      "dead_head_artifact": "datasets/dead-head/2026-09-23/qwen25_05b_head336_small_theory_redundancy_v2_boundary2.json",
+      "kv_groups_dir": "datasets/dead-head/2026-09-23-kv-groups",
+      "osc_dir": ".agi/context/local-maxxing/osc",
+      "osc_band_dir": "datasets/osc-band/2026-09-23",
+      "osc_band_hop2_dir": "datasets/osc-band/2026-09-23-hop2",
+      "osc_band_kquant_dir": "datasets/osc-band/2026-09-23-kquant",
+      "osc_band_q4_dir": "datasets/osc-band/2026-09-24-q4",
+      "osc_band_kquant_0924_dir": "datasets/osc-band/2026-09-24-kquant",
+      "osc_band_qknorm_dir": "datasets/osc-band/2026-09-24-qknorm",
+      "model_slot_lock": ".agi/sessions/locks/model-slot.lock",
+      "humaneval_file": "datasets/humaneval-abc/data/HumanEval.jsonl.gz",
+      "kv_format_out_dir": "datasets/kv-format/2026-09-23",
+      "kv_speed_out_dir": "datasets/kv-format/2026-09-23-speed",
+      "kv_split_out_dir": "datasets/kv-format/2026-09-23-split",
+      "serving_sweep_out_dir": "datasets/serving-sweep/2026-09-23",
+      "serving_sweep_cold_out_dir": "datasets/serving-sweep/2026-09-23-cold",
+      "serving_sweep_ub_out_dir": "datasets/serving-sweep/2026-09-23-ub",
+      "specdec_out_dir": "datasets/specdec/2026-09-23",
+      "path_sweep_out_dir": "datasets/path-sweep/2026-09-23",
+      "served_models_dir": "{models_dir}",
+      "served_9b_gguf": "{models_dir}/Qwen3.5-9B-Q4_K_M.gguf",
+      "osc02_scratch_dir": "{ml_scratch_dir}/osc02",
+      "osc02_9b_gguf": "{ml_scratch_dir}/osc02/Qwen3.5-9B-Q4_K_M.gguf",
+      "wikitext2_test_raw": "{ml_scratch_dir}/osc02/wikitext-2-raw/wiki.test.raw",
+      "wikitext2_zip": "{ml_scratch_dir}/osc02/wikitext-2-raw-v1.zip",
+      "osc03_hf_dir": "{ml_scratch_dir}/osc03/hf",
+      "osc03_pylib_dir": "{ml_scratch_dir}/osc03/pylib",
+      "osc_test_pythonpath": "{ml_venv_dir}/lib/python3.12/site-packages:{ml_scratch_dir}/osc03/pylib",
+      "osc15_hf_dir": "{ml_scratch_dir}/osc15/hf",
+      "cuda_jit_cache_dir": "{ml_scratch_dir}/cuda-jit-cache",
+      "ml_python": "{ml_venv_dir}/bin/python",
+      "nsys_dir": "{ml_tools_dir}/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2",
+      "specdec_replay_out_dir": "datasets/specdec/2026-09-23-replay",
+      "brain_swap_out_dir": "datasets/brain-swap/2026-09-24"
+    }
   },
   "values": {
+    "pi_retry": {
+      "empty_response_max_retries": 12,
+      "empty_response_backoff_s": 60.0,
+      "empty_response_backoff_factor": 1.5,
+      "empty_response_backoff_cap_s": 120.0,
+      "empty_response_max_attempts_total": 52,
+      "transient_signatures": [
+        "error code:\\s*5\\d\\d",
+        "stream error|h2 protocol error|upstream error",
+        "connection reset|econnreset",
+        "http(?:/\\d+(?:\\.\\d+)?)?\\s*5\\d\\d",
+        "Provider returned an empty response"
+      ]
+    },
+    "boxkit": {
+      "user_high_ratio": 0.9,
+      "swap_ratio": 0.5,
+      "agi_high_ratio": 0.63,
+      "agi_max_ratio": 0.7,
+      "work_high_ratio": 0.5673,
+      "work_max_ratio": 0.6305,
+      "MEM_LOW": "1024M",
+      "USER_TASKS": "16384",
+      "USER_OOM_PCT": "50",
+      "SYSTEM_MIN": "128M",
+      "SSH_MIN": "64M",
+      "SSH_CPU_WEIGHT": "1000",
+      "OOMD_SWAP_PCT": "90",
+      "OOMD_PRESSURE_PCT": "60",
+      "OOMD_PRESSURE_SEC": "20s",
+      "AGI_TASKS": "4096",
+      "AGI_CPU_WEIGHT": "50",
+      "AGI_OOM_PCT": "40",
+      "ENGINE_HIGH": "384M",
+      "ENGINE_MAX": "512M",
+      "ENGINE_SWAP": "0",
+      "ENGINE_TASKS": "128",
+      "ENGINE_CPU_WEIGHT": "20",
+      "WORK_TASKS": "2048",
+      "WORK_CPU_WEIGHT": "50",
+      "CRC_CPU_WEIGHT": "400",
+      "OOM_POLICY": "continue",
+      "GUARD_DOC": "GUARD.md",
+      "GUARD_DOC_ABS": "~/work/.sanctuary/GUARD.md",
+      "WD_TIMEOUT": "60",
+      "WD_INTERVAL": "10",
+      "WD_TEST_TIMEOUT": "60",
+      "WD_RETRY_TIMEOUT": "300",
+      "WD_REPAIR_MAX": "1",
+      "WD_PRIORITY": "1",
+      "WD_LOG_DIR": "/var/log/watchdog",
+      "HEALTH_LIMIT": "40",
+      "HEALTH_GRACE": "900",
+      "HEALTH_ENV": "/etc/sanctuary-guard/health.env",
+      "HEALTH_DISABLE": "/etc/sanctuary-guard/watchdog.disable",
+      "HEALTH_LOG": "/var/log/sanctuary-health.log",
+      "PYTHON_BIN": "/usr/bin/python3",
+      "MEMGUARD_LOG": "/var/log/agi-memguard.log",
+      "PROTECT_OOM_ADJ": "-900",
+      "PROTECT_NICE": "-5",
+      "PI_OOM_ADJ": "500",
+      "SUSPEND_RATIO": "0.70",
+      "SUSPEND_PCT": "70",
+      "SPIKE_BYTES": "3",
+      "LOW_AVAIL_BYTES": "1",
+      "LOW_AVAIL_GIB": "1",
+      "HISTORY_S": "30",
+      "INTERVAL_S": "5",
+      "ALERT_COOLDOWN_S": "600"
+    },
+    "core": {
+      "model_load_allowed_max_bytes": 67108864,
+      "stale_index_lock_s": 900,
+      "write_commit_wait_s": 30
+    },
+    "local_maxxing": {
+      "osc_band_seeds": [
+        7,
+        21,
+        99
+      ],
+      "de_live_parents": {
+        "arm": 10,
+        "arms": [
+          10,
+          5,
+          15
+        ],
+        "ceiling": 16,
+        "ceiling_if": {
+          "loadavg1_lt": 16,
+          "io_psi_some_avg60_lt": 50
+        },
+        "hypothesis": "hypothesis:swarm-size-5-10-15-parents-fixes-per-hour"
+      },
+      "model_slot_min_avail_gib": 3,
+      "lowpeak_head_rows": 64,
+      "osc_band_row_contract": {
+        "fields": [
+          "cell",
+          "budget",
+          "arm",
+          "seed",
+          "n",
+          "arm_is_stochastic",
+          "widths",
+          "agree",
+          "kl"
+        ],
+        "text": "ROW CONTRACT (p3 reads this, cite the cell, not a script): one row per (cell, arm, seed) in cells.jsonl, carrying every field in `fields`. A STOCHASTIC arm (random) is one row per seed and its group must hold >= 3 DISTINCT seeds -- a group whose rows repeat one seed is n=1 replication-by-duplication and any call over it must be REFUSED, not returned. A DETERMINISTIC arm (uniform, key_only, inverse_energy, energy) is emitted as ONE row with seed 0, n 1, arm_is_stochastic false. A reader groups by (budget, arm) and counts DISTINCT seeds; it never counts rows. Two calls exist over the same rows and are NEVER merged into one inside? column: (a) MARGIN, key_only - uniform (sign-corrected per metric) against the FULL min-max range of >= 3 distinct random seeds -- the ADOPTED, pre-registered rule, osc_band_call2_a00-cc7b25cc.py (director-thought gen 32 per TMM.198: this text said half_range, which the rule never used); (b) RANGE, min(random) <= key_only <= max(random) -- the key_only value against the random peer. They are different denominators and they disagree; the decide layer must name the one it applies."
+      }
+    },
     "memcap": {
       "probe_cache_dir_name": "agi-memcap",
       "probe_cache_file": "probe"

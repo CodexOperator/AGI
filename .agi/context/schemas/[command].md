@@ -41,8 +41,8 @@ command declaration has no business relaxing.
 ## What reads this
 
 `bin/commands.py` resolves `commands` into real argv and can run them
-(`list`, `show`, `run`), and `render-context.py` writes the declared set into
-`context/INJECTION.md`, so every agent is *handed* the commands instead of
+(`list`, `show`, `run`), and `inject.py` (through `briefing.py`) writes the
+declared set into `context/INJECTION.md`, so every agent is *handed* the commands instead of
 remembering them.
 
 **That second reader is the point of the node existing.** G10.2's rule is that

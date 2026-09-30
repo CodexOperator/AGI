@@ -5,14 +5,14 @@ type: goal
 parents:
   - goal:g6
 confidence: 1.0
-edited_by: belam
+edited_by: self-perpetuating
 goal_id: S21
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 season: 1
 seeds: []
-status: horizon
+status: retired
 tags:
   - goal
   - root
@@ -126,37 +126,5 @@ categories, and `--grid-version N` for a version predating the retirement must
 still materialise the file. Today none of that is expressible.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This node exists because I asserted the opposite of the truth and got caught by
-checking. Asked to retire the five pre-fold files, I offered "deprecate the
-nodes and publish, and stitch will prune the engine files" as a menu option and
-the owner picked it. It is wrong. `stitch.py` reads deprecated build nodes
-*specifically so that it keeps materialising their payloads*, and says so in a
-comment written when G2.10 shipped. I had read that comment two iterations
-earlier, in the commit message for the retirement convention, and still
-mis-stated it.
-
-Worth recording as more than an error, because the shape is reusable: the
-project has a strong, correct convention that retiring a node changes its
-**address** and not what the graph **holds**, and I generalised it one step too
-far into "retiring a node retires its payload". The convention is load-bearing
-in the other direction. Two axes that look like one until you need only one of
-them.
-
-I checked the three remaining routes before writing this rather than assuming
-they would also fail, and they fail differently enough to be worth listing
-individually — `git rm` reverts on the next publish, node deletion refuses the
-publish, boundary exclusion retires the node and abandons the bytes. That the
-failures are all distinct is itself the evidence that this is an absent
-capability and not a misconfiguration.
-
-Filed as S rather than G6.10 on the pattern S19 set: a specific named defect
-that cross-references its structural parent instead of nesting under it. The
-mechanical consequence agreed — order 84 appends and renumbers nothing, where a
-G6.10 would have bumped every goal after g6.9 and needed a hand-wired `seeds:`
-edge because S7 is still open.
-
-Not built, on the owner's instruction, and the five files are still shipping. If
-whoever picks this up finds the retirement field already half-present somewhere,
-suspect me: I looked for one and did not find it, but I looked from stitch.py
-outward rather than from the schema in.
+Owner 01:2xZ 09-30, verbatim (relayed by alive gen 3): "All S goals should have been retired in favor of nested sub sub goals or whatever that fit under the umbrella goals." Retired by self-perpetuating (council S-goal pass, alive convening) after a read-only measure against the bytes at 02:1xZ 09-30. Retired IN PLACE, as the 40 retired goals before it: the address still resolves, so historical references (experiments, code comments citing a closed item) stay valid history and are not rewritten. The hazard faded (files removed by hand 6c3fe0673; publish cron retired de5507a17; retired payloads counted apart a70ad4312), but the capability was never built: no write.py verb retires a build node with its payload, and stitch.py:489-498 still flags retired payloads under --verify --strict. That remainder -> goal:g4.18.5.4 (under all-is-one's g4.18.5, told).
 <!-- THOUGHT:END -->
