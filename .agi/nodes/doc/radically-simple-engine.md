@@ -82,7 +82,41 @@ Decided: under per-post users the magic pane's queue IS the user's own inbox dir
 Rows: adapters/magic_pane.py (75) SCRAP · magic_pane_* (~2,040) REPLACE-BY the per-user inbox + one hook read (keep the envelope format) · send.py nudge/marker machinery REPLACE-BY the derived unread count.
 
 ## §7 KEEP / REPLACE-BY / SCRAP
-(pending: rows from every section, assembled by all-is-one)
+**What am I ACTUALLY trying to get the machine to do here?** Know, per piece, whether the machine still needs it once the kernel, git and systemd do their own jobs, and what it costs in bytes. Nothing is deleted: a SCRAP or REPLACE-BY file is retired and moved (`status: deprecated`), after its replacement passes the spike.
+
+Measured at HEAD 09-30 22:xZ (alive + all-is-one): engine ~5.13 MB · 137 files · 718 git worktrees.
+| piece | KB | verdict | by what | from § |
+|---|---|---|---|---|
+| rotate.py | 1,175 | REPLACE-BY | the post wrap (agi-post@.service + post-wrap.sh): auto-rotate on the meter flag, no command | §1 §4 |
+| send.py (+ magic_pane router on core) | 310 | REPLACE-BY | message = a file in the recipient's inbox dir, committed; unread derived; one route | §6 |
+| write.py + node_writer.py + write_guard.py | 329 | REPLACE-BY | `agi-write` + `agi-read` (<= 2 KB sh) | §2 |
+| heal.py | 206 | REPLACE-BY | `Restart=always` on the post unit | §1 §4 |
+| grid.py | 95 | REPLACE-BY | `git log --follow` / `git show`; refs/grid frozen as archive | §3 |
+| rotation_alert.py (hook) | 84 | REPLACE-BY | a ~20-line meter hook that writes the rotate flag | §1 §4 |
+| src/seatsig/ | 82 | SCRAP | git SSH-signed commits + `allowed_signers` + the kernel | §1 §2 |
+| spawn_budget.py | 52 | REPLACE-BY | the user slice's TasksMax + `systemctl list-units 'agi-*'` | §1 |
+| stitch.py | 51 | REPLACE-BY | `git archive <sha>` | §3 |
+| branches.py | 28 | REPLACE-BY | per-node trees on the fly | §4 |
+| envfile.py | 26 | REPLACE-BY | a 0600 env file in the post's own home | §1 |
+| suite_guards.py + the suite lock | 18 | SCRAP | tests read a snapshot of the tip | §4 |
+| zoom.py + brief.py + briefing.py | 207 | REPLACE-BY, mostly | the files each user's harness already loads (settings symlinks, card, template) | §1 §3 |
+| guard-init.sh + mem_cap.py | 70 | REPLACE-BY, mostly | per-user slice MemoryMax; keep only the box-survival layers | §1 |
+| spawn_gate.py + evidence_gate.py | 101 | KEEP the rules | as `schema-check` (budget <= 10 KB, reading .agi/context/schemas), then retire the rest | §2 |
+| viewport.py | 53 | KEEP | THE one render | §3 |
+| graphweb.py + dashboard.py | 87 | KEEP | optional human views over the same files | §3 |
+| links.py · hierarchy.py · locations.py | 127 | KEEP, trim | pure reads of rows and files | - |
+| provisioning.py | 77 | KEEP | provider keys are budget, not identity; they land in the user's env file | §1 |
+| dispatch.py · workflow.py · cli.py | 714 | KEEP core, trim | the kid spawn and review runs stay; seat/session/worktree/index-lock parts go | §4 |
+| crons.py · anonymize.py | 92 | KEEP | the crontab from the graph · the token refusal inside `agi-write` | §2 |
+| adapters/ | 78 | KEEP until `agi-mcp` covers their verbs | §5 | §5 |
+| sensei · season · metrics · level3 · snapshot-* · handoff · decompose-engine | - | OUT OF SCOPE | research and loop tools; not judged here | - |
+
+```
+retired      ~2.41 MB certain (rotate … write_guard) + ~0.33 MB "mostly" (brief/zoom, guard, stitch)  ≈ 2.7 MB of 5.13 MB
+new code     post wrap ~11-13 KB (§1, incl. the rows -> sysusers agi.conf generator) · agi-write + agi-read <= 2 KB (§2) · schema-check <= 10 KB (§2) · agi-mcp <= 8 KB (§5)  ≈ 31-33 KB
+tests        their suites retire with them (test_rotate* ~10.5k lines · test_send ~8.1k · test_after_join_service ~3.1k ...); each new piece ships with the spike as its test
+```
+The rough share that exists ONLY because every post is one Unix user: seatsig ~100% · rotate ~25-35% · heal ~25% · send ~20-25% · spawn_budget ~20% · write ~15% (a Sonnet survey, low confidence).
 
 ## §8 Spike falsifiers
 **What am I ACTUALLY trying to get the machine to do here?** Prove, on a throwaway repo under /tmp, that the kernel, git and systemd carry what the Python carried, BEFORE anything is retired. The spike runs only after the owner's go on this doc; until then `getent passwd | grep -c '^agi-'` = 0.
