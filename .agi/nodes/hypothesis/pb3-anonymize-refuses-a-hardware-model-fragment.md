@@ -8,7 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: 3451f8086605a0ab
 season: 2
-testable_claim: anonymize gains a `hardware` class (names read live from the sources in cell anonymize.hardware, expanded to >=2-word digit-core fragments, matched case-insensitively on word boundaries) and a `user` class (cell anonymize.user_roots, kept out of HOME_PATH_RE); a synthetic fixture fragment and /tmp/pytest-of-fixtureuser pass the guard at HEAD b3ce77945 and are refused by class after, never printing the value, while a class label and bare numbers still pass.
+testable_claim: anonymize gains a `hardware` class (names read live from the sources in cell anonymize.hardware, expanded to >=2-word digit-core fragments, matched case-insensitively on word boundaries) and a `user` class (cell anonymize.user_roots, kept out of HOME_PATH_RE); a synthetic fixture fragment and /tmp/pytest-of-<user> pass the guard at HEAD b3ce77945 and are refused by class after, never printing the value, while a class label and bare numbers still pass.
 title: anonymize.py refuses a box hardware-model fragment and a /tmp/pytest-of-<user> path by class, sources and roots read from config cells
 town: core
 ---
@@ -47,11 +47,11 @@ config-max: the cells `anonymize.hardware` (sources + `min_words` + `core_digits
 - F3 (config-max): with a tmp config whose `anonymize.hardware.sources` names a FIXTURE file + field (no `AGI_ANONYMIZE_FIXTURE`), a fragment of the name in that file is refused; with the cell absent, no hardware token is produced and no hardware tool is run. Either failing = false.
 - F4: the LIVE `.agi/config.json` lacks `anonymize.hardware.sources`, or any value in the cell matches the fragment rule (a model name in the cell) = false.
 - F5 (live box, class only): `python3 extensions/agi/bin/anonymize.py check --root . --text "$(git show b3ce77945:.agi/nodes/hypothesis/lm-bonsai2-27b-abc-coding-test-on-the-8gb-box.md)"` rc ≠ 1 after the cell lands = false (rc 0 at HEAD, measured). Run it with output piped to `cut -c1-120`; it prints classes only.
-- F6 (user shape, HEAD → fix): `python3 extensions/agi/bin/anonymize.py check --root . --text 'basetemp /tmp/pytest-of-fixtureuser/pytest-3'` rc 0 at b3ce77945 (the fixture home is not under a home root); rc ≠ 1 or stderr lacks `user` after = false; `--text '/tmp/pytest-of-<user>/pytest-3'` rc ≠ 0 = false; `HOME_PATH_RE` gaining the prefix (the four-scope test going red) = false.
+- F6 (user shape, HEAD → fix): `python3 extensions/agi/bin/anonymize.py check --root . --text 'basetemp /tmp/pytest-of-<user>/pytest-3'` rc 0 at b3ce77945 (the fixture home is not under a home root); rc ≠ 1 or stderr lacks `user` after = false; `--text '/tmp/pytest-of-<user>/pytest-3'` rc ≠ 0 = false; `HOME_PATH_RE` gaining the prefix (the four-scope test going red) = false.
 - F7: any existing row red (32 in test_anonymize_guard.py, the boxkit `CLASSES` coverage row, verification quick) = false.
 
 ## TESTS
-- `extensions/agi/tests/test_anonymize_guard.py` ONE file + ≤ 4 rows, every value SYNTHETIC (`Fixturo Vexel ZX 9990 ULTRA`, `GPU9990U`): F1 refused-by-class-never-printed · F2 class label + bare numbers pass · F3 cell-sourced fixture file refused / cell absent = no hardware token · F4 live cell declares sources and carries no fragment-shaped value · F6 `user_roots` cell refuses `/tmp/pytest-of-fixtureuser/` by class `user`, passes `<user>`, and leaves `HOME_PATH_RE` unchanged. Test names never name a real model.
+- `extensions/agi/tests/test_anonymize_guard.py` ONE file + ≤ 4 rows, every value SYNTHETIC (`Fixturo Vexel ZX 9990 ULTRA`, `GPU9990U`): F1 refused-by-class-never-printed · F2 class label + bare numbers pass · F3 cell-sourced fixture file refused / cell absent = no hardware token · F4 live cell declares sources and carries no fragment-shaped value · F6 `user_roots` cell refuses `/tmp/pytest-of-<user>/` by class `user`, passes `<user>`, and leaves `HOME_PATH_RE` unchanged. Test names never name a real model.
 - neighbourhood: `extensions/agi/tests/test_boxkit_templates.py` (its `FAKE_BOX` gains a synthetic `hardware` entry so the "every class reached" row holds; kit bytes stay clean) · `test_verification.py -k anonymize` · `test_commands_manifest.py` · `test_heal_late_reap_bound.py`.
 ```
 python3 -m pytest extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_boxkit_templates.py -q --basetemp /tmp/pb3a
