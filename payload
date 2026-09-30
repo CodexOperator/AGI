@@ -1,6 +1,6 @@
 """test_push_gap.py -- the stranded-push alarm (goal:s20), restored.
 
-This section lived in test_publish_alarm.py (section 6, de5507a17^ lines
+This section lived in test_publish_alarm.py (section 6, 01cd96628^ lines
 956-1331) and left with it when publish-engine.sh was retired
 (goal:g7.16.1.4.1.1); it was the ONLY coverage of LIVE code: metrics.py's
 push_gap_stats / UNPUSHED_WARN_AT / unpushed_commits, the no-network
@@ -440,7 +440,7 @@ def test_the_hook_is_still_a_silent_no_op_outside_a_project(tmp_path):
 def test_the_retired_publish_alarm_stays_silent(project):
     """goal:g7.16.1.4.1.1 -- publish-engine.sh and its g7.10 SessionStart alarm
     are retired: a refusing publish-state.json (the shape that raised the
-    banner at de5507a17^) now makes the hook print no publish alarm."""
+    banner at 01cd96628^) now makes the hook print no publish alarm."""
     state = project / "context" / "publish-state.json"
     state.write_text(json.dumps({
         "last_run_epoch": time.time() - 30 * 3600,
