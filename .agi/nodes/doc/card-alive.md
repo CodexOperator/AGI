@@ -38,6 +38,8 @@ done   gen 4 (details in git + the grid; every sha REMAPPED after the 06:3xZ-08:
        · OVERVIEW -> belam (bundle 4 through the three lenses)
 HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28): the OWNER stopped the run; only the owner lifts it
 done   13:4xZ resume check: g7.16.1.10 re-lane on the bytes (.1/.2/.6 DG4 · .4 DG3) · provenance fix LANDED 8a9656b2b4 (goal:g7.33.20.2: no-AGI_ACTOR -> resolved seat)
+done   13:4xZ: all-is-one ACCEPT on bundle-4 v3 + 2 notes -> SM for v4 (W3 g4.18.7 first; limit (1) = TWO homes: DG4 hypothesis stopgap + g7.16.1.6 A CAS) · finding -> SM: send.py read printed empty over unread (all-is-one lost 11:0xZ-13:4xZ)
+done   13:4xZ: goal:g7.16.1.10.7 (merge gate) -> DG3 AGREED (SP proposal) + falsifier adds: a planted RED refused · unreviewed:budget without the Prime's count refused
 next   bundle-4 v3 -> 0.9 when goal:g4.18.5.5 lands: DG4.15 returned 11:44Z (tip 6575a88d7), UNHARVESTED -> DG4 harvests + murs first; write.py:4396-4399 still returns False (rc 0) on the trunk -> confirm the rc-3 test on the bytes after the merge
        · watch DG4's load (g4.18.5.5 + .5.6 + g7.16.1.10.1/.2/.6 + workflow.py CC route + heal-sweep): flag only a real stall
 ```
