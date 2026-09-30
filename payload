@@ -450,6 +450,8 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     if target not in ("payload", "body"):
         raise EditError(
             f"replace target must be 'payload' or 'body', got {target!r}")
+    if edit.row_ref or edit.replace_target:   # SM N2: one target per script
+        raise EditError("one body row or replace per script: the body is spliced once")
     # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
     # `--force` rides the source argument as a PREFIX (`... 4:9 --force -`),
     # the one free-text positional, so the range/target grammar does not
@@ -568,6 +570,17 @@ def _resolve_fm_row(root, edit: Edit) -> None:
         tables[top] = {k: (value if k == key else v) for k, v in table.items()}
     edit.set_fm.update(tables)
     edit.fm_row_resolved = True
+
+
+def _standalone_refusal(edit: Edit) -> str | None:
+    """replace body / row is the one body writer of its submit -- judged in
+    submit AND before the --dry-run preview, so both refuse alike (SM N1)."""
+    if edit.replace_target == "body" and (edit.body_append or edit.thought
+                                          or edit.body_patch_from or edit.body_patch_diff
+                                          or edit.sub_body):
+        return ("replace body is standalone; it cannot share a line with "
+                "note, thought or body_patch (one body writer per submit)")
+    return None
 
 
 def _missing_link_refusal(root, set_fm: dict) -> str | None:
@@ -2448,12 +2461,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # refused above; `_splice_range` refuses a range past EOF before anything
     # is written, so a bad range leaves the node and the payload untouched.
     if edit.replace_target:
-        if edit.replace_target == "body" and (edit.body_append or edit.thought
-                                              or edit.body_patch_diff
-                                              or edit.sub_body):
-            raise EditError(
-                "replace body is standalone; it cannot share a line with "
-                "note, thought or body_patch (one body writer per submit)")
+        if _standalone_refusal(edit):
+            raise EditError(_standalone_refusal(edit))
         _current = _target_text(root, edit, edit.replace_target,
                                 payload_ref, location)
         if edit.row_ref:   # goal:g4.18.5.1: the index picks the range
@@ -3566,6 +3575,9 @@ def main(argv: list[str] | None = None) -> int:
     # here, so the `--dry-run` preview shows the real diff and a 0/2+ match
     # refusal prints ERR and writes nothing. submit() re-resolves idempotently
     # for an API caller.
+    if _standalone_refusal(edit):   # SM N1: the preview refuses what submit refuses
+        print(f"ERR: {_standalone_refusal(edit)}", file=sys.stderr)
+        return 2
     if edit.sub_ops:
         try:
             _resolve_sub(root, edit)
