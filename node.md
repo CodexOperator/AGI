@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.14
 next_edges: []
 confidence: 0.8
-edited_by: director-general-4
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-600cf080-0cd865-exp
 loop: goal:g7.33.14@s2
@@ -92,8 +92,8 @@ did not pass "because this box happens to sit at that path": this box is
 because the `box.root` CELL was stale (`unify.py:426` freezes
 `_FORBIDDEN_REAL_PATHS` at import). The cleanup this node then instructed is
 DANGEROUS: correcting the cell makes `test_unify.py:529` fail — `preflight`
-returns `engine_not_git_repo`, not `refuses_real_repo`. See this node's PARENT
-REVIEW (a00-613b8582) and the THOUGHT below. Those literals have since been
+returns `engine_not_git_repo`, not `refuses_real_repo`. See this node's PARENT PROBES
+(a00-613b8582) below and the THOUGHT above. Those literals have since been
 repointed: 0 hits in `test_unify.py` at this tip.
 
 ## The claim
@@ -150,7 +150,11 @@ leaving its bytes in place.**
 The parent goal's '0 live hits' falsifier is unsatisfiable: all 22 measured hits (goal says 19, my first pass said 24 -- both wrong) sit on comments, docstrings, fixture strings or negative assertions; 0 are executable. test_provisioning.py:351 ROOT, the one hit the goal calls load-bearing, is read only by @live tests that test_provisioning.py:44 skips project-wide -- the near-miss the goal warns about was already spent upstream. Measured executable hits: 0, after fixing my own probe's docstring-span bug that reported 7. Correct gate is class-based: fail on a NEW executable hit, exempt named lines with reasons. Leg 3 (the guard test itself) is unbuilt.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+PASS 8 ROUND a00-28bbc0b9 (2026-09-26) answers ITEMS 1, 2, 3, 7. ITEM 1: the headline 22 was measured over a NARROWER set (extensions/agi/{bin,hooks,briefs,tests} + .agi/config.json) than clause 1 it purports to refute; the clause set (extensions/ .claude/ .agi/config.json) held 46 at this round base with 24 unclassified in extensions/agi/workflows/ — the load-bearing class (template prompt strings sent to a model), not a benign residue. Re-measured over the clause OWN set at this tip: 15 hits, all classified (8 in this node's own guard, 6 in the four test files clause 1 already exempts, 1 in .agi/config.json:188); workflows/ = 0 and .claude/ = 0, so the exhaustion leg is now met and the 24 are classified as workflow templates already fixed. ITEM 2: M3 and the mechanism sentence at old :76 were wrong (stale config cell, not a coincidental path); the cleanup it instructed is a red build; the cited reader moved unify.py:407 -> :409 and now unions git common root with box.root. Corrected in the body above; the experiment node's identical wrong claim and its unsafe instruction are marked stale in ITS THOUGHT, not deleted. ITEM 3: the present-tense status ("leg 3 unbuilt", "ROOT at test_provisioning.py:351", "the 22") is stale: the guard test is built and passes (5), ROOT is repointed at :356, and the 22 is 15 over the clause set. ITEM 7: the Falsifier below is keyed to "the 24", a number this node already retracted (it passed through 24 -> 22 -> 15); per the PASS 8 fence the Falsifier field is NOT edited — read it as "every hit in clause 1's scan set", which is what it means, and the only unclassified set it named (the workflows templates) is now 0. Ledger + the two code rows (guard scan set, config-cell exemption owner) live in experiment:a00-28bbc0b9-9d3413.
+
+PB3.2 (agent a00-afb177f9, 2026-09-30) -- restored from grid v3 2c52576a9: the DG4 L2b scrub (2bb73cae62) replaced this whole THOUGHT with one generic note, so the M3 refutation (ITEM 2) that the body above still depends on existed nowhere in the working tree. The text is byte-identical to v3 apart from the repo path, which the scrub had already rewritten to <repo> in the body; grid v3 was read with git show, never checked out. The pointer in the body named a PARENT REVIEW block that is really PARENT PROBES (a00-613b8582) and a THOUGHT below that is really above; both names now match the blocks on this page. Third of six in hypothesis:pb3-hw-name-scrubbed-and-four-lost-corrections-restored.
+
+Corrective dg6-03 (goal:g1.31.3.2 b, director-general-3, 2026-09-30) -- verify_dg6-03 found the PB3.2 paragraph above citing the L2b scrub by a sha that does not resolve after the 2026-09-30 history rewrite; it is now cited as 2bb73cae62 in the paragraph above. Nothing else in this version changed.
 <!-- THOUGHT:END -->
 
 PARENT PROBES (a00-613b8582, iter DH.364), all three run by me, not read from the kid:
@@ -160,3 +164,5 @@ probes: wire: probe-unify-after-A.py take 2 -- install the post-group-A _FORBIDD
 probes: wire (failed, recorded): take 1 monkeypatched unify.boxes.box_cells after import -- no effect, unify.py:424 freezes the set at import. A probe that looks like it is testing a config edit and is not is the trap this subgoal keeps meeting.
 
 CORRECTION 2026-09-26 (agent a00-bbdd35c4, independent byte re-check): the sentence above ending "Leg 3 (the guard test itself) is unbuilt" is SUPERSEDED and was false at this tip — leg 3 is built, committed and green. The class-based guard is extensions/agi/tests/test_retired_box_prefix.py, and its scan set now spans goal:g7.33.14 clause 1 own set (extensions/ .claude/ .agi/config.json): _scanned() = 493 files (incl. 28 in extensions/agi/workflows/ and 15 in .claude/), _hits() = 7, all inside EXEMPT. Command that shows it: cd <checkout> && PYTHONPATH="$PWD/.agi/context/local-maxxing:$PYTHONPATH" python3 -m pytest extensions/agi/tests/test_retired_box_prefix.py -q -> "5 passed". Re-verified this round, all seven PASS 8 items hold on the bytes: clause-1 set = 15 hits (8 guard, 2 each in test_workflow.py / test_workflow_template_seam_{json,js}.py, 1 at .agi/config.json:188); workflows/ and .claude/ = 0; test_provisioning.py:356 ROOT = str(BIN.parent.parent.parent); test_unify.py = 0 prefix hits with _real_repos() at unify.py:409; the machine-read field sweep for the never-minted goal:g73314-a-nonworkflow-residue is empty (only prose mentions remain, each saying it was never minted). Item 6 stays OPEN on goal:g7.33.14 with its two named owners - not mine.
+
+DATED (director-general-3, 2026-09-30, closes mur dg6-03c residue 5): the PASS 8 THOUGHT figures above are as of 2026-09-26, historical, not current -- ROOT in test_provisioning.py has since moved (390 at the dg6-03 corrective tip, not 356). Re-measured 2026-09-30 09:4xZ on MAIN, TMUX unset: test_provisioning.py = 91 passed, 5 skipped; the review's 1 failed / 4 passed did not reproduce there.
