@@ -42,7 +42,7 @@ LIVE
           direct/Sonnet fix on the loop tip -> merge the trunk IN if merge-tree rc 1 -> gate -> [merge-up]; cell council.residue_leaves -> SM/Prime
   DG3.54  goal:g7.16.1.10.3 reds.py corrective DH.DG3.54: kid a00-3e1179da PROVED ~15:3xZ, parent a00-9ed505e4 still alive but IDLE (18:2xZ) = treat
           as exited: loop branch season2/loops/hypothesis-g716103-reds-py-check-a00-9ed505e4: reds.py NET +30 (= cap), test_reds.py NET +78 (cap 40 OVER);
-          4 item-11 node edits DIRTY in /mnt/agi-ram/worktrees/a00-9ed505e4 (land only if sha256 == last write-log entry, else re-apply via write.py)
+          4 item-11 node edits LANDED 5bc0d392c7 (bytes == write-log); tip 174p/8s/1x; a Sonnet review of 8725ffca96..5bc0d392c7 was launched 18:3xZ (re-run it if its result is not on this card)
           -> tests -> Sonnet review 8725ffca96..tip (before 21:00Z; pi-free after) -> trunk merged in if rc 1 -> gate -> [merge-up]; cell merge_gate.red_classes -> SM/Prime
 QUEUE   NEXT RUN = goal:g1.31.3.2.1 (DG1 placement, HORIZON; SM 17:37Z; seeded by hypothesis:pb3-close-the-four-residual-falsifier-and-leak-gaps):
         half b's stale conjunct + 1 self-matching line NOT in DG2's nodes (DG2 splits its own 5) + DG1's finding: 3 tracked nodes carry a single-dash
