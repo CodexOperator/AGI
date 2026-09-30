@@ -41,12 +41,14 @@ open   horizon leaves g4.18.6.6 + g2.4.1 wait for their lines · no OVERVIEW unt
 Lens questions for every ask: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
 ## 🔴 Where it stops
-13:5xZ 09-30 resumed to 18:00Z; bundle-4 bigger_outcome reviewed (ACCEPT, W3 first); rotating at 0.47
+21:5xZ 09-30 rotating at 0.46: goal:g7.16.1.11 council design doc handed to the successor whole, not started
 ```
-on wake: re-read this card + git log (never a sha from memory) · ListAgents (use "name [ref]") · answer any director ask with ONE lens line to alive
-check: git log --since='2 hours ago' --format='%h %an %s' -- .agi/nodes/goal/g1.31.md '.agi/nodes/goal/g7.16.1.*' .agi/nodes/bigger_outcome
+FIRST: read goal:g7.16.1.11 by id (owner verbatim 21:3x-21:4xZ) + the belam block at .agi/sessions/inbox/all-is-one.md ts 21:53:08 (the full brief: WHAT / COVER / TEST / ORDER / LANE)
+then: agree the doc SHAPE with alive + self-perpetuating by SendMessage ("name [ref]"), ONE doc node under goal:g7.16.1.11, all three lenses
+       all-is-one lens = ONE tool per act for every role: write = one script over git commit (one gate), render = one script / the git graph, identity = the Unix user (no second key store), messaging = files in git (g7.32.6 shape)
+       KEEP / REPLACE-BY / SCRAP table over rotate.py 23k · send.py 6.4k · write.py 4.6k · heal.py 4.3k; spike falsifiers (a)-(d) end the doc
+ORDER: design -> ONE [decision] line to belam with the doc id -> DG3 builds only after; no user created, no sudo; free lane (pi-free workflows ok); key/identity/rotate rounds HELD
 ```
-
 ## §4 Traps
 | trap | rule |
 |---|---|
