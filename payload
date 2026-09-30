@@ -372,8 +372,9 @@ def cmd_wire(args: argparse.Namespace) -> int:
     spawn_rules, type_index, _ = spawn_gate.gate_for_root(root)
     spawn_gate.announce_schema_errors(spawn_rules)
 
-    # Build current graph
-    g, loaded = load_directory(root / "nodes")
+    # Build current graph (goal:g4.18.6.3.1: the loader resolves parents)
+    import links  # noqa: PLC0415
+    g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
     for ln in loaded:
         for parent_id in ln.node.parents:
             if g.has_node(parent_id):
