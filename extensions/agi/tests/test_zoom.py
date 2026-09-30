@@ -622,56 +622,29 @@ def test_no_source_comment_cites_an_unresolvable_tier_node_id():
 # --- goal:g1.31.4.1 — ONE load, ONE check, ONE resolver (this round) ------
 
 
-def test_one_graph_load_per_small_and_parent_render(project, monkeypatch):
-    """The render must load the wired graph ONCE.
-
-    `target_resolves` used to call `_load_wired_graph` itself, so every
-    small/parent render paid for two full graph loads — one it held and one
-    the check made. The check now takes the graph the caller already has.
-    """
+def test_each_render_path_loads_once_and_checks_once(project, monkeypatch):
+    """Every render path, `_render_level` included, loads the wired graph ONCE
+    and checks the target ONCE; an unexpected `ZoomUnavailable` fails the row."""
     sys.path.insert(0, str(BIN))
     sys.path.insert(0, str(BIN.parent / "src"))
     import zoom  # noqa: PLC0415 — imported in-process on purpose
 
-    calls: list[int] = []
-    real = zoom._load_wired_graph
+    loads: list[int] = []
+    checks: list[str] = []
+    real_load, real_check = zoom._load_wired_graph, zoom.target_resolves
     monkeypatch.setattr(zoom, "_load_wired_graph",
-                        lambda r: (calls.append(1), real(r))[1])
+                        lambda r: (loads.append(1), real_load(r))[1])
+    monkeypatch.setattr(zoom, "target_resolves",
+                        lambda r, t, g=None: (checks.append(t),
+                                              real_check(r, t, g))[1])
     args = argparse.Namespace(target="goal:g1", iter_n="1", agent_id="a00-x",
                               tier="kid", push_further=False, runtime="pi",
                               level="small")
-    for compose in (zoom._compose_small, zoom._compose_parent):
-        calls.clear()
-        compose(project, args)
-        assert len(calls) == 1, (
-            f"{compose.__name__} loaded the wired graph {len(calls)}x")
-
-
-def test_each_render_path_makes_exactly_one_target_check(project, monkeypatch):
-    """ONE target check per render path, `_render_level` included — a counting
-    fake replaces the `has_node(target)` source count."""
-    sys.path.insert(0, str(BIN))
-    sys.path.insert(0, str(BIN.parent / "src"))
-    import zoom  # noqa: PLC0415
-    calls: list[str] = []
-    monkeypatch.setattr(zoom, "target_resolves",
-                        lambda r, t, g=None: calls.append(t))
-    args = argparse.Namespace(target="goal:g1", iter_n="1", agent_id="a00-x",
-                              tier="kid", push_further=False, runtime="pi",
-                              level="1")
-    for path in (zoom._compose_small, zoom._compose_parent):
-        calls.clear()
-        try:
-            path(project, args)
-        except zoom.ZoomUnavailable:  # the check's own refusal, not the count
-            pass
-        assert calls == ["goal:g1"], f"{path.__name__} checked {len(calls)}x"
-    calls.clear()
-    try:
-        zoom._render_level(project, args, 1)
-    except zoom.ZoomUnavailable:
-        pass
-    assert calls == ["goal:g1"], f"_render_level checked {len(calls)}x"
+    for path in (zoom._compose_small, zoom._compose_parent,
+                 lambda r, a: zoom._render_level(r, a, 1)):
+        loads.clear(), checks.clear()
+        path(project, args)
+        assert (len(loads), checks) == (1, ["goal:g1"]), (path, loads, checks)
 
 
 def test_render_level_refuses_through_target_resolves(project, monkeypatch):

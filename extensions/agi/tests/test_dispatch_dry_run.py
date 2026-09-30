@@ -917,29 +917,34 @@ def test_resolve_auto_level_is_the_one_resolver_both_paths_call():
         "no target -> big: a small zoom has nothing to bind to")
 
 
-def test_split_cell_resolves_through_the_one_helper(project):
-    """A fake `big_idea_vs_small_idea_split` cell, drawn from ONE helper —
-    replacing a source count: the live module and a dry `--level auto` both
-    resolve the same value, which a second inline default cannot do."""
-    cfg = json.loads((project / ".agi" / "config.json").read_text())
-    cfg["big_idea_vs_small_idea_split"] = 0.0
-    (project / ".agi" / "config.json").write_text(json.dumps(cfg))
+def test_split_cell_resolves_through_the_one_helper(project, monkeypatch, capsys):
+    """One helper serves BOTH paths: a dry `main()` calls it at its own
+    live-loop site (before the dry return) and again in the report."""
+    (project / ".agi" / "config.json").write_text(
+        json.dumps({**CONFIG, "big_idea_vs_small_idea_split": 0.0}))
     sys.path.insert(0, str(BIN))
     import dispatch  # noqa: PLC0415
-    assert dispatch.big_split_threshold(cfg) == 0.0
-    r = _run(project, "--harness", "pi", "--tier", "kid",
-             "--target", "hypothesis:x", "--level", "auto", "--dry-run")
-    assert r.returncode == 0, r.stderr
-    assert "level=small (from auto)" in r.stdout, r.stdout
+    seen, real = [], dispatch.big_split_threshold
+    monkeypatch.setattr(dispatch, "big_split_threshold",
+                        lambda c: (seen.append(1), real(c))[1])
+    monkeypatch.setattr(sys, "argv", [
+        "dispatch.py", str(project), "1", "--harness", "pi", "--tier", "kid",
+        "--target", "hypothesis:x", "--level", "auto", "--dry-run"])
+    assert dispatch.main() == 0 and len(seen) == 2, seen
+    assert "level=small (from auto)" in capsys.readouterr().out
 
 
-def test_branch_dry_run_refuses_the_same_target_as_a_plain_one(project):
-    """The vacuous --branch check is gone: `--branch` does not move the graph a
-    dry target check reads, so both verdicts agree (a main-only target is
-    refused twice, exit 1; no worktree-graph note is printed)."""
+def test_branch_dry_run_checks_the_dispatchers_own_checkout(project):
+    """`--branch` must not move the graph a dry target check reads: from a REAL
+    linked worktree holding a node main lacks, verdicts agree with and without it."""
+    wt = project.with_name(project.name + "-wt")
+    for a in ("init -q", "add -A", "commit -qm m", f"worktree add -q -b wt {wt}"):
+        subprocess.run(["git", "-C", str(project), "-c", "user.email=a@b", "-c",
+                        "user.name=a", *a.split()], check=True, capture_output=True)
+    (wt / ".agi/nodes/hypothesis/wt-only.md").write_text(
+        "---\nid: hypothesis:wt-only\ntype: hypothesis\ntitle: wt\n---\n\nbody\n")
     for extra in ([], ["--branch"]):
-        for tgt, code in (("hypothesis:main-only", 1), ("hypothesis:x", 0)):
-            r = _run(project, "--harness", "pi", "--tier", "kid",
-                     "--target", tgt, "--dry-run", *extra)
+        for tgt, code in (("hypothesis:wt-only", 0), ("hypothesis:absent", 1)):
+            r = _run(wt, "--harness", "pi", "--tier", "kid", "--target", tgt,
+                     "--dry-run", *extra)
             assert r.returncode == code, (extra, tgt, r.stdout, r.stderr)
-            assert "worktree graph" not in r.stderr, r.stderr
