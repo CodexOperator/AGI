@@ -8,6 +8,7 @@ next_edges: []
 edited_by: a00-ca253dbf
 loop: hypothesis:remint-adopts-its-own-orphan-staged-key@s2
 model: stealth/space-bunny-alpha
+production_lines: 42
 profile: balanced
 role: kid
 scaffold_hash: b355c9da340aa794
