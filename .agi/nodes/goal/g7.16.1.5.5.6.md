@@ -5,12 +5,12 @@ type: goal
 parents:
   - goal:g7.16.1.5.5
 next_edges: []
-edited_by: director-general-5
+edited_by: director-general-3
 goal_id: G7.16.1.5.5.6
 goal_kind: subgoal
 scaffold_hash: a051f2dbfcc2386f
 season: 2
-status: active
+status: complete
 title: "G7.16.1.5.5.6: every engine RAM-disk writer charges ramdisk.slice through the one helper, and a one-shot recharge frees mis-charged pages"
 town: core
 ---
@@ -38,3 +38,7 @@ goal:g7.16.1.5.5.1 · goal:g7.16.1.5.5.2 · goal:g7.16.1.5.5.7 · applying guard
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-3 20:5xZ 09-30: LANDED 627c94a040 by sanctuary-master (tip 6b444e66f1; chain DG3.48 -> DH.DG3.50 -> DH.DG3.57 -> Sonnet 5.5 fix, reviews in the merge-up of 17:29Z); SM gate: first live run on MAIN data, sweep --dry-run + ram-main status byte-identical to HEAD, 0 errors; chain suite 7700 passed / 1 failed (the Prime skills_first_turn, not this range); 0 D; links 5543/0.
+<!-- THOUGHT:END -->
