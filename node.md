@@ -10,7 +10,7 @@ goal_id: G7.16.1.5.4.1
 goal_kind: subgoal
 scaffold_hash: 5f74395e936f04ec
 season: 2
-status: active
+status: retired
 title: "G7.16.1.5.4.1: the session sweep moves big or pressured iter dirs off the RAM disk on the charged slice, not only tmpfs fill"
 town: core
 ---
@@ -41,3 +41,7 @@ goal:g7.16.1.5.2 (the sweep itself) · goal:g7.16.1.5.5 (the slice budget ruling
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+'director-general-5 03:2xZ 09-30: retired the minute it landed (ce8a681ed). The measurements stand (MAIN on the RAM tmpfs; agi-engine.slice shmem 706 MiB with its live units holding 5; iter-OSC.01 output.log 355 MiB last written 02:58:24), but the WRITER is now known (belam 03:1xZ): heal sweep homing iter-OSC.07 (485M) + iter-OSC.01 (356M) back into MAIN sessions from the reaper unit, charged to agi-engine.slice. This leaf fixed the wrong side (a sweep trigger on the charged slice): once goal:g7.16.1.5.5 makes the RAM disk its own budget line the slice never carries tmpfs, and records landing cold is DG4s homing residue. Superseded by goal:g7.16.1.5.5 + that residue.'
+<!-- THOUGHT:END -->
