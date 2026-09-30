@@ -805,21 +805,30 @@ def _late_reap_wait_max_s(root) -> float:
     return 1800.0
 
 
-def _recovery_psi_max_pct(root) -> float:
-    """`reaper.recovery_psi_max_pct` from `.agi/config.json` (goal:g6.41.1 P5):
-    the memory-PSI line a recovery launch waits under; the code default (40,
-    below oomd's OOMD_PRESSURE_PCT 60) resolves a missing or malformed cell,
-    compared numerically (a string cell like "40" reads too). Never raises."""
+def _reaper_cell(root, key: str, default: float, valid) -> float:
+    """One numeric `reaper.<key>` cell from `.agi/config.json`; the code
+    default resolves a missing, malformed or `valid`-refused cell (a string
+    cell like "40" reads too). Never raises."""
     try:
         cfg_path = locations.config_path(root)
         if cfg_path is not None:
             cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-            v = float((cfg.get("reaper") or {}).get("recovery_psi_max_pct"))
-            if 0 < v <= 100:
+            v = float((cfg.get("reaper") or {}).get(key))
+            if valid(v):
                 return v
     except (OSError, json.JSONDecodeError, TypeError, AttributeError, ValueError):
         pass
-    return 40.0
+    return default
+
+
+def _recovery_psi_max_pct(root) -> float:
+    """`reaper.recovery_psi_max_pct` (goal:g6.41.1 P5): the memory-PSI line a
+    recovery launch waits under; default 40, below oomd's OOMD_PRESSURE_PCT 60."""
+    return _reaper_cell(root, "recovery_psi_max_pct", 40.0, lambda v: 0 < v <= 100)
+
+
+#: the deferral reason a BLIND PSI read starts with (R2 keys its own [red] on it)
+PSI_BLIND = "memory psi unreadable"
 
 
 def _recovery_admitted(root) -> tuple[bool, str]:
@@ -830,7 +839,7 @@ def _recovery_admitted(root) -> tuple[bool, str]:
     avg10 = (memory_alarm.read_psi(memory_alarm.BOX_PSI).get("some") or {}).get("avg10")
     line = _recovery_psi_max_pct(root)
     if not isinstance(avg10, (int, float)):
-        return False, f"memory psi unreadable (no some.avg10): fails closed under {line:g}"
+        return False, f"{PSI_BLIND} (no some.avg10): fails closed under {line:g}"
     if avg10 >= line:
         return False, f"memory psi some.avg10 {avg10:g} >= {line:g}"
     return True, f"memory psi some.avg10 {avg10:g} < {line:g}"
@@ -3528,8 +3537,10 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
             "one recovery launch per pass already used" if admission["left"] <= 0 else "")
         if why:
             _watch_log(f"watch: {seat} recovery deferred: {why}")
+            kind = ("slot" if admission["ok"] else
+                    "blind" if why.startswith(PSI_BLIND) else "psi")
             return {"seat": seat, "probable_cause": cause, "recorded": False,
-                    "deferred": why}
+                    "deferred": why, "defer_kind": kind}
     outcome = _recover_seat(root, row, cause, _rotate, windows=windows,
                             window_path=window_path, launcher=launcher,
                             now=now)
@@ -3600,7 +3611,53 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
             acted.append(summary)
     _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "
                f"row(s); {len(acted)} dead")
+    _alert_deferred(root, acted, rows)
     return acted
+
+
+#: goal:g7.16.1.7.1.1 (R2): consecutive pressure-deferred recoveries per seat,
+#: persisted across passes under the reaper state dir.
+DEFER_STATE = "recovery-deferrals.json"
+
+
+def _alert_deferred(root: Path, acted: list[dict], rows: list[dict]) -> None:
+    """R2 -- a dead seat whose recovery the PSI line deferred N passes in a row
+    (`reaper.recovery_defer_alert_after`, default 3) raises ONE `[red]` to the
+    Prime (the `prime_director` row) naming the seat and the reading; a BLIND
+    read (no some.avg10) raises its own `[red]` on its first pass. A seat not
+    pressure-deferred this pass starts over. A `slot` deferral (one launch per
+    pass) is queueing, not pressure: never counted. Never raises."""
+    try:
+        n = int(_reaper_cell(root, "recovery_defer_alert_after", 3.0, lambda v: v >= 1))
+        prev = _state_load(root, DEFER_STATE)
+        streak: dict = {}
+        reds: list[str] = []
+        for s in acted:
+            kind = s.get("defer_kind")
+            if kind not in ("psi", "blind"):
+                continue
+            key = f"{kind}:{s['seat']}"
+            streak[key] = prev.get(key, 0.0) + 1
+            if int(streak[key]) == (1 if kind == "blind" else n):
+                reds.append(f"[red] heal: {s['seat']} recovery deferred "
+                            f"{int(streak[key])} pass(es) in a row -- {s['deferred']}")
+        if streak != prev:
+            _state_save(root, DEFER_STATE, streak)
+        if not reds:
+            return
+        prime = next((str(r.get("name")) for r in rows
+                      if r.get("role") == "prime_director" and r.get("name")), "")
+        for line in reds:
+            _watch_log(f"watch: {line}")
+            if not prime:
+                continue
+            try:
+                import send as _send  # noqa: PLC0415
+                _send.send(root, prime, line, "heal")
+            except Exception as exc:  # noqa: BLE001
+                print(f"warn: deferral [red] to {prime} failed: {exc}", file=sys.stderr)
+    except Exception as exc:  # noqa: BLE001 -- never raises into the watch pass
+        print(f"warn: deferral alert pass failed: {exc}", file=sys.stderr)
 
 
 def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path,
