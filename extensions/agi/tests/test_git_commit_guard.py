@@ -828,6 +828,28 @@ def test_branch_kid_empty_staged_set_still_allowed(branch_kid):
     assert "git diff --cached failed" not in res.stderr
 
 
+def test_branch_kid_hook_names_the_scope_check_when_it_dies(branch_kid, tmp_path):
+    """ATTRIBUTION, second arm: the producer is CLEAN (rc 0) but the scope
+    stage itself is unavailable (this hook copy has no ../../bin to resolve,
+    the shape verify reproduced) — the refusal must NAME the scope stage, not
+    the diff. Red before the per-stage fix: the same rc 1 came out of the
+    generic `tier kid may not commit` line with 0 named hits."""
+    main, wt = branch_kid
+    copy = tmp_path / "detached-hooks" / "pre-commit"
+    copy.parent.mkdir(parents=True, exist_ok=True)
+    copy.write_text((HOOKS / "pre-commit").read_text())
+    env = branch_kid_env(wt, tree_root=str(wt))
+    res = subprocess.run(
+        ["bash", str(copy)], cwd=wt, capture_output=True, text=True, env=env,
+    )
+    assert res.returncode != 0, f"hook failed OPEN on a dead scope-check: {res.stdout}"
+    named = [ln for ln in res.stderr.splitlines() if "scope-check failed" in ln]
+    assert len(named) == 1, f"expected exactly ONE scope-check line, got {named!r}"
+    assert "git diff --cached failed" not in res.stderr, (
+        f"a healthy producer was blamed: {res.stderr!r}"
+    )
+
+
 def test_branch_kid_refuses_another_authors_node(branch_kid):
     """Out-of-scope (b): a path under `.agi/nodes/` whose basename does not
     contain AGI_AGENT_ID is another author's node — refused by name."""

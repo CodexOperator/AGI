@@ -79,12 +79,20 @@ if [ "${AGI_TIER}" = "kid" ] && [ -n "${AGI_TREE_PROJECT_ROOT:-}" ] && [ -n "${A
         # pipefail (scoped to THIS block: the parent path above reads git/cd
         # results that must not change) carries the failing rc; rc >= 2 is a
         # failed DIFF, not a scope refusal — one named line, then refuse.
+        # Per-stage attribution: PIPESTATUS must be read as the VERY NEXT
+        # statement (any command first clobbers it to its own rc), and each
+        # stage gets its OWN name — a dead scope-check is not a scope verdict.
         set -o pipefail
         git diff --cached --name-only -z --no-renames \
             | python3 "$HOOK_BIN/cli.py" scope-check --agent-id "$AGI_AGENT_ID"
-        SCOPE_RC=$?
+        PS=("${PIPESTATUS[@]}"); set +o pipefail
+        DIFF_RC=${PS[0]:-0}; SCOPE_RC=${PS[1]:-0}
+        if [ "$DIFF_RC" -ne 0 ]; then
+            echo "agi: kid commit refused -- git diff --cached failed (rc ${DIFF_RC}) (goal:g1.31.5.1.1)" >&2
+            exit 1
+        fi
         if [ "$SCOPE_RC" -ge 2 ]; then
-            echo "agi: kid commit refused -- git diff --cached failed (rc ${SCOPE_RC}) (goal:g1.31.5.1.1)" >&2
+            echo "agi: kid commit refused -- scope-check failed (rc ${SCOPE_RC}) (goal:g1.31.5.1.1)" >&2
             exit 1
         elif [ "$SCOPE_RC" -eq 0 ]; then
             exit 0
