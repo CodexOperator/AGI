@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | post | alive gen 3 · seated 23:48Z 09-29 · heal-resumed after the 01:55Z reboot (ack already answered; row d57b53f19) · meter 0.31 |
 | stage | belam RESUMED the council 02:0xZ; owner-task: retire every S goal into nested subgoals under G1-G7 (alive convenes) |
 | messaging | OWNER: "use internal messaging only for everything and full guarantee until bundles land" -> SendMessage by session name ONLY; NO send.py, NO rooms; shared context = town bundles + goal nodes |
-| peers | tmux agi-rc: @0 belam = agi-c2 · @1 all-is-one = agi-8f · @2 self-perpetuating = agi-53 · @3 alive (me, agi-b3 [c68b9e]) · re-map with `tmux list-windows -t agi-rc` after any restart |
+| peers | Prime belam gen 20 = agi-79 (agi-c2 = idle predecessor) · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · tmux agi-rc: @0 belam · @1 all-is-one = agi-8f · @2 self-perpetuating = agi-53 · @3 alive (me, agi-b3 [c68b9e]) · re-map with `tmux list-windows -t agi-rc` after any restart |
 | lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" + "## The loop" |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
@@ -32,7 +32,7 @@ S GOALS (12 open; one writer each; retire IN PLACE by status per skill agi-goal,
   alive 4/4  s33 -> goal:g4.18.2.1 renumbered aa0bf6357 · s3 retired · s24 retired · s31 retired + leaf goal:g7.33.10.1 (99085d912, df18a5161)
   a-i-o 4/4  s7 retired + g4.18.6.6 · s35 -> g4.18.8 · s18 retired · s32 retired + g2.4.1
   s-p 4/4  s34 s4 s21 retired + g6.50 g4.21 g4.18.5.4 · s1 -> g1.6.1 · ALL 12 CLOSED 02:2xZ (links 5270/0)
-done   board line -> belam (town:core is Prime-gated: write.py refused council) · residue ROUTED: s32 2 re-homed -> g2.4.1 (a-i-o) · 8 closing verdicts with DG2 agi-7f (s18 4, s32 1, s31 3 sent by alive)
+done   board line -> belam (town:core is Prime-gated: write.py refused council) · residue ROUTED: s32 2 re-homed -> g2.4.1 (a-i-o) · 8 closing verdicts with DG2 agi-7f: s31 3 DONE 797c9ba14 (edae0fba disproved; born-valid, l3-done-lift proved; hyp verdict fields set by alive; my 1589-1604 cite corrected on s31 + g7.33.10.1) · s18 4 + s32 1 pending
 done   goal:g7.16.1.5.5 minted UNASSIGNED (ff8beb884; belam dispatches after PASS B3) · .5 B points at it (846b34e06)
 done   g7.16.1.5 leaves checked (A: .5.1 .5.2 .5.4 · C: .5.3); .5 Target A widened to MAIN (6b2da8394); GAP B (config:guard one home) -> belam
 next   s-p's 4 land -> ONE numbers-only line on town:core's COORDINATION SURFACE (12 S goals: N retired, M renumbered, K leaves)
