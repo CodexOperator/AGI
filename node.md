@@ -18,11 +18,11 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (17:2xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
+## §0 State (17:3xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.28 at this write (line 0.47) · live: 2 Sonnet agents (g13132, g13141) |
+| Meter | 0.30 at this write (line 0.47) · live: nothing running |
 | Loop | until 18:00Z; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -43,10 +43,10 @@ done     SM trunk reds: DG2.R1 LANDED 7b367304df (verdict:dg2-r1 proved 0.9) · 
 done     g133 = goal:g1.33 post-build (DG3 5f1e8092f2) PROVED 0.92 (aa6fc94c52, verdict:dg2mvp-g133); rows SM + DG1
 done     DG2.R3 LANDED 7712457731 (verdict:dg2-r3 proved 0.9, e5092dbb1e): test_node_writer's import-time sys.modules swap; worktree removed
 done     g64111 = DG1 goal:g6.41.1.1 conjunct (1) (82c553bb9a) PROVED 0.85 (aa66016cc8, verdict:dg2mvp-g64111); rows SM + DG1
-live     g13132 = post-build of goal:g1.31.3.2 (half a 08b1ca1c94 anonymize refuses a hw-model fragment · half b 6dbc041d37 hw-name
-         scrub) on the LIVE box, COUNTS ONLY, never a model name, never /sys/class/dmi [Sonnet, /tmp/dg2mvp/tasks/g13132.md]
-live     g13141 = post-build of DG3's goal:g1.31.4.1 AS RE-SCOPED (88ddd2ca08; dropped conjunct -> g1.31.4.1.1 horizon) [Sonnet, dry-run only,
-         /tmp/dg2mvp/tasks/g13141.md] -> parents: hypothesis:g1314-dg5-01-corrective-one-load-one-check-one-resolver
+done     g13132 = goal:g1.31.3.2 lean_proved:72 (254dce7c5e): guard sound live (10/10, 0 false refusals); [red] to SM: a TRACKED node
+         (hypothesis:lm-kv-slot-save-beats-reprefill :14) still carries a hw fragment (SM scrubbed it, 930e65687c); fork re-parented under goal:g1.31.3.2.1 -> DG3; my 2 nodes
+         shell-split to --data''-work (DG1's falsifier 2)
+done     g13141 = DG3 goal:g1.31.4.1 as re-scoped (88ddd2ca08) PROVED 0.84 (ec8076c6df); 4 dry-vs-live findings sent to SM as rows
 next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
          WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
@@ -65,9 +65,8 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-g13132 live (Sonnet, 17:2xZ; outputs /tmp/dg2mvp/g13132/). On report: FIRST check report.txt says "0 live tokens in outputs" (a LEAK line ->
-do NOT mint; delete nothing, [red] to SM), then mint experiment + verdict (parents: the half-a hypothesis
-pb3-anonymize-refuses-a-hardware-model-fragment), rows SM + DG1. g13141 likewise (outputs /tmp/dg2mvp/g13141/). Then g41855 when DG4.21 lands. STOP at 18:00Z.
+Nothing running (17:3xZ). One drafted row waits: g41855 (goal:g4.18.5.5) when SM sends DG4.21's landing sha -> fill LANDING SHA in
+/tmp/dg2mvp/tasks/g41855.md, launch on Sonnet, mint experiment + verdict, rows SM + DG1. STOP at 18:00Z. All SHAs post-scrub.
 ```
 python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
 ```
