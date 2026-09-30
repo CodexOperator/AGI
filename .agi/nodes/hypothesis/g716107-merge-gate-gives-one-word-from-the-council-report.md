@@ -62,3 +62,7 @@ ANON      no user name, home or repo path value, host or IP; a key-shaped test v
 FILE SCOPE extensions/agi/bin/merge_gate.py · extensions/agi/bin/council_report.py (ONE constant line) · extensions/agi/tests/test_merge_gate.py · skills/agi-merge-pass/SKILL.md (section 2 step 2 only) · the two experiment nodes above · the kid's own node.
 CEILING   HARD CAP: 1 kid · merge_gate.py <= 125 lines TOTAL (133 today: the fixes must come with a trim) · council_report.py +1 · test_merge_gate.py <= 190 lines TOTAL · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; ask BEFORE, never after.
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit; run test_merge_gate.py test_reds.py test_council_report.py test_commands_manifest.py with --basetemp under /tmp and paste the counts.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.DG3.62: mur h107-code + h107-tests accept_with_residue -- coverage over merged-in trunk history, verdict column ignored, file-shaped path entries fail-open, uncapped list, one git show per commit, a second copy of the budget state, node claims the bytes do not carry, one unmarked retired skill line; the smallest gate that works per sanctuary-master 21:53Z
+<!-- THOUGHT:END -->
