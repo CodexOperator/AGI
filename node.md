@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:1xZ 09-30) -- goal:g7.16.1.11 DESIGN DONE: doc:radically-simple-engine @ 586f2b4e9c; the [decision] sent to belam (agi-a3 [446ae8]); waiting on the owner
+## §0 State (22:2xZ 09-30) -- goal:g7.16.1.11 ROUND 2 (owner 22:1xZ "push it harder ... living masterpiece ... latent space"): doc:radically-simple-engine, alive convenes
 | | |
 |---|---|
 | post | alive gen 4 · session agi-e3 [761106] · rotate at f >= 0.47 (0.23 at STOP) |
@@ -47,15 +47,20 @@ next   goal:g7.16.1.11 doc:radically-simple-engine (skeleton af2b368158 by all-i
        OWNER ADDENDUM 22:0xZ: a post is a WRAP, KILOBYTES -> alive's §1 v2 drafted /tmp/g71611/s1v2.md (DynamicUser unit per post + post-wrap loop, ~10-12 KB, retires ~2.41 MB) = re-fill §1 AFTER all-is-one + SP (SP now agi-5b [1edcee] @36, §4 = trees only)
        DONE: council MERGE wrap 1,272 B / a post 34 B, §1 v5 190169c08b; whole-doc check (3 stale refs fixed) 586f2b4e9c; [decision] -> belam 22:1xZ · belam review: RED privacy (track now LOCAL ~/track) + pre-receive (--source, new/deleted ref, FAIL-OPEN found by test, fixed; 6/6 on a bare repo) -> 45282a4661, wrap 1,432 B, [decision] back 22:1xZ
 next   the owner reads the doc -> root ONCE + spikes (a)-(i) on the owner's go -> DG3 builds; alive: answer the council's questions on the doc, nothing more
+ROUND2 alive: skeleton + §0 one-screen diagram + §A (the fixed point: project(graph)==observe(body); homeostat tick; drift = one alarm; latent as a sense; sleep) @ 315979db91
+       §A pieces WRITTEN + TESTED at /tmp/g71611/a/ (794 B: project.sh · observe.sh · tick.sh · simhash.awk): drift 56 = the true state today; simhash edited copy 1 vs unrelated 18
+next   all-is-one §B (the spine: one primitive, G-Set commons, owned refs, CALM; latent notes + PPR brief) -> self-perpetuating §C (generator + frontier) -> all-is-one §D (bytes + falsifiers)
+       all-is-one §B DONE 1b5b6245dd (PPR brief 478 B · CALM measured) -- its caveat is a FIX for alive's §A at the whole-doc check: stage-0 simhash reads PROSE nodes only (goal · hypothesis · doc); 76/76 near pairs were build<->build scaffold prose; a build's nearness = its import graph. Its B.5 live drift: 69 nodes store their id QUOTED
+       -> alive: whole-doc check (+ the §A stage-0 fix) -> ONE [decision] to belam (agi-a3 [446ae8]) with the sha. Peers: all-is-one agi-15 [c6276e] · SP agi-5b [1edcee]
 ```
 
 ## §2 Landed (this generation)
 - c24f021ef 6bce4aafd df7e2d655 670c893d3 3bb0a37e6 96ac80e95 eee4e5951 85063f1a3 7a857e140 fc70d6b5b 2ee4d0180 5dca1fc47 a1ef46951 11b2f1e95 3c2e83db3 bc3bb8700 d57507672 df64e98c6 4a83b52eb
 
 ## 🔴 Where it stops
-alive gen 4: goal:g7.16.1.11 design delivered (doc:radically-simple-engine 586f2b4e9c, [decision] to belam); waiting on belam/owner; nothing in flight
+alive gen 4, round 2 of goal:g7.16.1.11: my part (§0 + §A) is IN; waiting on all-is-one §B -> SP §C -> all-is-one §D; then the whole-doc check + the [decision]
 ```
-successor: ListAgents + tmux list-windows (names COLLIDE) -> read SendMessage replies -> answer questions on the doc; NO user, NO sudo before the owner's go
+successor: read doc:radically-simple-engine by id + this card's ROUND2 lines -> read SendMessage replies -> the whole-doc check (stale refs, byte totals, falsifiers runnable here) -> ONE [decision] to agi-a3 [446ae8]
 ```
 
 ## §4 Traps
