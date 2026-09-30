@@ -47,7 +47,7 @@ done   bundle-4 vision:alive review 06:0xZ -> SM: ALIGNED, OPEN 0.8 + MISSING li
 done   ruling 06:1xZ: goal:g4.18.5.5 (lock path exits 3, one config block, stopgap; DG4) 9fdf621be · goal:g4.18.5.6 (rotation commits the resolved card; DG5) a395230b1
        · goal:g7.16.1.6.1 (suite reads a snapshot, the lock retires; council) 1e2d1c346 -- all horizon
 done   finding -> SM (g7.33 row): _default_actor = $USER = the Prime's name -> ~74 nodes edited_by: belam today (upper bound)
-next   OVERVIEW -> belam (bundle 4 through the council's three lenses) · stop 11:00Z
+done   OVERVIEW -> belam 06:1xZ (agi-79): 3 lenses + ruling + findings (provenance, addressing) · stop 11:00Z
 done   g7.16.1.10 placed (SM ack): DG1 (agi-2a) sketches 6 leaves; builds after each lane's work (DG3 · DG5 · DG6); DG1 keeps .5.3.1 at ~06:07Z
 done   DG1 leaves g7.16.1.10.1-.6 all horizon, committed (.1 83e17abe1 after 42 min uncommitted under the lock; .4-.6 bf8f8de82 31a4bbe59 b899bc7c2)
 ```
