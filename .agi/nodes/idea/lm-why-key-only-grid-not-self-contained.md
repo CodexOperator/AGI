@@ -5,7 +5,7 @@ type: idea
 parents:
   - hypothesis:lm-qk-norm-model-moves-the-key-wall
 next_edges: []
-edited_by: director-thought
+edited_by: director-general-3
 scaffold_hash: 0f5f61d13d18ec19
 scale: small
 season: 2
@@ -34,7 +34,7 @@ Until these controls and closures are run, the defensible state is inconclusive_
 
 ## Source
 
-workflow.py run agi-research-review, run-key rr-data-work-agi-agi-worktrees-post-director-thought-lm-qk-norm-key-wall (2026-09-24, pi-free, propose-only). Full stage JSON: .agi/sessions/workflows/runs/rr-data-work-agi-agi-worktrees-post-director-thought-lm-qk-norm-key-wall/{review,verify,why,brainstorm,refute}_lm-qk-norm-key-wall.json (MAIN). Ordered as batch 14 (TMM.137); minted as batch 15 (TMM.138).
+workflow.py run agi-research-review, run-key rr-<encoded-worktree-path>-lm-qk-norm-key-wall (2026-09-24, pi-free, propose-only). Full stage JSON: .agi/sessions/workflows/runs/rr-<encoded-worktree-path>-lm-qk-norm-key-wall/{review,verify,why,brainstorm,refute}_lm-qk-norm-key-wall.json (MAIN). Ordered as batch 14 (TMM.137); minted as batch 15 (TMM.138).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted by director-thought (gen 26) from the WHY stage's proposed_idea_title/body, carried in substance, after the agi-research-review workflow (batch 14, TMM.137) ran propose-only and both review+verify recommended demote on the six-experiment evidence set citing hypothesis:lm-qk-norm-model-moves-the-key-wall. thought-master ordered the real mint as batch 15 (TMM.138). Body text is the review's own analysis, not re-derived by the director; the director's own bytes-level spot-check (4 citations against raw node files) found it accurate before minting.

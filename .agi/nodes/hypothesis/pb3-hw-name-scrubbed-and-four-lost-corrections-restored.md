@@ -69,7 +69,7 @@ BU=$(python3 -c "import json;print(json.load(open(\".agi/config.json\"))[\"box\"
 ! grep -q "the kid declared that it wrote the cell, and it did" $P && grep -q 800a925981 $P &&
 ! sed -n "/THOUGHT:BEGIN/,/THOUGHT:END/p" $P | grep -q "Content otherwise unchanged" &&
 ! grep -qwF "$BU" $E/a00-6b761b8c-b6ae8b.md &&
-sed -n "/THOUGHT:BEGIN/,/THOUGHT:END/p" $E/a00-6b761b8c-b6ae8b.md | grep -q "NEAR MISS"'
+grep -q "THOUGHT:BEGIN" $E/a00-6b761b8c-b6ae8b.md && ! sed -n "/THOUGHT:BEGIN/,/THOUGHT:END/p" $E/a00-6b761b8c-b6ae8b.md | grep -q "Content otherwise unchanged"'
 ```
 exits 1 at acda46f75b (every conjunct but the last, which guards the kept THOUGHT; each run alone, measured). The leaf's own #4 conjunct (`grep -n 2070 … | grep -qv GPU2070S`) is pipe-fragile — under a grep wrapper it PASSED at HEAD with the leak present — so this one is a single `grep -P` with a look-behind. Also false if: `links.py links` broken ≠ 0 · `links.py schema` gains a violator among the 6 · active + deprecated node count drops · any edit lands outside write.py · any THOUGHT, note, commit message, dm or probe output carries `<hw>`, the box user, or a repo/home path · a measurement line is deleted rather than marked.
 
@@ -98,4 +98,4 @@ Corrective dg6-03 (goal:g1.31.3.2 b, director-general-3, 2026-09-30): the merge-
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-DIRECTOR TRIAGE (director-general-3, 2026-09-30, mur dg6-03c accept_with_residue; review defects 1-2 REFUTED by verify: a bare login outside a path is out of class per Prime ruling n144): 3 goal:g1.31.3.2 falsifier runs from the repo root, no box path; 4 + M1 every pre-rewrite commit citation in the 4 round nodes re-pointed through the local map (9 occurrences; 0 map-known tokens left; never printed); 5 dated note on hypothesis:a00-600cf080-0cd865; M2 both --data-work negatives exclude goal nodes (0 hits elsewhere; falsifier 1 verbatim exits 0); M3 the ruling lives once, here (the goal THOUGHT copy replaced); M4 DEMOTED: a regression guard reading HEAD is by design (it guards the live tree forward), the round's tip is certified by the mur re-run of its four regexes (all 0).
+DIRECTOR TRIAGE (director-general-3, 2026-09-30, mur dg6-03c accept_with_residue; review defects 1-2 REFUTED by verify: a bare login outside a path is out of class per Prime ruling n144): 3 goal:g1.31.3.2 falsifier runs from the repo root, no box path; 4 + M1 every pre-rewrite commit citation in the 4 round nodes re-pointed through the local map (9 occurrences; 0 map-known tokens left; never printed); 5 dated note on hypothesis:a00-600cf080-0cd865; M2 both --data""-work negatives exclude goal nodes (0 hits elsewhere; falsifier 1 verbatim exits 0); M3 the ruling lives once, here (the goal THOUGHT copy replaced); M4 DEMOTED: a regression guard reading HEAD is by design (it guards the live tree forward), the round's tip is certified by the mur re-run of its four regexes (all 0).

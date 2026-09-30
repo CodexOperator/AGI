@@ -334,6 +334,10 @@ _LISTED_CLIS += ["verification.py", "write_guard.py"]
 #: `command:commands` with that reason, never proposable.
 _LISTED_CLIS += ["memory_alarm.py"]
 
+#: `reds.py` (goal:g7.16.1.10.3): the merge gate's pre-model range check, declared
+#: as `reds.py:check` in `command:commands`, never proposable.
+_LISTED_CLIS += ["reds.py"]
+
 #: CLIs with NO argparse parser at all: `node_writer.py` is a library module
 #: with no `main`, `metrics.py` reads a manual argv, `pi_edit_forgiveness.py`
 #: and `pi_trajectory.py` parse argv by hand, and `ws_raw.py`'s `_parse_args`
