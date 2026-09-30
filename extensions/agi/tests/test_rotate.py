@@ -8473,16 +8473,19 @@ def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp
         settings=None, tmux_session="agi-rc", root=None,
         dry_run=True, seat=None,
     )[1]
+    # the seat IS the post the render reads (goal:g7.16.1.7.1.2.1), so the
+    # seated launch names the same post as the window: only the export prefix
+    # and the wrapper may differ.
     seated = rotate.spawn_window(
         name="adv", tier="prime_director", prompt_file=None,
         settings=None, tmux_session="agi-rc", root=None,
-        dry_run=True, seat="sanctuary-director",
+        dry_run=True, seat="adv",
     )[1]
     assert "AGI_SEAT=" not in base
     # a seat exports BOTH AGI_POST (primary) and AGI_SEAT (deprecated alias)
     # so either spelling resolves downstream (hypothesis:l4-a-seat-is-a-post-
     # everywhere).
-    _q = rotate.shlex.quote('sanctuary-director')
+    _q = rotate.shlex.quote('adv')
     assert f"export AGI_POST={_q} AGI_SEAT={_q} && " in seated
     # amendment e: a seat inserts BOTH identity and the launch-wrapper. The
     # wrapper is the direct parent of claude, so the ONLY thing that changes

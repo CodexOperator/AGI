@@ -100,3 +100,42 @@ def test_no_launch_path_reads_a_card_file_itself():
         assert not re.search(r"quorum[^\n]*read_text|read_text[^\n]*quorum", src), name
     heal_src = (BIN / "heal.py").read_text(encoding="utf-8")
     assert "prompt_file = str(card)" not in heal_src
+
+
+# goal:g7.16.1.7.1.2.1 -- a chain seat (the Prime) renders its ROW, not the
+# numeral window name it launches under.
+def _prime_root(tmp_path):
+    root = _root(tmp_path, parts={"prime_director": ["head", "template", "card"]},
+                 templates={"prime_director": "doc:prime-brief"})
+    _write(root, "nodes/doc/prime-brief.md", "PRIME-TEMPLATE-SENTINEL\n")
+    _write(root, "nodes/doc/card-belam.md",
+           "---\nid: doc:card-belam\nmint_id: pb1\ntype: doc\n---\n"
+           "# doc:card-belam\n\nPRIME-CARD-NODE-SENTINEL\n")
+    _write(root, "nodes/.geometry/posts.md",
+           "---\nid: config:posts\nposts:\n"
+           '  - {"name": "belam", "role": "prime_director", "harness": "claude-code"}\n'
+           "---\n")
+    return root
+
+
+def test_a_chain_seat_renders_its_row_not_its_numeral(tmp_path, monkeypatch, capsys):
+    sys.path.insert(0, str(BIN))
+    import rotate
+    root = _prime_root(tmp_path)
+    seen = {}
+    monkeypatch.setattr(
+        rotate, "_build_harness_command",
+        lambda harness, **kw: (seen.setdefault("prompt", kw["prompt_text"]), ["x"])[1])
+    rotate._assembled_successor_command(
+        name="belam-S2-L5-XIX", post="belam", tier="prime_director",
+        model=None, effort=None, settings=None, debug_file="/dev/null",
+        project_root=root)
+    assert "PRIME-TEMPLATE-SENTINEL" in seen["prompt"]
+    assert "PRIME-CARD-NODE-SENTINEL" in seen["prompt"]
+    assert "[card] doc:card-belam · mint pb1" in seen["prompt"]
+    assert "brief.render refused" not in capsys.readouterr().err
+
+
+def test_heal_prime_recovery_hands_no_static_brief():
+    """Negative: heal's recovery path names no static brief file."""
+    assert "DEFAULT_PROMPT_FILE" not in (BIN / "heal.py").read_text(encoding="utf-8")
