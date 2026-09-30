@@ -2459,7 +2459,9 @@ def test_w1a_fix2_the_spliced_body_keeps_one_well_formed_thought(project, tmp_pa
     beg, end = THOUGHT.split("\n")[0], "<!-- THOUGHT:END -->"
     tail = next(i for i, (a, _) in enumerate(node_writer.body_rows(body), 1) if lines[a - 1] == "tail")
     for i, text in ((n, THOUGHT + "\n\n" + THOUGHT), (n, f"{beg}\n{beg}\nx\n{end}"),
-                    (n, f"{end}\n{THOUGHT}"), (tail, THOUGHT), (tail, beg)):
+                    (n, f"{end}\n{THOUGHT}"), (tail, THOUGHT), (tail, beg),
+                    (n, f"<!-- THOUGHT:BEGIN_ r\nx\n{end}"),              # SM 129: a pseudo-BEGIN
+                    (n, f"<!-- THOUGHT:BEGIN_ r\nx\n{end}\n{end}")):     # ... + a lone END
         (tmp_path / "t.txt").write_text(text + "\n")
         for dry in ([], ["--dry-run"]):
             assert write.main(["hypothesis:h1", f"row {i} {tmp_path / 't.txt'}", *dry,
