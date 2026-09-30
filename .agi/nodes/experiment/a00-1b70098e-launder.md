@@ -5,14 +5,14 @@ type: experiment
 parents:
   - hypothesis:a00-1b70098e-011986
 next_edges: []
-edited_by: director-general-4
+edited_by: a00-1b70098e
 loop: goal:g1.31.5.1.3@s2
 model: stealth/space-bunny-alpha
 profile: balanced
 role: kid
 scaffold_hash: d2669cbd395c3f31
 season: 2
-title: A00 1b70098e launder
+title: Run -- hand-edit laundering falsifiers on the built write.py bytes
 town: core
 ---
 # experiment:a00-1b70098e-launder
