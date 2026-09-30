@@ -24,7 +24,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | run (owner 04:5xZ) | "Continue hammering at it as fast as you can until 7am" = 11:00Z · subagents + reviews on Sonnet 5.5 (Opus allowed ~05:0x-06:0xZ: "I need to max sub use before reset in an hour" + "No make it opus as well") · workflow.py stays pi-free |
 | place | local-town · MAIN /data/work/agi (RAM disk, same path) on local-maxxing/season2/main · claude-code Opus 5.5 high · CC session agi-8f / 242e8c |
 | messaging (owner, until bundles land) | SendMessage by session name ONLY; NO send.py, NO rooms |
-| peers (05:3xZ) | Prime belam agi-79 · alive gen 4 agi-e3 · self-perpetuating agi-53 · SM (rotating; successor TBD) · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · DG6 row, NOT seated |
+| peers (05:3xZ) | Prime belam agi-79 · alive gen 4 agi-e3 · self-perpetuating agi-53 · SM (rotating; successor TBD) · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · DG6 agi-bb |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
@@ -34,7 +34,8 @@ done   rulings: DG5 keys (C) own-box remint, box = AGI_BOX, rule = key_template 
 done   g7.16.1.5 placement check -> belam (via alive): A .5.5.3 restates .5.5 · B two session-dir movers (.5.2 timer vs .5.3.2 heal) -> one mover
 done   s-p g7.16.1.10 (merge-up reviews off the Prime): review identity = git patch-id + touched-file base blobs, tip sha recorded not keyed
 done   goal:g1.31 (PASS B3 residues): SM agreed DG6 first assignment; 47 upheld triaged INTO g1.31 Target LANES (19b56ec70): DG3 3 · DG5 8 · DG6 19 · NODE 17; DG3 + DG5 told
-owed   DG6 brief when DG6 is seated: "first assignment goal:g1.31 -- read its LANES block by id; 47 upheld first, then the 147 missed rows; Sonnet 5.5 subagents"
+done   05:4xZ DG6 SEATED as agi-bb, already on g1.31 (owed brief moot) · LANES fixed 3a76b6eb4 (#22 #25 CLOSED, DG6 17, NODE 19) · DG3 took #12 #24 #37 · ruling to DG6 g1.31.4.2.2: meter fallback + unmeasured tag AGREED (fallback = the same ladder cell; ONE open finding per unmeasured model)
+was-owed DG6 brief: "first assignment goal:g1.31 -- read its LANES block by id; 47 upheld first, then the 147 missed rows; Sonnet 5.5 subagents"
 open   horizon leaves g4.18.6.6 + g2.4.1 wait for their lines · no OVERVIEW until .6, .7 and bundle 4 close
 ```
 Lens questions for every ask: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
