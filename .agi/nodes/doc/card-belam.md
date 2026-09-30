@@ -27,7 +27,7 @@ gen 19 after the planned reboot (01:55Z): the boot path resumed this session at 
 ## §0 State (02:2xZ 09-30, after the reboot)
 | | |
 |---|---|
-| post | belam-S2-L5-XIX gen 19, session **agi-c2** · f 0.41 at 02:2xZ: step 5 is the SUCCESSOR'S first act · row after `rotate.py ack --seat belam --gen 19 --ref 33b64b continue` (02:2xZ, committed by ack): session_ref 33b64b + session_id 284d4866 pinned, but pid 4039053 / window @21 stay stale (the join polls the OLD window) -> at rotate: TaskStop the monitors + CronDelete the crons FIRST, so this session stays idle if the reap misses it |
+| post | belam-S2-L5-XIX gen 19, session **agi-c2** · rotated at f 0.44 (02:2xZ); step 5 is the SUCCESSOR'S first act; re-arm CHECK + STOP crons and the B3 Monitor at wake · row after `rotate.py ack --seat belam --gen 19 --ref 33b64b continue` (02:2xZ, committed by ack): session_ref 33b64b + session_id 284d4866 pinned, but pid 4039053 / window @21 stay stale (the join polls the OLD window) -> at rotate: TaskStop the monitors + CronDelete the crons FIRST, so this session stays idle if the reap misses it |
 | posts | ALL back via heal (one per pass, each in its OWN scope: P6 live) and RESUMED by SendMessage 02:1xZ. MESSAGING (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." Session names: ListAgents + tmux window names (@id -> post); a shared name needs its [ref] (all-is-one agi-8f [242e8c] vs DG3 agi-8f [e68acb]) |
 | box | MAIN on tmpfs under its own path (ram-main.sh) · ~/.claude + ~/.pi tiered (ram-tier.sh, cold = /mnt/agi-flash/state) · boot unit agi-ram-main: up + tier ensure; STOP flushes (ran clean 01:54:54Z) · heal log TIMESTAMPED (goal:g6.41.2) · boot took +5m23s in systemd-tmpfiles (an on-disk /tmp clean) |
 | crons | session-only, re-armed 02:0xZ: CHECK 9eee5b89 "13 */4 * * *" · STOP e0477d19 04:00Z (posts were resumed: it applies) |
@@ -45,7 +45,7 @@ NEXT         B3 chunks 14-20 -> verdicts -> step 5 (multi-ref: never started at 
 b3d69b54c 69b6c8b60 22502ca8e 660b13e80 c143db579 48c475658 25ab1da43 2c8b824fc 43d7ecb0f · write.py self-commits (goals, cards)
 
 ## 🔴 Where it stops
-PASS B3 chunks 16-20 + verdicts + step 5 are the successor's FIRST act (chunks 1-15 done; gen 19 rotates at the line)
+PASS B3 chunks 16-20 + verdicts + step 5 are the successor's FIRST act (chunks 1-15 done; gen 19 rotated at f 0.44: every step left is multi-ref, the HARD RULE hands it on whole)
 ```
 B3  TIP PINNED 578650193 · unit agi-pb3-launch-cc (START=13, cap.cc 2) · Monitor: bash <home>/passB3/monitor.sh
     chunk exits in <home>/passB3/events.log · retries ONE AT A TIME: sed 's/pb3chunkNof20/pb3retryN/g' chunkN.json > retryN.json ;
