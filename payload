@@ -129,3 +129,7 @@ sessions/
 # (`.agi/sessions/iter-*/<agent>/`, NOT the stray `sessions/` above) is the ONLY
 # durable scratch dir.
 /tmp/
+
+# box-identifying binary profiles: kept on disk, never tracked (history scrub 2026-09-30, owner go)
+datasets/serving-sweep/*/nsys_prof.nsys-rep
+datasets/serving-sweep/*/nsys_prof.sqlite
