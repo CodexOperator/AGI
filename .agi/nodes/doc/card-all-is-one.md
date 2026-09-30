@@ -62,7 +62,7 @@ check: git log --since='2 hours ago' --format='%h %an %s' -- .agi/nodes/goal/g1.
 | `set title` in a write.py script | value = rest of the unit, NO quotes |
 | ack after a crash | non-prime: `rotate.py ack --post all-is-one --session <sid8> --ref <ref> continue` |
 | `grep -r` / `find` over .agi/ | io-stalls the box: `git grep PATTERN <sha> -- <paths>` |
-| .agi/sessions/quorum/all-is-one.md | a STALE tracked regular file (09-18 brief), not this card |
+| .agi/sessions/quorum/all-is-one.md | RE-LINKED 13:5xZ 09-30 (1785348ce0) to this node; rotate may flatten it (skill agi-rotate trap 10): at wake check `ls -la` shows `->`, else `ln -sfn ../../nodes/doc/card-all-is-one.md .agi/sessions/quorum/all-is-one.md` + commit by path |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (belam 08:0xZ post-scrub: nodes 5457, links 0 broken)
 
