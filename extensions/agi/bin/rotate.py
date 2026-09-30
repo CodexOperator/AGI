@@ -1878,6 +1878,46 @@ def post_launch_lock(root: Path, post: str):
             os.close(fd)
 
 
+#: goal:g7.16.1.7.1.1.4 -- the callers of the ONE stand-up verb.
+STAND_UP_MODES = ("spawn", "rotate", "recover", "restart")
+
+
+def stand_up(root: Path, post: str, body, *, mode: str):
+    """goal:g7.16.1.7.1.1.4 -- THE one stand-up of a post: its launch lock
+    around `body()`, which resolves (resume on a transcript, else fresh),
+    launches through `spawn_window` / `stand_up_launch` and writes the row.
+    spawn (`cmd_spawn`, `cmd_seats_launch`), rotate (`cmd_rotate_self`),
+    recover (heal) and a hand restart (`rotate.py stand-up`) are thin callers.
+    The ONLY taker of `post_launch_lock` (a flock is per open file: a nested
+    take of the same post would refuse itself). Returns `(True, body())`, or
+    `(False, reason)` when another stand-up of the post holds the lock --
+    named once on stderr, nothing launched."""
+    if mode not in STAND_UP_MODES:
+        raise ValueError(f"stand_up: unknown mode {mode!r}")
+    with post_launch_lock(root, post) as held:
+        if not held:
+            why = f"launch lock held: another stand-up of {post} is in flight"
+            print(f"ERR: {mode} refused: {why}", file=sys.stderr)
+            return False, why
+        return True, body()
+
+
+def stand_up_launch(root: Path, name: str, shell_cmd: str,
+                    window_path: str | None = None, cwd=None):
+    """The recover / restart launch of `stand_up`: `launch_in_window` in the
+    seat tree (`cwd`, else MAIN's repo root -- never the graph dir). Returns
+    `(pid, window @id)`: pid `None` = launched, pid unknown (the ack resolves
+    it); `0` = the launch FAILED (heal records `detected`, the next pass
+    retries). `inline_max=0`: the prompt never goes to tmux inline (the 22:19Z
+    `command too long`); `timeout_ok=False`: a tmux timeout is not a launch."""
+    tree = Path(cwd) if cwd is not None else Path(
+        locations.git_common_root(Path(root)) or root)
+    rc, wid = launch_in_window(
+        DEFAULT_TMUX_SESSION, name, shell_cmd, cwd=tree, root=root,
+        inline_max=0, timeout_ok=False)
+    return (None, wid) if rc == 0 else (0, "")
+
+
 def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
                    cwd: str | None = None) -> int:
     """Run `shell_cmd` in a new tmux window. Returns 0 on success. The rc-only
@@ -2249,17 +2289,71 @@ def _seat_worktree_cwd(root: Path | None, row: dict | None) -> str | None:
 
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     """Build and (unless --dry-run) run a `claude --remote-control` command.
-    A SEATED live spawn holds the post's launch lock across the whole stand-up
-    (goal:g7.16.1.7.1.1.2): a second stand-up of the same post is refused."""
+    A SEATED live spawn is a `stand_up(mode="spawn")` (goal:g7.16.1.7.1.1.4):
+    a second stand-up of the same post is refused."""
     seat = getattr(args, "seat", None)
     if seat is None or root is None or getattr(args, "dry_run", False):
         return _cmd_spawn(args, root)
-    with post_launch_lock(root, seat) as held:
-        if not held:
-            print(f"ERR: spawn refused: {seat!r} launch lock held -- another "
-                  f"stand-up of this post is in flight", file=sys.stderr)
-            return 1
-        return _cmd_spawn(args, root)
+    held, out = stand_up(root, seat, lambda: _cmd_spawn(args, root),
+                         mode="spawn")
+    return out if held else 1
+
+
+def cmd_stand_up(args: argparse.Namespace, root: Path | None,
+                 launcher=None) -> int:
+    """goal:g7.16.1.7.1.1.4 -- THE hand restart (skill agi-post): stand a
+    post back up by NAME through heal's own recover body under
+    `stand_up(mode="restart")` -- `--resume <sid>` when the row's session has
+    a transcript, a fresh spawn otherwise -- then the same crash-recovery
+    record heal writes, so the after_join service joins it. Refuses a post
+    whose row pid is alive or whose window @id is open: never a second live
+    session. `launcher` is the test seam (heal's recover launcher)."""
+    if root is None:
+        print("ERR: stand-up needs a project root (.agi/)", file=sys.stderr)
+        return 1
+    import heal as _heal  # noqa: PLC0415 -- same bin dir; heal imports rotate lazily
+    me = sys.modules[__name__]
+    post = args.post
+    row = _find_seat(root, post)
+    if row is None:
+        print(f"ERR: stand-up: no config:posts row named {post!r}",
+              file=sys.stderr)
+        return 1
+    gdir = _heal._seat_geometry_dir(root, row)
+    if gdir is not None:
+        row = _heal._live_seat_row(gdir, post, me) or row
+    window_path = getattr(args, "window_path", None)
+    windows = _heal._all_windows(window_path)
+    pid = int(row.get("pid", 0) or 0)
+    if pid > 0 and _heal._pid_alive(pid):
+        print(f"ERR: stand-up refused: {post} row pid {pid} is alive",
+              file=sys.stderr)
+        return 1
+    if _heal._window_present(row, windows, window_path=window_path,
+                             rows=_load_seats(root), _rotate=me)[0]:
+        print(f"ERR: stand-up refused: {post} window "
+              f"{row.get('window')} is open", file=sys.stderr)
+        return 1
+    now = time.time()
+    held, outcome = stand_up(root, post, lambda: _heal._recover_seat(
+        root, row, "hand-restart", me, windows=windows,
+        window_path=window_path, launcher=launcher, now=now),
+        mode="restart")
+    if not held:
+        return 1
+    cells = {k: row.get(k) for k in (
+        "name", "role", "model", "pid", "window", "session_id",
+        "generation", "worktree")}
+    _heal._write_crash_recovery(root, post, "hand-restart", cells, me, now,
+                                outcome)
+    how = "resumed" if outcome.get("resumed") else "fresh"
+    if not outcome.get("respawned"):
+        print(f"ERR: stand-up of {post} did not launch: "
+              f"{outcome.get('reason') or 'unknown'}", file=sys.stderr)
+        return 1
+    print(f"stood up {post} ({how}): {outcome.get('name')} gen "
+          f"{outcome.get('generation')} window {outcome.get('window') or '-'}")
+    return 0
 
 
 def _cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
@@ -5196,21 +5290,30 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
             root, seat=name, role=tier, succ_name=name,
             tmux_session=tmux_session, dry_run=args.dry_run,
             generation=_rowgen)
-        rc, _ = spawn_window(
-            name=name,
-            tier=tier,
-            prompt_file=args.prompt_file,
-            model=row.get("model"),
-            effort=row.get("effort"),
-            settings=settings,
-            tmux_session=tmux_session,
-            window_path=args.window_path,
-            root=root,
-            dry_run=args.dry_run,
-            extra=startup_block,
-            seat=name,
-            successor_argv=getattr(args, "successor_argv", None),
-        )
+        def _launch_seat(name=name, tier=tier, settings=settings,
+                         startup_block=startup_block, row=row):
+            return spawn_window(
+                name=name,
+                tier=tier,
+                prompt_file=args.prompt_file,
+                model=row.get("model"),
+                effort=row.get("effort"),
+                settings=settings,
+                tmux_session=tmux_session,
+                window_path=args.window_path,
+                root=root,
+                dry_run=args.dry_run,
+                extra=startup_block,
+                seat=name,
+                successor_argv=getattr(args, "successor_argv", None),
+            )
+        # goal:g7.16.1.7.1.1.4: a seat's first seating is a
+        # `stand_up(mode="spawn")`; a dry run launches nothing, takes no lock.
+        if args.dry_run:
+            rc, _ = _launch_seat()
+        else:
+            held, out = stand_up(root, name, _launch_seat, mode="spawn")
+            rc = out[0] if held else 1
         if rc != 0:
             print(f"ERR: launch failed for seat {name!r} (rc={rc})",
                   file=sys.stderr)
@@ -20071,19 +20174,27 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rc_label = _session_label({"name": seat, "role": role}, gen)
     else:
         _rc_label = _session_label(row, gen)
-    rc, _ = spawn_window(
-        name=spawn_name, tier=role,
-        prompt_file=prompt_file, card_file=card_file,
-        model=args.model or ((row.get("model") if row else None) or None),
-        effort=args.effort or ((row.get("effort") if row else None) or None),
-        settings=(json.loads(args.settings) if args.settings
-                  else _normalize_settings(row.get("settings") if row
-                                           else None)),
-        tmux_session=tmux_session, window_path=args.window_path, root=root,
-        dry_run=args.dry_run, debug_file=dbg, extra=extra, seat=seat,
-        rc_name=_rc_label,
-        successor_argv=getattr(args, "successor_argv", None),
-    )
+    def _launch_successor():
+        return spawn_window(
+            name=spawn_name, tier=role,
+            prompt_file=prompt_file, card_file=card_file,
+            model=args.model or ((row.get("model") if row else None) or None),
+            effort=args.effort or ((row.get("effort") if row else None) or None),
+            settings=(json.loads(args.settings) if args.settings
+                      else _normalize_settings(row.get("settings") if row
+                                               else None)),
+            tmux_session=tmux_session, window_path=args.window_path, root=root,
+            dry_run=args.dry_run, debug_file=dbg, extra=extra, seat=seat,
+            rc_name=_rc_label,
+            successor_argv=getattr(args, "successor_argv", None),
+        )
+    # goal:g7.16.1.7.1.1.4: the successor launch is a `stand_up(mode="rotate")`
+    # -- a heal recovery or a spawn of this post in flight refuses it by name.
+    if args.dry_run:
+        rc, _ = _launch_successor()
+    else:
+        held, out = stand_up(root, seat, _launch_successor, mode="rotate")
+        rc = out[0] if held else 1
     if rc != 0:
         return rc
     if not args.dry_run:
@@ -22141,6 +22252,14 @@ def main(argv: list[str] | None = None) -> int:
     p_spawn.add_argument("--dry-run", action="store_true",
                         help="print the command instead of running it")
     p_spawn.set_defaults(func=cmd_spawn)
+
+    # stand-up (goal:g7.16.1.7.1.1.4): THE hand restart of a post by name.
+    p_su = sub.add_parser(
+        "stand-up", help="stand a dead post back up by name: resume its "
+                         "session when a transcript exists, fresh otherwise")
+    p_su.add_argument("--post", required=True, help="the config:posts row name")
+    p_su.add_argument("--window-path", default=None, help=argparse.SUPPRESS)
+    p_su.set_defaults(func=cmd_stand_up)
 
     # autopsy: the recovery seating's predecessor-death forensics, from FILES
     # ONLY, read-only. Prints the fact block the successor otherwise rebuilds

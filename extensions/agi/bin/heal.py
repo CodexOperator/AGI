@@ -3075,17 +3075,11 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
     successor wakes already standing in the tree it edits (hypothesis:l4-a-
     dead-seat-is-recovered-by-the-loop-not-by-a-human, (3))."""
     import rotate as _rotate  # noqa: PLC0415 -- lazy, same bin dir
-    tree = Path(cwd) if cwd is not None else _seat_tree_dir(root, {})
-    # goal:g7.16.1.7.1.1 (B1): the ONE launcher. `inline_max=0` = the launch
-    # never hands tmux the prompt INLINE (hypothesis:heal-lands-a-reseat-after-
-    # a-tmux-server-restart (a), the 22:19Z `command too long`); a file is
-    # kept only when tmux took it (it deletes itself after the successor), so
-    # no failed recovery leaves its prompt in /tmp; a timeout is NOT a launch
-    # here (`timeout_ok=False`): the next pass retries.
-    rc, wid = _rotate.launch_in_window(
-        _rotate.DEFAULT_TMUX_SESSION, name, shell_cmd, cwd=tree, root=root,
-        inline_max=0, timeout_ok=False)
-    return (None, wid) if rc == 0 else (0, "")
+    # goal:g7.16.1.7.1.1.4: the stand-up verb's own launch (the ONE launcher,
+    # never inline, a timeout is not a launch) -- heal builds no line here.
+    return _rotate.stand_up_launch(
+        root, name, shell_cmd, window_path,
+        cwd=Path(cwd) if cwd is not None else _seat_tree_dir(root, {}))
 
 
 def _load_launcher(launcher) -> callable | None:
@@ -3637,17 +3631,18 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                     "blind" if why.startswith(PSI_BLIND) else "psi")
             return {"seat": seat, "probable_cause": cause, "recorded": False,
                     "deferred": why, "defer_kind": kind}
-    # goal:g7.16.1.7.1.1.2 (goal:g6.41.1 P4): the post's ONE launch lock spans
-    # the checks, the launch and the row write -- a spawn or a second heal of
-    # this post already in flight refuses this one by name (recorded
-    # `detected`: the next pass retries).
-    with _rotate.post_launch_lock(root, seat) as held:
-        outcome = (_recover_seat(root, row, cause, _rotate, windows=windows,
-                                 window_path=window_path, launcher=launcher,
-                                 now=now) if held else
-                   {"respawned": False, "name": "", "generation": 0, "row": "skipped",
-                    "reason": f"launch lock held: another stand-up of {seat} is in flight"})
+    # goal:g7.16.1.7.1.1.4: recovery is a `stand_up(mode="recover")` -- the
+    # post's ONE launch lock spans the checks, the launch and the row write; a
+    # stand-up of this post already in flight refuses this one by name
+    # (recorded `detected`: the next pass retries).
+    held, outcome = _rotate.stand_up(
+        root, seat, lambda: _recover_seat(
+            root, row, cause, _rotate, windows=windows,
+            window_path=window_path, launcher=launcher, now=now),
+        mode="recover")
     if not held:
+        outcome = {"respawned": False, "name": "", "generation": 0,
+                   "row": "skipped", "reason": outcome}
         _watch_log(f"watch: {seat} recovery refused: {outcome['reason']}")
     if admission is not None and outcome.get("respawned"):
         # only a launch that HAPPENED spends the pass's one slot: a refused

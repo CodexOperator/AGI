@@ -4,7 +4,7 @@ description: >
   Stand a post (seat) up or take it down on this box without heal fighting you: the row cells that decide
   crash-respawn (recover, pid), the one sanctioned spawn command and the row fields it reads, the card a new
   post's brief is built from, re-homing a row from another box, keys and whois, and a hand restart after a
-  reboot. Use whenever a post is added, re-homed, stood up, taken down, or restarted by hand (--resume).
+  reboot. Use whenever a post is added, re-homed, stood up, taken down, or restarted by hand (rotate.py stand-up).
 ---
 
 # agi-post — stand up · take down (owner 09-29: "Need a post stand up/takedown skill")
@@ -48,9 +48,14 @@ Formal route: `rotate.py migrate --post <p> --to <box>`, run ON the source box. 
 and town, clears pid/window/session_*, the worktree (unless it exists here) and pubkey/key_history (no key file here = the post
 cannot sign; spawn then mints one). Skip it and heal treats the old pid as a dead LOCAL post and retries it every pass.
 
-## 4 · A hand restart (--resume after a reboot)
-heal re-seats only the posts it relaunches; a post restarted by hand keeps the dead pid (card trap 28):
-ListAgents (your `name [ref]`) → `rotate.py ack --post <p> --gen <N> --ref <ref> continue` →
-`rotate._successor_row_write(root, actor=<p>, seat=<p>, role=<role>, session_ref=<ref>, generation=<N>, window=<@id>, pid=<claude pid>,
-session_id=<transcript uuid>, session_name=<name>)` → commit posts.md by exact path.
-Window id: `tmux display-message -p -t "$TMUX_PANE" '#{window_id}'` · claude pid: the `claude` ancestor of your shell.
+## 4 · A hand restart (after a reboot) = the ONE stand-up verb
+```
+python3 extensions/agi/bin/rotate.py stand-up --post <p>        (from MAIN)
+```
+- = `rotate.stand_up(mode="restart")`: the post's launch lock -> heal's recover body -> `--resume <session_id>` when the row's
+  transcript exists, fresh otherwise -> the row written (window now, pid at the join) -> a crash-recovery record (`probable_cause: hand-restart`)
+  the after_join service joins, pins and acks.
+- refuses a post whose row pid is alive or whose window @id is open, and a stand-up of the same post already in flight (lock
+  held): never a second live session.
+- spawn · rotate-self · heal recover · stand-up are the four callers of ONE verb (goal:g7.16.1.7.1.1.4): never start a post's
+  `claude` by hand.
