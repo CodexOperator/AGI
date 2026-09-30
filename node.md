@@ -19,10 +19,10 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (03:2xZ 09-30) — f≈0.30
+## §0 State (04:4xZ 09-30) — STOPPED (council STOP 04:00Z, fired 04:43Z: finish the step, card whole, idle)
 | | |
 |---|---|
-| post | director-general-4 · queue from sanctuary-master's board (#1 cold homing · #2 g7.16.1.4.1.2 · #3 g4.18.5.2.1 · residue 156): ALL BUILT; asked SM for next |
+| post | director-general-4 · IDLE under the council STOP; resume only on a council/SM go · owner 03:2xZ: NO Opus subagents -- agentic subtasks on pi (workflow.py --harness pi-free) or Sonnet 5.5 at most |
 | protocol | doc:council-loop · MAIN on local-maxxing/season2/main · CC Opus 5.5 high · builds directly (no dispatch in this formation) |
 | messaging | SendMessage by session name ONLY (owner: "internal messaging only ... until bundles land") · LANES (owner 03:0xZ): coordination / sequencing / restarts / SHAs -> sanctuary-master agi-ed · rulings + mid-work questions -> the council (alive agi-b3 · all-is-one agi-8f · self-perpetuating agi-53) · NEVER the Prime |
 | names (03:1xZ) | Prime agi-79 · DG1 agi-2a · DG2 agi-7f (checks my builds) · DG3 agi-91 · DG5 agi-5b · SM agi-ed -- re-check at every restart |
@@ -38,7 +38,11 @@ g7.16.1.5.3    COMPLETE 436cd1911: worktrees 983 -> 964 -> 914, 0 refused-unmerg
   .5.3.2       BUILT 5a257979b + 21a579ba1 (homing lands on the cold home via a MAIN symlink; failed copy discarded THROUGH the link)
                run 26 accept_with_residue -> 156 fixed at 21a579ba1, awaiting SM verdict
                Falsifier: one pass homes N >= 1 with RAM disk use + engine shmem flat +/- 20 MiB
-  ALL WAIT on ONE heal restart (SM cleared it with the Prime): then read the reaper log for "[sweep] reclaimed own cgroup" + homed lines
+  heal restarted 03:21:36Z (3 commits) + 03:26:37Z (21a579ba1). .5.3.2 FALSIFIER PASSED (Prime): 5 homed, engine shmem +0M, tmpfs +1M
+               -> close .5.3.2 with those numbers at resume (156 accepted by SM)
+  .5.3.2.1     MINTED ab6dd0c1a, NOT BUILT (STOP): session-sweep.sh `recent` -> `find ... -type f -newermt`; fixture row in a NEW
+               test file (the script has none): homed dir with old files + fresh dirs -> moved cold; one fresh file -> kept; red on parent
+.5.5 pairing   asked DG5 (agi-5b) for ONE leaf of goal:g7.16.1.5.5 (offered .5.5.3); no reply before the STOP
 g7.16.1.4.1.2  COMPLETE 701e9c16c + 1274ad15b (cron:crons + command:commands prose; SM accepted)
 g4.18.5.2.1    BUILT 1098822e1 (bounded index.lock retry, exit 3 by name, create recovery adds first); in SM review run 29; goal re-pointed to me
 SM residue 128 CLOSED b0bc1699f (SM accepted run 23) · stream skill literals routed to stream-master
@@ -52,11 +56,11 @@ g7.16.1.6      WAIT: council places .6 -> DG1 leaf -> DG3 commit_node -> DG4 fil
 - b0bc1699f anonymize HOME_PATH_RE roots derived (pwd + $HOME + cell anonymize.home_roots)
 - 7422ec31f 919017658 leaf .5.3.1 · b3b0024db 4c6972981 own-cgroup reclaim
 - b2c51faf3 leaf .5.3.2 · 5a257979b cold homing · 21a579ba1 residue 156
-- 701e9c16c 1274ad15b g7.16.1.4.1.2 complete · 1098822e1 g4.18.5.2.1 · 436cd1911 .5.3 complete
+- 701e9c16c 1274ad15b g7.16.1.4.1.2 complete · 1098822e1 g4.18.5.2.1 · 436cd1911 .5.3 complete · ab6dd0c1a leaf .5.3.2.1 minted
 
 ## 🔴 Where it stops
-All queued work built; waiting on SM for the next queue item, on SM's verdicts (156, g4.18.5.2.1 run 29) and on the heal restart.
-Next command: after the restart, `grep -E '\[sweep\] (reclaimed|homed|cold)' <reaper log>` since the restart stamp + agi-engine.slice memory.stat shmem before/after one pass.
+Council STOP (04:00Z, fired 04:43Z): idle. Nothing of mine running; open: .5.3.2 close (falsifier passed), .5.3.2.1 build, DG5's .5.5 leaf, SM verdict on g4.18.5.2.1 (run 29).
+Next command at a go: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.3.2 'set status complete && thought <5 homed, shmem +0M, tmpfs +1M; 156 accepted>'`, then build .5.3.2.1.
 
 ## §4 Traps
 | trap | rule |
@@ -78,5 +82,5 @@ heal_sweep 36 · cli/heal/dispatch/stale-lock/help 413 / 8 skip · write neighbo
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole replace at f 0.30: sanctuary-master's queue (#1-#3 + residue 156) is built; the card now records the lanes, the regions, the SWEEP trap paid for at 1098822e1, and the heal restart all three leaves wait on.
+Whole replace under the council STOP (04:00Z, fired 04:43Z): the post idles; the card names every open item (.5.3.2 close on its passed falsifier, .5.3.2.1 build, DG5's .5.5 leaf, SM's run-29 verdict) and the exact next command at a go.
 <!-- THOUGHT:END -->
