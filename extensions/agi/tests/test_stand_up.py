@@ -434,18 +434,18 @@ def test_a_failed_rename_leaves_no_row_naming_a_lost_key(graph, monkeypatch):
     _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
     monkeypatch.setenv("AGI_BOX", "town-x")
     pub_before = _row(graph, "seat-a").get("pubkey")
-    real = rotate._place_seat_key
+    real = send._place_seat_key
 
     def boom(src, dst):
         raise OSError("rename refused")
-    monkeypatch.setattr(rotate, "_place_seat_key", boom)
+    monkeypatch.setattr(send, "_place_seat_key", boom)
     note = rotate.ensure_post_key(graph, "seat-a")
     assert "remint held" in note and "row restored" in note, note
     key = send._seat_key_path(graph, "seat-a")
     assert not key.exists()
     assert not list(key.parent.glob(f".{key.name}.*"))
     assert _row(graph, "seat-a").get("pubkey") == pub_before
-    monkeypatch.setattr(rotate, "_place_seat_key", real)
+    monkeypatch.setattr(send, "_place_seat_key", real)
     assert "reminted" in rotate.ensure_post_key(graph, "seat-a")
     assert _verifies(graph, "seat-a").startswith("VERIFIED seat-a")
     assert not list(key.parent.glob(f".{key.name}.*"))
@@ -474,3 +474,56 @@ def test_the_seating_keys_from_the_template_too(graph, monkeypatch):
     monkeypatch.setenv("AGI_BOX", "town-x")
     cells, note = rotate._first_seating_key(graph, "seat-a")
     assert cells == {} and "REFUSED" in note, note
+
+
+# ---------- SM-2: one key writer, loop keys the resolved seat, dry names it ---
+
+def test_cmd_loop_without_seat_keys_the_resolved_seat(graph, monkeypatch):
+    """falsifier 1: `seat-a-II` is the derived name; the row is `seat-a`."""
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (1, ""))
+    wins = graph / "windows.txt"
+    assert "pubkey" not in _row(graph, "seat-a")
+    rotate.cmd_loop(NS(
+        session_log=None, force=False, role="director", name=None, seat=None,
+        name_prefix="seat-a", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=None, dry_run=False, timeout=1), graph)
+    assert _row(graph, "seat-a")["pubkey"]
+
+
+def _temps(graph: Path, send) -> list:
+    key = send._seat_key_path(graph, "seat-a")
+    return list(key.parent.glob(f".{key.name}.*"))
+
+
+@pytest.mark.parametrize("fail", ["row", "rename"])
+def test_the_remint_mints_through_send_once_and_leaves_no_temp(
+        graph, monkeypatch, fail):
+    import send
+    _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    seen: list = []
+    real = send._mint_seat_key
+    monkeypatch.setattr(send, "_mint_seat_key", lambda *a, **k: (
+        seen.append(k.get("stage")), real(*a, **k))[1])
+    if fail == "row":
+        monkeypatch.setattr(rotate, "_write_identity_cells", lambda *a, **k: False)
+    else:
+        monkeypatch.setattr(send, "_place_seat_key", lambda s, d: (_ for _ in ()).throw(
+            OSError("rename refused")))
+    assert "remint held" in rotate.ensure_post_key(graph, "seat-a")
+    assert seen == [True] and not _temps(graph, send)
+    assert not send._seat_key_path(graph, "seat-a").exists()
+
+
+@pytest.mark.parametrize("pre_key", [False, True])
+def test_a_dry_spawn_names_mint_or_adopt(graph, pre_key, capsys):
+    import send
+    if pre_key:
+        send._mint_seat_key(graph, "seat-a", send.seatsig.DEFAULT_SCHEME)
+    rotate._first_seating_key(graph, "seat-a", dry_run=True)
+    word = "adopt" if pre_key else "mint"
+    assert f"would {word}" in capsys.readouterr().out
+    assert "pubkey" not in _row(graph, "seat-a")
+    assert f"{word}ed its" in rotate.ensure_post_key(graph, "seat-a")

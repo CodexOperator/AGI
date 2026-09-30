@@ -3489,12 +3489,13 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         )
     # goal:g7.16.1.7.1.1.4: the loop's successor launch is a
     # `stand_up(mode="rotate")` keyed on the seat (else the successor name).
+    # the row is the RESOLVED seat (`seat-a-II` keys `seat-a`'s row)
+    _key_seat = _resolve_seat_for_name(root, getattr(args, "seat", None) or name)
     if args.dry_run:
-        _stand_up_key_plan(root, getattr(args, "seat", None) or name)
+        _stand_up_key_plan(root, _key_seat)
         rc, _ = _launch_successor()
     else:
-        held, out = stand_up(root, getattr(args, "seat", None) or name,
-                             _launch_successor, mode="rotate")
+        held, out = stand_up(root, _key_seat, _launch_successor, mode="rotate")
         rc = out[0] if held else 1
     if rc != 0:
         return rc
@@ -7026,10 +7027,12 @@ def _first_seating_key(root: Path, seat: str,
         if send._seat_key_path(root, seat).exists():
             return {}, ""
         return {}, _rotate_first_key(root, None, seat, row, dry_run=dry_run)
-    if dry_run:
-        print(f"would key {seat}")
-        return {}, ""
     tmpl = key_template(root)
+    if dry_run:  # the plan names the decision the real run takes
+        have = send._seat_key_path(root, seat).exists()
+        if not have or tmpl.get("existing_key") == "adopt":
+            print(f"would key {seat}: would {'adopt' if have else 'mint'}")
+        return {}, ""
     scheme = str(row.get("sig_scheme") or tmpl.get("scheme")
                  or send.seatsig.DEFAULT_SCHEME)
     keyed = _template_key(send, root, seat, scheme, tmpl)
@@ -17857,11 +17860,13 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     # failed rename unlinks the temp (and restores the row), so a crash leaves
     # at worst an orphan temp, never a row naming a key that does not exist.
     scheme = row.get("sig_scheme") or tmpl.get("scheme") or send.seatsig.DEFAULT_SCHEME
-    priv, pub = send.seatsig.get(scheme).keygen()
     try:
-        tmp = _stage_seat_key(send, root, seat, scheme, priv)
+        staged = send._mint_seat_key(root, seat, scheme, stage=True)
     except OSError as exc:
         return f"seat {seat!r}: remint held -- key file not staged ({exc}); row untouched"
+    if staged is None:
+        return f"seat {seat!r}: remint held -- a key file appeared; row untouched"
+    tmp, pub = staged
     old = str(row.get("pubkey"))
     entry = {"pub": old, "fp": send.seatsig.fingerprint(bytes.fromhex(old)),
              "signed": False, "reason": "key file absent on own box",
@@ -17879,7 +17884,7 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
         tmp.unlink(missing_ok=True)
         return f"seat {seat!r}: remint held -- row write not admitted ({exc}); no key file written"
     try:
-        _place_seat_key(tmp, send._seat_key_path(root, seat))
+        send._place_seat_key(tmp, send._seat_key_path(root, seat))
     except OSError as exc:
         tmp.unlink(missing_ok=True)
         back = {"pubkey": old, "sig_scheme": row.get("sig_scheme") or scheme,
@@ -17923,34 +17928,6 @@ def _template_key(send, root: Path, seat: str, scheme: str, tmpl: dict):
     if found is None:
         return None
     return (*found, send._seat_key_path(root, seat), "adopted its existing key")
-
-
-def _place_seat_key(tmp: Path, path: Path) -> None:
-    """The staged key renamed into place (atomic, same directory)."""
-    os.replace(tmp, path)
-
-
-def _stage_seat_key(send, root: Path, seat: str, scheme: str, priv: bytes) -> Path:
-    """The seat's key in send's shape, written to a hidden temp file (0600,
-    O_EXCL, a unique name -- a same-process retry never trips on a leftover)
-    beside the key path; the caller renames it into place once the row names
-    it, or unlinks it. A failed write unlinks its own temp."""
-    import tempfile
-    path = send._seat_key_path(root, seat)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp",
-                                dir=path.parent)
-    tmp = Path(name)
-    try:
-        os.fchmod(fd, send.SEAT_KEY_MODE)
-        with os.fdopen(fd, "w") as f:
-            f.write(json.dumps({"scheme": scheme, "priv_hex": priv.hex()}))
-            f.flush()
-            os.fsync(f.fileno())
-    except BaseException:
-        tmp.unlink(missing_ok=True)
-        raise
-    return tmp
 
 
 def ensure_post_key(root: Path, post: str, dry_run: bool = False) -> str:
