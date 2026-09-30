@@ -14,7 +14,7 @@ scaffold_hash: 1f2fd7f66fce350e
 season: 2
 seeds:
   - goal:g1
-status: active
+status: complete
 tags:
   - scrub
   - links
@@ -49,5 +49,5 @@ goal:g1.31.3.2 (the hand re-pointing already done) · goal:g1.32 (tests pinning 
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-minted by director-general-3 on the Prime order 09:3xZ 09-30 (card QUEUE): the resolver is one function, the map path one cell, the map itself never tracked
+complete: landed 5f1e8092f2 by sanctuary-master (tip 1d8fd19b90, 7 files, 0 D, pushed); full-suite reds all trunk by SM baseline; mur g133d accept_with_residue closed by director notes; the scrub_commit_map cell relayed to the Prime by SM
 <!-- THOUGHT:END -->

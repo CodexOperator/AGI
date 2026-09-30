@@ -16,13 +16,13 @@ town: core
 # doc:card-director-general-1 — director-general-1's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (08:3xZ 09-30 — resumed after the Prime's history-scrub freeze; this session = agi-8c [9e0227])
+## §0 State (13:4xZ 09-30 — RESUMED to 18:00Z on the Prime's [rule] (owner ~12:4xZ); this session = agi-8c [9e0227]; f=0.23 of 0.47)
 | | |
 |---|---|
 | post | director-general-1 |
 | loop | doc:council-loop "The loop": DG2's MVP-vs-hypothesis verdict -> DG1 checks the BUILD vs the GOAL -> correctives as NESTED subgoals -> no residue -> OUTCOME (parent = the goal) -> SM |
 | protocol | goal:g7.16.1 · not in the directors room · coordination -> SM (agi-5c [da1a42]) · rulings -> the council · SendMessage between sessions |
-| peers | SM agi-5c [da1a42] · alive agi-e3 [761106] · DG2 agi-e3 [78fffb] · DG4 agi-c8 [6d9f0c] (@18) · DG5 agi-c8 [3f306f] (@22) · Prime agi-23 [ecd665] (@23) -- re-map at wake |
+| peers | SM agi-12 [afd9c6] (@27) · alive agi-e3 [761106] (@16) · DG2 agi-e3 [78fffb] (@24) · DG3 agi-b4 [a470d3] (@26) · DG4 agi-1c [c38ba9] (@25) · self-perpetuating agi-53 [21dc2d] (@2) · Prime agi-23 [ecd665] (@23) -- re-map at wake (sessions rename on every relaunch) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
 
@@ -35,21 +35,25 @@ done   bundles 1-4: every row closed with its OUTCOME; bundle 4's bigger_outcome
 done   goal:g7.16.1.10 leaves .1-.6 all horizon; re-laned 08:3xZ (SM, after the owner stood DG5+DG6 down): .10.1 .10.2 .10.6 -> DG4 · .10.4 -> DG3
 done   goal:g7.16.1.7 council edits (SP review, SM routed 08:3xZ): .7.1.3.2 bullet 2 NOT HELD (4 pi-free cells) · .7.2.2 F1 + no other post restarted · .7.2.4 F1 + pane cell · 6 HORIZON leaves .7.1.5 (council) .7.1.6 .7.1.7 .7.2.6 .7.2.8 (DG4) .7.2.7 (council)
 done   goal:g7.16.1.7 re-laned 08:4xZ (SM's file-owner map after the DG5+DG6 stand-down): 12 open nodes -> DG4 (incl .7.1.4 .7.1.4.1 keys, .7.2.3 w/ DG3's dispatch.py sites) · .7.1.5 .7.2.7 -> DG3 · complete nodes keep DG5 (record) · .7.3 council
+done   goal:g7.16.1.7.1.8 HORIZON -> DG4 (13:4xZ, SP lens): no row claimed by two live sessions -- sibling of .7.1.7, not a widening; reap stays rotate.py's
+done   goal:g7.16.1.10 (SP lens 13:4xZ): .10.7 MERGE GATE minted HORIZON (-> DG3 on SM's placement, with .10.3 .10.5) · .10.5 F1 + missed[]-only residue · .10.6 names the census dep
 hold   g7.16.1.5.3.1 (DG4): verdict:dg2mvp-g7165331b INCONCLUSIVE_LEAN_PROVED 75 -- oom half HOLDS (0 kills, reaper peak 373 MiB vs live high 2304M),
          count half NOT MET (max 15 a00-* trees/pass vs >= 25) -> stays active, NO corrective; closes on the first >= 25-tree pass with 0 kills.
          DG4 06:2xZ: F1 stays as written; if no such pass comes, DG4 banks a re-pin AFTER hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove lands
-hold   g7.16.1.7.1.4 (DG4) REOPENED on verdict:dg2mvp-g717114: Invariant 1 unmet on cmd_seats_launch + the cmd_loop successor (159/cmd_spawn closed at HEAD)
-         -> corrective leaf goal:g7.16.1.7.1.4.1, seed hypothesis:stand-up-verb-keys-every-mode-through-key-template, re-laned DG4 (lands with 158b)
-         -> on DG2's verdict: build-vs-goal, then close .4.1 + .4 with OUTCOMEs
+hold   g7.16.1.7.1.4 (DG4) REOPENED (Invariant 1): .4.1's seats-launch half MET by DG5's build (verdict:dg2mvp-g7171141 LEAN 85);
+         .4.1 still open on G1 (cmd_loop without --seat keys a derived name) + G2 (158b remint's _stage_seat_key = a 2nd key writer)
+         -> corrective goal:g7.16.1.7.1.4.1.1 ACTIVE (DG4), seed hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat, G3 dry-run rides
+         -> on DG2's verdict: build-vs-goal, then close .4.1.1 -> .4.1 -> .4, each with its OUTCOME
 hold   g6.41.1.1 reboot wake (mine): hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake queued on DG3 -> build-vs-goal on DG2's verdict
 ```
 
 ## 🔴 Where it stops
-STOPPED clean at 08:3xZ: no step in flight, nothing uncommitted of mine. Wake: re-map peers, read SendMessage traffic, then check the three holds:
+IDLE at 13:4xZ 09-30 (resumed to 18:00Z; a STOP comes at 18:00Z): no step in flight, nothing uncommitted of mine, no round or subagent live.
+On a new DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then run the exact next command:
 ```
-for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g6.41.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done
-git log --oneline --since='2 hours ago' -- .agi/nodes/verdict | head
+for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g6.41.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head
 ```
+A new DG2 verdict on one of those -> build-vs-goal (skill agi-goal) -> close + OUTCOME (parent = the goal), or a nested corrective leaf -> one line to SM.
 
 ## §4 Traps
 | trap | rule |

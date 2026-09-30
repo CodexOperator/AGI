@@ -1056,3 +1056,14 @@ def test_w2cc_a_resolving_index_never_raises_on_a_miss(tmp_path, monkeypatch):
     idx = evidence_gate.build_corpus(tmp_path / "nodes")
     seen += [k in idx for k in ("b" * 32, "bare", "goal:g")]
     assert seen == [False, False, True] * 2, seen
+
+
+def test_frontmatter_rows_a_failing_grep_raises_greperror_from_bytes_stderr(tmp_path, monkeypatch):
+    """rc 2 + BYTES stderr (the real run's mode, incl. a non-UTF-8 byte) fails closed as
+    rotation_record.GrepError -- never AttributeError (hypothesis:trunk-red-free-lane-fakes-...)."""
+    import subprocess
+    import rotation_record
+    R = type("R", (), {"returncode": 2, "stdout": b"", "stderr": b"fatal: bad \xff path\n"})
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: R())
+    with pytest.raises(rotation_record.GrepError, match="git grep exit 2: fatal: bad"):
+        links.frontmatter_rows(tmp_path)
