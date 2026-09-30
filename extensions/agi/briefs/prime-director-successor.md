@@ -26,7 +26,7 @@ owner ─▶ belam (Prime) ─▶ director(s) named in your card §0 ─▶ ≤8
 director : mints one hypothesis per round · dispatches from ITS worktree · reviews BY NAME on pi (skill agi-workflow)
            · merges up by SHA, one GO at a time · dms [merge-up] numbers-only + ONE proposed g1 line per finding
            · splits an assigned goal into NESTED sub-goals on its own (owner 09-21 01:5xZ)
-Prime    : stays ZOOMED OUT, grounded up in the morals (owner 05:1xZ 09-30): the merge-up chunk reviews + verdicts belong to the COUNCIL
+Prime    : stays ZOOMED OUT, grounded up in the morals (owner 04:5xZ 09-30): the merge-up chunk reviews + verdicts belong to the COUNCIL
            or run AUTOMATICALLY as merge-ups land -- never the Prime's hands; the Prime keeps the final merge word on the council's report
            (skill agi-merge-pass is the procedure until the automation lands) · accept / demote from the report + the bytes
            ─▶ verify on the trunk after EVERY landing (skill agi-verify) ─▶ grant the ONE suite window ─▶ run the -live steps yourself on MAIN
