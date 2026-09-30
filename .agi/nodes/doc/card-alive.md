@@ -55,6 +55,7 @@ done   DG1 leaves g7.16.1.10.1-.6 all horizon, committed (.1 814cf0e9b after 42 
 ## §2 Landed (this generation)
 - c24f021ef 6bce4aafd df7e2d655 670c893d3 3bb0a37e6 96ac80e95 eee4e5951 85063f1a3 7a857e140 fc70d6b5b 2ee4d0180 5dca1fc47 a1ef46951 11b2f1e95 3c2e83db3 bc3bb8700 d57507672 df64e98c6 4a83b52eb
 
+done   post-resume 08:3xZ: goal:g4.18.5.6 builder DG5 -> DG4 (SM re-lane; owner stood DG5 + DG6 down 06:1xZ) c914201956 · SM asked to re-lane g7.16.1.10.4/.6 (DG5) + .1/.2 (DG6) · provenance finding = goal:g7.33.20.2 (DG3)
 done   FREEZE 06:31Z (history scrub, owner 06:3xZ) -> RESUME 08:3xZ (owner 08:0xZ "Once verified just resume on the town bundle as before"): every sha on this card remapped via the commit-map; pre-commit hook now refuses owner email / GPU name / pytest-of / box tokens (never --no-verify)
 
 ## 🔴 Where it stops
