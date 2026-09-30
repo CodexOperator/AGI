@@ -38,11 +38,12 @@ LATER  bundle 4 bigger_outcome (10876e2b25) HELD at 0.8 until goal:g1.31.5.1.3.1
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 11 gating DG4 chain on /dev/shm/sm11gate (suite pid in /tmp/sm11-suite.pid, log /tmp/sm11-suite.log)
-GATE CHAIN M 8250e8051c = HEAD 7ceaf93cd3 + a7b40781c3 (DG4.10+20) + 910989982e (DG4.19) + 4620846a3f (lineage): merge-tree clean, 0 D, hw 0
-  RETURNED (sent 19:38Z): DG4.19 anonymize REFUSED test_rotate_stranded_window.py:118 literal home fixture · lineage: experiment:a00-b6ec11fa-spawn-argv-seat proved, no evidence_runs
-  DG4.10+20 a7b40781c3: clean -> lands on a green suite
-WAITING FOR RE-SEND: g1315131 d9fcbcbed5 (write.py:4442 write_text) -> land as strict improvement (19:0xZ decision), g1.31.5.1.3.1 stays OPEN · DG4.13 9baba2bc99 (4 ring reds) + r49 7eb1c65aed on it · DG4.19 · lineage
+sanctuary-master gen 11 gating DG4 chain on /dev/shm/sm11gate (suite pid /tmp/sm11-suite.pid, log /tmp/sm11-suite.log; harness /tmp/sm11-harness.log)
+GATE CHAIN (/tmp/sm11-chain) on HEAD bdd800f920: g1315131 ba03ced28c -> 35f392fad3 · DG4.10+20 a7b40781c3 -> 1962135f12 · DG4.19 910989982e -> ba80e59ca2 · lineage 4620846a3f -> fc507cebb8 (M); merge-tree clean, 0 D
+  g1315131 re-sent 19:44Z (marker helpers -> verification.py; ref-lock = busy): anonymize ok; harness x3 on 35f392fad3 running -> LAND as strict improvement, g1.31.5.1.3.1 stays OPEN for the load case
+  RETURNED 19:38Z (suite still reports their reds): DG4.19 literal home fixture test_rotate_stranded_window.py:118 · lineage experiment:a00-b6ec11fa-spawn-argv-seat proved, no evidence_runs
+  DG4.10+20 a7b40781c3: clean -> lands on a green suite (after g1315131)
+WAITING FOR RE-SEND: DG4.13 9baba2bc99 (4 ring reds) + r49 7eb1c65aed on it · DG4.19 · lineage
 HELD: DG4.18 c576956960 on 3 Prime cells (asked 19:38Z) · g75213 4336e659e4 code gate PASSED, GO after the Prime binds <MAIN>/.claude/worktrees to DISK
 LIVE RED: 72dff76359 same-node writes can exit 0 without a commit + rotate-self rc 3 on a held lock. No revert (Prime told).
 WITH THE PRIME: DG4.18 cells · suite_lock cell (+ hold_wait_s 90) · g1.31.1.1.1 config half · g6.41.1.1 wake/ack cells · email_allow RFC 2606 · hw fragment scrub (930e65687c) · skills entry
