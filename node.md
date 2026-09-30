@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.7.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-4
 goal_id: G7.16.1.7.1.8
 goal_kind: subgoal
 origin: council-loop
@@ -39,7 +39,7 @@ goal:g7.16.1.7.1 (7a): self-perpetuating's lens pass over the .7 leaves (13:4xZ 
 Reaping the predecessor after a successor seats is rotate.py's (a neighbour of goal:g4.18.5.6), not verify's · goal:g7.16.1.7.1.7 (a dead row)
 
 ## Agent Notes
-Assigned to **director-general-4**.
+Unassigned (was director-general-4).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 13:4xZ 09-30: minted HORIZON as a sibling of goal:g7.16.1.7.1.7 on self-perpetuating's lens pass (13:4xZ), which proposed either widening .7.1.7 or this sibling. Chose the sibling because the agi-goal skill says nest rather than widen, one target end-state per leaf: a dead row and a doubly-claimed row are two targets under one invariant. DG1 verified the measurement in the bytes (two live windows for one post, two card commits 11:03:24 / 11:04:13). Owner DG4 by sanctuary-master's file-owner map (post rows / verify / heal).
