@@ -3551,13 +3551,21 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
         if pin_table is None:
             pin_table = _pt
         if seat_sessions is None:
-            seat_sessions = _seat_sessions(registry_dir, windows) if _pt else []
+            seat_sessions = _seat_sessions(registry_dir, windows)
     live = _alive_via_pin(pin_table, seat_sessions, seat, pid_alive)
+    if live is None:
+        # goal:g7.16.1.7.1.1.2.1: the row's OWN session_id open in a live
+        # pid is alive too, pin or no pin -- never recovered a second time.
+        _own = str(row.get("session_id") or "").strip()
+        live = next((s for s in seat_sessions or []
+                     if _own and (s.get("session_id") or "") == _own
+                     and s.get("pid") is not None
+                     and pid_alive(int(s["pid"]))), None)
     if live is not None:
         _pp = live.get("pid") or 0
         _sid = live.get("session_id") or ""
         line = (f"stale-row seat {seat}: row pid {pid} "
-                f"window {str(row.get('window') or '-')} vs pinned session "
+                f"window {str(row.get('window') or '-')} vs live session "
                 f"{_sid} pid {_pp} alive")
         print(line, file=sys.stderr)
         _watch_log(f"watch: {line}")
@@ -3679,10 +3687,11 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     # a STALE row from a corpse. `_pin_table` reads only tree meter files;
     # `_seat_sessions` reads a registry dir -- the fixture registry under test,
     # the LIVE `~/.claude/sessions` (REGISTRY_DEFAULT_DIR) on the real watch.
-    # Guarded: the registry is read ONLY when a pin exists to cross-check, so
-    # a pin-less scan never touches the live registry.
+    # Built on EVERY pass (goal:g7.16.1.7.1.1.2.1): a row whose session_id is
+    # open in a live pid is skipped pin or no pin; the suite points the
+    # registry default at a per-test dir (tests/conftest.py).
     pins, _skipped = _pin_table(root, rows)
-    seat_sess = _seat_sessions(registry_dir, windows) if pins else []
+    seat_sess = _seat_sessions(registry_dir, windows)
     pid_rows = [r for r in rows
                 if int(r.get("pid", 0) or 0) > 0 and (r.get("name") or "").strip()
                 and boxes.row_is_local(root, r)]

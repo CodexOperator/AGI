@@ -464,6 +464,37 @@ def test_pinned_session_pid_gone_still_dead_respawns(graph):
     assert _crash_records(graph, "seat-a"), "recorded as respawned"
 
 
+def test_live_session_without_a_pin_is_skipped(graph, capsys):
+    """goal:g7.16.1.7.1.1.2.1: NO meter pin, but the row's own session_id is
+    open in a live pid in the registry -> skipped by name, nothing launches."""
+    registry = graph / "registry"
+    registry.mkdir(parents=True, exist_ok=True)
+    sid = "livesid3"
+    _write_seats(graph, [{"name": "seat-a", "pid": 999999, "window": "@50",
+                          "generation": 3, "session_id": sid}])
+    _write_registry_sess(registry, 434345, sid, "75")
+    wf = graph / "windows.live.txt"
+    wf.write_text("@75 other-sess\n@1 other\n", encoding="utf-8")
+    spawns: list = []
+    acted = heal._watch_seats(
+        graph, pid_alive=(lambda pid: pid == 434345),
+        window_path=str(wf), launcher=_fake_launcher(spawns),
+        registry_dir=str(registry))
+    assert spawns == [] and _crash_records(graph, "seat-a") == []
+    assert len(acted) == 1 and acted[0]["stale_row"] is True, acted
+    err = capsys.readouterr().err
+    assert "stale-row seat seat-a" in err and "434345" in err, err
+
+
+def test_the_suite_never_reads_the_live_registry(tmp_path):
+    """Negative: under the suite the registry default heal falls back to is a
+    per-test dir (tests/conftest.py), never the live `~/.claude/sessions`."""
+    import rotate
+    reg = Path(rotate.REGISTRY_DEFAULT_DIR).expanduser()
+    assert tmp_path in reg.parents, reg
+    assert reg != Path("~/.claude/sessions").expanduser()
+
+
 # ---------------------------------------------------------------------------
 # (c) AN @id ALONE IS NOT LIVENESS (hypothesis:heal-lands-a-reseat-after-a-
 # tmux-server-restart). A tmux server restart re-issues window ids from @0, so

@@ -702,6 +702,21 @@ def pytest_unconfigure(config):
 
 
 @pytest.fixture(autouse=True)
+def _registry_default_to_tmp(tmp_path, monkeypatch):
+    """goal:g7.16.1.7.1.1.2.1 -- heal builds the session table on EVERY watch
+    pass, so the registry default (`~/.claude/sessions`, the LIVE box) is
+    pointed at a per-test dir on both rotate aliases (the `_no_openrouter`
+    two-alias rule). A test that wants a registry passes `registry_dir`."""
+    for _mod in ("rotate", "agi.bin.rotate"):
+        try:
+            _r = __import__(_mod, fromlist=["_"])
+        except ImportError:
+            continue
+        monkeypatch.setattr(_r, "REGISTRY_DEFAULT_DIR",
+                            str(tmp_path / "cc-registry"))
+
+
+@pytest.fixture(autouse=True)
 def _pin_sessions_and_comms_roots_to_tmp(tmp_path, monkeypatch):
     """goal:g15 (hypothesis:l4-the-suite-never-writes-the-live-sessions-or-
     comms-root-heal-and-send-take-the-root-they-are-given) -- the suite NEVER
