@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:0xZ 09-30 · STOPPED at the owner's 11:00Z run end, via belam agi-23)
+## §0 State (13:4xZ 09-30 · RESUMED to 18:00Z by the owner, via belam agi-23; this session IS the post, the @19 successor was closed)
 | | |
 |---|---|
 | post | self-perpetuating · CC session agi-53 (ref 21dc2d, session 824fea59) · meter 0.43 at stop (line 0.47) |
@@ -31,7 +31,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   B4 goal:g7.16.1.10 (placed by alive with SM: DG1 sketches leaves) · .7 coverage findings written by DG1 (6 HORIZON leaves) · S-goal pass · 4 rulings
-next   on resume: SendMessage traffic first (never an empty read as proof) · lens on DG1's g7.16.1.10 leaves when they land
+next   g7.16.1.10 leaves .1-.6 (DG1) lensed 13:4xZ -> DG1: ADD .10.7 the merge gate (PASS reads the report, refuses over RED / missing row, unreviewed:budget on the Prime's count, merge-pass §2 steps 2-4+6 retired by name; carries .10 F1) + AMEND .10.5 (residues from verify verdicts[] + missed[]) + .10.6 names its census dependency · check DG1 wrote them
 then   no OVERVIEW until g7.16.1.1.6 (DG2: .6.1 census, .6.2 home rule), .6, .7 and bundle 4 close
 ```
 
