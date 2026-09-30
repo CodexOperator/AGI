@@ -114,7 +114,7 @@ It versions `node.md` + its payload as ONE version, independent of the rest of t
 | `python3 extensions/agi/bin/viewport.py --verify` | goal:g2.19 — one render, two readers |
 | `python3 extensions/agi/bin/grid.py commit --all` | version every changed node and its payload |
 | `python3 extensions/agi/bin/links.py links` | every link resolves; broken must be 0 |
-| `python3 extensions/agi/bin/links.py schema` | goal:g7.33.10.1 — nodes violating their type's required list (dry) |
+| `python3 extensions/agi/bin/links.py schema` | goal:s31 — nodes violating their type's required list (dry) |
 | `python3 extensions/agi/bin/spawn_budget.py status` | goal:g4.8 — live agents vs the tree-wide bound |
 | `python3 extensions/agi/bin/provisioning.py status` | goal:g1.11 — per-spawn keys |
 | `python3 extensions/agi/bin/envfile.py --check` | goal:g1.8 — required keys present, forbidden absent |
