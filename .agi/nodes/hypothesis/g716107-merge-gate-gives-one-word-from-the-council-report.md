@@ -46,3 +46,19 @@ extensions/agi/bin/merge_gate.py (new) · extensions/agi/tests/test_merge_gate.p
 
 ## CEILING
 kids <= the cell spawn.parent_max_kids (one kid is enough) · merge_gate.py <= 90 lines · test_merge_gate.py <= 130 lines · SKILL.md net <= +4 · pi-free parent and kids, 0 USD · a byte over a cap = ask BEFORE (rebrief to the director), never after · measure with a TWO-operand numstat <cut>..<tip before the paste commit>, labelled.
+
+## CORRECTIVE DH.DG3.62 -- closes mur-season2-loops-hypothesis-g716107-merge-gate-gi-a00-4b5eb365 h107-code + h107-tests (accept_with_residue, verify upheld) -- the SMALLEST gate that works (sanctuary-master 21:53Z)
+BASE      CUT FROM season2/loops/hypothesis-g716107-merge-gate-gi-a00-4b5eb365 tip c0f024baca (worktree /mnt/agi-ram/worktrees/de-base-DG3.62). No merge. Never rebase.
+1. Coverage over-reports -- merge_gate.py uncovered(): `git rev-list old..new` over a row whose tip is a MERGE of the trunk covers the whole merged-in trunk history. Fixed = coverage walks `git rev-list --first-parent --no-merges old..new`; a row test where a loop range merges a trunk commit that touches a review path: that trunk commit stays UNCOVERED (hold).
+2. The verdict column is ignored -- a row covers ONLY when its verdict starts with `accept` (accept, accept_with_residue); any other verdict (reject, demote, empty) is a hold line naming the round. One row per case.
+3. A file-shaped entry in merge_gate.review_paths matches nothing (every entry gets a trailing `/`) -- fail-open. Fixed = an entry matches a path equal to it OR under it as a directory; a row with `.agi/config.json` as an entry.
+4. The uncovered list is uncapped and uncounted -- print the first 20 shas, then ONE line `... N more (total T)`; a row with > 20.
+5. One `git show` per commit -- ONE `git log --no-merges --name-only --format=<marker>%H BASE..TIP` walk, parsed once.
+6. `unreviewed:budget` is a second copy of the report's state vocabulary -- the constant lives ONCE in council_report.py (one line, e.g. BUDGET_STATE) and merge_gate imports it.
+7. Node honesty (write.py only): experiment:a00-a72539b5-099206 and experiment:a00-8885d5a9-cfd6f6 `verdict: proved` -> the inconclusive_lean_proved:<n> their own parent reviews give; the false lines (find_node_file said to return None for command:commands; a sha256 provenance chain and a probe artifact that do not exist in the bytes; 'Honest limits' saying a stale row sha is ignored -- it refuses the gate with rc 2) are CORRECTED in place, each by one line naming this corrective.
+8. skills/agi-merge-pass/SKILL.md: the retired step 2 keeps an unmarked live continuation line -- mark it retired too; no other skill line changes.
+DEMOTED (director, measured): a private row regex instead of council_report's reader -- council_report has no row reader to reuse; the regex keys on council_report.HEADER. The live PASS text in a Prime session file -- refuted by verify (not this round's file).
+ANON      no user name, home or repo path value, host or IP; a key-shaped test value is built by concatenation.
+FILE SCOPE extensions/agi/bin/merge_gate.py · extensions/agi/bin/council_report.py (ONE constant line) · extensions/agi/tests/test_merge_gate.py · skills/agi-merge-pass/SKILL.md (section 2 step 2 only) · the two experiment nodes above · the kid's own node.
+CEILING   HARD CAP: 1 kid · merge_gate.py <= 125 lines TOTAL (133 today: the fixes must come with a trim) · council_report.py +1 · test_merge_gate.py <= 190 lines TOTAL · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; ask BEFORE, never after.
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit; run test_merge_gate.py test_reds.py test_council_report.py test_commands_manifest.py with --basetemp under /tmp and paste the counts.
