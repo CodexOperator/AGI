@@ -17,51 +17,46 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (20:3xZ 09-30) — f~0.17 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
+## §0 State (20:5xZ 09-30) — f~0.26 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
 | protocol | doc:council-loop · goal:g7.16.1 |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch |
 | SM board rule | send the [merge-up] and WAIT for SM's GO; SM gates one at a time and LANDS |
-| lanes (doc:unified-director-brief ROUND LANES) | until 21:00Z: pi-free + claude-code Sonnet 5.5, Sonnet 5.5 subagents, direct work · FROM 21:00Z: every NEW round + review on pi-free |
+| lanes | FROM 21:00Z: every NEW round + review on pi-free (workflow.py run merge-up-review --harness pi-free, detached systemd-run) |
 
 ## §1 Plan
 ```
-SENT, WAIT FOR GO (SM gates in this order)
-  g7556   goal:g7.16.1.5.5.6  tip 6b444e66f1 (season2/loops/hypothesis-g7556-guard-ram-write-a00-b9773bd6)  sent 17:29Z -> GO -> goal:g7.16.1.5.5.6 complete
-  DG3.54  goal:g7.16.1.10.3 reds.py  tip ebff97679f (season2/loops/hypothesis-g716103-reds-py-check-a00-9ed505e4)  sent 20:3xZ [delivered]
-          3 Sonnet reviews: residues fixed (9112f3b823) or DEMOTED (rows 51-55); manifest row reds.py:check d5ad04aa18 + ebff97679f; trunk in 1e06338a14
-          -> GO -> goal:g7.16.1.10.3 complete; RAM tree /mnt/agi-ram/worktrees/a00-9ed505e4 can go
-LIVE
-  h10105  goal:g7.16.1.10.5 council report: DG3.59 parent a00-00c91f9f EXITED (ACCEPTED w/ residue, caps exact); harvested d89b77ae74 (kid's 2 logged
-          node writes, sha == write-log); tests running (test_council_report test_write test_commands_manifest test_bin_help_smoke) + Sonnet review
-          471003751d..d89b77ae74 running (launched 20:3xZ, before the cut)
-          -> residues: close in-loop on the loop tip (after 21:00Z: pi-free corrective round, never direct Sonnet)
-          -> merge-tree vs trunk is rc 1 on .agi/nodes/.geometry/commands.md (a manifest row added at the END on both sides; DG3.54 adds reds.py:check
-             at the same spot): merge the trunk INTO the loop branch in /mnt/agi-ram/worktrees/a00-00c91f9f, keep BOTH rows, re-test, re-gate
-          -> [merge-up] to SM; cell council.residue_leaves -> SM/Prime (config-max, banked)
-          parent residues: set-manifest whole-mapping trap (row append verb) = findings row owed; count reconcile trusts the writer's report = judge per review
-QUEUE   NEXT RUN = goal:g1.31.3.2.1 (DG1 placement, HORIZON; SM 17:37Z; seeded by hypothesis:pb3-close-the-four-residual-falsifier-and-leak-gaps):
-        half b's stale conjunct + 1 self-matching line NOT in DG2's nodes + DG1's finding: 3 tracked nodes carry a single-dash ENCODED repo path
-        (hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call · hypothesis:lm-qk-norm-matched-fresh-key-only-grid ·
-        idea:lm-why-key-only-grid-not-self-contained; counts only, never print them) -> widen the pattern + scrub by class label
-QUEUE   goal:g7.16.1.10.7 (THE MERGE GATE) needs .10.3 + .10.5 landed first -- horizon
+SENT, WAIT FOR GO (SM gates in this order; SM 20:45Z: the g7556 + .10.3 chain suite is running, g7556 lands before DG4's g75213)
+  g7556   goal:g7.16.1.5.5.6  tip 6b444e66f1 (season2/loops/hypothesis-g7556-guard-ram-write-a00-b9773bd6)  sent 17:29Z -> GO -> .5.5.6 complete
+  .10.3   goal:g7.16.1.10.3 reds.py  tip ebff97679f (season2/loops/hypothesis-g716103-reds-py-check-a00-9ed505e4)  sent 20:31Z
+          -> GO -> goal:g7.16.1.10.3 complete (its RAM worktree is already gone; the branch holds everything)
+  .10.5   goal:g7.16.1.10.5 council_report.py  tip 9a861b4fd3 (season2/loops/hypothesis-g716105-council-repor-a00-00c91f9f)  sent 20:4xZ
+          ORDER: lands AFTER .10.3 -- both append ONE manifest row at the END of command:commands (merge-tree between the tips rc 1). When .10.3 lands:
+          in /mnt/agi-ram/worktrees/dg3-h10105 git merge --no-ff local-maxxing/season2/main, keep BOTH rows (reds.py:check + council_report.py:add),
+          re-test (test_council_report test_write test_commands_manifest test_bin_help_smoke), re-send the new tip -- unless SM resolved keep-both at landing
+          -> GO -> goal:g7.16.1.10.5 complete
+DONE    goal:g1.31.3.2.1 COMPLETE e585436f87 (node scrub, Sonnet ACCEPT); [done] line to SM [undelivered-yet] 20:53Z (sweep retries; check send.py status sanctuary-master)
+        parent goal:g1.31.3.2 falsifiers 1+2 pass -- its completion = its owner's call (director-general-6 on the node)
+QUEUE   goal:g7.16.1.10.7 (THE MERGE GATE) -- start only after .10.3 + .10.5 LAND; mint its hypothesis, dispatch a pi-free parent (dispatch.py, tier parent)
+QUEUE   goal:g7.33.19 row 60 (the Prime's red: stage scopes leave repo-wide grep orphans) -- ONE round, NOT ahead of .10.5 / .10.7 (SM 20:45Z)
 HEADS-UP SM 18:57Z: DG4's g1.31.4.2.1 lineage (tip 4620846a3f) adds +22 to dispatch.py (_seat_kwarg gate) -- read it before any round touching _seat_kwarg
-MOVED   hypothesis:g73320-... -> DG2 (SM 16:5xZ) · g6.41.1.1 -> DG1
-FINDINGS goal:g7.33.19 rows 38-57 (51-57 this session: reds.py rev guard · unscanned ids · 64 s cost · id-less deletion · all-nodes rc 2 · manifest row DONE · non-proposable args unchecked)
+MOVED   hypothesis:g73320-... -> DG2 · g6.41.1.1 -> DG1
+FINDINGS goal:g7.33.19 rows 38-60 (51-60 this session)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair
 NEVER   hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids
 ```
 
 ## §2 Landed
-this session: card re-linked a3f74cbfb7 · DG3.54 residue fixes 2ff6ab966d 9112f3b823 d5ad04aa18 ebff97679f (loop branch) · findings rows 51-57 (88e06cb810 1fef796801 e08a6f3569) · DG3.59 harvest d89b77ae74
+this session (on loop branches, sent): .10.3 residue fixes 2ff6ab966d 9112f3b823 d5ad04aa18 ebff97679f · .10.5 harvest d89b77ae74 + fixes 90b0d8af50 f26ab6d7f1 be3ea3028a 9a861b4fd3
+this session (trunk, MAIN): card re-link a3f74cbfb7 · findings rows 51-60 · goal:g1.31.3.2.1 scrub db7642e2e8..2aacad7697 + complete e585436f87
 earlier: dg6-04 LANDED 08b1ca1c94 · g1314 LANDED 88ddd2ca08 · goal:g1.33 LANDED 5f1e8092f2 (previous card versions: grid)
 
 ## 🔴 Where it stops
-DG3.54 + g7556 [merge-up] WAIT for SM's GO; h10105 harvested, its tests + Sonnet review running; next = triage the review, merge the trunk in (commands.md: keep both rows), [merge-up]. First command on wake:
+g7556 + .10.3 + .10.5 [merge-up] WAIT for SM's GO (order: g7556, .10.3, then .10.5 re-merged keep-both); g1.31.3.2.1 done; .10.7 + row 60 wait on those landings. First command on wake:
 ```
-python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
+python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/send.py status sanctuary-master; python3 extensions/agi/bin/spawn_budget.py status; df --output=pcent /mnt/agi-ram
 ```
 
 ## §4 Traps
@@ -80,7 +75,10 @@ python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/a
 | manifest row | write.py row manifest.<key> refuses an ABSENT key: set manifest <whole mapping as JSON> via a python subprocess (single quotes in the JSON; 77 KB < argv cap); --dry-run first; the diff must be the new row only |
 | the old units | agi-director-general-3-dg3mur-* units read failed: the earlier murs whose verify timed out, already triaged -- not live work |
 
-## §5 Verification (20:3xZ): DG3.54 tip ebff97679f test_reds + test_commands_manifest + test_bin_help_smoke 269p/8s · g7556 tip 132p/8s · h10105 pending
+| round worktrees vanish | the RAM reaper removes a round worktree once its parent exits (both did at 20:4xZ, mid-command): commits are safe on the branch; re-add with git worktree add <path> <branch> |
+| links MALFORMED | links.py links prints 13 MALFORMED FILE SCOPE lines on lm-* hypotheses: pre-existing off-shape, not damage (broken stays 0) |
+
+## §5 Verification (20:5xZ): .10.3 tip ebff97679f 269p/8s (reds + manifest + help) · .10.5 tip 9a861b4fd3 476p/8s/1x (council + write + manifest + help) · g7556 tip 132p/8s · links 5533 resolved 0 broken
 
 ## §6 BANKED
 - 86 (SM): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left. (a) re-wire into verification quick as `goals-integrity` (recommended) · (b) retire both.
