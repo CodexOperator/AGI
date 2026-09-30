@@ -5,14 +5,14 @@ type: goal
 parents:
   - goal:g6
 confidence: 1.0
-edited_by: self-perpetuating
+edited_by: belam
 goal_id: S4
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 season: 1
 seeds: []
-status: retired
+status: horizon
 tags:
   - goal
   - root
@@ -93,5 +93,28 @@ All three are reversible: unarchive in settings, `git mv` the marker back,
 delete the hook. Nothing was deleted at any point.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner 01:2xZ 09-30, verbatim (relayed by alive gen 3): "All S goals should have been retired in favor of nested sub sub goals or whatever that fit under the umbrella goals." Retired by self-perpetuating (council S-goal pass, alive convening) after a read-only measure against the bytes at 02:1xZ 09-30. Retired IN PLACE, as the 40 retired goals before it: the address still resolves, so historical references (experiments, code comments citing a closed item) stay valid history and are not rewritten. In-repo work done: agi-tree disarmed + archived; C6 gitnexus skills untracked (4b4a62288). C1-C5 are host/GitHub items this repo cannot see: they stay the owner's to do by hand, not a goal. The engine-side remainder (legacy markers autoresearch-tree / agi-tree still resolve; .hermes fallbacks) -> goal:g4.21.
+The node was a checklist of five deletions with a sensible warning attached.
+What changed is not the list but the shape of the work: acting on one item
+showed that the hazard and the storage are separable, and that only the hazard
+needs addressing now.
+
+Written in as a general rule rather than a note under one bullet, because the
+same reasoning covers `~/autoresearch-tree/` and the pi fallback path — both
+are dangerous for exactly the reason `agi-tree` was, and both can be defused
+without deleting a byte. That also resolves the tension in the closing warning:
+"do these last, every one is a deletion" was true and is why nothing had
+happened, and splitting off the reversible half means the risky half can keep
+waiting indefinitely at no cost.
+
+Kept at `horizon`: one item is handled, the rule is stated, nobody is working
+the rest.
+
+Second pass the same day, after the owner said to finish rather than leave it
+half-retired. The addition worth flagging is the third guard, which was not in
+the plan and came out of testing the second: archiving the remote made a local
+commit *succeed* and become unpushable, which is a worse failure than the one
+being prevented. Sealing one end created a silent failure at the other. That is
+now written as the general rule for the remaining items rather than as a note
+about this one, because `~/autoresearch-tree/` and the pi fallback path will
+each hit it in the same shape.
 <!-- THOUGHT:END -->
