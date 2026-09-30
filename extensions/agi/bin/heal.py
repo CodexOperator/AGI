@@ -3194,6 +3194,22 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         if base <= 0:
             base = int(row.get("generation", 0) or 0)
         gen = base + 1
+    # goal:g7.16.1.7.1.1.3 (goal:g6.41.1 P2): a dead post whose row carries a
+    # session_id with a transcript under its tree RESUMES that session -- same
+    # name, same generation, same session_id; a fresh spawn only without one.
+    resume = None
+    sid = str(row.get("session_id") or "").strip()
+    if sid:
+        tp = _rotate.transcript_from_registry_dict(
+            {"cwd": str(_seat_tree_dir(root, row)), "session_id": sid})
+        if tp and Path(tp).is_file():
+            resume = sid
+            gen = int(row.get("generation", 0) or 0) or gen
+            _nm = str(row.get("session_name") or "").strip()
+            if is_chain and re.match(r"^[A-Za-z0-9_-]+$", _nm):
+                spawn_name = _nm
+            elif not is_chain:
+                spawn_name = seat
     if spawn_name in existing:
         return {"respawned": False, "name": spawn_name, "generation": gen,
                 "reason": f"successor window {spawn_name!r} already exists",
@@ -3237,13 +3253,18 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         "RECOVERED SEAT (crash-recovery): first act after reading your handoff, "
         f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
         "--ref <your ListAgents ref> continue` to take your identity."
+    ) if not resume else (
+        "RESUMED SEAT (crash-recovery, heal): your process died and heal resumed "
+        "this same session. Re-read your card (it may have moved on), then run "
+        f"`python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
+        "--ref <your ListAgents ref> continue` and carry on."
     )
     try:
         rc, shell_cmd = _rotate.spawn_window(
             name=spawn_name, tier=tier, prompt_file=prompt_file,
             model=model, effort=effort, settings=settings,
             root=root, window_path=window_path, dry_run=True,
-            debug_file=dbg, extra=ack_gate, seat=seat)
+            debug_file=dbg, extra=ack_gate, seat=seat, resume=resume)
     except Exception as exc:  # noqa: BLE001
         return {"respawned": False, "name": spawn_name, "generation": gen,
                 "reason": f"spawn_window raised: {exc}", "row": "skipped"}
@@ -3288,12 +3309,13 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         row_text = _rotate._successor_row_write(
             root, actor=seat, seat=seat, role=role, session_ref="",
             generation=gen, window=window_id or spawn_name,
-            pid=row_pid, session_id="")
+            pid=row_pid, session_id=resume or "")
     except Exception as exc:  # noqa: BLE001
         row_text = f"row write FAILED: {exc}"
     _dm_crash_recovery(root, row, old_pid, cause, spawn_name, window_id, gen)
     return {"respawned": True, "name": spawn_name, "generation": gen,
-            "pid": pid, "window": window_id, "reason": "", "row": row_text}
+            "pid": pid, "window": window_id, "reason": "", "row": row_text,
+            "resumed": bool(resume)}
 
 
 def _latest_detected_path(root: Path, seat: str, _rotate, now: float) \

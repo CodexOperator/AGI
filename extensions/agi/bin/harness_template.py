@@ -50,7 +50,7 @@ RENDER_VOCABULARY = (
     "prompt", "model", "effort", "settings", "extra_args", "name",
     "debug_file", "provider", "thinking", "model_args", "output_format",
     "verbose", "budget", "prompt_file", "repo_root", "mcp", "tools",
-    "allowed", "disallowed", "closing",
+    "allowed", "disallowed", "closing", "resume",
 )
 
 #: Where a seat's model/effort/settings come from. Closed vocabulary: a
@@ -255,7 +255,8 @@ def render(harness_id: str, *, prompt=None, model=None, effort=None,
            name=None, debug_file=None, provider=None, thinking=None,
            shape=None, model_args=None, output_format=None, verbose=None,
            budget=None, prompt_file=None, repo_root=None, mcp=None,
-           tools=None, allowed=None, disallowed=None, closing=None) -> list[str]:
+           tools=None, allowed=None, disallowed=None, closing=None,
+           resume=None) -> list[str]:
     """The argv for `harness_id`, from its template alone.
 
     `shape` selects an optional `[shapes.<name>]` argv instead of the
@@ -278,7 +279,7 @@ def render(harness_id: str, *, prompt=None, model=None, effort=None,
               "verbose": verbose, "budget": budget,
               "prompt_file": prompt_file, "repo_root": repo_root, "mcp": mcp,
               "tools": tools, "allowed": allowed, "disallowed": disallowed,
-              "closing": closing}
+              "closing": closing, "resume": resume}
     assert set(values) == set(RENDER_VOCABULARY), (
         "render() values drifted from RENDER_VOCABULARY: "
         f"{sorted(set(values) ^ set(RENDER_VOCABULARY))}")
@@ -296,3 +297,13 @@ def render(harness_id: str, *, prompt=None, model=None, effort=None,
             deduped.append(a)
         args = deduped
     return args
+
+
+def has_slot(harness_id: str, slot: str, shape: str | None = None) -> bool:
+    """True when `harness_id`'s argv (or `[shapes.<shape>]`) names `slot`.
+    A caller that NEEDS a slot (resume, goal:g7.16.1.7.1.1.3) asks first and
+    refuses by name, because render() skips an absent slot silently."""
+    tmpl = load(harness_id)
+    parts = tmpl.get("argv", []) if shape is None else \
+        ((tmpl.get("shapes") or {}).get(shape) or {}).get("argv", [])
+    return any(isinstance(p, dict) and p.get("slot") == slot for p in parts)

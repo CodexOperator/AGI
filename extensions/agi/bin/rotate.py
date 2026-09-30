@@ -1063,8 +1063,13 @@ def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
 def _build_harness_command(harness: str | None, *, name: str,
                            prompt_text: str, debug_file: str, model=None,
                            effort=None, settings=None,
-                           bin_path: str | None = None) -> list[str]:
+                           bin_path: str | None = None,
+                           resume: str | None = None) -> list[str]:
     """The argv for the resolved harness, DISPATCHED ON ITS TEMPLATE.
+
+    `resume` (goal:g7.16.1.7.1.1.3): a session id the harness resumes; a
+    template with no `resume` slot REFUSES by name -- a resume never
+    silently becomes a fresh spawn.
 
     The ONE seam a harness enters `spawn_window` through. `harness` absent or
     `claude-code` renders `claude-code.toml` byte-identically to the old
@@ -1073,10 +1078,15 @@ def _build_harness_command(harness: str | None, *, name: str,
     is built, and one without raises `UnknownHarnessError` by name rather than
     silently falling back to claude (goal:g15).
     """
+    hid = harness or "claude-code"
+    if resume and not harness_template.has_slot(hid, "resume"):
+        raise harness_template.HarnessTemplateError(
+            f"{hid}: the template has no resume slot; refusing to resume "
+            f"session {resume} as a fresh spawn")
     return harness_template.render(
-        harness or "claude-code", prompt=prompt_text, model=model,
+        hid, prompt=prompt_text, model=model,
         effort=effort, settings=settings, name=name, debug_file=debug_file,
-        bin_path=bin_path)
+        bin_path=bin_path, resume=resume)
 
 
 def _successor_command(*, name: str, tier: str, prompt_file: str, model,
@@ -1983,7 +1993,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  successor_argv: str | None = None,
                  harness: str | None = None,
                  cwd: str | None = None,
-                 card_file: str | None = None) -> tuple[int, str]:
+                 card_file: str | None = None,
+                 resume: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
 
@@ -2082,6 +2093,17 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
         # resolved (env override, `~`/{home} expansion, PATH) here, before it
         # reaches the argv (hypothesis:harness-bin-paths-resolve-per-box).
         _bin = _resolved_harness_bin(root, harness)
+        # goal:g7.16.1.7.1.1.3: a RESUME carries its own transcript (the brief
+        # is already in it); the user turn is only `extra` (the resume line).
+        if resume:
+            try:
+                claude_cmd = _build_harness_command(
+                    harness, name=rc_name or name, prompt_text=extra or "",
+                    debug_file=dbg, model=model, effort=effort,
+                    settings=settings, bin_path=_bin, resume=resume)
+            except harness_template.HarnessTemplateError as exc:
+                print(f"ERR: {exc}", file=sys.stderr)
+                return 1, ""
         # A seat spawned with no explicit --prompt-file gets its body from the
         # assembled brief -- for EVERY tier, the prime included
         # (hypothesis:brief-py-assembles-every-first-turn-from-config; the
@@ -2090,7 +2112,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
         # skip successor_prompt() — calling both would double-insert it
         # (hypothesis:l3w4-liaison-seat). An explicit --prompt-file still wins
         # byte-for-byte.
-        if prompt_file is None:
+        elif prompt_file is None:
             claude_cmd = _assembled_successor_command(
                 name=name, rc_name=rc_name, tier=tier, model=model,
                 effort=effort,

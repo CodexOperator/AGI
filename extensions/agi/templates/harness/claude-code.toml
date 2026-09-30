@@ -33,6 +33,11 @@ flag = "--settings"
 slot = "settings"
 encoding = "json"
 
+# goal:g7.16.1.7.1.1.3: a dead post RESUMES its own transcript (heal)
+[[argv]]
+flag = "--resume"
+slot = "resume"
+
 [[argv]]
 slot = "prompt"
 
