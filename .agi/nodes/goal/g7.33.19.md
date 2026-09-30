@@ -89,6 +89,7 @@ town: core
 | 54 | node_deletion silently skips a deleted node file with no parseable id: line (older than the round) | DG3.54 Sonnet review 20:2xZ 09-30 | OWED |
 | 55 | a range that deletes EVERY node leaves no .agi/nodes at NEW: links.mint_index raises and reds.py answers rc 2 (fail closed, no false pass) instead of naming the deletions | DG3.54 parent a00-9ed505e4 20:04Z 09-30 | OWED |
 | 56 | a new engine CLI shipped with no manifest: row and no _OUTSIDE_CLIS entry (reds.py): test_commands_manifest goes red, and neither kid, parent nor review ran it (each ran test_reds only) | DG3.54 neighbourhood run 20:1xZ 09-30 | DONE (d5ad04aa18 + ebff97679f on the DG3.54 loop branch: set manifest whole mapping, the DG3.59 route) |
+| 57 | test_declared_args_are_still_accepted_by_the_cli skips every proposable: false manifest row, so a non-proposable row's declared args are never checked against the CLI's argparse (older than the round; reds.py:check matches by reading) | DG3.54 Sonnet review of d5ad04aa18 20:3xZ 09-30 | OWED |
 
 ## Invariants
 - A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
