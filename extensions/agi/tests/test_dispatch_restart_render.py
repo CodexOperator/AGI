@@ -13,7 +13,7 @@ keyword argument 'rendered_brief'`.
 
 Conjunct 2 (`FaithRefError` -> loud `brief.assemble` fallback) and conjunct 3
 (a fixture `config:brief` node renders real bytes, not the fallback) are
-REGRESSION LOCKS: the director verified both on f36cc2420 before minting, so
+REGRESSION LOCKS: the director verified both on 79ea4d8e1 before minting, so
 those tests are GREEN pre-fix -- the round's new code is the restart carry.
 """
 from __future__ import annotations

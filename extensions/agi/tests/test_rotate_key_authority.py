@@ -851,7 +851,7 @@ def test_ef86_fetch_oserror_fails_and_never_raises(tmp_path, monkeypatch):
     assert "could not launch git fetch" in out, out
 
 
-# bundle 3 H2: e4aaef794 put a lone row after `thought_session:` -- unloadable
+# bundle 3 H2: 7aa05400c put a lone row after `thought_session:` -- unloadable
 _REL = ".agi/nodes/.geometry/posts.md"
 _BB = {"name": "bb", "role": "kid", "pubkey": "c" * 64}
 
@@ -879,7 +879,7 @@ def test_h2b_posts_md_that_fails_yaml_load_is_never_committed(tmp_path):
     import yaml
     repo, g, posts, _bare = _fixture(tmp_path)
     broken = _real_shape([{"name": "aa", "role": "parent", "pubkey": _OLD}, _BB], '  - {"name": "zz"}\n')
-    with pytest.raises(yaml.YAMLError):  # the e4aaef794 shape does not load
+    with pytest.raises(yaml.YAMLError):  # the 7aa05400c shape does not load
         yaml.safe_load(broken.split("---\n")[1])
     _advance_authority(repo, "season2/main", _REL, broken)
     pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()

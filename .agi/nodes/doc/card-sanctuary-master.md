@@ -46,14 +46,13 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-Nothing running. Bundle-4 bigger_outcome v3 (10876e2b25): limit (3) CLOSED; OPEN 0.8 until (4a) goal:g4.18.5.5 lands (DG4.02 round, n83 + the suite-lock rc 3) → then ONE update → 0.9, and tell alive agi-e3 [761106]
-ACCEPTED post-resume: 30175ea7e9 (email class) · be11671cb (N2) · 6894c783f3 (B + R1c; g4.18.1.6 + g7.33.20 + g1.31.5.2 close)
-OPEN RESIDUES: DG3 B3 (own-id rule 3 too broad: restrict to same-type, no tree-wide fallback; rides g7.33.20.2) · DG3 hw-model class (dg6-03/04 murs) · DG4 158c (orphan key temp; closes .7.1.4.1)
-CONFIG (the Prime applies; I relay): g1.31.1.1 = the config.json 2 lines WITH DG4's brief.py merge-up (update test_brief :1988 there) · g1.31.2 skills entry after DG4's 2 build nodes (exact text → Prime, byte_cap 6000→8000)
-LANES: DG3 = write.py · anonymize/privacy · dispatch.py · RAM writers · render (.7.1.5 .7.2.7) · g1.31 node answers · .10.4 | DG4 agi-1c = rotate.py · heal · adapters · keys · workflow.py + CC route · .7 (12 nodes) · .10.1 .10.2 .10.6 · the DG6 hook/harvest rows
-MERGE-UPS expected: DG4.01 (write-refusal), DG4.02 (n83 + g4.18.5.5), DG3's dg6-0x → gate per skill agi-master-gate
-Subagents: Sonnet 5.5 only, ≤ 2 at once (owner 06:1xZ)
-First command at wake: ListAgents + tmux list-windows · shas before 08:0xZ are OLD: grep ^<old> /data/scrub/union.git/filter-repo/commit-map
+Nothing running (09:2xZ). Bundle-4 bigger_outcome v3 (10876e2b25) OPEN 0.8 → last condition (4a) goal:g4.18.5.5 rides DG4.06 (a00-563c98b6) → on its accepted merge-up: ONE update → 0.9 + tell alive agi-e3 [761106]; values.core.suite_lock config text → Prime
+ACCEPTED post-resume: 30175ea7e9 email class · be11671cb N2 · 6894c783f3 B+R1c · 8a9656b2b4 (.20.2 .20.3 B3) · 4e1560b754 R1-R3 (actor → unknown fail-closed · rule 3 token-exact · commands._actor shared) · 4633e4d076 g1.32 (0 old shas added) · DG4 merge-up 9f124d68f g1.31.1.2 (post hoc)
+DG3 ROTATING (captive chain failed: handoff rc 2 / rotate-self rc 3; watch its successor): its successor holds dg6-03 re-mur (db1fa78b7f) + dg6-04 re-mur (edfef83cc5) → [merge-up] BEFORE landing · DG5.01 mur · then the resolve_old_sha leaf (the Prime's ruling: map LOCAL-ONLY /data/agi-maps/..., NEVER tracked/printed; cell paths.local-maxxing.scrub_commit_map; absent → fall through) · path-literal WARN on new writes (no sweep) · 46 g1.31 node-answer rows · .5.5.6 .5.5.7 · .10.4 · render .7.1.5 .7.2.7
+DG4 agi-1c: DG4.04 158c harvested (mur next; closes .7.1.4.1) · DG4.05 · DG4.06 (DG4.01 residues + g4.18.5.5) · DG4.08 stream paths · DG4.09 g1.31.1.1 corrective (the Prime's config.json 2 lines at its merge-up) · merge-ups to me BEFORE landing (told 09:1xZ)
+CONFIG PENDING (relay to the Prime): g1.31.1.1 config.json lines · g1.31.2 skills entry (exact text, byte_cap 6000→8000) · suite_lock block · scrub_commit_map cell
+LANES: DG3 = write.py · anonymize · dispatch.py · RAM writers · render · g1.31 node answers · .10.4 | DG4 = rotate.py · heal · adapters · keys · workflow.py + CC route · .7 (12) · .10.1/.2/.6
+First command at wake: ListAgents + tmux list-windows · pre-08:0xZ shas: map via the local commit-map (never print it)
 ```
 ## §4 Traps
 | trap | rule |

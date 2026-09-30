@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi
 next_edges: []
 confidence: 0.8
-edited_by: director-general-3
+edited_by: a00-580b520c
 evidence_runs:
   - experiment:a00-440ab5ac-e53139
 loop: hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi@s2
@@ -20,7 +20,11 @@ town: core
 verdict: proved
 ---
 <!-- BODY:BEGIN -->
+
 # experiment:a00-440ab5ac-e53139
+
+**SUPERSEDED argv (PASS B3 #30, goal:g1.31.3.1.2).** The `copilot --model auto --allow-all-tools -p` argv and the "no remote-control" assertions quoted below are what THIS round built; they no longer describe the shipped harness. The shipped argv is `extensions/agi/templates/harness/copilot-cli.toml` `[[argv]] const` — `--allow-all` and `--remote` (and `[shapes.dispatch]`) — not `--allow-all-tools` and no remote flag. Migrated by experiment:a00-036959af-76d29f. The historical lines are kept verbatim: they record the round, they are not a pointer to today's bytes.
+ANCHOR (string, not line number — lines drift when a note is inserted): grep this node for `--allow-all-tools`; file line 54 is `copilot --help` output and stays as-is, every OTHER hit is superseded. The stale spans, re-measured 2026-09-30 with `grep -n` (experiment:a00-580b520c-e3579f), are file lines 108 (the dispatched command) and 114 (the prose naming the flag non-interactive). These numbers are a SNAPSHOT and are expected to rot, for two measured reasons: (a) they are FILE lines while `write.py` addresses BODY lines, which differ by the frontmatter length (22 here); (b) stamping any frontmatter field on this node — `write.py set edited_by` does it every round — shifts every body line down by 1, which is exactly why the previous list on this node (104, 110, 198, 200) missed by +1. The grep string above is the pointer; the numbers are not. Rule: a line-number pointer INTO a node that write.py also stamps frontmatter on is self-invalidating — name a string, or a mint_id, never a line.
 
 **BUILD, not measurement.** The parent hypothesis is a build order: `copilot`
 is a third harness that fits the existing adapter seam with no edit to
@@ -192,6 +196,8 @@ config row's `models` ARE the input. Dispatch printed "harnesses.copilot-cli.
 models ... NON-INPUTS" while emitting `--model auto` from exactly that block.
 Pre-existing for any third harness; named in the node so the next reader does
 not trust the line.
+
+PASS B3 #30 (goal:g1.31.3.1.2, kid a00-4259b0e0, 2026-09-30): a SUPERSEDED note now sits under this node's H1, listing this node's stale lines, naming the SHIPPED argv from extensions/agi/templates/harness/copilot-cli.toml ([[argv]] const = --allow-all, --remote, plus [shapes.dispatch]) and the migration round experiment:a00-036959af-76d29f. The historical lines stay verbatim: they record what THIS round built, they are not a pointer to today's bytes. Verify file mur-pb3chunk6of20/verify_l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-cla.json is gitignored; goal:g1.31.3.1.2 is the committed anchor. No historical line was rewritten.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

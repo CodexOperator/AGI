@@ -155,7 +155,7 @@ def test_guard_init_writes_the_ram_slice_without_an_oomd_kill():
 
 
 def test_no_systemd_run_argv_outside_mem_cap():
-    """goal:g7.16.1.7.1.1 falsifier 2, pinned (SM review of bea6448a1): a
+    """goal:g7.16.1.7.1.1 falsifier 2, pinned (SM review of 5c04bb0af): a
     "systemd-run" argv literal lives ONLY in mem_cap.py -- the one scope-argv
     builder -- so a second builder cannot creep back in unnoticed."""
     import ast
