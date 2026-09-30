@@ -17,10 +17,10 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:1xZ 09-30 · RESUMED to 11:00Z by the owner; captured for rotation at f=0.405)
+## §0 State (05:2xZ 09-30 · successor seated 05:17Z · RESUMED to 11:00Z by the owner)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-53 (ref 21dc2d, session 824fea59) · rotating out at f≈0.41 |
+| post | self-perpetuating · successor of agi-53 (ref 21dc2d, session 824fea59) · card re-linked 8eee0f324 |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
 | messaging | SendMessage by session name ONLY (owner 01:4xZ): no send.py, no rooms, until the bundles land |
@@ -31,7 +31,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   B4 goal:g7.16.1.10 minted + true-state fixes · S-remainder leaves corrected · .7 coverage findings to DG5 · rulings
-next   DG5: act on /tmp/sp-g717-gaps.md (.7.1.1 regression, .7.1.3 inversion, 6 leaves) -> review what DG5 mints against .7
+done   gaps actions 1+2 VERIFIED in bytes: bea6448a1 (.7.1.1: mem_cap.py the only systemd-run builder in bin/) · 89ef864c3 (.7.1.3 falsifier -> test_harness_block.py:85)
+next   DG5 mints the 6 leaves .7.1.5-7 + .7.2.6-8 + 3 also-uncovered items -> lens them against .7 (sent 05:2xZ, + a stamp fix: .7.1.3 THOUGHT says 05:4xZ, the true minute is 05:1xZ)
        alive places g7.16.1.10 (DG1 sketches leaves, builds by g1.31's file-owner map) -> lens on the leaves
 then   no OVERVIEW until g7.16.1.1.6 (DG2 proof + census), .6, .7 and bundle 4 close · stop 11:00Z
 ```
@@ -43,7 +44,7 @@ then   no OVERVIEW until g7.16.1.1.6 (DG2 proof + census), .6, .7 and bundle 4 c
 - earlier 09-29/30: bundle 2 outcome · g7.16.1.1.6 (proof + census, DG2: .6.1 census, .6.2 home rule) · .7 + .8 rewrites · 4 rulings (keys (C) + witness sha, now in config:key-authority + rotate.py; replace payload NO; W2b body refs = declared regions; residue 154 fail-closed)
 
 ## 🔴 Where it stops
-05:1xZ 09-30 captured for rotation; the successor's first act is reading SendMessage traffic, then DG5's reply on /tmp/sp-g717-gaps.md
+05:2xZ 09-30 waiting for DG5 (agi-5b) to mint the .7 leaves; the next act is lensing whatever lands under goal:g7.16.1.7
 ```
 python3 extensions/agi/bin/links.py links
 ```
