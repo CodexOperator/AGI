@@ -17,6 +17,7 @@ import tempfile
 import time
 
 _PROBE: "bool | None" = None
+_UMR: "bool | None" = None
 _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
 
 #: The probe's scope carries a FIXED unit name so its failed unit can be
@@ -398,6 +399,87 @@ def reaped_cap_death(pid: int, cap: "str | None") -> bool:
         return False
     return os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGKILL
 
+def fstype_at(path: str) -> str:
+    """The FILESYSTEM holding `path`, asked of the mount table -- never of a path
+    prefix (the RAM tree is an rbind overmount AT MAIN). A path that does not
+    exist yet is answered by its nearest existing parent; the table is
+    overridable (AGI_MEMCAP_MOUNTINFO) so a row can name a tmpfs without one. Octal escapes are DECODED before comparing (a space would never match); an unreadable table returns '' (fails OPEN), never a traceback."""
+    p = os.path.realpath(os.path.abspath(path))
+    while not os.path.isdir(p):
+        n = os.path.dirname(p)
+        if n == p:
+            break
+        p = n
+    table = os.environ.get("AGI_MEMCAP_MOUNTINFO", "/proc/self/mountinfo")
+    best, kind = "", ""
+    try:
+        with open(table) as fh:
+            for line in fh:
+                f = line.split()
+                mp = re.sub(r"\\([0-7]{3})", lambda m: chr(int(m[1], 8)), f[4].rstrip("/") or "/") if len(f) > 9 and "-" in f[:-1] else None
+                if mp and len(mp) > len(best) and (p == mp or p.startswith(mp + "/")):
+                    best, kind = mp, f[f.index("-") + 1]
+    except OSError:     # fails OPEN; ram-exec says so, once
+        return ""
+    return kind
+
+
+def user_manager_reachable() -> bool:
+    """LIVENESS, not presence: the manager is ASKED, once per process -- a set-but-dead bus address is not one (systemd-run behind it exits 1 and the argv never runs, C2)."""
+    global _UMR
+    if _UMR is None:
+        try:
+            _UMR = subprocess.run(
+                ["systemctl", "--user", "show", "-p", "Version", "--value"],
+                capture_output=True, timeout=10).returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            _UMR = False
+    return _UMR
+
+
+def ram_argv(argv: list) -> list:
+    """`argv` as the ONE transient unit under `locations.RAM_SLICE`, or argv
+    itself when systemd-run is unusable -- the shell-reachable way in, since a
+    guard script cannot import Python (hypothesis:g7556-...)."""
+    import locations  # local, as locations imports this module in turn
+    return list(locations.ram_write_argv(list(argv)))
+
+
+def _verb_ram_exec(argv: list, to: str | None = None) -> int:
+    """exec the argv after `--` in the RAM scope. No argv -> usage, 2.
+
+    `--to PATH` is THE rule for "this write lands on the tmpfs", asked of the
+    filesystem: a disk-bound destination runs argv plain, untouched, and its
+    exit code is argv's. No usable scope -> fail open, argv UNWRAPPED, said once
+    on stderr (ram-main.sh `up` runs before the user manager)."""
+    if not argv:
+        sys.stderr.write("mem_cap.py ram-exec [--to PATH] -- <argv...>\n")
+        return 2
+    fs = fstype_at(to) if to is not None else "tmpfs"
+    if fs != "tmpfs":
+        if not fs:
+            sys.stderr.write("mem_cap.py ram-exec: mount table unreadable -- write ran UNCHARGED\n")
+        return subprocess.run(argv).returncode
+    scoped, why = (ram_argv(argv), "") if user_manager_reachable() else ([], "user manager UNREACHABLE")
+    if why or list(scoped) == list(argv):
+        sys.stderr.write(f"mem_cap.py ram-exec: {why or 'no usable scope'} -- argv ran UNWRAPPED\n")
+        return subprocess.run(argv).returncode
+    try:
+        os.execvp(scoped[0], scoped)
+    except OSError as exc:      # fail OPEN, never a traceback off a write
+        sys.stderr.write(f"mem_cap.py ram-exec: {exc} -- argv ran UNWRAPPED\n")
+        return subprocess.run(argv).returncode
+
+
 if __name__ == "__main__":
     import argparse
+    # ram-exec carries a FOREIGN argv after `--`: argparse never sees it.
+    if sys.argv[1:2] == ["ram-exec"]:
+        _h = sys.argv[2:]
+        if "--" not in _h:
+            sys.stderr.write("mem_cap.py ram-exec: '--' is required\n")
+            sys.exit(2)
+        _i = _h.index("--")
+        _to = _h[1] if _h[:1] == ["--to"] and len(_h) > 1 else None
+        sys.exit(_verb_ram_exec(_h[_i + 1:], to=_to))
     argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
