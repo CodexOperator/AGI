@@ -2580,6 +2580,16 @@ def test_sm130_every_submit_refusal_previews_alike(project, tmp_path, capsys, mo
     rc = write.main(["hypothesis:h1", "replace body 6:6 --force -", "--dry-run", "--root", str(project)])
     assert rc == 0 and len(reads) == 1 and node.read_text() == before, capsys.readouterr().err
 
+# SM 133: a block ROW ends on the END marker LINE as _THOUGHT_RE reads it -- one line, a whole word
+def test_sm133_a_block_row_ends_where_the_thought_block_ends():
+    beg = THOUGHT.split("\n")[0]
+    for fake in ("<!-- THOUGHT:END_x -->", "<!--\vTHOUGHT:END -->"):
+        body = f"# h\n\n{beg}\nx\n{fake}\ny\n<!-- THOUGHT:END -->\n\ntail"
+        block = node_writer.thought_blocks(body)[0]
+        start = body.split("\n").index(beg) + 1
+        row = next(r for r in node_writer.body_rows(body) if r[0] == start)
+        assert "\n".join(body.split("\n")[row[0] - 1:row[1]]) == block, fake
+
 def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp_path):
     node, body = _w1c_node(project)
     (tmp_path / "r.txt").write_text("| write.py | 9 |\n")

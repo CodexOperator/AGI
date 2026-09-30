@@ -1043,7 +1043,7 @@ def body_rows(body: str) -> list[tuple[int, int]]:
             i += 1
             continue
         if (m := _ROW_BLOCK.match(ln)) or ln.startswith("```"):
-            end = re.compile(rf"^<!--\s*{re.escape(m.group(1))}:END" if m else r"^```")
+            end = re.compile(rf"^<!--[ \t]*{re.escape(m.group(1))}:END\b" if m else r"^```")   # SM 133: like _MARK
             # residue 95: the END marker LINE, never the substring (a THOUGHT quoting it)
             j = next((k for k in range(i + 1, len(lines)) if end.match(lines[k])), None)
             i = i if j is None else j   # an unpaired BEGIN (BODY) is one line
