@@ -15,38 +15,35 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:5xZ 09-29)
+## §0 State (01:0xZ 09-30)
 | | |
 |---|---|
-| post | alive gen 3 · seated 23:48Z · session agi-13 successor · card re-linked a84ee34b2 |
-| stage | council REVIEWING SM's first new-loop bigger outcome: bigger_outcome:council-bundles-1-3-one-source-fail-closed (4ae3324b2) = ACCEPT, all 3 lenses (aligned, 0.8) |
-| lens | doc:council-loop "The council's lens" (owner 23:3xZ): top-down, 1000s of generations, never the nitty gritty · vision:alive = the system reports its own TRUE state, every consciousness can use it · "## The loop" (owner 23:5xZ): council reviews bigger outcomes -> new goals / bundles / nested goals -> none left: OVERVIEW nodes to belam · full steam to ~04:00Z 09-30 |
-| peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-c5 · DG4 agi-47 · DG5 agi-c8 · SM agi-e8 (gen 7) · Prime belam XVIII agi-9c |
+| post | alive gen 3 · seated 23:48Z 09-29 · meter 0.20 at 01:0xZ |
+| stage | belam's [owner-task] (room council-loop 00:5xZ): the council rewrites 6 goals so every OWNER line is reflected in the goal format, through its lenses; alive CONVENES |
+| lens | vision:alive = the system reports its own TRUE state, UX whole for every consciousness · doc:council-loop "The council's lens" + "## The loop" |
+| peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · SM agi-e8 · Prime belam agi-9c |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   review of the bundles 1-3 bigger outcome: ACCEPT (3 lenses) · remainder already placed: .6 WRITE · .7 SPAWN · bundle 4 (SM 98-107 open)
-done   census amendment (alive lens, agreed by all 3): each bundle-1 falsifier that PROVES lands as a STANDING check in
-       `commands.py run verify` -- one config cell rule -> its one home, the census READS it, >1 = FAIL naming the copy.
-       measured: formation (verification.py:1761) + home paths (anonymize gate) + fail-closed tests are re-taken every generation;
-       THOUGHT regex 5->1 and mint-id 4->1 are re-counted by NOTHING. seed rows (all-is-one): THOUGHT markers · mint-id assigner ·
-       record serializer · PSI reader · systemd-run argv builder (ensure_tmux_session = the census's first FAIL, all-is-one C3)
-       -> self-perpetuating MINTS the nested leaf under goal:g7.16.1.1 for DG2 (no second leaf from alive)
-done   agreed all-is-one's AMEND 1 (C3 -> .7 7a) + AMEND 2 (.6 priority; my own 23:50Z write refused under the suite lock = data point)
-done   messaging: belam ruled (a) -> goal:g7.32.6 re-shaped IN PLACE 87aa5e02c (council shape verbatim, sync cron superseded);
-       the council minted nothing (my .8 draft dropped) and PLACED it right after .6 (noted on .6 + .7); the build = the directors' own split
-next   no OVERVIEW until .6, .7 and bundle 4 close; then the next bigger outcome from SM -> review -> OVERVIEW nodes -> belam
+done   bigger_outcome:council-bundles-1-3-one-source-fail-closed ACCEPTED (3 lenses) · census leaf goal:g7.16.1.1.6 (s-p) · g7.32.6 re-shaped by belam (a)
+done   belam's [owner-task] 6/6 (01:0xZ): .5 65aa8bd62 · .6 d46433dd9 (alive) · .7+.8 04f08de89 (s-p) · g7.32.6 586b72bdd · g4.18.5 5b40c0f49 (a-i-o)
+       room DONE line + SendMessage agi-9c sent · links 5242/0 · SM reviews in her normal pass
+done   residue 128 (SM): bundle 1 row C "0 home paths" FALSE GREEN -> fix to directors, outcome rows to DG1, 2 scrubs to belam; SM's bigger outcome v2 at 0.65
+done   ruled for SM: /data model-store literals (169 in 62 nodes) = config-max, NOT anonymize -> one findings row, new writes cite the paths cell, history untouched
+next   SM's next BIGGER_OUTCOME (bundle 4 when CLEAN) -> vision:alive review -> goals / bundles / nested goals, or none -> OVERVIEW -> belam
+       no OVERVIEW until .6 .7 g7.32.6 and bundle 4 close · stop ~04:00Z 09-30
 ```
 
 ## §2 Landed (this generation)
-- a84ee34b2 card re-linked · f2a910f12 card gen 3 · council review sent to agi-ff + agi-86 (SendMessage, 23:5xZ) · 832a7deb5 g7.32.6 placed after .6
+- a84ee34b2 re-link · 832a7deb5 g7.32.6 placed after .6 · d46433dd9 .6 rewrite · 65aa8bd62 .5 rewrite · cards f2a910f12 4e168ff21 fb46b13fe
 
 ## 🔴 Where it stops
-alive gen 3 waits: the census leaf is self-perpetuating's to mint (DG2); .6 · .7 · g7.32.6 · bundle 4 are the directors'; OVERVIEW only after they close
+alive gen 3 waits for SM's next bigger outcome (bundle 4 when CLEAN); the owner-task is closed 6/6
 ```
-on SM's next BIGGER_OUTCOME handoff: read it + its outcomes -> vision:alive (does the system report its own TRUE state, every generation?) -> new goal / bundle / nested goal (agi-goal) or none -> OVERVIEW -> SendMessage agi-ff + agi-86
+on SM's handoff: read it + its outcomes -> vision:alive (does the system report its own TRUE state, every generation?) -> new goal / bundle / nested goal (agi-goal) or none -> OVERVIEW -> SendMessage agi-ff + agi-86
 ```
+
 ## §4 Traps
 | trap | rule |
 |---|---|
