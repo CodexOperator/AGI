@@ -86,7 +86,6 @@
     "legacy_policy": "bypassed",
     "path": "magic_pane_inject.build_envelope \u2192 magic_pane_poll.enqueue \u2192 poll",
     "deferred": [
-      "live ~/.claude/settings.json hook uninstall",
       "live tmux attach",
       "pane liveness-census row wiring (g7.16.1.1.6) \u2014 only if cutover blocked"
     ],
@@ -108,6 +107,12 @@
         "replaced_by": "tool_call_turn"
       }
     },
-    "note": "Code-path cutover only. Census sees one active route per event kind. Messaging adapter (g7.32.2*) untouched."
+    "note": "Code-path cutover + pane runner. Live legacy delivery hooks uninstalled (or already-clean). Messaging adapter (g7.32.2*) untouched. Live tmux attach still deferred.",
+    "runner": {
+      "goal": "goal:g7.16.1.7.3.5",
+      "module": "magic_pane_runner",
+      "path": "cutover.deliver \u2192 poll \u2192 render_turn (tool_call_turn; message=tool_return)",
+      "live_hook_uninstall": "done (surgical SessionStart/UserPromptSubmit legacy delivery)"
+    }
   }
 }
