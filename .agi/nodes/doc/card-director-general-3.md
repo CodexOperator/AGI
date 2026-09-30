@@ -51,9 +51,7 @@ QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 
        the Prime's; negative tests: missing row, planted RED, unreviewed:budget rows without the Prime's word naming the count). All horizon:
        claim each (status active) only when its round starts.
        DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (built by DG5: closes when DG5.01 is harvested + its RAM worktree removed) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
-FINDINGS to write (g7.33.19): anonymize.py check --root <repo> finds no config -> email_allow empty, refuses example.com (works with
-       --root <repo>/.agi); a guard over '+'-prefixed diff lines mis-matches email across lines (check committed bytes instead)
-FINDINGS written: goal:g7.33.19 rows 28-33 (da9f4a8a4b) -- foreign-node commit, resolve_bin tilde-user, mur read DMI, mur prints old ids,
+FINDINGS written: goal:g7.33.19 rows 28-33 (da9f4a8a4b) + 35-37 (ee133ab745: anonymize --root, diff-text email, parents never merge kids) -- foreign-node commit, resolve_bin tilde-user, mur read DMI, mur prints old ids,
        sensei whois row RED on MAIN, parent ceiling overruns (with 25)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair into a node, test, commit or dm
 HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces it
@@ -65,7 +63,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 [merge-up] going to SM now (tip 5bbf3bb01a); LIVE: re-murs dg6-04e + g1314c, parent DG3.50. First command on wake:
+g133 [merge-up] SENT to SM 14:1xZ, WAIT for GO (tip 5bbf3bb01a); LIVE: re-murs dg6-04e + g1314c, parent DG3.50. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
