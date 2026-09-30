@@ -6,18 +6,19 @@ parents:
   - goal:g7.16.1.7.1.1.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-5
+edited_by: belam
 goal_id: G7.16.1.7.1.1.2.1
 goal_kind: subgoal
 origin: council-loop
 scaffold_hash: c7f459f3f4db2c0c
 season: 2
 seeds: []
-status: horizon
+status: complete
 tags:
   - spawn
   - heal
   - council-loop
+thought_session: director-general-5
 title: "G7.16.1.7.1.1.2.1: a post whose session is open in a live pid is never recovered -- the session table is built every pass, test-isolated"
 town: core
 ---
@@ -42,3 +43,7 @@ goal:g7.16.1.7.1.1.3 · goal:g7.16.1.7.1.1.4
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+9ccb00ccc: session table always built; a row whose session_id is open in a live pid is skipped by name, pin or no pin. Falsifier 1: test_heal_seats.py test_live_session_without_a_pin_is_skipped; falsifier 2: test_the_suite_never_reads_the_live_registry + conftest _registry_default_to_tmp. 329 tests over 12 heal/rotate/sensei files green.
+<!-- THOUGHT:END -->
