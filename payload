@@ -100,11 +100,6 @@ def _load_next_edges_from_disk(graph_dir: str,
     # Matches "next_edges:" followed by indented list items.
     next_re = re.compile(r'^next_edges:\s*$', re.MULTILINE)
     item_re = re.compile(r'^\s+-\s+"?([^"\n]+)"?', re.MULTILINE)
-    try:   # goal:g4.18.6.3.2: a target through bin's ONE resolver (seatsig/rings.py's lazy-import precedent)
-        import links  # noqa: PLC0415
-        resolve = links.address_resolver(nodes_path.parent)
-    except ImportError:   # bin not on the path: targets read as written
-        resolve = lambda ref: None  # noqa: E731
 
     for md_path in nodes_path.rglob("*.md"):
         try:
@@ -136,7 +131,7 @@ def _load_next_edges_from_disk(graph_dir: str,
             targets_deduped = []
             seen = set()
             for t in targets:
-                t = resolve(t.strip()) or t.strip()
+                t = t.strip()
                 if t and t not in seen:
                     seen.add(t)
                     targets_deduped.append(t)
