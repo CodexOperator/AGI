@@ -15,7 +15,7 @@ tags:
   - 158c
   - rotate
   - key-path
-testable_claim: _remint_missing_key adopts an orphan staged key temp whose private key derives the row pubkey (renamed into place, no remint, no key_history entry) and unlinks every other orphan temp for that seat; a kill between the row write and the rename no longer re-mints or leaks a live private key
+testable_claim: _remint_missing_key adopts an orphan staged key temp (older than ORPHAN_TEMP_GRACE_S) whose private key derives the row's current pubkey -- placed through send._place_seat_key, the row committed with rekey=True, no remint, no key_history entry, ONE finding -- and unlinks the other orphan temps past the grace window; a temp younger than the window (a live concurrent mint's stage), matching or not, is left alone; a kill between the row write and the placement no longer re-mints or leaks a live private key
 title: remint adopts its own orphan staged key (residue 158c)
 town: core
 ---
