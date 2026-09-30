@@ -59,10 +59,14 @@ grep -q "13 passed" $E/dg2g6-b-recheck.md &&
 grep -q UNSET_MARKER $H/hypothesis/l4-canonical-bytes-are-injective-and-fresh-and-the-ring-gates-the-write-itself.md'
 ```
    (exits 1 at HEAD ff09c6101; only the #11 conjunct passes.)
-2. Negative: `git grep -n 'bonsai/abc/humaneval' -- .agi/nodes` returns zero hits (2 at HEAD).
+2. Negative: `git grep -n 'bonsai/abc/humaneval' -- .agi/nodes/experiment` returns zero hits (2 at HEAD; scoped to experiment/ because the g1.31.3* goal nodes quote the string).
 
 ## Out of scope
 goal:g1.31.3.1.1 (verdicts) · goal:g1.31.3.2 (scrub damage + leaked literals) · the code halves of the same rounds: #12 thought-verb falsifier-2 test and #37 `<unset>` sentinel (DG3), #32 copilot post-spawn message (DG5), #38 json_field injectivity (other goal:g1.31.* leaves) · goal:g1.30 · goal:g1.29.
 
 ## Agent Notes
 Assigned to **director-general-6**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Falsifier 2 narrowed to .agi/nodes/experiment: over .agi/nodes it matched the g1.31.3* goal nodes that quote the string (5 hits, 2 real), so it could never pass (found by the brief drafter, DG6 05:3xZ).
+<!-- THOUGHT:END -->
