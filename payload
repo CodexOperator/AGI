@@ -4,14 +4,17 @@ hypothesis:l4-every-launched-kid-parent-and-workflow-stage-runs-under-a-memory-
 cap-so-a-runaway-dies-alone-and-by-name-never-a-global-oom)."""
 from __future__ import annotations
 
+import itertools
 import os
 import pathlib
+import re
 import shutil
 import signal
 import stat
 import subprocess
 import sys
 import tempfile
+import time
 
 _PROBE: "bool | None" = None
 _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
@@ -323,15 +326,30 @@ def resolve_post_scope(cfg: "dict | None") -> "str | None":
     return str(cell.get("slice") or POST_SCOPE_SLICE)
 
 
+_UNIT_SEQ = itertools.count()
+
+
+def unit_name(prefix: str, name: str) -> str:
+    """THE one spelling of a transient unit name (goal:g7.16.1.7.1.1, SM rotate
+    candidate): `<prefix>-<name>-<ns>-<seq>`. The old `int(time.time())` suffix let
+    two launches of one name in the same second collide on the unit; a
+    per-process sequence covers a clock too coarse to tick between calls."""
+    return f"{prefix}-{re.sub(r'[^\w.-]', '_', name)}-{time.time_ns()}-{next(_UNIT_SEQ)}"
+
+
 def scope_argv(argv: list, slice_: "str | None", unit: "str | None" = None,
-               cfg: "dict | None" = None) -> list:
-    """A POST's launch argv in its OWN scope under `slice_`, cap-free (the slice
-    holds the cap), so an oomd kill takes one post, never tmux and every post
-    (goal:g6.41.1 P6). `slice_` None or no usable systemd-run -> the SAME argv.
-    wrap_argv's shared `cap None -> argv` contract is untouched."""
-    if not slice_ or not systemd_run_usable(cfg):
+               cfg: "dict | None" = None, *, own_scope: bool = False) -> list:
+    """THE one scope-argv builder (goal:g7.16.1.7.1.1, C3). A POST's launch
+    argv in its OWN scope under `slice_`, cap-free (the slice holds the cap),
+    so an oomd kill takes one post, never tmux and every post (goal:g6.41.1
+    P6). `own_scope=True` (the tmux server) scopes it even with no slice.
+    Nothing to scope, or no usable systemd-run -> the SAME argv object, so the
+    caller runs it plain. wrap_argv's shared `cap None -> argv` contract is
+    untouched."""
+    if not (slice_ or own_scope) or not systemd_run_usable(cfg):
         return argv
-    return ["systemd-run", "--user", "--scope", "-q", f"--slice={slice_}",
+    return ["systemd-run", "--user", "--scope", "-q",
+            *([f"--slice={slice_}"] if slice_ else []),
             *([f"--unit={unit}"] if unit else []), "--", *argv]
 
 
