@@ -9,7 +9,7 @@ DMI = Path("/sys/class/dmi/id")
 DMI_FILES = ("board_name", "board_serial", "board_vendor", "product_name",
              "product_serial", "product_uuid", "chassis_serial")
 SECRETS_NODE = Path("nodes") / ".geometry" / "secrets.md"
-CLASSES = ("hostname", "ip", "mac", "board", "secret", "home")
+CLASSES = ("hostname", "ip", "mac", "board", "secret", "home", "email")
 MIN_TOKEN = 4
 #: ONE spelling of a home-directory path, ANY box (goal:g7.16.1.2.1): the
 #: rotation-record writer rewrites it and the check (R3) reuses it. A BARE
@@ -40,6 +40,29 @@ def _home_path_re(root=None):
         [re.escape(d) + r"(?![\w.-])" for d in dirs]
     return re.compile("(?:" + "|".join(alts) + r")(/?)")
 HOME_PATH_RE = _home_path_re()
+#: ONE spelling of an email address (goal:g1.31.5.1.2). The non-personal shapes
+#: that may appear (reserved example domains, key-type names, systemd units) are
+#: the config cell `anonymize.email_allow`: a list of regexes, each FULL-matched
+#: (case-insensitive) against one address. No cell = nothing allowed.
+EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
+def _email_allow(root=None):
+    out = []
+    try:
+        base = root or locations.find_project_root(Path(__file__).resolve().parent)
+        cfg = locations.config_path(base) if base else None
+        if cfg is not None and cfg.is_file():
+            cell = json.loads(cfg.read_text(encoding="utf-8")).get("anonymize") or {}
+            for r in cell.get("email_allow") or []:
+                if isinstance(r, str) and r:
+                    out.append(re.compile(r, re.IGNORECASE))
+    except (OSError, ValueError, TypeError, AttributeError, re.error):
+        pass  # an unreadable cell allows nothing: fail closed
+    return out
+def has_email(text, allow=None):
+    """True when `text` carries an address that no `email_allow` entry covers."""
+    allow = _email_allow() if allow is None else allow
+    return any(not any(a.fullmatch(m.group(0)) for a in allow)
+               for m in EMAIL_RE.finditer(text))
 def home_relative(text, home=None):
     """`text` with this box's HOME written `~` and any other box's home
     directory written `<home>/`: no home path survives, any box."""
@@ -110,13 +133,16 @@ def box_tokens(root):
         if v:
             toks.append(("board", v))
     return toks + _secret_tokens(root) + home
-def scan(text, tokens):
+def scan(text, tokens, email_allow=None):
     """The CLASSES present in `text` — never a value. Beside the token list,
-    ONE generic class: ANY box's home directory (HOME_PATH_RE, R1's
-    definition) is `home`; the placeholders `<home>/`, `~/` never match."""
+    two generic classes: ANY box's home directory (HOME_PATH_RE, R1's
+    definition) is `home`; the placeholders `<home>/`, `~/` never match. An
+    email address is `email` unless the cell `anonymize.email_allow` covers it."""
     hits = {c for c, v in tokens if len(v) >= MIN_TOKEN and v in text}
     if HOME_PATH_RE.search(text):
         hits.add("home")
+    if has_email(text, email_allow):
+        hits.add("email")
     return sorted(hits)
 def added_lines(text):
     """A unified diff -> what it ADDS: every '+' line inside a hunk (content
@@ -158,10 +184,10 @@ def cmd_check(root, text, diff_file):
     if locations.shared_project_root(root) is None:
         print("anonymize: no denylist source, skipped")
         return 0
-    hits = scan(text or "", box_tokens(root))
+    hits = scan(text or "", box_tokens(root), _email_allow(root))
     if hits:
         print("REFUSED: text carries " + ", ".join(hits) +
-              " (a home path from ANY box, or a token read from this box)"
+              " (a home path from ANY box, an email address, or a token read from this box)"
               " — write <home>/ or ~/, or use the box alias (SM.122)",
               file=sys.stderr)
         return 1

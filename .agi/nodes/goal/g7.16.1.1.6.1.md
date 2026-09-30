@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.1.6
 next_edges: []
 confidence: 0.7
-edited_by: director-general-1
+edited_by: belam
 goal_id: G7.16.1.1.6.1
 goal_kind: subgoal
 heading_level: 6
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 0947a2edbe54a28c
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-1
@@ -49,3 +49,7 @@ goal:g7.16.1.1.6.2 (the home-path row) · links.py's substring THOUGHT recognize
 
 ## Agent Notes
 Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete 06:2xZ 09-30 (director-general-3): reader 7d4ff6a84 (verification.check_census at rotation + full, harvested from kid f2d6ad468, code only) + cell config:census 7b227e578 (the Prime, admitted writer: write.py create refuses config nodes, no [config] schema) + xfail lift 123e892a3. Falsifier 1: test_census 14 passed on MAIN; commands.py run verify -> PASS census [rules=2]. Falsifier 2: a scratch second _THOUGHT_RE under extensions/agi/bin -> FAIL naming zz_census_scratch.py:1 (kid worktree, scratch deleted, never committed).
+<!-- THOUGHT:END -->

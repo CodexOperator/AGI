@@ -1,0 +1,66 @@
+---
+id: hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff
+mint_id: 5299b61cabf34feaa7cdbae954bfdd3c
+type: hypothesis
+parents:
+  - goal:g1.31.5.1.1
+next_edges: []
+edited_by: director-general-6
+scaffold_hash: 29618dcf04bd286f
+season: 2
+testable_claim: With set -o pipefail on the kid scope pipe, a failed git diff --cached (rc 128, corrupted index, hook run directly) exits non-zero with one named stderr line, where HEAD exits 0; a healthy empty staged set (scope-check all([]) == 0) and every in-scope/out-of-scope control keep their rc; the hook still delegates to cli._round_scope_ok.
+title: The agent-git pre-commit hook refuses a kid commit when `git diff --cached` itself fails (pipefail + one named line); an empty healthy set stays allowed
+town: core
+---
+# hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff
+
+## Measured
+- goal:g1.31.5.1.1 (PASS B3 missed row n19, red, pre-existing, from round l4-sm36 one-scope-rule; verify file `.agi/sessions/workflows/runs/mur-pb3chunk12of20/verify_l4-a-branch-kid-commits-its-own-bytes-under-the-agent-git-ho.json`, left UNVERIFIED by the reviewer). Re-measured at HEAD 0de3a32a0 in a tmp repo, kid tier, own toplevel, synthetic agent id:
+```
+healthy repo, empty staged set (--allow-empty)   hook rc 0        <- today's behaviour, kept
+.git/index corrupted: git diff --cached           rc 128
+                       hook (bash <hook>)          rc 0  <- FAIL-OPEN
+control, staged .agi/config.json                   hook rc 1  (refuses, as designed)
+```
+- `extensions/agi/hooks/agent-git/pre-commit`, kid branch (the `if [ "${AGI_TIER}" = "kid" ] ...` block): `if git diff --cached --name-only -z --no-renames | python3 "$HOOK_BIN/cli.py" scope-check ...; then exit 0; fi`. The `if` tests only the LAST command of the pipe; the file carries 0 `set` flags and 0 `pipefail`.
+- `extensions/agi/bin/cli.py` `cmd_scope_check`: `paths = [p for p in sys.stdin.read().split("\0") if p]`, then `return 0 if all(_round_scope_ok(p, ...) for p in paths) else 1`; `all([])` is True, so an EMPTY list returns 0 (allow). Empty from a healthy diff = nothing staged = allowed today (git itself aborts a plain `git commit` with nothing staged before it reaches the hook; only `--allow-empty` reaches it). Empty from a FAILED diff is the hole.
+- Reachability: `git commit` reads the index before it runs the hook, so a corrupt index dies in git first; the hole is a `git diff --cached` that fails INSIDE the hook after the commit's own read succeeded (a transient read error, a killed or OOM'd git under the shared-box pressure). The committed test therefore runs the hook script DIRECTLY (the leaf's own probe does), never through `git commit`.
+
+## CLAIM
+(1) The scope pipe in the kid branch of `pre-commit` runs under `set -o pipefail`, so a failed `git diff --cached` makes the pipeline non-zero and the kid falls through to the end-of-file refusal (`exit 1`) instead of `exit 0`.
+(2) A failed diff (pipeline rc >= 2: git's 128, cli.py's crash) prints ONE named stderr line (`agi: kid commit refused -- git diff --cached failed (rc <n>) (goal:g1.31.5.1.1)`) before it refuses; a scope refusal (rc 1) keeps today's generic line, no double line.
+(3) A genuinely empty staged set from a SUCCESSFUL diff keeps today's behaviour: `scope-check` returns 0 (`all([])`), the hook exits 0. ONE scope rule stays: the hook still delegates to `cli._round_scope_ok` through `scope-check`; no second predicate in shell.
+```
+git diff --cached -z ─┐  pipefail
+                      ├─► rc = rightmost non-zero
+python3 cli.py scope-check ─┘
+  0            ─► exit 0   (in scope, or empty-but-OK)
+  1            ─► generic refusal (unchanged)
+  >= 2 (128)   ─► ONE named line ─► refusal  exit 1   <- the new row
+```
+
+## Dispatch line
+config-max: none (a refusal, not a knob). template-max: none. code: `set -o pipefail` + a 4-line `rc=$?` case in the kid branch of `extensions/agi/hooks/agent-git/pre-commit`; nothing in cli.py changes.
+
+## FALSIFIERS
+- F1 (rc 1 at HEAD, measured: the hook exits 0), the leaf's probe: `bash -c 'T=$(mktemp -d); trap "rm -rf $T" EXIT; H=$PWD/extensions/agi/hooks/agent-git/pre-commit; cd $T && git init -q r && cd r && printf garbage > .git/index && ! AGI_TIER=kid AGI_PROJECT_ROOT=$T/r AGI_TREE_PROJECT_ROOT=$T/r AGI_AGENT_ID=a00-fixture bash $H 2>/dev/null'` -- rc != 0 after = true; the hook still rc 0 = false.
+- F2 (named line): the same probe's stderr, captured, holds exactly one line naming `git diff --cached failed`; zero or two = false.
+- F3 (control, unchanged): a healthy in-scope kid commit (source edit + its OWN node) exits 0; staged `.agi/config.json` still rc 1 with the ORIGINAL generic line (no `git diff --cached failed` text).
+- F4 (empty stays): `git commit --allow-empty` as a kid in its own worktree, healthy index, still exits 0 (`scope-check` `all([])`); a hook that now refuses it = false.
+- F5 (one rule): `git diff` on the hook adds no shell path predicate (no `case`/`[[` over a staged path); `cli.py` is untouched by the round.
+- F6: `git grep -L pipefail -- extensions/agi/hooks/agent-git/pre-commit` returns 0 hits after (1 at HEAD).
+
+## TESTS
+- `extensions/agi/tests/test_git_commit_guard.py` ONE file, + 2 rows next to the `branch_kid` rows, reusing the `branch_kid` fixture, `branch_kid_env(wt, tree_root=str(wt))` and `_stage`: (a) `test_branch_kid_hook_refuses_on_a_failing_diff`: corrupt the worktree's index (`git rev-parse --git-path index` from `wt` -> write garbage; a LINKED worktree's index is not `wt/.git/index`), run `bash <hooks>/pre-commit` DIRECTLY under `branch_kid_env` (NOT `git commit`: git reads the index first and never reaches the hook), assert rc != 0 and exactly one stderr line containing `git diff --cached failed`; (b) `test_branch_kid_empty_staged_set_still_allowed`: healthy index, nothing staged, same direct run, rc 0. The existing rows `test_branch_kid_commits_in_scope_bytes` and `test_branch_kid_refuses_staged_config_json` are the in-scope and refusal controls (unchanged, must stay green). Synthetic agent id only.
+- neighbourhood: `extensions/agi/tests/test_git_commit_guard.py` whole file (every `branch_kid_*` row).
+```
+python3 -m pytest extensions/agi/tests/test_git_commit_guard.py -q -k 'failing_diff or empty_staged or branch_kid' --basetemp /tmp/pb3h
+python3 -m pytest extensions/agi/tests/test_git_commit_guard.py -q --basetemp /tmp/pb3hf
+```
+- then F1-F4 by hand.
+
+## FILE SCOPE
+extensions/agi/hooks/agent-git/pre-commit · extensions/agi/tests/test_git_commit_guard.py
+
+## CEILING
+kids <= 1 · pre-commit <= 8 production lines (pipefail + rc case + one echo) · tests <= 35 lines · pi-free parent · 0 USD · over it: drop the named-line conjunct and keep the bare pipefail (the leaf's minimum). `pipefail` is scoped to the kid block only: set it there, never at the top of the file (the parent path and the early `exit 0` guards read `git`/`cd` results that must not change).

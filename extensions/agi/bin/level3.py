@@ -929,8 +929,7 @@ def read_mvp_map(path: Path | None, root=None) -> list[tuple[str, str]]:
         if not line or line.startswith("#") or "|" not in line:
             continue
         prefix, mvp_id = (p.strip() for p in line.split("|", 1))
-        if prefix and (mvp_id.startswith("mvp:")
-                       or (links.is_mint_id(mvp_id) and (resolve(mvp_id) or "").startswith("mvp:"))):
+        if prefix and (resolve(mvp_id) or mvp_id).startswith("mvp:"):
             mapping.append((prefix, mvp_id))
     return mapping
 

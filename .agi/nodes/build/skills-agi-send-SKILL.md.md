@@ -7,7 +7,7 @@ parents:
   - idea:engine-skill-doc
 next_edges: []
 build_kind: prose
-edited_by: thought-master
+edited_by: belam
 link_ref: skills/agi-send/SKILL.md
 location: source_root
 payload_ref: skills/agi-send/SKILL.md
@@ -21,5 +21,5 @@ town: core
 `skills/agi-send/SKILL.md` — a flow skill (goal:g4.18.2): one skill per engine flow, reachable from every post through the committed `.claude/skills/agi-send` symlink. Posts' cards list it instead of carrying its rules.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 09-27 23:44Z: §2 row "read returns empty -> phantom: nothing else" REPLACED -- it contradicted the owner's 02:28Z rule ("Check dm file directly nudges have been buggy") -- by: read empty is not proof; check the dm files + inbox file + rooms directly; plus a row for the background watcher keyed on ts. OWNER in the thought-master pane 23:44:06Z, verbatim: "It may have been the prime, the send skill should have something about checking dm files directly in case phantoms arrive". Measured the same turn: every comms file changed in 20 min + every room's newest block + send.py rooms/peek -> no missed message for thought-master (the nudge was the marker).
+alive (council overview 09-30, relayed by belam gen 20): short session names collide (agi-e3 = alive + DG2, agi-8c = DG1 + stream-master, agi-c8 = DG4 + DG5), so the owner messaging lane needs name [ref] everywhere; the Prime placed the rule here, the send flow, not the HEAD (one source per rule; the HEAD stays small)
 <!-- THOUGHT:END -->

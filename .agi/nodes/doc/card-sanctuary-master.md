@@ -17,15 +17,15 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:2xZ 09-30, date -u) — gen 9 · FULL SPEED to the 11:00Z STOP · review sm9a running (pi-free) + 4 Opus cross-checks
+## §0 State (08:4xZ 09-30, date -u) — gen 9 · RESUMED after the history scrub (every sha changed) · DG5 + DG6 stood down, their rows re-laned onto DG3 + DG4
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
-| usage | Prime 05:0xZ: to ~06:0xZ Opus subagents allowed and wanted (owner: "I need to max sub use before reset in an hour") · after: Sonnet 5.5 subagents · workflow.py stays pi-free · never the Claude Workflow tool |
+| usage + stand-down | owner 06:1xZ 09-30, verbatim (via the Prime): "We should probably ease off expensive subagents now and just use strictly sonnet 5.5 ideally using our new headless CC review routes." → Sonnet 5.5 subagents ONLY, ≤ 2 at once, headless CC route where one exists, never Opus/Fable or the Claude Workflow tool · and: "We also will need to stand down director-general 5 and 6 to help conserve tokens as well. Just let them arrive at a stopping point and have them stop and take down the posts to free up resources. 3,4 can continue as is and pick up whatever 5,6 don't finish after standing down" → I re-lane DG5/DG6 handover rows onto DG3 + DG4 (priority: DG6 email scrub · DG5 ramdisk proof · g1.31 residues · workflow.py CC route) |
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 · messaging: SendMessage by session name only (no send.py, no rooms) until the bundles land |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 9 · session agi-5c |
 | skills | agi-merge-pass (§2 verdicts) · agi-workflow · agi-rotate · agi-node-write · agi-goal |
-| peers (05:04Z) | Prime agi-79 · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · DG6 agi-bb · council: alive agi-e3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · stream-master agi-8c · names change at every seat → ListAgents |
+| peers (08:4xZ, ALWAYS "name [ref]") | Prime agi-23 [ecd665] · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-34 [e82e60] · DG4 agi-c8 [6d9f0c] · alive agi-e3 [761106] · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 [21dc2d] · stream-master agi-8c [f29919] · DG5 DG6 DOWN |
 
 ## §1 Plan
 ```
@@ -46,18 +46,17 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-sm9a (pi-free): ALL 4 review stages died "Provider returned an empty response" → the verdicts came from Opus Agent cross-checks (/tmp/sm9/cc_<key>.json)
-  1098822e1 busy index   ACCEPT 0 residues → DG4 closes g4.18.5.2.1
-  g4.18.5.2.2 (DG3 158a9fd06 de83b1d23 bb882a5f5)  ACCEPT (by hand) → DG1 told: close .2.1 + .2.2, outcomes, then g4.18.5.2
-  d8b22ae96 ruling (b)   accept_with_residue: R1 a body opening with `---` forges mint_id/type (rc 0) · R2 edited_by/thought_session silently overwritten → DG3 fixing, ONE commit
-  786c1c13a ramdisk      accept_with_residue: R1 no fallback when user systemd is unreachable · R2 --uninstall/--status blind · R3 GUARD_RAM_BUDGET not in config:guard · R4 goal body says agi-ram.slice → DG5; the guard-init apply (the Prime's) waits on R1-R3
-  595b9c099 W2c C        DG3 found 4 defects itself (gate_for_root plain dict, _missing_link_refusal, cli._evidence_corpus drops the wrapper, a resolver per call) → corrective building; my Opus cross-check is still running
-NEXT: on DG3's SHAs → review the W2c C corrective + the d8b22ae96 R1/R2 in ONE run (Opus until ~06:0xZ, then Sonnet subagents; pi-free is returning empties) · on DG5's → re-review, then batch to the Prime: guard-init apply + agi-work.slice stale (9302/8371 vs 6742/6067 MiB) + 13 agi-post scopes uncapped in app.slice (g6.41.1)
-  W2c C clean → full [ready] to DG1 → DG1 outcome → MY bundle-4 bigger_outcome → alive agi-e3 (vision:alive review)
-HEAL: restarted 05:06:37Z onto ff09c6101 (accepted, + 9ae1e26c3) · proof = no reaper oom-kill until ~06:07Z → DG1 build-vs-goal .5.3.1
-RULING alive (a): config:guard is the ONE home for boxkit numbers · .5.5.3 retired (46aee1e96) · DG4 successor re-parents .5.5.3.1 + .5.5.3.2 → .5.5, then .5.5.3.2 first
-BOARD: DG1 closes .2.1/.2.2 + sketches the g7.16.1.10 leaves (alive's placement; builds per file owner after each lane's current work) · DG2 alive's s22 + s28 verdicts · DG3 corrective + R1/R2 + g1.31 #24 #37 #12 · DG4 (rotated) re-parent → .5.5.3.2 · DG5 786 R1-R4 → 158(FIRST) 160 161 159 · DG6 g1.31 split (incl. .4.7 free-lane red) → claude-code route
-First command at wake: ListAgents
+SHAs: the scrub (08:0xZ) rewrote ALL history. Map old → new: grep ^<old> /data/scrub/union.git/filter-repo/commit-map. Below = NEW shas.
+RUNNING: Sonnet review of DG4 be11671cb (N2 residues R1-R3) → /tmp/sm9/cc_n3.json → accept → DG4 closes .5.5.8
+VERDICTS SENT post-resume: DG3 04d765c81 (B: 126 alias ids refused = REGRESSION, first · R1c: VT/FF/NEL/LS/PS before --- still forge) · DG4 2833cdae9 (158c crash-window orphan temp: adopt or sweep)
+BUNDLE 4 bigger_outcome (council-bundle-4-one-gate-one-commit-ids-never-move) OPEN 0.8: limit (3) = DG3's R1c (g4.18.1.6 open) · (4a) = g4.18.5.5 (DG4). When both land: ONE update citing DG2 verdict:dg2mvp-w2cD PROVED 0.86 → 0.9
+RE-LANE (owner 06:1xZ, DG5 + DG6 down):
+  DG3: B+R1c → anonymize email + hw classes (PRIVACY; the Prime: the tracked guard must match the box hook) + the Prime's rulings n109/n22 (no edited_by rewrite) · n6 (one placeholder cell) · n144 (usernames only in PATH context) → g7.33.20.2/.3 → g1.31.3.2 a/b + .3.1.1/.3.1.2 (mur-clean → merge --no-ff) → DG5.01 harvest (.4.1) → .5.4 close (name the 12 agi-ram worktrees) → .5.5.6 → .5.5.7 → g1.31.4.7 → 46 missed rows (.5.4.x .5.5.x, briefs) · .10.4
+  DG4: _commit_write round (fork + n83 + g4.18.5.5) → g1.31.5.1.1 hook RED → 158c → harvests g1.31.2 · .1.1 · .1.2 · .4.2.1 · .4.6.2 → g1.31.5.3 → heal-sweep fork (then the Prime restarts heal) → .4.5b/.4.5a/.4.6.1 → .4.2.2 → .4.4 + the workflow.py claude-code route → g4.18.5.6 · .10.1 .10.2 .10.6
+  DG1: .7 goal edits (SP findings 2+3: re-point .7.1.3 F; 6 horizon leaves) + the .10 Assigned re-points
+MERGE RULE (DG6's rounds): mur-clean only, --no-ff, one at a time, merge-tree check first → ONE [merge-up] per batch to me → gate + land (skill agi-master-gate)
+Meter at 0.37: rotate at 0.47 (bare rotate.py rotate after this card is committed)
+First command at wake: ListAgents + tmux list-windows
 ```
 ## §4 Traps
 | trap | rule |
@@ -74,6 +73,7 @@ First command at wake: ListAgents
 | a falsifier grep can pass on a spelling technicality | re-run it against the pre-fix SHA (113: `THOUGHT:(BEGIN|END)` dodged F2) |
 | preview vs write | every write.py fix: ask for dry == real on rc AND stderr (96, 125, 130) |
 | a bigger_outcome before the directors' outcomes | never: DG1 writes one OUTCOME per goal first |
+| two sessions share a name after rotations | map tmux window ids → ListAgents @N; send with `name [ref]` |
 | card stamps | read `date -u`, never estimate (DG1 stamped 09-30 at 23:5x 09-29) |
 
 ## §5 Verification: links.py links 5179 / 0 broken (23:5xZ 09-29) · per-round test counts are in each run's journal

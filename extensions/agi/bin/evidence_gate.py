@@ -161,7 +161,7 @@ def shadow_verdict_fields(fm: dict) -> list[str]:
     return [f for f in SHADOW_VERDICT_FIELDS if is_decisive_shadow(fm.get(f))]
 
 
-def is_node_id_shaped(value) -> bool:
+def is_node_id_shaped(value, address=None) -> bool:
     """Pure syntactic check: does `value` look like a `type:slug` node id?
 
     Says nothing about whether the id resolves to a real node — that needs
@@ -170,11 +170,12 @@ def is_node_id_shaped(value) -> bool:
     """
     if not isinstance(value, str):
         return False
-    import links   # goal:g4.18.6.3.3: a mint id names a node as its address does
-    return bool(NODE_ID_RE.match(value.strip())) or links.is_mint_id(value.strip())
+    # goal:g4.18.6.3.3: a mint id is judged by THE resolver, never a hex shape --
+    # `address` (a build_corpus corpus's own) turns it into its address twin first.
+    return bool(NODE_ID_RE.match((address or str)(value.strip())))
 
 
-def evidence_runs_violations(value) -> list:
+def evidence_runs_violations(value, corpus=None) -> list:
     """Entries in an `evidence_runs` list that are not node-id-shaped.
 
     This is the taxonomy check (H4c item 2): a bare word like `synthetic`,
@@ -188,7 +189,7 @@ def evidence_runs_violations(value) -> list:
     used.
     """
     if isinstance(value, (list, tuple, set)):
-        return [v for v in value if not is_node_id_shaped(v)]
+        return [v for v in value if not is_node_id_shaped(v, getattr(corpus, "address", None))]
     return []
 
 
@@ -298,7 +299,7 @@ def normalize_evidence_runs(value, corpus=None, self_id=None,
             return 0
         return sum(
             1 for v in value
-            if is_node_id_shaped(v)
+            if is_node_id_shaped(v, getattr(corpus, "address", None))
             and v.strip() in corpus
             and not _is_self_citation(getattr(corpus, "address", str)(v.strip()), self_id, allow_self)
         )
@@ -401,7 +402,7 @@ def apply_gate(
         evidence_runs, corpus=corpus, self_id=self_id,
         allow_self=(str(node_type or '').strip() == 'experiment'),
     )
-    violations = evidence_runs_violations(evidence_runs)
+    violations = evidence_runs_violations(evidence_runs, corpus)
     res = GateResult(
         verdict=verdict, original=verdict, evidence_runs=runs,
         taxonomy_violations=violations,

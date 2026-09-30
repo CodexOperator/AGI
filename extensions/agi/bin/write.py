@@ -1222,6 +1222,62 @@ def _read_node_fm(root, node_id):
         return None
 
 
+_NODE_ID_RE = re.compile(r"^[A-Za-z][\w.-]*:\S+$")
+_ID_ROW_RE = re.compile(r"^id[ \t]*:[ \t]*(.*?)[ \t]*$")
+
+
+def _own_id_refusal(root, node_id: str) -> str | None:
+    """goal:g7.33.20 -- the READ-time check, ONCE, for every verb: a node whose
+    own `id` row is not a valid node id (unparseable, not `type:slug`, or not the
+    id its file path derives) refuses BEFORE any verb runs, naming the file, the
+    line of the row, the bad value, the id the path derives and the repair.
+
+    Only a DIRECT path hit (`nodes/<type>/<slug>.md` for the asked id) has a
+    path-derived id to disagree with; a file found by its frontmatter scan is
+    found BY its row. A node whose row is valid reads exactly as before (None),
+    even when its frontmatter is unparseable for another reason.
+    """
+    path = node_writer.find_node_file(root, node_id)
+    if path is None or path.suffix != ".md":
+        return None
+    prefix, _, slug = node_id.partition(":")
+    direct = path.stem == slug and path.parent.name in (
+        prefix.strip(), node_writer.canonical_node_type(prefix))
+    derived = f"{path.parent.name}:{path.stem}" if direct else node_id
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    parts = frontmatter.split_frontmatter(text)
+    if parts is None:
+        return None
+    line, raw = None, None
+    for i, ln in enumerate(parts[0].split("\n")):
+        m = _ID_ROW_RE.match(ln)
+        if m:
+            line, raw = i + 2, m.group(1)
+            break
+    parsed = frontmatter.read_frontmatter(text)
+    bad = None
+    if parsed is not None and "id" in parsed:
+        val = parsed["id"]
+        if not isinstance(val, str) or not _NODE_ID_RE.match(val) or (
+                direct and val != derived):
+            bad = val
+    elif parsed is None and raw is not None:
+        val = raw.strip("\"'")
+        if not _NODE_ID_RE.match(val) or (direct and val != derived):
+            bad = raw
+    if bad is None:
+        return None
+    return (f"{path}:{line if line is not None else '?'}: this node's own `id` row "
+            f"is broken -- {bad!r} is not the node id its file path derives "
+            f"({derived!r}); nothing was read or written. Repair by hand: restore "
+            f"line {line if line is not None else '(the id row)'} of {path} to "
+            f"`id: {derived}` -- the mint_id is kept, no verb touches it -- then "
+            f"re-run")
+
+
 def _master_sensei_templates_refusal(root, schema, actor, set_fm, unset_fm,
                                      where: str):
     """The master-sensei templates carve-out (PRIME RULING 2026-09-11,
@@ -1563,12 +1619,16 @@ def _ring_pubkey_for_post(root):
 #: ``node`` key meant one signature authorised removing ANY key from X).
 NODE_KEY = "_node"
 
-#: The removed-marker an UNSET key carries in the signed decision, so a
-#: signature authorising "unset k" is DISTINCT in the bytes from one
-#: authorising "set k: <value>" (defect 1: the quorum must cover the keys
-#: being REMOVED, not the set keys alone -- an unset-only edit previously
-#: demanded a quorum whose bytes covered nothing).
-UNSET_MARKER = "<unset>"
+#: The reserved decision key the UNSET keys ride under in the signed
+#: decision, so a signature authorising "unset k" is DISTINCT in the bytes
+#: from one authorising "set k: <value>" (defect 1: the quorum must cover the
+#: keys being REMOVED, not the set keys alone -- an unset-only edit previously
+#: demanded a quorum whose bytes covered nothing). g1.31 #37: it was a VALUE,
+#: `k: "<unset>"`, and json_field passes a str through, so `unset k` and
+#: `set k <unset>` signed the SAME bytes. A key no caller may set or unset
+#: (refused by name, like NODE_KEY) cannot collide with any set value, and
+#: the literal string `<unset>` stays a legal value.
+UNSET_KEY = "_unset"
 
 
 def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
@@ -1576,8 +1636,9 @@ def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
     """The FULL config-write decision fields a ring's signatures cover: the
     node id (under the reserved NODE_KEY a caller's set_fm can never dispose)
     AND every key being set AND every key being unset, each value
-    string-serialized by rings.json_field (an unset key carries UNSET_MARKER,
-    so "unset k" is distinct in the bytes from "set k: <value>"). The sign
+    string-serialized by rings.json_field (the unset keys ride, sorted, under
+    the reserved UNSET_KEY, so "unset k" is distinct in the bytes from
+    "set k: <value>" for EVERY value, the literal `<unset>` too). The sign
     side, the gate, and the persisted record all use these same bytes.
     FRESH (kid B): the returned dict carries the reserved ``_fresh``
     (ts|nonce) so a persisted config-write quorum does NOT replay across
@@ -1602,6 +1663,13 @@ def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
             f"BOTH set_fm and unset_fm; REFUSED by name so the quorum never "
             f"signs one value while the write applies another (RUNG 2b "
             f"residue)")
+    for k in [*(set_fm or {}), *(unset_fm or [])]:
+        if k == UNSET_KEY:   # g1.31 #37: the unset carrier is never a caller key
+            raise EditError(
+                f"config-row write to {where}: the reserved decision key "
+                f"{UNSET_KEY!r} (which carries the keys a ring quorum "
+                f"authorises REMOVING) is REFUSED as a set or unset key so "
+                f"a caller's key cannot forge or hide an unset (g1.31 #37)")
     fields = {NODE_KEY: _rings.json_field(where)}  # _node: never displaced
     for k in (set_fm or {}):
         if k == NODE_KEY:
@@ -1624,7 +1692,8 @@ def _config_write_fields(where, set_fm=None, unset_fm=None, *, ts=None,
                 f"config-row write to {where}: the reserved freshness key "
                 f"{_rings.FRESH_KEY!r} is REFUSED as an unset key so it cannot "
                 f"displace the ts|nonce a ring quorum covers (RUNG 2b residue)")
-        fields[k] = _rings.json_field(UNSET_MARKER)
+    if unset_fm:   # g1.31 #37: ONE reserved field, sorted + deduped (order never signs)
+        fields[UNSET_KEY] = _rings.json_field(sorted(set(unset_fm)))
     return _rings.fresh_fields(fields, ts=ts, nonce=nonce)
 
 
@@ -2613,6 +2682,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # exist after the splice; `_enforce_written_by` admitted the writer on
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
+    if body is not None:   # goal:g4.18.1.6 R1: one refusal for every body writer, dry and real alike
+        _refusal = _body_opens_frontmatter_refusal(root, edit.node_id, body)
+        if _refusal:
+            raise EditError(_refusal)
 
     # goal:g7.16.1.2.6 -- `set active` wakes that formation's parked nodes. The
     # carrier grep runs BEFORE the write and fails CLOSED (council C1 on bundle
@@ -2630,7 +2703,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         try:
             carriers = rotation_record.parked_carriers(root, wake_goal) if wake_goal else []
         except rotation_record.GrepError as exc:
-            raise EditError(f"set active refused: the parked-carrier grep for parked:{wake_goal} "
+            raise EditError(f"set active refused: the parked-carrier grep for {rotation_record.parked_tag(wake_goal)} "
                             f"failed ({exc}); nothing written -- the wake cannot be delivered")
 
     if dry_run:   # every refusal above has run; nothing is written
@@ -2657,14 +2730,15 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     goal = wake_goal
     if res.status != node_writer.REJECTED:
         for nid, _f, tags in carriers:
+            ptag = rotation_record.parked_tag(goal)   # goal:g1.31.5.2: the ONE spelling, rotation_record's
             try:
                 w = node_writer.update_node(root, nid, set_fm={
-                    "tags": [t for t in tags if t != f"parked:{goal}"],
+                    "tags": [t for t in tags if t != ptag],
                     PROVENANCE_ACTOR: actor or _default_actor()}, log_extra=_log_provenance(actor))
             except OSError as exc:  # one carrier's failed write never aborts the rest
                 w = node_writer.NodeWrite(status=node_writer.REJECTED, node_id=nid, reason=str(exc))
-            print(f"unpark REJECTED {nid} (parked:{goal}): {w.reason}" if w.status == node_writer.REJECTED
-                  else f"unparked {nid} (parked:{goal})", file=sys.stderr)
+            print(f"unpark REJECTED {nid} ({ptag}): {w.reason}" if w.status == node_writer.REJECTED
+                  else f"unparked {nid} ({ptag})", file=sys.stderr)
     return res
 
 
@@ -2786,6 +2860,11 @@ def _resolve_sub(root, edit: Edit) -> None:
         if not old_fm or new_fm is None or set(old_fm) != set(new_fm):
             raise EditError(f"sub would break frontmatter in {node_label} -- "
                             f"nothing written")
+        if old_fm.get("id") != new_fm.get("id"):   # goal:g7.33.20: by name, before the class
+            raise EditError(f"sub would rewrite {node_label}'s own `id` row "
+                            f"({old_fm.get('id')!r} -> {new_fm.get('id')!r}); "
+                            f"a node's id is its identity and no verb changes it "
+                            f"-- nothing written")
         if any(old_fm.get(k) != new_fm.get(k) for k in PROTECTED):
             raise EditError("sub cannot change id/mint_id/type/scaffold_hash "
                             "-- nothing written")
@@ -3172,6 +3251,85 @@ _CONTRACT_RE = re.compile(r"^<!--[ \t]*BUILD-CONTRACT:BEGIN\b.*?^<!--[ \t]*BUILD
                           re.DOTALL | re.MULTILINE)
 
 
+def _body_opens_frontmatter_refusal(root, node_id: str, body: str) -> str | None:
+    """goal:g4.18.1.6 R1: update_node's assemble_node ABSORBS a `---` YAML block that
+    opens the body into the frontmatter (later keys win), so a body -- from a node
+    patch, `replace body`, `body_patch`, `sub` -- opening with `mint_id: x` / `type: y`
+    rows would forge them past the row gates. Refused by name, before any write, unless
+    the node's CURRENT body already opens with that same block (an edit elsewhere in
+    such a body is not this forgery)."""
+    # R1b: the next write re-reads with universal newlines, so a CRLF / lone-CR opener
+    # IS an LF opener by then -- judge the body as that reader will see it (ONE recognizer).
+    body = body.replace("\r\n", "\n").replace("\r", "\n")
+    rows, rest, _ = node_writer._absorb_leading_frontmatter({}, body)
+    if rest == body:
+        return None
+    try:
+        from graph_core.persistence import frontmatter as _fmr
+        path = node_writer.find_node_file(root, node_id)
+        cur = _fmr.load_node_file(path).body if path is not None else ""
+    except Exception:
+        cur = ""
+    if cur and node_writer._absorb_leading_frontmatter({}, cur)[0] == rows:
+        return None
+    return (f"refused: the body of {node_id} would OPEN with a `---` frontmatter-like block, which "
+            f"the writer absorbs into the node's frontmatter rows (mint_id / type / parents ...) "
+            f"past the row gates -- indent or fence it, or set the rows with `set`; nothing written")
+
+
+_ONLY_FINAL_NEWLINE = "ONLY the missing final newline"
+
+
+def _canonical_changes(applied: str, canon: str) -> list[str]:
+    """goal:g4.18.1.6 R4: NAME what the canonical render changes in `applied` -- the
+    missing final newline (690 of 746 non-canonical live nodes differ by nothing else),
+    dropped frontmatter comments, key order, the quoting/spelling of a named key, body
+    whitespace. Never empty for applied != canon (a last `other` catches the rest)."""
+    if canon == applied + "\n":
+        return [_ONLY_FINAL_NEWLINE]
+    out: list[str] = []
+    if not applied.endswith("\n"):
+        out.append("the missing final newline")
+    elif applied.endswith("\n\n"):
+        out.append("extra blank line(s) at the end of the file")
+
+    def split(text):   # (frontmatter lines, body) of a `---` ... `---` node file
+        ls = text.split("\n")
+        if ls and ls[0] == "---" and "---" in ls[1:]:
+            i = ls.index("---", 1)
+            return ls[1:i], "\n".join(ls[i + 1:]).rstrip("\n")
+        return [], text.rstrip("\n")
+
+    def blocks(fm_lines):   # top-level key -> its lines (comments and blanks leave no key)
+        keys, cur = {}, None
+        for ln in fm_lines:
+            if ln.strip().startswith("#") or not ln.strip():
+                continue
+            if not ln[:1].isspace() and ln[:2] != "- ":
+                cur = ln.split(":", 1)[0].strip("\"'")
+                keys.setdefault(cur, []).append(ln)
+            elif cur is not None:
+                keys[cur].append(ln)
+        return keys
+    afm, abody = split(applied)
+    cfm, cbody = split(canon)
+    if any(ln.strip().startswith("#") for ln in afm):
+        out.append("frontmatter comment(s) dropped")
+    ab, cb = blocks(afm), blocks(cfm)
+    if list(ab) != list(cb) and sorted(ab) == sorted(cb):
+        out.append("key order")
+    for k in cb:
+        if k in ab and ab[k] != cb[k]:
+            if any(" #" in ln for ln in ab[k]) and not any(" #" in ln for ln in cb[k]):
+                if "frontmatter comment(s) dropped" not in out:
+                    out.append("frontmatter comment(s) dropped")
+            else:
+                out.append(f"quoting/spelling of {k!r}")
+    if abody != cbody:
+        out.append("body whitespace")
+    return out or ["formatting (see re-render)"]
+
+
 def _patch_the_node_itself(root, edit: Edit) -> None:
     """goal:g4.18.1.6 (owner 09-30: "The node location just becomes the node
     itself."): a `patch` on a node with NO payload_ref applies to the node file
@@ -3203,6 +3361,10 @@ def _patch_the_node_itself(root, edit: Edit) -> None:
     ofm, nfm = old.frontmatter, new.frontmatter
     for k in sorted(set(ofm) | set(nfm)):   # SM 150: every row `set`/`unset` would judge, judged alike
         if ofm.get(k) != nfm.get(k) or (k in ofm) != (k in nfm):
+            if k in (PROVENANCE_ACTOR, PROVENANCE_SESSION):   # the writer's own stamp overwrites it: never a silent discard
+                raise EditError(f"patch: {k!r} is the writer's own provenance stamp (submit sets it from "
+                                f"--actor/--session on every write), so a patch cannot set or remove it "
+                                f"-- nothing written")
             refusal = _row_refusal(k, nfm.get(k)) if k in nfm else (
                 f"{k!r} may not be unset — see `set`." if k in PROTECTED else None)
             if refusal:
@@ -3217,10 +3379,13 @@ def _patch_the_node_itself(root, edit: Edit) -> None:
         raise EditError("patch would leave the THOUGHT malformed: rewrite it with the `thought` verb -- nothing written")
     canon = node_writer._serialize_node(node_writer.render_frontmatter(nfm), new.body)
     if canon != applied:   # council ruling on SM 154: one serializer, fail-closed, never a silent discard
+        changes = _canonical_changes(applied, canon)
         drift = [ln for ln in difflib.unified_diff(applied.split("\n"), canon.split("\n"), lineterm="", n=0)
                  if ln[:1] in "+-" and ln[:3] not in ("+++", "---")][:4]
-        raise EditError(f"patch result is not in the canonical form, so it would not land as written "
-                        f"(re-render: {drift}): run `write.py {edit.node_id} canonicalize` first, then "
+        raise EditError(f"patch result is not in the canonical form, so it would not land as written: the "
+                        f"canonical render changes {'; '.join(changes)}"
+                        + ("" if changes == [_ONLY_FINAL_NEWLINE] else f" (re-render: {drift})")
+                        + f": run `write.py {edit.node_id} canonicalize` first, then "
                         f"re-cut the diff -- the canonical form drops frontmatter comments and "
                         f"non-significant quoting; nothing written")
     edit.set_fm.update({k: v for k, v in nfm.items() if ofm.get(k) != v})
@@ -3340,6 +3505,23 @@ def _baseline_node_text(root, node_id: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _strip_own_h1(node_type: str, slug: str, body: str | None) -> str | None:
+    """goal:g7.33.20: `write_node` prepends the node's `# <id>` heading to ANY
+    supplied body, so a body whose first line is already `# <id>` landed TWO H1s
+    (140 hypothesis + 56 experiment nodes measured 09-30). Strip that one leading
+    heading (and the blank lines after it): dry and real both call this."""
+    if not body:
+        return body
+    ids = {f"{node_type}:{slug}",
+           f"{node_writer.canonical_node_type(node_type)}:{slug}"}
+    for nid in ids:
+        m = re.match(r"(?:[ \t]*\r?\n)*# " + re.escape(nid) + r"[ \t]*\r?(?:\n|\Z)"
+                     r"(?:[ \t]*\r?\n)*", body)
+        if m:
+            return body[m.end():]
+    return body
+
+
 def create(root, node_type: str, slug: str, parents: list[str], *,
            set_fm: dict | None = None, payload: str | None = None,
            body: str | None = None,
@@ -3385,7 +3567,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
 
     res = node_writer.write_node(root, node_type, slug, parents,
                                  extra_fm=extra or None, bypass=bypass,
-                                 body=body,
+                                 body=_strip_own_h1(node_type, slug, body),
                                  log_extra=_log_provenance(actor))
     if res.rejected or not res.written:
         if created_file is not None:
@@ -3619,7 +3801,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  parents  {parents or '(none)'}")
             print(f"  payload  {args.payload or answers.get('payload') or ''}")
             if args.body_file is not None:
-                print(f"  body-file {args.body_file}")
+                _stripped = ""
+                try:   # dry == real: say the leading `# <id>` real would strip
+                    _bf = Path(args.body_file).read_text(encoding="utf-8")
+                    if _strip_own_h1(script, slug, _bf) != _bf:
+                        _stripped = (f" (leading '# {script}:{slug}' stripped: "
+                                     "create adds the one H1)")
+                except (OSError, UnicodeDecodeError):
+                    pass
+                print(f"  body-file {args.body_file}{_stripped}")
             elif answers.get("body") is not None:
                 print("  body     (from --answers)")
             for k, v in set_fm.items():
@@ -3703,6 +3893,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ERR: no node carries mint id {args.node_id}", file=sys.stderr)
             return 2
         args.node_id = hit[0]
+    _own_id = _own_id_refusal(root, args.node_id)   # goal:g7.33.20: ONE read-time gate, every verb
+    if _own_id:
+        print(f"ERR: {_own_id}", file=sys.stderr)
+        return 2
     edit = Edit(node_id=args.node_id)
     try:
         for name, verb_args in parse_script(args.script):
@@ -4020,6 +4214,9 @@ def _commit_wait_s(root) -> float:
         return 30.0
 
 
+_COMMIT_CELL_WARNED: set = set()   # config paths already warned about, this process
+
+
 def _commit_message(root, node_id: str, actor: str = "") -> str:
     """goal:g4.18.5.2.2 -- a write's commit message, from the ONE cell
     `write.commit_message` (+ `write.commit_actor`) in the project's
@@ -4032,8 +4229,16 @@ def _commit_message(root, node_id: str, actor: str = "") -> str:
         except (OSError, ValueError, AttributeError):
             continue
         if cell.get("commit_message"):
-            by = cell.get("commit_actor", "").format(actor=actor) if actor else ""
-            return cell["commit_message"].format(node_id=node_id, actor=by)
+            try:   # a bad cell (`{nope}`, a lone brace) must not strand a node already written
+                by = cell.get("commit_actor", "").format(actor=actor) if actor else ""
+                return cell["commit_message"].format(node_id=node_id, actor=by)
+            except (KeyError, ValueError, IndexError, AttributeError, TypeError) as exc:
+                if str(cfg) not in _COMMIT_CELL_WARNED:   # once per process, naming the cell
+                    _COMMIT_CELL_WARNED.add(str(cfg))
+                    print(f"WARN: {cfg}: write.commit_message / write.commit_actor is not a valid "
+                          f"template ({type(exc).__name__}: {exc}); the commit message is the node id",
+                          file=sys.stderr)
+                return node_id
     return node_id
 
 

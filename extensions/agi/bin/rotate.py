@@ -1891,13 +1891,15 @@ def post_launch_lock(root: Path, post: str):
 
 #: goal:g7.16.1.7.1.1.4 -- the callers of the ONE stand-up verb.
 STAND_UP_MODES = ("spawn", "rotate", "recover", "restart")
-#: goal:g7.16.1.7.1.4 -- the modes `stand_up` keys (`ensure_post_key`): a
-#: spawn keys in its ONE seating commit (`_first_seating_key`), a rotation in
-#: rotate-self (`_rotate_first_key`); recover and restart have no key step.
-KEYED_BY_STAND_UP = ("recover", "restart")
+#: goal:g7.16.1.7.1.4 (hypothesis:stand-up-verb-keys-every-mode-through-
+#: key-template) -- `stand_up` keys EVERY mode through `ensure_post_key`; the
+#: one exception is a body that keys the row itself (`cmd_spawn`: its ONE
+#: seating commit carries the cells via `_first_seating_key`, same template).
+KEYED_BY_STAND_UP = STAND_UP_MODES
 
 
-def stand_up(root: Path, post: str, body, *, mode: str):
+def stand_up(root: Path, post: str, body, *, mode: str,
+             keyed_in_body: bool = False):
     """goal:g7.16.1.7.1.1.4 -- THE one stand-up of a post: its launch lock
     around `body()`, which resolves (resume on a transcript, else fresh),
     launches through `spawn_window` / `stand_up_launch` and writes the row.
@@ -1906,7 +1908,8 @@ def stand_up(root: Path, post: str, body, *, mode: str):
     The ONLY taker of `post_launch_lock` (a flock is per open file: a nested
     take of the same post would refuse itself). Returns `(True, body())`, or
     `(False, reason)` when another stand-up of the post holds the lock --
-    named once on stderr, nothing launched."""
+    named once on stderr, nothing launched. The post is keyed from
+    key_template first (`ensure_post_key`) unless `keyed_in_body`."""
     if mode not in STAND_UP_MODES:
         raise ValueError(f"stand_up: unknown mode {mode!r}")
     with post_launch_lock(root, post) as held:
@@ -1914,9 +1917,18 @@ def stand_up(root: Path, post: str, body, *, mode: str):
             why = f"launch lock held: another stand-up of {post} is in flight"
             print(f"ERR: {mode} refused: {why}", file=sys.stderr)
             return False, why
-        if mode in KEYED_BY_STAND_UP and (note := ensure_post_key(root, post)):
+        if (mode in KEYED_BY_STAND_UP and not keyed_in_body
+                and (note := ensure_post_key(root, post))):
             print(note, file=sys.stderr)
         return True, body()
+
+
+def _stand_up_key_plan(root: Path, post: str) -> str:
+    """A dry stand-up's key line: the SAME decision `stand_up` would take
+    (`ensure_post_key(dry_run=True)`), printed, nothing written."""
+    if (note := ensure_post_key(root, post, dry_run=True)):
+        print(note, file=sys.stderr)
+    return note
 
 
 def stand_up_launch(root: Path, name: str, shell_cmd: str,
@@ -2312,7 +2324,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     if seat is None or root is None or getattr(args, "dry_run", False):
         return _cmd_spawn(args, root)
     held, out = stand_up(root, seat, lambda: _cmd_spawn(args, root),
-                         mode="spawn")
+                         mode="spawn", keyed_in_body=True)
     return out if held else 1
 
 
@@ -2621,7 +2633,9 @@ def _cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # clause (3): the dry-run PLAN names the first key this seating would
         # mint -- the ONE `would key <seat>` line -- and mints / writes
         # NOTHING (the seating writes below never run on a dry-run).
-        _first_seating_key(root, seat, dry_run=True)
+        _cells, _note = _first_seating_key(root, seat, dry_run=True)
+        if _note:  # a keyed row with no key file: the remint plan line
+            print(_note)
 
     if not args.dry_run:
         print(f"spawned {name!r} in tmux session {tmux_session!r}")
@@ -3476,6 +3490,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     # goal:g7.16.1.7.1.1.4: the loop's successor launch is a
     # `stand_up(mode="rotate")` keyed on the seat (else the successor name).
     if args.dry_run:
+        _stand_up_key_plan(root, getattr(args, "seat", None) or name)
         rc, _ = _launch_successor()
     else:
         held, out = stand_up(root, getattr(args, "seat", None) or name,
@@ -5340,6 +5355,7 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
         # goal:g7.16.1.7.1.1.4: a seat's first seating is a
         # `stand_up(mode="spawn")`; a dry run launches nothing, takes no lock.
         if args.dry_run:
+            _stand_up_key_plan(root, name)
             rc, _ = _launch_seat()
         else:
             held, out = stand_up(root, name, _launch_seat, mode="spawn")
@@ -7016,17 +7032,10 @@ def _first_seating_key(root: Path, seat: str,
     tmpl = key_template(root)
     scheme = str(row.get("sig_scheme") or tmpl.get("scheme")
                  or send.seatsig.DEFAULT_SCHEME)
-    minted = send._mint_seat_key(root, seat, scheme)
-    verb = "minted its first key"
-    if minted is None:
-        found = (_existing_seat_key(send, root, seat)
-                 if tmpl.get("existing_key") == "adopt" else None)
-        if found is None:
-            return {}, ""
-        (scheme, pub), verb = found, "adopted its existing key"
-        _path = send._seat_key_path(root, seat)
-    else:
-        _path, pub = minted
+    keyed = _template_key(send, root, seat, scheme, tmpl)
+    if keyed is None:
+        return {}, ""
+    scheme, pub, _path, verb = keyed
     return ({"pubkey": pub.hex(), "sig_scheme": scheme,
              "enc_scheme": row.get("enc_scheme") or "none"},
             f"[seating] seat {seat!r} was unkeyed: {verb} at "
@@ -17839,11 +17848,16 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
                 f"box {own}; would remint (witness {witness}) -- NOTHING done")
     if refusal:
         return _key_finding(root, seat, refusal)
-    # run-27 residue 158: the key is minted IN MEMORY and its file lands only
-    # after the row names it, so a refused row write leaves no new file and the
-    # next pass retries -- row and key file are never out of step.
+    # run-27 residues 158 + 158b: the key is STAGED (hidden 0600 temp) before
+    # the row names it and renamed into place after; a refused row write or a
+    # failed rename unlinks the temp (and restores the row), so a crash leaves
+    # at worst an orphan temp, never a row naming a key that does not exist.
     scheme = row.get("sig_scheme") or tmpl.get("scheme") or send.seatsig.DEFAULT_SCHEME
     priv, pub = send.seatsig.get(scheme).keygen()
+    try:
+        tmp = _stage_seat_key(send, root, seat, scheme, priv)
+    except OSError as exc:
+        return f"seat {seat!r}: remint held -- key file not staged ({exc}); row untouched"
     old = str(row.get("pubkey"))
     entry = {"pub": old, "fp": send.seatsig.fingerprint(bytes.fromhex(old)),
              "signed": False, "reason": "key file absent on own box",
@@ -17855,10 +17869,26 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     try:
         if not _write_identity_cells(root, seat=seat, actor=seat,
                                      role=str(row.get("role") or ""), cells=cells):
+            tmp.unlink(missing_ok=True)
             return f"seat {seat!r}: remint held -- row write not admitted; no key file written"
     except Exception as exc:  # noqa: BLE001
+        tmp.unlink(missing_ok=True)
         return f"seat {seat!r}: remint held -- row write not admitted ({exc}); no key file written"
-    _put_seat_key(send, root, seat, scheme, priv)
+    try:
+        _place_seat_key(tmp, send._seat_key_path(root, seat))
+    except OSError as exc:
+        tmp.unlink(missing_ok=True)
+        back = {"pubkey": old, "sig_scheme": row.get("sig_scheme") or scheme,
+                "enc_scheme": row.get("enc_scheme") or "none",
+                "key_history": list(row.get("key_history") or [])}
+        try:
+            restored = bool(_write_identity_cells(
+                root, seat=seat, actor=seat, role=str(row.get("role") or ""),
+                cells=back))
+        except Exception:  # noqa: BLE001
+            restored = False
+        return (f"seat {seat!r}: remint held -- key file not placed ({exc}); "
+                f"row {'restored' if restored else 'NOT restored'} to {entry['fp']}")
     note = (f"seat {seat!r}: key file absent on own box {own}; reminted "
             f"{send.seatsig.fingerprint(pub)}, old key {entry['fp']} retired "
             f"UNSIGNED (witness {witness})")
@@ -17875,20 +17905,51 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     return note
 
 
-def _put_seat_key(send, root: Path, seat: str, scheme: str, priv: bytes) -> Path:
-    """The seat's key file in send's shape (0600), written to a temp file and
-    renamed into place: never a half-written key."""
+def _template_key(send, root: Path, seat: str, scheme: str, tmpl: dict):
+    """The ONE key step of an unkeyed row (seating and every stand-up):
+    mint through `send._mint_seat_key`, or -- a key file already there --
+    adopt it when the template says `existing_key: adopt`. Returns
+    `(scheme, pub, path, verb)`, or None (the key file is left alone)."""
+    minted = send._mint_seat_key(root, seat, scheme)
+    if minted is not None:
+        path, pub = minted
+        return scheme, pub, path, "minted its first key"
+    found = (_existing_seat_key(send, root, seat)
+             if tmpl.get("existing_key") == "adopt" else None)
+    if found is None:
+        return None
+    return (*found, send._seat_key_path(root, seat), "adopted its existing key")
+
+
+def _place_seat_key(tmp: Path, path: Path) -> None:
+    """The staged key renamed into place (atomic, same directory)."""
+    os.replace(tmp, path)
+
+
+def _stage_seat_key(send, root: Path, seat: str, scheme: str, priv: bytes) -> Path:
+    """The seat's key in send's shape, written to a hidden temp file (0600,
+    O_EXCL, a unique name -- a same-process retry never trips on a leftover)
+    beside the key path; the caller renames it into place once the row names
+    it, or unlinks it. A failed write unlinks its own temp."""
+    import tempfile
     path = send._seat_key_path(root, seat)
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
-    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, send.SEAT_KEY_MODE)
-    with os.fdopen(fd, "w") as f:
-        f.write(json.dumps({"scheme": scheme, "priv_hex": priv.hex()}))
-    os.replace(tmp, path)
-    return path
+    fd, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp",
+                                dir=path.parent)
+    tmp = Path(name)
+    try:
+        os.fchmod(fd, send.SEAT_KEY_MODE)
+        with os.fdopen(fd, "w") as f:
+            f.write(json.dumps({"scheme": scheme, "priv_hex": priv.hex()}))
+            f.flush()
+            os.fsync(f.fileno())
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
+    return tmp
 
 
-def ensure_post_key(root: Path, post: str) -> str:
+def ensure_post_key(root: Path, post: str, dry_run: bool = False) -> str:
     """goal:g7.16.1.7.1.4 -- every stand-up keys its post: the post's own
     config:posts row, when it names no pubkey, is keyed from `key_template`
     through `_rotate_first_key` (mint, or adopt an existing key file), row
@@ -17898,7 +17959,7 @@ def ensure_post_key(root: Path, post: str) -> str:
         import write as _w  # local: same dir (send.py pattern, no cycle)
         row = next((r for r in _w._load_seats(_shared_graph_root(root))
                     if r.get("name") == post), None)
-        return _rotate_first_key(root, None, post, row)
+        return _rotate_first_key(root, None, post, row, dry_run=dry_run)
     except Exception as exc:  # noqa: BLE001 -- see docstring
         return f"warn: {post!r} key not assigned ({exc})"
 
@@ -17949,18 +18010,10 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
         return (f"(dry-run) seat {seat!r} is unkeyed; would mint its first "
                 f"key at {send._seat_key_path(root, seat)} (0600) and write "
                 f"its pubkey cells -- NOTHING done")
-    minted = send._mint_seat_key(root, seat, scheme)
-    if minted is None:
-        # a key file already exists though the row is unkeyed: the template
-        # (goal:g7.16.1.7.1.4) adopts it -- its pubkey goes into the row --
-        # or, `existing_key: leave`, leaves it for the next pass.
-        found = _existing_seat_key(send, root, seat) if adopt else None
-        if found is None:
-            return ""
-        scheme, pub = found
-        _path, verb = send._seat_key_path(root, seat), "adopted its existing key"
-    else:
-        (_path, pub), verb = minted, "minted its first key"
+    keyed = _template_key(send, root, seat, scheme, tmpl)
+    if keyed is None:
+        return ""
+    scheme, pub, _path, verb = keyed
     note = (f"seat {seat!r} was unkeyed; {verb} at "
             f"{_path} (incremental fleet keying) -- "
             f"{send.seatsig.fingerprint(pub)}")

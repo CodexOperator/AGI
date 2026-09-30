@@ -22,6 +22,7 @@ sys.path.insert(0, str(SRC))
 
 import write  # noqa: E402
 import node_writer  # noqa: E402
+import frontmatter  # noqa: E402  # the ONE line-anchored boundary rule
 
 # The shipped self_row declaration — kept byte-for-byte in sync with
 # .agi/context/schemas/[config].md so the test pins the real schema.
@@ -51,15 +52,17 @@ ROWS = [
 ]
 
 
-def _write_seats_node(project, rows=None):
+def _write_seats_node(project, rows=None, alias=True):
+    """alias=True: the deprecated config:seats (seats.md); False: config:posts (posts.md)."""
     import yaml  # noqa: F401  (present in the engine env)
     d = project / "nodes" / ".geometry"
     d.mkdir(parents=True, exist_ok=True)
     body = "\n".join(f"  - {r!r}" for r in (rows if rows is not None else ROWS))
-    (d / "seats.md").write_text(
-        "---\nid: config:seats\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
-        "type: config\nparents:\n  - goal:g17\nseats:\n" + body +
-        "\n---\n\n# config:seats\n\nfixture body\n")
+    name = "seats" if alias else "posts"
+    (d / f"{name}.md").write_text(
+        f"---\nid: config:{name}\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
+        f"type: config\nparents:\n  - goal:g17\n{name}:\n" + body +
+        f"\n---\n\n# config:{name}\n\nfixture body\n")
 
 
 @pytest.fixture()
@@ -172,9 +175,18 @@ def test_seated_writer_own_signing_cells_still_refuse_other_rows(project):
 # config file that YAML-loads with one `name` per row.
 def test_b4_w1b2_a_row_write_leaves_one_loading_name_per_row(project):
     import yaml
+    # goal:g1.31.5.2 (n60): the live node is config:posts (nodes/.geometry/posts.md),
+    # not the deprecated seats.md alias; the result is read back through the ONE
+    # line-anchored boundary (frontmatter.split_frontmatter), never a bare split.
+    (project / "nodes/.geometry/seats.md").unlink()
+    _write_seats_node(project, alias=False)
     new = _clone_rows()
     new[1]["session_ref"] = "B4W1B2"
-    write.submit(project, _set_seats_edit(new), actor="sanctuary-director-4e")
-    text = (project / "nodes/.geometry/seats.md").read_text(encoding="utf-8")
-    rows = yaml.safe_load(text.split("---\n")[1])["seats"]
+    e = write.Edit("config:posts")
+    write.verb_set(e, "posts", _repr(new))
+    write.submit(project, e, actor="sanctuary-director-4e")
+    assert not (project / "nodes/.geometry/seats.md").exists()
+    text = (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
+    rows = yaml.safe_load(frontmatter.split_frontmatter(text)[0])["posts"]
     assert [r["name"] for r in rows] == [r["name"] for r in ROWS]
+    assert rows[1]["session_ref"] == "B4W1B2"

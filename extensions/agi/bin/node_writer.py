@@ -52,6 +52,7 @@ of them had been fixed.
 from __future__ import annotations
 
 import datetime
+import functools
 import hashlib
 import json
 import os
@@ -314,6 +315,20 @@ def _needs_quoting(sval: str) -> bool:
     return sval[0] in "\"'[{&*!|>%@`#-?:,"
 
 
+@functools.lru_cache(maxsize=8192)
+def _reads_back_as_other_type(sval: str) -> bool:
+    """True when the BARE spelling of a `str` would re-read (yaml.safe_load, the
+    reader every node goes through) as anything but that same `str`: '0.8' ->
+    float, 'yes' / 'true' -> bool, 'null' / '~' -> None, '1e3' / '0x1F' / '1:30' ->
+    number, '2026-09-30' -> date. goal:g4.18.1.6 R3: such a string keeps its quotes."""
+    import yaml
+    try:
+        back = yaml.safe_load(sval)
+    except yaml.YAMLError:
+        return True
+    return not (isinstance(back, str) and back == sval)
+
+
 def _scalar(v) -> str:
     """One frontmatter scalar, quoted if it needs to be.
 
@@ -341,6 +356,8 @@ def _scalar(v) -> str:
     # spaces, trim edge whitespace) is safe here, because a raw value that
     # carried a newline or edge whitespace would have been caught by the quote
     # triggers above. Empty reached the quote trigger, so it never lands here.
+    if isinstance(v, str) and _reads_back_as_other_type(raw):   # R3: a str never comes back a float/bool/None
+        return '"' + raw.replace("\\", "\\\\").replace('"', '\\"') + '"'   # no line break reaches here (_needs_quoting)
     return raw.replace("\n", " ").strip()
 
 
