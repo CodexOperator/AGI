@@ -474,8 +474,8 @@ def verb_row(edit: Edit, ref: str, source: str) -> Edit:
     index, not a counted offset, picks the range, so the offset guard skips.
 
     `row <top>.<key> <src|->` (BUILD1) addresses a NESTED frontmatter row
-    instead: `<src>` is the row's new YAML value, an EMPTY source removes the
-    row; resolved by `_resolve_fm_row` into `set_fm[<top>]`."""
+    instead: `<src>` is the row's new YAML value; resolved by `_resolve_fm_row` into `set_fm[<top>]`; `--remove` as
+    the source removes the row (an empty source refuses, SM 110)."""
     if re.fullmatch(r"[A-Za-z_][\w-]*\..+", ref) and not ref.startswith("name:"):
         if any(ref == seen for seen, _ in edit.fm_rows):
             raise EditError(f"row {ref} twice in one script")
@@ -517,7 +517,7 @@ def _row_range(body: str, row_ref: str) -> str:
 def _resolve_fm_row(root, edit: Edit) -> None:
     """BUILD1: each `row <top>.<key>` -> `set_fm[<top>]` = the node's `<top>`
     mapping with row `<key>` replaced by the source's YAML value (order kept),
-    or dropped when the source is empty. Rows apply IN ORDER onto one mapping,
+    or dropped when the source is `--remove`. Rows apply IN ORDER onto one mapping,
     so several rows of one script all land. Idempotent (main resolves it for
     its preview, submit again for an API caller). Refuses by EditError: `<top>`
     absent or not a mapping, `<key>` not a row of it, the same line setting or
@@ -540,21 +540,31 @@ def _resolve_fm_row(root, edit: Edit) -> None:
             raise EditError(f"row {ref}: {edit.node_id} has no {top} mapping")
         if key not in table:
             raise EditError(f"row {ref}: {top} has no row {key!r}")
+        if src == "--remove":   # SM 110: removal is explicit, never an empty source
+            tables[top] = {k: v for k, v in table.items() if k != key}
+            continue
         if src == "-":
+            if sum(x == "-" for x in [f for _, f in edit.fm_rows] + [
+                    edit.replace_from, edit.payload_from, edit.patch_from,
+                    edit.body_patch_from]) > 1:
+                raise EditError(f"row {ref}: stdin feeds ONE verb per script")
             text = sys.stdin.read()
         else:
             try:
                 text = Path(src).read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError) as exc:
                 raise EditError(f"row {ref}: cannot read {src}: {exc}")
-        if text.strip():
-            try:
-                value = yaml.safe_load(text)
-            except yaml.YAMLError as exc:
-                raise EditError(f"row {ref}: source is not YAML: {exc}")
-            tables[top] = {k: (value if k == key else v) for k, v in table.items()}
-        else:
-            tables[top] = {k: v for k, v in table.items() if k != key}
+        if not text.strip():
+            raise EditError(f"row {ref}: the source is empty -- to remove the row, "
+                            f"pass --remove as the source")
+        try:
+            value = yaml.safe_load(text)
+        except yaml.YAMLError as exc:
+            raise EditError(f"row {ref}: source is not YAML: {exc}")
+        refusal = _refuse_marker_value(ref, value)   # SM 111: the set/sub guard
+        if refusal:
+            raise EditError(refusal)
+        tables[top] = {k: (value if k == key else v) for k, v in table.items()}
     edit.set_fm.update(tables)
     edit.fm_row_resolved = True
 
@@ -719,7 +729,7 @@ VERB_EXAMPLES = {
     #: note/thought/body_patch (one body writer per submit). The rendered
     #: NOTES block below carries that rule into `-h`.
     "replace": "replace body 4:9 path/to/file",
-    "row": "row 3 f  |  row 2:1-3 f  |  row name:<NAME> f  |  row manifest.<key> value.yaml (empty = remove)",
+    "row": "row 3 f  |  row 2:1-3 f  |  row name:<NAME> f  |  row manifest.<key> value.yaml|--remove",
     "adopt": "adopt",
 }
 

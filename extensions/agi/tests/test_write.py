@@ -2477,25 +2477,23 @@ def test_build1_row_replaces_one_nested_frontmatter_row(project, tmp_path):
     assert list(yaml.safe_load(after.split("---\n")[1])["manifest"]) == ["a.py", "b.py:", "c.py"]
 
 
-def test_build1_row_empty_source_removes_the_row(project, tmp_path):
+def test_build1_row_remove_source_removes_the_row(project, tmp_path):
     node = _b1_node(project)
     before = node.read_text()
-    (tmp_path / "e.yaml").write_text("")
-    assert write.main(["hypothesis:h1", f"row manifest.b.py: {tmp_path / 'e.yaml'}", "--root", str(project)]) == 0
+    assert write.main(["hypothesis:h1", "row manifest.b.py: --remove", "--root", str(project)]) == 0
     assert _b1_changed(before, node.read_text()) == ["-  b.py::", "-    cli: b.py", "-    verb: x"]
 
 
 # DG4 00:0xZ: two rows in ONE script both land (a single slot kept only the last).
 def test_build1_two_rows_in_one_script_both_land(project, tmp_path, capsys):
     node = _b1_node(project)
-    (tmp_path / "e.yaml").write_text("")
     (tmp_path / "v.yaml").write_text("cli: c2.py\n")
-    assert write.main(["hypothesis:h1", f"row manifest.a.py {tmp_path / 'e.yaml'} && "
+    assert write.main(["hypothesis:h1", "row manifest.a.py --remove && "
                        f"row manifest.c.py {tmp_path / 'v.yaml'}", "--root", str(project)]) == 0, \
         capsys.readouterr().err
     man = yaml.safe_load(node.read_text().split("---\n")[1])["manifest"]
     assert man == {"b.py:": {"cli": "b.py", "verb": "x"}, "c.py": {"cli": "c2.py"}}
-    for script in (f"row manifest.b.py: {tmp_path / 'e.yaml'} && row manifest.b.py: {tmp_path / 'v.yaml'}",
+    for script in (f"row manifest.b.py: --remove && row manifest.b.py: {tmp_path / 'v.yaml'}",
                    f"row 1 {tmp_path / 'v.yaml'} && row 2 {tmp_path / 'v.yaml'}"):
         assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
 
@@ -2504,12 +2502,17 @@ def test_build1_row_refuses_and_writes_nothing(project, tmp_path, capsys):
     node = _b1_node(project)
     before = node.read_text()
     (tmp_path / "v.yaml").write_text("cli: z\n")
+    (tmp_path / "empty.yaml").write_text("")
+    (tmp_path / "fence.yaml").write_text("argv:\n  - \"a\\n---\\nb\"\n")
     for script in (f"row manifest.nope.py {tmp_path / 'v.yaml'}",          # no such row
                    f"row title.x {tmp_path / 'v.yaml'}",                    # not a mapping
                    f"row manifest.a.py {tmp_path / 'missing.yaml'}",        # unreadable source
-                   f"set manifest {{}} && row manifest.a.py {tmp_path / 'v.yaml'}"):  # set + row
+                   f"set manifest {{}} && row manifest.a.py {tmp_path / 'v.yaml'}",  # set + row
+                   f"row manifest.a.py {tmp_path / 'empty.yaml'}",                   # SM 110: empty never removes
+                   "row manifest.a.py - && row manifest.c.py -",                     # SM 110: one stdin per script
+                   f"row manifest.a.py {tmp_path / 'fence.yaml'}"):                  # SM 111: marker guard
         assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2, script
-        assert "ERR: row " in capsys.readouterr().err, script
+        assert "ERR: " in capsys.readouterr().err, script
     assert node.read_text() == before
 
 

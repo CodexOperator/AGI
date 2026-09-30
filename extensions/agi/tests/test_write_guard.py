@@ -793,6 +793,7 @@ def test_b4_w1b_a_stale_suite_lock_never_refuses(project):
     (project / ".agi" / "sessions" / "verify-suite.lock").write_text(f"{dead.pid}\n")
     g, head = _w1b(project)
     assert write.main(["hypothesis:h9", "set confidence 0.6", "--root", str(project)]) == 0
+    assert g("rev-list", "--count", f"{head}..HEAD").strip() == "1", "SM 109: a NEW commit landed"
     assert g("show", "--name-only", "--format=", "HEAD").split() == [".agi/nodes/hypothesis/h9.md"]
 
 
