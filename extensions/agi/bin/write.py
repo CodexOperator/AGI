@@ -261,27 +261,32 @@ def _refuse_marker_value(key: str, value) -> str | None:
 
 def verb_set(edit: Edit, key: str, value: str) -> Edit:
     """`set <key> <value>` — one frontmatter field."""
+    refusal = _row_refusal(key, _coerce(value))
+    if refusal:
+        raise EditError(refusal)
+    edit.set_fm[key] = _coerce(value)
+    return edit
+
+
+def _row_refusal(key: str, coerced) -> str | None:
+    """The row checks `set` runs, ONE definition (SM 150: a node patch runs them
+    too): a dotted key, a PROTECTED key, a marker-shaped value."""
     if "." in key:
         # hypothesis:l4-a-message-that-did-not-land...: a dotted key used to
         # land as a FLAT frontmatter literal (`comms.foo` as one key), which
         # no nested reader could ever find. Refuse by name instead: the
         # caller sets the parent mapping (key.split(".")[0]) as one object.
-        raise EditError(
+        return (
             f"cannot set {key!r}: dotted keys are not written as flat "
             f"frontmatter literals — set the parent mapping "
             f"{key.split('.', 1)[0]!r} as one object")
     if key in PROTECTED:
-        raise EditError(
+        return (
             f"{key!r} is identity or completion state and no verb may set it. "
             f"A mint id is assigned once (goal:g2.5); scaffold_hash is how "
             f"completion is detected, and edit mode is not a loophole in the "
             f"rule the kid brief already follows.")
-    coerced = _coerce(value)
-    refusal = _refuse_marker_value(key, coerced)
-    if refusal:
-        raise EditError(refusal)
-    edit.set_fm[key] = coerced
-    return edit
+    return _refuse_marker_value(key, coerced)
 
 
 def verb_unset(edit: Edit, key: str) -> Edit:
@@ -3171,9 +3176,12 @@ def _patch_the_node_itself(root, edit: Edit) -> None:
     diff = edit.patch_diff or Path(edit.patch_from).read_text(encoding="utf-8")
     new = _fmr._parse_md(apply_unified_diff(path.read_text(encoding="utf-8"), diff), ".md", True)
     ofm, nfm = old.frontmatter, new.frontmatter
-    bad = [k for k in ("id", "mint_id", "type") if ofm.get(k) != nfm.get(k)]
-    if bad:
-        raise EditError(f"patch would change {bad} of {edit.node_id}: identity rows never move -- nothing written")
+    for k in sorted(set(ofm) | set(nfm)):   # SM 150: every row `set`/`unset` would judge, judged alike
+        if ofm.get(k) != nfm.get(k) or (k in ofm) != (k in nfm):
+            refusal = _row_refusal(k, nfm.get(k)) if k in nfm else (
+                f"{k!r} may not be unset — see `set`." if k in PROTECTED else None)
+            if refusal:
+                raise EditError(f"patch: {refusal}")
     if _CONTRACT_RE.findall(old.body) != _CONTRACT_RE.findall(new.body):
         raise EditError("patch touches the BUILD-CONTRACT block, which is regenerated -- nothing written")
     def _stray(b):   # marker lines outside a well-formed block (_thought_marker_refusal's shape)
@@ -3681,6 +3689,17 @@ def main(argv: list[str] | None = None) -> int:
         except EditError as exc:
             print(f"ERR: {exc}", file=sys.stderr)
             return 2
+    # SM 151 + 155: `patch -` reads its diff HERE (once: SM 132), and a patch on a
+    # node with no payload_ref becomes its rows + body BEFORE the set gates and
+    # --ring-fields read edit.set_fm (submit's own call stays idempotent)
+    if edit.patch_from == "-":
+        # a diff can contain the doubled ampersand, so it rides stdin, like `payload -`
+        edit.patch_diff = sys.stdin.read()
+    try:
+        _patch_the_node_itself(root, edit)
+    except EditError as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 2
 
     # goal:g7.33.10 round B -- the SET half of the schema-checked-rows gate.
     # `edit.set_fm` is fully accumulated now (every `set` in the script has
@@ -3812,12 +3831,6 @@ def main(argv: list[str] | None = None) -> int:
         if _note:
             print(_note, file=sys.stderr)
         return 0
-
-    if edit.patch_from == "-":
-        # `patch -` reads the diff from stdin, the way `payload -` already
-        # does: a diff is bytes that can contain almost any character, so it
-        # cannot ride an `&&` script chunk (the doubled ampersand splits it).
-        edit.patch_diff = sys.stdin.read()
 
     # hypothesis:l4-replace-api-drops-source — ONE resolver, not a second
     # read. Delegate to the same function `submit` uses, so dry-run shows the
