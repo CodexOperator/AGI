@@ -2471,8 +2471,10 @@ def test_w1a_fix2_the_spliced_body_keeps_one_well_formed_thought(project, tmp_pa
 def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp_path):
     node, body = _w1c_node(project)
     (tmp_path / "r.txt").write_text("| write.py | 9 |\n")
-    for name in ("---", ":---:"):
-        assert write.main(["hypothesis:h1", f"row name:{name} {tmp_path / 'r.txt'}", "--root", str(project)]) == 2
+    assert write.main(["hypothesis:h1", f"row name:--- {tmp_path / 'r.txt'}", "--root", str(project)]) == 2
+    node.write_text(node.read_text().replace("|---|---|", "| :---: | --- |"))   # DG2: a real :---: row
+    assert write.main(["hypothesis:h1", f"row name::---: {tmp_path / 'r.txt'}", "--root", str(project)]) == 2
+    node.write_text(node.read_text().replace("| :---: | --- |", "|---|---|"))
     assert write.main(["hypothesis:h1", f"row name:alpha {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
     assert write.main(["hypothesis:h1", f"row name:write.py {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
     assert write._read_body_text(project, "hypothesis:h1") == body.replace("| alpha | 1 |", "| write.py | 9 |")
@@ -2580,7 +2582,6 @@ def test_w2b1_set_refuses_a_missing_id_by_name_with_creates_one_lookup(project, 
     assert set(walks) <= create_walk, "set grew a second lookup"
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W2b2: RED until DG3 routes create's gate through goal:g4.18.6.1's one index")
 def test_w2b2_create_walks_only_the_one_index_and_still_refuses_by_name(project, monkeypatch):
     import io
     import links
