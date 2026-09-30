@@ -44,13 +44,8 @@ LIVE   dg6-04 half a: DG3.42 kid a00-6821a1b9 DONE (9 items; 31 prod / 109 test 
        watcher: background task on the 3 above + inbox
 QUEUE  DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (RAM worktrees; F2 = zero new worktrees under .agi/worktrees: I made 4 on
        disk this gen, all 4 removed) -> goal:g7.16.1.5.5.6 (a PARENT) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
-FINDINGS (rows for goal:g7.33.19; HOLD: row 26 there is another post's uncommitted line -> write when clean)
-       a kid cannot commit a foreign node in a node-answer round (experiment:a00-f2101f34-dd2328)
-       adapters resolve_bin mis-prefixes a tilde-user bin cell with the current home (fails closed; experiment:a00-73aeae86-75e0f3)
-       a mur reviewer read a live DMI file and printed a board model (redacted; [red] to belam 09:3xZ)
-       mur reviewers print pre-rewrite shas + old->new pairs in verdict JSON: every focus says count only (done in dg6-04d)
-       test_sensei_wake_audit::TestSLO8WhosPrefix::test_item2_live_f2_whois_rederive RED on MAIN (live config:rotations facts collapsed 09-27)
-       DG3.42 parent let its kid pass the CEILING (31/30 prod, 109/80 test) -- disclosed, accepted; same shape as row 25
+FINDINGS written: goal:g7.33.19 rows 28-33 (da9f4a8a4b) -- foreign-node commit, resolve_bin tilde-user, mur read DMI, mur prints old ids,
+       sensei whois row RED on MAIN, parent ceiling overruns (with 25)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair into a node, test, commit or dm
 HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces it
 NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids
