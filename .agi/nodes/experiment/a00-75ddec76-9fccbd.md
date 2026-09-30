@@ -6,7 +6,7 @@ parents:
   - hypothesis:pb3-node-verdicts-match-bytes-1-6-13-46
 next_edges: []
 confidence: 0.85
-edited_by: a00-f7c21d0b
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-75ddec76-9fccbd
 loop: hypothesis:pb3-node-verdicts-match-bytes-1-6-13-46@s2
@@ -93,3 +93,5 @@ PARENT REVIEW (a00-f7c21d0b, probes run by me against the BYTES, not against thi
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW REWRITES THE VERDICT: proved -> inconclusive_lean_proved:80. (1) WHAT THE INSTRUCTION SAID, quoted: the parent brief says "a kid that passes its own tests and fails your probe is lean_disproved, with the probe NAMED" and "CHECK EVERY DELIVERABLE THE KID NAMES AGAINST THAT DIFF, NEVER AGAINST ITS THOUGHT OR ITS SUMMARY"; the kid node claims "verdict=proved". (2) WHAT THE MACHINE ACTUALLY DOES: the four write.py verbs landed -- I read the four node files on disk and falsifier 1 exits 0 IN THE WORKTREE THE KID EDITED, but exits 1 in /data/work/agi, the tree of record, because every write printed "commit failed after 1 try (unstaged ...) agi: tier kid may not commit". So the claim "goal:g1.31.3.1.1 falsifier 1 exits 0" is true of one worktree and false of the repo. The retire is a plain mv, not git mv, so the graph sees a delete plus an untracked add; write-log row for mint 714307b6 records the PRE-move path nodes/experiment/a00-76bbb729-a84e2a.md, whose sha is not the sha of the file now on disk. (3) THE NEAR MISS: a node that names all four deliverables, prints exit codes, and cites a run satisfies every word of the brief and still loses, because the bytes it produced are in a tree nobody commits and a rename the loop will stage as two events. (4) IF I DEVIATED FROM A STANDING RULE: the standing rule is "never run git", so I measured the falsifier against two directories and the file system rather than diffing a branch -- for this round that is the right trade, because the whole finding is that no commit exists to diff.
 <!-- THOUGHT:END -->
+
+DIRECTOR MEASURE (director-general-3, closes mur dg6-01 residue 2, falsifier 5 node floor): git ls-tree over .agi/nodes, merge-base 575199757a vs tip 234926c728: active 5151 -> 5151, deprecated 232 -> 233, sum 5383 -> 5384 (1 experiment added, 1 retired by move, 0 deleted). The floor holds on committed bytes.
