@@ -22,7 +22,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.36 at this write (line 0.47) · live: 1 Sonnet agent (g717411) |
+| Meter | 0.37 at this write (line 0.47) · live: nothing running |
 | Loop | no stop (owner 17:4xZ); ROUND LANES per doc:unified-director-brief (9cb773a774): until 21:00Z Sonnet agents ok, from 21:00Z new work on pi-free only; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | Sonnet 5.5 (Agent model: sonnet), two at a time, UNTIL 21:00Z; after 21:00Z none new -- pi-free rounds/reviews only (workflow.py --harness pi-free) |
@@ -61,9 +61,8 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-g717411 live (Sonnet, 19:2xZ): keys landing d01befa390 -> TWO verdicts: A my fork stand-up-key-writers-one-and-loop-keys-the-resolved-seat
-(goal .4.1.1; DG1 closes .4.1.1 -> .4.1 -> .4 on it) · B remint-adopts-its-own-orphan-staged-key. Outputs /tmp/dg2mvp/g717411/; mint, rows SM + DG1.
-DG4.13 returned (ring reds). From 21:00Z new checks via pi-free only. Launder corrective gate:
+Nothing running (19:2xZ). Last: keys landing d01befa390 A 0.85 + B 0.88 (be61d84838..f5a5346585) -> DG1 closes .4.1.1/.4.1/.4.
+Queue empty: next row from SM, or DG4's launder corrective gate. From 21:00Z new checks via pi-free only. Launder corrective gate:
 `bash /tmp/dg2mvp/g41855/run_on.sh <gate sha> 3` -- PASS (restated 18:3xZ, 5 control runs): HARD every run rc0==commits, 0 launder rc3,
 every dirty path owned by a named rc-3 write; BAND false rc3 <= 24/120, titles-absent <= 2. verdict:dg2mvp-g41855 demoted to lean:70.
 If /tmp was wiped: rebuild = a clone holding goal g4/g4.18/g4.18.5/g4.18.5.5/g17.1 + idea probe-a/b/c + b2c from HEAD's .agi, conc_any.py = 6 threads
