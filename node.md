@@ -47,3 +47,23 @@ extensions/agi/bin/mem_cap.py · extensions/agi/guard/ram-main.sh · extensions/
 
 ## CEILING
 kids <= 1 · mem_cap.py <= 30 production lines (2 verbs) · the two scripts <= 10 changed lines together · tests <= 90 lines · comments count as lines · pi-free parent · 0 USD · a TWO-operand numstat <cut>..<tip before the paste commit>, labelled so. PRIVACY: no host, user, home path value or hardware name in any output.
+
+## CORRECTIVE DH.DG3.48 -- closes mur-season2-loops-hypothesis-g7556-guard-ram-write-a00-60331ee3 g7556 (demote: 11 upheld + 3 missed)
+BASE      CUT FROM season2/loops/hypothesis-g7556-guard-ram-write-a00-60331ee3 tip 157112b53e (worktree under the RAM-disk cell). No merge. Never rebase.
+SPLIT     the recharge is OUT of this round: remove the `ram-recharge` verb and _RECHARGE_SRC; goal:g7.16.1.5.5.6.1 carries it (mount crossing, open writes, mtime, hardlinks, tempfile, fail-open exit). CLAIM (3) moves there.
+1. ONE rule for "this path is on the tmpfs" -- ram-main.sh ramw is unconditional, session-sweep.sh keys on "$RAM_DIR"/* which never matches the real RAM tree (MAIN is overmounted) -- one shell function, defined once (a sourced snippet or the mem_cap entry deciding it), that asks the FILESYSTEM (findmnt/stat -f: tmpfs) for the destination's mount, never a path prefix; both scripts call it.
+2. every write INTO the tmpfs in ram-main.sh goes through it -- bind_in's mkdir/touch into $RAM and `mkdir -p "$RAM"` included; a disk-bound write is untouched by rule, not by call-site luck.
+3. the cutover never aborts on the scope -- ram-main.sh `up` runs in a unit ordered before the user manager: when `systemd-run --user` is unreachable, mem_cap's entry runs argv UNWRAPPED (exit code = argv's) and says so once on stderr; a row drives the entry with a failing fake systemd-run and sees argv run.
+4. tests that can fail -- F1b places src on disk and dest on the tmpfs stand-in (and the reverse); the snippet loader cannot fall through into the whole script (extract by an explicit end marker, or source a split-out function file); a row drives ram-main.sh `up`'s RAM-bound writes with fakes for mount/sudo/findmnt/systemd-run (never real ones).
+5. `ram-exec` with no `--` or an empty argv exits 2 by name; the dead `return 127` goes.
+6. evidence at YOUR final tip, pasted, plus a labelled two-operand numstat 157112b53e..<tip before the paste commit>: python3 -m pytest extensions/agi/tests/test_ram_write_charge.py extensions/agi/tests/test_ram_worktrees.py extensions/agi/tests/test_box_guard.py extensions/agi/tests/test_guard_init_cells.py extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/dh348
+DEMOTED (no work): ram-tier.sh (out of claim wording, refuted) · two-spellings (refuted; item 1 makes it one anyway) · the parent's kids=[] harvest line (refuted as a node defect; engine row on goal:g7.33.19)
+SAFETY    NEVER run ram-main.sh, session-sweep.sh or guard-init.sh for real; never the live RAM dir, a real mount, sudo, a real systemd unit or crontab -- fakes on PATH in tmp dirs only
+ANON      no user name, home or repo path value, host, IP or hardware name in any output, node, test, commit or dm
+FILE SCOPE extensions/agi/bin/mem_cap.py · extensions/agi/guard/ram-main.sh · extensions/agi/guard/session-sweep.sh · extensions/agi/tests/test_ram_write_charge.py · the kid's own experiment node. NEVER guard-init.sh.
+CEILING   HARD CAP, WHOLE CHAIN vs the round base 2b837f66b8: 1 kid · mem_cap.py <= 35 added lines (the recharge removal pays for items 3 + 5) · the two scripts <= 16 changed lines together · tests <= 200 · comments count · pi-free tier-0 · 0 USD -- over it = the round is cut
+PARENT    paste FILE SCOPE, SAFETY, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.DG3.48: mur g7556 demote -- the recharge split to goal:g7.16.1.5.5.6.1 (unsafe: mount crossing, lost open writes); ONE filesystem-asked tmpfs rule for both scripts; every RAM-bound write wrapped; the cutover never aborts on an unreachable user manager; tests that can fail
+<!-- THOUGHT:END -->
