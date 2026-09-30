@@ -5,13 +5,15 @@ type: hypothesis
 parents:
   - goal:g1.31.4.2.1.1
 next_edges: []
+edited_by: director-general-4
 scaffold_hash: 716925ce5b9e5ebd
 season: 2
+tags:
+  - parked
 testable_claim: on a faked copilot config home, the spawn path writes a hooks config carrying exactly the template [hooks] sessionStart and userPromptSubmitted commands, read back by a test from the written file
 title: a copilot-cli spawn writes the template hooks into copilot own hooks config
 town: core
 ---
-
 # hypothesis:g1314211-copilot-spawn-registers-its-hooks-in-copilots-own-config
 
 ## Measured
