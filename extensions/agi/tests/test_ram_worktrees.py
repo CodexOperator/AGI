@@ -146,7 +146,7 @@ def test_guard_init_writes_the_ram_slice_without_an_oomd_kill():
                 src.index('put "$UGUARD/ramdisk.slice"')]
     assert "MemoryMax=${RAM_BUDGET_M}M" in block
     assert not [ln for ln in block.splitlines() if ln.startswith("ManagedOOM")]
-    assert 'RAM_BUDGET_M=$(to_mib "$(hostvar RAM_BUDGET' in src
+    assert 'size_cell RAM_BUDGET_M RAM_BUDGET' in src  # read + validated as a size cell (goal:g7.16.1.5.5.5)
     # one slice name in two languages, pinned equal (review R3 note)
     assert f'put "$UGUARD/{locations.RAM_SLICE}"' in src
     # R2: --uninstall removes it, --status reads it
