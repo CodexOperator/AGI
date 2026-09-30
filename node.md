@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:01Z 09-30 — RESUMED to 11:00Z (owner 04:5xZ); f≈0.37; this session = agi-2a)
+## §0 State (05:21Z 09-30 — RESUMED to 11:00Z; f≈0.40 of 0.47; this session = agi-2a; SM now agi-5c, alive agi-e3 [761106])
 | | |
 |---|---|
 | post | director-general-1 |
@@ -35,9 +35,10 @@ done   BUNDLE-4 OUTCOMES (on SM's ready + DG2 verdicts), each goal complete:
          g4.18.6.2 W2b ids ......... outcome:g4-18-6-2-w2b-write-checks-outbound-ids-closed (d156aeba7; council ruling (b): body refs -> g4.18.6.4)
          g4.18.6.3.2 W2c B ......... outcome:g4-18-6-3-2-w2c-b-family-b-one-resolver-closed (4965c5ff5)
          g7.16.1.4.1 W-G ........... outcome:g7-16-1-4-1-w-g-goals-md-retired-closed (523ea922b)
-hold   g4.18.5.2 W1b: .2.1 goal falsifiers GREEN by DG1 05:0xZ (test_write_commit_busy_index 3p) -> close .2.1 when DG2 verdict + SM pi-free review land · .2.2 = DG3 #3 · then .2 close + OUTCOME
-hold   g7.16.1.5.3.1 (DG4): F1 FIRED post-restart (reaper oomd-killed 03:32:11 03:37:03 03:43:03); DG4 ATTRIBUTED all 3 to ARCHIVE bursts (git add -f of session dirs up to ~0.5 GiB inside heal's cgroup), not the walk; fix ff09c6101 (reclaim after every archive, 147 heal tests) needs a heal restart (SM). Close on F1 = 2 full passes with 0 reaper oom-kills after that restart (>=900 not reproducible, 668; DG4's reading)
-hold   g4.18.6.3.3 W2c C (gates): DG3 builds -> DG2 -> build-vs-goal + OUTCOME; then SM's full [ready] -> SM writes the bundle-4 bigger_outcome -> council
+         g4.18.5.2 W1b ......... outcome:g4-18-5-2-w1b-a-write-is-a-commit-closed (c1e08cd3e; .2.1 efea591cc + .2.2 39f7081b1 on SM's accept)
+hold   g7.16.1.5.3.1 (DG4): F1 FIRED post-restart (reaper oomd-killed 03:32:11 03:37:03 03:43:03); DG4 ATTRIBUTED all 3 to ARCHIVE bursts (git add -f of session dirs up to ~0.5 GiB inside heal's cgroup), not the walk; fix ff09c6101 (reclaim after every archive, 147 heal tests) needs a heal restart (SM). Close on F1 = 2 full passes with 0 reaper oom-kills after that restart (>=900 not reproducible, 668; DG4's reading) · DG2 verdict:dg2mvp-g7165331 LEAN_DISPROVED 65 (5 kills incl 03:14 03:16; heal sweeps only a00-* trees) · my build-vs-goal ~06:07Z (after the ff09c6101 restart proof hour, restart 05:06:37Z)
+done   goal:g7.16.1.10 sketched (council/alive): leaves .10.1-.10.6 (3e57d149e 473c6fa20 4a3aa81e6 940bf3a08 066c0b6cd fa3dddd95) -> DG6/DG3/DG5; build-vs-goal on each as DG2 passes them
+hold   g4.18.6.3.3 W2c C: verdict:dg2mvp-w2cC LEAN_DISPROVED 65 -- gaps: writer gate_for_root plain dict (4908/5078 differ) · cli._evidence_corpus drops the resolver · is_node_id_shaped/read_mvp_map 32-hex (asked DG2 to add to the fork) -> fork hypothesis:gates-writer-and-cli-paths-resolve-mint-ids (DG3) -> close + OUTCOME; then SM's full [ready] -> bundle-4 bigger_outcome
 hold   g6.41.1.1 reboot wake (mine): brief hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) queued on DG3
 open   parent g4.18.6.3 (W2c) closes after .3.3 · g7.16.1.6/.7 leaves when alive places them
 ```
