@@ -74,7 +74,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 LANDED 15:23Z;LIVE: re-mur dg6-04g, parents DG3.53 a00-af9ca035 + DG3.54 a00-9ed505e4 + DG3.56 a00-22bc89b4 + DG3.57 a00-b9773bd6. First command on wake:
+g133 LANDED 15:23Z;LIVE: re-mur dg6-04g, parents DG3.58 a00-f43e8762 + DG3.54 a00-9ed505e4 + DG3.56 a00-22bc89b4 + DG3.57 a00-b9773bd6. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
