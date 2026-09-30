@@ -6,6 +6,7 @@ out of the script and run under bash with a fixed RAM/SWAP, no systemctl, no /pr
 """
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -43,7 +44,7 @@ def derive(tmp_path, **cells):
         "for _v in %s; do printf '%%s=%%s\\n' \"$_v\" \"${!_v}\"; done" % " ".join(OUT),
     ])
     r = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=30,
-                       cwd=tmp_path)
+                       cwd=tmp_path, env={**os.environ, "LC_ALL": "en_US.UTF-8"})
     return r.returncode, dict(ln.split("=", 1) for ln in r.stdout.splitlines() if "=" in ln), r.stderr
 
 
@@ -100,6 +101,8 @@ def test_an_empty_cell_takes_the_default(tmp_path):
     ("RAMDISK_SWAP_MAX", "1024\nX=1"),
     ("RESERVE", "RAM_M[$(touch pwned)]"),
     ("OOMD_LIMIT", "100"),
+    ("SSH_MIN", "\u0663M"),          # an Arabic-Indic 3: [0-9] matches it under en_US.UTF-8
+    ("AGI_MAX_PCT", "\uff11\uff12"),  # fullwidth 12
 ])
 def test_a_bad_cell_is_refused_by_name_and_runs_nothing(tmp_path, name, value):
     rc, v, err = derive(tmp_path, **{name: value})

@@ -193,16 +193,17 @@ SWAP_M=$(( $(awk '/^SwapTotal:/{print $2}' /proc/meminfo) / 1024 ))
 # Every number below is a config:guard cell whose default is the literal this
 # script carried before; an unset OR EMPTY cell takes the default. A cell is
 # checked as a STRING, in THIS shell, before any $(( )) reads it: bash arithmetic
-# evaluates a variable's text, so a cell holding x[$(cmd)] would run cmd.
+# evaluates a variable's text, so a cell holding x[$(cmd)] would run cmd. The digit
+# class is spelled out: under a UTF-8 locale [0-9] also matches non-ASCII digits.
 num_cell() {  # VAR NAME DEFAULT LO HI -> VAR = a whole number LO..HI, else refused by name
   local v; v=$(hostvar "$2" "$3")
-  [[ $v =~ ^[0-9]{1,6}$ ]] && (( 10#$v >= $4 && 10#$v <= $5 )) \
+  [[ $v =~ ^[0123456789]{1,6}$ ]] && (( 10#$v >= $4 && 10#$v <= $5 )) \
     || die "GUARD_$2_$HOSTKEY must be a whole number $4..$5 (got '$v')"
   printf -v "$1" '%d' "$(( 10#$v ))"
 }
 size_cell() {  # VAR NAME DEFAULT -> VAR = whole MiB of 512M | 2G | 1.5G | bare MiB, else refused by name
   local v; v=$(hostvar "$2" "$3")
-  [[ $v =~ ^[0-9]{1,7}(\.[0-9]{1,3})?[MG]$ || $v =~ ^[0-9]{1,7}$ ]] \
+  [[ $v =~ ^[0123456789]{1,7}(\.[0123456789]{1,3})?[MG]$ || $v =~ ^[0123456789]{1,7}$ ]] \
     || die "GUARD_$2_$HOSTKEY must be a size: 512M, 2G, 1.5G or whole MiB (got '$v')"
   printf -v "$1" '%s' "$(to_mib "$v")"
 }
