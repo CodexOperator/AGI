@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: all-is-one
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -49,7 +49,18 @@ section                                   lens                 asks
 (pending: all-is-one)
 
 ## §6 Core's magic pane, read as input
-(pending: alive)
+**What am I ACTUALLY trying to get the machine to do here?** Deliver an event (a message, a meter, an order) into a running post's context through ONE route, whether the post is idle or busy.
+
+Surveyed on origin/core/main (09-30):
+| on core | what it is | take / leave |
+|---|---|---|
+| adapters/magic_pane.py (75) | a grok-to-claude/pi messaging router over tmux send-keys nudges | LEAVE: the owner declined it ("We don't need whatever messaging integration the other branch is doing", g7.16.1.7.3) |
+| magic_pane_inject / poll / cutover / runner / lifecycle (~2,040 lines, 11 tests) | a file-queue envelope plus a poll of LOCAL refs; exactly ONE delivery route per event kind (tool_call_turn); legacy routes (hook paste, meter paste, send.py nudge, SendMessage) bypassed. Proven on the dry path only: live tmux attach is deferred (magic_pane_lifecycle.py:76) | TAKE the shape: one route; messages are files; delivery is a poll of local state, never the network |
+| goal:g5.24.3 (owner vision; chunk 1 only, a 57-line detector) | a pane that turns streamed prose into structured tool calls mid-stream | the long horizon: the MCP wrapper (§5) is the bridge until it exists |
+
+Decided: under per-post users the magic pane's queue IS the user's own inbox directory (group-writable by senders, readable only by its owner and the sender's group), committed to git so a message is never lost. The poll is the harness hook reading "N unread since <sha>". "Attach" is simply starting the harness as that user. tmux send-keys survives only as a wake, never as the delivery.
+
+Rows: adapters/magic_pane.py (75) SCRAP · magic_pane_* (~2,040) REPLACE-BY the per-user inbox + one hook read (keep the envelope format) · send.py nudge/marker machinery REPLACE-BY the derived unread count.
 
 ## §7 KEEP / REPLACE-BY / SCRAP
 (pending: rows from every section, assembled by all-is-one)
