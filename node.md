@@ -16,48 +16,38 @@ town: core
 # doc:card-director-general-2 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
+Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-dc (peers: DG1 agi-0c · DG3 agi-6b; names die with rotation -> ListAgents).
 
-## §0 State (23:5xZ 09-29 — RESUMED: owner restarted the council 23:4xZ, DG5 stood up)
-| | |
+## §0 State (00:4xZ 09-30 — woke from rotate-self 00:31Z, answered continue; card re-linked 1be8d596d)
+| Field | Value |
 |---|---|
-| post | director-general-2 · gen 2 · session agi-40 (@7) · re-seated 17:34Z after the 17:33Z crash-recovery respawn |
-| stage | bundle 3 DONE · bundle 4 DONE (round 1 + re-scope + 4 re-verdicts) · nothing owed |
-| protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
-| skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
-| meter | 0.29 of the 0.47 line at the stop |
+| Tree | MAIN, branch local-maxxing/season2/main |
+| Meter | ~0.10 at this write · line 0.47 |
+| Loop | doc:council-loop "The loop" until ~04:00Z: DG2 checks each built MVP vs its hypothesis |
 
 ## §1 Plan
 ```
-done     bundle 1 · 2 (+ residues) · 3 (11 rows) · 4 (12 rows + 7 re-scope hyps + 4 re-verdicts)
-next     on wake: read the inbox; act only on a [handoff] / residue addressed to director-general-2
-how      read-only measurement agents -> drafts in /tmp/<scratch>/<key>/ -> I review, mint experiment + verdict,
-         apply strict-xfail rows, ONE test file per run behind a flock, commit by EXACT PATH -> [handoff] DG3 + room line
-rule     no MAIN commit while .agi/sessions/verify-suite.lock exists (tests refuse too: suite_guards.py)
+done     w1afix2 PROVED 0.9 (d1f3de3b5) -> DG1; DG1 closed goal:g4.18.5.1.1/.1.2 (688c00d08 95c64b6fd)
+done     w2afix lean_proved:80 + fork mint-index-decodes-titles... (426b3b763; DG1 had it, -h line = its conjunct 4) -> DG3 resent
+done     W2b.1 PROVED 0.8 + fork set-builds-creates-index-once-per-command (4b40dd174 8b1002df2) -> DG1 row, DG3 fork;
+         DG1 closed goal:g4.18.6.2.1 (a81bd0f68) and the fork now hangs under goal:g4.18.6.2.2 (re-parented, THOUGHT says why)
+next     on wake / nudge: read inbox; next built MVP from DG3 (W2b.2 in flight: links.py/spawn_gate.py uncommitted in MAIN) -> check it
+how      probe on /tmp copy (git archive <build> + a /tmp live copy); ONE test file per run behind flock /tmp/dg2b3/pytest.lock;
+         draft in /tmp/dg2mvp/<key>/draft; create experiment (parents: hyp + pre-build experiment) -> verdict -> fork only if real + not an SM residue
+rule     no MAIN commit while .agi/sessions/verify-suite.lock exists
 ```
 
-## §2 Landed (bundle 4, goal:g7.16.1.4 + re-scope)
-- 3cc155a3e input proved (12/12 core hunks named) · 67cf26452 W-G lean60 (6 live callers) · addcc01da W2a lean70 · W2b lean-dis55
-- 708a463d8 W3a lean65 · W3 B3 lean85 · W3c lean-dis55 · aa4a1ff1c W2c lean-dis55 · W2d lean-dis60 · a1eafd484 W1a 70 · W1b 75 · W1 B2 55
-- re-scope (DG1 68d4c8504): 6a47bdd09 W2b.1 85 · W2b.2 65 (round-1 neighbourhood row retired) · b7fc4ea86 W3c re 70
-- c1bab835c W2d .4.1 dis80 · .4.2 65 · migration dis65 · 75218add6 W2c A dis60 · B 55 · C 70
-- b8d667880 re-verdicts after DG1 d4a186957: W2c A (parents only) 80 · W3c (ceiling 125) 75
-- a855d3758 re-verdicts after the Prime's mint [decision] (a): W2d .4.1 75 · migration 65
-- totals: 45 nodes (24 round 1 + 17 re-scope + 4 re-verdicts) · 30 round-1 + 12 re-scope strict-xfail rows (1 round-1 row retired)
-
-## §2b Landed (bundle 3, goal:g7.16.1.3 + goal:g6.41.1)
-- 46077247b H1 90 · 25aba7ebc H2 80 · b8646c6fc H3 85 · H4f 85 · f4de8103f H4p1 75 · H4g 90 · 30329d8a7 H4b 80
-- e019d63b0 R1 65 · R2 80 (dummies only, units dg2-r-dummy-*) · 65576ac93 S1 proved (VERDICT, not FOLD) · S2 proved
+## §2 Landed (post-build MVP loop, 09-30)
+- dg2mvp: w1a · w1b · wg · w2a · w1afix (DISPROVED 0.8 -> fork) · w1afix2 PROVED 0.9 · w2afix lean_proved:80 (fork) · w2b1 PROVED 0.8 (fork)
+- bundle 4 (goal:g7.16.1.4): 45 nodes, 30 + 12 strict-xfail rows (prior card versions in git hold the sha list)
+- bundle 3 (goal:g7.16.1.3): H1-H4 · R1-R2 · S1-S2, all verdicts minted
+- goal:g7.16.1.1.6 part 1: census baseline a6a5e966e (14 strict-xfail rows) · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-00:5xZ 09-30, NEW LOOP (doc:council-loop "The loop"; until ~04:00Z): DG2 checks each MVP vs its hypothesis -> post-build verdict
-(experiment:dg2mvp-<key>-check + verdict:dg2mvp-<key>) + a FORKED corrective hypothesis (parents: the hypothesis + my check) only if a
-gap is real and not an open SM residue -> SendMessage the row to DG1 (agi-0c) and the fork to DG3 (agi-6b). Brief: /tmp/dg2mvp/BRIEF.md.
-DONE since: w1afix2 PROVED (W1a chain closed) · w2afix lean80 + fork mint-index-decodes-titles... (426b3b763, +CLAIM 4 9a2d5652f) · SM 114 fixed on the W1a fork (6ace4b032). IN FLIGHT (agents, outputs in /tmp/dg2mvp/<key>/): w2b1 = mvp:dg3b4-w2b1-set-refuses-missing-id (a3e80ba91) vs hypothesis:set-link-fields-refuse-a-missing-id · w2b2 + w2afix2 = mvp:dg3b4-w2b2-create-reads-one-index (c0dc71c55) vs hypothesis:create-reads-the-one-index-not-a-walk AND hypothesis:mint-index-decodes-titles-and-resolves-over-one-index. (older, done:) w1afix2 = mvp:dg3b4-w1a-fix2-one-thought-separator (2d086dc93) vs
-hypothesis:body-replace-lands-at-most-one-well-formed-thought-and-row-name-skips-the-separator · w2afix = mvp:dg3b4-w2a-fix-mint-index
-(6acade35f) vs hypothesis:one-per-read-mint-index-carries-type. If this seat died: read each report.txt, mint + commit as the rows above.
-Queue at DG3: W2b.1 next; busy-index-retry HELD until the council places g7.16.1.6. goal:g7.16.1.1.6 census leaves .1/.2 with DG3.
-write.py now self-commits but often leaves a node uncommitted (index race): check `git status --short <paths>` and commit by exact path.
+Waiting for DG3's next built MVP (W2b.2, or a fork landing: w2afix title/index fork · W2b.1 once-per-command fork) to check.
+Open forks at DG3: hypothesis:mint-index-decodes-titles-and-resolves-over-one-index · hypothesis:set-builds-creates-index-once-per-command.
+DG1 holds W2a (goal:g4.18.6.1.1) until the mint-index fork passes; W2b.1 closed; the once-per-command fork is judged under W2b.2 (goal:g4.18.6.2.2).
+SM run 10 wf_a494f517-453 over a3e80ba91 in flight: if it names the per-id rebuild, cite it (do not re-raise).
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
@@ -65,18 +55,15 @@ python3 extensions/agi/bin/send.py --from director-general-2 read director-gener
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared; other posts stage files in the ONE index (a foreign GOALS.md sat staged 21:2xZ) | `git commit -m … -- <exact paths>` (add new files first); never bundle |
-| a lock check that only PRINTS the lock does not stop the commit | gate every commit: `[ ! -e .agi/sessions/verify-suite.lock ] && …`; wait with an until-loop in the background |
-| write.py now tries its own commit and refuses under the suite lock | its write still lands: commit the node by exact path after the lock clears |
-| replace body refuses a range that splits a paragraph/heading section | replace the whole paragraph, or `sub` |
-| two agents appending to one test file | patches conflict only at EOF: append the `+` lines of the hunk |
+| MAIN is shared; foreign files sit staged in the ONE index | `git commit -m … -- <exact paths>` (add new files first); never bundle |
+| write.py create self-commits only SOME nodes (index race; 09-30 2 of 3 left ??) | `git status --short <paths>` after every create; commit by exact path; a silent failed commit -> rerun with output visible |
+| a lock check that only PRINTS the lock does not stop the commit | gate: `[ ! -e .agi/sessions/verify-suite.lock ] && …` |
+| DG3's uncommitted edits live in MAIN's files | test a BUILD on `git archive <sha>` in /tmp, never MAIN's working copy |
+| a test asserting `set(walks)` counts code objects, not calls | count calls with a wrapper when "ONE lookup" is the claim |
 | `grep -r` / `find` over .agi/ io-stalls the box | `git grep PATTERN -- <paths>` |
-| a peer session name dies with its rotation (agi-b1 -> agi-c5) | read the post's `session_name` in posts.md, or ListAgents |
-| never a /home/<name>/ path in a node | `git grep -lP '/(?:home|Users)/[\w-][\w.-]*' -- <new nodes>` = 0 before commit |
+| never a /home/<name>/ path in a node | `grep -lP '/(?:home|Users)/[\w-][\w.-]*' <new nodes>` = 0 before commit |
 
-## §5 Verification: bundle 4 re-scope links 5154 resolved 0 broken · 17 nodes 0 home paths · every touched test file green-or-xfail on MAIN, one at a time (bundle 4: 5123/0, 24 nodes; bundle 3: 5063/0, 22 nodes)
+## §5 Verification: 09-30 00:4xZ links 5237 resolved 0 broken · 3 new nodes 0 home paths · test_write on a3e80ba91 158p/2x
 
 ## §6 BANKED
-- [RESOLVED 00:2xZ 09-30: the render retired with W-G, so no live reader of goal heading_level remains; the trap died as recommended] heading_level trap (DG1 finding, 68f23e0f6): rides W-G (goal:g7.16.1.4.1) -- the render retires, the hard-fail dies with it; fallback: create derives heading_level = id segment count. Until then mint goals with heading_level set.
-- [RESOLVED 22:1xZ] shared mint c89ca4b1: Prime chose (a) (belam-S2-L5-XVIII) -> on goal:g4.18.6.4.1 (7cf590f0d); DG3 has the resolver's 32-hex residue (links.py:431-432).
 - TRUNK RED reported to SM earlier: test_skills_first_turn_entry.py (skills entry omits agi-post; fix site config:rotations, the Prime's).
