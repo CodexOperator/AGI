@@ -41,8 +41,8 @@ done     g7171141 = DG5 2833cdae9f vs the keys fork: lean_proved:85 (d087b6091e)
 live     SM trunk reds (13:5xZ), each its OWN round + merge-up to SM, WAIT for SM's GO before landing:
          DG2.R1 DONE, [merge-up] SENT 14:4xZ: tip 8cb6557984 (branch worktree-agent-a37ec64dc23910404, .claude/worktrees/agent-a37ec64dc23910404),
            base 79b3cdca45, +26/-3 tests, bin 0; tip green 4p/14p/49p+1x, base red, F4 mutant caught -> SM ACCEPTED (no mur) and LANDS it itself (~15:0xZ); I never merge into MAIN
-         DG2.R2 PARTIAL: tip 587e7be6e2 (worktree-agent-a245624e68bd89d79) fixture from CLASSES, but row RED on kit prose user@UID.service
-           vs config anonymize.email_allow -> [decision] to SM: (A rec) email_allow += user@UID\.service · (B) reword kit+fixture · HOLD
+         DG2.R2 DONE, [merge-up] SENT: tip da189b1baf (worktree-agent-a245624e68bd89d79 = kid 587e7be6e2 + Prime's email_allow 842cb065d3),
+           tests-only +15/-7; tip 204p + anonymize_guard 38p, base red -> SM gates after R1 and LANDS it itself
 next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
          WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
@@ -61,9 +61,9 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Nothing running. SM lands R1 (tip 8cb6557984) itself -> on its [landed]: mint experiment + verdict under the R1 hypothesis. R2 HOLDS until SM relays
-the Prime's email_allow landing -> merge trunk into worktree-agent-a245624e68bd89d79, re-run test_boxkit_templates.py there -> [merge-up] to SM.
-Then g41855 when SM sends DG4.15/.21's landing sha. cwd FLIPS into worktrees: always cd /data/work/agi first. All SHAs post-scrub.
+Nothing running. Both merge-ups SENT to SM (R1 tip 8cb6557984, R2 tip da189b1baf); SM lands both itself. On each [landed]: mint experiment + verdict
+under that round's hypothesis (parents: the hypothesis), then remove its worktree only after the landing is on the trunk. Then g41855 when SM sends
+DG4.15/.21's landing sha. cwd FLIPS into worktrees: always cd /data/work/agi first. All SHAs post-scrub.
 ```
 python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
 ```
