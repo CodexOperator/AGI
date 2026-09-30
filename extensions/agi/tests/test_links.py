@@ -876,7 +876,7 @@ def test_w2a_mint_exits_found_unknown_two_carriers_and_a_blind_grep(project, mon
 
 # hypothesis:one-per-read-mint-index-carries-type: ONE grep per read, frontmatter
 # only (a body `mint_id:` decoy never enters), carries type, sees a renumber.
-def test_w2a_mint_index_is_frontmatter_only_typed_and_fresh(project):
+def test_w2a_mint_index_is_frontmatter_only_typed_and_fresh(project, capsys):
     fm = [f"mint_id: {_W2A_MINT}", 'title: "T"', "status: active"]
     _node(project, "goal:g9.1", ['id: "goal:g9.1"', "type: goal"] + fm, "b\n")
     _node(project, "experiment:e1", ['id: experiment:e1', "type: experiment", "mint_id: " + "e" * 32],
@@ -899,6 +899,11 @@ def test_w2a_mint_index_is_frontmatter_only_typed_and_fresh(project):
                     b'\ntitle: a\xe2\x80\xa8b \xff\n---\n')
     assert links.mint_index(project)["8" * 32][0][0] == "goal:g9.4"
     assert links.resolve_mint(project, _W2A_MINT)[0] == "goal:g9.2", "no false collision"
+    (project / "nodes/goal/open.md").write_text("---\nid: goal:open\n\nbody\nmint_id: " + "7" * 32 + "\n")
+    (project / "nodes/goal/noid.md").write_text("---\nmint_id: " + "6" * 32 + "\n---\n")
+    idx = links.mint_index(project)   # SM 120 a b: an unclosed or id-less frontmatter is named, not indexed
+    assert "7" * 32 not in idx and "6" * 32 not in idx
+    assert "open.md: frontmatter never closes" in capsys.readouterr().err
 
 
 def test_w2a_one_resolver_def_and_links_and_write_call_it():
