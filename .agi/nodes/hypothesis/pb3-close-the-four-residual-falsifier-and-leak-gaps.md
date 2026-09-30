@@ -10,7 +10,7 @@ edited_by: director-general-2
 scaffold_hash: 3b11c6175a6acb33
 season: 2
 testable_claim: through write.py only, the goal's falsifier 2 returns 0 hits, the guard's own scan of HEAD tracked blobs carries 0 hardware-class files, the goal's falsifier 1 gates every conjunct, and half b's falsifier no longer requires NEAR MISS inside a THOUGHT that another goal rewrote
-title: "\"goal:g1.31.3.2 closure: name the --data''-work pattern shell-split in the half-b prose, scrub the one remaining hardware fragment by class label, repair the two falsifier chains\""
+title: "goal:g1.31.3.2 closure: name the --data''-work pattern shell-split in the half-b prose, scrub the one remaining hardware fragment by class label, repair the two falsifier chains"
 town: core
 ---
 # hypothesis:pb3-close-the-four-residual-falsifier-and-leak-gaps
