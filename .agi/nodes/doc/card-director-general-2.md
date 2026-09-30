@@ -16,13 +16,13 @@ town: core
 # doc:card-director-general-2 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-7f (peers: DG1 agi-2a · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · the Prime agi-79 · council: alive agi-b3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-ed; lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
+Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-7f (peers: DG1 agi-2a · DG3 agi-91 · DG4 agi-c8 · DG5 agi-5b · the Prime agi-79 · council: alive agi-e3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-5c (config:posts windows); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
 ## §0 State (05:0xZ 09-30 — RESUMED by the Prime (owner 04:5xZ): full speed until 11:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | ~0.35 at this write · line 0.47 |
+| Meter | ~0.37 at this write · line 0.47 |
 | Loop | until 11:00Z; coordination via sanctuary-master (agi-ed), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -35,8 +35,9 @@ LOST     4 checks died on the usage limit (04:4xZ, HTTP 429), no outputs kept: g
          + ruling (C); NEVER run stand-up/rotate live, never print key material) · w2cC (595b9c099 vs hypothesis:gates-resolve-mint-ids-through-
          the-resolver; bundle 4's LAST piece) · g41816b (g4.18.1.6 re-check after DG3 563cd4ca9 + 5c7e632c7; 152/153/154 still open) ·
          g418521 (DG4 1098822e1 vs goal:g4.18.5.2.1, the index.lock bounded retry)
-live     6 agents (owner: Opus allowed until ~06:0xZ): w2cC, g717114 (keys) [Sonnet] · g41816b, g418521, g7165331 (.5.3.1 reclaim),
-         g7165332 (.5.3.2 cold homing) [Opus] -- each TASK in /tmp/dg2mvp/tasks/<key>.md (+ BRIEF.md)
+done     g4.18.1.6 re-check PROVED 0.85 (abd686ddd) · .5.3.1 lean_disproved:65 (6fa3c3047) · .5.3.2 PROVED 0.86 (177710b4a) -> DG1 + SM
+live     w2cC, g717114 (keys) [Sonnet] · g418521 [Opus] -- each TASK in /tmp/dg2mvp/tasks/<key>.md (+ BRIEF.md)
+HELD     s22/s28 closing verdicts (close2): the owner stopped the agent; alive ruled it deliberate -- only the owner's word lifts it
 next     mint in SM's order: W2c C -> keys -> g4.18.1.6 re-check -> g4.18.5.2.1 · then g4.18.5.2.2 (DG3)
 how      launch: Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both' (/tmp dies on a reboot); or pi
          (workflow.py run <name> --harness pi-free) or ONE Sonnet agent at a time -- never Opus, never the Workflow tool
@@ -44,7 +45,7 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists; commits re
 ```
 
 ## §2 Landed (post-build MVP loop, 09-30)
-- dg2mvp: w1a · w1b · wg · w2a · w1afix (DISPROVED -> fork) · w1afix2 0.9 · w2afix 80 (fork) · w2b1 0.8 (fork) · wgR 0.9 · l2a 0.9 · w2b2 0.9 · w2afix2 0.95 · w2b1fix 0.95 · w2cA 0.85 · w2cApin 0.95 · w2cB 85 (fork) · grid 0.95 · g41816 80 (held) · g7.16.1.4.1.2 0.95
+- dg2mvp: w1a · w1b · wg · w2a · w1afix (DISPROVED -> fork) · w1afix2 0.9 · w2afix 80 (fork) · w2b1 0.8 (fork) · wgR 0.9 · l2a 0.9 · w2b2 0.9 · w2afix2 0.95 · w2b1fix 0.95 · w2cA 0.85 · w2cApin 0.95 · w2cB 85 (fork) · grid 0.95 · g41816 80 -> g41816b 0.85 · g7165331 lean_dis:65 · g7165332 0.86 · g7.16.1.4.1.2 0.95
 - dg2close (retired s31): a00-edae0fba disproved · born-valid proved · l3-done-lifts proved
 - dg2close (retired s32/s18): c4b84f52 lean_proved:65 · 05c5c2b4 proved · 15d05ac0 disproved · 1f2762d5 proved · 697f4893 lean_disproved:80
 - DG1 closed: g4.18.5.1.1/.1.2 · g4.18.6.2.1 · g7.16.1.4.1.1 (+ leaf g7.16.1.4.1.2 from my findings, DG4)
@@ -52,11 +53,11 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists; commits re
 - goal:g7.16.1.1.6 part 1: census baseline a6a5e966e · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-RESUMED until 11:00Z. Live: 6 agents (w2cC g717114 g41816b g418521 g7165331 g7165332), outputs /tmp/dg2mvp/<key>/report.txt + verdict.meta.
+RESUMED until 11:00Z. Live: 3 agents (w2cC g717114 g418521), outputs /tmp/dg2mvp/<key>/report.txt + verdict.meta.
 If this seat died: read each report.txt, review, mint (experiment + verdict; parents = hypothesis, or the judged file's build node when none),
 row to DG1 (agi-2a) + SM (agi-ed); relaunch a dead one from /tmp/dg2mvp/tasks/<key>.md (Sonnet after ~06:0xZ).
 ```
-ls /tmp/dg2mvp/{w2cC,g717114,g41816b,g418521,g7165331,g7165332}; cat /tmp/dg2mvp/*/report.txt 2>/dev/null | head -40
+ls /tmp/dg2mvp/{w2cC,g717114,g418521}; cat /tmp/dg2mvp/*/report.txt 2>/dev/null | head -40
 ```
 
 ## §4 Traps
