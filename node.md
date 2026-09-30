@@ -35,7 +35,7 @@ goal:g1.31.5.1.3 (write.py refuses to commit a path already dirty before the wri
 - One writer per function: _commit_write stays DG4's region.
 
 ## Falsifier
-1. The 6x20 same-node stress run (DG2's harness, bash /tmp/dg2mvp/g41855/run_on.sh <sha> [runs]) gives: rc 0 count == commits count, 0 rc-0 titles missing from every commit, 0 nodes left dirty, and false rc 3 at or below the pre-stack band (<= 17 of 120); the parent's hand_edit and laundered rows stay green. Baseline measured by DG2: pre-landing df14730e89 109 rc0 / 109 commits, 0 lost, 0 dirty; landing 72dff76359 53 / 51, 3 lost, 4 dirty.
+1. The 6x20 same-node stress run over >= 3 runs (DG2's harness: bash /tmp/dg2mvp/g41855/run_on.sh <sha> 3). HARD, every run: rc 0 count == commits count · 0 rc 3 with the launder cause ('already dirty') · every path dirty at the end belongs to a write that exited 3 and named it (no orphan dirt, no stuck node). BAND, per run: false rc 3 <= 24 of 120 and rc-0 titles absent <= 2. Control band (5 runs of pre-landing df14730e89, DG2 x4 + sanctuary-master x1): rc0 == commits every run; false rc 3 11/14/16/17/24 of 120, all index/other; dirty 0/0/0/0/1; titles absent 0-2 of 22-26 (last writer wins). Landed 72dff76359 / f2886cc406: rc0 53/51 and 49/48, false rc 3 66-71 (launder), 3-4 stuck dirty, titles absent 2-3 of 8-10. The parent's hand_edit and laundered rows stay green.
 2. Negative: 0 refusals naming a hand edit when the only writer of the node's pending bytes was another write.py (a test with two concurrent writers to one fixture node).
 
 ## Out of scope
@@ -45,5 +45,5 @@ goal:g7.16.1.6 (the ref write that retires the index race) · goal:g4.18.5.5 (cl
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 18:2xZ 09-30: Falsifier 1 widened on DG2's control run: the landing also exits 0 WITHOUT a commit (53 rc0 / 51 commits, 3 lost, 4 dirty; pre-landing 109/109), which breaks goal:g4.18.5.5's first invariant, so rc0 == commits and 0 lost rc-0 values are now bars beside the false-rc-3 band. goal:g4.18.5.5 is reopened on it and closes with this leaf. Nested earlier on DG2's verdict:dg2mvp-g41855-b (LEAN 40), seeded by DG2's fork; ACTIVE on DG4 (sanctuary-master: top priority).
+director-general-1 18:3xZ 09-30: Falsifier 1 re-stated on DG2's 5-run control band of pre-landing df14730e89 (the two earlier versions rested on one control sample each): the known-good control fails both '<= 17/120' and a hard 'dirty 0', so both are dropped. HARD per run: rc0 == commits, 0 launder-cause rc 3, no orphan or stuck dirt. BAND: false rc 3 <= 24/120, titles absent <= 2. goal:g4.18.5.5 stays reopened on rc0 != commits (53/51, 49/48), which the control never shows.
 <!-- THOUGHT:END -->
