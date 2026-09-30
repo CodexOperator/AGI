@@ -645,3 +645,27 @@ def test_memory_targets_come_from_the_guard_cells_not_the_kit(tmp_path, monkeypa
     assert not {k: v for k, v in table.items() if v[2] == "DRIFT"}
     assert not set(probe.render.MEMORY) & set(json.loads((agi / "config.json").read_text())
                                               ["values"]["boxkit"])
+
+
+def test_no_base_still_judges_the_base_independent_rows(tmp_path, monkeypatch):
+    """SM review R1 of 0b73ebc23: a dropped user@ cap blanks the user@-derived targets
+    only; system.slice MemoryMin and the oomd drop-ins are still judged."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    fact = json.loads(os.environ["PROBE_FACTORY"])
+    fact["system"][f"user@{os.getuid()}.service"].pop("MemoryMax")
+    os.environ["PROBE_FACTORY"] = json.dumps(fact)
+    table = _by_name(probe.rows(agi, root, shim, HELD))
+    assert table["user@ MemoryHigh"][2] in ("DRIFT", "UNKNOWN")
+    for row in ("system.slice MemoryMin", "oomd SwapUsedLimit", "system.slice drop-in MemoryMin"):
+        assert table[row][2] == "ok", (row, table[row])
+
+
+def test_an_unparsed_guard_cell_is_unknown_and_never_aborts_the_table(tmp_path, monkeypatch):
+    """SM review R2: a cell sizing() needs but cannot read is a named refusal the probe
+    turns into UNKNOWN targets -- the table still prints, and it is not clean."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    monkeypatch.setattr(probe.render, "guard_cells", lambda root=None: {
+        k: v for k, v in probe.render.guard_defaults().items() if k != "SSH_MIN"})
+    table = _by_name(probe.rows(agi, root, shim, HELD))
+    assert table["user@ MemoryHigh"][2] == "UNKNOWN"
+    assert _run(agi, root, shim) == 3                # UNKNOWN rows: not clean, not drift

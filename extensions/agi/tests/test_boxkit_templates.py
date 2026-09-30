@@ -319,12 +319,21 @@ def test_values_boxkit_carries_no_memory_number():
                 if re.search(r"OOM_PCT|_high_ratio|_max_ratio|_ratio$", k)]
 
 
-def test_every_default_is_read_from_guard_init():
-    d = R.guard_defaults()
-    src = R.GUARD_INIT.read_text(encoding="utf-8")
-    for name, default in d.items():
-        assert re.search(r"_cell [A-Z_0-9]+ %s %s\b" % (name, re.escape(default)), src), name
-    assert {"USER_HIGH_PCT", "AGI_MAX_PCT", "ENGINE_MAX", "OOMD_LIMIT", "PSI_FULL"} <= set(d)
+def test_every_cell_sizing_reads_is_parsed_from_guard_init():
+    """A guard-init cell line whose format drifts from CELL drops out of guard_defaults:
+    red here, and a named refusal in sizing() -- never a bare KeyError."""
+    assert set(R.SIZING_CELLS) <= set(R.guard_defaults())
+    g = R.guard_defaults()
+    g.pop("SSH_MIN")
+    with pytest.raises(R.KitError, match="guard-init cell line\\(s\\) SSH_MIN not parsed"):
+        R.sizing(7365, 4095, g)
+
+
+def test_no_base_blanks_only_the_base_derived_targets():
+    out = R.sizing(None, None, R.guard_defaults())
+    assert not set(R.FROM_BASE) & set(out) and "USER_SWAP" not in out
+    assert (out["SYSTEM_MIN"], out["SSH_MIN"], out["ENGINE_MAX"], out["OOMD_SWAP_PCT"]) == \
+        ("128M", "64M", "512M", "90")
 
 
 def test_a_guard_cell_moves_the_render():
