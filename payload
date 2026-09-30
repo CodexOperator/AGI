@@ -3443,17 +3443,26 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         "The predecessor's read-back reads THAT ack file and refuses an ack "
         "whose gen_after is not your generation."
     )
-    rc, _ = spawn_window(
-        name=name, tier=role,
-        prompt_file=args.prompt_file,
-        model=args.model, effort=args.effort,
-        settings=json.loads(args.settings) if args.settings else None,
-        tmux_session=tmux_session, window_path=args.window_path, root=root,
-        dry_run=args.dry_run, debug_file=args.debug_file, extra=continuation,
-        successor_argv=getattr(args, "successor_argv", None),
-        seat=getattr(args, "seat", None),
-        harness=getattr(args, "harness", None),
-    )
+    def _launch_successor():
+        return spawn_window(
+            name=name, tier=role,
+            prompt_file=args.prompt_file,
+            model=args.model, effort=args.effort,
+            settings=json.loads(args.settings) if args.settings else None,
+            tmux_session=tmux_session, window_path=args.window_path, root=root,
+            dry_run=args.dry_run, debug_file=args.debug_file, extra=continuation,
+            successor_argv=getattr(args, "successor_argv", None),
+            seat=getattr(args, "seat", None),
+            harness=getattr(args, "harness", None),
+        )
+    # goal:g7.16.1.7.1.1.4: the loop's successor launch is a
+    # `stand_up(mode="rotate")` keyed on the seat (else the successor name).
+    if args.dry_run:
+        rc, _ = _launch_successor()
+    else:
+        held, out = stand_up(root, getattr(args, "seat", None) or name,
+                             _launch_successor, mode="rotate")
+        rc = out[0] if held else 1
     if rc != 0:
         return rc
 
