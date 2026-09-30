@@ -51,9 +51,12 @@ delivered the convenience and none of the reason.
 """
 from __future__ import annotations
 
+import atexit
 import difflib
+import hashlib
 import json
 import os
+import random
 import shlex
 import subprocess
 import time
@@ -4417,29 +4420,34 @@ def _commit_message(root, node_id: str, actor: str = "") -> str:
 _INFLIGHT: list = []   # g1315131: this process's markers, sessions/write-inflight/<sha1(path)[:16]>.<pid>
 
 
-def _inflight_clear() -> None:
-    while _INFLIGHT:
-        _INFLIGHT.pop().unlink(missing_ok=True)
+def _inflight_clear(only=None) -> None:
+    """Remove `only` (one call's markers) or, by default, every marker this process holds."""
+    for f in list(_INFLIGHT if only is None else only):
+        f.unlink(missing_ok=True)
+        _INFLIGHT.remove(f)
 
 
-import atexit; atexit.register(_inflight_clear)  # noqa: E702,E402
+atexit.register(_inflight_clear)
 
 
 def _inflight(root, paths, mark=False) -> list:
-    """mark: record `paths` BEFORE their bytes move; else the LIVE peer pids on them (dead = stale, removed)."""
-    import hashlib, verification  # noqa: PLC0415,E401
+    """mark: record `paths` BEFORE their bytes move, return THIS call's markers; else the LIVE peer pids on them
+    (a pid that is not an int > 0, or is dead, is stale: removed)."""
     d, live = Path(root) / "sessions" / "write-inflight", []
     ks = {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}
     if mark:
         d.mkdir(parents=True, exist_ok=True)
-        for k in ks:
-            _INFLIGHT.append(d / f"{k}.{os.getpid()}")
-            _INFLIGHT[-1].write_text("")
-        return []
+        mine = [d / f"{k}.{os.getpid()}.{os.urandom(3).hex()}" for k in ks]
+        for f in mine:
+            f.write_text("")
+        _INFLIGHT.extend(mine)
+        return mine
+    import verification  # noqa: PLC0415
     for f in d.glob("*.*"):
-        k, _, pid = f.name.partition(".")
-        if k in ks and pid.isdigit() and int(pid) != os.getpid():
-            live.append(int(pid)) if verification._pid_alive(int(pid)) else f.unlink(missing_ok=True)
+        k, pid = (f.name.split(".") + [""])[:2]
+        pid = int(pid) if pid.isdecimal() else 0
+        if k in ks and pid != os.getpid():
+            live.append(pid) if 0 < pid < 2**31 and verification._pid_alive(pid) else f.unlink(missing_ok=True)
     return live
 
 
@@ -4460,11 +4468,13 @@ def _pre_dirty(root, node_id: str, edit=None) -> set:
                                     capture_output=True, text=True)
     unknown = []
     paths = [os.path.abspath(str(p)) for p in paths if p is not None]
-    import random, verification  # noqa: PLC0415,E401 -- g1315131: a LIVE peer's in-flight bytes are no hand edit
+    import verification  # noqa: PLC0415 -- g1315131: a LIVE peer's in-flight bytes are no hand edit
     end = time.monotonic() + verification.suite_lock_policy(root)["hold_wait_s"] + _commit_wait_s(root)
-    _inflight(root, paths, True)   # mark FIRST, then look: of two racing writers one sees the other
+    mine = _inflight(root, paths, True)   # mark FIRST, then look: of two racing writers one sees the other
     while _inflight(root, paths) and time.monotonic() < end:
-        _inflight_clear(); time.sleep(0.05 * (0.5 + 2 * random.random())); _inflight(root, paths, True)  # noqa: E702
+        _inflight_clear(mine)             # only THIS call's markers
+        time.sleep(0.05 * (0.5 + 2 * random.random()))
+        mine = _inflight(root, paths, True)
     for p in paths:
         dq = lambda: git("--no-optional-locks", "diff", "--quiet", "HEAD", "--", p).returncode  # noqa: E731
         rc = 0 if git("ls-files", "--error-unmatch", "--", p).returncode else dq()
@@ -4515,17 +4525,15 @@ def _commit_write_body(root, node_id: str, res, actor: str = "",
     recover = (f"git -C {root} add -- {' '.join(paths)} && "
                f"git -C {root} commit -q -m {shlex.quote(msg)} -- {' '.join(paths)}")
     import verification  # noqa: PLC0415 -- the ONE live-holder read (residue 93)
-    import random  # noqa: PLC0415
-    holder = verification.suite_lock_holder(Path(root))
-    wait = verification.suite_lock_policy(root)["hold_wait_s"]   # g1315131: WAIT a held lock, bounded
-    end = time.monotonic() + wait
-    while holder and time.monotonic() < end:
-        time.sleep(min(end - time.monotonic(), 0.25 * (0.5 + random.random())))
-        holder = verification.suite_lock_holder(Path(root))
-    if holder:
-        return (f"commit refused: {Path(root) / 'sessions' / verification.suite_lock_name(root)} is held "
-                f"by live pid {holder} after waiting {wait:g}s (values.core.suite_lock.hold_wait_s) -- the write landed "
-                f"uncommitted; exit {EXIT_UNCOMMITTED}; recover: {recover}"), True
+    def held():   # g1315131: WAIT a held suite lock (bounded by hold_wait_s); the refusal if it is still held
+        holder, wait = verification.suite_lock_holder(Path(root)), verification.suite_lock_policy(root)["hold_wait_s"]
+        end = time.monotonic() + wait
+        while holder and time.monotonic() < end:
+            time.sleep(min(end - time.monotonic(), 0.25 * (0.5 + random.random())))
+            holder = verification.suite_lock_holder(Path(root))
+        return holder and (f"commit refused: {Path(root) / 'sessions' / verification.suite_lock_name(root)} is held "
+                           f"by live pid {holder} after waiting {wait:g}s (values.core.suite_lock.hold_wait_s) -- the write "
+                           f"landed uncommitted; exit {EXIT_UNCOMMITTED}; recover: {recover}", True)
     # goal:g1.31.5.1.3: a path ALREADY dirty against HEAD before this write is
     # a hand edit; committing it launders it and write_guard stops listing it.
     laundered = [p for p in paths if os.path.abspath(p) in pre_dirty]
@@ -4538,6 +4546,9 @@ def _commit_write_body(root, node_id: str, res, actor: str = "",
     tries = 0
     while True:
         tries += 1
+        if refused := held():   # F7: a lock taken mid-retry waits/refuses, never commits under it
+            git("reset", "-q", "--", *paths)
+            return refused
         add = git("add", "--", *paths)
         done = add if add.returncode else git("commit", "-q", "-m", msg, "--", *paths)
         if done.returncode == 0:

@@ -142,11 +142,14 @@ def suite_lock_policy(groot) -> dict:
         _refuse_suite_lock_cell("hold", hold, "is not a rule this build implements")
     if not isinstance(hold, str) or hold != DEFAULT_SUITE_LOCK_HOLD:
         hold = DEFAULT_SUITE_LOCK_HOLD
-    try:   # STOPGAP 600 s: how long a write waits a held lock (validated like write_commit_wait_s)
-        hold_wait = float(cell.get("hold_wait_s"))
-        hold_wait = hold_wait if hold_wait >= 0 else 600.0
+    raw = cell.get("hold_wait_s")   # STOPGAP 90 s (callers time out at 120 s); finite and >= 0, else the default
+    try:
+        hold_wait = float(raw)
     except (TypeError, ValueError):
-        hold_wait = 600.0
+        hold_wait = -1.0
+    if not 0 <= hold_wait < float("inf"):
+        raw is None or _refuse_suite_lock_cell("hold_wait_s", raw, "is not a finite number >= 0")
+        hold_wait = 90.0
     return {"file": file_name, "write_commit_wait_s": cell.get("write_commit_wait_s"),
             "hold": hold, "hold_wait_s": hold_wait}
 

@@ -361,7 +361,7 @@ def test_pre_dirty_waits_a_live_peer_marker_and_ignores_a_dead_one(tmp_path):
     peer = subprocess.Popen([sys.executable, "-c", "import time;time.sleep(30)"])
     write._inflight(root, [str(node)], True)
     marker = next((root / "sessions" / "write-inflight").iterdir())
-    live = marker.with_name(f"{marker.name.split('.')[0]}.{peer.pid}")
+    live = marker.with_name(f"{marker.name.split('.')[0]}.{peer.pid}.x")
     marker.rename(live); write._INFLIGHT.clear()
     def peer_commits():
         subprocess.run(["git", "-C", str(repo), "commit", "-qam", "peer"], capture_output=True)
@@ -371,7 +371,58 @@ def test_pre_dirty_waits_a_live_peer_marker_and_ignores_a_dead_one(tmp_path):
     assert write._pre_dirty(root, "doc:w1") == set() and time.monotonic() - t0 >= 0.5
     write._inflight_clear(); peer.kill(); peer.wait()
     node.write_text(node.read_text() + "hand edit\n")                # no live marker: a real hand edit
-    dead = live.with_name(f"{live.name.split('.')[0]}.{peer.pid}")
+    dead = live.with_name(f"{live.name.split('.')[0]}.{peer.pid}.x")
     dead.write_text("x")                                             # stale (dead pid): ignored + removed
     assert write._pre_dirty(root, "doc:w1") == {str(node)} and not dead.exists()
     write._inflight_clear()
+
+
+def test_a_marker_with_pid_zero_or_not_an_int_is_stale_not_a_stall(tmp_path):
+    sys.path.insert(0, str(BIN))
+    import write  # noqa: PLC0415
+    root = tmp_path / ".agi"
+    d = root / "sessions" / "write-inflight"
+    d.mkdir(parents=True)
+    k = write.hashlib.sha1(b"/n.md").hexdigest()[:16]
+    bad = [d / f"{k}.{x}.r" for x in ("0", "-3", "abc", "", "99999999999999999999")]
+    [b.write_text("") for b in bad]
+    t0 = time.monotonic()
+    assert write._inflight(root, ["/n.md"]) == [] and not any(b.exists() for b in bad)
+    assert time.monotonic() - t0 < 2
+    mine = write._inflight(root, ["/n.md"], True)                    # this call's markers only
+    other = write._inflight(root, ["/n.md"], True)
+    write._inflight_clear(other)
+    assert all(f.exists() for f in mine) and not any(f.exists() for f in other)
+    write._inflight_clear()
+
+
+def test_hold_wait_s_rejects_inf_nan_negative_with_one_warning(tmp_path, capsys):
+    sys.path.insert(0, str(BIN))
+    import verification  # noqa: PLC0415
+    assert verification.suite_lock_policy(tmp_path)["hold_wait_s"] == 90.0     # STOPGAP default
+    (tmp_path / "config.json").write_text("")
+    for bad in ("inf", "nan", -1, "x"):
+        verification._SUITE_LOCK_REFUSED.clear()
+        (tmp_path / ".agi").mkdir(exist_ok=True)
+        (tmp_path / ".agi" / "config.json").write_text(json.dumps(
+            {"values": {"core": {"suite_lock": {"hold_wait_s": bad}}}}))
+        assert verification.suite_lock_policy(tmp_path)["hold_wait_s"] == 90.0, bad
+        assert verification.suite_lock_policy(tmp_path)["hold_wait_s"] == 90.0
+        assert capsys.readouterr().err.count("hold_wait_s") == 1, bad
+
+
+def test_a_lock_taken_mid_retry_refuses_instead_of_committing_under_it(tmp_path):
+    repo = _repo(tmp_path)
+    _cfg(repo, hold_wait_s=0.3, write_commit_wait_s=20)
+    idx = repo / ".git" / "index.lock"
+    idx.write_text("busy")
+    p = subprocess.Popen([sys.executable, "-c", "import time;time.sleep(30)"])
+    def take():
+        (repo / ".agi" / "sessions").mkdir(exist_ok=True)
+        (repo / ".agi" / "sessions" / "verify-suite.lock").write_text(f"{p.pid}\n")
+        idx.unlink()                       # the next retry could commit -- but the lock is now held
+    threading.Timer(0.6, take).start()
+    r = _write(repo, "doc:w1", 'set title "under the lock"')
+    p.kill(); p.wait()
+    assert r.returncode == 3 and f"live pid {p.pid} after waiting 0.3s" in r.stderr, r.stderr[-300:]
+    assert _commits(repo) == 0

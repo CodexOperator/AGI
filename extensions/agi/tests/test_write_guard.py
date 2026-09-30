@@ -744,7 +744,7 @@ def test_b4_w1b_the_suite_lock_policy_block_carries_the_write_wait(project, caps
                                                       "hold": "live-foreign-pid"}}}}))
     assert verification.suite_lock_policy(project) == {
         "file": "other.lock", "write_commit_wait_s": 0.01,
-        "hold": "live-foreign-pid", "hold_wait_s": 600.0}
+        "hold": "live-foreign-pid", "hold_wait_s": 90.0}
     assert write._commit_wait_s(project) == 0.01     # the block WINS over 99
     cfg.write_text(json.dumps({"values": {"core": {"write_commit_wait_s": 7}}}))
     assert write._commit_wait_s(project) == 7.0      # STOPGAP, absent block cell
