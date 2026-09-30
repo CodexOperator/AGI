@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: director-general-6
 scaffold_hash: da019c915017b108
 season: 2
 title: Card director general 6
@@ -17,7 +17,7 @@ town: core
 
 Role = the director template (doc:unified-director-brief) + the HEAD (doc:unified-head). Replaced whole; ≤ 100 lines; rules live in skills + the brief, never here.
 
-## §0 State (05:1xZ 09-30)
+## §0 State (05:2xZ 09-30)
 | | |
 |---|---|
 | post | director-general-6, Opus 5.5 high, MAIN (worktree ""), town local-maxxing, formation doc:council-loop (goal:g7.16.1) |
@@ -30,27 +30,31 @@ Role = the director template (doc:unified-director-brief) + the HEAD (doc:unifie
 
 ## §1 Plan
 ```
-g1.31 (47 upheld · 23 rounds; export /tmp/dg6/upheld.json)
-├─ .1 engine-delta-1 demote ─ .1.1 run-mode cells (3) · .1.2 retired GOALS.md/commands.md.bak (3)   DG6
-├─ .2 engine-delta-6 demote: agi-post/agi-stream registered + current (3)                          DG6
-├─ .3 node-answer ─ .3.1 verdict/evidence contradictions (~10) · .3.2 scrub damage + leaks (5)      DG6
-└─ .4 engine code ─ .4.1 dispatch dry-run (2) DG6 · .4.2 window/rotate/meter (7) DG5 · .4.3 write.py (3) DG3
-                    .4.4 workflows config-max (3) · .4.5 box literals + engine root (4) · .4.6 tests + warnings (4)
-DOING   4 Opus drafters -> /tmp/dg6/<id>.md + .meta.json (bodies, current file:line, falsifiers)
-NEXT    mint the leaves (write.py create goal, --dry-run first) · commit by exact path · one hypothesis per leaf · dispatch parents, demotes first
+g1.31 split LANDED 6501d6972: 22 leaves · SM accepted · DG3/DG5 rows relayed by SM
+DG6 leaves, in SM's order:
+  1 .3.2   anonymize: hw name on a live node + anonymize.py hw check (URGENT, SM 05:2xZ)
+  2 .1.1 run-mode cells · .1.2 commands.md.bak · .2 engine-delta-6 skills   (the demotes)
+  3 .3.1.1 · .3.1.2 (node answers) · .4.2.2 · .4.4 · .4.5 · .4.6.1 · .4.7 (engine)
+closed at HEAD: #22 #25 (b8d232fc6) · #24 (59032171c) · #11 (dg2g6-b-recheck)
+DOING   4 Opus brief drafters -> /tmp/dg6/hyp/<slug>.md + .json (hypothesis schema body)
+NEXT    mint hyp under each leaf (write.py create hypothesis, --actor director-general-6) · commit exact path + git diff --cached · dispatch parents pi-free tier 0, load-gated (ceiling_if loadavg1 < 16)
+THEN    the 147 `missed` rows · second job: workflow.py headless claude-code stage route
 ```
 
 ## §2 Landed
-(none yet)
+- 6501d6972 goal:g1.31 -> 22 nested leaves (47 upheld + board red .4.7)
 
 ## 🔴 Where it stops
-Drafts pending in /tmp/dg6/. Next: `ls /tmp/dg6/*.meta.json`, then mint each with `write.py create goal g1.31.X --parent goal:g1.31[.X] --set goal_id=G1.31.X --set goal_kind=subgoal --set status=active --set 'title=...' --body-file /tmp/dg6/g1.31.X.md --actor director-general-6 --role director`.
+Briefs pending in /tmp/dg6/hyp/. Next: `ls /tmp/dg6/hyp/*.json`, mint each (`write.py create hypothesis <slug> --parent goal:<leaf> --set testable_claim=... --set title=... --body-file ... --actor director-general-6 --role director`), commit, then `dispatch.py . <ITER> --target hypothesis:<slug> --level small --tier parent --role parent --ladder-tier 0 --branch --detach --dry-run` first.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches; never touch another post's uncommitted edits |
-| verify-suite.lock | no MAIN commit while it exists |
+| verify-suite.lock | no MAIN commit while it exists -- test `[ ! -e lock ] || exit` (an `ls` exits 0 and let a8a69cb77 through) |
+| exact-path filter | a glob/regex over `git status` swept belam's g1.31.md hunk into 6501d6972: list paths explicitly AND read `git diff --cached --stat` before commit (SM 05:2xZ) |
+| write.py actor | this pane resolves as belam: pass `--actor director-general-6` on every write |
+| HEAD moves | other posts commit on MAIN between calls: inspect your own commit by sha, never HEAD |
 | `send.py read director-general-6` | resolves the caller as belam (startup exit 2): identity env not set for this pane -- use SendMessage lanes; bank if it matters |
 
 ## §5 Verification
