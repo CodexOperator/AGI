@@ -32,7 +32,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ```
 LANDED 72dff76359 STACK DG4.06+15+21+11+22 · 2cbe754da1 DG4.17 · a2e42a3bf0 g1315131 · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19 (trees removed)
 WITH SM, awaiting GO (tip · worktree to remove once landed: in trunk + clean, harvest iter-* first)
-  g73319 2b68fbc07e dg4-g73319 · g75213 4336e659e4 dg4-g75213 (Prime: 3 guard cells + live bind) · SM-1 bd01ee8969 dg4-sm1
+  g73319 2b68fbc07e dg4-g73319 · g75213 7cd127824e dg4-g75213 (re-sent 20:3xZ after the g7556 trunk merge; HELD on the Prime live bind + 3 guard cells) · SM-1 bd01ee8969 dg4-sm1
   SM-2 802577c1bd dg4-sm2 · DG4.12 af2c27335f dg4-dg412c (ON SM-2) · DG4.13 9baba2bc99 dg4-dg413c · r49 7eb1c65aed dg4-r49 (ON DG4.13)
   DG4.18 c576956960 dg4-dg418m: HELD by SM on the 3 Prime cells (locations.stream, byte_cap 8000, 2 grid versions) -- SM asks the Prime
   LINEAGE 2ec78512d4 re-sent 20:15Z (SM 20:2xZ "send when ready" crossed it: already in its queue) -- awaiting GO
