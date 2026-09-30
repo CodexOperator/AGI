@@ -657,7 +657,7 @@ def build_id_index(root: Path) -> dict[str, Path]:
     return index
 
 
-def build_parent_mint_trailer(path: Path, id_index: dict[str, Path]) -> str | None:
+def build_parent_mint_trailer(path: Path, id_index: dict[str, Path], resolve=None) -> str | None:
     """Commit-message body for goal:g2.7: one `Parent-Mint-Id: <mint-id> <parent-node-id>`
     line per entry in `path`'s `parents:`, so a renderer can traverse disk
     nodes and grid commits as one hypergraph without a separate edge store —
@@ -669,8 +669,11 @@ def build_parent_mint_trailer(path: Path, id_index: dict[str, Path]) -> str | No
     on disk, or was found but has no `mint_id` of its own yet.
 
     Returns None (no body to add) if the node has no parents at all.
+    `resolve` = the caller's ONE links.address_resolver: a parent written as a
+    mint id is named by its address, exactly as its address twin
+    (hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver).
     """
-    parents = parse_parents(path)
+    parents = [(resolve and resolve(p)) or p for p in parse_parents(path)]
     if not parents:
         return None
     lines = []
@@ -1132,6 +1135,8 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                 demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)
                               if d.written)
         id_index = None if session else build_id_index(root)
+        import links   # ONE resolver per command, lazy: an address-only graph builds no index
+        resolve = None if session else links.address_resolver(root)
         engine_root = engine_root or default_engine_root()
         written = 0
         errors = 0
@@ -1159,7 +1164,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                     errors += 1
                     continue
                 msg_prefix = prefix
-                trailer = build_parent_mint_trailer(p, id_index)
+                trailer = build_parent_mint_trailer(p, id_index, resolve)
                 payload_ref = parse_payload_ref(p)
                 if payload_ref:
                     found = resolve_payload(root, payload_ref, engine_root,
