@@ -67,18 +67,11 @@ def _load_rules(schemas_dir: Path):
     return rules, {t: sorted(tips) for t, tips in succ.items()}
 
 
-def _refs(value) -> list:
-    """A link field as a list: a scalar ref is ONE item, never its characters
-    (hypothesis:l2w6-telemetry-rollup carries `next_edges: <one id>`, 09-30)."""
-    return [value] if isinstance(value, str) else list(value or [])
-
-
 def _load_nodes(nodes_dir: Path) -> list[dict]:
     """Every node's frontmatter-keyed facts. `parents` and `next_edges` are
     read from frontmatter, not the loader's Node dataclass, because `next_edges`
     lives in frontmatter and is what the tip census counts."""
-    import links  # noqa: PLC0415  (goal:g4.18.6.3.2: ids through the one resolver)
-    out, r = [], links.address_resolver(Path(nodes_dir).parent)
+    out = []
     for p in walk_node_files(nodes_dir):
         try:
             fm = load_node_file(p, body=False).frontmatter
@@ -92,8 +85,8 @@ def _load_nodes(nodes_dir: Path) -> list[dict]:
         out.append({
             "id": str(nid),
             "type": str(fm.get("type") or "unknown"),
-            "parents": set(r(str(x)) or str(x) for x in _refs(fm.get("parents"))),
-            "next_edges": set(r(str(x)) or str(x) for x in _refs(fm.get("next_edges"))),
+            "parents": set(str(x) for x in (fm.get("parents") or [])),
+            "next_edges": set(str(x) for x in (fm.get("next_edges") or [])),
         })
     return out
 
