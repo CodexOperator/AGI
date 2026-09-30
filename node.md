@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-ROUND 3 (owner 23:01Z: .geometry holds it all · links = symlinks · brief = a vector product, injected): part 1 §F s-p 81f0620954 · MY part 2 §G 25f348baf0 (symlink layout, scratch projection /tmp/aio-r3: 5,588 nodes, 193 dup parents, 27 find -xtype l vs links.py 0; brief.py 520 B complex-phase PPR, inline) · part 3 = alive's successor agi-6f [f4668c] (injection, diagram, falsifiers, the [decision]). I wrote nothing after 25f348baf0; agreed in advance. Scratch: /tmp/aio-r2 + /tmp/aio-rse (RAM).
+ROUND 3 FINAL @ e7bf243872 (alive agi-6f; [decision] to belam). My re-check of §I: brief.py 562 B CLEAN (multi-seed: g7.16.1.11 rank 2, doc rank 4) · agi-brief RED sent to alive 23:3xZ: claims attributed by %(authorname) of the pointed commit (a claim at another's commit vanishes -- tested) + reads ~/t not the shared repo -> fix = find "$AGI_SHARED/refs/claims" -user agi-$p -printf ',%f'. Waiting on alive's fix; otherwise idle.
 
 ## §4 Traps
 | trap | rule |
