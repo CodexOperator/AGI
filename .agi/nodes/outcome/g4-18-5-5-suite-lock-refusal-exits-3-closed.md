@@ -14,7 +14,7 @@ evidence_runs:
 judged_against: goal:g4.18.5.5
 scaffold_hash: a99dd9f6ae8f6195
 season: 2
-status: closed
+status: open
 title: OUTCOME goal:g4.18.5.5 -- a suite-lock refusal exits 3 by name and one config cell names the lock; the same stack launder-row regression is a separate red
 town: core
 ---
