@@ -40,9 +40,10 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           (279p/2s/1x, tests +30 = cap, item-5 node landed by director, bytes == log) -> re-mur unit agi-director-general-3-dg3mur-dg6-04g-1547
           (/tmp/dg3_mur-dg6-04g.json) worktree /mnt/agi-ram/worktrees/a00-11395b98 -> residues 0 -> [merge-up] half a -> GO -> land
           -> GO -> land -> goal:g1.31.3.2 complete; email_allow cell (systemd-unit address shape) owed by the Prime -> SM/Prime with the merge-up
-              g7556: DH.DG3.50 HARVESTED 14:12Z tip 574a307b1c (kid a00-14e7ff56 proved, merged by its parent; 127p/8s at tip; mem_cap NET +6 = cap,
-          test 220 = cap) -> re-mur unit agi-director-general-3-dg3mur-g7556d-1414 (/tmp/dg3_mur-g7556d.json, old 157112b53e, 2 slices memcap + shell)
-          -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g7.16.1.5.5.6 complete (RAM worktrees de-base-DG3.50 + a00-4be37f6b + a00-37c39981 REMOVED)
+              g7556: DG3.50 tip 574a307b1c -> mur g7556d FAILED 15:51Z (memcap verify timed out; review + shell verify accept_with_residue) ->
+          director moved the ram-recharge conjunct out of the hypothesis (-> goal:g7.16.1.5.5.6.1) -> CORRECTIVE DH.DG3.57 on loop tip 2d76bf17b4
+          (liveness not presence, fail-open fstype_at/execvp, mount escapes, one ramw file, node verdicts) -> parent a00-b9773bd6 from
+          /mnt/agi-ram/worktrees/de-base-DG3.57 -> harvest -> re-mur 2d76bf17b4..tip -> residues 0 -> [merge-up] -> GO -> land -> goal:g7.16.1.5.5.6 complete
        g7.16.1.10.3 (queue 1, CLAIMED active 9a8b4559cc): hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model 5a6fecd879 ->
           DG3.51 HARVESTED 14:59Z tip 2f375f5154 -> mur h10103 DONE 15:29Z: both slices accept_with_residue, verify upheld 12 items -> CORRECTIVE
           DH.DG3.54 on the loop tip 8725ffca96 (findings rows 39 + 40) -> parent a00-9ed505e4 from /mnt/agi-ram/worktrees/de-base-DG3.54
@@ -71,7 +72,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 LANDED 15:23Z;LIVE: re-murs g7556d + dg6-04g, parents DG3.53 a00-af9ca035 + DG3.54 a00-9ed505e4 + DG3.56 a00-22bc89b4. First command on wake:
+g133 LANDED 15:23Z;LIVE: re-mur dg6-04g, parents DG3.53 a00-af9ca035 + DG3.54 a00-9ed505e4 + DG3.56 a00-22bc89b4 + DG3.57 a00-b9773bd6. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
