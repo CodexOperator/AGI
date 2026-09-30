@@ -1,4 +1,4 @@
-"""Regression: the <project-root>/bin/ shadow guard bites (goal:s4 / CLAUDE.md rule S1).
+"""Regression: the <project-root>/bin/ shadow guard bites (CLAUDE.md "The two rules this project has already paid for").
 
 driver.sh prefers a project-local script over the engine's own copy
 (the `SNAPSHOT_PY=` / `RENDER_PY=` sites in driver.sh):
