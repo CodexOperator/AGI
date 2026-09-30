@@ -111,3 +111,67 @@ def test_a_lock_freed_within_the_budget_lands_the_write(tmp_path):
     r = _write(repo, "doc:w1", 'set title "after the lock"')
     assert r.returncode == 0, r.stderr[-300:]
     assert _dirty(repo) == [] and _commits(repo) == 1
+
+
+def test_a_peer_commit_inside_the_budget_exits_0_with_the_tree_clean(tmp_path):
+    """Falsifier 1: the loser of a same-node race must NOT refuse UNCOMMITTED.
+    A Timer frees index.lock and commits the SAME node bytes while this write is
+    still in its backoff -- the index's truth is then 'already at HEAD'."""
+    repo = _repo(tmp_path, wait_s=10)
+    node = repo / ".agi" / "nodes" / "doc" / "w1.md"
+    lock = repo / ".git" / "index.lock"
+    lock.write_text("held until the peer commits")
+
+    def peer() -> None:
+        time.sleep(1.0)
+        lock.unlink(missing_ok=True)
+        subprocess.run(["git", "-C", str(repo), "add", "--", str(node)],
+                       capture_output=True)
+        subprocess.run(["git", "-C", str(repo), "commit", "-qm", "peer"],
+                       capture_output=True)
+
+    threading.Thread(target=peer, daemon=True).start()
+    r = _write(repo, "doc:w1", 'set title "peers tie"')
+    assert r.returncode == 0, (r.returncode, r.stderr[-300:])
+    assert "UNCOMMITTED" not in r.stderr, r.stderr[-300:]
+    assert _dirty(repo) == [], "the index says it is committed, so the tree is clean"
+    assert _commits(repo) in (1, 2), "one commit: ours or the peer's, never both lost"
+
+
+def test_a_lock_held_past_the_budget_never_says_STILL_STAGED_for_an_unstaged_path(tmp_path):
+    """Falsifier 3: with index.lock held the reset fails, but `git diff --cached`
+    is quiet for the path -- the note must not claim STILL STAGED."""
+    repo = _repo(tmp_path, wait_s=0.6)
+    lock = repo / ".git" / "index.lock"
+    lock.write_text("held by a fixture writer")
+    node = repo / ".agi" / "nodes" / "doc" / "w0.md"
+    r = _write(repo, "doc:w0", 'set title "never staged"')
+    assert r.returncode == 3, (r.returncode, r.stderr[-300:])
+    assert "UNCOMMITTED" in r.stderr and "STILL STAGED" not in r.stderr, r.stderr[-300:]
+    cached = subprocess.run(["git", "-C", str(repo), "diff", "--cached", "--quiet", "--",
+                             str(node)])
+    assert cached.returncode == 0, "the path really is unstaged -- the note said so"
+
+
+def test_an_IGNORED_node_never_exits_0_over_uncommitted_bytes(tmp_path):
+    """Falsifier 2, the blind spot `status --porcelain` hides: an IGNORED path
+    never shows up as dirty, so a 'clean at HEAD' read over it is a lie. The
+    write must refuse UNCOMMITTED, not exit 0 over bytes no commit holds."""
+    repo = _repo(tmp_path)
+    node = repo / ".agi" / "nodes" / "doc" / "w0.md"
+    (repo / ".gitignore").write_text(".agi/sessions/\n.agi/nodes/\n")
+    subprocess.run(["git", "-C", str(repo), "rm", "-q", "--cached", "-r", ".agi/nodes"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-qm", "ignore the nodes"],
+                   check=True, capture_output=True)
+    assert subprocess.run(["git", "-C", str(repo), "ls-files", "--error-unmatch", "--",
+                           str(node)], capture_output=True).returncode != 0, "untracked"
+    hook = repo / ".git" / "hooks" / "pre-commit"
+    hook.write_text("#!/bin/sh\nexit 1\n")
+    hook.chmod(0o755)
+    subprocess.run(["git", "-C", str(repo), "config", "core.hooksPath",
+                    str(repo / ".git" / "hooks")], check=True, capture_output=True)
+    r = _write(repo, "doc:w0", 'set title "ignored"')
+    assert r.returncode == 3, (r.returncode, r.stderr[-300:])
+    assert "UNCOMMITTED" in r.stderr, r.stderr[-300:]
+    assert "clean at HEAD" not in r.stderr, "an ignored path is NOT clean at HEAD"

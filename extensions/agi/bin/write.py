@@ -4077,15 +4077,29 @@ def _commit_write(root, node_id: str, res, actor: str = "") -> tuple[str | None,
         if done.returncode == 0:
             return None, False
         busy = "index.lock" in (done.stderr or "") + (done.stdout or "")
+        # the peer's commit won the race (hypothesis:a-write-refusal-names-the-index-truth):
+        # the index is the truth, and it says these bytes are already in HEAD.
+        # TRACKED or not "clean": `status --porcelain` is blind to an ignored
+        # path, and an ignored uncommitted node is the exact rc-0-over-a-lost-
+        # write the refusal exists to prevent.
+        tracked = all(git("ls-files", "--error-unmatch", "--", p).returncode == 0
+                      for p in paths)
+        if (not busy and tracked
+                and not git("status", "--porcelain", "--", *paths).stdout.strip()):
+            return (f"commit skipped: {node_id} is clean at HEAD (a peer committed "
+                    f"these bytes -- nothing to commit) -- exit 0"), False
         if not busy or time.monotonic() >= deadline:
             break
         time.sleep(min(2.0, 0.05 * 2 ** min(tries, 6)) * (0.5 + random.random()))
     # residue 90: never left STAGED in a shared index; residue 98: a reset
     # that fails too (index.lock held) is said loudly, never claimed as done
     reset = git("reset", "-q", "--", *paths)
+    staged = git("diff", "--cached", "--quiet", "--", *paths).returncode != 0
     state = ("unstaged" if reset.returncode == 0 else
              f"STILL STAGED, reset failed rc {reset.returncode} -- run "
-             f"git reset -q -- {' '.join(paths)}")
+             f"git reset -q -- {' '.join(paths)}" if staged else
+             f"reset failed rc {reset.returncode} -- the path is NOT staged, "
+             f"so nothing of this write is left staged")
     return (f"commit failed after {tries} tr{'y' if tries == 1 else 'ies'} ({state}; "
             f"the write stays on disk UNCOMMITTED -- exit {EXIT_UNCOMMITTED}; recover: "
             f"{recover}): {(done.stderr or done.stdout).strip()[:300]}"), True
