@@ -3,9 +3,9 @@ id: hypothesis:cc-adapter-refuses-git-handoff-and-dispatch
 mint_id: 867b85a5d32b49f0a25812db77b7d912
 type: hypothesis
 parents:
-  - goal:s34
+  - goal:g4.6.1
 next_edges: []
-edited_by: season.py
+edited_by: self-perpetuating
 scaffold_hash: adab5acac217108c
 scale: engine
 season: 1
