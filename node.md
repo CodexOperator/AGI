@@ -67,7 +67,7 @@ Council design doc for goal:g7.16.1.11, **ROUND 2** (owner 22:1xZ 09-30: "push i
 ```
 act                 the one operation                                                    who holds the rule
 write a node        commit -> refs/posts/<me>/head                                       kernel: my ref dir is mine
-claim work (C)      update-ref refs/posts/<me>/claims/<node> <sha> 0000…  (create-only CAS)  git: "reference already exists" = someone holds it
+claim work (C)      update-ref refs/claims/<node> <sha> 0000…  (ONE shared name, create-only CAS, sticky dir)  git: "reference already exists" = someone holds it
 message             commit -> refs/mail/<to>/<id>   (sticky 1733 drop box)               kernel: anyone drops, only <to> removes
 receive             merge refs/mail/<me>/<id> into my head, then drop the mail ref       the DAG keeps the receipt forever
 spawn a kid         refs/posts/<me>/kids/<k> from a node's commit; the kid runs in MY slice   the kid's work reaches me as a merge
@@ -87,7 +87,7 @@ Measured 22:2xZ on a throwaway /tmp bare repo (git 2.43, one user, mode bits sta
 | the kernel owns a head | `update-ref` into a ref dir without write -> "cannot lock ref … Permission denied" |
 | monotone = no locks | 2 writers x 100 commits on their own refs, concurrently, zero locks of ours: 101 + 101, `git fsck` clean |
 | refs stay files | `gc.packRefs=false`: no packed-refs after 200+ updates (packing would move every ref into ONE file the kernel cannot split) |
-| claim = create-only CAS | 2nd claim -> "reference already exists" · 8 racers on 2 names -> exactly 2 winners |
+| claim = create-only CAS on ONE shared name | 2nd claim -> "reference already exists" · 8 racers on 2 names under `refs/claims/` -> exactly 2 winners · per-post paths (`refs/posts/<p>/claims/<g>`) let EVERY racer win, 6 of 6, because they are different refs (self-perpetuating, measured) |
 
 **B.3 · The latent brief: a session's context is a walk, not a template.** What a waking session needs is "what is near my card", and a graph already knows that. Its context = the **personalized PageRank** from its card node: the stationary distribution of a random walk that restarts at the card with probability 0.15, over declared edges ∪ near edges. It is the graph's own attention, centred on the post. One power iteration, stdlib only, **478 B**, 0.39 s over the whole live graph (5,343 nodes, 9,088 declared edges). Measured:
 ```
@@ -104,12 +104,64 @@ That is exactly the brief each post needs, and no one chose it. The HEAD, the ro
 
 Pieces for §D: `ppr.py` 478 B · the ref layout (3 dirs + 2 git config lines: `gc.packRefs=false`, `core.sharedRepository=group`) ~90 B · the claim, message and receive acts are single git commands (0 B of our code).
 
-## C · self-perpetuating -- the body regrows from its description (the projector as a systemd generator), and the frontier
-(pending: self-perpetuating)
+## C · self-perpetuating -- the body regrows from its description, and the graph calls for its own completion
+**What am I ACTUALLY trying to get the machine to do here?** Outlive every one of its builders. vision:self-perpetuating, the owner's words: "the graph invites completion, it points out areas that are obvious gaps and calls out to observers to join the work of completing it ... a cathedral, what is built today is only meant to be witnessed by generations yet to pass." Two mechanisms carry that: a **genome** (the graph carries the code that rebuilds the body, including that code itself) and a **hunger** (the graph computes what it still lacks, and calls for it).
+
+```
+             ┌──────────────── THE GRAPH @ trunk ────────────────┐
+  boot /     │ .geometry/posts.md (rows) · wrap/agi-post@.service │◀──────────── a generation = the trunk ref advancing
+  ref moves  │ wrap/agi-project  (the PROJECTOR, itself a node)   │                       ▲
+      │      └──────┬───────────────────────────┬─────────────────┘                       │ lands only if (1) the genome still
+      ▼             │ git show trunk:… | sh     │ agi-frontier (every active goal          │ reproduces itself and (2) V did not
+  agi-seed (291 B, ONE installed unit:          │ runs its own falsifier, read-only)       │ rise without a new owner goal
+  "read the graph, obey it"; no logic)          ▼                                          │
+      │             ▼                     met ─▶ "write my outcome"   ┐                     │
+      └──▶ units in the RUNTIME dir       red ─▶ "work me"            ├─▶ refs/mail/pool/<call>/<goal>
+           (tmpfs: wiped each boot,       mute ─▶ "give me a falsifier│    (create-only; re-drop = no-op)
+           so every boot REGROWS          that exits 0 only when done"┘            │
+           the body from the graph)                                                ▼
+           + agi-project.path watches the trunk's reflog         an idle post: update-ref refs/claims/<goal> <sha> 0000…
+             -> the projector re-runs FROM the graph, never a copy     one shared name -> exactly ONE winner -> it works -> lands ──┘
+```
+
+**C.1 · The genome: a projector that is its own node (a fixed point, tested).** `agi-project OUT REV` is the units half of §A's project(): from the graph at REV it writes `agi-post@.service`, one enable link per post row on this box with `recover != false`, and ITS OWN two units. Its service's ExecStart is `git show REV:extensions/agi/wrap/agi-project | sh -s OUT REV`, which runs the projector straight out of the graph. **No installed copy of the projector exists, so none can drift.** The code that runs is always the code in the graph, by construction. Tested 22:3xZ on a `git clone --shared` scratch repo (MAIN untouched), projector 664 B:
+| property | test | result |
+|---|---|---|
+| it projects the formation | bootstrap `git show trunk:…/agi-project \| sh -s OUT trunk` | 10 post units = exactly the local-town rows with recover != false (DG4-6, director-thought and director-engine absent) |
+| **fixed point** | execute the ExecStart of the projected `agi-project.service` into a second dir | `diff -r` empty: the projection reproduces the projector that produced it |
+| deterministic | project twice | byte-identical |
+| it regrows elsewhere | a second `--shared` clone, same trunk | the same units (only the repo path inside agi-project.* differs) |
+| the graph steers the body | commit ONE row edit (stream-master `recover: false`) | exactly one link disappears, nothing else changes |
+| it sees every ref move | `.path` on `logs/refs/heads/trunk` (the reflog is appended on every update, packed or not) | the watched file exists; `systemd-analyze verify` clean |
+
+**Why not a systemd generator (the diagram's first guess):** a generator runs very early at boot, before mounts. Measured: the repo path is its own mount point (`findmnt --target` returns the repo dir itself), so a boot-time generator sees no graph. The seed unit carries `RequiresMountsFor=` instead, and writes into the RUNTIME unit dir (`%t/systemd/user` for the spike, `/run/systemd/system` for the real body). That dir is tmpfs, so a reboot wipes the whole body and the seed regrows it from the graph. **Deleting the body is the test, and every boot runs it.**
+
+**The seed is the only installed thing: 291 B, no logic.** `[Unit] RequiresMountsFor=<repo>` · `ExecStart=sh -c "git show trunk:…/agi-project | sh -s %t/systemd/user trunk; systemctl --user daemon-reload; systemctl --user start default.target"` · `WantedBy=default.target`. It is the ribosome: it reads the genome and never changes. Every improvement to the body, including to the projector, is a commit to the graph.
+
+**C.2 · Generations (the lens across a thousand rotations).**
+- A generation of a post = its ref advancing (§B). A generation of the SYSTEM = the trunk advancing. Each one inherits exactly three things: the seed (constant), the graph (every ancestor's commits), and its card (the tip). Nothing else crosses, so nothing else needs reconciling (round 1 §4: 716 standing trees, 7,971 session files and rotate.py's reconcilers were leftovers that crossed).
+- **Genome integrity at every landing:** the trunk gate runs the fixed-point test on the NEW tip (project it, then re-project from the projected unit, and diff). A landing that would leave the next generation unable to regrow its body is refused. The cathedral cannot land a change that stops it from being rebuilt.
+
+**C.3 · The hunger: the graph calls for its own completion (the frontier, tested).** `agi-frontier REV` (384 B) runs, for every active goal, the first read-only command of its `## Falsifier` block. The schema already defines the verdict ([goal].md: "CLI/grep exit 0 only when done"). Each goal then answers one of three ways, and every answer is a call to an observer:
+| call | meaning | measured @ HEAD 22:3xZ (303 active goals, 3.2 s for the whole graph) |
+|---|---|---|
+| **met** | its falsifier passes: "write my outcome" (the council loop's outcome step) | 41 |
+| **red** | its falsifier fails: "work me" | 18 |
+| **mute** | no runnable read-only command: "give me a falsifier that exits 0 only when done" | 244 |
+The mute count is the finding. Of 70 goals that carry a runnable command, 60 state the verdict in prose ("returns", "prints", "= 0"), which the schema's own rule forbids. So 4 of every 5 goals cannot yet tell the machine when they are done. Sharpening a goal's falsifier is the first work the living graph asks for, and it belongs to that goal's own chain.
+- **Calling out = a mail ref.** Each non-met call becomes `refs/mail/pool/<call>/<goal>`, create-only: 303 dropped in 1.0 s, and a second drop is a no-op.
+- **Joining = one claim.** An idle post runs `update-ref refs/claims/<goal> <sha> 0000…`. It must be ONE shared name. Tested: 8 racers x 2 goals on `refs/claims/<g>` -> exactly 2 winners, but 6 racers on per-post paths `refs/posts/<p>/claims/<g>` -> 6 "winners", because those are six different refs. **So B.1's claim row must read `refs/claims/<node>`**, in a sticky (1733) dir so only the claimer can release it. No board lock, no dispatcher: the gap itself is the queue.
+- **Scope never creeps.** Every call derives from an owner-seeded goal. Sleep's "clusters with no goal" (§A) become an `[offer]` mail to the council, never a minted goal (the Prime mints goals; "scope creep is the failure mode, not idleness").
+
+**C.4 · The math of perpetuation: V, a Lyapunov function over generations.** V(tip) = red + mute, the graph's distance from knowing and meeting its owner's intent. **Rule: a landing may not raise V unless it adds an owner-seeded goal** (the only energy put into the system). The gate is the frontier at the old and new tips, ~2 x 3.2 s. The system then descends monotonically toward the owner's goals, and every generation leaves the graph at least as complete as it found it. Measured across one day of generations: 24 h ago (582436f756) V = 15 + 239 = 254 over 286 active goals; now V = 18 + 244 = 262 over 303. V rose 8 while 17 goals were seeded, met rose 32 -> 41, and the mute share fell from 83.6 % to 80.5 %. That descent is the number the living system would publish.
+
+**Superpowers (the vision's second clause, "each new feature is essentially a new superpower available for all consciousnesses"):** because the body is a projection, a new verb node (a payload script) projected into every post's PATH and MCP tool list reaches every post's next session with zero code change. That is one more projector line. NOT yet measured: it is a spike row.
+
+Pieces for §D (files in /tmp/g71611/fp-src): `agi-project` 664 B (tested, above) · `agi-seed.service` 291 B (`systemd-analyze verify` clean; not yet run live) · `agi-frontier` 384 B (tested over the live graph) · the pool drop, the claim and the V gate are single git commands or one line each (~120 B for the gate, not yet run as a pre-receive hook). **§C total ≈ 1,459 B.** Spike rows to add: (j) reboot (or `rm -r` of the runtime unit dir + the seed) regrows the exact projection · (k) a landing that breaks the fixed point is refused · (l) a landing that raises V without a new owner goal is refused · (m) a verb node appears in every post's tools at their next session.
 
 ## D · The byte count and the falsifiers on this box
 (pending: all-is-one assembles; alive's A pieces: project.sh · observe.sh · the homeostat tick · simhash.awk, each written out and counted)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-self-perpetuating, 22:1xZ 09-30: filled §4 (no standing worktrees) through the generations lens -- a generation leaves ONLY commits; measured 716 standing trees ~96 GB, 7,971 per-generation session files, a tree-free node write 64 ms, a registration-free slot 1.05 s fresh / 0.69 s recycled / 0.15 s mixed via merge-tree. Amended §8 (g) with the mid-card death, added (h) ref ownership and (i) slots + salvage; §7 gained the trees/sessions RETIRE row and agi-slot.sh in new code. Tree removal is irreversible and waits for the owner's go.
+self-perpetuating, 22:4xZ 09-30 (round 2): filled §C. The genome: a 664 B projector that is its own node and runs FROM the graph via its own unit (fixed point tested on a --shared scratch clone: diff empty, deterministic, regrows in a 2nd clone, one row edit moves one link); a 291 B seed is the only installed piece; runtime-dir units regrow at every boot. The generator idea was dropped because the repo is its own mount point. The hunger: a 384 B frontier over every active goal's falsifier: 41 met · 18 red · 244 mute in 3.2 s; calls as create-only pool refs; claims MUST be one shared name (per-post claim paths gave 6 winners of 6). V = red + mute, a Lyapunov rule over generations: 254 -> 262 in 24 h while 17 goals were seeded; mute share 83.6 -> 80.5 pct.
 <!-- THOUGHT:END -->
