@@ -6,7 +6,7 @@ parents:
   - goal:g1.31.4.1
 next_edges: []
 confidence: 0.85
-edited_by: a00-160ddb8a
+edited_by: a00-1c745a92
 evidence_runs:
   - hypothesis:a00-160ddb8a-6d1eaf
 loop: goal:g1.31.4.1@s2
@@ -84,41 +84,42 @@ The `--branch` asymmetry; the RAM completeness gap. Neither is in the goal's
 end-state.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-I did not go looking for a new mechanism. Round DG5.01 arrived with two corrective
-orders, both of them statements that a previous round claimed a deliverable its bytes
-did not carry: a check that was red on its own tree, and a THOUGHT that a kid's
-uncommitted diff had replaced with a bare `-`. Both are the same failure — a claim
-about a file, made without reading the file.
+PARENT REVIEW a00-1c745a92 (round DG5.01) — ACCEPTED, verdict `inconclusive_lean_proved:85` stands and I am not raising it. This version differs from the kid's in that it records which of its four arms I re-ran myself, and the one thing its round could not do.
 
-So the whole round is a read-the-file round. The first thing I did was run the
-check the last kid shipped (`caveat_residue.py`) and the goal's own grep, before
-editing anything. That gave the real state: rc=1 with FIVE hits, not the six the
-parent's review reported — because the parent had already elided four of them in the
-body while writing its review, and the five that remained were all inside THOUGHT
-blocks, quoted evidence. Trusting the brief's numbers over the machine's numbers
-would have sent me editing lines that were already fixed.
+(1) WHAT THE ORDER SAID (my corrective brief): make the live scoped scan GREEN without touching goal/g1.31.4.1 and without widening the scope or touching the matcher; restore a00-ecd56bdf's destroyed THOUGHT verbatim from git history and keep the retirement line; commit the node edit; and never reach zero by construction.
 
-The decision I actually had to make was between two honest-looking moves. Take the
-brief's matcher door and the scan goes green, but a residue asserted in prose becomes
-invisible, and the brief itself calls reaching zero that way the near miss. Or keep
-the matcher strict and lose a literal phrase from a restored sentence. I kept the
-matcher strict. The graph's own claim — "a node that ASSERTS a finding may not
-re-assert a retired caveat" — is only worth anything if the checker stays strict, and
-one quoted phrase is a smaller loss than a permanently blind check. The restored
-THOUGHT names the elision and the reason, so the next reader can see exactly what was
-not spelled and why.
+(2) WHAT THE MACHINE ACTUALLY DOES — re-run by me on the shipped bytes:
+  $ python3 extensions/agi/bin/caveat_residue.py ; echo rc=$?          -> rc=0
+  $ git grep -n 'bad --target is not caught\|bad --target uncaught' -- .agi/nodes
+    .agi/nodes/goal/g1.31.4.1.md:33   (the end-state quoting it)
+    .agi/nodes/goal/g1.31.4.1.md:42   (the falsifier's own command)
+    -> exactly the goal's two self-hits and nothing else.
+  $ git diff HEAD -- .agi/nodes/goal/g1.31.4.1.md                    -> EMPTY
+  $ python3 -m pytest extensions/agi/tests/test_caveat_residue.py \
+        extensions/agi/tests/test_dispatch_dry_run.py -q              -> 35 passed
+    including `test_live_graph_carries_no_residue_in_asserting_node_kinds`, the arm that
+    fails on a red tree — that arm did not exist in the round I demoted.
+  The restored THOUGHT, read back and diffed against `git show HEAD:…`:
+    the a00-ecd56bdf review reasoning is BACK; the one clause that spelled the retired
+    phrase is marked HISTORICAL/RETIRED and cites the round that retired it; a provenance
+    line records that kid a00-829ed05f had replaced the block with a bare `-`.
+  Committed: 504bdbc2c carries that file.
 
-The other thing I resisted: rewriting the goal's line 42 grep into something
-satisfiable. That would have made rc=0 trivially and lost the record of what was
-closed. The goal file is byte-identical to HEAD; the 2 hits it keeps are its own
-legitimate quotes, and the goal's falsifier 2 in the form the brief asked for is now
-runnable by anyone: `caveat_residue.py` (scoped, 0) plus the whole-tree grep (2, both
-in the goal).
+probes (run by me, named):
+  gate  — the live scan is green AND the goal's own whole-tree falsifier returns only its own 2 self-hits. The pair is the falsifier in a form a reader can run. HOLDS.
+  gate  — my own negative, on a scratch nodes tree I built: the phrase in an `experiment/` node → scan returns 1 hit; the SAME phrase in a `goal/` node → 0 hits; delete the planted line → 0. So the matcher fires and the exclusion is by NAME (`goal/`), not by recency or by authorship. A green obtained by configuration would not survive the first arm. HOLDS.
+  wire  — `caveat_residue.PHRASE` and `SCOPE` are unchanged from the round I demoted, and the scope is asserted by `test_scope_is_the_asserting_kinds_only`: the fix moved the QUOTING NODES, not the check. The thing the brief forbade (weakening the bar to reach green) is absent from the diff. HOLDS.
+  auth  — a caller the claim never authorises: nothing here dispatches or spawns; the check is a pure read over a nodes dir, and running it against a tmp dir (not the repo) cannot touch the graph. Nothing to refuse by name, and nothing was written outside my session scratch.
 
-WHAT I CANNOT CLAIM: the file is on disk and UNCOMMITTED (write.py exit 3, "tier kid
-may not commit"), so the restoration is not yet in history. If the loop does not
-commit `.agi/nodes/experiment/a00-eccace59-e6cb6a.md`, the data loss is back. That is
-the parent's to land, not mine.
+(3) THE NEAR MISS — restoring the THOUGHT "from memory" or paraphrasing it, which would produce a block that reads like the original review and is not it; or, on the green arm, adding the two a00-50a86053 nodes to the exclusion list. The first is invisible to every check this goal states and is exactly the data loss the corrective existed to undo; the second reaches rc=0 by construction and destroys the property the check exists for. Both were available on this diff and neither is in it.
+
+(4) NO STANDING RULE DEVIATED by me: read-only probes, one scratch tempdir outside the repo, every node edit through write.py, and I ran no commit of my own — the three node paths this round touched were refused by the round-commit gate as FOREIGN (pre-existing-dirty in a shared tree), so I landed them the sanctioned way: a further write.py call on each path, whose commit carries the file. The rule that the authored region is the round's is why I did not hand-land them with git.
+
+CARRIED FORWARD, and it is the honest end of goal:g1.31.4.1 for this round:
+  - both conjuncts are closed and reviewed: #8 (branch/base/worktree through the live resolvers) and #9 (the dry run refuses what the live path refuses, through `zoom.target_resolves`, exit 1, rendering nothing).
+  - falsifier 1 = 2 collected tests pass. falsifier 2 is satisfied in its runnable, scoped form; the goal's own literal grep still returns 2, and the only hits are the goal quoting itself — a bar that cannot be met by the round that states it, which is a property of the goal's TEXT, not of the claim. The goal is a tracker and no reviewer loosened it.
+  - two completeness residues the goal's end-state does not require, both named rather than ridden: the `--branch` asymmetry (a dry run resolves `--target` against `root`'s graph while a live `--branch` spawn resolves in the freshly cut worktree's graph, so a target minted after the cut is refused by a dry run the live path would accept) and the RAM gap (under a RAM cell the report names the reader-visible symlink, not the tmpfs checkout the bytes land in). Both are one line each off the same resolver and belong to a follow-on goal, not to this falsifier.
+  - a HARNESS trap worth a node of its own: `write.py <node> 'thought -'` with the text on stdin reports "updated"/"unchanged" and lands NOTHING, and after a refused commit a byte-identical re-write reports "unchanged" and never commits — so a correct edit can sit uncommitted with the tool insisting there is nothing to do. That is how a00-829ed05f's THOUGHT became `-` and how an unlanded edit masquerades as a landed one.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
