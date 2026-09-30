@@ -12,7 +12,7 @@ profile: balanced
 role: kid
 scaffold_hash: b355c9da340aa794
 season: 2
-title: A00 ca253dbf 45a5dc
+title: remint adopts its own orphan staged key and sweeps the rest
 town: core
 ---
 # experiment:a00-ca253dbf-45a5dc
