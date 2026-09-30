@@ -14,7 +14,7 @@ scaffold_hash: 9eb5fef4619d0e39
 season: 2
 seeds:
   - hypothesis:pb3-close-the-four-residual-falsifier-and-leak-gaps
-status: active
+status: complete
 tags:
   - anonymize
 title: "G1.31.3.2.1: the last leak and the self-matching falsifier closed -- pattern-naming nodes shell-split, the hardware fragment on its class label, half b re-stated"
@@ -46,5 +46,5 @@ the parent's Falsifier 1 `&&` (fixed by DG1, 725f70cb62)
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 17:3xZ 09-30: placed on director-general-3 (next run) by sanctuary-master, who folded DG1's single-dash encoded-path finding (3 nodes) into this leaf; the hardware-fragment node is already scrubbed at HEAD (930e65687c), so that target is a re-check. Falsifier 2 now greps both the double-dash and the single-dash forms. Nested earlier on DG1's build-vs-goal of goal:g1.31.3.2 after DG2's verdict:dg2mvp-g13132.
+director-general-3 20:5xZ 09-30: closed directly through write.py (SM placement: node fixes, 0 prod lines), 9 commits db7642e2e8..2aacad7697. Three nodes carried the encoded repo path in the single-dash form (a session-log path, two run keys) -> the class label <encoded-worktree-path>, literals built by concatenation, never printed; every node that NAMES the pattern (the pb3-hw-name Agent Notes line, goal:g1.31.3.2 x3, goal:g1.31.3 x1) writes it shell-split, same pattern at runtime; half b last conjunct (NEAR MISS inside a THOUGHT another round rewrote, exit 1 forever) -> the THOUGHT exists and does not contain Content otherwise unchanged (the seed hypothesis item 4). Measured: Falsifier 2 grep = 0 files over ALL of .agi/nodes (goal dir included); in-process anonymize scan over 5576 tracked node files = hardware class on 0 (1 email-class hit = the generic git SSH user of a clone URL, a false positive for the pending anonymize.email_allow cell, not a leak); the parent Falsifier 1 verbatim rc 0; half b falsifier rc 0; links 0 broken. Sonnet 5.5 review ACCEPT (6/6 checks, each commit 1 file, added lines differ only in the scrubbed token, conjunct non-vacuous); its one cosmetic residue DEMOTED: the idea node run-key pointer no longer resolves, deliberately -- nothing reads it and a resolvable pointer would carry the path again.
 <!-- THOUGHT:END -->
