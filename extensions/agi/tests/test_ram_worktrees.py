@@ -19,6 +19,10 @@ import dispatch  # noqa: E402
 import locations  # noqa: E402
 
 
+class _Repo(type(Path())):
+    """A Path that can carry the fixture's recorded RAM writes."""
+
+
 def _git(repo, *a):
     return subprocess.run(["git", "-C", str(repo), *a], check=True,
                           capture_output=True, text=True).stdout
@@ -27,12 +31,17 @@ def _git(repo, *a):
 @pytest.fixture
 def repo(tmp_path, monkeypatch):
     monkeypatch.setenv("GUARD_BOX", "test-box")
-    r = tmp_path / "repo"
+    r = _Repo(tmp_path / "repo")
     (r / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
     _git(r, "init", "-q", "-b", "main")
     (r / "f.txt").write_text("x\n")
     _git(r, "add", "f.txt")
     _git(r, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init")
+    # goal:g7.16.1.5.5.1: never a real systemd-run unit from a test -- the
+    # wrap is recorded and the argv runs as-is.
+    r.ram_writes = []
+    monkeypatch.setattr(locations, "ram_write_argv",
+                        lambda argv: r.ram_writes.append(list(argv)) or list(argv))
     return r
 
 
@@ -97,3 +106,42 @@ def test_a_reboot_emptied_ram_worktree_is_enumerated_dead(repo, tmp_path):
     assert cli._dead_kid_worktrees(repo) == []
     shutil.rmtree(ram)
     assert cli._dead_kid_worktrees(repo) == [(ram / "a00-k1").resolve()]
+
+
+# ---------- goal:g7.16.1.5.5.1: the RAM disk's pages on their own slice ------
+
+def test_a_ram_checkout_is_written_from_the_ram_slice(repo, tmp_path):
+    ram = tmp_path / "ram" / "worktrees"
+    ram.parent.mkdir()
+    _guard(repo, f"GUARD_RAM_WORKTREES_test_box={ram}\n")
+    dispatch.branch_worktree_for_spawn(repo / ".agi", "loop/a2", "a2", "main")
+    assert [a[3:5] for a in repo.ram_writes] == [["worktree", "add"]]
+    assert str(ram / "a2") in repo.ram_writes[0]
+
+
+def test_a_disk_checkout_is_not_wrapped(repo):
+    dispatch.branch_worktree_for_spawn(repo / ".agi", "loop/a3", "a3", "main")
+    assert repo.ram_writes == []
+
+
+def test_ram_write_argv_runs_under_the_ram_slice(monkeypatch):
+    import importlib, shutil
+    real = importlib.reload(locations).ram_write_argv  # the fixture-free one
+    monkeypatch.setattr(shutil, "which", lambda n: "/usr/bin/" + n)
+    argv = real(["cp", "a", "b"])
+    assert argv[:2] == ["systemd-run", "--user"]
+    assert "--slice=ramdisk.slice" in argv and "--wait" in argv
+    assert argv[argv.index("--") + 1:] == ["cp", "a", "b"]
+    assert locations.RAM_SLICE == "ramdisk.slice"  # never agi-*: no dash nesting
+    monkeypatch.setattr(shutil, "which", lambda n: None)
+    assert real(["cp", "a", "b"]) == ["cp", "a", "b"]
+
+
+def test_guard_init_writes_the_ram_slice_without_an_oomd_kill():
+    src = (Path(dispatch.__file__).resolve().parents[1] / "guard" /
+           "guard-init.sh").read_text(encoding="utf-8")
+    block = src[src.index("the RAM disk's OWN budget line"):
+                src.index('put "$UGUARD/ramdisk.slice"')]
+    assert "MemoryMax=${RAM_BUDGET_M}M" in block
+    assert not [ln for ln in block.splitlines() if ln.startswith("ManagedOOM")]
+    assert 'RAM_BUDGET_M=$(to_mib "$(hostvar RAM_BUDGET' in src
