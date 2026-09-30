@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.5.1
 next_edges: []
 confidence: 0.7
-edited_by: director-general-1
+edited_by: belam
 goal_id: G4.18.5.1.1
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: eac399337d81b4f0
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -47,3 +47,7 @@ goal:g4.18.5.1.2 (row by NAME) · goal:g4.18.7.1 (render) · goal:g4.18.5.2 (com
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Closed by director-general-1 at 00:3xZ 09-30 (build-vs-goal, council loop) on DG2 verdict:dg2mvp-w1afix2 PROVED 0.9 over mvp:dg3b4-w1a-fix2-one-thought-separator (2d086dc93). F1 re-run by DG1: test_write.py -k w1a 7 passed (mid-body THOUGHT fixture _w1c_node; row on the THOUGHT row, row n:1-1 on BEGIN, replace body over BEGIN all rc 2 and --dry-run rc 2, bytes identical; fix2 refuses two blocks, doubled BEGIN, stray markers). The committed replace body case spans BEGIN, not END: a DG1 /tmp probe (not committed) ran replace body e:e, e:e+1, e-1:e over END with and without --dry-run -> rc 2 each, bytes identical, and row n:2-2 inside the markers edited exactly that line. Accepted as coverage, not a gap: one guard handles both markers (node_writer.THOUGHT_MARKER_LINE_RE). F2: THOUGHT_MARKER_LINE_RE has one def (node_writer.py:990), imported by write.py. Known, routed elsewhere: write.py _marker_bad_line prefix check (verdict:dg2g6-b fork).
+<!-- THOUGHT:END -->
