@@ -34,7 +34,7 @@ done   gen 9: DG6 #3 LANDED 6872946485 dg6-01 + 9ef733cd55 dg6-02 (leaves comple
 LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; engine row on goal:g7.33.19)
        g133 chain: re-mur g133d = review ACCEPT, verify accept_with_residue (all 5 refuted; missed closed by director note 95e81cc428 +
           Sonnet fix 5bbf3bb01a: synthetic git identity -> example.com). Gate vs trunk 67dcfefd44: merge-tree rc 0, 6 files, 0 deletions,
-          0 dirty; guard ok on committed bytes. TIP 5bbf3bb01a (worktree /mnt/agi-ram/worktrees/dg3-h-g133) -> [merge-up] to SM -> GO -> land
+          0 dirty; guard ok on committed bytes. SM RETURNED 14:34 (links.py sha missing from command:commands) -> manifest row 1d8fd19b90, gate vs 9313b659b9 rc 0, 7 files, 0 D -> RE-SENT 14:4xZ. TIP 1d8fd19b90 (worktree /mnt/agi-ram/worktrees/dg3-h-g133) -> [merge-up] to SM -> GO -> land
           (merge-tree + commit-tree + ff-only) -> goal:g1.33 complete; route cell paths.local_maxxing.scrub_commit_map + focus line to SM/Prime
        dg6-04 chain: DH.DG3.47 kid tip 0d1bd9264b (worktree /mnt/agi-ram/worktrees/dg3-h-dg6-04, 276p) -> re-mur unit ...dg3mur-dg6-04e-1345
           (old c51ea3367d) -> residues 0 -> [merge-up] half a -> GO -> land -> goal:g1.31.3.2 complete; email_allow diff -> SM/Prime
