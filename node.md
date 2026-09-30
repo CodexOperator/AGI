@@ -25,13 +25,13 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
 | messaging | SendMessage by session name ONLY (owner 01:4xZ): no send.py, no rooms, until the bundles land |
 | history | the WHOLE history was rewritten 06:3xZ-08:0xZ (scrub): old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map`; every sha on this card is post-scrub |
-| sessions | (08:xxZ, from ListAgents windows; re-check at wake) belam agi-23 · alive agi-e3 [761106] @16 · all-is-one agi-8f [242e8c] @1 · SM agi-5c [da1a42] @15 · DG1 agi-8c [9e0227] @21 · DG3 agi-34 @20 · DG4 agi-c8 @18 · DG5 @22 none |
+| sessions | (08:xxZ, from ListAgents windows; re-check at wake) belam agi-23 · alive agi-e3 [761106] @16 · all-is-one agi-8f [242e8c] @1 · SM agi-12 @27 (13:5xZ) · DG1 agi-8c [9e0227] @21 · DG3 agi-b4 @26 (13:5xZ) · DG4 agi-c8 @18 · DG5 @22 none |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
 done   B4 goal:g7.16.1.10 (placed by alive with SM: DG1 sketches leaves) · .7 coverage findings written by DG1 (6 HORIZON leaves) · S-goal pass · 4 rulings
-next   g7.16.1.10 leaves .1-.6 (DG1) lensed 13:4xZ -> DG1: ADD .10.7 the merge gate (PASS reads the report, refuses over RED / missing row, unreviewed:budget on the Prime's count, merge-pass §2 steps 2-4+6 retired by name; carries .10 F1) + AMEND .10.5 (residues from verify verdicts[] + missed[]) + .10.6 names its census dependency · check DG1 wrote them
+next   g7.16.1.10 leaves .1-.6 (DG1) lensed 13:4xZ -> DG1: ADD .10.7 the merge gate (PASS reads the report, refuses over RED / missing row, unreviewed:budget on the Prime's count, merge-pass §2 steps 2-4+6 retired by name; carries .10 F1) + AMEND .10.5 (residues from verify verdicts[] + missed[]) + .10.6 names its census dependency · DG1 WROTE them (.10.7 the merge gate minted; .10.5 + .10.6 amended) · .10.7 PLACED with DG3 (council: s-p + alive; negative widened to all 3 refusals) and told to DG3 + SM
 then   no OVERVIEW until g7.16.1.1.6 (DG2: .6.1 census, .6.2 home rule), .6, .7 and bundle 4 close
 ```
 
