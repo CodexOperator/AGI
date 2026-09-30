@@ -23,7 +23,7 @@ town: core
 (1) `row <n>[:<i>-<j>]` refuses (rc 2, nothing written, --dry-run too) when the resolved range contains a THOUGHT marker line, and the refusal names the `thought` verb. A sub-range strictly inside the markers stays admitted. (2) `row name:<NAME> <src>` selects the ONE body_rows table row whose first cell equals NAME, skipping the separator. It resolves at submit against the current body. 0 or >1 matches refuse by name. It is body only and skips the N:M guard, and --dry-run prints the NAME and its resolved a:b. Both resolve in `_row_range` on node_writer.body_rows: no new parser.
 
 ## Dispatch line
-config-max: none. template-max: write.py VERB_EXAMPLES `row` line (-h) gains `row 2:1-3 f | row name:<NAME> f`. code: `_row_range` (marker refusal + name:<NAME> lookup) + verb_row's ref regex.
+config-max: none. template-max: write.py VERB_EXAMPLES `row` line (-h) gains `row 2:1-3 f | row name:<NAME> f`. code: ONE THOUGHT-marker guard in the shared body-replace path (so `replace body a:b` AND `row`, which rides it via replace_target=body, both refuse -- goal:g4.18.5.1.1) + the name:<NAME> lookup in `_row_range` (goal:g4.18.5.1.2) + verb_row's ref regex.
 
 ## FALSIFIERS
 - `row <n>` or `row <n>:<i>-<j>` whose range holds a THOUGHT marker exits 0, or changes any byte
