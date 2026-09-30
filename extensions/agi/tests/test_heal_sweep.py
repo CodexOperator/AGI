@@ -232,24 +232,26 @@ def _fake_cgroup(tmp_path: Path, monkeypatch, file_mib: int, slab_mib: int) -> P
     cg = tmp_path / "cgfs" / "user.slice" / "fake.service"
     cg.mkdir(parents=True)
     (cg / "memory.stat").write_text(
-        f"anon 999999999\nfile {file_mib << 20}\nslab_reclaimable {slab_mib << 20}\n")
+        f"anon 999999999\nfile {(file_mib + 700) << 20}\nshmem {700 << 20}\n"
+        f"slab_reclaimable {slab_mib << 20}\n")
     monkeypatch.setattr(heal, "SWEEP_PROC_CGROUP", proc)
     monkeypatch.setattr(heal, "SWEEP_CGROUP_FS", tmp_path / "cgfs")
     return cg
 
 
 def test_sweep_reclaim_asks_own_cgroup_for_file_plus_slab_capped(tmp_path, monkeypatch):
-    """goal:g7.16.1.5.3.1 -- the ask is file + slab_reclaimable of OUR cgroup
-    (never anon), capped by the cell; under 16 MiB nothing is written; no
+    """goal:g7.16.1.5.3.1 -- the ask is file - shmem + slab_reclaimable of OUR
+    cgroup (never anon, never tmpfs: 700 MiB of shmem is in every fixture),
+    capped by the cell, swappiness=0; under 16 MiB nothing is written; no
     cgroup v2 line = nothing asked."""
     cg = _fake_cgroup(tmp_path, monkeypatch, file_mib=300, slab_mib=100)
     assert heal._sweep_reclaim(256) == 256
-    assert (cg / "memory.reclaim").read_text() == "256M"
+    assert (cg / "memory.reclaim").read_text() == "256M swappiness=0"
     assert heal._sweep_reclaim(4096) == 400
-    assert (cg / "memory.reclaim").read_text() == "400M"
+    assert (cg / "memory.reclaim").read_text() == "400M swappiness=0"
     assert heal._sweep_reclaim(0) == 0
     (cg / "memory.reclaim").unlink()
-    (cg / "memory.stat").write_text("anon 999999999\nfile 1048576\nslab_reclaimable 0\n")
+    (cg / "memory.stat").write_text(f"anon 999999999\nfile {701 << 20}\nshmem {700 << 20}\nslab_reclaimable 0\n")
     assert heal._sweep_reclaim(256) == 0
     assert not (cg / "memory.reclaim").exists(), "under 16 MiB: nothing written"
     (tmp_path / "proc-cgroup").write_text("12:memory:/legacy\n")
@@ -283,7 +285,7 @@ def test_sweep_reclaims_on_cadence_and_decides_the_same(
     assert heal._sweep_finished_worktrees(graph) == (3, 0, 1)
     # 4 trees x 2 walks = 8 steps -> 4 cadence asks + 1 at pass end
     assert asks == [64] * 5
-    assert (cg / "memory.reclaim").read_text() == "64M"
+    assert (cg / "memory.reclaim").read_text() == "64M swappiness=0"
     text = log.read_text()
     assert "[sweep] reclaimed own cgroup: 5 ask(s), 320 MiB asked over 8 tree steps" in text
     assert "sweep: removed=3 archived=2 refused=0 kept-live=1" in text
