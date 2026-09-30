@@ -677,9 +677,11 @@ def test_payload_refuses_a_missing_source_rather_than_emptying_the_file(
     dest.write_text("precious\n")
     edit = write.apply_verb(write.Edit("build:b1"), "payload",
                             [str(tmp_path / "typo.py")])
-    with pytest.raises(FileNotFoundError):
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    with pytest.raises(write.EditError, match="is not a file"):   # SM 143: before update_node
         write.submit(project, edit)
-    assert dest.read_text() == "precious\n"
+    assert dest.read_text() == "precious\n" and node.read_bytes() == before
 
 
 def test_payload_never_creates_a_file_that_is_not_there(project, tmp_path):
@@ -689,9 +691,11 @@ def test_payload_never_creates_a_file_that_is_not_there(project, tmp_path):
     src = tmp_path / "new.py"
     src.write_text("x\n")
     edit = write.apply_verb(write.Edit("build:b1"), "payload", [str(src)])
-    with pytest.raises(FileNotFoundError, match="never creates"):
+    node = project / "nodes" / "build" / "b1.md"
+    before = node.read_bytes()
+    with pytest.raises(write.EditError, match="never creates"):   # SM 143: before update_node
         write.submit(project, edit)
-    assert not (tmp_path / "src" / "absent.py").exists()
+    assert not (tmp_path / "src" / "absent.py").exists() and node.read_bytes() == before
 
 
 def test_payload_text_writes_the_bytes_inline_with_no_scratch_file(project,
