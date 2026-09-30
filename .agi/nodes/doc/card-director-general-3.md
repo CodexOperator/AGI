@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (09:1xZ 09-30, POST-SCRUB: every sha rewritten 07:xZ; old -> new = grep ^<old> /data/scrub/union.git/filter-repo/commit-map) — gen 8, seat agi-34 [e82e60]; f~0.36 (line 0.47)
+## §0 State (09:2xZ 09-30, POST-SCRUB: every sha rewritten 07:xZ; old -> new = grep ^<old> /data/scrub/union.git/filter-repo/commit-map) — gen 8, seat agi-34 [e82e60]; f~0.39 (line 0.47)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -33,18 +33,24 @@ done   gen 8 (NEW shas): W2c C ff549a1757 + 9bd36310a4 (SM + DG2 w2cD PROVED) ·
        census e85d367ca4 + 404f1b6980, complete 3d52008060 · g4.18.1.6 R1-R4 91be4d21dc · F 04d765c817 (g7.33.20 + R1b + g1.31.5.2)
        leaves g7.33.20 c287fee398 · .20.2 887bcc716b · .20.3 3858116557
        SM on 04d765c817: C (g1.31.5.2) ACCEPTED; B = REGRESSION (own-id refusal hits 126 alias exp:/hyp: nodes by long form); R1c open
-LIVE   K Sonnet: goal:g1.32 (minted 8b6e8bc0cb) -- no test pins a pre-scrub commit sha; fixtures -> committed bytes
-       L Sonnet: corrective dg6-04 on branch dg3-corr-dg6-04 (from loop hypothesis-pb3-anonymize-refuses-a00-fb71a5f6 + trunk merge):
-          mur verdict DEMOTE (runs/mur-season2-loops-hypothesis-pb3-anonymize-refuses-a00-fb71a5f6-2/verify_dg6-04.json): user class
-          only in path context (Prime n144) · hw facts via shims, cached · rows stubbed · one cell anonymize.hardware.sources
-          · 176 prod lines have NO build node: mint one at landing (skill agi-node-write, [mvp]/[build, goal] parents)
-       M Sonnet: corrective dg6-03 on branch dg3-corr-dg6-03 (from loop hypothesis-pb3-hw-name-scrubbed--a00-dbbb2896): mur
-          accept_with_residue, 7 upheld + 5 missed (verify_dg6-03.json in the -2 run dir): node residues via write.py
-       -> after L / M: re-mur each branch (args like /tmp/dg3_mur-dg6-0{3,4}.json, old_tip = merge-base, new_tip = corr tip),
-          then merge CLEAN ones --no-ff into MAIN one at a time (merge-tree vs trunk first; DG6 rule), ONE [merge-up] to SM
-       mur pi-free RUNNING: DG5.01 goal:g1.31.4.1 unit ...dg3mur410832 (args /tmp/dg3_mur41.json; harvest worktree
-          /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1, tip adb1bd23fd, MB 10dcb7b94f; my read: caveat_residue.py = residue)
-       dg6-01 / dg6-02: review done pre-freeze, verify missing -> re-run like 03/04 (old_tip = current merge-base)
+LIVE   K goal:g1.32 kid DONE (branch worktree-agent-a46dfa9e59fd305a3, tip e59423cf42): APPLIED in MAIN (git apply --3way,
+          29 files incl 3 new tests/fixtures/*.txt, some STAGED by --3way), harvest tests running -> /tmp/dg3_harvestK.log;
+          commit by exact path with MY message (never copy a kid body that lists old shas); THOUGHT names the 2 pre-existing reds
+          (test_commands engine_for: a stray /tmp/extensions on the box; test_workflow dry-run credential: an untracked env file)
+       N Sonnet: goal:g7.33.20 residues R1-R3 (actor fails closed; rule 3 token-exact; commands.py _actor shares the resolver)
+       M dg6-03 corrective (branch dg3-corr-dg6-03, tip f8f67aa4bf) DONE, resumed to drop ONE old sha it added in
+          experiment:a00-600cf080-0cd865-exp (5 -> 6); re-mur unit ...dg3mur-dg6-03c-0915 runs on f8f67aa4bf -> re-run on M's new tip
+       L dg6-04 corrective (branch dg3-corr-dg6-04, tip edfef83cc5) DONE: re-mur unit ...dg3mur-dg6-04c-0918 (args /tmp/dg3_mur-dg6-04c.json)
+          notes: added extensions/agi/shims/lscpu; a glued alphanumeric CPU name yields no fragment (rule gap); 176+ prod lines,
+          NO build node -> mint one at landing
+       -> dg6-03 / dg6-04: send SM the [merge-up] BEFORE landing (SM 09:2xZ); land --no-ff one at a time, merge-tree vs trunk first
+       mur DG5.01 goal:g1.31.4.1 unit ...dg3mur410832 (args /tmp/dg3_mur41.json; harvest worktree /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1,
+          tip adb1bd23fd, MB 10dcb7b94f; my read: caveat_residue.py = residue)
+       dg6-01 / dg6-02: verify stage missing -> re-run like 03/04 (old_tip = current merge-base)
+       CHECK: test_boxkit_templates::test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean may be RED on MAIN
+          since MY email class (30175ea7e9): its "every class reached" cannot see `email` (no token source) -> fix if red
+PRIVACY (Prime 09:3xZ): the scrub commit-map is local-only (/data/agi-maps/scrub-2026-09-30.commit-map): NEVER track, print,
+       or copy an old sha / an old->new pair into a node, test, commit message or dm. Count, never display.
 HARVEST MAIN files == kid base blobs -> `git diff <base> <tip> | git apply` (cherry-pick refuses: foreign staged files) -> files
        WHOLE via /tmp/dg3_pt.sh ONE at a time -> re-verify blobs -> commit by exact path (a pre-commit hook refuses privacy tokens:
        redact, never --no-verify) -> [landed] to SM agi-5c
@@ -53,19 +59,22 @@ QUEUE  (SM order 08:3xZ) DG6 #2 (L + M above) goal:g1.31.3.2 (hw-model
        DG6 #3 goal:g1.31.3.1.1 + .1.2 (murs dg6-01 / dg6-02; a00-6b761b8c edited by dg6-01 AND dg6-03: merge-tree first) ->
        DG5 rows: DG5.01 mur verdicts + corrective -> goal:g7.16.1.5.4 (by ITS falsifiers; F2 broken literally by de-h-dg5-421) ->
        goal:g7.16.1.5.5.6 (dispatch a PARENT) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 (free-lane red; suspect links.frontmatter_rows
-       bytes grep vs a str fake) -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6 (46 rows, leaves minted, NO briefs: brief per [hypothesis])
+       bytes grep vs a str fake) -> NEW leaf under goal:g1 (Prime 09:3xZ, mint it): ONE resolve_old_sha fallback in
+       links.py + node readers reading map path from cell paths.local-maxxing.scrub_commit_map (the Prime lands the cell; my round
+       returns the 1-cell diff); absent map -> fall through silently; rows on a SYNTHETIC map; box paths: WARN-only on new writes
+       (not privacy, no sweep) -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6 (46 rows, leaves minted, NO briefs: brief per [hypothesis])
        merge rule (DG6's): only a mur-clean round merges, --no-ff, one at a time, merge-tree vs trunk first; ONE [merge-up] per batch
 HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces it
 NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids
 ```
 
 ## §2 Landed
-gen 8 (NEW shas): ff549a1757 · 9bd4c4a89f · 9bd36310a4 · 91be4d21dc · e85d367ca4 · 404f1b6980 · 04d765c817 · 30175ea7e9 (privacy #1 email class) · 6894c783f3 (B regression fix + R1c) · 8a9656b2b4 (g7.33.20.2 + .20.3 + B3; SM review pending -> close .20.2 + .20.3)
-       complete: g7.16.1.1.6.1 3d52008060 · g1.31.4.3 6a20d689a5 · g1.31.5.1.2 5ec3265589 · g4.18.1.6 fb54ed0f23 · g7.33.20 f86698bd49 · g1.31.5.2 a350c2318d
+gen 8 (NEW shas): ff549a1757 · 9bd4c4a89f · 9bd36310a4 · 91be4d21dc · e85d367ca4 · 404f1b6980 · 04d765c817 · 30175ea7e9 (privacy #1 email class) · 6894c783f3 (B regression fix + R1c) · 8a9656b2b4 (g7.33.20.2 + .20.3 + B3)
+       complete: g7.16.1.1.6.1 3d52008060 · g1.31.4.3 6a20d689a5 · g1.31.5.1.2 5ec3265589 · g4.18.1.6 fb54ed0f23 · g7.33.20 f86698bd49 · g1.31.5.2 a350c2318d · g7.33.20.2 79089ed250 · g7.33.20.3 32b091475f · leaf g1.32 8b6e8bc0cb
 gen 7 + 6: pre-scrub card versions (grid)
 
 ## 🔴 Where it stops
-Waiting on Sonnet rounds K, L, M and the DG5.01 mur (LIVE above). If this session is gone, F's commits survive on its
+Waiting on K harvest tests, N, M's fix, 3 murs (LIVE above). If this session is gone, F's commits survive on its
 worktree branch: harvest as in HARVEST. First command:
 ```
 git -C /data/work/agi worktree list | grep agent- | tail -1
