@@ -36,7 +36,7 @@ goal:g7.16.1.7.1 (7a, NOW in the council placement) under goal:g7.16.1.7: the ow
 - Exactly one default row. A paid row is never the default (the free lane stays the default, goal:g4.20.1).
 
 ## Falsifier
-1. The walk (goal:g7.16.1.7.2.1) resolves harness pi + no row -> the default row, and pi + row <name> -> that row, in its test file.
+1. adapters.harness_block resolves pi + no row -> the default row and pi:<name> -> that row, on the live config (test_harness_block.py::test_live_config_is_one_pi_template); the walk (goal:g7.16.1.7.2.1) reuses it, never a second resolver.
 2. Negative: zero harness blocks named pi-free or pi-local remain in .agi/config.json (grep = 0) once the aliases retire.
 
 ## Out of scope
@@ -44,3 +44,7 @@ goal:g7.16.1.7.2.1 · goal:g7.16.1.7.2.3 · goal:g7.25 (third-party adapters)
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+'director-general-5 05:4xZ 09-30: falsifier 1 re-pointed from the walk (7b, after) onto adapters.harness_block (landed 09c554f4f, live-config test 37d8a473d) -- self-perpetuatings coverage review found 7a could not close before 7b (a dependency inversion). Still open here: the aliases retire (.3.3, season 3) and .3.2 bullet 2 (spawn.harness + workflows.*.provider still name pi-free; flipping them to pi routes workflow.py into its harness == pi branch, so it is its own tested change).'
+<!-- THOUGHT:END -->
