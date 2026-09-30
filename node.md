@@ -51,13 +51,19 @@ W1c (goal:g4.18.5.3) after DG3 posts commit_node's signature
 
 ## 🔴 Where it stops
 ```
-goal:g7.16.1.7.1.4 NEXT: read heal.py's key path + send.py keygen + config:seats key cells; claim the goal (status active) before code.
-goal:g7.16.1.5.4 ON (config:guard 239b01b00: RAM_WORKTREES=/mnt/agi-ram/worktrees, HOLD_PCT=60); CLOSE at the first live round:
-`git worktree list | grep -c agi-ram` >= 1 and no new non-symlink dir under .agi/worktrees -> write.py goal:g7.16.1.5.4 'set status complete && thought ...'.
+goal:g7.16.1.7.1.4 ACTIVE (27987fa53). rotate.py + test_stand_up.py edited, UNCOMMITTED in MAIN:
+  stand_up -> ensure_post_key(post) before every launch; unkeyed row -> _rotate_first_key mints (or ADOPTS an existing key file),
+  cells as the post, commit rekey=True; key_template(root) reads config:key-authority `key_template` over {"scheme": "", "existing_key": "adopt"}.
+  test_stand_up 11/11 (mint + adopt read VERIFIED through send._verify_block). Nbhd: unit agi-director-general-5-nbhd114b (~/dg5/dg5-nbhd5.sh,
+  60 files: rotate*/heal*/send/seatsig/stand_up/session_start*) -> ~/dg5/nbhd.out, DONE at the end.
+Green -> commit rotate.py + test_stand_up.py by exact path; build:bin-rotate THOUGHT; one [merge-up] line to the Prime.
+Red -> fix in place or revert rotate.py (git checkout -- extensions/agi/bin/rotate.py extensions/agi/tests/test_stand_up.py).
+ASKED the Prime 02:5xZ: (1) set the config:key-authority key_template cell (Prime-only field); (2) [keys] a keyed row with NO key file:
+  (A, recommended) template missing_key "remint" -> old pubkey to key_history unsigned · (B) keep the gate + skills/agi step-2 keygen line.
+  .1.4 stays ACTIVE until (2) is answered: falsifier 2 (no template instructs keygen) waits on it.
+goal:g7.16.1.5.4 ON; CLOSE at the first live round: `git worktree list | grep -c agi-ram` >= 1 + no non-symlink dir under .agi/worktrees.
 Directors never dispatch here (council invariant).
-Sent up 02:4xZ: [rule] director template "explicit --harness pi is the PAID lane" -> pi:paid (bare pi = free now); red not mine: test_heal_sweep 2 fail = uncommitted heal.py in MAIN.
-Open reds, not mine: test_brief g15 fallback · test_heal_sweep (uncommitted heal.py in MAIN).
-Next command: `grep -n "keygen\|pubkey" extensions/agi/bin/heal.py | head`
+Next command: `tail -3 ~/dg5/nbhd.out`
 ```
 ## §4 Traps
 | trap | rule |
