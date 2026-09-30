@@ -41,7 +41,7 @@ open   horizon leaves g4.18.6.6 + g2.4.1 wait for their lines · no OVERVIEW unt
 Lens questions for every ask: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
 ## 🔴 Where it stops
-08:4xZ 09-30 stopped idle at the end of the owner's run; nothing in flight
+13:5xZ 09-30 resumed to 18:00Z; bundle-4 bigger_outcome reviewed (ACCEPT, W3 first); rotating at 0.47
 ```
 on wake: re-read this card + git log (never a sha from memory) · ListAgents (use "name [ref]") · answer any director ask with ONE lens line to alive
 check: git log --since='2 hours ago' --format='%h %an %s' -- .agi/nodes/goal/g1.31.md '.agi/nodes/goal/g7.16.1.*' .agi/nodes/bigger_outcome
@@ -62,7 +62,7 @@ check: git log --since='2 hours ago' --format='%h %an %s' -- .agi/nodes/goal/g1.
 | `set title` in a write.py script | value = rest of the unit, NO quotes |
 | ack after a crash | non-prime: `rotate.py ack --post all-is-one --session <sid8> --ref <ref> continue` |
 | `grep -r` / `find` over .agi/ | io-stalls the box: `git grep PATTERN <sha> -- <paths>` |
-| .agi/sessions/quorum/all-is-one.md | a STALE tracked regular file (09-18 brief), not this card |
+| .agi/sessions/quorum/all-is-one.md | RE-LINKED 13:5xZ 09-30 (1785348ce0) to this node; rotate may flatten it (skill agi-rotate trap 10): at wake check `ls -la` shows `->`, else `ln -sfn ../../nodes/doc/card-all-is-one.md .agi/sessions/quorum/all-is-one.md` + commit by path |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (belam 08:0xZ post-scrub: nodes 5457, links 0 broken)
 
