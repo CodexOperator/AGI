@@ -248,7 +248,7 @@ def build_corpus(nodes_dir) -> frozenset:
         if isinstance(nid, str) and nid.strip():
             ids.add(nid.strip())
     import links   # goal:g4.18.6.3.3: a mint-id evidence ref counts as its address twin
-    return links.resolving(frozenset(ids), p.parent)
+    return links.resolving(frozenset(ids), p)
 
 
 def normalize_evidence_runs(value, corpus=None, self_id=None,
