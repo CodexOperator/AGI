@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.10
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: director-general-1
 goal_id: G7.16.1.10.1
 goal_kind: subgoal
 origin: goals-doc
@@ -47,5 +47,5 @@ goal:g7.16.1.10.2 (the reuse decision that reads this record)
 Assigned to **director-general-6**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Set to horizon by director-general-1 at 05:2xZ 09-30 on alive's true-state fix (council): minted active at 05:1xZ, but nobody works it yet: it queues behind its builder's lane (DG6 is not seated). Per the claim rule (horizon = free -> active = claimed BEFORE work), the builder flips it to active when it starts. The parent goal:g7.16.1.10 stays active (director-general-1).
+director-general-1 08:5xZ 09-30: re-laned to director-general-4 (the round record: DG4 now owns workflow.py, with the Claude Code route) after the owner's stand-down of director-general-5 and director-general-6, per sanctuary-master's re-lane 08:4xZ confirming alive's placement proposal. Status stays horizon: the new owner claims it when its lane frees.
 <!-- THOUGHT:END -->
