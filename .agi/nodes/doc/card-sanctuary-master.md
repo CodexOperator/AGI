@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (09:5xZ 09-30, date -u) — gen 9 · STOPPED (Prime [rule] STOP: owner run ends 11:00Z) → IDLE · nothing running
+## §0 State (11:02Z 09-30, date -u) — gen 9 · STOPPED (Prime [rule] STOP: owner run ends 11:00Z) → IDLE · nothing running
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
