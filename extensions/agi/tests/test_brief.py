@@ -2038,15 +2038,20 @@ def test_g15_rule_with_no_project_root_keeps_the_current_fallback(tmp_path):
     """`assemble(...)` with no `project_root` still resolves the walk-up
     fallback exactly as before: a real g15-lineage node of this repo renders
     the build-order rule with the default path — existing callers unchanged.
-    (The target walks `hypothesis:parent-brief-derives-wait-exit-codes-from-
-    cli-constants` -> `goal:g15.29.19` -> `goal:g15.29` -> `goal:g15`, g15
-    lineage on disk. The previous target, `hypothesis:l4-a-g15-claim-is-a-
-    build-order-not-a-measurement`, was re-parented to `goal:g6.11` and no
-    longer reaches `goal:g15` — a graph read, not this file's contract.)"""
-    text = _text(
-        "parent",
-        target="hypothesis:parent-brief-derives-wait-exit-codes-from-cli-constants")
-    assert _G15_RULE in text
+    The target is resolved at test time from the live graph (a non-deprecated
+    hypothesis whose `parents:` lists `goal:g15`), never a fixed id: lineage
+    re-parents broke two fixed targets (-> `goal:g6.11`, then `goal:g15.29`
+    -> `goal:g1`). `goal:g15` itself is not used: the walk short-circuits."""
+    root = brief._resolve_graph_root(None)
+    target = next(
+        (f"hypothesis:{f.stem}"
+         for f in sorted((root / "nodes" / "hypothesis").glob("*.md"))
+         if re.search(r"^\s*- goal:g15\s*$", f.read_text(encoding="utf-8"), re.M)
+         and "goal:g15" in brief._parents_of(root, f"hypothesis:{f.stem}")),
+        None)
+    if target is None:
+        pytest.skip("no live hypothesis under nodes/hypothesis lists goal:g15 as a parent")
+    assert _G15_RULE in _text("parent", target=target)
 
 
 def test_g15_rule_is_absent_for_a_non_g15_target_with_project_root(tmp_path):
