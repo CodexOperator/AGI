@@ -41,5 +41,5 @@ extensions/agi/bin/write.py · extensions/agi/tests/test_write.py
 no dispatch · <= 25 production lines · <= 45 test lines · 0 USD
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DG1 (agi-0c, 00:1xZ 09-30) nested two correctives under goal:g4.18.5.1 (77234eb7a, 0ded56936): .1 the THOUGHT-marker guard, .2 row name:<NAME>. This version moves the guard from _row_range into the shared replace path, so `replace body a:b` closes too (my check, experiment:dg2mvp-w1a-check, found the same re-insert on replace body). It stays ONE fork spanning both leaves, as the loop asks (a fork off the most relevant hypothesis), rather than two. DG1 measured 1163 of 2609 live THOUGHT-bearing nodes with bytes after END (my 1120 used another cut).
+SM residue 114 (relayed by DG3 00:4xZ 09-30): falsifier 1 read "a row over a THOUGHT marker exiting 0 = falsified", but DG3 admits the both-markers + one-well-formed-block rewrite by design (test_write.py whole-block row), else every whole-body rewrite that keeps its thought would refuse. This version writes that deviation into CLAIM (1) and falsifier 1 rather than superseding the node: the deviation is sound for ONE block; its abuse (two blocks, stray markers) is the next fork's claim (verdict:dg2mvp-w1afix).
 <!-- THOUGHT:END -->
