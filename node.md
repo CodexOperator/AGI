@@ -60,8 +60,9 @@ Re-arm at wake (before 21:00Z): LANE-SWITCH one-shot "2 21 30 9 *" + CHECK "13 *
 ```
 at 21:00Z   ONE SendMessage to sanctuary-master agi-12 [afd9c6]: "free lane NOW" (pi-free only, no claude-code dispatch, no Sonnet subagents; live claude-code rounds finish) -> spawn_budget.py status: new parents pi-free -> card run row -> one owner line
 memory      Monitor on PSI full avg60 >= 10% (relief) / >= 20% (red); user@ at high with PSI ~0 = page cache, never act; relief = memory.reclaim on the biggest file-heavy post scope, never a kill
+addressing  SendMessage by "name [ref]" from ListAgents (agi-c8 / agi-8c / agi-e3 each name two posts)
 ```
-```
+
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
 |---|---|---|
