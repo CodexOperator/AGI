@@ -81,10 +81,16 @@ def grep_live(groot: Path, needle: str, *, retired: bool = False
     return sorted(hits, key=lambda h: h[0])
 
 
+def parked_tag(goal: str) -> str:
+    """goal:g1.31.5.2 (n84) -- the ONE spelling of the park tag `parked:<goal>`;
+    the carrier grep and write.py's unpark filter both call it."""
+    return f"parked:{goal}"
+
+
 def parked_carriers(groot: Path, goal: str) -> list[tuple[str, Path, list]]:
     """goal:g7.16.1.2.6 -- live nodes whose `tags` hold `parked:<goal>` (the
     tag form in [goal].md / [hypothesis].md) -> (id, file, tags)."""
-    tag = f"parked:{goal}"
+    tag = parked_tag(goal)
     out = []
     for i, f, fm in grep_live(groot, tag):
         tags = fm.get("tags") or []
