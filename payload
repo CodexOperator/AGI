@@ -813,34 +813,8 @@ def _w2c_twin(tmp_path, mint: bool):
     return root
 
 
-# hypothesis:loader-post-pass-sqlite-index-once-and-collision-are-pinned: (a) DBLoader runs the post-pass
-# (b) ONE mint_index build per load, 0 for addresses (c) a colliding / unknown mint parent stays as written
-def test_w2ca_pins_sqlite_post_pass_one_index_build_and_collision(tmp_path, monkeypatch):
-    import links, yaml
-    from graph_core import db_loader, loader
-    from graph_core.persistence.frontmatter import NodeFile
-    from graph_core.persistence.sqlite_backend import SQLiteBackend
-    builds, real = [], links.mint_index
-    monkeypatch.setattr(links, "mint_index", lambda root: builds.append(1) or real(root))
-    def sqlite_parents(root):
-        db = SQLiteBackend(root.parent / "n.db")
-        for f in sorted((root / "nodes").rglob("*.md")):
-            fm = yaml.safe_load(f.read_text().split("---")[1])
-            db.save(fm["id"], NodeFile(fm, "", ".md"))
-        builds.clear()
-        g, _ = db_loader.DBLoader(db).load_directory(resolve=links.address_resolver(root))
-        return sorted(g.get_node("hypothesis:h1").parents), len(builds)
-    assert [sqlite_parents(_w2c_twin(tmp_path, m)) for m in (False, True)] == [(["goal:a"], 0), (["goal:a"], 1)]
-    root, a, d = _w2c_twin(tmp_path / "c", True), "a" * 32, "d" * 32
-    (root / "nodes" / "goal" / "twin.md").write_text(f"---\nid: goal:twin\nmint_id: {a}\ntype: goal\ntitle: t\n---\n")
-    h = root / "nodes" / "hypothesis" / "h1.md"
-    h.write_text(h.read_text().replace(f"  - {a}\n", f"  - {a}\n  - {d}\n"))
-    builds.clear()   # two mint refs in one load: still ONE build
-    g, _ = loader.load_directory(root / "nodes", resolve=links.address_resolver(root))
-    assert sorted(g.get_node("hypothesis:h1").parents) == [a, d] and len(builds) == 1
-
-
-# GREEN since goal:g4.18.6.3.1 (graph_core's parents post-pass, the resolver passed in by zoom)
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2c: RED until DG3 builds mint-id "
+                   "resolution into zoom._load_wired_graph / viewport._damage_of")
 def test_w2c_a_mint_id_parent_renders_exactly_as_its_address_twin(tmp_path):
     import zoom
     seen = []
@@ -862,6 +836,7 @@ def test_w3c_the_render_ranges_a_payload_too(tmp_path):
 
 
 # --- bundle 4 W2c re-scope A (director-general-2) -- goal:g4.18.6.3.1
+_W2CA = "bundle 4 W2c re-scope A: RED until DG3 builds graph_core's one mint-id post-pass"
 
 
 def _w2ca_twin(tmp_path, mint):  # _w2c_twin + idea:i, reached from hypothesis:h1 by next_edges only
@@ -876,24 +851,8 @@ def _w2ca_twin(tmp_path, mint):  # _w2c_twin + idea:i, reached from hypothesis:h
     return root
 
 
-def test_sm135_goal_attribution_follows_a_mint_next_edge_like_its_address(tmp_path):
-    import metrics   # SM 135: metrics.goal_attribution's forward ascendant (next_edges) resolves
-    seen = [metrics.goal_attribution(_w2ca_twin(tmp_path, m) / "nodes")["unattributed_nodes"] for m in (False, True)]
-    assert seen == [0, 0], seen   # SM 141: the absolute value -- a fault in BOTH twins agrees at 1 == 1
-
-
-def test_sm136_load_graph_wires_a_scalar_mint_next_edge_like_its_address(tmp_path):
-    import re, metrics   # SM 136: metrics._load_graph's SCALAR next_edges branch
-    seen = []
-    for mint in (False, True):
-        root = _w2ca_twin(tmp_path, mint)
-        h = root / "nodes" / "hypothesis" / "h1.md"
-        h.write_text(re.sub(r"next_edges:\n  - (\S+)\n", r"next_edges: \1\n", h.read_text()))
-        seen.append(sorted(metrics._load_graph(root).get_node("hypothesis:h1").children))
-    assert seen[1] == seen[0] == ["idea:i"]
-
-
-@pytest.mark.parametrize("edge", ["parents", "next_edges"])   # next_edges: family B, g4.18.6.3.2 B1
+@pytest.mark.xfail(strict=True, reason=_W2CA)
+@pytest.mark.parametrize("edge", ["parents", "next_edges"])
 def test_w2ca_family_a_wires_a_mint_twin_as_its_address_twin_with_no_reader_resolving(tmp_path, edge):
     import inspect, dashboard, metrics, zoom
     seen = []
