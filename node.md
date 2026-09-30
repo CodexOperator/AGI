@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (18:5xZ 09-30; NO STOP -- owner 17:4xZ: until 21:00Z pi-free + claude-code Sonnet 5.5 + Sonnet subagents + direct; FROM 21:00Z every NEW round and review pi-free only)
+## §0 State (19:1xZ 09-30; NO STOP -- owner 17:4xZ: until 21:00Z Sonnet 5.5 subagents allowed; FROM 21:00Z every NEW round and review pi-free only)
 | | |
 |---|---|
 | post | director-general-4 · owner: resume on the town bundle; subagents Sonnet 5.5 only |
@@ -30,21 +30,25 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan (SM's order; lanes per §0)
 ```
-LANDED 72dff76359: STACK DG4.06+15+21+11+22 (trees removed)
-WITH SM (awaiting GO/gate): g73319 2b68fbc07e · g75213 4336e659e4 (Prime: 3 guard cells + live bind) · SM-1 bd01ee8969 (gating) · SM-2 802577c1bd · DG4.17 2c4c5d34bb (gating 18:34Z) · DG4.13 9baba2bc99
-BUILDING (Sonnet 5.5 subagents; each: verify -> Sonnet review -> corrective -> [merge-up])
-  g1315131  .agi/worktrees/dg4-g1315131  SM [red+] goal:g1.31.5.1.3.1: held suite lock WAITED (hold_wait_s cell) + peer in-flight marker; judged on DG2 harness bash /tmp/dg2mvp/g41855/run_on.sh <sha> 3
-  DG4.12c   .agi/worktrees/dg4-dg412c    merges SM-2 (conflict in _remint_missing_key) + remint residues; lands AFTER SM-2
-  g13142    .agi/worktrees/dg4-fdreaders  on 70599a543b: first-decision / harvest-table one naming helper (DG4.14c strict xfail)
-REVIEWING  g1.31.4.2.1 lineage 2f60b2dff1..70599a543b (orig + DG4.05 + DG4.14 + DG4.14c, 24 files; dispatch.py +22 = DG3 file) -> one [merge-up] (+ g13142 on top)
-PI MURS    murq8 dg418 · murq9 dg419 · murq10 dg420 (DG4.18 8097dec13 · DG4.19 10780f70e · DG4.20 0f0e5905cf) -> residue correctives
-FINDINGS   goal:g7.33.19 rows 47-50 added (bfd33b11f7)
-FROM 21:00Z: every NEW round + review on pi-free (workflow.py merge-up-review --harness pi-free; dispatch.py tier-0 parent), no new Sonnet
+LANDED 72dff76359: STACK DG4.06+15+21+11+22
+WITH SM (delivered, awaiting GO / gating): g73319 2b68fbc07e · g75213 4336e659e4 (Prime: 3 guard cells + live bind) · SM-1 bd01ee8969 · SM-2 802577c1bd
+  · DG4.17 2c4c5d34bb · DG4.13 9baba2bc99 · DG4.12 af2c27335f (STACKED ON SM-2: land after it) · g1.31.4.2.1 LINEAGE 4620846a3f (orig+DG4.05+DG4.14+14c+g13142+b)
+BUILDING (Sonnet 5.5 subagents; on their report: verify bytes + tests -> [merge-up] with review badge)
+  g1315131b .agi/worktrees/dg4-g1315131  SM [red+] goal:g1.31.5.1.3.1; tip 6815fde7b1 met F1 (HARD 3/3, false rc3 5/0/0); review accept_with_residue
+            (latency MAJOR-leaning) -> b: hold_wait_s 90, non-finite refused, pid<=0 stale, lock re-check per commit attempt, own-marker clear
+            -> then [merge-up]; Prime cell: values.core.suite_lock.hold_wait_s = 90; ceiling 53/30 prod disclosed
+  DG4.19d   .agi/worktrees/dg4-dg419c    tip 64b8f3c0a9 (+THOUGHT 1301b3a9bc) review accept_with_residue -> d: heal skip also already_gone, guarded pre-kill record write -> [merge-up]
+  DG4.18c   .agi/worktrees/dg4-dg418m    DG4.18 8097dec13 + trunk merge c576956960 (de-based branch fixed, 0 D); NEW red test_commands::test_a_bare_first_word_runs_a_declared_command
+            (passes on trunk) -> c fixes it; test_engine_for_resolves_the_engine_enclosing_the_graph is RED ON TRUNK too (not ours)
+            -> [merge-up] + Prime items: locations.stream cell, rotations.md skills cap 6000->8000 (g1.31.2), grid versions of 2 experiment nodes
+PI MUR     murq10 dg420 running (DG4.20 0f0e5905cf comment-only) -> accept -> [merge-up]
+FINDINGS   goal:g7.33.19 rows 47-50 (bfd33b11f7)
+FROM 21:00Z: every NEW round + review pi-free only (workflow.py merge-up-review --harness pi-free; dispatch.py tier-0 parent)
 ```
 
 ## 🔴 Where it stops
-Six merge-ups with SM; three rounds building; one lineage under review; three pi murs queued.
-Next command: `python3 extensions/agi/bin/send.py read director-general-4; git worktree list | grep dg4-; systemctl --user list-units 'agi-director-general-4-*' --no-pager`
+8 merge-ups with SM; 3 correctives building (g1315131b · DG4.19d · DG4.18c); DG4.20 pi mur running. A subagent's report lands in THIS session only -- a successor re-derives from the branches: `git -C <tree> log --oneline -3` per tree above.
+Next command: `python3 extensions/agi/bin/send.py read director-general-4; for t in dg4-g1315131 dg4-dg419c dg4-dg418m; do git -C .agi/worktrees/$t log --oneline -2; done`
 
 ## §4 Traps
 | trap | rule |
