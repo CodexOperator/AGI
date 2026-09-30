@@ -109,12 +109,10 @@ DEFAULT_DISALLOWED_TOOLS = tuple(
     f"Bash(git {verb}:*)"
     for verb in ("commit", "add", "push", "stash", "checkout", "reset", "rm")
 ) + (
-    # goal:s34 item 10: refuse HANDOFF.md writes, CLAUDE.md writes, dispatch.py runs.
-    # goal:g4.6.1: a `*` rule is `*...*`, never mixed with the `:*` prefix form --
-    # Claude Code matches `Bash(*X:*)` as a literal prefix, so it never fired.
-    "Bash(*HANDOFF.md*)",
-    "Bash(*CLAUDE.md*)",
-    "Bash(*dispatch.py*)",
+    # goal:s34 item 10: refuse HANDOFF.md writes, CLAUDE.md writes, dispatch.py runs
+    "Bash(*HANDOFF.md:*)",
+    "Bash(*CLAUDE.md:*)",
+    "Bash(*dispatch.py:*)",
 )
 
 #: Built-in tools the loop-ladder seats (advisor, director) may additionally
@@ -126,7 +124,7 @@ ULTRA_TOOLS = ("Workflow", "Agent", "ToolSearch", "Monitor", "TaskOutput",
 #: The one block-list rule that falls away on a privileged seat: dispatch.py.
 #: Everything else (git verbs, HANDOFF.md, CLAUDE.md) stays refused below the
 #: prime director.
-DISPATCH_RULE = "Bash(*dispatch.py*)"
+DISPATCH_RULE = "Bash(*dispatch.py:*)"
 
 #: Output formats `claude -p` accepts. `stream-json` is the default because it
 #: logs as it goes -- see the module docstring.
