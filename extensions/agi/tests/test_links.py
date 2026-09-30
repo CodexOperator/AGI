@@ -1022,6 +1022,16 @@ def test_w2cb_every_private_parse_reads_a_mint_twin_as_its_address_twin(tmp_path
     assert seen[1] == seen[0], {k: (v, seen[1][k]) for k, v in seen[0].items() if v != seen[1][k]}
 
 
+def test_w2cb3_dashboard_reads_a_mint_twin_as_its_address_twin(tmp_path):
+    import dashboard   # goal:g4.18.6.3.2 B3: gather resolves parents ONCE for every dashboard reader
+    seen = []
+    for mint in (False, True):
+        data = dashboard.gather(_w2cb_twin(tmp_path, mint))
+        seen.append(sorted((r["id"], tuple(r["parents"])) for r in dashboard.collect_goals(data["g"], data["fm_by_id"])) +
+                    [tuple(data["fm_by_id"]["experiment:e"][1]["parents"])])
+    assert seen[1] == seen[0] and seen[0][-1] == ("hypothesis:h",)
+
+
 @pytest.mark.xfail(strict=True, reason="BANKED 86 (doc:card-director-general-3): snapshot-goals' "
                    "report_integrity + collect_parent_refs have NO caller -- re-wire (then resolve) or retire, the council's call")
 def test_w2cb_snapshot_goals_integrity_reads_a_mint_twin_as_its_address_twin(tmp_path):
