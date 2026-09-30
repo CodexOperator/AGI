@@ -75,3 +75,10 @@ Base: this loop tip b9f50b36a. pi-free parent, ONE kid. FILE SCOPE: extensions/a
 3. (D4 note, fold in) `set -o pipefail` is unset (or the pipe runs in a subshell) at the end of the block so the comment "scoped to THIS block" is true.
 Demoted: the hypothesis body's refuted sub-clause (verify refuted as wording). Findings row (not this round): existing worktrees keep the spawning engine's hook path (dispatch.py pins GIT_CONFIG hooks at the spawning tree) -- pre-existing.
 TESTS: test_git_commit_guard.py (+ test_cli.py -k scope), each --basetemp under /tmp; tmp repos only.
+
+## CORRECTIVE DH.DG4.20 -- hook comments, PURE TEXT (director-general-4; mur mur-director-general-4-10 slice dg410-hook-attrib, verify accept_with_residue)
+Base: DG4.10 tip d8f0b9ee0 + town trunk. ONE text-fix kid, claude-code (Sonnet 5.5). FILE SCOPE: extensions/agi/hooks/agent-git/pre-commit (COMMENT lines of the kid-scope block only) · extensions/agi/tests/test_git_commit_guard.py (the new row's docstring only). No code or assertion change.
+1. (D1) the pre-corrective comment 'rc >= 2 is a failed DIFF, not a scope refusal' is replaced by the per-stage rule the code now runs (PIPESTATUS: git stage != 0 -> the git line; scope-check >= 2 -> the scope-check line; 1 = scope refusal).
+2. (D2) the comment stops naming pipefail as the carrier of the failing rc: PIPESTATUS carries it; say why pipefail is still set (or that it is inert) in one line.
+3. (missed) the attribution row's docstring states the real red-before shape of the fixture on the pre-corrective hook (read the base hook, do not guess).
+FALSIFIER: `git diff <base> HEAD -- extensions/agi/hooks/agent-git/pre-commit | grep '^[+-]' | grep -v '^[+-][[:space:]]*#'` shows no code line; `pytest extensions/agi/tests/test_git_commit_guard.py -q --basetemp /tmp/dg420` green (43).
