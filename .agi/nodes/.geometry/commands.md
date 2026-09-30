@@ -1446,6 +1446,20 @@ manifest:
     purpose: resolve a mint id to the one live node carrying it (id, title, status)
     side_effects: read
     proposable: true
+  links.py:sha:
+    cli: links.py
+    verb: sha
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/links.py
+      - sha
+      - <mint_id>
+    args:
+      - {"name": "mint_id", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: resolve a cited commit id (known, or pre-rewrite through the cell-named local map) to its commit; never prints a map line
+    side_effects: read
+    proposable: true
   links.py:schema:
     cli: links.py
     verb: schema

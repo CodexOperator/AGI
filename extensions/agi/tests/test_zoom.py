@@ -21,6 +21,7 @@ Two things matter more than any single level's exact wording:
 
 from __future__ import annotations
 
+import argparse
 import subprocess
 import sys
 from pathlib import Path
@@ -616,3 +617,46 @@ def test_no_source_comment_cites_an_unresolvable_tier_node_id():
         )
         assert real_prefix in text, f"corrected id missing from {src.name} comment"
         assert real_tail in text, f"corrected id truncated in {src.name} comment"
+
+
+# --- goal:g1.31.4.1 — ONE load, ONE check, ONE resolver (this round) ------
+
+
+def test_each_render_path_loads_once_and_checks_once(project, monkeypatch):
+    """Every render path, `_render_level` included, loads the wired graph ONCE
+    and checks the target ONCE; an unexpected `ZoomUnavailable` fails the row."""
+    sys.path.insert(0, str(BIN))
+    sys.path.insert(0, str(BIN.parent / "src"))
+    import zoom  # noqa: PLC0415 — imported in-process on purpose
+
+    loads: list[int] = []
+    checks: list[str] = []
+    real_load, real_check = zoom._load_wired_graph, zoom.target_resolves
+    monkeypatch.setattr(zoom, "_load_wired_graph",
+                        lambda r: (loads.append(1), real_load(r))[1])
+    monkeypatch.setattr(zoom, "target_resolves",
+                        lambda r, t, g=None: (checks.append(t),
+                                              real_check(r, t, g))[1])
+    args = argparse.Namespace(target="goal:g1", iter_n="1", agent_id="a00-x",
+                              tier="kid", push_further=False, runtime="pi",
+                              level="small")
+    for path in (zoom._compose_small, zoom._compose_parent,
+                 lambda r, a: zoom._render_level(r, a, 1)):
+        loads.clear(), checks.clear()
+        path(project, args)
+        assert (len(loads), checks) == (1, ["goal:g1"]), (path, loads, checks)
+
+
+def test_render_level_refuses_through_target_resolves(project, monkeypatch):
+    sys.path.insert(0, str(BIN))
+    sys.path.insert(0, str(BIN.parent / "src"))
+    import zoom  # noqa: PLC0415
+
+    monkeypatch.setattr(zoom, "target_resolves",
+                        lambda root, target, g=None: "the ONE refusal")
+    args = argparse.Namespace(target="goal:g1", iter_n="1", agent_id="a00-x",
+                              tier="kid", push_further=False, runtime="pi",
+                              level="1")
+    with pytest.raises(zoom.ZoomUnavailable) as exc:
+        zoom._render_level(project, args, 1)
+    assert str(exc.value) == "the ONE refusal"

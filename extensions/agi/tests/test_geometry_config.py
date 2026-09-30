@@ -159,6 +159,11 @@ def test_seat_and_post_accepted_on_same_cli(tmp_path):
     (g / "nodes" / ".geometry").mkdir(parents=True)
     (g / "config.json").write_text(json.dumps(CONFIG))
     (g / "nodes" / ".geometry" / "ladder.md").write_text(LADDER)
+    # goal:g1.31.4.1 — a `--dry-run` now REFUSES a target the live path
+    # refuses, so the scratch graph carries the target these cases aim at.
+    (g / "nodes" / "hypothesis").mkdir(exist_ok=True)
+    (g / "nodes" / "hypothesis" / "x.md").write_text(
+        "---\nid: hypothesis:x\ntype: hypothesis\n---\nbody\n")
     env = dict(os.environ)
     env.pop("AGI_TIER", None)
     for flag in ("--seat", "--post"):

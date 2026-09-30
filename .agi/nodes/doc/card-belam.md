@@ -24,13 +24,13 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 21 ran the owner-ordered history scrub. Owner 06:3xZ-06:4xZ 09-30, verbatim: "Yeah we gotta scrub it. Time to pause grid crons and do the whole shebang." · "Yes include codex-town. And go now then restart when everything is verified" · "Go". Also owner 06:1xZ: "We should probably ease off expensive subagents now and just use strictly sonnet 5.5 ideally using our new headless CC review routes." and "We also will need to stand down director-general 5 and 6 to help conserve tokens as well ... 3,4 can continue as is and pick up whatever 5,6 don't finish after standing down". The rewrite ran on mirrors, never in place (filter-repo in place would reset --hard MAIN's uncommitted files); local refs moved by one asserted transaction and worktrees by per-path swaps, because a full git status over 682 worktrees did not finish in 15 min.
 <!-- THOUGHT:END -->
 
-## §0 State (11:0xZ 09-30, read from date -u)
+## §0 State (17:4xZ 09-30, read from date -u)
 | | |
 |---|---|
-| post | belam-S2-L5-XX gen 21, session **agi-23**; predecessors idle: gen 20 agi-79 · gen 19 agi-c2 |
-| run | RESUMED 12:4xZ to **18:00Z** (owner: "Oh neat continue now until 2pm EST." = 18:00Z, EDT like 7am→11:00Z) · STOP cron 27edd31d 18:02Z · memory Monitor re-armed · subagents Sonnet 5.5 only |
+| post | belam-S2-L5-XX gen 22 (woke 16:56Z); predecessors idle: gen 21 agi-23 · gen 20 agi-79 · gen 19 agi-c2 |
+| run | EXTENDED 17:4xZ (owner: "Please extend the cutoff to about 5 p.m., after which point continue working using the free lane.") -> current lanes to **21:00Z** (5pm EDT), then **FREE LANE ONLY** (pi-free, 0 USD), NO STOP · rule: doc:unified-director-brief ROUND LANES (9cb773a774) · relayed to SM agi-12 [afd9c6] |
 | posts | DG5 + DG6 DOWN (handovers re-laned by SM: DG3 privacy cluster, DG4 hook/harvests/CC route) · SM = agi-12 @27 · DG3 = agi-00 @29 · DG4 = agi-10 @28 · all-is-one = agi-8f @1 · self-perpetuating = agi-53 @2 (14:2xZ; always "name [ref]") |
-| crons | session: CHECK d087a76c (13 */4) · box crontab LIVE (crons_live true, 12 jobs) · keysync timer re-created (transient, */2 min) |
+| crons | session: CHECK 97929cb8 (13 */4) · LANE-SWITCH one-shot bb871f87 (21:02Z; the 18:02Z STOP 13266db4 cancelled) · memory Monitor blhckdxaw (PSI full avg60 >= 10%, 30 min, re-arm) · box crontab LIVE (crons_live true, 12 jobs) · keysync timer re-created (transient, */2 min) |
 | scrub | /data/scrub (mode 700): RESUME.md = the step table + revert · backup-local.git · backup-origin(2).git · stripped/ (2 nsys files, also back on disk, gitignored) |
 
 ## §1 Plan
@@ -47,6 +47,7 @@ DONE gen 21  guard-init applied (empty plan diff) · post scopes ruled to app.sl
              addressing: SendMessage ONLY by "name [ref]"; offline Remote Control rows named like the posts (all-is-one [0781f7], alive [68d0c9], ...) swallow bare names; all-is-one = agi-8f [242e8c]
 14:xZ: RAM disk 4.1G -> 2.3G (13 clean idle Agent worktrees removed; DG4 row: bind <repo>/.claude/worktrees from disk) · paths.local_maxxing.scrub_commit_map 1b14a0048 · SLO8 whois fact restored d71e39b69 · 8 trunk reds laned by SM (links.py:440 decode -> DG2; brief g15 -> DG4; boxkit anonymize fake denylist -> DG2)
              STILL MINE: config:rotations skills entry (:83 + :123) + agi-post, agi-stream, byte_cap 6000 -> 8000, THOUGHT -- only once DG4 lands build:skills-agi-post-SKILL.md + build:skills-agi-stream-SKILL.md (SM sends the exact text)
+16:4xZ owner opened round lanes past pi-free (claude-code Sonnet 5.5 kids; parents+kids once proven; subagents or direct): brief SUBAGENTS row 6db908311, relayed via SM · email_allow user@UID.service 842cb065d · memory relief now PSI-gated (>= 10%): cache at user@ high with PSI 0 is normal, never churn on it
 NEXT         the watch to 18:00Z, then STOP + owner report
 NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) -> SM lanes to DG3/DG4 · anonymize install-hook checks MAIN's diff, not the committing worktree's (a g7.33 row)
 ```
@@ -55,10 +56,10 @@ NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) 
 post-scrub: ec09d0290 (.gitignore) · every pre-scrub SHA is REWRITTEN: old -> new = grep ^<sha> /data/scrub/union.git/filter-repo/commit-map (ONE union pass over local + origin; a first per-repo pass diverged and was replaced)
 
 ## 🔴 Where it stops
-Re-arm at wake: STOP one-shot "2 18 30 9 *" (owner run to 18:00Z = 2pm EDT) + CHECK "13 */4 * * *" + the memory Monitor; then watch to 18:00Z, STOP everyone (stream-master stays), card, owner report
+Re-arm at wake (before 21:00Z): LANE-SWITCH one-shot "2 21 30 9 *" + CHECK "13 */4 * * *" + the memory Monitor. After 21:00Z: CHECK + Monitor only -- the free lane has no end time, so there is NO STOP to arm
 ```
-at 11:00Z   SendMessage each council/director post "stop: finish the step, card whole, idle" (stream-master stays) -> card -> owner report <= 6 lines
-memory      Monitor on PSI full avg60 >= 20% or user@ within 64M of high; relief = memory.reclaim on the biggest file-heavy post scope, never a kill
+at 21:00Z   ONE SendMessage to sanctuary-master agi-12 [afd9c6]: "free lane NOW" (pi-free only, no claude-code dispatch, no Sonnet subagents; live claude-code rounds finish) -> spawn_budget.py status: new parents pi-free -> card run row -> one owner line
+memory      Monitor on PSI full avg60 >= 10% (relief) / >= 20% (red); user@ at high with PSI ~0 = page cache, never act; relief = memory.reclaim on the biggest file-heavy post scope, never a kill
 addressing  SendMessage by "name [ref]" from ListAgents (agi-c8 / agi-8c / agi-e3 each name two posts)
 ```
 

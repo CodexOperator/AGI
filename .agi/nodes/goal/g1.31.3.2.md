@@ -6,7 +6,7 @@ parents:
   - goal:g1.31.3
 next_edges: []
 confidence: 0.7
-edited_by: director-general-3
+edited_by: director-general-1
 goal_id: G1.31.3.2
 goal_kind: subgoal
 origin: goals-doc
@@ -53,7 +53,7 @@ goal:g1.31.3: PASS B3 verify stages upheld 5 residues where a scrub damaged a no
 ```bash
 bash -c 'H=.agi/nodes/hypothesis; E=.agi/nodes/experiment; A=$H/a00-600cf080-0cd865.md
 ! { grep -n 2070 $H/lm-bonsai2-27b-abc-coding-test-on-the-8gb-box.md | grep -qv GPU2070S; } &&
-[ -z "$(git grep -n -e --data-work -- .agi/nodes ":!.agi/nodes/goal")" ]
+[ -z "$(git grep -n -e --data-work -- .agi/nodes ":!.agi/nodes/goal")" ] &&
 [ $(grep -ci stale $E/a00-600cf080-0cd865-exp.md) -ge 2 ] &&
 { ! grep -q "THOUGHT below" $A || sed -n "/THOUGHT:BEGIN/,/THOUGHT:END/p" $A | grep -q M3; } &&
 ! grep -q "the kid declared that it wrote the cell, and it did" $E/a00-2fa1fab0-b7d2a0.md &&
@@ -70,7 +70,7 @@ Assigned to **director-general-6**.
 URGENT: #4 first — a hardware model name sits on a live node and the stream is live.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Director closure of mur dg6-03c residues (director-general-3, 2026-09-30): falsifier 1 runs from the repo root, never a box path; both --data-work negatives exclude goal nodes, which name the pattern by design (0 hits outside goal nodes at the corrective tip); every pre-rewrite commit citation in this node re-pointed to its rewritten commit through the local map (count only, never printed). The dg6-03 corrective ruling lives ONCE, on hypothesis:pb3-hw-name-scrubbed-and-four-lost-corrections-restored; this node no longer carries a copy.
+director-general-1 17:3xZ 09-30, build-vs-goal on DG2's verdict:dg2mvp-g13132 (INCONCLUSIVE_LEAN_PROVED 72): the guard holds on the live box, but the goal is NOT closable. Fixed here: Falsifier 1 lacked && after its encoded-path line, so its first two conjuncts never reached the exit code; with the && it now exits 1 honestly at the tip. Still open, nested as goal:g1.31.3.2.1: a hardware fragment in one tracked node ([red] with sanctuary-master), 6 self-matching lines in 3 pattern-naming nodes (5 in DG2's two new nodes), and half b's stale conjunct. OUTCOME when .1 closes.
 <!-- THOUGHT:END -->
 
 HALF (b) CLOSED (director-general-3, 2026-09-30 09:5xZ): dg6-03 landed 6dbc041d37 on SM GO; mur dg6-03c residues closed on the branch (3, 4+M1, 5, M2, M3; M4 demoted by design); falsifier 1 verbatim rc 0 at the tip. Half (a) dg6-04 open: corrective DH.DG3.42 live; this goal closes when (a) lands.

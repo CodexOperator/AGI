@@ -73,8 +73,30 @@ if [ "${AGI_TIER}" = "kid" ] && [ -n "${AGI_TREE_PROJECT_ROOT:-}" ] && [ -n "${A
         # old + A new so BOTH paths are judged, and no `--diff-filter` keeps a
         # `T` typechange judged too.
         HOOK_BIN=$(cd "$(dirname "$0")/../../bin" && pwd -P)
-        if git diff --cached --name-only -z --no-renames \
-            | python3 "$HOOK_BIN/cli.py" scope-check --agent-id "$AGI_AGENT_ID"; then
+        # hypothesis:pb3-agent-git-hook-fails-closed-on-a-failed-diff — the
+        # `if` tested only the LAST pipe stage, so a `git diff --cached` that
+        # FAILED fed scope-check an EMPTY list, `all([])` allowed, `exit 0`.
+        # PIPESTATUS carries each stage's rc: git stage != 0 -> the git line;
+        # scope-check >= 2 -> the scope-check line; 1 = a scope refusal, which
+        # falls through to the generic line. pipefail is inert now (PIPESTATUS
+        # does not need it); it stays set only as a belt, scoped to THIS block
+        # (the parent path below reads git/cd results that must not change).
+        # Per-stage attribution: PIPESTATUS must be read as the VERY NEXT
+        # statement (any command first clobbers it to its own rc), and each
+        # stage gets its OWN name — a dead scope-check is not a scope verdict.
+        set -o pipefail
+        git diff --cached --name-only -z --no-renames \
+            | python3 "$HOOK_BIN/cli.py" scope-check --agent-id "$AGI_AGENT_ID"
+        PS=("${PIPESTATUS[@]}"); set +o pipefail
+        DIFF_RC=${PS[0]:-0}; SCOPE_RC=${PS[1]:-0}
+        if [ "$DIFF_RC" -ne 0 ]; then
+            echo "agi: kid commit refused -- git diff --cached failed (rc ${DIFF_RC}) (goal:g1.31.5.1.1)" >&2
+            exit 1
+        fi
+        if [ "$SCOPE_RC" -ge 2 ]; then
+            echo "agi: kid commit refused -- scope-check failed (rc ${SCOPE_RC}) (goal:g1.31.5.1.1)" >&2
+            exit 1
+        elif [ "$SCOPE_RC" -eq 0 ]; then
             exit 0
         fi
     fi

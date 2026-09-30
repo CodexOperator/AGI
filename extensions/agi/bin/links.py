@@ -601,13 +601,74 @@ def resolving(index, *nodes_dirs):
     return out
 
 
+_MAP_CACHE: dict = {}
+
+
+def _sha_map_path(root) -> "Path | None":
+    """g133 -- the ONE map path: cell `paths.local_maxxing.scrub_commit_map`, through
+    the ONE project-root discovery + `locations.load_config`; no second rule."""
+    graph = locations.find_project_root(Path(root).resolve())
+    if graph is None:
+        return None
+    cell = (locations.load_config(graph).get("paths") or {}).get("local_maxxing") or {}
+    rel = str(cell.get("scrub_commit_map") or "").strip()
+    return locations.repo_root(graph) / rel if rel else None
+
+
+def _git_commit(root, rev) -> str:
+    """g133 -- git alone says what is a commit; a failed subprocess is a miss."""
+    import subprocess
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}"],
+            capture_output=True, text=True, timeout=15)
+        return proc.stdout.strip() if proc.returncode == 0 else ""
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def _map_rows(p) -> list:
+    """g133 -- ONE read per (path, mtime): a CLI-scale caller resolves many ids.
+    An UNREADABLE map is no rows, never a raise, never a print."""
+    try:
+        key = (str(p), p.stat().st_mtime_ns)
+    except (OSError, ValueError):   # a row the reader cannot open is a MISS
+        return []
+    if key not in _MAP_CACHE:
+        if len(_MAP_CACHE) > 8: _MAP_CACHE.clear()
+        try:
+            _MAP_CACHE[key] = [re.split(r"[\s,]+", ln.strip()) for ln in
+                               p.read_text(encoding="utf-8", errors="replace").splitlines()
+                               if ln.strip() and not ln.startswith("#")]
+        except (OSError, ValueError):
+            pass   # uncached: the next call retries, and judges nothing
+    return _MAP_CACHE.get(key, [])
+
+
+def resolve_old_sha(root, sha: str) -> "str | None":
+    """g133 -- THE pre-rewrite commit-id resolver. Git first; else a map row whose
+    OLD id the input prefixes EXACTLY once, whose NEW id is non-zero and a commit
+    git knows; else None -- silently, never a raise. A dropped commit is no commit."""
+    sha = (sha or "").strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{4,40}", sha):
+        return None
+    if hit := _git_commit(root, sha):
+        return hit
+    p = _sha_map_path(root)
+    if p is None or not p.is_file():   # is_file() swallows OSError -> False
+        return None
+    hits = [r[1] for r in _map_rows(p) if len(r) >= 2 and r[0].lower().startswith(sha)]
+    new = hits[0] if len(hits) == 1 else ""   # ambiguous -> no row
+    return _git_commit(root, new) or None     # a dropped commit is not a commit
+
+
 def main(argv: list[str] | None = None) -> int:
     """`write.py links [--broken]` — report the corpus's link state."""
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("action", nargs="?", default="links",
-                    choices=["links", "schema", "roles", "mint"])
+                    choices=["links", "schema", "roles", "mint", "sha"])
     ap.add_argument("mint_id", nargs="?", default="",
                     help="mint: the mint id to resolve, any shape (goal:g4.18.6.1)")
     ap.add_argument("--root", default=".", help="any path inside the project")
@@ -624,6 +685,17 @@ def main(argv: list[str] | None = None) -> int:
     if root is None:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
+
+    if args.action == "sha":   # hypothesis:g133: ONE id in, ONE id out
+        if not args.mint_id:   # an absent id is refused BY NAME, never resolved as ""
+            print("ERR: sha needs a commit id", file=sys.stderr)
+            return 2
+        hit = resolve_old_sha(root, args.mint_id)
+        if hit is None:
+            print("unknown commit id", file=sys.stderr)   # the input id never echoes
+            return 1
+        print(hit)
+        return 0
 
     if args.action == "schema":
         return _schema_report(root, fix=args.fix)

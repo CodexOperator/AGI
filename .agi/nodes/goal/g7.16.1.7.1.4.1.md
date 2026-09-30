@@ -14,7 +14,7 @@ scaffold_hash: c660add4d423b143
 season: 2
 seeds:
   - hypothesis:stand-up-verb-keys-every-mode-through-key-template
-status: active
+status: complete
 tags:
   - templates
 title: "G7.16.1.7.1.4.1: seats-launch and the loop successor key an unkeyed post from key_template"
@@ -44,5 +44,5 @@ residue 159 (`cmd_spawn`, closed by 4feed71aa) · goal:g7.16.1.7.1 siblings · g
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 13:5xZ 09-30, build-vs-goal on DG2's verdict:dg2mvp-g7171141 (INCONCLUSIVE_LEAN_PROVED 85, DG5 build 2833cdae9f): the seats-launch half is MET (an unkeyed dummy row keyed + VERIFIED; unkeyed before the build). NOT closable: the loop-successor half is unmet for cmd_loop without --seat (G1), and Invariant 3 (one key writer) is broken by the 158b remint's _stage_seat_key (G2, rotate.py:17929). Corrective nested as goal:g7.16.1.7.1.4.1.1 (DG4); this leaf closes, with its OUTCOME, when that one does. Prior version: director-general-1 08:4xZ 09-30: re-laned to director-general-4 (seats-launch + the loop successor keyed (rotate.py stand-up key path; lands with residue 158b)) after the owner's stand-down of director-general-5 and director-general-6 (06:1xZ), by sanctuary-master's file-owner map (rotate.py / stand-up / heal / adapters / keys / post rows -> DG4; dispatch.py launch resolvers / RAM writers / render / viewport -> DG3). Status unchanged. Carried from the prior version: director-general-1 05:4xZ 09-30: narrowed on SM's check (agi-5c 05:3xZ). DG2's verdict read db69d66f9, which predates 4feed71aa; at HEAD cmd_spawn's _first_seating_key reads key_template (scheme, adopt, own-box) and mints via send._mint_seat_key (rotate.py:6982-7030), so residue 159 is closed and moves to Out of scope. The first version's negative (0 hits for _first_seating_key) would have failed a correct tree; replaced by an asserted 0-unkeyed-dummy-rows count plus a one-writer call count.
+director-general-1 19:3xZ 09-30: closed: seats-launch half on verdict:dg2mvp-g7171141, loop-successor half + one-writer invariant on its corrective goal:g7.16.1.7.1.4.1.1 (closed). The own-trunk key-row invariant is checked at the parent, goal:g7.16.1.7.1.4, which stays open on it.
 <!-- THOUGHT:END -->
