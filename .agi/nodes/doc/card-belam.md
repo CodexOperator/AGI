@@ -24,13 +24,13 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 21 ran the owner-ordered history scrub. Owner 06:3xZ-06:4xZ 09-30, verbatim: "Yeah we gotta scrub it. Time to pause grid crons and do the whole shebang." · "Yes include codex-town. And go now then restart when everything is verified" · "Go". Also owner 06:1xZ: "We should probably ease off expensive subagents now and just use strictly sonnet 5.5 ideally using our new headless CC review routes." and "We also will need to stand down director-general 5 and 6 to help conserve tokens as well ... 3,4 can continue as is and pick up whatever 5,6 don't finish after standing down". The rewrite ran on mirrors, never in place (filter-repo in place would reset --hard MAIN's uncommitted files); local refs moved by one asserted transaction and worktrees by per-path swaps, because a full git status over 682 worktrees did not finish in 15 min.
 <!-- THOUGHT:END -->
 
-## §0 State (17:4xZ 09-30, read from date -u)
+## §0 State (21:0xZ 09-30, read from date -u)
 | | |
 |---|---|
 | post | belam-S2-L5-XX gen 22 (woke 16:56Z); predecessors idle: gen 21 agi-23 · gen 20 agi-79 · gen 19 agi-c2 |
-| run | EXTENDED 17:4xZ (owner: "Please extend the cutoff to about 5 p.m., after which point continue working using the free lane.") -> current lanes to **21:00Z** (5pm EDT), then **FREE LANE ONLY** (pi-free, 0 USD), NO STOP · rule: doc:unified-director-brief ROUND LANES (9cb773a774) · relayed to SM agi-12 [afd9c6] |
-| posts | DG5 + DG6 DOWN (handovers re-laned by SM: DG3 privacy cluster, DG4 hook/harvests/CC route) · SM = agi-12 @27 · DG3 = agi-00 @29 · DG4 = agi-10 @28 · all-is-one = agi-8f @1 · self-perpetuating = agi-53 @2 (14:2xZ; always "name [ref]") |
-| crons | session: CHECK 97929cb8 (13 */4) · LANE-SWITCH one-shot bb871f87 (21:02Z; the 18:02Z STOP 13266db4 cancelled) · memory Monitor blhckdxaw (PSI full avg60 >= 10%, 30 min, re-arm) · box crontab LIVE (crons_live true, 12 jobs) · keysync timer re-created (transient, */2 min) |
+| run | **FREE LANE since 21:00Z** (pi-free only, 0 USD, no claude-code dispatch, no Sonnet subagents; NO stop, no end time) · owner 17:4xZ: "Please extend the cutoff to about 5 p.m., after which point continue working using the free lane." · rule: doc:unified-director-brief ROUND LANES (9cb773a774) · relayed 21:02Z to SM agi-e0 [1840c0] @31 (+ graph inbox 17:5xZ) · defaults already free: spawn.harness + workflows.* = pi-free |
+| posts | DG5 + DG6 DOWN (handovers re-laned by SM: DG3 privacy cluster, DG4 hook/harvests/CC route) · SM = agi-e0 @31 · DG3 = agi-03 @32 · DG4 = agi-10 @28 · all-is-one = agi-8f @1 · self-perpetuating = agi-53 @2 (14:2xZ; always "name [ref]") |
+| crons | session: CHECK 97929cb8 (13 */4) · LANE-SWITCH bb871f87 FIRED 21:02Z · memory Monitor b0ebrpa2w (PSI full avg60 >= 10% -> AUTO reclaim top 3 scopes by file-shmem, 400M, <= 1 per 5 min; 30 min, re-arm) · box crontab LIVE (crons_live true, 12 jobs) · keysync timer re-created (transient, */2 min) |
 | scrub | /data/scrub (mode 700): RESUME.md = the step table + revert · backup-local.git · backup-origin(2).git · stripped/ (2 nsys files, also back on disk, gitignored) |
 
 ## §1 Plan
