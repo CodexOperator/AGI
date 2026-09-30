@@ -986,6 +986,8 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None,
 THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
                  "regenerating scans. The reasoning behind THIS version. -->")
 THOUGHT_END = "<!-- THOUGHT:END -->"
+#: a marker LINE, BEGIN or END -- the one line-level spelling (SM 113; write.py imports it)
+THOUGHT_MARKER_LINE_RE = re.compile(r"^<!--\s*THOUGHT:(BEGIN|END)\b")
 _THOUGHT_RE = re.compile(
     r"^<!--\s*THOUGHT:BEGIN.*?^<!--\s*THOUGHT:END\s*-->",
     re.DOTALL | re.MULTILINE)
