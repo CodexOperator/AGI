@@ -30,12 +30,12 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan (SM's order; lanes per §0)
 ```
-LANDED 72dff76359 STACK DG4.06+15+21+11+22 · 2cbe754da1 DG4.17 (trees removed) · a2e42a3bf0 g1315131 · 5a7a3bb828 DG4.10+20 (trees removed)
+LANDED 72dff76359 STACK DG4.06+15+21+11+22 · 2cbe754da1 DG4.17 · a2e42a3bf0 g1315131 · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19 (trees removed)
 WITH SM, awaiting GO (tip · worktree to remove once landed: in trunk + clean, harvest iter-* first)
   g73319 2b68fbc07e dg4-g73319 · g75213 4336e659e4 dg4-g75213 (Prime: 3 guard cells + live bind) · SM-1 bd01ee8969 dg4-sm1
   SM-2 802577c1bd dg4-sm2 · DG4.12 af2c27335f dg4-dg412c (ON SM-2) · DG4.13 9baba2bc99 dg4-dg413c · r49 7eb1c65aed dg4-r49 (ON DG4.13)
   DG4.18 c576956960 dg4-dg418m: HELD by SM on the 3 Prime cells (locations.stream, byte_cap 8000, 2 grid versions) -- SM asks the Prime
-  RE-SENT 20:2xZ: DG4.19 20eac8b3b4 (e: tmp_path fixture, anonymize rc 0) · LINEAGE 2ec78512d4 (c: trunk merge, seeded hypothesis:x, spy leak fixed, evidence_runs; 0 demotions) -- awaiting SM GO
+  LINEAGE 2ec78512d4 re-sent 20:15Z (SM 20:2xZ "send when ready" crossed it: already in its queue) -- awaiting GO
 ALL HARVESTED ROUNDS DELIVERED (12 merge-ups with SM). Pi mur chain done (q2..q10).
 PARKED     C2c goal:g1.31.4.2.1.1 + its hypothesis tagged parked (SM 19:31Z option b; 1bf9f503eb, 6786c4f7b4): 7d9f955842 stays unlanded in .agi/worktrees/dg4-c2c (location invented); the real copilot probe = SPEND, banked to the Prime
 HANDED     findings row 48 (kid commit dies on index.lock, parent waits silently) -> SM (dispatch/cli = DG3 region)
