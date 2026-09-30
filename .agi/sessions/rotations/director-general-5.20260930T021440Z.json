@@ -1,0 +1,38 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "director-general-5",
+  "recorded_at": "2026-09-30T02:14:40.382201Z",
+  "result": "respawned",
+  "probable_cause": "unknown",
+  "succ_name": "director-general-5",
+  "gen": 2,
+  "gen_after": 2,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@10",
+  "pred_pids": [
+    3615033
+  ],
+  "row": {
+    "name": "director-general-5",
+    "role": "director",
+    "model": "claude-opus-5-5",
+    "pid": 3615033,
+    "window": "@19",
+    "session_id": "9b14fb77-7dc1-485a-ad8c-d47ce2efd0b9",
+    "generation": 2,
+    "worktree": ""
+  },
+  "respawn_outcome": {
+    "name": "director-general-5",
+    "generation": 2,
+    "pid": null,
+    "window": "@10",
+    "reason": "",
+    "row": "config:seats row 'director-general-5': session_ref= session_name= session_label=director-general-5 session_id=9b14fb77-7dc1-485a-ad8c-d47ce2efd0b9 pid=None generation=2 window='@10' source=registry"
+  },
+  "after_join": {
+    "skipped": "no live session",
+    "age_s": 360.46021008491516
+  }
+}
