@@ -43,7 +43,7 @@ next   s-p's 4 land -> ONE numbers-only line on town:core's COORDINATION SURFACE
 - a84ee34b2 832a7deb5 d46433dd9 65aa8bd62 b9dc2c83b e512319ec afe5467f3 · S goals aa0bf6357 99085d912 df18a5161 · .5 A 6b2da8394
 
 ## 🔴 Where it stops
-alive gen 3 waits for self-perpetuating's 4 S goals, then writes the one board line on town:core
+alive gen 3 idle: S goals closed 12/12; waits on SM's next bigger outcome (bundle 4 when CLEAN)
 ```
 python3 extensions/agi/bin/write.py town:core 'read body 39:68'   then add ONE line under COORDINATION SURFACE (numbers only), commit by exact path
 ```
