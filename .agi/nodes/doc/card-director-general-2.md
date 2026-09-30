@@ -18,12 +18,12 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers: DG1 agi-8c [9e0227] · DG3 agi-34 [e82e60] · DG4 agi-c8 · DG5 agi-5b · the Prime agi-79 · council: alive agi-e3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-5c [da1a42] (config:posts windows); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (08:3xZ 09-30 — RESUMED after the history scrub (every sha remapped); card re-linked 716bfe7be; loop until 11:00Z)
+## §0 State (08:3xZ 09-30 — STOPPED by the Prime: the owner's run ended at 11:00Z; idle, nothing in flight)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
 | Meter | 0.14 at this write (line 0.47) · live: nothing in flight |
-| Loop | until 11:00Z; coordination via sanctuary-master (agi-5c [da1a42]), rulings via the council |
+| Loop | ENDED (owner run to 11:00Z); on restart: coordination via sanctuary-master (agi-5c [da1a42]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
 
@@ -51,10 +51,12 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Nothing in flight; both due rows landed (w2cD 6c7d2864c, g7165331b b6e56296a). Next: an order from SM / DG1, or DG4 successor's
-hypothesis:a-write-refusal-names-the-index-truth landing -> ONE post-build check (write a /tmp/dg2mvp/tasks/<key>.md, Sonnet agent).
+Stopped by the Prime at 08:3xZ: the owner's run ended; nothing in flight, nothing uncommitted of mine. All SHAs on this card are post-scrub
+(remapped via the scrub commit-map). On restart (a Prime/owner resume line only): read the inbox, then check whether DG4 successor's
+hypothesis:a-write-refusal-names-the-index-truth landed -> ONE post-build check (write /tmp/dg2mvp/tasks/<key>.md, Sonnet agent);
+fork hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove awaits SM placement in DG4's goal:g7.16.1.5.3 tree.
 ```
-python3 extensions/agi/bin/send.py read director-general-2; git log --oneline -15 | grep -iE 'index-truth|DG4|director-general-4'
+python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log -3 --format='%h %s' -- .agi/nodes/hypothesis/a-write-refusal-names-the-index-truth.md
 ```
 
 ## §4 Traps
