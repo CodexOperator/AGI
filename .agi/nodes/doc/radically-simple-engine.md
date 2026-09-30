@@ -56,7 +56,32 @@ alive's lens (vision:alive, the system reports its own TRUE state): every true-s
 Rows: src/seatsig/ (1,930) SCRAP -> git SSH signing + the kernel · send.py keygen / whois / signing (~20-25% of 6,384) REPLACE-BY ssh keys + allowed_signers · envfile.py (593) REPLACE-BY the per-user env file · hierarchy.py (714) KEEP, reads the rows · the ~9 identity cells of each post row RETIRE.
 
 ## §2 Write = a shell script over a git commit
-(pending: all-is-one)
+**What am I ACTUALLY trying to get the machine to do here?** Record ONE new version of ONE node, by ONE post, so that everyone sees it, nobody else could have made it, and exit 0 means it landed.
+
+```
+the post's harness edits the file  ─▶ the KERNEL checks it (mode bits, §1): EACCES = refused, no Python
+        │
+agi-write <node-path> [-m why]      ~30 lines of sh, the ONE write path for every role (human, Claude, pi, kid, MCP §5)
+                                    budget: agi-write + agi-read <= 2 KB together
+  1 schema-check <node-path>        the one check that stays code (spawn_gate + evidence_gate rules, read from .agi/context/schemas); exit 2 BY NAME
+  2 anonymize check <node-path>     the token refusal, unchanged
+  3 GIT_INDEX_FILE=$(mktemp)        a PRIVATE index: no shared index.lock, no suite lock
+    git read-tree $old && git update-index --add -- <node-path>
+  4 new=$(git commit-tree -S $(git write-tree) -p $old -m "<why>")   signed by the uid's SSH key (§1)
+  5 git update-ref refs/heads/<branch> $new $old                        compare-and-swap; the loser re-reads and retries N s, else exit 3 BY NAME
+exit 0  ⇔  the signed commit is on the branch  (by construction, not by policy)
+```
+Decided:
+- **Attribution is the signature.** `--actor`, `--role`, `--session`, `edited_by`, `thought_session`, the role ceiling and the ring signatures (`--ring-sig/-fresh/-fields`) retire: the uid signs, and `allowed_signers` (derived from the post rows) verifies.
+- **The verb grammar retires.** `set · sub · row · replace · read · note · payload · patch` are 16 verbs re-implementing what every harness already has (its own Edit tool, `sed`, `cat`). The file is edited by whatever the post already uses; `agi-write` only lands it. `--dry-run` = `git diff`.
+- **The commit message IS the THOUGHT.** "body is state, thought is delta" is exactly file vs commit message. The THOUGHT block stays in files until §3's render shows `git log -1 --format=%B -- <node>` beside the node, then it retires. One source.
+- **The protected fields stay protected** (`id`, `mint_id`, `type`): schema-check compares them to `$old` and refuses a change.
+- **commit-tree runs no hooks**, so steps 1-2 run INSIDE the script and never in a hook alone. A post that forges a commit by hand is caught by the landing audit: every commit on the ref is signed by a uid that owns (or shares the group of) every path it touches (§8 b).
+- **Trap, named:** the shared checkout's own index lags a private-index commit (its `git status` shows the file as a reversal). `agi-write` refreshes that ONE path in the shared index afterwards (`git update-index -- <path>`, a millisecond lock, retried). Nobody ever `git commit`s through the shared index again: `agi-write` is the only path. Spike (a) proves it.
+- **agi-read <mint-id|path>** = resolve the path, then `cat` (the read half of the owner's "system read/write pair that adds up to git").
+- **Mint id -> path**: `git grep -l "^mint_id: <id>" -- .agi/nodes` (or one derived index file). The address may change; the mint id never does.
+
+Rows: write.py 231 KB + node_writer.py 83 KB + write_guard.py 15 KB REPLACE-BY `agi-write` + `schema-check` · spawn_gate.py + evidence_gate.py 101 KB KEEP their rules, as `schema-check` · the ring layer (src/seatsig/rings.py, inside §1's seatsig row) SCRAP.
 
 ## §3 Render = the git graph or an off-shelf package
 **What am I ACTUALLY trying to get the machine to do here?** Show any reader, human or model, the graph's shape and one node's story, from the SAME files, by ONE path.
