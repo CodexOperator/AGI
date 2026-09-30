@@ -3098,6 +3098,25 @@ manifest:
     side_effects: read
     proposable: false
     reason: run by the merge gate over a landed range (goal:g7.16.1.10.7), never proposed at a seat
+  merge_gate.py:check:
+    cli: merge_gate.py
+    verb: check
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/merge_gate.py
+      - check
+      - <base>
+      - <tip>
+    args:
+      - {"name": "base", "type": "str", "required": true, "choices": []}
+      - {"name": "tip", "type": "str", "required": true, "choices": []}
+      - {"name": "prime_count", "type": "int", "required": false, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+      - {"name": "repo", "type": "str", "required": false, "choices": []}
+    purpose: "goal:g7.16.1.10.7 — ONE word from the council report before a merge: merge, or hold by name over a RED, an uncovered review-path commit or an unapproved budget row; rc 1 = hold, rc 2 = cannot answer"
+    side_effects: read
+    proposable: false
+    reason: run by the Prime's merge pass (skill agi-merge-pass section 2 step 5a), never proposed at a seat
 ordered:
   - verify
 placement:
