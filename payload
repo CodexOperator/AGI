@@ -1392,7 +1392,7 @@ def _sweep_iter_home(wt_iter: Path, target: Path) -> bool:
 
 
 def _sweep_cold_link(root: Path, main_sessions: Path, iter_name: str):
-    """goal:g7.16.1.5.3.2 -- when config:guard names the cold sessions home
+    """goal:g7.16.1.5.2.1 -- when config:guard names the cold sessions home
     (`GUARD_AGI_SESSIONS_ARCHIVE_<box>`, the goal:g7.16.1.5.2 cell) and MAIN
     has no entry for `iter_name` yet, create `<cold>/<iter>` and symlink
     MAIN's entry to it, so session-complete's copy lands on disk -- never a
