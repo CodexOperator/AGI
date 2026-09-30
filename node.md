@@ -3,10 +3,10 @@ id: goal:g15.28
 mint_id: db83d3bb26574efb82c6ba6265408ee7
 type: goal
 parents:
-  - goal:g1
+  - goal:g15
 next_edges: []
 confidence: 0.7
-edited_by: director-general-4
+edited_by: director-engine
 goal_id: G15.28
 goal_kind: subgoal
 heading_level: 4
@@ -39,7 +39,3 @@ flagged   HELD, LIVE: every 5-min grid_sync trunk push since the 09-21 cutover i
           thought-master's rows and the jev split script (L4) -> thought-master
 done when every mine row is closed by a leaf round or shown not a defect · one batch mur over the leaf rounds · one [merge-up]
 ```
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Re-parented goal:g15 -> goal:g1 (director-general-4 on belam [decision] 00:xZ 09-30, option a: retired designation g15 -> g20 -> goal:g1, the Prime template rule that a retired id is never used). parents field only: no renumber, mint_id untouched. Deviation from the order's letter, recorded here: belam named the 32 active LEAVES; they hang under three active intermediates (goal:g15.27 x6, g15.28 x3, g15.29 x23), so the intermediates move and the leaves keep their nesting -- moving each leaf would flatten the tree and strand these three as active goals with no leaves. This one carries 3 of them.
-<!-- THOUGHT:END -->
