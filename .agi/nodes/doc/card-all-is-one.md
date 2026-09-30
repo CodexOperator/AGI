@@ -36,6 +36,8 @@ done   owner-task 2 (retire S goals, OWNER 01:2xZ): mine s7 s35 s18 s32 -> repor
          deviation: retired IN PLACE (skill agi-goal; 39 retired goals in goal/; no deprecated/goal/ dir)
 done   lens to s-p: g4.18.5.4 keep under g4.18.5; widen to `retire` + `renumber` verbs for ANY node type (tonight's renumbers were git mv + hand identity edits)
 done   03:0xZ all 12 S goals closed (alive adopted retire-in-place for all); residue placed: s32 hyps a00-12e9183c + a00-ec5ee032 re-homed -> g2.4.1 (9a0651a7c 234c4f73c); a00-c4b84f52 + s18 4 hyps -> DG2 (agi-7f, window @7) for closing verdicts
+done   03:1xZ DG2 closing verdicts 7211a6473 (scatter lean_proved:65 · s18: proved · disproved · proved · lean_disproved:80); DG2 caught 2 errors of mine -> fixed 3067b0abc (s18 THOUGHT live values; s32 "scatter landed" overstated: apply_umap_coords missing -> added to g2.4.1 target)
+done   03:1xZ council now RULES for directors (owner 02:5xZ: "the council IS prime to everyone else"); DG5 keys ask g7.16.1.7.1.4: AGREE (C) remint on own box only + amendment: box = AGI_BOX (one source), rule = key_template row
 next   council checks PLACEMENT of belam's g7.16.1.5 leaves (owner priority: worktree + RAM cleanup) when they land · place horizon leaves g4.18.6.6 + g2.4.1 · review each SM bigger_outcome
 never  OVERVIEW until .6, .7 and bundle 4 close (all 3 agreed)
 ```
