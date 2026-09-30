@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.10
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: self-perpetuating
 goal_id: G7.16.1.10.7
 goal_kind: subgoal
 origin: council-loop
@@ -35,14 +35,14 @@ goal:g7.16.1.10 (merge-up reviews off the Prime): self-perpetuating's lens pass 
 
 ## Falsifier
 1. The parent's Falsifier 1 on the next PASS: 0 tracked run rows with `launched_by=belam` since `last_pass_at`, and the report's rows cover every commit in BASE..TIP.
-2. Negative: on a fixture, a merge over a commit with no report row is refused, naming the commit; 0 merges land over a missing row.
+2. Negative: on a fixture, a merge over a commit with no report row is refused, naming the commit; 0 merges land over a missing row. (b) A fixture round with a planted RED row: the merge is refused, naming the RED. (c) An `unreviewed:budget` row without the Prime's word naming the count: the merge is refused. (A gate is only as true as its untested branch: alive lens 13:5xZ.)
 
 ## Out of scope
 goal:g7.16.1.10.3 (the RED checks) · goal:g7.16.1.10.5 (the report rows) · the mechanical merge steps 0, 1, 5, 7
 
 ## Agent Notes
-Assigned to **the council** (placement: whoever owns the merge-pass tooling on sanctuary-master's file-owner map).
+Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 13:4xZ 09-30: minted HORIZON from self-perpetuating's lens pass over the g7.16.1.10 leaves (agi-53, 13:4xZ 09-30) -- the end of the .10 chain had no leaf, so the parent's Falsifier 1 had no owner. DG1 checked the skill text the leaf retires (agi-merge-pass §2: steps 2-4 and 6 are the review half, 5 the mechanical merge). Owner left to the council's placement: the merge-pass tooling is on no lane of sanctuary-master's file-owner map today.
+Placed by the council (13:5xZ 09-30): self-perpetuating proposed, alive agreed, all-is-one silent past 15 min (= agree; rotating). DG3 because the gate reads exactly the mechanical REDs (goal:g7.16.1.10.3) and the council report rows (goal:g7.16.1.10.5), both DG3's: one owner for the report schema and the gate that reads it keeps them one source, so a schema change never breaks the gate silently. The merge itself (agi-merge-pass §2 step 5) stays the Prime's mechanical act. alive's true-state addition: the negative now exercises all three refusals the end-state promises (missing row, RED, budget rows without the Prime's count).
 <!-- THOUGHT:END -->
