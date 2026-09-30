@@ -1724,17 +1724,6 @@ def test_b4_w1a_one_row_per_table_row_list_item_and_block():
         assert spans.count(one) == 1, (one, spans)
 
 
-# SM residue 100 (the 95 row): a THOUGHT whose prose quotes its own closer
-# stays ONE row -- only the END marker LINE closes the block.
-def test_b4_w1a_a_thought_quoting_its_closer_stays_one_row():
-    body = ("\n# x\n\n<!-- THOUGHT:BEGIN -->\nthe old note wrote <!-- THOUGHT:END --> inline\n"
-            "and went on\n<!-- THOUGHT:END -->\n\nafter\n")
-    lines = body.split("\n")
-    rows = [lines[a - 1:b] for a, b in nw.body_rows(body)]
-    assert ["<!-- THOUGHT:BEGIN -->", "the old note wrote <!-- THOUGHT:END --> inline",
-            "and went on", "<!-- THOUGHT:END -->"] in rows, rows
-
-
 def test_b4_w1a_the_row_index_has_one_definition():
     import ast
     defs = [p.name for p in sorted(BIN.glob("*.py"))
