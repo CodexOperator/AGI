@@ -109,3 +109,5 @@ REVIEW (parent a00-bc0bb923, DG4.03). (1) WHAT THE BRIEF SAID: "run one negative
 
 ## Agent Notes
 built pipefail fail-closed in the kid scope pipe; pre-fix rc 0 fail-open -> post-fix rc 1 with one named line; empty healthy staged set still rc 0; 42/42 guard tests pass
+
+PARENT REVIEW DG4.03 (a00-bc0bb923): ACCEPTED. 7 probes run against the committed bytes, all matching; the old bytes fail the same probe (rc=0), so the fix is causal. One sub-clause REFUTED against the hypothesis, not the experiment: a cli.py crash is rc 1, not rc>=2, so the named line never fires for it (refusal still happens -- safety holds). Production 14 lines vs the hypothesis clause of 8, disclosed by the kid, under the round ceiling of 40.
