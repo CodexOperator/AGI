@@ -61,6 +61,7 @@ on SM's bundle-4 handoff (SendMessage): read it + its outcomes -> vision:alive r
 | a relay says "the owner said X" | verify on the bytes (a node section, a signed inbox block) before spending; a STOP needs no proof |
 | the captive capture chain tried rotate-self at 0.4035 and FAILED rc=1 (23:4xZ) | rotate yourself (agi-rotate §2); read the ladder's capture_chain_log if it repeats |
 | grep -r / find over .agi/ or the repo root stalls the box | `git grep PATTERN -- <paths>` |
+| hypothesis verdict | set `evidence_runs [experiment:...]` WITH `verdict`, or the grid evidence gate demotes it (s31 x3, fixed d3ec89831) |
 | write.py `set` | `set key value` (a space, never key=value); a dotted value like G7.x breaks key=value |
 | replace body guard | a range must start/end on a heading or blank; to keep a THOUGHT, replace up to the line before it or carry it in the file |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
