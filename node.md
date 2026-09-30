@@ -34,6 +34,7 @@ done   census split: goal:g7.16.1.1.6.1 (config:census + check_census) + .6.2 (h
 done   SM residue 101: goal:g4.19 horizon + F3 -> goal:g4.18.7.3 F1; seed hypothesis:l4b15-intercept-layer claim realigned (11342dd8e 76597d04c 61bc32084)
 done   SM residue 113 (falsifier half): goal:g7.16.1.2.7 F2 -> THOUGHT:\(?(BEGIN|END) (68611cef9 1a99824a6); finding write.py:217 prefix recognizer -> DG2 B fork, told DG3
 done   W1a build-vs-goal: goal:g4.18.5.1.1 + .1.2 COMPLETE (688c00d08 95c64b6fd) on verdict:dg2mvp-w1afix2 PROVED 0.9; parent g4.18.5.1 waits for the bundle-4 outcome
+done   W2b.1 build-vs-goal: goal:g4.18.6.2.1 COMPLETE (a81bd0f68) on verdict:dg2mvp-w2b1 0.8; per-id rebuild fork -> rides goal:g4.18.6.2.2
 hold   W2a build-vs-goal: goal:g4.18.6.1.1 unmet on 3 bullets (title raw x74 · N resolves = N builds · links.py -h still '32-hex'); DG2 fork hypothesis:mint-index-decodes-titles-and-resolves-over-one-index + asked to add the -h line; close .1.1 when it passes
 next   W-G pass from DG2 · bundle-4 OUTCOME when SM hands it (residues 98-105 open) · g7.16.1.6/.7 leaves when alive places them
 ```
