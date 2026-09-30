@@ -43,6 +43,7 @@ done   goal:g7.16.1.10 sketched (council/alive): leaves .10.1-.10.6 (3e57d149e 4
 hold   g6.41.1.1 reboot wake (mine): brief hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) queued on DG3
 hold   g7.16.1.7.1.4 (DG5) REOPENED 7be04f413/a5da5ccf0 on DG2 verdict:dg2mvp-g717114 LEAN_PROVED 72: Invariant 1 unmet on cmd_seats_launch (keys nothing) + cmd_loop successor (no key step); 159 (cmd_spawn) CLOSED at HEAD by 4feed71aa (DG2 read db69d66f9, before it) -> corrective leaf goal:g7.16.1.7.1.4.1 (narrowed dc9707329), seed DG2's hypothesis:stand-up-verb-keys-every-mode-through-key-template, placed DG5 by SM (lands with 158b) -> close both + OUTCOME when .4.1's verdict clears
 ```
+
 ## 🔴 Where it stops
 STOPPED clean: no step in flight, nothing uncommitted of mine. Next session resumes on the three holds in §1 (W1b g4.18.5.2 after DG2 checks .2.1 + DG3 builds .2.2 · W2c C g4.18.6.3.3 · g6.41.1.1 build on DG3), in the loop order: DG2's verdict -> DG1 build-vs-goal -> OUTCOME (parent = the goal) -> SM. Owner orders in force (director brief): SendMessage only (no send.py, no rooms) until the bundles land; coordination -> SM, rulings -> the council; no Opus subagents (pi-free workflows, Sonnet at most). Session names change at every relaunch: map `tmux list-windows -a -F '#{window_id} #{window_name}'` against ListAgents. Check git status after each write (write.py can print success over an uncommitted node until g4.18.5.2.1 is verified).
 ```
