@@ -5,7 +5,10 @@ type: hypothesis
 parents:
   - goal:g1.31.4.1
 next_edges: []
+confidence: 0.85
 edited_by: a00-160ddb8a
+evidence_runs:
+  - hypothesis:a00-160ddb8a-6d1eaf
 loop: goal:g1.31.4.1@s2
 model: stealth/space-bunny-alpha
 production_lines: 0
@@ -13,8 +16,10 @@ profile: balanced
 role: kid
 scaffold_hash: 4d4a89474dbabd4b
 season: 2
+testable_claim: "**Claim.** goal:g1.31.4.1's round-DG5.01 corrective orders are satisfiable TOGETHER with the check left BYTE-IDENTICAL: `caveat_residue.PHRASE`, `caveat_residue.SCOPE`, the test file and the goal's own text all unchanged, the live scoped scan green, and the THOUGHT that kid a00-829ed05f destroyed restored. Nothing but the three nodes that QUOTE the retired phrase has to move."
 title: The two DG5.01 corrections hold together with the checker byte-identical
 town: core
+verdict: inconclusive_lean_proved:85
 ---
 <!-- BODY:BEGIN -->
 # hypothesis:a00-160ddb8a-6d1eaf
@@ -115,3 +120,6 @@ may not commit"), so the restoration is not yet in history. If the loop does not
 commit `.agi/nodes/experiment/a00-eccace59-e6cb6a.md`, the data loss is back. That is
 the parent's to land, not mine.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+Both DG5.01 corrections landed with the checker byte-identical: caveat_residue.py rc=1(5 hits)->rc=0, goal's whole-tree grep = exactly the goal's 2 hits, eccace59 THOUGHT restored from HEAD (uncommitted, kid tier), 35 tests pass, 0 production lines.
