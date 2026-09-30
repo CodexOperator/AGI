@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: director-general-3
+edited_by: a00-4259b0e0
 scaffold_hash: ac8fae699c4998f6
 season: 1
 thought_session: season
@@ -41,10 +41,10 @@ Third independent verification of the EmbedProjectCache hypothesis, using the **
 
 ### Command
 ```
-cd <home>/work/agi && PYTHONPATH=extensions/agi/src python3 /tmp/embed_cache_real_pipeline.py
+cd <home>/work/agi && PYTHONPATH=extensions/agi/src python3 /tmp/embed_cache_real_pipeline.py -- UNREPRODUCIBLE (script never committed)
 ```
 
-Script: `/tmp/embed_cache_real_pipeline.py`
+Script: `/tmp/embed_cache_real_pipeline.py` -- UNREPRODUCIBLE (script never committed)
 
 ### Raw output
 ```
@@ -121,3 +121,7 @@ Self-citing (experiment IS the run). Third verification of hypothesis:a00-ec5ee0
 
 ## Agent Notes
 Third independent verification of EmbedProjectCache with real embed_graph+project pipeline. All 5 claims pass. Cache hit ratio 3.096% (consistent with prior ~2-3%). Digest overhead dominates warm path; with real ML model ratio would be <<1%.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PASS B3 #29 (goal:g1.31.3.1.2, kid a00-4259b0e0, 2026-09-30): every line on this node naming /tmp/embed_cache*.py now carries `UNREPRODUCIBLE (script never committed)` — the script is 0 tracked bytes (`git ls-files | grep embed_cache` empty) and gone from /tmp, so it CANNOT be pointed at committed bytes; the node says so on itself instead of naming a dead pointer. Both verdicts deliberately stay inconclusive_lean_proved:50. Verify file mur-pb3chunk4of20/verify_a00-ec5ee032-7eefb8.json is gitignored; goal:g1.31.3.1.2 is the committed anchor. No historical line was rewritten.
+<!-- THOUGHT:END -->
