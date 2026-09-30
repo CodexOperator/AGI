@@ -17,46 +17,46 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:0xZ 09-29 · STOPPED at the owner's 23:00Z stop, via belam agi-9c)
+## §0 State (04:4xZ 09-30 · STOPPED at the owner's 04:00Z council stop, via belam agi-79)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-ff (ref 1d75c4) · gen 2 (crash-recovery respawn 17:33Z) |
-| stage | council: you embody vision:self-perpetuating ONLY (read it whole first); every review speaks from that vision alone |
-| protocol | doc:council-loop · goal:g7.16.1 (the owner's words) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
-| sessions | alive agi-13 · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-b1 · SM agi-b8 · belam agi-9c (acks 17:33Z; SendMessage, room council-loop for the record) |
-| skills | agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
+| post | self-perpetuating · CC session agi-53 (ref 21dc2d, session 824fea59; heal resumed after the 01:55Z reboot) · meter 0.34 at stop |
+| stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
+| authority | the council IS prime to the directors (owner 02:5xZ 09-30): directors bring rulings to the council; alive convenes, ONE ruling per ask |
+| messaging | SendMessage by session name ONLY (owner 01:4xZ): no send.py, no rooms, until the bundles land |
+| sessions | belam agi-79 (gen 20) · alive agi-b3 · all-is-one agi-8f [242e8c] · DG1 agi-2a · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b |
+| skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundles 1 + 2 · bundle 3 (goal:g7.16.1.3) SM-CLEAN at 9966e3050 + my lens · row G MOVED UNBUILT -> bundle 4 W-G (aaf9f3286)
-next   on resume: read the council mur (run key mur-data-work-agi-council-bundle-3), then ONE lens on its residues
-then   bundle 4 = goal:g7.16.1.4: W-G -> g4.18.5 -> g4.18.6 -> g4.18.7 · bundle 5 = P2-P4 + core's edits + profile_sync
+done   bundles 1-3 closed + SM bigger_outcome reviewed · owner goal rewrites (.7 .8 mine) · S-goal pass (s34 s4 s21 s1 mine) · 4 rulings
+next   on resume: SendMessage inbox (never an empty read as proof) · DG5 g7.16.1.7.1.4 keys follow-through · DG2 g7.16.1.1.6 proof leaf result
+then   no OVERVIEW until g7.16.1.1.6, .6, .7 and bundle 4 close
 ```
 
-## §2 Landed
-- bundles 1 + 2 lenses: KEEP, 0 red · 39 untagged row-parks FOUND, council mur CONFIRMED · 2 own misses owned (narrow home grep, import-only caller test)
-- bundle 4 placement: KEEP separate, g4.18.5 -> .6 -> .7 · cut .5 from bundle 3's SM-clean sha · .7 rewrites agi-node-write read grammar in the same row · .6 retires the renumber re-point rule (CLAUDE.md + agi-goal) as a named coupling
-- row R (goal:g6.41.1) into bundle 3 after H4: P1+P6 together · RESUMED clause -> bundle 5 row 0 by name · P6 proven by /proc/<pid>/cgroup · never test by killing the live remote-control service
-- bundle 3 lens (9181cee26^..9966e3050, 21 files +832/-93): G unbuilt (node-only commits; driver.sh:240 still rendered) -> W-G · R1 honest at tip (residue 68 fail-closed) · close label "P1 live; P6 built, OFF until the owner says" · H3 KEEP
-- R2 NEW, taken by alive as next-bundle candidate: a deferral is watch-log only + unbounded (heal.py:3594-3598), blind PSI fails closed forever (:833) -> N consecutive deferrals = ONE [red] to belam (seat + avg10), blind PSI its own [red], no launch
-- GOALS.md retired in CLAUDE.md (goal:g7.16.1.4.1) during this session
+## §2 Landed (this session)
+- bundle 2 outcome:council-bundle-2 (adc228107) -> DG1 adopted; F g7.16.1.2.9 moved unbuilt to g7.16.1.7
+- SM bigger_outcome bundles 1-3: aligned 0.8 · minted goal:g7.16.1.1.6 (bundle-1 verdicts -> proved + one-source census in verify) -> DG2
+- owner goal rewrites: g7.16.1.7 + .8 (04f08de89) · .7 -> nested pane g7.16.1.7.3 (d6536c856) · lens lines on .6 (4 gen-1000 clauses) · g7.32.6 (a read never wakes) · .5 (one liveness census) · g4.18.5 (rows by name)
+- S-goal pass: s34 s4 s21 retired IN PLACE -> g6.50 · g4.21 · g4.18.5.4 (retire + renumber verbs, any type); s1 -> g1.6.1 (d6f26f856, ac2fca463); prose provenance NOT rewritten (house rule)
+- rulings (alive consolidated): DG5 keys (C) own-box remint + witness sha + key-template row · DG3 replace payload NO (names replace body) · DG1 W2b (b) + body refs = declared regions, never prose · DG3 residue 154 fail-closed
 
 ## 🔴 Where it stops
-23:0xZ 09-29 STOPPED at the owner's 23:00Z council stop; idle until a Prime/owner line resumes the council
+04:4xZ 09-30 STOPPED at the owner's 04:00Z council stop; idle until belam resumes the council
 ```
-python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
+read SendMessage traffic on resume; then: python3 extensions/agi/bin/links.py links
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared by every post | commit by exact path; retry on .git/index.lock; never switch branches, stash or reset |
-| `send.py send --to council-loop` writes a DM FILE | the room is `send --room council-loop` |
-| `send.py read` empty is not proof | check `.agi/comms/season-2/dm/*self-perpetuating*.md` directly (all-is-one's 17:34Z dm sat behind an empty read) |
-| ack refused: posts row dirty | if the dirty rows are OTHER posts', wait for their commit, then re-run the ack; the session_ref back-fill needs a clean file |
-| a commit subject is not the bytes (row G "cut the callers" touched only the goal node) | `git show --stat` + the file at the tip before any "built" |
-| a check narrower than its invariant passes falsely | verify with the EXACT pattern the invariant names; caller greps cover conftest, .sh, hooks, crons.md |
+| MAIN is shared; verify-suite.lock blocks commits | write.py lands uncommitted under the lock: commit by exact path once it clears (background wait loop) |
+| a new file + `git commit -- path` fails | `git add -- <path>` first |
+| write.py refuses `set id` (renumber) | git mv + the id line by hand, every other field via write.py; THOUGHT records it (g4.18.5.4 will make it a verb) |
+| ack form changed | non-prime: `rotate.py ack --post <p> --session <sid8> --ref <ref> continue`; a heal-dirty own row: commit heal's write alone first |
+| sessions rename after every reboot/rotation | a posts row's session_name/session_ref; two same names -> `name [ref]` |
+| Claude usage OUT (owner 03:2xZ) | NO Opus subagents: agentic subtasks on pi (workflow.py --harness pi-free) or Sonnet 5.5 at most |
+| a check narrower than its invariant passes falsely | cite the engine's rule (HOME_PATH_RE), never a hand regex copy |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken
 
