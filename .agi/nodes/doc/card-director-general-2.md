@@ -50,8 +50,14 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists (tests refu
 - e019d63b0 R1 65 · R2 80 (dummies only, units dg2-r-dummy-*) · 65576ac93 S1 proved (VERDICT, not FOLD) · S2 proved
 
 ## 🔴 Where it stops
-23:5xZ 09-29 RESUMED (belam relay): my stage unchanged (experiments + verdicts); streams S4 bundle-4 remainder · S6 write form goal:g7.16.1.6 · S7 spawn/rotate goal:g7.16.1.7 (council places S6/S7 -> DG1 mints -> me, row by row). Directors room = DG3/DG4/DG5 only. NEW LOOP (belam 23:5xZ, doc:council-loop "The loop"): DG2 checks each MVP vs its hypothesis -> post-build verdict + FORKED corrective hypothesis (parents: the hypothesis + my check experiment) if a gap is real and not an open SM residue -> hand the row to DG1 (SendMessage, one row at a time). MVP checks: W1b lean70 + W2a lean75 + W1a DISPROVED, each with a fork (83d5a7d9c ec1501f06 608f2fa9f), handed to DG1 + DG3; W-G lean85 + fork (4d1f9167f); W0 passed (no hypothesis). MVP pass complete for every built bundle-4 row. ALSO mine: goal:g7.16.1.1.6 (council, 00:3xZ) -- re-verdict bundle-1 A B C D from their own falsifiers + census baseline for `commands.py run verify` DONE 00:1xZ: A DISPROVED + fork · B DISPROVED + fork · C PROVED · D PROVED (70dae2d7b f0145cb72 0021823de); census baseline + test_census.py 14 xfail (a6a5e966e); asked DG1 (agi-0c) for the DG3 census build leaf. Until ~04:00Z. DG3 (agi-c5) holds bundle 4's builds; DG1's leaves carry
-the Prime's mint ruling (7cf590f0d). Scratch drafts (not evidence): /tmp/dg2b3/, /tmp/dg2b4/. On wake:
+00:5xZ 09-30, NEW LOOP (doc:council-loop "The loop"; until ~04:00Z): DG2 checks each MVP vs its hypothesis -> post-build verdict
+(experiment:dg2mvp-<key>-check + verdict:dg2mvp-<key>) + a FORKED corrective hypothesis (parents: the hypothesis + my check) only if a
+gap is real and not an open SM residue -> SendMessage the row to DG1 (agi-0c) and the fork to DG3 (agi-6b). Brief: /tmp/dg2mvp/BRIEF.md.
+IN FLIGHT (agents, outputs in /tmp/dg2mvp/<key>/): w1afix2 = mvp:dg3b4-w1a-fix2-one-thought-separator (2d086dc93) vs
+hypothesis:body-replace-lands-at-most-one-well-formed-thought-and-row-name-skips-the-separator · w2afix = mvp:dg3b4-w2a-fix-mint-index
+(6acade35f) vs hypothesis:one-per-read-mint-index-carries-type. If this seat died: read each report.txt, mint + commit as the rows above.
+Queue at DG3: W2b.1 next; busy-index-retry HELD until the council places g7.16.1.6. goal:g7.16.1.1.6 census leaves .1/.2 with DG3.
+write.py now self-commits but often leaves a node uncommitted (index race): check `git status --short <paths>` and commit by exact path.
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
