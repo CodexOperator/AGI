@@ -30,7 +30,8 @@ done   bigger_outcome:council-bundles-1-3-one-source-fail-closed ACCEPTED (3 len
 done   belam's [owner-task] 6/6 (01:0xZ): .5 65aa8bd62 · .6 d46433dd9 (alive) · .7+.8 04f08de89 (s-p) · g7.32.6 586b72bdd · g4.18.5 5b40c0f49 (a-i-o)
        room DONE line + SendMessage agi-9c sent · links 5242/0 · SM reviews in her normal pass
 done   residue 128 (SM): bundle 1 row C "0 home paths" FALSE GREEN -> fix to directors, outcome rows to DG1, 2 scrubs to belam; SM's bigger outcome v2 at 0.65
-done   ruled for SM: /data model-store literals (169 in 62 nodes) = config-max, NOT anonymize -> one findings row, new writes cite the paths cell, history untouched
+done   ruled for SM: /data model-store literals (169 in 62 nodes) = config-max, NOT anonymize -> one findings row, new writes cite the paths cell, history untouched (belam: leave it)
+done   belam: g7.16.1.9 NESTED as goal:g7.16.1.7.3 (renumber b9dc2c83b, rewrite e512319ec, 3 lenses); s-p adds the .7 pointer
 next   SM's next BIGGER_OUTCOME (bundle 4 when CLEAN) -> vision:alive review -> goals / bundles / nested goals, or none -> OVERVIEW -> belam
        no OVERVIEW until .6 .7 g7.32.6 and bundle 4 close · stop ~04:00Z 09-30
 ```
