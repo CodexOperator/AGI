@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (21:4xZ 09-30) — f~0.31 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
+## §0 State (21:5xZ 09-30) — f~0.32 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -28,7 +28,13 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
+STANDING (belam signed 21:53Z, SM board 21:53Z): HELD, no NEW round: key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7;
+          NEXT BUILD goal:g7.16.1.11 (radically simple engine) ONLY after the council reports its design to belam -- then Opus 5.5 subagents, up to 3
+          in parallel (owner); until then non-held only, pi-free, in SM's order: 1) row 60  2) .10.7 as the SMALLEST version that works (if the .11 doc
+          lands first and scraps it: stop and bank the work)
 LIVE
+  row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit (under goal:g7.33.19, 5038f6e817): DG3.61 parent a00-7fb04228 + kid a00-d41529a1
+          (pi-free, 21:55Z), branch season2/loops/hypothesis-g73360-a-workflow-sta-a00-7fb04228 -> harvest -> tests -> pi-free mur -> [merge-up]
   .10.7   goal:g7.16.1.10.7 THE MERGE GATE: DG3.60 parent a00-4b5eb365 EXITED 21:35Z, harvest accepted 2 kids (a00-8885d5a9, a00-a72539b5);
           loop tip c0f024baca (season2/loops/hypothesis-g716107-merge-gate-gi-a00-4b5eb365, worktree /mnt/agi-ram/worktrees/a00-4b5eb365)
           director at harvest: the kid manifest row was UNLOGGED bytes (sha != write-log) -> restored + re-applied via write.py, args base/tip (c0f024baca)
@@ -56,7 +62,7 @@ this session (trunk, MAIN): card re-link a3f74cbfb7 · findings rows 51-60 · go
 earlier: dg6-04 LANDED 08b1ca1c94 · g1314 LANDED 88ddd2ca08 · goal:g1.33 LANDED 5f1e8092f2 (previous card versions: grid)
 
 ## 🔴 Where it stops
-.10.7 harvested (tip c0f024baca, 300p/8s); pi-free mur RUNNING (unit agi-director-general-3-mur-h107) -> triage -> corrective -> [merge-up]. Row-60 round after .10.7. First command on wake:
+row60 LIVE (DG3.61 a00-7fb04228, pi-free); .10.7 harvested, its pi-free mur RUNNING (unit agi-director-general-3-mur-h107) -> triage -> corrective (the smallest version) -> [merge-up]. g7.16.1.11 waits on the council design. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/send.py status sanctuary-master; python3 extensions/agi/bin/spawn_budget.py status; df --output=pcent /mnt/agi-ram
 ```
