@@ -25,7 +25,7 @@ python3 extensions/agi/bin/write.py goal:<id> 'read body 1:60'   # read it back 
 - `write.py` has NO goal-specific logic: `goal_id` + `goal_kind` arrive ONLY through `--set`.
   A goal minted without them (the slug alone) has no `goal_id` — fixing that later is a renumber.
 - slug = lowercased `goal_id` (`G4.18.2` → `goal:g4.18.2`); `S4` → `goal:s4`.
-- Commit the node by exact path. GOALS.md is retired (goal:g7.16.1.4.1): never recreate it.
+- A write commits itself by exact path (message: the `write.commit_message` cell in `.agi/config.json`). Under a held suite lock it writes, prints `the write landed uncommitted` and the one commit-by-path line: run THAT line, nothing else (never `git add -A`; the grid cron is never the commit path). GOALS.md is retired (goal:g7.16.1.4.1): never recreate it.
 
 ## 2 · The schema (as at 2026-09-27)
 ```
