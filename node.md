@@ -78,7 +78,9 @@ GUARD_USER_HIGH_PCT_local_town=95
 #   GUARD_RAM_DIR_<box>                  the tmpfs mount (fstab). default: /mnt/agi-ram
 #   GUARD_RAM_SYNC_MIN_<box>             RAM -> disk sync of MAIN's working files, minutes. default: 10
 #   GUARD_AGI_SESSIONS_ARCHIVE_<box>     /data home of idle .agi/sessions/iter-* dirs (a symlink stays behind)
-#   GUARD_CLAUDE_PROJECTS_ARCHIVE_<box>  /data home of idle ~/.claude/projects/<dir> (the 09-28 convention)
+#   GUARD_SWEEP_PAIRS_<box>              'SRC=>DEST ...' idle harness session dirs -> the flash drive (a symlink stays)
+#   GUARD_TIER_HOT_<box> / _COLD_<box>   ram-tier.sh: harness data dirs live in HOT (tmpfs), COLD (flash) is the batched copy
+#   GUARD_TIER_DIRS_<box>                the harness data dirs that become symlinks into HOT (owner 01:4xZ: .claude, .pi, any other)
 #   GUARD_SWEEP_IDLE_MIN_<box>           an iter dir untouched this long moves. default: 120
 #   GUARD_SWEEP_PRESSURE_PCT_<box>       tmpfs use at/above this -> the pressure idle age. default: 60
 #   GUARD_SWEEP_PRESSURE_IDLE_MIN_<box>  default: 20
@@ -86,8 +88,11 @@ GUARD_USER_HIGH_PCT_local_town=95
 GUARD_RAM_MAIN_local_town=/data/work/agi
 GUARD_RAM_DIR_local_town=/mnt/agi-ram
 GUARD_RAM_SYNC_MIN_local_town=10
-GUARD_AGI_SESSIONS_ARCHIVE_local_town='/data/home-$USER/agi-sessions'
-GUARD_CLAUDE_PROJECTS_ARCHIVE_local_town='/data/home-$USER/claude-projects'
+GUARD_AGI_SESSIONS_ARCHIVE_local_town=/mnt/agi-flash/state/agi-sessions
+GUARD_SWEEP_PAIRS_local_town='$HOME/.claude/projects=>/mnt/agi-flash/state/claude-projects $HOME/.pi/agent/sessions=>/mnt/agi-flash/state/pi-sessions'
+GUARD_TIER_HOT_local_town=/mnt/agi-ram/state
+GUARD_TIER_COLD_local_town=/mnt/agi-flash/state
+GUARD_TIER_DIRS_local_town='$HOME/.claude $HOME/.pi'
 GUARD_SWEEP_IDLE_MIN_local_town=120
 GUARD_SWEEP_PRESSURE_PCT_local_town=60
 GUARD_SWEEP_PRESSURE_IDLE_MIN_local_town=20
