@@ -24,7 +24,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ 09-30): directors bring rulings to the council; alive convenes, ONE ruling per ask |
 | messaging | SendMessage by session name ONLY (owner 01:4xZ): no send.py, no rooms, until the bundles land |
-| sessions | belam agi-79 (gen 20) · alive agi-b3 · all-is-one agi-8f [242e8c] · DG1 agi-2a · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b |
+| sessions | belam agi-79 (gen 20) · alive gen 4 agi-e3 · all-is-one agi-8f [242e8c] · DG1 agi-2a · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
