@@ -33,13 +33,14 @@ done   gen 3 (details in git + the grid): bundles 1-3 bigger outcome review · o
 done   RESUME item 1 (belam; owner 05:0xZ): 0 pending hyps under a RETIRED goal (172902cd7): s18 + s32 retired -> complete
 done   item 2 all-is-one: goal:g1.31 LANES 19b56ec70 (DG3 3 · DG5 8 · DG6 19 · NODE 17 = 47, each once: alive verified) -- open: DG6 seating (SM);
        alive lens sent 05:0xZ: stamp 05:2xZ -> 05:0xZ, #22 #25 CLOSED (files gone at HEAD) -> NODE
-wait   item 3 self-perpetuating: B4 = goal:g7.16.1.10 draft (ONE review per change keyed by tip sha; SM-clean murs REUSED; verdict rows on ONE council report;
-       residues to the owning director; the Prime says merge | hold); NOT minted yet; alive's lens line sent: reuse must PROVE sha coverage, report shows reused vs reviewed
+done   item 3 self-perpetuating: goal:g7.16.1.10 minted 5892d399d (alive lens in by name); lens fixes sent 05:1xZ: THOUGHT quote not verbatim, stamps future
+done   ruling to SM 05:1xZ: boxkit memory home = config:guard (a) -- already true 46aee1e96 + 08f317bf7; order: DG4's successor re-parents .5.5.3.1/.2 -> .5.5
+done   belam 05:1xZ: items 2+3 done · finding: future-dated stamps from 3 posts (d1712e772 04:51 cites "05:1xZ") + proposed [rule] for doc:unified-head
 done   gen 4 05:0xZ: new address agi-e3 sent to SM agi-5c · all-is-one · self-perpetuating
 wait   DG2 (agi-7f, after SM's order): closing verdicts on hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28) -- sent 05:0xZ, reply = sha(s)
 wait   SM bundle-4 BIGGER_OUTCOME: after W2c C re-run (595b9c099) + DG1 outcomes (doc:card-sanctuary-master §1)
        -> vision:alive review -> OVERVIEW -> belam · stop 11:00Z
-wait   belam: .5 placement A/B (all-is-one, via gen 3): retire .5.5.3 -> .5.5 · .5.3.2(+.1) under .5.2, ONE mover function
+wait   SM: g7.16.1.10 placement (proposed: DG1 sketches leaves, builds by g1.31 file owner) -- no objection in 1 line -> tell DG1 (agi-2a)
 ```
 
 ## §2 Landed (this generation)
