@@ -207,3 +207,46 @@ def test_a_third_writer_locking_the_peer_commit_instant_still_exits_0_at_the_dea
     assert _dirty(repo) == [], "HEAD holds the write and the tree is clean"
     assert "mine" in subprocess.run(["git", "-C", str(repo), "show", "HEAD:.agi/nodes/doc/w0.md"],
                                     capture_output=True, text=True).stdout
+
+
+def test_a_SKIP_WORKTREE_node_is_never_called_clean_at_HEAD(tmp_path):
+    """Falsifier 2, the SECOND blind spot (row 2): `skip-worktree` hides the
+    worktree bytes from status AND from `git commit`, and `ls-files
+    --error-unmatch` is happy for such a path -- so the 'clean at HEAD' read
+    said yes over bytes NO commit holds. Measured pre-fix: rc 0 "clean at HEAD",
+    HEAD still carrying the OLD title. Only a plain `H` ls-files row is the
+    index's truth, so this write must refuse UNCOMMITTED."""
+    repo = _repo(tmp_path, wait_s=0.6)
+    node = repo / ".agi" / "nodes" / "doc" / "w0.md"
+    subprocess.run(["git", "-C", str(repo), "update-index", "--skip-worktree", str(node)],
+                   check=True, capture_output=True)
+    tag = subprocess.run(["git", "-C", str(repo), "ls-files", "-v", "--", str(node)],
+                         capture_output=True, text=True).stdout
+    assert tag.startswith("S "), tag
+    lock = repo / ".git" / "index.lock"
+    lock.write_text("held by a fixture writer")
+    r = _write(repo, "doc:w0", 'set title "skip me"')
+    assert r.returncode == 3, (r.returncode, r.stderr[-300:])
+    assert "UNCOMMITTED" in r.stderr, r.stderr[-300:]
+    assert "clean at HEAD" not in r.stderr, "an S path is never clean at HEAD"
+    head = subprocess.run(["git", "-C", str(repo), "show", "HEAD:.agi/nodes/doc/w0.md"],
+                          capture_output=True, text=True).stdout
+    assert 'title: "w0"' in head and 'title: "skip me"' not in head, head[:200]
+    assert 'skip me' in node.read_text(), "the bytes stay on disk, named"
+
+
+def test_a_payload_OUTSIDE_the_work_tree_never_says_STILL_STAGED(tmp_path):
+    """Row 1: `git diff --cached` returns git's ERROR rc 128 for a path outside
+    the work tree, and `!= 0` read that as STAGED. Only rc 1 is staged; an error
+    says its own note instead."""
+    sys.path.insert(0, str(BIN))
+    import write  # noqa: PLC0415
+    from types import SimpleNamespace  # noqa: PLC0415
+    repo = _repo(tmp_path, wait_s=0.6)
+    node = repo / ".agi" / "nodes" / "doc" / "w0.md"
+    lock = repo / ".git" / "index.lock"
+    lock.write_text("held by a fixture writer")
+    note, uncommitted = write._commit_write(repo, "doc:w0", SimpleNamespace(
+        path=node, payload_changed=True, payload_path="/etc/hosts"))
+    assert uncommitted and "STILL STAGED" not in note, note[-300:]
+    assert "STAGED check itself failed" in note, note[-300:]

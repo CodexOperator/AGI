@@ -4277,7 +4277,9 @@ def _commit_write(root, node_id: str, res, actor: str = "",
     library rotate.py and send.py call on shared files. `git commit -- <paths>`
     commits those paths alone: never -a, never a file another post staged. A
     held verify-suite.lock refuses the commit by name (the write stays on
-    disk; the ONE sanctioned exit 0 over an uncommitted node). Not a git
+    disk; ONE sanctioned exit 0 over an uncommitted node). The SECOND is
+    goal:g4.18.5.2.1: a commit that failed only because a peer already holds
+    these bytes at HEAD is skipped, not refused. Not a git
     checkout = nothing to commit. Unpark carriers a formation switch writes
     are other nodes: they stay out.
 
@@ -4325,8 +4327,15 @@ def _commit_write(root, node_id: str, res, actor: str = "",
         # write the refusal exists to prevent.
         # `--no-optional-locks`: this read must not itself want the very
         # index.lock this path is busy on (it would queue behind the holder).
-        at_head = (all(git("ls-files", "--error-unmatch", "--", p).returncode == 0
-                       for p in paths)
+        # `ls-files -v` carries the TRACKING FLAGS in column 1: `S` = skip-worktree,
+        # a lowercase tag = assume-unchanged. Both hide the worktree bytes from
+        # status AND from `git commit`, so such a path is NEVER "clean at HEAD" --
+        # it is simply unread by the index (measured: skip-worktree + a held
+        # index.lock gave rc 0 "clean at HEAD" with HEAD holding the OLD bytes).
+        # Only a plain `H` row per path is the index's truth.
+        flags = [ln[:1] for ln in git("ls-files", "-v", "--", *paths)
+                 .stdout.splitlines() if ln.strip()]
+        at_head = (len(flags) == len(paths) and all(f == "H" for f in flags)
                    and not git("--no-optional-locks", "status", "--porcelain",
                                "--", *paths).stdout.strip())
         # asked at the DEADLINE too, not only on the cheap path: `busy` is a read
@@ -4342,10 +4351,15 @@ def _commit_write(root, node_id: str, res, actor: str = "",
     # residue 90: never left STAGED in a shared index; residue 98: a reset
     # that fails too (index.lock held) is said loudly, never claimed as done
     reset = git("reset", "-q", "--", *paths)
-    staged = git("diff", "--cached", "--quiet", "--", *paths).returncode != 0
+    # ONLY rc 1 means "differs from the index" = staged; rc 0 = clean and rc >= 2
+    # is git's ERROR (a path outside the work tree), never a verdict about staged.
+    dc = git("diff", "--cached", "--quiet", "--", *paths).returncode
+    staged = dc == 1
     state = ("unstaged" if reset.returncode == 0 else
              f"STILL STAGED, reset failed rc {reset.returncode} -- run "
              f"git reset -q -- {' '.join(paths)}" if staged else
+             f"the STAGED check itself failed (rc {dc}) -- inspect with "
+             f"git diff --cached --name-only -- {' '.join(paths)}" if dc >= 2 else
              f"reset failed rc {reset.returncode} -- the path is NOT staged, "
              f"so nothing of this write is left staged")
     return (f"commit failed after {tries} tr{'y' if tries == 1 else 'ies'} ({state}; "
