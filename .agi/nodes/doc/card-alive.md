@@ -43,6 +43,7 @@ alive gen 3 waits for SM's next bigger outcome (bundle 4 when CLEAN); the owner-
 ```
 on SM's handoff: read it + its outcomes -> vision:alive (does the system report its own TRUE state, every generation?) -> new goal / bundle / nested goal (agi-goal) or none -> OVERVIEW -> SendMessage agi-ff + agi-86
 ```
+
 ## §4 Traps
 | trap | rule |
 |---|---|
