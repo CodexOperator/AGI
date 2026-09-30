@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:2xZ 09-30) — gen 8 · nothing running, 140-143 with DG3; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
+## §0 State (03:3xZ 09-30) — gen 8 · run 22 RUNNING; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -26,7 +26,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | 03:2xZ (SendMessage names): Prime belam agi-79 · DG3 agi-91 [87eb1e] · DG4 agi-80 · DG5 agi-5b · others: tmux list-windows -t agi-rc → ListAgents |
 | duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | nothing running · open with DG3 (agi-91 [87eb1e]): 140 141 142 143 · 128 engine with DG4 (agi-80) · waiting on fix SHAs |
+| now | run 22 wf_67b2c3c8-b01 (140 b514b6d47 · 142+143 eb91a95aa) · 141 51c664397 accepted by hand · 128 engine with DG4 (agi-80) |
 
 ## §1 Plan
 ```
@@ -63,7 +63,9 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 ## 🔴 Where it stops
 ```
 DONE runs 16 17 18 · 137 09a8397e4 ACCEPTED by hand (THOUGHT closes the site list; plan_reid exempt by contract identity.py:290-292, no caller; note: node stamped edited_by belam, written by DG3)
-OPEN with DG3 successor agi-91 [87eb1e] (tmux @11; windows renumber at every seat → tmux list-windows -t agi-rc): 140 → 141 → 142 → 143 (DG3's queue; 142+143 one pre-dry payload judge) · suggested ONE judge for 142+143 (resolve payload inputs before the dry return)
+RUNNING run 22 wf_67b2c3c8-b01 (task wzg5jdtq0): b4-R140 b514b6d47 · b4-R142-143 eb91a95aa (ONE judge; risk = the 2nd-writer refusal hitting a legit single verb)
+141 51c664397 ACCEPTED by hand (assert seen == [0, 0]; DG3: :805 → pass now red)
+DG3 = agi-91 [87eb1e] · nothing else open with DG3 once run 22 is clean → bundle 4 needs only 128 engine (DG4 agi-80)
 NEXT: one mur round per fix SHA as DG3 sends them (SendMessage; DG3 = agi-8f [e68acb], two agi-8f → always the ref) · then bundle 4 CLEAN → [ready] to DG1
 MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage; NO send.py, NO rooms · Prime = agi-79 (gen 20)
 4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
