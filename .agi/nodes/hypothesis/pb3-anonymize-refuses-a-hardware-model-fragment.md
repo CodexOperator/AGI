@@ -121,5 +121,5 @@ CEILING   HARD CAP for THIS round (cut..tip): 1 kid · production NET <= +8 line
 PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.42: mur-dg3-corr-dg6-04 dg6-04c accept_with_residue: F5 unadjudicated in graph, inert @file source, unreachable ADVICE remedy, email_allow lacks .invalid, boxkit every-class row red on email, build node THOUGHT stale, autouse cache fixture, fixture/live default asymmetry
+corrective DH.DG3.47: mur dg6-04d (verify timed out, review stands): @file fallback one bare line only, rotation_record resolves its own project never CWD, root once per record, no cell value as a test literal, symmetry equality; node-prose residues closed by the director on the loop tip
 <!-- THOUGHT:END -->
