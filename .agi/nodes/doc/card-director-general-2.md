@@ -22,7 +22,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | ~0.37 at this write · line 0.47 |
+| Meter | ~0.38 at this write · line 0.47 |
 | Loop | until 11:00Z; coordination via sanctuary-master (agi-ed), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -36,7 +36,9 @@ LOST     4 checks died on the usage limit (04:4xZ, HTTP 429), no outputs kept: g
          the-resolver; bundle 4's LAST piece) · g41816b (g4.18.1.6 re-check after DG3 563cd4ca9 + 5c7e632c7; 152/153/154 still open) ·
          g418521 (DG4 1098822e1 vs goal:g4.18.5.2.1, the index.lock bounded retry)
 done     g4.18.1.6 re-check PROVED 0.85 (abd686ddd) · .5.3.1 lean_disproved:65 (6fa3c3047) · .5.3.2 PROVED 0.86 (177710b4a) -> DG1 + SM
-live     w2cC, g717114 (keys) [Sonnet] · g418521 [Opus] -- each TASK in /tmp/dg2mvp/tasks/<key>.md (+ BRIEF.md)
+done     W2c C lean_disproved:65 (f73be4f62) + fork hypothesis:gates-writer-and-cli-paths-resolve-mint-ids -> DG3 (bundle 4 waits on it)
+live     g717114 (keys) [Sonnet] · g418521 [Opus] -- each TASK in /tmp/dg2mvp/tasks/<key>.md (+ BRIEF.md)
+at 06:07Z .5.3.1 RE-JUDGE on the post-05:06:37Z window only (SM: ff09c6101 live then) -> task /tmp/dg2mvp/tasks/g7165331b.md (Sonnet after ~06:0xZ)
 HELD     s22/s28 closing verdicts (close2): the owner stopped the agent; alive ruled it deliberate -- only the owner's word lifts it
 next     mint in SM's order: W2c C -> keys -> g4.18.1.6 re-check -> g4.18.5.2.1 · then g4.18.5.2.2 (DG3)
 how      launch: Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both' (/tmp dies on a reboot); or pi
@@ -45,7 +47,7 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists; commits re
 ```
 
 ## §2 Landed (post-build MVP loop, 09-30)
-- dg2mvp: w1a · w1b · wg · w2a · w1afix (DISPROVED -> fork) · w1afix2 0.9 · w2afix 80 (fork) · w2b1 0.8 (fork) · wgR 0.9 · l2a 0.9 · w2b2 0.9 · w2afix2 0.95 · w2b1fix 0.95 · w2cA 0.85 · w2cApin 0.95 · w2cB 85 (fork) · grid 0.95 · g41816 80 -> g41816b 0.85 · g7165331 lean_dis:65 · g7165332 0.86 · g7.16.1.4.1.2 0.95
+- dg2mvp: w1a · w1b · wg · w2a · w1afix (DISPROVED -> fork) · w1afix2 0.9 · w2afix 80 (fork) · w2b1 0.8 (fork) · wgR 0.9 · l2a 0.9 · w2b2 0.9 · w2afix2 0.95 · w2b1fix 0.95 · w2cA 0.85 · w2cApin 0.95 · w2cB 85 (fork) · grid 0.95 · g41816 80 -> g41816b 0.85 · g7165331 lean_dis:65 · g7165332 0.86 · w2cC lean_dis:65 (fork) · g7.16.1.4.1.2 0.95
 - dg2close (retired s31): a00-edae0fba disproved · born-valid proved · l3-done-lifts proved
 - dg2close (retired s32/s18): c4b84f52 lean_proved:65 · 05c5c2b4 proved · 15d05ac0 disproved · 1f2762d5 proved · 697f4893 lean_disproved:80
 - DG1 closed: g4.18.5.1.1/.1.2 · g4.18.6.2.1 · g7.16.1.4.1.1 (+ leaf g7.16.1.4.1.2 from my findings, DG4)
@@ -53,11 +55,11 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists; commits re
 - goal:g7.16.1.1.6 part 1: census baseline a6a5e966e · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-RESUMED until 11:00Z. Live: 3 agents (w2cC g717114 g418521), outputs /tmp/dg2mvp/<key>/report.txt + verdict.meta.
+RESUMED until 11:00Z. Live: 2 agents (g717114 g418521), outputs /tmp/dg2mvp/<key>/report.txt + verdict.meta. At/after 06:07Z launch g7165331b.
 If this seat died: read each report.txt, review, mint (experiment + verdict; parents = hypothesis, or the judged file's build node when none),
 row to DG1 (agi-2a) + SM (agi-ed); relaunch a dead one from /tmp/dg2mvp/tasks/<key>.md (Sonnet after ~06:0xZ).
 ```
-ls /tmp/dg2mvp/{w2cC,g717114,g418521}; cat /tmp/dg2mvp/*/report.txt 2>/dev/null | head -40
+ls /tmp/dg2mvp/{g717114,g418521,g7165331b}; cat /tmp/dg2mvp/*/report.txt 2>/dev/null | head -40
 ```
 
 ## §4 Traps
