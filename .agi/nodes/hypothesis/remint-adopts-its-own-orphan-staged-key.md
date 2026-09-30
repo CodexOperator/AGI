@@ -28,7 +28,7 @@ town: core
 - The comment above the staging block ("a crash leaves at worst an orphan temp, never a row naming a key that does not exist") overclaims.
 
 ## CLAIM
-Before re-minting, `_remint_missing_key` looks for `.<seat>.key.*.tmp` beside the seat's key path: a temp whose private key derives the row's CURRENT pubkey is ADOPTED (renamed into place through `_place_seat_key`; no keygen, no key_history entry, no finding); every other such temp for that seat is unlinked. The staging comment states the real crash window. Dry-run reports the adopt/sweep and changes nothing.
+Before re-minting, `_remint_missing_key` looks for `.<seat>.key.*.tmp` beside the seat's key path: a temp whose private key derives the row's CURRENT pubkey is ADOPTED (renamed into place through `_place_seat_key`, the row committed with `rekey=True`, no keygen, no key_history entry, ONE finding naming the adopt); every other such temp for that seat is unlinked ONCE it is older than `ORPHAN_TEMP_GRACE_S` (a younger one is a concurrent remint's in-flight stage, never swept). The staging comment states the real crash window. Dry-run always reports the adopt and how many temps it would sweep, and changes nothing.
 
 ## Dispatch line
 config-max: none (the temp prefix derives from `send._seat_key_path`; no new cell). template-max: none. code: the adopt-or-sweep step inside `_remint_missing_key`'s own-box branch (the resolver that does not exist), reusing `_place_seat_key` and send.seatsig derive/fingerprint -- no second key writer.

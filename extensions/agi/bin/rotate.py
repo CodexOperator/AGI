@@ -17845,7 +17845,8 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
         if refusal:
             return f"(dry-run) {refusal[len('[finding] '):]} -- NOTHING sent"
         staged, n = _orphan_staged_keys(send, root, seat, str(row.get("pubkey") or ""), True)
-        verb = f"ADOPT its orphan staged key and sweep {n}" if staged else f"remint (witness {witness})"
+        verb = (f"ADOPT its orphan staged key and sweep {n}" if staged
+                else f"remint (witness {witness}) and sweep {n}")
         return (f"(dry-run) seat {seat!r} is keyed with no key file on its own box {own}; would {verb} -- NOTHING done")
     if refusal:
         return _key_finding(root, seat, refusal)
@@ -17858,8 +17859,18 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
             _place_seat_key(adopt, send._seat_key_path(root, seat))
         except OSError as exc:
             return f"seat {seat!r}: remint held -- orphan staged key not placed ({exc})"
-        note = (f"seat {seat!r}: key file absent on own box {own}; ADOPTED its orphan staged key "
+        note = (f"seat {seat!r}: key file absent on own box {own} (witness {witness}); "
+                f"ADOPTED its orphan staged key "
                 f"{send.seatsig.fingerprint(bytes.fromhex(old))}, {swept} temp swept")
+        try:
+            _cn = _commit_spawn_row(
+                root, seat=seat, generation=_read_generation(root, seat),
+                session_id=str(row.get("session_id") or ""),
+                window=str(row.get("window") or ""),
+                pid=int(row.get("pid") or 0), rekey=True)
+            note += f"; {_cn.splitlines()[0]}"
+        except Exception as exc:  # noqa: BLE001
+            note += f"; key row commit not performed ({exc})"
         _key_finding(root, seat, f"[finding] {note}"); return note
     # 158 + 158b: the key is STAGED (hidden 0600 temp) before the row names
     # it; a refused write or a failed rename unlinks it (row restored).
@@ -17931,12 +17942,23 @@ def _template_key(send, root: Path, seat: str, scheme: str, tmpl: dict):
     return (*found, send._seat_key_path(root, seat), "adopted its existing key")
 
 
+#: 158c: a non-matching orphan temp is unlinked only once it is this old. A
+#: YOUNGER one may be a CONCURRENT remint's in-flight stage (written between
+#: its keygen and its rename), and unlinking that destroys a live private key
+#: mid-mint. The match -- the temp whose secret derives the row's CURRENT
+#: pubkey -- is adopted at any age, since adopting it is the point.
+ORPHAN_TEMP_GRACE_S = 300
+
+
 def _orphan_staged_keys(send, root: Path, seat: str, pub_hex: str, dry_run: bool):
     """158c -- `seat`'s orphan temps; the one whose secret derives the row's
-    CURRENT pubkey is adopted, the rest unlinked. `(match, would_sweep)`."""
+    CURRENT pubkey is adopted, the rest unlinked once past
+    `ORPHAN_TEMP_GRACE_S`. `(match, would_sweep)` -- the count a dry run
+    reports is what it WOULD unlink, not every temp it saw."""
     path = send._seat_key_path(root, seat)
     temps = sorted(path.parent.glob(f".{path.name}.*.tmp"))
-    match = None
+    cutoff = time.time() - ORPHAN_TEMP_GRACE_S
+    match, swept = None, 0
     for tmp in temps:
         try:
             obj = json.loads(tmp.read_text())
@@ -17946,9 +17968,11 @@ def _orphan_staged_keys(send, root: Path, seat: str, pub_hex: str, dry_run: bool
             hit = False
         if hit:
             match = tmp
-        elif not dry_run:
-            tmp.unlink(missing_ok=True)
-    return match, len(temps) - (1 if match else 0)
+        elif tmp.stat().st_mtime <= cutoff:
+            swept += 1
+            if not dry_run:
+                tmp.unlink(missing_ok=True)
+    return match, swept
 
 
 def _place_seat_key(tmp: Path, path: Path) -> None:

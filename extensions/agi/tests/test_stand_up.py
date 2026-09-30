@@ -474,6 +474,22 @@ def _a_new_key() -> tuple[bytes, str]:
     return priv, pub.hex()
 
 
+def _age_orphan(tmp: Path) -> Path:
+    """age a staged temp past the grace window -- an ORPHAN, not another
+    process's in-flight stage (hypothesis:...-orphan-staged-key, D2)."""
+    import os
+    import time
+    when = time.time() - rotate.ORPHAN_TEMP_GRACE_S - 1
+    os.utime(tmp, (when, when))
+    return tmp
+
+
+def _seats_dirty(graph: Path) -> str:
+    return subprocess.run(["git", "-C", str(graph.parent), "status", "--porcelain",
+                           "--", ".agi/nodes/.geometry/seats.md"],
+                          capture_output=True, text=True).stdout.strip()
+
+
 def test_the_remint_adopts_its_own_orphan_staged_key(graph, monkeypatch):
     """158c: the kill between the row write and the rename -- the next run
     ADOPTS the temp (no remint, no key_history entry) and sweeps every other
@@ -488,7 +504,8 @@ def test_the_remint_adopts_its_own_orphan_staged_key(graph, monkeypatch):
                      encoding="utf-8")
     key = send._seat_key_path(graph, "seat-a")
     _stage_orphan(graph, "seat-a", priv)
-    _stage_orphan(graph, "seat-a", _a_new_key()[0])  # a stale temp of another key
+    _age_orphan(_stage_orphan(graph, "seat-a", _a_new_key()[0]))  # an old orphan
+    assert _seats_dirty(graph), "the pre-crash row write is uncommitted"
     note = rotate.ensure_post_key(graph, "seat-a")
     assert "ADOPTED" in note and "remint held" not in note, note
     assert json.loads(key.read_text())["priv_hex"] == priv.hex()
@@ -496,17 +513,22 @@ def test_the_remint_adopts_its_own_orphan_staged_key(graph, monkeypatch):
     assert _row(graph, "seat-a")["key_history"] == []
     assert _verifies(graph, "seat-a").startswith("VERIFIED seat-a")
     assert list(key.parent.glob(f".{key.name}.*")) == []
+    # 3/4: the adopt COMMITS the row (as the remint twin does) and its ONE
+    # finding names the box and the witness, like the twin's.
+    assert _seats_dirty(graph) == "", "the adopt left the adopted row uncommitted"
+    assert "town-x" in note and "witness" in note and _sha in note, note
 
 
 def test_a_stale_orphan_temp_is_swept_and_the_remint_still_runs(graph, monkeypatch):
     """158c falsifier 2: a temp whose key the row does NOT name is unlinked
-    and the normal remint path runs (key_history grows by one)."""
+    once it is an ORPHAN (past the grace window) and the normal remint path
+    runs (key_history grows by one)."""
     import send
     _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
     monkeypatch.setenv("AGI_BOX", "town-x")
     old = _row(graph, "seat-a")["pubkey"]
     key = send._seat_key_path(graph, "seat-a")
-    _stage_orphan(graph, "seat-a", _a_new_key()[0])
+    _age_orphan(_stage_orphan(graph, "seat-a", _a_new_key()[0]))
     note = rotate.ensure_post_key(graph, "seat-a")
     assert "reminted" in note and "ADOPTED" not in note, note
     assert _row(graph, "seat-a")["pubkey"] != old
@@ -514,9 +536,28 @@ def test_a_stale_orphan_temp_is_swept_and_the_remint_still_runs(graph, monkeypat
     assert list(key.parent.glob(f".{key.name}.*")) == []
 
 
-def test_the_staging_comment_states_the_real_crash_window(graph, monkeypatch):
-    """158c falsifier 3: the dry run reports the adopt and changes nothing,
-    and the overclaiming staging comment is gone."""
+def test_a_fresh_non_matching_temp_is_a_concurrent_mint_and_is_left_alone(
+        graph, monkeypatch):
+    """D2: the sweep never unlinks a temp younger than ORPHAN_TEMP_GRACE_S
+    -- that is another process's in-flight stage, a LIVE private key between
+    its keygen and its rename. The dry run says it would sweep 0 (D3)."""
+    import send
+    sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    key = send._seat_key_path(graph, "seat-a")
+    row = _row(graph, "seat-a")
+    _stage_orphan(graph, "seat-a", _a_new_key()[0])   # written microseconds ago
+    dry = rotate._rotate_first_key(graph, None, "seat-a", row, dry_run=True)
+    assert "would remint" in dry and "sweep 0" in dry, dry
+    note = rotate.ensure_post_key(graph, "seat-a")
+    assert "reminted" in note, note
+    assert [p.name for p in key.parent.glob(f".{key.name}.*")] != [], \
+        "a concurrent mint's live private key was swept mid-mint"
+
+
+def test_the_dry_run_names_the_adopt_and_changes_nothing(graph, monkeypatch):
+    """158c falsifier 3 (mechanism, not prose): the dry run reports the
+    adopt AND the sweep count, and unlinks/renames/finds nothing."""
     import send
     _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
     monkeypatch.setenv("AGI_BOX", "town-x")
@@ -525,14 +566,13 @@ def test_the_staging_comment_states_the_real_crash_window(graph, monkeypatch):
     seats.write_text(seats.read_text().replace(_row(graph, "seat-a")["pubkey"], pub),
                      encoding="utf-8")
     _stage_orphan(graph, "seat-a", priv)       # the key the row already names
-    _stage_orphan(graph, "seat-a", _a_new_key()[0])  # a stale temp
+    _age_orphan(_stage_orphan(graph, "seat-a", _a_new_key()[0]))  # an old orphan
     row = _row(graph, "seat-a")
     dry = rotate._rotate_first_key(graph, None, "seat-a", row, dry_run=True)
     assert "would ADOPT its orphan staged key and sweep 1" in dry, dry
     key = send._seat_key_path(graph, "seat-a")
     assert not key.exists() and len(list(key.parent.glob(f".{key.name}.*"))) == 2
-    src = (BIN / "rotate.py").read_text(encoding="utf-8")
-    assert "a crash leaves at worst an orphan temp, never a row naming" not in src
+    assert _sent == [] and not list((graph / "sessions").rglob("*.key-finding"))
 
 
 def test_the_seating_keys_from_the_template_too(graph, monkeypatch):
