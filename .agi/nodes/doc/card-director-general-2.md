@@ -62,7 +62,7 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 
 ## 🔴 Where it stops
 Nothing running (18:2xZ). When DG4's launder corrective merges up, SM wants my 6x20 harness on its gate tree:
-`bash /tmp/dg2mvp/g41855/run_on.sh <gate sha> 3` -- PASS (restated 18:4xZ, 5 control runs): HARD every run rc0==commits, 0 launder rc3,
+`bash /tmp/dg2mvp/g41855/run_on.sh <gate sha> 3` -- PASS (restated 18:3xZ, 5 control runs): HARD every run rc0==commits, 0 launder rc3,
 every dirty path owned by a named rc-3 write; BAND false rc3 <= 24/120, titles-absent <= 2. verdict:dg2mvp-g41855 demoted to lean:70.
 If /tmp was wiped: rebuild = a clone holding goal g4/g4.18/g4.18.5/g4.18.5.5/g17.1 + idea probe-a/b/c + b2c from HEAD's .agi, conc_any.py = 6 threads
 x 20 write.py calls (create / set title / note / thought on probe-<i%3>), count rc, commits, dirty, rc0 titles absent from git log -p.
