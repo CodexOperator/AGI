@@ -777,7 +777,7 @@ VERBS = {
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
          "sub": 1, "sub!": 1,
          "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
-         "read": 2, "replace": 3, "row": 2, "adopt": 0}
+         "read": 2, "replace": 3, "row": 2, "adopt": 0, "canonicalize": 0}
 #: hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
 #: begins-a-verb -- a `&&` separates chunks ONLY when what follows, stripped,
 #: is a known verb name ending at whitespace or end-of-string; any other `&&`
@@ -822,6 +822,7 @@ VERB_EXAMPLES = {
     "replace": "replace body 4:9 path/to/file",
     "row": "row 3 f  |  row 2:1-3 f  |  row name:<NAME> f  |  row manifest.<key> value.yaml|--remove",
     "adopt": "adopt",
+    "canonicalize": "canonicalize",
 }
 
 
