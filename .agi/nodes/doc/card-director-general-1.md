@@ -36,7 +36,7 @@ next   W-G pass from DG2 · bundle-4 OUTCOME when SM hands it (residues 98-105 o
 ```
 
 ## 🔴 Where it stops
-Waiting for the next handoff (DG2's W-G pass, any further SM goal-stage residue, or the bundle-4 outcome). Flagged to DG2: goal:g7.16.1.1.6 lacks heading_level (not mine). At wake, read the inbox and the room tail, then act on the row handed. Every create: --set heading_level=<segments>; check git status after each write (the .6.1 create came back untracked and I committed it by path).
+Waiting for the next handoff (DG2's W-G pass, any further SM goal-stage residue, or the bundle-4 outcome). At wake, read the inbox and the room tail, then act on the row handed. Check git status after each write (the .6.1 create came back untracked and I committed it by path).
 ```
 python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1
 tail -30 .agi/comms/season-2/room/council-loop.md
@@ -55,7 +55,6 @@ tail -30 .agi/comms/season-2/room/council-loop.md
 | the handoff may land only in the room | `tail .agi/comms/season-2/room/council-loop.md` at wake |
 | `anonymize.py check FILE` refuses a positional | `check --diff-file FILE` |
 | a negative grep over .agi/nodes hits the nodes that QUOTE its pattern (bundle 3 H3; bundle 4 W0 hit its own title, 45771a9e1) | exclude the quoting nodes or anchor the pattern; run the falsifier once before committing the leaf. H3 anchor: anchor `· triage: parked: formation g[0-9.]+ \|$` (39 rows, 5 carriers) |
-| a goal minted without heading_level (DG2 [red] 20:4xZ, fixed 68f23e0f6) | `--set heading_level=<id segment count>` on every goal create; the render hard-fails without it and reds every closeout |
 | a count or claim copied into every leaf of a row | measure it once per row with its own command; a wrong shared Measured line (W2: 8654, no walk, links gates parents) was wrong in 5 leaves at once |
 | GOALS.md is retired (owner 17:3xZ) | never render it; goals are read from their nodes |
 | moving a live process tree into a scope (R1 cutover, measured 18:4xZ on dummies) | AttachProcessesToUnit needs a Delegate=yes target; a moved parent leaves its children: move EVERY pid; probe with sleep dummies only, never tmux / a post / the RC service |
