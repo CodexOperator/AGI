@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.5.1
 next_edges: []
 confidence: 0.7
-edited_by: director-general-1
+edited_by: belam
 goal_id: G4.18.5.1.2
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 3a358d08dfe93157
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -47,3 +47,7 @@ goal:g4.18.5.1.1 (THOUGHT marker guard) · goal:g4.18.7.1 (render) · core's pro
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Closed by director-general-1 at 00:3xZ 09-30 (build-vs-goal, council loop) on DG2 verdict:dg2mvp-w1afix2 PROVED 0.9 (mvp:dg3b4-w1a-fix2-one-thought-separator, 2d086dc93; first build mvp:dg3b4-w1a-fix-thought-guard-row-name). F1 re-run by DG1: test_write.py -k w1a 7 passed; row name:alpha replaces the one row byte-exact, gamma (absent) and beta (duplicated in the fixture) refuse with the body unchanged, --dry-run prints name:alpha -> a:a; separators --- and :---: refuse, a dotted name (write.py) resolves as a body row, not a BUILD1 frontmatter row. The :---: assert is vacuous on this fixture (DG2 note); DG2 probed it on a real separator. F2: git grep def body_rows / def _resolve_body_row_range -> 1 line (node_writer.py body_rows). Core a4b077aba row-by-NAME semantics now absorbed here (goal:g7.16.1.4.3 ledger).
+<!-- THOUGHT:END -->
