@@ -570,6 +570,21 @@ def _resolve_fm_row(root, edit: Edit) -> None:
     edit.fm_row_resolved = True
 
 
+def _missing_link_refusal(root, set_fm: dict) -> str | None:
+    """goal:g4.18.6.2.1 -- `set parents` / `set next_edges` naming an id no node
+    carries refuses by name, judged by create's ONE lookup (the type index
+    spawn_gate.gate_for_root builds for create's gate), never a second walk."""
+    ids = [i for k in ("parents", "next_edges") if k in set_fm
+           for i in ([set_fm[k]] if isinstance(set_fm[k], str) else set_fm[k] or [])
+           if isinstance(i, str) and i.strip()]
+    if not ids:
+        return None
+    import spawn_gate  # noqa: PLC0415
+    missing = [i for i in ids if i not in spawn_gate.gate_for_root(root)[1]]
+    return (f"cannot set: {missing} name no node -- create it first, or name an id "
+            f"that exists (goal:g4.18.6.2.1)") if missing else None
+
+
 def _thought_marker_refusal(body: str, rng: str, new_text: str) -> str | None:
     """goal:g4.18.5.1.1 -- a body range holding a THOUGHT marker LINE refuses:
     update_node carries the old THOUGHT back, so the block would duplicate.
@@ -3541,7 +3556,8 @@ def main(argv: list[str] | None = None) -> int:
     # (`goal:g7.2` -> `goal`), the same shortcut node_writer already uses.
     if edit.set_fm and ":" in args.node_id:
         node_type = args.node_id.split(":", 1)[0]
-        refusal = _enforce_set_schema_gate(root, node_type, edit.set_fm)
+        refusal = (_enforce_set_schema_gate(root, node_type, edit.set_fm)
+                   or _missing_link_refusal(root, edit.set_fm))
         if refusal:
             print(f"ERR: {refusal}", file=sys.stderr)
             return 2
