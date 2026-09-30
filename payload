@@ -49,7 +49,6 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/grid.py payload <id> [--version N] [--out PATH]` | Read one payload back out of its ref |
 | `bin/grid.py log <id>` / `diff <id> [--back N]` / `versions <id>` / `status` | Inspect |
 | `bin/crons.py apply` / `show` / `remove` | Reconcile, inspect, or drop the crontab derived from `.agi/nodes/.geometry/crons.md` |
-| `bin/unify.py --engine E --tree T [--dry-run \| --yes]` | **One-time.** Merges a tree repo into an engine repo under `.agi/` (the one-repo move). Not a command a migrated project ever runs again. |
 | `bin/dispatch.py <project> <iter>` | Spawn pi kids (pi runtime) |
 | `bin/dispatch.py <project> <iter> --dry-run` | Resolve + print every slot's spawn (command, env, brief) with no spawn, no budget slot, no session dir — `hypothesis:l3-dispatch-dry-run` |
 | `bin/heal.py <project> <iter>` | Timeout/restart watchdog (pi runtime) |
@@ -169,8 +168,9 @@ git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then li
 # 1  the row: box cell + identity cells through the ONE writer (write.py, actor = the prime row), never a hand edit
 #    (posts.md is config; written_by is [owner, prime_director]; a box's rows carry `box: <alias>` — a row
 #     without the cell belongs to default_box and is FOREIGN everywhere else: whois/heal/status/mail_poll skip it)
-# 2  the key: keys never cross boxes — re-mint on arrival; key_history on the row records the rotation
-send.py --from belam keygen --post belam
+# 2  the key: keys never cross boxes and no model mints one — rotate-self (step 6) and every stand-up key the row
+#    from config:key-authority key_template: on the row's OWN box (step 1's committed box cell = the witness) it is
+#    reminted, the old key retired UNSIGNED into key_history + ONE finding; a foreign box is refused + ONE finding
 # 3  the pin: the seat-stable meter pin on YOUR OWN transcript (never the newest .jsonl — that is another seat's)
 rotate.py meter --post belam --pin .agi/sessions/belam.meter --session-log ~/.claude/projects/<slug>/<own-session-id>.jsonl
 # 4  the seats you were told to stand up, each from its own card, then pin each to its own transcript
@@ -802,7 +802,7 @@ npx gitnexus query "<concept>" --repo /home/ubuntu/work/agi
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --verify` | goal:g2.19 — one render, two readers |
 | `python3 '<engine>/extensions/agi/bin/grid.py' commit --all` | version every changed node and its payload |
 | `python3 '<engine>/extensions/agi/bin/links.py' links` | every node's link resolves; broken_links must be 0 |
-| `python3 '<engine>/extensions/agi/bin/links.py' schema` | goal:s31 — which nodes violate their type's required list (dry) |
+| `python3 '<engine>/extensions/agi/bin/links.py' schema` | goal:g7.33.10.1 — which nodes violate their type's required list (dry) |
 | `python3 '<engine>/extensions/agi/bin/spawn_budget.py' status` | goal:g4.8 — live agents against the tree-wide bound |
 | `python3 '<engine>/extensions/agi/bin/provisioning.py' status` | goal:g1.11 — whether per-spawn keys are being issued |
 | `python3 '<engine>/extensions/agi/bin/envfile.py' --check` | goal:g1.8 — required keys present, forbidden keys absent |
