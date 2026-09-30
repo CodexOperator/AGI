@@ -15,55 +15,55 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:3xZ 09-30 — council RESUMED to 11:00Z; meter 0.41+: small steps only, rotate at 0.47)
+## §0 State (08:4xZ 09-30 — STOPPED: the owner's run ended ("until 7am" = 11:00Z; belam's stop); IDLE; meter 0.43)
 | | |
 |---|---|
 | post | all-is-one |
 | stage | council — embody vision:all-is-one ONLY ("everyone uses a unified set of tools ... same UI/UX by any role"); TOP-DOWN, generations, never the nitty gritty (doc:council-loop "The council's lens") |
 | role (owner 02:5xZ 09-30) | "directors should reach out to council for rulings who discuss it among themselves using the lenses to keep you free. Remember the council IS prime to everyone else." alive convenes: ONE lens line to alive; alive sends ONE ruling; silence = agree |
-| run (owner 04:5xZ) | "Continue hammering at it as fast as you can until 7am" = 11:00Z · subagents + reviews on Sonnet 5.5 (Opus allowed ~05:0x-06:0xZ: "I need to max sub use before reset in an hour" + "No make it opus as well") · workflow.py stays pi-free |
-| place | local-town · MAIN /data/work/agi (RAM disk, same path) on local-maxxing/season2/main · claude-code Opus 5.5 high · CC session agi-8f / 242e8c |
-| messaging (owner, until bundles land) | SendMessage by session name ONLY; NO send.py, NO rooms |
-| peers (05:3xZ) | Prime belam agi-79 · alive gen 4 agi-e3 · self-perpetuating agi-53 · SM (rotating; successor TBD) · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · DG6 agi-bb |
+| place | local-town · MAIN /data/work/agi (RAM disk, same path) on local-maxxing/season2/main · claude-code Opus 5.5 high · CC session agi-8f [242e8c] |
+| messaging (owner, until bundles land) | SendMessage by "name [ref]" ONLY (short names collide); NO send.py, NO rooms |
+| spend | subagents + reviews on Sonnet 5.5 (owner 04:5xZ); workflow.py pi-free |
+| history | REWRITTEN 06:3x-08:0xZ 09-30 (owner: redact email / hardware name / pytest-of path): every sha before 08:0xZ changed -> commit-map below |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   season so far: bundles 1-3 reviewed · goals rewritten from OWNER lines (mine g7.32.6, g4.18.5) · 12 S goals closed (mine s7 s35->g4.18.8 s18 s32; leaves g4.18.6.6, g2.4.1)
-done   rulings: DG5 keys (C) own-box remint, box = AGI_BOX, rule = key_template row · DG3 replace payload NOT extended · DG1 body refs -> g4.18.6.4 · DG3 residue 154 fail closed
-done   g7.16.1.5 placement check -> belam (via alive): A .5.5.3 restates .5.5 · B two session-dir movers (.5.2 timer vs .5.3.2 heal) -> one mover
-done   s-p g7.16.1.10 (merge-up reviews off the Prime): review identity = git patch-id + touched-file base blobs, tip sha recorded not keyed
-done   goal:g1.31 (PASS B3 residues): SM agreed DG6 first assignment; 47 upheld triaged INTO g1.31 Target LANES (19b56ec70): DG3 3 · DG5 8 · DG6 19 · NODE 17; DG3 + DG5 told
-done   05:4xZ DG6 SEATED as agi-bb, already on g1.31 (owed brief moot) · LANES fixed 3a76b6eb4 (#22 #25 CLOSED, DG6 17, NODE 19) · DG3 took #12 #24 #37 · ruling to DG6 g1.31.4.2.2: meter fallback + unmeasured tag AGREED (fallback = the same ladder cell; ONE open finding per unmeasured model)
-was-owed DG6 brief: "first assignment goal:g1.31 -- read its LANES block by id; 47 upheld first, then the 147 missed rows; Sonnet 5.5 subagents"
-done   05:5xZ bundle-4 lens to alive: (4a) write.py rc 0 on an uncommitted write under the suite lock -> exit 3, leaf under g4.18.5, a STOPGAP deleted at the .6 cutover · (4b) suite reads a tip snapshot -> NEST under g7.16.1.6, so the verify-suite lock RETIRES · one config block for the lock policy meanwhile\nopen   horizon leaves g4.18.6.6 + g2.4.1 wait for their lines · no OVERVIEW until .6, .7 and bundle 4 close
+done   bundles 1-3 reviewed · bigger_outcome 1-3 v2 accepted (home-path false green named, residue 128)
+done   goals rewritten from OWNER lines: mine g7.32.6 (one conversation node; push_on_write; wake = adapter verb) + g4.18.5 (write = one commit on its own ref; era cell write.commit_target)
+done   12 S goals closed: mine s7 (leaf g4.18.6.6) · s35 -> g4.18.8 · s18 · s32 (leaf g2.4.1 = cache + storage + apply_umap_coords bridge); retire IN PLACE
+done   rulings for directors: DG5 keys (C) own-box remint (box = AGI_BOX; rule = key_template row) · DG3 replace payload not extended · DG1 body refs -> g4.18.6.4
+       · DG3 residue 154 fail closed · DG6 meter fallback + one finding · bundle 4: write rc under the suite lock (g4.18.5.5 stopgap) + suite on a tip snapshot (g7.16.1.6.1: the lock retires)
+done   g7.16.1.5 placement check -> belam: .5.5.3 restates .5.5 · two session-dir movers (.5.2 vs .5.3.2) -> one mover
+done   goal:g1.31 (PASS B3 residues): DG6 first assignment (SM agreed); 47 upheld triaged INTO its Target LANES: DG3 3 · DG5 8 · DG6 17 · NODE 19 (#22 #25 closed)
+open   horizon leaves g4.18.6.6 + g2.4.1 wait for their lines · no OVERVIEW until .6, .7 and bundle 4 close (all 3 council posts agreed)
 ```
 Lens questions for every ask: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
 ## 🔴 Where it stops
-08:3xZ 09-30 resumed after the history scrub; council rulings continue until 11:00Z
+08:4xZ 09-30 stopped idle at the end of the owner's run; nothing in flight
 ```
-on wake: ListAgents (names change; DG6 seated? -> SendMessage it the owed brief above) · answer any director ask with ONE lens line to alive (agi-e3)
-check: git log --since='1 hour ago' --format='%h %an %s' -- .agi/nodes/goal/g1.31.md '.agi/nodes/goal/g7.16.1.5*' .agi/nodes/bigger_outcome
+on wake: re-read this card + git log (never a sha from memory) · ListAgents (use "name [ref]") · answer any director ask with ONE lens line to alive
+check: git log --since='2 hours ago' --format='%h %an %s' -- .agi/nodes/goal/g1.31.md '.agi/nodes/goal/g7.16.1.*' .agi/nodes/bigger_outcome
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
+| a sha from before 08:0xZ 09-30 | PRE-SCRUB: `grep ^<old-sha> /data/scrub/union.git/filter-repo/commit-map` |
+| pre-commit hook (since 08:0xZ) | refuses owner email / GPU name / pytest-of-<user> / box tokens: redact and recommit, never --no-verify |
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
-| write.py auto-commit refused (verify-suite.lock / busy index.lock) | `git add -- <new>`; `git commit -- <paths>` in a retry loop; NEVER remove a lock |
-| a verdict NODE minted ≠ the hypothesis closed | the hypothesis's own `verdict` field must be set too (alive fixed 5 at 172902cd7) |
-| `git grep -h ... | grep -v <path>` | -h drops paths: the filter does nothing (my s18 error) |
-| `replace body N:N` on a `## ` heading line | refused (splits heading from text): insert at the blank line ENDING the previous section |
+| write.py auto-commit refused (verify-suite.lock / busy index.lock) | it exits 0 anyway (g4.18.5.5): `git add -- <new>`; `git commit -- <paths>` in a retry loop; NEVER remove a lock |
+| a verdict NODE minted ≠ the hypothesis closed | the hypothesis's own `verdict` field must be set too |
+| `git grep -h ... | grep -v <path>` | -h drops the paths, so the filter does nothing |
+| `replace body N:N` on a `## ` heading line | refused: insert at the blank line ENDING the previous section |
 | renumber a goal (no verb; `id` protected) | write.py edits FIRST, THEN `git mv` + id/parents/goal_id as ONE commit, THEN re-point refs |
 | `set title` in a write.py script | value = rest of the unit, NO quotes |
 | ack after a crash | non-prime: `rotate.py ack --post all-is-one --session <sid8> --ref <ref> continue` |
 | `grep -r` / `find` over .agi/ | io-stalls the box: `git grep PATTERN <sha> -- <paths>` |
-| EVERY sha on this card is PRE-SCRUB (history rewritten 06:3x-08:0xZ 09-30) | map old -> new: `grep ^<old-sha> /data/scrub/union.git/filter-repo/commit-map`; a pre-commit hook refuses owner email / GPU name / pytest-of-<user> / box tokens: redact and recommit, never --no-verify |
-| SendMessage short names COLLIDE (05:5xZ: agi-e3 = alive [761106] + DG2 [78fffb]; agi-8c = DG1 + stream-master; agi-c8 = DG4 + DG5) | address as "name [ref]" from ListAgents |
 | .agi/sessions/quorum/all-is-one.md | a STALE tracked regular file (09-18 brief), not this card |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (03:0xZ: 5270 resolved, 0 broken)
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (belam 08:0xZ post-scrub: nodes 5457, links 0 broken)
 
 ## §6 BANKED
 (none)
