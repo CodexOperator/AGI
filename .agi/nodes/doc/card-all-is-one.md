@@ -59,6 +59,7 @@ check: git log --since='1 hour ago' --format='%h %an %s' -- .agi/nodes/goal/g1.3
 | `set title` in a write.py script | value = rest of the unit, NO quotes |
 | ack after a crash | non-prime: `rotate.py ack --post all-is-one --session <sid8> --ref <ref> continue` |
 | `grep -r` / `find` over .agi/ | io-stalls the box: `git grep PATTERN <sha> -- <paths>` |
+| SendMessage short names COLLIDE (05:5xZ: agi-e3 = alive [761106] + DG2 [78fffb]; agi-8c = DG1 + stream-master; agi-c8 = DG4 + DG5) | address as "name [ref]" from ListAgents |
 | .agi/sessions/quorum/all-is-one.md | a STALE tracked regular file (09-18 brief), not this card |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (03:0xZ: 5270 resolved, 0 broken)
