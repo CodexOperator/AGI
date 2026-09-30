@@ -601,13 +601,59 @@ def resolving(index, *nodes_dirs):
     return out
 
 
+def _sha_map_path(root) -> "Path | None":
+    """hypothesis:g133 -- the ONE map path, from the config cell
+    `paths.local_maxxing.scrub_commit_map`; an absent cell is an absent map."""
+    root = Path(root)
+    proj, cfg = root, locations.load_config(root)
+    if not (cfg.get("paths") or {}).get("local_maxxing"):
+        for cand in (root.parent, root / locations.GRAPH_DIR_NAME):
+            c = locations.load_config(cand)
+            if (c.get("paths") or {}).get("local_maxxing"):
+                proj, cfg = cand, c
+                break
+    cell = (cfg.get("paths") or {}).get("local_maxxing") or {}
+    rel = str(cell.get("scrub_commit_map") or "").strip()
+    # a cell value is repo-relative; a caller that handed the graph dir itself
+    # resolves it against that dir's parent, so both roots land on one file
+    base = proj.parent if proj.name == locations.GRAPH_DIR_NAME else proj
+    return base / rel if rel else None
+
+
+def resolve_old_sha(root, sha: str) -> "str | None":
+    """hypothesis:g133 -- THE pre-rewrite commit-id resolver. A sha git knows as
+    a commit answers its full id; else a sha prefixing EXACTLY ONE map row
+    answers that row's rewritten id; else None -- silently, never a raise."""
+    sha = (sha or "").strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{7,40}", sha):
+        return None
+    import subprocess
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "--verify", "--quiet",
+             f"{sha}^{{commit}}"], capture_output=True, text=True, timeout=15)
+        if proc.returncode == 0 and proc.stdout.strip():
+            return proc.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        pass
+    p = _sha_map_path(root)
+    if p is None or not p.is_file():
+        return None
+    hits = []
+    for ln in p.read_text(encoding="utf-8", errors="replace").splitlines():
+        parts = re.split(r"[\s,]+", ln.strip())
+        if len(parts) >= 2 and not ln.startswith("#") and parts[0].lower().startswith(sha):
+            hits.append(parts[1])
+    return hits[0] if len(hits) == 1 else None
+
+
 def main(argv: list[str] | None = None) -> int:
     """`write.py links [--broken]` — report the corpus's link state."""
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("action", nargs="?", default="links",
-                    choices=["links", "schema", "roles", "mint"])
+                    choices=["links", "schema", "roles", "mint", "sha"])
     ap.add_argument("mint_id", nargs="?", default="",
                     help="mint: the mint id to resolve, any shape (goal:g4.18.6.1)")
     ap.add_argument("--root", default=".", help="any path inside the project")
@@ -624,6 +670,14 @@ def main(argv: list[str] | None = None) -> int:
     if root is None:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
+
+    if args.action == "sha":   # hypothesis:g133: ONE id in, ONE id out
+        hit = resolve_old_sha(root, args.mint_id)
+        if hit is None:
+            print(f"unknown commit id {args.mint_id}", file=sys.stderr)
+            return 1
+        print(hit)
+        return 0
 
     if args.action == "schema":
         return _schema_report(root, fix=args.fix)

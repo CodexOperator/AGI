@@ -2476,6 +2476,19 @@ def _resolve_replace_text(edit: Edit) -> None:
     edit.replace_text = text
 
 
+def _warn_home_path(edit: Edit) -> None:
+    """hypothesis:g133 -- ONE WARN line when a NEW write's ADDED text carries an
+    absolute home-rooted path (anonymize's own pattern, reused). Never refuses;
+    an old node is never swept."""
+    import anonymize
+    text = "\n".join(str(t) for t in
+                     (edit.body_append, edit.thought, edit.replace_text, edit.payload_bytes)
+                     if t)
+    if text and anonymize.HOME_PATH_RE.search(text):
+        print("WARN: this write carries a home-rooted path; prefer a config cell "
+              "or <home>/. Not refused.", file=sys.stderr)
+
+
 def _resolve_api_root(root) -> Path:
     """Resolve the graph root a caller handed the Python API — DESCEND-ONLY.
 
@@ -4220,6 +4233,8 @@ def main(argv: list[str] | None = None) -> int:
         _stdin.add("body_patch")
         if _diff:   # SM 144: as 140 -- an EMPTY read keeps `-`, and submit refuses it by name
             edit.body_patch_from, edit.body_patch_diff = "", _diff
+
+    _warn_home_path(edit)   # hypothesis:g133: after every stdin source is read
 
     if args.dry_run:
         print(f"{edit.node_id}:")
