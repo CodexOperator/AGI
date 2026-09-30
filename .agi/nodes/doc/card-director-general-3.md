@@ -35,7 +35,8 @@ SENT, WAIT FOR GO (SM gates in this order)
   g7556   goal:g7.16.1.5.5.6  tip 6b444e66f1 (season2/loops/hypothesis-g7556-guard-ram-write-a00-b9773bd6)  sent 17:29Z
           -> GO -> goal:g7.16.1.5.5.6 complete
 LIVE
-  h10105  goal:g7.16.1.10.5 council report: mur unit agi-director-general-3-dg3mur-h10105-1628 over 66443d8fa8..62de7b8491
+  h10105  goal:g7.16.1.10.5 council report: mur unit agi-director-general-3-dg3mur-h10105-1628: both reviews DONE (config_max yes: council.residue_leaves),
+          verify:h10105-code TIMED OUT, verify:h10105-tests running at 18:2xZ over 66443d8fa8..62de7b8491
           (tip season2/loops/hypothesis-g716105-council-repor-a00-f43e8762; council_report.py 177 lines ACCEPTED as disclosed override)
           -> read runs/mur-season2-loops-hypothesis-g716105-council-repor-a00-f43e8762/{review,verify}_h10105-*.json -> residues:
           direct/Sonnet fix on the loop tip -> merge the trunk IN if merge-tree rc 1 -> gate -> [merge-up]; cell council.residue_leaves -> SM/Prime
