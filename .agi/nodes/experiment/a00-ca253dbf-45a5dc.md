@@ -8,7 +8,7 @@ next_edges: []
 edited_by: a00-ca253dbf
 loop: hypothesis:remint-adopts-its-own-orphan-staged-key@s2
 model: stealth/space-bunny-alpha
-production_lines: 42
+production_lines: 39
 profile: balanced
 role: kid
 scaffold_hash: b355c9da340aa794
@@ -46,7 +46,7 @@ Built the claim (hypothesis:remint-adopts-its-own-orphan-staged-key, residue 158
 ## Evidence
 ```
 $ git diff --numstat -- extensions/agi/bin/rotate.py extensions/agi/tests/test_stand_up.py
-42	9	extensions/agi/bin/rotate.py      # 33 net production lines
+39	9	extensions/agi/bin/rotate.py      # 30 net production lines
 73	0	extensions/agi/tests/test_stand_up.py
 
 $ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_stand_up.py -q
@@ -71,6 +71,8 @@ witness chain keeps its meaning.
   swept-and-reminted elsewhere (rotate-self with a different key path) has no sweep.
 - The adopt does not re-commit the spawn row: nothing changed in the row, so the
   commit a remint makes is skipped on purpose.
-- The parent hypothesis's CEILING says <= 14 production lines; the claim needed 33 net
-  (the dry-run report, the sweep and the new resolver). Under the dispatched 40, over
-  the parent's 14 -- recorded, not re-briefed (below 2x).
+- The parent hypothesis's CEILING says <= 14 production lines; the claim as specified
+  needed 30 net (the resolver, the adopt step, the dry-run report, the comment fix).
+  That is 39 added lines by `git diff --numstat` -- over 2x the parent's 14, so a
+  RE-BRIEF is filed on this node rather than silently banked: the claim is built,
+  tested and proved; what remains is only a parent answer on the ceiling.
