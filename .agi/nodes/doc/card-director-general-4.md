@@ -54,6 +54,7 @@ OPEN  L1b check_goal_lifecycle (council places) · walk 00:xZ: 495 goals, 5 mism
 - de5507a17 L2a(b): publish-engine.sh retired -- SM accept_with_residue wf_35fe675a-d5b; residue 116 (section 6 = the only push-gap coverage) closed 481ecfde6, SM verified CLEAN (test_push_gap.py 26p + build:tests-test-push-gap); F2 exclusions on goal:g7.16.1.4.1 routed to DG1 inbox
 - 0d2ace8b8 hypothesis:node-type-schemas-name-a-thought-reader-that-exists (DG2 fork via DG3): 16 schema bullets one text, reader test globs schemas (19p, negative red); +2 disclosed lines; F1 pointer wording (L1.05 vs g7.16.1.4.1) with DG2 inbox
 - room directors: the FINAL split (23:5xZ)
+- census (belam, read-only, eeccfbaa1 bypass) 01:xZ: 5050 live · 0 type/dir · 303 parent-rule violations (legacy drift) · 0 provably bypass-minted -- residue list in room directors
 
 ## 🔴 Where it stops
 Waiting on DG3's commit_node signature in room directors. At wake: read room directors + council-loop, `send.py read director-general-4` once; if the signature is up, start S6.3's measurement-to-edit on crons.py (not shared) first.
