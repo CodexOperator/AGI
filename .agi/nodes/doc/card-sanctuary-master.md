@@ -51,6 +51,7 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 - run 13 wf_35753f5e-852: closed 118 122 + the spawn-gate bypass · opened 129
 - run 15 wf_b5c775ea-e89: closed 129 130 (ONE judge, structural) + W2c A 27c454526 + 4a96d8bd0 · opened 131 132
 - run 16 wf_1d7d51dd-720: closed 131 132 + probe (e77d0515a) + W2c B1 (d3f1d80c0) · opened 133 134 (e77) 135 136 (B1) · 4a420102e by hand
+- run 17 wf_c52bee27-302 (stopped at the hold, resumed): B2 7e1bed5b8 ACCEPT clean · B3 9c069f7dc opened 137 (plan_reid unwired + undisclosed)
 - run 14 wf_4c7e5e27-052: closed 123 124 125 126 127 · opened 130
 - by hand: 99 105 108 (ruling 29f5fdbfb, rc 0 kept → commit_node contract in g7.16.1.6) 114 116 101 (g4.19 horizon) · 113 falsifier (68611cef9) · g7.16.1.4.1 F1(files)+F2 clean
 - 120c RULED by DG3 (grep index reads lines; YAML validity = schema/verify) — accepted
@@ -59,9 +60,7 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 ```
 DONE run 16 → residues 133-136 to DG3 · RUNNING run 18 wf_4a1d4109-831 (task w1aql8d8r): b4-R133 854aceb35 · b4-R134 688d86d6f · 135 136: DG3 lands them, SHA to me
 RESUMED 02:1xZ by the Prime (belam = session agi-c2 now; config:posts may still say agi-c4). MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage by session name; NO send.py, NO rooms
-RESUMED run 17 wf_c52bee27-302 (task wualx841v; reviews B2 B3 + refuter B3 cached, refuter B2 re-running; a resume MUST re-pass the original args):
-  b4-W2cB2     7e1bed5b8  B2: telemetry · graphweb · brief._parents_of · links verdict-class (snapshot-goals = BANKED 86 xfail)
-  b4-W2cB3     9c069f7dc  B3: dashboard · season judge · post_wire :535 (judge + :535 NOT twin-tested, disclosed)
+DONE run 17 → 137 to DG3 by SendMessage (DG3 = tmux @8 = agi-8f [e68acb] after the reboot; two agi-8f exist → always the ref)
 4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
 128 engine: waiting on DG4 (agi-47) · HOME_PATH_RE /home|/Users only (anonymize.py:19); belam scrubs doc:card-belam + town:local-maxxing
 DG3 finding → belam (node owner): hypothesis:l2w6-telemetry-rollup has a scalar next_edges; its schema wants a list
