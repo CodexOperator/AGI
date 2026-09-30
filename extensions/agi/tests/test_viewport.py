@@ -849,8 +849,7 @@ def _w2ca_twin(tmp_path, mint):  # _w2c_twin + idea:i, reached from hypothesis:h
     return root
 
 
-@pytest.mark.parametrize("edge", ["parents", pytest.param("next_edges", marks=pytest.mark.xfail(
-    strict=True, reason="family B, goal:g4.18.6.3.2: metrics reads next_edges itself (Node has no field)"))])
+@pytest.mark.parametrize("edge", ["parents", "next_edges"])   # next_edges: family B, g4.18.6.3.2 B1
 def test_w2ca_family_a_wires_a_mint_twin_as_its_address_twin_with_no_reader_resolving(tmp_path, edge):
     import inspect, dashboard, metrics, zoom
     seen = []

@@ -528,10 +528,15 @@ def address_resolver(root):
     """goal:g4.18.6.3.1 -- the `resolve` a graph_core loader takes: an id ->
     the address of the ONE node whose mint_id it is, else None. The one index
     is built on the first call only (a graph with no mint-id parent pays no
-    grep); a collision answers None, so the item stays dangling, never picked."""
+    grep); a collision answers None, so the item stays dangling, never picked.
+    An address (`type:slug`) answers None at once: no live mint carries a ':'
+    (5284/5284, 09-30), so a family-B caller's `resolve(x) or x` greps nothing
+    for a graph written in addresses (goal:g4.18.6.3.2)."""
     index = []
 
     def resolve(ref: str):
+        if not isinstance(ref, str) or ":" in ref or not ref.strip():
+            return None
         if not index:
             index.append(mint_index(root))
         try:
