@@ -204,6 +204,7 @@ Against the owner's stretch bar (22:1xZ, "so low that it feels like it doesn't e
 | F19 | a read narrows to one section by name, byte-exact | `sect <name> REV` for every section and piece of `config:engine` | byte-identical to the source file (`cmp`) at any REV, through an address symlink | 20 of 20 on the scratch clone, plain and linked |
 | F20 | the brief follows the work | claim a node (`update-ref refs/claims/<mint>`), start a session; release it, start again | the node is in the top-3 with the claim, back at its sibling weight without it | rank 2 with the claim, 0.015 (sibling weight) without (§H.3) |
 | F21 | the engine is one read | `wc -c` of `config:engine`: depth 0+1 · the code counted · the whole | <= 4,096 · <= 8,192 · <= 12,288 B | 3,806 · 6,029 · 11,305 B (body) |
+| F22 | a post's claims are never silently lost | `git config remote.origin.url` in every post checkout the projector clones | a plain filesystem path (the claim line reads `<origin>/refs/claims`; a `file://` URL makes it print nothing, silently: all-is-one, measured) | holds by construction while the projector clones by path (`clone --shared <path>`); a ~12 B `${u#file://}` guard is the fallback if a URL ever appears |
 
 **D.3 · What makes it ONE living whole (read the diagram in §0 again with these three lines):**
 ```
