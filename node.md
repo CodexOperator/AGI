@@ -3,9 +3,9 @@ id: hypothesis:cc-kids-do-not-mint-openrouter-keys
 mint_id: 65669ccda725497bbf938fbbeeea5cdd
 type: hypothesis
 parents:
-  - goal:s34
+  - goal:g1.11
 next_edges: []
-edited_by: season.py
+edited_by: self-perpetuating
 scaffold_hash: ad15b022ca7c6108
 scale: engine
 season: 1
