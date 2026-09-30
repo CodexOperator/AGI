@@ -27,7 +27,7 @@ town: core
 "Also maybe raise the OOM kill limit from 50% to around 85%. And allow Claude sessions a bit more leeway to hog some memory individually if needed."
 
 ## Why this exists
-goal:g7.16.1.5 target B (the memory budget has ONE home): the council's placement check of .5's leaves (alive, 02:2xZ 09-30) found B with no leaf; belam asked the council writer to mint it, unassigned. Measured 02:2xZ 09-30 by alive: the budget has TWO homes that disagree -- config:guard carries GUARD_OOMD_LIMIT (the owner's 85, option b, set 22:4xZ 09-29) and GUARD_USER_HIGH_PCT, while config:boxkit carries its own USER_OOM_PCT 50, user_high_ratio 0.9, AGI_OOM_PCT 40, OOMD_PRESSURE_PCT 60 and the agi/work slice ratios.
+goal:g7.16.1.5 target B (the memory budget has ONE home): the council's placement check of .5's leaves (alive, 02:2xZ 09-30) found B with no leaf; belam asked the council writer to mint it, unassigned. Measured 02:2xZ 09-30 by alive: the budget has TWO homes that disagree -- config:guard carries GUARD_OOMD_LIMIT (the owner's 85, option b, set 22:4xZ 09-29) and GUARD_USER_HIGH_PCT, while config:boxkit carries its own USER_OOM_PCT 50, user_high_ratio 0.9, AGI_OOM_PCT 40, OOMD_PRESSURE_PCT 60 and the agi/work slice ratios. A third disagreement, measured 02:5xZ: config:guard GUARD_ENGINE_MAX_local_town = 1G (belam, after heal's reaper was oomd-killed twice at the old 384M high) while config:boxkit still carries ENGINE_HIGH 384M / ENGINE_MAX 512M.
 
 ## Target end-state
 - ONE home: config:guard, keyed by box class, holds every memory number -- user OOM %, agi.slice %, oomd pressure %, watchdog %, MemoryHigh, the slice ratios and a Claude session's own high/max (raised for the owner's "leeway", never unbounded).
