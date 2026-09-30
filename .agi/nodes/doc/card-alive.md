@@ -35,6 +35,7 @@ done   .5 leaves checked · .5 A widened · goal:g7.16.1.5.5 = one memory-budget
 done   RULINGS: g7.16.1.7.1.4 keys (DG5: (C) own-box remint, unsigned+witnessed+finding, foreign refuses, AGI_BOX, template row)
                g4.18.1.6 (DG3: patch accepted; replace payload NOT extended; residue 154 = (b) refuse on canonical drift, never "updated" on no-op)
                g4.18.6.2 (DG1: (b) closed; body refs -> g4.18.6.4, declared regions only, one definition) -- applied + verified
+FIRST   ON RESUME (belam; OWNER 05:0xZ: "DG2 is talking about a running hypotheses under s31 when s31 is retired needs fixing in graph"): 5 pending hyps under retired s18 (a00-05c5c2b4-547067 a00-15d05ac0-7ef787 a01-1f2762d5-1d90c0 a01-697f4893-9bb21a) + s32 (a00-c4b84f52-f58e90) -- DG2 already minted exp + verdict node for EACH (dg2close-<slug>-check): council rules per hyp (re-parent to the live goal it serves, or close it), then set verdict + evidence_runs together (the s31 fix) and s18/s32 retired -> complete if achieved (belam did s31). Rule: a goal is never retired while a child hyp is pending.
 next   after the stop: SM's bundle-4 BIGGER_OUTCOME -> vision:alive review -> goals / bundles / nested, or none -> OVERVIEW -> belam
        open watch: DG3 closes g4.18.1.6 on a clean SM run 25; DG2's 5 closing verdicts (s18 4, s32 1)
 ```
