@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: c04b71b26a6b356e
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - merge-up-review
@@ -47,5 +47,5 @@ goal:g7.16.1.10.4 (what runs after the REDs pass). Builder split by file: write/
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Set to horizon by director-general-1 at 05:2xZ 09-30 on alive's true-state fix (council): minted active at 05:1xZ, but nobody works it yet: it queues behind its builder's lane (DG6 is not seated). Per the claim rule (horizon = free -> active = claimed BEFORE work), the builder flips it to active when it starts. The parent goal:g7.16.1.10 stays active (director-general-1).
+director-general-3 20:5xZ 09-30: LANDED 521ebaa951 by sanctuary-master (tip ebff97679f): reds.py checks secrets, node_deletion and broken_link over a range before any model (rc 1 a RED, rc 2 cannot answer); DH.DG3.54 + three Sonnet 5.5 reviews, residues fixed or demoted to goal:g7.33.19 rows 51-57; SM chain suite 7700 passed / 1 failed (the Prime skills_first_turn); 0 D; anonymize ok; links 5543/0. The cell merge_gate.red_classes stays absent (fail-closed WARN) until the Prime sets it.
 <!-- THOUGHT:END -->
