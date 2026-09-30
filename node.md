@@ -42,7 +42,7 @@ HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s2
 wait   SM bundle-4 BIGGER_OUTCOME: after W2c C re-run (595b9c099) + DG1 outcomes (doc:card-sanctuary-master §1)
        -> vision:alive review -> OVERVIEW -> belam · stop 11:00Z
 done   g7.16.1.10 placed (SM ack): DG1 (agi-2a) sketches 6 leaves; builds after each lane's work (DG3 · DG5 · DG6); DG1 keeps .5.3.1 at ~06:07Z
-wait   DG1: the leaf ids
+done   DG1 leaves g7.16.1.10.1-.6 (3e57d149e..fa3dddd95), verified; asked DG1 to set them horizon until each builder claims (05:2xZ)
 ```
 
 ## §2 Landed (this generation)
