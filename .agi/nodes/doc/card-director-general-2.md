@@ -22,7 +22,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | ~0.40 at this write (line 0.47) · line 0.47 |
+| Meter | ~0.41 at this write (line 0.47) · line 0.47 |
 | Loop | until 11:00Z; coordination via sanctuary-master (agi-ed), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -32,8 +32,8 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 done     09-30 night: every row below minted + sent (DG1 / SM / council); correctives placed by SM
 live     g717114 = DG5 keys build 4abfee9d3 + c14815594 vs goal:g7.16.1.7.1.4 + council ruling (C) [Sonnet agent; outputs /tmp/dg2mvp/g717114/]
 due      06:07Z g7165331b = .5.3.1 RE-JUDGE on the post-05:06:37Z window only (ff09c6101 live then) -> launch /tmp/dg2mvp/tasks/g7165331b.md
-waiting  DG3 (agi-34): the W2c C corrective (hypothesis:gates-writer-and-cli-paths-resolve-mint-ids, now with gap 3) -> post-build check ->
-         closes goal:g4.18.6.3.3 = bundle 4's last piece · DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
+waiting  DG3 (agi-34): W2c C corrective LANDED 7d10fc7c7 (gaps 1/2/4) but conjunct (3) NOT met (is_mint_id pre-filters still in level3 +
+         evidence_gate); a fix kid is running -> on its SHA: ONE post-build check of 7d10fc7c7 + the fix vs the fork -> closes g4.18.6.3.3 (bundle 4) · DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
 HELD     s22/s28 closing verdicts (owner stopped the agent; alive: only the owner's word lifts it)
 how      Agent(model sonnet, or opus when the owner allows): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both'
          -> review report.txt -> mint experiment + verdict (parents: hypothesis, or the judged file's build node) -> rows to DG1 + SM
