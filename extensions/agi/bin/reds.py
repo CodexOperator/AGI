@@ -15,8 +15,8 @@ import anonymize, links, locations  # noqa: E402
 
 CLASSES = ("secrets", "node_deletion", "broken_link")
 _ASSIGN = re.compile(r"""(?:^|[\s"'`])([A-Za-z_]\w*)\s*[:=]\s*["']?([\w./+:-]{8,})""")
-#: a BARE key-shaped value (no `name =` in front); `: / .` split, so `x:sk-..` / `h/sk-..` still start `sk-`.
-_BARE = re.compile(r"""[\w+-]{8,}""")
+#: a BARE key-shaped value: `sk-` after any non-alnum (`h/` `a.` `_` `--`), never mid-word (`task-`); a path named sk-* over-refuses.
+_BARE = re.compile(r"""(?<![A-Za-z0-9])sk-[\w./+:-]{5,}""")
 
 
 def _git(repo, *args, binary=False):
@@ -183,7 +183,7 @@ def main(argv=None):
                 ("node_deletion", lambda: _node_deletions(repo, a.old, a.new, old_g, new_g)),
                 ("broken_link", lambda: _broken_links(old_g, new_g)))}
     except Exception as exc:  # a git that cannot answer is rc 2, never a silent 0
-        print(f"reds: {exc}", file=sys.stderr); return 2
+        print(f"reds: {exc if type(exc) is RuntimeError else type(exc).__name__}", file=sys.stderr); return 2
     print(f"reds: {a.old}..{a.new} — " + ", ".join(sorted(want)))
     for cls in CLASSES:
         names = red.get(cls) or []

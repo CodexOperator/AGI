@@ -241,16 +241,25 @@ def test_f8_a_parents_id_with_no_node_is_a_broken_link(proj):
     assert _run(proj, base2).returncode == 0, _run(proj, base2).stdout
 
 
-# F9 -- a BARE key-shaped value is a RED: no `name =` in front, or glued behind `x:` `h/` `a.`.
+# F9 -- a BARE key-shaped value is a RED: no `name =` in front, or glued behind `h/` `a.` `_` `--`.
 def test_f9_a_bare_key_shaped_token_on_an_added_line_is_a_secret(proj):
-    lines = ["the value is " + KEY, "x:" + KEY, "https://h/" + KEY, "a." + KEY, "disk-usage-report-v2"]
+    lines = ["the value is " + KEY, "https://h/" + KEY, "a." + KEY, "_" + KEY, "--" + KEY, "task-usage-report-v2"]
     (proj / "notes" / "bare.txt").write_text("\n".join(lines) + "\n")
     base = _git(proj, "rev-parse", "HEAD").strip()
     _commit(proj, "a bare key-shaped value")
     r = _run(proj, base)
     assert r.returncode == 1, r.stdout + r.stderr
-    assert "RED secrets 4" in r.stdout and "bare.txt:5" not in r.stdout, r.stdout
+    assert "RED secrets 5" in r.stdout and "bare.txt:6" not in r.stdout, r.stdout
     assert KEY not in r.stdout + r.stderr
+
+
+# F14 -- rc 2 names a foreign exception by CLASS only: an OSError's path never reaches stderr.
+def test_f14_a_foreign_error_is_rc_two_by_class_name_only(proj, monkeypatch, capsys):
+    import reds
+    monkeypatch.setattr(reds, "_classes", lambda root: (_ for _ in ()).throw(OSError(13, "denied", "/abs/secret/path")))
+    assert reds.main(["check", "HEAD", "HEAD", "--root", str(proj / ".agi"), "--repo", str(proj)]) == 2
+    err = capsys.readouterr().err
+    assert "PermissionError" in err and "/abs/secret" not in err, err
 
 
 # F10 -- rc 2 is PINNED: a bad rev, and no path byte in the gate's own stderr.
