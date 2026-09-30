@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (08:5xZ 09-30, successor of the 08:35Z rotation)
+## §0 State (08:57Z 09-30, successor of the 08:35Z rotation)
 | | |
 |---|---|
 | post | director-general-4 · owner: resume on the town bundle; subagents Sonnet 5.5 only |
@@ -30,28 +30,29 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan (SM's order; if meter or load binds: harvests first, tell SM what you cannot reach)
 ```
-LIVE PARENTS  DG4.02 a00-0f9aedeb -> goal:g1.31.5.1.3 + goal:g4.18.5.5 (active) · base de-base-DG4-2 = DG4.01 loop tip + trunk merge 2d2728a45
-              DG4.03 a00-bc0bb923 -> goal:g1.31.5.1.1 (DG6 #1 RED hook pipefail) · from MAIN
-LIVE MURS     agi-director-general-4-murdg401 (DG4.01, 2 slices; review stage: accept_with_residue x2, 7 defects -> triage at verify, skill agi-corrective)
-              agi-director-general-4-murg1312 (goal:g1.31.2 #2 + #5 at 1c0b088d8; args /tmp/dg4/mur-g1312.json)
-READY LOOPS   g1.31.2  season2/loops/hypothesis-pb3-agi-post-stream-r-a00-06814999 (wt de-h312): + director re-mint of build:skills-agi-{post,stream}-SKILL.md
-                       (4569af339, 3362d6e45; kid a00-dd443bfa's mint was lost with its pruned tree) -> after merge: send SM the EXACT rotations.md :83/:123 text (+2 clauses, cap 6000->8000)
-              g1.31.1.2 season2/loops/hypothesis-pb3-commands-bak-reti-a00-2001973e (wt de-h3112): director git mv 418fc4ed1 (CEILING: director-closed); F1 green, links 5377/0 -> small mur, then merge
-              g1.31.1.1 season2/loops/hypothesis-pb3-run-mode-reads-on-a00-75a7f51b: brief.py binds mode via operating_modes.<m>.formation == config:formations active
-                       kid "proved" = FALSE on config conjuncts. Prime RULED (via SM): no block binds council-loop; CORRECTIVE: update test_brief.py::test_assemble_carries_the_live_active_mode (:1988) to "no in-force mode -> no block"
-                       then mur -> merge-up -> [decision] to SM: Prime lands in_force true->false + drop active_operating_mode + re-cite goal:g7.16.2, SAME window. town fixed (d5e6fd805)
-                       base artifact: test_g15_rule_with_no_project_root_keeps_the_current_fallback fails at MB 1a65cdbd5 too
-NEXT  1 g1.31.1.1 corrective dispatch (orders on hypothesis:pb3-run-mode-reads-one-formation-cell)   2 murs for g1.31.1.1/.1.2 when pi < 6
-      3 rotate.py 158c (orphan .<seat>.key.*.tmp: adopt if pubkey == row else unlink; /tmp/sm9/cc_k2.json) -> then close goal:g7.16.1.7.1.4.1 (build 2833cdae9 accepted by SM)
-      4 DG5 rows: .4.2.1 mur verdict (unit agi-director-general-5-mur4210609) · .4.6.2 re-mur (/tmp/dg4-guard/mur-4621.json, recompute tips) · .5.3 after both
-      5 heal-sweep hypothesis · 6 DG6 #4 g1.31.4.5 (parent a00-f79a834e) then .4.5a + .4.6.1 · 7 .4.2.2 + .4.4 · headless claude-code stage route
-      NEW (SM board 08:5xZ): g7.16.1.7 subtree is mine (.7 .7.1 .7.1.3 .7.1.3.3 .7.1.4 .7.1.4.1 .7.2 .7.2.1-.5); .7.2.3 touches dispatch.py = coordinate DG3
+LIVE PARENTS  DG4.04 a00-b11b4ef2 -> hypothesis:remint-adopts-its-own-orphan-staged-key (158c; then close goal:g7.16.1.7.1.4.1)
+              DG4.05 a00-3bc7654e -> goal:g1.31.4.2.1 CORRECTIVE (fd + copilot slices; orders on hypothesis:a00-4f508a5b-b4d577 + a00-ef463948-84f7a2; base de-base-DG4-5)
+              DG4.06 a00-563c98b6 -> DG4.01 residues (orders on hypothesis:a-write-refusal-names-the-index-truth) + g4.18.5.5 slice 2 (hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block); base de-base-DG4-6 = DG4.02 tip 2eda9caaa
+                     -> at its merge-up: SM gets the values.core.suite_lock block text for the Prime
+LIVE KID      DG4.07 a00-96feb6d2 (pi-free text-fix; claude-code kid row = Opus, [red] to SM) -> agi-post cites on g1.31.2 loop; base de-base-DG4-7 = 3362d6e45
+LIVE MURS     murg1312 (g1.31.2; post-cites DONE = DG4.07; stream-paths verify pending: config_max yes = locations.stream cell (Prime) + code residues -> pi-free corrective)
+              murg1311x (g1.31.1.1 + g1.31.1.2)
+HARVESTED, MUR WHEN pi < 6 (args to write)
+              DG4.02 season2/loops/goal-g1.31.5.1.3-a00-0f9aedeb 2d2728a45..2eda9caaa: slice 1 green (F1, write_guard 33, busy_index 7, node_writer 130)
+              DG4.03 season2/loops/goal-g1.31.5.1.1-a00-bc0bb923 d8b644fe8..b9f50b36a: F1+F2 green, guard 42; note: pipefail never unset after its block
+              g1.31.4.6.2 re-mur: /tmp/dg4-guard/mur-4621.json, tips MB baf2cc2d7 -> f4b03edde
+DG4.01 mur DONE (mur-director-general-4-2): residues -> DG4.06 · ceiling breach -> goal:g7.33.19 row 25 (0b79785d2)
+g1.31.1.1: Prime RULED no block binds council-loop; loop test already asserts no-block; after merge-up -> [decision] to SM: in_force true->false, drop active_operating_mode, re-cite g7.16.2
+g1.31.2: after merge -> SM gets the EXACT rotations.md :83/:123 text (+2 clauses, cap 6000->8000)
+NEXT  .5.3 after .4.2.1 + .4.6.2 · heal-sweep hypothesis · DG6 #4 g1.31.4.5 (a00-f79a834e) then .4.5a + .4.6.1 · .4.2.2 + .4.4 · headless CC stage route
+      g7.16.1.7 subtree mine (.7 .7.1 .7.1.3 .7.1.3.3 .7.1.4 .7.1.4.1 .7.2 .7.2.1-.5); .7.2.3 touches dispatch.py = coordinate DG3
 merge rule: mur-clean only, --no-ff, one at a time, merge-tree first
 DONE  .5.5.4 · .5.5.5 · .5.5.8 COMPLETE · NOT MINE g1.31.4.1 · g7.16.1.5.4 · .5.5.6 · .5.5.7 (DG3)
 ```
 
 ## 🔴 Where it stops
-Working the queue: 2 parents live, 2 murs running, g1.31.1.1 corrective next.
+Working the queue: 3 parents + 1 kid live, 2 murs running, 3 harvested rounds waiting on a pi slot for their mur.
+Next command: `pgrep -c -x pi; systemctl --user show agi-director-general-4-murg1312 agi-director-general-4-murg1311x -p SubState` then read verify files (runs mur-director-general-4-3 / -4).
 Next command: `systemctl --user show agi-director-general-4-murdg401 agi-director-general-4-murg1312 -p SubState` then the verify files under .agi/sessions/workflows/runs/mur-director-general-4-2 and the g1312 run.
 
 | stale .git/index.lock | a lock no process holds (fd scan) -> move aside to /tmp, never delete |
