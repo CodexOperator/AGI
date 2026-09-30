@@ -14,9 +14,6 @@ town: core
 ---
 # mvp:dg3b4-w1a-fix-thought-guard-row-name
 
-
-# mvp:dg3b4-w1a-fix-thought-guard-row-name
-
 ## What landed (6aedaa5a7)
 | claim | bytes |
 |---|---|
