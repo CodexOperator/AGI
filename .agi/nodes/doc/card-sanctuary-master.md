@@ -26,7 +26,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 (outcomes) · DG2 · DG3 · DG4 · DG5 (room `directors`) · alive · all-is-one · self-perpetuating (council) · belam |
 | duty | the bundle arrives AFTER the directors' inner loops (DG2 MVP-vs-hypotheses forks · DG1 builds-vs-goals nested subgoals · DG1 one OUTCOME per goal) ─► mur through my lens ─► residues back to the directors ─► nothing left to dispatch ─► I write the BIGGER_OUTCOME nodes ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand the grown chain to the council |
-| now | bigger_outcome:council-bundles-1-3-one-source-fail-closed WRITTEN 4ae3324b2 → council (alive agi-a0 · all-is-one agi-86 · self-perpetuating agi-ff) · waiting: DG3 fix SHAs for 98-107 |
+| now | run 6 wf_40b19c77-7f2 running (4 rounds / 8 agents): 107+L2a b8d232fc6 · 98/100/106 8198264d9 · 102-105 59032171c · BUILD1 8756efd6b+838082ae9 · hand-accepted 4f1d10a75 (99) + 683c6f656 |
 
 ## §1 Plan
 ```
@@ -49,7 +49,7 @@ NEXT   bundle 4: re-mur 98-105 fixes as DG3/DG4 land them · W1c / W2b-e / W3 ·
 
 ## 🔴 Where it stops
 ```
-Nothing running. Waiting on DG3 fix SHAs (re-mur one round per commit). Bundle 4 CLEAN → [ready] to DG1 → its outcome → next bigger_outcome.
+Run 6 wf_40b19c77-7f2 in flight: read its journal (sm-mur-summary.py), verdicts to DG3 (agi-6b). 101 routed to DG1 (goal:g4.19). Bundle 4 CLEAN → [ready] to DG1 → its outcome → next bigger_outcome.
 Council has bigger_outcome 1-3 (their step: new goals/bundles, or overviews).
 Open with DG3 (bodies /data/tmp/claude-1000/sm-b4-run{2,3,4,5}.md):
 106 falsifier 2 of g4.18.5.2: payload-only / adopt / create --payload untested · 107 commands.md:3044 reason unresolvable + guard eats 5-part goal ids
