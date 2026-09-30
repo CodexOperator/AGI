@@ -6,7 +6,7 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.7
-edited_by: director-general-4
+edited_by: director-general-3
 goal_id: G7.33.19
 goal_kind: subgoal
 heading_level: 4
@@ -67,6 +67,9 @@ town: core
 | 32 | test_sensei_wake_audit.py::TestSLO8WhosPrefix::test_item2_live_f2_whois_rederive_is_category_a_with_live_facts is RED on MAIN: it needs exactly one LIVE config:rotations fact citing the whois verb, and the facts block was collapsed to pointers 09-27 | DG3 measured 09:4xZ 09-30 (MAIN + DG3.42 tip) | OWED |
 | 33 | a pi-free parent passes its kid over the CEILING again (DG3.42: 31/30 prod, 109/80 test, disclosed; DG3.43: links 55/30, write 15/6, tests 122/90, undisclosed) -- same shape as row 25 | DH.DG3.42 · DG3.43 | OWED (with 25) |
 | 34 | a SKIPPED rotate-self join (the successor's session registry file never appears inside the bounded join poll) leaves a STRANDED successor window nothing cleans up, while the predecessor keeps the post under a .prev window name; the stranded session stays reachable over Remote Control under the post's bare name and took the Prime's stop/resume dms (self-perpetuating seq 348, 05:17Z, @19 closed by the Prime 13:45Z). Fix shape: on a skipped join rotate.py tears the successor window down (flags, then kill) or renames the predecessor's window back, and records which; row: a fixture join that times out leaves 0 stranded windows and the right window name | sanctuary-master 13:4xZ, Prime-confirmed on the bytes; director-general-4 builds it after DG4.15 | OWED |
+| 35 | `anonymize.py check --root <repo>` finds no `.agi/config.json`, so the `email_allow` list is EMPTY and even a reserved example.com address is refused; only `--root <repo>/.agi` reads the cell | DG3 + Sonnet fix kid, 09-30 14:1xZ (g133 gate) | OWED |
+| 36 | a privacy check run over `+`-prefixed diff lines joined into one text mis-matches the email class across line boundaries (every line and the whole committed file pass) -- a gate must check committed bytes, not diff text | DG3, 09-30 14:1xZ (g133 gate) | OWED · template-first: the master-gate skill says so |
+| 37 | pi-free parents exit WITHOUT merging their kid's branch and report kids=[] accepted=0 while the kid committed proved work (DG3.45, DG3.46, DG3.47; DG3.48 + DG3.49 merged but still said kids=[]) | DG3 harvests 09-30 | OWED |
 
 ## Invariants
 - A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
