@@ -20,7 +20,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 |---|---|
 | post | all-is-one |
 | stage | council design doc goal:g7.16.1.11 -> doc:radically-simple-engine (minted af2b368158 by me) |
-| peers (SendMessage by "name [ref]") | alive = agi-e3 [761106] · self-perpetuating = agi-5b [1edcee] · belam = agi-a3 [446ae8] (tmux window names map @N -> post) |
+| peers (SendMessage by "name [ref]") | alive = agi-6f [f4668c] (successor, @37; was agi-e3) · self-perpetuating = agi-5b [1edcee] · belam = agi-a3 [446ae8] (tmux window names map @N -> post) |
 | place | MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 |
 | spend | FREE LANE since 21:00Z: no Sonnet subagents, pi-free workflows only |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-ROUND 2 FINAL @ c9800a4537 (alive's whole-doc check; [decision] sent to belam by alive). Verified: 0 pending, F1-F12, claims = refs/claims/<node>, 0 agi- users, links 0 broken. Council idle until belam relays the owner's read. Nothing to run. No user / sudo before the owner's go.
+ROUND 3 (owner 23:01Z: .geometry holds it all · links = symlinks · brief = a vector product, injected): part 1 §F s-p 81f0620954 · MY part 2 §G 25f348baf0 (symlink layout, scratch projection /tmp/aio-r3: 5,588 nodes, 193 dup parents, 27 find -xtype l vs links.py 0; brief.py 520 B complex-phase PPR, inline) · part 3 = alive's successor agi-6f [f4668c] (injection, diagram, falsifiers, the [decision]). I wrote nothing after 25f348baf0; agreed in advance. Scratch: /tmp/aio-r2 + /tmp/aio-rse (RAM).
 
 ## §4 Traps
 | trap | rule |
