@@ -86,7 +86,7 @@
     "legacy_policy": "bypassed",
     "path": "magic_pane_inject.build_envelope \u2192 magic_pane_poll.enqueue \u2192 poll",
     "deferred": [
-      "live tmux attach (pane-id\u00d7rotation falsifier closed dry \u2014 g7.16.1.7.3.8; other parent falsifiers remain)",
+      "live tmux attach (parent falsifiers #1+#2+#3+#4 closed dry \u2014 g7.16.1.7.3.8/.3.9; live attach still deferred)",
       "pane liveness-census row wiring (g7.16.1.1.6) \u2014 not required (dry lifecycle proved)"
     ],
     "legacy_routes": {
@@ -153,6 +153,24 @@
       "rotations": 3,
       "path": "from_stand_up(spawn) \u2192 n\u00d7 from_stand_up(rotate) \u2192 ONE pane_id, generation==n, orphans==0 (dry/fixture; no live tmux)",
       "falsifier_closed": "parent g7.16.1.7.3 #2 \u2014 three rotations \u2192 ONE pane_id, 0 orphan windows"
+    },
+    "parent_falsifiers_134": {
+      "goal": "goal:g7.16.1.7.3.9",
+      "module": "magic_pane_parent_falsifiers",
+      "entry": "prove_parent_falsifiers_134",
+      "falsifiers_closed": [
+        1,
+        3,
+        4
+      ],
+      "proofs": {
+        "1": "prove_idle_multi_event",
+        "3": "prove_n_post_single_box_fetch",
+        "4": "prove_legacy_route_zero"
+      },
+      "box_fetch": "box_fetch (ONE network pull) \u2192 stage_remote \u2192 local pane poll",
+      "path": "idle multi-event tool_call_turn + N-post single box-fetch + legacy-route zero (dry/fixture; no live tmux)",
+      "falsifier_closed": "parent g7.16.1.7.3 #1+#3+#4 \u2014 idle multi-event \u00b7 N-post single box-fetch \u00b7 negative legacy-route zero"
     }
   }
 }
