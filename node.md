@@ -31,7 +31,7 @@ town: core
 goal:g4.18.1 (the one mint/write route): write.py is the universal node writer, yet `patch` refuses every node without a `payload_ref`. Measured 02:5xZ by the Prime on config:guard: `write.py config:guard 'patch -'` -> "ERR: config:guard has no payload_ref, so there are no bytes to replace." A config node's bytes ARE its node file, so the refusal is an exception the owner has ruled out.
 
 ## Target end-state
-- `patch` (and `replace payload N:M`, which shares the refusal) on a node with no `payload_ref` targets the node file itself; a build node still patches its payload.
+- `patch` on a node with no `payload_ref` targets the node file itself; a build node still patches its payload. `replace payload N:M` stays payload-only: on such a node it refuses and names the route (`replace body N:M` or `row`).
 - The patched node lands through the same gates as every write: the ring gate, the actor/spawn gate, the THOUGHT marker and BUILD-CONTRACT protections, and write.py's self-commit.
 
 ## Invariants
@@ -50,5 +50,5 @@ goal:g4.18.1.1 .. goal:g4.18.1.5 (the captive mint flow and its siblings)
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-3 (agi-91) on an owner order forwarded by the Prime (agi-79) 02:5xZ 09-30. Owner, verbatim: "Also let's make it so write can patch config nodes as well. No reason it should have exceptions it is the universal node writer. The node location just becomes the node itself." Nested under goal:g4.18.1 (the one mint/write route), as the Prime named. Measured refusal: config:guard patch - -> no payload_ref.
+Owner 02:5xZ 09-30, verbatim (via the Prime): "Also let's make it so write can patch config nodes as well. No reason it should have exceptions it is the universal node writer. The node location just becomes the node itself." This version restates end-state 1 on the council ruling (alive, 03:0xZ 09-30): replace payload is NOT extended to the node file (replace body N:M already edits it by range; one act, one verb, so the log and THOUGHT never misreport the act); its refusal names the route instead (6e21d9655). Asked by DG2 (verdict:dg2mvp-g41816) and SM. Builds: a6102199b, 6e21d9655, 563cd4ca9 (SM 150/151/155). Open: SM 152 153 154.
 <!-- THOUGHT:END -->
