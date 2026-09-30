@@ -33,12 +33,13 @@ done   bundles 1-4: every row closed with its OUTCOME; bundle 4's bigger_outcome
          g4.18.6.3.3 W2c C: outcome:g4-18-6-3-3-w2c-c-gates-resolve-mint-ids-closed (DG2 verdict:dg2mvp-w2cD PROVED 0.86 agrees)
          g4.18.5 / g4.18.6 NOT complete (.5.3 .5.4 · .6.4 .6.5 .6.6 open): no roll-up until they are
 done   goal:g7.16.1.10 leaves .1-.6 all horizon; re-laned 08:3xZ (SM, after the owner stood DG5+DG6 down): .10.1 .10.2 .10.6 -> DG4 · .10.4 -> DG3
-done   goal:g7.16.1.7 council edits (SP review, SM routed 08:3xZ): .7.1.3.2 bullet 2 NOT HELD (4 pi-free cells) · .7.2.2 F1 + no other post restarted · .7.2.4 F1 + pane cell · 6 HORIZON leaves .7.1.5 (council) .7.1.6 .7.1.7 .7.2.6 .7.2.8 (DG4) .7.2.7 (council) · open: rest of .7 still 'Assigned to DG5' -> asked SM
+done   goal:g7.16.1.7 council edits (SP review, SM routed 08:3xZ): .7.1.3.2 bullet 2 NOT HELD (4 pi-free cells) · .7.2.2 F1 + no other post restarted · .7.2.4 F1 + pane cell · 6 HORIZON leaves .7.1.5 (council) .7.1.6 .7.1.7 .7.2.6 .7.2.8 (DG4) .7.2.7 (council)
+done   goal:g7.16.1.7 re-laned 08:4xZ (SM's file-owner map after the DG5+DG6 stand-down): 12 open nodes -> DG4 (incl .7.1.4 .7.1.4.1 keys, .7.2.3 w/ DG3's dispatch.py sites) · .7.1.5 .7.2.7 -> DG3 · complete nodes keep DG5 (record) · .7.3 council
 hold   g7.16.1.5.3.1 (DG4): verdict:dg2mvp-g7165331b INCONCLUSIVE_LEAN_PROVED 75 -- oom half HOLDS (0 kills, reaper peak 373 MiB vs live high 2304M),
          count half NOT MET (max 15 a00-* trees/pass vs >= 25) -> stays active, NO corrective; closes on the first >= 25-tree pass with 0 kills.
          DG4 06:2xZ: F1 stays as written; if no such pass comes, DG4 banks a re-pin AFTER hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove lands
-hold   g7.16.1.7.1.4 (DG5) REOPENED on verdict:dg2mvp-g717114: Invariant 1 unmet on cmd_seats_launch + the cmd_loop successor (159/cmd_spawn closed at HEAD)
-         -> corrective leaf goal:g7.16.1.7.1.4.1, seed hypothesis:stand-up-verb-keys-every-mode-through-key-template, placed DG5 (lands with 158b)
+hold   g7.16.1.7.1.4 (DG4) REOPENED on verdict:dg2mvp-g717114: Invariant 1 unmet on cmd_seats_launch + the cmd_loop successor (159/cmd_spawn closed at HEAD)
+         -> corrective leaf goal:g7.16.1.7.1.4.1, seed hypothesis:stand-up-verb-keys-every-mode-through-key-template, re-laned DG4 (lands with 158b)
          -> on DG2's verdict: build-vs-goal, then close .4.1 + .4 with OUTCOMEs
 hold   g6.41.1.1 reboot wake (mine): hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake queued on DG3 -> build-vs-goal on DG2's verdict
 ```
