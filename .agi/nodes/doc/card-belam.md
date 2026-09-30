@@ -58,7 +58,7 @@ R   RESUME: ListAgents -> SendMessage each council post + SM + DG1-5 "resume" (S
 G   g7.16.1.5 FIRST (owner 01:5xZ): decompose A (round worktrees on RAM, auto-removed after harvest) + C (archive-then-prune
     the 1015 worktrees; my prune tool <home>/wt-prune/prune.py, 7/881 done) into leaves, dispatch; + old loose transcripts
     inside ~/.claude/projects/-data-work-agi (sweep moves dirs only)
-B3  TIP PINNED 578650193 · chunks 1-11 done · 12 was live at the reboot (retry it if its verdicts are MISSING) · 13-20 left
+B3  TIP PINNED 578650193 · chunks 1-12 done (12 exited 01:53Z 4/4) · 13-20 left
     relaunch: echo 2 > <home>/passB3/cap.cc ; START=13 systemd-run --user --unit=agi-pb3-launch-cc --slice=agi-work.slice
     --working-directory=/data/work/agi --collect --setenv=START=13 bash <home>/passB3/launch-cc.sh ; Monitor monitor.sh
     retries ONE AT A TIME: retry-cc.sh ; verdicts.py ; then step 5 per section 2 (verify ON THE RAM DISK: worktree at
