@@ -729,6 +729,11 @@ status() {
     for s in agi.slice agi-engine.slice agi-work.slice; do
       [ -f "$UGUARD/$s" ] && ok "$s  MemoryMax=$(fmt "$(prop umgr show -p MemoryMax --value "$s")") TasksMax=$(prop umgr show -p TasksMax --value "$s")" || bad "$s missing"
     done
+    # goal:g7.16.1.5.5.1: the RAM disk's own line, written only when a RAM disk is mounted
+    if [ -f "$UGUARD/ramdisk.slice" ]; then
+      ok "ramdisk.slice  MemoryMax=$(fmt "$(prop umgr show -p MemoryMax --value ramdisk.slice)") (the RAM disk's own line)"
+    elif [ "${RAM_BUDGET_M:-0}" -gt 0 ]; then bad "ramdisk.slice missing (RAM disk at $RAM_DIR)"
+    else say "  ramdisk.slice  not installed (no RAM disk at $RAM_DIR)"; fi
     while read -r u; do
       [ -n "$u" ] || continue
       slice=$(prop umgr show -p Slice --value "$u"); cg=$(prop umgr show -p ControlGroup --value "$u")
@@ -807,7 +812,7 @@ uninstall() {
            /etc/sysctl.d/90-sanctuary-guard.conf /etc/modules-load.d/sanctuary-guard.conf \
            /etc/modprobe.d/sanctuary-guard.conf /etc/sanctuary-guard/health.env \
            /usr/local/sbin/sanctuary-health \
-           "$UGUARD/agi.slice" "$UGUARD/agi-engine.slice" "$UGUARD/agi-work.slice" \
+           "$UGUARD/agi.slice" "$UGUARD/agi-engine.slice" "$UGUARD/agi-work.slice" "$UGUARD/ramdisk.slice" \
            "$UGUARD/agi-.service.d/50-sanctuary-guard.conf" "$UGUARD/agi-agi-.service.d/50-sanctuary-guard.conf" \
            "$UGUARD/app.slice.d/50-sanctuary-guard.conf" "$UGUARD/-.slice.d/50-sanctuary-guard.conf" \
            "$UGUARD/claude-remote-control.service.d/50-sanctuary-guard.conf" \

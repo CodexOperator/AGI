@@ -732,13 +732,12 @@ def ram_write_argv(argv: list[str]) -> list[str]:
     bulk write into the RAM disk. A tmpfs page stays charged to the cgroup
     that first wrote it and moves to that cgroup's PARENT when the writer
     exits, so pages written here park on the RAM disk's own line, never on
-    the engine or work slice. Waits and pipes stdio: the exit code and the
-    output are argv's. No `systemd-run` on PATH -> `argv` unchanged."""
-    import shutil
-    if shutil.which("systemd-run") is None:
-        return list(argv)
-    return ["systemd-run", "--user", f"--slice={RAM_SLICE}", "--wait",
-            "--collect", "--quiet", "--pipe", "--", *argv]
+    the engine or work slice. Built by THE one scope-argv builder
+    (mem_cap.scope_argv, goal:g7.16.1.7.1.1): a scope is synchronous and keeps
+    stdio, so the exit code and the output are argv's. No usable systemd-run
+    -> `argv` unchanged."""
+    import mem_cap  # local: mem_cap may read locations
+    return list(mem_cap.scope_argv(list(argv), RAM_SLICE))
 
 
 def streamer_stub(root: Path, config: dict | None = None) -> Path:
