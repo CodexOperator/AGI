@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: c4e170f85a7a3da8
 season: 2
 seeds: []
-status: complete
+status: active
 tags:
   - formation
   - council-loop
@@ -45,7 +45,3 @@ goal:g7.16.1.3.2.1 · goal:g7.16.1.3.2.2
 
 ## Agent Notes
 Assigned to **director-general-1**.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. 0 open rows in the body.
-<!-- THOUGHT:END -->
