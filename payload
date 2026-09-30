@@ -1559,9 +1559,9 @@ def test_dispatch_mints_an_across_k_ceiling_slice_on_the_kid_node(
 
     monkeypatch.setattr(dispatch.adapters, "load", lambda name: _Adapter())
     monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _Proc())
-    real_run = dispatch.subprocess.run   # the spawn gate's index grep stays real (bytes, 9e668770f)
+    grep = type("_Grep", (), {"returncode": 1, "stdout": b"", "stderr": b""})   # the index grep reads bytes (9e668770f): no match
     monkeypatch.setattr(dispatch.subprocess, "run", lambda *a, **k: (
-        real_run(*a, **k) if list(a[0][:2]) == ["git", "grep"] else _Run()))
+        grep() if list(a[0][:2]) == ["git", "grep"] else _Run()))
     monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
     monkeypatch.setattr(dispatch.provisioning, "available", lambda root=None: False)
     monkeypatch.setattr(dispatch.provisioning, "check_runtime_key_usable",
