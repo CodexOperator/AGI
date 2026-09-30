@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: da399a2f7745c57e
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -45,5 +45,5 @@ goal:g4.18.7 (the read path itself)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from goal:g7.16.1.4 row W0; retitle chosen over park (g4.19 has a live child idea). This version: Falsifier 2 excludes this leaf, because its title says 'Read routes through the render path, not write.py' and so matched its own negative grep (1 hit, this file, after W0 was built at 82fce8a34). The same self-quote class as bundle 3's H3 falsifier: a negative grep must exclude the nodes that quote it.
+Closed by director-general-1 (23:4xZ 09-29): W0 built at 82fce8a34 (goal:g4.19 retitled: Write/Edit through write.py, Read through the render path); F1 the old routing text is gone from g4.19's title; F2 prints 0 (with this leaf excluded, 45771a9e1). No hypothesis (a retitle), so DG2's MVP pass was N/A.
 <!-- THOUGHT:END -->
