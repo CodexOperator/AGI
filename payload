@@ -1177,14 +1177,18 @@ def _sweep_resolve_base(root: Path, base: str) -> str:
     return base
 
 
-def _git(args: list[str], cwd: Path) -> tuple[list[str], int]:
+def _git(args: list[str], cwd: Path,
+         err: list | None = None) -> tuple[list[str], int]:
     """`git <args>` run in `cwd`, returning (stdout lines, returncode).
-    Best-effort: a broken git yields (empty, nonzero), never raises."""
+    Best-effort: a broken git yields (empty, nonzero), never raises. A
+    caller that wants the reason passes `err=[]`: stderr is appended to it."""
     try:
         out = subprocess.run(["git", "-C", str(cwd), *args],
                              capture_output=True, text=True)
     except (OSError, subprocess.SubprocessError):
         return [], 1
+    if err is not None:
+        err.append((out.stderr or "").strip())
     return (out.stdout or "").splitlines(), out.returncode
 
 
@@ -1660,6 +1664,9 @@ def _sweep_reclaim(max_mib: int) -> int:
         return 0
 
 
+SWEEP_ARCHIVE_SAME = "unchanged"  # _sweep_archive: the refs already hold this state
+
+
 def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
                    dirty: bool, force_paths: tuple = ()) -> str | None:
     """goal:g7.16.1.5.3 -- pin a worktree before it is removed, so no byte is
@@ -1668,14 +1675,21 @@ def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
     worktree's own index and HEAD are never touched) is committed onto
     `<name>-dirty`, plus `force_paths` (gitignored session dirs that never
     came home, `git add -f`). Both refs are verified before this returns None;
-    any failure returns the reason and the caller removes nothing."""
+    any failure returns the reason and the caller removes nothing. A tree the
+    refs ALREADY record byte-for-byte (HEAD ref == head, and the dirty ref's
+    tree == a fresh write-tree of the worktree -- content, not status, so a
+    new byte in an already-modified file differs) writes nothing and returns
+    SWEEP_ARCHIVE_SAME: a tree that cannot be removed is not re-archived."""
     dirty = dirty or bool(force_paths)
     ref = SWEEP_ARCHIVE_NS + name
     want = []
+    same_head = bool(head) and _git(["rev-parse", "--verify", "-q", ref],
+                                    main_checkout)[0][:1] == [head]
     if head:
-        _, rc = _git(["update-ref", ref, head], main_checkout)
-        if rc != 0:
-            return "update-ref failed"
+        if not same_head:
+            _, rc = _git(["update-ref", ref, head], main_checkout)
+            if rc != 0:
+                return "update-ref failed"
         want.append((ref, head))
     if dirty:
         fd, idx = tempfile.mkstemp(prefix="agi-sweep-idx-")
@@ -1697,6 +1711,9 @@ def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
             tree = run("write-tree")
             if tree.returncode or not tree.stdout.strip():
                 return "dirty write-tree failed"
+            if same_head and _git(["rev-parse", "--verify", "-q", ref + "-dirty^{tree}"],
+                                  main_checkout)[0][:1] == [tree.stdout.strip()]:
+                return SWEEP_ARCHIVE_SAME
             cm = run("commit-tree", tree.stdout.strip(), *(["-p", head] if head else []),
                      "-m", f"archive: dirty state of worktree {name}")
             if cm.returncode or not cm.stdout.strip():
@@ -1714,7 +1731,7 @@ def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
         got, rc = _git(["rev-parse", "--verify", "-q", r], main_checkout)
         if rc != 0 or not got or got[0] != sha:
             return f"archive ref {r} did not verify"
-    return None
+    return SWEEP_ARCHIVE_SAME if same_head and not dirty else None
 
 
 def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
@@ -1939,15 +1956,16 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         elif needs_archive:
             reason = _sweep_archive(main_checkout, wt, agent_id, head,
                                     bool(status_lines), not_home_paths)
-            if reason:
+            if reason and reason != SWEEP_ARCHIVE_SAME:
                 refused += 1
                 _watch_log(f"[sweep] refused {agent_id}: archive failed "
                            f"({reason})")
                 continue
-            archived += 1
-            _watch_log(f"[sweep] archived {agent_id} ({why}) ref="
-                       f"{SWEEP_ARCHIVE_NS}{agent_id}"
-                       f"{' +dirty' if status_lines or not_home_paths else ''}")
+            if not reason:  # (SAME = refs already hold this exact state)
+                archived += 1
+                _watch_log(f"[sweep] archived {agent_id} ({why}) ref="
+                           f"{SWEEP_ARCHIVE_NS}{agent_id}"
+                           f"{' +dirty' if status_lines or not_home_paths else ''}")
             # goal:g7.16.1.5.3.1: an archive hashes a whole tree (session dirs
             # up to ~0.5 GiB) inside OUR cgroup -- give it back right away;
             # the 03:32 / 03:37 / 03:43Z reaper oom-kills fell in archive bursts
@@ -1964,14 +1982,16 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         # no uncommitted byte is removed before its archive ref exists).
         # a RAM worktree (goal:g7.16.1.5.4) is removed at its REAL path, then
         # its symlink under .agi/worktrees is unlinked
+        rm_err: list = []
         _, rm_rc = _git(["worktree", "remove", *(["--force"] if needs_archive
                                                  else []), str(wt.resolve())],
-                        main_checkout)
+                        main_checkout, rm_err)
         if rm_rc == 0 and wt.is_symlink():
             wt.unlink()
         if rm_rc != 0:
             refused += 1
-            _watch_log(f"[sweep] refused {agent_id}: remove failed")
+            _watch_log(f"[sweep] refused {agent_id}: remove failed"
+                       f" ({' '.join((rm_err or [''])[0].split())[:200] or 'no git reason'})")
             continue
         _git(["worktree", "prune"], main_checkout)
         _watch_log(f"[sweep] removed {agent_id} "
