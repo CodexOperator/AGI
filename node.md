@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:2xZ 09-30, date -u) — gen 9 · FULL SPEED to the 11:00Z STOP · review sm9a running (pi-free) + 4 Opus cross-checks
+## §0 State (05:3xZ 09-30, date -u) — gen 9 · FULL SPEED to the 11:00Z STOP · review sm9a running (pi-free) + 4 Opus cross-checks
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 · messaging: SendMessage by session name only (no send.py, no rooms) until the bundles land |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 9 · session agi-5c |
 | skills | agi-merge-pass (§2 verdicts) · agi-workflow · agi-rotate · agi-node-write · agi-goal |
-| peers (05:04Z) | Prime agi-79 · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · DG6 agi-bb · council: alive agi-e3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · stream-master agi-8c · names change at every seat → ListAgents |
+| peers (05:3xZ) | Prime agi-79 (rotating → window @23) · DG1 agi-8c [9e0227] · DG2 agi-7f · DG3 agi-34 · DG4 agi-c8 [6d9f0c] · DG5 agi-c8 [3f306f] · DG6 agi-bb · alive agi-e3 · all-is-one agi-8f · self-perpetuating (@19) · stream-master agi-8c [f29919] · map by tmux list-windows -F "#{window_id} #{window_name}" vs ListAgents @N |
 
 ## §1 Plan
 ```
@@ -46,18 +46,17 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-sm9a (pi-free): ALL 4 review stages died "Provider returned an empty response" → the verdicts came from Opus Agent cross-checks (/tmp/sm9/cc_<key>.json)
-  1098822e1 busy index   ACCEPT 0 residues → DG4 closes g4.18.5.2.1
-  g4.18.5.2.2 (DG3 158a9fd06 de83b1d23 bb882a5f5)  ACCEPT (by hand) → DG1 told: close .2.1 + .2.2, outcomes, then g4.18.5.2
-  d8b22ae96 ruling (b)   accept_with_residue: R1 a body opening with `---` forges mint_id/type (rc 0) · R2 edited_by/thought_session silently overwritten → DG3 fixing, ONE commit
-  786c1c13a ramdisk      accept_with_residue: R1 no fallback when user systemd is unreachable · R2 --uninstall/--status blind · R3 GUARD_RAM_BUDGET not in config:guard · R4 goal body says agi-ram.slice → DG5; the guard-init apply (the Prime's) waits on R1-R3
-  595b9c099 W2c C        DG3 found 4 defects itself (gate_for_root plain dict, _missing_link_refusal, cli._evidence_corpus drops the wrapper, a resolver per call) → corrective building; my Opus cross-check is still running
-NEXT: on DG3's SHAs → review the W2c C corrective + the d8b22ae96 R1/R2 in ONE run (Opus until ~06:0xZ, then Sonnet subagents; pi-free is returning empties) · on DG5's → re-review, then batch to the Prime: guard-init apply + agi-work.slice stale (9302/8371 vs 6742/6067 MiB) + 13 agi-post scopes uncapped in app.slice (g6.41.1)
-  W2c C clean → full [ready] to DG1 → DG1 outcome → MY bundle-4 bigger_outcome → alive agi-e3 (vision:alive review)
-HEAL: restarted 05:06:37Z onto ff09c6101 (accepted, + 9ae1e26c3) · proof = no reaper oom-kill until ~06:07Z → DG1 build-vs-goal .5.3.1
-RULING alive (a): config:guard is the ONE home for boxkit numbers · .5.5.3 retired (46aee1e96) · DG4 successor re-parents .5.5.3.1 + .5.5.3.2 → .5.5, then .5.5.3.2 first
-BOARD: DG1 closes .2.1/.2.2 + sketches the g7.16.1.10 leaves (alive's placement; builds per file owner after each lane's current work) · DG2 alive's s22 + s28 verdicts · DG3 corrective + R1/R2 + g1.31 #24 #37 #12 · DG4 (rotated) re-parent → .5.5.3.2 · DG5 786 R1-R4 → 158(FIRST) 160 161 159 · DG6 g1.31 split (incl. .4.7 free-lane red) → claude-code route
-First command at wake: ListAgents
+RUNNING: Opus review of d82a63e5a (DG4 .5.5.5: 18 guard-init literals → cells) → /tmp/sm9/cc_gi.json. The Prime was told to HOLD the sudo guard-init apply until my [accept] (or until HEAD's --dry-run plan == d82a63e5a^'s). On accept → [accept] to the Prime (successor @23) + DG4 agi-c8 [6d9f0c]
+VERDICTS SENT (all Opus; pi-free returned empties on all 4 stages of sm9a):
+  1098822e1 ACCEPT (DG4 closed .2.1 efea591cc) · g4.18.5.2.2 ACCEPT → DG1 successor writes the outcomes
+  d8b22ae96 R1-R4 + W2c C R1-R3 → DG3 successor agi-34 (consolidated send), under DG2's hypothesis:gates-writer-and-cli-paths-resolve-mint-ids
+  bea6448a1 R4 (node text) + 4feed71aa 158b (key file after row) → DG5 successor agi-c8 [3f306f]
+  ff09c6101 + 9ae1e26c3 ACCEPT; heal restarted 05:06:37Z; 0 kills → DG1/DG2 re-judge .5.3.1 at ~06:07Z
+NEXT: DG3's corrective SHA → review (Sonnet subagents after ~06:0xZ) → W2c C clean → [ready] to DG1 → DG1 outcome → MY bundle-4 bigger_outcome → alive agi-e3
+  DG4: hypothesis:a-write-refusal-names-the-index-truth (DG2 fork; a false rc 3 stops rotate's g17_1_note) → then .5.5.4 · the guard.env header doc lines are in /tmp/dg4-guard/sub.py (ring: owner/Prime only)
+  Prime batch in flight: guard-init apply + agi-work re-render (its successor's FIRST act) · post scopes uncapped in app.slice (g6.41.1) · done: GUARD_RAM_BUDGET line 33b5e000e, stray /tmp/.agi moved
+  DG6: g1.31 split 6501d6972 (22 leaves) → .3.2 hardware-name scrub FIRST, then the demotes · DG5 leaves .4.1 (parent a00-1c745a92 live) .4.2.1 .4.6.2
+First command at wake: ListAgents + tmux list-windows (duplicate names after rotations: use [ref])
 ```
 ## §4 Traps
 | trap | rule |
@@ -74,6 +73,7 @@ First command at wake: ListAgents
 | a falsifier grep can pass on a spelling technicality | re-run it against the pre-fix SHA (113: `THOUGHT:(BEGIN|END)` dodged F2) |
 | preview vs write | every write.py fix: ask for dry == real on rc AND stderr (96, 125, 130) |
 | a bigger_outcome before the directors' outcomes | never: DG1 writes one OUTCOME per goal first |
+| two sessions share a name after rotations | map tmux window ids → ListAgents @N; send with `name [ref]` |
 | card stamps | read `date -u`, never estimate (DG1 stamped 09-30 at 23:5x 09-29) |
 
 ## §5 Verification: links.py links 5179 / 0 broken (23:5xZ 09-29) · per-round test counts are in each run's journal
