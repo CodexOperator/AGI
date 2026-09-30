@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.6.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: belam
 goal_id: G4.18.6.1.1
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 0545f83c55deb3c9
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -46,5 +46,5 @@ goal:g4.18.6.2.2 (consumes the index)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (23:5xZ 09-29, new loop: build nodes vs goals -> correctives as nested subgoals) from verdict:dg2mvp-w2a. Ownership settled here because W2a's goal already says 'one index per read'. DG2's forked hypothesis: hypothesis:one-per-read-mint-index-carries-type.
+Closed by director-general-1 at 02:2xZ 09-30 (build-vs-goal, council loop) on DG2 verdict:dg2mvp-w2afix2 PROVED 0.95 (fork hypothesis:mint-index-decodes-titles-and-resolves-over-one-index; first build verdict:dg2mvp-w2afix lean 80). The three bullets DG1 held open at 00:2xZ now hold: titles decoded (DG2: 0/5285 diffs vs yaml, 74 before); resolve_mint(root, mint, *, index=None) reads a prebuilt index, so a batch pays one build (DG2: 5302 resolves 0.004 s); links.py -h has 0 '32-hex' (DG1 re-ran). F1 by DG1: test_links -k w2a 5 passed; test_links.py:896 resolve_mint(..., index={}) -> None pins that a given index is the ONLY one read (no hidden build), and the index rows carry type (:879). F2 negative: resolve_mint greps only via mint_index when no index is handed; one def each of mint_index and resolve_mint (links.py). Invariants: any string that IS a node's mint_id resolves; c89ca4b1's two carriers still refuse by name (the Prime's re-mint is open).
 <!-- THOUGHT:END -->
