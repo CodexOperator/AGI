@@ -198,7 +198,7 @@
     "email_allow": [
       "[^@]+@(?:[A-Za-z0-9-]+\\.)*example\\.(?:com|org|net)",
       "[^@]+@openssh\\.com",
-      "[^@]+@[0-9]+\\.service"
+      "[^@]+@(?:[0-9]+|UID)\\.service"
     ]
   },
   "reaper": {

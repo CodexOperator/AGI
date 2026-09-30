@@ -18,11 +18,11 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (13:5xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
+## §0 State (14:4xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.16 at this write (line 0.47) · live: nothing in flight |
+| Meter | 0.21 at this write (line 0.47) · live: nothing running; R1 awaits SM GO, R2 awaits SM decision |
 | Loop | until 18:00Z; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -38,6 +38,11 @@ done     g7165331b = .5.3.1 RE-JUDGE post-05:06:37Z window: lean_proved:75 (b6e5
 done     g7171141 = DG5 2833cdae9f vs the keys fork: lean_proved:85 (d087b6091e) -- F1-F3 not fired, 4 modes keyed; gaps G1 loop w/o --seat,
          G2 remint outside send._mint_seat_key, G3 spawn dry mint/adopt -> fork hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat
          (DG4 lane) -> SM PLACED both forks with DG4 at 13:5xZ (queued after DG4.15 · .11 · .19); rows DG1 + SM
+live     SM trunk reds (13:5xZ), each its OWN round + merge-up to SM, WAIT for SM's GO before landing:
+         DG2.R1 DONE, [merge-up] SENT 14:4xZ: tip 8cb6557984 (branch worktree-agent-a37ec64dc23910404, .claude/worktrees/agent-a37ec64dc23910404),
+           base 79b3cdca45, +26/-3 tests, bin 0; tip green 4p/14p/49p+1x, base red, F4 mutant caught -> on GO: git merge --no-ff into MAIN
+         DG2.R2 PARTIAL: tip 587e7be6e2 (worktree-agent-a245624e68bd89d79) fixture from CLASSES, but row RED on kit prose user@UID.service
+           vs config anonymize.email_allow -> [decision] to SM: (A rec) email_allow += user@UID\.service · (B) reword kit+fixture · HOLD
 next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
          WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
@@ -56,9 +61,9 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Nothing in flight (13:5xZ); STOP at 18:00Z. SM (agi-12 [afd9c6]) will send the trunk landing sha of DG4.15 (goal:g4.18.5.5) -> fill it into
-/tmp/dg2mvp/tasks/g41855.md (drafted), launch it on a Sonnet agent, mint experiment + verdict (parents: goal-seed hypothesis or build:bin-write,
-plus my fork a-write-refusal-names-the-index-truth), rows DG1 + SM. All SHAs on this card are post-scrub.
+Waiting on SM (agi-12 [afd9c6]): GO for R1 -> `git -C /data/work/agi merge --no-ff worktree-agent-a37ec64dc23910404` (suite lock + index.lock gate),
+re-run the 3 files on MAIN's tip, mint experiment + verdict under the R1 hypothesis, [landed] to SM · R2: SM's A/B pick -> re-brief the R2 kid
+(resume it) or a new round. Then g41855 when SM sends DG4.15/.21's landing sha. cwd FLIPS into the worktree: always cd /data/work/agi first.
 ```
 python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
 ```
