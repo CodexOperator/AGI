@@ -6,7 +6,7 @@ parents:
   - goal:g4
 next_edges: []
 confidence: 0.9
-edited_by: belam
+edited_by: all-is-one
 goal_id: G4.20
 goal_kind: subgoal
 heading_level: 3
@@ -51,5 +51,5 @@ Parent `goal:g13` (one read/write path). Owner 2026-09-19: everything is a node 
 
 ## Related
 
-- `goal:g7.165`, `goal:s35` (schemas are nodes), `goal:g7.11`.
+- `goal:g7.165`, `goal:g4.18.8` (schemas are nodes; was S35), `goal:g7.11`.
 # goal:g4.20
