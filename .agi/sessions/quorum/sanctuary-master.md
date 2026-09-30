@@ -17,53 +17,45 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:1xZ 09-30) — gen 7 ROTATING at meter 0.41; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
+## §0 State (04:44Z 09-30, date -u) — gen 8 · COUNCIL STOP (04:00Z order, fired) → IDLE · nothing running
 | | |
 |---|---|
-| post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
-| protocol | doc:council-loop "The loop" · goal:g7.16.1 |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 7 · meter 0.41 at 01:18Z (rotated) |
-| skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
-| peers | sessions 00:4xZ: DG1 agi-0c · DG2 agi-dc · DG3 agi-77 (gen 6) · DG4 agi-47 · DG5 agi-ec · alive agi-a0 · all-is-one agi-86 · self-perpetuating agi-ff · belam agi-9c (config:posts rows = truth; re-read before a send) |
-| duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | nothing running · bundle 4 open: 131 132 (DG3 gen 6 agi-77) · 128 engine (DG4 agi-47) · waiting on fix SHAs |
+| post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
+| usage | owner 04:5xZ 09-30, verbatim (via the Prime; SUPERSEDES 03:2xZ): "Let's switch your reviews and stuff to sonnet 5.5, and all subagents can be sonnet 5.5 as well to free up the free lane" → Agent subagents model sonnet · claude-code stages --model claude-sonnet-5-5 · workflow.py runs stay pi-free until its headless claude-code stage route lands · NEVER Opus/Fable fan-outs, forks or the Claude Workflow tool |
+| protocol | doc:council-loop "The loop" · goal:g7.16.1 · messaging: SendMessage by session name only (no send.py, no rooms) until the bundles land |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.44 |
+| skills | agi-merge-pass (§2 verdicts) · agi-workflow · agi-rotate · agi-node-write · agi-goal |
+| peers (04:44Z) | Prime belam agi-79 · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · council: alive agi-b3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · stream-master agi-8c · windows renumber: tmux list-windows -t agi-rc → ListAgents |
 
 ## §1 Plan
 ```
-done   bundles 1-3 CLEAN → DG1 outcomes → bigger_outcome:council-bundles-1-3-one-source-fail-closed (4ae3324b2) → council
-       v2 08fc9e701: council false green 128 (home gate misses /data/<user>) → row + Judgment corrected, confidence 0.8 → 0.65
-done   bundle 4 re-mur runs 5-14 (below) · spawn-gate bypass found (SM probe run 10) + closed eeccfbaa1
-NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
-       128 lands → restore bigger_outcome 1-3's home row + confidence (write.py sub + thought + set confidence)
-       bundle 4 CLEAN → [ready] to DG1 (agi-0c) → its outcome(s) → next bigger_outcome (bundle 4, lens vision:sanctuary) → council
-       .6 / .7 bundles (DG3 machinery · DG4 callers · DG5 spawn) as delivered; g7.16.1.6 review carries 108's requirement
+done   bundles 1-3 → bigger_outcome 1-3 v3 (1111fed58; 128 closed; conf 0.75 → 0.8 when skills/agi-stream :18 :21 are scrubbed by stream-master)
+done   bundle 4 write.py chain 129-149 CLOSED · W2c B (g4.18.6.3.2) CLOSED · 128 engine CLOSED · grid fork · W-G
+done   DG1 outcomes: g4.18.5.1 · g4.18.6.1 · g4.18.6.2 · g4.18.6.3.2 · g7.16.1.4.1
+NEXT   after the STOP lifts: re-run on pi-free (1) W2c C 595b9c099 = bundle 4 LAST (2) DG4 busy index 1098822e1
+       W2c C clean → full [ready] to DG1 → DG1 outcome(s) (+ g4.18.5.2 after .2.1/.2.2) → MY bundle-4 bigger_outcome → council
 ```
 
-## §2 Landed (bundle 4, all CC opus, 0 agent errors)
-- run 5 wf_884739ac-f61: closed 91 92 96 97 · opened 106 107
-- run 6 wf_40b19c77-7f2: closed 98 99 100 102 103 104 106 107 + L2a(a) · opened 108-111
-- run 7 wf_7c3c15ad-a10: W1a corrective → 112-115 (113 = SM lens over the refuter: a closed goal's end-state regressed behind a green falsifier)
-- run 8 wf_35fe675a-d5b: L2a(b) → 116 (closed by hand 481ecfde6) · 393992bbf hand-accepted
-- run 9 wf_e2af26ea-3a7: closed 109 111 112 113 · opened 117 118 120 121 (+119)
-- run 10 wf_a494f517-453: W2b.1 → 122 + the create --set parents probe
-- run 11 wf_2ec2e1c6-d2c: W2b.2 → 119 closed · 123 124
-- run 12 wf_928ddd3b-1f1: closed N2 N3 117 121 120a · opened 125 126 127
-- run 13 wf_35753f5e-852: closed 118 122 + the spawn-gate bypass · opened 129
-- run 15 wf_b5c775ea-e89: closed 129 130 (ONE judge, structural) + W2c A 27c454526 + 4a96d8bd0 · opened 131 132
-- run 14 wf_4c7e5e27-052: closed 123 124 125 126 127 · opened 130
-- by hand: 99 105 108 (ruling 29f5fdbfb, rc 0 kept → commit_node contract in g7.16.1.6) 114 116 101 (g4.19 horizon) · 113 falsifier (68611cef9) · g7.16.1.4.1 F1(files)+F2 clean
-- 120c RULED by DG3 (grep index reads lines; YAML validity = schema/verify) — accepted
+## §2 Landed this gen (CC opus runs 16-28 + by hand; details in each run's journal)
+- runs 16-24: 131-147 opened/closed (THOUGHT marker ONE _HEAD/_END; stdin once; payload one pre-dry judge by VERB; dry == real)
+- run 23: 128 engine b0bc1699f accept · run 26: DG4 cold homing 5a257979b (156 → 21a579ba1 by hand) · heal restarted 03:26:37Z, falsifier PASSED (5 homed, shmem +0M)
+- run 27: DG5 keys 4abfee9d3 → 157-161 (DG5) · Prime writing key_template (cond 5 default = ruling)
+- run 25/28: g4.18.1.6 (DG3) → 150-155; 150 151 155 MET in 563cd4ca9 → 162 163 (DG3, introduced by the move)
+- by hand: 141 · 137 · 148+149 f0768720f · 6e21d9655 · grid 6ec1f046c · g7.16.1.4.1.2 · c3c118b3c (write.py HEAD red: DG4's 1098822e1 swept DG3's canonicalize; fixed)
 
 ## 🔴 Where it stops
 ```
-Rotated at meter 0.41 after run 15; nothing running. Bundle 4 open: 131 132 with DG3 gen 6 (agi-77), 128 engine with DG4 (agi-47).
-131 _THOUGHT_RE's \s* crosses a newline (node_writer.py:1006): a \n-split marker re-opens the 129 shapes → [ \t]* or one constant
-132 `body_patch -` stdin read after the dry branch (write.py:3804-3819; submit skips '-' at :2445): preview rc 0, write rc 2
-note to probe: empty-stdin `replace body N:M -` dry run may read stdin twice (write.py:2286 vs :3805; refuter did not uphold)
-128 HOME_PATH_RE /home|/Users only (anonymize.py:19); outcome rows fixed by DG1; belam scrubs doc:card-belam + town:local-maxxing
-open elsewhere: _marker_bad_line → DG2 one-definition fork · model-store path literals = ONE findings row (alive ruling; room directors)
-First command at wake: python3 extensions/agi/bin/send.py --from sanctuary-master read sanctuary-master
-Summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl · round args: Workflow name agi-merge-up-review, args {project_root, model opus, effort high, rounds[]}
+RESUMED 04:58Z by the Prime, owner 04:5xZ verbatim: "Continue hammering at it as fast as you can until 7am. Maybe allow another director to come up if system can handle it." → FULL SPEED until the 11:00Z STOP (cron armed). Subagents Sonnet 5.5 · workflow.py on pi-free. A NEW director-general-6 is being stood up: its FIRST work = goal:g1.31 PASS B3 residues (AGREED with the council 05:0xZ; all-is-one sends the brief; lane rule: write.py/node_writer.py rows → DG3, rotate/heal/spawn rows → DG5, the rest DG6 by file cluster, 47 upheld then 147 missed); SECOND = the workflow.py headless claude-code stage route (or the first freed director). Check it is seated (ListAgents / tmux list-windows).
+RUN NOW on pi-free (workflow.py run agi-merge-up-review --harness pi-free, skill agi-workflow), then d8b22ae96 + 786c1c13a (queue below); both died on the Claude usage limit, no verdict:
+  b4-W2cC            595b9c099  (DG3, g4.18.6.3.3, bundle 4 LAST) -- ResolvingDict/Set semantics for consumers; is_node_id_shaped + mint → false links? links broken stays 0
+  g41852-1-busy-index 1098822e1 (DG4, g4.18.5.2.1) -- which git errors count as busy; rc 3 callers; commit by exact path; the swept canonicalize hunks are DG3's
+  round text: journals ~/.claude/projects/-data-work-agi/fe79b389-fa84-465b-9b05-fcfbf61bfa19/workflows/wf_f5dd7397-e6b.json + wf_9af85780-af6.json (args.rounds)
+REVIEW QUEUE +: d8b22ae96 (DG3: council (b) on 154 = opt-in canonicalize re-render + 152 153 162 163 + a body-only node patch was refused; one commit) → then DG3 closes g4.18.1.6 on residue 0 → g4.18.5.2.2 · 786c1c13a (DG5 .5.5.1 ramdisk.slice; probe: 64 MiB went to ramdisk.slice, engine shmem unchanged) → on accept route guard-init (sudo) to the Prime · 157 8596508d0 (verify: keygen pin green on committed bytes)
+OPEN RESIDUES: DG3 none pending review · DG5 158(FIRST: remint key before row) 160 161 159 (157 fixed 8596508d0) · DG4 .5.5.3 (from DG5)
+ROTATION: rotate.py refused (MAIN .geometry behind origin/season2/main by 1) → asked the Prime to sync (never merge by hand) → re-run `rotate.py rotate` once synced
+BOARD: DG1 (05:0xZ) jobs: (1) g4.18.5.2.1 goal falsifiers in parallel (2) build-vs-goal on .5.3.1 + .5.3.2 with the restart numbers · waits W2c C + g4.18.5.2 · DG2 checks: keys g7.16.1.7.1.4 → W2c C → g4.18.1.6 re-check → .2.1/.2.2 · DG3 162 163 152 153 (154 ruling) → g4.18.5.2.2 · DG4 session-sweep file-mtime leaf + a .5.5 leaf from DG5 · DG5 .5.5 (urgent) + 157-161
+CARRY TO THE DIRECTORS AT WAKE (Prime 04:5xZ): the next loop's FIRST engine item = workflow.py gains a headless claude-code stage route (pi stage argv → claude -p --model --effort; the Prime's passB3 ccrun.py proves the seam) so reviews leave the free lane · re-run W2c C + busy index on Sonnet once it lands, pi-free before
+First command at wake: ListAgents (session names change at every seat); summaries: python3 /data/tmp/claude-1000/sm-mur-summary.py <journal.jsonl>
 ```
 ## §4 Traps
 | trap | rule |
