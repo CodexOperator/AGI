@@ -141,6 +141,8 @@ def _load_graph(root: Path):
     # These are fields like `next_edges` that are ``role: lineage`` and
     # ``traversable: true`` but are not the primary ``parents`` field.
     import yaml
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.2: next_edges through the one resolver)
+    r = links.address_resolver(root)
     extra_forward: dict[str, list[str]] = {}
     other_fields = traversable - FALLBACK_TRAVERSABLE_FIELDS
     if other_fields:
@@ -162,9 +164,9 @@ def _load_graph(root: Path):
                 if isinstance(raw, list):
                     for v in raw:
                         if isinstance(v, str) and v.strip():
-                            vals.append(v.strip())
+                            vals.append(r(v.strip()) or v.strip())
                 elif isinstance(raw, str) and raw.strip():
-                    vals.append(raw.strip())
+                    vals.append(r(raw.strip()) or raw.strip())
             if vals:
                 extra_forward[nid] = vals
 
@@ -765,6 +767,8 @@ def goal_attribution(nodes_dir: Path) -> dict:
     # when walking UP from B.
     extra_ascendants: dict[str, list[str]] = {}
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.2: ids through the one resolver)
+    r = links.address_resolver(nodes_dir.parent)
     for _nf, fm in _iter_frontmatter(nodes_dir):
         nid = fm.get("id")
         if not isinstance(nid, str) or not nid.strip():
@@ -772,7 +776,7 @@ def goal_attribution(nodes_dir: Path) -> dict:
         nid = nid.strip()
         types[nid] = str(fm.get("type") or "")
         raw = fm.get("parents")
-        parents[nid] = [p.strip() for p in raw if isinstance(p, str) and p.strip()] \
+        parents[nid] = [r(p.strip()) or p.strip() for p in raw if isinstance(p, str) and p.strip()] \
             if isinstance(raw, (list, tuple)) else []
         # Additional traversable fields: build inverse relationships for
         # forward-pointing edges so the upward walk can reach the source node.
@@ -783,7 +787,7 @@ def goal_attribution(nodes_dir: Path) -> dict:
             if isinstance(raw_other, list):
                 for v in raw_other:
                     if isinstance(v, str) and v.strip():
-                        tid = v.strip()
+                        tid = r(v.strip()) or v.strip()
                         extra_ascendants.setdefault(tid, []).append(nid)
         st = fm.get("status")
         # Same predicate as `deprecated_node_ids`, over an iteration this
