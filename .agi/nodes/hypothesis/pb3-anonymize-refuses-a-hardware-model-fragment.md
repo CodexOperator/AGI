@@ -120,6 +120,17 @@ FILE SCOPE extensions/agi/bin/anonymize.py · extensions/agi/bin/rotation_record
 CEILING   HARD CAP for THIS round (cut..tip): 1 kid · production NET <= +8 lines · tests <= 60 added · comments count · pi-free tier-0 · 0 USD -- over it = the round is cut
 PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 
+## CORRECTIVE DH.DG3.52 -- closes mur-season2-loops-hypothesis-pb3-anonymize-refuses-a00-eb7f5f57 dg6-04e (review accept_with_residue; verify timed out at 3600 s, review defects stand)
+BASE      CUT FROM season2/loops/hypothesis-pb3-anonymize-refuses-a00-07ef8482 tip 0d1bd9264b (worktree under the RAM-disk cell). No merge. Never rebase.
+1. the no-CWD row falsifies on its own -- extensions/agi/tests/test_rotation_record_home.py, the row that chdirs elsewhere -- rotation_record._CELL_ROOT is cleared BEFORE the chdir assert, so a cwd-derived _cell_root fails the row regardless of test order; prove it: temporarily make _cell_root read the CWD, run the row alone AND after the preceding row, paste both RED outputs, restore, paste GREEN.
+2. a project-less caller reads NO cell, pinned -- the same test file -- ONE row: monkeypatch locations.find_project_root to return None (never _cell_root), clear rotation_record._CELL_ROOT, assert rotation_record._cell_root() is None and anonymize.scan over a synthetic user-rooted tmp path with root=None carries no user hit.
+3. the email_allow gap never stops the kit loop -- extensions/agi/tests/test_boxkit_templates.py, the every-class row's email-only skip inside the kit-bytes loop -- an email-only hit is COLLECTED and the loop continues over every template; any non-email hit still fails; the row skips ONCE at the end naming the collected template names only (never an address); a row proves a later template's non-email hit fails while an earlier email-only hit exists.
+4. evidence at YOUR final tip, pasted, + a labelled numstat 0d1bd9264b..<tip before the paste commit>: python3 -m pytest extensions/agi/tests/test_rotation_record_home.py extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_rotation_record.py -q --basetemp /tmp/dh352
+ANON      no user name, home or repo path value, host, IP, email address or hardware model/board/CPU name or fragment in ANY output, node, test, commit or dm -- patterns write <user>
+FILE SCOPE extensions/agi/tests/test_rotation_record_home.py · extensions/agi/tests/test_boxkit_templates.py · the kid's own experiment node. Production files: NONE. .agi/config.json NEVER.
+CEILING   HARD CAP: 1 kid · 0 production lines · 40 test lines added · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.DG3.47: mur dg6-04d (verify timed out, review stands): @file fallback one bare line only, rotation_record resolves its own project never CWD, root once per record, no cell value as a test literal, symmetry equality; node-prose residues closed by the director on the loop tip
 <!-- THOUGHT:END -->
