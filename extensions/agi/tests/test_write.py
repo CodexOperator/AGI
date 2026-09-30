@@ -2618,6 +2618,36 @@ def test_sm133_a_block_row_ends_where_the_thought_block_ends():
         row = next(r for r in node_writer.body_rows(body) if r[0] == start)
         assert "\n".join(body.split("\n")[row[0] - 1:row[1]]) == block, fake
 
+# SM 138: ONE closer tail (node_writer._END) for _THOUGHT_RE, THOUGHT_MARKER_LINE_RE and
+# body_rows -- a near-closer is no marker, ends no row and closes no block
+_SM138_FAKES = ("<!-- THOUGHT:END trailing -->", "<!-- THOUGHT:END.", "<!-- THOUGHT:END-x -->",
+                "<!-- THOUGHT:END-- -->", "<!-- THOUGHT:END\n-->")
+
+def test_sm138_every_reader_ends_a_thought_on_one_closer():
+    beg = THOUGHT.split("\n")[0]
+    for fake in _SM138_FAKES:
+        body = f"# h\n\n{beg}\nx\n{fake}\ny\n<!-- THOUGHT:END -->\n\ntail"
+        block = node_writer.thought_blocks(body)[0]
+        assert block.endswith("y\n<!-- THOUGHT:END -->"), fake
+        start = body.split("\n").index(beg) + 1
+        row = next(r for r in node_writer.body_rows(body) if r[0] == start)
+        assert "\n".join(body.split("\n")[row[0] - 1:row[1]]) == block, fake
+        assert not node_writer.THOUGHT_MARKER_LINE_RE.match(fake.split("\n")[0]), fake
+    for real in ("<!-- THOUGHT:END-->", "<!--\tTHOUGHT:END \t-->", "<!-- THOUGHT:END --> after"):
+        body = f"{beg}\nx\n{real}\ny"
+        assert node_writer.thought_blocks(body) and node_writer.body_rows(body)[0] == (1, 3), real
+        assert node_writer.THOUGHT_MARKER_LINE_RE.match(real), real
+    assert (BIN / "node_writer.py").read_text(encoding="utf-8").count("END[ \\t]*-->") == 1
+
+def test_sm138_row_verb_counts_a_near_closer_inside_the_thought(project, tmp_path):
+    node, _ = _w1c_node(project)
+    node.write_text(node.read_text().replace(
+        "the old reason\n", "the old reason\n<!-- THOUGHT:END trailing -->\ny\n"))
+    body = write._read_body_text(project, "hypothesis:h1")
+    (tmp_path / "r.txt").write_text("## Later\n")
+    assert write.main(["hypothesis:h1", f"row 8 {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    assert write._read_body_text(project, "hypothesis:h1") == body.replace("## After", "## Later")
+
 def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp_path):
     node, body = _w1c_node(project)
     (tmp_path / "r.txt").write_text("| write.py | 9 |\n")
