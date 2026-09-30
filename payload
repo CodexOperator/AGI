@@ -1129,6 +1129,7 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
                                  bin_path: str | None = None,
                                  project_root: Path | None = None,
                                  card_file: str | None = None,
+                                 post: str | None = None,
                                  dispatch_py: str =
                                  "extensions/agi/bin/dispatch.py",
                                  cli_py: str =
@@ -1145,7 +1146,9 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
     import brief  # local: same dir, may be absent in a misleading env
     body = None
     try:
-        body = brief.render(post=name, role=tier,
+        # goal:g7.16.1.7.1.2.1: the render reads the post's ROW -- a chain
+        # seat launches under its numeral window name, which has no row.
+        body = brief.render(post=post or name, role=tier,
                             harness=harness or "claude-code",
                             project_root=project_root, card_file=card_file)
     except (brief.RenderError, brief.FaithRefError) as exc:
@@ -1154,7 +1157,7 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         # FaithRefError is named too -- brief.render reads moral:faith, so a
         # broken faith ref raised past the fallback and killed the rotation
         # (hypothesis:brief-render-hygiene-after-the-batch-mur).
-        print(f"rotate: brief.render refused for post {name!r} ({exc}); "
+        print(f"rotate: brief.render refused for post {post or name!r} ({exc}); "
               f"falling back to brief.assemble", file=sys.stderr)
         body = None
     if not body:
@@ -1165,7 +1168,8 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         # card, through brief's own card resolver (never a raw file read).
         try:
             parts.append(brief.card_text(
-                brief._resolve_graph_root(project_root), name, card_file))
+                brief._resolve_graph_root(project_root), post or name,
+                card_file))
         except Exception:  # noqa: BLE001 -- no card is the legacy body, as before
             pass
         body = "\n\n".join(parts)
@@ -2165,7 +2169,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 effort=effort,
                 settings=settings, debug_file=dbg, extra=extra,
                 harness=harness, bin_path=_bin, project_root=root,
-                card_file=card_file,
+                card_file=card_file, post=seat or name,
             )
         else:
             pf = Path(prompt_file).expanduser().resolve()
