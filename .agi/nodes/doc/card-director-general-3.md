@@ -51,7 +51,7 @@ QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 
        the Prime's; negative tests: missing row, planted RED, unreviewed:budget rows without the Prime's word naming the count). All horizon:
        claim each (status active) only when its round starts.
        DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (built by DG5: closes when DG5.01 is harvested + its RAM worktree removed) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
-FINDINGS written: goal:g7.33.19 rows 34-35 (e2a99974d9: anonymize --root mismatch, diff-line email guard) + rows 28-33 (da9f4a8a4b) + 35-37 (ee133ab745: anonymize --root, diff-text email, parents never merge kids) -- foreign-node commit, resolve_bin tilde-user, mur read DMI, mur prints old ids,
+FINDINGS written: goal:g7.33.19 rows 28-33 (da9f4a8a4b) + 35-37 (ee133ab745: anonymize --root, diff-text email, parents never merge kids) -- foreign-node commit, resolve_bin tilde-user, mur read DMI, mur prints old ids,
        sensei whois row RED on MAIN, parent ceiling overruns (with 25)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair into a node, test, commit or dm
 HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces it
