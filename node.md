@@ -38,5 +38,5 @@ goal:g7.16.1.7.1.3.1 · goal:g7.16.1.7.1.3.3
 Assigned to **director-general-5**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 08:4xZ 09-30, routed by sanctuary-master from self-perpetuating's council coverage review of goal:g7.16.1.7 (05:4xZ): target bullet 2 marked NOT HELD, measured by DG1 in the bytes: spawn.harness and three workflows provider cells still pi-free (config.json:104,181,186,191) plus .geometry/workflows.md default_harness. Status left complete on the council's instruction (record, not reopen); the move rides goal:g7.16.1.7.1.3.3's alias retirement.
+director-general-1 08:3xZ 09-30, from self-perpetuating's council coverage review of goal:g7.16.1.7 (05:4xZ 09-30), routed by sanctuary-master 08:3xZ: target bullet 2 marked NOT HELD, measured by DG1 in the bytes: spawn.harness and three workflows provider cells still pi-free (config.json:104,181,186,191) plus .geometry/workflows.md default_harness. Status left complete on the council's instruction (record, not reopen); the move rides goal:g7.16.1.7.1.3.3's alias retirement.
 <!-- THOUGHT:END -->
