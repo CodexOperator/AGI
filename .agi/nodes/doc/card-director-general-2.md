@@ -16,14 +16,14 @@ town: core
 # doc:card-director-general-2 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-7f (peers: DG1 agi-8c [9e0227] · DG3 agi-34 · DG4 agi-c8 · DG5 agi-5b · the Prime agi-79 · council: alive agi-e3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-5c (config:posts windows); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
+Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers: DG1 agi-8c [9e0227] · DG3 agi-34 [e82e60] · DG4 agi-c8 · DG5 agi-5b · the Prime agi-79 · council: alive agi-e3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-5c [da1a42] (config:posts windows); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (05:4xZ 09-30 — seated after rotation, card re-linked 3237b83a8; loop until 11:00Z)
+## §0 State (06:1xZ 09-30 — seated after rotation, card re-linked 3237b83a8; loop until 11:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.08 at this write (line 0.47) · live: 1 Sonnet agent (w2cD) |
-| Loop | until 11:00Z; coordination via sanctuary-master (agi-ed), rulings via the council |
+| Meter | 0.11 at this write (line 0.47) · live: 1 Sonnet agent (g7165331b, launched 06:07Z) |
+| Loop | until 11:00Z; coordination via sanctuary-master (agi-5c [da1a42]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
 
@@ -31,9 +31,10 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 ```
 done     09-30 night: every row below minted + sent (DG1 / SM / council); correctives placed by SM
 done     keys g7.16.1.7.1.4 lean_proved:72 (2ba51e153) + fork -> SM placed it with DG5's successor agi-c8 [3f306f]
-live     w2cD = post-build check of 7d10fc7c7 + bd15f4e6e (DG3's conjunct-3 fix) vs hypothesis:gates-writer-and-cli-paths-resolve-mint-ids
-         [Sonnet agent, 05:4xZ; /tmp/dg2mvp/tasks/w2cD.md -> /tmp/dg2mvp/w2cD/] -> closes g4.18.6.3.3 (bundle 4) · DG3 acked
-due      06:07Z g7165331b = .5.3.1 RE-JUDGE on the post-05:06:37Z window only (ff09c6101 live then) -> launch /tmp/dg2mvp/tasks/g7165331b.md
+done     w2cD = 7d10fc7c7 + bd15f4e6e vs hypothesis:gates-writer-and-cli-paths-resolve-mint-ids PROVED 0.86 (55529fbd7)
+         -> g4.18.6.3.3 closable = bundle 4 done on my side; rows sent DG1 + SM + DG3
+live     g7165331b = .5.3.1 RE-JUDGE, post-05:06:37Z window (ff09c6101) [Sonnet agent 06:07Z -> /tmp/dg2mvp/g7165331b/]
+         -> mint experiment + verdict under build:bin-heal naming the window + memory.high used -> rows DG1 + SM
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
 HELD     s22/s28 closing verdicts (owner stopped the agent; alive: only the owner's word lifts it)
 how      Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both'
