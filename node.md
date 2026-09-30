@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (17:0xZ 09-30; STOP at 18:00Z; owner 16:4xZ rule via SM: kids claude-code Sonnet 5.5, or Sonnet 5.5 subagents / direct work, knock the bundles out by 18:00Z)
+## §0 State (17:4xZ 09-30; STOP at 18:00Z per belam)
 | | |
 |---|---|
 | post | director-general-4 · owner: resume on the town bundle; subagents Sonnet 5.5 only |
@@ -28,37 +28,25 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | skills | agi-goal · agi-node-write · agi-dispatch · agi-corrective · agi-verify · agi-send · agi-rotate · agi-workflow · agi-master-gate |
 | regions | write.py `_commit_write` · rotate.py WHOLLY + heal.py key path (from DG5) · DG6's rows below · rest of write.py = DG3 · dispatch.py / RAM writers = DG3 |
 
-## §1 Plan (SM's order; if meter or load binds: harvests first, tell SM what you cannot reach)
+## §1 Plan (SM's order; owner 16:4xZ: Sonnet 5.5 subagents / claude-code kids allowed; STOP 18:00Z)
 ```
-LIVE KID      none of mine · DG4.20 HARVESTED 0f0e5905cf (comment-only, 113 passed 8 skipped) -> mur queued murq10 (/tmp/dg4/mur-dg420.json); its RAM tree removed, records in .agi/sessions/harvest-20260930/
-DG4.15 = SM's FIRST (g4.18.5.5, tip 6575a88d7, green): mur-director-general-4-9 verify accept_with_residue (4 confirmed + missed: rotation_alert.py _suite_lock_held literal, skills prose, name shape)
-   -> CORRECTIVE DG4.21: orders ON the hypothesis node (section CORRECTIVE DH.DG4.21) + /tmp/dg4/orders-DG4.21.md, base de-base-DG4-21 = 6575a88d7
-      HARVESTED 17:0xZ: kid a00-dabc8f99 wrote the tree, its commit died on an index.lock 15:08Z (moved aside, no holder), parent a00-3ed24d3e stalled ~100 min -> scope stopped; director committed 5349885273 on the loop branch. 317 passed 8 skipped 2 xfailed; ceiling 25 exceeded (+78/-25) disclosed.
-      REVIEW DONE 17:1xZ (Sonnet): stacked DG4.06+15+21 accept_with_residue, 3 MAJOR -> M1 rotation_alert unguarded import + hold reader + vacuous legs = DG4.22 (Sonnet subagent, .agi/worktrees/dg4-dg422 from 5349885273); M2 flaky test_three_concurrent_writers:73 + M3 _pre_dirty rc128=dirty + write.py stale text = folded into DG4.11. Merge-up = DG4.11 tip + DG4.22 merged, re-reviewed.
-      cd .agi/worktrees/de-base-DG4-21 && python3 extensions/agi/bin/dispatch.py . DG4.21 --target hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block --orders /tmp/dg4/orders-DG4.21.md --from director-general-4 --level small --tier parent --role parent --ladder-tier 0 --branch --detach --allow-stale-base "town post; corrective from DG4.15 tip"
-   -> then re-mur, [merge-up] to SM (agi-12) + the values.core.suite_lock block text for the Prime
-MUR CHAIN (each /tmp/dg4/qrunN.sh waits on the previous unit): murq2 dg410 DONE -> murq3 dg406 -> murq4 dg412 -> murq5 dg413 + 4621 -> murq6 dg414 -> murq7 dg417 -> murq8 dg418 -> murq9 dg419 -> murq10 dg420
-   run dirs .agi/sessions/workflows/runs/mur-director-general-4-N (newest = highest N; -11 = murq3 dg406, at verify 14:1xZ)
-HARVESTED tips (all green on their touched family):
-  DG4.19 10780f70e (row 34 stranded window; new test 2, hook neighbourhood 162; 22/20 prod) -> review murq9
-  DG4.06 a8b9e67e0 · DG4.12 589c6dafd · DG4.13 ...engine-root-one-r-a00-925ffcca · DG4.14 e51efb790 (dispatch.py +22 = DG3's file) · DG4.17 7c1da7497 · DG4.18 8097dec13
-  DG4.10 d8f0b9ee0 (mur done: pure-text residues -> DG4.20)
-QUEUED (SM order, drain AFTER: DG4.21 + the DG4.15 merge-up; then in this order)
-  g75213 ae7290b7f2 review accept_with_residue (3 MAJOR: symlink escape in sweep, revert rm over a live bind, bind_in skips missing DISK dir) -> corrective by the same Sonnet subagent, same tree .agi/worktrees/dg4-g75213. Cell lines for the Prime: GUARD_RAM_BINDS / GUARD_SWEEP_AGENT_WT / GUARD_SWEEP_AGENT_WT_IDLE_MIN.
-  g73319 2b68fbc07e ACCEPT (Sonnet review) -> [merge-up] to SM 17:1xZ delivered, AWAITING SM GO (.agi/worktrees/dg4-g73319)
-  DG4.11 RUNNING via Sonnet subagent in .agi/worktrees/dg4-dg411 (from 5349885273) + review M2/M3/text; then director closes hypothesis:a00-1b70098e-011986 stale demote_reason/demoted_from ON that branch
-  SM-1 hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (.5.3; DG2 b6e56296a5) -> on land the Prime restarts heal; .5.3.1 closes on a >= 25-tree pass, 0 kills
-  SM-2 hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat (.7.1.4.1 lane; DG2 d087b6091e): G1 · G2 · G3 · prod <= 40, tests <= 60
-OWED TO SM AT MERGE-UPS  g4.18.5.5: values.core.suite_lock block · g1.31.1.1: [decision] Prime config lines (in_force, active_operating_mode, g7.16.2 cite)
-  g1.31.2: rotations.md :83/:123 clauses + cap 6000->8000, locations.stream cell · g1.31.4.5b: retire engine_commit · C2 copilot goal leaf to mint
-LANDED 9f124d68f g1.31.1.2 · RULE: [merge-up] to SM FIRST, land on SM's GO (merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only)
-FINDINGS goal:g7.33.19 rows 25 · 26 · 27 · 34 (stranded window)
-DONE  .5.5.4 · .5.5.5 · .5.5.8 · g1.31.1.2 · NOT MINE g1.31.4.1 · g7.16.1.5.4 · .5.5.6 · .5.5.7 (DG3)
+DELIVERED, AWAITING SM GO (land: merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only)
+  g73319 tip 2b68fbc07e (.agi/worktrees/dg4-g73319) ACCEPT -- trunk red test_g15 fallback fixed, test-only
+  g75213 tip 4336e659e4 (.agi/worktrees/dg4-g75213) 3 review passes, all MAJOR closed -- PRIME ACTIONS in the merge-up line (3 config:guard cells + the live .claude/worktrees bind)
+STACK (NOT yet delivered): DG4.06 + DG4.15 + DG4.21 + DG4.11 + DG4.22 on branch season2/loops/dg411-launder-residues-dg4 (.agi/worktrees/dg4-dg411)
+  5349885273 DG4.21 (orphaned kid harvested) · aed1766f51 DG4.11 · dca05676f4 merge DG4.22 (6f48522331) · stacked tip 458 passed 8 skipped 5 xfailed
+  reviews: stacked accept_with_residue -> MAJORs closed by DG4.11 + DG4.22 (re-review cites); DG4.11 re-review: item 4 FAILED OPEN (my order) -> DG4.11b (retry diff once, then fail closed) sent 17:4xZ to the Sonnet subagent
+  NEXT: verify DG4.11b (write_guard + busy_index), one diff-only re-review of it, then ONE [merge-up] to SM: range 5f8af4dd4..<tip>, config_max = values.core.suite_lock {"file":"verify-suite.lock","write_commit_wait_s":30,"hold":"live-foreign-pid"} for the Prime
+  open prose item: hypothesis:a00-1b70098e-011986 stale demote_reason/demoted_from beside verdict proved (no documented write.py unset verb -- ask SM or use replace on the frontmatter lines)
+PI MUR CHAIN (older harvests, still running): q6 dg414 -> q7 dg417 -> q8 dg418 -> q9 dg419 -> q10 dg420; run dirs .agi/sessions/workflows/runs/mur-director-general-4-N
+  HARVESTED awaiting those reviews: DG4.12 589c6dafd · DG4.13 · DG4.14 e51efb790 · DG4.17 7c1da7497 · DG4.18 8097dec13 · DG4.19 10780f70e · DG4.20 0f0e5905cf
+QUEUED after the stack: SM-1 hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove · SM-2 hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat
+FINDINGS goal:g7.33.19 rows 25 26 27 34 + (to add) a test coupled to live graph lineage (g73319) · a kid commit dying on index.lock stalls its parent silently (DG4.21)
 ```
 
 ## 🔴 Where it stops
-Waiting on: Sonnet subagents DG4.11 · DG4.22 · g75213-corrective; SM GO for g73319. Then: verify each, re-review, merge DG4.22 into DG4.11, [merge-up] stacked + g75213. STOP 18:00Z.
-Next command: `python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-4-*' --no-pager; python3 extensions/agi/bin/send.py read director-general-4`
+Stack delivery waits on DG4.11b; g73319 + g75213 wait on SM's GO. STOP at 18:00Z (belam).
+Next command: `git -C /data/work/agi/.agi/worktrees/dg4-dg411 log --oneline -3; python3 extensions/agi/bin/send.py read director-general-4`
 
 ## §4 Traps
 | trap | rule |
