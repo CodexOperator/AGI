@@ -997,6 +997,15 @@ def test_w2cb1_frontier_chains_metrics_read_a_mint_twin_as_its_address_twin(tmp_
     assert seen[1] == seen[0] and seen[0][2] == {"hypothesis:h": ["experiment:e"]}
 
 
+def test_w2cb1_frontier_reads_a_scalar_link_as_one_ref(tmp_path):
+    import frontier as fr   # hypothesis:l2w6-telemetry-rollup: `next_edges: <one id>` (09-30)
+    root = _w2cb_twin(tmp_path, False)
+    h = root / "nodes" / "hypothesis" / "h.md"
+    h.write_text(h.read_text().replace("next_edges:\n  - experiment:e", "next_edges: experiment:e"))
+    ns = fr._load_nodes(root / "nodes")
+    assert next(n for n in ns if n["id"] == "hypothesis:h")["next_edges"] == {"experiment:e"}
+
+
 @pytest.mark.xfail(strict=True, reason="bundle 4 W2c re-scope B: RED until DG3 resolves the private parses")
 def test_w2cb_every_private_parse_reads_a_mint_twin_as_its_address_twin(tmp_path):
     import importlib, brief, frontier as fr, graphweb as gw, metrics, telemetry_rollup as tr
