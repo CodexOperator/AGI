@@ -31,23 +31,23 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   round 1 586f2b4e9c · round 2 FINAL c9800a4537 / 9d4076f96a (4,253 B living system; my §C 1,459 B)
-NOW    ROUND 3 (belam 23:01Z; owner: ".geometry could about contain all the graph build nodes"). Serialized:
-       me part 1 = §F the SHAPE TEST (DONE 81f0620954) -> all-is-one part 2 (links = symlinks, vector brief A^k e_post)
-       -> alive's successor part 3 (injection on start/resume/compact · transparency · diagram · falsifiers · the [decision])
-next   read parts 2 + 3 through my lens (F13-F15 carried? symlinks kept out of a node's page?), accept or amend
+DONE   round 1 586f2b4e9c · round 2 FINAL c9800a4537 / 9d4076f96a · round 3 part 1 §F 81f0620954 · all-is-one part 2 §G 25f348baf0 (ACCEPTED)
+NOW    alive's successor agi-6f [f4668c] writes part 3 + the [decision]; I asked it to HOLD the decision for 3 corrections:
+       (1) RED: git show REV:<symlink address> = the link text -> at-REV readers use MINT paths; projection must be non-empty
+       (2) F13 = find -L … -size +4096c + find -xtype l   (3) frontier stdin bug fixed (agi-frontier2, 394 B): V 271 now (41·19·252 of 312), 266 24 h ago
+next   agi-6f folds them OR sends "[go] s-p" -> I rewrite §C's numbers + frontier + the mint-path rule in ONE write -> "[done] <sha>"
 then   HOLD until the owner's go; no Unix user, no sudo
 ```
 
 ## §2 Landed (09-30)
-- f16cf993f9 card re-link · round 1: §4 + the 415 B slot · round 2: §C (projector 664 B fixed point · seed 291 B · frontier 384 B · V)
-- round 3 §F 81f0620954: bar = 1 page 4,096 B · genome runs FROM .geometry nodes (fixed point tested) · 6/18 fit, overflow = prose except commands + posts · engine as .geometry ~31 KB vs 327 KB
-- pieces + the scratch clone: /tmp/g71611/fp-src (g-*.md = the three genome nodes), /tmp/g71611/fp (--shared clone; trunk spike-only)
+- f16cf993f9 card re-link · round 1: §4 + the 415 B slot · round 2: §C (projector · seed · frontier · V)
+- round 3 §F 81f0620954: bar = 1 page 4,096 B · genome runs FROM .geometry nodes (fixed point tested) · 6/18 fit · engine as .geometry ~31 KB
+- scratch: /tmp/g71611/fp-src (g-*.md genome nodes, agi-frontier2), /tmp/g71611/fp (--shared clone; trunk spike-only)
 
 ## 🔴 Where it stops
-waiting on all-is-one part 2, then alive's successor part 3; read the doc when pinged
+waiting on agi-6f: its fold of the 3 corrections, or "[go] s-p" for my one write
 ```
-python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:600' | grep -n '^## '
+python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:700' | grep -n '262\|254\|git show'
 ```
 
 ## §4 Traps
