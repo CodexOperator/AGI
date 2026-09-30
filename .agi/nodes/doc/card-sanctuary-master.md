@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:02Z 09-30, date -u) — gen 9 · STOPPED (Prime [rule] STOP: owner run ends 11:00Z) → IDLE · nothing running
+## §0 State (13:4xZ 09-30, date -u) — gen 9 → 10 · RUN until 18:00Z (owner "continue now until 2pm EST") · rotating at the line
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
@@ -46,16 +46,18 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-STOPPED 11:02Z on the Prime's STOP (owner 04:58Z "until 7am" = 11:00Z). Nothing running. Resume only on a Prime/owner "[rule] resume".
-BOARD (the town's open state, for resume):
-  BUNDLE 4 bigger_outcome council-bundle-4-one-gate-one-commit-ids-never-move v3 (10876e2b25) OPEN 0.8 → the last condition (4a) goal:g4.18.5.5 = DG4.15 (parent a00-f7261183, hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block; dropped twice by shared parents, now its own round) → its merge-up comes to me FIRST + values.core.suite_lock text → Prime → then ONE update to 0.9 + tell alive
-  GO GIVEN, not yet confirmed landed: dg6-03 (goal:g1.31.3.2 half b) tip 25d4145b95 → verify it is an ancestor of HEAD at resume
-  AWAITING MERGE-UPS (GO before landing, both directors told): DG3 dg6-04 (DG3.42 a00-07ef8482, hw-model class) · DG4.01/.06 residues (a8b9e67e0) · DG4.07-.10 (reviews running) · DG4.12 158c residues · DG4.13 engine resolver · DG4.14 g1.31.4.2.1 2nd pass · DG4.08 stream paths · DG4.09 g1.31.1.1 (+ the Prime's config.json 2 lines)
-  DG3 agi-b4 queue: dg6-04 → resolve_old_sha leaf (map LOCAL-ONLY, never printed; cell paths.local-maxxing.scrub_commit_map) → path-literal WARN → 46 g1.31 node-answer rows → .5.5.6 .5.5.7 → .10.4 → render .7.1.5 .7.2.7 · findings rows (kid cannot commit a foreign node · resolve_bin tilde cell)
-  DG4 agi-1c queue: DG4.15 → DG4.11 → heal-sweep fork (then the Prime restarts heal; .5.3.1 re-judge on a >= 25-tree pass) → g1.31.5.3 → g4.18.5.6 → .4.5a .4.6.1 → .4.2.2 → .4.4 + the workflow.py claude-code route · .7 (12) · .10.1 .10.2 .10.6
-  CONFIG to relay to the Prime: g1.31.2 skills entry (after DG4's 2 build nodes; byte_cap 6000→8000) · proposal paths.core.workflow_runs_root (DG3 dg6-01)
-ACCEPTED this gen (post-scrub shas): 30175ea7e9 · be11671cb · 6894c783f3 · 8a9656b2b4 · 4e1560b754 · 4633e4d076 · merges 9f124d68f · 6872946485 · 9ef733cd55
-RESUMED 12:4xZ until 18:00Z (owner "continue now until 2pm EST"). SP DOUBLE SEAT, re-ruling ASKED of the Prime 12:5xZ: the bytes say KEEP @2 (config:posts row true · session 824fea59 · transcript live 13:04Z, 79 meter lines · agi-53 did all SP work), NOT @19 (claude pid 2078668 has no ~/.claude/sessions registry file and no transcript; 348 record result skipped, "registry file for @19 not found ... join poll"). My rec: rename @2 back · close @19 (no row, no flags) · rotate.py finding for DG4: a skipped join strands a successor window. Act ONLY on the Prime's re-rule. · then:ListAgents + tmux list-windows · pre-08:0xZ shas: the local commit-map (never print it)
+Rotated at the line (0.46) mid-run; the run goes to 18:00Z, when the Prime sends STOP. Nothing of mine is running.
+DONE since resume 12:4xZ: SP double seat solved on the bytes (keep @2; the Prime closed @19 and renamed @2 back at 13:45Z; the row was already true) · rotate.py finding "a skipped join strands a successor window (+ it stays reachable over Remote Control)" → DG4 agi-1c [c38ba9]
+BOARD:
+  BUNDLE 4 bigger_outcome council-bundle-4-one-gate-one-commit-ids-never-move v3 (10876e2b25) OPEN 0.8 → last condition (4a) goal:g4.18.5.5 = DG4.15 (a00-f7261183) → its merge-up comes to you FIRST + values.core.suite_lock text → Prime → ONE update → 0.9 + tell alive agi-e3 [761106]
+  VERIFY: dg6-03 GO given at tip 25d4145b95 (goal:g1.31.3.2 half b) → is it an ancestor of HEAD? then half (a) dg6-04 merge-up → GO
+  MERGE-UPS AWAITING GO (both directors told: send, WAIT for GO): DG3 dg6-04 · DG4.01/.06 residues (a8b9e67e0) · DG4.07-.10 · DG4.12 158c · DG4.13 engine resolver · DG4.14 g1.31.4.2.1 · DG4.08 stream paths · DG4.09 g1.31.1.1 (+ the Prime's config.json 2 lines)
+  GATE (per skill agi-master-gate): merge-base vs live HEAD · merge-tree --write-tree rc 0 · git diff --diff-filter=D -M = 0 · 0 range files dirty in MAIN → [GO]
+  DG3 agi-b4 [a470d3]: dg6-04 → resolve_old_sha (map LOCAL-ONLY, never printed/tracked; cell paths.local-maxxing.scrub_commit_map, the Prime lands it) → path-literal WARN on new writes → 46 g1.31 node-answer rows → .5.5.6 .5.5.7 → .10.4 → render .7.1.5 .7.2.7 · findings rows (kid cannot commit a foreign node · resolve_bin tilde cell · reviewers NEVER read /sys/class/dmi)
+  DG4 agi-1c [c38ba9]: DG4.15 → DG4.11 → the skipped-join finding → heal-sweep fork (then the Prime restarts heal; .5.3.1 closes on a >= 25-tree pass with 0 kills) → g1.31.5.3 → g4.18.5.6 → .4.5a .4.6.1 → .4.2.2 → .4.4 + the workflow.py claude-code route · .7 (12 nodes) · .10.1 .10.2 .10.6
+  RELAY TO THE PRIME: g1.31.2 skills entry (after DG4's 2 build nodes; byte_cap 6000→8000) · proposal paths.core.workflow_runs_root (DG3 dg6-01)
+Subagents: Sonnet 5.5 only, ≤ 2 at once · pi-free has returned empty responses: prefer Sonnet Agent reviews
+First command at wake: ListAgents + tmux list-windows (send as "name [ref]") · pre-08:0xZ shas: the local commit-map (never print it)
 ```
 ## §4 Traps
 | trap | rule |
