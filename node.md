@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -314,6 +314,62 @@ c=$(git show $r:$f|sed -n '/^## Falsifier/,/^## Out/p'|grep -o '`[^`]*`'|tr -d '
 ```
 
 
+## F · ROUND 3 · self-perpetuating -- the shape test: the genome is `.geometry`, one page per piece
+**Owner 23:0xZ (verbatim on the goal):** ".geometry could about contain all the graph build nodes. And if it doesn't fit as a .geometry node it's not radically simple enough yet." **What am I ACTUALLY trying to get the machine to do here?** Hand every future generation the WHOLE machine in a form it can read whole: every piece of the engine is one `.geometry` node, and the projector (§C) grows the body from those nodes and nothing else.
+
+**F.1 · The bar, read from the box, not chosen: one page = 4,096 B** (`getconf PAGESIZE`; brief.md, the median `.geometry` node, is exactly 4,096 B today). A node that fits one page is read whole by every successor, in one read. A node that does not is read in parts, and a successor acting on part of a rule is where drift starts. That is the generations reason for the owner's test.
+
+**F.2 · The node shape (one extractor for every piece):**
+```
+---                      frontmatter = the machine CELLS (rows, setpoints, schedules)
+id: config:<piece>
+---
+# config:<piece>
+<one line: what this piece ACTUALLY makes the machine do>
+~~~sh                    at most ONE fenced block = the piece's code; TILDE fences, so a node is backtick-free
+...                      (backticks inside a unit's sh -c "..." are command substitution: measured, it broke the self-run)
+~~~
+extract any piece:  git show REV:.agi/nodes/.geometry/<piece>.md | sed -n '/^~~~/,/^~~~/{//!p}'
+```
+There is no payload file, no build node beside it, no BUILD-CONTRACT and no grid ref of its own: **the node IS the file**, and its history is `git log -- <node>`.
+
+**F.3 · Tested 23:1xZ: the genome runs FROM `.geometry` nodes** (the `--shared` scratch clone, MAIN untouched). Three nodes: `config:agi-project` (871 B, the projector as a `~~~sh` block of 681 B) · `config:agi-post` (503 B, the round-1 unit as `~~~ini`) · `config:posts` (the rows as `~~~json`, one per line, the identity cells dropped per round 1 §1).
+| test | result |
+|---|---|
+| bootstrap: extract the projector from its node and run it | 10 post units (the local-town rows with recover != false) + its own .path/.service |
+| **fixed point**: run the projected unit's ExecStart, which extracts the projector from its node again | `diff -r` empty: the node reproduces itself |
+| the unit template is extracted byte-exact | `cmp` equal |
+| `systemd-analyze verify` on the projected units | clean |
+Two traps paid for in the test and fixed in the node: backtick fences inside `sh -c "..."` (-> tilde fences) · `\x27` is not POSIX printf (dash printed it raw -> octal `\047`).
+
+**F.4 · The shape test over today's `.geometry` (18 files, 327,060 B): 6 fit, 12 do not, and the overflow is almost all PROSE:**
+| node | bytes | machine cells | prose body | fits? | verdict |
+|---|---|---|---|---|---|
+| commands.md | 115,841 | 110,222 | 5,619 | NO | the argv registry of tools this design retires; each SURVIVING verb becomes its own node (F11: the verb is the superpower), the rest retire with their tools |
+| posts.md | 103,041 | 86,449 | 16,592 | NO | 28 rows keep 10 cells (name · role · town · box · harness · model · effort · recover · owning_goal · template): local-town 2,861 B + core-town 2,076 B -> **one node per town, each fits** |
+| rotations.md | 21,374 | 13,295 | 8,079 | NO | RETIRE: a rotation is a unit restart (round 1); its first-turn texts become the injected brief (part 3, alive) |
+| formations/council-loop · texas-two-step · formation-local-town | 11,194 · 9,661 · 4,456 | 213 · 438 · 586 | the rest | NO | prose role documents: move to `doc:` nodes; the formation's MACHINE part is who may move / merge which ref (§B), one small table |
+| ladder · crons · workflows · secrets | 10,670 · 9,370 · 6,803 · 7,125 | 3,070 · 2,411 · 2,153 · 1,277 | the rest | NO -> YES | cells fit a page once the prose leaves; crons become timers the projector writes |
+| guard.md | 9,845 | 279 | 9,566 | NO -> YES | 279 B of cells survive (slice setpoints); the prose leaves |
+| towns/core.md | 5,499 | 411 | 5,088 | NO -> YES | prose leaves |
+| brief · links · key-authority · vetoes · census · formations.md | 4,096 · 2,205 · 2,000 · 1,670 · 1,623 · 587 | | | YES | stay |
+**The rule the test implies:** `.geometry` holds cells and at most one code block per node. Prose goes to `doc:` nodes and role docs (the owner's 09-24 order: "Notes go into templates or configs, then individual role docs, then town board node").
+
+**F.5 · Does `.geometry` about contain the whole engine? Yes, at about a tenth of its size today:**
+```
+every round-1 and round-2 piece, code, one node each            4,253 B   largest: config:agi-project 871 B as a node (< 1 page)
+the surviving cells (ladder · crons · workflows · secrets · guard)  9,190 B   frontmatter bytes, measured
+posts, one node per town                                          ~5,000 B  2,861 + 2,076 of rows + headers
+the six nodes that already fit                                   12,181 B
+────────────────────────────────────────────────────────────────
+the WHOLE engine as .geometry                                   ~31 KB    vs 327 KB of .geometry today, and 6.09 MB of engine source (288 files, 122 of them <= 1 page)
+```
+- **What still fails the test is named, not hidden:** schema-check (<= 10 KB) and agi-mcp (<= 8 KB), both from round 1, are 2-3 pages each. Shape verdict: agi-mcp becomes ONE page that lists the verb nodes as its tools (the tool list is a projection, F11), and schema-check becomes one node per type whose cells ARE the `[<type>].md` required list. Neither is measured yet: they are the two pieces that are "not radically simple enough yet".
+- **The 293 build nodes:** a piece that moves into `.geometry` retires its build node and its file together (retire = move, never delete). Test code does not move: each piece's falsifier (§D) is its test.
+
+**F.6 · The generations lens:** the genome is now a set of pages that a successor can read in full: ~31 KB, about 8 pages, the whole machine. Every future improvement is an edit to one page. §C's gates (the fixed point and V) guard every edit, so no generation can land a page that stops the next one from regrowing the body.
+
+Spike rows for §D: **F13** every `.geometry` node <= 4,096 B (`find .agi/nodes/.geometry -size +4096c` prints nothing) · **F14** the fixed point holds with the projector extracted from its `.geometry` node (PASS today on the scratch clone) · **F15** each `.geometry` node carries at most one fenced block, and every block extracts and runs (`sh -n` / `systemd-analyze verify` / `jq -e .`).
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-self-perpetuating, 22:2xZ 09-30 (round 2): filled §C. The genome: a 664 B projector that is its own node and runs FROM the graph via its own unit (fixed point tested on a --shared scratch clone: diff empty, deterministic, regrows in a 2nd clone, one row edit moves one link); a 291 B seed is the only installed piece; runtime-dir units regrow at every boot. The generator idea was dropped because the repo is its own mount point. The hunger: a 384 B frontier over every active goal's falsifier: 41 met · 18 red · 244 mute in 3.2 s; calls as create-only pool refs; claims MUST be one shared name (per-post claim paths gave 6 winners of 6). V = red + mute, a Lyapunov rule over generations: 254 -> 262 in 24 h while 17 goals were seeded; mute share 83.6 -> 80.5 pct.
+self-perpetuating, 23:1xZ 09-30 (round 3, first writer; base round 2 @9d4076f96a): added §F, the owner's shape test. The bar is one page, 4,096 B (getconf PAGESIZE, also the median .geometry node). The genome is tested running FROM three .geometry nodes on the scratch clone (projector node 871 B; fixed point diff empty; template byte-exact; verify clean) after two traps: backtick fences inside sh -c, and dash printf with x27. Today 6 of 18 .geometry files fit and 12 do not; the overflow is prose except commands.md (110 KB of cells) and posts.md (86 KB). The whole engine as .geometry is about 31 KB vs 327 KB today; schema-check and agi-mcp are named as still failing. Parts 2 (all-is-one: symlink links + vector brief) and 3 (alive: injection + transparency + diagram + falsifiers + decision) follow.
 <!-- THOUGHT:END -->
