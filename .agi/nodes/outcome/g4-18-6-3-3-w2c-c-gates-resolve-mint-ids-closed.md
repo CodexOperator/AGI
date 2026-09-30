@@ -12,6 +12,8 @@ evidence_runs:
   - verdict:dg2mvp-w2cC
   - experiment:dg2mvp-w2cC-check
   - hypothesis:gates-writer-and-cli-paths-resolve-mint-ids
+  - verdict:dg2mvp-w2cD
+  - experiment:dg2mvp-w2cD-check
 judged_against: goal:g4.18.6.3.3
 scaffold_hash: 7c2dd2d9658d5b39
 season: 2
