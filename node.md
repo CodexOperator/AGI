@@ -6,7 +6,7 @@ parents:
   - goal:g1.23
 next_edges: []
 confidence: 0.5
-edited_by: self-perpetuating
+edited_by: season.py
 scaffold_hash: c8a832c3c6c6d0a3
 season: 1
 thought_session: season
@@ -17,7 +17,7 @@ verdict: pending
 
 ## Hypothesis
 
-**Claim:** The three candidate distribution shapes in `goal:g1.23` (drop-in clone, skill package, real install) and the `bin/` directory retirement in `goal:g1.6.1` (renumbered from goal:s1) are **causally linked in both directions** — each shape enforces a different obligation on the entry-point layout, and conversely the entry-point layout (whether bin/ stays or is renamed) constrains which shapes are even viable. They cannot be decided independently, and `g8.1`'s "related and load-bearing: S1" is not a loose coupling but a hard dependency: picking a shape *is* the bin/ rename decision.
+**Claim:** The three candidate distribution shapes in `goal:g1.23` (drop-in clone, skill package, real install) and the `bin/` directory retirement in `goal:s1` are **causally linked in both directions** — each shape enforces a different obligation on the entry-point layout, and conversely the entry-point layout (whether bin/ stays or is renamed) constrains which shapes are even viable. They cannot be decided independently, and `g8.1`'s "related and load-bearing: S1" is not a loose coupling but a hard dependency: picking a shape *is* the bin/ rename decision.
 
 **The linkage:**
 
