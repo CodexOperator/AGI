@@ -35,16 +35,20 @@ held() { grep -qF -- "$1/" "$LIVE" || grep -qxF -- "$1" "$LIVE"; }
 # directory mtime would hold it "recent" on the RAM disk for the whole idle window
 recent() { [ -n "$(find "$1" -type f -newermt "-$2 min" -print -quit 2>/dev/null)" ]; }
 
+# a write whose PATH is under the RAM dir is charged to the ramdisk.slice
+# through ONE shell entry; a disk-bound one is left alone (hypothesis:g7556-...).
+ramw() { local p=$1; shift; case "$p" in "$RAM_DIR"|"$RAM_DIR"/*) python3 "$HERE/../bin/mem_cap.py" ram-exec -- "$@" ;; *) "$@" ;; esac; }
+
 # move a real dir to dest (same fs: rename; else copy, verify byte count, remove), then symlink back
 move() { local src=$1 dest=$2
   [ -e "$dest" ] && dest="$dest.$(date +%s)"
   [ "$DRY" = 1 ] && { log "DRY move $src -> $dest"; return 0; }
-  mkdir -p "$(dirname "$dest")"
-  if [ "$(stat -c %d "$src")" = "$(stat -c %d "$(dirname "$dest")")" ]; then mv "$src" "$dest"
-  else ionice -c3 cp -a "$src" "$dest.part"
-       [ "$(du -sb --apparent-size "$src" | cut -f1)" = "$(du -sb --apparent-size "$dest.part" | cut -f1)" ] || { log "VERIFY FAILED $src (kept)"; rm -rf "$dest.part"; return 1; }
-       mv "$dest.part" "$dest"; rm -rf "$src"; fi
-  ln -s "$dest" "$src"; log "moved $src -> $dest"; }
+  ramw "$(dirname "$dest")" mkdir -p "$(dirname "$dest")"
+  if [ "$(stat -c %d "$src")" = "$(stat -c %d "$(dirname "$dest")")" ]; then ramw "$dest" mv "$src" "$dest"
+  else ramw "$dest" ionice -c3 cp -a "$src" "$dest.part"
+       [ "$(du -sb --apparent-size "$src" | cut -f1)" = "$(du -sb --apparent-size "$dest.part" | cut -f1)" ] || { log "VERIFY FAILED $src (kept)"; ramw "$dest" rm -rf "$dest.part"; return 1; }
+       ramw "$dest" mv "$dest.part" "$dest"; ramw "$src" rm -rf "$src"; fi
+  ramw "$src" ln -s "$dest" "$src"; log "moved $src -> $dest"; }
 
 # 1. agi iter-* session dirs (live tree = MAIN, which is the RAM tree when up)
 idle=$IDLE; stop_at=0

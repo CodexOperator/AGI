@@ -398,6 +398,59 @@ def reaped_cap_death(pid: int, cap: "str | None") -> bool:
         return False
     return os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGKILL
 
+#: The on-demand recharge, as the code the ramdisk.slice scope RUNS. A tmpfs
+#: page keeps the cgroup that first wrote it: copy the bytes to a fresh file
+#: in the SAME dir and rename it over the old one, and the charge follows the
+#: new inode. Bytes and mode are kept, so the rewrite is invisible.
+_RECHARGE_SRC = """\
+import os, pathlib, shutil, stat, sys, tempfile
+for p in sorted(pathlib.Path(sys.argv[1]).rglob("*")):
+    if p.is_symlink() or not p.is_file():
+        continue
+    mode = stat.S_IMODE(p.stat().st_mode)
+    fd, tmp = tempfile.mkstemp(dir=str(p.parent))
+    os.close(fd)
+    shutil.copyfile(str(p), tmp)
+    os.chmod(tmp, mode)
+    os.replace(tmp, str(p))
+"""
+
+
+def ram_argv(argv: list) -> list:
+    """`argv` as the ONE transient unit under `locations.RAM_SLICE`, or argv
+    itself when systemd-run is unusable -- the shell-reachable way in, since a
+    guard script cannot import Python (hypothesis:g7556-...)."""
+    import locations  # local, as locations imports this module in turn
+    return list(locations.ram_write_argv(list(argv)))
+
+
+def _verb_ram_exec(argv: list) -> int:
+    """exec the argv after `--` in the RAM scope. No argv -> usage, 2."""
+    if not argv:
+        sys.stderr.write("mem_cap.py ram-exec -- <argv...>\n")
+        return 2
+    scoped = ram_argv(argv)
+    os.execvp(scoped[0], scoped)
+    return 127  # execvp returns only on failure
+
+
+def _verb_ram_recharge(root: str) -> int:
+    """Recharge every regular file under `root`, on demand only, never a timer.
+    The rewrite IS the scoped child, so its pages land on the RAM disk's line."""
+    return subprocess.run(
+        ram_argv([sys.executable, "-c", _RECHARGE_SRC, str(root)])).returncode
+
+
 if __name__ == "__main__":
     import argparse
-    argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
+    # ram-exec carries a FOREIGN argv after `--`: argparse never sees it.
+    if sys.argv[1:2] == ["ram-exec"]:
+        _i = sys.argv.index("--") + 1 if "--" in sys.argv else len(sys.argv)
+        sys.exit(_verb_ram_exec(sys.argv[_i:]))
+    _ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    _sub = _ap.add_subparsers(dest="_verb")
+    _sub.add_parser("ram-exec", help="exec <argv...> with RAM writes on the RAM slice")
+    _sub.add_parser("ram-recharge", help="rewrite a RAM dir as copy+rename in the RAM scope").add_argument("dir")
+    _a = _ap.parse_args()
+    if _a._verb == "ram-recharge":
+        sys.exit(_verb_ram_recharge(_a.dir))
