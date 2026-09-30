@@ -30,6 +30,7 @@ import re
 import shlex
 import signal
 import subprocess
+import tempfile
 import sys
 import time
 import uuid
@@ -1535,6 +1536,81 @@ def _live_worktrees_by_cwd(wt_base: Path) -> set:
     return live
 
 
+#: goal:g7.16.1.5.3 -- where the sweep pins a finished worktree before removing it
+SWEEP_ARCHIVE_NS = "refs/archive/worktrees/"
+
+
+def _sweep_pressure_ok(root) -> tuple[bool, str]:
+    """goal:g7.16.1.5.3 -- may a sweep pass run now? Box memory AND io PSI
+    `some.avg10` (memory_alarm.read_psi, the one PSI reader) under the
+    `reaper.sweep_mem_psi_max_pct` / `reaper.sweep_io_psi_max_pct` cells.
+    A blind read FAILS CLOSED, by name: archiving + removing is io work."""
+    import memory_alarm
+    for kind, path, key, default in (
+            ("memory", memory_alarm.BOX_PSI, "sweep_mem_psi_max_pct", 40.0),
+            ("io", Path("/proc/pressure/io"), "sweep_io_psi_max_pct", 40.0)):
+        line = _reaper_cell(root, key, default, lambda v: 0 < v <= 100)
+        avg10 = (memory_alarm.read_psi(path).get("some") or {}).get("avg10")
+        if not isinstance(avg10, (int, float)):
+            return False, f"{kind} psi unreadable (no some.avg10): fails closed"
+        if avg10 >= line:
+            return False, f"{kind} psi some.avg10 {avg10:g} >= {line:g}"
+    return True, "pressure under both lines"
+
+
+def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
+                   dirty: bool) -> str | None:
+    """goal:g7.16.1.5.3 -- pin a worktree before it is removed, so no byte is
+    lost: `refs/archive/worktrees/<name>` = its HEAD; a dirty tree's whole
+    state (tracked + untracked, `git add -A` into a THROWAWAY index -- the
+    worktree's own index and HEAD are never touched) is committed onto
+    `<name>-dirty`. Both refs are verified before this returns None; any
+    failure returns the reason and the caller removes nothing."""
+    ref = SWEEP_ARCHIVE_NS + name
+    want = []
+    if head:
+        _, rc = _git(["update-ref", ref, head], main_checkout)
+        if rc != 0:
+            return "update-ref failed"
+        want.append((ref, head))
+    if dirty:
+        fd, idx = tempfile.mkstemp(prefix="agi-sweep-idx-")
+        os.close(fd)
+        os.unlink(idx)
+        env = dict(os.environ, GIT_INDEX_FILE=idx,
+                   GIT_AUTHOR_NAME="agi-sweep", GIT_AUTHOR_EMAIL="agi@local",
+                   GIT_COMMITTER_NAME="agi-sweep", GIT_COMMITTER_EMAIL="agi@local")
+        try:
+            def run(*a):
+                return subprocess.run(["git", "-C", str(wt), *a], env=env,
+                                      capture_output=True, text=True)
+            steps = [run("read-tree", *(["HEAD"] if head else ["--empty"])),
+                     run("add", "-A")]
+            if any(r.returncode for r in steps):
+                return "dirty snapshot failed"
+            tree = run("write-tree")
+            if tree.returncode or not tree.stdout.strip():
+                return "dirty write-tree failed"
+            cm = run("commit-tree", tree.stdout.strip(), *(["-p", head] if head else []),
+                     "-m", f"archive: dirty state of worktree {name}")
+            if cm.returncode or not cm.stdout.strip():
+                return "dirty commit failed"
+        finally:
+            try:
+                os.unlink(idx)
+            except OSError:
+                pass
+        _, rc = _git(["update-ref", ref + "-dirty", cm.stdout.strip()], main_checkout)
+        if rc != 0:
+            return "dirty update-ref failed"
+        want.append((ref + "-dirty", cm.stdout.strip()))
+    for r, sha in want:
+        got, rc = _git(["rev-parse", "--verify", "-q", r], main_checkout)
+        if rc != 0 or not got or got[0] != sha:
+            return f"archive ref {r} did not verify"
+    return None
+
+
 def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                               grace_min: int | None = None
                               ) -> tuple[int, int, int]:
@@ -1591,6 +1667,16 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         _watch_log(f"[sweep] {len(cwd_live - live_ids)} leaseless tree(s) "
                    f"held live by a running process")
     live_ids = live_ids | cwd_live
+    # goal:g7.16.1.5.3 -- archiving + removing is io work: a pass under memory
+    # or io pressure is deferred whole, never half-run (a dry-run reads only).
+    if not dry_run:
+        ok, why = _sweep_pressure_ok(root)
+        if not ok:
+            _watch_log(f"[sweep] deferred: {why}")
+            return (0, 0, 0)
+    per_pass = int(_reaper_cell(root, "worktree_archive_per_pass", 25.0,
+                                lambda v: v >= 1))
+    archived = 0
     # Every worktree's branch and HEAD in ONE call, not two per tree.
     wt_heads = _sweep_worktree_heads(main_checkout)
     skipped = 0
@@ -1612,6 +1698,15 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         base_pre[wt_p.name] = _sweep_worktree_base(
             root, wt_p, _sweep_season(b0))
     for wt in sorted(wt_base.glob("a00-*")):
+        if wt.is_symlink() and not wt.exists() and not dry_run \
+                and wt.name not in live_ids:
+            # goal:g7.16.1.5.4 layout: a RAM worktree behind a symlink whose
+            # target is gone (the tmpfs emptied at a reboot) -- the branch
+            # keeps every commit; prune the record, unlink the link.
+            _git(["worktree", "prune"], main_checkout)
+            wt.unlink()
+            _watch_log(f"[sweep] unlinked {wt.name}: RAM target gone")
+            continue
         if not wt.is_dir():
             continue
         agent_id = wt.name
@@ -1625,44 +1720,23 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         base = base_pre.get(agent_id, _sweep_worktree_base(root, wt, season))
         if base:
             base = _sweep_resolve_base(root, base)
-        if not base:
-            refused += 1
-            _watch_log(f"[sweep] refused {agent_id}: unmerged (no base)")
-            continue
         head = head_cached
         if not head:
             head_lines, _ = _git(["rev-parse", "HEAD"], wt)
             head = head_lines[0] if head_lines else ""
-        # (2) a round that never landed is NOT removed.
-        if not head:
-            refused += 1
-            _watch_log(f"[sweep] refused {agent_id}: unmerged (no HEAD)")
-            continue
-        # Neither HEAD nor the base has moved since this tree was last
-        # refused -> the verdict is unchanged by construction. Skip the
-        # subprocesses AND the per-pass log line (the log, not the work, is
-        # what grew to 48 MB in 6 days).
-        base_lines, _ = _git(["rev-parse", base], main_checkout)
-        base_tip = base_lines[0] if base_lines else ""
-        if _SWEEP_SKIP.get(agent_id) == (head, base_tip):
-            refused += 1
-            skipped += 1
-            continue
-        _, anc_rc = _git(["merge-base", "--is-ancestor", head, base],
-                         main_checkout)
-        if anc_rc != 0:
-            refused += 1
-            _SWEEP_SKIP[agent_id] = (head, base_tip)
-            _watch_log(f"[sweep] refused {agent_id}: unmerged")
-            continue
-        # (3) a dirty tree is REFUSED by name, never forced.
+        # (2)+(3) goal:g7.16.1.5.3: "unmerged" and "dirty" are no longer
+        # terminal -- landings are fresh commits, so ancestry is rarely
+        # provable. Such a tree is ARCHIVED (refs/archive/worktrees/<name>,
+        # dirty state on <name>-dirty) before it is removed; a merged, clean
+        # tree needs no archive and is removed as before.
+        merged = False
+        if base and head:
+            _, anc_rc = _git(["merge-base", "--is-ancestor", head, base],
+                             main_checkout)
+            merged = anc_rc == 0
         status_lines, _ = _git(["status", "--porcelain"], wt)
         dirty = _sweep_dirty_paths(status_lines)
-        if dirty:
-            refused += 1
-            _watch_log(f"[sweep] refused {agent_id}: dirty "
-                       f"({len(dirty)} paths)")
-            continue
+        needs_archive = not merged or bool(dirty)
         _SWEEP_SKIP.pop(agent_id, None)
         # (4)/(5) A finished round's session dir comes home before the sweep
         # judges condition (4): for a leaseless+merged+clean round, the GRACE
@@ -1713,12 +1787,43 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                                f"home ({','.join(rejected)})")
                     continue
         iter_name = _sweep_iter_name(wt)  # read BEFORE the dir is freed
+        why = ("unmerged" if not merged else "") + \
+            (f"{'+' if not merged else ''}dirty {len(dirty)}" if dirty else "")
+        if needs_archive and archived >= per_pass:
+            kept += 1
+            _watch_log(f"[sweep] deferred {agent_id}: archive cap "
+                       f"{per_pass} reached this pass")
+            continue
+        if needs_archive and dry_run:
+            archived += 1
+            _watch_log(f"[sweep] archived {agent_id} ({why}) ref="
+                       f"{SWEEP_ARCHIVE_NS}{agent_id} (dry-run)")
+        elif needs_archive:
+            reason = _sweep_archive(main_checkout, wt, agent_id, head,
+                                    bool(status_lines))
+            if reason:
+                refused += 1
+                _watch_log(f"[sweep] refused {agent_id}: archive failed "
+                           f"({reason})")
+                continue
+            archived += 1
+            _watch_log(f"[sweep] archived {agent_id} ({why}) ref="
+                       f"{SWEEP_ARCHIVE_NS}{agent_id}"
+                       f"{' +dirty' if status_lines else ''}")
         if dry_run:
             _watch_log(f"[sweep] removed {agent_id} "
                        f"iter={iter_name} base={base} (dry-run)")
             removed += 1
             continue
-        _, rm_rc = _git(["worktree", "remove", str(wt)], main_checkout)
+        # --force only behind a VERIFIED archive (goal:g7.16.1.5.3 invariant:
+        # no uncommitted byte is removed before its archive ref exists).
+        # a RAM worktree (goal:g7.16.1.5.4) is removed at its REAL path, then
+        # its symlink under .agi/worktrees is unlinked
+        _, rm_rc = _git(["worktree", "remove", *(["--force"] if needs_archive
+                                                 else []), str(wt.resolve())],
+                        main_checkout)
+        if rm_rc == 0 and wt.is_symlink():
+            wt.unlink()
         if rm_rc != 0:
             refused += 1
             _watch_log(f"[sweep] refused {agent_id}: remove failed")
@@ -1727,8 +1832,8 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         _watch_log(f"[sweep] removed {agent_id} "
                    f"iter={iter_name} base={base}")
         removed += 1
-    _watch_log(f"sweep: removed={removed} refused={refused} kept-live={kept}"
-               f"{f' (unchanged={skipped})' if skipped else ''}")
+    _watch_log(f"sweep: removed={removed} archived={archived} refused={refused} "
+               f"kept-live={kept}{f' (unchanged={skipped})' if skipped else ''}")
     return (removed, refused, kept)
 
 
