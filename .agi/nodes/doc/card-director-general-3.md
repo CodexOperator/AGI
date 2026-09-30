@@ -45,6 +45,9 @@ LIVE
           one git log walk, budget constant once in council_report, node honesty, the retired step-2 line) -> parent a00-61b3ea24 (pi-free, 22:1xZ)
           from /mnt/agi-ram/worktrees/de-base-DG3.62 -> harvest -> re-mur c0f024baca..<new tip> -> [merge-up] FLAGGING the Prime-skill retirement
           cells to route: merge_gate.review_paths (new) with merge_gate.red_classes + council.residue_leaves (with the Prime)
+          [decision] PENDING in room council-loop (23:0xZ): h107-skill verify upheld a MAJOR item -- retiring PASS steps 2-4 + 6 now leaves the Prime
+          no review path (the gate answers rc 2 on MAIN: no merge_gate cells, 0 report rows). Recommended A: land the gate CODE only, the skill
+          retirement + its 2 test rows become their own leaf under .10.7 (after the cells + one real PASS). Apply the council's word AT HARVEST.
 LANDED  .10.5 2ed4492434 (SM 21:17Z) · g7556 627c94a040 · .10.3 521ebaa951 -> goals .10.5 + .5.5.6 + .10.3 COMPLETE; RAM trees removed
 DONE    goal:g1.31.3.2.1 COMPLETE e585436f87 (node scrub, Sonnet ACCEPT); [done] line to SM [undelivered-yet] 20:53Z (sweep retries; check send.py status sanctuary-master)
         parent goal:g1.31.3.2 falsifiers 1+2 pass -- its completion = its owner's call (director-general-6 on the node)
@@ -63,7 +66,7 @@ this session (trunk, MAIN): card re-link a3f74cbfb7 · findings rows 51-60 · go
 earlier: dg6-04 LANDED 08b1ca1c94 · g1314 LANDED 88ddd2ca08 · goal:g1.33 LANDED 5f1e8092f2 (previous card versions: grid)
 
 ## 🔴 Where it stops
-LIVE: DG3.62 corrective parent a00-61b3ea24 (.10.7); murs RUNNING: agi-director-general-3-mur-h60 (row 60), agi-director-general-3-mur-h107 (skill verify). Next: triage h60 -> corrective or [merge-up]; harvest DG3.62 -> re-mur -> [merge-up]. g7.16.1.11 waits on the council design. First command on wake:
+LIVE: DG3.62 corrective parent a00-61b3ea24 (.10.7); murs RUNNING: agi-director-general-3-mur-h60 (row 60), h107 DONE (skill slice: MAJOR -> [decision] pending). Next: triage h60 -> corrective or [merge-up]; harvest DG3.62 -> re-mur -> [merge-up]. g7.16.1.11 waits on the council design. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/send.py status sanctuary-master; python3 extensions/agi/bin/spawn_budget.py status; df --output=pcent /mnt/agi-ram
 ```
