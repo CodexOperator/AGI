@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:22Z 09-30 — f≈0.35; this session = agi-2a; council work until ~04:00Z 09-30)
+## §0 State (04:43Z 09-30 — IDLE on the council STOP (04:00Z, fired 04:43Z); f≈0.36; last session agi-2a)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -42,10 +42,10 @@ open   parent g4.18.6.3 (W2c) closes after .3.3 · g7.16.1.6/.7 leaves when aliv
 ```
 
 ## 🔴 Where it stops
-Waiting for handoffs: DG3's g6.41.1.1 build · DG2's mint-index fork pass · DG4's goal:g7.16.1.4.1.2 · SM's bundle-4 outcome. MESSAGING (owner verbatim, until the bundles land): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." = SendMessage by session name (ListAgents) ONLY -- NO send.py, NO rooms. Session names change at every relaunch: re-run ListAgents before each send. /tmp is wiped by a reboot. Check git status after each write. Names 02:3xZ: belam agi-79 (gen 20; agi-c2 = idle predecessor) · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · SM agi-ed (coordination lane, director brief) · council agi-b3 alive · agi-8f [242e8c] all-is-one · agi-53 self-perpetuating (rulings lane) · map by `tmux list-windows -a -F '#{window_id} #{window_name}'` vs ListAgents' @id.
+STOPPED clean: no step in flight, nothing uncommitted of mine. Next session resumes on the three holds in §1 (W1b g4.18.5.2 after DG2 checks .2.1 + DG3 builds .2.2 · W2c C g4.18.6.3.3 · g6.41.1.1 build on DG3), in the loop order: DG2's verdict -> DG1 build-vs-goal -> OUTCOME (parent = the goal) -> SM. Owner orders in force (director brief): SendMessage only (no send.py, no rooms) until the bundles land; coordination -> SM, rulings -> the council; no Opus subagents (pi-free workflows, Sonnet at most). Session names change at every relaunch: map `tmux list-windows -a -F '#{window_id} #{window_name}'` against ListAgents. Check git status after each write (write.py can print success over an uncommitted node until g4.18.5.2.1 is verified).
 ```
-python3 extensions/agi/bin/write.py goal:g6.41.1 'read body 1:60'
-for g in g4.18.6.1.1 g7.16.1.4.1.2 g7.16.1.4.1; do grep -h '^status' .agi/nodes/goal/$g.md; done
+for g in g4.18.5.2 g4.18.5.2.1 g4.18.5.2.2 g4.18.6.3.3 g6.41.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done
+git ls-files .agi/nodes/verdict | grep -E 'dg2mvp-(w1b|w2cC|g6)'
 ```
 
 ## §4 Traps
