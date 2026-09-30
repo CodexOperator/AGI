@@ -739,7 +739,7 @@ def _g41816_render(node, **rows):   # the node + rows, in the ONE canonical form
 
 def _g41816_diff(old, new):
     import difflib
-    return "".join(difflib.unified_diff(old.splitlines(True), new.splitlines(True), "a", "b"))
+    return "".join(difflib.unified_diff(write._split_keepends(old), write._split_keepends(new), "a", "b"))   # the applier's own line split
 
 def test_g41816_patch_lands_on_a_config_node_itself_byte_exact(project, monkeypatch, capsys):
     import io
@@ -3228,7 +3228,8 @@ def test_g73320_a_broken_own_id_row_refuses_at_read_naming_file_line_value_and_r
 
 
 def test_g73320_a_disagreeing_own_id_row_refuses_at_read_and_a_valid_one_reads(project, capsys):
-    node = _g73320_goal(project, id_row="goal:g7.99")   # a valid shape, the wrong id
+    _g73320_goal(project, id_row="goal:g7.99", slug="g7.99")   # ANOTHER node holds goal:g7.99
+    node = _g73320_goal(project, id_row="goal:g7.99")           # a valid shape, the wrong id
     out, err, rc = _run(["goal:g7.5", "read body 1:5", "--root", str(project)])
     assert rc != 0 and out == "", (out, err)
     assert f"{node}:2" in err and "goal:g7.99" in err and "id: goal:g7.5" in err, err
@@ -3238,6 +3239,37 @@ def test_g73320_a_disagreeing_own_id_row_refuses_at_read_and_a_valid_one_reads(p
     # an unparseable frontmatter whose `id` row is fine is NOT this refusal
     node.write_text("---\nid: goal:g7.5\nmint_id: m\nbad: [unclosed\n---\n\nbody\n")
     assert write._own_id_refusal(project, "goal:g7.5") is None
+
+
+def test_g73320_alias_id_row_resolving_to_the_same_node_reads_by_alias_and_long_form(project):
+    """The 126 live `exp:` / `hyp:` nodes: an alias id row that resolves to THIS file
+    is valid, read by the alias or by the path-derived long form (rc 0 both); an alias
+    naming a DIFFERENT node, and the d1eb5ecad garbage row, still refuse."""
+    d = project / "nodes" / "hypothesis"
+    (d / "a00-1467544f-aaaa25.md").write_text(
+        "---\nid: hyp:a00-1467544f-aaaa25\nmint_id: " + "7" * 32 + "\ntype: hypothesis\n"
+        "parents:\n  - goal:g1\ntitle: t\nstatus: active\n---\n\nalias body\n")
+    for nid in ("hyp:a00-1467544f-aaaa25", "hypothesis:a00-1467544f-aaaa25"):
+        out, err, rc = _run([nid, "read body 1:3", "--root", str(project)])
+        assert rc == 0 and "alias body" in out and err == "", (nid, out, err)
+    # a legacy descriptive stem whose lone valid id resolves to THIS file reads too
+    node_writer._ID_INDEX.clear()   # in-process: files written after the first lookup
+    (d / "old-descriptive-stem.md").write_text(
+        "---\nid: hyp:old-desc\nmint_id: " + "5" * 32 + "\ntype: hypothesis\n"
+        "parents:\n  - goal:g1\ntitle: t\nstatus: active\n---\n\nlegacy body\n")
+    for nid in ("hyp:old-desc", "hypothesis:old-descriptive-stem"):
+        out, err, rc = _run([nid, "read body 1:3", "--root", str(project)])
+        assert rc == 0 and "legacy body" in out and err == "", (nid, out, err)
+    # an alias row naming ANOTHER node (h1 exists) is still a broken row
+    (d / "a00-other.md").write_text(
+        "---\nid: hyp:h1\nmint_id: " + "6" * 32 + "\ntype: hypothesis\n"
+        "parents:\n  - goal:g1\ntitle: t\nstatus: active\n---\n\nbody\n")
+    out, err, rc = _run(["hypothesis:a00-other", "read body 1:3", "--root", str(project)])
+    assert rc == 2 and "id` row is broken" in err, (out, err)
+    # ...and so is the real garbage row
+    node = _g73320_goal(project)
+    out, err, rc = _run(["goal:g7.5", "read body 1:5", "--root", str(project)])
+    assert rc == 2 and str(node) in err, (out, err)
 
 
 def test_g73320_a_sub_that_rewrites_the_own_id_row_is_refused_by_name_dry_and_real(project):
@@ -3297,3 +3329,38 @@ def test_r1b_a_crlf_frontmatter_opener_is_refused_like_lf_dry_and_real(project, 
     assert node.read_text() == old and "forged" not in node.read_text()
     assert write.main(["config:guard", "set note_row y", "--root", str(project)]) == 0   # the next write forges nothing
     assert "mint_id: " + "e" * 32 in node.read_text()
+
+
+# goal:g4.18.1.6 R1c (review e6 of eff6255e3): the reader (frontmatter._parse_md) splits with str.splitlines(), which
+# breaks on VT FF FS GS RS NEL LS PS as well as CR/CRLF -- so `<ch>---\nmint_id: forged\n---\n` landed rc 0 and the NEXT
+# write absorbed it (mint_id -> forged, type -> goal). ONE recognizer: the refusal splits lines as the reader does.
+_R1C_SEPS = ("\x0b", "\x0c", "\x1c", "\x1d", "\x1e", "\x85", " ", " ")
+
+
+def test_r1c_every_splitlines_separator_before_the_opener_is_refused_on_sub_body_patch_and_patch(
+        project, monkeypatch, capsys):
+    h1 = project / "nodes" / "hypothesis" / "h1.md"
+    node = _g41816_guard(project)
+    old = node.read_text()
+    body = write._read_body_text(project, "config:guard")
+    for sep in _R1C_SEPS:
+        assert len(f"a{sep}b".splitlines()) == 2, repr(sep)   # the reader really breaks the line here
+        payload = f"{sep}---\nmint_id: forged\ntype: goal\n---\nthe body"
+        # sub, dry == real, nothing written
+        before, errs = h1.read_bytes(), []
+        for dry in (["--dry-run"], []):
+            out, err, rc = _run(["hypothesis:h1", f"sub! the body => {payload}", *dry, "--root", str(project)])
+            assert rc == 2 and "OPEN with a `---` frontmatter-like block" in err, (repr(sep), dry, out, err)
+            errs.append(err)
+            assert h1.read_bytes() == before, (repr(sep), dry)
+        assert errs[0] == errs[1], repr(sep)
+        # body_patch - and patch -: the same refusal, dry == real
+        forged_body = body.replace("# config:guard\n", payload + "\n# config:guard\n", 1)
+        msg = _g41816_refusal(project, node, monkeypatch, capsys, "body_patch -", body, forged_body, target=old)
+        assert "OPEN with a `---` frontmatter-like block" in msg and "nothing written" in msg, (repr(sep), msg)
+        forged = old.replace("# config:guard\n", payload + "\n# config:guard\n", 1)
+        msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", old, forged)   # by this gate or the canonical one
+        assert "nothing written" in msg, (repr(sep), msg)
+    assert "forged" not in node.read_text() and "forged" not in h1.read_text()
+    assert write.main(["hypothesis:h1", "set note_row y", "--root", str(project)]) == 0   # the next write forges nothing
+    assert "mint_id: abc123" in h1.read_text() and "type: hypothesis" in h1.read_text()
