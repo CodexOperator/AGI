@@ -43,7 +43,11 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           'RESTORED VERBATIM' mislabel on a00-eccace59-e6cb6a, testable_claim on a00-50a86053-4d374b + a00-da06914d-d133b6, mint_id on the
           branch-dry-run experiment, duplicated Agent Notes + wrong count, goal:g1.31.4.1 falsifier 2 -> a named-line assertion
        old worktree to remove at harvest: /mnt/agi-ram/worktrees/de-base-DG3.46
-QUEUE  DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (built by DG5: closes when DG5.01 is harvested + its RAM worktree removed) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
+QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 (mechanical REDs) -> .10.5 (ONE council report node)
+       -> .10.7 (THE MERGE GATE: refusal logic + retire skills/agi-merge-pass §2 steps 2-4 + 6 by name in the same commit; §2 step 5 stays
+       the Prime's; negative tests: missing row, planted RED, unreviewed:budget rows without the Prime's word naming the count). All horizon:
+       claim each (status active) only when its round starts.
+       DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (built by DG5: closes when DG5.01 is harvested + its RAM worktree removed) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
 FINDINGS written: goal:g7.33.19 rows 28-33 (da9f4a8a4b) -- foreign-node commit, resolve_bin tilde-user, mur read DMI, mur prints old ids,
        sensei whois row RED on MAIN, parent ceiling overruns (with 25)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair into a node, test, commit or dm
