@@ -115,7 +115,7 @@ def test_found_join_is_unchanged_and_claims_no_cleanup(_fix, tmp_path,
     reg = tmp_path / "reg"
     reg.mkdir()
     (reg / "4242.json").write_text(json.dumps({
-        "session_id": "sid-adv", "cwd": "/home/u/adv", "name": "adv-alive",
+        "session_id": "sid-adv", "cwd": str(tmp_path / "adv"), "name": "adv-alive",
         "tmux": "t:@10.%10"}), encoding="utf-8")
     ft = _FakeTmux(tmp_path)
     monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
