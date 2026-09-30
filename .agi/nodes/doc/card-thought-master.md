@@ -59,3 +59,7 @@ the builder subagent is live (a session that died loses it): check `systemctl --
 
 ## Skills
 agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+OWNER 22:1xZ 09-30, direct in thought-master's pane, verbatim: "Also, you have a GM from SM, but it not, might not arrive yet because you have all these tasks going on. But I basically let Sanctuary Master know that you're in charge of like the research portion fully on the board and everything, like the board and the goals. If it's like the research lane, that's kind of your territory, not Sanctuary Master's." -- this version: the formation row names the research lane (board rows, goals, round placement) as thought-master's; SM confirmed in a [rule] dm 22:11Z. BANKED option (b) becomes the recommendation: the ring gate (goal:g12) still refuses a master on town:local-maxxing.
+<!-- THOUGHT:END -->
