@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (17:4xZ 09-30; STOP at 18:00Z per belam)
+## §0 State (17:5xZ 09-30; NO STOP -- owner 17:4xZ via SM: until 21:00Z pi-free + claude-code Sonnet 5.5 + Sonnet subagents + direct; FROM 21:00Z every NEW round and review on pi-free only, live claude-code rounds finish, nothing new on them)
 | | |
 |---|---|
 | post | director-general-4 · owner: resume on the town bundle; subagents Sonnet 5.5 only |
@@ -28,24 +28,24 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | skills | agi-goal · agi-node-write · agi-dispatch · agi-corrective · agi-verify · agi-send · agi-rotate · agi-workflow · agi-master-gate |
 | regions | write.py `_commit_write` · rotate.py WHOLLY + heal.py key path (from DG5) · DG6's rows below · rest of write.py = DG3 · dispatch.py / RAM writers = DG3 |
 
-## §1 Plan (SM's order; owner 16:4xZ: Sonnet 5.5 subagents / claude-code kids allowed; STOP 18:00Z)
+## §1 Plan (SM's order; lanes per §0)
 ```
 DELIVERED, AWAITING SM GO (land: merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only)
   g73319 tip 2b68fbc07e (.agi/worktrees/dg4-g73319) ACCEPT -- trunk red test_g15 fallback fixed, test-only
   g75213 tip 4336e659e4 (.agi/worktrees/dg4-g75213) 3 review passes, all MAJOR closed -- PRIME ACTIONS in the merge-up line (3 config:guard cells + the live .claude/worktrees bind)
-STACK (NOT yet delivered): DG4.06 + DG4.15 + DG4.21 + DG4.11 + DG4.22 on branch season2/loops/dg411-launder-residues-dg4 (.agi/worktrees/dg4-dg411)
+STACK IN SM GATE (full suite ~18:07Z): tip 89639ad511 = ae6b08595d + the a00-1b70098e-011986 demote-field close (node only), merge-base 5f8af4dd41
   5349885273 DG4.21 (orphaned kid harvested) · aed1766f51 DG4.11 · dca05676f4 merge DG4.22 (6f48522331) · stacked tip 458 passed 8 skipped 5 xfailed
   reviews: stacked accept_with_residue -> MAJORs closed by DG4.11 + DG4.22 (re-review cites); DG4.11 re-review: item 4 FAILED OPEN (my order) -> DG4.11b (retry diff once, then fail closed) sent 17:4xZ to the Sonnet subagent
-  NEXT: verify DG4.11b (write_guard + busy_index), one diff-only re-review of it, then ONE [merge-up] to SM: range 5f8af4dd4..<tip>, config_max = values.core.suite_lock {"file":"verify-suite.lock","write_commit_wait_s":30,"hold":"live-foreign-pid"} for the Prime
-  open prose item: hypothesis:a00-1b70098e-011986 stale demote_reason/demoted_from beside verdict proved (no documented write.py unset verb -- ask SM or use replace on the frontmatter lines)
+  DG4.11b ae6b08595d: retry diff once then FAIL CLOSED (fixes my fail-open order); 181 passed 3 xfailed; config_max block text is in the merge-up line
+  prose item CLOSED 6517b71361 + 89639ad511 (write.py unset; AGI_ACTOR=director-general-4 sets edited_by)
 PI MUR CHAIN (older harvests, still running): q6 dg414 -> q7 dg417 -> q8 dg418 -> q9 dg419 -> q10 dg420; run dirs .agi/sessions/workflows/runs/mur-director-general-4-N
   HARVESTED awaiting those reviews: DG4.12 589c6dafd · DG4.13 · DG4.14 e51efb790 · DG4.17 7c1da7497 · DG4.18 8097dec13 · DG4.19 10780f70e · DG4.20 0f0e5905cf
-QUEUED after the stack: SM-1 hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove · SM-2 hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat
+RUNNING (Sonnet subagents, cut from trunk 31290ba43a): SM-1 heal-sweep-stops-rearchiving (.agi/worktrees/dg4-sm1, branch season2/loops/sm1-heal-sweep-rearchive-dg4) · SM-2 stand-up-key-writers-one (.agi/worktrees/dg4-sm2, branch season2/loops/sm2-key-writers-one-dg4) -> verify, Sonnet review (before 21:00Z) or pi-free mur (after), [merge-up]
 FINDINGS goal:g7.33.19 rows 25 26 27 34 + (to add) a test coupled to live graph lineage (g73319) · a kid commit dying on index.lock stalls its parent silently (DG4.21)
 ```
 
 ## 🔴 Where it stops
-Stack delivery waits on DG4.11b; g73319 + g75213 wait on SM's GO. STOP at 18:00Z (belam).
+Three merge-ups with SM (g73319 · g75213 · stack 89639ad511); SM-1 + SM-2 building. On a GO: land per the LAND ORDER in §0.
 Next command: `git -C /data/work/agi/.agi/worktrees/dg4-dg411 log --oneline -3; python3 extensions/agi/bin/send.py read director-general-4`
 
 ## §4 Traps
