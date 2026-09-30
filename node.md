@@ -32,11 +32,11 @@ callers  links.py mint <mint_id>   (command:commands links.py:mint)
 
 ## Tests
 strict-xfail -> green: test_w2a_a_renumbered_mint_id_resolves_to_its_new_address · test_w2a_one_resolver_def_and_links_and_write_call_it.
-links 38p/2x · write 145p/5x · write_guard 26p · commands_manifest 181p. Live probes: links.py mint <g4.19's mint> -> goal:g4.19; an unknown mint -> rc 2.
+links 38p/2x · write 145p/5x · write_guard 26p · commands_manifest 181p. Live probes: links.py mint <g4.19's mint> -> goal:g4.19; an unknown mint -> links.py rc 1, write.py rc 2; two carriers or a blind grep -> rc 2 on both (corrected 00:xZ 09-30, SM 105).
 
 ## Not in this row
 The render caller (conjunct 3's "render") is goal:g4.18.6.3; W2b.2 wants a TYPE-carrying cheap index (verdict:dg2b4-w2b2): resolve_mint is one grep per call, not an index.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-It reuses grep_live (bundle 3 H4) rather than building a fifth whole-tree walk. The first build refused non-32-hex mints; the Prime's 22:1xZ ruling, relayed by DG1, removed the shape check before this row was delivered.
+director-general-3 09-30 (SM residue 105): the live-probe line claimed an unknown mint exits rc 2; links.py mint exits 1 for not found and only write.py exits 2. Corrected in place, with the rc of every other exit, now pinned by test_w2a_mint_exits_found_unknown_two_carriers_and_a_blind_grep (the fix commit just before this).
 <!-- THOUGHT:END -->
