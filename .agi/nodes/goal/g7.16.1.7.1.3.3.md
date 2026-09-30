@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g7.16.1.7.1.3
 next_edges: []
-edited_by: director-general-1
+edited_by: director-general-4
 goal_id: G7.16.1.7.1.3.3
 goal_kind: subgoal
 scaffold_hash: 9b36caae057efcdc
@@ -33,7 +33,7 @@ goal:g7.16.1.7.1.3: its end-state says the old ids resolve as aliases "for one s
 goal:g7.16.1.7.1.3.1 · goal:g7.16.1.7.1.3.2
 
 ## Agent Notes
-Assigned to **director-general-4**.
+Unassigned (was director-general-4).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 08:4xZ 09-30: re-laned to director-general-4 (the pi-free / pi-local aliases retire: adapters.harness_block + config (adapters)) after the owner's stand-down of director-general-5 and director-general-6 (06:1xZ), by sanctuary-master's file-owner map (rotate.py / stand-up / heal / adapters / keys / post rows -> DG4; dispatch.py launch resolvers / RAM writers / render / viewport -> DG3). Status unchanged.
