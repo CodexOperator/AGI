@@ -1538,6 +1538,12 @@ def _live_worktrees_by_cwd(wt_base: Path) -> set:
 
 #: goal:g7.16.1.5.3 -- where the sweep pins a finished worktree before removing it
 SWEEP_ARCHIVE_NS = "refs/archive/worktrees/"
+# goal:g7.16.1.5.3 -- a session dir that cannot come home for one of THESE
+# (terminal) reasons is archived with the tree instead of holding it forever
+# (4287 of 4291 not-home refusals read "target exists", 09-30); "live lease",
+# "non-terminal" and anything unnamed still refuse.
+SWEEP_ARCHIVABLE_NOT_HOME = ("target exists", "home failed", "verify failed",
+                             "no manifest")
 
 
 def _sweep_pressure_ok(root) -> tuple[bool, str]:
@@ -1559,13 +1565,15 @@ def _sweep_pressure_ok(root) -> tuple[bool, str]:
 
 
 def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
-                   dirty: bool) -> str | None:
+                   dirty: bool, force_paths: tuple = ()) -> str | None:
     """goal:g7.16.1.5.3 -- pin a worktree before it is removed, so no byte is
     lost: `refs/archive/worktrees/<name>` = its HEAD; a dirty tree's whole
     state (tracked + untracked, `git add -A` into a THROWAWAY index -- the
     worktree's own index and HEAD are never touched) is committed onto
-    `<name>-dirty`. Both refs are verified before this returns None; any
-    failure returns the reason and the caller removes nothing."""
+    `<name>-dirty`, plus `force_paths` (gitignored session dirs that never
+    came home, `git add -f`). Both refs are verified before this returns None;
+    any failure returns the reason and the caller removes nothing."""
+    dirty = dirty or bool(force_paths)
     ref = SWEEP_ARCHIVE_NS + name
     want = []
     if head:
@@ -1586,6 +1594,8 @@ def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
                                       capture_output=True, text=True)
             steps = [run("read-tree", *(["HEAD"] if head else ["--empty"])),
                      run("add", "-A")]
+            if force_paths:
+                steps.append(run("add", "-f", "--", *force_paths))
             if any(r.returncode for r in steps):
                 return "dirty snapshot failed"
             tree = run("write-tree")
@@ -1763,6 +1773,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         # with its own unmigrated records (hyp:l4-a-finished-rounds-worktree-
         # is-removed-after-harvest, L4.257).
         wt_iters = sorted(wt.glob(".agi/sessions/iter-*"))
+        not_home_paths: tuple = ()
         if wt_iters:
             not_home = [d for d in wt_iters
                         if not _sweep_iter_home(d, main_sessions / d.name)]
@@ -1784,14 +1795,25 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                 remaining = [d.name for d in wt_iters
                              if not _sweep_iter_home(d, main_sessions / d.name)
                              and d.name not in homed_now]
-                if remaining:
+                # goal:g7.16.1.5.3: a TERMINAL not-home reason (the round is
+                # over, its records just cannot merge home) is no longer a
+                # hold -- the iter dirs ride into the archive ref instead.
+                if remaining and all(r.split(":", 1)[-1]
+                                     in SWEEP_ARCHIVABLE_NOT_HOME
+                                     for r in rejected):
+                    not_home_paths = tuple(
+                        f".agi/sessions/{n}" for n in remaining)
+                    needs_archive = True
+                elif remaining:
                     refused += 1
                     _watch_log(f"[sweep] refused {agent_id}: session dir not "
                                f"home ({','.join(rejected)})")
                     continue
         iter_name = _sweep_iter_name(wt)  # read BEFORE the dir is freed
-        why = ("unmerged" if not merged else "") + \
-            (f"{'+' if not merged else ''}dirty {len(dirty)}" if dirty else "")
+        why = "+".join(p for p in (
+            "unmerged" if not merged else "",
+            f"dirty {len(dirty)}" if dirty else "",
+            f"sessions {len(not_home_paths)}" if not_home_paths else "") if p)
         if needs_archive and archived >= per_pass:
             kept += 1
             _watch_log(f"[sweep] deferred {agent_id}: archive cap "
@@ -1803,7 +1825,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                        f"{SWEEP_ARCHIVE_NS}{agent_id} (dry-run)")
         elif needs_archive:
             reason = _sweep_archive(main_checkout, wt, agent_id, head,
-                                    bool(status_lines))
+                                    bool(status_lines), not_home_paths)
             if reason:
                 refused += 1
                 _watch_log(f"[sweep] refused {agent_id}: archive failed "
@@ -1812,7 +1834,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             archived += 1
             _watch_log(f"[sweep] archived {agent_id} ({why}) ref="
                        f"{SWEEP_ARCHIVE_NS}{agent_id}"
-                       f"{' +dirty' if status_lines else ''}")
+                       f"{' +dirty' if status_lines or not_home_paths else ''}")
         if dry_run:
             _watch_log(f"[sweep] removed {agent_id} "
                        f"iter={iter_name} base={base} (dry-run)")
