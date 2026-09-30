@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: belam
+edited_by: a00-a64080f3
 excluded:
   write.py:patch:
     cli: write.py
@@ -3047,6 +3047,22 @@ manifest:
     args: []
     reason: runs the whole engine suite under the one-runner suite lock -- opt-in, never proposed
     side_effects: read
+    proposable: false
+  council_report.py:add:
+    cli: council_report.py
+    verb: add
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/council_report.py
+      - add
+      - <run>
+      - <args>
+    args:
+      - {"name": "run", "type": "str", "required": true, "choices": []}
+      - {"name": "args", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: one report row per round, verify residues to owner leaves
+    side_effects: graph-write
     proposable: false
 ordered:
   - verify
