@@ -5,16 +5,15 @@ type: hypothesis
 parents:
   - goal:s31
 confidence: 0.0
-demote_reason: no experiment evidence (evidence_runs=0) for 'disproved' [caught at grid commit, not by a writer path]
-demoted_from: disproved
-edited_by: alive
+edited_by: season.py
 scaffold_hash: 19458dca89a121d7
 season: 1
 testable_claim: If node_writer.write_node seeds the schema-required title and testable_claim from dispatch-time context, the scaffolded hypothesis passes [hypothesis] required-field validation at birth, and completion.is_complete still returns False on the untouched scaffold and True once the body is filled.
 thought_session: season
 title: Seeding title+testable_claim at scaffold time makes hypothesis nodes schema-valid at birth
-verdict: inconclusive_lean_disproved:50
+verdict: pending
 ---
+
 # hypothesis:a00-edae0fba-940d3a
 
 ## Hypothesis
