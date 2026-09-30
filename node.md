@@ -37,7 +37,7 @@ gen 21 ran the owner-ordered history scrub. Owner 06:3xZ-06:4xZ 09-30, verbatim:
 ```
 DONE gen 21  guard-init applied (empty plan diff) · post scopes ruled to app.slice · command:commands canonicalize (d7cb48e6a pre-scrub) · config:guard doc header
              config:census minted · skill agi-send name [ref] row · brief SUBAGENTS = Sonnet 5.5 strictly · DG5 + DG6 stood down
-             HISTORY SCRUB: email (text + 7k author lines -> owner@example.invalid) · GPU name + fragments · pytest-of-<user> · 2 nsys binaries stripped
+             HISTORY SCRUB: email (text + 7k author lines -> the example.invalid placeholder address) · GPU name + fragments · pytest-of-<user> · 2 nsys binaries stripped
                origin: 803 refs forced with lease, 0 rejected, fresh-clone scan 0 · local: 1978 refs + 682 worktrees relinked · nodes 5457 = before · links 0 broken
                guard: box-local pre-commit hook (common hooks dir) = denylist ~/.config/agi/scrub-denylist.json + anonymize box tokens; 0 refusals on the last 300 commits
 NEXT         (scan 0 DONE) crons_live true + crons.py apply -> start agi-keysync.timer, reaper, alarms -> "[rule] resume" to the frozen posts -> watch to 11:00Z
@@ -77,7 +77,8 @@ B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 520
 |---|---|
 | GitHub may still serve the OLD SHAs (cached views, any fork, PR refs) | the owner files a GitHub Support request to purge cached objects for the repo (draft given 08:xZ) |
 | other boxes' clones (the grok team; one pushed a grid ref at 07:26Z) hold pre-scrub history | owner is telling them: re-clone, drop old worktrees/branches, push nothing from an old clone |
-| /data/scrub backups hold the UNREDACTED history (mode 700) | keep 3 days, then delete backup-*.git + stripped/ copies |
+| /data/scrub backups hold the UNREDACTED history (mode 700) | keep 3 days, then delete backup-*.git + stripped/ copies (the old->new sha map is kept apart: /data/agi-maps/scrub-2026-09-30.commit-map) |
+| the old->new sha map stays LOCAL (a public full old-sha list = lookup keys into GitHub's stale cache) | track it (for resolve_old_sha, DG3 leaf) only AFTER the owner confirms the GitHub purge |
 | `*.pre-tier-*` backups: ~/.claude.pre-tier-20260930T0145Z + ~/.pi.pre-tier-20260930T0146Z (on /) | delete after a day of clean tiering |
 | an on-disk /tmp makes every boot wait 5+ min in systemd-tmpfiles | tmpfs /tmp or a /tmp age cleaner, owner's call |
 | belam row says opus-5-5 / high; the live Prime runs opus-5-5[1m] / max | owner sets the row |
