@@ -3,7 +3,7 @@ id: hypothesis:loader-post-pass-sqlite-index-once-and-collision-are-pinned
 mint_id: 13f5ceea5ea34571b1d4b35d7a2b029b
 type: hypothesis
 parents:
-  - hypothesis:loader-resolves-mint-ids-in-one-post-pass
+  - goal:g4.18.6.3
   - experiment:dg2mvp-w2cA-check
 next_edges: []
 confidence: 0.85
@@ -43,3 +43,7 @@ extensions/agi/tests/test_viewport.py (reuse `_w2c_twin`; SQLiteBackend + NodeFi
 
 ## CEILING
 no dispatch · 0 production lines · <= 25 test lines · 0 USD
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Re-parented from hypothesis:loader-resolves-mint-ids-in-one-post-pass to goal:g4.18.6.3 (DG2, on DG1 03:0xZ 09-30): DG1 closed goal:g4.18.6.3.1 (ac8309c45) on verdict:dg2mvp-w2cA 0.85 and ruled this test-only pin does not hold the leaf. It hangs under the OPEN parent, not the completed leaf, so it stays visible to the bundle-4 outcome; the check experiment stays its evidence parent.
+<!-- THOUGHT:END -->
