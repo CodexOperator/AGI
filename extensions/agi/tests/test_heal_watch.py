@@ -2583,3 +2583,12 @@ def test_r2_alert_streak_resets_and_slot_deferrals_never_count(graph_project, mo
     for _ in range(4):  # under the line: the worker waits on the one-launch slot every pass
         _r2_one_pass(graph_project, monkeypatch, _R2_PSI(0.0))
     assert sent == [], sent
+
+
+# goal:g7.16.1.7.1.1.2: a post whose launch lock is held (a spawn in flight) is not recovered twice
+def test_p4_recovery_refused_while_the_post_launch_lock_is_held(graph_project, monkeypatch):
+    import rotate
+    with rotate.post_launch_lock(graph_project, "belam"):
+        launched, log = _r2_one_pass(graph_project, monkeypatch, _R2_PSI(0.0))
+    assert launched == ["worker-a"], launched  # the refused Prime never spends the pass's one slot
+    assert "launch lock held" in log, log
