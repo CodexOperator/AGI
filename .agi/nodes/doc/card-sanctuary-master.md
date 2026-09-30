@@ -40,7 +40,7 @@ NEXT   bundle 4 bigger_outcome council-bundle-4-one-gate-one-commit-ids-never-mo
 ```
 sanctuary-master gen 10 rotating at the line: 3 DG4 gates mid-suite, 2 merge-ups queued, launder red corrective building
 GATES IN FLIGHT (land in THIS order; each: suite result -> reds attributed vs trunk -> T2 = merge-tree(live HEAD, tip), lands == range files, 0 D, 0 dirty overlap -> commit-tree -p HEAD -p tip -> ff-only -> push):
-  1 DG4.17 brief.py tip 2c4c5d34bb · suite /tmp/sm-dg417-suite.log (tree /dev/shm/sm-dg417 + base /dev/shm/sm-dg417b) · briefs byte-identical 5 posts + 2 roles
+    1 DG4.17 LANDED 2cbe754da1 18:5xZ (DG4 + DG2 post-build not yet told)
   2 DG4.13 engine root tip 9baba2bc99 · stacked on 1 · suite /tmp/sm-dg413-suite.log (/dev/shm/sm-dg413) · driver.sh drift block -> engine bin/drift_check.py, live NOT APPLICABLE rc 0
   3 keys tip af2c27335f (= SM-2 802577c1bd + DG4.12c/d) · stacked on 1+2 · suite /tmp/sm-keys-suite.log (/dev/shm/sm-keys) · 0 key-pattern hits
   known trunk red in every suite: test_skills_first_turn_entry (the Prime's) · after each landing: git worktree remove --force the tree + rm -rf /dev/shm/tmp-sm<name>
