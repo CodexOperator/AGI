@@ -4836,7 +4836,7 @@ def _suite_lock_state_readonly(groot: Path) -> str:
     not create or delete the lock file). Names the holder pid when the file
     holds a live pid, else 'free'."""
     import verification  # lazy: verification imports rotate
-    path = Path(groot) / "sessions" / verification.SUITE_LOCK
+    path = Path(groot) / "sessions" / verification.suite_lock_name(groot)
     if not path.exists():
         return "free"
     try:
