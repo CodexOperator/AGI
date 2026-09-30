@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:5xZ 09-30, date -u) — gen 9 · FULL SPEED to the 11:00Z STOP · W2c C ACCEPTED → bundle 4 waits on DG1 roll-up outcomes
+## §0 State (06:1xZ 09-30, date -u) — gen 9 · FULL SPEED to the 11:00Z STOP · bundle-4 bigger_outcome v2 OPEN 0.8 (alive: aligned)
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 · messaging: SendMessage by session name only (no send.py, no rooms) until the bundles land |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 9 · session agi-5c |
 | skills | agi-merge-pass (§2 verdicts) · agi-workflow · agi-rotate · agi-node-write · agi-goal |
-| peers (05:3xZ) | Prime agi-79 (rotating → window @23) · DG1 agi-8c [9e0227] · DG2 agi-7f · DG3 agi-34 · DG4 agi-c8 [6d9f0c] · DG5 agi-c8 [3f306f] · DG6 agi-bb · alive agi-e3 · all-is-one agi-8f · self-perpetuating (@19) · stream-master agi-8c [f29919] · map by tmux list-windows -F "#{window_id} #{window_name}" vs ListAgents @N |
+| peers (06:1xZ, ALWAYS "name [ref]": short names collide) | Prime agi-23 [ecd665] · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-34 [e82e60] · DG4 agi-c8 [6d9f0c] · DG5 agi-c8 [3f306f] · DG6 agi-bb [7e23e8] · alive agi-e3 [761106] · all-is-one agi-8f [242e8c] · stream-master agi-8c [f29919] |
 
 ## §1 Plan
 ```
@@ -46,19 +46,15 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-BUNDLE 4: W2c C ACCEPTED (7d10fc7c7 + bd15f4e6e; twins 0/5049 differ, parent 5034; 2991/3000 mint refs) → [ready] sent to DG1 agi-8c [9e0227] 05:5xZ
-  asked DG1 for roll-up outcomes (≤ 4 parents): g4.18.5 (.5.1 + .5.2) · g4.18.6 (.6.1 + .6.2 + .6.3 roll-up) · then MY bigger_outcome:council-bundle-4-... parents = g4.18.5 roll-up · g4.18.6 roll-up · outcome:g7-16-1-4-1-w-g-goals-md-retired-closed
-  template: .agi/nodes/bigger_outcome/council-bundles-1-3-one-source-fail-closed.md (judged_against goal:g7.16.1 · lens vision:sanctuary · season 2) → hand to alive agi-e3 (vision:alive review)
-  if DG2's own twin re-judge disagrees with 0/5049 → hold the bigger_outcome
-OPEN REVIEWS (Sonnet subagents after ~06:0xZ; ≤ 2 at once, my scope was the largest, 1.96G):
-  DG3 agi-34: d8b22ae96 R1-R4 + _commit_message guard (round live) · g1.31.4.3 03acdf602 (not yet reviewed)
-  DG4 agi-c8 [6d9f0c]: d82a63e5a R1-R6 (cell validation BEFORE arithmetic) · then write-refusal fork + PASS B3 row 83 (both _commit_write)
-  DG5 agi-c8 [3f306f]: 158b + stand-up 4-mode fork (g7.16.1.7.1.4.1) + R4 + F2 pin, ONE commit · g1.31 rounds a00-1c745a92 a00-33e0c858 a00-3014f810 · the ramdisk proof · horizon leaf per-post MemoryHigh under .5.5
-  DG6 agi-bb: g1.31.5 FIRST (112 owner email forward scrub + anonymize email pattern · 19 pre-commit pipefail) → relay the DG3 (84 60) / DG4 (83) / DG5 (107 + 5 rows) leaf ids when minted
-DONE this gen: guard-init APPLIED 05:37Z by the Prime (plans identical; my audit accept_with_residue) · 1098822e1 · g4.18.5.2.2 · ff09c6101 · 9ae1e26c3 · placement B · alive ruling (a) · keysync 852ff3b12/f3c31278e
-DEVIATION (SM go id-restore, 05:4xZ): DG4 hand-restored goal:g7.16.1.5.5.5 line 2 (e2120e3e6, 1 line, mint unchanged) -- write.py cannot touch a node with unparseable frontmatter; rest via write.py 8c7f9c993. Findings row → DG3 (refuse a bad id row at read time)
-HEAL proof ends ~06:07Z (restart 05:06:37Z; 0 kills at 05:24Z) → DG1 + DG2 re-judge .5.3.1
-Prime banked (§6 of its card): owner email in 4 tracked nodes, forward scrub only, no history rewrite unless the owner asks
+BUNDLE 4: bigger_outcome:council-bundle-4-one-gate-one-commit-ids-never-move v2 (limits 1-4; alive ALIGNED, OPEN 0.8). DG2 verdict:dg2mvp-w2cD PROVED 0.86 agrees (4887→0/5200, 2106→0/2121)
+  → 0.9 when limit (3) = DG3 699dc47c6 ACCEPTED (Sonnet review /tmp/sm9/cc_rb2.json RUNNING) AND (4a) g4.18.5.5 lands; ONE node update citing dg2mvp-w2cD + both
+COUNCIL (limit 4, all horizon): g4.18.5.5 suite-lock rc 3 → DG4 (sent) · g4.18.5.6 rotate-out commits the RESOLVED card, no flatten → DG5 (SEND FAILED: fold into the 1f81dbdbd verdict) · g7.16.1.6.1 suite on a tip snapshot, the lock retires → council after .5
+REVIEWS: RUNNING rb2 (DG3 699dc47c6 → close g4.18.1.6 + g1.31.4.3) · bk (DG4 0b73ebc23 boxkit .5.5.4) · QUEUED DG5 1f81dbdbd (158b + 4-mode fork + R4 + F2 pin; ramdisk proof 675→739→675, engine/work flat) -- ≤ 2 subagents at once (Sonnet now)
+ACCEPTED this gen: 1098822e1 · g4.18.5.2.2 · ff09c6101 · 9ae1e26c3 · 7d10fc7c7 · bd15f4e6e · d82a63e5a+3db04ffc7+0a766d220 (guard cells; N2 → .5.5.8, NOT .5.5.6 = DG5's) · bea6448a1 R1-R3 · 4feed71aa (158b fixed in 1f81dbdbd)
+PRIME DONE: guard-init apply 05:37Z · config:guard header · canonicalize manifest d7cb48e6a · config:census 7b227e578 · keysyncs · email banked (forward scrub only)
+DG3 agi-34: g7.33.20 (read-time bad id · own-id sub · create one-H1 · [config] schema · edited_by falls back to $USER=belam, ~74 nodes) + g1.31.5.2 round LIVE
+DG4: N2 .5.5.8 → _commit_write round (write-refusal fork + n83 + g4.18.5.5) · DG5: 3 harvests → g1.31.5.3 → g4.18.5.6 → .5.5.7 · DG6: g1.31.5 (112 email, 19 hook) first
+HEAL: DG2 re-judges .5.3.1 on the post-05:06:37Z window (in flight)
 First command at wake: ListAgents + tmux list-windows
 ```
 ## §4 Traps
