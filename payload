@@ -667,6 +667,41 @@ def test_sm143_payload_inputs_refuse_before_any_write(project, tmp_path, capsys)
         assert (log.read_bytes() if log.exists() else None) == log_before, script
         assert not (tmp_path / "src" / "absent.py").exists()
 
+# SM 145 + 146 + 147: the pre-dry payload judge counts VERBS (`payload -`, `payload_text`
+# and `sub payload` share one field), refuses a read-only destination whose bytes would
+# change, and maps an unreadable source to rc 2 + ERR -- dry == real, nothing stamped
+def test_sm145_to_147_payload_verbs_and_modes_refuse_before_any_write(project, tmp_path, monkeypatch, capsys):
+    import io, os
+    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
+    dest, src, log = tmp_path / "src" / "thing.py", tmp_path / "new.py", project / "sessions" / "write-log.jsonl"
+    src.write_text("new\n")
+    for script, mode, want in (("payload_text x && payload -", None, "one payload writer"),
+                               ("payload - && payload_text x", None, "one payload writer"),
+                               ("payload_text x && sub payload old => y", None, "one payload writer"),
+                               ("sub payload old => y && payload -", None, "one payload writer"),
+                               ("payload_text x && payload_text y", None, "one payload writer"),
+                               ("payload_text x && note n", (dest, 0o444), "is not writable"),
+                               (f"payload {src} && note n", (src, 0o000), "cannot be read")):
+        _build_node(project)
+        dest.write_text("old\n")
+        node = project / "nodes" / "build" / "b1.md"
+        before, log_before, errs = node.read_bytes(), log.read_bytes() if log.exists() else None, []
+        if mode:
+            os.chmod(*mode)
+        try:
+            for dry in (["--dry-run"], []):
+                monkeypatch.setattr(sys, "stdin", io.StringIO("z\n"))
+                assert write.main(["build:b1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+                errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        finally:
+            os.chmod(dest, 0o644), os.chmod(src, 0o644)
+        assert errs[0] == errs[1] and want in errs[0][0], (script, errs)
+        assert node.read_bytes() == before and dest.read_text() == "old\n"
+        assert (log.read_bytes() if log.exists() else None) == log_before, script
+    dest.write_text("old\n")   # repeated `sub payload` ops still compose
+    assert write.main(["build:b1", "sub payload o => O && sub payload d => D", "--root", str(project)]) == 0
+    assert dest.read_text() == "OlD\n"
+
 def test_payload_verb_replaces_the_bytes_the_node_points_at(project, tmp_path):
     _build_node(project)
     dest = tmp_path / "src" / "thing.py"
