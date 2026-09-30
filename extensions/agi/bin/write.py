@@ -600,7 +600,8 @@ def _missing_link_refusal(root, set_fm: dict) -> str | None:
     if not ids:
         return None
     import spawn_gate  # noqa: PLC0415
-    missing = [i for i in ids if i not in spawn_gate.gate_for_root(root)[1]]
+    index = spawn_gate.gate_for_root(root)[1]   # SM 122: built ONCE per command, never per id
+    missing = [i for i in ids if i not in index]
     return (f"cannot set: {missing} name no node -- create it first, or name an id "
             f"that exists (goal:g4.18.6.2.1)") if missing else None
 

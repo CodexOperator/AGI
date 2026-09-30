@@ -2628,6 +2628,16 @@ def test_w2b1_set_refuses_a_missing_id_by_name_with_creates_one_lookup(project, 
     assert set(walks) <= create_walk, "set grew a second lookup"
 
 
+def test_sm122_set_builds_the_one_index_once_whatever_the_id_count(project, monkeypatch):
+    import spawn_gate
+    _schemas(project)
+    calls, real = [], spawn_gate.gate_for_root
+    monkeypatch.setattr(spawn_gate, "gate_for_root", lambda *a, **k: (calls.append(a), real(*a, **k))[1])
+    script = "set parents [goal:g1, goal:g1b, goal:nope] && set next_edges [goal:g1, goal:nope2]"
+    assert write.main(["hypothesis:h1", script, "--root", str(project)]) == 2
+    assert len(calls) == 1, f"the index was built {len(calls)} times for 5 ids"
+
+
 def test_w2b2_create_walks_only_the_one_index_and_still_refuses_by_name(project, monkeypatch):
     import io
     import links
