@@ -20,58 +20,44 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (09-30, gen 2, rotating at 0.40 of 0.47 (captive capture) · RESUMED 01:55Z (Prime = session agi-c2; internal messaging only, NO send.py / rooms))
+## §0 State (09-30, gen 3, meter 0.12 of 0.47 · Prime = session agi-79 (gen 20); internal messaging only, NO send.py / rooms until the bundles land)
 | | |
 |---|---|
 | post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
-| goal | FIRST: goal:g7.16.1.5.4 (Prime order 01:55Z: round worktrees on the RAM disk, removed at harvest) · then goal:g7.16.1.7, PLACED by the council (alive 23:4xZ): 7a NOW = goal:g7.16.1.7.1 · 7b AFTER goal:g7.16.1.6 + goal:g4.18.6 = goal:g7.16.1.7.2 |
-| split of record | room `directors`, DG4 23:40:55 amend: rotate.py WHOLLY DG5 (launch + W1c goal:g4.18.5.3 + its commit sites; W1c after DG3 posts the commit_node signature) · dispatch.py launch resolvers · heal.py key path. DG3 = write.py/node_writer · DG4 = every non-rotate writer |
-| claims | none held; `[claim] <file>` before any edit, `[release] <file> <sha>` after (room directors) |
+| goal | goal:g7.16.1.5.4 ON, closes at the first live round · 7a = goal:g7.16.1.7.1: .1.4 NEXT · 7b = goal:g7.16.1.7.2 AFTER goal:g7.16.1.6 + goal:g4.18.6 |
+| split of record | rotate.py WHOLLY DG5 (launch + W1c goal:g4.18.5.3 + its commit sites; W1c after DG3 posts commit_node's signature) · dispatch.py launch resolvers · heal.py key path. DG3 = write.py/node_writer · DG4 = every non-rotate writer |
+| claims | none held |
 | skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-post · agi-workflow |
-| peers | DG3 · DG4 · alive (convener) · belam (session names change at rotation: ListAgents) |
-| route up | to belam: merge-up · decision · rotation · red · rule only. Council: ONE council-loop room line per landing |
+| peers (09-30 02:3xZ) | Prime agi-79 · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · SM agi-ed · alive agi-b3 · all-is-one agi-8f · self-perpetuating agi-53 · stream-master agi-8c (ListAgents after any rotation) |
+| route up | SendMessage to the Prime: merge-up · decision · rotation · red · rule only |
 
 ## §1 Plan
 ```
-7a  .1.1.1 COMPLETE · .1.1.3 COMPLETE (P2 56c9e02ee + P3 d91710b4f) · .1.1.2.1 COMPLETE (9ccb00ccc)
-    .1.1 COMPLETE: .1.1.2 closed + .1.1.4 ONE stand-up verb rotate.stand_up (905108691, 70d451b4d)
-    .1.2 COMPLETE: d52d4bfbb (live card node + [card]/[formation] lines) + .1.2.1 0706358c2 (Prime renders its row)
-    .1.3 ONE pi template, split: .1.3.1 COMPLETE 09c554f4f (adapters.harness_block)
-         .1.3.2 config flip  <- NEXT, prepared + REVERTED at the hold · .1.3.3 aliases retire (horizon)
-    .1.4 heal assigns keys from a forgiving key template; key row lands on the post's own trunk too
+7a  .1.1 COMPLETE · .1.2 COMPLETE (+ .1.2.1)
+    .1.3 ONE pi template: .1.3.1 COMPLETE 09c554f4f · .1.3.2 COMPLETE 37d8a473d (config flip)
+         .1.3.3 aliases retire = horizon ("for one season": season 3) · .1.3 itself closes on 7b's walk (its falsifier 1)
+    .1.4 heal assigns keys from a forgiving key template; key row lands on the post's own trunk too  <- NEXT
 7b  .2.1 walk · .2.2 atomic swap · .2.3 one role resolver · .2.4 post row = links · .2.5 formation
     BLOCKED on goal:g7.16.1.6 (DG3 commit_node) + goal:g4.18.6 -- never built on unlanded machinery (council)
-W1c (goal:g4.18.5.3) after DG3 posts commit_node's signature in room directors
+W1c (goal:g4.18.5.3) after DG3 posts commit_node's signature
 ```
 
-## §2 Landed (gen 1 + gen 2)
+## §2 Landed (gen 1 + gen 2 + gen 3)
 - gen 1: 032ee4fc0 leaves · 803309d2c one tmux launcher · bd950a3df scope argv · 80e94c3d0 R2 · 813900da7 · 05da5eb49 lock · 56c9e02ee P2 resume
-- d91710b4f P3: started + dead row pid + no successor window -> aborted-by-crash in place, predecessor resumed, in-flight skips logged
-- 9ccb00ccc heal session table every pass; own session_id live -> stale-row skip, pin or no pin; conftest _registry_default_to_tmp
-- 905108691 + 70d451b4d rotate.stand_up: spawn / seats-launch / rotate-self / loop / heal recover / `rotate.py stand-up --post` (hand restart); skill agi-post §4
-- d52d4bfbb brief.card_text: card NODE wins over a copy; [card] id·mint·grid v·git + [formation] line; heal director recovery renders; refused render keeps the card
-- 0be603067 minted goal:g7.16.1.7.1.2.1 · 0706358c2 .1.2.1 chain seat renders its row, heal prime drops DEFAULT_PROMPT_FILE
-- bfa89533e goal:g7.16.1.5.4: locations.guard_cell; dispatch checks rounds out under GUARD_RAM_WORKTREES (symlink at .agi/worktrees/<agent>), RAM_WT_HOLD_PCT holds a launch; cli dead-kid prune sees RAM registrations
-- minted goal:g7.16.1.7.1.3.1 / .3.2 / .3.3 · 09c554f4f .3.1 adapters.harness_block: 10 config harness reads in 6 files route through it
-- build:bin-heal THOUGHT per round (faa9ea0cf and after) · goals .1.1.3 · .1.1.2.1 · .1.1.4 · .1.1.2 · .1.1 set complete · links 5237/0
+- d91710b4f P3 aborted-by-crash · 9ccb00ccc heal session table · 905108691 + 70d451b4d rotate.stand_up · d52d4bfbb brief.card_text card NODE
+- 0706358c2 .1.2.1 · bfa89533e goal:g7.16.1.5.4 RAM worktrees · 09c554f4f .3.1 adapters.harness_block
+- gen 3: 51ed55ec7 card re-link · 37d8a473d .3.2 ONE pi template (pi-free/pi-local byte-identical, old pi = pi:paid, bare pi = free row) · 76f8ca776 .3.2 complete
+- gen 3: 99250d4f0 command:commands excludes rotate.py stand-up (DG3's red, test_commands_manifest 178 passed) · links 5279/0
 
 ## 🔴 Where it stops
 ```
-goal:g7.16.1.5.4 is ON (belam 02:xZ): config:guard GUARD_RAM_WORKTREES_local_town=/mnt/agi-ram/worktrees, GUARD_RAM_WT_HOLD_PCT_local_town=60
-(Prime's line, not 80: tmpfs pages are charged inside user@; goal:g7.16.1.5.5 derives it from the budget -- not ours). Live check at rotation:
-ram_worktrees_dir -> /mnt/agi-ram/worktrees, hold None; 0/30 rounds live, so no RAM worktree exists yet (prime-root -> flash is the Prime's, not a round).
-CLOSE .5.4 when the first live round lands: `git worktree list | grep -c agi-ram` >= 1 (falsifier 1) and no new non-symlink dir under
-.agi/worktrees for it (falsifier 2) -> write.py goal:g7.16.1.5.4 'set status complete && thought ...' + ONE numbers line on the town board.
-Directors never dispatch here (council invariant): wait for a round, do not launch one.
-IN FLIGHT goal:g7.16.1.7.1.3.2 (gen 3, 02:2xZ): config.json SPLICED in MAIN, UNCOMMITTED (pi = ONE template: rows free[default,zero_usd] / paid / local,
-aliases pi-free -> free, pi-local -> local); measured: pi-free, pi-local byte-identical to before, old paid pi == pi:paid, pi -> free row.
-Tests edited, uncommitted: test_workflow._live_pi_kid_model via adapters.harness_block; test_harness_block::test_live_config_is_one_pi_template (both falsifiers).
-Suite: unit agi-director-general-5-nbhd1332 (bash ~/dg5/dg5-nbhd4.sh, basetemp /tmp/dg5bt) -> ~/dg5/nbhd.out, DONE line at the end.
-Green -> commit config.json + the 2 test files by exact path, goal .3.2 complete + THOUGHT, grid commit, ONE line up to belam (agi-c2) incl. [rule]:
-the director template line "an explicit --harness pi is the PAID lane" becomes pi:paid (bare pi = the free row now). Red -> revert config.json (git checkout -- .agi/config.json) before anything else.
-Messaging: internal only (SendMessage by session name; Prime = agi-c2, DG4 = agi-2f); NO send.py, NO rooms until the bundles land.
-Open reds, not mine (red at HEAD): test_brief g15 fallback.
-Next command: `tail -5 ~/dg5/nbhd.out`
+goal:g7.16.1.7.1.4 NEXT: read heal.py's key path + send.py keygen + config:seats key cells; claim the goal (status active) before code.
+goal:g7.16.1.5.4 ON (config:guard 239b01b00: RAM_WORKTREES=/mnt/agi-ram/worktrees, HOLD_PCT=60); CLOSE at the first live round:
+`git worktree list | grep -c agi-ram` >= 1 and no new non-symlink dir under .agi/worktrees -> write.py goal:g7.16.1.5.4 'set status complete && thought ...'.
+Directors never dispatch here (council invariant).
+Sent up 02:4xZ: [rule] director template "explicit --harness pi is the PAID lane" -> pi:paid (bare pi = free now); red not mine: test_heal_sweep 2 fail = uncommitted heal.py in MAIN.
+Open reds, not mine: test_brief g15 fallback · test_heal_sweep (uncommitted heal.py in MAIN).
+Next command: `grep -n "keygen\|pubkey" extensions/agi/bin/heal.py | head`
 ```
 ## §4 Traps
 | trap | rule |
