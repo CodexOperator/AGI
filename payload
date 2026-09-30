@@ -212,6 +212,7 @@ OOMD_PRESSURE_S=$(hostvar OOMD_PRESSURE_S 20)
 SYSTEM_MIN_M=$(to_mib "$(hostvar SYSTEM_MIN 128M)"); SSH_MIN_M=$(to_mib "$(hostvar SSH_MIN 64M)")
 CLAUDE_LOW_DIV=$(hostvar CLAUDE_LOW_DIV 6); CLAUDE_LOW_CAP_M=$(to_mib "$(hostvar CLAUDE_LOW_CAP 1024M)")
 ENGINE_SWAP_MAX=$(hostvar ENGINE_SWAP_MAX 0); RAMDISK_SWAP_MAX=$(hostvar RAMDISK_SWAP_MAX 0)
+USER_MIN_M=$(to_mib "$(hostvar USER_MIN 2048M)"); DOCKER_CAP_HEADROOM_PCT=$(hostvar DOCKER_CAP_HEADROOM_PCT 90)
 to_mib "$ENGINE_SWAP_MAX" >/dev/null; to_mib "$RAMDISK_SWAP_MAX" >/dev/null
 
 USER_SWAP_M=$(( SWAP_M * USER_SWAP_PCT / 100 < USER_SWAP_CAP_M ? SWAP_M * USER_SWAP_PCT / 100 : USER_SWAP_CAP_M ))
@@ -243,12 +244,12 @@ if [ "$MODE" = apply ] || [ "$MODE" = dry ]; then
   [[ $USER_HIGH_PCT =~ ^[0-9]+$ ]] && (( USER_HIGH_PCT >= 50 && USER_HIGH_PCT <= 99 )) \
     || die "GUARD_USER_HIGH_PCT_$HOSTKEY must be a whole number 50..99 (got '$USER_HIGH_PCT')"
   for _pv in USER_SWAP_PCT AGI_MAX_PCT AGI_HIGH_PCT ENGINE_HIGH_PCT WORK_HIGH_PCT AGI_OOMD_LIMIT \
-             OOMD_SWAP_USED_PCT OOMD_PRESSURE_PCT OOMD_PRESSURE_S CLAUDE_LOW_DIV; do
+             OOMD_SWAP_USED_PCT OOMD_PRESSURE_PCT OOMD_PRESSURE_S CLAUDE_LOW_DIV DOCKER_CAP_HEADROOM_PCT; do
     [[ ${!_pv} =~ ^[0-9]+$ ]] && (( ${!_pv} >= 1 && ${!_pv} <= 100 )) \
       || die "GUARD_${_pv}_$HOSTKEY must be a whole number 1..100 (got '${!_pv}')"
   done
   [[ $GRACE_S =~ ^[0-9]+$ ]] || die "GUARD_GRACE_$HOSTKEY must be whole seconds (got '$GRACE_S')"
-  (( USER_MAX_M >= 2048 )) || die "RAM ${RAM_M}M - reserve ${RESERVE_M}M - docker ${DOCKER_M}M leaves ${USER_MAX_M}M for $TUSER; need >= 2048M. Lower the docker budget or the reserve in config:guard."
+  (( USER_MAX_M >= USER_MIN_M )) || die "RAM ${RAM_M}M - reserve ${RESERVE_M}M - docker ${DOCKER_M}M leaves ${USER_MAX_M}M for $TUSER; need >= ${USER_MIN_M}M. Lower the docker budget or the reserve in config:guard."
 fi
 
 need_pkg() {
@@ -682,8 +683,8 @@ docker_section() {
       # near what it already holds: the kernel would squeeze it at once.
       local use_m
       use_m=$(awk -v u="$use" 'BEGIN{ n=u+0; if (u ~ /GiB$/) n*=1024; else if (u ~ /KiB$/) n/=1024; else if (u ~ /[0-9]B$/) n/=1048576; printf "%d", n }')
-      if (( use_m * 100 >= DOCKER_M * 90 )); then
-        warn "$name uses ${use_m}M, >= 90% of the ${DOCKER_M}M budget: NOT capped. Raise GUARD_DOCKER_BUDGET_$HOSTKEY first."
+      if (( use_m * 100 >= DOCKER_M * DOCKER_CAP_HEADROOM_PCT )); then
+        warn "$name uses ${use_m}M, >= ${DOCKER_CAP_HEADROOM_PCT}% of the ${DOCKER_M}M budget: NOT capped. Raise GUARD_DOCKER_BUDGET_$HOSTKEY first."
         continue
       fi
       run docker update --memory "${DOCKER_M}m" --memory-swap "${DOCKER_M}m" "$c"
