@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (11:03Z 09-30, STOPPED on belam's order: the owner's run ended 11:00Z -- idle, start nothing)
+## §0 State (13:50Z 09-30, RESUMED on belam's order until 18:00Z -- a STOP comes at 18:00Z)
 | | |
 |---|---|
 | post | director-general-4 · owner: resume on the town bundle; subagents Sonnet 5.5 only |
@@ -30,29 +30,27 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan (SM's order; if meter or load binds: harvests first, tell SM what you cannot reach)
 ```
-STOPPED 11:03Z (belam [rule] via agi-23: finish the atomic step, commit, card, idle; no new round or subagent)
-IN FLIGHT (left running, nothing new started): DG4.14 a00-afa6f87f RETURNED 12:04Z: g1.31.4.2.1 2nd pass tip e51efb790 (4 accepted) -- UNHARVESTED ·
-        DG4.15 a00-f7261183 RETURNED 11:44Z: g4.18.5.5 tip 6575a88d7 (1 kid accepted, experiment:a00-5c0a1d64-47f9f4) -- UNHARVESTED; on resume harvest + mur FIRST, [merge-up] to SM first ·
-        review unit agi-director-general-4-murq1 (mur-dg40789 = DG4.07/08/09; its last queued args held: /tmp/dg4/mur-4621.json.held)
-STOPPED units (never ran): murq2 dg410 · murq3 dg406 · murq4 dg412 · murq5 dg413 -- args in /tmp/dg4/mur-dg4{10,06,12,13}.json
-HARVESTED, awaiting review (tip · measured):
-  DG4.06 a8b9e67e0 DG4.01 residues 1-6 · busy_index 10 / write_guard 33 / node_writer 130
-  DG4.10 d8f0b9ee0 hook attribution · guard 43, corrupted-index probe names git rc 128
-  DG4.12 589c6dafd 158c 2nd · stand_up 34, hook neighbourhood 165
-  DG4.13 season2/loops/hypothesis-pb3-engine-root-one-r-a00-925ffcca · in a worktree: commands 40, drift_check 16, verification 75
-  DG4.16 92dd46207 = g1.31.2 CHAIN HEAD (DG4.08 + DG4.07 + trunk + cites 2nd pass, Sonnet kid)
-  DG4.09 2ffa3b259 run-mode · review: node-prose residues only -> director closes (TMM.327) once verify lands
-QUEUED ORDERS  DG4.11 = DG4.02 residues (/tmp/dg4/orders-DG4.11.md) -> cut from the DG4.15 tip (one writer in _commit_write)
-OWED TO SM AT MERGE-UPS  g4.18.5.5: values.core.suite_lock block · g1.31.1.1: [decision] Prime config lines (in_force, active_operating_mode, g7.16.2 cite)
+LIVE PARENTS  DG4.17 a00-012eab57 -> g1.31.1.1 3rd pass (stderr line count + node prose; base de-base-DG4-17 = 2ffa3b259)
+              DG4.18 a00-12019258 -> g1.31.2 stream 3rd pass ($B guard, deliverable 5, commands.stream.fragment, row that can't fail; base de-base-DG4-18 = chain head 92dd46207)
+LIVE MURS     murdg415 = DG4.15 g4.18.5.5 (SM's FIRST: on a clean verdict -> [merge-up] to SM + the values.core.suite_lock.file cell text; resolver = verification.suite_lock_name)
+              chain murq2 dg410 -> murq3 dg406 -> murq4 dg412 -> murq5 dg413 + 4621 -> murq6 dg414 (each /tmp/dg4/qrunN.sh waits on the previous unit)
+HARVESTED tips (measured):
+  DG4.15 6575a88d7 g4.18.5.5: SUITE_LOCK = 0 hits, F1 3 passed, write 44 / verification 100 / node_writer 130 (rotate.py + suite_guards.py 1-line reader moves)
+  DG4.14 e51efb790 g1.31.4.2.1 2nd: fd+copilot 35, dispatch 138 (+1 base artifact: scrubbed sha) -- touches dispatch.py +22 (DG3's file: name it at merge-up)
+  DG4.06 a8b9e67e0 · DG4.10 d8f0b9ee0 · DG4.12 589c6dafd · DG4.13 (branch ...engine-root-one-r-a00-925ffcca) -- all green, in the mur chain
+  g1.31.2 chain head 92dd46207 -> DG4.18 · g1.31.1.1 2ffa3b259 -> DG4.17
+QUEUED  DG4.11 = DG4.02 residues (/tmp/dg4/orders-DG4.11.md) -> cut from the DG4.15 tip once its mur is clean (one writer in _commit_write)
+        stranded-window fix (goal:g7.33.19 row 34, SM: build after DG4.15) -> mint a hypothesis under g7.33 in rotate.py's skipped-join path, dispatch
+OWED TO SM AT MERGE-UPS  g4.18.5.5: values.core.suite_lock.file (+ wait/hold if the mur says they belong) · g1.31.1.1: [decision] Prime config lines
   g1.31.2: rotations.md :83/:123 clauses + cap 6000->8000, locations.stream cell · g1.31.4.5b: retire engine_commit · C2 copilot goal leaf to mint
 LANDED 9f124d68f g1.31.1.2 · RULE: [merge-up] to SM FIRST, land on SM's GO (merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only)
-FINDINGS goal:g7.33.19 rows 25 (ceiling breach) · 26 (hook pinned to spawning tree) · 27 (parent notes on a goal)
+FINDINGS goal:g7.33.19 rows 25 · 26 · 27 · 34 (stranded window)
 DONE  .5.5.4 · .5.5.5 · .5.5.8 · g1.31.1.2 · NOT MINE g1.31.4.1 · g7.16.1.5.4 · .5.5.6 · .5.5.7 (DG3)
 ```
 
 ## 🔴 Where it stops
-Stopped at 11:03Z on belam's order (the owner's run ended 11:00Z): 2 parents + 1 review unit still in flight, 6 tips harvested awaiting review, nothing new started.
-Next command, ONLY after a resume order: `python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-4-*' --no-pager` -- then re-launch murq2..5 (`systemd-run --user --unit=agi-director-general-4-murqN ... /tmp/dg4/qrunN.sh`), harvest DG4.14/15, and send SM the DG4.15 [merge-up] first.
+Resumed 13:5xZ; 2 parents live, DG4.15's review running first, 5-unit mur chain queued.
+Next command: `systemctl --user show agi-director-general-4-murdg415 -p SubState; ls .agi/sessions/workflows/runs/ -t | head -3` then the DG4.15 verify file -> [merge-up] to SM.
 
 ## §4 Traps
 | trap | rule |
