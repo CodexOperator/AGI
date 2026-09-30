@@ -343,7 +343,7 @@ def test_no_override_makes_a_foreign_box_the_rows_own(graph, monkeypatch):
     import send
     for fn in (rotate.ensure_post_key, rotate._rotate_first_key):
         assert "box" not in inspect.signature(fn).parameters
-    sent, _sha = _keyed_repo(graph, "town-far", monkeypatch)
+    _keyed_repo(graph, "town-far", monkeypatch)
     monkeypatch.setenv("AGI_BOX", "town-x")
     forged = dict(_row(graph, "seat-a"), box="town-x")
     assert "REFUSED" in rotate._rotate_first_key(graph, None, "seat-a", forged)
@@ -434,18 +434,18 @@ def test_a_failed_rename_leaves_no_row_naming_a_lost_key(graph, monkeypatch):
     _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
     monkeypatch.setenv("AGI_BOX", "town-x")
     pub_before = _row(graph, "seat-a").get("pubkey")
-    real = rotate._place_seat_key
+    real = send._place_seat_key
 
     def boom(src, dst):
         raise OSError("rename refused")
-    monkeypatch.setattr(rotate, "_place_seat_key", boom)
+    monkeypatch.setattr(send, "_place_seat_key", boom)
     note = rotate.ensure_post_key(graph, "seat-a")
     assert "remint held" in note and "row restored" in note, note
     key = send._seat_key_path(graph, "seat-a")
     assert not key.exists()
     assert not list(key.parent.glob(f".{key.name}.*"))
     assert _row(graph, "seat-a").get("pubkey") == pub_before
-    monkeypatch.setattr(rotate, "_place_seat_key", real)
+    monkeypatch.setattr(send, "_place_seat_key", real)
     assert "reminted" in rotate.ensure_post_key(graph, "seat-a")
     assert _verifies(graph, "seat-a").startswith("VERIFIED seat-a")
     assert not list(key.parent.glob(f".{key.name}.*"))
@@ -462,6 +462,161 @@ def test_a_refused_row_unlinks_the_staged_key(graph, monkeypatch):
     assert not key.exists() and not list(key.parent.glob(f".{key.name}.*"))
 
 
+def _stage_orphan(graph: Path, seat: str, priv: bytes) -> Path:
+    """a temp in send._mint_seat_key(stage=True)'s shape holding `priv`."""
+    import send
+    import tempfile
+    key = send._seat_key_path(graph, seat)
+    key.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=f".{key.name}.", suffix=".tmp", dir=key.parent)
+    with os.fdopen(fd, "w") as f:
+        f.write(json.dumps({"scheme": send.seatsig.DEFAULT_SCHEME,
+                            "priv_hex": priv.hex()}))
+    return Path(name)
+
+
+def _a_new_key() -> tuple[bytes, str]:
+    import send
+    priv, pub = send.seatsig.get(send.seatsig.DEFAULT_SCHEME).keygen()
+    return priv, pub.hex()
+
+
+def _age_orphan(tmp: Path) -> Path:
+    """age a staged temp past the grace window -- an ORPHAN, not another
+    process's in-flight stage (hypothesis:...-orphan-staged-key, D2)."""
+    import time
+    when = time.time() - rotate.ORPHAN_TEMP_GRACE_S - 1
+    os.utime(tmp, (when, when))
+    return tmp
+
+
+def _seats_dirty(graph: Path) -> str:
+    return subprocess.run(["git", "-C", str(graph.parent), "status", "--porcelain",
+                           "--", ".agi/nodes/.geometry/seats.md"],
+                          capture_output=True, text=True).stdout.strip()
+
+
+def test_the_remint_adopts_its_own_orphan_staged_key(graph, monkeypatch):
+    """158c: the kill between the row write and the rename -- the next run
+    ADOPTS the temp (no remint, no key_history entry) and sweeps every other
+    orphan temp for the seat."""
+    import send
+    _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    priv, pub = _a_new_key()
+    seats = graph / "nodes" / ".geometry" / "seats.md"
+    # the row write landed naming the new pub; the rename never did
+    seats.write_text(seats.read_text().replace(_row(graph, "seat-a")["pubkey"], pub),
+                     encoding="utf-8")
+    key = send._seat_key_path(graph, "seat-a")
+    _age_orphan(_stage_orphan(graph, "seat-a", priv))
+    _age_orphan(_stage_orphan(graph, "seat-a", _a_new_key()[0]))  # an old orphan
+    assert _seats_dirty(graph), "the pre-crash row write is uncommitted"
+    note = rotate.ensure_post_key(graph, "seat-a")
+    assert "ADOPTED" in note and "remint held" not in note, note
+    assert json.loads(key.read_text())["priv_hex"] == priv.hex()
+    assert _row(graph, "seat-a")["pubkey"] == pub
+    assert _row(graph, "seat-a")["key_history"] == []
+    assert _verifies(graph, "seat-a").startswith("VERIFIED seat-a")
+    assert list(key.parent.glob(f".{key.name}.*")) == []
+    # 3/4: the adopt COMMITS the row (as the remint twin does) and its ONE
+    # finding names the box and the witness, like the twin's.
+    assert _seats_dirty(graph) == "", "the adopt left the adopted row uncommitted"
+    assert "town-x" in note and "witness" in note and _sha in note, note
+
+
+def test_a_stale_orphan_temp_is_swept_and_the_remint_still_runs(graph, monkeypatch):
+    """158c falsifier 2: a temp whose key the row does NOT name is unlinked
+    once it is an ORPHAN (past the grace window) and the normal remint path
+    runs (key_history grows by one)."""
+    import send
+    _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    old = _row(graph, "seat-a")["pubkey"]
+    key = send._seat_key_path(graph, "seat-a")
+    _age_orphan(_stage_orphan(graph, "seat-a", _a_new_key()[0]))
+    note = rotate.ensure_post_key(graph, "seat-a")
+    assert "reminted" in note and "ADOPTED" not in note, note
+    assert _row(graph, "seat-a")["pubkey"] != old
+    assert len(_row(graph, "seat-a")["key_history"]) == 1
+    assert list(key.parent.glob(f".{key.name}.*")) == []
+
+
+def test_a_fresh_non_matching_temp_is_a_concurrent_mint_and_is_left_alone(
+        graph, monkeypatch):
+    """D2: the sweep never unlinks a temp younger than ORPHAN_TEMP_GRACE_S
+    -- that is another process's in-flight stage, a LIVE private key between
+    its keygen and its rename. The dry run says it would sweep 0 (D3)."""
+    import send
+    _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    key = send._seat_key_path(graph, "seat-a")
+    row = _row(graph, "seat-a")
+    _stage_orphan(graph, "seat-a", _a_new_key()[0])   # written microseconds ago
+    dry = rotate._rotate_first_key(graph, None, "seat-a", row, dry_run=True)
+    assert "would remint" in dry and "sweep 0" in dry, dry
+    note = rotate.ensure_post_key(graph, "seat-a")
+    assert "reminted" in note, note
+    assert [p.name for p in key.parent.glob(f".{key.name}.*")] != [], \
+        "a concurrent mint's live private key was swept mid-mint"
+
+
+def test_a_fresh_matching_temp_is_a_live_mint_and_is_never_renamed_away(
+        graph, monkeypatch):
+    """158c-2 (b): the concurrent-mint interleaving -- the row already names a
+    temp's key but the temp is younger than the grace window (its writer may be
+    live, between staging and placing): it is neither adopted nor swept, and
+    a temp that vanishes mid-scan is skipped, not raised."""
+    import send
+    _keyed_repo(graph, "town-x", monkeypatch)
+    priv, pub = _a_new_key()
+    live = _stage_orphan(graph, "seat-a", priv)        # written microseconds ago
+    gone = _age_orphan(_stage_orphan(graph, "seat-a", _a_new_key()[0]))
+    real = Path.stat
+    monkeypatch.setattr(Path, "stat", lambda self, *a, **k: (
+        self.unlink() or real(self, *a, **k)) if self == gone else real(self, *a, **k))
+    assert rotate._orphan_staged_keys(send, graph, "seat-a", pub, False) == (None, 0)
+    assert live.exists() and not gone.exists()
+
+
+def test_a_zero_byte_key_file_never_blocks_the_adopt(graph, monkeypatch):
+    """158c-3: an empty crash-left key file beside a matching aged temp -- the
+    empty file is cleared first, so the adopt's never-clobber link lands."""
+    import send
+    _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    priv, pub = _a_new_key()
+    seats = graph / "nodes" / ".geometry" / "seats.md"
+    seats.write_text(seats.read_text().replace(_row(graph, "seat-a")["pubkey"], pub),
+                     encoding="utf-8")
+    _age_orphan(_stage_orphan(graph, "seat-a", priv))
+    key = send._seat_key_path(graph, "seat-a")
+    key.write_text("")
+    assert "ADOPTED" in rotate.ensure_post_key(graph, "seat-a")
+    assert json.loads(key.read_text())["priv_hex"] == priv.hex()
+    assert _row(graph, "seat-a")["pubkey"] == pub and not _row(graph, "seat-a")["key_history"]
+
+
+def test_the_dry_run_names_the_adopt_and_changes_nothing(graph, monkeypatch):
+    """158c falsifier 3 (mechanism, not prose): the dry run reports the
+    adopt AND the sweep count, and unlinks/renames/finds nothing."""
+    import send
+    _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    priv, pub = _a_new_key()
+    seats = graph / "nodes" / ".geometry" / "seats.md"
+    seats.write_text(seats.read_text().replace(_row(graph, "seat-a")["pubkey"], pub),
+                     encoding="utf-8")
+    _age_orphan(_stage_orphan(graph, "seat-a", priv))  # the key the row names
+    _age_orphan(_stage_orphan(graph, "seat-a", _a_new_key()[0]))  # an old orphan
+    row = _row(graph, "seat-a")
+    dry = rotate._rotate_first_key(graph, None, "seat-a", row, dry_run=True)
+    assert "would ADOPT its orphan staged key and sweep 1" in dry, dry
+    key = send._seat_key_path(graph, "seat-a")
+    assert not key.exists() and len(list(key.parent.glob(f".{key.name}.*"))) == 2
+    assert _sent == [] and not list((graph / "sessions").rglob("*.key-finding"))
+
+
 def test_the_seating_keys_from_the_template_too(graph, monkeypatch):
     """159: spawn's _first_seating_key adopts an existing key file and sends
     a keyed row with no key file to the own-box rule."""
@@ -474,3 +629,133 @@ def test_the_seating_keys_from_the_template_too(graph, monkeypatch):
     monkeypatch.setenv("AGI_BOX", "town-x")
     cells, note = rotate._first_seating_key(graph, "seat-a")
     assert cells == {} and "REFUSED" in note, note
+
+
+# ---------- SM-2: one key writer, loop keys the resolved seat, dry names it ---
+
+def test_cmd_loop_without_seat_keys_the_resolved_seat(graph, monkeypatch):
+    """falsifier 1: `seat-a-II` is the derived name; the row is `seat-a`."""
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (1, ""))
+    wins = graph / "windows.txt"
+    assert "pubkey" not in _row(graph, "seat-a")
+    rotate.cmd_loop(NS(
+        session_log=None, force=False, role="director", name=None, seat=None,
+        name_prefix="seat-a", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=None, dry_run=False, timeout=1), graph)
+    assert _row(graph, "seat-a")["pubkey"]
+
+
+def _temps(graph: Path, send) -> list:
+    key = send._seat_key_path(graph, "seat-a")
+    return list(key.parent.glob(f".{key.name}.*"))
+
+
+@pytest.mark.parametrize("fail", ["row", "rename"])
+def test_the_remint_mints_through_send_once_and_leaves_no_temp(
+        graph, monkeypatch, fail):
+    import send
+    _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    seen: list = []
+    real = send._mint_seat_key
+    monkeypatch.setattr(send, "_mint_seat_key", lambda *a, **k: (
+        seen.append(k.get("stage")), real(*a, **k))[1])
+    if fail == "row":
+        monkeypatch.setattr(rotate, "_write_identity_cells", lambda *a, **k: False)
+    else:
+        monkeypatch.setattr(send, "_place_seat_key", lambda s, d: (_ for _ in ()).throw(
+            OSError("rename refused")))
+    assert "remint held" in rotate.ensure_post_key(graph, "seat-a")
+    assert seen == [True] and not _temps(graph, send)
+    assert not send._seat_key_path(graph, "seat-a").exists()
+
+
+@pytest.mark.parametrize("pre_key", [False, True])
+def test_a_dry_spawn_names_mint_or_adopt(graph, pre_key, capsys):
+    import send
+    if pre_key:
+        send._mint_seat_key(graph, "seat-a", send.seatsig.DEFAULT_SCHEME)
+    rotate._first_seating_key(graph, "seat-a", dry_run=True)
+    word = "adopt" if pre_key else "mint"
+    assert f"would {word}" in capsys.readouterr().out
+    assert "pubkey" not in _row(graph, "seat-a")
+    assert f"{word}ed its" in rotate.ensure_post_key(graph, "seat-a")
+
+
+def test_a_dry_spawn_declined_adopt_prints_nothing(graph, monkeypatch, capsys):
+    """the dry plan shares the real decision, incl. an adopt that finds nothing"""
+    import send
+    send._mint_seat_key(graph, "seat-a", send.seatsig.DEFAULT_SCHEME)
+    monkeypatch.setattr(rotate, "_existing_seat_key", lambda *a: None)
+    rotate._first_seating_key(graph, "seat-a", dry_run=True)
+    assert "would" not in capsys.readouterr().out
+    assert rotate.ensure_post_key(graph, "seat-a") == ""
+
+
+def test_a_loop_with_an_explicit_seat_keys_that_exact_seat(graph, monkeypatch):
+    seen: list = []
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    monkeypatch.setattr(rotate, "stand_up", lambda root, post, body, **k: (
+        seen.append(post), (True, (1, "")))[1])
+    rotate.cmd_loop(NS(
+        session_log=None, force=False, role="director", name=None,
+        seat="seat-a-x", name_prefix="seat-a", model=None, effort=None,
+        settings=None, prompt_file=None, tmux_session="agi-rc",
+        window_path=str(graph / "windows.txt"), debug_file=None,
+        dry_run=False, timeout=1), graph)
+    assert seen == ["seat-a-x"]
+
+
+def test_the_staged_key_is_0600_and_place_never_clobbers(graph):
+    import send
+    tmp, _pub = send._mint_seat_key(graph, "seat-a", send.seatsig.DEFAULT_SCHEME,
+                                    stage=True)
+    assert tmp.stat().st_mode & 0o777 == 0o600 and tmp.stat().st_size
+    key = send._seat_key_path(graph, "seat-a")
+    key.write_text("existing")          # the target appeared after the stage
+    with pytest.raises(FileExistsError):
+        send._place_seat_key(tmp, key)
+    assert not tmp.exists() and key.read_text() == "existing"
+
+
+def test_the_remint_holds_when_a_key_file_appears_and_redoes_an_empty_one(
+        graph, monkeypatch):
+    import send
+    _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    key = send._seat_key_path(graph, "seat-a")
+    pub_before = _row(graph, "seat-a")["pubkey"]
+    real = send._place_seat_key
+    monkeypatch.setattr(send, "_place_seat_key",
+                        lambda t, d: (d.write_text("other"), real(t, d)))
+    note = rotate.ensure_post_key(graph, "seat-a")
+    assert "remint held -- a key file appeared" in note, note
+    assert key.read_text() == "other" and not _temps(graph, send)
+    assert _row(graph, "seat-a")["pubkey"] == pub_before
+    monkeypatch.setattr(send, "_place_seat_key", real)
+    key.write_text("")                  # a crash-left empty file is missing
+    assert "reminted" in rotate.ensure_post_key(graph, "seat-a")
+    assert key.stat().st_size
+
+
+def test_a_failed_dir_fsync_after_the_link_keeps_the_new_key(graph, monkeypatch):
+    import send
+    _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    old = _row(graph, "seat-a")["pubkey"]
+    monkeypatch.setattr(send.os, "fsync", lambda fd: (_ for _ in ()).throw(
+        OSError("fsync")) if os.fstat(fd).st_mode & 0o040000 else None)
+    assert "reminted" in rotate.ensure_post_key(graph, "seat-a")
+    assert _row(graph, "seat-a")["pubkey"] != old
+    assert send._seat_key_path(graph, "seat-a").stat().st_size
+
+
+def test_an_empty_key_file_on_an_unkeyed_row_decides_mint(graph):
+    import send
+    key = send._seat_key_path(graph, "seat-a")
+    key.parent.mkdir(parents=True, exist_ok=True)
+    key.write_text("")
+    assert "minted its first key" in rotate.ensure_post_key(graph, "seat-a")
+    assert key.stat().st_size and _row(graph, "seat-a")["pubkey"]

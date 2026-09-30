@@ -406,9 +406,11 @@ def _live_row(row: dict) -> bool:
     return bool(row.get("pid") or row.get("session_id"))
 
 
-def _mint_seat_key(root: Path, seat: str,
-                   scheme_name: str) -> tuple[Path, bytes] | None:
+def _mint_seat_key(root: Path, seat: str, scheme_name: str,
+                   stage: bool = False) -> tuple[Path, bytes] | None:
     """Mint ``<sessions>/seats/<seat>.key`` (0600) and return ``(path, pub)``.
+    ``stage=True`` writes a hidden 0600 temp beside it instead and returns
+    ``(temp, pub)``; the caller ``_place_seat_key``s it or unlinks it.
 
     REFUSES -- returns None -- when a key file ALREADY exists: a second
     keygen must never destroy a key by name (hypothesis:l4-every-live-row-is-
@@ -424,18 +426,40 @@ def _mint_seat_key(root: Path, seat: str,
         return None
     _priv, pub = scheme.keygen()
     payload = json.dumps({"scheme": scheme_name, "priv_hex": _priv.hex()})
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, SEAT_KEY_MODE)
+    if stage:
+        fd, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=d)
+        path = Path(name)
+    else:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, SEAT_KEY_MODE)
     try:
         with os.fdopen(fd, "w") as f:
             f.write(payload)
+            f.flush()
+            os.fsync(f.fileno())  # a published pubkey never beside a lost seed
     except BaseException:                                        # noqa: BLE001
-        try:
-            os.close(fd)
-        except OSError:
-            pass
+        if stage:
+            path.unlink(missing_ok=True)
         raise
     os.chmod(path, SEAT_KEY_MODE)
     return path, pub
+
+
+def _place_seat_key(tmp: Path, path: Path) -> None:
+    """A staged key linked into place, never over an existing file (the temp
+    is gone either way; ``FileExistsError`` when the target appeared), then
+    the directory fsynced so the name survives a crash."""
+    try:
+        os.link(tmp, path)
+    finally:
+        tmp.unlink(missing_ok=True)
+    try:  # the link landed: a failed dir fsync never un-places the key
+        dfd = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(dfd)
+        finally:
+            os.close(dfd)
+    except OSError as exc:
+        print(f"note: key placed, seats dir not fsynced ({exc})", file=sys.stderr)
 
 
 def _row_write_submit(graph: Path, rows: list, actor: str, role: str) -> bool:
