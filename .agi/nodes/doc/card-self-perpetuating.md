@@ -17,50 +17,52 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:4xZ 09-30 · RESUMED to 18:00Z by the owner, via belam agi-23; this session IS the post, the @19 successor was closed)
+## §0 State (21:5xZ 09-30 · rotating out at f=0.454, before the line: the next step cannot finish in this session)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-53 (ref 21dc2d, session 824fea59) · meter 0.43 at stop (line 0.47) |
+| post | self-perpetuating · outgoing CC session agi-53 (ref 21dc2d, session 824fea59) |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
-| messaging | SendMessage by session name ONLY (owner 01:4xZ): no send.py, no rooms, until the bundles land |
-| history | the WHOLE history was rewritten 06:3xZ-08:0xZ (scrub): old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map`; every sha on this card is post-scrub |
-| sessions | (08:xxZ, from ListAgents windows; re-check at wake) belam agi-23 · alive agi-e3 [761106] @16 · all-is-one agi-8f [242e8c] @1 · SM agi-12 @27 (13:5xZ) · DG1 agi-8c [9e0227] @21 · DG3 agi-b4 @26 (13:5xZ) · DG4 agi-c8 @18 · DG5 @22 none |
+| messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed and the assignment below asks for it |
+| history | the whole history was rewritten 06:3xZ-08:0xZ: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map`; every sha here is post-scrub |
+| sessions | names change after every reboot/rotation: map ListAgents' tmux @window against the posts row's window cell. 13:5xZ: alive agi-e3 [761106] @16 · all-is-one agi-8f [242e8c] @1 (rotating) · SM agi-12 @27 · DG1 agi-8c [9e0227] @21 · DG3 agi-b4 @26 · Prime agi-23 |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   B4 goal:g7.16.1.10 (placed by alive with SM: DG1 sketches leaves) · .7 coverage findings written by DG1 (6 HORIZON leaves) · S-goal pass · 4 rulings
-next   g7.16.1.10 leaves .1-.6 (DG1) lensed 13:4xZ -> DG1: ADD .10.7 the merge gate (PASS reads the report, refuses over RED / missing row, unreviewed:budget on the Prime's count, merge-pass §2 steps 2-4+6 retired by name; carries .10 F1) + AMEND .10.5 (residues from verify verdicts[] + missed[]) + .10.6 names its census dependency · DG1 WROTE them (.10.7 the merge gate minted; .10.5 + .10.6 amended) · .10.7 PLACED with DG3 (council: s-p + alive; negative widened to all 3 refusals) and told to DG3 + SM
-then   no OVERVIEW until g7.16.1.1.6 (DG2: .6.1 census, .6.2 home rule), .6, .7 and bundle 4 close
+NEXT   goal:g7.16.1.11 (owner 21:3x-21:4xZ 09-30, assigned to the council via agi-a3): ONE council design doc for a
+       RADICALLY SIMPLE engine -- per-post Unix users, write = a git commit, no standing worktrees, render off the
+       git graph, an MCP wrapper, a KEEP/REPLACE/SCRAP table. The three lenses design it FIRST, then ONE [decision]
+       line to belam with the doc id; DG3 builds only after. Free lane; no users created, no sudo.
+then   lens DG3's .10.3/.10.5/.10.7 as they land · no OVERVIEW until g7.16.1.1.6, .6, .7, bundle 4 close
 ```
 
-## §2 Landed (09-29 -> 09-30, post-scrub shas)
-- goal:g7.16.1.10 (f50d5f13c, fixes 11c4b0a41): merge-up reviews off the Prime; one review per change keyed by git patch-id + base blobs; reuse PROVES coverage; persisted round record; rounds polled per commit; one queued launcher (PER x CAP <= 6); unreviewed:budget rows; pi-free until the headless CC route
-- .7 coverage (Opus pass): finding 1 WITHDRAWN (locations.py:740 already via mem_cap.scope_argv); DG1 wrote the rest: .7.1.3.2 bullet 2 NOT HELD, leaves .7.1.5-.7 + .7.2.6-.8 HORIZON, .7.2.2 + .7.2.4 falsifiers widened; .7 guard wording = box NAME (e74848a415)
-- council 05:2xZ-06:0xZ (successor session, same seat): DG6 g1.31.4.2.2 meter fall-back STANDS (alive, 3 conditions to DG6) · bundle-4 lens: a rotation in a suite window rotates on an uncommitted card -> 4a g4.18.5.5 (DG4, prereq) · 4c g4.18.5.6 (DG5, lensed faithful) · 4b g7.16.1.6.1, all HORIZON
-- S-goal pass: s34 s4 s21 retired in place -> g6.50 · g4.21 · g4.18.5.4 (retire + renumber verbs); s1 -> g1.6.1 (29580091b); corrected on an Opus refutation (d923761ca)
-- .7 + .8 rewrites · g7.16.1.1.6 (proof + census) · bundle 2 outcome · rulings: keys (C) + witness (in config:key-authority + rotate.py) · replace payload NO · W2b body refs = declared regions · residue 154 fail-closed
+## §2 Landed (09-29 -> 09-30)
+- goal:g7.16.1.10 (merge-up reviews off the Prime): leaves .10.1-.10.7 by DG1; .10.7 the merge gate placed with DG3 (1c31bfe443), negative covers all 3 refusals; SM added the lane (7e24903cdb)
+- .7 coverage: 6 HORIZON leaves .7.1.5-.7 + .7.2.6-.8 by DG1; .7 guard = box NAME (e74848a415); finding 1 withdrawn (already fixed in HEAD)
+- S-goal pass: s34 s4 s21 retired in place -> g6.50 · g4.21 · g4.18.5.4 (retire + renumber verbs); s1 -> g1.6.1
+- .7 + .8 rewrites · g7.16.1.1.6 (proof + census) · bundle 2 outcome · rulings: keys (C) + witness · replace payload NO · W2b body refs = declared regions · residue 154 fail-closed
 
 ## 🔴 Where it stops
-11:0xZ 09-30 STOPPED at the owner's run end; idle until belam resumes the council
+goal:g7.16.1.11 council design doc handed on whole: read the goal and the inbox first, then convene the three lenses
 ```
-read SendMessage traffic; then: python3 extensions/agi/bin/links.py links
+python3 extensions/agi/bin/write.py goal:g7.16.1.11 'read body 1:80'
+python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN is shared; verify-suite.lock blocks commits | write.py lands uncommitted under the lock: commit by exact path once it clears (background wait loop) |
-| a pre-commit hook refuses owner email / GPU name / pytest-of-<user> / box tokens (post-scrub) | redact and commit again; never --no-verify |
+| a pre-commit hook refuses owner email / GPU name / pytest-of-<user> / box tokens | redact and commit again; never --no-verify |
 | a sha from memory is wrong after the scrub | map it through the commit-map, or re-read git log |
 | a new file + `git commit -- path` fails | `git add -- <path>` first |
-| write.py refuses `set id` (renumber) | git mv + the id line by hand, other fields via write.py, ONE commit (two commits = two live files per mint_id) |
-| an owner quote keeps its contractions | escape `'"'"'`, never paraphrase a verbatim line; a stamp never post-dates its commit |
+| renumber: write.py refuses `set id` | git mv + the id line by hand, other fields via write.py, ONE commit |
+| an owner quote keeps its contractions; a stamp never post-dates its commit | escape `'"'"'`; check `git log -1 --format=%cI` |
 | a review of the working tree can race a director's fix | re-check a regression against HEAD before routing it |
-| sessions rename after every reboot/rotation; posts rows go stale | trust ListAgents' tmux @window against the row's window cell |
+| a big design is context-heavy | fan the reading out to subagents (Sonnet 5.5; Opus only when the owner opens it) and keep the judgment |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken
 
 ## §6 BANKED
-- TWO live sessions act as self-perpetuating: agi-53 [21dc2d] (this card, 11:03:24) and the rotation successor seated 05:17:20 (rotate-self, sequence 348) -- the predecessor was never reaped. Options: (a) SM retires one session and re-points the posts row (recommended: keep one, the row decides which) · (b) leave both, idle. Owner/SM call
+(none)
