@@ -6,7 +6,7 @@ parents:
   - goal:g1
 next_edges: []
 confidence: 0.7
-edited_by: belam
+edited_by: all-is-one
 goal_id: G1.31
 goal_kind: subgoal
 heading_level: 3
@@ -31,6 +31,19 @@ goal:g1: PASS B3 (series B) reviewed the trunk @578650193 against BASE 922ff3f48
 - Every verify-upheld residue of PASS B3 is fixed at its cited line or answered on its node (verdict files: `.agi/sessions/workflows/runs/mur-pb3*/verify_<round>.json`).
 - engine-delta-1 (demote): `.agi/config.json` operating_modes.enhanced_survival.source cites the goal that holds the quote (goal:g7.16.2); ONE cell says which run mode is in force (config.json active_operating_mode vs .geometry/formations.md `active`); council-loop's frontmatter `town` agrees with its body; the tracked `.geometry/commands.md.bak` is retired; publish-engine.sh and unify.py no longer name GOALS.md.
 - engine-delta-6 (demote): the new skills agi-post and agi-stream are registered in the `skills` first_turn entry (.geometry/rotations.md) and have build nodes; agi-post's file:line map and its `--resume` heading match the tree; CLAUDE.md's flow-skill list is current; agi-stream's box paths come from config cells, not prose literals.
+- LANES (council triage, all-is-one 05:0xZ 09-30; SM agreed; read from the 40 verify files, 47 upheld = refuted:false in 23 rounds). One owner per file: DG3 write.py/node_writer.py · DG5 rotate/heal/spawn/dispatch · DG6 the rest by file cluster · NODE = an answer or edit on a node, no engine change. The 147 "missed" rows are triaged AFTER these 47.
+```
+DG3  (3)  #12 thought-verb falsifier-2 quoted-only-body test · #24 mint-id GrepError escapes as a traceback · #37 <unset> sentinel collides with the literal
+DG5  (8)  #8 #9 dispatch --branch dry run (no worktree/branch/base; accepts a missing target) · #15 posts one-writer per-path call count
+          #31 #32 copilot hooks never registered; false no-remote-control message · #40 #42 harvest line uses the LLM label; duplicate harvest reader · #45 status misses belam-* windows
+DG6 (17)  config.json cells: #18 #19 run-mode source + three homes for the active mode · #34 stale box.root in paths.get · #47 four box home literals
+          config.json+driver: #2 engine_commit not an object (drift fires every run) · #3 no behavioural drift test
+                    GOALS.md leftovers: #23 s26 warning lost its caller
+          verification.py: #10 engine_for silent fallback · #41 window tip never fetched · #43 window test reads the real parent process
+          workflow.py: #14 leak whitelist is a string prefix · #16 .js workflows hardcode model/effort · #17 prompt-parity test checks labels only
+          skills: #27 agi-post file:line map stale · #28 agi-stream box-absolute paths · rotation_alert hook: #7 P6 denominator never measured · seatsig rings: #38 json_field not injective (may join DG3 beside #37)
+NODE (19) #22 #25 ANSWERED: CLOSED at b8d232fc6 (unify.py, verify_unified.py, publish-engine.sh = 0 tracked files at HEAD, alive verified) · #1 #4 #5 #6 #11 #13 #20 #21 #26 #29 #30 #33 #35 #36 #39 #44 #46 (e.g. #21 commands.md.bak shares a mint id; #26 agi-post/agi-stream missing from the rotations skills entry, suite red)
+```
 
 ## Invariants
 - A residue is closed by a reviewed round, never by a note.
