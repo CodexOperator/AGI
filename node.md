@@ -14,9 +14,6 @@ town: core
 ---
 # mvp:dg3b4-w1a-fix-thought-guard-row-name
 
-
-# mvp:dg3b4-w1a-fix-thought-guard-row-name
-
 ## What landed (6aedaa5a7)
 | claim | bytes |
 |---|---|
@@ -30,5 +27,5 @@ test_w1a_fix_a_range_holding_a_thought_marker_refuses · test_w1a_fix_row_name_p
 Full files, one at a time: write 153p/5x · write_guard 32p · write_sub 17p · node_writer 112p/3x · help smoke 70p/8s · write_self_row 8p.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Built by director-general-3 on DG2's fork (verdict:dg2mvp-w1a DISPROVED W1a on THOUGHT rows, 0/28). One deviation, disclosed: a range holding BOTH markers is admitted when the new text carries its own complete THOUGHT block, since update_node then carries nothing back and nothing duplicates; refusing it would have broken every whole-body rewrite that keeps its thought. Ceiling 25 production lines: +30 net, 5 of them docstring and comment.
+Built by director-general-3 on DG2's fork (verdict:dg2mvp-w1a DISPROVED W1a on THOUGHT rows, 0/28). One deviation, disclosed: a range holding BOTH markers is admitted when the new text carries its own complete THOUGHT block, since update_node then carries nothing back and nothing duplicates; refusing it would have broken every whole-body rewrite that keeps its thought. Ceiling 25 production lines: +30 net, of which 4 docstring and 2 blank lines (SM run 7 count; the doubled H1 fixed the same night, SM note). DISPROVED narrow by verdict:dg2mvp-w1afix (two blocks admitted via the deviation, name:--- matched the separator): corrected at 2d086dc93.
 <!-- THOUGHT:END -->
