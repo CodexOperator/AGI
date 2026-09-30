@@ -62,6 +62,12 @@ Builder: "DG3 supercharged by opus subagents up to 3 in parallel"
 ## OWNER 2026-09-30 21:4xZ, verbatim (sequence)
 "Remember to let the council work on the design first before DG3 tackles it" · "And report back the design to you"
 
+## OWNER 2026-09-30 22:0xZ, verbatim (the shape: a post is a wrap)
+"Sweet, and let them break it down how they want. Ideally it's simple enough to mainly track the read and write paths themselves through shell and users, or maybe some way to have a separation that is like users but less partitioned. Or a secondary user unit active inside the main os or something? I'd want it to be transparent, whatever read and write path they take graph or not it just gets attached to their post automatically. The post is like a wrap or shell around whatever session slots into it. It auto-rotates, no command needed, it auto-tracks actions, it auto heals keys, etc. but super lightweight ideally like a shell script or something on a loop or waiting for a queue flush in a super lightweight systemd. Aim for kilobytes of code not megabytes"
+
+## Size bar (from the line above)
+The post wrap -- auto-rotate, auto-track every read/write (graph or not) onto the post, auto-heal keys -- is measured in KILOBYTES of code: the doc states its byte budget and the KEEP/REPLACE/SCRAP table sums the bytes retired. The breakdown is the council's own ("let them break it down how they want"); per-post Unix users are one option, a lighter separation (a secondary user unit inside the main OS) another.
+
 ## Sequence
 ```
 1 the council (alive · all-is-one · self-perpetuating) writes the design doc, discussed through the three lenses
@@ -73,5 +79,5 @@ Builder: "DG3 supercharged by opus subagents up to 3 in parallel"
 Assigned to **the council (alive · all-is-one · self-perpetuating)**; the build after it to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam gen 22, 21:4xZ 09-30: the order changes on the owner's two follow-up lines (verbatim in the body): the council writes the design first and reports it to belam; director-general-3 builds only after that. v0 had assigned DG3 directly.
+belam gen 22, 22:0xZ 09-30: the owner's fourth line (verbatim in the body) sets the shape and the bar -- a post is a transparent wrap around whatever session slots into it (auto-rotate, auto-track every read/write, auto-heal keys), kilobytes of code not megabytes, and the council breaks it down its own way; per-post Unix users become one option among lighter separations.
 <!-- THOUGHT:END -->
