@@ -915,6 +915,31 @@ def test_resolve_auto_level_is_the_one_resolver_both_paths_call():
     assert dispatch.resolve_auto_level("auto", 0.3, None,
                                        draw=lambda: 0.9) == "big", (
         "no target -> big: a small zoom has nothing to bind to")
-    src = (BIN / "dispatch.py").read_text(encoding="utf-8")
-    assert src.count('random.random() < big_split') == 0, (
-        "the auto rule is duplicated inline instead of resolved once")
+
+
+def test_split_cell_resolves_through_the_one_helper(project):
+    """A fake `big_idea_vs_small_idea_split` cell, drawn from ONE helper —
+    replacing a source count: the live module and a dry `--level auto` both
+    resolve the same value, which a second inline default cannot do."""
+    cfg = json.loads((project / ".agi" / "config.json").read_text())
+    cfg["big_idea_vs_small_idea_split"] = 0.0
+    (project / ".agi" / "config.json").write_text(json.dumps(cfg))
+    sys.path.insert(0, str(BIN))
+    import dispatch  # noqa: PLC0415
+    assert dispatch.big_split_threshold(cfg) == 0.0
+    r = _run(project, "--harness", "pi", "--tier", "kid",
+             "--target", "hypothesis:x", "--level", "auto", "--dry-run")
+    assert r.returncode == 0, r.stderr
+    assert "level=small (from auto)" in r.stdout, r.stdout
+
+
+def test_branch_dry_run_refuses_the_same_target_as_a_plain_one(project):
+    """The vacuous --branch check is gone: `--branch` does not move the graph a
+    dry target check reads, so both verdicts agree (a main-only target is
+    refused twice, exit 1; no worktree-graph note is printed)."""
+    for extra in ([], ["--branch"]):
+        for tgt, code in (("hypothesis:main-only", 1), ("hypothesis:x", 0)):
+            r = _run(project, "--harness", "pi", "--tier", "kid",
+                     "--target", tgt, "--dry-run", *extra)
+            assert r.returncode == code, (extra, tgt, r.stdout, r.stderr)
+            assert "worktree graph" not in r.stderr, r.stderr

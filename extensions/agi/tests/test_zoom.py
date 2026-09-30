@@ -647,15 +647,31 @@ def test_one_graph_load_per_small_and_parent_render(project, monkeypatch):
             f"{compose.__name__} loaded the wired graph {len(calls)}x")
 
 
-def test_has_node_target_lives_only_in_target_resolves():
-    """ONE target-existence check: `target_resolves`, and nowhere else.
-
-    `_render_level` kept a private `g.has_node(target)`, so a numeric level
-    refused in its own words rather than the one the dry run previews.
-    """
-    assert SOURCE.count("has_node(target)") == 1, (
-        "a second `has_node(target)` call site re-opened a private "
-        "target-existence check outside `target_resolves`")
+def test_each_render_path_makes_exactly_one_target_check(project, monkeypatch):
+    """ONE target check per render path, `_render_level` included — a counting
+    fake replaces the `has_node(target)` source count."""
+    sys.path.insert(0, str(BIN))
+    sys.path.insert(0, str(BIN.parent / "src"))
+    import zoom  # noqa: PLC0415
+    calls: list[str] = []
+    monkeypatch.setattr(zoom, "target_resolves",
+                        lambda r, t, g=None: calls.append(t))
+    args = argparse.Namespace(target="goal:g1", iter_n="1", agent_id="a00-x",
+                              tier="kid", push_further=False, runtime="pi",
+                              level="1")
+    for path in (zoom._compose_small, zoom._compose_parent):
+        calls.clear()
+        try:
+            path(project, args)
+        except zoom.ZoomUnavailable:  # the check's own refusal, not the count
+            pass
+        assert calls == ["goal:g1"], f"{path.__name__} checked {len(calls)}x"
+    calls.clear()
+    try:
+        zoom._render_level(project, args, 1)
+    except zoom.ZoomUnavailable:
+        pass
+    assert calls == ["goal:g1"], f"_render_level checked {len(calls)}x"
 
 
 def test_render_level_refuses_through_target_resolves(project, monkeypatch):

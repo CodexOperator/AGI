@@ -1408,6 +1408,13 @@ def resolve_auto_level(level: str, big_split: float, target: str | None,
     return "big" if resolved == "small" and target is None else resolved
 
 
+def big_split_threshold(cfg: dict) -> float:
+    """`big_idea_vs_small_idea_split` through ONE resolver: the dry report and
+    the live loop each carried their own `float(cfg.get(..., 0.3))`, and the
+    default could drift. goal:g1.31.4.1 corrective."""
+    return float(cfg.get("big_idea_vs_small_idea_split", 0.3))
+
+
 def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                     dispatch_harness: dict, adapter: object, args,
                     targets, tier_eff: int) -> int:
@@ -1451,7 +1458,7 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         root / "nodes" if root else None)
     if current_season is None:
         current_season = 1
-    big_split = float(cfg.get("big_idea_vs_small_idea_split", 0.3))
+    big_split = big_split_threshold(cfg)
     cap = spawn_budget.max_live(cfg)
     parallel = adapters.parallelism(cfg)
     # hypothesis:l3-parent-never-told-to-iterate -- the per-dispatch kid
@@ -1477,15 +1484,6 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         # (`a<NN>-<hex>`): the retired `dry<NN>-<hex>` nonce was a dialect no
         # live spawn produces, and the report says `dry-run` in its own words.
         agent_id = f"a{slot:02d}-{uuid.uuid4().hex[:8]}"
-        # conjunct 9 — a `--branch` dry run must refuse against the SAME graph
-        # the live spawn renders from: the worktree's, when one is already cut
-        # (never cut one here — a dry run writes nothing).
-        check_root = root
-        if getattr(args, "branch", False):
-            _wt_graph = locations.find_project_root(
-                branch_worktree_link(root, agent_id))
-            if _wt_graph is not None:
-                check_root = _wt_graph
         # ONE level resolver, shared with the live loop, so `--level auto` in
         # dry IS a level the round can take. An `auto` slot is target-checked
         # either way: the small draw is reachable, so a target the round may
@@ -1493,14 +1491,14 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         auto = level == "auto"
         level = resolve_auto_level(level, big_split, target)
         if level == "small" or auto:
-            _refused = zoom.target_resolves(check_root, target)
+            # The dry check reads the checkout the dispatcher RUNS IN; the
+            # re-point at the --branch worktree flipped this verdict both ways
+            # (a --branch dry run cuts no worktree) and is gone.
+            _refused = zoom.target_resolves(root, target)
             if _refused is not None:
                 print(_no_context_refusal(
                     target, level, zoom.unavailable_stderr(_refused)),
                     file=sys.stderr)
-                if check_root is not root:
-                    print(f"note: target checked against the worktree graph "
-                          f"at {check_root}", file=sys.stderr)
                 return 1
         brief_tier = _brief_tier_for(args.tier, tier_eff, target)
         with tempfile.TemporaryDirectory() as td:
@@ -1620,8 +1618,8 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
         print(f"  command: {' '.join(_compact(a) for a in cmd)}")
         # goal:g1.31.4.1 conjunct 1 — a `--branch --dry-run` names the three
         # facts the LIVE spawn would act on, through the SAME resolvers
-        # (spawner_base_branch :480, loop_branch_name :723,
-        # branch_worktree_link :768) — no hand-built `loop/<slug>` string, no
+        # (`spawner_base_branch`, `loop_branch_name`,
+        # `branch_worktree_link`) — no hand-built `loop/<slug>` string, no
         # fresh inline `git rev-parse`. The worktree is only NAMED
         # (branch_worktree_for_spawn, which runs `git worktree add`, is NOT
         # called). The stale-base refusal is deliberately NOT mirrored: the
@@ -2343,7 +2341,7 @@ def main() -> int:
         print(f"credentials: minting per spawn, limit=${cred_limit} "
               f"ttl={cred_ttl}min"
               + (f" workspace={cred_ws}" if cred_ws else " workspace=(default)"))
-    big_split = float(cfg.get("big_idea_vs_small_idea_split", 0.3))
+    big_split = big_split_threshold(cfg)
     timeout_min = int(cfg.get("agent_timeout_mins", 10))
     pipeline_template = args.template or cfg.get("pipeline_template")
 
