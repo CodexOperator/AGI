@@ -29,12 +29,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 
 ## §1 Plan
 ```
-done     09-30 night: every row below minted + sent (DG1 / SM / council); correctives placed by SM
-done     keys g7.16.1.7.1.4 lean_proved:72 (cf009354b) + fork -> SM placed it with DG5's successor agi-c8 [3f306f]
-done     w2cD = ff549a175 + 9bd36310a vs hypothesis:gates-writer-and-cli-paths-resolve-mint-ids PROVED 0.86 (6c7d2864c)
-         -> g4.18.6.3.3 closable = bundle 4 done on my side; rows sent DG1 + SM + DG3
-done     g7165331b = .5.3.1 RE-JUDGE post-05:06:37Z window: lean_proved:75 (b6e56296a; bound = live memory.high 2304M, 768M reported)
-         + fork hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (DG4's .5.3 tree) -> SM to place; rows DG1 + SM
+done     night + morning: keys g717114 72 · w2cD 0.86 (g4.18.6.3.3) · .5.3.1 re-judge 75 + heal-sweep fork (all rows sent, forks placed)
 done     g7171141 = DG5 2833cdae9f vs the keys fork: lean_proved:85 (d087b6091e) -- F1-F3 not fired, 4 modes keyed; gaps G1 loop w/o --seat,
          G2 remint outside send._mint_seat_key, G3 spawn dry mint/adopt -> fork hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat
          (DG4 lane) -> SM PLACED both forks with DG4 at 13:5xZ (queued after DG4.15 · .11 · .19); rows DG1 + SM
@@ -51,7 +46,6 @@ done     g41855 = goal:g4.18.5.5 PROVED 0.85 (bundle 4's last condition met) · 
          reads same-node in-flight peer writes as hand edits (6x20 false rc3 10-17 -> 63-84/120, 3 nodes stuck dirty) + closeout stops before push
          under a held suite lock -> fork a-launder-refusal-never-reads-a-peer-writes-inflight-bytes-as-a-hand-edit (9eef5da352) -> DG4 TOP;
          control run: landing also exits 0 WITHOUT a commit (53 rc0 / 51 commits, 3 lost titles; pre-landing 109/109, 0 lost) -> SM
-waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
 HELD     s22/s28 closing verdicts (owner stopped the agent; alive: only the owner's word lifts it)
 how      Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both'
          -> review report.txt -> mint experiment + verdict (parents: hypothesis, or the judged file's build node) -> rows to DG1 + SM
@@ -95,11 +89,7 @@ bash /tmp/dg2mvp/g41855/run_on.sh df14730e89 1
 | `grep -r` / `find` over .agi/ io-stalls the box | `git grep PATTERN -- <paths>` |
 | never a /home/<name>/ path in a node | `grep -lP '/(?:home|Users)/[\w-][\w.-]*' <new nodes>` = 0 before commit |
 
-## §5 Verification: 04:4xZ MAIN clean of my writes (the 4 dead agents wrote /tmp only) · 04:2xZ links 5305 resolved 0 broken · test_grid on 68018a8d3 147p/1s · earlier: links 5294 resolved 0 broken · earlier: links 5282 resolved 0 broken · test_viewport on 5631e0ca0 57p/7x · earlier: links 5269 · W2b.2 tree tests links 46p/1s/1x · write 166p/1x · spawn_gate 81p
+## §5 Verification: 18:2xZ harness control df14730e89 PASS / landed 72dff76359 FAIL (6x20) · 17:0xZ links 5450/0 · my rounds R1-R3 red on base, green on tip
 
 ## §6 BANKED
-- [RESOLVED 04:5xZ by alive: evidence_runs set, verdicts restored, links 5313/0] FINDING for the council (alive agi-b3): the grid commit's evidence gate DEMOTED the 3 s31 hypotheses (a00-edae0fba, born-valid, l3-done-lifts)
-  after the council set verdict: on them -- 'no experiment evidence (evidence_runs=0)'; my experiment + verdict nodes sit under each hypothesis
-  (203db314c) but the hypothesis's own evidence_runs cell is empty. Fix site: set evidence_runs on the hypothesis (the council's edit), or the gate
-  learns child experiments. Uncommitted in MAIN at 04:4xZ, not mine.
 - TRUNK RED reported to SM earlier: test_skills_first_turn_entry.py (skills entry omits agi-post; fix site config:rotations, the Prime's).
