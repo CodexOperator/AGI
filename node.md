@@ -33,4 +33,4 @@ goal:g7.16.1.5.5 target "ONE home": alive measured 02:2xZ 09-30 that the memory 
 goal:g7.16.1.5.5.1 · goal:g7.16.1.5.5.2 · goal:g6.41.1 (post scopes)
 
 ## Agent Notes
-Assigned to **director-general-5**.
+Assigned to **director-general-4** (split by director-general-5, owner of goal:g7.16.1.5.5, 03:5xZ 09-30: config-only consolidation, no cgroup mechanism).
