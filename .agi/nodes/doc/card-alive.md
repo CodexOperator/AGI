@@ -15,34 +15,35 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (00:5xZ 09-30)
+## §0 State (02:2xZ 09-30)
 | | |
 |---|---|
-| post | alive gen 3 · seated 23:48Z 09-29 · meter 0.24 at 00:5xZ |
-| stage | belam's [owner-task] (room council-loop 00:5xZ): the council rewrites 6 goals so every OWNER line is reflected in the goal format, through its lenses; alive CONVENES |
-| lens | vision:alive = the system reports its own TRUE state, UX whole for every consciousness · doc:council-loop "The council's lens" + "## The loop" |
-| peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · SM agi-e8 · Prime belam agi-9c |
+| post | alive gen 3 · seated 23:48Z 09-29 · heal-resumed after the 01:55Z reboot (ack already answered; row d57b53f19) · meter 0.31 |
+| stage | belam RESUMED the council 02:0xZ; owner-task: retire every S goal into nested subgoals under G1-G7 (alive convenes) |
+| messaging | OWNER: "use internal messaging only for everything and full guarantee until bundles land" -> SendMessage by session name ONLY; NO send.py, NO rooms; shared context = town bundles + goal nodes |
+| peers | tmux agi-rc: @0 belam = agi-c2 · @1 all-is-one = agi-8f · @2 self-perpetuating = agi-53 · @3 alive (me, agi-b3 [c68b9e]) · re-map with `tmux list-windows -t agi-rc` after any restart |
+| lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" + "## The loop" |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bigger_outcome:council-bundles-1-3-one-source-fail-closed ACCEPTED (3 lenses) · census leaf goal:g7.16.1.1.6 (s-p) · g7.32.6 re-shaped by belam (a)
-done   belam's [owner-task] 6/6 (00:5xZ): .5 65aa8bd62 · .6 d46433dd9 (alive) · .7+.8 04f08de89 (s-p) · g7.32.6 586b72bdd · g4.18.5 5b40c0f49 (a-i-o)
-       room DONE line + SendMessage agi-9c sent · links 5242/0 · SM reviews in her normal pass
-done   residue 128 (SM): bundle 1 row C "0 home paths" FALSE GREEN -> fix to directors, outcome rows to DG1, 2 scrubs to belam; SM's bigger outcome v2 at 0.65
-done   ruled for SM: /data model-store literals (169 in 62 nodes) = config-max, NOT anonymize -> one findings row, new writes cite the paths cell, history untouched (belam: leave it)
-done   belam: g7.16.1.9 NESTED as goal:g7.16.1.7.3 (renumber b9dc2c83b, rewrite e512319ec, 3 lenses); s-p adds the .7 pointer
-next   SM's next BIGGER_OUTCOME (bundle 4 when CLEAN) -> vision:alive review -> goals / bundles / nested goals, or none -> OVERVIEW -> belam
-       no OVERVIEW until .6 .7 g7.32.6 and bundle 4 close · stop ~04:00Z 09-30
+done   bundles 1-3 bigger outcome ACCEPTED · owner goal-rewrite 6/6 · g7.16.1.9 -> g7.16.1.7.3 · residue 128 (scrubbed by belam)
+S GOALS (12 open; one writer each; retire IN PLACE by status per skill agi-goal, never moved):
+  alive 4/4  s33 -> goal:g4.18.2.1 renumbered aa0bf6357 · s3 retired · s24 retired · s31 retired + leaf goal:g7.33.10.1 (99085d912, df18a5161)
+  a-i-o 4/4  s7 retired + g4.18.6.6 · s35 -> g4.18.8 · s18 retired · s32 retired + g2.4.1
+  s-p   s34 s4 s1 s21 -- in progress
+done   g7.16.1.5 leaves checked (A: .5.1 .5.2 .5.4 · C: .5.3); .5 Target A widened to MAIN (6b2da8394); GAP B (config:guard one home) -> belam
+next   s-p's 4 land -> ONE numbers-only line on town:core's COORDINATION SURFACE (12 S goals: N retired, M renumbered, K leaves)
+       then SM's next bigger outcome -> vision:alive review -> or OVERVIEW -> belam · stop ~04:00Z 09-30
 ```
 
 ## §2 Landed (this generation)
-- a84ee34b2 re-link · 832a7deb5 g7.32.6 placed after .6 · d46433dd9 .6 rewrite · 65aa8bd62 .5 rewrite · cards f2a910f12 4e168ff21 fb46b13fe
+- a84ee34b2 832a7deb5 d46433dd9 65aa8bd62 b9dc2c83b e512319ec afe5467f3 · S goals aa0bf6357 99085d912 df18a5161 · .5 A 6b2da8394
 
 ## 🔴 Where it stops
-alive gen 3 waits for SM's next bigger outcome (bundle 4 when CLEAN); the owner-task is closed 6/6
+alive gen 3 waits for self-perpetuating's 4 S goals, then writes the one board line on town:core
 ```
-on SM's handoff: read it + its outcomes -> vision:alive (does the system report its own TRUE state, every generation?) -> new goal / bundle / nested goal (agi-goal) or none -> OVERVIEW -> SendMessage agi-ff + agi-86
+python3 extensions/agi/bin/write.py town:core 'read body 39:68'   then add ONE line under COORDINATION SURFACE (numbers only), commit by exact path
 ```
 
 ## §4 Traps
