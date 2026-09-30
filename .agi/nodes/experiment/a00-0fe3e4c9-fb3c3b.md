@@ -90,3 +90,7 @@ python exits 1 (uncaught traceback), which is indistinguishable from a real
 refusal — a crash still fails CLOSED, so the safety claim holds, but the named
 line is skipped. A next run could make `scope-check` exit 2 on its own crash
 so the message is always attributable.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+built the g15 claim: pre-fix direct-run probe rc 0 (fail-open), post-fix rc 1 with one named line, 14 hook lines vs the hypothesis sub-clause of 8
+<!-- THOUGHT:END -->
