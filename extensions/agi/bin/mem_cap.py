@@ -355,17 +355,20 @@ def scope_argv(argv: list, slice_: "str | None", unit: "str | None" = None,
 
 
 def wrap_argv(argv: list, cap: "str | None",
-              cfg: "dict | None" = None) -> list:
+              cfg: "dict | None" = None, unit: "str | None" = None) -> list:
     """`cap is None` -> the SAME argv object, unwrapped; else systemd-run when
     usable, else the prlimit fallback. `cfg` is OPTIONAL and read only for the
     cache's `values.memcap` cells and for `spawn.tasks_max` (via
     `resolve_tasks_max`, which defaults when `cfg` is None) -- a caller with
     no config on hand gets the shipped defaults, so the hot path never has to
-    resolve the graph itself."""
+    resolve the graph itself. `unit` (mem_cap.unit_name) NAMES the scope so
+    its owner can stop it by name on exit; no unit -> the SAME argv, so every
+    existing caller is byte-unchanged."""
     if cap is None:
         return argv
     if systemd_run_usable(cfg):
         return ["systemd-run", "--user", "--scope", "-q",
+                *([f"--unit={unit}"] if unit else []),
                 f"--property=MemoryMax={cap}",
                 f"--property=TasksMax={resolve_tasks_max(cfg)}",
                 "--property=MemorySwapMax=0", "--", *argv]

@@ -153,7 +153,9 @@ def test_both_call_sites_share_the_one_helper():
     # last cfg-less `wrap_argv`. Both route through the ONE helper.
     assert "mem_cap.wrap_argv(spawn_args, _mem_cap, cfg)" in src
     src = (BIN / "workflow.py").read_text()
-    assert "mem_cap.wrap_argv(cmd, cap, cfg)" in src
+    # the stage seam ALSO names its scope now
+    # (hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit):
+    assert "mem_cap.wrap_argv(cmd, cap, cfg, unit=unit)" in src
 
 
 def test_workflow_stage_site_really_launches_under_a_cap(tmp_path):
