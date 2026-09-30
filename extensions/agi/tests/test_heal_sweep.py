@@ -1158,3 +1158,28 @@ def test_porcelain_unquote_full_escape_set_round_trips():
     # and it survives a UTF-8 re-encode as the original bytes
     assert got.encode("utf-8", "surrogateescape") == \
         b"a\tb\nc\"d\\e\xc3\xa9\xff.txt"
+
+
+def test_sweep_does_not_rearchive_a_locked_tree_until_its_state_changes(
+        repo_root, four_worktrees, monkeypatch):
+    """SM-1: a locked dirty tree cannot be removed (no second --force). Pass 1
+    archives it once and refuses WITH git's reason; pass 2 (same bytes) writes
+    no second archive and never removes it; one new byte in the already-
+    modified file (status lines unchanged) is archived again."""
+    log = _graph(repo_root) / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    wt, ref = four_worktrees["a00-bbbb22"], "refs/archive/worktrees/a00-bbbb22-dirty"
+    _sh("git", "-C", str(repo_root), "worktree", "lock", str(wt))
+    n = lambda: log.read_text().count("[sweep] archived a00-bbbb22")
+    heal._sweep_finished_worktrees(_graph(repo_root))
+    first = _ref(repo_root, ref)
+    assert first and n() == 1
+    assert "[sweep] refused a00-bbbb22: remove failed (" in log.read_text()
+    assert "locked" in log.read_text().split("[sweep] refused a00-bbbb22")[1]
+    heal._sweep_finished_worktrees(_graph(repo_root))
+    assert n() == 1 and _ref(repo_root, ref) == first, "same state: not re-archived"
+    assert wt.exists(), "a locked tree is never removed"
+    (wt / "base.txt").write_text("base\nmodified\nmore\n")
+    heal._sweep_finished_worktrees(_graph(repo_root))
+    assert n() == 2 and _ref(repo_root, ref) != first, "changed state: archived again"
+    assert wt.exists()
