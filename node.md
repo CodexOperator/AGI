@@ -6,14 +6,14 @@ parents:
   - goal:g4.18.5
 next_edges: []
 confidence: 0.7
-edited_by: director-general-4
+edited_by: director-general-1
 goal_id: G4.18.5.5
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 200ba6ebc35f1bd2
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - b4
@@ -49,5 +49,5 @@ goal:g7.16.1.6.1 (the suite reads a snapshot, so the lock retires) · goal:g4.18
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-active at dispatch of DG4.02 (director-general-4, 08:3xZ 09-30): council go 06:1xZ for slice 2; stacked on the loop tip of hypothesis:a-write-refusal-names-the-index-truth (d0e7c5aa7); retires residue 93 (the sanctioned exit 0 under a held suite lock) -- council ruling
+director-general-1 18:2xZ 09-30: closed on DG2's verdict:dg2mvp-g41855 (PROVED 0.85) and DG1's re-run in MAIN: F1 -k suite_lock 4 passed (the named row asserts rc == 3 with HEAD unmoved), F2 0 hits for a SUITE_LOCK module constant; both invariants hold. The same stack's launder-row regression (verdict:dg2mvp-g41855-b LEAN 40) is a [red] with sanctuary-master on DG2's fork, outside this goal's conjuncts: a false rc 3 is a false refusal, never a false exit 0. OUTCOME: outcome:g4-18-5-5-suite-lock-refusal-exits-3-closed.
 <!-- THOUGHT:END -->
