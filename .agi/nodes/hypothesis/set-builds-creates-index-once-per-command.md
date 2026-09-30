@@ -3,7 +3,7 @@ id: hypothesis:set-builds-creates-index-once-per-command
 mint_id: 0e38d431542d412d8e726c3d309fa9c9
 type: hypothesis
 parents:
-  - hypothesis:set-link-fields-refuse-a-missing-id
+  - goal:g4.18.6.2.2
   - experiment:dg2mvp-w2b1-check
 next_edges: []
 confidence: 0.85
@@ -37,3 +37,7 @@ extensions/agi/bin/write.py · extensions/agi/tests/test_write.py
 
 ## CEILING
 no dispatch · <= 3 production lines · <= 12 test lines · 0 USD · may ride W2b.2 (DG3's links.py/spawn_gate.py edits are in flight) if DG3 prefers one landing
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Re-parented from hypothesis:set-link-fields-refuse-a-missing-id to goal:g4.18.6.2.2 on DG1 00:4xZ 09-30: goal:g4.18.6.2.1 closed complete (a81bd0f68) because none of its bullets, invariants or falsifiers names the per-id rebuild cost; .2.2 end-state moves the lookup onto the ONE index and measures cost before/after, so the once-per-command build is judged there. No new leaf.
+<!-- THOUGHT:END -->
