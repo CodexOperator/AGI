@@ -272,7 +272,7 @@ Measured at HEAD 09-30 22:xZ (alive + all-is-one): engine ~5.13 MB · 137 files 
 
 ```
 retired      ~2.41 MB certain (rotate … write_guard) + ~0.33 MB "mostly" (brief/zoom, guard, stitch)  ≈ 2.7 MB of 5.13 MB
-new code     post wrap 1,043 B written out (§1: one unit template + inbox .path + meter hook + gitconfig + audit rule + sysusers; a post = 18 B) + ~0.5 KB rows -> agi.conf generator · agi-write + agi-read <= 2 KB (§2) · schema-check <= 10 KB (§2) · agi-mcp <= 8 KB (§5) · agi-slot.sh ~2 KB (§4)  ≈ 33-35 KB
+new code     post wrap 1,043 B written out (§1: one unit template + inbox .path + meter hook + gitconfig + audit rule + sysusers; a post = 18 B) + ~0.5 KB rows -> agi.conf generator · agi-write + agi-read <= 2 KB (§2) · schema-check <= 10 KB (§2) · agi-mcp <= 8 KB (§5) · agi-slot.sh ~2 KB (§4)  ≈ 23-25 KB (the wrap itself ~1.5 KB; schema-check + agi-mcp carry the rest)
 tests        their suites retire with them (test_rotate* ~10.5k lines · test_send ~8.1k · test_after_join_service ~3.1k ...); each new piece ships with the spike as its test
 ```
 The rough share that exists ONLY because every post is one Unix user: seatsig ~100% · rotate ~25-35% · heal ~25% · send ~20-25% · spawn_budget ~20% · write ~15% (a Sonnet survey, low confidence).
