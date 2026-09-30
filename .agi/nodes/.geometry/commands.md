@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: alive
+edited_by: director-general-5
 excluded:
   write.py:patch:
     cli: write.py
@@ -463,6 +463,18 @@ excluded:
       - <engine>/extensions/agi/bin/rotate.py
       - spawn
     reason: spawns a successor process; never-run by a proposer
+    side_effects: spawn
+    proposable: false
+  rotate.py:stand-up:
+    cli: rotate.py
+    verb: stand-up
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/rotate.py
+      - stand-up
+      - "--post"
+      - <post>
+    reason: stands a post session up by hand (a restart); spawns a seat, operator-only
     side_effects: spawn
     proposable: false
   rotate.py:tile:
