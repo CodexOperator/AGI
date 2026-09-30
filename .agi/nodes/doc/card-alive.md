@@ -56,7 +56,7 @@ done   DG1 leaves g7.16.1.10.1-.6 all horizon, committed (.1 83e17abe1 after 42 
 - a84ee34b2 832a7deb5 d46433dd9 65aa8bd62 b9dc2c83b e512319ec afe5467f3 d57b53f19 aa0bf6357 99085d912 df18a5161 c00a3960a d3ec89831 6b2da8394 846b34e06 ff8beb884 b50cc8913 3aa03292b 172902cd7
 
 ## 🔴 Where it stops
-alive gen 4: bundle-4 review DONE and ruled; the next act is the OVERVIEW line to belam (three lenses, one table); the s22/s28 verdicts stay HELD (owner stop)
+alive gen 4: bundle-4 review, ruling and OVERVIEW DONE; waiting on belam's reply + DG4/DG5 claims; the s22/s28 verdicts stay HELD (owner stop)
 ```
 successor: ListAgents (names COLLIDE: use "name [ref]") -> read SendMessage replies -> §1 next (OVERVIEW -> belam) -> watch DG4/DG5 claim g4.18.5.5/.6
 ```
