@@ -31,6 +31,7 @@ tool exists to catch (H0/H0b: 29k nodes lost).
 from __future__ import annotations
 
 import argparse
+import atexit
 import hashlib
 import json
 import os
@@ -110,7 +111,7 @@ def _refuse_suite_lock_cell(cell: str, value, why: str) -> None:
     print(f"WARN: values.core.suite_lock.{cell} {value!r} {why} -- refusing it", file=sys.stderr)
 
 def suite_lock_policy(groot) -> dict:
-    """`values.core.suite_lock` = {file, write_commit_wait_s, hold} -- the ONE
+    """`values.core.suite_lock` = {file, write_commit_wait_s, hold, hold_wait_s} -- the ONE
     resolver over the lock policy: the NAME, the WRITE WAIT and the HOLD RULE,
     so the rule travels with the name
     (hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block).
@@ -142,8 +143,16 @@ def suite_lock_policy(groot) -> dict:
         _refuse_suite_lock_cell("hold", hold, "is not a rule this build implements")
     if not isinstance(hold, str) or hold != DEFAULT_SUITE_LOCK_HOLD:
         hold = DEFAULT_SUITE_LOCK_HOLD
+    raw = cell.get("hold_wait_s")   # STOPGAP 90 s (callers time out at 120 s); finite and >= 0, else the default
+    try:
+        hold_wait = float(raw)
+    except (TypeError, ValueError):
+        hold_wait = -1.0
+    if not 0 <= hold_wait < float("inf"):
+        raw is None or _refuse_suite_lock_cell("hold_wait_s", raw, "is not a finite number >= 0")
+        hold_wait = 90.0
     return {"file": file_name, "write_commit_wait_s": cell.get("write_commit_wait_s"),
-            "hold": hold}
+            "hold": hold, "hold_wait_s": hold_wait}
 
 
 def suite_lock_name(groot) -> str:
@@ -935,6 +944,42 @@ def suite_lock_holder(groot: Path) -> int | None:
     if not _lock_held_by(groot, holder):
         return None
     return holder
+
+
+_INFLIGHT: list = []   # g1315131: this process's write.py in-flight markers, sessions/write-inflight/<sha1(path)[:16]>.<pid>.<rand>
+
+
+def inflight_clear(only=None) -> None:
+    """Remove `only` (one call's markers) or, by default, every marker this process holds."""
+    for f in list(_INFLIGHT if only is None else only):
+        f.unlink(missing_ok=True)
+        _INFLIGHT.remove(f)
+
+
+atexit.register(inflight_clear)
+
+
+def inflight_mark(groot, paths) -> list:
+    """Record `paths` BEFORE their bytes move; return THIS call's markers."""
+    d = Path(groot) / "sessions" / "write-inflight"
+    d.mkdir(parents=True, exist_ok=True)
+    mine = [d / f"{k}.{os.getpid()}.{os.urandom(3).hex()}"
+            for k in {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}]
+    for f in mine:
+        f.write_text("")
+    _INFLIGHT.extend(mine)
+    return mine
+
+
+def inflight_peers(groot, paths) -> list:
+    """The LIVE peer pids with a write in flight on `paths`; a pid that is not an int > 0, or is dead, is stale: removed."""
+    ks, live = {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}, []
+    for f in (Path(groot) / "sessions" / "write-inflight").glob("*.*"):
+        k, pid = (f.name.split(".") + [""])[:2]
+        pid = int(pid) if pid.isdecimal() else 0
+        if k in ks and pid != os.getpid():
+            live.append(pid) if 0 < pid < 2**31 and _pid_alive(pid) else f.unlink(missing_ok=True)
+    return live
 
 
 def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
