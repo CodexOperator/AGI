@@ -640,7 +640,7 @@ def _live_recovered_probes_node(root, cli):
 def test_the_LIVE_repaired_artifact_is_still_in_shape():
     """ITEM 6: the round DELETED the file's only live pin on
     `.agi/nodes/experiment/a00-fe05fdae-a240f5.md` -- the exact artifact the
-    parent claim's repair conjunct is about, hand-landed at 5a24ccfbd. With
+    parent claim's repair conjunct is about, hand-landed at 2497e2212. With
     it gone nothing held that repair in place. Restored, and narrow: it
     reads the LIVE file and asserts only that a real recovered `probes` list
     still loads clean and in shape. It SKIPS rather than divides when there
