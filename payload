@@ -549,7 +549,8 @@ def build_type_index(nodes_dir) -> dict:
         nid = fm.get("id")
         if isinstance(nid, str) and nid.strip():
             index[nid.strip()] = canonical_type(fm.get("type") or "")
-    return index
+    import links   # goal:g4.18.6.3.3: a mint-id parent reads as its address twin
+    return links.resolving(index, p.parent)
 
 
 def resolve_nodes_root(root, schemas_dir=None) -> Path:
@@ -837,10 +838,13 @@ def nearest_vision(nodes_dir, start_ids, *, max_depth=6):
     if not nodes_dir:
         return (None, "core")
     from collections import deque
+    import links   # goal:g4.18.6.3.3: walk mint-id parents as their addresses
+    r = links.address_resolver(Path(nodes_dir).parent)
     seen: set = set()
     dq = deque()
     for sid in start_ids or ():
         sid = str(sid or "").strip()
+        sid = r(sid) or sid
         if sid and sid not in seen:
             seen.add(sid)
             dq.append((sid, 0))
@@ -880,6 +884,7 @@ def nearest_vision(nodes_dir, start_ids, *, max_depth=6):
             parents = [parents]
         for p in parents:
             p = str(p or "").strip()
+            p = r(p) or p
             if p and p not in seen:
                 seen.add(p)
                 dq.append((p, depth + 1))
