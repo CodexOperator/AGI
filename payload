@@ -340,12 +340,13 @@ def _load_wired_graph(root: Path):
         cfg = json.loads(cfg_path.read_text())
         use_sqlite = cfg.get("persistence", {}).get("type") == "sqlite"
 
+    import links  # noqa: PLC0415  (goal:g4.18.6.3.1: the loader's parents post-pass)
     if use_sqlite:
         try:
             from graph_core.persistence.sqlite_backend import SQLiteBackend
             from graph_core.db_loader import DBLoader
             db_path = root / cfg["persistence"]["path"]
-            g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory()
+            g, loaded = DBLoader(SQLiteBackend(db_path)).load_directory(resolve=links.address_resolver(root))
         except Exception as e:
             raise ZoomUnavailable(f"sqlite backend unavailable: {e}") from e
     else:
@@ -353,7 +354,7 @@ def _load_wired_graph(root: Path):
             from graph_core.loader import load_directory
         except Exception as e:
             raise ZoomUnavailable(f"filesystem loader unavailable: {e}") from e
-        g, loaded = load_directory(root / "nodes")
+        g, loaded = load_directory(root / "nodes", resolve=links.address_resolver(root))
 
     for ln in loaded:
         for parent_id in ln.node.parents:
