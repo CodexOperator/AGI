@@ -19,7 +19,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (09:38Z 09-30, successor of the 08:35Z rotation)
+## §0 State (11:03Z 09-30, STOPPED on belam's order: the owner's run ended 11:00Z -- idle, start nothing)
 | | |
 |---|---|
 | post | director-general-4 · owner: resume on the town bundle; subagents Sonnet 5.5 only |
@@ -30,30 +30,30 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan (SM's order; if meter or load binds: harvests first, tell SM what you cannot reach)
 ```
-LIVE PARENTS  DG4.15 a00-f7261183 -> g4.18.5.5 ALONE (DG4.06 dropped it; SM: bundle-4's LAST condition -> [merge-up] FIRST + values.core.suite_lock text); base de-base-DG4-15 = a8b9e67e0
-              DG4.14 a00-afa6f87f -> g1.31.4.2.1 2nd pass (fd test rows + one helper copy · copilot bare --seat, seat from dispatch, argv test on adapter output, testable_claim); base de-base-DG4-14 (goal notes stripped)
-                     -> then MINT a goal leaf for C2 (copilot-binary-read registration, unfalsifiable on this box)
-              DG4.10 HARVESTED tip d8f0b9ee0 (hook attribution): guard 43 passed, corrupted-index probe names git rc 128 -> review in murq2
-QUEUED        DG4.11 = DG4.02 residues (orders /tmp/dg4/orders-DG4.11.md) -> cut from the DG4.15 tip when it returns (one writer); section on hypothesis:a00-1b70098e-011986
-HARVESTED     DG4.13 a00-925ffcca (engine resolver): IN A WORKTREE test_commands 40 · drift_check 16 (new) · verification 75 -> review murq5; at merge-up SM gets: retire engine_commit (Prime)
-              DG4.16 kid (Sonnet) tip 92dd46207 = g1.31.2 CHAIN HEAD (DG4.08 + DG4.07 + trunk + 2nd cites pass; symbols verified) -> review with DG4.08's verdict batch
-              DG4.12 589c6dafd (158c 2nd): stand_up 34, hook neighbourhood 165 -> review murq4
-              DG4.09 review: node-prose residues only -> director closes on 2ffa3b259's branch after verify (TMM.327)
-              DG4.06 a8b9e67e0: DG4.01 residues 1-6 done, busy_index 10 / write_guard 33 / node_writer 130 -> review in murq3
-LIVE MURS     murq1 = /tmp/dg4/qrun.sh: dg405 -> dg40789 -> 4621 · murq2 (after murq1): dg410 · murq3 (after murq2): dg406 · murq4 (after murq3): dg412 · murq5 (after murq4): dg413
-TIPS          DG4.07 3ca468e15 (agi-post cites) · DG4.08 a00-e8ca5a58 072fe8246 (stream) · DG4.09 2ffa3b259 (run-mode; director landed the write-log-matched node)
-              DG4.02 2eda9caaa mur done (residues -> DG4.11) · DG4.03 mur done (residues -> DG4.10; row 26 filed)
-AFTER MURS    g1.31.1.1: [merge-up] + [decision] Prime config lines · g1.31.2: [merge-up] + rotations.md clause text + locations.stream cell text
-LANDED        g1.31.1.2 9f124d68f
-NEXT  .5.3 after .4.2.1 + .4.6.2 · heal-sweep hypothesis · .4.5a + .4.6.1 after .4.5b · .4.2.2 + .4.4 · headless CC stage route
-      g7.16.1.7: 7.1.4.1 closes with DG4.04 · 7.1.3/.3.3 horizon · 7.2.x gated · .7.2.3 = DG3's dispatch.py
-merge rule: mur-clean only, one at a time, [merge-up] to SM FIRST, land on SM's GO
+STOPPED 11:03Z (belam [rule] via agi-23: finish the atomic step, commit, card, idle; no new round or subagent)
+IN FLIGHT (left running, nothing new started): parents DG4.14 a00-afa6f87f (g1.31.4.2.1 2nd pass, base de-base-DG4-14) ·
+        DG4.15 a00-f7261183 (g4.18.5.5 ALONE -- bundle-4's LAST condition, SM wants its [merge-up] FIRST, base de-base-DG4-15) ·
+        review unit agi-director-general-4-murq1 (mur-dg40789 = DG4.07/08/09; its last queued args held: /tmp/dg4/mur-4621.json.held)
+STOPPED units (never ran): murq2 dg410 · murq3 dg406 · murq4 dg412 · murq5 dg413 -- args in /tmp/dg4/mur-dg4{10,06,12,13}.json
+HARVESTED, awaiting review (tip · measured):
+  DG4.06 a8b9e67e0 DG4.01 residues 1-6 · busy_index 10 / write_guard 33 / node_writer 130
+  DG4.10 d8f0b9ee0 hook attribution · guard 43, corrupted-index probe names git rc 128
+  DG4.12 589c6dafd 158c 2nd · stand_up 34, hook neighbourhood 165
+  DG4.13 season2/loops/hypothesis-pb3-engine-root-one-r-a00-925ffcca · in a worktree: commands 40, drift_check 16, verification 75
+  DG4.16 92dd46207 = g1.31.2 CHAIN HEAD (DG4.08 + DG4.07 + trunk + cites 2nd pass, Sonnet kid)
+  DG4.09 2ffa3b259 run-mode · review: node-prose residues only -> director closes (TMM.327) once verify lands
+QUEUED ORDERS  DG4.11 = DG4.02 residues (/tmp/dg4/orders-DG4.11.md) -> cut from the DG4.15 tip (one writer in _commit_write)
+OWED TO SM AT MERGE-UPS  g4.18.5.5: values.core.suite_lock block · g1.31.1.1: [decision] Prime config lines (in_force, active_operating_mode, g7.16.2 cite)
+  g1.31.2: rotations.md :83/:123 clauses + cap 6000->8000, locations.stream cell · g1.31.4.5b: retire engine_commit · C2 copilot goal leaf to mint
+LANDED 9f124d68f g1.31.1.2 · RULE: [merge-up] to SM FIRST, land on SM's GO (merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only)
+FINDINGS goal:g7.33.19 rows 25 (ceiling breach) · 26 (hook pinned to spawning tree) · 27 (parent notes on a goal)
 DONE  .5.5.4 · .5.5.5 · .5.5.8 · g1.31.1.2 · NOT MINE g1.31.4.1 · g7.16.1.5.4 · .5.5.6 · .5.5.7 (DG3)
 ```
 
 ## 🔴 Where it stops
-2 parents live, 2 review units running; 6 tips waiting on review verdicts.
-Next command: `systemctl --user list-units 'agi-director-general-4-*' --no-pager; journalctl --user -u agi-director-general-4-murq1 --no-pager | tail -5` then the verify files of the newest mur-director-general-4-* runs.
+Stopped at 11:03Z on belam's order (the owner's run ended 11:00Z): 2 parents + 1 review unit still in flight, 6 tips harvested awaiting review, nothing new started.
+Next command, ONLY after a resume order: `python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-4-*' --no-pager` -- then re-launch murq2..5 (`systemd-run --user --unit=agi-director-general-4-murqN ... /tmp/dg4/qrunN.sh`), harvest DG4.14/15, and send SM the DG4.15 [merge-up] first.
+
 ## §4 Traps
 | trap | rule |
 |---|---|
