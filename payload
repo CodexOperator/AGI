@@ -59,14 +59,15 @@
     "claude-code": {
       "adapter": "claude_code",
       "models": {
-        "kid": "claude-opus-5-5",
-        "parent": "claude-opus-5-5",
-        "director": "claude-fable-5-1"
+        "kid": "claude-sonnet-5-5",
+        "parent": "claude-sonnet-5-5",
+        "director": "claude-sonnet-5-5"
       },
       "effort": {
         "director": "max"
       },
       "allowed_models": [
+        "claude-sonnet-5-5",
         "claude-sonnet-5",
         "claude-opus-5",
         "claude-opus-5-5",
