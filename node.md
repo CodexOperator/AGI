@@ -15,7 +15,7 @@ town: core
 
 thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
 
-## §0 State (22:1xZ 09-30, read from date -u)
+## §0 State (22:2xZ 09-30, read from date -u)
 | | |
 |---|---|
 | stood up | by belam gen 22 on the owner's order (21:3xZ 09-30); first turn 21:52Z |
@@ -31,12 +31,12 @@ DONE   inbox · board + goal:g5 read · step named -> SM PLACED 21:57Z (gates: M
 LIVE   ONE Opus builder subagent (22:0xZ): script + test + detached unit tm-l4-window (systemd --user, MemoryMax 5G) + experiment tm-l4-window-0930
 QUEUED idea:lm-neuron-periodicity-map-and-self-poke (owner idea 22:0xZ, debrief 22:1xZ) stage 1 MAP -> mint its hypothesis when L4 frees the model slot
 NEXT   its report -> an adversarial Opus review of the bytes (claim vs results.json) -> verdict line on the trajectory rows (ring-gated: via the Prime)
-BLOCK  the owner's trajectory edit on town:local-maxxing -> ring gate (§6)
+DONE   owner's trajectory edit LANDED a59698750e 22:2xZ (town:local-maxxing: the trajectory's PERMANENT home)
 ```
 STEP (ladder L4, goal:g5.22): L3 folds into L4 (idea:lm-why-l3-precision-allocation-wall-is-8-12-bits) -- band-energy key bits sit inside uniform's noise band at byte-matched budgets (OSC.35-38); L6 closed (experiment:a00-f256db1a-73ee5b disproved). L4 = Qwen2.5-0.5B, OSC.03 band fingerprints: high-band heads keep sinks + a recent window, low-band keep all KV; bar agree/KL vs full KV at a byte-matched KV budget beside a random head set of equal size, >= 3 seeds, pre-registered. CPU only, ~3.5 GB RSS, 0 USD.
 
 ## §2 Landed
-- 21:5xZ [owner] line + a ready town-node edit -> belam's inbox (.agi/sessions/inbox/belam.md; script .agi/sessions/thought-master-owner-trajectory-edit.py, dry-run clean)
+- 22:2xZ town:local-maxxing a59698750e -- trajectory PERMANENT on the town node (owner 21:5xZ verbatim in THOUGHT); g7.34.1/.2 moot for this town (the Prime's to retire)
 - 21:5xZ [placement] L4 step -> sanctuary-master (delivered) · 21:57Z PLACED
 - 22:0xZ hypothesis:lm-l4-local-heads-keep-a-recent-window (goal:g5.22 + idea:lm-why-l3-precision-allocation-wall-is-8-12-bits); v2 fixed the budget tolerance to half a KV head (0.975 pct)
 
@@ -46,7 +46,7 @@ the builder subagent is live (a session that died loses it): check `systemctl --
 ```
 
 ## §4 Traps
-- town:* nodes are ring-gated (goal:g12): only owner / prime_director may edit, even the trajectory rows a master "writes whole" -- hand the edit to the Prime
+- town:local-maxxing: write as `--actor thought-master` with NO --role (the row resolves to director; [town] admits director TEMPORARILY until goal:g7.16.1.11 lands, belam 22:21Z)
 - box: every container runs with docker --memory; ONE model load at a time; start at MemAvailable >= 6 GB + PSI avg10 < 5 (belam 22:10Z, SM 21:57Z)
 - belam's row is quiet: `send.py wake belam` = quiet-skip; ListAgents shows @30 as shell
 - never pipe `send.py read` through tail (did it once at 21:52Z; the inbox file showed nothing lost)
@@ -55,7 +55,7 @@ the builder subagent is live (a session that died loses it): check `systemctl --
 - send.py status sanctuary-master: marker 0s after the send · belam: inbox file written, quiet row (no nudge)
 
 ## §6 BANKED
-- OWNER 21:5xZ 09-30, verbatim: "Honestly let’s just leave the trajectory as the permanent home under the town board node. This is owner speaking direct btw." -- the edit (TEMPORARY -> PERMANENT, owner line in THOUGHT) is refused for a master by the ring gate. Options: (a) belam runs the ready script (asked 21:5xZ; not landed at 22:1xZ) · (b) RECOMMENDED since 22:1xZ (owner: the research board is thought-master's): the owner admits the town master to its own town node's ring, so the board is written by its owner-named writer. goal:g7.34.1 / .2 on town:core = moot for local-maxxing (the Prime's to retire).
+(none)
 
 ## Skills
 agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
