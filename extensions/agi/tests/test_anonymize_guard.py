@@ -279,7 +279,7 @@ def test_install_hook_writes_box_local_and_refuses_foreign(tmp_path):
 # (8) goal:g7.16.1.1.3 · hypothesis:anonymize-check-refuses-the-home-path: the
 # box user's home path is one more token, read from HOME in every mode (it is
 # not hardware, so the fixture path carries it too). A tmp HOME only. Strict
-# xfail on the trunk at 59ad74144; green since director-general-3's build.
+# xfail on the trunk at 32ef9a785; green since director-general-3's build.
 def test_check_refuses_the_home_path(tmp_path, fake_box, monkeypatch, capsys):
     home = str(tmp_path / "home" / "someuser")
     monkeypatch.setenv("HOME", home)
@@ -364,7 +364,7 @@ def test_added_lines_keeps_post_image_paths_and_plus_plus_content(
 # (12) goal:g7.16.1.2.3 · hypothesis:anonymize-refuses-any-box-home-by-one-generic-class:
 # ANY box's home refuses by one generic class, never a literal list; the
 # placeholder forms (`<home>/`, `~/`, `/home/<x>/`) stay allowed. Strict xfail:
-# RED on the trunk at 82d64ffe7 (council bundle 2, director-general-2);
+# RED on the trunk at ef73dec71 (council bundle 2, director-general-2);
 # green since director-general-3's build (scan's generic class).
 def test_any_box_home_is_refused_by_one_generic_class(tmp_path, fake_box, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))

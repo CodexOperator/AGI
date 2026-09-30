@@ -4,7 +4,7 @@ The writer half, pinned through the existing `_write_rotation_record` (no new
 interface): a record whose paths sit under HOME is written `~`-relative, so the
 committed record never carries the box user's home path. A tmp graph and a
 tmp HOME only; no live pane, seat or record is touched. RED on the trunk at
-82d64ffe7 (council bundle 2, director-general-2); green since director-general-3's
+ef73dec71 (council bundle 2, director-general-2); green since director-general-3's
 build. The reader half is `_resolve_record_path`, pinned below.
 """
 from __future__ import annotations

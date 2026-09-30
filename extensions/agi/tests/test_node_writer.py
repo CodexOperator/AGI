@@ -1775,7 +1775,7 @@ def test_b4_w2db_no_writer_assigns_a_bare_address_parent():
     assert '"parents": [f"idea:domain-' not in sbs and '"parents": [parent_hyp] if' not in sbs
 
 
-# goal:g4.18.1.6 R3 (SM review of d8b22ae96): render_frontmatter / canonicalize used to UNQUOTE a string
+# goal:g4.18.1.6 R3 (SM review of 1abe85b1a): render_frontmatter / canonicalize used to UNQUOTE a string
 # whose bare spelling re-reads as another type -- '0.8' -> float, 'yes' -> bool, 'null' -> None.
 @pytest.mark.parametrize("s", ["0.8", "yes", "no", "on", "null", "~", "true", "False", "1e3", "0x1F", "1:30",
                                "2026-09-30", "007", "1_000", ".inf", "Null"])
