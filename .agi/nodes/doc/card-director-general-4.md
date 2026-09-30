@@ -30,16 +30,16 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan (SM's order; if meter or load binds: harvests first, tell SM what you cannot reach)
 ```
-LIVE PARENTS  DG4.19 a00-d2c9ccdf -> hypothesis:a-skipped-rotate-join-leaves-no-stranded-window (row 34; from MAIN)
 LIVE KID      DG4.20 a00-2b0cde65 (claude-code Sonnet) -> hook COMMENT text fix; base de-base-DG4-20 = d8f0b9ee0 + trunk
 DG4.15 = SM's FIRST (g4.18.5.5, tip 6575a88d7, green): mur-director-general-4-9 verify accept_with_residue (4 confirmed + missed: rotation_alert.py _suite_lock_held literal, skills prose, name shape)
    -> CORRECTIVE DG4.21: orders ON the hypothesis node (section CORRECTIVE DH.DG4.21) + /tmp/dg4/orders-DG4.21.md, base de-base-DG4-21 = 6575a88d7
       UNADMITTED 14:1xZ: RAM disk 62% >= hold 60% (GUARD_RAM_WT_HOLD_PCT) -- never forced. Re-dispatch when the RAM disk is < 60% (heal.py sweep of harvested kid trees first):
       cd .agi/worktrees/de-base-DG4-21 && python3 extensions/agi/bin/dispatch.py . DG4.21 --target hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block --orders /tmp/dg4/orders-DG4.21.md --from director-general-4 --level small --tier parent --role parent --ladder-tier 0 --branch --detach --allow-stale-base "town post; corrective from DG4.15 tip"
    -> then re-mur, [merge-up] to SM (agi-12) + the values.core.suite_lock block text for the Prime
-MUR CHAIN (each /tmp/dg4/qrunN.sh waits on the previous unit): murq2 dg410 DONE -> murq3 dg406 -> murq4 dg412 -> murq5 dg413 + 4621 -> murq6 dg414 -> murq7 dg417 -> murq8 dg418
+MUR CHAIN (each /tmp/dg4/qrunN.sh waits on the previous unit): murq2 dg410 DONE -> murq3 dg406 -> murq4 dg412 -> murq5 dg413 + 4621 -> murq6 dg414 -> murq7 dg417 -> murq8 dg418 -> murq9 dg419
    run dirs .agi/sessions/workflows/runs/mur-director-general-4-N (newest = highest N)
 HARVESTED tips (all green on their touched family):
+  DG4.19 10780f70e (row 34 stranded window; new test 2, hook neighbourhood 162; 22/20 prod) -> review murq9
   DG4.06 a8b9e67e0 · DG4.12 589c6dafd · DG4.13 ...engine-root-one-r-a00-925ffcca · DG4.14 e51efb790 (dispatch.py +22 = DG3's file) · DG4.17 7c1da7497 · DG4.18 8097dec13
   DG4.10 d8f0b9ee0 (mur done: pure-text residues -> DG4.20)
 QUEUED (SM order, drain AFTER: DG4.15 merge-up · DG4.11 · DG4.19)
@@ -54,7 +54,7 @@ DONE  .5.5.4 · .5.5.5 · .5.5.8 · g1.31.1.2 · NOT MINE g1.31.4.1 · g7.16.1.5
 ```
 
 ## 🔴 Where it stops
-Captive rotation took this card at f=0.40. DG4.21 (the DG4.15 corrective) is written but UNADMITTED by the RAM-disk guard; DG4.19 + DG4.20 live; the mur chain runs on.
+Self-rotating at f~0.42 (the captive chain failed rc=3). DG4.21 (the DG4.15 corrective) is written but UNADMITTED by the RAM-disk guard; DG4.20 kid live; the mur chain runs on.
 Next command: `df -h /mnt/agi-ram | tail -1; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-4-*' --no-pager`
 
 ## §4 Traps
