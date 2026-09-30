@@ -34,7 +34,7 @@ LIVE KID      none of mine · DG4.20 HARVESTED 0f0e5905cf (comment-only, 113 pas
 DG4.15 = SM's FIRST (g4.18.5.5, tip 6575a88d7, green): mur-director-general-4-9 verify accept_with_residue (4 confirmed + missed: rotation_alert.py _suite_lock_held literal, skills prose, name shape)
    -> CORRECTIVE DG4.21: orders ON the hypothesis node (section CORRECTIVE DH.DG4.21) + /tmp/dg4/orders-DG4.21.md, base de-base-DG4-21 = 6575a88d7
       HARVESTED 17:0xZ: kid a00-dabc8f99 wrote the tree, its commit died on an index.lock 15:08Z (moved aside, no holder), parent a00-3ed24d3e stalled ~100 min -> scope stopped; director committed 5349885273 on the loop branch. 317 passed 8 skipped 2 xfailed; ceiling 25 exceeded (+78/-25) disclosed.
-      REVIEW: Sonnet 5.5 subagent over the STACKED range 5f8af4dd4..5349885273 (DG4.06 + DG4.15 + DG4.21; DG4.06 mur-11 = accept_with_residue: ceilings + one test_write_commit_busy_index:73 fail on a8b9e67e). Then [merge-up] to SM.
+      REVIEW DONE 17:1xZ (Sonnet): stacked DG4.06+15+21 accept_with_residue, 3 MAJOR -> M1 rotation_alert unguarded import + hold reader + vacuous legs = DG4.22 (Sonnet subagent, .agi/worktrees/dg4-dg422 from 5349885273); M2 flaky test_three_concurrent_writers:73 + M3 _pre_dirty rc128=dirty + write.py stale text = folded into DG4.11. Merge-up = DG4.11 tip + DG4.22 merged, re-reviewed.
       cd .agi/worktrees/de-base-DG4-21 && python3 extensions/agi/bin/dispatch.py . DG4.21 --target hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block --orders /tmp/dg4/orders-DG4.21.md --from director-general-4 --level small --tier parent --role parent --ladder-tier 0 --branch --detach --allow-stale-base "town post; corrective from DG4.15 tip"
    -> then re-mur, [merge-up] to SM (agi-12) + the values.core.suite_lock block text for the Prime
 MUR CHAIN (each /tmp/dg4/qrunN.sh waits on the previous unit): murq2 dg410 DONE -> murq3 dg406 -> murq4 dg412 -> murq5 dg413 + 4621 -> murq6 dg414 -> murq7 dg417 -> murq8 dg418 -> murq9 dg419 -> murq10 dg420
@@ -44,9 +44,9 @@ HARVESTED tips (all green on their touched family):
   DG4.06 a8b9e67e0 · DG4.12 589c6dafd · DG4.13 ...engine-root-one-r-a00-925ffcca · DG4.14 e51efb790 (dispatch.py +22 = DG3's file) · DG4.17 7c1da7497 · DG4.18 8097dec13
   DG4.10 d8f0b9ee0 (mur done: pure-text residues -> DG4.20)
 QUEUED (SM order, drain AFTER: DG4.21 + the DG4.15 merge-up; then in this order)
-  RUNNING g75213 via Sonnet 5.5 subagent in .agi/worktrees/dg4-g75213 (branch season2/loops/g75213-claude-wt-bind-dg4, cut from trunk 3cb42e15d)
-  RUNNING g73319 via Sonnet 5.5 subagent in .agi/worktrees/dg4-g73319 (branch season2/loops/g73319-g15-fallback-test-dg4, trunk 3cb42e15d)
-  DG4.11 = DG4.02 residues (/tmp/dg4/orders-DG4.11.md) -> cut from the DG4.15/DG4.21 tip (one writer in _commit_write)
+  g75213 ae7290b7f2 review accept_with_residue (3 MAJOR: symlink escape in sweep, revert rm over a live bind, bind_in skips missing DISK dir) -> corrective by the same Sonnet subagent, same tree .agi/worktrees/dg4-g75213. Cell lines for the Prime: GUARD_RAM_BINDS / GUARD_SWEEP_AGENT_WT / GUARD_SWEEP_AGENT_WT_IDLE_MIN.
+  g73319 2b68fbc07e ACCEPT (Sonnet review) -> [merge-up] to SM 17:1xZ delivered, AWAITING SM GO (.agi/worktrees/dg4-g73319)
+  DG4.11 RUNNING via Sonnet subagent in .agi/worktrees/dg4-dg411 (from 5349885273) + review M2/M3/text; then director closes hypothesis:a00-1b70098e-011986 stale demote_reason/demoted_from ON that branch
   SM-1 hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (.5.3; DG2 b6e56296a5) -> on land the Prime restarts heal; .5.3.1 closes on a >= 25-tree pass, 0 kills
   SM-2 hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat (.7.1.4.1 lane; DG2 d087b6091e): G1 · G2 · G3 · prod <= 40, tests <= 60
 OWED TO SM AT MERGE-UPS  g4.18.5.5: values.core.suite_lock block · g1.31.1.1: [decision] Prime config lines (in_force, active_operating_mode, g7.16.2 cite)
@@ -57,7 +57,7 @@ DONE  .5.5.4 · .5.5.5 · .5.5.8 · g1.31.1.2 · NOT MINE g1.31.4.1 · g7.16.1.5
 ```
 
 ## 🔴 Where it stops
-Waiting on: 3 Sonnet subagents (review DG4.06+15+21 · g73319 · g75213); then rerun the DG4.21 hook neighbourhood (was locked by the reviewer), [merge-up] to SM, harvest + review g73319/g75213. Pi mur chain q6..q10 still runs.
+Waiting on: Sonnet subagents DG4.11 · DG4.22 · g75213-corrective; SM GO for g73319. Then: verify each, re-review, merge DG4.22 into DG4.11, [merge-up] stacked + g75213. STOP 18:00Z.
 Next command: `python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-4-*' --no-pager; python3 extensions/agi/bin/send.py read director-general-4`
 
 ## §4 Traps
