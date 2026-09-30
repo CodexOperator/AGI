@@ -2573,8 +2573,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         raise EditError("body_patch - (stdin) is empty: no diff to apply -- nothing written")
     if edit.payload_from == "-":   # SM 140: main() reads stdin; `-` survives only an empty read
         raise EditError("payload - (stdin) is empty: no bytes to write -- nothing written")
-    _writers = [bool(edit.payload_from), bool(edit.payload_bytes),
-                bool(edit.patch_from or edit.patch_diff), edit.replace_target == "payload"]
+    _writers = _payload_writers(edit)
     _verbs = edit.payload_verbs   # SM 145: repeated `sub payload` ops compose; any other pair drops one
     if sum(_writers) > 1 or len(set(_verbs)) > 1 or sum(v != "sub payload" for v in _verbs) > 1:
         raise EditError("one payload writer per submit: payload, payload_text, patch and "
@@ -2813,6 +2812,12 @@ def _splice_range(text: str, rng: str, new: str) -> str:
     if new_lines and new_lines[-1] == "":
         new_lines.pop()
     return "\n".join(lines[:start] + new_lines + lines[end:])
+
+
+def _payload_writers(edit: Edit) -> list:
+    """The ONE payload-writer list (submit counts it, `_pre_dirty` any()s it); `sub payload` is in by construction."""
+    return [bool(edit.payload_from), bool(edit.payload_bytes or any(o[0] == "payload" for o in edit.sub_ops)),
+            bool(edit.patch_from or edit.patch_diff), edit.replace_target == "payload"]
 
 
 def _resolve_sub(root, edit: Edit) -> None:
@@ -4265,7 +4270,7 @@ def _pre_dirty(root, node_id: str, edit=None) -> set:
     it dirty) and would refuse every write. Untracked/absent = CLEAN."""
     out: set = set()
     paths = [node_writer.find_node_file(root, node_id)]
-    if edit is not None and (edit.payload_from or edit.payload_bytes or edit.patch_from):
+    if edit is not None and any(_payload_writers(edit)):
         try:
             ref, loc = _payload_ref(root, edit)
             paths.append(locations.resolve_payload_path(Path(root), ref, loc) if ref else None)
@@ -4273,13 +4278,19 @@ def _pre_dirty(root, node_id: str, edit=None) -> set:
             pass
     git = lambda *a: subprocess.run(["git", "-C", str(root), *a],  # noqa: E731
                                     capture_output=True, text=True)
+    unknown = []
     for p in paths:
         if p is None:
             continue
         p = os.path.abspath(str(p))
-        if not git("ls-files", "--error-unmatch", "--", p).returncode and \
-                git("--no-optional-locks", "diff", "--quiet", "HEAD", "--", p).returncode:
+        rc = 0 if git("ls-files", "--error-unmatch", "--", p).returncode else \
+            git("--no-optional-locks", "diff", "--quiet", "HEAD", "--", p).returncode
+        if rc == 1:   # 0 clean, 1 dirty, >= 2 unknown: a failed git is not a hand edit
             out.add(p)
+        elif rc:
+            unknown.append(rc)
+    if unknown:
+        print(f"note: git diff rc {unknown} sampling {node_id}; not pre-dirty", file=sys.stderr)
     return out
 
 
@@ -4292,14 +4303,14 @@ def _commit_write(root, node_id: str, res, actor: str = "",
     held suite lock (name from `verification.suite_lock_name`, the ONE
     resolver) refuses the commit by name and the write exits EXIT_UNCOMMITTED
     (3) over uncommitted bytes -- never exit 0
-    (hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block). The SECOND is
-    goal:g4.18.5.2.1: a commit that failed only because a peer already holds
-    these bytes at HEAD is skipped, not refused. Not a git
+    (hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block). A commit that
+    failed only because a peer already holds these bytes at HEAD is skipped, not refused
+    (goal:g4.18.5.2.1). Not a git
     checkout = nothing to commit. Unpark carriers a formation switch writes
     are other nodes: they stay out.
 
     goal:g4.18.5.2.1: an `index.lock` refusal (concurrent writers) is
-    retried with jittered backoff inside `values.core.write_commit_wait_s`;
+    retried with jittered backoff inside `values.core.suite_lock.write_commit_wait_s`;
     past it the write refuses by name. Returns `(note, uncommitted)` --
     `uncommitted` True = the caller exits EXIT_UNCOMMITTED. Every printed
     recovery line ADDS the paths first, so it works for a create (untracked)."""
@@ -4324,7 +4335,8 @@ def _commit_write(root, node_id: str, res, actor: str = "",
     if laundered:
         return (f"commit refused: {' '.join(laundered)} was already dirty against HEAD "
                 f"before this write (a hand edit rides along) -- the write landed "
-                f"UNCOMMITTED; exit {EXIT_UNCOMMITTED}; recover: {recover}"), True
+                f"UNCOMMITTED; exit {EXIT_UNCOMMITTED}; if the only dirt is a PRIOR uncommitted write.py write (suite-lock "
+                f"/ index.lock exhaustion left it), its `git commit -- <paths>` is in: {recover} (never auto-committed)"), True
     import random  # noqa: PLC0415
     deadline = time.monotonic() + _commit_wait_s(root)
     tries = 0

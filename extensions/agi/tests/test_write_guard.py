@@ -888,3 +888,38 @@ def test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered(project, caps
     assert write.main(["hypothesis:h9", "set confidence 0.7", "--root", str(project)]) == 0
     assert g("rev-list", "--count", "HEAD").strip() == str(int(n) + 1)
     assert g("show", "--name-only", "--format=", "HEAD").split() == [node]
+
+
+# DG4.11 -- the PAYLOAD seam: a hand edit to the node's OWN payload file is never
+# laundered either (replace payload / payload / sub payload), and the refusal names
+# the prior-uncommitted-write recovery.
+@pytest.mark.parametrize("verb", ["replace payload 1:1 NEW", "payload NEW", "sub payload hello => bye"])
+def test_dg411_a_hand_edit_to_the_payload_is_never_laundered(project, capsys, verb):
+    g, _head = _w1b(project)
+    (project / "p.sh").write_text("hello\n")
+    nw.write_node(project / ".agi", "mvp", "pl", parents=[], announce=False, bypass=True,
+                  extra_fm={"payload_ref": "p.sh", "link_ref": "p.sh"})
+    g("add", "p.sh", ".agi/nodes"), g("commit", "-qm", "pl")
+    (project / "p.sh").write_text("hello\nHANDEDIT-PAYLOAD\n")
+    (project / "new.txt").write_text("replaced\n")
+    script = verb.replace("NEW", str(project / "new.txt"))
+    assert write.main(["mvp:pl", script, "--root", str(project)]) == 3
+    assert not g("grep", "-n", "HANDEDIT-PAYLOAD", "HEAD", "--", "p.sh").strip(), "not in HEAD"
+    assert g("diff", "--name-only", "HEAD", "--", "p.sh").split() == ["p.sh"], "stays listed"
+    err = "".join(capsys.readouterr())
+    assert "p.sh" in err and "PRIOR uncommitted write.py write" in err and " commit -q -m " in err, err
+
+
+# DG4.11 -- a `git diff --quiet` that ERRORS (rc 128) is UNKNOWN, never dirty: one
+# transient git failure must not make every later write to a clean node refuse.
+def test_dg411_a_failed_git_diff_does_not_poison_the_next_write(project, capsys, monkeypatch, tmp_path):
+    import shutil
+    g, _head = _w1b(project)
+    (tmp_path / "bin").mkdir()
+    stub = tmp_path / "bin" / "git"
+    stub.write_text(f'#!/bin/sh\ncase "$*" in *"diff --quiet"*) exit 128;; esac\nexec {shutil.which("git")} "$@"\n')
+    stub.chmod(0o755)
+    monkeypatch.setenv("PATH", f"{tmp_path / 'bin'}:{__import__('os').environ['PATH']}")
+    assert write.main(["hypothesis:h9", "set confidence 0.4", "--root", str(project)]) == 0
+    assert "rc [128]" in "".join(capsys.readouterr()), "one note names the rc"
+    assert g("show", "--name-only", "--format=", "HEAD").split() == [".agi/nodes/hypothesis/h9.md"]

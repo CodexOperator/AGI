@@ -70,7 +70,11 @@ def test_three_concurrent_writers_never_exit_0_over_an_uncommitted_node(tmp_path
     bad = [(i, n, rc, e[-200:]) for i, n, rc, e in rcs if rc not in (0, 3)]
     assert not bad, bad
     refused = [(i, n, e) for i, n, rc, e in rcs if rc == 3]
-    assert all("commit failed" in e and "UNCOMMITTED" in e for _, _, e in refused)
+    # a write after a refused one on the SAME node meets that prior uncommitted write: the
+    # launder guard legitimately refuses it (no other dirt is admitted: the predecessor must be rc 3)
+    prev = {(i, n): rc for i, n, rc, _ in rcs}
+    assert all(("commit failed" in e or ("already dirty against HEAD" in e and prev.get((i, n - 1)) == 3))
+               and "UNCOMMITTED" in e for i, n, e in refused)
     # every exit 0 is a commit of its own node; nothing is left behind unnamed
     assert _commits(repo) == sum(1 for *_, rc, _ in rcs if rc == 0)
     if not refused:
