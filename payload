@@ -3744,12 +3744,14 @@ def main(argv: list[str] | None = None) -> int:
     # SM 132: stdin is read ONCE, here, BEFORE the one judge -- a dry run judges
     # the same bytes the write lands (a `body_patch -` diff that does not apply
     # refuses in both)
+    _stdin: set = set()   # SM 134: which sources came off stdin -- the preview labels them
     if edit.payload_from == "-":
         # The CLI layer reads stdin; the library never does. `payload -` is
         # for content that cannot ride in an argv chunk -- anything with `&&`
         # in it, or a whole file being piped in.
         edit.payload_from = ""
         edit.payload_bytes = sys.stdin.read()
+        _stdin.add("payload")
 
     if edit.body_patch_from == "-":
         # Same stdin contract as `payload -` / `patch -`: the diff bytes ride
@@ -3757,6 +3759,7 @@ def main(argv: list[str] | None = None) -> int:
         # split the `&&` script form. Read once, here, never in the library.
         edit.body_patch_from = ""
         edit.body_patch_diff = sys.stdin.read()
+        _stdin.add("body_patch")
 
     if args.dry_run:
         print(f"{edit.node_id}:")
@@ -3776,15 +3779,16 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  note    ({len(edit.body_append)} chars)")
         if edit.payload_from:
             print(f"  payload from {edit.payload_from}")
-        if edit.payload_bytes:
-            print(f"  payload  ({len(edit.payload_bytes)} bytes, inline)")
+        if edit.payload_bytes or "payload" in _stdin:
+            _src4 = "stdin" if "payload" in _stdin else "inline"
+            print(f"  payload  ({len(edit.payload_bytes or '')} bytes, {_src4})")
         if edit.patch_diff:
             _src = "stdin" if edit.patch_from == "-" else edit.patch_from
             print(f"  patch   ({len(edit.patch_diff)} bytes of diff, {_src})")
         if edit.patch_from and not edit.patch_diff:
             print(f"  patch   from {edit.patch_from}")
-        if edit.body_patch_diff:
-            _src2 = "stdin" if edit.body_patch_from == "-" else edit.body_patch_from
+        if edit.body_patch_diff or "body_patch" in _stdin:
+            _src2 = "stdin" if "body_patch" in _stdin else edit.body_patch_from
             print(f"  body_patch ({len(edit.body_patch_diff)} bytes of diff, {_src2})")
         if edit.body_patch_from and not edit.body_patch_diff:
             print(f"  body_patch from {edit.body_patch_from}")
