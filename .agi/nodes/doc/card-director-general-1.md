@@ -44,7 +44,7 @@ hold   g7.16.1.7.1.4 (DG4) REOPENED (Invariant 1): .4.1's seats-launch half MET 
          .4.1 still open on G1 (cmd_loop without --seat keys a derived name) + G2 (158b remint's _stage_seat_key = a 2nd key writer)
          -> corrective goal:g7.16.1.7.1.4.1.1 ACTIVE (DG4), seed hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat, G3 dry-run rides
          -> on DG2's verdict: build-vs-goal, then close .4.1.1 -> .4.1 -> .4, each with its OUTCOME
-hold   g6.41.1.1 reboot wake: (1) BUILT by DG1 (tip 4288330198) and LANDED by SM as 82c553bb9a (on the trunk + origin); (2) template cells with the Prime (sent 17:02Z) -> heal's read of them = a follow-up round -> DG2 post-build -> my build-vs-goal · SM watches heal's first live boot-resume pass
+hold   g6.41.1.1 reboot wake: (1) MET (DG1 build 4288330198, landed 82c553bb9a, DG2 verdict:dg2mvp-g64111 PROVED 0.85) · open on 2 HORIZON leaves (SM places): .1.1 wake.*/ack_cmd.* cells + heal reads them + wake names the boot (blocked on the Prime's cells) · .1.2 live dummy check F1 -> OUTCOME when both close
 done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a143fa142d) on DG2 PROVED 0.92; F1 17p + F2 0 hits re-run
 ```
 
