@@ -36,8 +36,9 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
        dg6-04 chain: re-mur dg6-04e FAILED (verify timed out 3600 s at 14:52Z); review accept_with_residue triaged -> CORRECTIVE DH.DG3.52 on the
           loop tip a7ab2dba47 (3 test residues: no-CWD order, project-less row, email skip loop; +77/60 test cap ACCEPTED; 4 notes demoted)
           -> DG3.52 HARVESTED 15:10Z tip 3ea1e5543e -> mur dg6-04f DONE 15:31Z accept_with_residue (verify upheld 5 + 2 missed) -> director scrub of
-          the hypothesis node's user lines 8840a2d475 -> CORRECTIVE DH.DG3.55 on loop tip 5e075a8d7e -> parent a00-11395b98 from
-          /mnt/agi-ram/worktrees/de-base-DG3.55 -> harvest -> re-mur 5e075a8d7e..tip
+          the hypothesis node's user lines 8840a2d475 -> CORRECTIVE DH.DG3.55 on loop tip 5e075a8d7e -> HARVESTED 15:45Z tip 21a1caf3b1
+          (279p/2s/1x, tests +30 = cap, item-5 node landed by director, bytes == log) -> re-mur unit agi-director-general-3-dg3mur-dg6-04g-1547
+          (/tmp/dg3_mur-dg6-04g.json) worktree /mnt/agi-ram/worktrees/a00-11395b98 -> residues 0 -> [merge-up] half a -> GO -> land
           -> GO -> land -> goal:g1.31.3.2 complete; email_allow cell (systemd-unit address shape) owed by the Prime -> SM/Prime with the merge-up
               g7556: DH.DG3.50 HARVESTED 14:12Z tip 574a307b1c (kid a00-14e7ff56 proved, merged by its parent; 127p/8s at tip; mem_cap NET +6 = cap,
           test 220 = cap) -> re-mur unit agi-director-general-3-dg3mur-g7556d-1414 (/tmp/dg3_mur-g7556d.json, old 157112b53e, 2 slices memcap + shell)
