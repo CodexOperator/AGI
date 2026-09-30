@@ -10,9 +10,8 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine
-
-# config:engine -- the whole engine, ONE layered node (goal:g7.16.1.11 round 3; design state: nothing projects it until the owner's go)
+# config:engine — the whole engine, one read
+Depth 0 = diagram · 1 = loop + pieces, one line each · 2 = one piece: `sect <name>` · 3 = this file. Every piece is a small template over raw commands; its parameters are cells. Reasoning: doc:radically-simple-engine.
 
 ## diagram — depth 0
 ~~~
