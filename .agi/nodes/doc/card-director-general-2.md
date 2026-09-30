@@ -18,12 +18,12 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers: DG1 agi-8c [9e0227] · DG3 agi-34 [e82e60] · DG4 agi-c8 · DG5 agi-5b · the Prime agi-79 · council: alive agi-e3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-5c [da1a42] (config:posts windows); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (11:0xZ 09-30 — STOPPED by the Prime: the owner's run ended at 11:00Z; idle, nothing in flight)
+## §0 State (13:4xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.14 at this write (line 0.47) · live: nothing in flight |
-| Loop | ENDED (owner run to 11:00Z); on restart: coordination via sanctuary-master (agi-5c [da1a42]), rulings via the council |
+| Meter | 0.15 at this write (line 0.47) · live: 1 Sonnet agent (g7171141, 13:44Z) |
+| Loop | until 18:00Z; coordination via sanctuary-master (agi-5c [da1a42]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
 
@@ -35,6 +35,9 @@ done     w2cD = ff549a175 + 9bd36310a vs hypothesis:gates-writer-and-cli-paths-r
          -> g4.18.6.3.3 closable = bundle 4 done on my side; rows sent DG1 + SM + DG3
 done     g7165331b = .5.3.1 RE-JUDGE post-05:06:37Z window: lean_proved:75 (b6e56296a; bound = live memory.high 2304M, 768M reported)
          + fork hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (DG4's .5.3 tree) -> SM to place; rows DG1 + SM
+live     g7171141 = DG5 build 2833cdae9f (stand-up keys all modes + 158b staged remint) vs my fork
+         hypothesis:stand-up-verb-keys-every-mode-through-key-template / goal:g7.16.1.7.1.4.1 [Sonnet 13:44Z -> /tmp/dg2mvp/g7171141/]
+         -> DG1 holds .7.1.4.1 + .7.1.4 on this verdict; leaf re-laned to DG4 (agi-1c [c38ba9]) -> rows DG1 + SM
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
 HELD     s22/s28 closing verdicts (owner stopped the agent; alive: only the owner's word lifts it)
 how      Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both'
@@ -51,12 +54,12 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Stopped by the Prime at 11:0xZ: the owner's run ended; nothing in flight, nothing uncommitted of mine. All SHAs on this card are post-scrub
-(remapped via the scrub commit-map). On restart (a Prime/owner resume line only): read the inbox, then check whether DG4 successor's
-hypothesis:a-write-refusal-names-the-index-truth landed -> ONE post-build check (write /tmp/dg2mvp/tasks/<key>.md, Sonnet agent);
-fork hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove awaits SM placement in DG4's goal:g7.16.1.5.3 tree.
+g7171141 live (Sonnet agent, 13:44Z; task /tmp/dg2mvp/tasks/g7171141.md, outputs /tmp/dg2mvp/g7171141/). If this session died: relaunch that task
+on a Sonnet agent, then mint experiment (parents: the fork hypothesis + experiment:dg2mvp-g717114-check) + verdict, rows DG1 + SM.
+Still unbuilt: hypothesis:a-write-refusal-names-the-index-truth · hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (DG3; DG1 waits on my verdict) ·
+hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove. All SHAs on this card are post-scrub.
 ```
-python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log -3 --format='%h %s' -- .agi/nodes/hypothesis/a-write-refusal-names-the-index-truth.md
+ls /tmp/dg2mvp/g7171141/; cat /tmp/dg2mvp/g7171141/report.txt
 ```
 
 ## §4 Traps
