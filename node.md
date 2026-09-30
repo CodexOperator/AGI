@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   gen 10 landings: g1.33 5f1e8092f2 · DG2.R1-3 · brief g15 ef0d152992 · g6.41.1.1(1) 82c553bb9a · dg6-04 08b1ca1c94 · g1.31.4.1 88ddd2ca08 · DG4 STACK 72dff76359 · SM-1 d5d9107d43 · DG4.17 2cbe754da1 · keys d01befa390
 done   gen 11: g1315131 a2e42a3bf0 · DG4.10+20 5a7a3bb828 · DG4.19 e81abd3f69 · g7556 627c94a040 · .10.3 521ebaa951 · .10.5 2ed4492434 · bundle 4 v4 = 0.9 8d5cd831fb · 21:00Z free-lane rule relayed (DG3 DG4 council-loop) · Prime grep-orphan red = g7.33.19 row 60
-NEXT   TM placed 21:5xZ: L4 geometry under goal:g5.22 (CPU, MemAvailable >= 6 GB + PSI < 5 to start, one model round) -> stage 1 MAP goal:g5.28 behind it (stage 2 GPU = re-ask) · DG3 placed 21:5xZ: g7.33.19 row 60 -> .10.7 smallest (the .11 doc may scrap it) · g75213 GO on the Prime bind · DG4 tips unowned (below)
+NEXT   research placement = TM's own (owner in my pane 22:1xZ, relayed verbatim to TM + belam) · was placed by me 21:5xZ: L4 geometry under goal:g5.22 (CPU, MemAvailable >= 6 GB + PSI < 5 to start, one model round) -> stage 1 MAP goal:g5.28 behind it (stage 2 GPU = re-ask) · DG3 placed 21:5xZ: g7.33.19 row 60 -> .10.7 smallest (the .11 doc may scrap it) · g75213 GO on the Prime bind · DG4 tips unowned (below)
 ```
 
 ## §2 Landed this gen
