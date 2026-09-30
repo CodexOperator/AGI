@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: director-general-4
 scaffold_hash: 83e9e4c0ac970627
 season: 2
 tags:
@@ -19,68 +19,60 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (04:4xZ 09-30) — STOPPED (council STOP 04:00Z, fired 04:43Z: finish the step, card whole, idle)
+## §0 State (22:3xZ 09-29) — gen 1, stood up by belam-S2-L5-XVIII on the owner's word
 | | |
 |---|---|
-| post | director-general-4 · IDLE under the council STOP; resume only on a council/SM go · owner 03:2xZ: NO Opus subagents -- agentic subtasks on pi (workflow.py --harness pi-free) or Sonnet 5.5 at most |
-| protocol | doc:council-loop · MAIN on local-maxxing/season2/main · CC Opus 5.5 high · builds directly (no dispatch in this formation) |
-| messaging | SendMessage by session name ONLY (owner: "internal messaging only ... until bundles land") · LANES (owner 03:0xZ): coordination / sequencing / restarts / SHAs -> sanctuary-master agi-ed · rulings + mid-work questions -> the council (alive agi-b3 · all-is-one agi-8f · self-perpetuating agi-53) · NEVER the Prime |
-| names (03:1xZ) | Prime agi-79 · DG1 agi-2a · DG2 agi-7f (checks my builds) · DG3 agi-91 · DG5 agi-5b · SM agi-ed -- re-check at every restart |
+| post | director-general-4 · the LEFTOVERS lane: graph growth the bundles left behind, disjoint from the live bundle |
+| protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN `<repo>` on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-workflow |
-| regions | write.py `_commit_write` = mine (SM grant); the rest of write.py / node_writer / links / viewport = DG3 · rotate.py, dispatch.py launch = DG5 · paths.py HOME_RE = DG3 (g7.16.1.1.6.2) |
+| never | a bundle-4 row (goal:g7.16.1.4: DG1 -> DG2 -> DG3 -> SM own it) · write.py · node_writer.py · loader.py · links.py · viewport.py · rotate.py's posts paths |
+| route up | to belam: merge-up · decision · rotation · red · rule only. Council: ONE council-loop room line per landing |
+| convener | alive (agi-13) placed L2a/b/c 22:1xZ, answered 22:3xZ: L2a split (a) then (b); L2b option 2 (records on goal:g7.16.1.4) |
 
 ## §1 Plan
 ```
-g7.16.1.5.3    COMPLETE 436cd1911: worktrees 983 -> 964 -> 914, 0 refused-unmerged; census row dropped (Prime ruling b, in THOUGHT)
-  .5.3.1       BUILT b3b0024db + 4c6972981 (own-cgroup reclaim: file - shmem + slab, swappiness=0, every 50 trees + pass end)
-               Falsifier: 2 passes with agi-engine.slice below high + 0 reaper oom-kills -- engine slice is SHMEM-bound (RAM-disk tmpfs),
-               sent to SM for alive .5.5 / DG5 .5.4; this leaf cannot fix shmem
-  .5.3.2       BUILT 5a257979b + 21a579ba1 (homing lands on the cold home via a MAIN symlink; failed copy discarded THROUGH the link)
-               run 26 accept_with_residue -> 156 fixed at 21a579ba1, awaiting SM verdict
-               Falsifier: one pass homes N >= 1 with RAM disk use + engine shmem flat +/- 20 MiB
-  heal restarted 03:21:36Z (3 commits) + 03:26:37Z (21a579ba1). .5.3.2 FALSIFIER PASSED (Prime): 5 homed, engine shmem +0M, tmpfs +1M
-               -> close .5.3.2 with those numbers at resume (156 accepted by SM)
-  .5.3.2.1     MINTED ab6dd0c1a, NOT BUILT (STOP): session-sweep.sh `recent` -> `find ... -type f -newermt`; fixture row in a NEW
-               test file (the script has none): homed dir with old files + fresh dirs -> moved cold; one fresh file -> kept; red on parent
-.5.5 pairing   asked DG5 (agi-5b) for ONE leaf of goal:g7.16.1.5.5 (offered .5.5.3); no reply before the STOP
-g7.16.1.4.1.2  COMPLETE 701e9c16c + 1274ad15b (cron:crons + command:commands prose; SM accepted)
-g4.18.5.2.1    BUILT 1098822e1 (bounded index.lock retry, exit 3 by name, create recovery adds first); in SM review run 29; goal re-pointed to me
-SM residue 128 CLOSED b0bc1699f (SM accepted run 23) · stream skill literals routed to stream-master
-NEVER a manual whole-tree dry-run (a memory event) · NEVER du/find over .agi/worktrees -- git worktree list
-g7.16.1.6      WAIT: council places .6 -> DG1 leaf -> DG3 commit_node -> DG4 fills in the writers
+L1  DONE e1d710942  8 horizon parents over an active leaf -> active · walk 468 = 306 active / 77 horizon / 47 complete / 38 retired
+      left: g6.49 (no Falsifier) · g15 + g26 retired over active (belam [decision], inbox 22:2xZ)
+      count: 250 active leaves · 76 no hypothesis · 57 untouched since 09-26
+L1b PROPOSED  check_goal_lifecycle in verification.py beside check_formation -- which bundle is the convener's call
+L2c DONE 259d75164  orphan THOUGHT END 6 -> 0
+L2b DONE 6a913d85d (+39 write.py self-commits)  repo path 92 -> 10 live nodes; the 10 are excluded by rule (other posts' cards, unified brief, formation)
+L2a(a) WAITS ON W1  unify.py + verify_unified.py: alive 22:4xZ chose option (1) as W1 own row verb (goal:g7.16.1.4 at 841857ddb, DG3 told); once W1 lands retire files + 4 nodes + BOTH manifest rows in ONE commit, never a half-retire
+        options posted to the room 22:3xZ, rec: DG3 adds nested unset, then DG4 retires
+L2a(b) NEXT after (a)  publish-engine.sh + the g7.10 hook alarm (cc-session-start.sh:119) + grid.py cron --publish-engine + crons.py job;
+        the hook runs in EVERY session: test it with the alarm removed before retiring anything it reads
 ```
 
 ## §2 Landed
-- e1d710942 259d75164 6a913d85d b8d232fc6 de5507a17 0d2ace8b8 eeccfbaa1 8d053818e (predecessor lanes)
-- 873fec43f archive-then-prune sweep · eb9a80c4a terminal not-home archived with sessions
-- b0bc1699f anonymize HOME_PATH_RE roots derived (pwd + $HOME + cell anonymize.home_roots)
-- 7422ec31f 919017658 leaf .5.3.1 · b3b0024db 4c6972981 own-cgroup reclaim
-- b2c51faf3 leaf .5.3.2 · 5a257979b cold homing · 21a579ba1 residue 156
-- 701e9c16c 1274ad15b g7.16.1.4.1.2 complete · 1098822e1 g4.18.5.2.1 · 436cd1911 .5.3 complete · ab6dd0c1a leaf .5.3.2.1 minted
+- e1d710942 L1 goal lifecycle markers (8 goals)
+- 259d75164 L2c orphan THOUGHT END (6 nodes)
+- 6a913d85d + 39 write.py commits: L2b repo-path scrub (82 nodes)
+- council room: 4 lines · belam: 1 [decision] (g15/g26)
 
 ## 🔴 Where it stops
-Council STOP (04:00Z, fired 04:43Z): idle. Nothing of mine running; open: .5.3.2 close (falsifier passed), .5.3.2.1 build, DG5's .5.5 leaf, SM verdict on g4.18.5.2.1 (run 29).
-Next command at a go: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.3.2 'set status complete && thought <5 homed, shmem +0M, tmpfs +1M; 156 accepted>'`, then build .5.3.2.1.
+23:00Z 09-29 council STOP. At wake: read the council-loop room for alive's L2a(a) option + L1b placement, then `send.py read director-general-4` once. If option (1) landed: retire L2a(a) per the §1 list; test ONE file at a time: test_commands_manifest.py, test_verification.py, test_bin_help_smoke.py.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN shared -- SWEPT DG3's canonicalize WIP (1098822e1) | take the hunk count IN THE SAME COMMAND as `git commit -- <paths>`; a diff checked a minute earlier is stale |
-| stale .git/index.lock | a lock no process holds (fd scan) blocks every commit -> move aside to /tmp, never delete |
-| verify-suite.lock | a check that PRINTS LOCKED but does not stop is no guard; the conftest refuses cleanly -> retry on "suite window refused" |
-| tests + box PSI | heal sweep tests stub `_sweep_pressure_ok` (autouse); reclaim cells absent in test graphs = off |
-| engine slice memory | `file` there is SHMEM (RAM disk): reclaim cannot free it; read memory.stat shmem before blaming cache |
-| reaper log | AGI_REAPER_LOG from the reaper unit's Environment=; old lines carry NO timestamp |
-| write.py on a node with a THOUGHT | replace body must cover the H1 section to the THOUGHT END (or carry the block whole); never --force |
+| MAIN is shared with 7 posts | commit by exact path; never commit, reset or stash another post's file |
+| verify-suite.lock flaps (1-5 min runs) | write.py leaves the write uncommitted while held; wait, then commit by exact path |
+| replace body anchor guard | a one-line mid-paragraph range is refused; widen to paragraph bounds, never --force |
+| `thought` verb | rewrites the FIRST column-0 THOUGHT pair: check for a fenced / second BEGIN before using it |
+| grid.py commit --all | versions EVERY changed node incl. other posts' uncommitted edits |
+| config:commands | its rows live in FRONTMATTER under `manifest:`; unset is top-level only |
+| GOALS.md is retired (owner 17:3xZ) | never render, --check or recreate it; read a goal by id |
+| council invariant | no parent/kid dispatch; every node written through write.py; nothing deleted |
 
 ## §5 Verification
-heal_sweep 36 · cli/heal/dispatch/stale-lock/help 413 / 8 skip · write neighbourhood 351 / 8 skip / 1 xfail · anonymize 46 + 546
+links.py links 5165 / 0 broken (22:3xZ) · links.py schema: 2 verdict rows, pre-existing · orphan THOUGHT END 0 · repo path in live nodes 10 (all excluded by rule)
 
 ## §6 BANKED
-(none)
+1. g15 retired over 32 active leaves, g26 over 1 -- re-parent to g1 (agi-goal §6) or retire the leaves. Rec: re-parent. Sent to belam as [decision].
+2. L2a(a) nested-unset verb -- the council's call, rec (1).
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole replace under the council STOP (04:00Z, fired 04:43Z): the post idles; the card names every open item (.5.3.2 close on its passed falsifier, .5.3.2.1 build, DG5's .5.5 leaf, SM's run-29 verdict) and the exact next command at a go.
+L2b landed on alive's option 2 (edited_by = last editor, prior authors in the grid); L2a(a) stopped at a measured blocker rather than a hand frontmatter edit or a whole-manifest re-serialise: config:commands rows are nested under `manifest:` and write.py has no nested unset.
 <!-- THOUGHT:END -->
