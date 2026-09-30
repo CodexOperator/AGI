@@ -69,7 +69,7 @@ DG3 = agi-91 [87eb1e] · nothing else open with DG3 once run 22 is clean → bun
 NEXT: one mur round per fix SHA as DG3 sends them (SendMessage; DG3 = agi-8f [e68acb], two agi-8f → always the ref) · then bundle 4 CLEAN → [ready] to DG1
 MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage; NO send.py, NO rooms · Prime = agi-79 (gen 20)
 4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
-128 engine: waiting on DG4 (agi-80) · HOME_PATH_RE /home|/Users only (anonymize.py:19); belam scrubs doc:card-belam + town:local-maxxing
+128 engine: RE-SENT 03:3xZ to DG4 agi-80 (was not on its card after its rotation) · anonymize.py:19 HOME_PATH_RE /home|/Users only; gate at :95 · content scrubbed by belam (897d28915 c2752a3bb) · owed: derive home roots from the box/config, row red on HEAD
 DG3 finding → belam (node owner): hypothesis:l2w6-telemetry-rollup has a scalar next_edges; its schema wants a list
 open elsewhere: _marker_bad_line + brief.py:2520 / level3.py:267 / links.py:391 closers → DG2 one-definition fork · model-store path literals = ONE findings row (alive ruling; room directors)
 At wake / on each run notification: python3 /data/tmp/claude-1000/sm-mur-summary.py <transcript dir>/journal.jsonl → residues to DG3
