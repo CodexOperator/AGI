@@ -837,6 +837,106 @@ def test_w2a_a_renumbered_mint_id_resolves_to_its_new_address(project):
     assert tuple(got) == ("goal:g9.2", "T", "active"), got
 
 
+# SM 103 104: only node files carry a mint (a .bak beside one never does);
+# a retired node still resolves, live first, and its status says which.
+def test_w2a_a_bak_is_no_carrier_and_a_retired_node_resolves_live_first(project):
+    fm = [f"mint_id: {_W2A_MINT}", "type: goal", 'title: "T"']
+    live = _node(project, "goal:g9.1", ['id: "goal:g9.1"', "status: active"] + fm, "b\n")
+    (project / "nodes" / "goal" / "g9.1.md.bak").write_text(live.read_text())
+    assert links.resolve_mint(project, _W2A_MINT)[0] == "goal:g9.1"
+    gone = project / "nodes" / "deprecated" / "goal" / "g9.0.md"
+    gone.parent.mkdir(parents=True)
+    gone.write_text("---\n" + "\n".join(['id: "goal:g9.0"', "status: deprecated"] + fm) + "\n---\n")
+    assert links.resolve_mint(project, _W2A_MINT)[0] == "goal:g9.1", "live first"
+    live.unlink()
+    assert tuple(links.resolve_mint(project, _W2A_MINT)) == ("goal:g9.0", "T", "deprecated")
+
+
+# SM 102 105: every exit of `links.py mint` and write.py's mint target, by rc:
+# found 0 · unknown 1 (links) / 2 (write) · two live carriers 2 · a grep that
+# cannot look 2 with a named line, never a traceback.
+def test_w2a_mint_exits_found_unknown_two_carriers_and_a_blind_grep(project, monkeypatch, capsys):
+    import write
+    fm = [f"mint_id: {_W2A_MINT}", "type: hypothesis", 'title: "T"', "status: active"]
+    _node(project, "hypothesis:h1", ['id: "hypothesis:h1"'] + fm, "b\n")
+    root = ["--root", str(project)]
+    assert links.main(["mint", _W2A_MINT] + root) == 0
+    assert links.main(["mint", "e" * 32] + root) == 1
+    assert write.main(["e" * 32, "note x"] + root) == 2
+    _node(project, "hypothesis:h2", ['id: "hypothesis:h2"'] + fm, "b\n")
+    assert links.main(["mint", _W2A_MINT] + root) == 2
+    assert write.main([_W2A_MINT, "note x"] + root) == 2
+    capsys.readouterr()
+
+    monkeypatch.setenv("GIT_CONFIG_PARAMETERS", "bogus")   # real git, exit 128
+    assert links.main(["mint", _W2A_MINT] + root) == 2
+    assert write.main([_W2A_MINT, "note x"] + root) == 2
+    assert capsys.readouterr().err.count("mint lookup could not look") == 2
+
+
+# hypothesis:one-per-read-mint-index-carries-type: ONE grep per read, frontmatter
+# only (a body `mint_id:` decoy never enters), carries type, sees a renumber.
+def test_w2a_mint_index_is_frontmatter_only_typed_and_fresh(project, capsys):
+    fm = [f"mint_id: {_W2A_MINT}", 'title: "T"', "status: active"]
+    _node(project, "goal:g9.1", ['id: "goal:g9.1"', "type: goal"] + fm, "b\n")
+    _node(project, "experiment:e1", ['id: experiment:e1', "type: experiment", "mint_id: " + "e" * 32],
+          "---\nmint_id: abc\nid: decoy\n")
+    idx = links.mint_index(project)
+    assert idx[_W2A_MINT] == [("goal:g9.1", "goal", "T", "active", False)]
+    assert "abc" not in idx and idx["e" * 32][0][:2] == ("experiment:e1", "experiment")
+    (project / "nodes/goal/g9.1.md").rename(project / "nodes/goal/g9.2.md")
+    (project / "nodes/goal/g9.2.md").write_text((project / "nodes/goal/g9.2.md").read_text().replace("g9.1", "g9.2"))
+    assert links.mint_index(project)[_W2A_MINT][0][0] == "goal:g9.2"
+    assert sum(p.read_text().count("def mint_index(") for p in BIN.glob("*.py")) == 1
+    _node(project, "goal:g9.3", ['id: "goal:g9.3"', "type: goal", "mint_id: " + "9" * 32,
+                                 'title: "say \\"hi\\" \\u00e9"'], "b\n")
+    idx = links.mint_index(project)
+    assert idx["9" * 32][0][2] == 'say "hi" \u00e9', "a quoted title is decoded like yaml"
+    assert links.resolve_mint(project, "9" * 32, index=idx)[0] == "goal:g9.3"
+    assert links.resolve_mint(project, "9" * 32, index={}) is None, "the given index is the one read"
+    odd = project / "nodes" / "goal" / "g9.4.md"   # SM 121: U+2028 and a non-UTF-8 byte
+    odd.write_bytes(b'---\nid: "goal:g9.4"\ntype: goal\nmint_id: ' + b"8" * 32 +
+                    b'\ntitle: a\xe2\x80\xa8b \xff\n---\n')
+    assert links.mint_index(project)["8" * 32][0][0] == "goal:g9.4"
+    assert links.resolve_mint(project, _W2A_MINT)[0] == "goal:g9.2", "no false collision"
+    (project / "nodes/goal/open.md").write_text("---\nid: goal:open\n\nbody\nmint_id: " + "7" * 32 + "\n")
+    (project / "nodes/goal/noid.md").write_text("---\nmint_id: " + "6" * 32 + "\n---\n")
+    idx = links.mint_index(project)   # SM 120 a b: an unclosed or id-less frontmatter is named, not indexed
+    assert "7" * 32 not in idx and "6" * 32 not in idx
+    assert "open.md: frontmatter never closes" in capsys.readouterr().err
+
+
+
+# SM 123 124 126 127: every indexed title equals yaml's reading of it; a NUL byte
+# hides no node; index= answers like no index, collisions included; the id-less
+# warning is named once per process.
+def test_sm123_to_127_the_index_reads_like_yaml_and_hides_no_node(project, capsys):
+    import yaml
+    titles = {"goal:y1": "done body shape ## Measured", "goal:y2": "'it''s'",   # 123 · 124a
+              "goal:y3": '"say \\"hi\\" # not a comment"', "goal:y4": "plain # a comment",
+              "goal:y5": "#only a comment"}
+    for i, (nid, title) in enumerate(titles.items()):
+        _node(project, nid, [f'id: "{nid}"', "type: goal", f"mint_id: {str(i) * 32}",
+                             f"title: {title}"], "b\n")
+    idx = links.mint_index(project)
+    for i, (nid, title) in enumerate(titles.items()):   # 124b: yaml is the oracle, never a literal
+        want = yaml.safe_load(f"title: {title}")["title"]
+        assert idx[str(i) * 32][0][2] == ("" if want is None else str(want)), (nid, title)
+    nul = project / "nodes" / "goal" / "z1.md"   # 127: one NUL in the body, a mint twin of goal:y1
+    nul.write_bytes(b'---\nid: "goal:z1"\ntype: goal\nmint_id: ' + b"0" * 32 + b"\n---\n\na\x00b\n")
+    idx = links.mint_index(project)
+    assert sorted(h[0] for h in idx["0" * 32]) == ["goal:y1", "goal:z1"]
+    for index in (None, idx):   # 124c: the same answers with and without index=
+        with pytest.raises(ValueError, match="carried by 2 live"):
+            links.resolve_mint(project, "0" * 32, index=index)
+        assert links.resolve_mint(project, "1" * 32, index=index)[0] == "goal:y2"
+        assert links.resolve_mint(project, "f" * 32, index=index) is None
+    capsys.readouterr()
+    (project / "nodes/goal/noid.md").write_text("---\nmint_id: " + "6" * 32 + "\n---\n")
+    links.mint_index(project)
+    links.mint_index(project)   # 126: named, and once per process, never per read
+    assert capsys.readouterr().err.count(f"noid.md: mint_id {'6' * 32} but no id -- not indexed") == 1
+
 def test_w2a_one_resolver_def_and_links_and_write_call_it():
     import re
     src = {p.name: p.read_text() for p in BIN.glob("*.py")}
@@ -849,8 +949,7 @@ def test_w2a_one_resolver_def_and_links_and_write_call_it():
 
 
 # --- bundle 4 W2c (director-general-2)
-@pytest.mark.xfail(strict=True, reason="bundle 4 W2c: RED until DG3 builds mint-id "
-                   "resolution into links._verdict_class_disagreements (parents/evidence_runs)")
+# GREEN since goal:g4.18.6.3.2 B2 (the verdict-class loop reads each ref through the one resolver)
 def test_w2c_verdict_class_check_resolves_a_mint_id_like_its_address(tmp_path):
     seen = []
     for form in ("address", "mint"):
@@ -878,20 +977,68 @@ def _w2cb_twin(tmp_path, mint: bool):  # goal:g <- hypothesis:h <- experiment:e;
     return root
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W2c re-scope B: RED until DG3 resolves the private parses")
-def test_w2cb_every_private_parse_reads_a_mint_twin_as_its_address_twin(tmp_path):
-    import importlib, brief, frontier as fr, graphweb as gw, metrics, telemetry_rollup as tr
+# goal:g4.18.6.3.2 B1 (frontier · chains · metrics): each calls the one resolver; the
+# remaining family-B readers stay in the strict xfail below until their group lands.
+def test_w2cb1_frontier_chains_metrics_read_a_mint_twin_as_its_address_twin(tmp_path, monkeypatch):
+    import frontier as fr, metrics
     from chain_engine import chains
-    sg, seen = importlib.import_module("snapshot-goals"), []
+    seen, greps, real = [], [], links.mint_index
+    monkeypatch.setattr(links, "mint_index", lambda root: (greps.append(root), real(root))[1])
+    for mint in (False, True):
+        root, ne = _w2cb_twin(tmp_path, mint), {}
+        ns = fr._load_nodes(root / "nodes")
+        chains._load_next_edges_from_disk(str(root / "nodes"), ne)
+        seen.append((sorted(n["id"] for n in fr._tips(ns)), fr._anchor(ns, "experiment:e"), ne,
+                     metrics.goal_attribution(root / "nodes")["unattributed_nodes"],
+                     sorted(metrics._load_graph(root).get_node("hypothesis:h").children)))
+        if not mint:
+            assert greps == [], "an address-only graph builds no mint index"
+    assert seen[1] == seen[0] and seen[0][2] == {"hypothesis:h": ["experiment:e"]}
+
+
+def test_w2cb1_frontier_reads_a_scalar_link_as_one_ref(tmp_path):
+    import frontier as fr   # hypothesis:l2w6-telemetry-rollup: `next_edges: <one id>` (09-30)
+    root = _w2cb_twin(tmp_path, False)
+    h = root / "nodes" / "hypothesis" / "h.md"
+    h.write_text(h.read_text().replace("next_edges:\n  - experiment:e", "next_edges: experiment:e"))
+    ns = fr._load_nodes(root / "nodes")
+    assert next(n for n in ns if n["id"] == "hypothesis:h")["next_edges"] == {"experiment:e"}
+
+
+# GREEN since goal:g4.18.6.3.2 B1+B2; snapshot-goals' integrity pair split out below (BANKED 86)
+def test_w2cb_every_private_parse_reads_a_mint_twin_as_its_address_twin(tmp_path):
+    import brief, frontier as fr, graphweb as gw, metrics, telemetry_rollup as tr
+    from chain_engine import chains
+    seen = []
     for mint in (False, True):
         root, ne = _w2cb_twin(tmp_path, mint), {}
         nodes, ns = root / "nodes", fr._load_nodes(root / "nodes")
         chains._load_next_edges_from_disk(str(nodes), ne)
-        ex = {n: {"fm": f, "path": n} for n, f, _ in links._iter_corpus(root)}  # snapshot-goals' shape
         up = [q for p in brief._parents_of(root, "experiment:e") for q in brief._parents_of(root, p)]
         seen.append(dict(
             tips=sorted(n["id"] for n in fr._tips(ns)), anchor=fr._anchor(ns, "experiment:e"), next=ne,
             attr=metrics.goal_attribution(nodes)["unattributed_nodes"], brief=up, tel=sorted(tr._build_graph_index(root)[1]),
-            web=sorted(gw.sanctuary_subtree(gw.load_nodes(root), "goal:g")),
-            integrity=sg.report_integrity(ex, sg.collect_parent_refs(ex), set(ex))[0]))
+            web=sorted(gw.sanctuary_subtree(gw.load_nodes(root), "goal:g"))))
     assert seen[1] == seen[0], {k: (v, seen[1][k]) for k, v in seen[0].items() if v != seen[1][k]}
+
+
+def test_w2cb3_dashboard_reads_a_mint_twin_as_its_address_twin(tmp_path):
+    import dashboard   # goal:g4.18.6.3.2 B3: gather resolves parents ONCE for every dashboard reader
+    seen = []
+    for mint in (False, True):
+        data = dashboard.gather(_w2cb_twin(tmp_path, mint))
+        seen.append(sorted((r["id"], tuple(r["parents"])) for r in dashboard.collect_goals(data["g"], data["fm_by_id"])) +
+                    [tuple(data["fm_by_id"]["experiment:e"][1]["parents"])])
+    assert seen[1] == seen[0] and seen[0][-1] == ("hypothesis:h",)
+
+
+@pytest.mark.xfail(strict=True, reason="BANKED 86 (doc:card-director-general-3): snapshot-goals' "
+                   "report_integrity + collect_parent_refs have NO caller -- re-wire (then resolve) or retire, the council's call")
+def test_w2cb_snapshot_goals_integrity_reads_a_mint_twin_as_its_address_twin(tmp_path):
+    import importlib
+    sg, seen = importlib.import_module("snapshot-goals"), []
+    for mint in (False, True):
+        root = _w2cb_twin(tmp_path, mint)
+        ex = {n: {"fm": f, "path": n} for n, f, _ in links._iter_corpus(root)}
+        seen.append(sg.report_integrity(ex, sg.collect_parent_refs(ex), set(ex))[0])
+    assert seen[1] == seen[0] == 0
