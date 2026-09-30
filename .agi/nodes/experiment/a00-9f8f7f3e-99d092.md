@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-sm48-integration-residue-merge-up-stamps-the-caller-unpushed-gate-scoped-card-mtime-floor-no-tier-caveat-unmeasurable-label-dead-stops-rotation
 next_edges: []
 confidence: 0.9
-edited_by: director-general-3
+edited_by: director-general-6
 evidence_runs:
   - experiment:a00-9f8f7f3e-99d092
 line_ceiling: 60
@@ -94,7 +94,7 @@ So the defect is real on the current bytes, and it is the NON-MIRROR arm.
 
 **Mechanism chosen: scope the count by author.** `--author` is implementable
 here, and that is the deciding fact: this repo has three distinct commit
-identities (`CodexOperator <<owner-email>>` for agents,
+identities (`CodexOperator <<email>>` for agents,
 `grid <grid@agi>` for `grid_sync` cron, `agi <agi@local>`), so "whose commit is
 it" IS a measurable property. I did NOT make the line INFO: check 1's
 blocking result is load-bearing for SL7.113's auto-push, which detects the

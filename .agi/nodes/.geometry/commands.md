@@ -975,6 +975,18 @@ manifest:
     purpose: adopt the current on-disk payload/body bytes as this node's version
     side_effects: graph-write
     proposable: true
+  write.py:canonicalize:
+    cli: write.py
+    verb: canonicalize
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write.py
+      - <node-id>
+      - canonicalize
+    args: []
+    purpose: re-render the node file in the ONE canonical form (node_writer.render_frontmatter + _serialize_node) and change nothing else; a node patch refuses on a non-canonical node and names this verb (council ruling on SM 154, goal:g4.18.1.6)
+    side_effects: graph-write
+    proposable: true
   cli.py:branch-reshuffle:
     cli: cli.py
     verb: branch-reshuffle

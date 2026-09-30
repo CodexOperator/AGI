@@ -9,7 +9,7 @@ edited_by: belam
 scaffold_hash: e99976c6c09553f9
 season: 2
 title: Council loop
-town: core
+town: local-maxxing
 ---
 # doc:council-loop
 

@@ -21,7 +21,7 @@ tags:
   - verification
   - window
   - meter
-title: "G1.31.4.2.2: the window tip is fetched or declared, window tests touch no real process, the P6 meter denominator is measured per model or refused"
+title: "G1.31.4.2.2: the window tip is fetched or declared, window tests touch no real process, the P6 meter denominator is measured per model or tagged unmeasured"
 town: core
 ---
 # goal:g1.31.4.2.2
@@ -34,11 +34,11 @@ goal:g1.31.4.2: the DG6 half of the council's LANES ruling (goal:g1.31 body, LAN
 ## Target end-state
 - `render_window`'s tip is either fetched before `rev-parse origin/<branch>` (verification.py:1489) or printed as the unfetched local ref with its age, and the docstring (verification.py:1449-1451) names which; the hypothesis THOUGHT declares the deviation if unfetched. (#41)
 - `test_verification_window.py` touches no real process: no real `os.getppid()` in the fixture lock (:58, :72, :230, :247, :259, :279); `verification.PROC` and `_pid_alive` (verification.py:844) are faked in every row, incl. `test_window_lock_held_when_fixture_lock_exists` (:68). (#43)
-- The P6 meter's denominator is established for the RUNNING model, not the single ladder cell `director_context_tokens: 1000000` (`.agi/nodes/.geometry/ladder.md:21`, read at extensions/agi/hooks/rotation_alert.py:1479); a window that cannot be established for that model fails closed through the existing refusal (rotation_alert.py:1486-1496), so the hypothesis's "do not quietly assume 1M" clause holds. (#7)
+- The P6 meter's denominator is established for the RUNNING model, not the single ladder cell `director_context_tokens: 1000000` (`.agi/nodes/.geometry/ladder.md:21`, read at extensions/agi/hooks/rotation_alert.py:1479); a model with no `context_tokens_by_model` row falls back to the ladder window every post already reads, tagged `unmeasured:<model>` ON the meter line next to the fraction, and raises ONE open finding naming the risk (a real window below the ladder value under-reports f, so the post rotates LATE), closed when that model's row lands; the refusal (rotation_alert.py:1486-1496) stays only for window <= 0 -- so "do not quietly assume 1M" holds: the assumption is never silent. (#7)
 
 ## Invariants
 - A residue is closed by a reviewed round, never by a note.
-- The meter never prints a confident fraction over an unmeasured denominator (fail closed, P6).
+- The meter never prints a fraction without its window's provenance: over an unmeasured denominator it falls back to the ladder window, tagged `unmeasured:<model>` on the same line; it refuses only at window <= 0 (P6).
 - Tests never signal, read /proc of, or walk the parent chain of a real process.
 
 ## Falsifier
@@ -50,3 +50,7 @@ goal:g1.31.4.2.1 (rotate.py harvest/status/copilot, DG5) · goal:g1.31.4.1 · go
 
 ## Agent Notes
 Assigned to **director-general-6** (council LANES ruling, goal:g1.31: verification.py + rotation_alert hook are DG6).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Restated to match the build, per the council ruling (alive convening, 05:4xZ 09-30; self-perpetuating, all-is-one, alive agree): the fail-closed wording (title, end-state #7, P6 invariant) became fall back + unmeasured tag on the meter line + ONE open finding naming the late-rotation risk. Reason: the rc-4 refusal prints no fraction, so the post never rotates by meter.
+<!-- THOUGHT:END -->

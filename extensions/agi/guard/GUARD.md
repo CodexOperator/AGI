@@ -224,6 +224,33 @@ script at another node file. Keys:
 `GUARD_GRACE_*` (seconds after boot it never judges, default 900),
 `GUARD_PEERWATCH_CLAUDE_*`. The file documents each one.
 
+Every other memory number the script applies is a cell too (goal:g7.16.1.5.5.5).
+Each default is the literal the script used to carry, so a box that sets none of
+them gets exactly what it got before. An unset or EMPTY cell takes the default.
+
+| cell | what it sets | default |
+|---|---|---|
+| `GUARD_OOMD_LIMIT_*` | oomd kill line for user@ + its root slice, % pressure (10..99) | 50 |
+| `GUARD_USER_HIGH_PCT_*` | user@ MemoryHigh, % of its MemoryMax (50..99) | 90 |
+| `GUARD_AGI_MAX_PCT_*` / `GUARD_AGI_HIGH_PCT_*` | agi.slice max, % of user@'s max / high, % of that max | 70 / 90 |
+| `GUARD_ENGINE_HIGH_PCT_*` | agi-engine.slice high, % of `GUARD_ENGINE_MAX` | 75 |
+| `GUARD_WORK_HIGH_PCT_*` | agi-work.slice high, % of its max (agi max - engine max) | 90 |
+| `GUARD_AGI_OOMD_LIMIT_*` | oomd kill line for agi.slice, % pressure; below user@'s, so the engine dies first | 40 |
+| `GUARD_USER_SWAP_PCT_*` / `GUARD_USER_SWAP_CAP_*` | user@ + agi.slice MemorySwapMax = min(swap x PCT/100, CAP) | 50 / 2048M |
+| `GUARD_CLAUDE_LOW_DIV_*` / `GUARD_CLAUDE_LOW_CAP_*` | Claude's MemoryLow chain = min(user@ max / DIV, CAP) | 6 / 1024M |
+| `GUARD_OOMD_SWAP_USED_PCT_*` / `GUARD_OOMD_PRESSURE_PCT_*` / `GUARD_OOMD_PRESSURE_S_*` | oomd.conf SwapUsedLimit / DefaultMemoryPressureLimit / its duration in seconds | 90 / 60 / 20 |
+| `GUARD_SYSTEM_MIN_*` / `GUARD_SSH_MIN_*` | MemoryMin of system.slice / sshd | 128M / 64M |
+| `GUARD_ENGINE_SWAP_MAX_*` / `GUARD_RAMDISK_SWAP_MAX_*` | MemorySwapMax of agi-engine.slice / ramdisk.slice (written as 0 or whole MiB) | 0 / 0 |
+| `GUARD_USER_MIN_*` | the least user@ may be left with; below it the script refuses | 2048M |
+| `GUARD_DOCKER_CAP_HEADROOM_PCT_*` | a container using this % of the docker budget is not capped live | 90 |
+| `GUARD_DEFER_PCT_*` | user@'s new cap waits for the next boot when hard use is at or over this % of the new high | 90 |
+
+The script checks every cell as a string before any arithmetic reads it. A
+percent or count must be a whole number in its range. A size must be `512M`,
+`2G`, `1.5G` or whole MiB: uppercase unit, never negative, never a bare unit.
+Anything else is refused by name (`GUARD_<NAME>_<box> must be ...`) and nothing
+is written.
+
 ## Caveats
 
 - **A watchdog reboot needs tang.** The encrypted farm boxes unlock through tang

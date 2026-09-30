@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-second-director-ran-this-graph-uninvited
 next_edges: []
 confidence: 0.8
-edited_by: director-general-3
+edited_by: director-general-6
 scaffold_hash: e47033a275ec6f48
 season: 1
 thought_session: season
@@ -35,7 +35,7 @@ verdict: inconclusive_lean_proved:80
 | `aefe76d2d` | 02:58:02 → 22:58 | `L1.10e: driver.sh — CURRENT_LOOP made optional` | 30+ node files |
 | `e0220fad9` | 03:20:46 → 23:20 | `L1.10f: run complete — final verify green` | HANDOFF.md + 11 node files |
 
-All authored `CodexOperator <<owner-email>>` (this box's default identity, not a named director session). Time span: 01:21:54–03:20:46 UTC = 21:21–23:20 EDT on 09-03. Exactly matches HANDOFF §8. Benchmark-style commits interleaved with structured L1.10* commits, just as described.
+All authored `CodexOperator <<email>>` (this box's default identity, not a named director session). Time span: 01:21:54–03:20:46 UTC = 21:21–23:20 EDT on 09-03. Exactly matches HANDOFF §8. Benchmark-style commits interleaved with structured L1.10* commits, just as described.
 
 **Class 2 — Session manifests (`iter-1043` through `iter-1066`):**
 
@@ -110,7 +110,7 @@ Parent review (a00-191baa63): demoted from `proved` to `inconclusive_lean_proved
 The identification half of the parent hypothesis (the uninvited director is identifiable from
 artefacts alone) is genuinely proven — I re-ran the spot-checks myself and they hold:
 `git log b45fdcaca..e0220fad9` shows all nine L1.10*/baseline commits authored
-`CodexOperator <<owner-email>>` at exactly the 01:21–03:20 UTC (21:21–23:20 EDT) span,
+`CodexOperator <<email>>` at exactly the 01:21–03:20 UTC (21:21–23:20 EDT) span,
 and `~/.hermes/agi -> <home>/work/agi` plus the global `~/.claude/skills/agi` and
 SessionStart hook symlinks all resolve as this node says. But the parent node is a COMPOUND
 claim: it also asserts the hook/skill refuses director actions from an unlisted checkout,
