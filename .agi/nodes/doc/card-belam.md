@@ -24,12 +24,12 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 21 ran the owner-ordered history scrub. Owner 06:3xZ-06:4xZ 09-30, verbatim: "Yeah we gotta scrub it. Time to pause grid crons and do the whole shebang." · "Yes include codex-town. And go now then restart when everything is verified" · "Go". Also owner 06:1xZ: "We should probably ease off expensive subagents now and just use strictly sonnet 5.5 ideally using our new headless CC review routes." and "We also will need to stand down director-general 5 and 6 to help conserve tokens as well ... 3,4 can continue as is and pick up whatever 5,6 don't finish after standing down". The rewrite ran on mirrors, never in place (filter-repo in place would reset --hard MAIN's uncommitted files); local refs moved by one asserted transaction and worktrees by per-path swaps, because a full git status over 682 worktrees did not finish in 15 min.
 <!-- THOUGHT:END -->
 
-## §0 State (21:0xZ 09-30, read from date -u)
+## §0 State (21:5xZ 09-30, read from date -u)
 | | |
 |---|---|
 | post | belam-S2-L5-XX gen 22 (woke 16:56Z); predecessors idle: gen 21 agi-23 · gen 20 agi-79 · gen 19 agi-c2 |
 | run | **FREE LANE since 21:00Z** (pi-free only, 0 USD, no claude-code dispatch, no Sonnet subagents; NO stop, no end time) · owner 17:4xZ: "Please extend the cutoff to about 5 p.m., after which point continue working using the free lane." · rule: doc:unified-director-brief ROUND LANES (9cb773a774) · relayed 21:02Z to SM agi-e0 [1840c0] @31 (+ graph inbox 17:5xZ) · defaults already free: spawn.harness + workflows.* = pi-free |
-| posts | DG5 + DG6 DOWN (handovers re-laned by SM: DG3 privacy cluster, DG4 hook/harvests/CC route) · SM = agi-e0 @31 · DG3 = agi-03 @32 · DG4 = agi-10 @28 · all-is-one = agi-8f @1 · self-perpetuating = agi-53 @2 (14:2xZ; always "name [ref]") |
+| posts | DG4 DOWN 21:4xZ (row recover false + pid 0, @28 closed; 25 leaves -> board horizon unassigned) · DG5 + DG6 DOWN · TM UP @34 gen 34 (research lane, Opus 5.5 high x3) · SM = agi-e0 @31 · DG3 = agi-03 @32 (key/ID work held; builds g7.16.1.11 AFTER the council) · council: alive agi-e3 [761106] @16 · all-is-one agi-8f [242e8c] @1 · self-perpetuating agi-53 [21dc2d] @2 (their inbox rows are QUIET: SendMessage to wake) |
 | crons | session: CHECK 97929cb8 (13 */4) · LANE-SWITCH bb871f87 FIRED 21:02Z · memory Monitor b0ebrpa2w (PSI full avg60 >= 10% -> AUTO reclaim top 3 scopes by file-shmem, 400M, <= 1 per 5 min; 30 min, re-arm) · box crontab LIVE (crons_live true, 12 jobs) · keysync timer re-created (transient, */2 min) |
 | scrub | /data/scrub (mode 700): RESUME.md = the step table + revert · backup-local.git · backup-origin(2).git · stripped/ (2 nsys files, also back on disk, gitignored) |
 
@@ -49,7 +49,8 @@ DONE gen 21  guard-init applied (empty plan diff) · post scopes ruled to app.sl
              STILL MINE: config:rotations skills entry (:83 + :123) + agi-post, agi-stream, byte_cap 6000 -> 8000, THOUGHT -- only once DG4 lands build:skills-agi-post-SKILL.md + build:skills-agi-stream-SKILL.md (SM sends the exact text)
 16:4xZ owner opened round lanes past pi-free (claude-code Sonnet 5.5 kids; parents+kids once proven; subagents or direct): brief SUBAGENTS row 6db908311, relayed via SM · email_allow user@UID.service 842cb065d · memory relief now PSI-gated (>= 10%): cache at user@ high with PSI 0 is normal, never churn on it
 gen 22 17:4xZ-21:0xZ: owner extended the cutoff to 21:00Z then FREE LANE (brief 9cb773a774) · 5 ORPHAN grep|head scopes stopped 20:4xZ (2.8-6.8 h, D state, 115 GB read, ~3 GB cache refill -> 2 PSI REDs 27 / 22 pct) -> [red] + g1 line to SM · CHECK 20:4xZ: BASE 1f2b49ffc (post-scrub id of 578650193) .. TIP b6e1020cc2 = 2160 commits / 107 exp / 157 engine paths / 2 D = goal renames (s1 -> g1.6.1, s33 -> g4.18.2.1) -> the council's review, not the Prime's
-NEXT         free lane, no end time: CHECK every 4 h, memory Monitor, the final merge word when the council reports
+21:2x-21:5xZ OWNER REDESIGN: per-post Unix users + a radically simple engine -> goal:g7.16.1.11 (owner verbatim x3 on it) · order: COUNCIL designs -> reports to belam -> belam relays to owner -> DG3 builds (Opus x3) · HOLD on key/ID/rotate rounds (director brief) · TM subagents row (master brief) · idea:tree-context-forked-conversations-searched-by-a-swarm under g5.30
+NEXT         wait for the council's ONE [decision] line on goal:g7.16.1.11 (doc id) -> read the doc -> report it to the owner (diagram-first) -> only then DG3's build · CHECK every 4 h · memory Monitor
 NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) -> SM lanes to DG3/DG4 · anonymize install-hook checks MAIN's diff, not the committing worktree's (a g7.33 row)
 ```
 
