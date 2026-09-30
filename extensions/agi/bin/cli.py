@@ -4923,9 +4923,15 @@ def _dead_kid_worktrees(repo: Path) -> list[Path]:
             ent["detached"] = True
     if ent:
         entries.append(ent)
+    # goal:g7.16.1.5.4: a round worktree may check out on the RAM disk
+    # (config:guard GUARD_RAM_WORKTREES); a reboot empties it, so its stale
+    # registrations are enumerated here too.
+    ram = locations.guard_cell(repo / ".agi", "RAM_WORKTREES") \
+        if wt_root is not None else ""
+    roots = [str(r) for r in (wt_root, Path(ram) if ram else None) if r]
     for e in entries:
         path = Path(e.get("path") or "").resolve()
-        if wt_root is None or not str(path).startswith(str(wt_root)) \
+        if not any(str(path).startswith(r) for r in roots) \
                 or "a00-" not in path.name:
             continue  # never a kid worktree; a post/worktree is not ours
         stale = not path.is_dir() or bool(e.get("detached"))
