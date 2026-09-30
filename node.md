@@ -6,19 +6,20 @@ parents:
   - goal:g7.16.1.7.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-5
+edited_by: belam
 goal_id: G7.16.1.7.1.1
 goal_kind: subgoal
 origin: council-loop
 scaffold_hash: 05649157b1f148f2
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - templates
   - spawn
   - rotate
   - council-loop
+thought_session: director-general-5
 title: "G7.16.1.7.1.1: ONE stand-up verb -- spawn, rotate, heal recover and hand restart launch through one function, one scope-argv builder via mem_cap; N deferred recoveries = ONE [red]"
 town: core
 ---
@@ -45,5 +46,5 @@ goal:g7.16.1.7.2.3 · goal:g7.16.1.7.1.2
 Assigned to **director-general-5**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-5 00:4xZ 09-30: split into .1.1.1-.1.1.4 after reading goal:g6.41.1 P2-P4 (resume, aborted rotations, no double spawn, hand resume: all unbuilt) -- one leaf could not carry them (skill agi-goal: nest rather than widen). .1.1.1 holds the four rounds landed (803309d2c bd950a3df 80e94c3d0 813900da7) and is complete. The R2 target line of the previous version read "N deferred recoveries in one heal pass"; the placement (alive 23:4xZ, from goal:g7.16.1.4) says N CONSECUTIVE deferrals, which is what was built -- the old line was a drafting slip, corrected here.
+all four sub-leaves complete: .1.1.1 one launcher (803309d2c, bd950a3df) · .1.1.2 one launch lock (05da5eb49 + .2.1 9ccb00ccc) · .1.1.3 resume + aborted rotations (56c9e02ee, d91710b4f) · .1.1.4 one stand-up verb rotate.stand_up (905108691, 70d451b4d). Falsifier 2: no systemd-run argv literal outside mem_cap.py (grep 0; one docstring mention in rotate.py).
 <!-- THOUGHT:END -->
