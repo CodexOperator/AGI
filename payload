@@ -3064,3 +3064,15 @@ def test_w2b2_create_walks_only_the_one_index_and_still_refuses_by_name(project,
     assert res.rejected and "goal:nope" in res.reason
     assert set(walks) <= one, "create walked beyond the one index"
     assert sum(s.endswith("nodes/doc/far.md") for s in seen) <= 2, "a far node parsed twice per create"
+
+
+# goal:g4.18.5.2.2: a write's commit message comes from the ONE config cell (project, else the engine
+# repo's own .agi/config.json); write.py carries no template literal
+def test_g418522_commit_message_reads_the_one_config_cell(tmp_path):
+    root = tmp_path / ".agi"
+    root.mkdir()
+    (root / "config.json").write_text('{"write": {"commit_message": "W {node_id}{actor}", "commit_actor": " by {actor}"}}')
+    assert write._commit_message(root, "goal:x", "p") == "W goal:x by p" and write._commit_message(root, "goal:x") == "W goal:x"
+    (root / "config.json").write_text("{}")   # no cell here: the engine's own cell answers
+    assert write._commit_message(root, "goal:x", "p") == "write.py: goal:x (p)"
+    assert 'f"write.py: {' not in (BIN / "write.py").read_text(encoding="utf-8")
