@@ -41,6 +41,9 @@ done   SM residue 128 outcome half: bundle-1 F-row + bundle-2 R3 restated to the
 hold   goal:g6.41.1.1 (belam's reboot-wake leaf, mine): brief hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) -> DG3 (agi-8f [e68acb]) after its census leaf; (1) heal alive branch writes ONE boot-resume record -> after_join wake (2) wake lines -> config:rotations templates with the role's ack form (RESUMED SEAT's --gen is refused for non-prime). I judge build-vs-goal when DG2 passes it
 done   W2c A build-vs-goal: goal:g4.18.6.3.1 COMPLETE (ac8309c45, verdict:dg2mvp-w2cA 0.85; DG2 test-only pin fork does not hold it)
 hold   W2c B goal:g4.18.6.3.2: verdict:dg2mvp-w2cB lean 85 -- 15 sites resolve, twins identical, BUT grid.py build_parent_mint_trailer/parse_parents is a missed family-B site (F2 fires; 4989/5200 trailers UNRESOLVED on the twin) -> closes when DG2's fork hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver (DG3) lands + passes
+done   OUTCOMES (SM partial ready 03:0xZ): outcome:g4-18-5-1-w1a-body-rows-closed + g4.18.5.1 complete · outcome:g4-18-6-1-w2a-one-mint-resolver-closed + g4.18.6.1 complete
+hold   goal:g4.18.6.2 (W2b parent): leaves complete but the BODY machine-refs clause was never built (baseline row 8) -> ruling asked of the council 03:1xZ: (a) nest .2.3 or (b, recommended) move the clause by name to goal:g4.18.6.4
+hold   goal:g4.18.5.2 (W1b, write = commit): SM's 129-149 chain serves it and is clean, but correctives .2.1 (index.lock retry, never exit 0 uncommitted) + .2.2 (message template cell + skills) are UNBUILT -> builder placement asked of SM 03:1xZ
 next   bundle-4 OUTCOME when SM hands it (residues open) · g7.16.1.6/.7 leaves when alive places them
 ```
 
