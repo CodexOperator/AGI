@@ -189,7 +189,6 @@ hostvar() { local n="GUARD_$1_$HOSTKEY"; printf '%s' "${!n:-${2:-}}"; }
 
 RAM_M=$(( $(awk '/^MemTotal:/{print $2}' /proc/meminfo) / 1024 ))
 SWAP_M=$(( $(awk '/^SwapTotal:/{print $2}' /proc/meminfo) / 1024 ))
-DEF_RESERVE=$(( RAM_M * 12 / 100 > 768 ? RAM_M * 12 / 100 : 768 ))
 # --- cells (goal:g7.16.1.5.5.5) ---------------------------------------------------
 # Every number below is a config:guard cell whose default is the literal this
 # script carried before; an unset OR EMPTY cell takes the default. A cell is
@@ -207,6 +206,7 @@ size_cell() {  # VAR NAME DEFAULT -> VAR = whole MiB of 512M | 2G | 1.5G | bare 
     || die "GUARD_$2_$HOSTKEY must be a size: 512M, 2G, 1.5G or whole MiB (got '$v')"
   printf -v "$1" '%s' "$(to_mib "$v")"
 }
+DEF_RESERVE=$(( RAM_M * 12 / 100 > 768 ? RAM_M * 12 / 100 : 768 ))
 [ -z "${DOCKER_BUDGET:-}" ] || printf -v "GUARD_DOCKER_BUDGET_$HOSTKEY" '%s' "$DOCKER_BUDGET"
 size_cell RESERVE_M RESERVE "$DEF_RESERVE"; size_cell DOCKER_M DOCKER_BUDGET 0
 # A non-integer PSI_FULL would make the health check's (( )) error out, which
