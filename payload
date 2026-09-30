@@ -200,15 +200,29 @@ GRACE_S=$(hostvar GRACE 900)
 
 USER_MAX_M=$(( RAM_M - RESERVE_M - DOCKER_M ))
 USER_HIGH_M=$(( USER_MAX_M * USER_HIGH_PCT / 100 ))
-USER_SWAP_M=$(( SWAP_M / 2 < 2048 ? SWAP_M / 2 : 2048 ))
-AGI_MAX_M=$(( USER_MAX_M * 70 / 100 )); AGI_HIGH_M=$(( AGI_MAX_M * 90 / 100 ))
-ENGINE_MAX_M=$(to_mib "$(hostvar ENGINE_MAX 512M)"); ENGINE_HIGH_M=$(( ENGINE_MAX_M * 75 / 100 ))
-WORK_MAX_M=$(( AGI_MAX_M - ENGINE_MAX_M )); WORK_HIGH_M=$(( WORK_MAX_M * 90 / 100 ))
+# goal:g7.16.1.5.5.5: every memory number below is a config:guard cell; the
+# default is the literal this script carried before, so an unset cell applies
+# exactly what it did.
+USER_SWAP_PCT=$(hostvar USER_SWAP_PCT 50); USER_SWAP_CAP_M=$(to_mib "$(hostvar USER_SWAP_CAP 2048M)")
+AGI_MAX_PCT=$(hostvar AGI_MAX_PCT 70); AGI_HIGH_PCT=$(hostvar AGI_HIGH_PCT 90)
+ENGINE_HIGH_PCT=$(hostvar ENGINE_HIGH_PCT 75); WORK_HIGH_PCT=$(hostvar WORK_HIGH_PCT 90)
+AGI_OOMD_LIMIT=$(hostvar AGI_OOMD_LIMIT 40)
+OOMD_SWAP_USED_PCT=$(hostvar OOMD_SWAP_USED_PCT 90); OOMD_PRESSURE_PCT=$(hostvar OOMD_PRESSURE_PCT 60)
+OOMD_PRESSURE_S=$(hostvar OOMD_PRESSURE_S 20)
+SYSTEM_MIN_M=$(to_mib "$(hostvar SYSTEM_MIN 128M)"); SSH_MIN_M=$(to_mib "$(hostvar SSH_MIN 64M)")
+CLAUDE_LOW_DIV=$(hostvar CLAUDE_LOW_DIV 6); CLAUDE_LOW_CAP_M=$(to_mib "$(hostvar CLAUDE_LOW_CAP 1024M)")
+ENGINE_SWAP_MAX=$(hostvar ENGINE_SWAP_MAX 0); RAMDISK_SWAP_MAX=$(hostvar RAMDISK_SWAP_MAX 0)
+to_mib "$ENGINE_SWAP_MAX" >/dev/null; to_mib "$RAMDISK_SWAP_MAX" >/dev/null
+
+USER_SWAP_M=$(( SWAP_M * USER_SWAP_PCT / 100 < USER_SWAP_CAP_M ? SWAP_M * USER_SWAP_PCT / 100 : USER_SWAP_CAP_M ))
+AGI_MAX_M=$(( USER_MAX_M * AGI_MAX_PCT / 100 )); AGI_HIGH_M=$(( AGI_MAX_M * AGI_HIGH_PCT / 100 ))
+ENGINE_MAX_M=$(to_mib "$(hostvar ENGINE_MAX 512M)"); ENGINE_HIGH_M=$(( ENGINE_MAX_M * ENGINE_HIGH_PCT / 100 ))
+WORK_MAX_M=$(( AGI_MAX_M - ENGINE_MAX_M )); WORK_HIGH_M=$(( WORK_MAX_M * WORK_HIGH_PCT / 100 ))
 # goal:g7.16.1.5.5.1: the RAM disk's own line (ramdisk.slice). Default = the
 # tmpfs size, so the slice never caps before the mount is full; 0 = no RAM disk.
 RAM_DIR=$(hostvar RAM_DIR /mnt/agi-ram)
 RAM_BUDGET_M=$(to_mib "$(hostvar RAM_BUDGET "$(findmnt -rno SIZE "$RAM_DIR" 2>/dev/null || echo 0)")")
-CLAUDE_LOW_M=$(( USER_MAX_M / 6 < 1024 ? USER_MAX_M / 6 : 1024 ))
+CLAUDE_LOW_M=$(( USER_MAX_M / CLAUDE_LOW_DIV < CLAUDE_LOW_CAP_M ? USER_MAX_M / CLAUDE_LOW_DIV : CLAUDE_LOW_CAP_M ))
 
 SSH_UNIT=ssh.service
 systemctl cat ssh.service >/dev/null 2>&1 || SSH_UNIT=sshd.service
@@ -228,6 +242,11 @@ if [ "$MODE" = apply ] || [ "$MODE" = dry ]; then
     || die "GUARD_OOMD_LIMIT_$HOSTKEY must be a whole number 10..99 (got '$OOMD_LIMIT')"
   [[ $USER_HIGH_PCT =~ ^[0-9]+$ ]] && (( USER_HIGH_PCT >= 50 && USER_HIGH_PCT <= 99 )) \
     || die "GUARD_USER_HIGH_PCT_$HOSTKEY must be a whole number 50..99 (got '$USER_HIGH_PCT')"
+  for _pv in USER_SWAP_PCT AGI_MAX_PCT AGI_HIGH_PCT ENGINE_HIGH_PCT WORK_HIGH_PCT AGI_OOMD_LIMIT \
+             OOMD_SWAP_USED_PCT OOMD_PRESSURE_PCT OOMD_PRESSURE_S CLAUDE_LOW_DIV; do
+    [[ ${!_pv} =~ ^[0-9]+$ ]] && (( ${!_pv} >= 1 && ${!_pv} <= 100 )) \
+      || die "GUARD_${_pv}_$HOSTKEY must be a whole number 1..100 (got '${!_pv}')"
+  done
   [[ $GRACE_S =~ ^[0-9]+$ ]] || die "GUARD_GRACE_$HOSTKEY must be whole seconds (got '$GRACE_S')"
   (( USER_MAX_M >= 2048 )) || die "RAM ${RAM_M}M - reserve ${RESERVE_M}M - docker ${DOCKER_M}M leaves ${USER_MAX_M}M for $TUSER; need >= 2048M. Lower the docker budget or the reserve in config:guard."
 fi
@@ -258,9 +277,9 @@ layer1() {
 # Ubuntu's package already has oomd watch user@.service at 50% pressure; these
 # are the defaults any watched unit inherits unless it sets its own limit.
 [OOM]
-SwapUsedLimit=90%
-DefaultMemoryPressureLimit=60%
-DefaultMemoryPressureDurationSec=20s
+SwapUsedLimit=${OOMD_SWAP_USED_PCT}%
+DefaultMemoryPressureLimit=${OOMD_PRESSURE_PCT}%
+DefaultMemoryPressureDurationSec=${OOMD_PRESSURE_S}s
 EOF
   } | put /etc/systemd/oomd.conf.d/50-sanctuary-guard.conf 0644 root:root
   run systemctl enable --quiet systemd-oomd.service
@@ -340,7 +359,7 @@ EOF
   { hdr 2; cat <<EOF
 # The parent link for ssh.service's MemoryMin: without it the child's is worth 0.
 [Slice]
-MemoryMin=128M
+MemoryMin=${SYSTEM_MIN_M}M
 EOF
   } | put /etc/systemd/system/system.slice.d/50-sanctuary-guard.conf 0644 root:root
 
@@ -353,14 +372,14 @@ EOF
 # would make every login shell, and anything run from it, unkillable.
 # NOT set here: IOWeight. No io controller is enabled, so it would do nothing.
 [Service]
-MemoryMin=64M
+MemoryMin=${SSH_MIN_M}M
 CPUWeight=1000
 EOF
   } | put "/etc/systemd/system/$SSH_UNIT.d/50-sanctuary-guard.conf" 0644 root:root
 
   run systemctl daemon-reload
-  run systemctl set-property --runtime system.slice MemoryMin=128M
-  run systemctl set-property --runtime "$SSH_UNIT" MemoryMin=64M CPUWeight=1000
+  run systemctl set-property --runtime system.slice "MemoryMin=${SYSTEM_MIN_M}M"
+  run systemctl set-property --runtime "$SSH_UNIT" "MemoryMin=${SSH_MIN_M}M" CPUWeight=1000
   run systemctl set-property --runtime user.slice "MemoryLow=${CLAUDE_LOW_M}M"
   run systemctl set-property --runtime "user-$TUID.slice" "MemoryLow=${CLAUDE_LOW_M}M"
 
@@ -419,7 +438,7 @@ MemorySwapMax=${USER_SWAP_M}M
 TasksMax=4096
 CPUWeight=50
 ManagedOOMMemoryPressure=kill
-ManagedOOMMemoryPressureLimit=40%
+ManagedOOMMemoryPressureLimit=${AGI_OOMD_LIMIT}%
 EOF
   } | put "$UGUARD/agi.slice" 0644 "$TUSER:$TGROUP"
 
@@ -432,7 +451,7 @@ Description=sanctuary guard: little engine scripts (reaper, alarms, watch)
 [Slice]
 MemoryHigh=${ENGINE_HIGH_M}M
 MemoryMax=${ENGINE_MAX_M}M
-MemorySwapMax=0
+MemorySwapMax=${ENGINE_SWAP_MAX}
 TasksMax=128
 CPUWeight=20
 EOF
@@ -462,7 +481,7 @@ EOF
 Description=sanctuary guard: the RAM disk pages (${RAM_DIR})
 [Slice]
 MemoryMax=${RAM_BUDGET_M}M
-MemorySwapMax=0
+MemorySwapMax=${RAMDISK_SWAP_MAX}
 TasksMax=64
 CPUWeight=20
 EOF
