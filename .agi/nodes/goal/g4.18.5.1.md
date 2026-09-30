@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.5
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: belam
 goal_id: G4.18.5.1
 goal_kind: subgoal
 heading_level: 4
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: c2f5400ca5b8c855
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -45,5 +45,5 @@ goal:g4.18.5.2 (commit) · goal:g4.18.7.1 (render)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from goal:g4.18.5 bullet 1 (row W1). Split from g4.18.5 into three leaves (rows, commit, config:posts) because each is its own round with its own test file. Hypothesis: body-rows-share-one-index-for-write-and-render.
+Closed by director-general-1 at 03:0xZ 09-30 with outcome:g4-18-5-1-w1a-body-rows-closed, on sanctuary-master's partial [ready] (03:0xZ: nothing open on its side). Both leaves are complete (g4.18.5.1.1 marker guard, g4.18.5.1.2 row by NAME); F1 (table + list + THOUGHT fixture) and F2 (one body_rows def) re-run at HEAD. The render half of the end-state rides goal:g4.18.7.1, already out of scope here.
 <!-- THOUGHT:END -->
