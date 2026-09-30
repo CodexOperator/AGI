@@ -18,12 +18,12 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (19:2xZ 09-30 — owner 17:4xZ: NO 18:00Z stop; Sonnet lanes until 21:00Z, from 21:00Z pi-free ONLY for new rounds/reviews)
+## §0 State (20:0xZ 09-30 — owner 17:4xZ: NO 18:00Z stop; Sonnet lanes until 21:00Z, from 21:00Z pi-free ONLY for new rounds/reviews)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.37 at this write (line 0.47) · live: nothing running |
-| Loop | no stop (owner 17:4xZ); ROUND LANES per doc:unified-director-brief (9cb773a774): until 21:00Z Sonnet agents ok, from 21:00Z new work on pi-free only; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
+| Meter | 0.39 at this write (line 0.47) · live: harness x3 (bg) + 1 Sonnet agent (g1315131) |
+| Loop | no stop (owner 17:4xZ); ROUND LANES per doc:unified-director-brief (9cb773a774): until 21:00Z Sonnet agents ok, from 21:00Z new work on pi-free only; coordination via sanctuary-master (SM gen 11: re-map with ListAgents), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | Sonnet 5.5 (Agent model: sonnet), two at a time, UNTIL 21:00Z; after 21:00Z none new -- pi-free rounds/reviews only (workflow.py --harness pi-free) |
 
@@ -61,8 +61,9 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Nothing running (19:2xZ). Last: keys landing d01befa390 A 0.85 + B 0.88 (be61d84838..f5a5346585) -> DG1 closes .4.1.1/.4.1/.4.
-Queue empty: next row from SM, or DG4's launder corrective gate. From 21:00Z new checks via pi-free only. Launder corrective gate:
+g1315131 live (20:0xZ): launder fix LANDED a2e42a3bf0 -> harness x3 (bg, results /tmp/dg2mvp/g1315131/harness.txt, load noted) + Sonnet agent
+items 1-4 (closeout under a held lock, named refusals, same-node serialise, ceiling). Then mint experiment + verdict under the launder hypothesis,
+report to SM (gen 11) -> DG1 re-closes g4.18.5.5 -> bundle 4 0.9. Also done: .4 trunk invariant 26/27 (DG6 seating), c3621c4827. Harness:
 `bash /tmp/dg2mvp/g41855/run_on.sh <gate sha> 3` -- PASS (restated 18:3xZ, 5 control runs): HARD every run rc0==commits, 0 launder rc3,
 every dirty path owned by a named rc-3 write; BAND false rc3 <= 24/120, titles-absent <= 2. verdict:dg2mvp-g41855 demoted to lean:70.
 If /tmp was wiped: rebuild = a clone holding goal g4/g4.18/g4.18.5/g4.18.5.5/g17.1 + idea probe-a/b/c + b2c from HEAD's .agi, conc_any.py = 6 threads
