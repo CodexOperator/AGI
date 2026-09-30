@@ -35,16 +35,19 @@ held() { grep -qF -- "$1/" "$LIVE" || grep -qxF -- "$1" "$LIVE"; }
 # directory mtime would hold it "recent" on the RAM disk for the whole idle window
 recent() { [ -n "$(find "$1" -type f -newermt "-$2 min" -print -quit 2>/dev/null)" ]; }
 
+# the one RAM-write rule, ONE spelling shared with ram-main.sh
+. "$HERE/ram-write.sh"
+
 # move a real dir to dest (same fs: rename; else copy, verify byte count, remove), then symlink back
 move() { local src=$1 dest=$2
   [ -e "$dest" ] && dest="$dest.$(date +%s)"
   [ "$DRY" = 1 ] && { log "DRY move $src -> $dest"; return 0; }
-  mkdir -p "$(dirname "$dest")"
-  if [ "$(stat -c %d "$src")" = "$(stat -c %d "$(dirname "$dest")")" ]; then mv "$src" "$dest"
-  else ionice -c3 cp -a "$src" "$dest.part"
-       [ "$(du -sb --apparent-size "$src" | cut -f1)" = "$(du -sb --apparent-size "$dest.part" | cut -f1)" ] || { log "VERIFY FAILED $src (kept)"; rm -rf "$dest.part"; return 1; }
-       mv "$dest.part" "$dest"; rm -rf "$src"; fi
-  ln -s "$dest" "$src"; log "moved $src -> $dest"; }
+  ramw "$(dirname "$dest")" mkdir -p "$(dirname "$dest")"
+  if [ "$(stat -c %d "$src")" = "$(stat -c %d "$(dirname "$dest")")" ]; then ramw "$dest" mv "$src" "$dest"
+  else ramw "$dest" ionice -c3 cp -a "$src" "$dest.part"
+       [ "$(du -sb --apparent-size "$src" | cut -f1)" = "$(du -sb --apparent-size "$dest.part" | cut -f1)" ] || { log "VERIFY FAILED $src (kept)"; ramw "$dest" rm -rf "$dest.part"; return 1; }
+       ramw "$dest" mv "$dest.part" "$dest"; ramw "$src" rm -rf "$src"; fi
+  ramw "$src" ln -s "$dest" "$src"; log "moved $src -> $dest"; }
 
 # 1. agi iter-* session dirs (live tree = MAIN, which is the RAM tree when up)
 idle=$IDLE; stop_at=0
