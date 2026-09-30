@@ -17,7 +17,7 @@ scaffold_hash: fb3f42d1c696fc2d
 season: 2
 title: "Four node verdicts reconciled with their bytes: two demotes, one verdict repair, one retire"
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:80
 ---
 <!-- BODY:BEGIN -->
 ## Experiment
