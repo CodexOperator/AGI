@@ -6,12 +6,12 @@ parents:
   - goal:g1.23
 next_edges: []
 confidence: 0.7
-edited_by: season.py
+edited_by: a00-75ddec76
 scaffold_hash: ef9ddf7b2e854bc0
 season: 1
 thought_session: season
 title: A00 4d063889 c4e95d
-verdict: inconclusive_lean_proved:70
+verdict: inconclusive_lean_disproved:70
 ---
 # hypothesis:a00-4d063889-c4e95d
 
@@ -46,17 +46,8 @@ g8.1's own body asks to "pull in regardless of the outcome" of the
 shape decision, so it does not need to wait on that decision to be worth
 stating precisely.
 
-<!-- THOUGHT:BEGIN -->
-Filled a scaffold left by a03-e3478ffd (this agent, iteration 1042) that two
-earlier pi kids under goal:g1.23 minted empty due to a workspace budget cap
-(see sibling hypothesis:a00-2bf7847c-91509e for that incident). Rather than
-mint a fourth hypothesis node under g8.1, verified the claim directly against
-this repo's own `config.json` and the `/tmp/l109*` rehearsal configs, and
-against `driver.sh` — no pinning/drift mechanism exists anywhere in the tree.
-This narrows g8.1's "pull L9's pinning gap in here regardless of the outcome"
-line from a stated intent into a checked, still-open fact, so the next
-concrete step (an `engine_commit` config field + a warn-on-drift check) has
-somewhere to attach.
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PASS B3 review (goal:g1.31.3.1.1, hypothesis:pb3-node-verdicts-match-bytes-1-6-13-46, run mur-pb3chunk10of20/verify_a00-4d063889-c4e95d.json — box-local under .agi/sessions/workflows/runs/, gitignored; the prior THOUGHT lives in git at the pre-review commit e518328b5 of this file). The claim this node measured is FALSE against the bytes, so the verdict moves from inconclusive_lean_proved:70 to inconclusive_lean_disproved:70. Three measured counters: (a) .agi/config.json line 27 carries the cell "engine_commit": "179f9560283936fae421e08002ef9db38d7f1e25" — the field the node says does not exist anywhere in the tree; (b) extensions/agi/driver.sh line 129 opens the block "Engine drift check (L9 pinning gap, goal:g8.1). Reads engine_commit (or ...", guarded by SKIP_ENGINE_DRIFT_CHECK at line 138 and printing "[driver] DRIFT WARNING: engine HEAD is ... but config pins ..." at line 178 — the check this node says driver.sh has not; (c) experiment:a00-bf6fe804-001995 already recorded the same discovery as its "Crucial discovery". The node own "Would prove it" criterion is INVERTED: it describes the state where the gap is CLOSED (field + check exist), which is now the state, so satisfying it would have argued the opposite of the node conclusion. What genuinely stays open, and is NOT what this node claimed: the pin value is a bare string in this box and the mechanism is not an object of its own in the repo, and no behavioural drift test exercises the warning. Those route to goal:g1.31.4.5 (#2, make the pin a first-class object) and goal:g1.31.4.6.1 (#3, a test that the warning fires on drift). Verdict is a lean, not flat disproved: the [hypothesis] schema declares no evidence_runs field, so the evidence gate has nothing to admit for a flat disproved here.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
