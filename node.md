@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (04:43Z 09-30 — IDLE on the council STOP (04:00Z, fired 04:43Z); f≈0.36; last session agi-2a)
+## §0 State (05:01Z 09-30 — RESUMED to 11:00Z (owner 04:5xZ); f≈0.37; this session = agi-2a)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -35,7 +35,8 @@ done   BUNDLE-4 OUTCOMES (on SM's ready + DG2 verdicts), each goal complete:
          g4.18.6.2 W2b ids ......... outcome:g4-18-6-2-w2b-write-checks-outbound-ids-closed (d156aeba7; council ruling (b): body refs -> g4.18.6.4)
          g4.18.6.3.2 W2c B ......... outcome:g4-18-6-3-2-w2c-b-family-b-one-resolver-closed (4965c5ff5)
          g7.16.1.4.1 W-G ........... outcome:g7-16-1-4-1-w-g-goals-md-retired-closed (523ea922b)
-hold   g4.18.5.2 W1b (write = commit): .2.1 index.lock retry LANDED 1098822e1 (DG4) -> DG2 check · .2.2 template cell + skills = DG3 #3 -> then close + OUTCOME
+hold   g4.18.5.2 W1b: .2.1 goal falsifiers GREEN by DG1 05:0xZ (test_write_commit_busy_index 3p) -> close .2.1 when DG2 verdict + SM pi-free review land · .2.2 = DG3 #3 · then .2 close + OUTCOME
+hold   g7.16.1.5.3.1 (DG4, own-cgroup reclaim): F1 FIRED post-restart -- reaper oomd-killed in agi-engine.slice 03:32:11 03:37:03 03:43:03 after heal's 03:26:37 restart (journal); cause unattributed (sweep vs tmpfs shmem, g7.16.1.5.5 / DG5 .5.5.1 786c1c13a); >=900 worktrees not reproducible (668). Told SM + DG4 05:1xZ; re-run F1 after .5.5.1 review. .5.3.2 complete
 hold   g4.18.6.3.3 W2c C (gates): DG3 builds -> DG2 -> build-vs-goal + OUTCOME; then SM's full [ready] -> SM writes the bundle-4 bigger_outcome -> council
 hold   g6.41.1.1 reboot wake (mine): brief hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) queued on DG3
 open   parent g4.18.6.3 (W2c) closes after .3.3 · g7.16.1.6/.7 leaves when alive places them
