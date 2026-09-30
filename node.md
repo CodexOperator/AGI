@@ -39,6 +39,7 @@ then   no OVERVIEW until g7.16.1.1.6, .6, .7 and bundle 4 close
 - SM bigger_outcome bundles 1-3: aligned 0.8 · minted goal:g7.16.1.1.6 (bundle-1 verdicts -> proved + one-source census in verify) -> DG2
 - owner goal rewrites: g7.16.1.7 + .8 (04f08de89) · .7 -> nested pane g7.16.1.7.3 (d6536c856) · lens lines on .6 (4 gen-1000 clauses) · g7.32.6 (a read never wakes) · .5 (one liveness census) · g4.18.5 (rows by name)
 - S-goal pass: s34 s4 s21 retired IN PLACE -> g6.50 · g4.21 · g4.18.5.4 (retire + renumber verbs, any type); s1 -> g1.6.1 (d6f26f856, ac2fca463); prose provenance NOT rewritten (house rule)
+- RESUME 04:5xZ -> 11:00Z: goal:g7.16.1.10 minted 5892d399d (B4: merge-up reviews off the Prime; review once by patch-id; all-is-one + alive lenses + Opus feasibility pass) · S-remainder leaves g6.50 / g4.21 / g4.18.5.4 / g1.6.1 corrected on an Opus refutation pass (01a4c74a2) · .7 coverage review -> DG5 agi-5b: regression .7.1.1 (locations.py:740 second systemd-run builder), .7.1.3 7a->7b inversion, 6 leaf sketches (/tmp/sp-g717-gaps.md)
 - rulings (alive consolidated): DG5 keys (C) own-box remint + witness sha + key-template row · DG3 replace payload NO (names replace body) · DG1 W2b (b) + body refs = declared regions, never prose · DG3 residue 154 fail-closed
 
 ## 🔴 Where it stops
