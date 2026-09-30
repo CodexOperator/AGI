@@ -421,34 +421,63 @@ def set_link(root, node_id: str, ref: str) -> Path:
     return path
 
 
+def mint_index(root) -> "dict[str, list[tuple[str, str, str, str, bool]]]":
+    """goal:g4.18.6.1 -- mint_id -> [(id, type, title, status, retired)], every
+    node carrying it, from ONE `git grep` over node files per read (no yaml, no
+    cache: a renumber is seen at the next read). FRONTMATTER lines only: a key
+    counts between line 1's `---` and the next fence, so a body line
+    `mint_id: x` is never an entry. A list, so a collision stays visible; a grep
+    that cannot look raises rotation_record.GrepError (fails closed)."""
+    import subprocess
+    import rotation_record
+    try:
+        r = subprocess.run(["git", "grep", "--no-index", "-znE",
+                            r"^(---\s*$|(id|mint_id|type|title|status):)", "--", "*.md"],
+                           cwd=Path(root) / "nodes", capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise rotation_record.GrepError(f"git grep could not run: {exc}") from None
+    if r.returncode >= 2 or (r.returncode == 1 and r.stderr.strip()):
+        raise rotation_record.GrepError(f"git grep exit {r.returncode}: {r.stderr.strip()}")
+    files: dict = {}
+    for line in r.stdout.splitlines():
+        rel, n, text = line.split("\0", 2)
+        fm = files.setdefault(rel, {"_fences": 0})
+        if text.rstrip() == "---":
+            fm["_fences"] += 1 if (fm["_fences"] or n == "1") else 2
+        elif fm["_fences"] == 1:
+            key, _, val = text.partition(":")
+            val = val.strip()
+            fm.setdefault(key, val[1:-1] if len(val) > 1 and val[0] == val[-1] in "\"'" else val)
+    out: dict = {}
+    for rel, fm in files.items():
+        if fm.get("mint_id") and fm.get("id"):
+            out.setdefault(fm["mint_id"], []).append(
+                (fm["id"], fm.get("type", ""), fm.get("title", ""), fm.get("status", ""),
+                 rel.startswith("deprecated/")))
+    return out
+
+
 def resolve_mint(root, mint: str) -> "tuple[str, str, str] | None":
     """goal:g4.18.6.1 -- THE mint-id resolver: mint_id -> (id, title, status)
-    of the ONE node carrying it, LIVE first, then a retired sibling under
-    deprecated/ (CLAUDE.md: a grid ref outlives its file; SM 104) -- `status`
-    says which. Read fresh on every call (one git grep over node files, no
-    process cache), so a renumber is seen at once. NO shape check (the
-    Prime, signed 22:1xZ 09-29: "8 off-shape mints: accept as found, gate on
-    'is a node's mint_id', never 32-hex"). A mint two nodes of one tier carry
-    raises ValueError by name, never a silent pick; empty or absent -> None;
-    a grep that cannot look raises GrepError (fails closed)."""
+    of the ONE node carrying it, read off `mint_index`: LIVE first, then a
+    retired sibling under deprecated/ (CLAUDE.md: a grid ref outlives its file;
+    SM 104) -- `status` says which. NO shape check (the Prime, signed 22:1xZ
+    09-29: "8 off-shape mints: accept as found, gate on 'is a node's mint_id',
+    never 32-hex"). A mint two nodes of one tier carry raises ValueError by
+    name, never a silent pick; empty or absent -> None; a grep that cannot look
+    raises GrepError (fails closed)."""
     if not (mint or "").strip():
         return None
-    import rotation_record
-    hits = [(i, f, fm) for i, f, fm in rotation_record.grep_live(Path(root), mint, retired=True)
-            if str(fm.get("mint_id", "")) == mint]
-    def _retired(f):
-        return f.relative_to(Path(root) / "nodes").parts[0] == "deprecated"
+    hits = mint_index(root).get(mint, [])
     for tier in (False, True):
-        same = [(i, fm) for i, f, fm in hits if _retired(f) == tier]
+        same = [h for h in hits if h[4] == tier]
         if len(same) > 1:
             raise ValueError(f"mint id {mint} is carried by {len(same)} "
                              f"{'retired' if tier else 'live'} nodes: "
-                             + ", ".join(i for i, _ in same))
+                             + ", ".join(sorted(h[0] for h in same)))
         if same:
-            i, fm = same[0]
-            status = str(fm.get("status", ""))
-            return (i, str(fm.get("title", "")),
-                    status or ("deprecated" if tier else ""))
+            i, _type, title, status, _ = same[0]
+            return (i, title, status or ("deprecated" if tier else ""))
     return None
 
 

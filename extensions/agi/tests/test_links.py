@@ -856,7 +856,6 @@ def test_w2a_a_bak_is_no_carrier_and_a_retired_node_resolves_live_first(project)
 # found 0 · unknown 1 (links) / 2 (write) · two live carriers 2 · a grep that
 # cannot look 2 with a named line, never a traceback.
 def test_w2a_mint_exits_found_unknown_two_carriers_and_a_blind_grep(project, monkeypatch, capsys):
-    import rotation_record
     import write
     fm = [f"mint_id: {_W2A_MINT}", "type: hypothesis", 'title: "T"', "status: active"]
     _node(project, "hypothesis:h1", ['id: "hypothesis:h1"'] + fm, "b\n")
@@ -869,12 +868,26 @@ def test_w2a_mint_exits_found_unknown_two_carriers_and_a_blind_grep(project, mon
     assert write.main([_W2A_MINT, "note x"] + root) == 2
     capsys.readouterr()
 
-    def blind(*_a, **_k):
-        raise rotation_record.GrepError("git grep exit 2: boom")
-    monkeypatch.setattr(rotation_record, "grep_live", blind)
+    monkeypatch.setenv("GIT_CONFIG_PARAMETERS", "bogus")   # real git, exit 128
     assert links.main(["mint", _W2A_MINT] + root) == 2
     assert write.main([_W2A_MINT, "note x"] + root) == 2
     assert capsys.readouterr().err.count("mint lookup could not look") == 2
+
+
+# hypothesis:one-per-read-mint-index-carries-type: ONE grep per read, frontmatter
+# only (a body `mint_id:` decoy never enters), carries type, sees a renumber.
+def test_w2a_mint_index_is_frontmatter_only_typed_and_fresh(project):
+    fm = [f"mint_id: {_W2A_MINT}", 'title: "T"', "status: active"]
+    _node(project, "goal:g9.1", ['id: "goal:g9.1"', "type: goal"] + fm, "b\n")
+    _node(project, "experiment:e1", ['id: experiment:e1', "type: experiment", "mint_id: " + "e" * 32],
+          "---\nmint_id: abc\nid: decoy\n")
+    idx = links.mint_index(project)
+    assert idx[_W2A_MINT] == [("goal:g9.1", "goal", "T", "active", False)]
+    assert "abc" not in idx and idx["e" * 32][0][:2] == ("experiment:e1", "experiment")
+    (project / "nodes/goal/g9.1.md").rename(project / "nodes/goal/g9.2.md")
+    (project / "nodes/goal/g9.2.md").write_text((project / "nodes/goal/g9.2.md").read_text().replace("g9.1", "g9.2"))
+    assert links.mint_index(project)[_W2A_MINT][0][0] == "goal:g9.2"
+    assert sum(p.read_text().count("def mint_index(") for p in BIN.glob("*.py")) == 1
 
 
 def test_w2a_one_resolver_def_and_links_and_write_call_it():
