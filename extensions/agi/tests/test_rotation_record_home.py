@@ -251,5 +251,6 @@ def test_the_cell_cache_is_not_left_keyed_by_the_missing_project():
     """dg355 item 4, the row AFTER the project-less one (file order): the missing
     project cached under the absent-root key never survives into a later row."""
     import rotation_record
+    rotation_record._cell_root()   # alone: seeds the writer's root; a poisoned None stays None
     assert rotation_record._CELL_ROOT.get(None) is not None, \
         "the cache still holds the missing project: %r" % (rotation_record._CELL_ROOT,)
