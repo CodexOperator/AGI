@@ -106,6 +106,7 @@ def fake_systemctl(tmp_path, monkeypatch):
 DEFAULT_CADENCES = {
     "grid_sync": {"every_mins": 5, "enabled": True},
     "branch_push": {"schedule": "7 * * * *", "enabled": True},
+    "publish_engine": {"schedule": "37 * * * *", "enabled": True},
     "engine_push": {"schedule": "47 * * * *", "enabled": True},
 }
 
@@ -160,8 +161,8 @@ def make_worktree_project(tmp_path, wt_name="wt"):
     carries its own `agi-tree.config.json` — indistinguishable from a separate
     project to `repo_root` but not to `git_common_root`. Returns `(main, wt)`.
 
-    grid_sync + branch_push only: engine_push is disabled so no engine
-    checkout is needed to render."""
+    grid_sync + branch_push only: publish_engine and engine_push are disabled
+    so no engine checkout is needed to render."""
     main = tmp_path / "main"
     main.mkdir(parents=True)
     _git_init(main, branch="master")
@@ -169,6 +170,7 @@ def make_worktree_project(tmp_path, wt_name="wt"):
     _git(main, "worktree", "add", "-q", str(wt), "-b", "season/s2")
     (wt / "agi-tree.config.json").write_text("{}")
     cad = dict(DEFAULT_CADENCES)
+    cad["publish_engine"] = {"schedule": "37 * * * *", "enabled": False}
     cad["engine_push"] = {"schedule": "47 * * * *", "enabled": False}
     write_crons_node(wt, crons_live=True, cadences=cad)
     return main, wt
@@ -354,7 +356,7 @@ def test_render_every_line_cds_into_root_first(tmp_path):
     root = make_project(tmp_path)
     _, cfg, repo_root, engine_root, node = crons._resolve(root)
     lines = crons.render_managed_lines(root, repo_root, engine_root, node)
-    assert len(lines) == 3
+    assert len(lines) == 4
     for line in lines:
         assert f"cd {root} &&" in line
 
@@ -363,10 +365,11 @@ def test_render_order_matches_known_jobs(tmp_path):
     root = make_project(tmp_path)
     _, cfg, repo_root, engine_root, node = crons._resolve(root)
     lines = crons.render_managed_lines(root, repo_root, engine_root, node)
-    # grid_sync (*/5), branch_push (min 7), engine_push (min 47)
+    # grid_sync (*/5), branch_push (min 7), publish_engine (min 37), engine_push (min 47)
     assert lines[0].startswith("*/5 * * * *")
     assert lines[1].startswith("7 * * * *")
-    assert lines[2].startswith("47 * * * *")
+    assert lines[2].startswith("37 * * * *")
+    assert lines[3].startswith("47 * * * *")
 
 
 def test_grid_sync_line_self_reapplies(tmp_path):
@@ -407,12 +410,11 @@ def test_self_reapply_names_the_engine_copy_not_the_running_one(tmp_path):
 
 def test_disabled_job_omitted(tmp_path):
     cadences = dict(DEFAULT_CADENCES)
-    cadences["engine_push"] = {"schedule": "47 * * * *", "enabled": False}
+    cadences["publish_engine"] = {"schedule": "37 * * * *", "enabled": False}
     root = make_project(tmp_path, cadences=cadences)
     _, cfg, repo_root, engine_root, node = crons._resolve(root)
     lines = crons.render_managed_lines(root, repo_root, engine_root, node)
-    assert len(lines) == 2
-    assert not any(l.startswith("47 ") for l in lines)
+    assert len(lines) == 3
     assert not any("publish-engine.sh" in l for l in lines)
 
 
@@ -547,7 +549,7 @@ def test_apply_from_plain_clone_does_not_refuse(tmp_path):
     fixture.write_text("")
     result = crons.cmd_apply(root, crontab_file=fixture)
     assert result["changed"] is True
-    assert len(result["managed_lines"]) == 3
+    assert len(result["managed_lines"]) == 4
 
 
 def test_apply_from_common_root_keeps_failure_isolated(tmp_path):
@@ -556,7 +558,7 @@ def test_apply_from_common_root_keeps_failure_isolated(tmp_path):
     fixture = tmp_path / "crontab.fixture"
     fixture.write_text("")
     result = crons.cmd_apply(root, crontab_file=fixture)
-    assert len(result["managed_lines"]) == 3
+    assert len(result["managed_lines"]) == 4
     grid_sync = result["managed_lines"][0]
 
     _, cfg, repo_root, engine_root, node = crons._resolve(root)
@@ -634,7 +636,7 @@ def test_apply_dry_run_writes_nothing(tmp_path):
 
     result = crons.cmd_apply(root, crontab_file=fixture, dry_run=True)
     assert fixture.read_text() == original, "--dry-run must not touch the file"
-    assert len(result["managed_lines"]) == 3
+    assert len(result["managed_lines"]) == 4
 
 
 def test_apply_creates_the_log_directory_the_lines_redirect_into(
@@ -715,7 +717,7 @@ def test_remove_only_this_projects_block(tmp_path):
     crons.cmd_apply(root, crontab_file=fixture)
 
     result = crons.cmd_remove(root, crontab_file=fixture)
-    assert len(result["removed_lines"]) == 3
+    assert len(result["removed_lines"]) == 4
     out = _read(fixture)
     assert out == UNRELATED_LINES
 
@@ -755,7 +757,7 @@ def test_disabled_engine_push_job_needs_no_engine_git(tmp_path):
     root = make_project(tmp_path, cadences=cadences, detach_engine=True)
     _, cfg, repo_root, engine_root, node = crons._resolve(root)
     lines = crons.render_managed_lines(root, repo_root, engine_root, node)
-    assert len(lines) == 2
+    assert len(lines) == 3
     # The engine_push template is specifically `git -C <engine_root> push`;
     # its absence (not a fuzzy substring match, which collides with the test's
     # own name) is what proves the disabled job never triggered the branch
@@ -774,7 +776,7 @@ def test_cli_apply_show_remove_round_trip(tmp_path, capsys):
     rc = crons.main(["apply", "--root", str(root), "--crontab-file", str(fixture)])
     assert rc == 0
     out = capsys.readouterr().out
-    assert "installed 3 line(s)" in out
+    assert "installed 4 line(s)" in out
 
     rc = crons.main(["show", "--root", str(root), "--crontab-file", str(fixture)])
     assert rc == 0
@@ -782,7 +784,7 @@ def test_cli_apply_show_remove_round_trip(tmp_path, capsys):
 
     rc = crons.main(["remove", "--root", str(root), "--crontab-file", str(fixture)])
     assert rc == 0
-    assert "removed 3 line(s)" in capsys.readouterr().out
+    assert "removed 4 line(s)" in capsys.readouterr().out
     assert _read(fixture) == UNRELATED_LINES
 
 
@@ -814,7 +816,7 @@ def test_cli_dry_run_reports_without_writing(tmp_path, capsys):
                      "--dry-run"])
     assert rc == 0
     assert fixture.read_text() == original
-    assert "would install 3 line(s)" in capsys.readouterr().out
+    assert "would install 4 line(s)" in capsys.readouterr().out
 
 
 # --- services table: systemd units rendered from the graph (fixture seam) --
