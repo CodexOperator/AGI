@@ -1992,6 +1992,25 @@ def test_an_unbound_active_formation_renders_nothing_and_stays_full(tmp_path):
     assert brief._effective_profile(project_root=tmp_path) == "full"
 
 
+def test_two_blocks_bound_to_the_same_active_formation_are_ambiguous(tmp_path, capsys):
+    """hypothesis:pb3-run-mode-reads-one-formation-cell: two `operating_modes`
+    blocks carrying the SAME `formation` cell as `active` leave the cell unable
+    to say WHICH mode is in force. Neither renders, the profile stays `full`,
+    and the one stderr line names BOTH colliding keys — dict order is not a
+    tie-break and the ambiguity is never silent."""
+    dup = dict(MODES_FIXTURE["operating_modes"]["alpha"])
+    _write_modes(tmp_path, {"operating_modes": {
+        "alpha": MODES_FIXTURE["operating_modes"]["alpha"],
+        "alpha_too": dup, "beta": MODES_FIXTURE["operating_modes"]["beta"]}})
+    _write_formations(tmp_path, "doc:A")
+    assert brief._in_force_mode(tmp_path) is None
+    assert brief._operating_mode_block(project_root=tmp_path) == ""
+    assert brief._configured_profile(tmp_path) is None
+    err = capsys.readouterr().err.strip().splitlines()
+    assert err and set(err) == {
+        "brief: ambiguous active mode for formation 'doc:A': alpha, alpha_too"}
+
+
 def test_absent_declaration_renders_nothing_and_raises_nothing(tmp_path):
     """hypothesis:l4-the-mode-is-declared-not-remembered (d) — a project that
     has not declared operating modes must be unchanged: empty block, no

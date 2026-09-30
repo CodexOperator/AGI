@@ -99,9 +99,12 @@ def _in_force_mode(project_root: Path | None = None) -> tuple[str, dict] | None:
     template (hypothesis:pb3-run-mode-reads-one-formation-cell). The switch
     lives in ONE cell, so a brief cannot print a mode the loop is not running.
 
-    Returns ``(key, block)``, or None when config, the cell, or any binding
-    is absent -- an absent binding renders nothing and leaves the profile at
-    its ``full`` default.
+    A binding is AMBIGUOUS when two or more blocks carry the same ``formation``
+    cell equal to ``active`` -- no cell then says which mode is in force, so
+    the answer is None and ONE stderr line names every colliding key. Dict
+    order is not a tie-break. Returns ``(key, block)``, or None when config,
+    the cell, or the binding is absent or ambiguous: nothing renders and the
+    profile stays at its ``full`` default.
     """
     root = _resolve_graph_root(project_root)
     try:
@@ -117,10 +120,15 @@ def _in_force_mode(project_root: Path | None = None) -> tuple[str, dict] | None:
     modes = data.get("operating_modes")
     if not active or not isinstance(modes, dict):
         return None
-    for key, block in modes.items():
-        if isinstance(block, dict) and block.get("formation") == active:
-            return key, block
-    return None
+    bound = [(key, block) for key, block in modes.items()
+             if isinstance(block, dict) and block.get("formation") == active]
+    if not bound:
+        return None
+    if len(bound) > 1:
+        print(f"brief: ambiguous active mode for formation '{active}': "
+              + ", ".join(key for key, _ in bound), file=sys.stderr)
+        return None
+    return bound[0]
 
 
 def _configured_profile(project_root: Path | None = None) -> str | None:
