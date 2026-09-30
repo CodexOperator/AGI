@@ -286,6 +286,7 @@ _LISTED_CLIS += [
     "hierarchy.py", "handoff.py", "benchmark.py", "anonymize.py",
     "council_report.py",   # DH.DG3.59: declared as `council_report.py:add` in
                            # command:commands, not exempted from the survey
+    "merge_gate.py",       # DG3.60: declared as `merge_gate.py:check`
 ]
 
 # EF.54 CLI GROUP C. Appended, like GROUP A/B, so sibling edits cannot collide.

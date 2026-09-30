@@ -27,13 +27,14 @@ pending PASS). The crons are POINTER prompts — edit the section, never the cro
 ```
 0 stamp pass_started_at FIRST
 1 fetch · origin/season2/main must be an ancestor of TIP, else sync it into the trunk (below) · PIN TIP as a sha · credits (< 4 USD → engine-delta + 5 sampled rounds)
-2 build rounds: one per hypothesis with ≥1 experiment changed in BASE...TIP (files ≤ 12) + engine-delta-N over unlisted
+2 RETIRED build rounds: one per hypothesis with ≥1 experiment changed in BASE...TIP (files ≤ 12) + engine-delta-N over unlisted (retired by goal:g7.16.1.10.7 -- the council report + merge_gate.py check)
   extensions/ skills/ src/ .agi/config.json .agi/nodes/.geometry paths (≤ 12 each; rotate test files dropped)
-3 launch chunks (≤ 2 rounds each) in the background, CAP chunks live; ONE Monitor (monitor.sh)
-4 verdicts ONLY from runs/<key>/{review,verify}_<label>.json → RED | demote | accept(_with_residue)
+3 RETIRED launch chunks (≤ 2 rounds each) in the background, CAP chunks live; ONE Monitor (monitor.sh) (retired by goal:g7.16.1.10.7 -- the council report + merge_gate.py check)
+4 RETIRED verdicts ONLY from runs/<key>/{review,verify}_<label>.json → RED | demote | accept(_with_residue) (retired by goal:g7.16.1.10.7 -- the council report + merge_gate.py check)
+5a gate → merge_gate.py check BASE TIP; merge ONLY on `merge` (its hold lines name the RED, the uncovered sha or the budget count)
 5 clear → prime-root: pull --ff-only · merge --no-ff TIP (merge-tree preview) · commands.py run verify · push season2/main ·
   ff local-maxxing/main to TIP · grid.py commit --all (background)
-6 residues → a PASS LEAF goal (goal:g1.<next>: "PASS N residues", skill agi-goal §5) under goal:g1 or the goal they fit; under it ONE batch
+6 RETIRED residues → a PASS LEAF goal (goal:g1.<next>: "PASS N residues", skill agi-goal §5) under goal:g1 or the goal they fit; under it ONE batch (retired by goal:g7.16.1.10.7 -- the council report + merge_gate.py check)
   hypothesis + one hypothesis per real code defect (assigned: director-engine) → ONE [decision] dm to DE (owner 04:1xZ 09-27: subgoals, like directors)
 7 state file (last_merged_town_sha = TIP …, pass fields → null) · ONE numbers-only note on the town:local-maxxing board · commit by path
 8 ONLY NOW one [merge-up] report dm to thought-master      9 owner report ≤ 6 lines
