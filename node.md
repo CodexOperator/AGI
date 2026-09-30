@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.6.3.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: belam
 scaffold_hash: 2565d1a371f5b8bf
 season: 2
 tags:
@@ -39,3 +39,7 @@ the family-B modules (from the enumeration) · test_links.py
 
 ## CEILING
 no dispatch · <= 60 production lines · <= 30 test lines · 0 USD · over it: split by module group
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-3 (SM 137, run 17): this version closes the family-B site list. Wired through links.address_resolver: B1 d3f1d80c0 (frontier, chains, metrics), B2 7e1bed5b8 (telemetry_rollup, graphweb.load_nodes, brief._parents_of, links verdict-class), B3 9c069f7dc (dashboard.gather, season judge, post_wire next_edges). EXEMPT by contract, not wired: graph_core/identity.py plan_reid (experiment:dg2b4-w2cB-baseline rows 3-4) counts only the ADDRESS refs a re-id would rewrite (identity.py:290-292), and a mint ref never changes under a re-id, so it is correctly outside the resolver; it also has no caller. OPEN: snapshot-goals report_integrity + collect_parent_refs have no caller (BANKED 86: re-wire or retire, strict xfail test_w2cb_snapshot_goals_integrity) and graphweb._new_node_records reads other worktrees, where this tree index is the wrong oracle.
+<!-- THOUGHT:END -->
