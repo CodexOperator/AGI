@@ -15,10 +15,10 @@ a delay in front of it; every doxxing surface removed). This skill carries only 
 
 ## 1 · The setup (owner 09-29: "only livestream on twitch" · "show the dashboard" · "delay the stream by 4 minutes")
 ```
-Xvfb :2  1920x1200  PRIVATE display (/data/home-belam/xvfb/root/usr/bin/Xvfb; no window manager, no terminals, no mouse)
+Xvfb :2  1920x1200  PRIVATE display (<home>/xvfb/root/usr/bin/Xvfb; no window manager, no terminals, no mouse)
   └─ kiosk firefox (profile ~/snap/firefox/common/stream-profile — the snap reads only $HOME)
        one page at a time:  graphweb :8765   extensions/agi/bin/graphweb.py serve --host 127.0.0.1 --port 8765  (3D graph + seats)
-                            feed     :8766   /data/home-belam/classfeed/feed.py  (council room + commits, every line masked)
+                            feed     :8766   <home>/classfeed/feed.py  (council room + commits, every line masked)
 streamer-stub systemd user unit  →  x11grab :2  →  ring (out/ring, 2 s segments)  →  relay  →  Twitch
    .env: DISPLAY_SRC=:2 · X_KEY commented (Twitch only; the original is .env.pre-class) · YT_KEY empty
 ```
