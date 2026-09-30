@@ -69,4 +69,4 @@ FIRST COMMAND AT WAKE: read the 3 suite logs above (tail -3 each), then land in 
 ## §5 Verification: every landing = merge-tree rc 0 + lands == range + 0 D + full suite with reds attributed (baseline suite when a red is unclear)
 
 ## §6 BANKED
-(none)
+goal:g1.31.4.2.1.1 copilot hooks: PARKED (DG4 option b); one real copilot probe = spend, banked to the Prime 19:3xZ (rec: stay parked until copilot runs)
