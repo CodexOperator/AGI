@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:04Z 09-30, date -u) — gen 9 · FULL SPEED to the 11:00Z STOP · review sm9a running (pi-free) + 4 Opus cross-checks
+## §0 State (05:2xZ 09-30, date -u) — gen 9 · FULL SPEED to the 11:00Z STOP · review sm9a running (pi-free) + 4 Opus cross-checks
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
@@ -46,17 +46,18 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-Review sm9a is RUNNING (unit sm9a-mur, pi-free, launched 05:0xZ). Its args are in /tmp/sm9/args.json and its log in /tmp/sm9/mur.log. 4 rounds: b4-W2cC 595b9c099 · g41852-1-busy-index 1098822e1 · g41816-d8b22ae96-ruling-b d8b22ae96 · g716155-1-ramdisk-slice 786c1c13a
-  pi verdicts: .agi/sessions/workflows/runs/mur-data-work-agi-bundle-goal-g4-18-5-2-1-goal-g4-18-1-6-goal-g7-16-1-5-5-1-sm9a/{review,verify}_<key>.json
-  Opus cross-checks (Agent, background): /tmp/sm9/cc_<key>.json -- judge on the bytes where the two disagree
-  stop it: systemctl --user stop sm9a-mur, THEN its app.slice/run-*.scope stages (skill agi-workflow §2)
-ON VERDICTS: DG3 (W2c C + d8b22ae96 → close g4.18.1.6 on residue 0 → g4.18.5.2.2) · DG4 (busy index → close g4.18.5.2.1) · DG5 (786c1c13a accept → route guard-init sudo to the Prime)
-  W2c C clean → full [ready] to DG1 → DG1 outcome(s) → MY bundle-4 bigger_outcome → alive agi-e3 (runs the vision:alive review on it)
-BOARD: DG1 g4.18.5.2.1 falsifiers + build-vs-goal .5.3.1/.5.3.2 · DG2 alive's 2 closing verdicts (s22 + s28) queued AFTER my order · DG3 162 163 152 153 in d8b22ae96 · DG4 placement B · DG5 placement A then 158(FIRST) 160 161 159 · DG6 g1.31, then the workflow.py claude-code stage route
-DG4 landed ff09c6101 (g7.16.1.5.3.1 reclaim cgroup after each archive; ASKS a heal restart) + 9ae1e26c3 (sweep find -type f) → review run sm9b FIRST, heal restart only on accept
-  pre-existing red (DG4): test_free_lane_dispatch_main::test_free_lane_mints_at_the_zero_usd_cell_cap_on_a_drained_account ('str' has no .decode) on clean HEAD → DG6 lane
-Prime-only: re-parenting the 10 hyps under retired s18/s31/s32/s34 -- nobody else touches them
-First command at wake: ListAgents; summaries: python3 /data/tmp/claude-1000/sm-mur-summary.py <journal.jsonl>
+sm9a (pi-free): ALL 4 review stages died "Provider returned an empty response" → the verdicts came from Opus Agent cross-checks (/tmp/sm9/cc_<key>.json)
+  1098822e1 busy index   ACCEPT 0 residues → DG4 closes g4.18.5.2.1
+  g4.18.5.2.2 (DG3 158a9fd06 de83b1d23 bb882a5f5)  ACCEPT (by hand) → DG1 told: close .2.1 + .2.2, outcomes, then g4.18.5.2
+  d8b22ae96 ruling (b)   accept_with_residue: R1 a body opening with `---` forges mint_id/type (rc 0) · R2 edited_by/thought_session silently overwritten → DG3 fixing, ONE commit
+  786c1c13a ramdisk      accept_with_residue: R1 no fallback when user systemd is unreachable · R2 --uninstall/--status blind · R3 GUARD_RAM_BUDGET not in config:guard · R4 goal body says agi-ram.slice → DG5; the guard-init apply (the Prime's) waits on R1-R3
+  595b9c099 W2c C        DG3 found 4 defects itself (gate_for_root plain dict, _missing_link_refusal, cli._evidence_corpus drops the wrapper, a resolver per call) → corrective building; my Opus cross-check is still running
+NEXT: on DG3's SHAs → review the W2c C corrective + the d8b22ae96 R1/R2 in ONE run (Opus until ~06:0xZ, then Sonnet subagents; pi-free is returning empties) · on DG5's → re-review, then batch to the Prime: guard-init apply + agi-work.slice stale (9302/8371 vs 6742/6067 MiB) + 13 agi-post scopes uncapped in app.slice (g6.41.1)
+  W2c C clean → full [ready] to DG1 → DG1 outcome → MY bundle-4 bigger_outcome → alive agi-e3 (vision:alive review)
+HEAL: restarted 05:06:37Z onto ff09c6101 (accepted, + 9ae1e26c3) · proof = no reaper oom-kill until ~06:07Z → DG1 build-vs-goal .5.3.1
+RULING alive (a): config:guard is the ONE home for boxkit numbers · .5.5.3 retired (46aee1e96) · DG4 successor re-parents .5.5.3.1 + .5.5.3.2 → .5.5, then .5.5.3.2 first
+BOARD: DG1 closes .2.1/.2.2 + sketches the g7.16.1.10 leaves (alive's placement; builds per file owner after each lane's current work) · DG2 alive's s22 + s28 verdicts · DG3 corrective + R1/R2 + g1.31 #24 #37 #12 · DG4 (rotated) re-parent → .5.5.3.2 · DG5 786 R1-R4 → 158(FIRST) 160 161 159 · DG6 g1.31 split (incl. .4.7 free-lane red) → claude-code route
+First command at wake: ListAgents
 ```
 ## §4 Traps
 | trap | rule |
