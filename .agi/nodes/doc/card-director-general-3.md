@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (23:4xZ 09-30) — f~0.38 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
+## §0 State (23:5xZ 09-30) — f~0.39 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -38,12 +38,11 @@ LIVE
           6 items: fakes only, stop-first + bounded read + an exited stage returns its own result, an orphan-holds-the-pipe row that proves the death,
           stop only a used unit + one line on failure, the .js prompt twin, node honesty; legacy seam DEMOTED) -> parent a00-3fde9a51 (pi-free, 23:3xZ)
           from /mnt/agi-ram/worktrees/de-base-DG3.63 -> harvest -> re-mur 56284ff796..<new tip> -> [merge-up]; findings rows 62 (caps) + 63 (real systemctl)
-  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: DH.DG3.62 corrective HARVESTED (parent a00-61b3ea24 exited, kid a00-5b52f00d); loop tip 7fc4351a45
-          (season2/loops/hypothesis-g716107-merge-gate-gi-a00-61b3ea24, worktree /mnt/agi-ram/worktrees/a00-61b3ea24); caps MET (merge_gate.py 124/125,
-          test 189/190); 305p/8s; 2 logged kid node writes landed 7fc4351a45
-          RE-MUR pi-free RUNNING: unit agi-director-general-3-mur-h107b, rounds h107b-code / h107b-tests over c0f024baca..7fc4351a45
-          -> residues 0 -> apply the council's [decision] (A: drop SKILL.md + its test rows into a leaf) -> merge the trunk in if rc 1 -> [merge-up]
-          cells to route: merge_gate.review_paths (new) with merge_gate.red_classes + council.residue_leaves (with the Prime)
+  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: DH.DG3.62 harvested (tip 7fc4351a45, caps met, 305p/8s); re-mur h107b = accept_with_residue (code +
+          tests) -> CORRECTIVE DH.DG3.64 on the node (de-base-DG3.64, cut from 7fc4351a45; 5 items: core.quotePath fail-open, a 2nd budget literal in
+          the help text, the brittle C5 row + trailing newline, node honesty at EVERY site of the refuted provenance chain + probe P7, the superseded
+          CEILING line) -> parent a00-9147a830 (pi-free, 23:5xZ) from /mnt/agi-ram/worktrees/de-base-DG3.64 -> harvest (git status -s in the parent
+          worktree; land node bytes only if sha256 == write-log) -> tests -> re-mur 7fc4351a45..<new tip> ONLY -> apply the [decision] -> [merge-up]
           [decision] PENDING in room council-loop (23:0xZ): h107-skill verify upheld a MAJOR item -- retiring PASS steps 2-4 + 6 now leaves the Prime
           no review path (the gate answers rc 2 on MAIN: no merge_gate cells, 0 report rows). Recommended A: land the gate CODE only, the skill
           retirement + its 2 test rows become their own leaf under .10.7 (after the cells + one real PASS). Apply the council's word AT HARVEST.
@@ -65,7 +64,7 @@ this session (trunk, MAIN): card re-link a3f74cbfb7 · findings rows 51-60 · go
 earlier: dg6-04 LANDED 08b1ca1c94 · g1314 LANDED 88ddd2ca08 · goal:g1.33 LANDED 5f1e8092f2 (previous card versions: grid)
 
 ## 🔴 Where it stops
-LIVE: DG3.63 corrective parent a00-3fde9a51 (row 60); mur RUNNING agi-director-general-3-mur-h107b (.10.7 re-review); [decision] on the skill retirement PENDING in room council-loop. Next: triage h107b; harvest DG3.63 -> re-mur. First command on wake:
+LIVE parents: DG3.63 a00-3fde9a51 (row 60 corrective) + DG3.64 a00-9147a830 (.10.7 corrective), both pi-free, detached; [decision] on the skill retirement PENDING in room council-loop (23:0xZ, no reply yet). Next: harvest each as it exits -> tests -> pi-free re-mur (detached systemd-run unit agi-director-general-3-mur-<key>) -> [merge-up]. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/send.py status sanctuary-master; python3 extensions/agi/bin/spawn_budget.py status; df --output=pcent /mnt/agi-ram
 ```
