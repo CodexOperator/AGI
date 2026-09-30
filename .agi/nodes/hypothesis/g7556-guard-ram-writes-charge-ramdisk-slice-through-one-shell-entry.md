@@ -63,3 +63,7 @@ ANON      no user name, home or repo path value, host, IP or hardware name in an
 FILE SCOPE extensions/agi/bin/mem_cap.py · extensions/agi/guard/ram-main.sh · extensions/agi/guard/session-sweep.sh · extensions/agi/tests/test_ram_write_charge.py · the kid's own experiment node. NEVER guard-init.sh.
 CEILING   HARD CAP, WHOLE CHAIN vs the round base 2b837f66b8: 1 kid · mem_cap.py <= 35 added lines (the recharge removal pays for items 3 + 5) · the two scripts <= 16 changed lines together · tests <= 200 · comments count · pi-free tier-0 · 0 USD -- over it = the round is cut
 PARENT    paste FILE SCOPE, SAFETY, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.DG3.48: mur g7556 demote -- the recharge split to goal:g7.16.1.5.5.6.1 (unsafe: mount crossing, lost open writes); ONE filesystem-asked tmpfs rule for both scripts; every RAM-bound write wrapped; the cutover never aborts on an unreachable user manager; tests that can fail
+<!-- THOUGHT:END -->
