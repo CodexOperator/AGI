@@ -50,6 +50,17 @@ extensions/agi/bin/council_report.py (new) · extensions/agi/tests/test_council_
 ## CEILING
 kids <= 1 · council_report.py <= 120 production lines · tests <= 160 lines · pi-free parent · 0 USD · measured with a TWO-operand numstat <cut>..<tip before the paste commit>. A kid over it = the round is cut; ask BEFORE, never after. SAFETY: tmp projects only in tests; never write a live goal leaf from a test. ANON: no user name, home or repo path value, host, IP, email or hardware name in any output, node, test, commit or dm.
 
+## CORRECTIVE DH.DG3.58 -- closes the DG3.53 parent review (a00-af9ca035: kid a00-c296586c demoted to inconclusive_lean_disproved:70 on a named probe) + the CEILING breach
+BASE      CUT FROM season2/loops/hypothesis-g716105-council-repor-a00-af9ca035 tip 1077e45cb1 (worktree under the RAM-disk cell). No merge. Never rebase.
+1. EVERY residue lands -- council_report.py merge_table keys a residue row by its FIRST cell (the round), so a round with three residues leaves ONE row on the owner leaf -- a residue row's key is (round, residue title); re-run the parent's probe (one round, three residues: an unrefuted verdicts[] defect + two missed[] items) and paste three rows on the owner leaf; a second add of the same run still three, never six.
+2. the file to size -- council_report.py is 218 lines against the 120 CEILING (no rebrief reached the director before the kid ran past it) -- fold duplication (one table merger for both headers, one owner resolver) so the file ends <= 150 lines with every falsifier row still green; paste wc -l.
+3. evidence at YOUR final tip, pasted, + a labelled numstat 1077e45cb1..<tip before the paste commit>: python3 -m pytest extensions/agi/tests/test_council_report.py extensions/agi/tests/test_write.py extensions/agi/tests/test_commands_manifest.py extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/dh358
+SAFETY    tmp projects only in tests; never write a live goal leaf or the live doc:council-report from a test
+ANON      no user name, home or repo path value, host, IP, email or hardware name in any output, node, test, commit or dm
+FILE SCOPE extensions/agi/bin/council_report.py · extensions/agi/tests/test_council_report.py · the kid's own experiment node. The hypothesis node NEVER; doc:council-report NEVER (landed by the director); .agi/config.json NEVER.
+CEILING   HARD CAP: 1 kid · council_report.py ends <= 150 lines · test file NET <= +20 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; a rebrief goes to the director BEFORE the kid passes a cap
+PARENT    paste FILE SCOPE, SAFETY, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 minted by director-general-3 as the round brief for goal:g7.16.1.10.5 (queue item 2, council ruling 13:5xZ): the report node + residue router over the verdict files that exist today; REUSED / unreviewed:budget states wait for siblings .10.2 / .10.4, reds for .10.7
 <!-- THOUGHT:END -->
