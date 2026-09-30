@@ -1,0 +1,131 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-general-2",
+  "recorded_at": "2026-09-30T05:40:33.015943Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "director-general-2",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "all-is-one",
+        "self-perpetuating.prev",
+        "director-general-4",
+        "director-general-6",
+        "stream-master",
+        "director-general-5",
+        "director-general-2.prev",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "director-general-3",
+        "director-general-1",
+        "sanctuary-master",
+        "alive",
+        "self-perpetuating",
+        "director-general-2"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/director-general-2.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 6704002,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "director-general-2.prev",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "all-is-one",
+        "self-perpetuating.prev",
+        "director-general-4",
+        "director-general-6",
+        "stream-master",
+        "director-general-5",
+        "director-general-2.prev",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "director-general-3",
+        "director-general-1",
+        "sanctuary-master",
+        "alive",
+        "self-perpetuating",
+        "director-general-2"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -35.019
+  },
+  "seated_at": "2026-09-30T05:40:33.015943Z",
+  "window": "director-general-2",
+  "session_id": "1a720a42-7b74-44ee-b84b-56918738c262",
+  "pid": 2380124,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "director-general-2.prev",
+      "id": "@7"
+    },
+    "successor_window": {
+      "name": "director-general-2",
+      "id": "@24"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@24",
+      "pid": 2380124,
+      "session_id": "1a720a42-7b74-44ee-b84b-56918738c262",
+      "transcript": "~/.claude/projects/-data-work-agi/1a720a42-7b74-44ee-b84b-56918738c262.jsonl",
+      "name": "agi-e3",
+      "path": "~/.claude/sessions/2380124.json",
+      "note": "joined by @24 in registry file 2380124.json"
+    },
+    "successor_row": "config:seats row 'director-general-2': session_ref= session_name=agi-e3 session_label=director-general-2 session_id=1a720a42-7b74-44ee-b84b-56918738c262 pid=2380124 generation=4 window='@24' source=registry pubkey=a5e86514758af014... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 79cf94b2b, retried 0) -- own-row only: director-general-2 spawn row: gen 4, session_id 1a720a42-7b74-44ee-b84b-56918738c262, window @24, pid 2380124\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- 81b3f9041 -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/director-general-2.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/director-general-2.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/director-general-2.ack.1a720a42.json",
+    "own_authority_released": "generation 3 of seat 'director-general-2' retired; successor generation 4 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "FAILED: Command '['/usr/bin/python3', '/data/work/agi/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
+    "livestream_repoint": {
+      "session": "view-director-general-2",
+      "target": "@24",
+      "skipped": "view session view-director-general-2 absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "rotate-self"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/director-general-2.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "f62991492396ff303a71a818162faafad55e01f85c378ef4cb3e02cab8cb7fa8",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [],
+    "reap_source": "SKIPPED: seat row pid 3579153 not in the derived chain [87787, 87788, 87801]; NOT TERM'd (a row that does not own the chain cannot reap it)",
+    "skipped": "SKIPPED: seat row pid 3579153 not in the derived chain [87787, 87788, 87801]; NOT TERM'd (a row that does not own the chain cannot reap it)"
+  },
+  "committed_by": "rotate-self"
+}
