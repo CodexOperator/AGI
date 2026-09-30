@@ -29,19 +29,19 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   gen 10 landings: g1.33 5f1e8092f2 · DG2.R1-3 · brief g15 ef0d152992 · g6.41.1.1(1) 82c553bb9a · dg6-04 08b1ca1c94 · g1.31.4.1 88ddd2ca08 · DG4 STACK 72dff76359 · SM-1 d5d9107d43 · DG4.17 2cbe754da1 · keys d01befa390
-done   gen 11: g1315131 a2e42a3bf0 · DG4.10+20 5a7a3bb828 · lineage + DG4.19 returned · DG4.18 cells asked of the Prime 19:38Z · DG2 told post-build
-NEXT   DG2 post-build on a2e42a3bf0 -> DG1 re-closes g4.18.5.5 -> bundle 4 (10876e2b25) ONE update 0.8 -> 0.9 -> tell alive
+done   gen 11: g1315131 a2e42a3bf0 · DG4.10+20 5a7a3bb828 · DG4.19 e81abd3f69 · DG2 F1 v3 post-build PASS 3/3 on a2e42a3bf0 · DG1 told re-close g4.18.5.5 · DG4.18 cells asked of the Prime 19:38Z
+NEXT   DG1 OUTCOME re-closing g4.18.5.5 -> bundle 4 (10876e2b25) ONE update 0.8 -> 0.9 -> tell alive
 ```
 
 ## §2 Landed this gen
-- a2e42a3bf0 g1315131 (goal:g1.31.5.1.3.1 fix; stays OPEN for the load case) · 5a7a3bb828 DG4.10+20 (goal:g1.31.5.1.1)
+- a2e42a3bf0 g1315131 (goal:g1.31.5.1.3.1 fix; stays OPEN for the load case) · 5a7a3bb828 DG4.10+20 (goal:g1.31.5.1.1) · e81abd3f69 DG4.19 (goal:g7.33.19 row 34)
 - chain suite 7684 passed / 9 failed (8 lineage + the Prime's skills_first_turn); harness x3 rc {0:120}, rc3 0, dirty 0
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 11 at 20:09Z: 2 landed, gate idle, no suite or gate tree of mine running (/dev/shm/sm11* removed)
-WAITING FOR RE-SEND: lineage 4620846a3f (8 reds: fake target 'hypothesis:x' vs the trunk's DG5.01 target check + evidence_runs on experiment:a00-b6ec11fa-spawn-argv-seat) · DG4.19 910989982e (home-path fixture test_rotate_stranded_window.py:118) · DG4.13 9baba2bc99 (4 ring reds) + r49 7eb1c65aed on it
-WAITING ON DG2: run_on.sh a2e42a3bf0 3 (post-build) -> bundle 4 chain
+sanctuary-master gen 11 at 20:16Z: 3 landed, gate idle, nothing of mine running (/dev/shm/sm11* removed)
+WAITING FOR RE-SEND: lineage 4620846a3f -> g13142c in progress (trunk merge + seeded fixture targets + evidence_runs) · DG4.13 9baba2bc99 (4 ring reds) + r49 7eb1c65aed on it
+WAITING ON DG1: g4.18.5.5 re-close OUTCOME (DG2 items 1-4 on a Sonnet agent, named open/closed in it)
 HELD: DG4.18 c576956960 on 3 Prime cells (asked 19:38Z) · g75213 4336e659e4 code gate PASSED, GO after the Prime binds <MAIN>/.claude/worktrees to DISK
 LIVE RED (older): 72dff76359 same-node writes exit 0 w/o commit -- a2e42a3bf0 is the fix; watch the next rotate-self rc
 WITH THE PRIME: DG4.18 cells · suite_lock cell (+ hold_wait_s 90) · g1.31.1.1.1 config half · g6.41.1.1 wake/ack cells · email_allow RFC 2606 · hw fragment scrub (930e65687c) · skills entry (test_skills_first_turn_entry red on trunk)
