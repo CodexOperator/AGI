@@ -1891,6 +1891,10 @@ def post_launch_lock(root: Path, post: str):
 
 #: goal:g7.16.1.7.1.1.4 -- the callers of the ONE stand-up verb.
 STAND_UP_MODES = ("spawn", "rotate", "recover", "restart")
+#: goal:g7.16.1.7.1.4 -- the modes `stand_up` keys (`ensure_post_key`): a
+#: spawn keys in its ONE seating commit (`_first_seating_key`), a rotation in
+#: rotate-self (`_rotate_first_key`); recover and restart have no key step.
+KEYED_BY_STAND_UP = ("recover", "restart")
 
 
 def stand_up(root: Path, post: str, body, *, mode: str):
@@ -1910,6 +1914,8 @@ def stand_up(root: Path, post: str, body, *, mode: str):
             why = f"launch lock held: another stand-up of {post} is in flight"
             print(f"ERR: {mode} refused: {why}", file=sys.stderr)
             return False, why
+        if mode in KEYED_BY_STAND_UP and (note := ensure_post_key(root, post)):
+            print(note, file=sys.stderr)
         return True, body()
 
 
@@ -17672,6 +17678,189 @@ def _rotate_key_gate(root: Path, seat: str, row: dict | None) -> str | None:
             f"own signing key to rotate).")
 
 
+#: goal:g7.16.1.7.1.4 -- the season-2 seat-key template when
+#: config:key-authority carries no `key_template` cell: kind and forgiving.
+#: `scheme` "" = seatsig's default; `existing_key` "adopt" = a key file whose
+#: row names no pubkey is adopted (its pubkey written), "leave" = left alone.
+#: `missing_key` (council ruling 09-30): a KEYED row with no key file here is
+#: "remint_on_own_box" -- re-keyed only when the row's `box` cell is THIS box
+#: (boxes.this_box, never a caller value), the old key retired UNSIGNED --
+#: or "refuse". `witness` "box_cell_commit" = that retirement cites the
+#: commit that put the row's box cell on this box; none found = refused.
+KEY_TEMPLATE_DEFAULT = {"scheme": "", "existing_key": "adopt",
+                        "missing_key": "remint_on_own_box",
+                        "witness": "box_cell_commit"}
+
+
+def key_template(root: Path) -> dict:
+    """goal:g7.16.1.7.1.4 -- THE seat-key template: config:key-authority's
+    `key_template` cell over KEY_TEMPLATE_DEFAULT (unknown keys ignored).
+    Never raises: a template that cannot be read is the default."""
+    out = dict(KEY_TEMPLATE_DEFAULT)
+    try:
+        import send  # local: same dir, no import cycle (send.py pattern)
+        from node_writer import find_node_file
+        path = find_node_file(send._main_graph_root(root), "config:key-authority")
+        if path is not None:
+            cell = (send._fm.load_node_file(path, body=False).frontmatter
+                    or {}).get("key_template")
+            if isinstance(cell, dict):
+                out.update({k: v for k, v in cell.items() if k in out})
+    except Exception:  # noqa: BLE001 -- see docstring
+        pass
+    return out
+
+
+def _existing_seat_key(send, root: Path, seat: str):
+    """`(scheme name, pub)` of the seat's existing key file, or None."""
+    try:
+        obj = json.loads(send._seat_key_path(root, seat).read_text())
+        pub = send.seatsig.get(obj["scheme"]).public_from_secret(
+            bytes.fromhex(obj["priv_hex"]))
+        return obj["scheme"], pub
+    except Exception:  # noqa: BLE001 -- unreadable = nothing to adopt
+        return None
+
+
+def _box_cell_witness(root: Path, seat: str, box: str) -> str:
+    """The short sha of the commit that put `seat`'s row `box` cell on `box`
+    in MAIN's posts node: the newest commit whose row reads `box` while its
+    parent's does not (the row's birth commit when it was born there). ''
+    when no commit shows it. Bounded; never raises."""
+    try:
+        main_root = _shared_graph_root(root)
+        top = _git_toplevel(main_root)
+        if top is None:
+            return ""
+        rel = os.path.relpath(_ack_seats_path(main_root), top)
+        pat = re.compile(r'"name":\s*"%s"' % re.escape(seat))
+
+        def box_at(rev: str) -> str | None:
+            out = subprocess.run(["git", "-C", str(top), "show", f"{rev}:{rel}"],
+                                 capture_output=True, text=True, timeout=10)
+            line = next((ln for ln in out.stdout.splitlines() if pat.search(ln)), None)
+            if out.returncode != 0 or line is None:
+                return None
+            m = re.search(r'"box":\s*"([^"]*)"', line)
+            return m.group(1) if m else ""
+
+        revs = subprocess.run(
+            ["git", "-C", str(top), "log", "--format=%h", "-n", "200",
+             "-G", pat.pattern, "--", rel],
+            capture_output=True, text=True, timeout=20).stdout.split()
+        for rev in revs:
+            if box_at(rev) != box:
+                return ""
+            if box_at(f"{rev}^") != box:
+                return rev
+        return ""
+    except Exception:  # noqa: BLE001 -- no witness is a refusal, not a crash
+        return ""
+
+
+def _key_finding(root: Path, seat: str, line: str) -> str:
+    """ONE finding to the Prime (the `prime_director` row) per seat and
+    finding: a repeat stand-up of the same case sends nothing. Returns the
+    line for the caller's note. Never raises."""
+    try:
+        import send  # local: same dir, no import cycle (send.py pattern)
+        mark = locations.shared_sessions_dir(root) / "seats" / f"{seat}.key-finding"
+        if mark.is_file() and mark.read_text(encoding="utf-8") == line:
+            return line
+        import write as _w
+        prime = next((str(r.get("name")) for r in _w._load_seats(_shared_graph_root(root))
+                      if r.get("role") == "prime_director" and r.get("name")), "")
+        if prime:
+            send.send(root, prime, line, "heal")
+        mark.parent.mkdir(parents=True, exist_ok=True)
+        mark.write_text(line, encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001
+        print(f"warn: key finding for {seat!r} not sent ({exc})", file=sys.stderr)
+    return line
+
+
+def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
+                        dry_run: bool = False) -> str:
+    """goal:g7.16.1.7.1.4, council ruling 09-30 -- a KEYED row whose key file
+    is absent here. Re-keyed ONLY on the row's own box (`box` cell ==
+    boxes.this_box; an undeclared box proves nothing) and only with a witness
+    commit for that box cell; the old key goes into key_history UNSIGNED with
+    reason, box, witness and time, plus ONE finding. Anything else REFUSES
+    with ONE finding naming row and box -- never a keygen hint."""
+    if tmpl.get("missing_key") != "remint_on_own_box":
+        return ""
+    import boxes
+    import write as _w  # local: same dir (send.py pattern, no cycle)
+    # the row's box from MAIN's posts node, never the caller's row dict
+    node_row = next((r for r in _w._load_seats(_shared_graph_root(root))
+                     if r.get("name") == seat), {})
+    own = str(node_row.get("box") or "").strip()
+    try:
+        here = boxes.this_box(root)
+    except Exception:  # noqa: BLE001 -- an undeclared box is never own
+        here = ""
+    if not own or own != here:
+        return _key_finding(root, seat, (
+            f"[finding] {seat}: keyed row, no key file, row box "
+            f"{own or '(none)'} is not this box {here or '(undeclared)'} -- a "
+            f"moved seat or a stolen identity; remint REFUSED"))
+    witness = (_box_cell_witness(root, seat, own)
+               if tmpl.get("witness") == "box_cell_commit" else "none")
+    if not witness:
+        return _key_finding(root, seat, (
+            f"[finding] {seat}: keyed row, no key file, own box {own}, but no "
+            f"commit witnesses the row's box cell -- remint REFUSED"))
+    if dry_run:
+        return (f"(dry-run) seat {seat!r} is keyed with no key file on its own "
+                f"box {own}; would remint (witness {witness}) -- NOTHING done")
+    scheme = row.get("sig_scheme") or tmpl.get("scheme") or send.seatsig.DEFAULT_SCHEME
+    minted = send._mint_seat_key(root, seat, scheme)
+    if minted is None:
+        return ""
+    _path, pub = minted
+    old = str(row.get("pubkey"))
+    entry = {"pub": old, "fp": send.seatsig.fingerprint(bytes.fromhex(old)),
+             "signed": False, "reason": "key file absent on own box",
+             "box": own, "witness": witness,
+             "at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
+    cells = {"pubkey": pub.hex(), "sig_scheme": scheme,
+             "enc_scheme": row.get("enc_scheme") or "none",
+             "key_history": list(row.get("key_history") or []) + [entry]}
+    note = (f"seat {seat!r}: key file absent on own box {own}; reminted "
+            f"{send.seatsig.fingerprint(pub)}, old key {entry['fp']} retired "
+            f"UNSIGNED (witness {witness})")
+    try:
+        if _write_identity_cells(root, seat=seat, actor=seat,
+                                 role=str(row.get("role") or ""), cells=cells):
+            _cn = _commit_spawn_row(
+                root, seat=seat, generation=_read_generation(root, seat),
+                session_id=str(row.get("session_id") or ""),
+                window=str(row.get("window") or ""),
+                pid=int(row.get("pid") or 0), rekey=True)
+            note += f"; {_cn.splitlines()[0]}"
+        else:
+            note += "; row write not admitted"
+    except Exception as exc:  # noqa: BLE001
+        note += f"; row write not admitted ({exc})"
+    _key_finding(root, seat, f"[finding] {note}")
+    return note
+
+
+def ensure_post_key(root: Path, post: str) -> str:
+    """goal:g7.16.1.7.1.4 -- every stand-up keys its post: the post's own
+    config:posts row, when it names no pubkey, is keyed from `key_template`
+    through `_rotate_first_key` (mint, or adopt an existing key file), row
+    cells written and committed. No model runs keygen. Returns the one-line
+    note ('' = nothing to do). Never raises: a key never blocks a stand-up."""
+    try:
+        import write as _w  # local: same dir (send.py pattern, no cycle)
+        row = next((r for r in _w._load_seats(_shared_graph_root(root))
+                    if r.get("name") == post), None)
+        return _rotate_first_key(root, None, post, row)
+    except Exception as exc:  # noqa: BLE001 -- see docstring
+        return f"warn: {post!r} key not assigned ({exc})"
+
+
 def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
                       dry_run: bool = False) -> str:
     """rotate-self KEY-GATING, line (1) MINTING half (hypothesis
@@ -17695,28 +17884,42 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
     naming the mint it would perform) so a caller on an unkeyed real row sees
     the refusal/mint plan without a side effect.
     """
-    if not row or row.get("pubkey"):
+    if not row:
         return ""
     import send  # local: same dir, no import cycle (send.py pattern)
-    scheme = row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME
+    if row.get("pubkey"):
+        if send._seat_key_path(root, seat).exists():
+            return ""
+        return _remint_missing_key(send, root, seat, row, key_template(root),
+                                   dry_run=dry_run)
+    tmpl = key_template(root)
+    adopt = tmpl.get("existing_key") == "adopt"
+    scheme = (row.get("sig_scheme") or tmpl.get("scheme")
+              or send.seatsig.DEFAULT_SCHEME)
     if dry_run:
         # dry-run is a planning check: report what an unkeyed real row would
         # do, but mint NOTHING and write NO row cell. Already-keyed rows
         # (above) and idempotent re-rotates (key file already exists, so the
         # live path would mint nothing) both return '' -- nothing to report.
         if send._seat_key_path(root, seat).exists():
-            return ""
+            return (f"(dry-run) seat {seat!r} is unkeyed; would adopt its "
+                    f"existing key -- NOTHING done") if adopt else ""
         return (f"(dry-run) seat {seat!r} is unkeyed; would mint its first "
                 f"key at {send._seat_key_path(root, seat)} (0600) and write "
                 f"its pubkey cells -- NOTHING done")
     minted = send._mint_seat_key(root, seat, scheme)
     if minted is None:
-        # a key file already exists though the row is unkeyed -- idempotent
-        # re-rotate; leave it, the next rotation sees the row still unkeyed
-        # and re-passing the gate. Nothing to do here.
-        return ""
-    _path, pub = minted
-    note = (f"rotating seat {seat!r} was unkeyed; minted its first key at "
+        # a key file already exists though the row is unkeyed: the template
+        # (goal:g7.16.1.7.1.4) adopts it -- its pubkey goes into the row --
+        # or, `existing_key: leave`, leaves it for the next pass.
+        found = _existing_seat_key(send, root, seat) if adopt else None
+        if found is None:
+            return ""
+        scheme, pub = found
+        _path, verb = send._seat_key_path(root, seat), "adopted its existing key"
+    else:
+        (_path, pub), verb = minted, "minted its first key"
+    note = (f"seat {seat!r} was unkeyed; {verb} at "
             f"{_path} (incremental fleet keying) -- "
             f"{send.seatsig.fingerprint(pub)}")
     _row_keyed = False
@@ -19751,18 +19954,23 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # goal:g15.25 line (1) -- rotate-self is KEY-GATED. A keyed seat cannot
     # rotate without its own signing key file; the gate refuses BY NAME and
     # runs BEFORE any side effect (started record, handoff, rename, spawn).
-    _key_err = _rotate_key_gate(root, seat, row)
-    if _key_err:
-        print(_key_err, file=sys.stderr)
-        return 1
     # goal:g15.25 line (1) minting half -- an UNKEYED real row mints its own
     # first key in this SAME step (incremental fleet keying), so its
     # successor wakes keyed. Best-effort row write; never fails the rotation.
+    # goal:g7.16.1.7.1.4: it runs BEFORE the gate -- a keyed row whose key
+    # file is absent on its own box is reminted here (key_template), and the
+    # gate then reads the re-keyed row.
     _mint_note = _rotate_first_key(
         root, cfg_root, seat, row,
         dry_run=bool(getattr(args, "dry_run", False)))
     if _mint_note:
         print(_mint_note, file=sys.stderr)
+        if row and row.get("pubkey") and not getattr(args, "dry_run", False):
+            row = _find_seat(_seat_read_root(root, seat), seat) or row
+    _key_err = _rotate_key_gate(root, seat, row)
+    if _key_err:
+        print(_key_err, file=sys.stderr)
+        return 1
 
     # L4.112 (A): resolve the rotation template at the TOP of rotate-self,
     # BEFORE any side effect (the started record, the handoff, the own-window

@@ -168,8 +168,9 @@ git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then li
 # 1  the row: box cell + identity cells through the ONE writer (write.py, actor = the prime row), never a hand edit
 #    (posts.md is config; written_by is [owner, prime_director]; a box's rows carry `box: <alias>` — a row
 #     without the cell belongs to default_box and is FOREIGN everywhere else: whois/heal/status/mail_poll skip it)
-# 2  the key: keys never cross boxes — re-mint on arrival; key_history on the row records the rotation
-send.py --from belam keygen --post belam
+# 2  the key: keys never cross boxes and no model mints one — rotate-self (step 6) and every stand-up key the row
+#    from config:key-authority key_template: on the row's OWN box (step 1's committed box cell = the witness) it is
+#    reminted, the old key retired UNSIGNED into key_history + ONE finding; a foreign box is refused + ONE finding
 # 3  the pin: the seat-stable meter pin on YOUR OWN transcript (never the newest .jsonl — that is another seat's)
 rotate.py meter --post belam --pin .agi/sessions/belam.meter --session-log ~/.claude/projects/<slug>/<own-session-id>.jsonl
 # 4  the seats you were told to stand up, each from its own card, then pin each to its own transcript
