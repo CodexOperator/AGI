@@ -46,7 +46,7 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-STOPPED 09:5xZ on the Prime's STOP (owner 04:58Z "until 7am" = 11:00Z). Nothing running. Resume only on a Prime/owner "[rule] resume".
+STOPPED 11:02Z on the Prime's STOP (owner 04:58Z "until 7am" = 11:00Z). Nothing running. Resume only on a Prime/owner "[rule] resume".
 BOARD (the town's open state, for resume):
   BUNDLE 4 bigger_outcome council-bundle-4-one-gate-one-commit-ids-never-move v3 (10876e2b25) OPEN 0.8 → the last condition (4a) goal:g4.18.5.5 = DG4.15 (parent a00-f7261183, hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block; dropped twice by shared parents, now its own round) → its merge-up comes to me FIRST + values.core.suite_lock text → Prime → then ONE update to 0.9 + tell alive
   GO GIVEN, not yet confirmed landed: dg6-03 (goal:g1.31.3.2 half b) tip 25d4145b95 → verify it is an ancestor of HEAD at resume
