@@ -38,9 +38,11 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           (merge-tree + commit-tree + ff-only) -> goal:g1.33 complete; route cell paths.local_maxxing.scrub_commit_map + focus line to SM/Prime
        dg6-04 chain: DH.DG3.47 kid tip 0d1bd9264b (worktree /mnt/agi-ram/worktrees/dg3-h-dg6-04, 276p) -> re-mur unit ...dg3mur-dg6-04e-1345
           (old c51ea3367d) -> residues 0 -> [merge-up] half a -> GO -> land -> goal:g1.31.3.2 complete; email_allow diff -> SM/Prime
-       g7556: DH.DG3.48 kid a00-46137558 DEMOTED by its parent (item 3 refuted: execvp -> a failing systemd-run never runs argv; fstype_at
-          ValueError); chain over every cap (mem_cap +58/35, scripts 32/16, tests 332/200) -> DH.DG3.50 parent a00-37c39981 from tip 1e8e34c555
-          (base /mnt/agi-ram/worktrees/de-base-DG3.50) -> harvest -> re-mur 157112b53e..tip (the whole corrective chain)
+              g7556: DH.DG3.50 HARVESTED 14:12Z tip 574a307b1c (kid a00-14e7ff56 proved, merged by its parent; 127p/8s at tip; mem_cap NET +6 = cap,
+          test 220 = cap) -> re-mur unit agi-director-general-3-dg3mur-g7556d-1414 (/tmp/dg3_mur-g7556d.json, old 157112b53e, 2 slices memcap + shell)
+          -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g7.16.1.5.5.6 complete (RAM worktrees de-base-DG3.50 + a00-4be37f6b + a00-37c39981 REMOVED)
+       g7.16.1.10.3 (queue 1, CLAIMED active 9a8b4559cc): hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model 5a6fecd879 ->
+          DG3.51 parent a00-da20f44e + kid a00-870c8659 (branch season2/loops/hypothesis-g716103-reds-py-check-a00-da20f44e) -> harvest -> mur
        g1.31.4.1 (DG5.01): DH.DG3.49 kid a00-0c3400bc proved, merged on season2/loops/hypothesis-g1314-dg5-01-correcti-a00-ab3a5550 tip 1235a53925
           (201p/8s; caveat module + test removed; prod NET +40 vs +10, tests +119 vs 70: disclosed, row 33) -> 2-slice re-mur unit
           ...dg3mur-g1314c-1359 (/tmp/dg3_mur-g1314c.json, old 0ad9d5c4ff) -> DIRECTOR node closures DONE on the loop tip 14cc603581..b8fb98359e
@@ -63,7 +65,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 [merge-up] SENT to SM 14:1xZ, WAIT for GO (tip 5bbf3bb01a); LIVE: re-murs dg6-04e + g1314c, parent DG3.50. First command on wake:
+g133 [merge-up] SENT to SM 14:1xZ, WAIT for GO (tip 5bbf3bb01a); LIVE: re-murs dg6-04e + g1314c + g7556d, parent DG3.51 a00-da20f44e. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
