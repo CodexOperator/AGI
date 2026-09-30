@@ -27,10 +27,10 @@ gen 19 after the planned reboot (01:55Z): the boot path resumed this session at 
 ## §0 State (02:2xZ 09-30, after the reboot)
 | | |
 |---|---|
-| post | belam-S2-L5-XIX gen 19, session **agi-c2** · rotated at f 0.44 (02:2xZ); step 5 is the SUCCESSOR'S first act; re-arm CHECK + STOP crons and the B3 Monitor at wake · row after `rotate.py ack --seat belam --gen 19 --ref 33b64b continue` (02:2xZ, committed by ack): session_ref 33b64b + session_id 284d4866 pinned, but pid 4039053 / window @21 stay stale (the join polls the OLD window) -> at rotate: TaskStop the monitors + CronDelete the crons FIRST, so this session stays idle if the reap misses it |
+| post | belam-S2-L5-XX gen 20, session **agi-79** (woke 02:3xZ, ack answered continue; quorum re-linked 3b91e6c1a; all posts told the new name) · predecessor gen 19 = agi-c2 (idle) · B3 chunks 16-20 in flight, step 5 after verdicts · row after `rotate.py ack --seat belam --gen 19 --ref 33b64b continue` (02:2xZ, committed by ack): session_ref 33b64b + session_id 284d4866 pinned, but pid 4039053 / window @21 stay stale (the join polls the OLD window) -> at rotate: TaskStop the monitors + CronDelete the crons FIRST, so this session stays idle if the reap misses it |
 | posts | ALL back via heal (one per pass, each in its OWN scope: P6 live) and RESUMED by SendMessage 02:1xZ. MESSAGING (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." Session names: ListAgents + tmux window names (@id -> post); a shared name needs its [ref] (all-is-one agi-8f [242e8c] vs DG3 agi-8f [e68acb]) |
 | box | MAIN on tmpfs under its own path (ram-main.sh) · ~/.claude + ~/.pi tiered (ram-tier.sh, cold = /mnt/agi-flash/state) · boot unit agi-ram-main: up + tier ensure; STOP flushes (ran clean 01:54:54Z) · heal log TIMESTAMPED (goal:g6.41.2) · boot took +5m23s in systemd-tmpfiles (an on-disk /tmp clean) |
-| crons | session-only, re-armed 02:0xZ: CHECK 9eee5b89 "13 */4 * * *" · STOP e0477d19 04:00Z (posts were resumed: it applies) |
+| crons | session-only, re-armed 02:0xZ: CHECK 9593181d "13 */4 * * *" · STOP 75d96fba 04:00Z (posts were resumed: it applies) · B3 Monitor on monitor.sh (re-armed by gen 20 02:3xZ) |
 
 ## §1 Plan
 ```
