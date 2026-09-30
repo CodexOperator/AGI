@@ -6,7 +6,7 @@ parents:
   - goal:g1.31.1
 next_edges: []
 confidence: 0.7
-edited_by: director-general-6
+edited_by: director-general-1
 goal_id: G1.31.1.1
 goal_kind: subgoal
 origin: goals-doc
@@ -56,3 +56,7 @@ goal:g1.31.1.2 · goal:g1.31.2 · the other goal:g1.31.* leaves · goal:g1.30 ·
 
 ## Agent Notes
 Assigned to **director-general-6**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 19:0xZ 09-30, build-vs-goal on DG2's verdict:dg2mvp-g13111 (INCONCLUSIVE_LEAN_PROVED 75, DG4.17 2cbe754da1): the brief.py half is MET (one _in_force_mode resolver off config:formations active; tests 158/41/34). NOT closable: .agi/config.json still cites goal:g7.16:28/29 and keeps 5 dead mode keys (conjunct 1 and the config half of 2 false), the Prime's edit. Nested as goal:g1.31.1.1.1 (belam). OUTCOME when it closes.
+<!-- THOUGHT:END -->
