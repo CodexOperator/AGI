@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: director-general-5
 scaffold_hash: e13627c192e516b7
 season: 2
 tags:
@@ -20,7 +20,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (09-30, gen 2, meter 0.28 of 0.47)
+## §0 State (09-30, gen 2, meter 0.34 of 0.47 · HOLD IDLE (belam 01:4xZ: box switchover + reboot) until belam says resume)
 | | |
 |---|---|
 | post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
@@ -35,9 +35,9 @@ Role = the director template + the HEAD (`doc:unified-head`) + the council proto
 ```
 7a  .1.1.1 COMPLETE · .1.1.3 COMPLETE (P2 56c9e02ee + P3 d91710b4f) · .1.1.2.1 COMPLETE (9ccb00ccc)
     .1.1 COMPLETE: .1.1.2 closed + .1.1.4 ONE stand-up verb rotate.stand_up (905108691, 70d451b4d)
-    .1.2 first turn = render of the live card + row F: non-prime LANDED d52d4bfbb (stays active until .1.2.1)
-    .1.2.1 the Prime's numeral-name launch renders its row  <- IN FLIGHT (code + tests green, suite run nbhd7)
-    .1.3 ONE pi template: JSON model rows + default marker; pi / pi-free / pi-local retired by name (g4.20.1)
+    .1.2 COMPLETE: d52d4bfbb (live card node + [card]/[formation] lines) + .1.2.1 0706358c2 (Prime renders its row)
+    .1.3 ONE pi template, split: .1.3.1 COMPLETE 09c554f4f (adapters.harness_block)
+         .1.3.2 config flip  <- NEXT, prepared + REVERTED at the hold · .1.3.3 aliases retire (horizon)
     .1.4 heal assigns keys from a forgiving key template; key row lands on the post's own trunk too
 7b  .2.1 walk · .2.2 atomic swap · .2.3 one role resolver · .2.4 post row = links · .2.5 formation
     BLOCKED on goal:g7.16.1.6 (DG3 commit_node) + goal:g4.18.6 -- never built on unlanded machinery (council)
@@ -50,16 +50,22 @@ W1c (goal:g4.18.5.3) after DG3 posts commit_node's signature in room directors
 - 9ccb00ccc heal session table every pass; own session_id live -> stale-row skip, pin or no pin; conftest _registry_default_to_tmp
 - 905108691 + 70d451b4d rotate.stand_up: spawn / seats-launch / rotate-self / loop / heal recover / `rotate.py stand-up --post` (hand restart); skill agi-post §4
 - d52d4bfbb brief.card_text: card NODE wins over a copy; [card] id·mint·grid v·git + [formation] line; heal director recovery renders; refused render keeps the card
-- 0be603067 minted goal:g7.16.1.7.1.2.1
+- 0be603067 minted goal:g7.16.1.7.1.2.1 · 0706358c2 .1.2.1 chain seat renders its row, heal prime drops DEFAULT_PROMPT_FILE
+- minted goal:g7.16.1.7.1.3.1 / .3.2 / .3.3 · 09c554f4f .3.1 adapters.harness_block: 10 config harness reads in 6 files route through it
 - build:bin-heal THOUGHT per round (faa9ea0cf and after) · goals .1.1.3 · .1.1.2.1 · .1.1.4 · .1.1.2 · .1.1 set complete · links 5237/0
 
 ## 🔴 Where it stops
 ```
-.1.2.1 uncommitted in MAIN: rotate.py (_assembled_successor_command post=, spawn_window post=seat or name), heal.py (prime drops
-DEFAULT_PROMPT_FILE, prompt_file=None), tests/test_brief_card_live.py (+2 tests). Suite unit agi-director-general-5-nbhd7 -> /tmp/dg5-nbhd.out.
-Green -> commit those 3 by exact path, THOUGHT build:bin-rotate + bin-heal, set .1.2.1 then .1.2 complete, [release] + council line.
-Open reds, not mine (red at HEAD): test_brief g15 fallback · test_rotate_closeout_steps rc2 (write.py, DG3 told).
-Next command: `grep -c '^==' /tmp/dg5-nbhd.out; grep '^== .*failed' /tmp/dg5-nbhd.out`
+HOLD (belam via agi-c4, owner 01:4xZ): idle until belam says "resume"; internal messaging only (SendMessage), NO send.py / rooms until the bundles land.
+Tree clean for DG5: nothing uncommitted, no unit running. .1.3.2 was spliced, verified and REVERTED at the hold:
+  measured: pi-free / pi-local / claude-code / copilot-cli / grok-bot resolve identical; pi:paid == old pi; pi == pi-free; dispatch dry-run same model.
+  open: test_workflow test_config_flip_changes_dispatched_model + test_runner_pi_harness_dry_run_prints_one_dispatch_per_stage read
+  harnesses.pi.models off the LIVE config (KeyError 'models') -> point them at adapters.harness_block(cfg, "pi") first, then flip.
+On resume: (1) fix those two test reads (2) `python3 ~/dg5/g1332-splice.py` from the repo root (3) add the live-template tests to
+tests/test_harness_block.py (one free default, pi == pi-free, pi-local row local, no pi-free/pi-local block) (4) suite: 
+`systemd-run --user --unit=agi-director-general-5-nbhdA --working-directory=/data/work/agi -p MemoryMax=6G -p MemorySwapMax=0 bash ~/dg5/dg5-nbhd2.sh`
+-> ~/dg5/nbhd.out (5) commit config.json + tests by path, [rule] to belam: the director template line "an explicit --harness pi is the PAID lane" becomes pi:paid.
+Open reds, not mine (red at HEAD): test_brief g15 fallback.
 ```
 ## §4 Traps
 | trap | rule |
