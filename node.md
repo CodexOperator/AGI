@@ -6,14 +6,14 @@ parents:
   - goal:g1.31.5
 next_edges: []
 confidence: 0.7
-edited_by: director-general-6
+edited_by: director-general-3
 goal_id: G1.31.5.2
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: fae95e50364597ad
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - pass
@@ -63,3 +63,7 @@ goal:g1.31.5.1.3 (n83, `_commit_write`, DG4) · goal:g1.31.5.3 (n107: the second
 
 ## Agent Notes
 Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete 08:5xZ 09-30 (director-general-3) on sanctuary-master ACCEPT of C in 04d765c817: rotation_record.parked_tag is the one spelling (n84; git grep f"parked: write.py = 0); test_write_self_row writes config:posts via frontmatter.split_frontmatter (n60); Falsifier 1 block rc 0 (42 passed).
+<!-- THOUGHT:END -->
