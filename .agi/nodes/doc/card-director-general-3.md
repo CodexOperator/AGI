@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-3 — director-general-3's card (council loop, goal:g7.16.1): the ONE scratch
 
-## §0 State (03:0xZ 09-30) — seat agi-91 [87eb1e] (gen 7) · predecessor window director-general-3.prev = agi-8f [e68acb] (reap = the service's, never by hand)
+## §0 State (04:4xZ 09-30) — IDLE on the council STOP 04:00Z (fired 04:43Z) — seat agi-91 [87eb1e] (gen 7) · predecessor window director-general-3.prev = agi-8f [e68acb] (reap = the service's, never by hand)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -27,25 +27,19 @@ town: core
 
 ## §1 Plan
 ```
-done   gen 7: SM 138 8964a7c62 (ACCEPT run 21) · 140 b514b6d47 · 141 51c664397 (accepted) · 142+143 eb91a95aa ·
-       145+146+147 4538ed382 · 144 b1f0e415f + fix-forward 033d75454 (b1f0 went in with test_body_patch red: MY MISS, disclosed)
-       DG2 fork pin c55d8b9d3 (hypothesis:loader-post-pass-sqlite-index-once-and-collision-are-pinned)
-       OWNER ORDER goal:g4.18.1.6 (patch on a no-payload_ref node edits the node file): leaf 1f28e5b50 + 5310fc212, build a6102199b
-       gen 6: see the grid version of this card before 02:5xZ
-WAIT   SM verdicts on 144-147 + a6102199b · council ruling on `replace payload N:M` for no-payload_ref nodes (recommended yes)
-       SM re-mur of gen-6 e77d0515a d3f1d80c0 4a420102e 7e1bed5b8 9c069f7dc
-NEXT   1 DG2 fork 2 (agi-7f, 02:4xZ): hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver -- grid.py
-         parse_parents -> build_parent_mint_trailer (:660-680) resolves each parent through ONE links.address_resolver per grid
-         command; test: mint twin writes the same Parent-Mint-Id line + one resolver build (counter). <= 10 prod / <= 15 test
-       2 W2c C goal:g4.18.6.3.3 WHOLE, one round: hypothesis:gates-resolve-mint-ids-through-the-resolver · C2 node_writer.write_node
-         gates a RESOLVED copy of plist (r = links.address_resolver(root), local import) and still STORES what the caller wrote +
-         spawn_gate.nearest_vision walks resolved parents · C3 evidence_gate: NODE_ID_RE refuses a mint evidence ref;
-         normalize_evidence_runs counts against an ids-only corpus -- resolve at the reader with a root, or build_corpus returns
-         mints too · DESIGN (gen 7, not yet built): resolve BEHIND the index -- links helper wraps build_type_index's dict /
-         build_corpus's frozenset so a missed key resolves through address_resolver (lazy); nearest_vision resolves parents with
-         r = address_resolver(nodes_dir.parent); is_node_id_shaped accepts a 32-hex mint (graph_core not on evidence_gate's path:
-         a local regex or import via links); level3.read_mvp_map keeps a 32-hex mint as written · C1 level3.read_mvp_map keeps `mvp:` or a ref the resolver maps to an mvp
-         (test_level3 test_w2c xfail) · then W2d-b goal:g4.18.6.4.2 (test_b4_w2db xfail) · W2e · W3a/b · W3c-1 then W3c-2
+done   gen 7: SM 138-149 all landed + ACCEPTED (bundle-4 write.py chain 129-149 CLOSED by SM) -- 8964a7c62 b514b6d47 51c664397
+       eb91a95aa 4538ed382 b1f0e415f 033d75454 f0768720f · DG2 pins c55d8b9d3 · grid fork 6ec1f046c (ACCEPT, closes g4.18.6.3.2)
+       W2c C goal:g4.18.6.3.3 595b9c099 (its review DIED on the Claude limit: SM re-runs on pi-free after the STOP)
+       OWNER ORDER goal:g4.18.1.6: a6102199b · council ruling 6e21d9655 (ACCEPT) · 150/151/155 563cd4ca9 (MET; 162 163 found)
+       · end-state restated 5c7e632c7 · HOTFIX c3c118b3c (DG4's 1098822e1 swept my WIP canonicalize; write.py refused every call)
+       · council (b) on 154 + 152 153 162 163 = d8b22ae96
+WAIT   SM verdict on d8b22ae96 (154/152/153/162/163) · W2c C pi-free re-review · then close g4.18.1.6 MYSELF (council: status
+       complete + THOUGHT citing a6102199b 6e21d9655 563cd4ca9 d8b22ae96 + the SM run key) when residue = 0
+       g4.18.1.6 falsifier 1 -> the council's (b) wording: "lands byte-exact on a canonical node; a patch whose result the
+       canonical render would alter refuses by name" (write.py goal:g4.18.1.6 sub, with the THOUGHT)
+NEXT   1 SM board item: goal:g4.18.5.2.2 -- the commit-a-write teaching as ONE config cell (commit-message template) + the skill
+         lines (agi-goal, agi-node-write teach the self-committing write). LANE: write.py _commit_write / index.lock = DG4's
+         (g4.18.5.2.1): no edit there without agreeing with DG4 (agi-80) first
        3 census leaf goal:g7.16.1.1.6.1 (config:census + verification.check_census; test_census 14 strict xfail) then .6.2
        4 DG1's goal:g6.41.1.1: hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) -- boot-resume
          record + wake lines to config:rotations; NOT heal's worktree sweep (DG4)
@@ -62,14 +56,17 @@ NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:
 
 ## §2 Landed
 gen 7: 8964a7c62 b514b6d47 51c664397 eb91a95aa c55d8b9d3 4538ed382 b1f0e415f 033d75454 1f28e5b50 5310fc212 a6102199b
+6e21d9655 f0768720f 6ec1f046c 595b9c099 563cd4ca9 5c7e632c7 c3c118b3c d8b22ae96 (cards 9d958497f)
 gen 6: 99a3ce3b6 96f1c6fae 647501f0c dd141136d eeccfbaa1 f8332a053 6082bf802 4a96d8bd0 27c454526 4be11df59 22193d6ba 4a420102e
 d3f1d80c0 e77d0515a 7e1bed5b8 9c069f7dc 854aceb35 688d86d6f 3b61f9f73 9a39d55fa 09a8397e4 74f03f003
 
 ## 🔴 Where it stops
-Nothing live; nothing of mine uncommitted. Messaging: SendMessage ONLY until the bundles land; rulings -> the council.
-Next: NEXT 1 (DG2's grid.py fork), then W2c C whole (design in §1). First command at wake:
+IDLE on the council STOP (04:00Z, fired 04:43Z): step finished, nothing live, nothing of mine uncommitted.
+Owner 03:2xZ: Claude usage OUT -- no Opus subagents; agentic subtasks on pi (workflow.py --harness pi-free) or Sonnet 5.5 at most.
+Lanes (owner 03:0xZ): coordination -> SM agi-ed · rulings / mid-work questions -> the council (alive agi-b3 lead).
+On resume: read SM's verdict on d8b22ae96 FIRST, then WAIT list, then NEXT 1. First command:
 ```
-python3 extensions/agi/bin/write.py doc:card-director-general-3 'read body 1:50'
+python3 extensions/agi/bin/write.py doc:card-director-general-3 'read body 1:55'
 ```
 
 ## §4 Traps
@@ -77,6 +74,8 @@ python3 extensions/agi/bin/write.py doc:card-director-general-3 'read body 1:50'
 |---|---|
 | MAIN is shared by every post | commit by exact path; `git diff` each file for FOREIGN hunks first (heal.py + conftest.py carry another post's WIP 01:xZ); never switch branches, stash or reset |
 | stale .git/index.lock (oomd kills, 09-30 02:4x-02:5x; cause fixed by the Prime) | clear ONLY when mtime unchanged 3-5 s AND fuser empty AND ZERO git procs (a commit running hooks holds the lock CLOSED); never chain a commit after a test run without reading it |
+| shared write.py in MAIN | another post may hold UNCOMMITTED hunks: take the diff in the SAME command as the commit; if foreign hunks exist, build HEAD+mine in /tmp, test it in an isolated copy, swap-commit-restore (563cd4ca9) |
+| SHA reporting | read the SHA off `git commit`'s own output line, never `git log -1` (raced all-is-one once) |
 | suite lock races | /tmp/dg3_pt.sh <file> [-k ..] retries until pytest gets its own window; ONE file per run (PASS B3 on the box) |
 | red-on-HEAD proof | copy the fixed file to /tmp, `git show HEAD:<f> > <f>`, run the one test, copy back, `cmp` -- never stash |
 | write.py in MAIN | commits ITSELF by exact path, but a held suite lock leaves the write UNCOMMITTED with rc 0: check git status after every write.py call |
