@@ -52,8 +52,11 @@ delivered the convenience and none of the reason.
 from __future__ import annotations
 
 import difflib
+import json
 import os
+import shlex
 import subprocess
+import time
 import re
 import sys
 from dataclasses import dataclass, field
@@ -182,6 +185,8 @@ class Edit:
     # SM 145: every payload-writing VERB as parsed -- `payload`, `payload -` and
     # `payload_text` all fill payload_bytes, so the fields cannot count them
     payload_verbs: list = field(default_factory=list)
+    # council ruling on SM 154: re-render the node in the ONE canonical form
+    canonicalize: bool = False
     # hypothesis:l4-a-ring-decision-carries-m-of-n-signatures -- the ring
     # signatures backing a non-self-row config write that a `ring:`-declaring
     # schema demands (rung 2). Each is `<post>:<scheme>:<sig_hex>` over the
@@ -204,7 +209,8 @@ class Edit:
                     or self.patch_from or self.patch_diff
                     or self.body_patch_from or self.body_patch_diff
                     or self.read_target or self.read_range
-                    or self.replace_target or self.sub_old or self.fm_rows)
+                    or self.replace_target or self.sub_old or self.fm_rows
+                    or self.canonicalize)
 
 
 # --------------------------------------------------------------------------
@@ -368,6 +374,18 @@ def verb_payload_text(edit: Edit, text: str) -> Edit:
     """
     edit.payload_bytes = text if text.endswith("\n") else text + "\n"
     edit.payload_verbs.append("payload_text")
+    return edit
+
+
+def verb_canonicalize(edit: Edit, *extra: str) -> Edit:
+    """`canonicalize` -- re-render the node file in the ONE canonical form
+    (node_writer.render_frontmatter + _serialize_node) and change nothing
+    else. The canonical form drops frontmatter comments and non-significant
+    quoting. A node `patch` refuses on a non-canonical node and names this
+    verb (council ruling on SM 154, goal:g4.18.1.6)."""
+    if extra:
+        raise EditError(f"canonicalize takes no arguments, got: {' '.join(extra)}")
+    edit.canonicalize = True
     return edit
 
 
@@ -737,6 +755,7 @@ VERBS = {
     "thought": verb_thought,
     "note": verb_note,
     "payload": verb_payload,
+    "canonicalize": verb_canonicalize,
     "payload_text": verb_payload_text,
     "patch": verb_patch,
     "body_patch": verb_body_patch,
@@ -3173,8 +3192,12 @@ def _patch_the_node_itself(root, edit: Edit) -> None:
                         f"and is standalone: no other verb on its line -- nothing written")
     if edit.patch_from == "-" and not edit.patch_diff:
         return   # SM 139 refuses it by name below
-    diff = edit.patch_diff or Path(edit.patch_from).read_text(encoding="utf-8")
-    new = _fmr._parse_md(apply_unified_diff(path.read_text(encoding="utf-8"), diff), ".md", True)
+    try:   # SM 153: a bad source or a patch that breaks the frontmatter is an ERR, never a traceback
+        diff = edit.patch_diff or Path(edit.patch_from).read_text(encoding="utf-8")
+        applied = apply_unified_diff(path.read_text(encoding="utf-8"), diff)
+        new = _fmr._parse_md(applied, ".md", True)
+    except (OSError, UnicodeDecodeError, _fmr.FrontmatterError) as exc:
+        raise EditError(f"patch on {edit.node_id} cannot apply: {exc} -- nothing written")
     ofm, nfm = old.frontmatter, new.frontmatter
     for k in sorted(set(ofm) | set(nfm)):   # SM 150: every row `set`/`unset` would judge, judged alike
         if ofm.get(k) != nfm.get(k) or (k in ofm) != (k in nfm):
@@ -3187,9 +3210,17 @@ def _patch_the_node_itself(root, edit: Edit) -> None:
     def _stray(b):   # marker lines outside a well-formed block (_thought_marker_refusal's shape)
         return sum(bool(node_writer.THOUGHT_MARKER_LINE_RE.match(ln)) for ln in b.split("\n")) \
             - 2 * len(node_writer.thought_blocks(b))
-    if _stray(new.body) > _stray(old.body) or (node_writer.thought_blocks(old.body)
-                                               and len(node_writer.thought_blocks(new.body)) != 1):
+    ob, nb = len(node_writer.thought_blocks(old.body)), len(node_writer.thought_blocks(new.body))
+    if _stray(new.body) > _stray(old.body) or nb > max(1, ob) or nb < ob:   # SM 152: never a 2nd block
         raise EditError("patch would leave the THOUGHT malformed: rewrite it with the `thought` verb -- nothing written")
+    canon = node_writer._serialize_node(node_writer.render_frontmatter(nfm), new.body)
+    if canon != applied:   # council ruling on SM 154: one serializer, fail-closed, never a silent discard
+        drift = [ln for ln in difflib.unified_diff(applied.split("\n"), canon.split("\n"), lineterm="", n=0)
+                 if ln[:1] in "+-" and ln[:3] not in ("+++", "---")][:4]
+        raise EditError(f"patch result is not in the canonical form, so it would not land as written "
+                        f"(re-render: {drift}): run `write.py {edit.node_id} canonicalize` first, then "
+                        f"re-cut the diff -- the canonical form drops frontmatter comments and "
+                        f"non-significant quoting; nothing written")
     edit.set_fm.update({k: v for k, v in nfm.items() if ofm.get(k) != v})
     edit.unset_fm.extend(k for k in ofm if k not in nfm)
     if new.body != old.body:
@@ -3630,11 +3661,11 @@ def main(argv: list[str] | None = None) -> int:
         if made is not None:
             print(f"created: {made} (empty; the node points at it)")
         from types import SimpleNamespace  # noqa: PLC0415 -- residue 92: create commits too
-        _note = _commit_write(root, res.node_id, SimpleNamespace(
+        _note, _unc = _commit_write(root, res.node_id, SimpleNamespace(
             path=res.path, payload_changed=made is not None, payload_path=str(made or "")), args.actor)
         if _note:
             print(_note, file=sys.stderr)
-        return 0
+        return EXIT_UNCOMMITTED if _unc else 0
 
     if not args.script:
         print("ERR: a script is required: "
@@ -3827,10 +3858,10 @@ def main(argv: list[str] | None = None) -> int:
         except Exception:
             pass
         print(f"adopted: {edit.node_id} mint_id={mint or '(written)'}")
-        _note = _commit_write(root, edit.node_id, res, args.actor)   # residue 92
+        _note, _unc = _commit_write(root, edit.node_id, res, args.actor)   # residue 92
         if _note:
             print(_note, file=sys.stderr)
-        return 0
+        return EXIT_UNCOMMITTED if _unc else 0
 
     # hypothesis:l4-replace-api-drops-source — ONE resolver, not a second
     # read. Delegate to the same function `submit` uses, so dry-run shows the
@@ -3963,46 +3994,81 @@ def main(argv: list[str] | None = None) -> int:
         print(f"payload: {res.payload_path} "
               + ("replaced" if res.payload_changed else "unchanged"))
     if res.status == node_writer.UPDATED or res.payload_changed:   # goal:g4.18.5.2 (+ residue 91: payload-only)
-        _note = _commit_write(root, edit.node_id, res, args.actor)
+        _note, _unc = _commit_write(root, edit.node_id, res, args.actor)
         if _note:
             print(_note, file=sys.stderr)
+        if _unc:
+            return EXIT_UNCOMMITTED
     return 1 if res.status == node_writer.REJECTED else 0
 
 
-def _commit_write(root, node_id: str, res, actor: str = "") -> str | None:
+#: goal:g4.18.5.2.1 -- the node is written but NOT committed (a busy index
+#: past the `values.core.write_commit_wait_s` budget): never exit 0 over it.
+EXIT_UNCOMMITTED = 3
+
+
+def _commit_wait_s(root) -> float:
+    """`values.core.write_commit_wait_s` (goal:g4.18.5.2.1), default 30."""
+    try:
+        cfg = json.loads(locations.config_path(Path(root)).read_text(encoding="utf-8"))
+        v = float(((cfg.get("values") or {}).get("core") or {})["write_commit_wait_s"])
+        return v if v >= 0 else 30.0
+    except (OSError, TypeError, ValueError, KeyError, AttributeError, json.JSONDecodeError):
+        return 30.0
+
+
+def _commit_write(root, node_id: str, res, actor: str = "") -> tuple[str | None, bool]:
     """goal:g4.18.5.2 -- the CLI write, after the gate, is ONE commit of its
     own node (+ its payload) by exact path. In main() only: submit() is the
     library rotate.py and send.py call on shared files. `git commit -- <paths>`
     commits those paths alone: never -a, never a file another post staged. A
     held verify-suite.lock refuses the commit by name (the write stays on
-    disk). Not a git checkout = nothing to commit. Unpark carriers a
-    formation switch writes are other nodes: they stay out."""
+    disk; the ONE sanctioned exit 0 over an uncommitted node). Not a git
+    checkout = nothing to commit. Unpark carriers a formation switch writes
+    are other nodes: they stay out.
+
+    goal:g4.18.5.2.1: an `index.lock` refusal (concurrent writers) is
+    retried with jittered backoff inside `values.core.write_commit_wait_s`;
+    past it the write refuses by name. Returns `(note, uncommitted)` --
+    `uncommitted` True = the caller exits EXIT_UNCOMMITTED. Every printed
+    recovery line ADDS the paths first, so it works for a create (untracked)."""
     paths = [str(p if Path(p).is_absolute() else Path(root) / p)
              for p in (res.path, res.payload_changed and res.payload_path) if p]
     git = lambda *a: subprocess.run(["git", "-C", str(root), *a],  # noqa: E731
                                     capture_output=True, text=True)
     if not paths or git("rev-parse", "--is-inside-work-tree").returncode:
-        return None
+        return None, False
+    msg = f"write.py: {node_id}" + (f" ({actor})" if actor else "")
+    recover = (f"git -C {root} add -- {' '.join(paths)} && "
+               f"git -C {root} commit -q -m {shlex.quote(msg)} -- {' '.join(paths)}")
     import verification  # noqa: PLC0415 -- the ONE live-holder read (residue 93)
     holder = verification.suite_lock_holder(Path(root))
     if holder:
         return (f"commit refused: {Path(root) / 'sessions' / verification.SUITE_LOCK} is held "
-                f"by live pid {holder} -- the write landed uncommitted; commit "
-                f"{' '.join(paths)} by exact path")
-    add = git("add", "--", *paths)
-    done = add if add.returncode else git(
-        "commit", "-q", "-m", f"write.py: {node_id}" + (f" ({actor})" if actor else ""), "--", *paths)
-    if done.returncode == 0:
-        return None
+                f"by live pid {holder} -- the write landed uncommitted; commit it by "
+                f"exact path: {recover}"), False
+    import random  # noqa: PLC0415
+    deadline = time.monotonic() + _commit_wait_s(root)
+    tries = 0
+    while True:
+        tries += 1
+        add = git("add", "--", *paths)
+        done = add if add.returncode else git("commit", "-q", "-m", msg, "--", *paths)
+        if done.returncode == 0:
+            return None, False
+        busy = "index.lock" in (done.stderr or "") + (done.stdout or "")
+        if not busy or time.monotonic() >= deadline:
+            break
+        time.sleep(min(2.0, 0.05 * 2 ** min(tries, 6)) * (0.5 + random.random()))
     # residue 90: never left STAGED in a shared index; residue 98: a reset
     # that fails too (index.lock held) is said loudly, never claimed as done
     reset = git("reset", "-q", "--", *paths)
     state = ("unstaged" if reset.returncode == 0 else
              f"STILL STAGED, reset failed rc {reset.returncode} -- run "
              f"git reset -q -- {' '.join(paths)}")
-    return (f"commit failed ({state}; the write stays on disk): "
-            f"{(done.stderr or done.stdout).strip()[:300]}")
-
+    return (f"commit failed after {tries} tr{'y' if tries == 1 else 'ies'} ({state}; "
+            f"the write stays on disk UNCOMMITTED -- exit {EXIT_UNCOMMITTED}; recover: "
+            f"{recover}): {(done.stderr or done.stdout).strip()[:300]}"), True
 
 if __name__ == "__main__":
     raise SystemExit(main())

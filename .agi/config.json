@@ -353,7 +353,8 @@
     },
     "core": {
       "model_load_allowed_max_bytes": 67108864,
-      "stale_index_lock_s": 900
+      "stale_index_lock_s": 900,
+      "write_commit_wait_s": 30
     },
     "local_maxxing": {
       "osc_band_seeds": [7, 21, 99],
