@@ -32,7 +32,7 @@ goal:g4.18.5 (a write is ONE commit behind the permission layer): goal:s21 ("the
 
 ## Target end-state
 - ONE verb retires a node of any type: `write.py retire <id>` sets the retired status the type schema names, moves the node where that type retires to, and for a build node also removes its payload file from the engine tree, all in ONE commit behind the same authorship gate as every write. The node and its grid ref are never deleted.
-- ONE verb renumbers a node: `write.py renumber <id> <new id>` keeps the mint_id, moves the file, rewrites id + goal_id + the parent edge, re-points EVERY reference in the same commit, and records old -> new in the THOUGHT. Measured need (all-is-one lens 02:3xZ 09-30): three renumbers were hand-made tonight, g7.16.1.9 -> .7.3 (b9dc2c83b), s35 -> g4.18.8 and s1 -> g1.6.1, each a `git mv` plus a hand edit of the id line because write.py refuses to set `id` and has no verb for it.
+- ONE verb renumbers a node: `write.py renumber <id> <new id>` keeps the mint_id, moves the file, rewrites id + goal_id + the parent edge, re-points EVERY reference in the same commit, and records old -> new in the THOUGHT. Measured need (all-is-one lens 02:3xZ 09-30): FOUR renumbers were hand-made tonight (Opus refutation pass 05:3xZ): b9dc2c83b and 089d1369a (git renames), aa0bf6357 (s33 -> g4.18.2.1, add + delete) and s1 -> g1.6.1, because write.py refuses to set `id` (node_writer.py:668 MINTED_IDENTITY) and has no verb for it. The s1 renumber shows the hazard: write.py committed the new file (72cf37100) and the old file was removed only in d6f26f856, so for about three minutes TWO live files shared one mint_id. A renumber verb makes that one commit.
 - `stitch.py --verify --strict` treats a deprecated node's absent file as retired, not drift.
 - `--grid-version N` still yields the file as it was before retirement.
 
@@ -41,7 +41,7 @@ goal:g4.18.5 (a write is ONE commit behind the permission layer): goal:s21 ("the
 - Only a payload whose node is deprecated in the same commit is ever removed.
 
 ## Falsifier
-1. One test runs retire -> grid commit -> the snapshot twice, then checks: the file is absent, `stitch.py --verify --strict` reports 0, and `stitch.py --from-grid --grid-version <pre-retire N> --out DIR` writes the file.
+1. One test runs retire -> `grid.py commit --all` twice, then checks: the file is absent, `stitch.py --verify --strict` WITHOUT --from-grid reports 0 (with --from-grid, :998 already skips grid-held payloads, so the test would pass on today's code), and `stitch.py --from-grid --grid-version <pre-retire N> --out DIR` writes the file.
 2. `write.py renumber goal:<a> goal:<b>` on a node with N referencing nodes leaves 0 live hits of the old address, the same mint_id, and one commit.
 3. Negative: a `retire` on a node whose payload another live node still claims refuses by name and writes nothing, and a `renumber` onto an existing address refuses by name.
 
