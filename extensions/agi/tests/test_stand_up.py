@@ -318,3 +318,59 @@ def test_no_template_skill_or_card_instructs_keygen():
             for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1)
             if call.search(line)]
     assert hits == []
+
+
+# ---------- run-27 residues 158-161 ------------------------------------------
+
+def test_a_refused_row_write_leaves_no_key_file_and_retries(graph, monkeypatch):
+    """158: the remint key file lands only after the row names it."""
+    import send
+    _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    real = rotate._write_identity_cells
+    monkeypatch.setattr(rotate, "_write_identity_cells", lambda *a, **k: False)
+    assert "remint held" in rotate.ensure_post_key(graph, "seat-a")
+    assert not send._seat_key_path(graph, "seat-a").exists()
+    monkeypatch.setattr(rotate, "_write_identity_cells", real)
+    assert "reminted" in rotate.ensure_post_key(graph, "seat-a")
+    assert _verifies(graph, "seat-a").startswith("VERIFIED seat-a")
+
+
+def test_a_dry_run_remint_sends_nothing_and_writes_nothing(graph, monkeypatch):
+    """160: a dry run reports the plan; no finding, no mark, no key file."""
+    import send
+    sent, _sha = _keyed_repo(graph, "town-far", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    row = _row(graph, "seat-a")
+    note = rotate._rotate_first_key(graph, None, "seat-a", row, dry_run=True)
+    assert note.startswith("(dry-run)") and "REFUSED" in note, note
+    monkeypatch.setenv("AGI_BOX", "town-far")
+    note = rotate._rotate_first_key(graph, None, "seat-a", row, dry_run=True)
+    assert "would remint" in note, note
+    assert sent == [] and not send._seat_key_path(graph, "seat-a").exists()
+    assert not list((graph / "sessions").rglob("*.key-finding"))
+
+
+def test_own_box_without_a_witness_refuses(graph, monkeypatch):
+    """161: the own box alone is not enough -- no commit shows the box cell."""
+    import send
+    sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    monkeypatch.setattr(rotate, "_box_cell_witness", lambda root, seat, box: "")
+    note = rotate.ensure_post_key(graph, "seat-a")
+    assert "no commit witnesses" in note and "REFUSED" in note, note
+    assert len(sent) == 1 and not send._seat_key_path(graph, "seat-a").exists()
+
+
+def test_the_seating_keys_from_the_template_too(graph, monkeypatch):
+    """159: spawn's _first_seating_key adopts an existing key file and sends
+    a keyed row with no key file to the own-box rule."""
+    import send
+    _p, pub = send._mint_seat_key(graph, "seat-a", send.seatsig.DEFAULT_SCHEME)
+    cells, note = rotate._first_seating_key(graph, "seat-a")
+    assert cells["pubkey"] == pub.hex() and "adopted its existing key" in note
+    sent, _sha = _keyed_repo(graph, "town-far", monkeypatch)
+    send._seat_key_path(graph, "seat-a").unlink()
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    cells, note = rotate._first_seating_key(graph, "seat-a")
+    assert cells == {} and "REFUSED" in note, note

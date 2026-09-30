@@ -6995,20 +6995,37 @@ def _first_seating_key(root: Path, seat: str,
     import write as _w  # local: same dir (send.py pattern, no cycle)
     row = next((r for r in _w._load_seats(_shared_graph_root(root))
                 if r.get("name") == seat), None)
-    if not row or row.get("pubkey"):
+    if not row:
         return {}, ""
+    import send  # local: same dir, no import cycle (send.py pattern)
+    # goal:g7.16.1.7.1.4 (run-27 residue 159): the seating keys from
+    # key_template too -- a keyed row whose key file is absent takes the
+    # own-box remint rule (its own rekey commit), an existing key file on an
+    # unkeyed row is adopted, the template names the scheme.
+    if row.get("pubkey"):
+        if send._seat_key_path(root, seat).exists():
+            return {}, ""
+        return {}, _rotate_first_key(root, None, seat, row, dry_run=dry_run)
     if dry_run:
         print(f"would key {seat}")
         return {}, ""
-    import send  # local: same dir, no import cycle (send.py pattern)
-    scheme = str(row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME)
+    tmpl = key_template(root)
+    scheme = str(row.get("sig_scheme") or tmpl.get("scheme")
+                 or send.seatsig.DEFAULT_SCHEME)
     minted = send._mint_seat_key(root, seat, scheme)
+    verb = "minted its first key"
     if minted is None:
-        return {}, ""
-    _path, pub = minted
+        found = (_existing_seat_key(send, root, seat)
+                 if tmpl.get("existing_key") == "adopt" else None)
+        if found is None:
+            return {}, ""
+        (scheme, pub), verb = found, "adopted its existing key"
+        _path = send._seat_key_path(root, seat)
+    else:
+        _path, pub = minted
     return ({"pubkey": pub.hex(), "sig_scheme": scheme,
              "enc_scheme": row.get("enc_scheme") or "none"},
-            f"[seating] seat {seat!r} was unkeyed: minted its first key at "
+            f"[seating] seat {seat!r} was unkeyed: {verb} at "
             f"{_path} ({send.seatsig.fingerprint(pub)})")
 
 
@@ -17799,25 +17816,30 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
         here = boxes.this_box(root)
     except Exception:  # noqa: BLE001 -- an undeclared box is never own
         here = ""
+    refusal, witness = "", ""
     if not own or own != here:
-        return _key_finding(root, seat, (
-            f"[finding] {seat}: keyed row, no key file, row box "
-            f"{own or '(none)'} is not this box {here or '(undeclared)'} -- a "
-            f"moved seat or a stolen identity; remint REFUSED"))
-    witness = (_box_cell_witness(root, seat, own)
-               if tmpl.get("witness") == "box_cell_commit" else "none")
-    if not witness:
-        return _key_finding(root, seat, (
-            f"[finding] {seat}: keyed row, no key file, own box {own}, but no "
-            f"commit witnesses the row's box cell -- remint REFUSED"))
-    if dry_run:
-        return (f"(dry-run) seat {seat!r} is keyed with no key file on its own "
+        refusal = (f"[finding] {seat}: keyed row, no key file, row box "
+                   f"{own or '(none)'} is not this box {here or '(undeclared)'} "
+                   f"-- a moved seat or a stolen identity; remint REFUSED")
+    else:
+        witness = (_box_cell_witness(root, seat, own)
+                   if tmpl.get("witness") == "box_cell_commit" else "none")
+        if not witness:
+            refusal = (f"[finding] {seat}: keyed row, no key file, own box "
+                       f"{own}, but no commit witnesses the row's box cell -- "
+                       f"remint REFUSED")
+    if dry_run:  # run-27 residue 160: a dry run sends no finding, writes nothing
+        return (f"(dry-run) {refusal[len('[finding] '):]} -- NOTHING sent"
+                if refusal else
+                f"(dry-run) seat {seat!r} is keyed with no key file on its own "
                 f"box {own}; would remint (witness {witness}) -- NOTHING done")
+    if refusal:
+        return _key_finding(root, seat, refusal)
+    # run-27 residue 158: the key is minted IN MEMORY and its file lands only
+    # after the row names it, so a refused row write leaves no new file and the
+    # next pass retries -- row and key file are never out of step.
     scheme = row.get("sig_scheme") or tmpl.get("scheme") or send.seatsig.DEFAULT_SCHEME
-    minted = send._mint_seat_key(root, seat, scheme)
-    if minted is None:
-        return ""
-    _path, pub = minted
+    priv, pub = send.seatsig.get(scheme).keygen()
     old = str(row.get("pubkey"))
     entry = {"pub": old, "fp": send.seatsig.fingerprint(bytes.fromhex(old)),
              "signed": False, "reason": "key file absent on own box",
@@ -17826,24 +17848,40 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     cells = {"pubkey": pub.hex(), "sig_scheme": scheme,
              "enc_scheme": row.get("enc_scheme") or "none",
              "key_history": list(row.get("key_history") or []) + [entry]}
+    try:
+        if not _write_identity_cells(root, seat=seat, actor=seat,
+                                     role=str(row.get("role") or ""), cells=cells):
+            return f"seat {seat!r}: remint held -- row write not admitted; no key file written"
+    except Exception as exc:  # noqa: BLE001
+        return f"seat {seat!r}: remint held -- row write not admitted ({exc}); no key file written"
+    _put_seat_key(send, root, seat, scheme, priv)
     note = (f"seat {seat!r}: key file absent on own box {own}; reminted "
             f"{send.seatsig.fingerprint(pub)}, old key {entry['fp']} retired "
             f"UNSIGNED (witness {witness})")
     try:
-        if _write_identity_cells(root, seat=seat, actor=seat,
-                                 role=str(row.get("role") or ""), cells=cells):
-            _cn = _commit_spawn_row(
-                root, seat=seat, generation=_read_generation(root, seat),
-                session_id=str(row.get("session_id") or ""),
-                window=str(row.get("window") or ""),
-                pid=int(row.get("pid") or 0), rekey=True)
-            note += f"; {_cn.splitlines()[0]}"
-        else:
-            note += "; row write not admitted"
+        _cn = _commit_spawn_row(
+            root, seat=seat, generation=_read_generation(root, seat),
+            session_id=str(row.get("session_id") or ""),
+            window=str(row.get("window") or ""),
+            pid=int(row.get("pid") or 0), rekey=True)
+        note += f"; {_cn.splitlines()[0]}"
     except Exception as exc:  # noqa: BLE001
-        note += f"; row write not admitted ({exc})"
+        note += f"; key row commit not performed ({exc})"
     _key_finding(root, seat, f"[finding] {note}")
     return note
+
+
+def _put_seat_key(send, root: Path, seat: str, scheme: str, priv: bytes) -> Path:
+    """The seat's key file in send's shape (0600), written to a temp file and
+    renamed into place: never a half-written key."""
+    path = send._seat_key_path(root, seat)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, send.SEAT_KEY_MODE)
+    with os.fdopen(fd, "w") as f:
+        f.write(json.dumps({"scheme": scheme, "priv_hex": priv.hex()}))
+    os.replace(tmp, path)
+    return path
 
 
 def ensure_post_key(root: Path, post: str) -> str:
