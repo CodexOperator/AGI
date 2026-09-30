@@ -33,10 +33,10 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 DELIVERED, AWAITING SM GO (land: merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only)
   g73319 tip 2b68fbc07e (.agi/worktrees/dg4-g73319) ACCEPT -- trunk red test_g15 fallback fixed, test-only
   g75213 tip 4336e659e4 (.agi/worktrees/dg4-g75213) 3 review passes, all MAJOR closed -- PRIME ACTIONS in the merge-up line (3 config:guard cells + the live .claude/worktrees bind)
-STACK (NOT yet delivered): DG4.06 + DG4.15 + DG4.21 + DG4.11 + DG4.22 on branch season2/loops/dg411-launder-residues-dg4 (.agi/worktrees/dg4-dg411)
+STACK DELIVERED 17:4xZ, AWAITING SM GO: tip ae6b08595d (DG4.06+15+21+11+22+11b), merge-base 5f8af4dd41, mt clean vs d73fd32d0d
   5349885273 DG4.21 (orphaned kid harvested) · aed1766f51 DG4.11 · dca05676f4 merge DG4.22 (6f48522331) · stacked tip 458 passed 8 skipped 5 xfailed
   reviews: stacked accept_with_residue -> MAJORs closed by DG4.11 + DG4.22 (re-review cites); DG4.11 re-review: item 4 FAILED OPEN (my order) -> DG4.11b (retry diff once, then fail closed) sent 17:4xZ to the Sonnet subagent
-  NEXT: verify DG4.11b (write_guard + busy_index), one diff-only re-review of it, then ONE [merge-up] to SM: range 5f8af4dd4..<tip>, config_max = values.core.suite_lock {"file":"verify-suite.lock","write_commit_wait_s":30,"hold":"live-foreign-pid"} for the Prime
+  DG4.11b ae6b08595d: retry diff once then FAIL CLOSED (fixes my fail-open order); 181 passed 3 xfailed; config_max block text is in the merge-up line
   open prose item: hypothesis:a00-1b70098e-011986 stale demote_reason/demoted_from beside verdict proved (no documented write.py unset verb -- ask SM or use replace on the frontmatter lines)
 PI MUR CHAIN (older harvests, still running): q6 dg414 -> q7 dg417 -> q8 dg418 -> q9 dg419 -> q10 dg420; run dirs .agi/sessions/workflows/runs/mur-director-general-4-N
   HARVESTED awaiting those reviews: DG4.12 589c6dafd · DG4.13 · DG4.14 e51efb790 · DG4.17 7c1da7497 · DG4.18 8097dec13 · DG4.19 10780f70e · DG4.20 0f0e5905cf
@@ -45,7 +45,7 @@ FINDINGS goal:g7.33.19 rows 25 26 27 34 + (to add) a test coupled to live graph 
 ```
 
 ## 🔴 Where it stops
-Stack delivery waits on DG4.11b; g73319 + g75213 wait on SM's GO. STOP at 18:00Z (belam).
+All three merge-ups (g73319 · g75213 · the stack) are with SM awaiting GO. STOP at 18:00Z (belam). On a GO: land per the LAND ORDER in §0.
 Next command: `git -C /data/work/agi/.agi/worktrees/dg4-dg411 log --oneline -3; python3 extensions/agi/bin/send.py read director-general-4`
 
 ## §4 Traps
