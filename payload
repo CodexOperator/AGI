@@ -3399,6 +3399,27 @@ _MSG_DONE = "migrated"
 _MSG_REFUSE = "REFUSE"
 
 
+def _discard_target(target: Path) -> None:
+    """Discard a failed session-complete target, sources intact. A SYMLINKED
+    target (heal's pre-link into the cold sessions home, goal:g7.16.1.5.3.2)
+    is emptied THROUGH the link -- shutil.rmtree refuses a symlink, so
+    `rmtree(target, ignore_errors=True)` silently kept the partial copy while
+    printing 'no target left' (SM residue 156); the link and its now-empty
+    dir are the linker's to undo. A real target goes whole, as before."""
+    if not target.is_symlink():
+        shutil.rmtree(target, ignore_errors=True)
+        return
+    real = target.resolve()
+    for child in (list(real.iterdir()) if real.is_dir() else []):
+        if child.is_dir() and not child.is_symlink():
+            shutil.rmtree(child, ignore_errors=True)
+        else:
+            try:
+                child.unlink()
+            except OSError:
+                pass
+
+
 def _session_complete(
     main_graph: Path,
     iter_n,
@@ -3551,7 +3572,7 @@ def _session_complete(
     except (OSError, shutil.Error) as exc:
         print(f"session-complete: copy failed -> {target}: {exc}; "
               f"sources intact, no target left")
-        shutil.rmtree(target, ignore_errors=True)
+        _discard_target(target)
         return 1
 
     # The whole-round verification (the multi-source take on `_trees_match`).
@@ -3565,7 +3586,7 @@ def _session_complete(
     if not landed:
         print(f"session-complete: VERIFY FAILED -> {target} -- source and "
               f"target differ; removing target, all sources intact")
-        shutil.rmtree(target, ignore_errors=True)
+        _discard_target(target)
         return 1
 
     # 🔴 PER-SOURCE removal. A source is removed only when ITS OWN
