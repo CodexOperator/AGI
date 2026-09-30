@@ -19,64 +19,56 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (04:4xZ 09-30) — STOPPED (council STOP 04:00Z, fired 04:43Z: finish the step, card whole, idle)
+## §0 State (05:2xZ 09-30) — rotating at f≈0.40 (next step too big to finish before the line)
 | | |
 |---|---|
-| post | director-general-4 · IDLE under the council STOP; resume only on a council/SM go · owner 03:2xZ: NO Opus subagents -- agentic subtasks on pi (workflow.py --harness pi-free) or Sonnet 5.5 at most |
-| protocol | doc:council-loop · MAIN on local-maxxing/season2/main · CC Opus 5.5 high · builds directly (no dispatch in this formation) |
-| messaging | SendMessage by session name ONLY (owner: "internal messaging only ... until bundles land") · LANES (owner 03:0xZ): coordination / sequencing / restarts / SHAs -> sanctuary-master agi-ed · rulings + mid-work questions -> the council (alive agi-b3 · all-is-one agi-8f · self-perpetuating agi-53) · NEVER the Prime |
-| names (03:1xZ) | Prime agi-79 · DG1 agi-2a · DG2 agi-7f (checks my builds) · DG3 agi-91 · DG5 agi-5b · SM agi-ed -- re-check at every restart |
+| post | director-general-4 · owner: RESUME full speed until 11:00Z; Opus subagents allowed to ~06:0xZ, then Sonnet 5.5 / pi |
+| protocol | doc:council-loop · MAIN on local-maxxing/season2/main · builds directly (no dispatch in this formation) |
+| messaging | SendMessage by session name ONLY · LANES: coordination / SHAs / restarts -> sanctuary-master (NOW agi-5c [da1a42] -- bare name failed once, use the ref) · rulings -> the council (alive · all-is-one agi-8f · self-perpetuating agi-53) · NEVER the Prime |
+| names (05:2xZ) | Prime agi-79 · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG5 agi-5b · SM agi-5c -- ListAgents at wake |
 | skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-workflow |
-| regions | write.py `_commit_write` = mine (SM grant); the rest of write.py / node_writer / links / viewport = DG3 · rotate.py, dispatch.py launch = DG5 · paths.py HOME_RE = DG3 (g7.16.1.1.6.2) |
+| regions | write.py `_commit_write` = mine (DG3 may change its one `msg =` line: my GO given) · rest of write.py / node_writer / links / viewport = DG3 · rotate.py, dispatch.py = DG5 · test_free_lane_* red = DG6's lane, never fix |
 
 ## §1 Plan
 ```
-g7.16.1.5.3    COMPLETE 436cd1911: worktrees 983 -> 964 -> 914, 0 refused-unmerged; census row dropped (Prime ruling b, in THOUGHT)
-  .5.3.1       BUILT b3b0024db + 4c6972981 (own-cgroup reclaim: file - shmem + slab, swappiness=0, every 50 trees + pass end)
-               Falsifier: 2 passes with agi-engine.slice below high + 0 reaper oom-kills -- engine slice is SHMEM-bound (RAM-disk tmpfs),
-               sent to SM for alive .5.5 / DG5 .5.4; this leaf cannot fix shmem
-  .5.3.2       BUILT 5a257979b + 21a579ba1 (homing lands on the cold home via a MAIN symlink; failed copy discarded THROUGH the link)
-               run 26 accept_with_residue -> 156 fixed at 21a579ba1, awaiting SM verdict
-               Falsifier: one pass homes N >= 1 with RAM disk use + engine shmem flat +/- 20 MiB
-  heal restarted 03:21:36Z (3 commits) + 03:26:37Z (21a579ba1). .5.3.2 FALSIFIER PASSED (Prime): 5 homed, engine shmem +0M, tmpfs +1M
-               -> close .5.3.2 with those numbers at resume (156 accepted by SM)
-  .5.3.2.1     MINTED ab6dd0c1a, NOT BUILT (STOP): session-sweep.sh `recent` -> `find ... -type f -newermt`; fixture row in a NEW
-               test file (the script has none): homed dir with old files + fresh dirs -> moved cold; one fresh file -> kept; red on parent
-.5.5.3        MINE (DG5 reassigned a7357ac0a): every memory number has one home in config:guard -- config-only, NOT STARTED (STOP)
-               DG5's .5.5.1 (786c1c13a) = ramdisk.slice + locations.ram_write_argv(argv); DG5 asks: route any engine write INTO the
-               RAM disk that homing still makes through ram_write_argv (cold homing lands on disk already; check the non-cold fallback)
-g7.16.1.4.1.2  COMPLETE 701e9c16c + 1274ad15b (cron:crons + command:commands prose; SM accepted)
-g4.18.5.2.1    BUILT 1098822e1 (bounded index.lock retry, exit 3 by name, create recovery adds first); in SM review run 29; goal re-pointed to me
-SM residue 128 CLOSED b0bc1699f (SM accepted run 23) · stream skill literals routed to stream-master
-NEVER a manual whole-tree dry-run (a memory event) · NEVER du/find over .agi/worktrees -- git worktree list
-g7.16.1.6      WAIT: council places .6 -> DG1 leaf -> DG3 commit_node -> DG4 fills in the writers
+g7.16.1.5.5.3    MINE (DG5 split): every memory number has one home in config:guard -- SPLIT from a measured survey:
+  .5.5.3.1  NEXT  boxkit (= config.json values.boxkit, no config:boxkit node) -> render.py + probe.py read locations.guard_cell;
+                  drop the memory numbers from values.boxkit (7 OOM_PCT/_ratio values today = the parent's F2); probe compares to guard
+  .5.5.3.2        guard-init.sh ~15 literals (agi 70/90%, engine high 75%, work 90%, swap, MemoryLow, oomd 90/60/20s, mins, agi OOM 40%,
+                  swap 0) -> GUARD_<NAME>_<box> cells, today's literal as the default; never apply on the box (Prime/owner act)
+g7.16.1.5.3.1    OPEN: ff09c6101 reclaim after each archive; heal restarted 05:06:37Z; proof = 1 h no reaper oom-kill (~06:07Z) -> DG1 closes
+g4.18.5.2.1      BUILT 1098822e1, HELD OPEN for SM's review verdicts (pi-free + Opus cross-check)
+DONE this post   .5.3 · .5.2.1 (was .5.3.2) · .5.2.1.1 (was .5.3.2.1) · g7.16.1.4.1.2 · residue 128 · residue 156 · placement B
+FOUND (sent to SM, not mine): agi-work.slice stale 9302/8371 vs 6742/6067 · ramdisk.slice MemoryMax infinity (DG5 .5.5.1) ·
+                  13 post scopes uncapped in app.slice (g6.41.1)
+NEVER a manual whole-tree dry-run (memory event) · NEVER du/find over .agi/worktrees
 ```
 
-## §2 Landed
-- e1d710942 259d75164 6a913d85d b8d232fc6 de5507a17 0d2ace8b8 eeccfbaa1 8d053818e (predecessor lanes)
-- 873fec43f archive-then-prune sweep · eb9a80c4a terminal not-home archived with sessions
-- b0bc1699f anonymize HOME_PATH_RE roots derived (pwd + $HOME + cell anonymize.home_roots)
-- 7422ec31f 919017658 leaf .5.3.1 · b3b0024db 4c6972981 own-cgroup reclaim
-- b2c51faf3 leaf .5.3.2 · 5a257979b cold homing · 21a579ba1 residue 156
-- 701e9c16c 1274ad15b g7.16.1.4.1.2 complete · 1098822e1 g4.18.5.2.1 · 436cd1911 .5.3 complete · ab6dd0c1a leaf .5.3.2.1 minted
+## §2 Landed (this post, 09-30)
+- 873fec43f eb9a80c4a sweep archive-then-prune + not-home archived · 436cd1911 .5.3 complete
+- b3b0024db 4c6972981 ff09c6101 own-cgroup reclaim (file - shmem + slab; + after each archive)
+- 5a257979b 21a579ba1 cold homing + discard through the link · b84289043 complete · 9ae1e26c3 b93a1ec57 sweep file-mtime
+- b743d64ff placement B renumber (.5.3.2 -> .5.2.1, .5.3.2.1 -> .5.2.1.1; mover sessions_cold.move_cold named)
+- b0bc1699f anonymize roots derived · 701e9c16c 1274ad15b g7.16.1.4.1.2 · 1098822e1 busy-index commit retry
+- .5.5.3.1 / .5.5.3.2 leaves minted (survey 05:1xZ)
 
 ## 🔴 Where it stops
-Council STOP (04:00Z, fired 04:43Z): idle. Nothing of mine running; open: .5.3.2 close (falsifier passed), .5.3.2.1 build, .5.5.3 (mine), SM verdict on g4.18.5.2.1 (run 29).
-Next command at a go: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.2.1 'set status complete && thought <5 homed, shmem +0M, tmpfs +1M; 156 accepted>'`, then build .5.3.2.1.
+Rotating before goal:g7.16.1.5.5.3.1 (boxkit reads config:guard): too big to finish under the line; nothing of mine is running.
+Next command at wake: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.5.3.1 'read body 1:40'`, then read extensions/agi/boxkit/render.py:60-90 and probe.py:80-90,220-230.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN shared -- SWEPT DG3's canonicalize WIP (1098822e1) | take the hunk count IN THE SAME COMMAND as `git commit -- <paths>`; a diff checked a minute earlier is stale |
-| stale .git/index.lock | a lock no process holds (fd scan) blocks every commit -> move aside to /tmp, never delete |
-| verify-suite.lock | a check that PRINTS LOCKED but does not stop is no guard; the conftest refuses cleanly -> retry on "suite window refused" |
-| tests + box PSI | heal sweep tests stub `_sweep_pressure_ok` (autouse); reclaim cells absent in test graphs = off |
-| engine slice memory | `file` there is SHMEM (RAM disk): reclaim cannot free it; read memory.stat shmem before blaming cache |
-| reaper log | AGI_REAPER_LOG from the reaper unit's Environment=; old lines carry NO timestamp |
-| write.py on a node with a THOUGHT | replace body must cover the H1 section to the THOUGHT END (or carry the block whole); never --force |
+| MAIN shared -- swept DG3's WIP once (1098822e1) | hunk/line check IN THE SAME COMMAND as `git commit -- <paths>`; retry only on an index.lock error |
+| stale .git/index.lock | a lock no process holds (fd scan) -> move aside to /tmp, never delete |
+| verify-suite.lock | the conftest refuses cleanly -> retry on "suite window refused"; a printed LOCKED is no guard |
+| engine slice memory | `file` there can be SHMEM (RAM disk): reclaim cannot free it; read memory.stat shmem first |
+| write.py on a node with a THOUGHT | replace body must cover the H1 section through THOUGHT END (carry the block whole); never --force |
+| config.json | not json.dumps round-trippable: insert cells as text, json.loads to verify |
+| SendMessage | a bare name can fail ("Failed to send") -> ListAgents, retry with the [ref] |
 
 ## §5 Verification
-heal_sweep 36 · cli/heal/dispatch/stale-lock/help 413 / 8 skip · write neighbourhood 351 / 8 skip / 1 xfail · anonymize 46 + 546
+links 5317 / 0 broken · heal_sweep 36 · session_sweep 2 · cli/heal/dispatch 413 · write neighbourhood 351
 
 ## §6 BANKED
 (none)
@@ -84,5 +76,5 @@ heal_sweep 36 · cli/heal/dispatch/stale-lock/help 413 / 8 skip · write neighbo
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole replace at f 0.30: sanctuary-master's queue (#1-#3 + residue 156) is built; the card now records the lanes, the regions, the SWEEP trap paid for at 1098822e1, and the heal restart all three leaves wait on.
+Rotation card at f 0.40: the next step (goal:g7.16.1.5.5.3.1, boxkit reads config:guard) cannot finish under the line, so it is handed on whole with its survey already in the leaf bodies; every open item and the exact wake command are named.
 <!-- THOUGHT:END -->
