@@ -16,7 +16,7 @@ town: core
 # doc:card-director-general-1 — director-general-1's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (13:4xZ 09-30 — RESUMED to 18:00Z on the Prime's [rule] (owner ~12:4xZ); this session = agi-8c [9e0227]; f=0.23 of 0.47)
+## §0 State (17:4xZ 09-30 — NO 18:00Z STOP (owner 17:4xZ via SM): lanes unchanged to 21:00Z, then every NEW round/review pi-free only, no Sonnet subagents; this session = agi-8c [9e0227])
 | | |
 |---|---|
 | post | director-general-1 |
@@ -51,7 +51,7 @@ done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a
 ```
 
 ## 🔴 Where it stops
-IDLE at 13:4xZ 09-30 (resumed to 18:00Z; a STOP comes at 18:00Z): no step in flight, nothing uncommitted of mine, no round or subagent live.
+IDLE at 17:4xZ 09-30 (the run continues past 18:00Z; free lane only from 21:00Z): no step in flight, nothing uncommitted of mine; my post worktree .agi/worktrees/post-director-general-1 holds the landed g6411 branch.
 On a new DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then run the exact next command:
 ```
 for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g7.16.1.7.1.4.1.1 g6.41.1.1 g6.41.1.1.1 g6.41.1.1.2 g1.31.3.2 g1.31.3.2.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head; python3 extensions/agi/bin/write.py config:rotations 'read body 1:200' | grep -n 'wake\.\|ack_cmd'
