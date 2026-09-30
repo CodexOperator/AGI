@@ -994,3 +994,20 @@ def _recording_launcher(seen: list):
         seen.append(shell_cmd)
         return 515151, "@777"
     return launch
+
+
+def test_heal_recovery_goes_through_the_one_launcher(tmp_path, monkeypatch):
+    """goal:g7.16.1.7.1.1 (B1): heal._launch_recovered builds no tmux line of
+    its own -- it calls rotate.launch_in_window once, never inline, and a
+    timeout is not a launch."""
+    import rotate
+    seen = []
+    monkeypatch.setattr(rotate, "launch_in_window",
+                        lambda *a, **k: seen.append((a, k)) or (0, "@7"))
+    assert heal._launch_recovered(tmp_path, "seat-x", "echo hi", cwd=tmp_path) == (None, "@7")
+    assert len(seen) == 1, seen
+    (_sess, name, cmd), kw = seen[0]
+    assert (name, cmd) == ("seat-x", "echo hi")
+    assert kw["inline_max"] == 0 and kw["timeout_ok"] is False and kw["cwd"] == tmp_path
+    monkeypatch.setattr(rotate, "launch_in_window", lambda *a, **k: (1, ""))
+    assert heal._launch_recovered(tmp_path, "seat-x", "echo hi", cwd=tmp_path) == (0, "")
