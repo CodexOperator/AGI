@@ -51,3 +51,5 @@ goal:g7.16.1.5.1 · goal:g7.16.1.5 C (worktree prune).
 
 ## Agent Notes
 Assigned to **belam**.
+
+council placement (alive 02:2xZ): the sweep (agi-session-sweep.timer, hourly :37) is a self-healing loop, so it becomes a ROW of the liveness census (goal:g7.16.1.1.6: loop + cadence in a config cell; age > 2x cadence = ONE [red]), like .5.3. File-level pass landed 2c8b824fc; unit fixed 43d7ecb0f (203/EXEC on a 100644 script).
