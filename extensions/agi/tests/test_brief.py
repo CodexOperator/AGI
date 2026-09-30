@@ -2003,12 +2003,17 @@ def test_two_blocks_bound_to_the_same_active_formation_are_ambiguous(tmp_path, c
         "alpha": MODES_FIXTURE["operating_modes"]["alpha"],
         "alpha_too": dup, "beta": MODES_FIXTURE["operating_modes"]["beta"]}})
     _write_formations(tmp_path, "doc:A")
+    # ONE resolution attempt -> ONE stderr line. Count the lines, never compare a
+    # set: a set of one passes when the same line is printed twice. Each of the
+    # three calls below is its own attempt, so each names the collision once.
     assert brief._in_force_mode(tmp_path) is None
+    err = capsys.readouterr().err.strip().splitlines()
+    assert len(err) == 1
+    assert set(err) == {
+        "brief: ambiguous active mode for formation 'doc:A': alpha, alpha_too"}
     assert brief._operating_mode_block(project_root=tmp_path) == ""
     assert brief._configured_profile(tmp_path) is None
-    err = capsys.readouterr().err.strip().splitlines()
-    assert err and set(err) == {
-        "brief: ambiguous active mode for formation 'doc:A': alpha, alpha_too"}
+    assert len(capsys.readouterr().err.strip().splitlines()) == 2
 
 
 def test_absent_declaration_renders_nothing_and_raises_nothing(tmp_path):
