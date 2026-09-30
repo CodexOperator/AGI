@@ -172,11 +172,11 @@ Pieces for §D (files in /tmp/g71611/fp-src): `agi-project` 664 B (tested, above
 round-1 body (the wrap)            1,532 B   unit 340 (the card left its argv) · inbox path 37 + service 69 · settings.json 458 (meter + SessionStart + Stop) · gitconfig 79 · agi-flush 115 · pre-receive 345 · signers 55 · sysusers 34
 A · alive (the fixed point)        1,031 B   project.sh 272 (reads through the links, + the brief line) · observe.sh 307 (+ the brief line) · tick.sh 211 · simhash.awk 241
 B · all-is-one (the spine)           562 B   brief.py 562 (§G's 520 + multi-seed 42; retires ppr.py 478) · + the ref layout, 3 dirs + 2 git config lines ~90, inline
-C · self-perpetuating              1,668 B   agi-project 835 (reads every piece FROM the engine node) · agi-seed.service 383 · agi-frontier 450 · + the V gate ~120, inline
-H · alive (injection)              1,070 B   agi-brief 559 · agi.ts 372 (pi) · sect 139 (the narrowed read)
+C · self-perpetuating              1,828 B   agi-project 931 (reads every piece FROM the engine node, blob or nothing) · agi-seed.service 447 (reloads only over >= 1 post unit) · agi-frontier 450 · + the V gate ~120, inline
+H · alive (injection)              1,076 B   agi-brief 565 (claims = the ref files it owns) · agi.ts 372 (pi) · sect 139 (the narrowed read)
 ────────────────────────────────────────────
-the living system                  5,863 B   in files (+ ~210 B inline one-liners) against the ~2.7 MB it retires (round 1 §7, kept in git @45282a4661)
-the engine node (§I)              11,101 B   body: diagram + loop + one line per piece + all 20 files whole; depth 0+1 = 3,806 B, one page
+the living system                  6,029 B   in files (+ ~210 B inline one-liners) against the ~2.7 MB it retires (round 1 §7, kept in git @45282a4661)
+the engine node (§I)              11,305 B   body: diagram + loop + one line per piece + all 20 files whole; depth 0+1 = 3,806 B, one page
 carried by what is already installed: the kernel (uids, mode bits, sticky dirs, PSI) · systemd (units, sysusers, slices, timers) · git (the DAG, CAS refs, notes, signing, cat-file --follow-symlinks) · strace · jq · dtach · awk · sed · python3 stdlib · the harnesses' own start and turn-end hooks
 still kilobytes, named: schema-check (<= 10 KB, the schema rules are content) and agi-mcp (<= 8 KB), both round 1
 ```
@@ -196,14 +196,14 @@ Against the owner's stretch bar (22:1xZ, "so low that it feels like it doesn't e
 | F9 | a landing that breaks the fixed point is refused (§C, k) | land a projector edit whose projection is EMPTY (0 post units: a reader regression, e.g. §G's symlink read at a REV), or whose projected agi-project.service no longer re-runs the projector FROM the graph (e.g. its ExecStart points at an installed copy), or whose re-projection diff is non-empty | the trunk gate refuses it by name | the gate is one line, not yet run as a hook |
 | F10 | the frontier only grows from the owner (§C, l) | land a commit that raises V (§C) with no new owner goal | refused | same |
 | F11 | a new verb is a superpower for every post (§C, m) | add a verb node | it is in every post's PATH and MCP tool list at their next session, with no per-post edit | on go |
-| F12 | the count | `wc -c` over every file D.1 names, comment lines excluded | <= 5,863 B in files | 5,863 B (§I's files, round 3) |
-| F13-F16 | the shape test and the at-REV reader | §F's spike rows and F.7 | as stated there | F14 PASS on the node itself through links (§H.5) |
+| F12 | the count | `wc -c` over every file D.1 names, comment lines excluded | <= 6,029 B in files | 6,029 B (§I's files, round 3) |
+| F13-F16 | the shape test and the at-REV reader | §F's spike rows and F.7 | as stated there · RE-SCOPED for the one engine node (s-p, 23:3xZ): the page bar (F13) holds for config:engine's depth 0+1 (F21) and for every OTHER .geometry node; config:engine carries one ~~~ block per piece (F15), cut by `sect` | F14 PASS on the node itself through links (§H.5) |
 | L1-L3 | links are symlinks | §G | `find .agi -xtype l` = 0 after migration · a `git mv` of one address keeps it 0 · phase = level difference | 25-27 dangling today on the scratch projections (§G) |
 | F17 | the brief is injected at EVERY start, by the harness | CC: `claude -p --settings <scratch>` at startup, `--resume`, and after `/compact`, each asked for its brief's first vector line · pi: the closed-port probe (§H.3) · the body: observe prints `brief agi-<post>` for every post | the vector line in all three CC legs · in every pi payload, fresh and resumed, exactly once · 0 drift lines of kind brief | pi PASS (fresh + resume) · CC on the owner's go (paid) · the body: 84 expected, 0 observed (TRUE: nothing is registered, §H.1) |
 | F18 | the graph stays current with no second path | a session writes a node with plain `cat >` and ends its turn | its OWN ref gains exactly one signed commit holding it; the strace track shows no agi tool ran | PASS on pi (unsigned in the test; the key is round 1's gitconfig) |
 | F19 | a read narrows to one section by name, byte-exact | `sect <name> REV` for every section and piece of `config:engine` | byte-identical to the source file (`cmp`) at any REV, through an address symlink | 20 of 20 on the scratch clone, plain and linked |
 | F20 | the brief follows the work | claim a node (`update-ref refs/claims/<mint>`), start a session; release it, start again | the node is in the top-3 with the claim, back at its sibling weight without it | rank 2 with the claim, 0.015 (sibling weight) without (§H.3) |
-| F21 | the engine is one read | `wc -c` of `config:engine`: depth 0+1 · the code counted · the whole | <= 4,096 · <= 8,192 · <= 12,288 B | 3,806 · 5,863 · 11,101 B (body) |
+| F21 | the engine is one read | `wc -c` of `config:engine`: depth 0+1 · the code counted · the whole | <= 4,096 · <= 8,192 · <= 12,288 B | 3,806 · 6,029 · 11,305 B (body) |
 
 **D.3 · What makes it ONE living whole (read the diagram in §0 again with these three lines):**
 ```
@@ -345,7 +345,7 @@ for m in sorted(x,key=lambda m:-abs(x[m]))[:k]:print(f'{abs(x[m]):.3f} {cmath.ph
 post unit starts · the session resumes · the context compacts
   │ Claude Code: SessionStart, NO matcher = startup · resume · clear · compact     pi: session_start (startup · reload · new · resume · fork)
   ▼
-agi-brief   e = the card + every refs/claims/<mint> this post authored  ──▶  brief.py (§G): b = α Σ ((1-α) Pθ)^k e
+agi-brief   e = the card + every refs/claims/<mint> whose ref FILE this post owns ──▶  brief.py (§G): b = α Σ ((1-α) Pθ)^k e
   │         prints the vector (|b| · levels up · address · path), then whole nodes by |b| up to B bytes (K, B = cells)
   │ Claude Code: hook stdout = the context, re-emitted after every compact
   │ pi: before_agent_start appends it to the SYSTEM prompt every turn (never in the transcript: compaction has nothing of it to drop)
@@ -366,11 +366,12 @@ many writers, one per ref (§B.2 CALM, owner 23:1xZ) -> the master merges the po
 This is the drift §A exists to catch, so the body now carries it. project.sh emits `brief agi-<post>` for every post row, and observe.sh prints that line only when the post's own settings carry a SessionStart hook. Today: 84 lines expected (28 posts x user · unit · brief), 0 observed. That is the true state: the body does not exist yet.
 
 **H.2 · The pieces (templates over raw commands: LIGHT, per the owner's 23:0xZ clarification).**
-- `agi-brief` 559 B: one template. Its parameters are K (20) and B (40,000 B), both cells. The card is found by its ADDRESS (`readlink -f`), so the brief follows a renamed card for free.
+- `agi-brief` 565 B: one template. Its parameters are K (20) and B (40,000 B), both cells. The card is found by its ADDRESS (`readlink -f`), so the brief follows a renamed card for free.
 - the Claude Code half = two entries added to round 1's per-post settings file (`meter.json` becomes `settings.json`, 458 B): `SessionStart -> agi-brief` and `Stop -> git add -A; git commit`.
 - the pi half = `agi.ts` 372 B: `session_start` computes the brief once, `before_agent_start` appends it to the system prompt, and `turn_end`/`agent_end` commit. It is projected as a symlink into the post's `~/.pi/agent/extensions/`, the directory pi auto-discovers (read from pi 0.67.68's dist: `join(agentDir, "extensions")`).
 - the post unit drops the card from its argv (`sh -c '${H} go'`, -33 B): the harness now carries the brief, so the unit no longer has to.
 - `brief.py` 562 B = §G's 520 B + multi-seed (+42 B: argv 2 is a comma list, and the restart mass is split evenly). all-is-one's line: "a claim made = the brief moves; a claim released = it moves back".
+- **A claim is this post's when the kernel says so** (all-is-one's red, 23:3xZ): the brief once read `%(authorname)` of the commit a claim ref points at, but a claim may point at ANY commit (tested: a claim on another's commit vanished from the brief), and `~/t` holds only the claims it has fetched. Now: `find <shared repo>/refs/claims -type f -user agi-<post> ! -name '*.lock'`, the shared repo found as the checkout's `origin` (no new cell). The ref FILE's owner is its creator (loose refs: `gc.packRefs=false`, §B.2). Tested on a scratch bare repo: the owner's claim is listed, the `claims` dir itself and a racing `.lock` are not.
 - **Claims are keyed by MINT.** `git check-ref-format refs/claims/goal:g7.16.1.11` = rc 1 (a colon is illegal in a ref name); `refs/claims/<mint>` = rc 0. So B.1's and C.3's claim rows now read `<mint>`. Every pointer targets the mint, the same rule the links follow (all-is-one agreed).
 
 **H.3 · Measured (pi 0.67.68 · the §G layout projected from the live graph on /tmp: 5,595 nodes, 9,272 parent links, 25 `-xtype l`).**
@@ -381,12 +382,12 @@ This is the drift §A exists to catch, so the body now carries it. project.sh em
 | pi TURN END: a file written with plain `cat` before the turn | one new commit holding exactly that file, message = the post's user; no agi tool ran |
 | agi-brief over the projection (alive's card) | 0.42 s; 41.6 KB = the 20-line vector + whole nodes up to B |
 | seed = the card alone | goal:g7.16.1.11 (the live assignment) is at 0.015, tied with its 8 siblings; the doc being written is NOT in the top-20 |
-| seed = the card + a claim authored by agi-alive on g7.16.1.11's mint | g7.16.1.11 is rank 2 (0.131, ~9x), the doc rank 4 (0.056, phase -1); a claim authored by another post is ignored |
+| seed = the card + a claim on g7.16.1.11's mint | g7.16.1.11 is rank 2 (0.131, ~9x), the doc rank 4 (0.056, phase -1); a claim whose ref file another post owns is not a seed |
 | Claude Code | model-free proof covers the REGISTRATION only (observe's jq line). The live leg (`claude -p --settings <scratch>` at startup, `--resume`, and after `/compact`) is paid, so it waits for the owner's go (free lane only since 21:00Z) |
 
 **H.4 · Transparency: why no second path is needed.** An agent only reads and writes files. Three events the harnesses already fire turn that into the graph: start (the brief comes in), turn end (a commit goes out), and exit (round 1's agi-flush merges and pushes). Many writers is safe by construction: each post commits to its OWN ref in its OWN checkout, and the master stages the merges (owner 23:1xZ). Every act is monotone, so nothing locks (§B.2). What an agent must know shrinks to one fact: where its checkout is.
 
-**H.5 · The engine is ONE node (owner 23:10Z: "all they ever have to do is just do one read"), layered (owner 23:1xZ).** §I is that node, whole, as it will be minted at `.agi/nodes/.geometry/engine.md`. Depth 0 is the diagram, depth 1 the loop and one line per piece, depth 2 one piece (`sect <name>`), depth 3 the whole file. Every section is ONE `~~~` block under a named heading, so any read or render narrows to one section by name, byte-exact, at any REV, through the links (`sect`, 139 B). The projector and the seed read their pieces FROM this node, so the node IS the engine and nothing else is installed. **The bar (my call, asked by belam): depth 0+1 <= 4,096 B (one page: what every session reads) · the code, counted, <= 8,192 B (belam's ~8 KB) · the whole node <= 12,288 B (3 pages).** Measured: 3,806 B · 5,863 B · 11,101 B (body). Past any of them = not simple enough yet.
+**H.5 · The engine is ONE node (owner 23:10Z: "all they ever have to do is just do one read"), layered (owner 23:1xZ).** §I is that node, whole, as it will be minted at `.agi/nodes/.geometry/engine.md`. Depth 0 is the diagram, depth 1 the loop and one line per piece, depth 2 one piece (`sect <name>`), depth 3 the whole file. Every section is ONE `~~~` block under a named heading, so any read or render narrows to one section by name, byte-exact, at any REV, through the links (`sect`, 139 B). The projector and the seed read their pieces FROM this node, so the node IS the engine and nothing else is installed. **The bar (my call, asked by belam): depth 0+1 <= 4,096 B (one page: what every session reads) · the code, counted, <= 8,192 B (belam's ~8 KB) · the whole node <= 12,288 B (3 pages).** Measured: 3,806 B · 6,029 B · 11,305 B (body). Past any of them = not simple enough yet.
 Tested on a `--shared` scratch clone (MAIN untouched), the node committed as `trunk`:
 | test | result |
 |---|---|
@@ -396,10 +397,11 @@ Tested on a `--shared` scratch clone (MAIN untouched), the node committed as `tr
 | the same after `engine.md` and `posts.md` become ADDRESS symlinks (§G) | `git show` returns the link text (s-p's F.7 red, reproduced); through `cat-file --follow-symlinks`: 10 units, fixed point empty, `sect` byte-exact |
 | the engine node's link left dangling | 0 files projected -> the non-empty gate (F9/F14) refuses |
 One trap paid for in the test: `sect`'s end pattern `^##* ` also matched a one-`#` shell comment inside a piece and cut 4 pieces short. Headings are now `##` or deeper (`^###* `), and a piece may not contain a line that starts with `##` or `~~~` (the generator asserts it).
-Write gate: `config` nodes are `written_by: [owner, prime_director]` (`[config].md`), so the council does NOT mint `config:engine` itself; §I is the node's bytes, ready for the Prime's mint or DG3's build.
+**A red folded after delivery (self-perpetuating, 23:3xZ; the fix re-shaped by alive):** at BOOT a dangling engine or posts link made the seed report success over a dead body (the landing gate refuses it, the boot did not). The projector's reader now takes the blob or nothing (s-p's hardened `g()`), and the seed and the projector's own unit reload only if the projection holds at least one post unit: `sh -s OUT REV&&ls OUT/default.target.wants/agi-post@*>/dev/null&&systemctl --user daemon-reload`. s-p's first form (`&&` alone) does not catch a dangling ENGINE link: the extractor then emits nothing, `sh -s` runs an empty script and exits 0. Tested: trunk rc 0 with 10 units and an empty fixed point · dangling posts rc 2, no reload · dangling engine rc 2, no reload · verify clean · F19 20/20.
+Write gate: `config` nodes are `written_by: [owner, prime_director]` (`[config].md`), so the council does not mint `config:engine`. belam minted v0 (11,101 B) at 2dadf20c17; §I below is v1 (the two reds above), for the Prime to re-mint.
 
 ## I · ROUND 3 · the engine node, whole: `config:engine` as it will be minted at `.agi/nodes/.geometry/engine.md`
-This section IS the node's body, byte for byte (11,101 B), between the fences below. Frontmatter at mint: `id: config:engine` · `type: config` · parent `goal:g7.16.1.11` · the Prime (or DG3 at build) mints it; the council does not (`written_by`). F19 and F21 run against the minted node.
+This section IS the node's body, byte for byte (11,305 B, v1), between the fences below. Frontmatter at mint: `id: config:engine` · `type: config` · parent `goal:g7.16.1.11` · the Prime (or DG3 at build) mints it; the council does not (`written_by`). F19 and F21 run against the minted node.
 ````markdown
 # config:engine — the whole engine, one read
 Depth 0 = diagram · 1 = loop + pieces, one line each · 2 = one piece: `sect <name>` · 3 = this file. Every piece is a small template over raw commands; its parameters are cells. Reasoning: doc:radically-simple-engine.
@@ -433,7 +435,7 @@ agi-inbox@.path       37 B  mail wakes a post: a change in its drop box ...
 agi-inbox@.service    69 B  ... types "mail" into its session
 settings.json        458 B  the harness wiring every post gets: the meter (rotate at the line), the brief at every start, one commit at every turn end
 agi.ts               372 B  the same wiring for pi: the brief in the system prompt on every turn, one commit at every turn end
-agi-brief            722 B  what a session sees first: the walk from its card + its own claims; the vector, then whole nodes by |b|
+agi-brief            766 B  what a session sees first: the walk from its card + its own claims; the vector, then whole nodes by |b|
 brief.py             562 B  b = a sum((1-a) P_theta)^k e: the complex walk over parent symlinks; |b| = how near, phase = how far up
 gitconfig             79 B  every commit is signed by the post's own key
 agi-flush            125 B  on exit: commit, merge, push: a dying session loses nothing
@@ -444,10 +446,10 @@ project.sh           282 B  what the body SHOULD be, read from the graph
 observe.sh           317 B  what the body IS, read from the box
 tick.sh              221 B  the homeostat: diff them; heal what drifted and commit the wound
 simhash.awk          241 B  stage-0 latent sense: near-duplicate and misfiled prose, no package
-agi-project          982 B  the genome: units for every post row, read from this node @REV; its own unit re-reads it
-agi-seed.service     383 B  the ONE installed unit: at boot, run agi-project from this node @trunk
+agi-project         1078 B  the genome: units for every post row, read from this node @REV; its own unit re-reads it
+agi-seed.service     447 B  the ONE installed unit: at boot, run agi-project from this node @trunk
 agi-frontier         632 B  the hunger: every active goal runs its falsifier: met | red | mute
-sect                  257 B  the narrowed read: ONE section or piece of this node, byte-exact, at any REV
+sect                 257 B  the narrowed read: ONE section or piece of this node, byte-exact, at any REV
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
@@ -492,12 +494,12 @@ export default(pi:any)=>{pi.on("session_start",()=>{try{b=x("agi-brief",{encodin
 pi.on("before_agent_start",(e:any)=>b?{systemPrompt:e.systemPrompt+"\n\n"+b}:undefined);pi.on("turn_end",c);pi.on("agent_end",c)}
 ~~~
 
-### agi-brief (722 B)
+### agi-brief (766 B)
 ~~~sh
 #!/bin/sh
-# agi-brief: b = the walk from e (the card + this post's own claims); the vector, then whole nodes by |b| up to B bytes. Every harness start runs it.
+# agi-brief: b = the walk from e (the card + the claims whose ref FILE this post owns, in the shared repo); the vector, then whole nodes by |b| up to B bytes. Every harness start runs it.
 p=${AGI_POST:-${USER#agi-}};cd "${AGI_ROOT:-$HOME/t}/.agi"||exit 0;c=$(readlink -f nodes/doc/card-$p.md)||exit 0;c=${c%/node.md}
-e=${c##*/}$(git for-each-ref refs/claims --format='%(authorname) %(refname:lstrip=2)'|sed -n "s/^agi-$p /,/p"|tr -d '\n')
+e=${c##*/}$(find "$(git config remote.origin.url)/refs/claims" -type f -user agi-$p ! -name '*.lock' -printf ',%f' 2>/dev/null)
 python3 ${BRIEF:-brief.py} n $e ${K:-20}|while read a f m;do echo "$a $f $(sed -n '/^id:/{s/^id: *//p;q}' n/$m/node.md) .agi/n/$m/node.md";done>~/.brief
 echo "# brief: $p (|b| · levels up · address · path)";cat ~/.brief;cut -d' ' -f4 ~/.brief|sed 's|^.agi/||'|xargs tail -n+1 2>/dev/null|head -c ${B:-40000}
 ~~~
@@ -585,25 +587,25 @@ BEGIN{for(i=32;i<127;i++)o[sprintf("%c",i)]=i}
 END{for(b=0;b<32;b++)x=x (v[b]>0);print x,FILENAME}
 ~~~
 
-### agi-project (982 B)
+### agi-project (1078 B)
 ~~~sh
 #!/bin/sh
 # agi-project OUT REV: this box's units = f(graph@REV); every piece is read FROM the engine node through the links, so no copy can drift
-o=$1 r=$2 w=$1/default.target.wants;g(){ echo "$r:.agi/nodes/.geometry/$1"|git cat-file --batch --follow-symlinks;};mkdir -p $w
+o=$1 r=$2 w=$1/default.target.wants;g(){ echo "$r:.agi/nodes/.geometry/$1"|git cat-file --batch --follow-symlinks|{ read a t s;[ "$t" = blob ]&&head -c $s;};};mkdir -p $w
 g engine.md|sed -n '/^### agi-post@.service /,/^### /{/^~~~/,/^~~~/{//!p}}'>$o/agi-post@.service
 for p in $(g posts.md|sed -n 's/^  - {/{/p'|jq -r "select(.box==\"${AGI_BOX:-local-town}\" and .recover!=false).name//empty");do ln -sf ../agi-post@.service $w/agi-post@$p.service;done
-printf '[Service]\nType=oneshot\nWorkingDirectory=%s\nExecStart=sh -c "echo %s:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n \047/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}\047|sh -s %s %s;systemctl --user daemon-reload"\n' $PWD $r $o $r>$o/agi-project.service
+printf '[Service]\nType=oneshot\nWorkingDirectory=%s\nExecStart=sh -c "echo %s:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n \047/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}\047|sh -s %s %s&&ls %s/default.target.wants/agi-post@*>/dev/null&&systemctl --user daemon-reload"\n' $PWD $r $o $r $o>$o/agi-project.service
 printf '[Path]\nPathChanged=%s\n' $(git rev-parse --absolute-git-dir)/logs/$r>$o/agi-project.path;ln -sf ../agi-project.path $w
 ~~~
 
-### agi-seed.service (383 B)
+### agi-seed.service (447 B)
 ~~~ini
 [Unit]
 RequiresMountsFor=/data/work/agi
 [Service]
 Type=oneshot
 WorkingDirectory=/data/work/agi
-ExecStart=sh -c "echo trunk:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s %t/systemd/user trunk;systemctl --user daemon-reload;systemctl --user start default.target"
+ExecStart=sh -c "echo trunk:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s %t/systemd/user trunk&&ls %t/systemd/user/default.target.wants/agi-post@*>/dev/null&&systemctl --user daemon-reload&&systemctl --user start default.target"
 [Install]
 WantedBy=default.target
 ~~~
@@ -626,5 +628,5 @@ echo "${2:-HEAD}:.agi/nodes/.geometry/engine.md"|git cat-file --batch --follow-s
 ````
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 5, 23:2xZ 09-30 (date -u; round 3, third writer after self-perpetuating 81f0620954/522b57e225 and all-is-one 25f348baf0): added §H (the brief injected by the harness at every start; the graph current with no second path) and §I (the engine as ONE layered .geometry node, whole), re-summed D.1, added F17-F21 to D.2, folded §E into §I, keyed claims by mint (a colon is illegal in a ref name), and put the injection loop into §0. Why this version differs: the measured true state is that NOTHING injects a brief today -- no SessionStart hook is registered on this box and the pi bridge is never loaded and would find no project -- so injection moved into the body (project/observe carry a brief line; today 84 expected, 0 observed). pi is proven model-free (a closed-port provider plus a before_provider_request probe: the brief in every payload fresh and resumed, never in the transcript; a plain-path write became one commit at turn end); the Claude Code live leg is paid and waits for the owner's go. The engine node was tested on a --shared scratch clone: sect byte-exact 20/20, bootstrap 10 units, fixed point empty, the same through address symlinks, a dangling link projects nothing. Near miss: sect's end pattern first matched one-# shell comments and cut 4 pieces short. Not minted: config is written_by owner/prime_director, so §I is the node's bytes for the Prime or DG3. Owner 23:10Z, verbatim: "And then just double checking, it makes sense to put them all into one dot geometry node that's like super easy to read and they can just, all they ever have to do is just do one read and they're like, oh, okay, that's how it works, cool." Owner 23:13Z, verbatim: "and also double checking I mean because we have the way we work works is that we can like do a quick node tree checkout per writer technically couldn't we have multiple writers out of it anyway we just have to like figure out how to stage the merges and that would be like whatever the master's job to like organize that Also, I just want to make sure that in that dot geometry node, you said it's like 17 roughly script spaces or whatever. Make sure it's all laid out, easy to understand. Maybe like in terms of like more generic overviews, and then we can like look into it deeper, or just like make sure it all just is like easy to understand for an LLM, which 17 files should be trivial for an LLM to be able to ingest fully and to comprehend fully at their current scale. But still, just double checking or. Just make sure read and or render can like be narrowed down inside a node to where it doesn't necessarily have to render the full node if not needed."
+alive gen 5, 23:3xZ 09-30 (date -u): v1 of round 3 part 3, two reds found by the council's re-check after delivery, both folded here and tested. (1) all-is-one: the brief read a claim's owner from the author of the commit its ref points at -- a claim may point at any commit, and the post's checkout holds only fetched claims; now the kernel decides: the owner of the loose ref FILE in the shared repo (find -type f -user; the dir itself and a .lock excluded, both caught in the test). (2) self-perpetuating: at boot a dangling engine or posts link made the seed succeed over an empty body; its proposed && fix left the dangling-ENGINE case at rc 0 (empty extract, empty sh script), so the check moved into the callers: reload only over >= 1 post unit (rc 2 on both dangling cases, measured). Also s-p's re-scope of F13/F15 for the one engine node, and every byte figure recomputed from the files (code 6,029 B, node body 11,305 B, depth 0+1 3,806 B). belam minted v0 at 2dadf20c17; §I is v1 for re-mint.
 <!-- THOUGHT:END -->
