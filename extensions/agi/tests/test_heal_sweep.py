@@ -850,6 +850,76 @@ def test_sweep_empty_target_homes_content_before_removal(repo_root, monkeypatch)
     assert "loop/f-F@2" in branches, "the loop/ branch is the history, keep it"
 
 
+def _cold_cell(repo: Path, tmp_path: Path, monkeypatch) -> Path:
+    """goal:g7.16.1.5.3.2 -- config:guard names a cold sessions home for a
+    fixture box (the goal:g7.16.1.5.2 cell), under tmp."""
+    cold = tmp_path / "cold-sessions"
+    geo = _graph(repo) / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "guard.md").write_text(
+        "# guard\n```sh guard.env\n"
+        f"GUARD_AGI_SESSIONS_ARCHIVE_fixturebox={cold}\n```\n")
+    monkeypatch.setenv("GUARD_BOX", "fixturebox")
+    return cold
+
+
+def test_sweep_homes_onto_the_cold_home_never_the_ram_disk(repo_root, tmp_path,
+                                                           monkeypatch):
+    """goal:g7.16.1.5.3.2 -- with the cold-home cell set and no MAIN entry,
+    the homed bytes land in <cold>/<iter> and MAIN keeps ONLY a symlink (no
+    real dir is ever created under MAIN's sessions); byte-equal, the source
+    and the tree removed."""
+    repo = repo_root
+    graph = _graph(repo)
+    cold = _cold_cell(repo, tmp_path, monkeypatch)
+    wt = _cut(repo, "a00-c01d77", "loop/c-C@2", "season/s2")
+    _land(repo, wt, "loop/c-C@2")
+    _stamp_complete_round(wt, "iter-801", "a00-c01d77")
+    src = _snapshot(wt / ".agi" / "sessions" / "iter-801")
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    assert heal._sweep_finished_worktrees(graph) == (1, 0, 0)
+    link = graph / "sessions" / "iter-801"
+    assert link.is_symlink() and link.resolve() == (cold / "iter-801").resolve()
+    assert _snapshot(cold / "iter-801") == src, "the homed bytes are on the cold home"
+    assert not wt.exists()
+    assert "[sweep] homed a00-c01d77 iter=iter-801" in log.read_text()
+
+
+def test_sweep_cold_link_rolls_back_a_refused_homing(repo_root, tmp_path, monkeypatch):
+    """goal:g7.16.1.5.3.2 -- a homing session-complete refuses (a non-terminal
+    round) leaves no empty cold dir and no dangling link; the tree stands."""
+    repo = repo_root
+    graph = _graph(repo)
+    cold = _cold_cell(repo, tmp_path, monkeypatch)
+    wt = _cut(repo, "a00-c02d88", "loop/d-D@2", "season/s2")
+    _land(repo, wt, "loop/d-D@2")
+    _stamp_plain_round(wt, "iter-802", "a00-c02d88")
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph / "reaper.log"))
+    removed, refused, _ = heal._sweep_finished_worktrees(graph)
+    assert (removed, refused) == (0, 1)
+    assert not (graph / "sessions" / "iter-802").is_symlink()
+    assert not (graph / "sessions" / "iter-802").exists()
+    assert not (cold / "iter-802").exists()
+    assert wt.exists()
+
+
+def test_sweep_cold_link_keeps_a_dir_holding_bytes(tmp_path):
+    """The rollback removes ONLY an empty cold dir: one byte may be a
+    source's verified contribution, so the dir and its link stay."""
+    dest = tmp_path / "cold" / "iter-9"
+    dest.mkdir(parents=True)
+    (dest / "x").write_text("landed\n")
+    link = tmp_path / "main" / "iter-9"
+    link.parent.mkdir()
+    link.symlink_to(dest)
+    heal._sweep_cold_unlink((link, dest))
+    assert link.is_symlink() and (dest / "x").read_text() == "landed\n"
+    (dest / "x").unlink()
+    heal._sweep_cold_unlink((link, dest))
+    assert not link.is_symlink() and not dest.exists()
+
+
 def test_sweep_byte_equal_copy_is_home(repo_root, monkeypatch):
     """(d) A target holding a BYTE-EQUAL copy of the source (hand-copied,
     no session-complete) IS home: the worktree is removed. A target that
