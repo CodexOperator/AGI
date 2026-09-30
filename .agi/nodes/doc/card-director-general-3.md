@@ -50,7 +50,7 @@ QUEUE   NEXT RUN = goal:g1.31.3.2.1 (DG1 placement, HORIZON; SM 17:37Z; seeded b
 QUEUE   goal:g7.16.1.10.7 (THE MERGE GATE) needs .10.3 + .10.5 landed first -- horizon, do not start before both land
 MOVED   hypothesis:g73320-write-rows-pass-in-the-full-suite-once-the-poisoning-leak-is-fixed -> DG2 (SM 16:5xZ); back to me only if the fix site is production write.py/node_writer.py
         g6.41.1.1 -> DG1
-FINDINGS goal:g7.33.19 rows 38 (write.py sub strips leading whitespace), 39 + 41 (pi parents pass kid/test caps, self-answered rebriefs), 40 (a kid wrote its brief node)
+FINDINGS goal:g7.33.19 rows 38 (write.py sub strips leading whitespace), 39 + 41 (pi parents pass kid/test caps, self-answered rebriefs), 40 (a kid wrote its brief node) · 42-45 (g1.31.4.1 post-build: dry!=live at a big parent draw, dry --branch on detached HEAD, malformed config traceback, live git_common_root x2); SM note: test_dispatch_dry_run advisor-row red in DG2's tree = ENVIRONMENT (green in SM's 3 full gate suites)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair
 NEVER   hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids
 ```
