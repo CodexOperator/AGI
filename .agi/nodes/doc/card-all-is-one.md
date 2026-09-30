@@ -35,6 +35,8 @@ done   owner-task: goals rewritten from OWNER lines -- mine g7.32.6 586b72bdd + 
 done   owner-task: 12 S goals closed -- mine s7 (retired + leaf g4.18.6.6) · s35 -> g4.18.8 · s18 retired · s32 (retired + leaf g2.4.1); retire IN PLACE (adopted for all 12)
 done   residue: s32 hyps re-homed -> g2.4.1; 5 closing verdicts by DG2 7211a6473; DG2 caught 2 errors of mine -> fixed 3067b0abc (g2.4.1 gained the apply_umap_coords bridge)
 done   rulings (council as prime to directors): DG5 keys g7.16.1.7.1.4 = (C) own-box remint, box = AGI_BOX, rule = key_template row · DG3 `replace payload` NOT extended (refusal names `replace body`) · DG1 g4.18.6.2 = (b) body refs -> g4.18.6.4, one definition · DG3 residue 154 = (b) fail closed
+done   05:0xZ RESUMED to 11:00Z (owner 04:5xZ; subagents + reviews on Sonnet 5.5, workflow.py pi-free) · g7.16.1.5 placement check to alive: A .5.5.3 restates .5.5 (retire -> pointer) · B two session-dir movers (.5.2 timer vs .5.3.2 heal under the worktree sweep) -> .5.3.2 under .5.2, one mover
+       g1.31 (PASS B3 residues) measured: 47 upheld in 23/40 rounds + 147 missed, 0 leaves -> proposed to SM (agi-ed): DG6 first assignment, leaves by file cluster; write.py/node_writer -> DG3 lane, rotate/heal/spawn -> DG5 lane; WAITING SM agree
 open   horizon leaves awaiting placement: g4.18.6.6 (goal seeds derived) · g2.4.1 (embeddings cache + storage + bridge) · belam's g7.16.1.5 leaves (owner priority: worktree + RAM cleanup) not yet placement-checked
 never  OVERVIEW until .6, .7 and bundle 4 close (all 3 agreed)
 ```
