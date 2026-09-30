@@ -24,13 +24,13 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 21 ran the owner-ordered history scrub. Owner 06:3xZ-06:4xZ 09-30, verbatim: "Yeah we gotta scrub it. Time to pause grid crons and do the whole shebang." · "Yes include codex-town. And go now then restart when everything is verified" · "Go". Also owner 06:1xZ: "We should probably ease off expensive subagents now and just use strictly sonnet 5.5 ideally using our new headless CC review routes." and "We also will need to stand down director-general 5 and 6 to help conserve tokens as well ... 3,4 can continue as is and pick up whatever 5,6 don't finish after standing down". The rewrite ran on mirrors, never in place (filter-repo in place would reset --hard MAIN's uncommitted files); local refs moved by one asserted transaction and worktrees by per-path swaps, because a full git status over 682 worktrees did not finish in 15 min.
 <!-- THOUGHT:END -->
 
-## §0 State (17:4xZ 09-30, read from date -u)
+## §0 State (21:0xZ 09-30, read from date -u)
 | | |
 |---|---|
 | post | belam-S2-L5-XX gen 22 (woke 16:56Z); predecessors idle: gen 21 agi-23 · gen 20 agi-79 · gen 19 agi-c2 |
-| run | EXTENDED 17:4xZ (owner: "Please extend the cutoff to about 5 p.m., after which point continue working using the free lane.") -> current lanes to **21:00Z** (5pm EDT), then **FREE LANE ONLY** (pi-free, 0 USD), NO STOP · rule: doc:unified-director-brief ROUND LANES (9cb773a774) · relayed to SM agi-12 [afd9c6] |
-| posts | DG5 + DG6 DOWN (handovers re-laned by SM: DG3 privacy cluster, DG4 hook/harvests/CC route) · SM = agi-12 @27 · DG3 = agi-00 @29 · DG4 = agi-10 @28 · all-is-one = agi-8f @1 · self-perpetuating = agi-53 @2 (14:2xZ; always "name [ref]") |
-| crons | session: CHECK 97929cb8 (13 */4) · LANE-SWITCH one-shot bb871f87 (21:02Z; the 18:02Z STOP 13266db4 cancelled) · memory Monitor blhckdxaw (PSI full avg60 >= 10%, 30 min, re-arm) · box crontab LIVE (crons_live true, 12 jobs) · keysync timer re-created (transient, */2 min) |
+| run | **FREE LANE since 21:00Z** (pi-free only, 0 USD, no claude-code dispatch, no Sonnet subagents; NO stop, no end time) · owner 17:4xZ: "Please extend the cutoff to about 5 p.m., after which point continue working using the free lane." · rule: doc:unified-director-brief ROUND LANES (9cb773a774) · relayed 21:02Z to SM agi-e0 [1840c0] @31 (+ graph inbox 17:5xZ) · defaults already free: spawn.harness + workflows.* = pi-free |
+| posts | DG5 + DG6 DOWN (handovers re-laned by SM: DG3 privacy cluster, DG4 hook/harvests/CC route) · SM = agi-e0 @31 · DG3 = agi-03 @32 · DG4 = agi-10 @28 · all-is-one = agi-8f @1 · self-perpetuating = agi-53 @2 (14:2xZ; always "name [ref]") |
+| crons | session: CHECK 97929cb8 (13 */4) · LANE-SWITCH bb871f87 FIRED 21:02Z · memory Monitor b0ebrpa2w (PSI full avg60 >= 10% -> AUTO reclaim top 3 scopes by file-shmem, 400M, <= 1 per 5 min; 30 min, re-arm) · box crontab LIVE (crons_live true, 12 jobs) · keysync timer re-created (transient, */2 min) |
 | scrub | /data/scrub (mode 700): RESUME.md = the step table + revert · backup-local.git · backup-origin(2).git · stripped/ (2 nsys files, also back on disk, gitignored) |
 
 ## §1 Plan
@@ -48,7 +48,8 @@ DONE gen 21  guard-init applied (empty plan diff) · post scopes ruled to app.sl
 14:xZ: RAM disk 4.1G -> 2.3G (13 clean idle Agent worktrees removed; DG4 row: bind <repo>/.claude/worktrees from disk) · paths.local_maxxing.scrub_commit_map 1b14a0048 · SLO8 whois fact restored d71e39b69 · 8 trunk reds laned by SM (links.py:440 decode -> DG2; brief g15 -> DG4; boxkit anonymize fake denylist -> DG2)
              STILL MINE: config:rotations skills entry (:83 + :123) + agi-post, agi-stream, byte_cap 6000 -> 8000, THOUGHT -- only once DG4 lands build:skills-agi-post-SKILL.md + build:skills-agi-stream-SKILL.md (SM sends the exact text)
 16:4xZ owner opened round lanes past pi-free (claude-code Sonnet 5.5 kids; parents+kids once proven; subagents or direct): brief SUBAGENTS row 6db908311, relayed via SM · email_allow user@UID.service 842cb065d · memory relief now PSI-gated (>= 10%): cache at user@ high with PSI 0 is normal, never churn on it
-NEXT         the watch to 18:00Z, then STOP + owner report
+gen 22 17:4xZ-21:0xZ: owner extended the cutoff to 21:00Z then FREE LANE (brief 9cb773a774) · 5 ORPHAN grep|head scopes stopped 20:4xZ (2.8-6.8 h, D state, 115 GB read, ~3 GB cache refill -> 2 PSI REDs 27 / 22 pct) -> [red] + g1 line to SM · CHECK 20:4xZ: BASE 1f2b49ffc (post-scrub id of 578650193) .. TIP b6e1020cc2 = 2160 commits / 107 exp / 157 engine paths / 2 D = goal renames (s1 -> g1.6.1, s33 -> g4.18.2.1) -> the council's review, not the Prime's
+NEXT         free lane, no end time: CHECK every 4 h, memory Monitor, the final merge word when the council reports
 NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) -> SM lanes to DG3/DG4 · anonymize install-hook checks MAIN's diff, not the committing worktree's (a g7.33 row)
 ```
 
@@ -56,11 +57,10 @@ NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) 
 post-scrub: ec09d0290 (.gitignore) · every pre-scrub SHA is REWRITTEN: old -> new = grep ^<sha> /data/scrub/union.git/filter-repo/commit-map (ONE union pass over local + origin; a first per-repo pass diverged and was replaced)
 
 ## 🔴 Where it stops
-Re-arm at wake (before 21:00Z): LANE-SWITCH one-shot "2 21 30 9 *" + CHECK "13 */4 * * *" + the memory Monitor. After 21:00Z: CHECK + Monitor only -- the free lane has no end time, so there is NO STOP to arm
+Re-arm at wake: CHECK "13 */4 * * *" + the memory Monitor (auto-reclaim variant, bodies in this session's transcript: PSI full avg60 >= 10% -> memory.reclaim "400M swappiness=0" on the top 3 app.slice scopes by file - shmem, <= 1 per 5 min). FREE LANE has no end time: NO STOP, no lane switch to arm
 ```
-at 21:00Z   ONE SendMessage to sanctuary-master agi-12 [afd9c6]: "free lane NOW" (pi-free only, no claude-code dispatch, no Sonnet subagents; live claude-code rounds finish) -> spawn_budget.py status: new parents pi-free -> card run row -> one owner line
-memory      Monitor on PSI full avg60 >= 10% (relief) / >= 20% (red); user@ at high with PSI ~0 = page cache, never act; relief = memory.reclaim on the biggest file-heavy post scope, never a kill
-addressing  SendMessage by "name [ref]" from ListAgents (agi-c8 / agi-8c / agi-e3 each name two posts)
+memory      the cause 18:1x-20:4xZ was ORPHAN grep|head scopes (ppid user systemd, cwd MAIN, D state): list run-*.scope by comm + cwd + age, stop by systemctl --user stop (skill agi-memory-guard §2-3); page cache at user@ high with PSI ~0 = normal, never act
+addressing  SendMessage by "name [ref]" from ListAgents; resolve a post's window with send.py whois --post <post> (sessions rotate: SM agi-12 -> agi-e0 by 21:0xZ)
 ```
 
 ## §4 Traps (the rest live in the skills)
