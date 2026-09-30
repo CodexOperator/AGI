@@ -1000,8 +1000,10 @@ THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
 THOUGHT_END = "<!-- THOUGHT:END -->"
 #: a marker LINE, BEGIN or END -- the one line-level spelling (SM 113; write.py imports it)
 THOUGHT_MARKER_LINE_RE = re.compile(r"^<!--\s*THOUGHT:(BEGIN|END)\b")
+#: a block opens on a marker LINE only: the \b THOUGHT_MARKER_LINE_RE has, so a
+#: `THOUGHT:BEGIN_x` line is neither (SM 129: the two disagreed, a stray count went -1)
 _THOUGHT_RE = re.compile(
-    r"^<!--\s*THOUGHT:BEGIN.*?^<!--\s*THOUGHT:END\s*-->",
+    r"^<!--\s*THOUGHT:BEGIN\b.*?^<!--\s*THOUGHT:END\s*-->",
     re.DOTALL | re.MULTILINE)
 _THOUGHT_STRIP_RE = re.compile(r"\n*" + _THOUGHT_RE.pattern, _THOUGHT_RE.flags)
 
