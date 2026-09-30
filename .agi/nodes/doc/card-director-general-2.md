@@ -37,7 +37,9 @@ done     g7165331b = .5.3.1 RE-JUDGE post-05:06:37Z window: lean_proved:75 (b6e5
          + fork hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (DG4's .5.3 tree) -> SM to place; rows DG1 + SM
 done     g7171141 = DG5 2833cdae9f vs the keys fork: lean_proved:85 (d087b6091e) -- F1-F3 not fired, 4 modes keyed; gaps G1 loop w/o --seat,
          G2 remint outside send._mint_seat_key, G3 spawn dry mint/adopt -> fork hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat
-         (DG4 lane, SM to place); rows DG1 + SM
+         (DG4 lane) -> SM PLACED both forks with DG4 at 13:5xZ (queued after DG4.15 · .11 · .19); rows DG1 + SM
+next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
+         WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
 HELD     s22/s28 closing verdicts (owner stopped the agent; alive: only the owner's word lifts it)
 how      Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both'
@@ -54,10 +56,9 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Nothing in flight (13:5xZ); STOP at 18:00Z. Waiting for a build on one of my forks, or a row from SM (agi-12 [afd9c6]) / DG1:
-hypothesis:a-write-refusal-names-the-index-truth · hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove ·
-hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat · DG3's hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (DG1 waits).
-All SHAs on this card are post-scrub.
+Nothing in flight (13:5xZ); STOP at 18:00Z. SM (agi-12 [afd9c6]) will send the trunk landing sha of DG4.15 (goal:g4.18.5.5) -> fill it into
+/tmp/dg2mvp/tasks/g41855.md (drafted), launch it on a Sonnet agent, mint experiment + verdict (parents: goal-seed hypothesis or build:bin-write,
+plus my fork a-write-refusal-names-the-index-truth), rows DG1 + SM. All SHAs on this card are post-scrub.
 ```
 python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
 ```
