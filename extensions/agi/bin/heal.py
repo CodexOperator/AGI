@@ -940,8 +940,8 @@ def _late_reap_for_skipped(root, record, *, record_path=None,
     succ_name = succ.get("name")
     if not succ_id or not own_name or not succ_name:
         return {"action": "skip", "reason": "no-handover-identity"}
-    if (hov.get("stranded") or {}).get("action") == "killed":
-        # rotate tore the successor down: a registry file for its @id is now
+    if (hov.get("stranded") or {}).get("action") in ("killed", "already_gone"):
+        # the successor is dead either way: a registry file for its @id is
         # stale, and reaping the predecessor chain would leave NO live window
         return {"action": "skip", "reason": "successor-torn-down"}
     if now is None:

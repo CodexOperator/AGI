@@ -20994,12 +20994,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 st["action"] = _kill_window(
                     spawn_name, tmux_session, args.window_path,
                     window_id=succ_window_id)
-            _write_rotation_record(root, _rotate_self_record(
-                seat=seat, role=role, result="skipped",
-                gen_before=gen_before, gen_after=gen,
-                succ=succ, handover=handover,
-                readback_log=Path(dbg).expanduser().resolve(),
-                refusal=joined["note"]), path=rec_path)
+            try:
+                _write_rotation_record(root, _rotate_self_record(
+                    seat=seat, role=role, result="skipped",
+                    gen_before=gen_before, gen_after=gen,
+                    succ=succ, handover=handover,
+                    readback_log=Path(dbg).expanduser().resolve(),
+                    refusal=joined["note"]), path=rec_path)
+            except OSError as exc:
+                if _phase:
+                    raise
+                print(f"NOTE: pre-kill record write failed ({exc}); killing anyway.", file=sys.stderr)
         print(f"ERR: {joined['note']}; rotation NOT reported success. "
               f"Stranded successor window {spawn_name!r} "
               f"({succ_window_id}) {st['action']}.",

@@ -154,8 +154,8 @@ def test_record_is_written_first_and_names_what_the_kill_did(
 
 
 def test_heal_late_reap_skips_a_torn_down_successor_only(_fix, tmp_path):
-    """A `killed` successor is never late-reaped (its registry file is stale
-    and the predecessor chain would go with it); `already_gone`/`error` keep
+    """A `killed`/`already_gone` successor is never late-reaped (its registry file is stale
+    and the predecessor chain would go with it); `error` keeps
     heal's bounded late-reap recovery (`waiting` inside the bound)."""
     reg = tmp_path / "reg"
     reg.mkdir()
@@ -168,5 +168,24 @@ def test_heal_late_reap_skips_a_torn_down_successor_only(_fix, tmp_path):
         rec["handover"]["stranded"] = {"action": action}
         return heal._late_reap_for_skipped(
             tmp_path, rec, registry_dir=str(reg), rot=rotate)["action"]
-    assert run("killed") == "skip"
-    assert run("already_gone") == run("error") == "waiting"
+    assert run("killed") == run("already_gone") == "skip"
+    assert run("error") == "waiting"
+
+
+def test_pre_kill_record_failure_still_kills(_fix, tmp_path, monkeypatch):
+    """An OSError on the PRE-kill record write must not skip the kill."""
+    reg = tmp_path / "reg"
+    reg.mkdir()
+    ft = _FakeTmux(tmp_path)
+    monkeypatch.setattr(rotate, "spawn_window", ft.fake_spawn)
+    real, n = rotate._write_rotation_record, []
+
+    def _w(*a, **k):
+        n.append(1)
+        if len(n) == 1:
+            raise OSError("disk full")
+        return real(*a, **k)
+    monkeypatch.setattr(rotate, "_write_rotation_record", _w)
+    assert rotate.cmd_rotate_self(_args(tmp_path, ft, reg, 0), tmp_path) == 1
+    assert "adv-alive" not in ft.names()
+    assert _record(tmp_path)["handover"]["stranded"]["action"] == "killed"
