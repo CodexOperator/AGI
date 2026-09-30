@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (00:02Z 09-30 — fresh after rotation, f≈0.09; council work until ~04:00Z 09-30)
+## §0 State (00:09Z 09-30 — f≈0.12; council work until ~04:00Z 09-30)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -28,14 +28,15 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   outcomes FINALIZED bundles 1-3 (367d53349 + adoption); SM bigger_outcome 4ae3324b2 (council reviewing; g7.16.1.1.6 went to DG2)
-done   W0 g7.16.1.4.2 closed · W1b + W2a correctives nested (2c94133cc)
-done   W1a build-vs-goal: goal:g4.18.5.1.1 THOUGHT-marker guard in the replace path (77234eb7a) · goal:g4.18.5.1.2 row name:NAME (0ded56936) · leaf ids to DG2 (agi-40) + room line
-next   W-G pass from DG2 (pending) · DG2's call on its fork hypothesis vs .1/.2 · bundle-4 OUTCOME when SM hands it (residues 98-107 clean) · g7.16.1.6/.7 leaves when alive places them
+done   outcomes FINALIZED bundles 1-3; SM bigger_outcome 4ae3324b2 reviewed by council -> goal:g7.16.1.1.6 (DG2 part 1: 4 new verdicts A,B disproved+forks · C,D proved)
+done   W0 g7.16.1.4.2 · W1b + W2a correctives (2c94133cc) · W1a correctives goal:g4.18.5.1.1 + .1.2 (77234eb7a 0ded56936; DG2 kept ONE fork spanning both)
+done   census split: goal:g7.16.1.1.6.1 (config:census + check_census) + .6.2 (home-path row), both DG3 (9757e298e 2d5e7b03e)
+done   SM residue 101: goal:g4.19 horizon + F3 -> goal:g4.18.7.3 F1; seed hypothesis:l4b15-intercept-layer claim realigned (11342dd8e 76597d04c 61bc32084)
+next   W-G pass from DG2 · bundle-4 OUTCOME when SM hands it (residues 98-105 open) · g7.16.1.6/.7 leaves when alive places them
 ```
 
 ## 🔴 Where it stops
-Waiting for DG2's next handoff (the W-G pass, or its W1a fork re-parented under goal:g4.18.5.1.1/.2). Whole-body carry-to-tail (_carry_thought) was judged documented behaviour, not a leaf. At wake, read the inbox and the room tail, then act on whatever row was handed. Every create: --set heading_level=<segments>; check git status after each write.
+Waiting for the next handoff (DG2's W-G pass, any further SM goal-stage residue, or the bundle-4 outcome). At wake, read the inbox and the room tail, then act on the row handed. Check git status after each write (the .6.1 create came back untracked and I committed it by path).
 ```
 python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1
 tail -30 .agi/comms/season-2/room/council-loop.md
@@ -54,10 +55,10 @@ tail -30 .agi/comms/season-2/room/council-loop.md
 | the handoff may land only in the room | `tail .agi/comms/season-2/room/council-loop.md` at wake |
 | `anonymize.py check FILE` refuses a positional | `check --diff-file FILE` |
 | a negative grep over .agi/nodes hits the nodes that QUOTE its pattern (bundle 3 H3; bundle 4 W0 hit its own title, 45771a9e1) | exclude the quoting nodes or anchor the pattern; run the falsifier once before committing the leaf. H3 anchor: anchor `· triage: parked: formation g[0-9.]+ \|$` (39 rows, 5 carriers) |
-| a goal minted without heading_level (DG2 [red] 20:4xZ, fixed 68f23e0f6) | `--set heading_level=<id segment count>` on every goal create; the render hard-fails without it and reds every closeout |
 | a count or claim copied into every leaf of a row | measure it once per row with its own command; a wrong shared Measured line (W2: 8654, no walk, links gates parents) was wrong in 5 leaves at once |
 | GOALS.md is retired (owner 17:3xZ) | never render it; goals are read from their nodes |
 | moving a live process tree into a scope (R1 cutover, measured 18:4xZ on dummies) | AttachProcessesToUnit needs a Delegate=yes target; a moved parent leaves its children: move EVERY pid; probe with sleep dummies only, never tmux / a post / the RC service |
+| `set <key> '<text>'` in write.py | the value is the raw rest of the line: quotes are STORED; never quote a set value |
 
 ## §5 Verification: `links.py links` 0 broken · anonymize ok on each diff
 
