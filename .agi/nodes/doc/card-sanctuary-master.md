@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
-| usage | owner 03:2xZ 09-30, verbatim (via the Prime): "Directors spawning a lot of agents. Please make them use pi for agentic subtasks or sonnet 5.5. Were also out of usage" → NO Opus subagents; my reviews = workflow.py agi-merge-up-review --harness pi-free (skill agi-workflow), never the Claude Workflow tool at opus |
+| usage | owner 04:5xZ 09-30, verbatim (via the Prime; SUPERSEDES 03:2xZ): "Let's switch your reviews and stuff to sonnet 5.5, and all subagents can be sonnet 5.5 as well to free up the free lane" → Agent subagents model sonnet · claude-code stages --model claude-sonnet-5-5 · workflow.py runs stay pi-free until its headless claude-code stage route lands · NEVER Opus/Fable fan-outs, forks or the Claude Workflow tool |
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 · messaging: SendMessage by session name only (no send.py, no rooms) until the bundles land |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.44 |
 | skills | agi-merge-pass (§2 verdicts) · agi-workflow · agi-rotate · agi-node-write · agi-goal |
