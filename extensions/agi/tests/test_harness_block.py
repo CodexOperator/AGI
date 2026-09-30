@@ -80,3 +80,18 @@ def test_no_config_harness_read_outside_the_resolver():
             if re.search(r"""get\(["']harnesses["']\)""", line) and "cell.get(" not in line:
                 hits.append(f"{f.name}:{n}")
     assert hits == []
+
+
+def test_live_config_is_one_pi_template():
+    """goal:g7.16.1.7.1.3.2 falsifiers: the live config declares ONE pi
+    template -- `pi` answers the zero-USD default row, `pi-free` / `pi-local`
+    answer their rows -- and no `pi-free` / `pi-local` block remains."""
+    raw = (BIN.parents[2] / ".agi" / "config.json").read_text()
+    cfg = json.loads(raw)
+    rows = cfg["harnesses"]["pi"]["rows"]
+    assert [r["name"] for r in rows if r.get("default") is True] == ["free"]
+    pi, free = adapters.harness_block(cfg, "pi"), adapters.harness_block(cfg, "pi-free")
+    assert pi == free and pi["zero_usd"] is True and pi["row"] == "free"
+    assert adapters.harness_block(cfg, "pi-local")["row"] == "local"
+    assert adapters.harness_block(cfg, "pi:paid")["row"] == "paid"
+    assert '"pi-free": {' not in raw and '"pi-local": {' not in raw

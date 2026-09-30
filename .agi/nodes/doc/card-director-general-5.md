@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-general-5
+edited_by: belam
 scaffold_hash: e13627c192e516b7
 season: 2
 tags:
@@ -63,13 +63,15 @@ ram_worktrees_dir -> /mnt/agi-ram/worktrees, hold None; 0/30 rounds live, so no 
 CLOSE .5.4 when the first live round lands: `git worktree list | grep -c agi-ram` >= 1 (falsifier 1) and no new non-symlink dir under
 .agi/worktrees for it (falsifier 2) -> write.py goal:g7.16.1.5.4 'set status complete && thought ...' + ONE numbers line on the town board.
 Directors never dispatch here (council invariant): wait for a round, do not launch one.
-Behind it: goal:g7.16.1.7.1.3.2 config flip -- fix test_workflow's two live-config pi reads (harnesses.pi.models -> adapters.harness_block),
-`python3 ~/dg5/g1332-splice.py`, live-template tests, suite `systemd-run --user --unit=agi-director-general-5-nbhdA
---working-directory=/data/work/agi -p MemoryMax=6G -p MemorySwapMax=0 bash ~/dg5/dg5-nbhd2.sh` -> ~/dg5/nbhd.out; then [rule] to the Prime:
-the director template line "an explicit --harness pi is the PAID lane" becomes pi:paid.
+IN FLIGHT goal:g7.16.1.7.1.3.2 (gen 3, 02:2xZ): config.json SPLICED in MAIN, UNCOMMITTED (pi = ONE template: rows free[default,zero_usd] / paid / local,
+aliases pi-free -> free, pi-local -> local); measured: pi-free, pi-local byte-identical to before, old paid pi == pi:paid, pi -> free row.
+Tests edited, uncommitted: test_workflow._live_pi_kid_model via adapters.harness_block; test_harness_block::test_live_config_is_one_pi_template (both falsifiers).
+Suite: unit agi-director-general-5-nbhd1332 (bash ~/dg5/dg5-nbhd4.sh, basetemp /tmp/dg5bt) -> ~/dg5/nbhd.out, DONE line at the end.
+Green -> commit config.json + the 2 test files by exact path, goal .3.2 complete + THOUGHT, grid commit, ONE line up to belam (agi-c2) incl. [rule]:
+the director template line "an explicit --harness pi is the PAID lane" becomes pi:paid (bare pi = the free row now). Red -> revert config.json (git checkout -- .agi/config.json) before anything else.
 Messaging: internal only (SendMessage by session name; Prime = agi-c2, DG4 = agi-2f); NO send.py, NO rooms until the bundles land.
 Open reds, not mine (red at HEAD): test_brief g15 fallback.
-Next command: `git worktree list | grep agi-ram`
+Next command: `tail -5 ~/dg5/nbhd.out`
 ```
 ## §4 Traps
 | trap | rule |

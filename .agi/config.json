@@ -48,49 +48,13 @@
     "pi": {
       "adapter": "pi",
       "bin": "~/.npm-global/bin/pi",
-      "provider": "openrouter",
-      "thinking": "medium",
-      "models": {
-        "kid": "deepseek/deepseek-v4.1-flash",
-        "parent": "deepseek/deepseek-v4.1-flash"
-      },
-      "allowed_extra": [
-        "deepseek/deepseek-v4.1-flash",
-        "~z-ai/glm-flash-latest",
-        "anthropic/claude-opus-5"
+      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"],
+      "rows": [
+        {"name": "free", "default": true, "zero_usd": true, "provider": "openrouter", "thinking": "medium", "models": {"kid": "stealth/space-bunny-alpha", "parent": "stealth/space-bunny-alpha"}, "allowed_extra": ["stealth/space-bunny-alpha"]},
+        {"name": "paid", "provider": "openrouter", "thinking": "medium", "models": {"kid": "deepseek/deepseek-v4.1-flash", "parent": "deepseek/deepseek-v4.1-flash"}, "allowed_extra": ["deepseek/deepseek-v4.1-flash", "~z-ai/glm-flash-latest", "anthropic/claude-opus-5"]},
+        {"name": "local", "zero_usd": true, "provider": "local-town", "credential": "none", "max_live": 1, "models": {"kid": "OrcaBonsai-27B-C2", "parent": "OrcaBonsai-27B-C2"}, "allowed_extra": ["OrcaBonsai-27B-C2"]}
       ],
-      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
-    },
-    "pi-local": {
-      "zero_usd": true,
-      "adapter": "pi",
-      "bin": "~/.npm-global/bin/pi",
-      "provider": "local-town",
-      "credential": "none",
-      "max_live": 1,
-      "models": {
-        "kid": "OrcaBonsai-27B-C2",
-        "parent": "OrcaBonsai-27B-C2"
-      },
-      "allowed_extra": [
-        "OrcaBonsai-27B-C2"
-      ],
-      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
-    },
-    "pi-free": {
-      "zero_usd": true,
-      "adapter": "pi",
-      "bin": "~/.npm-global/bin/pi",
-      "provider": "openrouter",
-      "thinking": "medium",
-      "models": {
-        "kid": "stealth/space-bunny-alpha",
-        "parent": "stealth/space-bunny-alpha"
-      },
-      "allowed_extra": [
-        "stealth/space-bunny-alpha"
-      ],
-      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
+      "aliases": {"pi-free": "free", "pi-local": "local"}
     },
     "claude-code": {
       "adapter": "claude_code",
