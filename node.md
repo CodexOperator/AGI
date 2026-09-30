@@ -38,7 +38,9 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           (merge-tree + commit-tree + ff-only) -> goal:g1.33 complete; route cell paths.local_maxxing.scrub_commit_map + focus line to SM/Prime
        dg6-04 chain: re-mur dg6-04e FAILED (verify timed out 3600 s at 14:52Z); review accept_with_residue triaged -> CORRECTIVE DH.DG3.52 on the
           loop tip a7ab2dba47 (3 test residues: no-CWD order, project-less row, email skip loop; +77/60 test cap ACCEPTED; 4 notes demoted)
-          -> parent a00-1e6b67b2 from /mnt/agi-ram/worktrees/de-base-DG3.52 -> harvest -> re-mur a7ab2dba47..tip -> residues 0 -> [merge-up] half a
+          -> DG3.52 HARVESTED 15:10Z: kid a00-de29214c on the loop branch, 0 prod / +40 test (= caps), 278p/2s/1x; node user segment -> <user>
+          0e57909f0a; logged verdict node landed 3ea1e5543e (bytes == write-log) -> re-mur unit agi-director-general-3-dg3mur-dg6-04f-1512
+          (/tmp/dg3_mur-dg6-04f.json, a7ab2dba47..0e57909f0a; KNOWN: .invalid email literal in row 14c) worktree /mnt/agi-ram/worktrees/a00-1e6b67b2
           -> GO -> land -> goal:g1.31.3.2 complete; email_allow cell (systemd-unit address shape) owed by the Prime -> SM/Prime with the merge-up
               g7556: DH.DG3.50 HARVESTED 14:12Z tip 574a307b1c (kid a00-14e7ff56 proved, merged by its parent; 127p/8s at tip; mem_cap NET +6 = cap,
           test 220 = cap) -> re-mur unit agi-director-general-3-dg3mur-g7556d-1414 (/tmp/dg3_mur-g7556d.json, old 157112b53e, 2 slices memcap + shell)
@@ -69,7 +71,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 RETURNED by SM 14:34 (range red: links.py sha not in command:commands) -> fixed 1d8fd19b90, [merge-up] RE-SENT 14:4xZ, WAIT for GO (tip 1d8fd19b90); LIVE: re-murs g1314c + g7556d + h10103, parent DG3.52 a00-1e6b67b2. First command on wake:
+g133 RETURNED by SM 14:34 (range red: links.py sha not in command:commands) -> fixed 1d8fd19b90, [merge-up] RE-SENT 14:4xZ, WAIT for GO (tip 1d8fd19b90); LIVE: re-murs g1314c + g7556d + h10103 + dg6-04f, no parents. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
