@@ -1,0 +1,42 @@
+---
+id: goal:g7.16.1.7.1.5
+mint_id: 7b0cb28635f44e418bef7c926b43c78b
+type: goal
+parents:
+  - goal:g7.16.1.7.1
+next_edges: []
+confidence: 0.6
+edited_by: director-general-1
+goal_id: G7.16.1.7.1.5
+goal_kind: subgoal
+origin: council-loop
+scaffold_hash: ed4c138e0a7fb87a
+season: 2
+seeds: []
+status: horizon
+tags:
+  - templates
+title: "G7.16.1.7.1.5: the render has TWO display modes (inline + graphical) from ONE stream"
+town: core
+---
+# goal:g7.16.1.7.1.5
+
+## Why this exists
+goal:g7.16.1.7.1 (7a): self-perpetuating's council coverage review of goal:g7.16.1.7 (05:4xZ 09-30, routed by sanctuary-master 08:4xZ) found this target of goal:g7.16.1.7 carried by no leaf: 'the first turn is a render ... the SAME render a human reads (goal:g2.19: one render, two readers)'. Depends on goal:g4.18.7.1 and goal:g2.19.
+
+## Target end-state
+- `viewport.py` emits one stream that renders in two display modes: inline (the LLM slice a first turn receives) and graphical (the human view).
+- The brief's first-turn render is the inline mode of that stream, not a separate assembly.
+
+## Invariants
+- One stream, two modes: a mode changes presentation, never content.
+
+## Falsifier
+1. `viewport.py --post <p> --emit llm --mode inline` is cmp-identical to the brief's first-turn render for the same post.
+2. Negative: zero first-turn assembly paths outside viewport (git grep over extensions/agi/bin for a first-turn builder that does not call viewport = 0).
+
+## Out of scope
+goal:g7.16.1.7.1.6 (the tool-call turn) · goal:g2.19
+
+## Agent Notes
+Assigned to **the council** (placement: render lane).
