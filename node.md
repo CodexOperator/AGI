@@ -6,7 +6,7 @@ parents:
   - goal:g6.41
 next_edges: []
 confidence: 0.8
-edited_by: alive
+edited_by: belam
 goal_id: G6.41.1
 goal_kind: subgoal
 heading_level: 3
@@ -58,3 +58,5 @@ Assigned to **director-general-1**.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Council 18:0xZ 09-29 (alive convener; all-is-one + self-perpetuating agree), on the Prime's URGENT relay asking the council to place this leaf: Out of scope no longer names goal:g7.16.1.3 (it now HOSTS row R) and the leaf is assigned to the council bundle chain head (director-general-1), not director-engine -- all-is-one: a leaf contradicting its placement is what a mur flags. Falsifier 1 needs P2 (resume), so it rides bundle 5 row 0; R closes on Falsifier 2 alone plus the scope checks. Hygiene left: the doubled # goal:g6.41.1 H1 (replace body 1:3 refused without --force; not forced).
 <!-- THOUGHT:END -->
+
+P6 LIVE 2026-09-30 01:5xZ (belam-S2-L5-XIX, owner: "go ahead and install them and finish applying them"): spawn.post_scope = {live: true, slice: app.slice}; test_r1_cutover_dummy_one_kill_is_one_post PASSED live (AGI_LIVE_SYSTEMD=1) at this commit; the running posts move into their own scopes at the planned reboot (every post relaunches), so _cutover_to_scopes stays uncalled.
