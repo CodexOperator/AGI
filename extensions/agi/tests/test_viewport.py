@@ -849,6 +849,12 @@ def _w2ca_twin(tmp_path, mint):  # _w2c_twin + idea:i, reached from hypothesis:h
     return root
 
 
+def test_sm135_goal_attribution_follows_a_mint_next_edge_like_its_address(tmp_path):
+    import metrics   # SM 135: metrics.goal_attribution's forward ascendant (next_edges) resolves
+    seen = [metrics.goal_attribution(_w2ca_twin(tmp_path, m) / "nodes")["unattributed_nodes"] for m in (False, True)]
+    assert seen[1] == seen[0]
+
+
 @pytest.mark.parametrize("edge", ["parents", "next_edges"])   # next_edges: family B, g4.18.6.3.2 B1
 def test_w2ca_family_a_wires_a_mint_twin_as_its_address_twin_with_no_reader_resolving(tmp_path, edge):
     import inspect, dashboard, metrics, zoom
