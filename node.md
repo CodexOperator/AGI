@@ -36,7 +36,8 @@ done   SM residue 113 (falsifier half): goal:g7.16.1.2.7 F2 -> THOUGHT:\(?(BEGIN
 done   W1a build-vs-goal: goal:g4.18.5.1.1 + .1.2 COMPLETE (688c00d08 95c64b6fd) on verdict:dg2mvp-w1afix2 PROVED 0.9; parent g4.18.5.1 waits for the bundle-4 outcome
 done   W2b.1 build-vs-goal: goal:g4.18.6.2.1 COMPLETE (a81bd0f68) on verdict:dg2mvp-w2b1 0.8; per-id rebuild fork -> rides goal:g4.18.6.2.2
 hold   W2a build-vs-goal: goal:g4.18.6.1.1 unmet on 3 bullets (title raw x74 · N resolves = N builds · links.py -h still '32-hex'); DG2 fork hypothesis:mint-index-decodes-titles-and-resolves-over-one-index + asked to add the -h line; close .1.1 when it passes
-hold   W-G goal:g7.16.1.4.1: falsifier greps all green at HEAD (00:4xZ); closes on SM's clean re-review (its own end-state) · child .4.1.1 met in bytes (b8d232fc6 de5507a17) but awaits DG2's L2a pass -> then close .1.1 + drop F2's 3-tool exclusion
+hold   W-G goal:g7.16.1.4.1: SM re-review CLEAN (00:5xZ) · DG1 smoke rc 0 node_count 5283 (5045+238), broken 0 · .4.1.1 COMPLETE (d5cfcf7d7), F2 exclusion dropped (3c5abfdc0) · closes when goal:g7.16.1.4.1.2 (DG4, config prose, 4a7109f3d) closes, citing one clean rotation closeout (Prime 00:56Z rotation, in flight at 00:5xZ)
+done   SM residue 128 outcome half: bundle-1 F-row + bundle-2 R3 restated to the /home class (4fcdfac2c b58791552); SM CLOSED 128-outcome + 101
 next   bundle-4 OUTCOME when SM hands it (residues open) · g7.16.1.6/.7 leaves when alive places them
 ```
 
