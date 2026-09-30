@@ -398,6 +398,41 @@ def test_prose_naming_the_home_dir_is_not_a_home(tmp_path, fake_box, monkeypatch
     assert anonymize.home_relative("for /" + "home/zqxwv, next", home="/h/me") == "for <home>, next"
 
 
+# SM residue 128: a home OUTSIDE /home and /Users passed the gate (the council's
+# home-path row went false green). The roots are derived from the box -- a login
+# home from pwd, and the config cell anonymize.home_roots -- never a literal
+# list. A fixture user; every path joined at runtime, no real home committed.
+def test_a_login_home_outside_home_and_users_is_refused(tmp_path, fake_box, monkeypatch):
+    import pwd
+    user = "fixtureuser"
+    fixture_home = "/" + "data/" + user
+    monkeypatch.setattr(pwd, "getpwall", lambda: [pwd.struct_passwd(
+        (user, "x", 4242, 4242, "", fixture_home, "/bin/sh"))])
+    monkeypatch.setitem(sys.modules, "anonymize", anonymize)  # undo restores it
+    mod = _load("anonymize")  # the pattern is derived at import
+    monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
+    root = _graph(tmp_path)
+    toks = mod.box_tokens(root)
+    assert mod.scan(f"see {fixture_home}/x", toks) == ["home"]
+    assert mod.cmd_check(root, f"see {fixture_home}/x\n", None) == 1
+    assert mod.home_relative(f"at {fixture_home}/x", home="/h/me") == "at <home>/x"
+    # the login home is matched whole, never as a prefix of a sibling
+    assert mod.scan(f"see {fixture_home}x/y", toks) == []
+
+
+def test_the_home_roots_cell_adds_a_root(tmp_path, monkeypatch):
+    root = _graph(tmp_path)
+    prefix = "/" + "data/home-"
+    (root / "config.json").write_text(json.dumps({"anonymize": {"home_roots": [prefix]}}))
+    rx = anonymize._home_path_re(root)
+    assert rx.search(prefix + "fixtureuser/x")
+    assert rx.sub(r"<home>\1", "at " + prefix + "fixtureuser/x") == "at <home>/x"
+    assert not rx.search("/" + "data/work/agi/x"), "a non-home sibling stays clear"
+    assert not rx.search(prefix), "the bare prefix is not a home"
+    (root / "config.json").write_text("{}\n")
+    assert not anonymize._home_path_re(root).search(prefix + "fixtureuser/x")
+
+
 # bundle 3 row H4 b (goal:g7.16.1.3.2.3.1): the generic home class reaches 0
 # over the four scrub scopes, read from COMMITTED bytes (`git grep HEAD`)
 # through anonymize's ONE pattern -- never a new regex. Only FILE counts per
