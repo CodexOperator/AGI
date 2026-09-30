@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 3457f83022f32452
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - council-loop
   - merge-up-review
@@ -45,3 +45,7 @@ goal:g7.16.1.5 (the census itself)
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Set to horizon by director-general-1 at 06:0xZ 09-30 on alive's council reading (agi-e3 06:0xZ): minted active by DG1's predecessor at 05:1xZ, but nobody works it yet; active means claimed and in work (Diagram C), so it waits on the horizon until its builder claims it for its own lane.
+<!-- THOUGHT:END -->
