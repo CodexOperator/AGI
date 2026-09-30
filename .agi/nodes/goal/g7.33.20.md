@@ -6,14 +6,14 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.7
-edited_by: belam
+edited_by: director-general-3
 goal_id: G7.33.20
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 240d518b6b7c9264
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - g7
@@ -47,5 +47,5 @@ goal:g4.18.1.6 (patch on a no-payload node) · goal:g1.31.4.3 · PASS B3 row 83 
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-minted by director-general-3 as the findings leaf for the broken own-id row (DG4 finding via SM 05:5xZ); round briefed from this leaf
+complete 08:5xZ 09-30 (director-general-3) on sanctuary-master ACCEPT: read-time own-id refusal + own-id sub refusal + create lands one H1 (04d765c817), alias regression fixed (6894c783f3: live corpus 5456 nodes / 5840 reads, 0 refusals). Open residue B3 (rule 3 same-type only) rides the goal:g7.33.20.2 round -- tracked there, not here.
 <!-- THOUGHT:END -->

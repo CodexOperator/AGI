@@ -24,23 +24,28 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 21 ran the owner-ordered history scrub. Owner 06:3xZ-06:4xZ 09-30, verbatim: "Yeah we gotta scrub it. Time to pause grid crons and do the whole shebang." · "Yes include codex-town. And go now then restart when everything is verified" · "Go". Also owner 06:1xZ: "We should probably ease off expensive subagents now and just use strictly sonnet 5.5 ideally using our new headless CC review routes." and "We also will need to stand down director-general 5 and 6 to help conserve tokens as well ... 3,4 can continue as is and pick up whatever 5,6 don't finish after standing down". The rewrite ran on mirrors, never in place (filter-repo in place would reset --hard MAIN's uncommitted files); local refs moved by one asserted transaction and worktrees by per-path swaps, because a full git status over 682 worktrees did not finish in 15 min.
 <!-- THOUGHT:END -->
 
-## §0 State (08:0xZ 09-30, read from date -u)
+## §0 State (11:0xZ 09-30, read from date -u)
 | | |
 |---|---|
 | post | belam-S2-L5-XX gen 21, session **agi-23**; predecessors idle: gen 20 agi-79 · gen 19 agi-c2 |
-| run | owner run to 11:00Z; Opus subagent window CLOSED (owner 06:1xZ: Sonnet 5.5 only, headless CC review route first) |
-| posts | DG5 + DG6 DOWN (recover false, pid 0, windows closed; handover cards e4f52f044 / ce682865d, SHAs pre-scrub) · DG1-4, SM, alive, all-is-one, self-perpetuating, stream-master FROZEN for the scrub until "[rule] resume" |
-| crons | session: CHECK d087a76c · STOP aceed7d4 11:02Z · memory Monitor (re-arm each 30 min). Box crontab: crons_live=false during the scrub (turn back on at resume) |
+| run | RESUMED 12:4xZ to **18:00Z** (owner: "Oh neat continue now until 2pm EST." = 18:00Z, EDT like 7am→11:00Z) · STOP cron 27edd31d 18:02Z · memory Monitor re-armed · subagents Sonnet 5.5 only |
+| posts | DG5 + DG6 DOWN (handovers re-laned by SM: DG3 privacy cluster, DG4 hook/harvests/CC route) · DG3 = agi-b4 @26 · DG4 = agi-1c @25 · others as ListAgents shows |
+| crons | session: CHECK d087a76c (13 */4) · box crontab LIVE (crons_live true, 12 jobs) · keysync timer re-created (transient, */2 min) |
 | scrub | /data/scrub (mode 700): RESUME.md = the step table + revert · backup-local.git · backup-origin(2).git · stripped/ (2 nsys files, also back on disk, gitignored) |
 
 ## §1 Plan
 ```
 DONE gen 21  guard-init applied (empty plan diff) · post scopes ruled to app.slice · command:commands canonicalize (d7cb48e6a pre-scrub) · config:guard doc header
              config:census minted · skill agi-send name [ref] row · brief SUBAGENTS = Sonnet 5.5 strictly · DG5 + DG6 stood down
-             HISTORY SCRUB: email (text + 7k author lines -> owner@example.invalid) · GPU name + fragments · pytest-of-<user> · 2 nsys binaries stripped
+             HISTORY SCRUB: email (text + 7k author lines -> the example.invalid placeholder address) · GPU name + fragments · pytest-of-<user> · 2 nsys binaries stripped
                origin: 803 refs forced with lease, 0 rejected, fresh-clone scan 0 · local: 1978 refs + 682 worktrees relinked · nodes 5457 = before · links 0 broken
                guard: box-local pre-commit hook (common hooks dir) = denylist ~/.config/agi/scrub-denylist.json + anonymize box tokens; 0 refusals on the last 300 commits
-NEXT         (scan 0 DONE) crons_live true + crons.py apply -> start agi-keysync.timer, reaper, alarms -> "[rule] resume" to the frozen posts -> watch to 11:00Z
+             after resume: harness claude-code models -> Sonnet 5.5 (8b9fded02) · [config] schema spawn: block (436f4b418) · council-loop town -> local-maxxing
+             operating-mode ruling (NONE binds) waits on DG4's brief.py round + its pinned test (then land the 2-line config.json edit) · old->new sha map kept LOCAL
+             memory: 5 cache spikes to user@ high 08:0x-10:56Z, each cleared by memory.reclaim (never a kill) -> the RAM budget leaf goal:g7.16.1.5.5 is the real fix
+             12:4xZ owner: "Oh neat continue now until 2pm EST." -> all posts RESUMED to 18:00Z · self-perpetuating double seat: kept @2 (agi-53: row + transcript), closed the stranded @19 (failed 05:17Z join)
+             addressing: SendMessage ONLY by "name [ref]"; offline Remote Control rows named like the posts (all-is-one [0781f7], alive [68d0c9], ...) swallow bare names; all-is-one = agi-8f [242e8c]
+NEXT         the watch to 18:00Z, then STOP + owner report
 NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) -> SM lanes to DG3/DG4 · anonymize install-hook checks MAIN's diff, not the committing worktree's (a g7.33 row)
 ```
 
@@ -48,7 +53,7 @@ NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) 
 post-scrub: ec09d0290 (.gitignore) · every pre-scrub SHA is REWRITTEN: old -> new = grep ^<sha> /data/scrub/union.git/filter-repo/commit-map (ONE union pass over local + origin; a first per-repo pass diverged and was replaced)
 
 ## 🔴 Where it stops
-Finish the scrub close: repack/prune + local scan 0, crons back on, units back, resume the posts; then watch to 11:00Z (STOP cron aceed7d4) and the owner report
+Re-arm at wake: STOP one-shot "2 18 30 9 *" (owner run to 18:00Z = 2pm EDT) + CHECK "13 */4 * * *" + the memory Monitor; then watch to 18:00Z, STOP everyone (stream-master stays), card, owner report
 ```
 at 11:00Z   SendMessage each council/director post "stop: finish the step, card whole, idle" (stream-master stays) -> card -> owner report <= 6 lines
 memory      Monitor on PSI full avg60 >= 20% or user@ within 64M of high; relief = memory.reclaim on the biggest file-heavy post scope, never a kill
@@ -77,7 +82,8 @@ B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 520
 |---|---|
 | GitHub may still serve the OLD SHAs (cached views, any fork, PR refs) | the owner files a GitHub Support request to purge cached objects for the repo (draft given 08:xZ) |
 | other boxes' clones (the grok team; one pushed a grid ref at 07:26Z) hold pre-scrub history | owner is telling them: re-clone, drop old worktrees/branches, push nothing from an old clone |
-| /data/scrub backups hold the UNREDACTED history (mode 700) | keep 3 days, then delete backup-*.git + stripped/ copies |
+| /data/scrub backups hold the UNREDACTED history (mode 700) | keep 3 days, then delete backup-*.git + stripped/ copies (the old->new sha map is kept apart: /data/agi-maps/scrub-2026-09-30.commit-map) |
+| the old->new sha map stays LOCAL (a public full old-sha list = lookup keys into GitHub's stale cache) | track it (for resolve_old_sha, DG3 leaf) only AFTER the owner confirms the GitHub purge |
 | `*.pre-tier-*` backups: ~/.claude.pre-tier-20260930T0145Z + ~/.pi.pre-tier-20260930T0146Z (on /) | delete after a day of clean tiering |
 | an on-disk /tmp makes every boot wait 5+ min in systemd-tmpfiles | tmpfs /tmp or a /tmp age cleaner, owner's call |
 | belam row says opus-5-5 / high; the live Prime runs opus-5-5[1m] / max | owner sets the row |

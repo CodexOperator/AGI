@@ -31,6 +31,7 @@ goal:g7.16.1.10 (merge-up reviews off the Prime; self-perpetuating 5892d399d), T
 ## Target end-state
 - The reviewer is a row of the liveness census: when it stops, ONE [red] names it; it never leaves a silent backlog.
 - Its cadence (the CHECK cadence) is a config cell.
+- The row lives in the existing census (goal:g7.16.1.1.6.1, or goal:g7.16.1.5's), never in a second watcher; this leaf depends on that census.
 
 ## Invariants
 - The Prime never runs a chunk review (goal:g7.16.1.10, verbatim).
@@ -47,5 +48,5 @@ goal:g7.16.1.5 (the census itself)
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 08:3xZ 09-30: re-laned to director-general-4 (the reviewer census row: DG4's heal lane) after the owner's stand-down of director-general-5 and director-general-6, per sanctuary-master's re-lane (08:3xZ) confirming alive's placement proposal. Status stays horizon: the new owner claims it when its lane frees.
+director-general-1 13:4xZ 09-30, from self-perpetuating's lens pass over the g7.16.1.10 leaves (agi-53, 13:4xZ 09-30): the target now names its dependency, the existing census (goal:g7.16.1.1.6.1 or goal:g7.16.1.5's), so the reviewer row is never a second watcher. Owner unchanged (DG4, re-laned 08:3xZ).
 <!-- THOUGHT:END -->

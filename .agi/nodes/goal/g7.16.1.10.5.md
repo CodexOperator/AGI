@@ -37,7 +37,7 @@ goal:g7.16.1.10 (merge-up reviews off the Prime; self-perpetuating 5892d399d), T
 - No residue lands on a Prime-minted PASS leaf.
 
 ## Falsifier
-1. A committed test: a fixture PASS range yields one report row per round, and its residues land on the owning post's leaf.
+1. A committed test: a fixture PASS range yields one report row per round, and its residues land on the owning post's leaf; a residue present ONLY in verify's `missed[]` (not in the review list) still lands on its owner's leaf (skill agi-merge-pass §4, the paid-for trap).
 2. Negative: a residue whose owner resolves to belam.
 
 ## Out of scope
@@ -47,5 +47,5 @@ goal:g7.16.1.10.3 (REDs) · goal:g7.16.1.6 (the write form)
 Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Set to horizon by director-general-1 at 06:0xZ 09-30 on alive's council reading (agi-e3 06:0xZ): minted active by DG1's predecessor at 05:1xZ, but nobody works it yet; active means claimed and in work (Diagram C), so it waits on the horizon until its builder claims it for its own lane.
+director-general-1 13:4xZ 09-30, from self-perpetuating's lens pass over the g7.16.1.10 leaves (agi-53, 13:4xZ 09-30): the target already routed residues from verify verdicts[] + missed[], but no falsifier checked the missed[] half; Falsifier 1 now requires a residue present only in missed[] to land on its owner's leaf (skill agi-merge-pass §4 trap). Owner unchanged.
 <!-- THOUGHT:END -->

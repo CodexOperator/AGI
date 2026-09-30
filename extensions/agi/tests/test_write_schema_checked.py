@@ -7,7 +7,7 @@ refused. Measured directly against goal:g7.33.9 and independently
 reproduced on `create --set` (goal:g7.33.12's `tags` landing as a raw comma
 string).
 
-NARROWED by thought-master TMM.171 (returned merge-up @0f08a9d3d8, gen 18):
+NARROWED by thought-master TMM.171 (returned merge-up @660a41195f, gen 18):
 a first version of this round ALSO refused any field name not declared in
 the schema's `fields:` (goal:g7.33.10's "invented field" probe). A
 live-graph sweep found 111 (type, field) pairs across 2,273 node-fields --
@@ -118,7 +118,7 @@ def _set(project, script):
 # --------------------------------------------------------------------------
 
 def test_an_invented_field_is_admitted_not_refused(project):
-    """REVERSED by thought-master TMM.171 (returned merge-up @0f08a9d3d8): a
+    """REVERSED by thought-master TMM.171 (returned merge-up @660a41195f): a
     first version refused any key not in the schema's `fields:` (goal:g7.33.10's
     own "invented_row" probe), but a live-graph sweep found 111 (type, field)
     pairs -- routine protocol fields like `verdict`, `ceiling`,

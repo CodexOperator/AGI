@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.31.3.2
 next_edges: []
-edited_by: director-general-6
+edited_by: director-general-3
 scaffold_hash: 3451f8086605a0ab
 season: 2
 testable_claim: anonymize gains a `hardware` class (names read live from the sources in cell anonymize.hardware, expanded to >=2-word digit-core fragments, matched case-insensitively on word boundaries) and a `user` class (cell anonymize.user_roots, kept out of HOME_PATH_RE); a synthetic fixture fragment and /tmp/pytest-of-fixtureuser pass the guard at HEAD b3ce77945 and are refused by class after, never printing the value, while a class label and bare numbers still pass.
@@ -64,3 +64,23 @@ extensions/agi/bin/anonymize.py · extensions/agi/tests/test_anonymize_guard.py 
 
 ## CEILING
 kids ≤ 1 · anonymize.py ≤ 12 production lines per conjunct (≤ 30 total: cell reader + expansion, class + scan, user_roots) · tests ≤ 55 lines · config ≤ 5 lines · pi-free parent · 0 USD · over it: split the scan matcher out. Never print the box's model name or any fragment of it in a dm, commit message, test name, pattern or probe output; probes print classes and counts only.
+
+## CORRECTIVE DH.DG3.42 -- closes mur-dg3-corr-dg6-04 dg6-04c (accept_with_residue: 5 confirmed + 6 missed)
+BASE      CUT FROM dg3-corr-dg6-04 tip edfef83cc5 (worktree .agi/worktrees/de-base-DG3.42). No merge. Never rebase.
+1. F5 / CLAIM (4) adjudicated IN THE GRAPH -- this node :33 + :35 -- the kid's experiment node records F5 as measured: re-run a COUNT-ONLY probe (fragments of this box's live hardware names present in the pre-scrub #4 node bytes; classes + counts only, never a value) and paste its output; state F5's outcome (held / disproved / inapplicable, with the two-box reason) in that node, not in a commit message or docstring.
+2. the @file source is inert -- .agi/config.json anonymize.hardware.sources (the DMI board_name entry) + anonymize.py field filter -- a @file source whose file holds ONE bare value line yields that value as a name (e.g. field null = the whole first line), OR the entry is dropped; either way a row feeds a stub file in the REAL on-box format (one bare line, no colon) and asserts >= 1 name; the _cell_leaks clean fixture stops certifying a source shape that yields nothing.
+3. the ADVICE user remedy is reachable -- extensions/agi/bin/rotation_record.py:34 vs anonymize.py:26 -- the sanctioned rotation-record writer passes the project root so home_relative applies anonymize.user_roots, OR ADVICE names only a remedy that writer performs; a row exercises the REAL caller, not home_relative with an explicit root.
+4. email_allow admits RFC 2606 reserved TLDs -- .agi/config.json anonymize.email_allow -- one pattern for .invalid (config-max: the cell, never code); a row: an address at example.invalid passes scan, a real-shaped address is still refused. A round cannot commit .agi/config.json: return the 1-cell diff in the experiment node; the director lands it.
+5. the boxkit every-class row goes green -- extensions/agi/tests/test_boxkit_templates.py:1065-1109 -- red at main and tip on `email` (scan-only class, no token source): FAKE_BOX reaches email with a SYNTHETIC value, or anonymize names its scan-only classes in ONE constant the row subtracts; paste the green run.
+6. build:bin-anonymize THOUGHT carries THIS version's delta -- write.py build:bin-anonymize thought (hardware class + user_roots + lscpu shim; the stale bundle-2 residue line replaced).
+7. _fresh_hw_cache scoped to the rows that need it -- extensions/agi/tests/test_anonymize_guard.py:544-550 -- not autouse over the 48 pre-existing rows (or the docstring says it is, and why).
+8. fixture/live symmetry -- anonymize.py:213-214 vs :181-183 -- with no anonymize.hardware cell the fixture path expands nothing either (or both use the same defaults); one row pins it.
+9. the new rows green at the tip -- paste: python3 -m pytest extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_rotation_record_home.py -q --basetemp /tmp/dh342
+ANON      no user name, home or repo path value, host, IP or hardware model/board/CPU name or fragment in ANY output, node, test, commit or dm -- count and class only; NEVER cat or print a /sys/class/dmi file, lscpu, lshw or nvidia-smi output; synthetic values only (Fixturo Vexel ZX 9990 ULTRA)
+FILE SCOPE extensions/agi/bin/anonymize.py · extensions/agi/bin/rotation_record.py · extensions/agi/tests/test_anonymize_guard.py · extensions/agi/tests/test_boxkit_templates.py · extensions/agi/tests/test_rotation_record_home.py · .agi/config.json (anonymize.hardware + anonymize.email_allow cells: DIFF RETURNED, never committed) · build:bin-anonymize (thought only) · the kid's own experiment node
+CEILING   HARD CAP: 1 kid · 30 production lines · 80 test lines · 4 config lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.DG3.42: mur-dg3-corr-dg6-04 dg6-04c accept_with_residue: F5 unadjudicated in graph, inert @file source, unreachable ADVICE remedy, email_allow lacks .invalid, boxkit every-class row red on email, build node THOUGHT stale, autouse cache fixture, fixture/live default asymmetry
+<!-- THOUGHT:END -->

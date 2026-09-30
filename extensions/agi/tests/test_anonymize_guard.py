@@ -279,7 +279,7 @@ def test_install_hook_writes_box_local_and_refuses_foreign(tmp_path):
 # (8) goal:g7.16.1.1.3 · hypothesis:anonymize-check-refuses-the-home-path: the
 # box user's home path is one more token, read from HOME in every mode (it is
 # not hardware, so the fixture path carries it too). A tmp HOME only. Strict
-# xfail on the trunk at 59ad74144; green since director-general-3's build.
+# xfail on the trunk at 32ef9a785; green since director-general-3's build.
 def test_check_refuses_the_home_path(tmp_path, fake_box, monkeypatch, capsys):
     home = str(tmp_path / "home" / "someuser")
     monkeypatch.setenv("HOME", home)
@@ -364,7 +364,7 @@ def test_added_lines_keeps_post_image_paths_and_plus_plus_content(
 # (12) goal:g7.16.1.2.3 · hypothesis:anonymize-refuses-any-box-home-by-one-generic-class:
 # ANY box's home refuses by one generic class, never a literal list; the
 # placeholder forms (`<home>/`, `~/`, `/home/<x>/`) stay allowed. Strict xfail:
-# RED on the trunk at 82d64ffe7 (council bundle 2, director-general-2);
+# RED on the trunk at ef73dec71 (council bundle 2, director-general-2);
 # green since director-general-3's build (scan's generic class).
 def test_any_box_home_is_refused_by_one_generic_class(tmp_path, fake_box, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
@@ -459,6 +459,52 @@ def test_no_committed_home_path_in_the_four_scrub_scopes():
     per = {s: sum(1 for f in p.stdout.splitlines() if f.startswith(f"HEAD:{s}/"))
            for s in SCRUB_SCOPES}
     assert per == dict.fromkeys(SCRUB_SCOPES, 0)
+
+
+# goal:g1.31.3.2 (b) corrective dg6-03: the goal's invariant "no hardware model name,
+# no box path, no pi-encoded repo path" certified at the COMMITTED tip. The guard
+# above knows only the home class; anonymize.py has no box-path or class-label
+# class (a hardware-fragment class belongs to the sibling dg6-04 round). So this
+# row reads the round's own in-scope nodes at HEAD and counts hits per class:
+# home = anonymize's ONE pattern; box = an absolute path under a mount/data root;
+# pi = the pi-encoded (slashes -> dashes, `--` framed) form of such a path;
+# hw = the card's bare model digits not carried by the class label GPU2070S.
+# Only per-class FILE counts come back -- no matched text is ever printed. The
+# round's goal and brief are out of scope: they NAME the patterns by design.
+ROUND_NODES = (
+    "hypothesis/lm-bonsai2-27b-abc-coding-test-on-the-8gb-box",
+    "experiment/a00-797ee7be-e9c742",
+    "experiment/a00-600cf080-0cd865-exp",
+    "hypothesis/a00-600cf080-0cd865",
+    "experiment/a00-2fa1fab0-b7d2a0",
+    "experiment/a00-6b761b8c-b6ae8b",
+    "experiment/a00-afb177f9-30e4e2",
+)
+ROUND_CLASSES = {
+    "box": r"(?<![\w.<>-])/(?:mnt|data|srv|opt)/[A-Za-z]",
+    "pi": r"(?<![\w-])--(?:mnt|data|srv|opt|home|Users)-[A-Za-z]",
+    "hw": r"(?<!GPU)20" + r"70",
+}
+
+
+def test_round_nodes_carry_no_box_path_pi_path_or_bare_hardware_token_at_head():
+    import re
+    repo = Path(__file__).resolve().parents[3]
+    top = subprocess.run(["git", "-C", str(repo), "rev-parse", "--show-toplevel"],
+                         capture_output=True, text=True)
+    if top.returncode != 0 or Path(top.stdout.strip()).resolve() != repo:
+        pytest.skip("not a git checkout of this repo")
+    classes = dict(ROUND_CLASSES, home=anonymize.HOME_PATH_RE.pattern)
+    per = dict.fromkeys(classes, 0)
+    for node in ROUND_NODES:
+        shown = subprocess.run(["git", "-C", str(repo), "show", f"HEAD:.agi/nodes/{node}.md"],
+                               capture_output=True, text=True)
+        # a scope that vanished would count 0 and pass while checking nothing
+        assert shown.returncode == 0 and shown.stdout, f"{node}: not a tracked node at HEAD"
+        for cls, pat in classes.items():
+            if re.search(pat, shown.stdout):
+                per[cls] += 1
+    assert per == dict.fromkeys(classes, 0)
 
 
 # goal:g1.31.5.1.2: an email address is refused by ONE generic class `email`

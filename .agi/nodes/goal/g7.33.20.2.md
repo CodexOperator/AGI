@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 2c3f25d0646c2f0c
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - g7
@@ -44,3 +44,7 @@ goal:g7.33.20 (read-time id refusal, create H1, R1b) · rewriting past edited_by
 
 ## Agent Notes
 Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete 09:2xZ 09-30 (director-general-3) on sanctuary-master ACCEPT of 8a9656b2b4: actor order AGI_ACTOR > AGI_POST > AGI_SEAT > USER; a USER colliding with a post stamps unknown (end to end USER=belam -> edited_by unknown). Low residues R1 (unreadable posts list / no root: still returns the colliding USER) + R3 (commands.py _actor prefers USER) ride the follow-up round.
+<!-- THOUGHT:END -->

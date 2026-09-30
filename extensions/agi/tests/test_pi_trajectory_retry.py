@@ -385,7 +385,7 @@ def _run_bounded(root: Path, stub: Path, timeout: float):
 
 def test_a_total_attempt_ceiling_ends_a_provider_that_always_progresses(
         tmp_path):
-    """F4 (EG.187). RED on the cut a2fa54dce, where the run HANGS: main() zeroes
+    """F4 (EG.187). RED on the cut f498ef5e7, where the run HANGS: main() zeroes
     `empties` on ANY attempt that made progress, so a stub that completes a
     turn and THEN ends empty, on every attempt, never spends the consecutive
     bound -- the parent's GATE probe measured 606 attempts in 15 s and was

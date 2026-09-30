@@ -1226,6 +1226,67 @@ _NODE_ID_RE = re.compile(r"^[A-Za-z][\w.-]*:\S+$")
 _ID_ROW_RE = re.compile(r"^id[ \t]*:[ \t]*(.*?)[ \t]*$")
 
 
+def _slug_tokens(text: str) -> list[str]:
+    return [t for t in re.split(r"[^A-Za-z0-9]+", text.lower()) if t]
+
+
+def _slug_relates_to_stem(slug: str, stem: str) -> bool:
+    """A legacy file whose stem is DESCRIPTIVE still carries its id's slug in it
+    (`t-001-thing.md` holds `hypothesis:t-001`; `bin-grid.v2.md` holds `build:bin-grid@v2`):
+    the slug's tokens are a leading run of the stem's tokens, TOKEN-EXACT (goal:g7.33.20
+    R2: never a prefix of a token, never the other direction -- `hypothesis:h1-extra`,
+    `hypothesis:h` and `hypothesis:h1x` on h1.md are a superset / a stub of the stem, not
+    its slug). A row whose slug shares nothing with its file's stem (`hypothesis:other` in
+    h1.md) is a mismatch."""
+    a, b = _slug_tokens(slug), _slug_tokens(stem)
+    return bool(a) and b[:len(a)] == a
+
+
+def _same_node_id(root, val: str, derived: str, path) -> bool:
+    """An id row is the path's own when it IS the derived id; or the same slug under
+    an ALIAS of the same type (`hyp:` / `exp:`: node_writer.ID_PREFIX_ALIASES, then
+    the canonical-type rule); or (goal:g7.33.20 B3) a SAME-TYPE id -- the row's prefix,
+    through the same alias table, is the type of the directory the file sits in --
+    whose slug is the file stem's (`_slug_relates_to_stem`) and that NO OTHER file
+    holds, judged WITHOUT the tree-wide frontmatter fallback (find_node_file steps 1-2:
+    the type directories): the legacy nodes whose file carries a descriptive stem. A
+    valid id of ANOTHER type (`exp:h1`, `goal:zzz` on a hypothesis file), a same-type
+    slug the stem does not carry, an id naming a DIFFERENT file, or none, is not the
+    path's own -- the tree-wide index made every unique valid row resolve back to its
+    own file, so the old rule 3 refused nothing. `nodes/.geometry/` alone keeps the
+    tree-wide rule: it holds config:/command:/cron:/ladder: nodes side by side."""
+    if val == derived:
+        return True
+    vp, _, vs = val.partition(":")
+    dp, _, ds = derived.partition(":")
+    def _ty(p):
+        return node_writer.canonical_node_type(node_writer.ID_PREFIX_ALIASES.get(p, p))
+    if vs == ds and _ty(vp) == _ty(dp):
+        return True
+    path = Path(path)
+    if path.parent.name == ".geometry":
+        # the ONE mixed-type home (config: / command: / cron: / ladder: nodes side by
+        # side, addressed by `.geometry:<stem>` as well as by their own ids): any valid
+        # id that resolves -- tree-wide, the one lookup every verb uses -- to THIS file.
+        try:
+            hit = node_writer.find_node_file(root, val)
+        except Exception:  # noqa: BLE001
+            return False
+        return hit is not None and Path(hit).resolve() == path.resolve()
+    if _ty(vp) != _ty(path.parent.name) or not _slug_relates_to_stem(vs, path.stem):
+        return False
+    # no OTHER file of the type's directories holds this id, as written or canonical
+    # (`hyp:x` -> `hypothesis:x`; the alias spelling is not itself a directory name)
+    try:
+        for cand in (val, f"{_ty(vp)}:{vs}"):
+            hit = node_writer.find_node_file(root, cand, tree_wide=False)
+            if hit is not None and Path(hit).resolve() != path.resolve():
+                return False
+    except Exception:  # noqa: BLE001
+        return False
+    return True
+
+
 def _own_id_refusal(root, node_id: str) -> str | None:
     """goal:g7.33.20 -- the READ-time check, ONCE, for every verb: a node whose
     own `id` row is not a valid node id (unparseable, not `type:slug`, or not the
@@ -1262,11 +1323,12 @@ def _own_id_refusal(root, node_id: str) -> str | None:
     if parsed is not None and "id" in parsed:
         val = parsed["id"]
         if not isinstance(val, str) or not _NODE_ID_RE.match(val) or (
-                direct and val != derived):
+                direct and not _same_node_id(root, val, derived, path)):
             bad = val
     elif parsed is None and raw is not None:
         val = raw.strip("\"'")
-        if not _NODE_ID_RE.match(val) or (direct and val != derived):
+        if not _NODE_ID_RE.match(val) or (
+                direct and not _same_node_id(root, val, derived, path)):
             bad = raw
     if bad is None:
         return None
@@ -2533,7 +2595,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # node on disk carries them and a reader re-verifies m-of-n without argv.
     if _ring_out.get("cell"):
         set_fm["ring_decision"] = _ring_out["cell"]
-    set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
+    set_fm[PROVENANCE_ACTOR] = actor or _default_actor(root)
     if session:
         set_fm[PROVENANCE_SESSION] = session
 
@@ -2710,7 +2772,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         return None
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
-                                  log_extra=_log_provenance(actor),
+                                  log_extra=_log_provenance(actor, root),
                                   canonicalize=edit.canonicalize)
     if payload_ref and res.status != node_writer.REJECTED:
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
@@ -2723,7 +2785,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
             root, payload_ref, None, location=location,
             data=payload_data,   # resolved above, before the dry return (SM 142/143)
             mint_id=mint,
-            log_extra=_log_provenance(actor))
+            log_extra=_log_provenance(actor, root))
         res.payload_changed = changed
         res.payload_path = str(dest)
     # ... and, the set written, its `parked:<goal>` tag leaves every carrier found above.
@@ -2734,7 +2796,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
             try:
                 w = node_writer.update_node(root, nid, set_fm={
                     "tags": [t for t in tags if t != ptag],
-                    PROVENANCE_ACTOR: actor or _default_actor()}, log_extra=_log_provenance(actor))
+                    PROVENANCE_ACTOR: actor or _default_actor(root)}, log_extra=_log_provenance(actor, root))
             except OSError as exc:  # one carrier's failed write never aborts the rest
                 w = node_writer.NodeWrite(status=node_writer.REJECTED, node_id=nid, reason=str(exc))
             print(f"unpark REJECTED {nid} ({ptag}): {w.reason}" if w.status == node_writer.REJECTED
@@ -3258,9 +3320,11 @@ def _body_opens_frontmatter_refusal(root, node_id: str, body: str) -> str | None
     rows would forge them past the row gates. Refused by name, before any write, unless
     the node's CURRENT body already opens with that same block (an edit elsewhere in
     such a body is not this forgery)."""
-    # R1b: the next write re-reads with universal newlines, so a CRLF / lone-CR opener
-    # IS an LF opener by then -- judge the body as that reader will see it (ONE recognizer).
-    body = body.replace("\r\n", "\n").replace("\r", "\n")
+    # R1b/R1c: the next write re-reads with frontmatter._parse_md's `str.splitlines()`,
+    # which breaks on CRLF, CR, VT, FF, FS, GS, RS, NEL, LS and PS alike -- so any of
+    # them before `---` IS an LF opener by then. Judge the body as that reader will
+    # see it: the SAME split, ONE recognizer.
+    body = "\n".join(body.splitlines())
     rows, rest, _ = node_writer._absorb_leading_frontmatter({}, body)
     if rest == body:
         return None
@@ -3395,11 +3459,33 @@ def _patch_the_node_itself(root, edit: Edit) -> None:
     edit.patch_from, edit.patch_diff, edit.payload_verbs = "", "", []
 
 
-def _default_actor() -> str:
-    return os.environ.get("AGI_ACTOR") or os.environ.get("USER") or "unknown"
+def _default_actor(root=None) -> str:
+    """Who a write with no `--actor` is stamped as (goal:g7.33.20.2, R1).
+
+    AGI_ACTOR, else the RESOLVED SEAT (AGI_POST / AGI_SEAT), else the unix
+    user PROVABLY not a post's name (every post runs as the user named like the
+    Prime's seat, `belam`, so `$USER` there names the Prime, not the writer),
+    else `unknown`. Fail CLOSED: when the collision check cannot run -- no project
+    root resolved, the posts list unreadable, missing or empty -- `$USER` is never
+    returned. `root` reads the posts list; None resolves it from the cwd."""
+    actor = os.environ.get("AGI_ACTOR") or geometry_config.resolved_seat_env()
+    if actor:
+        return actor
+    user = os.environ.get("USER")
+    if not user:
+        return "unknown"
+    try:
+        if root is None:
+            root = locations.find_project_root(Path.cwd())
+        rows = _load_seats(root) if root is not None else []
+        if not rows or any(r.get("name") == user for r in rows):
+            return "unknown"
+    except Exception:  # noqa: BLE001 -- the check cannot run: fail closed, never $USER
+        return "unknown"
+    return user
 
 
-def _log_provenance(actor: str = "") -> dict:
+def _log_provenance(actor: str = "", root=None) -> dict:
     """The actor/role/seat for a write-log entry, via the `extra` hook.
 
     hypothesis:l4-write-log-role-capture — every write-log entry should record
@@ -3410,7 +3496,7 @@ def _log_provenance(actor: str = "") -> dict:
     the entry — so a hand `write.py submit` with no AGI_ROLE/AGI_SEAT still
     records `actor`, and a non-write.py writer records none of these at all.
     """
-    prov: dict = {"actor": actor or _default_actor()}
+    prov: dict = {"actor": actor or _default_actor(root)}
     role = os.environ.get("AGI_ROLE")
     if role:
         prov["role"] = role.strip()
@@ -3480,7 +3566,7 @@ def _landed_node_text(root, edit: Edit, actor: str = "",
         new_body = edit.sub_body
         has_new_body = True
     set_fm = dict(edit.set_fm or {})
-    set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
+    set_fm[PROVENANCE_ACTOR] = actor or _default_actor(root)
     if session:
         set_fm[PROVENANCE_SESSION] = session
     fm, new_body, _ = node_writer.assemble_node(
@@ -3520,6 +3606,34 @@ def _strip_own_h1(node_type: str, slug: str, body: str | None) -> str | None:
         if m:
             return body[m.end():]
     return body
+
+
+def _spawn_refusal_line(res) -> str:
+    """The ONE `ERR: spawn rejected` line, real and dry-run alike."""
+    fix = f" Fix: {res.gate.fix}" if getattr(res.gate, "fix", "") else ""
+    return (f"ERR: spawn rejected for {res.node_id}: {res.reason.rstrip('.')}."
+            f"{fix} (--no-spawn-gate bypasses this, loudly.)")
+
+
+def _create_gate_refusal(root, node_type, slug, parents, set_fm, args, *,
+                         payload=None) -> str | None:
+    """`create --dry-run`'s judge (goal:g7.33.20.3 D3): what the real create's
+    gates would say, printed the same way, writing nothing -- the writer gate
+    (`_enforce_written_by`), then the spawn gate (`node_writer.judge_create`,
+    which announces the same verdict lines `write_node` does). None = both pass;
+    else the ERR line the real create prints (rc 2 either way)."""
+    try:
+        _enforce_written_by(root, node_type, args.actor, f"{node_type}:{slug}", args.role)
+    except EditError as exc:
+        return f"ERR: {exc}"
+    extra = dict(set_fm or {})
+    if payload:   # the same gate row `create` hands write_node
+        extra.setdefault("location", locations.DEFAULT_PAYLOAD_LOCATION)
+        extra[links.LINK_FIELD] = str(payload)
+    res, _file, _season = node_writer.judge_create(
+        root, node_type, slug, parents, extra_fm=extra or None,
+        bypass=args.no_spawn_gate)
+    return _spawn_refusal_line(res) if res.rejected else None
 
 
 def create(root, node_type: str, slug: str, parents: list[str], *,
@@ -3568,7 +3682,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
     res = node_writer.write_node(root, node_type, slug, parents,
                                  extra_fm=extra or None, bypass=bypass,
                                  body=_strip_own_h1(node_type, slug, body),
-                                 log_extra=_log_provenance(actor))
+                                 log_extra=_log_provenance(actor, root))
     if res.rejected or not res.written:
         if created_file is not None:
             # A rejected spawn must leave nothing behind, on either side.
@@ -3595,7 +3709,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
             stamp.set_fm[PROVENANCE_SESSION] = session
         stamp.set_fm.update(stamp_rows)
         node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm,
-                                log_extra=_log_provenance(actor))
+                                log_extra=_log_provenance(actor, root))
     return res, created_file
 
 
@@ -3797,6 +3911,15 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERR: {refusal}", file=sys.stderr)
                 return 2
         if args.dry_run:
+            # goal:g7.33.20.3 D3: a preview runs the SAME gates the real create runs, in
+            # its order -- the writer gate, then the spawn gate (verdict lines and rc
+            # identical: `_create_gate_refusal` is the ONE judge both call).
+            refusal = _create_gate_refusal(
+                root, script, slug, parents, set_fm, args, payload=(
+                    args.payload or answers.get("payload")))
+            if refusal:
+                print(refusal, file=sys.stderr)
+                return 2
             print(f"create {script}:{slug}")
             print(f"  parents  {parents or '(none)'}")
             print(f"  payload  {args.payload or answers.get('payload') or ''}")
@@ -3835,16 +3958,18 @@ def main(argv: list[str] | None = None) -> int:
                 return 2
         elif answers.get("body") is not None:
             body = answers["body"]
-        res, made = create(root, script, slug, parents,
-                           set_fm=set_fm,
-                           payload=args.payload or answers.get("payload"),
-                           body=body, actor=args.actor, session=args.session,
-                           role=args.role, bypass=args.no_spawn_gate,
-                           post_rows=post_rows)
+        try:
+            res, made = create(root, script, slug, parents,
+                               set_fm=set_fm,
+                               payload=args.payload or answers.get("payload"),
+                               body=body, actor=args.actor, session=args.session,
+                               role=args.role, bypass=args.no_spawn_gate,
+                               post_rows=post_rows)
+        except EditError as exc:   # the writer gate: refused by name, rc 2, never a traceback
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
         if res.rejected:
-            print(f"ERR: spawn rejected for {res.node_id}: {res.reason}. "
-                  f"Fix: {res.gate.fix} (--no-spawn-gate bypasses this, loudly.)",
-                  file=sys.stderr)
+            print(_spawn_refusal_line(res), file=sys.stderr)
             return 2
         if not res.written:
             print(f"SKIP: {res.path} already exists", file=sys.stderr)

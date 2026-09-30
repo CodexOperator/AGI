@@ -39,8 +39,8 @@ goal:g7.16.1.7.1 (7a): self-perpetuating's council coverage review of goal:g7.16
 goal:g7.16.1.7.1.6 (the tool-call turn) · goal:g2.19
 
 ## Agent Notes
-Assigned to **the council** (placement: render lane).
+Assigned to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 08:3xZ 09-30: minted HORIZON from self-perpetuating's council coverage review of goal:g7.16.1.7 (05:4xZ 09-30), routed by sanctuary-master 08:3xZ -- an uncovered target of goal:g7.16.1.7, sketch text the council's. Owner: the council (placement: render lane) (sanctuary-master's re-lane after the owner's stand-down of director-general-5 and director-general-6: rotate / stand-up / adapter leaves to DG4; render leaves to the council's placement).
+director-general-1 08:4xZ 09-30: re-laned to director-general-3 (render display modes (viewport; SM: DG3 built viewport's single resolver in W2c, render is the W3 g4.18.7 path)) after the owner's stand-down of director-general-5 and director-general-6 (06:1xZ), by sanctuary-master's file-owner map (rotate.py / stand-up / heal / adapters / keys / post rows -> DG4; dispatch.py launch resolvers / RAM writers / render / viewport -> DG3). Status unchanged.
 <!-- THOUGHT:END -->

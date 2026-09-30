@@ -739,7 +739,7 @@ def _g41816_render(node, **rows):   # the node + rows, in the ONE canonical form
 
 def _g41816_diff(old, new):
     import difflib
-    return "".join(difflib.unified_diff(old.splitlines(True), new.splitlines(True), "a", "b"))
+    return "".join(difflib.unified_diff(write._split_keepends(old), write._split_keepends(new), "a", "b"))   # the applier's own line split
 
 def test_g41816_patch_lands_on_a_config_node_itself_byte_exact(project, monkeypatch, capsys):
     import io
@@ -2932,7 +2932,7 @@ def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp
     assert write._read_body_text(project, "hypothesis:h1") == body.replace("| alpha | 1 |", "| write.py | 9 |")
 
 
-# BUILD1 (goal:g7.16.1.4 W1, alive 841857ddb): `row <top>.<key> <src>` edits ONE
+# BUILD1 (goal:g7.16.1.4 W1, alive 5161eddc2): `row <top>.<key> <src>` edits ONE
 # nested frontmatter row (command:commands `manifest.<key>`); an empty source
 # removes it; every other frontmatter line stays byte-identical.
 def _b1_node(project):
@@ -3100,7 +3100,7 @@ def test_w2cc_set_parents_to_a_mint_lands_as_its_address(project):
     assert mint in node.read_text()
 
 
-# goal:g4.18.1.6, SM residues of d8b22ae96 (R1 R2 R4) + the commit-message guard (G). Each refusal is
+# goal:g4.18.1.6, SM residues of 1abe85b1a (R1 R2 R4) + the commit-message guard (G). Each refusal is
 # ONE line, dry == real, nothing written.
 def _g41816_refusal(project, node, monkeypatch, capsys, script, old, new, target=None):
     """Run `script` with the diff old -> new on stdin, dry and real: both rc 2, the same ERR line."""
@@ -3188,7 +3188,7 @@ def test_g_a_bad_commit_message_cell_falls_back_to_the_node_id_and_warns_once(tm
 # goal:g7.33.20 -- a broken own `id` row refuses at READ naming the row and the
 # repair; a `sub` that rewrites the own id row is refused by name; `create` with
 # a `# <id>` first line in the body-file lands ONE H1. (The real case: DG4's
-# renumber d1eb5ecad spliced prose into goal:g7.16.1.5.5.5's own id row.)
+# renumber 8efe992c2 spliced prose into goal:g7.16.1.5.5.5's own id row.)
 # --------------------------------------------------------------------------
 
 _G73320_BAD_ID = ("goal:g7.5 (target ONE home: every memory number lives in "
@@ -3228,7 +3228,8 @@ def test_g73320_a_broken_own_id_row_refuses_at_read_naming_file_line_value_and_r
 
 
 def test_g73320_a_disagreeing_own_id_row_refuses_at_read_and_a_valid_one_reads(project, capsys):
-    node = _g73320_goal(project, id_row="goal:g7.99")   # a valid shape, the wrong id
+    _g73320_goal(project, id_row="goal:g7.99", slug="g7.99")   # ANOTHER node holds goal:g7.99
+    node = _g73320_goal(project, id_row="goal:g7.99")           # a valid shape, the wrong id
     out, err, rc = _run(["goal:g7.5", "read body 1:5", "--root", str(project)])
     assert rc != 0 and out == "", (out, err)
     assert f"{node}:2" in err and "goal:g7.99" in err and "id: goal:g7.5" in err, err
@@ -3238,6 +3239,37 @@ def test_g73320_a_disagreeing_own_id_row_refuses_at_read_and_a_valid_one_reads(p
     # an unparseable frontmatter whose `id` row is fine is NOT this refusal
     node.write_text("---\nid: goal:g7.5\nmint_id: m\nbad: [unclosed\n---\n\nbody\n")
     assert write._own_id_refusal(project, "goal:g7.5") is None
+
+
+def test_g73320_alias_id_row_resolving_to_the_same_node_reads_by_alias_and_long_form(project):
+    """The 126 live `exp:` / `hyp:` nodes: an alias id row that resolves to THIS file
+    is valid, read by the alias or by the path-derived long form (rc 0 both); an alias
+    naming a DIFFERENT node, and the 8efe992c2 garbage row, still refuse."""
+    d = project / "nodes" / "hypothesis"
+    (d / "a00-1467544f-aaaa25.md").write_text(
+        "---\nid: hyp:a00-1467544f-aaaa25\nmint_id: " + "7" * 32 + "\ntype: hypothesis\n"
+        "parents:\n  - goal:g1\ntitle: t\nstatus: active\n---\n\nalias body\n")
+    for nid in ("hyp:a00-1467544f-aaaa25", "hypothesis:a00-1467544f-aaaa25"):
+        out, err, rc = _run([nid, "read body 1:3", "--root", str(project)])
+        assert rc == 0 and "alias body" in out and err == "", (nid, out, err)
+    # a legacy descriptive stem whose lone valid id resolves to THIS file reads too
+    node_writer._ID_INDEX.clear()   # in-process: files written after the first lookup
+    (d / "old-descriptive-stem.md").write_text(
+        "---\nid: hyp:old-descriptive\nmint_id: " + "5" * 32 + "\ntype: hypothesis\n"
+        "parents:\n  - goal:g1\ntitle: t\nstatus: active\n---\n\nlegacy body\n")
+    for nid in ("hyp:old-descriptive", "hypothesis:old-descriptive-stem"):
+        out, err, rc = _run([nid, "read body 1:3", "--root", str(project)])
+        assert rc == 0 and "legacy body" in out and err == "", (nid, out, err)
+    # an alias row naming ANOTHER node (h1 exists) is still a broken row
+    (d / "a00-other.md").write_text(
+        "---\nid: hyp:h1\nmint_id: " + "6" * 32 + "\ntype: hypothesis\n"
+        "parents:\n  - goal:g1\ntitle: t\nstatus: active\n---\n\nbody\n")
+    out, err, rc = _run(["hypothesis:a00-other", "read body 1:3", "--root", str(project)])
+    assert rc == 2 and "id` row is broken" in err, (out, err)
+    # ...and so is the real garbage row
+    node = _g73320_goal(project)
+    out, err, rc = _run(["goal:g7.5", "read body 1:5", "--root", str(project)])
+    assert rc == 2 and str(node) in err, (out, err)
 
 
 def test_g73320_a_sub_that_rewrites_the_own_id_row_is_refused_by_name_dry_and_real(project):
@@ -3270,7 +3302,7 @@ def test_g73320_create_with_a_leading_own_h1_in_the_body_file_lands_one_h1(proje
     assert "# hypothesis:dup-h1" in dry[0] and "stripped" in dry[0], dry   # dry says what real does
 
 
-# goal:g4.18.1.6 R1b (SM review of 699dc47c6): the R1 refusal recognised only an LF opener, so a body opening
+# goal:g4.18.1.6 R1b (SM review of 91be4d21d): the R1 refusal recognised only an LF opener, so a body opening
 # `---\r\nmint_id: forged\r\n---\r\n` landed with its CR bytes and the NEXT write (universal newlines) absorbed
 # it. ONE recognizer: the body is newline-normalised before the check, never a second recognizer.
 def test_r1b_a_crlf_frontmatter_opener_is_refused_like_lf_dry_and_real(project, monkeypatch, capsys):
@@ -3297,3 +3329,289 @@ def test_r1b_a_crlf_frontmatter_opener_is_refused_like_lf_dry_and_real(project, 
     assert node.read_text() == old and "forged" not in node.read_text()
     assert write.main(["config:guard", "set note_row y", "--root", str(project)]) == 0   # the next write forges nothing
     assert "mint_id: " + "e" * 32 in node.read_text()
+
+
+# goal:g4.18.1.6 R1c (review e6 of 04d765c81): the reader (frontmatter._parse_md) splits with str.splitlines(), which
+# breaks on VT FF FS GS RS NEL LS PS as well as CR/CRLF -- so `<ch>---\nmint_id: forged\n---\n` landed rc 0 and the NEXT
+# write absorbed it (mint_id -> forged, type -> goal). ONE recognizer: the refusal splits lines as the reader does.
+_R1C_SEPS = ("\x0b", "\x0c", "\x1c", "\x1d", "\x1e", "\x85", " ", " ")
+
+
+def test_r1c_every_splitlines_separator_before_the_opener_is_refused_on_sub_body_patch_and_patch(
+        project, monkeypatch, capsys):
+    h1 = project / "nodes" / "hypothesis" / "h1.md"
+    node = _g41816_guard(project)
+    old = node.read_text()
+    body = write._read_body_text(project, "config:guard")
+    for sep in _R1C_SEPS:
+        assert len(f"a{sep}b".splitlines()) == 2, repr(sep)   # the reader really breaks the line here
+        payload = f"{sep}---\nmint_id: forged\ntype: goal\n---\nthe body"
+        # sub, dry == real, nothing written
+        before, errs = h1.read_bytes(), []
+        for dry in (["--dry-run"], []):
+            out, err, rc = _run(["hypothesis:h1", f"sub! the body => {payload}", *dry, "--root", str(project)])
+            assert rc == 2 and "OPEN with a `---` frontmatter-like block" in err, (repr(sep), dry, out, err)
+            errs.append(err)
+            assert h1.read_bytes() == before, (repr(sep), dry)
+        assert errs[0] == errs[1], repr(sep)
+        # body_patch - and patch -: the same refusal, dry == real
+        forged_body = body.replace("# config:guard\n", payload + "\n# config:guard\n", 1)
+        msg = _g41816_refusal(project, node, monkeypatch, capsys, "body_patch -", body, forged_body, target=old)
+        assert "OPEN with a `---` frontmatter-like block" in msg and "nothing written" in msg, (repr(sep), msg)
+        forged = old.replace("# config:guard\n", payload + "\n# config:guard\n", 1)
+        msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", old, forged)   # by this gate or the canonical one
+        assert "nothing written" in msg, (repr(sep), msg)
+    assert "forged" not in node.read_text() and "forged" not in h1.read_text()
+    assert write.main(["hypothesis:h1", "set note_row y", "--root", str(project)]) == 0   # the next write forges nothing
+    assert "mint_id: abc123" in h1.read_text() and "type: hypothesis" in h1.read_text()
+
+
+# --------------------------------------------------------------------------
+# goal:g7.33.20.2 -- a write with no AGI_ACTOR stamps the RESOLVED SEAT, never
+# a unix user whose name collides with a post (every post runs as `belam`).
+# --------------------------------------------------------------------------
+
+def _g733202_posts(project, *names):
+    d = project / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    body = "\n".join(f'  - {{"name": "{n}", "role": "director"}}' for n in names)
+    (d / "posts.md").write_text("---\nid: config:posts\ntype: config\nposts:\n" + body +
+                                "\n---\n\nbody\n")
+
+
+def _g733202_write(project, monkeypatch, *, seat=None, user=None, actor=None):
+    for k in ("AGI_ACTOR", "AGI_POST", "AGI_SEAT", "USER"):
+        monkeypatch.delenv(k, raising=False)
+    if seat:
+        monkeypatch.setenv("AGI_POST", seat)
+    if user:
+        monkeypatch.setenv("USER", user)
+    if actor:
+        monkeypatch.setenv("AGI_ACTOR", actor)
+    e = write.Edit("hypothesis:h1")
+    write.verb_set(e, "status", "active")
+    write.submit(project, e)
+    return (project / "nodes/hypothesis/h1.md").read_text()
+
+
+def test_g733202_a_seated_post_with_no_actor_stamps_the_seat_not_the_unix_user(project, monkeypatch):
+    _g733202_posts(project, "belam", "director-general-3")
+    text = _g733202_write(project, monkeypatch, seat="director-general-3", user="belam")
+    assert "edited_by: director-general-3" in text
+    assert "edited_by: belam" not in text
+
+
+def test_g733202_no_seat_and_a_colliding_user_never_stamps_that_user(project, monkeypatch):
+    _g733202_posts(project, "belam", "director-general-3")
+    text = _g733202_write(project, monkeypatch, user="belam")
+    assert "edited_by: unknown" in text
+    assert "edited_by: belam" not in text
+
+
+def test_g733202_an_explicit_actor_still_wins_and_a_plain_user_is_kept(project, monkeypatch):
+    _g733202_posts(project, "belam")
+    text = _g733202_write(project, monkeypatch, seat="belam", user="belam", actor="kid-7")
+    assert "edited_by: kid-7" in text
+    text = _g733202_write(project, monkeypatch, user="liborum")   # not a post name: unchanged
+    assert "edited_by: liborum" in text
+
+
+# --------------------------------------------------------------------------
+# goal:g7.33.20.3 -- an admitted `create config <x>` finds [config].md (the type
+# schema was never registered: load_spawn_rules `continue`d after reading its
+# `locations`), lands in nodes/.geometry/; `--dry-run` runs the SAME spawn gate
+# (verdict lines + rc); a create that writes nothing never says "written".
+# --------------------------------------------------------------------------
+
+_REAL_CONFIG_SCHEMA = Path(__file__).resolve().parents[3] / ".agi/context/schemas/[config].md"
+
+
+def _g733203_project(project):
+    """A fixture project carrying the REAL `[config].md` bytes (+ one other schema, so
+    the project is a configured one and a brand-new unknown type is a refusal)."""
+    d = project / "context" / "schemas"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "[hypothesis].md").write_text(
+        "---\nname: hypothesis\nspawn:\n  allowed_parents: [hypothesis]\n  min_parents: 1\n"
+        "  max_parents: 2\n---\n\nbody\n")
+    (project / "context" / "schemas" / "[config].md").write_bytes(_REAL_CONFIG_SCHEMA.read_bytes())
+    (project / "body.md").write_text("the census body\n")
+    return project
+
+
+def _g733203_create(project, typ, slug, *extra):
+    return _run(["create", typ, slug, "--parent", "hypothesis:h1", "--body-file", str(project / "body.md"),
+                 "--set", "title=t", "--root", str(project), *extra])
+
+
+_ADMITTED = ["--actor", "belam", "--role", "prime_director"]
+
+
+def _g733203_gate_lines(out, err):
+    return sorted(ln for ln in (out + err).splitlines() if "SPAWN-GATE" in ln)
+
+
+def test_g733203_an_admitted_config_create_finds_the_schema_and_lands_in_geometry(project):
+    _g733203_project(project)
+    out, err, rc = _g733203_create(project, "config", "census", *_ADMITTED)
+    assert rc == 0, (out, err)
+    assert "no active schema" not in out + err, (out, err)          # falsifier 2: 0 hits
+    assert "does not exist" not in err, err
+    node = project / "nodes" / ".geometry" / "census.md"             # where config nodes live
+    assert node.is_file() and "id: config:census" in node.read_text()
+    assert not (project / "nodes" / "config").exists()
+    assert f"created: config:census -> {node}" in out
+
+
+def test_g733203_dry_run_prints_the_same_gate_verdict_and_rc_as_the_real_create(project):
+    _g733203_project(project)
+    for typ, slug, args, want_rc in (("config", "census", _ADMITTED, 0),
+                                     ("notown", "x1", [], 2),               # brand-new type, no schema
+                                     ("hypothesis", "h2", [], 0)):     # an APPROVED gate line too
+        dry = _g733203_create(project, typ, slug, *args, "--dry-run")
+        assert not (project / "nodes" / typ / f"{slug}.md").exists()      # dry wrote nothing
+        assert not (project / "nodes" / ".geometry" / f"{slug}.md").exists()
+        real = _g733203_create(project, typ, slug, *args)
+        assert dry[2] == real[2] == want_rc, (typ, dry, real)
+        assert _g733203_gate_lines(dry[0], dry[1]), (typ, dry)              # the gate DID run on the dry run
+        assert _g733203_gate_lines(dry[0], dry[1]) == _g733203_gate_lines(real[0], real[1]), (typ, dry, real)
+        errs = lambda r: [ln for ln in r[1].splitlines() if ln.startswith("ERR: spawn rejected")]
+        assert errs(dry) == errs(real), (typ, dry, real)
+
+
+def test_g733203_a_create_that_writes_nothing_never_prints_written(project):
+    _g733203_project(project)
+    # (a) a brand-new type with no schema; (b) a parent naming no node; (c) a node that already exists
+    cases = [("notown", "x1", "hypothesis:h1", 2),
+             ("hypothesis", "h9", "hypothesis:never-minted", 2),
+             ("hypothesis", "h1", "hypothesis:h1", 0)]     # h1 is already there: SKIP, untouched
+    for typ, slug, parent, want_rc in cases:
+        h1 = (project / "nodes/hypothesis/h1.md").read_bytes()
+        out, err, rc = _run(["create", typ, slug, "--parent", parent, "--root", str(project)])
+        assert rc == want_rc, (typ, slug, out, err)
+        assert ("spawn rejected" in err) == (want_rc == 2), (typ, out, err)
+        assert ("SKIP:" in err) == (slug == "h1"), (typ, out, err)
+        assert "is written" not in out + err, (typ, out, err)               # D2: no message contradicts the disk
+        assert (project / "nodes/hypothesis/h1.md").read_bytes() == h1
+        if want_rc == 2:
+            assert not (project / "nodes" / typ / f"{slug}.md").exists(), typ
+
+
+def test_g733203_a_non_admitted_actor_is_still_refused_a_config_create_by_name_dry_and_real(project):
+    _g733203_project(project)
+    for dry in ([], ["--dry-run"]):
+        out, err, rc = _g733203_create(project, "config", "census", "--actor", "director", "--role", "director", *dry)
+        assert rc == 2 and "goal:g12" in err and "prime_director" in err, (dry, out, err)
+        assert "Traceback" not in err, err
+        assert not (project / "nodes" / ".geometry" / "census.md").exists(), dry
+
+
+# --------------------------------------------------------------------------
+# goal:g7.33.20 B3 -- rule 3 of the own-id check ("any valid id that resolves to this
+# file") was a tautology: find_node_file falls back to a tree-wide index BY frontmatter
+# id, so any unique valid row resolved back to its own file and an id/path mismatch
+# went unreported. Now: same-type ids only, no tree-wide fallback (.geometry excepted).
+# --------------------------------------------------------------------------
+
+def _g73320_b3_row(project, id_row):
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    text = node.read_text()
+    node.write_text(text.replace('id: "hypothesis:h1"', f"id: {id_row}", 1))
+    return node
+
+
+def test_g73320_b3_a_wrong_type_or_unrelated_unique_id_row_refuses_read_and_write(project):
+    for row in ("exp:h1", "goal:zzz-unique", "goal:h1", "hypothesis:other", "hypothesis:abc123"):
+        node = _g73320_b3_row(project, row)
+        before = node.read_bytes()
+        for script in ("read body 1:3", "set note_row y"):
+            out, err, rc = _run(["hypothesis:h1", script, "--root", str(project)])
+            assert rc == 2 and "id` row is broken" in err and row in err, (row, script, out, err)
+            assert "Traceback" not in err
+        assert node.read_bytes() == before, row                         # nothing written
+        node.write_text(before.decode().replace(f"id: {row}", 'id: "hypothesis:h1"', 1))
+    out, err, rc = _run(["hypothesis:h1", "read body 1:3", "--root", str(project)])
+    assert rc == 0 and "the body" in out, (out, err)                    # the restored row reads again
+
+
+def test_g73320_b3_same_type_descriptive_stems_and_geometry_nodes_still_read(project):
+    d = project / "nodes" / "hypothesis"
+    for stem, row in (("t-001-thing", "hypothesis:t-001"), ("old-descriptive-stem", "hyp:old-descriptive"),
+                      ("bin-grid.v2", "hypothesis:bin-grid@v2")):
+        (d / f"{stem}.md").write_text(
+            f"---\nid: {row}\nmint_id: " + "5" * 32 + "\ntype: hypothesis\nparents:\n  - goal:g1\n"
+            "title: t\nstatus: active\n---\n\nlegacy body\n")
+    node_writer._ID_INDEX.clear()
+    for nid in ("hypothesis:t-001-thing", "hypothesis:t-001", "hypothesis:old-descriptive-stem",
+                "hyp:old-descriptive", "hypothesis:bin-grid.v2"):
+        out, err, rc = _run([nid, "read body 1:3", "--root", str(project)])
+        assert rc == 0 and "legacy body" in out and err == "", (nid, out, err)
+    g = project / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    (g / "census.md").write_text("---\nid: config:census\nmint_id: " + "6" * 32 +
+                                 "\ntype: config\nparents:\n  - goal:g1\n---\n\ngeo body\n")
+    node_writer._ID_INDEX.clear()
+    for nid in ("config:census", ".geometry:census"):
+        assert write._own_id_refusal(project, nid) is None, nid
+    out, err, rc = _run(["config:census", "read body 1:3", "--root", str(project)])
+    assert rc == 0 and "geo body" in out, (out, err)
+
+
+def test_g73320_b3_a_same_type_id_another_file_holds_still_refuses(project):
+    d = project / "nodes" / "hypothesis"
+    (d / "t-002-thing.md").write_text(
+        "---\nid: hypothesis:t-002\nmint_id: " + "5" * 32 + "\ntype: hypothesis\ntitle: t\n---\n\nb\n")
+    (d / "t-002.md").write_text(
+        "---\nid: hypothesis:t-002\nmint_id: " + "4" * 32 + "\ntype: hypothesis\ntitle: t\n---\n\nc\n")
+    node_writer._ID_INDEX.clear()
+    out, err, rc = _run(["hypothesis:t-002-thing", "read body 1:3", "--root", str(project)])
+    assert rc == 2 and "id` row is broken" in err, (out, err)     # t-002.md IS hypothesis:t-002
+
+
+# --------------------------------------------------------------------------
+# goal:g7.33.20 residues R1-R2 (sanctuary-master's review of 8a9656b2b4)
+# --------------------------------------------------------------------------
+
+def test_g73320_r1_actor_fails_closed_when_the_collision_check_cannot_run(project, monkeypatch, tmp_path):
+    for k in ("AGI_ACTOR", "AGI_POST", "AGI_SEAT"):
+        monkeypatch.delenv(k, raising=False)
+    # (a) the posts list is MISSING (no config:posts at all): a colliding or plain USER is never stamped
+    for user in ("belam", "liborum"):
+        monkeypatch.setenv("USER", user)
+        assert write._default_actor(project) == "unknown", user
+    # (b) the posts list is UNREADABLE
+    _g733202_posts(project, "belam")
+    monkeypatch.setenv("USER", "belam")
+    def boom(root):
+        raise OSError("unreadable")
+    monkeypatch.setattr(write, "_load_seats", boom)
+    assert write._default_actor(project) == "unknown"
+    monkeypatch.setenv("USER", "liborum")
+    assert write._default_actor(project) == "unknown"
+    monkeypatch.undo()
+    # (c) no project root resolves from the cwd
+    monkeypatch.setattr(write.locations, "find_project_root", lambda *_a, **_k: None)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("USER", "liborum")
+    assert write._default_actor() == "unknown"
+    # the order is intact: a readable list and a USER that is not a post is still the USER
+    monkeypatch.undo()
+    _g733202_posts(project, "belam")
+    monkeypatch.setenv("USER", "liborum")
+    assert write._default_actor(project) == "liborum"
+
+
+def test_g73320_r2_prefix_superset_slugs_refuse_on_read_and_set_but_legit_stems_read(project):
+    for row in ("hypothesis:h1-extra", "hypothesis:h", "hypothesis:h1x"):
+        node = _g73320_b3_row(project, row)
+        before = node.read_bytes()
+        for script in ("read body 1:3", "set note_row y"):
+            out, err, rc = _run(["hypothesis:h1", script, "--root", str(project)])
+            assert rc == 2 and "id` row is broken" in err and row in err, (row, script, out, err)
+        assert node.read_bytes() == before, row
+        node.write_text(before.decode().replace(f"id: {row}", 'id: "hypothesis:h1"', 1))
+    # token-exact, leading run: descriptive stems and the @v2 / .v2 forms are still their own
+    assert write._slug_relates_to_stem("t-001", "t-001-thing")
+    assert write._slug_relates_to_stem("bin-grid@v2", "bin-grid.v2")
+    assert not write._slug_relates_to_stem("h1-extra", "h1")
+    assert not write._slug_relates_to_stem("h", "h1") and not write._slug_relates_to_stem("h1x", "h1")

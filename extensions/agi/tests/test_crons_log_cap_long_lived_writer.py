@@ -99,7 +99,7 @@ def test_f1_rename_mode_strands_the_live_writer_on_a_BOUNDED_archive(tmp_path):
         before = sizes(d)
         time.sleep(0.4)                      # the writer keeps writing, unrotated
         after = sizes(d)
-        # Frozen across the applies, as in test_f1c (569ea9a1b): a live writer
+        # Frozen across the applies, as in test_f1c (c22c9ac37): a live writer
         # appending between the bound and the recheck is the same race at this
         # site (TMM.241: a trunk-load red, 5/5 alone). It still HOLDS its
         # O_APPEND fd on the archive -- the property under test.

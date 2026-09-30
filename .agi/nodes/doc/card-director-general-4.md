@@ -19,41 +19,41 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (07:0xZ-ish 09-30, after the history scrub -- every sha is POST-rewrite; re-find by commit subject)
+## §0 State (13:50Z 09-30, RESUMED on belam's order until 18:00Z -- a STOP comes at 18:00Z)
 | | |
 |---|---|
 | post | director-general-4 · owner: resume on the town bundle; subagents Sonnet 5.5 only |
-| protocol | doc:council-loop · MAIN on local-maxxing/season2/main · builds directly; SM orders parent dispatches · pre-commit hook refuses owner email / GPU / pytest-of-<user> tokens: redact, never --no-verify |
-| messaging | SendMessage by uds address · coordination -> sanctuary-master (agi-5c, .../1791499.sock) · rulings -> the council (alive) · NEVER the Prime |
+| protocol | doc:council-loop · MAIN on local-maxxing/season2/main · SM orders parent dispatches · LAND ORDER (SM 09:2xZ): [merge-up] to SM FIRST with tip + range -> SM gates by SHA -> SM's GO -> I land (merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only; 0 dirty overlap) · pre-commit hook refuses owner email / GPU / pytest-of-<user> tokens: redact, never --no-verify |
+| messaging | SendMessage by uds address · coordination -> sanctuary-master (agi-12 [afd9c6] since gen 10, 14:xxZ; fallback: send.py --from director-general-4 send --to sanctuary-master) · rulings -> the council (alive) · NEVER the Prime |
 | skills | agi-goal · agi-node-write · agi-dispatch · agi-corrective · agi-verify · agi-send · agi-rotate · agi-workflow · agi-master-gate |
 | regions | write.py `_commit_write` · rotate.py WHOLLY + heal.py key path (from DG5) · DG6's rows below · rest of write.py = DG3 · dispatch.py / RAM writers = DG3 |
 
 ## §1 Plan (SM's order; if meter or load binds: harvests first, tell SM what you cannot reach)
 ```
-LIVE  mur for DG4.01: unit agi-director-general-4-murdg401 (pi-free, 2 slices dg401-peer-race / dg401-deadline; args /tmp/dg4-guard/mur-dg401.json)
-      round = hypothesis:a-write-refusal-names-the-index-truth, loop season2/loops/hypothesis-a-write-refusal-names-a00-cda5a70c
-      harvest DONE: write.py +10 code (+comments), test +96; touched family 150 passed; 1 fail = base artifact (.5.5.5 id row broken at the merge-base, fixed on trunk)
-      -> verdicts clean: merge-tree check, git merge --no-ff into MAIN, ONE [merge-up] to SM
-1 NEXT stacked follow-on from that loop tip: goal:g1.31.5.1.3 (n83) + goal:g4.18.5.5 (council go; set active AT dispatch; THOUGHT names residue 93 retired by the council)
-      orders /tmp/dg4-guard/orders-DG4.02.md (git worktree add -b de-base-DG4-2 .agi/worktrees/de-base-DG4-2 <tip>; dispatch.py . DG4.02 --target goal:g1.31.5.1.3 --orders <file> --from director-general-4 --level small --tier parent --role parent --ladder-tier 0 --branch --detach)
-2 DG6 #1 RED goal:g1.31.5.1.1 (n19): agent-git hook fails OPEN on a failed diff -> dispatch (pipefail; an empty diff from a FAILED git diff refuses)
-3 rotate.py residue 158c (SM, /tmp/sm9/cc_k2.json, DG5's key path 2833cdae9): ensure_post_key ADOPTS an orphan .<seat>.key.*.tmp whose pubkey == the row's, else unlinks; fix the comment ~:17847; row: simulated kill after the row write -> adopted, 0 temps
-4 DG6 #2 goal:g1.31.2 HARVEST READY (3 kids accepted): /tmp/dg6/harvest.py a00-06814999 -> land -> falsifiers -> mur
-  DG6 #3 goal:g1.31.1.1 + goal:g1.31.1.2: parents a00-75a7f51b, a00-2001973e EXITED -> /tmp/dg6/harvest.py each
-5 DG5 rows: goal:g1.31.4.2.1 (mur unit agi-director-general-5-mur4210609 verdict; #31 likely residue) -> harvest
-      goal:g1.31.4.6.2: re-run mur (template /tmp/dg4-guard/mur-4621.json, RECOMPUTE old/new tip) on season2/loops/goal-g1.31.4.6.2-a00-3014f810
-      goal:g1.31.5.3: dispatch after .4.2.1 + .4.6.2 land
-6 hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (heal.py; on accept -> SM, a heal restart is the Prime's; then goal:g7.16.1.5.3.1 re-judge)
-7 DG6 #4 goal:g1.31.4.5 (b): parent a00-f79a834e LIVE -> then dispatch .4.5a + .4.6.1 · DG5 #4 goal:g4.18.5.6 (horizon: the rotate-out commit carries the RESOLVED card)
-8 DG6 #5 goal:g1.31.4.2.2 + goal:g1.31.4.4: dispatch · DG6 #6 LAST: workflow.py headless claude-code stage route (mint leaf + hypothesis next to .4.4)
-merge rule: mur-clean only, --no-ff, one at a time, merge-tree first
-DONE  goal:g7.16.1.5.5.4 COMPLETE · goal:g7.16.1.5.5.5 COMPLETE · goal:g7.16.1.5.5.8 COMPLETE (N2 + residues ACCEPTED) · .5.3.1 F1 kept (>= 25 trees; bank a re-pin only after the heal-sweep fork)
-NOT MINE g1.31.4.1 · g7.16.1.5.4 · .5.5.6 · .5.5.7 (DG3)
+LIVE PARENTS  DG4.17 a00-012eab57 -> g1.31.1.1 3rd pass (stderr line count + node prose; base de-base-DG4-17 = 2ffa3b259)
+              DG4.19 a00-d2c9ccdf -> hypothesis:a-skipped-rotate-join-leaves-no-stranded-window (row 34, rotate.py not-found join branch; from MAIN)
+              DG4.18 a00-12019258 -> g1.31.2 stream 3rd pass ($B guard, deliverable 5, commands.stream.fragment, row that can't fail; base de-base-DG4-18 = chain head 92dd46207)
+LIVE MURS     murdg415 = DG4.15 g4.18.5.5 (SM's FIRST: on a clean verdict -> [merge-up] to SM + the values.core.suite_lock.file cell text; resolver = verification.suite_lock_name)
+              chain murq2 dg410 -> murq3 dg406 -> murq4 dg412 -> murq5 dg413 + 4621 -> murq6 dg414 (each /tmp/dg4/qrunN.sh waits on the previous unit)
+HARVESTED tips (measured):
+  DG4.15 6575a88d7 g4.18.5.5: SUITE_LOCK = 0 hits, F1 3 passed, write 44 / verification 100 / node_writer 130 (rotate.py + suite_guards.py 1-line reader moves)
+  DG4.14 e51efb790 g1.31.4.2.1 2nd: fd+copilot 35, dispatch 138 (+1 base artifact: scrubbed sha) -- touches dispatch.py +22 (DG3's file: name it at merge-up)
+  DG4.06 a8b9e67e0 · DG4.10 d8f0b9ee0 · DG4.12 589c6dafd · DG4.13 (branch ...engine-root-one-r-a00-925ffcca) -- all green, in the mur chain
+  g1.31.2 chain head 92dd46207 -> DG4.18 · g1.31.1.1 2ffa3b259 -> DG4.17
+QUEUED (SM order, drain AFTER: DG4.15 merge-up · DG4.11 · DG4.19)
+        SM-1 hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (.5.3; DG2 b6e56296a5) -> on land the Prime restarts heal; .5.3.1 closes on a >= 25-tree pass, 0 kills
+        SM-2 hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat (.7.1.4.1 lane; DG2 d087b6091e): G1 cmd_loop w/o --seat keys the resolved seat · G2 remint via send._mint_seat_key only · G3 spawn dry-run names mint vs adopt · prod <= 40, tests <= 60
+        DG4.11 = DG4.02 residues (/tmp/dg4/orders-DG4.11.md) -> cut from the DG4.15 tip once its mur is clean (one writer in _commit_write)
+OWED TO SM AT MERGE-UPS  g4.18.5.5: values.core.suite_lock.file (+ wait/hold if the mur says they belong) · g1.31.1.1: [decision] Prime config lines
+  g1.31.2: rotations.md :83/:123 clauses + cap 6000->8000, locations.stream cell · g1.31.4.5b: retire engine_commit · C2 copilot goal leaf to mint
+LANDED 9f124d68f g1.31.1.2 · RULE: [merge-up] to SM FIRST, land on SM's GO (merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only)
+FINDINGS goal:g7.33.19 rows 25 · 26 · 27 · 34 (stranded window)
+DONE  .5.5.4 · .5.5.5 · .5.5.8 · g1.31.1.2 · NOT MINE g1.31.4.1 · g7.16.1.5.4 · .5.5.6 · .5.5.7 (DG3)
 ```
 
 ## 🔴 Where it stops
-Rotating at f~0.38 with the DG4.01 review running detached (unit agi-director-general-4-murdg401) and the queue above untouched past it.
-Next command at wake: `systemctl --user status agi-director-general-4-murdg401 --no-pager | head -5`, then read its verdict files under .agi/sessions/workflows/runs/.
+Resumed 13:5xZ; 2 parents live, DG4.15's review running first, 5-unit mur chain queued.
+Next command: `systemctl --user show agi-director-general-4-murdg415 -p SubState; ls .agi/sessions/workflows/runs/ -t | head -3` then the DG4.15 verify file -> [merge-up] to SM.
 
 ## §4 Traps
 | trap | rule |
@@ -71,7 +71,7 @@ Next command at wake: `systemctl --user status agi-director-general-4-murdg401 -
 | worktree cwd | creating a worktree flips the harness cwd into it: use absolute paths / git -C /data/work/agi |
 
 ## §5 Verification
-links 0 broken (belam post-scrub) · guard/boxkit neighbourhood 277 · DG4.01 touched family 150 passed on the loop tip
+links 0 broken · DG4.01 family 150 · g1.31.2 loop: test_locations 85, paths audit rc 0, cite ast rc 0 · g1.31.1.2 loop: F1 green, links 5377/0
 
 ## §6 BANKED
 (none)

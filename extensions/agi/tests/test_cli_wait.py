@@ -13,18 +13,18 @@ The poll interval is injected on the module (`_WAIT_POLL_SECONDS = 0`) and
 import argparse
 import importlib.util
 import json
-import subprocess
 import sys
 from pathlib import Path
 
-#: The round's base ref tip, resolved at authoring time with
-#: `git merge-base HEAD season2/loops/hypothesis-wait-returns-on-an-em-a00-72e9d440`.
-#: Hardcoded so the red-on-pre-fix proof is reproducible forever.
-_BASE_SHA = "76a6be473cfe5f0ec09268635c9159868ef7eb8a"
+#: The round's base ref tip's `extensions/agi/bin/cli.py` (the tip that had no
+#: `wait` verb), pinned to BYTES so the red-on-pre-fix proof is reproducible
+#: forever and no history rewrite can break it (goal:g1.32). Read from a
+#: committed fixture, not `git show <sha>`.
+_BASE_CLI_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "cli_wait_base_cli.py.txt"
 
-#: The PRE-ROUND tip (`git rev-parse HEAD` at authoring time, `6e6ef7fe5`),
-#: which returned 0 on an empty kid set; hardcoded so round 2's red is forever.
-_PRE_ROUND_SHA = "6e6ef7fe5ba06fae83918b430cb646e9e52df4ca"
+#: The PRE-ROUND tip's cli.py bytes, which returned 0 on an empty kid set;
+#: pinned to bytes so round 2's red is forever.
+_PRE_ROUND_CLI_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "cli_wait_pre_round_cli.py.txt"
 
 
 def _load_cli():
@@ -36,16 +36,13 @@ def _load_cli():
 
 
 def _load_base_cli(tmp_path):
-    """Load `cmd_wait`'s PRE-FIX bytes from the base ref as a tmp module.
+    """Load `cmd_wait`'s PRE-FIX bytes (the pinned base-ref fixture) as a tmp module.
 
     The module's sibling imports (`locations`, `spawn_budget`, ...) resolve only
     if `extensions/agi/bin` is at the FRONT of sys.path first.
     """
-    repo = Path(__file__).resolve().parents[3]
     bin_dir = Path(__file__).resolve().parents[1] / "bin"
-    src = subprocess.run(
-        ["git", "show", f"{_BASE_SHA}:extensions/agi/bin/cli.py"],
-        cwd=repo, capture_output=True, text=True, check=True).stdout
+    src = _BASE_CLI_FIXTURE.read_text()
     tmp_mod = tmp_path / "base_cli.py"
     tmp_mod.write_text(src)
     if str(bin_dir) not in sys.path:
@@ -58,11 +55,8 @@ def _load_base_cli(tmp_path):
 
 def _load_pre_round_cli(tmp_path):
     """Load cli.py's bytes as of the PRE-ROUND tip (before this round's edit)."""
-    repo = Path(__file__).resolve().parents[3]
     bin_dir = Path(__file__).resolve().parents[1] / "bin"
-    src = subprocess.run(
-        ["git", "show", f"{_PRE_ROUND_SHA}:extensions/agi/bin/cli.py"],
-        cwd=repo, capture_output=True, text=True, check=True).stdout
+    src = _PRE_ROUND_CLI_FIXTURE.read_text()
     tmp_mod = tmp_path / "pre_round_cli.py"
     tmp_mod.write_text(src)
     if str(bin_dir) not in sys.path:
