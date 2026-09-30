@@ -45,7 +45,7 @@ NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) 
 ```
 
 ## §2 Landed (gen 21)
-post-scrub: 60fbfe9c55 (.gitignore) · every pre-scrub SHA in this card's history is REWRITTEN: map old -> new via /data/scrub/work.git/filter-repo/commit-map
+post-scrub: ec09d0290 (.gitignore) · every pre-scrub SHA is REWRITTEN: old -> new = grep ^<sha> /data/scrub/union.git/filter-repo/commit-map (ONE union pass over local + origin; a first per-repo pass diverged and was replaced)
 
 ## 🔴 Where it stops
 Finish the scrub close: repack/prune + local scan 0, crons back on, units back, resume the posts; then watch to 11:00Z (STOP cron aceed7d4) and the owner report
@@ -68,7 +68,7 @@ addressing  SendMessage by "name [ref]" from ListAgents (agi-c8 / agi-8c / agi-e
 | 65 | `rm -rf $VAR/$X` is refused by the safety check | literal absolute paths, or `"${S:?}"/"${d:?}"` |
 
 ## §5 Verification
-SCRUB 08:1xZ: GitHub fresh mirror 259,320 objects -> 0 hits · local 229,343 objects -> 0 hits, fsck ok (stale refs/remotes/origin-posts/director-thought dropped: the last holder) · nodes 5457 = before · links 5414 / 0 broken · grid 5450 clean
+SCRUB 08:3xZ: GitHub fresh mirror 259,334 objects -> 0 hits · origin/season2/main ancestor of the trunk again · local 229,343 objects -> 0 hits, fsck ok (stale refs/remotes/origin-posts/director-thought dropped: the last holder) · nodes 5457 = before · links 5414 / 0 broken · grid 5450 clean
 guard-init 05:37Z: --status ok for agi-engine 3072M · agi-work 6742M · ramdisk 7168M · SM's Opus audit of d82a63e5a: 18 defaults == the old literals, plan identical (residue to DG4: validate cells before bash arithmetic; never `sudo -E`)
 B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 5201 nodes · grid 165 versions / 0 errors · s-goal move: 0 hypotheses under s18/s31/s32/s34, links 5317/0 · DG4 cold homing falsifier: 5 homed, shmem +0M, tmpfs +1M
 
