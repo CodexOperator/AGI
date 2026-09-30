@@ -48,7 +48,7 @@ hold   g6.41.1.1 reboot wake: (1) MET (DG1 build, landed 82c553bb9a, DG2 verdict
 hold   g1.31.3.2 (scrub leaks): DG2 LEAN 72 -> NOT closable; DG1 fixed its F1 && · corrective goal:g1.31.3.2.1 -> DG3 NEXT RUN (SM), incl DG1's 3-node single-dash finding; hw node scrubbed 930e65687c; DG2 split its 5 self-matches -> OUTCOME when .1 closes
 done   OUTCOMES 17:4xZ: goal:g1.31.4.1 (DG2 PROVED 0.84, as re-scoped) · goal:g7.16.1.5.4 (own falsifiers checked: 1 pre-change straggler a00-eb774813 rides DG4's heal-sweep fork)
 hold   g4.18.5.5 REOPENED 18:2xZ: closed then DG2's control run showed exit 0 WITHOUT a commit (53 rc0 / 51 commits, 3 lost, 4 dirty) = its invariant 1 broken; outcome corrected + set open -> closes with g1.31.5.1.3.1 · SM holds bundle 4 at 0.8
-hold   g1.31.5.1.3 (launder row, DG4): verdict:dg2mvp-g41855-b LEAN 40 -> corrective goal:g1.31.5.1.3.1 ACTIVE (DG4 top): F1 = rc0 == commits · 0 lost · 0 dirty · false rc 3 <= 17/120 (DG2 harness run_on.sh) -> then close .3.1 -> .3 AND g4.18.5.5, each with its OUTCOME
+hold   g1.31.5.1.3 (launder row, DG4): verdict:dg2mvp-g41855-b LEAN 40 -> corrective goal:g1.31.5.1.3.1 ACTIVE (DG4 top): F1 HARD = rc0 == commits · 0 dirty · rc 3 only a true cause; titles-absent a BAND <= control (SM: 2/22 at df14730e89), >= 3 runs (DG2 may re-word) -> close .3.1 -> .3 AND g4.18.5.5, each with its OUTCOME · no revert (SM)
 done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a143fa142d) on DG2 PROVED 0.92; F1 17p + F2 0 hits re-run
 ```
 
