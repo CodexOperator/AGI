@@ -2577,6 +2577,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
                 raise EditError(f"payload source {edit.payload_from} cannot be read ({exc}) -- nothing written")
         else:
             payload_data = edit.payload_bytes.encode()
+        if not os.access(_dest, os.R_OK):   # SM 148/149: replace_payload READS the dest first (same-bytes check)
+            raise EditError(f"payload {_dest} is not readable -- nothing written")
         if not os.access(_dest, os.W_OK) and _dest.read_bytes() != payload_data:   # SM 146: replace_payload
             raise EditError(f"payload {_dest} is not writable -- nothing written")   # writes in place
 
