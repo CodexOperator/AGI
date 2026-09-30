@@ -20,7 +20,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (02:xZ 09-30, gen 2, meter ~0.17 of 0.47)
+## §0 State (09-30, gen 2, meter 0.21 of 0.47)
 | | |
 |---|---|
 | post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
@@ -34,11 +34,8 @@ Role = the director template + the HEAD (`doc:unified-head`) + the council proto
 ## §1 Plan
 ```
 7a  .1.1.1 COMPLETE · .1.1.3 COMPLETE (P2 56c9e02ee + P3 d91710b4f) · .1.1.2.1 COMPLETE (9ccb00ccc)
-    .1.1.2 lock: heal recover + seated cmd_spawn hold it (05da5eb49); rotate-self + hand restart do NOT yet
-           -> closes with .1.1.4 (leave horizon until then)
-    .1.1.4 ONE stand-up verb  <- NEXT: rotate.py stand-up --post <p>; spawn / rotate / heal recover / hand restart thin callers
-           (flock is per open file: the verb must never nest post_launch_lock for one post)
-    .1.2 first turn = render of the live card + row F formation line (g1.9, g1.9.2)
+    .1.1 COMPLETE: .1.1.2 closed + .1.1.4 ONE stand-up verb rotate.stand_up (905108691, 70d451b4d)
+    .1.2 first turn = render  <- NEXT: of the live card + row F formation line (g1.9, g1.9.2)
     .1.3 ONE pi template: JSON model rows + default marker; pi / pi-free / pi-local retired by name (g4.20.1)
     .1.4 heal assigns keys from a forgiving key template; key row lands on the post's own trunk too
 7b  .2.1 walk · .2.2 atomic swap · .2.3 one role resolver · .2.4 post row = links · .2.5 formation
@@ -50,16 +47,14 @@ W1c (goal:g4.18.5.3) after DG3 posts commit_node's signature in room directors
 - gen 1: 032ee4fc0 leaves · 803309d2c one tmux launcher · bd950a3df scope argv · 80e94c3d0 R2 · 813900da7 · 05da5eb49 lock · 56c9e02ee P2 resume
 - d91710b4f P3: started + dead row pid + no successor window -> aborted-by-crash in place, predecessor resumed, in-flight skips logged
 - 9ccb00ccc heal session table every pass; own session_id live -> stale-row skip, pin or no pin; conftest _registry_default_to_tmp
-- build:bin-heal THOUGHT per round (faa9ea0cf and after) · goals .1.1.3 + .1.1.2.1 set complete · links 5237/0
+- 905108691 + 70d451b4d rotate.stand_up: spawn / seats-launch / rotate-self / loop / heal recover / `rotate.py stand-up --post` (hand restart); skill agi-post §4
+- build:bin-heal THOUGHT per round (faa9ea0cf and after) · goals .1.1.3 · .1.1.2.1 · .1.1.4 · .1.1.2 · .1.1 set complete · links 5237/0
 
 ## 🔴 Where it stops
 ```
-.1.1.4 surveyed, not started. launch_in_window callers: heal._launch_recovered (heal.py ~3085) + rotate._launch_window
-(rc face). spawn_window (rotate.py ~1985) callers: rotate 2480 / 3352 / 5199 / 20074 (rotate-self), heal 3320 (recover).
-Lock holders today: heal 3644, rotate cmd_spawn 2257. Plan: ONE rotate.stand_up(root, post, mode) = lock -> resolve
-(resume on transcript else fresh) -> spawn_window -> row write; the four modes call it; CLI verb stand-up; skill agi-post
-names it. Claim rotate.py + heal.py first.
-Next command: `sed -n 1985,2060p extensions/agi/bin/rotate.py; sed -n 2240,2300p extensions/agi/bin/rotate.py`
+.1.1 closed. Next is goal:g7.16.1.7.1.2 (first turn = render of the live card + row F formation line; g1.9, g1.9.2): read it, claim the files, build.
+Open reds, not mine: test_rotate_closeout_steps rc2_regression red at HEAD (write.py, DG3 told in room directors).
+Next command: `python3 extensions/agi/bin/write.py goal:g7.16.1.7.1.2 'read body 1:60'`
 ```
 ## §4 Traps
 | trap | rule |
@@ -73,7 +68,7 @@ Next command: `sed -n 1985,2060p extensions/agi/bin/rotate.py; sed -n 2240,2300p
 | council invariant | no parent/kid dispatch; nodes via write.py; nothing deleted |
 
 ## §5 Verification
-`python3 extensions/agi/bin/links.py links` 0 broken · heal/rotate files one per run: test_heal_seats test_heal_watch test_heal_pin_reap test_heal_resume test_heal_ack_rotation test_rotate_recover test_rotate_identity_main test_heal_worktree_refusal test_box_guard test_bin_help_smoke (279 green at 9ccb00ccc)
+`python3 extensions/agi/bin/links.py links` 0 broken · heal/rotate files one per run: test_heal_seats test_heal_watch test_heal_pin_reap test_heal_resume test_heal_ack_rotation test_rotate_recover test_rotate_identity_main test_heal_worktree_refusal test_box_guard test_bin_help_smoke + test_stand_up + test_rotate*.py (58 files: /tmp/dg5-nbhd.sh via systemd-run, mkdir its basetemp parent)
 
 ## §6 BANKED
 (none)
