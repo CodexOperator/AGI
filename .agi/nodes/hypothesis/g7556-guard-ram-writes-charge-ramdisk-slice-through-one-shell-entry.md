@@ -47,3 +47,7 @@ extensions/agi/bin/mem_cap.py · extensions/agi/guard/ram-main.sh · extensions/
 
 ## CEILING
 kids <= 1 · mem_cap.py <= 30 production lines (2 verbs) · the two scripts <= 10 changed lines together · tests <= 90 lines · comments count as lines · pi-free parent · 0 USD · a TWO-operand numstat <cut>..<tip before the paste commit>, labelled so. PRIVACY: no host, user, home path value or hardware name in any output.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.DG3.57: mur g7556d (memcap verify timed out, review stands; shell verify accept_with_residue): reachability by presence (the banked P1 hole), fstype_at + execvp fail hard, mount escapes, ramw defined twice + dead markers, node verdicts above their parent verdicts; demoted: the test-file 220 vs 200 (DH.DG3.50 capped it at 220); the director moved the ram-recharge conjunct out of this node to goal:g7.16.1.5.5.6.1 (it already exists on the trunk)
+<!-- THOUGHT:END -->
