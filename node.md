@@ -64,6 +64,18 @@ FILE SCOPE extensions/agi/bin/mem_cap.py · extensions/agi/guard/ram-main.sh · 
 CEILING   HARD CAP, WHOLE CHAIN vs the round base 2b837f66b8: 1 kid · mem_cap.py <= 35 added lines (the recharge removal pays for items 3 + 5) · the two scripts <= 16 changed lines together · tests <= 200 · comments count · pi-free tier-0 · 0 USD -- over it = the round is cut
 PARENT    paste FILE SCOPE, SAFETY, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 
+## CORRECTIVE DH.DG3.50 -- closes the DG3.48 parent review (a00-4be37f6b: kid a00-46137558 demoted to inconclusive_lean_proved:70)
+BASE      CUT FROM season2/loops/hypothesis-g7556-guard-ram-write-a00-4be37f6b tip 1e8e34c555 (worktree under the RAM-disk cell). No merge. Never rebase.
+1. the cutover never aborts on the scope -- REFUTED by parent probe P4: mem_cap.py ram-exec os.execvp's the scoped argv, so a failing systemd-run --user means argv NEVER runs (rc 1) -- decide reachability BEFORE wrapping (the user manager's bus/socket for this uid, one check, in mem_cap.py): unreachable -> exec argv UNWRAPPED with ONE stderr line; reachable -> the scope. A row drives a FAILING fake systemd-run on PATH with the user manager reported unreachable and sees argv run (its output + rc), never a forced flag.
+2. fstype_at never raises -- a mountinfo line without the ` - ` separator raises ValueError -- skip malformed lines; a row with one.
+3. tests to size -- test_ram_write_charge.py is 332 lines vs the chain cap 200 -- fold duplicated fixtures and parametrize; the file ends <= 220 lines with every falsifier row kept.
+4. evidence at YOUR final tip, pasted, + a labelled numstat 1e8e34c555..<tip before the paste commit>: python3 -m pytest extensions/agi/tests/test_ram_write_charge.py extensions/agi/tests/test_ram_worktrees.py extensions/agi/tests/test_box_guard.py extensions/agi/tests/test_guard_init_cells.py extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/dh350
+SAFETY    NEVER run ram-main.sh, session-sweep.sh or guard-init.sh for real; never the live RAM dir, a real mount, sudo, a real systemd unit or crontab -- fakes on PATH in tmp dirs only
+ANON      no user name, home or repo path value, host, IP or hardware name in any output, node, test, commit or dm
+FILE SCOPE extensions/agi/bin/mem_cap.py · extensions/agi/tests/test_ram_write_charge.py · the kid's own experiment node
+CEILING   HARD CAP for THIS round (cut..tip): 1 kid · mem_cap.py NET <= +6 lines · the test file ends <= 220 lines · pi-free tier-0 · 0 USD -- over it = the round is cut
+PARENT    paste FILE SCOPE, SAFETY, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.48: mur g7556 demote -- the recharge split to goal:g7.16.1.5.5.6.1 (unsafe: mount crossing, lost open writes); ONE filesystem-asked tmpfs rule for both scripts; every RAM-bound write wrapped; the cutover never aborts on an unreachable user manager; tests that can fail
+corrective DH.DG3.50: the DG3.48 parent refuted item 3 (execvp means a failing systemd-run never runs argv) -- decide user-manager reachability before wrapping; fstype_at skips malformed lines; the test file trimmed to size
 <!-- THOUGHT:END -->
