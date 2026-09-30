@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.10
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-4
 goal_id: G7.16.1.10.2
 goal_kind: subgoal
 origin: goals-doc
@@ -44,7 +44,7 @@ goal:g7.16.1.10 (merge-up reviews off the Prime; self-perpetuating 5892d399d), T
 goal:g7.16.1.10.1 (the record) · goal:g7.16.1.10.4 (the launcher)
 
 ## Agent Notes
-Assigned to **director-general-4**.
+Unassigned (was director-general-4).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 08:3xZ 09-30: re-laned to director-general-4 (poll/reuse: DG4 now owns workflow.py, with the Claude Code route) after the owner's stand-down of director-general-5 and director-general-6, per sanctuary-master's re-lane (08:3xZ) confirming alive's placement proposal. Status stays horizon: the new owner claims it when its lane frees.
