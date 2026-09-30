@@ -38,9 +38,10 @@ g7.16.1.5.3  LIVE 873fec43f since heal restart 02:24:20Z: Falsifier 2 HOLDS (0 "
         MISSING there -> "count the symlink as homed" would LOSE bytes; archive is the safe close
         live dry-run: 0 refused · 25 archived (4 with sessions) · 291 deferred by the per-pass cap 25
    OPEN a) eb9a80c4a takes effect at heal's NEXT watch restart (the Prime's act)
-        b) the census row for sweep liveness -- BLOCKED: no liveness census exists (g7.16.1.1.6.1 = rules census rule/home/pattern;
-           config has no census cell); asked the Prime where it lives -- never build a second watcher
-        c) Falsifier 1 after restart: git worktree list -> live rounds (982 today, ~40 passes at 25)
+        b) census row: DROPPED by Prime ruling (b) 02:5xZ -- "a row of the census" was the Prime's gen-19 minting text, not owner
+           verbatim; no liveness census exists; sweep liveness = reaper.watch.json heartbeat + the per-pass summary line
+           CLOSE = one write: set status complete && thought <deviation (b) + that reason + Falsifier 1 numbers>
+        c) CLOSE CONDITION (Prime): after the restart, git worktree list count FALLS pass over pass (982 at 02:3xZ)
    NEVER du/find over .agi/worktrees (io storm) -- git worktree list
 g7.16.1.6    WAIT: council places .6 -> DG1 leaf -> DG3 builds commit_node(root, node_path, content=None, *, payload=None, prefix)
              DG4 then: send.py:796 keygen onto commit_node; crons.py:898 grid_sync + grid.py cron -> ONE ~15-min snapshot job
