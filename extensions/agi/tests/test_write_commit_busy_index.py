@@ -354,46 +354,46 @@ def test_concurrent_same_node_writers_are_never_refused_as_a_hand_edit(tmp_path)
 
 def test_pre_dirty_waits_a_live_peer_marker_and_ignores_a_dead_one(tmp_path):
     sys.path.insert(0, str(BIN))
-    import write  # noqa: PLC0415
+    import write, verification  # noqa: PLC0415,E401
     repo = _repo(tmp_path)
     root, node = repo / ".agi", repo / ".agi" / "nodes" / "doc" / "w1.md"
     node.write_text(node.read_text() + "peer bytes\n")
     peer = subprocess.Popen([sys.executable, "-c", "import time;time.sleep(30)"])
-    write._inflight(root, [str(node)], True)
+    verification.inflight_mark(root, [str(node)])
     marker = next((root / "sessions" / "write-inflight").iterdir())
     live = marker.with_name(f"{marker.name.split('.')[0]}.{peer.pid}.x")
-    marker.rename(live); write._INFLIGHT.clear()
+    marker.rename(live); verification._INFLIGHT.clear()
     def peer_commits():
         subprocess.run(["git", "-C", str(repo), "commit", "-qam", "peer"], capture_output=True)
         live.unlink()
     threading.Timer(0.6, peer_commits).start()
     t0 = time.monotonic()
     assert write._pre_dirty(root, "doc:w1") == set() and time.monotonic() - t0 >= 0.5
-    write._inflight_clear(); peer.kill(); peer.wait()
+    verification.inflight_clear(); peer.kill(); peer.wait()
     node.write_text(node.read_text() + "hand edit\n")                # no live marker: a real hand edit
     dead = live.with_name(f"{live.name.split('.')[0]}.{peer.pid}.x")
     dead.write_text("x")                                             # stale (dead pid): ignored + removed
     assert write._pre_dirty(root, "doc:w1") == {str(node)} and not dead.exists()
-    write._inflight_clear()
+    verification.inflight_clear()
 
 
 def test_a_marker_with_pid_zero_or_not_an_int_is_stale_not_a_stall(tmp_path):
     sys.path.insert(0, str(BIN))
-    import write  # noqa: PLC0415
+    import verification  # noqa: PLC0415
     root = tmp_path / ".agi"
     d = root / "sessions" / "write-inflight"
     d.mkdir(parents=True)
-    k = write.hashlib.sha1(b"/n.md").hexdigest()[:16]
+    k = __import__("hashlib").sha1(b"/n.md").hexdigest()[:16]
     bad = [d / f"{k}.{x}.r" for x in ("0", "-3", "abc", "", "99999999999999999999")]
     [b.write_text("") for b in bad]
     t0 = time.monotonic()
-    assert write._inflight(root, ["/n.md"]) == [] and not any(b.exists() for b in bad)
+    assert verification.inflight_peers(root, ["/n.md"]) == [] and not any(b.exists() for b in bad)
     assert time.monotonic() - t0 < 2
-    mine = write._inflight(root, ["/n.md"], True)                    # this call's markers only
-    other = write._inflight(root, ["/n.md"], True)
-    write._inflight_clear(other)
+    mine = verification.inflight_mark(root, ["/n.md"])                    # this call's markers only
+    other = verification.inflight_mark(root, ["/n.md"])
+    verification.inflight_clear(other)
     assert all(f.exists() for f in mine) and not any(f.exists() for f in other)
-    write._inflight_clear()
+    verification.inflight_clear()
 
 
 def test_hold_wait_s_rejects_inf_nan_negative_with_one_warning(tmp_path, capsys):

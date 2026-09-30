@@ -31,6 +31,7 @@ tool exists to catch (H0/H0b: 29k nodes lost).
 from __future__ import annotations
 
 import argparse
+import atexit
 import hashlib
 import json
 import os
@@ -943,6 +944,42 @@ def suite_lock_holder(groot: Path) -> int | None:
     if not _lock_held_by(groot, holder):
         return None
     return holder
+
+
+_INFLIGHT: list = []   # g1315131: this process's write.py in-flight markers, sessions/write-inflight/<sha1(path)[:16]>.<pid>.<rand>
+
+
+def inflight_clear(only=None) -> None:
+    """Remove `only` (one call's markers) or, by default, every marker this process holds."""
+    for f in list(_INFLIGHT if only is None else only):
+        f.unlink(missing_ok=True)
+        _INFLIGHT.remove(f)
+
+
+atexit.register(inflight_clear)
+
+
+def inflight_mark(groot, paths) -> list:
+    """Record `paths` BEFORE their bytes move; return THIS call's markers."""
+    d = Path(groot) / "sessions" / "write-inflight"
+    d.mkdir(parents=True, exist_ok=True)
+    mine = [d / f"{k}.{os.getpid()}.{os.urandom(3).hex()}"
+            for k in {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}]
+    for f in mine:
+        f.write_text("")
+    _INFLIGHT.extend(mine)
+    return mine
+
+
+def inflight_peers(groot, paths) -> list:
+    """The LIVE peer pids with a write in flight on `paths`; a pid that is not an int > 0, or is dead, is stale: removed."""
+    ks, live = {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}, []
+    for f in (Path(groot) / "sessions" / "write-inflight").glob("*.*"):
+        k, pid = (f.name.split(".") + [""])[:2]
+        pid = int(pid) if pid.isdecimal() else 0
+        if k in ks and pid != os.getpid():
+            live.append(pid) if 0 < pid < 2**31 and _pid_alive(pid) else f.unlink(missing_ok=True)
+    return live
 
 
 def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:

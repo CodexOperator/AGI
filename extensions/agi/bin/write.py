@@ -51,9 +51,7 @@ delivered the convenience and none of the reason.
 """
 from __future__ import annotations
 
-import atexit
 import difflib
-import hashlib
 import json
 import os
 import random
@@ -4417,40 +4415,6 @@ def _commit_message(root, node_id: str, actor: str = "") -> str:
     return node_id
 
 
-_INFLIGHT: list = []   # g1315131: this process's markers, sessions/write-inflight/<sha1(path)[:16]>.<pid>
-
-
-def _inflight_clear(only=None) -> None:
-    """Remove `only` (one call's markers) or, by default, every marker this process holds."""
-    for f in list(_INFLIGHT if only is None else only):
-        f.unlink(missing_ok=True)
-        _INFLIGHT.remove(f)
-
-
-atexit.register(_inflight_clear)
-
-
-def _inflight(root, paths, mark=False) -> list:
-    """mark: record `paths` BEFORE their bytes move, return THIS call's markers; else the LIVE peer pids on them
-    (a pid that is not an int > 0, or is dead, is stale: removed)."""
-    d, live = Path(root) / "sessions" / "write-inflight", []
-    ks = {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}
-    if mark:
-        d.mkdir(parents=True, exist_ok=True)
-        mine = [d / f"{k}.{os.getpid()}.{os.urandom(3).hex()}" for k in ks]
-        for f in mine:
-            f.write_text("")
-        _INFLIGHT.extend(mine)
-        return mine
-    import verification  # noqa: PLC0415
-    for f in d.glob("*.*"):
-        k, pid = (f.name.split(".") + [""])[:2]
-        pid = int(pid) if pid.isdecimal() else 0
-        if k in ks and pid != os.getpid():
-            live.append(pid) if 0 < pid < 2**31 and verification._pid_alive(pid) else f.unlink(missing_ok=True)
-    return live
-
-
 def _pre_dirty(root, node_id: str, edit=None) -> set:
     """goal:g1.31.5.1.3 -- the paths ALREADY dirty against HEAD when this write
     began, sampled by the CALLER, never here: `_commit_write` runs AFTER the
@@ -4470,11 +4434,11 @@ def _pre_dirty(root, node_id: str, edit=None) -> set:
     paths = [os.path.abspath(str(p)) for p in paths if p is not None]
     import verification  # noqa: PLC0415 -- g1315131: a LIVE peer's in-flight bytes are no hand edit
     end = time.monotonic() + verification.suite_lock_policy(root)["hold_wait_s"] + _commit_wait_s(root)
-    mine = _inflight(root, paths, True)   # mark FIRST, then look: of two racing writers one sees the other
-    while _inflight(root, paths) and time.monotonic() < end:
-        _inflight_clear(mine)             # only THIS call's markers
+    mine = verification.inflight_mark(root, paths)   # mark FIRST, then look: of two racing writers one sees the other
+    while verification.inflight_peers(root, paths) and time.monotonic() < end:
+        verification.inflight_clear(mine)            # only THIS call's markers
         time.sleep(0.05 * (0.5 + 2 * random.random()))
-        mine = _inflight(root, paths, True)
+        mine = verification.inflight_mark(root, paths)
     for p in paths:
         dq = lambda: git("--no-optional-locks", "diff", "--quiet", "HEAD", "--", p).returncode  # noqa: E731
         rc = 0 if git("ls-files", "--error-unmatch", "--", p).returncode else dq()
@@ -4492,7 +4456,8 @@ def _commit_write(root, node_id: str, res, actor: str = "",
     try:   # g1315131: the in-flight markers `_pre_dirty` set come off after the attempt
         return _commit_write_body(root, node_id, res, actor, pre_dirty)
     finally:
-        _inflight_clear()
+        import verification  # noqa: PLC0415
+        verification.inflight_clear()
 
 
 def _commit_write_body(root, node_id: str, res, actor: str = "",
