@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:3xZ 09-30) -- goal:g7.16.1.11 ROUND 2 DELIVERED: doc:radically-simple-engine @ c9800a4537, the [decision] sent to belam (agi-a3 [446ae8]); waiting on the owner
+## §0 State (23:0xZ 09-30) -- goal:g7.16.1.11 ROUND 3 opened (belam 23:0xZ); alive gen 4 rotates at a clean seam (0.43 of 0.47); the successor writes alive's part 3
 | | |
 |---|---|
 | post | alive gen 4 · session agi-e3 [761106] · rotate at f >= 0.47 (0.23 at STOP) |
@@ -29,38 +29,31 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   gen 4 (details in git + the grid; every sha REMAPPED after the 06:3xZ-08:0xZ history scrub):
-       · belam resume items 1-3: s18/s32 -> complete · g1.31 LANES 47 each once (verified) · goal:g7.16.1.10 minted + placed (DG1 leaves .1-.6, horizon)
-       · rulings: boxkit memory home = config:guard (a) · g1.31.4.2.2 meter falls back tagged unmeasured:<model> (3 conditions, applied)
-       · bundle-4 vision:alive review: ALIGNED + MISSING limit (4) (the suite-lock path exits 0 uncommitted) -> SM v2, v3 10876e2b25
-       · council ruling, 3 leaves: goal:g4.18.5.5 (exit 3; DG4, ACTIVE 08:37) · goal:g4.18.5.6 (rotation commits the resolved card; DG4) · goal:g7.16.1.6.1 (suite on a snapshot, lock retires; council, horizon)
-       · findings placed: provenance (edited_by: belam default) = goal:g7.33.20.2 (DG3) · names collide -> "name [ref]" (SM card + belam) · future stamps -> HEAD FORM rule (belam)
-       · OVERVIEW -> belam (bundle 4 through the three lenses)
-HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28): the OWNER stopped the run; only the owner lifts it
-done   13:4xZ resume check: g7.16.1.10 re-lane on the bytes (.1/.2/.6 DG4 · .4 DG3) · provenance fix LANDED 8a9656b2b4 (goal:g7.33.20.2: no-AGI_ACTOR -> resolved seat)
-done   13:4xZ: all-is-one ACCEPT on bundle-4 v3 + 2 notes -> SM for v4 (W3 g4.18.7 first; limit (1) = TWO homes: DG4 hypothesis stopgap + g7.16.1.6 A CAS) · finding -> SM: send.py read printed empty over unread (all-is-one lost 11:0xZ-13:4xZ)
-done   13:4xZ: goal:g7.16.1.10.7 (merge gate) -> DG3 AGREED (SP proposal) + falsifier adds: a planted RED refused · unreviewed:budget without the Prime's count refused
-next   bundle-4 v3 -> 0.9 when goal:g4.18.5.5 lands: DG4.15 returned 11:44Z (tip 6575a88d7), UNHARVESTED -> DG4 harvests + murs first; write.py:4396-4399 still returns False (rc 0) on the trunk -> confirm the rc-3 test on the bytes after the merge
-       · watch DG4's load (g4.18.5.5 + .5.6 + g7.16.1.10.1/.2/.6 + workflow.py CC route + heal-sweep): flag only a real stall
-next   goal:g7.16.1.11 doc:radically-simple-engine (skeleton af2b368158 by all-is-one agi-15 [c6276e]); fills SERIALIZED:
-       alive §1 b4a6bf6064 + §6 ab3d2bf353 DONE -> all-is-one §2 §3 §5 §7 §8 -> self-perpetuating §4 + amends
-       OWNER ADDENDUM 22:0xZ: a post is a WRAP, KILOBYTES -> alive's §1 v2 drafted /tmp/g71611/s1v2.md (DynamicUser unit per post + post-wrap loop, ~10-12 KB, retires ~2.41 MB) = re-fill §1 AFTER all-is-one + SP (SP now agi-5b [1edcee] @36, §4 = trees only)
-       DONE: council MERGE wrap 1,272 B / a post 34 B, §1 v5 190169c08b; whole-doc check (3 stale refs fixed) 586f2b4e9c; [decision] -> belam 22:1xZ · belam review: RED privacy (track now LOCAL ~/track) + pre-receive (--source, new/deleted ref, FAIL-OPEN found by test, fixed; 6/6 on a bare repo) -> 45282a4661, wrap 1,432 B, [decision] back 22:1xZ
-next   the owner reads the doc -> root ONCE + spikes (a)-(i) on the owner's go -> DG3 builds; alive: answer the council's questions on the doc, nothing more
-ROUND2 DONE: skeleton + §0 diagram + §A (fixed point, 794 B tested) 315979db91 · all-is-one §B + §D 1390fc6cc4 · SP §C d9312bfbc7 · alive whole-doc check c9800a4537
-       (§0 generator -> agi-seed · §A += agi-project, V = 262, 32-bit simhash prose-only · SP stamp 22:4xZ -> 22:3xZ · F9 genome integrity) · [decision] -> belam 22:3xZ
-       whole = 4,253 B, a post 34 B; live drifts found: 69 nodes store their id quoted · V = red + mute = 262
-belam ACCEPTED round 2 for the owner; its one fix DONE 9d4076f96a: §E = all 17 D.1 files whole in the doc (regrow byte-exact from git show HEAD, 0 mismatches) + §C stamp -> 22:2xZ
-next   the owner reads round 2 -> root once + packages on the go -> spikes F1-F12 -> DG3 builds; alive answers questions on the doc only
+done   gen 4 (details in git + the grid): belam resume items 1-3 · rulings (boxkit home · meter fallback · g7.16.1.10.7 -> DG3) · bundle-4 review
+       -> limit (4) -> 3 leaves (g4.18.5.5 · .5.6 · g7.16.1.6.1) · findings: provenance (g7.33.20.2 LANDED) · names collide · future stamps
+done   goal:g7.16.1.11 ROUND 1 (45282a4661: 1,432 B wrap, a post 34 B, pre-receive tested 6/6, track local) · ROUND 2 (c9800a4537 -> 9d4076f96a:
+       the living whole 4,253 B; §A fixed point project==observe, 794 B tested; §E = all 17 files whole, regrow byte-exact) -- belam ACCEPTED both
+NOW    ROUND 3 (belam brief in the inbox 23:0xZ; owner verbatim on goal:g7.16.1.11 "round 3" section). Base = round 2 @ 9d4076f96a. Split SENT 23:0xZ:
+       1 self-perpetuating agi-5b [1edcee]: the SHAPE TEST (every engine piece = ONE .geometry node; 18 .geometry files 327 KB, 293 build nodes)
+       2 all-is-one agi-15 [c6276e]: links = SYMLINKS (the mint id = the real file, addresses = symlinks, find -xtype l = the broken-link check)
+         + the vector brief A^k e_post read off the filesystem (its ppr.py)
+       3 ALIVE (the successor): INJECTION guaranteed -- the harness SessionStart hook returns the brief on startup / resume / compact (today
+         extensions/agi/hooks/cc-session-start.sh, 8.9 KB: measure what it does, shrink it to the brief call); NAME the pi equivalent (its
+         extension events: session_start / before_agent_start -- core's magic_pane_inject maps them) · TRANSPARENCY: agents use plain paths,
+         observe/project + the flush keep the graph current · update the §0 one-screen diagram · falsifiers: find -xtype l = 0; the brief
+         injected on a fresh session AND on a resume (+ compact) · then the whole-doc check · ONE [decision] to belam agi-a3 [446ae8] with the sha
+       serialized: SP -> all-is-one -> alive; each sends "[done] <sha>" before the next writes
+HELD   DG2 closing verdicts s22 + s28 (owner stop) · NO user, NO sudo before the owner's go
 ```
 
 ## §2 Landed (this generation)
 - c24f021ef 6bce4aafd df7e2d655 670c893d3 3bb0a37e6 96ac80e95 eee4e5951 85063f1a3 7a857e140 fc70d6b5b 2ee4d0180 5dca1fc47 a1ef46951 11b2f1e95 3c2e83db3 bc3bb8700 d57507672 df64e98c6 4a83b52eb
 
 ## 🔴 Where it stops
-alive gen 4: round 2 of goal:g7.16.1.11 delivered (c9800a4537, [decision] to belam); nothing in flight; the next input is the owner's read via belam
+alive gen 4 ROTATED at 0.43 after sending the round-3 split; nothing in flight; the successor waits for all-is-one's "[done] <sha>", then writes part 3
 ```
-successor: ListAgents (names collide: "name [ref]") -> read SendMessage replies -> answer questions on doc:radically-simple-engine; NO user, NO sudo before the owner's go
+successor: ListAgents (names collide: "name [ref]") -> send.py read alive (belam's round-3 brief) -> read goal:g7.16.1.11 "round 3" verbatim
+  -> read doc:radically-simple-engine by id (round 2 base) -> wait for SP + all-is-one [done] -> write part 3 -> whole-doc check -> [decision] to belam
 ```
 
 ## §4 Traps
