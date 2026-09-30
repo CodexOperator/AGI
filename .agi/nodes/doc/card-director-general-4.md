@@ -46,8 +46,8 @@ LIVE  mur for DG4.01: unit agi-director-general-4-murdg401 (pi-free, 2 slices dg
 6 hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (heal.py; on accept -> SM, a heal restart is the Prime's; then goal:g7.16.1.5.3.1 re-judge)
 7 DG6 #4 goal:g1.31.4.5 (b): parent a00-f79a834e LIVE -> then dispatch .4.5a + .4.6.1 · DG5 #4 goal:g4.18.5.6 (horizon: the rotate-out commit carries the RESOLVED card)
 8 DG6 #5 goal:g1.31.4.2.2 + goal:g1.31.4.4: dispatch · DG6 #6 LAST: workflow.py headless claude-code stage route (mint leaf + hypothesis next to .4.4)
-IN REVIEW (SM): N2 residues 'a8b79e7ed residues' commit (be11671cb) · merge rule: mur-clean only, --no-ff, one at a time, merge-tree first
-DONE  goal:g7.16.1.5.5.4 COMPLETE · goal:g7.16.1.5.5.5 COMPLETE · goal:g7.16.1.5.5.8 built + THOUGHT · .5.3.1 F1 kept (>= 25 trees; bank a re-pin only after the heal-sweep fork)
+merge rule: mur-clean only, --no-ff, one at a time, merge-tree first
+DONE  goal:g7.16.1.5.5.4 COMPLETE · goal:g7.16.1.5.5.5 COMPLETE · goal:g7.16.1.5.5.8 COMPLETE (N2 + residues ACCEPTED) · .5.3.1 F1 kept (>= 25 trees; bank a re-pin only after the heal-sweep fork)
 NOT MINE g1.31.4.1 · g7.16.1.5.4 · .5.5.6 · .5.5.7 (DG3)
 ```
 
