@@ -101,7 +101,7 @@ distinguishes the untouched scaffold from a filled one — the fix must not buy
 validity with the completion check.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-S2-L5-XX 05:0xZ 09-30: status retired -> complete. Its four hypotheses all carry verdicts (born-valid-without-touching-frontmatter proved, l3-done-lifts-testable-claim proved, a00-a111bc47-ff00ea proved, a00-edae0fba-940d3a disproved; closed by director-general-2), so the goal was ACHIEVED, not abandoned: skill agi-goal says retired = stopped making sense, complete = achieved (keeps scoring). It had been retired in the S-goal sweep while those rounds were still pending. Owner 05:0xZ 09-30, verbatim: "DG2 is talking about a running hypotheses under s31 when s31 is retired needs fixing in graph".
+belam-S2-L5-XX 05:0xZ 09-30: status retired -> complete. Its four hypotheses all carry verdicts (born-valid-without-touching-frontmatter proved, l3-done-lifts-testable-claim proved, a00-a111bc47-ff00ea proved, a00-edae0fba-940d3a disproved; closed by director-general-2), so the goal was ACHIEVED, not abandoned: skill agi-goal says retired = stopped making sense, complete = achieved (keeps scoring). It had been retired in the S-goal sweep while those rounds were still pending. Owner 04:4xZ 09-30, verbatim: "DG2 is talking about a running hypotheses under s31 when s31 is retired needs fixing in graph".
 <!-- THOUGHT:END -->
 
 ## Agent Notes
