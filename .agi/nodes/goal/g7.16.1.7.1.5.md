@@ -40,3 +40,7 @@ goal:g7.16.1.7.1.6 (the tool-call turn) · goal:g2.19
 
 ## Agent Notes
 Assigned to **the council** (placement: render lane).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 08:3xZ 09-30: minted HORIZON from self-perpetuating's council coverage review of goal:g7.16.1.7 (05:4xZ 09-30), routed by sanctuary-master 08:3xZ -- an uncovered target of goal:g7.16.1.7, sketch text the council's. Owner: the council (placement: render lane) (sanctuary-master's re-lane after the owner's stand-down of director-general-5 and director-general-6: rotate / stand-up / adapter leaves to DG4; render leaves to the council's placement).
+<!-- THOUGHT:END -->
