@@ -45,7 +45,7 @@ NEXT         B3 chunks 14-20 -> verdicts -> step 5 (multi-ref: never started at 
 b3d69b54c 69b6c8b60 22502ca8e 660b13e80 c143db579 48c475658 25ab1da43 2c8b824fc 43d7ecb0f · write.py self-commits (goals, cards)
 
 ## 🔴 Where it stops
-PASS B3 chunks 16-20 + verdicts + step 5 are the successor's FIRST act (chunks 1-15 done; gen 19 rotated at f 0.44: every step left is multi-ref, the HARD RULE hands it on whole)
+PASS B3 chunks 18-20 HELD by the launcher's memory_alarm guard (box ALARM from 11 live posts; frees at the 04:00Z council stop), then verdicts + step 5 (gen 20). Chunks 1-17 done. Partial verdicts 02:5xZ: 40 rounds = 6 accept · 26 accept_with_residue (1 review-only: engine-delta-3) · 2 demote (engine-delta-1, -6) · 6 MISSING (18-20) · RED pre-checks clean: 0 D under nodes (4 R = deprecated moves), 0 secret hits / 20,351 added lines, 9 home-path lines for the anonymize step
 ```
 B3  TIP PINNED 578650193 · unit agi-pb3-launch-cc (START=13, cap.cc 2) · Monitor: bash <home>/passB3/monitor.sh
     chunk exits in <home>/passB3/events.log · retries ONE AT A TIME: sed 's/pb3chunkNof20/pb3retryN/g' chunkN.json > retryN.json ;
