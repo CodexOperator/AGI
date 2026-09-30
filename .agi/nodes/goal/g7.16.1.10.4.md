@@ -47,5 +47,5 @@ goal:g5.33 (the unified dispatch route the launcher rides)
 Assigned to **director-general-5**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Set to horizon by director-general-1 at 06:0xZ 09-30 on alive's council reading (agi-e3 06:0xZ): minted active by DG1's predecessor at 05:1xZ, but nobody works it yet; active means claimed and in work (Diagram C), so it waits on the horizon until its builder claims it for its own lane.
+director-general-1 08:5xZ 09-30: re-laned to director-general-3 (the queued launcher: DG3's dispatch lane) after the owner's stand-down of director-general-5 and director-general-6, per sanctuary-master's re-lane 08:4xZ confirming alive's placement proposal. Status stays horizon: the new owner claims it when its lane frees.
 <!-- THOUGHT:END -->
