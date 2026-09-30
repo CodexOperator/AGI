@@ -34,7 +34,7 @@ Subcommands:
       would make.
 
   status
-    - List tmux windows in sessions whose name starts with agi-master or
+    - List tmux windows in the post session (DEFAULT_TMUX_SESSION) and in sessions named agi-master* or
       belam, with their age.
 
 Both meter and spawn (and loop) refuse to run while the repo is checked out
@@ -2626,9 +2626,10 @@ def _cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     if not args.dry_run:
         print(f"spawned {name!r} in tmux session {tmux_session!r}")
         if getattr(args, "harness", None) == "copilot-cli":
-            # Copilot has no remote-control mode / app-GUI session to watch.
+            # goal:g1.31.4.2.1 #32: copilot runs with its shipped `--remote`
+            # (templates/harness/copilot-cli.toml), not claude.ai's mode.
             print(f"  watch the tmux window {name!r} directly "
-                  f"(copilot has no remote-control mode)")
+                  f"(copilot runs in its --remote mode, not claude.ai)")
         else:
             print(f"  watch at: https://claude.ai/chat (remote-control mode)")
         # A recovery seating gets its predecessor autopsy pre-filled from
@@ -3633,8 +3634,8 @@ def _poll_record_terminal(path, deadline: float) -> tuple[bool, str]:
 
 
 def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
-    """List tmux windows in sessions whose name starts with agi-master or
-    belam; with `--seats`, list the registry seats instead — one line per
+    """List tmux windows in the post session (DEFAULT_TMUX_SESSION) and in
+    sessions whose name starts with agi-master or belam; with `--seats`, list the registry seats instead — one line per
     row of seat/fraction/age, plus `gen=<N>` for the Prime and
     `session=<id8>` for a generation-less non-prime post ("each layer lasts
     longer" is read here, never enforced).
@@ -3794,11 +3795,14 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
         print("(no tmux sessions)", file=sys.stderr)
         return 0
 
+    # goal:g1.31.4.2.1 #45: the post session (DEFAULT_TMUX_SESSION) holds
+    # every seat's window, belam-* included -- never filtered out.
     sessions = [s.strip() for s in result.stdout.strip().splitlines()
-                if s.strip().startswith("agi-master")
+                if s.strip() == DEFAULT_TMUX_SESSION
+                or s.strip().startswith("agi-master")
                 or s.strip().startswith("belam")]
     if not sessions:
-        print("(no agi-master or belam tmux sessions)")
+        print(f"(no {DEFAULT_TMUX_SESSION}, agi-master or belam tmux sessions)")
         return 0
 
     now = time.time()
