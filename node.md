@@ -8,7 +8,7 @@ parents:
   - goal:g26.towns
 next_edges: []
 council: council-local-maxxing
-edited_by: belam
+edited_by: thought-master
 location: local-town
 master: thought-master
 scaffold_hash: 3876620b4bc4f88e
@@ -37,20 +37,20 @@ visions:
 <!-- BODY:BEGIN -->
 # town:local-maxxing
 
-## town = ops · trajectory = KG (stand-in TEMPORARY)
+## town = ops + trajectory (the trajectory's PERMANENT home, owner 21:5xZ 09-30)
 
 ```
 town:local-maxxing ──▶ OPS home (who / research bundle / what's left / location)
                          location: local-town
-trajectory:local-maxxing (soon) ──▶ KG coordination
+trajectory (THIS node) ─────────▶ KG coordination
                          (metrics / mini-vision progress / links→chain nodes)
 .geometry/towns/local-maxxing ──▶ Pass-1 raw self (see goal:g7.34.3+)
 ```
 
-**TRAJECTORY STAND-IN section below is TEMPORARY** pending `trajectory:*`
-type (`goal:g7.34.1` / `.2` on town:core). Until mint+migrate, this town
-body carries the stand-in. Metrics/links tables move to the trajectory node;
-ops bundle stays on town.
+**The TRAJECTORY section below is PERMANENT** (owner 21:5xZ 09-30): no
+`trajectory:*` node and no migration for this town (`goal:g7.34.1` / `.2` moot here).
+Metrics, links and the board stay on this node, beside the
+ops bundle.
 
 ## COORDINATION POINTER (core protocol)
 
@@ -75,7 +75,7 @@ town:local-maxxing
 │  ├─ 2 messaging + nudge … goal:g7.32.6 · goal:g7.32.5
 │  └─ 3 spawn/rotate ……… goal:g7.31.3.3
 └─ TRAJECTORY STAND-IN ← folded from doc:lm-town-trajectory
-   (TEMP pending trajectory:* — g7.34.1/.2; doc kept, deprecated pointer)
+      (PERMANENT here, owner 09-30; doc:lm-town-trajectory = deprecated pointer)
 ```
 
 ### Goal ids (bundle)
@@ -113,9 +113,9 @@ town:local-maxxing
 
 Town schema parents = ladder only → **linking is Agent Notes / this body**, not `parents:` to goals.
 
-### Trajectory stand-in — LIVE rows = the `trajectory_standin` field (owner 2026-09-23: written whole by thought-master, the town master, one version per write; `write.py town:local-maxxing 'set trajectory_standin [...]'`). The rows below are the 09-21 fold of `doc:lm-town-trajectory`, frozen; both migrate into `trajectory:local-maxxing` at G7.34.2.
+### Trajectory — LIVE rows = the `trajectory_standin` field (owner 2026-09-23: written whole by thought-master, the town master, one version per write; `write.py town:local-maxxing 'set trajectory_standin [...]'`). The rows below are the 09-21 fold of `doc:lm-town-trajectory`, frozen; both stay HERE, no migration (owner 21:5xZ 09-30).
 
-**What it is (owner 01:3xZ 09-21, verbatim on goal:g14):** a super node to the side that links into all relevant nodes — bigger than a single subgoal, sometimes bigger than a perpetual, smaller than a vision. Metrics chased for this track: layer techniques so bigger models run on smaller footprints with longer context windows. **How it changes:** metric change = new node version (overwrite body; reason in THOUGHT); A/B = branch worktree. Proper `trajectory` type queued (`goal:g7.34.1` schema + `goal:g7.34.2` mint; previously noted as G7.33.5); until it lands **this town section IS the stand-in**. `doc:lm-town-trajectory` remains as pointer — do not delete yet.
+**What it is (owner 01:3xZ 09-21, verbatim on goal:g14):** a super node to the side that links into all relevant nodes — bigger than a single subgoal, sometimes bigger than a perpetual, smaller than a vision. Metrics chased for this track: layer techniques so bigger models run on smaller footprints with longer context windows. **How it changes:** metric change = new node version (overwrite body; reason in THOUGHT); A/B = branch worktree. No separate `trajectory` node for this town (owner 21:5xZ 09-30): **this town section IS the trajectory, permanently**. `doc:lm-town-trajectory` remains as pointer — do not delete yet.
 
 #### Metrics chased (newest first)
 
@@ -140,7 +140,7 @@ research   MP.01 -> TEL.01 -> SWR.02 -> FT.00 -> … (tracks on g5.22–.29, .30
 engine     goal:g7.33 (+ G7.33.*) → MOVED town:core (parked unassigned)
 redesigns  director-engine, in DEPENDENCY order (owner 01:0xZ 09-27): node spawn/mint (g4.18.1) -> messaging+nudge (goal:g7.32.6 + g7.32.5; send = write.py) -> spawn/rotate (g7.31.3.3; refusals ride send's reply route) · the goals live HERE, not on cards (owner 00:5xZ 09-27)
 HELD       until messaging lands (owner 21:1xZ): the stream, encryption-town config, sanctuary-master activation, g7.33.18
-geometry   goal:g7.34* → town:core parked (trajectory type + .geometry/towns)
+geometry   goal:g7.34* → town:core parked (.geometry/towns); a trajectory node is moot here: the trajectory lives on this node (owner 09-30)
 comms      magic pane (G5.24 / g7.32 messaging on core) = future unified messaging layer
 ```
 
@@ -152,7 +152,7 @@ comms      magic pane (G5.24 / g7.32 messaging on core) = future unified messagi
 - Actor Belam; master cell = thought-master.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ROW 7 (queue / the band-derived thread): OSC.31 LANDED ae2276a95c (TMM.175-177) -- the corrective round for PASS 6's batch-21 demote found the requested true-uniform control unrepresentable at the 9 tags (0/9) and disproved the square-width tie; OSC.33 tests uniform at the budgets where it is exact. Every other row is unchanged.
+OWNER 21:5xZ 09-30, direct in thought-master's pane, verbatim: "Honestly let’s just leave the trajectory as the permanent home under the town board node. This is owner speaking direct btw." -- Delta: the TEMPORARY stand-in framing is gone from the body (header, the bundle tree, the trajectory heading, what-it-is, the board geometry row); the trajectory lives on this node for good, and no trajectory:local-maxxing node is minted or migrated to. The frontmatter field keeps its name trajectory_standin (renaming it would be a [town] schema change on town:core, not this town's); the 09-21 Agent Notes stay as history. goal:g7.34.1 / .2 (the trajectory type, on town:core, parked) are not this town's to retire: one [owner] line to the Prime. Landed by thought-master under the temporary [town] admission of role director (belam [decision] 22:21Z, owner 22:2xZ: "set him as an allowed actor for the board for now until the redesign and radical simplification lands").
 <!-- THOUGHT:END -->
 
 PASS 5 (belam-S2-L5-V, 09-25 02:02-02:4xZ): trunk @5b7d503fa7 -> season2/main 8daa626e89 · BASE 3b0c4e8e8f: 449 commits, 39 experiment files · 18 rounds / 4 chunks on pi-free, 27 min, 0 USD · 9 accept_with_residue, 9 demote, 0 RED · links 0 broken, goals byte-identical, smoke 4,331 · residues: hypothesis:pass5-0925-residue-batch (3 code-defect hypotheses + 1 reopened, 6 lm-* demotes via thought-master)
