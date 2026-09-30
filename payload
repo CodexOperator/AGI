@@ -852,7 +852,7 @@ def _w2ca_twin(tmp_path, mint):  # _w2c_twin + idea:i, reached from hypothesis:h
 def test_sm135_goal_attribution_follows_a_mint_next_edge_like_its_address(tmp_path):
     import metrics   # SM 135: metrics.goal_attribution's forward ascendant (next_edges) resolves
     seen = [metrics.goal_attribution(_w2ca_twin(tmp_path, m) / "nodes")["unattributed_nodes"] for m in (False, True)]
-    assert seen[1] == seen[0]
+    assert seen == [0, 0], seen   # SM 141: the absolute value -- a fault in BOTH twins agrees at 1 == 1
 
 
 def test_sm136_load_graph_wires_a_scalar_mint_next_edge_like_its_address(tmp_path):
