@@ -628,14 +628,21 @@ def _git_commit(root, rev) -> str:
 
 
 def _map_rows(p) -> list:
-    """g133 -- ONE read per (path, mtime): a CLI-scale caller resolves many ids."""
-    key = (str(p), p.stat().st_mtime_ns)
+    """g133 -- ONE read per (path, mtime): a CLI-scale caller resolves many ids.
+    An UNREADABLE map is no rows, never a raise, never a print."""
+    try:
+        key = (str(p), p.stat().st_mtime_ns)
+    except (OSError, ValueError):   # a row the reader cannot open is a MISS
+        return []
     if key not in _MAP_CACHE:
         if len(_MAP_CACHE) > 8: _MAP_CACHE.clear()
-        _MAP_CACHE[key] = [re.split(r"[\s,]+", ln.strip()) for ln in
-                           p.read_text(encoding="utf-8", errors="replace").splitlines()
-                           if ln.strip() and not ln.startswith("#")]
-    return _MAP_CACHE[key]
+        try:
+            _MAP_CACHE[key] = [re.split(r"[\s,]+", ln.strip()) for ln in
+                               p.read_text(encoding="utf-8", errors="replace").splitlines()
+                               if ln.strip() and not ln.startswith("#")]
+        except (OSError, ValueError):
+            pass   # uncached: the next call retries, and judges nothing
+    return _MAP_CACHE.get(key, [])
 
 
 def resolve_old_sha(root, sha: str) -> "str | None":
@@ -648,7 +655,7 @@ def resolve_old_sha(root, sha: str) -> "str | None":
     if hit := _git_commit(root, sha):
         return hit
     p = _sha_map_path(root)
-    if p is None or not p.is_file():
+    if p is None or not p.is_file():   # is_file() swallows OSError -> False
         return None
     hits = [r[1] for r in _map_rows(p) if len(r) >= 2 and r[0].lower().startswith(sha)]
     new = hits[0] if len(hits) == 1 else ""   # ambiguous -> no row

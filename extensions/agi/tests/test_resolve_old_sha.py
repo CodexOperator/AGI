@@ -12,6 +12,7 @@ not a commit, F6 the hex gate, F7 the write.py WARN (create path, added text onl
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -172,4 +173,48 @@ def test_f7_the_warn_judges_added_text_only(tmp_path, capsys):
     d.write_text("--- a\n+++ b\n@@ -3,2 +3,2 @@\n alpha\n"
                  "-clean text\n" + f"+see {HOME}/y.log\n")
     assert w.main(["hypothesis:h-diff-warn", f"body_patch {d}", "--root", str(proj)]) == 0
+    assert capsys.readouterr().err.count("WARN:") == 1
+
+
+def test_f8_an_unreadable_map_is_a_silent_none(tmp_path, capsys, monkeypatch):
+    """item 1: a map file that EXISTS but cannot be read is a MISS — never a raise."""
+    proj = _project(tmp_path, [f"{OLD_A}\t{'c' * 40}"], git=True)
+    m, real = proj / ".agi/scrub/m.tsv", Path.read_text
+    monkeypatch.setattr(Path, "read_text", lambda s, *a, **k: (
+        (_ for _ in ()).throw(OSError("no read")) if s == m else real(s, *a, **k)))
+    assert links.resolve_old_sha(proj, OLD_A) is None
+    out = capsys.readouterr()
+    assert (out.out, out.err) == ("", "")
+
+
+def test_f9_map_cache_reads_once_per_mtime(tmp_path):
+    """item 3: _MAP_CACHE is real — one read for many calls, a changed mtime re-reads."""
+    proj = _project(tmp_path, None, git=True)
+    head = links._git_commit(proj, "HEAD")
+    m, real, seen = proj / ".agi/scrub/m.tsv", Path.read_text, []
+    Path.read_text = lambda s, *a, **k: (seen.append(s) if s == m else None,
+                                         real(s, *a, **k))[1]
+    try:
+        m.write_text(f"{OLD_A}\t{head}\n")
+        assert links.resolve_old_sha(proj, OLD_A[:8]) == head
+        assert links.resolve_old_sha(proj, OLD_A) == head and len(seen) == 1
+        os.utime(m, ns=(0, 0))   # a changed mtime is a changed cache key
+        assert links.resolve_old_sha(proj, OLD_A) == head and len(seen) == 2
+    finally:
+        Path.read_text = real
+
+
+def test_f10_every_file_source_is_judged(tmp_path, capsys):
+    """item 2: the sources read in SUBMIT are judged, on create and on edit."""
+    proj, r, src = _project(tmp_path, []), tmp_path / "r.md", tmp_path / "p.py"
+    src.write_text(f"# see {HOME}/x.log\n")
+    assert w.main(["create", "build", "b-warn", "--parent", "idea:i1", "--payload",
+                   str(src), "--root", str(proj)]) == 0
+    assert capsys.readouterr().err.count("WARN:") == 1
+    assert w.main(["create", "hypothesis", "h-rep-warn", "--parent",
+                   "idea:i1", "--root", str(proj)]) == 0
+    capsys.readouterr()
+    r.write_text(f"added {HOME}/y.log\n")
+    assert w.main(["hypothesis:h-rep-warn", f"replace body 4:6 {r}",
+                   "--root", str(proj)]) == 0
     assert capsys.readouterr().err.count("WARN:") == 1

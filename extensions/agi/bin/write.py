@@ -2476,52 +2476,58 @@ def _resolve_replace_text(edit: Edit) -> None:
     edit.replace_text = text
 
 
-def _added_text(edit) -> str:
-    """hypothesis:g133 — ONLY the text a write ADDS: the `+` lines of a diff, never
-    its context or `-` lines, plus every inline source and the set values; an old
-    body is never judged."""
-    parts = [edit.body_append, edit.thought, edit.replace_text, edit.payload_bytes]
-    parts += list(edit.set_fm.values())
-    for frm, diff in ((edit.body_patch_from, edit.body_patch_diff),
-                      (edit.patch_from, edit.patch_diff)):
+def _source_text(path) -> str:
+    """A file source read for the WARN only, best-effort: an unreadable source is
+    judged as carrying no text, never as raising — the WARN is not a write gate."""
+    try:
+        return Path(path).read_text(encoding="utf-8", errors="replace")
+    except (OSError, ValueError):
+        return ""
+
+
+def _added_sources(edit) -> list:
+    """hypothesis:g133 — the text a write ADDS, ONE labelled row per SOURCE: the
+    `+` lines of a diff (never its context or `-` lines), the inline sources, the
+    set values, and the file behind `payload_from` / a diff `*_from` — read HERE,
+    so a source the writer reads later in SUBMIT is still judged. An old body is
+    never judged. Labels name the KIND only, never the path."""
+    rows = [("body", edit.body_append), ("thought", edit.thought),
+            ("replace", edit.replace_text), ("payload", edit.payload_bytes),
+            ("set values", "\n".join(str(v) for v in edit.set_fm.values()))]
+    for kind, frm, diff in (("body_patch diff", edit.body_patch_from,
+                             edit.body_patch_diff),
+                            ("payload patch diff", edit.patch_from,
+                             edit.patch_diff)):
         if not diff and frm and frm != "-":   # submit reads a diff FILE after this
-            try: diff = Path(frm).read_text(encoding="utf-8", errors="replace")
-            except OSError: diff = ""
-        parts += [ln[1:] for ln in (diff or "").splitlines()
-                  if ln.startswith("+") and not ln.startswith("+++")]
-    return "\n".join(str(t) for t in parts if t)
+            diff = _source_text(frm)
+        rows.append((kind, "\n".join(ln[1:] for ln in (diff or "").splitlines()
+                                     if ln.startswith("+") and not ln.startswith("+++"))))
+    if edit.payload_from and edit.payload_from != "-":   # read in SUBMIT, judged here
+        rows.append(("payload file", _source_text(edit.payload_from)))
+    return [(k, t) for k, t in rows if t]
 
 
 def _warn_home_path(edit) -> None:
-    """hypothesis:g133 -- ONE WARN line when a NEW write's ADDED text carries an
-    absolute home-rooted path (anonymize's own pattern, reused). Never refuses;
-    an old node is never swept."""
+    """hypothesis:g133 -- ONE WARN line PER source whose ADDED text carries an
+    absolute home-rooted path (anonymize's own pattern, reused), on create AND on
+    edit. Never refuses; an old node is never swept."""
     import anonymize
-    text = _added_text(edit)
-    if text and anonymize.HOME_PATH_RE.search(text):
-        print("WARN: this write carries a home-rooted path; prefer a config cell "
-              "or <home>/. Not refused.", file=sys.stderr)
+    for kind, text in _added_sources(edit):
+        if anonymize.HOME_PATH_RE.search(text):
+            print(f"WARN: this write's {kind} carries a home-rooted path; prefer "
+                  "a config cell or <home>/. Not refused.", file=sys.stderr)
 
 
 def _resolve_api_root(root) -> Path:
     """Resolve the graph root a caller handed the Python API — DESCEND-ONLY.
 
-    The CLI resolves `--root` through `locations.find_project_root` BEFORE
-    touching `create`/`submit` (write.py:1208, :1253), so CLI callers are
-    safe. The API takes `root` raw (hypothesis:l4-write-api-root-resolution),
-    and a raw `.` from the repo root used to mint into `<repo>/nodes/...`
-    instead of `<repo>/.agi/nodes/...`, silently. Worse, a caller inside a
-    bare dir with no project of its own would have had `find_project_root`
-    walk UP into a real ancestor graph and write a node into it — a
-    data-loss-shaped hazard for any test that passed a no-`.agi/` tmp dir.
-
-    Resolution here looks at ONLY `root` and the `.agi/` directly beneath it,
-    and NEVER walks up the filesystem: a project path resolves to its graph
-    root, and a bare dir REFUSES (raises) rather than resolving into a real
-    graph above it. The never-ascend property is asserted directly by
-    test_write.py, not inferred from the passing tests around it. Refusing
-    before any write is what closes the "wrong root looks like success"
-    symptom — the node is not minted and nothing is written anywhere.
+    The API takes `root` raw (hypothesis:l4-write-api-root-resolution): a raw `.`
+    from the repo root used to mint into `<repo>/nodes/...`, and a bare dir used
+    to let `find_project_root` walk UP into a real ancestor graph. Here ONLY
+    `root` and the `.agi/` directly beneath it are read, and a bare dir REFUSES
+    (raises) rather than resolving into a graph above it — asserted directly by
+    test_write.py. Refusing before any write closes "wrong root looks like
+    success": the node is not minted and nothing is written anywhere.
     """
     d = Path(root).resolve()
     # The root itself is a graph root (a `.agi/` dir, or a legacy config dir).
@@ -2652,10 +2658,9 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         body = apply_unified_diff(_read_body_text(root, edit.node_id),
                                   edit.body_patch_diff)
 
-    # Everything that can refuse, refuses BEFORE anything is written: a
-    # payload swap that lands next to a rejected node edit is a file whose
-    # reason never made it into the graph, which is the exact split this verb
-    # exists to close.
+    # Everything that can refuse, refuses BEFORE anything is written: a payload swap
+    # landing next to a rejected node edit is a file whose reason never reached
+    # the graph -- the exact split this verb exists to close.
     if edit.patch_from == "-" and not edit.patch_diff:   # SM 139: refused BEFORE any write, dry and real
         raise EditError("patch - (stdin) is empty: no diff to apply -- nothing written")
     if edit.body_patch_from == "-" and not edit.body_patch_diff:   # SM 144: 139's sibling (an API caller sets the diff)
@@ -3674,8 +3679,6 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
     the rename honest** (`goal:g13.1`, L1.07). The verb layer could revise any
     node and mint none, so a director needing a standalone or build node still
     hand-wrote a file: the exact undeclared write the module exists to end.
-    `dispatch.py` had a creation path via `cli.py scaffold`, but that one is
-    wired to an agent's `agent.json` bookkeeping and is not usable by a human.
 
     **It reuses `node_writer.write_node` rather than reimplementing it.** That
     routine runs the spawn gate *before* touching the filesystem, mints the
@@ -3684,13 +3687,10 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
     thing `submit` refuses to be on the update side.
 
     `payload` creates the source file if it is absent and records it as
-    `link_ref`, so "a new node and, if needed, the code file behind it" is one
-    operation. An existing file is **never overwritten** — it is linked.
+    `link_ref`; an existing file is **never overwritten** — it is linked.
     """
-    # hypothesis:l4-write-api-root-resolution — same descend-only resolution
-    # as submit; a wrong root refuses before the node or its payload file is
-    # created, instead of minting into `<root>/nodes/...` with the spawn gate
-    # silently unverified.
+    # hypothesis:l4-write-api-root-resolution — same descend-only resolution as
+    # submit, so a wrong root refuses before the node or its payload file lands.
     root = _resolve_api_root(root)
 
     _enforce_written_by(root, node_type, actor, f"{node_type}:{slug}", role)
@@ -3966,15 +3966,11 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  set      {k} = {v!r}")
             return 0
         # hypothesis:lm-create-body-file-lands-real-prose-not-the-placeholder-
-        # scaffold -- the verb layer owns IO. Read the body HERE, in `main()`,
-        # so a missing/unreadable file is refused by name with exit 2 and NO
-        # node is written; `body=None` (no flag) reaches `write_node`
-        # unchanged, keeping the BODY_PROMPTS scaffold path byte-identical.
-        # A `role` the answers file or an explicit `--set` names is re-stamped
-        # LAST (below, in `create()`), AFTER `node_writer`'s environment stamp
-        # -- which is exactly why the ceiling guard has to be applied to the
-        # SURVIVING row HERE: an elevation that survives the precedence would
-        # otherwise never be compared with the actor's seat at all.
+        # scaffold -- the verb layer owns IO: the body is read HERE, so an
+        # unreadable file is refused by name (exit 2) with NO node written, while
+        # `body=None` leaves the BODY_PROMPTS scaffold path byte-identical. A
+        # `role` re-stamped LAST in `create()` is why the ceiling guard is
+        # applied to the SURVIVING row here.
         body = None
         if args.body_file is not None:
             try:
@@ -3987,8 +3983,9 @@ def main(argv: list[str] | None = None) -> int:
             body = answers["body"]
         # g133: the create branch RETURNS above every other call site, so the
         # WARN is raised HERE too — a create IS the literal NEW write
+        _pay = args.payload or answers.get("payload") or ""
         _warn_home_path(Edit(node_id=f"{script}:{slug}", body_append=body or "",
-                             set_fm=set_fm))
+                             set_fm=set_fm, payload_from=_pay))
         try:
             res, made = create(root, script, slug, parents,
                                set_fm=set_fm,
@@ -4216,37 +4213,33 @@ def main(argv: list[str] | None = None) -> int:
             print(_note, file=sys.stderr)
         return EXIT_UNCOMMITTED if _unc else 0
 
-    # hypothesis:l4-replace-api-drops-source — ONE resolver, not a second
-    # read. Delegate to the same function `submit` uses, so dry-run shows the
-    # bytes and a missing/empty source refuses here exactly as it refuses in
-    # the library. Refusals print ERR and write nothing.
+    # hypothesis:l4-replace-api-drops-source — ONE resolver, not a second read:
+    # the same function `submit` uses, so a missing/empty source refuses here
+    # exactly as it refuses in the library, before anything is written.
     try:
         _resolve_replace_text(edit)
     except EditError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
 
-    # `patch <path>` reading happens in `submit` (fail-closed, after the
-    # payload ref is resolved) rather than here, so a refused diff is still
-    # refused before consuming it.
+    # `patch <path>` reading happens in `submit` (fail-closed, after the payload ref
+    # is resolved) rather than here, so a refused diff is refused before consuming it.
 
     # SM 132: stdin is read ONCE, here, BEFORE the one judge -- a dry run judges
     # the same bytes the write lands (a `body_patch -` diff that does not apply
     # refuses in both)
     _stdin: set = set()   # SM 134: which sources came off stdin -- the preview labels them
     if edit.payload_from == "-":
-        # The CLI layer reads stdin; the library never does. `payload -` is
-        # for content that cannot ride in an argv chunk -- anything with `&&`
-        # in it, or a whole file being piped in.
+        # The CLI layer reads stdin; the library never does. `payload -` is for
+        # content that cannot ride in an argv chunk (an `&&`, a piped file).
         _data = sys.stdin.read()
         _stdin.add("payload")
         if _data:   # SM 140: an EMPTY read keeps `-`, and submit refuses it by name, dry and real
             edit.payload_from, edit.payload_bytes = "", _data
 
     if edit.body_patch_from == "-":
-        # Same stdin contract as `payload -` / `patch -`: the diff bytes ride
-        # stdin because a diff can contain the doubled ampersand that would
-        # split the `&&` script form. Read once, here, never in the library.
+        # Same stdin contract as `payload -` / `patch -`: a diff can contain the
+        # doubled ampersand that would split the `&&` script form. Read once, here.
         _diff = sys.stdin.read()
         _stdin.add("body_patch")
         if _diff:   # SM 144: as 140 -- an EMPTY read keeps `-`, and submit refuses it by name

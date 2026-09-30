@@ -5,7 +5,10 @@ type: experiment
 parents:
   - hypothesis:g133-one-resolve-old-sha-reads-pre-rewrite-ids-through-a-cell-named-map
 next_edges: []
+confidence: 0.8
 edited_by: a00-06edea01
+evidence_runs:
+  - experiment:a00-06edea01-b5e1bc
 loop: hypothesis:g133-one-resolve-old-sha-reads-pre-rewrite-ids-through-a-cell-named-map@s2
 model: stealth/space-bunny-alpha
 production_lines: 0
@@ -15,6 +18,7 @@ scaffold_hash: 332e2ad1a02a26d2
 season: 2
 title: An unreadable map is a silent miss and the WARN judges every file source
 town: core
+verdict: proved
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-06edea01-b5e1bc
@@ -98,3 +102,6 @@ comment blocks were condensed; no mechanism line was removed.
 
 Committing is the parent's: five files are edited in this worktree and uncommitted
 by design (the loop owns every commit).
+
+## Agent Notes
+g133 residues closed: unreadable map -> silent None (links.py _map_rows guarded), WARN judges payload_from/replace_from on create AND edit one row per source (write.py _added_sources), _MAP_CACHE covered by F9; production net 0 lines (78/78), tests +45.
