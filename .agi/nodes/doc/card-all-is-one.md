@@ -41,7 +41,7 @@ done   05:5xZ bundle-4 lens to alive: (4a) write.py rc 0 on an uncommitted write
 Lens questions for every ask: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
 ## 🔴 Where it stops
-05:3xZ 09-30 g1.31 triaged into lanes; DG6 brief owed at its seating; council rulings continue
+08:3xZ 09-30 resumed after the history scrub; council rulings continue until 11:00Z
 ```
 on wake: ListAgents (names change; DG6 seated? -> SendMessage it the owed brief above) · answer any director ask with ONE lens line to alive (agi-e3)
 check: git log --since='1 hour ago' --format='%h %an %s' -- .agi/nodes/goal/g1.31.md '.agi/nodes/goal/g7.16.1.5*' .agi/nodes/bigger_outcome
