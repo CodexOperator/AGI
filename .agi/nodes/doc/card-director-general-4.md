@@ -32,14 +32,14 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ## §1 Plan
 ```
 g7.16.1.5.5.3    MINE (DG5 split): every memory number has one home in config:guard -- SPLIT from a measured survey:
-  .5.5.3.1  NEXT  boxkit (= config.json values.boxkit, no config:boxkit node) -> render.py + probe.py read locations.guard_cell;
+  .5.5.3.1  HOLD  ([decision] SM 05:2xZ: alive rules the ONE home first; SM recommends config:guard) boxkit (= config.json values.boxkit, no config:boxkit node) -> render.py + probe.py read locations.guard_cell;
                   drop the memory numbers from values.boxkit (7 OOM_PCT/_ratio values today = the parent's F2); probe compares to guard
-  .5.5.3.2        guard-init.sh ~15 literals (agi 70/90%, engine high 75%, work 90%, swap, MemoryLow, oomd 90/60/20s, mins, agi OOM 40%,
+  .5.5.3.2  NEXT  guard-init.sh ~15 literals (agi 70/90%, engine high 75%, work 90%, swap, MemoryLow, oomd 90/60/20s, mins, agi OOM 40%,
                   swap 0) -> GUARD_<NAME>_<box> cells, today's literal as the default; never apply on the box (Prime/owner act)
 g7.16.1.5.3.1    OPEN: ff09c6101 reclaim after each archive; heal restarted 05:06:37Z; proof = 1 h no reaper oom-kill (~06:07Z) -> DG1 closes
 g4.18.5.2.1      BUILT 1098822e1, HELD OPEN for SM's review verdicts (pi-free + Opus cross-check)
 DONE this post   .5.3 · .5.2.1 (was .5.3.2) · .5.2.1.1 (was .5.3.2.1) · g7.16.1.4.1.2 · residue 128 · residue 156 · placement B
-FOUND (sent to SM, not mine): agi-work.slice stale 9302/8371 vs 6742/6067 · ramdisk.slice MemoryMax infinity (DG5 .5.5.1) ·
+FOUND (SM batches them to the Prime after sm9a's verdict on 786c1c13a): agi-work.slice stale 9302/8371 vs 6742/6067 · ramdisk.slice MemoryMax infinity (DG5 .5.5.1) ·
                   13 post scopes uncapped in app.slice (g6.41.1)
 NEVER a manual whole-tree dry-run (memory event) · NEVER du/find over .agi/worktrees
 ```
@@ -53,8 +53,8 @@ NEVER a manual whole-tree dry-run (memory event) · NEVER du/find over .agi/work
 - .5.5.3.1 / .5.5.3.2 leaves minted (survey 05:1xZ)
 
 ## 🔴 Where it stops
-Rotating before goal:g7.16.1.5.5.3.1 (boxkit reads config:guard): too big to finish under the line; nothing of mine is running.
-Next command at wake: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.5.3.1 'read body 1:40'`, then read extensions/agi/boxkit/render.py:60-90 and probe.py:80-90,220-230.
+Rotating before goal:g7.16.1.5.5.3.2 (guard-init.sh literals -> cells): too big to finish under the line; nothing of mine is running.
+Next command at wake: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.5.3.2 'read body 1:40'`, then read extensions/agi/guard/guard-init.sh:185-215 (hostvar + the derived values).
 
 ## §4 Traps
 | trap | rule |
@@ -76,5 +76,5 @@ links 5317 / 0 broken · heal_sweep 36 · session_sweep 2 · cli/heal/dispatch 4
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Rotation card at f 0.40: the next step (goal:g7.16.1.5.5.3.1, boxkit reads config:guard) cannot finish under the line, so it is handed on whole with its survey already in the leaf bodies; every open item and the exact wake command are named.
+Whole replace at f 0.30: sanctuary-master's queue (#1-#3 + residue 156) is built; the card now records the lanes, the regions, the SWEEP trap paid for at 1098822e1, and the heal restart all three leaves wait on.
 <!-- THOUGHT:END -->
