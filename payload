@@ -722,6 +722,51 @@ def test_sm144_an_empty_body_patch_stdin_refuses_beside_any_verb(project, tmp_pa
         if "note" not in script:   # a note is refused earlier, as body_patch's second body writer
             assert "body_patch - (stdin) is empty" in errs[0][0], (script, errs)
 
+# goal:g4.18.1.6 (owner 09-30: "The node location just becomes the node itself."): `patch` on a
+# node with no payload_ref edits the node file, byte-exact, through update_node's gates
+def _g41816_guard(project):
+    d = project / "nodes" / ".geometry"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "guard.md").write_text("---\nid: config:guard\ntype: config\nmint_id: " + "e" * 32 +
+                                "\nlimit: 384M\n---\n\n# config:guard\n\nold line\n\n" + THOUGHT + "\n")
+    assert write.main(["config:guard", "set note_row x", "--root", str(project)]) == 0   # canonical form
+    return d / "guard.md"
+
+def _g41816_diff(old, new):
+    import difflib
+    return "".join(difflib.unified_diff(old.splitlines(True), new.splitlines(True), "a", "b"))
+
+def test_g41816_patch_lands_on_a_config_node_itself_byte_exact(project, monkeypatch, capsys):
+    import io
+    node = _g41816_guard(project)
+    old = node.read_text()
+    want = old.replace("limit: 384M", "limit: 1G").replace("old line", "new line")
+    for dry in (["--dry-run"], []):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, want)))
+        assert write.main(["config:guard", "patch -", *dry, "--root", str(project)]) == 0, capsys.readouterr().err
+        assert node.read_text() == (old if dry else want)
+
+def test_g41816_a_node_patch_refuses_identity_contract_thought_and_a_second_verb(project, monkeypatch, capsys):
+    import io
+    node = _g41816_guard(project)
+    old = node.read_text()
+    beg = THOUGHT.split("\n")[0]
+    node.write_text(old.replace("old line", "old line\n\n<!-- BUILD-CONTRACT:BEGIN -->\nc\n<!-- BUILD-CONTRACT:END -->"))
+    old = node.read_text()
+    for script, new, want in (("patch -", old.replace("e" * 32, "f" * 32), "identity rows"),
+                              ("patch -", old.replace("type: config", "type: goal"), "identity rows"),
+                              ("patch -", old.replace("\nc\n", "\nd\n"), "BUILD-CONTRACT"),
+                              ("patch -", old.replace(beg + "\n", ""), "THOUGHT malformed"),
+                              ("patch -", old.replace("old line", f"old line\n{beg}"), "THOUGHT malformed"),
+                              ("patch - && note n", old.replace("old line", "x"), "standalone")):
+        errs = []
+        for dry in (["--dry-run"], []):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, new)))
+            assert write.main(["config:guard", script, *dry, "--root", str(project)]) == 2, (want, dry)
+            errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+        assert errs[0] == errs[1] and want in errs[0][0], (want, errs)
+        assert node.read_text() == old, want
+
 def test_payload_verb_replaces_the_bytes_the_node_points_at(project, tmp_path):
     _build_node(project)
     dest = tmp_path / "src" / "thing.py"
