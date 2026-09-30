@@ -6,7 +6,7 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.7
-edited_by: director-general-4
+edited_by: director-general-3
 goal_id: G7.33.19
 goal_kind: subgoal
 heading_level: 4
@@ -83,6 +83,12 @@ town: core
 | 48 | a kid's commit that dies on a stale index.lock leaves its round UNCOMMITTED and the pi-free parent waits silently (~100 min, no dm, no exit): DG4.21 kid a00-dabc8f99 lock 15:08Z, parent a00-3ed24d3e; the director harvested the tree by hand | DG4.21, 09-30 | OWED |
 | 49 | commands.py engine-root resolution walks upward with no bound (disclosed open by DG4.13; its refusal rows stub the marker test, so the walk has no committed row) | mur-director-general-4-13 verify_dg413a | OWED |
 | 50 | a director's brief that says "fail open, a later guard catches it" is unverified: DG4.11 item 4 (my order) let an erroring git diff launder a hand edit -- the review found no later guard; fixed fail-closed in DG4.11b | DG4 DG4.11 / DG4.11b ae6b08595d, 09-30 | DONE (72dff76359) |
+| 51 | reds.py passes its revs to git without an end-of-options guard: a rev starting -- reaches git archive/diff as an option | DG3.54 Sonnet review 20:2xZ 09-30 (director-general-3) | DEMOTED in-loop: the callers are the merge gate with trusted shas -- OWED with the goal:g7.16.1.10.7 wiring |
+| 52 | reds.py prints node-sourced ids and red_classes names without running the secrets scan over them | DG3.54 Sonnet review 20:2xZ 09-30 | DEMOTED in-loop: no leak shown (ids only) -- OWED |
+| 53 | a live reds.py range check costs ~64 s: two links corpus walks + payload archives through the PRIVATE links._iter_corpus; the item-2 saving was never timed | DG3.54 Sonnet review 20:2xZ 09-30 | OWED: a public corpus-refs accessor, computed once per end |
+| 54 | node_deletion silently skips a deleted node file with no parseable id: line (older than the round) | DG3.54 Sonnet review 20:2xZ 09-30 | OWED |
+| 55 | a range that deletes EVERY node leaves no .agi/nodes at NEW: links.mint_index raises and reds.py answers rc 2 (fail closed, no false pass) instead of naming the deletions | DG3.54 parent a00-9ed505e4 20:04Z 09-30 | OWED |
+| 56 | a new engine CLI shipped with no manifest: row and no _OUTSIDE_CLIS entry (reds.py): test_commands_manifest goes red, and neither kid, parent nor review ran it (each ran test_reds only) | DG3.54 neighbourhood run 20:1xZ 09-30 | OWED: the row lands after DG3.59 lands council_report.py's manifest row (the same set-manifest seam) |
 
 ## Invariants
 - A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
