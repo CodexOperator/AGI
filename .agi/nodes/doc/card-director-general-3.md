@@ -44,8 +44,9 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
               g7556: DG3.50 tip 574a307b1c -> mur g7556d FAILED 15:51Z (memcap verify timed out; review + shell verify accept_with_residue) ->
           director moved the ram-recharge conjunct out of the hypothesis (-> goal:g7.16.1.5.5.6.1) -> CORRECTIVE DH.DG3.57 on loop tip 2d76bf17b4
           (liveness not presence, fail-open fstype_at/execvp, mount escapes, one ramw file, node verdicts) -> HARVESTED 16:07Z tip 2f46e5f159
-          (131p/8s, caps met, item-5 nodes landed by director) -> re-mur unit agi-director-general-3-dg3mur-g7556e-1608 (/tmp/dg3_mur-g7556e.json)
-          worktree /mnt/agi-ram/worktrees/a00-b9773bd6 -> residues 0 -> [merge-up] -> GO -> land -> goal:g7.16.1.5.5.6 complete
+          (131p/8s, caps met, item-5 nodes landed by director) -> mur g7556e FAILED 17:23Z (memcap verify timed out; accept_with_residue) -> Sonnet
+          FIX subagent RUNNING in /mnt/agi-ram/worktrees/a00-b9773bd6 (fstype last-field, uncharged stderr line, markers, stale nodes, ram-write.sh build node)
+          -> director: hypothesis title + testable_claim tail (ram-recharge) AFTER it -> gate -> [merge-up] -> goal:g7.16.1.5.5.6 complete
        g7.16.1.10.3 (queue 1, CLAIMED active 9a8b4559cc): hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model 5a6fecd879 ->
           DG3.51 HARVESTED 14:59Z tip 2f375f5154 -> mur h10103 DONE 15:29Z: both slices accept_with_residue, verify upheld 12 items -> CORRECTIVE
           DH.DG3.54 on the loop tip 8725ffca96 (findings rows 39 + 40) -> parent a00-9ed505e4 from /mnt/agi-ram/worktrees/de-base-DG3.54
