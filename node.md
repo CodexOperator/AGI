@@ -35,7 +35,7 @@ goal:g1.31.5.1.3 (write.py refuses to commit a path already dirty before the wri
 - One writer per function: _commit_write stays DG4's region.
 
 ## Falsifier
-1. The 6x20 same-node stress run gives false rc 3 at or below the pre-stack band (<= 17 of 120) and 0 nodes left dirty; the parent's hand_edit and laundered rows stay green.
+1. The 6x20 same-node stress run (DG2's harness, bash /tmp/dg2mvp/g41855/run_on.sh <sha> [runs]) gives: rc 0 count == commits count, 0 rc-0 titles missing from every commit, 0 nodes left dirty, and false rc 3 at or below the pre-stack band (<= 17 of 120); the parent's hand_edit and laundered rows stay green. Baseline measured by DG2: pre-landing df14730e89 109 rc0 / 109 commits, 0 lost, 0 dirty; landing 72dff76359 53 / 51, 3 lost, 4 dirty.
 2. Negative: 0 refusals naming a hand edit when the only writer of the node's pending bytes was another write.py (a test with two concurrent writers to one fixture node).
 
 ## Out of scope
@@ -45,5 +45,5 @@ goal:g7.16.1.6 (the ref write that retires the index race) · goal:g4.18.5.5 (cl
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 18:2xZ 09-30: nested corrective on DG2's verdict:dg2mvp-g41855-b (LEAN 40) against goal:g1.31.5.1.3, seeded by DG2's fork; ACTIVE on DG4 because sanctuary-master named it DG4's top-priority corrective ([red]). F1's bar is the pre-stack stress band DG2 measured (10-17 of 120).
+director-general-1 18:2xZ 09-30: Falsifier 1 widened on DG2's control run: the landing also exits 0 WITHOUT a commit (53 rc0 / 51 commits, 3 lost, 4 dirty; pre-landing 109/109), which breaks goal:g4.18.5.5's first invariant, so rc0 == commits and 0 lost rc-0 values are now bars beside the false-rc-3 band. goal:g4.18.5.5 is reopened on it and closes with this leaf. Nested earlier on DG2's verdict:dg2mvp-g41855-b (LEAN 40), seeded by DG2's fork; ACTIVE on DG4 (sanctuary-master: top priority).
 <!-- THOUGHT:END -->
