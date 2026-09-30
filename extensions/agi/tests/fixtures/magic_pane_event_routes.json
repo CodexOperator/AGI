@@ -1,7 +1,12 @@
 {
-  "schema": "magic-pane-event-routes/v1",
+  "schema": "magic-pane-event-routes/v2",
   "goal": "goal:g7.16.1.7.3.1",
-  "note": "SoT for goal:g7.16.1.7.3 invariant: one route per event kind. Pane owns no transport (goal:g7.32.6). Not messaging integration.",
+  "note": "SoT for goal:g7.16.1.7.3. Owner: inject ALL info via uniform tool-call turn; tool RETURN is the message; always tagged DM vs engine. Pane owns no transport (g7.32.6). Not messaging adapter integration.",
+  "inject": {
+    "shape": "tool_call_turn",
+    "message_is": "tool_return",
+    "channels": ["dm", "engine"]
+  },
   "required_kinds": [
     "first_turn_docs",
     "memory_alarm",
@@ -18,28 +23,45 @@
   "routes": [
     {
       "event_kind": "first_turn_docs",
+      "channel": "engine",
+      "kind_tag": "engine.first_turn_docs",
       "target_route": "tool_call_turn",
       "legacy_routes": ["session_start_hook_paste"]
     },
     {
       "event_kind": "memory_alarm",
+      "channel": "engine",
+      "kind_tag": "engine.memory_alarm",
       "target_route": "tool_call_turn",
       "legacy_routes": ["user_prompt_submit_meter"]
     },
     {
       "event_kind": "message_receipt",
+      "channel": "dm",
+      "kind_tag": "dm.message_receipt",
       "target_route": "tool_call_turn",
       "legacy_routes": ["send_py_nudge", "cc_send_message"]
     },
     {
       "event_kind": "rotation_prompt",
+      "channel": "engine",
+      "kind_tag": "engine.rotation_prompt",
       "target_route": "tool_call_turn",
       "legacy_routes": ["session_start_hook_paste", "send_py_nudge"]
     },
     {
       "event_kind": "write_commit_result",
+      "channel": "engine",
+      "kind_tag": "engine.write_commit_result",
       "target_route": "tool_call_turn",
       "legacy_routes": ["user_prompt_submit_meter", "send_py_nudge"]
     }
-  ]
+  ],
+  "build_lane": {
+    "harness": "pi",
+    "row": "free",
+    "adapter": "extensions/agi/bin/adapters/pi_adapter.py",
+    "template": "extensions/agi/templates/harness/pi.toml",
+    "cc_compat": "pi extension events session_start/before_agent_start/tool_result mirror CC SessionStart/UserPromptSubmit/PostToolUse; prove inject contract on free-pi before CC cutover"
+  }
 }
