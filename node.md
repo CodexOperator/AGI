@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 25be74d153992b6e
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -45,3 +45,7 @@ goal:g7.16.1.3.3.2 (the fold or verdict itself)
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. the S1 measurement experiment exists under hypothesis:dm-family-can-replace-the-inbox-route-measured; 0 bin files changed.
+<!-- THOUGHT:END -->
