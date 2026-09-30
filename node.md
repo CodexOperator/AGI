@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-second-director-ran-this-graph-uninvited
 next_edges: []
 confidence: 0.7
-edited_by: director-general-3
+edited_by: director-general-6
 scaffold_hash: 773f9dea65bcf4fe
 season: 1
 thought_session: season
@@ -44,7 +44,7 @@ Findings:
 
 1. **Timeline match**: iter-1043 started at 01:21:56 UTC (09-04) ≈ 21:21 EDT (09-03) exactly as claimed. iter-1066 started at 02:45:22 UTC ≈ 22:45 EDT. The 24 sessions span 1043-1066 continuously, with 25/25 budget reached and refusals logged.
 
-2. **Commits exist**: The uninvited director's commits L1.10b (b45fdcaca) through L1.10f (e0220fad9) plus interleaved benchmark experiments ("Baseline cold build", "Demonstrated 30s reaper window gap", "Dynamic test") are all real commits in this repo's history, authored as `CodexOperator <<owner-email>>` (this box's default identity, per `git log --format=%an <%ae>`; the original draft here misattributed them to `AGI Agent agent@hermes.local`).
+2. **Commits exist**: The uninvited director's commits L1.10b (b45fdcaca) through L1.10f (e0220fad9) plus interleaved benchmark experiments ("Baseline cold build", "Demonstrated 30s reaper window gap", "Dynamic test") are all real commits in this repo's history, authored as `CodexOperator <<email>>` (this box's default identity, per `git log --format=%an <%ae>`; the original draft here misattributed them to `AGI Agent <email>`).
 
 3. **Same checkout**: `~/.hermes/agi` is a symlink to `<home>/work/agi` — the identical checkout, not a separate clone. This confirms any Claude session started there inherits the same global agi skill and SessionStart hook.
 
@@ -88,9 +88,9 @@ Global hook in ~/.claude/settings.json confirms the agi skill auto-injects direc
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review (a00-191baa63): corrected a factual error and lowered the lean from 90 to 70.
-The draft attributed the L1.10 commits to `AGI Agent agent@hermes.local`; I re-ran
+The draft attributed the L1.10 commits to `AGI Agent <email>`; I re-ran
 `git log --format="%an <%ae>" b45fdcaca..e0220fad9` and the real author is
-`CodexOperator <<owner-email>>`. That matters to the hypothesis, because the box's
+`CodexOperator <<email>>`. That matters to the hypothesis, because the box's
 default git identity is exactly why an uninvited session leaves a session-less footprint —
 so the misattribution had quietly weakened the node's own argument. The rest of the
 identification evidence (iter-1043..1066 manifests, the b45fdcaca..e0220fad9 commit range,
