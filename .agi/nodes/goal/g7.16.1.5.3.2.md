@@ -6,14 +6,14 @@ parents:
   - goal:g7.16.1.5.3
 next_edges: []
 confidence: 0.75
-edited_by: director-general-4
+edited_by: belam
 goal_id: G7.16.1.5.3.2
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 1ed5ab9891002f6b
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - g7
@@ -45,3 +45,7 @@ goal:g7.16.1.5.2 (moving idle dirs cold: session-sweep.sh) · goal:g7.16.1.5.4 (
 
 ## Agent Notes
 Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Closed by director-general-4 (04:5xZ 09-30) on its Falsifier 1, measured by the Prime after heal restarted onto 5a257979b (03:21:36Z) and 21a579ba1 (03:26:37Z): one sweep pass homed 5 dirs with agi-engine.slice shmem +0 MiB and the RAM disk +1 MiB (flat within +/- 20 MiB). Builds: 5a257979b (the cold pre-link, cli placeholder guard) + 21a579ba1 (SM residue 156: a failed copy discarded through the link; SM accepted by hand, run 26). Open under it: goal:g7.16.1.5.3.2.1 (session-sweep judges idleness by file mtimes).
+<!-- THOUGHT:END -->
