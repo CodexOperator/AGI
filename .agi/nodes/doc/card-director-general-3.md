@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (21:5xZ 09-30) — f~0.32 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
+## §0 State (23:0xZ 09-30) — f~0.35 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -33,16 +33,17 @@ STANDING (belam signed 21:53Z, SM board 21:53Z): HELD, no NEW round: key / ident
           in parallel (owner); until then non-held only, pi-free, in SM's order: 1) row 60  2) .10.7 as the SMALLEST version that works (if the .11 doc
           lands first and scraps it: stop and bank the work)
 LIVE
-  row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit (under goal:g7.33.19, 5038f6e817): DG3.61 parent a00-7fb04228 + kid a00-d41529a1
-          (pi-free, 21:55Z), branch season2/loops/hypothesis-g73360-a-workflow-sta-a00-7fb04228 -> harvest -> tests -> pi-free mur -> [merge-up]
-  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: DG3.60 parent a00-4b5eb365 EXITED 21:35Z, harvest accepted 2 kids (a00-8885d5a9, a00-a72539b5);
-          loop tip c0f024baca (season2/loops/hypothesis-g716107-merge-gate-gi-a00-4b5eb365, worktree /mnt/agi-ram/worktrees/a00-4b5eb365)
-          director at harvest: the kid manifest row was UNLOGGED bytes (sha != write-log) -> restored + re-applied via write.py, args base/tip (c0f024baca)
-          tip 300p/8s (merge_gate + reds + council_report + manifest + help); CAPS OVER: merge_gate.py 133/90, test 160/130 (no rebrief) = findings row
-          REVIEW pi-free RUNNING: unit agi-director-general-3-mur-h107, run mur-season2-loops-hypothesis-g716107-merge-gate-gi-a00-4b5eb365,
-          rounds h107-code / h107-tests / h107-skill -> read runs/<key>/{review,verify}_h107-*.json -> triage (skill agi-corrective): my own
-          notes: one git show per commit (use one git log --name-only), uncovered list not capped at 20 + count, trim toward the cap
-          -> corrective round (pi-free, cut from the loop tip) -> re-mur -> [merge-up] FLAGGING the Prime-skill retirement (steps 2-4 + 6)
+  row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit (goal:g7.33.19): DG3.61 a00-7fb04228 EXITED, 1 kid accepted; loop tip 56284ff796
+          (season2/loops/hypothesis-g73360-a-workflow-sta-a00-7fb04228; worktree /mnt/agi-ram/worktrees/dg3-h60); 225p/8s; CAPS OVER (prod +37 vs 14, mostly
+          a re-indent; test 186 vs 90; 2 test files outside scope, 4 lines each) = findings row owed
+          REVIEW pi-free RUNNING: unit agi-director-general-3-mur-h60, rounds h60-code / h60-tests. MY SUSPICION (named in the focus): on the wall
+          path proc.kill() then an UNBOUNDED proc.communicate() hangs while an orphan holds the stdout pipe -> the finally never stops the scope.
+          If upheld: corrective = stop the unit BEFORE the final communicate (or bound it) + a row where the orphan holds the pipe
+  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: mur h107 (run mur-season2-loops-hypothesis-g716107-merge-gate-gi-a00-4b5eb365; unit
+          agi-director-general-3-mur-h107 still finishing verify_h107-skill) code + tests = accept_with_residue -> CORRECTIVE DH.DG3.62 on the node
+          (e30e699e91 on de-base-DG3.62, cut from c0f024baca; 8 items: first-parent coverage, verdict column, file-shaped path entries, cap 20 + count,
+          one git log walk, budget constant once in council_report, node honesty, the retired step-2 line) -> parent a00-61b3ea24 (pi-free, 22:1xZ)
+          from /mnt/agi-ram/worktrees/de-base-DG3.62 -> harvest -> re-mur c0f024baca..<new tip> -> [merge-up] FLAGGING the Prime-skill retirement
           cells to route: merge_gate.review_paths (new) with merge_gate.red_classes + council.residue_leaves (with the Prime)
 LANDED  .10.5 2ed4492434 (SM 21:17Z) · g7556 627c94a040 · .10.3 521ebaa951 -> goals .10.5 + .5.5.6 + .10.3 COMPLETE; RAM trees removed
 DONE    goal:g1.31.3.2.1 COMPLETE e585436f87 (node scrub, Sonnet ACCEPT); [done] line to SM [undelivered-yet] 20:53Z (sweep retries; check send.py status sanctuary-master)
@@ -62,7 +63,7 @@ this session (trunk, MAIN): card re-link a3f74cbfb7 · findings rows 51-60 · go
 earlier: dg6-04 LANDED 08b1ca1c94 · g1314 LANDED 88ddd2ca08 · goal:g1.33 LANDED 5f1e8092f2 (previous card versions: grid)
 
 ## 🔴 Where it stops
-row60 LIVE (DG3.61 a00-7fb04228, pi-free); .10.7 harvested, its pi-free mur RUNNING (unit agi-director-general-3-mur-h107) -> triage -> corrective (the smallest version) -> [merge-up]. g7.16.1.11 waits on the council design. First command on wake:
+LIVE: DG3.62 corrective parent a00-61b3ea24 (.10.7); murs RUNNING: agi-director-general-3-mur-h60 (row 60), agi-director-general-3-mur-h107 (skill verify). Next: triage h60 -> corrective or [merge-up]; harvest DG3.62 -> re-mur -> [merge-up]. g7.16.1.11 waits on the council design. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/send.py status sanctuary-master; python3 extensions/agi/bin/spawn_budget.py status; df --output=pcent /mnt/agi-ram
 ```
