@@ -293,3 +293,151 @@ def test_a_BUSY_retry_pays_no_index_read(tmp_path):
         write.subprocess.run = real
     assert not uncommitted and not seen, (note[-200:], seen)
     assert _dirty(repo) == [], "the retry landed the write committed"
+
+
+# --- g1315131: a held suite lock is WAITED; a live peer's in-flight write is no hand edit ---
+def _holder(repo: Path, secs: float):
+    """A live child holding the tmp suite lock; reaped by a thread so its pid reads dead on release."""
+    p = subprocess.Popen([sys.executable, "-c", f"import time;time.sleep({secs});print(time.time())"],
+                         stdout=subprocess.PIPE, text=True)
+    (repo / ".agi" / "sessions").mkdir(exist_ok=True)
+    (repo / ".agi" / "sessions" / "verify-suite.lock").write_text(f"{p.pid}\n")
+    return p
+
+
+def _cfg(repo: Path, **cell) -> None:
+    (repo / ".agi" / "config.json").write_text(json.dumps({"values": {"core": {"suite_lock": cell}}}))
+
+
+def test_a_held_suite_lock_released_inside_the_bound_commits_after_the_release(tmp_path):
+    repo = _repo(tmp_path)
+    _cfg(repo, hold_wait_s=30)
+    p = _holder(repo, 2)
+    threading.Thread(target=p.wait).start()
+    r = _write(repo, "doc:w1", 'set title "after the release"')
+    released = float(p.stdout.read())
+    ct = float(subprocess.run(["git", "-C", str(repo), "log", "-1", "--format=%ct"],
+                              capture_output=True, text=True).stdout)
+    assert r.returncode == 0, r.stderr[-300:]
+    assert int(ct) >= int(released), "committed only after the holder was gone"
+    assert _dirty(repo) == [] and _commits(repo) == 1
+
+
+def test_a_held_suite_lock_past_the_bound_exits_3_naming_the_wait(tmp_path):
+    repo = _repo(tmp_path)
+    _cfg(repo, hold_wait_s=0.6)
+    p = _holder(repo, 30)
+    t0 = time.monotonic()
+    r = _write(repo, "doc:w1", 'set title "never"')
+    p.kill(); p.wait()
+    assert time.monotonic() - t0 >= 0.6
+    assert r.returncode == 3 and f"live pid {p.pid} after waiting 0.6s" in r.stderr, r.stderr[-300:]
+    assert _commits(repo) == 0
+
+
+def test_concurrent_same_node_writers_are_never_refused_as_a_hand_edit(tmp_path):
+    repo = _repo(tmp_path)
+    errs: list = []
+
+    def writer(i: int) -> None:
+        for n in range(4):
+            r = _write(repo, "doc:w0", f'set title "w0 {i}.{n}"')
+            errs.append((r.returncode, r.stderr))
+
+    ts = [threading.Thread(target=writer, args=(i,)) for i in range(5)]
+    [t.start() for t in ts]
+    [t.join() for t in ts]
+    assert not [e for _, e in errs if "already dirty" in e or "hand edit" in e]
+    assert all(rc == 0 for rc, _ in errs), [e[-200:] for rc, e in errs if rc]
+    assert _dirty(repo) == [] and _commits(repo) == 20
+
+
+def test_pre_dirty_waits_a_live_peer_marker_and_ignores_a_dead_one(tmp_path):
+    sys.path.insert(0, str(BIN))
+    import write, verification  # noqa: PLC0415,E401
+    repo = _repo(tmp_path)
+    root, node = repo / ".agi", repo / ".agi" / "nodes" / "doc" / "w1.md"
+    node.write_text(node.read_text() + "peer bytes\n")
+    peer = subprocess.Popen([sys.executable, "-c", "import time;time.sleep(30)"])
+    verification.inflight_mark(root, [str(node)])
+    marker = next((root / "sessions" / "write-inflight").iterdir())
+    live = marker.with_name(f"{marker.name.split('.')[0]}.{peer.pid}.x")
+    marker.rename(live); verification._INFLIGHT.clear()
+    def peer_commits():
+        subprocess.run(["git", "-C", str(repo), "commit", "-qam", "peer"], capture_output=True)
+        live.unlink()
+    threading.Timer(0.6, peer_commits).start()
+    t0 = time.monotonic()
+    assert write._pre_dirty(root, "doc:w1") == set() and time.monotonic() - t0 >= 0.5
+    verification.inflight_clear(); peer.kill(); peer.wait()
+    node.write_text(node.read_text() + "hand edit\n")                # no live marker: a real hand edit
+    dead = live.with_name(f"{live.name.split('.')[0]}.{peer.pid}.x")
+    dead.write_text("x")                                             # stale (dead pid): ignored + removed
+    assert write._pre_dirty(root, "doc:w1") == {str(node)} and not dead.exists()
+    verification.inflight_clear()
+
+
+def test_a_marker_with_pid_zero_or_not_an_int_is_stale_not_a_stall(tmp_path):
+    sys.path.insert(0, str(BIN))
+    import verification  # noqa: PLC0415
+    root = tmp_path / ".agi"
+    d = root / "sessions" / "write-inflight"
+    d.mkdir(parents=True)
+    k = __import__("hashlib").sha1(b"/n.md").hexdigest()[:16]
+    bad = [d / f"{k}.{x}.r" for x in ("0", "-3", "abc", "", "99999999999999999999")]
+    [b.write_text("") for b in bad]
+    t0 = time.monotonic()
+    assert verification.inflight_peers(root, ["/n.md"]) == [] and not any(b.exists() for b in bad)
+    assert time.monotonic() - t0 < 2
+    mine = verification.inflight_mark(root, ["/n.md"])                    # this call's markers only
+    other = verification.inflight_mark(root, ["/n.md"])
+    verification.inflight_clear(other)
+    assert all(f.exists() for f in mine) and not any(f.exists() for f in other)
+    verification.inflight_clear()
+
+
+def test_hold_wait_s_rejects_inf_nan_negative_with_one_warning(tmp_path, capsys):
+    sys.path.insert(0, str(BIN))
+    import verification  # noqa: PLC0415
+    assert verification.suite_lock_policy(tmp_path)["hold_wait_s"] == 90.0     # STOPGAP default
+    (tmp_path / "config.json").write_text("")
+    for bad in ("inf", "nan", -1, "x"):
+        verification._SUITE_LOCK_REFUSED.clear()
+        (tmp_path / ".agi").mkdir(exist_ok=True)
+        (tmp_path / ".agi" / "config.json").write_text(json.dumps(
+            {"values": {"core": {"suite_lock": {"hold_wait_s": bad}}}}))
+        assert verification.suite_lock_policy(tmp_path)["hold_wait_s"] == 90.0, bad
+        assert verification.suite_lock_policy(tmp_path)["hold_wait_s"] == 90.0
+        assert capsys.readouterr().err.count("hold_wait_s") == 1, bad
+
+
+def test_a_lock_taken_mid_retry_refuses_instead_of_committing_under_it(tmp_path):
+    repo = _repo(tmp_path)
+    _cfg(repo, hold_wait_s=0.3, write_commit_wait_s=20)
+    idx = repo / ".git" / "index.lock"
+    idx.write_text("busy")
+    p = subprocess.Popen([sys.executable, "-c", "import time;time.sleep(30)"])
+    def take():
+        (repo / ".agi" / "sessions").mkdir(exist_ok=True)
+        (repo / ".agi" / "sessions" / "verify-suite.lock").write_text(f"{p.pid}\n")
+        idx.unlink()                       # the next retry could commit -- but the lock is now held
+    threading.Timer(0.6, take).start()
+    r = _write(repo, "doc:w1", 'set title "under the lock"')
+    p.kill(); p.wait()
+    assert r.returncode == 3 and f"live pid {p.pid} after waiting 0.3s" in r.stderr, r.stderr[-300:]
+    assert _commits(repo) == 0
+
+
+def test_a_ref_lock_failure_is_busy_and_retries_to_exit_0(tmp_path):
+    """A git stub fails the FIRST commit with `cannot lock ref 'HEAD'`; the write retries and lands."""
+    repo = _repo(tmp_path)
+    real = subprocess.run(["which", "git"], capture_output=True, text=True).stdout.strip()
+    stub = tmp_path / "bin" / "git"
+    stub.parent.mkdir()
+    stub.write_text(f'#!/bin/sh\ncase " $* " in *" commit "*) if [ ! -e {tmp_path}/once ]; then touch {tmp_path}/once; '
+                    f"echo \"fatal: cannot lock ref 'HEAD': is at abc\" >&2; exit 128; fi;; esac\nexec {real} \"$@\"\n")
+    stub.chmod(0o755)
+    r = subprocess.run([sys.executable, str(WRITE), "doc:w1", 'set title "retried"'], cwd=repo, capture_output=True,
+                       text=True, env={**__import__("os").environ, "PATH": f"{stub.parent}:{__import__('os').environ['PATH']}"})
+    assert (tmp_path / "once").exists() and r.returncode == 0, r.stderr[-300:]
+    assert _dirty(repo) == [] and _commits(repo) == 1
