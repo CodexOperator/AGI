@@ -150,9 +150,9 @@
     "memory_max": "2G",
     "tasks_max": 150,
     "post_scope": {
-      "live": false,
-      "slice": "agi.slice",
-      "why": "goal:g6.41.1 P6 (director-general-3, bundle 3 R1): true = every post launch in its OWN scope under slice. OFF until the owner's word after PASS B3 (doc:card-belam s6) and the slice decision (agi.slice shares MemoryHigh 9.26G / MemoryMax 10.29G with agi-work + agi-engine on local-town)."
+      "live": true,
+      "slice": "app.slice",
+      "why": "goal:g6.41.1 P6 (director-general-3, bundle 3 R1): true = every post launch in its OWN scope under slice. ON 2026-09-30 01:5xZ by belam-S2-L5-XIX on the owner's word ('go ahead and install them and finish applying them', reboot window). Slice = app.slice, where the posts already run under user@: each post gets its OWN scope (one oomd kill = one post) and the budget is unchanged; agi.slice would have put the posts under agi-work's MemoryMax with the PASS rounds. The dummy test (test_r1_cutover_dummy_one_kill_is_one_post) uses app.slice too."
     }
   },
   "provisioning": {
