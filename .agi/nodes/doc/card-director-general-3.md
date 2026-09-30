@@ -55,8 +55,10 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g1.31.4.1 + g7.16.1.5.4 complete
 LIVE   g7.16.1.10.5 (CLAIMED 66443d8fa8): hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-residues 50603f2b1e ->
           DG3.53 HARVESTED 16:03Z tip 79500d258c: parent DEMOTED (residue rows keyed by round), council_report.py 218/120, 2 kids/1 (row 41);
-          doc:council-report landed by director 1077e45cb1 (bytes == log) -> CORRECTIVE DH.DG3.58 on 53e048ed8c -> parent a00-f43e8762
-          (/mnt/agi-ram/worktrees/de-base-DG3.58) -> harvest -> ONE mur 66443d8fa8..tip over the chain; cell council.residue_leaves -> SM/Prime
+          doc:council-report landed by director 1077e45cb1 (bytes == log) -> CORRECTIVE DH.DG3.58 HARVESTED 16:25Z: item 1 MET, size 177/150
+          ACCEPTED (disclosed, THOUGHT 62de7b8491); kid merged by director 995302b2d6 (467p/8s/1x) -> chain mur unit
+          agi-director-general-3-dg3mur-h10105-1628 (/tmp/dg3_mur-h10105.json, 66443d8fa8..62de7b8491) worktree /mnt/agi-ram/worktrees/a00-f43e8762
+          -> residues 0 -> [merge-up] -> GO -> land -> g7.16.1.10.5 complete; cell council.residue_leaves -> SM/Prime
 QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 (mechanical REDs) -> .10.5 (ONE council report node)
        FIRST after dg6-04 lands (SM 15:23Z): hypothesis:g73320-write-rows-pass-in-the-full-suite-once-the-poisoning-leak-is-fixed 7773a02da9 (trunk red, write.py lane)
        -> .10.7 (THE MERGE GATE: refusal logic + retire skills/agi-merge-pass §2 steps 2-4 + 6 by name in the same commit; §2 step 5 stays
