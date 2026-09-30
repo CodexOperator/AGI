@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box
 next_edges: []
 confidence: 0.9
-edited_by: director-general-4
+edited_by: a00-f2101f34
 evidence_runs:
   - experiment:a00-bb10233d-5a7f1f
 line_ceiling: 40
@@ -133,7 +133,7 @@ GPU-enabled container `optimistic_poincare` was Up throughout and was not touche
 ## Evidence
 
 - Per-problem completions + raw model text + scores copied into the worktree:
-  `.agi/context/local-maxxing/bonsai/abc/humaneval/` —
+  `datasets/humaneval-abc/` —
   `armA_qwen3.5-9b-q4km.*`, `armB_bonsai27b-ptq1.*`,
   `armC1_bonsai27b-abliterate-s1.*`, `scores.json`, `runner.py`, `scorer.py`.
 - Stable absolute results dir (resume point): `/data/ml/models/bonsai/abc_humaneval/`
@@ -162,4 +162,6 @@ thought-master 23:0xZ 09-20, retroactive correction on residue 3 of mur-abc02: p
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+
+PASS B3 #5 (goal:g1.31.3.1.2, kid a00-4259b0e0, 2026-09-30): the evidence pointer on this node that named the superseded local-maxxing humaneval directory (0 tracked bytes, that literal is NOT repeated here so the goal's negative falsifier can reach 0) now names `datasets/humaneval-abc/` — 16 committed files: every armA/A2/B/C1/C2 .completions/.raw, scores.json, runner.py, scorer.py, per cell paths.local_maxxing.humaneval_file. Verify file mur-pb3chunk10of20/verify_lm-bonsai2-27b-abc-coding-test-on-the-8gb-box.json is gitignored, so goal:g1.31.3.1.2 is the committed anchor. Body text otherwise unchanged.
 <!-- THOUGHT:END -->
