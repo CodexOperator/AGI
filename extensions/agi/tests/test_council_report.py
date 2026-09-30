@@ -50,11 +50,11 @@ def _run(root: Path, key="k1", label="a1", review=None, verify=None):
 
 
 def _writer(store=None, mangle=False):
-    """A recording writer; `mangle=True` REPORTS a body it did not land."""
+    """A recording writer; `mangle=True` LANDS a body short of its rows."""
     store = {} if store is None else store
     def write(root, node_id, body):
         store[node_id] = body.split("\n")[0] if mangle else body
-        return store[node_id]
+    write.read = lambda root, nid: store[nid] if nid in store else cr.node_body(root, nid)
     return write
 
 
@@ -80,6 +80,24 @@ def test_c3_counts_reconcile_or_rc2_naming_the_round(tmp_path):
     with pytest.raises(SystemExit) as exc:
         cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer({}, True))
     assert "k1/a1" in str(exc.value)
+
+
+def test_c3b_a_writer_that_drops_a_row_silently_is_rc2_off_the_reread(tmp_path):
+    """The count re-READS the leaf: a writer returning None and landing nothing is rc 2."""
+    root = _project(tmp_path)
+    _run(root, verify={"final_recommendation": "accept", "missed": ["miss A"]})
+    with pytest.raises(SystemExit) as exc:
+        cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=lambda r, n, b: None)
+    assert "k1/a1" in str(exc.value) and "0 landed" in str(exc.value)
+
+
+def test_c1b_a_leaf_that_resolves_to_no_node_writes_nothing(tmp_path):
+    root = _project(tmp_path, cell={**LEAVES, "post-a": "goal:g404"})
+    _run(root, verify={"final_recommendation": "accept", "missed": ["miss A"]})
+    store = {}
+    with pytest.raises(SystemExit) as exc:
+        cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+    assert "goal:g404" in str(exc.value) and store == {}
 
 
 def test_c5_the_real_write_py_writer_lands_the_row_on_a_tmp_node(tmp_path):

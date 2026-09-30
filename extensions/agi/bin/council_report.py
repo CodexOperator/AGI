@@ -122,8 +122,9 @@ def write_body(root: Path, node_id: str, body: str) -> None:
         raise SystemExit(f"council_report: write.py refused the {node_id} row: "
                          f"{(proc.stderr or proc.stdout).strip()}")
 
-def add(root: Path, run_key: str, args: dict, writer=write_body) -> list[str]:
+def add(root: Path, run_key: str, args: dict, writer=write_body, reader=None) -> list[str]:
     """Write the report rows and route the residues. Returns the messages."""
+    read = reader or getattr(writer, "read", node_body)   # counts re-READ what landed
     try:  # the ONE cell; no table and no leaves are the SAME absence
         cell = ((json.loads((root / "config.json").read_text()).get("council")
                  or {}).get("residue_leaves"))
@@ -141,12 +142,15 @@ def add(root: Path, run_key: str, args: dict, writer=write_body) -> list[str]:
     assigned = title_of(root, args.get("parent", ""))
     old, new = args.get("old", "?"), args.get("new", "?")
     leaf = leaf_for(owner_post(assigned, args.get("subject", "")), cell)
+    gone = [n for n in (report, leaf) if node_writer.find_node_file(root, n) is None]
+    if gone:   # every target resolves BEFORE any write, never half-way
+        raise SystemExit(f"council_report: {gone} resolve to no node -- nothing written")
     out, cache = [], {}
 
     def body_of(node_id: str) -> str:
         """ONE read per node, FOLDED body afterwards: never a stale copy."""
         if node_id not in cache:
-            cache[node_id] = node_body(root, node_id)
+            cache[node_id] = read(root, node_id)
         return cache[node_id]
 
     for r in rounds(runs_root / run_key):
@@ -158,10 +162,9 @@ def add(root: Path, run_key: str, args: dict, writer=write_body) -> list[str]:
             cache[leaf] = merge_table(body_of(leaf),
                                       [f"| {key} | {source} | {title} |"],
                                       RESIDUE_HEADER, unique=True)
-            wrote = writer(root, leaf, cache[leaf])  # a writer may REPORT what it landed
-            cache[leaf] = wrote if isinstance(wrote, str) else cache[leaf]
+            writer(root, leaf, cache[leaf])
             out.append(f"{key}: {source} residue -> {leaf} ({title})")
-        landed = sum(1 for ln in cache.get(leaf, "").splitlines()
+        landed = sum(1 for ln in (read(root, leaf) if r["residues"] else "").splitlines()
                      if ln.strip().startswith("|") and f"| {key} |" in ln)
         if landed != len({(s, t) for t, s in r["residues"]}):
             raise SystemExit(f"council_report: round {key} counts "
