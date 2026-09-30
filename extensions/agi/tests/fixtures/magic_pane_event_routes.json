@@ -87,7 +87,7 @@
     "path": "magic_pane_inject.build_envelope \u2192 magic_pane_poll.enqueue \u2192 poll",
     "deferred": [
       "live tmux attach",
-      "pane liveness-census row wiring (g7.16.1.1.6) \u2014 only if cutover blocked"
+      "pane liveness-census row wiring (g7.16.1.1.6) \u2014 not required (dry lifecycle proved)"
     ],
     "legacy_routes": {
       "session_start_hook_paste": {
@@ -107,12 +107,26 @@
         "replaced_by": "tool_call_turn"
       }
     },
-    "note": "Code-path cutover + pane runner. Live legacy delivery hooks uninstalled (or already-clean). Messaging adapter (g7.32.2*) untouched. Live tmux attach still deferred.",
+    "note": "Code-path cutover + pane runner + dry lifecycle (spawn/attach->tick/consume). Messaging adapter (g7.32.2*) untouched. Live tmux attach still deferred.",
     "runner": {
       "goal": "goal:g7.16.1.7.3.5",
       "module": "magic_pane_runner",
       "path": "cutover.deliver \u2192 poll \u2192 render_turn (tool_call_turn; message=tool_return)",
       "live_hook_uninstall": "done (surgical SessionStart/UserPromptSubmit legacy delivery)"
+    },
+    "lifecycle": {
+      "goal": "goal:g7.16.1.7.3.6",
+      "module": "magic_pane_lifecycle",
+      "hooks": [
+        "spawn",
+        "attach"
+      ],
+      "path": "on_spawn->runner.consume(first_turn_docs); on_attach->runner.tick (dry/fixture; no live tmux)",
+      "pi_events": {
+        "session_start": "spawn_or_attach",
+        "before_agent_start": "mark_busy",
+        "tool_result": "mark_idle_and_tick"
+      }
     }
   }
 }

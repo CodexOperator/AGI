@@ -1,0 +1,308 @@
+#!/usr/bin/env python3
+"""magic_pane_lifecycle.py — spawn/attach hooks → runner tick/consume (g7.16.1.7.3.6).
+
+Wire the pane runner into **real pane lifecycle** without requiring live tmux
+attach: a dry/fixture path proves spawn→consume and attach→tick. Pi extension
+events (`session_start` / `before_agent_start` / `tool_result`) mirror CC hooks
+(SessionStart / UserPromptSubmit / PostToolUse) and route into these hooks.
+
+Owner (goal:g7.16.1.7.3): ONE pane per post ROW survives rotation; idle receives
+within a tick; busy holds mid-turn. ACT: runner surfaces tool_call_turn renders
+(tool RETURN IS the message).
+
+Messaging adapter (`adapters.magic_pane` / g7.32.2*) and `send.py` stay
+untouched. Live tmux attach stays deferred unless a dry path cannot prove the
+contract (this leaf proves it dry). ONE-pi free lane via `free_lane_probe` /
+pi_adapter + pi.toml.
+"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+import magic_pane_inject as inj
+import magic_pane_runner as run
+
+ACTIVE_ROUTE = run.ACTIVE_ROUTE  # tool_call_turn
+LIFECYCLE_HOOKS = ("spawn", "attach")
+
+# Pi extension events → lifecycle action (CC-compat mirror from inject SoT).
+PI_LIFECYCLE_MAP: dict[str, str] = {
+    "session_start": "spawn_or_attach",  # first register = spawn; else attach
+    "before_agent_start": "mark_busy",  # mid-turn hold
+    "tool_result": "mark_idle_and_tick",  # turn boundary → drain
+}
+
+# Default first-turn kind on spawn (engine first_turn_docs).
+SPAWN_EVENT_KIND = "first_turn_docs"
+
+
+class MagicPaneLifecycleError(ValueError):
+    """Lifecycle refused: bad pane pin, unknown hook, or dry-path violation."""
+
+
+def _pane_path(root: Path, post_id: str) -> Path:
+    import magic_pane_poll as poll
+
+    poll.validate_post_id(post_id)
+    return Path(root) / "posts" / post_id / "pane.json"
+
+
+def get_pane(root: Path, post_id: str) -> dict[str, Any] | None:
+    """Read the registered pane pin for a post (fixture/local refs only)."""
+    p = _pane_path(root, post_id)
+    if not p.is_file():
+        return None
+    data = json.loads(p.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise MagicPaneLifecycleError(f"pane.json must be object: {p}")
+    return data
+
+
+def register_pane(
+    root: Path,
+    post_id: str,
+    pane_id: str,
+    *,
+    generation: int = 0,
+    dry: bool = True,
+) -> dict[str, Any]:
+    """Write the pane pin. dry=True is the default — never touches live tmux."""
+    if not isinstance(pane_id, str) or not pane_id.strip():
+        raise MagicPaneLifecycleError("pane_id must be a non-empty str")
+    if not dry:
+        raise MagicPaneLifecycleError(
+            "live tmux attach deferred (goal:g7.16.1.7.3.6); use dry=True "
+            "or a fixture runner seam"
+        )
+    import magic_pane_poll as poll
+
+    poll.validate_post_id(post_id)
+    path = _pane_path(root, post_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    row = {
+        "post_id": post_id,
+        "pane_id": pane_id.strip(),
+        "generation": int(generation),
+        "dry": True,
+        "live_tmux": False,
+    }
+    path.write_text(json.dumps(row, indent=2) + "\n", encoding="utf-8")
+    return row
+
+
+def on_spawn(
+    root: Path,
+    post_id: str,
+    *,
+    pane_id: str,
+    body: str | None = None,
+    routes: dict[str, Any] | None = None,
+    path: Path | None = None,
+    dry: bool = True,
+    generation: int = 0,
+) -> dict[str, Any]:
+    """Spawn hook: register pane pin, then runner.consume(first_turn_docs).
+
+    Dry/fixture path — no live tmux. Returns action=spawn + render turns.
+    """
+    existing = get_pane(root, post_id)
+    if existing is not None:
+        raise MagicPaneLifecycleError(
+            f"pane already registered for {post_id!r} as "
+            f"{existing.get('pane_id')!r}; use on_attach for handoff"
+        )
+    pin = register_pane(
+        root, post_id, pane_id, generation=generation, dry=dry
+    )
+    msg = body if body is not None else f"SPAWN:{post_id}:first_turn_docs"
+    turns = run.consume(
+        root,
+        post_id,
+        SPAWN_EVENT_KIND,
+        msg,
+        busy=False,
+        routes=routes,
+        path=path,
+    )
+    return {
+        "action": "spawn",
+        "hook": "spawn",
+        "pane": pin,
+        "turns": turns,
+        "event_kind": SPAWN_EVENT_KIND,
+        "dry": True,
+        "live_tmux": False,
+    }
+
+
+def on_attach(
+    root: Path,
+    post_id: str,
+    *,
+    pane_id: str,
+    routes: dict[str, Any] | None = None,
+    path: Path | None = None,
+    dry: bool = True,
+    bump_generation: bool = True,
+) -> dict[str, Any]:
+    """Attach hook: SAME pane_id must survive; then runner.tick drains queue.
+
+    Rotation handoff reuses the pin (owner: pids rotate, panes stay). A
+    different pane_id is refused (second pane / orphan). Dry — no live tmux.
+    """
+    if not dry:
+        raise MagicPaneLifecycleError(
+            "live tmux attach deferred (goal:g7.16.1.7.3.6); use dry=True"
+        )
+    existing = get_pane(root, post_id)
+    if existing is None:
+        raise MagicPaneLifecycleError(
+            f"no pane registered for {post_id!r}; call on_spawn first"
+        )
+    want = pane_id.strip() if isinstance(pane_id, str) else ""
+    have = str(existing.get("pane_id") or "")
+    if want != have:
+        raise MagicPaneLifecycleError(
+            f"pane_id survival failed for {post_id!r}: registered {have!r}, "
+            f"attach offered {want!r} (ONE pane per post row)"
+        )
+    gen = int(existing.get("generation") or 0)
+    if bump_generation:
+        gen += 1
+    pin = register_pane(root, post_id, have, generation=gen, dry=True)
+    # ensure idle so tick drains (attach = turn boundary for the successor)
+    run.mark_idle(root, post_id)
+    turns = run.tick(root, post_id, busy=False)
+    return {
+        "action": "attach",
+        "hook": "attach",
+        "pane": pin,
+        "turns": turns,
+        "dry": True,
+        "live_tmux": False,
+    }
+
+
+def handle_pi_event(
+    root: Path,
+    post_id: str,
+    event: str,
+    *,
+    pane_id: str | None = None,
+    body: str = "",
+    routes: dict[str, Any] | None = None,
+    path: Path | None = None,
+    dry: bool = True,
+) -> dict[str, Any]:
+    """Route a pi extension event into lifecycle hooks (CC-compat mirror).
+
+    session_start → spawn (if unregistered) or attach (if pin exists)
+    before_agent_start → mark_busy (hold mid-turn)
+    tool_result → mark_idle + tick (turn boundary drain)
+    """
+    action = PI_LIFECYCLE_MAP.get(event)
+    if action is None:
+        raise MagicPaneLifecycleError(
+            f"unknown pi lifecycle event {event!r}; known: "
+            f"{sorted(PI_LIFECYCLE_MAP)}"
+        )
+    if action == "spawn_or_attach":
+        if not isinstance(pane_id, str) or not pane_id.strip():
+            raise MagicPaneLifecycleError(
+                "session_start requires pane_id (dry fixture pin)"
+            )
+        if get_pane(root, post_id) is None:
+            return on_spawn(
+                root,
+                post_id,
+                pane_id=pane_id,
+                body=body or None,
+                routes=routes,
+                path=path,
+                dry=dry,
+            )
+        return on_attach(
+            root,
+            post_id,
+            pane_id=pane_id,
+            routes=routes,
+            path=path,
+            dry=dry,
+        )
+    if action == "mark_busy":
+        run.mark_busy(root, post_id)
+        return {
+            "action": "mark_busy",
+            "hook": "before_agent_start",
+            "pi_event": event,
+            "turns": [],
+            "dry": True,
+            "live_tmux": False,
+        }
+    if action == "mark_idle_and_tick":
+        run.mark_idle(root, post_id)
+        turns = run.tick(root, post_id, busy=False)
+        return {
+            "action": "mark_idle_and_tick",
+            "hook": "tool_result",
+            "pi_event": event,
+            "turns": turns,
+            "dry": True,
+            "live_tmux": False,
+        }
+    raise MagicPaneLifecycleError(f"unhandled action {action!r}")
+
+
+def free_lane_probe() -> dict[str, str]:
+    """ONE-pi free lane (no second pi template) — same SoT as runner/cutover."""
+    return run.free_lane_probe()
+
+
+def pi_adapter_probe() -> dict[str, Any]:
+    """Maximize pi adapter: load + confirm REQUIRED surface (no OPTIONAL_PANE).
+
+    Deliberately does NOT add pane_* to pi (g7.32.3: pi omits OPTIONAL_PANE;
+    lifecycle lives here, not on the adapter pane interface).
+    """
+    import adapters
+
+    pi = adapters.load("pi")
+    iface = adapters.pane_interface(pi)
+    lane = free_lane_probe()
+    return {
+        "harness": "pi",
+        "adapter": lane["adapter"],
+        "template": lane["template"],
+        "row": lane["row"],
+        "required_ok": all(callable(getattr(pi, n, None)) for n in adapters.REQUIRED),
+        "pane_interface": list(iface),  # must be empty for pi
+        "lifecycle_hooks": list(LIFECYCLE_HOOKS),
+        "note": (
+            "lifecycle hooks live in magic_pane_lifecycle (not OPTIONAL_PANE); "
+            "pi keeps REQUIRED-only so g7.32.3 holds"
+        ),
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI: ``probe-lane`` | ``probe-pi``."""
+    import argparse
+
+    p = argparse.ArgumentParser(prog="magic_pane_lifecycle")
+    sub = p.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("probe-lane", help="ONE-pi free lane probe")
+    sub.add_parser("probe-pi", help="pi adapter + lifecycle surface probe")
+    args = p.parse_args(argv)
+    if args.cmd == "probe-lane":
+        print(json.dumps(free_lane_probe(), indent=2))
+        return 0
+    if args.cmd == "probe-pi":
+        print(json.dumps(pi_adapter_probe(), indent=2))
+        return 0
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
