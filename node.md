@@ -46,13 +46,13 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-Review of DG3 6894c783f3 (B alias-id regression fix + R1c splitlines forge fix) → /tmp/sm9/cc_b2.json. If a successor wakes and it is absent: re-run it (Sonnet Agent; reuse /tmp/sm9/e6p probes).
-  on ACCEPT: DG3 closes g4.18.1.6 + g7.33.20 + g1.31.5.2 → bundle-4 limit (3) CLOSED → bigger_outcome council-bundle-4-one-gate-one-commit-ids-never-move: ONE update (limit 3 closed, cite DG2 verdict:dg2mvp-w2cD PROVED 0.86); stays 0.8 until (4a) = g4.18.5.5 (DG4.02 live) lands → then 0.9
-ACCEPTED post-resume: 30175ea7e9 (anonymize email class, g1.31.5.1.2) · be11671cb (N2 residues; .5.5.4 + .5.5.8 COMPLETE)
-OPEN RESIDUES: DG4 158c (2833cdae9, orphan key temp: adopt or sweep; closes .7.1.4.1) · DG3 hw-model class (dg6-03/04 murs re-running)
-CONFIG (the Prime applies; I relay): g1.31.1.1 mode = the config.json 2 lines land WITH DG4's brief.py merge-up (the test at :1988 is updated there) · g1.31.2 skills entry = after DG4's 2 build nodes (exact text → Prime, byte_cap 6000→8000) · town fixed d5e6fd805
-LANES: DG3 = write.py · anonymize/privacy · dispatch.py · RAM writers · render/viewport (.7.1.5 .7.2.7) · g1.31 node answers (46 rows) · .10.4 | DG4 = rotate.py · heal · adapters · keys · workflow.py + CC route · .7 (12 nodes) · .10.1 .10.2 .10.6 · the DG6 hook/harvest rows
-MERGE-UPS expected: DG4.01 (write-refusal), DG4.02 (n83 + g4.18.5.5), DG3's dg6-0x rounds → gate per skill agi-master-gate, one [merge-up] per batch
+Nothing running. Bundle-4 bigger_outcome v3 (10876e2b25): limit (3) CLOSED; OPEN 0.8 until (4a) goal:g4.18.5.5 lands (DG4.02 round, n83 + the suite-lock rc 3) → then ONE update → 0.9, and tell alive agi-e3 [761106]
+ACCEPTED post-resume: 30175ea7e9 (email class) · be11671cb (N2) · 6894c783f3 (B + R1c; g4.18.1.6 + g7.33.20 + g1.31.5.2 close)
+OPEN RESIDUES: DG3 B3 (own-id rule 3 too broad: restrict to same-type, no tree-wide fallback; rides g7.33.20.2) · DG3 hw-model class (dg6-03/04 murs) · DG4 158c (orphan key temp; closes .7.1.4.1)
+CONFIG (the Prime applies; I relay): g1.31.1.1 = the config.json 2 lines WITH DG4's brief.py merge-up (update test_brief :1988 there) · g1.31.2 skills entry after DG4's 2 build nodes (exact text → Prime, byte_cap 6000→8000)
+LANES: DG3 = write.py · anonymize/privacy · dispatch.py · RAM writers · render (.7.1.5 .7.2.7) · g1.31 node answers · .10.4 | DG4 agi-1c = rotate.py · heal · adapters · keys · workflow.py + CC route · .7 (12 nodes) · .10.1 .10.2 .10.6 · the DG6 hook/harvest rows
+MERGE-UPS expected: DG4.01 (write-refusal), DG4.02 (n83 + g4.18.5.5), DG3's dg6-0x → gate per skill agi-master-gate
+Subagents: Sonnet 5.5 only, ≤ 2 at once (owner 06:1xZ)
 First command at wake: ListAgents + tmux list-windows · shas before 08:0xZ are OLD: grep ^<old> /data/scrub/union.git/filter-repo/commit-map
 ```
 ## §4 Traps
