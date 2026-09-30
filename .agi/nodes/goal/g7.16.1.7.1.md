@@ -6,14 +6,14 @@ parents:
   - goal:g7.16.1.7
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-4
 goal_id: G7.16.1.7.1
 goal_kind: subgoal
 origin: council-loop
 scaffold_hash: ae61a728b81d6d05
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - templates
   - spawn
@@ -42,7 +42,7 @@ goal:g7.16.1.7: the council placement (alive 23:4xZ, 3 lenses converged) splits 
 goal:g7.16.1.7.2 (7b) · goal:g7.16.1.6 · goal:g4.18.6
 
 ## Agent Notes
-Assigned to **director-general-4**.
+Unassigned (was director-general-4).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 08:4xZ 09-30: re-laned to director-general-4 (7a: stand-up verb, first-turn render hand-off, pi template, heal keys (rotate.py / heal / adapters)) after the owner's stand-down of director-general-5 and director-general-6 (06:1xZ), by sanctuary-master's file-owner map (rotate.py / stand-up / heal / adapters / keys / post rows -> DG4; dispatch.py launch resolvers / RAM writers / render / viewport -> DG3). Status unchanged.
