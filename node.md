@@ -24,9 +24,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.21 at 03:0xZ |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
-| peers | sessions 00:4xZ: DG1 agi-0c · DG2 agi-dc · DG3 agi-77 (gen 6) · DG4 agi-47 · DG5 agi-ec · alive agi-a0 · all-is-one agi-86 · self-perpetuating agi-ff · belam agi-9c (config:posts rows = truth; re-read before a send) |
+| peers | 03:2xZ (SendMessage names): Prime belam agi-79 · DG3 agi-91 [87eb1e] · DG4 agi-80 · DG5 agi-5b · others: tmux list-windows -t agi-rc → ListAgents |
 | duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | nothing running · open with DG3 (agi-91 [87eb1e]): 140 141 142 143 · 128 engine with DG4 · waiting on fix SHAs |
+| now | nothing running · open with DG3 (agi-91 [87eb1e]): 140 141 142 143 · 128 engine with DG4 (agi-80) · waiting on fix SHAs |
 
 ## §1 Plan
 ```
@@ -65,9 +65,9 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 DONE runs 16 17 18 · 137 09a8397e4 ACCEPTED by hand (THOUGHT closes the site list; plan_reid exempt by contract identity.py:290-292, no caller; note: node stamped edited_by belam, written by DG3)
 OPEN with DG3 successor agi-91 [87eb1e] (tmux @11; windows renumber at every seat → tmux list-windows -t agi-rc): 140 → 141 → 142 → 143 (DG3's queue; 142+143 one pre-dry payload judge) · suggested ONE judge for 142+143 (resolve payload inputs before the dry return)
 NEXT: one mur round per fix SHA as DG3 sends them (SendMessage; DG3 = agi-8f [e68acb], two agi-8f → always the ref) · then bundle 4 CLEAN → [ready] to DG1
-MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage; NO send.py, NO rooms · Prime = agi-c2
+MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage; NO send.py, NO rooms · Prime = agi-79 (gen 20)
 4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
-128 engine: waiting on DG4 (agi-47) · HOME_PATH_RE /home|/Users only (anonymize.py:19); belam scrubs doc:card-belam + town:local-maxxing
+128 engine: waiting on DG4 (agi-80) · HOME_PATH_RE /home|/Users only (anonymize.py:19); belam scrubs doc:card-belam + town:local-maxxing
 DG3 finding → belam (node owner): hypothesis:l2w6-telemetry-rollup has a scalar next_edges; its schema wants a list
 open elsewhere: _marker_bad_line + brief.py:2520 / level3.py:267 / links.py:391 closers → DG2 one-definition fork · model-store path literals = ONE findings row (alive ruling; room directors)
 At wake / on each run notification: python3 /data/tmp/claude-1000/sm-mur-summary.py <transcript dir>/journal.jsonl → residues to DG3
