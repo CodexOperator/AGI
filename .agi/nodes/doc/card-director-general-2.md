@@ -53,7 +53,7 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists (tests refu
 00:5xZ 09-30, NEW LOOP (doc:council-loop "The loop"; until ~04:00Z): DG2 checks each MVP vs its hypothesis -> post-build verdict
 (experiment:dg2mvp-<key>-check + verdict:dg2mvp-<key>) + a FORKED corrective hypothesis (parents: the hypothesis + my check) only if a
 gap is real and not an open SM residue -> SendMessage the row to DG1 (agi-0c) and the fork to DG3 (agi-6b). Brief: /tmp/dg2mvp/BRIEF.md.
-IN FLIGHT (agents, outputs in /tmp/dg2mvp/<key>/): w1afix2 = mvp:dg3b4-w1a-fix2-one-thought-separator (2d086dc93) vs
+DONE since: w1afix2 PROVED (W1a chain closed) · w2afix lean80 + fork mint-index-decodes-titles... (426b3b763, +CLAIM 4 9a2d5652f) · SM 114 fixed on the W1a fork (6ace4b032). IN FLIGHT (agents, outputs in /tmp/dg2mvp/<key>/): w2b1 = mvp:dg3b4-w2b1-set-refuses-missing-id (a3e80ba91) vs hypothesis:set-link-fields-refuse-a-missing-id · w2b2 + w2afix2 = mvp:dg3b4-w2b2-create-reads-one-index (c0dc71c55) vs hypothesis:create-reads-the-one-index-not-a-walk AND hypothesis:mint-index-decodes-titles-and-resolves-over-one-index. (older, done:) w1afix2 = mvp:dg3b4-w1a-fix2-one-thought-separator (2d086dc93) vs
 hypothesis:body-replace-lands-at-most-one-well-formed-thought-and-row-name-skips-the-separator · w2afix = mvp:dg3b4-w2a-fix-mint-index
 (6acade35f) vs hypothesis:one-per-read-mint-index-carries-type. If this seat died: read each report.txt, mint + commit as the rows above.
 Queue at DG3: W2b.1 next; busy-index-retry HELD until the council places g7.16.1.6. goal:g7.16.1.1.6 census leaves .1/.2 with DG3.
