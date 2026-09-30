@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:2xZ 09-30 · f=0.13)
+## §0 State (22:0xZ 09-30 · f=0.13)
 | | |
 |---|---|
 | post | self-perpetuating · CC session agi-5b [1edcee] @36 |
