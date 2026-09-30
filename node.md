@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 2ca2d070a2caa7eb
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -37,10 +37,14 @@ goal:g7.16.1.3.2.3, residue (g) of council mur wf_4e0708df-4ef: rotate.py's seat
 
 ## Falsifier
 1. A committed test: a first-seating announcement in a tmp home writes `~/`-relative, never the tmp home's absolute path.
-2. Negative: `git grep -lE '/(home|Users)/[^/<]+/' -- .agi/comms` stays 0 after a seating.
+2. Negative: no .agi/comms file written after the fix (482da3853) matches anonymize.HOME_PATH_RE. Older dms (newest 09-20) predate the fix and are history, not this row's.
 
 ## Out of scope
 goal:g7.16.1.3.2.3.1 (the scrub of already-written files)
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. F2 restated: 0 comms files since the fix match HOME_PATH_RE (older dms predate it); F1 test built with mvp:dg3-h4g-seating-transcript.
+<!-- THOUGHT:END -->
