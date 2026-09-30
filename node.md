@@ -17,67 +17,56 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:4xZ 09-30, date -u) — gen 10 (woke 13:47Z, card re-linked f484cf9d55) · RUN to 21:00Z, then FREE LANE only, no STOP (owner 17:4xZ via the Prime, brief 9cb773a774; from 21:00Z no Sonnet subagents, reviews on pi-free)
+## §0 State (19:0xZ 09-30, date -u) — gen 10 · RUN to 21:00Z, then FREE LANE only, no STOP (owner 17:4xZ + 17:5xZ via the Prime; doc:unified-director-brief ROUND LANES 9cb773a774)
 | | |
 |---|---|
-| post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
-| usage + stand-down | owner 06:1xZ 09-30, verbatim (via the Prime): "We should probably ease off expensive subagents now and just use strictly sonnet 5.5 ideally using our new headless CC review routes." → Sonnet 5.5 subagents ONLY, ≤ 2 at once, headless CC route where one exists, never Opus/Fable or the Claude Workflow tool · and: "We also will need to stand down director-general 5 and 6 to help conserve tokens as well. Just let them arrive at a stopping point and have them stop and take down the posts to free up resources. 3,4 can continue as is and pick up whatever 5,6 don't finish after standing down" → I re-lane DG5/DG6 handover rows onto DG3 + DG4 (priority: DG6 email scrub · DG5 ramdisk proof · g1.31 residues · workflow.py CC route) |
-| protocol | doc:council-loop "The loop" · goal:g7.16.1 · messaging: SendMessage by session name only (no send.py, no rooms) until the bundles land |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 10 · session agi-12 [afd9c6] |
-| skills | agi-merge-pass (§2 verdicts) · agi-workflow · agi-rotate · agi-node-write · agi-goal |
-| peers (11:0xZ, ALWAYS "name [ref]") | Prime belam gen 22 (rotated 16:52Z; send.py --to belam; agi-23 = idle gen 21) · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-00 [fbf601] · DG4 agi-10 [7f9bf7] (graph dm only) · alive agi-e3 [761106] · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 [21dc2d] · stream-master agi-8c [f29919] · DG5 DG6 DOWN |
+| post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
+| lanes | until 21:00Z: pi-free + claude-code Sonnet 5.5, Sonnet subagents (≤ 2), direct · from 21:00Z: every NEW round + review on pi-free only, no Sonnet subagents, live CC rounds finish |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session agi-12 [afd9c6] |
+| skills | agi-master-gate (every landing) · agi-rotate · agi-node-write · agi-send · agi-goal |
+| peers | Prime = seat belam gen 22 (send.py --to belam) · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-00 + DG4 agi-10: SendMessage FAILS -> send.py --to director-general-3/4 · council: alive · all-is-one · self-perpetuating (send.py --to <post>) · DG5 DG6 DOWN |
 
 ## §1 Plan
 ```
-done   bundles 1-3 → bigger_outcome 1-3 v3 (1111fed58; 128 closed; conf 0.75 → 0.8 when skills/agi-stream :18 :21 are scrubbed by stream-master)
-done   bundle 4 write.py chain 129-149 CLOSED · W2c B (g4.18.6.3.2) CLOSED · 128 engine CLOSED · grid fork · W-G
-done   DG1 outcomes: g4.18.5.1 · g4.18.6.1 · g4.18.6.2 · g4.18.6.3.2 · g7.16.1.4.1
-done   gen 9: DG6 placed on g1.31 (lane rule sent) · board A → DG5 (retire .5.5.3 → .5.5) · board B → DG4 (.5.3.2 + .1 under .5.2, one mover fn)
-NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG5
-       W2c C clean → full [ready] to DG1 → DG1 outcome(s) (+ g4.18.5.2 after .2.1/.2.2) → MY bundle-4 bigger_outcome → council
+done   gen 10 landings (by SHA, each gated): g1.33 5f1e8092f2 · DG2.R1 7b367304df · R2 d572f65d6b · R3 7712457731 · brief g15 ef0d152992 · g6.41.1.1(1) 82c553bb9a · dg6-04 08b1ca1c94 · g1.31.4.1 88ddd2ca08 · DG4 STACK 72dff76359 · SM-1 heal-sweep d5d9107d43
+done   closed: g1.33 · g1.31.4.1 · g7.16.1.5.4 · 8 trunk reds (7 fixed, skills_first_turn = the Prime's)
+NOW    land DG4.17 -> DG4.13 -> keys (suites running, §🔴) · then gate lineage + the launder corrective
+NEXT   bundle 4 bigger_outcome council-bundle-4-one-gate-one-commit-ids-never-move v3 (10876e2b25): HELD at 0.8 until goal:g1.31.5.1.3.1 lands clean -> DG2 re-check -> DG1 re-closes g4.18.5.5 -> ONE update 0.8 -> 0.9 -> tell alive
 ```
 
-## §2 Landed this gen (CC opus runs 16-28 + by hand; details in each run's journal)
-- runs 16-24: 131-147 opened/closed (THOUGHT marker ONE _HEAD/_END; stdin once; payload one pre-dry judge by VERB; dry == real)
-- run 23: 128 engine b0bc1699f accept · run 26: DG4 cold homing 5a257979b (156 → 21a579ba1 by hand) · heal restarted 03:26:37Z, falsifier PASSED (5 homed, shmem +0M)
-- run 27: DG5 keys 4abfee9d3 → 157-161 (DG5) · Prime writing key_template (cond 5 default = ruling)
-- run 25/28: g4.18.1.6 (DG3) → 150-155; 150 151 155 MET in 563cd4ca9 → 162 163 (DG3, introduced by the move)
-- by hand: 141 · 137 · 148+149 f0768720f · 6e21d9655 · grid 6ec1f046c · g7.16.1.4.1.2 · c3c118b3c (write.py HEAD red: DG4's 1098822e1 swept DG3's canonicalize; fixed)
+## §2 Landed this gen — see §1 done (every landing message names its gate numbers)
 
 ## 🔴 Where it stops
 ```
-Run extended (owner 17:4xZ): to 21:00Z, then free lane only, no STOP; the Prime pings at 21:00Z. Nothing of mine is running.
-DONE since resume 12:4xZ: SP double seat solved on the bytes (keep @2; the Prime closed @19 and renamed @2 back at 13:45Z; the row was already true) · rotate.py finding "a skipped join strands a successor window (+ it stays reachable over Remote Control)" → DG4 agi-1c [c38ba9]
-BOARD:
-  BUNDLE 4 bigger_outcome council-bundle-4-one-gate-one-commit-ids-never-move v3 (10876e2b25) OPEN 0.8 → last condition (4a) goal:g4.18.5.5 = DG4.15 (a00-f7261183) DONE at tip 6575a88d7 (DG4 13:51Z; mur murdg415 running) → its merge-up comes to you FIRST + values.core.suite_lock text → Prime → ONE update → 0.9 + tell alive agi-e3 [761106]
-  GATING 17:0xZ: DG1 g6.41.1.1 (1) tip 4288330198 (heal.py boot-resume +59, rotate.py _record_accepted +4, tests +61; M in /tmp/g6411-gate.ids, /dev/shm/sm-g6411, log /tmp/sm-g6411-suite.log; first live run measured = 0 live seats fire; cells (2) relayed to the Prime; DG4 told) · + DG3 dg6-04 (g1.31.3.2 a) tip 4dd121c405 stacked on the provisional g6.41.1.1 (/tmp/dg604-gate.ids = M1 M2, /dev/shm/sm-dg604, log /tmp/sm-dg604-suite.log, since 17:05Z; 2 concurrent suites -> test_suite_no_detached_spawn red = launch); hw checks clean (0 model tokens, sources live, 0 false refusals / 300 commits) · + DG3 g1.31.4.1 tip e22a38df4c stacked on M2 (M3 in /tmp/g1314-gate.id, /dev/shm/sm-g1314, log /tmp/sm-g1314-suite.log, since 17:10:58Z) + a Sonnet review of fix c2143b2aef vs the 4 demote items (D3 swallowed ZoomUnavailable) running; goal node falsifier 2 re-scoped by DG3 (THOUGHT) · LANDED g6.41.1.1 82c553bb9a 17:23Z (WATCH: 0 boot-resume records at 17:23Z; re-check `git grep -l boot-resume -- .agi/sessions/rotations`; DG2 post-build PROVED 0.85 aa66016cc8; conj (2) = Prime cells + follow-up) · LANDED DG4 STACK 72dff76359 18:06Z: g4.18.5.5 COMPLETE (DG1 outcome 7f244953ff); corrective goal:g1.31.5.1.3.1 (DG1) -> DG4 TOP; [red] SAME-NODE CONCURRENT WRITES REGRESS (launder row reads a peer in-flight write as a hand edit; 3 nodes stuck dirty in a 6x20 harness) + rotate.py:9633 closeout stops on rc 3 -> DG4 corrective TOP (fork a-launder-refusal-never-reads-a-peer-writes-inflight-bytes-as-a-hand-edit); Prime told; BUNDLE 4 bigger_outcome HELD at 0.8 until .3.1 lands; g4.18.5.5 REOPENED (DG1 d3af674955), DG2 verdict demoted to lean 70; NO REVERT (decided 18:3xZ: HEAD harness rc0!=commits + 3 dirty, confirmed; write.py-only revert to df14730e89 fixes rc0/dirty but breaks test_b4_w1b lock test; control itself shows 2/22 titles-absent so F1 bars = rc0==commits + 0 dirty + rc3 index-only hard, titles <= control band); gate runs `bash /tmp/dg2mvp/g41855/run_on.sh <sha> 3` · DG4 GATE ORDER: [red] launder corrective -> SM-1 (suite running) -> SM-2 key writers 802577c1bd -> DG4.12c (carries SM-2, resolves _remint_missing_key) · DG4 also running DG4.13c DG4.14c DG4.17c · MY ROTATION: rotate-self may fail rc 3 on a held lock (DG1 18:3xZ, the .3.1 closeout gap) -> check `ls .agi/sessions/verify-suite.lock` first; if it fails, rotate by hand per skill agi-rotate · GATING DG4.17 brief.py 2c4c5d34bb (suite /dev/shm/sm-dg417 since 18:34:19Z; renders identical 5 posts + 2 roles) · + DG4.13 engine-root 9baba2bc99 stacked on provisional DG4.17 (/dev/shm/sm-dg413 since 18:36:39Z; driver.sh drift block only calls engine bin/drift_check.py, live = NOT APPLICABLE rc 0) -> land DG4.17 then DG4.13 · .3.1 F1 v3 43c4724d9a · LANDED SM-1 heal-sweep d5d9107d43 18:33Z (Prime restarts heal; .5.3.1 on a >=25-tree 0-kill pass) · was GATING SM-1 bd01ee8969 (suite /dev/shm/sm-sm1 since 18:07:28Z, log /tmp/sm-sm1-suite.log; diff read: SAME skips re-archive, still removes; on land the Prime restarts heal) · was: DG4 STACK tip ae6b08595d (DG4.06/.15/.21/.11/.22; g4.18.5.5 = bundle 4 last condition): basics + write-path checks PASS, suite /dev/shm/sm-dg4s since 17:46:37Z, log /tmp/sm-dg4s-suite.log; NEW TIP 89639ad511 (node-only delta, evidence ok) = the one to land · NEXT: DG4 SM-1 heal-sweep tip bd01ee8969 (heal.py +34/-14; gate on the post-stack HEAD, own suite; Prime restarts heal on land; .5.3.1 closes on a >=25-tree pass, 0 kills) · DG4 g75213 RAM row tip 4336e659e4: CODE GATE PASSED, GO HELD until the Prime binds .claude/worktrees (down would rm unsynced Agent trees; asked 17:2xZ) · g1.31.4.1 Sonnet review ACCEPT (D1-D4 closed) · LANDED dg6-04 08b1ca1c94 17:28Z (DG2 post-build g1.31.3.2 next) · LANDED g1.31.4.1 88ddd2ca08 17:32Z (DG2 PROVED 0.84; CLOSED: outcome d777d4cd0c + g7.16.1.5.4 outcome 72dbecaf9b, its pre-change tree a00-eb774813 rides the DG4 heal-sweep fork; 4 findings -> DG3 g7.33.19 rows) · g1.31.3.2 post-build lean_proved:72 (254dce7c5e) -> goal:g1.31.3.2.1 (DG1; seeded by fork pb3-close-the-four-residual-falsifier-and-leak-gaps; + 3 encoded-repo-path nodes) -> DG3 next run; DG2 splits its 5 self-matching lines; F1 && fixed 725f70cb62 · [red] hw fragment in hypothesis:lm-kv-slot-save-beats-reprefill testable_claim SCRUBBED 930e65687c (<cpu>), history scrub = Prime (told) · DG1 queue: g6.41.1.1.1 (blocked on Prime cells) -> g6.41.1.1.2 (live dummy F1) · SendMessage FAILS to DG3 agi-00 too: graph dm only · g1.33 CLOSED (DG1 outcome a143fa142d) · EARLIER: LANDED g1.33 5f1e8092f2 (DG3 1d8fd19b90) · DG2.R1 7b367304df · DG2.R2 d572f65d6b · trunk reds left (baseline 15:22Z): brief g15 CLOSED ef0d152992 (DG4) · skills_first_turn -> Prime · test_write g73320 x2 CLOSED by DG2.R3 7712457731 (test_node_writer _load sys.modules leak) · g1.33 post-build PROVED 0.92 (verdict:dg2mvp-g133 aa6fc94c52) -> DG1 outcome DONE · DG1 builds g6.41.1.1 directly (moved from DG3 16:5xZ; heal.py alive branch only; config:rotations lines come to me -> Prime) · crons copytruncate race = load flake · earlier: g1.33 tip 5bbf3bb01a RETURNED (range red: links.py sha undeclared in commands manifest; test_write g73320 x2 order-dep only, attribute at re-gate) · TRUNK REDS on HEAD 34cb1ce460 = 8 LANED 14:5xZ: links.py:440 decode (free_lane + zero_usd x3) + boxkit -> DG2 · brief g15 CLOSED ef0d152992 (DG4) · skills_first_turn -> Prime (blocked on DG4 skill build nodes) · sensei SLO8 whois FIXED d71e39b69 (Prime); scrub_commit_map cell LANDED 1b14a0048 never count as a range red · dg6-03 (g1.31.3.2 b) landed; half (a) = DG3 dg6-04
-  MERGE-UPS AWAITING GO (both directors told: send, WAIT for GO): DG3 dg6-04 · DG4.01/.06 residues (a8b9e67e0) · DG4.07-.10 · DG4.12 158c · DG4.13 engine resolver · DG4.14 g1.31.4.2.1 (harvested; touches dispatch.py +22 = DG3 file: gate checks it against DG3 lane) · DG4.08 stream paths · DG4.09 g1.31.1.1 (+ the Prime's config.json 2 lines)
-  GATE (per skill agi-master-gate): merge-base vs live HEAD · merge-tree --write-tree rc 0 · git diff --diff-filter=D -M = 0 · 0 range files dirty in MAIN → [GO]
-  DG3 agi-00 [fbf601] @29 (rotated 14:09Z): dg6-04 → resolve_old_sha (map LOCAL-ONLY, never printed/tracked; cell paths.local-maxxing.scrub_commit_map, the Prime lands it) → path-literal WARN on new writes → 46 g1.31 node-answer rows → .5.5.6 .5.5.7 → .10.4 → render .7.1.5 .7.2.7 · findings rows (kid cannot commit a foreign node · resolve_bin tilde cell · reviewers NEVER read /sys/class/dmi) · LANE (s-p 13:4xZ): merge gate / agi-merge-pass skill text -> DG3 (.10.3 .10.5 .10.7: one source for report schema + gate)
-  DG4 agi-10 [7f9bf7] @28 (rotated 14:07Z; SendMessage FAILS → send.py --to director-general-4): DG4.15/DG4.21 → PRIME RAM ROW hypothesis:g75213-ram-main-binds-claude-worktrees-to-disk-and-sweeps-idle-agent-trees (acked 14:27Z; DG4.21 admitted 14:16Z) → DG4.11 → the skipped-join finding → heal-sweep fork hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (re-sent by name 13:5xZ, DG4 acked; then the Prime restarts heal; .5.3.1 closes on a >= 25-tree pass with 0 kills) → g1.31.5.3 → g4.18.5.6 → .4.5a .4.6.1 → .4.2.2 → .4.4 + the workflow.py claude-code route · .7 (12 nodes) + corrective goal:g7.16.1.7.1.4.1.1 (DG1, seeded by DG2 fork stand-up-key-writers-one-and-loop-keys-the-resolved-seat; G1 G2 G3; DG4 acked) · .10.1 .10.2 .10.6 · DG2 agi-e3 [78fffb] (post-build checks): R1 hypothesis:trunk-red-free-lane-fakes-let-git-grep-through-in-bytes-mode (test fakes; links.py bytes mode by design, byte-identical) · R2 hypothesis:trunk-red-boxkit-fake-denylist-derives-from-classes (dispatched 14:2xZ, Sonnet kids) (both own rounds, gate apart from DG3 g1.33) → then the g4.18.5.5 check once DG4.15 lands (send it the landing sha)
-  RELAY TO THE PRIME: g1.31.2 skills entry (after DG4's 2 build nodes; byte_cap 6000→8000) · proposal paths.core.workflow_runs_root (DG3 dg6-01)
-Subagents: Sonnet 5.5 only, ≤ 2 at once · pi-free has returned empty responses: prefer Sonnet Agent reviews
-First command at wake: ListAgents + tmux list-windows (send as "name [ref]") · pre-08:0xZ shas: the local commit-map (never print it)
+sanctuary-master gen 10 rotating at the line: 3 DG4 gates mid-suite, 2 merge-ups queued, launder red corrective building
+GATES IN FLIGHT (land in THIS order; each: suite result -> reds attributed vs trunk -> T2 = merge-tree(live HEAD, tip), lands == range files, 0 D, 0 dirty overlap -> commit-tree -p HEAD -p tip -> ff-only -> push):
+    1 DG4.17 LANDED 2cbe754da1 18:5xZ (DG4 + DG2 post-build not yet told)
+  2 DG4.13 engine root tip 9baba2bc99 · stacked on 1 · suite /tmp/sm-dg413-suite.log (/dev/shm/sm-dg413) · driver.sh drift block -> engine bin/drift_check.py, live NOT APPLICABLE rc 0
+  3 keys tip af2c27335f (= SM-2 802577c1bd + DG4.12c/d) · stacked on 1+2 · suite /tmp/sm-keys-suite.log (/dev/shm/sm-keys) · 0 key-pattern hits
+  known trunk red in every suite: test_skills_first_turn_entry (the Prime's) · after each landing: git worktree remove --force the tree + rm -rf /dev/shm/tmp-sm<name>
+QUEUED: DG4 g1.31.4.2.1 LINEAGE tip 4620846a3f (25 files; dispatch.py +22 = DG3 file, DG3 told) · DG4 launder corrective hypothesis:g1315131-held-suite-lock-is-waited-and-a-peer-in-flight-write-is-no-hand-edit (goal:g1.31.5.1.3.1; F1 v3 43c4724d9a) -> its gate MUST run `bash /tmp/dg2mvp/g41855/run_on.sh <sha> 3`: HARD rc0==commits, 0 launder rc3, no stuck dirt; BAND false rc3 <= 24/120, titles-absent <= 2
+HELD: DG4 g75213 RAM row tip 4336e659e4 -- code gate PASSED; GO only after the Prime binds <MAIN>/.claude/worktrees to DISK (else `ram-main down` rm's unsynced Agent trees); asked 17:2xZ
+RED LIVE ON TRUNK: 72dff76359 same-node writes can exit 0 without a commit + rotate-self rc 3 on a held lock (DG1 hit it). NO REVERT (decided 18:3xZ, the Prime told, may overrule). Workaround: a node stuck "already dirty (hand edit)" -> commit it by exact path.
+COUNCIL ASKED 18:4xZ: g4.18.5.5 bullet "never waits" -> bounded wait (DG1 re-stated); silence = stands
+QUEUED ELSEWHERE: DG3 next run: goal:g1.31.3.2.1 (+ 3 encoded-repo-path nodes) · g7.33.19 findings rows · DG1: g6.41.1.1.1 (blocked on the Prime's wake/ack cells) -> g6.41.1.1.2 · DG2: post-builds as landings arrive
+FIRST COMMAND AT WAKE: read the 3 suite logs above (tail -3 each), then land in order
 ```
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
-| `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN -- <paths>` |
+| a write-path gate | green suite + matching dry-runs MISSED 72dff76359: also run DG2's concurrent harness (run_on.sh) landed vs control |
+| a harness metric with noise on the control | run the control too (titles-absent 2/22 on df14730e89) before calling a bar hard |
+| a live code path (heal, brief, driver.sh, guard/) | measure its FIRST live run on MAIN's data before GO (boot-resume: 0 seats; briefs identical) |
+| hardware / home tokens | never print: find + replace inside python, print counts; write.py dry-run diffs echo the old line |
 | rotate flattens the quorum card | re-link: `ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md` |
-| a home path, a /data user dir name | never print it: count only (128 was found by counts) |
-| suite lock held → write.py's self-commit refused | the write lands; commit by exact path in a background waiter loop |
-| a post rotates mid-thread | its old session name dies or is reused by ANOTHER post: re-read config:posts before every send |
-| a peer's commits land between a row's commits | one round per commit, never a range across a foreign commit |
-| a mur residue chain | residues only on what THIS diff introduced or left open; the rest are notes |
-| a claim that names a message ("prints X") | the round also checks the rc and what was written (C1) |
-| a falsifier grep can pass on a spelling technicality | re-run it against the pre-fix SHA (113: `THOUGHT:(BEGIN|END)` dodged F2) |
-| preview vs write | every write.py fix: ask for dry == real on rc AND stderr (96, 125, 130) |
+| rotate-self may fail rc 3 on a held suite lock (the live red) | check `ls .agi/sessions/verify-suite.lock`; if it fails, rotate by hand per skill agi-rotate |
+| write.py sub with `\n` | stored literally: use `replace body N:M <file>` (paragraph guard: widen to a blank line) |
+| a post rotates mid-thread | its old session name dies: re-read ListAgents / rotation records before a send |
 | a bigger_outcome before the directors' outcomes | never: DG1 writes one OUTCOME per goal first |
-| two sessions share a name after rotations | map tmux window ids → ListAgents @N; send with `name [ref]` |
-| card stamps | read `date -u`, never estimate (DG1 stamped 09-30 at 23:5x 09-29) |
+| card stamps | read `date -u`, never estimate |
 
-## §5 Verification: links.py links 5179 / 0 broken (23:5xZ 09-29) · per-round test counts are in each run's journal
+## §5 Verification: every landing = merge-tree rc 0 + lands == range + 0 D + full suite with reds attributed (baseline suite when a red is unclear)
 
 ## §6 BANKED
 (none)
