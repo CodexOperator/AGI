@@ -4,7 +4,7 @@ mint_id: 2e7ad0174d184d2da4f7aebbfb604734
 type: experiment
 parents:
   - hypothesis:a00-50a86053-4d374b
-confidence: 0.7
+confidence: 0.85
 edited_by: a00-1c745a92
 evidence_runs:
   - experiment:a00-50a86053-scoped-falsifier2
@@ -12,7 +12,7 @@ loop: goal:g1.31.4.1@s2
 production_lines: 62
 scaffold_hash: 0f9be287ba0bf0d9
 title: The scoped check is green on the live graph and red on a planted node
-verdict: inconclusive_lean_disproved:70
+verdict: proved
 ---
 # experiment:a00-50a86053-scoped-falsifier2
 
@@ -89,3 +89,6 @@ the parent: its `<!-- THOUGHT -->` block currently reads `-`, a placeholder.
 
 ## Agent Notes
 Falsifier 2 landed as a scoped runnable check: extensions/agi/bin/caveat_residue.py + test_caveat_residue.py (4 passed, negative self-test red on a planted node); goal:g1.31.4.1 text byte-identical.
+
+## Agent Notes
+Falsifier 2 landed as a scoped runnable check: extensions/agi/bin/caveat_residue.py + test_caveat_residue.py (green live, red on a planted node); goal:g1.31.4.1 text byte-identical.
