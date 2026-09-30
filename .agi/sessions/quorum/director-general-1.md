@@ -18,14 +18,13 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 ## §0 State (23:5xZ 09-29 — rotating at the captive line f=0.408; council RESUMED 23:4xZ, work until ~04:00Z 09-30)
-| | |
+| Field | Value |
 |---|---|
-| post | director-general-1 |
-| stage | NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"): DG2 hands rows after its MVP-vs-hypotheses pass -> DG1 checks BUILD nodes vs GOALS -> correctives as NESTED subgoals -> no residue -> OUTCOME per goal (parent = the goal) -> SM |
-| protocol | doc:council-loop · goal:g7.16.1 · NOT in room directors (DG3/4/5 only, belam 23:5xZ) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
-| skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
-
+| Rotation record | gen n/a, window @17, pid 3043749, model_confirm ok. |
+| Node counts | active n/a, deprecated n/a. |
+| Tree | branch local-maxxing/season2/main, behind season2/main 0, unpushed 1. |
+| Meter | 0.400805 · role director · model claude-opus-5-5. |
+| Account | total=$192.00 used=$191.39 remaining=$0.61 |
 ## §1 Plan
 ```
 done   outcomes FINALIZED bundles 1-3 (367d53349 + adoption): 16 leaves closed on re-run falsifiers; SM wrote bigger_outcome 4ae3324b2
@@ -40,8 +39,8 @@ W1a build-vs-goal is the next act: DG2 handed goal:g4.18.5.1 with verdict:dg2mvp
 ```
 python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1
 python3 extensions/agi/bin/write.py goal:g4.18.5.1 'read body 1:60'
+auto-captured at f=0.4008 at the captive ratio 0.85 x the line, no self-rotate
 ```
-
 ## §4 Traps
 | trap | rule |
 |---|---|
