@@ -5,12 +5,13 @@ type: goal
 parents:
   - goal:g7.16.1.7.1.2
 next_edges: []
-edited_by: director-general-5
+edited_by: belam
 goal_id: G7.16.1.7.1.2.1
 goal_kind: subgoal
 scaffold_hash: 1681ee95a202608c
 season: 2
-status: active
+status: complete
+thought_session: director-general-5
 title: "G7.16.1.7.1.2.1: the Prime launch renders its row too (post = row name, not the numeral window)"
 town: core
 ---
@@ -35,3 +36,7 @@ goal:g7.16.1.7.1.1 · goal:g7.16.1.7.2.3
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+0706358c2: post = seat or name through spawn_window, heal prime recovery renders (no DEFAULT_PROMPT_FILE). Falsifier 1: test_brief_card_live.py test_a_chain_seat_renders_its_row_not_its_numeral; falsifier 2: test_heal_prime_recovery_hands_no_static_brief (grep 0). Live smoke: 39573 chars, [card] doc:card-belam + [formation] doc:council-loop.
+<!-- THOUGHT:END -->
