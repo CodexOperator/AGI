@@ -74,12 +74,14 @@ format=ssh
 gpgsign=true
 [user]
 signingkey=~/.ssh/id_ed25519.pub
-# agi-flush (134 B)
+# agi-flush (125 B)
 #!/bin/sh
-cd ~/t;grep -o '"/[^"]*"' ~/r|sort -u>.agi/track/$USER;git add -A;git commit -qSm$USER;git pull -q --no-rebase&&git push -q
-# pre-receive (186 B)
+cd ~/t;grep -o '"/[^"]*"' ~/r|sort -u>~/track;git add -A;git commit -qSm$USER;git pull -q --no-rebase&&git push -q
+# pre-receive (355 B)
 #!/bin/sh
-while read o n r;do git diff --name-only $o $n|while read p;do g=$(git check-attr owner -- "$p"|cut -d' ' -f3);id -nG|grep -qw "$g"||{ echo "$p: $g";exit 1;};done||exit 1;done
+e=$(git hash-object -t tree /dev/null)
+while read o n r;do case $n in *[!0]*);;*)continue;;esac;case $o in *[!0]*);;*)o=$(git merge-base HEAD $n 2>/dev/null||echo $e);;esac
+f=$(git diff --name-only $o $n)||exit 1;for p in $f;do g=$(git check-attr --source=$n owner -- "$p"|cut -d' ' -f3);id -nG|grep -qw "$g"||{ echo "$p: $g";exit 1;};done;done
 # signers (65 B)
 #!/bin/sh
 for f in .agi/keys/*;do echo "${f##*/} $(cat $f)";done
@@ -92,13 +94,13 @@ m agi-alive council
 | auto-rotate | the meter hook tells the session at the line to write its card, commit it, then end; `Restart=always` starts a FRESH session handed the card. The card is written DURING the work by one whole write (the card rule), so a death never loses more than the last unwritten step |
 | auto-heal | `Restart=always` (a crash takes the same path as a rotation) · `ssh-keygen` with stdin closed never overwrites: a missing key is minted, and its public half is published to `.agi/keys/<post>`; `signers` derives git's allowed_signers from those files |
 | idle | an interactive session waiting for input costs zero tokens; there is no timer and no polling |
-| auto-track | writes: each post works in its OWN tree (`~/t` = §4's slot-0, a `git clone --shared`, so no objects are copied), so the flush's `git add -A` there is exactly its writes, graph or not. Reads and writes of ANY path: `strace -f -e%file` wraps the harness; the post reads its own log with no root, and the flush commits the sorted unique paths to `.agi/track/<post>` |
+| auto-track | writes: each post works in its OWN tree (`~/t` = §4's slot-0, a `git clone --shared`, so no objects are copied), so the flush's `git add -A` there is exactly its writes, graph or not. Reads and writes of ANY path: `strace -f -e%file` wraps the harness; the post reads its own log with no root, and the flush keeps the sorted unique paths in `~/track`, LOCAL: never committed, never pushed (belam's RED 22:1xZ: the path log names home dirs, credential files and devices, and the repo is pushed to GitHub). Graph writes still pass the anonymize pre-commit refusal |
 | write / land | `agi-flush` at every session end: add, SSH-signed commit, `pull --no-rebase`, push. The shared checkout is READ-ONLY to every post, so the kernel refuses any direct write into it |
-| permission | `pre-receive` on the shared bare repo: every changed path's `owner` git attribute must be one of the pusher's groups. It refuses mistakes; it runs AS the pusher, so stopping malice needs a gate user (named, not built) |
+| permission | `pre-receive` on the shared bare repo: every changed path's `owner` git attribute must be one of the pusher's groups. A bare repo has no worktree, so it reads the attributes with `check-attr --source=<new sha>`; a new ref is diffed from its merge-base with HEAD (the empty tree on a first push); a deleted ref is skipped; a failed diff refuses (fail-closed). Tested 22:1xZ on a throwaway bare repo: own paths accepted, foreign paths refused by name on an update AND a new ref, a first push to an empty repo checked. It refuses mistakes; it runs AS the pusher, so stopping malice needs a gate user (named, not built) |
 | message | a sender drops a file into `/var/spool/agi/<post>/` (mode 1730, group agi: senders drop, only the owner reads); the `.path` unit pushes one line into the live session through `dtach -p`; the owner's flush moves read mail into its tree, where it is committed |
 | human view | `dtach -a /run/agi-<post>` attaches to any post's live session (the stream reads the same pane) |
 
-**The count: the whole wrap = 1,272 bytes of our code; one post = 34 bytes (its two sysusers lines) plus one `systemctl enable agi-post@<post>` symlink.** "A post in tens": MET. "The wrap in hundreds": MISSED by 273 bytes. The token-exact meter hook is 295 B of it; all-is-one's 75 B byte-count meter (kill at 2 MB of transcript) would bring the wrap to ~1,050 B but loses "write the card, then exit", so the council keeps the safer one. §4's slot script (415 B) serves kids and mixed-commit test runs only. The megabytes live in what is already written and tested: the kernel, systemd, git, strace, jq, dtach.
+**The count: the whole wrap = 1,432 bytes of our code; one post = 34 bytes (its two sysusers lines) plus one `systemctl enable agi-post@<post>` symlink.** "A post in tens": MET. "The wrap in hundreds": MISSED by 433 bytes. The token-exact meter hook is 295 B of it; all-is-one's 75 B byte-count meter (kill at 2 MB of transcript) would bring the wrap to ~1,210 B but loses "write the card, then exit", so the council keeps the safer one. §4's slot script (415 B) serves kids and mixed-commit test runs only. The megabytes live in what is already written and tested: the kernel, systemd, git, strace, jq, dtach.
 **Where the bar breaks (outside the count, named):** schema-check (<= 10 KB, §2: the rules are real content) · agi-mcp (<= 8 KB, §5) · the meter hook is Claude-only (pi compacts on its own) · strace overhead is a spike measure · a pull conflict leaves `~/t` mid-merge for the post's next session · root is needed ONCE (units, sysusers, the spool, the bare repo's hook, two small packages: dtach + strace): the owner's go.
 **Considered and dropped:** auditd for tracking (root to set up AND to read the log) · a timer + ExecCondition wake (moot: an idle interactive session already costs nothing) · one shared working tree (index contention, and a death loses new files and group-owned edits) · `.path` units as the commit trigger (not recursive).
 
