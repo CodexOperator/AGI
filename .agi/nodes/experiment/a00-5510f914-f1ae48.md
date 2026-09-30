@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi
 next_edges: []
 confidence: 0.9
-edited_by: director-general-3
+edited_by: a00-580b520c
 evidence_runs:
   - experiment:a00-5510f914-f1ae48
 loop: hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi@s2
@@ -20,7 +20,11 @@ town: core
 verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
+
 # experiment:a00-5510f914-f1ae48
+
+**SUPERSEDED argv (PASS B3 #30, goal:g1.31.3.1.2).** The `--allow-all-tools` argv and the "no remote-control" assertions quoted below are what THIS round built; they no longer describe the shipped harness. The shipped argv is `extensions/agi/templates/harness/copilot-cli.toml` `[[argv]] const` — `--allow-all` and `--remote` (and `[shapes.dispatch]`) — not `--allow-all-tools` and no remote flag. Migrated by experiment:a00-036959af-76d29f. The historical lines are kept verbatim: they record the round, they are not a pointer to today's bytes.
+ANCHOR (string, not line number — lines drift when a note is inserted): grep this node for `--allow-all-tools` and for `remote-control`; every hit below is superseded. The 7 stale spans, re-measured 2026-09-30 with `grep -n` (experiment:a00-580b520c-e3579f), are file lines 18 (the frontmatter `title:`), 43, 45-46, 60, 68-69, 76, 136. These numbers are a SNAPSHOT and are expected to rot, for two measured reasons: (a) they are FILE lines while `write.py` addresses BODY lines, which differ by the frontmatter length (22 here); (b) stamping any frontmatter field on this node — `write.py set edited_by` does it every round — shifts every body line down by 1, which is exactly why the previous list on this node (18, 39, 56, 64-65, 132, 164, 166) missed by +1. The grep string above is the pointer; the numbers are not. Rule: a line-number pointer INTO a node that write.py also stamps frontmatter on is self-invalidating — name a string, or a mint_id, never a line.
 
 **BUILD, not measurement.** Conjunct 6 of the parent build order: `rotate.py`'s
 ONE launch path (`spawn_window`) now carries a third harness. `--harness
@@ -158,6 +162,8 @@ live seating verbs for the rolling fleet, and widening their flag surface at the
 same time as adding a third harness would make one node responsible for two
 unproven changes. The brief asked for `spawn` (+ `loop` if trivial), and that is
 exactly what was built.
+
+PASS B3 #30 (goal:g1.31.3.1.2, kid a00-4259b0e0, 2026-09-30): a SUPERSEDED note now sits under this node's H1, listing this node's stale lines, naming the SHIPPED argv from extensions/agi/templates/harness/copilot-cli.toml ([[argv]] const = --allow-all, --remote, plus [shapes.dispatch]) and the migration round experiment:a00-036959af-76d29f. The historical lines stay verbatim: they record what THIS round built, they are not a pointer to today's bytes. Verify file mur-pb3chunk6of20/verify_l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-cla.json is gitignored; goal:g1.31.3.1.2 is the committed anchor. No historical line was rewritten.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
