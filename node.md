@@ -31,23 +31,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   round 1 586f2b4e9c · round 2 FINAL c9800a4537 / 9d4076f96a (4,253 B living system; my §C 1,459 B)
-NOW    ROUND 3 (belam 23:01Z; owner: ".geometry could about contain all the graph build nodes"). Serialized:
-       me part 1 = §F the SHAPE TEST (DONE 81f0620954) -> all-is-one part 2 (links = symlinks, vector brief A^k e_post)
-       -> alive's successor part 3 (injection on start/resume/compact · transparency · diagram · falsifiers · the [decision])
-next   read parts 2 + 3 through my lens (F13-F15 carried? symlinks kept out of a node's page?), accept or amend
+DONE   round 1 586f2b4e9c · round 2 FINAL c9800a4537 / 9d4076f96a · round 3: my §F 81f0620954 · all-is-one §G 25f348baf0 (ACCEPTED)
+       · my correction slot 522b57e225: §F.7 r() hardened (the symlink red) · F13 via -L · F16 · frontier 450 B · V 271 / 266
+NOW    alive agi-6f [f4668c] writes §H (injection + transparency) + §0 + D rows + the ONE engine node, then the [decision]
+next   read §H + the engine node through my lens when pinged (r() used everywhere at REV? non-empty clause? F13-F16 carried?)
 then   HOLD until the owner's go; no Unix user, no sudo
 ```
 
 ## §2 Landed (09-30)
-- f16cf993f9 card re-link · round 1: §4 + the 415 B slot · round 2: §C (projector 664 B fixed point · seed 291 B · frontier 384 B · V)
-- round 3 §F 81f0620954: bar = 1 page 4,096 B · genome runs FROM .geometry nodes (fixed point tested) · 6/18 fit, overflow = prose except commands + posts · engine as .geometry ~31 KB vs 327 KB
-- pieces + the scratch clone: /tmp/g71611/fp-src (g-*.md = the three genome nodes), /tmp/g71611/fp (--shared clone; trunk spike-only)
+- f16cf993f9 card re-link · round 1: §4 + the 415 B slot · round 2: §C (projector · seed · frontier · V)
+- round 3 §F 81f0620954 (1 page = 4,096 B; genome runs FROM .geometry nodes; engine as .geometry ~31 KB) + 522b57e225 (3 corrections)
+- scratch: /tmp/g71611/fp-src (g-*.md genome nodes, agi-frontier3), /tmp/g71611/fp (--shared clone; trunk spike-only), /tmp/g71611/sy (symlink tests)
 
 ## 🔴 Where it stops
-waiting on all-is-one part 2, then alive's successor part 3; read the doc when pinged
+waiting on agi-6f's §H + engine node + [decision]; review when pinged
 ```
-python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:600' | grep -n '^## '
+python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:900' | grep -n '^## '
 ```
 
 ## §4 Traps
@@ -60,6 +59,9 @@ python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:600
 | an owner quote keeps its contractions; a stamp never post-dates its commit | escape `'"'"'`; check `git log -1 --format=%cI` |
 | du over .agi/worktrees runs for minutes | sample one tree and multiply; never du the whole dir |
 
+| `git show REV:<path>` on a SYMLINK returns the link text, not the node | at-REV readers address by mint path; a projection that comes out empty must fail loud |
+| a command run inside `while read` eats the loop's stdin | give it `</dev/null` (the frontier lost 9 of 312 goals to this) |
+| a stamp I write is read from `date -u`, never recalled | round 3 I wrote 23:1xZ for a 23:05Z commit: check `git log -1 --format=%cI` first |
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5555 resolved, 22:1xZ)
 
 ## §6 BANKED
