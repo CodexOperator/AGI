@@ -20,11 +20,11 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (09-30, gen 2, meter 0.34 of 0.47 · HOLD IDLE (belam 01:4xZ: box switchover + reboot) until belam says resume)
+## §0 State (09-30, gen 2, meter 0.40 of 0.47 · RESUMED 01:55Z (Prime = session agi-c2; internal messaging only, NO send.py / rooms))
 | | |
 |---|---|
 | post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
-| goal | goal:g7.16.1.7, PLACED by the council (alive 23:4xZ): 7a NOW = goal:g7.16.1.7.1 · 7b AFTER goal:g7.16.1.6 + goal:g4.18.6 = goal:g7.16.1.7.2 |
+| goal | FIRST: goal:g7.16.1.5.4 (Prime order 01:55Z: round worktrees on the RAM disk, removed at harvest) · then goal:g7.16.1.7, PLACED by the council (alive 23:4xZ): 7a NOW = goal:g7.16.1.7.1 · 7b AFTER goal:g7.16.1.6 + goal:g4.18.6 = goal:g7.16.1.7.2 |
 | split of record | room `directors`, DG4 23:40:55 amend: rotate.py WHOLLY DG5 (launch + W1c goal:g4.18.5.3 + its commit sites; W1c after DG3 posts the commit_node signature) · dispatch.py launch resolvers · heal.py key path. DG3 = write.py/node_writer · DG4 = every non-rotate writer |
 | claims | none held; `[claim] <file>` before any edit, `[release] <file> <sha>` after (room directors) |
 | skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-post · agi-workflow |
@@ -51,20 +51,21 @@ W1c (goal:g4.18.5.3) after DG3 posts commit_node's signature in room directors
 - 905108691 + 70d451b4d rotate.stand_up: spawn / seats-launch / rotate-self / loop / heal recover / `rotate.py stand-up --post` (hand restart); skill agi-post §4
 - d52d4bfbb brief.card_text: card NODE wins over a copy; [card] id·mint·grid v·git + [formation] line; heal director recovery renders; refused render keeps the card
 - 0be603067 minted goal:g7.16.1.7.1.2.1 · 0706358c2 .1.2.1 chain seat renders its row, heal prime drops DEFAULT_PROMPT_FILE
+- bfa89533e goal:g7.16.1.5.4: locations.guard_cell; dispatch checks rounds out under GUARD_RAM_WORKTREES (symlink at .agi/worktrees/<agent>), RAM_WT_HOLD_PCT holds a launch; cli dead-kid prune sees RAM registrations
 - minted goal:g7.16.1.7.1.3.1 / .3.2 / .3.3 · 09c554f4f .3.1 adapters.harness_block: 10 config harness reads in 6 files route through it
 - build:bin-heal THOUGHT per round (faa9ea0cf and after) · goals .1.1.3 · .1.1.2.1 · .1.1.4 · .1.1.2 · .1.1 set complete · links 5237/0
 
 ## 🔴 Where it stops
 ```
-HOLD (belam via agi-c4, owner 01:4xZ): idle until belam says "resume"; internal messaging only (SendMessage), NO send.py / rooms until the bundles land.
-Tree clean for DG5: nothing uncommitted, no unit running. .1.3.2 was spliced, verified and REVERTED at the hold:
-  measured: pi-free / pi-local / claude-code / copilot-cli / grok-bot resolve identical; pi:paid == old pi; pi == pi-free; dispatch dry-run same model.
-  open: test_workflow test_config_flip_changes_dispatched_model + test_runner_pi_harness_dry_run_prints_one_dispatch_per_stage read
-  harnesses.pi.models off the LIVE config (KeyError 'models') -> point them at adapters.harness_block(cfg, "pi") first, then flip.
-On resume: (1) fix those two test reads (2) `python3 ~/dg5/g1332-splice.py` from the repo root (3) add the live-template tests to
-tests/test_harness_block.py (one free default, pi == pi-free, pi-local row local, no pi-free/pi-local block) (4) suite: 
-`systemd-run --user --unit=agi-director-general-5-nbhdA --working-directory=/data/work/agi -p MemoryMax=6G -p MemorySwapMax=0 bash ~/dg5/dg5-nbhd2.sh`
--> ~/dg5/nbhd.out (5) commit config.json + tests by path, [rule] to belam: the director template line "an explicit --harness pi is the PAID lane" becomes pi:paid.
+goal:g7.16.1.5.4 code LANDED bfa89533e, OFF until config:guard gets 2 cells: write.py refuses a director's config body edit
+(L4.110 ruling B) -> asked the Prime (agi-c2) by SendMessage ~02:2xZ with the lines; paragraph = ~/dg5/dg5-guard-para.md (body 63:88).
+Once set: verify live (python3 -c dispatch.ram_worktrees_dir(Path('.agi')) -> /mnt/agi-ram/worktrees), then the next real round:
+`git worktree list | grep agi-ram` (falsifier 1) and no new path under .agi/worktrees (falsifier 2) -> set .5.4 complete.
+DG4 (agi-2f, window director-general-4) owns heal._sweep_finished_worktrees (goal:g7.16.1.5.3), reads GUARD_RAM_WORKTREES; symlink
+layout agreed: remove the REAL path, then unlink.
+Behind it: goal:g7.16.1.7.1.3.2 config flip -- steps: fix test_workflow's two live-config pi reads, `python3 ~/dg5/g1332-splice.py`,
+live-template tests, suite `systemd-run --user --unit=agi-director-general-5-nbhdA --working-directory=/data/work/agi -p MemoryMax=6G
+-p MemorySwapMax=0 bash ~/dg5/dg5-nbhd2.sh` -> ~/dg5/nbhd.out; the flip edits .agi/config.json (not a config node) -- check it is not refused too.
 Open reds, not mine (red at HEAD): test_brief g15 fallback.
 ```
 ## §4 Traps
