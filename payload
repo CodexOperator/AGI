@@ -547,10 +547,6 @@ def _resolve_fm_row(root, edit: Edit) -> None:
             tables[top] = {k: v for k, v in table.items() if k != key}
             continue
         if src == "-":
-            if sum(x == "-" for x in [f for _, f in edit.fm_rows] + [
-                    edit.replace_from, edit.payload_from, edit.patch_from,
-                    edit.body_patch_from]) > 1:
-                raise EditError(f"row {ref}: stdin feeds ONE verb per script")
             text = sys.stdin.read()
         else:
             try:
@@ -570,6 +566,17 @@ def _resolve_fm_row(root, edit: Edit) -> None:
         tables[top] = {k: (value if k == key else v) for k, v in table.items()}
     edit.set_fm.update(tables)
     edit.fm_row_resolved = True
+
+
+def _stdin_refusal(edit: Edit) -> str | None:
+    """stdin feeds ONE verb per script: a second `-` source reads '' and its
+    verb is silently lost (SM 110 + 117) -- judged right after parsing and in
+    submit, whatever verbs carry the `-`."""
+    dashes = [f for _, f in edit.fm_rows] + [edit.replace_from, edit.payload_from,
+                                              edit.patch_from, edit.body_patch_from]
+    if sum(x == "-" for x in dashes) > 1:
+        return "stdin feeds ONE verb per script: pass the other sources as files"
+    return None
 
 
 def _standalone_refusal(edit: Edit) -> str | None:
@@ -2342,6 +2349,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # conjunct 1: resolve `sub` BEFORE the outside-ref gate, on the API path
     # too; main already resolved it for its preview (idempotent).
     _resolve_sub(root, edit)
+    if _stdin_refusal(edit):   # SM 117, for an API caller too
+        raise EditError(_stdin_refusal(edit))
     _resolve_fm_row(root, edit)   # BUILD1, idempotent likewise
 
     # A link_ref/payload_ref resolving outside the repo tree is refused before
@@ -3549,6 +3558,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
 
+    if _stdin_refusal(edit):   # SM 117: before ANY verb reads stdin
+        print(f"ERR: {_stdin_refusal(edit)}", file=sys.stderr)
+        return 2
     # BUILD1: a nested frontmatter row becomes a `set_fm` entry HERE, before
     # the set schema gate, so it is judged exactly like a `set`.
     if edit.fm_rows:
