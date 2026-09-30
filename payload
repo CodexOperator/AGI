@@ -837,6 +837,46 @@ def test_w2a_a_renumbered_mint_id_resolves_to_its_new_address(project):
     assert tuple(got) == ("goal:g9.2", "T", "active"), got
 
 
+# SM 103 104: only node files carry a mint (a .bak beside one never does);
+# a retired node still resolves, live first, and its status says which.
+def test_w2a_a_bak_is_no_carrier_and_a_retired_node_resolves_live_first(project):
+    fm = [f"mint_id: {_W2A_MINT}", "type: goal", 'title: "T"']
+    live = _node(project, "goal:g9.1", ['id: "goal:g9.1"', "status: active"] + fm, "b\n")
+    (project / "nodes" / "goal" / "g9.1.md.bak").write_text(live.read_text())
+    assert links.resolve_mint(project, _W2A_MINT)[0] == "goal:g9.1"
+    gone = project / "nodes" / "deprecated" / "goal" / "g9.0.md"
+    gone.parent.mkdir(parents=True)
+    gone.write_text("---\n" + "\n".join(['id: "goal:g9.0"', "status: deprecated"] + fm) + "\n---\n")
+    assert links.resolve_mint(project, _W2A_MINT)[0] == "goal:g9.1", "live first"
+    live.unlink()
+    assert tuple(links.resolve_mint(project, _W2A_MINT)) == ("goal:g9.0", "T", "deprecated")
+
+
+# SM 102 105: every exit of `links.py mint` and write.py's mint target, by rc:
+# found 0 · unknown 1 (links) / 2 (write) · two live carriers 2 · a grep that
+# cannot look 2 with a named line, never a traceback.
+def test_w2a_mint_exits_found_unknown_two_carriers_and_a_blind_grep(project, monkeypatch, capsys):
+    import rotation_record
+    import write
+    fm = [f"mint_id: {_W2A_MINT}", "type: hypothesis", 'title: "T"', "status: active"]
+    _node(project, "hypothesis:h1", ['id: "hypothesis:h1"'] + fm, "b\n")
+    root = ["--root", str(project)]
+    assert links.main(["mint", _W2A_MINT] + root) == 0
+    assert links.main(["mint", "e" * 32] + root) == 1
+    assert write.main(["e" * 32, "note x"] + root) == 2
+    _node(project, "hypothesis:h2", ['id: "hypothesis:h2"'] + fm, "b\n")
+    assert links.main(["mint", _W2A_MINT] + root) == 2
+    assert write.main([_W2A_MINT, "note x"] + root) == 2
+    capsys.readouterr()
+
+    def blind(*_a, **_k):
+        raise rotation_record.GrepError("git grep exit 2: boom")
+    monkeypatch.setattr(rotation_record, "grep_live", blind)
+    assert links.main(["mint", _W2A_MINT] + root) == 2
+    assert write.main([_W2A_MINT, "note x"] + root) == 2
+    assert capsys.readouterr().err.count("mint lookup could not look") == 2
+
+
 def test_w2a_one_resolver_def_and_links_and_write_call_it():
     import re
     src = {p.name: p.read_text() for p in BIN.glob("*.py")}
