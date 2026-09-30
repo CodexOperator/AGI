@@ -458,6 +458,9 @@ def frontmatter_rows(nodes_dir) -> "dict[str, dict]":
                 except yaml.YAMLError:
                     val = val[1:-1]
             fm.setdefault(key, val)
+    for rel in [k for k, fm in files.items() if fm["_fences"] == 1]:   # SM 120a
+        print(f"warn: {rel}: frontmatter never closes -- not indexed", file=sys.stderr)
+        del files[rel]
     return files
 
 
@@ -467,6 +470,8 @@ def mint_index(root) -> "dict[str, list[tuple[str, str, str, str, bool]]]":
     so a collision stays visible."""
     out: dict = {}
     for rel, fm in frontmatter_rows(Path(root) / "nodes").items():
+        if fm.get("mint_id") and not fm.get("id"):   # SM 120b: named, never silent
+            print(f"warn: {rel}: mint_id {fm['mint_id']} but no id -- not indexed", file=sys.stderr)
         if fm.get("mint_id") and fm.get("id"):
             out.setdefault(fm["mint_id"], []).append(
                 (fm["id"], fm.get("type", ""), fm.get("title", ""), fm.get("status", ""),
