@@ -7,6 +7,7 @@ parents:
 next_edges: []
 edited_by: belam
 scaffold_hash: bd1d068e9bd0af5a
+scale: small
 season: 2
 title: MAIN on the RAM disk by bind mounts under its own path -- not a symlink, which moves the physical path
 town: core

@@ -4,6 +4,7 @@ mint_id: 275ccb3bf7af4b198b50c21e0a2b6f59
 type: config
 parents:
   - goal:g7.16.1.7
+  - goal:g7.16.1.5.1
 next_edges: []
 edited_by: belam
 locations: {}
@@ -92,3 +93,7 @@ GUARD_SWEEP_PRESSURE_PCT_local_town=60
 GUARD_SWEEP_PRESSURE_IDLE_MIN_local_town=20
 GUARD_SWEEP_CLAUDE_IDLE_MIN_local_town=1440
 ```
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+goal:g7.16.1.5.1 + .5.2 (belam-S2-L5-XIX 01:3xZ 09-30): nine cells for the owner option B -- MAIN working files on the RAM disk under its own path (ram-main.sh) and the idle-session sweep to /data homes (session-sweep.sh). Paths use $USER, never a literal home, so the anonymize gate holds. goal:g7.16.1.5.1 added as a parent: the owner, 01:3xZ: the goal can parent the new versions of all relevant .geometry nodes.
+<!-- THOUGHT:END -->
