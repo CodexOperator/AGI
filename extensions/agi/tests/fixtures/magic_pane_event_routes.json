@@ -1,0 +1,45 @@
+{
+  "schema": "magic-pane-event-routes/v1",
+  "goal": "goal:g7.16.1.7.3.1",
+  "note": "SoT for goal:g7.16.1.7.3 invariant: one route per event kind. Pane owns no transport (goal:g7.32.6). Not messaging integration.",
+  "required_kinds": [
+    "first_turn_docs",
+    "memory_alarm",
+    "message_receipt",
+    "rotation_prompt",
+    "write_commit_result"
+  ],
+  "parent_measured_legacy_routes": [
+    "session_start_hook_paste",
+    "user_prompt_submit_meter",
+    "send_py_nudge",
+    "cc_send_message"
+  ],
+  "routes": [
+    {
+      "event_kind": "first_turn_docs",
+      "target_route": "tool_call_turn",
+      "legacy_routes": ["session_start_hook_paste"]
+    },
+    {
+      "event_kind": "memory_alarm",
+      "target_route": "tool_call_turn",
+      "legacy_routes": ["user_prompt_submit_meter"]
+    },
+    {
+      "event_kind": "message_receipt",
+      "target_route": "tool_call_turn",
+      "legacy_routes": ["send_py_nudge", "cc_send_message"]
+    },
+    {
+      "event_kind": "rotation_prompt",
+      "target_route": "tool_call_turn",
+      "legacy_routes": ["session_start_hook_paste", "send_py_nudge"]
+    },
+    {
+      "event_kind": "write_commit_result",
+      "target_route": "tool_call_turn",
+      "legacy_routes": ["user_prompt_submit_meter", "send_py_nudge"]
+    }
+  ]
+}
