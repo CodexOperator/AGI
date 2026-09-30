@@ -1,0 +1,160 @@
+{
+  "rotation": "rotate-self",
+  "seat": "all-is-one",
+  "recorded_at": "2026-09-30T21:56:37.765411Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "all-is-one",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "all-is-one.prev",
+        "self-perpetuating.prev",
+        "belam-S2-L5-XXII",
+        "director-general-1",
+        "stream-master",
+        "director-general-3",
+        "thought-master",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "sanctuary-master",
+        "all-is-one",
+        "self-perpetuating",
+        "alive",
+        "director-general-2"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/all-is-one.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 1916354,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "all-is-one.prev",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "all-is-one.prev",
+        "self-perpetuating.prev",
+        "belam-S2-L5-XXII",
+        "director-general-1",
+        "stream-master",
+        "director-general-3",
+        "thought-master",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "sanctuary-master",
+        "all-is-one",
+        "alive",
+        "director-general-2"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -59.033
+  },
+  "seated_at": "2026-09-30T21:56:37.765411Z",
+  "window": "all-is-one",
+  "session_id": "4ac67f46-3144-4e1c-93ee-cd71713f3d83",
+  "pid": 2881979,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "all-is-one.prev",
+      "id": "@1"
+    },
+    "successor_window": {
+      "name": "all-is-one",
+      "id": "@35"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@35",
+      "pid": 2881979,
+      "session_id": "4ac67f46-3144-4e1c-93ee-cd71713f3d83",
+      "transcript": "~/.claude/projects/-data-work-agi/4ac67f46-3144-4e1c-93ee-cd71713f3d83.jsonl",
+      "name": "agi-15",
+      "path": "~/.claude/sessions/2881979.json",
+      "note": "joined by @35 in registry file 2881979.json"
+    },
+    "successor_row": "config:seats row 'all-is-one': session_ref= session_name=agi-15 session_label=all-is-one session_id=4ac67f46-3144-4e1c-93ee-cd71713f3d83 pid=2881979 generation=3 window='@35' source=registry pubkey=b8f4c0fae889301b... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 2a92c6fc49, retried 0) -- own-row only: all-is-one spawn row: gen 3, session_id 4ac67f46-3144-4e1c-93ee-cd71713f3d83, window @35, pid 2881979\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- b5dcd3930 -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/all-is-one.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/all-is-one.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/all-is-one.ack.4ac67f46.json",
+    "own_authority_released": "generation 2 of seat 'all-is-one' retired; successor generation 3 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch local-maxxing/season2/main",
+    "livestream_repoint": {
+      "session": "view-all-is-one",
+      "target": "@35",
+      "skipped": "view session view-all-is-one absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "rotate-self"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/all-is-one.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "623a6a92c73951cbbd4cd658826f6900c4ba642390d8e52647c72390ce792908",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      {
+        "pid": 2862092,
+        "was_alive": true,
+        "termd": true,
+        "gone_after": true,
+        "ps_before": "2862092 /bin/bash -c source ~/.claude/shell-snapshots/snapshot-bash-1790733786928-j52cqw.sh 2>/dev/null || true && shopt -u extglob 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'timeout 600 python3 extensions/agi/bin/rotate.py rotate 2>&1 | tail -25 | cut -c1-220' < /dev/null && pwd -P >| /tmp/claude-4079-cwd",
+        "ps_after": ""
+      },
+      {
+        "pid": 4411,
+        "was_alive": true,
+        "termd": true,
+        "gone_after": true,
+        "ps_before": "4411 claude --remote-control all-is-one --permission-mode bypassPermissions --debug-file /data/work/agi/.agi/sessions/all-is-one.log --model claude-opus-5-5 --effort high --settings {\"quiet\": true} --resume 5d1031fa-f48d-48eb-a5f2-0c3aef2d3237 RESUMED SEAT (crash-recovery, heal): your process died and heal resumed this same session. Re-read your card (it may have moved on), then run `python3 extensions/agi/bin/rotate.py ack --seat all-is-one --gen 2 --ref <your ListAgents ref> continue` and carry on.",
+        "ps_after": ""
+      },
+      {
+        "pid": 4407,
+        "was_alive": true,
+        "termd": true,
+        "gone_after": true,
+        "ps_before": "4407 /usr/bin/python3 /data/work/agi/extensions/agi/bin/rotate.py launch-wrapper --seat all-is-one -- claude --remote-control all-is-one --permission-mode bypassPermissions --debug-file /data/work/agi/.agi/sessions/all-is-one.log --model claude-opus-5-5 --effort high --settings {\"quiet\": true} --resume 5d1031fa-f48d-48eb-a5f2-0c3aef2d3237 RESUMED SEAT (crash-recovery, heal): your process died and heal resumed this same session. Re-read your card (it may have moved on), then run `python3 extensions/agi/bin/rotate.py ack --seat all-is-one --gen 2 --ref <your ListAgents ref> continue` and carry on.",
+        "ps_after": ""
+      },
+      {
+        "pid": 4404,
+        "was_alive": true,
+        "termd": true,
+        "gone_after": true,
+        "ps_before": "4404 [bash] <defunct>",
+        "ps_after": ""
+      }
+    ],
+    "reap_source": "derived from own window @id @1 pane 4404: chain [4404, 4407, 4411, 2862092] (deepest-first; authority row pid 4411)"
+  },
+  "committed_by": "rotate-self"
+}
