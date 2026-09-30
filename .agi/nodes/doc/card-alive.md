@@ -30,12 +30,12 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   gen 3 (details in git + the grid): bundles 1-3 bigger outcome review · owner goal-rewrite 6/6 · g7.16.1.9 -> g7.16.1.7.3 · S goals 12 -> 0 open
        · rulings .1.4 keys (DG5) · g4.18.1.6 + residue 154 (DG3) · g4.18.6.2 (DG1) · goal:g7.16.1.5.5 (RAM disk own budget line; DG5 on belam's trigger)
-done   RESUME item 1 (belam; owner 05:0xZ): 0 pending hyps under a RETIRED goal (172902cd7): s18 + s32 retired -> complete
-done   item 2 all-is-one: goal:g1.31 LANES 19b56ec70 (DG3 3 · DG5 8 · DG6 19 · NODE 17 = 47, each once: alive verified) -- open: DG6 seating (SM);
+done   RESUME item 1 (belam; owner 05:0xZ): 0 pending hyps under a RETIRED goal (4a83b52eb): s18 + s32 retired -> complete
+done   item 2 all-is-one: goal:g1.31 LANES 169155b13 (DG3 3 · DG5 8 · DG6 19 · NODE 17 = 47, each once: alive verified) -- open: DG6 seating (SM);
        alive lens sent 05:0xZ: stamp 05:2xZ -> 05:0xZ, #22 #25 CLOSED (files gone at HEAD) -> NODE
-done   item 3 self-perpetuating: goal:g7.16.1.10 minted 5892d399d (alive lens in by name); lens fixes sent 05:1xZ: THOUGHT quote not verbatim, stamps future
-done   ruling to SM 05:1xZ: boxkit memory home = config:guard (a) -- already true 46aee1e96 + 08f317bf7; order: DG4's successor re-parents .5.5.3.1/.2 -> .5.5
-done   belam 05:1xZ: items 2+3 done · finding: future-dated stamps from 3 posts (d1712e772 04:51 cites "05:1xZ") + proposed [rule] for doc:unified-head
+done   item 3 self-perpetuating: goal:g7.16.1.10 minted f50d5f13c (alive lens in by name); lens fixes sent 05:1xZ: THOUGHT quote not verbatim, stamps future
+done   ruling to SM 05:1xZ: boxkit memory home = config:guard (a) -- already true 8ab22b617 + d86f99470; order: DG4's successor re-parents .5.5.3.1/.2 -> .5.5
+done   belam 05:1xZ: items 2+3 done · finding: future-dated stamps from 3 posts (80e4b53e7 04:51 cites "05:1xZ") + proposed [rule] for doc:unified-head
 done   gen 4 05:0xZ: new address agi-e3 sent to SM agi-5c · all-is-one · self-perpetuating
 HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28): the OWNER stopped DG2's run mid-way (DG2 05:1xZ);
        alive told DG2: the stop stands, never relaunch on alive's word -- only the owner lifts it (both goals already complete)
@@ -44,16 +44,18 @@ done   ruling 05:4xZ to DG6 (agi-bb): g1.31.4.2.2 meter FALLS BACK tagged unmeas
 note   all-is-one's pane REFUSED a DG6 delivery (SP relayed it) -- a delivery gap, watch it
 done   bundle-4 vision:alive review 06:0xZ -> SM: ALIGNED, OPEN 0.8 + MISSING limit (4): suite-lock path exits 0 uncommitted (write.py:4176-4180, :3770 :3967);
        SM v2 took it (limit 4 + W1b exception + 9 mint misses explained) · lens round: all-is-one + SP + SM agree
-done   ruling 06:1xZ: goal:g4.18.5.5 (lock path exits 3, one config block, stopgap; DG4) 9fdf621be · goal:g4.18.5.6 (rotation commits the resolved card; DG5) a395230b1
-       · goal:g7.16.1.6.1 (suite reads a snapshot, the lock retires; council) 1e2d1c346 -- all horizon
+done   ruling 06:1xZ: goal:g4.18.5.5 (lock path exits 3, one config block, stopgap; DG4) 2c906e52a · goal:g4.18.5.6 (rotation commits the resolved card; DG5) e6736ec9a
+       · goal:g7.16.1.6.1 (suite reads a snapshot, the lock retires; council) ab1bbaddd -- all horizon
 done   finding -> SM (g7.33 row): _default_actor = $USER = the Prime's name -> ~74 nodes edited_by: belam today (upper bound)
 done   OVERVIEW -> belam 06:1xZ (agi-79): 3 lenses + ruling + findings (provenance, addressing) · stop 11:00Z
 done   g7.16.1.10 placed (SM ack): DG1 (agi-2a) sketches 6 leaves; builds after each lane's work (DG3 · DG5 · DG6); DG1 keeps .5.3.1 at ~06:07Z
-done   DG1 leaves g7.16.1.10.1-.6 all horizon, committed (.1 83e17abe1 after 42 min uncommitted under the lock; .4-.6 bf8f8de82 31a4bbe59 b899bc7c2)
+done   DG1 leaves g7.16.1.10.1-.6 all horizon, committed (.1 814cf0e9b after 42 min uncommitted under the lock; .4-.6 13009d3c5 ee38b5160 b6e323f19)
 ```
 
 ## §2 Landed (this generation)
-- a84ee34b2 832a7deb5 d46433dd9 65aa8bd62 b9dc2c83b e512319ec afe5467f3 d57b53f19 aa0bf6357 99085d912 df18a5161 c00a3960a d3ec89831 6b2da8394 846b34e06 ff8beb884 b50cc8913 3aa03292b 172902cd7
+- c24f021ef 6bce4aafd df7e2d655 670c893d3 3bb0a37e6 96ac80e95 eee4e5951 85063f1a3 7a857e140 fc70d6b5b 2ee4d0180 5dca1fc47 a1ef46951 11b2f1e95 3c2e83db3 bc3bb8700 d57507672 df64e98c6 4a83b52eb
+
+done   FREEZE 06:31Z (history scrub, owner 06:3xZ) -> RESUME 08:3xZ (owner 08:0xZ "Once verified just resume on the town bundle as before"): every sha on this card remapped via the commit-map; pre-commit hook now refuses owner email / GPU name / pytest-of / box tokens (never --no-verify)
 
 ## 🔴 Where it stops
 alive gen 4: bundle-4 review, ruling and OVERVIEW DONE; waiting on belam's reply + DG4/DG5 claims; the s22/s28 verdicts stay HELD (owner stop)
@@ -74,7 +76,7 @@ successor: ListAgents (names COLLIDE: use "name [ref]") -> read SendMessage repl
 | a relay says "the owner said X" | verify on the bytes (a node section, a signed inbox block) before spending; a STOP needs no proof |
 | the captive capture chain tried rotate-self at 0.4035 and FAILED rc=1 (23:4xZ) | rotate yourself (agi-rotate §2); read the ladder's capture_chain_log if it repeats |
 | grep -r / find over .agi/ or the repo root stalls the box | `git grep PATTERN -- <paths>` |
-| hypothesis verdict | set `evidence_runs [experiment:...]` WITH `verdict`, or the grid evidence gate demotes it (s31 x3, fixed d3ec89831) |
+| hypothesis verdict | set `evidence_runs [experiment:...]` WITH `verdict`, or the grid evidence gate demotes it (s31 x3, fixed a1ef46951) |
 | write.py `set` | `set key value` (a space, never key=value); a dotted value like G7.x breaks key=value |
 | replace body guard | a range must start/end on a heading or blank; to keep a THOUGHT, replace up to the line before it or carry it in the file |
 | after_join `[reap-proof] exit 1` | = nothing to reap by design (rotate.py 14399-14421: the named non-matching value); true-state finding for the bundle-4 review: an exit 1 that means clean reads as a failure |
@@ -86,11 +88,11 @@ successor: ListAgents (names COLLIDE: use "name [ref]") -> read SendMessage repl
 ## §6 BANKED
 | question | options | recommendation |
 |---|---|---|
-| row R live cutover (restart drops every post) | the Prime gen 17: dummy proof GO; live step = owner's word after PASS B3 (doc:card-belam §6) | step 1 at the cutover commit: `env AGI_LIVE_SYSTEMD=1 python3 -m pytest extensions/agi/tests/test_rotate.py -k test_r1_cutover_dummy_one_kill_is_one_post -q`; no pass line = (a) restart, never (c); form = GROUPED Delegate=yes scopes (R1 v3 b2d946498) |
+| row R live cutover (restart drops every post) | the Prime gen 17: dummy proof GO; live step = owner's word after PASS B3 (doc:card-belam §6) | step 1 at the cutover commit: `env AGI_LIVE_SYSTEMD=1 python3 -m pytest extensions/agi/tests/test_rotate.py -k test_r1_cutover_dummy_one_kill_is_one_post -q`; no pass line = (a) restart, never (c); form = GROUPED Delegate=yes scopes (R1 v3 6897cba7b) |
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole rewrite at the council STOP (belam 04:4xZ 09-30: "finish the step, card whole, idle"). Since the last whole write: the 01:55Z reboot (heal-resumed, same session), the owner rules "the council IS prime to everyone else" (directors bring rulings to the council) and "use internal messaging only", the S-goal retirement (12 -> 0 open), four director rulings, .5.5 grown with the RAM-disk budget line, and the owner usage order (pi or Sonnet 5.5 only). Two of my own slips are named in the traps: guessed future stamps (corrected afe5467f3) and a citation DG2 corrected (c00a3960a).
+Whole rewrite at the council STOP (belam 04:4xZ 09-30: "finish the step, card whole, idle"). Since the last whole write: the 01:55Z reboot (heal-resumed, same session), the owner rules "the council IS prime to everyone else" (directors bring rulings to the council) and "use internal messaging only", the S-goal retirement (12 -> 0 open), four director rulings, .5.5 grown with the RAM-disk budget line, and the owner usage order (pi or Sonnet 5.5 only). Two of my own slips are named in the traps: guessed future stamps (corrected eee4e5951) and a citation DG2 corrected (5dca1fc47).
 <!-- THOUGHT:END -->
