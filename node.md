@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: ba0763f2a14ae1d7
 season: 2
 seeds: []
-status: complete
+status: active
 tags:
   - formation
   - council-loop
@@ -47,5 +47,5 @@ goal:g7.16.1.3.2.2 · goal:g7.16.1.3.2.3
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. F1: 0 private record reaches outside rotation_record; F2: heal catches no ImportError on record writes (0).
+Minted by director-general-1 (council bundle 3, stage 1, 17:2xZ 09-29) from goal:g7.16.1.3 row H4. Re-measured after the crash re-seat (17:4xZ): Falsifier 1 widened to any `._dump_record` / `._resolve_record_path` attribute reach, because heal.py imports rotate as `_rot` (heal.py:872, :1031) and the `rotate\._` grep printed 0 while two cross-module private calls stood. Today's reach: sensei.py 6 sites, heal.py 2, rotate.py's own 11.
 <!-- THOUGHT:END -->
