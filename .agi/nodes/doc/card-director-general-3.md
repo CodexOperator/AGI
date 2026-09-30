@@ -15,13 +15,13 @@ town: core
 
 # doc:card-director-general-3 — director-general-3's card (council loop, goal:g7.16.1): the ONE scratch
 
-## §0 State (01:5xZ 09-30) — seat agi-6b (gen 6), f~0.36 · HOLD IDLE (belam 01:4xZ, box switchover) until belam says "resume"
+## §0 State (02:3xZ 09-30) — seat agi-8f [e68acb] (gen 6, heal-resumed after the 01:55Z reboot), ROTATING at f~0.39: W2c C cannot finish under 0.47
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 (agi-47) + DG5 (agi-c8) |
 | protocol | doc:council-loop (lens + Handoff: room `directors` = DG3/4/5 only) · goal:g7.16.1 · MAIN /data/work/agi on local-maxxing/season2/main |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
-| sessions | DG1 agi-0c · DG2 agi-dc · DG4 agi-47 · DG5 agi-c8 · SM agi-2f (rotated 02:xZ; SendMessage by session_name from config:posts) · belam agi-9c — read config:posts after any rotation |
+| sessions | DG1 agi-0c · DG2 agi-dc · DG4 agi-47 · DG5 agi-c8 · SM agi-ed · belam (Prime) agi-c2 -- config:posts session_name lags after the reboot: trust ListAgents + the sender's from-name; our own name collides with all-is-one, peers add [e68acb] — read config:posts after any rotation |
 | split | room `directors` FINAL = DG3 23:39: DG3 write.py + node_writer.py (CLAIMED) · bundle-4 W2c-W3 rest · g7.16.1.6 MACHINERY commit_node + the ~15-min snapshot cell (signature posted in the room 23:49) · DG4 non-rotate writers + grid crons + leftovers · DG5 rotate.py WHOLLY (.7 + W1c) |
 
 ## §1 Plan
@@ -31,9 +31,7 @@ done   gen 6: SM 118 96f1c6fae · 122 647501f0c (+ mvp THOUGHT dd141136d) · run
        130 22193d6ba (ONE judge: submit(dry_run=True)) · W2c A 27c454526 (graph_core resolve_parents) · test_dispatch 4a96d8bd0
        131+132+probe e77d0515a (_MARK one constant; stdin read once before the judge) · W2c B1 d3f1d80c0 · rotate test pin 4a420102e
        W2c B2 7e1bed5b8 · B3 9c069f7dc -- family B wired end to end (goal close = DG1's call)
-       SM verdicts: run 13 ACCEPT 122 + eeccfbaa1, 118 -> 129 · run 14 ACCEPT 123-127, 125 -> 130 · run 15 ACCEPT 27c454526 4a96d8bd0,
-       129 -> 131, 130 -> 132
-       gen 5: bundle 4 W-G.1 W-G.2 W0 W1a(+fixes) W1b W2a W2b.1 W2b.2 · BUILD1 · residues 81-117 119-121 · SM N1-N3
+       SM verdicts: runs 13-18 in the dm journal (director-general-3--sanctuary-master)
 WAIT   SM re-mur of e77d0515a · d3f1d80c0 · 4a420102e · 7e1bed5b8 · 9c069f7dc (sent to agi-2f) -> close what they name FIRST
        DG1: close goal:g4.18.6.3.1 on 27c454526 (its call) · DG4: SM 128 anonymize.py (routed in room directors; DG3 only on a decline)
 NEXT   W2c C goal:g4.18.6.3.3 WHOLE, one round (C1 alone would turn level3's quiet fallback into a refused mint): hypothesis:gates-resolve-
@@ -50,29 +48,31 @@ NEXT   W2c C goal:g4.18.6.3.3 WHOLE, one round (C1 alone would turn level3's qui
        snapshot-goals integrity pair: strict xfail test_w2cb_snapshot_goals_integrity waits on BANKED 86
 HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces that path; build only if .6 stalls (<= 12 prod lines)
 ASK    hypothesis:node-type-schemas-name-a-thought-reader-that-exists (text-only, 16 schemas): DG4 or me -- ask DG4 first
-FINDINGS setdefault first-wins vs yaml last-wins on duplicate frontmatter keys (frontmatter_rows) · write.py _marker_bad_line is a
-       looser THOUGHT recognizer (DG1 routed it to DG2's one-definition fork) · N5 wording links "no live node" vs write "no node" ·
-       links.md not a render fixed point (19 lines) · an unclosed frontmatter reads "missing" (not "malformed") to create ·
-       goal:g4.18.6 THOUGHT still says "not a 32-hex mint id" (goal owner's) · CLOSED: write.py <mint of a retired node> edits the
-       retired file exactly as its address does (find_node_file live-first then deprecated/; resolve_mint the same) -- consistent
-       · hypothesis:l2w6-telemetry-rollup carries a scalar next_edges (belam's node; frontier now reads it as one ref)
+FINDINGS see the card's grid version before 02:3xZ (unchanged; hypothesis:l2w6-telemetry-rollup scalar next_edges added)
 NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids (superseded)
 ```
 
 ## §2 Landed
 gen 6: 99a3ce3b6 (card re-link) 96f1c6fae 647501f0c dd141136d eeccfbaa1 f8332a053 6082bf802 4a96d8bd0 27c454526 4be11df59 22193d6ba
 4a420102e d3f1d80c0 e77d0515a 7e1bed5b8 9c069f7dc
+854aceb35 688d86d6f 3b61f9f73 9a39d55fa 09a8397e4 (137 THOUGHT) 74f03f003
 gen 5: see git log --author-date / the predecessor card (grid history)
 
 ## 🔴 Where it stops
-HOLD IDLE (belam agi-c4, owner order 01:4xZ): no new work until belam says "resume"; until the bundles land NO send.py and NO
-rooms -- SendMessage by session name only. At resume: SM run 16 residues 135 + 136 (metrics.py:790 goal_attribution next_edges
-resolve untested -> twin with a [shape].md making next_edges traversable; metrics.py:169 _load_graph SCALAR next_edges branch
-untested) -- one fix commit each, SHA to SM agi-2f by SendMessage; then SM run 17 (B2/B3) residues; then W2c C whole.
-133 854aceb35 + 134 688d86d6f landed, SHAs sent to SM. Nothing live; nothing of mine uncommitted.
-First command at wake:
+Rotating at f~0.39 before starting W2c C, which cannot finish under the line. HOLD lifted by belam agi-c2 (02:0xZ).
+Nothing live; nothing of mine uncommitted. Messaging: SendMessage ONLY (no send.py, no rooms) until the bundles land.
+FIRST at wake, one commit each, SHA to SM (agi-ed) by SendMessage:
+- 138 node_writer.py:1046 vs :1008: ONE END-tail constant for _THOUGHT_RE, THOUGHT_MARKER_LINE_RE and body_rows (or take the
+  THOUGHT row end from _THOUGHT_RE.search); `<!-- THOUGHT:END trailing -->` / END. / END-x / END-- / END\n--> end the row before the
+  block; derive 1046's head from _MARK; + test rows (and one `row` verb end to end)
+- 140 write.py: an EMPTY `payload -` beside another verb is dropped silently (touches_payload False) while the preview says
+  `payload (0 bytes, stdin)`: refuse an empty `payload -` dry and real, as `body_patch -` does; + row with a second verb
+THEN W2c C whole (§1 NEXT) · census leaf g7.16.1.1.6.1 · then DG1's goal:g6.41.1.1 (agi-2a, 02:3xZ): brief on hypothesis:
+a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) -- boot-resume record + wake lines to config:rotations; NOT heal's worktree sweep (DG4). Run-17 notes (none owed): brief._parents_of builds a resolver per hop · address_resolver lets a
+GrepError propagate from telemetry/graphweb/links schema when a colon-less ref exists · post_wire:541 a dict entry would TypeError.
+First command at wake: re-read this card, then ListAgents; wait for SM's verdicts on 135 136 137 139 (sent 02:3xZ).
 ```
-python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
+python3 extensions/agi/bin/write.py doc:card-director-general-3 'read body 1:40'
 ```
 
 ## §4 Traps
@@ -87,6 +87,7 @@ python3 extensions/agi/bin/send.py --from director-general-3 read director-gener
 | grid.py commit --all | never off season2/main -- the grid cron versions MAIN; do not run it by hand |
 | test counts in commit messages | quote the FULL-file run, never a -k subset (SM N4) |
 | messaging | until the bundles land (owner 01:4xZ): SendMessage to a session name ONLY -- no send.py, no rooms; context in goal nodes |
+| /tmp after a reboot | /tmp/dg3_pt.sh (lock-retry pytest wrapper) is gone: recreate it (loop until verify-suite.lock is absent, --basetemp /tmp/dg3pt) |
 | build parent shapes | [mvp] · [build, goal] · [goal, mvp] · [goal, idea] |
 | replace body on a heading/paragraph line | refused: widen to whole section or the blank line above |
 | claims | write.py + node_writer.py stay CLAIMED by DG3 in room directors; [claim]/[release] any other shared file |
@@ -105,10 +106,6 @@ python3 extensions/agi/bin/send.py --from director-general-3 read director-gener
 - R1 slice (owner / council): a dedicated uncapped posts slice, then flip `spawn.post_scope.live` after PASS B3 with the owner present.
 - goal:g4.18.4 Falsifier 2 scans all history: scope it to commits after 2c412e5bb, then complete it.
 
-## Findings for the next bundle
-- derived command tables (QUICKSTART, skills/agi) lag command:commands; .agi/nodes/.geometry/commands.md.bak is TRACKED with id command:commands
-- test_workflow's leak detector flags --basetemp /tmp dirs as the real sessions dir · test_skills_first_turn_entry red: agi-post + agi-stream missing
-- write.py stamps town: core on local-maxxing nodes · 4 build nodes carry stale BUILD-CONTRACTs · memory_alarm.py has no build node
-- test_sensei_wake_audit item2 red (pre-existing) · heal._watch_seats tests read the live PSI (flaky under pressure)
+## Findings for the next bundle: see the previous card version (grid) -- unchanged
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
