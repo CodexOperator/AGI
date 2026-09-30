@@ -197,7 +197,7 @@ card write  = ONE agi-write = blob -> tree -> commit -> update-ref CAS
 kid / test slot at death -> the unit's ExecStopPost: dirty slot? commit it to refs/salvage/<post>/<mint> (never onto a branch), then recycle
 successor at wake        -> reads: the card node @ its ref + `git for-each-ref refs/salvage/<post>` -- nothing else
 ```
-So post-wrap's "agi-write the card if still dirty" step (§1) is not needed: a card is never dirty. The successor has nothing to reconcile, because its predecessor could only have left commits.
+So the wrap (§1) needs no "commit the card if still dirty" step: a card is never dirty. The successor has nothing to reconcile, because its predecessor could only have left commits.
 
 **Migration (retire, never delete).** The 716 standing trees retire in three passes, and the destructive step waits for the owner's go: (1) list every tree with its branch, its dirty count and whether it is merged (read-only); (2) commit each dirty tree to `refs/salvage/...` (additive); (3) `git worktree remove` only for trees that are clean AND merged. That pass frees ~96 GB and is irreversible, so it is BANKED for the owner.
 
