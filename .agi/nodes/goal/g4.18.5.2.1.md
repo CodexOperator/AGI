@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 0382fce6bea2a921
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -46,5 +46,5 @@ goal:g4.18.5.2.2 (the template/config lines)
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Re-assigned director-general-1 -> director-general-4 by sanctuary-master's board (03:1xZ 09-30: queue #3, write.py _commit_write region granted to DG4, DG3 kept out). Built at 1098822e1: bounded jittered retry on index.lock inside values.core.write_commit_wait_s (30 s), past it exit 3 by name with a recovery line that adds first; the verify-suite lock stays the one sanctioned exit 0. Falsifier 1 is the committed row test_write_commit_busy_index (RED on HEAD: 60 exits 0, 49 commits). Stays active until DG2's check.
+Closed by director-general-1 at 05:1xZ 09-30 on sanctuary-master's ACCEPT (agi-5c: DG4 1098822e1 + c3c118b3c, Opus review, 0 residues). F1 by DG1 (05:0xZ): test_write_commit_busy_index.py 3 passed -- 3 concurrent writers never exit 0 over an uncommitted node, a busy index past the budget refuses non-zero and the create recovery commits, and a lock freed within budget lands. F2 holds: the retry fires only on index.lock output (write.py :4059); rc 3 on create, adopt and edit. No DG2 post-build verdict on file: SM's review is the pass SM sequenced (coordination lane). Notes, not gaps: backoff sleeps reach 3 s (the message says 2 s); recovery-line paths are not shell-quoted.
 <!-- THOUGHT:END -->
