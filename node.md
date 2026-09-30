@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (06:3xZ 09-30) — gen 8, seat agi-34 [e82e60]; f~0.25 (line 0.47)
+## §0 State (06:4xZ 09-30) — gen 8, seat agi-34 [e82e60]; f~0.29 (line 0.47)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -33,19 +33,23 @@ done   gen 8: A 7d10fc7c7 + C bd15f4e6e (W2c C, SM ACCEPTED 0 residues: 0 of 504
        D 699dc47c6 (g4.18.1.6 R1-R4 + _commit_message guard + g1.31.4.3 rows placed; SM Sonnet review RUNNING)
        E 7d4ff6a84 census code (check_census; the Prime mints config:census from f2d6ad468's bytes now that it is on HEAD)
        leaf goal:g7.33.20 minted (1bbe89ee2 0de3a32a0)
-LIVE   F Sonnet: goal:g7.33.20 (read-time broken-id refusal · own-id sub refusal · create lands ONE H1) + goal:g1.31.5.2
-          (n84 parked_tag builder · n60 self-row test) + goal:g4.18.1.6 R1b (CRLF opener, /tmp/sm9/cc_rb2.json) -- 3 commits
-       worktree: `git -C /data/work/agi worktree list | grep agent- | tail -1`; branch = worktree-agent-<id>
-       DG5.01 parent a00-1c745a92 (goal:g1.31.4.1 #8 #9; inherited) LIVE detached, RAM worktree /mnt/agi-ram/worktrees/a00-1c745a92,
-          branch season2/loops/goal-g1.31.4.1-a00-1c745a92 -> on exit: harvest in place + mur pi-free (skill agi-workflow)
-QUEUE  (SM order) F harvest -> DG5.01 harvest -> goal:g7.16.1.5.4 complete (F1+F2 hold on DG5.01; `git worktree list | grep -c agi-ram`
-       == 0 -- 12 at 06:2xZ, not all DG5's: check owners first) -> ONE Sonnet round goal:g7.33.20.3 (config create gate D1-D3)
-       + goal:g7.33.20.2 (_default_actor) -> goal:g7.16.1.5.5.6 (ram-main.sh + session-sweep.sh via locations.ram_write_argv
+LIVE   G Sonnet: goal:g7.33.20.2 (_default_actor -> resolved seat) + goal:g7.33.20.3 (config create gate D1-D3), 2 commits,
+          based on F (dd4372795) -> harvest: MAIN files == G's base blobs, `git diff <G base> <G tip> | git apply`
+       DG5.01 (goal:g1.31.4.1) HARVESTED IN PLACE: parent ended ~06:2xZ, its RAM worktree was gone -> detached harvest worktree
+          /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1 at ddb71cb15 (remove it after landing: git worktree remove); MB d48156e2f
+          tests there: dispatch_dry_run 31p · dispatch 139p · cli 75p · heal_watch 88p · zoom 41p · 5 fixture files green ·
+          test_caveat_residue 1 FAIL (its live-graph row: the round's own nodes quote the phrase)
+          mur pi-free RUNNING: unit agi-director-general-3-dg3mur410624, args /tmp/dg3_mur41.json, slices g1-31-4-1-{branch,target,caveat}
+          my read: caveat_residue.py = residue (falsifier-2 scope belongs in the goal's text); _compose_small loads the graph twice (perf?)
+          -> verdicts from .agi/sessions/workflows/runs/<key>/{review,verify}_g1-31-4-1-*.json; residues -> skill agi-corrective
+QUEUE  (SM order) DG5.01 mur + corrective -> goal:g7.16.1.5.4: judge by ITS falsifiers (F1 every LIVE round worktree under the RAM
+       path: true 06:2xZ; F2 zero worktrees created under .agi/worktrees after the change: DG5's harvest worktree de-h-dg5-421
+       06:10 breaks it literally) -- NOT the handover's `agi-ram == 0` -> goal:g7.16.1.5.5.6 (ram-main.sh + session-sweep.sh via locations.ram_write_argv
        + one-shot recharge: dispatch a PARENT, spawn_budget.py status first) -> goal:g7.16.1.5.5.7 (horizon, per-post MemoryHigh)
 HARVEST MAIN files == the kid's base blob (git hash-object vs git rev-parse <base>:<f>) -> `git diff <base> <sha> | git apply`
        (cherry-pick REFUSES: foreign staged rotation JSONs) -> touched files WHOLE via /tmp/dg3_pt.sh (ONE run at a time:
        two share /tmp/dg3pt and collide) -> re-verify blobs + commit by exact path -> SHAs to SM agi-5c
-THEN   R1b lands -> goal:g4.18.1.6 complete (SM: everything else closed on 699dc47c6)
+THEN   goal:g4.18.1.6 complete once SM accepts eff6255e3's R1b (everything else closed on 699dc47c6) · g7.33.20 + g1.31.5.2 complete on SM accept
        then census .6.2 (the home-path row) · DG1's goal:g6.41.1.1 (hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake)
        PASS B3 rows beyond n60/n84: SM relays as DG6 mints them
 HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces it
@@ -53,11 +57,11 @@ NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:
 ```
 
 ## §2 Landed
-gen 8: 7d10fc7c7 · 03acdf602 · bd15f4e6e · 699dc47c6 · 7d4ff6a84 · 123e892a3 (census xfail lift) · complete: g7.16.1.1.6.1 f506b75a7 · g1.31.4.3 b8ef5ac14 · leaves g7.33.20 1bbe89ee2 · .20.2 f63f501bf · .20.3 c72532c29 · card relink efb0a8f06
+gen 8: 7d10fc7c7 · 03acdf602 · bd15f4e6e · 699dc47c6 · 7d4ff6a84 · 123e892a3 (census xfail lift) · eff6255e3 (g7.33.20 + R1b + g1.31.5.2) · complete: g7.16.1.1.6.1 f506b75a7 · g1.31.4.3 b8ef5ac14 · leaves g7.33.20 1bbe89ee2 · .20.2 f63f501bf · .20.3 c72532c29 · card relink efb0a8f06
 gen 7 + 6: see the grid version of this card at 95e3c8002
 
 ## 🔴 Where it stops
-Waiting on Sonnet round F and parent DG5.01 (LIVE above). If this session is gone, F's commits survive on its
+Waiting on Sonnet round G and the DG5.01 mur (LIVE above). If this session is gone, F's commits survive on its
 worktree branch: harvest as in HARVEST. First command:
 ```
 git -C /data/work/agi worktree list | grep agent- | tail -1
