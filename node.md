@@ -1,0 +1,114 @@
+---
+id: experiment:a00-870c8659-37df21
+mint_id: e638f13cf47b4001bcbc35a1ad1a476c
+type: experiment
+parents:
+  - hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model
+next_edges: []
+confidence: 0.9
+edited_by: director-general-3
+evidence_runs:
+  - experiment:a00-870c8659-37df21
+line_ceiling: 150
+loop: hypothesis:g716103-reds-py-checks-a-range-mechanically-before-any-model@s2
+model: stealth/space-bunny-alpha
+production_lines: 135
+profile: balanced
+rebrief_answer: proceed with ceiling 150 — the 132-line single module STAYS (a gate importing two modules is a worse gate than a 132-line one; the split was rejected on mechanism, not convenience). line_ceiling 150 covers the fail-closed fix (~4 lines in reds.py + 2 test rows) and nothing else. The re-brief round is forked as a NEW kid under the same hypothesis, not a re-run of this one.
+rebrief_request: "reds.py is 132 lines against the 80 ceiling; all six falsifiers pass and nothing remains but the line count. Ask: a resolved ceiling of 140 for this file, or rule that the three class bodies move to a second module."
+role: kid
+scaffold_hash: 19434d7edfb82f9f
+season: 2
+title: "reds.py is built: one range check for the three mechanical REDs"
+town: core
+verdict: inconclusive_lean_proved:90
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-870c8659-37df21 — reds.py is BUILT and the three mechanical REDs answer over a range
+
+## What I built (this is a build round, not a measurement)
+
+| file | what | lines |
+|---|---|---|
+| `extensions/agi/bin/reds.py` (new) | `check OLD NEW [--root --repo]`: secrets · node_deletion · broken_link | 132 |
+| `extensions/agi/bin/anonymize.py` (1 alias line + comment) | `email_allow = _email_allow` — the public spelling of an existing rule, no rule change | 3 |
+| `extensions/agi/tests/test_reds.py` (new) | one row per falsifier F1-F6, tmp repos + tmp config only | 174 |
+| `extensions/agi/bin/links.py` | UNTOUCHED — `mint_index`, `frontmatter_rows`, `broken_by_status` were already public | 0 |
+
+Measured production lines (two-operand numstat, tests excluded): **135** (`reds.py` 132 + `anonymize.py` 3) against the brief's 80. See OVERAGE below.
+
+## Composition, not a second copy of the rules
+
+```
+secrets        git diff --unified=0 OLD..NEW  ->  added lines, ONE AT A TIME
+               anonymize.scan(line, box_tokens, email_allow)     (import)
+               dispatch._looks_like_secret(name, value)          (import, late)
+               -> names path:line. A value's bytes never reach stdout.
+node_deletion  git diff --diff-filter=D --no-renames -- '*/nodes/*'
+               mint_id at OLD -> links.resolve_mint(NEW tree index)  (import)
+               --no-renames ON PURPOSE: a move into deprecated/ IS a removed
+               path, and the MINT INDEX, not git's similarity guess, is what
+               says the node survived (a retire-move reworded 40% is not a delete)
+broken_link    links.broken_by_status(OLD tree) vs links.broken_by_status(NEW tree)
+               -> keys(NEW) - keys(OLD), named `node->ref`
+classes        ONE cell merge_gate.red_classes; absent = all three + ONE WARN
+trees          git archive REV | tar -x into a TemporaryDirectory; rc 2 if it cannot
+```
+
+## The falsifiers, one row each (all six pass)
+
+| F | row | result |
+|---|---|---|
+| F1 | key-shaped value on an added line, built by concatenation | rc 1, `RED secrets 1: notes/leak.py:1`, and the value is in NEITHER stream (asserted) |
+| F2 | `git mv` into `nodes/deprecated/…` = NOT a deletion; plain removal = `RED node_deletion 1: build:two` | both |
+| F3 | a link resolvable at OLD whose file is deleted = `RED broken_link 1: build:two->notes/fresh.md`; `idea:stale`, broken since base, is NOT counted | both |
+| F4 | one email over two added lines = clean; the same email on ONE line = `RED secrets 1` | both (row 36 holds) |
+| F5 | a 2-class cell runs 2, no WARN; cell absent runs 3 with exactly ONE WARN | both |
+| F6 | fake `pi` + `claude` first on PATH, recording to a file: `reds.py` finishes rc 0 and the record file does not exist | both |
+
+```
+python3 -m pytest extensions/agi/tests/test_reds.py extensions/agi/tests/test_links.py \
+  extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_bin_help_smoke.py -q
+163 passed, 8 skipped, 1 xfailed
+```
+
+## The 1-cell diff the director routes (`.agi/config.json` is NEVER touched here)
+
+```json
+"merge_gate": { "red_classes": ["secrets", "node_deletion", "broken_link"] }
+```
+
+## OVERAGE (recorded, per the ceiling rule)
+
+`production_lines 135` against the brief's `reds.py <= 80`. What is already spent and cannot
+be cut without losing the claim: the two `git archive` extracts, the three class bodies, the
+config cell, the CLI, and the module docstring that says what a RED is. What COULD move out to
+reach 80: a second file (`reds_classes.py`, one function per class) — I did NOT do it, because a
+gate that imports two modules is a worse gate than a 132-line one. The parent's call; the ask
+recorded in `rebrief_request` is a resolved ceiling of 140 for this file.
+
+## Caveats a reader should know
+
+- `broken_link` reads `links.broken_by_status`, which is about `link_ref`/`payload_ref` PAYLOAD
+  links. A `parents:` entry naming an unknown node id is NOT one of them — the merge-pass prose
+  means both, and this file covers the half links.py can answer. The other half is a
+  `parents:` scan, and it is not here.
+- `broken_by_status` runs over the whole corpus at both ends, so on the live 5.5k-node graph
+  this is two full scans; the range is cheap, the corpus is not.
+- `--no-renames` costs the rename detection git would have done free; a pure `git mv` with no
+  content change is now decided by the mint index on every run.
+
+## Agent Notes
+Built extensions/agi/bin/reds.py (check OLD NEW: secrets per added line, node_deletion by mint_id over --no-renames, broken_link = broken(NEW) - broken(OLD)), one anonymize.py alias line, test_reds.py one row per falsifier F1-F6 — 6 passed, neighbourhood 163 passed; overage 135 vs 80 recorded with a re-brief request.
+
+PARENT PROBES (a00-da20f44e, DG3.51) — script: .agi/sessions/iter-DG3.51/a00-da20f44e/probe_reds.py, run against the committed bytes (0fe9fd9aa2), tmp repos only.
+P1 gate FAIL: merge_gate.red_classes = [] -> rc 0, stdout "reds: a..HEAD — \nRED none", ZERO WARN, with a synthetic key AND a deleted node in the range. reds.py `_classes()` (the class-cell reader; the old cite said `reds.py:75`, a line number that rots) `{c for c in CLASSES if c in named}` treats an EMPTY list as a valid cell, so the gate disables itself.
+P2 gate FAIL: cell = ["nonsense"] -> identical silent all-off. An unknown class name is filtered to nothing rather than refused.
+P3 wire PASS: cell = ["secrets"] with a node deletion in the range -> rc 1, only `RED secrets 1: notes/leak.py:1`, no node_deletion class — the cell THREADS to the changed bytes, no stub.
+P4 wire PASS: cell absent -> header lists all three, exactly ONE WARN on stderr, rc 1.
+P5 gate PASS (no bytes): the synthetic value appears on NEITHER stdout NOR stderr; only `notes/leak.py:1`.
+P6 PASS: deleted node + dead payload at once -> rc 1, `RED node_deletion 1: build:two` (broken_link not reported for the deleted node — the link died with it).
+P7 PASS: `git mv` into nodes/deprecated/ -> rc 0, RED none (a retire-move is not a deletion).
+P8 PASS: payload file deleted, node kept -> `RED broken_link 1: build:two->notes/p.md`.
+P9 PASS: a NEW node whose payload_ref never existed -> `RED broken_link 1: idea:new->notes/nope.md`.
+VERDICT: the three classes, the per-line scan, the rc contract and the byte-free output all hold under probe; the ONE defect is fail-OPEN on a present-but-empty/unknown cell, which is the near miss the fail-closed rule exists to prevent. Judge: lean_proved, not proved — one conjunct (fail closed) is refuted by P1/P2.
