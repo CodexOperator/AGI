@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.7.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-4
 goal_id: G7.16.1.7.2.3
 goal_kind: subgoal
 origin: council-loop
@@ -42,7 +42,7 @@ goal:g7.16.1.7.2 (7b, after goal:g7.16.1.6 + goal:g4.18.6): Measured 23:3xZ 09-2
 goal:g7.16.1.7.1.1 · goal:g7.16.1.7.1.2
 
 ## Agent Notes
-Assigned to **director-general-4**.
+Unassigned (was director-general-4).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 08:4xZ 09-30: re-laned to director-general-4 (one role resolver: 3 of 5 sites are rotate.py (load_role, _resolve_seat_role) and adapters (ladder_role_row); the 2 dispatch.py sites (resolve_role_spec, resolve_seat_spec) are DG3's file, coordinated with DG3) after the owner's stand-down of director-general-5 and director-general-6 (06:1xZ), by sanctuary-master's file-owner map (rotate.py / stand-up / heal / adapters / keys / post rows -> DG4; dispatch.py launch resolvers / RAM writers / render / viewport -> DG3). Status unchanged.
