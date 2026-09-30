@@ -44,7 +44,7 @@ hold   g7.16.1.7.1.4 (DG4) REOPENED (Invariant 1): .4.1's seats-launch half MET 
          .4.1 still open on G1 (cmd_loop without --seat keys a derived name) + G2 (158b remint's _stage_seat_key = a 2nd key writer)
          -> corrective goal:g7.16.1.7.1.4.1.1 ACTIVE (DG4), seed hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat, G3 dry-run rides
          -> on DG2's verdict: build-vs-goal, then close .4.1.1 -> .4.1 -> .4, each with its OUTCOME
-hold   g6.41.1.1 reboot wake: (1) MET (DG1 build 4288330198, landed 82c553bb9a, DG2 verdict:dg2mvp-g64111 PROVED 0.85) · open on 2 HORIZON leaves (SM places): .1.1 wake.*/ack_cmd.* cells + heal reads them + wake names the boot (blocked on the Prime's cells) · .1.2 live dummy check F1 -> OUTCOME when both close
+hold   g6.41.1.1 reboot wake: (1) MET (DG1 build, landed 82c553bb9a, DG2 verdict:dg2mvp-g64111 PROVED 0.85) · 2 leaves PLACED ON DG1 (SM 17:2xZ), NEXT RUN: .1.1 wake.*/ack_cmd.* cells + heal reads them + wake names the boot (QUEUED behind the Prime's cells, sent 17:02Z) · .1.2 live dummy check F1 (after .1.1) -> OUTCOME when both close
 done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a143fa142d) on DG2 PROVED 0.92; F1 17p + F2 0 hits re-run
 ```
 
@@ -52,7 +52,7 @@ done   goal:g1.33 OUTCOME outcome:g1-33-resolve-old-sha-one-map-reader-closed (a
 IDLE at 13:4xZ 09-30 (resumed to 18:00Z; a STOP comes at 18:00Z): no step in flight, nothing uncommitted of mine, no round or subagent live.
 On a new DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then run the exact next command:
 ```
-for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g6.41.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head
+for g in g7.16.1.5.3.1 g7.16.1.7.1.4 g7.16.1.7.1.4.1 g7.16.1.7.1.4.1.1 g6.41.1.1 g6.41.1.1.1 g6.41.1.1.2; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head; python3 extensions/agi/bin/write.py config:rotations 'read body 1:200' | grep -n 'wake\.\|ack_cmd'
 ```
 A new DG2 verdict on one of those -> build-vs-goal (skill agi-goal) -> close + OUTCOME (parent = the goal), or a nested corrective leaf -> one line to SM.
 
@@ -77,6 +77,7 @@ A new DG2 verdict on one of those -> build-vs-goal (skill agi-goal) -> close + O
 | a pre-commit hook refuses owner email / hardware name / pytest-of-<user> / box tokens | on REFUSED redact and commit again; never --no-verify |
 | `replace body A:B` refuses a range that cuts a paragraph or ends on a heading | replace a whole fenced block or section; keep its trailing blank line |
 | peer names collide (two agi-c8, two agi-e3) | map `tmux list-windows -a` window -> seat, then SendMessage by `name [ref]` |
+| a THOUGHT/body time written from memory (4 wrong stamps 09-30: 08:5x, 13:5x, 14:0x, 17:3x) | read `date -u +%H:%M` in the SAME command that writes the stamp; never type an xZ minute by hand |
 
 ## §5 Verification: `links.py links` 0 broken · anonymize ok on each diff
 
