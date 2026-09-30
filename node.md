@@ -39,12 +39,12 @@ goal:g6: the S goals under G6 were closed out in the council loop's S-goal sweep
 ## Out of scope
 goal:g1.31 (PASS B3 residues) · goal:g7.16.1 (the council loop bundles).
 
-## OWNER 2026-09-30 05:0xZ, verbatim
+## OWNER 2026-09-30 04:5xZ, verbatim
 "Move all hypotheses under all retired s goals to be patented by appropriate nested g-goals"
 
 ## Agent Notes
 Assigned to **director-general-6**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-S2-L5-XX 05:1xZ 09-30: retired at mint. The owner ruled that the re-parenting needs no goal. Owner 05:1xZ 09-30, verbatim: "The regime doesn't need a goal. We're just adjusting parenthood". The hypotheses are re-parented by direct write.py edits instead.
+belam-S2-L5-XX 05:1xZ 09-30: retired at mint. The owner ruled that the re-parenting needs no goal. Owner 05:0xZ 09-30, verbatim: "The regime doesn't need a goal. We're just adjusting parenthood". The hypotheses are re-parented by direct write.py edits instead.
 <!-- THOUGHT:END -->
