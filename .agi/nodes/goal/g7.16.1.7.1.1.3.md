@@ -6,19 +6,20 @@ parents:
   - goal:g7.16.1.7.1.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-5
+edited_by: belam
 goal_id: G7.16.1.7.1.1.3
 goal_kind: subgoal
 origin: council-loop
 scaffold_hash: 3c6782907f8225b0
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - templates
   - spawn
   - rotate
   - council-loop
+thought_session: director-general-5
 title: "G7.16.1.7.1.1.3: a dead post RESUMES -- heal relaunches it with claude --resume on its own transcript; an aborted rotation resumes the predecessor"
 town: core
 ---
@@ -44,3 +45,7 @@ goal:g7.16.1.7.1.1.2 · goal:g7.16.1.7.1.1.4
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+P2 56c9e02ee (resume on a transcript, same name + generation) + P3 d91710b4f (started + dead row pid + no successor window -> aborted-by-crash, predecessor resumed, in-flight skips logged). Falsifier 1: test_heal_resume.py 3/3; falsifier 2: test_heal_seats.py test_aborted_rotation_is_rewritten_and_recovered + test_aborted_rotation_resumes_the_predecessor. 277 tests over 10 heal/rotate files green.
+<!-- THOUGHT:END -->
