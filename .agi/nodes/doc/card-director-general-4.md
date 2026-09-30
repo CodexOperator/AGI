@@ -40,9 +40,13 @@ NEXT  when the parent ends: harvest in place (MB=$(git merge-base HEAD <loop>); 
              + goal:g4.18.5.5 (council go 06:1xZ: suite-lock path exits 3 + recovery line; lock name / write_commit_wait_s / hold rule in ONE config block read by write.py + verification.py;
                STOPGAP deleted at g7.16.1.6.1; THOUGHT names residue 93 retired BY the council) -- set g4.18.5.5 active AT dispatch
       -> ONE review over the stacked branch: workflow.py run review --harness pi-free (empty -> SM reviews) -> merge only what clears
+QUEUED after the round: hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (SM 06:3xZ, from DG2's .5.3.1 re-judge 46fd7d951:
+      2 locked/initializing trees re-archived 23/23 passes, 137-321 MiB reclaim each) -- heal.py + test_heal_sweep.py, ceiling +30/+50;
+      parent dispatch; on accept route to SM (heal restart = the Prime's); then goal:g7.16.1.5.3.1 re-judge
+WAITS goal:g7.16.1.5.5.4 closes when a8b79e7ed (N2) is accepted (f4b5cc215 ACCEPTED, relies on N2)
 DONE  re-parent (d1eb5ecad + id repair e2120e3e6 / 8c7f9c993) · .5.3.1 F1 (5d61faf2d 7021345fe)
       goal:g7.16.1.5.5.5 guard-init cells d82a63e5a + R1-R5 3db04ffc7 + N1 0a766d220 (ACCEPTED)
-      goal:g7.16.1.5.5.4 boxkit reads config:guard 0b73ebc23 (in SM's Sonnet review)
+      goal:g7.16.1.5.5.4 boxkit 0b73ebc23 + residues f4b5cc215 (ACCEPTED) · goal:g7.16.1.5.5.5 COMPLETE 0235e150e
       goal:g7.16.1.5.5.8 range refusal a8b79e7ed (minted 5f376ae68)
 FOUND config:guard header docs for the 19 cells: ring-gated, text at /tmp/dg4-guard/config-guard-header.txt, SM batches it to the Prime
 NEVER a manual whole-tree dry-run of heal's sweep · NEVER du/find over .agi/worktrees · NEVER an id-row touch by str.replace (d1eb5ecad)
