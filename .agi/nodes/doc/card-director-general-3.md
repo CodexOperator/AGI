@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (14:0xZ 09-30, gen 9) — f~0.39 (line 0.47) — RESUMED on belam's [rule] until 18:00Z (a STOP comes then)
+## §0 State (14:1xZ 09-30, gen 9) — f~0.40 (captive capture fired at 0.40) (line 0.47) — RESUMED on belam's [rule] until 18:00Z (a STOP comes then)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -32,10 +32,12 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 done   gen 9: DG6 #3 LANDED 6872946485 dg6-01 + 9ef733cd55 dg6-02 (leaves complete) · DG6 #2 half b dg6-03 LANDED 6dbc041d37 on SM GO
        (goal:g1.31.3.2 note 57b13e9662: closes when half a lands) · goal:g1.33 MINTED 4fc6e50d80 + hypothesis:g133-one-resolve-old-sha-... 0ebaac570f
 LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; engine row on goal:g7.33.19)
-       g133 chain: DH.DG3.46 kid a00-06edea01 proved, tip 6728085221 (net prod 0, tests +45), 379p; re-mur unit ...dg3mur-g133d-1345
-          (/tmp/dg3_mur-g133d.json, old d8ab866399) -> residues 0 -> [merge-up] to SM -> GO -> land; route the cell + focus line
-       dg6-04 chain: DH.DG3.47 kid a00-eb7f5f57 proved, tip 0d1bd9264b (ff'd into /mnt/agi-ram/worktrees/dg3-h-dg6-04; net prod +8, tests +77/60
-          disclosed), 276p; re-mur unit ...dg3mur-dg6-04e-1345 (old c51ea3367d) -> [merge-up] half a -> GO -> land -> goal:g1.31.3.2 complete
+       g133 chain: re-mur g133d = review ACCEPT, verify accept_with_residue (all 5 refuted; missed closed by director note 95e81cc428 +
+          Sonnet fix 5bbf3bb01a: synthetic git identity -> example.com). Gate vs trunk 67dcfefd44: merge-tree rc 0, 6 files, 0 deletions,
+          0 dirty; guard ok on committed bytes. TIP 5bbf3bb01a (worktree /mnt/agi-ram/worktrees/dg3-h-g133) -> [merge-up] to SM -> GO -> land
+          (merge-tree + commit-tree + ff-only) -> goal:g1.33 complete; route cell paths.local_maxxing.scrub_commit_map + focus line to SM/Prime
+       dg6-04 chain: DH.DG3.47 kid tip 0d1bd9264b (worktree /mnt/agi-ram/worktrees/dg3-h-dg6-04, 276p) -> re-mur unit ...dg3mur-dg6-04e-1345
+          (old c51ea3367d) -> residues 0 -> [merge-up] half a -> GO -> land -> goal:g1.31.3.2 complete; email_allow diff -> SM/Prime
        g7556: DH.DG3.48 kid a00-46137558 DEMOTED by its parent (item 3 refuted: execvp -> a failing systemd-run never runs argv; fstype_at
           ValueError); chain over every cap (mem_cap +58/35, scripts 32/16, tests 332/200) -> DH.DG3.50 parent a00-37c39981 from tip 1e8e34c555
           (base /mnt/agi-ram/worktrees/de-base-DG3.50) -> harvest -> re-mur 157112b53e..tip (the whole corrective chain)
@@ -49,6 +51,8 @@ QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 
        the Prime's; negative tests: missing row, planted RED, unreviewed:budget rows without the Prime's word naming the count). All horizon:
        claim each (status active) only when its round starts.
        DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (built by DG5: closes when DG5.01 is harvested + its RAM worktree removed) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
+FINDINGS to write (g7.33.19): anonymize.py check --root <repo> finds no config -> email_allow empty, refuses example.com (works with
+       --root <repo>/.agi); a guard over '+'-prefixed diff lines mis-matches email across lines (check committed bytes instead)
 FINDINGS written: goal:g7.33.19 rows 28-33 (da9f4a8a4b) -- foreign-node commit, resolve_bin tilde-user, mur read DMI, mur prints old ids,
        sensei whois row RED on MAIN, parent ceiling overruns (with 25)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair into a node, test, commit or dm
@@ -61,7 +65,7 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-Working until the 18:00Z STOP: 3 re-murs (g133d, dg6-04e, g1314c) + parent DG3.50 LIVE above. First command on wake:
+g133 [merge-up] going to SM now (tip 5bbf3bb01a); LIVE: re-murs dg6-04e + g1314c, parent DG3.50. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
