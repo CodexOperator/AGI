@@ -24,13 +24,13 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 21 ran the owner-ordered history scrub. Owner 06:3xZ-06:4xZ 09-30, verbatim: "Yeah we gotta scrub it. Time to pause grid crons and do the whole shebang." · "Yes include codex-town. And go now then restart when everything is verified" · "Go". Also owner 06:1xZ: "We should probably ease off expensive subagents now and just use strictly sonnet 5.5 ideally using our new headless CC review routes." and "We also will need to stand down director-general 5 and 6 to help conserve tokens as well ... 3,4 can continue as is and pick up whatever 5,6 don't finish after standing down". The rewrite ran on mirrors, never in place (filter-repo in place would reset --hard MAIN's uncommitted files); local refs moved by one asserted transaction and worktrees by per-path swaps, because a full git status over 682 worktrees did not finish in 15 min.
 <!-- THOUGHT:END -->
 
-## §0 State (08:0xZ 09-30, read from date -u)
+## §0 State (11:0xZ 09-30, read from date -u)
 | | |
 |---|---|
 | post | belam-S2-L5-XX gen 21, session **agi-23**; predecessors idle: gen 20 agi-79 · gen 19 agi-c2 |
-| run | owner run to 11:00Z; Opus subagent window CLOSED (owner 06:1xZ: Sonnet 5.5 only, headless CC review route first) |
-| posts | DG5 + DG6 DOWN (recover false, pid 0, windows closed; handover cards e4f52f044 / ce682865d, SHAs pre-scrub) · DG1-4, SM, alive, all-is-one, self-perpetuating, stream-master FROZEN for the scrub until "[rule] resume" |
-| crons | session: CHECK d087a76c · STOP aceed7d4 11:02Z · memory Monitor (re-arm each 30 min). Box crontab: crons_live=false during the scrub (turn back on at resume) |
+| run | owner run ENDED 11:00Z (STOP sent to DG1-4, SM, alive, all-is-one (inbox), self-perpetuating; stream-master stays). Subagents Sonnet 5.5 only |
+| posts | DG5 + DG6 DOWN (handovers re-laned by SM: DG3 privacy cluster, DG4 hook/harvests/CC route) · DG3 = agi-b4 @26 · DG4 = agi-1c @25 · others as ListAgents shows |
+| crons | session: CHECK d087a76c (13 */4) · box crontab LIVE (crons_live true, 12 jobs) · keysync timer re-created (transient, */2 min) |
 | scrub | /data/scrub (mode 700): RESUME.md = the step table + revert · backup-local.git · backup-origin(2).git · stripped/ (2 nsys files, also back on disk, gitignored) |
 
 ## §1 Plan
@@ -40,7 +40,10 @@ DONE gen 21  guard-init applied (empty plan diff) · post scopes ruled to app.sl
              HISTORY SCRUB: email (text + 7k author lines -> the example.invalid placeholder address) · GPU name + fragments · pytest-of-<user> · 2 nsys binaries stripped
                origin: 803 refs forced with lease, 0 rejected, fresh-clone scan 0 · local: 1978 refs + 682 worktrees relinked · nodes 5457 = before · links 0 broken
                guard: box-local pre-commit hook (common hooks dir) = denylist ~/.config/agi/scrub-denylist.json + anonymize box tokens; 0 refusals on the last 300 commits
-NEXT         (scan 0 DONE) crons_live true + crons.py apply -> start agi-keysync.timer, reaper, alarms -> "[rule] resume" to the frozen posts -> watch to 11:00Z
+             after resume: harness claude-code models -> Sonnet 5.5 (8b9fded02) · [config] schema spawn: block (436f4b418) · council-loop town -> local-maxxing
+             operating-mode ruling (NONE binds) waits on DG4's brief.py round + its pinned test (then land the 2-line config.json edit) · old->new sha map kept LOCAL
+             memory: 5 cache spikes to user@ high 08:0x-10:56Z, each cleared by memory.reclaim (never a kill) -> the RAM budget leaf goal:g7.16.1.5.5 is the real fix
+NEXT         idle: the run is over. Next wake = the owner or the CHECK cron (12:13Z; notes the count only: council owns merge-up reviews)
 NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) -> SM lanes to DG3/DG4 · anonymize install-hook checks MAIN's diff, not the committing worktree's (a g7.33 row)
 ```
 
@@ -48,7 +51,7 @@ NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) 
 post-scrub: ec09d0290 (.gitignore) · every pre-scrub SHA is REWRITTEN: old -> new = grep ^<sha> /data/scrub/union.git/filter-repo/commit-map (ONE union pass over local + origin; a first per-repo pass diverged and was replaced)
 
 ## 🔴 Where it stops
-Finish the scrub close: repack/prune + local scan 0, crons back on, units back, resume the posts; then watch to 11:00Z (STOP cron aceed7d4) and the owner report
+Run ended 11:00Z; the Prime idles. Open for the owner: GitHub cache purge request · other boxes re-clone · delete /data/scrub after 3 days
 ```
 at 11:00Z   SendMessage each council/director post "stop: finish the step, card whole, idle" (stream-master stays) -> card -> owner report <= 6 lines
 memory      Monitor on PSI full avg60 >= 20% or user@ within 64M of high; relief = memory.reclaim on the biggest file-heavy post scope, never a kill
