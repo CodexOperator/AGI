@@ -108,7 +108,7 @@
         "model": "claude-opus-5-5"
       },
       "verdict": "ok",
-      "confirm_at": "rotate-self"
+      "confirm_at": "after_join"
     },
     "bootstrap": "/data/work/agi/.agi/sessions/seats/director-general-4.bootstrap.json"
   },
@@ -157,8 +157,47 @@
   },
   "committed_by": "rotate-self",
   "after_join": {
-    "claimed_at": "2026-09-30T05:19:08.378499+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-30T05:18:37.591375Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep director-general-4",
+        "rc": 0,
+        "output": "@18 director-general-4\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-general-4.meter --session-log ~/.claude/projects/-data-work-agi/131613c2-f24c-4afd-80dc-eef98b3bfaa4.jsonl",
+        "rc": 0,
+        "output": "0.0785\t78477/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(2034838|399749|399739|399734)\\b'",
+        "rc": 0,
+        "output": " 399734    3931 ?        [bash] <defunct>\n",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 0\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post director-general-4 --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post director-general-4 --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "director-general-4",
+    "dm_signed": true,
+    "code_head": "60400fd",
+    "code_loaded": "1790744382:1167692",
+    "claimed_at": "2026-09-30T05:19:08.378499+00:00",
+    "claim_key": "2026-09-30T05:18:37.591375Z",
+    "performed_after_s": 29.98621654510498
   }
 }
