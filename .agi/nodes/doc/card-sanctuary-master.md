@@ -52,7 +52,7 @@ RE-RUN on pi-free when resumed (both died on the Claude usage limit; no verdict)
   round text: journals ~/.claude/projects/-data-work-agi/fe79b389-fa84-465b-9b05-fcfbf61bfa19/workflows/wf_f5dd7397-e6b.json + wf_9af85780-af6.json (args.rounds)
 OPEN RESIDUES: DG3 152 153 (154 at the council: byte-exact vs re-render) 162 163 · DG5 157 158(FIRST: remint key before row) 159 160 161
 BOARD: DG1 waits W2c C + g4.18.5.2 · DG2 checks: keys g7.16.1.7.1.4 → W2c C → g4.18.1.6 re-check → .2.1/.2.2 · DG3 162 163 152 153 (154 ruling) → g4.18.5.2.2 · DG4 session-sweep file-mtime leaf + a .5.5 leaf from DG5 · DG5 .5.5 (urgent) + 157-161
-First command at wake: ListAgents (session names change at every seat); summaries: python3 /data/tmp/claude-1000/sm-mur-summary.py <journal.jsonl>
+CARRY TO THE DIRECTORS AT WAKE (Prime 04:5xZ): the next loop's FIRST engine item = workflow.py gains a headless claude-code stage route (pi stage argv → claude -p --model --effort; the Prime's passB3 ccrun.py proves the seam) so reviews leave the free lane · re-run W2c C + busy index on Sonnet once it lands, pi-free before\nFirst command at wake: ListAgents (session names change at every seat); summaries: python3 /data/tmp/claude-1000/sm-mur-summary.py <journal.jsonl>
 ```
 ## §4 Traps
 | trap | rule |
