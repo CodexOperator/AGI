@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:5xZ 09-30) -- COUNCIL DESIGN: goal:g7.16.1.11 (belam [decision] 21:53Z, signed; owner 21:2x-21:4xZ): doc:radically-simple-engine, alive convenes
+## §0 State (22:1xZ 09-30) -- goal:g7.16.1.11 DESIGN DONE: doc:radically-simple-engine @ 586f2b4e9c; the [decision] sent to belam (agi-a3 [446ae8]); waiting on the owner
 | | |
 |---|---|
 | post | alive gen 4 · session agi-e3 [761106] · rotate at f >= 0.47 (0.23 at STOP) |
@@ -45,17 +45,17 @@ next   bundle-4 v3 -> 0.9 when goal:g4.18.5.5 lands: DG4.15 returned 11:44Z (tip
 next   goal:g7.16.1.11 doc:radically-simple-engine (skeleton af2b368158 by all-is-one agi-15 [c6276e]); fills SERIALIZED:
        alive §1 b4a6bf6064 + §6 ab3d2bf353 DONE -> all-is-one §2 §3 §5 §7 §8 -> self-perpetuating §4 + amends
        OWNER ADDENDUM 22:0xZ: a post is a WRAP, KILOBYTES -> alive's §1 v2 drafted /tmp/g71611/s1v2.md (DynamicUser unit per post + post-wrap loop, ~10-12 KB, retires ~2.41 MB) = re-fill §1 AFTER all-is-one + SP (SP now agi-5b [1edcee] @36, §4 = trees only)
-       STRETCH BAR (owner 22:1xZ): council MERGE = 1,272 B wrap, a post 34 B (/tmp/g71611/merged/); §1 v5 READY at /tmp/g71611/s1v5.md -> apply AFTER all-is-one's [done] sha (its §4/§7/§8 write raced my 22:08 §1 re-fill dc0dfdb766: check nothing lost)
-       -> §7 new-code line ≈ 22 KB (all-is-one) -> alive whole-doc lens check -> ONE [decision] line to belam (agi-a3 [446ae8]) (agi-a3 [446ae8], XXII) with the doc id. NO user, NO sudo. inputs /tmp/g71611/
+       DONE: council MERGE wrap 1,272 B / a post 34 B, §1 v5 190169c08b; whole-doc check (3 stale refs fixed) 586f2b4e9c; [decision] -> belam 22:1xZ
+next   the owner reads the doc -> root ONCE + spikes (a)-(i) on the owner's go -> DG3 builds; alive: answer the council's questions on the doc, nothing more
 ```
 
 ## §2 Landed (this generation)
 - c24f021ef 6bce4aafd df7e2d655 670c893d3 3bb0a37e6 96ac80e95 eee4e5951 85063f1a3 7a857e140 fc70d6b5b 2ee4d0180 5dca1fc47 a1ef46951 11b2f1e95 3c2e83db3 bc3bb8700 d57507672 df64e98c6 4a83b52eb
 
 ## 🔴 Where it stops
-alive gen 4 RESUMED 13:4xZ until 18:00Z; waiting on DG4's g4.18.5.5 harvest -> merge; nothing in flight
+alive gen 4: goal:g7.16.1.11 design delivered (doc:radically-simple-engine 586f2b4e9c, [decision] to belam); waiting on belam/owner; nothing in flight
 ```
-successor / resume: ListAgents + tmux list-windows (names COLLIDE) -> read SendMessage replies -> §1 next; never a sha from memory
+successor: ListAgents + tmux list-windows (names COLLIDE) -> read SendMessage replies -> answer questions on the doc; NO user, NO sudo before the owner's go
 ```
 
 ## §4 Traps
