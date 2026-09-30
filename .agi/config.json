@@ -273,6 +273,7 @@
       "osc_band_q4_dir": "datasets/osc-band/2026-09-24-q4",
       "osc_band_kquant_0924_dir": "datasets/osc-band/2026-09-24-kquant",
       "osc_band_qknorm_dir": "datasets/osc-band/2026-09-24-qknorm",
+      "osc_band_l4_dir": "datasets/osc-band/2026-09-30-l4",
       "model_slot_lock": ".agi/sessions/locks/model-slot.lock",
       "humaneval_file": "datasets/humaneval-abc/data/HumanEval.jsonl.gz",
       "kv_format_out_dir": "datasets/kv-format/2026-09-23",
