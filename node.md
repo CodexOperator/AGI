@@ -97,6 +97,7 @@ GUARD_SWEEP_IDLE_MIN_local_town=120
 GUARD_SWEEP_PRESSURE_PCT_local_town=60
 GUARD_SWEEP_PRESSURE_IDLE_MIN_local_town=20
 GUARD_SWEEP_CLAUDE_IDLE_MIN_local_town=1440
+#   GUARD_RAM_BUDGET_<box>              goal:g7.16.1.5.5.1 (DG5): ramdisk.slice MemoryMax, the RAM disk's OWN budget line (guard-init layer 3). default: the tmpfs size of GUARD_RAM_DIR
 #   GUARD_RAM_WORKTREES_<box>            goal:g7.16.1.5.4 (DG5, bfa89533e): new ROUND worktrees check out here, .agi/worktrees/<agent> is a symlink to it. empty = off (disk)
 #   GUARD_RAM_WT_HOLD_PCT_<box>          tmpfs used-% at/above which dispatch HOLDS a round launch (recorded unadmitted). default: 80
 GUARD_RAM_WORKTREES_local_town=/mnt/agi-ram/worktrees
