@@ -124,14 +124,13 @@ and every later edit resumes self-applying as usual.
 ## Two cadences the migration made meaningless
 
 `goal:g11` landed, so two of the four cadences now describe work that no
-longer exists, and both are disabled in `cadences:` above rather than
+longer exists. `engine_push` stays disabled in `cadences:` above rather than
 deleted — a declaration that records what was retired is more useful than
 one that quietly forgets.
 
 `publish_engine` ran `publish-engine.sh` to carry bytes from the graph repo
 into the engine repo. There is one repo now; the payload IS the source file,
-so there is nothing to publish and the four gates guard a boundary that is
-gone.
+so there is nothing to publish and the four gates guard a boundary that is gone. Its cadence and the script itself were removed by goal:g7.16.1.4.1.1 (this node grid history keeps the declaration).
 
 `engine_push` pushed the engine repo. It is the same repo `branch_push`
 already pushes, so leaving both enabled would have pushed the same branch
