@@ -3,9 +3,9 @@ id: hypothesis:provisioning-reads-the-workspace-weekly-budget
 mint_id: 3499bb0f2ee54e638bb9fe8caa6b355d
 type: hypothesis
 parents:
-  - goal:g6.50
+  - goal:s34
 next_edges: []
-edited_by: self-perpetuating
+edited_by: season.py
 scaffold_hash: 83259e94cf139e83
 scale: engine
 season: 1
