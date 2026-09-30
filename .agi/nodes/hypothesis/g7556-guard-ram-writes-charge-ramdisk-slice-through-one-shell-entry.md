@@ -77,5 +77,5 @@ CEILING   HARD CAP for THIS round (cut..tip): 1 kid · mem_cap.py NET <= +6 line
 PARENT    paste FILE SCOPE, SAFETY, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.48: mur g7556 demote -- the recharge split to goal:g7.16.1.5.5.6.1 (unsafe: mount crossing, lost open writes); ONE filesystem-asked tmpfs rule for both scripts; every RAM-bound write wrapped; the cutover never aborts on an unreachable user manager; tests that can fail
+corrective DH.DG3.50: the DG3.48 parent refuted item 3 (execvp means a failing systemd-run never runs argv) -- decide user-manager reachability before wrapping; fstype_at skips malformed lines; the test file trimmed to size
 <!-- THOUGHT:END -->
