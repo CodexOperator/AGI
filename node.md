@@ -17,20 +17,20 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:38Z 09-30, date -u) — gen 11 · RUN to 21:00Z, then FREE LANE only, no STOP (owner 17:4xZ + 17:5xZ via the Prime; doc:unified-director-brief ROUND LANES 9cb773a774)
+## §0 State (21:54Z 09-30, date -u) — gen 11 · FREE LANE since 21:00Z (pi-free only) · HOLD on key/identity/signing/rotate/spawn-row/write-gate rounds (Prime [rule] 21:53Z, owner 21:3xZ; goal:g7.16.1.11)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
-| lanes | until 21:00Z: pi-free + claude-code Sonnet 5.5, Sonnet subagents (≤ 2), direct · from 21:00Z: every NEW round + review on pi-free only, no Sonnet subagents, live CC rounds finish |
+| lanes | since 21:00Z: every NEW round + review on pi-free, no claude-code dispatch, no Sonnet subagents · exceptions the Prime named: TM research lane Opus 5.5 high ≤ 3 · DG3 on goal:g7.16.1.11 Opus ≤ 3 AFTER the council design |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
 | skills | agi-master-gate (every landing) · agi-rotate · agi-node-write · agi-send · agi-goal |
-| peers | Prime = seat belam gen 22 (send.py --to belam) · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-00 + DG4 agi-10: SendMessage FAILS -> send.py --to director-general-3/4 · council: alive · all-is-one · self-perpetuating (send.py --to <post>) · DG5 DG6 DOWN |
+| peers | Prime = belam (send.py --to belam) · DG1 agi-8c · DG2 agi-e3 · DG3 agi-03 · TM thought-master STOOD UP @34 (research lane) · council: alive · all-is-one · self-perpetuating (designing goal:g7.16.1.11 first) · DG4 STOOD DOWN 21:5xZ · DG5 DG6 DOWN |
 
 ## §1 Plan
 ```
 done   gen 10 landings: g1.33 5f1e8092f2 · DG2.R1-3 · brief g15 ef0d152992 · g6.41.1.1(1) 82c553bb9a · dg6-04 08b1ca1c94 · g1.31.4.1 88ddd2ca08 · DG4 STACK 72dff76359 · SM-1 d5d9107d43 · DG4.17 2cbe754da1 · keys d01befa390
 done   gen 11: g1315131 a2e42a3bf0 · DG4.10+20 5a7a3bb828 · DG4.19 e81abd3f69 · g7556 627c94a040 · .10.3 521ebaa951 · .10.5 2ed4492434 · bundle 4 v4 = 0.9 8d5cd831fb · 21:00Z free-lane rule relayed (DG3 DG4 council-loop) · Prime grep-orphan red = g7.33.19 row 60
-NEXT   gate re-sends: DG4 lineage g13142c · DG4.13+r49 · g75213 GO on the Prime bind · DG3 .10.7 when it comes · FREE LANE (pi-free) for every new round/review
+NEXT   DG3 placed 21:5xZ: g7.33.19 row 60 -> .10.7 smallest (the .11 doc may scrap it) · g75213 GO on the Prime bind · DG4 tips unowned (below)
 ```
 
 ## §2 Landed this gen
@@ -39,10 +39,10 @@ NEXT   gate re-sends: DG4 lineage g13142c · DG4.13+r49 · g75213 GO on the Prim
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 11 at 21:17Z: 6 landed + bundle 4 at 0.9; gate idle, nothing of mine running
-WAITING FOR RE-SEND: DG4 lineage 4620846a3f -> g13142c · DG4.13 9baba2bc99 (4 ring reds) + r49 7eb1c65aed
+sanctuary-master gen 11 at 21:54Z: 6 landed + bundle 4 at 0.9; gate idle, nothing of mine running; DG4 stood down
+DG4 TIPS, UNOWNED since the stand-down (their leaves are horizon on the board): lineage 4620846a3f (8 reds; rotate/spawn-row = HELD) · DG4.13 9baba2bc99 (4 ring reds) + r49 7eb1c65aed · DG4.18 c576956960 (3 Prime cells) -- never land a returned tip; a new owner re-sends
 WAITING ON THE PRIME: goal:g1.31.5.1.3.1.1 hold_wait_s cell -> DG1 closes .3.1 -> .3
-HELD: DG4.18 c576956960 on 3 Prime cells (asked 19:38Z) · g75213 7cd127824e CODE GATE COMPLETE (chain 3 suite green, first live run measured) -> GO on the Prime DISK bind; re-derive T2 at landing
+HELD: g75213 7cd127824e CODE GATE COMPLETE (chain 3 suite green, first live run measured; guard, not a held class) -> GO on the Prime DISK bind; re-derive T2 at landing
 LIVE RED (older): 72dff76359 same-node writes exit 0 w/o commit -- a2e42a3bf0 is the fix; watch the next rotate-self rc
 WITH THE PRIME: DG4.18 cells · hold_wait_s (g1.31.5.1.3.1.1) · merge_gate.red_classes · council.residue_leaves · g1.31.1.1.1 config half · g6.41.1.1 wake/ack cells · email_allow RFC 2606 · hw fragment scrub (930e65687c) · skills entry
 GATE RECIPE: skill agi-master-gate · pipelined chain = one suite for N tips, reds attributed on a pair tree
