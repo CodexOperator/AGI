@@ -19,71 +19,58 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (03:0xZ 09-30) — f≈0.22
+## §0 State (03:2xZ 09-30) — f≈0.30
 | | |
 |---|---|
-| post | director-general-4 · FIRST PRIORITY: goal:g7.16.1.5.3 worktree cleanup · then g7.16.1.6 fill-in · leftovers lane |
+| post | director-general-4 · queue from sanctuary-master's board (#1 cold homing · #2 g7.16.1.4.1.2 · #3 g4.18.5.2.1 · residue 156): ALL BUILT; asked SM for next |
 | protocol | doc:council-loop · MAIN on local-maxxing/season2/main · CC Opus 5.5 high · builds directly (no dispatch in this formation) |
-| messaging | owner verbatim: "use internal messaging only for everything and full guarantee until bundles land" -- SendMessage by session name ONLY · LANES (owner 03:0xZ): coordination / sequencing / restarts -> sanctuary-master agi-ed · rulings + mid-work questions -> the council (alive agi-b3 · all-is-one agi-8f · self-perpetuating agi-53) · NEVER the Prime |
-| names (02:3xZ) | Prime agi-79 · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG5 agi-5b · SM agi-ed -- re-check at every restart (ListAgents @window = tmux window_id) |
+| messaging | SendMessage by session name ONLY (owner: "internal messaging only ... until bundles land") · LANES (owner 03:0xZ): coordination / sequencing / restarts / SHAs -> sanctuary-master agi-ed · rulings + mid-work questions -> the council (alive agi-b3 · all-is-one agi-8f · self-perpetuating agi-53) · NEVER the Prime |
+| names (03:1xZ) | Prime agi-79 · DG1 agi-2a · DG2 agi-7f (checks my builds) · DG3 agi-91 · DG5 agi-5b · SM agi-ed -- re-check at every restart |
 | skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-workflow |
-| never | write.py · node_writer.py · loader.py · links.py · viewport.py (DG3) · rotate.py, dispatch.py launch, heal.py key path (DG5) |
+| regions | write.py `_commit_write` = mine (SM grant); the rest of write.py / node_writer / links / viewport = DG3 · rotate.py, dispatch.py launch = DG5 · paths.py HOME_RE = DG3 (g7.16.1.1.6.2) |
 
 ## §1 Plan
 ```
-g7.16.1.5.3  LIVE 873fec43f since heal restart 02:24:20Z: Falsifier 2 HOLDS (0 "refused ...: unmerged"), 10 archived+removed, 10/10 refs resolve
-   BUILT eb9a80c4a: a TERMINAL not-home reason (target exists · home failed · verify failed · no manifest) archives the tree's
-        .agi/sessions/iter-* (git add -f, they are gitignored) onto <name>-dirty, verified, then removes; live lease / non-terminal still refuse
-        cause (Prime, bytes): MAIN iter-* are symlinks into the cold sessions home (g7.16.1.5.2); measured 3 trees: 8/9, 5/6, 7/7 files
-        MISSING there -> "count the symlink as homed" would LOSE bytes; archive is the safe close
-        live dry-run: 0 refused · 25 archived (4 with sessions) · 291 deferred by the per-pass cap 25
-   OPEN a) eb9a80c4a takes effect at heal's NEXT watch restart (the Prime's act)
-        b) census row: DROPPED by Prime ruling (b) 02:5xZ -- "a row of the census" was the Prime's gen-19 minting text, not owner
-           verbatim; no liveness census exists; sweep liveness = reaper.watch.json heartbeat + the per-pass summary line
-           CLOSE = one write: set status complete && thought <deviation (b) + that reason + Falsifier 1 numbers>
-        c) CLOSE CONDITION (Prime): after the restart, git worktree list count FALLS pass over pass (982 at 02:3xZ)
-   NEVER du/find over .agi/worktrees (io storm) -- git worktree list
-g7.16.1.5.3.1 MINTED 7422ec31f (Prime order): the sweep reclaims its OWN cgroup -- BUILT b3b0024db + 4c6972981
-             (file - shmem + slab_reclaimable, swappiness=0, every 50 trees + pass end; cells reaper.sweep_reclaim_*)
-   RED 03:0xZ: agi-engine.slice 801/768 MiB = 700 MiB SHMEM (RAM-disk tmpfs, unreclaimable); oomd killed reaper + sanctuary-watch
-        -> sent to SM for routing (alive .5.5 / DG5 .5.4) + a heal restart for b3b0024db+4c6972981
-   Falsifier 1: 2 passes with agi-engine.slice below high + 0 reaper oom-kills (NOT met while the shmem sits there)
-   NEVER a manual whole-tree dry-run again: it IS a memory event (Prime)
-g7.16.1.6    WAIT: council places .6 -> DG1 leaf -> DG3 builds commit_node(root, node_path, content=None, *, payload=None, prefix)
-             DG4 then: send.py:796 keygen onto commit_node; crons.py:898 grid_sync + grid.py cron -> ONE ~15-min snapshot job
-CLOSED       DG2 verdict:dg2mvp-wgR PROVED 0.9, F1 re-worded by DG2 · DG1 dropped g7.16.1.4.1 F2 exclusions, g7.16.1.4.1.1 complete
-             council: L1b check_goal_lifecycle placement · walk mismatches in bundle trees (g4.18.5.1 · g7.16.1.1 · .1.2 · .1.7 · g6.49)
+g7.16.1.5.3    COMPLETE 436cd1911: worktrees 983 -> 964 -> 914, 0 refused-unmerged; census row dropped (Prime ruling b, in THOUGHT)
+  .5.3.1       BUILT b3b0024db + 4c6972981 (own-cgroup reclaim: file - shmem + slab, swappiness=0, every 50 trees + pass end)
+               Falsifier: 2 passes with agi-engine.slice below high + 0 reaper oom-kills -- engine slice is SHMEM-bound (RAM-disk tmpfs),
+               sent to SM for alive .5.5 / DG5 .5.4; this leaf cannot fix shmem
+  .5.3.2       BUILT 5a257979b + 21a579ba1 (homing lands on the cold home via a MAIN symlink; failed copy discarded THROUGH the link)
+               run 26 accept_with_residue -> 156 fixed at 21a579ba1, awaiting SM verdict
+               Falsifier: one pass homes N >= 1 with RAM disk use + engine shmem flat +/- 20 MiB
+  ALL WAIT on ONE heal restart (SM cleared it with the Prime): then read the reaper log for "[sweep] reclaimed own cgroup" + homed lines
+g7.16.1.4.1.2  COMPLETE 701e9c16c + 1274ad15b (cron:crons + command:commands prose; SM accepted)
+g4.18.5.2.1    BUILT 1098822e1 (bounded index.lock retry, exit 3 by name, create recovery adds first); in SM review run 29; goal re-pointed to me
+SM residue 128 CLOSED b0bc1699f (SM accepted run 23) · stream skill literals routed to stream-master
+NEVER a manual whole-tree dry-run (a memory event) · NEVER du/find over .agi/worktrees -- git worktree list
+g7.16.1.6      WAIT: council places .6 -> DG1 leaf -> DG3 commit_node -> DG4 fills in the writers
 ```
 
 ## §2 Landed
-- e1d710942 L1 goal markers · 259d75164 L2c THOUGHT END · 6a913d85d L2b repo-path scrub (82 nodes)
-- b8d232fc6 + de5507a17 L2a: unify.py / verify_unified.py / publish-engine.sh retired (SM clean: 393992bbf, 481ecfde6 test_push_gap.py)
-- 0d2ace8b8 schema "Readers strip it" bullets · f27b84d7f fe2e775e6 989782c9d cec3b9af5 g15/g26 (belam decision a)
-- census (read-only) eeccfbaa1 bypass: 303 legacy parent-rule violations, 0 provably bypass-minted
-- 8d053818e heal's resume posts-row write committed alone before the ack
-- 873fec43f goal:g7.16.1.5.3 archive-then-prune sweep (heal_sweep 28 · heal_watch 88 · heal 23 · help 70+8s)
-- 843712e3f quorum card re-linked after rotation flatten
-- eb9a80c4a goal:g7.16.1.5.3 terminal not-home session dirs archived, not held (heal_sweep 28 · watch+heal+help 181 / 8 skipped)
-- 7422ec31f 919017658 leaf g7.16.1.5.3.1 minted · b3b0024db 4c6972981 sweep own-cgroup reclaim (213 pass / 8 skip)
-- b0bc1699f SM residue 128 engine half: anonymize HOME_PATH_RE roots derived (pwd + $HOME + cell anonymize.home_roots); SHA sent to SM (agi-ed); stream skill :18,:21 literals routed to SM
+- e1d710942 259d75164 6a913d85d b8d232fc6 de5507a17 0d2ace8b8 eeccfbaa1 8d053818e (predecessor lanes)
+- 873fec43f archive-then-prune sweep · eb9a80c4a terminal not-home archived with sessions
+- b0bc1699f anonymize HOME_PATH_RE roots derived (pwd + $HOME + cell anonymize.home_roots)
+- 7422ec31f 919017658 leaf .5.3.1 · b3b0024db 4c6972981 own-cgroup reclaim
+- b2c51faf3 leaf .5.3.2 · 5a257979b cold homing · 21a579ba1 residue 156
+- 701e9c16c 1274ad15b g7.16.1.4.1.2 complete · 1098822e1 g4.18.5.2.1 · 436cd1911 .5.3 complete
 
 ## 🔴 Where it stops
-eb9a80c4a LIVE (983 -> 964, 0 refused); b3b0024db + 4c6972981 wait on a heal restart (asked SM agi-ed); engine-slice shmem red routed to SM.
-Next command: `git worktree list | wc -l` -- if it fell again since 964 (03:02Z), close goal:g7.16.1.5.3: `write.py goal:g7.16.1.5.3 'set status complete && thought <census row dropped by Prime ruling (b): not owner verbatim, no liveness census exists; liveness = reaper.watch.json + per-pass line; counts>'`.
+All queued work built; waiting on SM for the next queue item, on SM's verdicts (156, g4.18.5.2.1 run 29) and on the heal restart.
+Next command: after the restart, `grep -E '\[sweep\] (reclaimed|homed|cold)' <reaper log>` since the restart stamp + agi-engine.slice memory.stat shmem before/after one pass.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN shared | commit by exact path; `git diff` EVERY file for foreign hunks first (b8d232fc6 swept DG3's hunk) |
-| stale .git/index.lock | 02:33Z: a lock no process held (fd scan) blocked every MAIN commit 150 s -> moved aside to /tmp, never deleted |
-| verify-suite.lock | a guard that PRINTS but does not stop is no guard (de5507a17): `if lock; then stop; fi` |
-| tests + box PSI | heal sweep tests stub `_sweep_pressure_ok` (autouse): the real box io PSI would defer every pass |
-| reaper log | AGI_REAPER_LOG from the reaper unit's Environment=; old lines carry NO timestamp -- count from the first 2026-09-30T line |
-| row verb | `row manifest.<key> <file>` (empty = remove); manifest keys keep the YAML colon, cadences do not |
-| crons.py apply runs from MAIN every 5 min | change config and code in the order valid under BOTH |
+| MAIN shared -- SWEPT DG3's canonicalize WIP (1098822e1) | take the hunk count IN THE SAME COMMAND as `git commit -- <paths>`; a diff checked a minute earlier is stale |
+| stale .git/index.lock | a lock no process holds (fd scan) blocks every commit -> move aside to /tmp, never delete |
+| verify-suite.lock | a check that PRINTS LOCKED but does not stop is no guard; the conftest refuses cleanly -> retry on "suite window refused" |
+| tests + box PSI | heal sweep tests stub `_sweep_pressure_ok` (autouse); reclaim cells absent in test graphs = off |
+| engine slice memory | `file` there is SHMEM (RAM disk): reclaim cannot free it; read memory.stat shmem before blaming cache |
+| reaper log | AGI_REAPER_LOG from the reaper unit's Environment=; old lines carry NO timestamp |
+| write.py on a node with a THOUGHT | replace body must cover the H1 section to the THOUGHT END (or carry the block whole); never --force |
 
 ## §5 Verification
-links 5270 / 0 broken · grid 0 errors · heal tests above · live dry-run above
+heal_sweep 36 · cli/heal/dispatch/stale-lock/help 413 / 8 skip · write neighbourhood 351 / 8 skip / 1 xfail · anonymize 46 + 546
 
 ## §6 BANKED
 (none)
@@ -91,5 +78,5 @@ links 5270 / 0 broken · grid 0 errors · heal tests above · live dry-run above
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-eb9a80c4a closes the not-home hold on goal:g7.16.1.5.3: the cold sessions home lacks the trees' own records (measured), so they are archived, never counted as homed; the next step is the Prime's heal restart.
+Whole replace at f 0.30: sanctuary-master's queue (#1-#3 + residue 156) is built; the card now records the lanes, the regions, the SWEEP trap paid for at 1098822e1, and the heal restart all three leaves wait on.
 <!-- THOUGHT:END -->
