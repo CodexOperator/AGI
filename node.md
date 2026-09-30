@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-general-1
+edited_by: belam
 scaffold_hash: ce9da8b3b952451b
 season: 2
 title: Card director general 1
@@ -17,41 +17,35 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:00Z 09-29 — STOPPED on the owner's 23:00Z stop ("Keep working till 7pm"), relayed by the council; re-seated 17:3xZ after the crash, ack gen 2 · session_ref 80bf37)
+## §0 State (04:43Z 09-30 — IDLE on the council STOP (04:00Z, fired 04:43Z); f≈0.36; last session agi-2a)
 | | |
 |---|---|
 | post | director-general-1 |
-| stage | IDLE, STOPPED · bundle 4 stage 1 + 2 re-scopes done; nothing in flight, nothing uncommitted, nothing owed |
-| protocol | doc:council-loop · goal:g7.16.1 |
+| stage | NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"): DG2 hands rows after its MVP-vs-hypotheses pass -> DG1 checks BUILD nodes vs GOALS -> correctives as NESTED subgoals -> no residue -> OUTCOME per goal (parent = the goal) -> SM |
+| protocol | doc:council-loop · goal:g7.16.1 · NOT in room directors (DG3/4/5 only, belam 23:5xZ) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundles 1 + 2 · bundle 3 stage 1 (9181cee26) + row R (11b2de165; R1 v3 b2d946498 grouped cutover) · bundle 3 CLOSED 1f39ffb1c
-done   bundle 4 stage 1 (db3e22e55) · heading_level fix (68f23e0f6) · W-G 6 callers (521334b6b)
-done   re-scope 1 (68d4c8504) · re-scope 2 (d4a186957) · W0 falsifier (45771a9e1) · W-G build line + horizon leaf g7.16.1.4.1.1 (d1de2e804; council: bundle 5, RETIRE, 99e0f3580)
-done   belam mint [decision] 22:1xZ applied (7cf590f0d): g4.18.6.4.1 UNHELD, every W2 gate = "is a node's mint_id"
-next   on the owner's next start: read the inbox + the council room; bundle 4 builds continue with DG3 (resolver shape-guard residue at links.py:431-432 is DG3's)
-blocked none
+done   bundles 1-3 outcomes; census split g7.16.1.1.6.1/.2 (DG3); residues 101 113 128 (goal side); W1a/W1b/W2a correctives nested
+done   BUNDLE-4 OUTCOMES (on SM's ready + DG2 verdicts), each goal complete:
+         g4.18.5.1 W1a rows ........ outcome:g4-18-5-1-w1a-body-rows-closed (556131169)
+         g4.18.6.1 W2a resolver .... outcome:g4-18-6-1-w2a-one-mint-resolver-closed (0eef20bd9)
+         g4.18.6.2 W2b ids ......... outcome:g4-18-6-2-w2b-write-checks-outbound-ids-closed (d156aeba7; council ruling (b): body refs -> g4.18.6.4)
+         g4.18.6.3.2 W2c B ......... outcome:g4-18-6-3-2-w2c-b-family-b-one-resolver-closed (4965c5ff5)
+         g7.16.1.4.1 W-G ........... outcome:g7-16-1-4-1-w-g-goals-md-retired-closed (523ea922b)
+hold   g4.18.5.2 W1b (write = commit): .2.1 index.lock retry LANDED 1098822e1 (DG4) -> DG2 check · .2.2 template cell + skills = DG3 #3 -> then close + OUTCOME
+hold   g4.18.6.3.3 W2c C (gates): DG3 builds -> DG2 -> build-vs-goal + OUTCOME; then SM's full [ready] -> SM writes the bundle-4 bigger_outcome -> council
+hold   g6.41.1.1 reboot wake (mine): brief hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) queued on DG3
+open   parent g4.18.6.3 (W2c) closes after .3.3 · g7.16.1.6/.7 leaves when alive places them
 ```
-
-## §2 Landed — bundle 4 (goal:g7.16.1.4, base 1f39ffb1c)
-| row | leaves | state |
-|---|---|---|
-| input | g7.16.1.4.3 | DG2 measure |
-| W-G | g7.16.1.4.1 (+ .1.1 horizon, bundle 5 retire) | BUILT (41107692f, 254f58ef7), active until SM re-review clean |
-| W0 | g7.16.1.4.2 | BUILT (82fce8a34) |
-| W1 | g4.18.5.1 · .2 · .3 | .2 landed (write.py self-commits) |
-| W2 | g4.18.6.1 · .2.1 · .2.2 · .3.1-.3 · .4 · .4.1 · .4.2 · .5 | re-scoped twice; .4.1 unheld (option a) |
-| W3 | g4.18.7.1 · .2 · .3 (one row, ceiling 125) | pending |
-Superseded, kept as evidence: hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids.
 
 ## 🔴 Where it stops
-23:00Z 09-29: stopped, idle, nothing in flight. My council-room lines may sit uncommitted beside other posts' lines (never commit theirs). Next act on wake:
+STOPPED clean: no step in flight, nothing uncommitted of mine. Next session resumes on the three holds in §1 (W1b g4.18.5.2 after DG2 checks .2.1 + DG3 builds .2.2 · W2c C g4.18.6.3.3 · g6.41.1.1 build on DG3), in the loop order: DG2's verdict -> DG1 build-vs-goal -> OUTCOME (parent = the goal) -> SM. Owner orders in force (director brief): SendMessage only (no send.py, no rooms) until the bundles land; coordination -> SM, rulings -> the council; no Opus subagents (pi-free workflows, Sonnet at most). Session names change at every relaunch: map `tmux list-windows -a -F '#{window_id} #{window_name}'` against ListAgents. Check git status after each write (write.py can print success over an uncommitted node until g4.18.5.2.1 is verified).
 ```
-python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1
-tail -30 .agi/comms/season-2/room/council-loop.md
+for g in g4.18.5.2 g4.18.5.2.1 g4.18.5.2.2 g4.18.6.3.3 g6.41.1.1; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done
+git ls-files .agi/nodes/verdict | grep -E 'dg2mvp-(w1b|w2cC|g6)'
 ```
 
 ## §4 Traps
@@ -67,10 +61,10 @@ tail -30 .agi/comms/season-2/room/council-loop.md
 | the handoff may land only in the room | `tail .agi/comms/season-2/room/council-loop.md` at wake |
 | `anonymize.py check FILE` refuses a positional | `check --diff-file FILE` |
 | a negative grep over .agi/nodes hits the nodes that QUOTE its pattern (bundle 3 H3; bundle 4 W0 hit its own title, 45771a9e1) | exclude the quoting nodes or anchor the pattern; run the falsifier once before committing the leaf. H3 anchor: anchor `· triage: parked: formation g[0-9.]+ \|$` (39 rows, 5 carriers) |
-| a goal minted without heading_level (DG2 [red] 20:4xZ, fixed 68f23e0f6) | `--set heading_level=<id segment count>` on every goal create; the render hard-fails without it and reds every closeout |
 | a count or claim copied into every leaf of a row | measure it once per row with its own command; a wrong shared Measured line (W2: 8654, no walk, links gates parents) was wrong in 5 leaves at once |
 | GOALS.md is retired (owner 17:3xZ) | never render it; goals are read from their nodes |
 | moving a live process tree into a scope (R1 cutover, measured 18:4xZ on dummies) | AttachProcessesToUnit needs a Delegate=yes target; a moved parent leaves its children: move EVERY pid; probe with sleep dummies only, never tmux / a post / the RC service |
+| `set <key> '<text>'` in write.py | the value is the raw rest of the line: quotes are STORED; never quote a set value |
 
 ## §5 Verification: `links.py links` 0 broken · anonymize ok on each diff
 
