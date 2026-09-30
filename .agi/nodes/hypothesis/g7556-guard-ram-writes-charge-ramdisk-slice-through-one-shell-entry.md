@@ -11,7 +11,7 @@ origin: goal
 scaffold_hash: 223d8c84c6bd3693
 season: 2
 testable_claim: mem_cap.py ram-exec wraps argv via locations.ram_write_argv; every RAM-bound write in ram-main.sh and session-sweep.sh goes through it and no disk-bound write does
-title: The guard scripts write into the RAM dir through ONE shell entry to the ramdisk.slice scope helper, and an on-demand recharge rewrites mis-charged pages
+title: The guard scripts write into the RAM dir through ONE shell entry to the ramdisk.slice scope helper (the on-demand recharge MOVED to goal:g7.16.1.5.5.6.1)
 town: core
 ---
 # hypothesis:g7556-guard-ram-writes-charge-ramdisk-slice-through-one-shell-entry
