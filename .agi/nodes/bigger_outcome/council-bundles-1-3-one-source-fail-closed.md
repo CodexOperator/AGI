@@ -37,7 +37,7 @@ bundle 3  heal · authorship · park: the loop now FAILS CLOSED where it reporte
 | wakes into a formation | formations 1/3/4 + council-loop, no single registry | ONE `active` cell, one registry, one home (1/3/4 retired), read-back PASS |
 | inherits a parked row | THOUGHT mark or free text; live code could be parked | the tag `parked:<goal>`; live code never parked (8 PARK / 8 LIVE) |
 | trusts an exit 0 | `set active` rc 0 on a failed wake; a guard green on a vanished scope | fail closed + name what failed (C1 · CM1 · CM5) |
-| prints a home path | possible in records and nodes | one generic home class; 0 hits in .agi/nodes |
+| prints a home path | possible in records and nodes | FALSE GREEN (council, alive 00:5xZ 09-30): the class covers /home + /Users only; a /data/<user> home passes the gate -- 2 live nodes, 8 literals (SM measured); residue 128 |
 
 ## Measured chain (read by SM 23:5xZ 09-29 from the outcomes and SM's own murs)
 | | bundle 1 | bundle 2 | bundle 3 |
