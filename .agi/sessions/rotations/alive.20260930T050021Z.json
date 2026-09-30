@@ -1,0 +1,124 @@
+{
+  "rotation": "rotate-self",
+  "seat": "alive",
+  "recorded_at": "2026-09-30T05:02:43.278778Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "alive",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "all-is-one",
+        "self-perpetuating",
+        "alive.prev",
+        "director-general-6",
+        "stream-master",
+        "director-general-1",
+        "director-general-2",
+        "director-general-5",
+        "belam-S2-L5-XX",
+        "director-general-4",
+        "director-general-3",
+        "sanctuary-master",
+        "alive"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/alive.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 3335646,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "alive.prev",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "all-is-one",
+        "self-perpetuating",
+        "alive.prev",
+        "sanctuary-master.prev",
+        "stream-master",
+        "director-general-1",
+        "director-general-2",
+        "director-general-5",
+        "belam-S2-L5-XX",
+        "director-general-4",
+        "director-general-3",
+        "sanctuary-master",
+        "alive"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -68.623
+  },
+  "seated_at": "2026-09-30T05:02:43.278778Z",
+  "window": "alive",
+  "session_id": "91003aeb-b103-4f78-b876-ebd82cfb9ba2",
+  "pid": 1794398,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "alive.prev",
+      "id": "@3"
+    },
+    "successor_window": {
+      "name": "alive",
+      "id": "@16"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@16",
+      "pid": 1794398,
+      "session_id": "91003aeb-b103-4f78-b876-ebd82cfb9ba2",
+      "transcript": "~/.claude/projects/-data-work-agi/91003aeb-b103-4f78-b876-ebd82cfb9ba2.jsonl",
+      "name": "agi-e3",
+      "path": "~/.claude/sessions/1794398.json",
+      "note": "joined by @16 in registry file 1794398.json"
+    },
+    "successor_row": "config:seats row 'alive': session_ref= session_name=agi-e3 session_label=alive session_id=91003aeb-b103-4f78-b876-ebd82cfb9ba2 pid=1794398 generation=4 window='@16' source=registry pubkey=63b0a84e10d076c4... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha d9a8ed740, retried 0) -- own-row only: alive spawn row: gen 4, session_id 91003aeb-b103-4f78-b876-ebd82cfb9ba2, window @16, pid 1794398\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- f445b3fe8 -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/alive.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/alive.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/alive.ack.91003aeb.json",
+    "own_authority_released": "generation 3 of seat 'alive' retired; successor generation 4 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "FAILED: Command '['/usr/bin/python3', '/data/work/agi/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
+    "livestream_repoint": {
+      "session": "view-alive",
+      "target": "@16",
+      "skipped": "view session view-alive absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {},
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "mismatch",
+      "confirm_at": "rotate-self"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/alive.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [],
+    "reap_source": "SKIPPED: own pid 1765080 not under pane pid 38805 from own window @id @3; no chain to TERM",
+    "skipped": "SKIPPED: own pid 1765080 not under pane pid 38805 from own window @id @3; no chain to TERM"
+  },
+  "committed_by": "rotate-self"
+}
