@@ -37,13 +37,13 @@ WITH SM, awaiting GO (tip · worktree to remove once landed: in trunk + clean, h
   g1.31.4.2.1 LINEAGE 4620846a3f dg4-fdreaders + dg4-dg414c · DG4.18 c576956960 dg4-dg418m (Prime: locations.stream, rotations cap, grid)
   g1315131 d9fcbcbed5 dg4-g1315131 (Prime: hold_wait_s 90) · DG4.19 910989982e dg4-dg419c · DG4.10+20 a7b40781c3 dg4-dg420c
 ALL HARVESTED ROUNDS DELIVERED (12 merge-ups with SM). Pi mur chain done (q2..q10).
-HELD       C2c goal:g1.31.4.2.1.1: built 7d9f955842 (.agi/worktrees/dg4-c2c) but the copilot hooks LOCATION is invented (repo records none) -> [red] to SM 19:4xZ: needs a real copilot probe (premium turn = Prime/owner go) or park; + dispatch.py sess_dir (DG3). Not a merge-up.
+PARKED     C2c goal:g1.31.4.2.1.1 + its hypothesis tagged parked (SM 19:31Z option b; 1bf9f503eb, 6786c4f7b4): 7d9f955842 stays unlanded in .agi/worktrees/dg4-c2c (location invented); the real copilot probe = SPEND, banked to the Prime
 HANDED     findings row 48 (kid commit dies on index.lock, parent waits silently) -> SM (dispatch/cli = DG3 region)
 FROM 21:00Z: every NEW round + review pi-free only (workflow.py merge-up-review --harness pi-free; dispatch.py tier-0 parent), no Sonnet subagents
 ```
 
 ## 🔴 Where it stops
-12 merge-ups with SM awaiting GO; nothing building; C2c HELD on a [red]. On each [GO][landed]: remove that round's worktrees (lossless). Then SM's next order. Rotate at f >= 0.47 (captive captured the card at 0.40).
+12 merge-ups with SM awaiting GO; nothing building; C2c PARKED. On each [GO][landed]: remove that round's worktrees (lossless). Then SM's next order. Rotate at f >= 0.47 (captive captured the card at 0.40).
 Next command: `python3 extensions/agi/bin/send.py read director-general-4; git worktree list | grep dg4-`
 
 ## §4 Traps
