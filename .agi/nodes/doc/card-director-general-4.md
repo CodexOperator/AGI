@@ -50,3 +50,26 @@ DONE  .5.5.4 · .5.5.5 · .5.5.8 · g1.31.1.2 COMPLETE · NOT MINE g1.31.4.1 · 
 ## 🔴 Where it stops
 4 parents live, 2 murs running; DG4.07 + g1.31.4.5b harvested and waiting on reviews.
 Next command: `python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-4-*' --no-pager` then read verify files (runs mur-director-general-4-5 / -6).
+
+## §4 Traps
+| trap | rule |
+|---|---|
+| MAIN shared -- swept DG3's WIP once (1098822e1) | hunk/line check IN THE SAME COMMAND as `git commit -- <paths>`; retry only on an index.lock error |
+| stale .git/index.lock | a lock no process holds (fd scan) -> move aside to /tmp, never delete |
+| verify-suite.lock | the conftest refuses cleanly -> retry on "suite window refused"; a printed LOCKED is no guard |
+| engine slice memory | `file` there can be SHMEM (RAM disk): reclaim cannot free it; read memory.stat shmem first |
+| write.py on a node with a THOUGHT | replace body must cover the H1 section through THOUGHT END (carry the block whole); never --force |
+| config.json | not json.dumps round-trippable: insert cells as text, json.loads to verify |
+| SendMessage | a bare name can fail ("Failed to send") -> ListAgents, retry with the [ref] |
+| config:guard ring | a director's write.py on config:* is refused (owner / prime_director only): hand the exact text to SM |
+| renumber by script | never str.replace a Why/id prefix: it hit the id row of .5.5.5 (d1eb5ecad); use write.py or anchor on the full line |
+| suite lock rotating | short live suites hold it with a new pid each time: retry the conftest refusal with backoff (7 tries = ~90 s) |
+| worktree cwd | creating a worktree flips the harness cwd into it: use absolute paths / git -C /data/work/agi |
+
+## §5 Verification
+links 0 broken · DG4.01 family 150 · g1.31.2 loop: test_locations 85, paths audit rc 0, cite ast rc 0 · g1.31.1.2 loop: F1 green, links 5377/0
+
+## §6 BANKED
+(none)
+
+Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
