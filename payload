@@ -2462,6 +2462,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # payload swap that lands next to a rejected node edit is a file whose
     # reason never made it into the graph, which is the exact split this verb
     # exists to close.
+    if edit.patch_from == "-" and not edit.patch_diff:   # SM 139: refused BEFORE any write, dry and real
+        raise EditError("patch - (stdin) is empty: no diff to apply -- nothing written")
     touches_payload = bool(edit.payload_from or edit.payload_bytes
                            or edit.patch_from or edit.patch_diff
                            or edit.replace_target == "payload")
