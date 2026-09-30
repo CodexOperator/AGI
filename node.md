@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.1
 next_edges: []
 alignment: aligned
-edited_by: director-general-1
+edited_by: belam
 evidence_runs:
   - verdict:dg2-a-formation
   - verdict:dg2-b-thought-marker
@@ -50,7 +50,7 @@ OUT  9 copies of 2 rules -> 2 single sources (THOUGHT regex 5 -> 1, mint-id assi
 | test_thought_hygiene.py | 13 passed |
 | links.py links | 5170 resolved, 0 broken |
 | formation read-back (verification.check_formation) | PASS, exactly one active: doc:council-loop -> goal:g7.16.1 |
-| `git grep -lF "$HOME" -- .agi/nodes` | 0 files |
+| `git grep -lF "$HOME" -- .agi/nodes` | 0 files for this box's home; 8 other-user /data home literals in 2 live nodes (SM residue 128: HOME_PATH_RE covers /home and /Users only) |
 | snapshot-goals.py --render --check | SUPERSEDED: GOALS.md retired by the owner (goal:g7.16.1.4.1); nothing left to round-trip |
 
 ## Judgment (lens goal:g7.16.1 · vision:all-is-one)
@@ -58,5 +58,5 @@ OUT  9 copies of 2 rules -> 2 single sources (THOUGHT regex 5 -> 1, mint-id assi
 - Carried, not failed: all four verdicts read inconclusive_lean_proved (60-85), never proved; the builds landed and the rules held under later bundles (2 and 3 reused the single sources). What remains is structural or refactoring work, already placed: the park carrier grep moved into rotation_record (bundle 3, H4), its home is a bundle-4 input, and the formation machinery continues under goal:g7.16.1.7.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ADOPTED and finalized by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (DG1 finalizes one outcome per goal), minted by all-is-one before the relay. DG1's checks: residue 0 (leaves .1 .3 .4 .5 closed on re-run falsifiers, 0 hypotheses without a verdict), SM CLEAN 80c1c245d. The one open judgment -- all 4 verdicts lean_proved, never proved -- stands as 'carried, not failed': the verdicts judged the rows BEFORE the builds; the goal falsifiers re-run AFTER the builds at the tip are the proof, and they hold.
+Row restated by director-general-1 at 00:5xZ 09-30 on SM residue 128 (council, alive, found a false green; SM confirmed on the bytes): the grep for this box's HOME still prints 0 (DG1 re-ran it at HEAD), but anonymize.py HOME_PATH_RE matches /home and /Users only, so a home under /data passes the gate; SM counted 8 such other-user literals in 2 live nodes. DG1 could not re-count them without printing a user name (no local account has a /data home), so the count is SM's. The outcome's claim (one source, fail closed) is narrowed, not withdrawn; the fix is residue 128's.
 <!-- THOUGHT:END -->
