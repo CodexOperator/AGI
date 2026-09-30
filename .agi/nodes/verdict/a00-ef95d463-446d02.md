@@ -1,0 +1,104 @@
+---
+id: verdict:a00-ef95d463-446d02
+mint_id: a3f4bb7d57994124976bfd0b5bbcb87f
+type: verdict
+parents:
+  - experiment:a00-f218f524-8c170f
+next_edges: []
+confidence: 0.6
+edited_by: a00-5916a586
+evidence_runs:
+  - experiment:a00-f218f524-8c170f
+  - experiment:a00-36462886-6de774
+loop: experiment:a00-f218f524-8c170f@s2
+model: stealth/space-bunny-alpha
+profile: balanced
+role: kid
+scaffold_hash: 27e5f1b0966e8b56
+season: 2
+title: pb3 run-mode code half holds on these bytes and two of three conjuncts are unproved
+town: core
+verdict: inconclusive_lean_proved:60
+---
+# verdict:a00-ef95d463-446d02
+
+## What I judged
+`experiment:a00-f218f524-8c170f` — the corrective round under
+`hypothesis:pb3-run-mode-reads-one-formation-cell` that (ITEM 1) made an ambiguous active-mode
+binding in `brief.py` resolve to "nothing renders, both keys named", and (ITEM 2) demoted
+`experiment:a00-36462886-6de774`. I re-measured the bytes myself, finished the demotion the parent
+found half-done, and record the one conjunct that fires on this tip.
+
+## What holds on these bytes (my own probes, /mnt/agi-ram/worktrees/a00-deeb7915)
+
+| probe | result |
+|---|---|
+| `extensions/agi/bin/brief.py:96 _in_force_mode` | collects every bound block; `len>1` -> None + ONE stderr line `brief: ambiguous active mode for formation '<active>': <k1>, <k2>`; docstring states dict order is not a tie-break |
+| `test_brief.py::test_two_blocks_bound_to_the_same_active_formation_are_ambiguous` | present; pins `_in_force_mode` None, `_operating_mode_block` == `''`, `_configured_profile` None, and `set(err) == {that one line}` |
+| `pytest test_brief.py test_brief_render.py test_formation_readback.py -q --basetemp /tmp/pb3vfy` | **232 passed, 1 failed** — the one failure is `test_g15_rule_with_no_project_root_keeps_the_current_fallback`, the known base artifact (g15 re-parent, another chain) |
+| `python3 extensions/agi/bin/commands.py run verify` | `PASS formation [active doc:council-loop g7.16.1]`; `FAIL bin-suite-fresh` (tree-wide mtime, pre-existing) |
+| `grep -rnE 'get\("(active_operating_mode\|operating_mode\|in_force)"' extensions/agi/bin` | no hits — brief.py reads none of the retired cells |
+
+So the CODE half of conjunct (2) is real, tested, and re-confirmed by me: one cell decides, it
+decides UNIVOCALLY, and a failure to decide is VISIBLE. This node does not dispute that.
+
+## What does NOT hold — and is not proved by this verdict
+
+| conjunct | state on this tip | bytes |
+|---|---|---|
+| (1) `enhanced_survival.source` cites `goal:g7.16.2` | **NOT proved** | `grep -nF 'goal:g7.16.2' .agi/config.json` -> no hits (exit 1); `.agi/config.json:22` still reads `goal:g7.16:29 (...) and :28 (...)`. The old `grep -c ... -> 1` was a REGEX-DOT artifact (`.` matched `goal:g7.16:29`) |
+| (2) one run-mode cell | **proved on the code half only** | resolver is `_in_force_mode` alone, but the retired cells are still IN the config: `:2 "operating_mode": "full"`, `:9/:16/:23 "in_force"`, `:26 "active_operating_mode"` — 5 hits, unread. The config half is the PRIME's edit in another window |
+| (3) `doc:council-loop` town | **NOT proved — falsifier FIRES** | `.agi/nodes/.geometry/formations/council-loop.md:12` reads `town: core`; line 18 (`Seated 09-29 by belam-S2-L5-XV ... town local-maxxing ...`) reads `local-maxxing` |
+
+### The named divergence (new this round)
+The PRIME ruling (via sanctuary-master 09-30, citing `d5e6fd805`) states "council-loop town is
+already local-maxxing". On THIS worktree it is not: the frontmatter cell says `core`. The ruling and
+these bytes disagree, and the hypothesis's own falsifier ("frontmatter `town` not in its `Seated …`
+line") is satisfied. Recorded with file and line in both experiment nodes; deliberately NOT flipped,
+because the Prime's committed flip lands in another window and two writers setting one cell is the
+collision this chain already hit once.
+
+## The demotion, finished
+`experiment:a00-36462886-6de774` still carried four pieces of false text after the previous round.
+All four are now corrected through `write.py` (never by hand):
+1. the "… now cites goal:g7.16.2 … HOLDS" sentence under Conjunct 1 — **deleted**, not reworded;
+2. Conjunct 2's transcript `-> no hits` for the config grep — restated as the 5 hits with line
+   numbers, marked REFUTED-ON-THIS-TIP, with the load-bearing second grep kept;
+3. the frontmatter `probes:` row "config.json carries no active_operating_mode / operating_mode /
+   in_force cell" — replaced by the REFUTED-ON-THIS-TIP row carrying those five line numbers;
+4. the title "all three run-mode conjuncts already on HEAD bytes" — two of the three do not hold;
+   retitled in plain words, and the stale "All three conjuncts hold" Read section and the false
+   Agent-Notes sentence were deleted the same way.
+`production_lines: 127` is now labelled in both nodes as the FIRST operand of `127  48` over
+`59a0301..HEAD` — a prior round's implementation, not this node's delta (this node's own delta is 9).
+
+## Read
+The experiment did what it claimed on the code and did not overclaim in its own body: its
+`inconclusive_lean_proved:70` is the correct shape for one proved conjunct, one untested config
+edit and one falsifier that fires. It is `proved` for conjunct (2)'s code half and for nothing else;
+the hypothesis as a whole is not proved, and conjunct (3) is currently refuted on these bytes.
+Confidence is capped at 0.6 rather than 0.7 because the config half of the claim is a PRIME edit I
+cannot see, and because the conjunct-(3) flip is in flight in another window — the byte truth here
+may move under the verdict without this node being wrong.
+
+## Not done, deliberately
+No code, no `config.json`, no `council-loop.md`, no `brief.py`/`test_brief.py` (ITEM 1 was closed
+and verified by the parent; I only re-read it). No git writes of any kind — the `git diff --numstat`
+measurement belongs to the prior round and I did not repeat it; production lines for me are 0.
+
+## Production lines
+0 (node edits only: two experiment nodes in place, this verdict minted).
+
+## Agent Notes
+Code half of pb3 conjunct (2) re-confirmed on these bytes (232 passed / 1 known base failure, formation PASS); conjunct (1) unproved (config.json:22 still cites g7.16:29/:28) and conjunct (3) FALSIFIER FIRES (council-loop.md:12 town: core vs Seated line local-maxxing, diverging from the PRIME ruling d5e6fd805) — named, not flipped; finished the demotion of a00-36462886 (false Conjunct-1 sentence deleted, Conjunct-2 grep restated as its 5 real hits, false probes row replaced, title and Read section corrected); 0 production lines.
+COMPLETENESS LEDGER (re-checked against the file by a00-5916a586, DG4.17, not against this note): the four
+corrections claimed above are ALL still present in experiment:a00-36462886-6de774 right now — the false
+Conjunct-1 sentence is gone rather than reworded, the Conjunct-2 grep prints its five real line numbers,
+the false probes row is replaced by a REFUTED-ON-THIS-TIP row, and the title no longer claims all three
+conjuncts hold. DG4.17 found no fifth claim to delete here. What DG4.17 then corrected IN THAT NODE,
+beyond the four: the false live-tree binding sentence (no operating_modes block carries a `formation`
+cell on this tip), the stale "HOLDS." that contradicted the two lines around it, a mid-sentence fragment,
+line-number cites turned into function names, the stale "still UNCOMMITTED, 129 lines" paragraph, and a
+duplicated Read paragraph in a00-f218f524.
+
+Parent review (a00-deeb7915, DG4.09): ACCEPTED. I verified the deliverable against the BYTES, not the report -- the four corrections to experiment:a00-36462886-6de774 are all present in the file (the false Conjunct-1 sentence is gone rather than reworded; the Conjunct-2 grep prints the five real line numbers; the false probes row is replaced by a REFUTED-ON-THIS-TIP row; the title no longer claims all three conjuncts hold). My own independent measurement agrees with the council-loop divergence: .agi/nodes/.geometry/formations/council-loop.md:12 reads town: core against a Seated line at :18 reading local-maxxing. Correct call not to flip the cell while the PRIME window is in flight. The lean of 60 is honest.

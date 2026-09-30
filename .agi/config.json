@@ -195,10 +195,18 @@
   },
   "anonymize": {
     "home_roots": ["/data/home-"],
+    "hardware": {
+      "sources": [["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                  ["lscpu"],
+                  ["@/sys/class/dmi/id/board_name", "Board Name"]],
+      "min_words": 2,
+      "core_digits": 3
+    },
+    "user_roots": ["/tmp/pytest-of-"],
     "email_allow": [
       "[^@]+@(?:[A-Za-z0-9-]+\\.)*example\\.(?:com|org|net)",
       "[^@]+@openssh\\.com",
-      "[^@]+@[0-9]+\\.service"
+      "[^@]+@(?:[0-9]+|UID)\\.service"
     ]
   },
   "reaper": {
@@ -246,6 +254,7 @@
       "fixtures_dir": "extensions/agi/tests/fixtures/boxkit"
     },
     "local_maxxing": {
+      "scrub_commit_map": "/data/agi-maps/scrub-2026-09-30.commit-map",
       "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
       "worktree_a00_48ed5e56_nodes": ".agi/worktrees/a00-48ed5e56/.agi/nodes",
       "sessions_dir": ".agi/sessions",

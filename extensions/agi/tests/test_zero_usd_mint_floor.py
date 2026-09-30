@@ -75,6 +75,8 @@ def test_zero_usd_mint_forces_the_hard_key_cap(tmp_path, drained, monkeypatch):
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_dispatch import _cap_project, dispatch, BIN  # noqa: E402
 
+_REAL_POPEN = dispatch.subprocess.Popen  # captured before any patch: links' bytes-mode grep
+
 
 class _StubProc:
     pid = 7777
@@ -140,7 +142,10 @@ def _zero_usd_dispatch(tmp_path, monkeypatch, *extra, rtk=(True, None),
                         lambda cfg, root=None: (False, "account drained"))
     monkeypatch.setattr(prov, "credit_balance", lambda root=None: balance)
     monkeypatch.setattr(prov, "list_all_keys", lambda root=None: list(keys))
-    monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _StubProc())
+    # dispatch.subprocess IS the global module and run() rides on Popen: the
+    # bytes-mode grep of links.frontmatter_rows must reach the real Popen.
+    monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: (
+        _REAL_POPEN(*a, **k) if list(a[0][:2]) == ["git", "grep"] else _StubProc()))
     monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
     for k in ("AGI_TREE_PROJECT_ROOT", "AGI_PROJECT_ROOT", "AGI_AGENT_ID",
               "AGI_ACTOR", "AGI_HARNESS", "AGI_SEAT"):

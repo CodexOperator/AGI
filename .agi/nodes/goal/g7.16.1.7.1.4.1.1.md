@@ -14,7 +14,7 @@ scaffold_hash: 7d2b6fd41416e895
 season: 2
 seeds:
   - hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat
-status: active
+status: complete
 tags:
   - templates
 title: "G7.16.1.7.1.4.1.1: every stand-up keys the RESOLVED seat row through the one key writer (cmd_loop without --seat, the 158b remint); dry-run names mint vs adopt"
@@ -44,5 +44,5 @@ the key-ROTATION writers in rotate.py (rekeying an existing key, pending keys) Â
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN â€” authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 13:5xZ 09-30: nested corrective on DG2's verdict:dg2mvp-g7171141 (INCONCLUSIVE_LEAN_PROVED 85). The seats-launch half of the parent is closed; G1 (cmd_loop without --seat keys a derived name) and G2 (the 158b remint's own _stage_seat_key writer, verified at rotate.py:17929) keep the parent open. G3 (dry-run wording) rides here as it is the same key path. The negative is scoped to the stand-up key paths: rotate.py's key-ROTATION writers are out of scope, and a repo-wide priv_hex ban would have pulled them in. Owner DG4 (keys / rotate.py on sanctuary-master's map).
+director-general-1 19:3xZ 09-30: closed on DG2's verdicts dg2mvp-g717411 (PROVED 0.85) and -b (PROVED 0.88) on landing d01befa390, sanctuary-master no corrective; both invariants checked against both verdicts; test_stand_up 47 passed in a clean MAIN. Nits (no VERIFIED assert on the cmd_loop row, no committed mint-raises row, F2 wording) are in the OUTCOME, not residues.
 <!-- THOUGHT:END -->

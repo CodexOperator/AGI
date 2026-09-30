@@ -18,29 +18,34 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (13:5xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
+## §0 State (20:1xZ 09-30 — owner 17:4xZ: NO 18:00Z stop; Sonnet lanes until 21:00Z, from 21:00Z pi-free ONLY for new rounds/reviews)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.16 at this write (line 0.47) · live: nothing in flight |
-| Loop | until 18:00Z; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
+| Meter | 0.40 at this write (line 0.47) · live: nothing running |
+| Loop | no stop (owner 17:4xZ); ROUND LANES per doc:unified-director-brief (9cb773a774): until 21:00Z Sonnet agents ok, from 21:00Z new work on pi-free only; coordination via sanctuary-master (SM gen 11: re-map with ListAgents), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
-| Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
+| Subagents | Sonnet 5.5 (Agent model: sonnet), two at a time, UNTIL 21:00Z; after 21:00Z none new -- pi-free rounds/reviews only (workflow.py --harness pi-free) |
 
 ## §1 Plan
 ```
-done     09-30 night: every row below minted + sent (DG1 / SM / council); correctives placed by SM
-done     keys g7.16.1.7.1.4 lean_proved:72 (cf009354b) + fork -> SM placed it with DG5's successor agi-c8 [3f306f]
-done     w2cD = ff549a175 + 9bd36310a vs hypothesis:gates-writer-and-cli-paths-resolve-mint-ids PROVED 0.86 (6c7d2864c)
-         -> g4.18.6.3.3 closable = bundle 4 done on my side; rows sent DG1 + SM + DG3
-done     g7165331b = .5.3.1 RE-JUDGE post-05:06:37Z window: lean_proved:75 (b6e56296a; bound = live memory.high 2304M, 768M reported)
-         + fork hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (DG4's .5.3 tree) -> SM to place; rows DG1 + SM
+done     night + morning: keys g717114 72 · w2cD 0.86 (g4.18.6.3.3) · .5.3.1 re-judge 75 + heal-sweep fork (all rows sent, forks placed)
 done     g7171141 = DG5 2833cdae9f vs the keys fork: lean_proved:85 (d087b6091e) -- F1-F3 not fired, 4 modes keyed; gaps G1 loop w/o --seat,
          G2 remint outside send._mint_seat_key, G3 spawn dry mint/adopt -> fork hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat
          (DG4 lane) -> SM PLACED both forks with DG4 at 13:5xZ (queued after DG4.15 · .11 · .19); rows DG1 + SM
-next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
-         WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
-waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
+done     SM trunk reds: DG2.R1 LANDED 7b367304df (verdict:dg2-r1 proved 0.9) · DG2.R2 LANDED d572f65d6b (verdict:dg2-r2 proved 0.9, + the Prime's
+         email_allow widening 842cb065d3) -- 5 trunk reds closed (SM); both Agent worktrees + branches removed
+done     g133 = goal:g1.33 post-build (DG3 5f1e8092f2) PROVED 0.92 (aa6fc94c52, verdict:dg2mvp-g133); rows SM + DG1
+done     DG2.R3 LANDED 7712457731 (verdict:dg2-r3 proved 0.9, e5092dbb1e): test_node_writer's import-time sys.modules swap; worktree removed
+done     g64111 = DG1 goal:g6.41.1.1 conjunct (1) (82c553bb9a) PROVED 0.85 (aa66016cc8, verdict:dg2mvp-g64111); rows SM + DG1
+done     g13132 = goal:g1.31.3.2 lean_proved:72 (254dce7c5e): guard sound live (10/10, 0 false refusals); [red] to SM: a TRACKED node
+         (hypothesis:lm-kv-slot-save-beats-reprefill :14) still carries a hw fragment (SM scrubbed it, 930e65687c); fork re-parented under goal:g1.31.3.2.1 -> DG3; my 2 nodes
+         shell-split to --data''-work (DG1's falsifier 2)
+done     g13141 = DG3 goal:g1.31.4.1 as re-scoped (88ddd2ca08) PROVED 0.84 (ec8076c6df); 4 dry-vs-live findings sent to SM as rows
+done     g41855 = goal:g4.18.5.5 PROVED 0.85 (bundle 4's last condition met) · verdict B lean_proved:40: [red] to SM -- 72dff76359's launder row
+         reads same-node in-flight peer writes as hand edits (6x20 false rc3 10-17 -> 63-84/120, 3 nodes stuck dirty) + closeout stops before push
+         under a held suite lock -> fork a-launder-refusal-never-reads-a-peer-writes-inflight-bytes-as-a-hand-edit (9eef5da352) -> DG4 TOP;
+         control run: landing also exits 0 WITHOUT a commit (53 rc0 / 51 commits, 3 lost titles; pre-landing 109/109, 0 lost) -> SM
 HELD     s22/s28 closing verdicts (owner stopped the agent; alive: only the owner's word lifts it)
 how      Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both'
          -> review report.txt -> mint experiment + verdict (parents: hypothesis, or the judged file's build node) -> rows to DG1 + SM
@@ -56,11 +61,16 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Nothing in flight (13:5xZ); STOP at 18:00Z. SM (agi-12 [afd9c6]) will send the trunk landing sha of DG4.15 (goal:g4.18.5.5) -> fill it into
-/tmp/dg2mvp/tasks/g41855.md (drafted), launch it on a Sonnet agent, mint experiment + verdict (parents: goal-seed hypothesis or build:bin-write,
-plus my fork a-write-refusal-names-the-index-truth), rows DG1 + SM. All SHAs on this card are post-scrub.
+Nothing running (20:1xZ). Last: launder fix a2e42a3bf0 lean_proved:75 (0904101b77): harness x3 PASS on a loaded box; claim (2) closeout
+past hold_wait_s = SM's open residue. Row to DG1 sent; the SM gen-11 (agi-e0) send reported FAILED -- if no ack, fold it into the next SM line.
+From 21:00Z new checks via pi-free only (no Sonnet agents). Harness:
+`bash /tmp/dg2mvp/g41855/run_on.sh <gate sha> 3` -- PASS (restated 18:3xZ, 5 control runs): HARD every run rc0==commits, 0 launder rc3,
+every dirty path owned by a named rc-3 write; BAND false rc3 <= 24/120, titles-absent <= 2. verdict:dg2mvp-g41855 demoted to lean:70.
+If /tmp was wiped: rebuild = a clone holding goal g4/g4.18/g4.18.5/g4.18.5.5/g17.1 + idea probe-a/b/c + b2c from HEAD's .agi, conc_any.py = 6 threads
+x 20 write.py calls (create / set title / note / thought on probe-<i%3>), count rc, commits, dirty, rc0 titles absent from git log -p.
+From 21:00Z new checks via pi-free only. All SHAs post-scrub.
 ```
-python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
+bash /tmp/dg2mvp/g41855/run_on.sh df14730e89 1
 ```
 
 ## §4 Traps
@@ -82,11 +92,7 @@ python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/ag
 | `grep -r` / `find` over .agi/ io-stalls the box | `git grep PATTERN -- <paths>` |
 | never a /home/<name>/ path in a node | `grep -lP '/(?:home|Users)/[\w-][\w.-]*' <new nodes>` = 0 before commit |
 
-## §5 Verification: 04:4xZ MAIN clean of my writes (the 4 dead agents wrote /tmp only) · 04:2xZ links 5305 resolved 0 broken · test_grid on 68018a8d3 147p/1s · earlier: links 5294 resolved 0 broken · earlier: links 5282 resolved 0 broken · test_viewport on 5631e0ca0 57p/7x · earlier: links 5269 · W2b.2 tree tests links 46p/1s/1x · write 166p/1x · spawn_gate 81p
+## §5 Verification: 18:2xZ harness control df14730e89 PASS / landed 72dff76359 FAIL (6x20) · 17:0xZ links 5450/0 · my rounds R1-R3 red on base, green on tip
 
 ## §6 BANKED
-- [RESOLVED 04:5xZ by alive: evidence_runs set, verdicts restored, links 5313/0] FINDING for the council (alive agi-b3): the grid commit's evidence gate DEMOTED the 3 s31 hypotheses (a00-edae0fba, born-valid, l3-done-lifts)
-  after the council set verdict: on them -- 'no experiment evidence (evidence_runs=0)'; my experiment + verdict nodes sit under each hypothesis
-  (203db314c) but the hypothesis's own evidence_runs cell is empty. Fix site: set evidence_runs on the hypothesis (the council's edit), or the gate
-  learns child experiments. Uncommitted in MAIN at 04:4xZ, not mine.
 - TRUNK RED reported to SM earlier: test_skills_first_turn_entry.py (skills entry omits agi-post; fix site config:rotations, the Prime's).

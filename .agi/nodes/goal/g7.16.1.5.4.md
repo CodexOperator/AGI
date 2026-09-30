@@ -6,14 +6,14 @@ parents:
   - goal:g7.16.1.5
 next_edges: []
 confidence: 0.8
-edited_by: belam
+edited_by: director-general-3
 goal_id: G7.16.1.5.4
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 85b95556b33e7bea
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - g7
@@ -45,3 +45,7 @@ goal:g7.16.1.5.3 (prune the old ones) · goal:g7.16.1.5.1.
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete: landed 88ddd2ca08 by sanctuary-master 17:31Z (tip e22a38df4c, 21 files, 0 D; suite reds all trunk; SM gate Sonnet review ACCEPT); the dropped dry --branch conjunct lives on as goal:g1.31.4.1.1 (horizon)
+<!-- THOUGHT:END -->

@@ -31,6 +31,7 @@ tool exists to catch (H0/H0b: 29k nodes lost).
 from __future__ import annotations
 
 import argparse
+import atexit
 import hashlib
 import json
 import os
@@ -88,7 +89,77 @@ STATE_FILE = "verify-count.json"        # under <groot>/sessions/
 #: Where a pid's cwd/cmdline/ppid are read (a test seam: non-Linux has none).
 PROC = Path("/proc")
 
-SUITE_LOCK = "verify-suite.lock"        # under <groot>/sessions/
+#: STOPGAP fallback of the suite lock's file name, read instead from
+#: `values.core.suite_lock.file` (hypothesis:a-suite-lock-refused-write-
+#: exits-3-from-one-lock-policy-block) until the Prime lands the block.
+#: Under <groot>/sessions/ either way. Deleted with the block's cutover.
+_DEFAULT_SUITE_LOCK_FILE = "verify-suite.lock"
+#: STOPGAP fallback of the HOLD RULE, read instead from
+#: `values.core.suite_lock.hold` until the Prime lands the block: HELD by a
+#: live pid that is not this process (stale-breaking: `acquire_suite_lock`).
+DEFAULT_SUITE_LOCK_HOLD = "live-foreign-pid"
+_SUITE_LOCK_REFUSED: set = set()   # refused cells, warned ONCE per process
+
+
+def _refuse_suite_lock_cell(cell: str, value, why: str) -> None:
+    """ONE warning naming the REFUSED value (a cell is not a path; a rule this
+    build does not implement is not a rule), once per process per cell."""
+    key = f"{cell}={value!r}"
+    if key in _SUITE_LOCK_REFUSED:
+        return
+    _SUITE_LOCK_REFUSED.add(key)
+    print(f"WARN: values.core.suite_lock.{cell} {value!r} {why} -- refusing it", file=sys.stderr)
+
+def suite_lock_policy(groot) -> dict:
+    """`values.core.suite_lock` = {file, write_commit_wait_s, hold, hold_wait_s} -- the ONE
+    resolver over the lock policy: the NAME, the WRITE WAIT and the HOLD RULE,
+    so the rule travels with the name
+    (hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block).
+    Absent cells = the fallbacks above, inside this function only."""
+    root = Path(groot)
+    cell: dict = {}
+    for base in (root, root / locations.GRAPH_DIR_NAME):   # graph dir OR repo root
+        path = locations.config_path(base)
+        if path is None:
+            continue
+        try:
+            cell = (((json.loads(path.read_text(encoding="utf-8"))
+                      .get("values") or {}).get("core") or {}).get("suite_lock") or {})
+        except (OSError, TypeError, ValueError, AttributeError):
+            continue
+        if not isinstance(cell, dict):    # a bad block is no block
+            cell = {}
+        if cell:
+            break
+    file_name = _DEFAULT_SUITE_LOCK_FILE
+    name = cell.get("file")
+    if isinstance(name, str) and name:
+        if ".." not in name and Path(name).name == name:
+            file_name = name          # a bare FILE name; a cell is not a path
+        else:
+            _refuse_suite_lock_cell("file", name, "is not a bare FILE name (no '/', no '..')")
+    hold = cell.get("hold")
+    if isinstance(hold, str) and hold != DEFAULT_SUITE_LOCK_HOLD:
+        _refuse_suite_lock_cell("hold", hold, "is not a rule this build implements")
+    if not isinstance(hold, str) or hold != DEFAULT_SUITE_LOCK_HOLD:
+        hold = DEFAULT_SUITE_LOCK_HOLD
+    raw = cell.get("hold_wait_s")   # STOPGAP 90 s (callers time out at 120 s); finite and >= 0, else the default
+    try:
+        hold_wait = float(raw)
+    except (TypeError, ValueError):
+        hold_wait = -1.0
+    if not 0 <= hold_wait < float("inf"):
+        raw is None or _refuse_suite_lock_cell("hold_wait_s", raw, "is not a finite number >= 0")
+        hold_wait = 90.0
+    return {"file": file_name, "write_commit_wait_s": cell.get("write_commit_wait_s"),
+            "hold": hold, "hold_wait_s": hold_wait}
+
+
+def suite_lock_name(groot) -> str:
+    """`values.core.suite_lock.file` -- the ONE name write.py, heal.py,
+    rotation_alert.py and this module all read."""
+    return suite_lock_policy(groot)["file"]
+
 #: The env marker a caller that ALREADY holds the suite lock exports into the
 #: suite it spawns, naming its own live pid. `_suite_lock_guard` reads it so
 #: the spawned runner PROCEEDS against a lock its own caller holds, instead of
@@ -851,20 +922,64 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
+def _lock_held_by(groot: Path, holder: int) -> bool:
+    """The HOLD RULE (`suite_lock_policy(groot)["hold"]`): only `live-foreign-pid`
+    is implemented -- held iff the holder is alive and not this process."""
+    if suite_lock_policy(groot)["hold"] == DEFAULT_SUITE_LOCK_HOLD:
+        return holder != os.getpid() and _pid_alive(holder)
+    return False
+
+
 def suite_lock_holder(groot: Path) -> int | None:
     """READ-ONLY: the suite lock's LIVE FOREIGN holder pid, else None. Never
     creates, never unlinks, never plants a probe pid (closes the SM.88
     acquire-then-unlink window). Dead/absent/corrupt read as None: a probe
     refuses only on a LIVE foreign owner; stale-breaking stays in
     acquire_suite_lock, the single WRITER."""
-    path = Path(groot) / "sessions" / SUITE_LOCK
+    path = Path(groot) / "sessions" / suite_lock_name(groot)
     try:
         holder = int(path.read_text(encoding="utf-8").strip())
     except (OSError, ValueError):
         return None
-    if holder == os.getpid() or not _pid_alive(holder):
+    if not _lock_held_by(groot, holder):
         return None
     return holder
+
+
+_INFLIGHT: list = []   # g1315131: this process's write.py in-flight markers, sessions/write-inflight/<sha1(path)[:16]>.<pid>.<rand>
+
+
+def inflight_clear(only=None) -> None:
+    """Remove `only` (one call's markers) or, by default, every marker this process holds."""
+    for f in list(_INFLIGHT if only is None else only):
+        f.unlink(missing_ok=True)
+        _INFLIGHT.remove(f)
+
+
+atexit.register(inflight_clear)
+
+
+def inflight_mark(groot, paths) -> list:
+    """Record `paths` BEFORE their bytes move; return THIS call's markers."""
+    d = Path(groot) / "sessions" / "write-inflight"
+    d.mkdir(parents=True, exist_ok=True)
+    mine = [d / f"{k}.{os.getpid()}.{os.urandom(3).hex()}"
+            for k in {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}]
+    for f in mine:
+        f.write_text("")
+    _INFLIGHT.extend(mine)
+    return mine
+
+
+def inflight_peers(groot, paths) -> list:
+    """The LIVE peer pids with a write in flight on `paths`; a pid that is not an int > 0, or is dead, is stale: removed."""
+    ks, live = {hashlib.sha1(p.encode()).hexdigest()[:16] for p in paths}, []
+    for f in (Path(groot) / "sessions" / "write-inflight").glob("*.*"):
+        k, pid = (f.name.split(".") + [""])[:2]
+        pid = int(pid) if pid.isdecimal() else 0
+        if k in ks and pid != os.getpid():
+            live.append(pid) if 0 < pid < 2**31 and _pid_alive(pid) else f.unlink(missing_ok=True)
+    return live
 
 
 def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
@@ -879,7 +994,7 @@ def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
     Keeping `--suite` opt-in is what rules today; the lock is the mechanism
     that rules when L4.10 folds the suite into `full`.
     """
-    path = Path(groot) / "sessions" / SUITE_LOCK
+    path = Path(groot) / "sessions" / suite_lock_name(groot)
     path.parent.mkdir(parents=True, exist_ok=True)
     for _ in range(2):
         if path.exists():
@@ -888,7 +1003,7 @@ def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
             except (OSError, ValueError):
                 path.unlink(missing_ok=True)
                 continue
-            if _pid_alive(holder) and holder != os.getpid():
+            if _lock_held_by(groot, holder):
                 return None, holder  # another live runner owns the window
             path.unlink(missing_ok=True)  # stale: dead pid
         try:
@@ -934,7 +1049,7 @@ def _suite_lock_guard(groot: Path) -> str | None:
         except ValueError:
             _mpid = None
         if _mpid is not None and _pid_alive(_mpid):
-            path = Path(groot) / "sessions" / SUITE_LOCK
+            path = Path(groot) / "sessions" / suite_lock_name(groot)
             try:
                 _holder = int(path.read_text(encoding="utf-8").strip())
             except (OSError, ValueError):
@@ -946,7 +1061,7 @@ def _suite_lock_guard(groot: Path) -> str | None:
         try:
             since = time.strftime(
                 "%H:%M:%SZ",
-                time.gmtime((Path(groot) / "sessions" / SUITE_LOCK)
+                time.gmtime((Path(groot) / "sessions" / suite_lock_name(groot))
                             .stat().st_mtime))
         except OSError:
             since = "?"
@@ -954,13 +1069,13 @@ def _suite_lock_guard(groot: Path) -> str | None:
                 " — refusing, not spawning")
     # Dead pid broken here (pinned stale test) so conftest starts clean.
     try:
-        pid = int((Path(groot) / "sessions" / SUITE_LOCK)
+        pid = int((Path(groot) / "sessions" / suite_lock_name(groot))
                   .read_text(encoding="utf-8").strip())
     except (OSError, ValueError):
         pid = None
     if pid is not None and not _pid_alive(pid):
         try:
-            (Path(groot) / "sessions" / SUITE_LOCK).unlink(missing_ok=True)
+            (Path(groot) / "sessions" / suite_lock_name(groot)).unlink(missing_ok=True)
         except OSError:
             pass
     return None
@@ -1547,7 +1662,7 @@ def render_window(groot: Path, grant: str | None = None) -> str:
     """
     lines: list[str] = []
     # lock
-    lock_path = Path(groot) / "sessions" / SUITE_LOCK
+    lock_path = Path(groot) / "sessions" / suite_lock_name(groot)
     holder: int | None = None
     try:
         holder = int(lock_path.read_text(encoding="utf-8").strip())

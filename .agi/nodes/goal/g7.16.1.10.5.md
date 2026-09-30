@@ -6,14 +6,14 @@ parents:
   - goal:g7.16.1.10
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-3
 goal_id: G7.16.1.10.5
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 84b88d9c8264ee79
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - council-loop
   - merge-up-review

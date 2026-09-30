@@ -180,7 +180,7 @@ rather than in the same window. The resolution must run BEFORE any side effect
 - F19+F8+F18+F20 -> skill agi-rotate (§3): floor wake 0 / out 1, your wake acts NONE - never ps, tmux, status or ack by hand.
 - F23 -> skill agi-rotate (§2): EMPTY/AMBIGUOUS where-it-stops refused, STALE is not.
 - F26+F14 -> skill agi-rotate (§2): never merge origin by hand, never rebase.
-- F25+F3 -> skill agi-send (§1); F10+F11 -> skill agi-send (§3).
+- F25+F3 -> skill agi-send (§1): a post name is not a session token; `send.py whois <token>` resolves a session_ref or session_name. F10+F11 -> skill agi-send (§3).
 - F24+F4 -> skill agi-node-write (§1); F17+F21 -> skill agi-node-write (§2).
 - F9 -> skill agi-dispatch (§2).
 - F7 -> skill agi-merge-pass (§4) + agi-verify (§2).

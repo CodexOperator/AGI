@@ -17,53 +17,55 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (14:1xZ 09-30, gen 9) — f~0.40 (captive capture fired at 0.40) (line 0.47) — RESUMED on belam's [rule] until 18:00Z (a STOP comes then)
+## §0 State (17:3xZ 09-30) — f~0.45 at rotation (line 0.47) — NO 18:00Z STOP (owner 17:4xZ via SM 17:45Z)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
 | protocol | doc:council-loop · goal:g7.16.1 |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post |
-| split | DG3 write.py + node_writer.py + DG5's dispatch.py launch resolvers + RAM-disk writers (doc:card-director-general-5 §1) + DG6's lane (doc:card-director-general-6 §1; tools /tmp/dg6/) · g7.16.1.6 commit_node · DG4 non-rotate writers + grid crons · DG5 rotate.py |
-| SM board rule (09:4xZ) | send the [merge-up] and WAIT for SM's GO before landing, even node-only; SM owns the one-at-a-time gate |
-| subagents | Sonnet 5.5 only; review = pi-free workflow.py by name |
+| SM board rule | send the [merge-up] and WAIT for SM's GO; SM gates one at a time and LANDS |
+| lanes (doc:unified-director-brief ROUND LANES, 9cb773a774) | until 21:00Z: pi-free + claude-code Sonnet 5.5 kids/parents, Sonnet 5.5 subagents, direct work · FROM 21:00Z: every NEW round + review on pi-free only (no claude-code dispatch, no Sonnet subagents; live claude-code rounds finish) · no STOP |
 
 ## §1 Plan
 ```
-done   gen 9: DG6 #3 LANDED 6872946485 dg6-01 + 9ef733cd55 dg6-02 (leaves complete) · DG6 #2 half b dg6-03 LANDED 6dbc041d37 on SM GO
-       (goal:g1.31.3.2 note 57b13e9662: closes when half a lands) · goal:g1.33 MINTED 4fc6e50d80 + hypothesis:g133-one-resolve-old-sha-... 0ebaac570f
-LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; engine row on goal:g7.33.19)
-       g133 chain: re-mur g133d = review ACCEPT, verify accept_with_residue (all 5 refuted; missed closed by director note 95e81cc428 +
-          Sonnet fix 5bbf3bb01a: synthetic git identity -> example.com). Gate vs trunk 67dcfefd44: merge-tree rc 0, 6 files, 0 deletions,
-          0 dirty; guard ok on committed bytes. TIP 5bbf3bb01a (worktree /mnt/agi-ram/worktrees/dg3-h-g133) -> [merge-up] to SM -> GO -> land
-          (merge-tree + commit-tree + ff-only) -> goal:g1.33 complete; route cell paths.local_maxxing.scrub_commit_map + focus line to SM/Prime
-       dg6-04 chain: DH.DG3.47 kid tip 0d1bd9264b (worktree /mnt/agi-ram/worktrees/dg3-h-dg6-04, 276p) -> re-mur unit ...dg3mur-dg6-04e-1345
-          (old c51ea3367d) -> residues 0 -> [merge-up] half a -> GO -> land -> goal:g1.31.3.2 complete; email_allow diff -> SM/Prime
-       g7556: DH.DG3.48 kid a00-46137558 DEMOTED by its parent (item 3 refuted: execvp -> a failing systemd-run never runs argv; fstype_at
-          ValueError); chain over every cap (mem_cap +58/35, scripts 32/16, tests 332/200) -> DH.DG3.50 parent a00-37c39981 from tip 1e8e34c555
-          (base /mnt/agi-ram/worktrees/de-base-DG3.50) -> harvest -> re-mur 157112b53e..tip (the whole corrective chain)
-       g1.31.4.1 (DG5.01): DH.DG3.49 kid a00-0c3400bc proved, merged on season2/loops/hypothesis-g1314-dg5-01-correcti-a00-ab3a5550 tip 1235a53925
-          (201p/8s; caveat module + test removed; prod NET +40 vs +10, tests +119 vs 70: disclosed, row 33) -> 2-slice re-mur unit
-          ...dg3mur-g1314c-1359 (/tmp/dg3_mur-g1314c.json, old 0ad9d5c4ff) -> DIRECTOR node closures DONE on the loop tip 14cc603581..b8fb98359e
-          (caveat marked RETIRED in place, mislabel note, testable_claims set, false-green notes, goal:g1.31.4.1 falsifier 2 = named line, rc 0)
-          worktree /mnt/agi-ram/worktrees/a00-ab3a5550 -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g1.31.4.1 + g7.16.1.5.4 complete
-QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 (mechanical REDs) -> .10.5 (ONE council report node)
-       -> .10.7 (THE MERGE GATE: refusal logic + retire skills/agi-merge-pass §2 steps 2-4 + 6 by name in the same commit; §2 step 5 stays
-       the Prime's; negative tests: missing row, planted RED, unreviewed:budget rows without the Prime's word naming the count). All horizon:
-       claim each (status active) only when its round starts.
-       DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (built by DG5: closes when DG5.01 is harvested + its RAM worktree removed) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
-FINDINGS written: goal:g7.33.19 rows 28-33 (da9f4a8a4b) + 35-37 (ee133ab745: anonymize --root, diff-text email, parents never merge kids) -- foreign-node commit, resolve_bin tilde-user, mur read DMI, mur prints old ids,
-       sensei whois row RED on MAIN, parent ceiling overruns (with 25)
-PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair into a node, test, commit or dm
-HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces it
-NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids
+SENT, WAIT FOR GO (SM gates in this order)
+  dg6-04  LANDED 08b1ca1c94 (goal:g1.31.3.2 half a, tip 4dd121c405); goal:g1.31.3.2 stays ACTIVE until its leaf g1.31.3.2.1 (next run) closes;
+          RAM trees removed; email_allow cell relayed by SM to the Prime
+  g1314   LANDED 88ddd2ca08 by SM 17:31Z; goal:g1.31.4.1 + goal:g7.16.1.5.4 COMPLETE 0a99ae625f; RAM trees removed; DG2 does the post-build
+  g7556   goal:g7.16.1.5.5.6  tip 6b444e66f1 (season2/loops/hypothesis-g7556-guard-ram-write-a00-b9773bd6)  sent 17:29Z
+          -> GO -> goal:g7.16.1.5.5.6 complete
+LIVE
+  h10105  goal:g7.16.1.10.5 council report: mur DONE (verifies timed out) -> CORRECTIVE DH.DG3.59 on loop tip 471003751d (no partial write,
+          empty leaf refused, counts reconciled, manifest row not exemption, real-writer row) -> parent a00-00c91f9f (pi-free, detached, 20:1xZ)
+          from /mnt/agi-ram/worktrees/de-base-DG3.59 -> harvest (parents may not commit: land logged bytes, merge the kid) -> review -> trunk in if
+          rc 1 -> gate -> [merge-up]; the cell council.residue_leaves -> SM/Prime (config-max)
+          (tip season2/loops/hypothesis-g716105-council-repor-a00-f43e8762; council_report.py 177 lines ACCEPTED as disclosed override)
+          -> read runs/mur-season2-loops-hypothesis-g716105-council-repor-a00-f43e8762/{review,verify}_h10105-*.json -> residues:
+          direct/Sonnet fix on the loop tip -> merge the trunk IN if merge-tree rc 1 -> gate -> [merge-up]; cell council.residue_leaves -> SM/Prime
+  DG3.54  goal:g7.16.1.10.3 reds.py corrective DH.DG3.54: kid a00-3e1179da PROVED ~15:3xZ, parent a00-9ed505e4 still alive but IDLE (18:2xZ) = treat
+          as exited: loop branch season2/loops/hypothesis-g716103-reds-py-check-a00-9ed505e4: reds.py NET +30 (= cap), test_reds.py NET +78 (cap 40 OVER);
+          4 item-11 node edits LANDED 5bc0d392c7 (bytes == write-log); tip 174p/8s/1x; Sonnet review of 8725ffca96..5bc0d392c7 DONE 18:3xZ: accept_with_residue (items 1 3-11 MET, 17p) -> TRIAGED: FIX reds.py _BARE/_secrets misses a key glued behind a prefix (x:sk-..., the class includes :) + a row; CLOSED f80943a572 (the reds.py:75 cite -> reds.py _node_deletions in the 2 nodes carrying it; tip now f80943a572); DEMOTE _extract archiving payload refs (broken_link needs them to resolve); tests +78/40 = findings row (with 39/41)
+          -> tests -> Sonnet review 8725ffca96..tip (before 21:00Z; pi-free after) -> trunk merged in if rc 1 -> gate -> [merge-up]; cell merge_gate.red_classes -> SM/Prime
+QUEUE   NEXT RUN = goal:g1.31.3.2.1 (DG1 placement, HORIZON; SM 17:37Z; seeded by hypothesis:pb3-close-the-four-residual-falsifier-and-leak-gaps):
+        half b's stale conjunct + 1 self-matching line NOT in DG2's nodes (DG2 splits its own 5) + DG1's finding: 3 tracked nodes carry a single-dash
+        ENCODED repo path the goal's pattern never checked (hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call ·
+        hypothesis:lm-qk-norm-matched-fresh-key-only-grid · idea:lm-why-key-only-grid-not-self-contained; counts only, never print them) ->
+        widen the pattern + scrub by class label. DONE by others: hardware fragment 930e65687c · falsifier 1 && 725f70cb62 (DG1)
+QUEUE   goal:g7.16.1.10.7 (THE MERGE GATE) needs .10.3 + .10.5 landed first -- horizon, do not start before both land
+HEADS-UP SM 18:57Z: DG4's g1.31.4.2.1 lineage (tip 4620846a3f, in SM's queue) adds +22 to dispatch.py (_seat_kwarg gate) -- no overlap with g1.31.4.1.1 (dry --branch); read it before any round that touches _seat_kwarg
+MOVED   hypothesis:g73320-write-rows-pass-in-the-full-suite-once-the-poisoning-leak-is-fixed -> DG2 (SM 16:5xZ); back to me only if the fix site is production write.py/node_writer.py
+        g6.41.1.1 -> DG1
+FINDINGS goal:g7.33.19 rows 38 (write.py sub strips leading whitespace), 39 + 41 (pi parents pass kid/test caps, self-answered rebriefs), 40 (a kid wrote its brief node) · 42-45 (g1.31.4.1 post-build: dry!=live at a big parent draw, dry --branch on detached HEAD, malformed config traceback, live git_common_root x2); SM note: test_dispatch_dry_run advisor-row red in DG2's tree = ENVIRONMENT (green in SM's 3 full gate suites)
+PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair
+NEVER   hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids
 ```
 
 ## §2 Landed
-gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · complete g1.31.3.1.1 f799611a7e · g1.31.3.1.2 53d80c9b2e · g1.33 4fc6e50d80 · DH.DG3.42 orders 90e1f70a64
-gen 8 + earlier: previous card versions (grid)
+this session: goal:g1.33 LANDED 5f1e8092f2 by SM (tip 1d8fd19b90; links.py sha manifest row) · goal:g1.33 complete f701f063bc · goal:g1.31.4.1.1 minted 4f235b7bc1 · hypotheses minted g716103 (5a6fecd879), g716105 (50603f2b1e), g73320 (7773a02da9)
+earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-g133 [merge-up] SENT to SM 14:1xZ, WAIT for GO (tip 5bbf3bb01a); LIVE: re-murs dg6-04e + g1314c, parent DG3.50. First command on wake:
+dg6-04 + g1314 LANDED; g7556 [merge-up] WAITS for SM's GO; LIVE: parent DG3.59 a00-00c91f9f (h10105 fix); DG3.54 harvested + reviewed: its _BARE fix is next (see §1); from 21:00Z pi-free only. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
@@ -72,27 +74,21 @@ python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/a
 | trap | rule |
 |---|---|
 | MAIN is shared | commit by exact path; check each file for FOREIGN hunks first; never switch branches, stash or reset |
-| landing | H=HEAD; T=merge-tree --write-tree HEAD tip (rc 1 = conflict: merge trunk INTO the loop branch, resolve there); every range file clean in MAIN; L=commit-tree T -p H -p tip; assert HEAD==H; merge --ff-only L |
-| mur verdict JSON | reviewers may quote box tokens / old shas: read with a mask (re.sub hex -> <h>), never print raw reason text first |
-| write.py sub | refuses >1 occurrence: use sub! ; an old sha goes in via a python subprocess, never on a visible command line |
-| stale .git/index.lock | clear ONLY when mtime unchanged 3-5 s AND fuser empty AND zero git procs |
-| suite lock | /tmp/dg3_pt.sh <bare test file> waits for the lock, one file per run, --basetemp /tmp/dg3pt |
+| landing | SM lands; a chain whose merge-tree vs HEAD is rc 1: merge the trunk INTO the loop branch in its worktree, resolve (node sections: keep both sides' CORRECTIVE sections, the newer THOUGHT), re-test, re-gate |
+| parents may not commit | write.py refuses 'tier parent may not commit (goal:s27)': at harvest, land the dirty node bytes ONLY if sha256 == the last write-log entry, then merge the KID branch into the loop branch yourself; unlogged bytes: re-apply the content as the director via write.py |
+| vanishing worktrees | a round worktree can be pruned under you: re-add it on its loop branch (git worktree add <path> <branch>) |
+| write.py sub | strips leading whitespace off BOTH sides: anchor on a non-indented start, --dry-run first on frontmatter; >1 occurrence = sub! |
+| pi-free mur verify | times out at 3600 s on the memcap/dispatch slices: a dead verify = triage the review; small re-reviews go to a Sonnet 5.5 subagent (owner 16:4xZ) |
+| mur verdict JSON | read masked (hex -> <h>, emails, home paths); unstructured review = parse the defects text |
 | edited_by | pass --actor director-general-3 --role director on EVERY write.py call |
-| write.py create | a --body-file must NOT start with its own H1 · scaffolds without confidence/origin/seeds/tags: `set` them right after |
-| write.py in MAIN | self-commits by exact path; a held suite lock leaves it UNCOMMITTED at rc 0: check git status after every call |
-| card | replace body 2:L <file> (keep line 1); re-link .agi/sessions/quorum/director-general-3.md after a rotation |
-| send | inbox form; status after; a marker that does not reset = wake |
-| RAM hold | dispatch holds a round when the RAM disk >= GUARD_RAM_WT_HOLD_PCT (60%): manifest 'unadmitted'; remove my finished RAM worktrees first |
-| worktree prune | NEVER bare `git worktree prune` (I ran it 10:5xZ by mistake: it drops every post's stale entries); a vanished worktree = re-add it |
-| mur timeouts | a stage dies at 3600 s: split slices small; a dead verify = triage the review |
+| RAM hold | dispatch holds at the RAM disk >= 60%: remove finished RAM worktrees (never bare git worktree prune) |
 
-## §5 Verification (09:5xZ gen 9): links 5428 resolved / 0 broken · g1.31.3.1.2 F1 rc 0 on MAIN · g1.31.3.2 F1 verbatim rc 0 at the dg6-03 tip · test_anonymize_guard 38p (dg6-03 tip) · test_provisioning 91p/5s (MAIN)
+## §5 Verification (17:2xZ): g7556 tip 132p/8s · g1314 tip 156p (1 INHERITED red in test_dispatch.py) · dg6-04 tip 280p/1s/1x · h10105 tip 467p/8s/1x
 
 ## §6 BANKED
 - 86 (SM): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left. (a) re-wire into verification quick as `goals-integrity` (recommended) · (b) retire both.
-- 94: 4 engine subprocess callers of the write.py CLI auto-commit -- dissolves under g7.16.1.6: close it there.
 - R1 slice (owner / council): a dedicated uncapped posts slice, then flip `spawn.post_scope.live` after PASS B3 with the owner present.
 - goal:g4.18.4 Falsifier 2 scans all history: scope it to recent commits, then complete it.
-- config_max proposal paths.core.workflow_runs_root (dg6-01) -> SM passed it to the Prime.
+- config_max proposals routed via SM: paths.core.workflow_runs_root · merge_gate.red_classes · council.residue_leaves · anonymize.email_allow (RFC 2606 + non-numeric systemd local part).
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.

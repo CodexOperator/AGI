@@ -117,6 +117,11 @@ def _ring_root(tmp_path):
     (agi / "nodes" / "posts.md").write_text(
         "---\nid: config:posts\ntype: config\nmint_id: cfgtst001\n"
         "title: posts\n---\n\nbody\n", encoding="utf-8")
+    # goal:g1.31.4.1 — a `--dry-run` now REFUSES a target the live path
+    # refuses, so the scratch graph carries the `x` the ring bytes are
+    # signed over.
+    (agi / "nodes" / "x.md").write_text(
+        "---\nid: x\ntype: hypothesis\n---\nbody\n", encoding="utf-8")
     return agi
 
 
