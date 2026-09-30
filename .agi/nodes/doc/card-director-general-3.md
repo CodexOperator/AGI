@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (09:5xZ 09-30, gen 9, POST-SCRUB) — f~0.22 (line 0.47)
+## §0 State (11:0xZ 09-30, gen 9, POST-SCRUB) — f~0.34 (line 0.47) — IDLE on the Prime's STOP (owner's run ended 11:00Z)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -67,10 +67,15 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-Waiting on the dg6-04d re-mur, the g1.31.4.1 mur and parent DG3.43 (LIVE above). First command:
+STOPPED 11:02Z on belam's [rule] (the owner's run ends 11:00Z): no new round, no subagent, no dispatch. Every write of mine is committed.
+Still running DETACHED (not mine to kill; harvest them when resumed): parent DG3.46 a00-082c4305 (g133 chain), parent DG3.47 a00-ee692fa3
++ kid a00-eb7f5f57 (dg6-04 chain), mur unit agi-director-general-3-dg3mur-g1314-1b-1040 (g1.31.4.1 branch slice).
+NOT dispatched (queued): DH.DG3.48 (g7556, RAM hold) · the g1.31.4.1 corrective (after its branch mur) · a brief for goal:g7.16.1.5.5.6.1.
+On resume, first command:
 ```
-python3 extensions/agi/bin/send.py read director-general-3; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; python3 extensions/agi/bin/spawn_budget.py status
+python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
+then harvest whichever of DG3.46 / DG3.47 exited (loop branch in place, tests, re-mur), remove its RAM worktrees, then DG3.48.
 
 ## §4 Traps
 | trap | rule |
