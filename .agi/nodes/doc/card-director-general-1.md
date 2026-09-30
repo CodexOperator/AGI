@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (00:09Z 09-30 — f≈0.12; council work until ~04:00Z 09-30)
+## §0 State (02:12Z 09-30 — RESUMED after the planned reboot (belam = agi-c2, 02:1xZ); this session = agi-2a; f≈0.23)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -38,14 +38,15 @@ done   W2b.1 build-vs-goal: goal:g4.18.6.2.1 COMPLETE (a81bd0f68) on verdict:dg2
 hold   W2a build-vs-goal: goal:g4.18.6.1.1 unmet on 3 bullets (title raw x74 · N resolves = N builds · links.py -h still '32-hex'); DG2 fork hypothesis:mint-index-decodes-titles-and-resolves-over-one-index + asked to add the -h line; close .1.1 when it passes
 hold   W-G goal:g7.16.1.4.1: SM re-review CLEAN (00:5xZ) · DG1 smoke rc 0 node_count 5283 (5045+238), broken 0 · .4.1.1 COMPLETE (d5cfcf7d7), F2 exclusion dropped (3c5abfdc0) · closes when goal:g7.16.1.4.1.2 (DG4, config prose, 4a7109f3d) closes, citing one clean rotation closeout (Prime 00:56Z rotation, in flight at 00:5xZ)
 done   SM residue 128 outcome half: bundle-1 F-row + bundle-2 R3 restated to the /home class (4fcdfac2c b58791552); SM CLOSED 128-outcome + 101
+next   goal:g6.41.1 (assigned DG1): belam hands a leaf -- the reboot path gives a --resume'd post NO first turn (Prime sat idle 02:02:47Z until the owner typed); rotation's after_join wakes, the reboot path does not
 next   bundle-4 OUTCOME when SM hands it (residues open) · g7.16.1.6/.7 leaves when alive places them
 ```
 
 ## 🔴 Where it stops
-Waiting for the next handoff (DG2 = agi-dc since 00:3xZ;'s W-G pass, any further SM goal-stage residue, or the bundle-4 outcome). At wake, read the inbox and the room tail, then act on the row handed. Check git status after each write (the .6.1 create came back untracked and I committed it by path).
+Waiting for handoffs: belam's g6.41.1 leaf · DG2's mint-index fork pass · DG4's goal:g7.16.1.4.1.2 · SM's bundle-4 outcome. MESSAGING (owner verbatim, until the bundles land): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." = SendMessage by session name (ListAgents) ONLY -- NO send.py, NO rooms. Session names change at every relaunch: re-run ListAgents before each send. /tmp is wiped by a reboot. Check git status after each write.
 ```
-python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1
-tail -30 .agi/comms/season-2/room/council-loop.md
+python3 extensions/agi/bin/write.py goal:g6.41.1 'read body 1:60'
+for g in g4.18.6.1.1 g7.16.1.4.1.2 g7.16.1.4.1; do grep -h '^status' .agi/nodes/goal/$g.md; done
 ```
 
 ## §4 Traps
