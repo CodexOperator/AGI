@@ -19,8 +19,12 @@ MIN_TOKEN = 4
 #: (SM residue 128: a home outside /home and /Users passed the gate): the two
 #: conventional roots + the config cell `anonymize.home_roots` (path prefixes a
 #: user-name segment follows) + this box's own login homes, from pwd and $HOME.
-def _anonymize_cell(root=None):
-    """THE ONE `anonymize` cell read: home_roots, hardware and user_roots."""
+def _anonymize_cell(root=None, live=False):
+    """THE ONE `anonymize` cell read: home_roots, hardware and user_roots. No
+    `root` reads NO cell -- a caller that never named a project never gets this
+    repo's -- unless `live` (the import-time HOME_PATH_RE) asks for it."""
+    if not root and not live:
+        return {}
     try:
         base = (locations.find_project_root(Path(root).resolve()) if root
                 else locations.find_project_root(Path(__file__).resolve().parent))
@@ -45,7 +49,8 @@ def _root_prefix_re(roots):
 def _user_path_re(root=None):
     return _root_prefix_re(_prefix_roots(_anonymize_cell(root), "user_roots"))
 def _home_path_re(root=None):
-    roots = ["/home/", "/Users/"] + _prefix_roots(_anonymize_cell(root), "home_roots")
+    roots = ["/home/", "/Users/"] + _prefix_roots(
+        _anonymize_cell(root, live=True), "home_roots")
     dirs = {p.pw_dir.rstrip("/") for p in pwd.getpwall()
             if 1000 <= p.pw_uid < 65534}
     dirs.add((os.environ.get("HOME") or "").rstrip("/"))
@@ -79,13 +84,20 @@ def has_email(text, allow=None):
     allow = _email_allow() if allow is None else allow
     return any(not any(a.fullmatch(m.group(0)) for a in allow)
                for m in EMAIL_RE.finditer(text))
-def home_relative(text, home=None):
+def home_relative(text, home=None, root=None):
     """`text` with this box's HOME written `~` and any other box's home
-    directory written `<home>/`: no home path survives, any box."""
+    directory written `<home>/`: no home path survives, any box. Given a
+    `root`, the user segment after an `anonymize.user_roots` prefix is written
+    `<user>` too -- the ONLY substitutions this makes; nothing rewrites a
+    `hardware` fragment."""
     home = (os.path.expanduser("~") if home is None else home).rstrip("/")
     if len(home) > 1:
         text = re.sub(re.escape(home) + r"(?![\w.-])", "~", text)
-    return HOME_PATH_RE.sub(r"<home>\1", text)
+    text = HOME_PATH_RE.sub(r"<home>\1", text)
+    for pre in _prefix_roots(_anonymize_cell(root), "user_roots"):
+        text = re.sub(re.escape(pre) + r"[\w-][\w.-]*",
+                      lambda m, pre=pre: pre + "<user>", text)
+    return text
 def _run(argv):
     try:
         p = subprocess.run(argv, capture_output=True, text=True, timeout=5)
@@ -154,15 +166,29 @@ def box_tokens(root):
             toks.append(("board", v))
     return toks + _hw_tokens(_hw_source_names(rule), rule) + \
         _secret_tokens(root) + home
+#: the raw-tool shims (SM.122): hardware facts come from `shims/<tool>`, never
+#: the raw tool off PATH; an absent shim is an absent source.
+SHIMS = Path(__file__).resolve().parents[1] / "shims"
+_HW_CACHE = {}  # per process: the cell's sources -> the names they yielded
 def _hw_source_names(rule):
-    """Names read LIVE from the cell's sources: an argv source runs the tool
-    (one name per line), a `@path` source reads that file's `field:` lines."""
+    """Names read LIVE, once per process, from the cell's sources: an argv
+    source runs that tool's SHIM (one name per line), a `@path` source reads
+    that file's `field:` lines."""
+    key = json.dumps(rule.get("sources") or [], sort_keys=True, default=str)
+    if key not in _HW_CACHE:
+        _HW_CACHE[key] = _read_hw_sources(rule)
+    return list(_HW_CACHE[key])
+def _read_hw_sources(rule):
     names = []
     for src in rule.get("sources") or []:
         if not (isinstance(src, list) and src and isinstance(src[0], str)):
             continue
         if not src[0].startswith("@"):
-            names += [ln.strip() for ln in _run(list(src)).splitlines() if ln.strip()]
+            shim = SHIMS / Path(src[0]).name
+            if shim.is_file():
+                names += [ln.strip() for ln in
+                          _run([str(shim), *map(str, src[1:])]).splitlines()
+                          if ln.strip()]
             continue
         field = src[1] if len(src) > 1 and isinstance(src[1], str) else ""
         try:
@@ -245,6 +271,15 @@ def added_lines(text):
             if post != "/dev/null":
                 out.append(post)
     return "\n".join(out)
+#: what a refused writer is told, per class -- only what the code substitutes:
+#: home_relative() rewrites `home` and (given the root) `user`; nothing rewrites
+#: `hardware` or `email`, so those say so.
+ADVICE = {
+    "home": "write <home>/ or ~/ (anonymize.home_relative does it)",
+    "user": "write the user segment as <user> (anonymize.home_relative(text, root=ROOT) does it)",
+    "hardware": "name the part by class, never its model (nothing rewrites it: edit by hand)",
+    "email": "write <email> (nothing rewrites it: edit by hand)",
+}
 def cmd_check(root, text, diff_file):
     if diff_file:
         text = added_lines(Path(diff_file).read_text(encoding="utf-8"))
@@ -258,8 +293,8 @@ def cmd_check(root, text, diff_file):
     if hits:
         print("REFUSED: text carries " + ", ".join(hits) +
               " (a home path from ANY box, an email address, or a token read from this box)"
-              " — write <home>/ or ~/, or use the box alias (SM.122)",
-              file=sys.stderr)
+              " — " + "; ".join(ADVICE[c] for c in hits if c in ADVICE) +
+              "; or use the box alias (SM.122)", file=sys.stderr)
         return 1
     print(f"anonymize: ok — no box-derived physical token in {len(text or '')} bytes")
     return 0
