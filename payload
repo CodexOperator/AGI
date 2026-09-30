@@ -683,6 +683,43 @@ def resolve_payload_path(root: Path, ref: str, location: str | None = None,
 DEFAULT_STREAMER_STUB = "~/work/streamer-stub"
 
 
+#: goal:g7.16.1.5.4 -- config:guard's `guard.env` block, keyed by box the way
+#: extensions/agi/guard/*.sh read it: `GUARD_<NAME>_<box>`, box from
+#: $GUARD_BOX, else this file, else the short hostname; non-alnum -> `_`.
+GUARD_BOX_FILE = Path("/etc/sanctuary-guard/box")
+_GUARD_ASSIGN = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
+
+
+def guard_box_key() -> str:
+    box = os.environ.get("GUARD_BOX", "")
+    if not box:
+        try:
+            box = GUARD_BOX_FILE.read_text(encoding="utf-8").strip()
+        except OSError:
+            import socket  # noqa: PLC0415
+            box = socket.gethostname().split(".")[0]
+    return re.sub(r"[^A-Za-z0-9]", "_", box)
+
+
+def guard_cell(root: Path, name: str, default: str = "") -> str:
+    """`GUARD_<name>_<box>` from MAIN's config:guard (`.geometry/guard.md`,
+    its ```sh guard.env``` block), else `default`. A cell is box-wide, so a
+    worktree root reads MAIN's node. Plain `VAR=value` lines only (quotes
+    stripped); the node absent or unreadable -> `default`."""
+    node = git_common_root(Path(root)) / GRAPH_DIR_NAME / "nodes" / ".geometry" / "guard.md"
+    want = f"GUARD_{name}_{guard_box_key()}"
+    try:
+        text = node.read_text(encoding="utf-8")
+    except OSError:
+        return default
+    m = re.search(r"^```sh guard\.env\n(.*?)^```$", text, re.M | re.S)
+    for line in (m.group(1) if m else "").splitlines():
+        a = _GUARD_ASSIGN.match(line.strip())
+        if a and a.group(1) == want:
+            return a.group(2).strip().strip("'\"")
+    return default
+
+
 def streamer_stub(root: Path, config: dict | None = None) -> Path:
     """The streamer stub's directory, as an absolute path. One definition.
 
