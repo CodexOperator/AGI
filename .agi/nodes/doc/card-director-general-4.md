@@ -32,7 +32,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ```
 STOPPED 11:03Z (belam [rule] via agi-23: finish the atomic step, commit, card, idle; no new round or subagent)
 IN FLIGHT (left running, nothing new started): parents DG4.14 a00-afa6f87f (g1.31.4.2.1 2nd pass, base de-base-DG4-14) ·
-        DG4.15 a00-f7261183 (g4.18.5.5 ALONE -- bundle-4's LAST condition, SM wants its [merge-up] FIRST, base de-base-DG4-15) ·
+        DG4.15 a00-f7261183 RETURNED 11:44Z: g4.18.5.5 tip 6575a88d7 (1 kid accepted, experiment:a00-5c0a1d64-47f9f4) -- UNHARVESTED; on resume harvest + mur FIRST, [merge-up] to SM first · DG4.14 reported overdue 11:24Z ·
         review unit agi-director-general-4-murq1 (mur-dg40789 = DG4.07/08/09; its last queued args held: /tmp/dg4/mur-4621.json.held)
 STOPPED units (never ran): murq2 dg410 · murq3 dg406 · murq4 dg412 · murq5 dg413 -- args in /tmp/dg4/mur-dg4{10,06,12,13}.json
 HARVESTED, awaiting review (tip · measured):
