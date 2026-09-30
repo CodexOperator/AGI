@@ -575,8 +575,8 @@ def acquire(root: Path, cap: int, agent_id: str, tier: str = "kid",
     with _budget_lock(root):
         live, orphaned = _sweep_locked(root)
         harness_live = sum(rec.get("harness") == harness for rec in live) if harness else 0
-        import adapters  # noqa: PLC0415 -- the ONE harness read (goal:g7.16.1.7.1.3.1)
-        harness_row = adapters.harness_block(cfg, harness) if harness else None
+        harnesses = cfg.get("harnesses") or {}
+        harness_row = harnesses.get(harness) if harness else None
         harness_cap = harness_row.get("max_live") if harness_row else None
         if harness_cap is not None and harness_live >= int(harness_cap):
             print(f"spawn_budget: refusing {agent_id} -- harness {harness} "
