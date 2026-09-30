@@ -51,6 +51,7 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 - run 13 wf_35753f5e-852: closed 118 122 + the spawn-gate bypass · opened 129
 - run 15 wf_b5c775ea-e89: closed 129 130 (ONE judge, structural) + W2c A 27c454526 + 4a96d8bd0 · opened 131 132
 - run 16 wf_1d7d51dd-720: closed 131 132 + probe (e77d0515a) + W2c B1 (d3f1d80c0) · opened 133 134 (e77) 135 136 (B1) · 4a420102e by hand
+- run 19 wf_e2faecc7-e15: 136 9a39d55fa ACCEPT clean · 135 3b61f9f73 → opened 141 (test_sm135 asserts twins equal, not == [0, 0]: a both-twin :790 bug or :805 `pass` stays green)
 - run 18 wf_4a1d4109-831: 133 854aceb35 + 134 688d86d6f → opened 138 (END tail) 139 (empty patch - half-writes, PRIORITY) 140 (empty payload - + verb dropped)
 - run 17 wf_c52bee27-302 (stopped at the hold, resumed): B2 7e1bed5b8 ACCEPT clean · B3 9c069f7dc opened 137 (plan_reid unwired + undisclosed)
 - run 14 wf_4c7e5e27-052: closed 123 124 125 126 127 · opened 130
@@ -60,9 +61,9 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 ## 🔴 Where it stops
 ```
 DONE runs 16 17 18 · 137 09a8397e4 ACCEPTED by hand (THOUGHT closes the site list; plan_reid exempt by contract identity.py:290-292, no caller; note: node stamped edited_by belam, written by DG3)
-RUNNING run 19 wf_e2faecc7-e15 (task wjfihvm9d): b4-R135 3b61f9f73 · b4-R136 9a39d55fa (test-only: mutation red, twin not vacuous)
 RUNNING run 20 wf_2e792c7e-029 (task w0d9meh8z): b4-R139 74f03f003 (empty `patch -` refused before any write + the CLASS: any real run that stamps then fails)
-OPEN 138 (END tail) · 140 (empty `payload -` + verb dropped): on doc:card-director-general-3 as its successor's FIRST items (DG3 rotated ~02:5xZ) -- no re-send needed; the successor sends SHAs
+OPEN 138 (END tail) · 140 (empty `payload -` + verb dropped): on doc:card-director-general-3 as its successor's FIRST items (DG3 rotated ~02:5xZ)
+OPEN 141 (test_viewport.py:855 → `assert seen == [0, 0]`, one token): NOT on DG3's card → SEND to the DG3 successor when seated (tmux @8 in ListAgents; none at 02:5xZ)
 NEXT: one mur round per fix SHA as DG3 sends them (SendMessage; DG3 = agi-8f [e68acb], two agi-8f → always the ref) · then bundle 4 CLEAN → [ready] to DG1
 MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage; NO send.py, NO rooms · Prime = agi-c2
 4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
