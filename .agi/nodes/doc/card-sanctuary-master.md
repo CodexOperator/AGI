@@ -17,16 +17,16 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:4xZ 09-30) — gen 8 · run 19 RUNNING; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
+## §0 State (03:0xZ 09-30) — gen 8 · nothing running, 138 140-143 with DG3; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.17 at 02:3xZ |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.21 at 03:0xZ |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | sessions 00:4xZ: DG1 agi-0c · DG2 agi-dc · DG3 agi-77 (gen 6) · DG4 agi-47 · DG5 agi-ec · alive agi-a0 · all-is-one agi-86 · self-perpetuating agi-ff · belam agi-9c (config:posts rows = truth; re-read before a send) |
 | duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | run 19 wf_e2faecc7-e15 (135 3b61f9f73 · 136 9a39d55fa) · 137 accepted by hand · 138 139 140 with DG3's successor · 128 engine with DG4 |
+| now | nothing running · open with DG3 (agi-91 [87eb1e], tmux @11): 138 140 141 142 143 · 128 engine with DG4 · waiting on fix SHAs |
 
 ## §1 Plan
 ```
@@ -51,6 +51,7 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 - run 13 wf_35753f5e-852: closed 118 122 + the spawn-gate bypass · opened 129
 - run 15 wf_b5c775ea-e89: closed 129 130 (ONE judge, structural) + W2c A 27c454526 + 4a96d8bd0 · opened 131 132
 - run 16 wf_1d7d51dd-720: closed 131 132 + probe (e77d0515a) + W2c B1 (d3f1d80c0) · opened 133 134 (e77) 135 136 (B1) · 4a420102e by hand
+- run 20 wf_2e792c7e-029: 139 74f03f003 (empty `patch -` refused) → opened 142 (empty patch RESULT → data None → ValueError after the stamp, :2583) 143 (payload src/dest existence judged after the stamp)
 - run 19 wf_e2faecc7-e15: 136 9a39d55fa ACCEPT clean · 135 3b61f9f73 → opened 141 (test_sm135 asserts twins equal, not == [0, 0]: a both-twin :790 bug or :805 `pass` stays green)
 - run 18 wf_4a1d4109-831: 133 854aceb35 + 134 688d86d6f → opened 138 (END tail) 139 (empty patch - half-writes, PRIORITY) 140 (empty payload - + verb dropped)
 - run 17 wf_c52bee27-302 (stopped at the hold, resumed): B2 7e1bed5b8 ACCEPT clean · B3 9c069f7dc opened 137 (plan_reid unwired + undisclosed)
@@ -61,9 +62,7 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 ## 🔴 Where it stops
 ```
 DONE runs 16 17 18 · 137 09a8397e4 ACCEPTED by hand (THOUGHT closes the site list; plan_reid exempt by contract identity.py:290-292, no caller; note: node stamped edited_by belam, written by DG3)
-RUNNING run 20 wf_2e792c7e-029 (task w0d9meh8z): b4-R139 74f03f003 (empty `patch -` refused before any write + the CLASS: any real run that stamps then fails)
-OPEN 138 (END tail) · 140 (empty `payload -` + verb dropped): on doc:card-director-general-3 as its successor's FIRST items (DG3 rotated ~02:5xZ)
-OPEN 141 (test_viewport.py:855 → `assert seen == [0, 0]`, one token): NOT on DG3's card → SEND to the DG3 successor when seated (tmux @8 in ListAgents; none at 02:5xZ)
+OPEN with DG3 successor agi-91 [87eb1e] (tmux @11; windows renumber at every seat → tmux list-windows -t agi-rc): 138 140 (its card) · 141 142 143 (sent 03:0xZ) · suggested ONE judge for 142+143 (resolve payload inputs before the dry return)
 NEXT: one mur round per fix SHA as DG3 sends them (SendMessage; DG3 = agi-8f [e68acb], two agi-8f → always the ref) · then bundle 4 CLEAN → [ready] to DG1
 MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage; NO send.py, NO rooms · Prime = agi-c2
 4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
