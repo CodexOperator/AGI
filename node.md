@@ -36,9 +36,10 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
        dg6-04 chain: re-mur dg6-04e FAILED (verify timed out 3600 s at 14:52Z); review accept_with_residue triaged -> CORRECTIVE DH.DG3.52 on the
           loop tip a7ab2dba47 (3 test residues: no-CWD order, project-less row, email skip loop; +77/60 test cap ACCEPTED; 4 notes demoted)
           -> DG3.52 HARVESTED 15:10Z tip 3ea1e5543e -> mur dg6-04f DONE 15:31Z accept_with_residue (verify upheld 5 + 2 missed) -> director scrub of
-          the hypothesis node's user lines 8840a2d475 -> CORRECTIVE DH.DG3.55 on loop tip 5e075a8d7e -> HARVESTED 15:45Z tip 21a1caf3b1
-          (279p/2s/1x, tests +30 = cap, item-5 node landed by director, bytes == log) -> re-mur unit agi-director-general-3-dg3mur-dg6-04g-1547
-          (/tmp/dg3_mur-dg6-04g.json) worktree /mnt/agi-ram/worktrees/a00-11395b98 -> residues 0 -> [merge-up] half a -> GO -> land
+          DH.DG3.55 tip 21a1caf3b1 -> mur dg6-04g (verify timed out; review accept_with_residue: order-dependent row + node verdict) -> DIRECT fixes (owner
+          16:4xZ rule) 86d7f40b63 + 1aa701b525 -> Sonnet review ACCEPT (cosmetic line closed 7d2680889e) -> trunk merged INTO the loop branch
+          e81201ebf2 (test_boxkit_templates conflict: trunk-derived fake + word-shaped hardware fake; 280p/1s/1x) -> Sonnet review of the
+          resolution ACCEPT (docstrings closed 4dd121c405) -> gate vs fd87ce0466 rc 0, 16 files, 0 D -> [merge-up] half a SENT to SM 17:0xZ, WAIT for GO (tip 4dd121c405)
           -> GO -> land -> goal:g1.31.3.2 complete; email_allow cell (systemd-unit address shape) owed by the Prime -> SM/Prime with the merge-up
               g7556: DG3.50 tip 574a307b1c -> mur g7556d FAILED 15:51Z (memcap verify timed out; review + shell verify accept_with_residue) ->
           director moved the ram-recharge conjunct out of the hypothesis (-> goal:g7.16.1.5.5.6.1) -> CORRECTIVE DH.DG3.57 on loop tip 2d76bf17b4
@@ -51,7 +52,8 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           -> harvest -> re-mur 8725ffca96..tip -> residues 0 -> [merge-up] -> GO -> land -> g7.16.1.10.3 complete; cell merge_gate.red_classes -> SM/Prime
        g1.31.4.1 (DG5.01): re-mur g1314c DONE 15:33Z: both slices DEMOTE (verify upheld: vacuous --branch dry check-root, chain prod +40 vs +10,
           node verdict vs parent demote, split cell x2, cites, source-string tests) -> CORRECTIVE DH.DG3.56 on loop tip 7e014c3646 -> parent
-          a00-22bc89b4 from /mnt/agi-ram/worktrees/de-base-DG3.56 -> harvest -> re-mur 7e014c3646..tip; the dropped conjunct = goal:g1.31.4.1.1 (horizon, 4f235b7bc1)
+          a00-22bc89b4 -> HARVESTED (parent exited silently): dispatch.py NET -2, tests NET +41 (cap 20), 294p + 1 INHERITED red (test_pre_fix_reaper);
+          unlogged node edit re-applied by director via write.py 5908d4f98e -> Sonnet review DEMOTE (vacuous worktree row, no live-path split row, swallowed ZoomUnavailable + no load count, tests +41/20) -> Sonnet FIX subagent RUNNING in /mnt/agi-ram/worktrees/a00-22bc89b4 (test files only) -> re-review -> gate -> [merge-up]; leaf goal:g1.31.4.1.1 horizon
           -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g1.31.4.1 + g7.16.1.5.4 complete
 LIVE   g7.16.1.10.5 (CLAIMED 66443d8fa8): hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-residues 50603f2b1e ->
           DG3.53 HARVESTED 16:03Z tip 79500d258c: parent DEMOTED (residue rows keyed by round), council_report.py 218/120, 2 kids/1 (row 41);
