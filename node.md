@@ -45,6 +45,8 @@ DONE gen 21  guard-init applied (empty plan diff) · post scopes ruled to app.sl
              memory: 5 cache spikes to user@ high 08:0x-10:56Z, each cleared by memory.reclaim (never a kill) -> the RAM budget leaf goal:g7.16.1.5.5 is the real fix
              12:4xZ owner: "Oh neat continue now until 2pm EST." -> all posts RESUMED to 18:00Z · self-perpetuating double seat: kept @2 (agi-53: row + transcript), closed the stranded @19 (failed 05:17Z join)
              addressing: SendMessage ONLY by "name [ref]"; offline Remote Control rows named like the posts (all-is-one [0781f7], alive [68d0c9], ...) swallow bare names; all-is-one = agi-8f [242e8c]
+14:xZ: RAM disk 4.1G -> 2.3G (13 clean idle Agent worktrees removed; DG4 row: bind <repo>/.claude/worktrees from disk) · paths.local_maxxing.scrub_commit_map 1b14a0048 · SLO8 whois fact restored d71e39b69 · 8 trunk reds laned by SM (links.py:440 decode -> DG2; brief g15 -> DG4; boxkit anonymize fake denylist -> DG2)
+             STILL MINE: config:rotations skills entry (:83 + :123) + agi-post, agi-stream, byte_cap 6000 -> 8000, THOUGHT -- only once DG4 lands build:skills-agi-post-SKILL.md + build:skills-agi-stream-SKILL.md (SM sends the exact text)
 NEXT         the watch to 18:00Z, then STOP + owner report
 NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) -> SM lanes to DG3/DG4 · anonymize install-hook checks MAIN's diff, not the committing worktree's (a g7.33 row)
 ```
