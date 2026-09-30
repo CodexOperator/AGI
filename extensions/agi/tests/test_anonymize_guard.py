@@ -459,3 +459,83 @@ def test_no_committed_home_path_in_the_four_scrub_scopes():
     per = {s: sum(1 for f in p.stdout.splitlines() if f.startswith(f"HEAD:{s}/"))
            for s in SCRUB_SCOPES}
     assert per == dict.fromkeys(SCRUB_SCOPES, 0)
+
+
+# ---- hypothesis:pb3-anonymize-refuses-a-hardware-model-fragment -------------
+# Every value SYNTHETIC: a made-up card name and a made-up pytest user. No row
+# names a real model, and no assertion prints a matched value.
+FAKE_HW = "Fixturo Vexel ZX 9990 ULTRA"
+
+
+def _hw_fixture(tmp_path, monkeypatch):
+    p = tmp_path / "hwbox.json"
+    p.write_text(json.dumps({"hardware": [FAKE_HW]}))
+    monkeypatch.setenv("AGI_ANONYMIZE_FIXTURE", str(p))
+    return p
+
+
+def test_a_hardware_fragment_is_refused_by_class_and_never_printed(
+        tmp_path, monkeypatch, capsys):
+    """F1 + F2 in one row: the 2-word FRAGMENT goes red by class, the class
+    label and the bare numbers that ride the same box stay clean."""
+    _hw_fixture(tmp_path, monkeypatch)
+    toks = anonymize.box_tokens(tmp_path)
+    assert anonymize.scan("loads fully on the 9990 ULTRA: 64/64 layers", toks) \
+        == ["hardware"]
+    assert anonymize.scan("the card GPU9990U, write.py:29990, 9990 MiB", toks) == []
+    rc = anonymize.main(["check", "--root", str(_graph(tmp_path)),
+                         "--text", "loads fully on the 9990 ULTRA"])
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "hardware" in err and FAKE_HW not in err and "9990 ULTRA" not in err
+
+
+def test_the_hardware_cell_source_is_refused_and_its_absence_is_silent(
+        tmp_path, monkeypatch):
+    """F3: a fragment of a name in the cell's own source file is refused; with
+    the cell absent no hardware token is produced and no tool is run."""
+    monkeypatch.delenv("AGI_ANONYMIZE_FIXTURE", raising=False)
+    root = _graph(tmp_path)
+    src = tmp_path / "box.txt"
+    src.write_text("model_name: %s\nother: x\n" % FAKE_HW)
+
+    def _cell(anonymize_cell):
+        (root / "config.json").write_text(json.dumps({"anonymize": anonymize_cell}))
+
+    _cell({"hardware": {"sources": [["@" + str(src), "model_name"]],
+                        "min_words": 2, "core_digits": 3}})
+    toks = anonymize.box_tokens(root)
+    assert anonymize.scan("runs the 9990 ULTRA here", toks) == ["hardware"]
+    _cell({})
+    assert [c for c, _ in anonymize.box_tokens(root)] != ["hardware"] or not \
+        [t for c, t in anonymize.box_tokens(root) if c == "hardware"]
+    assert anonymize.scan("runs the 9990 ULTRA here", anonymize.box_tokens(root)) == []
+
+
+def test_the_live_hardware_cell_declares_sources_and_no_model_name():
+    """F4: the cell says WHERE to look, never WHAT the box is."""
+    repo = Path(__file__).resolve().parents[3]
+    cell = (json.loads((repo / ".agi" / "config.json").read_text())
+            .get("anonymize") or {}).get("hardware") or {}
+    assert cell.get("sources"), "the live cell declares no source"
+    assert cell.get("min_words") and cell.get("core_digits")
+    assert not [v for v in cell.get("sources", []) if isinstance(v, str)
+                and any(len(w) >= 3 and w.isdigit() for w in v.split())], \
+        "a digit-core value in the cell is the leak itself"
+
+
+def test_the_user_roots_cell_refuses_a_non_home_user_segment(tmp_path, monkeypatch):
+    """F6: the same segment shape as a home, on a non-home root, by the SAME
+    builder -- and HOME_PATH_RE is untouched, so the four-scope home test keeps
+    its scope."""
+    monkeypatch.delenv("AGI_ANONYMIZE_FIXTURE", raising=False)
+    root = _graph(tmp_path)
+    prefix = "/" + "tmp/pytest-of-"
+    (root / "config.json").write_text(
+        json.dumps({"anonymize": {"user_roots": [prefix]}}))
+    toks = anonymize.box_tokens(root)
+    assert anonymize.scan("basetemp " + prefix + "fixtureuser/pytest-3", toks) \
+        == ["user"]
+    assert anonymize.scan("basetemp " + prefix + "<user>/pytest-3", toks) == []
+    assert not anonymize.HOME_PATH_RE.search(prefix + "fixtureuser/x"), \
+        "the user prefix leaked into HOME_PATH_RE and would redden the scope test"

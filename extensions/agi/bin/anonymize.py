@@ -9,7 +9,7 @@ DMI = Path("/sys/class/dmi/id")
 DMI_FILES = ("board_name", "board_serial", "board_vendor", "product_name",
              "product_serial", "product_uuid", "chassis_serial")
 SECRETS_NODE = Path("nodes") / ".geometry" / "secrets.md"
-CLASSES = ("hostname", "ip", "mac", "board", "secret", "home")
+CLASSES = ("hostname", "ip", "mac", "board", "secret", "home", "hardware")
 MIN_TOKEN = 4
 #: ONE spelling of a home-directory path, ANY box (goal:g7.16.1.2.1): the
 #: rotation-record writer rewrites it and the check (R3) reuses it. A BARE
@@ -19,17 +19,33 @@ MIN_TOKEN = 4
 #: (SM residue 128: a home outside /home and /Users passed the gate): the two
 #: conventional roots + the config cell `anonymize.home_roots` (path prefixes a
 #: user-name segment follows) + this box's own login homes, from pwd and $HOME.
-def _home_path_re(root=None):
-    roots = ["/home/", "/Users/"]
+def _anonymize_cell(root=None):
+    """THE ONE `anonymize` cell read: home_roots, hardware and user_roots."""
     try:
-        base = root or locations.find_project_root(Path(__file__).resolve().parent)
+        base = (locations.find_project_root(Path(root).resolve()) if root
+                else locations.find_project_root(Path(__file__).resolve().parent))
         cfg = locations.config_path(base) if base else None
         if cfg is not None and cfg.is_file():
             cell = json.loads(cfg.read_text(encoding="utf-8")).get("anonymize") or {}
-            roots += [r for r in (cell.get("home_roots") or [])
-                      if isinstance(r, str) and r.startswith("/") and len(r) > 1]
+            if isinstance(cell, dict):
+                return cell
     except (OSError, ValueError, TypeError, AttributeError):
-        pass  # an unreadable cell leaves the conventional roots
+        pass  # an unreadable cell leaves every rule at its conventional default
+    return {}
+def _prefix_roots(cell, key):
+    return [r for r in (cell.get(key) or [])
+            if isinstance(r, str) and r.startswith("/") and len(r) > 1]
+def _root_prefix_re(roots):
+    r"""`prefix` + ONE user-name segment (`[\w-][\w.-]*`, so `<user>` never
+    matches) -- the builder the home cell and the user_roots cell share."""
+    if not roots:
+        return None
+    return re.compile("(?:" + "|".join(re.escape(r) + r"[\w-][\w.-]*"
+                                        for r in roots) + ")")
+def _user_path_re(root=None):
+    return _root_prefix_re(_prefix_roots(_anonymize_cell(root), "user_roots"))
+def _home_path_re(root=None):
+    roots = ["/home/", "/Users/"] + _prefix_roots(_anonymize_cell(root), "home_roots")
     dirs = {p.pw_dir.rstrip("/") for p in pwd.getpwall()
             if 1000 <= p.pw_uid < 65534}
     dirs.add((os.environ.get("HOME") or "").rstrip("/"))
@@ -83,10 +99,14 @@ def box_tokens(root):
     paths (goal:g7.16.1.1.3): a fixture box still has the caller's HOME.
     """
     home = [("home", os.environ.get("HOME") or "")]
+    rule = _anonymize_cell(root).get("hardware") or {}
+    rule = rule if isinstance(rule, dict) else {}
     fixture = os.environ.get("AGI_ANONYMIZE_FIXTURE")
     if fixture:
         data = json.loads(Path(fixture).read_text(encoding="utf-8"))
-        return [(c, str(v)) for c in CLASSES for v in data.get(c, [])] + home
+        plain = [(c, str(v)) for c in CLASSES if c != "hardware"
+                 for v in data.get(c, [])]
+        return plain + _hw_tokens(data.get("hardware", []), rule) + home
     toks = [("hostname", socket.gethostname()), ("hostname", socket.getfqdn())]
     for line in (_run(["ip", "-o", "addr"]) + _run(["ip", "-o", "link"])).splitlines():
         m = re.search(r"inet6?\s+([0-9a-fA-F:.]+)", line)
@@ -109,14 +129,65 @@ def box_tokens(root):
             continue
         if v:
             toks.append(("board", v))
-    return toks + _secret_tokens(root) + home
-def scan(text, tokens):
+    return toks + _hw_tokens(_hw_source_names(rule), rule) + \
+        _secret_tokens(root) + home
+def _hw_source_names(rule):
+    """Names read LIVE from the cell's sources: an argv source runs the tool
+    (one name per line), a `@path` source reads that file's `field:` lines."""
+    names = []
+    for src in rule.get("sources") or []:
+        if not (isinstance(src, list) and src and isinstance(src[0], str)):
+            continue
+        if not src[0].startswith("@"):
+            names += [ln.strip() for ln in _run(list(src)).splitlines() if ln.strip()]
+            continue
+        field = src[1] if len(src) > 1 and isinstance(src[1], str) else ""
+        try:
+            lines = Path(src[0][1:]).read_text(encoding="utf-8",
+                                               errors="replace").splitlines()
+        except OSError:
+            continue
+        names += [ln.split(":", 1)[1].strip() for ln in lines
+                  if ln.lower().startswith(field.lower() + ":")]
+    return names
+def _hw_fragments(name, min_words, core_digits):
+    """NAME -> every run of >= min_words consecutive words holding a word of
+    >= core_digits digits: a 2-word FRAGMENT of a model name is the leak."""
+    words = re.findall(r"[A-Za-z0-9]+", str(name))
+    return [" ".join(run)
+            for i in range(len(words))
+            for j in range(i + min_words, len(words) + 1)
+            for run in [words[i:j]]
+            if any(w.isdigit() and len(w) >= core_digits for w in run)]
+def _hw_tokens(names, rule):
+    """(class, fragment) pairs; the cell carries the RULE, never a name."""
+    min_words = int(rule.get("min_words") or 2)
+    core_digits = int(rule.get("core_digits") or 3)
+    return [("hardware", f) for n in names or []
+            for f in _hw_fragments(n, min_words, core_digits)]
+def _hw_frag_re(fragments):
+    r"""Fragments case-insensitive, words joined by `[\s_-]+` and bounded, so
+    a class label (`GPU9990U`) and a bare number never match."""
+    alts = [r"[\s_-]+".join(re.escape(w) for w in f.split()) for f in fragments]
+    return re.compile(r"(?<![\w-])(?:" + "|".join(alts) + r")(?![\w-])", re.I)
+def scan(text, tokens, root=None):
     """The CLASSES present in `text` — never a value. Beside the token list,
-    ONE generic class: ANY box's home directory (HOME_PATH_RE, R1's
-    definition) is `home`; the placeholders `<home>/`, `~/` never match."""
-    hits = {c for c, v in tokens if len(v) >= MIN_TOKEN and v in text}
+    TWO generic classes: ANY box's home directory (HOME_PATH_RE, R1's
+    definition) is `home`, placeholders `<home>/`, `~/` never match; and a path
+    prefix a user-name segment follows OUTSIDE a home (`anonymize.user_roots`)
+    is `user`."""
+    hits = {c for c, v in tokens
+            if c != "hardware" and len(v) >= MIN_TOKEN and v in text}
+    frags = [v for c, v in tokens if c == "hardware" and len(v) >= MIN_TOKEN]
+    if frags and _hw_frag_re(frags).search(text):
+        hits.add("hardware")
     if HOME_PATH_RE.search(text):
         hits.add("home")
+    # user_roots is kept OUT of HOME_PATH_RE: the committed-bytes home test
+    # keeps its scope
+    user = _user_path_re(root)
+    if user is not None and user.search(text):
+        hits.add("user")
     return sorted(hits)
 def added_lines(text):
     """A unified diff -> what it ADDS: every '+' line inside a hunk (content
@@ -158,7 +229,7 @@ def cmd_check(root, text, diff_file):
     if locations.shared_project_root(root) is None:
         print("anonymize: no denylist source, skipped")
         return 0
-    hits = scan(text or "", box_tokens(root))
+    hits = scan(text or "", box_tokens(root), root)
     if hits:
         print("REFUSED: text carries " + ", ".join(hits) +
               " (a home path from ANY box, or a token read from this box)"

@@ -1001,7 +1001,8 @@ def test_the_anonymized_live_render_substitutes_through_the_longest_first_helper
 # AGI_ANONYMIZE_FIXTURE seam, so it reads no physical value of this box and prints none.
 FAKE_BOX = {"hostname": ["boxkit-fake-host"], "ip": ["198.51.100.7"],
             "mac": ["02:00:5e:10:00:01"], "board": ["BOXKIT-FAKE-BOARD"],
-            "secret": ["sk-boxkit-fake-key"]}
+            "secret": ["sk-boxkit-fake-key"],
+            "hardware": ["Fixturo Vexel ZX 9990 ULTRA"]}
 
 
 @pytest.fixture
