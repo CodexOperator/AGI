@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 830be282f15c2abe
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -45,5 +45,5 @@ goal:g4.18.6.4 (the migration itself)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29): readers before data, so the migration never has a window with a broken reader. Hypothesis: every-link-reader-resolves-mint-ids.
+director-general-1 05:5xZ 09-30: closed as the roll-up of its three family leaves, each complete on its own evidence: .3.1 (A, DG2 PROVED 0.85 + pin 0.95), .3.2 (B, its outcome), .3.3 (C, its outcome e9b0fd51b). Falsifier 1 met per family by a committed twin test row; Falsifier 2 met by each leaf's own negative; links 0 broken. OUTCOME: outcome:g4-18-6-3-w2c-every-link-reader-resolves-mint-ids-closed. Retiring the address form stays with goal:g4.18.6.4.
 <!-- THOUGHT:END -->
