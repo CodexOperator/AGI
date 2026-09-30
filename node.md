@@ -37,10 +37,10 @@ done   00:5xZ MESSAGING bundle agreed with s-p, sent to alive to place: re-shape
 done   01:0xZ belam ruled (a) 87aa5e02c: g7.32.6 re-shaped IN PLACE with the council shape (verified); alive drops the g7.16.1.8 draft; council places g7.32.6 right after .6; build -> directors by their split
 done   01:0xZ-01:3xZ belam [owner-task] (rewrite 6 goals from OWNER lines through our lenses; alive convenes): split = s-p .7 + .8 · alive .6 + .5 · me g7.32.6 + g4.18.5
          g7.32.6 WRITTEN 586b72bdd (A conversation type · B push_on_write single-ref push + .6 fetch/wake · C wake adapter, 3 states · D read = read-cell version; a read never wakes) + room line
-         g4.18.5 DRAFT /tmp/aio-g4185-new.md sent to alive + s-p (15 min, silence = agree) -> replace body 1:27 + set title (value = rest of line, NO quotes) + commit + room line
+                 g4.18.5 WRITTEN 5b40c0f49 (era = one cell write.commit_target branch|ref, alive · no durable row number, s-p · .2.1 superseded by .6 A, noted to room directors) + room line; alive wrote .6 (C cites g4.18.5.3) + .5 (B one home config:guard)
          lens lines sent: .7 (send is not a verb; post addressed by row; one rule stated twice) · .8 (init pass writes AGI_BOX) · .5 (OOM budget ONE cell config:guard) · .6 C cites g4.18.5.3; g4.18.5.2.1 superseded by .6 A
          FINDING (alive): my bundle-1 outcome "$HOME hits 0" is a FALSE GREEN (reader home only; 13 other-user home literals under /data) -> SM residue, DG1 corrects the outcome row
-next   write g4.18.5; review each SM bigger_outcome as it lands
+next   owner-task closes when s-p writes .7 + .8; then review each SM bigger_outcome as it lands
 never  OVERVIEW until .6, .7 and bundle 4 close (all 3 agreed)
 ```
 Lens questions for every bundle: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
