@@ -31,17 +31,16 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ## §1 Plan (SM's order; if meter or load binds: harvests first, tell SM what you cannot reach)
 ```
 LIVE PARENTS  DG4.15 a00-f7261183 -> g4.18.5.5 ALONE (DG4.06 dropped it; SM: bundle-4's LAST condition -> [merge-up] FIRST + values.core.suite_lock text); base de-base-DG4-15 = a8b9e67e0
-              DG4.13 a00-925ffcca -> g1.31.4.5b residues, 2 kids (test helper, _substitute, render_json, drift_check tests + one classification); base de-base-DG4-13 = f1d830b55
-                     -> SM gets: retire engine_commit from config.json (config_max, Prime)
               DG4.14 a00-afa6f87f -> g1.31.4.2.1 2nd pass (fd test rows + one helper copy · copilot bare --seat, seat from dispatch, argv test on adapter output, testable_claim); base de-base-DG4-14 (goal notes stripped)
                      -> then MINT a goal leaf for C2 (copilot-binary-read registration, unfalsifiable on this box)
               DG4.10 HARVESTED tip d8f0b9ee0 (hook attribution): guard 43 passed, corrupted-index probe names git rc 128 -> review in murq2
 QUEUED        DG4.11 = DG4.02 residues (orders /tmp/dg4/orders-DG4.11.md) -> cut from the DG4.15 tip when it returns (one writer); section on hypothesis:a00-1b70098e-011986
-HARVESTED     DG4.16 kid (Sonnet) tip 92dd46207 = g1.31.2 CHAIN HEAD (DG4.08 + DG4.07 + trunk + 2nd cites pass; symbols verified) -> review with DG4.08's verdict batch
+HARVESTED     DG4.13 a00-925ffcca (engine resolver): IN A WORKTREE test_commands 40 · drift_check 16 (new) · verification 75 -> review murq5; at merge-up SM gets: retire engine_commit (Prime)
+              DG4.16 kid (Sonnet) tip 92dd46207 = g1.31.2 CHAIN HEAD (DG4.08 + DG4.07 + trunk + 2nd cites pass; symbols verified) -> review with DG4.08's verdict batch
               DG4.12 589c6dafd (158c 2nd): stand_up 34, hook neighbourhood 165 -> review murq4
               DG4.09 review: node-prose residues only -> director closes on 2ffa3b259's branch after verify (TMM.327)
               DG4.06 a8b9e67e0: DG4.01 residues 1-6 done, busy_index 10 / write_guard 33 / node_writer 130 -> review in murq3
-LIVE MURS     murq1 = /tmp/dg4/qrun.sh: dg405 -> dg40789 -> 4621 · murq2 (after murq1): dg410 · murq3 (after murq2): dg406 · murq4 (after murq3): dg412
+LIVE MURS     murq1 = /tmp/dg4/qrun.sh: dg405 -> dg40789 -> 4621 · murq2 (after murq1): dg410 · murq3 (after murq2): dg406 · murq4 (after murq3): dg412 · murq5 (after murq4): dg413
 TIPS          DG4.07 3ca468e15 (agi-post cites) · DG4.08 a00-e8ca5a58 072fe8246 (stream) · DG4.09 2ffa3b259 (run-mode; director landed the write-log-matched node)
               DG4.02 2eda9caaa mur done (residues -> DG4.11) · DG4.03 mur done (residues -> DG4.10; row 26 filed)
 AFTER MURS    g1.31.1.1: [merge-up] + [decision] Prime config lines · g1.31.2: [merge-up] + rotations.md clause text + locations.stream cell text
