@@ -168,7 +168,10 @@ def is_node_id_shaped(value) -> bool:
     a corpus (`build_corpus`). Mirrors `is_valid_verdict`'s role for
     `VERDICT_RE`: a taxonomy check independent of context.
     """
-    return isinstance(value, str) and bool(NODE_ID_RE.match(value.strip()))
+    if not isinstance(value, str):
+        return False
+    import links   # goal:g4.18.6.3.3: a mint id names a node as its address does
+    return bool(NODE_ID_RE.match(value.strip())) or links.is_mint_id(value.strip())
 
 
 def evidence_runs_violations(value) -> list:
@@ -244,7 +247,8 @@ def build_corpus(nodes_dir) -> frozenset:
         nid = fm.get("id")
         if isinstance(nid, str) and nid.strip():
             ids.add(nid.strip())
-    return frozenset(ids)
+    import links   # goal:g4.18.6.3.3: a mint-id evidence ref counts as its address twin
+    return links.resolving(frozenset(ids), p.parent)
 
 
 def normalize_evidence_runs(value, corpus=None, self_id=None,
@@ -296,7 +300,7 @@ def normalize_evidence_runs(value, corpus=None, self_id=None,
             1 for v in value
             if is_node_id_shaped(v)
             and v.strip() in corpus
-            and not _is_self_citation(v, self_id, allow_self)
+            and not _is_self_citation(getattr(corpus, "address", str)(v.strip()), self_id, allow_self)
         )
     if isinstance(value, str):
         return 0
