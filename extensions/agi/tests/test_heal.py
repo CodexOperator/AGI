@@ -494,10 +494,12 @@ def test_stale_lock_clean_reads_the_name_from_the_config_block(tmp_path,
         "suite_lock": {"file": "other.lock"}}}}))
     lock = wt / "sessions" / "other.lock"
     lock.write_text("1", encoding="utf-8")
+    default = wt / "sessions" / "verify-suite.lock"
+    default.write_text("1", encoding="utf-8")      # the default name: left alone
     monkeypatch.setenv("AGI_REAPER_LOG", str(tmp_path / "reaper.log"))
     heal._clean_stale_layout_locks(gdir, WT_ROW)
     assert not lock.exists()
-    assert (wt / "sessions" / "verify-suite.lock").exists() is False
+    assert default.exists()
 
 
 def test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry(

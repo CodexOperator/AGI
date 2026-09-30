@@ -913,6 +913,14 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
+def _lock_held_by(groot: Path, holder: int) -> bool:
+    """The HOLD RULE (`suite_lock_policy(groot)["hold"]`): only `live-foreign-pid`
+    is implemented -- held iff the holder is alive and not this process."""
+    if suite_lock_policy(groot)["hold"] == DEFAULT_SUITE_LOCK_HOLD:
+        return holder != os.getpid() and _pid_alive(holder)
+    return False
+
+
 def suite_lock_holder(groot: Path) -> int | None:
     """READ-ONLY: the suite lock's LIVE FOREIGN holder pid, else None. Never
     creates, never unlinks, never plants a probe pid (closes the SM.88
@@ -924,7 +932,7 @@ def suite_lock_holder(groot: Path) -> int | None:
         holder = int(path.read_text(encoding="utf-8").strip())
     except (OSError, ValueError):
         return None
-    if holder == os.getpid() or not _pid_alive(holder):
+    if not _lock_held_by(groot, holder):
         return None
     return holder
 
@@ -950,7 +958,7 @@ def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
             except (OSError, ValueError):
                 path.unlink(missing_ok=True)
                 continue
-            if _pid_alive(holder) and holder != os.getpid():
+            if _lock_held_by(groot, holder):
                 return None, holder  # another live runner owns the window
             path.unlink(missing_ok=True)  # stale: dead pid
         try:

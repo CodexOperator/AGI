@@ -572,8 +572,12 @@ def _suite_lock_held(root: Path) -> bool:
     s = _shared_sessions_dir(root)
     if s is None:
         return False
-    import verification  # noqa: PLC0415 -- bin/ is on sys.path above; the ONE resolver
-    lock = s / verification.suite_lock_name(root)
+    try:
+        import verification  # noqa: PLC0415 -- bin/ is on sys.path above; the ONE resolver
+        name = verification.suite_lock_name(root)
+    except Exception:  # P7: never raises; fail safe on the default name
+        name = "verify-suite.lock"  # documented fail-safe fallback ONLY (resolver unimportable)
+    lock = s / name
     if not lock.exists():
         return False
     try:
