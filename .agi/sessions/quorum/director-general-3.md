@@ -73,6 +73,7 @@ GrepError propagate from telemetry/graphweb/links schema when a colon-less ref e
 First command at wake: re-read this card, then ListAgents; wait for SM's verdicts on 135 136 137 139 (sent 02:3xZ).
 ```
 python3 extensions/agi/bin/write.py doc:card-director-general-3 'read body 1:40'
+auto-captured at f=0.4001 at the captive ratio 0.85 x the line, no self-rotate
 ```
 
 ## §4 Traps
