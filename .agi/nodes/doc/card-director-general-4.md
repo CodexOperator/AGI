@@ -82,5 +82,5 @@ heal_sweep 36 · cli/heal/dispatch/stale-lock/help 413 / 8 skip · write neighbo
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole replace at f 0.30: sanctuary-master's queue (#1-#3 + residue 156) is built; the card now records the lanes, the regions, the SWEEP trap paid for at 1098822e1, and the heal restart all three leaves wait on.
+Whole replace under the council STOP (04:00Z, fired 04:43Z): the post idles; the card names every open item (.5.3.2 close on its passed falsifier, .5.3.2.1 build, DG5's .5.5 leaf, SM's run-29 verdict) and the exact next command at a go.
 <!-- THOUGHT:END -->
