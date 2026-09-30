@@ -897,12 +897,31 @@ def test_suite_lock_held_reads_the_name_from_the_config_block(tmp_path, monkeypa
     (root / "config.json").write_text(json.dumps({"values": {"core": {
         "suite_lock": {"file": "other.lock"}}}}))
     lock = root / "sessions" / "other.lock"
-    lock.write_text(str(os.getpid()))          # this test's own LIVE pid
+    lock.write_text(str(os.getppid()))          # this test's LIVE FOREIGN pid (the parent)
     assert hook._suite_lock_held(root) is True
     (root / "config.json").write_text(json.dumps({"values": {"core": {
         "suite_lock": {"file": "third.lock"}}}}))
-    lock.unlink()
-    assert hook._suite_lock_held(root) is False
+    lock.rename(root / "sessions" / "third.lock")   # PRESENT under the configured name,
+    assert not (root / "sessions" / "verify-suite.lock").exists()   # ABSENT under the default
+    assert hook._suite_lock_held(root) is True
+
+
+def test_suite_lock_held_own_pid_is_not_held_by_the_one_rule(tmp_path, monkeypatch):
+    """The hook decides through `verification._lock_held_by`: this process's own pid is no holder."""
+    monkeypatch.setattr(hook, "_shared_sessions_dir", lambda root: root / "sessions")
+    (tmp_path / "sessions").mkdir()
+    (tmp_path / "sessions" / "verify-suite.lock").write_text(str(os.getpid()))
+    assert hook._suite_lock_held(tmp_path) is False
+
+
+def test_suite_lock_held_fails_safe_when_verification_is_unimportable(tmp_path, monkeypatch):
+    """P7: an unimportable resolver never raises out of the hook; the default
+    lock name still reads as held."""
+    monkeypatch.setattr(hook, "_shared_sessions_dir", lambda root: root / "sessions")
+    monkeypatch.setitem(sys.modules, "verification", None)   # `import verification` raises
+    (tmp_path / "sessions").mkdir()
+    (tmp_path / "sessions" / "verify-suite.lock").write_text(str(os.getpid()))
+    assert hook._suite_lock_held(tmp_path) is True
 
 
 def test_live_suite_lock_defers_rotation(tmp_path, run_hook, monkeypatch, capsys):
@@ -913,7 +932,7 @@ def test_live_suite_lock_defers_rotation(tmp_path, run_hook, monkeypatch, capsys
     monkeypatch.setenv("AGI_SEAT", "probe-director")
     lock = graph / "sessions" / "verify-suite.lock"
     lock.parent.mkdir(parents=True, exist_ok=True)
-    lock.write_text(str(os.getpid()))   # THIS test's own LIVE pid
+    lock.write_text(str(os.getppid()))   # THIS test's LIVE FOREIGN pid (the parent)
     tp = tmp_path / "lock.jsonl"
     _write_transcript(tp, 45_000)       # 0.45 >= 0.4 -> over the line
     state_dir = tmp_path / "state-lock"

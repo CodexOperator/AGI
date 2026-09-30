@@ -681,6 +681,23 @@ def test_lock_refusal_names_the_live_holder_pid(tmp_path, monkeypatch):
     assert lock.read_text().strip() == "424242"
 
 
+def test_lock_unknown_hold_rule_falls_back_to_default_and_warns_once(tmp_path, monkeypatch, capsys):
+    """An unknown `values.core.suite_lock.hold` is refused with ONE warning;
+    the default live-foreign-pid rule still decides: a live foreign pid holds."""
+    groot = tmp_path / ".agi"
+    groot.mkdir()
+    (groot / "config.json").write_text(json.dumps({"values": {"core": {
+        "suite_lock": {"hold": "steal-it"}}}}))
+    monkeypatch.setattr(verification, "_SUITE_LOCK_REFUSED", set())
+    lock = groot / "sessions" / "verify-suite.lock"
+    lock.parent.mkdir(parents=True)
+    lock.write_text("424242")
+    monkeypatch.setattr(verification, "_pid_alive", lambda pid: pid == 424242)
+    assert verification.acquire_suite_lock(groot) == (None, 424242)
+    assert verification.acquire_suite_lock(groot) == (None, 424242)
+    assert capsys.readouterr().err.count("steal-it") == 1
+
+
 def test_lock_stale_pid_is_broken_and_reacquired(tmp_path, monkeypatch):
     """A dead holder is not a holder. The stale lock is broken, not obeyed —
     otherwise one killed run closes the window until somebody deletes a file by
