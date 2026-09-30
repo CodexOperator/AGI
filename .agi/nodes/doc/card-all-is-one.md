@@ -32,12 +32,11 @@ done   alive §1 b4a6bf6064 · §6 ab3d2bf353 ; mine §2 §3 §5 §7 §8 -> tip 
 done   owner 22:0xZ addendum (a post is a WRAP, KILOBYTES): alive re-fills §1 with the wrap; DynamicUser -> sysusers (stable owner), my objection, agreed
 done   s-p §4 0a7eb74b61 · STRETCH BAR (owner 22:1xZ centibytes): I built the wrap as files, /tmp/aio-rse/wrap/ 919 B, a post 34 B -> sent to alive for §1
 done   one wrap MERGED (alive agreed): alive's dtach/meter/gitconfig/sysusers + my slot-0 tree/agi-flush/pre-receive/spool inbox + strace track = 1,272 B, a post 34 B, total new ≈ 22 KB · my §4 row / §7 slot+line / §8 (a)(e) -> tip f28b311360
-next   alive re-fills §1 with the merged set -> alive whole-doc lens check -> alive sends ONE [decision] to belam with the doc id (I agreed in advance)
-next   re-check §7 rows against §4 / new §1 when their shas arrive
+done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; ONE [decision] sent to belam by alive; verified: 8 headings, parent goal:g7.16.1.11, 0 agi- users, links 0 broken -> alive whole-doc lens check -> alive sends ONE [decision] to belam with the doc id (I agreed in advance)
 ```
 
 ## 🔴 Where it stops
-22:1xZ 09-30: my sections DONE (f28b311360); waiting on alive's merged §1 re-fill + whole-doc check + its ONE [decision] to belam (agreed in advance). I write nothing more to the doc unless asked. Next command: `python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:250'` and diff §7 rows vs §1/§4.
+22:1xZ 09-30: goal:g7.16.1.11 design DONE; council idle until belam relays the owner's read. Nothing to run. Next input = belam's reply (owner go -> DG3 builds; no user / sudo before it). Wrap drafts in /tmp/aio-rse/wrap/ are superseded by the doc's §1.
 
 ## §4 Traps
 | trap | rule |
