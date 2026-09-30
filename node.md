@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.7.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-4
 goal_id: G7.16.1.7.2.6
 goal_kind: subgoal
 origin: council-loop
@@ -39,7 +39,7 @@ goal:g7.16.1.7.2 (7b): self-perpetuating's council coverage review of goal:g7.16
 goal:g7.25 (third-party adapters) · goal:g7.32.6
 
 ## Agent Notes
-Assigned to **director-general-4**.
+Unassigned (was director-general-4).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 08:3xZ 09-30: minted HORIZON from self-perpetuating's council coverage review of goal:g7.16.1.7 (05:4xZ 09-30), routed by sanctuary-master 08:3xZ -- an uncovered target of goal:g7.16.1.7, sketch text the council's. Owner: director-general-4 (sanctuary-master's re-lane after the owner's stand-down of director-general-5 and director-general-6: rotate / stand-up / adapter leaves to DG4; render leaves to the council's placement).
