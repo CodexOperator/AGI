@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (09:5xZ 09-30, gen 9, POST-SCRUB) — f~0.2 (line 0.47)
+## §0 State (09:5xZ 09-30, gen 9, POST-SCRUB) — f~0.22 (line 0.47)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -29,36 +29,37 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
-done   gen 9: DG6 #3 LANDED (SM ACCEPT post hoc) 6872946485 dg6-01 + 9ef733cd55 dg6-02; leaves g1.31.3.1.1 f799611a7e + .1.2 53d80c9b2e complete
-       dg6-03c residues closed by director on dg3-corr-dg6-03 (8 commits) + trunk merged in (a00-6b761b8c conflict) -> tip 25d4145b95
-LIVE   dg6-03 [merge-up] SENT to SM 09:5xZ -> WAIT for GO -> land by merge-tree + commit-tree + ff-only (/tmp/dg3 land fn: see §4)
-       dg6-04: corrective DG3.42 parent a00-07ef8482 (pi-free) on season2/loops/hypothesis-pb3-anonymize-refuses-a00-07ef8482,
-          cut from dg3-corr-dg6-04 edfef83cc5 (worktree .agi/worktrees/de-base-DG3.42); orders = CORRECTIVE DH.DG3.42 on
-          hypothesis:pb3-anonymize-refuses-a-hardware-model-fragment (9 items; config diffs RETURNED, director lands via SM/Prime)
-          -> harvest -> mur (focus MUST say: NEVER read /sys/class/dmi or any hardware-id file; count only; never print an old sha)
-       mur DG5.01 goal:g1.31.4.1 unit agi-director-general-3-dg3mur410832 (3 rounds; harvest worktree /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1,
-          tip adb1bd23fd, MB 10dcb7b94f; my read: caveat_residue.py = residue)
-QUEUE  (SM 09:4xZ) dg6-03/04 merge-ups (GO first) -> resolve_old_sha leaf (NEW under goal:g1, mint it: ONE resolve_old_sha fallback
-       in links.py + node readers, map path from cell paths.local-maxxing.scrub_commit_map (Prime lands the cell; round returns the
-       1-cell diff); absent map -> fall through silently; rows on a SYNTHETIC map; box paths WARN-only on new writes) ->
-       DG5.01 mur verdicts + corrective -> goal:g7.16.1.5.4 (by ITS falsifiers) -> goal:g7.16.1.5.5.6 (a PARENT) -> .5.5.7 ->
-       DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6 (leaves minted, NO briefs: brief per [hypothesis])
-FINDINGS (rows for goal:g7.33.19; HOLD: that node has a foreign uncommitted line in MAIN -> write when clean)
+done   gen 9: DG6 #3 LANDED 6872946485 dg6-01 + 9ef733cd55 dg6-02 (leaves complete) · DG6 #2 half b dg6-03 LANDED 6dbc041d37 on SM GO
+       (goal:g1.31.3.2 note 57b13e9662: closes when half a lands) · goal:g1.33 MINTED 4fc6e50d80 + hypothesis:g133-one-resolve-old-sha-... 0ebaac570f
+LIVE   dg6-04 half a: DG3.42 kid a00-6821a1b9 DONE (9 items; 31 prod / 109 test = disclosed ceiling override; F5 INAPPLICABLE in graph;
+          returned config diff for anonymize.email_allow ALSO widens .service -> route to SM/Prime, never land by hand)
+          loop tip 83047de404 (worktree /mnt/agi-ram/worktrees/a00-07ef8482); re-mur unit agi-director-general-3-dg3mur-dg6-04d-0945
+          (args /tmp/dg3_mur-dg6-04d.json, key dg6-04d, old edfef83cc5) -> residues 0 -> [merge-up] to SM -> GO -> land
+       DG3.43 parent a00-390a8bd6 (pi-free) on season2/loops/hypothesis-g133-one-resolve-old--a00-390a8bd6; manifest in
+          .agi/worktrees/de-base-DG3.43 (remove it after harvest; new worktrees go under config:guard GUARD_RAM_WORKTREES_local_town)
+       mur DG5.01 goal:g1.31.4.1 unit agi-director-general-3-dg3mur410832 (2/3 reviews in; harvest worktree
+          /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1, tip adb1bd23fd, MB 10dcb7b94f; my read: caveat_residue.py = residue)
+       watcher: background task on the 3 above + inbox
+QUEUE  DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (RAM worktrees; F2 = zero new worktrees under .agi/worktrees: I made 4 on
+       disk this gen, 3 removed) -> goal:g7.16.1.5.5.6 (a PARENT) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
+FINDINGS (rows for goal:g7.33.19; HOLD: row 26 there is another post's uncommitted line -> write when clean)
        a kid cannot commit a foreign node in a node-answer round (experiment:a00-f2101f34-dd2328)
        adapters resolve_bin mis-prefixes a tilde-user bin cell with the current home (fails closed; experiment:a00-73aeae86-75e0f3)
-       a mur reviewer read a live DMI file and printed a board model (redacted; [red] sent to belam 09:3xZ)
-       mur reviewers print pre-rewrite shas + old->new pairs in verdict JSON (dg6-03c verify): focus text must say count only
+       a mur reviewer read a live DMI file and printed a board model (redacted; [red] to belam 09:3xZ)
+       mur reviewers print pre-rewrite shas + old->new pairs in verdict JSON: every focus says count only (done in dg6-04d)
+       test_sensei_wake_audit::TestSLO8WhosPrefix::test_item2_live_f2_whois_rederive RED on MAIN (live config:rotations facts collapsed 09-27)
+       DG3.42 parent let its kid pass the CEILING (31/30 prod, 109/80 test) -- disclosed, accepted; same shape as row 25
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair into a node, test, commit or dm
 HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces it
 NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids
 ```
 
 ## §2 Landed
-gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · complete g1.31.3.1.1 f799611a7e · g1.31.3.1.2 53d80c9b2e · card re-link e55588ff06 · DH.DG3.42 orders 90e1f70a64
+gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · complete g1.31.3.1.1 f799611a7e · g1.31.3.1.2 53d80c9b2e · g1.33 4fc6e50d80 · DH.DG3.42 orders 90e1f70a64
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-Waiting on SM's GO for dg6-03, the DG3.42 parent, and the g1.31.4.1 mur. First command:
+Waiting on the dg6-04d re-mur, the g1.31.4.1 mur and parent DG3.43 (LIVE above). First command:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; python3 extensions/agi/bin/spawn_budget.py status
 ```
