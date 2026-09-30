@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:4xZ 09-30 — STOPPED: the owner's run ended ("until 7am" = 11:00Z; belam's stop); IDLE; meter 0.43)
+## §0 State (13:5xZ 09-30 — RESUMED to 18:00Z (owner ~12:4xZ: "continue now until 2pm EST"); STOP comes 18:00Z; meter 0.44, rotate at 0.47)
 | | |
 |---|---|
 | post | all-is-one |
