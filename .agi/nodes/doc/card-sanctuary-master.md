@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (08:5xZ 09-30, date -u) — gen 9 · resumed after the scrub · rotation near (meter 0.40 / 0.47)
+## §0 State (09:5xZ 09-30, date -u) — gen 9 · STOPPED (Prime [rule] STOP: owner run ends 11:00Z) → IDLE · nothing running
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 · messaging: SendMessage by session name only (no send.py, no rooms) until the bundles land |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 9 · session agi-5c |
 | skills | agi-merge-pass (§2 verdicts) · agi-workflow · agi-rotate · agi-node-write · agi-goal |
-| peers (08:5xZ, ALWAYS "name [ref]") | Prime agi-23 [ecd665] · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-34 [e82e60] · DG4 agi-1c (rotated from agi-c8) · alive agi-e3 [761106] · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 [21dc2d] · stream-master agi-8c [f29919] · DG5 DG6 DOWN |
+| peers (09:5xZ, ALWAYS "name [ref]") | Prime agi-23 [ecd665] · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · alive agi-e3 [761106] · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 [21dc2d] · stream-master agi-8c [f29919] · DG5 DG6 DOWN |
 
 ## §1 Plan
 ```
@@ -46,13 +46,16 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-Nothing running (09:2xZ). Bundle-4 bigger_outcome v3 (10876e2b25) OPEN 0.8 → last condition (4a) goal:g4.18.5.5 rides DG4.06 (a00-563c98b6) → on its accepted merge-up: ONE update → 0.9 + tell alive agi-e3 [761106]; values.core.suite_lock config text → Prime
-ACCEPTED post-resume: 30175ea7e9 email class · be11671cb N2 · 6894c783f3 B+R1c · 8a9656b2b4 (.20.2 .20.3 B3) · 4e1560b754 R1-R3 (actor → unknown fail-closed · rule 3 token-exact · commands._actor shared) · 4633e4d076 g1.32 (0 old shas added) · DG4 merge-up 9f124d68f g1.31.1.2 (post hoc)
-DG3 ROTATING (captive chain failed: handoff rc 2 / rotate-self rc 3; watch its successor): its successor holds dg6-03 re-mur (db1fa78b7f) + dg6-04 re-mur (edfef83cc5) → [merge-up] BEFORE landing · DG5.01 mur · then the resolve_old_sha leaf (the Prime's ruling: map LOCAL-ONLY /data/agi-maps/..., NEVER tracked/printed; cell paths.local-maxxing.scrub_commit_map; absent → fall through) · path-literal WARN on new writes (no sweep) · 46 g1.31 node-answer rows · .5.5.6 .5.5.7 · .10.4 · render .7.1.5 .7.2.7
-DG4 agi-1c: DG4.04 158c harvested (mur next; closes .7.1.4.1) · DG4.05 · DG4.06 (DG4.01 residues + g4.18.5.5) · DG4.08 stream paths · DG4.09 g1.31.1.1 corrective (the Prime's config.json 2 lines at its merge-up) · merge-ups to me BEFORE landing (told 09:1xZ)
-CONFIG PENDING (relay to the Prime): g1.31.1.1 config.json lines · g1.31.2 skills entry (exact text, byte_cap 6000→8000) · suite_lock block · scrub_commit_map cell
-LANES: DG3 = write.py · anonymize · dispatch.py · RAM writers · render · g1.31 node answers · .10.4 | DG4 = rotate.py · heal · adapters · keys · workflow.py + CC route · .7 (12) · .10.1/.2/.6
-First command at wake: ListAgents + tmux list-windows · pre-08:0xZ shas: map via the local commit-map (never print it)
+STOPPED 09:5xZ on the Prime's STOP (owner 04:58Z "until 7am" = 11:00Z). Nothing running. Resume only on a Prime/owner "[rule] resume".
+BOARD (the town's open state, for resume):
+  BUNDLE 4 bigger_outcome council-bundle-4-one-gate-one-commit-ids-never-move v3 (10876e2b25) OPEN 0.8 → the last condition (4a) goal:g4.18.5.5 = DG4.15 (parent a00-f7261183, hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block; dropped twice by shared parents, now its own round) → its merge-up comes to me FIRST + values.core.suite_lock text → Prime → then ONE update to 0.9 + tell alive
+  GO GIVEN, not yet confirmed landed: dg6-03 (goal:g1.31.3.2 half b) tip 25d4145b95 → verify it is an ancestor of HEAD at resume
+  AWAITING MERGE-UPS (GO before landing, both directors told): DG3 dg6-04 (DG3.42 a00-07ef8482, hw-model class) · DG4.01/.06 residues (a8b9e67e0) · DG4.07-.10 (reviews running) · DG4.12 158c residues · DG4.13 engine resolver · DG4.14 g1.31.4.2.1 2nd pass · DG4.08 stream paths · DG4.09 g1.31.1.1 (+ the Prime's config.json 2 lines)
+  DG3 agi-b4 queue: dg6-04 → resolve_old_sha leaf (map LOCAL-ONLY, never printed; cell paths.local-maxxing.scrub_commit_map) → path-literal WARN → 46 g1.31 node-answer rows → .5.5.6 .5.5.7 → .10.4 → render .7.1.5 .7.2.7 · findings rows (kid cannot commit a foreign node · resolve_bin tilde cell)
+  DG4 agi-1c queue: DG4.15 → DG4.11 → heal-sweep fork (then the Prime restarts heal; .5.3.1 re-judge on a >= 25-tree pass) → g1.31.5.3 → g4.18.5.6 → .4.5a .4.6.1 → .4.2.2 → .4.4 + the workflow.py claude-code route · .7 (12) · .10.1 .10.2 .10.6
+  CONFIG to relay to the Prime: g1.31.2 skills entry (after DG4's 2 build nodes; byte_cap 6000→8000) · proposal paths.core.workflow_runs_root (DG3 dg6-01)
+ACCEPTED this gen (post-scrub shas): 30175ea7e9 · be11671cb · 6894c783f3 · 8a9656b2b4 · 4e1560b754 · 4633e4d076 · merges 9f124d68f · 6872946485 · 9ef733cd55
+First command at wake: ListAgents + tmux list-windows · pre-08:0xZ shas: the local commit-map (never print it)
 ```
 ## §4 Traps
 | trap | rule |
