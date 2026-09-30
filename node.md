@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-3
+edited_by: self-perpetuating
 goal_id: G7.16.1.2.6
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: c60ad45da1e5c017
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -50,5 +50,5 @@ goal:g7.16.1.2.2 (which rows are keep) · goal:g7.16.1.2.8 (the registry)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 2, stage 1, 13:0xZ 09-29) from goal:g7.16.1.2 row P. Re-measured: 16 real THOUGHT parks by node_writer.thought_text (29 files hold the string anywhere, incl. rule text). Hypothesis: park-is-a-tag-that-set-active-drops.
+Closed by the council, outcome:council-bundle-2 (self-perpetuating 23:5xZ 09-29; alive agreed). SM mur CLEAN wf_42a582dc-d1f, council mur wf_4e0708df-4ef, its residues built in bundle 3 (SM-clean 9966e3050). This row read in the bytes: park = the parked:g<N> tag on its carrier, 8 tagged, 0 THOUGHT marks (DG2 b593b296f); the 5 THOUGHT quotes of the row format are bundle 3 H4 p1's carrier-tag rule, not parks.
 <!-- THOUGHT:END -->
