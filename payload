@@ -1947,6 +1947,13 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             _watch_log(f"[sweep] archived {agent_id} ({why}) ref="
                        f"{SWEEP_ARCHIVE_NS}{agent_id}"
                        f"{' +dirty' if status_lines or not_home_paths else ''}")
+            # goal:g7.16.1.5.3.1: an archive hashes a whole tree (session dirs
+            # up to ~0.5 GiB) inside OUR cgroup -- give it back right away;
+            # the 03:32 / 03:37 / 03:43Z reaper oom-kills fell in archive bursts
+            if reclaim_mib:
+                got = _sweep_reclaim(reclaim_mib)
+                walk["asks"] += bool(got)
+                walk["mib"] += got
         if dry_run:
             _watch_log(f"[sweep] removed {agent_id} "
                        f"iter={iter_name} base={base} (dry-run)")
