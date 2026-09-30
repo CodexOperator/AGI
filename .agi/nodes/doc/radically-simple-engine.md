@@ -59,7 +59,22 @@ Rows: src/seatsig/ (1,930) SCRAP -> git SSH signing + the kernel · send.py keyg
 (pending: all-is-one)
 
 ## §3 Render = the git graph or an off-shelf package
-(pending: all-is-one)
+**What am I ACTUALLY trying to get the machine to do here?** Show any reader, human or model, the graph's shape and one node's story, from the SAME files, by ONE path.
+
+```
+edges     = frontmatter `parents:`       (already the graph; no store beyond the files)
+versions  = git log --follow -- <node>   (one write = one commit, §2: the grid is git's own history)
+picture   = one short emitter -> graphviz DOT / JSON  (off-shelf: graphviz; graphweb's 3D view reads the same JSON)
+the node  = cat <file> + git log -1 --format=%B (its THOUGHT, §2)
+the kid   = viewport.py --emit llm       (THE one render script: one stream, two readers, g2.19 / g4.18.7)
+```
+Decided:
+- **viewport.py stays as the ONE render script.** Everything else that renders is either a reader of its stream or retires: zoom / brief / briefing assembly becomes the files each user's harness already loads (§1 settings symlinks); `write.py 'read body N:M'` retires with write.py; `grid.py log|diff|versions|payload` = `git log|diff|show`.
+- **BUILD-CONTRACT regeneration is render, not write.** A regenerated block inside an authored file is a second writer; render derives it on read and never commits it back.
+- **refs/grid/\* freezes, never deleted.** New versions stop landing there; the existing refs stay as the archive of the pre-simple era (Nothing is deleted).
+- A second read path is the defect this section exists to prevent: every reader reads files through viewport or plain git.
+
+Rows: grid.py 95 KB REPLACE-BY git log/show (refs frozen) · stitch.py 51 KB REPLACE-BY `git archive <sha>` (it assembled a tree from grid versions) · viewport.py 53 KB KEEP, the one render · graphweb.py 56 KB + dashboard.py 31 KB KEEP, optional human views over the same JSON · zoom.py + brief.py + briefing.py 207 KB REPLACE-BY, mostly: harness-loaded files.
 
 ## §4 No standing worktrees
 (pending: self-perpetuating)
