@@ -11,7 +11,7 @@ goal_kind: subgoal
 scaffold_hash: b6531d46e92257b4
 season: 2
 status: active
-title: "G7.16.1.5.5.1: the RAM disk's pages charge to their own agi-ram.slice, never to the slice that first wrote them"
+title: "G7.16.1.5.5.1: the RAM disk's pages charge to their own ramdisk.slice, never to the slice that first wrote them"
 town: core
 ---
 # goal:g7.16.1.5.5.1
@@ -20,20 +20,24 @@ town: core
 goal:g7.16.1.5.5 (the RAM disk is its OWN budget line). Measured by DG5 03:1xZ-03:3xZ 09-30: MAIN is on the RAM tmpfs; agi-engine.slice read shmem 706 MiB with its live units holding 5 (the rest reparented from dead units), then current 2301 MiB of the 3G stopgap as heal's sweep homed iter dirs into MAIN from the reaper. A tmpfs page stays charged to the cgroup that first wrote it and is reparented to that cgroup's PARENT when the unit dies; oomd killing an engine unit frees none of it (the pages outlive every process), so reaper and sanctuary-watch were killed repeatedly for pages they could not release.
 
 ## Target end-state
-- guard-init.sh layer 3 writes `agi-ram.slice`, a sibling of agi.slice under user@: MemoryMax = the config:guard cell GUARD_RAM_BUDGET_<box> (default: the tmpfs size), MemorySwapMax per the user row, and NO ManagedOOM (a kill cannot free tmpfs).
-- ONE engine helper gives the argv that runs a bulk RAM-disk write as a transient unit under agi-ram.slice (`systemd-run --user --slice=agi-ram.slice --wait --collect`), so the pages reparent to agi-ram.slice when it exits; every engine bulk writer into GUARD_RAM_DIR goes through it.
-- A one-shot recharge: a file charged to another slice is rewritten (copy + rename) by a unit in agi-ram.slice, releasing the old charge.
+- guard-init.sh layer 3 writes `ramdisk.slice`, a sibling of agi.slice under user@: MemoryMax = the config:guard cell GUARD_RAM_BUDGET_<box> (default: the tmpfs size), MemorySwapMax=0, and NO ManagedOOM (a kill cannot free tmpfs).
+- ONE engine helper gives the argv that runs a bulk RAM-disk write as a transient unit under ramdisk.slice (THE one scope-argv builder mem_cap.scope_argv: `systemd-run --user --scope --slice=ramdisk.slice`), so the pages reparent to ramdisk.slice when it exits; every engine bulk writer into GUARD_RAM_DIR goes through it.
+- A one-shot recharge: a file charged to another slice is rewritten (copy + rename) by a unit in ramdisk.slice, releasing the old charge.
 
 ## Invariants
-- A tmpfs byte is charged to agi-ram.slice or to a live writer, never parked on agi-engine.slice or agi-work.slice after its writer exits.
-- No oomd kill domain contains agi-ram.slice.
+- A tmpfs byte is charged to ramdisk.slice or to a live writer, never parked on agi-engine.slice or agi-work.slice after its writer exits.
+- No oomd kill domain contains ramdisk.slice.
 
 ## Falsifier
-1. A test drives the helper on a dummy tree: the argv names --slice=agi-ram.slice and --wait; guard-init's rendered layer 3 carries agi-ram.slice with MemoryMax from the cell and no ManagedOOM line.
-2. Negative (on the box, after apply): writing a 64 MiB file into GUARD_RAM_DIR through the helper leaves agi-engine.slice shmem unchanged (+/- 4 MiB) and raises agi-ram.slice shmem by ~64 MiB.
+1. A test drives the helper on a dummy tree: the argv is mem_cap.scope_argv(argv, ramdisk.slice); guard-init's rendered layer 3 carries ramdisk.slice with MemoryMax from the cell and no ManagedOOM line.
+2. Negative (on the box, after apply): writing a 64 MiB file into GUARD_RAM_DIR through the helper leaves agi-engine.slice shmem unchanged (+/- 4 MiB) and raises ramdisk.slice shmem by ~64 MiB.
 
 ## Out of scope
 goal:g7.16.1.5.5.2 · goal:g7.16.1.5.5.3 · heal's homing landing cold (DG4) · applying guard-init on the box (the Prime, sudo)
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+'director-general-5 05:3xZ 09-30, review R4 of 786c1c13a: the body now matches the code. (1) The slice is ramdisk.slice, never agi-ram.slice: systemd nests a dashed slice name inside its prefix, so agi-ram.slice would sit inside agi.slice and its ManagedOOM 40 pct kill domain, the one place a tmpfs page must not be counted. (2) MemorySwapMax=0: the RAM disk exists to hold hot files in RAM; swapping its pages defeats the tier and adds io on a shared box, and DG4 measured that memory.reclaim frees none of these pages anyway. (3) The helper is mem_cap.scope_argv (a --scope under the slice) after self-perpetuatings coverage review found a second systemd-run argv (regression of goal:g7.16.1.7.1.1); a scope is synchronous, keeps stdio, and falls back to the plain argv when systemd-run is unusable (review R1). Live probes: 64 MiB (transient unit) and 32 MiB (scope) each left agi-engine.slice shmem unchanged and landed on ramdisk.slice, 0 after rm.'
+<!-- THOUGHT:END -->
