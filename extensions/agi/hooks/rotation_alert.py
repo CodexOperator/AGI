@@ -564,13 +564,16 @@ def _merge_head_present(root: Path) -> bool:
 
 
 def _suite_lock_held(root: Path) -> bool:
-    """A LIVE runner holds `<sessions>/verify-suite.lock` (verification.py). A
+    """A LIVE runner holds the suite lock in `<sessions>/` -- named by
+    `values.core.suite_lock.file` through `verification.suite_lock_name`, the
+    ONE resolver. A
     lock whose holder pid is dead (or unparseable/absent) is stale-broken — NOT
     held — mirroring acquire_suite_lock's dead-pid break."""
     s = _shared_sessions_dir(root)
     if s is None:
         return False
-    lock = s / "verify-suite.lock"
+    import verification  # noqa: PLC0415 -- bin/ is on sys.path above; the ONE resolver
+    lock = s / verification.suite_lock_name(root)
     if not lock.exists():
         return False
     try:

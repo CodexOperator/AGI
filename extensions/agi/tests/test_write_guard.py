@@ -728,6 +728,40 @@ def test_b4_w1b_the_suite_lock_name_comes_from_one_config_block(project, capsys)
     assert "other.lock" in out and "verify-suite.lock" not in out
 
 
+def test_b4_w1b_the_suite_lock_policy_block_carries_the_write_wait(project, capsys):
+    """`values.core.suite_lock` = {file, write_commit_wait_s, hold}: ONE block,
+    ONE resolver. The wait is read from the block FIRST; today's
+    `values.core.write_commit_wait_s` stays the STOPGAP fallback only."""
+    sys.path.insert(0, str(BIN))
+    import verification  # noqa: E402 -- the resolver's own module
+    cfg = project / ".agi" / "config.json"
+    cfg.write_text(json.dumps({"values": {"core": {"write_commit_wait_s": 99,
+                                                  "suite_lock": {
+                                                      "file": "other.lock",
+                                                      "write_commit_wait_s": 0.01,
+                                                      "hold": "live-foreign-pid"}}}}))
+    assert verification.suite_lock_policy(project) == {
+        "file": "other.lock", "write_commit_wait_s": 0.01,
+        "hold": "live-foreign-pid"}
+    assert write._commit_wait_s(project) == 0.01     # the block WINS over 99
+    cfg.write_text(json.dumps({"values": {"core": {"write_commit_wait_s": 7}}}))
+    assert write._commit_wait_s(project) == 7.0      # STOPGAP, absent block cell
+
+
+def test_b4_w1b_the_resolver_refuses_a_file_that_is_not_a_bare_name(project, capsys):
+    """A cell is not a path: '../x.lock', 'a/b.lock' and '/abs.lock' are
+    REFUSED BY NAME (one warning naming the refused value), and the STOPGAP
+    default answers instead."""
+    sys.path.insert(0, str(BIN))
+    import verification  # noqa: E402
+    cfg = project / ".agi" / "config.json"
+    for bad in ("../x.lock", "a/b.lock", "/abs.lock"):
+        verification._SUITE_LOCK_REFUSED.clear()
+        cfg.write_text(json.dumps({"values": {"core": {"suite_lock": {"file": bad}}}}))
+        assert verification.suite_lock_name(project) == "verify-suite.lock", bad
+        assert bad in "".join(capsys.readouterr())
+
+
 def test_b4_w1b_dry_run_and_a_refused_gate_commit_nothing(project):
     g, head = _w1b(project)
     for argv in (["set confidence 0.5", "--dry-run"], ["set id hypothesis:zz"]):

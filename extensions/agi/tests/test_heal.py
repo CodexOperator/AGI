@@ -484,6 +484,22 @@ def test_stale_lock_skip_leaves_a_clean_sessions_dir_alone(tmp_path,
     assert "removed stale verify-suite.lock" not in text, text
 
 
+def test_stale_lock_clean_reads_the_name_from_the_config_block(tmp_path,
+                                                              monkeypatch):
+    """heal.py resolves the stale lock through `verification.suite_lock_name`:
+    a block naming `other.lock` is the file unlinked, and the default name is
+    left alone (no `verify-suite.lock` literal in extensions/agi/bin)."""
+    gdir, wt = _wt_graph(tmp_path, worktree=True)   # the GEOMETRY dir is wt/.agi
+    (wt / "config.json").write_text(json.dumps({"values": {"core": {
+        "suite_lock": {"file": "other.lock"}}}}))
+    lock = wt / "sessions" / "other.lock"
+    lock.write_text("1", encoding="utf-8")
+    monkeypatch.setenv("AGI_REAPER_LOG", str(tmp_path / "reaper.log"))
+    heal._clean_stale_layout_locks(gdir, WT_ROW)
+    assert not lock.exists()
+    assert (wt / "sessions" / "verify-suite.lock").exists() is False
+
+
 def test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry(
         tmp_path, monkeypatch, capsys):
     """THE DEFENSIVE `gdir is None` ARM, as a real gate: `_seat_geometry_dir`

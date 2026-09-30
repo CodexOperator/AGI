@@ -887,6 +887,24 @@ def _over_line_seat_fixture(tmp_path):
 
 
 # --- gate (b) FIRST — the merge-up-in-flight gate is THE point of the node ---
+def test_suite_lock_held_reads_the_name_from_the_config_block(tmp_path, monkeypatch):
+    """The hook resolves the lock path through `verification.suite_lock_name`
+    -- no `verify-suite.lock` literal in extensions/agi/hooks. A block naming
+    `other.lock` is honoured; a block naming `third.lock` is not read."""
+    monkeypatch.setattr(hook, "_shared_sessions_dir", lambda root: root / "sessions")
+    root = tmp_path / ".agi"
+    (root / "sessions").mkdir(parents=True)
+    (root / "config.json").write_text(json.dumps({"values": {"core": {
+        "suite_lock": {"file": "other.lock"}}}}))
+    lock = root / "sessions" / "other.lock"
+    lock.write_text(str(os.getpid()))          # this test's own LIVE pid
+    assert hook._suite_lock_held(root) is True
+    (root / "config.json").write_text(json.dumps({"values": {"core": {
+        "suite_lock": {"file": "third.lock"}}}}))
+    lock.unlink()
+    assert hook._suite_lock_held(root) is False
+
+
 def test_live_suite_lock_defers_rotation(tmp_path, run_hook, monkeypatch, capsys):
     """A LIVE verify-suite lock holds gate (b): the hook prints the deferral
     and does NOT rotate. A rotation landing mid-merge is worse than one extra

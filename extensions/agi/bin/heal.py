@@ -52,6 +52,7 @@ import rotation_record  # noqa: E402 -- the ONE record serializer (home-relative
 import adapters  # noqa: E402 -- the shared (tier, role, harness) resolver
 import spawn_gate  # noqa: E402
 import spawn_budget  # noqa: E402 -- liveness reader for the worktree sweep (hyp:l4-a-finished-rounds-worktree-is-removed-after-harvest)
+import verification  # noqa: E402 -- the ONE suite-lock name resolver (suite_lock_name)
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 def _default_role_for_tier(tier):
     """Mirror dispatch's default (role == tier) for the heal path."""
@@ -3357,11 +3358,11 @@ def _load_launcher(launcher) -> callable | None:
 
 
 def _clean_stale_layout_locks(root: Path, row: dict) -> None:
-    """GRACEFUL: a stale `verify-suite.lock` under the dead seat's tree is
-    removed with a log line (verification.py holds it under `<groot>/sessions/`;
-    the dead seat is the only holder that could still be mid-suite, and a stale
-    lock would wedge the next suite run forever). Live-first geometry tree;
-    best-effort, never raises.
+    """GRACEFUL: a stale suite lock (`values.core.suite_lock.file`,
+    `verification.suite_lock_name`) under the dead seat's tree is removed with
+    a log line (verification.py holds it under `<groot>/sessions/`; the dead
+    seat is the only holder that could still be mid-suite, and a stale lock
+    would wedge the next suite run forever). Best-effort, never raises.
 
     THE `gdir is None` ARM IS DEFENSIVE, NOT REACHABLE-BY-GEOMETRY: the ONE
     caller -- the watch loop's `_clean_stale_layout_locks(root, row)`, after its
@@ -3373,11 +3374,11 @@ def _clean_stale_layout_locks(root: Path, row: dict) -> None:
         _watch_log(f"watch: no geometry for dead seat "
                    f"{(row.get('name') or '')!r}; stale-lock clean skipped")
         return
-    lock = gdir / "sessions" / "verify-suite.lock"
+    lock = gdir / "sessions" / verification.suite_lock_name(gdir)
     if lock.is_file():
         try:
             lock.unlink()
-            _watch_log(f"watch: removed stale verify-suite.lock under "
+            _watch_log(f"watch: removed stale {lock.name} under "
                        f"{gdir} for dead seat {(row.get('name') or '')!r}")
         except OSError as exc:
             print(f"warn: could not remove stale lock {lock}: {exc}",

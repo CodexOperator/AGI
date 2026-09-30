@@ -93,14 +93,30 @@ PROC = Path("/proc")
 #: exits-3-from-one-lock-policy-block) until the Prime lands the block.
 #: Under <groot>/sessions/ either way. Deleted with the block's cutover.
 _DEFAULT_SUITE_LOCK_FILE = "verify-suite.lock"
+#: STOPGAP fallback of the HOLD RULE, read instead from
+#: `values.core.suite_lock.hold` until the Prime lands the block: HELD by a
+#: live pid that is not this process (stale-breaking: `acquire_suite_lock`).
+DEFAULT_SUITE_LOCK_HOLD = "live-foreign-pid"
+_SUITE_LOCK_REFUSED: set = set()   # refused cells, warned ONCE per process
 
 
-def suite_lock_name(groot) -> str:
-    """`values.core.suite_lock.file` for THIS graph root -- the ONE resolver
-    write.py names its refusal with. Absent cell = the fallback above, inside
-    this function only, so no module constant carries the policy a second
-    time (config-max: one block, one reader)."""
+def _refuse_suite_lock_cell(cell: str, value, why: str) -> None:
+    """ONE warning naming the REFUSED value (a cell is not a path; a rule this
+    build does not implement is not a rule), once per process per cell."""
+    key = f"{cell}={value!r}"
+    if key in _SUITE_LOCK_REFUSED:
+        return
+    _SUITE_LOCK_REFUSED.add(key)
+    print(f"WARN: values.core.suite_lock.{cell} {value!r} {why} -- refusing it", file=sys.stderr)
+
+def suite_lock_policy(groot) -> dict:
+    """`values.core.suite_lock` = {file, write_commit_wait_s, hold} -- the ONE
+    resolver over the lock policy: the NAME, the WRITE WAIT and the HOLD RULE,
+    so the rule travels with the name
+    (hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block).
+    Absent cells = the fallbacks above, inside this function only."""
     root = Path(groot)
+    cell: dict = {}
     for base in (root, root / locations.GRAPH_DIR_NAME):   # graph dir OR repo root
         path = locations.config_path(base)
         if path is None:
@@ -108,12 +124,32 @@ def suite_lock_name(groot) -> str:
         try:
             cell = (((json.loads(path.read_text(encoding="utf-8"))
                       .get("values") or {}).get("core") or {}).get("suite_lock") or {})
-            name = cell.get("file")
         except (OSError, TypeError, ValueError, AttributeError):
             continue
-        if isinstance(name, str) and name:
-            return name
-    return _DEFAULT_SUITE_LOCK_FILE
+        if not isinstance(cell, dict):    # a bad block is no block
+            cell = {}
+        if cell:
+            break
+    file_name = _DEFAULT_SUITE_LOCK_FILE
+    name = cell.get("file")
+    if isinstance(name, str) and name:
+        if ".." not in name and Path(name).name == name:
+            file_name = name          # a bare FILE name; a cell is not a path
+        else:
+            _refuse_suite_lock_cell("file", name, "is not a bare FILE name (no '/', no '..')")
+    hold = cell.get("hold")
+    if isinstance(hold, str) and hold != DEFAULT_SUITE_LOCK_HOLD:
+        _refuse_suite_lock_cell("hold", hold, "is not a rule this build implements")
+    if not isinstance(hold, str) or hold != DEFAULT_SUITE_LOCK_HOLD:
+        hold = DEFAULT_SUITE_LOCK_HOLD
+    return {"file": file_name, "write_commit_wait_s": cell.get("write_commit_wait_s"),
+            "hold": hold}
+
+
+def suite_lock_name(groot) -> str:
+    """`values.core.suite_lock.file` -- the ONE name write.py, heal.py,
+    rotation_alert.py and this module all read."""
+    return suite_lock_policy(groot)["file"]
 
 #: The env marker a caller that ALREADY holds the suite lock exports into the
 #: suite it spawns, naming its own live pid. `_suite_lock_guard` reads it so

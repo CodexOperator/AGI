@@ -4203,17 +4203,30 @@ def main(argv: list[str] | None = None) -> int:
 
 
 #: goal:g4.18.5.2.1 -- the node is written but NOT committed (a busy index
-#: past the `values.core.write_commit_wait_s` budget): never exit 0 over it.
+#: past the `values.core.suite_lock.write_commit_wait_s` budget): never exit 0 over it.
 EXIT_UNCOMMITTED = 3
 
 
 def _commit_wait_s(root) -> float:
-    """`values.core.write_commit_wait_s` (goal:g4.18.5.2.1), default 30."""
+    """`values.core.suite_lock.write_commit_wait_s` -- the wait belongs to the
+    lock POLICY (one block, one resolver), not to a cell of its own. Absent
+    block cell = today's `values.core.write_commit_wait_s`, then 30: both
+    fallbacks STOPGAP, until the Prime lands the block."""
+    import verification  # noqa: PLC0415 -- the ONE lock-policy resolver
+    cell = verification.suite_lock_policy(root).get("write_commit_wait_s")
+    if cell is None:
+        for base in (Path(root), Path(root) / locations.GRAPH_DIR_NAME):
+            try:
+                cfg = json.loads(locations.config_path(base).read_text(encoding="utf-8"))
+                cell = ((cfg.get("values") or {}).get("core") or {}).get("write_commit_wait_s")
+            except (OSError, TypeError, ValueError, AttributeError, json.JSONDecodeError):
+                continue
+            if cell is not None:
+                break
     try:
-        cfg = json.loads(locations.config_path(Path(root)).read_text(encoding="utf-8"))
-        v = float(((cfg.get("values") or {}).get("core") or {})["write_commit_wait_s"])
+        v = float(cell)
         return v if v >= 0 else 30.0
-    except (OSError, TypeError, ValueError, KeyError, AttributeError, json.JSONDecodeError):
+    except (TypeError, ValueError):
         return 30.0
 
 
