@@ -21040,13 +21040,34 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # The JOIN was ATTEMPTED and no registry file matched the successor's
         # window @id: the rotation is NOT a success. Record `skipped` naming
         # `registry file for @<id>` (proof a).
-        _write_rotation_record(root, _rotate_self_record(
-            seat=seat, role=role, result="skipped",
-            gen_before=gen_before, gen_after=gen,
-            succ=succ, handover=handover,
-            readback_log=Path(dbg).expanduser().resolve(),
-            refusal=joined["note"]), path=rec_path)
-        print(f"ERR: {joined['note']}; rotation NOT reported success.",
+        # (hypothesis:a-skipped-rotate-join-leaves-no-stranded-window) the
+        # successor spawned at (4) is LIVE here (stranded, seq 348). Row 34:
+        # flag first (the record heal polls, action `pending`), then kill by
+        # @id (rotate is the ONE owner), then rewrite the record with what
+        # `_kill_window` did: killed | already_gone | error.
+        st = handover["stranded"] = {
+            "action": "pending", "window": spawn_name, "id": succ_window_id,
+            "why": "join not found; the spawned successor window would "
+                   "otherwise stay live under the bare post name"}
+        for _phase in (0, 1):
+            if _phase:
+                st["action"] = _kill_window(
+                    spawn_name, tmux_session, args.window_path,
+                    window_id=succ_window_id)
+            try:
+                _write_rotation_record(root, _rotate_self_record(
+                    seat=seat, role=role, result="skipped",
+                    gen_before=gen_before, gen_after=gen,
+                    succ=succ, handover=handover,
+                    readback_log=Path(dbg).expanduser().resolve(),
+                    refusal=joined["note"]), path=rec_path)
+            except OSError as exc:
+                if _phase:
+                    raise
+                print(f"NOTE: pre-kill record write failed ({exc}); killing anyway.", file=sys.stderr)
+        print(f"ERR: {joined['note']}; rotation NOT reported success. "
+              f"Stranded successor window {spawn_name!r} "
+              f"({succ_window_id}) {st['action']}.",
               file=sys.stderr)
         return 1
 
