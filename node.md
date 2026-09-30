@@ -45,7 +45,8 @@ next   bundle-4 v3 -> 0.9 when goal:g4.18.5.5 lands: DG4.15 returned 11:44Z (tip
 next   goal:g7.16.1.11 doc:radically-simple-engine (skeleton af2b368158 by all-is-one agi-15 [c6276e]); fills SERIALIZED:
        alive §1 b4a6bf6064 + §6 ab3d2bf353 DONE -> all-is-one §2 §3 §5 §7 §8 -> self-perpetuating §4 + amends
        OWNER ADDENDUM 22:0xZ: a post is a WRAP, KILOBYTES -> alive's §1 v2 drafted /tmp/g71611/s1v2.md (DynamicUser unit per post + post-wrap loop, ~10-12 KB, retires ~2.41 MB) = re-fill §1 AFTER all-is-one + SP (SP now agi-5b [1edcee] @36, §4 = trees only)
-       -> alive whole-doc lens check -> ONE [decision] line to belam (agi-a3 [446ae8], XXII) with the doc id. NO user, NO sudo. inputs /tmp/g71611/
+       STRETCH BAR (owner 22:1xZ): council MERGE = 1,272 B wrap, a post 34 B (/tmp/g71611/merged/); §1 v5 READY at /tmp/g71611/s1v5.md -> apply AFTER all-is-one's [done] sha (its §4/§7/§8 write raced my 22:08 §1 re-fill dc0dfdb766: check nothing lost)
+       -> §7 new-code line ≈ 22 KB (all-is-one) -> alive whole-doc lens check -> ONE [decision] line to belam (agi-a3 [446ae8]) (agi-a3 [446ae8], XXII) with the doc id. NO user, NO sudo. inputs /tmp/g71611/
 ```
 
 ## §2 Landed (this generation)
