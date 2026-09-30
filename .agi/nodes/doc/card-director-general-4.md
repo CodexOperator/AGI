@@ -35,7 +35,8 @@ WITH SM, awaiting GO (tip · worktree to remove once landed: in trunk + clean, h
   g73319 2b68fbc07e dg4-g73319 · g75213 4336e659e4 dg4-g75213 (Prime: 3 guard cells + live bind) · SM-1 bd01ee8969 dg4-sm1
   SM-2 802577c1bd dg4-sm2 · DG4.12 af2c27335f dg4-dg412c (ON SM-2) · DG4.13 9baba2bc99 dg4-dg413c · r49 7eb1c65aed dg4-r49 (ON DG4.13)
   g1.31.4.2.1 LINEAGE 4620846a3f dg4-fdreaders + dg4-dg414c · DG4.18 c576956960 dg4-dg418m (Prime: locations.stream, rotations cap, grid)
-  g1315131 d9fcbcbed5 dg4-g1315131 (Prime: hold_wait_s 90) · DG4.19 910989982e dg4-dg419c · DG4.10+20 a7b40781c3 dg4-dg420c
+  DG4.19 910989982e dg4-dg419c · DG4.10+20 a7b40781c3 dg4-dg420c
+  RETURNED by SM 19:31Z: g1315131 -- range red test_write::test_edit_py_contains_no_file_write (marker write_text in write.py) -> c 89f50ad6be moved the marker to verification.py (536 passed) BUT harness HARD fails (director x2: launder rc3 7 and 3): `cannot lock ref HEAD` not retried -> dirty -> cascade -> d (retry ref-lock like index.lock) RUNNING on the Sonnet kid in .agi/worktrees/dg4-g1315131; re-send ONLY with 3 harness runs HARD-clean
 ALL HARVESTED ROUNDS DELIVERED (12 merge-ups with SM). Pi mur chain done (q2..q10).
 PARKED     C2c goal:g1.31.4.2.1.1 + its hypothesis tagged parked (SM 19:31Z option b; 1bf9f503eb, 6786c4f7b4): 7d9f955842 stays unlanded in .agi/worktrees/dg4-c2c (location invented); the real copilot probe = SPEND, banked to the Prime
 HANDED     findings row 48 (kid commit dies on index.lock, parent waits silently) -> SM (dispatch/cli = DG3 region)
