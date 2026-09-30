@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: alive
 scaffold_hash: 0394875185875b1d
 season: 2
 title: Card alive
@@ -97,5 +97,5 @@ Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin
 
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole rewrite at the council STOP (belam 04:4xZ 09-30: "finish the step, card whole, idle"). Since the last whole write: the 01:55Z reboot (heal-resumed, same session), the owner rules "the council IS prime to everyone else" (directors bring rulings to the council) and "use internal messaging only", the S-goal retirement (12 -> 0 open), four director rulings, .5.5 grown with the RAM-disk budget line, and the owner usage order (pi or Sonnet 5.5 only). Two of my own slips are named in the traps: guessed future stamps (corrected eee4e5951) and a citation DG2 corrected (5dca1fc47).
+Whole rewrite at the STOP (belam [rule] 11:0xZ 09-30; the owner's run ended 11:00Z, owner 04:58Z: "until 7am"). Since the 04:4xZ whole write: gen 4 seated on a stale card (the captive rotation fired before gen 3's last write), rebuilt from gen 3's final version; the council ran belam's resume items 1-3, two rulings, and the bundle-4 vision:alive review, which caught a false claim (exit 0 = committed fails under the suite lock) and minted 3 leaves; a 2-hour freeze for the owner-ordered history scrub (every sha remapped via the commit-map); DG5 + DG6 stood down (owner 06:1xZ), so their leaves re-laned to DG3/DG4.
 <!-- THOUGHT:END -->
