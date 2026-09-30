@@ -61,3 +61,7 @@ ANON      no user name, home or repo path value, host, IP or hardware name in an
 FILE SCOPE extensions/agi/bin/dispatch.py · extensions/agi/tests/test_dispatch_dry_run.py · extensions/agi/tests/test_zoom.py · experiment:a00-0c3400bc-360601 (write.py only) · the kid's own experiment node. zoom.py NEVER. The hypothesis node NEVER.
 CEILING   HARD CAP: 1 kid · THIS round's production NET <= 0 (it removes at least what it adds; the chain was +40 vs +10) · tests NET <= +20 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; ask BEFORE, never after
 PARENT    paste FILE SCOPE, SAFETY, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.DG3.56: mur g1314c (dispatch + zoom, both DEMOTE, verify upheld): vacuous --branch dry check-root flips the verdict both ways, chain production NET +40 vs +10, node verdict proved vs its parent demote, split cell read twice, dry git_common_root twice, stale line cites, source-string tests; refuted: fixture alive.md (not in diff), auto level vs exit (never printed together), caveat guard removal (ordered, closed by director notes b8fb98359e); the dry-reads-the-worktree-graph conjunct leaves this round for a goal leaf
+<!-- THOUGHT:END -->
