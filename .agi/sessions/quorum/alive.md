@@ -1,1 +1,80 @@
-../../nodes/doc/card-alive.md
+---
+id: doc:card-alive
+mint_id: 873c4980ef2340dfa4af5b298318f54c
+type: doc
+parents:
+  - goal:g7.16.1
+next_edges: []
+edited_by: alive
+scaffold_hash: 0394875185875b1d
+season: 2
+title: Card alive
+town: core
+---
+# doc:card-alive — alive's card (council loop, goal:g7.16.1): the ONE scratch
+
+Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
+
+## §0 State (04:4xZ 09-30) -- IDLE at the council STOP (belam: "finish the step, card whole, idle")
+| Field | Value |
+|---|---|
+| Rotation record | gen n/a, window @16, pid 2873145, model_confirm ok. |
+| Node counts | active n/a, deprecated n/a. |
+| Tree | branch local-maxxing/season2/main, behind season2/main 0, unpushed 2. |
+| Meter | 0.404218 · role director · model claude-opus-5-5. |
+| Account | total=$192.00 used=$191.39 remaining=$0.61 |
+## §1 Plan
+```
+done   bundles 1-3 bigger outcome ACCEPTED (0.8 -> 0.65 after residue 128) · owner goal-rewrite 6/6 · g7.16.1.9 -> g7.16.1.7.3
+done   S goals 12 -> 0 open (9 retired in place · 3 renumbered · 6 remainder leaves); board line placed by belam
+       residue: 10 pending hyps under retired s18/s31/s32 -> s32 2 re-homed to g2.4.1; s31 3 CLOSED (DG2 797c9ba14; fields set c00a3960a); s18 4 + s32 1 with DG2
+done   .5 leaves checked · .5 A widened · goal:g7.16.1.5.5 = one memory-budget home + the RAM disk's OWN line (3aa03292b); belam assigns to DG5 on the next engine oomd kill or when B3 lands
+done   RULINGS: g7.16.1.7.1.4 keys (DG5: (C) own-box remint, unsigned+witnessed+finding, foreign refuses, AGI_BOX, template row)
+               g4.18.1.6 (DG3: patch accepted; replace payload NOT extended; residue 154 = (b) refuse on canonical drift, never "updated" on no-op)
+               g4.18.6.2 (DG1: (b) closed; body refs -> g4.18.6.4, declared regions only, one definition) -- applied + verified
+FIRST   ON RESUME (belam; OWNER 05:0xZ: "DG2 is talking about a running hypotheses under s31 when s31 is retired needs fixing in graph"): 5 pending hyps under retired s18 (a00-05c5c2b4-547067 a00-15d05ac0-7ef787 a01-1f2762d5-1d90c0 a01-697f4893-9bb21a) + s32 (a00-c4b84f52-f58e90) -- DG2 already minted exp + verdict node for EACH (dg2close-<slug>-check): council rules per hyp (re-parent to the live goal it serves, or close it), then set verdict + evidence_runs together (the s31 fix) and s18/s32 retired -> complete if achieved (belam did s31). Rule: a goal is never retired while a child hyp is pending.
+SECOND ON RESUME (belam; OWNER 05:1xZ: "It's weird you're still running chunk reviews it feels like that's also the councils job or something that should be automated as merges roll in. So you can keep the most zoomed out view and properly ground yourself way up high right up into the morals"): DESIGN + PLACE one goal (under g7.16.1 or g1, council's call; lens round first): a merge-up review fires automatically as each merge-up lands (per round, Sonnet 5.5 / pi-free) or the council runs it; residues -> the owning director; the Prime gives only the final merge word on the council report (RED = secrets / node deletion / broken link / protocol regression = hard stop). Reuse the Prime's passB3 tooling (build.py, ccrun.py, verdicts.py; off-graph). B4 (DG5's 3 shas + everything since 578650193) is the first under the new way.
+next   after the stop: SM's bundle-4 BIGGER_OUTCOME -> vision:alive review -> goals / bundles / nested, or none -> OVERVIEW -> belam
+       open watch: DG3 closes g4.18.1.6 on a clean SM run 25; DG2's 5 closing verdicts (s18 4, s32 1)
+```
+
+## §2 Landed (this generation)
+- a84ee34b2 832a7deb5 d46433dd9 65aa8bd62 b9dc2c83b e512319ec afe5467f3 d57b53f19 · S goals aa0bf6357 99085d912 df18a5161 c00a3960a · .5 6b2da8394 846b34e06 · .5.5 ff8beb884 b50cc8913 3aa03292b
+
+## 🔴 Where it stops
+alive gen 3 IDLE at the council stop: every ruling delivered, nothing in flight; resumes on belam's word or a director [decision]
+```
+on SM's bundle-4 handoff (SendMessage): read it + its outcomes -> vision:alive review -> goal / bundle / nested goal (agi-goal) or none -> OVERVIEW -> SendMessage agi-53 + agi-8f
+auto-captured at f=0.4042 at the captive ratio 0.85 x the line, no self-rotate
+```
+## §4 Traps
+| trap | rule |
+|---|---|
+| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; filter a dirty posts.md to YOUR hunk (git apply --cached) |
+| write.py commits each write itself, EXCEPT while .agi/sessions/verify-suite.lock is held | it prints "commit refused" and the write lands uncommitted: wait for the lock, THEN commit by exact path; never commit MAIN under the lock |
+| my timestamps were guessed TWICE | `date -u` before writing ANY time; git log --date=format-local for a past one |
+| `send.py read` shows only new blocks; a [red] sat in the inbox FILE alone | after any wake, tail the inbox file too |
+| `send.py status belam` marker stuck after an inbox send | SendMessage the Prime directly as well |
+| `sub` has no newline: `\n` lands LITERALLY | build a multi-line change in python and `replace body` the WHOLE paragraph or section |
+| `thought` rewrites the THOUGHT whole | read the old one first; carry owner verbatim forward word for word |
+| a relay says "the owner said X" | verify on the bytes (a node section, a signed inbox block) before spending; a STOP needs no proof |
+| the captive capture chain tried rotate-self at 0.4035 and FAILED rc=1 (23:4xZ) | rotate yourself (agi-rotate §2); read the ladder's capture_chain_log if it repeats |
+| grep -r / find over .agi/ or the repo root stalls the box | `git grep PATTERN -- <paths>` |
+| hypothesis verdict | set `evidence_runs [experiment:...]` WITH `verdict`, or the grid evidence gate demotes it (s31 x3, fixed d3ec89831) |
+| write.py `set` | `set key value` (a space, never key=value); a dotted value like G7.x breaks key=value |
+| replace body guard | a range must start/end on a heading or blank; to keep a THOUGHT, replace up to the line before it or carry it in the file |
+| .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
+
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5301 at 03:1xZ) · S goals: complete 22 · retired 10 · active/horizon 0
+
+## §6 BANKED
+| question | options | recommendation |
+|---|---|---|
+| row R live cutover (restart drops every post) | the Prime gen 17: dummy proof GO; live step = owner's word after PASS B3 (doc:card-belam §6) | step 1 at the cutover commit: `env AGI_LIVE_SYSTEMD=1 python3 -m pytest extensions/agi/tests/test_rotate.py -k test_r1_cutover_dummy_one_kill_is_one_post -q`; no pass line = (a) restart, never (c); form = GROUPED Delegate=yes scopes (R1 v3 b2d946498) |
+
+Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
+
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Whole rewrite at the council STOP (belam 04:4xZ 09-30: "finish the step, card whole, idle"). Since the last whole write: the 01:55Z reboot (heal-resumed, same session), the owner rules "the council IS prime to everyone else" (directors bring rulings to the council) and "use internal messaging only", the S-goal retirement (12 -> 0 open), four director rulings, .5.5 grown with the RAM-disk budget line, and the owner usage order (pi or Sonnet 5.5 only). Two of my own slips are named in the traps: guessed future stamps (corrected afe5467f3) and a citation DG2 corrected (c00a3960a).
+<!-- THOUGHT:END -->
