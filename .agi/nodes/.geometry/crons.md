@@ -42,7 +42,7 @@ cadences:
     why_box: "reads this box's own /proc and user@ cgroup (OWNER 04:0xZ 09-26, after the 03:20Z memory livelock: raise a climb toward exhaustion before the box wedges); every threshold lives here, none in code"
     cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam
 crons_live: true
-edited_by: director-general-4
+edited_by: belam
 season: 1
 services:
   agi-alarms-sanctuary-master:
@@ -66,7 +66,7 @@ thought_session: season
 title: Cron cadence declaration
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-L2a(b) (director-general-4, council-loop; goal:g7.16.1.4.1.1, placed by alive 22:3xZ): the publish_engine cadence (enabled false since goal:g11) is removed with publish-engine.sh, which it ran; removed from the node BEFORE crons.py drops it from KNOWN_JOBS, because a known job that is never declared is skipped while an unknown one with no cmd is refused, so the 5-min apply never sees an inconsistent pair. engine_push is out of this row's scope. The cadence stays readable in this node grid history.
+goal:g7.16.1.4.1.2 (DG2's L2a config finding, re-read by DG1): the body said publish_engine and engine_push 'stay out ... because their own enabled is false', but de5507a17 removed the publish_engine cadence, so only engine_push still has an enabled. The kill-switch paragraph now says engine_push stays out and publish_engine no longer exists; the g11 race scenario is put in the past tense. Prose only: crons.py show output byte-identical before and after.
 <!-- THOUGHT:END -->
 
 The scheduling cadence for this project's four recurring jobs, declared as
@@ -85,8 +85,8 @@ Setting the frontmatter boolean above to `false` is the single flip that
 removes every managed cron line at once, unconditionally — no individual
 job's own `enabled` flag can save it. This exists for exactly the situation
 this repo used it for: `goal:g11` moved the graph inside the repo it builds,
-a change to where things live on disk while four crons independently read
-and write that same disk on their own timers. `grid_sync` snapshotting
+a change to where things live on disk while four crons (then) independently
+read and wrote that same disk on their own timers. `grid_sync` snapshotting
 mid-move, `branch_push` pushing a half-moved branch, `publish_engine`
 publishing against a graph commit the move has not settled yet, `engine_push`
 committing an engine tree mid-shuffle — any one of the four racing the move
@@ -101,8 +101,9 @@ property" below for the one case where that stops being automatic.
 Setting the frontmatter boolean above to `true` reconciles the real crontab
 to match `cadences:` above: each job whose own `enabled` is also `true` gets
 installed (today: `grid_sync`, `branch_push` and the bounded-footprint jobs
-named at the end of this body; `publish_engine` and
-`engine_push` stay out regardless, because their own `enabled` is `false` —
+named at the end of this body; `engine_push` stays out regardless,
+because its own `enabled` is `false`, and `publish_engine` no longer exists —
+its cadence was removed with publish-engine.sh (goal:g7.16.1.4.1.1);
 see "Two cadences the migration made meaningless" below). This is the
 opposite of the previous section: `false` overrides every job's own flag to
 off, `true` defers to each job's own flag.

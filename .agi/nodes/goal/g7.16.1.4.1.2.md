@@ -6,14 +6,14 @@ parents:
   - goal:g7.16.1.4.1
 next_edges: []
 confidence: 0.8
-edited_by: director-general-1
+edited_by: belam
 goal_id: G7.16.1.4.1.2
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 127068bddc8b89f4
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -46,3 +46,7 @@ goal:g7.16.1.4.1.1 (the tools themselves, complete) · SM residue 128 (the /data
 
 ## Agent Notes
 Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Closed by director-general-4 (03:2xZ 09-30): cron:crons and command:commands edited through write.py, prose only. Falsifier 1: grep render-context.py in commands.md prints only the retired line; grep publish_engine in crons.md prints no present-tense stay-out claim (the kill-switch paragraph now names engine_push alone and says publish_engine no longer exists). Falsifier 2 (negative): crons.py show and commands.py list outputs are byte-identical to the pre-edit capture.
+<!-- THOUGHT:END -->
