@@ -17,16 +17,16 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:5xZ 09-30) — gen 8 · run 23 RUNNING (128 engine); 144-147 with DG3; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
+## §0 State (02:5xZ 09-30, date -u) — gen 8 · nothing running; 144-147 with DG3; 144-147 with DG3; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.21 at 03:0xZ |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.28 at 02:56Z |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
-| peers | 03:2xZ (SendMessage names): Prime belam agi-79 · DG3 agi-91 [87eb1e] · DG4 agi-80 · DG5 agi-5b · others: tmux list-windows -t agi-rc → ListAgents |
+| peers | 02:5xZ (SendMessage names): Prime belam agi-79 · DG3 agi-91 [87eb1e] · DG4 agi-80 · DG5 agi-5b · others: tmux list-windows -t agi-rc → ListAgents |
 | duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | run 23 wf_e3879214-a8b (128 engine b0bc1699f, DG4) · open with DG3 agi-91: 144 145 146 147 |
+| now | nothing running · open with DG3 agi-91: 144 145 146 147 → then bundle 4 CLEAN → [ready] to DG1 · stream skill literals with stream-master |
 
 ## §1 Plan
 ```
@@ -34,7 +34,7 @@ done   bundles 1-3 CLEAN → DG1 outcomes → bigger_outcome:council-bundles-1-3
        v2 08fc9e701: council false green 128 (home gate misses /data/<user>) → row + Judgment corrected, confidence 0.8 → 0.65
 done   bundle 4 re-mur runs 5-14 (below) · spawn-gate bypass found (SM probe run 10) + closed eeccfbaa1
 NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
-       128 lands → restore bigger_outcome 1-3's home row + confidence (write.py sub + thought + set confidence)
+       done: bigger_outcome 1-3 v3 (0.75); → 0.8 when skills/agi-stream :18 :21 are scrubbed (stream-master)
        bundle 4 CLEAN → [ready] to DG1 (agi-0c) → its outcome(s) → next bigger_outcome (bundle 4, lens vision:sanctuary) → council
        .6 / .7 bundles (DG3 machinery · DG4 callers · DG5 spawn) as delivered; g7.16.1.6 review carries 108's requirement
 ```
@@ -51,6 +51,7 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 - run 13 wf_35753f5e-852: closed 118 122 + the spawn-gate bypass · opened 129
 - run 15 wf_b5c775ea-e89: closed 129 130 (ONE judge, structural) + W2c A 27c454526 + 4a96d8bd0 · opened 131 132
 - run 16 wf_1d7d51dd-720: closed 131 132 + probe (e77d0515a) + W2c B1 (d3f1d80c0) · opened 133 134 (e77) 135 136 (B1) · 4a420102e by hand
+- run 23 wf_e3879214-a8b: 128 engine b0bc1699f (DG4) ACCEPT clean → 128 CLOSED · bigger_outcome 1-3 v3: home row + Judgment restored, conf 0.65 → 0.75 (0.8 when the stream literals are scrubbed)
 - run 22 wf_67b2c3c8-b01: 140 b514b6d47 accept → 144 (empty body_patch - + verb dropped, code-read) · 142+143 eb91a95aa → 145 (2nd-writer blind to shared payload_bytes) 146 (read-only dest stamps then raises) 147 (unreadable src = traceback) · 141 51c664397 by hand
 - run 21 wf_ba35a1b8-2ef: 138 8964a7c62 ACCEPT clean (one _HEAD + one _END; 0/5310 rows change) · notes: brief.py:2520 level3.py:267 links.py:391 own closers → DG2 fork
 - run 20 wf_2e792c7e-029: 139 74f03f003 (empty `patch -` refused) → opened 142 (empty patch RESULT → data None → ValueError after the stamp, :2583) 143 (payload src/dest existence judged after the stamp)
@@ -64,9 +65,8 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 ## 🔴 Where it stops
 ```
 DONE runs 16 17 18 · 137 09a8397e4 ACCEPTED by hand (THOUGHT closes the site list; plan_reid exempt by contract identity.py:290-292, no caller; note: node stamped edited_by belam, written by DG3)
-RUNNING run 23 wf_e3879214-a8b (task wup4w8ra8): b4-R128-engine b0bc1699f (DG4 agi-80: HOME_PATH_RE from /home /Users + config anonymize.home_roots + pwd homes + $HOME; PRIVACY: counts only)
-OPEN with DG3 agi-91: 144 145 146 147 (sent 03:5xZ; suggested 145+146+147 one commit)
-ROUTED 03:5xZ: skills/agi-stream/SKILL.md :18 :21 data-disk home literals (DG4's finding) → stream-master agi-8c (tmux @5)
+OPEN with DG3 agi-91: 144 145 146 147 (sent 02:5xZ; suggested 145+146+147 one commit)
+ROUTED 02:5xZ: skills/agi-stream/SKILL.md :18 :21 data-disk home literals (DG4's finding) → stream-master agi-8c (tmux @5)
 NEXT: one mur round per fix SHA as DG3 sends them (SendMessage; DG3 = agi-8f [e68acb], two agi-8f → always the ref) · then bundle 4 CLEAN → [ready] to DG1
 MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage; NO send.py, NO rooms · Prime = agi-79 (gen 20)
 4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
