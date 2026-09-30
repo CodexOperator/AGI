@@ -3284,22 +3284,24 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         print(_rot, file=sys.stderr)
 
     prompt_file = None
+    card_file = None
     if role == "prime_director":
         # the prime resumes on the standing prime brief.
         prompt_file = _rotate.DEFAULT_PROMPT_FILE
     else:
-        # A director/helper resumes on ITS OWN quorum card — the file
-        # rotate-self hands its successor (`--prompt-file
-        # .agi/sessions/quorum/<seat>.md`, F16) — never the assembled generic
-        # brief, which carries none of the seat's §0-§3 state (the 22-32-call
-        # spawn-seating wakes the Sensei measured on 175816Z/181834Z). Found
-        # by the L4.283 harvest's live proof (sanctuary-director 182119Z
-        # 19:27Z): with prompt_file None, spawn_window assembled the generic
-        # director brief. Absent card -> the assembled brief, as before.
-        card = gdir / "sessions" / "quorum" \
-            / f"{seat}.md"
-        if card.is_file():
-            prompt_file = str(card)
+        # A director/helper recovers on ITS OWN card through brief.render
+        # (goal:g7.16.1.7.1.2): the quorum path is handed as `card_file`, and
+        # render reads the `doc:card-<seat>` NODE unless that path IS a node
+        # (the seat tree's live link). Never the raw file as the whole prompt:
+        # a rotation flattens the link into a copy, and a recovery rendered a
+        # stale 09-18 card on 09-29 17:33Z.
+        # The seat TREE's own card node first (a worktree's node leads MAIN's
+        # until its merge-up), else the quorum path.
+        from node_writer import find_node_file  # noqa: PLC0415
+        card = (find_node_file(gdir, f"doc:card-{seat}")
+                or gdir / "sessions" / "quorum" / f"{seat}.md")
+        if Path(card).is_file():
+            card_file = str(card)
     ack_gate = (
         "RECOVERED SEAT (crash-recovery): first act after reading your handoff, "
         f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
@@ -3315,7 +3317,8 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
             name=spawn_name, tier=tier, prompt_file=prompt_file,
             model=model, effort=effort, settings=settings,
             root=root, window_path=window_path, dry_run=True,
-            debug_file=dbg, extra=ack_gate, seat=seat, resume=resume)
+            debug_file=dbg, extra=ack_gate, seat=seat, resume=resume,
+            card_file=card_file)
     except Exception as exc:  # noqa: BLE001
         return {"respawned": False, "name": spawn_name, "generation": gen,
                 "reason": f"spawn_window raised: {exc}", "row": "skipped"}
