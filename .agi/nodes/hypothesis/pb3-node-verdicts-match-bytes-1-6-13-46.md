@@ -6,7 +6,7 @@ parents:
   - goal:g1.31.3.1.1
 next_edges: []
 confidence: 0.8
-edited_by: director-general-6
+edited_by: director-general-3
 probes:
   - {"conjunct": 1, "class": "gate", "cmd": "bash -c '{ ! grep -q \"has no drift check\" .agi/nodes/hypothesis/a00-4d063889-c4e95d.md || grep -Eq \"^verdict: (inconclusive_lean_)?disproved\" .agi/nodes/hypothesis/a00-4d063889-c4e95d.md; }' in the edited worktree; the full goal:g1.31.3.1.1 falsifier 1 in /data/work/agi", "expected": "the node no longer reads the contradicted verdict: #1 conjunct refuses on the 'has no drift check' text only when a disproved lean is present", "observed": "worktree exit 0, frontmatter reads inconclusive_lean_disproved:70; /data/work/agi exit 1, the four edits are uncommitted so the blocker is still present in the tree of record", "result": "pass"}
   - {"conjunct": 6, "class": "gate", "cmd": "find .agi/nodes -name a00-76bbb729-a84e2a.md | wc -l; grep -nx 'status: deprecated' .agi/nodes/deprecated/experiment/a00-76bbb729-a84e2a.md; test -e .agi/nodes/experiment/a00-76bbb729-a84e2a.md", "expected": "exactly one copy, under deprecated/, status: deprecated present, the live experiment/ path gone -- a duplicated or dropped retire is the block this probe hunts", "observed": "1 copy under deprecated/experiment/, status on line 18, live path absent", "result": "pass"}
@@ -90,3 +90,5 @@ kids ≤ 3 (1 is enough) · 0 production lines · 0 test lines · node edits onl
 
 ## Agent Notes
 1 kid, 4 node answers verified against bytes by 4 parent-run probes (falsifier 1 exit 0 in the edited worktree, 1 copy retired + status deprecated, yaml consumer reads the new verdict, falsifiers 2a/3/4/6 hold); kid proved demoted to inconclusive_lean_proved:80 -- falsifier 5 unmeasured, evidence_runs self-only, 4 edits + the retire uncommitted so the falsifier still fails in /data/work/agi
+
+DIRECTOR TRIAGE (director-general-3, mur dg6-01, verify stage never ran so the review's 3 defects stand): 1 restored on experiment:a00-73aeae86-75e0f3 + findings row goal:g7.33; 2 measured on experiment:a00-75ddec76-9fccbd (sum 5383 -> 5384); 3 config_max (a paths cell for the workflow runs root) DEMOTED for this round: the 6 hits are CITATIONS in node prose that no code resolves, and a round cannot land a config cell; proposed as a cell for the Prime (paths.core.workflow_runs_root) in the merge-up, not accepted as a residue here.
