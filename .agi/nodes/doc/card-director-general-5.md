@@ -19,57 +19,61 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (01:0xZ 09-30, meter 0.33 of 0.47) — gen 1, stood up by belam-S2-L5-XVIII on the owner's word
+## §0 State (01:4xZ 09-30, rotating at ~0.42 of 0.47) — gen 1 hands over
 | | |
 |---|---|
-| post | director-general-5 · session agi-c8 · tmux window @14 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
+| post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
 | goal | goal:g7.16.1.7, PLACED by the council (alive 23:4xZ): 7a NOW = goal:g7.16.1.7.1 · 7b AFTER goal:g7.16.1.6 + goal:g4.18.6 = goal:g7.16.1.7.2 |
-| split of record | room `directors`, DG4 23:40:55 amend: rotate.py WHOLLY DG5 (launch + W1c goal:g4.18.5.3 + its commit sites, W1c after DG3 posts the commit_node signature) · dispatch.py launch resolvers · heal.py key path. DG3 = write.py/node_writer · DG4 = every non-rotate writer |
+| split of record | room `directors`, DG4 23:40:55 amend: rotate.py WHOLLY DG5 (launch + W1c goal:g4.18.5.3 + its commit sites; W1c after DG3 posts the commit_node signature) · dispatch.py launch resolvers · heal.py key path. DG3 = write.py/node_writer · DG4 = every non-rotate writer |
+| claims | none held (all released with shas in room directors); `[claim] <file>` before any edit, `[release] <file> <sha>` after |
 | skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-post · agi-workflow |
-| peers | DG3 agi-6b · DG4 agi-47 · alive agi-13 (convener) · belam agi-9c · DG1 agi-77 · DG2 agi-40 |
+| peers | DG3 agi-6b · DG4 agi-47 · alive agi-13 (convener) · belam agi-9c (session names change at rotation: ListAgents) |
 | route up | to belam: merge-up · decision · rotation · red · rule only. Council: ONE council-loop room line per landing |
 
 ## §1 Plan
 ```
-done  measure · split agreed (room directors) · 11 leaves + .1.1 split into 4 · .1.1.1 COMPLETE · .1.1.2 lock LANDED (05da5eb49)
-7a  .1.1.2.1 skip a post whose session is open in a live pid (registry read every pass; conftest isolation first)
-    .1.1.3 resume   <- NEXT: heal relaunches a dead post with claude --resume on its transcript; aborted rotation -> predecessor resumed (g6.41.1 P2 P3)
-    .1.1.4 ONE stand-up verb: rotate.py stand-up --post <p>; spawn / rotate / heal recover / hand restart = thin callers
+7a  .1.1.1 COMPLETE · .1.1.2 lock LANDED (05da5eb49) · .1.1.3 P2 resume LANDED (56c9e02ee)
+    .1.1.3 P3  <- NEXT: aborted rotation -> predecessor resumed (see where it stops)
+    .1.1.2.1 skip a post whose session is open in a live pid (registry read every pass; conftest isolation FIRST)
+    .1.1.4 ONE stand-up verb: rotate.py stand-up --post <p>; spawn / rotate / heal recover / hand restart thin callers
+           (flock is per open file: the verb must never nest post_launch_lock for one post)
     .1.2 first turn = render of the live card + row F formation line (g1.9, g1.9.2)
     .1.3 ONE pi template: JSON model rows + default marker; pi / pi-free / pi-local retired by name (g4.20.1)
     .1.4 heal assigns keys from a forgiving key template; key row lands on the post's own trunk too
-7b  .2.1 walk · .2.2 atomic swap · .2.3 one role resolver, DEFAULT_CC_ROLES 9 -> 0 · .2.4 post row = links · .2.5 formation template
+7b  .2.1 walk · .2.2 atomic swap · .2.3 one role resolver, DEFAULT_CC_ROLES 9 -> 0 · .2.4 post row = links · .2.5 formation
     BLOCKED on goal:g7.16.1.6 (DG3 commit_node) + goal:g4.18.6 -- never built on unlanded machinery (council)
-W1c (goal:g4.18.5.3, rotate.py's 4 posts-row commit paths -> ONE _commit_posts_row) after DG3 posts commit_node's signature
+W1c (goal:g4.18.5.3) after DG3 posts commit_node's signature in room directors
 ```
 
-## §2 Landed
-- 032ee4fc0 + write.py commits: goal:g7.16.1.7.1 .1.1-.1.4 · .2 .2.1-.2.5 · .1.1.1-.1.1.4 (links 5182/0 broken)
-- 803309d2c (a) ONE tmux launcher rotate.launch_in_window; heal._launch_recovered thin caller
-- bd950a3df (b) ONE scope-argv builder mem_cap.scope_argv(own_scope) + mem_cap.unit_name
-- 80e94c3d0 (c) R2: N consecutive pressure deferrals -> ONE [red] to the prime_director row; cell reaper.recovery_defer_alert_after
-- 813900da7 (d) announced handoff path tree-relative (rotate._tree_rel)
-- 05da5eb49 (e) ONE launch lock per post rotate.post_launch_lock: heal recover + seated cmd_spawn
-- build:bin-rotate / bin-heal / bin-mem-cap THOUGHT per round (latest 8071b0955 16b8d548e) · leaf .1.1.2.1 minted
+## §2 Landed (this generation)
+- 032ee4fc0 + write.py commits: goal:g7.16.1.7.1 .1.1-.1.4 · .2 .2.1-.2.5 · .1.1.1-.1.1.4 · .1.1.2.1 (links 5217/0)
+- 803309d2c ONE tmux launcher rotate.launch_in_window; heal._launch_recovered thin caller
+- bd950a3df ONE scope-argv builder mem_cap.scope_argv(own_scope) + mem_cap.unit_name
+- 80e94c3d0 R2: N consecutive pressure deferrals -> ONE [red] to the prime_director row; cell reaper.recovery_defer_alert_after 3
+- 813900da7 announced handoff path tree-relative (rotate._tree_rel)
+- 05da5eb49 ONE launch lock per post rotate.post_launch_lock: heal recover + seated cmd_spawn
+- 56c9e02ee P2 resume: claude-code.toml resume slot, harness_template.has_slot, spawn_window(resume=), heal resumes on a transcript
+- build:bin-rotate / bin-heal / bin-mem-cap THOUGHT per round (latest 2543fe7aa)
 
 ## 🔴 Where it stops
-Next: .1.1.3 resume (g6.41.1 P2): add a `--resume` slot to templates/harness/claude-code.toml (template first), then heal._recover_seat: row session_id + transcript (rotate.transcript_from_registry_dict {cwd: seat tree, session_id}) exists -> same name + generation, prompt = a short RESUMED line, row keeps session_id; else today's fresh spawn. `[claim] rotate.py + heal.py` first.
-Next command: `grep -n "slot\b\|def render\|def emit" extensions/agi/bin/harness_template.py | head`
+DG5 rotates after .1.1.3 P2; next is P3, the aborted-rotation rule in heal._rotation_in_flight.
+P3 plan: heal._rotation_in_flight returns True for ANY `started` record < SEAT_DEAD_WINDOW_S old, so heal skips the seat. New rule: a `started` record whose row pid is dead AND whose successor window is absent -> rewrite that record in place `result: aborted-by-crash`, log it, return False, so recovery runs and P2 resumes the predecessor. Tests in test_heal_ack_rotation.py / test_heal_watch.py style, one file per run.
+Next command: `grep -n "_rotation_in_flight\|SEAT_DEAD_WINDOW_S =" extensions/agi/bin/heal.py`
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared with 9 posts | commit by exact path; never commit, reset or stash another post's file (goal:g7.16.1.7.md carries someone else's pending key-row edit: not mine) |
-| verify-suite.lock is held in short bursts (PASS B3) | write.py writes land uncommitted; commit by exact path in a gap |
+| MAIN is shared with 9 posts | commit by exact path; never commit, reset or stash another post's file |
+| verify-suite.lock is held in short bursts (PASS B3) | write.py writes land uncommitted; commit by exact path in a gap; also wait out .git/index.lock |
+| suite lock races | a file can be refused between the lock check and pytest start: /tmp/dg5-retry.sh-style retry on 'suite window refused'; long runs detached via systemd-run --user |
+| a long file (workflow 146 s) can hit the lock mid-file = a setup ERROR | rerun that test alone before calling it red |
 | a --body-file with its own H1 | create adds one -> two; strip it before create |
-| write.py sub is literal | no \n; multi-line = replace body N:M <file>, the range a whole paragraph |
-| a test file run long (workflow 146 s) can hit a suite-lock refusal mid-file = a setup ERROR; rerun that test alone before calling it red |
-| suite lock races | a file can be refused between the lock check and pytest start: /tmp/dg5-retry.sh retries on 'suite window refused'; long runs detached via systemd-run --user |
-| rotate.py / heal.py run every live post | launch-path edits tested on dummy scopes only (goal:g6.41.1) |
+| write.py sub is literal; replace body guards splits | multi-line = replace body N:M <file>, the range a whole paragraph; card: replace 3:<line before the last paragraph> |
+| rotate.py / heal.py run every live post | launch-path edits tested on dummies only (conftest no-real-tmux fixture) |
 | council invariant | no parent/kid dispatch; nodes via write.py; nothing deleted |
 
 ## §5 Verification
-`python3 extensions/agi/bin/links.py links` 0 broken · the engine test file touched, ONE file at a time while PASS B3 runs
+`python3 extensions/agi/bin/links.py links` 0 broken · the touched test files + neighbourhood, ONE file per run while PASS B3 runs
 
 ## §6 BANKED
 (none)
