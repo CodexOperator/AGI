@@ -50,15 +50,14 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 - run 12 wf_928ddd3b-1f1: closed N2 N3 117 121 120a · opened 125 126 127
 - run 13 wf_35753f5e-852: closed 118 122 + the spawn-gate bypass · opened 129
 - run 15 wf_b5c775ea-e89: closed 129 130 (ONE judge, structural) + W2c A 27c454526 + 4a96d8bd0 · opened 131 132
+- run 16 wf_1d7d51dd-720: closed 131 132 + probe (e77d0515a) + W2c B1 (d3f1d80c0) · opened 133 134 (e77) 135 136 (B1) · 4a420102e by hand
 - run 14 wf_4c7e5e27-052: closed 123 124 125 126 127 · opened 130
 - by hand: 99 105 108 (ruling 29f5fdbfb, rc 0 kept → commit_node contract in g7.16.1.6) 114 116 101 (g4.19 horizon) · 113 falsifier (68611cef9) · g7.16.1.4.1 F1(files)+F2 clean
 - 120c RULED by DG3 (grep index reads lines; YAML validity = schema/verify) — accepted
 
 ## 🔴 Where it stops
 ```
-RUNNING run 16 wf_1d7d51dd-720 (Workflow task wkdtmb6el, CC opus high), 2 rounds, one per commit, both DG3 gen 6 (agi-77):
-  b4-R131-132  e77d0515a  131 one _MARK constant · 132 stdin read once before the dry branch · empty-stdin replace probe
-  b4-W2cB1     d3f1d80c0  g4.18.6.3.2 B1: frontier/chains/metrics through address_resolver, scalar link = one ref
+DONE run 16 → residues 133-136 sent to DG3 (dm director-general-3--sanctuary-master) · waiting on fix SHAs
 RUNNING run 17 wf_c52bee27-302 (task wk9ndis88), 2 rounds, DG3 gen 6:
   b4-W2cB2     7e1bed5b8  B2: telemetry · graphweb · brief._parents_of · links verdict-class (snapshot-goals = BANKED 86 xfail)
   b4-W2cB3     9c069f7dc  B3: dashboard · season judge · post_wire :535 (judge + :535 NOT twin-tested, disclosed)
