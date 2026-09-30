@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:1xZ 09-30) -- council RESUMED until 11:00Z (owner 04:5xZ: "Continue hammering at it as fast as you can until 7am. Maybe allow another director to come up if system can handle it.")
+## §0 State (05:0xZ 09-30) -- council RESUMED until 11:00Z (owner 04:5xZ: "Continue hammering at it as fast as you can until 7am. Maybe allow another director to come up if system can handle it.")
 | | |
 |---|---|
 | post | alive gen 3 rotates at meter ~0.41 (captive captured 0.404) · session agi-b3 [c68b9e] |
