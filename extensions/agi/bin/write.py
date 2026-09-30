@@ -2626,6 +2626,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # exist after the splice; `_enforce_written_by` admitted the writer on
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
+    if body is not None:   # goal:g4.18.1.6 R1: one refusal for every body writer, dry and real alike
+        _refusal = _body_opens_frontmatter_refusal(root, edit.node_id, body)
+        if _refusal:
+            raise EditError(_refusal)
 
     # goal:g7.16.1.2.6 -- `set active` wakes that formation's parked nodes. The
     # carrier grep runs BEFORE the write and fails CLOSED (council C1 on bundle
@@ -3185,6 +3189,82 @@ _CONTRACT_RE = re.compile(r"^<!--[ \t]*BUILD-CONTRACT:BEGIN\b.*?^<!--[ \t]*BUILD
                           re.DOTALL | re.MULTILINE)
 
 
+def _body_opens_frontmatter_refusal(root, node_id: str, body: str) -> str | None:
+    """goal:g4.18.1.6 R1: update_node's assemble_node ABSORBS a `---` YAML block that
+    opens the body into the frontmatter (later keys win), so a body -- from a node
+    patch, `replace body`, `body_patch`, `sub` -- opening with `mint_id: x` / `type: y`
+    rows would forge them past the row gates. Refused by name, before any write, unless
+    the node's CURRENT body already opens with that same block (an edit elsewhere in
+    such a body is not this forgery)."""
+    rows, rest, _ = node_writer._absorb_leading_frontmatter({}, body)
+    if rest == body:
+        return None
+    try:
+        from graph_core.persistence import frontmatter as _fmr
+        path = node_writer.find_node_file(root, node_id)
+        cur = _fmr.load_node_file(path).body if path is not None else ""
+    except Exception:
+        cur = ""
+    if cur and node_writer._absorb_leading_frontmatter({}, cur)[0] == rows:
+        return None
+    return (f"refused: the body of {node_id} would OPEN with a `---` frontmatter-like block, which "
+            f"the writer absorbs into the node's frontmatter rows (mint_id / type / parents ...) "
+            f"past the row gates -- indent or fence it, or set the rows with `set`; nothing written")
+
+
+_ONLY_FINAL_NEWLINE = "ONLY the missing final newline"
+
+
+def _canonical_changes(applied: str, canon: str) -> list[str]:
+    """goal:g4.18.1.6 R4: NAME what the canonical render changes in `applied` -- the
+    missing final newline (690 of 746 non-canonical live nodes differ by nothing else),
+    dropped frontmatter comments, key order, the quoting/spelling of a named key, body
+    whitespace. Never empty for applied != canon (a last `other` catches the rest)."""
+    if canon == applied + "\n":
+        return [_ONLY_FINAL_NEWLINE]
+    out: list[str] = []
+    if not applied.endswith("\n"):
+        out.append("the missing final newline")
+    elif applied.endswith("\n\n"):
+        out.append("extra blank line(s) at the end of the file")
+
+    def split(text):   # (frontmatter lines, body) of a `---` ... `---` node file
+        ls = text.split("\n")
+        if ls and ls[0] == "---" and "---" in ls[1:]:
+            i = ls.index("---", 1)
+            return ls[1:i], "\n".join(ls[i + 1:]).rstrip("\n")
+        return [], text.rstrip("\n")
+
+    def blocks(fm_lines):   # top-level key -> its lines (comments and blanks leave no key)
+        keys, cur = {}, None
+        for ln in fm_lines:
+            if ln.strip().startswith("#") or not ln.strip():
+                continue
+            if not ln[:1].isspace() and ln[:2] != "- ":
+                cur = ln.split(":", 1)[0].strip("\"'")
+                keys.setdefault(cur, []).append(ln)
+            elif cur is not None:
+                keys[cur].append(ln)
+        return keys
+    afm, abody = split(applied)
+    cfm, cbody = split(canon)
+    if any(ln.strip().startswith("#") for ln in afm):
+        out.append("frontmatter comment(s) dropped")
+    ab, cb = blocks(afm), blocks(cfm)
+    if list(ab) != list(cb) and sorted(ab) == sorted(cb):
+        out.append("key order")
+    for k in cb:
+        if k in ab and ab[k] != cb[k]:
+            if any(" #" in ln for ln in ab[k]) and not any(" #" in ln for ln in cb[k]):
+                if "frontmatter comment(s) dropped" not in out:
+                    out.append("frontmatter comment(s) dropped")
+            else:
+                out.append(f"quoting/spelling of {k!r}")
+    if abody != cbody:
+        out.append("body whitespace")
+    return out or ["formatting (see re-render)"]
+
+
 def _patch_the_node_itself(root, edit: Edit) -> None:
     """goal:g4.18.1.6 (owner 09-30: "The node location just becomes the node
     itself."): a `patch` on a node with NO payload_ref applies to the node file
@@ -3216,6 +3296,10 @@ def _patch_the_node_itself(root, edit: Edit) -> None:
     ofm, nfm = old.frontmatter, new.frontmatter
     for k in sorted(set(ofm) | set(nfm)):   # SM 150: every row `set`/`unset` would judge, judged alike
         if ofm.get(k) != nfm.get(k) or (k in ofm) != (k in nfm):
+            if k in (PROVENANCE_ACTOR, PROVENANCE_SESSION):   # the writer's own stamp overwrites it: never a silent discard
+                raise EditError(f"patch: {k!r} is the writer's own provenance stamp (submit sets it from "
+                                f"--actor/--session on every write), so a patch cannot set or remove it "
+                                f"-- nothing written")
             refusal = _row_refusal(k, nfm.get(k)) if k in nfm else (
                 f"{k!r} may not be unset — see `set`." if k in PROTECTED else None)
             if refusal:
@@ -3230,10 +3314,13 @@ def _patch_the_node_itself(root, edit: Edit) -> None:
         raise EditError("patch would leave the THOUGHT malformed: rewrite it with the `thought` verb -- nothing written")
     canon = node_writer._serialize_node(node_writer.render_frontmatter(nfm), new.body)
     if canon != applied:   # council ruling on SM 154: one serializer, fail-closed, never a silent discard
+        changes = _canonical_changes(applied, canon)
         drift = [ln for ln in difflib.unified_diff(applied.split("\n"), canon.split("\n"), lineterm="", n=0)
                  if ln[:1] in "+-" and ln[:3] not in ("+++", "---")][:4]
-        raise EditError(f"patch result is not in the canonical form, so it would not land as written "
-                        f"(re-render: {drift}): run `write.py {edit.node_id} canonicalize` first, then "
+        raise EditError(f"patch result is not in the canonical form, so it would not land as written: the "
+                        f"canonical render changes {'; '.join(changes)}"
+                        + ("" if changes == [_ONLY_FINAL_NEWLINE] else f" (re-render: {drift})")
+                        + f": run `write.py {edit.node_id} canonicalize` first, then "
                         f"re-cut the diff -- the canonical form drops frontmatter comments and "
                         f"non-significant quoting; nothing written")
     edit.set_fm.update({k: v for k, v in nfm.items() if ofm.get(k) != v})
@@ -4033,6 +4120,9 @@ def _commit_wait_s(root) -> float:
         return 30.0
 
 
+_COMMIT_CELL_WARNED: set = set()   # config paths already warned about, this process
+
+
 def _commit_message(root, node_id: str, actor: str = "") -> str:
     """goal:g4.18.5.2.2 -- a write's commit message, from the ONE cell
     `write.commit_message` (+ `write.commit_actor`) in the project's
@@ -4045,8 +4135,16 @@ def _commit_message(root, node_id: str, actor: str = "") -> str:
         except (OSError, ValueError, AttributeError):
             continue
         if cell.get("commit_message"):
-            by = cell.get("commit_actor", "").format(actor=actor) if actor else ""
-            return cell["commit_message"].format(node_id=node_id, actor=by)
+            try:   # a bad cell (`{nope}`, a lone brace) must not strand a node already written
+                by = cell.get("commit_actor", "").format(actor=actor) if actor else ""
+                return cell["commit_message"].format(node_id=node_id, actor=by)
+            except (KeyError, ValueError, IndexError, AttributeError, TypeError) as exc:
+                if str(cfg) not in _COMMIT_CELL_WARNED:   # once per process, naming the cell
+                    _COMMIT_CELL_WARNED.add(str(cfg))
+                    print(f"WARN: {cfg}: write.commit_message / write.commit_actor is not a valid "
+                          f"template ({type(exc).__name__}: {exc}); the commit message is the node id",
+                          file=sys.stderr)
+                return node_id
     return node_id
 
 

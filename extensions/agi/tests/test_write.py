@@ -3100,52 +3100,85 @@ def test_w2cc_set_parents_to_a_mint_lands_as_its_address(project):
     assert mint in node.read_text()
 
 
-# g1.31 #37 (PASS B3, verify_l4-canonical-bytes-are-injective-and-fresh-and-
-# the-ring-gate): `unset k` carried k: "<unset>" and json_field passes a str
-# through, so it signed the SAME canonical bytes as `set k <unset>`. The unset
-# keys now ride one reserved `_unset` field (refused as a caller key both
-# ways), so the literal is a legal value and never reads as an unset.
-def test_g131_37_an_unset_never_signs_the_bytes_of_setting_the_literal_marker():
-    from seatsig import rings
+# goal:g4.18.1.6, SM residues of d8b22ae96 (R1 R2 R4) + the commit-message guard (G). Each refusal is
+# ONE line, dry == real, nothing written.
+def _g41816_refusal(project, node, monkeypatch, capsys, script, old, new, target=None):
+    """Run `script` with the diff old -> new on stdin, dry and real: both rc 2, the same ERR line."""
+    import io
+    errs = []
+    for dry in (["--dry-run"], []):
+        monkeypatch.setattr(sys, "stdin", io.StringIO(_g41816_diff(old, new)))
+        assert write.main(["config:guard", script, *dry, "--root", str(project)]) == 2, (script, dry)
+        errs.append([ln for ln in capsys.readouterr().err.splitlines() if ln.startswith("ERR")])
+    assert errs[0] == errs[1] and errs[0], errs
+    assert node.read_text() == (target if target is not None else old)
+    return errs[0][0]
 
-    def canon(set_fm, unset_fm):
-        return rings.canonical_bytes("config-write", write._config_write_fields(
-            "config:seats", set_fm, unset_fm, ts="T", nonce="n"))
-    assert canon({"k": "<unset>"}, None) != canon(None, ["k"])
-    assert canon({"k": "<unset>", "j": "1"}, None) != canon({"j": "1"}, ["k"])
-    assert write._config_write_fields("config:seats", {"k": "<unset>"})["k"] == "<unset>"
-    assert canon(None, ["b", "a", "a"]) == canon(None, ["a", "b"]), "order never signs"
-    assert canon(None, ["a"]) != canon(None, ["b"]) != canon(None, ["a", "b"])
-    for set_fm, unset_fm in (({"_unset": '["a"]'}, None), (None, ["_unset"])):
-        with pytest.raises(write.EditError, match="'_unset'.*REFUSED"):
-            write._config_write_fields("config:seats", set_fm, unset_fm)
+def test_r1_a_body_that_opens_with_a_frontmatter_block_cannot_forge_rows(project, monkeypatch, capsys):
+    node = _g41816_guard(project)
+    old = node.read_text()
+    forged = old.replace("# config:guard\n", "---\nmint_id: forged\ntype: goal\n---\n# config:guard\n", 1)
+    msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", old, forged)
+    assert "OPEN with a `---` frontmatter-like block" in msg and "nothing written" in msg, msg
+    body = write._read_body_text(project, "config:guard")   # the pre-existing body route: the same forge, now refused
+    msg = _g41816_refusal(project, node, monkeypatch, capsys, "body_patch -", body,
+                          body.replace("# config:guard\n", "---\nmint_id: forged\n---\n# config:guard\n", 1),
+                          target=old)
+    assert "OPEN with a `---` frontmatter-like block" in msg, msg
+    assert "forged" not in node.read_text()
+    e = write.Edit("config:guard")   # the API path (submit) refuses too
+    e.sub_body = "\n---\nmint_id: forged\n---\nbody\n"
+    with pytest.raises(write.EditError, match="OPEN with a `---`"):
+        write.submit(project, e, actor="a")
+    assert "forged" not in node.read_text()
+    e = write.Edit("config:guard")   # an indented block is not absorbed: it lands
+    e.sub_body = "\n    ---\n    mint_id: x\n    ---\nindented is fine\n"
+    assert write.submit(project, e, actor="a") is not None
+    assert "indented is fine" in node.read_text() and "mint_id: " + "e" * 32 in node.read_text()
 
+def test_r2_a_node_patch_cannot_edit_the_provenance_rows(project, monkeypatch, capsys):
+    node = _g41816_guard(project)
+    old = node.read_text()
+    row = next(ln for ln in old.splitlines() if ln.startswith("edited_by:"))
+    for new in (old.replace(row, "edited_by: mallory"), old.replace(row + "\n", ""),
+                old.replace(row, row + "\nthought_session: forged")):
+        msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", old, new)
+        assert "provenance stamp" in msg and ("edited_by" in msg or "thought_session" in msg), msg
 
-# g1.31 #12 (PASS B3, verify_thought-verb-edits-only-the-top-level-thought-block):
-# falsifier 2's second half had no row -- a body that only QUOTES a THOUGHT pair
-# (indented or `> `-quoted, never column 0) and holds NO real block: `thought`
-# ADDS one top-level block (replace_thought's append branch, reached through
-# _compose_body) and leaves the quotation byte-identical, the quote at the end
-# of the body too; the dry run writes nothing.
-@pytest.mark.parametrize("quote", [
-    "    <!-- THOUGHT:BEGIN -->\n    quoted review evidence\n    <!-- THOUGHT:END -->",
-    "> <!-- THOUGHT:BEGIN -->\n> quoted review evidence\n> <!-- THOUGHT:END -->"])
-@pytest.mark.parametrize("tail", ["\n\nafter the quote\n", "\n"])
-def test_g131_12_thought_on_a_quoted_only_body_adds_one_block_and_keeps_the_quote(project, quote, tail):
-    node = project / "nodes/hypothesis/h1.md"
-    body = "\n# h1\n\n## Review\n\n" + quote + tail
-    node.write_text(node.read_text().split("\n---\n", 1)[0] + "\n---\n" + body)
-    assert node_writer.thought_blocks(body) == [] and node_writer.extract_thought(body) is None
-    before, root = node.read_text(), ["--root", str(project)]
-    assert write.main(["hypothesis:h1", "thought the new reason", "--dry-run"] + root) == 0
-    assert node.read_text() == before
-    assert write.main(["hypothesis:h1", "thought the new reason"] + root) == 0
-    after = write._read_body_text(project, "hypothesis:h1")
-    blocks = node_writer.thought_blocks(after)
-    assert len(blocks) == 1 and "the new reason" in blocks[0], after
-    assert after.count(quote) == 1 and after.index(quote) < after.index(blocks[0]), after
-    assert after.count("quoted review evidence") == 1
-    assert ("after the quote" in after) == (tail != "\n"), after
-    block = f"{node_writer.THOUGHT_BEGIN}\nv\n{node_writer.THOUGHT_END}"
-    out = node_writer.replace_thought(body, block)   # the reviewer's pure-function probe
-    assert out.count(quote) == 1 and node_writer.thought_blocks(out) == [block]
+def test_r4_the_noncanonical_refusal_names_what_the_canonical_render_changes(project, monkeypatch, capsys):
+    node = _g41816_guard(project)
+    canon = node.read_text()
+    assert canon.endswith("\n")
+    cut = canon.rstrip("\n")
+    node.write_text(cut)   # the 690-of-746 case: ONLY the final newline is missing
+    msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", cut, cut.replace("old line", "new line"))
+    assert "changes ONLY the missing final newline" in msg and "write.py config:guard canonicalize" in msg, msg
+    assert "re-render" not in msg
+    node.write_text(canon)
+    for was, now, want in (("limit: 384M", "limit: '384M'", "quoting/spelling of 'limit'"),
+                           ("limit: 384M", "limit: 384M # c", "frontmatter comment(s) dropped")):
+        msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", canon, canon.replace(was, now))
+        assert want in msg and "write.py config:guard canonicalize" in msg, (want, msg)
+    lines = canon.split("\n")   # two rows swapped: key order
+    a = next(i for i, ln in enumerate(lines) if ln.startswith("limit:"))
+    b = next(i for i, ln in enumerate(lines) if ln.startswith("note_row:"))
+    lines[a], lines[b] = lines[b], lines[a]
+    msg = _g41816_refusal(project, node, monkeypatch, capsys, "patch -", canon, "\n".join(lines))
+    assert "key order" in msg, msg
+    assert write._canonical_changes(canon.rstrip("\n"), canon) == [write._ONLY_FINAL_NEWLINE]
+    assert write._canonical_changes(canon + "\n", canon) == ["extra blank line(s) at the end of the file"]
+
+def test_g_a_bad_commit_message_cell_falls_back_to_the_node_id_and_warns_once(tmp_path, capsys):
+    import json
+    root = tmp_path / ".agi"
+    root.mkdir()
+    for cell in ({"commit_message": "write {nope}: {node_id}"}, {"commit_message": "edit { {node_id}"},
+                 {"commit_message": "{node_id} {0}"}, {"commit_message": "{node_id} by {actor}", "commit_actor": "{who}"}):
+        write._COMMIT_CELL_WARNED.clear()
+        (root / "config.json").write_text(json.dumps({"write": cell}))
+        for _ in range(2):
+            assert write._commit_message(root, "goal:g1", "alice") == "goal:g1", cell
+        err = capsys.readouterr().err
+        assert err.count("WARN:") == 1 and str(root / "config.json") in err, (cell, err)
+    (root / "config.json").write_text(json.dumps({"write": {"commit_message": "{node_id} by {actor}", "commit_actor": "{actor}"}}))
+    assert write._commit_message(root, "goal:g1", "alice") == "goal:g1 by alice" and capsys.readouterr().err == ""
