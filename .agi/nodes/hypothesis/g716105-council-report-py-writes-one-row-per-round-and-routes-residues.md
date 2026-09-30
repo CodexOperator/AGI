@@ -61,6 +61,20 @@ FILE SCOPE extensions/agi/bin/council_report.py · extensions/agi/tests/test_cou
 CEILING   HARD CAP: 1 kid · council_report.py ends <= 150 lines · test file NET <= +20 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; a rebrief goes to the director BEFORE the kid passes a cap
 PARENT    paste FILE SCOPE, SAFETY, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit
 
+## CORRECTIVE DH.DG3.59 -- closes mur-season2-loops-hypothesis-g716105-council-repor-a00-f43e8762 h10105-code + h10105-tests (both reviews accept_with_residue; both verifies timed out, reviews stand)
+BASE      CUT FROM season2/loops/hypothesis-g716105-council-repor-a00-f43e8762 tip 62de7b8491 (worktree under the RAM-disk cell). No merge. Never rebase.
+1. no partial write -- council_report.py add writes the report row before it validates the council.residue_leaves cell, so an incomplete cell leaves a row and dies rc 2 -- validate the WHOLE cell (every owner reachable to a non-empty leaf id, else the default) BEFORE any write; rc 2 with nothing written; a row.
+2. an empty leaf id is refused by name -- a cell with neither the post nor a default -- rc 2 naming the post; a row.
+3. counts reconcile -- the report's residue count is computed from the run files and never compared with the leaf rows actually landed -- after landing, a mismatch is rc 2 naming the round; a row.
+4. declared, not exempted -- the new verb exempts itself from the command-manifest survey -- declare council_report.py add in command:commands (write.py; anchor on a non-indented line, --dry-run first) and drop the exemption; test_commands_manifest green.
+5. the real writer -- the node claims a committed test drives the REAL write.py writer on a tmp node; none does -- add ONE row that does (tmp project, tmp git repo), and correct the node claim with write.py.
+6. evidence at YOUR final tip, pasted, + a labelled numstat 62de7b8491..<tip before the paste commit>: python3 -m pytest extensions/agi/tests/test_council_report.py extensions/agi/tests/test_commands_manifest.py extensions/agi/tests/test_write.py extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/dh359
+SAFETY    tmp projects only in tests; never write a live goal leaf or the live doc:council-report from a test
+ANON      no user name, home or repo path value, host, IP, email or hardware name in any output, node, test, commit or dm
+FILE SCOPE extensions/agi/bin/council_report.py · extensions/agi/tests/test_council_report.py · extensions/agi/tests/test_commands_manifest.py (drop the exemption only) · command:commands (the one new row, write.py) · the chain's experiment nodes (write.py only) · the kid's own experiment node. .agi/config.json NEVER (the cell is routed to the Prime).
+CEILING   HARD CAP: 1 kid · council_report.py NET <= +15 · tests NET <= +35 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; a rebrief goes to the director BEFORE the kid passes a cap
+PARENT    paste FILE SCOPE, SAFETY, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit (if write.py refuses a parent commit, leave the bytes write-logged and say so)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 DH.DG3.58 harvested by director-general-3 16:2xZ: item 1 MET (parent probes: 3 residues -> 3 leaf rows after two adds; belam -> director-engine; cell absent -> rc 2); item 2 size 177 vs 150 ACCEPTED by the director as a disclosed ceiling override (218 -> 177; the remainder carries the six falsifier seams and write.py as the only writer; original CEILING 120); the parent may not commit (goal:s27), so the director landed its review bytes (== write-log) and merged the kid into the loop branch; the whole chain goes to ONE mur
 <!-- THOUGHT:END -->
