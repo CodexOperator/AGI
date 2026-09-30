@@ -610,9 +610,10 @@ def _thought_marker_refusal(body: str, rng: str, new_text: str) -> str | None:
     update_node carries the old THOUGHT back, so the block would duplicate.
     Lines strictly inside the markers stay admitted; so does a range holding
     both markers when the new text brings a block. Whatever the range, the
-    SPLICED body must hold at most one well-formed block and no stray marker
-    line (SM 112; hypothesis:body-replace-lands-at-most-one-well-formed-
-    thought-and-row-name-skips-the-separator)."""
+    SPLICED body adds no block and no stray marker line: at most one block, or
+    as many as the body already held (SM 112; SM 118: a body QUOTING a column-0
+    pair beside its real block keeps a write path; hypothesis:body-replace-
+    lands-at-most-one-well-formed-thought-and-row-name-skips-the-separator)."""
     lo, hi = _parse_range(rng)
     mark = node_writer.THOUGHT_MARKER_LINE_RE
     marks = [ln for ln in body.split("\n")[(lo or 1) - 1:hi] if mark.match(ln)]
@@ -620,10 +621,13 @@ def _thought_marker_refusal(body: str, rng: str, new_text: str) -> str | None:
         out = _splice_range(body, rng, new_text or "")
     except EditError as exc:
         return str(exc)
-    blocks = node_writer.thought_blocks(out)
+
+    def _shape(text: str) -> tuple[int, int]:   # (blocks, marker lines outside a block)
+        n = len(node_writer.thought_blocks(text))
+        return n, sum(bool(mark.match(ln)) for ln in text.split("\n")) - 2 * n
+    (was, was_stray), (now, stray) = _shape(body), _shape(out)
     if ((not marks or (len(marks) == 2 and node_writer._THOUGHT_RE.search(new_text or "")))
-            and len(blocks) <= 1
-            and sum(bool(mark.match(ln)) for ln in out.split("\n")) == 2 * len(blocks)):
+            and now <= max(1, was) and stray <= was_stray):
         return None
     return (f"body {rng} would leave the THOUGHT malformed (a marker line in the range, "
             f"a second block or a stray marker): rewrite it with the `thought` verb, "

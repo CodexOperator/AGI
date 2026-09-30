@@ -2468,6 +2468,35 @@ def test_w1a_fix2_the_spliced_body_keeps_one_well_formed_thought(project, tmp_pa
     assert node.read_text() == before
 
 
+# SM 118: a body QUOTING a column-0 THOUGHT pair (plain or fenced) beside its real
+# block keeps a body write path; the splice still adds no block and no stray marker.
+def test_sm118_a_body_quoting_a_thought_pair_keeps_a_body_write_path(project, tmp_path, capsys):
+    node, _ = _w1c_node(project)
+    quoted = THOUGHT.replace("the old reason", "a quoted reason")
+    beg = THOUGHT.split("\n")[0]
+    for wrap in ("{}", "```\n{}\n```"):
+        node.write_text(node.read_text().replace("## After", "## Quoted\n\n" + wrap.format(quoted)
+                                                 + "\n\n## After", 1))
+        body = write._read_body_text(project, "hypothesis:h1")
+        assert len(node_writer.thought_blocks(body)) == 2
+        n = body.split("\n").index("tail") + 1
+        (tmp_path / "t.txt").write_text("new tail\n")
+        assert write.main(["hypothesis:h1", f"replace body {n}:{n} {tmp_path / 't.txt'}",
+                           "--root", str(project)]) == 0, wrap
+        after = write._read_body_text(project, "hypothesis:h1")
+        assert after.split("\n") == [("new tail" if ln == "tail" else ln) for ln in body.split("\n")], wrap
+        before = node.read_text()
+        for text in (THOUGHT, beg):   # a third block, a stray marker: refused
+            (tmp_path / "t.txt").write_text(text + "\n")
+            for dry in ([], ["--dry-run"]):
+                assert write.main(["hypothesis:h1", f"replace body {n}:{n} {tmp_path / 't.txt'}",
+                                   *dry, "--root", str(project)]) == 2, (wrap, text)
+                assert "`thought` verb" in capsys.readouterr().err
+        assert node.read_text() == before
+        node.write_text(before.replace("## Quoted\n\n" + wrap.format(quoted) + "\n\n", "")
+                        .replace("new tail", "tail"))
+
+
 # SM N1-N3: --dry-run refuses what submit refuses -- a row beside a note, a row
 # beside a replace payload (either order), a sub-range past its row.
 def test_row_dry_run_refuses_like_submit(project, tmp_path):
