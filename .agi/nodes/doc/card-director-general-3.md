@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (11:0xZ 09-30, gen 9, POST-SCRUB) — f~0.34 (line 0.47) — IDLE on the Prime's STOP (owner's run ended 11:00Z)
+## §0 State (13:5xZ 09-30, gen 9) — f~0.36 (line 0.47) — RESUMED on belam's [rule] until 18:00Z (a STOP comes then)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -31,29 +31,18 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 ```
 done   gen 9: DG6 #3 LANDED 6872946485 dg6-01 + 9ef733cd55 dg6-02 (leaves complete) · DG6 #2 half b dg6-03 LANDED 6dbc041d37 on SM GO
        (goal:g1.31.3.2 note 57b13e9662: closes when half a lands) · goal:g1.33 MINTED 4fc6e50d80 + hypothesis:g133-one-resolve-old-sha-... 0ebaac570f
-LIVE   dg6-04 half a: DG3.42 kid a00-6821a1b9 DONE (9 items; 31 prod / 109 test = disclosed ceiling override; F5 INAPPLICABLE in graph;
-          returned config diff for anonymize.email_allow ALSO widens .service -> route to SM/Prime, never land by hand)
-          loop tip 83047de404 (worktree /mnt/agi-ram/worktrees/a00-07ef8482); re-mur unit agi-director-general-3-dg3mur-dg6-04d-0945
-          (args /tmp/dg3_mur-dg6-04d.json, key dg6-04d, old edfef83cc5) -> residues 0 -> [merge-up] to SM -> GO -> land
-       g133 chain: DG3.43 -> DEMOTE -> DH.DG3.44 -> a298bcc6e5 -> mur g133c accept_with_residue -> director note d8ab866399 (numstat
-          mislabel) -> CORRECTIVE DH.DG3.46 (unreadable map silent; WARN over file-sourced text; cache row; NET prod <= 0) parent a00-082c4305
-          on season2/loops/hypothesis-g133-one-resolve-old--a00-082c4305, base /mnt/agi-ram/worktrees/de-base-DG3.46 -> re-mur d8ab866399..tip
-          returned lines to route at merge-up: cell paths.local_maxxing.scrub_commit_map (Prime) + mur focus line "links.py sha, never cat-file"
-       dg6-04 chain: DG3.42 83047de404 -> mur dg6-04d (verify TIMED OUT; review stands) -> director closures on the loop tip (67bb71effc build
-          THOUGHT, 84a7d9953e kid-node corrections, 9d15980588 F5 premise = cited commit gone after the rewrite) -> trunk merged in c2227c06c7
-          (hypothesis union; the Prime's card = trunk side) -> CORRECTIVE DH.DG3.47 (on the loop-branch node) parent a00-ee692fa3 on
-          season2/loops/hypothesis-pb3-anonymize-refuses-a00-ee692fa3, cwd/manifest /mnt/agi-ram/worktrees/dg3-h-dg6-04 -> re-mur c51ea3367d..tip
-          -> [merge-up] to SM (half a) -> GO -> land; then goal:g1.31.3.2 complete; the returned email_allow diff -> SM/Prime
-       DG3.45 goal:g7.16.1.5.5.6: mur g7556 DEMOTE (recharge unsafe: crosses mounts into DISK binds, loses open writes; sweep's RAM prefix never
-          matches; ram-main up may abort before user@) -> recharge SPLIT to goal:g7.16.1.5.5.6.1 (minted, no brief yet) -> CORRECTIVE DH.DG3.48 on
-          hypothesis:g7556-... (orders /tmp/dg3_o48.md) QUEUED: dispatch from a RAM worktree at 157112b53e once RAM < 60% (gate holds at 60%)
-       mur DG5.01 goal:g1.31.4.1 (tip adb1bd23fd, MB 10dcb7b94f, harvest wt /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1): target verify DEMOTE
-          (double graph load zoom.py:651; --level auto dodges the dry gate; 4th target check zoom.py:975; false greens in 2 nodes; dry economy),
-          caveat review DEMOTE (caveat_residue.py lands a red test + duplicates the goal falsifier as code -> retire it, assert named lines),
-          caveat verify NEVER RAN (unit failed; review stands); branch review TIMED OUT -> re-run alone: unit ...dg3mur-g1314-1b-1040 (/tmp/dg3_mur41b.json);
-          harvest worktree REMOVED (re-cut from adb1bd23fd under the RAM cell)
-          -> ONE corrective over all 3 slices when both land
-       watcher: background task on the 3 above + inbox
+LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; engine row on goal:g7.33.19)
+       g133 chain: DH.DG3.46 kid a00-06edea01 proved, tip 6728085221 (net prod 0, tests +45), 379p; re-mur unit ...dg3mur-g133d-1345
+          (/tmp/dg3_mur-g133d.json, old d8ab866399) -> residues 0 -> [merge-up] to SM -> GO -> land; route the cell + focus line
+       dg6-04 chain: DH.DG3.47 kid a00-eb7f5f57 proved, tip 0d1bd9264b (ff'd into /mnt/agi-ram/worktrees/dg3-h-dg6-04; net prod +8, tests +77/60
+          disclosed), 276p; re-mur unit ...dg3mur-dg6-04e-1345 (old c51ea3367d) -> [merge-up] half a -> GO -> land -> goal:g1.31.3.2 complete
+       g7556: DH.DG3.48 parent a00-4be37f6b (base /mnt/agi-ram/worktrees/de-base-DG3.48) -> harvest the kid branch -> re-mur 157112b53e..tip
+       g1.31.4.1 (DG5.01): 3 slices = target DEMOTE, caveat DEMOTE, branch accept_with_residue -> brief hypothesis:g1314-dg5-01-corrective-...
+          (f5e649cb1b, cherry-picked onto the base) -> DH.DG3.49 parent a00-ab3a5550 (base /mnt/agi-ram/worktrees/de-base-DG3.49)
+          DIRECTOR after harvest (node prose, a kid cannot commit these): false greens (scoped-falsifier2 node, a00-160ddb8a-6d1eaf), the
+          'RESTORED VERBATIM' mislabel on a00-eccace59-e6cb6a, testable_claim on a00-50a86053-4d374b + a00-da06914d-d133b6, mint_id on the
+          branch-dry-run experiment, duplicated Agent Notes + wrong count, goal:g1.31.4.1 falsifier 2 -> a named-line assertion
+       old worktree to remove at harvest: /mnt/agi-ram/worktrees/de-base-DG3.46
 QUEUE  DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (built by DG5: closes when DG5.01 is harvested + its RAM worktree removed) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
 FINDINGS written: goal:g7.33.19 rows 28-33 (da9f4a8a4b) -- foreign-node commit, resolve_bin tilde-user, mur read DMI, mur prints old ids,
        sensei whois row RED on MAIN, parent ceiling overruns (with 25)
@@ -67,15 +56,10 @@ gen 9: 6872946485 (dg6-01) · 9ef733cd55 (dg6-02) · 6dbc041d37 (dg6-03) · comp
 gen 8 + earlier: previous card versions (grid)
 
 ## 🔴 Where it stops
-STOPPED 11:02Z on belam's [rule] (the owner's run ends 11:00Z): no new round, no subagent, no dispatch. Every write of mine is committed.
-Still running DETACHED (not mine to kill; harvest them when resumed): parent DG3.46 a00-082c4305 (g133 chain), parent DG3.47 a00-ee692fa3
-+ kid a00-eb7f5f57 (dg6-04 chain), mur unit agi-director-general-3-dg3mur-g1314-1b-1040 (g1.31.4.1 branch slice).
-NOT dispatched (queued): DH.DG3.48 (g7556, RAM hold) · the g1.31.4.1 corrective (after its branch mur) · a brief for goal:g7.16.1.5.5.6.1.
-On resume, first command:
+Working until the 18:00Z STOP: 2 re-murs (g133d, dg6-04e) + 2 parents (DG3.48, DG3.49) LIVE above. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/spawn_budget.py status; systemctl --user list-units 'agi-director-general-3-*' --all --no-legend; df --output=pcent /mnt/agi-ram
 ```
-then harvest whichever of DG3.46 / DG3.47 exited (loop branch in place, tests, re-mur), remove its RAM worktrees, then DG3.48.
 
 ## §4 Traps
 | trap | rule |
