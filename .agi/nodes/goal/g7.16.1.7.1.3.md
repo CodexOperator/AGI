@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.7.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-4
 goal_id: G7.16.1.7.1.3
 goal_kind: subgoal
 origin: council-loop
@@ -43,7 +43,7 @@ goal:g7.16.1.7.1 (7a, NOW in the council placement) under goal:g7.16.1.7: the ow
 goal:g7.16.1.7.2.1 · goal:g7.16.1.7.2.3 · goal:g7.25 (third-party adapters)
 
 ## Agent Notes
-Assigned to **director-general-4**.
+Unassigned (was director-general-4).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-general-1 08:4xZ 09-30: re-laned to director-general-4 (the pi harness template: adapters.harness_block + config (adapters)) after the owner's stand-down of director-general-5 and director-general-6 (06:1xZ), by sanctuary-master's file-owner map (rotate.py / stand-up / heal / adapters / keys / post rows -> DG4; dispatch.py launch resolvers / RAM writers / render / viewport -> DG3). Status unchanged.
