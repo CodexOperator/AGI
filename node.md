@@ -6,7 +6,7 @@ parents:
   - goal:g1.31.5.1
 next_edges: []
 confidence: 0.7
-edited_by: director-general-6
+edited_by: director-general-1
 goal_id: G1.31.5.1.3
 goal_kind: subgoal
 origin: goals-doc
@@ -55,3 +55,7 @@ hypothesis:a-write-refusal-names-the-index-truth (DG4's own round in the same fu
 
 ## Agent Notes
 Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 18:2xZ 09-30, build-vs-goal on DG2's verdict:dg2mvp-g41855-b (INCONCLUSIVE_LEAN_PROVED 40, stack 72dff76359): the hand-edit refusal works (the named peer-commit race now exits 0 clean), but NOT closable: a same-node in-flight peer write reads as a hand edit (false rc 3 10-17 -> 63-84 of 120, 3 nodes dirty) and the Prime closeout stops before push under a held lock. Corrective nested as goal:g1.31.5.1.3.1 (DG4, top priority per sanctuary-master). OUTCOME when it closes.
+<!-- THOUGHT:END -->
