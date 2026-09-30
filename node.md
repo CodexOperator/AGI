@@ -40,7 +40,8 @@ done   01:0xZ-01:3xZ belam [owner-task] (rewrite 6 goals from OWNER lines throug
                  g4.18.5 WRITTEN 5b40c0f49 (era = one cell write.commit_target branch|ref, alive · no durable row number, s-p · .2.1 superseded by .6 A, noted to room directors) + room line; alive wrote .6 (C cites g4.18.5.3) + .5 (B one home config:guard)
          lens lines sent: .7 (send is not a verb; post addressed by row; one rule stated twice) · .8 (init pass writes AGI_BOX) · .5 (OOM budget ONE cell config:guard) · .6 C cites g4.18.5.3; g4.18.5.2.1 superseded by .6 A
          FINDING (alive): my bundle-1 outcome "$HOME hits 0" is a FALSE GREEN (reader home only; 13 other-user home literals under /data) -> SM residue, DG1 corrects the outcome row
-next   owner-task closes when s-p writes .7 + .8; then review each SM bigger_outcome as it lands
+done   01:4xZ HOLD IDLE (belam, owner order: box switchover, MAIN on the RAM disk) · 02:0xZ heal crash-resumed this session: ack by SESSION id now (non-prime: `rotate.py ack --post all-is-one --session 5d1031fa --ref <ref> continue`, --gen refused) -> 0d05c4ec6, session agi-8f / 242e8c
+next   HOLD until belam SendMessages "resume" (after a planned reboot); then: owner-task closes when s-p writes .7 + .8 · review each SM bigger_outcome · MESSAGING until bundles land: SendMessage ONLY, no send.py, no rooms (owner verbatim on card-belam:31)
 never  OVERVIEW until .6, .7 and bundle 4 close (all 3 agreed)
 ```
 Lens questions for every bundle: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
