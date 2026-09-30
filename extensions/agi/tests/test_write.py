@@ -3255,9 +3255,9 @@ def test_g73320_alias_id_row_resolving_to_the_same_node_reads_by_alias_and_long_
     # a legacy descriptive stem whose lone valid id resolves to THIS file reads too
     node_writer._ID_INDEX.clear()   # in-process: files written after the first lookup
     (d / "old-descriptive-stem.md").write_text(
-        "---\nid: hyp:old-desc\nmint_id: " + "5" * 32 + "\ntype: hypothesis\n"
+        "---\nid: hyp:old-descriptive\nmint_id: " + "5" * 32 + "\ntype: hypothesis\n"
         "parents:\n  - goal:g1\ntitle: t\nstatus: active\n---\n\nlegacy body\n")
-    for nid in ("hyp:old-desc", "hypothesis:old-descriptive-stem"):
+    for nid in ("hyp:old-descriptive", "hypothesis:old-descriptive-stem"):
         out, err, rc = _run([nid, "read body 1:3", "--root", str(project)])
         assert rc == 0 and "legacy body" in out and err == "", (nid, out, err)
     # an alias row naming ANOTHER node (h1 exists) is still a broken row
@@ -3536,14 +3536,14 @@ def test_g73320_b3_a_wrong_type_or_unrelated_unique_id_row_refuses_read_and_writ
 
 def test_g73320_b3_same_type_descriptive_stems_and_geometry_nodes_still_read(project):
     d = project / "nodes" / "hypothesis"
-    for stem, row in (("t-001-thing", "hypothesis:t-001"), ("old-descriptive-stem", "hyp:old-desc"),
+    for stem, row in (("t-001-thing", "hypothesis:t-001"), ("old-descriptive-stem", "hyp:old-descriptive"),
                       ("bin-grid.v2", "hypothesis:bin-grid@v2")):
         (d / f"{stem}.md").write_text(
             f"---\nid: {row}\nmint_id: " + "5" * 32 + "\ntype: hypothesis\nparents:\n  - goal:g1\n"
             "title: t\nstatus: active\n---\n\nlegacy body\n")
     node_writer._ID_INDEX.clear()
     for nid in ("hypothesis:t-001-thing", "hypothesis:t-001", "hypothesis:old-descriptive-stem",
-                "hyp:old-desc", "hypothesis:bin-grid.v2"):
+                "hyp:old-descriptive", "hypothesis:bin-grid.v2"):
         out, err, rc = _run([nid, "read body 1:3", "--root", str(project)])
         assert rc == 0 and "legacy body" in out and err == "", (nid, out, err)
     g = project / "nodes" / ".geometry"
@@ -3566,3 +3566,52 @@ def test_g73320_b3_a_same_type_id_another_file_holds_still_refuses(project):
     node_writer._ID_INDEX.clear()
     out, err, rc = _run(["hypothesis:t-002-thing", "read body 1:3", "--root", str(project)])
     assert rc == 2 and "id` row is broken" in err, (out, err)     # t-002.md IS hypothesis:t-002
+
+
+# --------------------------------------------------------------------------
+# goal:g7.33.20 residues R1-R2 (sanctuary-master's review of 8a9656b2b4)
+# --------------------------------------------------------------------------
+
+def test_g73320_r1_actor_fails_closed_when_the_collision_check_cannot_run(project, monkeypatch, tmp_path):
+    for k in ("AGI_ACTOR", "AGI_POST", "AGI_SEAT"):
+        monkeypatch.delenv(k, raising=False)
+    # (a) the posts list is MISSING (no config:posts at all): a colliding or plain USER is never stamped
+    for user in ("belam", "liborum"):
+        monkeypatch.setenv("USER", user)
+        assert write._default_actor(project) == "unknown", user
+    # (b) the posts list is UNREADABLE
+    _g733202_posts(project, "belam")
+    monkeypatch.setenv("USER", "belam")
+    def boom(root):
+        raise OSError("unreadable")
+    monkeypatch.setattr(write, "_load_seats", boom)
+    assert write._default_actor(project) == "unknown"
+    monkeypatch.setenv("USER", "liborum")
+    assert write._default_actor(project) == "unknown"
+    monkeypatch.undo()
+    # (c) no project root resolves from the cwd
+    monkeypatch.setattr(write.locations, "find_project_root", lambda *_a, **_k: None)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("USER", "liborum")
+    assert write._default_actor() == "unknown"
+    # the order is intact: a readable list and a USER that is not a post is still the USER
+    monkeypatch.undo()
+    _g733202_posts(project, "belam")
+    monkeypatch.setenv("USER", "liborum")
+    assert write._default_actor(project) == "liborum"
+
+
+def test_g73320_r2_prefix_superset_slugs_refuse_on_read_and_set_but_legit_stems_read(project):
+    for row in ("hypothesis:h1-extra", "hypothesis:h", "hypothesis:h1x"):
+        node = _g73320_b3_row(project, row)
+        before = node.read_bytes()
+        for script in ("read body 1:3", "set note_row y"):
+            out, err, rc = _run(["hypothesis:h1", script, "--root", str(project)])
+            assert rc == 2 and "id` row is broken" in err and row in err, (row, script, out, err)
+        assert node.read_bytes() == before, row
+        node.write_text(before.decode().replace(f"id: {row}", 'id: "hypothesis:h1"', 1))
+    # token-exact, leading run: descriptive stems and the @v2 / .v2 forms are still their own
+    assert write._slug_relates_to_stem("t-001", "t-001-thing")
+    assert write._slug_relates_to_stem("bin-grid@v2", "bin-grid.v2")
+    assert not write._slug_relates_to_stem("h1-extra", "h1")
+    assert not write._slug_relates_to_stem("h", "h1") and not write._slug_relates_to_stem("h1x", "h1")
