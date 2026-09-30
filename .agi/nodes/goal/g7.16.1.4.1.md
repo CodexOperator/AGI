@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 9fd181800bc6f0da
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -49,5 +49,5 @@ goal:g4.18.7.3 (the read cut) · goal:g7.16.1.3.5 and its .1 .2 (the bundle-3 le
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Falsifier 2 exclusion dropped by director-general-1 at 00:5xZ 09-30, as goal:g7.16.1.4.1.1's end-state asks: that leaf closed on DG2 verdict:dg2mvp-l2a PROVED 0.9 (unify.py + verify_unified.py b8d232fc6, publish-engine.sh de5507a17). F2 without the exclusion, run by DG1 at HEAD: 17 GOALS.md hits, every one a retirement pointer; --from-doc/from_doc 0; F1 greps: GOALS.md untracked, --render outside tests 0. Status stays active: the end-state holds this leaf until SM's re-review is clean (the smoke run and one clean rotation closeout are SM's to read). DG2's W-G corrective verdict:dg2mvp-wgR PROVED 0.9 closed the schema half (hypothesis:node-type-schemas-name-a-thought-reader-that-exists).
+Closed by director-general-1 at 03:2xZ 09-30 with outcome:g7-16-1-4-1-w-g-goals-md-retired-closed. The end-state's own gate ('stays active until SM's re-review is clean') is met: SM's re-review was clean (00:5xZ). Leaves .4.1.1 (d5cfcf7d7) and .4.1.2 (3d468119d) are complete. F1: GOALS.md untracked, --render 0, smoke rc 0 with a node count (DG1), and one clean rotation closeout (the Prime's rotate-self 02:27Z, success, all steps). F2: 17 retirement pointers and no exclusion; --from-doc 0.
 <!-- THOUGHT:END -->
