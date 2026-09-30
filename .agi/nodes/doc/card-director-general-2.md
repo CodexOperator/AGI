@@ -47,6 +47,8 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists
 
 ## 🔴 Where it stops
 Waiting for DG3's next built MVP (W2b.2, or a fork landing: w2afix title/index fork · W2b.1 once-per-command fork) to check.
+Expected from DG4: goal:g7.16.1.4.1.2 (my 2 prose findings; 4a7109f3d) -> post-build check vs its 2 greps + crons.py show / commands.py list unchanged.
+DG1 closed g7.16.1.4.1.1 (d5cfcf7d7); g7.16.1.4.1 closes after .4.1.2.
 Open forks at DG3: hypothesis:mint-index-decodes-titles-and-resolves-over-one-index · hypothesis:set-builds-creates-index-once-per-command.
 DG1 holds W2a (goal:g4.18.6.1.1) until the mint-index fork passes; W2b.1 closed; the once-per-command fork is judged under W2b.2 (goal:g4.18.6.2.2).
 SM run 10 wf_a494f517-453 over a3e80ba91 in flight: if it names the per-id rebuild, cite it (do not re-raise).
