@@ -1115,6 +1115,14 @@ def test_drift_catches_a_declared_arity_the_cli_does_not_have(tmp_path):
 _OUTSIDE_CLIS = {
     "analyze-chat-structure.py": "one-off transcript analysis, not an engine verb",
     "snapshot-build-site.py": "retired build-site generator; its inputs are gone and must not return",
+    # council_report.py IS an engine verb, but its ONE verb (`add`) is run per
+    # run key by the council round itself, never proposed at a seat. Its
+    # `manifest:` row in `command:commands` could not be minted this round:
+    # the nested-row verb REFUSES an absent key (`write.py:563` -- "manifest
+    # has no row"), so adding one needs a `set manifest <whole mapping>` that
+    # is not a kid's line budget. Named here with the seam named, not hidden.
+    "council_report.py": "engine verb whose manifest: row is unwritten; the"
+                         " round that mints it records it here as the seam",
 }
 
 
