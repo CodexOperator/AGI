@@ -414,10 +414,16 @@ def fstype_at(path: str) -> str:
     with open(table) as fh:
         for line in fh:
             f = line.split()
-            mp = f[4].rstrip("/") or "/"
-            if len(mp) > len(best) and (p == mp or p.startswith(mp + "/")):
+            mp = (f[4].rstrip("/") or "/") if len(f) > 9 and "-" in f else None
+            if mp and len(mp) > len(best) and (p == mp or p.startswith(mp + "/")):
                 best, kind = mp, f[f.index("-") + 1]
     return kind
+
+
+def user_manager_reachable() -> bool:
+    """THIS uid's user manager: the bus, else its socket -- reachability, which scope_argv's launchability probe never asks."""
+    bus, rt = os.environ.get("DBUS_SESSION_BUS_ADDRESS"), os.environ.get("XDG_RUNTIME_DIR", "")
+    return bool(bus) or bool(rt) and os.path.exists(f"{rt}/systemd/private")
 
 
 def ram_argv(argv: list) -> list:
@@ -440,9 +446,9 @@ def _verb_ram_exec(argv: list, to: str | None = None) -> int:
         return 2
     if to is not None and fstype_at(to) != "tmpfs":
         return subprocess.run(argv).returncode
-    scoped = ram_argv(argv)
-    if list(scoped) == list(argv):
-        sys.stderr.write("mem_cap.py ram-exec: no usable scope -- argv ran UNWRAPPED\n")
+    scoped, why = (ram_argv(argv), "") if user_manager_reachable() else ([], "user manager UNREACHABLE")
+    if why or list(scoped) == list(argv):
+        sys.stderr.write(f"mem_cap.py ram-exec: {why or 'no usable scope'} -- argv ran UNWRAPPED\n")
         return subprocess.run(argv).returncode
     os.execvp(scoped[0], scoped)
 
