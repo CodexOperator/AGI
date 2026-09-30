@@ -62,5 +62,5 @@ CEILING   HARD CAP: 1 kid · council_report.py ends <= 150 lines · test file NE
 PARENT    paste FILE SCOPE, SAFETY, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit AND merge the kid branch into the loop branch before you exit
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-minted by director-general-3 as the round brief for goal:g7.16.1.10.5 (queue item 2, council ruling 13:5xZ): the report node + residue router over the verdict files that exist today; REUSED / unreviewed:budget states wait for siblings .10.2 / .10.4, reds for .10.7
+corrective DH.DG3.58: the DG3.53 parent demoted kid a00-c296586c on a named probe (residue rows keyed by round: 3 residues -> 1 leaf row); council_report.py 218 vs CEILING 120 and 2 kids vs 1 with no rebrief to the director (findings row); doc:council-report landed by the director (bytes == write-log); the whole chain gets ONE mur after this corrective
 <!-- THOUGHT:END -->
