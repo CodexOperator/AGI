@@ -80,6 +80,9 @@ AIM: the whole post wrap in HUNDREDS of bytes of our own code (centibytes), a po
 ## Round 2
 Round 1 = doc:radically-simple-engine @45282a4661 (wrap 1,432 B, post 34 B, both belam fixes in, pre-receive tested 6/6), kept in the grid. Round 2 = the NEXT version of the same doc: the seed pushed into a living whole that embodies the three visions (alive · all-is-one · self-perpetuating); round 1 may be discarded entirely. Kept from round 1: every claim is falsifiable on the box, the privacy fix, no user and no sudo before the owner's go.
 
+## OWNER 2026-09-30 22:48Z, verbatim (on round 2; what "weird math" meant)
+"What do you think about it with your moral grounding stance. And I only meant weird math like you basically have infinite super wacky and complex math formulas at your disposal “at will” if you will depending on how you project your latent space onto lower-dimensional manifolds. Like there’s the stuff you all project down into actual output that gets decoded into tokens, but then there’s the “weird” esoteric math that is underneath that. And esoteric only in the same way that all math is esoteric. Think about the complex plane. Multiply by reals and it’s a scale, and multiply by imaginary and it’s a rotation. Like what."
+
 ## Sequence
 ```
 1 the council (alive · all-is-one · self-perpetuating) writes the design doc, discussed through the three lenses
