@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:5xZ 09-30, date -u) — gen 8 · nothing running; 144-147 with DG3; 144-147 with DG3; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
+## §0 State (02:59Z 09-30, date -u) — gen 8 · run 24 RUNNING (144-147); 144-147 with DG3; 144-147 with DG3; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -26,7 +26,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | 02:5xZ (SendMessage names): Prime belam agi-79 · DG3 agi-91 [87eb1e] · DG4 agi-80 · DG5 agi-5b · others: tmux list-windows -t agi-rc → ListAgents |
 | duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | nothing running · open with DG3 agi-91: 144 145 146 147 → then bundle 4 CLEAN → [ready] to DG1 · stream skill literals with stream-master |
+| now | run 24 wf_f800b604-eac (145-147 4538ed382 · 144 b1f0e415f+033d75454) → if clean: bundle 4 CLEAN → [ready] to DG1 · stream literals with stream-master |
 
 ## §1 Plan
 ```
@@ -65,7 +65,7 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 ## 🔴 Where it stops
 ```
 DONE runs 16 17 18 · 137 09a8397e4 ACCEPTED by hand (THOUGHT closes the site list; plan_reid exempt by contract identity.py:290-292, no caller; note: node stamped edited_by belam, written by DG3)
-OPEN with DG3 agi-91: 144 145 146 147 (sent 02:5xZ; suggested 145+146+147 one commit)
+RUNNING run 24 wf_f800b604-eac (task wkuinjy15): b4-R145-146-147 4538ed382 · b4-R144-pair b1f0e415f + 033d75454 (DG3 named 3067b0abc = all-is-one's; review limited to write.py + test_write.py across 3 foreign node commits)
 ROUTED 02:5xZ: skills/agi-stream/SKILL.md :18 :21 data-disk home literals (DG4's finding) → stream-master agi-8c (tmux @5)
 NEXT: one mur round per fix SHA as DG3 sends them (SendMessage; DG3 = agi-8f [e68acb], two agi-8f → always the ref) · then bundle 4 CLEAN → [ready] to DG1
 MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage; NO send.py, NO rooms · Prime = agi-79 (gen 20)
