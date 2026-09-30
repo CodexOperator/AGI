@@ -20981,33 +20981,28 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # window @id: the rotation is NOT a success. Record `skipped` naming
         # `registry file for @<id>` (proof a).
         # (hypothesis:a-skipped-rotate-join-leaves-no-stranded-window) the
-        # successor window spawned at (4) is ALREADY LIVE here, so returning
-        # rc 1 without disposing of it STRANDS it under the bare post name --
-        # it stays reachable over Remote Control and swallows dms meant for
-        # the live post (measured seq 348). Action A: TEAR IT DOWN by the
-        # captured `succ_window_id`, the SAME address + helper the reap-by-@id
-        # path uses (never a name, never a second tmux wrapper). The
-        # predecessor keeps its `<seat>.prev` name: the seat itself stays
-        # reachable, and the next rotation reaps it. One field records which
-        # action ran; a found join never reaches this branch, so it is
-        # byte-for-byte unchanged.
-        _stranded_status = _kill_window(
-            spawn_name, tmux_session, args.window_path,
-            window_id=succ_window_id)
-        handover["stranded"] = {
-            "action": "killed", "window": spawn_name,
-            "id": succ_window_id, "status": _stranded_status,
+        # successor spawned at (4) is LIVE here (stranded, seq 348). Row 34:
+        # flag first (the record heal polls, action `pending`), then kill by
+        # @id (rotate is the ONE owner), then rewrite the record with what
+        # `_kill_window` did: killed | already_gone | error.
+        st = handover["stranded"] = {
+            "action": "pending", "window": spawn_name, "id": succ_window_id,
             "why": "join not found; the spawned successor window would "
                    "otherwise stay live under the bare post name"}
-        _write_rotation_record(root, _rotate_self_record(
-            seat=seat, role=role, result="skipped",
-            gen_before=gen_before, gen_after=gen,
-            succ=succ, handover=handover,
-            readback_log=Path(dbg).expanduser().resolve(),
-            refusal=joined["note"]), path=rec_path)
+        for _phase in (0, 1):
+            if _phase:
+                st["action"] = _kill_window(
+                    spawn_name, tmux_session, args.window_path,
+                    window_id=succ_window_id)
+            _write_rotation_record(root, _rotate_self_record(
+                seat=seat, role=role, result="skipped",
+                gen_before=gen_before, gen_after=gen,
+                succ=succ, handover=handover,
+                readback_log=Path(dbg).expanduser().resolve(),
+                refusal=joined["note"]), path=rec_path)
         print(f"ERR: {joined['note']}; rotation NOT reported success. "
               f"Stranded successor window {spawn_name!r} "
-              f"({succ_window_id}) {_stranded_status}.",
+              f"({succ_window_id}) {st['action']}.",
               file=sys.stderr)
         return 1
 
