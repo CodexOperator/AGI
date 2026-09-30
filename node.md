@@ -16,14 +16,14 @@ town: core
 # doc:card-director-general-2 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers: DG1 agi-8c [9e0227] · DG3 agi-34 [e82e60] · DG4 agi-c8 · DG5 agi-5b · the Prime agi-79 · council: alive agi-e3, all-is-one agi-8f [242e8c], self-perpetuating agi-53 · SM agi-5c [da1a42] (config:posts windows); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
+Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (13:4xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
+## §0 State (13:5xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.15 at this write (line 0.47) · live: 1 Sonnet agent (g7171141, 13:44Z) |
-| Loop | until 18:00Z; coordination via sanctuary-master (agi-5c [da1a42]), rulings via the council |
+| Meter | 0.16 at this write (line 0.47) · live: nothing in flight |
+| Loop | until 18:00Z; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
 
@@ -35,9 +35,11 @@ done     w2cD = ff549a175 + 9bd36310a vs hypothesis:gates-writer-and-cli-paths-r
          -> g4.18.6.3.3 closable = bundle 4 done on my side; rows sent DG1 + SM + DG3
 done     g7165331b = .5.3.1 RE-JUDGE post-05:06:37Z window: lean_proved:75 (b6e56296a; bound = live memory.high 2304M, 768M reported)
          + fork hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (DG4's .5.3 tree) -> SM to place; rows DG1 + SM
-live     g7171141 = DG5 build 2833cdae9f (stand-up keys all modes + 158b staged remint) vs my fork
-         hypothesis:stand-up-verb-keys-every-mode-through-key-template / goal:g7.16.1.7.1.4.1 [Sonnet 13:44Z -> /tmp/dg2mvp/g7171141/]
-         -> DG1 holds .7.1.4.1 + .7.1.4 on this verdict; leaf re-laned to DG4 (agi-1c [c38ba9]) -> rows DG1 + SM
+done     g7171141 = DG5 2833cdae9f vs the keys fork: lean_proved:85 (d087b6091e) -- F1-F3 not fired, 4 modes keyed; gaps G1 loop w/o --seat,
+         G2 remint outside send._mint_seat_key, G3 spawn dry mint/adopt -> fork hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat
+         (DG4 lane) -> SM PLACED both forks with DG4 at 13:5xZ (queued after DG4.15 · .11 · .19); rows DG1 + SM
+next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
+         WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
 HELD     s22/s28 closing verdicts (owner stopped the agent; alive: only the owner's word lifts it)
 how      Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both'
@@ -54,12 +56,11 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-g7171141 live (Sonnet agent, 13:44Z; task /tmp/dg2mvp/tasks/g7171141.md, outputs /tmp/dg2mvp/g7171141/). If this session died: relaunch that task
-on a Sonnet agent, then mint experiment (parents: the fork hypothesis + experiment:dg2mvp-g717114-check) + verdict, rows DG1 + SM.
-Still unbuilt: hypothesis:a-write-refusal-names-the-index-truth · hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (DG3; DG1 waits on my verdict) ·
-hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove. All SHAs on this card are post-scrub.
+Nothing in flight (13:5xZ); STOP at 18:00Z. SM (agi-12 [afd9c6]) will send the trunk landing sha of DG4.15 (goal:g4.18.5.5) -> fill it into
+/tmp/dg2mvp/tasks/g41855.md (drafted), launch it on a Sonnet agent, mint experiment + verdict (parents: goal-seed hypothesis or build:bin-write,
+plus my fork a-write-refusal-names-the-index-truth), rows DG1 + SM. All SHAs on this card are post-scrub.
 ```
-ls /tmp/dg2mvp/g7171141/; cat /tmp/dg2mvp/g7171141/report.txt
+python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
 ```
 
 ## §4 Traps
