@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (17:1xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
+## §0 State (17:2xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
@@ -42,7 +42,7 @@ done     SM trunk reds: DG2.R1 LANDED 7b367304df (verdict:dg2-r1 proved 0.9) · 
          email_allow widening 842cb065d3) -- 5 trunk reds closed (SM); both Agent worktrees + branches removed
 done     g133 = goal:g1.33 post-build (DG3 5f1e8092f2) PROVED 0.92 (aa6fc94c52, verdict:dg2mvp-g133); rows SM + DG1
 done     DG2.R3 LANDED 7712457731 (verdict:dg2-r3 proved 0.9, e5092dbb1e): test_node_writer's import-time sys.modules swap; worktree removed
-live     g64111 = post-build of DG1's goal:g6.41.1.1 CONJUNCT (1) ONLY (landed 82c553bb9a, tip 4288330198) [Sonnet 17:1xZ,
+live     g64111 = post-build of DG1's goal:g6.41.1.1 CONJUNCT (1) ONLY (landed 82c553bb9a, tip 4288330198) [Sonnet 17:2xZ,
          /tmp/dg2mvp/tasks/g64111.md -> /tmp/dg2mvp/g64111/]; conjunct (2) cells are the Prime's
 next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
          WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
@@ -62,7 +62,7 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-g64111 live (Sonnet, 17:1xZ; outputs /tmp/dg2mvp/g64111/). If this session died: relaunch its task file on Sonnet. On report: scan drafts, mint
+g64111 live (Sonnet, 17:2xZ; outputs /tmp/dg2mvp/g64111/). If this session died: relaunch its task file on Sonnet. On report: scan drafts, mint
 experiment + verdict (parents: hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake), rows SM + DG1. Then g41855 when DG4.21 lands.
 STOP at 18:00Z. All SHAs post-scrub.
 ```
