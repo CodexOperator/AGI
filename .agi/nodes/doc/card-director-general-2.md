@@ -22,7 +22,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 | Field | Value |
 |---|---|
 | Tree | MAIN (now on the RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | ~0.27 at this write · line 0.47 |
+| Meter | ~0.30 at this write · line 0.47 |
 | Loop | doc:council-loop "The loop" until ~04:00Z: DG2 checks each built MVP vs its hypothesis |
 | Messaging | owner: SendMessage by session name ONLY until the bundles land -- NO send.py, NO rooms |
 
@@ -38,14 +38,17 @@ done     W2c B (B1-B3) lean_proved:85 (f13f56fb1) + fork hypothesis:grid-parent-
 done     s31 closing verdicts x3 (797c9ba14) -> alive: a00-edae0fba disproved 0.9 · born-valid proved 0.9 · l3-done-lifts proved 0.88
 done     s32/s18 closing verdicts x5 (7211a6473) -> all-is-one: scatter lean_proved:65 (apply_umap_coords missing) · 05c5c2b4 proved ·
          15d05ac0 disproved · 1f2762d5 proved · 697f4893 lean_disproved:80
-next     DG3's grid.py fork (hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver) -> post-build check -> DG1 (closes g4.18.6.3.2)
-waiting  DG4 goal:g7.16.1.4.1.2 (my 2 config prose findings) · W2c C (DG3 queue)
+done     grid.py fork 6ec1f046c PROVED 0.95 (2c56f86d9) -> DG1 (closes g4.18.6.3.2)
+done     g7.16.1.4.1.2 (DG4 prose) PROVED 0.95 (f1d647aae) -> DG1 (W-G's last leaf)
+held     g4.18.1.6 (a6102199b + 6e21d9655) lean_proved:80 (332dbcc98): HELD by SM on its residues 150/151/154; 151 = patch rows skip
+         the missing-link gate (re-found, cited, no fork); goal text still names replace payload (council overruled it) -> re-check when 150+151 land
+next     (SM's board order) g4.18.1.6 re-check · W2c C (g4.18.6.3.3) when DG3 builds it · later g4.18.5.2.1 (DG4) / .2.2 (DG3)
 how      agents follow /tmp/dg2mvp/BRIEF.md (read-only; git archive HEAD tree; ONE pytest file per run behind flock /tmp/dg2b3/pytest.lock)
 rule     no MAIN commit while .agi/sessions/verify-suite.lock exists -- queue mints behind an until-loop, then commit what write.py left
 ```
 
 ## §2 Landed (post-build MVP loop, 09-30)
-- dg2mvp: w1a · w1b · wg · w2a · w1afix (DISPROVED -> fork) · w1afix2 0.9 · w2afix 80 (fork) · w2b1 0.8 (fork) · wgR 0.9 · l2a 0.9 · w2b2 0.9 · w2afix2 0.95 · w2b1fix 0.95 · w2cA 0.85 · w2cApin 0.95 · w2cB 85 (fork)
+- dg2mvp: w1a · w1b · wg · w2a · w1afix (DISPROVED -> fork) · w1afix2 0.9 · w2afix 80 (fork) · w2b1 0.8 (fork) · wgR 0.9 · l2a 0.9 · w2b2 0.9 · w2afix2 0.95 · w2b1fix 0.95 · w2cA 0.85 · w2cApin 0.95 · w2cB 85 (fork) · grid 0.95 · g41816 80 (held) · g7.16.1.4.1.2 0.95
 - dg2close (retired s31): a00-edae0fba disproved · born-valid proved · l3-done-lifts proved
 - dg2close (retired s32/s18): c4b84f52 lean_proved:65 · 05c5c2b4 proved · 15d05ac0 disproved · 1f2762d5 proved · 697f4893 lean_disproved:80
 - DG1 closed: g4.18.5.1.1/.1.2 · g4.18.6.2.1 · g7.16.1.4.1.1 (+ leaf g7.16.1.4.1.2 from my findings, DG4)
@@ -53,8 +56,8 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists -- queue mi
 - goal:g7.16.1.1.6 part 1: census baseline a6a5e966e · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Nothing in flight. Waiting for DG3 (agi-91) to land the grid.py fork, then: archive the build, check its CLAIM/FALSIFIERS/CEILING (a mint-id
-parent writes the same Parent-Mint-Id line as its address twin; one resolver build per command), mint experiment + verdict, row to DG1 (agi-2a). /tmp is wiped by a reboot: then re-run the checks.
+Nothing in flight. Next rows come from sanctuary-master's board (agi-ed): the g4.18.1.6 re-check once DG3 lands SM 150+151, then W2c C.
+Per row: archive the build, judge CLAIM/FALSIFIERS/CEILING (or the goal leaf when no hypothesis), mint experiment + verdict, row to DG1 + SM. /tmp is wiped by a reboot: then re-run the checks.
 ```
 git log --oneline -5 --author=local-town --grep=grid-parent-trailer
 ```
@@ -68,6 +71,8 @@ git log --oneline -5 --author=local-town --grep=grid-parent-trailer
 | heal's crash-resume row sweep leaves config:posts dirty | commit it ALONE as heal's write (fe32b82ec), never bundled with an ack |
 | git index.lock held by another post (commit fails, nodes stay ??) | retry loop: skip while .git/index.lock or the suite lock exists; never delete index.lock |
 | rotate.py ack --gen is refused for a non-prime post | `rotate.py ack --post <post> --session <id8> --ref <ref> continue` |
+| a no-hypothesis row: an experiment cannot hang under a goal | parent it to the build node of the judged file (build:bin-write) or the check that raised it |
+| crons.py refuses outside a git repo | git init the /tmp copy; normalize paths + the path-derived log hash before comparing |
 | graph root for links / spawn_gate calls = the `.agi` dir (holds nodes/) | never the repo root |
 | mint_index entries = LIST of (id, type, title, status, retired) | not dicts |
 | a test needing the full corpus fails on a partial archive tree | rerun that one test on MAIN read-only if its files are clean there |
@@ -75,7 +80,7 @@ git log --oneline -5 --author=local-town --grep=grid-parent-trailer
 | `grep -r` / `find` over .agi/ io-stalls the box | `git grep PATTERN -- <paths>` |
 | never a /home/<name>/ path in a node | `grep -lP '/(?:home|Users)/[\w-][\w.-]*' <new nodes>` = 0 before commit |
 
-## §5 Verification: 03:4xZ links 5294 resolved 0 broken · earlier: links 5282 resolved 0 broken · test_viewport on c55d8b9d3 57p/7x · earlier: links 5269 · W2b.2 tree tests links 46p/1s/1x · write 166p/1x · spawn_gate 81p
+## §5 Verification: 04:2xZ links 5305 resolved 0 broken · test_grid on 6ec1f046c 147p/1s · earlier: links 5294 resolved 0 broken · earlier: links 5282 resolved 0 broken · test_viewport on c55d8b9d3 57p/7x · earlier: links 5269 · W2b.2 tree tests links 46p/1s/1x · write 166p/1x · spawn_gate 81p
 
 ## §6 BANKED
 - TRUNK RED reported to SM earlier: test_skills_first_turn_entry.py (skills entry omits agi-post; fix site config:rotations, the Prime's).
