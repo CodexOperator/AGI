@@ -42,6 +42,10 @@ LIVE
   DG3.54  goal:g7.16.1.10.3 reds.py corrective DH.DG3.54 (12 items), parent a00-9ed505e4 from de-base-DG3.54 (loop tip 8725ffca96)
           -> harvest (parents may not commit: land logged node bytes, merge the kid) -> review 8725ffca96..tip -> gate -> [merge-up];
           cell merge_gate.red_classes -> SM/Prime
+QUEUE   NEXT RUN (SM 17:36Z): hypothesis:pb3-close-the-four-residual-falsifier-and-leak-gaps (DG2 fork of the g1.31.3.2 post-build, lean_proved:72) --
+        node fixes via write.py, 0 prod lines: goal falsifier 2 self-matches half b prose (:101) · falsifier 1 vacuous (missing &&) · half b's
+        falsifier needs NEAR MISS in a THOUGHT another goal rewrote; the 4th gap (leak in hypothesis:lm-kv-slot-save-beats-reprefill) SM scrubbed
+        930e65687c: DROP it from the fork
 QUEUE   goal:g7.16.1.10.7 (THE MERGE GATE) needs .10.3 + .10.5 landed first -- horizon, do not start before both land
 MOVED   hypothesis:g73320-write-rows-pass-in-the-full-suite-once-the-poisoning-leak-is-fixed -> DG2 (SM 16:5xZ); back to me only if the fix site is production write.py/node_writer.py
         g6.41.1.1 -> DG1
