@@ -426,3 +426,18 @@ def test_a_lock_taken_mid_retry_refuses_instead_of_committing_under_it(tmp_path)
     p.kill(); p.wait()
     assert r.returncode == 3 and f"live pid {p.pid} after waiting 0.3s" in r.stderr, r.stderr[-300:]
     assert _commits(repo) == 0
+
+
+def test_a_ref_lock_failure_is_busy_and_retries_to_exit_0(tmp_path):
+    """A git stub fails the FIRST commit with `cannot lock ref 'HEAD'`; the write retries and lands."""
+    repo = _repo(tmp_path)
+    real = subprocess.run(["which", "git"], capture_output=True, text=True).stdout.strip()
+    stub = tmp_path / "bin" / "git"
+    stub.parent.mkdir()
+    stub.write_text(f'#!/bin/sh\ncase " $* " in *" commit "*) if [ ! -e {tmp_path}/once ]; then touch {tmp_path}/once; '
+                    f"echo \"fatal: cannot lock ref 'HEAD': is at abc\" >&2; exit 128; fi;; esac\nexec {real} \"$@\"\n")
+    stub.chmod(0o755)
+    r = subprocess.run([sys.executable, str(WRITE), "doc:w1", 'set title "retried"'], cwd=repo, capture_output=True,
+                       text=True, env={**__import__("os").environ, "PATH": f"{stub.parent}:{__import__('os').environ['PATH']}"})
+    assert (tmp_path / "once").exists() and r.returncode == 0, r.stderr[-300:]
+    assert _dirty(repo) == [] and _commits(repo) == 1

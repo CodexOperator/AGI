@@ -4518,7 +4518,8 @@ def _commit_write_body(root, node_id: str, res, actor: str = "",
         done = add if add.returncode else git("commit", "-q", "-m", msg, "--", *paths)
         if done.returncode == 0:
             return None, False
-        busy = "index.lock" in (done.stderr or "") + (done.stdout or "")
+        out = (done.stderr or "") + (done.stdout or "")   # g1315131d: a ref lock is as busy as the index lock
+        busy = "index.lock" in out or "cannot lock ref" in out or ".lock': File exists" in out
         # the peer's commit won the race (hypothesis:a-write-refusal-names-the-index-truth):
         # the index is the truth, and it says these bytes are already in HEAD.
         # TRACKED or not "clean": `status --porcelain` is blind to an ignored
