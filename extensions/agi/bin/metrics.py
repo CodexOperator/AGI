@@ -49,18 +49,6 @@ DEFAULT_METRIC_PRIMARY = "outcome_coverage"
 #: Metrics that are descriptive only and must never be primary.
 GAMEABLE_METRICS = ("longest_chain_length",)
 
-#: Where `publish-engine.sh` used to record the outcome of every run it made
-#: (goal:g7.10, pre-goal:g11). Kept only because `publish-engine.sh` itself and
-#: its own test suite (`test_publish_alarm.py`) still read/write this path —
-#: **metrics.py no longer turns it into a METRIC line** (goal:g11 residual,
-#: see below). Generated state, gitignored, sitting beside
-#: `context/INJECTION.md` because that is where this repo already keeps
-#: generated state. Deliberately **not** under `nodes/`: gate 0 of
-#: publish-engine.sh refuses on any uncommitted change under `nodes/`, so a
-#: publish marker written there would arm, on every single run, the exact gate
-#: it exists to report on.
-PUBLISH_STATE_PATH = ("context", "publish-state.json")
-
 #: `unpushed_commits` when the gap could not be measured at all.
 #:
 #: Not `0`. `0` is this metric's one *reassuring* value — "everything local is
