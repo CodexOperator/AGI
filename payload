@@ -2468,6 +2468,20 @@ def test_w1a_fix2_the_spliced_body_keeps_one_well_formed_thought(project, tmp_pa
     assert node.read_text() == before
 
 
+# SM N1-N3: --dry-run refuses what submit refuses -- a row beside a note, a row
+# beside a replace payload (either order), a sub-range past its row.
+def test_row_dry_run_refuses_like_submit(project, tmp_path):
+    node, body = _w1c_node(project)
+    before = node.read_text()
+    (tmp_path / "x.txt").write_text("| alpha | 5 |\n")
+    x = tmp_path / "x.txt"
+    for script in (f"row name:alpha {x} && note n", f"row name:alpha {x} && replace payload 1:1 {x}",
+                   f"replace payload 1:1 {x} && row name:alpha {x}", f"row 1:1-9 {x}"):
+        for dry in (["--dry-run"], []):
+            assert write.main(["hypothesis:h1", script, *dry, "--root", str(project)]) == 2, (script, dry)
+    assert node.read_text() == before
+
+
 def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp_path):
     node, body = _w1c_node(project)
     (tmp_path / "r.txt").write_text("| write.py | 9 |\n")
