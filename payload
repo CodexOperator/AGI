@@ -173,53 +173,6 @@ def load(name: str) -> ModuleType:
 TIERS = ("kid", "parent", "director", "prime_director")
 
 
-def harness_block(cfg: dict, name: str | None) -> dict:
-    """goal:g7.16.1.7.1.3.1 -- THE config.json harness read: the merged block
-    for `name`, `{}` when nothing answers to it. A plain block is returned as
-    a copy. A TEMPLATE (a block carrying `rows`) answers its own id with its
-    shared cells + the `default: true` row, `<template>:<row>` with that row,
-    and a name in its `aliases` with the aliased row; the merged block drops
-    `rows` / `aliases` and names its row in `row`."""
-    harnesses = cfg.get("harnesses") or {}
-    if not name:
-        return {}
-    base, _, row_name = str(name).partition(":")
-    block = harnesses.get(base)
-    if isinstance(block, dict) and "rows" not in block:
-        return dict(block) if not row_name else {}
-    if not isinstance(block, dict):
-        block = None
-        if not row_name:
-            for t in harnesses.values():
-                if isinstance(t, dict) and base in (t.get("aliases") or {}):
-                    block, row_name = t, str(t["aliases"][base])
-                    break
-    if block is None:
-        return {}
-    rows = [r for r in block.get("rows") or [] if isinstance(r, dict)]
-    row = next((r for r in rows if (r.get("name") == row_name if row_name
-                                    else r.get("default") is True)), None)
-    if row is None:
-        return {}
-    merged = {k: v for k, v in block.items() if k not in ("rows", "aliases")}
-    merged.update({k: v for k, v in row.items() if k not in ("name", "default")})
-    merged["row"] = row.get("name")
-    return merged
-
-
-def harness_ids(cfg: dict) -> list[str]:
-    """Every name `harness_block` answers: plain ids, each template's id and
-    `<template>:<row>`, and each template alias. Sorted."""
-    out: set[str] = set()
-    for hid, block in (cfg.get("harnesses") or {}).items():
-        out.add(hid)
-        if isinstance(block, dict) and "rows" in block:
-            out.update(f"{hid}:{r['name']}" for r in block.get("rows") or []
-                       if isinstance(r, dict) and r.get("name"))
-            out.update(block.get("aliases") or {})
-    return sorted(out)
-
-
 def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:
     """Pick a harness from config, synthesizing one for a legacy project.
 
@@ -252,11 +205,11 @@ def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:
                     "config declares several harnesses and no `spawn.harness`; "
                     f"name one of {sorted(harnesses)}"
                 )
-        harness = harness_block(cfg, chosen)
-        if not harness:
+        if chosen not in harnesses:
             raise AdapterError(
-                f"no harness {chosen!r} in config; declared: {harness_ids(cfg)}"
+                f"no harness {chosen!r} in config; declared: {sorted(harnesses)}"
             )
+        harness = dict(harnesses[chosen])
         harness.setdefault("adapter", chosen.replace("-", "_"))
         return chosen, harness
 
