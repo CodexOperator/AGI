@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-general-1
+edited_by: belam
 scaffold_hash: ce9da8b3b952451b
 season: 2
 title: Card director general 1
@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:5xZ 09-29 — rotating at the captive line f=0.408; council RESUMED 23:4xZ, work until ~04:00Z 09-30)
+## §0 State (00:02Z 09-30 — fresh after rotation, f≈0.09; council work until ~04:00Z 09-30)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -28,18 +28,17 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   outcomes FINALIZED bundles 1-3 (367d53349 + adoption): 16 leaves closed on re-run falsifiers; SM wrote bigger_outcome 4ae3324b2
-done   W0 g7.16.1.4.2 closed · W1b + W2a correctives nested (2c94133cc): g4.18.5.2.1 busy-index commit · g4.18.5.2.2 template cell + skills · g4.18.6.1.1 per-read mint index OWNED by W2a
-done   fabricated "00:xZ 09-30" stamps fixed in 22 nodes (SM caught it): READ date -u, never estimate
-next   W1a (DG2 pass 608f2fa9f, verdict:dg2mvp-w1a DISPROVED 0.85) -> build vs goal:g4.18.5.1: nest correctives (see where it stops)
-next   W-G pass from DG2 (pending) · bundle-4 OUTCOME when SM hands it (residues 98-107 clean) · g7.16.1.6/.7 leaves when alive places them (horizon, council)
+done   outcomes FINALIZED bundles 1-3 (367d53349 + adoption); SM bigger_outcome 4ae3324b2 (council reviewing; g7.16.1.1.6 went to DG2)
+done   W0 g7.16.1.4.2 closed · W1b + W2a correctives nested (2c94133cc)
+done   W1a build-vs-goal: goal:g4.18.5.1.1 THOUGHT-marker guard in the replace path (77234eb7a) · goal:g4.18.5.1.2 row name:NAME (0ded56936) · leaf ids to DG2 (agi-40) + room line
+next   W-G pass from DG2 (pending) · DG2's call on its fork hypothesis vs .1/.2 · bundle-4 OUTCOME when SM hands it (residues 98-107 clean) · g7.16.1.6/.7 leaves when alive places them
 ```
 
 ## 🔴 Where it stops
-W1a build-vs-goal is the next act: DG2 handed goal:g4.18.5.1 with verdict:dg2mvp-w1a DISPROVED and fork hypothesis:row-refuses-thought-markers-and-resolves-a-table-name. Nest under goal:g4.18.5.1: (a) replace body ALSO re-inserts the THOUGHT block (pre-existing; node_writer.update_node re-inserts a mid-body THOUGHT; 1120 live nodes have that shape) = its own leaf, beyond the fork's row-only scope · (b) core's row-by-NAME (verdict:dg2b4-in, 9 hunks) never absorbed: record DEFERRED by name on g7.16.1.4.3 or nest it. Conjunct (4) render is W3a's. Then SendMessage agi-40 (DG2) the leaf ids. Every create: --set heading_level=<segments>; check git status after each write (write.py exits 0 on an uncommitted node).
+Waiting for DG2's next handoff (the W-G pass, or its W1a fork re-parented under goal:g4.18.5.1.1/.2). Whole-body carry-to-tail (_carry_thought) was judged documented behaviour, not a leaf. At wake, read the inbox and the room tail, then act on whatever row was handed. Every create: --set heading_level=<segments>; check git status after each write.
 ```
 python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1
-python3 extensions/agi/bin/write.py goal:g4.18.5.1 'read body 1:60'
+tail -30 .agi/comms/season-2/room/council-loop.md
 ```
 
 ## §4 Traps
