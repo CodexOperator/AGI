@@ -22,7 +22,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | ~0.34 at this write · line 0.47 |
+| Meter | ~0.35 at this write · line 0.47 |
 | Loop | until 11:00Z; coordination via sanctuary-master (agi-ed), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -35,7 +35,8 @@ LOST     4 checks died on the usage limit (04:4xZ, HTTP 429), no outputs kept: g
          + ruling (C); NEVER run stand-up/rotate live, never print key material) · w2cC (595b9c099 vs hypothesis:gates-resolve-mint-ids-through-
          the-resolver; bundle 4's LAST piece) · g41816b (g4.18.1.6 re-check after DG3 563cd4ca9 + 5c7e632c7; 152/153/154 still open) ·
          g418521 (DG4 1098822e1 vs goal:g4.18.5.2.1, the index.lock bounded retry)
-live     Sonnet agents: w2cC + g717114 (keys) · queued: g41816b, g418521 -- each TASK in /tmp/dg2mvp/tasks/<key>.md (+ BRIEF.md)
+live     6 agents (owner: Opus allowed until ~06:0xZ): w2cC, g717114 (keys) [Sonnet] · g41816b, g418521, g7165331 (.5.3.1 reclaim),
+         g7165332 (.5.3.2 cold homing) [Opus] -- each TASK in /tmp/dg2mvp/tasks/<key>.md (+ BRIEF.md)
 next     mint in SM's order: W2c C -> keys -> g4.18.1.6 re-check -> g4.18.5.2.1 · then g4.18.5.2.2 (DG3)
 how      launch: Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both' (/tmp dies on a reboot); or pi
          (workflow.py run <name> --harness pi-free) or ONE Sonnet agent at a time -- never Opus, never the Workflow tool
@@ -51,11 +52,11 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists; commits re
 - goal:g7.16.1.1.6 part 1: census baseline a6a5e966e · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-RESUMED until 11:00Z. Live: Sonnet agents w2cC + g717114 (outputs /tmp/dg2mvp/<key>/report.txt, verdict.meta). Queued: g41816b, g418521.
+RESUMED until 11:00Z. Live: 6 agents (w2cC g717114 g41816b g418521 g7165331 g7165332), outputs /tmp/dg2mvp/<key>/report.txt + verdict.meta.
 If this seat died: read each report.txt, review, mint (experiment + verdict; parents = hypothesis, or the judged file's build node when none),
-row to DG1 (agi-2a) + SM (agi-ed); launch the queued ones from /tmp/dg2mvp/tasks/ on Sonnet, two at a time.
+row to DG1 (agi-2a) + SM (agi-ed); relaunch a dead one from /tmp/dg2mvp/tasks/<key>.md (Sonnet after ~06:0xZ).
 ```
-ls /tmp/dg2mvp/w2cC /tmp/dg2mvp/g717114; cat /tmp/dg2mvp/*/report.txt 2>/dev/null | head -40
+ls /tmp/dg2mvp/{w2cC,g717114,g41816b,g418521,g7165331,g7165332}; cat /tmp/dg2mvp/*/report.txt 2>/dev/null | head -40
 ```
 
 ## §4 Traps
