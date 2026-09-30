@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: alive
+edited_by: belam
 scaffold_hash: 0394875185875b1d
 season: 2
 title: Card alive
@@ -18,11 +18,11 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §0 State (05:0xZ 09-30) -- council RESUMED until 11:00Z (owner 04:5xZ: "Continue hammering at it as fast as you can until 7am. Maybe allow another director to come up if system can handle it.")
 | | |
 |---|---|
-| post | alive gen 3 rotates at meter ~0.41 (captive captured 0.404) · session agi-b3 [c68b9e] |
+| post | alive gen 4 · session agi-e3 [761106] (gen 3 agi-b3 retiring) · rotate at f >= 0.47 |
 | spend | OWNER 05:0xZ (until the reset ~06:0xZ): "I need to max sub use before reset in an hour" + "No make it opus as well" -> Opus 5.5 subagents WANTED this hour; after the reset back to OWNER 04:5xZ: every subagent + review on Sonnet 5.5; workflow.py pi-free. Both passed to agi-53 + agi-8f |
 | role | the council IS prime to the directors (owner 02:5xZ): a director [decision] -> ONE lens round (10 min, silence = agree) -> ONE consolidated ruling from the convener |
 | messaging | OWNER: "use internal messaging only for everything and full guarantee until bundles land" -> SendMessage by session name ONLY; NO send.py, NO rooms; town nodes are Prime-gated (write.py refuses council) |
-| peers | Prime agi-79 · self-perpetuating agi-53 · all-is-one agi-8f · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · re-map after a restart: `tmux list-windows -t agi-rc` + ListAgents |
+| peers | Prime agi-79 · SM agi-5c (gen 9; agi-ed = .prev) · self-perpetuating agi-53 · all-is-one agi-8f · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · re-map after a restart: `tmux list-windows -t agi-rc` + ListAgents |
 | lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" + "## The loop" |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
@@ -34,7 +34,10 @@ done   RESUME item 1 (belam; owner 05:0xZ): 0 pending hyps under a RETIRED goal 
 item 2 all-is-one: goal:g1.31 (PASS B3 residues, 47 upheld + 147 missed) -> DG6's first assignment, cut by file cluster; WAITING on SM (agi-ed)
 item 3 self-perpetuating: B4 = goal:g7.16.1.10 draft (ONE review per change keyed by tip sha; SM-clean murs REUSED; verdict rows on ONE council report;
        residues to the owning director; the Prime says merge | hold); alive's lens line sent: reuse must PROVE sha coverage, report shows reused vs reviewed
-next   2 pending hyps under COMPLETE goals: hypothesis:a00-0d182e77-3f4501 (s22) · hypothesis:s28-manifest-merge (s28) -> DG2 closing verdicts (agi-7f)
+done   gen 4 05:0xZ: new address agi-e3 sent to SM agi-5c · all-is-one · self-perpetuating
+wait   DG2 (agi-7f, after SM's order): closing verdicts on hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28) -- sent 05:0xZ, reply = sha(s)
+wait   g7.16.1.10 NOT minted yet (self-perpetuating draft) -- lens round comes to agi-e3
+wait   SM bundle-4 BIGGER_OUTCOME: after W2c C re-run (595b9c099) + DG1 outcomes (doc:card-sanctuary-master §1)
        .5 placement A/B (all-is-one) sent to belam: retire .5.5.3 -> .5.5 · .5.3.2(+.1) under .5.2, ONE mover function
        then SM's bundle-4 BIGGER_OUTCOME -> vision:alive review -> or OVERVIEW -> belam · stop 11:00Z
 ```
@@ -43,9 +46,9 @@ next   2 pending hyps under COMPLETE goals: hypothesis:a00-0d182e77-3f4501 (s22)
 - a84ee34b2 832a7deb5 d46433dd9 65aa8bd62 b9dc2c83b e512319ec afe5467f3 d57b53f19 aa0bf6357 99085d912 df18a5161 c00a3960a d3ec89831 6b2da8394 846b34e06 ff8beb884 b50cc8913 3aa03292b 172902cd7
 
 ## 🔴 Where it stops
-alive gen 3 rotates at 0.41: resume items 2 (all-is-one) and 3 (self-perpetuating) are in flight with their owners; the successor takes the next line of §1
+alive gen 4 WAITING on three replies (§1 wait): DG2 shas · g7.16.1.10 lens round · SM bundle-4 handoff -> then vision:alive review -> OVERVIEW -> belam · stop 11:00Z
 ```
-successor: ListAgents + `tmux list-windows -t agi-rc` (re-map peers) -> read SendMessage replies -> §1 next (DG2 for the 2 hyps; confirm g7.16.1.10's lens round closed)
+successor: ListAgents (re-map) -> read SendMessage replies -> §1 wait lines; a reply with a sha = verify verdict+evidence_runs on the bytes
 ```
 
 ## §4 Traps
