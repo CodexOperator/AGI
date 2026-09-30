@@ -509,7 +509,7 @@ def test_the_remint_adopts_its_own_orphan_staged_key(graph, monkeypatch):
     seats.write_text(seats.read_text().replace(_row(graph, "seat-a")["pubkey"], pub),
                      encoding="utf-8")
     key = send._seat_key_path(graph, "seat-a")
-    _stage_orphan(graph, "seat-a", priv)
+    _age_orphan(_stage_orphan(graph, "seat-a", priv))
     _age_orphan(_stage_orphan(graph, "seat-a", _a_new_key()[0]))  # an old orphan
     assert _seats_dirty(graph), "the pre-crash row write is uncommitted"
     note = rotate.ensure_post_key(graph, "seat-a")
@@ -561,6 +561,24 @@ def test_a_fresh_non_matching_temp_is_a_concurrent_mint_and_is_left_alone(
         "a concurrent mint's live private key was swept mid-mint"
 
 
+def test_a_fresh_matching_temp_is_a_live_mint_and_is_never_renamed_away(
+        graph, monkeypatch):
+    """158c-2 (b): the concurrent-mint interleaving -- the row already names a
+    temp's key but the temp is younger than the grace window (its writer may be
+    live, between staging and placing): it is neither adopted nor swept, and
+    a temp that vanishes mid-scan is skipped, not raised."""
+    import send
+    _keyed_repo(graph, "town-x", monkeypatch)
+    priv, pub = _a_new_key()
+    live = _stage_orphan(graph, "seat-a", priv)        # written microseconds ago
+    gone = _age_orphan(_stage_orphan(graph, "seat-a", _a_new_key()[0]))
+    real = Path.stat
+    monkeypatch.setattr(Path, "stat", lambda self, *a, **k: (
+        self.unlink() or real(self, *a, **k)) if self == gone else real(self, *a, **k))
+    assert rotate._orphan_staged_keys(send, graph, "seat-a", pub, False) == (None, 0)
+    assert live.exists() and not gone.exists()
+
+
 def test_the_dry_run_names_the_adopt_and_changes_nothing(graph, monkeypatch):
     """158c falsifier 3 (mechanism, not prose): the dry run reports the
     adopt AND the sweep count, and unlinks/renames/finds nothing."""
@@ -571,7 +589,7 @@ def test_the_dry_run_names_the_adopt_and_changes_nothing(graph, monkeypatch):
     seats = graph / "nodes" / ".geometry" / "seats.md"
     seats.write_text(seats.read_text().replace(_row(graph, "seat-a")["pubkey"], pub),
                      encoding="utf-8")
-    _stage_orphan(graph, "seat-a", priv)       # the key the row already names
+    _age_orphan(_stage_orphan(graph, "seat-a", priv))  # the key the row names
     _age_orphan(_stage_orphan(graph, "seat-a", _a_new_key()[0]))  # an old orphan
     row = _row(graph, "seat-a")
     dry = rotate._rotate_first_key(graph, None, "seat-a", row, dry_run=True)

@@ -17974,33 +17974,35 @@ def _template_key(send, root: Path, seat: str, scheme: str, tmpl: dict):
     return (*found, send._seat_key_path(root, seat), "adopted its existing key")
 
 
-#: 158c: a non-matching orphan temp is unlinked only once it is this old. A
-#: YOUNGER one may be a CONCURRENT remint's in-flight stage (written between
-#: its keygen and its rename), and unlinking that destroys a live private key
-#: mid-mint. The match -- the temp whose secret derives the row's CURRENT
-#: pubkey -- is adopted at any age, since adopting it is the point.
+#: 158c: an orphan temp is touched (adopted or unlinked) only once it is this
+#: old. A YOUNGER one may be a CONCURRENT remint's in-flight stage (between its
+#: keygen and its placement); renaming or unlinking it destroys a live private
+#: key mid-mint, so a young temp -- match or not -- is left alone.
 ORPHAN_TEMP_GRACE_S = 300
 
 
 def _orphan_staged_keys(send, root: Path, seat: str, pub_hex: str, dry_run: bool):
-    """158c -- `seat`'s orphan temps; the one whose secret derives the row's
-    CURRENT pubkey is adopted, the rest unlinked once past
-    `ORPHAN_TEMP_GRACE_S`. `(match, would_sweep)` -- the count a dry run
-    reports is what it WOULD unlink, not every temp it saw."""
+    """158c -- `seat`'s orphan temps past `ORPHAN_TEMP_GRACE_S`: the one whose
+    secret derives the row's CURRENT pubkey is adopted, the rest unlinked.
+    `(match, would_sweep)` -- the count a dry run reports is what it WOULD
+    unlink, not every temp it saw. A temp that vanishes mid-scan is skipped."""
     path = send._seat_key_path(root, seat)
-    temps = sorted(path.parent.glob(f".{path.name}.*.tmp"))
     cutoff = time.time() - ORPHAN_TEMP_GRACE_S
     match, swept = None, 0
-    for tmp in temps:
+    for tmp in sorted(path.parent.glob(f".{path.name}.*.tmp")):
         try:
+            if tmp.stat().st_mtime > cutoff:  # possibly a live mint's stage
+                continue
             obj = json.loads(tmp.read_text())
             hit = match is None and send.seatsig.get(obj["scheme"]).public_from_secret(
                 bytes.fromhex(obj["priv_hex"])).hex() == pub_hex
+        except FileNotFoundError:  # vanished: someone else's, skip
+            continue
         except Exception:  # noqa: BLE001 -- unreadable is not the key
             hit = False
         if hit:
             match = tmp
-        elif tmp.stat().st_mtime <= cutoff:
+        else:
             swept += 1
             if not dry_run:
                 tmp.unlink(missing_ok=True)
