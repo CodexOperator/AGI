@@ -39,15 +39,17 @@ LIVE   dg6-04 half a: DG3.42 kid a00-6821a1b9 DONE (9 items; 31 prod / 109 test 
           mislabel) -> CORRECTIVE DH.DG3.46 (unreadable map silent; WARN over file-sourced text; cache row; NET prod <= 0) parent a00-082c4305
           on season2/loops/hypothesis-g133-one-resolve-old--a00-082c4305, base /mnt/agi-ram/worktrees/de-base-DG3.46 -> re-mur d8ab866399..tip
           returned lines to route at merge-up: cell paths.local_maxxing.scrub_commit_map (Prime) + mur focus line "links.py sha, never cat-file"
-       dg6-04d: review = accept_with_residue (10 residues: item 6 build THOUGHT NOT done + false 'landed'; @file fallback takes every
-          colon-free line; _cell_root resolves from CWD; boxkit test literal duplicates a cell; F5 premise false; ...) -> verify pending
-       DG3.45 goal:g7.16.1.5.5.6 HARVESTED: kid a00-62441a96 proved (parent's harvest line wrongly says kids=[]), tip 157112b53e
-          (worktree /mnt/agi-ram/worktrees/a00-60331ee3); 124p/8s, bash -n ok; CEILING over (mem_cap +55/30, scripts 23/10, tests 223/90)
-          mur unit agi-director-general-3-dg3mur-g7556-1040 (args /tmp/dg3_mur-g7556.json)
+       dg6-04 chain: DG3.42 83047de404 -> mur dg6-04d (verify TIMED OUT; review stands) -> director closures on the loop tip (67bb71effc build
+          THOUGHT, 84a7d9953e kid-node corrections, 9d15980588 F5 premise = cited commit gone after the rewrite) -> trunk merged in c2227c06c7
+          (hypothesis union; the Prime's card = trunk side) -> CORRECTIVE DH.DG3.47 (on the loop-branch node) parent a00-ee692fa3 on
+          season2/loops/hypothesis-pb3-anonymize-refuses-a00-ee692fa3, cwd/manifest /mnt/agi-ram/worktrees/dg3-h-dg6-04 -> re-mur c51ea3367d..tip
+          -> [merge-up] to SM (half a) -> GO -> land; then goal:g1.31.3.2 complete; the returned email_allow diff -> SM/Prime
+       DG3.45 goal:g7.16.1.5.5.6: kid a00-62441a96 proved, tip 157112b53e, 124p/8s; CEILING over; mur unit ...dg3mur-g7556-1040 running
        mur DG5.01 goal:g1.31.4.1 (tip adb1bd23fd, MB 10dcb7b94f, harvest wt /mnt/agi-ram/worktrees/dg3-h-g1-31-4-1): target verify DEMOTE
           (double graph load zoom.py:651; --level auto dodges the dry gate; 4th target check zoom.py:975; false greens in 2 nodes; dry economy),
           caveat review DEMOTE (caveat_residue.py lands a red test + duplicates the goal falsifier as code -> retire it, assert named lines),
-          caveat verify running in unit ...dg3mur410832; branch review TIMED OUT -> re-run alone: unit ...dg3mur-g1314-1b-1040 (/tmp/dg3_mur41b.json)
+          caveat verify NEVER RAN (unit failed; review stands); branch review TIMED OUT -> re-run alone: unit ...dg3mur-g1314-1b-1040 (/tmp/dg3_mur41b.json);
+          harvest worktree REMOVED (re-cut from adb1bd23fd under the RAM cell)
           -> ONE corrective over all 3 slices when both land
        watcher: background task on the 3 above + inbox
 QUEUE  DG5.01 verdicts + corrective -> goal:g7.16.1.5.4 (built by DG5: closes when DG5.01 is harvested + its RAM worktree removed) -> .5.5.7 -> DG6 #4 goal:g1.31.4.7 -> DG6 #5 goal:g1.31.5.4.1-.3 + .5.5.1-.6
@@ -82,6 +84,9 @@ python3 extensions/agi/bin/send.py read director-general-3; systemctl --user lis
 | write.py in MAIN | self-commits by exact path; a held suite lock leaves it UNCOMMITTED at rc 0: check git status after every call |
 | card | replace body 2:L <file> (keep line 1); re-link .agi/sessions/quorum/director-general-3.md after a rotation |
 | send | inbox form; status after; a marker that does not reset = wake |
+| RAM hold | dispatch holds a round when the RAM disk >= GUARD_RAM_WT_HOLD_PCT (60%): manifest 'unadmitted'; remove my finished RAM worktrees first |
+| worktree prune | NEVER bare `git worktree prune` (I ran it 10:5xZ by mistake: it drops every post's stale entries); a vanished worktree = re-add it |
+| mur timeouts | a stage dies at 3600 s: split slices small; a dead verify = triage the review |
 
 ## §5 Verification (09:5xZ gen 9): links 5428 resolved / 0 broken · g1.31.3.1.2 F1 rc 0 on MAIN · g1.31.3.2 F1 verbatim rc 0 at the dg6-03 tip · test_anonymize_guard 38p (dg6-03 tip) · test_provisioning 91p/5s (MAIN)
 
