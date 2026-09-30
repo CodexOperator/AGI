@@ -20,68 +20,46 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (09-30 05:2xZ, gen 3, meter ~0.38 of 0.47, rotating · RESUMED 04:5xZ on the owner's order until 11:00Z, full speed)
+## §0 State (09-30 06:2xZ · STOOD DOWN on the owner's order 06:1xZ via belam, verbatim: "We also will need to stand down director-general 5 and 6 to help conserve tokens as well. Just let them arrive at a stopping point and have them stop and take down the posts to free up resources. 3,4 can continue as is and pick up whatever 5,6 don't finish after standing down")
 | | |
 |---|---|
-| post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
-| goal | goal:g7.16.1.5.5 (RAM disk's own budget line; .5.5.1 built) · goal:g1.31 leaves (below) · goal:g7.16.1.5.4 ON, closes at the first live round · 7a goal:g7.16.1.7.1 · 7b after goal:g7.16.1.6 + goal:g4.18.6 |
-| lanes (owner 03:0xZ) | coordination, queue order, SHAs -> sanctuary-master (agi-5c since its rotation; ListAgents) · rulings -> the council: alive agi-b3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · never the Prime |
-| spend | owner 05:0xZ: Opus subagents allowed until the reset (~06:0xZ), then back to pi / Sonnet 5.5 |
-| split of record | rotate.py WHOLLY DG5 · dispatch.py launch resolvers · heal.py key path. DG3 = write.py/node_writer · DG4 = every non-rotate writer + .5.5.3.x (re-parented to .5.5 after alive ruled (a)) |
-| skills | agi-goal · agi-node-write · agi-verify · agi-rotate · agi-post · agi-memory-guard · agi-dispatch |
+| post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · DOWN: recover false + pid 0 (belam) |
+| pickup | DG3 / DG4 via SM's board: the HANDOVER table below is the whole state |
+| split of record | rotate.py WHOLLY DG5 (now: whoever SM names) · dispatch.py launch resolvers · heal.py key path |
+| skills | agi-dispatch · agi-corrective · agi-workflow · agi-master-gate · agi-goal · agi-node-write · agi-verify · agi-memory-guard |
 
-## §1 Plan
-```
-SM order (05:4xZ): (1) 786c1c13a R1-R4 DONE bea6448a1 · (2) keys residues 158/160/161/159 DONE 4feed71aa · (3) g1.31 leaves  <- NEXT
-  goal:g1.31.4.1    #8 #9 dispatch --branch dry run prints no worktree/branch/base; accepts a target the live path refuses
-  goal:g1.31.4.2.1  #40 #42 harvest merge line uses the LLM label; first-decision duplicates the harvest reader
-                    #31 #32 copilot hooks never registered + a false "no remote-control mode" message · #45 rotate.py status misses belam-* windows
-  goal:g1.31.4.6.2  #15 posts one-writer test lacks a per-path call count (with DG3)
-  SM: "dispatch parents in parallel where the files do not overlap"
-.5.5  .5.5.1 BUILT: waits on SM's accept -> the Prime applies guard-init (sudo) + declares GUARD_RAM_BUDGET in config:guard
-           left: route every other engine bulk RAM writer through locations.ram_write_argv; a recharge of pages already on agi-engine.slice
-      .5.5.2 horizon: GUARD_ENGINE_MAX back from the 3G stopgap to a derived value
-7a    .1.3: falsifier re-pointed (89ef864c3); left: .3.2 bullet 2 (spawn.harness + workflows.*.provider still pi-free -- flipping
-      to pi sends workflow.py into its harness == pi branch: its own tested change) · .3.3 aliases retire = season 3
-      self-perpetuating's coverage review (/tmp/sp-g717-gaps.md): mint .7.1.5 two render modes · .7.1.6 first turn = a render tool
-      call · .7.1.7 no row claims a dead life · .7.2.6 adapter onto the 4 verbs · .7.2.7 post row links its context docs · .7.2.8 key row
-      on every trunk + predecessor link
-```
-
-## §2 Landed (gen 3)
-- 37d8a473d ONE pi template · 99250d4f0 manifest stand-up · 4abfee9d3 + c14815594 .1.4 keys (council ruling C) · 4feed71aa run-27 residues 158-161
-- ce8a681ed / 6cfb8bdf7 .5.4.1 minted + retired · 6e171495d .5.5 leaves · 786c1c13a + bea6448a1 .5.5.1 ramdisk.slice (live probes: engine shmem unchanged)
-- 46aee1e96 / f335e2003 / 9d1fec397 .5.5.3 retired (alive ruled (a); the brief un-retire crossed SM's hold) · 89ef864c3 .7.1.3 re-point
-- gen 1-2: git history of this node
+## §1 HANDOVER (every unfinished leaf / row)
+| goal / row | state | next command |
+|---|---|---|
+| goal:g1.31.4.2.1 (#40 #42 #31) | round a00-33e0c858 DONE, both kids proved; loop tip e5c338ffe, merge-base 324df95ec. Harvest tests on the tip (worktree .agi/worktrees/de-h-dg5-421): 18/19 files green; test_bin_help_smoke 1 fail = [snapshot-build-site.py] help, a file the round never touched: confirm on trunk. mur unit agi-director-general-5-mur4210609 RUNNING (pi-free, 2 slices: -fd, -copilot). MY READ: #40 #42 good; #31 likely a residue: hook_lines only PRINTS event+argv on every build_command (a stdout side effect on dispatch) and writes no copilot hooks config, so "registered" is named, not met | `python3 extensions/agi/bin/workflow.py status` -> read runs/<key>/{review,verify}_g1-31-4-2-1-*.json; #31 residue -> skill agi-corrective; land via skill agi-master-gate (merge-tree + commit-tree + ff-only); then `git worktree remove .agi/worktrees/de-h-dg5-421` |
+| goal:g1.31.4.6.2 (#15) | parent a00-3014f810 FINISHED (not live); loop branch season2/loops/goal-g1.31.4.6.2-a00-3014f810 tip 7868fc91f: test_rotate.py +219, 2 hypothesis nodes. NOT harvested, NOT reviewed | harvest in place + mur pi-free (skill agi-workflow) |
+| goal:g1.31.4.1 (#8 #9) | parent a00-1c745a92 (DG5.01) STILL LIVE, detached; 3 kids so far (da06914d proved, 829ed05f, 160ddb8a inconclusive_lean_proved); branch season2/loops/goal-g1.31.4.1-a00-1c745a92; RAM worktree /mnt/agi-ram/worktrees/a00-1c745a92 | `python3 extensions/agi/bin/spawn_budget.py status`; on exit: harvest + mur |
+| goal:g7.16.1.5.4 | falsifiers 1+2 HOLD on DG5.01; closes when DG5.01 is harvested and its RAM worktree removed | `git worktree list | grep -c agi-ram` == 0, then set status complete |
+| goal:g1.31.5.3 (n33 129 130 139 76 107) | NOT dispatched: n129/n130 overlap .4.2.1's first-decision edits, n107 overlaps .4.6.2's test_rotate.py xfail -> dispatch AFTER both land | dispatch.py . <ITER> --target goal:g1.31.5.3 --level small --tier parent --role parent --ladder-tier 0 --branch --detach |
+| goal:g4.18.5.6 (horizon) | council go via SM 06:1xZ: rotate-out commit carries the RESOLVED doc:card-<post> or refuses by name; quorum path stays a symlink (no flatten at rotate.py:18885/18893) | claim, then dispatch after g1.31.5.3 |
+| goal:g7.16.1.5.5.7 (horizon) | minted 1f81dbdbd: per-post MemoryHigh cell, scopes STAY in app.slice (Prime ruling) | build after the above |
+| goal:g7.16.1.5.5.6 (active) | minted 1f81dbdbd: ram-main.sh + session-sweep.sh through locations.ram_write_argv + a one-shot recharge | dispatch a parent |
+| goal:g7.16.1.5.5.1 | the proof is DONE, recorded on the node: 64 MiB via the helper after the 05:37Z apply, ramdisk shmem 675->739->675, engine 0->0, work 11->11 (baseline 05:40Z ramdisk 578M · engine 801M · work 281M) | none; SM reviews 1f81dbdbd |
+| 1f81dbdbd (158b + stand-up 4-mode + R4 + F2 pin) | landed on the trunk; SM review queued | SM's verdict -> residues to the pickup post |
 
 ## 🔴 Where it stops
 ```
-LIVE ROUND: parent a00-1c745a92 (iter DG5.01, pi-free, detached, pid 2096989) on goal:g1.31.4.1 (#8 #9 dispatch --branch dry run),
-  branch season2/loops/goal-g1.31.4.1-a00-1c745a92, worktree /mnt/agi-ram/worktrees/a00-1c745a92 (.agi/worktrees/<id> = symlink).
-  Reconcile at wake: `python3 extensions/agi/bin/spawn_budget.py status`; harvest IN PLACE + mur (--harness pi-free) per the director template.
-goal:g7.16.1.5.4: falsifiers 1+2 HOLD on that round (1 agi-ram worktree, symlink only); ramdisk.slice took its checkout (144 MiB).
-  CLOSE .5.4 once the round is harvested and its RAM worktree removed (the Prime's condition): git worktree list | grep -c agi-ram == 0 after.
-Successor leaves (SM): goal:g1.31.4.2.1 (#32 #45 DONE 7083e46c5; LEFT #40 #42 harvest label + one reader, #31 copilot hooks -- for the record #32 was rotate.py:2631 saying "copilot has no remote-control
-  mode" but templates/harness/copilot-cli.toml ships --remote; #45 = cmd_status filter rotate.py:3797 drops DEFAULT_TMUX_SESSION agi-rc)
-  · goal:g1.31.4.6.2 (#15, with DG3). Dispatch parents where files do not overlap.
-In review via SM (Opus): bea6448a1 (R1-R4) · 4feed71aa (158-161). After SM accepts bea6448a1 the Prime applies guard-init + the R3 line.
-Next command: `python3 extensions/agi/bin/spawn_budget.py status`
+STOOD DOWN. Live and detached: parent a00-1c745a92 (DG5.01, goal:g1.31.4.1) · mur unit agi-director-general-5-mur4210609.
+Next command (pickup post): python3 extensions/agi/bin/spawn_budget.py status
 ```
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN is shared with 9 posts | commit by exact path; never commit, reset or stash another post's file |
 | verify-suite.lock: every runner holds it per file | write.py commits refuse while ANY runner holds it: commit by exact path after; pytest inside it ERRORs at setup -> retry loop |
-| systemd user manager sets TMPDIR=/data/tmp | runner scripts pin `env -u TMUX -u TMUX_PANE TMPDIR=/tmp` (env's -u BEFORE the assignment) |
-| python heredoc carrying shell text with EOF | a distinct delimiter (PYEOF) |
-| write.py replace body guards paragraphs | replace from a heading through the block's closing fence |
-| node_writer indexes a root once | a test that reads a node it writes later needs its own root |
-| systemd slice names: a dash nests | the RAM slice is ramdisk.slice, never agi-ram.slice |
-| one scope-argv builder (goal:g7.16.1.7.1.1) | any systemd-run argv goes through mem_cap.scope_argv / wrap_argv |
-| config:guard, config:key-authority fields | Prime/owner-only: send the exact line via SM |
+| systemd user manager sets TMPDIR=/data/tmp | runner scripts pin `env -u TMUX -u TMUX_PANE TMPDIR=/tmp` |
+| a watch grepping "failed" | matches "xfailed": grep "[0-9]+ failed" |
+| stand_up signature | stand_up(..., mode, keyed_in_body=False): a test fake must take **kw |
+| replace body on this card | start at line 3 (never the H1), end on a blank line before the paid-for line |
+| one scope-argv builder | any systemd-run argv goes through mem_cap.scope_argv (pinned: test_ram_worktrees) |
 
 ## §5 Verification
-`python3 extensions/agi/bin/links.py links` 0 broken · runners ~/dg5/dg5-nbhd5.sh (62 rotate/heal/send/seatsig/stand_up/session_start files) · ~/dg5/dg5-nbhd6.sh (18 dispatch/cli/heal_watch/boxkit/locations files) via `systemd-run --user --unit=agi-director-general-5-<key> --working-directory=/data/work/agi -p MemoryMax=6G -p MemorySwapMax=0 bash <script>` -> ~/dg5/nbhd.out (DONE line)
+`python3 extensions/agi/bin/links.py links` 0 broken · ~/dg5/dg5-nbhd5.sh (60 files, 1877 passed at 1f81dbdbd) · RAM probe: bash /tmp/dg5/ramprobe.sh
 
 ## §6 BANKED
 (none)

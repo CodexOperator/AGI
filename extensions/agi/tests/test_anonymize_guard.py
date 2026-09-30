@@ -437,7 +437,7 @@ def test_the_home_roots_cell_adds_a_root(tmp_path, monkeypatch):
 # over the four scrub scopes, read from COMMITTED bytes (`git grep HEAD`)
 # through anonymize's ONE pattern -- never a new regex. Only FILE counts per
 # scope come back; no matched text is ever printed.
-SCRUB_SCOPES = (".agi/sessions/rotations", ".agi/sessions/quorum", "datasets", ".agi/nodes")
+SCRUB_SCOPES = (".agi/sessions/rotations", ".agi/sessions/quorum", "datasets", ".agi/nodes", "skills")
 
 
 def test_no_committed_home_path_in_the_four_scrub_scopes():
@@ -459,6 +459,72 @@ def test_no_committed_home_path_in_the_four_scrub_scopes():
     per = {s: sum(1 for f in p.stdout.splitlines() if f.startswith(f"HEAD:{s}/"))
            for s in SCRUB_SCOPES}
     assert per == dict.fromkeys(SCRUB_SCOPES, 0)
+
+
+# goal:g1.31.5.1.2: an email address is refused by ONE generic class `email`
+# (like `home`: no token source), judged on ADDED lines, class printed never the
+# value. The non-personal shapes are the config cell anonymize.email_allow, not
+# code. Every address is SYNTHETIC and assembled at run time.
+AT = "\x40"
+ALLOW = [r"[^@]+@(?:[A-Za-z0-9-]+\.)*example\.(?:com|org|net)",
+         r"[^@]+@openssh\.com", r"[^@]+@[0-9]+\.service"]
+
+
+def _email_graph(tmp_path, allow=ALLOW):
+    root = _graph(tmp_path)
+    cfg = {"anonymize": {"email_allow": allow}} if allow is not None else {}
+    (root / "config.json").write_text(json.dumps(cfg))
+    return root
+
+
+def test_email_a_synthetic_address_is_refused_by_class_never_value(tmp_path, fake_box, capsys):
+    root = _email_graph(tmp_path)
+    addr = "fixture.person" + AT + "example.invalid"
+    assert anonymize.scan(f"reach {addr}", anonymize.box_tokens(root), anonymize._email_allow(root)) == ["email"]
+    assert anonymize.cmd_check(root, f"reach {addr}\n", None) == 1
+    err = capsys.readouterr().err
+    assert "email" in err and addr not in err and "fixture.person" not in err
+    assert "email" in anonymize.CLASSES
+
+
+def test_email_allowed_shapes_pass(tmp_path, fake_box, capsys):
+    root = _email_graph(tmp_path)
+    toks = anonymize.box_tokens(root)
+    allow = anonymize._email_allow(root)
+    for shape in ("someone" + AT + "example.com", "someone" + AT + "mail.example.org",
+                  "ssh-ed25519-cert-v01" + AT + "openssh.com", "user" + AT + "1000.service"):
+        assert anonymize.scan(f"see {shape}", toks, allow) == [], shape
+        assert anonymize.cmd_check(root, f"see {shape}\n", None) == 0, shape
+    # a lookalike is NOT the allowed shape
+    for bad in ("someone" + AT + "example.com.evil.io", "someone" + AT + "notopenssh.com",
+                "someone" + AT + "x.service"):
+        assert anonymize.scan(bad, toks, allow) == ["email"], bad
+    capsys.readouterr()
+
+
+def test_email_no_cell_allows_nothing_and_placeholders_never_match(tmp_path, fake_box):
+    root = _email_graph(tmp_path, allow=None)
+    toks = anonymize.box_tokens(root)
+    assert anonymize._email_allow(root) == []
+    assert anonymize.scan("a" + AT + "example.com", toks, anonymize._email_allow(root)) == ["email"]
+    assert anonymize.scan("<user>" + AT + "<host>, <email>, @openssh.com", toks, []) == []
+
+
+def test_email_is_judged_on_added_lines_only(tmp_path, fake_box, capsys):
+    root = _email_graph(tmp_path)
+    addr = "fixture.person" + AT + "example.invalid"
+    diff = ("diff --git a/x.md b/x.md\n--- a/x.md\n+++ b/x.md\n@@ -1 +1 @@\n"
+            f"-reach {addr}\n+reach <email>\n")
+    assert anonymize.cmd_check(root, anonymize.added_lines(diff), None) == 0
+    diff2 = diff.replace("-reach", "+reach", 1).replace("+reach <email>", " reach <email>")
+    assert anonymize.cmd_check(root, anonymize.added_lines(diff2), None) == 1
+    capsys.readouterr()
+
+
+def test_email_allow_cell_lives_in_the_live_config():
+    repo = Path(__file__).resolve().parents[3]
+    cell = json.loads((repo / ".agi" / "config.json").read_text())["anonymize"]["email_allow"]
+    assert cell and all(isinstance(c, str) for c in cell)
 
 
 # ---- hypothesis:pb3-anonymize-refuses-a-hardware-model-fragment -------------
