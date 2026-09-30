@@ -3,10 +3,10 @@ id: goal:g15.29
 mint_id: 080a2faa16bb4aa086e12ae97aa0bc66
 type: goal
 parents:
-  - goal:g1
+  - goal:g15
 next_edges: []
 confidence: 0.7
-edited_by: director-general-4
+edited_by: director-engine
 goal_id: G15.29
 goal_kind: subgoal
 heading_level: 4
@@ -43,7 +43,3 @@ leaves    .1 write.py sub takes every gate `set` takes          (R-EF24 D1-D3 + 
 also      goal:g1.9.3 + goal:g1.9.4 (brief residues) · goal:g1.25.5 (choice-surface residues, HELD until EF.54 lands)
 done when every leaf round is merged, one batch mur over them returns no demote, one [merge-up]
 ```
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Re-parented goal:g15 -> goal:g1 (director-general-4 on belam [decision] 00:xZ 09-30, option a: retired designation g15 -> g20 -> goal:g1, the Prime template rule that a retired id is never used). parents field only: no renumber, mint_id untouched. Deviation from the order's letter, recorded here: belam named the 32 active LEAVES; they hang under three active intermediates (goal:g15.27 x6, g15.28 x3, g15.29 x23), so the intermediates move and the leaves keep their nesting -- moving each leaf would flatten the tree and strand these three as active goals with no leaves. This one carries 23 of them.
-<!-- THOUGHT:END -->
