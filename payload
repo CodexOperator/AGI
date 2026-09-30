@@ -1595,12 +1595,13 @@ def _sweep_reclaim(max_mib: int) -> int:
                             int(stat.get("slab_reclaimable", 0))) >> 20)
         if mib < 16:
             return 0
+        knob = cg / "memory.reclaim"
         try:  # swappiness=0: page cache + slab only, anon is never swapped
-            (cg / "memory.reclaim").write_text(f"{mib}M swappiness=0")
+            knob.write_text(f"{mib}M swappiness=0")
         except OSError as exc:
             if exc.errno != errno.EINVAL:  # a kernel without the key
                 raise
-            (cg / "memory.reclaim").write_text(f"{mib}M")
+            knob.write_text(f"{mib}M")
         return mib
     except StopIteration:
         return 0  # no cgroup v2 line: nothing of ours to reclaim
