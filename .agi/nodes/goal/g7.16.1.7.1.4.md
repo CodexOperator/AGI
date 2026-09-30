@@ -13,7 +13,7 @@ origin: council-loop
 scaffold_hash: 5d15000565669563
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - templates
   - spawn
