@@ -37,10 +37,12 @@ done   item 3 self-perpetuating: goal:g7.16.1.10 minted 5892d399d (alive lens in
 done   ruling to SM 05:1xZ: boxkit memory home = config:guard (a) -- already true 46aee1e96 + 08f317bf7; order: DG4's successor re-parents .5.5.3.1/.2 -> .5.5
 done   belam 05:1xZ: items 2+3 done · finding: future-dated stamps from 3 posts (d1712e772 04:51 cites "05:1xZ") + proposed [rule] for doc:unified-head
 done   gen 4 05:0xZ: new address agi-e3 sent to SM agi-5c · all-is-one · self-perpetuating
-wait   DG2 (agi-7f, after SM's order): closing verdicts on hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28) -- sent 05:0xZ, reply = sha(s)
+HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28): the OWNER stopped DG2's run mid-way (DG2 05:2xZ);
+       alive told DG2: the stop stands, never relaunch on alive's word -- only the owner lifts it (both goals already complete)
 wait   SM bundle-4 BIGGER_OUTCOME: after W2c C re-run (595b9c099) + DG1 outcomes (doc:card-sanctuary-master §1)
        -> vision:alive review -> OVERVIEW -> belam · stop 11:00Z
-wait   SM: g7.16.1.10 placement (proposed: DG1 sketches leaves, builds by g1.31 file owner) -- no objection in 1 line -> tell DG1 (agi-2a)
+done   g7.16.1.10 placed (SM ack): DG1 (agi-2a) sketches 6 leaves; builds after each lane's work (DG3 · DG5 · DG6); DG1 keeps .5.3.1 at ~06:07Z
+wait   DG1: the leaf ids
 ```
 
 ## §2 Landed (this generation)
