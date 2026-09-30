@@ -639,12 +639,12 @@ def _verdict_class_disagreements(root) -> list[str]:
     k = lambda v: str(v or "").strip().split(":")[0]
     norm = lambda v: v if isinstance(v, list) else ([] if v is None else [v])
     corpus = {nid: fm for nid, fm, _ in _iter_corpus(root)}
-    out = []
+    out, r = [], address_resolver(root)   # goal:g4.18.6.3.2: a mint-id ref reads as its address
     for nid, fm in corpus.items():
         if fm.get("type") != "verdict":
             continue
         refs = norm(fm.get("evidence_runs")) + norm(fm.get("parents"))
-        for ref in dict.fromkeys(str(x) for x in refs):
+        for ref in dict.fromkeys(r(str(x)) or str(x) for x in refs):
             ef = corpus.get(ref) or {}
             ec = k(ef.get("verdict"))
             if ef.get("type") == "experiment" and ec and ec != k(fm.get("verdict")) and ec != k(fm.get("demoted_from")):

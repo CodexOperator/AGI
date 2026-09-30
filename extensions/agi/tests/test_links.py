@@ -949,8 +949,7 @@ def test_w2a_one_resolver_def_and_links_and_write_call_it():
 
 
 # --- bundle 4 W2c (director-general-2)
-@pytest.mark.xfail(strict=True, reason="bundle 4 W2c: RED until DG3 builds mint-id "
-                   "resolution into links._verdict_class_disagreements (parents/evidence_runs)")
+# GREEN since goal:g4.18.6.3.2 B2 (the verdict-class loop reads each ref through the one resolver)
 def test_w2c_verdict_class_check_resolves_a_mint_id_like_its_address(tmp_path):
     seen = []
     for form in ("address", "mint"):
@@ -1006,20 +1005,30 @@ def test_w2cb1_frontier_reads_a_scalar_link_as_one_ref(tmp_path):
     assert next(n for n in ns if n["id"] == "hypothesis:h")["next_edges"] == {"experiment:e"}
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W2c re-scope B: RED until DG3 resolves the private parses")
+# GREEN since goal:g4.18.6.3.2 B1+B2; snapshot-goals' integrity pair split out below (BANKED 86)
 def test_w2cb_every_private_parse_reads_a_mint_twin_as_its_address_twin(tmp_path):
-    import importlib, brief, frontier as fr, graphweb as gw, metrics, telemetry_rollup as tr
+    import brief, frontier as fr, graphweb as gw, metrics, telemetry_rollup as tr
     from chain_engine import chains
-    sg, seen = importlib.import_module("snapshot-goals"), []
+    seen = []
     for mint in (False, True):
         root, ne = _w2cb_twin(tmp_path, mint), {}
         nodes, ns = root / "nodes", fr._load_nodes(root / "nodes")
         chains._load_next_edges_from_disk(str(nodes), ne)
-        ex = {n: {"fm": f, "path": n} for n, f, _ in links._iter_corpus(root)}  # snapshot-goals' shape
         up = [q for p in brief._parents_of(root, "experiment:e") for q in brief._parents_of(root, p)]
         seen.append(dict(
             tips=sorted(n["id"] for n in fr._tips(ns)), anchor=fr._anchor(ns, "experiment:e"), next=ne,
             attr=metrics.goal_attribution(nodes)["unattributed_nodes"], brief=up, tel=sorted(tr._build_graph_index(root)[1]),
-            web=sorted(gw.sanctuary_subtree(gw.load_nodes(root), "goal:g")),
-            integrity=sg.report_integrity(ex, sg.collect_parent_refs(ex), set(ex))[0]))
+            web=sorted(gw.sanctuary_subtree(gw.load_nodes(root), "goal:g"))))
     assert seen[1] == seen[0], {k: (v, seen[1][k]) for k, v in seen[0].items() if v != seen[1][k]}
+
+
+@pytest.mark.xfail(strict=True, reason="BANKED 86 (doc:card-director-general-3): snapshot-goals' "
+                   "report_integrity + collect_parent_refs have NO caller -- re-wire (then resolve) or retire, the council's call")
+def test_w2cb_snapshot_goals_integrity_reads_a_mint_twin_as_its_address_twin(tmp_path):
+    import importlib
+    sg, seen = importlib.import_module("snapshot-goals"), []
+    for mint in (False, True):
+        root = _w2cb_twin(tmp_path, mint)
+        ex = {n: {"fm": f, "path": n} for n, f, _ in links._iter_corpus(root)}
+        seen.append(sg.report_integrity(ex, sg.collect_parent_refs(ex), set(ex))[0])
+    assert seen[1] == seen[0] == 0

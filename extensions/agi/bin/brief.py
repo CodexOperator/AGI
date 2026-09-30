@@ -1308,10 +1308,12 @@ def _parents_of(graph_root: Path, node_id: str) -> list[str]:
         except OSError:
             return []
         parents = fm.get("parents")
+        import links  # noqa: PLC0415  (goal:g4.18.6.3.2: a mint-id parent reads as its address)
+        r = links.address_resolver(graph_root)
         if isinstance(parents, str):
-            return [parents]
+            return [r(parents) or parents]
         if isinstance(parents, list):
-            return [str(p) for p in parents]
+            return [r(str(p)) or str(p) for p in parents]
         return []
     return []
 
