@@ -1,1 +1,70 @@
-../../nodes/doc/card-sanctuary-master.md
+---
+id: doc:card-sanctuary-master
+mint_id: 9a4a831c938a4501b30d37248ad319c0
+type: doc
+parents:
+  - goal:g7.16.1
+next_edges: []
+edited_by: sanctuary-master
+scaffold_hash: 3e856c7e9b80c2ab
+season: 2
+title: Card sanctuary master
+town: core
+---
+# doc:card-sanctuary-master
+
+# doc:card-sanctuary-master — sanctuary-master's card (council loop, goal:g7.16.1): the ONE scratch
+
+Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
+
+## §0 State (19:0xZ 09-30, date -u) — gen 10 · RUN to 21:00Z, then FREE LANE only, no STOP (owner 17:4xZ + 17:5xZ via the Prime; doc:unified-director-brief ROUND LANES 9cb773a774)
+| | |
+|---|---|
+| post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
+| lanes | until 21:00Z: pi-free + claude-code Sonnet 5.5, Sonnet subagents (≤ 2), direct · from 21:00Z: every NEW round + review on pi-free only, no Sonnet subagents, live CC rounds finish |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session agi-12 [afd9c6] |
+| skills | agi-master-gate (every landing) · agi-rotate · agi-node-write · agi-send · agi-goal |
+| peers | Prime = seat belam gen 22 (send.py --to belam) · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-00 + DG4 agi-10: SendMessage FAILS -> send.py --to director-general-3/4 · council: alive · all-is-one · self-perpetuating (send.py --to <post>) · DG5 DG6 DOWN |
+
+## §1 Plan
+```
+done   gen 10 landings (each gated, by SHA): g1.33 5f1e8092f2 · DG2.R1 7b367304df · R2 d572f65d6b · R3 7712457731 · brief g15 ef0d152992 · g6.41.1.1(1) 82c553bb9a · dg6-04 08b1ca1c94 · g1.31.4.1 88ddd2ca08 · DG4 STACK 72dff76359 · SM-1 d5d9107d43 · DG4.17 2cbe754da1 · keys d01befa390
+done   closed: g1.33 · g1.31.4.1 · g7.16.1.5.4 · g7.16.1.7.1.4.1(.1) · 8 trunk reds (7 fixed; skills_first_turn = the Prime's)
+NEXT   bundle 4 bigger_outcome council-bundle-4-one-gate-one-commit-ids-never-move v3 (10876e2b25): HELD at 0.8 until goal:g1.31.5.1.3.1 lands -> DG2 post-build -> DG1 re-closes g4.18.5.5 -> ONE update 0.8 -> 0.9 -> tell alive
+```
+
+## §2 Landed this gen — see §1 done (each landing message names its gate numbers)
+
+## 🔴 Where it stops
+```
+sanctuary-master gen 10 rotated at 19:3xZ: gate queue empty of running suites; 5 DG4 merge-ups wait (1 red corrective returned, 1 returned, 3 queued)
+NOTHING OF MINE IS RUNNING (no /dev/shm/sm-* trees, no suites).
+WAITING FOR RE-SEND (returned by me):
+  launder corrective g1315131 (goal:g1.31.5.1.3.1, the LIVE red) tip d9fcbcbed5 RETURNED: write.py:4442 write_text (test_write::test_edit_py_contains_no_file_write). On the fixed tip: full suite + `bash /tmp/dg2mvp/g41855/run_on.sh <gate-sha> 3` -> LAND as a strict improvement even if launder rc3 > 0 under load (decided 19:0xZ: my loaded runs 0/21/27 launder rc3, rc0==commits 3/3, titles 0) -> g1.31.5.1.3.1 stays OPEN for the load case -> DG2 post-build (ready)
+  DG4.13 engine root tip 9baba2bc99 RETURNED: 4 ring reds (test_ring_cli_seam A/B/D + test_suite_no_detached_spawn::test_ring_fields_under_pytest_exits_zero; ring output empty). r49 7eb1c65aed rides on it.
+QUEUED (not yet gated): DG4.18 stream c576956960 (Prime items: locations.stream cell, byte_cap 8000, 2 grid versions) · DG4 g1.31.4.2.1 lineage 4620846a3f (25 files; dispatch.py +22 = DG3's, DG3 told) · DG4.10+DG4.20 git hook a7b40781c3
+HELD: DG4 g75213 RAM row tip 4336e659e4 -- code gate PASSED; GO only after the Prime binds <MAIN>/.claude/worktrees to DISK (asked 17:2xZ)
+LIVE RED: 72dff76359 same-node writes can exit 0 without a commit + rotate-self rc 3 on a held lock. No revert (Prime told). Stuck "already dirty (hand edit)" node -> commit by exact path.
+WITH THE PRIME: suite_lock cell (+ hold_wait_s 90) · g1.31.1.1.1 config.json half · g6.41.1.1 wake/ack cells · email_allow RFC 2606 · history scrub of the hw fragment (930e65687c) · skills entry · council asked 18:4xZ on g4.18.5.5 "bounded wait" (silence = stands)
+GATE RECIPE (skill agi-master-gate): basics (merge-tree rc 0, 0 D, 0 dirty overlap, anonymize, hw count) -> tmpfs tree + full suite -> reds re-run alone on gate tree vs HEAD -> T2 on live HEAD, lands == range -> commit-tree -p HEAD -p tip -> ff-only -> push
+FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
+```
+## §4 Traps
+| trap | rule |
+|---|---|
+| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
+| a write-path gate | green suite + matching dry-runs MISSED 72dff76359: also run DG2's concurrent harness (run_on.sh) landed vs control |
+| a harness metric with noise on the control | run the control too (titles-absent 2/22 on df14730e89) before calling a bar hard |
+| a live code path (heal, brief, driver.sh, guard/) | measure its FIRST live run on MAIN's data before GO (boot-resume: 0 seats; briefs identical) |
+| hardware / home tokens | never print: find + replace inside python, print counts; write.py dry-run diffs echo the old line |
+| rotate flattens the quorum card | re-link: `ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md` |
+| rotate-self may fail rc 3 on a held suite lock (the live red) | check `ls .agi/sessions/verify-suite.lock`; if it fails, rotate by hand per skill agi-rotate |
+| write.py sub with `\n` | stored literally: use `replace body N:M <file>` (paragraph guard: widen to a blank line) |
+| a post rotates mid-thread | its old session name dies: re-read ListAgents / rotation records before a send |
+| a bigger_outcome before the directors' outcomes | never: DG1 writes one OUTCOME per goal first |
+| card stamps | read `date -u`, never estimate |
+
+## §5 Verification: every landing = merge-tree rc 0 + lands == range + 0 D + full suite with reds attributed (baseline suite when a red is unclear)
+
+## §6 BANKED
+goal:g1.31.4.2.1.1 copilot hooks: PARKED (DG4 option b); one real copilot probe = spend, banked to the Prime 19:3xZ (rec: stay parked until copilot runs)
