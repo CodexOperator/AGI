@@ -1002,7 +1002,7 @@ def _resolve_pi_model(cfg: dict, stage: dict, args: dict,
         # the ladder row IS the one source: a write.py on the ladder changes
         # this stage's model without touching harnesses.pi.models.
         return row["model"].strip()
-    pi_models = ((cfg.get("harnesses") or {}).get("pi") or {}).get("models") or {}
+    pi_models = adapters.harness_block(cfg, "pi").get("models") or {}
     model = pi_models.get(role) or pi_models.get("kid")
     if not model:
         raise ValueError(
@@ -1500,7 +1500,7 @@ def _pi_harness_cfg(cfg: dict) -> dict:
     Fallbacks are the engine defaults, so a project that omits the row still
     resolves — matching the config-maxxed contract (never a hard literal that
     skips the config, but a config row with sane defaults)."""
-    h = (cfg.get("harnesses") or {}).get("pi") or {}
+    h = adapters.harness_block(cfg, "pi")
     return {
         # The ONE shared resolver: $PI_BIN first, then the `~`/{home}-expanded
         # config cell, then PATH for the built-in default. Round 1 of
@@ -1538,7 +1538,7 @@ def _credential_decision(root, cfg: dict, harness: str) -> tuple[bool, str | Non
     choice is the trap this exists to close)."""
     if not provisioning.available(root):
         return False, "provisioning unavailable"
-    row = (cfg.get("harnesses") or {}).get(harness) or {}
+    row = adapters.harness_block(cfg, harness)
     if not adapters.needs_credential(row):
         return False, f"harness {harness} needs no credential"
     return True, None
@@ -1596,7 +1596,7 @@ def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
             tier=_workflow_credential_tier(stages),
             limit_usd=limit_usd, ttl_minutes=ttl_minutes,
             workspace_id=provisioning.workspace(cfg), root=root,
-            zero_usd=((cfg.get("harnesses") or {}).get(harness) or {}).get("zero_usd") is True)
+            zero_usd=adapters.harness_block(cfg, harness).get("zero_usd") is True)
     except provisioning.ProvisioningError as exc:
         print(f"ERR: could not mint a workflow credential: {exc}",
               file=sys.stderr)
