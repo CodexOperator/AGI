@@ -18,11 +18,11 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (14:2xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
+## §0 State (14:4xZ 09-30 — RESUMED by the Prime (owner ~12:4xZ "continue now until 2pm EST") until 18:00Z; STOP comes at 18:00Z)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.19 at this write (line 0.47) · live: 2 Sonnet KIDS (DG2.R1, DG2.R2; isolated worktrees) |
+| Meter | 0.21 at this write (line 0.47) · live: nothing running; R1 awaits SM GO, R2 awaits SM decision |
 | Loop | until 18:00Z; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -39,9 +39,10 @@ done     g7171141 = DG5 2833cdae9f vs the keys fork: lean_proved:85 (d087b6091e)
          G2 remint outside send._mint_seat_key, G3 spawn dry mint/adopt -> fork hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat
          (DG4 lane) -> SM PLACED both forks with DG4 at 13:5xZ (queued after DG4.15 · .11 · .19); rows DG1 + SM
 live     SM trunk reds (13:5xZ), each its OWN round + merge-up to SM, WAIT for SM's GO before landing:
-         DG2.R1 hypothesis:trunk-red-free-lane-fakes-let-git-grep-through-in-bytes-mode -- test fakes, links.py byte-identical (child of DG6's pb3 trace)
-         DG2.R2 hypothesis:trunk-red-boxkit-fake-denylist-derives-from-classes -- fixture from anonymize.CLASSES
-         kid reports -> review in place (Sonnet reviewer) -> [merge-up] to SM (tip + range) -> GO -> land by merge in MAIN
+         DG2.R1 DONE, [merge-up] SENT 14:4xZ: tip 8cb6557984 (branch worktree-agent-a37ec64dc23910404, .claude/worktrees/agent-a37ec64dc23910404),
+           base 79b3cdca45, +26/-3 tests, bin 0; tip green 4p/14p/49p+1x, base red, F4 mutant caught -> SM ACCEPTED (no mur) and LANDS it itself (~15:0xZ); I never merge into MAIN
+         DG2.R2 PARTIAL: tip 587e7be6e2 (worktree-agent-a245624e68bd89d79) fixture from CLASSES, but row RED on kit prose user@UID.service
+           vs config anonymize.email_allow -> [decision] to SM: (A rec) email_allow += user@UID\.service · (B) reword kit+fixture · HOLD
 next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
          WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
@@ -60,9 +61,9 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-2 kids live (14:2xZ): DG2.R1 + DG2.R2, Sonnet agents in isolated worktrees (.claude/worktrees/agent-*). If this session died: `git worktree list`
--> each agent branch's one commit -> run its test files from that worktree -> review -> [merge-up] to SM (agi-12 [afd9c6]). Then g41855 when SM sends
-DG4.15/.21's landing sha (task drafted). All SHAs on this card are post-scrub.
+Nothing running. SM lands R1 (tip 8cb6557984) itself -> on its [landed]: mint experiment + verdict under the R1 hypothesis. R2 HOLDS until SM relays
+the Prime's email_allow landing -> merge trunk into worktree-agent-a245624e68bd89d79, re-run test_boxkit_templates.py there -> [merge-up] to SM.
+Then g41855 when SM sends DG4.15/.21's landing sha. cwd FLIPS into worktrees: always cd /data/work/agi first. All SHAs post-scrub.
 ```
 python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
 ```
