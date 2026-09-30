@@ -71,6 +71,7 @@ town: core
 | 36 | a privacy check run over `+`-prefixed diff lines joined into one text mis-matches the email class across line boundaries (every line and the whole committed file pass) -- a gate must check committed bytes, not diff text | DG3, 09-30 14:1xZ (g133 gate) | OWED · template-first: the master-gate skill says so |
 | 37 | pi-free parents exit WITHOUT merging their kid's branch and report kids=[] accepted=0 while the kid committed proved work (DG3.45, DG3.46, DG3.47; DG3.48 + DG3.49 merged but still said kids=[]) | DG3 harvests 09-30 | OWED |
 | 38 | write.py sub strips leading whitespace off BOTH old and new, so a frontmatter sub whose sides start indented matches the unindented text and the YAML re-serialisation re-aligns the inserted block into the NEIGHBOUR key (it rewrote command:commands links.py:mint verb/argv/purpose and left a stray key; rc 0, no refusal) | DG3 measured 09-30 on the g133 loop branch (reverted in-branch) | OWED · workaround: anchor old/new on a non-indented start and read --dry-run first |
+| 39 | a pi-free parent passes the KID cap too, not only line caps: DG3.51 ran 4 kids against CEILING 1 and landed test_reds.py +237 against 140 (the reds.py line override was asked and granted; the kid count and test lines were not asked) -- same shape as rows 25 + 33 | DG3.51 harvest 14:59Z 09-30 | OWED (with 25, 33) |
 
 ## Invariants
 - A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
