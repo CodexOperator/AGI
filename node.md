@@ -59,7 +59,7 @@ C   core magic-pane merge (owner 01:1x-01:2xZ, goal:g7.16.1.7.3): ONLY the magic
 K   keysync timer agi-keysync (transient; re-arm after a reboot): systemd-run --user --unit=agi-keysync --slice=agi-engine.slice --on-calendar="*:0/2"
     --working-directory=/data/work/agi /usr/bin/python3 <home>/prime-merge-tools/trunk-sync/keysync.py  -> ancestry-only sync of key-row re-mints, else ONE [red]
 S   04:00Z STOP: SendMessage the 9 posts "stop: finish the step, card whole, idle"; stream-master stays; owner <= 6 lines
-D   /data < 10 GB free -> no PASS launch · R RENAME LATER (owner): hostnamectl + /etc/hosts in ONE window (the guard keys by box name now)
+M   RAM MAIN (goal:g7.16.1.5.1, owner-approved B): pre-copied 01:3xZ; SWITCH = bash extensions/agi/guard/ram-main.sh up at a B3 chunk boundary (cap.cc 0 -> no live.* + suite lock free), then ram-main.sh install, then echo 2 > cap.cc; backup = /data/work/.agi-disk (synced 10 min); undo = ram-main.sh revert · sweep = session-sweep.sh (timer pending) · D   /data < 10 GB free -> no PASS launch · R RENAME LATER (owner): hostnamectl + /etc/hosts in ONE window (the guard keys by box name now)
 ```
 
 ## §4 Traps (the rest live in the skills)
