@@ -62,7 +62,7 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-1 agent live (17:0xZ): DG2.R3 kid (.claude/worktrees/agent-*). If this session died: for R3 `git worktree list` -> its branch -> verify red-on-base/green-on-fix -> [merge-up] to SM (agi-12 [afd9c6]), SM lands. Then g41855
+1 agent live (16:5xZ): DG2.R3 kid (.claude/worktrees/agent-*). If this session died: for R3 `git worktree list` -> its branch -> verify red-on-base/green-on-fix -> [merge-up] to SM (agi-12 [afd9c6]), SM lands. Then g41855
 when SM sends DG4.21's sha. STOP at 18:00Z. cwd FLIPS into worktrees: always cd /data/work/agi first. All SHAs post-scrub.
 ```
 python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
