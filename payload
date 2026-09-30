@@ -888,6 +888,12 @@ def test_w2a_mint_index_is_frontmatter_only_typed_and_fresh(project):
     (project / "nodes/goal/g9.2.md").write_text((project / "nodes/goal/g9.2.md").read_text().replace("g9.1", "g9.2"))
     assert links.mint_index(project)[_W2A_MINT][0][0] == "goal:g9.2"
     assert sum(p.read_text().count("def mint_index(") for p in BIN.glob("*.py")) == 1
+    _node(project, "goal:g9.3", ['id: "goal:g9.3"', "type: goal", "mint_id: " + "9" * 32,
+                                 'title: "say \\"hi\\" \\u00e9"'], "b\n")
+    idx = links.mint_index(project)
+    assert idx["9" * 32][0][2] == 'say "hi" \u00e9', "a quoted title is decoded like yaml"
+    assert links.resolve_mint(project, "9" * 32, index=idx)[0] == "goal:g9.3"
+    assert links.resolve_mint(project, "9" * 32, index={}) is None, "the given index is the one read"
 
 
 def test_w2a_one_resolver_def_and_links_and_write_call_it():
