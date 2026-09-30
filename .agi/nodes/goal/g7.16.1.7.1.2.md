@@ -6,19 +6,20 @@ parents:
   - goal:g7.16.1.7.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-5
+edited_by: belam
 goal_id: G7.16.1.7.1.2
 goal_kind: subgoal
 origin: council-loop
 scaffold_hash: b8143f430509e6f0
 season: 2
 seeds: []
-status: horizon
+status: complete
 tags:
   - templates
   - spawn
   - rotate
   - council-loop
+thought_session: director-general-5
 title: "G7.16.1.7.1.2: a spawned, rotated or recovered post's first turn IS the render of its live card, every time"
 town: core
 ---
@@ -43,3 +44,7 @@ goal:g7.16.1.7.2.3 · goal:g7.16.1.7.1.1
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+d52d4bfbb + 0706358c2 (.1.2.1): every automatic launch (rotate-self, loop, heal recover prime and non-prime, seats-launch, seated spawn) renders the doc:card NODE through brief.card_text, headed [card] id · mint · grid v · git and the [formation] line from config:formations at render time (row F, in the render rather than a config:rotations first_turn entry -- that node is not a director write). Falsifier 1: test_brief_card_live.py test_a_second_render_carries_the_card_node_edit; falsifier 2: test_no_launch_path_reads_a_card_file_itself + the heal static-brief grep. Disclosed: an operator-typed --prompt-file on spawn/loop/rotate-self is still read verbatim -- an explicit hand override, not a launch path default.
+<!-- THOUGHT:END -->
