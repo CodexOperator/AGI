@@ -926,7 +926,8 @@ def read_mvp_map(path: Path | None) -> list[tuple[str, str]]:
         if not line or line.startswith("#") or "|" not in line:
             continue
         prefix, mvp_id = (p.strip() for p in line.split("|", 1))
-        if prefix and mvp_id.startswith("mvp:"):
+        import links   # goal:g4.18.6.3.3: a mint id is kept as written; the spawn gate types it
+        if prefix and (mvp_id.startswith("mvp:") or links.is_mint_id(mvp_id)):
             mapping.append((prefix, mvp_id))
     return mapping
 
