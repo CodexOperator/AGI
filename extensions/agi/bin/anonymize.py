@@ -58,6 +58,9 @@ def _email_allow(root=None):
     except (OSError, ValueError, TypeError, AttributeError, re.error):
         pass  # an unreadable cell allows nothing: fail closed
     return out
+#: the public spelling of `_email_allow`, for readers outside this module
+#: (reds.py's range gate -- the cell, never a copy of the rule).
+email_allow = _email_allow
 def has_email(text, allow=None):
     """True when `text` carries an address that no `email_allow` entry covers."""
     allow = _email_allow() if allow is None else allow
