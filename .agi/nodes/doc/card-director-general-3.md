@@ -15,98 +15,78 @@ town: core
 
 # doc:card-director-general-3 — director-general-3's card (council loop, goal:g7.16.1): the ONE scratch
 
-## §0 State (05:3xZ 09-30) — RESUMED 04:5xZ (owner: full speed to 11:00Z); f~0.40, captive captured at 0.85 x L — seat agi-91 [87eb1e] (gen 7) · predecessor window director-general-3.prev = agi-8f [e68acb] (reap = the service's, never by hand)
+Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
+
+## §0 State (05:4xZ 09-30) — gen 8, seat agi-34 [e82e60]; f~0.13 (line 0.47)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
-| protocol | doc:council-loop · goal:g7.16.1 · MAIN /data/work/agi on local-maxxing/season2/main |
+| protocol | doc:council-loop · goal:g7.16.1 |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
-| sessions (05:3xZ) | Prime agi-79 · SM agi-5c (gen 9) · COUNCIL: alive agi-e3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · DG1 agi-2a · DG2 agi-7f · DG4 agi-80 · DG5 agi-5b · SM agi-ed [d57b6e] · alive agi-b3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · stream-master agi-8c -- names shift on every rotation: trust ListAgents + the sender's from-name |
-| split | DG3 write.py + node_writer.py (CLAIMED) · bundle-4 W2c-W3 rest · g7.16.1.6 MACHINERY commit_node + the ~15-min snapshot cell · DG4 non-rotate writers + grid crons + leftovers · DG5 rotate.py WHOLLY |
-| owner priority | worktree cleanup: DG4 goal:g7.16.1.5.3 · DG5 .5.4 (not mine) |
+| sessions (05:4xZ) | SM agi-5c · DG2 agi-7f · council alive agi-e3 · names shift on every rotation: trust ListAgents + the sender's from-name (DG4's old agi-80 no longer resolves) |
+| split | DG3 write.py + node_writer.py (CLAIMED) · bundle-4 W2c rest · g7.16.1.6 MACHINERY commit_node · DG4 non-rotate writers + grid crons · DG5 rotate.py WHOLLY |
+| subagents | Sonnet 5.5 only (owner 04:4xZ): Agent tool model sonnet, isolation worktree; they die with this session, commits survive on their branches |
 
 ## §1 Plan
 ```
-done   gen 7 (to 04:4xZ): see the grid version of this card at 9d958497f+ (138-149, W2c A pins, grid fork, g4.18.1.6 builds)
-       resumed: 08a870a3a (g4.18.1.6 falsifier = ruling (b)) · g4.18.5.2.2 158a9fd06 de83b1d23 bb882a5f5 ACCEPTED 0 residues
-LIVE   TWO Opus fix agents (this session's children; they die with it) -- each commits on ITS OWN worktree branch:
-       A W2c C corrective = hypothesis:gates-writer-and-cli-paths-resolve-mint-ids (DG2 f73be4f62; land UNDER it, mint nothing)
-         worktree /data/work/agi/.claude/worktrees/agent-a196329a4a51f6c5f · branch worktree-agent-a196329a4a51f6c5f
-         gaps: gate_for_root plain dict · cli._evidence_corpus drops the resolver (cli done demotes proved) · nearest_vision
-         resolver per call (viewport) · non-`nodes` dir GrepError · level3 mint map entry ungated; beat 0 differing twins
-       B write.py round: goal:g1.31.4.3 #37 <unset> sentinel + #12 thought test (#24 DROPPED: closed upstream 59032171c)
-         + SM d8b22ae96 R1 (a body opening with a --- block forges identity; refuse in submit) R2 (patch edits edited_by/
-         thought_session) R3 (render_frontmatter unquotes '0.8'/'yes'/'null') R4 (ERR names what canonical changes)
-         + _commit_message format guard · worktree /data/work/agi/.claude/worktrees/agent-a49fa07ee5463afe5 (branch same name)
-HARVEST each: git -C <worktree> log --oneline -6; review the diff; run the touched files WHOLE in MAIN after
-       `git cherry-pick <sha>` (no --no-commit; one at a time; check MAIN write.py for foreign hunks FIRST); SHAs -> SM agi-5c,
-       A's also -> DG2 agi-7f. Then close g4.18.1.6 on SM residue 0 (council: status complete + THOUGHT with the SHAs + run key)
-NEXT   1 SM board item: goal:g4.18.5.2.2 -- the commit-a-write teaching as ONE config cell (commit-message template) + the skill
-         lines (agi-goal, agi-node-write teach the self-committing write). LANE: write.py _commit_write / index.lock = DG4's
-         (g4.18.5.2.1): no edit there without agreeing with DG4 (agi-80) first
-       3 census leaf goal:g7.16.1.1.6.1 (config:census + verification.check_census; test_census 14 strict xfail) then .6.2
-       4 DG1's goal:g6.41.1.1: hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) -- boot-resume
-         record + wake lines to config:rotations; NOT heal's worktree sweep (DG4)
-       g7.16.1.6 machinery once the council places it + DG1 mints the leaf (commit_node signature in room directors)
-       snapshot-goals integrity pair: strict xfail test_w2cb_snapshot_goals_integrity waits on BANKED 86
-HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces it; build only if .6 stalls (<= 12 prod lines)
-ASK    hypothesis:node-type-schemas-name-a-thought-reader-that-exists (text-only, 16 schemas): DG4 first
-NOTES  (DG2, no fork) test_w2ca's source check greps "mint" and misses address_resolver calls · metrics._load_graph builds
-       the index twice when parents AND next_edges are mint ids (family B) · (SM run 21) brief.py:2520 level3.py:267
-       links.py:391 keep their own THOUGHT closers (DG2's one-definition fork) · run-17: brief._parents_of builds a resolver per
-       hop; address_resolver lets GrepError propagate on a colon-less ref; post_wire:541 a dict entry would TypeError
-NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids (superseded)
+done   gen 8: harvested gen-7 fix agents A + B into MAIN (byte-verified, touched files whole)
+LIVE   C  Sonnet: DG2 conjunct (3) (b79121cca) -- drop the 32-hex is_mint_id pre-filter in evidence_gate.is_node_id_shaped
+          + level3.read_mvp_map; judge a mint by the one resolver; ceiling 16 prod; off-shape-mint rows RED on HEAD
+       D  Sonnet: goal:g4.18.1.6 SM residues on d8b22ae96 (/tmp/sm9/cc_g41816-d8b22ae96-ruling-b.json): R1 --- block forges
+          identity · R2 edited_by/thought_session patch refused · R3 canonicalize keeps quotes on '0.8'/'yes'/'null' · R4 name
+          the canonical change (missing final newline) · G _commit_message format guard · F move #37/#12 rows to
+          test_write_ring_cli / test_thought_hygiene so g1.31.4.3 falsifier 1 selects >= 3
+       worktrees: `git -C /data/work/agi worktree list | grep agent-` (the two newest); branch = worktree-agent-<id>
+HARVEST each: log + diff review; MAIN files == HEAD+patch (hash-object vs the commit's blob, or git apply --3way on the
+       exact paths when HEAD moved); touched files WHOLE via /tmp/dg3_pt.sh; commit by exact path (cherry-pick REFUSES:
+       other posts keep staged rotation JSONs in MAIN's index -- never touch them). SHAs -> SM agi-5c, C's also -> DG2 agi-7f
+THEN   C landed -> re-measure DG2's twin numbers (0 of 5078 / 0 of 2120 differ) -> hypothesis A complete via council
+       D landed -> goal:g4.18.1.6 complete (THOUGHT: SHAs + the SM json) · goal:g1.31.4.3 complete (falsifiers 1+2 output)
+NEXT   census leaf goal:g7.16.1.1.6.1 (config:census + verification.check_census; test_census 14 strict xfail) then .6.2
+       DG1's goal:g6.41.1.1: hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109)
+       g7.16.1.6 machinery once the council places it + DG1 mints the leaf
+HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces it
+ASK    hypothesis:node-type-schemas-name-a-thought-reader-that-exists: DG4 first
+NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids
 ```
 
 ## §2 Landed
-gen 7: 8964a7c62 b514b6d47 51c664397 eb91a95aa c55d8b9d3 4538ed382 b1f0e415f 033d75454 1f28e5b50 5310fc212 a6102199b
-6e21d9655 f0768720f 6ec1f046c 595b9c099 563cd4ca9 5c7e632c7 c3c118b3c d8b22ae96 (cards 9d958497f)
-gen 6: 99a3ce3b6 96f1c6fae 647501f0c dd141136d eeccfbaa1 f8332a053 6082bf802 4a96d8bd0 27c454526 4be11df59 22193d6ba 4a420102e
-d3f1d80c0 e77d0515a 7e1bed5b8 9c069f7dc 854aceb35 688d86d6f 3b61f9f73 9a39d55fa 09a8397e4 74f03f003
+gen 8: 7d10fc7c7 (W2c C corrective, from 8bcb21bca) · 03acdf602 (g1.31.4.3 #37 + #12, from 9934609d3 + 57949d5c1)
+gen 7 + 6: see the grid version of this card at 95e3c8002
 
 ## 🔴 Where it stops
-Waiting on fix agents A and B (LIVE above). If this session is gone: their commits survive on the worktree branches --
-harvest them as in HARVEST. Owner: Opus subagents allowed to ~06:0xZ, then Sonnet 5.5 / pi-free only.
-Lanes: coordination -> SM agi-5c · rulings -> the council (alive agi-e3). SM notes open: canonicalize && patch - not refused as
-a verb mix; canonicalize --dry-run shows no diff. First command:
+Waiting on Sonnet rounds C and D (LIVE above). If this session is gone, their commits survive on the worktree branches:
+harvest as in HARVEST. First command:
 ```
-git -C /data/work/agi/.claude/worktrees/agent-a196329a4a51f6c5f log --oneline -4
+git -C /data/work/agi worktree list | grep agent- | tail -2
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared by every post | commit by exact path; `git diff` each file for FOREIGN hunks first (heal.py + conftest.py carry another post's WIP 01:xZ); never switch branches, stash or reset |
-| stale .git/index.lock (oomd kills, 09-30 02:4x-02:5x; cause fixed by the Prime) | clear ONLY when mtime unchanged 3-5 s AND fuser empty AND ZERO git procs (a commit running hooks holds the lock CLOSED); never chain a commit after a test run without reading it |
-| shared write.py in MAIN | another post may hold UNCOMMITTED hunks: take the diff in the SAME command as the commit; if foreign hunks exist, build HEAD+mine in /tmp, test it in an isolated copy, swap-commit-restore (563cd4ca9) |
-| SHA reporting | read the SHA off `git commit`'s own output line, never `git log -1` (raced all-is-one once) |
-| suite lock races | /tmp/dg3_pt.sh <file> [-k ..] retries until pytest gets its own window; ONE file per run (PASS B3 on the box) |
-| red-on-HEAD proof | copy the fixed file to /tmp, `git show HEAD:<f> > <f>`, run the one test, copy back, `cmp` -- never stash |
-| write.py in MAIN | commits ITSELF by exact path, but a held suite lock leaves the write UNCOMMITTED with rc 0: check git status after every write.py call |
-| write.py script | ONE script argument, verbs joined by ' && ' |
-| row <top>.<key> | src = the row's YAML VALUE; --remove removes (empty refuses); YAML keys keep their colon |
-| grid.py commit --all | never off season2/main -- the grid cron versions MAIN; do not run it by hand |
-| test counts in commit messages | quote the FULL-file run, never a -k subset (SM N4) |
-| messaging | until the bundles land (owner 01:4xZ): SendMessage to a session name ONLY -- no send.py, no rooms; context in goal nodes |
-| /tmp after a reboot | /tmp/dg3_pt.sh (lock-retry pytest wrapper) is gone: recreate it (loop until verify-suite.lock is absent, --basetemp /tmp/dg3pt); it takes a BARE test file name (it prefixes extensions/agi/tests/) |
-| build parent shapes | [mvp] · [build, goal] · [goal, mvp] · [goal, idea] |
-| replace body on a heading/paragraph line | refused: widen to whole section or the blank line above |
-| claims | write.py + node_writer.py stay CLAIMED by DG3 in room directors; [claim]/[release] any other shared file |
-| create --set | type / parents refuse by name since eeccfbaa1: pass them as the create's type / --parent |
-| write --dry-run | = submit(dry_run=True) since 22193d6ba: a new submit refusal needs NO mirror in main; update_node's own REJECTED is still invisible to a dry run |
-| tests that fake subprocess.run | links.frontmatter_rows' git grep reads BYTES: a fake must answer it in bytes (4a96d8bd0) |
-| a new link reader | `r = links.address_resolver(root); r(x) or x` -- an address never greps; resolve per CALL, never inside a per-file cache |
+| MAIN is shared | commit by exact path; check each file for FOREIGN hunks first (guard-init.sh is another post's WIP); never switch branches, stash or reset |
+| an agent may write MAIN too | gen-7 agent A left its hunks uncommitted in MAIN as well: compare MAIN bytes to the commit's blobs before applying |
+| staged foreign index | cherry-pick refuses while other posts' rotation JSONs are staged: git apply (--3way) the commit's patch instead |
+| stale .git/index.lock | clear ONLY when mtime unchanged 3-5 s AND fuser empty AND zero git procs |
+| SHA reporting | read it off `git commit`'s own output line |
+| suite lock | /tmp/dg3_pt.sh <bare test file> [-k ..] waits for the lock, one file per run, --basetemp /tmp/dg3pt; recreate after a reboot |
+| red-on-HEAD proof | copy the file to /tmp, `git show HEAD:<f> > <f>`, run, copy back, `cmp` -- never stash |
+| write.py in MAIN | self-commits by exact path; a held suite lock leaves it UNCOMMITTED at rc 0: check git status after every call |
+| card | replace body 1:L <file> (L = current body length); then re-link .agi/sessions/quorum/director-general-3.md -> ../../nodes/doc/card-director-general-3.md |
+| messaging | SendMessage to a session name ONLY; context in goal nodes |
+| a new link reader | `r = links.address_resolver(root); r(x) or x`; a gate uses links.gate_resolver(nodes_dir) (never raises) |
 
-## §5 Verification (02:5xZ gen 7): write 172p/1x · node_writer 112p/3x · viewport 56p/7x · test_commands_manifest[rotate.py] RED ON HEAD (DG5's, flagged) · (02:0xZ): viewport 53p/8x · metrics 60p · zoom 41p · dashboard 23p · dispatch 139p · write/ring family 14 files green · write 164p/1x · node_writer 112p/3x · write_answers_file 42p · write_guard 32p · write_sub 17p · links 42p/2x · spawn_gate 81p · rotation_record 4p · post_wire 5p · season 56p · help smoke 70p/8s · live: 5279/5279 index rows == yaml, grep 0.47 s
+## §5 Verification (05:3xZ gen 8, MAIN): links 48p/1x · evidence_gate 139p · spawn_gate 83p · level3 59p/1x · viewport 58p/7x · cli 76p · write 188p/1x · write_ring_cli 20p · thought_hygiene 13p · write_guard 32p · ring_cli_seam 11p · veto 18p · promotion 8p · rings 50p/1f flaky (nonreplay: 6/6 green on rerun) · node_writer 111p/1f/3x (live-tree row: goal:g7.16.1.5.5.5 id row corrupted by DG4's d1eb5ecad -- flagged via SM)
 
 ## §6 BANKED
-- 86 (SM wf_8ce06028-a81): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left; links.py does not check parents.
+- 86 (SM wf_8ce06028-a81): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left.
   Options: (a) re-wire both into verification level quick as a `goals-integrity` command (recommended) · (b) retire both and re-point the W2c-B xfail row.
-- 94 ([red] with belam from SM): 4 engine subprocess callers of the write.py CLI auto-commit (rotate.py closeout · season.py:274 · sensei.py:2465 ·
-  failures.py:361) -- DISSOLVES under g7.16.1.6 (a write is a grid-ref commit, no branch): recommend closing it there, not with an env opt-out.
+- 94: 4 engine subprocess callers of the write.py CLI auto-commit (rotate.py closeout · season.py:274 · sensei.py:2465 · failures.py:361) -- dissolves under g7.16.1.6: recommend closing it there.
 - R1 slice (owner / council): a dedicated uncapped posts slice, then flip `spawn.post_scope.live` after PASS B3 with the owner present.
 - goal:g4.18.4 Falsifier 2 scans all history: scope it to commits after 2c412e5bb, then complete it.
 
-## Findings for the next bundle: see the previous card version (grid) -- unchanged
+## Findings for the next bundle
+- test_rings::test_suite_grant_nonreplay flaky (1 fail alice=FORGED, then 6/6 green) -- a findings row on goal:g7.33 when the lane allows
+- rest: see the grid version of this card at 95e3c8002
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
