@@ -19,8 +19,8 @@ _ROW = re.compile(r"^\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*
 
 
 def _git(repo, *args):
-    p = subprocess.run(["git", "-C", str(repo), *args], capture_output=True,
-                       text=True, timeout=300)
+    p = subprocess.run(["git", "-C", str(repo), "-c", "core.quotePath=false", *args],
+                       capture_output=True, text=True, timeout=300)   # raw bytes: a non-ASCII path must not arrive C-quoted (fail-open)
     if p.returncode != 0:
         raise RuntimeError(f"git {args[0]} exit {p.returncode}")  # the VERB and the code, never git's stderr BYTES
     return p.stdout
@@ -93,7 +93,7 @@ def main(argv=None) -> int:
     ap.add_argument("base", help="a rev at the range's start")
     ap.add_argument("tip", help="a rev at the range's end")
     ap.add_argument("--prime-count", type=int, default=None,
-                    help="the Prime's count of unreviewed:budget rows")
+                    help=f"the Prime's count of {BUDGET} rows")  # through the imported constant, never a typed copy
     ap.add_argument("--root", help="the project (default: the nearest enclosing .agi/)")
     ap.add_argument("--repo", help="the git repo (default: the source root)")
     a = ap.parse_args(argv)

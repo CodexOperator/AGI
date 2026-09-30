@@ -172,19 +172,24 @@ def test_c4_uncovered_list_is_capped_and_counted(proj):
     assert "... 5 more (total 25)" in p.stdout
 
 # C5 -- ONE `git log` walk over the range; never one `git show` per commit.
+# Spies the GATE's OWN _git: reds.py, called in-process, issues `git show` on its own.
 def test_c5_one_walk_and_no_git_show(proj, monkeypatch):
     repo, base = proj
     for i in range(3):
         (repo / f"extensions/g{i}.py").write_text(f"w = {i}\n")
         _commit(repo, f"delta {i}")
-    seen, real = [], subprocess.run
+    seen, real = [], merge_gate._git
 
-    def spy(cmd, *a, **kw):
-        if cmd and cmd[0] == "git" and len(cmd) > 3:
-            seen.append(cmd[3])
-        return real(cmd, *a, **kw)
+    def spy(*a, **kw): seen.append(a[1]); return real(*a, **kw)
 
-    monkeypatch.setattr(subprocess, "run", spy)
+    monkeypatch.setattr(merge_gate, "_git", spy)
     assert merge_gate.main(["check", base, "HEAD", "--root", str(repo / ".agi"),
                             "--repo", str(repo)]) == 1
     assert "show" not in seen and seen.count("log") == 1
+
+# C6 -- a non-ASCII file under a review path -> hold; a C-quoted path is fail-open.
+def test_c6_non_ascii_review_path_is_not_fail_open(proj):
+    repo, base = proj
+    (repo / "extensions/naïve.py").write_text("u = 4\n")
+    p = _run(repo, base, _commit(repo, "non-ascii"))
+    assert p.returncode == 1 and p.stdout.splitlines()[0] == "hold"

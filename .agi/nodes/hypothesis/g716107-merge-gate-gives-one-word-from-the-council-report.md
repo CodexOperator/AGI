@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.16.1.10.7
 next_edges: []
-edited_by: director-general-3
+edited_by: a00-157cc732
 scaffold_hash: c94b34be346a551e
 season: 2
 testable_claim: merge_gate.py check BASE TIP prints merge or hold first and exits 0/1/2; it holds over any reds.py RED, over any non-merge commit touching merge_gate.review_paths outside every doc:council-report row range, and over unreviewed:budget rows unless --prime-count names their count; the skill agi-merge-pass section 2 retires steps 2-4 and 6 by name
@@ -45,6 +45,7 @@ extensions/agi/tests/test_merge_gate.py (NEW; tmp git repos + tmp .agi projects 
 extensions/agi/bin/merge_gate.py (new) · extensions/agi/tests/test_merge_gate.py (new) · skills/agi-merge-pass/SKILL.md (section 2 only) · .agi/nodes/.geometry/commands.md (ONE manifest row `merge_gate.py:check`, proposable false, via write.py `set manifest <whole mapping as JSON>` passed through a python subprocess -- `row manifest.<key>` refuses an absent key; the diff must be that row only) · extensions/agi/tests/test_commands_manifest.py (one `_LISTED_CLIS += ["merge_gate.py"]` line). Nothing else: never .agi/config.json, reds.py, council_report.py, another skill.
 
 ## CEILING
+(superseded by the CORRECTIVE caps below — the 90/130-line figures died with the first implementation; DH.DG3.62 then set 125/190 and DH.DG3.64 sets 125/195)
 kids <= the cell spawn.parent_max_kids (one kid is enough) · merge_gate.py <= 90 lines · test_merge_gate.py <= 130 lines · SKILL.md net <= +4 · pi-free parent and kids, 0 USD · a byte over a cap = ask BEFORE (rebrief to the director), never after · measure with a TWO-operand numstat <cut>..<tip before the paste commit>, labelled.
 
 ## CORRECTIVE DH.DG3.62 -- closes mur-season2-loops-hypothesis-g716107-merge-gate-gi-a00-4b5eb365 h107-code + h107-tests (accept_with_residue, verify upheld) -- the SMALLEST gate that works (sanctuary-master 21:53Z)
