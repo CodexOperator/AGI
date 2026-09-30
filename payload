@@ -95,15 +95,22 @@ def test_rotate_first_key_mints_through_send_writer(tmp_path, monkeypatch):
     assert send_pkg._seat_key_path(tmp_path, "s2").is_file()
 
 
-def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path):
+def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path, monkeypatch):
     # already-keyed row, a throwaway (empty) row, and an idempotent re-rotate
     # (key file already exists) all mint nothing -> ''.
+    # a keyed row that HOLDS its key file (goal:g7.16.1.7.1.4: a keyed row
+    # with NO key file is the missing-key rule, test_stand_up.py)
+    _mk_seat_key(tmp_path, "s1")
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s1",
                                     {"pubkey": "deadbeef", "role": "parent"}) == ""
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", {}) == ""
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", None) == ""
     from agi.bin import send
     _mk_seat_key(tmp_path, "s3")
+    # an existing key file on an unkeyed row: left alone only under the
+    # template's `existing_key: leave` (the default ADOPTS it, test_stand_up)
+    monkeypatch.setattr(rotate, "key_template", lambda root: dict(
+        rotate.KEY_TEMPLATE_DEFAULT, existing_key="leave"))
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s3",
                                     {"role": "parent"}) == ""
 
