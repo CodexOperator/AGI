@@ -1164,7 +1164,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                     errors += 1
                     continue
                 msg_prefix = prefix
-                trailer = build_parent_mint_trailer(p, id_index)
+                trailer = build_parent_mint_trailer(p, id_index, resolve)
                 payload_ref = parse_payload_ref(p)
                 if payload_ref:
                     found = resolve_payload(root, payload_ref, engine_root,
