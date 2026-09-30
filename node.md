@@ -28,19 +28,22 @@ town: core
 goal:g7.16.1.7.1 (7a, NOW in the council placement): the placement (alive 23:4xZ) absorbs by name, from the old bundle-5 list on goal:g7.16.1.4: B1 one launcher (heal._launch_recovered -> rotate._launch_window) · C3 one scope-argv builder through mem_cap · the R2 alert (N deferred recoveries -> ONE [red]) · SM's rotate candidates (_launch_window ensure_tmux_session without root; same-second unit names; the rotation announcement's absolute handoff path). Also absorbs goal:g6.41.1 P2-P4 (one launcher, resume) and heal's launcher copy. Council (alive 23:4xZ): ONE stand-up verb for spawn, rotate, heal recover and hand restart; the harness adapter map is the spine (no harness-only verbs).
 
 ## Target end-state
-- Spawn, rotate, heal recover and a hand restart launch a post through ONE stand-up verb / function, which builds its scope argv through ONE builder that reads mem_cap.
-- _launch_window passes the root to ensure_tmux_session; two launches in the same second get distinct unit names; the rotation announcement carries a graph address, not an absolute path.
-- N deferred recoveries in one heal pass produce ONE [red] line naming all N.
+- goal:g7.16.1.7.1.1.1 (complete) · goal:g7.16.1.7.1.1.2 · goal:g7.16.1.7.1.1.3 · goal:g7.16.1.7.1.1.4 all complete: one launcher, no double spawn, a dead post resumes, ONE stand-up verb for spawn, rotate, heal recover and a hand restart.
+- Every stand-up path hands its shell line to the one launcher and its systemd-run argv to the one builder.
 
 ## Invariants
 - Tested on dummy scopes only; no live post is relaunched by a test.
 
 ## Falsifier
-1. The launcher's test file passes: spawn, rotate and recovery produce argv from the same builder (asserted by call count), and two same-second launches get distinct unit names.
-2. Negative: grep for a second systemd-run argv builder in rotate.py / heal.py = 0.
+1. The four sub-leaves' falsifiers all exit 0.
+2. Negative: grep for a "systemd-run" argv literal outside mem_cap.py in extensions/agi/bin = 0.
 
 ## Out of scope
 goal:g7.16.1.7.2.3 · goal:g7.16.1.7.1.2
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-5 00:4xZ 09-30: split into .1.1.1-.1.1.4 after reading goal:g6.41.1 P2-P4 (resume, aborted rotations, no double spawn, hand resume: all unbuilt) -- one leaf could not carry them (skill agi-goal: nest rather than widen). .1.1.1 holds the four rounds landed (803309d2c bd950a3df 80e94c3d0 813900da7) and is complete. The R2 target line of the previous version read "N deferred recoveries in one heal pass"; the placement (alive 23:4xZ, from goal:g7.16.1.4) says N CONSECUTIVE deferrals, which is what was built -- the old line was a drafting slip, corrected here.
+<!-- THOUGHT:END -->
