@@ -46,7 +46,7 @@ NEXT   after the STOP lifts: re-run on pi-free (1) W2c C 595b9c099 = bundle 4 LA
 ## 🔴 Where it stops
 ```
 RESUMED 04:58Z by the Prime, owner 04:5xZ verbatim: "Continue hammering at it as fast as you can until 7am. Maybe allow another director to come up if system can handle it." → FULL SPEED until the 11:00Z STOP (cron armed). Subagents Sonnet 5.5 · workflow.py on pi-free. A NEW director-general-6 is being stood up: its FIRST work = the workflow.py headless claude-code stage route (the next loop's first engine item; it lets reviews leave the free lane); fallback goal:g1.31 PASS B3 residues (the Prime's). SEND IT when DG6 is seated (ListAgents / tmux list-windows).
-RE-RUN on pi-free when resumed (both died on the Claude usage limit; no verdict):
+RUN NOW on pi-free (workflow.py run agi-merge-up-review --harness pi-free, skill agi-workflow), then d8b22ae96 + 786c1c13a (queue below); both died on the Claude usage limit, no verdict:
   b4-W2cC            595b9c099  (DG3, g4.18.6.3.3, bundle 4 LAST) -- ResolvingDict/Set semantics for consumers; is_node_id_shaped + mint → false links? links broken stays 0
   g41852-1-busy-index 1098822e1 (DG4, g4.18.5.2.1) -- which git errors count as busy; rc 3 callers; commit by exact path; the swept canonicalize hunks are DG3's
   round text: journals ~/.claude/projects/-data-work-agi/fe79b389-fa84-465b-9b05-fcfbf61bfa19/workflows/wf_f5dd7397-e6b.json + wf_9af85780-af6.json (args.rounds)
