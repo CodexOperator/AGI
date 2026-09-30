@@ -812,6 +812,23 @@ def test_parent_mint_trailer_in_commit_body(mint_project):
     assert subject == "v1 idea:child"
 
 
+# hypothesis:grid-parent-trailer-reads-a-mint-parent-through-the-resolver: a mint-id parent's
+# trailer == its address twin's; ONE mint_index build per commit --all, none for addresses
+def test_parent_mint_trailer_resolves_a_mint_parent_like_its_address(mint_project, monkeypatch):
+    import links
+    builds, real, seen = [], links.mint_index, []
+    monkeypatch.setattr(links, "mint_index", lambda root: builds.append(1) or real(root))
+    _write_mint_node(mint_project, "parent.md", "idea:parent", mint_id=MINT_A)
+    for kids in ((("1", "idea:parent"),), (("2", MINT_A), ("3", MINT_A))):   # 1 address; 2 mint kids, ONE commit
+        builds.clear()
+        for k, par in kids:
+            _write_mint_node(mint_project, f"c{k}.md", f"idea:c{k}", mint_id=k * 32, parents=[par])
+        grid.cmd_commit(mint_project, [], do_all=True, session=None)
+        seen.append(([grid.git(mint_project, "log", "-1", "--format=%b", grid.mint_node_ref(k * 32)) for k, _ in kids],
+                     len(builds)))
+    assert seen == [([f"Parent-Mint-Id: {MINT_A} idea:parent"], 0), ([f"Parent-Mint-Id: {MINT_A} idea:parent"] * 2, 1)], seen
+
+
 def test_parent_mint_trailer_marks_unresolved_parent(mint_project):
     child = _write_mint_node(mint_project, "child.md", "idea:child", mint_id=MINT_B,
                              parents=["idea:ghost"])
