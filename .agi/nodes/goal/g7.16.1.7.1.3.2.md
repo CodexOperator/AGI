@@ -10,7 +10,8 @@ goal_id: G7.16.1.7.1.3.2
 goal_kind: subgoal
 scaffold_hash: 230ec9b8e9ccc72e
 season: 2
-status: horizon
+status: active
+thought_session: director-general-5
 title: "G7.16.1.7.1.3.2: config.json declares ONE pi template (rows as JSON, one free default, aliases for the old ids)"
 town: core
 ---
