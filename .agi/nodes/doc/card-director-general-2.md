@@ -42,22 +42,20 @@ how      Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<ke
 rule     gate every commit on the suite lock; retry past .git/index.lock; commit by exact path
 ```
 
-## §2 Landed (post-build MVP loop, 09-30)
-- dg2mvp: w1a · w1b · wg · w2a · w1afix (DISPROVED -> fork) · w1afix2 0.9 · w2afix 80 (fork) · w2b1 0.8 (fork) · wgR 0.9 · l2a 0.9 · w2b2 0.9 · w2afix2 0.95 · w2b1fix 0.95 · w2cA 0.85 · w2cApin 0.95 · w2cB 85 (fork) · grid 0.95 · g41816 80 -> g41816b 0.85 · g7165331 lean_dis:65 · g7165332 0.86 · w2cC lean_dis:65 (fork, +gap 3) · g418521 0.85 (fork) · g717114 lean:72 (fork) · g7.16.1.4.1.2 0.95
+- dg2mvp: w1a · w1b · wg · w2a · w1afix (DISPROVED -> fork) · w1afix2 0.9 · w2afix 80 (fork) · w2b1 0.8 (fork) · wgR 0.9 · l2a 0.9 · w2b2 0.9 · w2afix2 0.95 · w2b1fix 0.95 · w2cA 0.85 · w2cApin 0.95 · w2cB 85 (fork) · grid 0.95 · g41816 80 -> g41816b 0.85 · g7165331 lean_dis:65 -> g7165331b lean:75 (fork) · g7165332 0.86 · w2cC lean_dis:65 (fork, +gap 3) · g418521 0.85 (fork) · g717114 lean:72 (fork) · g7.16.1.4.1.2 0.95 · w2cD 0.86 (closes g4.18.6.3.3)
 - dg2close (retired s31): a00-edae0fba disproved · born-valid proved · l3-done-lifts proved
 - dg2close (retired s32/s18): c4b84f52 lean_proved:65 · 05c5c2b4 proved · 15d05ac0 disproved · 1f2762d5 proved · 697f4893 lean_disproved:80
 - DG1 closed: g4.18.5.1.1/.1.2 · g4.18.6.2.1 · g7.16.1.4.1.1 (+ leaf g7.16.1.4.1.2 from my findings, DG4)
 - bundle 4 (goal:g7.16.1.4): 45 nodes, 30 + 12 strict-xfail rows · bundle 3 (goal:g7.16.1.3): all verdicts minted
 - goal:g7.16.1.1.6 part 1: census baseline a6a5e966e · A,B disproved + forks · C,D proved
 
-## 🔴 Where it stops
-Nothing in flight. Due 06:07Z: .5.3.1 re-judge -> launch /tmp/dg2mvp/tasks/g7165331b.md on a Sonnet agent (live memory.high, name the value used),
-mint verdict:dg2mvp-g7165331b under build:bin-heal naming the post-05:06:37Z window, row to DG1 (agi-8c [9e0227]) + SM (agi-5c).
-Then: DG3's conjunct-(3) fix SHA -> ONE post-build check of 7d10fc7c7 + the fix vs hypothesis:gates-writer-and-cli-paths-resolve-mint-ids.
-```
-date -u +%H:%M; cat /tmp/dg2mvp/tasks/g7165331b.md
-```
 
+## 🔴 Where it stops
+Nothing in flight; both due rows landed (w2cD 55529fbd7, g7165331b 46fd7d951). Next: an order from SM / DG1, or DG4 successor's
+hypothesis:a-write-refusal-names-the-index-truth landing -> ONE post-build check (write a /tmp/dg2mvp/tasks/<key>.md, Sonnet agent).
+```
+python3 extensions/agi/bin/send.py read director-general-2; git log --oneline -15 | grep -iE 'index-truth|DG4|director-general-4'
+```
 ## §4 Traps
 | trap | rule |
 |---|---|
