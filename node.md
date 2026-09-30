@@ -17,7 +17,7 @@ town: core
 
 Role = the director template (doc:unified-director-brief) + the HEAD (doc:unified-head). Replaced whole; ≤ 100 lines; rules live in skills + the brief, never here.
 
-## §0 State (05:3xZ 09-30)
+## §0 State (05:5xZ 09-30)
 | | |
 |---|---|
 | post | director-general-6, Opus 5.5 high, MAIN (worktree ""), town local-maxxing, formation doc:council-loop (goal:g7.16.1) |
@@ -30,26 +30,23 @@ Role = the director template (doc:unified-director-brief) + the HEAD (doc:unifie
 
 ## §1 Plan
 ```
-g1.31 split LANDED 6501d6972 (22 leaves; SM accepted; DG3/DG5 rows relayed by SM)
-LIVE (pi-free, 0 USD, iter DG6.0N, dispatched from MAIN):
-  DG6.01 a00-f7c21d0b  .3.1.1 hypothesis:pb3-node-verdicts-match-bytes-1-6-13-46
-  DG6.02 a00-ab940124  .3.1.2 hypothesis:pb3-evidence-pointers-name-committed-bytes
-  DG6.03 a00-dbbb2896  .3.2b  hypothesis:pb3-hw-name-scrubbed-and-four-lost-corrections-restored (URGENT #4)
-QUEUE (all minted + committed; held only by load >= 16 -- `until load<16` waiter armed):
-  1 DG6.04 .3.2a pb3-anonymize-refuses-a-hardware-model-fragment (kid returns the anonymize.* cell diff; DG6 commits it)
-  2 DG6.05 .1.1 pb3-run-mode-reads-one-formation-cell · DG6.06 .1.2 pb3-commands-bak-retired-by-move · DG6.07 .2 pb3-agi-post-stream-registered-and-current
-  3 .4.2.2 pb3-window-tip-fake-proc-per-model-denominator · .4.4 pb3-workflow-knobs-reach-js-one-global-form · .4.7 pb3-free-lane-test-fake-run-honours-text-mode
-    .4.5b pb3-engine-root-one-resolver-pin-retired -> THEN .4.5a pb3-box-home-cells-derived-per-box (same config.json) + .4.6.1 pb3-drift-test-s26-caller-injective-json-field (tests .4.5b's mechanism)
-closed at HEAD: #22 #25 (b8d232fc6) · #24 (59032171c) · #11 (dg2g6-b-recheck)
-NEXT  harvest in place per round (merge-base diff, touched tests + neighbourhood, mur --harness pi-free per kid slice) -> merge cleared rounds -> one [merge-up] to SM
-THEN  the 147 `missed` rows · second job: workflow.py headless claude-code stage route
+g1.31 upheld: 22 leaves (6501d6972) · 13 briefs · missed: 147 triaged -> REAL 59 (3 red) -> goal:g1.31.5 (drafting, 2 Opus)
+LIVE (pi-free, 0 USD):  DG6.01 a00-f7c21d0b .3.1.1 · DG6.02 a00-ab940124 .3.1.2 · DG6.03 a00-dbbb2896 .3.2b
+                        DG6.04 a00-fb71a5f6 .3.2a · DG6.05 a00-75a7f51b .1.1
+QUEUE RUNNER /tmp/dg6/qrun.sh (Monitor; log /tmp/dg6/qrun.log): pops /tmp/dg6/queue.txt head when load1<16 AND io avg60<50 AND my parents<10, 90 s apart
+  queue: .1.2 · .2 · .4.5b · .4.7 · .4.2.2 (council ruling applied 5988edbda) · .4.4
+  AFTER .4.5b lands: .4.5a pb3-box-home-cells-derived-per-box · .4.6.1 pb3-drift-test-s26-caller-injective-json-field
+NEXT  mint g1.31.5 (reds 112 -> 19 go to the HEAD of queue.txt, SM 05:4xZ) · send SM the DG3/DG4/DG5 leaf ids
+      lanes (SM): 83 -> DG4 (agi-c8 [6d9f0c]) · 84 + 60 -> DG3 · 107 -> DG5 · rest DG6/NODE
+HARVEST per round in place: merge-base diff · touched tests + neighbourhood (--basetemp /tmp) · mur --harness pi-free per kid slice -> merge cleared -> ONE [merge-up] to SM
+THEN  second job: workflow.py headless claude-code stage route
 ```
 
 ## §2 Landed
-- 6501d6972 goal:g1.31 -> 22 nested leaves · 324df95ec + 7eb1dacb6 + 2619b8972 + a2c9f4c7b + auto-commits: 13 round briefs
+- 6501d6972 goal:g1.31 -> 22 leaves · 13 round briefs (324df95ec, 7eb1dacb6, 2619b8972, a2c9f4c7b, 0723de5cd, 5988edbda + write.py auto-commits)
 
 ## 🔴 Where it stops
-Rounds DG6.01-03 live; queue above waits on load. Next: `python3 extensions/agi/bin/spawn_budget.py status`; when load < 16: `dispatch.py . DG6.04 --target hypothesis:pb3-anonymize-refuses-a-hardware-model-fragment --level small --tier parent --role parent --ladder-tier 0 --branch --detach` (then down the queue).
+Queue runner live; drafters for g1.31.5 pending (/tmp/dg6/g1.31.5*.md). Next: mint g1.31.5 tree (same loop as g1.31: strip H1, create, set confidence/origin/seeds/tags, --actor director-general-6), commit pathspec-only, brief the reds, `sed -i 1i` them into /tmp/dg6/queue.txt. If the runner died: `bash /tmp/dg6/qrun.sh` via Monitor.
 
 ## §4 Traps
 | trap | rule |
@@ -66,8 +63,9 @@ Rounds DG6.01-03 live; queue above waits on load. Next: `python3 extensions/agi/
 (none yet)
 
 ## §6 BANKED
-- owner: PASS B3 anonymize leak (#4) and pytest-of-<user> paths still live in old commits + grid versions -- rewriting history is irreversible (HEAD D): options (a) leave, scrub forward only [recommended] · (b) owner-run history rewrite
-- decision taken (council may overrule): .4.2.2 meter falls back + tags `unmeasured:<model>` instead of refusing (rotation safety)
+- owner (SM routes to the Prime): leaked hw name / pytest-of-<user> / owner email live in old commits + grid versions -- rewrite is irreversible; recommended: scrub forward only
+- owner (missed rows): n109+n22 a scrub pass restamped edited_by on ~494 nodes -- does a scrub take authorship? (rec: no; scrub keeps edited_by) · n6 placeholder word <repo> vs {root} (rec: one cell) · n144 bare usernames beside anonymized paths -- in the anonymizer's scope? (rec: yes, the `user` class of .3.2a)
+- decided (council ruling 05:4xZ): .4.2.2 meter falls back + unmeasured tag, one finding per model
 
 ## Skills
 agi-goal · agi-node-write · agi-dispatch · agi-workflow · agi-corrective · agi-verify · agi-send · agi-rotate · agi-memory-guard
