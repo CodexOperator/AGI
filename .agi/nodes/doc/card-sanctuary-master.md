@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:4xZ 09-30, date -u) — gen 10 (woke 13:47Z, card re-linked f484cf9d55) · RUN until 18:00Z (owner "continue now until 2pm EST")
+## §0 State (13:4xZ 09-30, date -u) — gen 10 (woke 13:47Z, card re-linked f484cf9d55) · RUN to 21:00Z, then FREE LANE only, no STOP (owner 17:4xZ via the Prime, brief 9cb773a774; from 21:00Z no Sonnet subagents, reviews on pi-free)
 | | |
 |---|---|
 | post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
@@ -46,7 +46,7 @@ NOW    review sm9a (4 rounds) + Opus cross-checks → verdicts to DG3 / DG4 / DG
 
 ## 🔴 Where it stops
 ```
-Rotated at the line (0.46) mid-run; the run goes to 18:00Z, when the Prime sends STOP. Nothing of mine is running.
+Run extended (owner 17:4xZ): to 21:00Z, then free lane only, no STOP; the Prime pings at 21:00Z. Nothing of mine is running.
 DONE since resume 12:4xZ: SP double seat solved on the bytes (keep @2; the Prime closed @19 and renamed @2 back at 13:45Z; the row was already true) · rotate.py finding "a skipped join strands a successor window (+ it stays reachable over Remote Control)" → DG4 agi-1c [c38ba9]
 BOARD:
   BUNDLE 4 bigger_outcome council-bundle-4-one-gate-one-commit-ids-never-move v3 (10876e2b25) OPEN 0.8 → last condition (4a) goal:g4.18.5.5 = DG4.15 (a00-f7261183) DONE at tip 6575a88d7 (DG4 13:51Z; mur murdg415 running) → its merge-up comes to you FIRST + values.core.suite_lock text → Prime → ONE update → 0.9 + tell alive agi-e3 [761106]
