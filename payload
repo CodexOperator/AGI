@@ -45,6 +45,8 @@ to merges only.
 from __future__ import annotations
 
 import argparse
+import contextlib
+import fcntl
 import functools
 import json
 import os
@@ -1831,6 +1833,41 @@ def _cutover_to_scopes(cgroup_dir, keep: int, posts: dict, *,
     return done
 
 
+@contextlib.contextmanager
+def post_launch_lock(root: Path, post: str):
+    """goal:g7.16.1.7.1.1.2 (goal:g6.41.1 P4) -- ONE launch lock per post:
+    `<shared sessions>/seats/<post>.launch.lock`, a non-blocking flock held
+    from the liveness check through the launch to the row write. Yields True
+    when this caller holds it, False when another stand-up of the same post
+    already does (the caller refuses by name; heal retries next pass). The
+    shared sessions dir, so MAIN and every worktree take the same lock. A lock
+    file that cannot be opened yields True: no lock is never a reason to leave
+    a dead post down."""
+    fd = None
+    held = False
+    try:
+        path = locations.shared_sessions_dir(root) / "seats" / f"{post}.launch.lock"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(str(path), os.O_RDWR | os.O_CREAT, 0o600)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            held = True
+        except BlockingIOError:
+            held = False
+    except OSError as exc:
+        print(f"warn: launch lock for {post!r} unavailable ({exc}); "
+              f"launching without it", file=sys.stderr)
+        held = True
+    try:
+        yield held
+    finally:
+        if fd is not None:
+            if held:
+                with contextlib.suppress(OSError):
+                    fcntl.flock(fd, fcntl.LOCK_UN)
+            os.close(fd)
+
+
 def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
                    cwd: str | None = None) -> int:
     """Run `shell_cmd` in a new tmux window. Returns 0 on success. The rc-only
@@ -2189,7 +2226,22 @@ def _seat_worktree_cwd(root: Path | None, row: dict | None) -> str | None:
 
 
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
-    """Build and (unless --dry-run) run a `claude --remote-control` command."""
+    """Build and (unless --dry-run) run a `claude --remote-control` command.
+    A SEATED live spawn holds the post's launch lock across the whole stand-up
+    (goal:g7.16.1.7.1.1.2): a second stand-up of the same post is refused."""
+    seat = getattr(args, "seat", None)
+    if seat is None or root is None or getattr(args, "dry_run", False):
+        return _cmd_spawn(args, root)
+    with post_launch_lock(root, seat) as held:
+        if not held:
+            print(f"ERR: spawn refused: {seat!r} launch lock held -- another "
+                  f"stand-up of this post is in flight", file=sys.stderr)
+            return 1
+        return _cmd_spawn(args, root)
+
+
+def _cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
+    """cmd_spawn's body (the lock is the caller's)."""
 
     if root is not None:
         guard = _check_branch_guard(root)
