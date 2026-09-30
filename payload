@@ -21,7 +21,6 @@ from __future__ import annotations
 import argparse
 import contextlib
 import datetime
-import errno
 import importlib.util
 import inspect
 import io
@@ -31,8 +30,8 @@ import re
 import shlex
 import signal
 import subprocess
-import tempfile
 import sys
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -122,7 +121,7 @@ def _pi_bin(root: Path) -> str:
         cfg = json.loads(cfg_path.read_text()) if cfg_path else {}
     except Exception:  # noqa: BLE001 -- see docstring
         cfg = {}
-    h = adapters.harness_block(cfg, "pi")
+    h = (cfg.get("harnesses") or {}).get("pi") or {}
     try:
         return adapters.resolve_bin(h, "PI_BIN", "pi")
     except FileNotFoundError as exc:
@@ -807,30 +806,21 @@ def _late_reap_wait_max_s(root) -> float:
     return 1800.0
 
 
-def _reaper_cell(root, key: str, default: float, valid) -> float:
-    """One numeric `reaper.<key>` cell from `.agi/config.json`; the code
-    default resolves a missing, malformed or `valid`-refused cell (a string
-    cell like "40" reads too). Never raises."""
+def _recovery_psi_max_pct(root) -> float:
+    """`reaper.recovery_psi_max_pct` from `.agi/config.json` (goal:g6.41.1 P5):
+    the memory-PSI line a recovery launch waits under; the code default (40,
+    below oomd's OOMD_PRESSURE_PCT 60) resolves a missing or malformed cell,
+    compared numerically (a string cell like "40" reads too). Never raises."""
     try:
         cfg_path = locations.config_path(root)
         if cfg_path is not None:
             cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-            v = float((cfg.get("reaper") or {}).get(key))
-            if valid(v):
+            v = float((cfg.get("reaper") or {}).get("recovery_psi_max_pct"))
+            if 0 < v <= 100:
                 return v
     except (OSError, json.JSONDecodeError, TypeError, AttributeError, ValueError):
         pass
-    return default
-
-
-def _recovery_psi_max_pct(root) -> float:
-    """`reaper.recovery_psi_max_pct` (goal:g6.41.1 P5): the memory-PSI line a
-    recovery launch waits under; default 40, below oomd's OOMD_PRESSURE_PCT 60."""
-    return _reaper_cell(root, "recovery_psi_max_pct", 40.0, lambda v: 0 < v <= 100)
-
-
-#: the deferral reason a BLIND PSI read starts with (R2 keys its own [red] on it)
-PSI_BLIND = "memory psi unreadable"
+    return 40.0
 
 
 def _recovery_admitted(root) -> tuple[bool, str]:
@@ -841,7 +831,7 @@ def _recovery_admitted(root) -> tuple[bool, str]:
     avg10 = (memory_alarm.read_psi(memory_alarm.BOX_PSI).get("some") or {}).get("avg10")
     line = _recovery_psi_max_pct(root)
     if not isinstance(avg10, (int, float)):
-        return False, f"{PSI_BLIND} (no some.avg10): fails closed under {line:g}"
+        return False, f"memory psi unreadable (no some.avg10): fails closed under {line:g}"
     if avg10 >= line:
         return False, f"memory psi some.avg10 {avg10:g} >= {line:g}"
     return True, f"memory psi some.avg10 {avg10:g} < {line:g}"
@@ -1391,44 +1381,6 @@ def _sweep_iter_home(wt_iter: Path, target: Path) -> bool:
     return True
 
 
-def _sweep_cold_link(root: Path, main_sessions: Path, iter_name: str):
-    """goal:g7.16.1.5.3.2 -- when config:guard names the cold sessions home
-    (`GUARD_AGI_SESSIONS_ARCHIVE_<box>`, the goal:g7.16.1.5.2 cell) and MAIN
-    has no entry for `iter_name` yet, create `<cold>/<iter>` and symlink
-    MAIN's entry to it, so session-complete's copy lands on disk -- never a
-    real dir on the RAM disk. Returns `(link, dest)` for the rollback, or
-    None (no cell, an entry already there, or the link failed)."""
-    cold = locations.guard_cell(root, "AGI_SESSIONS_ARCHIVE")
-    link = main_sessions / iter_name
-    if not cold or link.exists() or link.is_symlink():
-        return None
-    dest = Path(cold) / iter_name
-    if dest.exists() or dest.is_symlink():  # never write into a foreign dir
-        dest = Path(cold) / f"{iter_name}.{int(time.time())}"
-    try:
-        dest.mkdir(parents=True)
-        link.parent.mkdir(parents=True, exist_ok=True)
-        link.symlink_to(dest)
-    except OSError as exc:
-        with contextlib.suppress(OSError):
-            dest.rmdir()
-        _watch_log(f"[sweep] cold link refused {iter_name}: {exc.strerror or exc}")
-        return None
-    return link, dest
-
-
-def _sweep_cold_unlink(linked) -> None:
-    """Undo `_sweep_cold_link` after a homing that did not land -- ONLY while
-    the cold dir is still EMPTY: a dir holding any byte may hold a source's
-    verified contribution, so it and its link stay (no byte is lost)."""
-    link, dest = linked
-    with contextlib.suppress(OSError):
-        if not any(dest.iterdir()):
-            dest.rmdir()
-            if link.is_symlink():
-                link.unlink()
-
-
 def _sweep_bring_home(root: Path, main_sessions: Path, wt_iter: Path,
                       dry_run: bool, homed: dict) -> str | None:
     """hypothesis:l4-a-finished-rounds-session-dir-comes-home-before-the-\
@@ -1471,7 +1423,6 @@ sweep-judges-it.
     except Exception as exc:  # noqa: BLE001
         homed[iter_name] = f"cli import failed ({exc})"
         return homed[iter_name]
-    linked = None if dry_run else _sweep_cold_link(root, main_sessions, iter_name)
     try:
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
@@ -1480,8 +1431,6 @@ sweep-judges-it.
                 worktree=None, dry_run=dry_run)
         text = buf.getvalue()
     except Exception as exc:  # noqa: BLE001 — session-complete raised
-        if linked:
-            _sweep_cold_unlink(linked)
         homed[iter_name] = f"home failed (raised: {exc})"
         return homed[iter_name]
     if dry_run:
@@ -1500,8 +1449,6 @@ sweep-judges-it.
             wt_iter, main_sessions / iter_name):
         homed[iter_name] = ""
         return None
-    if linked:
-        _sweep_cold_unlink(linked)
     homed[iter_name] = _sweep_refusal_reason(text)
     return homed[iter_name]
 
@@ -1580,142 +1527,6 @@ def _live_worktrees_by_cwd(wt_base: Path) -> set:
     return live
 
 
-#: goal:g7.16.1.5.3 -- where the sweep pins a finished worktree before removing it
-SWEEP_ARCHIVE_NS = "refs/archive/worktrees/"
-# goal:g7.16.1.5.3 -- a session dir that cannot come home for one of THESE
-# (terminal) reasons is archived with the tree instead of holding it forever
-# (4287 of 4291 not-home refusals read "target exists", 09-30); "live lease",
-# "non-terminal" and anything unnamed still refuse.
-SWEEP_ARCHIVABLE_NOT_HOME = ("target exists", "home failed", "verify failed",
-                             "no manifest")
-
-
-def _sweep_pressure_ok(root) -> tuple[bool, str]:
-    """goal:g7.16.1.5.3 -- may a sweep pass run now? Box memory AND io PSI
-    `some.avg10` (memory_alarm.read_psi, the one PSI reader) under the
-    `reaper.sweep_mem_psi_max_pct` / `reaper.sweep_io_psi_max_pct` cells.
-    A blind read FAILS CLOSED, by name: archiving + removing is io work."""
-    import memory_alarm
-    for kind, path, key, default in (
-            ("memory", memory_alarm.BOX_PSI, "sweep_mem_psi_max_pct", 40.0),
-            ("io", Path("/proc/pressure/io"), "sweep_io_psi_max_pct", 40.0)):
-        line = _reaper_cell(root, key, default, lambda v: 0 < v <= 100)
-        avg10 = (memory_alarm.read_psi(path).get("some") or {}).get("avg10")
-        if not isinstance(avg10, (int, float)):
-            return False, f"{kind} psi unreadable (no some.avg10): fails closed"
-        if avg10 >= line:
-            return False, f"{kind} psi some.avg10 {avg10:g} >= {line:g}"
-    return True, "pressure under both lines"
-
-
-# goal:g7.16.1.5.3.1 -- the walk's page cache and dentries are charged to OUR
-# cgroup; the two paths are seams for the tests, never another cgroup.
-SWEEP_PROC_CGROUP = Path("/proc/self/cgroup")
-SWEEP_CGROUP_FS = Path("/sys/fs/cgroup")
-
-
-def _sweep_reclaim(max_mib: int) -> int:
-    """goal:g7.16.1.5.3.1 -- give back what the sweep's walk charged: ask the
-    kernel to reclaim this process's OWN cgroup (cgroup v2 `0::` line) by
-    its `file - shmem + slab_reclaimable` (memory.stat), capped at `max_mib`,
-    `swappiness=0`. Anon and tmpfs are never asked for; nothing is written
-    under 16 MiB. Returns the
-    MiB asked (0 = nothing asked); best-effort, never raises -- a refusal
-    logs ONE line and the sweep's decisions are unchanged."""
-    if max_mib <= 0:
-        return 0
-    mib = 0
-    try:
-        rel = next(l[3:] for l in SWEEP_PROC_CGROUP.read_text().splitlines()
-                   if l.startswith("0::"))
-        cg = SWEEP_CGROUP_FS / rel.strip().lstrip("/")
-        stat = dict(l.split() for l in (cg / "memory.stat").read_text().splitlines()
-                    if l.count(" ") == 1)
-        # shmem (tmpfs / the RAM disk) is charged as `file` but no reclaim
-        # frees it without swap: never ask for it (measured 09-30 03:0xZ:
-        # agi-engine.slice file 700 MiB = shmem 700 MiB)
-        mib = min(max_mib, (int(stat.get("file", 0)) - int(stat.get("shmem", 0)) +
-                            int(stat.get("slab_reclaimable", 0))) >> 20)
-        if mib < 16:
-            return 0
-        knob = cg / "memory.reclaim"
-        try:  # swappiness=0: page cache + slab only, anon is never swapped
-            knob.write_text(f"{mib}M swappiness=0")
-        except OSError as exc:
-            if exc.errno != errno.EINVAL:  # a kernel without the key
-                raise
-            knob.write_text(f"{mib}M")
-        return mib
-    except StopIteration:
-        return 0  # no cgroup v2 line: nothing of ours to reclaim
-    except OSError as exc:
-        # EAGAIN = the kernel reclaimed less than asked: the ask still helped
-        if exc.errno == errno.EAGAIN:
-            return mib
-        _watch_log(f"[sweep] reclaim refused: {exc.strerror or exc}")
-        return 0
-    except ValueError as exc:
-        _watch_log(f"[sweep] reclaim refused: unreadable memory.stat ({exc})")
-        return 0
-
-
-def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
-                   dirty: bool, force_paths: tuple = ()) -> str | None:
-    """goal:g7.16.1.5.3 -- pin a worktree before it is removed, so no byte is
-    lost: `refs/archive/worktrees/<name>` = its HEAD; a dirty tree's whole
-    state (tracked + untracked, `git add -A` into a THROWAWAY index -- the
-    worktree's own index and HEAD are never touched) is committed onto
-    `<name>-dirty`, plus `force_paths` (gitignored session dirs that never
-    came home, `git add -f`). Both refs are verified before this returns None;
-    any failure returns the reason and the caller removes nothing."""
-    dirty = dirty or bool(force_paths)
-    ref = SWEEP_ARCHIVE_NS + name
-    want = []
-    if head:
-        _, rc = _git(["update-ref", ref, head], main_checkout)
-        if rc != 0:
-            return "update-ref failed"
-        want.append((ref, head))
-    if dirty:
-        fd, idx = tempfile.mkstemp(prefix="agi-sweep-idx-")
-        os.close(fd)
-        os.unlink(idx)
-        env = dict(os.environ, GIT_INDEX_FILE=idx,
-                   GIT_AUTHOR_NAME="agi-sweep", GIT_AUTHOR_EMAIL="agi@local",
-                   GIT_COMMITTER_NAME="agi-sweep", GIT_COMMITTER_EMAIL="agi@local")
-        try:
-            def run(*a):
-                return subprocess.run(["git", "-C", str(wt), *a], env=env,
-                                      capture_output=True, text=True)
-            steps = [run("read-tree", *(["HEAD"] if head else ["--empty"])),
-                     run("add", "-A")]
-            if force_paths:
-                steps.append(run("add", "-f", "--", *force_paths))
-            if any(r.returncode for r in steps):
-                return "dirty snapshot failed"
-            tree = run("write-tree")
-            if tree.returncode or not tree.stdout.strip():
-                return "dirty write-tree failed"
-            cm = run("commit-tree", tree.stdout.strip(), *(["-p", head] if head else []),
-                     "-m", f"archive: dirty state of worktree {name}")
-            if cm.returncode or not cm.stdout.strip():
-                return "dirty commit failed"
-        finally:
-            try:
-                os.unlink(idx)
-            except OSError:
-                pass
-        _, rc = _git(["update-ref", ref + "-dirty", cm.stdout.strip()], main_checkout)
-        if rc != 0:
-            return "dirty update-ref failed"
-        want.append((ref + "-dirty", cm.stdout.strip()))
-    for r, sha in want:
-        got, rc = _git(["rev-parse", "--verify", "-q", r], main_checkout)
-        if rc != 0 or not got or got[0] != sha:
-            return f"archive ref {r} did not verify"
-    return None
-
-
 def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                               grace_min: int | None = None
                               ) -> tuple[int, int, int]:
@@ -1726,13 +1537,10 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
     ALL hold:
       (1) no live spawn-budget lease names the agent (the lease dir is the
           liveness source, never ps by name);
-      (2)+(3) goal:g7.16.1.5.3: a tree whose HEAD is not an ancestor of its
-          base (`unmerged`) or whose `git status --porcelain` is not empty
-          (`dirty`) is ARCHIVED first -- refs/archive/worktrees/<name> = HEAD,
-          the dirty state committed onto <name>-dirty via a throwaway index --
-          and removed (`--force` only behind the verified archive); at most
-          `reaper.worktree_archive_per_pass` per pass, the pass deferred whole
-          under `reaper.sweep_mem_psi_max_pct` / `sweep_io_psi_max_pct`;
+      (2) the worktree's HEAD is an ancestor of the branch it was cut from
+          (a round that never landed is NOT removed -- `unmerged`);
+      (3) `git status --porcelain` is empty apart from `.agi/sessions/`
+          paths (a dirty tree is REFUSED by name, never forced);
       (4) the round's session dir has come home to the main checkout, or
           the worktree carries no `iter-*` dir at all;
       (5) the worktree directory is older than the grace
@@ -1775,31 +1583,6 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         _watch_log(f"[sweep] {len(cwd_live - live_ids)} leaseless tree(s) "
                    f"held live by a running process")
     live_ids = live_ids | cwd_live
-    # goal:g7.16.1.5.3 -- archiving + removing is io work: a pass under memory
-    # or io pressure is deferred whole, never half-run (a dry-run reads only).
-    if not dry_run:
-        ok, why = _sweep_pressure_ok(root)
-        if not ok:
-            _watch_log(f"[sweep] deferred: {why}")
-            return (0, 0, 0)
-    per_pass = int(_reaper_cell(root, "worktree_archive_per_pass", 25.0,
-                                lambda v: v >= 1))
-    archived = 0
-    # goal:g7.16.1.5.3.1: every `sweep_reclaim_every` trees walked, and at
-    # pass end, give back the walk's page cache + dentries from OUR cgroup
-    # (a missing `sweep_reclaim_max_mib` cell = 0 = off).
-    reclaim_every = int(_reaper_cell(root, "sweep_reclaim_every", 100.0,
-                                     lambda v: v >= 1))
-    reclaim_mib = int(_reaper_cell(root, "sweep_reclaim_max_mib", 0.0,
-                                   lambda v: v >= 0))
-    walk = {"trees": 0, "asks": 0, "mib": 0}
-
-    def _walked() -> None:
-        walk["trees"] += 1
-        if reclaim_mib and walk["trees"] % reclaim_every == 0:
-            got = _sweep_reclaim(reclaim_mib)
-            walk["asks"] += bool(got)
-            walk["mib"] += got
     # Every worktree's branch and HEAD in ONE call, not two per tree.
     wt_heads = _sweep_worktree_heads(main_checkout)
     skipped = 0
@@ -1815,23 +1598,12 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
     # home-before-the-sweep-judges-it) keeps every tree's ancestry provable.
     base_pre: dict[str, str] = {}
     for wt_p in sorted(wt_base.glob("a00-*")):
-        _walked()
         if not wt_p.is_dir():
             continue
         b0 = wt_heads.get(wt_p.name, ("", ""))[0]
         base_pre[wt_p.name] = _sweep_worktree_base(
             root, wt_p, _sweep_season(b0))
     for wt in sorted(wt_base.glob("a00-*")):
-        _walked()
-        if wt.is_symlink() and not wt.exists() and not dry_run \
-                and wt.name not in live_ids:
-            # goal:g7.16.1.5.4 layout: a RAM worktree behind a symlink whose
-            # target is gone (the tmpfs emptied at a reboot) -- the branch
-            # keeps every commit; prune the record, unlink the link.
-            _git(["worktree", "prune"], main_checkout)
-            wt.unlink()
-            _watch_log(f"[sweep] unlinked {wt.name}: RAM target gone")
-            continue
         if not wt.is_dir():
             continue
         agent_id = wt.name
@@ -1845,23 +1617,44 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         base = base_pre.get(agent_id, _sweep_worktree_base(root, wt, season))
         if base:
             base = _sweep_resolve_base(root, base)
+        if not base:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: unmerged (no base)")
+            continue
         head = head_cached
         if not head:
             head_lines, _ = _git(["rev-parse", "HEAD"], wt)
             head = head_lines[0] if head_lines else ""
-        # (2)+(3) goal:g7.16.1.5.3: "unmerged" and "dirty" are no longer
-        # terminal -- landings are fresh commits, so ancestry is rarely
-        # provable. Such a tree is ARCHIVED (refs/archive/worktrees/<name>,
-        # dirty state on <name>-dirty) before it is removed; a merged, clean
-        # tree needs no archive and is removed as before.
-        merged = False
-        if base and head:
-            _, anc_rc = _git(["merge-base", "--is-ancestor", head, base],
-                             main_checkout)
-            merged = anc_rc == 0
+        # (2) a round that never landed is NOT removed.
+        if not head:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: unmerged (no HEAD)")
+            continue
+        # Neither HEAD nor the base has moved since this tree was last
+        # refused -> the verdict is unchanged by construction. Skip the
+        # subprocesses AND the per-pass log line (the log, not the work, is
+        # what grew to 48 MB in 6 days).
+        base_lines, _ = _git(["rev-parse", base], main_checkout)
+        base_tip = base_lines[0] if base_lines else ""
+        if _SWEEP_SKIP.get(agent_id) == (head, base_tip):
+            refused += 1
+            skipped += 1
+            continue
+        _, anc_rc = _git(["merge-base", "--is-ancestor", head, base],
+                         main_checkout)
+        if anc_rc != 0:
+            refused += 1
+            _SWEEP_SKIP[agent_id] = (head, base_tip)
+            _watch_log(f"[sweep] refused {agent_id}: unmerged")
+            continue
+        # (3) a dirty tree is REFUSED by name, never forced.
         status_lines, _ = _git(["status", "--porcelain"], wt)
         dirty = _sweep_dirty_paths(status_lines)
-        needs_archive = not merged or bool(dirty)
+        if dirty:
+            refused += 1
+            _watch_log(f"[sweep] refused {agent_id}: dirty "
+                       f"({len(dirty)} paths)")
+            continue
         _SWEEP_SKIP.pop(agent_id, None)
         # (4)/(5) A finished round's session dir comes home before the sweep
         # judges condition (4): for a leaseless+merged+clean round, the GRACE
@@ -1885,7 +1678,6 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         # with its own unmigrated records (hyp:l4-a-finished-rounds-worktree-
         # is-removed-after-harvest, L4.257).
         wt_iters = sorted(wt.glob(".agi/sessions/iter-*"))
-        not_home_paths: tuple = ()
         if wt_iters:
             not_home = [d for d in wt_iters
                         if not _sweep_iter_home(d, main_sessions / d.name)]
@@ -1907,60 +1699,18 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                 remaining = [d.name for d in wt_iters
                              if not _sweep_iter_home(d, main_sessions / d.name)
                              and d.name not in homed_now]
-                # goal:g7.16.1.5.3: a TERMINAL not-home reason (the round is
-                # over, its records just cannot merge home) is no longer a
-                # hold -- the iter dirs ride into the archive ref instead.
-                if remaining and all(r.split(":", 1)[-1]
-                                     in SWEEP_ARCHIVABLE_NOT_HOME
-                                     for r in rejected):
-                    not_home_paths = tuple(
-                        f".agi/sessions/{n}" for n in remaining)
-                    needs_archive = True
-                elif remaining:
+                if remaining:
                     refused += 1
                     _watch_log(f"[sweep] refused {agent_id}: session dir not "
                                f"home ({','.join(rejected)})")
                     continue
         iter_name = _sweep_iter_name(wt)  # read BEFORE the dir is freed
-        why = "+".join(p for p in (
-            "unmerged" if not merged else "",
-            f"dirty {len(dirty)}" if dirty else "",
-            f"sessions {len(not_home_paths)}" if not_home_paths else "") if p)
-        if needs_archive and archived >= per_pass:
-            kept += 1
-            _watch_log(f"[sweep] deferred {agent_id}: archive cap "
-                       f"{per_pass} reached this pass")
-            continue
-        if needs_archive and dry_run:
-            archived += 1
-            _watch_log(f"[sweep] archived {agent_id} ({why}) ref="
-                       f"{SWEEP_ARCHIVE_NS}{agent_id} (dry-run)")
-        elif needs_archive:
-            reason = _sweep_archive(main_checkout, wt, agent_id, head,
-                                    bool(status_lines), not_home_paths)
-            if reason:
-                refused += 1
-                _watch_log(f"[sweep] refused {agent_id}: archive failed "
-                           f"({reason})")
-                continue
-            archived += 1
-            _watch_log(f"[sweep] archived {agent_id} ({why}) ref="
-                       f"{SWEEP_ARCHIVE_NS}{agent_id}"
-                       f"{' +dirty' if status_lines or not_home_paths else ''}")
         if dry_run:
             _watch_log(f"[sweep] removed {agent_id} "
                        f"iter={iter_name} base={base} (dry-run)")
             removed += 1
             continue
-        # --force only behind a VERIFIED archive (goal:g7.16.1.5.3 invariant:
-        # no uncommitted byte is removed before its archive ref exists).
-        # a RAM worktree (goal:g7.16.1.5.4) is removed at its REAL path, then
-        # its symlink under .agi/worktrees is unlinked
-        _, rm_rc = _git(["worktree", "remove", *(["--force"] if needs_archive
-                                                 else []), str(wt.resolve())],
-                        main_checkout)
-        if rm_rc == 0 and wt.is_symlink():
-            wt.unlink()
+        _, rm_rc = _git(["worktree", "remove", str(wt)], main_checkout)
         if rm_rc != 0:
             refused += 1
             _watch_log(f"[sweep] refused {agent_id}: remove failed")
@@ -1969,15 +1719,8 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         _watch_log(f"[sweep] removed {agent_id} "
                    f"iter={iter_name} base={base}")
         removed += 1
-    if reclaim_mib:
-        got = _sweep_reclaim(reclaim_mib)
-        walk["asks"] += bool(got)
-        walk["mib"] += got
-        if walk["asks"]:
-            _watch_log(f"[sweep] reclaimed own cgroup: {walk['asks']} ask(s), "
-                       f"{walk['mib']} MiB asked over {walk['trees']} tree steps")
-    _watch_log(f"sweep: removed={removed} archived={archived} refused={refused} "
-               f"kept-live={kept}{f' (unchanged={skipped})' if skipped else ''}")
+    _watch_log(f"sweep: removed={removed} refused={refused} kept-live={kept}"
+               f"{f' (unchanged={skipped})' if skipped else ''}")
     return (removed, refused, kept)
 
 
@@ -2769,63 +2512,6 @@ def _rotation_in_flight(root: Path, seat: str, _rotate,
     return False
 
 
-def _successor_window_present(rec: dict, seat: str,
-                              windows: list[tuple[str, str]]) -> bool:
-    """A `started` record's successor window is open: its recorded
-    `handover.successor_window` @id, or a window carrying that name or the
-    seat's own name. A name match counts as PRESENT on purpose -- a false
-    "present" only keeps the in-flight skip, never a second spawn."""
-    succ = (rec.get("handover") or {}).get("successor_window") or {}
-    sid = str(succ.get("id") or "").strip()
-    names = {seat, str(succ.get("name") or "").strip()} - {""}
-    return any((sid and wid == sid) or name in names
-               for wid, name in windows)
-
-
-def _abort_crashed_rotations(root: Path, seat: str, row: dict,
-                             windows: list[tuple[str, str]], _rotate,
-                             now: float, pid_alive) -> list[Path]:
-    """goal:g7.16.1.7.1.1.3 (goal:g6.41.1 P3): a `started` rotation record
-    whose row pid is dead AND whose successor window is absent is ABORTED,
-    not in flight: rewritten IN PLACE (rotate's own record writer) as
-    `aborted-by-crash` and logged, so `_rotation_in_flight` stops shielding
-    the seat and recovery resumes the predecessor (P2). Returns the paths
-    rewritten. Only a record inside SEAT_DEAD_WINDOW_S is judged; an older
-    one is already no guard."""
-    pid = int(row.get("pid", 0) or 0)
-    if pid <= 0 or pid_alive(pid):
-        return []
-    rot = _rotate._rotations_dir(root)
-    if not rot.is_dir():
-        return []
-    aborted: list[Path] = []
-    for path in sorted(rot.glob(f"{seat}.*.json")):
-        try:
-            rec = json.loads(path.read_text())
-        except (OSError, json.JSONDecodeError):
-            continue
-        if rec.get("result") != "started":
-            continue
-        ts = _parse_record_ts(rec.get("recorded_at", ""))
-        if ts is None or (now - ts) > SEAT_DEAD_WINDOW_S:
-            continue
-        if _successor_window_present(rec, seat, windows):
-            continue
-        rec["result"] = "aborted-by-crash"
-        rec["aborted_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ",
-                                          time.gmtime(now))
-        rec["aborted_reason"] = (f"row pid {pid} dead and no successor "
-                                 f"window")
-        _rotate._write_rotation_record(root, rec, path=path)
-        line = (f"aborted rotation seat {seat}: {path.name} started "
-                f"{rec.get('recorded_at', '')} -> aborted-by-crash (row pid "
-                f"{pid} dead, no successor window)")
-        print(line, file=sys.stderr)
-        _watch_log(f"watch: {line}")
-        aborted.append(path)
-    return aborted
-
-
 # ---------------------------------------------------------------------------
 # hypothesis:l4-the-pin-is-the-lease, KID 1 — the TABLES + the JUDGEMENT.
 # Pure functions (no reap, no write, no dm, no live process); KID 2 consumes
@@ -3308,6 +2994,24 @@ def _seat_tree_dir(root: Path, row: dict) -> Path:
     return base / wt
 
 
+def _unlink_launch_file(launch_path: str | None, name: str) -> None:
+    """WRITER-side unlink for the recovery launch file. Every path where the
+    pane's own `sh` never got to run the file (write failed mid-way, tmux
+    absent/down, `new-window` non-zero, timeout) otherwise leaves the file --
+    and the whole startup PROMPT it carries -- in /tmp for any process to
+    read, one per failed recovery. The SUCCESS case still deletes ITSELF
+    (`rm -f "$0"`, unlinked by the very shell running it, which is why this
+    does not fire there: unlinking from here would race the pane). Best-effort,
+    never raises."""
+    if not launch_path:
+        return
+    try:
+        os.unlink(launch_path)
+    except Exception as exc:  # noqa: BLE001 -- never raise into the watch pass
+        print(f"warn: orphan recovery launch file {launch_path} for {name!r} "
+              f"not removed: {exc}", file=sys.stderr)
+
+
 def _launch_recovered(root: Path, name: str, shell_cmd: str,
                       window_path: str | None = None,
                       cwd: Path | str | None = None) -> tuple[int | None, str]:
@@ -3324,11 +3028,64 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
     successor wakes already standing in the tree it edits (hypothesis:l4-a-
     dead-seat-is-recovered-by-the-loop-not-by-a-human, (3))."""
     import rotate as _rotate  # noqa: PLC0415 -- lazy, same bin dir
-    # goal:g7.16.1.7.1.1.4: the stand-up verb's own launch (the ONE launcher,
-    # never inline, a timeout is not a launch) -- heal builds no line here.
-    return _rotate.stand_up_launch(
-        root, name, shell_cmd, window_path,
-        cwd=Path(cwd) if cwd is not None else _seat_tree_dir(root, {}))
+    tmux_session = _rotate.DEFAULT_TMUX_SESSION
+    tree = Path(cwd) if cwd is not None else _seat_tree_dir(root, {})
+    # (a) the launch never hands tmux the prompt INLINE (hypothesis:heal-lands-
+    # a-reseat-after-a-tmux-server-restart, conjunct (a)): the whole shell line
+    # goes to a launch file and tmux is given `sh <file>`, so the argv stays
+    # small no matter how big the startup prompt is (the 22:19Z `command too
+    # long`). An unwritable file REFUSES LOUDLY and returns not-spawned --
+    # falling back to the inline prompt is the very bug this removes, and
+    # pairing it with a success record would lie to the next pass. The file
+    # delete ITSELF on exit (`$0`), so a prompt file per recovery does not
+    # accumulate in /tmp forever; unlinking it on the SUCCESS path here would
+    # race the pane's own `sh`. `$0` cannot run at all on a FAILED launch, so
+    # `_unlink_launch_file` owns those paths (defect (3)).
+    # LIFETIME, not an except list: whatever raises or returns out of the
+    # write+launch region, the file dies with it UNLESS tmux already took it
+    # (`handed_off`; there the pane's own `sh` owns the `rm -f "$0"`). A
+    # non-OSError from the write used to escape AND orphan the prompt, killing
+    # the heal loop for every other seat.
+    launch_path: str | None = None
+    handed_off = False
+    try:
+        try:
+            fd, launch_path = tempfile.mkstemp(prefix=f"agi-recover-{name}-",
+                                               suffix=".sh")
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                if not shell_cmd.endswith("\n"):
+                    fh.write(shell_cmd + "\n")
+                fh.write('rm -f "$0" 2>/dev/null || true\n')
+        except Exception as exc:  # noqa: BLE001 -- any failure refuses loudly
+            print(f"warn: recovery launch file for {name!r} unwritable: {exc}; "
+                  f"refusing to hand tmux the prompt inline", file=sys.stderr)
+            return 0, ""
+        launch_cmd = (f"cd {shlex.quote(str(tree))} && "
+                      f"sh {shlex.quote(launch_path)}")
+        _rotate.ensure_tmux_session(tmux_session, root)  # goal:g6.41.1 P1 (the heal recover path)
+        try:
+            proc = subprocess.run(
+                ["tmux", "new-window", "-t", tmux_session, "-n", name,
+                 "-P", "-F", "#{window_id}", launch_cmd],
+                capture_output=True, text=True, timeout=10)
+        except Exception:  # noqa: BLE001 — tmux absent/down counts as not-spawned
+            return 0, ""
+        if proc.returncode != 0:
+            detail = (proc.stderr or proc.stdout or "").strip() or "<no output>"
+            print(f"warn: recovered spawn of {name!r} failed: {detail}",
+                  file=sys.stderr)
+            return 0, ""
+        handed_off = True
+        wid = (proc.stdout.strip().splitlines()[-1]
+               if proc.stdout.strip() else "")
+        return None, wid
+    except Exception as exc:  # noqa: BLE001 -- "Never raises into the watch pass"
+        print(f"warn: recovery launch of {name!r} failed: {exc}",
+              file=sys.stderr)
+        return 0, ""
+    finally:
+        if not handed_off:
+            _unlink_launch_file(launch_path, name)
 
 
 def _load_launcher(launcher) -> callable | None:
@@ -3494,22 +3251,6 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         if base <= 0:
             base = int(row.get("generation", 0) or 0)
         gen = base + 1
-    # goal:g7.16.1.7.1.1.3 (goal:g6.41.1 P2): a dead post whose row carries a
-    # session_id with a transcript under its tree RESUMES that session -- same
-    # name, same generation, same session_id; a fresh spawn only without one.
-    resume = None
-    sid = str(row.get("session_id") or "").strip()
-    if sid:
-        tp = _rotate.transcript_from_registry_dict(
-            {"cwd": str(_seat_tree_dir(root, row)), "session_id": sid})
-        if tp and Path(tp).is_file():
-            resume = sid
-            gen = int(row.get("generation", 0) or 0) or gen
-            _nm = str(row.get("session_name") or "").strip()
-            if is_chain and re.match(r"^[A-Za-z0-9_-]+$", _nm):
-                spawn_name = _nm
-            elif not is_chain:
-                spawn_name = seat
     if spawn_name in existing:
         return {"respawned": False, "name": spawn_name, "generation": gen,
                 "reason": f"successor window {spawn_name!r} already exists",
@@ -3532,41 +3273,34 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     if _rot:
         print(_rot, file=sys.stderr)
 
-    card_file = None
-    # goal:g7.16.1.7.1.2.1: the prime renders its row (head + template + card
-    # + trajectory) like every post -- no static brief file; its card is the
-    # doc:card-<seat> node render finds by the seat name.
-    if role != "prime_director":
-        # A director/helper recovers on ITS OWN card through brief.render
-        # (goal:g7.16.1.7.1.2): the quorum path is handed as `card_file`, and
-        # render reads the `doc:card-<seat>` NODE unless that path IS a node
-        # (the seat tree's live link). Never the raw file as the whole prompt:
-        # a rotation flattens the link into a copy, and a recovery rendered a
-        # stale 09-18 card on 09-29 17:33Z.
-        # The seat TREE's own card node first (a worktree's node leads MAIN's
-        # until its merge-up), else the quorum path.
-        from node_writer import find_node_file  # noqa: PLC0415
-        card = (find_node_file(gdir, f"doc:card-{seat}")
-                or gdir / "sessions" / "quorum" / f"{seat}.md")
-        if Path(card).is_file():
-            card_file = str(card)
+    prompt_file = None
+    if role == "prime_director":
+        # the prime resumes on the standing prime brief.
+        prompt_file = _rotate.DEFAULT_PROMPT_FILE
+    else:
+        # A director/helper resumes on ITS OWN quorum card — the file
+        # rotate-self hands its successor (`--prompt-file
+        # .agi/sessions/quorum/<seat>.md`, F16) — never the assembled generic
+        # brief, which carries none of the seat's §0-§3 state (the 22-32-call
+        # spawn-seating wakes the Sensei measured on 175816Z/181834Z). Found
+        # by the L4.283 harvest's live proof (sanctuary-director 182119Z
+        # 19:27Z): with prompt_file None, spawn_window assembled the generic
+        # director brief. Absent card -> the assembled brief, as before.
+        card = gdir / "sessions" / "quorum" \
+            / f"{seat}.md"
+        if card.is_file():
+            prompt_file = str(card)
     ack_gate = (
         "RECOVERED SEAT (crash-recovery): first act after reading your handoff, "
         f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
         "--ref <your ListAgents ref> continue` to take your identity."
-    ) if not resume else (
-        "RESUMED SEAT (crash-recovery, heal): your process died and heal resumed "
-        "this same session. Re-read your card (it may have moved on), then run "
-        f"`python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
-        "--ref <your ListAgents ref> continue` and carry on."
     )
     try:
         rc, shell_cmd = _rotate.spawn_window(
-            name=spawn_name, tier=tier, prompt_file=None,
+            name=spawn_name, tier=tier, prompt_file=prompt_file,
             model=model, effort=effort, settings=settings,
             root=root, window_path=window_path, dry_run=True,
-            debug_file=dbg, extra=ack_gate, seat=seat, resume=resume,
-            card_file=card_file)
+            debug_file=dbg, extra=ack_gate, seat=seat)
     except Exception as exc:  # noqa: BLE001
         return {"respawned": False, "name": spawn_name, "generation": gen,
                 "reason": f"spawn_window raised: {exc}", "row": "skipped"}
@@ -3611,13 +3345,12 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         row_text = _rotate._successor_row_write(
             root, actor=seat, seat=seat, role=role, session_ref="",
             generation=gen, window=window_id or spawn_name,
-            pid=row_pid, session_id=resume or "")
+            pid=row_pid, session_id="")
     except Exception as exc:  # noqa: BLE001
         row_text = f"row write FAILED: {exc}"
     _dm_crash_recovery(root, row, old_pid, cause, spawn_name, window_id, gen)
     return {"respawned": True, "name": spawn_name, "generation": gen,
-            "pid": pid, "window": window_id, "reason": "", "row": row_text,
-            "resumed": bool(resume)}
+            "pid": pid, "window": window_id, "reason": "", "row": row_text}
 
 
 def _latest_detected_path(root: Path, seat: str, _rotate, now: float) \
@@ -3796,21 +3529,13 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
         if pin_table is None:
             pin_table = _pt
         if seat_sessions is None:
-            seat_sessions = _seat_sessions(registry_dir, windows)
+            seat_sessions = _seat_sessions(registry_dir, windows) if _pt else []
     live = _alive_via_pin(pin_table, seat_sessions, seat, pid_alive)
-    if live is None:
-        # goal:g7.16.1.7.1.1.2.1: the row's OWN session_id open in a live
-        # pid is alive too, pin or no pin -- never recovered a second time.
-        _own = str(row.get("session_id") or "").strip()
-        live = next((s for s in seat_sessions or []
-                     if _own and (s.get("session_id") or "") == _own
-                     and s.get("pid") is not None
-                     and pid_alive(int(s["pid"]))), None)
     if live is not None:
         _pp = live.get("pid") or 0
         _sid = live.get("session_id") or ""
         line = (f"stale-row seat {seat}: row pid {pid} "
-                f"window {str(row.get('window') or '-')} vs live session "
+                f"window {str(row.get('window') or '-')} vs pinned session "
                 f"{_sid} pid {_pp} alive")
         print(line, file=sys.stderr)
         _watch_log(f"watch: {line}")
@@ -3831,17 +3556,8 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
         print(line, file=sys.stderr)
         _watch_log(f"watch: {line}")
         return {}
-    # (1d) a rotation in flight is not a crash -- unless it ABORTED (P3: row
-    # pid dead, no successor window), then the record is rewritten and the
-    # predecessor recovers. Every remaining in-flight skip is logged.
-    _abort_crashed_rotations(root, seat, row, windows, _rotate, now,
-                             pid_alive)
+    # (1d) a rotation in flight is not a crash.
     if _rotation_in_flight(root, seat, _rotate, now, row=row):
-        line = (f"in-flight seat {seat}: started rotation record inside "
-                f"{SEAT_DEAD_WINDOW_S}s with its successor window open -- "
-                f"skipped")
-        print(line, file=sys.stderr)
-        _watch_log(f"watch: {line}")
         return {}
     # (2b) the DEAD path still names WHY, even when the record was not a
     # rotation: the record's succ-dead arm proved the row IS the successor
@@ -3878,23 +3594,11 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
             "one recovery launch per pass already used" if admission["left"] <= 0 else "")
         if why:
             _watch_log(f"watch: {seat} recovery deferred: {why}")
-            kind = ("slot" if admission["ok"] else
-                    "blind" if why.startswith(PSI_BLIND) else "psi")
             return {"seat": seat, "probable_cause": cause, "recorded": False,
-                    "deferred": why, "defer_kind": kind}
-    # goal:g7.16.1.7.1.1.4: recovery is a `stand_up(mode="recover")` -- the
-    # post's ONE launch lock spans the checks, the launch and the row write; a
-    # stand-up of this post already in flight refuses this one by name
-    # (recorded `detected`: the next pass retries).
-    held, outcome = _rotate.stand_up(
-        root, seat, lambda: _recover_seat(
-            root, row, cause, _rotate, windows=windows,
-            window_path=window_path, launcher=launcher, now=now),
-        mode="recover")
-    if not held:
-        outcome = {"respawned": False, "name": "", "generation": 0,
-                   "row": "skipped", "reason": outcome}
-        _watch_log(f"watch: {seat} recovery refused: {outcome['reason']}")
+                    "deferred": why}
+    outcome = _recover_seat(root, row, cause, _rotate, windows=windows,
+                            window_path=window_path, launcher=launcher,
+                            now=now)
     if admission is not None and outcome.get("respawned"):
         # only a launch that HAPPENED spends the pass's one slot: a refused
         # recovery (records "detected") never starves the seats behind it
@@ -3933,11 +3637,10 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     # a STALE row from a corpse. `_pin_table` reads only tree meter files;
     # `_seat_sessions` reads a registry dir -- the fixture registry under test,
     # the LIVE `~/.claude/sessions` (REGISTRY_DEFAULT_DIR) on the real watch.
-    # Built on EVERY pass (goal:g7.16.1.7.1.1.2.1): a row whose session_id is
-    # open in a live pid is skipped pin or no pin; the suite points the
-    # registry default at a per-test dir (tests/conftest.py).
+    # Guarded: the registry is read ONLY when a pin exists to cross-check, so
+    # a pin-less scan never touches the live registry.
     pins, _skipped = _pin_table(root, rows)
-    seat_sess = _seat_sessions(registry_dir, windows)
+    seat_sess = _seat_sessions(registry_dir, windows) if pins else []
     pid_rows = [r for r in rows
                 if int(r.get("pid", 0) or 0) > 0 and (r.get("name") or "").strip()
                 and boxes.row_is_local(root, r)]
@@ -3963,53 +3666,7 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
             acted.append(summary)
     _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "
                f"row(s); {len(acted)} dead")
-    _alert_deferred(root, acted, rows)
     return acted
-
-
-#: goal:g7.16.1.7.1.1 (R2): consecutive pressure-deferred recoveries per seat,
-#: persisted across passes under the reaper state dir.
-DEFER_STATE = "recovery-deferrals.json"
-
-
-def _alert_deferred(root: Path, acted: list[dict], rows: list[dict]) -> None:
-    """R2 -- a dead seat whose recovery the PSI line deferred N passes in a row
-    (`reaper.recovery_defer_alert_after`, default 3) raises ONE `[red]` to the
-    Prime (the `prime_director` row) naming the seat and the reading; a BLIND
-    read (no some.avg10) raises its own `[red]` on its first pass. A seat not
-    pressure-deferred this pass starts over. A `slot` deferral (one launch per
-    pass) is queueing, not pressure: never counted. Never raises."""
-    try:
-        n = int(_reaper_cell(root, "recovery_defer_alert_after", 3.0, lambda v: v >= 1))
-        prev = _state_load(root, DEFER_STATE)
-        streak: dict = {}
-        reds: list[str] = []
-        for s in acted:
-            kind = s.get("defer_kind")
-            if kind not in ("psi", "blind"):
-                continue
-            key = f"{kind}:{s['seat']}"
-            streak[key] = prev.get(key, 0.0) + 1
-            if int(streak[key]) == (1 if kind == "blind" else n):
-                reds.append(f"[red] heal: {s['seat']} recovery deferred "
-                            f"{int(streak[key])} pass(es) in a row -- {s['deferred']}")
-        if streak != prev:
-            _state_save(root, DEFER_STATE, streak)
-        if not reds:
-            return
-        prime = next((str(r.get("name")) for r in rows
-                      if r.get("role") == "prime_director" and r.get("name")), "")
-        for line in reds:
-            _watch_log(f"watch: {line}")
-            if not prime:
-                continue
-            try:
-                import send as _send  # noqa: PLC0415
-                _send.send(root, prime, line, "heal")
-            except Exception as exc:  # noqa: BLE001
-                print(f"warn: deferral [red] to {prime} failed: {exc}", file=sys.stderr)
-    except Exception as exc:  # noqa: BLE001 -- never raises into the watch pass
-        print(f"warn: deferral alert pass failed: {exc}", file=sys.stderr)
 
 
 def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path,
