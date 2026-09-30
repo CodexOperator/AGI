@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1
 next_edges: []
 confidence: 0.6
-edited_by: alive
+edited_by: belam
 goal_id: G7.16.1.6
 goal_kind: subgoal
 heading_level: 4
@@ -19,7 +19,7 @@ tags:
   - grid
   - crons
   - council-loop
-title: "G7.16.1.6: a node write is one commit on that node's own grid ref -- no grid crons; one ~15-min snapshot is the branch's only node writer"
+title: "G7.16.1.6: no grid crons -- every write is a mint-keyed commit, plus one full-graph snapshot every ~15 min"
 town: core
 ---
 # goal:g7.16.1.6
@@ -29,63 +29,26 @@ town: core
 
 ## OWNER 2026-09-29 23:0xZ, verbatim (Prime pane) -- the shape, supersedes the Prime's trailer design below
 "So my idea was that the write node commit would still go into the grid. It's still there for per-node history as that's still valid and needed in the future if we do updates patches reworks etc. but we commit ONLY to the grid ref and the specific grid ref that belongs or is created for that node. So all node writes ARE grid commits, but only on individual nodes. Even less storage and memory bloat than the grid commit skip dupes thing. So no need for grid cron, but still a need for the grid as a commit target for individual node writes. The overall snapshot stays as you described. Does that make sense?"
-
 ## Why this exists
-goal:g7.16.1 (the council loop) -- the owner asked for it in the two sections above, and a cron measured its cost: at 22:4xZ 09-29 belam-S2-L5-XVIII read `crons.py show`. Every 5 minutes, `grid.py commit --all --prefix 'cron: '` walks all ~5k nodes on the slow disk (~35 ms per op), then `grid.py push-chan` runs. A node's history therefore lags its write by up to a tick, an uncommitted node is versioned by a process that did not write it (doc:card-belam trap 3), and one shared mint grew by 2 versions per tick with no write behind them (verdict:dg2b4-w2d1). The owner's reasons, kept whole: per-node history stays "needed in the future if we do updates patches reworks etc.", at "even less storage and memory bloat than the grid commit skip dupes thing".
+goal:g7.16.1 (the council loop): a next-bundle candidate for the council to place, right after bundle 4's W1 (goal:g4.18.5, "a write is a commit") and W2 (goal:g4.18.6, links are mint ids). Measured 22:4xZ 09-29 by belam-S2-L5-XVIII from `crons.py show`: every 5 minutes, `grid.py commit --all --prefix 'cron: '` walks all ~5k nodes on the slow /data disk (~35 ms per op) and versions every changed one onto refs/grid/*, followed by `grid.py push-chan`; the crontab self-heal (`crons.py apply`) rides the same line, chained with `;`. Known costs: an uncommitted node gets versioned within minutes (doc:card-belam trap 3), and the shared mint c89ca4b1 grew by 2 versions per tick (verdict:dg2b4-w2d1).
 
 ## Target end-state
-Zoomed out (council lens, vision:alive -- across thousands of generations the graph reports its own history AT THE MOMENT it changes, to every reader, and the same write form is reused by every kind of node):
-```
-A  WRITE     one node write = one commit on THAT node's own ref, refs/grid/<mint> (created on first write)
-             plumbing only: hash-object -> mktree -> commit-tree -p <tip> -> update-ref <new> <old tip> (compare-and-swap)
-             a CAS loser re-reads the tip and re-applies, or refuses BY NAME: never a silent overwrite, never a lost write
-             write.py commits edits to its OWN payload the same way (owner 22:2xZ on goal:g7.16.1.5: the running process holds
-             the old code); only a write.py broken past self-repair falls back to one plain git commit by exact path, named in a finding
-             never the branch, MAIN's index or HEAD; never waits on verify-suite.lock; keyed by mint id, so it
-             survives renumbers and retire-moves with no trailer; identical bytes = no new version
-             a write MAY push its own ONE ref at once when its type's schema declares it (a `push_on_write` cell in
-             .agi/context/schemas/[<type>].md; a conversation does, goal:g7.32.6): the moved set of size 1, never a branch write
-B  SNAPSHOT  ONE full-graph snapshot every ~15 min (cadence = a cell in config:crons) = the branch's ONLY node writer
-             and the push point for other boxes
-             commits a dirty node file ONLY when its bytes == its ref tip; REFUSES every other dirty file PER FILE by name
-             (the matching files still commit) -> ONE open finding per refused file, counted on every later snapshot,
-             closed by `write.py <id> adopt` (goal:g4.18.3); never a catch-all commit, never a fresh [red] per tick
-             pushes the MOVED set = every ref whose local tip != its remote tip (measured against the last SUCCESSFUL push,
-             so a failed push keeps its refs in the set until they land), never all refs/grid/*; refs stay packed
-             a non-fast-forward grid push (two boxes wrote one mint) is REFUSED + ONE finding naming both tips; never forced
-             the snapshot is a ROW of the one liveness census (goal:g7.16.1.1.6: loop + cadence in a config cell;
-             age > 2x cadence = ONE [red] naming the loop), never a watcher of its own
-C  ONE PATH  every other branch writer of nodes is absorbed BY NAME: bundle 4 W1's per-write branch commit
-             (goal:g4.18.5: the same change of target, branch -> own ref, never a second commit beside it) · ack /
-             stop_commit · the skills' "commit by exact path" line; rotate's 4 config:posts commit paths collapse under
-             goal:g4.18.5.3 (its owner) -- this line only RE-TARGETS that one row write's commit, never re-owns it
-```
-- No cron runs `grid.py commit` or `grid.py push-chan`; `crons.py apply` keeps its own line; the branch-mirror pushes, fetch, wake and memory_alarm are untouched.
-- The existing refs/grid/* histories simply continue: the first write after the cutover parents onto the ref's current tip.
-- The write form is ONE primitive any node type reuses: a card, a goal and a conversation (goal:g7.32.6: a message = a version on the conversation's ref) all write through it, and none has a path of its own.
+- Every node write IS one grid commit onto that node's OWN ref (refs/grid/<mint>, created on first write): plumbing only (hash-object -> mktree -> commit-tree -p <ref tip> -> update-ref with the old tip as a compare-and-swap), so a write never touches the branch, MAIN's index or HEAD, and never waits on verify-suite.lock. History stays keyed by mint id, so it survives renumbers and retire-moves with no trailer. No cron runs `grid.py commit`. This AMENDS goal:g4.18.5's target ("a write IS a git commit"): the commit target is the node's grid ref, not the branch (W1b, 14cf86000, commits on the branch by exact path today).
+- ONE full-graph snapshot every ~15 minutes: a single catch-all commit + push of whatever is still dirty under `.agi/nodes`, whose cadence is a cell in config:crons.
+- `crons.py apply` keeps running on its own line; the branch-mirror pushes, fetch, wake and memory_alarm are untouched.
+- The existing refs/grid/* histories simply continue: the first write after the cutover parents onto the ref's current tip. The ~15-min snapshot is the branch's only node writer and the push point for other boxes; grid refs push with it.
 
 ## Invariants
-- ONE TRUTH per node: after the cutover the ref tip is the truth and the branch is a DERIVED snapshot (as GOALS.md was a render). At every snapshot, the snapshot tree == every moved ref's tip, except the refused files, each of which is named in an open finding.
-- The cost tracks change, not graph size: a write moves one ref; a snapshot touches only the moved set; a tick with no write adds zero versions.
-- ONE push mechanism: the snapshot's moved-set push and a write's single-ref push are the same code path; which types push at once is a schema cell, never code per type.
-- Nothing is lost: `active_node_count + deprecated_node_count` never drops, every version made before the cutover stays readable, and no refs/grid/* ref is ever deleted.
-- Nothing heals silently or waits on a human to be noticed: open snapshot findings, a stale snapshot and a refused cross-box push are all COUNTED where `commands.py run verify` shows them, so none piles up unseen.
-- The snapshot never commits a half-written file that write.py would have refused (the authorship gate of goal:g4.18.5).
+- Nothing is lost: `active_node_count + deprecated_node_count` never drops, and every node version made before the cutover stays readable.
+- The snapshot never commits another post's half-written file that write.py would have refused (the same authorship gate as goal:g4.18.5).
 
 ## Falsifier
-1. `python3 extensions/agi/bin/crons.py show` lists no `grid.py commit` and no `grid.py push-chan`, and lists ONE snapshot job at the configured cadence. (A · B)
-2. One `write.py` edit moves exactly one ref (refs/grid/<mint>) and no branch; re-writing identical bytes moves nothing; for a node renumbered after the cutover, `git log refs/grid/<mint>` returns every version from both addresses. (A)
-3. A snapshot over a tree holding one foreign dirty node file commits every matching file, refuses that one BY NAME, and opens exactly ONE finding for it; the next snapshot counts the same finding and opens none. (B)
-4. Two concurrent writes to one node = 2 versions, or 1 version + 1 refusal naming the node; a push that fails leaves its refs in the next moved set, and they land on the next successful push. (A · B)
-5. Negative: zero branch commits made by a single node write after the cutover; `git grep -n 'commit by exact path'` over skills/ returns 0 hits for node files; zero refs/grid/* refs deleted. (C)
+1. `python3 extensions/agi/bin/crons.py show` lists no `grid.py commit` and no `grid.py push-chan`, and lists one snapshot job at the configured cadence.
+2. For a node renumbered after the cutover, `git log refs/grid/<mint>` returns every version from both addresses, and one write moves exactly one ref (refs/grid/<mint>) and no branch.
+3. Negative: zero branch commits made by a single node write after the cutover (the ~15-min snapshot is the only branch writer for nodes), and zero refs/grid/* refs deleted.
 
 ## Out of scope
-goal:g4.18.5 (its target is AMENDED here: the commit target is the node's own ref, not the branch) · goal:g4.18.6 (links are mint ids; this line needs it first) · goal:g7.16.1.5 (RAM-disk worktrees; follows this line) · goal:g7.32.6 (messaging; follows right after, as the first reuse of the write form) · goal:g7.16.1.7 · deleting any refs/grid/* ref (never).
-PLACEMENT (council, alive 23:4xZ 09-29): the WRITE line, after bundle 4 (needs W1 goal:g4.18.5 + W2 goal:g4.18.6); it absorbs the write-path half of the old bundle-5 list on goal:g7.16.1.4 (cli.py done repair_mint ungated · SCRUB_SCOPES -> a config cell · the anonymize guard HEAD-lag · the row-park template line).
+goal:g4.18.5 · goal:g4.18.6 · goal:g7.16.1.5 · deleting any refs/grid/* ref (never).
 
 ## Agent Notes
 Assigned to **the council** (placement).
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Council rewrite, alive (writer) with all-is-one and self-perpetuating (00:4xZ 09-30), on the owner task relayed by belam: "I would like the council to go over my verbatim text and make updates to each goal s structure and wording as needed to make sure that the new owner words are reflected in the goal format ... apply their lenses and zoomed out thinking at my words". Both OWNER sections untouched. What the lenses changed: (alive) the four shape conditions that sat in Out of scope were targets, so the Target is now three lettered parts A WRITE / B SNAPSHOT / C ONE PATH, each tied to its falsifier row; the owner reasons (per-node history for updates patches reworks, less storage and memory bloat) became measurable (identical bytes = no version, a no-write tick = 0 versions, cost tracks change not size); the write form is named as ONE primitive every node type reuses. (all-is-one + alive, settled pairwise) delivery cadence: a type whose schema sets push_on_write pushes its one ref at once, so messages (goal:g7.32.6) keep the owner 1-3 min latency with no new cron, through the same push path as the snapshot. (self-perpetuating, generation-1000 check) four silent-failure gaps closed: the moved set is measured against the last SUCCESSFUL push; a CAS loser re-applies or refuses by name; the snapshot watches itself (age > 2x cadence = one red in verify); a cross-box non-fast-forward push is refused with one finding naming both tips. Near miss: the prior Falsifier could pass while a failed push silently dropped refs forever.
-<!-- THOUGHT:END -->
