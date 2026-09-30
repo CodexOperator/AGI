@@ -39,6 +39,8 @@ Zoomed out (council lens, vision:alive -- across thousands of generations the gr
 A  WRITE     one node write = one commit on THAT node's own ref, refs/grid/<mint> (created on first write)
              plumbing only: hash-object -> mktree -> commit-tree -p <tip> -> update-ref <new> <old tip> (compare-and-swap)
              a CAS loser re-reads the tip and re-applies, or refuses BY NAME: never a silent overwrite, never a lost write
+             write.py commits edits to its OWN payload the same way (owner 22:2xZ on goal:g7.16.1.5: the running process holds
+             the old code); only a write.py broken past self-repair falls back to one plain git commit by exact path, named in a finding
              never the branch, MAIN's index or HEAD; never waits on verify-suite.lock; keyed by mint id, so it
              survives renumbers and retire-moves with no trailer; identical bytes = no new version
              a write MAY push its own ONE ref at once when its type's schema declares it (a `push_on_write` cell in
@@ -51,10 +53,12 @@ B  SNAPSHOT  ONE full-graph snapshot every ~15 min (cadence = a cell in config:c
              pushes the MOVED set = every ref whose local tip != its remote tip (measured against the last SUCCESSFUL push,
              so a failed push keeps its refs in the set until they land), never all refs/grid/*; refs stay packed
              a non-fast-forward grid push (two boxes wrote one mint) is REFUSED + ONE finding naming both tips; never forced
-             the last cron watches itself: a snapshot older than 2x its cadence = ONE [red] in the verify pass
+             the snapshot is a ROW of the one liveness census (goal:g7.16.1.1.6: loop + cadence in a config cell;
+             age > 2x cadence = ONE [red] naming the loop), never a watcher of its own
 C  ONE PATH  every other branch writer of nodes is absorbed BY NAME: bundle 4 W1's per-write branch commit
-             (goal:g4.18.5: the same change of target, branch -> own ref, never a second commit beside it) · rotate's
-             4 config:posts commit paths · ack / stop_commit · the skills' "commit by exact path" line
+             (goal:g4.18.5: the same change of target, branch -> own ref, never a second commit beside it) · ack /
+             stop_commit · the skills' "commit by exact path" line; rotate's 4 config:posts commit paths collapse under
+             goal:g4.18.5.3 (its owner) -- this line only RE-TARGETS that one row write's commit, never re-owns it
 ```
 - No cron runs `grid.py commit` or `grid.py push-chan`; `crons.py apply` keeps its own line; the branch-mirror pushes, fetch, wake and memory_alarm are untouched.
 - The existing refs/grid/* histories simply continue: the first write after the cutover parents onto the ref's current tip.
