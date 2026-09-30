@@ -39,65 +39,62 @@ section                                   lens                 asks
 **Separation: the one primitive everything else rests on**
 | option | what | root, once | who-did-what comes from | verdict |
 |---|---|---|---|---|
-| A · per-post Unix users via **systemd-sysusers** | ONE declarative file `/etc/sysusers.d/agi.conf` (`u agi-<post> -` + `m agi-<post> town-<town>` / `role-<role>`), GENERATED from the post rows (the rows are the source), applied by `systemd-sysusers` (idempotent, off-the-shelf, no useradd scripting); `agi-post@.service` runs `User=agi-%i` | yes (applying the file) | the kernel: a STABLE uid owns node files, mode bits, audit by uid; the signing key has a stable home | RECOMMENDED (all-is-one's lens, 22:0xZ): lighter AND stable, zero custom user code |
+| A · per-post Unix users via **systemd-sysusers** | ONE declarative file `/etc/sysusers.d/agi.conf` (`u agi-<post> -` + `m agi-<post> town-<town>` / `role-<role>`), GENERATED from the post rows (the rows are the source), applied by `systemd-sysusers` (idempotent, off-the-shelf, no useradd scripting); `agi-post@.service` runs `User=agi-%i` | yes (applying the file) | a STABLE uid: its private tree, its SSH-signed commits, its strace log, its groups checked by pre-receive; the signing key has a stable home | RECOMMENDED (all-is-one's lens, 22:0xZ): lighter AND stable, zero custom user code |
 | B · a systemd unit per post with `DynamicUser=` | systemd allocates the uid per unit start (hashed from the name, re-picked on collision) and expects it to own files only under StateDirectory; ProtectSystem=strict comes with it | yes (the unit template) | the same kernel facts, but only while the unit runs | the spike's COMPARISON ARM: our permission unit is a node file in a SHARED repo, so its owner must be a stable uid (falsifier (e)) |
 | C · same uid, one user unit (cgroup) per post | `systemd-run --user --unit=post-<post>` | no | env (GIT_AUTHOR, AGI_ACTOR) + git hooks only | REJECTED: permissions stay in Python, which is exactly the one-user problem |
 Either way the unit IS the post: `agi-post@<post>.service` (User=agi-%i under A, DynamicUser under B). Falsifier (e), in §8: a node minted by the post survives a reboot still owned by the same uid.
 
-**The wrap, written out whole (the owner's stretch bar 22:1xZ: "so low that it feels like it doesn't even exist"). These ARE the files; `wc -c` counts them.**
+**The wrap, written out whole (the owner's stretch bar 22:1xZ: "so low that it feels like it doesn't even exist"). Built and counted by all-is-one (`sh -n` clean; `systemd-analyze verify` clean except the not-yet-installed binaries); self-perpetuating and alive agree. These ARE the files.**
 ```
-# /etc/systemd/system/agi-post@.service (447 B) -- ONE template for every post; the instance name IS the post
+# agi-post@.service (363 B)
 [Service]
 User=agi-%i
-Group=agi
-WorkingDirectory=/srv/agi
-Environment=GIT_AUTHOR_NAME=%i GIT_COMMITTER_NAME=%i
-RuntimeDirectory=agi-%i
-ExecStartPre=-/bin/sh -c 'test -e ~/.ssh/id_ed25519||ssh-keygen -qt ed25519 -N "" -f ~/.ssh/id_ed25519'
-ExecStart=/usr/bin/dtach -N /run/agi-%i/s claude
-ExecStopPost=/bin/sh -c 'git ls-files -m|xargs -r find -user agi-%i|xargs -r git commit -qm "%i: exit" --'
-Restart=always
+WorkingDirectory=%h/t
+EnvironmentFile=%h/env
+ExecCondition=sh -c 'git pull -q;ls .agi/inbox/%i|grep -q .'
+ExecStartPre=-sh -c 'ssh-keygen -qN "" -ted25519 -f%h/.ssh/id_ed25519<&-;cp %h/.ssh/id_ed25519.pub .agi/keys/%i'
+ExecStart=strace -qqfe%%file -o%h/r sh -c '${H} "$$(cat .agi/nodes/doc/card-%i.md)"'
+ExecStopPost=agi-flush
+MemoryHigh=4G
+# agi-post@.timer (62 B)
+[Timer]
+OnUnitInactiveSec=60
 [Install]
-WantedBy=multi-user.target
-# agi-inbox@.path (42 B) + agi-inbox@.service (99 B) -- delivery = a file lands in the post's inbox dir
-[Path]
-PathChanged=/srv/agi/.agi/inbox/%i
-[Service]
-User=agi-%i
-ExecStart=/bin/sh -c 'echo "new mail: .agi/inbox/%i"|dtach -p /run/agi-%i/s'
-# the meter hook, in the ONE settings file every post's harness links to (295 B) -- AUTO-ROTATE
-{"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":"jq -r .transcript_path|xargs tail -1|jq -e '.message.usage|.input_tokens+.cache_read_input_tokens+.cache_creation_input_tokens>470000'>/dev/null&&echo 'At the line: write your card, git commit it, then run: kill $PPID'"}]}]}}
-# /etc/gitconfig (79 B) -- every commit SSH-signed by the post's own key
-[gpg]
-format=ssh
-[commit]
-gpgsign=true
-[user]
-signingkey=~/.ssh/id_ed25519.pub
-# /etc/audit/rules.d/agi.rules (55 B) -- AUTO-TRACK every open, graph or not, recorded with the post's uid
--a always,exit -F arch=b64 -S openat -F gid=agi -k agi
-# /etc/sysusers.d/agi.conf (26 B) -- generated from the post rows; ONE line per post
-g agi -
-u agi-alive -:agi
+WantedBy=timers.target
+# agi-flush (134 B)
+#!/bin/sh
+cd ~/t;grep -o '"/[^"]*"' ~/r|sort -u>.agi/track/$USER;git add -A;git commit -qSm$USER;git pull -q --no-rebase&&git push -q
+# meter (75 B)
+#!/bin/sh
+[ $(wc -c<"$(jq -r .transcript_path)") -lt 2000000 ]||kill $PPID
+# pre-receive (186 B)
+#!/bin/sh
+while read o n r;do git diff --name-only $o $n|while read p;do g=$(git check-attr owner -- "$p"|cut -d' ' -f3);id -nG|grep -qw "$g"||{ echo "$p: $g";exit 1;};done||exit 1;done
+# signers (65 B)
+#!/bin/sh
+for f in .agi/keys/*;do echo "${f##*/} $(cat $f)";done
+# sysusers.conf (34 B)
+u agi-alive -
+m agi-alive council
 ```
 | act | how, in the files above |
 |---|---|
-| auto-rotate | the meter hook tells the session at the line to write its card, commit it and exit; `Restart=always` starts a FRESH session, which loads the card through the harness's own instruction file (a symlink into the graph) |
-| auto-heal | `Restart=always` (a crash is the same path as a rotation) · `ExecStartPre` regenerates a missing key (the public key reaches the row on its next commit) |
-| auto-track | graph writes: every commit is authored AND SSH-signed as the post · every other read/write: one audit rule records each open with the post's uid (`ausearch -ui <uid> -k agi`) |
-| write | the post's own `git commit` of a node (the tree-free, CAS form: §2, §4); `ExecStopPost` salvages any file the post still owns uncommitted at exit |
-| message | write a file into `.agi/inbox/<post>/`; the `.path` unit pushes one line into the live session through `dtach -p` |
-| human view | `dtach -a /run/agi-<post>/s` attaches to any post's live session |
-| memory | a per-post drop-in (`MemoryHigh=`) only where a post needs one: tens of bytes |
+| auto-rotate | a session ends (task done, or the meter hook kills the harness at 2 MB of transcript) -> ExecStopPost flushes -> the timer starts a FRESH session 60 s later, handed the card. Continuation = a message to self. SAFE ONLY because the card is written DURING the work by one whole write (the card rule): a kill never loses more than the last unwritten step |
+| wake / idle | ExecCondition = `git pull` + "is the inbox non-empty": an idle post starts NO session, so it costs zero tokens |
+| auto-track | writes: each post works in its OWN tree (`~/t`, a `git clone --shared`, so no objects are copied), so `git add -A` there is exactly its writes, graph or not. Reads and writes of ANY path: `strace -f -e%file` wraps the harness (no root); the flush commits the sorted unique path list to `.agi/track/<post>` |
+| auto-heal | `ssh-keygen` with stdin closed never overwrites: a missing key is minted, and its public half is published to `.agi/keys/<post>` by the flush; `signers` derives git's allowed_signers from those files |
+| permission | `pre-receive` on the shared bare repo: every changed path's `owner` git attribute must be one of the pusher's groups. It refuses mistakes; it runs AS the pusher, so stopping malice needs a gate user (named, not built) |
+| memory | `MemoryHigh=` in the unit (a per-post drop-in where a post needs another value) |
 
-**The count: the whole wrap = 1,043 bytes of our code; one post = 18 bytes (its sysusers line) plus one enable symlink.** "A post in tens": MET. "The wrap in hundreds": missed by 44 bytes (the meter hook's jq line is the fattest, 295 B). The megabytes live in what is already written and tested: the kernel, systemd, git, auditd, jq and dtach (two small packages, `auditd` + `dtach`, installed on the owner's go).
-**Where the bar cannot be met, and why:** the graph checker (schemas + links, §2) and the MCP wrapper (§5) are the only pieces that still need kilobytes; both can drop to configuration if an off-the-shelf JSON-schema validator reads the schemas as data and an off-the-shelf shell/filesystem MCP server runs as each post user. Root setup is required ONCE (the unit files, the sysusers file, the audit rule, two packages): the owner's go, per the goal's invariant.
+**The count: the whole wrap = 919 bytes of our code; one post = 34 bytes (its two sysusers lines) plus one `systemctl enable agi-post@<post>.timer` symlink.** "A post in tens": MET. "The wrap in hundreds": MET. §4's slot script (461 B: fill · recycle · N-way mix via merge-tree · keep) serves kids and mixed-commit test runs only. The megabytes live in what is already written and tested: the kernel, systemd, git, strace, jq.
+**Where the bar breaks (outside the count, named):** schema-check (<= 10 KB, §2: the rules are real content) · agi-mcp (<= 8 KB, §5) · the harness runs HEADLESS (`claude -p` / `pi -p`), so no interactive pane feeds the stream (the variant for a streamed post: wrap ExecStart in `dtach -N`, about +20 B) · the meter hook is Claude-only (pi compacts on its own) · strace overhead is a spike measure · a pull conflict leaves `~/t` mid-merge for the post's next session · root is needed ONCE (units, sysusers, the bare repo's hook): the owner's go.
+**The variant the council rejected** (alive's 1,043 B draft): `Restart=always` + `dtach` + one auditd rule + a `.path` inbox unit. Rejected because a restart loop keeps paid sessions running while idle, auditd needs root to set up and to read, and `.path` units are not recursive.
 
 **What the post row keeps:** name · role · town · template · harness · model · effort · owning_goal · memory · the public key. The kernel or the unit now holds the rest, which retires: pid · window · session_id / name / ref / label · key_history · fp · rotated_by_sig · generation.
 
 alive's lens (vision:alive, the system reports its own TRUE state): every true-state defect the council caught on 09-30 is a one-user artifact. rc 0 over uncommitted bytes · `edited_by: belam` on other posts' writes · colliding session names · an inbox reporting "empty" over unread mail · a rotation committing a flattened card. Each is Python re-deriving a fact that the kernel, git or systemd simply KNOWS once a post is a unit with its own uid. The wrap reports true state because it stops re-deriving it. It is antifragile the same way: a dead session is just the loop's next turn.
 
-Rows: rotate.py + heal.py + rotation_alert.py (1,465 KB) REPLACE-BY agi-post@.service + the meter hook (~740 B) · seatsig + send.py signing/whois (~160 KB) SCRAP -> ssh keys + git signing + the uid · spawn_budget.py (52 KB) REPLACE-BY the unit's TasksMax · envfile.py (26 KB) REPLACE-BY a 0600 env file in the post user's home · hierarchy.py KEEP (reads the rows).
+Rows: rotate.py + heal.py + rotation_alert.py (1,465 KB) REPLACE-BY agi-post@.service + .timer + agi-flush + the meter hook (~634 B) · seatsig + send.py signing/whois (~160 KB) SCRAP -> ssh keys + git signing + the uid · spawn_budget.py (52 KB) REPLACE-BY the unit's TasksMax · envfile.py (26 KB) REPLACE-BY a 0600 env file in the post user's home · hierarchy.py KEEP (reads the rows).
 
 ## §2 Write = a shell script over a git commit
 **What am I ACTUALLY trying to get the machine to do here?** Record ONE new version of ONE node, by ONE post, so that everyone sees it, nobody else could have made it, and exit 0 means it landed.
