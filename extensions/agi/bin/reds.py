@@ -86,15 +86,26 @@ def _broken_links(old_graph, new_graph):
 
 
 def _classes(root):
-    """The cell `merge_gate.red_classes`; absent = all three + ONE WARN."""
+    """The cell `merge_gate.red_classes`; absent, empty or naming no known class
+    = all three + ONE WARN. A name that is not a class never SILENCES one."""
     cfg = locations.config_path(root)
     cell = (json.loads(cfg.read_text(encoding="utf-8")).get("merge_gate") or {}
             if cfg and cfg.is_file() else {})
     named = cell.get("red_classes")
+
+    def warn(why, extra=""):
+        print(f"WARN reds: {why}{extra} — running all of {', '.join(CLASSES)} (fail closed)", file=sys.stderr)
+
     if not isinstance(named, list) or not all(isinstance(c, str) for c in named):
-        print(f"WARN reds: no merge_gate.red_classes cell — running all of {', '.join(CLASSES)} (fail closed)", file=sys.stderr)
+        warn("no merge_gate.red_classes cell")
         return set(CLASSES)
-    return {c for c in CLASSES if c in named}   # an unknown name is not a class
+    known = {c for c in CLASSES if c in named}
+    if not known:
+        warn("merge_gate.red_classes names no class", f" ({', '.join(sorted(set(named)))})")
+        return set(CLASSES)
+    if unknown := sorted(set(named) - set(CLASSES)):
+        print(f"WARN reds: unknown red_classes ignored: {', '.join(unknown)}", file=sys.stderr)
+    return known
 
 
 def main(argv=None):

@@ -174,3 +174,40 @@ def test_f6_no_model_is_started(proj, tmp_path):
     r = _run(proj, base, env=env)
     assert r.returncode == 0, r.stdout + r.stderr
     assert not record.exists(), "a model command ran"
+
+
+# F7 -- fail CLOSED: a present-but-empty or all-unknown cell runs ALL THREE with
+# ONE WARN. A gate that disables itself on a typo is the near miss the rule exists
+# to prevent (parent probe P1/P2, DG3.51).
+@pytest.mark.parametrize("cell", [[], ["nonsense"], ["nonsense", "other"]])
+def test_f7_a_cell_naming_no_known_class_runs_all_three_with_one_warn(proj, cell):
+    cfg = proj / ".agi" / "config.json"
+    (proj / "notes" / "leak.py").write_text(f'TOKEN = "{KEY}"\n')
+    (proj / ".agi" / "nodes" / "build" / "two.md").unlink()
+    _git(proj, "add", "-A")
+    _git(proj, "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-qm", "red range")
+    base = _git(proj, "rev-parse", "HEAD~1").strip()
+    cfg.write_text(json.dumps({"merge_gate": {"red_classes": cell}}))
+    _git(proj, "add", "-A")
+    _git(proj, "-c", "user.email=t@example.invalid", "-c", "user.name=t", "commit", "-qm", "cell")
+    r = _run(proj, base)
+    line = r.stdout.splitlines()[0]
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert all(c in line for c in CLASSES), line
+    assert "RED secrets 1" in r.stdout and "RED node_deletion 1" in r.stdout, r.stdout
+    assert r.stderr.count("WARN") == 1, r.stderr
+
+
+# F7b -- a KNOWN class still narrows when an unknown name rides along, and the
+# unknown name is named in ONE WARN rather than silently swallowed.
+def test_f7b_a_known_class_narrows_but_an_unknown_name_still_warns(proj):
+    cfg = proj / ".agi" / "config.json"
+    (proj / "notes" / "leak.py").write_text(f'TOKEN = "{KEY}"\n')
+    base = _git(proj, "rev-parse", "HEAD").strip()
+    cfg.write_text(json.dumps({"merge_gate": {"red_classes": ["secrets", "nonsense"]}}))
+    _commit(proj, "narrow the cell with a typo")
+    r = _run(proj, base)
+    line = r.stdout.splitlines()[0]
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "secrets" in line and "node_deletion" not in line and "broken_link" not in line
+    assert r.stderr.count("WARN") == 1 and "nonsense" in r.stderr, r.stderr

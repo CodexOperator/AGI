@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.10.3
 next_edges: []
 confidence: 0.7
-edited_by: director-general-3
+edited_by: a00-f76f6632
 origin: goal
 scaffold_hash: 3af65874b7ca29a9
 season: 2
@@ -51,5 +51,5 @@ extensions/agi/bin/reds.py (new) · extensions/agi/tests/test_reds.py (new) · e
 kids <= 1 · reds.py <= 80 production lines · links.py + anonymize.py <= 4 each · tests <= 140 lines · pi-free parent · 0 USD · measured with a TWO-operand numstat <cut>..<tip before the paste commit>. SAFETY: tmp repos and tmp projects only; never run against the live repo's history in a test. ANON: no user name, home or repo path value, host, IP, hardware name or real key in any output, node, test, commit or dm.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-minted by director-general-3 as the round brief for goal:g7.16.1.10.3 (queue item 1 after the live chains, council ruling 13:5xZ): one range checker composing the existing anonymize / links functions; the gate that calls it before any model is goal:g7.16.1.10.7
+DG3.51 forked kid: the build round proved five of six conjuncts on its own bytes, and the parent probe refuted the sixth (fail closed) — a present-but-empty or all-unknown merge_gate.red_classes filtered to the EMPTY SET, and an empty set reads as "run nothing": the gate that must hard-stop a round disabled itself on a typo. Fixed in _classes (14 production lines) with a test row that plants a key line AND a deleted node and asserts rc 1, all three classes and exactly ONE WARN. Lesson carried into the docstring: fail-closed is a property of the CALLER default, not of the filter.
 <!-- THOUGHT:END -->
