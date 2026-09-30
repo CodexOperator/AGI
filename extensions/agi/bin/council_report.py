@@ -58,8 +58,8 @@ def rounds(rundir: Path) -> list[dict]:
             residues = [(str(d.get("title", "")), "review-only")
                         for d in review.get("defects", [])
                         if d.get("severity") == "residue"]
-        out.append({"label": label, "state": state, "verdict": verdict,
-                    "residues": residues})
+        out.append({"label": label, "state": state, "verdict": verdict,   # a title is ONE table line
+                    "residues": [(" ".join(t.split()), s) for t, s in residues]})
     return out
 
 def owner_post(assigned: str, subject: str) -> str:

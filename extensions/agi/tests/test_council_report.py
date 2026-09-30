@@ -99,6 +99,9 @@ def test_c3c_a_re_add_with_a_changed_residue_set_is_no_false_rc2(tmp_path):
     _run(root, verify={"final_recommendation": "accept", "missed": ["miss B"]})
     cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
     assert "miss A" in store["goal:g7.9"] and "miss B" in store["goal:g7.9"]
+    _run(root, verify={"final_recommendation": "accept", "missed": ["miss\nC"]})
+    cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+    assert "| k1/a1 | verify | miss C |" in store["goal:g7.9"]   # a line break folds
 
 
 def test_c1b_a_leaf_that_resolves_to_no_node_writes_nothing(tmp_path):
