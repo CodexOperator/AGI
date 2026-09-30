@@ -42,7 +42,7 @@ code: render_window's tip provenance (fetch-or-label); the hook's model -> windo
 ## FALSIFIERS
 - a tmp origin advanced after clone: cell 0 prints the OLD sha without `unfetched`; cell > 0 prints the old sha, or omits `fetched`
 - `git grep -n 'os.getppid()' -- extensions/agi/tests/test_verification_window.py` returns any hit; any row runs with `verification.PROC` or `_pid_alive` real
-- a transcript whose latest `message.model` has no `context_tokens_by_model` row prints a `[meter]` fraction, or exits other than 4
+- a transcript whose latest `message.model` has no `context_tokens_by_model` row prints a `[meter]` line WITHOUT the `unmeasured:<model>` tag, or exits non-zero, or raises more than ONE open finding for that model across repeated meter runs
 - a transcript on model A is metered over model B's window (two rows with different windows, same usage -> same fraction)
 - `director_context_tokens` edited or removed (DG5's readers)
 
