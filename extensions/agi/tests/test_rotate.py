@@ -10454,13 +10454,218 @@ def test_b4_w1b2_no_second_posts_parser_in_rotate():
     assert "def _row_names" not in src and "_posts_load_error(" not in src
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W1 B2: RED until DG3 re-points "
-                   "the 4 config:posts commit paths at the one row write")
-def test_b4_w1b2_the_four_posts_paths_own_no_commit_plumbing():
-    import inspect
-    own = [n for n in _W1B2_PATHS
-           if "hash-object" in inspect.getsource(getattr(rotate, n))]
-    assert own == [], f"still stage+commit posts.md by hand: {own}"
+# The ONE row write (goal:g4.18.5.2's commit -- one gate, one write, one
+# `git commit -- <path>`) is a MODULE-LEVEL function on rotate, so the spy is
+# a `monkeypatch.setattr` on the module attribute: a path that reaches it by
+# global lookup (as every rotate function does) is caught. Its canonical name
+# is whatever the re-point (goal:g4.18.5.3) settles on; the list below is
+# tried in order and the FIRST name that exists is the seam spied. While NONE
+# exists the count is 0 and this test is strict-xfail RED -- it FAILS on a
+# count, not on an absence, so a path that keeps stage+commit plumbing by
+# hand (or switches to porcelain `git commit -- <path>`, or drops the posts
+# commit entirely) can no longer turn the guard green by accident.
+_ROW_WRITE_SEAMS = ("_write_row", "_write_posts_row", "_row_write",
+                    "_write_seats_row", "_write_and_commit_row",
+                    "_row_write_commit", "_commit_row")
+
+
+def _spy_row_writes(monkeypatch, calls, digest_fn):
+    """Patch every existing ONE-row-write seam on `rotate` with a spy that
+    records, AFTER calling through, `digest_fn()` -- the state of committed
+    config:posts the ONE call left behind. Returns the seam names patched."""
+    names = [n for n in _ROW_WRITE_SEAMS
+             if callable(getattr(rotate, n, None))]
+    for n in names:
+        real = getattr(rotate, n)
+
+        def spy(*a, _r=real, _n=n, **kw):
+            out = _r(*a, **kw)
+            calls.append((_n, digest_fn()))
+            return out
+        monkeypatch.setattr(rotate, n, spy, raising=False)
+    return names
+
+
+def _posts_digest(top, rel, ref="HEAD"):
+    """sha256 of COMMITTED config:posts (`<ref>:<rel>`), '' when unreadable.
+    The commit IS the write for these paths (they stage index-only), so the
+    committed blob -- not the shared working tree -- is what 'config:posts
+    changed' means here. `ref` is `HEAD` for the three local paths and the
+    authority branch for the publish path (which PUSHES and never moves the
+    local tip -- reading it off HEAD would fail a CORRECT path)."""
+    import hashlib
+    out = subprocess.run(["git", "-C", str(top), "show", f"{ref}:{rel}"],
+                         capture_output=True, text=True)
+    if out.returncode != 0:
+        return ""
+    return hashlib.sha256(out.stdout.encode("utf-8")).hexdigest()
+
+
+def _git_rev(top, ref="HEAD"):
+    return subprocess.run(["git", "-C", str(top), "rev-parse", ref],
+                          capture_output=True, text=True).stdout.strip()
+
+
+def _dirty_own_row(root, seat="belam"):
+    """A real one-cell change on the seat's OWN row, made by hand (never
+    through the writer, which would be a second call of the seam under
+    test) so the commit path has something to own. The cell is
+    ROTATION-OWNED (`session_ref`), so the authority-publish path carries it
+    too instead of compositing a no-op."""
+    seats = rotate._ack_seats_path(root)
+    text = seats.read_text(encoding="utf-8")
+    assert '"session_ref": ""' in text
+    seats.write_text(text.replace('"session_ref": ""',
+                                  '"session_ref": "f52a4c"'),
+                     encoding="utf-8")
+    return seats
+
+
+def _ack_root_with_dirty_row(tmp_path, monkeypatch):
+    root, top = _ack_seed_git(tmp_path)
+    _dirty_own_row(root)
+    return root, top
+
+
+def _authoritative_root_with_dirty_row(tmp_path, monkeypatch):
+    """Same fixture plus a REAL bare `origin` carrying the authority branch,
+    and the veto gate forced open -- `_publish_row_to_authority` refuses
+    before the write otherwise, and a refusal would make the call-count
+    meaningless."""
+    root, top = _ack_seed_git(tmp_path)
+    origin = tmp_path.parent / f"{tmp_path.name}-origin.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(origin)], check=True)
+    subprocess.run(["git", "-C", str(top), "remote", "add", "origin",
+                    str(origin)], check=True)
+    subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
+                    "HEAD:refs/heads/key-authority"], check=True)
+    import send as _send           # the module rotate imports by name
+    monkeypatch.setattr(_send, "authority_ref", lambda *a, **k:
+                        "origin/key-authority")
+    try:
+        import seatsig.veto as _veto        # the module rotate imports by name
+    except ImportError:          # veto not installed: the ImportError branch
+        _veto = None             # in rotate leaves the gate open anyway
+    if _veto is not None:
+        monkeypatch.setattr(_veto, "read", lambda *a, **k: object())
+        monkeypatch.setattr(_veto, "is_frozen", lambda *a, **k: (False, ""))
+    _dirty_own_row(root)
+    return root, top
+
+
+def _stops_root_with_dirty_row(tmp_path, monkeypatch):
+    root, top = _ack_seed_git(tmp_path)
+    _dirty_own_row(root)
+    card = top / "card-belam.md"
+    card.write_text("---\nid: card:belam\n---\nstopped\n", encoding="utf-8")
+    return root, top, card
+
+
+def _drive_ack(root, top):
+    return rotate._ack_commit_seats(root, "belam",
+                                    SimpleNamespace(gen=7), "f52a4c")
+
+
+def _drive_publish(root, top):
+    seats = rotate._ack_seats_path(root)
+    return rotate._publish_row_to_authority(root, "belam",
+                                            seats.read_text(encoding="utf-8"))
+
+
+def _drive_spawn(root, top):
+    return rotate._commit_spawn_row(root, seat="belam", generation=7,
+                                    window="@7")
+
+
+def _drive_stops(root, top):
+    card = top / "card-belam.md"
+    return rotate._commit_stops_row(root, "belam", card, "belam stop")
+
+
+# (path name, fixture builder, invoker, paths the ONE commit may touch BEYOND
+# config:posts -- the rotate-out commit carries the seat's own card too)
+_W1B2_DRIVERS = {
+    "_ack_commit_seats": (_ack_root_with_dirty_row, _drive_ack, ()),
+    "_publish_row_to_authority": (_authoritative_root_with_dirty_row,
+                                  _drive_publish, ()),
+    "_commit_spawn_row": (_ack_root_with_dirty_row, _drive_spawn, ()),
+    "_commit_stops_row": (_stops_root_with_dirty_row, _drive_stops,
+                          ("card-belam.md",)),
+}
+
+# The ref the COMMITTED config:posts is read from: HEAD for the three local
+# commits, the authority branch for the publish path (it fast-forward PUSHES
+# and never moves the local tip).
+_W1B2_REFS = {"_publish_row_to_authority": "origin/key-authority"}
+
+
+@pytest.mark.xfail(strict=True, reason="goal:g4.18.5.3: RED until the 4 "
+                   "config:posts commit paths are re-pointed at the one row "
+                   "write (goal:g4.18.5.2's commit)")
+@pytest.mark.parametrize("path_name", _W1B2_PATHS)
+def test_each_posts_commit_path_calls_the_one_row_write(
+        path_name, tmp_path, monkeypatch):
+    """goal:g1.31.4.6.2 -- each of rotate's 4 config:posts commit paths
+    drives the ONE row write EXACTLY ONCE against a tmp repo, and
+    config:posts changes ONLY through that one call.
+
+    Counted on a tmp repo (never the live box), on COMMITTED config:posts:
+    the single call's post-state digest must equal the state the path left
+    behind (no second writer after it), it must differ from the pre-state
+    (a skip is not a call), and the path's commit must touch config:posts
+    and nothing but its own declared sibling."""
+    build, drive, extra = _W1B2_DRIVERS[path_name]
+    ref = _W1B2_REFS.get(path_name, "HEAD")
+    root, top = build(tmp_path, monkeypatch)[:2]
+    seats = rotate._ack_seats_path(root)
+    rel = _rel(top, seats)
+    before = _posts_digest(top, rel, ref)
+    assert before, f"{path_name}: fixture has no committed config:posts"
+
+    calls = []
+    seams = _spy_row_writes(monkeypatch, calls,
+                            lambda: _posts_digest(top, rel, ref))
+    rev_before = _git_rev(top, ref)
+
+    out = drive(root, top)
+    after = _posts_digest(top, rel, ref)
+
+    assert calls and len(calls) == 1, (
+        f"{path_name} called the one row write {len(calls)}x (seams present: "
+        f"{seams or 'NONE -- rotate has no one-row-write seam yet'}, "
+        f"outcome: {str(out)[:160]!r}) -- exactly one is the claim")
+    assert calls[0][1] == after, (
+        f"{path_name}: config:posts changed AFTER the one row write "
+        f"({calls[0][1][:12]} -> {after[:12]}) -- it is not the only writer")
+    assert after != before, f"{path_name}: config:posts never moved"
+
+    rev_after = _git_rev(top, ref)
+    assert rev_after != rev_before, f"{path_name}: no commit landed on {ref}"
+    changed = subprocess.run(
+        ["git", "-C", str(top), "diff", "--name-only",
+         f"{rev_before}", f"{rev_after}"], capture_output=True, text=True
+    ).stdout.split()
+    assert set(changed) <= {rel, *extra}, (
+        f"{path_name}: its one commit touched {changed} -- only {rel} and "
+        f"{list(extra)} may ride along")
+
+
+# the guard is a COUNT, so it must REJECT a double write, not just a missing
+# one: the path that calls the seam twice says 2x and never says nothing
+def test_w1b2_guard_names_a_double_row_write(tmp_path, monkeypatch):
+    tr = sys.modules[__name__]     # this very module, however pytest named it
+    monkeypatch.setattr(rotate, "_write_row", lambda *a, **k: "posted",
+                        raising=False)
+    monkeypatch.setattr(tr, "_W1B2_DRIVERS", {
+        "_ack_commit_seats": (tr._ack_root_with_dirty_row,
+                              lambda root, top: (
+                                  rotate._write_row(root),
+                                  rotate._write_row(root), "posted twice")[2],
+                              ())})
+    with pytest.raises(AssertionError) as exc:
+        tr.test_each_posts_commit_path_calls_the_one_row_write(
+            "_ack_commit_seats", tmp_path, monkeypatch)
+    assert "called the one row write 2x" in str(exc.value), str(exc.value)
 
 
 # goal:g7.16.1.7.1.1 SM rotate candidate: the announced handoff path is tree-relative, never the box's absolute layout
