@@ -44,6 +44,7 @@ HARVESTED tips (all green on their touched family):
   DG4.10 d8f0b9ee0 (mur done: pure-text residues -> DG4.20)
 QUEUED (SM order, drain AFTER: DG4.21 + the DG4.15 merge-up; then in this order)
   NEXT hypothesis:g75213-ram-main-binds-claude-worktrees-to-disk-and-sweeps-idle-agent-trees (belam row 14:2xZ via SM; minted 53077ee9ac under .5.2; brief on the node) -- cut from the town trunk
+  THEN hypothesis:g73319-g15-fallback-test-picks-its-target-from-the-live-graph (SM trunk red 14:36Z; test_brief g15 fallback test broke on the g15.29 -> g1 re-parent; test-only; minted 88080d149b; NOT DG4.17)
   DG4.11 = DG4.02 residues (/tmp/dg4/orders-DG4.11.md) -> cut from the DG4.15/DG4.21 tip (one writer in _commit_write)
   SM-1 hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove (.5.3; DG2 b6e56296a5) -> on land the Prime restarts heal; .5.3.1 closes on a >= 25-tree pass, 0 kills
   SM-2 hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat (.7.1.4.1 lane; DG2 d087b6091e): G1 · G2 · G3 · prod <= 40, tests <= 60
