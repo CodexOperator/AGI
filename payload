@@ -46,19 +46,16 @@ def resolve_record_path(value) -> str:
     return os.path.expanduser(str(value)) if value else ""
 
 
-def grep_live(groot: Path, needle: str, *, retired: bool = False
-              ) -> list[tuple[str, Path, dict]]:
-    """Live nodes whose bytes carry `needle`: ONE `git grep` (no rglob) over
-    node files (`*.md`: a `.bak` beside a node is never a carrier, SM 103),
-    deprecated/ skipped unless `retired` -> (id, file, frontmatter), id-sorted
-    (a retired hit's file sits under deprecated/: the caller says which). Raises
+def grep_live(groot: Path, needle: str) -> list[tuple[str, Path, dict]]:
+    """Live nodes whose bytes carry `needle`: ONE `git grep` (no rglob),
+    deprecated/ skipped -> (id, file, frontmatter), id-sorted. Raises
     GrepError when git exits >= 2, exits 1 with stderr (an unreadable file),
     or a hit has no frontmatter block, cannot be read, or its frontmatter does
     not load (goal:g7.16.1.3 row H4 f)."""
     import yaml
     import node_writer
     try:  # CM6: bounded, and a launch failure (e.g. no nodes/) is a named FAIL
-        r = subprocess.run(["git", "grep", "--no-index", "-lzF", "-e", needle, "--", "*.md"],
+        r = subprocess.run(["git", "grep", "--no-index", "-lzF", "-e", needle, "--", "."],
                            cwd=groot / "nodes", capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.SubprocessError) as exc:
         raise GrepError(f"git grep could not run: {exc}") from None
@@ -66,7 +63,7 @@ def grep_live(groot: Path, needle: str, *, retired: bool = False
         raise GrepError(f"git grep exit {r.returncode}: {r.stderr.strip()}")
     hits = []
     for rel in filter(None, r.stdout.split("\0")):
-        if retired or not rel.startswith("deprecated/"):
+        if not rel.startswith("deprecated/"):
             f = groot / "nodes" / rel
             try:
                 split = node_writer.split_frontmatter(f.read_text("utf-8", "replace"))
