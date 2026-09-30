@@ -57,3 +57,7 @@ ANON      no user name, home or repo path value, host or IP.
 FILE SCOPE extensions/agi/bin/workflow.py (_run_stage_proc, _stop_stage_unit) · extensions/agi/tests/test_workflow_stage_scope.py · extensions/agi/workflows/agi-merge-up-review.js · extensions/agi/workflows/merge-up-review.json (description line only) · experiment:a00-d41529a1-5fe419 · the kid's own node.
 CEILING   HARD CAP: 1 kid · workflow.py + mem_cap.py production NET <= +45 over the ORIGINAL cut 5038f6e817 (today +37: the re-indent; the fixes must come with trims) · test_workflow_stage_scope.py <= 200 lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; ask BEFORE, never after.
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit; run test_workflow_stage_scope.py test_workflow_stage_seam_cfg.py test_launch_memory_cap.py test_workflow.py with --basetemp under /tmp and paste the counts.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.DG3.63: mur h60-code DEMOTE (verify upheld) + h60-tests accept_with_residue -- a REAL systemctl reached by test_F2, the wall-path hang (unbounded communicate while an orphan holds the pipe, the finally never fires), F1 proves a stop not a death, the .js prompt twin stale, a silent non-zero stop, a unit stopped that was never used, node claims; legacy seam demoted with reason
+<!-- THOUGHT:END -->
