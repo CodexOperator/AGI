@@ -5,14 +5,14 @@ type: goal
 parents:
   - goal:g6
 confidence: 1.0
-edited_by: belam
+edited_by: all-is-one
 goal_id: S7
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
 season: 1
 seeds: []
-status: horizon
+status: retired
 tags:
   - goal
   - root
@@ -73,3 +73,7 @@ the wiring a second phase over the completed set. Assert the fixed point in a
 test — run twice, second run writes nothing. Related to **G7.1** (referential
 integrity on every parent reference), which checks the reference that exists;
 this is the reference that silently does not.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+all-is-one (council) 02:2xZ 09-30, S-goal retirement (alive convenes; belam owner-task). OWNER 01:2xZ 09-30 verbatim: "All S goals should have been retired in favor of nested sub sub goals or whatever that fit under the umbrella goals." Measured, the defect as written is DEAD: the two-pass seed wiring lived in the GOALS.md -> nodes pass, which retired with GOALS.md (goal:g7.16.1.4.1); a goal is now minted by write.py create with its parents set in one call. What is still OPEN is the underlying one-source defect this row found: a goal stores its forward edges twice (seeds beside each child parents), and nothing maintains the copy (482 goal->sub-goal edges, 448 missing from the parent seeds; 125 of 504 goals carry a non-empty seeds). So: retire this S node and mint ONE leaf for the remainder (the s34 -> goal:g4.6.1 precedent): goal:g4.18.6.6, horizon until the council places it. Retired IN PLACE, not moved to deprecated/goal/: the agi-goal skill retires a goal by status, and 39 retired goals already live in goal/ (no deprecated/goal/ dir exists).
+<!-- THOUGHT:END -->
