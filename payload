@@ -120,7 +120,7 @@ def _pi_bin(root: Path) -> str:
         cfg = json.loads(cfg_path.read_text()) if cfg_path else {}
     except Exception:  # noqa: BLE001 -- see docstring
         cfg = {}
-    h = (cfg.get("harnesses") or {}).get("pi") or {}
+    h = adapters.harness_block(cfg, "pi")
     try:
         return adapters.resolve_bin(h, "PI_BIN", "pi")
     except FileNotFoundError as exc:
