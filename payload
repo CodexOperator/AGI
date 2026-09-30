@@ -3283,12 +3283,11 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     if _rot:
         print(_rot, file=sys.stderr)
 
-    prompt_file = None
     card_file = None
-    if role == "prime_director":
-        # the prime resumes on the standing prime brief.
-        prompt_file = _rotate.DEFAULT_PROMPT_FILE
-    else:
+    # goal:g7.16.1.7.1.2.1: the prime renders its row (head + template + card
+    # + trajectory) like every post -- no static brief file; its card is the
+    # doc:card-<seat> node render finds by the seat name.
+    if role != "prime_director":
         # A director/helper recovers on ITS OWN card through brief.render
         # (goal:g7.16.1.7.1.2): the quorum path is handed as `card_file`, and
         # render reads the `doc:card-<seat>` NODE unless that path IS a node
@@ -3314,7 +3313,7 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     )
     try:
         rc, shell_cmd = _rotate.spawn_window(
-            name=spawn_name, tier=tier, prompt_file=prompt_file,
+            name=spawn_name, tier=tier, prompt_file=None,
             model=model, effort=effort, settings=settings,
             root=root, window_path=window_path, dry_run=True,
             debug_file=dbg, extra=ack_gate, seat=seat, resume=resume,
