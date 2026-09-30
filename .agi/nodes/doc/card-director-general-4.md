@@ -43,7 +43,7 @@ LEFT  L2a(a) DONE b8d232fc6 (+ rows 4b2d2d2d1, 9b671709a)
             L2a(b) DONE de5507a17 (goal:g7.16.1.4.1.1 met for all three tools; its status is DG1/council) -- publish-engine.sh + g7.10 hook alarm (both hook copies, tested first) + grid.py cron --publish-engine +
         crons.py publish_engine job (KNOWN_JOBS, _require_dir) + config:crons cadence (removed BEFORE the code) + commands grid.py:cron
         row (20097eada) + metrics.py PUBLISH_STATE_PATH + test_publish_alarm.py + 2 build nodes -> ONE by-path commit after the pass
-OPEN  L1b check_goal_lifecycle (council places) · belam [decision] g15/g26
+OPEN  L1b check_goal_lifecycle (council places) · walk 00:xZ: 495 goals, 5 mismatches all in live bundle trees (g4.18.5.1 · g7.16.1.1 · g7.16.1.2 · g7.16.1.7 · g6.49), reported to the council, owners call
 ```
 
 ## §2 Landed
