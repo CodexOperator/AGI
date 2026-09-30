@@ -2621,7 +2621,9 @@ def _cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # clause (3): the dry-run PLAN names the first key this seating would
         # mint -- the ONE `would key <seat>` line -- and mints / writes
         # NOTHING (the seating writes below never run on a dry-run).
-        _first_seating_key(root, seat, dry_run=True)
+        _cells, _note = _first_seating_key(root, seat, dry_run=True)
+        if _note:  # a keyed row with no key file: the remint plan line
+            print(_note)
 
     if not args.dry_run:
         print(f"spawned {name!r} in tmux session {tmux_session!r}")
@@ -17839,11 +17841,16 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
                 f"box {own}; would remint (witness {witness}) -- NOTHING done")
     if refusal:
         return _key_finding(root, seat, refusal)
-    # run-27 residue 158: the key is minted IN MEMORY and its file lands only
-    # after the row names it, so a refused row write leaves no new file and the
-    # next pass retries -- row and key file are never out of step.
+    # run-27 residues 158 + 158b: the key is STAGED (hidden 0600 temp) before
+    # the row names it and renamed into place after; a refused row write or a
+    # failed rename unlinks the temp (and restores the row), so a crash leaves
+    # at worst an orphan temp, never a row naming a key that does not exist.
     scheme = row.get("sig_scheme") or tmpl.get("scheme") or send.seatsig.DEFAULT_SCHEME
     priv, pub = send.seatsig.get(scheme).keygen()
+    try:
+        tmp = _stage_seat_key(send, root, seat, scheme, priv)
+    except OSError as exc:
+        return f"seat {seat!r}: remint held -- key file not staged ({exc}); row untouched"
     old = str(row.get("pubkey"))
     entry = {"pub": old, "fp": send.seatsig.fingerprint(bytes.fromhex(old)),
              "signed": False, "reason": "key file absent on own box",
@@ -17855,10 +17862,26 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     try:
         if not _write_identity_cells(root, seat=seat, actor=seat,
                                      role=str(row.get("role") or ""), cells=cells):
+            tmp.unlink(missing_ok=True)
             return f"seat {seat!r}: remint held -- row write not admitted; no key file written"
     except Exception as exc:  # noqa: BLE001
+        tmp.unlink(missing_ok=True)
         return f"seat {seat!r}: remint held -- row write not admitted ({exc}); no key file written"
-    _put_seat_key(send, root, seat, scheme, priv)
+    try:
+        os.replace(tmp, send._seat_key_path(root, seat))
+    except OSError as exc:
+        tmp.unlink(missing_ok=True)
+        back = {"pubkey": old, "sig_scheme": row.get("sig_scheme") or scheme,
+                "enc_scheme": row.get("enc_scheme") or "none",
+                "key_history": list(row.get("key_history") or [])}
+        try:
+            restored = bool(_write_identity_cells(
+                root, seat=seat, actor=seat, role=str(row.get("role") or ""),
+                cells=back))
+        except Exception:  # noqa: BLE001
+            restored = False
+        return (f"seat {seat!r}: remint held -- key file not placed ({exc}); "
+                f"row {'restored' if restored else 'NOT restored'} to {entry['fp']}")
     note = (f"seat {seat!r}: key file absent on own box {own}; reminted "
             f"{send.seatsig.fingerprint(pub)}, old key {entry['fp']} retired "
             f"UNSIGNED (witness {witness})")
@@ -17875,17 +17898,27 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     return note
 
 
-def _put_seat_key(send, root: Path, seat: str, scheme: str, priv: bytes) -> Path:
-    """The seat's key file in send's shape (0600), written to a temp file and
-    renamed into place: never a half-written key."""
+def _stage_seat_key(send, root: Path, seat: str, scheme: str, priv: bytes) -> Path:
+    """The seat's key in send's shape, written to a hidden temp file (0600,
+    O_EXCL, a unique name -- a same-process retry never trips on a leftover)
+    beside the key path; the caller renames it into place once the row names
+    it, or unlinks it. A failed write unlinks its own temp."""
+    import tempfile
     path = send._seat_key_path(root, seat)
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
-    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, send.SEAT_KEY_MODE)
-    with os.fdopen(fd, "w") as f:
-        f.write(json.dumps({"scheme": scheme, "priv_hex": priv.hex()}))
-    os.replace(tmp, path)
-    return path
+    fd, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp",
+                                dir=path.parent)
+    tmp = Path(name)
+    try:
+        os.fchmod(fd, send.SEAT_KEY_MODE)
+        with os.fdopen(fd, "w") as f:
+            f.write(json.dumps({"scheme": scheme, "priv_hex": priv.hex()}))
+            f.flush()
+            os.fsync(f.fileno())
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
+    return tmp
 
 
 def ensure_post_key(root: Path, post: str) -> str:
