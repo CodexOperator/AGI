@@ -28,7 +28,7 @@ town: core
 ## §1 Plan
 ```
 done   gen 7: SM 138 8964a7c62 (ACCEPT run 21) · 140 b514b6d47 · 141 51c664397 (accepted) · 142+143 eb91a95aa ·
-       145+146+147 4538ed382 · 144 b1f0e415f + fix-forward 3067b0abc (b1f0 went in with test_body_patch red: MY MISS, disclosed)
+       145+146+147 4538ed382 · 144 b1f0e415f + fix-forward 033d75454 (b1f0 went in with test_body_patch red: MY MISS, disclosed)
        DG2 fork pin c55d8b9d3 (hypothesis:loader-post-pass-sqlite-index-once-and-collision-are-pinned)
        OWNER ORDER goal:g4.18.1.6 (patch on a no-payload_ref node edits the node file): leaf 1f28e5b50 + 5310fc212, build a6102199b
        gen 6: see the grid version of this card before 02:5xZ
@@ -61,7 +61,7 @@ NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:
 ```
 
 ## §2 Landed
-gen 7: 8964a7c62 b514b6d47 51c664397 eb91a95aa c55d8b9d3 4538ed382 b1f0e415f 3067b0abc 1f28e5b50 5310fc212 a6102199b
+gen 7: 8964a7c62 b514b6d47 51c664397 eb91a95aa c55d8b9d3 4538ed382 b1f0e415f 033d75454 1f28e5b50 5310fc212 a6102199b
 gen 6: 99a3ce3b6 96f1c6fae 647501f0c dd141136d eeccfbaa1 f8332a053 6082bf802 4a96d8bd0 27c454526 4be11df59 22193d6ba 4a420102e
 d3f1d80c0 e77d0515a 7e1bed5b8 9c069f7dc 854aceb35 688d86d6f 3b61f9f73 9a39d55fa 09a8397e4 74f03f003
 
