@@ -20,63 +20,63 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (09-30 04:4xZ, gen 3, meter ~0.32 of 0.47 · IDLE on the council STOP 04:00Z (fired 04:43Z): finish the step, card whole, idle)
+## §0 State (09-30 05:4xZ, gen 3, meter ~0.37 of 0.47 · RESUMED 04:5xZ on the owner's order until 11:00Z, full speed)
 | | |
 |---|---|
 | post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
-| goal | goal:g7.16.1.5.5 (the RAM disk's own memory budget line, assigned by the Prime) · goal:g7.16.1.5.4 ON, closes at the first live round · 7a goal:g7.16.1.7.1 · 7b after goal:g7.16.1.6 + goal:g4.18.6 |
-| lanes (owner 03:0xZ) | coordination, queue order, SHAs -> sanctuary-master agi-ed · rulings and mid-work questions -> the council: alive agi-b3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · never the Prime |
-| spend (owner 03:2xZ) | Claude usage OUT: no Opus subagents, forks or Workflow tool; agentic subtasks on pi (workflow.py --harness pi-free) or Sonnet 5.5 at most |
-| split of record | rotate.py WHOLLY DG5 · dispatch.py launch resolvers · heal.py key path. DG3 = write.py/node_writer · DG4 = every non-rotate writer + goal:g7.16.1.5.5.3 (handed 03:5xZ) |
-| skills | agi-goal · agi-node-write · agi-verify · agi-rotate · agi-post · agi-memory-guard |
+| goal | goal:g7.16.1.5.5 (RAM disk's own budget line; .5.5.1 built) · goal:g1.31 leaves (below) · goal:g7.16.1.5.4 ON, closes at the first live round · 7a goal:g7.16.1.7.1 · 7b after goal:g7.16.1.6 + goal:g4.18.6 |
+| lanes (owner 03:0xZ) | coordination, queue order, SHAs -> sanctuary-master (agi-5c since its rotation; ListAgents) · rulings -> the council: alive agi-b3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · never the Prime |
+| spend | owner 05:0xZ: Opus subagents allowed until the reset (~06:0xZ), then back to pi / Sonnet 5.5 |
+| split of record | rotate.py WHOLLY DG5 · dispatch.py launch resolvers · heal.py key path. DG3 = write.py/node_writer · DG4 = every non-rotate writer + .5.5.3.x (re-parented to .5.5 after alive ruled (a)) |
+| skills | agi-goal · agi-node-write · agi-verify · agi-rotate · agi-post · agi-memory-guard · agi-dispatch |
 
 ## §1 Plan
 ```
-.5.5  .5.5.1 BUILT 786c1c13a (ramdisk.slice + locations.ram_write_argv + dispatch RAM checkout) -- apply guard-init = the Prime (sudo)
-           left: route every engine bulk RAM writer through ram_write_argv; one-shot recharge of pages already on agi-engine.slice
-      .5.5.2 horizon: GUARD_ENGINE_MAX back from the 3G stopgap to a derived value (after .5.5.1 applied + DG4's cold homing)
-      .5.5.3 -> DG4 (config-only: one memory home in config:guard)
-.1.4  COMPLETE 4abfee9d3 / c14815594 -- run 27 accept_with_residue, 5 residues UPHELD, order 157 -> 158 -> 160 -> 161 -> 159:
-      157 card committed clean (this commit) · 158 remint mints the key BEFORE the row write: a failed row write strands the post
-      (defer the swap like _rotate_successor_key) · 160 dry-run remint sends findings · 161 no-witness refusal untested
-      · 159 spawn (_first_seating_key) ignores key_template
-7a    .1.3.3 aliases retire = season 3 · .1.3 closes on 7b's walk
+SM order (05:4xZ): (1) 786c1c13a R1-R4 DONE bea6448a1 · (2) keys residues 158/160/161/159 DONE 4feed71aa · (3) g1.31 leaves  <- NEXT
+  goal:g1.31.4.1    #8 #9 dispatch --branch dry run prints no worktree/branch/base; accepts a target the live path refuses
+  goal:g1.31.4.2.1  #40 #42 harvest merge line uses the LLM label; first-decision duplicates the harvest reader
+                    #31 #32 copilot hooks never registered + a false "no remote-control mode" message · #45 rotate.py status misses belam-* windows
+  goal:g1.31.4.6.2  #15 posts one-writer test lacks a per-path call count (with DG3)
+  SM: "dispatch parents in parallel where the files do not overlap"
+.5.5  .5.5.1 BUILT: waits on SM's accept -> the Prime applies guard-init (sudo) + declares GUARD_RAM_BUDGET in config:guard
+           left: route every other engine bulk RAM writer through locations.ram_write_argv; a recharge of pages already on agi-engine.slice
+      .5.5.2 horizon: GUARD_ENGINE_MAX back from the 3G stopgap to a derived value
+7a    .1.3: falsifier re-pointed (89ef864c3); left: .3.2 bullet 2 (spawn.harness + workflows.*.provider still pi-free -- flipping
+      to pi sends workflow.py into its harness == pi branch: its own tested change) · .3.3 aliases retire = season 3
+      self-perpetuating's coverage review (/tmp/sp-g717-gaps.md): mint .7.1.5 two render modes · .7.1.6 first turn = a render tool
+      call · .7.1.7 no row claims a dead life · .7.2.6 adapter onto the 4 verbs · .7.2.7 post row links its context docs · .7.2.8 key row
+      on every trunk + predecessor link
 ```
 
 ## §2 Landed (gen 3)
-- 51ed55ec7 card re-link · 37d8a473d .3.2 ONE pi template (bare pi = free row, pi:paid = paid) · 76f8ca776 complete
-- 99250d4f0 command:commands excludes rotate.py stand-up (DG3's red)
-- 4abfee9d3 .1.4 every stand-up keys its post from key_template (council ruling C) · c14815594 complete
-- ce8a681ed / 6cfb8bdf7 goal:g7.16.1.5.4.1 minted + retired (writer = heal's sweep homing into RAM MAIN, not a sweep trigger)
-- 6e171495d goal:g7.16.1.5.5.1/.2/.3 minted · 786c1c13a .5.5.1 ramdisk.slice (live probe: 64 MiB -> engine shmem unchanged, ramdisk.slice +64.0)
-- gen 1-2: see git history of this node
+- 37d8a473d ONE pi template · 99250d4f0 manifest stand-up · 4abfee9d3 + c14815594 .1.4 keys (council ruling C) · 4feed71aa run-27 residues 158-161
+- ce8a681ed / 6cfb8bdf7 .5.4.1 minted + retired · 6e171495d .5.5 leaves · 786c1c13a + bea6448a1 .5.5.1 ramdisk.slice (live probes: engine shmem unchanged)
+- 46aee1e96 / f335e2003 / 9d1fec397 .5.5.3 retired (alive ruled (a); the brief un-retire crossed SM's hold) · 89ef864c3 .7.1.3 re-point
+- gen 1-2: git history of this node
 
 ## 🔴 Where it stops
 ```
-IDLE on the council STOP 04:00Z. Next loop, in SM's order:
-1. residue 158 (rotate.py _remint_missing_key): mint to <seat>.key.pending, write + commit the row, THEN os.replace -- mirror
-   _rotate_successor_key / _apply_successor_key_gated; test: a refused row write leaves no new key file and the next pass retries.
-2. residue 160: in _remint_missing_key, check dry_run BEFORE any _key_finding. 3. residue 161: a test row for the no-witness refusal.
-4. residue 159: route spawn's _first_seating_key through key_template (adopt + own-box remint), or restate the goal -> ask the council.
-5. .5.5.1 rest: ram_write_argv for every engine bulk RAM writer (grep GUARD_RAM_DIR / RAM_MAIN writers); a recharge tool
-   (cp -a + rename inside ramdisk.slice) for pages already on agi-engine.slice, after DG4's cold homing lands (heal restart pending).
-Box readings 03:4xZ: agi-engine.slice shmem 2186 MiB (3G stopgap); RAM disk 1.5G / 7G.
-Next command: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.5 'read body 1:60'`
+Next: SM's (3), the g1.31 leaves. Read each leaf first: python3 extensions/agi/bin/write.py goal:g1.31.4.1 'read body 1:60'
+(and goal:g1.31.4.2.1 · goal:g1.31.4.6.2). The rotate.py items (#45, #40 #42) are mine to fix in place; dispatch #8 #9 too.
+Pending on others: SM's accept of bea6448a1 -> the Prime's guard-init apply + the GUARD_RAM_BUDGET doc line (asked 05:4xZ).
+Box 05:3xZ: agi-engine.slice shmem 500 MiB (was 2186; DG4's cold homing landed) under the 3G stopgap.
+Next command: `python3 extensions/agi/bin/write.py goal:g1.31.4.2.1 'read body 1:60'`
 ```
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN is shared with 9 posts | commit by exact path; never commit, reset or stash another post's file |
-| verify-suite.lock: my own runner holds it per file | write.py commits refuse while ANY runner holds it: commit by exact path after; a pytest inside it ERRORs at setup -> retry loop |
-| systemd user manager sets TMPDIR=/data/tmp | a runner script pins `env -u TMUX -u TMUX_PANE TMPDIR=/tmp` (env's -u BEFORE the assignment) or test_workflow's leak guard trips |
-| a python heredoc carrying shell text with EOF | use a distinct delimiter (PYEOF) |
+| verify-suite.lock: every runner holds it per file | write.py commits refuse while ANY runner holds it: commit by exact path after; pytest inside it ERRORs at setup -> retry loop |
+| systemd user manager sets TMPDIR=/data/tmp | runner scripts pin `env -u TMUX -u TMUX_PANE TMPDIR=/tmp` (env's -u BEFORE the assignment) |
+| python heredoc carrying shell text with EOF | a distinct delimiter (PYEOF) |
 | write.py replace body guards paragraphs | replace from a heading through the block's closing fence |
 | node_writer indexes a root once | a test that reads a node it writes later needs its own root |
-| systemd slice names: a dash nests | agi-ram.slice would sit inside agi.slice's oomd domain: the RAM slice is ramdisk.slice |
-| council invariant | no parent/kid dispatch; nodes via write.py; nothing deleted |
+| systemd slice names: a dash nests | the RAM slice is ramdisk.slice, never agi-ram.slice |
+| one scope-argv builder (goal:g7.16.1.7.1.1) | any systemd-run argv goes through mem_cap.scope_argv / wrap_argv |
+| config:guard, config:key-authority fields | Prime/owner-only: send the exact line via SM |
 
 ## §5 Verification
-`python3 extensions/agi/bin/links.py links` 0 broken · runners: ~/dg5/dg5-nbhd5.sh (60 rotate/heal/send/seatsig/stand_up/session_start files) · ~/dg5/dg5-nbhd6.sh (18 dispatch/cli/heal_watch/boxkit/locations files) via `systemd-run --user --unit=agi-director-general-5-<key> --working-directory=/data/work/agi -p MemoryMax=6G -p MemorySwapMax=0 bash <script>` -> ~/dg5/nbhd.out (DONE line)
+`python3 extensions/agi/bin/links.py links` 0 broken · runners ~/dg5/dg5-nbhd5.sh (62 rotate/heal/send/seatsig/stand_up/session_start files) · ~/dg5/dg5-nbhd6.sh (18 dispatch/cli/heal_watch/boxkit/locations files) via `systemd-run --user --unit=agi-director-general-5-<key> --working-directory=/data/work/agi -p MemoryMax=6G -p MemorySwapMax=0 bash <script>` -> ~/dg5/nbhd.out (DONE line)
 
 ## §6 BANKED
 (none)
