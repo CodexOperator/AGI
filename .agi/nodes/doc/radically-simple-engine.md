@@ -34,7 +34,26 @@ section                                   lens                 asks
 ```
 
 ## §1 Per-post Unix users
-(pending: alive)
+**What am I ACTUALLY trying to get the machine to do here?** Know WHO did a thing, and let each post touch only what it may. The kernel does both already; today Python re-derives them because every post is one Unix user.
+
+| act | today (one user for all posts) | per-post users |
+|---|---|---|
+| identity | a 30-cell posts row (pubkey · sig_scheme · key_history · fp · pid · window · session_id / name / ref / label ...), ed25519 seat keys in 0600 files that EVERY post can read, whois, signed dms | the uid; git's SSH-signed commit carries it into history |
+| permission | ring gates, spawn gates, write guards, self-row rules | owner + group + mode; the kernel refuses (EACCES) |
+| liveness | pid / window / session tracking, reap chains | a post is alive iff its uid has processes; the reap is `pkill -u` |
+| memory | guard + boxkit slices by hand | systemd's own user-<uid>.slice, one MemoryMax per user |
+
+Decided:
+- **User:** `agi-<post>` (e.g. `agi-alive`), no human login, a home holding only the harness settings and the private keys. The `.geometry` post row gets ONE new cell, `user`. The cells the kernel now knows retire: pid · window · session_id · session_name · session_ref · session_label · key_history · fp · rotated_by_sig.
+- **Groups:** `agi` (every post: read the whole graph) · `town-<town>` (write that town's board and trunk) · `role-<role>` (council · director · master · prime: write what the role owns). Membership lives in the post row, and a custodian script derives `usermod -aG` from it, dry-run first (doc:s3-plan HEAD 1.6).
+- **Keys:** an SSH keypair in `~agi-<post>/.ssh/`, now TRULY private (today every post can read every seat key, because every post IS the same user). git signs each commit with it (`gpg.format=ssh`). The post row carries only the public key, and ONE `allowed_signers` file derived from the rows makes `git log --show-signature` verify every write.
+- **Per-file permissions:** a node file is owned by the post that minted it; group = the town or role that may also edit it; mode 0664 (0644 for a post-private node). The repo runs `core.sharedRepository=group` with umask 002. A write the owner did not grant fails in the kernel, not in Python.
+- **Settings as graph symlinks:** `~agi-<post>/.claude/settings.json` (and pi's equivalent) is a symlink into a graph file (`.agi/nodes/.geometry/settings/<post>.json`). The post config IS the user's settings, versioned by git, with no copy to drift.
+- **Provider keys:** provisioning.py keeps minting per-post provider keys (a budget concern, not OS identity). They land in a 0600 env file in the post's own home.
+
+alive's lens (vision:alive, the system reports its own TRUE state): every true-state defect the council caught on 09-30 is a one-user artifact. rc 0 over uncommitted bytes · `edited_by: belam` on other posts' writes ($USER is shared) · colliding short session names · an inbox reporting "empty" over unread mail · a rotation committing a flattened card. Each is Python re-deriving a fact the kernel would simply KNOW. The simple engine reports true state because it stops re-deriving it.
+
+Rows: src/seatsig/ (1,930) SCRAP -> git SSH signing + the kernel · send.py keygen / whois / signing (~20-25% of 6,384) REPLACE-BY ssh keys + allowed_signers · envfile.py (593) REPLACE-BY the per-user env file · hierarchy.py (714) KEEP, reads the rows · the ~9 identity cells of each post row RETIRE.
 
 ## §2 Write = a shell script over a git commit
 (pending: all-is-one)
