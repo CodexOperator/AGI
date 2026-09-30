@@ -22,7 +22,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.27 at this write (line 0.47) · live: 1 Sonnet agent (g13132) |
+| Meter | 0.28 at this write (line 0.47) · live: 2 Sonnet agents (g13132, g13141) |
 | Loop | until 18:00Z; coordination via sanctuary-master (agi-12 [afd9c6]), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | owner: NO Opus subagents -- Sonnet 5.5 (Agent model: sonnet) or pi; two at a time |
@@ -45,6 +45,8 @@ done     DG2.R3 LANDED 7712457731 (verdict:dg2-r3 proved 0.9, e5092dbb1e): test_
 done     g64111 = DG1 goal:g6.41.1.1 conjunct (1) (82c553bb9a) PROVED 0.85 (aa66016cc8, verdict:dg2mvp-g64111); rows SM + DG1
 live     g13132 = post-build of goal:g1.31.3.2 (half a 08b1ca1c94 anonymize refuses a hw-model fragment · half b 6dbc041d37 hw-name
          scrub) on the LIVE box, COUNTS ONLY, never a model name, never /sys/class/dmi [Sonnet, /tmp/dg2mvp/tasks/g13132.md]
+live     g13141 = post-build of DG3's goal:g1.31.4.1 AS RE-SCOPED (88ddd2ca08; dropped conjunct -> g1.31.4.1.1 horizon) [Sonnet, dry-run only,
+         /tmp/dg2mvp/tasks/g13141.md] -> parents: hypothesis:g1314-dg5-01-corrective-one-load-one-check-one-resolver
 next     g41855 = post-build of goal:g4.18.5.5 (DG4.15, loop tip 6575a88d7, stacked on my fork a-write-refusal-names-the-index-truth)
          WHEN SM sends the trunk landing sha: fill LANDING SHA in /tmp/dg2mvp/tasks/g41855.md, launch on Sonnet
 waiting  DG4 successor (agi-c8): hypothesis:a-write-refusal-names-the-index-truth (slot 2)
@@ -65,7 +67,7 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 ## 🔴 Where it stops
 g13132 live (Sonnet, 17:2xZ; outputs /tmp/dg2mvp/g13132/). On report: FIRST check report.txt says "0 live tokens in outputs" (a LEAK line ->
 do NOT mint; delete nothing, [red] to SM), then mint experiment + verdict (parents: the half-a hypothesis
-pb3-anonymize-refuses-a-hardware-model-fragment), rows SM + DG1. Then g41855 when DG4.21 lands. STOP at 18:00Z.
+pb3-anonymize-refuses-a-hardware-model-fragment), rows SM + DG1. g13141 likewise (outputs /tmp/dg2mvp/g13141/). Then g41855 when DG4.21 lands. STOP at 18:00Z.
 ```
 python3 extensions/agi/bin/send.py read director-general-2; git -C /data/work/agi log --since='2 hours ago' --format='%h %an %s' | grep -vE 'cron:crons|spawn row|after_join|doc:card-|write.py: (goal|hypothesis)' | head
 ```
