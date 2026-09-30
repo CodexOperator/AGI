@@ -204,6 +204,10 @@ USER_SWAP_M=$(( SWAP_M / 2 < 2048 ? SWAP_M / 2 : 2048 ))
 AGI_MAX_M=$(( USER_MAX_M * 70 / 100 )); AGI_HIGH_M=$(( AGI_MAX_M * 90 / 100 ))
 ENGINE_MAX_M=$(to_mib "$(hostvar ENGINE_MAX 512M)"); ENGINE_HIGH_M=$(( ENGINE_MAX_M * 75 / 100 ))
 WORK_MAX_M=$(( AGI_MAX_M - ENGINE_MAX_M )); WORK_HIGH_M=$(( WORK_MAX_M * 90 / 100 ))
+# goal:g7.16.1.5.5.1: the RAM disk's own line (ramdisk.slice). Default = the
+# tmpfs size, so the slice never caps before the mount is full; 0 = no RAM disk.
+RAM_DIR=$(hostvar RAM_DIR /mnt/agi-ram)
+RAM_BUDGET_M=$(to_mib "$(hostvar RAM_BUDGET "$(findmnt -rno SIZE "$RAM_DIR" 2>/dev/null || echo 0)")")
 CLAUDE_LOW_M=$(( USER_MAX_M / 6 < 1024 ? USER_MAX_M / 6 : 1024 ))
 
 SSH_UNIT=ssh.service
@@ -445,6 +449,25 @@ TasksMax=2048
 CPUWeight=50
 EOF
   } | put "$UGUARD/agi-work.slice" 0644 "$TUSER:$TGROUP"
+
+  if [ "${RAM_BUDGET_M:-0}" -gt 0 ]; then
+  { hdr 3; cat <<EOF
+# goal:g7.16.1.5.5.1 -- the RAM disk's OWN budget line, a sibling of agi.slice
+# (never agi-ram.slice: a dash would nest it inside agi.slice's oomd domain).
+# A tmpfs page stays charged to the cgroup that first wrote it and moves to
+# that cgroup's parent when the writer exits; a bulk write into ${RAM_DIR}
+# runs as a transient unit here (locations.ram_write_argv), so its pages park
+# HERE. No ManagedOOM: a kill cannot free a tmpfs page.
+[Unit]
+Description=sanctuary guard: the RAM disk pages (${RAM_DIR})
+[Slice]
+MemoryMax=${RAM_BUDGET_M}M
+MemorySwapMax=0
+TasksMax=64
+CPUWeight=20
+EOF
+  } | put "$UGUARD/ramdisk.slice" 0644 "$TUSER:$TGROUP"
+  fi
 
   { hdr 3; cat <<EOF
 # Every agi-* service the engine writes (dispatch, mur, suite seats) runs in
