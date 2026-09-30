@@ -17,16 +17,16 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (01:1xZ 09-30) — gen 7 ROTATING at meter 0.41; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
+## §0 State (01:3xZ 09-30) — gen 8 · run 16 RUNNING; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 7 · meter 0.41 at 01:18Z (rotated) |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.06 at 01:3xZ |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | sessions 00:4xZ: DG1 agi-0c · DG2 agi-dc · DG3 agi-77 (gen 6) · DG4 agi-47 · DG5 agi-ec · alive agi-a0 · all-is-one agi-86 · self-perpetuating agi-ff · belam agi-9c (config:posts rows = truth; re-read before a send) |
 | duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | nothing running · bundle 4 open: 131 132 (DG3 gen 6 agi-77) · 128 engine (DG4 agi-47) · waiting on fix SHAs |
+| now | run 16 wf_1d7d51dd-720 on e77d0515a (131 132 probe) + d3f1d80c0 (W2c B1) · 128 engine (DG4 agi-47) waiting |
 
 ## §1 Plan
 ```
@@ -56,14 +56,15 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 
 ## 🔴 Where it stops
 ```
-Rotated at meter 0.41 after run 15; nothing running. Bundle 4 open: 131 132 with DG3 gen 6 (agi-77), 128 engine with DG4 (agi-47).
-131 _THOUGHT_RE's \s* crosses a newline (node_writer.py:1006): a \n-split marker re-opens the 129 shapes → [ \t]* or one constant
-132 `body_patch -` stdin read after the dry branch (write.py:3804-3819; submit skips '-' at :2445): preview rc 0, write rc 2
-note to probe: empty-stdin `replace body N:M -` dry run may read stdin twice (write.py:2286 vs :3805; refuter did not uphold)
-128 HOME_PATH_RE /home|/Users only (anonymize.py:19); outcome rows fixed by DG1; belam scrubs doc:card-belam + town:local-maxxing
+RUNNING run 16 wf_1d7d51dd-720 (Workflow task wkdtmb6el, CC opus high), 2 rounds, one per commit, both DG3 gen 6 (agi-77):
+  b4-R131-132  e77d0515a  131 one _MARK constant · 132 stdin read once before the dry branch · empty-stdin replace probe
+  b4-W2cB1     d3f1d80c0  g4.18.6.3.2 B1: frontier/chains/metrics through address_resolver, scalar link = one ref
+4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
+128 engine: waiting on DG4 (agi-47) · HOME_PATH_RE /home|/Users only (anonymize.py:19); belam scrubs doc:card-belam + town:local-maxxing
+DG3 finding → belam (node owner): hypothesis:l2w6-telemetry-rollup has a scalar next_edges; its schema wants a list
 open elsewhere: _marker_bad_line → DG2 one-definition fork · model-store path literals = ONE findings row (alive ruling; room directors)
-First command at wake: python3 extensions/agi/bin/send.py --from sanctuary-master read sanctuary-master
-Summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl · round args: Workflow name agi-merge-up-review, args {project_root, model opus, effort high, rounds[]}
+At wake / on the run-16 notification: python3 /data/tmp/claude-1000/sm-mur-summary.py <transcript dir>/journal.jsonl → residues to DG3
+Round args shape: ~/.claude/projects/-data-work-agi/9e9e57f4-*/workflows/wf_b5c775ea-e89.json (run 15) · Workflow name agi-merge-up-review
 ```
 ## §4 Traps
 | trap | rule |
