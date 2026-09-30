@@ -4082,10 +4082,17 @@ def _commit_write(root, node_id: str, res, actor: str = "") -> tuple[str | None,
         # TRACKED or not "clean": `status --porcelain` is blind to an ignored
         # path, and an ignored uncommitted node is the exact rc-0-over-a-lost-
         # write the refusal exists to prevent.
-        tracked = all(git("ls-files", "--error-unmatch", "--", p).returncode == 0
-                      for p in paths)
-        if (not busy and tracked
-                and not git("status", "--porcelain", "--", *paths).stdout.strip()):
+        # `--no-optional-locks`: this read must not itself want the very
+        # index.lock this path is busy on (it would queue behind the holder).
+        at_head = (all(git("ls-files", "--error-unmatch", "--", p).returncode == 0
+                       for p in paths)
+                   and not git("--no-optional-locks", "status", "--porcelain",
+                               "--", *paths).stdout.strip())
+        # asked at the DEADLINE too, not only on the cheap path: `busy` is a read
+        # of git's error STRING, and a third writer taking index.lock in the
+        # instant a peer commits turns a committed write into an UNCOMMITTED
+        # refusal. At the deadline the index is the only truth left to ask.
+        if at_head and (not busy or time.monotonic() >= deadline):
             return (f"commit skipped: {node_id} is clean at HEAD (a peer committed "
                     f"these bytes -- nothing to commit) -- exit 0"), False
         if not busy or time.monotonic() >= deadline:

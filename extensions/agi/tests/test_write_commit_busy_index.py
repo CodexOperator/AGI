@@ -175,3 +175,35 @@ def test_an_IGNORED_node_never_exits_0_over_uncommitted_bytes(tmp_path):
     assert r.returncode == 3, (r.returncode, r.stderr[-300:])
     assert "UNCOMMITTED" in r.stderr, r.stderr[-300:]
     assert "clean at HEAD" not in r.stderr, "an ignored path is NOT clean at HEAD"
+
+
+def test_a_third_writer_locking_the_peer_commit_instant_still_exits_0_at_the_deadline(tmp_path):
+    """Falsifier 4: the peer's commit lands, then a THIRD writer takes
+    index.lock in that instant and holds it past the budget. `busy` is a read of
+    git's error STRING, so the old path broke at the deadline and refused
+    UNCOMMITTED over bytes HEAD already holds. The index's truth must be asked
+    on the deadline path too."""
+    repo = _repo(tmp_path, wait_s=4.0)
+    node = repo / ".agi" / "nodes" / "doc" / "w0.md"
+    lock = repo / ".git" / "index.lock"
+    lock.write_text("writer A")
+
+    def peer_then_third() -> None:
+        time.sleep(1.0)
+        lock.unlink(missing_ok=True)
+        subprocess.run(["git", "-C", str(repo), "add", "--", str(node)],
+                       capture_output=True)
+        subprocess.run(["git", "-C", str(repo), "commit", "-qm", "peer carries my bytes"],
+                       capture_output=True)
+        lock.write_text("writer C")  # the third writer, straight onto the peer
+        time.sleep(6.0)
+        lock.unlink(missing_ok=True)
+
+    threading.Thread(target=peer_then_third, daemon=True).start()
+    r = _write(repo, "doc:w0", 'set title "mine"')
+    assert r.returncode == 0, (r.returncode, r.stderr[-400:])
+    assert "UNCOMMITTED" not in r.stderr, r.stderr[-400:]
+    assert "clean at HEAD" in r.stdout + r.stderr, (r.stdout + r.stderr)[-400:]
+    assert _dirty(repo) == [], "HEAD holds the write and the tree is clean"
+    assert "mine" in subprocess.run(["git", "-C", str(repo), "show", "HEAD:.agi/nodes/doc/w0.md"],
+                                    capture_output=True, text=True).stdout
