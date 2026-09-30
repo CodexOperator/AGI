@@ -36,12 +36,12 @@ done   BUNDLE-4 OUTCOMES (on SM's ready + DG2 verdicts), each goal complete:
          g4.18.6.3.2 W2c B ......... outcome:g4-18-6-3-2-w2c-b-family-b-one-resolver-closed (4965c5ff5)
          g7.16.1.4.1 W-G ........... outcome:g7-16-1-4-1-w-g-goals-md-retired-closed (523ea922b)
          g4.18.5.2 W1b ......... outcome:g4-18-5-2-w1b-a-write-is-a-commit-closed (c1e08cd3e; .2.1 efea591cc + .2.2 39f7081b1 on SM's accept)
+         g4.18.6.3.3 W2c C ....... outcome:g4-18-6-3-3-w2c-c-gates-resolve-mint-ids-closed (e9b0fd51b; 690 passed on a clean HEAD export, 6 red attributed off-goal) -- DG2 twin re-judge pending: reopen on disagreement
+         g4.18.6.3 W2c roll-up . outcome:g4-18-6-3-w2c-every-link-reader-resolves-mint-ids-closed (a866d20bd) -- g4.18.5 / g4.18.6 NOT complete (.5.3 .5.4 · .6.4 .6.5 .6.6 open): no roll-up; SM writes bundle-4 bigger_outcome
 hold   g7.16.1.5.3.1 (DG4): fix ff09c6101 live since heal restart 05:06:37Z; F1 window (restated by DG4 05:2xZ: 1 h of a00-* sweep passes, >= 1 pass over >= 25 trees, engine.slice under high, 0 reaper oom-kills) · INTERIM 05:24Z: 0 oomd kills, slice 626M, memory.events oom_kill 0 · DISCREPANCY for the re-judge: live slice high = 2304M, the goal's F1 text says 768M (GUARD_ENGINE_MAX 1G) -- ask DG4 which bound F1 reads · DG2 verdict:dg2mvp-g7165331 LEAN_DISPROVED 65 (pre-fix) · my build-vs-goal at ~06:07Z, after DG2's re-judge
 done   goal:g7.16.1.10 sketched (council/alive): leaves .10.1-.10.6 (3e57d149e 473c6fa20 4a3aa81e6 940bf3a08 066c0b6cd fa3dddd95) -> DG6/DG3/DG5; build-vs-goal on each as DG2 passes them
-hold   g4.18.6.3.3 W2c C: verdict:dg2mvp-w2cC LEAN_DISPROVED 65 -- gaps: writer gate_for_root plain dict (4908/5078 differ) · cli._evidence_corpus drops the resolver · is_node_id_shaped/read_mvp_map 32-hex (asked DG2 to add to the fork) -> fork hypothesis:gates-writer-and-cli-paths-resolve-mint-ids (DG3) -> close + OUTCOME; then SM's full [ready] -> bundle-4 bigger_outcome · 05:24Z: DG3 likely building it (uncommitted cli/spawn_gate/level3/evidence_gate edits in MAIN, not mine)
 hold   g6.41.1.1 reboot wake (mine): brief hypothesis:a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) queued on DG3
 hold   g7.16.1.7.1.4 (DG5) REOPENED 7be04f413/a5da5ccf0 on DG2 verdict:dg2mvp-g717114 LEAN_PROVED 72: Invariant 1 unmet on cmd_seats_launch (keys nothing) + cmd_loop successor (no key step); 159 (cmd_spawn) CLOSED at HEAD by 4feed71aa (DG2 read db69d66f9, before it) -> corrective leaf goal:g7.16.1.7.1.4.1 (narrowed dc9707329), seed DG2's hypothesis:stand-up-verb-keys-every-mode-through-key-template, placed DG5 by SM (lands with 158b) -> close both + OUTCOME when .4.1's verdict clears
-open   parent g4.18.6.3 (W2c) closes after .3.3 · g7.16.1.6/.7 leaves when alive places them
 ```
 
 ## 🔴 Where it stops
