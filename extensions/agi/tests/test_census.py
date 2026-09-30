@@ -124,7 +124,6 @@ def test_no_cell_is_a_skip(repo):
     assert _census(repo).status == "SKIP"
 
 
-@pytest.mark.xfail(strict=True, reason="goal:g7.16.1.1.6.1: config:census is minted by the Prime (admitted writer) once check_census is on HEAD")
 def test_the_live_cell_carries_the_first_two_rows_and_passes():
     """Goal Falsifier 1: the census PASSes with at least the THOUGHT-marker
     and mint-id-assigner rows, on the engine's own bytes."""
