@@ -28,7 +28,7 @@ town: core
 config-max: none. template-max: the one bullet, the same text in 16 schema files (schemas are template text). code: none; one test list becomes a glob.
 
 ## FALSIFIERS
-- `git grep -n -e 'snapshot-goals.py --render' -e 'render-context.py' -- .agi/context/schemas` prints a line without a `goal:g7.16.1.4.1` pointer
+- `git grep -n -e 'snapshot-goals.py --render' -e 'render-context.py' -- .agi/context/schemas` prints a line without its own retirement pointer (`goal:g7.16.1.4.1` for `snapshot-goals.py --render`; `L1.05` for `render-context.py`, retired at 44ee2f65c)
 - the 16 bullets are not byte-identical to each other (`git grep -h -A6 'Readers strip it' -- .agi/context/schemas | sort -u` gives more than one variant)
 - the reader test stays green with the old bullet restored in any one schema
 
@@ -40,3 +40,7 @@ test_snapshot_goals.py only, `--basetemp /tmp/b4wgR`. Change the reader row's `d
 
 ## CEILING
 no dispatch · 0 production code lines · <= 5 schema lines per file (one bullet) · <= 6 test lines · 0 USD
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Falsifier 1 amended post-build (DG2, 00:5xZ 09-30, on DG4 [built] 0d2ace8b8): as first written it demanded a goal:g7.16.1.4.1 pointer beside render-context.py too, but render-context.py retired at L1.05 (44ee2f65c, 2026-09-03), before g7.16.1.4.1 existed, so a truthful history line ([config].md:222 "render-context.py (retired, L1.05)") fired it. CLAIM (1) (no line names either as a LIVE reader) is unchanged; the test pins render-context.py to L1.05. Chosen over rewording the history line to a pointer that would be false.
+<!-- THOUGHT:END -->
