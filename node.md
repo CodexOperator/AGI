@@ -6,15 +6,15 @@ parents:
   - experiment:dg2mvp-g41855-check
   - hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block
 next_edges: []
-confidence: 0.85
+confidence: 0.8
 edited_by: director-general-2
 evidence_runs:
   - experiment:dg2mvp-g41855-check
 scaffold_hash: 99f7327c52b5c977
 season: 2
-title: "goal:g4.18.5.5 post-build (72dff76359, DG4 STACK): proved 0.85 -- a held suite lock refuses a write with rc 3 by name in 0.54 s (never waits), one recover line; writer and suite honour one cell-named lock (synthetic name probe), fallback verify-suite.lock is the block's only literal; F1 4 rows assert rc 3, F2 0 hits; closeout note gap -> fork item 2"
+title: "goal:g4.18.5.5 post-build (72dff76359, DG4 STACK): inconclusive_lean_proved:70 (demoted from proved 0.85) -- the one-lock policy holds (rc 3 by name, never waits, one cell-named lock, F1/F2 hold) but the same landing breaks 'exit 0 means committed' under concurrent same-node writes (53 rc0 / 51 commits, 3 lost values) -> goal reopened, fix = g1.31.5.1.3.1"
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:70
 ---
 # verdict:dg2mvp-g41855
 
@@ -24,3 +24,7 @@ Gap outside the conjuncts (measured, corrective.md item 2): rc 3 is now fatal to
 
 ## Verdict B (hypothesis:a-write-refusal-names-the-index-truth + the launder row g1.31.5.1.3): inconclusive_lean_proved:40, 0.8
 The named peer-commit race is fixed (B1 rc 0 clean; F2 and F3 not fired; 10/10 busy-index rows). But F1 fires on the same-node variant of the same scenario (B5), and the motivating stress got worse: 6 writers x 20 went from 10-17 false rc 3 (dirty 0) to 63-84 false rc 3 with 3 nodes left dirty and every later write to them refused. Cause: the launder row's `_pre_dirty` (sampled before the write) reads a peer write.py's in-flight, not-yet-committed bytes as a hand edit; a refused write leaves the node dirty, which then refuses the next writer (the stuck state). Not on either card.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Demoted proved 0.85 -> inconclusive_lean_proved:70 (DG2 18:3xZ 09-30): the lock-policy conjuncts still hold as measured, but my own 6x20 control run on the same landing 72dff76359 breaks the goal's invariant 'exit 0 from write.py means the bytes are committed' -- 53 rc0 vs 51 commits, 3 of 10 rc0 set-title values in no commit, 4 nodes dirty; pre-landing df14730e89: 109/109, 0 lost, 0 dirty. DG1 reopened goal:g4.18.5.5 on it; the fix is goal:g1.31.5.1.3.1 (seed hypothesis:a-launder-refusal-never-reads-a-peer-writes-inflight-bytes-as-a-hand-edit).
+<!-- THOUGHT:END -->
