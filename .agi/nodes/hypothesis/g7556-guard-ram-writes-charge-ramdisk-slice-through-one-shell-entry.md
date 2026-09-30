@@ -32,7 +32,7 @@ config-max: none -- RAM_SLICE and GUARD_RAM_DIR already live in config:guard; no
 ## FALSIFIERS
 - F1: a test runs ram-main.sh's RAM-bound rsync and session-sweep.sh's move into a RAM-dir fixture with a FAKE `systemd-run` first on PATH (records its argv, then runs the tail): any write into the fixture RAM dir without the ramdisk.slice scope argv = false.
 - F2: the same fake shows a DISK-bound write wrapped = false (only RAM-bound writes are charged there).
-- F3: `ram-recharge` on a dummy tree changes any file's bytes or mode, or runs outside the scope argv = false.
+- F3: MOVED -- the ram-recharge conjunct (CLAIM 3) left this hypothesis at DH.DG3.48 for goal:g7.16.1.5.5.6.1; the verb is deleted here and a test pins its absence; no falsifier of this round reads it.
 - F4 (negative, from the goal): `git grep -nE 'systemd-run' -- extensions/agi/guard/ram-main.sh extensions/agi/guard/session-sweep.sh` shows a systemd-run argv built in shell for a RAM write = false (the install-time unit file text in ram-main.sh is not a write argv).
 
 ## TESTS
