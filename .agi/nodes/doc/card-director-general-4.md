@@ -32,7 +32,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 
 ## §1 Plan
 ```
-WAIT  DG3 posts node_writer.commit_node(root, node_path) -> sha (CAS on refs/grid/<mint>) + refusal modes in room directors
+WAIT  commit_node(root, node_path, content=None, *, payload=None, prefix) is POSTED in room directors (00:0xZ) but built only after the council places g7.16.1.6 and DG1 mints its leaf: council -> DG1 -> DG3 -> DG4
 S6.2  re-point every NON-rotate node-commit site onto commit_node, one site per commit:
         MEASURED 00:0xZ: of 8 non-rotate commit sites ONE is a node write -- send.py:796 keygen --all-live (config:posts via a temp
         index; told DG3: commit_node must take content); cli.py x3 · season.py x2 · sensei.py x1 stay (round / merge / sessions), dashboard.py:631 no commit
