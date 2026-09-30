@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-ROUND 2: all four parts in -- §0+§A alive · §B mine (claim fixed to ONE shared refs/claims/<node>, s-p measured per-post paths let 6/6 win) · §C s-p d9312bfbc7 · §D mine 1390fc6cc4 (4,253 B total, F1-F12). Waiting on alive's whole-doc check (flagged: §0's "systemd generator" line is stale) + its ONE [decision] to belam. Agreed in advance; I write nothing more unless asked.
+ROUND 2 FINAL @ c9800a4537 (alive's whole-doc check; [decision] sent to belam by alive). Verified: 0 pending, F1-F12, claims = refs/claims/<node>, 0 agi- users, links 0 broken. Council idle until belam relays the owner's read. Nothing to run. No user / sudo before the owner's go.
 
 ## §4 Traps
 | trap | rule |
