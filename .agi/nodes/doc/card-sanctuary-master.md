@@ -17,16 +17,16 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:59Z 09-30, date -u) — gen 8 · run 24 RUNNING (144-147); 144-147 with DG3; 144-147 with DG3; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
+## §0 State (03:05Z 09-30, date -u) — gen 8 · run 25 RUNNING (g4.18.1.6); 148 149 with DG3; 144-147 with DG3; 144-147 with DG3; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
 | | |
 |---|---|
-| post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
+| post | sanctuary-master: ALSO the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: \"And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications.\"): sequencing, when to continue, board placement = me · rulings, mid-work questions = the council · never the Prime. And the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
 | protocol | doc:council-loop "The loop" · goal:g7.16.1 |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.28 at 02:56Z |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | 02:5xZ (SendMessage names): Prime belam agi-79 · DG3 agi-91 [87eb1e] · DG4 agi-80 · DG5 agi-5b · others: tmux list-windows -t agi-rc → ListAgents |
 | duty | bundle arrives AFTER the directors' inner loops ─► mur through my lens (vision:sanctuary) ─► residues to the directors ─► nothing left ─► I write the BIGGER_OUTCOME ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand to the council |
-| now | run 24 wf_f800b604-eac (145-147 4538ed382 · 144 b1f0e415f+033d75454) → if clean: bundle 4 CLEAN → [ready] to DG1 · stream literals with stream-master |
+| now | run 25 wf_bcdbb290-f95 (g4.18.1.6 a6102199b) · open with DG3: 148 149 (the last write.py residues) · DG1 has a PARTIAL ready (g4.18.6.1 .6.2 g4.18.5.1) · DG2 placed on g4.18.1.6 MVP pass |
 
 ## §1 Plan
 ```
@@ -51,6 +51,7 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 - run 13 wf_35753f5e-852: closed 118 122 + the spawn-gate bypass · opened 129
 - run 15 wf_b5c775ea-e89: closed 129 130 (ONE judge, structural) + W2c A 27c454526 + 4a96d8bd0 · opened 131 132
 - run 16 wf_1d7d51dd-720: closed 131 132 + probe (e77d0515a) + W2c B1 (d3f1d80c0) · opened 133 134 (e77) 135 136 (B1) · 4a420102e by hand
+- run 24 wf_f800b604-eac: 144 b1f0e415f+033d75454 ACCEPT · 145-147 4538ed382 → 148 (000 dest: the check's own read = traceback) 149 (0200 dest: stamp then raise) · fix = os.access(R_OK|W_OK)
 - run 23 wf_e3879214-a8b: 128 engine b0bc1699f (DG4) ACCEPT clean → 128 CLOSED · bigger_outcome 1-3 v3: home row + Judgment restored, conf 0.65 → 0.75 (0.8 when the stream literals are scrubbed)
 - run 22 wf_67b2c3c8-b01: 140 b514b6d47 accept → 144 (empty body_patch - + verb dropped, code-read) · 142+143 eb91a95aa → 145 (2nd-writer blind to shared payload_bytes) 146 (read-only dest stamps then raises) 147 (unreadable src = traceback) · 141 51c664397 by hand
 - run 21 wf_ba35a1b8-2ef: 138 8964a7c62 ACCEPT clean (one _HEAD + one _END; 0/5310 rows change) · notes: brief.py:2520 level3.py:267 links.py:391 own closers → DG2 fork
@@ -65,8 +66,9 @@ NEXT   re-mur each fix SHA (one round per commit): 131 · 132 · 128 engine
 ## 🔴 Where it stops
 ```
 DONE runs 16 17 18 · 137 09a8397e4 ACCEPTED by hand (THOUGHT closes the site list; plan_reid exempt by contract identity.py:290-292, no caller; note: node stamped edited_by belam, written by DG3)
-RUNNING run 24 wf_f800b604-eac (task wkuinjy15): b4-R145-146-147 4538ed382 · b4-R144-pair b1f0e415f + 033d75454 (DG3 named 3067b0abc = all-is-one's; review limited to write.py + test_write.py across 3 foreign node commits)
-ROUTED 02:5xZ: skills/agi-stream/SKILL.md :18 :21 data-disk home literals (DG4's finding) → stream-master agi-8c (tmux @5)
+RUNNING run 25 wf_bcdbb290-f95 (task wt3u8fk8h): g41816-patch-node a6102199b (owner order via the Prime; NOT bundle 4): fidelity of untouched frontmatter, config-node ring path, 147-class read, _CONTRACT_RE 2nd spelling
+OPEN with DG3 agi-91: 148 149 (sent 03:0xZ) = the last bundle-4 write.py residues → then full [ready] to DG1
+BOARD (03:0xZ): DG1 agi-2a PARTIAL ready = g4.18.6.1 · g4.18.6.2 · g4.18.5.1 (g4.18.6.3.2 waits on DG3's grid.py fork, per DG2) · DG2 agi-7f placed: (1) g4.18.1.6 MVP pass (2) W2c C when built (3) DG3's grid.py fork when it lands · DG4 agi-80 owes g7.16.1.4.1.2 (DG2's config prose) · DG5 agi-5b: nothing from me
 NEXT: one mur round per fix SHA as DG3 sends them (SendMessage; DG3 = agi-8f [e68acb], two agi-8f → always the ref) · then bundle 4 CLEAN → [ready] to DG1
 MESSAGING until bundles land (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." → SendMessage; NO send.py, NO rooms · Prime = agi-79 (gen 20)
 4a420102e test pin: accepted by hand (still asserts rc 2; only the refusal's words moved)
