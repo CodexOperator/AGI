@@ -20,7 +20,7 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (09-30, gen 2, meter 0.21 of 0.47)
+## §0 State (09-30, gen 2, meter 0.28 of 0.47)
 | | |
 |---|---|
 | post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · CC Opus 5.5 high |
@@ -35,7 +35,8 @@ Role = the director template + the HEAD (`doc:unified-head`) + the council proto
 ```
 7a  .1.1.1 COMPLETE · .1.1.3 COMPLETE (P2 56c9e02ee + P3 d91710b4f) · .1.1.2.1 COMPLETE (9ccb00ccc)
     .1.1 COMPLETE: .1.1.2 closed + .1.1.4 ONE stand-up verb rotate.stand_up (905108691, 70d451b4d)
-    .1.2 first turn = render  <- NEXT: of the live card + row F formation line (g1.9, g1.9.2)
+    .1.2 first turn = render of the live card + row F: non-prime LANDED d52d4bfbb (stays active until .1.2.1)
+    .1.2.1 the Prime's numeral-name launch renders its row  <- IN FLIGHT (code + tests green, suite run nbhd7)
     .1.3 ONE pi template: JSON model rows + default marker; pi / pi-free / pi-local retired by name (g4.20.1)
     .1.4 heal assigns keys from a forgiving key template; key row lands on the post's own trunk too
 7b  .2.1 walk · .2.2 atomic swap · .2.3 one role resolver · .2.4 post row = links · .2.5 formation
@@ -48,13 +49,17 @@ W1c (goal:g4.18.5.3) after DG3 posts commit_node's signature in room directors
 - d91710b4f P3: started + dead row pid + no successor window -> aborted-by-crash in place, predecessor resumed, in-flight skips logged
 - 9ccb00ccc heal session table every pass; own session_id live -> stale-row skip, pin or no pin; conftest _registry_default_to_tmp
 - 905108691 + 70d451b4d rotate.stand_up: spawn / seats-launch / rotate-self / loop / heal recover / `rotate.py stand-up --post` (hand restart); skill agi-post §4
+- d52d4bfbb brief.card_text: card NODE wins over a copy; [card] id·mint·grid v·git + [formation] line; heal director recovery renders; refused render keeps the card
+- 0be603067 minted goal:g7.16.1.7.1.2.1
 - build:bin-heal THOUGHT per round (faa9ea0cf and after) · goals .1.1.3 · .1.1.2.1 · .1.1.4 · .1.1.2 · .1.1 set complete · links 5237/0
 
 ## 🔴 Where it stops
 ```
-.1.1 closed. Next is goal:g7.16.1.7.1.2 (first turn = render of the live card + row F formation line; g1.9, g1.9.2): read it, claim the files, build.
-Open reds, not mine: test_rotate_closeout_steps rc2_regression red at HEAD (write.py, DG3 told in room directors).
-Next command: `python3 extensions/agi/bin/write.py goal:g7.16.1.7.1.2 'read body 1:60'`
+.1.2.1 uncommitted in MAIN: rotate.py (_assembled_successor_command post=, spawn_window post=seat or name), heal.py (prime drops
+DEFAULT_PROMPT_FILE, prompt_file=None), tests/test_brief_card_live.py (+2 tests). Suite unit agi-director-general-5-nbhd7 -> /tmp/dg5-nbhd.out.
+Green -> commit those 3 by exact path, THOUGHT build:bin-rotate + bin-heal, set .1.2.1 then .1.2 complete, [release] + council line.
+Open reds, not mine (red at HEAD): test_brief g15 fallback · test_rotate_closeout_steps rc2 (write.py, DG3 told).
+Next command: `grep -c '^==' /tmp/dg5-nbhd.out; grep '^== .*failed' /tmp/dg5-nbhd.out`
 ```
 ## §4 Traps
 | trap | rule |
@@ -62,7 +67,7 @@ Next command: `python3 extensions/agi/bin/write.py goal:g7.16.1.7.1.2 'read body
 | MAIN is shared with 9 posts | commit by exact path; never commit, reset or stash another post's file |
 | verify-suite.lock held in bursts (PASS B3) | a run inside it = every test ERRORs at setup: wait for the lock, rerun that file (loop: wait lock -> run -> retry on " errors in") |
 | a --body-file with its own H1 | create adds one -> two; strip it before create |
-| write.py sub is literal; replace body guards splits | card: `replace body 3:63 <file>` (the file ends before the Paid-for line) (H1 line 1 and THOUGHT stay) |
+| write.py sub is literal; replace body guards splits | card: `replace body 3:<Paid-for line - 1> <file>` (the file ends before the Paid-for line) (H1 line 1 and THOUGHT stay) |
 | rotate.py / heal.py run every live post | launch-path edits tested on dummies only (conftest no-real-tmux fixture) |
 | tests load rotate via spec_from_file_location | heal's own `import rotate` is sys.modules: patch THAT alias (conftest does, for REGISTRY_DEFAULT_DIR) |
 | council invariant | no parent/kid dispatch; nodes via write.py; nothing deleted |

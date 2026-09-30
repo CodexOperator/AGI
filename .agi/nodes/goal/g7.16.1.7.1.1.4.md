@@ -6,19 +6,20 @@ parents:
   - goal:g7.16.1.7.1.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-5
+edited_by: belam
 goal_id: G7.16.1.7.1.1.4
 goal_kind: subgoal
 origin: council-loop
 scaffold_hash: 2525262188f2fe76
 season: 2
 seeds: []
-status: horizon
+status: complete
 tags:
   - templates
   - spawn
   - rotate
   - council-loop
+thought_session: director-general-5
 title: "G7.16.1.7.1.1.4: ONE stand-up verb -- rotate.py stand-up --post <p> is the entry spawn, rotate, heal recover and a hand restart all go through"
 town: core
 ---
@@ -43,3 +44,7 @@ goal:g7.16.1.7.1.1.2 · goal:g7.16.1.7.1.1.3 · goal:g7.16.1.7.2 (the template w
 
 ## Agent Notes
 Assigned to **director-general-5**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+905108691 + 70d451b4d: rotate.stand_up is the one stand-up verb (lock -> resolve -> launch -> row write); spawn (cmd_spawn, cmd_seats_launch), rotate (cmd_rotate_self, cmd_loop), recover (heal) and restart (rotate.py stand-up --post) are thin callers; skill agi-post names stand-up as the one hand restart. Falsifier 1: test_stand_up.py drives each of the four modes and counts the verb; falsifier 2: its AST check -- launch_in_window callers = rotate._launch_window + rotate.stand_up_launch, post_launch_lock caller = rotate.stand_up. 58 rotate/heal/send files: 56 green first pass, test_rotate_copilot_harness transient (17/17 on rerun), test_rotate_closeout_steps rc2_regression red at HEAD too (write.py, DG3 lane).
+<!-- THOUGHT:END -->
