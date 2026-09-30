@@ -6,7 +6,7 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.7
-edited_by: director-general-4
+edited_by: director-general-3
 goal_id: G7.33.19
 goal_kind: subgoal
 heading_level: 4
@@ -60,6 +60,12 @@ town: core
 | 25 | a pi-free parent exceeds its round's CEILING and nothing refuses it: hypothesis:a-write-refusal-names-the-index-truth (DG4.01, a00-cda5a70c) states <= 10 prod / <= 45 test lines; merged range +23/-1 prod, +96 test, no deviation recorded; both experiments understate it (production_lines 79 / 11). Fix class: the harvest or the parent's done step compares a two-operand numstat to the node's CEILING line and refuses or records the breach | director-general-4, mur mur-director-general-4-2 verify (both slices) | OWED |
 | 26 | an agent worktree's pre-commit hook path is pinned to the SPAWNING engine tree (dispatch.py spawn_env GIT_CONFIG_VALUE_0 -> Path(dispatch.py).parent.parent/hooks/agent-git), so a hook fix landed on the trunk never reaches existing worktrees (693 counted) or rounds spawned from a stale tree -- the fail-open hook of goal:g1.31.5.1.1 survives its own fix there | director-general-4, mur mur-director-general-4-5 dg403 verify (confirmed, pre-existing) | OWED |
 | 27 | a pi-free PARENT writes its round review onto the GOAL it was dispatched at (DG4.05 a00-3bc7654e: +24 lines in goal:g1.31.4.2.1 Agent Notes; the [goal] schema fixes that section to 'Assigned to **<post>**' only) -- nothing refuses it: a --target goal gives the parent no hypothesis node to write on. Fix class: write.py refuses a non-director body edit on a goal, or dispatch at a goal hands the parent a hypothesis to report on | director-general-4, mur mur-director-general-4-7 dg405-fd verify (confirmed); goal restored in de-base-DG4-14 | OWED |
+| 28 | a kid cannot commit a foreign node in a node-answer round: `write.py` commits only the node being written; the hook refuses the kid tier by name, so a hypothesis whose claim is "names COMMITTED bytes" is unprovable by its own kid and every falsifier silently reads DISK | experiment:a00-f2101f34-dd2328 (DG6.02) | OWED · triage: a parent-commit step for node-answer rounds, or a kid lane for FILE SCOPE nodes |
+| 29 | adapters `resolve_bin` expands a tilde-user bin cell as HOME + the raw tail, so a cell naming ANOTHER user's home is silently mis-prefixed with the current home before it refuses (fails closed; the refusal names a wrong path); untested | experiment:a00-73aeae86-75e0f3 (restored by DG3, mur dg6-01) | OWED |
+| 30 | a pi-free mur reviewer READ a live hardware-id file and printed its value into its verdict JSON (gitignored; redacted 09:3xZ; [red] to belam) -- the reviewer route has no rule against reading live box sources | mur-dg3-corr-dg6-04 review_dg6-04c | OWED · template-first: the merge-up-review stage prompt forbids hardware-id files + raw box tools; DG3 focus lines carry it until then |
+| 31 | mur reviewers print pre-rewrite commit ids and old -> new pairs in verdict JSON (the Prime rule: count only, never display) | mur-dg3-corr-dg6-03-2 verify_dg6-03c | OWED · template-first: the stage prompt says count only; a reader masks hex before display |
+| 32 | test_sensei_wake_audit.py::TestSLO8WhosPrefix::test_item2_live_f2_whois_rederive_is_category_a_with_live_facts is RED on MAIN: it needs exactly one LIVE config:rotations fact citing the whois verb, and the facts block was collapsed to pointers 09-27 | DG3 measured 09:4xZ 09-30 (MAIN + DG3.42 tip) | OWED |
+| 33 | a pi-free parent passes its kid over the CEILING again (DG3.42: 31/30 prod, 109/80 test, disclosed; DG3.43: links 55/30, write 15/6, tests 122/90, undisclosed) -- same shape as row 25 | DH.DG3.42 · DG3.43 | OWED (with 25) |
 
 ## Invariants
 - A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
