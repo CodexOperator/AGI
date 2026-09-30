@@ -193,7 +193,12 @@
     }
   },
   "anonymize": {
-    "home_roots": ["/data/home-"]
+    "home_roots": ["/data/home-"],
+    "email_allow": [
+      "[^@]+@(?:[A-Za-z0-9-]+\\.)*example\\.(?:com|org|net)",
+      "[^@]+@openssh\\.com",
+      "[^@]+@[0-9]+\\.service"
+    ]
   },
   "reaper": {
     "max_restarts": 0,
