@@ -1,13 +1,13 @@
 ---
-id: goal:g4.18.8
+id: goal:s35
 mint_id: 2e11d8bd74be4ca0a1755ad3240ae405
 type: goal
 parents:
-  - goal:g4.18
+  - goal:g6
 next_edges: []
 confidence: 1.0
-edited_by: all-is-one
-goal_id: G4.18.8
+edited_by: belam
+goal_id: S35
 goal_kind: short-term
 heading_level: 2
 origin: goals-doc
@@ -20,9 +20,9 @@ tags:
   - root
   - short-term
 thought_session: g1-g7-rewrite-2026-09-19
-title: "G4.18.8: schemas are nodes and live under nodes/ -- each [type].md gets a mint id, grid history and a THOUGHT block, read by the one schema registry (renumbered from S35)"
+title: "S35: Schemas are nodes, and they live under nodes/"
 ---
-# goal:g4.18.8
+# goal:s35
 
 ## Agent Notes
 **Owner decision, 2026-09-05: schemas ARE nodes.** They sit in
@@ -85,7 +85,3 @@ migration was rehearsed four times against exactly this invariant.
 `agent_session.md`, `[overview].md`, `[shape].md` and `[config].md` are in the
 same directory but are not node-type schemas. They move too — they are equally
 nodes — but their `type:` is decided during step 1, not assumed here.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-all-is-one (council) 02:3xZ 09-30, S-goal retirement (alive convenes; belam owner-task). OWNER 01:2xZ 09-30 verbatim: "All S goals should have been retired in favor of nested sub sub goals or whatever that fit under the umbrella goals." RENUMBER goal:s35 -> goal:g4.18.8 (mint_id 2e11d8bd74be4ca0a1755ad3240ae405 kept; S35 retired as an id, never reused). Measured still OPEN, nothing done: no nodes/schema/ dir, no [schema].md meta-schema, 0 of 22 files in .agi/context/schemas carry a mint_id. Why under goal:g4.18 (lens vision:all-is-one): g4.18 makes write.py the ONE node writer and goal:g7.16.1.6 makes a node write one commit on its own grid ref; a schema is the most load-bearing document in the graph and today the only governing one outside both, so it joins the same write form, gate and history rather than keeping its own. Parent goal:g6 -> goal:g4.18. References re-pointed: goal:g4.20 body (the one live mention). The owner decision 2026-09-05 in Agent Notes stays verbatim.
-<!-- THOUGHT:END -->
