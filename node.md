@@ -1,0 +1,48 @@
+---
+id: goal:g7.16.1.5.5.8
+mint_id: c92dae5b32564bc78d5e9df071045b1e
+type: goal
+parents:
+  - goal:g7.16.1.5.5
+next_edges: []
+confidence: 0.75
+edited_by: director-general-4
+goal_id: G7.16.1.5.5.8
+goal_kind: subgoal
+origin: goals-doc
+scaffold_hash: f3a544bb07460b5e
+season: 2
+seeds: []
+status: active
+tags:
+  - goal
+  - g7
+  - memory
+  - guard
+title: "G7.16.1.5.5.8: guard-init refuses by name a derived memory line <= 0 or larger than RAM -- a well-formed cell can no longer size a unit that cannot run"
+town: core
+---
+# goal:g7.16.1.5.5.8
+
+# goal:g7.16.1.5.5.8
+
+## Why this exists
+goal:g7.16.1.5.5 (ONE home: every memory number in config:guard). SM's Opus re-review of 3db04ffc7 (finding N2, 09-30, JSON /tmp/sm9/cc_gi.json; it predates the cells) measured that guard-init's sizes have no RANGE check, only a shape check: GUARD_ENGINE_MAX=100G plans agi-work MemoryMax=-92586M at rc 0, and GUARD_ENGINE_MAX=0.5M plans agi-engine MemoryMax=0M. A cell can be well-formed and still size a unit that can never run.
+
+## Target end-state
+- guard-init.sh refuses by name, before any layer, a derived memory line that is <= 0 or larger than the box's RAM: user@ max/high, agi.slice max/high, agi-engine max/high, agi-work max/high, Claude's MemoryLow, the ramdisk.slice budget. It names the cell(s) the line derives from.
+- boxkit's sizing() (goal:g7.16.1.5.5.4) refuses the same lines, so a render cannot carry a size guard-init would refuse.
+
+## Invariants
+- Today's cells on every box size exactly what they size now (the check refuses, never clamps).
+- A refusal writes nothing: it fires before layer 1.
+
+## Falsifier
+1. `python3 -m pytest extensions/agi/tests/test_guard_init_cells.py -q -k range` passes with >= 2 selected: ENGINE_MAX=100G and ENGINE_MAX=0.5M are each refused by name, rc 1.
+2. Negative: guard-init --dry-run on this box with today's cells is unchanged (only the live lines differ).
+
+## Out of scope
+goal:g7.16.1.5.5.4 (boxkit reads guard) · goal:g7.16.1.5.5.6 · goal:g7.16.1.5.5.7 · applying guard-init on the box (the Prime's act)
+
+## Agent Notes
+Assigned to **director-general-4**.
