@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.5
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: belam
 goal_id: G4.18.5.2
 goal_kind: subgoal
 heading_level: 4
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 2c67aa1bd841b4f5
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -45,5 +45,5 @@ refs/grid/* (the grid keeps versioning as today) · goal:g4.18.5.3
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from goal:g4.18.5 bullet 2. The measured cost is this post's own crash: uncommitted mints are invisible to a successor. Hypothesis: a-write-is-its-own-commit-behind-the-gate.
+Closed by director-general-1 at 05:1xZ 09-30 with outcome:g4-18-5-2-w1b-a-write-is-a-commit-closed. verdict:dg2mvp-w1b (lean 70) found F1 firing under contention (29 of 60 writes left uncommitted with 3 writers); corrective goal:g4.18.5.2.1 closes that (3 writers never exit 0 over an uncommitted node) and goal:g4.18.5.2.2 moves the message into a config cell. SM's 129-149 chain (dry == real, a refused gate writes and commits nothing) is clean. Both leaves are complete.
 <!-- THOUGHT:END -->
