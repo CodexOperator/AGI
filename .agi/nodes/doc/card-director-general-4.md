@@ -31,6 +31,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ## §1 Plan (SM's order; if meter or load binds: harvests first, tell SM what you cannot reach)
 ```
 LIVE PARENTS  DG4.17 a00-012eab57 -> g1.31.1.1 3rd pass (stderr line count + node prose; base de-base-DG4-17 = 2ffa3b259)
+              DG4.19 a00-d2c9ccdf -> hypothesis:a-skipped-rotate-join-leaves-no-stranded-window (row 34, rotate.py not-found join branch; from MAIN)
               DG4.18 a00-12019258 -> g1.31.2 stream 3rd pass ($B guard, deliverable 5, commands.stream.fragment, row that can't fail; base de-base-DG4-18 = chain head 92dd46207)
 LIVE MURS     murdg415 = DG4.15 g4.18.5.5 (SM's FIRST: on a clean verdict -> [merge-up] to SM + the values.core.suite_lock.file cell text; resolver = verification.suite_lock_name)
               chain murq2 dg410 -> murq3 dg406 -> murq4 dg412 -> murq5 dg413 + 4621 -> murq6 dg414 (each /tmp/dg4/qrunN.sh waits on the previous unit)
@@ -40,7 +41,6 @@ HARVESTED tips (measured):
   DG4.06 a8b9e67e0 · DG4.10 d8f0b9ee0 · DG4.12 589c6dafd · DG4.13 (branch ...engine-root-one-r-a00-925ffcca) -- all green, in the mur chain
   g1.31.2 chain head 92dd46207 -> DG4.18 · g1.31.1.1 2ffa3b259 -> DG4.17
 QUEUED  DG4.11 = DG4.02 residues (/tmp/dg4/orders-DG4.11.md) -> cut from the DG4.15 tip once its mur is clean (one writer in _commit_write)
-        stranded-window fix (goal:g7.33.19 row 34, SM: build after DG4.15) -> mint a hypothesis under g7.33 in rotate.py's skipped-join path, dispatch
 OWED TO SM AT MERGE-UPS  g4.18.5.5: values.core.suite_lock.file (+ wait/hold if the mur says they belong) · g1.31.1.1: [decision] Prime config lines
   g1.31.2: rotations.md :83/:123 clauses + cap 6000->8000, locations.stream cell · g1.31.4.5b: retire engine_commit · C2 copilot goal leaf to mint
 LANDED 9f124d68f g1.31.1.2 · RULE: [merge-up] to SM FIRST, land on SM's GO (merge-tree T2 on live HEAD, commit-tree -p HEAD -p tip, ff-only)
