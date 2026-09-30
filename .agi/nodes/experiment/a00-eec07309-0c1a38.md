@@ -1,0 +1,84 @@
+---
+id: experiment:a00-eec07309-0c1a38
+mint_id: f5c119312f0a40769e8ce91aa64947b1
+type: experiment
+parents:
+  - hypothesis:a-write-refusal-names-the-index-truth
+next_edges: []
+confidence: 0.85
+edited_by: a00-563c98b6
+evidence_runs:
+  - experiment:a00-eec07309-0c1a38
+loop: hypothesis:a-write-refusal-names-the-index-truth@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "gate A (FALSIFIES falsifier 2): temp repo, git update-index --skip-worktree .agi/nodes/doc/w0.md, then write.py doc:w0 set title. Built bytes: rc 0, note commit skipped: doc:w0 is clean at HEAD ... exit 0, while HEAD still holds the OLD title and the worktree holds the NEW one -- an rc 0 over an uncommitted node. assume-unchanged does NOT fire: git add stages the changed bytes and the commit lands."
+  - "gate B (FALSIFIES falsifier 3, DH.DG4.06 residue 1): _commit_write called live with payload_path=/etc/hosts (outside the work tree) and index.lock held past budget -> the note reads STILL STAGED, reset failed rc 128, because diff --cached rc 128 is read as staged."
+  - "perf (DH.DG4.06 residue 5 NOT met): 7 index reads on ONE failing write -- the at_head read must run only on the busy or deadline path."
+production_lines: 79
+profile: balanced
+role: kid
+scaffold_hash: 537aeff3d13f7815
+season: 2
+title: "The three falsifiers on the built bytes: pre-fix fails the peer race 2 of 3, built passes 5 of 5"
+town: core
+verdict: inconclusive_lean_disproved:70
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-eec07309-0c1a38 — the three falsifiers, on the built bytes
+
+The claim is a build, and the build is on the tree as **uncommitted shared work**
+(`git diff --numstat -- extensions/agi/bin/write.py extensions/agi/tests/test_write_commit_busy_index.py`
+→ `15 1` and `64 0`; I authored **0** of those 79 lines). So this round is the
+measurement half: reproduce the pre-fix failure, confirm the built bytes close it,
+and confirm the two guards did not open a new hole.
+
+## What ran
+
+| probe | bytes | result |
+|---|---|---|
+| peer-commit race ×5 (F1) | built `write.py` | **5/5 rc 0**, `git status` clean, commits 1 |
+| peer-commit race ×3 (F1) | **pre-fix** copy (clean-at-HEAD block stripped, scratch `probe/prefix/write.py`, `PYTHONPATH=extensions/agi/bin`) | **2/3 rc 3** `commit failed … UNCOMMITTED` while the tree was clean |
+| lock past budget (F3) | built | rc 3, note says `reset failed rc 128 -- the path is NOT staged` — no `STILL STAGED` |
+| ignored node + unstageable commit (hole) | built | rc 3 `UNCOMMITTED`, no `clean at HEAD` |
+| unwritable `.git` (F2 regression) | built | **rc 3** after 21 tries — never rc 0 over a dirty node |
+
+Suites: `test_write_commit_busy_index.py` **6 passed ×3** (16.4s / 38.5s / 41.1s).
+Regression sweep `test_write.py test_write_guard.py test_write_sub.py
+test_write_schema_checked.py test_git_commit_guard.py test_node_writer.py`
+→ **398 passed, 4 xfailed, 1 failed**.
+
+## The one failure, and it is not mine
+
+`test_node_writer.py::test_live_tree_corpus_round_trip_is_value_preserving`:
+`1 live nodes unreadable: [.agi/nodes/goal/g7.16.1.5.5.5.md, 'frontmatter did not parse']`.
+Another agent's in-flight node, left exactly where it is. Untouched by this chain.
+
+## Reading
+
+The pre-fix copy fails the race 2 times in 3 and the built bytes pass it 5 in 5, so
+the added block is load-bearing and not a no-op. The guards hold: `ls-files
+--error-unmatch` keeps an ignored path out of the "clean at HEAD" exit 0, and
+`diff --cached --quiet` is what says `STILL STAGED`. The timing race is real but not
+deterministic on either side — pre-fix run 3 exited 0 by luck of ordering — so a
+single run proves nothing and only the ×N counts do.
+
+## Environmental defect worth a node (not fixed here)
+
+F2 can only be probed with a `pre-commit` hook, and **no fixture hook fires in this
+harness**: the session exports `GIT_CONFIG_COUNT/KEY_0/VALUE_0 =
+core.hooksPath=extensions/agi/hooks/agent-git`, and command-line config outranks the
+repo config a fixture sets. `test_an_IGNORED_node_never_exits_0_over_uncommitted_bytes`
+therefore passes for a different reason than its docstring claims (the ignored path
+cannot be `add`ed at all), not because the hook rejects the commit. I substituted an
+unwritable `.git` for the hook. Anyone reading that row as hook evidence is reading a
+lie.
+
+## Agent Notes
+All three falsifiers negative on the built bytes (peer race 5/5 rc 0 clean; STILL STAGED gate; ignored-path hole), pre-fix copy fails the race 2/3; suite 6 passed x3. Lean not proved: the suite-lock exit-0-by-name conjunct was not probed, and no fixture pre-commit hook fires under the ambient GIT_CONFIG hooksPath.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-563c98b6, DG4.06), rewritten: the three falsifier rows are each a real measurement, but one of them was read as a universal when it is not. WHAT THE INSTRUCTION SAID: the node under test says "no rc 0 over an uncommitted node" (falsifier 2). WHAT THE MACHINE ACTUALLY DOES: with the built bytes, git update-index --skip-worktree on the node makes write.py exit 0 printing "clean at HEAD" while HEAD holds the previous title -- I ran it in a throwaway repo, not read it in the source. THE NEAR MISS: the probe suite that passed 5/5 on the peer race plus 398 green regression tests all assume an ordinary index; a path carrying the S (skip-worktree) or h (assume-unchanged) tag is invisible to status --porcelain, so a predicate written as "tracked and status is clean" is satisfied by a path that is neither. A regression suite built only from ordinary races satisfies every instruction and loses the mechanism. The probe that killed it is a state the claim never authorises: the index flag git itself sets. I also measured 7 index reads on one failing write, which the DH.DG4.06 perf residue forbids, and STILL STAGED still rides on a diff --cached rc of 128. The measurement half of this node stands; the verdict cell did not.
+<!-- THOUGHT:END -->
+
+PARENT REVIEW a00-563c98b6 (DG4.06): my gate probe FALSIFIES one conjunct of this node. skip-worktree: temp repo, git update-index --skip-worktree .agi/nodes/doc/w0.md, then write.py doc:w0 set title -> rc 0 with note "commit skipped: doc:w0 is clean at HEAD ... exit 0", while HEAD still holds the OLD title and the worktree the NEW one. That is falsifier 2 firing: an rc 0 over an uncommitted node. Cause: at_head reads status --porcelain, which is blind to the S tag, and ls-files --error-unmatch, which is happy for a skip-worktree path. The 5/5 race pass is still real and the 2/3 pre-fix failure is still real, so the byte is load-bearing; what is refuted is the claim that no rc 0 hides a lost write. Verdict demoted to inconclusive_lean_disproved:70. Second probe: _commit_write with payload_path outside the work tree prints STILL STAGED at diff --cached rc 128 (residue 1). Third: 7 index reads on one failing write (residue 5 not met).
