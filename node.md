@@ -3,11 +3,11 @@ id: hypothesis:born-valid-without-touching-frontmatter
 mint_id: 3dd69140a6b54dea81b410193c611bd5
 type: hypothesis
 parents:
-  - goal:s31
+  - goal:g7.33.10.1
 next_edges:
   - experiment:the-falsifier-and-the-corpus-census
 confidence: 0.85
-edited_by: alive
+edited_by: belam
 evidence_runs:
   - experiment:dg2close-born-valid-without-touching-frontmatter-check
 scaffold_hash: 2b25f5e175a1dd7f
@@ -69,21 +69,5 @@ of the experiment; **repairing them is a distinct, larger action** and is not
 claimed here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The two-populations framing is what makes this tractable. `goal:s31` listed
-three candidate shapes as alternatives — seed at scaffold time, derive from the
-body at completion, or validate loudly — and the useful move was to notice they
-are not alternatives at all: each handles a different class of field, and all
-three together are what "born valid" requires. Seeding alone cannot supply a
-testable claim; body-derivation alone cannot run at scaffold time; validation
-alone fixes nothing, which the goal itself says.
-
-The disproof clauses are the ones worth defending. Placeholders are the failure
-that would look most like success here — every required field present, every
-schema satisfied, and a corpus of `TODO(model)`. The goal's own scar tissue
-(8,034 fields) is why "invents nothing" is a disproof condition rather than a
-nicety.
-
-The last section exists because the corpus number is going to be large and
-quotable, and a hypothesis that quietly let "scaffolds are born valid" be read
-as "the corpus is valid" would be doing the misreading's work for it.
+Moved from goal:s31 to goal:g7.33.10.1 because its proved two-populations claim (engine-derivable fields seeded, kid-held fields lifted from the body, nothing invented) is exactly g7.33.10.1's backfill invariant: a value comes from the node's own bytes or stays missing with a named finding. goal:g7.33.10.1 is the live leaf the council re-homed retired s31 into, and its body cites this node by id. Owner, verbatim: "Move all hypotheses under all retired s goals to be patented by appropriate nested g-goals". Parenthood only (owner: "The regime doesn't need a goal. We're just adjusting parenthood"): mint_id, body and verdict unchanged.
 <!-- THOUGHT:END -->
