@@ -1388,7 +1388,18 @@ def gate_for_root(root, nodes_dir=None) -> tuple[SpawnRules, dict, int | None]:
     rules = load_spawn_rules(schemas_dir, root=root)
     nd = Path(nodes_dir) if nodes_dir else resolve_nodes_root(root, schemas_dir)
     cs = read_ladder_season(nd)
-    return rules, build_type_index(nd), cs
+    # goal:g4.18.6.2.2: the writer paths read goal:g4.18.6.1's ONE index (one
+    # git grep, frontmatter lines only), never a per-create parse of every node
+    # file; git unable to look -> the walk, said on stderr (writes keep working)
+    import links  # noqa: PLC0415
+    import rotation_record  # noqa: PLC0415
+    try:
+        index = {fm["id"]: canonical_type(fm.get("type") or "")
+                 for fm in links.frontmatter_rows(nd).values() if fm.get("id")}
+    except rotation_record.GrepError as exc:
+        print(f"warn: spawn gate index by walk ({exc})", file=sys.stderr)
+        index = build_type_index(nd)
+    return rules, index, cs
 
 
 def _cli(argv) -> int:
