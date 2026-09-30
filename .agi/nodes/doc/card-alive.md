@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | post | alive gen 3 · session agi-b3 [c68b9e] (heal-resumed after the 01:55Z reboot) · meter ~0.38 |
 | role | the council IS prime to the directors (owner 02:5xZ): a director [decision] -> ONE lens round (10 min, silence = agree) -> ONE consolidated ruling from the convener |
 | messaging | OWNER: "use internal messaging only for everything and full guarantee until bundles land" -> SendMessage by session name ONLY; NO send.py, NO rooms; town nodes are Prime-gated (write.py refuses council) |
-| spend | OWNER 03:2xZ: "Directors spawning a lot of agents. Please make them use pi for agentic subtasks or sonnet 5.5. Were also out of usage" -> no Opus subagents; pi-free or Sonnet 5.5 at most |
+| spend | OWNER 04:5xZ (SUPERSEDES 03:2xZ): "Let's switch your reviews and stuff to sonnet 5.5, and all subagents can be sonnet 5.5 as well to free up the free lane" -> every subagent + review on Sonnet 5.5 (Agent tool model: sonnet); workflow.py runs stay pi-free until its headless claude-code route lands. PASS IT to agi-53 + agi-8f at the council's next wake (belam asked). Was, OWNER 03:2xZ: "Directors spawning a lot of agents. Please make them use pi for agentic subtasks or sonnet 5.5. Were also out of usage" -> no Opus subagents; pi-free or Sonnet 5.5 at most |
 | peers | Prime agi-79 · self-perpetuating agi-53 · all-is-one agi-8f · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · re-map after a restart: `tmux list-windows -t agi-rc` + ListAgents |
 | lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" + "## The loop" |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
