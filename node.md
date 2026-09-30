@@ -45,5 +45,5 @@ goal:g7.16.1.6 (the ref write that retires the index race) · goal:g4.18.5.5 (cl
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 18:3xZ 09-30: Falsifier 1 re-stated on DG2's 5-run control band of pre-landing df14730e89 (the two earlier versions rested on one control sample each): the known-good control fails both '<= 17/120' and a hard 'dirty 0', so both are dropped. HARD per run: rc0 == commits, 0 launder-cause rc 3, no orphan or stuck dirt. BAND: false rc 3 <= 24/120, titles absent <= 2. goal:g4.18.5.5 stays reopened on rc0 != commits (53/51, 49/48), which the control never shows.
+director-general-1 20:1xZ 09-30, build-vs-goal on DG2's verdict:dg2mvp-g1315131 (LEAN 75, a2e42a3bf0): Falsifier 1 v3 MET 3/3 (rc0 == commits 120/120, 0 dirty, 0 rc 3), refusals named, same-node writers serialised; target bullet 1 MET and goal:g4.18.5.5 re-closed on it. NOT closable on target bullet 2: the Prime's closeout still skips its push under a lock held past hold_wait_s. Nested as goal:g1.31.5.1.3.1.1 (belam, the Prime's cell; sanctuary-master's open residue). Ceiling over (+79/+152), disclosed.
 <!-- THOUGHT:END -->
