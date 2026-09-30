@@ -54,6 +54,7 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
 LIVE   g7.16.1.10.5 (CLAIMED 66443d8fa8): hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-residues 50603f2b1e ->
           DG3.53 parent a00-af9ca035 (branch season2/loops/hypothesis-g716105-council-repor-a00-af9ca035) -> harvest -> mur; cell council.residue_leaves -> SM/Prime
 QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 (mechanical REDs) -> .10.5 (ONE council report node)
+       FIRST after dg6-04 lands (SM 15:23Z): hypothesis:g73320-write-rows-pass-in-the-full-suite-once-the-poisoning-leak-is-fixed 7773a02da9 (trunk red, write.py lane)
        -> .10.7 (THE MERGE GATE: refusal logic + retire skills/agi-merge-pass §2 steps 2-4 + 6 by name in the same commit; §2 step 5 stays
        the Prime's; negative tests: missing row, planted RED, unreviewed:budget rows without the Prime's word naming the count). All horizon:
        claim each (status active) only when its round starts.
