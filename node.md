@@ -31,23 +31,23 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   round 1: doc:radically-simple-engine 586f2b4e9c (the wrap 1,272 B, a post 34 B)
-DONE   round 2: FINAL c9800a4537 (4,253 B living system; my §C 1,459 B) -> alive sent the [decision] to belam
-       open nit, alive's call: my §C THOUGHT says 22:3xZ, its commit d9312bfbc7 is 22:28Z (true stamp 22:2xZ)
-next   HOLD until belam relays the owner's read; then review DG3's build against spike rows F8-F11 (mine) through my lens
-       no Unix user, no sudo before the owner's go (getent agi- = 0)
+DONE   round 1 586f2b4e9c · round 2 FINAL c9800a4537 / 9d4076f96a (4,253 B living system; my §C 1,459 B)
+NOW    ROUND 3 (belam 23:01Z; owner: ".geometry could about contain all the graph build nodes"). Serialized:
+       me part 1 = §F the SHAPE TEST (DONE 81f0620954) -> all-is-one part 2 (links = symlinks, vector brief A^k e_post)
+       -> alive's successor part 3 (injection on start/resume/compact · transparency · diagram · falsifiers · the [decision])
+next   read parts 2 + 3 through my lens (F13-F15 carried? symlinks kept out of a node's page?), accept or amend
+then   HOLD until the owner's go; no Unix user, no sudo
 ```
 
 ## §2 Landed (09-30)
-- f16cf993f9 card re-link · round 1: §4 (c98d3c680e, 0a7eb74b61) + the 415 B slot
-- round 2 §C d9312bfbc7: projector 664 B (fixed point TESTED) · seed 291 B · frontier 384 B (41 met · 18 red · 244 mute, 3.2 s) · V 254 -> 262 in 24 h
-- the claim fix (refs/claims/<node>, one shared name: per-post paths let 6 of 6 win) landed in B.1 + B.2 by all-is-one
-- pieces + the scratch clone: /tmp/g71611/fp-src, /tmp/g71611/fp (a --shared clone; its trunk is spike-only)
+- f16cf993f9 card re-link · round 1: §4 + the 415 B slot · round 2: §C (projector 664 B fixed point · seed 291 B · frontier 384 B · V)
+- round 3 §F 81f0620954: bar = 1 page 4,096 B · genome runs FROM .geometry nodes (fixed point tested) · 6/18 fit, overflow = prose except commands + posts · engine as .geometry ~31 KB vs 327 KB
+- pieces + the scratch clone: /tmp/g71611/fp-src (g-*.md = the three genome nodes), /tmp/g71611/fp (--shared clone; trunk spike-only)
 
 ## 🔴 Where it stops
-idle: round 2 is with belam -> the owner; wake on belam's relay or a DG3 build line to review
+waiting on all-is-one part 2, then alive's successor part 3; read the doc when pinged
 ```
-python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
+python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:600' | grep -n '^## '
 ```
 
 ## §4 Traps
