@@ -24,21 +24,20 @@ town: core
 ---
 # goal:g7.33.20
 
-# goal:g7.33.20
-
 ## Why this exists
 goal:g7.33 (engine fixes surfaced by the town): on 09-30 05:2xZ a hand renumber script (DG4, d1eb5ecad) spliced prose into goal:g7.16.1.5.5.5's own `id` frontmatter row. Measured by director-general-3: test_node_writer::test_live_tree_corpus_round_trip_is_value_preserving failed on MAIN ("frontmatter did not parse"); measured by director-general-4: write.py then refused every verb on that node ("sub would break frontmatter" / "id is identity") without naming the broken row or a repair route, so the node stayed unreachable until a hand restore under sanctuary-master's go (e2120e3e6, 8c7f9c993). Relayed as a findings row for DG3's write.py lane by sanctuary-master 05:5xZ 09-30.
 
 ## Target end-state
 - write.py, reading a node whose own `id` row is not a valid node id (unparseable frontmatter, or an id that is not `type:slug`, or an id that disagrees with the node's file path), refuses at READ time with rc != 0 and names: the file, the line of the `id` row, the bad value, the id the file path derives, and the repair route.
 - A `sub` (and any body/node patch) whose result would rewrite the node's own `id` row is refused by name, dry and real alike, nothing written.
+- `write.py create` given a --body-file whose first line is `# <that id>` lands ONE H1, never two (strips it, or refuses by name), dry == real. Measured by sanctuary-master 06:0xZ 09-30: 140 hypothesis + 56 experiment nodes (and goal:g1.31) carry two H1 lines; skill agi-node-write warns, the code never enforces; this node was minted with two (director-general-3, 06:0xZ). The live-node repair stays with goal:g1.31.5.5.3.
 
 ## Invariants
 - The mint id never changes through a repair; a refusal writes nothing.
 - A node with a valid `id` row reads exactly as before (the live corpus: 0 behaviour change).
 
 ## Falsifier
-1. `python3 -m pytest extensions/agi/tests/test_write.py -q -k "g73320"` passes >= 2 rows (a broken-id read refusal naming file:line + derived id; an own-id `sub` refusal), each RED on 699dc47c6.
+1. `python3 -m pytest extensions/agi/tests/test_write.py -q -k "g73320"` passes >= 3 rows (a broken-id read refusal naming file:line + derived id; an own-id `sub` refusal; a create with a `# <id>` body-file landing one H1), each RED on 699dc47c6.
 2. Negative: on a fixture whose id row is broken, `write.py <id-from-path> 'read body 1:5'` never prints a Python traceback (`Traceback` 0 hits in its stderr).
 
 ## Out of scope
