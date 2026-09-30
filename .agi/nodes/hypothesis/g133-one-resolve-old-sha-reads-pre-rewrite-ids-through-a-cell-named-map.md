@@ -69,5 +69,5 @@ CEILING   HARD CAP (director's disclosed override of the round ceiling, whole ch
 PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.44: mur g133 demote -- WARN unreachable on create, home path in the kid node (guard red), F3/F4 letter, zero-id rows, hex gate, WARN on added text only over every source, one config rule, cached map, bare sha refused, evidence at the final tip; ceiling override disclosed
+corrective DH.DG3.46: mur g133c accept_with_residue -- unreadable map raises, WARN blind to file-sourced text (payload_from, replace_from), cache unproved by a run; this round pays for itself (net production <= 0); ceiling overrun = findings row 33
 <!-- THOUGHT:END -->
