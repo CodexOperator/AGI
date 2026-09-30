@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: sanctuary-master
 scaffold_hash: 3e856c7e9b80c2ab
 season: 2
 title: Card sanctuary master
@@ -17,61 +17,60 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (04:44Z 09-30, date -u) — gen 8 · COUNCIL STOP (04:00Z order, fired) → IDLE · nothing running
+## §0 State (22:4xZ 09-29) — STOPPED at the 23:00Z order, idle
 | | |
 |---|---|
-| post | sanctuary-master: bundle reviewer + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, when to continue, board placement = me · rulings = the council · never the Prime |
-| usage | owner 03:2xZ 09-30, verbatim (via the Prime): "Directors spawning a lot of agents. Please make them use pi for agentic subtasks or sonnet 5.5. Were also out of usage" → NO Opus subagents; my reviews = workflow.py agi-merge-up-review --harness pi-free (skill agi-workflow), never the Claude Workflow tool at opus |
-| protocol | doc:council-loop "The loop" · goal:g7.16.1 · messaging: SendMessage by session name only (no send.py, no rooms) until the bundles land |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 8 · meter 0.44 |
-| skills | agi-merge-pass (§2 verdicts) · agi-workflow · agi-rotate · agi-node-write · agi-goal |
-| peers (04:44Z) | Prime belam agi-79 · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · council: alive agi-b3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · stream-master agi-8c · windows renumber: tmux list-windows -t agi-rc → ListAgents |
+| post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
+| protocol | doc:council-loop · goal:g7.16.1 |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 6 (crash-recovery 17:33Z) · meter 0.44 at stop |
+| skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
+| peers | DG1 · DG2 · DG3 (gen 4 stopped; its successor reads doc:card-director-general-3 + its send.py inbox) · alive (council convener) · belam = send.py inbox ([merge-up] / [red]) |
+| now | bundle 3 CLEAN at 1f39ffb1c · bundle 4 reviewed through W2a, residues 97-105 open with DG3's successor · nothing running |
 
 ## §1 Plan
 ```
-done   bundles 1-3 → bigger_outcome 1-3 v3 (1111fed58; 128 closed; conf 0.75 → 0.8 when skills/agi-stream :18 :21 are scrubbed by stream-master)
-done   bundle 4 write.py chain 129-149 CLOSED · W2c B (g4.18.6.3.2) CLOSED · 128 engine CLOSED · grid fork · W-G
-done   DG1 outcomes: g4.18.5.1 · g4.18.6.1 · g4.18.6.2 · g4.18.6.3.2 · g7.16.1.4.1
-NEXT   after the STOP lifts: re-run on pi-free (1) W2c C 595b9c099 = bundle 4 LAST (2) DG4 busy index 1098822e1
-       W2c C clean → full [ready] to DG1 → DG1 outcome(s) (+ g4.18.5.2 after .2.1/.2.2) → MY bundle-4 bigger_outcome → council
+done   bundle 1 CLEAN 80c1c245d · bundle 2 CLEAN 9c54fb3c4 · bundle 3 CLEAN 1f39ffb1c (SM 57-80 24/24 + council C1, CM1-CM10 11/11)
+done   bundle 4 murs: run 1 W-G.1 + W0 · run 2 W-G.2 + re 81-85 · run 3 W1a + W1b · run 4 re 90/93/95/87/88 + re 89 + W2a
+NEXT   re-mur (one round per commit) DG3-successor's fixes for 97-105 · formal round on fd8d74ab3 (91 92, bytes already read)
+       then W1c / W2b-e / W3 as DG3 lands them; bundle 4 CLEAN → [handoff] room + alive + belam [merge-up]
 ```
 
-## §2 Landed this gen (CC opus runs 16-28 + by hand; details in each run's journal)
-- runs 16-24: 131-147 opened/closed (THOUGHT marker ONE _HEAD/_END; stdin once; payload one pre-dry judge by VERB; dry == real)
-- run 23: 128 engine b0bc1699f accept · run 26: DG4 cold homing 5a257979b (156 → 21a579ba1 by hand) · heal restarted 03:26:37Z, falsifier PASSED (5 homed, shmem +0M)
-- run 27: DG5 keys 4abfee9d3 → 157-161 (DG5) · Prime writing key_template (cond 5 default = ruling)
-- run 25/28: g4.18.1.6 (DG3) → 150-155; 150 151 155 MET in 563cd4ca9 → 162 163 (DG3, introduced by the move)
-- by hand: 141 · 137 · 148+149 f0768720f · 6e21d9655 · grid 6ec1f046c · g7.16.1.4.1.2 · c3c118b3c (write.py HEAD red: DG4's 1098822e1 swept DG3's canonicalize; fixed)
+## §2 Landed
+- bundle 3: A wf_a3b15e54-c65 · B wf_9dd69ca3-b96 · C wf_67ad5686-154 · wf_dd91b5bc-0ea · wf_2cd1c504-7cc · C1 wf_0696f122-7f0 ·
+  council wf_868fe677-21c · wf_4fa09963-e62 → CLEAN 1f39ffb1c · 1 red (R2 heal budget) closed 0d33b10f4
+- bundle 4: wf_55fc5dde-0e5 · wf_8ce06028-a81 · wf_e6561265-419 · wf_7da1e726-280 (18 CC opus agents, 0 err)
+  closed: 81 83 84 87 88 89(part) 90(mostly) 91 92 93 95 · owner line for the GOALS.md retirement verified (goal:g7.16.1.md:72)
+- W1b [red] to belam 22:2xZ: a failed auto-commit left the node staged in MAIN's index → 90 fixed c13eec672, 98 still open
+- SM miss, owned: bundle-3 H4f round took "prints unpark FAILED" as the claim, never the rc (council C1 caught it)
+- [merge-up] to belam 22:4xZ: bundle 3 CLEAN, bundle 4 state, the new suite red (97)
 
 ## 🔴 Where it stops
-```
-IDLE on the council STOP. Nothing running. Wake on: a Prime/council "resume", a builder SHA, a director blocker.
-RE-RUN on pi-free when resumed (both died on the Claude usage limit; no verdict):
-  b4-W2cC            595b9c099  (DG3, g4.18.6.3.3, bundle 4 LAST) -- ResolvingDict/Set semantics for consumers; is_node_id_shaped + mint → false links? links broken stays 0
-  g41852-1-busy-index 1098822e1 (DG4, g4.18.5.2.1) -- which git errors count as busy; rc 3 callers; commit by exact path; the swept canonicalize hunks are DG3's
-  round text: journals ~/.claude/projects/-data-work-agi/fe79b389-fa84-465b-9b05-fcfbf61bfa19/workflows/wf_f5dd7397-e6b.json + wf_9af85780-af6.json (args.rounds)
-OPEN RESIDUES: DG3 152 153 (154 at the council: byte-exact vs re-render) 162 163 · DG5 157 158(FIRST: remint key before row) 159 160 161
-BOARD: DG1 waits W2c C + g4.18.5.2 · DG2 checks: keys g7.16.1.7.1.4 → W2c C → g4.18.1.6 re-check → .2.1/.2.2 · DG3 162 163 152 153 (154 ruling) → g4.18.5.2.2 · DG4 session-sweep file-mtime leaf + a .5.5 leaf from DG5 · DG5 .5.5 (urgent) + 157-161
-First command at wake: ListAgents (session names change at every seat); summaries: python3 /data/tmp/claude-1000/sm-mur-summary.py <journal.jsonl>
-```
+Stopped at the owner's 23:00Z order; nothing running. Open with DG3's successor (bodies /data/tmp/claude-1000/sm-b4-run{2,3,4}.md):
+97 FIX FIRST suite red on HEAD: test_commands_manifest names_no_box_detail (commands.md:3036 'g7.16.1.4.1.1' reads as an IP)
+98 write.py _commit_write ignores reset rc (index.lock → still staged, message says unstaged) · 99 [config].md:227 config_path claim
+100 tests that cannot fail (95 self-quoting THOUGHT, 93 stale lock, 90 index-lock case) · 101 g4.19 F1 missing test file, invariant unguarded
+102 links.py mint GrepError rc 1 = not-found · 103 resolve_mint counts .md.bak · 104 deprecated/ excluded · 105 mvp rc claim + untested paths
+banked on DG3's card (theirs): 86 report_integrity/s26 re-wire · 94 subprocess auto-commit opt-out · 96 row --dry-run · W1c
+First command at wake: python3 extensions/agi/bin/send.py --from sanctuary-master read sanctuary-master
+Round args pattern: /data/tmp/claude-1000/sm-b4-run3.json · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
+
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
 | `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN -- <paths>` |
 | rotate flattens the quorum card | re-link: `ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md` |
-| a home path, a /data user dir name | never print it: count only (128 was found by counts) |
-| suite lock held → write.py's self-commit refused | the write lands; commit by exact path in a background waiter loop |
-| a post rotates mid-thread | its old session name dies or is reused by ANOTHER post: re-read config:posts before every send |
+| a home path in a card or dm | write `<home>`; check: `anonymize.py check --text "$(cat <card>)"` |
 | a peer's commits land between a row's commits | one round per commit, never a range across a foreign commit |
-| a mur residue chain | residues only on what THIS diff introduced or left open; the rest are notes |
+| town:local-maxxing is ring-gated (owner, prime_director) | the board numbers line goes to belam in the [merge-up] |
+| a mur residue chain | ask for residues only on what THIS diff introduced or left open; the rest are notes |
 | a claim that names a message ("prints X") | the round also checks the rc and what was written (C1) |
-| a falsifier grep can pass on a spelling technicality | re-run it against the pre-fix SHA (113: `THOUGHT:(BEGIN|END)` dodged F2) |
-| preview vs write | every write.py fix: ask for dry == real on rc AND stderr (96, 125, 130) |
-| a bigger_outcome before the directors' outcomes | never: DG1 writes one OUTCOME per goal first |
-| card stamps | read `date -u`, never estimate (DG1 stamped 09-30 at 23:5x 09-29) |
+| a dotted goal id like g7.16.1.4.1 in a rendered manifest | the dotted-quad guard reads 16.1.4.1 as an IP (97) |
+| verify-suite.lock held by a live runner | a test run ERRORs at setup: retry, never read it as a code red |
+| write.py self-commits since 14cf86000 (W1b) | my card edits via Write/sed are NOT write.py: still commit by exact path |
+| card stamps | read `date -u`, never estimate |
 
-## §5 Verification: links.py links 5179 / 0 broken (23:5xZ 09-29) · per-round test counts are in each run's journal
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 5165 / 0 broken · live check_formation PASS · test_commands_manifest RED on HEAD (97)
 
 ## §6 BANKED
 (none)
