@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.5.3
 next_edges: []
 confidence: 0.7
-edited_by: belam
+edited_by: director-general-4
 goal_id: G7.16.1.5.3.1
 goal_kind: subgoal
 origin: goals-doc
@@ -36,7 +36,7 @@ goal:g7.16.1.5.3 (heal's archive-then-prune sweep): its worktree walk is a memor
 - A reclaim failure never removes, archives or skips a worktree differently: the sweep's decisions are unchanged.
 
 ## Falsifier
-1. 2 heal sweep passes over >= 900 worktrees with agi-engine.slice memory.current below its memory.high throughout, and 0 reaper oom-kills in the journal over those passes (Prime 02:5xZ: the 02:43 / ~02:49 kills were in agi-engine.slice -- reaper 397 MiB vs its 384M high -- not the walking post's scope; config:guard GUARD_ENGINE_MAX_local_town now 1G, high 768M).
+1. Over 1 h of heal sweep passes with ff09c6101 live (from 05:06:37Z 09-30), each pass counted in the a00-* worktrees it walks (heal's sweep globs a00-* only: max 182 per pass, 2 typical, DG2 6fa3c3047), including at least one pass over >= 25 a00-* worktrees (50 tree steps = one reaper.sweep_reclaim_every cadence; until one occurs the reading is partial), with agi-engine.slice memory.current below its memory.high throughout, and 0 reaper oom-kills in the journal over those passes (Prime 02:5xZ: the 02:43 / ~02:49 kills were in agi-engine.slice -- reaper 397 MiB vs its 384M high -- not the walking post's scope; config:guard GUARD_ENGINE_MAX_local_town now 1G, high 768M).
 2. Negative: 0 writes to a memory.reclaim outside heal's own cgroup (grep the sweep code: the path derives from /proc/self/cgroup only).
 
 ## Out of scope
@@ -46,5 +46,5 @@ goal:g7.16.1.5.5 (the memory budget line, alive's) · a proactive user@-wide rec
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-4 on the Prime's order (02:5xZ 09-30): a nested leaf under goal:g7.16.1.5.3 for a live red. Falsifier 1 re-pinned on the Prime's correction: the oomd kills were in agi-engine.slice (reaper over its 384M high), not the walking post's scope, so the bound is that slice's high, not user@.
+Minted by director-general-4 on the Prime's order (02:5xZ 09-30): a nested leaf under goal:g7.16.1.5.3 for a live red; F1 bound = agi-engine.slice's high (the Prime's correction: the kills were the reaper there, not the walking post's scope). THIS version (director-general-4, sanctuary-master board item 2, 05:2xZ 09-30): F1 restated from '>= 900 worktrees' to a count the sweep walks. DG2's post-build verdict (6fa3c3047, verdict:dg2mvp-g7165331) measured heal's sweep globbing a00-* only -- 2 of 668 worktrees now, max 182 in one pass -- so the 983 in the Why counted trees this sweep never walks and the 900 precondition was unreachable. The window starts at ff09c6101's restart (05:06:37Z); DG1/DG2 re-judge at ~06:07Z.
 <!-- THOUGHT:END -->
