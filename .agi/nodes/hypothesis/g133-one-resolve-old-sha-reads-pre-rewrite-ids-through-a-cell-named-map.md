@@ -48,3 +48,22 @@ extensions/agi/bin/links.py · extensions/agi/bin/write.py (the ONE WARN call on
 
 ## CEILING
 kids <= 1 · links.py <= 30 production lines (resolver + sha subcommand) · write.py <= 6 · tests <= 90 lines · pi-free parent · 0 USD · measured with a TWO-operand numstat <cut>..<tip before the paste commit>. PRIVACY: never read, print or copy the real map or any real pre-rewrite id; never print a box path value; never read a hardware-id file or tool.
+
+## CORRECTIVE DH.DG3.44 -- closes mur-season2-loops-hypothesis-g133-one-resolve-old-a00-390a8bd6 g133 (demote: 11 upheld + 4 missed)
+BASE      CUT FROM season2/loops/hypothesis-g133-one-resolve-old--a00-390a8bd6 tip 2e662e8842 (worktree under the RAM-disk cell). No merge. Never rebase.
+1. the WARN reaches a NEW write -- write.py create branch returns before the _warn_home_path call -- the call runs on create AND edit; a row drives `write.py create` (tmp project) and sees ONE WARN on stderr, rc 0.
+2. the committed guard is green -- the kid's experiment node carries home-rooted literals -- write them as <home>/...; paste test_anonymize_guard.py::test_no_committed_home_path_in_the_four_scrub_scopes green at YOUR tip.
+3. F4 literally 0 hits -- test_resolve_old_sha.py:108 quotes the literal -- build it by concatenation; paste the F4 command output (0 lines).
+4. F3 by the letter -- links.py sha unknown path echoes the input id -- print only `unknown commit id` (no id); test_f3 asserts the input id is absent from stdout AND stderr.
+5. a dropped commit is not a commit -- a map row whose new id is all zeros, or a new id git does not know as a commit, returns None; one row each.
+6. the hex gate matches the claim -- a 6-hex mapped prefix returns None today -- accept 4..40 hex (ambiguity still = None); one row.
+7. the WARN judges ADDED text only, over EVERY added-text source -- body_patch_diff (+ lines only), patch_diff (+ lines only), set_fm values, body_append, thought, replace_text, payload -- never the whole old body; rows: a patch whose context line carries a home path and whose added line does not = no WARN; the reverse = WARN.
+8. ONE config rule -- links.py _sha_map_path's root.parent / graph-dir search -- read the cell through the existing project-root discovery + locations.load_config only; delete the second rule.
+9. a cached map -- the map re-read per call -- read once per (path, mtime) in-process.
+10. `links.py sha` with no id is refused by name at argv (rc 2), never resolved as an empty string.
+11. evidence re-run at YOUR final tip, pasted: python3 -m pytest extensions/agi/tests/test_resolve_old_sha.py extensions/agi/tests/test_links.py extensions/agi/tests/test_write.py extensions/agi/tests/test_anonymize_guard.py extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/dh344
+DEMOTED (no work): mur 10 note (per-call git subprocess, CLI scale) folded into 9 · mur 11 (no engine reader verifies a node-cited commit: measured at dispatch; the CLI is the reader) · config_max / template_max = yes but both are RETURNED lines, correctly not code.
+ANON      no user name, home or repo path value, host, IP, hardware name, real map row or real pre-rewrite id in ANY output, node, test, commit or dm -- synthetic values only; home paths written <home>/...
+FILE SCOPE extensions/agi/bin/links.py · extensions/agi/bin/write.py · extensions/agi/tests/test_resolve_old_sha.py · the kid's own experiment node (and the prior kid node, item 2 only)
+CEILING   HARD CAP (director's disclosed override of the round ceiling, whole chain vs base 0ebaac570f): 1 kid · links.py <= 45 added lines · write.py <= 22 · tests <= 170 · comments count as lines · pi-free tier-0 · 0 USD -- over it = the round is cut
+PARENT    paste FILE SCOPE, ANON and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
