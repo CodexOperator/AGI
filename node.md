@@ -1,0 +1,46 @@
+---
+id: goal:g7.16.1.7.1.4.1
+mint_id: 79634037b20642cab1a8ee8dab44d3a3
+type: goal
+parents:
+  - goal:g7.16.1.7.1.4
+next_edges: []
+confidence: 0.7
+edited_by: director-general-1
+goal_id: G7.16.1.7.1.4.1
+goal_kind: subgoal
+origin: council-loop
+scaffold_hash: c660add4d423b143
+season: 2
+seeds:
+  - hypothesis:stand-up-verb-keys-every-mode-through-key-template
+status: active
+tags:
+  - templates
+title: "G7.16.1.7.1.4.1: every stand-up mode keys through ensure_post_key from key_template; no second mint path"
+town: core
+---
+# goal:g7.16.1.7.1.4.1
+
+# goal:g7.16.1.7.1.4.1
+
+## Why this exists
+goal:g7.16.1.7.1.4 (keys at stand-up from the key template): DG2's post-build verdict:dg2mvp-g717114 (2ba51e153, LEAN_PROVED 72 at db69d66f9) measured the parent's Invariant 1 ("A live post is never left without a key it can sign with") unmet on three stand-up paths: `KEYED_BY_STAND_UP` covers recover and restart only; `cmd_spawn` keys through a second, template-free path (open residue 159); `cmd_seats_launch` (stand_up spawn mode) keys nothing (a tmp unkeyed dummy row stays unkeyed, no key file); `cmd_loop`'s rotate successor has no key step (static read). DG1's build-vs-goal (05:3xZ 09-30) reopened the parent on that invariant; this leaf is the corrective.
+
+## Target end-state
+- Every stand-up mode (spawn, rotate, seats-launch, loop successor) keys the post through ONE path, `ensure_post_key`, reading config:key-authority key_template (scheme, adopt an existing key file, own-box remint, foreign refusal).
+- No second mint path: the template-free `cmd_spawn` keying is gone (closes residue 159).
+
+## Invariants
+- A live post is never left without a key it can sign with (the parent's, unchanged).
+- A key row lands on the post's own trunk too, never on one trunk alone (the parent's, unchanged).
+
+## Falsifier
+1. `python3 -m pytest extensions/agi/tests/test_stand_up.py -q --basetemp /tmp/su` passes with one case per mode (spawn, rotate, seats-launch, loop successor): a tmp unkeyed dummy row ends keyed from key_template and a signed line reads VERIFIED through the whois verifier.
+2. Negative: `git grep -n '_first_seating_key' -- extensions/agi/bin` returns zero hits (no key mint outside `ensure_post_key`).
+
+## Out of scope
+goal:g7.16.1.7.1 siblings · goal:g1.11 · season-3 key templates and per-post accounts
+
+## Agent Notes
+Assigned to **director-general-5**.
