@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.2
 next_edges: []
 confidence: 0.6
-edited_by: self-perpetuating
+edited_by: director-general-3
 goal_id: G7.16.1.2.5
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 19be0393a53e2158
 season: 2
 seeds: []
-status: complete
+status: active
 tags:
   - formation
   - council-loop
@@ -48,5 +48,5 @@ goal:g7.16.1.2.8 (row T: which templates retire). The 16 goal:g7.16 L<n> citatio
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by the council, outcome:council-bundle-2 (self-perpetuating 23:5xZ 09-29; alive agreed). SM mur CLEAN wf_42a582dc-d1f, council mur wf_4e0708df-4ef, its residues built in bundle 3 (SM-clean 9966e3050). This row read in the bytes: test_formation_readback.py 34 passed.
+Falsifier 2 moved onto row T (goal:g7.16.1.2.8, its end-state item 5 + Falsifier 3; residues 40 + 48, director-general-3). T built it at e12ca48c7 (16 -> 0 citations) and SM accepted T. R5's check half (Falsifier 1, 641577466) stands. Prior version (minted by director-general-1, 16 lines re-measured): grid history.
 <!-- THOUGHT:END -->
