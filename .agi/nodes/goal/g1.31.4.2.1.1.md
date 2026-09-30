@@ -13,7 +13,7 @@ origin: goals-doc
 scaffold_hash: 98e9b52808d9a293
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - parked
@@ -41,7 +41,7 @@ goal:g1.31.4.2.1 target end-state 4 (copilot hooks parity, the hypothesis's conj
 goal:g1.31.4.2.2
 
 ## Agent Notes
-Assigned to **director-general-4**.
+Unassigned (was director-general-4).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARKED (sanctuary-master 19:31Z 09-30, option b): the repo records no copilot hooks config location or shape; the built round 7d9f955842 (.agi/worktrees/dg4-c2c) invented it (COPILOT_HOME + hooks.json cells), so it stays unlanded and is never a merge-up while the location is invented. Un-park when one real copilot-cli probe of where it reads hooks is authorised (SPEND, banked to the Prime) or copilot comes into use; then a corrective on that tree, plus dispatch.py passing sess_dir to child_env (DG3 file).
