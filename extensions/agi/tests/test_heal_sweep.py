@@ -472,16 +472,26 @@ def test_sweep_bring_home_refuses_non_terminal(repo_root, monkeypatch):
     assert "non-terminal" in text
 
 
+def _archived(repo: Path, ref: str, prefix: str) -> dict:
+    """relative path (under `prefix`) -> bytes, for every file the archive
+    ref's tree holds below `prefix` (the same shape as `_snapshot`)."""
+    names = subprocess.run(
+        ["git", "-C", str(repo), "ls-tree", "-r", "--name-only", ref, "--", prefix],
+        capture_output=True, text=True, check=True).stdout.split()
+    return {n[len(prefix) + 1:]: subprocess.run(
+        ["git", "-C", str(repo), "show", f"{ref}:{n}"],
+        capture_output=True, check=True).stdout for n in names}
+
+
 def test_sweep_bring_home_never_overwrites_foreign_target(repo_root,
                                                            monkeypatch):
-    """(c, RE-PINNED L4.257 to the claim's ORIGINAL (c)) A pre-existing
-    NON-EMPTY main target is never overwritten by the sweep AND the round is
-    REFUSED: a foreign non-empty dir is NOT home (condition (4) is per-source
-    and byte-exact, `_sweep_iter_home`), so the bring-home IS attempted,
-    session-complete (whose authority stays intact) refuses the collision,
-    and the source-holding worktree is left standing with its bytes (the
-    earlier-documented 'deviation' is gone -- an on-disk target is no longer
-    home by is_dir alone)."""
+    """(c, RE-PINNED goal:g7.16.1.5.3) A pre-existing NON-EMPTY main target is
+    never overwritten by the sweep: the bring-home IS attempted, session-
+    complete (whose authority stays intact) refuses the collision ("target
+    exists"). That refusal is TERMINAL -- the round is over -- so it no longer
+    holds the tree forever (4287 of 4291 not-home refusals, 09-30): the tree's
+    OWN records ride into refs/archive/worktrees/<name>-dirty (byte-verified
+    here), THEN the tree is removed. No byte is lost on either side."""
     repo = repo_root
     graph = _graph(repo)
     wt = _cut(repo, "a00-1111aa", "loop/1-A@2", "season/s2")
@@ -490,6 +500,7 @@ def test_sweep_bring_home_never_overwrites_foreign_target(repo_root,
     tgt = graph / "sessions" / "iter-503"
     tgt.mkdir(parents=True, exist_ok=True)
     (tgt / "preexisting.txt").write_text("foreign\n")
+    src_before = _snapshot(wt / ".agi" / "sessions" / "iter-503")
     log = graph / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     removed, refused, _ = heal._sweep_finished_worktrees(graph)
@@ -497,13 +508,14 @@ def test_sweep_bring_home_never_overwrites_foreign_target(repo_root,
     # overwritten (session-complete refused the collision).
     assert (tgt / "preexisting.txt").read_text() == "foreign\n", \
         "the foreign target bytes must survive the pass untouched"
-    # ...AND the foreign dir is NOT home, so the tree is REFUSED, never reaped
-    # with its own unmigrated records.
-    assert (removed, refused) == (0, 1)
-    assert wt.exists(), "the source-holding tree is not home (foreign target)"
+    assert (removed, refused) == (1, 0)
+    assert not wt.exists(), "archived, then removed"
+    assert _archived(repo, "refs/archive/worktrees/a00-1111aa-dirty",
+                     ".agi/sessions/iter-503") == src_before, \
+        "the tree's own unmigrated records are byte-equal in the archive"
     text = log.read_text()
-    assert "[sweep] refused a00-1111aa: session dir not home" in text
-    assert "target exists" in text
+    assert "[sweep] archived a00-1111aa (sessions 1) ref=refs/archive/worktrees/a00-1111aa +dirty" in text
+    assert "session dir not home" not in text
 
 
 def test_sweep_bring_home_branch_round_calls_once(repo_root, monkeypatch):
@@ -767,7 +779,8 @@ def test_sweep_byte_equal_copy_is_home(repo_root, monkeypatch):
     """(d) A target holding a BYTE-EQUAL copy of the source (hand-copied,
     no session-complete) IS home: the worktree is removed. A target that
     differs by one byte is NOT home: the bring-home is attempted and refused
-    (non-empty target), the tree stands."""
+    (non-empty target), so its records are archived before the tree goes
+    (goal:g7.16.1.5.3)."""
     repo = repo_root
     graph = _graph(repo)
     # -- home twin: byte-equal copy --
@@ -784,17 +797,22 @@ def test_sweep_byte_equal_copy_is_home(repo_root, monkeypatch):
     shutil.copytree(wt_b / ".agi" / "sessions" / "iter-702", tgt_b)
     (tgt_b / "output.log").write_text("foreign byte differs\n")
 
+    src_b = _snapshot(wt_b / ".agi" / "sessions" / "iter-702")
     log = graph / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     removed, refused, kept = heal._sweep_finished_worktrees(graph)
-    assert (removed, refused, kept) == (1, 1, 0)
+    assert (removed, refused, kept) == (2, 0, 0)
     assert not wt_a.exists(), "byte-equal copy is home -> removed"
-    assert wt_b.exists(), "one-byte-differing target is not home -> refused"
+    assert _ref(repo, "refs/archive/worktrees/a00-3333cc-dirty") == "", \
+        "a home tree needs no archive"
+    assert not wt_b.exists(), "not home (target exists) -> archived, removed"
+    assert _archived(repo, "refs/archive/worktrees/a00-4444dd-dirty",
+                     ".agi/sessions/iter-702") == src_b
     assert (tgt_b / "output.log").read_text() == "foreign byte differs\n", \
         "the differing foreign bytes survive untouched"
     text = log.read_text()
     assert "removed a00-3333cc iter=iter-701" in text
-    assert "refused a00-4444dd: session dir not home" in text
+    assert "archived a00-4444dd (sessions 1)" in text
 
 
 # ---------------------------------------------------------------------------
