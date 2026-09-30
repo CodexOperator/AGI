@@ -39,8 +39,8 @@ HOME = "/" + "home/" + "someuser"
 
 def _git_head(d: Path) -> str:
     """Make `d` a git repo with one commit; return its full id."""
-    env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
-           "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t",
+    env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@example.com",
+           "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@example.com",
            "PATH": "/usr/bin:/bin", "HOME": str(d)}
     subprocess.run(["git", "init", "-q", str(d)], check=True, env=env)
     (d / "f").write_text("x\n")
