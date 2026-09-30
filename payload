@@ -978,6 +978,25 @@ def _w2cb_twin(tmp_path, mint: bool):  # goal:g <- hypothesis:h <- experiment:e;
     return root
 
 
+# goal:g4.18.6.3.2 B1 (frontier · chains · metrics): each calls the one resolver; the
+# remaining family-B readers stay in the strict xfail below until their group lands.
+def test_w2cb1_frontier_chains_metrics_read_a_mint_twin_as_its_address_twin(tmp_path, monkeypatch):
+    import frontier as fr, metrics
+    from chain_engine import chains
+    seen, greps, real = [], [], links.mint_index
+    monkeypatch.setattr(links, "mint_index", lambda root: (greps.append(root), real(root))[1])
+    for mint in (False, True):
+        root, ne = _w2cb_twin(tmp_path, mint), {}
+        ns = fr._load_nodes(root / "nodes")
+        chains._load_next_edges_from_disk(str(root / "nodes"), ne)
+        seen.append((sorted(n["id"] for n in fr._tips(ns)), fr._anchor(ns, "experiment:e"), ne,
+                     metrics.goal_attribution(root / "nodes")["unattributed_nodes"],
+                     sorted(metrics._load_graph(root).get_node("hypothesis:h").children)))
+        if not mint:
+            assert greps == [], "an address-only graph builds no mint index"
+    assert seen[1] == seen[0] and seen[0][2] == {"hypothesis:h": ["experiment:e"]}
+
+
 @pytest.mark.xfail(strict=True, reason="bundle 4 W2c re-scope B: RED until DG3 resolves the private parses")
 def test_w2cb_every_private_parse_reads_a_mint_twin_as_its_address_twin(tmp_path):
     import importlib, brief, frontier as fr, graphweb as gw, metrics, telemetry_rollup as tr
