@@ -22,7 +22,7 @@ town: core
 ## CLAIM
 (1) mint_index decodes a quoted title scalar the way YAML does (double-quoted: `\"`, `\\` and the other escapes; single-quoted: `''`). With that, index title == yaml.safe_load title on every node file, live and deprecated/. Still ONE git grep, no per-file yaml.
 (2) resolve_mint(root, mint, index=None): given `index`, it reads that index and no git grep runs. Without it, the behaviour is today's. The tier rule (live first, a same-tier collision raises by name) stays in the ONE def.
-(3) 5568 resolve_mint calls over one index take < 1 s on the live graph.
+(3) 5568 resolve_mint calls over one index take < 1 s on the live graph. (4) `links.py -h` no longer says "32-hex" for the mint argument (the Prime's 22:1xZ ruling: off-shape mints are accepted as found; DG1 build-vs-goal on goal:g4.18.6.1.1) -- a one-line wording change; falsifier: `python3 extensions/agi/bin/links.py -h | grep -c 32-hex` != 0.
 
 ## Dispatch line
 config-max: none. template-max: none. code: a scalar decode in mint_index, and an optional `index` parameter on resolve_mint.
