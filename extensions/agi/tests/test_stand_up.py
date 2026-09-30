@@ -462,6 +462,79 @@ def test_a_refused_row_unlinks_the_staged_key(graph, monkeypatch):
     assert not key.exists() and not list(key.parent.glob(f".{key.name}.*"))
 
 
+def _stage_orphan(graph: Path, seat: str, priv: bytes) -> Path:
+    import send
+    return rotate._stage_seat_key(send, graph, seat,
+                                  send.seatsig.DEFAULT_SCHEME, priv)
+
+
+def _a_new_key() -> tuple[bytes, str]:
+    import send
+    priv, pub = send.seatsig.get(send.seatsig.DEFAULT_SCHEME).keygen()
+    return priv, pub.hex()
+
+
+def test_the_remint_adopts_its_own_orphan_staged_key(graph, monkeypatch):
+    """158c: the kill between the row write and the rename -- the next run
+    ADOPTS the temp (no remint, no key_history entry) and sweeps every other
+    orphan temp for the seat."""
+    import send
+    _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    priv, pub = _a_new_key()
+    seats = graph / "nodes" / ".geometry" / "seats.md"
+    # the row write landed naming the new pub; the rename never did
+    seats.write_text(seats.read_text().replace(_row(graph, "seat-a")["pubkey"], pub),
+                     encoding="utf-8")
+    key = send._seat_key_path(graph, "seat-a")
+    _stage_orphan(graph, "seat-a", priv)
+    _stage_orphan(graph, "seat-a", _a_new_key()[0])  # a stale temp of another key
+    note = rotate.ensure_post_key(graph, "seat-a")
+    assert "ADOPTED" in note and "remint held" not in note, note
+    assert json.loads(key.read_text())["priv_hex"] == priv.hex()
+    assert _row(graph, "seat-a")["pubkey"] == pub
+    assert _row(graph, "seat-a")["key_history"] == []
+    assert _verifies(graph, "seat-a").startswith("VERIFIED seat-a")
+    assert list(key.parent.glob(f".{key.name}.*")) == []
+
+
+def test_a_stale_orphan_temp_is_swept_and_the_remint_still_runs(graph, monkeypatch):
+    """158c falsifier 2: a temp whose key the row does NOT name is unlinked
+    and the normal remint path runs (key_history grows by one)."""
+    import send
+    _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    old = _row(graph, "seat-a")["pubkey"]
+    key = send._seat_key_path(graph, "seat-a")
+    _stage_orphan(graph, "seat-a", _a_new_key()[0])
+    note = rotate.ensure_post_key(graph, "seat-a")
+    assert "reminted" in note and "ADOPTED" not in note, note
+    assert _row(graph, "seat-a")["pubkey"] != old
+    assert len(_row(graph, "seat-a")["key_history"]) == 1
+    assert list(key.parent.glob(f".{key.name}.*")) == []
+
+
+def test_the_staging_comment_states_the_real_crash_window(graph, monkeypatch):
+    """158c falsifier 3: the dry run reports the adopt and changes nothing,
+    and the overclaiming staging comment is gone."""
+    import send
+    _sent, _sha = _keyed_repo(graph, "town-x", monkeypatch)
+    monkeypatch.setenv("AGI_BOX", "town-x")
+    priv, pub = _a_new_key()
+    seats = graph / "nodes" / ".geometry" / "seats.md"
+    seats.write_text(seats.read_text().replace(_row(graph, "seat-a")["pubkey"], pub),
+                     encoding="utf-8")
+    _stage_orphan(graph, "seat-a", priv)       # the key the row already names
+    _stage_orphan(graph, "seat-a", _a_new_key()[0])  # a stale temp
+    row = _row(graph, "seat-a")
+    dry = rotate._rotate_first_key(graph, None, "seat-a", row, dry_run=True)
+    assert "would ADOPT its orphan staged key and sweep 1" in dry, dry
+    key = send._seat_key_path(graph, "seat-a")
+    assert not key.exists() and len(list(key.parent.glob(f".{key.name}.*"))) == 2
+    src = (BIN / "rotate.py").read_text(encoding="utf-8")
+    assert "a crash leaves at worst an orphan temp, never a row naming" not in src
+
+
 def test_the_seating_keys_from_the_template_too(graph, monkeypatch):
     """159: spawn's _first_seating_key adopts an existing key file and sends
     a keyed row with no key file to the own-box rule."""

@@ -5,7 +5,10 @@ type: experiment
 parents:
   - hypothesis:remint-adopts-its-own-orphan-staged-key
 next_edges: []
+confidence: 0.9
 edited_by: a00-ca253dbf
+evidence_runs:
+  - experiment:a00-ca253dbf-45a5dc
 loop: hypothesis:remint-adopts-its-own-orphan-staged-key@s2
 model: stealth/space-bunny-alpha
 production_lines: 39
@@ -16,6 +19,7 @@ scaffold_hash: b355c9da340aa794
 season: 2
 title: remint adopts its own orphan staged key and sweeps the rest
 town: core
+verdict: proved
 ---
 # experiment:a00-ca253dbf-45a5dc
 
@@ -77,3 +81,6 @@ witness chain keeps its meaning.
   That is 39 added lines by `git diff --numstat` -- over 2x the parent's 14, so a
   RE-BRIEF is filed on this node rather than silently banked: the claim is built,
   tested and proved; what remains is only a parent answer on the ceiling.
+
+## Agent Notes
+Built 158c: _remint_missing_key adopts the orphan staged key whose priv derives the row pubkey (no keygen, no key_history entry), sweeps the seat's other orphan temps, dry-run reports it; 3 test rows, test_stand_up 33 passed, rotate neighbourhood 1095 passed; 39 added lines vs parent ceiling 14, re-brief filed

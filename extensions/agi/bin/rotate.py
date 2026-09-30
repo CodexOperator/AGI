@@ -17842,23 +17842,33 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
                        f"{own}, but no commit witnesses the row's box cell -- "
                        f"remint REFUSED")
     if dry_run:  # run-27 residue 160: a dry run sends no finding, writes nothing
-        return (f"(dry-run) {refusal[len('[finding] '):]} -- NOTHING sent"
-                if refusal else
-                f"(dry-run) seat {seat!r} is keyed with no key file on its own "
-                f"box {own}; would remint (witness {witness}) -- NOTHING done")
+        if refusal:
+            return f"(dry-run) {refusal[len('[finding] '):]} -- NOTHING sent"
+        staged, n = _orphan_staged_keys(send, root, seat, str(row.get("pubkey") or ""), True)
+        verb = f"ADOPT its orphan staged key and sweep {n}" if staged else f"remint (witness {witness})"
+        return (f"(dry-run) seat {seat!r} is keyed with no key file on its own box {own}; would {verb} -- NOTHING done")
     if refusal:
         return _key_finding(root, seat, refusal)
-    # run-27 residues 158 + 158b: the key is STAGED (hidden 0600 temp) before
-    # the row names it and renamed into place after; a refused row write or a
-    # failed rename unlinks the temp (and restores the row), so a crash leaves
-    # at worst an orphan temp, never a row naming a key that does not exist.
+    # 158c: a crash between the row write and the rename left the row naming
+    # a key that lives only in an orphan temp -- adopt it, sweep the rest.
+    old = str(row.get("pubkey"))
+    adopt, swept = _orphan_staged_keys(send, root, seat, old, False)
+    if adopt is not None:
+        try:
+            _place_seat_key(adopt, send._seat_key_path(root, seat))
+        except OSError as exc:
+            return f"seat {seat!r}: remint held -- orphan staged key not placed ({exc})"
+        note = (f"seat {seat!r}: key file absent on own box {own}; ADOPTED its orphan staged key "
+                f"{send.seatsig.fingerprint(bytes.fromhex(old))}, {swept} temp swept")
+        _key_finding(root, seat, f"[finding] {note}"); return note
+    # 158 + 158b: the key is STAGED (hidden 0600 temp) before the row names
+    # it; a refused write or a failed rename unlinks it (row restored).
     scheme = row.get("sig_scheme") or tmpl.get("scheme") or send.seatsig.DEFAULT_SCHEME
     priv, pub = send.seatsig.get(scheme).keygen()
     try:
         tmp = _stage_seat_key(send, root, seat, scheme, priv)
     except OSError as exc:
         return f"seat {seat!r}: remint held -- key file not staged ({exc}); row untouched"
-    old = str(row.get("pubkey"))
     entry = {"pub": old, "fp": send.seatsig.fingerprint(bytes.fromhex(old)),
              "signed": False, "reason": "key file absent on own box",
              "box": own, "witness": witness,
@@ -17919,6 +17929,26 @@ def _template_key(send, root: Path, seat: str, scheme: str, tmpl: dict):
     if found is None:
         return None
     return (*found, send._seat_key_path(root, seat), "adopted its existing key")
+
+
+def _orphan_staged_keys(send, root: Path, seat: str, pub_hex: str, dry_run: bool):
+    """158c -- `seat`'s orphan temps; the one whose secret derives the row's
+    CURRENT pubkey is adopted, the rest unlinked. `(match, would_sweep)`."""
+    path = send._seat_key_path(root, seat)
+    temps = sorted(path.parent.glob(f".{path.name}.*.tmp"))
+    match = None
+    for tmp in temps:
+        try:
+            obj = json.loads(tmp.read_text())
+            hit = match is None and send.seatsig.get(obj["scheme"]).public_from_secret(
+                bytes.fromhex(obj["priv_hex"])).hex() == pub_hex
+        except Exception:  # noqa: BLE001 -- unreadable is not the key
+            hit = False
+        if hit:
+            match = tmp
+        elif not dry_run:
+            tmp.unlink(missing_ok=True)
+    return match, len(temps) - (1 if match else 0)
 
 
 def _place_seat_key(tmp: Path, path: Path) -> None:
