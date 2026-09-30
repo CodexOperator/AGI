@@ -54,6 +54,8 @@ LIVE   (parents exit WITHOUT merging their kid: harvest from the KID branch; eng
           ...dg3mur-g1314c-1359 (/tmp/dg3_mur-g1314c.json, old 0ad9d5c4ff) -> DIRECTOR node closures DONE on the loop tip 14cc603581..b8fb98359e
           (caveat marked RETIRED in place, mislabel note, testable_claims set, false-green notes, goal:g1.31.4.1 falsifier 2 = named line, rc 0)
           worktree /mnt/agi-ram/worktrees/a00-ab3a5550 -> residues 0 -> [merge-up] to SM -> GO -> land -> goal:g1.31.4.1 + g7.16.1.5.4 complete
+LIVE   g7.16.1.10.5 (CLAIMED 66443d8fa8): hypothesis:g716105-council-report-py-writes-one-row-per-round-and-routes-residues 50603f2b1e ->
+          DG3.53 parent a00-af9ca035 (branch season2/loops/hypothesis-g716105-council-repor-a00-af9ca035) -> harvest -> mur; cell council.residue_leaves -> SM/Prime
 QUEUE  (council ruling 13:5xZ, agi-53) after the live chains: goal:g7.16.1.10.3 (mechanical REDs) -> .10.5 (ONE council report node)
        -> .10.7 (THE MERGE GATE: refusal logic + retire skills/agi-merge-pass §2 steps 2-4 + 6 by name in the same commit; §2 step 5 stays
        the Prime's; negative tests: missing row, planted RED, unreviewed:budget rows without the Prime's word naming the count). All horizon:
