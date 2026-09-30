@@ -667,6 +667,12 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
 #: transcribing it (one source per rule).
 MINTED_IDENTITY = ("id", "mint_id", "next_edges", "scaffold_hash")
 
+#: THE gated rows: the spawn gate judges `type` and `parents` from write_node's
+#: own arguments, so a caller row naming one would land a node the gate never
+#: judged (`create --parent goal:real --set parents=[goal:nope]`, SM run 10).
+#: write.py's `--set` refusal reads it from HERE.
+GATED_ROWS = ("type", "parents")
+
 
 def write_node(
     root,
@@ -717,6 +723,12 @@ def write_node(
     node_id = f"{ntype}:{slug}"
     res = NodeWrite(node_id=node_id, node_type=ntype, slug=str(slug),
                     parents=list(plist))
+    gated = sorted(set(extra_fm or {}) & set(GATED_ROWS))
+    if gated:
+        res.status = REJECTED
+        res.reason = (f"extra_fm names {gated}: the spawn gate judges the create's own "
+                      f"type and parents, and a row never overwrites them after it")
+        return res
 
     current_season = None
     if rules is None or type_index is None:

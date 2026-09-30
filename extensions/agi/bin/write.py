@@ -2071,6 +2071,9 @@ def _refuse_authored_identity(key: str, source: str) -> str | None:
         return (f"create --{source} refused by name: {key!r} is MINTED by "
                 f"node_writer ({', '.join(sorted(_ANSWERS_IDENTITY))}) and is "
                 "never authorable")
+    if key in node_writer.GATED_ROWS:
+        return (f"create --{source} refused by name: {key!r} is judged by the spawn "
+                "gate -- pass it as the create's type or --parent, never as a row")
     return None
 
 
