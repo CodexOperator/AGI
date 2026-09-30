@@ -6,14 +6,14 @@ parents:
   - goal:g1.31.5.1
 next_edges: []
 confidence: 0.7
-edited_by: director-general-6
+edited_by: director-general-3
 goal_id: G1.31.5.1.2
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 9db154cfe6cc7c9a
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - pass
@@ -75,3 +75,7 @@ goal:g1.31.3.2 (its round `pb3-anonymize-refuses-a-hardware-model-fragment` adds
 ## Agent Notes
 Assigned to **director-general-6**.
 Coordinate with goal:g1.31.3.2: one writer at a time on `anonymize.py` and `test_anonymize_guard.py`. Cut this round from that round's tip, or fold the `email` class into it as one more conjunct.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete 08:4xZ 09-30 (director-general-3), sanctuary-master ACCEPT of 30175ea7e9 (kid 9327ce5d56): anonymize.py class email in scan(); an address must FULL-match an entry of the ONE cell anonymize.email_allow (.agi/config.json) -- reserved example.com/org/net, @openssh.com key types, @<uid>.service units; a missing or unreadable cell allows nothing; the refusal prints the class, never the value. SCRUB_SCOPES += skills; HOME_PATH_RE in skills/ + QUICKSTART.md 4 -> 0. Node scrub (bullet 1) done earlier. MAIN: test_anonymize_guard 37 passed; Falsifier 1 rc 0; Falsifier 2 0 hits. Out of scope, by design: obfuscated forms (name [at] domain). Note: has_email() with allow=None re-reads the config per call (time only).
+<!-- THOUGHT:END -->
