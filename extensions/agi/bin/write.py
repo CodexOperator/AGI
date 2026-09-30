@@ -4283,14 +4283,14 @@ def _pre_dirty(root, node_id: str, edit=None) -> set:
         if p is None:
             continue
         p = os.path.abspath(str(p))
-        rc = 0 if git("ls-files", "--error-unmatch", "--", p).returncode else \
-            git("--no-optional-locks", "diff", "--quiet", "HEAD", "--", p).returncode
-        if rc == 1:   # 0 clean, 1 dirty, >= 2 unknown: a failed git is not a hand edit
+        dq = lambda: git("--no-optional-locks", "diff", "--quiet", "HEAD", "--", p).returncode  # noqa: E731
+        rc = 0 if git("ls-files", "--error-unmatch", "--", p).returncode else dq()
+        rc = dq() if rc > 1 else rc   # 0 clean, 1 dirty, >= 2 unknown: retry once, then FAIL CLOSED
+        if rc:
             out.add(p)
-        elif rc:
-            unknown.append(rc)
+        unknown += [rc] * (rc > 1)
     if unknown:
-        print(f"note: git diff rc {unknown} sampling {node_id}; not pre-dirty", file=sys.stderr)
+        print(f"note: git diff rc {unknown} sampling {node_id}; state unknown, path refused", file=sys.stderr)
     return out
 
 

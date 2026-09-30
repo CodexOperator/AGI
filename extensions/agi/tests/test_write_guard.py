@@ -910,16 +910,19 @@ def test_dg411_a_hand_edit_to_the_payload_is_never_laundered(project, capsys, ve
     assert "p.sh" in err and "PRIOR uncommitted write.py write" in err and " commit -q -m " in err, err
 
 
-# DG4.11 -- a `git diff --quiet` that ERRORS (rc 128) is UNKNOWN, never dirty: one
-# transient git failure must not make every later write to a clean node refuse.
-def test_dg411_a_failed_git_diff_does_not_poison_the_next_write(project, capsys, monkeypatch, tmp_path):
-    import shutil
+# DG4.11b -- a `git diff --quiet` that ERRORS (rc 128) is retried once, then FAILS CLOSED
+# (refused rc 3, path named); an error that clears on the retry commits.
+@pytest.mark.parametrize("fails,rc", [(2, 3), (1, 0)])
+def test_dg411_a_failed_git_diff_retries_once_then_fails_closed(project, capsys, monkeypatch, tmp_path, fails, rc):
+    import os, shutil
     g, _head = _w1b(project)
     (tmp_path / "bin").mkdir()
     stub = tmp_path / "bin" / "git"
-    stub.write_text(f'#!/bin/sh\ncase "$*" in *"diff --quiet"*) exit 128;; esac\nexec {shutil.which("git")} "$@"\n')
+    stub.write_text(f'#!/bin/sh\ncase "$*" in *"diff --quiet"*) n=$(cat {tmp_path}/n 2>/dev/null || echo 0)\n'
+                    f'echo $((n+1)) > {tmp_path}/n; [ "$n" -lt {fails} ] && exit 128;; esac\nexec {shutil.which("git")} "$@"\n')
     stub.chmod(0o755)
-    monkeypatch.setenv("PATH", f"{tmp_path / 'bin'}:{__import__('os').environ['PATH']}")
-    assert write.main(["hypothesis:h9", "set confidence 0.4", "--root", str(project)]) == 0
-    assert "rc [128]" in "".join(capsys.readouterr()), "one note names the rc"
-    assert g("show", "--name-only", "--format=", "HEAD").split() == [".agi/nodes/hypothesis/h9.md"]
+    monkeypatch.setenv("PATH", f"{tmp_path / 'bin'}:{os.environ['PATH']}")
+    assert write.main(["hypothesis:h9", "set confidence 0.4", "--root", str(project)]) == rc
+    err = "".join(capsys.readouterr())
+    assert ("rc [128" in err and "path refused" in err) == (rc == 3), err
+    assert (g("rev-parse", "HEAD").strip() != _head) == (rc == 0), "committed only when the retry cleared"
