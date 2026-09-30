@@ -2450,6 +2450,36 @@ def test_w1a_fix_row_name_picks_one_table_row(project, tmp_path, capsys):
     assert write._read_body_text(project, "hypothesis:h1") == after
 
 
+# SM 112 + hypothesis:body-replace-lands-at-most-one-well-formed-thought-and-row-
+# name-skips-the-separator: the SPLICED body holds at most one well-formed block
+# and no stray marker line; a separator row is never a name.
+def test_w1a_fix2_the_spliced_body_keeps_one_well_formed_thought(project, tmp_path, capsys):
+    node, body = _w1c_node(project)
+    before, lines = node.read_text(), body.split("\n")
+    n = next(i for i, (a, _) in enumerate(node_writer.body_rows(body), 1)
+             if lines[a - 1].startswith("<!-- THOUGHT:BEGIN"))
+    beg, end = THOUGHT.split("\n")[0], "<!-- THOUGHT:END -->"
+    tail = next(i for i, (a, _) in enumerate(node_writer.body_rows(body), 1) if lines[a - 1] == "tail")
+    for i, text in ((n, THOUGHT + "\n\n" + THOUGHT), (n, f"{beg}\n{beg}\nx\n{end}"),
+                    (n, f"{end}\n{THOUGHT}"), (tail, THOUGHT), (tail, beg)):
+        (tmp_path / "t.txt").write_text(text + "\n")
+        for dry in ([], ["--dry-run"]):
+            assert write.main(["hypothesis:h1", f"row {i} {tmp_path / 't.txt'}", *dry,
+                               "--root", str(project)]) == 2, text
+            assert "`thought` verb" in capsys.readouterr().err
+    assert node.read_text() == before
+
+
+def test_w1a_fix2_row_name_skips_separators_and_reads_a_dotted_name(project, tmp_path):
+    node, body = _w1c_node(project)
+    (tmp_path / "r.txt").write_text("| write.py | 9 |\n")
+    for name in ("---", ":---:"):
+        assert write.main(["hypothesis:h1", f"row name:{name} {tmp_path / 'r.txt'}", "--root", str(project)]) == 2
+    assert write.main(["hypothesis:h1", f"row name:alpha {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    assert write.main(["hypothesis:h1", f"row name:write.py {tmp_path / 'r.txt'}", "--root", str(project)]) == 0
+    assert write._read_body_text(project, "hypothesis:h1") == body.replace("| alpha | 1 |", "| write.py | 9 |")
+
+
 # BUILD1 (goal:g7.16.1.4 W1, alive 841857ddb): `row <top>.<key> <src>` edits ONE
 # nested frontmatter row (command:commands `manifest.<key>`); an empty source
 # removes it; every other frontmatter line stays byte-identical.
