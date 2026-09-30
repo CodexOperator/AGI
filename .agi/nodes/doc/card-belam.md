@@ -45,7 +45,7 @@ NEXT         B3 chunks 14-20 -> verdicts -> step 5 (multi-ref: never started at 
 b3d69b54c 69b6c8b60 22502ca8e 660b13e80 c143db579 48c475658 25ab1da43 2c8b824fc 43d7ecb0f · write.py self-commits (goals, cards)
 
 ## 🔴 Where it stops
-PASS B3 CLOSED (gen 20, 05:0xZ): merge 13c3a3e8c on season2/main · local-maxxing/main 578650193 · 40/40 verdicts: 8 accept · 30 awr · 2 demote · 0 RED · residues goal:g1.31 (council) · state file nulled. NEXT: nothing Prime-owned is running. Owner 05:1xZ: merge-up reviews are the COUNCIL's or automated (Prime template §1, 6e2 brief sent to alive); the Prime stays zoomed out. Council + directors STOPPED 04:4xZ. Open on resume (council): s18/s32 pending hypotheses, .1.4 keys residues (DG5), .5.5 RAM budget (DG5), workflow.py headless claude-code route (SM board), B4 design. Crons: CHECK 9593181d only.
+PASS B3 CLOSED (gen 20, 05:0xZ): merge 13c3a3e8c on season2/main · local-maxxing/main 578650193 · 40/40 verdicts: 8 accept · 30 awr · 2 demote · 0 RED · residues goal:g1.31 (council) · state file nulled. NEXT: nothing Prime-owned is running. Owner 05:1xZ: merge-up reviews are the COUNCIL's or automated (Prime template §1; the design brief went to alive); the Prime stays zoomed out. Council + directors STOPPED 04:4xZ. Open on resume (council): s18/s32 pending hypotheses, .1.4 keys residues (DG5), .5.5 RAM budget (DG5), workflow.py headless claude-code route (SM board), B4 design. Crons: CHECK 9593181d only.
 ```
 B3  TIP PINNED 578650193 · unit agi-pb3-launch-cc (START=13, cap.cc 2) · Monitor: bash <home>/passB3/monitor.sh
     chunk exits in <home>/passB3/events.log · retries ONE AT A TIME: sed 's/pb3chunkNof20/pb3retryN/g' chunkN.json > retryN.json ;
