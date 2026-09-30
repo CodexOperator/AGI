@@ -52,7 +52,7 @@ B3  since 23:33Z: TIP PINNED 578650193 (merge only TIP) · sampled 40/257 rounds
     systemd-run --user --unit=agi-pb3-retryN --slice=agi-work.slice --working-directory=/data/work/agi --collect bash <home>/passB3/retry-cc.sh retryN
     done pi: 1 2 4 + retry5 (4/4) · running pi: 3 6 · monitor.sh watches launch(-cc) + retry(-cc)
     at the end: verdicts.py -> RED gates: anonymize BASE..TIP (its home-path gate misses /data/<user> homes, residue 128: grep them by hand)
-    · the 3 formation D paths l4-formation-1/-3/-4 by mint_id · goal:g7.16.2 other-box user segment grep -> section 2 steps 5-9 (skill agi-merge-pass)
+    · step 5 VERIFY ON THE RAM DISK (owner 01:3xZ): git worktree add --detach /mnt/agi-ram/verify-b3 <merge sha>, verify there, remove it · the 3 formation D paths l4-formation-1/-3/-4 by mint_id · goal:g7.16.2 other-box user segment grep -> section 2 steps 5-9 (skill agi-merge-pass)
 W   AFTER B3: resume the worktree prune (7/881 done, every byte kept under refs/archive/worktrees/*): systemd-run --user --unit=agi-wt-prune
     --slice=agi-work.slice --nice=19 --collect /usr/bin/python3 <home>/wt-prune/prune.py --apply --sleep 1 ; stop it at io PSI some avg10 > 60
 C   core magic-pane merge (owner 01:1x-01:2xZ, goal:g7.16.1.7.3): ONLY the magic pane as the post anchor, NOT core's messaging; multi-ref, after the council places it
