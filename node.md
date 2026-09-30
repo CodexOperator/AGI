@@ -21,61 +21,58 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 19 after the planned reboot (01:55Z): the boot path resumed this session at 02:02:47Z but sent no first turn, so it idled until the owner typed; rewritten whole for the post-reboot state. (1) The brief said "DO NOT run git"; (2) the Prime skills need git (re-link, step 5, exact-path commits) and gens 1-18 committed as belam; (3) the near miss: obeying the generic director line strands B3 and the card; (4) the template line is written for non-Prime directors ("Master is yours alone" in the same brief).
+gen 20 rewrites the card whole ahead of its rotation (meter 0.41). The Prime's post changed shape today on the owner's word: directors coordinate through sanctuary-master and take rulings to the council ("the council IS prime to everyone else", 02:54Z); merge-up chunk reviews leave the Prime for the council or automation ("so you can keep the most zoomed out view", 04:50Z). So the successor inherits no PASS, only the watch until 11:00Z. Owner stamps are read from the transcript, never recalled (the HEAD's FORM rule, after alive's finding).
 <!-- THOUGHT:END -->
 
-## §0 State (02:2xZ 09-30, after the reboot)
+## §0 State (05:2xZ 09-30, read from date -u)
 | | |
 |---|---|
-| post | belam-S2-L5-XX gen 20, session **agi-79** (woke 02:3xZ, ack answered continue; quorum re-linked 3b91e6c1a; all posts told the new name) · predecessor gen 19 = agi-c2 (idle) · B3 chunks 16-20 in flight, step 5 after verdicts · row after `rotate.py ack --seat belam --gen 19 --ref 33b64b continue` (02:2xZ, committed by ack): session_ref 33b64b + session_id 284d4866 pinned, but pid 4039053 / window @21 stay stale (the join polls the OLD window) -> at rotate: TaskStop the monitors + CronDelete the crons FIRST, so this session stays idle if the reap misses it |
-| posts | ALL back via heal (one per pass, each in its OWN scope: P6 live) and RESUMED by SendMessage 02:1xZ. MESSAGING (owner verbatim): "use internal messaging only for everything and full guarantee until bundles land. Use the town bundles and goal nodes to coordinate context among the council and directors." Session names: ListAgents + tmux window names (@id -> post); a shared name needs its [ref] (all-is-one agi-8f [242e8c] vs DG3 agi-8f [e68acb]) |
-| box | MAIN on tmpfs under its own path (ram-main.sh) · ~/.claude + ~/.pi tiered (ram-tier.sh, cold = /mnt/agi-flash/state) · boot unit agi-ram-main: up + tier ensure; STOP flushes (ran clean 01:54:54Z) · heal log TIMESTAMPED (goal:g6.41.2) · boot took +5m23s in systemd-tmpfiles (an on-disk /tmp clean) |
-| crons | session-only, re-armed 02:0xZ: CHECK 9593181d "13 */4 * * *" · STOP 75d96fba 04:00Z (posts were resumed: it applies) · B3 Monitor on monitor.sh (re-armed by gen 20 02:3xZ) |
+| post | belam-S2-L5-XX gen 20, session **agi-79**; predecessor gen 19 = agi-c2 (idle, crons deleted) |
+| run | owner 04:58Z: "Continue hammering at it as fast as you can until 7am" -> every post RESUMED to **11:00Z** (7am ET); owner 04:59Z: "I need to max sub use before reset in an hour" -> Opus subagents allowed until the ~06:0xZ reset, then the brief's SUBAGENTS row (Sonnet 5.5) applies again |
+| posts | SM agi-5c · alive agi-e3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · **DG6 agi-bb (NEW 05:02Z, Opus, on goal:g1.31)** · stream-master agi-8c (stream OFF) — names change at every rotation: ListAgents + tmux window names |
+| lanes | coordination -> SM · rulings + mid-work questions -> the council · never the Prime (director brief messages row) |
+| crons | session-only: CHECK 9593181d "13 */4 * * *" · STOP e8dae945 11:00Z (stop the council + directors, stream-master stays, owner report). CronList FIRST at wake (skill agi-rotate §3) |
+| box | engine slice GUARD_ENGINE_MAX_local_town=3G (stopgap; real fix = goal:g7.16.1.5.5, DG5) · heal restarted 05:06:37Z onto ff09c6101 (SM's 1 h proof: no reaper oom-kill) · user@ cache pins memory.high under fan-out: relief = `echo 1500M > <post scope>/memory.reclaim` on the biggest file-heavy scope (freed 3.6 GiB 05:0xZ, nothing killed) |
 
 ## §1 Plan
 ```
-DONE gen 19  B3 chunks 1-13 · goal:g4.6.1 · RAM MAIN + tier + sweeps (.5.1/.5.2) · P6 live · reboot + verify + resume
-             heal log timestamps g6.41.2 · file-level sweep (2583 idle >24h items to flash)
-ASSIGNED     DG4 .5.3 BUILT · DG5 .5.4 BUILT (bfa89533e) · DG3/DG4/DG5 rotated 02:19-02:25Z: DG3's successor briefed (agi-91), DG4 + DG5 successors need ONE SendMessage each (messaging order + names) · was: DG4 goal:g7.16.1.5.3 (heal's sweep archives then prunes) · DG5 .5.4 (round worktrees on the RAM disk)
-             DG1 goal:g6.41.1.1 (boot-resumed session gets ONE first turn) · alive: S goals 12 -> 0 DONE, board line placed on town:core · DG1 g6.41.1.1 -> hypothesis ff358c109 handed to DG3
-NEXT         B3 chunks 14-20 -> verdicts -> step 5 (multi-ref: never started at f >= 0.41; else the successor's first act)
+DONE gen 20  PASS B3 closed: merge 13c3a3e8c on season2/main · local-maxxing/main 578650193 · 40 rounds: 8 accept · 30 awr · 2 demote · 0 RED · residues goal:g1.31 (council laned it: DG3 3 · DG5 8 · DG6 19 · node 17)
+             trunk synced db69d66f9 · engine slice 512M -> 3G (heal oom-kills) · DG4 cold homing + reclaim live · 9 hypotheses under retired s18/s31/s32 MOVED to g1.2 / g7.33.10.1 / g2.4.1
+             s31 -> complete · goal:g6.51 minted then retired ("The regime doesn't need a goal") · DG6 stood up · Prime template §1 + director brief (lanes, SUBAGENTS) · HEAD FORM time rule
+NEXT         the watch only: answer posts, keep memory breathing, fire the 11:00Z STOP, owner report
+NOT THE PRIME'S  B4 = goal:g7.16.1.10 (council: merge-up reviews off the Prime; DG1 sketches) · .5.5 RAM budget (DG5) · workflow.py headless claude-code route (SM board)
 ```
 
-## §2 Landed (gen 19)
-b3d69b54c 69b6c8b60 22502ca8e 660b13e80 c143db579 48c475658 25ab1da43 2c8b824fc 43d7ecb0f · write.py self-commits (goals, cards)
+## §2 Landed (gen 20)
+3b91e6c1a d04c7f9e2 4627581e7 5e47d781e 8ad1590a3 9de4f1fff 14a6f32b4 13c3a3e8c(season2/main) db69d66f9 e4475bcb9 eb7f30a64 af41ea678 73a89bb4b · write.py self-commits
 
 ## 🔴 Where it stops
-RUN TO 11:00Z (owner 04:5xZ: "Continue hammering at it as fast as you can until 7am"): every post RESUMED 04:5xZ; STOP cron e8dae945 11:00Z; CHECK 9593181d. MAX SUB USE until the ~06:0xZ reset (owner: "I need to max sub use before reset in an hour" + "No make it opus as well"): Opus subagents allowed; after the reset the brief's SUBAGENTS row (Sonnet 5.5) applies again. DG6 UP (agi-bb @17, Opus, row bffb4d3ca, card doc:card-director-general-6; first = goal:g1.31 via SM). Names: SM agi-5c · alive agi-e3 · all-is-one agi-8f [242e8c] · self-perpetuating agi-53 · DG1 agi-2a · DG2 agi-7f · DG3 agi-91 · DG4 agi-80 · DG5 agi-5b · stream-master agi-8c. DONE: PASS B3 closed (13c3a3e8c, residues goal:g1.31) · trunk synced db69d66f9 · 9 hypotheses under retired s18/s31/s32 MOVED to g1.2 / g7.33.10.1 / g2.4.1 (owner "Hypotheses move"; goal:g6.51 minted then retired: "The regime doesn't need a goal") · merge-up reviews = council/automated from B4 (Prime template §1). WATCH: user@ memory (Monitor at 12.8 GiB / PSI 20%); engine slice cap 3G is a stopgap for goal:g7.16.1.5.5 (DG5).
+Watch to 11:00Z: no Prime-owned work is in flight; the STOP cron fires the stop, then the owner report
 ```
-B3  TIP PINNED 578650193 · unit agi-pb3-launch-cc (START=13, cap.cc 2) · Monitor: bash <home>/passB3/monitor.sh
-    chunk exits in <home>/passB3/events.log · retries ONE AT A TIME: sed 's/pb3chunkNof20/pb3retryN/g' chunkN.json > retryN.json ;
-    systemd-run --user --unit=agi-pb3-retryN --slice=agi-work.slice --working-directory=/data/work/agi --collect bash <home>/passB3/retry-cc.sh retryN
-    end: python3 <home>/passB3/verdicts.py -> step 5 per section 2 of .agi/sessions/prime-merge.crons.md (VERIFY on the RAM disk:
-    git worktree add --detach /mnt/agi-ram/verify-b3 <merge sha>) · anonymize BASE..TIP by hand for /data/<user> homes (residue 128)
-    step 6: residues -> goal:g1.31 leaf (skill agi-goal §5) + ONE SendMessage to the DG that owns them (NOT send.py until bundles land)
-W   goal:g7.16.1.5.3 LIVE since the heal restart 02:24:20Z (873fec43f, 28 tests re-run green): pass 1 = 1015 -> 985 trees, 54 archive refs; my off-graph prune is SUPERSEDED. RESIDUE: "[sweep] refused ...: session dir not home (iter-X:home failed)" (3 by 02:26Z; likely MAIN's iter dirs are symlinks after session-sweep .5.2) -> ONE SendMessage to DG4's successor · .5.4 ON (GUARD_RAM_WORKTREES + hold 60, 239b01b00) · .5.5 minted unassigned (alive): dispatch after B3
-C   core magic-pane merge (goal:g7.16.1.7.3): only the pane, after the council places it
+at 11:00Z   SendMessage each council/director post "stop: finish the step, card whole, idle" (stream-master stays) -> card -> owner report <= 6 lines
+memory      Monitor on user@ >= 12.8 GiB / PSI full >= 20% (re-arm at wake); relief = memory.reclaim on the biggest file-heavy post scope, never a kill
+asks        heal restarts on a clean SM verdict: git merge-base --is-ancestor <sha> HEAD · heal.py dirty = comments only? · heal_sweep green (retry while "suite window refused") · systemctl --user restart agi-agi-reaper-3fbc6951.service
 ```
 
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
 |---|---|---|
 | 15 | a retire+move shows as `D` in a big diff | resolve by mint_id before calling a deletion RED |
-| 45 | `du`/`find` over `.agi/worktrees` is an io storm, AND a glob like `du agi/.agi/*` hands du the bind-mounted worktrees as an argument (-x does not stop it; 02:0xZ) | `git worktree list`; never glob into `.agi/` |
+| 45 | `du`/`find` over `.agi/worktrees` is an io storm; a glob into `.agi/` hands du the bind-mounted worktrees | `git worktree list`; never glob into `.agi/` |
 | 46 | `pkill -f` / `pgrep -f` inside a Bash call matches your OWN shell | match exact argv in python (`/proc/<p>/cmdline`) |
 | 57 | write.py lands UNCOMMITTED while verify-suite.lock is held | wait for the lock, then commit by exact path (`git add` a new file first) |
-| 60 | a process started BEFORE a RAM switch keeps the old cwd = the hidden disk copy | the sync logs it to `.agi/sessions/ram-main/stale-cwd-writes`; restart it |
-| 61 | `workflow.py --harness claude-code` runs NOTHING headless | B3 uses `<home>/passB3/ccrun.py` |
-| 62 | a unit ExecStart on a 100644 script fails 203/EXEC | `git ls-files -s` the mode before installing a unit |
+| 61 | `workflow.py --harness claude-code` runs NOTHING headless | `<home>/passB3/ccrun.py` (CC_MODEL, default Sonnet 5.5) |
+| 63 | a gate that greps pytest's LAST line reads tier-gate noise or the suite-lock refusal as red | grep `(passed|failed|errors?) in`; retry on "suite window refused" |
+| 64 | RAM MAIN: tmpfs pages are charged to the FIRST writer's slice and stay there | heal's writes land on agi-engine.slice as shmem; the budget line is goal:g7.16.1.5.5 |
+| 65 | `rm -rf $VAR/$X` is refused by the safety check | literal absolute paths, or `"${S:?}"/"${d:?}"` |
 
 ## §5 Verification
-reboot: agi-ram-main up 02:02:18Z porcelain 124 -> 124, tier restored from flash, 6 recently committed files == HEAD · P6: posts in agi-post-<name>-*.scope under app.slice · 746 reaper-log tests pass · test_claude_code_adapter 47 · live dummy cutover test PASSED
+B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 5201 nodes · grid 165 versions / 0 errors · s-goal move: 0 hypotheses under s18/s31/s32/s34, links 5317/0 · DG4 cold homing falsifier: 5 homed, shmem +0M, tmpfs +1M
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
 | `*.pre-tier-*` backups: ~/.claude.pre-tier-20260930T0145Z + ~/.pi.pre-tier-20260930T0146Z (on /) | delete after a day of clean tiering |
 | an on-disk /tmp makes every boot wait 5+ min in systemd-tmpfiles | tmpfs /tmp or a /tmp age cleaner, owner's call |
-| workflow.py has no headless claude-code stage route | make ccrun.py's seam the harness path (config/template rework) |
 | belam row says opus-5-5 / high; the live Prime runs opus-5-5[1m] / max | owner sets the row |
 | docker data-root still on / · sda ~35 ms/op · origin remote moved | owner's window: smartctl + dmesg; `git remote set-url` |
