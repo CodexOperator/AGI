@@ -896,12 +896,51 @@ def test_sweep_cold_link_rolls_back_a_refused_homing(repo_root, tmp_path, monkey
     _land(repo, wt, "loop/d-D@2")
     _stamp_plain_round(wt, "iter-802", "a00-c02d88")
     monkeypatch.setenv("AGI_REAPER_LOG", str(graph / "reaper.log"))
+    made = []
+    real_link = heal._sweep_cold_link
+    monkeypatch.setattr(heal, "_sweep_cold_link",
+                        lambda *a: made.append(real_link(*a)) or made[-1])
     removed, refused, _ = heal._sweep_finished_worktrees(graph)
+    assert any(made), "the cold link WAS made (the rollback is exercised)"
     assert (removed, refused) == (0, 1)
     assert not (graph / "sessions" / "iter-802").is_symlink()
     assert not (graph / "sessions" / "iter-802").exists()
     assert not (cold / "iter-802").exists()
     assert wt.exists()
+
+
+def test_sweep_copy_failure_through_the_cold_link_leaves_no_partial(repo_root, tmp_path,
+                                                                    monkeypatch):
+    """SM residue 156: session-complete's copy FAILS mid-way through heal's
+    cold link. The partial copy is discarded THROUGH the link (rmtree alone
+    refuses a symlink and kept it), so the rollback finds the cold dir empty
+    and removes it and the link; the tree's own records ride its archive."""
+    import shutil as _shutil
+    repo = repo_root
+    graph = _graph(repo)
+    cold = _cold_cell(repo, tmp_path, monkeypatch)
+    wt = _cut(repo, "a00-c03d99", "loop/e-E@3", "season/s2")
+    _land(repo, wt, "loop/e-E@3")
+    _stamp_complete_round(wt, "iter-803", "a00-c03d99")
+    src = _snapshot(wt / ".agi" / "sessions" / "iter-803")
+    calls = []
+    real_copy = _shutil.copy2
+
+    def copy_then_fail(a, b, *k, **kw):
+        calls.append(b)
+        if len(calls) > 1:
+            raise OSError(28, "No space left on device (fixture)")
+        return real_copy(a, b, *k, **kw)
+    monkeypatch.setattr(_shutil, "copy2", copy_then_fail)
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    removed, refused, _ = heal._sweep_finished_worktrees(graph)
+    assert len(calls) >= 2, "the copy really failed mid-way through the link"
+    assert not (graph / "sessions" / "iter-803").is_symlink(), "no link left"
+    assert not (cold / "iter-803").exists(), "no partial copy left on the cold home"
+    assert (removed, refused) == (1, 0), "home failed -> archived, then removed"
+    assert _archived(repo, "refs/archive/worktrees/a00-c03d99-dirty",
+                     ".agi/sessions/iter-803") == src, "no byte lost"
 
 
 def test_sweep_cold_link_keeps_a_dir_holding_bytes(tmp_path):
