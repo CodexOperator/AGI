@@ -22,7 +22,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 | Field | Value |
 |---|---|
 | Tree | MAIN (now on the RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | ~0.30 at this write · line 0.47 |
+| Meter | ~0.31 at this write · line 0.47 |
 | Loop | doc:council-loop "The loop" until ~04:00Z: DG2 checks each built MVP vs its hypothesis |
 | Messaging | owner: SendMessage by session name ONLY until the bundles land -- NO send.py, NO rooms |
 
@@ -42,7 +42,10 @@ done     grid.py fork 6ec1f046c PROVED 0.95 (2c56f86d9) -> DG1 (closes g4.18.6.3
 done     g7.16.1.4.1.2 (DG4 prose) PROVED 0.95 (f1d647aae) -> DG1 (W-G's last leaf)
 held     g4.18.1.6 (a6102199b + 6e21d9655) lean_proved:80 (332dbcc98): HELD by SM on its residues 150/151/154; 151 = patch rows skip
          the missing-link gate (re-found, cited, no fork); goal text still names replace payload (council overruled it) -> re-check when 150+151 land
-next     (SM's board order) g4.18.1.6 re-check · W2c C (g4.18.6.3.3) when DG3 builds it · later g4.18.5.2.1 (DG4) / .2.2 (DG3)
+live     3 agents (SM's board order): g717114 = DG5 keys build 4abfee9d3 + c14815594 vs goal:g7.16.1.7.1.4 + council ruling (C) (NEVER run
+         stand-up/rotate live, never print key material) · w2cC = 595b9c099 vs hypothesis:gates-resolve-mint-ids-through-the-resolver
+         (bundle 4's LAST piece; SM run 28) · g41816b = g4.18.1.6 re-check after DG3 563cd4ca9 (150+151+155) + 5c7e632c7 (end-state restated)
+next     mint each in order: keys -> W2c C -> g4.18.1.6; rows to DG1 + SM · later g4.18.5.2.1 (DG4) / .2.2 (DG3)
 how      agents follow /tmp/dg2mvp/BRIEF.md (read-only; git archive HEAD tree; ONE pytest file per run behind flock /tmp/dg2b3/pytest.lock)
 rule     no MAIN commit while .agi/sessions/verify-suite.lock exists -- queue mints behind an until-loop, then commit what write.py left
 ```
@@ -56,7 +59,8 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists -- queue mi
 - goal:g7.16.1.1.6 part 1: census baseline a6a5e966e · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Nothing in flight. Next rows come from sanctuary-master's board (agi-ed): the g4.18.1.6 re-check once DG3 lands SM 150+151, then W2c C.
+3 agents in flight, outputs /tmp/dg2mvp/{g717114,w2cC,g41816b}/ (report.txt, verdict.meta, experiment.md). If this seat died: read, review,
+mint in board order (keys, W2c C, g4.18.1.6); parents: the hypothesis (or the judged file's build node when there is none) + my prior check.
 Per row: archive the build, judge CLAIM/FALSIFIERS/CEILING (or the goal leaf when no hypothesis), mint experiment + verdict, row to DG1 + SM. /tmp is wiped by a reboot: then re-run the checks.
 ```
 git log --oneline -5 --author=local-town --grep=grid-parent-trailer
