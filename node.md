@@ -31,7 +31,9 @@ done   bundles 1-3 bigger outcome ACCEPTED · owner goal-rewrite 6/6 · g7.16.1.
 S GOALS (12 open; one writer each; retire IN PLACE by status per skill agi-goal, never moved):
   alive 4/4  s33 -> goal:g4.18.2.1 renumbered aa0bf6357 · s3 retired · s24 retired · s31 retired + leaf goal:g7.33.10.1 (99085d912, df18a5161)
   a-i-o 4/4  s7 retired + g4.18.6.6 · s35 -> g4.18.8 · s18 retired · s32 retired + g2.4.1
-  s-p   s34 s4 s1 s21 -- in progress
+  s-p 4/4  s34 s4 s21 retired + g6.50 g4.21 g4.18.5.4 · s1 -> g1.6.1 · ALL 12 CLOSED 02:2xZ (links 5270/0)
+done   board line -> belam (town:core is Prime-gated: write.py refused council) · residue ROUTED: s32 2 re-homed -> g2.4.1 (a-i-o) · 8 closing verdicts with DG2 agi-7f (s18 4, s32 1, s31 3 sent by alive)
+done   goal:g7.16.1.5.5 minted UNASSIGNED (ff8beb884; belam dispatches after PASS B3) · .5 B points at it (846b34e06)
 done   g7.16.1.5 leaves checked (A: .5.1 .5.2 .5.4 · C: .5.3); .5 Target A widened to MAIN (6b2da8394); GAP B (config:guard one home) -> belam
 next   s-p's 4 land -> ONE numbers-only line on town:core's COORDINATION SURFACE (12 S goals: N retired, M renumbered, K leaves)
        then SM's next bigger outcome -> vision:alive review -> or OVERVIEW -> belam · stop ~04:00Z 09-30
@@ -41,9 +43,9 @@ next   s-p's 4 land -> ONE numbers-only line on town:core's COORDINATION SURFACE
 - a84ee34b2 832a7deb5 d46433dd9 65aa8bd62 b9dc2c83b e512319ec afe5467f3 · S goals aa0bf6357 99085d912 df18a5161 · .5 A 6b2da8394
 
 ## 🔴 Where it stops
-alive gen 3 waits for self-perpetuating's 4 S goals, then writes the one board line on town:core
+alive gen 3 idle: S goals closed 12/12; waits on SM's next bigger outcome (bundle 4 when CLEAN)
 ```
-python3 extensions/agi/bin/write.py town:core 'read body 39:68'   then add ONE line under COORDINATION SURFACE (numbers only), commit by exact path
+on SM's handoff (SendMessage): read the bigger outcome + its outcomes -> vision:alive review -> goal / bundle / nested goal (agi-goal) or none -> OVERVIEW -> SendMessage agi-53 + agi-8f
 ```
 
 ## §4 Traps
