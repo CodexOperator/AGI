@@ -3076,3 +3076,25 @@ def test_g418522_commit_message_reads_the_one_config_cell(tmp_path):
     (root / "config.json").write_text("{}")   # no cell here: the engine's own cell answers
     assert write._commit_message(root, "goal:x", "p") == "write.py: goal:x (p)"
     assert 'f"write.py: {' not in (BIN / "write.py").read_text(encoding="utf-8")
+
+
+# --- W2c C corrective (goal:g4.18.6.3.3): a mint-id parent lands exactly as its address twin
+def _w2cc_goal(project) -> str:
+    _schemas(project)
+    (project / "nodes/goal/g2.md").write_text(f'---\nid: "goal:g2"\ntype: goal\nmint_id: {"e" * 32}\n'
+                                              'title: "G2"\nstatus: active\n---\n\nbody\n')
+    return "e" * 32
+
+
+def test_w2cc_create_gates_a_mint_parent_through_gate_for_root_as_its_address(project):
+    mint = _w2cc_goal(project)   # write.create -> node_writer.write_node -> spawn_gate.gate_for_root's index
+    seen = [(r.written, r.gate.status) for r in (write.create(project, "hypothesis", f"twin-{s}", [p])[0]
+                                                 for s, p in (("a", "goal:g2"), ("m", mint)))]
+    assert seen == [(True, "approved")] * 2, seen
+
+
+def test_w2cc_set_parents_to_a_mint_lands_as_its_address(project):
+    mint, node = _w2cc_goal(project), project / "nodes/hypothesis/h1.md"
+    assert write.main(["hypothesis:h1", "set parents [goal:g2]", "--root", str(project)]) == 0
+    assert write.main(["hypothesis:h1", f"set parents [{mint}]", "--root", str(project)]) == 0
+    assert mint in node.read_text()

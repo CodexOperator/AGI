@@ -576,10 +576,28 @@ class ResolvingSet(_ByAddress, frozenset):
     pass
 
 
-def resolving(index, root):
-    """`index` (a dict or a frozenset) behind the one resolver for `root`."""
+def gate_resolver(nodes_dir):
+    """THE address_resolver for a gate holding `nodes_dir`: built only when it
+    is `<root>/nodes` (the tree mint_index reads), and a grep that cannot look
+    is a MISS (None, remembered) -- a gate's `in` / `get` never raises."""
+    import rotation_record
+    r = [address_resolver(Path(nodes_dir).parent) if Path(nodes_dir).name == "nodes" else None]
+
+    def resolve(ref):
+        try:
+            return r[0] and r[0](ref)
+        except rotation_record.GrepError:
+            r[0] = None
+            return None
+    return resolve
+
+
+def resolving(index, *nodes_dirs):
+    """`index` (a dict or a frozenset) behind the gate_resolver of each nodes
+    dir, first hit wins (cli's corpus unions worktree trees)."""
     out = (ResolvingDict if isinstance(index, dict) else ResolvingSet)(index)
-    out._resolve = address_resolver(root)
+    rs = [gate_resolver(d) for d in nodes_dirs]
+    out._resolve = lambda k: next(filter(None, (r(k) for r in rs)), None)
     return out
 
 

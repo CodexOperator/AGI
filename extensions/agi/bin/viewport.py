@@ -179,6 +179,8 @@ def frame_stream(g, fm_by_id: dict, anchor: str | None, max_depth: int,
     # node_writer, brief and zoom use). Memoized per node_id so a large graph
     # only pays the BFS up the parents edge once per node actually in view.
     _town_cache: dict = {}
+    import links   # goal:g4.18.6.3.3: ONE resolver per render, never one grep per node
+    _resolve = links.gate_resolver(nodes_dir) if nodes_dir else None
 
     def _town_of(nid: str) -> str:
         if not nodes_dir:
@@ -186,7 +188,7 @@ def frame_stream(g, fm_by_id: dict, anchor: str | None, max_depth: int,
         t = _town_cache.get(nid)
         if t is None:
             import spawn_gate
-            t = spawn_gate.nearest_vision_town(nodes_dir, [nid])
+            t = spawn_gate.nearest_vision_town(nodes_dir, [nid], resolve=_resolve)
             _town_cache[nid] = t
         return t
 

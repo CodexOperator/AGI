@@ -1501,3 +1501,17 @@ def test_town_of_branch_is_exact_equality_only(tmp_path):
             is None)
     assert sg.town_of_branch(nodes, "town/web-app-suite@wrong") is None
     assert sg.town_of_branch(nodes, "") is None
+
+
+@pytest.mark.parametrize("ref", ["goal:s17", "a" * 32])   # the address, then its mint twin
+def test_w2cc_cli_check_and_post_wire_gate_type_a_mint_parent_as_its_address(project, ref, capsys):
+    """goal:g4.18.6.3.3 -- gate_for_root's index behind `spawn_gate.py check`
+    and post_wire's pass (gate_for_root once at :372, handed to write_node at :518)."""
+    import node_writer
+    g = project / "nodes" / "goal" / "s17.md"
+    g.write_text(g.read_text().replace("type: goal\n", f"type: goal\nmint_id: {'a' * 32}\n"))
+    assert sg._cli(["check", "--type", "idea", "--parent", ref, "--root", str(project)]) == 0
+    assert "SPAWN-GATE APPROVED" in capsys.readouterr().out
+    rules, index, _ = sg.gate_for_root(project)
+    res = node_writer.write_node(project, "idea", "wired", [ref], rules=rules, type_index=index)
+    assert (res.gate.status, res.written) == ("approved", True)
