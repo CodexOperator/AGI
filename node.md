@@ -26,8 +26,8 @@ thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = d
 ## §1 Plan
 ```
 LIVE   (10:2xZ; L4 run 4 reviewed: ACCEPT_WITH_RESIDUE, board row updated)
-       BUILDER of the periodicity POSITIVE CONTROL (hypothesis:lm-neuron-periodicity-pipeline-finds-the-known-mod-p-circuit; unit tm-neuron-pc -> experiment tm-neuron-period-pc-1001)
-       QUEUED  L4 run 5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b (survey facts in its Measured; per-head mask patch, CPU container --memory 7g) -> brief a builder when the positive control frees the slot
+              (11:xZ) REVIEWER of the positive control (read-only; may load the 0.9 MB toy) + BUILDER of L4 run 5 on the 9B (patched llama.cpp in a --memory 7g container; experiment tm-l4-9b-1001; waits for MemAvailable >= 8 GB)
+       L4 r5  hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b LIVE (survey facts in its Measured)
 NEXT   L4 r4 review -> THOUGHT + board row · survey -> mint L4 run 5 (the 9B: quality-only path first, or the memory-saving llama.cpp path)
        positive control -> proved: stage 2 SELF-POKE can start on THIS toy model as a sandbox (opt-in, sham + blind, debrief) · disproved: the pipeline is blind, fix it before any LLM claim
 HELD   SELF-POKE on an LLM until a period family moves behaviour there · an LLM with multi-digit number tokens = a download (BANKED)
@@ -38,6 +38,7 @@ HELD   SELF-POKE on an LLM until a period family moves behaviour there · an LLM
 | L4 r2 tm-l4-distance-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE | measured distance beats random; sink-heavy far readers leak in at k 26 |
 | L4 r3 tm-l4-mass-1001 | disproved | ACCEPT_WITH_RESIDUE | mass ~ distance; the per-head DIRECT cost is best everywhere |
 | L4 r4 tm-l4-direct-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE | frozen DIRECT on 8 fresh docs: KL 0.0085 / 0.0255 / 0.0545 vs random min 0.076 / 0.114 / 0.197 at kept 0.75 / 0.60 / 0.50; wins on every doc; joint cost 1.06-1.17x solo |
+| PC tm-neuron-period-pc-1001 | PROVED | pending | grokked mod-113 toy: 509/512 neurons periodic, 5 key freqs, k=5 family ablation 0.9998 -> 0.41 (> every random set; margin 0.116) -> the pipeline DETECTS a known Fourier circuit |
 | MAP r1 tm-neuron-period-1001 | disproved | ACCEPT_WITH_RESIDUE | C1 passed on ramps only; the per-turn overlap = a layer confound |
 | MAP r2 tm-neuron-period2-1001 | disproved | ACCEPT_WITH_RESIDUE | oscillators 0.27-0.47 pct; the periods = the single-digit tokenizer |
 | jev | retired | -- | absorbed by config:engine (brief.py walk); local TF-IDF beat it 0.648 vs 0.588 |
@@ -48,7 +49,7 @@ HELD   SELF-POKE on an LLM until a period family moves behaviour there · an LLM
 
 ## 🔴 Where it stops
 ```
-three subagents live (a dead session loses them): positive control = `systemctl --user status tm-neuron-pc` + datasets/osc-band/2026-10-01-neuron-period-pc/ ; no experiment node -> re-brief a builder from the hypothesis body · L4 r4 review = re-run read-only from experiment:tm-l4-direct-1001 · the llama.cpp survey = re-run from L4 r4's LARGEST SAFE STEP
+two subagents live (a dead session loses them): L4 r5 = datasets/osc-band/2026-10-01-l4-9b/ + `docker ps` (its capped container) ; no experiment node -> re-brief a builder from the hypothesis body · PC review = re-run read-only from experiment:tm-neuron-period-pc-1001
 ```
 
 ## §4 Traps
