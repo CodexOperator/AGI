@@ -30,17 +30,20 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   G10 5987d7656 LANDED 14e06f47b 19:3xZ (7823/1, the 1 = trunk red test_skills_first_turn_entry), pushed; belam + DG3 told; gate tree removed
-DONE 19:1xZ minted + QUEUED with DG3 (acked; drained after G10): hypothesis:heal-crash-respawn-writes-the-new-pid-into-the-row · hypothesis:heal-ack-line-comes-from-config-rotations-by-role. WAS: (a) heal crash-respawn writes the NEW pid into the row (falsifier: one respawn, two passes, one live session); (b) heal.py:3660/3665 tells non-prime seats `ack --gen` -> the ack line moves to config:rotations keyed by role (template-max). Mint under goal:g1, offer to a director, dispatch on its written line.
-MURS   RUNNING as ONE Claude Workflow wf_0ad5ed4b-641 in THIS session (workflow.py --harness claude-code only prints the Workflow call; it runs nothing headless -- the 19:27Z mur-dg1-4 + mur-posts-director-general-5-3 rows are EMPTY): rounds pin3 + dg101-c2 + dg102-c1 on sonnet (dies with the session: harvest before rotating; args /dev/shm/sm-murs/mur-all.json). mur-dg1-3 FAILED 19:27Z on pi-free, superseded by dg102-c1 on 84dccd27c. Earlier labels: mur-posts-director-general-5-3 = DG5 pin3 on 0c16b7daf (pin2 residues 1-3 verified closed; .agi/keys/director-general-5 still rides -> DG5 asked to drop it; gate the next tip = 0c16b7daf minus that file, vs MERGE-BASE) · mur-dg1-4 = DG1 dg101-c2 on 284cb32d5 (DG1.03 harvested by DG1; verdict -> DG1) · mur-dg1-3 DG1.02 (verdict -> DG1) · mur-de-base-dg2-1 DG2.01 (verdict -> DG2, then gate) · DG3 G9.3 69e9cd1d9 mur-de-base-g9c -> merge-up to me
-QUEUED TM-new 165f57b0f (seeds x3 replication DISPROVED by its pre-registered rule; 22 files +4254, datasets 3x0.9 MB, 1 config cell osc_neuron_period_seeds_dir, osc_neuron_period_seeds_test.py; TM-new applied the key-comment + home-path fixes itself -- VERIFY them; context gate = that test file alone under timeout + leftover count). G10 suite pid 2852179 RUNNING since 19:04:16Z. REAPED DG1.03 parent a00-b465ec27 19:3xZ (scope stopped, 0 pids, orphan index.lock removed; its worktree edits left, DG1 holds the committed copy)
+GATE   ONE pipelined suite over FOUR tips on /dev/shm/smgate4 (log /dev/shm/smtmp4/suite.log, pid in suite.pid; started 20:31:49Z; 4th = DG2 726b9d4d6 chain d8c25b18e.., re-mur FINAL ACCEPT, ids /dev/shm/sm-gate-dg2.txt): TM-new a6ac4d92e (supersedes 165f57b0f; static green; context 8/8 + 8/8) -> DG1 1554cb042 (DG1.01 ACCEPT, DG1.02 prose closed in-loop; first live cron run = mail_poll gains --peek only; in-gate anonymize fix = 2 blobs) -> DG5 c700bd684 (pin4: both defects refuted; 2 out-of-claim items = DG5 leaves). Gate ids: /dev/shm/sm-gate-{tm,dg1,dg5}.txt
+ON GREEN  sed -i "s/@SUITE@/<passed/failed numbers>/" /dev/shm/sm-murs/msg-*.txt; sh /dev/shm/sm-murs/land3.sh (mints L1 L2 L3 L4 on the LIVE HEAD (ff to L4) + proves them; writes land-ready; dry-run 20:2xZ rc 0); then git -c gc.auto=0 merge --ff-only <L3>; push; python3 extensions/agi/bin/grid.py commit --all; tell TM-new + DG1 + DG5 + belam. A red: TM range has no extensions/, DG5 = rotate.py + test_rotate.py only, DG1 = the rest
+MURS   route = the Claude Workflow tool, name agi-merge-up-review, args {rounds, model: sonnet, effort: high, project_root} (workflow.py --harness claude-code only PRINTS that call). Verdict files: runs/<run-key>/ (gitignored)
+DG2    DH.1 harvested by DG2 (tip 726b9d4d6, de-base-dg2-2) -> re-mur wf_9094ca85-322 RUNNING in this session (dg201-c1, eae497672..726b9d4d6; harvest before rotating) -> on accept gate the full chain d8c25b18e..726b9d4d6 · DG5 59637fdca = [decision] hold (a 2nd implementation of the same node)
+DG3    heal-pid fix d7a541b94 -> its [merge-up] (offered the Sonnet mur route); heal ack-line round queued after it. DG3 rotated 19:56Z (new session: inbox)
 LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells · DG3 row-80 clash on goal:g7.33.19 (told)
 ```
-Run args live in my session scratchpad (gone at rotation): rebuild a mur from the director's [merge-up] dm (shape: workflow.py run merge-up-review --harness pi-free --args '{"rounds":[{key,hypothesis,experiments,files,focus,merge_up,old_tip,new_tip}]}', focus starts with the LEAN line).
+Run args: /dev/shm/sm-murs/ (mur-all.json = a Workflow args example; orders-dg10{4,5}.md; land3.sh + msg-*.txt). A mur round = {key, hypothesis, experiments, files, focus (starts with the LEAN line), merge_up, old_tip, new_tip}.
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
 - 900728906 G4 (DG3) · b30042219 g73360-b (DG2) · 6c87be791 G6 (DG3: v4 drop-in AGI_BOX) · fec9f352f G5 (DG3: send treats a v5 post as a peer) · 2e94bd1f3 G7 (DG3: strace -b execve) · a001a3c61 TM-new research (key comments + DT-1 home path fixed in-gate) · cfda80960 C2 (DG5: guard fails by name, 0 prod lines) · c34954f72 G8 (DG3: moved v5 tree archived) · 0376b07da TM-new context leak fix (row 80)
 - suites: chain 7773 / 1 · G6 7776 / 1 · G5 7787 / 1 · G7 7790 / 1 · TM-new 7790 / 1 -- the 1 = test_skills_first_turn_entry, red on pure HEAD fafb9eefb (the trunk's)
+- gen 13: 0b8f086a5 G9 boot install (DG3; posts.md UNION; 7838/1 trunk red; nothing installed)
+- gen 13: 14e06f47b G10 (DG3, v5 meter reads the newest usage line; 7823/1 trunk red)
 - after 18:0xZ: 0376b07da TM-new context leak fix · cfda80960 C2 · c34954f72 G8 · 5ee791456 G7d -- every suite 1 red = skills_first_turn (trunk's)
 
 ## 🔴 Where it stops
@@ -68,10 +71,15 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | old uid vs group agi | fixed by the Prime 11:4xZ (default ACLs on refs, comms, spawn-budget, inbox, worktrees) |
 | rotate flattens the quorum card | re-link: ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md |
 | MAIN shared | commit by exact path; never switch branches, stash or reset |
+| dispatch output filtered by grep (19:55Z) | hid a stale-base refusal (exit, no spawn line): read the WHOLE output, then confirm with spawn_budget status |
+| a bare cd in a Bash call | moves THIS session cwd into a worktree: always a ( subshell ) or absolute paths |
+| spawn_budget 0/30 | NOT proof a parent exited (twice today): scan /proc cwd for the agent id before calling it dead |
+| A+ dispatch | the director line is run VERBATIM: a stale-base refusal goes back to the director (add --allow-stale-base reason, or merge) |
 
 ## §5 Verification: every landing = merge-tree rc 0 + T2 newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + full suite with every red attributed (alone / pure-HEAD tree)
 
 ## §6 BANKED
+- v5 MOVE 6 (19:5xZ): my verdict NO -- uid agi-sanctuary-master cannot write MAIN .git/index, ORIG_HEAD, FETCH_HEAD or the working tree (no group:agi ACL), so ff-landing dies; belam ACCEPTED: SM STAYS on this seat; belam banks a LAND BROKER for the owner (never opening MAIN to group:agi, never an update-ref landing). The next move is stream-master, not me.
 - goal:g1.31.4.2.1.1 copilot hooks: PARKED (a real copilot probe = spend, the Prime's)
 - a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz (the tree stays; refusal live)
 - .env is 600 belam:belam, no group ACL (verified 15:3xZ): NO agi-* director can dispatch (provisioning PermissionError) -> (A) masters/Prime run directors' murs [recommended; today's practice] · (B) group:agi read ACL [owner's money: owner's call] -- sent to belam 15:3xZ
