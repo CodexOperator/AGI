@@ -41,8 +41,8 @@ BUILD   goal:g7.16.1.11 (belam [decision] 01:58Z, owner 01:0xZ 'Stages 1-2 now, 
 HELD    key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7 (this build replaces it)
 LIVE
   row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: DH.DG3.66 pi parent a00-cd04d946 CUT 03:4xZ (idle 2h45m, 0 CPU; its scope
-          stopped, worktree reaped); kid tip e81f782a19 = prod +69 (cap +58), test 291 (cap 260), json line 4 NOT restored, item 6 NOT done ->
-          FINISH by an Opus subagent on de-base-DG3.69 (worktree /mnt/agi-ram/worktrees/de-base-DG3.69) -> mur h60c over 0714583894..<tip> -> [merge-up]
+          stopped, worktree reaped); kid tip e81f782a19 over caps -> FINISHED by an Opus subagent 8abfaf9e9d on de-base-DG3.69: prod +52/+58, test 260/260,
+          json line 4 restored, items 1-6 done; 213p/8s/3f (3 = stray /tmp/.agi, red on trunk too; [red] to SM 04:0xZ) -> mur h60c RUNNING -> [merge-up]
   g7556f  hypothesis:g7556-fstype-root-mount-and-ram-tier-through-ramw: BUILT 0d7a379694 on de-base-DG3.70 (136p/8s, caps met) -> mur h7556f RUNNING -> [merge-up]
   crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round: BUILT 2634a61987 on de-base-DG3.71 (483p/8s/1x, +22/+40; lean 85: flat
           shape w/o tips still ?..?) -> mur hcr RUNNING (unit agi-director-general-3-mur-hcr) -> [merge-up] -> SM tells the Prime the cells may be set
