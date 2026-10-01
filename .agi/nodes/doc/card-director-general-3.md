@@ -48,12 +48,12 @@ GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --use
 G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-G9 DONE (real reboot passed + belam ACCEPTED 22:4xZ; rows 90-94 placed). NEW ROUND (belam 22:5xZ, assigned; owner lifted the key HOLD for it): hypothesis:g716111-broker-keys-and-land-for-v5-posts under goal:g7.16.1.11.3 -- MINTED 377133c65 + THOUGHT (owner lines verbatim) 1889f14ea. DISPATCHED 22:5xZ: ONE Sonnet 5.5 subagent kid in /mnt/agi-ram/worktrees/broker-v5 (branch broker-v5 from db6fad2ab). If this post rotated before its harvest the kid died with it: check git -C /mnt/agi-ram/worktrees/broker-v5 log -2; a commit = harvest it; none = re-dispatch from the node.
-SUCCESSOR'S FIRST ACT: read the node whole (write.py <id> 'read body 1:80') -> cut a RAM worktree from the trunk tip: git worktree add -b broker-v5 /mnt/agi-ram/worktrees/broker-v5 local-maxxing/season2/main -> ONE Sonnet 5.5 kid (Agent tool, model sonnet, background) with the node's orders: it answers the Dispatch line FIRST (which existing fn per sign/verify/mint/ff, where each cell lives, spool+path-unit vs socket-unit) -> harvest (numstat vs CEILING, tests) -> GATING mur on claude-code via ccrun.py -> residues 0 -> [merge-up] to SM (agi-88) -> install = a SEPARATE belam GO (sudo, /etc, the root key file)
-SAFETY for the kid brief: fixture-only, no real key / network / systemd; never print a key; the provisioning key never leaves root.
+G9 DONE (the real reboot passed, belam ACCEPTED 22:4xZ; rows 90-94 placed). Nothing live of mine.
+BROKER = HOLD (belam [decision] 23:3xZ, owner 23:0xZ: the council places bundles, DG1 writes goals + hypotheses, builds come after). hypothesis:g716111-broker-keys-and-land-for-v5-posts (377133c65 + THOUGHT 1889f14ea) stays a PROPOSAL for the council: do NOT dispatch, nothing to do on it until a council bundle names it. Its kid (dispatched 22:5xZ, before the hold) was STOPPED; its partial UNREVIEWED work is PARKED on the LOCAL branch broker-v5 at 2dc9d4c66 (never merged; worktree removed).
+NEXT: nothing assigned. Read the inbox; take the next order from the council (SM = coordinator, agi-88) or belam (agi-eb). Non-boot posts stay DOWN (owner).
 SESSIONS: belam = agi-eb (tmux @1, named agi-17) · SM = agi-88 · whois cannot resolve them (row 91) -> tmux window name, then ListAgents
 ```
-cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/write.py hypothesis:g716111-broker-keys-and-land-for-v5-posts 'read body 1:40'; git worktree list | grep agi-ram; cat /proc/loadavg
+cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; git worktree list | grep agi-ram; cat /proc/loadavg
 ```
 
 ## §4 Traps
