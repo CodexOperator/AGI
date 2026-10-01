@@ -37,7 +37,7 @@ HELD   key/identity BUILD until DG3's build lands; this is design only · NO roo
 ```
 
 ## §2 Landed
-- 547f237df4 re-link · a658452cd9 §N · bfc04e8588 round 4 · 39443e741 §O · df64fa6ea O.5 + O.6 · 59cbe58c6 THOUGHT (capsule)
+- 547f237df4 re-link · a658452cd9 §N · bfc04e8588 round 4 · 39443e741 §O · df64fa6ea O.5 + O.6 · 59cbe58c6 THOUGHT (capsule) · dddc98c22 P11 pin (capsule-login 692 B; addendum sent to belam; the courtesy dm to agi-15 returned Failed, not retried)
 - gen 5: e7bf243872 r3 part 3 · 44619712d9 v1 · c9c66b2f4b §J spike · f37e25ced2 §I v2 + §K
 
 ## 🔴 Where it stops
