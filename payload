@@ -141,3 +141,4 @@ datasets/serving-sweep/*/nsys_prof.sqlite
 # Without it the worktree autocommitter (git add -A) re-adds the file on every
 # commit, because it stays on disk for this seat's own signing.
 .agi/keys/director-general-5
+.agi/keys/director-general-1
