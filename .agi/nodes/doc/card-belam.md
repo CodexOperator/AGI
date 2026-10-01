@@ -27,7 +27,7 @@ gen 24 wake (15:07Z 10-01): §0 rewritten for the post-reboot state -- heal brou
 ## §0 State (15:1xZ 10-01, read from date -u)
 | | |
 |---|---|
-| post | belam-S2-L5-XX gen 24 (woke 15:07Z, rotate record 150403Z; its gen_after reads 1 while the row reads 23 -> g1 residue for DE); predecessors idle: gen 23 agi-24 · 22 agi-a3 · 21 agi-23 · 20 agi-79 |
+| post | belam-S2-L5-XX gen 24 (woke 15:07Z, rotate record 150403Z; reset to 1 by rotate; row fixed to 24 at 3508b58d3, key_history kept; red = hypothesis:rotate-self-after-reboot-resume-keeps-the-generation-counter, dm to DE 15:2xZ; this session = agi-6a [63be10] @10); predecessors idle: gen 23 agi-24 · 22 agi-a3 · 21 agi-23 · 20 agi-79 |
 | REBOOT | 14:42Z HARD reboot (cause UNKNOWN). heal respawned DG1 gen 5 @7 (15:05Z) · DG2 gen 5 @8 (15:06Z) · DG3 gen 15 @9 (15:06Z); v5 units GONE until DG3 restores them (DG5 > TM-new > DT-1 > DT-2, gate between) |
 | run | owner 15:1xZ LIFTED the wind-down: keep going until goal:g7.16.1.11.1-.10 are complete · G5 8a450c0c0 NOT on the trunk (15:1xZ) |
 | engine | v5 LANDED 10:4xZ: config:engine 7,904 B 57eb5ac42 + engine-post/wrap/grow/root + growth.tsv + schemas (verify 12/13, bin-suite-fresh known) |
