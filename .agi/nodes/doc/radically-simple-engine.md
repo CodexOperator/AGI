@@ -1001,6 +1001,46 @@ echo "login $p $i $(date -u +%FT%TZ)">>$d/ledger
 "Several more dimensions just in case": security comes from the standard parameter set (ML-KEM-768: module rank 3, n = 256); extra dimensions in a custom scheme add structure, never margin (all-is-one). Activations may BIND a short-lived key (HKDF info, e.g. the §L launch-vector hash) but never be needed to OPEN a long-lived one: the model changes over generations and the key would die with it (self-perpetuating).
 **Falsifier V-L1:** a capsule sealed with ML-KEM under a package the owner approves round-trips byte-exact, and the same quorum flow (T1-T8) passes unchanged with ML-DSA ring signatures (UNRUN: needs the package).
 
+**O.7 · The Secure Enclave as the anchor (owner 05:30Z: "could I borrow my iPhone 14s secure chip ... For true, system-invisible, obfuscation? I also have access to a MacBook Air").** What the chip does (belam, VERIFY on the devices): a P-256 key that never leaves it, used per Face ID / Touch ID, for ECDSA signing and ECDH. It keeps the KEY invisible, never the payload: whatever it unlocks, the destination still sees (O.3 stands at pop). Two facts decide the design: an SSH app can only SIGN with such a key, and an ECDSA signature is randomized, so no stable key can be derived from one; wrapping a seal therefore needs the chip's ECDH, i.e. a few lines of device code. The council split it by job (all-is-one), one device each:
+```
+iPHONE  the APPROVER: its SE-backed SSH key = a ring holder; signing the pop (§O.2) or logging in to agi-capsule (O.5) IS the approval;
+        with the SSH app's background run, carrier (a) works: it polls `asks` and alerts (VERIFY: the app can hold an SE-backed key)
+MAC     a CUSTODY holder, the missing TPM: the inner seal is wrapped to its SE key; only its ECDH result Z opens it, after Touch ID.
+        Device code = ~40 lines of Swift over CryptoKit SecureEnclave.P256.KeyAgreement, run with the Command Line Tools: no App Store,
+        no review (the iPhone would need a small app on the dev plan for the same job)
+BOX     custody = BOTH: outer = the host-key seal (systemd-creds), inner = se-wrap to the Mac's key, so neither box root nor the Mac
+        (with its own root) opens it alone -> the ask carries the ephemeral point -> the Mac returns Z over SSH (a forced command, like
+        capsule-login; transport = sntrup761x25519, O.6) -> the box opens it for ONE pop; Z, the key and the plaintext die with the pop
+```
+`se-wrap` (1,277 B, python3 + the cryptography package already on the box; AES-256-GCM, so a flipped bit is refused, which `openssl enc` cannot give):
+~~~python
+#!/usr/bin/env python3
+# se-wrap seal DEV.pub <secret >capsule | se-wrap ask CAPSULE (prints the ephemeral point for the device) | se-wrap open CAPSULE <Z >secret
+# The capsule is sealed to a Secure Enclave P-256 key: box root cannot open it at rest; only Z = ECDH(SE key, the ephemeral point), which the
+# device computes after Face ID / Touch ID, opens it. Z dies with the pop. The device runs plain ECDH, no code of ours beyond returning Z.
+import sys,os;from cryptography.hazmat.primitives.asymmetric import ec;from cryptography.hazmat.primitives import hashes,serialization as s
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF;from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+P=s.Encoding.X962,s.PublicFormat.UncompressedPoint;k=lambda z:HKDF(hashes.SHA256(),32,None,b"agi-capsule").derive(z);a,f=sys.argv[1:3]
+if a=="seal":
+ e=ec.generate_private_key(ec.SECP256R1());d=s.load_pem_public_key(open(f,"rb").read());n=os.urandom(12);E=e.public_key().public_bytes(*P)
+ sys.stdout.buffer.write(E+n+AESGCM(k(e.exchange(ec.ECDH(),d))).encrypt(n,sys.stdin.buffer.read(),E))
+else:
+ c=open(f,"rb").read();E,n,x=c[:65],c[65:77],c[77:]
+ if a=="ask":print(E.hex())
+ else:sys.stdout.buffer.write(AESGCM(k(bytes.fromhex(sys.stdin.read().strip()))).decrypt(n,x,E))
+~~~
+**Tested 05:3xZ, unprivileged:** a software P-256 key stands in for the Secure Enclave (the same curve and the same ECDH math; CryptoKit on the chip must produce the same Z: VERIFY):
+| # | case | result |
+|---|---|---|
+| E1 | a P-256 ring key (the SE shape, `ecdsa-sha2-nistp256`) in capsule-pop's ring, k = 2 | alone: refused · with an ed25519 holder: popped exactly 19 B; the ledger names `h2 mac` |
+| E2a | the sealed capsule (112 B) | 0 plaintext bytes in it; the device's Z opens it exactly |
+| E2b | another device's Z | refused (InvalidTag) |
+| E2c | box root holding every file, guessing Z | refused: at rest, the box alone cannot open it |
+| E2d | one flipped ciphertext bit | refused (authenticated) |
+**APPROVAL ring != CUSTODY ring (all-is-one, on self-perpetuating's correction):** approval = [iPhone, Mac], k = 1 (one human's consent from either device; losing one bricks nothing). Custody = the host key AND the Mac SE (two domains, 2-of-2) for the live seal, plus the §P escrow (k >= 2 across failure domains) as the regrow path. The Mac SE alone must never unwrap: with Z and the public ciphertext, that Mac's root could open it. **What changes, and what it costs (self-perpetuating):** at rest, a disk copy + box root is no longer enough, nor is the Mac alone (O.3's first row narrows to "a live root on the box DURING a pop"). The price: the key is NON-EXPORTABLE, so a lost or replaced Mac is a HOLDER LOSS, and an SE-wrapped seal dies with it. So the §P escrow becomes MANDATORY for any SE-wrapped capsule, with a k that never needs that same device; a new device enters by a ring change (a pop into the rotate route, P.6). Suggested ring 3-of-5 = iPhone + Mac + 2 posts here + 1 post on another town box (per domain <= min(k-1, n-k) = 2: passes). The SE's P-256 is not post-quantum: fine for approvals checked within minutes; an escrow share sealed to an SE key stays classical until the P.7 hybrid exists. systemd-creds stays for capsules that must open with no tap.
+**BANKED for the owner:** (1) the at-rest anchor: the Mac (recommended: a local Swift CLI, no App Store) or the iPhone (a small app) · (2) switch a given capsule from the host-key seal to the SE seal (a tap per pop, escrow mandatory) or keep the host key for it.
+**Falsifiers.** E1, E2a-d PASS (software stand-in) · **S1** the real Mac SE's Z for a test vector equals the software ECDH of the same keys (VERIFY on the Mac) · **S2** a pop of an SE-wrapped capsule with the Mac asleep WAITS, even with the phone's approval: approval and unwrap are two taps, named as such · **S3** the iPhone lost: the Mac approves (k = 1), and custody still needs the host key AND the Mac's Z; the Mac lost: the escrow (k >= 2, never needing the Mac) regrows the seal (§P) · **S5** the Mac alone, holding Z and the git ciphertext, cannot open a 2-of-2 capsule (the outer host-key seal; UNRUN: a root act for the outer seal) · **S4** the SSH app holds an SE-backed key that sshd accepts (= P10).
+
 ## P · CAPSULE · self-perpetuating -- the capsule regrows: reseal after a box loss, rekey when the ring changes
 **What am I ACTUALLY trying to get the machine to do here?** Make a sealed secret outlive the box that sealed it, without ever letting one holder, or one box, see it ("If I die, let nothing be lost").
 
