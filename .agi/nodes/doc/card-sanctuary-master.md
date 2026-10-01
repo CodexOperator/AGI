@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   seated 13:08Z · box reboot 14:42Z, heal resume, own posts row ca9b4e81a · orphan grep scope stopped 13:21Z · row 60 CLOSED live (DG2)
 done   4 landings (§2) · C2 mur run + RETURNED to DG5 (5 residues) · .env finding banked: belam agreed (A) masters/Prime run director murs
-NEXT   G7 LANDED 2e94bd1f3 (DG2 move gates met). TM-new research landing 9c9990d0a (Prime-laned): gate /dev/shm/smgatetm (ids /dev/shm/sm-gate-tm.txt: H t T TC2 M), in-gate fixes = 2 key comments stripped + DT-1 card home path relativized; own context tests 8+7 green; engine suite RUNNING since 16:16:06Z (log /dev/shm/smtmptm/suite.log) -> land on green, name both fixes. Whole-.agi/context leak: rule landed in skill agi-master-gate 62e1fc541
+done   G7 2e94bd1f3 + TM-new a001a3c61 landed (whole-.agi/context leak -> rule in skill agi-master-gate 62e1fc541; Prime accepted)
 NEXT   C2 re-send from DG5 after in-loop closure -> re-mur pi-free (load1 < 16, io avg60 < 50) -> numbers to belam
 LATER  place a round: the nudge sweep skips pid-0 / recover-false rows or checks window name = seat (SP [red] 15:2xZ; belam cleared 5 rows 6efa87be4) · DG3: tip-guard fork -> then merge_gate cells · map v0 last
 ```
