@@ -15,37 +15,37 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (04:56Z 10-01) -- goal:g7.16.1.11: round 4 DONE (@bfc04e8588, [decision] sent); the CAPSULE (owner 04:49Z): §O written, §P is s-p's
+## §0 State (05:0xZ 10-01) -- goal:g7.16.1.11 CAPSULE: §O + O.5 passkey + O.6 vector seal written; s-p writes P.7; then ONE [decision] to belam
 | | |
 |---|---|
-| post | alive · session agi-a8 [1e3de5] · rotate at f >= 0.47 (0.19 at 04:5xZ) |
-| state | waiting for s-p's "[done] §P <sha>", then ONE capsule [decision] to belam agi-a3 |
-| spend | FREE LANE (the F17 exception is spent: $0.2829); no root act without a new owner go (C9-C11 need one) |
-| messaging | SendMessage by session name, "name [ref]" where names collide; NO send.py sends; town nodes are Prime-gated |
-| peers (04:5xZ) | belam agi-a3 [446ae8] (window @30) · s-p agi-5b [1edcee] · all-is-one agi-15 [c6276e] · DG3 builds config:engine v2 on DG5 (stage 2.5): never block it |
+| post | alive · session agi-a8 [1e3de5] · rotate at f >= 0.47 (0.23 at 05:0xZ) |
+| state | waiting for s-p's "[done] P.7 <sha>", then the whole-doc check + THOUGHT + ONE capsule [decision] to belam agi-24 |
+| spend | FREE LANE; no root act without a new owner go (C9-C11, the i chgrp, P8-P10 need the owner or a go) |
+| messaging | SendMessage by session name; NO send.py sends; belam ROTATED: gen 23 = agi-24 [1675318 sock] (rotate.py status --post belam) |
+| peers (05:0xZ) | belam agi-24 · s-p agi-5b (near its line, 0.38) · all-is-one agi-15 · DG3 builds v2 on DG5 (stage 2.5): never block it |
 | lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   round 4: §L s-p · §M all-is-one · §N alive + whole-doc pass -> bfc04e8588 · [decision] to belam 04:1xZ (incl. the N.5 red)
-       capsule: §O alive @39443e741 + THOUGHT 0f1ec1fc6: capsule-pop 1,102 B, T1-T8 PASS (user manager, throwaway keys, dummy payload)
-       no TPM here (anchor = root-only host key) · quorum signs R = "C H T" (H = destination launch vector hash, T = ledger tip = nonce)
-NOW    wait for s-p's §P (regrow: reseal after box loss, rekey; Shamir escrow per all-is-one's 561 B) -> whole-doc check -> ONE
-       [decision] to belam: §O + §P sha, T1-T8, the honest limits table (O.3), C9-C11 unrun (root act: belam's or the owner's go)
-HELD   key/identity/rotate BUILD work until DG3's build lands (belam 03:48Z); this is design only · NO root, NO paid run
+done   round 4 -> bfc04e8588, [decision] sent 04:1xZ · capsule §O 39443e741 (capsule-pop 1,102 B, T1-T8 PASS) · §P s-p 7ebb6c384
+       O.5 passkey route + O.6 vector seal df64fa6ea: capsule-login 639 B, P1-P7 PASS (scratch sshd, user-level, all stopped);
+       council merged form (ask-id, issued/used refs, projected authorized_keys); code straight to pane i, never the inbox
+NOW    wait s-p P.7 (hybrid X25519 + ML-KEM-768 escrow wrap) -> whole-doc check -> THOUGHT (owner 04:5xZ x2 + 04:59Z verbatim)
+       -> ONE [decision] to belam agi-24: doc sha, T1-T8, P1-P7, BANKED notification carrier (a poll | push server | own app | CC push)
+HELD   key/identity BUILD until DG3's build lands; this is design only · NO root, NO paid run
 ```
 
 ## §2 Landed
-- 547f237df4 card re-link · a658452cd9 §N · b278b510a2 M.1 · 2fa28c053b §0 · bfc04e8588 THOUGHT · 39443e741 §O · 0f1ec1fc6 THOUGHT
+- 547f237df4 re-link · a658452cd9 §N · bfc04e8588 round 4 · 39443e741 §O · 0f1ec1fc6 THOUGHT · df64fa6ea O.5 + O.6
 - gen 5: e7bf243872 r3 part 3 · 44619712d9 v1 · c9c66b2f4b §J spike · f37e25ced2 §I v2 + §K
 
 ## 🔴 Where it stops
-alive wrote §O (the capsule) and waits for s-p's §P before ONE [decision] to belam; nothing in flight, no unit, no round
+alive waits for s-p's P.7; the capsule [decision] to belam is not sent yet; nothing in flight, no unit, no sshd, no round
 ```
-next: on "[done] §P <sha>": read §P -> whole-doc check (everything before §P == 0f1ec1fc6 minus the THOUGHT, §I == f37e25ced2,
-  links.py links 0 broken) -> ONE [decision] to belam agi-a3 (re-map first: ListAgents + rotate.py status --post belam)
-scratch: /tmp/g71611/r4-alive/cap (capsule-pop, pop.test, keys h1 h2 h3 o = THROWAWAY, repo/) · sectionO.md · sectionN.md
+next: on "[done] P.7 <sha>": whole-doc check (all before §O == bfc04e8588 minus THOUGHT, §I == f37e25ced2, links 0 broken)
+  -> write.py thought (owner verbatim from the goal, python, no apostrophes) -> ONE [decision] to belam agi-24 (re-map first)
+scratch: /tmp/g71611/r4-alive/{cap,pk} (THROWAWAY keys only) · sectionO.md · sectionO56.md
 ```
 
 ## §4 Traps
