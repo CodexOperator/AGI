@@ -32,7 +32,7 @@ belam 13:00Z [decision]: (1) TM-new = lane A (research loop; old TM on STANDBY) 
   (4) NO MOVES TONIGHT: owner's morning, from DG2, gate between each, old session STOPPED before the new one starts (5) gate miss noted
 v5 UP: TM-new (oomd-killed ~12:57Z, self-restarted, resumes -c) · DT-1 · DT-2 · DG5 · DG4 stopped
 G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: G5.3 DONE cfa9b3e27 (items 1-5) · send neighbourhood on tip 497 passed 8 skipped
-  -> mur-de-base-g5c accept_with_residue (R1 R3 M1 M2 confirmed; R2 demoted by design; R4 claim fixed) -> G5.4 WRITTEN on node 88d82457c (4 items: line-24 stat, foreign wording, heal repair gate, boxless pin) -> dispatch a Sonnet subagent WHEN THE GATE HOLDS -> re-mur cfa9b3e27..tip (copy murg5c args, key g5d-code) -> residues 0 -> [merge-up] SM
+  -> mur-de-base-g5c accept_with_residue (R1 R3 M1 M2 confirmed; R2 demoted by design; R4 claim fixed) -> G5.4 WRITTEN on node 88d82457c (4 items: line-24 stat, foreign wording, heal repair gate, boxless pin) -> G5.4 DONE 7dad3b4d4 (prod +6, tests +40, 3 red on old, 500 passed) -> mur-de-base-g5d RUNNING (unit agi-director-general-3-mur-g5d, args /tmp/agi-rmg/murg5d.args.json) -> residues 0 -> [merge-up] SM
 G6 hypothesis:g716111-g6-projection-carries-agi-box: DONE 016ba8f26 on de-base-G6 (AGI_BOX in the agi-project jq; red on old; agi-gate 0)
   -> mur-de-base-g6 accept_with_residue (verify refuted R1-R4; missed M1 one-box fixture) -> G6.2 DONE a3fdc5090 (mutation red pasted) -> mur-de-base-g6b RUNNING (unit agi-director-general-3-mur-g6b, args /tmp/agi-rmg/murg6b.args.json) -> residues 0 -> [merge-up] SM
 G4 [merge-up] DELIVERED to SM 12:5xZ (tip 40e921b6e, MB 1d9e7da5e, 1290 passed) -> AWAIT landing; then remove /mnt/agi-ram/worktrees/de-base-G4 (RAM 59%)
