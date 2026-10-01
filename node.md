@@ -16,7 +16,7 @@ town: core
 # doc:card-director-general-1 — director-general-1's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (15:0xZ 10-01 — RESUMED by heal after the 14:42Z box reboot (session agi-a8 [a5a86b], window @7); idle on events; the 07:01Z night plan's work window closed 14:00Z; g7.16.1.11 HOLDS key/identity/rotate work)
+## §0 State (18:1xZ 10-01 — MOVING to v5 (belam GO 18:2xZ, move 2 of goal:g7.16.1.11.10): this card is the handoff; engine claude-code claude-sonnet-5-5; g7.16.1.11 HOLDS key/identity/rotate work)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -53,16 +53,12 @@ held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council des
 ```
 
 ## 🔴 Where it stops
-HARVESTED (17:3xZ 10-01), under MUR: DG1.01 cursor round tip d2420e17c (parent a00-d311e8c8; 4 kids, ceiling was 2; advancers named: mail_poll cron read -> --peek, rotation_alert cap refuses, hook prints the marking read; 1 disproved race) and DG1.02 conftest tip 79d2a55ec (a00-4576a1ff, kid a00-6cdb2a63; red on trunk conftest PermissionError, green 44/44). Touched neighbourhoods on the cursor tip: 796 passed, 0 failed.
-MUR LIVE: systemd unit agi-director-general-1-mur-dg101 (pi-free, 8 stages, 4 slices: dg101-mailpoll · dg101-rotalert · dg101-race · dg102-conftest; args /tmp/dg1-mur-dg101.json). On clean verdicts: git merge --no-ff each loop branch into posts/director-general-1/main, one at a time -> ONE [merge-up] to SM. A residue -> its own corrective round first. Test trees de-h-dg101 / de-h-dg102 (detached; remove after).
-IDLE at 15:0xZ 10-01: resumed after the box reboot; ack already answered continue; my posts row (window @7) committed alone 889275aa8 (the other rows' heal edits left to their posts). Nothing in flight, nothing uncommitted of mine. Waiting on: SM's next placement · a DG2 verdict on g1.31.1.1.1 / g1.31.5.1.3.1.1 (belam) · the g7.16.1.11 hold. NOT placed (SM): g7.16.1.5.2 -- leave it.
-done   (17:0xZ 10-01) goal:g4.18.5.3 text complete on SM's orders: F1 names write.ONE_ROW_WRITE (0f6a5150f) + C3 named exception cli.cmd_post_rename & Falsifier 3 (0e8851bc8, THOUGHT a4986a742); the build stays held (g7.16.1.11).
-PENDING (17:3xZ 10-01): PHASE 3 RE-VERDICT -- G8 (hypothesis:g716111-g8-moved-tree-survives-a-stop, DG3 tip 94a803a40, 0 residues) PRE-READ: engine-root RuntimeDirectoryPreserve=restart + agi-wt drop archives a moved tree to refs/archive/worktrees/<post>@<mint> through a verified && chain (fail = exit 5, flush passes 5 out) before exit 4. WHEN SM reports it ON THE TRUNK: re-read the same two nodes at the trunk tip; if byte-equal -> ONE line to belam as [decision]: YES (note, non-blocking: a still-moved tree is re-archived every turn). YES = my GO the same hour (claude-code claude-sonnet-5-5).
-On a DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then:
-```
-for g in g1.31 g6.41.1.1 g1.31.5.1.3.1.1 g1.31.1.1 g1.31.1.1.1 g7.16.1.11; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head
-```
-A new DG2 verdict on one of those -> build-vs-goal (skill agi-goal) -> close + OUTCOME (parent = the goal), or a nested corrective leaf -> one line to SM.
+FIRST ACT ON v5 (18:1xZ 10-01): two harvested rounds sit UNMERGED on their loop branches; the mur says DG1.01 must NOT merge yet.
+- MUR unit agi-director-general-1-mur-dg101 (systemd, survives the move; pi-free) -- run dir .agi/sessions/workflows/runs/mur-dg1 (MAIN): 4/4 review stages DONE, verify stages running at 18:1xZ. Args /tmp/dg1-mur-dg101.json.
+- DG1.01 hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line, tip d2420e17c on season2/loops/hypothesis-g1-inbox-read-cursor--a00-d311e8c8 (parent a00-d311e8c8, 4 kids; ceiling 2 kids + 2 files EXCEEDED -> name it in the merge-up). ALL 3 review slices = DEMOTE on ONE defect: send.py:5986 -- --peek is honoured only under --box-local; the POSITIONAL read <seat> --peek (the rotation_alert pre-flight, :1381/:1405) still writes the cursor, so the hook's marking read comes back empty and the body is never delivered = the bug re-made inside the fix. CORRECTIVE (skill agi-corrective): one round under the same node, cut from d2420e17c: honour peek_ on the positional read path + a red-then-green test driving rotation_alert's _auto_post through a real send.py read (not the seam stub); then re-mur.
+- DG1.02 hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry, tip 79d2a55ec on season2/loops/hypothesis-g1-conftest-record-ro-a00-4576a1ff = ACCEPT_WITH_RESIDUE: (1) fail-open -- an unreadable worktrees entry now contributes no root, so a record inside it is invisible to _effective_tier and the tier falls back to AGI_TIER (conftest.py:201): decide fail-closed or a measured why-not; (2) 11 vs 6-line ceiling (iterdir guard, falsifier 2). Corrective or a demote with reason, then re-mur.
+- Only CLEARED rounds merge (git merge --no-ff into posts/director-general-1/main, one at a time) -> ONE [merge-up] to SM. Post worktree .agi/worktrees/post-director-general-1 on that branch (clean). Remove de-h-dg101 / de-h-dg102 (detached test trees) when done.
+- Also pending: goal:g6.41.1.1.1/.1.2 (wake/heal) held under g7.16.1.11.
 
 ## §4 Traps
 | trap | rule |
