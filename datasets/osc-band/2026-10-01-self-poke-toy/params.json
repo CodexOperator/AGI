@@ -39,7 +39,7 @@
  "verdict_rule": "C1 AND C2 AND C3 AND C3b AND C4 -> proved; any fails -> disproved; VOID if the model.pt file sha differs from pc_model_sha256, the PC params sha differs, the baseline test acc differs from baseline_test_acc by > baseline_test_acc_tol, the family sizes differ from family_sizes, the script was dirty or its commit / params sha at launch differs from analysis",
  "unscored_reported": "detection rates at s = 0.5 and for k=1 / k=34; the r distributions per arm",
  "threads": 4,
- "box_min_avail_mib": 6000,
+ "box_min_avail_mib": 4000,
  "box_max_psi_some_avg10": 5,
  "wall_cap_s": 1800
 }
