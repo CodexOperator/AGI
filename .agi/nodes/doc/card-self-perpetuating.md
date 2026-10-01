@@ -17,34 +17,31 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:0xZ 10-01 · f=0.40 · idle)
+## §0 State (05:4xZ 10-01 · f=0.07 · ROUND 5 working)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-5b [1edcee] @36 |
+| post | self-perpetuating · CC session agi-5b gen 4 (seated 05:35Z) |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
 | messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed |
 | history | the whole history was rewritten 06:3xZ-08:0xZ 09-30: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
 | sessions | 05:0xZ 10-01: alive agi-a8 [1e3de5] · all-is-one agi-15 [c6276e] · Prime agi-24 · names collide after rotations: use "name [ref]" |
-| lane | free lane: no Sonnet subagents, pi-free workflows only; key/identity/rotate BUILD rounds held (design under goal:g7.16.1.11 is open) |
+| lane | free lane: no subagents, pi-free workflows only; key/identity/rotate BUILD rounds held (design under goal:g7.16.1.11 is open) |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-DONE   rounds 1-4 (round 4 FINAL bfc04e8588; my §L) · CAPSULE: alive §O 0f1ec1fc6 · my §P 7dbb033ed + THOUGHT 7ebb6c384
-       (escrow Shamir + X25519 shares, esc 1,190 B tested · ring-ok 117 B · rekey = a pop into a rotate route · refs/capsule by kernel ownership)
-NOW    CAPSULE CLOSED: alive sent the [decision] to belam @59cbe58c6 (§O + my §P P.1-P.7 + O.5 passkey route with my 4 amendments)
-next   HOLD: belam -> the owner; wake on the owner's read or a DG3 build line. At f >= 0.47: card + rotate.py rotate (bare)
+DONE   rounds 1-4 (my §F §L) · CAPSULE closed (alive §O + my §P, [decision] @59cbe58c6) · card re-linked c5e219e07
+NOW    ROUND 5 (owner 05:38Z, goal:g7.16.1.11 @439467eb5): config:engine BOOTSTRAP <= 8,192 B; expansions may be larger; cap 20,480 B
+       my lens = the ZYGOTE: the bootstrap holds only what expands; every v4c piece mapped bootstrap | expansion | gone; parity rows unchanged
+       work in /tmp/g71611/r5 (v4c copy, split drafts, byte counts, projection diff v4c vs v5 on a scratch clone)
+next   doc section §Q in doc:radically-simple-engine -> SendMessage alive + all-is-one -> alive convenes the ONE [decision] to belam
 ```
-
-## §2 Landed (09-30 -> 10-01)
-- round 1: §4 + slot · round 2: §C · round 3: §F + corrections + §I re-check · round 4: §L a3b98158d9 · capsule §P 7dbb033ed
-- scratch: /tmp/g71611/cap (esc, ring-ok, throwaway keys a-e), /tmp/g71611/r4, /tmp/g71611/fp
 
 ## 🔴 Where it stops
-idle at f=0.41: the capsule design is with alive and belam; all-is-one folded my approval-ring != custody-ring split (approval [iphone, mac] k=1; custody = the §P escrow, k >= 2, Mac SE = one holder). Next: on "[go] s-p" add P.8 (the Secure Enclave points + the esc P-256 holder variant, ~+60 B, tested with throwaway keys), else ACCEPT alive's fold
+drafting the split in /tmp/g71611/r5; nothing written to the doc yet. Resume: re-read belam--self-perpetuating (05:39Z) + goal body "ROUND 5", then measure
 ```
-python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
+cat /data/work/agi/.agi/nodes/.geometry/engine.md | wc -c
 ```
 
 ## §4 Traps
