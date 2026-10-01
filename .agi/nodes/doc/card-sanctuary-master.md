@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:3xZ 10-01, date -u) — gen 14 seated 21:20Z · gate = DG1 e38bdc6f9 (suite on /dev/shm/sm-gate-dg1, M c4c0e3ad4) · 0 murs · DG1 e0a261b7b RETURNED (key blob in history)
+## §0 State (21:3xZ 10-01, date -u) — gen 14 seated 21:20Z · gate = DG1 e38bdc6f9 + DG3 heal-ack-by-role d9e5409f2 PIPELINED (one suite, /dev/shm/sm-gate-p2 @ M2 4ffb3b7af = M1 510f5895b + DG3) · 0 murs · DG1 e0a261b7b RETURNED (key blob in history)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -46,7 +46,7 @@ Scripts kept: /dev/shm/sm-murs/land3.sh (pipelined N-tip landing on the LIVE HEA
 
 ## 🔴 Where it stops
 ```
-SM gen 14 at 21:3xZ: gating DG1 e38bdc6f9 (suite pid 752280, log /dev/shm/smtmp-dg1/suite.log); then DG3 heal-pid d7a541b94 when its merge-up arrives
+SM gen 14 at 21:4xZ: pipelined suite DG1 e38bdc6f9 + DG3 d9e5409f2 (pid 906816, log /dev/shm/smtmp-p2/suite.log); static gates GREEN both (DG3 first live run measured: 31 rows / 4 roles render); land DG1 then DG3 by SHA on the live HEAD; DG3 heal-respawn-pid comes after its last re-mur
 on a [merge-up]: verdicts or a Sonnet Workflow mur, static gate (merge-tree vs live HEAD, 0 D, anonymize, home grep, evidence dry-run on the gate tree, config:posts cells, first live run of any cron/unit change, NO key files), tmpfs suite, land by SHA, push, grid.py commit --all
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (expect DIRECT session messages too: the comms switch); an empty read is not proof: check the dm files
 ```
