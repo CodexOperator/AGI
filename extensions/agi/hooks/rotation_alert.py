@@ -1413,10 +1413,10 @@ def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
               f"came back empty (timeout or an empty inbox); please read it "
               f"manually.")
         return False
-    text = (f"---\nMail DELIVERED IN THIS TURN by this hook (`[agi-nudge]` "
-            f"for {seat}); the `send.py read {seat} --peek` below is the WHOLE "
-            f"unread body, printed here. Do NOT read again this turn (F25).\n"
-            f"{body}")
+    head = (f"---\nMail DELIVERED IN THIS TURN by this hook (`[agi-nudge]` "
+            f"for {seat}); the `send.py read {seat}` below is the WHOLE "
+            f"unread body, printed here. Do NOT read again this turn (F25).\n")
+    text = head + body
     if len(text.encode()) > _AUTOPOST_BYTE_CAP:
         # hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line — the
         # cap is a REFUSAL, never a truncation: printing the first N bytes and
@@ -1429,10 +1429,22 @@ def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
               f"the {_AUTOPOST_BYTE_CAP}-byte auto-post cap; NOT delivered and "
               f"NOT marked read. Run `send.py read {seat}` yourself.")
         return True
-    print(text)
-    # Every byte the pane holds is now printed, so the ONE marking read may
-    # retire exactly those lines (the pre-flight peek above moved nothing).
-    _run_send_read(bin_dir, seat)
+    # PRINT WHAT THE MARKING READ RETIRES (hypothesis:g1-inbox-read-cursor-never-
+    # passes-an-unprinted-line, conjunct 2). The pre-flight peek retired nothing,
+    # so the marking read's OWN stdout is the pane's bytes: a line appended
+    # between the two reads is DELIVERED here rather than retired into a pipe
+    # nobody reads. `body` is then only the cap pre-flight.
+    marked = _run_send_read(bin_dir, seat)
+    if not marked:
+        print(f"[ack] nudge for {seat} NOT delivered: the marking read came "
+              f"back empty; please read `send.py read {seat}` manually.")
+        return False
+    print(head + marked)
+    if len((head + marked).encode()) > _AUTOPOST_BYTE_CAP:
+        print(f"[acked] {seat}: {len((head + marked).encode())} bytes arrived "
+              f"between the pre-flight peek and the marking read, over the "
+              f"{_AUTOPOST_BYTE_CAP}-byte cap; ALL of them are printed above "
+              f"and every one was delivered.")
     return True
 
 

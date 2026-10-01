@@ -14,6 +14,7 @@ Proof criteria (a)–(e) of the brief:
   (e) the hook is SILENT and exits 0 outside an agi project and on an
       unreadable transcript.
 """
+import contextlib
 import importlib.util
 import io
 import json
@@ -2066,3 +2067,68 @@ def test_send_read_argv_carries_peek_for_the_preflight_only(monkeypatch):
     assert "--peek" not in seen[1], seen
     assert seen[0][:4] == seen[1][:4] == \
         ["python3", str(Path("/nonexistent/bin") / "send.py"), "read", "a"], seen
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line, conjunct 2 —
+# the WINDOW the pre-flight/peek-then-mark shape opens: a line appended between
+# the `--peek` pre-flight and the marking read was retired into a pipe nobody
+# reads (`_run_send_read`'s return value was DISCARDED). RED on those bytes:
+# the pane printed only B while C was retired. The fix prints the marking
+# read's OWN stdout, so every retired byte reaches the pane. The cross-check
+# runs the REAL send.py against a tmp comms root, not a stub.
+# ═══════════════════════════════════════════════════════════════════════════
+
+_SEND_SPEC = importlib.util.spec_from_file_location(
+    "send_ra", Path(__file__).resolve().parents[1] / "bin" / "send.py")
+send_mod = importlib.util.module_from_spec(_SEND_SPEC)
+_SEND_SPEC.loader.exec_module(send_mod)
+
+
+def _block(text: str) -> str:
+    return f"to: a\nfrom: sanctuary-director\n\n---\n{text}\n"
+
+
+def test_a_line_arriving_before_the_marking_read_reaches_the_pane(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """The window: the pre-flight peek returns B; a line C lands after it. C
+    must be DELIVERED to the pane (it is retired) and nothing may be retired
+    without the pane having received it -- the real `send.py read a` after the
+    hook must report nothing that is missing from the hook's output."""
+    inbox = agi_project / "sessions" / "inbox" / "a.md"
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text(_block("FIRST MESSAGE"))
+    calls = []
+
+    def _fake(bin_dir, seat, peek=False):
+        calls.append("peek" if peek else "mark")
+        if not peek:
+            # lands in the window: after the peek printed B, before the mark
+            with inbox.open("a") as fh:
+                fh.write(_block("SECOND MESSAGE"))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            send_mod.read(agi_project, seat, None, mark=not peek)
+        return buf.getvalue()
+
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True, exist_ok=True)
+    transcript = tmp_path / "sess-window.jsonl"
+    _write_transcript(transcript, 12_000)
+    state_dir = tmp_path / "state-window"
+    payload = _payload(agi_project, transcript, "sess-window", cwd=str(cwd))
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == ["peek", "mark"], calls
+    assert "FIRST MESSAGE" in out, out
+    assert "SECOND MESSAGE" in out, \
+        f"the line that landed in the window was retired but never printed: {out}"
+    # the REAL reader, afterwards: whatever is still unread must be in `out`
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        send_mod.read(agi_project, "a", None, mark=False)
+    after = buf.getvalue()
+    assert after.strip() in ("", "inbox for a: empty"), \
+        f"unread after the hook, absent from `out`: {after}"
