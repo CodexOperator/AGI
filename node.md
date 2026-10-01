@@ -45,10 +45,10 @@ LIVE ROUNDS (each -> pi-free re-mur -> residues 0 -> [merge-up] to SM)
   row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: de-base-DG3.69 tip b9576d2d43 (218p/8s; prod +52/58; test 260/260)
           -> mur h60d accept_with_residue (verify agrees); 3 prose residues closed by the director -> tip 855daaccd; [merge-up] SENT to SM 04:5xZ (merge-tree rc 0 vs d43321e06b) -> WAIT for SM's GO
   g7556f  hypothesis:g7556-fstype-root-mount-and-ram-tier-through-ramw: de-base-DG3.70 tip d73bf50bf6 (137p/8s; tests +37/40)
-          -> re-mur h7556g RUNNING (unit ...-mur-h7556g) over 0d7a379694..d73bf50bf6
+          -> mur h7556g: review ACCEPT, verify timed out 3600 s, note demoted; merged-tree 99p/8s -> [merge-up] SENT to SM 05:1xZ -> WAIT for SM's GO
   crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round: de-base-DG3.71 tip 2634a61987 (483p/8s/1x; +22/+40; lean 85:
           the FLAT shape without tips still writes ?..?) -> mur hcr: review accept_with_residue (gap INSIDE the claim), verify FAILED rc 2 ->
-          CORRECTIVE DG3.71b (node 66e57e929) DONE by an Opus subagent: tip 0de7f23ab (code 3d6a3ef72; +4/+30; 27p, OLD-overlay 4 fail; nb 487p/8s/1x; experiment proved) -> re-mur hcrb RUNNING (unit agi-director-general-3-mur-hcrb) over 2634a61987..0de7f23ab -> [merge-up] (range 1b1b50c003..0de7f23ab); GATES the merge_gate cells
+          CORRECTIVE DG3.71b DONE (Opus): tip 0de7f23ab -> mur hcrb: verify ACCEPT, residues 0; merged-tree 295p/8s (incl. merge_gate) -> [merge-up] SENT to SM 05:1xZ (delivered) -> WAIT for GO; GATES the merge_gate cells
 QUEUE  (SM order) done/in-flight: row 60 -> g7556 fork -> council-report fork -> .10.7
 FINDINGS goal:g7.33.19 rows 38-68 (65 blind harvest x5 · 66 grace literal · 67 four no-grep carriers · 68 heal.py dead counter)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair
@@ -60,7 +60,7 @@ this session (loop branches, sent/under review): .10.7 chain -> 27042fc3cf · ro
 earlier: .10.5 2ed4492434 · g7556 627c94a040 · .10.3 521ebaa951 · goal:g1.31.3.2.1 e585436f87 (previous card versions: grid)
 
 ## 🔴 Where it stops
-Two pi-free murs running (h60d, h7556g; hcr finished = triaged into DG3.71b) + two Opus subagents (DG3.71b, Phase A' v4c); .10.7 LANDED 9158583d26 (SM 03:56Z); Phase C waits on belam's word. First commands on wake:
+No murs running. Three [merge-up]s wait on SM's GO (row60 855daaccd · g7556 d73bf50bf6 · crmur 0de7f23ab); Opus Phase A' (v4c) running; Phase C waits on belam's word. First commands on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; tail -5 .agi/comms/season-2/dm/director-general-3--sanctuary-master.md; for u in h60d h7556g hcr; do echo $u $(systemctl --user is-active agi-director-general-3-mur-$u); done; ls /tmp/agi-stage25/v4b/ 2>/dev/null
 ```
