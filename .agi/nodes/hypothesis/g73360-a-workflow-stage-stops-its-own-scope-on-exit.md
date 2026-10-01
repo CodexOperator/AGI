@@ -104,6 +104,16 @@ BASE      de-base-DG3.75 tip 81f75ae39 + this node commit, same worktree. Never 
 DEMOTED   UNVERIFIED other guard files (290 passed reported) · the bash-child kill note (unreachable) · the silent-fallback note (the conftest fence loads for this suite) · the config-frozen note (closed by item 4).
 FILE SCOPE extensions/agi/tests/test_workflow_slice_isolation.py · this node.
 CEILING   tests net +25 lines · production 0 · Sonnet 5.5 subagent · 0 USD.
+DONE      567ca53ab: the real leaf in the _bash_tick_leaf fixture closure; ['true'] pinned; docstring; lazy _cfg_text; 62 passed.
+
+## CORRECTIVE DH.DG3.78 -- closes mur-de-base-dg3-77 h60g-code (accept_with_residue) -- the LAST hygiene round: pin the invariant ONCE, repo-wide
+BASE      de-base-DG3.75 tip 567ca53ab + this node commit. Never rebase.
+1. The raw-leaf escape hatch is unpinned repo-wide (verify missed[1]): ANY opted-in test file can getattr(_sp.Popen, "__agi_spawn_fence__") and get the raw stdlib Popen. ONE committed test in the suite_guards neighbourhood scans extensions/agi/tests/*.py and allows the fence marker only in a declared allow-list (today: test_workflow_slice_isolation.py's _bash_tick_leaf fixture). TRUE WHEN a scratch file adding a second holder turns that test RED (paste), then removed.
+2. The leaf's allow-list is basename-only (:87-88): require the tick path to resolve under the test's tmp root (pass tmp_path into the leaf). TRUE WHEN a tick.sh outside tmp is refused (a row).
+3. The ['true'] row (:64) can run a real /usr/bin/true if the fence is absent: use a /nonexistent/ path like its siblings, so a broken fence gives FileNotFoundError, never a child.
+DEMOTED   production conjuncts out of range (refuted: by scope) · no verdict (refuted: experiment:a00-d41529a1-5fe419 carries it).
+FILE SCOPE extensions/agi/tests/test_workflow_slice_isolation.py · extensions/agi/tests/test_declared_suite_guards.py (or test_conftest_guard.py) for item 1 · this node.
+CEILING   tests net +35 · production 0 · Sonnet 5.5 subagent · 0 USD.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.DG3.77: mur-de-base-dg3-76 h60f-code accept_with_residue: the one real child scoped to the bash row with an argv assert at the leaf, deny-by-default pinned with a non-harness argv, the docstring and the import-time config read fixed.
