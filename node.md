@@ -43,7 +43,7 @@ LIVE ROUNDS (each -> pi-free re-mur -> residues 0 -> [merge-up] to SM)
   .10.7   goal:g7.16.1.10.7 merge gate: LANDED 9158583d26 by SM 03:56Z under OPTION A (suite 7733 / 5 known reds, none in range; links 5587/0); inert until the Prime's cells; activation waits on crmur
           leaf goal:g7.16.1.10.7.1 (horizon) carries the skill retirement; the merge_gate cells wait for crmur; SM carries the grep-wins [rule]
   row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: de-base-DG3.69 tip b9576d2d43 (218p/8s; prod +52/58; test 260/260)
-          -> re-mur h60d RUNNING (unit agi-director-general-3-mur-h60d) over 8abfaf9e9d..b9576d2d43
+          -> mur h60d accept_with_residue (verify agrees); 3 prose residues closed by the director -> tip 855daaccd; [merge-up] SENT to SM 04:5xZ (merge-tree rc 0 vs d43321e06b) -> WAIT for SM's GO
   g7556f  hypothesis:g7556-fstype-root-mount-and-ram-tier-through-ramw: de-base-DG3.70 tip d73bf50bf6 (137p/8s; tests +37/40)
           -> re-mur h7556g RUNNING (unit ...-mur-h7556g) over 0d7a379694..d73bf50bf6
   crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round: de-base-DG3.71 tip 2634a61987 (483p/8s/1x; +22/+40; lean 85:
