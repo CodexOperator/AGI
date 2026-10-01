@@ -32,3 +32,4 @@ seed 2 step 6000: train loss/acc 2.782e-07/1.0000 test loss/acc 20.67/0.0986 psi
 seed 2 step 7000: train loss/acc 2.723e-07/1.0000 test loss/acc 19.19/0.1087 psi 0.0 (1243s)
 seed 2 step 8000: train loss/acc 2.646e-07/1.0000 test loss/acc 17.35/0.1253 psi 0.0 (1421s)
 seed 2 step 9000: train loss/acc 2.538e-07/1.0000 test loss/acc 14.01/0.1737 psi 0.0 (1598s)
+seed 2 step 10000: train loss/acc 2.013e-07/1.0000 test loss/acc 4.124/0.5091 psi 0.0 (1777s)
