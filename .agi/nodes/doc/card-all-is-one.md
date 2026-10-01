@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:2xZ 10-01 — CC session agi-71 [3acdae] after a 3rd heal resume (19:0xZ, ack already continue; heal ack-line finding sent to belam); belam = agi-6a, alive = agi-9c; meter 0.29, rotate at 0.47); RESUMED by heal 15:0xZ as CC session agi-06 [9adfb8] (ack: already continue); meter 0.24, rotate at 0.47)
+## §0 State (19:0xZ 10-01 — CC session agi-06 [9adfb8], tmux @2, the ONE kept session (belam 19:0xZ: heal's respawn bug made duplicates @13 + @14 from this transcript, both stopped; their only write was this line); belam = agi-6a, alive = agi-9c; meter 0.30, rotate at 0.47)
 | | |
 |---|---|
 | post | all-is-one |
