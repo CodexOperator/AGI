@@ -61,7 +61,7 @@ def test_opt_in_refuses_every_real_launch():
     launch -- a dispatch.py-shaped argv and a pi-shaped STRING alike. Binaries
     that do not exist: were the fence broken, this is FileNotFoundError, never
     a child."""
-    for argv in (["true"],        # a benign NON-harness argv: refused all the same
+    for argv in (["/nonexistent/true"],   # NON-harness shape: refused all the same
                  ["/nonexistent/python3", "/nonexistent/dispatch.py", "root",
                   "iter", "--tier", "parent", "--role", "parent", "--detach"],
                  "/nonexistent/pi -p --provider x prompt"):
@@ -79,21 +79,28 @@ def _cfg_text():
 
 @pytest.fixture(scope="module")
 def _bash_tick_leaf():
-    """The ONE real child: a leaf that launches only `bash <tick.sh>`; the raw
-    Popen lives in this closure alone (module scope = before the fence)."""
+    """The ONE real child: `bind(tmp_path)` is a leaf that launches only
+    `bash <tick.sh under tmp_path>`; the raw Popen lives in this closure alone
+    (module scope = before the fence)."""
     real = getattr(_sp.Popen, "__agi_spawn_fence__", _sp.Popen)
 
-    def leaf(cmd, **kw):
-        assert (isinstance(cmd, list) and len(cmd) == 2 and cmd[0] == "bash"
-                and Path(cmd[1]).name == "tick.sh"), "not the declared bash tick"
-        return real(cmd, **kw)
-    return leaf
+    def bind(root):
+        def leaf(cmd, **kw):
+            assert (isinstance(cmd, list) and len(cmd) == 2 and cmd[0] == "bash"
+                    and Path(cmd[1]).name == "tick.sh"
+                    and Path(root).resolve() in Path(cmd[1]).resolve().parents
+                    ), "not the declared bash tick"
+            return real(cmd, **kw)
+        return leaf
+    return bind
 
 
-def test_the_one_real_leaf_refuses_any_other_argv(_bash_tick_leaf):
-    for argv in (["true"], ["bash", "-c", "true"], "bash /x/tick.sh"):
+def test_the_one_real_leaf_refuses_any_other_argv(_bash_tick_leaf, tmp_path):
+    for argv in (["/nonexistent/true"], ["bash", "-c", "true"],
+                 "bash /x/tick.sh", ["bash", "/nonexistent/tick.sh"],
+                 ["bash", str(tmp_path / ".." / "tick.sh")]):   # outside tmp
         with pytest.raises(AssertionError, match="declared bash tick"):
-            _bash_tick_leaf(argv)
+            _bash_tick_leaf(tmp_path)(argv)
 
 
 @pytest.fixture(autouse=True)
@@ -420,10 +427,10 @@ def test_counter_keeps_counting_through_the_extension(tmp_path,
     script.write_text(
         "i=0\nwhile [ $i -lt 20 ]; do\n"
         f"  i=$((i+1)); echo $i >> {counter}\n  sleep 0.1\ndone\n")
-    built = []
+    built, leaf = [], _bash_tick_leaf(tmp_path)
 
     def spy(cmd, **kw):
-        p = _bash_tick_leaf(cmd, **kw)
+        p = leaf(cmd, **kw)
         built.append(p)
         return p
 
