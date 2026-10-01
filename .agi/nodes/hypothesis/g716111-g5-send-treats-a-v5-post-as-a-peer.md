@@ -42,3 +42,13 @@ BASE      de-base-G5 tip bc5b0171b. Never rebase.
 DEMOTED   _engine_post reads local rows (fails open to the pre-diff behaviour, never worse) · the cccc poll itself lives outside this tree (item 3 covers the file contract).
 FILE SCOPE extensions/agi/bin/send.py · extensions/agi/tests/test_send.py (and/or test_seatsig.py) · this node.
 CEILING   production net +20 · tests +60 · Sonnet 5.5 subagent · 0 USD.
+DONE      8999631f2: rooms signed (F2 room half red on OLD); veto gate PINNED (rows characterise the unchanged role==owner check at send.py ~5437 -- not a fix); signed dm read-back intact; wake/status by-mail; send neighbourhood 495 passed 8 skipped; tests +63 vs 60 (disclosed). mur-de-base-g5b: accept_with_residue.
+
+## CORRECTIVE G5.3 -- closes mur-de-base-g5 verify missed (a)(b) + mur-de-base-g5b missed
+BASE      de-base-G5 tip 8999631f2 + this node commit. Never rebase.
+1. The by-mail announcement over-claims on the send_dm path (_announce_nudge ~1789-1796): print [delivered] by mail ONLY when the post's own poll will see the message (the inbox line its mail poll reads); otherwise say written, not delivered. TRUE WHEN a row covers send and dm to an engine row.
+2. The engine short-circuit (~2489) returns BEFORE the foreign-box refusal (~2490): refuse a foreign-box row first. TRUE WHEN a row with an engine cell on another box prints the FOREIGN refusal, never by-mail.
+3. wake's by-mail branch (~3017) prints a bare 'by-mail': name the seat and log one reaper record like its sibling outcomes (_wake_outcome).
+4. wake vs status for an engine row with a live window: one order for both (engine first, or resolve first) -- they agree.
+DEMOTED   room signatures not rendered by read_room/peek_room (a reader design item, not this claim) · the veto-via-room-line claim (refuted by the g5b verify).
+FILE SCOPE send.py · test_send.py · this node.  CEILING production net +15 · tests +40 · Sonnet 5.5 subagent · 0 USD.
