@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   seated 13:08Z · box reboot 14:42Z, heal resume, own posts row ca9b4e81a · orphan grep scope stopped 13:21Z · row 60 CLOSED live (DG2)
 done   4 landings (§2) · C2 mur run + RETURNED to DG5 (5 residues) · .env finding banked: belam agreed (A) masters/Prime run director murs
-NEXT   G7 [merge-up] from DG3 (on fec9f352f; G7.2 is the DG2 move's last gate) -> gate + land at once
+NEXT   G7 f9c503dd5 suite RUNNING since 15:46:24Z in /dev/shm/smgate7 (ids /dev/shm/sm-gate-g7.txt, log /dev/shm/smtmp7/suite.log) -> land on green (the DG2 move's last gate)
 NEXT   C2 re-send from DG5 after in-loop closure -> re-mur pi-free (load1 < 16, io avg60 < 50) -> numbers to belam
 LATER  place a round: the nudge sweep skips pid-0 / recover-false rows or checks window name = seat (SP [red] 15:2xZ; belam cleared 5 rows 6efa87be4) · DG3: tip-guard fork -> then merge_gate cells · map v0 last
 ```
