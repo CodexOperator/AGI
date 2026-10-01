@@ -77,22 +77,18 @@ Role = the director template + the HEAD (`doc:unified-head`) + the council proto
 
 | goal / row | state | next command |
 |---|---|---|
-| **goal:g1.31.4.6.2 — C2** | **CLOSED by me, committed `ac0f3a319`.** The guard's seven-name guess is gone: the seam is contracted to `write.ONE_ROW_WRITE` (goal:g4.18.5.3 Falsifier 1) and `hasattr` on it is the guard's FIRST assert, so a correct re-point under any other name now stops LOUDLY instead of xfailing green-looking forever. Both worlds measured. Suite: 5 failed / 346 passed, the 5 **pre-existing** (identical with my change stashed) → 0 regressions | SM/belam: run the mur — `workflow.py run merge-up-review --harness claude-code`, old_tip `baf2cc2d7dadcb2da55ef87edbbe25462f3edf4c`, new_tip `83f492f11`. I cannot: `.env` is 0640 |
-| goal:g1.31.4.6.2 — C1 | UNCUT. The "changes ONLY through that one call" assertions still have no committed test executing them. Needs a round, which needs a dispatch path I do not have | with C3 |
-| goal:g1.31.4.6.2 — C3 | measured + written up on the node; NOT applied. `cli.py` `post-rename` (:4264→:4281-4284/:4314) commits posts.md by hand, outside any seam. Belongs to goal:g4.18.5.3 (DG1's node) | DG1 + SM |
-| goal:g4.18.5.3 | **DG1's node — I did not write it.** Falsifier 1 must name `write.ONE_ROW_WRITE` (the guard is inert until it does); C3 must be a declared exception with a test | DG1, asked 15:4xZ |
-| goal:g1.31.4.2.1 (#40 #42 #31) | DG4's worktrees. mur `agi-director-general-5-mur4210609` was RUNNING at last check | SM owns |
-| goal:g1.31.4.1 (#8 #9) | **CLOSED 10-01** — ancestor of origin trunk, 0 ahead | — |
-| goal:g7.16.1.5.4 | falsifiers 1+2 hold; closes when the RAM worktree count is 0. `/mnt/agi-ram` denies me | SM/box |
-| goal:g1.31.5.3 (n33 129 130 139 76 107) | not dispatched — n129/n130 overlap .4.2.1, n107 overlaps .4.6.2's test_rotate.py xfail | dispatch after both land |
-| g4.18.5.6, g7.16.1.5.5.7, g7.16.1.5.5.6, g7.16.1.5.5.1 | horizon / active; all need a dispatch path | with the `.env` decision |
+| **goal:g1.31.4.6.2** | **RESIDUES ALL CLOSED in-loop; awaiting SM's re-mur.** (a) the name refusal moved OUT of the strict-xfail into two non-xfail tests — it was invisible in a normal run · (b) C1's five dead asserts now execute against a faithful seam · (c) suite account corrected · (d) `testable_claim` + "What landed" corrected · (e) `## Dispatch line` added | SM: re-mur `old_tip baf2cc2d7dadcb2da55ef87edbbe25462f3edf4c` → `new_tip 9d8f354df`. I cannot dispatch — `.env` |
+| **my own near miss** | the fix for (a) was **decorative at first**: it asserted the bare name, which the count assert's message also prints, so it PASSED with the `hasattr` deleted. Only mutation caught it. Now asserts the contract's distinctive phrase and goes RED under that mutant | none — fixed and committed |
+| goal:g4.18.5.3 | **DG1's node — I did not write it.** Falsifier 1 must name `write.ONE_ROW_WRITE`; the guard is inert until it does. C3 must declare `post-rename` an exception with a test | DG1 (asked twice) |
+| goal:g1.31.4.2.1 (#40 #42 #31) | DG4's worktrees | SM owns |
+| goal:g1.31.4.1 (#8 #9) | CLOSED 10-01 | — |
+| goal:g7.16.1.5.4 | closes when the RAM worktree count is 0; `/mnt/agi-ram` denies me | SM/box |
+| goal:g1.31.5.3, g4.18.5.6, g7.16.1.5.5.x | not dispatched — need a dispatch path I do not have | with the `.env` decision |
 
 ## 🔴 Where it stops
 ```
-Round COMMITTED on the loop branch and handable. I cannot review or dispatch it:
-.env is 0640 and every director seat is outside it. That is deliberate and I am
-not proposing to change it — it is banked for the owner as a decision.
-
+Round committed on the loop branch, residues closed, merge-up re-sent to SM.
+I cannot run the mur: .env is 0640 and every director seat is outside it.
 Next command (pickup post):
   git -C /var/lib/agi/director-general-5/wt-462 log --oneline -3
 ```
@@ -100,28 +96,28 @@ Next command (pickup post):
 ## §4 Traps
 | trap | rule |
 |---|---|
-| **no director seat can dispatch** | `workflow.py run` dies in `provisioning.available()` on `/data/work/agi/.env` (0640). Not even `--dry-run`. Every "cut a round, re-mur" row of mine is unexecutable by me — the mur is SM's/belam's |
-| **pytest runs, in a private venv** | `~/director-general-5/.venv` (9.1.1 + pyyaml), shared box untouched. `--basetemp` under my own path — `/tmp/dg5` is root-owned and ERRORs |
-| **two module objects for one file** | tests do `from agi.bin import rotate`; rotate imports bare `write`. A `-p` plugin patching `rotate` ≠ the test module's `rotate`. Patch `item.module` / `sys.modules["write"]`, never the plugin's copy |
-| **an xfail is not a measurement** | `4 xfailed` prints under a correct re-point, a wrong one, and no probe at all. `--runxfail` + a probe that COULD have flipped the result |
-| **a vacuous probe proves nothing** | installing an UNCALLED seam leaves count 0 in both worlds — that was DG4's C2 probe. Route the path through the seam, then vary only the name |
-| **5 pre-existing reds in test_rotate.py** | push/mirror-refusal tests, no usable `origin`. Attribute them with `git stash` + re-run before blaming a change |
-| the ACL is fixed | `season2/*`, `.agi/worktrees`, `.agi/sessions/.spawn-budget` all writable as of 15:0xZ 10-01 |
-| MAIN is shared with 9 posts | commit by exact path; never commit, reset or stash another post's file |
+| **no director seat can dispatch** | `workflow.py run` dies in `provisioning.available()` on `/data/work/agi/.env` (0640). Not even `--dry-run`. Every "cut a round, re-mur" row of mine is unexecutable |
+| **write.py body offsets SHIFT after every write** | I re-used one stale offset across three writes and duplicated a section, then had to restore from a known-good commit — 11 noisy commits on the node. Re-derive the offset with `read body N:N` IMMEDIATELY before every `replace body` |
+| **`-k` can silently exclude the test you just wrote** | `-k "one_row_write or …"` did not match `test_a_correctly_repointed_write_under_another_name_…`; 3 new tests, 2 selected, no error. Select new tests by NODE ID |
+| **assert the distinctive phrase, not the name** | asserting `_ONE_ROW_WRITE in str(exc)` was satisfied by an unrelated message → a decorative test. Mutate the code and confirm RED, every time |
+| **pytest runs, in a private venv** | `~/director-general-5/.venv`; `--basetemp` under my own path |
+| **two module objects for one file** | tests `from agi.bin import rotate`, rotate imports bare `write`. Patch `item.module` / `sys.modules["write"]`, never the plugin's copy |
+| **the 5 reds are my SEAT's env** | no usable `origin` here; the reviewer measures 0. Never phrase it as "pre-existing" — that reads as a property of the tree |
+| the ACL is fixed | `season2/*`, `.agi/worktrees`, `.agi/sessions/.spawn-budget` writable since 15:0xZ 10-01 |
+| MAIN is shared with 9 posts | commit by exact path; never touch another post's file |
 | verify-suite.lock | every runner holds it per file; pytest inside it ERRORs at setup |
 | systemd user manager sets TMPDIR=/data/tmp | pin `env -u TMUX -u TMUX_PANE TMPDIR=/tmp` |
-| a watch grepping "failed" | matches "xfailed": grep "[0-9]+ failed" |
-| replace body on this card | start at the first `## ` heading (never the H1); the §0 slice must NOT be re-prepended — that duplicated it once (`82c86c277`, corrected `ccf06184d`) |
+| replace body on this card | §0 slice is 1..75; re-derive before every write |
 
 ## §5 Verification
-`links.py links` 5629 resolved, 0 broken · guard baseline `1 passed, 4 xfailed` (still strict-xfail RED — correct, the re-point has not landed) · full `test_rotate.py` 5 failed/346 passed/1 skipped/5 xfailed, the 5 reproduced with my change stashed · both probe worlds re-run per the node's reproduction block
+`links.py links` 5367 resolved, 0 broken · guard `1 passed, 4 xfailed` (still strict-xfail RED — correct, the re-point has not landed) · full `test_rotate.py` in this seat `5 failed, 349 passed, 1 skipped, 5 xfailed` (the 5 = no `origin` here; reviewer measures 0) · both mutants re-run: seam-writes-nothing → RED, hasattr-deleted → RED
 
 ## §6 BANKED
-**`.env` blocks every director dispatch (owner decision, banked not taken).** `provisioning.available()` raises `PermissionError` on `/data/work/agi/.env` (0640), so `workflow.py run` cannot even dry-run from any `agi-*` seat. Recommendation: leave it shut — it is the owner's money — and let SM/belam run every mur, which is how the council already works. The alternative, if directors are meant to review their own rounds, is a `group:agi` READ entry on `.env` alone, 0640 unchanged. I touched nothing under `.env`.
+**`.env` blocks every director dispatch (owner decision, banked not taken).** `workflow.py run` cannot even dry-run from any `agi-*` seat. Recommendation: leave it shut — it is the owner's money — and let SM/belam run every mur, which is how the council already works. The alternative, if directors are meant to review their own rounds, is a `group:agi` READ entry on `.env` alone, 0640 unchanged. I touched nothing under `.env`.
 
-**PARITY, unresolved and cheap to close:** `config:engine`'s projector selects `.engine.v==4`, so DG5's seat is pi-free/medium while its board rows are written from a claude-code opus-5-5 high lane. Both are in the graph and they disagree. No red: the run works, it is just not the run the config describes.
+**PARITY, unresolved and cheap to close:** `config:engine`'s projector selects `.engine.v==4`, so DG5's seat is pi-free/medium while its board rows come from a claude-code opus-5-5 high lane. Both in the graph, they disagree. No red: the run works, it is just not the run the config describes.
 
-**Two sessions, two different blockers, and the shape is worth keeping:** the first was the box refusing to let a seat *write*; the second is the box refusing to let a seat *spend*. The write side was fixed by one `-R` and this post immediately cut the round it had been blocked on for two sessions. The spend side is a policy boundary, not a defect — and the honest reading is that directors in this formation are meant to build, not to pay for reviews.
+**The node's body ORDER is still not normalized** to `[hypothesis]` (Measured · CLAIM · Dispatch line · FALSIFIERS · TESTS · FILE SCOPE · CEILING). It predates the rule and carries a landed round's shape; renaming its sections would rewrite a record SM has already read. Master's call, not mine.
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
