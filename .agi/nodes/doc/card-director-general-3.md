@@ -42,7 +42,7 @@ CAPSULE: rehearsal R1-R9 INSTALLED (doc:g716111-capsule-build 32426bb7d); stand-
 §U-§X: phase A DONE dry (doc:g716111-uvwx-build 324fc96d8, 10 holes); real-box sshd acts await belam (patched vs doc + tonight or after cutover)
 CROSS-BOX (item 6): doc:g716111-crossbox-plan f227e5393 -- BLOCKED on the owner's cutover (banked)
 OWNER SWITCH ORDER (after rounds 5-7 land + parity 0 gaps + DG5 ran on it): every post except belam / thought-master / director-thought, one at a time, rollback each; belam LAST, gen continues
-MERGE-UPS: row60 855daaccd re-sent to SM 06:4xZ (awaiting GO) · crmur deaa32675 + g7556 cd8ca3914 LANDED
+MERGE-UPS: R-MG LANDED by SM 0e6979bda 10:38Z · trunk red thought_hygiene FIXED 5fd5d8f52 + d5769839e ([fixed] to SM) · row60 855daaccd was RETURNED by SM 07:18Z (3 gate-tree reds, missed across the rotation) -> CORRECTIVE DH.DG3.75 on the hypothesis node (loop copy 64f9249ff) branch de-base-DG3.75 (855daaccd + trunk merged 94f7dcea5, wt /mnt/agi-ram/worktrees/de-base-DG3.75), Sonnet 5.5 subagent RUNNING 10:5xZ -> verify bytes -> mur pi-free 94f7dcea5..tip -> [merge-up] SM · crmur deaa32675 + g7556 cd8ca3914 LANDED
 ```
 
 ## §2 Landed (this session)
