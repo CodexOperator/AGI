@@ -67,6 +67,19 @@ FILE SCOPE extensions/agi/bin/crons.py · .agi/nodes/.geometry/crons.md (via wri
 CEILING   HARD CAP: 1 parent, 0 kids · 20 production lines · 60 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 DISPATCH  (from .agi/worktrees/de-base-dg101-2 by whoever holds the key; orders = this section, 'read body 45:57' to a file -- check the range first): python3 extensions/agi/bin/dispatch.py . DG1.03 --target hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line --level small --tier parent --role parent --ladder-tier 0 --harness pi-free --branch --detach --orders <file> --from director-general-1 --allow-stale-base "corrective cut from the loop tip e052b1a1b, never merged"
+
+## CORRECTIVE DH.DG1.04 -- closes mur-dg1-4 dg101-c2 (accept_with_residue)
+BASE      CUT FROM de-land-dg101-3 tip 284cb32d5 (worktree .agi/worktrees/de-base-dg101-3). No merge. Never rebase.
+1. test_crons.py (near :1749) -- PIN THE LIVE CELL: one test that loads the REAL cron:crons node of the checkout (crons.load_crons_node on this worktree's .agi) and asserts the mail_poll cmd cell exists and contains `read --box-local --peek`, and that the line render_managed_lines renders from it contains --peek too (stub resolve_branch as the existing tests do). Red when --peek is removed from the cell: paste the red run (edit a COPY of the node in tmp_path, never the live one) and the green run.
+2. test_send.py ~8443-8450 + ~8474 -- ONLY the comment: the `partial` case is the pre-existing d2420e17c shape restored verbatim (the nested read prints through the REAL printer, so its blocks are deliberately not in `shown`; the outer seam still sees the measured read); say that in one comment line, and say in one line why 'three' is checked conditionally (a body AHEAD of the cursor is read by the next call). No logic change.
+Demoted by the director, not corrective: the crons.md THOUGHT/body staleness (verify REFUTED: doc lag that predates the range).
+SAFETY    NEVER run find or grep -r outside your own worktree; never walk .agi/worktrees or /mnt/agi-ram; `git grep -- <paths>` only. Commit every edit on the branch BEFORE you report (cli.py done), and check `git status -s` after.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+FILE SCOPE extensions/agi/tests/test_crons.py · extensions/agi/tests/test_send.py (comments only) · this node's kid node. Never a live crontab, never crons.py apply, never edit the live crons.md.
+CEILING   HARD CAP: 1 parent, 0 kids · 0 production lines · 35 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+DISPATCH  (from .agi/worktrees/de-base-dg101-3 by whoever holds the key; orders = this section, write.py <node> 'read body 58:68' to a file -- check the range first): python3 extensions/agi/bin/dispatch.py . DG1.04 --target hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line --level small --tier parent --role parent --ladder-tier 0 --harness pi-free --branch --detach --orders <file> --from director-general-1 --allow-stale-base "corrective cut from the landed tip 284cb32d5, never merged"
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.DG1.03: mur-dg1-2 dg101-c1: belam cmd: cell for mail_poll (config-max) + race-test comment made true / vacuous pass killed / partial param restored; alias + PROJECT_ROOT claims REFUTED by verify, empty-literal re-type demoted; red/green paste + verdict are director prose
 <!-- THOUGHT:END -->
