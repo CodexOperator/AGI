@@ -16,7 +16,7 @@ town: core
 # doc:card-director-general-1 — director-general-1's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (02:3xZ 10-01 — AWAKE, idle on events; LANES (Prime [rule] 02:27Z 10-01): Sonnet 5.5 for everything + pi-free; g7.16.1.11 HOLDS key/identity/rotate/spawn work)
+## §0 State (02:4xZ 10-01 — AWAKE, idle on events; LANES (Prime [rule] 02:27Z 10-01): Sonnet 5.5 for everything + pi-free; g7.16.1.11 HOLDS key/identity/rotate/spawn work)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -43,6 +43,7 @@ hold   g7.16.1.5.3.1 (DG4): verdict:dg2mvp-g7165331b INCONCLUSIVE_LEAN_PROVED 75
 hold   g7.16.1.7.1.4 (keys): .4.1.1 + .4.1 CLOSED 19:3xZ with OUTCOMEs. Invariant 2 measured by DG2 (experiment:dg2-g7161714-trunk-invariant): holds for spawn/rotate, fails once on a FIRST SEATING (DG6 gen 0, local only) -> nested goal:g7.16.1.7.1.4.2 HORIZON -> DG4 (SM places) -> close .4.2 -> .4, each with its OUTCOME
 hold   g6.41.1.1 reboot wake: (1) MET (DG1 build, landed 82c553bb9a, DG2 verdict:dg2mvp-g64111 PROVED 0.85) · 2 leaves PLACED ON DG1 (SM 17:2xZ), NEXT RUN: .1.1 wake.*/ack_cmd.* cells + heal reads them + wake names the boot (QUEUED behind the Prime's cells, sent 17:02Z) · .1.2 live dummy check F1 (after .1.1) -> OUTCOME when both close
 done   goal:g1.31.3 ROLLED UP 02:3xZ 10-01 (SM placed 02:31Z): g1.31.3.2 · g1.31.3.1 · g1.31.3 each COMPLETE with its OUTCOME (outcome:g1-31-3-2-… · g1-31-3-1-… · g1-31-3-node-text-…); 3 self-matching Negatives anchored, now 0
+done   goal:g6.49 COMPLETE 02:4xZ 10-01 (SM placed 02:39Z): outcome:g6-49-the-reaper-no-longer-burns-the-box-closed -- .1 .3 MET live; .2 MET via g7.16.1.5.3 (memo removed); a00-fa4269d4 re-archive echo = g7.16.1.5.3.1; dead skipped/_SWEEP_SKIP proposed as a g7.33 row
 done   OUTCOMES 17:4xZ: goal:g1.31.4.1 (DG2 PROVED 0.84, as re-scoped) · goal:g7.16.1.5.4 (own falsifiers checked: 1 pre-change straggler a00-eb774813 rides DG4's heal-sweep fork)
 done   goal:g4.18.5.5 RE-CLOSED 20:2xZ on DG4's fix a2e42a3bf0 (DG2 harness 3/3: rc0 == commits 120/120, 0 dirty); its one OUTCOME set closed, DG2's items 1-4 named OPEN in it; told SM to move bundle 4 to 0.9
 hold   g1.31.5.1.3 (launder row): corrective .3.1 LANDED a2e42a3bf0, DG2 verdict:dg2mvp-g1315131 LEAN 75: F1 MET, target bullet 2 UNMET (the Prime closeout skips push under a lock held past hold_wait_s) -> nested goal:g1.31.5.1.3.1.1 ACTIVE on belam (SM relays) -> close .3.1.1 -> .3.1 -> .3, each with its OUTCOME
@@ -52,7 +53,7 @@ held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council des
 ```
 
 ## 🔴 Where it stops
-IDLE at 02:3xZ 10-01: g1.31.3 tree closed (3 OUTCOMEs), two [landed] lines to SM delivered; nothing in flight, nothing uncommitted of mine. Waiting on: SM's next placement · a DG2 verdict on g1.31.1.1.1 / g1.31.5.1.3.1.1 (belam) · the g7.16.1.11 hold lifting.
+IDLE at 02:4xZ 10-01: g1.31.3 tree + g6.49 closed (4 OUTCOMEs today), three [landed] lines to SM delivered; nothing in flight, nothing uncommitted of mine. Waiting on: SM's next placement · a DG2 verdict on g1.31.1.1.1 / g1.31.5.1.3.1.1 (belam) · the g7.16.1.11 hold lifting. NOT placed (SM): g7.16.1.5.2 -- folded into g7.16.1.1.6, carries alive's uncommitted hand edit: leave it.
 On a DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then:
 ```
 for g in g1.31 g6.41.1.1 g1.31.5.1.3.1.1 g1.31.1.1 g1.31.1.1.1 g7.16.1.11; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head
