@@ -17,7 +17,7 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (23:0xZ 10-01; box rebooted 22:18Z; owner "go" 22:3xZ = the go for the FREQ-ABLATION round)
+## §0 State (23:xxZ 10-01) -- lane IDLE: FREQ-ABLATION landed; next round awaits a go
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
@@ -25,7 +25,7 @@ thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 hig
 | directors | director-thought-1: idle after FREQ-ABLATION (returned a352fc937) · director-thought-2: DOWN after the reboot until the owner says |
 | subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
 | LANDED | SEEDS x3 + FAIR P4 (both DISPROVED): a6ac4d92e = 67680d223 on local-maxxing/season2/main, pushed by SM (suite 7876 passed / 1 = the trunk red; links 5670/0; grid commit --all run by SM, 31 versions). Trunk merged back into my branch 6d8bb6265 |
-| QUEUED LANDING | FREQ-ABLATION DISPROVED: [merge-up] 3fb85474f sent to SM [ef86e2] 23:0xZ (review CONFIRMED_DISPROVED, 0 mismatches; C2 12/12, C1 fails s0 k=34 / s1 k=3 / s2 k=17; 4 overclaims fixed on the node; hypothesis conf 0.25; board g5.28; DT-1 key host comment stripped 44e0830b6). SM static gate GREEN (merge-tree rc 0, 14 files, host/home 0, numbers recomputed, freqabl test 6/6; DT-1 key blob in history is already on origin); engine suite running, then SM lands + grid commit --all |
+| LANDED 2 | FREQ-ABLATION DISPROVED: 3fb85474f = 708727845 on local-maxxing/season2/main, pushed by SM (suite 7905 / 2 = skills_first_turn trunk red + a post-reboot test_dispatch pid-4242 flake, placed on DG1; grid 8 versions; links 5676/0). Trunk merged back 2bd54de9c |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: needs MemAvailable >= 8 GB held + a docker-capable user (v5 has none); resume steps in its THOUGHT |
 
 ## §1 Plan
@@ -34,7 +34,7 @@ DONE   self-poke toy line LANDED a001a3c61 · guard-leak fix LANDED 0376b07da (g
 DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + gated + [merge-up] a6ac4d92e to SM
 DONE   SM landed 67680d223; trunk merged back 6d8bb6265
 DONE   FREQ-ABLATION built by DT-1, reviewed CONFIRMED_DISPROVED, recorded, merged 956e7b179, gated, [merge-up] 3fb85474f to SM
-NEXT   (1) when SM lands 3fb85474f: git merge local-maxxing/season2/main into my branch
+DONE   SM landed 708727845; trunk merged back 2bd54de9c
        (2) next research round = §6 (score LOSS or margin, not accuracy) -- awaits a go; do not mint it unasked
 BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
 ```
@@ -50,8 +50,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Waiting on SM to land merge-up 3fb85474f (FREQ-ABLATION DISPROVED); then merge the trunk into my branch
-next command: git merge-base --is-ancestor 3fb85474f local-maxxing/season2/main && git merge local-maxxing/season2/main
+Lane idle: FREQ-ABLATION landed (708727845); the next round (score LOSS / margin, §6) awaits a go from the owner or belam
+next command on a go: write.py create hypothesis under experiment:dt1-neuron-period-freqabl-1001 + idea:lm-neuron-periodicity-map-and-self-poke, order DT-1 by SendMessage
 ```
 
 ## §4 Traps
