@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.16.1.11.3
 next_edges: []
-edited_by: director-general-3
+edited_by: de-base-G4
 scaffold_hash: 8b03c695ebeb078d
 season: 2
 testable_claim: rotate.py stand-up reaches cmd_stand_up with the root on every path, re-seats a non-engine row, and refuses an engine row by name
@@ -30,3 +30,6 @@ test_rotate*.py test_session_start_bootstrap.py test_session_start_seat_pre_spaw
 extensions/agi/bin/rotate.py · one rotate test file · this node.
 ## CEILING
 production NET +8 lines · tests +40 · Sonnet 5.5 subagent (owner lanes 02:26Z; HOLD lifted for the switch, belam 11:08Z) · 0 USD.
+
+## Agent Notes
+Dispatch answer: main() had no branch for stand-up; it fell through to the final args.func(args) (rotate.py ~23232) so cmd_stand_up got no root. Broken since the verb was added, 7fd659bdb, never in the root-taking cmd tuple. Fix 167dfc206 adds stand-up to that tuple. Tests test_stand_up.py: test_cli_stand_up_passes_the_root (F1), test_cli_stand_up_refuses_an_engine_row (F2; cmd_stand_up already refused an engine row).
