@@ -281,6 +281,8 @@
       "osc_neuron_period_dir": "datasets/osc-band/2026-10-01-neuron-period",
       "osc_neuron_period2_dir": "datasets/osc-band/2026-10-01-neuron-period-2",
       "osc_neuron_period_pc_dir": "datasets/osc-band/2026-10-01-neuron-period-pc",
+      "osc_self_poke_toy_dir": "datasets/osc-band/2026-10-01-self-poke-toy",
+      "osc_self_poke_toy_dh1_dir": "datasets/osc-band/2026-10-01-self-poke-toy-dh1",
       "model_slot_lock": ".agi/sessions/locks/model-slot.lock",
       "humaneval_file": "datasets/humaneval-abc/data/HumanEval.jsonl.gz",
       "kv_format_out_dir": "datasets/kv-format/2026-09-23",
