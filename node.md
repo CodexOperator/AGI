@@ -885,6 +885,9 @@ BELAM 11:08Z: G1 CLOSED (owner logged in all 12 post users) · G2 = a fix round,
 | 10 | touch ~/.fresh + restart | PASS: a new session file 11:12:30, .fresh consumed, active |
 | 57 | agi-kid cccc-probe | the post minted a hypothesis node (dec629745) instead of the kid run -- re-order later; not a switch gate |
 G5 minted: hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer (2a9baac18), Sonnet 5.5 subagent on de-base-G5.
+ACL SUPERSEDED by belam 11:4xZ (DG5 + SM reds): setfacl -R -m g:agi:rwX,u:belam:rwX + matching defaults (-d) on .git/refs, .agi/comms, .agi/sessions/.spawn-budget, .agi/sessions/inbox; dir-level + default on .agi/worktrees, .git/worktrees; .agi/sessions/seats UNTOUCHED (private seat keys). UNDO: sudo setfacl -R -x g:agi,u:belam (+ -d -x) on the same paths.
+NEW-POST USER (DG3 11:4xZ, belam's pick-and-record): agi-thought-master -> agi-thought-master-new (usermod -l -d -m + groupmod -n; uid 972 kept; home /var/lib/agi/thought-master-new with the owner's Claude credential, 600). UNDO: usermod -l agi-thought-master -d /var/lib/agi/thought-master -m agi-thought-master-new + groupmod -n agi-thought-master agi-thought-master-new.
+NEW POSTS (belam 6f5275059 rows): thought-master-new (opus-5-5), director-thought-1/-2 (sonnet-5-5) project from HEAD (dry /tmp/agi-proj6); director-general-4 has no engine cell yet. GO asked 11:4xZ.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PHASE D: belam landed rounds 5-7 (config:engine 57eb5ac42, 10:4xZ); DG5 restarted on the v5 unit (trunk merged into its worktree as the post, R7 renewed to 18:46Z, the projected unit installed with the re-projector unarmed, ident.conf dropped for the template identity) -- 24/25 bin pieces equal the engine, the 25th a stale v4c leftover. R-MG landed by SM 0e6979bda.
