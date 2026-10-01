@@ -10455,34 +10455,63 @@ def test_b4_w1b2_no_second_posts_parser_in_rotate():
 
 
 # The ONE row write (goal:g4.18.5.2's commit -- one gate, one write, one
-# `git commit -- <path>`) is a MODULE-LEVEL function on rotate, so the spy is
-# a `monkeypatch.setattr` on the module attribute: a path that reaches it by
-# global lookup (as every rotate function does) is caught. Its canonical name
-# is whatever the re-point (goal:g4.18.5.3) settles on; the list below is
-# tried in order and the FIRST name that exists is the seam spied. While NONE
-# exists the count is 0 and this test is strict-xfail RED -- it FAILS on a
-# count, not on an absence, so a path that keeps stage+commit plumbing by
-# hand (or switches to porcelain `git commit -- <path>`, or drops the posts
-# commit entirely) can no longer turn the guard green by accident.
-_ROW_WRITE_SEAMS = ("_write_row", "_write_posts_row", "_row_write",
-                    "_write_seats_row", "_write_and_commit_row",
-                    "_row_write_commit", "_commit_row")
+# `git commit -- <path>`) is a MODULE-LEVEL function, so the spy is a
+# `monkeypatch.setattr` on the module attribute: a path that reaches it by
+# attribute lookup at call time (as every rotate function does, via its local
+# `import write as _w`) is caught.
+#
+# Its NAME is a CONTRACT, not a guess. goal:g4.18.5.3 Falsifier 1 declares it:
+# `write.ONE_ROW_WRITE`. The guard's FIRST assertion is that the attribute
+# exists, so a re-point published under any other name fails LOUDLY, naming
+# itself, instead of leaving behind a strict-xfail that can never go green.
+#
+# Why this replaced a list of seven plausible names (measured 10-01 by
+# director-general-5; the review's verdict was a function of the NAME, not of
+# the code). Routing one of the 4 paths through the seam and changing ONLY the
+# seam's name, everything else byte-identical:
+#
+#   seam `_write_row`    (in the old list) -> guard counts 1, guard live
+#   seam `_write_one_row`(not in it)       -> `seams present: NONE`, 0, BLIND
+#
+# So a fully correct re-point under any unlisted name left the strict-xfail
+# permanently xfailed -- permanently GREEN-LOOKING, while guarding nothing.
+# The list was the defect; this is the fix. The count assertion and the 2x
+# negative probe below are kept unchanged: with the name contracted they
+# measure the thing itself.
+_ONE_ROW_WRITE = "ONE_ROW_WRITE"
+
+
+def _one_row_write_module():
+    """The module object that OWNS the seam -- the same one rotate resolves at
+    call time through its local `import write as _w`. Asserts it is a sibling
+    of rotate in ONE tree: the suite can end up with two module objects for one
+    file (the tests import `from agi.bin import rotate` while rotate imports
+    bare `write`), and patching the wrong copy measures nothing at all."""
+    mod = sys.modules.get("write")
+    if mod is None:
+        import write as mod_          # noqa: PLC0415 -- the import IS the test
+        mod = mod_
+    assert Path(mod.__file__).parent == Path(rotate.__file__).parent, (
+        f"write is loaded from {mod.__file__} but rotate from "
+        f"{rotate.__file__} -- two trees; the spy would patch the wrong one")
+    return mod
 
 
 def _spy_row_writes(monkeypatch, calls, digest_fn):
-    """Patch every existing ONE-row-write seam on `rotate` with a spy that
-    records, AFTER calling through, `digest_fn()` -- the state of committed
-    config:posts the ONE call left behind. Returns the seam names patched."""
-    names = [n for n in _ROW_WRITE_SEAMS
-             if callable(getattr(rotate, n, None))]
+    """Patch the ONE row write with a spy that records, AFTER calling through,
+    `digest_fn()` -- the state of committed config:posts that ONE call left
+    behind. Returns the seam names patched (0 or 1: the contract is one name)."""
+    mod = _one_row_write_module()
+    names = [n for n in (_ONE_ROW_WRITE,)
+             if callable(getattr(mod, n, None))]
     for n in names:
-        real = getattr(rotate, n)
+        real = getattr(mod, n)
 
         def spy(*a, _r=real, _n=n, **kw):
             out = _r(*a, **kw)
             calls.append((_n, digest_fn()))
             return out
-        monkeypatch.setattr(rotate, n, spy, raising=False)
+        monkeypatch.setattr(mod, n, spy)
     return names
 
 
@@ -10617,6 +10646,15 @@ def test_each_posts_commit_path_calls_the_one_row_write(
     build, drive, extra = _W1B2_DRIVERS[path_name]
     ref = _W1B2_REFS.get(path_name, "HEAD")
     root, top = build(tmp_path, monkeypatch)[:2]
+
+    # FIRST, and by NAME: the seam this goal contracts. A re-point that lands
+    # under a different name stops here, loudly, instead of xfailing forever.
+    seam_mod = _one_row_write_module()
+    assert hasattr(seam_mod, _ONE_ROW_WRITE), (
+        f"{path_name}: the one row write must be `{_ONE_ROW_WRITE}` on "
+        f"{seam_mod.__name__} (goal:g4.18.5.3 Falsifier 1) -- this seam is "
+        f"absent, so the guard below would be counting nothing")
+
     seats = rotate._ack_seats_path(root)
     rel = _rel(top, seats)
     before = _posts_digest(top, rel, ref)
@@ -10631,8 +10669,9 @@ def test_each_posts_commit_path_calls_the_one_row_write(
     after = _posts_digest(top, rel, ref)
 
     assert calls and len(calls) == 1, (
-        f"{path_name} called the one row write {len(calls)}x (seams present: "
-        f"{seams or 'NONE -- rotate has no one-row-write seam yet'}, "
+        f"{path_name} called the one row write {len(calls)}x (seam "
+        f"{_ONE_ROW_WRITE!r} present: "
+        f"{seams or 'NO -- the one row write is never reached from this path'}, "
         f"outcome: {str(out)[:160]!r}) -- exactly one is the claim")
     assert calls[0][1] == after, (
         f"{path_name}: config:posts changed AFTER the one row write "
@@ -10654,13 +10693,15 @@ def test_each_posts_commit_path_calls_the_one_row_write(
 # one: the path that calls the seam twice says 2x and never says nothing
 def test_w1b2_guard_names_a_double_row_write(tmp_path, monkeypatch):
     tr = sys.modules[__name__]     # this very module, however pytest named it
-    monkeypatch.setattr(rotate, "_write_row", lambda *a, **k: "posted",
-                        raising=False)
+    seam_mod = tr._one_row_write_module()
+    monkeypatch.setattr(seam_mod, tr._ONE_ROW_WRITE,
+                        lambda *a, **k: "posted", raising=False)
     monkeypatch.setattr(tr, "_W1B2_DRIVERS", {
         "_ack_commit_seats": (tr._ack_root_with_dirty_row,
                               lambda root, top: (
-                                  rotate._write_row(root),
-                                  rotate._write_row(root), "posted twice")[2],
+                                  getattr(seam_mod, tr._ONE_ROW_WRITE)(root),
+                                  getattr(seam_mod, tr._ONE_ROW_WRITE)(root),
+                                  "posted twice")[2],
                               ())})
     with pytest.raises(AssertionError) as exc:
         tr.test_each_posts_commit_path_calls_the_one_row_write(
