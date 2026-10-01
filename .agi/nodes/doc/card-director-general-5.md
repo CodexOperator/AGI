@@ -16,123 +16,73 @@ thought_session: director-general-5
 title: Card director general 5
 town: core
 ---
-# doc:card-director-general-5
-
-Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
-
----
-id: doc:card-director-general-5
-mint_id: 2ba5a1adbdcb4ea2aa3aa6d92d309253
-type: doc
-parents:
-  - goal:g7.16.1
-next_edges: []
-edited_by: director-general-5
-scaffold_hash: e13627c192e516b7
-season: 2
-tags:
-  - card
-  - director
-  - director-general-5
-thought_session: director-general-5
-title: Card director general 5
-town: core
----
-# doc:card-director-general-5
-
-Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
-
----
-id: doc:card-director-general-5
-mint_id: 2ba5a1adbdcb4ea2aa3aa6d92d309253
-type: doc
-parents:
-  - goal:g7.16.1
-next_edges: []
-edited_by: director-general-5
-scaffold_hash: e13627c192e516b7
-season: 2
-tags:
-  - card
-  - director
-  - director-general-5
-thought_session: director-general-5
-title: Card director general 5
-town: core
----
-# doc:card-director-general-5
-
-Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
-
-## §0 State (09-30 06:2xZ · STOOD DOWN on the owner's order 06:1xZ via belam, verbatim: "We also will need to stand down director-general 5 and 6 to help conserve tokens as well. Just let them arrive at a stopping point and have them stop and take down the posts to free up resources. 3,4 can continue as is and pick up whatever 5,6 don't finish after standing down")
+## §0 State (10-01 18:0xZ · seat LIVE · the owner's 09-30 06:1xZ stand-down of DG5/6 was executed by belam; DG3/DG4 continue)
 | | |
 |---|---|
-| post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · DOWN: recover false + pid 0 (belam) |
+| post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · branch posts/director-general-5, 8 commits ahead, NOT pushed |
 | pickup | DG3 / DG4 via SM's board: the HANDOVER table below is the whole state |
 | split of record | rotate.py WHOLLY DG5 (now: whoever SM names) · dispatch.py launch resolvers · heal.py key path |
-| ENGINE (measured 10-01 11:0xZ, not recalled) | this post's projected cells are **AGI_V=4, AGI_HARNESS=pi-free, AGI_MODEL=stealth/space-bunny-alpha, AGI_EFFORT=medium** (`config:posts` DG5 row `engine` object; env confirms). **It does NOT run engine v5**: `config:engine` marks v5 "PROPOSED v5 (owner GO 06:1xZ; doc:radically-simple-engine §Q+§R)" and the projector at `config:engine` sect agi-project selects `.engine.v==4`. Parity break to raise: the seat is projected pi-free/medium while THIS session ran the claude-code opus-5-5 high director lane — see HANDOVER-DG5-10-01.md |
-| 10-01 row says stood down, post is LIVE | `recover: false`, `pid: 0`, yet belam restarted this seat and two sessions ran 11:1xZ and 15:0xZ. The row and the reality disagree; `spawn_budget.py status` reads 0/30. Flagged to SM — a row that says down while a seat spends is a lie the heal will act on |
+| ENGINE (measured 10-01 11:0xZ) | this seat's projected cells: AGI_V=4, AGI_HARNESS=pi-free, AGI_MODEL=stealth/space-bunny-alpha, AGI_EFFORT=medium (`config:posts` DG5 row). THIS session ran the claude-code opus-5-5 high lane — parity break, still open |
+| 10-01 row says stood down, post is LIVE | `recover: false`, `pid: 0`, yet belam restarted this seat and sessions ran 11:1xZ, 15:0xZ and 17:4xZ. A row that says down while a seat spends is a lie the heal will act on |
 | skills | agi-dispatch · agi-corrective · agi-workflow · agi-master-gate · agi-goal · agi-node-write · agi-verify · agi-memory-guard |
 ## §1 HANDOVER (every unfinished leaf / row)
 
 | goal / row | state | next command |
 |---|---|---|
-| **goal:g1.31.4.6.2** | **RESIDUES ALL CLOSED; re-mur 2 RUNNING, tip `5075d6dae`.** (a) the name refusal moved OUT of the strict-xfail into two non-xfail tests — it was invisible in a normal run · (b) C1's five dead asserts now execute against a faithful seam · (c) suite account corrected · (d) `testable_claim` + "What landed" corrected · (e) `## Dispatch line` added | SM: re-mur `old_tip baf2cc2d7dadcb2da55ef87edbbe25462f3edf4c` → `new_tip 9d8f354df`. I cannot dispatch — `.env` |
-| **mur-2 (review_c2b.json): 3 NOT_MET, all closed at `2a0152805`** | (a) the a00-273b2e39 conjunct was read against the SUPERSEDED `9d8f354df` — fixed already at `5075d6dae`; but it found REAL damage I had missed: that node's BODY still said "THE SEAM IS A LIST" and told the next agent to name the seam from `_ROW_WRITE_SEAMS` — a landed record re-instructing the mechanism this round deletes. Section, probe rows and "Left to" item corrected; both surviving mentions sit inside the correction that says it is deleted · (b) suite account is now ONE, falsifier-table row 3, checkout named: `9d8f354df` → 354 passed / 0 failed, base `baf2cc2d7` → 350 / 0, delta +4/+3/0 — I adopt the reviewer's numbers, mine are the same 354 with 5 flipped by this seat's missing `origin` · (c) the Dispatch line WAS truncated mid-sentence, my own damage; now complete in the schema's `config-max / template-max / code` shape |
-| **C2 GATED by SM 17:4xZ: 7794 passed / 2 failed — ONE was mine, now fixed** | SM's gate found my `(d)` fix wrote a bare `inconclusive_lean_disproved` with no lean number (`VERDICT_RE` wants `:<N>` as an integer PERCENT, not a fraction). Now `inconclusive_lean_disproved:90` with `confidence: 0.9` added so the two agree like a00-35ca5dd6's `:80`/0.8. 90 is reasoned: this round committed no test bytes at all. Not 100 — its design notes are what the child stood on; not 80 — nothing here was ever tested. `test_no_live_node_carries_an_out_of_range_lean` 1 passed, whole `test_evidence_gate.py` 139 passed. Re-sent at `4d608c5ff`. The OTHER red (`skills_first_turn`) is the trunk's |
-| **my own near miss** | the fix for (a) was **decorative at first**: it asserted the bare name, which the count assert's message also prints, so it PASSED with the `hasattr` deleted. Only mutation caught it. Now asserts the contract's distinctive phrase and goes RED under that mutant | none — fixed and committed |
-| **residue (d) — MISSED, now fixed** | SM's (d) named TWO nodes; I answered for `a00-35ca5dd6` only and did not say I had skipped `a00-273b2e39-f74351`, so SM had to catch it. Now set there: `verdict: inconclusive_lean_disproved`, `evidence_runs: hypothesis:a00-35ca5dd6-f4f87a`, corrected `testable_claim` — plus its `probes:` P1/P2/P3 corrected off the deleted `_write_row` name | none — fixed, `5075d6dae` |
-| goal:g4.18.5.3 | **DG1's node — I did not write it.** Falsifier 1 must name `write.ONE_ROW_WRITE`; the guard is inert until it does. C3 must declare `post-rename` an exception with a test | DG1 (asked twice) |
+| **hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback** (NEW 10-01, mine, parent goal:g1.31.4.2.1) | **LANDED on posts/director-general-5, 3 files, 133 insertions.** rotate.py `_read_pin_target` catches OSError around resolve+exists → an unreadable pin target is `None` (UNKNOWN), the shape `_seat_fraction`'s own docstring already promised and `cmd_status` already printed (`frac=?`). 3 red-first tests, all red at the same two frames as the live traceback (rotate.py:445, :7666), all green after | **SM: gate + merge-up.** Live proof, measured 18:0xZ from /data/work/agi: trunk `rotate.py status --seats` → rc=1 + PermissionError; the fixed module, same cwd, same args → **rc=0 with 18 seats printing `frac=?`, 0 printing `frac=0`** |
+| **the number is still UNKNOWN for all 18** | the guard stops the crash; it cannot restore the reading. **MEASURED 18:0xZ: 14/14 `.meter` pins name a transcript under another uid's home** — 11 under `/mnt/agi-ram/state/claude/projects/-data-work-agi`, 3 under belam's `<home>/.claude` — and this seat gets EACCES on `/mnt/agi-ram/state/claude` AND on `<home>/.claude`. So box-wide rotation metering is dead, RAM or not. `alarms` reads the same pins | **belam** (the mount + home owner): `setfacl -m g:agi:rx /mnt/agi-ram/state/claude /mnt/agi-ram/state/claude/projects /mnt/agi-ram/state/claude/projects/-data-work-agi` and the same on `<home>/.claude{,/projects,/-data-work-agi}`. Until then UNKNOWN is honest and a seat is never falsely rotated |
+| **goal:g1.31.4.6.2** (the mur-2 landmine) | unchanged and still gated: residues all closed, re-sent at `4d608c5ff` on `season2/loops/goal-g1.31.4.6.2-a00-3014f810`. This seat's new work went on its OWN branch, not that loop branch, so nothing above disturbs it | SM: re-gate `old_tip baf2cc2d7dadcb2da55ef87edbbe25462f3edf4c` → `new_tip 4d608c5ff` |
+| goal:g4.18.5.3 | DG1's node — I did not write it. Falsifier 1 must name `write.ONE_ROW_WRITE`; the guard is inert until it does. C3 must declare `post-rename` an exception with a test | DG1 (asked twice) |
 | goal:g1.31.4.2.1 (#40 #42 #31) | DG4's worktrees | SM owns |
 | goal:g1.31.4.1 (#8 #9) | CLOSED 10-01 | — |
-| goal:g7.16.1.5.4 | closes when the RAM worktree count is 0; `/mnt/agi-ram` denies me | SM/box |
-| goal:g1.31.5.3, g4.18.5.6, g7.16.1.5.5.x | not dispatched — need a dispatch path I do not have | with the `.env` decision |
-| **`send.py read` reports empty on unread mail** | RESOLVED as a symptom, SM 17:2xZ diagnosed it precisely: my cursor sat at inbox line 120, PAST their `[decision]` at 119 — the cursor advances past unread mail. Not mine to fix; I stopped re-reporting it as open. |
+| goal:g7.16.1.5.4 | closes when the RAM worktree count is 0; `/mnt/agi-ram` denies me (`drwx--x---`, `group:agi:--x`) | SM/box |
+| goal:g1.31.5.3, g4.18.5.6, g7.16.1.5.5.x | not dispatched — no dispatch path from any director seat | with the `.env` decision |
+| the conftest trap my §4 used to carry | **DORMANT, measured 18:0xZ**: `/data/work/agi/.agi/worktrees` iterates 720 entries with zero raising — the RAM symlink `a00-4576a1ff` stats fine because `/mnt/agi-ram` grants `group:agi:--x`. DG1's node owns it | DG1 |
 ## 🔴 Where it stops
 ```
-Round GATED by SM (17:4xZ): 7794 passed / 2 failed, one red mine and now FIXED
-and re-sent at 4d608c5ff. Waiting on SM's re-gate of that one line.
-
-I cannot dispatch or run a mur: .env is 0640, every director seat is outside it.
-I must not merge the loop branch into posts/director-general-5 unreviewed.
-
-At the re-sent tip the gate preconditions were all verified FROM MY SIDE:
-  lock free | merge-tree vs local-maxxing/season2/main CLEAN (exit 0)
-  merge-base still baf2cc2d7 (your old_tip is unchanged)
-  links 0 broken | evidence_gate 139 passed | 0 production lines
+A new leaf LANDED and is WAITING ON THE MASTER: SM must gate + merge-up
+posts/director-general-5 (8 commits, 3 files). I cannot push (no git
+credentials: "could not read Username for 'https://github.com'"), cannot
+run grid.py commit --all (/data/work/agi/.agi/sessions is 0775 belam:belam,
+no ACL — .grid.lock is belam:belam 0664), and cannot dispatch or run a mur
+(.env is 0640). Every one of those three is the SAME defect: a director seat
+has no write path outside its own branch.
 
 Next command (pickup post):
-  git -C /var/lib/agi/director-general-5/wt-462 log --oneline -3
+  git -C /var/lib/agi/director-general-5/t log --oneline -8
 ```
 ```
-
+What the guard does NOT do, stated so nobody reads more into it: an unreadable
+pin is UNKNOWN, never a zero, and never a rotation. With all 14 pins sealed,
+`rotate.py status` now prints the whole table and 18 UNKNOWNs instead of
+crashing on row one — the shape the code already documented, finally reached.
+```
 ## §4 Traps
 | trap | rule |
 |---|---|
-| **no director seat can dispatch** | `workflow.py run` dies in `provisioning.available()` on `/data/work/agi/.env` (0640). Not even `--dry-run`. Every "cut a round, re-mur" row of mine is unexecutable |
-| **write.py body offsets SHIFT after every write** | I re-used one stale offset across three writes and duplicated a section, then had to restore from a known-good commit — 11 noisy commits on the node. Re-derive the offset with `read body N:N` IMMEDIATELY before every `replace body` |
-| **`-k` can silently exclude the test you just wrote** | `-k "one_row_write or …"` did not match `test_a_correctly_repointed_write_under_another_name_…`; 3 new tests, 2 selected, no error. Select new tests by NODE ID |
-| **assert the distinctive phrase, not the name** | asserting `_ONE_ROW_WRITE in str(exc)` was satisfied by an unrelated message → a decorative test. Mutate the code and confirm RED, every time |
-| **pytest runs, in a private venv** | `~/director-general-5/.venv`; `--basetemp` under my own path |
-| **two module objects for one file** | tests `from agi.bin import rotate`, rotate imports bare `write`. Patch `item.module` / `sys.modules["write"]`, never the plugin's copy |
-| **the 5 reds are my SEAT's env** | no usable `origin` here; the reviewer measures 0. Never phrase it as "pre-existing" — that reads as a property of the tree |
-| the ACL is fixed | `season2/*`, `.agi/worktrees`, `.agi/sessions/.spawn-budget` writable since 15:0xZ 10-01 |
-| **a RAM worktree symlink breaks the suite for EVERY seat** | `/mnt/agi-ram` denies me; `conftest.py:192` `if not wt.is_dir(): continue` does NOT skip it, because `Path.is_dir()` swallows ENOENT/ENOTDIR/EBADF/ELOOP but NOT EACCES — PermissionError kills the whole file. SM's `a00-d311e8c8` (17:06Z) armed it. Patched LOCALLY to measure, reverted, deliberately NOT in my commit (outside my file scope, not my tree). One-line fix is SM's |
+| **a background process commits every change to a TRACKED file in this worktree** | MEASURED 10-01: touch a tracked file, wait 40s, HEAD moves with subject `agi-director-general-5` (the seat name), and `git add -u` sweeps unrelated deletions. **Never `git stash` here** — it parked a conflicted splice that the autocommitter landed as `319a99eb6`; I restored it at `d10931d25`. My own `-m` messages never survive: the node body IS the record, and the SM dm names each commit |
+| **`git config core.hooksPath = ~/hooks`** | the only hook is the box-local privacy guard (`precommit_guard.py`); it is not the autocommitter, whose process I did not identify |
+| **the shared `.agi/sessions/` is NOT writable by a director seat** | 0775 belam:belam, no ACL. `grid.py commit --all` dies on `.grid.lock` (PermissionError). The ACL the card claimed "fixed at 15:0xZ" covers `season2/*`, `.agi/worktrees`, `.spawn-budget` — NOT this dir |
+| **the venv is `~/.venv`, not `~/director-general-5/.venv`** | the old path is gone; `/var/lib/agi/director-general-5/.venv/bin/python` works (HOME=/var/lib/agi/director-general-5) |
+| **write.py's paragraph anchor treats a `-` list block as ONE paragraph** | `replace body 5:5` and `5:6` both REFUSE ("cut the paragraph in half"); the range must span the whole list block plus its blank line. The guard caught my own mis-offset — it works |
+| write.py body offsets SHIFT after every write | re-derive with `read body N:N` IMMEDIATELY before every `replace body` |
+| **`-k` can silently exclude the test you just wrote** | `-k "pin_target_is_unknown or pin_is_unreadable"` selected 2 of 3; the third matched neither. Select new tests by NODE ID |
+| **assert the CONTRACT, not the name** | these three assert "no raise, `None`" and provoke a real `PermissionError`; the red run failed at the same two frames as the box |
+| **pytest runs, in a private venv** · `--basetemp` under my own path; TMPDIR must be pinned `-u TMUX -u TMUX_PANE TMPDIR=/tmp` |
+| **the 5 reds in test_rotate.py are my SEAT's env** | 5 failed / 348 passed before my change AND after, same five names; they need a usable `origin` remote this seat lacks. Never phrase it as "pre-existing" |
 | MAIN is shared with 9 posts | commit by exact path; never touch another post's file |
 | verify-suite.lock | every runner holds it per file; pytest inside it ERRORs at setup |
-| systemd user manager sets TMPDIR=/data/tmp | pin `env -u TMUX -u TMUX_PANE TMPDIR=/tmp` |
-| replace body on this card | §0 slice is 1..75; re-derive before every write |
-
+| a director seat cannot push | no git credentials; `branch_push`/belam carry it |
 ## §5 Verification
-`links.py links` 0 broken · `verification.py window` lock: free · `merge-tree` vs the live trunk CLEAN (exit 0), merge-base still `baf2cc2d7` · `test_evidence_gate.py` 139 passed incl. `test_no_live_node_carries_an_out_of_range_lean` · guard baseline `1 passed, 4 xfailed` (strict-xfail RED — correct, the re-point has not landed) · full `test_rotate.py` in this seat `5 failed, 350 passed, 1 skipped, 5 xfailed` (the 5 = this seat missing `origin`; SM's gate measures 0) · both contract tests pass in BOTH worlds (re-point landed / not landed), simulated by a `-p` plugin
-
+`links.py links` 5650 resolved / **0 broken** · `test_rotate.py` **348 passed / 5 failed / 1 skipped / 2 xfailed**, the 5 measured identical before the change · the 3 new tests red at `rotate.py:445` and `rotate.py:7666` (the live traceback's frames), green after · live before/after on the real pins: rc=1 + PermissionError → **rc=0, 18× `frac=?`, 0× `frac=0`** · the changeset `825ca9072..a318061f9` is exactly 3 files (node, rotate.py +15/-3, test_rotate.py +70)
 ## §6 BANKED
-**`.env` blocks every director dispatch (owner decision, banked not taken).** `workflow.py run` cannot even dry-run from any `agi-*` seat. Recommendation: leave it shut — it is the owner's money — and let SM/belam run every mur, which is how the council already works. The alternative, if directors are meant to review their own rounds, is a `group:agi` READ entry on `.env` alone, 0640 unchanged. I touched nothing under `.env`.
+**Box decision, belam's: the transcripts are unreadable by the seats they meter.** 14/14 pins name another uid's home; both the RAM mount and belam's `<home>/.claude` return EACCES to `agi-director-general-5`. Recommendation: grant `group:agi` **r-x** (read only — the meter needs the file, not the directory listing) on the four transcript dirs. Against: a seat then reads every other seat's transcript, which is a real widening; the alternative is per-seat pins under a shared group-readable state dir. Either way the CLI is what must not crash, and that is fixed here.
 
-**PARITY, unresolved and cheap to close:** `config:engine`'s projector selects `.engine.v==4`, so DG5's seat is pi-free/medium while its board rows come from a claude-code opus-5-5 high lane. Both in the graph, they disagree. No red: the run works, it is just not the run the config describes.
+**`.env` blocks every director dispatch** (unchanged): `workflow.py run` cannot even dry-run from an `agi-*` seat. Recommendation: leave it shut and let SM/belam run every mur. I touched nothing under `.env`.
 
-**The node's body ORDER is still not normalized** to `[hypothesis]` (Measured · CLAIM · Dispatch line · FALSIFIERS · TESTS · FILE SCOPE · CEILING). It predates the rule and carries a landed round's shape; renaming its sections would rewrite a record SM has already read. Master's call, not mine.
+**PARITY, unresolved and cheap:** `config:engine`'s projector selects `.engine.v==4`, so this seat is projected pi-free/medium while its board rows come from a claude-code opus-5-5 high lane. Both in the graph; they disagree. No red.
 
+Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Stood up by belam-S2-L5-XVIII on the owner 23:3xZ order, verbatim: "Restart council including DG5 stand up. Then let them tackle the bundle and see how best to streamline it further." Lane per the owner 23:1xZ: "If needed, spawn director-general-5 as well and have them tackle the rotate/spawn unification/template+config gutting and streamlining."
