@@ -127,23 +127,27 @@ def round_args(root: Path, label: str, args: dict, cell: dict) -> tuple[str, str
     """(old..new, leaf) for ONE label: the mur rounds[] entry whose key is the
     label or its longest prefix -- old_tip..new_tip, owner from its hypothesis's
     goal parents, else new_tip's commit subject -- else the flat per-run dict.
-    No round, or a tip absent / unknown to git, is rc 2 naming the label."""
-    if "rounds" not in args:
-        return (f"{args.get('old', '?')}..{args.get('new', '?')}", leaf_for(owner_post(
-            title_of(root, args.get("parent", "")), args.get("subject", "")), cell))
-    hit = sorted((r for r in args["rounds"] if label.startswith(str(r.get("key") or "\0"))),
-                 key=lambda r: len(str(r["key"])))
+    The flat dict IS one round: its old/new meet the SAME refusal -- no round,
+    or a tip absent / unknown to git, is rc 2 naming the label."""
+    flat = "rounds" not in args
+    hit = [{"old_tip": args.get("old"), "new_tip": args.get("new")}] if flat else sorted(
+        (r for r in args["rounds"] if label.startswith(str(r.get("key") or "\0"))),
+        key=lambda r: len(str(r["key"])))
     tips = [str(hit[-1].get(t) or "") for t in ("old_tip", "new_tip")] if hit else ["", ""]
-    git = subprocess.run(["git", "show", "-s", "--format=%s", "--end-of-options", *tips],
-                         cwd=root.parent if root.name == ".agi" else root,
-                         capture_output=True, text=True, check=False) if all(tips) else None
-    if git is None or git.returncode != 0:
+    shown = [subprocess.run(["git", "show", "-s", "--format=%s", "--end-of-options", t],
+                            cwd=root.parent if root.name == ".agi" else root,
+                            capture_output=True, text=True, check=False) for t in tips if t]
+    if len(shown) < 2 or any(g.returncode for g in shown):
         raise SystemExit(f"council_report: label {label!r} matches no round with known "
                          "old_tip/new_tip -- nothing written, never a ?..? row")
-    hyp = node_writer.find_node_file(root, str(hit[-1].get("hypothesis") or ""))
-    parents = (frontmatter.read_frontmatter(hyp.read_text()) or {}).get("parents") if hyp else []
-    assigned = " ".join(title_of(root, str(p)) for p in parents or [] if str(p).startswith("goal:"))
-    return "..".join(tips), leaf_for(owner_post(assigned, git.stdout.strip().splitlines()[-1]), cell)
+    if flat:
+        assigned, subject = title_of(root, str(args.get("parent") or "")), str(args.get("subject") or "")
+    else:   # owner: the hypothesis's goal parents, else new_tip's OWN subject
+        hyp = node_writer.find_node_file(root, str(hit[-1].get("hypothesis") or ""))
+        parents = (frontmatter.read_frontmatter(hyp.read_text()) or {}).get("parents") if hyp else []
+        assigned = " ".join(title_of(root, str(p)) for p in parents or [] if str(p).startswith("goal:"))
+        subject = shown[1].stdout.strip()
+    return "..".join(tips), leaf_for(owner_post(assigned, subject), cell)
 
 def add(root: Path, run_key: str, args: dict, writer=write_body, reader=None) -> list[str]:
     """Write the report rows and route the residues. Returns the messages."""
