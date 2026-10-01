@@ -43,3 +43,10 @@ extensions/agi/bin/workflow.py (`_stop_stage_unit` only) · extensions/agi/tests
 
 ## CEILING
 1 kid (Sonnet 5.5 subagent) · production net <= +4 · tests net <= +30 (the file is at its 260-line cap: trim to pay) · 0 USD. TWO-operand numstat <cut>..<tip>, labelled. Live check after the build (read-only observer, a pi-free tmp-root stage with a backgrounded sleep): the unit is gone and the orphan dead after return on normal, wall and error exits.
+
+## CORRECTIVE DH.1 -- closes the director's harvest of 12e985a43..c67f41361 (CLAIM 2 / F2 not met)
+BASE      CONTINUE ON worktree-agent-af4cf6fc06299672a tip c67f41361 (its own worktree). No merge. Never rebase.
+1. RC 5 IS A FINISHED SCOPE -- workflow.py `_stop_stage_unit` -- an rc 5 (unit not loaded: the scope already emptied and was collected -- the COMMON case, a stage with no orphan) prints NOTHING; any other non-zero rc or a raise stays ONE stderr line. The director's kid brief said "any non-zero rc stays one stderr line" -- that contradicted CLAIM 2 and is withdrawn. True when fixed: F2 row (fake answers rc 5 for an already-collected scope -> stderr empty) and F3 row (rc 1 -> one line, no raise), and F12 keeps its point by asserting the ORPHAN survives a bare-name stop (not the stderr line).
+2. LIVE -- one more normal-exit run of the /tmp/dg2g60b harness with NO orphan: the stage returns, the stop answers rc 5, stderr carries no `could not stop` line; paste it.
+FILE SCOPE extensions/agi/bin/workflow.py (`_stop_stage_unit`) · extensions/agi/tests/test_workflow_stage_scope.py
+CEILING   HARD CAP: 1 kid · production net <= +7 over 12e985a43 (DISCLOSED OVERRIDE of +4 by the director: the overrun is the director's brief error, not scope creep) · tests net <= +40 · 0 USD
