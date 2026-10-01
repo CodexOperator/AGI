@@ -63,7 +63,7 @@ Void checks, all clear in every seed: the 3 checkpoint shas match; baseline held
 
 ## Verdict: DISPROVED
 
-Pre-registered rule: C1 AND C2 for every family in every seed -> proved, any failure -> disproved. C2 holds everywhere; C1 fails for seed 0 k=34, seed 1 k=3, seed 2 k=17. Not void. So "every family frequency is load-bearing in logit space" is false in this toy; what does hold in every seed is that each family's direct logit output lives in its own frequency (C2 12/12) and that the frequencies, not sampled neuron sets, carry the drops that exist.
+Pre-registered rule: C1 AND C2 for every family in every seed -> proved, any failure -> disproved. C2 holds everywhere; C1 fails for seed 0 k=34, seed 1 k=3, seed 2 k=17. Not void. So "every family frequency is load-bearing in logit space" is false in this toy; what does hold in every seed is that each family's direct logit output lives in its own frequency (C2 12/12). Whether frequencies rather than neuron sets carry the drops is NOT licensed: neuron-set drops exceed logit-frequency drops for seed 1 k=5 (P4' 0.309 vs 0.030) and k=7 (0.043 vs 0.0008).
 
 ## Caveats and deviations (disclosed)
 
