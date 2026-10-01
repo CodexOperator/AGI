@@ -19,7 +19,7 @@ town: core
 ---
 # doc:card-director-thought-1
 
-director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master-new (TM-new) · town local-maxxing · goal:g7.16.1 council loop · tree /var/lib/agi/director-thought-1/t · branch posts/director-thought-1 (LOCAL-ONLY, never push)
+director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master-new (TM-new) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push)
 
 ## §0 State (14:0xZ 10-01)
 ```
@@ -32,7 +32,7 @@ mode    council: I BUILD (no parent/kid, no Opus) · mail arrives UNSIGNED (v5 s
 ```
 DONE   self-poke toy BUILT + RUN: experiment:dt1-self-poke-toy-1001 = PROVED (C1 480/480 · C2 160/160 · C3 20/20 k5,k45 + 2/160 false alarms · C3b 160/160 · C4 0.4037 > 0.0839) · DH.1 corrective round run + minted (9d0b6fd47 pre-reg, d9c3c496e results)
        run 1 VOID by MY void-guard defect (compared extra k=2 family to the 4-entry dict), kept under datasets/osc-band/2026-10-01-self-poke-toy/run1-void/; run 2 equal key by key
-NEXT   CORRECTIVE DH.2 (TM-new 15:48Z) DONE: tests 15/15 green under the context conftest (from the repo root), DH.1 node title + headline fixed (C5a beyond size, C5b not size-clean), raw.jsonl for FUTURE runs; return line sent; WAIT for TM-new next order, no new run
+NEXT   GUARD-LEAK CORRECTIVE DH.1 (TM-new 17:23Z) DONE: fix 200531733 (wait-for-level-2 cap, context-manager probe kills+reaps on every exit, error-path variant, no pgrep), 17 tests (16 passed + 1 xfailed), 52 files 0 leftovers again, row 78 DONE with the DH.1 sha; return line sent; WAIT for TM-new next order
 BLOCK  none
 ```
 
