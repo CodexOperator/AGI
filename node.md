@@ -821,8 +821,19 @@ ANON      no user name, home or repo path value, host or IP; patterns write <use
 FILE SCOPE .agi/config.json (values.boxkit: the 2 new cells only) · extensions/agi/boxkit/templates/manifest.json (the memguard-script row only) · extensions/agi/boxkit/templates/memguard-script.tmpl · extensions/agi/tests/fixtures/boxkit/memguard-script.fixture (re-render only; must stay byte-identical) · extensions/agi/tests/test_boxkit_templates.py · the kid's own node.
 CEILING   HARD CAP: 1 kid · 6 production lines · 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut.
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit.
+EVIDENCE  DG3.74 parent went OFF-SCRIPT (goal:g7.33.19 row 69; its loop branch never merges) -> the 4 items were cleared by a Sonnet 5.5 subagent on de-base-DG3.73b 951255b01: numstat config 2/0 · manifest 2/0 · template 2/2 · test 19/7; fixture diff vs 9f3e0811a EMPTY (fixture_sha256 unchanged); test_boxkit_templates.py 206 passed (director re-run); probe SUSPEND_RATIO 0.0 in tmp: recorders caught kill 2 / run 3, real calls 0; negative probe (new test + new config on a tree of 7358dcf20): 1 failed 205 passed at the post-pi row (0 == -900). Re-mur mur-de-base-dg3-73b: accept_with_residue -> DG3.73c.
+
+## CORRECTIVE DG3.73c -- closes mur-de-base-dg3-73b rmg2-code (accept_with_residue)
+BASE      CUT FROM de-base-DG3.73b tip 951255b01 (worktree /mnt/agi-ram/worktrees/de-base-DG3.73b). No merge. Never rebase.
+1. log() writes the LIVE log path inside the test exec -- memguard-script.tmpl:20 renders MEMGUARD_LOG = the real /var/log path into the exec'd source -- the test renders MEMGUARD_LOG into tmp_path (a value override for that exec only; the fixture stays the anonymized render). TRUE WHEN the exec'd source carries no /var/log path (assert) and the SUSPEND_RATIO 0.0 probe runs fully inside tmp (paste its output).
+2. The canary covers only os.kill( and subprocess.run( -- test_boxkit_templates.py:622 -- add os.getpriority( and os.setpriority( to it, so a template edit that drops a stubbed call site goes RED instead of silently restoring a real call. TRUE WHEN the assert names all four (paste the line).
+3. config_max half-applied -- memguard-script.tmpl:11-13 PROTECT_COMM, PROTECT_CMD, PI_CMD are still literals -- move each into a values.boxkit cell, list them in the memguard-script manifest placeholders (sorted), render from them. TRUE WHEN the fixture diff vs 951255b01 is EMPTY and fixture_sha256 is unchanged (paste both).
+DEMOTED   row-107 lookalike (verify: a counter-example, deriving it deletes coverage) · canary covers one site (verify: str.replace is global, 2+2 sites rewritten) · live parity per box (verify read this box's live file: post_pi in prot at line 49, line 15 == the cell; by design no committed test reads a live unit).
+ANON      no user name, home or repo path value, host or IP; patterns write <user>.
+FILE SCOPE .agi/config.json (values.boxkit: the 3 new cells only) · extensions/agi/boxkit/templates/manifest.json (the memguard-script row only) · extensions/agi/boxkit/templates/memguard-script.tmpl · extensions/agi/tests/test_boxkit_templates.py · the fixture only if a re-render is byte-identical.
+CEILING   HARD CAP: 6 production lines · 20 test lines · Sonnet 5.5 subagent (owner lanes 02:26Z 10-01) · 0 USD.
 
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DG3.73b: mur-de-base-dg3-73 rmg-code accept_with_residue: POST_CG + pi comm to values.boxkit cells (fixture byte-identical) · test draws the shape from one source · exec namespace kill/run recorders asserted 0 · stand-in post name a
+corrective DG3.73c: mur-de-base-dg3-73b rmg2-code accept_with_residue: log path into tmp in the test exec · canary names all 4 stubbed calls · PROTECT_COMM/PROTECT_CMD/PI_CMD to cells (fixture byte-identical) · DG3.73b evidence recorded (DG3.74 parent off-script, cleared by a Sonnet 5.5 subagent)
 <!-- THOUGHT:END -->
