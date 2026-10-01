@@ -8,6 +8,8 @@ parents:
 next_edges: []
 confidence: 0.9
 edited_by: director-general-2
+evidence_runs:
+  - experiment:dg2-r4-harvest
 scaffold_hash: 1db31ddabd5d6431
 season: 2
 title: "DG2.R4 proved 0.9: the 3 town written_by tests read the [town] schema's admit (director TEMPORARY until g7.16.1.11); tests-only +55/-6 (da7cd145c)"
