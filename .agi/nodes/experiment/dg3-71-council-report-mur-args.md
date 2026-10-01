@@ -15,7 +15,7 @@ season: 2
 testable_claim: with a rounds[] args file of two rounds, council_report.py add writes each round its own old..new and routes each round residues to the owner resolved from that round hypothesis; an unmatched label or unknown tip is rc 2, never a ?..? row
 title: "DG3.71: council_report.py reads the mur rounds[] args per round (own tips, own owner, rc 2 on unmatched/unknown)"
 town: core
-verdict: inconclusive_lean_proved:85
+verdict: proved
 ---
 # experiment:dg3-71-council-report-mur-args
 
@@ -43,5 +43,5 @@ NET vs 2634a61987: council_report.py +4 (18+/14-, ceiling +12) · tests +30 (48+
 None open from mur-de-base-dg3-71 hcr-code: the flat `?..?` (defect 1) and the owner subject read off old_tip (defect 2) are closed above. Three notes stay demoted, unchanged: the flat leaf recomputed per round (cost only) · equal-length duplicate keys resolve in args order · no in-tree producer of rounds[].
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version. Deviation, decided: the CLAIM refuses an unknown old/new for every row, but F3 pins the flat-shape tests that carry no tips, so the refusal is scoped to the rounds[] shape (council_report.py round_args) and the flat ?..? is banked as residue, hence lean_proved not proved.
+DG3.71b corrective (mur-de-base-dg3-71 hcr-code). The last version was lean_proved:85 because the refusal covered rounds[] only and the flat shape still wrote ?..? (the F3 pin aaa..bbb kept tip-less flat tests). This version makes the flat dict ONE round under the SAME check (council_report.py round_args: each tip its own git show -s, absent/empty/unknown = SystemExit naming the label before any write), gives every flat test REAL tips from a tmp git repo (_flat) and drops the pin; the owner fallback now reads new_tip OWN subject, where the joined old+new git show let an empty new subject fall back to old_tip (strip().splitlines()[-1]). Falsifiers G1[3] + G2 fail on the 2634a61987 overlay (4 failed, 23 passed) and pass on 3d6a3ef72 (27 passed); neighbourhood 487 passed. Hence proved. Near miss: flat owner keeps the dict subject and does not fall back to new_tip subject -- unchanged flat behaviour, by order.
 <!-- THOUGHT:END -->
