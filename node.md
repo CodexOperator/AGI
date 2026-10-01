@@ -116,6 +116,13 @@ ANON      no user name, home or repo path value, host or IP
 FILE SCOPE .agi/nodes/.geometry/engine.md (### agi-project, ### agi-gate) · .agi/nodes/.geometry/engine-root.md (### agi-boot) · extensions/agi/tests/test_agi_boot.py (or the test that already covers agi-project)
 CEILING   HARD CAP: 1 Sonnet 5.5 kid · <= 5 production lines · <= 70 test lines · 0 USD
 
+## CORRECTIVE G9.7 -- closes mur-de-base-g9-5-2 g96-code (accept_with_residue; gating, claude-code) -- TEST ONLY
+BASE      CUT FROM de-base-G9.5 tip e1572a842 (worktree /mnt/agi-ram/worktrees/de-base-G9.5). No merge. Never rebase.
+1. the generated agi-project.service ExecStart check (engine.md ~82, now `ls <out>/agi-post@*.service.d/h.conf`) is untested: reverting only it to the wants-link form leaves every test green (verify reproduced) -- TRUE WHEN a test extracts that ExecStart fragment with the same sed agi-gate uses, runs it under sh -c (fakes for systemctl / systemd-sysusers on PATH, a tmp out dir) on a fixture whose v4 rows have NO boot row -> exit 0, and on a fixture with NO v4 rows -> non-zero; and the test FAILS against the wants-link form (say how you proved it).
+DEMOTED   `n` never initialised / a first skipped row starts the next one unspaced: harmless (verify: spacing only matters between starts; the gate still reads before every start); a root unit's environment carries no n.
+FILE SCOPE extensions/agi/tests/test_agi_boot.py
+CEILING   HARD CAP: 1 Sonnet 5.5 kid · 0 production lines · <= 50 test lines · 0 USD
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 G9 MOCK version (belam GO 20:3xZ 10-01). OWNER 20:2xZ verbatim: "You can install proxmox on this box yourself as needed". MEASURED by belam 20:2xZ: host = Ubuntu 24.04 (Proxmox VE installs on Debian only), SVM DISABLED BY BIOS (no KVM). OWNER CHOICE 20:3xZ verbatim (asked with 4 options): "systemd container mock" -- no Proxmox. So the CLAIM was exercised in a privileged docker container with systemd as PID 1 instead of a Proxmox VM: same agi-boot.service bytes (extracted from the one engine-root section at the trunk tip), a mock agi-ram-main, and sleep-faked posts. F1 F2 F3 held on the first mock reboot. Near miss: the docker bridge has no outbound, so packages came from a separate host-network setup container committed to a local image, and the mock itself ran with --network none. Not yet proven: real claude posts behind the gate (the ~13 ms start spacing is the open residue). The real /etc install and the ONE real reboot each wait for a separate belam GO.
 <!-- THOUGHT:END -->
