@@ -33,6 +33,19 @@ heal = _load("heal")
 OLD, NEW = 999999, 5555
 
 
+def _seed_recovery_ack(gdir):
+    """config:rotations `recovery_ack`, the cell heal's recover ack reads
+    (hypothesis:heal-ack-line-comes-from-config-rotations-by-role)."""
+    geo = Path(gdir) / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\nrecovery_ack:\n"
+        "  prime_director: {recovered: \"RECOVERED SEAT {seat} --gen {gen}\","
+        " resumed: \"RESUMED SEAT {seat} --gen {gen}\"}\n"
+        "  default: {recovered: \"RECOVERED SEAT {seat}\","
+        " resumed: \"RESUMED SEAT {seat}\"}\n---\n")
+
+
 @pytest.fixture
 def graph(tmp_path: Path, monkeypatch) -> Path:
     monkeypatch.setenv("AGI_REAPER_LOG", str(tmp_path / "reaper.log"))
@@ -45,6 +58,7 @@ def graph(tmp_path: Path, monkeypatch) -> Path:
            "pid": OLD, "window": "@50", "generation": 3}
     p.write_text("---\nid: config:seats\nseats:\n  - " + json.dumps(row)
                  + "\n---\n", encoding="utf-8")
+    _seed_recovery_ack(g)
     return g
 
 
