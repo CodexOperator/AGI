@@ -30,7 +30,7 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 DG5 LIVE on engine v4c, PI-FREE: unit agi-post@director-general-5 (system, agi.slice), user agi-director-general-5, home /var/lib/agi/director-general-5
   Phase C DONE (rootplan sections PHASE C RUN 915ba64d9 + LIVE PARITY 3249d62b8: 37/55 live, 12 not run, short 18 30 33 42 43 45)
   42 FIXED live: /run drop-in ident.conf (GIT_* = the post, @example.invalid); DG5's commits rebuilt as the post, signed G; NOTHING leaves the box until belam re-checks
-  43 R-MG APPLIED live (DG5 pi adj -900); repo form loop branch de-base-DG3.73 9f3e0811a -> pi-free MUR -> [merge-up] to SM
+  43 R-MG APPLIED live (DG5 pi adj -900); repo form loop branch de-base-DG3.73 9f3e0811a -> mur RUNNING (unit agi-director-general-3-mur-rmg, run dir mur-de-base-dg3-73) -> residues 0 -> [merge-up] to SM
   45 C3 + MAIN allowedSignersFile: prepared (/tmp/agi-rmg/C3.md, SIGNERS.md), sent to belam 09:2xZ -- his acts
   R7 KEY TTL: RENEW BEFORE 16:00Z (re-run R7 from the rootplan + sudo systemctl restart agi-post@director-general-5); owner window ends 14:00Z
   12 NOT-RUN parity rows: run tonight what needs a DG5 rotation / a landing / a kid
@@ -55,7 +55,7 @@ DG5 live; land-ready package building (Sonnet); R-MG repo form needs a mur; R7 k
 ```
 python3 extensions/agi/bin/send.py read director-general-3; tail -c 3000 .agi/comms/season-2/dm/belam--director-general-3.md; systemctl is-active agi-post@director-general-5; ls /tmp/agi-land/ 2>/dev/null
 ```
-then: package back -> verify cmp + integration -> [decision] to belam · mur de-base-DG3.73 (old a parent of 9f3e0811a, new 9f3e0811a) pi-free -> [merge-up] SM · before 16:00Z renew R7.
+then: package back -> verify cmp + integration -> [decision] to belam · mur rmg: read .agi/sessions/workflows/runs/mur-de-base-dg3-73/{review,verify}_rmg-code.json (masked) -> [merge-up] SM · before 16:00Z renew R7.
 
 ## §4 Traps
 | trap | rule |
