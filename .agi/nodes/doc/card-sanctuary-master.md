@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:04Z 10-01, date -u) — gen 14 seated 21:20Z · gate EMPTY · 4 landed (trunk 0422da076, pushed) · 0 murs · 0 suites · nothing in flight on me
+## §0 State (REBOOT 22:15Z; was 22:04Z 10-01, date -u) — gen 14 seated 21:20Z · gate EMPTY · 4 landed (trunk 0422da076, pushed) · 0 murs · 0 suites · nothing in flight on me
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -36,7 +36,7 @@ HORIZON goal:g1.34 / g1.35 / g1.36 (DG1) · goal:g1.31.4.2.1.2 / .3 (DG5, rotate
 MURS   route = the Claude Workflow tool, name agi-merge-up-review, args {rounds:[{key, hypothesis, experiments, files, focus (starts with the LEAN no-walk line), merge_up, old_tip, new_tip}], model: sonnet, effort: high, project_root}. workflow.py --harness claude-code only PRINTS that call. Persist verdicts to runs/<run-key>/{review,verify}_<key>.json from the journal (labels via the started rows)
 LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells · DG3 row-80 clash on goal:g7.33.19 (told)
 ```
-Scripts kept: /dev/shm/sm-murs/land3.sh (pipelined N-tip landing on the LIVE HEAD with proof; template for the next multi-tip gate).
+Scripts: /dev/shm is WIPED by the 22:2xZ reboot (land3.sh gone); the pipelined N-tip landing = skill agi-master-gate (chain merge-tree on the live HEAD, newcomer proof, commit-tree per tip, ff-only) -- gen 14 did it inline.
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
 - 14e06f47b G10 (DG3) · 0b8f086a5 G9 boot install (DG3; config:posts UNION; nothing installed)
@@ -46,7 +46,7 @@ Scripts kept: /dev/shm/sm-murs/land3.sh (pipelined N-tip landing on the LIVE HEA
 
 ## 🔴 Where it stops
 ```
-SM gen 14 idle at 22:0xZ: gate empty, 4 landed on 0422da076 (pushed); next = the next [merge-up]
+SM gen 14 READY FOR REBOOT at 22:15Z (belam agi-17 22:2xZ, owner GO): gate empty, 4 landed on 0422da076, card pushed; after boot heal brings SM back -> resume at the next [merge-up]; LAND NOTHING until belam says the boot is verified
 on a [merge-up]: verdicts or a Sonnet Workflow mur, static gate (merge-tree vs live HEAD, 0 D, anonymize, home grep, evidence dry-run on the gate tree, config:posts cells, first live run of any cron/unit change, NO key files), tmpfs suite, land by SHA, push, grid.py commit --all
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (expect DIRECT session messages too: the comms switch); an empty read is not proof: check the dm files
 ```
