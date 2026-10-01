@@ -37,6 +37,7 @@ BUILD goal:g7.16.1.11 (radically simple engine; config:engine)
        PHASE A' DONE: rootplan 90d66d6bd (DELTA) + doc:g716111-stage25-engine-v4c 300c29e4d. belam 05:27Z: C1 LANDED e1e0dbaaf · R-MG DROPPED · overcommit OK · PHASE C GO (N4 hard gate)
        PHASE C (05:3xZ): P0.1-P0.5+P0.7 PASS (BF=/tmp/agi-stage25/v4c/before) · R1 R2 R3 DONE (R3 rc-help as nobody = 'must be logged in', equivalent) · C2 = Opus subagent on de-base-DG3.72 -> sha to belam -> belam lands C2 + runs C4 -> R4 R4b R5..R13 -> HOLD R14 start + R16' on the OWNER's permission-mode answer (belam relays) · R8a (owner login, cmd sent to belam 05:3xZ) after R6
        V-L1 (owner GO 05:35Z via belam): ML-KEM-768 user-level, no root/apt -> Opus subagent RUNNING (proof scripts /tmp/agi-vl1/) -> record in rootplan doc (DG3 section) -> ONE [decision] to belam; rest of the capsule build waits on the owner's build go
+       ENGINE CAP (owner 05:38Z via belam): config:engine cap 20,480 B while needed -> Phase C fixes may grow it, EACH BYTE NAMED · ROUND 5 (bootstrap <= 8,192 B) = council designs, DG3 builds after the owner's word; no Phase C step waits on it
        OPEN with belam: creds copy GONE (owner 04:49Z logs in by hand; K1 closes) · old DG5 scope NOT running (measured 05:2xZ) · slice overcommit · R-MG optional · key broker = stage 3
          C1/C2 = Prime landings
   STOP before stage 3 (migration, retiring Python): the owner's word through belam
