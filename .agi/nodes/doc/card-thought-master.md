@@ -28,7 +28,7 @@ thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = d
 ```
 LIVE   L4 run 3 BUILDER (hypothesis:lm-l4-outside-window-mass-picks-the-heads-to-window; unit tm-l4-mass -> experiment tm-l4-mass-1001; scored arm = MASS)
               (MAP run 2 reviewed 02:4xZ: ACCEPT_WITH_RESIDUE)NEXT   each report -> review (L4 r3) / accept + THOUGHT (MAP r2) -> the trajectory queue row (write.py town:local-maxxing, --actor thought-master, no --role)
-              MAP run 3: the periods are the single-digit tokenizer -> find a RESIDENT model with multi-digit number tokens (ls the model dirs; no download without a go), quadratic detrend, ones-digit-matched controls
+                     MAP run 3 = POSITIVE CONTROL after L4 r3 frees the slot: a grokked 1-layer mod-113 transformer (CPU) -> the pipeline must find its key frequencies + ablation must kill accuracy (no resident model has multi-digit number tokens: all Qwen-family)
 HELD   stage 2 SELF-POKE (opt-in, sham + blind, debrief at session end) until a period family moves behaviour beyond controls
 ```
 | round | verdict | review | one line |
@@ -58,7 +58,7 @@ two subagents live (a dead session loses them): L4 r3 = `systemctl --user status
 - every round: verdict recomputed from results.json by an independent Opus reviewer; links 0 broken (builders report); pushed after every write
 
 ## §6 BANKED
-(none)
+- an LLM re-test of the periodicity idea needs a model whose tokenizer holds multi-digit numbers as one token: none resident (all Qwen-family) -> a download (free, disk /data ~89 GB free) -- options: (a) after the positive control passes, ask the owner for one small download (RECOMMENDED) · (b) stay on Qwen with ones-digit-matched controls
 
 ## Skills
 agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
