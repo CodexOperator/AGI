@@ -8,8 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: 445272492c7e49cb
 season: 2
-testable_claim: a send to an engine-v5 row reports delivered-by-mail and never undelivered-yet; a send from a v5 post worktree is signed and whois VERIFIED
-testable_claim=a: send (inbox form) to an engine-v5 row on this box reports delivered-by-mail, a dm-file send says written not delivered, a foreign engine row is refused by name; a send from a v5 post worktree is signed and whois VERIFIED
+testable_claim: a send (inbox form) to an engine-v5 row on this box reports delivered-by-mail, a dm-file send says written not delivered, a foreign engine row is refused by name; a send from a v5 post worktree is signed and whois VERIFIED
 title: "G5: send.py treats a v5 post as a peer -- delivered-by-mail, signed, whois VERIFIED"
 town: core
 ---
