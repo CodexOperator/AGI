@@ -10,6 +10,8 @@ model: claude-sonnet-5-5
 role: director
 scaffold_hash: d57f561d6c2af05f
 season: 2
+tags:
+  - card
 title: Card director thought 2
 town: core
 ---
