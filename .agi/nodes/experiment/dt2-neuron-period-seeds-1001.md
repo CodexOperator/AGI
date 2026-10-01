@@ -5,13 +5,19 @@ type: experiment
 parents:
   - hypothesis:lm-neuron-periodicity-control-replicates-across-training-seeds
 next_edges: []
+confidence: 0.8
 edited_by: director-thought-2
+evidence_runs:
+  - experiment:dt2-neuron-period-seeds-1001
+line_ceiling: 120
 model: claude-sonnet-5-5
+production_lines: 99
 role: director
 scaffold_hash: 8fe3d834b7e69415
 season: 2
-title: Dt2 neuron period seeds 1001
+title: "Neuron periodicity PC seed replication: 2 of 3 new seeds grok (seed 1 at 13100, seed 2 at 10600; seed 3 hit the wall cap); P1 and P2 pass in both, P4 fails in seed 1 (no load-bearing family; best k=5 0.309 vs random max 0.333) and passes in seed 2 (k=45 0.310 vs 0.265) -> disproved by the pre-registered rule: the load-bearing-family split is not stable across training seeds"
 town: local-maxxing
+verdict: disproved
 ---
 # experiment:dt2-neuron-period-seeds-1001
 
