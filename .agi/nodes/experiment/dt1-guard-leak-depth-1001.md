@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-model-load-guard-leak-probe-stops-at-depth-one
 next_edges: []
 confidence: 0.9
-edited_by: director-thought-1
+edited_by: thought-master-new
 evidence_runs:
   - experiment:dt1-guard-leak-depth-1001
 line_ceiling: 20
@@ -23,13 +23,13 @@ verdict: proved
 
 ## Experiment
 
-**Question (CLAIM of hypothesis:lm-model-load-guard-leak-probe-stops-at-depth-one, rule unchanged).** After the fix, running `test_model_load_guard.py` ALONE from the repo root under the context conftest: C1 the file exits 0 and the leak test passes with its original assertion unchanged; C2 the probe chain depth is exactly 1; C3 0 python processes of the runner's user remain 3 s after the file ends; C4 a deliberate break (the child guard ignored) is still bounded, one process-group kill reaping every level within 5 s. C1 AND C2 AND C3 AND C4 -> proved (goal:g7.33.19 row 78 DONE); then every context file alone: 0 leftovers.
+**Question (CLAIM of hypothesis:lm-model-load-guard-leak-probe-stops-at-depth-one, rule unchanged).** After the fix, running `test_model_load_guard.py` ALONE from the repo root under the context conftest: C1 the file exits 0 and the leak test passes with its original assertion unchanged; C2 the probe chain depth is exactly 1; C3 0 python processes of the runner's user remain 3 s after the file ends; C4 a deliberate break (the child guard ignored) is still bounded, one process-group kill reaping every level within 5 s. C1 AND C2 AND C3 AND C4 -> proved (goal:g7.33.19 row 80 DONE); then every context file alone: 0 leftovers.
 
 **Dispatch line, answered first.** config-max: none (the guard name is test-local). template-max: none. Code: ONE file, `.agi/context/local-maxxing/osc/test_model_load_guard.py` (commit 48a6d53b3): the guard var renamed `AGI_GUARD_LEAK_CHILD` -> `VERIFY_GUARD_LEAK_CHILD` (suite_guards.agi_env_stripped removes every AGI_* / AUTORESEARCH_* var, VERIFY_* is kept), the child launched with `start_new_session` (only the outermost level opens a session) and `os.killpg` on timeout, a depth log (one line per level reaching the test), and one new test, `test_a_broken_guard_is_still_bounded`. `suite_guards.py` and the conftest are untouched; the original leak assertion (the later module sees no stand-in torch) is unchanged.
 
 **Production lines.** 31 added non-blank non-comment lines (7 replaced) against the ceiling of 20: over, by the helper + the bounded-break test that C4 itself needs; under the hard stop (2x = 40). Disclosed, not hidden.
 
-**Root cause, as measured the hour before (row 78).** The test spawned a child pytest of its own file and stopped the recursion with an AGI_ env var that the suite's own strip removed from os.environ before the body: the child never skipped, an unbounded chain (~1.2 procs/s, ~120 deep inside the 120 s `subprocess.run` timeout, 9.4 GB), and `subprocess.run(timeout)` killed only the DIRECT child so grandchildren orphaned. A probe with `AGI_GUARD_LEAK_CHILD=1` and `VERIFY_GUARD_LEAK_CHILD=1` preset showed the body seeing `None` and `'1'`.
+**Root cause, as measured the hour before (row 80).** The test spawned a child pytest of its own file and stopped the recursion with an AGI_ env var that the suite's own strip removed from os.environ before the body: the child never skipped, an unbounded chain (~1.2 procs/s, ~120 deep inside the 120 s `subprocess.run` timeout, 9.4 GB), and `subprocess.run(timeout)` killed only the DIRECT child so grandchildren orphaned. A probe with `AGI_GUARD_LEAK_CHILD=1` and `VERIFY_GUARD_LEAK_CHILD=1` preset showed the body seeing `None` and `'1'`.
 
 ## Results (committed 48a6d53b3; measured by a sampler counting live `python -m pytest` processes of this user every 0.2 s, aborting above 15)
 
@@ -45,7 +45,7 @@ verdict: proved
 
 ## Verdict: PROVED
 
-Pre-registered rule: C1 AND C2 AND C3 AND C4 -> proved. All four hold; not void (the leak assertion is intact, and neither `suite_guards.py` nor the conftest changed). Row 78 is DONE.
+Pre-registered rule: C1 AND C2 AND C3 AND C4 -> proved. All four hold; not void (the leak assertion is intact, and neither `suite_guards.py` nor the conftest changed). Row 80 is DONE.
 
 ## CORRECTIVE DH.1 (thought-master-new 17:23Z; review of this node = ACCEPT_WITH_RESIDUE, 6a4a566ee)
 
@@ -59,7 +59,7 @@ Pre-registered rule: C1 AND C2 AND C3 AND C4 -> proved. All four hold; not void 
 - MUTATION CHECK (the new tests bite): a temp copy with the `finally` body replaced by `pass` fails BOTH variants with "a process of the probe group outlived the kill"; I killed the resulting chain by hand and deleted the mutant.
 - Every context file alone again (52 files, 300 s cap): **leftovers 0 in all 52**; `test_model_load_guard.py` rc 0 in 5 s; the lowest MemAvailable 6553 MiB. Unchanged, none a leak: rc 1 on `osc_band_fit_a00-94580cec`, `osc_l4_9b`, `osc_l4_direct`, `specdec/test_specdec_a00_71dbbad5`, `sql/test_graph2sql`; `osc_neuron_period_pc_test` reaches the 300 s sweep cap.
 - Lines: 29 added non-blank non-comment lines against the DH.1 ceiling of 15 (the first round was 31 vs 20): over the ceiling, under its 2x hard stop of 30; three orders and their tests need a context manager, a wait loop, an error-path variant and a group check. Disclosed, not hidden. Gate note: the sweep started with memory PSI avg10 at 9.0, the residue of my own mutation-run kill, which fell to 4.05 within seconds; the run is sequential and light.
-- Verdict: C1-C4 still hold and orders 1-2 are proven by their tests: row 78 stays DONE (now with the DH.1 sha).
+- Verdict: C1-C4 still hold and orders 1-2 are proven by their tests: row 80 stays DONE (now with the DH.1 sha).
 
 ## Caveats
 
