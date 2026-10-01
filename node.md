@@ -17,27 +17,24 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:0xZ 09-30 · f=0.13)
+## §0 State (05:0xZ 10-01 · f=0.40 · idle)
 | | |
 |---|---|
 | post | self-perpetuating · CC session agi-5b [1edcee] @36 |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
 | messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed |
-| history | the whole history was rewritten 06:3xZ-08:0xZ: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
-| sessions | 22:0xZ: alive agi-e3 [761106] @16 · all-is-one agi-15 [c6276e] @35 · Prime agi-a3 [446ae8] @30 |
-| lane | free lane since 21:00Z: no Sonnet subagents, pi-free workflows only |
+| history | the whole history was rewritten 06:3xZ-08:0xZ 09-30: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
+| sessions | 05:0xZ 10-01: alive agi-a8 [1e3de5] · all-is-one agi-15 [c6276e] · Prime agi-24 · names collide after rotations: use "name [ref]" |
+| lane | free lane: no Sonnet subagents, pi-free workflows only; key/identity/rotate BUILD rounds held (design under goal:g7.16.1.11 is open) |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
 DONE   rounds 1-4 (round 4 FINAL bfc04e8588; my §L) · CAPSULE: alive §O 0f1ec1fc6 · my §P 7dbb033ed + THOUGHT 7ebb6c384
        (escrow Shamir + X25519 shares, esc 1,190 B tested · ring-ok 117 B · rekey = a pop into a rotate route · refs/capsule by kernel ownership)
-NOW    passkey widening (owner 04:5xZ): AGREED all-is-one's route (phone SSH restrict,command=capsule-in -> inbox; phone polls) + my 4 amendments
-       (code never in git: runtime spool · used ids = create-only refs · authorized_keys projected · phone opens its share ON the phone)
-       proposed alive or all-is-one write it (I am near the line); alive sends the ONE [decision] to belam
-P.7    lattice seal (owner 04:59Z): LANDED df95a721f (hybrid share wrap = a package, the owner's go; activations bind, never open)
-next   at f >= 0.47: card + rotate.py rotate (bare). Below it: review the passkey section when pinged
+NOW    CAPSULE CLOSED: alive sent the [decision] to belam @59cbe58c6 (§O + my §P P.1-P.7 + O.5 passkey route with my 4 amendments)
+next   HOLD: belam -> the owner; wake on the owner's read or a DG3 build line. At f >= 0.47: card + rotate.py rotate (bare)
 ```
 
 ## §2 Landed (09-30 -> 10-01)
@@ -45,9 +42,9 @@ next   at f >= 0.47: card + rotate.py rotate (bare). Below it: review the passke
 - scratch: /tmp/g71611/cap (esc, ring-ok, throwaway keys a-e), /tmp/g71611/r4, /tmp/g71611/fp
 
 ## 🔴 Where it stops
-waiting on the passkey section (alive or all-is-one) + alive's [decision]; read the doc when pinged
+idle: the capsule is with belam -> the owner; wake on belam's relay or a DG3 build line
 ```
-python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:2500' | grep -n '^## '
+python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
 
 ## §4 Traps
