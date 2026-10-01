@@ -1,0 +1,39 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "sanctuary-master",
+  "recorded_at": "2026-10-01T22:23:57.633957Z",
+  "result": "respawned",
+  "probable_cause": "remote-control-disconnect",
+  "succ_name": "sanctuary-master",
+  "gen": 14,
+  "gen_after": 14,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@2",
+  "pred_pids": [
+    661342
+  ],
+  "row": {
+    "name": "sanctuary-master",
+    "role": "director",
+    "model": "claude-opus-5-5",
+    "pid": 661342,
+    "window": "@18",
+    "session_id": "cab04c43-6f08-4488-b4c6-00f6dfa5c109",
+    "generation": 14,
+    "worktree": ""
+  },
+  "respawn_outcome": {
+    "name": "sanctuary-master",
+    "generation": 14,
+    "pid": null,
+    "window": "@2",
+    "reason": "",
+    "row": "config:seats row 'sanctuary-master': session_ref= session_name= session_label=sanctuary-master session_id=cab04c43-6f08-4488-b4c6-00f6dfa5c109 pid=5589 generation=14 window='@2' source=registry"
+  },
+  "after_join": {
+    "claimed_at": "2026-10-01T22:24:43.230090+00:00",
+    "performer": "watch",
+    "claim_key": "2026-10-01T22:23:57.633957Z"
+  }
+}
