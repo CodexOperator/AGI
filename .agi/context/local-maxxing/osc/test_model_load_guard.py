@@ -6,6 +6,7 @@ fakes `torch` and then calls `torch.load`. The conftest's per-test scan has to s
 them before any test body runs.
 """
 
+import contextlib
 import importlib
 import os
 import subprocess
@@ -246,14 +247,20 @@ def test_a_proxy_whose_attribute_access_raises_is_skipped_not_fatal(monkeypatch)
 GUARD = "VERIFY_GUARD_LEAK_CHILD"   # VERIFY_*, never AGI_*: suite_guards.agi_env_stripped strips AGI_* vars
 
 
-def _probe(args, depth, log, timeout, **env):   # a child pytest; only the outermost opens a session: ONE killpg reaps all
+PROBE_S, CAP_S, POLL_S = 120, 60, 0.2   # the probe timeout; the cap on waiting for level 2; the poll step
+
+
+@contextlib.contextmanager
+def _probe(args, depth, log, **env):   # a child pytest; the outermost opens a session; its group dies on EVERY exit path
     p = subprocess.Popen([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *args], text=True,
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=not depth,
                          env={**os.environ, GUARD: str(depth + 1), GUARD + "_LOG": log, **env})
     try:
-        return p, p.communicate(timeout=timeout)[0]
-    except subprocess.TimeoutExpired:
-        return p, (os.killpg(p.pid, 9), p.communicate(), None)[2]
+        yield p
+    finally:
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(p.pid, 9)
+        p.wait()   # the leader would keep the group alive as a zombie
 
 
 def test_standins_never_leak_into_a_later_module(tmp_path):
@@ -269,21 +276,29 @@ def test_standins_never_leak_into_a_later_module(tmp_path):
         "def test_no_standin():\n"
         "    t = sys.modules.get('torch')\n"
         "    assert t is None or not hasattr(t, '_calls'), t\n")
-    p, out = _probe([__file__, str(later)], depth, log, 120)
-    assert p.returncode == 0, (out or "timed out")[-2000:]
+    with _probe([__file__, str(later)], depth, log) as p:
+        out = p.communicate(timeout=PROBE_S)[0]
+    assert p.returncode == 0, out[-2000:]
     assert open(log).read().split() == ["0", "1"], "the leak probe recursed past depth one"
 
 
-def test_a_broken_guard_is_still_bounded(tmp_path):
-    """The child ignores its guard (_BREAK): it recurses, the timeout fires, ONE killpg reaps every level within 5 s."""
+@pytest.mark.parametrize("fail", [False, True])
+def test_a_broken_guard_is_still_bounded(tmp_path, fail):
+    """Guard ignored (_BREAK): wait for level 2 (<= CAP_S), ONE killpg reaps every level <= 5 s, even if the body raises."""
     if os.environ.get(GUARD):
         pytest.skip("only the outermost level runs the bounded-break probe")
-    log = str(tmp_path / "break.log")
-    leak = f"{__file__}::test_standins_never_leak_into_a_later_module"
-    p, out = _probe([leak], 0, log, 6, **{GUARD + "_BREAK": "1"})
-    assert out is None and len(open(log).read().split()) >= 2   # it recursed, and the timeout fired
-    for _ in range(50):
-        if subprocess.run(["pgrep", "-g", str(p.pid)], capture_output=True).returncode:
-            return
-        time.sleep(0.1)
+    log, leak = str(tmp_path / "break.log"), f"{__file__}::test_standins_never_leak_into_a_later_module"
+    with pytest.raises(RuntimeError) if fail else contextlib.nullcontext(), _probe([leak], 0, log, **{GUARD + "_BREAK": "1"}) as p:
+        t0 = time.time()
+        while not (os.path.exists(log) and len(open(log).read().split()) >= 2) and time.time() - t0 < CAP_S:
+            time.sleep(POLL_S)
+        if fail:
+            raise RuntimeError("probe error")
+    assert len(open(log).read().split()) >= 2   # it recursed
+    for _ in range(50):   # <= 5 s for the whole group to be gone (killpg signal 0 -> ESRCH; no pgrep)
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(p.pid, 0)
+            time.sleep(0.1)
+            continue
+        return
     pytest.fail("a process of the probe group outlived the kill")
