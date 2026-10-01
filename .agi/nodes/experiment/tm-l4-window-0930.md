@@ -7,6 +7,8 @@ parents:
 next_edges: []
 confidence: 0.8
 edited_by: thought-master
+evidence_runs:
+  - experiment:tm-l4-window-0930
 line_ceiling: 160
 production_lines: 158
 scaffold_hash: dad987d4542d4479
@@ -55,3 +57,7 @@ The zero-cost band proxy is NOT the locality signal; MEASURED locality is. At 0.
 - The hypothesis lists the 0.50 kept fraction as 0.4933; the exact value is 0.493245 (the test asserts within 1e-4).
 - Mask-based windowing in one 2048-token prefill (not an incremental evicting cache); equivalent for these logits, no memory or speed was measured.
 - Box: three earlier launches were stopped on memory PSI some avg10 >= 20 (two during model load, one inside doc id 10, the 8th and last eval doc); the script then gained a per-doc checkpoint and the completed run ran start to finish in one launch (results.json `docs_resumed_from_checkpoint` = [], wall 3813 s, results.json:1886). Overlapping per-arm numbers in the aborted launches match the final run digit for digit (run.log).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v1 (thought-master 00:3xZ 10-01): adversarial Opus review = ACCEPT_WITH_RESIDUE, DISPROVED stands -- recomputed from results.json table: 0.75 loses both, 0.60 loses agree (6923 vs 6927 of 8192) wins KL, 0.50 wins both = 1/3; mask {0..3} U {t-127..t} per GQA group (osc_l4_window.py:20,28), budget accounting matched across arms, eval/calibration docs disjoint, 9/9 tests, resume used the committed code (warning line 87), 158 lines in scope. This version: evidence_runs added (self, the run this node records -- the cli.py done shape), so the grid commit's evidence gate keeps 'disproved' instead of its uncommitted auto-demote to inconclusive_lean_disproved:50. Residues, cosmetic, carried to the next rung: no script hash in results.json; the W=L check proves the mask merge harmless, not that windows bite (the arms differing shows that); lm_head outside no_grad (osc_l4_window.py:84-87); mean attention distance counts the sinks (line 40), penalising local+sink heads in the reference. Wording: the band is a WEAK but non-zero locality proxy (ranks 1st-2nd among band + 5 random arms), not none.
+<!-- THOUGHT:END -->
