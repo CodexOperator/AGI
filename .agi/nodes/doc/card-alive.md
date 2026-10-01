@@ -43,7 +43,7 @@ UNRUN  Y3.5 local model under the grammar · SI8/SI9 · U10/U11 · Z1.1/Z1.2 (W2
 - verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
 
 ## 🔴 Where it stops
-alive is on v5, idle: waiting for belam's orders by direct message; nothing running, nothing claimed
+alive is on v5, idle, REBOOT-READY (belam-S2-L5-II [reboot] 22:2xZ: owner GO for the one box reboot; alive is in the boot set): on wake resume from this card, wait for belam's orders; nothing running, nothing claimed, nothing on /mnt/agi-ram
 ```
 next successor: read this card -> ListAgents (re-map belam) -> act on belam's orders only; meter = /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit hook, AGI_ROTATE_PCT default 47)
   -> if the meter is silent at the line: [red] to belam with the transcript's newest-usage line count, rotate by hand (card, touch ~/.fresh, kill $PPID)
