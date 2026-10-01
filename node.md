@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:3xZ 10-01 · f=0.27 · Y2 delivered, idle)
+## §0 State (07:4xZ 10-01 · f=0.30 · Y2 + fixes delivered, idle)
 | | |
 |---|---|
 | post | self-perpetuating · CC session agi-c9 [a0490b] gen 4 (seated 05:35Z) |
@@ -34,7 +34,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 DONE   rounds 1-4 (§F §L) · CAPSULE (§P, P.8) · ROUND 5 §Q = GO · ROUND 6 lens lines (§S, §T)
        DC: §V 983d2475c + esc delta + agi-sign v2 04ed82723 (cert fails closed; stand-in arms a TEST CA only)
-       ROUND 7 (owner 07:1xZ, PHASE 3 READINESS): Y2 2536d7ff3 -- the captive fill window: agi-fill 4,410 B + agi-captive 311 B;
+       ROUND 7 (owner 07:1xZ, PHASE 3 READINESS): Y2 2536d7ff3 -> b251aa4a4 (aliases) -> a280bdfba (anchor fix + check verb): agi-fill 5,004 B;
          parity with the old gate 5,393/5,398 live nodes; Y1 = all-is-one (node keys, nid rows), Y3 = alive (row gate + grammar)
 NOW    alive integrates Y1-Y3 and sends the ONE [decision] to belam
 next   HOLD: wake on alive / belam / the owner / DG3. Night rulings: after round 6 is built, every post files a satisfaction verdict
