@@ -10490,3 +10490,71 @@ def test_cmd_spawn_refuses_a_second_stand_up_of_the_same_post(tmp_path, capsys):
     with rotate.post_launch_lock(g, "p1"):
         assert rotate.cmd_spawn(NS(seat="p1", dry_run=False), g) == 1
     assert "launch lock held" in capsys.readouterr().err
+
+
+# hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback (goal:g1.31.4.2.1):
+# a pin target this uid cannot stat is UNKNOWN, never a crash. MEASURED 10-01
+# 17:45Z: every .meter pin on this box names a transcript under another uid's
+# home, so `rotate.py status` died with PermissionError on the FIRST row and
+# metered no seat at all.
+def _pin_naming(tmp_path, seat, target):
+    """A seat-stable meter pin (`<graph>/sessions/<seat>.meter`) naming target."""
+    g = tmp_path / ".agi"
+    sessions = g / "sessions"
+    sessions.mkdir(parents=True, exist_ok=True)
+    pin = sessions / f"{seat}.meter"
+    pin.write_text(f"4\t{target}\n", encoding="utf-8")
+    return g, pin
+
+
+def test_an_unreadable_pin_target_is_unknown_not_a_crash(tmp_path, monkeypatch):
+    # The stat itself is what fails (EACCES on a tree this uid cannot enter);
+    # pin TEXT is readable, so _parse_pin_record is happy and the crash lands
+    # on the exists() call -- exactly the traceback measured on this box.
+    sealed = tmp_path / "sealed.jsonl"
+    sealed.write_text("{}\n", encoding="utf-8")
+    _g, pin = _pin_naming(tmp_path, "sealed-seat", sealed)
+    real_exists = Path.exists
+
+    def denied(self, *a, **k):
+        if self.name == "sealed.jsonl":
+            raise PermissionError(13, "Permission denied", str(self))
+        return real_exists(self, *a, **k)
+
+    monkeypatch.setattr(Path, "exists", denied)
+    assert rotate._read_pin_target(pin) is None, (
+        "an unreadable pin target is UNKNOWN, not an exception")
+
+
+def test_seat_fraction_is_none_when_the_pin_target_is_unreadable(tmp_path):
+    # The real box shape, no monkeypatch: a mode-000 directory. (root reads
+    # anything, so the case is meaningless there -- skip with a reason.)
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    blocked = tmp_path / "other-uid-home"
+    blocked.mkdir(mode=0o000)
+    target = blocked / "transcript.jsonl"
+    target.write_text("{}\n", encoding="utf-8")
+    g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
+    assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None, (
+        "None == UNKNOWN, the caller's documented skip -- never a raise")
+
+
+def test_status_survives_a_seat_whose_pin_is_unreadable(tmp_path, monkeypatch, capsys):
+    # Command level: status prints frac=? for the seat it cannot read and
+    # keeps going. Before the fix this raised PermissionError out of cmd_status.
+    import argparse
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    blocked = tmp_path / "other-uid-home"
+    blocked.mkdir(mode=0o000)
+    target = blocked / "transcript.jsonl"
+    target.write_text("{}\n", encoding="utf-8")
+    g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
+    monkeypatch.setattr(rotate, "_load_seats", lambda r: [{"name": "sealed-seat"}])
+    monkeypatch.setattr(rotate, "_read_generation", lambda r, s: 1)
+    monkeypatch.setattr(rotate, "_read_seat_row", lambda r, s: None, raising=False)
+    rc = rotate.cmd_status(argparse.Namespace(seats=True, record=None), g)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "sealed-seat" in out and "frac=?" in out, out
