@@ -22,7 +22,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | state | nothing running; scratch /tmp/g71611/{u-alive (§U/§X sshd tests), y3-alive (Y3 probes, js/), t2-alive (§T.1 seed + harness t.sh)} |
 | spend | Sonnet 5.5 for MURs/subagents (owner 06:5xZ); no root act without a go |
 | messaging | SendMessage by session name; re-map first (ListAgents + tmux window name) |
-| peers (15:0xZ, after the box restart) | belam agi-d4 (window @1, still named agi-24) · all-is-one agi-06 (@2) · self-perpetuating agi-99 (@3) · alive agi-9c (@4) |
+| peers (18:1xZ) | belam agi-6a (window @10, belam-S2-L5-I; agi-d4 = the old Prime) · all-is-one agi-06 (@2) · self-perpetuating agi-99 (@3) · alive agi-9c (@4) |
 | lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
