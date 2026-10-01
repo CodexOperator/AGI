@@ -48,3 +48,15 @@ BASE      CUT FROM de-base-G9 tip (6017fcbc6 + this node write). No merge. Never
 5. (config_max) drop the AGI_TRUNK literal from the unit: the piece and its config are read from MAIN's checked-out HEAD (MAIN never switches branches; it IS the local trunk). WorkingDirectory stays the one install-time literal (systemd needs it; it is written at install from the agi-project service's own toplevel). The shell's test-override defaults stay.
 DEMOTED   D3 refuted by verify (the wants dir is /run tmpfs, wiped at boot) · a dedicated boot ceiling cell vs reusing de_live_parents.ceiling_if: kept shared, one source, the owner's numbers are the same.
 FILE SCOPE .agi/nodes/.geometry/engine-root.md (the two agi-boot sections) · extensions/agi/tests/test_agi_boot.py.  CEILING production net +4 · tests +40 · Sonnet 5.5 subagent · 0 USD.
+
+## RESULT G9.2 (kid 79f05922f, director record)
+loadavg fail-closed (l reset each pass) · deterministic delay row (fake sleep flips the reading; 8 runs, 0 fails) · setfacl / daemon-reload failures named, boot continues, exit non-zero · a named skip for a boot row with no projected wants link · no AGI_TRUNK literal (ExecStart reads HEAD of MAIN). NUMSTAT a3e1f655e..79f05922f: engine-root.md 9/8 · test_agi_boot.py 35/11. 11 passed x3 (director), x8 (verify). mur-de-base-g9b: review + verify accept_with_residue.
+
+## CORRECTIVE G9.3 -- closes mur-de-base-g9b g9b-code (D1 + verify missed a b; D4 D5)
+BASE      CUT FROM de-base-G9 tip (79f05922f + this node write). No merge. Never rebase.
+1. (D1 + missed b) the start loop is a piped while (a subshell): a failed systemctl start AND a gate give-up both print a named line but cannot set e, so the unit exits 0. TRUE WHEN the boot rows are collected first (rows=$(...)) and iterated in the MAIN shell (for p in $rows -- names carry no spaces), so a failed start or a give-up sets e and the final exit is non-zero; rows: a failing fake start -> named line + exit non-zero + the next row still started; a give-up -> exit non-zero.
+2. (missed a) a SECOND loadavg read that fails after a good first read must not reuse the stale value: a row whose load file is valid-low on the first ok() call and then removed/emptied asserts the gate stays CLOSED (the start is skipped by name at the bound).
+3. (D4) the fake systemctl regains a start duration (e.g. sleep 0.1 inside start) so the no-overlap order row means something.
+4. (D5) drop the dead imports.
+DEMOTED   path defaults /mnt/agi-ram and /run/systemd/system = env-overridable defaults of a root unit, read nowhere else (no second source) · WorkingDirectory fidelity = an install-time check (the director installs from the projection and reads it back) · 'MAIN never switches branches' = a standing rule (the HEAD) not a code property · RESULT + THOUGHT = the director's (above; engine-root THOUGHT rewritten with this write).
+FILE SCOPE .agi/nodes/.geometry/engine-root.md (### agi-boot) · extensions/agi/tests/test_agi_boot.py.  CEILING production net +2 · tests +30 · Sonnet 5.5 subagent · 0 USD.
