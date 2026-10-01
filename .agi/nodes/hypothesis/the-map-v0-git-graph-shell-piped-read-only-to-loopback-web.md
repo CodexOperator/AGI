@@ -51,6 +51,18 @@ ANON      no user name, home or repo path value, host name or IP other than 127.
 FILE SCOPE extensions/agi/bin/map.sh · .agi/config.json (the `map` cell) · extensions/agi/tests/test_map_sh.py · ~/.local/bin/<package> (off-repo)
 CEILING   HARD CAP: 1 kid · map.sh <= 150 lines total · tests <= +40 over 19151e383 · 0 other production lines · Sonnet 5.5 lane · 0 USD
 
+## CORRECTIVE DH.2 -- closes the Sonnet review of 675dbf1e8..9cb9ad4f3 (accept_with_residue)
+BASE      CONTINUE ON worktree-agent-a2c7f206afa857d38 tip 9cb9ad4f3 (its own worktree). No merge. Never rebase.
+1. HALF A SECRET SURVIVES -- map.sh:50 vs :63 -- `%<(subject_cols,trunc)` cuts a subject BEFORE `anonymize filter`, so a planted secret renders as its prefix. True when fixed: the filter runs on the FULL subject, truncation after it; the test plants a secret straddling the cut and asserts no prefix of it (>= 4 chars) survives.
+2. UNTRACKED-ONLY READS AS CLAIMED -- map.sh:30 (-uno) + :44 -- a worktree adding only new files is "writing". True when fixed: untracked files count as writing; warm render on the live repo still < 2 s (paste 3 timings; MAIN stays in the scan).
+3. COMMITTED-NOT-LANDED HAS NO COLOUR -- map.sh:41-44 -- add a 5th v0 stage `committed` = tip has commits past its merge-base with the trunk, nothing staged or dirty (a clean worktree ahead of the trunk, or a branch with no worktree that is not merged); legend + test row. Every ref in the decoration then carries a stage colour.
+4. THE UNIT IS NOT IN THE BYTES -- add a `unit` verb: systemd-run --user --unit=<cell unit> --working-directory=<toplevel> -p MemoryMax=<cell> -- bash <self> serve; refuse if the unit is already active. Do NOT run it against the real unit name: prove it with MAP_CONFIG pointing at a tmp copy of the cell whose unit is agi-map-proof, then stop that unit.
+5. HARDENING -- pass the write flag OFF explicitly (--permit-write=false or the release's equivalent; check `gotty --help`) against an inherited env; cap connections from the cell (--max-connection); the 4-5 stage colour codes and the xargs -P width move into the cell (config-max), read once.
+DEMOTED (no fix, disclosed in a map.sh comment): unstaged edits in a worktree whose HEAD/index is older than the window are not seen -- the bound is falsifier 4's requirement; the v1 agi-track read is the named fix.
+ANON      no user name, home or repo path value, host name or IP other than 127.0.0.1; patterns write <user>
+FILE SCOPE extensions/agi/bin/map.sh · .agi/config.json (the `map` cell) · extensions/agi/tests/test_map_sh.py
+CEILING   HARD CAP: 1 kid · map.sh <= 150 lines total · tests <= 180 lines total · 0 other production lines · Sonnet 5.5 lane · 0 USD
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.2: Sonnet review of 675dbf1e8..9cb9ad4f3 = accept_with_residue -- 4 residues (truncate-before-filter leaves a secret prefix; -uno makes untracked-only work read as claimed; committed-not-landed refs uncoloured -> a 5th stage; no unit in the bytes -> a unit verb) + hardening notes folded in (explicit write-off, connection cap, colours/xargs width to the cell). Demoted: unstaged edits behind an old index (the scan bound is falsifier 4; agi-track v1 fixes it). Ceiling breach tests +121/+120 = a findings row, not a corrective.
 <!-- THOUGHT:END -->
