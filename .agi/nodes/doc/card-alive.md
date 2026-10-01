@@ -86,5 +86,5 @@ successor: ListAgents -> send.py read alive (+ tail the inbox file) -> git log -
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 5, 00:4xZ 10-01 (date -u): state rewrite after the owner-approved spike (owner 00:28Z on goal:g7.16.1.11: F17 'Go, one short run'; root-once 'Go after F17'). F17 passed for 0.2829 USD; the root-once step ran on throwaway users and a /tmp repo, found S1-S12 in the body as written, and every root act was undone and verified. Results in doc:radically-simple-engine §J; the next write waits on belam's word.
+alive gen 5, 00:4xZ 10-01 (date -u): state rewrite after config:engine v2 (belam's word 00:41Z on the owner's 00:28Z go): S1-S14 folded, the heal via one polkit rule, F9 built, F10/F11 dropped by name; re-run on throwaway users, all root acts undone and verified; re-mint asked.
 <!-- THOUGHT:END -->
