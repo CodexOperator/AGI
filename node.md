@@ -39,3 +39,18 @@ extensions/agi/bin/map.sh (new) · extensions/agi/bin/anonymize.py (a `filter` v
 
 ## CEILING
 script <= 150 lines · anonymize.py +30 · tests +120 · 0 other production lines.
+
+## CORRECTIVE DH.1 -- closes the director's harvest residue on 9a0e12f86..19151e383 (ttyd's title frame carries the box hostname)
+BASE      CONTINUE ON worktree-agent-a2c7f206afa857d38 tip 19151e383 (its own worktree). No merge. Never rebase.
+1. HOSTNAME ON THE WIRE -- ttyd 1.7.7 sends a SET_WINDOW_TITLE frame "<command> (<hostname>)" with no server option to drop it; titleFixed only hides it client-side, the frame still crosses the socket (falsifier 3's class: a host name on the page). Fix: swap the package for one whose title is a server-side template (gotty, github.com/sorenisanerd/gotty, the latest release's linux amd64 static binary, sha256 checked against that release's published checksums BEFORE chmod; read-only by default -- never --permit-write; --address/--port from the cell; --title-format a fixed string with no {{.Hostname}}), OR keep ttyd behind a filter only if that stays inside the CEILING. True when fixed: capture EVERY websocket frame the server sends for 10 s after connect and print only `hostname in frames: no` (compare in-process against socket.gethostname(); never print the name); the input-frame probe still creates nothing.
+2. PACKAGE CELL -- package / version / bin / sha256 in the `map` cell follow the swap; map.sh serve still refuses a binary whose sha256 differs from the cell.
+3. OLD BINARY -- if the package is swapped, remove ~/.local/bin/ttyd (this round installed it; nothing else uses it: confirm with `systemctl --user list-units 'agi-*'` before removing).
+4. TEST -- test_map_sh.py gains one row: serve's argv (built by map.sh, the binary stubbed) carries no write flag, binds the cell's host, and its title is the fixed string.
+5. COLD FRAME -- disclose, do not fix: a cold first render measured 8.7 s / 41 s at load > 17; re-time 3 warm renders on the live repo and paste them.
+ANON      no user name, home or repo path value, host name or IP other than 127.0.0.1; patterns write <user>
+FILE SCOPE extensions/agi/bin/map.sh · .agi/config.json (the `map` cell) · extensions/agi/tests/test_map_sh.py · ~/.local/bin/<package> (off-repo)
+CEILING   HARD CAP: 1 kid · map.sh <= 150 lines total · tests <= +40 over 19151e383 · 0 other production lines · Sonnet 5.5 lane · 0 USD
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.1: director harvest of 9a0e12f86..19151e383 -- ttyd 1.7.7 sends the box hostname in its SET_WINDOW_TITLE frame (kid report, titleFixed hides it client-side only; socket.gethostname() differs from the town alias, measured); the render path itself is clean (anonymize box_tokens carries the hostname class). Swap to a server-side title template package.
+<!-- THOUGHT:END -->
