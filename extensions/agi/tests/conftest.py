@@ -188,10 +188,17 @@ def _record_roots():
         if main_graph:
             wt_root = Path(main_graph) / "worktrees"
             if wt_root.is_dir():
-                for wt in sorted(wt_root.iterdir()):
-                    if not wt.is_dir():
-                        continue
-                    wt_graph = locations.find_project_root(wt)
+                try:
+                    entries = sorted(wt_root.iterdir())
+                except OSError:
+                    entries = []  # an unreadable worktrees dir scans empty
+                for wt in entries:
+                    try:
+                        if not wt.is_dir():
+                            continue
+                        wt_graph = locations.find_project_root(wt)
+                    except OSError:
+                        continue  # one unreadable entry never kills collection
                     if wt_graph is not None:
                         _add(Path(wt_graph) / "sessions")
             if (Path(main_graph) / "nodes").is_dir():
