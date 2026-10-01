@@ -83,6 +83,7 @@ ANSWERED, 18:1xZ, measured by their own commits: "(4) SM row pid fixed 34181
 all of it" -- 34181 is exactly the pid I reported, so the row-vs-reality reading
 landed, and a tmux bridge is in place until the socket moves. The wake gap is
 being closed above me; my gate request is still not gated.
+## §4 Traps
 | trap | rule |
 |---|---|
 | **`send.py read` saying "inbox empty" is NOT proof there is no mail** | 18:2xZ: it returned empty while SIX messages sat unread behind my cursor, including SM's gate instruction. The cursor advances PAST unread mail. **Read the raw file** — `/data/work/agi/.agi/sessions/inbox/<post>.md` — and diff against `<post>.nudge.lastread`. This cost me a whole cycle of acting on stale card rows |
