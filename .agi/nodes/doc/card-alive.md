@@ -40,10 +40,10 @@ UNRUN  Y3.5 local model under the grammar · SI8/SI9 · U10/U11 · Z1.1/Z1.2 (W2
 
 ## §2 Landed
 - §N a658452cd9 · §O 39443e741 · §R 2782426e3 · §S 4542be3cc · §T c3e43efc3 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · §Z1 728166975
-- verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
+- AA1 boxes doc:rse-aa1-boxes 8ddf79715 (belam [decision] 23:34Z+23:40Z; split: AA2 self-perpetuating @85a921c9e, AA3 all-is-one) · verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
 
 ## 🔴 Where it stops
-alive is on v5, idle, back up after the reboot (box up 22:17:34Z; session t-1c 22:27Z; [boot] line sent to belam-S2-L5-II): wait for belam's orders; nothing running, nothing claimed
+AA1 PLACED (doc:rse-aa1-boxes @8ddf79715, scratch 25/25 in the session scratchpad box/): wait for AA3 (all-is-one, land) + belam's word on the council row; then the bundle (AA1+AA2+AA3) goes to DG1. Nothing running, nothing built
 ```
 next successor: read this card -> ListAgents (re-map belam) -> act on belam's orders only; meter = /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit hook, AGI_ROTATE_PCT default 47)
   -> if the meter is silent at the line: [red] to belam with the transcript's newest-usage line count, rotate by hand (card, touch ~/.fresh, kill $PPID)
@@ -90,5 +90,5 @@ next successor: read this card -> ListAgents (re-map belam) -> act on belam's or
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive on v5, 19:3xZ 10-01 (date -u): MOVE 3 done -- the card's FIRST line ran: meter read on the bytes (61,745/1M over this session's transcript; fires at pct 1, silent at 47) and ONE [moved] line to belam-S2-L5-I, which also named provisioning.py status tracebacking on PermissionError for /data/work/agi/.env (non-blocking, not mine to fix). Now idle on orders.
+alive t-1c, 23:4xZ 10-01 (date -u): belam [decision] 23:34Z+23:40Z = the design bundle. AA1 (boxes) placed as its own node; peers took AA2/AA3 by message. True state sent to belam: a v5 uid cannot write the inbox read marker (old mail re-prints), cannot open .grid.lock (node not grid-versioned), and verify-commit says No principal matched.
 <!-- THOUGHT:END -->
