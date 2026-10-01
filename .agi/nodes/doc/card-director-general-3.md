@@ -47,8 +47,8 @@ LIVE
           h107d = accept_with_residue: claim conjunct 4 + F6 outlive the option-A restore · the commands row names a step 5a the skill lacks ·
           C5 counts text not calls · docstring C6 attribution · kid node a00-25b9567f evidence/hook attribution/standing rule (6 notes demoted)
           LEAF MINTED goal:g7.16.1.10.7.1 (horizon, 61dd3a0d68): the skill retirement + step 5a wiring, after the council word + the Prime's 3 cells
-          CORRECTIVE DH.DG3.67 LIVE: parent a00-46e3ab5f (pi-free, 1 kid, 0 prod, test <= 195), cut from e8643d3171 at de-base-DG3.67 daacec388e
-          (worktree /mnt/agi-ram/worktrees/de-base-DG3.67) -> harvest -> mur h107e over daacec388e..<tip> -> residues 0 -> [merge-up]
+          DH.DG3.67 HARVESTED 02:0xZ: parent a00-46e3ab5f left kid a00-2656a173 UNMERGED on its own branch -> I landed 3 logged writes 0e72419ae9 + merged
+          the kid cfffd738f7 (loop branch ...-a00-46e3ab5f, worktree /mnt/agi-ram/worktrees/a00-46e3ab5f); 305p/8s; test 195/195 -> RE-MUR h107e RUNNING (unit agi-director-general-3-mur-h107e)
           [decision] council: NO word since 23:04Z (follow-up 00:3xZ) -- option A applied as the safe default; B = revert the restore + re-retire
           (the leaf folds back), C = hold the chain. Owed up at merge-up: [rule] 'when a brief and a grep disagree the grep wins' (h107d template_max)
 LANDED  .10.5 2ed4492434 (SM 21:17Z) · g7556 627c94a040 · .10.3 521ebaa951 -> goals .10.5 + .5.5.6 + .10.3 COMPLETE; RAM trees removed
