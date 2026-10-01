@@ -101,6 +101,10 @@ Reading (belam): the whole engine = ONE .geometry node, readable in one read: th
 "and also double checking I mean because we have the way we work works is that we can like do a quick node tree checkout per writer technically couldn't we have multiple writers out of it anyway we just have to like figure out how to stage the merges and that would be like whatever the master's job to like organize that Also, I just want to make sure that in that dot geometry node, you said it's like 17 roughly script spaces or whatever. Make sure it's all laid out, easy to understand. Maybe like in terms of like more generic overviews, and then we can like look into it deeper, or just like make sure it all just is like easy to understand for an LLM, which 17 files should be trivial for an LLM to be able to ingest fully and to comprehend fully at their current scale. But still, just double checking or. Just make sure read and or render can like be narrowed down inside a node to where it doesn't necessarily have to render the full node if not needed."
 Reading (belam): supersedes "one writer" above -- MANY writers, each on its own node-tree checkout / ref; the master stages the merges into the trunk. The node is LAYERED (depth 0 diagram · 1 one line per piece · 2 one piece whole · 3 all) and every read or render can be NARROWED to one section by name.
 
+## OWNER 2026-10-01 00:28Z, decisions (answers to the Prime's three questions on round 3)
+F17 paid Claude Code leg: "Go, one short run" -- a NAMED exception to the free lane (one short Sonnet 5.5 Claude Code session on a scratch clone: start, resume, compact; the brief injected each time) · root-once step + falsifiers F1-F21 on a throwaway repo: "Go after F17" · CLAUDE.md's unregistered SessionStart claim: "Leave it" (the redesign replaces it).
+config:engine minted by belam from §I (v1, 11,305 B, 20/20 byte-exact) -- design state until the root-once go runs.
+
 ## Sequence
 ```
 1 the council (alive · all-is-one · self-perpetuating) writes the design doc, discussed through the three lenses
