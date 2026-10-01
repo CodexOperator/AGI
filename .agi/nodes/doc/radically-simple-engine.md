@@ -968,7 +968,7 @@ RETURN  the phone's SSH app: `ssh agi-capsule@<box> <id>`, the code on STDIN (ne
 POP     capsule-login: ONE atomic rename claims the ask (a used or racing id loses) -> printf the code + CR into the asking post's pane i
         -> the ledger line keeps post, id, time, NEVER the code -> refs/capsule/asks/<id>/used (create-only)
 ```
-`capsule-login` (639 B):
+`capsule-login` (692 B; the code pinned to a URL-safe line of <= 512 B, all-is-one 05:0xZ):
 ~~~sh
 #!/bin/sh
 # capsule-login, run ONLY as authorized_keys `restrict,command="capsule-login" <owner device key>` (sshd checking that key IS the approval, k=1):
