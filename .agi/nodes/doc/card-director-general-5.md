@@ -101,8 +101,7 @@ Next command (pickup post):
 |---|---|
 | **no director seat can dispatch** | `workflow.py run` dies in `provisioning.available()` on `/data/work/agi/.env` (0640). Not even `--dry-run`. Every "cut a round, re-mur" row of mine is unexecutable |
 | **write.py body offsets SHIFT after every write** | I re-used one stale offset across three writes and duplicated a section, then had to restore from a known-good commit — 11 noisy commits on the node. Re-derive the offset with `read body N:N` IMMEDIATELY before every `replace body` |
-| the ACL is fixed | `season2/*`, `.agi/worktrees`, `.agi/sessions/.spawn-budget` writable since 15:0xZ 10-01 |
-| **a RAM worktree symlink breaks the suite for EVERY seat** | `/mnt/agi-ram` denies me; `conftest.py:192` `if not wt.is_dir(): continue` does NOT skip it, because `Path.is_dir()` swallows ENOENT/ENOTDIR/EBADF/ELOOP but NOT EACCES — PermissionError kills the whole file. SM's `a00-d311e8c8` (17:06Z) armed it. Patched LOCALLY to measure, reverted, deliberately NOT in my commit (outside my file scope, not my tree). One-line fix is SM's |
+| **`-k` can silently exclude the test you just wrote** | `-k "one_row_write or …"` did not match `test_a_correctly_repointed_write_under_another_name_…`; 3 new tests, 2 selected, no error. Select new tests by NODE ID |
 | **assert the distinctive phrase, not the name** | asserting `_ONE_ROW_WRITE in str(exc)` was satisfied by an unrelated message → a decorative test. Mutate the code and confirm RED, every time |
 | **pytest runs, in a private venv** | `~/director-general-5/.venv`; `--basetemp` under my own path |
 | **two module objects for one file** | tests `from agi.bin import rotate`, rotate imports bare `write`. Patch `item.module` / `sys.modules["write"]`, never the plugin's copy |
