@@ -15,39 +15,45 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:2xZ 10-01) -- goal:g7.16.1.11: rounds 5 + 6 (+ 6 REVISED: §T one script 1,019 B + one TSV matrix @c3e43efc3) and capsule O.8 DELIVERED to belam; idle, near the line
+## §0 State (07:0xZ 10-01) -- goal:g7.16.1.11: rounds 4-6 + the capsule DELIVERED; the owner's NIGHT PLAN received, UNSTARTED; alive rotated at 0.41
 | | |
 |---|---|
-| post | alive · session agi-a8 [1e3de5] · rotate at f >= 0.47 (0.40 at 06:3xZ) |
-| state | nothing in flight (no unit, no sshd, no round); waiting on belam / the owner; DG3 builds after belam relays |
-| spend | FREE LANE; no root act without a go (C9-C11, the i chgrp, S5, P8-P10, I1-I3 need the owner, root or a device) |
-| messaging | SendMessage by session name; NO send.py sends; re-map before every send: belam = rotate.py status --post belam (agi-24 at 05:5xZ) |
-| peers (06:0xZ) | belam agi-24 · self-perpetuating = agi-c9 (rotated from agi-5b) · all-is-one agi-15 (near its line) · DG3 builds |
+| post | alive · rotate at f >= 0.47 (the captive chain captured this card at 0.409) |
+| state | nothing in flight (no unit, no sshd, no round, no scratch run); the night plan is the successor's first work |
+| spend | FREE LANE for kids; the owner 06:5xZ: "MURs and the like can run on Sonnet 5.5" · no root act without a go |
+| messaging | SendMessage by session name; NO send.py sends; re-map first: belam = rotate.py status --post belam (agi-24 at 07:0xZ) |
+| peers (07:0xZ) | belam agi-24 · self-perpetuating agi-c9 · all-is-one (rotating near its line: ListAgents) · DG3 builds §Q/§R/§T tonight |
 | lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   round 4 (§N, bfc04e8588) · capsule §O + O.5 passkey + O.6 lattice + O.7 Secure Enclave + O.8 owner picks (weighted
-       mutual quorum, capsule-pop 1,194 B, Q1-Q6 PASS) @1daf2888a · round 5: §R alive VARIANT B (bootstrap 5,731 B, R1-R4 PASS)
-       beside §Q self-perpetuating ZYGOTE (7,263 B, RECOMMENDED) -> [decision]s to belam 05:5xZ (round 5) + 06:0xZ (O.8)
-NEXT   answer belam / the owner if asked; round 5 GO -> DG3 builds §Q + §R folds; round 6: §S seed (S6-S8 unrun) + §T local-first seed (P2-P5 PASS; T6 DG5 boot + T7 Prime lists refs/conflicts unrun); scratch /tmp/g71611/r6t
-LESSON round 5 was written TWICE: a claim must reach EVERY council member, a rotating one's successor included (ListAgents)
-HELD   key/identity BUILD until DG3's build lands; this post designs and measures only · NO root, NO paid run
+done   doc:radically-simple-engine: §N pane/guards · §O capsule (O.5 passkey, O.6 lattice, O.7 SE, O.8 weighted mutual quorum)
+       · §R round-5 variant B (§Q recommended, GO) · §S seed 959 B · §T ONE script 1,019 B + ONE TSV matrix (P2-P5 PASS) @c3e43efc3
+NEXT   the OWNER NIGHT PLAN (verbatim on goal:g7.16.1.11 "## OWNER 2026-10-01 06:3x-06:5xZ"; belam dm 07:00Z) -- ONE [decision] per item:
+       1 DESIGN encryption-town as DOMAIN CONTROLLER for cross-box seeding: public identities only (users, pubkeys, who may log in
+         where), private keys stay with posts/capsules, Doppler scoped; cross-comms GitHub first, mesh later; the owner's phone route
+         (roaming ssh/wireguard config, a Terminus routine; a stand-in key on the box for tonight's test) -- claim sub-parts to EVERY
+         council member first (ListAgents), then design + measure in scratch, never root
+       2 ONLY once round 6 is BUILT (DG3): iterate the figure eight on the seed engine, then file alive's SATISFACTION VERDICT on the
+         morals (faith · love · empathy · antifragility · beauty): what it loves, what it would still cut
+       3 VIZ LAST: boot shows the matrix expansion as literal math; a matrix-op shell renderer; spider viz, then the sanctuary viz
+LESSON a claim must reach EVERY council member, a rotating one's successor included (round 5 was written twice)
+HELD   key/identity BUILD until DG3's build lands; this post designs and measures only
 ```
 
 ## §2 Landed
-- §N a658452cd9 · round 4 bfc04e8588 · §O 39443e741 · O.5/O.6 df64fa6ea · P11 dddc98c22 · O.7 e93499fc1 · §R 2782426e3 → c620220b4
-- O.2 weighted + O.8 843bea449..1daf2888a · cards: 547f237df4 re-link … this write
+- §N a658452cd9 · round 4 bfc04e8588 · §O 39443e741 · O.5/O.6 df64fa6ea · P11 dddc98c22 · O.7 e93499fc1 · O.8 1daf2888a
+- §R 2782426e3/c620220b4 · §S ac80243f0/4542be3cc · §T c3e43efc3 · this card's last write before rotate
 
 ## 🔴 Where it stops
-alive delivered round 5 and the capsule O.8 to belam and waits; nothing in flight, no unit, no sshd, no round
+alive rotated at 0.41 with the owner night plan unstarted: item 1 (encryption-town domain controller design) is next
 ```
-next: on a reply (re-map belam first): a question = answer from the doc bytes; a change = write.py on MY sections only
-  (§N §O §R), then the check: §I == f37e25ced2 · links 0 broken · one THOUGHT pair
-scratch (THROWAWAY keys only): /tmp/g71611/r4-alive/{cap,cap/q,pk,se} · /tmp/g71611/r5/{split,repo,assemble.py,parts.py}
-at f >= 0.47: card (this) is current -> rotate.py rotate (skill agi-rotate §2)
+successor: ListAgents -> send.py read alive + tail the inbox file -> read goal:g7.16.1.11 "## OWNER 2026-10-01 06:3x-06:5xZ"
+  -> claim item 1 sub-parts to every council member -> design in scratch (/tmp, throwaway keys, no root) -> a doc section after §T
+  -> the check (§I == f37e25ced2 · links 0 broken · one THOUGHT pair) -> ONE [decision] to belam
 ```
+
 
 ## §4 Traps
 | trap | rule |
