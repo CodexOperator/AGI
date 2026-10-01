@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: all-is-one
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1550,6 +1550,99 @@ REAL     the phone's own key (Secure Enclave P-256, O.7) gets an owner-phone row
 **One seam with §V, decided here (decide-and-document):** §V's limit (3) has the stand-in arm the CA window. The owner's ruling (a) authorises the stand-in for capsule-login ONLY, and a box key that arms the CA would make the box its own owner's half of the mutual quorum (O.8). So tonight: the stand-in arms only a THROWAWAY test CA (its own `TrustedUserCAKeys` line, for the test users, removed after) and never signs a real identity; the real CA's first window waits for the real phone. Cost: F42 cross-box runs on the test CA tonight.
 **For DG3's build (in its night order):** (1) the owner-standin row with `valid` ending at 14:00Z (one row, `date -u` read when it is written) (2) the §O.5 root act: `i` writable by agi-capsule (~60 B, ExecStartPre=+) (3) one end-to-end run on DG5's login, SI1-SI7 re-read on the real units (4) at the owner's wake: delete the row, and record the rid that died.
 **Falsifiers.** SI1-SI7 PASS (scratch) · **SI8** at 14:00Z+1 min the stand-in cert is refused with the row still present (UNRUN; the expiry alone ends it) · **SI9** the real phone's key logs in under owner-phone and the owner-standin rid is absent from every box's rows (UNRUN; the owner's step).
+
+## Y1 · ROUND 7 · all-is-one -- NODE KEYS: every schema's parent shapes are ONE growth matrix; a node add unlocks only with its row's key; the gate is 1,298 B of awk and agrees with the old Python on all 5,390 live nodes
+**Owner 07:1xZ (verbatim on the goal):** "... make sure the engine still maintains graph growth order so posts can’t just grow nodes without respecting order. Could expand key ring system to also include node keys so only the correct node key schema unlocks next node add to graph ..." **What am I ACTUALLY trying to get the machine to do?** Make row 20 of the parity table ("write a node (spawn gate, schemas)") true WITHOUT the old write.py: growth order is a matrix the graph carries, a key is the hash of the row that allows the step, and the gate is a lookup. Same lens as §U: a policy row, named by its hash, is the key.
+```
+SCHEMAS  .agi/context/schemas/[type].md spawn blocks (allowed_parents · min/max · parent_shapes · min_parents_by_type · variants)
+   │  grow-project (expansion, runs when a schema changes)
+   ▼
+MATRIX   fenced TSV `nid · child · variant · parents · ring` + `@short type` alias rows
+         parents = parent TYPES sorted, +-joined (`-` = none) · variant = `goal_kind=subgoal` / `build_kind=code` / `-`
+         ring = who must sign the add (`*` any post cert · `owner` for moral) · nid = 16 hex sha256 of the row after nid = the NODE KEY
+   │  UNLOCK = look the row up for (child, variant, parent types) -> its nid, or the legal shapes for that child
+   ▼
+WINDOW   Y2 opens on the nid: child[variant]'s schema fields first · Y3 checks each row against that same schema
+   ▼
+ADD      the node carries `key: <nid>` in its frontmatter -> a signed commit (§W)
+   ▼
+GATE     grow-gate (pre-receive / the land step): every ADDED node -> grow-check against the RECEIVING side's matrix
+         row missing = `wrong order` + the legal shapes · key missing or another row's = `locked` · ring ≠ * and ≠ the signer = refused
+```
+**Every schema mapped, measured 07:2xZ** (`grow-project` over the 22 live schema files): 20 carry a spawn block, 2 do not (`[box]`, `[shape]`); **149 shape rows + 2 alias rows**, 7,111 B:
+| child | rows | | child | rows | | child | rows |
+|---|---|---|---|---|---|---|---|
+| goal (4 variants) | 29 | | idea | 9 | | config | 5 |
+| experiment | 27 | | mvp | 9 | | vision | 5 |
+| bigger_outcome | 14 | | outcome | 9 | | overview | 4 |
+| hypothesis | 14 | | verdict | 9 | | command · cron · doc · ladder · moral · task · town | 1 each |
+| build (2 variants, parent_shapes) | 8 | | | | | | |
+
+**Tested 07:2xZ** (scratch, no root; `grow-check` on synthetic nodes, then `grow-gate` as a pre-receive on a bare repo with throwaway owner + dg5 signing keys):
+| # | case | result |
+|---|---|---|
+| T1 | hypothesis under an idea, with its key | `ok ffdc586128924f86 *` |
+| T2 T7 | the same shape, no key · moral (no parents) | `locked: key none is not ffdc…` · `ok 2fe50ba4… owner` |
+| T3 T4 | mvp under a goal · a build from a lone goal | `wrong order` + the legal shapes for that child (build: `build+goal goal+idea goal+mvp mvp`) |
+| T5 T6 | build vN under build+goal (code) · with the PROSE variant's key | ok · `locked` (a key opens one variant) |
+| T8 | a subgoal under a lone build | `wrong order` (min_parents_by_type goal ≥ 1 held) |
+| T9 | hypothesis under idea+idea with the single-idea key | `locked` (a key opens one shape) |
+| T10 T11 | inline `parents: [a, b]` · a parent id written `hyp:…` | ok · ok (the alias cell) |
+| **P** | **parity: the shell `grow-check` on EVERY live node vs the old `spawn_gate.check_spawn`** | **5,390 / 5,390 agree**: 5,087 legal in both, 303 refused in both (season-1, grandfathered: never re-gated) · 0 admitted by one and refused by the other · 33.5 s for both gates together |
+| G1-G4 | moral (owner-signed) -> vision -> idea -> hypothesis, one push each | landed, in order |
+| G5 | an mvp straight under the idea | refused: wrong order |
+| G6 | a moral signed by dg5 | refused: `ring owner, signed by dg5` |
+| G7 | a legal hypothesis with no key | refused: locked |
+| G8 | ONE push carrying a re-keyed matrix (mvp under idea added) AND such an mvp | refused: the gate reads the RECEIVING side's matrix; against the pushed one it would pass, so a push cannot re-key its own add |
+
+**The parity gap found on the way:** 151 live nodes first disagreed, every one a parent id written with a short prefix (`hyp:` 97, `exp:` 65 parent refs). The old gate typed parents through a full index scan; Y1 types them by id prefix + a 2-row alias cell (`@hyp hypothesis`, `@exp experiment`), so the gate reads ONE file, never the graph. The aliases are a cell (config-max), not code.
+**Bytes (expansion, 0 B in the zygote):** `grow-check` 1,298 B · `grow-gate` 842 B · `grow-project` 1,185 B (python + yaml, run only when a schema changes; its output is committed) · the matrix 7,111 B of graph data · the unlock = one awk row lookup inside Y2. The old path it replaces for adds: `spawn_gate.py` (1,507 lines, 65,335 B) on write.py's create path.
+`grow-check` whole:
+```sh
+#!/bin/sh
+# grow-check MATRIX NODE.md: legal only if the node's row (type · variant · parent types sorted · ring) is in MATRIX AND its `key:` is that row's nid
+# prints `ok <nid> <ring>` (the hook matches ring to the commit's signer) or `refused: <why>` + the legal shapes; rc 0 | 1
+awk -F'\t' 'NR==FNR&&/^@/{A[substr($1,2)]=$2;next} NR==FNR{n[$2 FS $3 FS $4]=$1 FS $5;if($3!="-"){split($3,e,"=");f[$2]=e[1]};s[$2 FS $3]=s[$2 FS $3]" "$4;next}
+FNR==1&&/^---/{h=1;next} h&&/^---/{h=0} !h{next}
+/^type:/{t=$0;sub(/^type: */,"",t)} /^key:/{k=$0;sub(/^key: */,"",k)} /^parents: *\[/{gsub(/[][ ]|parents:/,"");c=split($0,q,",");for(i=1;i<=c;i++)P[++p]=q[i]}
+/^parents: *$/{l=1;next} l&&/^ *- /{x=$0;sub(/^ *- */,"",x);P[++p]=x;next} l{l=0} {split($0,y,": *");a[y[1]]=y[2]}
+END{if(t==""){print "refused: not a node (no type:)";exit 1};for(i=1;i<=p;i++){sub(/:.*/,"",P[i]);if(P[i] in A)P[i]=A[P[i]];for(j=i;j>1&&P[j-1]>P[j];j--){z=P[j];P[j]=P[j-1];P[j-1]=z}}
+ r="";for(i=1;i<=p;i++)r=r (i>1?"+":"") P[i];if(r=="")r="-";v=f[t]?f[t]"="a[f[t]]:"-";w=t FS v FS r
+ if(!(w in n)){print "refused: wrong order: "t" ("v") under ["r"]; legal:"s[t FS v];exit 1};split(n[w],o,FS)
+ if(k!=o[1]){print "refused: locked: key "(k?k:"none")" is not "o[1]" for "t" under ["r"]";exit 1};print "ok "o[1]" "o[2]}' "$1" "$2"
+```
+`grow-gate` whole (the matrix and allowed-signers paths are cells; the matrix is read at the receiving tip):
+```sh
+#!/bin/sh
+# pre-receive (the land gate): every node ADDED under .agi/nodes/ passes grow-check against the matrix of the RECEIVING side (never the
+# pushed one: a push cannot re-key its own add); a row whose ring is not * must be the commit's signer (the §W principal)
+M=${AGI_GROW:?};A=${AGI_ALLOWED:?};t=$(mktemp -d);trap 'rm -rf $t' EXIT
+while read o n r;do for c in $(git rev-list $n --not --all);do
+ s=$(git -c gpg.ssh.allowedSignersFile=$A verify-commit --raw $c 2>&1|sed -n 's/.*signature for \(.*\) with.*/\1/p')
+ for f in $(git diff-tree -r --root --no-commit-id --diff-filter=A --name-only $c -- .agi/nodes|grep '\.md$'|grep -v /deprecated/);do
+  git show $c:$f>$t/n;v=$(grow-check $M $t/n)||{ echo "$f: $v";exit 1;};g=${v##* }
+  [ "$g" = '*' ]||[ "$g" = "$s" ]||{ echo "$f: ring $g, signed by ${s:-nobody}";exit 1;};done;done;done
+```
+`grow-project` whole:
+```python
+#!/usr/bin/env python3
+# grow-project SCHEMAS > matrix: every [type].md spawn block -> one row per legal parent shape: nid child variant parents ring
+# then the ALIASES cell as @short<TAB>type rows (an id prefix that names a type) · parents = parent TYPES sorted, +-joined (- = none); nid = 16 hex sha256 of the row after nid = the NODE KEY; a schema edit re-keys
+import sys,glob,re,yaml,hashlib,itertools as I
+[print('@'+l,end='') for l in open(sys.argv[2])]
+for f in sorted(glob.glob(sys.argv[1]+'/[[]*].md')):
+ t=f.split('[')[-1][:-4];s=(yaml.safe_load(re.match(r'---\n(.*?)\n---',open(f).read(),re.S)[1]) or {}).get('spawn')
+ if not s:continue
+ d=s.get('discriminator');vs=[(d+'='+k,v) for k,v in s['variants'].items()] if d else [('-',s)]
+ for v,r in vs:
+  sh=r.get('parent_shapes') or [c for n in range(r['min_parents'],r['max_parents']+1) for c in I.combinations_with_replacement(sorted(r['allowed_parents']),n)]
+  for c in sorted({tuple(sorted(x)) for x in sh}):
+   if all(c.count(p)>=n for p,n in (r.get('min_parents_by_type') or {}).items()):
+    l='\t'.join([t,v,'+'.join(c) or '-','owner' if t=='moral' else '*']);print(hashlib.sha256(l.encode()).hexdigest()[:16]+'\t'+l)
+```
+**Not carried by Y1 (named, each its own home):** (1) parent EXISTENCE: `links.py` (broken = 0) stays that gate; Y1 checks types and order, never that a parent file exists (2) the per-town VISION CAP (spawn_gate 5b) is a COUNT, not a shape: a cell + a count line, unbuilt (3) `season_parents` is a second edge field (vision -> overview): the same matrix with an `edge` column, unbuilt (4) Y1 gates ADDS: a later edit of a node's `parents` is not re-gated (`--diff-filter=AM` would, but then the 303 grandfathered nodes refuse every edit until a season cell exempts them) (5) the matrix must be re-projected when a schema changes: a CHECK line `grow-project | cmp - matrix` (the §U pattern) catches drift; a schema edit re-keys ONLY the rows it changes.
+**Flag for the council (not a Y1 rule):** belam's brief reads "a hypothesis under an idea, never under a bare goal", but `[hypothesis].md` allows `goal` today (row `21e059b9381fa3cf hypothesis - goal *`). Y1 maps the schemas AS THEY ARE; forbidding it is a one-cell schema edit (drop `goal` from allowed_parents), which re-keys 4 rows and grandfathers the live ones.
+**Falsifiers.** T1-T11 · P · G1-G8 PASS (scratch) · **Y1.12** DG3's build: write.py's create path calls `grow-check` and the parity run stays 5,390/5,390 (UNRUN) · **Y1.13** parity row 20 MATCH with the old write.py REMOVED from the clone (UNRUN; the Phase 3 gate) · **Y1.14** a Y2 window opened with a nid writes a node that `grow-gate` lands, and one opened with no nid writes nothing (UNRUN; the seam with Y2) · **Y1.15** the owner ring: a moral lands only under the owner's phone cert (§X) (UNRUN).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 alive (agi-1d, gen 7), 07:1xZ 10-01 (owner night plan item 1, belam 07:00Z + 07:05Z signed [decision]s; council split U alive · V self-perpetuating · W all-is-one · X alive). Owner 06:3x-06:5xZ, verbatim: "Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." / "I can’t access it today so it might have to wait and do a stand in key on the box for now and auth it yourself as test." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math. Like the way we use our matrices to help hook into the login method but not the private key itself. Same here the matrices describe how the short lived ssh key can even be “popped” securely into whatever interface takes it. And it could itself be not even a raw ssh but a matrix compressed version that maybe is generated from how the whole system is setup with matrices encoding setup/use parameters." WHY this version differs: added §U (the DC directory = ONE public matrix in the graph, synced by §T to every box; a cert's key-id = the sha256 rid of its row, so editing a row revokes every cert under it; dc-project 288 B + dc-principals 302 B + 4 sshd lines in a Match block; U1-U9c PASS on a scratch sshd) and §X (the phone stand-in = one row + one §V cert ending at the owner's wake; X1-X7 PASS through §O.5's capsule-login byte for byte). U9c caught a real gap in the first form: a row with empty opts gave a full shell; dc-principals now fails closed on any row not opening restrict (+68 B). The KDF-from-the-row idea (belam 07:05Z) is NOT used: §V keeps the per-login key as fresh randomness and the rid as key-id only, which is the sound half of it. Decided in §X against §V's limit (3): the stand-in arms only a throwaway test CA, per the owner's ruling (a) capsule-login ONLY. §V (self-perpetuating, 983d2475c/52ad87a72) and the §T THOUGHT before it are in the grid. || all-is-one (agi-f0), 07:14Z 10-01 (night plan item 1, split with alive gen 7: U = the rows, V = self-perpetuating's login + CA, W = mine). Owner 06:5xZ, verbatim: "also have them move around boxes or spawn more on encryption town to confirm cross box easy seeding and cross-comms via GitHub initially and maybe eventually via for direct and mesh addresses? Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math." WHY this version differs: added §W. Seeding, sync and a message are ONE act (move a signed commit), the transport is one remote cell, and §S + §T run VERBATIM over a GitHub stand-in and an ssh-cert mesh hub with byte-identical bodies (X1-X3). The compression: ONE cert-authority allowed-signers line verifies every per-login key everywhere, the sender's name is the cert principal from the U row. Found and closed on owned boxes: git judges a cert at the commit's own date, so a stolen key can backdate (X11a), and a 2-line skew check in the hub's pre-receive refuses it (X11b). Via GitHub it stays a named limit. Recommended to keep the engine anchor K apart from the CA (X9 shows it could merge). xb 1,025 B + pre-receive 681 B, 0 B in the zygote.
