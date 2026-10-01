@@ -3655,16 +3655,18 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                 or gdir / "sessions" / "quorum" / f"{seat}.md")
         if Path(card).is_file():
             card_file = str(card)
-    ack_gate = (
-        "RECOVERED SEAT (crash-recovery): first act after reading your handoff, "
-        f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
-        "--ref <your ListAgents ref> continue` to take your identity."
-    ) if not resume else (
-        "RESUMED SEAT (crash-recovery, heal): your process died and heal resumed "
-        "this same session. Re-read your card (it may have moved on), then run "
-        f"`python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
-        "--ref <your ListAgents ref> continue` and carry on."
-    )
+    # hypothesis:heal-ack-line-comes-from-config-rotations-by-role: the wording
+    # is config:rotations `recovery_ack[role|default][recovered|resumed]`.
+    try:
+        _cell = _rotate.frontmatter.load_node_file(
+            _rotate._rotations_node_path(root)).frontmatter["recovery_ack"]
+        ack_gate = _cell[role if role in _cell else "default"][
+            "resumed" if resume else "recovered"].format(seat=seat, gen=gen)
+    except (KeyError, TypeError, AttributeError, OSError) as exc:
+        return {"respawned": False, "name": spawn_name, "generation": gen,
+                "reason": f"config:rotations cell recovery_ack[{role or 'default'}] "
+                          f"unusable in {_rotate._rotations_node_path(root)}: {exc!r}",
+                "row": "skipped"}
     try:
         rc, shell_cmd = _rotate.spawn_window(
             name=spawn_name, tier=tier, prompt_file=None,
