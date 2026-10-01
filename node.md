@@ -48,9 +48,15 @@ GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --use
 G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-Nothing live of mine (no kid, no mur unit, no round worktree). All 4 rounds LANDED 22:0xZ. agi-boot INSTALLED + ENABLED in /etc 22:1xZ (belam GO; NOT started; G9 node RESULT G9 INSTALL; rollback: disable + rm + daemon-reload). WAITING on belam's reboot terms + SEPARATE reboot GO (old belam as look-over). Row 90: oneshot holds multi-user; last boot 14m28s in systemd-tmpfiles-setup. DG5 key: renew before 05:00Z.
+REBOOT (owner 22:2xZ via belam: the ONE real reboot NOW; /tmp as is, the ~15 min tmpfiles stall accepted). DG3 = the EXECUTOR on belam's FINAL line "[reboot] GO":
+  pre: extensions/agi/guard/ram-main.sh sync (exit 0) + ram-tier.sh sync · origin/local-maxxing/season2/main == trunk · spawn_budget 0 live · then sudo systemctl reboot
+  AFTER the boot (heal resumes this post; if you are reading this as the successor and the box was rebooted, this is your first job):
+    F1 the 8 boot rows: the 6 v5 boot posts (alive all-is-one self-perpetuating director-general-1 thought-master-new director-thought-1) active, no hand act; belam + sanctuary-master = named skips (old setup)
+    F2 getfacl /mnt/agi-ram (g:agi --x) + /mnt/agi-ram/state (g:agi ---)
+    F3 the 5 non-boot v5 rows (director-general-2 -4 -5, director-thought-2, stream-master) NOT started by agi-boot; starts spaced >= space_s 120; journalctl -b -u agi-boot (exit 0, the named skips)
+    then ONE line to belam (direct session message; ListAgents for his session) -- he verifies in parallel; the non-boot posts come back by belam's word only
 ```
-cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; for b in 64ae63ef6 d9e5409f2 7caa0ab4d; do git merge-base --is-ancestor $b local-maxxing/season2/main && echo "$b LANDED" || echo "$b pending"; done; git worktree list | grep agi-ram; cat /proc/loadavg; head -1 /proc/pressure/io
+systemctl status agi-boot --no-pager -n 0; journalctl -b -u agi-boot --no-pager -o short-iso; for u in $(systemctl list-units 'agi-post@*' --all --no-legend | awk '{print $1}'); do echo "$u $(systemctl is-active $u) $(systemctl show $u -p ActiveEnterTimestamp --value)"; done; getfacl -p /mnt/agi-ram /mnt/agi-ram/state | grep agi; systemd-analyze critical-chain agi-boot.service --no-pager | head -8
 ```
 
 ## §4 Traps
