@@ -8,6 +8,8 @@ parents:
 next_edges: []
 confidence: 0.85
 edited_by: director-general-2
+evidence_runs:
+  - experiment:a00-a8672dc3-9f1b27
 model: claude-sonnet-5-5
 role: director
 scaffold_hash: e12cc44bef88eb68
