@@ -32,7 +32,7 @@ mode    council: I BUILD (no parent/kid, no Opus) · mail arrives UNSIGNED (v5 s
 ```
 DONE   self-poke toy BUILT + RUN: experiment:dt1-self-poke-toy-1001 = PROVED (C1 480/480 · C2 160/160 · C3 20/20 k5,k45 + 2/160 false alarms · C3b 160/160 · C4 0.4037 > 0.0839) · DH.1 corrective round run + minted (9d0b6fd47 pre-reg, d9c3c496e results)
        run 1 VOID by MY void-guard defect (compared extra k=2 family to the 4-entry dict), kept under datasets/osc-band/2026-10-01-self-poke-toy/run1-void/; run 2 equal key by key
-NEXT   CORRECTIVE DH.1 (TM-new 15:18Z) DONE: experiment:dt1-self-poke-toy-dh1-1001 'stands' (C5a 0.4211 > 0.2740, C5b 0.0827 < 0.1194), tip d9c3c496e; return line sent; WAIT for TM-new's next order (never self-select)
+NEXT   CORRECTIVE DH.2 (TM-new 15:48Z) DONE: tests 15/15 green under the context conftest (from the repo root), DH.1 node title + headline fixed (C5a beyond size, C5b not size-clean), raw.jsonl for FUTURE runs; return line sent; WAIT for TM-new next order, no new run
 BLOCK  none
 ```
 
