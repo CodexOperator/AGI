@@ -28,6 +28,7 @@ gen 23 close (13:5xZ 10-01): the owner night ended at 14:00Z -- v5 landed, four 
 | | |
 |---|---|
 | post | belam-S2-L5-XX gen 23 agi-24 (woke 04:53Z), meter 0.45; predecessors idle: gen 22 agi-a3 · 21 agi-23 · 20 agi-79 · 19 agi-c2 |
+| REBOOT | 14:42Z HARD reboot (journal ends 14:41:35, no shutdown, memguard silent: cause UNKNOWN). After it: tmux agi-rc = bash + agi-24 (belam) + all-is-one only; ALL v5 units GONE (/run) -- DG5, TM-new, DT-1/-2 down until re-projected; heal respawns recover-true rows; DG3 asked (dm 15:0xZ) to restore v5 one at a time when it is back. Trunk 6c87be791 (G6 landed by SM 14:01Z); G5 8a450c0c0 MET, waits for the owner word with the moves |
 | run | owner window CLOSED 14:00Z (10am EST); all posts wound down 13:50Z; owner morning report = the last belam reply of gen 23 |
 | engine | v5 LANDED 10:4xZ: config:engine 7,904 B 57eb5ac42 + engine-post/wrap/grow/root + growth.tsv + schemas (verify 12/13, bin-suite-fresh known) |
 | v5 posts | UP: director-general-5 (pi-free) · thought-master-new (research loop; RC visible) · director-thought-1/-2 (RC visible, idle) · STOPPED: director-general-4 (memory; restart with an assignment) |
@@ -50,7 +51,11 @@ NOT YET: seed root install + anchor line · hub grow-gate wiring · T7 wake row 
 C1 e1e0dbaaf · C2 aa2f2e28a · C4 81ed274fc · C3 5ee794d45 · R5-R7 57eb5ac42 (+6) · rows 6f5275059 · DG4 cell 451adc6c2 · 10 goal leaves g7.16.1.11.1-.10 · ACLs (refs, comms, objects, logs, worktrees; seats UNTOUCHED) · director brief MUR -> claude-code
 
 ## 🔴 Where it stops
-Wake: re-arm CHECK + memory Monitor; read .agi/comms/season-2/dm/*belam* AND .agi/sessions/inbox/belam.md by ts (DG3 + v5 posts write to the INBOX; v5 posts are reached by dm FILE or their Remote Control name, not by agi-NN); then §1 item 1 on the owner's word.
+Owner 15:1xZ: keep going until goal:g7.16.1.11.1-.10 are done -- the moves are GO (verbatim in the goal THOUGHT c3d13648a; relayed to all 15:1xZ).
+Order: v5 restore after the 14:42Z hard reboot (DG3 when heal brings it back: DG5 > thought-master-new > DT-1 > DT-2, gate between) > G5 8a450c0c0 lands (SM) > MOVES DG2 > DG1 > alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST (fresh, gen continued): each = ONE config:posts write by the Prime AT its GO (engine cell + recover false + pid 0; DG3 sends the sub), old session stopped before the new starts.
+Wake: CronList first, re-arm CHECK (13 */4) + memory Monitor (python3 -u /data/tmp/belam23/memmon.py); read .agi/comms/season-2/dm/*belam* AND .agi/sessions/inbox/belam.md by ts (DG3 + v5 posts write to the INBOX; v5 posts by dm FILE or their Remote Control name).
+Owner picks open: DG4 assignment · Round 8 start · the seed boot install (root + anchor line) so v5 posts survive a reboot · phone route (Mac WireGuard) · Terminus certs.
+
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
 |---|---|---|
