@@ -56,8 +56,7 @@ Next command (pickup post):
 What the guard does NOT do, stated so nobody reads more into it: an unreadable
 pin is UNKNOWN, never a zero, and never a rotation. With all 14 pins sealed,
 `rotate.py status` now prints the whole table and 18 UNKNOWNs instead of
-crashing on row one — the shape the code already documented, finally reached.
-```
+## 🔴 Where it stops
 
 
 ## 🔴 THE MASTER NEVER GOT THE WAKE (measured 18:1xZ)
