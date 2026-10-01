@@ -383,3 +383,21 @@ e=$(git hash-object -t tree /dev/null)
 while read o n r;do case $n in *[!0]*);;*)continue;;esac;[ $r = refs/heads/trunk ]&&{ agi-gate $n||{ echo "gate: $n";exit 1;};continue;};case $o in *[!0]*);;*)o=$(git merge-base HEAD $n 2>/dev/null||echo $e);;esac
 f=$(git diff --name-only $o $n)||exit 1;for p in $f;do g=$(git check-attr --source=$n owner -- "$p"|cut -d' ' -f3);id -nG|grep -qw "$g"||{ echo "$p: $g";exit 1;};done;done
 ~~~~~
+
+## REHEARSAL RUN R1-R9 + the STAND-IN phone key (owner night plan 06:5xZ items 2 + 5; 07:1xZ-07:3xZ)
+Executed by an Opus 5.5 subagent of director-general-3; spot-checked by DG3 (users, units, cmp of the 4 installed scripts, fingerprints, ledger, refs). R10 (the owner's REAL key) NOT run: owner's go.
+| act | result |
+|---|---|
+| pre-flight | PASS (the sshd grep needs sudo: one sshd_config.d file is root-only; 0 restricting lines) |
+| R1 agi-capsule user | PASS (home /var/lib/agi-capsule, locked, groups agi-capsule only) |
+| R2 pieces | PASS: /opt/agi/capsule/{capsule-ok,capsule-login,capsule-seal} + capsule-pop = capsule-pop.patched (council pick banked), 755 root, cmp silent |
+| R3 authorized_keys | PASS: ONE line, restrict,command="/opt/agi/capsule/capsule-login" + the STAND-IN key (SHA256:Is+B34WMLlFbC5eAF6pSdRLl+pQQ0hRnxecXCH+JOdY, ed25519, owner-user-only, dir 700 / key 600; delete when the real phone key lands) |
+| R4 spool | PASS (ask 1730 agi-capsule · ledger 600 · pop 1770 root · used 700) |
+| R5 rehearsal repo | PASS (/var/lib/agi/capsule-rehearsal.git, keys owner r1 r2 r3, all public) |
+| R6 hook | PASS: a forged refs/capsule/d1 (one signature, k=2) refused "capsule: refs/capsule/d1", tip unmoved |
+| R7 seal d1 + pc | PASS: cred/k/ring present, the secret absent in plain (grep 0); decrypt as agi-capsule = Permission denied (C9b) |
+| R8 pop units | PASS (C9/C11): 1 signature -> tip unmoved, R waits; the 2nd -> tip moves ONCE, the cell read 19 B, ledger = R + names + 2 SSHSIG; the same R again refused; journal grep dummy = 0 |
+| R9 login over LOOPBACK (the passkey-code route, stand-in key) | PASS: code + CR typed into the pane ONCE · ledger 1 line without the code, ask moved to used · another key rc 255 · no id rc 2 · used id rc 3 · any other command rc 2 |
+Deviations: D1 R4 needs the agi-rp group R8 creates -> R8's user line ran first, unchanged · D2 root has no git identity -> capsule-seal ran with author/committer capsule-seal (as capsule-pop.service sets) -> fold into capsule-seal (N4) · D3 the run cell's /tmp is private under DynamicUser -> the byte count went to the journal (logger -t agi-c9).
+BANKED F1: sealing CREATED the box's host credential key /var/lib/systemd/credential.secret (absent before R7); removing it at teardown is optional and left commented in the undo script -- the owner's / belam's call.
+Left installed for the night: users agi-capsule + agi-rp; /opt/agi/capsule; /var/lib/agi-capsule/.ssh/authorized_keys; /var/spool/agi; the rehearsal repo (refs/capsule/d1 popped once, refs/capsule/pc); capsule-pop.path active from /run (gone at reboot); the /run/agi-rp/i pane; rehearsal keys under /tmp; the stand-in key. UNDO: /tmp/agi-capsule/undo.sh (700, not run): T1 T1b T3-T8; T9 (delete the stand-in key) and T10 (credential.secret) commented.
