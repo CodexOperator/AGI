@@ -10532,9 +10532,10 @@ def test_seat_fraction_is_none_when_the_pin_target_is_unreadable(tmp_path):
     if os.geteuid() == 0:
         pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
     blocked = tmp_path / "other-uid-home"
-    blocked.mkdir(mode=0o000)
+    blocked.mkdir()
     target = blocked / "transcript.jsonl"
     target.write_text("{}\n", encoding="utf-8")
+    blocked.chmod(0o000)  # sealed AFTER the write: the pin, not the fixture, is blocked
     g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
     assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None, (
         "None == UNKNOWN, the caller's documented skip -- never a raise")
@@ -10547,9 +10548,10 @@ def test_status_survives_a_seat_whose_pin_is_unreadable(tmp_path, monkeypatch, c
     if os.geteuid() == 0:
         pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
     blocked = tmp_path / "other-uid-home"
-    blocked.mkdir(mode=0o000)
+    blocked.mkdir()
     target = blocked / "transcript.jsonl"
     target.write_text("{}\n", encoding="utf-8")
+    blocked.chmod(0o000)  # sealed AFTER the write: the pin, not the fixture, is blocked
     g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
     monkeypatch.setattr(rotate, "_load_seats", lambda r: [{"name": "sealed-seat"}])
     monkeypatch.setattr(rotate, "_read_generation", lambda r, s: 1)
