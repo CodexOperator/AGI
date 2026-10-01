@@ -44,7 +44,7 @@ verdict: proved
 - Unscored dose-response (detection rate / mean dr), s = 0.0 -> 0.25 -> 0.5 -> 0.75 -> 0.9: k5 1.00 / 1.00 / 1.00 / 0.15 / 0.10 and dr 0.421 / 0.241 / 0.037 / 0.000 / 0.000; k45 1.00 / 1.00 / 1.00 / 0.25 / 0.10; k1 1.00 / 1.00 / 0.20 / 0.10 / 0.05; k34 1.00 / 1.00 / 0.60 / 0.15 / 0.10; random 128-sets (mean of 20) 1.00 / 1.00 / 0.978 / 0.205 / 0.095 and dr 0.207 / 0.106 / 0.023 / 0.0006 / 0.0001. Detection of s >= 0.75 is at the false-alarm level (0.075).
 - Unscored W_out control: mean column L2 norm k5 0.499, k45 0.507, k1 0.420, k34 0.411, random sets 0.424 - 0.504; Spearman(dr at s = 0, norm) across all 24 sets 0.663 (`unscored.spearman_dr_norm`; 0.424 within the 20 random sets alone, computed from the same json).
 
-## Verdict: STANDS
+## Verdict: STANDS (C5a beyond size; the C5b reading is demoted: not size-clean)
 
 Pre-registered rule (params.json `verdict_rule`): C5a AND C5b -> stands. Both hold, not void. The run-2 PROVED verdict stands and the review's MED C4-has-no-random-control residue is closed: the load-bearing families move the entropy readout by 0.42-0.44, every size-matched random set by 0.12-0.27, the passengers by 0.08.
 
