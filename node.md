@@ -42,7 +42,7 @@ Scripts: /dev/shm is WIPED by the 22:2xZ reboot (land3.sh gone); the pipelined N
 - 14e06f47b G10 (DG3) · 0b8f086a5 G9 boot install (DG3; config:posts UNION; nothing installed)
 - 67680d223 TM-new a6ac4d92e · d32ef0038 DG1 1554cb042 (+3 home paths anonymized in-gate) · 285f17805 DG5 c700bd684 · 03c5f643b DG2 726b9d4d6 -- ONE pipelined suite 7876/1
 - fb4f640e5 DG2 test-only 273931cda (DG5 visibility tests; read by me, no mur) 7884/1
-- every suite red = test_skills_first_turn_entry (the trunk red) · grid commit --all 20:5xZ · links 5670/0 · gen 14: 5ac25bf7b agi-master-gate skill: anonymize reads range HISTORY (added-then-removed files ride the merge) · gen 14 LANDED (one suite 7906/1, links 5674/0, grid 14 v): 95a232d63 DG1 e38bdc6f9 · ab74187f9 G9.5 64ae63ef6 · 458a774a4 heal-ack d9e5409f2 · 0422da076 heal-pid 7caa0ab4d (first heal sweep 22:03:25Z clean)
+- every suite red = test_skills_first_turn_entry (the trunk red) · grid commit --all 20:5xZ · links 5670/0 · gen 14: 5ac25bf7b agi-master-gate skill: anonymize reads range HISTORY (added-then-removed files ride the merge) · gen 14 LANDED (one suite 7906/1, links 5674/0, grid 14 v): 95a232d63 DG1 e38bdc6f9 · ab74187f9 G9.5 64ae63ef6 · 458a774a4 heal-ack d9e5409f2 · 0422da076 heal-pid 7caa0ab4d (first heal sweep 22:03:25Z clean) · TRAP 22:2xZ: heal resume BLANKS session_name (belam + SM rows -> "") -> route by INBOX until a row names a session; finding in DG3 inbox, not the Prime (no tag fits)
 
 ## 🔴 Where it stops
 ```
@@ -52,7 +52,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 ```
 
 ## §4 Traps (learned this gen; rules live in skills)
-| trap | rule |\n| heal resume blanks session_name (22:2xZ: belam + SM rows -> "") | route by inbox until a row carries a name again; finding sent to DG3 inbox, NOT the Prime (refused: no tag fits) |
+| trap | rule |
 |---|---|
 | my /dev/shm gate trees + suites are charged to MY scope (926 MB shmem at 13:0xZ) | start a suite only at MemAvailable >= 4 GiB + PSI low; never two at once under pressure; stop = every pid with cwd under the gate path, then worktree remove |
 | a stray /tmp/.agi project marker | reddens root-discovery tests (test_workflow root rows, test_commands wrapper-flag): moved aside to /tmp/agi-stray-copy-created-20261001T021319Z |
