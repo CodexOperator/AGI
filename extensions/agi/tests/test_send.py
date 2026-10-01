@@ -8441,6 +8441,9 @@ def test_concurrent_second_read_never_retires_an_unprinted_line(
         elif other == "peek":
             send_mod.peek(root, me)
         elif other == "partial":
+            # the pre-existing d2420e17c shape, restored verbatim: the nested
+            # read prints through the REAL printer, so its blocks are
+            # deliberately not in `shown` and it owes this loop nothing.
             send_mod._print_blocks_with_labels = real
             try:
                 send_mod.read(root, me, "prime")

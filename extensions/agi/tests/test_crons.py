@@ -1765,3 +1765,27 @@ def test_mail_poll_line_comes_from_the_cell_not_the_fstring(tmp_path,
     assert "read --box-local -v" in line
     assert " >> " in line and line.rstrip().endswith("2>&1")
 
+
+# DH.DG1.04: the two tests above prove the renderer HONOURS a cell it is
+# handed; they never touch the cell the deployed cron actually reads. Pin THIS
+# checkout's own crons.md, and pin it in a module-level constant so a red run
+# can point the same assertion at a stripped COPY in tmp_path.
+LIVE_ROOT = Path(__file__).resolve().parents[3] / ".agi"
+
+
+def test_live_crons_node_carries_the_peek_that_stops_the_retire(monkeypatch):
+    """No `--peek` in the live mail_poll cell = every unread line of every
+    local post's inbox printed into a log file and retired (10-01, the two
+    cases attributed to this crontab line)."""
+    import unittest.mock as mock
+    node = crons.load_crons_node(LIVE_ROOT)
+    cmd = node["jobs"]["mail_poll"]["cmd"]
+    assert "read --box-local --peek" in cmd, \
+        f"the live mail_poll cell would advance the cursor on a log read: {cmd}"
+    repo = LIVE_ROOT.parent
+    with mock.patch.object(crons, "resolve_branch", lambda _git_dir: "main"):
+        lines = [ln for ln in crons.render_managed_lines(
+            LIVE_ROOT, repo, repo, node, "local-town") if "--box-local" in ln]
+    assert lines and "--peek" in lines[0], \
+        f"the cell carries --peek but the rendered crontab line does not: {lines}"
+
