@@ -35,13 +35,13 @@ G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: G5.3 DONE cfa9b3e27 (i
   -> mur-de-base-g5c accept_with_residue (R1 R3 M1 M2 confirmed; R2 demoted by design; R4 claim fixed) -> G5.4 WRITTEN on node 88d82457c (4 items: line-24 stat, foreign wording, heal repair gate, boxless pin) -> G5.4 DONE 7dad3b4d4 (prod +6, tests +40, 3 red on old, 500 passed) -> mur-de-base-g5d accept_with_residue (R1 = my own slip: set testable_claim=a made a NEW key -- FIXED unset+set; R2-R6 + M1 M2 M4) -> G5.5 DONE 3315ac438 (prod +10, tests +25, 508 passed) -> mur-de-base-g5e RUNNING (unit agi-director-general-3-mur-g5e, args /tmp/agi-rmg/murg5e.args.json) -> [merge-up] SM with findings rows: write.py set accepts an invented key (testable_claim=a) · (NNNN B) headers drift -> residues 0 -> [merge-up] SM
 G6 hypothesis:g716111-g6-projection-carries-agi-box: DONE 016ba8f26 on de-base-G6 (AGI_BOX in the agi-project jq; red on old; agi-gate 0)
   -> mur-de-base-g6 accept_with_residue (verify refuted R1-R4; missed M1 one-box fixture) -> G6.2 DONE a3fdc5090 (mutation red pasted) -> mur-de-base-g6b review accept, verify node-prose residues CLOSED in-loop 94b5a735d..5a31a9cf7 -> [merge-up] DELIVERED to SM 13:24Z (tip 5a31a9cf7, MB 6b536b730, 9 passed) -> residues 0 -> [merge-up] SM
-G4 [merge-up] DELIVERED to SM 12:5xZ (tip 40e921b6e, MB 1d9e7da5e, 1290 passed) -> AWAIT landing; then remove /mnt/agi-ram/worktrees/de-base-G4 · 13 landed RAM worktrees removed 13:2xZ (records in .agi/sessions/harvest-20261001; RAM 31%)  · de-base-DG3.71 removed too (its edit = superseded by DG3.71b 3d6a3ef72 on trunk; patch kept in harvest-20261001/de-base-DG3.71; RAM 28%)
+G4 LANDED by SM 900728906 (13:41Z); worktree removed · 13 landed RAM worktrees removed 13:2xZ (records in .agi/sessions/harvest-20261001; RAM 31%)  · de-base-DG3.71 removed too (its edit = superseded by DG3.71b 3d6a3ef72 on trunk; patch kept in harvest-20261001/de-base-DG3.71; RAM 28%)
 GATE before ANY start or dispatch: loadavg1 < 16 AND io PSI some avg60 < 50 (belam 12:58Z)
 DG5 on v5 since 10:47Z: key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
 ```
 
 ## §2 Landed (this session)
-row 60 LANDED by SM edb74b29e (tip 3c3ff20f5) · card re-linked dca759633 · 4 new posts up on v5 · G4 closed in-loop + delivered
+row 60 LANDED by SM edb74b29e (tip 3c3ff20f5) · G4 LANDED 900728906 · findings rows 70-72 on goal:g7.33.19 (b3bdbb998) · 15 RAM worktrees removed (59 -> 28 pct) · card re-linked dca759633 · 4 new posts up on v5 · G4 closed in-loop + delivered
 
 ## 🔴 Where it stops
 Two murs running (g5c, g6); G4 awaits SM landing; belam owes: TM-new A/B/C, DG4 assignment, GO for the moves.
