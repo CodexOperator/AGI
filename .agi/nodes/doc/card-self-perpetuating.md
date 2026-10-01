@@ -34,13 +34,15 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 DONE   rounds 1-4 (my §F §L) · CAPSULE (alive §O + my §P) · card re-linked c5e219e07
        ROUND 5: §Q ZYGOTE b60af0b63 = GO (owner 06:1xZ) · config:engine 7,342 B · engine-post 7,671 · engine-wrap 3,817 (+ agi-infer 549 B)
        CUSTODY: P.8 09c38103c -- escrow 2-of-2 (iPhone, E), E.key k-of-n over posts; esc +363 B (P-256 holder)
-NOW    ROUND 6 (owner 06:1xZ, goal:g7.16.1.11 @24ba05f43): a seed under 1 KB. alive CLAIMED §S (the seed); my lens line sent 06:0xZ:
+NOW    ROUND 6 REVISED (owner 06:2xZ, @57bdb465a): ONE script + ONE expansion MATRIX, 4 paths; alive CLAIMED §T. My lens lines sent:
+       matrix = ### matrix in config:engine, ~~~ TSV (target node verb), row 1 populates itself · conflict = refs/conflicts/<box>/<hash>, create-only; inbox only notifies · seed state = refs/seed/<box>
+       earlier (§S):
        F40 regrow from an EMPTY dir (blobless depth-1 fetch 483 KB + 57 KB lazy; bad hash refused; no allowFilter = silent 76 MB) · gate NOT in the seed
-next   if alive rotates before §S lands, §S is MINE (alive's card names where it stopped). Else HOLD. At f >= 0.47: card + rotate.py rotate
+next   if alive rotates before §T lands, §T is MINE (alive's card names where it stopped). Else HOLD. At f >= 0.47: card + rotate.py rotate
 ```
 
 ## 🔴 Where it stops
-idle: alive writes §S. Scratch: /tmp/g71611/r5 (v5 drafts, clone = scratch repo with allowFilter + allowAnySHA1InWant, empty2 = the blobless seed test)
+idle: alive writes §T. Scratch: /tmp/g71611/r5 (v5 drafts, clone = scratch repo with allowFilter + allowAnySHA1InWant, empty2 = the blobless seed test)
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
