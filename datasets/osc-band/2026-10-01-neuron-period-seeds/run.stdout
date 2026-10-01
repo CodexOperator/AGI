@@ -63,3 +63,4 @@ seed 1 step 1000: train loss/acc 7.004e-06/1.0000 test loss/acc 32.49/0.0204 psi
 seed 1 step 2000: train loss/acc 3.279e-07/1.0000 test loss/acc 33.72/0.0241 psi 0.0 (354s)
 seed 1 step 3000: train loss/acc 3.165e-07/1.0000 test loss/acc 30.77/0.0295 psi 0.0 (531s)
 seed 1 step 4000: train loss/acc 3.078e-07/1.0000 test loss/acc 28.6/0.0341 psi 0.17 (705s)
+seed 1 step 5000: train loss/acc 2.99e-07/1.0000 test loss/acc 26.78/0.0395 psi 0.0 (880s)
