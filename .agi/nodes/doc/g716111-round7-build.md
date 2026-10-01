@@ -175,7 +175,7 @@ post	brief	card-<p>	brief
 
 [THOUGHT of the proposed node, markers dropped in this doc (one THOUGHT per node, test_thought_hygiene); the landed node carries them]
 PROPOSED v5, NOT MINTED (owner GO 06:1xZ; doc:radically-simple-engine §Q + §R folds): v4c cut by one rule, ZYGOTE = what runs before any post exists + the map; the body (config:engine-post) and the wrappers (config:engine-wrap, + agi-infer) are EXPANSION read by sect @REV. Only the 4 readers changed (sect, agi-project, agi-gate, agi-post@.service): every .geometry/engine*.md at the REV, ranges end at ^##; the gate refuses a duplicate name (2) and an empty unit template (1). Every other piece = v4c bytes. ROUND 7: + `### matrix` (round 6) + 5 map lines + engine-grow in the diagram; zygote code unchanged.
-<!-- THOUGHT:END -->
+[end of that THOUGHT]
 ~~~~~
 ### out/engine-wrap.md (11682 B, sha256 7ed3ba87999a9f17)
 ~~~~~
@@ -317,7 +317,7 @@ json.dump(w,open(W,'w'));r=[k for k in w['js']['required']if k not in w['rows']]
 
 [THOUGHT of the proposed node, markers dropped in this doc (one THOUGHT per node, test_thought_hygiene); the landed node carries them]
 PROPOSED v5 (round 5, §Q): v4c's wrapper pieces cut whole, byte for byte, + agi-infer (owner 05:50Z, b60af0b63): one OpenAI-compatible chat call; cells infer_url/infer_model/infer_key (a var NAME, never a key). ROUND 7 (§Y2/§Y3): + agi-fill (the captive fill window; `check` verb; on a refusal it prints a CORRECTIVE DIAGRAM generated from the same JSON Schema) + agi-captive + one PreToolUse line in settings.json + agi-infer cell infer_schema (the closed fence copy). agi-fill = the doc bytes + the owner-07:3xZ corrective diagram + the Y1/Y2 const seam fix; agi-captive = the patched copy (the doc one lets `agi-fill close; cmd` through).
-<!-- THOUGHT:END -->
+[end of that THOUGHT]
 ~~~~~
 ### out/engine-grow.md (5105 B, sha256 63a2a4ea9c218ec4)
 ~~~~~
@@ -387,7 +387,7 @@ for f in sorted(glob.glob(sys.argv[1]+'/[[]*].md')):
 
 [THOUGHT of the proposed node, markers dropped in this doc (one THOUGHT per node, test_thought_hygiene); the landed node carries them]
 ROUND 7 (§Y1): NEW expansion node holding the three growth tools byte for byte from the doc (grow-check 1298 B, grow-gate 1435 B, grow-project 1185 B); it exists because adding them to engine-wrap would push the 3-node total further past the 20,480 B cap. Needs agi-fill (engine-wrap) at runtime: grow-gate calls `agi-fill check`.
-<!-- THOUGHT:END -->
+[end of that THOUGHT]
 ~~~~~
 ### out/graph/growth.tsv (7111 B, sha256 f58a48615cb83f09)
 ~~~~~
@@ -611,6 +611,10 @@ exp	experiment
   else:w['rows'][k]=v;print('ok',k)
  json.dump(w,open(W,'w'));r=[k for k in w['js']['required']if k not in w['rows']];print('next:',(r[0]+' ('+json.dumps(w['js']['properties'][r[0]])+')')if r else'"." to write')
 ~~~~~
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PROPOSED v5, NOT MINTED (owner GO 06:1xZ; doc:radically-simple-engine §Q + §R folds): v4c cut by one rule, ZYGOTE = what runs before any post exists + the map; the body (config:engine-post) and the wrappers (config:engine-wrap, + agi-infer) are EXPANSION read by sect @REV. Only the 4 readers changed (sect, agi-project, agi-gate, agi-post@.service): every .geometry/engine*.md at the REV, ranges end at ^##; the gate refuses a duplicate name (2) and an empty unit template (1). Every other piece = v4c bytes. ROUND 7: + `### matrix` (round 6) + 5 map lines + engine-grow in the diagram; zygote code unchanged.
+[end of that THOUGHT]
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PROPOSED v5, NOT MINTED (owner GO 06:1xZ; doc:radically-simple-engine §Q + §R folds): v4c cut by one rule, ZYGOTE = what runs before any post exists + the map; the body (config:engine-post) and the wrappers (config:engine-wrap, + agi-infer) are EXPANSION read by sect @REV. Only the 4 readers changed (sect, agi-project, agi-gate, agi-post@.service): every .geometry/engine*.md at the REV, ranges end at ^##; the gate refuses a duplicate name (2) and an empty unit template (1). Every other piece = v4c bytes. ROUND 7: + `### matrix` (round 6) + 5 map lines + engine-grow in the diagram; zygote code unchanged.
