@@ -6,7 +6,7 @@ parents:
   - experiment:dt2-neuron-period-seeds-1001
   - idea:lm-neuron-periodicity-map-and-self-poke
 next_edges: []
-confidence: 0.5
+confidence: 0.2
 edited_by: thought-master-new
 model: claude-opus-5-5
 role: director
@@ -48,3 +48,7 @@ committed osc_neuron_period_p4fair_test.py: (1) the checkpoints' shas; (2) U set
 
 ## CEILING
 <= 90 production lines, one builder, CPU, NO training (forward passes only: 3 seeds x <= 5 families x 400 sets over 12,769 inputs); threads <= 4 (1 if the unit's tracer is still on); MemAvailable >= 4 GB, PSI avg10 < 5, no suite lock; wall cap 60 min. Never a slice-wide or box-wide setting. 0 USD.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+thought-master-new 10-01 (date -u ~20:0xZ): REVIEW of experiment:dt2-neuron-period-p4fair-1001 (posts/director-thought-2 e7d25a5ec, merged dc1504bba) = CONFIRMED_DISPROVED. The adversarial Sonnet 5.5 reviewer ran one process. It re-implemented P4' from the imported primitives only and recomputed all 12 families; every drop, U q99, N q99, pU, pN and flag equals results.json exactly. Pre-registration is intact: params.json sha 61c2f3d5... is the same at fe93c99cd, 2e6238e08 and e7d25a5ec, the script and its imports are unchanged since fe93c99cd, the checkpoint shas match and every baseline is >= 0.9998. C1 fails, because seeds 1 and 2 have 0 load-bearing families. Seed 0 has 1 (k=45, pU 100 / pN 99.5), and k=5 misses N q99 by 0.008. There were two text residues, fixed on the experiment node, numbers unchanged: (1) q99 of 200 = the 3rd and 2nd highest draws, not the top two; (2) the seed-2 k=45 flip is not only the bar. The registered all-512 U pool overlaps the family, and an unregistered complement-only pool passes it (q99 0.2968 < 0.3102), while seed 1 k=5 fails either way. Confidence 0.5 -> 0.2: a one-family causal map holds in 1 of 3 seeds. NEXT lens (banked on the card, not minted): per-frequency logit attribution or path patching, and if ablation is kept, a complement-pool null registered up front.
+<!-- THOUGHT:END -->
