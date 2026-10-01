@@ -10861,10 +10861,12 @@ def test_cmd_spawn_refuses_a_second_stand_up_of_the_same_post(tmp_path, capsys):
 
 
 # hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback (goal:g1.31.4.2.1):
-# a pin target this uid cannot stat is UNKNOWN, never a crash. MEASURED 10-01
+# a pin target this uid cannot read is UNKNOWN, never a crash. MEASURED 10-01
 # 17:45Z: every .meter pin on this box names a transcript under another uid's
 # home, so `rotate.py status` died with PermissionError on the FIRST row and
-# metered no seat at all.
+# metered no seat at all. FOUR tests, two seams: the STAT (a mode-000 parent
+# dir) and the READ (a mode-000 file, which a stat guard cannot see -- the
+# first version of this file passed the suite while that read still raised).
 def _pin_naming(tmp_path, seat, target):
     """A seat-stable meter pin (`<graph>/sessions/<seat>.meter`) naming target."""
     g = tmp_path / ".agi"
@@ -10875,10 +10877,18 @@ def _pin_naming(tmp_path, seat, target):
     return g, pin
 
 
+def _sealed(mode_too: bool):
+    """A transcript this uid can STAT but not OPEN (mode 000 on the FILE), or
+    not even stat (mode 000 on its PARENT DIR). The first is the seam a stat
+    guard cannot see; the second is the one the box actually produced.
+    Restores the mode in a finally so tmp_path can be cleaned."""
+    return mode_too
+
+
 def test_an_unreadable_pin_target_is_unknown_not_a_crash(tmp_path, monkeypatch):
-    # The stat itself is what fails (EACCES on a tree this uid cannot enter);
-    # pin TEXT is readable, so _parse_pin_record is happy and the crash lands
-    # on the exists() call -- exactly the traceback measured on this box.
+    # The STAT is what fails (EACCES on a tree this uid cannot enter); pin
+    # TEXT is readable, so _parse_pin_record is happy and the crash lands on
+    # the exists() call -- the traceback measured on this box.
     sealed = tmp_path / "sealed.jsonl"
     sealed.write_text("{}\n", encoding="utf-8")
     _g, pin = _pin_naming(tmp_path, "sealed-seat", sealed)
@@ -10895,8 +10905,7 @@ def test_an_unreadable_pin_target_is_unknown_not_a_crash(tmp_path, monkeypatch):
 
 
 def test_seat_fraction_is_none_when_the_pin_target_is_unreadable(tmp_path):
-    # The real box shape, no monkeypatch: a mode-000 directory. (root reads
-    # anything, so the case is meaningless there -- skip with a reason.)
+    # The box shape: a mode-000 PARENT DIR, so the stat fails.
     if os.geteuid() == 0:
         pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
     blocked = tmp_path / "other-uid-home"
@@ -10904,27 +10913,54 @@ def test_seat_fraction_is_none_when_the_pin_target_is_unreadable(tmp_path):
     target = blocked / "transcript.jsonl"
     target.write_text("{}\n", encoding="utf-8")
     blocked.chmod(0o000)  # sealed AFTER the write: the pin, not the fixture, is blocked
-    g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
-    assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None, (
-        "None == UNKNOWN, the caller's documented skip -- never a raise")
+    try:
+        g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
+        assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None, (
+            "None == UNKNOWN, the caller's documented skip -- never a raise")
+    finally:
+        blocked.chmod(0o755)  # tmp_path cleanup cannot descend into a 000 dir
+
+
+def test_seat_fraction_is_none_when_the_transcript_stats_but_cannot_be_opened(tmp_path):
+    # THE SEAM A STAT GUARD CANNOT SEE: mode 000 on the FILE inside a
+    # readable dir. exists() succeeds, _read_pin_target returns the path, and
+    # the raise happens on the READ. Red before the _seat_fraction guard --
+    # this is mur residue (1), and it is why the first two tests were not
+    # enough: they only ever provoked the stat.
+    if os.geteuid() == 0:
+        pytest.skip("root opens a mode-000 file; the defect cannot be provoked")
+    target = tmp_path / "transcript.jsonl"
+    target.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
+    target.chmod(0o000)
+    try:
+        assert target.exists(), "precondition: the transcript MUST stat cleanly"
+        g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
+        assert rotate._read_pin_target(g / "sessions" / "sealed-seat.meter") == target, (
+            "precondition: the stat seam passes it through, which is why the "
+            "guard has to live at the READ")
+        assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None, (
+            "a transcript we may stat but not open is UNKNOWN, never a raise")
+    finally:
+        target.chmod(0o644)
 
 
 def test_status_survives_a_seat_whose_pin_is_unreadable(tmp_path, monkeypatch, capsys):
-    # Command level: status prints frac=? for the seat it cannot read and
-    # keeps going. Before the fix this raised PermissionError out of cmd_status.
+    # Command level, on the READ seam: status prints frac=? and keeps going.
+    # Before both guards this raised PermissionError out of cmd_status.
     import argparse
     if os.geteuid() == 0:
-        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
-    blocked = tmp_path / "other-uid-home"
-    blocked.mkdir()
-    target = blocked / "transcript.jsonl"
-    target.write_text("{}\n", encoding="utf-8")
-    blocked.chmod(0o000)  # sealed AFTER the write: the pin, not the fixture, is blocked
+        pytest.skip("root opens a mode-000 file; the defect cannot be provoked")
+    target = tmp_path / "transcript.jsonl"
+    target.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
+    target.chmod(0o000)
     g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
     monkeypatch.setattr(rotate, "_load_seats", lambda r: [{"name": "sealed-seat"}])
     monkeypatch.setattr(rotate, "_read_generation", lambda r, s: 1)
     monkeypatch.setattr(rotate, "_read_seat_row", lambda r, s: None, raising=False)
-    rc = rotate.cmd_status(argparse.Namespace(seats=True, record=None), g)
+    try:
+        rc = rotate.cmd_status(argparse.Namespace(seats=True, record=None), g)
+    finally:
+        target.chmod(0o644)
     out = capsys.readouterr().out
     assert rc == 0, out
     assert "sealed-seat" in out and "frac=?" in out, out
