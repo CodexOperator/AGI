@@ -22,7 +22,10 @@ def _bin(tmp_path, name, pi):
 
 @pytest.fixture
 def unit_path():
-    m = re.search(r"(?m)^Environment=PATH=(\S+)", (base.WT / base.GEO / "engine-root.md").read_text())
+    try:
+        m = re.search(r"(?m)^Environment=PATH=(\S+)", (base.WT / base.GEO / "engine-root.md").read_text())
+    except OSError:
+        pytest.skip("engine-root.md is missing: the unit's home moved")
     if not m:
         pytest.skip("engine-root.md carries no Environment=PATH= line: the geometry's unit PATH moved")
     return m[1]
@@ -32,6 +35,27 @@ def test_pi_row_is_node_exact_dir_pi_first_on_unit_path(tmp_path, monkeypatch, u
     a, b, c = _bin(tmp_path, "a", 0), _bin(tmp_path, "b", 1), _bin(tmp_path, "c", 1)
     h = h_of(tmp_path, monkeypatch, "pi-free", f"{tmp_path}/%i/bin:{a}:{b}:{c}")  # hermetic: an absent %i dir + a pi-less dir skipped; first holder wins
     assert h.startswith(f"node {b}/pi --provider openrouter --model m --thinking high "), h
+
+
+UNIT = "/^### agi-post" + "@\\.service /,/^##/{/^~~~/,/^~~~/{//!p}}"  # the s function's own range
+
+
+def _sect(path, expr=UNIT):
+    return subprocess.run(["sed", "-n", expr, str(path)], capture_output=True, text=True, check=True).stdout
+
+
+def _unit_and_section(tmp_path, engine_text=None):
+    base.project(tmp_path, engine_text)  # base.ROW: a claude-only box, so no pi is needed
+    return (tmp_path / "out" / ("agi-post" + "@.service")).read_text(), _sect(tmp_path / "repo" / base.GEO / "engine-root.md")
+
+
+def test_projected_unit_is_the_section_byte_for_byte(tmp_path):
+    unit, section = _unit_and_section(tmp_path)
+    assert section and unit == section
+
+
+def test_agi_project_reads_the_unit_section_once():
+    assert _sect(base.WT / base.GEO / "engine.md", base.SECT).count("s agi-post" + "@.service") == 1
 
 
 def _refuses(tmp_path, monkeypatch, extra="", harness="pi-free"):
@@ -58,6 +82,7 @@ def test_empty_unit_section_refuses_before_wants_strip(tmp_path, monkeypatch):
     (fake / base.GEO).mkdir(parents=True)
     for f in (base.WT / base.GEO).glob("engine*.md"):  # a claude-only box: only the empty unit, not a pi row, can refuse
         (fake / base.GEO / f.name).write_text(re.sub(r"(?s)(### agi-post@\.service[^\n]*\n~~~ini\n).*?(~~~\n)", r"\1\2", f.read_text()))
+    assert _sect(base.WT / base.GEO / "engine-root.md") and not _sect(fake / base.GEO / "engine-root.md")  # the section was real, and is now empty
     monkeypatch.setattr(base, "WT", fake)
     _refuses(tmp_path, monkeypatch, harness="claude-code")
 
