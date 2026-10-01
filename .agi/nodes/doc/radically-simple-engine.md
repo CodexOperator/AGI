@@ -920,7 +920,7 @@ POP    capsule-pop R (root unit):  the ring, k and cred are read FROM T (the sig
 ~~~sh
 #!/bin/sh
 # capsule-pop R: R = "C H T" (capsule, hash of the launch vector R.L, ledger tip). The ring, k and the sealed bytes are read FROM T, so the
-# signatures pin all of them; k distinct ring signatures move refs/capsule/C T->new (one CAS: a replay loses), then L runs with C as its only credential
+# signatures pin all of them; the WEIGHTS of distinct ring signers (ring/<holder>@<w>, w=1 if absent) summing to k move refs/capsule/C T->new (one CAS: a replay loses), then L runs with C as its only credential
 set -e;read -r c h t<"$1";x=.agi/capsule/$c;r=$(mktemp);trap 'rm -f $r $r.ok $r.c' EXIT;[ "$(git hash-object "$1.L")" = "$h" ]
 g(){ echo "$t:$1"|git cat-file --batch --follow-symlinks|tail -n+2;};git ls-tree --name-only $t $x/ring/|while read f;do echo "${f##*/} namespaces=\"capsule\" $(g $f)";done>$r
 for s in "$1".sig.*;do p=$(ssh-keygen -Y find-principals -s "$s" -f $r)&&ssh-keygen -Y verify -f $r -I "$p" -n capsule -s "$s"<"$1">/dev/null 2>&1&&echo "$p";done|sort -u>$r.ok
