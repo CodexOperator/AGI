@@ -33,16 +33,21 @@ BUILD   goal:g7.16.1.11 (belam [decision] 01:58Z, owner 01:0xZ 'Stages 1-2 now, 
         gaps: 1 system-shaped unit in the user manager · 2 H undefined (no env) · 3 no users projected · 4 project.sh 28 vs agi-project 10 · 5 fresh key per user
   S2    PASS 7/7 (run 02:49-02:58Z, 0 USD), result on doc:g716111-stage2-rootplan 92cd0739be; teardown re-verified clean by me;
         [decision] to belam 03:0xZ [delivered]; disclosed R1 52 s early + R13 clone-ownership corrective; 6 council findings on the node
-  S2.5  (owner 02:55Z, belam signed): AFTER S2 passes + belam relays: ONE live post on the LIVE repo under config:engine, picked WITH belam;
-        bar = PARITY TABLE (every capability today -> new mechanism -> proved) incl (a) node<->code auto-link (b) per-node tiny worktree at a
-        config location, pulled on version, purged from RAM; root acts + undo first; one-command rollback. PREP DONE: doc:g716111-stage25-parity 2e6fca914e
-        (42 rows: 12 at/above parity, ~2.9 KB to close; candidate director-general-6); 5 calls sent to belam 03:2xZ [delivered] -- wait for the relay + calls
+  S2.5  GO (belam signed 03:48Z; S2 ACCEPTED, box re-verified clean). POST = director-general-5 (owner), NOT DG6. HARNESS pi-free + a pi
+        extension mirroring CC hooks (CCCC: SessionStart->session_start+before_agent_start, UserPromptSubmit->input, Stop->turn_end, Pre/PostToolUse)
+        CREDS: copy the owner's CC credential file to the new user (600, never printed/committed), prove ONE claude start, report uid-/network-bound
+        root acts on MAIN APPROVED (undo listed first) · keep both keys · engine <= 16,384 B, depth 0+1 <= 4,096 B · BAR: parity all matched-or-better
+        PHASE A (Opus, no root) RUNNING -> /tmp/agi-stage25/v4/ (engine-v4.md, cccc.md, rootplan.md, parity-proofs.md, test.txt)
+        + owner 03:48Z: one parity row each for memguard · ram-main · memory-alarm · PSI-40% watchdog · config:guard slices · keysync · box crontab ·
+          heal · oomd + the MAGIC PANE ANCHOR (goal:g7.31.2); a guard v4 cannot carry = a NAMED gap (forwarded to the Phase A subagent)
+        PHASE B: review + root plan into the graph (doc node) -> PHASE C: executor runs it on DG5 + proves the 42 rows -> ONE [decision] to belam
+        prep: doc:g716111-stage25-parity 2e6fca914e (42 rows) · rollback = stop its unit + wants link + rotate.py stand-up --post director-general-5
   STOP  before stage 3 (migration, retiring Python): the owner's word through belam
 HELD    key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7 (this build replaces it)
 LIVE
   row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: DH.DG3.66 pi parent a00-cd04d946 CUT 03:4xZ (idle 2h45m, 0 CPU; its scope
-          stopped, worktree reaped); kid tip e81f782a19 = prod +69 (cap +58), test 291 (cap 260), json line 4 NOT restored, item 6 NOT done ->
-          FINISH by an Opus subagent on de-base-DG3.69 (worktree /mnt/agi-ram/worktrees/de-base-DG3.69) -> mur h60c over 0714583894..<tip> -> [merge-up]
+          stopped, worktree reaped); kid tip e81f782a19 over caps -> FINISHED by an Opus subagent 8abfaf9e9d on de-base-DG3.69: prod +52/+58, test 260/260,
+          json line 4 restored, items 1-6 done; 213p/8s/3f (3 = stray /tmp/.agi, red on trunk too; [red] to SM 04:0xZ) -> mur h60c RUNNING -> [merge-up]
   g7556f  hypothesis:g7556-fstype-root-mount-and-ram-tier-through-ramw: BUILT 0d7a379694 on de-base-DG3.70 (136p/8s, caps met) -> mur h7556f RUNNING -> [merge-up]
   crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round: BUILT 2634a61987 on de-base-DG3.71 (483p/8s/1x, +22/+40; lean 85: flat
           shape w/o tips still ?..?) -> mur hcr RUNNING (unit agi-director-general-3-mur-hcr) -> [merge-up] -> SM tells the Prime the cells may be set
