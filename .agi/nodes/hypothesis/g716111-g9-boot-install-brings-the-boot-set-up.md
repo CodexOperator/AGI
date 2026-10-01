@@ -34,3 +34,17 @@ rows that run the extracted boot piece under sh with fakes on PATH (setfacl, sys
 .agi/nodes/.geometry/engine-root.md (### agi-boot.service + ### agi-boot sections) · .agi/nodes/.geometry/posts.md (a boot cell on the owner's boot-set rows ONLY) · the gate numbers as cells (config.json or engine.md, one place) · one test file · this node.
 ## CEILING
 production +25 lines (two sections + cells) · tests +80 · Sonnet 5.5 subagent · 0 USD. INSTALL (sudo, /etc) is the director's act after G7 lands and belam's GO; Proxmox mock first.
+
+## RESULT G9 (kid afcd4e53d + trunk merge 6017fcbc6, director record)
+engine-root.md gains ### agi-boot.service + ### agi-boot; posts.md boot:true on the owner's 8 rows; config cell values.local_maxxing.agi_boot {poll_s, wait_max_s}; gate numbers read from de_live_parents.ceiling_if. NUMSTAT 0e28707f3..afcd4e53d: config.json 1/0 · engine-root.md 31/0 · posts.md 8/8 · test_agi_boot.py 87/0 (production +32 vs +25: disclosed override, the 8 row flags). Trunk merged in (posts.md resolved = trunk rows + the 8 flags, diff-verified). 27 passed. mur-de-base-g9: review accept_with_residue · verify DEMOTE.
+RULING (belam 18:2xZ): boot projects only engine.v==4 rows; old-setup rows come back via heal until their own move; the flags stay on all 8 -- the verify's 'boot set cannot start' is the designed state, but the skip must be NAMED and tested.
+
+## CORRECTIVE G9.2 -- closes mur-de-base-g9 g9-code (verify D1 D2 D4 + missed a b + config_max; D3 refuted; D5 = the record above)
+BASE      CUT FROM de-base-G9 tip (6017fcbc6 + this node write). No merge. Never rebase.
+1. (D1) the gate is fail-OPEN on an unreadable/empty loadavg (l empty -> awk 0). TRUE WHEN a missing or empty load reading keeps the gate CLOSED exactly like io; a row proves it.
+2. (D2) test_high_reading_delays_next_start flakes (5 of 8): the fixture's wait_max_s=1 vs the integer-second bound. TRUE WHEN the row is deterministic (bound and poll chosen so the delay is observed and the start still happens, e.g. flip the reading file mid-wait or use a bound far above the poll); run the file 8x, 8 green.
+3. (D4) setfacl and daemon-reload failures are silent. TRUE WHEN each failure prints a named stderr line, boot CONTINUES (posts still start), and the unit's final exit is non-zero so systemd shows the boot as failed; a row with a failing fake setfacl asserts the line, the starts, and the exit.
+4. (missed a+b) a boot-flagged row with no projected wants link is skipped with a NAMED stderr line ('agi-boot: <p> not projected (engine v4 row absent), skipped'); a fixture row WITHOUT engine.v==4 proves the line and that it is not started.
+5. (config_max) drop the AGI_TRUNK literal from the unit: the piece and its config are read from MAIN's checked-out HEAD (MAIN never switches branches; it IS the local trunk). WorkingDirectory stays the one install-time literal (systemd needs it; it is written at install from the agi-project service's own toplevel). The shell's test-override defaults stay.
+DEMOTED   D3 refuted by verify (the wants dir is /run tmpfs, wiped at boot) · a dedicated boot ceiling cell vs reusing de_live_parents.ceiling_if: kept shared, one source, the owner's numbers are the same.
+FILE SCOPE .agi/nodes/.geometry/engine-root.md (the two agi-boot sections) · extensions/agi/tests/test_agi_boot.py.  CEILING production net +4 · tests +40 · Sonnet 5.5 subagent · 0 USD.
