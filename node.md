@@ -19,7 +19,7 @@ town: core
 ---
 # doc:rse-aa1-boxes
 
-## AA1 · DESIGN BUNDLE (belam [decision] 23:34Z + 23:40Z) · alive -- THE BOXES: every box is a git ref; the matrix decides where mail may go; one 1,769 B script replaces send.py for a v5 post
+## AA1 · DESIGN BUNDLE (belam [decision] 23:34Z + 23:40Z) · alive -- THE BOXES: every box is a git ref; the matrix decides where mail may go; one 1,785 B script replaces send.py for a v5 post
 Bundle split agreed on the bytes (23:4xZ): **AA1 boxes = alive** · **AA2 nested rotations + the 8 KB budget = self-perpetuating** · **AA3 land = all-is-one** · keys = AA2 or AA3 (open, see the end). Parent: doc:radically-simple-engine (§W's `xb` is this section's ancestor; §U/§V/§Z1 are its key and tree inputs).
 
 **Owner 23:0xZ, verbatim:** "We just need to allow each post to have a will box which they already do, an inbox and a holding box or an outbox or something." **Owner 23:2xZ, verbatim:** "This is why protocol needs to be a mathematical matrix rotation or projection. So things could only go where they must go."
@@ -52,7 +52,7 @@ Bundle split agreed on the bytes (23:4xZ): **AA1 boxes = alive** · **AA2 nested
 ```
 **The matrix (the owner's projection):** a and b are adjacent iff one is the other's parent, OR an inert row (a row with no `harness`: today `council`) sits between them and is ELIMINATED: its parent and its children become one clique. That is vertex elimination on the tree's adjacency matrix (a Schur complement): the protocol's allowed edges are a projection of the parent cells, computed at read time, 0 new cells. So `alive -> dg1` is refused at SEND and a channel `dg1 -> alive` is refused at READ (B8), and the figure eight's crossing (council: belam, the members, SM, TM-new) is one clique. self-perpetuating's AA2 lap (`next(u->v)` in a rotation system) walks exactly these edges, so "where it must go next" is AA2's `agi-next`, and "where it MAY go" is this check.
 
-### `box` whole (1,769 B; expansion, 0 B in the zygote; replaces send.py, 317,096 B, for every v5 post)
+### `box` whole (1,785 B; expansion, 0 B in the zygote; replaces send.py, 317,096 B, for every v5 post)
 ```sh
 #!/bin/sh
 # box send TO <msg | box read | box n | box carry HUB POST..: mail = signed commits on refs (doc:radically-simple-engine §AA1)
@@ -61,11 +61,11 @@ P=${AGI_POST:?};m=refs/box
 # the matrix: a and b are adjacent iff one is the other's parent, or an inert row (no harness) between them is eliminated (its parent + children = one clique)
 a(){ git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -se --arg a $1 --arg b $2 'map({(.name):.})|add as $r|def p(x):$r[x].parent//"";def i(x):$r[x]!=null and ($r[x]|has("harness")|not);[[$a,$b],[$b,$a]]|any(p(.[0])==.[1] or (i(p(.[0])) and (p(.[0])==p(.[1]) or p(p(.[0]))==.[1])))'>/dev/null;}
 case $1 in
-send)a $P $2||{ echo "[off-matrix] $P -> $2: not adjacent, nothing sent">&2;exit 1;};r=$m/$P/$2;o=$(git rev-parse -q --verify $r);[ -z "$o" ]||git verify-commit --raw $o 2>&1|grep -q "for $P with"||{ echo "[squatted] $r $o: not mine, nothing sent">&2;exit 1;};c=$(GIT_AUTHOR_EMAIL=$P GIT_COMMITTER_EMAIL=$P git commit-tree -S ${o:+-p $o} $(git hash-object -w -t tree /dev/null))&&git update-ref $r $c "$o";;
+send)a $P $2||{ echo "[off-matrix] $P -> $2: not adjacent, nothing sent">&2;exit 1;};r=$m/$P/$2;o=$(git rev-parse -q --verify $r);[ -z "$o" ]||git verify-commit --raw $o 2>&1|grep -q "for $P@agi with"||{ echo "[squatted] $r $o: not mine, nothing sent">&2;exit 1;};c=$(GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi git commit-tree -S ${o:+-p $o} $(git hash-object -w -t tree /dev/null))&&git update-ref $r $c "$o";;
 read|n)git for-each-ref --format='%(refname)' $m|grep "/$P$"|while read r;do f=${r#$m/};f=${f%/*};h=refs/held/$P/$f
  a $f $P||{ echo "[off-matrix] $f";continue;}
  for c in $(git rev-list --reverse $r --not $(git rev-parse -q --verify $h));do
-  git verify-commit --raw $c 2>&1|grep -q "for $f with"||{ echo "[refused] $f $c";break;}
+  git verify-commit --raw $c 2>&1|grep -q "for $f@agi with"||{ echo "[refused] $f $c";break;}
   [ $1 = n ]&&echo "$f"&&continue;echo "[$f] $(git log -1 --format=%B $c)";git update-ref $h $c;done;done;;
 carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";done;git -c transfer.fsckObjects=1 fetch -q $h "$m/*:$m/*" $x;;
 esac
@@ -89,7 +89,7 @@ esac
 
 ### What it retires, what it needs
 - RETIRES for a v5 post: send.py's send/read/wake path, the inbox dir's 2,368 files, the nudge pending/lastread/lock trio, and the read marker that cannot be written today. The old-setup posts keep send.py until each moves (no flag day: a moved post reads both until the last old post is gone).
-- NEEDS (one line each, not built): (1) `signers` from EVERY row's pubkey, written by ROOT at unit start into a root-owned file (all-is-one's measured case: a branch can plant `.agi/keys/<anyone>`, so the ring cannot come from a post-writable tree); (2) `box` sets the email to the bare post name, so its principal matches whatever the signers piece writes -- the two must agree on ONE form (`<post>` here; the unit's `%i@agi` is the other); (3) the carrier = root, holding the ONE write key per town repo ("a key stored on root on box"), run from the existing tick, so no post ever holds a transport credential; (4) AGI_POST in the unit env (it exports the deprecated AGI_SEAT today).
+- NEEDS (one line each, not built): (1) `signers` from EVERY row's pubkey, written by ROOT at unit start into a root-owned file (all-is-one's measured case: a branch can plant `.agi/keys/<anyone>`, so the ring cannot come from a post-writable tree); (2) ONE principal form, agreed 23:5xZ (all-is-one's vote, AA2's ring): `<post>@agi` -- what the unit already sets (GIT_COMMITTER_EMAIL=%i@agi); `box` writes it and checks `for <post>@agi with`, and the signers file must write it too (re-tested 25/25 with @agi principals); (3) the carrier = root, holding the ONE write key per town repo ("a key stored on root on box"), run from the existing tick, so no post ever holds a transport credential; (4) AGI_POST in the unit env (it exports the deprecated AGI_SEAT today).
 - Owner answer, keys (with AA2/AA3): no requests at all: root mints the post's capped key at unit start (ExecStartPre=+) into a root-written EnvironmentFile; mail never carries a secret (it is public on the hub by design).
 
 ### Honest limits
@@ -98,8 +98,21 @@ esac
 ### Falsifiers (UNRUN live; each one command on the real box once root installs `box` + the signers line)
 AA1.1 belam -> alive on the live shared .git, read by the agi-alive uid, held moves, the next `box n` = 0 · AA1.2 a session rotation with 1 unread: the successor's first `box n` = 1 and its pane gets `mail: box read` · AA1.3 one carry to GitHub by root and back on a second box (needs a second box) · AA1.4 an off-matrix send from a live post is refused · AA1.5 no `.agi/sessions/inbox` write by any v5 post for 24 h (strace sink `agi-track`).
 
-**OPEN for AA2/AA3:** who owns KEYS (all-is-one proposed self-perpetuating) · whether `council` stays an inert row (this check needs it to resolve: SM and TM-new point at it today, the members point at belam; self-perpetuating proposes 1 row + 3 member cells) · AA3 land = mail up one edge, so it reuses `box read` as root.
+### AA1.S · skill delta: agi-send for an engine.v4 post (owner 23:4xZ via belam 23:49Z: "update the other skills to reflect the way the new system works")
+Split agreed by message 23:5xZ: AA1 = agi-send · AA2 (self-perpetuating) = the load-matrix exclusion of agi-node-write + agi-rotate + agi-goal + agi-post · AA3 (all-is-one) = agi-master-gate, agi-merge-pass, agi-dispatch, agi-verify. The exclusion cannot be a deleted symlink: agi-turn's `add -A` commits the deletion and the next land removes the skill for EVERY post (all-is-one, measured). AA2's mechanism is a per-worktree sparse-checkout (`!/skills/agi-node-write/`, `!/.claude/skills/agi-node-write`): skip-worktree paths are never staged as deletions, both harnesses lose the skill, and MAIN keeps it.
+| agi-send today | engine.v4 post NOW (measured, before boxes) | engine.v4 post AFTER boxes |
+|---|---|---|
+| §1 `send.py send <post>` = THE route | FAILS: the inbox files are belam:belam 664, a v4 uid cannot append. The only working route is a cross-session SendMessage to `name [ref]` copied from ListAgents | `box send <post> <body-file`: refused off-matrix; one tier up or down only, enforced, not advised |
+| §1 `send.py read <me>`, ONE read, never peek | `mail: send.py read <me>` is typed into the pane; read PRINTS but cannot mark (PermissionError), so EVERY earlier block re-prints. Act only on blocks whose `ts` is newer than the last one you handled | `box read`; `box n` is the harmless peek (held moves only on read), so the peek trap is gone |
+| §2 "read empty is not proof, check the files directly" | still true, plus: a non-empty read is mostly OLD mail | the refs ARE the state: `git for-each-ref refs/box/*/<me> refs/held/<me>`; nothing else to check |
+| §1 `send.py wake` / stranded nudges | the agi-run watcher types the line when the inbox file grows | wake = unread count grows; a successor wakes on its predecessor's unread at once (`s=0`) |
+| §1 whois / session tokens (F3, trap 41) | SendMessage needs `name [ref]` (names collide: 3 rows named all-is-one at 23:4xZ) | gone: the address is the POST, the identity is the signature (`<post>@agi` on the signers file root writes) |
+| §3 tags to the Prime | unchanged | unchanged: the tag grammar is content, not transport; a body is stdin from a file (no backtick or `$(` in a shell string) |
+Delta size: one table in this node; the skill text itself changes when the bundle is built, not before.
+
+**OPEN for AA2/AA3:** who owns KEYS (all-is-one proposed self-perpetuating) · AA3 land = mail up one edge, so it reuses `box read` as root (AA3 = doc:rse-aa3-land, all-is-one; principal form `<post>@agi` agreed and applied above).
+**SETTLED by belam (ec5daa28a, [rule] 23:49Z):** `council` is a real inert row, council<-belam, SM + TM-new<-council, the three members<-belam. What this check then computes: eliminating council makes {belam, SM, TM-new} one clique; the members are belam's children, so belam <-> each member, and the members are NOT adjacent to SM / TM-new or to each other. Council-to-build traffic goes through belam, and member-to-member through belam too. This is the cells' own consequence, not a choice of this section: one member cell -> council would put the members in the clique, which is self-perpetuating's original shape.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-FIRST VERSION, alive 23:4xZ 10-01 (date -u). belam [decision] 23:34Z + 23:40Z (owner 23:0xZ boxes, 23:2xZ "a mathematical matrix rotation or projection"). Own node, not appended to doc:radically-simple-engine: that doc is 268,943 B and three council branches appending at its end would conflict when landed. Measured on scratch only; nothing live was touched, and the one live probe (a ref) was all-is-one's, cleaned. The inert-row elimination is the smallest rule that keeps the council crossing one clique without inventing a cell.
+v2, alive 23:5xZ 10-01 (date -u): three deltas. (1) principal form `<post>@agi` (all-is-one's vote; what the unit already sets), box re-tested 25/25, 1,769 -> 1,785 B. (2) belam's council row ec5daa28a computed through the elimination: members adjacent to belam only, stated as a consequence for belam to rule on, not chosen here. (3) owner 23:4xZ skills line: AA1.S = the agi-send delta only, as a table; no skill text changes before the bundle is built. Edited with plain Edit per belam's [rule] 23:49Z (write.py is old-setup only). FIRST VERSION 23:4xZ: own node, because doc:radically-simple-engine is 268,943 B and three branches appending at its tail would conflict; scratch only; the inert-row elimination is the smallest rule that keeps a crossing one clique without a new cell.
 <!-- THOUGHT:END -->
