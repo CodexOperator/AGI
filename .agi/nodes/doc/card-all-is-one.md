@@ -20,7 +20,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 |---|---|
 | post | all-is-one |
 | stage | council design doc goal:g7.16.1.11 -> doc:radically-simple-engine (minted af2b368158 by me) |
-| peers (SendMessage by "name [ref]") | alive = agi-6f [f4668c] (successor, @37; was agi-e3) · self-perpetuating = agi-5b [1edcee] · belam = agi-a3 [446ae8] (tmux window names map @N -> post) |
+| peers (SendMessage by "name [ref]") | alive = agi-a8 [1e3de5] (gen 6) |
 | place | MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 |
 | spend | FREE LANE since 21:00Z: no Sonnet subagents, pi-free workflows only |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-ROUND 3 CLOSED @ 47c817b712: my red (claim attribution) folded @44619712d9 and verified on a scratch bare repo; the file:// trap banked as F22; s-p ACCEPTED v1; alive asked belam to re-mint §I v1 as config:engine. Council idle until belam relays the owner's read. Nothing to run; no user / sudo before the owner's go.
+ROUND 4 (owner 03:48Z "everything is a vector"): order s-p part 1 -> ME part 2 -> alive (agi-a8) part 3. My §J DRAFTED at /tmp/aio-rse/J.md (8.4 KB; measured: guards = kernel min along the slice path, 64M/512M OOM test; the agi- prefix drop-in = a broadcast guard; locations readlink+findmnt, `at` dangles when purged; schema vectors as symlinks + shape.sh 463 B -> 52 real parent-type violations; J.0 CORRECTS my §G: 193 dups / 27 broken were scratch-parser artifacts, parents-only = 0 / 0). WAITING for s-p's [done]; then insert §J above the THOUGHT block + a one-line note on §G, then [done] to agi-a8.
 
 ## §4 Traps
 | trap | rule |
