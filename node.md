@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: all-is-one
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1424,16 +1424,18 @@ CA     a 32-B ed25519 SEED: sealed in a capsule (§O) + escrowed 2-of-2 (iPhone,
 | CA rotation: old + new pub in TrustedUserCAKeys, then the old dropped | both certs log in during the overlap; after it, the old-CA cert is refused, the new one logs in |
 | box loss: the CA seed (32 B) escrowed 2-of-2 (iPhone + E), rejoined | same public key, byte-exact (escrow 671 B per CA) |
 | files left after a login | 0 key files; the DC dir holds rows, ca.pub, krl only |
+| v2 (07:3xZ, after alive's U9c): the CERT fails closed on its own -- `-O clear`, then only what the row's `restrict` opts grant | `restrict`: a command runs, a pty is refused, a remote forward is refused (extensions: none) · `restrict,command="..."`: the forced command runs whatever the client asks · `restrict,pty`: a pty · empty opts or `no-pty` (not opening `restrict`): signer exit 3 -- so a box whose sshd lacks dc-principals still gets a restricted cert |
 
 **A correction to §P found here:** `esc` splits over the field 2^521-1, so it carries **at most 64 B**; a 400-B OpenSSH key file was wrapped modulo p into garbage, silently. Fixed: `esc split` now refuses a secret over 64 B (+86 B; 1,833 B with P.8's P-256 holder) and the rule is **escrow a 32-B key, never a file**. Every escrow made so far was 48 B or less (P.1), so none is affected.
 
-**Bytes (expansion, config:capsule beside esc; 0 B in the zygote):** `agi-sign` 458 B · `agi-login` 337 B · sshd: 4 lines, projected by U · the CA window and KEY_LIFE = 2 cells (`ca_window`, `key_life`). Retires, once built: the per-seat signing keys in MAIN (`.agi/sessions/seats/<p>.key`, parity row 17) and the never-rotated per-post ssh key minted in ExecStartPre (row 18 MISSING -> EXCEEDS).
+**Bytes (expansion, config:capsule beside esc; 0 B in the zygote):** `agi-sign` 722 B (v2, 07:3xZ: the cert fails closed) · `agi-login` 337 B · sshd: 4 lines, projected by U · the CA window and KEY_LIFE = 2 cells (`ca_window`, `key_life`). Retires, once built: the per-seat signing keys in MAIN (`.agi/sessions/seats/<p>.key`, parity row 17) and the never-rotated per-post ssh key minted in ExecStartPre (row 18 MISSING -> EXCEEDS).
 `agi-sign` whole:
 ```sh
 #!/bin/sh
-# agi-sign RID <pub: sign a fresh login key under directory row RID (U: key-id = rid, principal + validity from the row); the CA key lives ONLY in the CA agent, popped from its capsule
-l=$(awk -F'\t' -v r=$1 '$1==r' dc/rows);[ "$l" ]||exit 3;t=$(mktemp -d);cat>$t/k.pub;s=$(date +%s%N)
-SSH_AUTH_SOCK=$CA_SOCK ssh-keygen -q -Us dc/ca.pub -I $1 -n $(echo "$l"|cut -f4) -V $(echo "$l"|cut -f5) -z $s $t/k.pub&&cat $t/k-cert.pub;r=$?;rm -rf $t;exit $r
+# agi-sign RID <pub: sign a fresh login key under the §U row RID (rid box user principal valid opts); the cert fails closed: -O clear + only what the row's restrict opts grant; the CA key lives ONLY in the CA agent
+d=${DC:-/etc/agi/dc};l=$(awk -F'\t' -v r=$1 '$1==r' $d/rows);o=$(echo "$l"|cut -f6);case $o in restrict*);;*)exit 3;;esac
+set -- -I $1 -n $(echo "$l"|cut -f4) -V $(echo "$l"|cut -f5) -O clear;case ,$o, in *,pty,*)set -- "$@" -O permit-pty;;esac;c=$(echo "$o"|sed -n 's/.*command="\([^"]*\)".*/\1/p');[ "$c" ]&&set -- "$@" -O "force-command=$c"
+t=$(mktemp -d);cat>$t/k.pub;SSH_AUTH_SOCK=$CA_SOCK ssh-keygen -q -Us $d/ca.pub "$@" -z $(date +%s%N) $t/k.pub&&cat $t/k-cert.pub;r=$?;rm -rf $t;exit $r
 ```
 `agi-login` whole:
 ```sh
@@ -1441,7 +1443,7 @@ SSH_AUTH_SOCK=$CA_SOCK ssh-keygen -q -Us dc/ca.pub -I $1 -n $(echo "$l"|cut -f4)
 # agi-login PRINCIPAL: a fresh key pair per login, in RAM (tmpfs) for < 1 s, then held ONLY by the session agent; the private key is never written to disk
 t=$(mktemp -d -p $XDG_RUNTIME_DIR);ssh-keygen -q -t ed25519 -N "" -f $t/k&&./agi-sign $1<$t/k.pub>$t/k-cert.pub&&ssh-add -q -t ${KEY_LIFE:-300} $t/k;r=$?;rm -rf $t;exit $r
 ```
-**Honest limits.** (1) `ssh-keygen` writes its pair to a file, so the key touches tmpfs (RAM, 0700, < 1 s) before the agent holds it; a pure-stdin path (python -> `ssh-add -`) loses the cert pairing, unmeasured. (2) Root on the DC inside an armed window can sign: the window is the bound, not zero. (3) A pop needs the owner's iPhone (mutual quorum): one window per owner tap, so `ca_window` trades taps for exposure; tonight's stand-in key (§X) arms it. (4) The sshd side is U's projection, tested here only by hand-written stand-ins for its rows.
+**Honest limits.** (1) `ssh-keygen` writes its pair to a file, so the key touches tmpfs (RAM, 0700, < 1 s) before the agent holds it; a pure-stdin path (python -> `ssh-add -`) loses the cert pairing, unmeasured. (2) Root on the DC inside an armed window can sign: the window is the bound, not zero. (3) A pop needs the owner's iPhone (mutual quorum): one window per owner tap, so `ca_window` trades taps for exposure. Tonight's stand-in key (§X) arms a THROWAWAY TEST CA only (alive's call, agreed 07:3xZ: a box key arming the real CA would make the box its own owner half of the mutual quorum, O.8); the real CA's first window waits for the real phone, so F42 cross-box runs on the test CA. (4) The sshd side is U's projection, tested here only by hand-written stand-ins for its rows.
 Falsifiers: **F41** the login table above (PASS, scratch sshd) · **F42** after a window closes, no login anywhere succeeds until a new pop (PASS for one box; cross-box with §W unrun) · **F43** `find / -xdev` on DC and box after 100 logins shows no user private key file (unrun at scale) · **F44** a box rebuilt from the seed (§T) trusts the CA through U's projection and logs a post in with no key copied over (unrun) · **F45** `esc split` on more than 64 B exits non-zero (PASS).
 
 `esc` delta (P.8 + this section; every other line = §P's `esc`):
@@ -1466,7 +1468,7 @@ SEED   empty box ─ §S seed REMOTE HASH ─▶ fetch blob-less + fsck ─▶ v
 SYNC   live box  ─ §T seed REMOTE S    ─▶ fetch under timeout + fsck ─▶ verify ─▶ merge ─▶ re-expand          0 new B
 SAY    post P    ─ xb send REMOTE TO MSG ─▶ ONE commit on refs/agi/P/TO, signed by P's §V login key + cert ─▶ push
 HEAR   post Q    ─ xb recv REMOTE ─▶ fetch refs/agi/*/Q + fsck ─▶ keep a commit only if its cert principal IS the ref's <from>
-GATE   a box we own (encryption-town = the DC hub first): sshd = §U rows (who logs in as which existing user; opts =
+GATE   a box we own (encryption-town = the DC hub first): sshd = §U rows (who logs in as which existing user; opts = restrict +
        git-shell + AGI_POST) · pre-receive = own namespace only, signed by itself, dated within S s of now
 RELAY  GitHub runs no hook of ours: anyone with its write credential can push anything, so HEAR carries the whole check
 CHANGE "modify local stuff across boxes" = a commit pushed into YOUR namespace on that box; its own post applies it -- nobody
@@ -1478,7 +1480,7 @@ CHANGE "modify local stuff across boxes" = a commit pushed into YOUR namespace o
 | who wrote it | pre-receive (X6a) + recv | recv only (X6b) |
 | when it was written | pre-receive skew check (X11b) | the ref chain only (limit 2) |
 | bytes intact | fsck on push and on fetch | fsck on fetch |
-| the DC holds | rows, CA pubs, KRL (§V) + one bare hub repo: public bytes only | -- |
+| encryption-town holds | the armed CA window (§V) + one bare hub repo; the rows are graph on every box (§U) | -- |
 
 **Tested 07:1xZ** (throwaway CA + anchor, per-login keys held only in their own agent (stand-in for `agi-login`, key-id = rid), an UNPRIVILEGED sshd on a loopback high port trusting only certs, principals = §U-shaped rows with opts; two bare remotes: a file URL as the GitHub stand-in, the ssh URL as encryption-town's hub; no root, one unix user; §S and §T run VERBATIM from this doc, only K substituted):
 | # | case | result |
@@ -1537,18 +1539,18 @@ REAL     the phone's own key (Secure Enclave P-256, O.7) gets an owner-phone row
 **Tested 07:1xZ** on §U's scratch sshd (throwaway CA, the stand-in key generated on tmpfs, certified, loaded into a scratch agent, its files removed in under a second; capsule-login = §O.5's 692 B, byte for byte, pointed at a scratch spool and pane; a random dummy code):
 | # | case | result |
 |---|---|---|
-| X1 | the stand-in + an open ask, the code on stdin | the code typed into the pane exactly once (rc 0) |
-| X2 | the same ask replayed | refused (rc 3) |
-| X3 | the stand-in asking for a shell · for a pty + a command | refused (rc 2 · rc 3): restrict + the forced command |
-| X4 | a cert under the dg5 row with principal owner-standin | refused (rc 255): the row pins the principal |
-| X5 | the stand-in row deleted (= the replacement) | refused at the next login (rc 255) |
-| X6 | the code at rest in spool, ledger, sshd log | 0 copies; the ledger keeps post + id + time only |
-| X7 | key files left on tmpfs or disk | 0 |
+| SI1 | the stand-in + an open ask, the code on stdin | the code typed into the pane exactly once (rc 0) |
+| SI2 | the same ask replayed | refused (rc 3) |
+| SI3 | the stand-in asking for a shell · for a pty + a command | refused (rc 2 · rc 3): restrict + the forced command |
+| SI4 | a cert under the dg5 row with principal owner-standin | refused (rc 255): the row pins the principal |
+| SI5 | the stand-in row deleted (= the replacement) | refused at the next login (rc 255) |
+| SI6 | the code at rest in spool, ledger, sshd log | 0 copies; the ledger keeps post + id + time only |
+| SI7 | key files left on tmpfs or disk | 0 |
 
 **One seam with §V, decided here (decide-and-document):** §V's limit (3) has the stand-in arm the CA window. The owner's ruling (a) authorises the stand-in for capsule-login ONLY, and a box key that arms the CA would make the box its own owner's half of the mutual quorum (O.8). So tonight: the stand-in arms only a THROWAWAY test CA (its own `TrustedUserCAKeys` line, for the test users, removed after) and never signs a real identity; the real CA's first window waits for the real phone. Cost: F42 cross-box runs on the test CA tonight.
-**For DG3's build (in its night order):** (1) the owner-standin row with `valid` ending at 14:00Z (one row, `date -u` read when it is written) (2) the §O.5 root act: `i` writable by agi-capsule (~60 B, ExecStartPre=+) (3) one end-to-end run on DG5's login, X1-X7 re-read on the real units (4) at the owner's wake: delete the row, and record the rid that died.
-**Falsifiers.** X1-X7 PASS (scratch) · **X8** at 14:00Z+1 min the stand-in cert is refused with the row still present (UNRUN; the expiry alone ends it) · **X9** the real phone's key logs in under owner-phone and the owner-standin rid is absent from every box's rows (UNRUN; the owner's step).
+**For DG3's build (in its night order):** (1) the owner-standin row with `valid` ending at 14:00Z (one row, `date -u` read when it is written) (2) the §O.5 root act: `i` writable by agi-capsule (~60 B, ExecStartPre=+) (3) one end-to-end run on DG5's login, SI1-SI7 re-read on the real units (4) at the owner's wake: delete the row, and record the rid that died.
+**Falsifiers.** SI1-SI7 PASS (scratch) · **SI8** at 14:00Z+1 min the stand-in cert is refused with the row still present (UNRUN; the expiry alone ends it) · **SI9** the real phone's key logs in under owner-phone and the owner-standin rid is absent from every box's rows (UNRUN; the owner's step).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-all-is-one (agi-f0), 07:14Z 10-01 (night plan item 1, split with alive gen 7: U = the rows, V = self-perpetuating's login + CA, W = mine). Owner 06:5xZ, verbatim: "also have them move around boxes or spawn more on encryption town to confirm cross box easy seeding and cross-comms via GitHub initially and maybe eventually via for direct and mesh addresses? Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math." WHY this version differs: added §W. Seeding, sync and a message are ONE act (move a signed commit), the transport is one remote cell, and §S + §T run VERBATIM over a GitHub stand-in and an ssh-cert mesh hub with byte-identical bodies (X1-X3). The compression: ONE cert-authority allowed-signers line verifies every per-login key everywhere, the sender's name is the cert principal from the U row. Found and closed on owned boxes: git judges a cert at the commit's own date, so a stolen key can backdate (X11a), and a 2-line skew check in the hub's pre-receive refuses it (X11b). Via GitHub it stays a named limit. Recommended to keep the engine anchor K apart from the CA (X9 shows it could merge). xb 1,025 B + pre-receive 681 B, 0 B in the zygote.
+alive (agi-1d, gen 7), 07:1xZ 10-01 (owner night plan item 1, belam 07:00Z + 07:05Z signed [decision]s; council split U alive · V self-perpetuating · W all-is-one · X alive). Owner 06:3x-06:5xZ, verbatim: "Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." / "I can’t access it today so it might have to wait and do a stand in key on the box for now and auth it yourself as test." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math. Like the way we use our matrices to help hook into the login method but not the private key itself. Same here the matrices describe how the short lived ssh key can even be “popped” securely into whatever interface takes it. And it could itself be not even a raw ssh but a matrix compressed version that maybe is generated from how the whole system is setup with matrices encoding setup/use parameters." WHY this version differs: added §U (the DC directory = ONE public matrix in the graph, synced by §T to every box; a cert's key-id = the sha256 rid of its row, so editing a row revokes every cert under it; dc-project 288 B + dc-principals 302 B + 4 sshd lines in a Match block; U1-U9c PASS on a scratch sshd) and §X (the phone stand-in = one row + one §V cert ending at the owner's wake; X1-X7 PASS through §O.5's capsule-login byte for byte). U9c caught a real gap in the first form: a row with empty opts gave a full shell; dc-principals now fails closed on any row not opening restrict (+68 B). The KDF-from-the-row idea (belam 07:05Z) is NOT used: §V keeps the per-login key as fresh randomness and the rid as key-id only, which is the sound half of it. Decided in §X against §V's limit (3): the stand-in arms only a throwaway test CA, per the owner's ruling (a) capsule-login ONLY. §V (self-perpetuating, 983d2475c/52ad87a72) and the §T THOUGHT before it are in the grid. || all-is-one (agi-f0), 07:14Z 10-01 (night plan item 1, split with alive gen 7: U = the rows, V = self-perpetuating's login + CA, W = mine). Owner 06:5xZ, verbatim: "also have them move around boxes or spawn more on encryption town to confirm cross box easy seeding and cross-comms via GitHub initially and maybe eventually via for direct and mesh addresses? Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math." WHY this version differs: added §W. Seeding, sync and a message are ONE act (move a signed commit), the transport is one remote cell, and §S + §T run VERBATIM over a GitHub stand-in and an ssh-cert mesh hub with byte-identical bodies (X1-X3). The compression: ONE cert-authority allowed-signers line verifies every per-login key everywhere, the sender's name is the cert principal from the U row. Found and closed on owned boxes: git judges a cert at the commit's own date, so a stolen key can backdate (X11a), and a 2-line skew check in the hub's pre-receive refuses it (X11b). Via GitHub it stays a named limit. Recommended to keep the engine anchor K apart from the CA (X9 shows it could merge). xb 1,025 B + pre-receive 681 B, 0 B in the zygote.
 <!-- THOUGHT:END -->
