@@ -32,3 +32,13 @@ test_send.py test_seatsig.py test_sensei.py test_heal.py test_bin_help_smoke.py 
 extensions/agi/bin/send.py · extensions/agi/tests/test_send.py (or test_seatsig.py for F2) · this node.
 ## CEILING
 production NET +30 lines · tests +60 · Sonnet 5.5 subagent (owner lanes 02:26Z) · 0 USD.
+
+## CORRECTIVE G5.2 -- closes mur-de-base-g5 g5-code (review accept_with_residue; the verify stage left no file: the review's items stand)
+BASE      de-base-G5 tip bc5b0171b. Never rebase.
+1. send_room is unsigned: a room message from a post carries no sig -> sign it like send/dm (the same sig_line path). TRUE WHEN a room block from a post worktree carries env + sig and whois reads VERIFIED (a row).
+2. Signed dms make the owner-veto gate reachable (_veto_answer_authorized accepts a dm block with a sig over an owner-role row): add rows proving a dm signed by a NON-owner seat is REFUSED as a veto answer, and an unsigned one too; only an owner-role signature passes.
+3. The dm envelope vs readers: one committed row reads a signed dm block back through read_dm / _parse_blocks with the text intact (the cccc poll reads the same file).
+4. wake / status for an engine post: report a by-mail verdict (one line, no no-target / reaper-log noise per heal poll).
+DEMOTED   _engine_post reads local rows (fails open to the pre-diff behaviour, never worse) · the cccc poll itself lives outside this tree (item 3 covers the file contract).
+FILE SCOPE extensions/agi/bin/send.py · extensions/agi/tests/test_send.py (and/or test_seatsig.py) · this node.
+CEILING   production net +20 · tests +60 · Sonnet 5.5 subagent · 0 USD.
