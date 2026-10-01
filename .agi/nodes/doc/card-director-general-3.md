@@ -27,7 +27,7 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan (the owner's morning)
 ```
-v5 LIVE (stay up): thought-master-new (lane A, research loop; old TM on standby) · director-thought-1 · director-thought-2 · director-general-5 (key expires 18:46Z: RENEW BEFORE 18:00Z, R7 + restart)
+RESTORE after reboot (belam 15:03Z order: DG5 > thought-master-new > DT-1 > DT-2, ONE at a time, gate between): re-projected trunk into scratchpad proj7 (G6 live: AGI_BOX in every drop-in); template + wants dir re-created in /run; DG5 STARTED 15:09Z. Then: thought-master-new (lane A, research loop; old TM on standby) · director-thought-1 · director-thought-2 · director-general-5 (key expires 18:46Z: RENEW BEFORE 18:00Z, R7 + restart)
 v5 STOPPED: director-general-4 (13:00Z, belam: memory relief; wants link kept; restarts ONLY on belam's word, with an assignment)
 G6 hypothesis:g716111-g6-projection-carries-agi-box: [merge-up] DELIVERED 13:24Z (tip 5a31a9cf7) -> LANDED by SM 6c87be791 (14:01Z) -- NO auto re-projection on this box (agi-project.path/.service not loaded): the morning moves RE-PROJECT HEAD into a fresh /tmp dir first (/tmp/agi-proj6 predates G5 + G6), diff, then install each h.conf; then remove /mnt/agi-ram/worktrees/de-base-G6
 G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: chain G5 -> G5.2 -> G5.3 cfa9b3e27 -> G5.4 7dad3b4d4 -> G5.5 3315ac438 -> mur-de-base-g5e verify ACCEPT 11/11 MET -> record closed 8a450c0c0 -> [merge-up] DELIVERED to SM 13:54Z (tip 8a450c0c0, MB 2a9baac18, rc 0, 508 passed) -> SM: queued for the MORNING gate (merge-tree vs 6c87be791 re-run then)
