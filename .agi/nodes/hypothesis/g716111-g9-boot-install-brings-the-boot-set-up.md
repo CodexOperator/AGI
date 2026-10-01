@@ -60,3 +60,12 @@ BASE      CUT FROM de-base-G9 tip (79f05922f + this node write). No merge. Never
 4. (D5) drop the dead imports.
 DEMOTED   path defaults /mnt/agi-ram and /run/systemd/system = env-overridable defaults of a root unit, read nowhere else (no second source) · WorkingDirectory fidelity = an install-time check (the director installs from the projection and reads it back) · 'MAIN never switches branches' = a standing rule (the HEAD) not a code property · RESULT + THOUGHT = the director's (above; engine-root THOUGHT rewritten with this write).
 FILE SCOPE .agi/nodes/.geometry/engine-root.md (### agi-boot) · extensions/agi/tests/test_agi_boot.py.  CEILING production net +2 · tests +30 · Sonnet 5.5 subagent · 0 USD.
+
+## RESULT G9.3 (kid 69e9cd1d9 + trunk merge 7172cc8ff, director record)
+Start loop in the MAIN shell (rows collected first): a failed start or a gate give-up sets e, exit non-zero, the next row still tried · a second failed load read keeps the gate closed (row) · the fake start has a duration again · dead imports gone · engine-root THOUGHT rewritten IN THE KID'S COMMIT (write.py refuses a director THOUGHT on config:*). NUMSTAT 5df4b9203..69e9cd1d9: engine-root.md 5/6 · test_agi_boot.py 17/3. 13 passed x8 (kid), x2 (director); trunk merged (posts.md = trunk + the 8 boot cells, diff-verified), merge-tree rc 0. mur-de-base-g9c: review + verify accept_with_residue.
+
+## CORRECTIVE G9.4 -- closes mur-de-base-g9c g9c-code (D1)
+BASE      CUT FROM de-base-G9 tip (7172cc8ff + this node write). No merge. Never rebase.
+1. (D1) rows=$(git show ...posts.md|sed|jq) is unchecked: a missing posts.md at the ref, a sed miss or a jq error starts nothing and exits 0. TRUE WHEN a failed extraction OR an empty boot list prints a named stderr line ('agi-boot: no boot rows read from <ref>') and sets e=1 (the unit exits non-zero); rows: posts.md absent at the ref -> the line + exit non-zero; a posts.md with no boot:true row -> the line + exit non-zero.
+DEMOTED   unquoted for p in $rows: post names are [a-z0-9-] (the posts schema), no whitespace or glob can occur · the round outcome as a verdict + evidence_runs = the merge pass / the director's RESULT records (this node's convention).
+FILE SCOPE .agi/nodes/.geometry/engine-root.md (### agi-boot) · extensions/agi/tests/test_agi_boot.py.  CEILING production net +1 · tests +15 · Sonnet 5.5 subagent · 0 USD.
