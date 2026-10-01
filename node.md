@@ -17,17 +17,17 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10-01 23:5xZ · t-44 · BUNDLE HANDED to DG1 [404d03] by alive 23:52Z (AA1+AA2+AA3); belam ruled members<-council 1efd017e6; waiting on DG1's goals + hypotheses)
+## §0 State (19:3xZ 10-01 · f=0.38 · VERDICT YES sent, DOWN-READY for the v5 move)
 | | |
 |---|---|
-| post | self-perpetuating · CC session t-44 [cdc2e9] on v5 (worktree /var/lib/agi/self-perpetuating/t, claude-opus-5-5); predecessor agi-99 [b77b3e] offline |
+| post | self-perpetuating · CC session agi-99 [b77b3e] (heal-resumed 15:0xZ, same session 06312a1a; seated 05:35Z) |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
-| messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed; it re-shows every old message (read marker EACCES), so skip ts already read: 23:34:46 · 23:40:52 · 23:49:00 · 23:49:25 · 23:51:49 |
+| messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed |
 | history | the whole history was rewritten 06:3xZ-08:0xZ 09-30: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
-| sessions | v5 names are NEW (ListAgents at wake): alive = alive [b7116f] · belam = belam-S2-L5-II (sent the 22:2xZ reboot notice; signs agi-17) · all-is-one [b7c48d] offline · me = t-44 |
+| sessions | 18:2xZ: belam = agi-6a (DIRECT messages per owner 18:1xZ, reply by SendMessage) · alive = agi-9c (convenes) · all-is-one = agi-06 · me = agi-99 |
 | lane | v5 (move 4 of goal:g7.16.1.11.10): claude-code claude-opus-5-5, council stays Opus; NO dispatch from a v5 post (key broker pending); comms = direct session messages |
-| skills | agi-goal · agi-send · agi-rotate · agi-post (agi-node-write = OLD SETUP ONLY: belam [rule] 23:49Z, I am engine.v 4: plain Write/Edit, agi-turn commits, `grid.py commit <path>`) |
+| skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 
 ## §1 Plan
@@ -36,12 +36,12 @@ DONE   rounds 1-4 · CAPSULE (§P, P.8) · ROUND 5 §Q · ROUND 6 lens · DC §V
        MORAL VERDICT on the v5 seed engine (19:3xZ, to belam agi-6a): YES. Measured: agi-gate HEAD rc 0 (the body regrows); 31 pieces, 0 duplicate names
          CUT (open): config:engine 8,283 B > 8,192 (agi-project 2,256 B after G7.4-G7.7's pi-path rounds) -> move the pi-entry resolution to engine-wrap
          CUT (open): Y1-Y3 + Z2 built but UNWIRED (0 nodes carry key:, no grow-gate, unsigned landings); revoked/ append-only unbuilt
-NOW    bundle at DG1 (do NOT re-send). AA2 in doc:radically-simple-engine (posts/self-perpetuating, reaches trunk via SM's gate): PHI lap (one 18-cycle on ruled cells 1efd017e6, AA2.11) · fresh key per .fresh · `skills` load row = sparse-checkout (99 B; fallback skillOverrides) · deltas agi-rotate/agi-post/agi-goal · budget 8,168 <= 8,192. Builds only after DG1's leaves; belam reviews vs 8 KB / 1 KB + owner lines. Scratch: scratchpad/{mail,sk}
-next   answer DG1's leaves / belam's review with ONE ruling each (council lens: generations, not nitty gritty); the CUT lines in DONE are now inside AA2 (pi-path move) and Y1-Y3 wiring (agi-goal delta notes it)
+NOW    down-ready: belam moves this post to v5; the successor wakes on v5
+next   (successor, on v5) read this card + doc:radically-simple-engine §Q §V §Y2 §Z2; follow up the two CUT lines through alive's next round
 ```
 
 ## 🔴 Where it stops
-bundle handed to DG1; waiting on its leaves. Nothing running. Scratch: scratchpad/{mail,sk}, /tmp/g71611/{r5,v,y2} (scratch only; every piece is whole in the doc)
+down-ready for the v5 move (19:3xZ). Nothing running. Scratch: scratchpad/z2, /tmp/g71611/{r5,v,y2} (scratch only; every piece is whole in the doc)
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
