@@ -43,3 +43,14 @@ def test_e_text_mentioning_usage_is_skipped(tmp_path):
 
 def test_null_field_counts_as_zero(tmp_path):
     assert "(900/1000)" in run(tmp_path, [{"message": {"usage": {"input_tokens": 900, "cache_read_input_tokens": None}}}]).stdout
+
+
+def test_non_object_usage_is_skipped(tmp_path):
+    bad = [{"message": {"usage": v}} for v in ("x", [1], 7)] + [{"message": "s"}, 5]
+    assert "(900/1000)" in run(tmp_path, [U(900)] + bad + [SYS]).stdout
+
+
+def test_scan_stops_at_first_usage_line(tmp_path):  # a poison line (string fields -> jq error) is never reached
+    poison = {"message": {"usage": {"input_tokens": "a", "cache_read_input_tokens": "b"}}}
+    r = run(tmp_path, [poison] * 3 + [SYS, U(900)])
+    assert r.returncode == 0 and "(900/1000)" in r.stdout
