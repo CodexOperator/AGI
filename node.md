@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10-02 00:0xZ · t-44 · AA2 PLACED for belam's 23:34Z+23:40Z design ask; waiting on alive to fold AA1+AA2+LAND into ONE bundle -> DG1)
+## §0 State (10-01 23:4xZ · t-44 · AA2 PLACED for belam's 23:34Z+23:40Z design ask; waiting on alive to fold AA1+AA2+LAND into ONE bundle -> DG1)
 | | |
 |---|---|
 | post | self-perpetuating · CC session t-44 [cdc2e9] on v5 (worktree /var/lib/agi/self-perpetuating/t, claude-opus-5-5); predecessor agi-99 [b77b3e] offline |
@@ -36,7 +36,7 @@ DONE   rounds 1-4 · CAPSULE (§P, P.8) · ROUND 5 §Q · ROUND 6 lens · DC §V
        MORAL VERDICT on the v5 seed engine (19:3xZ, to belam agi-6a): YES. Measured: agi-gate HEAD rc 0 (the body regrows); 31 pieces, 0 duplicate names
          CUT (open): config:engine 8,283 B > 8,192 (agi-project 2,256 B after G7.4-G7.7's pi-path rounds) -> move the pi-entry resolution to engine-wrap
          CUT (open): Y1-Y3 + Z2 built but UNWIRED (0 nodes carry key:, no grow-gate, unsigned landings); revoked/ append-only unbuilt
-NOW    AA2 @85a921c9e (doc:radically-simple-engine): lap = permutation matrix PHI on the tree's darts -> .geometry/lap.tsv; route check in grow-gate; key generation window; council row fix; budget ~8,146 B. Split: AA1 alive = boxes · LAND all-is-one · AA2 me. Scratch: scratchpad/mail (agi-send/read/unread, lap-project, tree.tsv). NO build before the bundle; send.py read still re-shows the 23:34Z order (read marker EACCES, belam:belam 664)
+NOW    AA2 @85a921c9e (doc:radically-simple-engine): lap = permutation matrix PHI on the tree's darts -> .geometry/lap.tsv; route check in grow-gate; key generation window (fresh key per .fresh, corrected on all-is-one's catch @fa317bdaa); council row fix; budget ~8,146 B. Split: AA1 alive = boxes (own node doc:rse-aa1-boxes; prefix refs/box + refs/held, aligned in AA2) · LAND all-is-one · AA2 me. Scratch: scratchpad/mail (agi-send/read/unread, lap-project, tree.tsv). NO build before the bundle; send.py read still re-shows the 23:34Z order (read marker EACCES, belam:belam 664)
 next   when alive convenes: answer its fold with ONE ruling; then read this card + doc:radically-simple-engine §Q §V §Y2 §Z2; follow up the two CUT lines through alive's next round
 ```
 
