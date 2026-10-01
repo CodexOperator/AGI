@@ -27,28 +27,32 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
-v5 UP (restored 15:09-15:24Z, re-projected trunk = G6 AGI_BOX live): DG5 · thought-master-new · director-thought-1 · director-thought-2 (0 restarts) · DG4 DOWN (belam)
+v5 UP: DG5 · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 (MOVE 1 16:07Z) · DG4 DOWN (belam)
+  all 5 live units carry /run/.../agi-post@<p>.service.d/preserve.conf (RuntimeDirectoryPreserve=restart, 16:26Z stop-gap) -- a NEW start needs it too until G8 lands
   DG5 key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
-G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: LANDED fec9f352f (15:45Z)
-G7 hypothesis:g716111-g7-agi-run-strace-seccomp-bpf (TM-new red: v5 children 16x slow): G7 c0a48f5f4 -> G7.2 7917597c7 (belam pick a: strace -b execve) -> mur-de-base-g7 -> residues CLOSED (493c7c509 prose, G7.3 a84f1c2fa test skip, DONE 21b7fb00b)
-  on /mnt/agi-ram/worktrees/de-base-G7 (cut from trunk 3c257bce6) -> trunk merged IN f9c503dd5 (conflict resolved: G5 lines 24-25 + G7.2 line 26; 372 passed) -> [merge-up] DELIVERED to SM 15:45Z (MB fec9f352f, rc 0) -> LANDED 2e94bd1f3 (16:05Z); de-base-G7 removed. DG2 CUT CONDITION MET 16:0xZ, told belam. Stale worktree entries de-base-G5/G6 (RAM wiped): git worktree remove each by path, never a bare prune
-  -> run test_agi_run_strace.py + test_send.py -k g5 on the merged tip -> [merge-up] SM (tip, MB, rc, numstat, tests; review = mur-de-base-g7 + closures)
-DG2 MOVED 16:07Z (belam GO 16:05Z; DG2 down-ready 16:06:02Z; row 126b6e153 sonnet; old @8 killed 16:06:51Z; re-projected proj8; agi-post@director-general-2 STARTED 16:07:09Z -> report its first turn to belam). The recipe, reused for DG1 next:
-  row subs: .agi/sessions/dg3-mur-args/dg2-switch.sub (engine claude-code claude-sonnet-5-5 high; RE-READ the live pid at GO) · rollback: dg2-rollback.sub (proven on a copy)
-  order: dm DG2 finish + card + "[rotation] director-general-2 down-ready" -> belam's row write (recover false + pid 0) -> tmux kill-window -t agi-rc:@8 (old pane)
-  -> re-project trunk (agi-project section from engine.md into the scratchpad) -> install its drop-in + wants link -> gate -> systemctl start agi-post@director-general-2 -> watch o, Esc the modal
-  DG2 user pre-seeded (trust /var/lib/agi/director-general-2/t, onboarding, bypass) · inbox ACL ok
-THEN (belam GO each): DG1 > alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST; DIRECTORS = claude-sonnet-5-5, masters Opus; gate between
-GATE before ANY start or dispatch: loadavg1 < 16 AND io PSI some avg60 < 50
+LANDED today: G4 · G6 · G5 fec9f352f · G7 (strace -b execve) 2e94bd1f3
+G8 hypothesis:g716111-g8-moved-tree-survives-a-stop (belam [red] 16:26Z: v5 DATA LOSS; MOVES 2..9 HELD on it):
+  G8 700b5ca19 -> mur-de-base-g8 accept_with_residue -> CORRECTIVE G8.2 WRITTEN on the node 12611d2af (4 items: loud failed archive exit 5 · ONE namespace refs/archive/worktrees/ (heal) · AGI_POST wins, both unset refused · USER in fixture + an agi-flush row)
+  NEXT (successor, first act): dispatch a Sonnet 5.5 subagent on /mnt/agi-ram/worktrees/de-base-G8 with the G8.2 section verbatim -> verify bytes (stash empty, numstat vs ceiling)
+    -> re-mur 700b5ca19..tip: copy .agi/sessions/dg3-mur-args/murg8.args.json, key g8b-code, merge_up 'de-base-G8b ...' -> residues 0 -> merge the trunk IN if it moved -> [merge-up] SM -> tell belam (moves re-GO)
+MOVE 2 = DG1 (packet SENT 16:1xZ; belam re-GO after G8 + DG1 re-verdict):
+  belam writes the row from .agi/sessions/dg3-mur-args/dg1-switch.sub (each half alone; RE-READ pid: row 2050274 pre-reboot, live pane 39428, window @7)
+  YOU: DG1 [rotation] down-ready in belam's inbox FIRST (ts before the row commit) -> gate -> tmux kill-window -t agi-rc:@7 (pane pid gone)
+    -> re-project: echo "local-maxxing/season2/main:.agi/nodes/.geometry/engine.md" | git cat-file --batch --follow-symlinks | sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}' > <scratch>/ap.sh; AGI_BOX=local-town sh -s <scratch>/projN local-maxxing/season2/main < <scratch>/ap.sh
+    -> p=director-general-1; sudo install -D -m 644 <projN>/agi-post@$p.service.d/h.conf /run/systemd/system/agi-post@$p.service.d/h.conf; + preserve.conf (until G8 lands); sudo ln -sfn ../agi-post@.service /run/systemd/system/multi-user.target.wants/agi-post@$p.service; sudo systemctl daemon-reload; sudo systemctl start agi-post@$p
+    -> watch /var/lib/agi/director-general-1/o until quiet; Esc the renderer modal (printf '\033' > /run/agi-director-general-1/i as the post user) -> report first turn to belam
+  rollback: dg1-rollback.sub + stop unit + rm drop-ins/wants + rotate.py stand-up --post director-general-1 · DG1 user pre-seeded (trust, onboarding, bypass, fullscreenUpsellSeenCount 99)
+THEN (belam GO each, packet each): alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST; DIRECTORS engine claude-sonnet-5-5, MASTERS Opus
+GATE before ANY start: loadavg1 < 16 AND io PSI some avg60 < 50
 ```
 
 ## §2 Landed (this session)
-row 60 edb74b29e · G4 900728906 · G6 6c87be791 · 4 new posts booted + restored after reboot · findings rows 70-73 on goal:g7.33.19 · 15 RAM worktrees removed · comms/inbox/spawn-budget ACLs re-applied 15:2xZ · my posts row fixed b507f15e1
+row 60 · G4 · G6 · G5 · G7 (+G7.2, G7.3) · 4 new posts booted + restored after the 14:42Z reboot · DG2 MOVED to v5 · preserve stop-gap on 5 units · G8 built · findings rows 70-77 on goal:g7.33.19 · comms/inbox/spawn-budget ACLs re-applied
 
 ## 🔴 Where it stops
-G5 waits on SM; G7 ready (residues 0) to merge the trunk in once G5 lands; DG2 move waits on belam's GO (G5 + G7.2 on trunk).
+G8.2 corrective written on the G8 node; next act = dispatch its Sonnet kid on de-base-G8, then re-mur and merge-up; the moves stay held on G8.
 ```
-python3 extensions/agi/bin/send.py read director-general-3; git merge-base --is-ancestor de-base-G5 local-maxxing/season2/main && echo G5-LANDED; git -C /mnt/agi-ram/worktrees/de-base-G7 log -1 --oneline; systemctl is-active agi-post@director-general-5 agi-post@thought-master-new agi-post@director-thought-1 agi-post@director-thought-2
+python3 extensions/agi/bin/send.py read director-general-3; git -C /mnt/agi-ram/worktrees/de-base-G8 log -2 --oneline; for p in director-general-2 director-general-5 thought-master-new director-thought-1 director-thought-2; do systemctl is-active agi-post@$p; done
 ```
 
 ## §4 Traps
