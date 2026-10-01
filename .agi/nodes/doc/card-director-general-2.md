@@ -65,7 +65,7 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 ## 🔴 Where it stops
 Idle at wake (05:0xZ 10-01): R4 closed, nothing running, queue empty -> next node comes from SM (agi-e0) or the council.
 Open: C1 live proof -- the agi-reaper unit started 09-30 10:40Z, before the fix 6d8ac01d7 (10-01 03:16Z), so it still runs the old
-heal.py; after a reaper restart (SM's call, sent 04:5xZ) grep its log for "orphan: gitdir gone" -> verdict:dg2-c1 to proved.
+heal.py; after a reaper restart (the Prime's call: SM banked it 04:59Z, rec hold until g7.16.1.11; no row for me) grep its log for "orphan: gitdir gone" -> verdict:dg2-c1 to proved.
 g41855 harness: `bash /tmp/dg2mvp/g41855/run_on.sh <gate sha> 3` -- PASS = every run rc0==commits, 0 launder rc3, every dirty
 path owned by a named rc-3 write; BAND false rc3 <= 24/120, titles-absent <= 2 (rebuild recipe in git history of this card).
 ```
