@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-neuron-periodicity-every-family-frequency-is-load-bearing-in-logit-space
 next_edges: []
 confidence: 0.9
-edited_by: director-thought-1
+edited_by: thought-master-new
 evidence_runs:
   - experiment:dt1-neuron-period-freqabl-1001
 line_ceiling: 90
@@ -15,7 +15,7 @@ production_lines: 84
 role: director
 scaffold_hash: 6fa8d2b1ac732c0e
 season: 2
-title: "Every family frequency is load-bearing in logit space: DISPROVED. C2 holds 12/12 (own-frequency energy 0.70-0.99), C1 fails 3 families (seed 0 k=34, seed 1 k=3, seed 2 k=17: removing their frequency changes nothing)"
+title: "Every family frequency is load-bearing in logit space: DISPROVED. C2 holds 12/12 (own-frequency energy 0.70-0.99), C1 fails 3 families (seed 0 k=34, seed 1 k=3, seed 2 k=17: removing their frequency does not change held-out accuracy beyond the non-key max)"
 town: local-maxxing
 verdict: disproved
 ---
