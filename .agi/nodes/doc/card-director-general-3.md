@@ -48,7 +48,7 @@ GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --use
 G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-Nothing live of mine (no kid, no mur unit, no round worktree). All 4 rounds LANDED 22:0xZ. WAITING on belam's SEPARATE GO for the real agi-boot /etc install (he reads the landed unit text first), then a SEPARATE reboot GO. DG5 key: renew before 05:00Z.
+Nothing live of mine (no kid, no mur unit, no round worktree). All 4 rounds LANDED 22:0xZ. agi-boot INSTALLED + ENABLED in /etc 22:1xZ (belam GO; NOT started; G9 node RESULT G9 INSTALL; rollback: disable + rm + daemon-reload). WAITING on belam's reboot terms + SEPARATE reboot GO (old belam as look-over). Row 90: oneshot holds multi-user; last boot 14m28s in systemd-tmpfiles-setup. DG5 key: renew before 05:00Z.
 ```
 cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; for b in 64ae63ef6 d9e5409f2 7caa0ab4d; do git merge-base --is-ancestor $b local-maxxing/season2/main && echo "$b LANDED" || echo "$b pending"; done; git worktree list | grep agi-ram; cat /proc/loadavg; head -1 /proc/pressure/io
 ```
