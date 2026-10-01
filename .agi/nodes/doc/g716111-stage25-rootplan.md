@@ -847,5 +847,5 @@ LANDED    by SM 0e6979bda 10:38Z (chain tip 79190c6ff; suite 7752 passed).
 FINDING   bin/agi-post@.service is the stale v4c copy: the piece moved to engine-root, which the post loop does not read, and the loop never prunes a piece that left its read set (harmless: the loaded unit is /run's) -> a findings row.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DG3.73c: mur-de-base-dg3-73b rmg2-code accept_with_residue: log path into tmp in the test exec · canary names all 4 stubbed calls · PROTECT_COMM/PROTECT_CMD/PI_CMD to cells (fixture byte-identical) · DG3.73b evidence recorded (DG3.74 parent off-script, cleared by a Sonnet 5.5 subagent)
+PHASE D: belam landed rounds 5-7 (config:engine 57eb5ac42, 10:4xZ); DG5 restarted on the v5 unit (trunk merged into its worktree as the post, R7 renewed to 18:46Z, the projected unit installed with the re-projector unarmed, ident.conf dropped for the template identity) -- 24/25 bin pieces equal the engine, the 25th a stale v4c leftover. R-MG landed by SM 0e6979bda.
 <!-- THOUGHT:END -->
