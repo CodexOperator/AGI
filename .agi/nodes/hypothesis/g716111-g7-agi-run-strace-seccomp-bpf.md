@@ -44,7 +44,7 @@ BASE      CUT FROM de-base-G7 tip (worktree /mnt/agi-ram/worktrees/de-base-G7). 
 1. engine-wrap.md:26 -> `exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go` (drop --seccomp-bpf). TRUE WHEN the harness process's own %file opens still reach the -o stream, an exec'd grandchild's compute runs at untraced speed (TracerPid 0 after its exec), and the test rows pin both.
 2. extensions/agi/tests/test_agi_run_strace.py: F1 asserts `-b execve` (and no --seccomp-bpf); F2 asserts the DIRECT command's own open of a tmp file is in the stream; a new row asserts an exec'd grandchild's open of a second tmp file is NOT (the designed loss).
 3. F3 timings pasted in the report (4 threads getppid: untraced vs G7 flag vs -b execve), never a test.
-RESIDUE (by ruling, not a round): agi-track no longer records a bash child's file opens -- ~/track has no reader in the engine (engine-post.md:81 is its only reference).
+RESIDUE (by ruling, not a round): agi-track no longer records a bash child's file opens -- AND (DG3 measured 15:2xZ) on a PI post nothing past the first exec: /opt/agi/bin/pi is #!/usr/bin/env node, env execs node = a detach, so a pi harness own opens are lost too (claude = one ELF, its own opens stay traced); a fix if ~/track ever gets a reader: the pi row launches node on the script directly -- ~/track has no reader in the engine (engine-post.md:81 is its only reference).
 FILE SCOPE engine-wrap.md (line 26) · extensions/agi/tests/test_agi_run_strace.py · this node.  CEILING production 0 net · tests +25 · Sonnet 5.5 subagent · 0 USD.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
