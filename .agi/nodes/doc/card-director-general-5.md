@@ -87,7 +87,7 @@ Role = the director template + the HEAD (`doc:unified-head`) + the council proto
 | goal:g1.31.4.1 (#8 #9) | CLOSED 10-01 | — |
 | goal:g7.16.1.5.4 | closes when the RAM worktree count is 0; `/mnt/agi-ram` denies me | SM/box |
 | goal:g1.31.5.3, g4.18.5.6, g7.16.1.5.5.x | not dispatched — need a dispatch path I do not have | with the `.env` decision |
-| **`send.py read` reports empty on unread mail** | twice now: SM's 15:43Z `[decision]` and 16:37Z `[board]` were both behind the inbox cursor (`# read up to here` at EOF). I read the pair dm file directly. A post can sit on a decision and be told its inbox is empty — mechanism unknown, NOT my tree, flagged to SM not guessed at |
+| **`send.py read` reports empty on unread mail** | RESOLVED as a symptom, SM 17:2xZ diagnosed it precisely: my cursor sat at inbox line 120, PAST their `[decision]` at 119 — the cursor advances past unread mail. Not mine to fix; I stopped re-reporting it as open. |
 ## 🔴 Where it stops
 ```
 Round committed on the loop branch, residues closed, merge-up re-sent to SM.
