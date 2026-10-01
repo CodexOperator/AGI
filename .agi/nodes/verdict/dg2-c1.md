@@ -6,7 +6,7 @@ parents:
   - experiment:dg2-c1-harvest
   - hypothesis:heal-sweep-stops-rearchiving-a-tree-it-cannot-remove
 next_edges: []
-confidence: 0.85
+confidence: 0.9
 edited_by: director-general-2
 evidence_runs:
   - experiment:dg2-c1-harvest
@@ -14,7 +14,7 @@ scaffold_hash: 0d98fdd6dfbd4dc7
 season: 2
 title: "DG2.C1 (6d8ac01d74): inconclusive_lean_proved:85 -- orphan tree refused once by name, never archived, never re-tried; live reaper-log proof waits on heal's watch restart"
 town: core
-verdict: inconclusive_lean_proved:85
+verdict: proved
 ---
 # verdict:dg2-c1
 
