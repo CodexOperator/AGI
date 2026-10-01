@@ -36,7 +36,8 @@ BUILD goal:g7.16.1.11 (radically simple engine; config:engine)
          ONE kid on pi-free + CCCC; NEVER pi posing as CC to RC; report app-visible y/n + the creds' uid/network binding
        PHASE A' DONE: rootplan 90d66d6bd (DELTA) + doc:g716111-stage25-engine-v4c 300c29e4d. belam 05:27Z: C1 LANDED e1e0dbaaf · R-MG DROPPED · overcommit OK · PHASE C GO (N4 hard gate)
        NIGHT PLAN (owner 06:5xZ, goal @8c43a220c; ORDER to 14:00Z, ONE [decision] per step, belam lands engine nodes): 1 Phase C DG5 on PI-FREE (no R8a tonight) + seen by the map · 2 capsule · 3 Round 5 · 4 Round 6 §T (T6 seed boot, T7 Prime wake on refs/conflicts/*) · 5 stand-in phone key (capsule-login only, loopback e2e; delete when the real key lands) · 6 DG5 cross-box on encryption-town (GitHub comms first; root acts listed) · PHASE 3 = PREPARE only
-       LIVE OPUS SUBAGENTS (1/3): item 6 cross-box PREP (read-only on encryption-town) -> /tmp/agi-crossbox/plan.md -- dies with this session
+       LIVE OPUS SUBAGENTS (1/3): §U-§X Phase A (no root) -> /tmp/agi-uvwx/ (pieces byte-exact, test CA cert to 14:00Z, sshd drop-in + auto-revert plan) -- dies with this session
+       ITEM 6 PREPARED, BLOCKED on the OWNER: doc:g716111-crossbox-plan f227e5393 (scrub note: fresh clone only on his explicit cutover; banked §6) · X1 engine bug AGI_BOX default -> belam · §U-§X RELEASED (belam 07:19Z): §X stand-in row + throwaway-CA cert to 14:00Z (capsule-login only) -> §U matrix + 4 sshd Match lines -> §V agi-sign v2 + agi-login -> §W xb + pre-receive skew (encryption-town part blocked)
        ROUND 6 (§T) BUILT: doc:g716111-round6-build 58ff49120 (seed + matrix verbatim; T1-T7 dry PASS; holes H1 H2 H4 T7c patched beside, H5 H7 named) -> [decision] to belam 07:4xZ (picks: patched seed, H7); live T6/T7 acts after Phase C
        PHASE C: P0 PASS (BF=/tmp/agi-stage25/v4c/before) · R1-R3 DONE · BLOCKED on belam: land C2 bf5fb95c82 + run C4 with the PI-FREE engine object (exact cmd in my 07:0xZ dm) -> R4 R4b R5..R13 -> R14 start (N4 HARD GATE) -> pi up + map proof
        V-L1 DONE: node:crypto (node 24.21 + bundled OpenSSL 3.5.8), nothing installed, proof PASS; recorded rootplan §V-L1 948a23988; [decision] to belam 05:4xZ delivered; capsule build waits on the owner's build go
@@ -96,6 +97,8 @@ then per finished mur: read .agi/sessions/workflows/runs/mur-de-base-dg3-{69,70-
 ## §5 Verification (20:5xZ): .10.3 tip ebff97679f 269p/8s (reds + manifest + help) · .10.5 tip 9a861b4fd3 476p/8s/1x (council + write + manifest + help) · g7556 tip 132p/8s · links 5533 resolved 0 broken
 
 ## §6 BANKED
+- OWNER (night item 6): does his 06:5xZ 'spawn on encryption-town' authorize the cutover the 09-30 scrub note asks for (fresh clone of current history only)? + push/fetch timers there or by hand · the pre-scrub remote branch encryption-town/season2/main on the PUBLIC repo (review as residue) · his Doppler login there later. Plan: doc:g716111-crossbox-plan.
+- OWNER/belam: capsule sealing CREATED /var/lib/systemd/credential.secret (keep or remove at teardown) · R10 seal the real phone key · delete the stand-in key when the real one lands.
 - 86 (SM): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left. (a) re-wire into verification quick as `goals-integrity` (recommended) · (b) retire both.
 - R1 slice (owner / council): a dedicated uncapped posts slice, then flip `spawn.post_scope.live` after PASS B3 with the owner present.
 - goal:g4.18.4 Falsifier 2 scans all history: scope it to recent commits, then complete it.
