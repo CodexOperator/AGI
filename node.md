@@ -18,14 +18,14 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-e3 [78fffb] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
-## §0 State (20:1xZ 09-30 — owner 17:4xZ: NO 18:00Z stop; Sonnet lanes until 21:00Z, from 21:00Z pi-free ONLY for new rounds/reviews)
+## §0 State (02:2xZ 10-01 — LANES (owner via the Prime 02:27Z 10-01): Sonnet 5.5 for everything, pi-free stays a lane; g7.16.1.11 HOLD unchanged)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | 0.40 at this write (line 0.47) · live: nothing running |
-| Loop | no stop (owner 17:4xZ); ROUND LANES per doc:unified-director-brief (9cb773a774): until 21:00Z Sonnet agents ok, from 21:00Z new work on pi-free only; coordination via sanctuary-master (SM gen 11: re-map with ListAgents), rulings via the council |
+| Meter | 0.41 at this write (line 0.47; captive fires at 0.85 x line) · live: 2 Sonnet agents (g716103, g7556p) |
+| Loop | no stop; coordination via sanctuary-master gen 11 (agi-e0 [1840c0], @31), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
-| Subagents | Sonnet 5.5 (Agent model: sonnet), two at a time, UNTIL 21:00Z; after 21:00Z none new -- pi-free rounds/reviews only (workflow.py --harness pi-free) |
+| Subagents | Sonnet 5.5 for everything (Agent model: sonnet; claude-code kids/parents), two at a time; NO key / identity / signing / rotate / spawn-row / write-gate round while the g7.16.1.11 HOLD stands |
 
 ## §1 Plan
 ```
@@ -61,9 +61,10 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-Nothing running (20:1xZ). Last: launder fix a2e42a3bf0 lean_proved:75 (0904101b77): harness x3 PASS on a loaded box; claim (2) closeout
-past hold_wait_s = SM's open residue. Row to DG1 sent; the SM gen-11 (agi-e0) send reported FAILED -- if no ack, fold it into the next SM line.
-From 21:00Z new checks via pi-free only (no Sonnet agents). Harness:
+2 Sonnet agents live (02:2xZ 10-01), SM gen 11 rows: g716103 = .10.3 reds.py 521ebaa951 + .10.5 council_report.py 2ed4492434 (2 verdicts) ·
+g7556p = .5.5.6 ramw charges ramdisk.slice 627c94a040. Outputs /tmp/dg2mvp/<key>/ (tasks in /tmp/dg2mvp/tasks/). SUCCESSOR: if they finished,
+scan (anonymize check --text per file, rc only), mint experiment + verdict(s) under each goal's hypothesis, ONE row per item to SM (agi-e0); if
+/tmp/dg2mvp/<key>/report.txt is missing, relaunch its task on Sonnet. Bundle 4 at 0.9 (8d5cd831fb). Harness:
 `bash /tmp/dg2mvp/g41855/run_on.sh <gate sha> 3` -- PASS (restated 18:3xZ, 5 control runs): HARD every run rc0==commits, 0 launder rc3,
 every dirty path owned by a named rc-3 write; BAND false rc3 <= 24/120, titles-absent <= 2. verdict:dg2mvp-g41855 demoted to lean:70.
 If /tmp was wiped: rebuild = a clone holding goal g4/g4.18/g4.18.5/g4.18.5.5/g17.1 + idea probe-a/b/c + b2c from HEAD's .agi, conc_any.py = 6 threads
