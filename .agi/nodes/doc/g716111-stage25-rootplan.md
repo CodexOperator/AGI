@@ -668,6 +668,27 @@ console.log(allFail ? 'RESULT: PASS' : 'RESULT: FAIL');
 process.exit(allFail ? 0 : 1);
 ~~~~~
 
+## PHASE C RUN (DG3, 05:2xZ-08:4xZ 10-01): DG5 UP on engine v4c, PI-FREE (owner night plan: no owner login tonight)
+| act | result |
+|---|---|
+| P0.1-P0.5 + P0.7 | PASS (before-values in /tmp/agi-stage25/v4c/before) |
+| R1 R2 R3 | PASS (R3's rc-help as nobody printed 'must be logged in': equivalent) |
+| C1 | belam e1e0dbaaf (config:engine = v4c byte-exact) |
+| C2 | belam aa2f2e28a (rotate.py refuses an engine-owned row; built by DG3's Opus subagent bf5fb95c82) |
+| C4 | belam 81ed274fc (the DG5 row engine {v 4, harness pi-free, model stealth/space-bunny-alpha, effort medium}; the ring gate refuses a director on another row) |
+| pre-R4 | all 24 pieces at HEAD == /tmp/agi-stage25/v4c/pieces (sect | cmp) |
+| R4 + R4b | projected: wants = agi-post@${P}.service (agi-project.path removed); h.conf H=pi --provider openrouter, O=MAIN |
+| R5 R6 R7 | user + groups (agi existed: belam's post users); home 755; ONE per-spawn zero-USD key, 600 root, never printed |
+| R8 R16 | SKIPPED tonight (pi-free: no Claude credential) |
+| R9 R10 R11 | privacy guard for the post; scoped ACLs (refs writable, .git/config + hooks NOT); polkit rule cmp-equal |
+| R12 R13 | system agi.slice values == the user agi.slice (from config:guard); daemon-reload; 2 unit fragments |
+| GATE N4 | PASS: Slice agi.slice · MemoryHigh 9,261,023,232 / MemoryMax 10,290,724,864 (finite, == user slice) · ManagedOOMMemoryPressure kill, limit 40% · systemd-analyze verify 0 lines · 0 old DG5 scopes |
+| R14 START | active, NRestarts 0, cgroup /agi.slice/agi-post@${P}.service, oomd watches agi.slice; processes as A: pi, script, agi-brief, agi-track/strace, sh; worktree branch posts/director-general-5; i = 600 fifo, o = 600 file; 0 dubious ownership |
+| R15 | the owner reads the pane without sudo (300 B) |
+| FIRST TURN | pi working; the first turn commit on posts/director-general-5 (adds .agi/keys/director-general-5), SIGNED: git verify-commit as A = Good ed25519 signature (%G? G); MAIN cannot verify it (no allowedSignersFile in MAIN's config) |
+| SEEN BY THE MAP | the map script (DG2's hypothesis) is not landed; its inputs show DG5: git worktree list (1) and git log --graph --all (posts/director-general-5) |
+UNDO = §3 ROLLBACK / §4 teardown; units live in /run (gone at reboot).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PHASE A' (v4c): DG5 moves from pi-free to Claude Code Sonnet 5.5 with Remote Control (owner 04:40Z) and the owner logs DG5's user in by hand (04:49Z), so the credential copy R8 becomes R8a (owner login) + R8b (onboarding/trust); RC proof R16' + app proof; R17 = the ONE pi-free kid on CCCC; engine-v4 at 16,384/16,384 B (agi-seed.service dropped for stage 3); parity 52/55 matched-or-better + rows 56-57 pending live proof. First Phase A' run died at the 04:45Z rotation (only assemble.py touched); this is the relaunch.
 <!-- THOUGHT:END -->
