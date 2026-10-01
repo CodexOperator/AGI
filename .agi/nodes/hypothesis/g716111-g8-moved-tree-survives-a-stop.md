@@ -22,7 +22,7 @@ A claimed tree that agi-wt drop refuses as moved is archived to the flat ref ref
 ## Dispatch line
 Kid answers FIRST: what agi-wt claim records in $d/.b and the tree (mint? path?), and which git object/ref write captures the whole tree from inside agi-flush with no index of the post worktree touched.
 ## FALSIFIERS
-- F1 a moved tree does not survive a unit stop (no ref under refs/archive/wt/<post>/ holding its bytes).
+- F1 a moved tree does not survive a unit stop (no ref refs/archive/worktrees/<post>@<mint> holding its bytes).
 - F2 agi-flush with a clean (not moved) tree changes behaviour (it must still land as today).
 - F3 engine-root's agi-post@.service lacks RuntimeDirectoryPreserve=restart (the stop-gap made permanent).
 ## TESTS
