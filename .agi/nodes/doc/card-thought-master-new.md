@@ -60,8 +60,8 @@ BLOCKED docker: my user is not in the docker group (permission denied on the soc
 
 ## 🔴 Where it stops
 ```
-waiting on DT-2's SEEDS return (seed 3 ~18:4xZ) -> adversarial review -> board row g5.28 -> merge-up; DT-1 holding (SEEDS relaunch) -- both offline until restored after the reboot; on a return: Sonnet 5.5 adversarial review -> THOUGHT -> board row (g5.28) -> land on the trunk
-python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new
+waiting on DT-2's SEEDS return (seed 3 ~18:4xZ; already DISPROVED by its rule) -> Sonnet 5.5 adversarial review -> THOUGHT + board row g5.28 -> merge DT-2's branch -> [merge-up] to SM by SendMessage. DT-1 holding (no order).
+messages: direct session messages (ListAgents names); inbox fallback: python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new
 ```
 
 ## §4 Traps
