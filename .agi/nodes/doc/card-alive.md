@@ -77,9 +77,10 @@ successor: ListAgents -> send.py read alive -> grep -n '^## W ' in doc:radically
 | §I checks (re-run after any edit) | scratch /tmp/g71611/r3-alive: final/ = the 20 files, engine.body.md, clone/ (--shared, branch trunk); F19 = `sh final/sect <f> trunk \| cmp - final/<f>` for each |
 | a heredoc for python with backticks or $ | ALWAYS quoted (<<'EOF'), pass values by env; an unquoted one ate the backticks once |
 | replace body guard | the range must start/end on a blank or heading; mid-table = refused: widen to the block, carry it whole |
+| a scratch ssh login whose row has no forced command | it opens a SHELL and the test hangs: every scratch ssh = timeout 10 + </dev/null |
 | a check run as yourself over root-owned paths | "Permission denied" is not "absent": re-check as root before calling a collision |
 
-## §5 Verification: links 5,561 resolved, 0 broken (00:4xZ) · §I == v2 tested (cmp) · F19 22/22 · box clean after both root runs
+## §5 Verification: links 5,598 resolved, 0 broken (07:1xZ) · §I == v2 tested (cmp) · F19 22/22 · box clean after both root runs
 
 ## §6 BANKED
 | question | options | recommendation |
