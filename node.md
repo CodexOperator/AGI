@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1342,6 +1342,68 @@ else git config agi.mode ro;echo "[owner] first boot, local read-only. Hello.">>
 | P5 the remote tip unsigned | rc 1 · no merge · mode unchanged (ro stays ro) · the body stays the local one |
 **Named, not hidden:** an unsigned remote tip exits 1 with no inbox line (cut for bytes; the unit's journal and rc carry it) · `agi.mode ro` is a CELL posts must read before they push (unbuilt in the post unit) · the seed merges in the checkout it runs in, so it runs at boot before any post holds that checkout · the remote half still needs §S's limits (allowFilter, a bare-hash want, the anchor).
 **Falsifiers.** P2-P5 PASS · **T6** DG5 boots from this seed on its box, every parity row green (UNRUN; the owner's first target, after Phase C) · **T7** the Prime, at wake, lists `refs/conflicts/*` and resolves or banks each (UNRUN: a Prime card line).
+
+## V · DOMAIN CONTROLLER · self-perpetuating -- keys no one can write: a fresh key every login, a certificate for minutes, the CA a 32-B seed in a capsule
+**Owner 07:0xZ:** "A literal private-key secured user but the private key auto rotates each login to domain controller. Neither domain controller nor the use account ever actually get perms to write that private key itself only rotate it next login anywhere else." **What am I ACTUALLY trying to get the machine to do here?** Make the thing worth stealing not exist long enough to be stolen, and let the one thing that must last (the CA) regrow from its escrow like everything else. The regrowth lens, inverted: **the best key to survive a box loss is one that never lived longer than a login.**
+```
+login  post/user ── ssh-keygen in RAM (tmpfs, < 1 s) ─▶ k.pub ─▶ DC: agi-sign RID ─▶ cert: key-id = rid (§U row), -n principal, -V valid (row), -z serial
+                 ◀─ cert ── ssh-add -t KEY_LIFE (the session agent holds key + cert) ── the files unlinked: the private key exists ONLY in that agent
+box    sshd: TrustedUserCAKeys (U projects the CA pubs) · AuthorizedPrincipalsCommand (U: rid -> principal + opts) · RevokedKeys (KRL) · AuthorizedKeysFile none
+DC     holds PUBLIC bytes only: the rows (U), the CA pubs, the KRL · signs through the CA AGENT, never a key file
+CA     a 32-B ed25519 SEED: sealed in a capsule (§O) + escrowed 2-of-2 (iPhone, posts' E) (P.8) ─▶ ONE quorum pop arms the CA agent for a WINDOW (ssh-add -t)
+       window ends ─▶ the agent drops the key ─▶ no new logins anywhere until the next pop · the quorum signs the WINDOW, never each login
+```
+| who could write the user's private key | answer |
+|---|---|
+| the DC | never sees it: it signs the PUBLIC half |
+| the user account | never holds a file of it: generated in RAM, handed to its agent, unlinked; the next login makes a new one |
+| root on the DC | cannot mint a CA (the seed is in the capsule); CAN sign during an armed window through the agent socket: that window is the exposure, so it is a cell, short |
+| root on the box where a session runs | CAN read that session's agent memory (O.3: no TPM here); what it gets dies with KEY_LIFE and the cert's validity, and is good for that one row's principal only |
+
+**Tested 07:0xZ** (throwaway CA + keys on tmpfs; an UNPRIVILEGED sshd on a loopback high port trusting only certificates; no root, no real key, host or address):
+| claim | result |
+|---|---|
+| a fresh-key cert login under a row | ok; the cert's key-id = the rid |
+| two logins | two different keys (rotation = every login) |
+| an expired row · a principal not authorised on the box · a rid not in the directory · a plain key with no cert | refused · refused · signer exit 3 · refused (AuthorizedKeysFile none) |
+| one cert revoked by serial in the KRL | refused; the next serial logs in |
+| the CA popped from stdin (`ssh-add -t W -`): no CA file on disk | yes; inside the window: signs · after it: the agent is empty, login fails (rc 255) |
+| CA rotation: old + new pub in TrustedUserCAKeys, then the old dropped | both certs log in during the overlap; after it, the old-CA cert is refused, the new one logs in |
+| box loss: the CA seed (32 B) escrowed 2-of-2 (iPhone + E), rejoined | same public key, byte-exact (escrow 671 B per CA) |
+| files left after a login | 0 key files; the DC dir holds rows, ca.pub, krl only |
+
+**A correction to §P found here:** `esc` splits over the field 2^521-1, so it carries **at most 64 B**; a 400-B OpenSSH key file was wrapped modulo p into garbage, silently. Fixed: `esc split` now refuses a secret over 64 B (+86 B; 1,833 B with P.8's P-256 holder) and the rule is **escrow a 32-B key, never a file**. Every escrow made so far was 48 B or less (P.1), so none is affected.
+
+**Bytes (expansion, config:capsule beside esc; 0 B in the zygote):** `agi-sign` 458 B · `agi-login` 337 B · sshd: 4 lines, projected by U · the CA window and KEY_LIFE = 2 cells (`ca_window`, `key_life`). Retires, once built: the per-seat signing keys in MAIN (`.agi/sessions/seats/<p>.key`, parity row 17) and the never-rotated per-post ssh key minted in ExecStartPre (row 18 MISSING -> EXCEEDS).
+`agi-sign` whole:
+```sh
+#!/bin/sh
+# agi-sign RID <pub: sign a fresh login key under directory row RID (U: key-id = rid, principal + validity from the row); the CA key lives ONLY in the CA agent, popped from its capsule
+l=$(awk -F'\t' -v r=$1 '$1==r' dc/rows);[ "$l" ]||exit 3;t=$(mktemp -d);cat>$t/k.pub;s=$(date +%s%N)
+SSH_AUTH_SOCK=$CA_SOCK ssh-keygen -q -Us dc/ca.pub -I $1 -n $(echo "$l"|cut -f4) -V $(echo "$l"|cut -f5) -z $s $t/k.pub&&cat $t/k-cert.pub;r=$?;rm -rf $t;exit $r
+```
+`agi-login` whole:
+```sh
+#!/bin/sh
+# agi-login PRINCIPAL: a fresh key pair per login, in RAM (tmpfs) for < 1 s, then held ONLY by the session agent; the private key is never written to disk
+t=$(mktemp -d -p $XDG_RUNTIME_DIR);ssh-keygen -q -t ed25519 -N "" -f $t/k&&./agi-sign $1<$t/k.pub>$t/k-cert.pub&&ssh-add -q -t ${KEY_LIFE:-300} $t/k;r=$?;rm -rf $t;exit $r
+```
+**Honest limits.** (1) `ssh-keygen` writes its pair to a file, so the key touches tmpfs (RAM, 0700, < 1 s) before the agent holds it; a pure-stdin path (python -> `ssh-add -`) loses the cert pairing, unmeasured. (2) Root on the DC inside an armed window can sign: the window is the bound, not zero. (3) A pop needs the owner's iPhone (mutual quorum): one window per owner tap, so `ca_window` trades taps for exposure; tonight's stand-in key (§X) arms it. (4) The sshd side is U's projection, tested here only by hand-written stand-ins for its rows.
+Falsifiers: **F41** the login table above (PASS, scratch sshd) · **F42** after a window closes, no login anywhere succeeds until a new pop (PASS for one box; cross-box with §W unrun) · **F43** `find / -xdev` on DC and box after 100 logins shows no user private key file (unrun at scale) · **F44** a box rebuilt from the seed (§T) trusts the CA through U's projection and logs a post in with no key copied over (unrun) · **F45** `esc split` on more than 64 B exits non-zero (PASS).
+
+`esc` delta (P.8 + this section; every other line = §P's `esc`):
+```diff
+- import sys,os,hashlib,base64 as B;from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey as K,X25519PublicKey as P;from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as C
++ import sys,os,hashlib,base64 as B;from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey as K,X25519PublicKey as P;from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as C;from cryptography.hazmat.primitives.asymmetric import ec;E=ec.SECP256R1()
++ from cryptography.hazmat.primitives.serialization import Encoding as N,PublicFormat as F;X=(N.X962,F.UncompressedPoint)
+-  s=sys.stdin.buffer.read();k=int(a[2]);c=[int.from_bytes(b'\1'+s,'big')]+[int.from_bytes(os.urandom(65),'big')%p for _ in range(k-1)];print('check',h(s).hex())
++  s=sys.stdin.buffer.read();k=int(a[2]);len(s)<65 or sys.exit('esc: a secret is at most 64 B: escrow a 32-B key, not a file');c=[int.from_bytes(b'\1'+s,'big')]+[int.from_bytes(os.urandom(65),'big')%p for _ in range(k-1)];print('check',h(s).hex())
+-   e=K.generate();q=r(B.b64decode(open(f).read()));y=sum(x*pow(i,j,p) for j,x in enumerate(c))%p;print(f,B.b64encode(e.public_key().public_bytes_raw()+C(h(e.exchange(q))).encrypt(bytes(12),f'{i}:{y}'.encode(),None)).decode())
++   b=B.b64decode(open(f).read());y=sum(x*pow(i,j,p) for j,x in enumerate(c))%p
++   if len(b)>32:e=ec.generate_private_key(E);z=e.exchange(ec.ECDH(),ec.EllipticCurvePublicKey.from_encoded_point(E,b));u=e.public_key().public_bytes(*X)
++   else:e=K.generate();z=e.exchange(r(b));u=e.public_key().public_bytes_raw()
++   print(f,B.b64encode(u+C(h(z)).encrypt(bytes(12),f'{i}:{y}'.encode(),None)).decode())
+```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 alive (agi-a8), 06:3xZ 10-01 (round 6 REVISED, belam 06:29Z signed [decision]). Owner 06:24-06:2xZ, verbatim: "I don’t think we need to lean on GitHub or git. What if we use the matrices more? A matrix showing how all the other matrices need to expand that then show how things should be populated. The one script could be the entire bootstrap assuming graph is also here to also instantly pick up your project including an auto-sync route to bring repo up to speed with latest version of that branch and hand conflicts to bootstrapped posts, first just dg5 as obvious test target, as needed." / "Sorry it’ll have both as part of seed process. So first a local check to have something at least then it initiates a remote sync on local with timeout, and hands sync conflicts to prime post once it’s up. If remote connection unavailable, then pick local read only no remote sync hand prime seed expansion state and first boot owner greeting." WHY this version differs: added §T. The bootstrap is ONE script (1,019 B incl. the 82 B anchor line) + ONE matrix (a fenced TSV in config:engine whose first row expands the matrix itself; boot rows run in the seed, post rows in the unit). Flow: local expand at once, then a fetch under timeout with fsck, verify-commit, merge and re-expand; a conflict is aborted into a create-only refs/conflicts/<local tip> for the Prime (self-perpetuating lens, adopted); no remote or a timeout = agi.mode ro + a first-boot owner greeting. P2-P5 PASS on a scratch clone. A first draft was 1,504 B; comments and messages were cut to fit, and the unsigned-tip inbox line went with them (named in §T). The mode is now set only after verification (P5 caught it).
