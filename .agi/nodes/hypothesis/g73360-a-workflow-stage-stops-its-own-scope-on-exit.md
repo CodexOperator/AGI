@@ -8,7 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: 8a62b56d10e58eb3
 season: 2
-testable_claim: _run_stage_proc wraps each stage in a named scope (mem_cap.unit_name) and stops that unit in a finally on normal return, the wall kill and an exception; a failing stop is one stderr line; wrap_argv without unit= is byte-unchanged; both merge-up-review stage prompts forbid grep -r / rg / find over .agi/ or the repo root
+testable_claim: _run_stage_proc runs each REAL capped launch (Popen seam, systemd-run usable) in a named scope (mem_cap.unit_name) and stops that unit in a finally on normal return, the wall kill and an exception; on the wall only a stage that ALREADY exited returns its own rc, every other wall path raises TimeoutExpired; the legacy run seam and the prlimit fallback stop nothing (no scope of theirs to stop); a failing stop is one stderr line; wrap_argv without unit= is byte-unchanged; both merge-up-review stage prompts forbid grep -r / rg / find over .agi/ or the repo root
 title: a workflow stage runs in a NAMED scope and stops it on every exit path, so no orphan (a repo-wide grep) outlives its stage; reviewer briefs never grep recursively
 town: core
 ---
@@ -21,7 +21,7 @@ town: core
 - extensions/agi/workflows/merge-up-review.json: the review and verify stage prompts carry "NEVER author and run a probe ... rotate" but no line forbidding a recursive grep / rg / find over .agi/ or the repo root (it reaches the bind-mounted worktrees).
 
 ## CLAIM
-1. Every workflow stage runs in a NAMED scope (`wrap_argv(argv, cap, cfg, unit=mem_cap.unit_name("agi-stage", <run key>/<stage label>))`), and `_run_stage_proc` stops that unit (`systemctl --user stop <unit>`, quiet, a stop failure is one stderr line, never a raise) in a `finally` on EVERY exit path: normal return, the wall kill, an exception. No stage leaves a live process in its scope.
+1. Every REAL capped stage launch (the Popen seam, systemd-run usable) runs in a NAMED scope (`wrap_argv(argv, cap, cfg, unit=mem_cap.unit_name("agi-stage", <run key>/<stage label>))`), and `_run_stage_proc` stops that unit (`systemctl --user stop <unit>`; a stop that exits non-zero or cannot run is ONE stderr line naming the unit, never a raise) in a `finally` on every exit path: normal return, the wall kill, an exception. On the wall the stop goes FIRST and the pipe read is bounded; a stage that had ALREADY exited (an orphan holding its pipe) returns its own rc, every other wall path raises TimeoutExpired. NARROWED (DH.DG3.66, to the bytes): the legacy run seam (a caller-injected subprocess.run, a test seam) keeps the anonymous wrap and launches nothing this function can stop; the prlimit fallback has no scope, so no stop is attempted.
 2. The merge-up-review template (both stage prompts in merge-up-review.json; its derived .js too if it carries prompt text) says: NEVER grep -r / rg / find over .agi/ or the repo root -- diffs and named files only.
 3. Callers that pass no unit (dispatch.py, heal.py) are byte-unchanged.
 
@@ -73,5 +73,5 @@ CEILING   HARD CAP: 1 kid · workflow.py + mem_cap.py production NET <= +58 over
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit; run test_workflow_stage_scope.py test_workflow_stage_seam_cfg.py test_launch_memory_cap.py test_workflow.py test_bin_help_smoke.py with --basetemp under /tmp and paste the counts.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.66: mur h60b code+tests accept_with_residue -> the wall path reads stage-done AFTER its own kill (always true: a timeout escapes the caller timeout handling); fake stop models the real scope stop; F6 race; prlimit no-stop row; conftest guard wrapped not bypassed; json line 4 restore; CLAIM narrowed + 3 missing experiment edits. Test cap 200 -> 260 disclosed override (three rows); prod line-neutral at the +58 breach
+DH.DG3.66 item 6 (finish, DG3 subagent): testable_claim and CLAIM 1 narrowed to the bytes at the finish commit -- the stage seam stops its own unit on REAL launches only; the legacy run seam launches nothing it can stop and the prlimit fallback has no scope; the wall path returns the stage rc only when the stage had already exited before the stop, else raises TimeoutExpired. Prior THOUGHT (corrective DH.DG3.66 orders) is in the grid.
 <!-- THOUGHT:END -->
