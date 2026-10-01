@@ -81,19 +81,15 @@ SM as theirs (send.py is not my lane). NOT fixed by me.
 ## §4 Traps
 | trap | rule |
 |---|---|
-| **a background process commits every change to a TRACKED file in this worktree** | MEASURED 10-01: touch a tracked file, wait 40s, HEAD moves with subject `agi-director-general-5` (the seat name), and `git add -u` sweeps unrelated deletions. **Never `git stash` here** — it parked a conflicted splice that the autocommitter landed as `319a99eb6`; I restored it at `d10931d25`. My own `-m` messages never survive: the node body IS the record, and the SM dm names each commit |
-| **`git config core.hooksPath = ~/hooks`** | the only hook is the box-local privacy guard (`precommit_guard.py`); it is not the autocommitter, whose process I did not identify |
-| **the shared `.agi/sessions/` is NOT writable by a director seat** | 0775 belam:belam, no ACL. `grid.py commit --all` dies on `.grid.lock` (PermissionError). The ACL the card claimed "fixed at 15:0xZ" covers `season2/*`, `.agi/worktrees`, `.spawn-budget` — NOT this dir |
-| **the venv is `~/.venv`, not `~/director-general-5/.venv`** | the old path is gone; `/var/lib/agi/director-general-5/.venv/bin/python` works (HOME=/var/lib/agi/director-general-5) |
-| **write.py's paragraph anchor treats a `-` list block as ONE paragraph** | `replace body 5:5` and `5:6` both REFUSE ("cut the paragraph in half"); the range must span the whole list block plus its blank line. The guard caught my own mis-offset — it works |
-| write.py body offsets SHIFT after every write | re-derive with `read body N:N` IMMEDIATELY before every `replace body` |
-| **`-k` can silently exclude the test you just wrote** | `-k "pin_target_is_unknown or pin_is_unreadable"` selected 2 of 3; the third matched neither. Select new tests by NODE ID |
-| **assert the CONTRACT, not the name** | these three assert "no raise, `None`" and provoke a real `PermissionError`; the red run failed at the same two frames as the box |
-| **pytest runs, in a private venv** · `--basetemp` under my own path; TMPDIR must be pinned `-u TMUX -u TMUX_PANE TMPDIR=/tmp` |
+| **write.py anchors: a `-` list block is ONE paragraph, and `--force` rides the SOURCE** | `replace body 5:5` and `5:6` both REFUSE ("cut the paragraph in half"); a range must span the whole block plus its blank line. `--force` is NOT a flag: `replace body 88:89 --force /path` (prefix on the source). Offsets SHIFT after every write — re-derive with `read body N:N` immediately before each one |
+| **a background process commits every change to a TRACKED file here** | MEASURED: touch a tracked file, wait 40s, HEAD moves with subject `agi-director-general-5` and `git add -u` sweeps unrelated deletions; my `-m` never survives. **Never `git stash` in this worktree** — it parked a conflicted splice that landed as `319a99eb6` (restored at `d10931d25`). `core.hooksPath=~/hooks` holds only the privacy guard; it is not the autocommitter |
+| **the shared `.agi/sessions/` is NOT writable by a director seat** | 0775 belam:belam, no ACL — `grid.py commit --all` dies on `.grid.lock` (0664 belam:belam). The ACL "fixed at 15:0xZ" covers `season2/*`, `.agi/worktrees`, `.spawn-budget`, NOT this |
+| **no seat can see a tmux window** | the live server is belam's `/tmp/tmux-1000`, mode 0700; each seat has its own empty socket dir. send.py turns that into "the pane is gone" and skips the wake — the sweep is the only delivery |
+| **the venv is `~/.venv`**, not `~/director-general-5/.venv` | `--basetemp` under my own path; TMPDIR pinned `-u TMUX -u TMUX_PANE TMPDIR=/tmp`; verify-suite.lock is per-file and pytest inside it ERRORs at setup |
+| **`-k` can silently exclude the test you just wrote** | my `-k "pin_target_is_unknown or pin_is_unreadable"` selected 2 of 3; the third matched neither. Select new tests by NODE ID, and assert the CONTRACT ("no raise, `None`") not the name — these three provoke a real PermissionError |
 | **the 5 reds in test_rotate.py are my SEAT's env** | 5 failed / 348 passed before my change AND after, same five names; they need a usable `origin` remote this seat lacks. Never phrase it as "pre-existing" |
-| MAIN is shared with 9 posts | commit by exact path; never touch another post's file |
-| verify-suite.lock | every runner holds it per file; pytest inside it ERRORs at setup |
-| a director seat cannot push | no git credentials; `branch_push`/belam carry it |
+| MAIN is shared with 9 posts | commit by exact path; never touch another post's file · a director seat cannot push (no git credentials; `branch_push`/belam carry it) |
+
 ## §5 Verification
 `links.py links` 5650 resolved / **0 broken** · `test_rotate.py` **348 passed / 5 failed / 1 skipped / 2 xfailed**, the 5 measured identical before the change · the 3 new tests red at `rotate.py:445` and `rotate.py:7666` (the live traceback's frames), green after · live before/after on the real pins: rc=1 + PermissionError → **rc=0, 18× `frac=?`, 0× `frac=0`** · the changeset `825ca9072..a318061f9` is exactly 3 files (node, rotate.py +15/-3, test_rotate.py +70)
 ## §6 BANKED
