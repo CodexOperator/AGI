@@ -402,7 +402,7 @@ One trap paid for in the test: `sect`'s end pattern `^##* ` also matched a one-`
 Write gate: `config` nodes are `written_by: [owner, prime_director]` (`[config].md`), so the council does not mint `config:engine`. belam minted v0 (11,101 B) at 2dadf20c17; §I below is v1 (the two reds above), for the Prime to re-mint.
 
 ## I · ROUND 3 · the engine node, whole: `config:engine` as it will be minted at `.agi/nodes/.geometry/engine.md`
-This section IS the node's body, byte for byte (11,305 B, v1), between the fences below. Frontmatter at mint: `id: config:engine` · `type: config` · parent `goal:g7.16.1.11` · the Prime (or DG3 at build) mints it; the council does not (`written_by`). F19 and F21 run against the minted node.
+This section IS the node's body, byte for byte (11,900 B, **v2**: S1-S14 folded, the heal, the gate; v1 @44619712d9 and §K say what changed), between the fences below. Frontmatter at mint: `id: config:engine` · `type: config` · parent `goal:g7.16.1.11` · the Prime (or DG3 at build) mints it; the council does not (`written_by`). F19 and F21 run against the minted node.
 ````markdown
 # config:engine — the whole engine, one read
 Depth 0 = diagram · 1 = loop + pieces, one line each · 2 = one piece: `sect <name>` · 3 = this file. Every piece is a small template over raw commands; its parameters are cells. Reasoning: doc:radically-simple-engine.
@@ -416,54 +416,57 @@ Depth 0 = diagram · 1 = loop + pieces, one line each · 2 = one piece: `sect <n
    post refs ──▶ the master merges ──▶ trunk moves ──▶ agi-project re-runs ──▶ next brief sees it
    tick: project(graph) == observe(body)?  equal = alive · differ = heal + a drift commit
    frontier: each active goal runs its falsifier ──▶ met | red | mute ──▶ the pool; claim = one CAS
-   gates at every landing: the projection is non-empty and reproduces itself · V = red + mute never
-   rises without a new owner goal · every at-REV read follows the links (git cat-file --follow-symlinks)
+   agi-gate at every trunk landing: the projection is non-empty and reproduces itself · V = red + mute
+   is published, not gated (no owner-seed cell yet) · every at-REV read follows the links (cat-file)
 ~~~
 
 ## loop — depth 1
 ~~~
 1 BOOT   agi-seed extracts agi-project from this node @trunk; it projects the body from the graph
-2 START  a post's unit starts its harness; start, resume and compact all run agi-brief first
+2 START  a post's unit starts its harness; start, resume and compact all run agi-brief first (CC: the vector)
 3 WORK   the agent reads and writes plain paths in ~/t; every turn end = one signed commit on its ref
-4 LAND   the master merges post refs; the gates refuse an empty or non-reproducing projection, or V up
-5 TICK   tick.sh heals drift and commits it; agi-frontier calls every unmet goal into the pool
+4 LAND   the master merges post refs; agi-gate refuses a tip whose body would not regrow
+5 TICK   tick.sh starts what drifted (polkit: group agi) and commits it; agi-frontier calls every unmet goal into the pool
 ~~~
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-post@.service    340 B  a post IS one unit instance: its uid, its checkout ~/t, its key, the harness under strace; a restart is a rotation
+agi-post@.service    468 B  a post IS one unit instance: its uid, its checkout ~/t, its key, the harness under strace; a restart is a rotation
 agi-inbox@.path       37 B  mail wakes a post: a change in its drop box ...
-agi-inbox@.service    69 B  ... types "mail" into its session
-settings.json        458 B  the harness wiring every post gets: the meter (rotate at the line), the brief at every start, one commit at every turn end
-agi.ts               372 B  the same wiring for pi: the brief in the system prompt on every turn, one commit at every turn end
-agi-brief            766 B  what a session sees first: the walk from its card + its own claims; the vector, then whole nodes by |b|
-brief.py             562 B  b = a sum((1-a) P_theta)^k e: the complex walk over parent symlinks; |b| = how near, phase = how far up
-gitconfig             79 B  every commit is signed by the post's own key
-agi-flush            125 B  on exit: commit, merge, push: a dying session loses nothing
-pre-receive          355 B  a push may touch only paths whose owner group the pusher is in
+agi-inbox@.service    71 B  ... types "mail" into its session
+settings.json        467 B  the harness wiring every post gets: the meter (rotate at the line), the brief at every start, one commit at every turn end
+agi.ts               377 B  the same wiring for pi: the brief in the system prompt on every turn, one commit at every turn end
+agi-brief            575 B  what a session sees first: the walk from its card + its own claims; the vector, then whole nodes by |b|
+brief.py             603 B  b = a sum((1-a) P_theta)^k e: the complex walk over parent symlinks; |b| = how near, phase = how far up
+gitconfig             99 B  every commit is signed by the post's own key
+agi-flush            183 B  on exit: commit, merge, push: a dying session loses nothing
+pre-receive          435 B  a push may touch only paths whose owner group the pusher is in
 signers               65 B  allowed_signers = the posts' public keys
-sysusers.conf         34 B  a post = one user in one group
+sysusers.conf         51 B  a post = one user in one group
+agi.rules            211 B  the ONE root-owned piece: group agi may start agi-post@ units, so tick heals with no root act
 project.sh           282 B  what the body SHOULD be, read from the graph
-observe.sh           317 B  what the body IS, read from the box
-tick.sh              221 B  the homeostat: diff them; heal what drifted and commit the wound
+observe.sh           332 B  what the body IS, read from the box
+tick.sh              250 B  the homeostat: diff them; heal what drifted and commit the wound
 simhash.awk          241 B  stage-0 latent sense: near-duplicate and misfiled prose, no package
-agi-project         1078 B  the genome: units for every post row, read from this node @REV; its own unit re-reads it
+agi-project          941 B  the genome: units for every post row, read from this node @REV; its own unit re-reads it
 agi-seed.service     447 B  the ONE installed unit: at boot, run agi-project from this node @trunk
-agi-frontier         632 B  the hunger: every active goal runs its falsifier: met | red | mute
-sect                 257 B  the narrowed read: ONE section or piece of this node, byte-exact, at any REV
+agi-frontier         460 B  the hunger: every active goal runs its falsifier: met | red | mute
+agi-gate             273 B  the trunk gate (pre-receive): refuse a tip whose body would not regrow
+sect                 149 B  the narrowed read: ONE section or piece of this node, byte-exact, at any REV
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-post@.service (340 B)
+### agi-post@.service (468 B)
 ~~~ini
 [Service]
 User=agi-%i
-WorkingDirectory=%h/t
-EnvironmentFile=%h/env
-ExecStartPre=-sh -c 'ssh-keygen -qN "" -ted25519 -f%h/.ssh/id_ed25519<&-;cp %h/.ssh/id_ed25519.pub .agi/keys/%i'
-ExecStart=dtach -N %t/agi-%i strace -qqfe%%file -o%h/r sh -c '${H} go'
-ExecStopPost=agi-flush
+WorkingDirectory=/var/lib/agi/%i/t
+EnvironmentFile=/var/lib/agi/%i/env
+RuntimeDirectory=agi-%i
+ExecStartPre=sh -c 'mkdir -p $HOME/.ssh .agi/keys;[ -f $HOME/.ssh/id_ed25519 ]||ssh-keygen -qN "" -ted25519 -f$HOME/.ssh/id_ed25519;cp $HOME/.ssh/id_ed25519.pub .agi/keys/%i'
+ExecStart=dtach -N %t/agi-%i/s sh -c 'exec strace -qqfe%%file -o$HOME/r ${H} go'
+ExecStopPost=sh -c agi-flush
 Restart=always
 MemoryHigh=4G
 [Install]
@@ -476,42 +479,41 @@ WantedBy=multi-user.target
 PathChanged=/var/spool/agi/%i
 ~~~
 
-### agi-inbox@.service (69 B)
+### agi-inbox@.service (71 B)
 ~~~ini
 [Service]
 User=agi-%i
-ExecStart=sh -c 'echo mail|dtach -p %t/agi-%i'
+ExecStart=sh -c 'echo mail|dtach -p %t/agi-%i/s'
 ~~~
 
-### settings.json (458 B)
+### settings.json (467 B)
 ~~~json
-{"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":"jq -r .transcript_path|xargs tail -1|jq -e '.message.usage|.input_tokens+.cache_read_input_tokens+.cache_creation_input_tokens>470000'>/dev/null&&echo 'At the line: write your card, git commit it, then run: kill $PPID'"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief"}]}],"Stop":[{"hooks":[{"type":"command","command":"cd ~/t;git add -A;git commit -qm$USER||:"}]}]}}
+{"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":"jq -r .transcript_path|xargs tail -1|jq -e '.message.usage|.input_tokens+.cache_read_input_tokens+.cache_creation_input_tokens>470000'>/dev/null&&echo 'At the line: write your card, git commit it, then run: kill $PPID'"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"B=0 agi-brief"}]}],"Stop":[{"hooks":[{"type":"command","command":"cd ~/t;git add -A .agi;git commit -qm$USER||:"}]}]}}
 ~~~
 
-### agi.ts (372 B)
+### agi.ts (377 B)
 ~~~ts
-import{execSync as x}from"node:child_process";let b="";const c=()=>{try{x("cd ~/t;git add -A;git commit -qm$USER",{stdio:"ignore"})}catch{}}
+import{execSync as x}from"node:child_process";let b="";const c=()=>{try{x("cd ~/t;git add -A .agi;git commit -qm$USER",{stdio:"ignore"})}catch{}}
 export default(pi:any)=>{pi.on("session_start",()=>{try{b=x("agi-brief",{encoding:"utf8"})}catch{}})
 pi.on("before_agent_start",(e:any)=>b?{systemPrompt:e.systemPrompt+"\n\n"+b}:undefined);pi.on("turn_end",c);pi.on("agent_end",c)}
 ~~~
 
-### agi-brief (766 B)
+### agi-brief (575 B)
 ~~~sh
 #!/bin/sh
-# agi-brief: b = the walk from e (the card + the claims whose ref FILE this post owns, in the shared repo); the vector, then whole nodes by |b| up to B bytes. Every harness start runs it.
 p=${AGI_POST:-${USER#agi-}};cd "${AGI_ROOT:-$HOME/t}/.agi"||exit 0;c=$(readlink -f nodes/doc/card-$p.md)||exit 0;c=${c%/node.md}
 e=${c##*/}$(find "$(git config remote.origin.url)/refs/claims" -type f -user agi-$p ! -name '*.lock' -printf ',%f' 2>/dev/null)
-python3 ${BRIEF:-brief.py} n $e ${K:-20}|while read a f m;do echo "$a $f $(sed -n '/^id:/{s/^id: *//p;q}' n/$m/node.md) .agi/n/$m/node.md";done>~/.brief
+sect brief.py|python3 - n $e ${K:-20}|while read a f m;do echo "$a $f $(sed -n '/^id:/{s/^id: *//p;q}' n/$m/node.md) .agi/n/$m/node.md";done>~/.brief
 echo "# brief: $p (|b| · levels up · address · path)";cat ~/.brief;cut -d' ' -f4 ~/.brief|sed 's|^.agi/||'|xargs tail -n+1 2>/dev/null|head -c ${B:-40000}
 ~~~
 
-### brief.py (562 B)
+### brief.py (603 B)
 ~~~py
 import os,sys,cmath
 R,S,k=sys.argv[1],sys.argv[2].split(','),int(sys.argv[3]);q=cmath.exp(.5j)
 A={}
 for m in os.listdir(R):
- for p in os.listdir(f'{R}/{m}/p'):
+ for p in (os.listdir(f'{R}/{m}/p') if os.path.isdir(f'{R}/{m}/p') else ()):
   t=os.readlink(f'{R}/{m}/p/{p}')[6:]
   if os.path.isdir(f'{R}/{t}'):A.setdefault(m,[]).append((t,q));A.setdefault(t,[]).append((m,1/q))
 x={s:1/len(S) for s in S}
@@ -523,7 +525,7 @@ for _ in range(30):
 for m in sorted(x,key=lambda m:-abs(x[m]))[:k]:print(f'{abs(x[m]):.3f} {cmath.phase(x[m])/.5:+.1f}',m)
 ~~~
 
-### gitconfig (79 B)
+### gitconfig (99 B)
 ~~~ini
 [gpg]
 format=ssh
@@ -531,19 +533,21 @@ format=ssh
 gpgsign=true
 [user]
 signingkey=~/.ssh/id_ed25519.pub
+[safe]
+	directory=*
 ~~~
 
-### agi-flush (125 B)
+### agi-flush (183 B)
 ~~~sh
 #!/bin/sh
-cd ~/t;grep -o '"/[^"]*"' ~/r|sort -u>~/track;git add -A;git commit -qSm$USER;git pull -q --no-rebase&&git push -q
+cd ~/t;grep -o '"/[^"]*"' ~/r|sort -u>~/track;git add -A .agi;git commit -qm$USER;git pull -q --no-rebase origin trunk&&git push -q origin HEAD:refs/posts/${USER#agi-}/head
 ~~~
 
-### pre-receive (355 B)
+### pre-receive (435 B)
 ~~~sh
 #!/bin/sh
 e=$(git hash-object -t tree /dev/null)
-while read o n r;do case $n in *[!0]*);;*)continue;;esac;case $o in *[!0]*);;*)o=$(git merge-base HEAD $n 2>/dev/null||echo $e);;esac
+while read o n r;do case $n in *[!0]*);;*)continue;;esac;[ $r = refs/heads/trunk ]&&{ agi-gate $n||{ echo "gate: $n";exit 1;};continue;};case $o in *[!0]*);;*)o=$(git merge-base HEAD $n 2>/dev/null||echo $e);;esac
 f=$(git diff --name-only $o $n)||exit 1;for p in $f;do g=$(git check-attr --source=$n owner -- "$p"|cut -d' ' -f3);id -nG|grep -qw "$g"||{ echo "$p: $g";exit 1;};done;done
 ~~~
 
@@ -553,10 +557,15 @@ f=$(git diff --name-only $o $n)||exit 1;for p in $f;do g=$(git check-attr --sour
 for f in .agi/keys/*;do echo "${f##*/} $(cat $f)";done
 ~~~
 
-### sysusers.conf (34 B)
+### sysusers.conf (51 B)
 ~~~ini
-u agi-alive -
-m agi-alive council
+u agi-alive - - /var/lib/agi/alive
+m agi-alive agi
+~~~
+
+### agi.rules (211 B)
+~~~js
+polkit.addRule(function(a,s){if(a.id=="org.freedesktop.systemd1.manage-units"&&a.lookup("verb")=="start"&&/^agi-post@[a-z0-9-]+\.service$/.test(a.lookup("unit"))&&s.isInGroup("agi"))return polkit.Result.YES;});
 ~~~
 
 ### project.sh (282 B)
@@ -566,19 +575,19 @@ r(){ echo "$1:$2"|git cat-file --batch --follow-symlinks|{ read o t s;[ "$t" = b
 r HEAD .agi/nodes/.geometry/posts.md|grep -o '"name": "[^"]*"'|cut -d'"' -f4|sort -u|while read p;do printf 'user agi-%s\nunit agi-post@%s\nbrief agi-%s\n' $p $p $p;done
 ~~~
 
-### observe.sh (317 B)
+### observe.sh (332 B)
 ~~~sh
 #!/bin/sh
 getent passwd|cut -d: -f1|grep '^agi-'|sed 's/^/user /'
-systemctl list-units --plain --no-legend 'agi-post@*'|cut -d' ' -f1|sed 's/\.service$//;s/^/unit /'
+systemctl list-units --state=active --plain --no-legend 'agi-post@*'|cut -d' ' -f1|sed 's/\.service$//;s/^/unit /'
 getent passwd|awk -F: '/^agi-/{print $1,$6}'|while read u h;do jq -e .hooks.SessionStart $h/.claude/settings.json>/dev/null 2>&1&&echo "brief $u";done
 ~~~
 
-### tick.sh (221 B)
+### tick.sh (250 B)
 ~~~sh
 #!/bin/sh
-cd ~/t;sh project.sh|sort>~/p;sh observe.sh|sort>~/o;diff ~/p ~/o>.agi/drift/$USER&&exit
-grep '^< unit' .agi/drift/$USER|cut -d' ' -f3|xargs -rn1 systemctl start;git add .agi/drift;git commit -qSm"drift: $USER"
+cd ~/t;mkdir -p .agi/drift;sect project.sh|sh|sort>~/p;sect observe.sh|sh|sort>~/o;diff ~/p ~/o>.agi/drift/$USER&&exit
+grep '^< unit' .agi/drift/$USER|cut -d' ' -f3|xargs -rn1 systemctl start;git add .agi/drift;git commit -qm"drift: $USER"
 ~~~
 
 ### simhash.awk (241 B)
@@ -588,10 +597,9 @@ BEGIN{for(i=32;i<127;i++)o[sprintf("%c",i)]=i}
 END{for(b=0;b<32;b++)x=x (v[b]>0);print x,FILENAME}
 ~~~
 
-### agi-project (1078 B)
+### agi-project (941 B)
 ~~~sh
 #!/bin/sh
-# agi-project OUT REV: this box's units = f(graph@REV); every piece is read FROM the engine node through the links, so no copy can drift
 o=$1 r=$2 w=$1/default.target.wants;g(){ echo "$r:.agi/nodes/.geometry/$1"|git cat-file --batch --follow-symlinks|{ read a t s;[ "$t" = blob ]&&head -c $s;};};mkdir -p $w
 g engine.md|sed -n '/^### agi-post@.service /,/^### /{/^~~~/,/^~~~/{//!p}}'>$o/agi-post@.service
 for p in $(g posts.md|sed -n 's/^  - {/{/p'|jq -r "select(.box==\"${AGI_BOX:-local-town}\" and .recover!=false).name//empty");do ln -sf ../agi-post@.service $w/agi-post@$p.service;done
@@ -611,19 +619,24 @@ ExecStart=sh -c "echo trunk:.agi/nodes/.geometry/engine.md|git cat-file --batch 
 WantedBy=default.target
 ~~~
 
-### agi-frontier (632 B)
+### agi-frontier (460 B)
 ~~~sh
 #!/bin/sh
-# agi-frontier REV: every active goal (by TYPE, over real files, so any layout) runs its first read-only falsifier; exit 0 = met ([goal].md), else it CALLS OUT: mute | red
 r=$1;git grep --all-match -l -e '^type: goal$' -e '^status: active$' $r -- .agi|while IFS=: read _ f;do n=$(git show $r:$f);g=$(echo "$n"|sed -n 's/^id: goal://p')
 c=$(echo "$n"|sed -n '/^## Falsifier/,/^## Out/p'|grep -o '`[^`]*`'|tr -d '`'|grep -Em1 '^(grep|test|ls|getent|git (log|show|grep|rev-parse|ls-files|diff|for-each-ref)) ')
 [ "$c" ]||{ echo mute $g;continue;};timeout 30 sh -c "$c"</dev/null>/dev/null 2>&1&&echo met $g||echo red $g;done
 ~~~
 
-### sect (257 B)
+### agi-gate (273 B)
 ~~~sh
 #!/bin/sh
-# sect NAME [REV]: ONE section or piece of the engine node, byte-exact, at any REV, through the links (F.7)
+o=$(mktemp -d);sect agi-project $1|sh -s $o $1&&ls $o/default.target.wants/agi-post@*>/dev/null||{ rm -rf $o;exit 1;}
+mv $o $o.1;sh -c "$(sed -n 's/^ExecStart=sh -c "\(.*\)&&systemctl.*/\1/p' $o.1/agi-project.service)";diff -r $o.1 $o;r=$?;rm -rf $o $o.1;exit $r
+~~~
+
+### sect (149 B)
+~~~sh
+#!/bin/sh
 echo "${2:-HEAD}:.agi/nodes/.geometry/engine.md"|git cat-file --batch --follow-symlinks|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"
 ~~~
 ````
@@ -658,6 +671,25 @@ FINDINGS (each a template line or a guard, for DG3): S1 gitconfig needs [safe] d
 ```
 **Read:** the spine holds as designed (F2-F5, F8, F13-F22, P1, L2, L3). The body as written did NOT run: twelve findings, each a template line or a small guard (S1-S12 above), and four rows are not built (F9, F10: the gates; F11: the verb piece) or not run (F6: needs real sessions). S7 is the sharpest: `git commit -qSm<msg>` makes `m<msg>` the signing key id, so neither tick nor agi-flush ever committed. The corrected post unit (424 B) is in the ledger, not in config:engine: config:engine changes only through the Prime.
 
+## K · ROUND 3 · config:engine v2 (belam's word 00:41Z 10-01): S1-S14 folded, the heal without root per tick, F9 built, re-run on a throwaway
+**What changed (22 pieces; v1 had 20):** S1 gitconfig `[safe] directory=*` (posts only touch their own clone and the shared repo) · S2/S3 the post unit names its home (`/var/lib/agi/%i`), `RuntimeDirectory=agi-%i` for the dtach socket, `$HOME` inside `sh -c`, `ExecStopPost=sh -c agi-flush` · S4 ExecStartPre makes `.agi/keys` and no longer hides a failure (`-` dropped; keygen only if absent) · S5 observe counts `--state=active` units only · S6 agi-flush merges `origin trunk` and pushes `HEAD:refs/posts/<post>/head`, never the trunk · S7 `-qm` everywhere (gpgsign is gitconfig's) · S10 agi-brief and tick read their pieces with `sect`, so nothing has to be placed · S11 every turn-end and exit commit adds `.agi` only · S12 brief.py skips a node with no `p/` (+41 B) · the CC cap: SessionStart runs `B=0 agi-brief` = the vector only (202 B on the spike; whole nodes stay pi's, in its system prompt) · S14 the trunk skips the per-path owner check (only the master can write `refs/heads`, and `agi-gate` is the trunk's check). S13 (dtach exits 1 on a clean stop, so the unit reads `failed`) is NAMED, not fixed: the heal does not depend on it, and `SuccessExitStatus=1` could mask a crash.
+**The heal: ONE root-owned piece, `agi.rules` (214 B), a polkit rule:** group `agi` may `start` `agi-post@<name>.service` and nothing else. tick runs as the post; installing the rule is the one root act, once per box.
+**F9 BUILT: `agi-gate` (272 B, called by pre-receive on the trunk):** the tip's projection must be non-empty, and must regrow into an EMPTY dir from its own unit with `diff -r` empty. (The first form re-ran into the same dir: a self-run that does nothing passed. Caught by reasoning, then tested.) **F10 DROPPED, named:** the V gate needs an owner-seed cell the [goal] schema does not have; V stays published (§C), not gated. **F11 DROPPED:** no verb piece is designed.
+**Figures:** depth 0+1 4,057 B (<= 4,096) · code 6,904 B counted (<= 8,192) · the node body 11,900 B (<= 12,288, after dropping five in-piece comment lines that repeated the pieces table).
+Re-run 00:45-00:46Z on throwaway users agi-spike-a/b (the v2 sysusers form, group agi), a bare repo under /tmp, the polkit rule and the units in /run, stub harness (no session, no spend); 7 root acts, each with its undo; ALL undone 00:46Z and verified (0 agi- users, 0 agi units, no homes, repo, rule or runtime dir, dtach removed).
+```
+F1   PASS  healthy: 0 drift · spike-b stopped -> tick as spike-a names it, restarts it through polkit (active again), records a SIGNED drift commit · clean tick after
+F9   PASS  via the real hook: the master's good trunk push lands (gate ran) · a tip whose projector self-run points at a missing section is refused "gate: <sha>" · a dangling posts link rc 1 (scratch clone)
+F18  PASS  the Stop command commits .agi only: +1 commit (drift, keys, the node), the scratch file untracked (S11)
+F19  PASS  sect 22/22 byte-exact from the node (scratch clone and the spike repo)
+P1   PASS  b's push touching a's card refused by name; b's own path accepted
+S2-S4 PASS the v2 unit starts both posts unmodified; .agi/keys/<post> present; signers lists the key
+S6   PASS  a clean stop's agi-flush pushed refs/posts/spike-b/head; the trunk untouched
+S10/S12/cap PASS  B=0 agi-brief on the body: 202 B, the vector, brief.py read via sect, the parentless node skipped
+F22  PASS  origin is a plain path
+unchanged by v2 and not re-run: F2-F5, F7, F8, F13-F16, F17, F20, L1-L3 (§J)
+```
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 5, 00:4xZ 10-01 (date -u): added §J, the owner-approved spike's results (owner 00:28Z: F17 "Go, one short run"; root-once "Go after F17"). F17 PASS on all three legs for $0.2829; the root-once step found 12 defects in the body as written (S1-S12), 4 rows not built or not run; every root act undone and verified. The engine node itself was not touched (config is the Prime's).
+alive gen 5, 00:4xZ 10-01 (date -u): §I is config:engine v2 and §K its results, on belam's word 00:41Z (signed inbox) under the owner's 00:28Z go. Folded S1-S12 plus S14 (found in the re-run: the master's own good trunk push was refused by the per-path owner check), the CC 2 KB cap (SessionStart = the vector only), the heal through ONE root-owned polkit rule, F9 built as agi-gate (its first form passed a do-nothing self-run; fixed to regrow into an empty dir), F10 and F11 dropped by name. Re-run on throwaway users with every root act undone and verified. The live config:engine is v1 until the Prime re-mints.
 <!-- THOUGHT:END -->
