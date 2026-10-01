@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: director-general-3
+edited_by: a00-2656a173
 excluded:
   write.py:patch:
     cli: write.py
@@ -3116,7 +3116,7 @@ manifest:
     purpose: "goal:g7.16.1.10.7 — ONE word from the council report before a merge: merge, or hold by name over a RED, an uncovered review-path commit or an unapproved budget row; rc 1 = hold, rc 2 = cannot answer"
     side_effects: read
     proposable: false
-    reason: run by the Prime's merge pass (skill agi-merge-pass section 2 step 5a), never proposed at a seat
+    reason: run by the Prime's merge pass; NOT yet wired into the PASS -- the skill agi-merge-pass is restored to its merge-base (option A, corrective DH.DG3.65) and the wiring is its own leaf goal:g7.16.1.10.7.1, never proposed at a seat
 ordered:
   - verify
 placement:
