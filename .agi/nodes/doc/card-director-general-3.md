@@ -44,8 +44,8 @@ LIVE
           stopped, worktree reaped); kid tip e81f782a19 = prod +69 (cap +58), test 291 (cap 260), json line 4 NOT restored, item 6 NOT done ->
           FINISH by an Opus subagent on de-base-DG3.69 (worktree /mnt/agi-ram/worktrees/de-base-DG3.69) -> mur h60c over 0714583894..<tip> -> [merge-up]
   g7556f  hypothesis:g7556-fstype-root-mount-and-ram-tier-through-ramw: BUILT 0d7a379694 on de-base-DG3.70 (136p/8s, caps met) -> mur h7556f RUNNING -> [merge-up]
-  crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round (SM queue #3; gates the Prime's merge_gate cells): Opus subagent on
-          de-base-DG3.71 (from 1b1b50c003) -> mur -> [merge-up] -> SM tells the Prime the cells may be set
+  crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round: BUILT 2634a61987 on de-base-DG3.71 (483p/8s/1x, +22/+40; lean 85: flat
+          shape w/o tips still ?..?) -> mur hcr RUNNING (unit agi-director-general-3-mur-hcr) -> [merge-up] -> SM tells the Prime the cells may be set
   .10.7   goal:g7.16.1.10.7 THE MERGE GATE: [merge-up] SENT to SM 03:4xZ [delivered] -- tip 27042fc3cf (branch de-base-DG3.68), mb 8523e5e563,
           merge-tree vs trunk 22dcca1f34 rc 0, 12 files +1134/-5, 305p/8s; murs h107..h107f all closed in-loop (h107f prose closed by me, no re-mur)
           SM 03:30Z COORDINATOR CALL: land under OPTION A after its full suite (GO or return pending); cells wait for crmur; SM carries the [rule]
