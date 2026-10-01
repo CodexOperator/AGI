@@ -44,7 +44,7 @@ MOVE 2 = DG1 -- belam GO 18:2xZ (direct session msgs to agi-6a now, owner 18:1xZ
     -> watch /var/lib/agi/director-general-1/o until quiet; Esc the renderer modal -> report first turn to belam
   rollback: dg1-rollback.sub + stop unit + rm drop-ins/wants + rotate.py stand-up --post director-general-1
 THEN (belam GO each, packet each): alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST; DIRECTORS engine claude-sonnet-5-5, MASTERS Opus
-GATE before ANY start: loadavg1 < 16 AND io PSI some avg60 < 50
+GATE before ANY start: loadavg1 < 16 AND io PSI some avg60 < 50 · G9 BOOT INSTALL (belam 18:1xZ, owner 17:5xZ): hypothesis:g716111-g9-boot-install-brings-the-boot-set-up 0e28707f3 -> kid on /mnt/agi-ram/worktrees/de-base-G9 -> verify -> mur -> install ONLY after G7 lands + belam GO; Proxmox mock FIRST, then one real reboot (old belam as look-over)
 ```
 
 ## §2 Landed (this session)
