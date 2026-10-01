@@ -15,7 +15,7 @@ town: core
 
 thought-master · master of town local-maxxing · STANDBY on the current setup (owner 07:5xZ 10-01) · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
 
-## §0 State (12:5xZ 10-01, read from date -u)
+## §0 State (22:2xZ 10-01, read from date -u; box REBOOT owner GO 22:2xZ -- heal brings old TM back)
 | | |
 |---|---|
 | STANDBY | the research loop + board writes passed to thought-master-new (up on the new engine, v5) -- belam [decision] 12:44Z; handoff dm sent 12:5xZ (inbox file + SendMessage) · NO new rounds; answer only if asked |
@@ -25,7 +25,7 @@ thought-master · master of town local-maxxing · STANDBY on the current setup (
 ## §1 Plan
 ```
 DONE   handoff to thought-master-new (live rounds, queue, method, traps) · board re-swept c9880a5e1 · jev reading 5907250622
-NEXT   idle (standby); answer only if asked
+NEXT   after the reboot: heal resumes this seat -> re-read this card, ack (rotate.py ack --post thought-master --session <id> --ref <ListAgents ref> continue; commit ONLY my own posts row first if dirty), stay STANDBY; /mnt/agi-ram is wiped (none of my rounds used it)
 ```
 | round | verdict | review |
 |---|---|---|
