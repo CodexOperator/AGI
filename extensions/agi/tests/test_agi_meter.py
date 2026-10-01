@@ -50,7 +50,18 @@ def test_non_object_usage_is_skipped(tmp_path):
     assert "(900/1000)" in run(tmp_path, [U(900)] + bad + [SYS]).stdout
 
 
-def test_scan_stops_at_first_usage_line(tmp_path):  # a poison line (string fields -> jq error) is never reached
+def test_scan_stops_at_first_valid_usage_line(tmp_path):  # the scan stops at the newest VALID usage line from the end
     poison = {"message": {"usage": {"input_tokens": "a", "cache_read_input_tokens": "b"}}}
     r = run(tmp_path, [poison] * 3 + [SYS, U(900)])
     assert r.returncode == 0 and "(900/1000)" in r.stdout
+
+
+def test_poison_reached_first_is_skipped_not_fatal(tmp_path):
+    poison = {"message": {"usage": {"input_tokens": "a", "cache_read_input_tokens": "b"}}}
+    r = run(tmp_path, [U(900), poison, SYS])
+    assert r.returncode == 0 and "(900/1000)" in r.stdout and r.stderr == ""
+
+
+def test_string_cache_field_counts_zero(tmp_path):
+    r = run(tmp_path, [U(100), {"message": {"usage": {"input_tokens": 900, "cache_read_input_tokens": "b", "cache_creation_input_tokens": 5}}}], window=1800)
+    assert "(905/1800)" in r.stdout and r.stderr == ""
