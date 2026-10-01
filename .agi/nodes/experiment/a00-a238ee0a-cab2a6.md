@@ -8,6 +8,7 @@ next_edges: []
 edited_by: a00-a238ee0a
 loop: hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line@s2
 model: stealth/space-bunny-alpha
+production_lines: 0
 profile: balanced
 role: kid
 scaffold_hash: 33ced3574b0e3611
