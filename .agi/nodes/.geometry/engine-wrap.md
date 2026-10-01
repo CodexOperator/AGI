@@ -23,7 +23,7 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i;f=$O/.agi/sessions/inbox/$AGI_SEAT.md
 (while sleep 300;do m=$((${AGI_PANE_MAX_MB:-64}<<20));[ $(stat -c%s ~/o) -gt $m ]&&tail -c $((m/2)) ~/o>~/o.t&&cat ~/o.t>~/o;rm -f ~/o.t;done)&
 case $H in claude*)(s=$(stat -c%s $f);while sleep 5;do n=$(stat -c%s $f);[ $n -gt $s ]&&printf "mail: send.py read $AGI_SEAT">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
-exec strace -qqfe%file -o'|agi-track' $H $c go
+exec strace -qqf --seccomp-bpf -e%file -o'|agi-track' $H $c go
 ~~~
 
 ### settings.json (342 B)
