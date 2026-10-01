@@ -60,7 +60,7 @@ ExecStart=sh -c 'echo HEAD:.agi/nodes/.geometry/engine-root.md|git cat-file --ba
 WantedBy=multi-user.target
 ~~~
 
-### agi-boot (1465 B)
+### agi-boot (1477 B)
 ~~~sh
 #!/bin/sh
 R=${AGI_RAM:-/mnt/agi-ram} t=${AGI_TRUNK:-HEAD} o=${AGI_BOOT_OUT:-/run/systemd/system};w=$o/multi-user.target.wants
@@ -69,9 +69,9 @@ c(){ git show $t:.agi/config.json|jq -r ".values.local_maxxing.$1";};L=$(c de_li
 echo $t:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s $o $t||exit 3
 f systemctl daemon-reload
 ok(){ l=;read l _<${AGI_LOADAVG:-/proc/loadavg};i=$(sed -n 's/^some .*avg60=\([0-9.]*\).*/\1/p' ${AGI_PSI_IO:-/proc/pressure/io});[ -n "$l" ]&&[ -n "$i" ]&&awk -v l=$l -v i=$i -v L=$L -v P=$P 'BEGIN{exit !(l<L&&i<P)}';}
-rows=$(git show $t:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r 'select(.boot==true)|.name');[ -n "$rows" ]||{ echo "agi-boot: no boot rows read from $t">&2;e=1;};for p in $rows;do [ -L $w/agi-post@$p.service ]||{ echo "agi-boot: $p not projected (engine v4 row absent), skipped">&2;continue;};s=$(date +%s)
+rows=$(git show $t:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r 'select(.boot==true)|.name');[ -n "$rows" ]||{ echo "agi-boot: no boot rows read from $t">&2;e=1;};for p in $rows;do [ -L $w/agi-post@$p.service ]||{ echo "agi-boot: $p not projected (engine v4 row absent), skipped">&2;continue;};[ $n ]&&f sleep $S;s=$(date +%s)
 until ok;do [ $(($(date +%s)-s)) -ge $M ]&&{ echo "agi-boot: gate not open after ${M}s, skipping $p">&2;e=1;continue 2;};sleep $N;done
-systemctl start agi-post@$p</dev/null||{ echo "agi-boot: start failed $p">&2;e=1;};f sleep $S;done
+systemctl start agi-post@$p</dev/null||{ echo "agi-boot: start failed $p">&2;e=1;};n=1;done
 exit $e
 ~~~
 

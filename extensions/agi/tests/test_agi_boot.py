@@ -7,8 +7,8 @@ GEO = ".agi/nodes/.geometry"
 ROW = '  - {"name": "%s", %s"engine": {"v": 4, "harness": "claude-code", "model": "m", "effort": "high"}, "role": "director", "tier": 1, "box": "local-town"}\n'
 
 
-def section(head):
-    text = (WT / GEO / "engine-root.md").read_text()
+def section(head, f="engine-root.md"):
+    text = (WT / GEO / f).read_text()
     m = re.search(r"^### %s .*?\n~~~\w*\n(.*?)\n~~~\n" % re.escape(head), text, re.S | re.M)
     assert m, head
     return m.group(1)
@@ -135,13 +135,13 @@ def test_unit_text_one_section():
     assert n == 1 and "Requires=" not in section("agi-boot")  # F4: one copy, none in the script
 
 
-def test_space_s_slept_after_every_start_gate_read_after_it(box):
+def test_space_s_slept_between_starts_never_after_last_gate_read_after_it(box):
     run, log, la, *_, tp = box
     assert run().returncode == 0
     p = lambda n: "agi-post" + "@" + n
     seq = [l for l in lines(log) if l[:2] in ("b ", "e ") or l == "sleep 0.2"]  # poll_s is 0.1: the gate is open, never polled
-    assert seq == [f"b {p('a')}", f"e {p('a')}", "sleep 0.2", f"b {p('b')}", f"e {p('b')}", "sleep 0.2"]  # two starts never closer than space_s
-    (tp / "flip").write_text("20.00 1 1 1/1 1\n")  # the first space sleep closes the gate: b's re-read, after it, must see that
+    assert seq == [f"b {p('a')}", f"e {p('a')}", "sleep 0.2", f"b {p('b')}", f"e {p('b')}"]  # two starts never closer than space_s, no tail after the last
+    (tp / "flip").write_text("20.00 1 1 1/1 1\n")  # the space sleep closes the gate: b's re-read, after it, must see that
     log.write_text(""); r = run()
     assert r.returncode != 0 and "skipping b" in r.stderr and "b " + p("a") in lines(log) and "b " + p("b") not in lines(log)
 
@@ -159,3 +159,16 @@ def test_non_boot_row_gets_no_wants_link_boot_rows_do(box):
     w = tp / "out" / "multi-user.target.wants"
     assert sorted(x.name for x in w.glob("agi-post@*")) == ["agi-post" + "@a.service", "agi-post" + "@b.service"]  # x: projected unit + h.conf, no wants link
     assert (tp / "out" / ("agi-post" + "@x.service.d") / "h.conf").exists()
+
+
+def test_gate_checks_projected_dropin_not_wants_links(box):
+    run, log, la, io, tp = box
+    (tp / "fk" / "sect").write_text("#!/bin/sh\n" + section("sect", "engine.md") + "\n"); (tp / "fk" / "sect").chmod(0o755)
+    gate = lambda: subprocess.run(["sh", "-s", "HEAD"], input=section("agi-gate", "engine.md"), cwd=run.repo, env={**run.env, "TMPDIR": str(tp)}, capture_output=True, text=True, timeout=60)
+    ci = lambda: subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t.invalid", "commit", "-qam", "y"], cwd=run.repo, check=True, capture_output=True)
+    pf = run.repo / GEO / "posts.md"; rows = pf.read_text()
+    assert gate().returncode == 0  # boot rows present
+    pf.write_text(rows.replace('"boot": true, ', "")); ci()
+    r = gate(); assert r.returncode == 0, r.stderr  # v4 rows, no boot row: no wants link, the drop-ins still pass
+    pf.write_text(re.sub(r', "engine": \{.*?\}', "", rows)); ci()
+    assert gate().returncode == 1  # no v4 rows at all: refuses
