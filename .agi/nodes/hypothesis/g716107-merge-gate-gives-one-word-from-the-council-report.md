@@ -5,10 +5,10 @@ type: hypothesis
 parents:
   - goal:g7.16.1.10.7
 next_edges: []
-edited_by: director-general-3
+edited_by: a00-2656a173
 scaffold_hash: c94b34be346a551e
 season: 2
-testable_claim: merge_gate.py check BASE TIP prints merge or hold first and exits 0/1/2; it holds over any reds.py RED, over any non-merge commit touching merge_gate.review_paths outside every doc:council-report row range, and over unreviewed:budget rows unless --prime-count names their count; the skill agi-merge-pass section 2 retires steps 2-4 and 6 by name
+testable_claim: "merge_gate.py check BASE TIP prints merge or hold first and exits 0/1/2; it holds over any reds.py RED, over any non-merge commit touching merge_gate.review_paths outside every doc:council-report row range, and over unreviewed:budget rows unless --prime-count names their count [the trailing conjunct -- the skill agi-merge-pass section 2 retirement -- is MOVED to goal:g7.16.1.10.7.1 by corrective DH.DG3.67, option A: the scored claim at NEW is the gate CODE only]"
 title: "merge_gate.py check BASE TIP gives ONE word from the council report: a RED, an uncovered review-path commit or an unapproved budget row holds the merge by name"
 town: core
 ---
@@ -25,7 +25,7 @@ ONE new CLI, `merge_gate.py check BASE TIP [--prime-count N]`, prints ONE first 
 1. hold over a RED: it runs reds.py over BASE..TIP (in-process, reds.main or its functions) and names each RED class + count; never re-implements a RED check.
 2. hold over an uncovered commit: every NON-merge commit in BASE..TIP whose changed paths meet the cell `merge_gate.review_paths` (a list of path prefixes) must lie in the old..new range of at least one doc:council-report row; each uncovered commit is named by short sha (first 20, then a count). Coverage = the union of `git rev-list old..new` over the rows, computed once per row, never a pairwise ancestry loop over 660 commits.
 3. hold over budget: rows whose state is `unreviewed:budget` merge only when `--prime-count N` equals their count (the Prime's word naming the count); otherwise hold naming the count.
-4. skill agi-merge-pass section 2: steps 2, 3, 4 and 6 are RETIRED BY NAME in the skill text (one line each: "retired by goal:g7.16.1.10.7 -- the council report + merge_gate.py check"), a new step says "run merge_gate.py check BASE TIP; merge ONLY on merge"; steps 0, 1, 5, 7 stay; the skill's line count does not grow by more than 4.
+4. [MOVED to goal:g7.16.1.10.7.1 by corrective DH.DG3.67 -- option A: the gate CODE landed alone and the skill is restored to its merge-base, so this conjunct is NOT part of the scored claim at NEW; the retirement is its own leaf] skill agi-merge-pass section 2: steps 2, 3, 4 and 6 are RETIRED BY NAME in the skill text (one line each: "retired by goal:g7.16.1.10.7 -- the council report + merge_gate.py check"), a new step says "run merge_gate.py check BASE TIP; merge ONLY on merge"; steps 0, 1, 5, 7 stay; the skill's line count does not grow by more than 4.
 
 ## Dispatch line
 config-max: `merge_gate.review_paths` (the PASS step-2 path set) is a CELL in .agi/config.json read by the gate; the round does NOT write .agi/config.json (the director routes the cell to the Prime, as with merge_gate.red_classes) -- tests build it in tmp projects; the cell absent = rc 2 naming it. / template-max: the retirement is skill TEXT (skills/agi-merge-pass/SKILL.md section 2), no code carries PASS steps. / code: the one resolver that does not exist -- report rows + reds + commit paths -> one word.
@@ -36,7 +36,7 @@ F2 a fixture with a planted RED (a key-shaped value added, built by concatenatio
 F3 an `unreviewed:budget` row without --prime-count, or with the wrong count -> merge.
 F4 a commit touching ONLY a non-review path (a card under .agi/nodes/doc/) with no row -> hold (must merge: non-review commits need no row); a MERGE commit -> ever named uncovered.
 F5 a bad rev, an unreadable report or the cell absent -> exit 0 or 1 (must be 2, one line, no traceback, no absolute path).
-F6 the skill text still carries steps 2-4 or 6 as live instructions, or loses 0, 1, 5 or 7.
+F6 [MOVED to goal:g7.16.1.10.7.1 by corrective DH.DG3.67 -- the F6 row was DROPPED by DH.DG3.65 when the skill was restored to its merge-base; it is no longer falsifiable at NEW] the skill text still carries steps 2-4 or 6 as live instructions, or loses 0, 1, 5 or 7.
 
 ## TESTS
 extensions/agi/tests/test_merge_gate.py (NEW; tmp git repos + tmp .agi projects only, never MAIN; one row per falsifier; every key-shaped value built by concatenation; `timeout` on any subprocess). Neighbourhood: test_reds.py test_council_report.py test_commands_manifest.py test_bin_help_smoke.py.
