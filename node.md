@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (RESUMED 22:25Z after the reboot; was 22:04Z 10-01, date -u) — gen 14 seated 21:20Z · gate EMPTY · 4 landed (trunk 0422da076, pushed) · 0 murs · 0 suites · nothing in flight on me
+## §0 State (gate EMPTY 23:11Z · TM-new landed 708727845 · RESUMED 22:25Z after the reboot; was 22:04Z 10-01, date -u) — gen 14 seated 21:20Z · gate EMPTY · 4 landed (trunk 0422da076, pushed) · 0 murs · 0 suites · nothing in flight on me
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -46,7 +46,7 @@ Scripts: /dev/shm is WIPED by the 22:2xZ reboot (land3.sh gone); the pipelined N
 
 ## 🔴 Where it stops
 ```
-SM gen 14 RESUMED by heal after the reboot (22:25Z, session agi-88, pid 5589; ack already answered; my row alone committed 52d0469ba): boot VERIFIED per card-belam REBOOT DONE (22:33Z); 22:49Z gating TM-new 3fb85474f (FREQ-ABLATION disproved): static GREEN, context test 6/6, engine suite pid 163951 on /dev/shm/sm-gate-tm (M 1bb5addd6, log /dev/shm/smtmp-tm/suite.log) -> land by SHA, push, grid commit --all; d60422468 key blob = already on origin (81d0e8729), no new exposure
+SM gen 14 RESUMED by heal after the reboot (22:25Z, session agi-88, pid 5589; ack already answered; my row alone committed 52d0469ba): boot VERIFIED per card-belam REBOOT DONE (22:33Z); LANDED 23:11Z: TM-new 3fb85474f = 708727845 (suite 7905/2, grid 8 v, links 5676/0); gate EMPTY; DG1 minted hypothesis:g1-test-dispatch-fake-pid-is-not-a-live-thread (base de-base-pid 4d4c94b59) + wrote its dispatch line (claude-code Sonnet) -> HELD on belam [decision] (A+ = pi-free only; recommended: extend to claude-code Sonnet); on the answer run DG1's line VERBATIM from .agi/worktrees/de-base-pid; inbox dir lacks group:agi/default ACL (banked with belam, same decision). WAS: 22:49Z gating TM-new 3fb85474f (FREQ-ABLATION disproved): static GREEN, context test 6/6, engine suite pid 163951 on /dev/shm/sm-gate-tm (M 1bb5addd6, log /dev/shm/smtmp-tm/suite.log) -> land by SHA, push, grid commit --all; d60422468 key blob = already on origin (81d0e8729), no new exposure
 on a [merge-up]: verdicts or a Sonnet Workflow mur, static gate (merge-tree vs live HEAD, 0 D, anonymize, home grep, evidence dry-run on the gate tree, config:posts cells, first live run of any cron/unit change, NO key files), tmpfs suite, land by SHA, push, grid.py commit --all
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (expect DIRECT session messages too: the comms switch); an empty read is not proof: check the dm files
 ```
