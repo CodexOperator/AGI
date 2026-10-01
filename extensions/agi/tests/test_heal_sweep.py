@@ -1207,3 +1207,29 @@ def test_sweep_locked_tree_rearchived_only_when_changed_beyond_archive(
     sweep()
     assert n() == (2 if change else 1) and wt.exists()
     assert bool(_ref(repo_root, f"refs/archive/worktrees/{name}-dirty")) == (name == "a00-bbbb22")
+
+
+def test_sweep_refuses_an_orphan_tree_once_by_name(repo_root, monkeypatch):
+    """DG2.C1: a tree whose admin dir under .git/worktrees is gone has no
+    HEAD; it is refused BY NAME, never logged "archived" (no ref was written),
+    and the next pass does not try it again."""
+    log = _graph(repo_root) / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    wt = _cut(repo_root, "a00-orph99", "loop/o-O@2")
+    (wt / "stray.txt").write_text("bytes\n")
+    shutil.rmtree(repo_root / ".git" / "worktrees" / "a00-orph99")
+    assert wt.is_dir() and "a00-orph99" not in subprocess.run(
+        ["git", "-C", str(repo_root), "worktree", "list"],
+        capture_output=True, text=True).stdout
+    sweep = lambda: heal._sweep_finished_worktrees(_graph(repo_root))
+    removed, refused, _ = sweep()
+    text = log.read_text()
+    assert (removed, refused) == (0, 1)
+    refusal = [l for l in text.splitlines() if "refused a00-orph99" in l]
+    assert len(refusal) == 1 and "orphan" in refusal[0] and "gitdir gone" in refusal[0]
+    assert "archived a00-orph99" not in text
+    assert not _ref(repo_root, "refs/archive/worktrees/a00-orph99")
+    sweep()
+    after = log.read_text()
+    assert after.count("a00-orph99") == 1 and "archived a00-orph99" not in after
+    assert (wt / "stray.txt").exists(), "an orphan's bytes are never removed"
