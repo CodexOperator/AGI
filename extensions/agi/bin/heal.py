@@ -3662,11 +3662,13 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
             _rotate._rotations_node_path(root)).frontmatter["recovery_ack"]
         ack_gate = _cell[role if role in _cell else "default"][
             "resumed" if resume else "recovered"].format(seat=seat, gen=gen)
-    except (KeyError, TypeError, AttributeError, OSError) as exc:
+    except Exception as exc:  # noqa: BLE001 -- any bad cell refuses, never raises into the watch loop
+        reason = (f"config:rotations cell recovery_ack[{role or 'default'}] "
+                  f"unusable in {_rotate._rotations_node_path(root)}: {exc!r}")
+        print(f"watch: {reason}", file=sys.stderr)
+        _watch_log(f"watch: {reason}")
         return {"respawned": False, "name": spawn_name, "generation": gen,
-                "reason": f"config:rotations cell recovery_ack[{role or 'default'}] "
-                          f"unusable in {_rotate._rotations_node_path(root)}: {exc!r}",
-                "row": "skipped"}
+                "reason": reason, "row": "skipped"}
     try:
         rc, shell_cmd = _rotate.spawn_window(
             name=spawn_name, tier=tier, prompt_file=None,

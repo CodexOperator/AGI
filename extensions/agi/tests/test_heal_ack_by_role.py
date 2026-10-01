@@ -9,8 +9,11 @@ launch goes to a fake launcher; fixture roots only, no tmux, no live root.
 from __future__ import annotations
 
 import importlib.util
+import json
 import re
+import shlex
 import sys
+from types import SimpleNamespace
 from pathlib import Path
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
@@ -131,5 +134,66 @@ def test_live_config_rotations_holds_the_cell():
         for arm in ("recovered", "resumed"):
             assert cell[key][arm].strip(), (key, arm)
     assert "--gen {gen}" in cell["prime_director"]["recovered"]
-    assert "--gen" not in cell["default"]["recovered"]
+    assert "--gen {gen}" in cell["default"]["recovered"]
     assert "--gen" not in cell["default"]["resumed"]
+
+
+def _built_line_into_cmd_ack(tmp_path, monkeypatch, row, *, resumed):
+    """Recover on a fixture root with the LIVE cell, then feed the BUILT ack
+    line (parsed back out of the launch command) into rotate.cmd_ack."""
+    gdir = tmp_path / "main" / ".agi"
+    (gdir / "nodes" / ".geometry").mkdir(parents=True)
+    (gdir / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    sch = gdir / "context" / "schemas"
+    sch.mkdir(parents=True)
+    (sch / "[config].md").write_text(
+        "---\nname: config\nwritten_by: [owner, prime_director]\nself_row: "
+        "{list_key: seats, match_key: name, fields: [session_ref, session_name, "
+        "session_id, generation, window, pid, session_label]}\n---\nbody\n",
+        encoding="utf-8")
+    (gdir / "sessions").mkdir()
+    (gdir / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nid: config:seats\ntype: config\nseats:\n  - " + json.dumps(row)
+        + "\n---\n", encoding="utf-8")
+    out, seen = _recover(tmp_path, monkeypatch, row,
+                         cell=LIVE_ROTATIONS.read_text(encoding="utf-8").split(
+                             "---\n")[1].split("id: config:rotations\n")[1]
+                         .split("type: config\n", 1)[-1], transcript=resumed)
+    assert out["respawned"], out
+    line = re.findall(r"python3 \S+rotate\.py ack [^`]*?continue", seen[0])[-1]
+    tok = shlex.split(line.replace("<your ListAgents ref>", "refabc"))
+    opt = dict(zip(tok[3:-1:2], tok[4:-1:2]))
+    rotate = _load("rotate")
+    reg = tmp_path / "empty-reg"
+    reg.mkdir()
+    return rotate.cmd_ack(SimpleNamespace(
+        seat=opt.get("--seat") or opt.get("--post"),
+        gen=int(opt["--gen"]) if "--gen" in opt else None, session=None,
+        ref=opt["--ref"], answer="continue", text=None, no_commit=True,
+        wait=0, registry_dir=str(reg)), gdir)
+
+
+def test_built_ack_line_is_accepted_by_cmd_ack(tmp_path, monkeypatch, capsys):
+    for n, (role, resumed) in enumerate([("director", False), ("helper", True),
+                                         ("prime_director", False),
+                                         ("prime_director", True)]):
+        row = _row(role, name="mainseat")
+        sub = tmp_path / str(n)
+        rc = _built_line_into_cmd_ack(sub, monkeypatch, row, resumed=resumed)
+        assert rc == 0, (role, resumed, capsys.readouterr().err)
+
+
+def test_unusable_cell_refuses_by_name_to_stderr_and_log(tmp_path, monkeypatch,
+                                                         capsys):
+    log = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    for n, cell in enumerate([
+            "recovery_ack: [unclosed\n",
+            'recovery_ack: {default: {recovered: "a { b", resumed: "x"}}\n',
+            'recovery_ack: {default: {recovered: "a {} b", resumed: "x"}}\n']):
+        out, seen = _recover(tmp_path / str(n), monkeypatch, _row("director"),
+                             cell=cell)
+        assert out["respawned"] is False and seen == [], (n, out)
+        assert "recovery_ack" in out["reason"], out
+        assert "recovery_ack" in capsys.readouterr().err, n
+    assert log.read_text(encoding="utf-8").count("recovery_ack") >= 3

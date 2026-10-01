@@ -44,7 +44,7 @@ recovery_ack:
     recovered: "RECOVERED SEAT (crash-recovery): first act after reading your handoff, run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} --ref <your ListAgents ref> continue` to take your identity."
     resumed: "RESUMED SEAT (crash-recovery, heal): your process died and heal resumed this same session. Re-read your card (it may have moved on), then run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} --ref <your ListAgents ref> continue` and carry on."
   default:
-    recovered: "RECOVERED SEAT (crash-recovery): first act after reading your handoff, run `python3 extensions/agi/bin/rotate.py ack --post {seat} --ref <your ListAgents ref> continue` to take your identity. A non-prime post is keyed by session id, not by a generation."
+    recovered: "RECOVERED SEAT (crash-recovery): first act after reading your handoff, run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} --ref <your ListAgents ref> continue` to take your identity."
     resumed: "RESUMED SEAT (crash-recovery, heal): your process died and heal resumed this same session. Re-read your card (it may have moved on), then run `python3 extensions/agi/bin/rotate.py ack --post {seat} --ref <your ListAgents ref> continue` and carry on. A non-prime post is keyed by session id, not by a generation."
 rotate_defaults:
   migrate_fork_below: 0.3
