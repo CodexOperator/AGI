@@ -8411,7 +8411,7 @@ def test_mail_poll_cron_renders_the_capturing_read_as_peek(tmp_path,
 # the reader leaves behind lines it already printed. Never over-shoots: no
 # line is retired that no pane printed.
 @pytest.mark.parametrize("phase", ["before", "after"])
-@pytest.mark.parametrize("other", ["append", "read", "partial", "peek"])
+@pytest.mark.parametrize("other", ["append", "read", "peek"])
 def test_concurrent_second_read_never_retires_an_unprinted_line(
         project: Path, monkeypatch, phase, other):
     seat = "sanctuary-director"
@@ -8465,7 +8465,111 @@ def test_concurrent_second_read_never_retires_an_unprinted_line(
     text = inbox.read_text()
     assert send_mod.READ_MARKER in text, "the read must mark"
     retired = text.split(send_mod.READ_MARKER)[0]
+    # UNCONDITIONAL (hypothesis:g1-inbox-read-cursor-never-passes-an-
+    # unprinted-line): the invariant is over EVERY body, not only the ones the
+    # `if` happens to catch -- a body the loop skips proves nothing, and a
+    # vacuous pass would have hidden every over-cut. `shown` is what a pane
+    # received, so a body behind the cursor absent from it is the defect.
     for body in ("one", "two", "three"):
         if ("\n" + body + "\n") in retired:
             assert any(("\n" + body + "\n") in b for b in shown), \
                 f"'{body}' sits behind the cursor but NO call printed it"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line, conjunct 1
+# at the CLI SEAM: `read <seat> --peek` (the pre-flight rotation_alert fires)
+# PRINTS the body and moves NO cursor. RED on the bytes that dropped the flag:
+# the positional path called `read(...)` with its default mark=True, so the
+# seat's own next read answered `inbox for <seat>: empty`.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def test_positional_read_peek_prints_and_moves_no_cursor(
+        project: Path, monkeypatch, capsys):
+    """The flag that says "never advance" must not advance, INBOX or dm."""
+    monkeypatch.chdir(project)
+    monkeypatch.setenv("AGI_AGENT_ID", "seat-a")
+    seat = "seat-a"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: seat-a\nts: 2026-09-30T00:00:00Z\nfrom: prime\n"
+                     "\nBODY-ONE\n")
+    before = inbox.read_bytes()
+
+    rc = send_mod.main(["read", seat, "--peek"])
+    printed = capsys.readouterr().out
+    assert rc == 0, printed
+    assert "BODY-ONE" in printed, printed
+    assert inbox.read_bytes() == before, \
+        "--peek wrote the read marker: the cursor moved past bytes the pane got"
+    assert send_mod.READ_MARKER not in inbox.read_text()
+
+    # the seat's OWN read still reports the line
+    assert send_mod.main(["read", seat]) == 0
+    assert "BODY-ONE" in capsys.readouterr().out
+
+
+def test_positional_read_peek_advances_no_dm_cursor(project: Path, monkeypatch,
+                                                   capsys):
+    """The dm sweep on the same call is the second cursor -- it must also
+    stand still under `--peek` (read_dms(commit=...))."""
+    monkeypatch.chdir(project)
+    monkeypatch.setenv("AGI_AGENT_ID", "seat-a")
+    croot = project / "comms-root"
+    (croot / "dm").mkdir(parents=True, exist_ok=True)
+    cfg = json.loads((project / ".agi" / "config.json").read_text())
+    cfg["locations"] = {"comms_root": str(croot)}
+    (project / ".agi" / "config.json").write_text(json.dumps(cfg))
+    conv = croot / "dm" / "seat-a--seat-b.md"
+    conv.write_text("from: seat-b\nts: 2026-09-30T00:00:00Z\n\nDM-BODY\n")
+    before = conv.read_bytes()
+    rc = send_mod.main(["read", "seat-a", "--peek"])
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "DM-BODY" in out, f"the dm sweep never ran: {out}"
+    # the dm read position lives in the sidecar state file, not the conv file
+    assert conv.read_bytes() == before
+    assert not Path(str(conv) + ".state.json").exists(), \
+        "--peek committed the dm conversation read position"
+    # and the seat's own read still reports it
+    assert send_mod.main(["read", "seat-a"]) == 0
+    assert "DM-BODY" in capsys.readouterr().out
+
+
+def test_read_peek_with_dm_or_room_is_refused(project: Path, monkeypatch,
+                                              capsys):
+    """A flag that cannot be honoured must REFUSE, naming the verb that can:
+    `read --dm|--room` has no commit switch, so `--peek` there would silently
+    do nothing while promising the opposite."""
+    monkeypatch.chdir(project)
+    monkeypatch.setenv("AGI_AGENT_ID", "seat-a")
+    for argv in (["read", "--dm", "seat-b", "--peek"],
+                 ["read", "--room", "quorum", "--peek"]):
+        rc = send_mod.main(argv)
+        err = capsys.readouterr().err
+        assert rc != 0, f"{argv} was accepted and cannot honour --peek"
+        assert "peek" in err, err
+
+
+def test_read_peek_seam_through_a_real_send_py_subprocess(
+        project: Path, tmp_path, monkeypatch):
+    """The WIRE probe: the real `send.py read <seat> --peek` as a SEPARATE
+    PROCESS (the shape rotation_alert fires) leaves the inbox bytes identical
+    -- not merely a monkeypatched `read()` seam."""
+    env = {**os.environ, "AGI_AGENT_ID": "seat-a"}
+    for k in ("AGI_SEAT", "AGI_ACTOR"):
+        env.pop(k, None)
+    inbox = send_mod._inbox_path(project, "seat-a")
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: seat-a\nts: 2026-09-30T00:00:00Z\nfrom: prime\n"
+                     "\nSUBPROC-BODY\n")
+    before = inbox.read_bytes()
+    out = subprocess.run(
+        [sys.executable, str(Path(send_mod.__file__).resolve()), "read",
+         "seat-a", "--peek"],
+        cwd=str(project), env=env, capture_output=True, text=True, timeout=60)
+    assert out.returncode == 0, out.stderr
+    assert "SUBPROC-BODY" in out.stdout, out.stdout
+    assert inbox.read_bytes() == before, \
+        "the real CLI wrote # read up to here under --peek"

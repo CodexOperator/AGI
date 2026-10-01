@@ -2132,3 +2132,44 @@ def test_a_line_arriving_before_the_marking_read_reaches_the_pane(
     after = buf.getvalue()
     assert after.strip() in ("", "inbox for a: empty"), \
         f"unread after the hook, absent from `out`: {after}"
+
+
+def test_empty_verdict_literal_is_not_delivery(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line — an
+    `if not body` guard is BLIND to what the REAL CLI returns: an empty inbox
+    prints the TRUTHY literal `inbox for a: empty` (send.py), never ''. RED on
+    those bytes: the hook announced DELIVERED, suppressed F25 and delivered
+    zero bytes. The empty case must feed the REAL literal, not ''.
+    """
+    calls = []
+
+    def _fake(bin_dir, seat, peek=False):
+        calls.append("peek" if peek else "mark")
+        return f"inbox for {seat}: empty\n"      # the real CLI's literal
+
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    transcript = tmp_path / "sess-literal.jsonl"
+    _write_transcript(transcript, 12_000)
+    state_dir = tmp_path / "state-literal"
+    payload = _payload(agi_project, transcript, "sess-literal", cwd=str(cwd))
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == ["peek"], f"nothing was delivered, so nothing is marked: {calls}"
+    assert "DELIVERED IN THIS TURN" not in out, out
+    assert "Do NOT read again this turn (F25)." not in out, out
+    assert out.count("NOT delivered") == 1, f"exactly ONE undelivered line: {out}"
+    assert "[meter]" in out, "the meter must still print"
+
+
+def test_empty_verdict_helper_reads_the_real_cli_literal():
+    """the verdict helper itself, unit: '' and whitespace mean empty, the
+    CLI's literal means empty, a real body does not."""
+    assert hook._empty_verdict("", "a")
+    assert hook._empty_verdict("   \n", "a")
+    assert hook._empty_verdict("inbox for a: empty\n", "a")
+    assert not hook._empty_verdict("inbox for b: empty\n", "a")
+    assert not hook._empty_verdict("from: prime\n\nhello\n", "a")

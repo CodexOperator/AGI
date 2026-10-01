@@ -1387,6 +1387,19 @@ def _run_send_read(bin_dir: Path, seat: str, peek: bool = False) -> str:
     return out or ""
 
 
+def _empty_verdict(out: str, seat: str) -> bool:
+    """True when `send.py read` came back with NOTHING — the CLI's truthy
+    literal `inbox for <seat>: empty` (send.py prints a line, never ''), the
+    empty string a timeout gives, or whitespace.
+    (hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line: an `if
+    not body` guard is BLIND to the literal the real seam returns, so an empty
+    inbox was announced as DELIVERED with the F25 do-not-read-again
+    suppression and an empty body.)"""
+    if not out or not out.strip():
+        return True
+    return out.strip() == f"inbox for {seat}: empty"
+
+
 def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
     """l5 c2+c3 — prompt is the machine wake head for `<self>` (seat from
     cwd): run the ONE `send.py read <self>` and append the verified bodies+
@@ -1403,7 +1416,7 @@ def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
         return False
     bin_dir = Path(__file__).resolve().parents[1] / "bin"
     body = _run_send_read(bin_dir, seat, peek=True)   # prints, retires nothing
-    if not body:
+    if _empty_verdict(body, seat):
         # l5 (a) — nothing could actually be delivered (a timeout and a
         # genuinely mail-less inbox both read back as '' from the seam): print
         # exactly ONE undelivered line, NEVER the DELIVERED banner nor the F25
@@ -1435,7 +1448,7 @@ def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
     # between the two reads is DELIVERED here rather than retired into a pipe
     # nobody reads. `body` is then only the cap pre-flight.
     marked = _run_send_read(bin_dir, seat)
-    if not marked:
+    if _empty_verdict(marked, seat):
         print(f"[ack] nudge for {seat} NOT delivered: the marking read came "
               f"back empty; please read `send.py read {seat}` manually.")
         return False

@@ -8,6 +8,7 @@ with `ts`, `from`, `to`, and `text`.
 Usage:
     send.py send <to> <text>      — append a message, print the inbox path
     send.py read <me>             — print unread blocks and mark them read
+    send.py read <me> --peek      — print, and NEVER advance the read cursor
     send.py peek <me>             — print unread blocks without marking
 
 Rooms (hypothesis:l3w0-send-rooms) — conversations as files under
@@ -5933,6 +5934,16 @@ def main(argv: list[str] | None = None) -> int:
         me = args.me or _detect_sender(sender)
         all_ = getattr(args, "all_", False)
         wrap = args.wrap
+        if (args.room is not None or args.dm is not None) and \
+                getattr(args, "peek_", False):
+            # `--peek` promises it never advances a cursor; the room/dm reads
+            # below have no mark/commit switch, so honouring it would be a
+            # promise the code does not keep. REFUSE, naming the verb that does
+            # the job (hypothesis:g1-inbox-read-cursor-never-passes-an-
+            # unprinted-line): a flag that silently does nothing is the defect.
+            print("ERR: `read --peek` applies to an INBOX only; use "
+                  "`send.py peek --room|--dm` for a transcript", file=sys.stderr)
+            return 2
         if args.room is not None:
             for line in read_room(croot, args.room, me, args.since, sender,
                                   all_, wrap=wrap):
@@ -5983,9 +5994,15 @@ def main(argv: list[str] | None = None) -> int:
                                     resolved):
             return 2
         target = _alias_canon(root, args.target) or args.target
-        shown = read(root, target, sender, wrap=wrap, quiet_empty=True)
+        shown = read(root, target, sender, wrap=wrap, quiet_empty=True,
+                     mark=not getattr(args, "peek_", False))
         # clause (1): the same call also consumes every dm naming the post.
-        shown += read_dms(croot, resolved, wrap=wrap)
+        # `--peek` retires NOTHING on either seam: a positional
+        # `read <seat> --peek` is the pre-flight rotation_alert fires, and a
+        # cursor that moved behind bytes captured into a pipe nobody reads is
+        # the exact hole this hypothesis names (proved by running the CLI).
+        shown += read_dms(croot, resolved, wrap=wrap,
+                          commit=not getattr(args, "peek_", False))
         # The seat is empty only when the INBOX held nothing AND the dm sweep
         # showed nothing (conjunct 1): decided here, after both, never inside
         # `read` before the sweep.
