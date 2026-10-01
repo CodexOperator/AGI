@@ -12,7 +12,7 @@ TOTAL = meminfo('MemTotal')
 PROTECT_COMM = {'claude', 'tmux: server', 'ffmpeg', 'tmux'}
 PROTECT_CMD = re.compile(r'streamer-stub|rotate\.py launch-wrapper|agi-memguard')
 PI_CMD = re.compile(r'\.npm-global/(bin/pi\b|lib/node_modules/\S*pi)')
-POST_CG = re.compile(r'^0::/agi\.slice/agi-post@[^/\n]+\.service(/|$)', re.M)
+POST_CG = re.compile(r'{{POST_CGROUP_RE}}', re.M)
 hist = collections.deque(); stopped = set(); last_alert = 0.0
 def log(msg, red=False):
     global last_alert
@@ -31,7 +31,7 @@ def procs():
         except Exception: continue
         if cmd: yield int(d), comm, cmd, rss
 def post_pi(pid, comm, cmd):
-    if comm != 'pi' and not PI_CMD.search(cmd): return False
+    if comm != '{{POST_PI_COMM}}' and not PI_CMD.search(cmd): return False
     try: return bool(POST_CG.search(open(f'/proc/{pid}/cgroup').read()))
     except Exception: return False
 def setadj(pid, v):

@@ -78,8 +78,6 @@ import collections
 import hashlib
 import importlib.util
 import json
-U_UNIT = "agi-post@{}.service".format("director-general-5")  # built, so no address-shaped literal
-U_CG = "0::/agi.slice/" + U_UNIT
 import os
 import pwd
 import re
@@ -210,6 +208,14 @@ def _vs(**over):
     o = dict(STANDINS)
     o.update(over)
     return R.values(CFG, MEASURED, o, guard=GUARD)
+
+
+def _post_cg(tail=""):
+    """A cgroup line the POST_CGROUP_RE cell matches, derived FROM that cell (one source; stand-in post `a`)."""
+    rx = _vs()["POST_CGROUP_RE"]
+    line = rx.lstrip("^").replace("[^/\\n]+", "a").replace("\\.", ".").replace("(/|$)", "") + tail
+    assert re.search(rx, line + "\n", re.M), line
+    return line
 
 
 def _payload(text):
@@ -594,12 +600,12 @@ def test_memguard_protects_a_posts_pi_and_leaves_other_pi_workers_at_worker_adj(
     proc = tmp_path / "proc"
     pi_cmd = "/x/.npm-global/bin/pi --model m"
     rows = {   # pid: (comm, cmdline, cgroup line, start adj)
-        101: ("pi", "/opt/agi/bin/pi --pi-free", U_CG + "", 0),
-        102: ("pi", "/opt/agi/bin/pi", "0::/agi.slice/" + "agi-post@{}.service".format("a") + "/child.scope", 0),
+        101: ("pi", "/opt/agi/bin/pi --pi-free", _post_cg(), 0),
+        102: ("pi", "/opt/agi/bin/pi", _post_cg("/child.scope"), 0),
         103: ("node", pi_cmd, "0::/user.slice/user-1.slice/app.slice/worker.scope", 0),
         104: ("pi", "/opt/agi/bin/pi", "0::/user.slice/user-1.slice/app.slice/x.scope", 0),
         105: ("claude", "claude", "0::/user.slice/user-1.slice/session-1.scope", 0),
-        106: ("bash", "bash", U_CG + "", 0),
+        106: ("bash", "bash", _post_cg(), 0),
         107: ("pi", "/opt/agi/bin/pi", "0::/agi.slice/agi-postX/" + "agi-post@{}.service".format("a"), 0),
         108: ("pi", "/opt/agi/bin/pi", "0::/agi.slice", 0),
     }
@@ -612,9 +618,15 @@ def test_memguard_protects_a_posts_pi_and_leaves_other_pi_workers_at_worker_adj(
         (d / "oom_score_adj").write_text(str(adj))
     src = R.rendered(piece, _vs()).replace("/proc", str(proc))
     src = src.replace("time.sleep(", "(_ for _ in ()).throw(SystemExit)  # (")
-    code = compile(src, "memguard-rendered", "exec")
+    calls = []   # recorders stand in for os.kill / subprocess.run: no real signal, no spawn
+    assert "os.kill(" in src and "subprocess.run(" in src
+    src = src.replace("os.kill(", "_kill(").replace("subprocess.run(", "_run(")
+    src = src.replace("os.getpriority(", "_gp(").replace("os.setpriority(", "_sp(")   # fake pids may be real ones
+    ns = {"__name__": "memguard_test", "_kill": lambda *a, **k: calls.append(("kill", a)),
+          "_run": lambda *a, **k: calls.append(("run", a)), "_gp": lambda *a: 0, "_sp": lambda *a: None}
     with pytest.raises(SystemExit):
-        exec(code, {"__name__": "memguard_test"})
+        exec(compile(src, "memguard-rendered", "exec"), ns)
+    assert calls == [], calls                               # nothing was signalled or spawned
     adj = {pid: int((proc / str(pid) / "oom_score_adj").read_text()) for pid in rows}
     prot, worker = int(_vs()["PROTECT_OOM_ADJ"]), int(_vs()["PI_OOM_ADJ"])
     assert adj[101] == prot and adj[102] == prot, adj       # a post's pi (and one in a child scope)

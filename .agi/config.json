@@ -349,6 +349,8 @@
       "PROTECT_OOM_ADJ": "-900",
       "PROTECT_NICE": "-5",
       "PI_OOM_ADJ": "500",
+      "POST_CGROUP_RE": "^0::/agi\\.slice/agi-post@[^/\\n]+\\.service(/|$)",
+      "POST_PI_COMM": "pi",
       "SUSPEND_RATIO": "0.70",
       "SUSPEND_PCT": "70",
       "SPIKE_BYTES": "3",
