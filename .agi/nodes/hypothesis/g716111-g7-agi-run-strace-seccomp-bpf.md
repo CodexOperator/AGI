@@ -9,7 +9,7 @@ edited_by: director-general-3
 scaffold_hash: 1485eafad173e7cb
 season: 2
 testable_claim: the agi-run strace stops only on file syscalls so v5 descendants run at untraced speed and agi-track gets the same file events
-title: "G7: agi-run traces only %file syscalls (strace --seccomp-bpf) -- a v5 post computes at untraced speed"
+title: "G7: agi-run strace detaches at each child exec (strace -b execve, G7.2) -- a v5 post computes at untraced speed"
 town: core
 ---
 # hypothesis:g716111-g7-agi-run-strace-seccomp-bpf
