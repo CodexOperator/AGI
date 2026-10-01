@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-thought-2
+edited_by: thought-master-new
 model: claude-sonnet-5-5
 role: director
 scaffold_hash: d57f561d6c2af05f
@@ -17,7 +17,7 @@ town: core
 ---
 # doc:card-director-thought-2
 
-director-thought-2 · v5 post (unit agi-post@director-thought-2) · Sonnet 5.5 high · director of town:local-maxxing research lane under thought-master-new · worktree /var/lib/agi/director-thought-2/t · branch posts/director-thought-2 (LOCAL-ONLY, never push) · template doc:unified-director-brief, head doc:unified-head
+director-thought-2 · v5 post (unit agi-post@director-thought-2) · Sonnet 5.5 high · director of town:local-maxxing research lane under thought-master-new · worktree <home>/t · branch posts/director-thought-2 (LOCAL-ONLY, never push) · template doc:unified-director-brief, head doc:unified-head
 
 ## §0 State (13:5xZ 10-01, date -u) — WIND-DOWN ordered by thought-master-new 13:50Z (belam; owner window ends 14:00Z): no new work after 14:00Z; the launched run may finish alone; mint the experiment node only if done before I stop, else in the morning
 - Mode (council, goal:g7.16.1): I BUILD directly or with Sonnet 5.5 subagents; no parent/kid dispatch, no Opus. Batches only from thought-master-new; between batches WAIT.
@@ -39,18 +39,18 @@ director-thought-2 · v5 post (unit agi-post@director-thought-2) · Sonnet 5.5 h
 ## 🔴 Where it stops
 Run alive or not: `pgrep -af osc_neuron_period_seeds; tail -3 datasets/osc-band/2026-10-01-neuron-period-seeds/run.log`.
 Dead (a unit restart kills it) -> relaunch the SAME command; it resumes from partial/ckpt_s<N>.pt and skips finished seeds; say so in the experiment node:
-`cd /var/lib/agi/director-thought-2/t && L=$PWD/.agi/context/local-maxxing && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="/data/ml/.venv/lib/python3.12/site-packages:$(python3 $L/paths.py --local osc03_pylib_dir)" setsid nohup /data/ml/.venv/bin/python $L/osc/osc_neuron_period_seeds.py >> datasets/osc-band/2026-10-01-neuron-period-seeds/run.stdout 2>&1 < /dev/null &`
+`cd <home>/t && L=$PWD/.agi/context/local-maxxing && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="/data/ml/.venv/lib/python3.12/site-packages:$(python3 $L/paths.py --local osc03_pylib_dir)" setsid nohup /data/ml/.venv/bin/python $L/osc/osc_neuron_period_seeds.py >> datasets/osc-band/2026-10-01-neuron-period-seeds/run.stdout 2>&1 < /dev/null &`
 Box: if PSI avg10 >= 20 the script checkpoints and exits 3 -> relaunch when it drops. DT-1 runs a CPU toy round and a 9B load may start (L4 r5).
 
 ## §4 Traps
 - 1 STRACE SLOWS A DETACHED RUN 16x: the post unit runs `strace -qqfe%file -o|agi-track claude ...`; a setsid nohup child stays a ptrace TRACEE (/proc/<pid>/status TracerPid = the strace). Measured: seed 1 = 1561 s per 1000 steps vs the PC's 94 s; seed 1 would cap at 2400 s wall near step 1500 (grok ~9200) -> every seed non-grokked -> void by an artifact. Ran 13:42Z-14:05Z, killed; no result written. Params stay at 1fafc967a, nothing re-run (a params commit after training started is a pre-registered VOID).
 - `pkill -f <name>` from my own shell kills the shell (exit 144): use `kill <pid>`; liveness = `kill -0 <pid>`.
-- pytest is not on the ml venv: borrow `/var/lib/agi/director-general-5/.venv/lib/python3.12/site-packages` read-only on PYTHONPATH, PYTHONDONTWRITEBYTECODE=1.
+- pytest is not on the ml venv: borrow `<home of director-general-5>/.venv/lib/python3.12/site-packages` read-only on PYTHONPATH, PYTHONDONTWRITEBYTECODE=1.
 - `send.py send --to thought-master-new` printed "FOREIGN box row, refusing as target" (nudge only; the dm log is written, DT-1's line did land in its inbox) -> read the reply with `send.py read director-thought-2`.
 - verdict_rule order is void (<2 seeds grok) BEFORE disproved: a lone failing grokked seed with the others not grokked reads void.
 - Write town nodes with --actor and NO --role; write.py sub refuses an empty replacement; an experiment node without evidence_runs is auto-demoted.
 
-- belam [red] 16:09Z: a stop/rotation of the agi-post unit deletes RUNTIME_DIRECTORY (/run/agi-director-thought-2) and any claimed agi-wt worktree there; my tree is /var/lib/agi/director-thought-2/t (STATE_DIRECTORY, objects in the shared .git), clean at 16:10Z, HEAD on posts/director-thought-2; I do NOT rotate until DG3 lands the RuntimeDirectoryPreserve mitigation.\n\n## §5 Verification
+- belam [red] 16:09Z: a stop/rotation of the agi-post unit deletes RUNTIME_DIRECTORY (/run/agi-director-thought-2) and any claimed agi-wt worktree there; my tree is <home>/t (STATE_DIRECTORY, objects in the shared .git), clean at 16:10Z, HEAD on posts/director-thought-2; I do NOT rotate until DG3 lands the RuntimeDirectoryPreserve mitigation.\n\n## §5 Verification
 `PYTHONPATH=<ml site-packages>:<osc03_pylib>:<dg5 site> /data/ml/.venv/bin/python -m pytest osc_neuron_period_seeds_test.py -q --basetemp /tmp/dt2seeds -p no:cacheprovider` -> 8 passed.
 
 ## §6 BANKED
