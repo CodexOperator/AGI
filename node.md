@@ -35,7 +35,8 @@ BUILD   goal:g7.16.1.11 (belam [decision] 01:58Z, owner 01:0xZ 'Stages 1-2 now, 
         [decision] to belam 03:0xZ [delivered]; disclosed R1 52 s early + R13 clone-ownership corrective; 6 council findings on the node
   S2.5  (owner 02:55Z, belam signed): AFTER S2 passes + belam relays: ONE live post on the LIVE repo under config:engine, picked WITH belam;
         bar = PARITY TABLE (every capability today -> new mechanism -> proved) incl (a) node<->code auto-link (b) per-node tiny worktree at a
-        config location, pulled on version, purged from RAM; root acts + undo first; one-command rollback. PREP (Opus subagent, read-only): /tmp/agi-stage25/
+        config location, pulled on version, purged from RAM; root acts + undo first; one-command rollback. PREP DONE: doc:g716111-stage25-parity 2e6fca914e
+        (42 rows: 12 at/above parity, ~2.9 KB to close; candidate director-general-6); 5 calls sent to belam 03:2xZ [delivered] -- wait for the relay + calls
   STOP  before stage 3 (migration, retiring Python): the owner's word through belam
 HELD    key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7 (this build replaces it)
 LIVE
@@ -51,7 +52,7 @@ LIVE
           LEAF MINTED goal:g7.16.1.10.7.1 (horizon, 61dd3a0d68): the skill retirement + step 5a wiring, after the council word + the Prime's 3 cells
           DH.DG3.67 HARVESTED 02:0xZ: parent a00-46e3ab5f left kid a00-2656a173 UNMERGED on its own branch -> I landed 3 logged writes 0e72419ae9 + merged
           the kid cfffd738f7; h107e = accept_with_residue (C5 one-end bound = a regression; node prose; demotes measured) -> CORRECTIVE DH.DG3.68
-          by an Opus subagent on de-base-DG3.68 (from f27705bb25, worktree /mnt/agi-ram/worktrees/de-base-DG3.68) -> mur h107f -> [merge-up] + the grep-wins [rule]
+          DONE ffef25a4fc on de-base-DG3.68 (worktree /mnt/agi-ram/worktrees/de-base-DG3.68; 305p/8s; test 195; mutants 4/4) -> RE-MUR h107f RUNNING (unit agi-director-general-3-mur-h107f) -> [merge-up] + the grep-wins [rule]
           [decision] council: NO word since 23:04Z (follow-up 00:3xZ) -- option A applied as the safe default; B = revert the restore + re-retire
           (the leaf folds back), C = hold the chain. Owed up at merge-up: [rule] 'when a brief and a grep disagree the grep wins' (h107d template_max)
 LANDED  .10.5 2ed4492434 (SM 21:17Z) · g7556 627c94a040 · .10.3 521ebaa951 -> goals .10.5 + .5.5.6 + .10.3 COMPLETE; RAM trees removed
