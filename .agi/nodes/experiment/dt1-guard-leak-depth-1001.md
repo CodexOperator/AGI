@@ -40,7 +40,7 @@ verdict: proved
 | C3 | 0 leftover python processes 3 s after the file ended (whole-file run and leak-test-alone run) | 0 | **PASS** |
 | C4 | `_BREAK` child: the chain reached 7 levels in the 6 s probe window (break log `1 2 3 4 5 6 7`), the timeout fired, ONE killpg reaped the group, the group gone within the 5 s poll; 0 leftovers 3 s after (max 8 concurrent during that test) | group gone <= 5 s, <= 1 outlives | **PASS** (0 outlived) |
 
-- Every context file alone afterwards (52 files, `timeout 300` each, my user's python processes listed before and after each): **leftovers 0 in all 52** (before the fix: 4 at +3 s, ~120 live at the peak). `test_model_load_guard.py` itself: rc 0, 8 s (was rc 1, 122 s); the lowest MemAvailable across the sweep 7917 MiB (it was 5855 with the leak).
+- Every context file alone afterwards (52 files, `timeout 300` each, my user's python processes listed before and after each): **leftovers 0 in all 52** (before the fix: 4 at +3 s in the first sweep; 22 live at 18 s when run alone, projected ~120 inside the 120 s timeout). `test_model_load_guard.py` itself: rc 0, 8 s (was rc 1, 122 s); the lowest MemAvailable across the sweep 7917 MiB (it was 5855 with the leak).
 - Not in scope, unchanged from the first sweep, none a leak: rc 1 on `osc_band_fit_a00-94580cec`, `osc_l4_9b`, `osc_l4_direct`, `specdec/test_specdec_a00_71dbbad5`, `sql/test_graph2sql`; `osc_neuron_period_pc_test` reaches the 300 s sweep cap (it trains a model).
 
 ## Verdict: PROVED
