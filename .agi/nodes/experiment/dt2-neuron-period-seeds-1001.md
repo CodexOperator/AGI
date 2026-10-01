@@ -21,6 +21,8 @@ verdict: disproved
 ---
 # experiment:dt2-neuron-period-seeds-1001
 
+**Headline / Verdict: DISPROVED by the pre-registered rule. P1 and P2 replicate in both grokked seeds (1, 2); P4 does not replicate under the pre-registered max-of-20 rule (seed 1: best family k=5 at about the 91st percentile of random sets, 7 of 80 random sets beat it; seed 2 passes with k=45). Seed 3 is wall-cap censored at step 14900 = 37 pct of the 40k step cap, not shown to fail to grok.** (Corrected by CORRECTIVE DH.1, text only, no re-run.)
+
 ## Experiment
 
 **Claim (hypothesis:lm-neuron-periodicity-control-replicates-across-training-seeds, pre-registered rule unchanged).** The PC's exact configuration at NEW training seeds 1, 2, 3 (params.json copied from the PC; only train_seed changes, the fallback is disabled). For every seed that groks: P1 >= 50 pct of the 512 MLP neurons beat both the detrended shuffled null (q999) and the random-init twin's max; P2 <= 6 dominant frequencies cover >= 80 pct of them; P4 at least one family with >= 20 neurons, mean-ablated, drops held-out accuracy by more than the max of its 20 size-matched random sets. Verdict rule as committed in params.json `verdict_rule`: void if < 2 seeds grok (checked first), else disproved if any grokked seed fails P1, P2 or P4, else proved.
