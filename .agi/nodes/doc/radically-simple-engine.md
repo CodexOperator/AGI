@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1709,7 +1709,7 @@ captive          PreToolUse hook agi-captive: while ~/.fill exists, EVERY tool b
 answer   call    ONE tool call on stdin, any of 3 shorthands: OpenAI {name, arguments(obj|str)} · Anthropic {type: tool_use, input} · bare arguments
          row     agi-fill row "field: value": each row checked AS IT LANDS against its own sub-schema; it prints the next required field; "." writes
 gate             the Draft-7 check of the WHOLE object (Y3 owns the gate; this is its deterministic stand-in) -> refused: each field named, tries+1
-receive          agi-fill check FILE: the same schema check of a node that arrives by any path (all-is-one's grow-gate calls it per added node; exit 3 = refused)
+receive          agi-fill check FILE: the same schema check of a node that arrives by any path (all-is-one's grow-gate @92d577161 calls it per added node, cwd = the receiving tip; exit 3 + one `refused <field> : <msg>` line per error, the missing field NAMED)
 close            written (node file with key: <nid> + schema: <child>@<blob>) · agi-fill close · timeout (cell fill_window, 900 s) · N failed tries (cell fill_tries, 3)
 ```
 **The schema -> format rule, measured for parity with the old gate (write.py / schema_registry):** required = `validation.required` minus what the window writes itself (id, type, mint_id, parents, next_edges, key, schema) · types ONLY from `validation.types` · `regex` / `item_regex` -> `^(?:..)$` (the old gate uses fullmatch) after stripping each cell's OWN `^`/`$` and writing `\d` as `[0-9]` (alive, Y3, measured with llama.cpp's grammar compiler: inner anchors made every enum and goal_id an 'accept any string' rule and `\d` an unsupported escape -- 15/25 formats fenced before, 20/25 after; the gate's verdicts did not move) and a regex field must be a STRING · the variant's discriminator (goal_kind, build_kind) = `const` · every other field = a property with its declared type as a DESCRIPTION hint (Y3 may decode with it; the gate does not enforce it) · extra fields allowed (5,322 live nodes carry fields outside their schema).
@@ -1735,7 +1735,7 @@ send: agi-fill call (OpenAI, Anthropic or bare arguments) · row by row: agi-fil
 | every node the window wrote, through the OLD gate | 0 errors |
 | after the anchor fix (07:4xZ): the sweep again · `agi-fill check` vs the OLD gate on 400 live nodes · row mode: goal_id 7.99 · G7.99 · status sleeping | 5,395/5,400, the same 5 · 400/400 agree (21 refused by both) · refused · ok · refused (enum) |
 
-**Bytes (expansion, config:engine-wrap; 0 B in the zygote):** `agi-fill` 5004 B (python3 + yaml + jsonschema, both already on the box) · `agi-captive` 311 B · settings.json +61 B (one PreToolUse line) · cells `fill_window`, `fill_tries`. Retires, once Y1-Y3 are built: write.py's spawn gate and create path for NEW nodes (parity row 20 stops leaning on the old Python; the old gate stays the ORACLE in the suite until Phase 3 closes).
+**Bytes (expansion, config:engine-wrap; 0 B in the zygote):** `agi-fill` 5068 B (python3 + yaml + jsonschema, both already on the box) · `agi-captive` 311 B · settings.json +61 B (one PreToolUse line) · cells `fill_window`, `fill_tries`. Retires, once Y1-Y3 are built: write.py's spawn gate and create path for NEW nodes (parity row 20 stops leaning on the old Python; the old gate stays the ORACLE in the suite until Phase 3 closes).
 **Honest limits.** (1) The captive hook only fences TOOLS: a post can still type prose; it cannot write a file or run another command until the window closes. (2) A lookahead in `tags`'s item_regex (`(?!parked:)`) is a JSON-Schema pattern here but cannot be a GBNF rule: under Y3's grammar that one field stays gate-checked, not decode-fenced. (3) The body (the schema's prose order, e.g. a hypothesis's ## Measured .. ## CEILING) is one free string: format-first shows it only if Y3 adds it as a pattern; a merge-up reviewer still checks prose. (4) Real ids come from the slug of the title; a clash is refused (rc 5), never overwritten.
 Falsifiers: **F46** the parity sweep above (PASS: 5,393/5,398, the 5 explained) · **F47** the test table (PASS) · **F48** a pi-free post, captive, fills a hypothesis through the window in one call (unrun: needs DG5 on the new engine) · **F49** a 1-3 B local model in ROW mode under Y3's grammar writes a node the old gate accepts (unrun: Y3).
 `agi-captive` whole:
@@ -1751,7 +1751,8 @@ Falsifiers: **F46** the parity sweep above (PASS: 5,393/5,398, the 5 explained) 
 import sys,os,re,json,time,uuid,subprocess as S,yaml,jsonschema
 A=sys.argv;E=os.environ.get;W=os.path.expanduser(E('AGI_FILL','~/.fill'));L=int(E('AGI_FILL_WINDOW','900'));N=int(E('AGI_FILL_TRIES','3'))
 a=lambda r:re.sub(r'^\^|(?<!\\)\$$','',r).replace('\\d','[0-9]')
-X={'id','type','mint_id','parents','next_edges','key','schema','scaffold_hash'};J={'str':'string','int':'integer','float':'number','bool':'boolean','dict':'object','list':'array'}
+X={'id','type','mint_id','parents','next_edges','key','schema','scaffold_hash'};F_=lambda x:x.path[0]if x.path else x.message.split("'")[1]if x.validator=='required'else'-'
+J={'str':'string','int':'integer','float':'number','bool':'boolean','dict':'object','list':'array'}
 def sch(c,v):
  p=f'.agi/context/schemas/[{c}].md';d=yaml.safe_load(open(p).read().split('\n---',1)[0][4:]);V=d.get('validation')or{};T=V.get('types')or{};F=d.get('fields')or{};P={}
  for k in [*F,*V.get('required',[])]:
@@ -1768,7 +1769,7 @@ def end(m,r=0):
 def done(w,a):
  e=sorted(jsonschema.Draft7Validator(w['js']).iter_errors(a),key=lambda e:list(e.path))
  if e:
-  w['tries']+=1;[print('refused',e.path[0]if e.path else'-',':',e.message[:160])for e in e]
+  w['tries']+=1;[print('refused',F_(e),':',e.message[:160])for e in e]
   w['tries']<N or end(f'window closed: {N} failed tries, nothing written',4);json.dump(w,open(W,'w'));sys.exit(3)
  s=re.sub('[^a-z0-9]+','-',str(a.get('title')or w['nid']).lower()).strip('-')[:60];p=f".agi/nodes/{w['child']}/{s}.md"
  os.path.exists(p)and end('refused: '+p+' exists',5);os.makedirs(os.path.dirname(p),exist_ok=True);b=a.pop('body','# '+str(a.get('title',s)))
@@ -1785,7 +1786,7 @@ if A[1]=='open':
  print(f'send: agi-fill call (OpenAI, Anthropic or bare arguments) · row by row: agi-fill row "field: value", then "." · abort: agi-fill close · closes after {L}s or {N} failed tries');sys.exit()
 if A[1]=='check':
  fm=yaml.safe_load(open(A[2]).read().split('\n---',1)[0][4:]);c=fm['type'];k=(yaml.safe_load(open(f'.agi/context/schemas/[{c}].md').read().split('\n---',1)[0][4:]).get('spawn')or{}).get('discriminator')
- e=list(jsonschema.Draft7Validator(sch(c,str(fm.get(k))if k and fm.get(k)else'-')[1]).iter_errors({x:y for x,y in fm.items()if x not in X}));[print('refused',A[2],list(x.path),x.message[:120])for x in e];sys.exit(3 if e else 0)
+ e=list(jsonschema.Draft7Validator(sch(c,str(fm.get(k))if k and fm.get(k)else'-')[1]).iter_errors({x:y for x,y in fm.items()if x not in X}));[print('refused',F_(x),':',x.message[:160])for x in e];sys.exit(3 if e else 0)
 os.path.exists(W)or end('no window open',2);w=json.load(open(W))
 time.time()-w['t']<L or end('window closed: timeout, nothing written',4)
 if A[1]=='close':end('window closed: aborted, nothing written')
