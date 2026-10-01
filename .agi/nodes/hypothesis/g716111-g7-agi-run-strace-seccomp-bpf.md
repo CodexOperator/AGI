@@ -59,6 +59,17 @@ BASE      CUT FROM the town trunk local-maxxing/season2/main tip (G7 landed 2e94
 FALSIFIERS F1 a projected pi H still starts with an env-shebang launcher · F2 the claude row changes · F3 row (b) does not reproduce the 0 s exit on the old shape.
 FILE SCOPE .agi/nodes/.geometry/engine.md (agi-project pi branch) · one test file (+ .agi/config.json ONLY for one path cell) · this node.  CEILING production net +2 · tests +45 · Sonnet 5.5 subagent · 0 USD.
 
+## RESULT G7.4 (kid de612d6af, director record)
+NUMSTAT 56e68de01..de612d6af: engine.md 2/2 (net 0 vs +2) · test_agi_project_pi_direct.py 40/0 (vs +45). 9 passed (new + test_project_agi_box + test_agi_run_strace). Kid measured the fault needs the -o pipe sink: -o /dev/null keeps strace alive, -o'|cat' exits in 0.02 s. Director measured node <engine bin>/pi alive under the exact flags (rc 124 at timeout). mur-de-base-g7d: review accept_with_residue · verify DEMOTE (D1 D2 D3 confirmed; D4 D5 D6 refuted).
+
+## CORRECTIVE G7.5 -- closes mur-de-base-g7d g74-code (D1 D2 D3 + verify missed: narrowing, config_max)
+BASE      CUT FROM de-base-G7d tip (de612d6af + this node write). No merge. Never rebase.
+1. (D1 + missed narrowing + config_max) agi-project picks P by grepping a literal /agi/bin out of the unit and appends a literal /pi: fail-open on an empty P (H = node /pi, exit 0) and narrower than PATH lookup. TRUE WHEN P = the FIRST directory of the projected unit's own Environment=PATH (the geometry, one source) that holds an executable pi -- PATH-lookup order, no /agi/bin selector literal -- and NO such dir = the projection exits 3 before writing any h.conf (the file's own [ -s ... ]||exit 3 idiom).
+2. (D2) tests: the pi row asserts H == node <the expected dir>/pi --provider ... (the exact dir, from a fixture unit PATH pointing at a tmp dir holding a fake executable pi), never a prefix; a negative row (no pi on the unit PATH) asserts exit non-0 and no h.conf; a row where an earlier PATH dir lacks pi and a later one has it picks the later one.
+3. (D3) the THOUGHT delta is the director's (written with this section).
+DEMOTED   D4 D5 D6 refuted by verify · size header drift = findings row 70 (pre-existing) · the live-entry probe = the director's measurement above (rc 124), not a CI row (box path).
+FILE SCOPE .agi/nodes/.geometry/engine.md (agi-project) · extensions/agi/tests/test_agi_project_pi_direct.py.  CEILING production net +2 · tests +30 · Sonnet 5.5 subagent · 0 USD.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 G7.2: belam [decision] 15:23Z picked (a) strace -b execve over G7 --seccomp-bpf -- WHY (belam): compute is the switch point (torch 16x slow); ~/track has NO reader in the engine (engine-post.md:81 is its only reference) = telemetry, not a gate. MEASURED (DG3, strace 6.8, 4 threads getppid x25k): untraced 0.039 s · --seccomp-bpf 3.78 s · -b execve 0.044 s; strace refuses --seccomp-bpf with -b. Lost: a bash child file opens in ~/track (one residue line, not a round).
 <!-- THOUGHT:END -->
