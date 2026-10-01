@@ -10858,3 +10858,171 @@ def test_cmd_spawn_refuses_a_second_stand_up_of_the_same_post(tmp_path, capsys):
     with rotate.post_launch_lock(g, "p1"):
         assert rotate.cmd_spawn(NS(seat="p1", dry_run=False), g) == 1
     assert "launch lock held" in capsys.readouterr().err
+
+
+# hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback (goal:g1.31.4.2.1):
+# a pin target this uid cannot read is UNKNOWN, never a crash. MEASURED 10-01
+# 17:45Z: every .meter pin on this box names a transcript under another uid's
+# home, so `rotate.py status` died with PermissionError on the FIRST row and
+# metered no seat at all. FOUR tests, two seams: the STAT (a mode-000 parent
+# dir) and the READ (a mode-000 file, which a stat guard cannot see -- the
+# first version of this file passed the suite while that read still raised).
+def _pin_naming(tmp_path, seat, target):
+    """A seat-stable meter pin (`<graph>/sessions/<seat>.meter`) naming target."""
+    g = tmp_path / ".agi"
+    sessions = g / "sessions"
+    sessions.mkdir(parents=True, exist_ok=True)
+    pin = sessions / f"{seat}.meter"
+    pin.write_text(f"4\t{target}\n", encoding="utf-8")
+    return g, pin
+
+
+def test_an_unreadable_pin_target_is_unknown_not_a_crash(tmp_path, monkeypatch):
+    # The STAT is what fails (EACCES on a tree this uid cannot enter); pin
+    # TEXT is readable, so _parse_pin_record is happy and the crash lands on
+    # the exists() call -- the traceback measured on this box.
+    sealed = tmp_path / "sealed.jsonl"
+    sealed.write_text("{}\n", encoding="utf-8")
+    _g, pin = _pin_naming(tmp_path, "sealed-seat", sealed)
+    real_exists = Path.exists
+
+    def denied(self, *a, **k):
+        if self.name == "sealed.jsonl":
+            raise PermissionError(13, "Permission denied", str(self))
+        return real_exists(self, *a, **k)
+
+    monkeypatch.setattr(Path, "exists", denied)
+    assert rotate._read_pin_target(pin) is None, (
+        "an unreadable pin target is UNKNOWN, not an exception")
+
+
+def test_seat_fraction_is_none_when_the_pin_target_is_unreadable(tmp_path):
+    # The box shape: a mode-000 PARENT DIR, so the stat fails.
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    blocked = tmp_path / "other-uid-home"
+    blocked.mkdir()
+    target = blocked / "transcript.jsonl"
+    target.write_text("{}\n", encoding="utf-8")
+    blocked.chmod(0o000)  # sealed AFTER the write: the pin, not the fixture, is blocked
+    try:
+        g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
+        assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None, (
+            "None == UNKNOWN, the caller's documented skip -- never a raise")
+    finally:
+        blocked.chmod(0o755)  # tmp_path cleanup cannot descend into a 000 dir
+
+
+def test_seat_fraction_is_none_when_the_transcript_stats_but_cannot_be_opened(tmp_path):
+    # THE SEAM A STAT GUARD CANNOT SEE: mode 000 on the FILE inside a
+    # readable dir. exists() succeeds, _read_pin_target returns the path, and
+    # the raise happens on the READ. Red before the _seat_fraction guard --
+    # this is mur residue (1), and it is why the first two tests were not
+    # enough: they only ever provoked the stat.
+    if os.geteuid() == 0:
+        pytest.skip("root opens a mode-000 file; the defect cannot be provoked")
+    target = tmp_path / "transcript.jsonl"
+    target.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
+    target.chmod(0o000)
+    try:
+        assert target.exists(), "precondition: the transcript MUST stat cleanly"
+        g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
+        pin = rotate.find_pin_log(g, "sealed-seat")
+        assert pin is not None, "precondition: the seat-stable pin must resolve"
+        assert rotate._read_pin_target(pin) == target, (
+            "precondition: the stat seam passes it through, which is why the "
+            "guard has to live at the READ")
+        assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None, (
+            "a transcript we may stat but not open is UNKNOWN, never a raise")
+    finally:
+        target.chmod(0o644)
+
+
+def test_status_walks_past_an_unreadable_seat_to_the_next_row(tmp_path, monkeypatch, capsys):
+    # Command level, on the READ seam. TWO rows, UNREADABLE FIRST, so that
+    # "keeps going" is actually proven rather than asserted: before both
+    # guards this raised PermissionError out of cmd_status on row one and the
+    # readable seat was never printed at all.
+    #
+    # What `status` prints for an UNKNOWN seat is `frac=?` (rotate.py:3798)
+    # and NO warning -- the warn-and-skip line lives in cmd_alarms, a
+    # different command. So the assertion below is on the FRACTION and on
+    # BOTH names, not on a warning string that status never emits.
+    import argparse
+    if os.geteuid() == 0:
+        pytest.skip("root opens a mode-000 file; the defect cannot be provoked")
+    sealed = tmp_path / "sealed.jsonl"
+    sealed.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
+    sealed.chmod(0o000)
+    readable = tmp_path / "readable.jsonl"
+    # a REAL assistant usage line, so the readable row prints a NUMBER and the
+    # `frac=?` assertion actually discriminates the two rows (SM's pin3 note:
+    # with a usage-less fixture both rows read frac=? and the assert was blind)
+    readable.write_text(
+        json.dumps({"message": {"role": "assistant",
+                               "usage": {"input_tokens": 4, "output_tokens": 2}}}) + "\n",
+        encoding="utf-8")
+    g, _p1 = _pin_naming(tmp_path, "aaa-sealed-seat", sealed)
+    # the readable seat's pin goes in the SAME graph, via the same helper, so
+    # cmd_status resolves both the way it resolves in production
+    (g / "sessions" / "zzz-readable-seat.meter").write_text(
+        f"4\t{readable}\n", encoding="utf-8")
+    rows = [{"name": "aaa-sealed-seat"}, {"name": "zzz-readable-seat"}]
+    monkeypatch.setattr(rotate, "_load_seats", lambda r: rows)
+    monkeypatch.setattr(rotate, "_read_generation", lambda r, s: 1)
+    try:
+        rc = rotate.cmd_status(argparse.Namespace(seats=True, record=None), g)
+    finally:
+        sealed.chmod(0o644)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "aaa-sealed-seat" in out, out
+    assert "zzz-readable-seat" in out, (
+        "the seat AFTER the unreadable one must still be reached -- that is "
+        "the 'keeps going' this test exists to prove")
+    # DISCRIMINATING: the unreadable row reads frac=?, the readable one a
+    # number. Asserting frac=? alone passed for both rows and proved nothing.
+    sealed_line = next(l for l in out.splitlines() if "aaa-sealed-seat" in l)
+    readable_line = next(l for l in out.splitlines() if "zzz-readable-seat" in l)
+    assert "frac=?" in sealed_line, sealed_line
+    assert "frac=?" not in readable_line, (
+        "the readable row must print a real fraction, or the frac=? assert "
+        "cannot tell the two rows apart: " + readable_line)
+
+
+# hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback, mur pin3
+# residues 1-2: a symlink loop and an unreadable sessions dir are UNKNOWN
+# like any other unreadable pin. Both were MEASURED first, not assumed.
+def test_a_symlink_loop_in_the_pin_is_unknown_not_a_traceback(tmp_path):
+    # MEASURED py3.12.3: Path.resolve() on a loop raises RuntimeError
+    # ('Symlink loop'), NOT OSError -- so `except OSError` alone still let a
+    # loop escape as a traceback out of `status`.
+    if os.geteuid() == 0:
+        pytest.skip("root still resolves loops to ELOOP; skip with a reason")
+    a = tmp_path / "a"
+    b = tmp_path / "b"
+    a.symlink_to(b)
+    b.symlink_to(a)
+    g, _pin = _pin_naming(tmp_path, "loop-seat", a)
+    assert rotate._read_pin_target(g / "sessions" / "loop-seat.meter") is None, (
+        "a symlink loop is UNKNOWN, not a RuntimeError")
+    assert rotate._seat_fraction(g, {"name": "loop-seat"}) is None, (
+        "and it never reaches the fraction as a raise")
+
+
+def test_find_pin_log_is_none_when_the_sessions_dir_is_unreadable(tmp_path):
+    # An unreadable sessions DIR made sp.is_file() raise PermissionError,
+    # which escaped every meter caller before the guard.
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    target = tmp_path / "t.jsonl"
+    target.write_text("{}\n", encoding="utf-8")
+    g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
+    sessions = g / "sessions"
+    sessions.chmod(0o000)
+    try:
+        assert rotate.find_pin_log(g, "sealed-seat") is None, (
+            "a pin under an unreadable sessions dir is UNKNOWN, not a raise")
+        assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None
+    finally:
+        sessions.chmod(0o755)

@@ -1,0 +1,84 @@
+{
+ "hypothesis": "hypothesis:lm-neuron-periodicity-fair-p4-every-seed-has-a-load-bearing-family",
+ "run": "P4' fair re-test on the SAVED checkpoints of seeds 0, 1, 2; forward passes only, NO training",
+ "p": 113,
+ "model": {
+  "d_model": 128,
+  "n_heads": 4,
+  "d_mlp": 512,
+  "n_ctx": 3,
+  "act": "relu",
+  "layernorm": false,
+  "pos": "learned",
+  "vocab_in": 114,
+  "vocab_out": 113,
+  "note": "1 layer: tokens (a, b, '=') with '=' = id 113; causal attention (no biases on Q/K/V/O), MLP W_in+b_in -> ReLU -> W_out+b_out, residual stream only (no LayerNorm), unembed (no bias) read at the '=' position (index 2) -> logits over 113 classes = (a+b) mod 113. Init: W_E, W_pos ~ N(0, 1/d_model); Linear layers PyTorch default"
+ },
+ "train_fraction": 0.3,
+ "split_seed": 0,
+ "split_def": "all 113*113 pairs (a, b), index a*113+b; numpy default_rng(split_seed).permutation; first floor(0.3*12769) = 3830 = train, the rest (8939) = held-out test",
+ "grok_threshold": 0.99,
+ "grok_hold_steps": 1000,
+ "wall_cap_s": 3600,
+ "threads": 1,
+ "b_set": [
+  0,
+  23,
+  46,
+  69,
+  92
+ ],
+ "sweep_def": "for each b in b_set: inputs (a, b, '=') for a = 0..112; read the MLP post-ReLU activations (512) at the '=' position -> acts (5, 113, 512) float32, saved",
+ "detrend_tol": 1e-09,
+ "pipeline": "IMPORTED unchanged from osc_neuron_period2.py: dpeak (= detrend over span{1, a} then run 1's peakiness) and detrended_null; peakiness = max non-DC rfft power / total non-DC power over the 113-long a series, dominant bin k in 1..56",
+ "statistic": "per neuron: detrended peakiness per b, averaged over the 5 b -> pk; dominant frequency k = the most common per-b dominant bin over the 5 b (ties -> smallest k)",
+ "null_permutations": 20,
+ "null_seed": 0,
+ "null_quantile": 0.999,
+ "null_def": "detrended label-shuffled null: for each b, osc_neuron_period2.detrended_null(acts_b, 20, null_seed) (permute a FIRST, then detrend, then peakiness; the same 20 permutations for every b) -> (20, 512) per b, averaged over b -> pooled 10240 values, 99.9th pct",
+ "twin_seed": 1001,
+ "twin_def": "random-init twin: the SAME architecture built after torch.manual_seed(twin_seed), untrained, same sweep and statistic; null 2 = max pk over its 512 neurons",
+ "p1_min_fraction": 0.5,
+ "p1_set": "neurons with pk > null q999 AND pk > twin max (both strict); fraction over all 512",
+ "p2_max_freqs": 6,
+ "p2_cover": 0.8,
+ "p2_def": "dominant frequencies of the P1 neurons sorted by count (desc, ties smallest k); n_cover = the fewest of them whose counts sum to >= 0.8 * |P1|; pass = |P1| > 0 and n_cover <= 6",
+ "box_min_avail_mib": 4000,
+ "box_max_psi_some_avg10": 5,
+ "box_stop_psi_some_avg10": 20,
+ "box_stop": "training checks memory PSI some avg10 at each eval; >= 20 -> checkpoint and exit 3 (resumable)",
+ "family_floor": 20,
+ "threads_note": "1 while the post unit's tracer is on (TracerPid non-zero), per the order; <= 4 otherwise",
+ "checkpoints": {
+  "0": {
+   "path": "datasets/osc-band/2026-10-01-neuron-period-pc/model.pt",
+   "sha256": "8e174e98261aa4995d69a65911cefcbe5f6cdef4388577f8a3209ec64e5ccccc"
+  },
+  "1": {
+   "path": "datasets/osc-band/2026-10-01-neuron-period-seeds/model_s1.pt",
+   "sha256": "7a2d0bdb04e6f82f6b712720b5222733ddd6c2a5778a9828dcd3087870b84e5a"
+  },
+  "2": {
+   "path": "datasets/osc-band/2026-10-01-neuron-period-seeds/model_s2.pt",
+   "sha256": "51bf7db6fa3111ab5ac4878240cab8993d398144a949bdebc2a22ddbd547cbb6"
+  }
+ },
+ "model_seeds": [
+  0,
+  1,
+  2
+ ],
+ "n_sets": 200,
+ "percentile": 0.99,
+ "u_seed": 0,
+ "n_seed": 1,
+ "rng": "numpy default_rng([u_seed or n_seed, model_seed, family_k]); U: 200 uniform size-matched sets over ALL 512 neurons; N: size-matched sets drawn uniformly over all 512, ACCEPTED iff |mean W_out column norm of the set - the family's| <= norm_window, until 200 accepted or max_draws",
+ "norm_window": 0.02,
+ "max_draws": 20000,
+ "norm_def": "W_out column norm = L2 norm of model.w_out.weight[:, i] (the 128-vector neuron i writes to the residual stream); a set's norm = the mean over its neurons",
+ "load_bearing_def": "a family (>= family_floor neurons from the imported PC pipeline) is LOAD-BEARING iff its mean-ablation held-out accuracy drop is STRICTLY greater than np.quantile(U drops, 0.99) AND np.quantile(N drops, 0.99); a family with fewer than n_sets accepted N sets in max_draws is N-UNTESTABLE: reported, and it cannot be load-bearing (the AND cannot be satisfied)",
+ "percentile_report": "per family: pU = pct of the 200 U drops <= the family's drop, pN likewise (unscored)",
+ "ablation": "the imported S.evaluate with abl=(mask, means), means = model.seen.mean(0) over all 12769 inputs at '=', scored on the held-out split (S.data split_seed 0); families from S.sweep/S.stat/S.null + T.families with the PC thresholds, unchanged",
+ "verdict_rule": "VOID (checked first) if a checkpoint sha256 differs from checkpoints[...].sha256 or a seed's held-out accuracy (baseline, no ablation) < 0.99. Else C1 = every seed in model_seeds has >= 1 load-bearing family: C1 -> proved, any seed without one -> disproved. params.json sha256 recorded at launch must equal the final one, else void",
+ "unscored": "per family pU / pN; count of load-bearing families per seed; whether seed 0's labels (k=5, k=45 load-bearing; k=1, k=34 passengers) survive P4' (each family: load-bearing yes/no under P4')"
+}

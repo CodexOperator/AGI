@@ -8339,3 +8339,247 @@ def test_g54_heal_repair_skips_a_foreign_engine_row(project: Path, monkeypatch):
     monkeypatch.setattr(real_send, "wake", lambda r, s, *a: woken.append(s))
     heal_mod._repair_stranded_wakes(project)
     assert woken == ["near"], woken
+
+
+# ── mark=False: a reader whose stdout is CAPTURED must never retire a line
+# ── (hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line) ──────
+# The advancer of both measured 10-01 reds: crons.py's mail_poll line renders
+# `send.py read --box-local >> <log> 2>&1` -- a reader whose stdout lands in a
+# cron LOG FILE, never a pane. Every unread line it printed was retired, so the
+# seat's own next read answered `empty` and the log file was the only copy.
+
+
+def _captured_read(project, seat, **kw):
+    import contextlib
+    import io
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        send_mod.read(project, seat, None, **kw)
+    return buf.getvalue()
+
+
+def test_captured_read_never_advances_the_cursor(project: Path, capsys):
+    """A mark=False read PRINTS the line and leaves it UNREAD, so the seat's
+    next printing read still delivers it (RED on trunk: the captured read
+    advanced the marker and the next read printed `empty`)."""
+    send_mod.send(project, "director-general-5", "[red] G8 order, act now",
+                  "belam")
+    inbox = project / ".agi" / "sessions" / "inbox" / "director-general-5.md"
+    before = inbox.read_bytes()
+
+    captured = _captured_read(project, "director-general-5", mark=False)
+    assert "G8 order, act now" in captured, "a captured read still PRINTS"
+    assert inbox.read_bytes() == before, \
+        "a read whose stdout is captured advanced the cursor"
+
+    pane = _captured_read(project, "director-general-5")   # the printing one
+    assert "G8 order, act now" in pane, \
+        "the seat's own read must still deliver the line the log already saw"
+    text = inbox.read_text()
+    assert text.index("G8 order") < text.index("read up to here"), \
+        "the marker must sit after the line that WAS printed"
+
+
+def test_mail_poll_cron_renders_the_capturing_read_as_peek(tmp_path,
+                                                             monkeypatch):
+    """The NAMED advancer, pinned where it is rendered: crons.py's mail_poll
+    line redirects `read --box-local` into the cron LOG FILE, so it must
+    render with `--peek` or it retires every line no pane ever saw."""
+    import crons
+    monkeypatch.setattr(crons, "_require_git_repo", lambda *a, **k: None)
+    root = tmp_path / ".agi"
+    root.mkdir()
+    (root / "config.json").write_text("{}")
+    cfg = {"crons_live": True, "jobs": {"mail_poll": {
+        "enabled": True, "every_mins": 5, "schedule": None}}}
+    lines = crons.render_managed_lines(root, tmp_path, tmp_path, cfg)
+    poll = [ln for ln in lines if "--box-local" in ln]
+    assert poll, lines
+    assert "--peek" in poll[0], \
+        "a cron whose stdout goes to a log file must not retire the cursor"
+    assert "migrate --receive" in poll[0]
+
+
+# ── the residual the third kid named: a CONCURRENT second `read` of the same
+# seat (hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line,
+# experiment:a00-a238ee0a-cab2a6). `read` resolves `marker_index` from
+# `_scan_messages` and applies it to the file it RE-READS just before writing
+# the marker, so an append or a marker move between those two moments drifts
+# the index space. Measured across every interleaving: the drift can only make
+# `head` SMALLER (a marker that moves forward inserts a line before the stale
+# index and drops the same bytes out of `region`), so `cut` UNDER-shoots --
+# the reader leaves behind lines it already printed. Never over-shoots: no
+# line is retired that no pane printed.
+@pytest.mark.parametrize("phase", ["before", "after"])
+@pytest.mark.parametrize("other", ["append", "read", "peek", "partial"])
+def test_concurrent_second_read_never_retires_an_unprinted_line(
+        project: Path, monkeypatch, phase, other):
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text(
+        "to: sanctuary-director\n"
+        + "ts: 2026-09-30T00:00:00Z\nfrom: prime\n\none\n"
+        + "---\nts: 2026-09-30T00:00:01Z\nfrom: prime\n\ntwo\n")
+    shown = []
+    real = send_mod._print_blocks_with_labels
+
+    fired = []
+
+    def _other_actor(root, me, blocks, wrap=160):
+        """what the OTHER caller does to the same seat, mid-read (ONCE --
+        the nested reader reaches the same printer seam)"""
+        if fired:
+            return real(root, me, blocks, wrap=wrap)
+        fired.append(other)
+        if other == "append":
+            with inbox.open("a") as f:
+                f.write("---\nts: 2026-09-30T00:00:02Z\nfrom: prime\n"
+                        "\nthree\n")
+        elif other == "read":
+            send_mod.read(root, me, "prime")
+        elif other == "peek":
+            send_mod.peek(root, me)
+        elif other == "partial":
+            # the pre-existing d2420e17c shape, restored verbatim: the nested
+            # read prints through the REAL printer, so its blocks are
+            # deliberately not in `shown` and it owes this loop nothing.
+            send_mod._print_blocks_with_labels = real
+            try:
+                send_mod.read(root, me, "prime")
+            finally:
+                send_mod._print_blocks_with_labels = _other_actor
+        return real(root, me, blocks, wrap=wrap)
+
+    def seam(root, me, blocks, wrap=160):
+        shown.extend(blocks)
+        if phase == "before":
+            _other_actor(root, me, blocks, wrap=wrap)
+        ans = real(root, me, blocks, wrap=wrap)
+        if phase == "after":
+            _other_actor(root, me, blocks, wrap=wrap)
+        return ans
+
+    monkeypatch.setattr(send_mod, "_print_blocks_with_labels", seam)
+
+    assert send_mod.read(project, seat, "prime") == 2, \
+        "the measured read sees the two blocks present at its scan"
+
+    text = inbox.read_text()
+    assert send_mod.READ_MARKER in text, "the read must mark"
+    retired = text.split(send_mod.READ_MARKER)[0]
+    # The invariant is CONDITIONAL and the comment now says so: a body AHEAD
+    # of the cursor is read by the NEXT call and owes THIS one nothing, so the
+    # check runs over the bodies that ended up behind the marker. A vacuous
+    # pass -- nothing behind the marker at all -- would hide every over-cut,
+    # so both bodies present at the scan are asserted to be behind it AND in
+    # what a pane received.
+    for body in ("one", "two"):
+        assert ("\n" + body + "\n") in retired, \
+            f"'{body}' was present at the scan but is not behind the cursor: " \
+            "the loop below would pass with nothing to check"
+        assert any(("\n" + body + "\n") in b for b in shown), \
+            f"'{body}' sits behind the cursor but NO call printed it"
+    for body in ("one", "two", "three"):
+        if ("\n" + body + "\n") in retired:
+            assert any(("\n" + body + "\n") in b for b in shown), \
+                f"'{body}' sits behind the cursor but NO call printed it"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line, conjunct 1
+# at the CLI SEAM: `read <seat> --peek` (the pre-flight rotation_alert fires)
+# PRINTS the body and moves NO cursor. RED on the bytes that dropped the flag:
+# the positional path called `read(...)` with its default mark=True, so the
+# seat's own next read answered `inbox for <seat>: empty`.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def test_positional_read_peek_prints_and_moves_no_cursor(
+        project: Path, monkeypatch, capsys):
+    """The flag that says "never advance" must not advance, INBOX or dm."""
+    monkeypatch.chdir(project)
+    monkeypatch.setenv("AGI_AGENT_ID", "seat-a")
+    seat = "seat-a"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: seat-a\nts: 2026-09-30T00:00:00Z\nfrom: prime\n"
+                     "\nBODY-ONE\n")
+    before = inbox.read_bytes()
+
+    rc = send_mod.main(["read", seat, "--peek"])
+    printed = capsys.readouterr().out
+    assert rc == 0, printed
+    assert "BODY-ONE" in printed, printed
+    assert inbox.read_bytes() == before, \
+        "--peek wrote the read marker: the cursor moved past bytes the pane got"
+    assert send_mod.READ_MARKER not in inbox.read_text()
+
+    # the seat's OWN read still reports the line
+    assert send_mod.main(["read", seat]) == 0
+    assert "BODY-ONE" in capsys.readouterr().out
+
+
+def test_positional_read_peek_advances_no_dm_cursor(project: Path, monkeypatch,
+                                                   capsys):
+    """The dm sweep on the same call is the second cursor -- it must also
+    stand still under `--peek` (read_dms(commit=...))."""
+    monkeypatch.chdir(project)
+    monkeypatch.setenv("AGI_AGENT_ID", "seat-a")
+    croot = project / "comms-root"
+    (croot / "dm").mkdir(parents=True, exist_ok=True)
+    cfg = json.loads((project / ".agi" / "config.json").read_text())
+    cfg["locations"] = {"comms_root": str(croot)}
+    (project / ".agi" / "config.json").write_text(json.dumps(cfg))
+    conv = croot / "dm" / "seat-a--seat-b.md"
+    conv.write_text("from: seat-b\nts: 2026-09-30T00:00:00Z\n\nDM-BODY\n")
+    before = conv.read_bytes()
+    rc = send_mod.main(["read", "seat-a", "--peek"])
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "DM-BODY" in out, f"the dm sweep never ran: {out}"
+    # the dm read position lives in the sidecar state file, not the conv file
+    assert conv.read_bytes() == before
+    assert not Path(str(conv) + ".state.json").exists(), \
+        "--peek committed the dm conversation read position"
+    # and the seat's own read still reports it
+    assert send_mod.main(["read", "seat-a"]) == 0
+    assert "DM-BODY" in capsys.readouterr().out
+
+
+def test_read_peek_with_dm_or_room_is_refused(project: Path, monkeypatch,
+                                              capsys):
+    """A flag that cannot be honoured must REFUSE, naming the verb that can:
+    `read --dm|--room` has no commit switch, so `--peek` there would silently
+    do nothing while promising the opposite."""
+    monkeypatch.chdir(project)
+    monkeypatch.setenv("AGI_AGENT_ID", "seat-a")
+    for argv in (["read", "--dm", "seat-b", "--peek"],
+                 ["read", "--room", "quorum", "--peek"]):
+        rc = send_mod.main(argv)
+        err = capsys.readouterr().err
+        assert rc != 0, f"{argv} was accepted and cannot honour --peek"
+        assert "peek" in err, err
+
+
+def test_read_peek_seam_through_a_real_send_py_subprocess(
+        project: Path, tmp_path, monkeypatch):
+    """The WIRE probe: the real `send.py read <seat> --peek` as a SEPARATE
+    PROCESS (the shape rotation_alert fires) leaves the inbox bytes identical
+    -- not merely a monkeypatched `read()` seam."""
+    env = {**os.environ, "AGI_AGENT_ID": "seat-a"}
+    for k in ("AGI_SEAT", "AGI_ACTOR"):
+        env.pop(k, None)
+    inbox = send_mod._inbox_path(project, "seat-a")
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("to: seat-a\nts: 2026-09-30T00:00:00Z\nfrom: prime\n"
+                     "\nSUBPROC-BODY\n")
+    before = inbox.read_bytes()
+    out = subprocess.run(
+        [sys.executable, str(Path(send_mod.__file__).resolve()), "read",
+         "seat-a", "--peek"],
+        cwd=str(project), env=env, capture_output=True, text=True, timeout=60)
+    assert out.returncode == 0, out.stderr
+    assert "SUBPROC-BODY" in out.stdout, out.stdout
+    assert inbox.read_bytes() == before, \
+        "the real CLI wrote # read up to here under --peek"
