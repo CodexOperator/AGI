@@ -27,6 +27,7 @@ town: core
 
 ## Dispatch line
 config-max: none new (the `.scope` suffix is the unit type, not a cell) / template-max: none / code: one token and one rc branch in `_stop_stage_unit`; test fake tightened.
+ORDER (SM 12:46Z, dispatch now -> DG2): ONE source for the suffix -- mem_cap owns it (e.g. mem_cap returns or names the full `<unit>.scope` it created, used by both wrap_argv's caller and the stop), never a second `.scope` literal in workflow.py; the fake systemctl refuses a bare name with rc 5 (as the real one does); re-pin test_workflow_stage_scope.py:260. Kid (Sonnet 5.5) answers this line FIRST: name the mem_cap symbol that carries the suffix. Review: claude -p --model claude-sonnet-5-5 (the claude-code lane). Live proof: the 3-path pi-free check (normal, wall, error): scope gone + orphan dead after return.
 
 ## FALSIFIERS
 F1 the fake systemctl receives a name without `.scope` and accepts it (the old behaviour passes the new test).
