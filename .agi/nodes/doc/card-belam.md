@@ -68,7 +68,7 @@ Owner picks open: DG4 assignment · Round 8 start · the seed boot install (root
 | 64 | RAM MAIN: tmpfs pages are charged to the FIRST writer's slice and stay there | heal's writes land on agi-engine.slice as shmem; the budget line is goal:g7.16.1.5.5 |
 | 66 | `send.py read belam` printed "empty" while DG3 02:59Z + 03:05Z and TM 21:55Z sat in the dm files / inbox file | read `.agi/comms/season-2/dm/*belam*` + `.agi/sessions/inbox/belam.md` by ts after every [decision] wait |
 | 65 | `rm -rf $VAR/$X` is refused by the safety check | literal absolute paths, or `"${S:?}"/"${d:?}"` |
-| 68 | a gate suite in /dev/shm/smtmptm/neutral piled up 273+ python3 that never exit (9.8 GB anon, +255 MiB/min, swap 102 MiB) 16:1xZ 10-01; resolved ~16:2xZ (SM scope 12 procs / 676 MiB, avail 10.7 GB) -- CANDIDATE cause of the 14:42Z hard reboot | read the scope by comm + cwd (cgroup.procs), never argv; cause = SM to name |
+| 68 | a gate suite in /dev/shm/smtmptm/neutral piled up 273+ python3 that never exit (9.8 GB anon, +255 MiB/min, swap 102 MiB) 16:1xZ 10-01; STOPPED by belam auto-stop ~16:2xZ (PSI full10 33.2 > 30: SIGTERM 295, SIGKILL 0; avail back 10.7 GB; suite result VOID, SM told) -- CANDIDATE cause of the 14:42Z hard reboot | read the scope by comm + cwd (cgroup.procs), never argv; cause = SM to name |
 | 67 | `open(p,"w").write(f(open(p).read()))` truncates BEFORE it reads: posts.md went 0 B 15:13:24-15:14:04Z 10-01 (gen 24) | read into a variable first, write a tmp + os.replace; a row-only commit = hash-object HEAD copy + update-index --cacheinfo |
 
 ## §5 Verification
