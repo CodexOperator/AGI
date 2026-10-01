@@ -1932,22 +1932,33 @@ def _run_stage_proc(cmd, *, budget: float, stage: dict,
                                                    out, err)
             except subprocess.TimeoutExpired:
                 if n >= grants or not _stage_is_producing(stage):
+                    # Read ONCE, BEFORE the stop and the kill: after them the
+                    # stage is dead either way, so re-reading says "already
+                    # exited" for a REAL wall timeout too -- which would answer
+                    # the caller with a bare negative rc and SKIP its
+                    # TimeoutExpired handling ('timed out after N s', rc 2).
+                    already_done = proc.poll() is not None
                     # The scope stop goes FIRST: an orphan that inherited the
                     # stage's pipe kept the bare communicate() below blocking
                     # forever, so the `finally` never ran (g7.33.19 row 60).
                     if unit:
                         _stop_stage_unit(unit); unit = None
                     proc.kill()
+                    read_back = False
                     try:
                         out, err = proc.communicate(timeout=_WALL_STOP_GRACE_S)
+                        read_back = True
                     except subprocess.TimeoutExpired:
-                        # an orphan still holds the pipe: a DONE stage is not
-                        # a wall kill, so its own result is the run's result.
-                        if proc.poll() is not None:
-                            return subprocess.CompletedProcess(cmd, proc.returncode, None, None)
-                        raise subprocess.TimeoutExpired(cmd, deadline)
-                    raise subprocess.TimeoutExpired(cmd, deadline, output=out,
-                                                    stderr=err)
+                        out = err = None   # an orphan still holds the pipe
+                    # A stage that had ALREADY exited is not a wall kill, whether
+                    # the bounded read came back (the stop closed the pipe) or
+                    # not: its own rc, and whatever the read got, is the result.
+                    if already_done:
+                        return subprocess.CompletedProcess(cmd, proc.returncode, out, err)
+                    if read_back:
+                        raise subprocess.TimeoutExpired(cmd, deadline, output=out,
+                                                        stderr=err)
+                    raise subprocess.TimeoutExpired(cmd, deadline)
                 n += 1
                 budget = stage.get("extension_s") or budget
                 deadline = time.monotonic() + budget
