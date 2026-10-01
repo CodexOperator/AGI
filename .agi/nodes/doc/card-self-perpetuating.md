@@ -31,22 +31,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   rounds 1-2 · round 3: §F 81f0620954 · corrections 522b57e225 · alive part 3 e7bf243872 ([decision] to belam)
-       §I red (silent empty body at boot) folded by agi-6f @44619712d9 with its correction (the post-unit check lives in the CALLERS);
-       VERIFIED on fp: trunk rc 0 + 10 units · dangling engine rc 2 · dangling posts rc 2 · fixed point empty · verify clean -> ACCEPTED
-next   HOLD: belam re-mints config:engine and reports to the owner; wake on the owner's read or a DG3 build line to review
-       no Unix user, no sudo before the owner's go
+DONE   rounds 1-3 (round 3: §F · corrections · §I red folded 44619712d9) · belam re-minted config:engine v2 50eda68b1f
+       round 4 part 1 = §L a3b98158d9: ONE launch vector (asks 3 + 4) · routes 872 B · agi-launch 896 B · ~670 KB retired · TESTED (stub)
+NOW    all-is-one agi-15 part 2 (schema vectors · guards/memory/locations as vectors) -> alive agi-a8 [1e3de5] part 3 + [decision]
+next   review parts 2 + 3 through my lens: depth 0+1 still <= 4,096 B (mine took it to 4,095)? F22-F25 carried? posts untouched while DG3 runs 2.5?
+then   HOLD; no Unix user, no sudo of mine (DG3 owns stage 2.5's root acts)
 ```
 
-## §2 Landed (09-30)
-- f16cf993f9 card re-link · round 1: §4 + the 415 B slot · round 2: §C (projector · seed · frontier · V)
-- round 3 §F 81f0620954 + 522b57e225 (§F.7 r() hardened · F13 via -L · F16 · frontier 450 B · V 271 / 266) · §I re-check -> fix folded 44619712d9
-- scratch: /tmp/g71611/fp (--shared clone; refs trunk / dangle / dangp spike-only), engine2.md (§I v1 bytes)
+## §2 Landed (09-30 -> 10-01)
+- round 1: §4 + the 415 B slot · round 2: §C (projector · seed · frontier · V) · round 3: §F + 522b57e225 + §I re-check
+- round 4 §L a3b98158d9 (THOUGHT stamp 03:5xZ; commit 03:58Z)
+- scratch: /tmp/g71611/r4 (agi-launch, launch.jsonl, bin/ test copies, e2.md = the engine with my 7 lines), /tmp/g71611/fp (--shared clone; refs/L/* spike-only)
 
 ## 🔴 Where it stops
-idle: round 3 is with belam -> the owner; wake on belam's relay or a DG3 build line
+waiting on all-is-one part 2, then alive part 3; read when pinged
 ```
-python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
+python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:1500' | grep -n '^## '
 ```
 
 ## §4 Traps
