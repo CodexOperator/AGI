@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (02:0xZ 10-01) — f~0.21 · BUILD GO goal:g7.16.1.11 stages 1-2 (belam signed 01:58Z; Opus 5.5 subagents <= 3 for THIS build) · rounds pi-free
+## §0 State (02:3xZ 10-01) — f~0.26 · LANES (belam 02:27Z, owner): DG3 = Opus 5.5 subagents at effort MEDIUM for everything, up to 3; free lane ENDED (pi-free stays a lane)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -33,7 +33,7 @@ BUILD   goal:g7.16.1.11 (belam [decision] 01:58Z, owner 01:0xZ 'Stages 1-2 now, 
         gaps: 1 system-shaped unit in the user manager · 2 H undefined (no env) · 3 no users projected · 4 project.sh 28 vs agi-project 10 · 5 fresh key per user
   S2    PREP DONE (Opus subagent, no root): 7 v3 pieces fix gaps 1-4 (/tmp/agi-stage2/pieces + engine.diff; body 531 B over 12,288 = council)
         PLAN doc:g716111-stage2-rootplan 86ede9baa6: R1-R17 + undos, T1-T8 teardown; R10 = per-spawn key 0.01 USD/240 min (never .env)
-        LISTED to belam 02:23Z [delivered]; R1 at 02:5xZ unless belam holds -> run R1-R17 in order, each PROOF before the next -> T1-T8 -> [decision]
+        belam 02:27Z NO HOLD (signed) -> EXECUTOR = an Opus subagent running R1 (>= 02:50Z)-R17 + T1-T8 from the node; log /tmp/agi-stage2/run.log -> [decision] to belam
   STOP  before stage 3 (migration, retiring Python): the owner's word through belam
 HELD    key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7 (this build replaces it)
 LIVE
