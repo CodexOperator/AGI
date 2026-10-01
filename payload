@@ -1523,6 +1523,7 @@ sweep-judges-it.
 #: worktree per 30s pass -- ~3000 process spawns per pass to reach the same
 #: answer. The cache is per-process and rebuilt on restart, never on disk.
 _SWEEP_SKIP: dict = {}
+_SWEEP_ORPHAN: set = set()  # DG2.C1: orphan trees already refused by name
 
 
 def _sweep_worktree_heads(main_checkout: Path) -> dict:
@@ -1738,6 +1739,15 @@ def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
     return SWEEP_ARCHIVE_SAME if same_head and not dirty else None
 
 
+def _sweep_orphan(wt: Path) -> bool:
+    """DG2.C1: `<wt>/.git` is a gitfile whose `gitdir:` target no longer exists."""
+    try:
+        line = (wt / ".git").read_text().strip()
+    except OSError:
+        return False
+    return line.startswith("gitdir:") and not Path(line[7:].strip()).exists()
+
+
 def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                               grace_min: int | None = None
                               ) -> tuple[int, int, int]:
@@ -1871,6 +1881,17 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         if not head:
             head_lines, _ = _git(["rev-parse", "HEAD"], wt)
             head = head_lines[0] if head_lines else ""
+        if not head and _sweep_orphan(wt):
+            # DG2.C1: no HEAD and its gitdir is gone -- nothing to pin or
+            # remove. Refuse by name ONCE (never "archived"), then stay quiet.
+            if agent_id not in _SWEEP_ORPHAN:
+                refused += 1
+                _watch_log(f"[sweep] refused {agent_id}: orphan: gitdir gone "
+                           f"(no HEAD; nothing archived or removed)")
+                if not dry_run:
+                    _SWEEP_ORPHAN.add(agent_id)
+            continue
+        _SWEEP_ORPHAN.discard(agent_id)
         # (2)+(3) goal:g7.16.1.5.3: "unmerged" and "dirty" are no longer
         # terminal -- landings are fresh commits, so ancestry is rarely
         # provable. Such a tree is ARCHIVED (refs/archive/worktrees/<name>,
