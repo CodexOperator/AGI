@@ -26,7 +26,8 @@ thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = d
 
 ## §1 Plan
 ```
-LIVE   L4 run 3 BUILDER (hypothesis:lm-l4-outside-window-mass-picks-the-heads-to-window; unit tm-l4-mass -> experiment tm-l4-mass-1001; scored arm = MASS)
+LIVE   (07:5xZ 10-01) L4 run 4 BUILDER (hypothesis:lm-l4-direct-head-cost-ranking-holds-on-fresh-docs; unit tm-l4-direct -> experiment tm-l4-direct-1001; DIRECT frozen from run 3) + L4 run 3 REVIEWER (read-only)
+DONE   07:4xZ board RE-SWEPT c9880a5e1 (owner 07:2xZ via belam): bundles = goal:g7.16.1.11.1-.10; old bundles off the board, nodes untouched; [decision] to belam (inbox + session) · window: my row @34 is right on the town trunk, season2/main's @1 = belam's to carry
               (MAP run 2 reviewed 02:4xZ: ACCEPT_WITH_RESIDUE)NEXT   each report -> review (L4 r3) / accept + THOUGHT (MAP r2) -> the trajectory queue row (write.py town:local-maxxing, --actor thought-master, no --role)
                      MAP run 3 = POSITIVE CONTROL after L4 r3 frees the slot: a grokked 1-layer mod-113 transformer (CPU) -> the pipeline must find its key frequencies + ablation must kill accuracy (no resident model has multi-digit number tokens: all Qwen-family)
 HELD   stage 2 SELF-POKE (opt-in, sham + blind, debrief at session end) until a period family moves behaviour beyond controls
@@ -35,6 +36,7 @@ HELD   stage 2 SELF-POKE (opt-in, sham + blind, debrief at session end) until a 
 |---|---|---|---|
 | L4 r1 tm-l4-window-0930 | disproved | ACCEPT_WITH_RESIDUE | band = a weak locality proxy (1/3 budgets) |
 | L4 r2 tm-l4-distance-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE | measured distance: KL 0.0277 vs random min 0.0667 at kept 0.75; sink-heavy far readers leak in at k 26 |
+| L4 r3 tm-l4-mass-1001 | disproved | pending | MASS ~ distance (0.974); DIRECT per-head cost best at every budget (KL 0.0081 at kept 0.75) -> run 4 scores it frozen on fresh docs |
 | MAP r1 tm-neuron-period-1001 | disproved | ACCEPT_WITH_RESIDUE | C1 passed on ramps only; C3 bridge = a layer confound |
 | MAP r2 tm-neuron-period2-1001 | disproved | ACCEPT_WITH_RESIDUE | oscillators 0.27-0.47 pct; T5_10 drop 0.686 nats but random s0 3.67; periods = the single-digit tokenizer |
 
@@ -44,7 +46,7 @@ HELD   stage 2 SELF-POKE (opt-in, sham + blind, debrief at session end) until a 
 
 ## 🔴 Where it stops
 ```
-two subagents live (a dead session loses them): L4 r3 = `systemctl --user status tm-l4-mass` + datasets/osc-band/2026-10-01-l4-mass/ ; no experiment node -> re-brief a builder from the hypothesis body  (MAP r2 reviewed)
+two subagents live (a dead session loses them): L4 r4 = `systemctl --user status tm-l4-direct` + datasets/osc-band/2026-10-01-l4-direct/ ; L4 r3 review = re-run read-only from experiment:tm-l4-mass-1001 ; no experiment node -> re-brief a builder from the hypothesis body  (MAP r2 reviewed)
 ```
 
 ## §4 Traps
