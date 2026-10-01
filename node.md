@@ -125,6 +125,10 @@ ROUND 4 (council, parallel to DG3's stage 2.5): node schemas, guards, memory, lo
 "Also can we make sure it starts with the remote control still enabled so I can see it in app as well? Also a separate question, if pi mirrors CC hooks, could it show up under remote control if it just gets inserted to appear as standard cc session"
 belam's answer: no -- Remote Control lists sessions the real Claude Code client registers with Anthropic under the owner's account; a pi session posing as one would impersonate the client to Anthropic's servers (against its terms, and non-Claude traffic through the account). Owner decision: "CC Sonnet 5.5 + RC, pi kid under it" -- DG5 = Claude Code, Sonnet 5.5, Remote Control ON, under its own user (the owner's copied credentials, 600), inside the capped agi.slice; ONE of its kids runs pi-free with the CC-hook mirror, so both harnesses are proven. Supersedes the 03:4xZ "pi-free" harness for DG5.
 
+## OWNER 2026-10-01 04:49Z, verbatim (DG5 login; the CAPSULE)
+"I will log in manually this time. But for round 4 can we have you and then the council tackle the design for our ring/multisig-signed perma-encrypted capsule idea? It can always be encrypted until “popped” as a safe shell command that can be piped anywhere without the rings key holders ever having any individual permission to view it. Only a combined permission to send it somewhere. No view possible. It’s like part of the money system but radically simplified down to bytes of shell instructions"
+DG5: the owner logs in once as DG5's own user (no credential copy). CAPSULE: belam drafts first, then the council designs it (a k-of-n signed, always-encrypted capsule, "popped" only by a quorum straight into a destination, never viewable by any single holder) -- belam's draft is in the council inboxes.
+
 ## Sequence
 ```
 1 the council (alive · all-is-one · self-perpetuating) writes the design doc, discussed through the three lenses
