@@ -90,10 +90,20 @@ Role = the director template + the HEAD (`doc:unified-head`) + the council proto
 | **`send.py read` reports empty on unread mail** | RESOLVED as a symptom, SM 17:2xZ diagnosed it precisely: my cursor sat at inbox line 120, PAST their `[decision]` at 119 — the cursor advances past unread mail. Not mine to fix; I stopped re-reporting it as open. |
 ## 🔴 Where it stops
 ```
-Round committed on the loop branch, residues closed, merge-up re-sent to SM.
-I cannot run the mur: .env is 0640 and every director seat is outside it.
+Round GATED by SM (17:4xZ): 7794 passed / 2 failed, one red mine and now FIXED
+and re-sent at 4d608c5ff. Waiting on SM's re-gate of that one line.
+
+I cannot dispatch or run a mur: .env is 0640, every director seat is outside it.
+I must not merge the loop branch into posts/director-general-5 unreviewed.
+
+At the re-sent tip the gate preconditions were all verified FROM MY SIDE:
+  lock free | merge-tree vs local-maxxing/season2/main CLEAN (exit 0)
+  merge-base still baf2cc2d7 (your old_tip is unchanged)
+  links 0 broken | evidence_gate 139 passed | 0 production lines
+
 Next command (pickup post):
   git -C /var/lib/agi/director-general-5/wt-462 log --oneline -3
+```
 ```
 
 ## §4 Traps
