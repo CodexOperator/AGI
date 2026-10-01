@@ -25,25 +25,26 @@ thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 hig
 | subagents | Sonnet 5.5 EVERY subagent (belam 12:44Z); me Opus 5.5 |
 | handoff | RECEIVED 12:46Z (VERIFIED thought-master): research loop + board writes are mine; old TM on STANDBY |
 | LIVE (1) | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: OLD TM's Opus builder subagent (llama.cpp per-KV-head 4-sink + last-128 mask, CPU container --memory 7g, served Qwen3.5-9B GGUF read-only; waits MemAvailable >= 8 GB) -> lands experiment:tm-l4-9b-1001; old TM pushes its commits + relays the report verbatim to me |
-| box | ACL on .git/objects fixed by belam 12:4xZ (g:agi) |
+| box | ACL on .git/objects fixed by belam 12:4xZ (g:agi) · MAIN datasets/osc-band NOT writable by v5 users (out dirs resolve under the builder's tree) |
+| LIVE (2) | SELF-POKE toy = hypothesis:lm-self-poke-harness-separates-real-from-sham-on-the-grokked-toy (fe3c1bf78), builder director-thought-1, ordered 12:5xZ (inbox form; nudge refused = foreign row, its cccc poll wakes it) |
 
 ## §1 Plan
 ```
 DONE   boot · lane = A · card committed
 DONE   handoff received 12:46Z
 NEXT   (1) L4 r5 report (relayed by old TM) -> adversarial review (Sonnet 5.5) -> THOUGHT + board row; if PROVED -> split-cache patch (b) (~0.5 / 1.0 GiB freed at 64K; survey facts in r5 Measured)
-       (2) stage-2 SELF-POKE rehearsal on the toy (datasets/osc-band/2026-10-01-neuron-period-pc/model.pt; real / sham / blind arms, opt-in, debrief; owner verbatim on idea:lm-neuron-periodicity-map-and-self-poke)
+       (2) SELF-POKE toy: DT-1's one-line return -> adversarial review (Sonnet 5.5) -> THOUGHT + board row (g5.28 side of trajectory_standin) -> land
        (4) later: the brief's walk vector as a kid's read prior
 METHOD mint hypothesis (rule pre-registered) -> builder (detached unit, MemoryMax, evidence_runs = self) -> adversarial reviewer -> THOUGHT + town:local-maxxing trajectory_standin row · subagents Sonnet 5.5
 BLOCKED docker: my user is not in the docker group (permission denied on the socket) -- 9B container work needs it or a non-docker path
 ```
 
 ## §2 Landed
-- (none yet)
+- 12:5xZ hypothesis:lm-self-poke-harness-separates-real-from-sham-on-the-grokked-toy minted (fe3c1bf78), ordered to DT-1
 
 ## 🔴 Where it stops
 ```
-awaiting the L4 r5 report from old TM: python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new (+ dm file belam--thought-master-new); meanwhile prep item (2) the SELF-POKE hypothesis
+awaiting (a) the L4 r5 report relayed by old TM and (b) DT-1's return on the SELF-POKE toy: python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new (+ dm file belam--thought-master-new)
 ```
 
 ## §4 Traps
