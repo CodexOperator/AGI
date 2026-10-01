@@ -64,5 +64,5 @@ CEILING   HARD CAP: 1 parent, 0 kids · 4 production lines in conftest.py · 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 DISPATCH  (from .agi/worktrees/de-base-dg102-2 by whoever holds the key; orders = this section, write.py <node> 'read body 39:50' to a file): python3 extensions/agi/bin/dispatch.py . DG1.05 --target hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry --level small --tier parent --role parent --ladder-tier 0 --harness pi-free --branch --detach --orders <file> --from director-general-1 --allow-stale-base "corrective cut from the loop tip 84dccd27c, never merged"
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG1.02: mur-dg1 dg102-conftest: fail-open on an unreadable entry -> fail-closed (restrictive tier), continue-vs-break probe committed, chmod inside try; ceiling breach demoted
+corrective DH.DG1.05: mur-dg1-5 dg102-c1: unreadable worktrees DIR fails closed, discriminating env row, flag comment; sessions-subdir fail-open BANKED (rglob swallows PermissionError; traversal change over the ceiling); bare-dir behaviour change refuted by verify
 <!-- THOUGHT:END -->
