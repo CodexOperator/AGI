@@ -17,18 +17,18 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree /var/lib/agi/thought-master-new/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (12:46 Z 10-01, read from date -u)
+## §0 State (15:2xZ 10-01, read from date -u)
 | | |
 |---|---|
-| WIND-DOWN | belam 13:50Z: finish the current step, commit, card, NO new work from 14:00Z; units stay up; resume at the owner's morning (no moves until his word) |
+| RUN | wind-down LIFTED (owner 15:1xZ via belam 15:03Z: keep going until goal:g7.16.1.11.1-.10 complete); box rebooted 14:42Z, v5 posts restored one at a time (DG5 > me > DT-1 > DT-2) |
 | lane | research loop: town:local-maxxing trajectory board, goal:g5.22-g5.31, round placement (belam [decision] 12:44Z, owner 07:5xZ on goal:g7.16.1.11) |
 | directors | director-thought-1 + -2 SEATED 12:4xZ / 12:5xZ (Sonnet 5.5, v5) · lane max parallel, mixed Sonnet + pi-free |
 | subagents | Sonnet 5.5 EVERY subagent (belam 12:44Z); me Opus 5.5 |
 | handoff | RECEIVED 12:46Z (VERIFIED thought-master): research loop + board writes are mine; old TM on STANDBY |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: BLOCKED 13:17Z (MemAvailable 3.5-6.8 GB never reached the 8 GB gate in 2.5 h); built + committed c72c99802 c17b49e48; gate KEPT; resume steps in the node's THOUGHT (007f9ce96) |
 | box | ACL on .git/objects fixed by belam 12:4xZ (g:agi) · MAIN datasets/osc-band NOT writable by v5 users (out dirs resolve under the builder's tree) |
-| REVIEWED | SELF-POKE toy: experiment:dt1-self-poke-toy-1001 PROVED (742c23689) = ACCEPT_WITH_RESIDUE 13:5xZ (scratch re-run byte-identical); 3 MED residues (post-hoc guard edit recorded · C3 saturates on any full edit · C4 lacks random + W_out-norm controls) -> DT-1's corrective round in the morning; full review in the hypothesis THOUGHT |
-| LIVE (1) | SEEDS x3 = hypothesis:lm-neuron-periodicity-control-replicates-across-training-seeds (cd6281988), builder director-thought-2, ordered 13:0xZ |
+| LIVE | SELF-POKE: review ACCEPT_WITH_RESIDUE -> CORRECTIVE DH.1 on the hypothesis node (843f17d4b: C5a/C5b random-set control, two-sided call + dose-response, post-hoc guard recorded) ordered to DT-1 15:2xZ (offline until restored; order in its inbox) |
+| LIVE | SEEDS x3 (cd6281988): run 1 ABORTED 14:05Z by the v5 strace slowdown (16x); decision a19f4a5fc: relaunch unchanged once DG3's hypothesis:g716111-g7-agi-run-strace-seccomp-bpf lands + DT-2 restarts, else a threads=1 probe -> ordered to DT-2 15:2xZ |
 
 ## §1 Plan
 ```
@@ -43,6 +43,7 @@ BLOCKED docker: my user is not in the docker group (permission denied on the soc
 ```
 
 ## §2 Landed
+- 15:2xZ [red]s to DG3 (both TAKEN): v5 children ptraced by the unit strace (fix --seccomp-bpf, hypothesis:g716111-g7-agi-run-strace-seccomp-bpf) · comms/inbox ACLs lost at the reboot (re-applied 15:2xZ; findings row 73 goal:g7.33.19) · DH.1 + SEEDS orders sent
 - 13:5xZ SELF-POKE review ACCEPT_WITH_RESIDUE recorded in the hypothesis THOUGHT
 - 13:5xZ WIND-DOWN relayed to DT-1 + DT-2
 - 13:3xZ [decision] to DT-1 + DT-2: toy start bar MemAvailable 6 -> 4 GB (PSI < 5 kept; model loads keep 6/8 GB); THOUGHTs 7d8ccf772 dd7d64f58 · DT-1 built 6ead17d9b (8 tests, 149 lines), run waiting on the bar
@@ -52,7 +53,7 @@ BLOCKED docker: my user is not in the docker group (permission denied on the soc
 
 ## 🔴 Where it stops
 ```
-WOUND DOWN 14:00Z. Morning: (1) SELF-POKE: dispatch DT-1's corrective round for the 3 MED residues (named in the hypothesis THOUGHT) -> re-review -> board row (g5.28) -> land on the trunk  (2) DT-2's SEEDS x3: read its card for pid/log -> experiment node -> review  (3) L4 r5 stays PARKED
+waiting on DT-1 (DH.1 return) and DT-2 (SEEDS relaunch) -- both offline until restored after the reboot; on a return: Sonnet 5.5 adversarial review -> THOUGHT -> board row (g5.28) -> land on the trunk
 python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new
 ```
 
@@ -60,6 +61,8 @@ python3 extensions/agi/bin/send.py --from thought-master-new read thought-master
 - v5 post: send.py nudge to belam is refused (foreign box row) -> also SendMessage belam's newest session from ListAgents
 - belam's replies land in the dm FILE (.agi/comms/season-2/dm/belam--thought-master-new.md), not the inbox: read both
 - v5 has NO systemd user manager (systemd-run --user: Failed to connect to bus): long runs = setsid nohup inside the post unit's cgroup (MemoryHigh 4 GiB shared, KillMode control-group: a unit restart kills them) -> checkpoints
+- a reboot restores /data/work/agi (tmpfs) WITHOUT the comms/inbox ACLs -> send.py PermissionError from v5: SendMessage DG3, check getfacl
+- every v5 child is a tracee of the unit strace (16x slower threaded CPU) until --seccomp-bpf lands + the unit restarts
 - my sends arrive UNSIGNED on v5 (G5 gap; key work is HELD under goal:g7.16.1.11) -- not mine to fix
 - provisioning.py status dies on MAIN .env (G2) -- expected for a v5 user
 - .agi/keys/ untracked at boot -- not mine
