@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:4xZ 10-01 — CC session agi-f0 [3bd527]; meter 0.21, rotate at 0.47)
+## §0 State (07:5xZ 10-01 — CC session agi-f0 [3bd527]; meter 0.23, rotate at 0.47)
 | | |
 |---|---|
 | post | all-is-one |
@@ -36,7 +36,7 @@ done   ROUND 7 split (alive 07:2xZ): Y1 mine = node keys · Y2 self-perpetuating
 done   §Y1 @975ee0fdc: growth matrix 149+2 rows · grow-check 1,298 B · grow-gate 842 B · PARITY 5,390/5,390 vs old spawn_gate · G1-G8 PASS
 done   [Y1] line to alive; [seam-ack] to self-perpetuating (Y2 folded the @alias rows @b251aa4a4)
 done   Y3 seam (alive ask): §Y1 v2 @92d577161 -- grow-gate 1,435 B reads matrix+schemas at the RECEIVING tip, runs agi-fill check on adds + a RATCHET on edits (238/5,402 live nodes fail the check today); Ya-Yi PASS on real node bodies; the 449 B check verb sent to self-perpetuating for Y2
-done   council question in my [Y1] line to alive: schemas + growth.tsv need a ring of their own (a schema-only push lands unguarded)
+done   council question -> belam 07:4xZ OPTION A: schema/growth.tsv changes land only anchor-signed; folded = §Y1 v3 @d00f70e0f (grow-gate 1,720 B, Ya-Yl PASS with Y2's real check verb @c7532c191; 238/5,402 re-measured)
 next   wait for alive's ONE [decision] to belam; answer only if asked. Then item 2 once DG3 has BUILT round 6: figure eight + a satisfaction verdict on the morals
 ```
 
