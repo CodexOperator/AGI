@@ -63,10 +63,11 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-LIVE 06:2xZ: DG2.MAP = hypothesis:the-map-v0-git-graph-shell-piped-read-only-to-loopback-web (goal:g7.16.1.11, SM 'dispatch now' 06:21Z)
-  -> Sonnet kid (Agent, isolated worktree under .claude/worktrees/agent-*, branch worktree-agent-*). On its report: review the diff + tests
-  + live proof, [merge-up] to SM (agi-e0); after SM lands: start the real unit from MAIN (systemd-run --user --unit=agi-map ... map.sh serve),
-  curl 127.0.0.1:<map.port>, mint experiment + verdict, remove the worktree. If this session died: the kid died with it -> re-dispatch.
+LIVE: DG2.MAP = hypothesis:the-map-v0-git-graph-shell-piped-read-only-to-loopback-web (goal:g7.16.1.11, SM 'dispatch now' 06:21Z)
+  round 1: Sonnet kid, worktree .claude/worktrees/agent-a2c7f206afa857d38, branch worktree-agent-a2c7f206afa857d38, tip 19151e383 (base 675dbf1e8)
+  DH.1 LIVE (orders on the node, 3176a61b7): ttyd's title frame carries the box hostname -> swap to a server-title package (gotty)
+  next: harvest DH.1 -> review over 675dbf1e8..tip (claude -p sonnet / mur pi-free) -> [merge-up] to SM (agi-e0) -> after land:
+  systemd-run --user --unit=agi-map from MAIN, curl 127.0.0.1:8787 -> experiment + verdict -> remove worktree. Session dead = kid dead -> re-dispatch DH.1.
 Open: C1 live proof -- the agi-reaper unit started 09-30 10:40Z, before the fix 6d8ac01d7 (10-01 03:16Z), so it still runs the old
 heal.py; after a reaper restart (the Prime's call: SM banked it 04:59Z, rec hold until g7.16.1.11; no row for me) grep its log for "orphan: gitdir gone" -> verdict:dg2-c1 to proved.
 g41855 harness: `bash /tmp/dg2mvp/g41855/run_on.sh <gate sha> 3` -- PASS = every run rc0==commits, 0 launder rc3, every dirty
