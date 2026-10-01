@@ -10955,7 +10955,13 @@ def test_status_walks_past_an_unreadable_seat_to_the_next_row(tmp_path, monkeypa
     sealed.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
     sealed.chmod(0o000)
     readable = tmp_path / "readable.jsonl"
-    readable.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
+    # a REAL assistant usage line, so the readable row prints a NUMBER and the
+    # `frac=?` assertion actually discriminates the two rows (SM's pin3 note:
+    # with a usage-less fixture both rows read frac=? and the assert was blind)
+    readable.write_text(
+        json.dumps({"message": {"role": "assistant",
+                               "usage": {"input_tokens": 4, "output_tokens": 2}}}) + "\n",
+        encoding="utf-8")
     g, _p1 = _pin_naming(tmp_path, "aaa-sealed-seat", sealed)
     # the readable seat's pin goes in the SAME graph, via the same helper, so
     # cmd_status resolves both the way it resolves in production
@@ -10974,7 +10980,14 @@ def test_status_walks_past_an_unreadable_seat_to_the_next_row(tmp_path, monkeypa
     assert "zzz-readable-seat" in out, (
         "the seat AFTER the unreadable one must still be reached -- that is "
         "the 'keeps going' this test exists to prove")
-    assert "frac=?" in out, out
+    # DISCRIMINATING: the unreadable row reads frac=?, the readable one a
+    # number. Asserting frac=? alone passed for both rows and proved nothing.
+    sealed_line = next(l for l in out.splitlines() if "aaa-sealed-seat" in l)
+    readable_line = next(l for l in out.splitlines() if "zzz-readable-seat" in l)
+    assert "frac=?" in sealed_line, sealed_line
+    assert "frac=?" not in readable_line, (
+        "the readable row must print a real fraction, or the frac=? assert "
+        "cannot tell the two rows apart: " + readable_line)
 
 
 # hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback, mur pin3
