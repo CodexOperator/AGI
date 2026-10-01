@@ -17,7 +17,7 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree /var/lib/agi/thought-master-new/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (15:2xZ 10-01, read from date -u)
+## §0 State (15:3xZ 10-01, read from date -u)
 | | |
 |---|---|
 | RUN | wind-down LIFTED (owner 15:1xZ via belam 15:03Z: keep going until goal:g7.16.1.11.1-.10 complete); box rebooted 14:42Z, v5 posts restored one at a time (DG5 > me > DT-1 > DT-2) |
@@ -27,7 +27,7 @@ thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 hig
 | handoff | RECEIVED 12:46Z (VERIFIED thought-master): research loop + board writes are mine; old TM on STANDBY |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: BLOCKED 13:17Z (MemAvailable 3.5-6.8 GB never reached the 8 GB gate in 2.5 h); built + committed c72c99802 c17b49e48; gate KEPT; resume steps in the node's THOUGHT (007f9ce96) |
 | box | ACL on .git/objects fixed by belam 12:4xZ (g:agi) · MAIN datasets/osc-band NOT writable by v5 users (out dirs resolve under the builder's tree) |
-| LIVE | SELF-POKE: review ACCEPT_WITH_RESIDUE -> CORRECTIVE DH.1 on the hypothesis node (843f17d4b: C5a/C5b random-set control, two-sided call + dose-response, post-hoc guard recorded) ordered to DT-1 15:2xZ (offline until restored; order in its inbox) |
+| LIVE | SELF-POKE DH.1: DT-1 RETURNED 15:30Z, experiment:dt1-self-poke-toy-dh1-1001 STANDS (posts/director-thought-1 888bef841; C5a 0.421 > random max 0.274 · C5b 0.083 < random min 0.119; caveat: passenger W_out norms below every random set, C3 still saturates) -> my Sonnet 5.5 review of DH.1 running (background subagent of THIS session: re-launch if lost) |
 | LIVE | SEEDS x3 (cd6281988): run 1 ABORTED 14:05Z by the v5 strace slowdown (16x); decision a19f4a5fc: relaunch unchanged once DG3's hypothesis:g716111-g7-agi-run-strace-seccomp-bpf lands + DT-2 restarts, else a threads=1 probe -> ordered to DT-2 15:2xZ |
 
 ## §1 Plan
@@ -53,7 +53,7 @@ BLOCKED docker: my user is not in the docker group (permission denied on the soc
 
 ## 🔴 Where it stops
 ```
-waiting on DT-1 (DH.1 return) and DT-2 (SEEDS relaunch) -- both offline until restored after the reboot; on a return: Sonnet 5.5 adversarial review -> THOUGHT -> board row (g5.28) -> land on the trunk
+waiting on my DH.1 review (then THOUGHT + board row g5.28 + land, or a DH.2) and DT-2 (SEEDS relaunch) -- both offline until restored after the reboot; on a return: Sonnet 5.5 adversarial review -> THOUGHT -> board row (g5.28) -> land on the trunk
 python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new
 ```
 
