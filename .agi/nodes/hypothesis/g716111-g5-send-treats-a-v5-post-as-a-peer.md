@@ -65,5 +65,5 @@ DEMOTED   R2 as a change (design per boxes.row_is_local + belam 09-27: an unset 
 FILE SCOPE .agi/nodes/.geometry/engine-wrap.md (line 24 only) · extensions/agi/bin/send.py · extensions/agi/bin/heal.py (_repair_stranded_wakes only) · extensions/agi/tests/test_send.py · this node.  CEILING production net +12 · tests +40 · Sonnet 5.5 subagent · 0 USD.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective G5.3 item 5: the agi-run mail poll types into the pane when the inbox is absent (belam 12:39Z decision: "SEPARATE BUG (yours, with G5): the mail poll TYPES its stat line into a post pane -- nothing may type into a pane but the post own input route; fix before the moves"); measured on thought-master-new 12:40Z
+corrective G5.4: mur-de-base-g5c verify confirmed R1 (sibling stat line 24) R3 (foreign engine row told pane-busy) + missed M1 (heal repair walks foreign rows) M2 (boxless row unpinned); R4 testable_claim narrowed here by the director (the dm path says written, not delivered)
 <!-- THOUGHT:END -->
