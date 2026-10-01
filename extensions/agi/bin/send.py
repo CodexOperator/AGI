@@ -1744,6 +1744,8 @@ def _register_unresolved(root: Path, seat: str, before_pending: int,
     rows = _locally_loaded_rows(root)   # DH.542 ITEM 3: an UNLISTED recipient
     if rows and _seat_row_by_name(rows, seat) is None:
         return                         # gains no pending sidecar nobody reads
+    if rows and not boxes.row_is_local(root, _seat_row_by_name(rows, seat)):
+        return                         # a FOREIGN refusal: no retry, no mark
     if _deferred_blob(root, seat) != before_deferred:
         return
     if _pending_more(root, seat) != before_pending:
@@ -1786,21 +1788,28 @@ def _clear_pending(root: Path, seat: str, observed: int | None = None) -> None:
         pass
 
 
+def _foreign_label(row: dict) -> str:
+    """The ONE label a FOREIGN refusal names: the row's box, else `(unset)`."""
+    return str(row.get("box") or "(unset)")
+
+
 def _announce_nudge(root: Path, to: str, delivered: bool,
                     inboxed: bool = True) -> None:
     """Conjunct (2): typed -> `[delivered]`; else `[undelivered-yet]`. An
     engine post is delivered by mail ONLY when the message reached the inbox
-    file its poll reads (`inboxed`); a dm file alone is written, not delivered."""
+    file its poll reads (`inboxed`); a dm file alone is written, not delivered.
+    A row of ANOTHER box (engine or not) gets the ONE `[refused]` line, the
+    sender's outcome (every send; `_nudge_target` stays quiet on a send): never
+    pane-busy, no retry."""
     if _engine_post(root, to):
         print(f"[delivered] {to} -- by mail (its own poll reads the inbox)"
               if inboxed else f"[written] {to} -- dm file only; its mail poll "
               f"reads the inbox, not delivered", file=sys.stderr)
         return
     row = _seat_row_by_name(_locally_loaded_rows(root), to)
-    if (row or {}).get("engine"):       # not local (checked above): a refusal
+    if row is not None and not boxes.row_is_local(root, row):
         print(f"[refused] {to} -- FOREIGN box row (box "
-              f"{row.get('box') or '(unset)'}); not nudged, no retry",
-              file=sys.stderr)
+              f"{_foreign_label(row)}); not nudged, no retry", file=sys.stderr)
         return
     if not row or not (row.get("window") or row.get("pid")):
         return
@@ -2467,7 +2476,7 @@ def _forget_refusals(to: str | None = None, root: Path | None = None) -> None:
 
 
 def _nudge_target(root: Path, to: str, tmux_session: str | None,
-                  repair_stale_id: bool = True,
+                  repair_stale_id: bool = True, say: bool = True,
                   ) -> tuple[str, object, str] | None:
     """Resolve the send-keys target a seat's wake lands in, exactly as
     `_nudge_window` uses it, so a silent re-check (`wake`) and the delivery
@@ -2499,8 +2508,8 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
         # say it ONCE per (row, cause): a later sweep that finds the same
         # refusal silent is a stuck loop, not news. No send-keys is ever issued
         # into that row's window; the return below is the whole refusal.
-        label = str(row.get("box") or "(unset)")
-        if _foreign_refusal_said(root, to, label):
+        label = _foreign_label(row)
+        if _foreign_refusal_said(root, to, label) and say:
             print(f"nudge: {to} is a FOREIGN box row "
                   f"(box {label}); refusing as a target", file=sys.stderr)
         return None
@@ -2596,7 +2605,8 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         target, pid, tmux_session = resolved
     else:
         resolved = _nudge_target(root, to, tmux_session,
-                                 repair_stale_id=repair_stale_id)
+                                 repair_stale_id=repair_stale_id,
+                                 say=sender is None)   # a send's sender hears [refused]
         if resolved is None:
             return False
         target, pid, tmux_session = resolved

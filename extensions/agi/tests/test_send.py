@@ -8281,16 +8281,20 @@ def test_g54_log_trim_loop_reads_an_absent_log_as_empty(tmp_path):
     node = (Path(__file__).resolve().parents[3] / ".agi" / "nodes"
             / ".geometry" / "engine-wrap.md").read_text()
     line = next(ln for ln in node.splitlines() if ln.startswith("(while sleep 300"))
-    cp = subprocess.run(["sh", "-c", line.replace("sleep 300", "sleep 0.1")
-                         + "\nsleep 0.5\nkill $!"], capture_output=True, text=True,
-                        timeout=20, env={**os.environ, "HOME": str(tmp_path)})
-    assert cp.stderr == "" and not (tmp_path / "o").exists()
+    def run(**env):
+        return subprocess.run(["sh", "-c", line.replace("sleep 300", "sleep 0.1")
+                               + "\nsleep 0.5\nkill $!"], capture_output=True,
+                              text=True, timeout=20,
+                              env={**os.environ, "HOME": str(tmp_path), **env})
+    assert run().stderr == "" and not (tmp_path / "o").exists()
+    (tmp_path / "o").write_text("x" * 50)       # positive control: the trim runs
+    assert run(AGI_PANE_MAX_MB="0").stderr == "" and (tmp_path / "o").read_text() == ""
 
 
 def test_g54_foreign_and_boxless_engine_rows_are_refused_by_name(
         project: Path, monkeypatch, capsys):
     """G5.4 #2 foreign engine row: FOREIGN refusal, no pane busy; #4 PIN boxless: no post."""
-    _fake_tmux(monkeypatch, ["post-v5"])
+    calls = _fake_tmux(monkeypatch, ["post-v5"])
     monkeypatch.setenv("AGI_BOX", "here")
     for row, label in ((dict(_V5_ROW, box="far"), "far"), (_V5_ROW, "(unset)")):
         _write_seats_node(project, [row])
@@ -8302,6 +8306,27 @@ def test_g54_foreign_and_boxless_engine_rows_are_refused_by_name(
         assert "pane busy" not in err and "sweep retries" not in err, err
     monkeypatch.delenv("AGI_BOX")
     assert send_mod._engine_post(project, "post-v5") is True
+    assert calls == [], calls
+
+
+def test_g55_foreign_row_gets_one_refusal_and_no_pending_mark(
+        project: Path, monkeypatch, capsys):
+    """G5.5 #1 a foreign NON-engine row with a window is refused, never pane busy;
+    #2 no pending mark; #3 ONE refusal line per send, send and dm alike."""
+    calls = _fake_tmux(monkeypatch, ["post-v5", "plain"])
+    monkeypatch.setenv("AGI_BOX", "here")
+    _write_seats_node(project, [dict(_V5_ROW, box="far"),
+                                {"name": "plain", "window": "@5", "box": "far"}])
+    for to in ("post-v5", "plain"):
+        for fire in (lambda: send_mod.send(project, to, "hello", "seat-a"),
+                     lambda: send_mod.send_dm(project / ".agi" / "comms",
+                                              "seat-a", to, "hi", "seat-a")):
+            fire()
+            err = capsys.readouterr().err
+            assert err.count("FOREIGN box row") == 1, err
+            assert "[refused]" in err and "pane busy" not in err, err
+            assert send_mod._pending_more(project, to) == 0
+    assert calls == [], calls
 
 
 def test_g54_heal_repair_skips_a_foreign_engine_row(project: Path, monkeypatch):

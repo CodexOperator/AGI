@@ -2322,13 +2322,13 @@ def _wake_repair_due(root: Path, now: float) -> bool:
 
 def _repair_stranded_wakes(root: Path) -> None:
     """hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter --
-    the watch pass's seat-wake repair. For every configured live seat row this
-    calls `send.wake(<seat>)`, which resubmits a stranded nudge-shaped line
-    in an IDLE pane (typed space + Enter, never Enter-only) or re-types the
-    wake token for a seat with unread, and silently no-ops on a pane with
-    nothing pending. Best-effort and read-only: missing seats / no tmux /
-    busy panes are silent no-ops; never touches the reaper logic, never
-    raises out of the watch loop."""
+    the watch pass's seat-wake repair. For every LOCAL live seat row (another
+    box's is skipped, as `send.wake_all_local` does) this calls
+    `send.wake(<seat>)`, which resubmits a stranded nudge-shaped line in an
+    IDLE pane (typed space + Enter, never Enter-only) or re-types the wake
+    token for a seat with unread, and silently no-ops on a pane with nothing
+    pending. Best-effort and read-only: missing seats / no tmux / busy panes
+    are silent no-ops; never touches the reaper logic, never raises."""
     try:
         import send as _send
     except Exception:                                     # noqa: BLE001
@@ -2339,7 +2339,7 @@ def _repair_stranded_wakes(root: Path) -> None:
         return
     for row in rows:
         seat = row.get("name") or row.get("seat")
-        if not seat or not _send.boxes.row_is_local(root, row):
+        if not seat or not boxes.row_is_local(root, row):
             continue
         # a QUIET row is skipped BY NAME: the dm is written, never a wake.
         try:
