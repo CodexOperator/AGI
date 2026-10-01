@@ -54,6 +54,15 @@ BASE      de-base-G5 tip 8999631f2 + this node commit. Never rebase.
 DEMOTED   room signatures not rendered by read_room/peek_room (a reader design item, not this claim) · the veto-via-room-line claim (refuted by the g5b verify).
 FILE SCOPE send.py · test_send.py · .agi/nodes/.geometry/engine-wrap.md (item 5, one line) + its test row · this node.  CEILING production net +15 · tests +40 · Sonnet 5.5 subagent · 0 USD.
 
+## CORRECTIVE G5.4 -- closes mur-de-base-g5c g5c-code (verify accept_with_residue: R1 R3 confirmed + missed M1 M2)
+BASE      CUT FROM de-base-G5 tip cfa9b3e27 + this node commit (worktree /mnt/agi-ram/worktrees/de-base-G5). No merge. Never rebase.
+1. The sibling stat in agi-run -- .agi/nodes/.geometry/engine-wrap.md:24 (the log-trim loop, stat -c%s ~/o) -- same class as G5.3 item 5. TRUE WHEN it reads an absent ~/o as 0 with no stderr (2>/dev/null||echo 0) and the item-5 regression row (or its sibling) covers line 24 too.
+2. A FOREIGN engine row is announced as pane busy, the sweep retries -- send.py _announce_nudge (~1794-1805) -- a refusal that never retries. TRUE WHEN a send to an engine row on another box prints the FOREIGN refusal outcome by name (no pane-busy, no sweep-retries wording); a row proves it.
+3. heal._repair_stranded_wakes (heal.py ~2338-2351) walks EVERY loaded row with no foreign-box gate, unlike send.wake_all_local (send.py ~3148-3150). TRUE WHEN it skips non-local rows the same way and a row proves a foreign engine row gets no wake call.
+4. PIN the boxless design (review R2 + verify M2, demoted as a change): a row proves an engine row WITHOUT a box cell on a box-declaring graph is not an engine post (FOREIGN refusal, per boxes.row_is_local: every live row carries its own box), and on a box-less graph stays an engine post.
+DEMOTED   R2 as a change (design per boxes.row_is_local + belam 09-27: an unset box is refused; all 6 engine rows carry box) · R4 fixed by the director in this commit (testable_claim) · M3 (tests run on the NEW checkout by rule) · M4 refuted · notes (reaper row per pass, poll env, double _engine_post).
+FILE SCOPE .agi/nodes/.geometry/engine-wrap.md (line 24 only) · extensions/agi/bin/send.py · extensions/agi/bin/heal.py (_repair_stranded_wakes only) · extensions/agi/tests/test_send.py · this node.  CEILING production net +12 · tests +40 · Sonnet 5.5 subagent · 0 USD.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective G5.3 item 5: the agi-run mail poll types into the pane when the inbox is absent (belam 12:39Z decision: "SEPARATE BUG (yours, with G5): the mail poll TYPES its stat line into a post pane -- nothing may type into a pane but the post own input route; fix before the moves"); measured on thought-master-new 12:40Z
 <!-- THOUGHT:END -->
