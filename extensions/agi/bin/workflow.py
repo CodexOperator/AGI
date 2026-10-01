@@ -1857,16 +1857,24 @@ def _stage_is_producing(stage: dict) -> bool:
     return (time.time() - mtime) <= stage.get("silence_s", 300)
 
 
+#: bounded grace for a killed stage's pipes after its scope was stopped: a
+#: pipe an orphan still holds must cost a wall kill, never an unbounded wait.
+_WALL_STOP_GRACE_S = 30.0
+
+
 def _stop_stage_unit(unit: str) -> None:
     """Stop ONE stage's OWN scope by name, on whatever exit the stage takes
     (hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit). A stage
     that leaves a child behind keeps the scope, and its I/O, alive with
     nothing to stop it by name -- so the stop belongs to the stage, not to
-    the run's luck. A failing stop is ONE stderr line, never a raise: the
-    stage's own result is the run's business, not the stopper's."""
+    the run's luck. A failing stop -- one that exits NON-ZERO, or cannot run
+    at all -- is ONE stderr line, never a raise: the stage's own result is the
+    run's business, not the stopper's."""
     try:
-        subprocess.run(["systemctl", "--user", "stop", unit],
-                       capture_output=True, timeout=30)
+        r = subprocess.run(["systemctl", "--user", "stop", unit],
+                           capture_output=True, timeout=30, text=True)
+        if r.returncode != 0:
+            raise subprocess.CalledProcessError(r.returncode, r.args)
     except (OSError, subprocess.SubprocessError) as exc:
         print(f"workflow.py: could not stop stage scope {unit}: {exc}",
               file=sys.stderr)
@@ -1907,6 +1915,7 @@ def _run_stage_proc(cmd, *, budget: float, stage: dict,
                     "agi-stage",
                     f"{run_key or 'run'}/{stage.get('label') or 'stage'}")
             cmd = mem_cap.wrap_argv(cmd, cap, cfg, unit=unit)
+            unit = unit if (cmd and cmd[0] == "systemd-run") else None  # no scope, no stop
         if legacy:
             return subprocess.run(cmd, capture_output=True, text=True, env=env,
                                   timeout=budget)
@@ -1923,8 +1932,20 @@ def _run_stage_proc(cmd, *, budget: float, stage: dict,
                                                    out, err)
             except subprocess.TimeoutExpired:
                 if n >= grants or not _stage_is_producing(stage):
+                    # The scope stop goes FIRST: an orphan that inherited the
+                    # stage's pipe kept the bare communicate() below blocking
+                    # forever, so the `finally` never ran (g7.33.19 row 60).
+                    if unit:
+                        _stop_stage_unit(unit); unit = None
                     proc.kill()
-                    out, err = proc.communicate()
+                    try:
+                        out, err = proc.communicate(timeout=_WALL_STOP_GRACE_S)
+                    except subprocess.TimeoutExpired:
+                        # an orphan still holds the pipe: a DONE stage is not
+                        # a wall kill, so its own result is the run's result.
+                        if proc.poll() is not None:
+                            return subprocess.CompletedProcess(cmd, proc.returncode, None, None)
+                        raise subprocess.TimeoutExpired(cmd, deadline)
                     raise subprocess.TimeoutExpired(cmd, deadline, output=out,
                                                     stderr=err)
                 n += 1
