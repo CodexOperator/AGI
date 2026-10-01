@@ -276,6 +276,7 @@
       "osc_band_l4_dir": "datasets/osc-band/2026-09-30-l4",
       "osc_band_l4_distance_dir": "datasets/osc-band/2026-10-01-l4-distance",
       "osc_neuron_period_dir": "datasets/osc-band/2026-10-01-neuron-period",
+      "osc_neuron_period2_dir": "datasets/osc-band/2026-10-01-neuron-period-2",
       "model_slot_lock": ".agi/sessions/locks/model-slot.lock",
       "humaneval_file": "datasets/humaneval-abc/data/HumanEval.jsonl.gz",
       "kv_format_out_dir": "datasets/kv-format/2026-09-23",
