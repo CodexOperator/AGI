@@ -7,7 +7,10 @@ them before any test body runs.
 """
 
 import importlib
+import os
+import subprocess
 import sys
+import time
 import types
 
 import pytest
@@ -240,12 +243,25 @@ def test_a_proxy_whose_attribute_access_raises_is_skipped_not_fatal(monkeypatch)
     conftest._patch_all()   # must not raise
 
 
+GUARD = "VERIFY_GUARD_LEAK_CHILD"   # VERIFY_*, never AGI_*: suite_guards.agi_env_stripped strips AGI_* vars
+
+
+def _probe(args, depth, log, timeout, **env):   # a child pytest; only the outermost opens a session: ONE killpg reaps all
+    p = subprocess.Popen([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *args], text=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=not depth,
+                         env={**os.environ, GUARD: str(depth + 1), GUARD + "_LOG": log, **env})
+    try:
+        return p, p.communicate(timeout=timeout)[0]
+    except subprocess.TimeoutExpired:
+        return p, (os.killpg(p.pid, 9), p.communicate(), None)[2]
+
+
 def test_standins_never_leak_into_a_later_module(tmp_path):
     """TMM.231 defect 2: run this file, then a module collected AFTER it, in one
     session; the later module must not see a stand-in torch."""
-    import os
-    import subprocess
-    if os.environ.get("AGI_GUARD_LEAK_CHILD"):
+    depth, log = int(os.environ.get(GUARD, 0)), os.environ.get(GUARD + "_LOG", str(tmp_path / "depth.log"))
+    open(log, "a").write(f"{depth}\n")   # the depth probe: one line per level that reached this test
+    if depth and not os.environ.get(GUARD + "_BREAK"):
         pytest.skip("inside the leak probe's own child run")
     later = tmp_path / "test_zz_later.py"
     later.write_text(
@@ -253,7 +269,21 @@ def test_standins_never_leak_into_a_later_module(tmp_path):
         "def test_no_standin():\n"
         "    t = sys.modules.get('torch')\n"
         "    assert t is None or not hasattr(t, '_calls'), t\n")
-    r = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
-                        __file__, str(later)], capture_output=True, text=True, timeout=120,
-                       env=dict(os.environ, AGI_GUARD_LEAK_CHILD="1"))
-    assert r.returncode == 0, r.stdout[-2000:]
+    p, out = _probe([__file__, str(later)], depth, log, 120)
+    assert p.returncode == 0, (out or "timed out")[-2000:]
+    assert open(log).read().split() == ["0", "1"], "the leak probe recursed past depth one"
+
+
+def test_a_broken_guard_is_still_bounded(tmp_path):
+    """The child ignores its guard (_BREAK): it recurses, the timeout fires, ONE killpg reaps every level within 5 s."""
+    if os.environ.get(GUARD):
+        pytest.skip("only the outermost level runs the bounded-break probe")
+    log = str(tmp_path / "break.log")
+    leak = f"{__file__}::test_standins_never_leak_into_a_later_module"
+    p, out = _probe([leak], 0, log, 6, **{GUARD + "_BREAK": "1"})
+    assert out is None and len(open(log).read().split()) >= 2   # it recursed, and the timeout fired
+    for _ in range(50):
+        if subprocess.run(["pgrep", "-g", str(p.pid)], capture_output=True).returncode:
+            return
+        time.sleep(0.1)
+    pytest.fail("a process of the probe group outlived the kill")
