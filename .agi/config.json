@@ -277,6 +277,7 @@
       "osc_band_l4_distance_dir": "datasets/osc-band/2026-10-01-l4-distance",
       "osc_band_l4_mass_dir": "datasets/osc-band/2026-10-01-l4-mass",
       "osc_band_l4_direct_dir": "datasets/osc-band/2026-10-01-l4-direct",
+      "osc_l4_9b_dir": "datasets/osc-band/2026-10-01-l4-9b",
       "osc_neuron_period_dir": "datasets/osc-band/2026-10-01-neuron-period",
       "osc_neuron_period2_dir": "datasets/osc-band/2026-10-01-neuron-period-2",
       "osc_neuron_period_pc_dir": "datasets/osc-band/2026-10-01-neuron-period-pc",
