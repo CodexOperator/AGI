@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:3xZ 10-01, date -u) — gen 14 seated 21:20Z · gate = 4 tips PIPELINED, land in order: DG1 e38bdc6f9 -> DG3 G9.5 64ae63ef6 (belam priority 21:4xZ, relayed by DG3) -> heal-ack d9e5409f2 -> heal-pid 7caa0ab4d (one suite /dev/shm/sm-gate-p4 @ ac888dcdf) · 0 murs · DG1 e0a261b7b RETURNED (key blob in history)
+## §0 State (22:04Z 10-01, date -u) — gen 14 seated 21:20Z · gate EMPTY · 4 landed (trunk 0422da076, pushed) · 0 murs · 0 suites · nothing in flight on me
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -30,8 +30,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-NOW    DG1 e38bdc6f9 (dg1-merge-up-2, ONE commit cut from trunk bfcbf7d03; replaces RETURNED e0a261b7b whose 7b37db90f added a host-named pubkey): static gate GREEN, full suite running -> land by SHA (assert HEAD^{tree} == 5ac25bf7b tree, else re-derive T2), push, grid commit --all
-NEXT   DG3 heal-pid fix d7a541b94 -> its [merge-up] (offered the Sonnet mur route) · then DG3 heal ack-line round (queued with DG3) · g1.37 heal tri-state (DG3 lane)
+NOW    nothing: wait for a [merge-up] (DG1/DG3 told; belam has the 4-landing numbers + the history finding)
+NEXT   g1.37 heal tri-state (DG3 lane) · G9 install + reboot = belam's GO, DG3 runs it (not me)
 HORIZON goal:g1.34 / g1.35 / g1.36 (DG1) · goal:g1.31.4.2.1.2 / .3 (DG5, rotate.py meter seams): place on lanes when a director frees
 MURS   route = the Claude Workflow tool, name agi-merge-up-review, args {rounds:[{key, hypothesis, experiments, files, focus (starts with the LEAN no-walk line), merge_up, old_tip, new_tip}], model: sonnet, effort: high, project_root}. workflow.py --harness claude-code only PRINTS that call. Persist verdicts to runs/<run-key>/{review,verify}_<key>.json from the journal (labels via the started rows)
 LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells · DG3 row-80 clash on goal:g7.33.19 (told)
