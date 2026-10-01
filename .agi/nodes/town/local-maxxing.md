@@ -63,55 +63,49 @@ LOCATION ──▶ local-town
 
 ```
 town:local-maxxing
-├─ GOAL BUNDLE (diagram-max) — RESEARCH only
-│  ├─ g5.22–.31 … research tracks (was g14.6–.16; nested .N kept)
-│  ├─ g5.17–.21 … remapped from legacy g14.1–.5 / g14.3 lineage
-│  ├─ goal:g1.25 …… CLI GRAMMAR (G1 umbrella: the jev choice surface; owner 09-23)
-│  ├─ goal:g1.26 …… PASS 10 RESIDUES (8 confirmed engine defects + the 30-round table; director-engine; reap-chain = DH.503 dispatch-now)
-│  └─ town:local-maxxing tagged goals (same set ∩)
-│  └─ goal:g7.33 …… MOVED → town:core (engine; parked unassigned)
-├─ GRAPH REDESIGNS — engine goals on town:core, assigned director-engine; in DEPENDENCY order (owner 01:0xZ 09-27: send depends on mint, rotate on send)
-│  ├─ 1 node spawn/mint … goal:g4.18.1 (may be mostly done)
-│  ├─ 2 messaging + nudge … goal:g7.32.6 · goal:g7.32.5
-│  └─ 3 spawn/rotate ……… goal:g7.31.3.3
-└─ TRAJECTORY STAND-IN ← folded from doc:lm-town-trajectory
-      (PERMANENT here, owner 09-30; doc:lm-town-trajectory = deprecated pointer)
+├─ BUNDLES = THE ENGINE ROUNDS (owner 07:2xZ 10-01, verbatim in this version's THOUGHT): goal:g7.16.1.11 -> leaves .1-.10 below
+├─ RESEARCH LANE (thought-master; each round built by an Opus subagent, reviewed adversarially by a second, before ACCEPT)
+│  ├─ g5.22–.31 … research tracks
+│  └─ g5.17–.21 … remapped from legacy g14.1–.5
+└─ TRAJECTORY ← this node, permanently (owner 09-30)
 ```
 
-### Goal ids (bundle)
+### Bundles — the engine rounds (numbers only; measured 07:3xZ 10-01 from the nodes and their falsifier files)
+
+| leaf | status | progress |
+|---|---|---|
+| goal:g7.16.1.11.1 | complete | config:engine v1 11,305 B · v2 11,900 B |
+| goal:g7.16.1.11.2 | complete | doc:radically-simple-engine §L-§N 3 / 3 · 25 guards mapped |
+| goal:g7.16.1.11.3 | active | S1 PASS · S2 7 / 7 · parity 42 rows = 9 MATCH + 3 EXCEEDS + 20 PARTIAL + 7 MISSING + 3 BLOCKER (falsifier: MISSING 0) |
+| goal:g7.16.1.11.4 | active | falsifier 0 / 2 measured here (capsule-pop + Q1-Q6 on the box · the deploy key only as a capsule) |
+| goal:g7.16.1.11.5 | active | config:engine 16,384 B vs the bootstrap bar 8,192 B (2.00x) · total cap 20,480 B |
+| goal:g7.16.1.11.6 | active | seed bar 1,024 B · DG5 boots from the seed 0 / 1 |
+| goal:g7.16.1.11.7 | active | cross-box signed commit 0 / 1 · DG5 on encryption-town 0 / 1 |
+| goal:g7.16.1.11.8 | active | parity row 20 MATCH with write.py present (falsifier: MATCH with write.py absent) |
+| goal:g7.16.1.11.9 | horizon | 0 / 1 (the map over the owner's forward) |
+| goal:g7.16.1.11.10 | active | posts on the new system 1 (DG5) · target every post but belam, each verdict yes |
+
+Leave the board AS BUNDLES (owner 07:2xZ 10-01; their nodes and statuses untouched -- retire-never-delete, and a goal with pending children is placed, not retired): the council-loop bundles goal:g7.16.1.1-.10 · the engine redesigns goal:g4.18.1 · goal:g7.32.6 · goal:g7.32.5 · goal:g7.31.3.3 · goal:g7.33.18 · goal:g4.18.2 · the residue leaves goal:g1.25 · goal:g1.26 · goal:g7.33 (town:core).
+
+### Research goal ids
 
 | id | role |
 |---|---|
-| goal:g5 | umbrella: the town's goal -- owner lines land here (replaces the retired g14, owner 09-23 09:0xZ) |
-| goal:g5.22 | TRACK I inference |
+| goal:g5 | umbrella: the town's goal (owner lines land on node versions, never as notes) |
+| goal:g5.22 | TRACK I inference (L4 head windowing: run 1 disproved · run 2 PROVED · run 3 disproved; the per-head DIRECT cost is the best arm -> run 4 scores it on fresh docs) |
 | goal:g5.23 | TRACK II fine-tune |
-| goal:g5.24 | TRACK III jev + magic pane |
-| goal:g5.24.3 | MAGIC PANE detector |
-| goal:g1.25 | CLI GRAMMAR = the jev choice surface, across umbrellas (G1 config-maxxing; director-engine; owner go 09-23 10:0xZ; the node reaches the trunk with director-engine's merge-up) |
-| goal:g5.25 | abliteration |
-| goal:g5.25.1 | own refusal lever |
+| goal:g5.24 | TRACK III magic pane (goal:g5.24.3); jev ABSORBED by config:engine, retired as a dependency (10-01) |
+| goal:g5.25 | abliteration (goal:g5.25.1 own refusal lever) |
 | goal:g5.26 | research corpus |
-| goal:g5.27 | the switch / battery |
-| goal:g5.27.1 | battery + reference |
-| goal:g5.28 | side track spiking |
+| goal:g5.27 | the switch / battery (goal:g5.27.1) |
+| goal:g5.28 | side track: spiking / oscillator / spectral (the owner's neuron-periodicity idea: MAP runs 1-2 disproved; positive control next) |
 | goal:g5.29 | research treasury |
-| goal:g7.33 | **MOVED → town:core** (engine fixes; parked unassigned) |
 | goal:g5.30 | KV-cache telepathy |
 | goal:g5.31 | diagram-max + batch-max |
-| goal:g5.17 | Sensei assigns fine-tune / local-maxxing (remap) |
-| goal:g5.18 | local-maxxing TOWN (remap) |
-| goal:g5.19 | Thought Master post (remap) |
-| goal:g5.20 | secrets hub banked (remap) |
-| goal:g5.21 | Bend2/HVM map (remap) |
-| goal:g7.32.6 | REDESIGN messaging + nudge around the graph: send = one dm-file version pushed to the addressee post row's remote head (else the nearest lowest-level remote branch), a per-box cron sync every 1-3 min that also nudges, no inbox; + routing by post row, AGI_BOX box identity, quiet rows, read-on-landing, the (default)-box refusal (director-engine; owner 09-26 20:3x-21:1xZ) |
-| goal:g7.32.5 | REDESIGN messaging: parents send on the hub route by default -- one narrow dm-append push grant (director-engine; owner 00:38Z 09-27) |
-| goal:g7.31.3.3 | REDESIGN spawn/rotate around the graph: parent slots per post in .geometry, dynamic kid rows, rotate = needs-rotate: true, the reaper/heal loop carries out what the graph says (director-engine; owner 00:38-00:45Z 09-27) |
-| goal:g4.18.1 | REDESIGN node spawn/mint: one mint route, the node and its raw file through one captive write flow; may be mostly done -- write.py create, its spawn gate and --payload exist (director-engine; owner ~23:2xZ 09-26) |
-| goal:g7.33.18 | HELD until messaging lands (owner 21:1xZ): one box memory-guard kit per box (director-engine) |
-| goal:g4.18.2 | SKILLS + DOC TRIM, the Prime (owner 01:1xZ 09-27): one skill per engine flow (goal creation carries its schema), skill build nodes, cards list skills instead of rules; wake docs trimmed to a byte budget (belam) |
-| goal:g1.26 | PASS 10 RESIDUES (belam 04:2xZ 09-27; owner 04:1xZ: subgoals like directors): the leaf under goal:g1 holding the 8 confirmed engine-defect hypotheses (reap-chain TERM grace first, dispatch-now DH.503) + hypothesis:pass10-0927-residue-batch; assigned director-engine |
+| goal:g5.17-.21 | remapped legacy (Sensei fine-tune · the town · the Thought Master post · secrets hub · Bend2/HVM map) |
 
 Town schema parents = ladder only → **linking is Agent Notes / this body**, not `parents:` to goals.
+
 
 ### Trajectory — LIVE rows = the `trajectory_standin` field (owner 2026-09-23: written whole by thought-master, the town master, one version per write; `write.py town:local-maxxing 'set trajectory_standin [...]'`). The rows below are the 09-21 fold of `doc:lm-town-trajectory`, frozen; both stay HERE, no migration (owner 21:5xZ 09-30).
 
@@ -132,18 +126,12 @@ goal:g14 · goal:g5.22 · goal:g5.23 · goal:g5.24 · goal:g5.25 · goal:g5.26 �
 #### Board (formation · live · queue — replace in place)
 
 ```
-formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director-thought (Sonnet, research) + director-engine (Sonnet; G5.31.1-2 research/process — engine g7.33 now on town:core parked) -> pi parents/kids
-rules      diagram-max (goal:g5.31) · batch-max · board/trajectory = VERSIONS (replace body), never notes
-memory     15 GB box · memory_max 6G · ONE model-loading host kid · GPU = one research round at a time
-live       see doc:lm-town-trajectory board for tip ids (folded snapshot 2026-09-21)
-research   MP.01 -> TEL.01 -> SWR.02 -> FT.00 -> … (tracks on g5.22–.29, .30–.31)
-engine     goal:g7.33 (+ G7.33.*) → MOVED town:core (parked unassigned)
-redesigns  director-engine, in DEPENDENCY order (owner 01:0xZ 09-27): node spawn/mint (g4.18.1) -> messaging+nudge (goal:g7.32.6 + g7.32.5; send = write.py) -> spawn/rotate (g7.31.3.3; refusals ride send's reply route) · the goals live HERE, not on cards (owner 00:5xZ 09-27)
-HELD       until messaging lands (owner 21:1xZ): the stream, encryption-town config, sanctuary-master activation, g7.33.18
-geometry   goal:g7.34* → town:core parked (.geometry/towns); a trajectory node is moot here: the trajectory lives on this node (owner 09-30)
-comms      magic pane (G5.24 / g7.32 messaging on core) = future unified messaging layer
+formation  council loop (doc:council-loop) building config:engine (goal:g7.16.1.11) · research lane = thought-master + Opus subagents (<= 3), every round reviewed by a second before ACCEPT
+rules      diagram-max · board / trajectory = VERSIONS (replace in place), never notes · retire, never delete
+memory     15 GB box · ONE model load at a time · start at MemAvailable >= 6 GB + memory PSI avg10 < 5, stop at >= 20 · containers with --memory
+research   L4 head windowing (g5.22) · neuron periodicity (g5.28) · queue + metrics = the trajectory_standin rows
+geometry   the trajectory lives here (owner 09-30); goal:g7.34* moot for this town
 ```
-
 ## Agent Notes
 
 - Owner ask 2026-09-21: fold trajectory stand-in into town body; keep `doc:lm-town-trajectory` until trajectory type ships.
