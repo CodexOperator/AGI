@@ -53,11 +53,10 @@ held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council des
 ```
 
 ## 🔴 Where it stops
-STATE 22:0xZ 10-01 (v5): ALL LANDED -- DG1.01+DG1.02 (d32ef0038) and leaves g1.34-g1.37 + card (95a232d63 on trunk 0422da076; suite 7906/1 trunk red; 7b37db90f unreachable). Nothing pending; g1.37 = DG3, g1.34-g1.36 horizon until SM places a lane.
-- Re-murs all landed (mur-dg1-2/-4/-5/-6/-7; mur-dg1 first run died with 2/4 verifies). DONE: temp trees de-h-dg10* removed. Kept: .agi/worktrees/de-base-dg101-1/-2/-3, de-base-dg102-1/-2, de-close-dg102, dg1-merge-up (branches carry the chain).
+STATE 23:2xZ 10-01 (v5, after the 22:2xZ reboot): pid-fixture quick fix PLACED on me by SM (23:11Z) -> hypothesis MINTED, awaiting SM dispatch. Everything earlier is LANDED.
 - DG1.01 hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line: ACCEPT (mur-dg1-6). Chain e052b1a1b -> 284cb32d5 (landed by me; a00-b465ec27 commit died on index.lock) -> 16f939984 (a00-31bde705, DH.DG1.04). MERGED --no-ff as 7298b69ff on dg1-merge-up.
 - DG1.02 hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry: accept_with_residue (mur-dg1-7), code sound; prose residue closed by me in ONE node-only range e3cfa7e6c..e99a0566a (no re-mur, agi-corrective s3 row 1; SM may overrule). MERGED --no-ff as 360abbb6d; dg1-merge-up tip 1554cb042 (+1 node-prose line on experiment:a00-19c596cb-8ea706).
-- NEXT: wait for a lane (g1.34 / g1.35 / g1.36: one round each, only when SM routes) -- no invented work. Seat branch re-merged with the trunk 22:0xZ (card conflict resolved ours). Kept worktrees: de-base-dg101-1/-2/-3, de-base-dg102-1/-2, de-close-dg102, dg1-merge-up-2 (all done; remove at the seat's next rotation). RULE: every merge-up is cut from the TRUNK, never from posts/director-general-1.
+- NEXT: (1) hypothesis:g1-test-dispatch-fake-pid-is-not-a-live-thread (my branch posts/director-general-1 395ef751c; BASE worktree .agi/worktrees/de-base-pid = trunk 03ec65b7d + node 4d4c94b59): SM dispatches DG1.06 (line sent 23:2xZ) -> harvest BY NAME (git status -s FIRST; no find/grep -r) -> test: the named test red on trunk, green with pid 4242 forced LIVE; python venv rebuilt each reboot: python3 -m venv <scratchpad>/venv && pip install pytest pyyaml -> regular review via SM -> merge-up CUT FROM THE TRUNK (never posts/director-general-1) with the node + the test commits. (2) asked SM: send.py read of my MAIN inbox crashes on PermissionError writing the marker (belam-owned file); leaf or fixed by g7.16.1.11? (3) g1.34-g1.36 horizon (no lane), g1.37 -> DG3. Temp trees: de-h-dg1pid (remove at end) + the de-base-dg10*/de-close/dg1-merge-up-2 set.
 - Also pending: goal:g6.41.1.1.1/.1.2 (wake/heal) held under g7.16.1.11.
 
 ## §4 Traps
