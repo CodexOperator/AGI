@@ -24,21 +24,23 @@ Round DG3.71 against hypothesis:council-report-reads-the-mur-args-shape-per-roun
 
 **Dispatch line answered:** config-max none (the only cell is `council.residue_leaves`, the Prime's, untouched; tips/hypothesis come from the mur args file itself) · template-max none · code: `council_report.py` `round_args()` + the `add()` plan, one test file.
 
-**Mechanism:** `round_args(root, label, args, cell)` -- a `rounds[]` args file is matched per label (key == label or its LONGEST prefix), returns that round's `old_tip..new_tip` (both checked by ONE `git show -s --format=%s --end-of-options old new`, rc != 0 = unknown) and the owner leaf from the round hypothesis's `goal:` parents' `(assigned: <post>)`, else new_tip's commit subject `(<post>)`, else director-engine (Prime never). `add()` builds the whole plan BEFORE any write, so an unmatched label / absent or unknown tip is rc 2 naming the label with nothing written. No `rounds` key = the flat per-run dict, unchanged.
+**Mechanism:** `round_args(root, label, args, cell)` -- a `rounds[]` args file is matched per label (key == label or its LONGEST prefix); the FLAT per-run dict ({parent, old, new, subject}) IS one round (DG3.71b). Both shapes meet ONE refusal: each tip is checked by its own `git show -s --format=%s --end-of-options <tip>`; an absent, empty or git-unknown old or new is rc 2 naming the label, raised while `add()` builds its plan, BEFORE any write -- no row ever carries `?..?`. Owner: rounds[] = the hypothesis's `goal:` parents' `(assigned: <post>)`, else new_tip's OWN subject `(<post>)` (DG3.71b: never old_tip's), else director-engine; flat = the parent goal's title, else the dict's `subject`; the Prime never owns one.
 
 ## Measured
-| falsifier | row | fails on 1b1b50c003 |
-|---|---|---|
-| F1 own old..new + own owner leaf per round | `test_mur_f1_each_round_writes_its_own_tips_and_routes_to_its_own_owner` | yes (FAILED) |
-| F2 unmatched label / unknown tip = rc 2 naming the label, no `?..?` | `test_mur_f2_..._never_a_qq_row[bad0..2]` (key zz · old_tip deadbeef0 · new_tip "") | yes (3 FAILED) |
-| F3 flat shape stays | existing 19 rows + one assert `aaa..bbb` in `test_f1_one_row_per_round...` | no -- a regression guard, green on base by nature |
+| falsifier | row | NEW 3d6a3ef72 | OLD 2634a61987 overlay |
+|---|---|---|---|
+| F1 own old..new + own owner leaf per round | `test_mur_f1_each_round_writes_its_own_tips_and_routes_to_its_own_owner` | pass | pass (landed DG3.71) |
+| F2 rounds[]: unmatched label / unknown tip = rc 2, no `?..?` | `test_mur_f2_..._never_a_qq_row[bad0..2]` | 3 pass | 3 pass (landed DG3.71) |
+| G1 flat: tip absent (old) / empty (new) / unknown (new deadbeef0) = SystemExit naming `'a1'`, writer store empty | `test_g1_a_flat_tip_missing_or_unknown_is_rc2_with_nothing_written[bad0..2]` | 3 pass | 3 FAILED |
+| G2 owner subject = new_tip's own (empty) -> director-engine leaf, never old_tip's `c1 (post-a)` | `test_g2_the_owner_subject_is_new_tips_own_never_old_tips` | pass | FAILED |
+| flat stays (rows, owner leaf, idempotence) on REAL tips | `_flat(root)`: a tmp git repo's HEAD~1..HEAD; the F3 pin `aaa..bbb` is gone from `test_f1_...` | pass | pass |
 
-Base check: base `council_report.py` copied over the worktree file, new test file run: 4 failed, 19 passed; file restored.
-Suite (test_council_report · test_write · test_commands_manifest · test_bin_help_smoke; test_merge_gate.py absent on this trunk): **483 passed, 8 skipped, 1 xfailed** in 108.89 s. test_council_report.py alone: 23 passed.
-NET: council_report.py +22 (29+/7-, ceiling +25) · tests +40 (41+/1-, ceiling +40).
+test_council_report.py: NEW **27 passed**; OLD overlay (git archive HEAD into /tmp, base module over it, __pycache__ cleared, new test file): **4 failed, 23 passed** -- exactly G1[bad0..2] + G2.
+Neighbourhood (test_council_report · test_write · test_commands_manifest · test_bin_help_smoke): **487 passed, 8 skipped, 1 xfailed** in 121.37 s.
+NET vs 2634a61987: council_report.py +4 (18+/14-, ceiling +12) · tests +30 (48+/18-, ceiling +30).
 
 ## Residue
-The CLAIM's "a row whose old or new is unknown is refused" holds for the rounds[] shape only: the flat shape with no old/new still writes `?..?` because F3 pins the existing flat tests (they pass `{"parent": ...}` without tips). Closing it = refuse in the flat branch too and give those tests tips -- a separate round.
+None open from mur-de-base-dg3-71 hcr-code: the flat `?..?` (defect 1) and the owner subject read off old_tip (defect 2) are closed above. Three notes stay demoted, unchanged: the flat leaf recomputed per round (cost only) · equal-length duplicate keys resolve in args order · no in-tree producer of rounds[].
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 First version. Deviation, decided: the CLAIM refuses an unknown old/new for every row, but F3 pins the flat-shape tests that carry no tips, so the refusal is scoped to the rounds[] shape (council_report.py round_args) and the flat ?..? is banked as residue, hence lean_proved not proved.
