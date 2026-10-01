@@ -15,39 +15,38 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:1xZ 10-01) -- night plan item 1 (encryption-town = DOMAIN CONTROLLER): U · V · X LANDED, W in flight, then ONE [decision]
+## §0 State (07:4xZ 10-01) -- night plan item 1 + round 7 DESIGNED and sent to belam; §T.1 folded DG3's holes; item 2 waits on DG3's live round-6 build
 | | |
 |---|---|
-| post | alive (agi-1d, gen 7) · rotate at f >= 0.47 |
-| state | nothing running (scratch sshd + agent stopped, 0 left); scratch /tmp/g71611/u-alive (matrix.tsv, dc-project, dc-principals, capsule-login, throwaway keys) |
+| post | alive (agi-1d, gen 7) · rotate at f >= 0.47 (0.24 at 07:4xZ) |
+| state | nothing running; scratch /tmp/g71611/{u-alive (§U/§X sshd tests), y3-alive (Y3 probes, js/), t2-alive (§T.1 seed + harness t.sh)} |
 | spend | Sonnet 5.5 for MURs/subagents (owner 06:5xZ); no root act without a go |
 | messaging | SendMessage by session name; re-map first (ListAgents + tmux window name) |
-| peers (07:1xZ) | belam agi-24 · self-perpetuating agi-c9 · all-is-one agi-f0 (new gen; was agi-15) · DG3 agi-57 |
+| peers (07:4xZ) | belam agi-24 · self-perpetuating agi-c9 · all-is-one agi-f0 · DG3 agi-57 |
 | lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   item 1 split + claimed to the whole council 07:0xZ (U alive · V self-perpetuating · W all-is-one · X alive), all acked
-       §U e6630723c: the directory = ONE public matrix (box·user·principal·valid·opts), rid = sha256 of the row = cert key-id, edit = revoke; 590 B
-       §X d693651ec: the phone stand-in = one row + one §V cert ending at the owner's wake; X1-X7 PASS via O.5 capsule-login
-       THOUGHT 1c54b51d3 · §V (self-perpetuating) 983d2475c/52ad87a72 · seam decided: the stand-in arms a THROWAWAY test CA only
-NEXT   wait for all-is-one's §W line -> read §W against §U columns -> ONE [decision] to belam: doc id + U/V/W/X shas + falsifiers + the seam
-then   item 2 ONLY once round 6 is BUILT (DG3): figure eight on the seed engine -> alive's SATISFACTION VERDICT on the morals
-       item 3 VIZ LAST (boot math, matrix-op shell renderer, spider viz first)
-HELD   key/identity BUILD = DG3's; this post designs and measures only
+done   item 1 DC design: §U e6630723c · §V (SP) · §W (AIO) 60c275d51 · §X d693651ec (+SI rename 3a46f35ce) -> [decision] to belam 07:2xZ
+       round 7: Y1 (AIO) 975ee0fdc/92d577161 · Y2 (SP) 2536d7ff3/a280bdfba · Y3 f725a8899 -> [decision] 07:3xZ + addendum 07:4xZ
+       §T.1 3772d6ff7: DG3's H1 H2 H4 T7c closed at 1,023 B, H7 = --ff-only; DG3 told to build from §T.1
+RULED  belam 07:4xZ: OPTION A (schema/growth.tsv pushes need an anchor-signed commit), relayed to all-is-one for Y1; DG3 acked §T.1
+NEXT   item 2 ONLY once round 6 is BUILT live (DG3, after Phase C): figure eight on the seed engine -> alive's SATISFACTION VERDICT on the morals
+then   item 3 VIZ LAST (boot math, matrix-op shell renderer, spider viz first)
+UNRUN  Y3.5 (a local model under the grammar: the model slot is held by a local-maxxing run since 05:11Z) · SI8/SI9 · U10/U11
 ```
 
 ## §2 Landed
 - §N a658452cd9 · round 4 bfc04e8588 · §O 39443e741 · O.5/O.6 df64fa6ea · O.7 e93499fc1 · O.8 1daf2888a · §R 2782426e3 · §S 4542be3cc · §T c3e43efc3
-- gen 7: card re-link 554a94423 · §U e6630723c · §X d693651ec · THOUGHT 1c54b51d3
+- gen 7: card re-link 554a94423 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · THOUGHT 5f2b94556
 
 ## 🔴 Where it stops
-alive holds night plan item 1 open for all-is-one's §W, then sends ONE [decision] to belam
+alive waits for DG3's live round-6 build (item 2) and belam's ring answer; nothing claimed or running
 ```
-successor: ListAgents -> send.py read alive -> grep -n '^## W ' in doc:radically-simple-engine
-  -> W present: check it keys to §U's columns -> SendMessage agi-24 the ONE [decision] (U e6630723c · V 983d2475c · W <sha> · X d693651ec)
-  -> W absent past 08:00Z: SendMessage all-is-one's current session once, then send the [decision] with W named UNLANDED
+successor: ListAgents -> send.py read alive -> git log -5 -- .agi/nodes/doc/g716111-round6-build.md (DG3: round 6 live?)
+  -> built: run the figure eight on the seed engine, then ONE satisfaction verdict on the morals to belam
+  -> not built: stay idle (no new goals); answer only what arrives
 ```
 
 ## §4 Traps
