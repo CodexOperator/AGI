@@ -1458,6 +1458,31 @@ Falsifiers: **F41** the login table above (PASS, scratch sshd) · **F42** after 
 +   print(f,B.b64encode(u+C(h(z)).encrypt(bytes(12),f'{i}:{y}'.encode(),None)).decode())
 ```
 
+## X · THE PHONE STAND-IN · alive -- tonight's phone is ONE row and ONE cert that expires at the owner's wake; the real phone replaces it by editing that row
+**Owner 06:3x-06:5xZ (verbatim on the goal):** "... I can’t access it today so it might have to wait and do a stand in key on the box for now and auth it yourself as test." Ruling (a): a stand-in phone key on the box, authorised ONLY for capsule-login, tested end to end, then replaced. **What does the stand-in TRULY allow?** Exactly one row: one principal, one forced command, until a stated minute. Nothing about it is special code: it is §U's row + §V's login + §O.5's capsule-login, with a short `valid`.
+```
+ROW      enc · agi-capsule · owner-standin · <until the owner's wake> · restrict,command="capsule-login"        (its own rid, never owner-phone's)
+KEY      §V agi-login owner-standin: a fresh key in RAM, a cert under that rid, held ONLY by the tester's agent; no key file, ever
+TEST     a post's login asks (§O.5 ASK) -> the tester answers as the phone: ssh agi-capsule@<town> <ask-id>, the code on stdin -> the pane
+ENDS     the cert's validity runs out at the owner's wake, AND the row is deleted when the real phone key arrives -> the rid dies (§U revocation by edit)
+REAL     the phone's own key (Secure Enclave P-256, O.7) gets an owner-phone row: a cert signed once at enrolment if the SSH app takes certs (VERIFY),
+         else the O.5 authorized_keys line (restrict,command="capsule-login"), projected the same way
+```
+**Tested 07:1xZ** on §U's scratch sshd (throwaway CA, the stand-in key generated on tmpfs, certified, loaded into a scratch agent, its files removed in under a second; capsule-login = §O.5's 692 B, byte for byte, pointed at a scratch spool and pane; a random dummy code):
+| # | case | result |
+|---|---|---|
+| X1 | the stand-in + an open ask, the code on stdin | the code typed into the pane exactly once (rc 0) |
+| X2 | the same ask replayed | refused (rc 3) |
+| X3 | the stand-in asking for a shell · for a pty + a command | refused (rc 2 · rc 3): restrict + the forced command |
+| X4 | a cert under the dg5 row with principal owner-standin | refused (rc 255): the row pins the principal |
+| X5 | the stand-in row deleted (= the replacement) | refused at the next login (rc 255) |
+| X6 | the code at rest in spool, ledger, sshd log | 0 copies; the ledger keeps post + id + time only |
+| X7 | key files left on tmpfs or disk | 0 |
+
+**One seam with §V, decided here (decide-and-document):** §V's limit (3) has the stand-in arm the CA window. The owner's ruling (a) authorises the stand-in for capsule-login ONLY, and a box key that arms the CA would make the box its own owner's half of the mutual quorum (O.8). So tonight: the stand-in arms only a THROWAWAY test CA (its own `TrustedUserCAKeys` line, for the test users, removed after) and never signs a real identity; the real CA's first window waits for the real phone. Cost: F42 cross-box runs on the test CA tonight.
+**For DG3's build (in its night order):** (1) the owner-standin row with `valid` ending at 14:00Z (one row, `date -u` read when it is written) (2) the §O.5 root act: `i` writable by agi-capsule (~60 B, ExecStartPre=+) (3) one end-to-end run on DG5's login, X1-X7 re-read on the real units (4) at the owner's wake: delete the row, and record the rid that died.
+**Falsifiers.** X1-X7 PASS (scratch) · **X8** at 14:00Z+1 min the stand-in cert is refused with the row still present (UNRUN; the expiry alone ends it) · **X9** the real phone's key logs in under owner-phone and the owner-standin rid is absent from every box's rows (UNRUN; the owner's step).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 alive (agi-a8), 06:3xZ 10-01 (round 6 REVISED, belam 06:29Z signed [decision]). Owner 06:24-06:2xZ, verbatim: "I don’t think we need to lean on GitHub or git. What if we use the matrices more? A matrix showing how all the other matrices need to expand that then show how things should be populated. The one script could be the entire bootstrap assuming graph is also here to also instantly pick up your project including an auto-sync route to bring repo up to speed with latest version of that branch and hand conflicts to bootstrapped posts, first just dg5 as obvious test target, as needed." / "Sorry it’ll have both as part of seed process. So first a local check to have something at least then it initiates a remote sync on local with timeout, and hands sync conflicts to prime post once it’s up. If remote connection unavailable, then pick local read only no remote sync hand prime seed expansion state and first boot owner greeting." WHY this version differs: added §T. The bootstrap is ONE script (1,019 B incl. the 82 B anchor line) + ONE matrix (a fenced TSV in config:engine whose first row expands the matrix itself; boot rows run in the seed, post rows in the unit). Flow: local expand at once, then a fetch under timeout with fsck, verify-commit, merge and re-expand; a conflict is aborted into a create-only refs/conflicts/<local tip> for the Prime (self-perpetuating lens, adopted); no remote or a timeout = agi.mode ro + a first-boot owner greeting. P2-P5 PASS on a scratch clone. A first draft was 1,504 B; comments and messages were cut to fit, and the unsigned-tip inbox line went with them (named in §T). The mode is now set only after verification (P5 caught it).
 <!-- THOUGHT:END -->
