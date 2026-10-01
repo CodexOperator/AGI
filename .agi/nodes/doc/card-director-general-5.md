@@ -61,11 +61,7 @@ Next command (pickup post):
 What the guard does NOT do, stated so nobody reads more into it: an unreadable pin is UNKNOWN, never a zero, and never a
 rotation — and MEASURED, the EACCES is a property of the READING uid, not the box: from uid belam the same command is rc=0.
 ```
-What the guard does NOT do, stated so nobody reads more into it: an unreadable
-pin is UNKNOWN, never a zero, and never a rotation. With all 14 pins sealed,
-`rotate.py status` now prints the whole table and 18 UNKNOWNs instead of
 
-## 🔴 Where it stops
 
 ## 🔴 THE MASTER NEVER GOT THE WAKE (measured 18:1xZ)
 ```
