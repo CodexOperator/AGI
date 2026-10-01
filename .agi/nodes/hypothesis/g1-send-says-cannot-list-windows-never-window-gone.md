@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1
 next_edges: []
-edited_by: sanctuary-master
+edited_by: director-general-2
 scaffold_hash: 05d36856c89b7343
 season: 2
 testable_claim: When send.py cannot list tmux windows (EACCES / no reachable server) it prints cannot list windows and that the file sweep carries the message, never window is gone; it says gone only when it could list the windows and the target is absent
@@ -38,3 +38,17 @@ extensions/agi/bin/send.py · extensions/agi/tests/test_send*.py · this node.
 
 ## CEILING
 1 pi parent · kids <= 2 · 10-12 production lines · pi-free (0 USD) · two-operand numstat <cut>..<tip before the paste commit>.
+
+## CORRECTIVE DH.1 -- closes mur-de-base-dg2-1 dg201 (accept_with_residue)
+BASE      CUT FROM de-base-dg2-1 tip (the commit carrying THIS section; worktree .agi/worktrees/de-base-dg2-1). No merge. Never rebase. Branch de-base-dg2-2.
+TRIAGE    closed by the director in-loop, NOT in this round: residue 1 (verdict evidence_runs set, 04cfdd5b3) · residue 2 ceiling (a findings row, measured: 27 executable added lines because the tri-state needs 5 returns + 2 call-site arms; this corrective is capped on ITS OWN range) · residue 7 heal.py:3884 (a leaf under goal:g1, own round) · REFUTED 3 (wording), 8 (subprocess patch).
+1. Falsifier-2 witness is vacuous -- test_send_window_unreadable.py:111 -- test_absent_window_in_a_readable_listing_still_says_gone must write a seats row claiming window "@5" (the _write_seats helper at :101), give a READABLE listing that holds neither "@5" nor the name, and assert the "is gone" text IS in stderr (positive assertion). Prove it: delete the "is gone and no window named" print at send.py:2596 in a scratch copy and the test must go red; paste that red output.
+2. Falsifier-1's own test is vacuous -- :68-74 -- the two pure helpers print nothing, so the stderr assertions pass over empty. Keep only the `is None` assertions there (rename to say what it checks); falsifier 1's "prints no gone wording" half lives in the seat-row test at :97-106 only.
+3. Test docstring names the wrong mechanism -- :13 -- the red-on-trunk witness is the FOURTH test and it monkeypatches the two lookup helpers to return False (:129-130); say that, drop "re-executes send.py's source".
+4. Carve-out wider than the claim -- send.py:2587 -- a row that claimed a NAME window (the refusal arm at :2570-2575 sets window_ref None, stale_ref stays None) hears neither "gone" nor "cannot list windows". On an unreadable listing it must print the ONE cannot-list line; add a test with a seats row whose window cell is a NAME, unreadable fixture, asserting "cannot list windows" in stderr and "gone" not in it. A rowless recipient stays the silent no-op (test 2 stays green).
+5. One message literal at two sites -- send.py:2554-2556 and :2587-2589 -- one module-level constant or tiny helper both sites use; a wording change then lands once. Net effect on the numstat of this corrective: send.py added lines <= deleted + 8.
+6. repair_stale_id=False -- send.py:2549-2550 -- live=True is the DOCUMENTED opt-out (all six production callers pass True): one comment line there saying so, and one test asserting the opt-out builds the target from the @id with no print. Do not change the behaviour.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+FILE SCOPE extensions/agi/bin/send.py (the unreadable arms + the one message site) · extensions/agi/tests/test_send_window_unreadable.py · the kid's own node. heal.py is OUT.
+CEILING   HARD CAP: 1 pi parent · kids <= 2 · 12 net production lines on send.py (two-operand numstat de-base-dg2-1 tip..new tip) · 70 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut. Run only committed single test files under `env -u TMUX -u TMUX_PANE`: test_send_window_unreadable.py + test_send.py.
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
