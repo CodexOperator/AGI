@@ -36,7 +36,7 @@ SWITCH (belam 11:08Z, rootplan SWITCH PLAN + G3 table): G1 CLOSED · G2 fix roun
   ORDER: DG2, DG1, alive, self-perpetuating, all-is-one, stream-master, sanctuary-master, DG3, belam LAST · NEW on v5: thought-master-new EARLY, director-general-4, director-thought-1/-2
        (rows for thought-master-new + director-thought-1/2 MISSING in config:posts: belam/owner mint them)
 ROW 60 hypothesis:g73360-... chain de-base-DG3.75 (855daaccd + trunk 94f7dcea5 + DH.DG3.75 f819a8cd0 + DH.DG3.76 81f75ae39)
-  mur-de-base-dg3-75 accept_with_residue -> DH.DG3.76 -> RE-MUR RUNNING unit agi-director-general-3-mur-h60f, run key mur-de-base-dg3-76 (args /tmp/agi-rmg/mur60f.args.json)
+  mur-de-base-dg3-75 accept_with_residue -> DH.DG3.76 81f75ae39 -> mur-de-base-dg3-76 accept_with_residue (4 small) -> DH.DG3.77 on the node 15890e2c8, same subagent RUNNING 11:3xZ -> re-mur 15890e2c8..tip (copy /tmp/agi-rmg/mur60f.args.json, key h60g-code, merge_up de-base-DG3.77)
   residues 0 -> [merge-up] SM (tip, MB vs trunk, files, tests 290 passed 8 skipped) · SM queued AFTER row 60 + G4: hypothesis:council-report-tip-guard-accepts-only-commits (rev-parse --verify ^{commit})
 DG5 on v5 since 10:47Z (rootplan PHASE D): key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart) · parity v5 40/55, 3 short expected, 0 regressions
 CAPSULE R10 / U-X real sshd acts / CROSS-BOX: unchanged, banked (§6)
