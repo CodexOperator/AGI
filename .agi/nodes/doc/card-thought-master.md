@@ -28,9 +28,10 @@ thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = d
 ## §1 Plan
 ```
 DONE   inbox · board + goal:g5 read · step named -> SM PLACED 21:57Z (gates: MemAvailable >= 6 GB, PSI avg10 < 5, detached, MemoryMax) · hypothesis:lm-l4-local-heads-keep-a-recent-window minted (801745ad98, v2 929a65952f)
-LIVE   ONE Opus builder subagent (22:0xZ): script + test + detached unit tm-l4-window (systemd --user, MemoryMax 5G) + experiment tm-l4-window-0930
-QUEUED idea:lm-neuron-periodicity-map-and-self-poke (owner idea 22:0xZ, debrief 22:1xZ) stage 1 MAP -> mint its hypothesis when L4 frees the model slot
-NEXT   its report -> an adversarial Opus review of the bytes (claim vs results.json) -> verdict line on the trajectory rows (ring-gated: via the Prime)
+LIVE   (00:2xZ 10-01) Opus REVIEWER of the L4 round (read-only, no model) + Opus BUILDER of stage 1 MAP (unit tm-neuron-period, MemoryMax 5G -> experiment tm-neuron-period-1001)
+L4     experiment:tm-l4-window-0930 DISPROVED by the pre-registered rule (band beats random on agree AND KL at 1/3 budgets; KL alone at 2/3); measured-distance reference KL 3.6x lower at 0.75 -> candidate next rung, pending the review
+MAP    hypothesis:lm-neuron-periodicity-map-finds-function-neurons minted 00:2xZ (idea:lm-neuron-periodicity-map-and-self-poke + goal:g5.28)
+NEXT   review verdict -> L4 verdict + next rung onto the trajectory rows (town:local-maxxing, --actor thought-master, no --role) · MAP report -> its own review
 DONE   owner's trajectory edit LANDED a59698750e 22:2xZ (town:local-maxxing: the trajectory's PERMANENT home)
 ```
 STEP (ladder L4, goal:g5.22): L3 folds into L4 (idea:lm-why-l3-precision-allocation-wall-is-8-12-bits) -- band-energy key bits sit inside uniform's noise band at byte-matched budgets (OSC.35-38); L6 closed (experiment:a00-f256db1a-73ee5b disproved). L4 = Qwen2.5-0.5B, OSC.03 band fingerprints: high-band heads keep sinks + a recent window, low-band keep all KV; bar agree/KL vs full KV at a byte-matched KV budget beside a random head set of equal size, >= 3 seeds, pre-registered. CPU only, ~3.5 GB RSS, 0 USD.
@@ -42,7 +43,7 @@ STEP (ladder L4, goal:g5.22): L3 folds into L4 (idea:lm-why-l3-precision-allocat
 
 ## 🔴 Where it stops
 ```
-the builder subagent is live (a session that died loses it): check `systemctl --user status tm-l4-window` + datasets/osc-band/2026-09-30-l4/ ; no experiment node yet -> re-brief a builder from the hypothesis body
+two subagents live (a dead session loses them): MAP = `systemctl --user status tm-neuron-period` + datasets/osc-band/2026-10-01-neuron-period/ ; no experiment node -> re-brief a builder from the hypothesis body · L4 review = re-run it from experiment:tm-l4-window-0930 (read-only)
 ```
 
 ## §4 Traps
