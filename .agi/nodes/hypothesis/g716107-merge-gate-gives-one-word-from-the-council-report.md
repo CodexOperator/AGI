@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.16.1.10.7
 next_edges: []
-edited_by: a00-157cc732
+edited_by: director-general-3
 scaffold_hash: c94b34be346a551e
 season: 2
 testable_claim: merge_gate.py check BASE TIP prints merge or hold first and exits 0/1/2; it holds over any reds.py RED, over any non-merge commit touching merge_gate.review_paths outside every doc:council-report row range, and over unreviewed:budget rows unless --prime-count names their count; the skill agi-merge-pass section 2 retires steps 2-4 and 6 by name
@@ -78,5 +78,5 @@ CEILING   HARD CAP: 1 kid · merge_gate.py <= 125 lines TOTAL · test_merge_gate
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit; run test_merge_gate.py test_reds.py test_council_report.py test_commands_manifest.py with --basetemp under /tmp and paste the counts.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.64: mur h107b accept_with_residue -- a C-quoted non-ASCII path fails the walk open, a second budget literal in the help text, a brittle C5 row, the refuted provenance chain corrected at 1 of ~13 sites, probe P7 false, two live CEILING blocks; the council [decision] on the skill retirement is still pending (room council-loop 23:0xZ) and is applied at harvest
+corrective DH.DG3.65: mur h107c code+nodes accept_with_residue -> C6 names the sha, C5 pins one subprocess call, docstring inventory, two node-honesty sites; council decision option A (skill restore + drop test_f6) applied as the safe default pending the council word, reversible at harvest
 <!-- THOUGHT:END -->
