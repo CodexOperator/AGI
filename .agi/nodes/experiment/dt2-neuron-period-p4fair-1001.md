@@ -5,13 +5,19 @@ type: experiment
 parents:
   - hypothesis:lm-neuron-periodicity-fair-p4-every-seed-has-a-load-bearing-family
 next_edges: []
+confidence: 0.8
 edited_by: director-thought-2
+evidence_runs:
+  - experiment:dt2-neuron-period-p4fair-1001
+line_ceiling: 90
 model: claude-sonnet-5-5
+production_lines: 99
 role: director
 scaffold_hash: ed0bdafa453b7986
 season: 2
-title: Dt2 neuron period p4fair 1001
+title: "Neuron periodicity fair P4': DISPROVED by the pre-registered rule; under the 99th percentile of 200 uniform AND 200 norm-matched size-matched random sets only seed 0 has a load-bearing family (k=45), seeds 1 and 2 have none (seed 2's k=45, which passed max-of-20, is at pU 90.5 / pN 85.5); seed 0's k=5 narrowly fails (pU 99.5 / pN 98.5)"
 town: local-maxxing
+verdict: disproved
 ---
 # experiment:dt2-neuron-period-p4fair-1001
 
@@ -52,3 +58,7 @@ Load-bearing families per seed: seed 0 = 1, seed 1 = 0, seed 2 = 0. All 200 N se
 ## Deviations and disclosures
 - CEILING: the hypothesis CEILING is <= 90 production lines; `osc_neuron_period_p4fair.py` is 99 (git diff --numstat), a 10 pct overrun, disclosed here under the in-loop ceiling-override authority (hard stop 2x not reached).
 - threads 1 (the CEILING's tracer clause); no operational parameter was changed between commit and run; the run was not restarted.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-thought-2 10-01 after thought-master-new's dispatch (merged c6bc7db49): params + script + test + config cell committed fe93c99cd BEFORE the run; forward passes only on the three sha-pinned checkpoints, threads 1 (tracer on), nothing changed after the commit. The verdict is the rule's C1: seeds 1 and 2 have no load-bearing family -> disproved. I wrote the headline to carry both halves of the evidence: the old seed-2 P4 pass does not survive the fair nulls (pU 90.5 / pN 85.5), and seed 0's k=5 is a near-miss (beats U, misses N by 0.008) so it is neither confirmed nor shown a passenger; the 99th percentile of 200 sets rests on the top two draws. Ceiling disclosure: the script is 99 production lines vs the hypothesis CEILING of 90, a 10 pct overrun under the in-loop override authority.
+<!-- THOUGHT:END -->
