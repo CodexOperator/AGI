@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1106,6 +1106,24 @@ ring changes ─▶ REKEY = ROTATE the secret: a pop into a destination that min
 - **The phone holder opens its own share ON the phone** (O.5): iOS CryptoKit's Curve25519 key agreement + ChaChaPoly is esc's construction, so the phone needs a tiny app, not a box. A box that opened the phone's share beside its own two would hold k = 3 alone (P.2). Which holder keys, and whether the owner's dev plan builds that app, are the owner's calls (banked).
 Falsifiers: **F30** a share wrapped hybrid opens only when BOTH the X25519 and the ML-KEM secret are present (on go: needs the package) · **F31** an escrow line opens on a box running a DIFFERENT model with the same holder key (the activation fingerprint is not on the opening path).
 
+**P.8 · Custody = the iPhone ONLY, the quorum MUTUAL (owner 05:45Z): the escrow becomes 2-of-2 over (the iPhone, the posts' quorum), `esc` run twice; the Mac leaves the ring.**
+```
+seal   secret ─▶ esc split 2 iphone.pub E.pub ─▶ escrow           E = a fresh X25519 key per capsule; E.key is never stored whole
+       E.key  ─▶ esc split k post1.pub .. postN.pub ─▶ escrow-E  the posts' half: k-of-n over the post keys
+open   k posts: open + join ─▶ E.key ─▶ opens E's line  ┐
+       the iPhone opens ITS line ON the phone (the app) ─┴▶ esc join ─▶ secret   (neither half alone carries a bit: Shamir 2-of-2)
+```
+| claim (05:5xZ, throwaway keys: iPhone = a P-256 'enclave' key, posts b c d, k = 2) | result |
+|---|---|
+| 2 of 3 posts rebuild E · E + the iPhone's share rebuild the secret | yes · byte-exact |
+| the iPhone alone · all 3 posts without the iPhone · 1 post | no · no · no |
+| the iPhone's share wrapped to a P-256 key (the Secure Enclave's only curve), opened by a stand-in for the app (ECDH with the SE key -> SHA-256 -> ChaChaPoly, = CryptoKit) | byte-exact |
+| an escrow made by the old `esc` opens under the new one | yes |
+- **`esc` grows +363 B** (1,384 -> 1,747 on this copy): `split` wraps to P-256 when the holder's public key is 65 B (uncompressed point, what the SE exports), else X25519. `open` is unchanged: the SE key never leaves the phone, so the box never opens a P-256 share; the app does. Lives in config:capsule, outside the zygote. Bytes per capsule: escrow 682 B + escrow-E 920 B (3 posts).
+- **Box loss under mutual custody.** The iPhone's half lives off-box; E survives only if the post keys span boxes, so `ring-ok` now applies to the posts' half ALONE (per box <= min(k-1, n-k)). With every post key on this box (F27), losing the box loses E, so the capsule is lost: acceptable for a secret that rotates at its provider (P.3: re-mint), NOT for one that cannot. **Rule until a second town box holds post keys: capsules hold rotatable secrets only.**
+- **Answers two BANKED owner questions** (my card): the ring holder = the iPhone via the owner's app (not 3-of-5 across devices); the phone opens its own share in the app (the 'tiny app' branch). The app's job here is ONE call: ECDH(SE key, the line's 65-B point) -> SHA-256 -> ChaChaPoly.open -> send `i:y` back over the O.5 route.
+Falsifiers: **F38** the escrow table above (PASS) · **F39** the real app opens an SE-wrapped line made by `esc split` (unrun: needs the owner's app) · **F27** stays FAILED by design until a second box holds post keys.
+
 Falsifiers: **F26** box loss (on a throwaway box): delete capsule.cred and the host secret; K holders rebuild byte-exact and reseal, K-1 cannot (the escrow half PASSES today; the reseal is on go) · **F27** `ring-ok K` over the live ring exits 0 (FAILS today, by design: every key is on one box) · **F28** after a ring change, the old holders' K shares from git history rebuild the OLD secret and its provider refuses it · **F29** a holder opening another holder's line -> InvalidTag (PASS).
 
 `esc` whole (1,190 B counted):
@@ -1139,13 +1157,13 @@ awk -v k=$1 '{n++;b[$2]++}END{m=k-1<n-k?k-1:n-k;for(x in b)if(b[x]>m){print "box
 ## Q · ROUND 5 · self-perpetuating -- the ZYGOTE: config:engine keeps the code that runs before any post exists; the body it grows is EXPANSION, read at the same REV
 **Owner 05:38Z:** "the expanded vectors for live posts and post wrappers can be bigger than 8kb I just mean the 'bootstrap' package is under 8kb". **What am I ACTUALLY trying to get the machine to do here?** Regrow every post from one small read. A seed does not carry the organism: it carries the code that builds it and reads the rest from where it lands. Here that is the graph at the same REV, which `sect` already reads. So the cut is a rule, not a squeeze:
 ```
-ZYGOTE    = the code that runs before any post exists + the map (diagram · loop · one line per piece, all 24)
+ZYGOTE    = the code that runs before any post exists + the map (diagram · loop · one line per piece, all 25)
 EXPANSION = every file that code writes and everything a post runs: read with sect @REV, extracted whole into the post's bin
-config:engine        7,263 B  ZYGOTE: diagram · loop · 24 piece lines · sect · agi-project · agi-gate            (v4c: 16,384)
-config:engine-post   7,673 B  the body: agi-post@.service · agi-brief · brief.py · agi-meter · agi-turn · agi-link · agi-wt
+config:engine        7,342 B  ZYGOTE: diagram · loop · 25 piece lines · sect · agi-project · agi-gate            (v4c: 16,384)
+config:engine-post   7,671 B  the body: agi-post@.service · agi-brief · brief.py · agi-meter · agi-turn · agi-link · agi-wt
                               · agi-track · agi-flush · gitconfig · signers · sysusers.conf · agi.rules · project.sh · observe.sh · tick.sh · agi-frontier
-config:engine-wrap   3,236 B  the post wrappers: agi-run · settings.json · cccc.ts · agi-kid
-total               18,172 B  (cap 20,480) · zygote headroom 929 B · gone: none · every other piece byte-identical to v4c
+config:engine-wrap   3,817 B  the post wrappers: agi-run · settings.json · cccc.ts · agi-kid · agi-infer (05:50Z, below)
+total               18,830 B  (cap 20,480) · zygote headroom 850 B · gone: none · every other piece byte-identical to v4c
 ```
 **The only code changes** (v4c -> v5; the new expansion nodes are v4c's sections cut whole, by the map above):
 | piece | change | bytes |
@@ -1153,7 +1171,7 @@ total               18,172 B  (cap 20,480) · zygote headroom 929 B · gone: non
 | sect | reads EVERY `.geometry/engine*.md` at REV: `r=${2:-HEAD};git ls-tree --name-only $r .agi/nodes/.geometry/\|grep "/engine[^/]*\.md$"\|sed "s\|^\|$r:\|"\|git cat-file --batch --follow-symlinks\|sed -n` + v4c's range; no caller changes | 149 -> 202 |
 | agi-project | `s()` = the same read; after writing the unit: `[ -s $o/agi-post@.service ]\|\|exit 3` (a missing expansion fails loud) | 1679 -> 1833 |
 | agi-gate | first line: `git grep -ho "^### [^ ]*" $1 -- ".agi/nodes/.geometry/engine*.md"\|sort\|uniq -d\|grep -q .&&exit 2` (one name, one piece) | 276 -> 373 |
-| agi-post@.service | `e=...engine.md;for x in ...;done;` -> `for e in t/.agi/nodes/.geometry/engine*.md;do for x in ...;done;done;` -- bare `$e`, never `${e}`: systemd 255 empties `${x}` even inside `sh -c '...'` (measured: `x=[5] br=[]`) | 1252 -> 1268 |
+| agi-post@.service | `e=...engine.md;for x in ...;done;` -> `for e in t/.agi/nodes/.geometry/engine*.md;do for x in ...;done;done;`, each range ending at `^##` (alive R3: a fenced table after a node's last piece no longer bleeds into it; re-tested) -- bare `$e`, never `${e}`: systemd 255 empties `${x}` even inside `sh -c '...'` (measured: `x=[5] br=[]`) | 1252 -> 1266 |
 | diagram | +1 line: `ZYGOTE = this read ... ──sect @REV──▶ EXPANSION: config:engine-post · config:engine-wrap` | +128 |
 
 **Tested 05:4xZ** (`--shared` scratch clone, rows zz-claude / zz-pi / zz-off on another box; commit A = v4c, C = v5; no root, no unit started, MAIN untouched):
@@ -1166,7 +1184,16 @@ total               18,172 B  (cap 20,480) · zygote headroom 929 B · gone: non
 
 **Why the wrappers stay whole per post:** `cccc.ts` is not pi-only: `agi-kid` loads it in EVERY post (a claude post spawns pi kids). Narrowing the wrap per harness is free later (expansion bytes are not capped) and saves nothing in the zygote. **Seeds not taken, on purpose:** cells + ONE projector for the key=value units, and one brief, shrink the EXPANSION, not the zygote, and each rewrites a piece whose parity rows are proven: take them when a parity row needs touching anyway. **The zygote's next cut, if 8 KB gets tight:** agi-project's three printf blocks (agi-project.service, .path, h.conf, ~900 B) become cells in config:engine-post read by the same `s()`; est. -500 B, unmeasured.
 
-Falsifiers: **F32** `wc -c` config:engine <= 8,192 (7,263) · **F33** sect parity as in the table (PASS) · **F34** projection parity (PASS) · **F35** gate 0/1/2 (PASS) · **F36** on DG3's stage-2 post: its bin under v5 = its bin under v4c except the 3 edited pieces (unrun). Drafts: /tmp/g71611/r5/v5 (scratch; rebuildable from v4c by the map + the 5 edits above).
+**RAW INFERENCE (owner 05:50Z) = `agi-infer`, 549 B, in config:engine-wrap; the zygote pays one index line.** One call to any OpenAI-compatible `/v1/chat/completions`: prompt on stdin, reply on stdout. Three engine cells, projected as env by the projector that exists (no projector change): `infer_url` (local llama.cpp `http://127.0.0.1:8080/v1` = the default; OpenRouter; the xAI API) · `infer_model` · `infer_key` = the NAME of a variable, never a key. **Where the key comes from:** the unit's root-owned `EnvironmentFile=-/var/lib/agi/%i.env` (already in agi-post@.service), never `.env`, never a node; it reaches curl through a 0600 header file (`printf` is a shell builtin, so the key is in no argv and never in `ps`), removed on exit. A row without `infer_key` sends no Authorization header (local). No SuperGrok wiring (belam: a consumer plan, not an API); xAI API credits = a spend the owner names. As a launch route (§L) it is one line: `{"name":"infer","harness":"agi-infer <$AGI_TASK","time":"300"}`.
+```sh
+#!/bin/sh
+# agi-infer [MODEL] <prompt: ONE call to any OpenAI-compatible /v1/chat/completions; cells infer_url, infer_model, infer_key (the NAME of a var in the unit's EnvironmentFile)
+h=$(mktemp);trap 'rm -f $h' 0;[ "$AGI_INFER_KEY" ]&&printf 'Authorization: Bearer %s\n' "$(printenv $AGI_INFER_KEY)">$h
+jq -Rsc --arg m "${1:-$AGI_INFER_MODEL}" '{model:$m,messages:[{role:"user",content:.}]}'|curl -sf -H @$h -H 'Content-Type: application/json' -d @- ${AGI_INFER_URL:-http://127.0.0.1:8080/v1}/chat/completions|jq -er '.choices[0].message.content'
+```
+Tested (a stub OpenAI-compatible server on loopback; a throwaway key): the request hits `/v1/chat/completions` with `{model, messages:[{role:user, content}]}` and quotes, `$` and backticks intact · `agi-infer other/model` overrides the cell · key cell set -> `Bearer <key>`; unset -> no header (the first draft leaked `$_` as the bearer: `printenv ${X:-_}`; fixed) · unreachable endpoint -> rc 4 · 0 temp files left · `sect agi-infer` byte-exact from the wrap node · gate 0. **F37** the same call against the town's local llama.cpp and one free OpenRouter model returns text (unrun: no live endpoint touched in a design round).
+
+Falsifiers: **F32** `wc -c` config:engine <= 8,192 (7,263) · **F33** sect parity as in the table (PASS) · **F34** projection parity (PASS) · **F35** gate 0/1/2 (PASS) · **F36** on DG3's stage-2 post: its bin under v5 = its bin under v4c except the 3 edited pieces (unrun). Drafts: /tmp/g71611/r5/v5 (scratch; rebuildable from v4c by the map + the 5 edits above + agi-infer).
 
 ## R · ROUND 5 · alive -- VARIANT B of §Q, written in parallel (05:5xZ): a 5.7 KB bootstrap with the map split across nodes. Recommended = §Q (the whole 24-line map stays in the one read) + two hardenings measured here: the gate refuses an empty unit template (R4c, a v4c gap) and ranges end at ^## (0 B; R3)
 **Owner 05:38Z:** "Our engine code is getting too large. Do we need to offload more of it into the math somehow? Rethink things or recompose them? We can go up to 20kb while needed but ideally I'd want it back under 8kb when possible via another simplification redesign. Mind you the expanded vectors for live posts and post wrappers can be bigger than 8kb I just mean the 'bootstrap' package is under 8kb you get it?" **What am I ACTUALLY trying to get the machine to do?** Make the one read that a box needs to come alive small, and let everything a post runs be fetched by NAME only when it is needed, with no piece rewritten (so parity holds by construction, and is then measured, not argued).
