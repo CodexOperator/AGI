@@ -53,7 +53,7 @@ held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council des
 ```
 
 ## 🔴 Where it stops
-IDLE at 02:4xZ 10-01: g1.31.3 tree + g6.49 closed (4 OUTCOMEs today), three [landed] lines to SM delivered; nothing in flight, nothing uncommitted of mine. Waiting on: SM's next placement · a DG2 verdict on g1.31.1.1.1 / g1.31.5.1.3.1.1 (belam) · the g7.16.1.11 hold lifting. NOT placed (SM): g7.16.1.5.2 -- folded into g7.16.1.1.6, carries alive's uncommitted hand edit: leave it.
+IDLE at 02:4xZ 10-01: the SM-1 re-archive [red] (a00-fa4269d4 orphan, 454 passes after d5d9107d43) RECEIVED by SM 02:46Z: corrective ordered on DG2, the tree's 40 files pinned off-repo -- nothing of it is mine now. Waiting on: SM's next placement · a DG2 verdict on g1.31.1.1.1 / g1.31.5.1.3.1.1 (belam) · the g7.16.1.11 hold. NOT placed (SM): g7.16.1.5.2 -- leave it.
 On a DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then:
 ```
 for g in g1.31 g6.41.1.1 g1.31.5.1.3.1.1 g1.31.1.1 g1.31.1.1.1 g7.16.1.11; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head
