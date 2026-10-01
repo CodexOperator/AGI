@@ -402,3 +402,21 @@ def test_two_env_strip_instances_keep_their_own_memo(monkeypatch):
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
+
+
+#: the ONLY files that may name the fence marker (which holds the RAW stdlib
+#: leaf): the installer, the tests OF the fence, this scan, and the one test
+#: whose bash tick needs a real child. Adding a name here is the review.
+_FENCE_MARKER_HOLDERS = {"conftest.py", "test_conftest_guard.py",
+                         "test_declared_suite_guards.py",
+                         "test_workflow_slice_isolation.py"}
+
+
+def test_the_raw_leaf_escape_hatch_has_a_declared_allow_list():
+    """Any opted-in file can read the raw `Popen` off the fence marker; no
+    file may name the marker unless it is declared above."""
+    tests = Path(__file__).resolve().parent
+    holders = {f.name for f in tests.glob("*.py")
+               if any(n in f.read_text(encoding="utf-8")
+                      for n in ("__agi_spawn_fence__", "FENCE_MARKER"))}
+    assert holders <= _FENCE_MARKER_HOLDERS, sorted(holders - _FENCE_MARKER_HOLDERS)
