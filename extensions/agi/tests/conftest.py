@@ -39,6 +39,8 @@ GATE_TIER = "kid"
 # is an UNKNOWN record, never an absent one. `_record_roots` sets this when
 # its per-entry guard drops an entry; `_effective_tier` reads it so an
 # unreadable entry can never be laundered into an AGI_TIER fallback.
+# Never reset on purpose: a process that has seen an unknown record stays
+# closed; the one-shot pytest_cmdline_main use makes that harmless.
 _WORKTREES_ENTRY_DROPPED = False
 REFUSAL_REASON = (
     "AGI_TIER=kid refuses a bare full-suite directory run; "
@@ -194,9 +196,11 @@ def _record_roots():
         if main_graph:
             wt_root = Path(main_graph) / "worktrees"
             if wt_root.is_dir():
+                global _WORKTREES_ENTRY_DROPPED  # set by either OSError arm
                 try:
                     entries = sorted(wt_root.iterdir())
                 except OSError:
+                    _WORKTREES_ENTRY_DROPPED = True  # unknown, not absent
                     entries = []  # an unreadable worktrees dir scans empty
                 for wt in entries:
                     try:
@@ -204,7 +208,6 @@ def _record_roots():
                             continue
                         wt_graph = locations.find_project_root(wt)
                     except OSError:
-                        global _WORKTREES_ENTRY_DROPPED
                         _WORKTREES_ENTRY_DROPPED = True  # unknown, not absent
                         continue  # one unreadable entry never kills collection
                     if wt_graph is not None:
