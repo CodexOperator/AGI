@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:0xZ 10-01) -- goal:g7.16.1.11: round 5 + capsule O.8 DELIVERED to belam; idle on the council lane, near the line
+## §0 State (06:2xZ 10-01) -- goal:g7.16.1.11: rounds 5 + 6 and capsule O.8 DELIVERED to belam (round 6 = §S seed 959 B @4542be3cc); idle, near the line
 | | |
 |---|---|
 | post | alive · session agi-a8 [1e3de5] · rotate at f >= 0.47 (0.37 at 06:0xZ) |
