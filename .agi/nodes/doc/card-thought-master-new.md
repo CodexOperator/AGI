@@ -17,14 +17,15 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (22:2xZ 10-01; box REBOOT GO'd by owner via belam; I am in the boot set, nothing running, nothing in /mnt/agi-ram) -- successor seated 19:4xZ after the 0.40 rotation (belam meters me; my agi-meter is blind until G10 + a restart)
+## §0 State (22:3xZ 10-01; box rebooted 22:18Z; owner "go" in this session 22:3xZ = the go for the next round)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
 | run | owner 15:1xZ: keep going until goal:g7.16.1.11.1-.10 complete · COMMS = DIRECT session messages (SendMessage, names from ListAgents), not inbox dms (owner 18:1xZ) · belam = belam-S2-L5-I · SM lands my merge-ups (a v5 post cannot write MAIN) |
-| directors | director-thought-1 (successor after its 18:2xZ rotation): HOLD, no order · director-thought-2: idle after FAIR P4 |
+| directors | director-thought-1: ORDERED 22:3xZ (SendMessage, delivery unconfirmed) to build the FREQ-ABLATION round · director-thought-2: DOWN after the reboot until the owner says |
 | subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
 | LANDED | SEEDS x3 + FAIR P4 (both DISPROVED): a6ac4d92e = 67680d223 on local-maxxing/season2/main, pushed by SM (suite 7876 passed / 1 = the trunk red; links 5670/0; grid commit --all run by SM, 31 versions). Trunk merged back into my branch 6d8bb6265 |
+| ROUND OUT | FREQ-ABLATION = hypothesis:lm-neuron-periodicity-every-family-frequency-is-load-bearing-in-logit-space (minted d05c57e81): logit-space ablation of each family frequency vs an EXHAUSTIVE non-key-frequency null (C1) + family direct-logit energy >= 0.5 in its own frequency (C2); builder DT-1, expected experiment:dt1-neuron-period-freqabl-1001 |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: needs MemAvailable >= 8 GB held + a docker-capable user (v5 has none); resume steps in its THOUGHT |
 
 ## §1 Plan
@@ -32,7 +33,8 @@ thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 hig
 DONE   self-poke toy line LANDED a001a3c61 · guard-leak fix LANDED 0376b07da (goal:g7.33.19 row 80) · seeds x3 reviewed + merged, merge-up queued
 DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + gated + [merge-up] a6ac4d92e to SM
 DONE   SM landed 67680d223; trunk merged back 6d8bb6265
-NEXT   (1) next research round = the BANKED next lens (§6) -- awaits a go from belam/owner; do not mint it unasked
+NOW    (1) FREQ-ABLATION round out to DT-1; await its ONE return line (tip sha, verdict, C1/C2 per seed)
+NEXT   (2) adversarial ONE-process Sonnet review recomputing from raw (brief as the FAIR P4 one: ulimit -v 4000000, PSI gate, 40 min) -> THOUGHT + board g5.28 + merge DT-1 -> gate -> [merge-up] to SM
 BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
 ```
 
@@ -47,8 +49,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Lane idle: FAIR P4 + SEEDS x3 landed (67680d223); next round awaits a go from belam/owner (the §6 next lens)
-next command on a go: write.py create hypothesis under idea:lm-neuron-periodicity-map-and-self-poke (per-frequency logit attribution), dispatch director-thought-2
+FREQ-ABLATION round ordered to DT-1 (22:3xZ); waiting on its return line
+next command if silent > 60 min: ListAgents, then git log --oneline -5 posts/director-thought-1 (reconcile by branch, never by inbox alone)
 ```
 
 ## §4 Traps
@@ -74,7 +76,7 @@ next command on a go: write.py create hypothesis under idea:lm-neuron-periodicit
 ## §6 BANKED
 - L4 r5 on the 9B: (a) run when the owner thins the live posts (RECOMMENDED) · (b) lower the 8 GB gate = OOM risk · (c) a smaller-model rung first; + a docker grant for v5 users
 - an LLM periodicity / self-poke test needs a model whose tokenizer holds multi-digit numbers as one token = a download (owner call)
-- next-round design (from the seeds + fair-P4 reviews): single-family ablation is not a reliable causal map here; a per-frequency logit attribution or a path-patching probe is the candidate next lens
+- next-round design: per-frequency logit lens MINTED d05c57e81 on the owner's go (22:3xZ); path patching stays the fallback lens if it is disproved
 
 ## Skills
 agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
