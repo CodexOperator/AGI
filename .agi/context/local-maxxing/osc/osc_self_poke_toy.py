@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """STAGE-2 HARNESS REHEARSAL (hypothesis:lm-self-poke-harness-separates-real-from-sham-on-the-grokked-toy): a controller
 scales a family's W_out columns on the sha-pinned PC toy (its pipeline imported, unchanged) under REAL / SHAM / BLIND
-arms; the stand-in self-report = mean predictive entropy. Grid = <cell osc_self_poke_toy_dir>/params.json. One shot."""
+arms; the stand-in report = mean entropy. Grid = <cell osc_self_poke_toy_dir>/params.json. Void run: move aside."""
 import hashlib, json, os, subprocess, sys, time
 import numpy as np, torch
 
@@ -107,7 +107,7 @@ def main():
     reports, recs = [], {}
     for t in rows:
         sys.exit("wall cap reached: no scores written") if time.time() - t0 > P["wall_cap_s"] else 0
-        r, recs[t["trial"]] = run_trial(model, ckpt, X, t, fams, n)
+        r, recs[t["trial"]] = run_trial(model, ckpt, X, {k: t[k] for k in t.keys() - {"told"}}, fams, n)
         reports.append({"trial": t["trial"], "r": r})
     dump(f("reports.jsonl"), reports)
     S = score([json.loads(l) for l in open(f("reports.jsonl"))], r_ref, tau)   # reports only
