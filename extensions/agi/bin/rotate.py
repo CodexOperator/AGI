@@ -7682,6 +7682,15 @@ def _seat_fraction(root: Path, row: dict) -> float | None:
     target = _read_pin_target(pin)
     if target is None:
         return None
+    try:
+        usage = parse_usage_from_cc_transcript(target)
+        if usage is None:
+            usage = parse_usage_from_rc_log(target)
+    except OSError:
+        # EXISTS but unreadable (EACCES on the file itself, not on a parent
+        # dir). The stat seam in _read_pin_target cannot see this; without
+        # this guard `rotate.py status` still dies on the first sealed seat.
+        return None
     if usage is None:
         return None
     context_tokens = load_ladder_field(root, "director_context_tokens",
