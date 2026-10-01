@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g1.25
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-3
 scaffold_hash: eae2cd2781042856
 season: 2
 thought_session: belam-S2-L5-V
@@ -27,7 +27,7 @@ box up ─▶ 1 memory guard ─▶ 2 streamer-stub units ─▶ 3 claude-remote
 ## 1. Memory ✔ (09-25, after the 04:00Z OOM took every seat down)
 | piece | where | what |
 |---|---|---|
-| memguard | `/usr/local/sbin/agi-memguard.py` · system unit `agi-memguard.service` (enabled, OOMScoreAdjust=-1000, Nice=-10) | every 5 s: claude / tmux / ffmpeg / streamer-stub / launch-wrapper -> oom_score_adj -900 + nice -5 · pi workers -> +500 · SIGSTOP any process > 70% RAM, or the biggest unprotected one under 1 GiB free (resume: `kill -CONT <pid>`) · a >= 3 GiB drop in 30 s -> journal + `/var/log/agi-memguard.log` + [red] to belam (10-min limit) |
+| memguard | `/usr/local/sbin/agi-memguard.py` · system unit `agi-memguard.service` (enabled, OOMScoreAdjust=-1000, Nice=-10) | every 5 s: the protected set (cells PROTECT_COMM / PROTECT_CMD in .agi/config.json values.boxkit: claude / tmux / ffmpeg / streamer-stub / launch-wrapper) AND a post s pi (POST_PI_COMM inside a POST_CGROUP_RE unit, agi.slice) -> oom_score_adj -900 + nice -5 · every other pi worker (PI_CMD) -> +500 · SIGSTOP any process > 70% RAM, or the biggest unprotected one under 1 GiB free (resume: `kill -CONT <pid>`) · a >= 3 GiB drop in 30 s -> journal + `/var/log/agi-memguard.log` + [red] to belam (10-min limit) |
 | no cascade | `~/.config/systemd/user/{claude-remote-control,streamer-stub,streamer-stub-watch}.service.d/10-agi-survival.conf`: `OOMPolicy=continue` | the default `stop` turned ONE OOM kill into stopping the unit, its tmux server and every seat |
 | budget | box 15 GiB · stream ~5.3 GiB · a Claude seat ~0.4-0.8 GiB | PASS chunks wait for MemAvailable >= 1500 MB (launch.sh) · research reviews run under `systemd-run --user --property=MemoryMax=6G` |
 | later | a reserved `agi-core.slice` (MemoryMin) for seats + stream | needs the units restarted into it: at a PLANNED restart, never live |
