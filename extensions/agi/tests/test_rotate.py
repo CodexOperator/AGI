@@ -10957,7 +10957,6 @@ def test_status_walks_past_an_unreadable_seat_to_the_next_row(tmp_path, monkeypa
     readable = tmp_path / "readable.jsonl"
     readable.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
     g, _p1 = _pin_naming(tmp_path, "aaa-sealed-seat", sealed)
-    g, _p1 = _pin_naming(tmp_path, "aaa-sealed-seat", sealed)
     # the readable seat's pin goes in the SAME graph, via the same helper, so
     # cmd_status resolves both the way it resolves in production
     (g / "sessions" / "zzz-readable-seat.meter").write_text(
