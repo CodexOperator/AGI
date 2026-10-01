@@ -2339,7 +2339,7 @@ def _repair_stranded_wakes(root: Path) -> None:
         return
     for row in rows:
         seat = row.get("name") or row.get("seat")
-        if not seat:
+        if not seat or not _send.boxes.row_is_local(root, row):
             continue
         # a QUIET row is skipped BY NAME: the dm is written, never a wake.
         try:

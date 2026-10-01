@@ -8274,3 +8274,43 @@ def test_g53_mail_poll_types_nothing_while_the_inbox_is_absent(tmp_path):
     assert _run_mail_poll(tmp_path, False) == ("", "")
     typed, err = _run_mail_poll(tmp_path, True)
     assert "mail: send.py read p" in typed and err == ""
+
+
+def test_g54_log_trim_loop_reads_an_absent_log_as_empty(tmp_path):
+    """G5.4 #1: engine-wrap.md's log-trim loop (line 24), ~/o absent: no stderr."""
+    node = (Path(__file__).resolve().parents[3] / ".agi" / "nodes"
+            / ".geometry" / "engine-wrap.md").read_text()
+    line = next(ln for ln in node.splitlines() if ln.startswith("(while sleep 300"))
+    cp = subprocess.run(["sh", "-c", line.replace("sleep 300", "sleep 0.1")
+                         + "\nsleep 0.5\nkill $!"], capture_output=True, text=True,
+                        timeout=20, env={**os.environ, "HOME": str(tmp_path)})
+    assert cp.stderr == "" and not (tmp_path / "o").exists()
+
+
+def test_g54_foreign_and_boxless_engine_rows_are_refused_by_name(
+        project: Path, monkeypatch, capsys):
+    """G5.4 #2 foreign engine row: FOREIGN refusal, no pane busy; #4 PIN boxless: no post."""
+    _fake_tmux(monkeypatch, ["post-v5"])
+    monkeypatch.setenv("AGI_BOX", "here")
+    for row, label in ((dict(_V5_ROW, box="far"), "far"), (_V5_ROW, "(unset)")):
+        _write_seats_node(project, [row])
+        assert send_mod._engine_post(project, "post-v5") is False
+        send_mod._forget_refusals()
+        send_mod.send(project, "post-v5", "hello", "seat-a")
+        err = capsys.readouterr().err
+        assert f"[refused] post-v5 -- FOREIGN box row (box {label})" in err, err
+        assert "pane busy" not in err and "sweep retries" not in err, err
+    monkeypatch.delenv("AGI_BOX")
+    assert send_mod._engine_post(project, "post-v5") is True
+
+
+def test_g54_heal_repair_skips_a_foreign_engine_row(project: Path, monkeypatch):
+    """G5.4 #3: heal's stranded-wake repair gives a foreign row no wake call."""
+    import heal as heal_mod, send as real_send  # noqa: PLC0415,E401 (heal's send)
+    monkeypatch.setenv("AGI_BOX", "here")
+    _write_seats_node(project, [dict(_V5_ROW, box="far"),
+                                {"name": "near", "box": "here", "window": "@3"}])
+    woken = []
+    monkeypatch.setattr(real_send, "wake", lambda r, s, *a: woken.append(s))
+    heal_mod._repair_stranded_wakes(project)
+    assert woken == ["near"], woken

@@ -1796,8 +1796,13 @@ def _announce_nudge(root: Path, to: str, delivered: bool,
               if inboxed else f"[written] {to} -- dm file only; its mail poll "
               f"reads the inbox, not delivered", file=sys.stderr)
         return
-    if not (row := _seat_row_by_name(_locally_loaded_rows(root), to)) \
-            or not (row.get("window") or row.get("pid")):
+    row = _seat_row_by_name(_locally_loaded_rows(root), to)
+    if (row or {}).get("engine"):       # not local (checked above): a refusal
+        print(f"[refused] {to} -- FOREIGN box row (box "
+              f"{row.get('box') or '(unset)'}); not nudged, no retry",
+              file=sys.stderr)
+        return
+    if not row or not (row.get("window") or row.get("pid")):
         return
     t = _comms_config(root).get("undelivered_after_minutes") or 10
     print(f"[delivered] {to}" if delivered else
