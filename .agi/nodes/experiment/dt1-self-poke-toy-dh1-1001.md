@@ -16,6 +16,7 @@ role: director
 scaffold_hash: ed099281f2bec873
 season: 2
 title: "Self-poke toy CORRECTIVE DH.1: the entropy readout ranks the load-bearing families (dr 0.42-0.44) above all 20 size-matched random 128-sets (max 0.274) and the passengers (0.08) below all of them (min 0.119) -- C5a AND C5b, run-2 verdict stands"
+title=Self-poke: "toy CORRECTIVE DH.1: the whole load-bearing family moves the entropy readout beyond any size-matched random set (C5a, dr 0.42-0.44 vs random max 0.274, +3.4 sd over the reviewer's norm line); passengers moving it less than random (C5b, 0.08 vs random min 0.119) is NOT size-clean -- registered rule: stands"
 town: local-maxxing
 verdict: proved
 ---
