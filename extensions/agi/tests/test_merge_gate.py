@@ -1,11 +1,12 @@
 """hypothesis:g716107-...-merge-gate-gives-one-word -- `merge_gate.py check BASE TIP`
-prints ONE word: merge, or hold by name. One row per falsifier F1-F6 and per corrective
-DH.DG3.62 C1-C5. Values are SYNTHETIC; every repo and config is a tmp fixture -- no test
+prints ONE word: merge, or hold by name. One row per falsifier F1-F5 (the F6 row that read
+skills/agi-merge-pass/SKILL.md was DROPPED by corrective DH.DG3.65 -- the skill is restored
+to its merge-base, so its retirement becomes its own leaf) and one row per corrective
+DH.DG3.62 C1-C6. Values are SYNTHETIC; every repo and config is a tmp fixture -- no test
 touches the live repo, its history or its report node."""
 from __future__ import annotations
 
 import json
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -114,19 +115,6 @@ def test_f5_cannot_answer_is_rc_two_on_one_line(proj):
     p = _run(repo, base, _commit(repo, "empty report"))
     assert p.returncode == 2 and "Traceback" not in p.stderr
 
-# F6 + fix 8 -- section 2 retires steps 2, 3, 4, 6 BY NAME, continuation line included.
-def test_f6_skill_section_two_retires_the_prime_hand_steps():
-    text = (BIN.parents[2] / "skills/agi-merge-pass/SKILL.md").read_text(encoding="utf-8")
-    section = text.split("## 2 · PASS", 1)[1].split("## 3 ·", 1)[0]
-    assert "retired by goal:g7.16.1.10.7" in section
-    assert all("retired by goal:g7.16.1.10.7" in ln for ln in section.splitlines()
-               if re.match(r"\s*[2346] ", ln)), section
-    for step in ("0", "1", "5", "7"):
-        assert any(re.match(rf"\s*{step}[a-z]? \S", ln) and "retired" not in ln for ln in section.splitlines()), step
-    assert "merge_gate.py check" in section
-    assert any("retired" in ln for ln in section.splitlines()    # fix 8: no live tail
-               if ".agi/nodes/.geometry paths" in ln)
-
 # C1 -- a row whose tip MERGED the trunk covers only its own first-parent chain.
 def test_c1_trunk_commit_merged_into_the_row_stays_uncovered(proj):
     repo, base = proj
@@ -186,10 +174,16 @@ def test_c5_one_walk_and_no_git_show(proj, monkeypatch):
     assert merge_gate.main(["check", base, "HEAD", "--root", str(repo / ".agi"),
                             "--repo", str(repo)]) == 1
     assert "show" not in seen and seen.count("log") == 1
+    # the spy is INVISIBLE to a subprocess.run a later edit adds DIRECTLY: the gate itself
+    # must carry exactly ONE call site, inside _git (measured: line 22).
+    src = (BIN / "merge_gate.py").read_text(encoding="utf-8")
+    assert src.count("subprocess.run") == 1
+    assert "subprocess.run" in src.split("def _git(", 1)[1].split("\ndef ", 1)[0]
 
 # C6 -- a non-ASCII file under a review path -> hold; a C-quoted path is fail-open.
 def test_c6_non_ascii_review_path_is_not_fail_open(proj):
     repo, base = proj
     (repo / "extensions/naïve.py").write_text("u = 4\n")
-    p = _run(repo, base, _commit(repo, "non-ascii"))
-    assert p.returncode == 1 and p.stdout.splitlines()[0] == "hold"
+    sha = _commit(repo, "non-ascii")
+    p = _run(repo, base, sha)
+    assert p.returncode == 1 and p.stdout.splitlines()[0] == "hold" and sha[:20] in p.stdout
