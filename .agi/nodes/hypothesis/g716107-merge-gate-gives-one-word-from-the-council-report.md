@@ -115,5 +115,5 @@ CEILING   0 production lines · test_merge_gate.py <= 195 lines TOTAL · 0 USD b
 EVIDENCE (ffef25a4fc, re-measured by verify h107f): helper-after-_git mutant FAIL · from-import mutant FAIL · comment-only mutant PASS; test_merge_gate.py 195 lines; 305 passed 8 skipped
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.68: mur h107e accept_with_residue -> C5 containment bounded on both ends + no from-import (a regression from the split guard), node honesty at the sites the last pass missed; demotes measured; executed by an Opus subagent under the owner lanes of 02:27Z
+DH.DG3.68 + director close: C5 containment bounded on both ends + no subprocess from-import (verify h107f measured the three mutants); the node-prose residues h107f named closed by the director in-loop (no re-mur, per skill agi-corrective §3 row 1)
 <!-- THOUGHT:END -->
