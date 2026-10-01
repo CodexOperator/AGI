@@ -77,6 +77,20 @@ FILE SCOPE extensions/agi/bin/merge_gate.py · extensions/agi/tests/test_merge_g
 CEILING   HARD CAP: 1 kid · merge_gate.py <= 125 lines TOTAL · test_merge_gate.py <= 195 lines TOTAL · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; ask BEFORE, never after.
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit; run test_merge_gate.py test_reds.py test_council_report.py test_commands_manifest.py with --basetemp under /tmp and paste the counts.
 
+## CORRECTIVE DH.DG3.65 -- closes mur-season2-loops-hypothesis-g716107-merge-gate-gi-a00-9147a830 h107c-code + h107c-nodes (accept_with_residue, verify upheld) + the pending council [decision] 23:04Z, option A applied as the safe default
+BASE      CUT FROM season2/loops/hypothesis-g716107-merge-gate-gi-a00-9147a830 tip c03601a725 (worktree /mnt/agi-ram/worktrees/de-base-DG3.65). No merge. Never rebase.
+1. Option A (the gate CODE lands alone; the skill retirement becomes its own leaf later): skills/agi-merge-pass/SKILL.md restored byte-identical to the trunk merge-base 8523e5e563 (paste `git diff 8523e5e563 -- skills/agi-merge-pass/SKILL.md | wc -l` = 0), and test_merge_gate.py drops test_f6 (the one row that reads that skill). merge_gate.py, its manifest row and every other test row stay.
+2. test_merge_gate.py C6 -- asserts only rc + the first word: it also asserts the hold names the non-ASCII commit's sha (as F1 does), so a hold for any other reason fails it.
+3. test_merge_gate.py C5 -- the _git spy cannot see a direct subprocess call added to merge_gate.py later: one assertion that merge_gate.py holds exactly ONE subprocess call, inside _git (read the module source), beside the existing spy.
+4. test_merge_gate.py:3 docstring -- names its real row inventory (F1-F5, C1-C6 after item 1), never a stale list.
+5. Node honesty (write.py only): experiment:a00-a72539b5-099206 last line (:197) still says the sha256 chain + probe_geom artifact 'are absent from the bytes', contradicting its own :153-159 -- corrected in place naming DH.DG3.65. experiment:a00-157cc732-9a0afc: the probes[] RESIDUAL entry and body :20/:101/:105 name a00-5b52f00d:101 as uncorrected though c03601a725 corrected it -- restated as closed; the '15 sites corrected' row matches its own enumeration (count them); THOUGHT PROBE-B attributes `ip addr` to reds.py -- it lives in anonymize.py's hook (reds.py's only subprocess is _git).
+DEMOTED (verify, refuted or not a defect): the 46-vs-31 production-lines note (each scoped to its own round); MISS1 (C6 is a real falsifier: fails on the base gate); MISS4 (reds' git show is covered by test_reds f2/f12b). UNVERIFIED, recorded only: item 5 of DH.DG3.64 rode in the harness auto-commit beabfae987, not a write.py commit.
+COUNCIL   'the gate edits its own source and nothing gates it' -- carried to the council with the [decision], never a code change in this round.
+ANON      no user name, home or repo path value, host or IP.
+FILE SCOPE skills/agi-merge-pass/SKILL.md (restore only) · extensions/agi/tests/test_merge_gate.py · experiment:a00-a72539b5-099206 · experiment:a00-157cc732-9a0afc · the kid's own node. merge_gate.py is NOT in scope.
+CEILING   HARD CAP: 1 kid · 0 production lines · test_merge_gate.py <= 195 lines TOTAL · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; ask BEFORE, never after.
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit; run test_merge_gate.py test_reds.py test_council_report.py test_commands_manifest.py with --basetemp under /tmp and paste the counts.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.DG3.65: mur h107c code+nodes accept_with_residue -> C6 names the sha, C5 pins one subprocess call, docstring inventory, two node-honesty sites; council decision option A (skill restore + drop test_f6) applied as the safe default pending the council word, reversible at harvest
 <!-- THOUGHT:END -->
