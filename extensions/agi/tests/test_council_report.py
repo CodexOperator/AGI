@@ -129,6 +129,7 @@ def test_f1_one_row_per_round_and_a_re_add_never_duplicates(tmp_path):
     store = {}
     args = {"parent": "goal:g7.9", "old": "aaa", "new": "bbb"}
     cr.add(root / ".agi", "k1", args, writer=_writer(store))
+    assert "| k1/a1 | aaa..bbb |" in store["doc:council-report"]   # mur F3: flat shape stays
     assert len([ln for ln in store["doc:council-report"].splitlines()
                 if ln.startswith("|")]) == 4          # header + sep + 2 rows
     store2 = {}
@@ -239,3 +240,42 @@ def test_write_body_is_a_no_op_when_the_body_is_unchanged(tmp_path, monkeypatch)
 def test_help(script):
     assert cr.subprocess.run([sys.executable, str(_BIN / "council_report.py"), script],
                               capture_output=True).returncode == 0
+
+
+def _mur(tmp_path, sp=cr.subprocess):
+    """mur F1/F2: 2 rounds, own tips; h1 -> goal (assigned: post-a), h2 -> commit subject."""
+    root = _project(tmp_path)
+    (root / ".agi/nodes/hypothesis").mkdir()
+    for slug, parents in (("h1", ["goal:g7.9"]), ("h2", ["idea:x"])):
+        (root / f".agi/nodes/hypothesis/{slug}.md").write_text(
+            f"---\nid: hypothesis:{slug}\nparents: {json.dumps(parents)}\n---\n")
+    sp.run(["git", "init", "-q", str(root)], check=True)
+    for msg in ("c0 (belam)", "c1 (post-a)", "c2 (director-engine)"):
+        sp.run(["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t",
+                "commit", "-q", "--allow-empty", "-m", msg], check=True)
+    tip = [sp.run(["git", "-C", str(root), "rev-parse", f"HEAD~{n}"], text=True,
+                  capture_output=True).stdout.strip()[:10] for n in (2, 1, 0)]
+    _run(root, label="a1", verify={"final_recommendation": "accept", "missed": ["r one"]})
+    _run(root, label="a2-code", verify={"final_recommendation": "accept", "missed": ["r two"]})
+    return root, tip, {"rounds": [
+        {"key": "a1", "hypothesis": "hypothesis:h1", "old_tip": tip[0], "new_tip": tip[1]},
+        {"key": "a2", "hypothesis": "hypothesis:h2", "old_tip": tip[1], "new_tip": tip[2]}]}
+
+
+def test_mur_f1_each_round_writes_its_own_tips_and_routes_to_its_own_owner(tmp_path):
+    (root, tip, args), store = _mur(tmp_path), {}
+    cr.add(root / ".agi", "k1", args, writer=_writer(store))
+    assert f"| k1/a1 | {tip[0]}..{tip[1]} |" in store["doc:council-report"]
+    assert f"| k1/a2-code | {tip[1]}..{tip[2]} |" in store["doc:council-report"]
+    assert "r one" in store["goal:g7.9"] and "r two" not in store["goal:g7.9"]
+    assert "r two" in store["goal:g9.2"] and "r one" not in store["goal:g9.2"]
+
+
+@pytest.mark.parametrize("bad", [{"key": "zz"}, {"old_tip": "deadbeef0"}, {"new_tip": ""}])
+def test_mur_f2_an_unmatched_label_or_unknown_tip_is_rc2_never_a_qq_row(tmp_path, capsys, bad):
+    root, _tip, args = _mur(tmp_path)
+    args["rounds"][1].update(bad)
+    (tmp_path / "a.json").write_text(json.dumps(args))
+    rc = cr.main(["add", "--run", "k1", "--args", str(tmp_path / "a.json"), "--root", str(root)])
+    assert (rc, "a2-code" in capsys.readouterr().out) == (2, True)
+    assert "?..?" not in (root / ".agi/nodes/doc/council-report.md").read_text()
