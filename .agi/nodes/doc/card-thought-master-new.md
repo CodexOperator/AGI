@@ -17,7 +17,7 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (19:21Z 10-01, read from date -u)
+## §0 State (19:27Z 10-01, read from date -u)
 | | |
 |---|---|
 | RUN | wind-down LIFTED (owner 15:1xZ). COMMS SWITCH (owner 18:1xZ via belam): DIRECT session messages (SendMessage to name [ref] from ListAgents), not inbox dms, until every post is switched; belam = belam-S2-L5-I |
@@ -29,7 +29,7 @@ thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 hig
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: BLOCKED 13:17Z (MemAvailable 3.5-6.8 GB never reached the 8 GB gate in 2.5 h); built + committed c72c99802 c17b49e48; gate KEPT; resume steps in the node's THOUGHT (007f9ce96) |
 | box | ACL on .git/objects fixed by belam 12:4xZ (g:agi) · MAIN datasets/osc-band NOT writable by v5 users (out dirs resolve under the builder's tree) |
 | LANDED | SELF-POKE line: 9c9990d0a LANDED as a001a3c61 on local-maxxing/season2/main by SM 16:35Z (engine suite 7790 / 1 trunk red; context 8 + 7); trunk merged back into my branch abb193673 (key comments stripped, DT-1 card path) |
-| LIVE | FAIR P4 = hypothesis:lm-neuron-periodicity-fair-p4-every-seed-has-a-load-bearing-family (c6bc7db49): seeds 0-2 saved checkpoints, no training; load-bearing iff > 99th pct of a uniform AND a norm-matched null (200 sets each) -> builder DT-2, ordered 19:1xZ by SendMessage |
+| LIVE | FAIR P4: DT-2 RETURNED 19:3xZ, experiment:dt2-neuron-period-p4fair-1001 DISPROVED (posts/director-thought-2 e7d25a5ec, results 2e6238e08): under the 99th pct of BOTH 200 uniform + 200 norm-matched sets only seed 0 has a load-bearing family (k=45); seeds 1 + 2 none; seed 0 k=5 misses N by 0.008 -> my Sonnet 5.5 review running (background subagent of THIS session: re-launch if lost; its brief first named a wrong tip, corrected to e7d25a5ec) |
 | GATED | SEEDS x3 DISPROVED: DH.1 (text) returned 19:0xZ (97512bbdf), merged b12f3b95a, tests 8/8 (mine), board row 3201a0277, DT-2 key comment + card paths fixed on my branch (165f57b0f, 3b302a3cb) -> [merge-up] 165f57b0f QUEUED by SM 19:05Z (SM rotating; its successor gates after the urgent G10) |
 
 ## §1 Plan
@@ -62,7 +62,7 @@ BLOCKED docker: my user is not in the docker group (permission denied on the soc
 
 ## 🔴 Where it stops
 ```
-waiting on (a) SM's successor landing 165f57b0f -> merge the trunk back (b) DT-2's FAIR P4 return -> review -> board row -> merge-up. DT-1's successor holds (no order). DT-1 ROTATED 18:2xZ on belam's [red] (v5 meter blind ~0.46); its successor reads doc:card-director-thought-1 and waits for my next order by direct message (DT-1 tip c83131acb, row 80 intact).
+waiting on (a) SM's successor landing 165f57b0f -> merge the trunk back (b) my FAIR P4 review -> THOUGHT + board row -> merge DT-2's branch -> merge-up -> then ROTATE (meter ~0.40+). DT-1's successor holds (no order). DT-1 ROTATED 18:2xZ on belam's [red] (v5 meter blind ~0.46); its successor reads doc:card-director-thought-1 and waits for my next order by direct message (DT-1 tip c83131acb, row 80 intact).
 messages: direct session messages (ListAgents names); inbox fallback: python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new
 ```
 
