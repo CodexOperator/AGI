@@ -27,7 +27,7 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
-v5 UP (11): DG5 (pi) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2) · alive (MOVE 3 19:31Z) · self-perpetuating (MOVE 4 19:43Z) · DG4 DOWN
+v5 UP (11): DG5 (pi) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2) · alive (MOVE 3 19:31Z) · self-perpetuating (MOVE 4 19:43Z) · all-is-one (MOVE 5 19:48Z) · NEXT MOVE 6 = SM (belam verdict + GO first), then stream-master; DG3 itself = director class, PAUSED on the key broker · DG4 DOWN
   every v5 unit carries preserve.conf (the /run template predates G8): a NEW start installs it too
   DG5 key expires 00:52Z 10-02: renew before 00:00Z (R7 in doc:g716111-stage25-rootplan + restart, behind the gate); the restart also picks up its projected h.conf + the G10 agi-meter
 GATE before ANY start, restart, move OR mur launch (belam 19:3xZ): load1 < 12 AND io PSI some avg60 < 20 AND mem PSI full avg60 well under 40 -- space every start
@@ -37,7 +37,7 @@ G9 BOOT INSTALL: residues 0, [merge-up] SENT to SM 19:5xZ (de-base-G9 tip 2561b3
 HEAL ROUNDS (SM queue, belam-laned):
   (1) hypothesis:heal-crash-respawn-writes-the-new-pid-into-the-row: kid d7a541b94 on /mnt/agi-ram/worktrees/heal-respawn-pid VERIFIED (26 passed) -> NEXT: mur --harness claude-code (owner 07:00Z), args = a murg10.args.json-shaped file, key heal-pid-code, range 14e06f47b..d7a541b94 -> residues 0 -> [merge-up] SM
   (2) hypothesis:heal-ack-line-comes-from-config-rotations-by-role: kid on /mnt/agi-ram/worktrees/heal-ack-by-role (see §2 for its state at rotation)
-SM = agi-1f · belam = agi-6a (ListAgents if either rotates)
+all-is-one CUT residues -> findings rows on goal:g7.33.19 (NOT yet placed): (1) leaf goal:g7.16.1.11.8 growth gate is BUILT not HELD -- the switch is not DONE until .8 holds (2) = heal respawn-pid round above (3) 15 engine files still open the ladder (Z3). SM = agi-1f · belam = agi-6a (ListAgents if either rotates)
 ```
 
 ## §2 Landed (this session)
