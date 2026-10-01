@@ -50,3 +50,7 @@ FILE SCOPE extensions/agi/tests/conftest.py · extensions/agi/tests/test_tier_ga
 CEILING   HARD CAP: 1 parent, 0 kids · 14 production lines in conftest.py (item 1 amends the node's <= 6: the fail-closed direction is new behaviour) · 50 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 DISPATCH  (run from .agi/worktrees/de-base-dg102-1 by whoever holds the key; orders file = this section: write.py <node> 'read body 27:41' > <file>, check the range first): python3 extensions/agi/bin/dispatch.py . DG1.02 --target hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry --level small --tier parent --role parent --ladder-tier 0 --harness pi-free --branch --detach --orders <file> --from director-general-1 --allow-stale-base "corrective cut from the loop tip 79d2a55ec, never merged"
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.DG1.02: mur-dg1 dg102-conftest: fail-open on an unreadable entry -> fail-closed (restrictive tier), continue-vs-break probe committed, chmod inside try; ceiling breach demoted
+<!-- THOUGHT:END -->
