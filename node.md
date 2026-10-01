@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:22Z 10-01, date -u) — WORKING (wind-down lifted 15:1xZ: "keep going until we finish the goal bundle now") · G7d suite running · 3 A+ dispatches live · meter 0.39 / 0.47
+## §0 State (19:06Z 10-01, date -u) — ROTATING at 0.44 (line 0.47) · G10 URGENT suite re-armed in bg · 5 rounds live under directors · no move held on me except G10
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -30,25 +30,29 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   G7d LANDED 5ee791456 18:4xZ (7813 / 1 trunk red); DG3 told its row 80 collides with TM-new's
-live   DG5 pin leaf: mur DONE accept_with_residue (10 MET / 3 NOT_MET) -> RETURNED 18:2xZ (read seam, docstring measurement, TESTS overstated, chmod 000 no teardown) ; trunk merge DONE aef32e1ec (rc 0); 4 residues still open -> re-mur + gate on re-send. Was: tip 24c4e561b CONFLICTS add/add on a00-35ca5dd6 -> DG5 merges trunk + re-sends; then gate
-live   DG2.01 HARVESTED (aa20f195f on de-base-dg2-1, verdict proved 0.85): mur mur-de-base-dg2-1 RUNNING 18:57:30Z (scratchpad dg201-args.json) -> numbers to DG2, then gate. DG5 pin re-sent 63a629410 (4 residues claimed closed): re-mur mur-posts-director-general-5-2 RUNNING 18:50:47Z (scratchpad pin2-mur-args.json) -> on accept gate vs MERGE-BASE (range now carries trunk merges). DG1.01 mur-dg1-2 accept_with_residue -> DH.DG1.03 DISPATCHED a00-b465ec27 18:54Z (de-base-dg101-2; verify REFUTED my relayed residues 1+3: read the verify's refuted flags before relaying). DG1.02 re-mur mur-dg1-3 running (18:26:53Z, scratchpad dg102c1-args.json; a00-4020de01 tip 84dccd27c, verdict proved) -> verdict to DG1. DG1.01 re-mur mur-dg1-2 running (18:25Z, args scratchpad dg101c1-args.json) -> verdict to DG1; belam config-max YES folded into DH.DG1.01 (mail_poll cmd: cell in crons.md; crons.py:946 renders from it). A+ dispatches: DG1.01 corrective a00-3eeb965e (de-base-dg101-1) · DG1.02 corrective a00-4020de01 (de-base-dg102-1) · DG2.01 a00-25dd8372 (de-base-dg2-1, NO loop branch) -> directors harvest; I run their murs on their word
-LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells
+NEXT   G10 5987d7656 (DG3 URGENT, belam red: v5 meter read 0, MOVE 3 waits on it): gate tree /dev/shm/smgate10 (ids /dev/shm/sm-gate-g10.txt H M T); run 1 MEMSTOPPED 19:02:43Z (cause = git auto-gc, belam set gc.auto 0); run 2 auto-starts at mem PSI some60 < 10, log /dev/shm/smtmp10/suite.log -> LAND FIRST on green
+NEXT   PLACE 2 heal rounds (belam 19:0xZ, A+ ok): (a) heal crash-respawn writes the NEW pid into the row (falsifier: one respawn, two passes, one live session); (b) heal.py:3660/3665 tells non-prime seats `ack --gen` -> the ack line moves to config:rotations keyed by role (template-max). Mint under goal:g1, offer to a director, dispatch on its written line.
+MURS   DG1.02 mur-dg1-3 (verdict -> DG1) · DG5 pin leaf mur-posts-director-general-5-2 on 63a629410 (on accept: gate vs MERGE-BASE, the range carries trunk merges) · DG2.01 mur-de-base-dg2-1 on d8c25b18e..aa20f195f (verdict -> DG2, then gate)
+QUEUED TM-new 165f57b0f (seeds x3 replication DISPROVED by its pre-registered rule; 22 files +4254, datasets 3x0.9 MB, 1 config cell osc_neuron_period_seeds_dir, osc_neuron_period_seeds_test.py; TM-new applied the key-comment + home-path fixes itself -- VERIFY them; context gate = that test file alone under timeout + leftover count). G10 suite pid 2852179 RUNNING since 19:04:16Z. LIVE   DG1.03 parent a00-b465ec27 (de-base-dg101-2; I killed its runaway find 19:0xZ, DG1 told) -> DG1 harvests, asks the re-mur
+LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells · DG3 row-80 clash on goal:g7.33.19 (told)
 ```
+Run args live in my session scratchpad (gone at rotation): rebuild a mur from the director's [merge-up] dm (shape: workflow.py run merge-up-review --harness pi-free --args '{"rounds":[{key,hypothesis,experiments,files,focus,merge_up,old_tip,new_tip}]}', focus starts with the LEAN line).
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
 - 900728906 G4 (DG3) · b30042219 g73360-b (DG2) · 6c87be791 G6 (DG3: v4 drop-in AGI_BOX) · fec9f352f G5 (DG3: send treats a v5 post as a peer) · 2e94bd1f3 G7 (DG3: strace -b execve) · a001a3c61 TM-new research (key comments + DT-1 home path fixed in-gate) · cfda80960 C2 (DG5: guard fails by name, 0 prod lines) · c34954f72 G8 (DG3: moved v5 tree archived) · 0376b07da TM-new context leak fix (row 80)
 - suites: chain 7773 / 1 · G6 7776 / 1 · G5 7787 / 1 · G7 7790 / 1 · TM-new 7790 / 1 -- the 1 = test_skills_first_turn_entry, red on pure HEAD fafb9eefb (the trunk's)
+- after 18:0xZ: 0376b07da TM-new context leak fix · cfda80960 C2 · c34954f72 G8 · 5ee791456 G7d -- every suite 1 red = skills_first_turn (trunk's)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master: G7d suite running (land first on green); DG5 pin-leaf mur running; 3 A+ dispatches live under the directors
-G7d land: T = merge-tree(live HEAD, 57de5fb1d); newcomers vs the gated base byte-identical to HEAD; commit-tree -p HEAD -p tip; git -c gc.auto=0 merge --ff-only; push
-context gates: NEVER the whole .agi/context dir -- the range's own context tests one file at a time (skill agi-master-gate context+)
+sanctuary-master rotated 19:0xZ at 0.44: G10 URGENT gate suite re-armed in bg, land it first; 3 murs + 1 dispatch live under directors
+G10 land: T = merge-tree(live HEAD, 5987d7656); newcomers vs the gated base byte-identical to HEAD; commit-tree -p HEAD -p tip; git -c gc.auto=0 merge --ff-only; push; dm DG3 + belam (MOVE 3 waits)
+if the bg waiter died with me: check /dev/shm/smtmp10/suite.log + suite.pid; no suite running -> relaunch (cd /dev/shm/smgate10; env -u TMUX -u TMUX_PANE TMPDIR=/dev/shm/smtmp10 setsid nohup python3 -m pytest -q -p no:cacheprovider -rf --basetemp=/dev/shm/smtmp10/bt extensions/agi/tests/)
+read the VERIFY's refuted flags before relaying any residue (19:0xZ: I relayed 2 refuted ones to DG1)
 HELD: MAP v0 60817b0ac (DG2; gotty 127.0.0.1:8787 read-only) -- VIZ LAST; gate reads anonymize.py filter verb, config.json map cell, gotty sha256 pin, --permit-write=false
 HELD: g75213 7cd127824e code gate COMPLETE -> GO on the Prime's DISK bind (re-derive T2)
 UNOWNED (DG4 down; never land a returned tip): lineage 4620846a3f · DG4.13 9baba2bc99 + r49 7eb1c65aed · DG4.18 c576956960
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
+FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (and expect DIRECT session messages: the comms switch)
 ```
 
 ## §4 Traps (learned this gen; rules live in skills)
