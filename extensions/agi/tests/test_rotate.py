@@ -10944,23 +10944,43 @@ def test_seat_fraction_is_none_when_the_transcript_stats_but_cannot_be_opened(tm
         target.chmod(0o644)
 
 
-def test_status_survives_a_seat_whose_pin_is_unreadable(tmp_path, monkeypatch, capsys):
-    # Command level, on the READ seam: status prints frac=? and keeps going.
-    # Before both guards this raised PermissionError out of cmd_status.
+def test_status_walks_past_an_unreadable_seat_to_the_next_row(tmp_path, monkeypatch, capsys):
+    # Command level, on the READ seam. TWO rows, UNREADABLE FIRST, so that
+    # "keeps going" is actually proven rather than asserted: before both
+    # guards this raised PermissionError out of cmd_status on row one and the
+    # readable seat was never printed at all.
+    #
+    # What `status` prints for an UNKNOWN seat is `frac=?` (rotate.py:3798)
+    # and NO warning -- the warn-and-skip line lives in cmd_alarms, a
+    # different command. So the assertion below is on the FRACTION and on
+    # BOTH names, not on a warning string that status never emits.
     import argparse
     if os.geteuid() == 0:
         pytest.skip("root opens a mode-000 file; the defect cannot be provoked")
-    target = tmp_path / "transcript.jsonl"
-    target.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
-    target.chmod(0o000)
-    g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
-    monkeypatch.setattr(rotate, "_load_seats", lambda r: [{"name": "sealed-seat"}])
+    sealed = tmp_path / "sealed.jsonl"
+    sealed.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
+    sealed.chmod(0o000)
+    readable = tmp_path / "readable.jsonl"
+    readable.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
+    g, _p1 = _pin_naming(tmp_path, "aaa-sealed-seat", sealed)
+    g2, _p2 = _pin_naming(tmp_path / "b", "zzz-readable-seat", readable)
+    rows = [{"name": "aaa-sealed-seat"}, {"name": "zzz-readable-seat"}]
+    monkeypatch.setattr(rotate, "_load_seats", lambda r: rows)
     monkeypatch.setattr(rotate, "_read_generation", lambda r, s: 1)
     monkeypatch.setattr(rotate, "_read_seat_row", lambda r, s: None, raising=False)
+    # both pins must resolve out of the SAME graph so cmd_status finds them
+    for p in (g / "sessions" / "aaa-sealed-seat.meter",):
+        assert p.exists(), p
+    (g / "sessions" / "zzz-readable-seat.meter").write_text(
+        f"4\t{readable}\n", encoding="utf-8")
     try:
         rc = rotate.cmd_status(argparse.Namespace(seats=True, record=None), g)
     finally:
-        target.chmod(0o644)
+        sealed.chmod(0o644)
     out = capsys.readouterr().out
     assert rc == 0, out
-    assert "sealed-seat" in out and "frac=?" in out, out
+    assert "aaa-sealed-seat" in out, out
+    assert "zzz-readable-seat" in out, (
+        "the seat AFTER the unreadable one must still be reached -- that is "
+        "the 'keeps going' this test exists to prove")
+    assert "frac=?" in out, out
