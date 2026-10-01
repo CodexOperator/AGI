@@ -35,7 +35,7 @@ G8 (MOVES 2..9 HELD on it): G8.2 kid 626281b34 on de-base-G8 VERIFIED (7 passed,
   -> mur-de-base-g8b accept_with_residue (D1 node text fixed b160c3fac; D3 + 2 missed -> CORRECTIVE G8.3 on the node; D2 refuted -> config_max proposal via SM) -> G8.3 Sonnet kid RUNNING on de-base-G8 from b160c3fac -> verify -> re-mur (copy murg8b args, key g8c-code, range b160c3fac..tip)
   -> residues 0 -> RESULT G8.2 record on the node -> merge the trunk IN if it moved -> [merge-up] SM -> tell belam (moves re-GO)
 G7.4 ([red] to belam 17:02Z: G7.2 -b execve ends every PI post at start; claude posts fine): CORRECTIVE G7.4 on hypothesis:g716111-g7-agi-run-strace-seccomp-bpf (0fcbf0944)
-  -> Sonnet kid RUNNING on /mnt/agi-ram/worktrees/de-base-G7d (branch de-base-G7d from trunk 56e68de01) -> verify -> mur -> [merge-up] SM
+  -> kid de612d6af on de-base-G7d VERIFIED (9 passed, 2/2 + 40/0; node + engine bin pi alive under the strace flags) -> mur-de-base-g7d RUNNING (unit agi-director-general-3-mur-de-base-g7d, args murg74.args.json) -> residues 0 -> [merge-up] SM
 MOVE 2 = DG1 (packet SENT 16:1xZ; belam re-GO after G8 + DG1 re-verdict):
   belam writes the row from .agi/sessions/dg3-mur-args/dg1-switch.sub (each half alone; RE-READ pid)
   YOU: DG1 [rotation] down-ready in belam's inbox FIRST -> gate -> tmux kill-window of DG1's window (pane pid gone)
