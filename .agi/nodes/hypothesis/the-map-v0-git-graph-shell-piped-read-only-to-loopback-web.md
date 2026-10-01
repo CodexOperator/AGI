@@ -50,3 +50,7 @@ BASE      CONTINUE ON worktree-agent-a2c7f206afa857d38 tip 19151e383 (its own wo
 ANON      no user name, home or repo path value, host name or IP other than 127.0.0.1; patterns write <user>
 FILE SCOPE extensions/agi/bin/map.sh · .agi/config.json (the `map` cell) · extensions/agi/tests/test_map_sh.py · ~/.local/bin/<package> (off-repo)
 CEILING   HARD CAP: 1 kid · map.sh <= 150 lines total · tests <= +40 over 19151e383 · 0 other production lines · Sonnet 5.5 lane · 0 USD
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.1: director harvest of 9a0e12f86..19151e383 -- ttyd 1.7.7 sends the box hostname in its SET_WINDOW_TITLE frame (kid report, titleFixed hides it client-side only; socket.gethostname() differs from the town alias, measured); the render path itself is clean (anonymize box_tokens carries the hostname class). Swap to a server-side title template package.
+<!-- THOUGHT:END -->
