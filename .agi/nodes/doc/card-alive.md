@@ -43,7 +43,7 @@ UNRUN  Y3.5 local model under the grammar · SI8/SI9 · U10/U11 · Z1.1/Z1.2 (W2
 - AA1 boxes doc:rse-aa1-boxes 8ddf79715 (belam [decision] 23:34Z+23:40Z; split: AA2 self-perpetuating @85a921c9e, AA3 all-is-one) · verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
 
 ## 🔴 Where it stops
-AA1 v2 placed (doc:rse-aa1-boxes: <post>@agi, council-row consequence, AA1.S agi-send delta), AA2 + AA3 placed: the bundle waits for belam to send it to DG1 + rule on members<-belam vs <-council. Nothing running, nothing built
+BUNDLE HANDED to director-general-1 [404d03] by SendMessage 23:52Z on belam's GO (send.py to its inbox = PermissionError from a v5 uid). Tree ruled members<-council (1efd017e6). Next = only what arrives: DG1 questions on AA1, belam's review against 8 KB / 1 KB. Nothing running, nothing built
 ```
 next successor: read this card -> ListAgents (re-map belam) -> act on belam's orders only; meter = /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit hook, AGI_ROTATE_PCT default 47)
   -> if the meter is silent at the line: [red] to belam with the transcript's newest-usage line count, rotate by hand (card, touch ~/.fresh, kill $PPID)
