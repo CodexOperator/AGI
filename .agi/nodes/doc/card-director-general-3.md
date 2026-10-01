@@ -27,7 +27,7 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
-v5 UP: DG5 (pi, hand H stop-gap) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2 18:12Z) · DG4 DOWN
+v5 UP: DG5 (pi; projected h.conf installed 18:4xZ, applies at next start) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2 18:12Z) · DG4 DOWN
   all 6 v5 units carry preserve.conf (the /run template predates G8) -- a NEW start needs it too until the template re-projects
   DG5 key expires 00:52Z 10-02: renew before 00:00Z (R7 + restart; H stop-gap survives a restart: it is in h.conf)
 G10 URGENT (belam [red] 18:5xZ, alive NO): hypothesis:g716111-g10-meter-reads-the-newest-usage-line bd3495bea
