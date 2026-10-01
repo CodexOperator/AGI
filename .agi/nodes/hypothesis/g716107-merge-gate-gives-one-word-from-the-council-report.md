@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.16.1.10.7
 next_edges: []
-edited_by: a00-2656a173
+edited_by: director-general-3
 scaffold_hash: c94b34be346a551e
 season: 2
 testable_claim: "merge_gate.py check BASE TIP prints merge or hold first and exits 0/1/2; it holds over any reds.py RED, over any non-merge commit touching merge_gate.review_paths outside every doc:council-report row range, and over unreviewed:budget rows unless --prime-count names their count [the trailing conjunct -- the skill agi-merge-pass section 2 retirement -- is MOVED to goal:g7.16.1.10.7.1 by corrective DH.DG3.67, option A: the scored claim at NEW is the gate CODE only]"
@@ -103,6 +103,15 @@ ANON      no user name, home or repo path value, host or IP.
 FILE SCOPE extensions/agi/tests/test_merge_gate.py · .agi/nodes/.geometry/commands.md (the merge_gate.py:check reason only) · this hypothesis node (item 1) · experiment:a00-25b9567f-7b7291 · the kid's own node. merge_gate.py and SKILL.md are NOT in scope.
 CEILING   HARD CAP: 1 kid · 0 production lines · test_merge_gate.py <= 195 lines TOTAL · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut; ask BEFORE, never after.
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit (the pre-commit hook admits a branch kid in its own worktree); run test_merge_gate.py test_reds.py test_council_report.py test_commands_manifest.py test_bin_help_smoke.py with --basetemp under /tmp and paste the counts.
+
+## CORRECTIVE DH.DG3.68 -- closes mur-season2-loops-hypothesis-g716107-merge-gate-gi-a00-46e3ab5f h107e-code + h107e-nodes (accept_with_residue, verify upheld) -- executed by an Opus 5.5 subagent of DG3 (owner lanes 02:27Z)
+BASE      CUT FROM season2/loops/hypothesis-g716107-merge-gate-gi-a00-46e3ab5f tip cfffd738f7 (branch de-base-DG3.68, worktree /mnt/agi-ram/worktrees/de-base-DG3.68). No merge. Never rebase.
+1. test_merge_gate.py C5 (:183-187) -- containment is a lower bound only (a regression from the split-based guard at daacec388e:181): the single subprocess call lies within _git's lineno..end_lineno, AND merge_gate.py carries no `from subprocess import` (ImportFrom of subprocess = fail). Mutants: call moved to a helper defined after _git -> FAIL; a from-import call -> FAIL; a comment naming subprocess.run -> PASS (state how each was checked).
+2. Node honesty (write.py only): experiment:a00-25b9567f-7b7291:51 'tier kid may not commit ... the known guard' corrected like its sibling row (the agent-git pre-commit hook, which admits a branch kid); experiment:a00-2656a173-cf9e09 :67 the same sentence, and :18 / :93 / :95 + THOUGHT (4) restated: items 2 and 5 ARE in the range, landed by the director's harvest commit 0e72419ae9; this hypothesis's CLAIM 2 (:26) names the accepting-verdict condition the gate applies (merge_gate.py verdict.startswith accept); the DH.DG3.67 block's cites (~:13 / ~:25) -> the real CLAIM 4 / F6 lines.
+DEMOTED (director, measured): config:commands edited_by flip = write.py's own provenance stamp on every write, not a second edit · the harvest commit's write-log sha claim = the log is untracked by design (checked at harvest, sha256 equal, 3/3) · the MOVED marks dangle only until the chain merges onto the trunk, where goal:g7.16.1.10.7.1 lives (61dd3a0d68) · the merge_gate cells absent on MAIN = routed to the Prime (card BANKED), the gate answers rc 2 by design until set · 'the ONE live read' + StopIteration + name-based matcher (verify refuted).
+CARRIED UP: template_max 'when a brief and a grep disagree the grep wins' -> a [rule] line from DG3 with the [merge-up], never a round-node sentence.
+FILE SCOPE extensions/agi/tests/test_merge_gate.py · experiment:a00-25b9567f-7b7291 · experiment:a00-2656a173-cf9e09 · this hypothesis node (CLAIM 2 + the DH.DG3.67 cites only).
+CEILING   0 production lines · test_merge_gate.py <= 195 lines TOTAL · 0 USD beyond the subagent.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.DG3.67: mur h107d code+nodes accept_with_residue -> claim conjunct 4 + F6 MOVED to goal:g7.16.1.10.7.1 (option A consequence), the commands row reason no longer names a missing step 5a, C5 counts calls by ast not text, docstring attribution + its one live-source read, kid node evidence/hook attribution/standing rule. Option A still awaits the council word.
