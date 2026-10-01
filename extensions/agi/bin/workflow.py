@@ -1864,11 +1864,12 @@ _WALL_STOP_GRACE_S = 30.0
 def _stop_stage_unit(unit: str) -> None:
     """Stop ONE stage's OWN scope by name, so no child it left behind outlives
     it (hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit). A stop
-    that exits non-zero or cannot run is ONE stderr line, never a raise."""
+    that exits non-zero (rc 5, already collected, is silent) or cannot run is ONE
+    stderr line, never a raise."""
     try:
         r = subprocess.run(["systemctl", "--user", "stop", mem_cap.scope_unit(unit)],
                            capture_output=True, timeout=30, text=True)
-        if r.returncode != 0:
+        if r.returncode not in (0, 5):   # 5: unit not loaded = scope already collected
             raise subprocess.CalledProcessError(r.returncode, r.args)
     except (OSError, subprocess.SubprocessError) as exc:
         print(f"workflow.py: could not stop stage scope {unit}: {exc}",

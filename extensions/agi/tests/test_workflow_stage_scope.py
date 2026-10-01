@@ -151,10 +151,9 @@ def test_F3_a_failing_stop_is_one_stderr_line_and_never_a_raise(tmp_path,
         assert _unit_of(root) in err, kwargs                # the line NAMES it
 
 
-def test_F12_a_refused_stop_is_one_stderr_line_and_the_stage_result_unchanged(
-        tmp_path, monkeypatch, capsys):
+def test_F12_a_bare_name_stop_is_refused_and_the_orphan_survives(tmp_path, monkeypatch):
     """F12: a bare-name stop (what `scope_unit` replaced) is refused rc 5 by the
-    manager: ONE line, the stage's rc unchanged, the orphan ALIVE (the old bug)."""
+    manager: the stage's rc is unchanged and the orphan stays ALIVE (the old bug)."""
     pids = tmp_path / "pids"
     d = _fake_bin(tmp_path, monkeypatch, stop_body=f"kill -9 $(cat {pids})\n")
     seen = _stops(monkeypatch, d)
@@ -163,8 +162,18 @@ def test_F12_a_refused_stop_is_one_stderr_line_and_the_stage_result_unchanged(
         f"#!/bin/bash\nsleep 30 >/dev/null 2>&1 &\necho $! > {pids}\nexit 3\n")
     assert _stage(["bash", str(tmp_path / "s.sh")], d, budget=10).returncode == 3
     assert seen == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
-    assert capsys.readouterr().err.count("could not stop stage scope") == 1
     os.kill(int(pids.read_text()), 9)   # still alive: raises if the stop had worked
+
+
+def test_F13_an_already_collected_scope_rc5_stop_is_silent(tmp_path, monkeypatch, capsys):
+    """F13: rc 5 (unit not loaded: the scope emptied and was collected) is a finished
+    scope, not a failure: the `.scope` stop IS attempted, stderr stays empty."""
+    d = _fake_bin(tmp_path, monkeypatch, stop_rc=5)
+    seen = _stops(monkeypatch, d)
+    assert _stage(["/bin/bash", "-c", "exit 3"], d, budget=10,
+                  label="review").returncode == 3
+    assert seen == [_stop_of(tmp_path)]
+    assert "could not stop" not in capsys.readouterr().err
 
 
 def test_F4_wrap_argv_without_a_unit_is_byte_unchanged(monkeypatch):
