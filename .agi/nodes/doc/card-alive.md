@@ -15,11 +15,11 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (00:4xZ 10-01) -- goal:g7.16.1.11 SPIKE DONE: F17 PASS ($0.2829) + root-once (all undone, box clean); spine PASS, body FAIL (S1-S12); [decision] to belam sent
+## §0 State (00:4xZ 10-01) -- goal:g7.16.1.11 config:engine v2 in doc §I @f37e25ced2 (results §K); re-mint asked of belam; DG3 builds after
 | | |
 |---|---|
 | post | alive gen 5 · session agi-6f [f4668c] · rotate at f >= 0.47 |
-| state | waiting on belam: the spike [decision] (00:4xZ) recommends a config:engine v2 folding S1-S12 before DG3 builds; nothing running; root ledger + undo + RESULTS at /tmp/g71611/r3-alive/root/ |
+| state | waiting on belam's re-mint of v2; nothing running; v2 root ledger + undo at /tmp/g71611/r3-alive/root2/ (all undone 00:46Z, box verified clean) |
 | spend | FREE LANE ONLY since 21:00Z (no Sonnet subagents, no claude-code dispatch); the CC leg of F17 = paid -> owner's go |
 | role | the council IS prime to the directors (owner 02:5xZ): a director [decision] -> ONE lens round -> ONE consolidated ruling |
 | messaging | SendMessage by session name, "name [ref]" where names collide; NO send.py sends, NO rooms; town nodes are Prime-gated |
@@ -35,16 +35,16 @@ done   ROUND 3: s-p §F 81f0620954 + its correction slot 522b57e225 (F.7 red: gi
        §I = the ENGINE NODE whole (config:engine, 11,101 B body: depth 0+1 3,806 · code 5,863 · 20 files, sect byte-exact 20/20)
 done   belam VERIFIED round 3 + minted config:engine v0 @2dadf20c17 (11,101 B) · v1 @44619712d9: all-is-one red (claims = the ref FILE's owner,
        find -user) + s-p red (dangling link at BOOT -> the callers reload only over >= 1 post unit; s-p's && alone missed the dangling ENGINE case)
-NEXT   on belam's word: write config:engine v2 into doc §I folding S1-S12 (each a template line or guard; the corrected unit is root/agi-post@.service.fixed) -> re-test on a scratch clone -> ONE line
+NEXT   confirm belam's re-mint = §I v2 byte-exact (sect 22/22 on the live node) · a council or DG3 red: fold, re-test on a scratch clone, ONE line
 BLOCKED config:engine is written_by owner/prime_director (the Prime re-mints) · any new root act = a new owner go (this one is spent and undone)
 HELD   DG2 closing verdicts s22 + s28 (owner stop) · NO user, NO sudo before the owner's go · DG3 builds only after belam relays
 ```
 
 ## §2 Landed (this generation)
-- 00a469887e re-link the quorum card · e7bf243872 round 3 part 3 (§H injection · §I engine node · D rows) · 44619712d9 v1 (2 reds folded; s-p ACCEPTED) · 47c817b712 F22 (origin = a plain path, all-is-one trap) · c9c66b2f4b §J spike results
+- 00a469887e re-link the quorum card · e7bf243872 round 3 part 3 (§H injection · §I engine node · D rows) · 44619712d9 v1 (2 reds folded; s-p ACCEPTED) · 47c817b712 F22 (origin = a plain path, all-is-one trap) · c9c66b2f4b §J spike results · f37e25ced2 §I v2 + §K
 
 ## 🔴 Where it stops
-spike done (§J @c9c66b2f4b): the next act is belam's reply (v2 or not), never a new root act or round unasked
+v2 delivered (§I/§K @f37e25ced2): the next act is checking belam's re-mint, never a new root act or round unasked
 ```
 successor: ListAgents -> send.py read alive (+ tail the inbox file) -> git log -3 -- .agi/nodes/doc/radically-simple-engine.md
   -> a red from s-p / all-is-one: give ONE slot, or fold it yourself; then re-run the §I checks (scratch recipe: §4 last rows) -> ONE line to belam
