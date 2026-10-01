@@ -145,3 +145,50 @@ def test_the_pane_pid_dies_with_the_agent_on_the_real_launch_line(
                       window_path=str(tmp_path / "w.txt"),
                       launcher=lambda *a, **k: launches.append("again") or (None, "@78"))
     assert launches == ["seat-a", "again"], launches
+
+
+def test_a_live_pane_pid_in_the_row_is_no_stale_row_and_no_second_respawn(
+        graph, tmp_path, monkeypatch, capsys):
+    """DH.2 item 1: the row pid is a PANE pid, the registry names a DIFFERENT live
+    pid. The `pid_alive(row pid)` gate (heal.py `_watch_one_seat` 1a) returns {}
+    before `_alive_via_pin` / the stale-row arm are ever read."""
+    reg = tmp_path / "reg"
+    reg.mkdir()
+    (reg / "7777.json").write_text(json.dumps(
+        {"pid": 7777, "session_id": "s-other", "tmux": "x @1"}))
+    spy: list = []
+    monkeypatch.setattr(heal, "_alive_via_pin", lambda *a: spy.append(a))
+    launches, one, _t = _passes(graph, tmp_path, pane=f" {NEW}")
+    assert _row_pid(graph) == NEW
+    spy.clear()  # pass 1 judged the dead OLD pid; only the sweep below counts
+    capsys.readouterr()
+    two = heal._watch_seats(graph, now=time.time() + 700, registry_dir=str(reg),
+                            pid_alive=lambda p: p in (NEW, 7777),
+                            window_path=str(tmp_path / "w.txt"),
+                            launcher=lambda *a, **k: launches.append("2nd") or (None, "@9"))
+    assert two == [] and launches == ["seat-a"] and spy == [], (two, launches, spy)
+    assert "stale-row" not in capsys.readouterr().err
+
+
+def test_an_unknown_pane_pid_is_named_and_the_repeat_is_once_per_window(
+        graph, tmp_path, capsys):
+    """DH.2 item 2: the dead pid stays in the row, so the SEAT_DEAD_WINDOW_S
+    once-guard is the bound: no repeat inside the window, one per window after."""
+    launches: list = []
+    t0 = time.time()
+    (tmp_path / "w.txt").write_text("@1 other\n@77 fresh\n")
+    heal._watch_seats(graph, now=t0, pid_alive=lambda p: False,
+                      window_path=str(tmp_path / "w.txt"),
+                      launcher=lambda *a, **k: launches.append("seat-a") or (None, "@77"))
+    assert "pane pid unknown for @77" in capsys.readouterr().err
+    assert "pane pid unknown for @77" in (tmp_path / "reaper.log").read_text()
+    (tmp_path / "w.txt").write_text("@1 other\n")  # the new window died too
+    for dt in (60, heal.SEAT_DEAD_WINDOW_S - 60):  # inside the window of pass 1
+        heal._watch_seats(graph, now=t0 + dt, pid_alive=lambda p: False,
+                          window_path=str(tmp_path / "w.txt"),
+                          launcher=lambda *a, **k: launches.append("in") or (None, "@77"))
+    assert launches == ["seat-a"], launches
+    heal._watch_seats(graph, now=t0 + 2000, pid_alive=lambda p: False,
+                      window_path=str(tmp_path / "w.txt"),
+                      launcher=lambda *a, **k: launches.append("past") or (None, "@77"))
+    assert launches == ["seat-a", "past"], launches
