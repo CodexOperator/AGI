@@ -8115,3 +8115,227 @@ def test_undecodable_deferred_bytes_are_still_kept(project: Path, monkeypatch,
     assert send_mod._read_deferred(project, "director") is None
     assert send_mod._pending_more(project, "director") == 1
     assert "unreadable" in capsys.readouterr().err
+
+
+# ── G5 (goal:g7.16.1.11.3): a v5 post is a peer: mail-delivered, signed ────
+
+_V5_ROW = {"name": "post-v5", "engine": {"v": 4}, "window": "@22"}
+
+
+def test_g5_f1_f3_send_to_engine_row_is_delivered_by_mail_no_tmux(
+        project: Path, monkeypatch, capsys):
+    """F1: a send and a dm TO a row with an `engine` cell print ONE delivered-
+    by-mail line, never undelivered-yet. F3: no tmux call on any send path
+    (send, dm, wake, status, type_input) -- the row's @id is not a window."""
+    _write_seats_node(project, [_V5_ROW])
+    calls = _fake_tmux(monkeypatch, [])            # recorder, no real tmux
+    send_mod.send(project, "post-v5", "hello", "seat-a")
+    send_mod.send_dm(project / ".agi" / "comms", "seat-a", "post-v5", "hi",
+                     "seat-a")
+    err = capsys.readouterr().err
+    assert [err.count("[delivered] post-v5 -- by mail"),     # G5.3 #1: send is
+            err.count("[written] post-v5 -- dm file")] == [1, 1], err  # mail, dm not
+    assert "undelivered" not in err and "is gone" not in err, err
+    send_mod.wake(project, "post-v5")
+    send_mod.status(project, "post-v5")
+    assert send_mod.type_input(project, "post-v5", "x") is False
+    assert calls == [], calls
+    assert send_mod._pending_more(project, "post-v5") == 0   # no strand mark
+
+
+def _g5_post_worktree(tmp_path, monkeypatch):
+    """Post worktree (AGI_SEAT=seat-a, cwd in it), key only in MAIN."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    priv, pub = send_mod.seatsig.get("ed25519").keygen()
+    main = _git_project(tmp_path, [{"name": "seat-a"}])
+    _seat_key_write(main, "seat-a", priv.hex())
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(main), "worktree", "add", "-b", "p@s2",
+                    str(wt)], check=True, capture_output=True)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
+    monkeypatch.setenv("AGI_SEAT", "seat-a")
+    monkeypatch.chdir(wt)
+    return main, send_mod.comms_root(send_mod._project_root()), pub.hex()
+
+
+def _g5_whois_verified(monkeypatch, main, pub_hex, path, to, text):
+    """`path`'s last block carries env + sig; whois reads VERIFIED."""
+    head, _, body = path.read_text().split(send_mod.MSG_SEP)[-1].partition("\n\n")
+    hdr = dict(ln.split(": ", 1) for ln in head.splitlines())
+    assert hdr["env"] == "v1" and "sig" in hdr, hdr
+    canonical = send_mod._canonical_msg(hdr["ts"], "seat-a", to, body.strip())
+    assert body.strip() == text
+    _stub_seat_rows(monkeypatch, [{"name": "seat-a", "session_ref": "seat-a",
+                                   "sig_scheme": "ed25519", "pubkey": pub_hex}])
+    _rc, out = send_mod.whois(main, "seat-a", claim="seat-a", source="refs/x",
+                              do_fetch=False, sig_line=hdr["sig"],
+                              msg_text=canonical)
+    assert "VERIFIED seat-a (ed25519)" in out, out
+
+
+def test_g5_f2_dm_from_a_post_worktree_is_signed_and_whois_verified(
+        tmp_path: Path, monkeypatch):
+    """F2: AGI_SEAT set, cwd a linked worktree, the seat key only in MAIN: the
+    dm (and room) block carries `env: v1` + a sig and whois reads VERIFIED."""
+    main, croot, pub = _g5_post_worktree(tmp_path, monkeypatch)
+    path = send_mod.send_dm(croot, "seat-a", "recv", "from the worktree", None)
+    _g5_whois_verified(monkeypatch, main, pub, path, "recv",
+                       "from the worktree")
+    # G5.2 item 1: a ROOM block from the post worktree is signed the same way
+    path = send_mod.send_room(croot, "council", "to the room", None)
+    _g5_whois_verified(monkeypatch, main, pub, path, "council", "to the room")
+
+
+def test_g52_veto_answer_needs_an_owner_role_signature(project: Path,
+                                                       monkeypatch):
+    """G5.2 item 2: only a real dm block signed by an owner-role row passes
+    the veto gate; a non-owner's signed dm and an unsigned one are refused."""
+    rows = []
+    for name, role in (("own-a", "owner"), ("dir-a", "director")):
+        priv, pub = send_mod.seatsig.get("ed25519").keygen()
+        _seat_key_write(project, name, priv.hex())
+        rows.append({"name": name, "role": role, "sig_scheme": "ed25519",
+                     "pubkey": pub.hex()})
+    monkeypatch.setattr(send_mod, "_load_rows", lambda r: rows)
+
+    def answer(sender, strip_sig=False):
+        p = send_mod.send_dm(project / ".agi" / "comms", sender, "veto",
+                             "cleared", sender)
+        block = p.read_text().split(send_mod.MSG_SEP)[-1]
+        if strip_sig:
+            block = "\n".join(ln for ln in block.splitlines()
+                              if not ln.startswith(("env:", "sig:")))
+        return send_mod._veto_answer_authorized(project, "prime", block)
+
+    assert "OWNER-role" in answer("dir-a")[1]
+    assert "UNSIGNED" in answer("own-a", strip_sig=True)[1]
+    assert answer("own-a")[0] is True
+
+
+def test_g52_signed_dm_reads_back_through_read_dm_text_intact(project: Path):
+    """G5.2 item 3: the envelope headers leave the reader contract alone."""
+    send_mod.keygen(project, "seat-a")
+    croot = project / ".agi" / "comms"
+    p = send_mod.send_dm(croot, "seat-a", "recv", "line one\nline: two", "seat-a")
+    assert "\nsig: " in p.read_text()
+    assert [b["text"] for b in send_mod._parse_blocks(p.read_text())] == \
+        ["line one\nline: two"]
+    out = "\n".join(send_mod.read_dm(croot, "recv", "seat-a", None, "recv"))
+    assert "line one" in out and "line: two" in out
+
+
+def test_g52_wake_and_status_of_an_engine_post_say_by_mail_once(
+        project: Path, monkeypatch, capsys):
+    """G5.2 item 4 / G5.3 item 3: one named `by-mail` line, one reaper row."""
+    _write_seats_node(project, [_V5_ROW])
+    logged = []
+    monkeypatch.setattr(send_mod.reaper_log, "log", logged.append)
+    assert send_mod.wake(project, "post-v5") is True
+    assert capsys.readouterr().out == "by-mail post-v5\n"     # G5.3 #3: named
+    assert "in_mode=by-mail" in send_mod.status(project, "post-v5")
+    assert logged == ["wake post-v5: idle delivered"]          # one reaper row
+
+
+def test_g53_foreign_engine_row_is_refused_and_wake_status_agree(
+        project: Path, monkeypatch, capsys):
+    """G5.3 #2 foreign engine row -> FOREIGN, not by-mail; #4 live window: wake = status."""
+    calls = _fake_tmux(monkeypatch, ["post-v5"])
+    _write_seats_node(project, [dict(_V5_ROW, box="far")])
+    monkeypatch.setattr(send_mod.boxes, "row_is_local", lambda r, x: False)
+    send_mod._forget_refusals()
+    send_mod.send(project, "post-v5", "hello", "seat-a")
+    err = capsys.readouterr().err
+    assert "FOREIGN box row" in err and "by mail" not in err, err
+    monkeypatch.setattr(send_mod.boxes, "row_is_local", lambda r, x: True)
+    assert send_mod.wake(project, "post-v5") is True
+    assert "by-mail post-v5" in capsys.readouterr().out
+    assert "in_mode=by-mail" in send_mod.status(project, "post-v5")
+    assert calls == [], calls
+
+
+def _run_mail_poll(tmp_path: Path, create_inbox: bool):
+    """Run engine-wrap.md's mail-poll line under sh; return (typed, stderr)."""
+    node = (Path(__file__).resolve().parents[3] / ".agi" / "nodes"
+            / ".geometry" / "engine-wrap.md").read_text()
+    line = next(ln for ln in node.splitlines() if ln.startswith("case $H in"))
+    line = (line.replace("sleep 5", "sleep 0.1").replace("sleep 1&", "sleep 0.1&")
+            .replace(">$i", ">>$i"))     # a plain file stands in for the fifo
+    inbox, typed = tmp_path / "p.md", tmp_path / "i"
+    script = (f"f={inbox};i={typed};{line}\nsleep 0.5\n"
+              + (f"echo mail > {inbox}\nsleep 0.5\n" * create_inbox) + "kill $!")
+    cp = subprocess.run(["sh", "-c", script], capture_output=True, text=True,
+                        timeout=20, env={**os.environ, "H": "claude", "AGI_SEAT": "p"})
+    return (typed.read_text() if typed.exists() else ""), cp.stderr
+
+
+def test_g53_mail_poll_types_nothing_while_the_inbox_is_absent(tmp_path):
+    """G5.3 #5: absent inbox -> nothing typed, no stderr; an append still types."""
+    assert _run_mail_poll(tmp_path, False) == ("", "")
+    typed, err = _run_mail_poll(tmp_path, True)
+    assert "mail: send.py read p" in typed and err == ""
+
+
+def test_g54_log_trim_loop_reads_an_absent_log_as_empty(tmp_path):
+    """G5.4 #1: engine-wrap.md's log-trim loop (line 24), ~/o absent: no stderr."""
+    node = (Path(__file__).resolve().parents[3] / ".agi" / "nodes"
+            / ".geometry" / "engine-wrap.md").read_text()
+    line = next(ln for ln in node.splitlines() if ln.startswith("(while sleep 300"))
+    def run(**env):
+        return subprocess.run(["sh", "-c", line.replace("sleep 300", "sleep 0.1")
+                               + "\nsleep 0.5\nkill $!"], capture_output=True,
+                              text=True, timeout=20,
+                              env={**os.environ, "HOME": str(tmp_path), **env})
+    assert run().stderr == "" and not (tmp_path / "o").exists()
+    (tmp_path / "o").write_text("x" * 50)       # positive control: the trim runs
+    assert run(AGI_PANE_MAX_MB="0").stderr == "" and (tmp_path / "o").read_text() == ""
+
+
+def test_g54_foreign_and_boxless_engine_rows_are_refused_by_name(
+        project: Path, monkeypatch, capsys):
+    """G5.4 #2 foreign engine row: FOREIGN refusal, no pane busy; #4 PIN boxless: no post."""
+    calls = _fake_tmux(monkeypatch, ["post-v5"])
+    monkeypatch.setenv("AGI_BOX", "here")
+    for row, label in ((dict(_V5_ROW, box="far"), "far"), (_V5_ROW, "(unset)")):
+        _write_seats_node(project, [row])
+        assert send_mod._engine_post(project, "post-v5") is False
+        send_mod._forget_refusals()
+        send_mod.send(project, "post-v5", "hello", "seat-a")
+        err = capsys.readouterr().err
+        assert f"[refused] post-v5 -- FOREIGN box row (box {label})" in err, err
+        assert "pane busy" not in err and "sweep retries" not in err, err
+    monkeypatch.delenv("AGI_BOX")
+    assert send_mod._engine_post(project, "post-v5") is True
+    assert calls == [], calls
+
+
+def test_g55_foreign_row_gets_one_refusal_and_no_pending_mark(
+        project: Path, monkeypatch, capsys):
+    """G5.5 #1 a foreign NON-engine row with a window is refused, never pane busy;
+    #2 no pending mark; #3 ONE refusal line per send, send and dm alike."""
+    calls = _fake_tmux(monkeypatch, ["post-v5", "plain"])
+    monkeypatch.setenv("AGI_BOX", "here")
+    _write_seats_node(project, [dict(_V5_ROW, box="far"),
+                                {"name": "plain", "window": "@5", "box": "far"}])
+    for to in ("post-v5", "plain"):
+        for fire in (lambda: send_mod.send(project, to, "hello", "seat-a"),
+                     lambda: send_mod.send_dm(project / ".agi" / "comms",
+                                              "seat-a", to, "hi", "seat-a")):
+            fire()
+            err = capsys.readouterr().err
+            assert err.count("FOREIGN box row") == 1, err
+            assert "[refused]" in err and "pane busy" not in err, err
+            assert send_mod._pending_more(project, to) == 0
+    assert calls == [], calls
+
+
+def test_g54_heal_repair_skips_a_foreign_engine_row(project: Path, monkeypatch):
+    """G5.4 #3: heal's stranded-wake repair gives a foreign row no wake call."""
+    import heal as heal_mod, send as real_send  # noqa: PLC0415,E401 (heal's send)
+    monkeypatch.setenv("AGI_BOX", "here")
+    _write_seats_node(project, [dict(_V5_ROW, box="far"),
+                                {"name": "near", "box": "here", "window": "@3"}])
+    woken = []
+    monkeypatch.setattr(real_send, "wake", lambda r, s, *a: woken.append(s))
+    heal_mod._repair_stranded_wakes(project)
+    assert woken == ["near"], woken

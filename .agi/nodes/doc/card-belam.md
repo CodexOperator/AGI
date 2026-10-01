@@ -31,7 +31,7 @@ gen 24 wake (15:07Z 10-01): §0 rewritten for the post-reboot state -- heal brou
 | REBOOT | 14:42Z HARD reboot (cause UNKNOWN). heal respawned DG1 gen 5 @7 (15:05Z) · DG2 gen 5 @8 (15:06Z) · DG3 gen 15 @9 (15:06Z); v5 units GONE until DG3 restores them (DG5 > TM-new > DT-1 > DT-2, gate between) |
 | run | owner 15:1xZ LIFTED the wind-down: keep going until goal:g7.16.1.11.1-.10 are complete · G5 8a450c0c0 NOT on the trunk (15:1xZ) |
 | engine | v5 LANDED 10:4xZ: config:engine 7,904 B 57eb5ac42 + engine-post/wrap/grow/root + growth.tsv + schemas (verify 12/13, bin-suite-fresh known) |
-| v5 posts | DOWN since the reboot; before it UP: director-general-5 (pi-free) · thought-master-new (research loop; RC visible) · director-thought-1/-2 (RC visible, idle) · STOPPED: director-general-4 (memory; restart with an assignment) |
+| v5 posts | RESTORED (DG3): DG5 15:09Z · TM-new 15:16Z · DT-1 15:18Z · DT-2 15:24Z, 0 restarts, G6 AGI_BOX live; G7.2 (-b execve, ruled 15:3xZ) built 7917597c7, lands AFTER G5; live posts take G5+G7 at next restart. NEXT GO = DG2 on: G5 landed (SM ETA ~15:46Z) + G7.2 landed (DG2 CUT condition, adopted) + DG2 verdict YES (15:3xZ, in) + DG3 packet IN 15:3xZ (.agi/sessions/dg3-mur-args/dg2-switch.sub + dg2-rollback.sub; run each sub ALONE; re-read live pid at GO) ACCEPTED with engine.model = claude-sonnet-5-5 for every DIRECTOR move (owner 07:4xZ); SHORT 3 (18/30/33) ruled non-gates (named + banked, reversible). Before the reboot UP: director-general-5 (pi-free) · thought-master-new (research loop; RC visible) · director-thought-1/-2 (RC visible, idle) · STOPPED: director-general-4 (memory; restart with an assignment) |
 | old posts | all still on the old setup (moves wait on G5 + the v5 restore) · old thought-master = STANDBY (handed off 12:5xZ) · SM rotated 13:1xZ (gen 12) · DG3 = agi-6a |
 | users | 12 owner-logged-in agi-<post> (983..972, onboarding flags set 12:4xZ) + agi-grok 971 (xAI SuperGrok OAuth, 13 models) |
 | crons | session-only: CHECK ae1c3bdb (13 */4) · memory Monitor = python3 -u /data/tmp/belam23/memmon.py (re-arm each 30 min) |
@@ -87,4 +87,5 @@ B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 520
 | `*.pre-tier-*` backups: ~/.claude.pre-tier-20260930T0145Z + ~/.pi.pre-tier-20260930T0146Z (on /) | delete after a day of clean tiering |
 | an on-disk /tmp makes every boot wait 5+ min in systemd-tmpfiles | tmpfs /tmp or a /tmp age cleaner, owner's call |
 | belam row says opus-5-5 / high; the live Prime runs opus-5-5[1m] / max | owner sets the row |
+| .env mode 600: agi-* director posts fail provisioning.available -> no director can dispatch (DG5 + SM 15:3xZ) | (A) masters/Prime run director murs until the owner rules; (B) group:agi READ-only ACL on .env = owner money, owner word |
 | docker data-root still on / · sda ~35 ms/op · origin remote moved | owner's window: smartctl + dmesg; `git remote set-url` |

@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   seated 13:08Z · quorum card re-linked · orphan grep scope run-u11445 stopped 13:21Z (48.9 GB read, D state) · DG3 freed its old scope + 2.2 GB RAM-disk
 done   3 landings (§2) · row 60 CLOSED live on MAIN by DG2 (verdict:dg2-g60b proved 0.92; evidence dry-run []) · DG2, DG3, the Prime told
-NEXT   (at the owner's morning word, BEFORE any move) G5 8a450c0c0 (DG3; send treats a v5 post as a peer; mur g5e 11/11 MET, residues 0)
+NEXT   WIND-DOWN LIFTED (owner 15:1xZ via belam: "keep going until we finish the goal bundle now"). G5 suite RUNNING since 15:25:29Z in /dev/shm/smgate5 (ids /dev/shm/sm-gate-g5.txt, log /dev/shm/smtmp5/suite.log) -- land on green, gates the moves. C2 83f492f11 mur pi-free RUNNING since 15:26:20Z (run mur-season2-loops-goal-g1-31-4-6-2-a00-3014f810) -> numbers to belam. G5 8a450c0c0 (DG3; send treats a v5 post as a peer; mur g5e 11/11 MET, residues 0)
 LATER  MORNING round to place (SP [red] 15:2xZ; the Prime cleared 5 stopped rows' windows 6efa87be4): the nudge sweep skips pid-0 / recover-false rows or checks window name = seat before typing · DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
 ```
 
@@ -46,7 +46,7 @@ G6 first live effect: agi-project.path/.service are NOT loaded on this box's man
 HELD: MAP v0 60817b0ac (DG2; gotty 127.0.0.1:8787 read-only) -- VIZ LAST; gate reads anonymize.py filter verb, config.json map cell, gotty sha256 pin, --permit-write=false
 HELD: g75213 7cd127824e code gate COMPLETE -> GO on the Prime's DISK bind (re-derive T2)
 UNOWNED (DG4 down; never land a returned tip): lineage 4620846a3f · DG4.13 9baba2bc99 + r49 7eb1c65aed · DG4.18 c576956960
-WITH THE PRIME: merge_gate cells (after the tip-guard fork) · council.residue_leaves · hold_wait_s (g1.31.5.1.3.1.1) · DG4.18 cells · C2 (DG5, held class) · skills_first_turn (the only trunk red)
+WITH THE PRIME: merge_gate cells (after the tip-guard fork) · council.residue_leaves · hold_wait_s (g1.31.5.1.3.1.1) · DG4.18 cells · C2 (DG5, held class): merge-up 83f492f11 (goal:g1.31.4.6.2, +681/-7, 0 prod lines) QUEUED -- I run its mur once the Prime lanes it · skills_first_turn (the only trunk red)
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
 
@@ -69,3 +69,4 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ## §6 BANKED
 - goal:g1.31.4.2.1.1 copilot hooks: PARKED (a real copilot probe = spend, the Prime's)
 - a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz (the tree stays; refusal live)
+- .env is 600 belam:belam, no group ACL (verified 15:3xZ): NO agi-* director can dispatch (provisioning PermissionError) -> (A) masters/Prime run directors' murs [recommended; today's practice] · (B) group:agi read ACL [owner's money: owner's call] -- sent to belam 15:3xZ
