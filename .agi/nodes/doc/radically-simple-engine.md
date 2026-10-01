@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: all-is-one
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1566,8 +1566,10 @@ WINDOW   Y2 opens on the nid: child[variant]'s schema fields first · Y3 checks 
    ▼
 ADD      the node carries `key: <nid>` in its frontmatter -> a signed commit (§W)
    ▼
-GATE     grow-gate (pre-receive / the land step): every ADDED node -> grow-check against the RECEIVING side's matrix
-         row missing = `wrong order` + the legal shapes · key missing or another row's = `locked` · ring ≠ * and ≠ the signer = refused
+GATE     grow-gate (pre-receive / the land step), everything read at the RECEIVING trunk tip (git archive: matrix + schemas):
+         ADDED: grow-check (row missing = `wrong order` + the legal shapes · no key / another row's = `locked` · ring ≠ * and ≠ signer = refused)
+                + Y2's `agi-fill check` (the fields, exactly as the window refuses them)
+         CHANGED: `agi-fill check` as a RATCHET: refused only if the version it replaces passed (legacy stays editable, nothing valid regresses)
 ```
 **Every schema mapped, measured 07:2xZ** (`grow-project` over the 22 live schema files): 20 carry a spawn block, 2 do not (`[box]`, `[shape]`); **149 shape rows + 2 alias rows**, 7,111 B:
 | child | rows | | child | rows | | child | rows |
@@ -1595,8 +1597,19 @@ GATE     grow-gate (pre-receive / the land step): every ADDED node -> grow-check
 | G7 | a legal hypothesis with no key | refused: locked |
 | G8 | ONE push carrying a re-keyed matrix (mvp under idea added) AND such an mvp | refused: the gate reads the RECEIVING side's matrix; against the pushed one it would pass, so a push cannot re-key its own add |
 
+**The Y3 seam, tested 07:4xZ** (alive's ask: every added OR changed node also passes Y2's check at receive; a fresh trunk seeded with the 22 LIVE schemas + the projected matrix, bodies = REAL live nodes, `agi-fill check` = a 449 B stand-in verb handed to self-perpetuating for Y2):
+| # | one push | result |
+|---|---|---|
+| Ya | a valid live hypothesis under an idea, keyed | landed |
+| Yb | an added idea with `status: banana` (Y3.6) | refused: `status : 'banana' does not match ...` |
+| Yc | an EDIT turning a valid idea's status to banana | refused: `was valid:` + the field |
+| Yd | an edit of a LEGACY hypothesis that already lacks `testable_claim` | landed (the ratchet) |
+| Ye Yf Yg | an mvp under an idea · a moral signed by dg5 · signed by owner | refused (order) · refused (ring) · landed |
+| Yh | ONE push: the idea schema widened to allow banana + a banana idea | refused (the RECEIVING schema judged it) |
+| Yi | ONE push: the matrix re-keyed (mvp under idea) + that mvp | refused (the RECEIVING matrix) |
+**Why the ratchet (measured):** Y2's check refuses **238 of 5,402 live nodes today** (123 hypotheses without `testable_claim`, 39 ideas, 24 docs, 21 goals, 20 builds, 6 visions, 5 others; all `required`, 2 a `tags` type). Strict on CHANGED would freeze those 238 against every edit; the ratchet leaves them editable and lets no valid node regress. A legacy node can still gain a NEW error on edit (the check compares pass/fail, not error sets): named, unbuilt.
 **The parity gap found on the way:** 151 live nodes first disagreed, every one a parent id written with a short prefix (`hyp:` 97, `exp:` 65 parent refs). The old gate typed parents through a full index scan; Y1 types them by id prefix + a 2-row alias cell (`@hyp hypothesis`, `@exp experiment`), so the gate reads ONE file, never the graph. The aliases are a cell (config-max), not code.
-**Bytes (expansion, 0 B in the zygote):** `grow-check` 1,298 B · `grow-gate` 842 B · `grow-project` 1,185 B (python + yaml, run only when a schema changes; its output is committed) · the matrix 7,111 B of graph data · the unlock = one awk row lookup inside Y2. The old path it replaces for adds: `spawn_gate.py` (1,507 lines, 65,335 B) on write.py's create path.
+**Bytes (expansion, 0 B in the zygote):** `grow-check` 1,298 B · `grow-gate` 1,435 B (with Y2's check, the ratchet and the receiving-tip read) · `grow-project` 1,185 B (python + yaml, run only when a schema changes; its output is committed) · the matrix 7,111 B of graph data · the unlock = one awk row lookup inside Y2. The old path it replaces for adds: `spawn_gate.py` (1,507 lines, 65,335 B) on write.py's create path.
 `grow-check` whole:
 ```sh
 #!/bin/sh
@@ -1611,17 +1624,20 @@ END{if(t==""){print "refused: not a node (no type:)";exit 1};for(i=1;i<=p;i++){s
  if(!(w in n)){print "refused: wrong order: "t" ("v") under ["r"]; legal:"s[t FS v];exit 1};split(n[w],o,FS)
  if(k!=o[1]){print "refused: locked: key "(k?k:"none")" is not "o[1]" for "t" under ["r"]";exit 1};print "ok "o[1]" "o[2]}' "$1" "$2"
 ```
-`grow-gate` whole (the matrix and allowed-signers paths are cells; the matrix is read at the receiving tip):
+`grow-gate` whole (the trunk ref and the allowed-signers path are cells; `agi-fill check` is Y2's verb):
 ```sh
 #!/bin/sh
-# pre-receive (the land gate): every node ADDED under .agi/nodes/ passes grow-check against the matrix of the RECEIVING side (never the
-# pushed one: a push cannot re-key its own add); a row whose ring is not * must be the commit's signer (the §W principal)
-M=${AGI_GROW:?};A=${AGI_ALLOWED:?};t=$(mktemp -d);trap 'rm -rf $t' EXIT
+# pre-receive (the land gate), all against the RECEIVING trunk tip (matrix + schemas via git archive; a push cannot re-key or re-schema itself):
+# ADDED node -> grow-check (order + key; a ring other than * = the commit's signer, §W) + agi-fill check (Y2's fields) · CHANGED node -> agi-fill
+# check as a RATCHET (refused only if the version it replaces passed: legacy nodes stay editable, nothing that passed can regress)
+A=${AGI_ALLOWED:?};t=$(mktemp -d);trap 'rm -rf $t' EXIT;R=$(git rev-parse -q --verify ${AGI_TRUNK:-refs/heads/main})||{ echo "refused: no receiving trunk";exit 1;}
+git archive $R .agi/context/schemas .agi/nodes/.geometry/growth.tsv|tar -x -C $t||exit 1;k(){ (cd $t&&agi-fill check $1)>$t/e 2>&1;}
 while read o n r;do for c in $(git rev-list $n --not --all);do
  s=$(git -c gpg.ssh.allowedSignersFile=$A verify-commit --raw $c 2>&1|sed -n 's/.*signature for \(.*\) with.*/\1/p')
- for f in $(git diff-tree -r --root --no-commit-id --diff-filter=A --name-only $c -- .agi/nodes|grep '\.md$'|grep -v /deprecated/);do
-  git show $c:$f>$t/n;v=$(grow-check $M $t/n)||{ echo "$f: $v";exit 1;};g=${v##* }
-  [ "$g" = '*' ]||[ "$g" = "$s" ]||{ echo "$f: ring $g, signed by ${s:-nobody}";exit 1;};done;done;done
+ git diff-tree -r --root --no-commit-id --diff-filter=AM --name-status $c -- .agi/nodes|grep '\.md$'|grep -v /deprecated/>$t/l
+ while read m f;do git show $c:$f>$t/n;if [ $m = A ];then v=$(grow-check $t/.agi/nodes/.geometry/growth.tsv $t/n)||{ echo "$f: $v";exit 1;}
+  g=${v##* };[ "$g" = '*' ]||[ "$g" = "$s" ]||{ echo "$f: ring $g, signed by ${s:-nobody}";exit 1;};k n||{ echo "$f:";cat $t/e;exit 1;}
+  else k n||{ git show $c^:$f>$t/p;! k p||{ echo "$f: was valid:";k n;cat $t/e;exit 1;};};fi;done<$t/l||exit 1;done;done
 ```
 `grow-project` whole:
 ```python
@@ -1640,9 +1656,9 @@ for f in sorted(glob.glob(sys.argv[1]+'/[[]*].md')):
    if all(c.count(p)>=n for p,n in (r.get('min_parents_by_type') or {}).items()):
     l='\t'.join([t,v,'+'.join(c) or '-','owner' if t=='moral' else '*']);print(hashlib.sha256(l.encode()).hexdigest()[:16]+'\t'+l)
 ```
-**Not carried by Y1 (named, each its own home):** (1) parent EXISTENCE: `links.py` (broken = 0) stays that gate; Y1 checks types and order, never that a parent file exists (2) the per-town VISION CAP (spawn_gate 5b) is a COUNT, not a shape: a cell + a count line, unbuilt (3) `season_parents` is a second edge field (vision -> overview): the same matrix with an `edge` column, unbuilt (4) Y1 gates ADDS: a later edit of a node's `parents` is not re-gated (`--diff-filter=AM` would, but then the 303 grandfathered nodes refuse every edit until a season cell exempts them) (5) the matrix must be re-projected when a schema changes: a CHECK line `grow-project | cmp - matrix` (the §U pattern) catches drift; a schema edit re-keys ONLY the rows it changes.
+**Not carried by Y1 (named, each its own home):** (1) parent EXISTENCE: `links.py` (broken = 0) stays that gate; Y1 checks types and order, never that a parent file exists (2) the per-town VISION CAP (spawn_gate 5b) is a COUNT, not a shape: a cell + a count line, unbuilt (3) `season_parents` is a second edge field (vision -> overview): the same matrix with an `edge` column, unbuilt (4) a CHANGED node is re-checked for its FIELDS (the ratchet) but not for its ORDER: an edit of `parents` is not re-keyed (grow-check on M would refuse the 303 grandfathered nodes on every edit until a season cell exempts them) (6) a push that changes ONLY a schema or the matrix lands unguarded, so a widen-then-add in TWO pushes still works: the schemas and growth.tsv need a RING of their own (who may sign a schema change: owner · Prime · a quorum) -- a council decision, not taken here (5) the matrix must be re-projected when a schema changes: a CHECK line `grow-project | cmp - matrix` (the §U pattern) catches drift; a schema edit re-keys ONLY the rows it changes.
 **Flag for the council (not a Y1 rule):** belam's brief reads "a hypothesis under an idea, never under a bare goal", but `[hypothesis].md` allows `goal` today (row `21e059b9381fa3cf hypothesis - goal *`). Y1 maps the schemas AS THEY ARE; forbidding it is a one-cell schema edit (drop `goal` from allowed_parents), which re-keys 4 rows and grandfathers the live ones.
-**Falsifiers.** T1-T11 · P · G1-G8 PASS (scratch) · **Y1.12** DG3's build: write.py's create path calls `grow-check` and the parity run stays 5,390/5,390 (UNRUN) · **Y1.13** parity row 20 MATCH with the old write.py REMOVED from the clone (UNRUN; the Phase 3 gate) · **Y1.14** a Y2 window opened with a nid writes a node that `grow-gate` lands, and one opened with no nid writes nothing (UNRUN; the seam with Y2) · **Y1.15** the owner ring: a moral lands only under the owner's phone cert (§X) (UNRUN).
+**Falsifiers.** T1-T11 · P · G1-G8 PASS (scratch) · **Y1.12** DG3's build: write.py's create path calls `grow-check` and the parity run stays 5,390/5,390 (UNRUN) · **Y1.13** parity row 20 MATCH with the old write.py REMOVED from the clone (UNRUN; the Phase 3 gate) · **Y1.14** a Y2 window opened with a nid writes a node that `grow-gate` lands, and one opened with no nid writes nothing (UNRUN; the seam with Y2) · **Y1.15** the owner ring: a moral lands only under the owner's phone cert (§X) (UNRUN) · Ya-Yi PASS (scratch) · **Y1.16** the ratchet on the live trunk: an edit to each of the 238 legacy-invalid nodes lands, an edit breaking any of the 5,164 valid ones is refused (UNRUN at scale).
 
 ## Y2 · ROUND 7 · self-perpetuating -- the CAPTIVE FILL WINDOW: a node key opens it, the format comes first, ONE tool call (or row by row) closes it
 **Owner 07:1xZ:** "only the correct node key schema unlocks next node add to graph. And that smoothly launches a captive graph fill window that uses standard tool call shorthand capture or similar and lists appropriate formate first thing. Also has a row by row option with row by row checks to allow weaker models to slot in better." **What am I ACTUALLY trying to get the machine to do here?** Make the only way a node can grow be the way its schema says, and make that way easy enough for the smallest model: show the shape, take one answer, check it, write it, close. A grown node carries the key and the exact schema bytes it grew under, so the graph can always be re-checked against its own history.
