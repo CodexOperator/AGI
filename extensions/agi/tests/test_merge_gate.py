@@ -176,15 +176,15 @@ def test_c5_one_walk_and_no_git_show(proj, monkeypatch):
     assert merge_gate.main(["check", base, "HEAD", "--root", str(repo / ".agi"),
                             "--repo", str(repo)]) == 1
     assert "show" not in seen and seen.count("log") == 1
-    # the spy is INVISIBLE to a subprocess.run a later edit adds DIRECTLY: the gate itself
-    # must carry exactly ONE such CALL, inside _git. Counted with ast over the module's own
-    # source, so a comment or docstring that merely NAMES subprocess.run is not a call.
+    # the spy is INVISIBLE to a subprocess call a later edit adds DIRECTLY: the gate must carry
+    # exactly ONE subprocess.<attr> CALL (ast, so a comment naming it is no call), bounded on BOTH
+    # ends by _git's lineno..end_lineno, and no `from subprocess import` (a bare call hides there).
     tree = ast.parse((BIN / "merge_gate.py").read_text(encoding="utf-8"))
-    calls = [n for n in ast.walk(tree) if isinstance(n, ast.Call)
-             and isinstance(n.func, ast.Attribute) and getattr(n.func.value, "id", "") == "subprocess"]
-    assert len(calls) == 1
-    assert calls[0].lineno >= next(f.lineno for f in tree.body
-                                   if isinstance(f, ast.FunctionDef) and f.name == "_git")
+    git = next(f for f in tree.body if isinstance(f, ast.FunctionDef) and f.name == "_git")
+    calls = [n for n in ast.walk(tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+             and getattr(n.func.value, "id", "") == "subprocess"]
+    assert len(calls) == 1 and git.lineno <= calls[0].lineno <= git.end_lineno
+    assert not [n for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module == "subprocess"]
 
 # C6 -- a non-ASCII file under a review path -> hold; a C-quoted path is fail-open.
 def test_c6_non_ascii_review_path_is_not_fail_open(proj):
