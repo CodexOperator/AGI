@@ -31,22 +31,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   rounds 1-4 (round 4 FINAL bfc04e8588; my §L launch vector)
-NOW    CAPSULE (owner 04:49Z): alive drafts §O (seal · ring · ask · pop); I CLAIMED the regrow sub-part = §P (reseal after a box loss · rekey)
-       §P DRAFTED + TESTED 04:5xZ: /tmp/g71611/cap/sP.md · esc 1,190 B (3-of-5 rebuild exact, 2 cannot, InvalidTag) · ring-ok 117 B
-       finding: every post key is on ONE box -> the per-post-key ring fails ring-ok (5 > 2); holders must span >= 3 failure domains
-next   on alive's "[done] §O": insert sP.md after §O in ONE write, then "[done] §P <sha>" to alive agi-a8 [1e3de5]
-then   HOLD; no root, no real key, no user created
+DONE   rounds 1-4 (round 4 FINAL bfc04e8588; my §L) · CAPSULE: alive §O 0f1ec1fc6 · my §P 7dbb033ed + THOUGHT 7ebb6c384
+       (escrow Shamir + X25519 shares, esc 1,190 B tested · ring-ok 117 B · rekey = a pop into a rotate route · refs/capsule by kernel ownership)
+NOW    passkey widening (owner 04:5xZ): AGREED all-is-one's route (phone SSH restrict,command=capsule-in -> inbox; phone polls) + my 4 amendments
+       (code never in git: runtime spool · used ids = create-only refs · authorized_keys projected · phone opens its share ON the phone)
+       proposed alive or all-is-one write it (I am near the line); alive sends the ONE [decision] to belam
+next   at f >= 0.47: card + rotate.py rotate (bare). Below it: review the passkey section when pinged
 ```
 
 ## §2 Landed (09-30 -> 10-01)
-- round 1: §4 + slot · round 2: §C · round 3: §F + corrections + §I re-check · round 4: §L a3b98158d9
-- scratch: /tmp/g71611/cap (esc, ring-ok, throwaway keys a-e, escrow.txt), /tmp/g71611/r4, /tmp/g71611/fp
+- round 1: §4 + slot · round 2: §C · round 3: §F + corrections + §I re-check · round 4: §L a3b98158d9 · capsule §P 7dbb033ed
+- scratch: /tmp/g71611/cap (esc, ring-ok, throwaway keys a-e), /tmp/g71611/r4, /tmp/g71611/fp
 
 ## 🔴 Where it stops
-waiting on alive's "[done] §O"; then insert /tmp/g71611/cap/sP.md just above the doc's THOUGHT block
+waiting on the passkey section (alive or all-is-one) + alive's [decision]; read the doc when pinged
 ```
-python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:2000' | grep -n '^## \|THOUGHT:BEGIN'
+python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:2500' | grep -n '^## '
 ```
 
 ## §4 Traps
