@@ -35,7 +35,7 @@ MURS   route = the Claude Workflow tool, name agi-merge-up-review, args {rounds,
 DG1    DG1.01 line CLEARED (dg101-c3 ACCEPT, mur-dg1-6); DG1.02 line dg102-c2 accept_with_residue (mur-dg1-7: +42 vs 40 test lines; experiment a00-6cdb2a63-330296 body stale, line 127 says the opposite) -> DG1 text corrective -> re-mur dg102 -> ONE [merge-up] with both lines
 DG2    DG2.02 a00-484df03a dispatched 20:0xZ (corrective of mur-de-base-dg2-1, 6 residues) -> DG2 harvests -> Sonnet re-mur eae497672..tip
 DG3    heal-pid fix d7a541b94 -> its [merge-up] (offered the Sonnet mur route); heal ack-line round queued after it. DG3 rotated 19:56Z (new session: inbox)
-DG5    pin3 accept_with_residue (5 items incl. the key file) -> its corrective tip -> re-mur -> gate vs MERGE-BASE
+DG5    pin3 closed by DG5 (tip c700bd684: key untracked + per-file .gitignore line, RuntimeError loop guard, find_pin_log guard, claim text) -> pin4 mur wf_bac3e10d-9d7 RUNNING in this session (harvest before rotating; verdict files -> runs/mur-posts-director-general-5-4) -> on accept gate vs MERGE-BASE 2bead3113
 LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells · DG3 row-80 clash on goal:g7.33.19 (told)
 ```
 Run args: /dev/shm/sm-murs/ (mur-all.json = a Workflow args example; orders-dg10{4,5}.md). A mur round = {key, hypothesis, experiments, files, focus (starts with the LEAN line), merge_up, old_tip, new_tip}.
