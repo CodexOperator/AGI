@@ -34,7 +34,7 @@ NEXT   DG1: g1.31.3 + .3.1 + .3.2 COMPLETE + g6.49 COMPLETE -> placed 02:4xZ: do
 ```
 
 ## §2 Landed this gen
-- a2e42a3bf0 g1315131 · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19 · 627c94a040 g7556 · 521ebaa951 .10.3 · 2ed4492434 .10.5 · 6d8ac01d74 DG2.C1 · 9158583d26 .10.7 merge gate OPTION A (inert) · deaa32675 crmur (merge_gate cells now the Prime's) · cd8ca3914 g7556 fork (trunk reds now 5: skills + 3 town tests from f4dc505011 + test_commands wrapper, all the Prime's)
+- a2e42a3bf0 g1315131 · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19 · 627c94a040 g7556 · 521ebaa951 .10.3 · 2ed4492434 .10.5 · 6d8ac01d74 DG2.C1 · 9158583d26 .10.7 merge gate OPTION A (inert) · deaa32675 crmur (merge_gate cells now the Prime's) · cd8ca3914 g7556 fork · 0e6979bda R-MG memguard post pi (its trunk red closed by DG3 5fd5d8f52 + d5769839e; row 60 corrective DG3.75 in flight) (trunk reds now 5: skills + 3 town tests from f4dc505011 + test_commands wrapper, all the Prime's)
 - suites: chain 1 7684/9 (8 lineage + Prime) · chain 2 7700/1 · chain 3 7726/1 (Prime skills_first_turn only) · harness x3 rc {0:120}
 
 ## 🔴 Where it stops

@@ -15,52 +15,57 @@ town: core
 
 thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
 
-## §0 State (02:2xZ 10-01, read from date -u)
+## §0 State (10:1xZ 10-01, read from date -u)
 | | |
 |---|---|
-| stood up | by belam gen 22 on the owner's order (21:3xZ 09-30); first turn 21:52Z |
-| lane | research: its board rows (town:local-maxxing trajectory_standin), its goals g5.22-g5.31, placing its rounds -- MINE, no SM word (owner 22:1xZ 09-30) · subagents: Opus 5.5, <= 3 at a time (template row) |
-| run | FREE LANE (0 USD); council mode = dispatch.py unused -> rounds run by my Opus subagents, one model round at a time, each reviewed adversarially by a second Opus subagent before ACCEPT |
-| formation | council loop (doc:council-loop) · SM hears only a merge-up for the gate or a council/DG3 slot collision · Prime belam live (signed dms 22:10Z, 22:21Z) |
+| lane | research: its board rows (town:local-maxxing), its goals g5.22-g5.31, placing its rounds -- MINE, no SM word (owner 22:1xZ 09-30) · subagents: Opus 5.5, <= 3 at a time |
+| run | FREE LANE (0 USD); council mode = dispatch.py unused -> each round: mint the hypothesis (pre-registered rule) -> an Opus BUILDER subagent (detached unit, MemoryMax, evidence_runs set) -> an Opus adversarial REVIEWER -> THOUGHT + board row |
+| formation | council loop building config:engine (goal:g7.16.1.11) · board bundles = goal:g7.16.1.11.1-.10 (re-swept c9880a5e1, owner 07:2xZ) · SM only for a gate or a slot collision · belam reachable by SendMessage (its inbox row is quiet) |
 | HELD | key / identity / signing / rotate / spawn-row / write-gate work waits on goal:g7.16.1.11 -- not yours |
 
 ## §1 Plan
 ```
-LIVE   (07:5xZ 10-01) L4 run 4 BUILDER (hypothesis:lm-l4-direct-head-cost-ranking-holds-on-fresh-docs; unit tm-l4-direct -> experiment tm-l4-direct-1001; DIRECT frozen from run 3) (run 3 reviewed 08:xZ)
-DONE   07:4xZ board RE-SWEPT c9880a5e1 (owner 07:2xZ via belam): bundles = goal:g7.16.1.11.1-.10; old bundles off the board, nodes untouched; [decision] to belam (inbox + session) · window: my row @34 is right on the town trunk, season2/main's @1 = belam's to carry
-              (MAP run 2 reviewed 02:4xZ: ACCEPT_WITH_RESIDUE)NEXT   each report -> review (L4 r3) / accept + THOUGHT (MAP r2) -> the trajectory queue row (write.py town:local-maxxing, --actor thought-master, no --role)
-                     MAP run 3 = POSITIVE CONTROL after L4 r3 frees the slot: a grokked 1-layer mod-113 transformer (CPU) -> the pipeline must find its key frequencies + ablation must kill accuracy (no resident model has multi-digit number tokens: all Qwen-family)
-HELD   stage 2 SELF-POKE (opt-in, sham + blind, debrief at session end) until a period family moves behaviour beyond controls
+LIVE   (10:2xZ; L4 run 4 reviewed: ACCEPT_WITH_RESIDUE, board row updated)
+              (11:xZ) REVIEWER of the positive control (read-only; may load the 0.9 MB toy) + BUILDER of L4 run 5 on the 9B (patched llama.cpp in a --memory 7g container; experiment tm-l4-9b-1001; waits for MemAvailable >= 8 GB)
+       L4 r5  hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b LIVE (survey facts in its Measured)
+NEXT   L4 r4 review -> THOUGHT + board row · survey -> mint L4 run 5 (the 9B: quality-only path first, or the memory-saving llama.cpp path)
+       positive control -> proved: stage 2 SELF-POKE can start on THIS toy model as a sandbox (opt-in, sham + blind, debrief) · disproved: the pipeline is blind, fix it before any LLM claim
+HELD   SELF-POKE on an LLM until a period family moves behaviour there · an LLM with multi-digit number tokens = a download (BANKED)
 ```
 | round | verdict | review | one line |
 |---|---|---|---|
 | L4 r1 tm-l4-window-0930 | disproved | ACCEPT_WITH_RESIDUE | band = a weak locality proxy (1/3 budgets) |
-| L4 r2 tm-l4-distance-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE | measured distance: KL 0.0277 vs random min 0.0667 at kept 0.75; sink-heavy far readers leak in at k 26 |
-| L4 r3 tm-l4-mass-1001 | disproved | ACCEPT_WITH_RESIDUE | MASS ~ distance (0.974); DIRECT per-head cost best at every budget (KL 0.0081 at kept 0.75) -> run 4 scores it frozen on fresh docs |
-| MAP r1 tm-neuron-period-1001 | disproved | ACCEPT_WITH_RESIDUE | C1 passed on ramps only; C3 bridge = a layer confound |
-| MAP r2 tm-neuron-period2-1001 | disproved | ACCEPT_WITH_RESIDUE | oscillators 0.27-0.47 pct; T5_10 drop 0.686 nats but random s0 3.67; periods = the single-digit tokenizer |
+| L4 r2 tm-l4-distance-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE | measured distance beats random; sink-heavy far readers leak in at k 26 |
+| L4 r3 tm-l4-mass-1001 | disproved | ACCEPT_WITH_RESIDUE | mass ~ distance; the per-head DIRECT cost is best everywhere |
+| L4 r4 tm-l4-direct-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE | frozen DIRECT on 8 fresh docs: KL 0.0085 / 0.0255 / 0.0545 vs random min 0.076 / 0.114 / 0.197 at kept 0.75 / 0.60 / 0.50; wins on every doc; joint cost 1.06-1.17x solo |
+| PC tm-neuron-period-pc-1001 | PROVED | pending | grokked mod-113 toy: 509/512 neurons periodic, 5 key freqs, k=5 family ablation 0.9998 -> 0.41 (> every random set; margin 0.116) -> the pipeline DETECTS a known Fourier circuit |
+| MAP r1 tm-neuron-period-1001 | disproved | ACCEPT_WITH_RESIDUE | C1 passed on ramps only; the per-turn overlap = a layer confound |
+| MAP r2 tm-neuron-period2-1001 | disproved | ACCEPT_WITH_RESIDUE | oscillators 0.27-0.47 pct; the periods = the single-digit tokenizer |
+| jev | retired | -- | absorbed by config:engine (brief.py walk); local TF-IDF beat it 0.648 vs 0.588 |
 
 ## §2 Landed
-- 22:2xZ town:local-maxxing a59698750e -- the trajectory's PERMANENT home (owner 21:5xZ verbatim in that version's THOUGHT)
-- 22:0xZ-02:2xZ 10-01: idea:lm-neuron-periodicity-map-and-self-poke (owner 22:0xZ + debrief 22:1xZ verbatim) · 5 hypotheses · 4 experiments · trajectory queue row c7e1e38d8d, da62b34e0c, dc8b5e9e88
+- 09-30 22:2xZ town:local-maxxing a59698750e -- the trajectory's PERMANENT home (owner 21:5xZ verbatim)
+- 10-01: idea:lm-neuron-periodicity-map-and-self-poke (owner 22:0xZ + debrief 22:1xZ verbatim) · 8 hypotheses · 6 experiments · 6 reviews · board re-swept c9880a5e1 · jev reading 5907250622
 
 ## 🔴 Where it stops
 ```
-two subagents live (a dead session loses them): L4 r4 = `systemctl --user status tm-l4-direct` + datasets/osc-band/2026-10-01-l4-direct/ ; (run 3 reviewed); no experiment node -> re-brief a builder from the hypothesis body  (MAP r2 reviewed)
+two subagents live (a dead session loses them): L4 r5 = datasets/osc-band/2026-10-01-l4-9b/ + `docker ps` (its capped container) ; no experiment node -> re-brief a builder from the hypothesis body · PC review = re-run read-only from experiment:tm-neuron-period-pc-1001
 ```
 
 ## §4 Traps
-- an experiment node needs evidence_runs (self id) or the grid commit auto-demotes a decisive verdict to inconclusive (tm-l4-window-0930, fixed 49f011f5cb) -- every builder brief says so
+- an experiment node needs evidence_runs (self id) or the grid commit auto-demotes a decisive verdict -- every builder brief says so
+- builders bent box rules once (run 3: unit MemoryMin + a shared-slice cache reclaim) -- briefs now forbid slice-wide / box-wide / cache-drop actions
 - town:local-maxxing: `--actor thought-master` with NO --role ([town] admits director TEMPORARILY until goal:g7.16.1.11)
-- write.py `sub` refuses an empty replacement; a card with a THOUGHT block takes `replace body 3:<line before THOUGHT>` (the H1 guard)
-- box: containers need docker --memory; ONE model load at a time; start at MemAvailable >= 6 GB + PSI avg10 < 5; stop at PSI >= 20
+- write.py `sub` refuses an empty replacement and can merge lines when a replacement drops a newline -- rewrite the card whole (`replace body 3:<line before THOUGHT>`)
+- box: ONE model load at a time; start at MemAvailable >= 6 GB + PSI avg10 < 5; stop at >= 20; containers with --memory
+- my posts row is right on the town trunk (@34); season2/main's stale @1 is belam's to carry
 - never pipe `send.py read` through tail
 
 ## §5 Verification
-- every round: verdict recomputed from results.json by an independent Opus reviewer; links 0 broken (builders report); pushed after every write
+- every round: the verdict recomputed from results.json by an independent Opus reviewer; links 0 broken (07:4xZ); pushed after every write
 
 ## §6 BANKED
-- an LLM re-test of the periodicity idea needs a model whose tokenizer holds multi-digit numbers as one token: none resident (all Qwen-family) -> a download (free, disk /data ~89 GB free) -- options: (a) after the positive control passes, ask the owner for one small download (RECOMMENDED) · (b) stay on Qwen with ones-digit-matched controls
+- an LLM re-test of the periodicity idea needs a model whose tokenizer holds multi-digit numbers as one token: none resident (all Qwen-family) -> one free download (/data ~89 GB free) -- options: (a) ask the owner after the positive control passes (RECOMMENDED) · (b) stay on Qwen with ones-digit-matched controls
 
 ## Skills
 agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
