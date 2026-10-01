@@ -40,7 +40,7 @@ G9 BOOT INSTALL: hypothesis:g716111-g9-boot-install-brings-the-boot-set-up -> ki
   boot projects only engine.v==4 rows (belam: intended; flags stay on all 8)
 MOVE 3 = alive HELD on G10. Packet READY: .agi/sessions/dg3-mur-args/alive-switch.sub (2 subs: pid half alone -- RE-READ the live pid first --, then window+recover+engine Opus 5.5 seeds unified-master-brief,unified-head,card-alive rotate_pct 47) + alive-rollback.sub · user agi-alive exists, inbox present
   same shape as DG1: belam writes the row -> kill alive's tmux window (verify name + pane pid) -> re-project -> h.conf + preserve.conf + wants -> gate -> start -> report first turn
-  pre-seed alive's .claude.json BEFORE start: projects./var/lib/agi/alive/t.hasTrustDialogAccepted, hasCompletedOnboarding, fullscreenUpsellSeenCount 99 (as the user, 600) -- CHECK it (DG1 was pre-seeded; alive not yet verified)
+  pre-seed alive's .claude.json BEFORE start: projects./var/lib/agi/alive/t.hasTrustDialogAccepted, hasCompletedOnboarding, fullscreenUpsellSeenCount 99 (as the user, 600) -- DONE 19:0xZ (trust on t, fs 99, onboarding + bypass already set)
 GATE before ANY start: loadavg1 < 16 AND io PSI some avg60 < 50
 ```
 
