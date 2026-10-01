@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -916,15 +916,15 @@ POP    capsule-pop R (root unit):  the ring, k and cred are read FROM T (the sig
 ```
 "Piped anywhere" = the run cell (`... < $CREDENTIALS_DIRECTORY/s`). The quorum signs H, the hash of that exact run cell, so WHERE it goes is the combined permission, and nothing else is.
 
-**O.2 · The piece, whole: `capsule-pop` (1,102 B).** Not a config:engine piece: it lives in its own node (`config:capsule`, one read, with the seal line and the two unit stubs), so config:engine's depth 0+1 stays 4,095 B.
+**O.2 · The piece, whole: `capsule-pop` (1,194 B; weighted since O.8, 05:5xZ: plain k-of-n = every weight 1).** Not a config:engine piece: it lives in its own node (`config:capsule`, one read, with the seal line and the two unit stubs), so config:engine's depth 0+1 stays 4,095 B.
 ~~~sh
 #!/bin/sh
 # capsule-pop R: R = "C H T" (capsule, hash of the launch vector R.L, ledger tip). The ring, k and the sealed bytes are read FROM T, so the
-# signatures pin all of them; k distinct ring signatures move refs/capsule/C T->new (one CAS: a replay loses), then L runs with C as its only credential
+# signatures pin all of them; the WEIGHTS of distinct ring signers (ring/<holder>@<w>, w=1 if absent) summing to k move refs/capsule/C T->new (one CAS: a replay loses), then L runs with C as its only credential
 set -e;read -r c h t<"$1";x=.agi/capsule/$c;r=$(mktemp);trap 'rm -f $r $r.ok $r.c' EXIT;[ "$(git hash-object "$1.L")" = "$h" ]
 g(){ echo "$t:$1"|git cat-file --batch --follow-symlinks|tail -n+2;};git ls-tree --name-only $t $x/ring/|while read f;do echo "${f##*/} namespaces=\"capsule\" $(g $f)";done>$r
 for s in "$1".sig.*;do p=$(ssh-keygen -Y find-principals -s "$s" -f $r)&&ssh-keygen -Y verify -f $r -I "$p" -n capsule -s "$s"<"$1">/dev/null 2>&1&&echo "$p";done|sort -u>$r.ok
-[ $(wc -l<$r.ok) -ge $(git cat-file blob $t:$x/k) ];git update-ref refs/capsule/$c $(cat "$1" $r.ok|git commit-tree $t^{tree} -p $t) $t;git cat-file blob $t:$x/cred>$r.c
+[ $(awk -F@ '{s+=NF>1?$NF:1}END{print s+0}' $r.ok) -ge $(git cat-file blob $t:$x/k) ];git update-ref refs/capsule/$c $(cat "$1" $r.ok|git commit-tree $t^{tree} -p $t) $t;git cat-file blob $t:$x/cred>$r.c
 systemd-run -q --wait -p LoadCredentialEncrypted=s:$r.c -p DynamicUser=yes -p StandardOutput=null -p StandardError=null sh -c "$(jq -r .run "$1.L")"
 ~~~
 **Tested 04:5xZ:** user manager, a scratch repo, three throwaway holder keys + one outsider, k = 2, a 19-byte dummy payload. The test copy differs only in `systemd-run --user`, `LoadCredential=` (plain) and no `DynamicUser` (the encrypted, system form is the root act below). No real key was touched.
@@ -1041,6 +1041,33 @@ else:
 **BANKED for the owner:** (1) the at-rest anchor: the Mac (recommended: a local Swift CLI, no App Store) or the iPhone (a small app) · (2) switch a given capsule from the host-key seal to the SE seal (a tap per pop, escrow mandatory) or keep the host key for it.
 **Falsifiers.** E1, E2a-d PASS (software stand-in) · **S1** the real Mac SE's Z for a test vector equals the software ECDH of the same keys (VERIFY on the Mac) · **S2** a pop of an SE-wrapped capsule with the Mac asleep WAITS, even with the phone's approval: approval and unwrap are two taps, named as such · **S3** the iPhone lost: the Mac approves (k = 1), and custody still needs the host key AND the Mac's Z; the Mac lost: the escrow (k >= 2, never needing the Mac) regrows the seal (§P) · **S5** the Mac alone, holding Z and the git ciphertext, cannot open a 2-of-2 capsule (the outer host-key seal; UNRUN: a root act for the outer seal) · **S4** the SSH app holds an SE-backed key that sshd accepts (= P10).
 
+**O.8 · The owner's picks (05:45Z) folded in: the iPhone alone, a MUTUAL quorum, an iMessage face.** Owner, verbatim: "1. iPhone only for now I don’t have the Mac with me. If not just plain key stored in iPhone as capsule signed by posts. So my capsule only pops with you all, yours only with mine assuming you let me unlock mine. I’m fine with a small app having to be released. I’m already dropping a list app soon. Can this be a messenger extension as well so it can just text receive responses via text not just terminus. Notification through app that opens response in text via iMessage applet. / 2. Works for me, if needed can use 2-2 setup to do passkey passing or just use ssh I guess. (belam's rulings (1)-(2) on the goal).
+```
+CUSTODY + APPROVAL  the iPhone ONLY: O.7's Mac row moves to a small owner app (the owner's list app may carry it): CryptoKit Secure
+                    Enclave P-256 = signing (the approval) + ECDH (the inner seal of a 2-of-2 capsule). No app yet -> a PLAIN key in
+                    the iPhone's keychain, itself kept in a capsule the posts sign (a lost phone is recovered by the posts' quorum);
+                    named honestly: a plain key is visible to iOS, the Secure Enclave guarantee starts with the app
+MUTUAL QUORUM       all-is-one's weights, ONE formula, ONE line in capsule-pop: ring/<holder>@<w>, k = the threshold; it pops iff
+                    the weights of the distinct valid signers sum to k (no @w = 1, so plain k-of-n is unchanged)
+                    the POSTS' capsules: owner@(n+1), posts @1, k = n+1+m  -> the owner AND >= m posts; no number of posts suffices
+                    the OWNER's capsule: everyone @1, k = 1+n               -> "only pops with you all"
+iMESSAGE            the app's iMessage extension is the FACE: the push opens the ask in Messages, the owner taps approve there;
+                    the approval still LEAVES by the app's own call to the box (SSH to agi-capsule, O.5), never as a text: the box
+                    reads no iMessage, and a text reply is an unauthenticated channel
+SEAL PER CAPSULE    long-lived secrets = the 2-of-2 (host key AND the iPhone SE); short login codes = O.5 over plain SSH (ruling 2)
+```
+**Tested 05:5xZ** (weighted capsule-pop, user manager, four throwaway keys, the 19-byte dummy):
+| # | capsule | signers | result |
+|---|---|---|---|
+| Q1 | posts' (owner@4, p1-p3 @1, k = 6) | all three posts, no owner | refused (3 < 6) |
+| Q2 | posts' | owner + 1 post | refused (5 < 6) |
+| Q3 | posts' | owner + 2 posts | popped, 19 B |
+| Q4 | posts' | p1 + p2, after `p1@9` was written into the WORKTREE ring | refused: weights are read from the signed tip (T7 holds) |
+| Q5 | owner's (all @1, k = 4) | owner + 2 posts | refused |
+| Q6 | owner's | owner + all 3 posts | popped, 19 B |
+| T1/T5 | plain (p1-p3, k = 2) | 1 / 2 signers | refused / popped: unchanged |
+**Falsifiers.** Q1-Q6 PASS · **I1** the app's Secure Enclave signature verifies under `ssh-keygen -Y verify` (the app must emit SSHSIG; VERIFY) · **I2** the iMessage extension reaches its app's Secure Enclave key (a shared keychain group; VERIFY) · **I3** the iPhone lost: the posts' quorum pops the escrowed plain key, or §P's escrow regrows a 2-of-2 seal without that phone (UNRUN).
+
 ## P · CAPSULE · self-perpetuating -- the capsule regrows: reseal after a box loss, rekey when the ring changes
 **What am I ACTUALLY trying to get the machine to do here?** Make a sealed secret outlive the box that sealed it, without ever letting one holder, or one box, see it ("If I die, let nothing be lost").
 
@@ -1141,7 +1168,7 @@ total               18,172 B  (cap 20,480) · zygote headroom 929 B · gone: non
 
 Falsifiers: **F32** `wc -c` config:engine <= 8,192 (7,263) · **F33** sect parity as in the table (PASS) · **F34** projection parity (PASS) · **F35** gate 0/1/2 (PASS) · **F36** on DG3's stage-2 post: its bin under v5 = its bin under v4c except the 3 edited pieces (unrun). Drafts: /tmp/g71611/r5/v5 (scratch; rebuildable from v4c by the map + the 5 edits above).
 
-## Q · ROUND 5 · alive -- the BOOTSTRAP is one 5.7 KB node; everything a post runs is an EXPANSION, read by name
+## R · ROUND 5 · alive -- VARIANT B of §Q, written in parallel (05:5xZ): a 5.7 KB bootstrap with the map split across nodes. Recommended = §Q (the whole 24-line map stays in the one read) + two hardenings measured here: the gate refuses an empty unit template (R4c, a v4c gap) and ranges end at ^## (0 B; R3)
 **Owner 05:38Z:** "Our engine code is getting too large. Do we need to offload more of it into the math somehow? Rethink things or recompose them? We can go up to 20kb while needed but ideally I'd want it back under 8kb when possible via another simplification redesign. Mind you the expanded vectors for live posts and post wrappers can be bigger than 8kb I just mean the 'bootstrap' package is under 8kb you get it?" **What am I ACTUALLY trying to get the machine to do?** Make the one read that a box needs to come alive small, and let everything a post runs be fetched by NAME only when it is needed, with no piece rewritten (so parity holds by construction, and is then measured, not argued).
 
 **Q.1 · The redesign is one idea: the engine is a SET of nodes, and `sect` is the only resolver.** `config:engine` (`engine.md`) = the BOOTSTRAP (diagram · loop · pieces table · `sect` · `agi-project` · `agi-gate`). `engine-post.md`, `engine-cc.md` and `engine-pi.md` = the EXPANSIONS. Every reader that named `engine.md` now reads `.geometry/engine*.md` at the REV, so a piece is found by name wherever it lives; adding an expansion = a new `engine-<x>.md` + one line in the bootstrap's pieces table, no code. Only FOUR pieces change (the readers); the other 20 move byte for byte.
@@ -1216,5 +1243,5 @@ mv $o $o.1;sh -c "$(sed -n 's/^ExecStart=sh -c "\(.*\)&&systemctl.*/\1/p' $o.1/a
 **Falsifiers.** R1-R4 PASS (scratch) · **R5** DG3's build: the live post boots from the split with every parity row green (UNRUN) · **R6** `wc -c engine.md` <= 8,192 at every trunk tip: a gate line, so the bootstrap can never silently regrow past the bar (proposed, unbuilt).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive (agi-a8), 05:5xZ 10-01 (round 5 on belam 05:39Z signed [decision]; base config:engine v4c e1e0dbaaf, 16,384 B). Owner 05:38Z, verbatim: "Our engine code is getting too large. Do we need to offload more of it into the math somehow? Rethink things or recompose them? We can go up to 20kb while needed but ideally I’d want it back under 8kb when possible via another simplification redesign. Mind you the expanded vectors for live posts and post wrappers can be bigger than 8kb I just mean the “bootstrap” package is under 8kb you get it?" WHY this version differs: added §Q. The engine becomes a SET of nodes read by name: the bootstrap config:engine (5,731 B: diagram, loop, table, sect, agi-project, agi-gate) and three expansions (engine-post 9,080, engine-pi 2,548, engine-cc 670). Four readers change (sect, the projector s(), the post unit extraction loop, the gate); the other 20 pieces move byte for byte, so parity holds by construction and is then measured: R1 20 of 24 identical by name, R2 the projector per-post output identical, R3 a post bin identical but the 4 readers, R4 the gate refuses a missing expansion and a missing unit template. Two defects found by the proofs: the last piece of each node ran into the next node table (ranges now end at ^##), and the gate passed with an expansion or the unit template missing (now refused; the second was already in v4c). all-is-one built ONE BRIEF (1,161 + 659 B, +72 B today, -587 B after stage 3); it is an expansion swap named in Q.5, not folded, because it changes the hook wiring. Three harness slips of mine were caught and redone before any number was written.
+alive (agi-a8), 05:5xZ 10-01 (O.8 + the weighted capsule-pop, on belam 05:46Z signed [decision]; §Q/§R round 5 versions precede this one in the grid). Owner 05:45Z, verbatim: "1. iPhone only for now I don’t have the Mac with me. If not just plain key stored in iPhone as capsule signed by posts. So my capsule only pops with you all, yours only with mine assuming you let me unlock mine. I’m fine with a small app having to be released. I’m already dropping a list app soon. Can this be a messenger extension as well so it can just text receive responses via text not just terminus. Notification through app that opens response in text via iMessage applet. 2. Works for me, if needed can use 2-2 setup to do passkey passing or just use ssh I guess. 3. Yes go. 4. Yeah bypass permissions all the way. The other guards take care of permissions. We don’t need CC permissions" WHY this version differs: O.8 folds the owner picks into §O. Custody and approval move to the iPhone alone (a small owner app with the Secure Enclave; until it exists a plain key in the iPhone keychain, itself kept in a capsule the posts sign). The MUTUAL quorum is all-is-one weights: ring entries holder@w, k the threshold, one awk line in capsule-pop (1,102 -> 1,194 B, O.2 updated in place, cmp == the tested file). Q1-Q6 PASS: the posts capsule needs the owner AND m posts, the owner capsule needs all of them, a worktree weight edit is ignored, plain k-of-n unchanged. The iMessage extension is the face only: the approval leaves by the app own SSH call, never as a text. This fold is what belam ruling (3) waits on before DG3 builds.
 <!-- THOUGHT:END -->
