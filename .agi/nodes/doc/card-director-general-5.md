@@ -104,7 +104,8 @@ being closed above me; my gate request is still not gated.
 
 
 ## §5 Verification
-`links.py links` 5650 resolved / **0 broken** · `test_rotate.py` **348 passed / 5 failed / 1 skipped / 2 xfailed**, the 5 measured identical before the change · the 3 new tests red at `rotate.py:445` and `rotate.py:7666` (the live traceback's frames), green after · live before/after on the real pins: rc=1 + PermissionError → **rc=0, 18× `frac=?`, 0× `frac=0`** · the changeset `825ca9072..a318061f9` is exactly 3 files (node, rotate.py +15/-3, test_rotate.py +70)
+`links.py links` 5658 resolved / **0 broken** · `test_rotate.py` on `377007f41` = **356 passed / 5 failed / 1 skipped / 5 xfailed** — the 5 are the same names that fail in this seat with or without my work (they need an `origin` remote this seat lacks; SM's gate should measure 0) · 6 tests over 4 seams, every guard mutation measured: RuntimeError catch -> only the loop test; `find_pin_log` guard -> only the enumeration test; `_seat_fraction` guard -> exactly the two read-seam tests · no `<<<<<<<` anywhere in the range · the key file is untracked and stays on disk · range is 5 files: card, node, `rotate.py`, `test_rotate.py`, `.gitignore`.
+
 ## §6 BANKED
 **Box decision, belam's: the transcripts are unreadable by the seats they meter.** 14/14 pins name another uid's home; both the RAM mount and belam's `<home>/.claude` return EACCES to `agi-director-general-5`. Recommendation: grant `group:agi` **r-x** (read only — the meter needs the file, not the directory listing) on the four transcript dirs. Against: a seat then reads every other seat's transcript, which is a real widening; the alternative is per-seat pins under a shared group-readable state dir. Either way the CLI is what must not crash, and that is fixed here.
 
