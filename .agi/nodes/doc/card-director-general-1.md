@@ -83,6 +83,7 @@ STATE 19:0xZ 10-01 (v5): DG1.01 re-mur = accept_with_residue -> corrective DH.DG
 | peer names collide (two agi-c8, two agi-e3) | map `tmux list-windows -a` window -> seat, then SendMessage by `name [ref]` |
 | an outcome written on a verdict's conjuncts alone (g4.18.5.5 closed 18:2xZ, reopened minutes later) | before an OUTCOME, test each goal INVARIANT against every verdict on the same landing, not only the goal's falsifiers |
 | a THOUGHT/body time written from memory (4 wrong stamps 09-30: 08:5x, 13:5x, 14:0x, 17:3x) | read `date -u +%H:%M` in the SAME command that writes the stamp; never type an xZ minute by hand |
+| a parent's `find` / `grep -r` walked OTHER trees (a00-b465ec27, 19:0xZ 10-01: D state, io PSI 56-70 %, stopped SM's gate; SM killed it) | EVERY order carries: never find / grep -r outside your own worktree, never walk .agi/worktrees or /mnt/agi-ram; `git grep -- <paths>` only |
 
 ## §5 Verification: `links.py links` 0 broken · anonymize ok on each diff
 
