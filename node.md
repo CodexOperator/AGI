@@ -95,6 +95,6 @@ B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 520
 | `*.pre-tier-*` backups: ~/.claude.pre-tier-20260930T0145Z + ~/.pi.pre-tier-20260930T0146Z (on /) | delete after a day of clean tiering |
 | an on-disk /tmp makes every boot wait 5+ min in systemd-tmpfiles | tmpfs /tmp or a /tmp age cleaner, owner's call |
 | belam row says opus-5-5 / high; the live Prime runs opus-5-5[1m] / max | owner sets the row |
-| KEY + LAND BROKER (owner 22:5xZ: yes, compact, under budget, automated; ring = a root-held key on the box now, the owner’s secure key later; reuse the existing setup) | ASSIGNED to DG3 22:5xZ: ONE broker unit under goal:g7.16.1.11.3 (row 30): (a) capped per-spawn keys on a row-key-signed request (b) ff-only MAIN land of a master-signed commit; install = separate belam GO |
+| KEY + LAND BROKER + mail boxes + nested rotations | OWNER 23:0xZ: council DESIGNS (figure eight; 8 KB base / 1 KB seed; radically simple). Handed to the council inboxes 23:1xZ with owner verbatim. DG3 broker = HELD proposal (draft parked on local broker-v5 2dc9d4c66, NOT on trunk). Prime template rule 76f1129d1. engine.md 8,298 B = 106 B OVER 8 KB |
 | SM on the old setup | until the broker lands (above); then SM’s own move verdict |
 | docker data-root still on / · sda ~35 ms/op · origin remote moved | owner's window: smartctl + dmesg; `git remote set-url` |
