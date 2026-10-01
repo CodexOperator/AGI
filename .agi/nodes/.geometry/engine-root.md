@@ -44,6 +44,37 @@ WantedBy=multi-user.target
 ~~~
 
 
+### agi-boot.service (491 B)
+~~~ini
+[Unit]
+After=agi-ram-main.service
+Requires=agi-ram-main.service
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+TimeoutStartSec=infinity
+WorkingDirectory=/data/work/agi
+Environment=AGI_TRUNK=local-maxxing/season2/main GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=*
+ExecStart=sh -c 'echo $$AGI_TRUNK:.agi/nodes/.geometry/engine-root.md|git cat-file --batch --follow-symlinks|sed -n "/^### agi-boot /,/^##/{/^~~~/,/^~~~/{//!p}}"|sh -s'
+[Install]
+WantedBy=multi-user.target
+~~~
+
+### agi-boot (1179 B)
+~~~sh
+#!/bin/sh
+R=${AGI_RAM:-/mnt/agi-ram} t=${AGI_TRUNK:-HEAD} o=${AGI_BOOT_OUT:-/run/systemd/system};w=$o/multi-user.target.wants
+setfacl -m g:agi:x $R;setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state}
+c(){ git show $t:.agi/config.json|jq -r ".values.local_maxxing.$1";};L=$(c de_live_parents.ceiling_if.loadavg1_lt) P=$(c de_live_parents.ceiling_if.io_psi_some_avg60_lt) N=$(c agi_boot.poll_s) M=$(c agi_boot.wait_max_s)
+echo $t:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s $o $t||exit 3
+systemctl daemon-reload
+ok(){ read l _<${AGI_LOADAVG:-/proc/loadavg};i=$(sed -n 's/^some .*avg60=\([0-9.]*\).*/\1/p' ${AGI_PSI_IO:-/proc/pressure/io});[ -n "$i" ]&&awk -v l=$l -v i=$i -v L=$L -v P=$P 'BEGIN{exit !(l<L&&i<P)}';}
+git show $t:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r 'select(.boot==true)|.name'|while read p;do [ -L $w/agi-post@$p.service ]||continue;s=$(date +%s)
+until ok;do [ $(($(date +%s)-s)) -ge $M ]&&{ echo "agi-boot: gate not open after ${M}s, skipping $p">&2;continue 2;};sleep $N;done
+systemctl start agi-post@$p</dev/null||echo "agi-boot: start failed $p">&2;done
+~~~
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 SPLIT (DG3 read sets): agi-post@.service moved here whole from engine-post; its ONE loop edit: for e in engine.md engine-[pw]*.md (was engine*.md), so a post reads engine + engine-post + engine-wrap only.
+G9 (hypothesis:g716111-g9-boot-install-brings-the-boot-set-up): agi-boot.service + agi-boot, root once at boot: ACL pair, local-trunk projection (the agi-project section reused as is), daemon-reload, then one start at a time of the rows with boot:true behind the config load/io gate. Gate numbers = de_live_parents.ceiling_if; poll/bound = agi_boot cells.
 <!-- THOUGHT:END -->
