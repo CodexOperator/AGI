@@ -88,3 +88,60 @@ def test_an_unknown_pane_pid_leaves_the_row_pid_alone(graph, tmp_path):
     _l, one, _t = _passes(graph, tmp_path, pane="")
     assert one[0]["respawned"] is True, one
     assert _row_pid(graph) == OLD
+
+
+def _launch_returning(graph, tmp_path, monkeypatch, ret, probe):
+    """One sweep, OLD dead, the launcher returns `ret`, `_pane_pid_of` = `probe`."""
+    monkeypatch.setattr(heal, "_pane_pid_of", probe)
+    return heal._watch_seats(
+        graph, now=time.time(), pid_alive=lambda p: False,
+        window_path=str(tmp_path / "w.txt"),
+        launcher=lambda *a, **k: ret)
+
+
+def test_a_real_launcher_pid_wins_with_no_pane_probe(graph, tmp_path, monkeypatch):
+    calls: list = []
+    one = _launch_returning(graph, tmp_path, monkeypatch, (4242, "@77"),
+                            lambda *a, **k: calls.append(a) or NEW)
+    assert one[0]["respawned"] is True, one
+    assert _row_pid(graph) == 4242 and calls == [], calls
+
+
+def test_a_falsy_window_id_makes_no_pane_lookup(graph, tmp_path, monkeypatch):
+    calls: list = []
+    one = _launch_returning(graph, tmp_path, monkeypatch, (None, ""),
+                            lambda *a, **k: calls.append(a) or NEW)
+    assert one[0]["respawned"] is True, one
+    assert _row_pid(graph) == OLD and calls == [], calls
+
+
+def test_a_raising_pane_lookup_never_aborts_the_sweep(
+        graph, tmp_path, monkeypatch, capsys):
+    def boom(*a, **k):
+        raise OSError("seam unreadable")
+    one = _launch_returning(graph, tmp_path, monkeypatch, (None, "@77"), boom)
+    assert one[0]["respawned"] is True, one
+    assert _row_pid(graph) == OLD, "None = the row keeps its prior pid"
+    assert "pane pid lookup raised: seam unreadable" in capsys.readouterr().err
+    assert "pane pid lookup raised" in (tmp_path / "reaper.log").read_text()
+
+
+def test_the_pane_pid_dies_with_the_agent_on_the_real_launch_line(
+        graph, tmp_path):
+    """DH.1 item 2(a): tmux runs `cd T && <shell_cmd>` as the pane command. The
+    agent (via the launch-wrapper) is the LAST link of a pure `&&` chain, so the
+    pane's shell is its parent and exits with it; a dead pane pid is then what the
+    next sweep reads and the seat is re-judged (a third pass, pane dead -> respawn)."""
+    import shlex
+    cmd = _load("rotate")._shell_cmd(["agent", "--x"], None, seat="seat-a")
+    lex = shlex.shlex("cd T && " + cmd, posix=True, punctuation_chars=True)
+    lex.whitespace_split = True
+    toks = list(lex)
+    assert {t for t in toks if set(t) <= set("();<>|&")} == {"&&"}, toks
+    assert toks.index("launch-wrapper") > max(i for i, t in enumerate(toks) if t == "&&")
+    launches, one, two = _passes(graph, tmp_path, pane=f" {NEW}")
+    assert two == [], two
+    heal._watch_seats(graph, now=time.time() + 1500, pid_alive=lambda p: False,
+                      window_path=str(tmp_path / "w.txt"),
+                      launcher=lambda *a, **k: launches.append("again") or (None, "@78"))
+    assert launches == ["seat-a", "again"], launches
