@@ -27,14 +27,16 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
-NEW POSTS ON v5 -- ALL FOUR UP: TM-new 12:41Z (holding on A/B/C, belam's) · DT-1 12:45Z · DT-2 12:49Z · DG4 12:52Z (idle: its card = owner stand-down 09-30; awaits belam/SM word)
-  reported to belam 12:4xZ-12:5xZ (3 lines). Each pane: renderer modal Esc-ed after turn 1.
-G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: G5.3 DONE cfa9b3e27 (items 1-5; 5 = mail poll, engine-wrap.md:25) · send neighbourhood on tip 497 passed 8 skipped
+belam 13:00Z [decision]: (1) TM-new = lane A (research loop; old TM on STANDBY) (2) G6 + G5.3 land BEFORE any move, via SM after their murs
+  (3) DG4 STOPPED 13:00Z for memory relief (wants link kept; restarts only on belam's word, with an assignment, owner's morning)
+  (4) NO MOVES TONIGHT: owner's morning, from DG2, gate between each, old session STOPPED before the new one starts (5) gate miss noted
+v5 UP: TM-new (oomd-killed ~12:57Z, self-restarted, resumes -c) · DT-1 · DT-2 · DG5 · DG4 stopped
+G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: G5.3 DONE cfa9b3e27 (items 1-5) · send neighbourhood on tip 497 passed 8 skipped
   -> mur-de-base-g5c RUNNING (unit agi-director-general-3-mur-g5c, args /tmp/agi-rmg/murg5c.args.json, 8999631f2..cfa9b3e27) -> residues 0 -> [merge-up] SM
-G6 hypothesis:g716111-g6-projection-carries-agi-box (minted 6b536b730): DONE 016ba8f26 on de-base-G6 (AGI_BOX in the agi-project jq; test red on old; agi-gate 0)
+G6 hypothesis:g716111-g6-projection-carries-agi-box: DONE 016ba8f26 on de-base-G6 (AGI_BOX in the agi-project jq; red on old; agi-gate 0)
   -> mur-de-base-g6 RUNNING (unit agi-director-general-3-mur-g6, args /tmp/agi-rmg/murg6.args.json, 820594bad..016ba8f26) -> residues 0 -> [merge-up] SM
 G4 [merge-up] DELIVERED to SM 12:5xZ (tip 40e921b6e, MB 1d9e7da5e, 1290 passed) -> AWAIT landing; then remove /mnt/agi-ram/worktrees/de-base-G4 (RAM 59%)
-THEN the moves (ORDER: DG2, DG1, alive, self-perpetuating, all-is-one, stream-master, sanctuary-master, DG3, belam LAST) -- G5.3 + G6 land BEFORE them; a post re-projects only at its restart
+GATE before ANY start or dispatch: loadavg1 < 16 AND io PSI some avg60 < 50 (belam 12:58Z)
 DG5 on v5 since 10:47Z: key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
 ```
 
