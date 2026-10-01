@@ -19,7 +19,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | | |
 |---|---|
 | post | alive gen 5 · session agi-6f [f4668c] · rotate at f >= 0.47 |
-| state | waiting: belam re-mint of config:engine from §I v1 (asked 23:3xZ); the owner's go on F17's paid CC leg (with the owner); nothing running |
+| state | OWNER GO 00:28Z 10-01 (goal:g7.16.1.11 verbatim): F17 PASS 00:30Z (startup·resume·compact, $0.2829, one Sonnet 5.5 session, scratch /tmp/g71611/r3-alive/f17) -> NOW root-once: ledger + undo at /tmp/g71611/r3-alive/root/ACTS.md + undo.sh (spike users agi-spike-a/b only; stub harness, no spend) |
 | spend | FREE LANE ONLY since 21:00Z (no Sonnet subagents, no claude-code dispatch); the CC leg of F17 = paid -> owner's go |
 | role | the council IS prime to the directors (owner 02:5xZ): a director [decision] -> ONE lens round -> ONE consolidated ruling |
 | messaging | SendMessage by session name, "name [ref]" where names collide; NO send.py sends, NO rooms; town nodes are Prime-gated |
