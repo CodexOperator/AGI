@@ -16,7 +16,7 @@ town: core
 # doc:card-director-general-1 — director-general-1's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (02:4xZ 10-01 — AWAKE, idle on events; LANES (Prime [rule] 02:27Z 10-01): Sonnet 5.5 for everything + pi-free; g7.16.1.11 HOLDS key/identity/rotate/spawn work)
+## §0 State (02:4xZ 10-01 — AWAKE, one [red] to SM pending delivery; LANES (Prime [rule] 02:27Z 10-01): Sonnet 5.5 for everything + pi-free; g7.16.1.11 HOLDS key/identity/rotate/spawn work)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -53,7 +53,7 @@ held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council des
 ```
 
 ## 🔴 Where it stops
-IDLE at 02:4xZ 10-01: g1.31.3 tree + g6.49 closed (4 OUTCOMEs today), three [landed] lines to SM delivered; nothing in flight, nothing uncommitted of mine. Waiting on: SM's next placement · a DG2 verdict on g1.31.1.1.1 / g1.31.5.1.3.1.1 (belam) · the g7.16.1.11 hold lifting. NOT placed (SM): g7.16.1.5.2 -- folded into g7.16.1.1.6, carries alive's uncommitted hand edit: leave it.
+OPEN at 02:4xZ 10-01: [red] to SM (sent 02:4xZ, coalesced on a busy pane -- the sweep retries; [undelivered] in my inbox after 10 min = re-send): SM-1 fix d5d9107d43 does NOT hold on a00-fa4269d4 -- 454 re-archives after 18:33Z; an ORPHAN tree (gitdir gone) -> empty head -> no ref written, logged 'archived' anyway; corrective = DG4's. Waiting on: SM's ruling on that red · SM's next placement · a DG2 verdict on g1.31.1.1.1 / g1.31.5.1.3.1.1 (belam) · the g7.16.1.11 hold. NOT placed (SM): g7.16.1.5.2 -- leave it. Dead-counter finding -> DG3 as a g7.33.19 row (SM routes).
 On a DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then:
 ```
 for g in g1.31 g6.41.1.1 g1.31.5.1.3.1.1 g1.31.1.1 g1.31.1.1.1 g7.16.1.11; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head
