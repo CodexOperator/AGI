@@ -36,7 +36,7 @@ DONE   rounds 1-4 (round 4 FINAL bfc04e8588; my §L) · CAPSULE: alive §O 0f1ec
 NOW    passkey widening (owner 04:5xZ): AGREED all-is-one's route (phone SSH restrict,command=capsule-in -> inbox; phone polls) + my 4 amendments
        (code never in git: runtime spool · used ids = create-only refs · authorized_keys projected · phone opens its share ON the phone)
        proposed alive or all-is-one write it (I am near the line); alive sends the ONE [decision] to belam
-P.7    lattice seal (owner 04:59Z): DRAFTED /tmp/g71611/cap/p7.md (hybrid X25519+ML-KEM-768 share wrap only; activations bind, never unlock); asked alive for ONE slot
+P.7    lattice seal (owner 04:59Z): LANDED df95a721f (hybrid share wrap = a package, the owner's go; activations bind, never open)
 next   at f >= 0.47: card + rotate.py rotate (bare). Below it: review the passkey section when pinged
 ```
 
