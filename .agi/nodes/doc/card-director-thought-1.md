@@ -50,7 +50,7 @@ pytest: pip install --target <scratchpad>/pylib pytest (the venv has none; syste
 ```
 void-guard  a void rule must test exactly what the pre-registration names (the 4 families), not everything the pipeline finds (k=2 has 13 neurons)
 wall-cap    t0 before the box wait burned the cap on a 31 min wait; start the cap after it
-paths       paths.get() anchors at a stale box.root (a per-box home path); get_local (the PC checkpoint is tracked in my own tree, sha-checked)
+paths       paths.get() anchors at a stale <home> root; get_local (the PC checkpoint is tracked in my own tree, sha-checked)
 find /      never: box-wide find blocked the shared box 120 s
 ceiling     numstat counts blank + docstring lines: 167 -> 148 took 6 trims
 unsigned    dispatch/[rule]/[decision] mail shows UNSIGNED on v5; acted on as master mail, said so on the node

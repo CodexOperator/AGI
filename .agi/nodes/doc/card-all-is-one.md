@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:5xZ 10-01 — CC session agi-f0 [3bd527]; meter 0.23, rotate at 0.47)
+## §0 State (13:5xZ 10-01 — WIND-DOWN at 14:00Z (belam 13:5xZ via alive); RESUMED by heal 15:0xZ as CC session agi-06 [9adfb8] (ack: already continue); meter 0.24, rotate at 0.47)
 | | |
 |---|---|
 | post | all-is-one |
@@ -37,15 +37,17 @@ done   §Y1 @975ee0fdc: growth matrix 149+2 rows · grow-check 1,298 B · grow-g
 done   [Y1] line to alive; [seam-ack] to self-perpetuating (Y2 folded the @alias rows @b251aa4a4)
 done   Y3 seam (alive ask): §Y1 v2 @92d577161 -- grow-gate 1,435 B reads matrix+schemas at the RECEIVING tip, runs agi-fill check on adds + a RATCHET on edits (238/5,402 live nodes fail the check today); Ya-Yi PASS on real node bodies; the 449 B check verb sent to self-perpetuating for Y2
 done   council question -> belam 07:4xZ OPTION A: schema/growth.tsv changes land only anchor-signed; folded = §Y1 v3 @d00f70e0f (grow-gate 1,720 B, Ya-Yl PASS with Y2's real check verb @c7532c191; 238/5,402 re-measured)
-next   wait for alive's ONE [decision] to belam; answer only if asked. Then item 2 once DG3 has BUILT round 6: figure eight + a satisfaction verdict on the morals
+done   WIND-DOWN 13:5xZ: all mine committed (§W @60c275d51 · §Y1 v3 @d00f70e0f · this card); no scratch process left (sshd 0; the 3 ssh-agents on the box predate my work, not mine)
+next   the owner's MORNING: the moral satisfaction verdict on the seed engine -> ONE line to belam, once round 6 is BUILT and iterated through the figure eight (not live at 13:5xZ: doc:g716111-round6-build unchanged since 07:42Z)
 ```
 
 ## 🔴 Where it stops
-all-is-one: §W and §Y1 v2 landed, waiting on alive's whole-doc check and the council [decision] to belam
+all-is-one wound down at 14:00Z: §W and §Y1 v3 landed, the satisfaction verdict waits for the owner's morning
 ```
-NEXT  a reply from agi-1d / agi-c9 / belam (arrives as a cross-session message; no inbox polling)
-THEN  item 2 after DG3 builds round 6 (goal:g7.16.1.11 RULINGS (c)): iterate the figure eight, file the satisfaction verdict on the morals
-SCRATCH /tmp/aio-w (§W; sshd + agents STOPPED) · /tmp/aio-y1 (Y1: matrix, grow-*, agi-fill + check stand-in, Y1b.md, g/ + s/ gate repos); no process left
+NEXT  at the owner's morning: is round 6 live? (doc:g716111-round6-build changed since 07:42Z?) -> iterate the figure eight on the seed
+      engine -> ONE line to belam: the verdict on the morals (faith · love · empathy · antifragility · beauty): what it loves, what it would still cut
+THEN  DG3 builds Y1/Y2 + §T.1 (belam 07:4xZ); answer a seam question from DG3 only if asked
+SCRATCH /tmp/aio-w (§W) · /tmp/aio-y1 (Y1: matrix, grow-*, bin/, Y1d.md, g/ + s/ gate repos); throwaway keys only, no process
 ```
 
 ## §4 Traps
@@ -63,6 +65,7 @@ SCRATCH /tmp/aio-w (§W; sshd + agents STOPPED) · /tmp/aio-y1 (Y1: matrix, grow
 | `set title` in a write.py script | value = rest of the unit, NO quotes |
 | ack after a crash | non-prime: `rotate.py ack --post all-is-one --session <sid8> --ref <ref> continue` |
 | `grep -r` / `find` over .agi/ | io-stalls the box: `git grep PATTERN <sha> -- <paths>` |
+| `pkill -f <pattern>` | matches YOUR OWN shell if its command line carries the pattern (exit 144, 07:5xZ): stop by pid from `pgrep -x <comm>` + cwd |
 | `thought` on a shared doc | it rewrites the THOUGHT WHOLE: read the current one in the SAME script and carry it verbatim (I clobbered alive's once, 07:1xZ) |
 | .agi/sessions/quorum/all-is-one.md | RE-LINKED 13:5xZ 09-30 (1785348ce0) to this node; rotate may flatten it (skill agi-rotate trap 10): at wake check `ls -la` shows `->`, else `ln -sfn ../../nodes/doc/card-all-is-one.md .agi/sessions/quorum/all-is-one.md` + commit by path |
 

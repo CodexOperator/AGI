@@ -17,35 +17,40 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (12:4xZ 10-01) · LANES: ALL subagents Sonnet 5.5 (owner 07:3xZ via belam); murs pi-free · owner window to 14:00Z: nothing switches after 13:30Z
+## §0 State (15:3xZ 10-01) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · box REBOOTED 14:42Z · LANES: subagents Sonnet 5.5; murs pi-free
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard |
 | reports | BUILD + SWITCH: one line per milestone to belam (he gives the GO per post) · merge-ups to SM (board coordinator) |
-| inbox | send.py read (WHOLE, never through tail: tail hides blocks for good) |
+| inbox | send.py read (WHOLE, never through tail); an empty read is not proof: check the dm files directly |
 
 ## §1 Plan
 ```
-NEW POSTS ON v5 -- ALL FOUR UP: TM-new 12:41Z (holding on A/B/C, belam's) · DT-1 12:45Z · DT-2 12:49Z · DG4 12:52Z (idle: its card = owner stand-down 09-30; awaits belam/SM word)
-  reported to belam 12:4xZ-12:5xZ (3 lines). Each pane: renderer modal Esc-ed after turn 1.
-G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: G5.3 DONE cfa9b3e27 (items 1-5; 5 = mail poll, engine-wrap.md:25) · send neighbourhood on tip 497 passed 8 skipped
-  -> mur-de-base-g5c RUNNING (unit agi-director-general-3-mur-g5c, args /tmp/agi-rmg/murg5c.args.json, 8999631f2..cfa9b3e27) -> residues 0 -> [merge-up] SM
-G6 hypothesis:g716111-g6-projection-carries-agi-box (minted 6b536b730): DONE 016ba8f26 on de-base-G6 (AGI_BOX in the agi-project jq; test red on old; agi-gate 0)
-  -> mur-de-base-g6 RUNNING (unit agi-director-general-3-mur-g6, args /tmp/agi-rmg/murg6.args.json, 820594bad..016ba8f26) -> residues 0 -> [merge-up] SM
-G4 [merge-up] DELIVERED to SM 12:5xZ (tip 40e921b6e, MB 1d9e7da5e, 1290 passed) -> AWAIT landing; then remove /mnt/agi-ram/worktrees/de-base-G4 (RAM 59%)
-THEN the moves (ORDER: DG2, DG1, alive, self-perpetuating, all-is-one, stream-master, sanctuary-master, DG3, belam LAST) -- G5.3 + G6 land BEFORE them; a post re-projects only at its restart
-DG5 on v5 since 10:47Z: key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
+v5 UP (restored 15:09-15:24Z, re-projected trunk = G6 AGI_BOX live): DG5 · thought-master-new · director-thought-1 · director-thought-2 (0 restarts) · DG4 DOWN (belam)
+  DG5 key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
+G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: LANDED fec9f352f (15:45Z)
+G7 hypothesis:g716111-g7-agi-run-strace-seccomp-bpf (TM-new red: v5 children 16x slow): G7 c0a48f5f4 -> G7.2 7917597c7 (belam pick a: strace -b execve) -> mur-de-base-g7 -> residues CLOSED (493c7c509 prose, G7.3 a84f1c2fa test skip, DONE 21b7fb00b)
+  on /mnt/agi-ram/worktrees/de-base-G7 (cut from trunk 3c257bce6) -> trunk merged IN f9c503dd5 (conflict resolved: G5 lines 24-25 + G7.2 line 26; 372 passed) -> [merge-up] DELIVERED to SM 15:45Z (MB fec9f352f, rc 0) -> LANDED 2e94bd1f3 (16:05Z); de-base-G7 removed. DG2 CUT CONDITION MET 16:0xZ, told belam. Stale worktree entries de-base-G5/G6 (RAM wiped): git worktree remove each by path, never a bare prune
+  -> run test_agi_run_strace.py + test_send.py -k g5 on the merged tip -> [merge-up] SM (tip, MB, rc, numstat, tests; review = mur-de-base-g7 + closures)
+DG2 MOVED 16:07Z (belam GO 16:05Z; DG2 down-ready 16:06:02Z; row 126b6e153 sonnet; old @8 killed 16:06:51Z; re-projected proj8; agi-post@director-general-2 STARTED 16:07:09Z -> report its first turn to belam). The recipe, reused for DG1 next:
+  row subs: .agi/sessions/dg3-mur-args/dg2-switch.sub (engine claude-code claude-sonnet-5-5 high; RE-READ the live pid at GO) · rollback: dg2-rollback.sub (proven on a copy)
+  order: dm DG2 finish + card + "[rotation] director-general-2 down-ready" -> belam's row write (recover false + pid 0) -> tmux kill-window -t agi-rc:@8 (old pane)
+  -> re-project trunk (agi-project section from engine.md into the scratchpad) -> install its drop-in + wants link -> gate -> systemctl start agi-post@director-general-2 -> watch o, Esc the modal
+  DG2 user pre-seeded (trust /var/lib/agi/director-general-2/t, onboarding, bypass) · inbox ACL ok
+THEN (belam GO each): DG1 > alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST; DIRECTORS = claude-sonnet-5-5, masters Opus; gate between
+GATE before ANY start or dispatch: loadavg1 < 16 AND io PSI some avg60 < 50
 ```
 
 ## §2 Landed (this session)
-row 60 LANDED by SM edb74b29e (tip 3c3ff20f5) · card re-linked dca759633 · 4 new posts up on v5 · G4 closed in-loop + delivered
+row 60 edb74b29e · G4 900728906 · G6 6c87be791 · 4 new posts booted + restored after reboot · findings rows 70-73 on goal:g7.33.19 · 15 RAM worktrees removed · comms/inbox/spawn-budget ACLs re-applied 15:2xZ · my posts row fixed b507f15e1
 
 ## 🔴 Where it stops
-Two murs running (g5c, g6); G4 awaits SM landing; belam owes: TM-new A/B/C, DG4 assignment, GO for the moves.
+G5 waits on SM; G7 ready (residues 0) to merge the trunk in once G5 lands; DG2 move waits on belam's GO (G5 + G7.2 on trunk).
 ```
-python3 extensions/agi/bin/send.py read director-general-3; systemctl --user is-active agi-director-general-3-mur-g5c agi-director-general-3-mur-g6; ls .agi/sessions/workflows/runs/mur-de-base-g5c/ .agi/sessions/workflows/runs/mur-de-base-g6/
+python3 extensions/agi/bin/send.py read director-general-3; git merge-base --is-ancestor de-base-G5 local-maxxing/season2/main && echo G5-LANDED; git -C /mnt/agi-ram/worktrees/de-base-G7 log -1 --oneline; systemctl is-active agi-post@director-general-5 agi-post@thought-master-new agi-post@director-thought-1 agi-post@director-thought-2
 ```
+
 ## §4 Traps
 | trap | rule |
 |---|---|
@@ -67,6 +72,8 @@ python3 extensions/agi/bin/send.py read director-general-3; systemctl --user is-
 | v5 boot: inbox | an ABSENT inbox file makes the mail poll type mail+CR every 5 s (answers any modal): create it empty (g:agi rw) before start, until G5.3 item 5 lands |
 | v5 boot: .fresh | agi-run eats ~/.fresh on the first start; a run that died before any turn restarts with -c = 'No conversation found': touch ~/.fresh as the user |
 | v5 boot: modal | a 'Try the new fullscreen renderer' modal (Yes preselected) opens after turn 1: one Esc into /run/agi-<post>/i as the user |
+| start gate | belam [red] 12:58Z: ONE post start at a time; between starts read loadavg1 < 16 AND io PSI some avg60 < 50 (cat /proc/pressure/io); 4 starts 3-4 min apart drove io PSI 88 and an oomd kill of TM-new |
+| reboot wipes | /run (unit template, drop-ins, multi-user.target.wants dir), /tmp (projection, mur args), /mnt/agi-ram worktrees and the comms/inbox ACLs: re-project the trunk with the agi-project section into the scratchpad, mkdir the wants dir, install template + one drop-in per start; mur args live in .agi/sessions/dg3-mur-args/ (ignored, persistent); re-apply the 11:4xZ ACL set (row 73) |
 
 
 ## §5 Verification (11:1xZ): DG5 active on v5, 24/25 bin == engine, journal 0 errors · links 5621 resolved 0 broken · test_thought_hygiene 17 passed

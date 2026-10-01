@@ -1,0 +1,26 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-general-5",
+  "recorded_at": "2026-09-30T02:22:56.793991Z",
+  "result": "started",
+  "steps_reached": [
+    "2",
+    "handoff"
+  ],
+  "box": {
+    "loadavg": [
+      9.43,
+      8.206,
+      5.271
+    ],
+    "cores": 16
+  },
+  "template_source": "worktree (geometry current)",
+  "stops_sha256": "541fe5345eff94aee8c0dcdc6a20b99830e2b9c94631fb40e2d100693d187e54",
+  "seated_at": "2026-09-30T02:22:56.793991Z",
+  "after_join": {
+    "claimed_at": "2026-09-30T02:53:45.020773+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-30T02:22:56.793991Z"
+  }
+}
