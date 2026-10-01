@@ -123,5 +123,10 @@
     "own_window_id": "@10",
     "own_chain_reap": "GATED OFF"
   },
-  "committed_by": "rotate-self"
+  "committed_by": "rotate-self",
+  "after_join": {
+    "claimed_at": "2026-10-01T20:01:43.512035+00:00",
+    "performer": "watch",
+    "claim_key": "2026-10-01T20:00:57.189620Z"
+  }
 }
