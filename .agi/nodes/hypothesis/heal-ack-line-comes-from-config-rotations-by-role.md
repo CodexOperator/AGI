@@ -8,7 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: db2d84353e605c80
 season: 2
-testable_claim: heal builds a recovered seat's ack instruction from a config:rotations cell keyed by the row role, so a non-prime recovered seat is never told --gen and heal.py carries no ack text literal
+testable_claim: heal builds a recovered seat's ack instruction from a config:rotations cell keyed by row role and recovered/resumed, so every built line is accepted by rotate.py ack for that row, and heal.py carries no ack text literal
 title: "heal's recovered-seat ack line comes from config:rotations keyed by role: no --gen for non-prime seats"
 town: core
 ---
@@ -20,13 +20,13 @@ town: core
 - Ordered by belam 19:0xZ 10-01 (direct message, relayed on doc:card-sanctuary-master §1).
 
 ## CLAIM
-heal builds the recovered seat's ack instruction from a config:rotations cell keyed by the row's role (prime vs every other role), so a non-prime recovered seat is never told `--gen`; heal.py carries no ack text literal.
+heal builds the recovered seat's ack instruction from a config:rotations cell keyed by the row's role (prime vs every other role) and by recovered/resumed, so every built line is one rotate.py ack ACCEPTS for that row (a RESUMED non-prime seat is never told `--gen`; a FRESH one keeps `--gen`, its row carries generation per goal:g15.25 -- DH.1 correction, mur-heal-ack-by-role-2/-3); heal.py carries no ack text literal.
 
 ## Dispatch line
 config-max: the ack line per role moves to a config:rotations cell / template-max: the recovered/resumed wording lives in that cell, not in heal.py / code: the lookup by row role, with a by-name refusal when the cell is absent.
 
 ## FALSIFIERS
-- A recovered non-prime row's built prompt contains `--gen`.
+- A built line that rotate.cmd_ack refuses for its own row (fresh non-prime, resumed non-prime, prime recovered, prime resumed) -- DH.1 correction; the old falsifier (any --gen for a non-prime row) rested on the superseded premise.
 - heal.py still contains the literal `rotate.py ack --seat`.
 - The cell absent -> a silent empty prompt instead of a refusal by name.
 
