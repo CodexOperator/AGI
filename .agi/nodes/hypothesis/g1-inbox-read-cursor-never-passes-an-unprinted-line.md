@@ -54,3 +54,7 @@ ANON      no user name, home or repo path value, host or IP; patterns write <use
 FILE SCOPE extensions/agi/bin/send.py · extensions/agi/hooks/rotation_alert.py · extensions/agi/tests/test_send.py · extensions/agi/tests/test_rotation_alert.py · this node's kid node. Never a live inbox, never MAIN's comms.
 CEILING   HARD CAP: 1 parent, 0 kids · 24 production lines · 70 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.DG1.01: mur-dg1 dg101-*: positional read --peek ignored (send.py:5986), blind empty guard (rotation_alert.py:1438), no CLI-seam test; --dm/--room peek, conditional race assert, usage line ride
+<!-- THOUGHT:END -->
