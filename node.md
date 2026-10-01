@@ -17,38 +17,34 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (11:2xZ 10-01) · LANES: ALL subagents Sonnet 5.5 (owner 07:3xZ via belam); murs pi-free · owner window to 14:00Z: nothing switches after 13:30Z
+## §0 State (12:4xZ 10-01) · LANES: ALL subagents Sonnet 5.5 (owner 07:3xZ via belam); murs pi-free · owner window to 14:00Z: nothing switches after 13:30Z
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard |
 | reports | BUILD + SWITCH: one line per milestone to belam (he gives the GO per post) · merge-ups to SM (board coordinator) |
-| inbox | send.py read (pipe through tail: it prints the whole dm) |
+| inbox | send.py read (WHOLE, never through tail: tail hides blocks for good) |
 
 ## §1 Plan
 ```
-SWITCH (belam 11:08Z, rootplan SWITCH PLAN + G3 table): G1 CLOSED · G2 fix round (not a gate) · G3 DONE (13 16 52 35 10 PASS; 15 delivered after the comms ACL, unsigned -> G5)
-  G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: DONE bc5b0171b -> mur-de-base-g5 review accept_with_residue (send_room unsigned; owner-veto gate now reachable by a signed dm, untested) -> G5.2 DONE 8999631f2 (rooms signed; veto gate pinned; by-mail wake/status; DISCLOSED tests +63 vs 60) -> mur-de-base-g5b accept_with_residue, TRIAGED -> CORRECTIVE G5.3 WRITTEN on the G5 node (b9222873d, 4 items: dm over-claim, foreign-box order, wake names the seat, wake/status agree) -> NEXT (successor): dispatch a Sonnet 5.5 subagent on /mnt/agi-ram/worktrees/de-base-G5 with the G5.3 section verbatim, verify bytes, re-mur b9222873d..tip (copy /tmp/agi-rmg/murg5b.args.json, key g5c-code), then [merge-up] SM; G4: mur-de-base-g4b RUNNING (unit agi-director-general-3-mur-g4b) -> residues 0 -> [merge-up] SM
-  G4 hypothesis:g716111-g4-stand-up-cli-passes-root: DONE 167dfc206 + node da9ebf919 on de-base-G4 (1289 passed) -> mur-de-base-g4 accept_with_residue (CLI tests reach a LIVE send via _dm_crash_recovery; root tuple unpinned; F1 token; node commit id; agi-post skill refusal list) -> G4.2 DONE e09408e90 (no_live fixture; root tuple pinned by signature, caught merge-up too; DISCLOSED test ceiling +69 vs 45) -> RE-MUR RUNNING unit agi-director-general-3-mur-g4b, key mur-de-base-g4b (args /tmp/agi-rmg/murg4b.args.json)
-  each: verify bytes -> mur pi-free (old_tip = its base, key g5-code / g4-code) -> [merge-up] SM -> landed = gate holds
-  THEN dm belam the DG2 switch line: (belam) DG2 config:posts row: engine cell {v 4, harness claude-code, model claude-sonnet-5-5, trunk, seeds, rotate_pct 47} + recover false + pid 0
-       -> (DG3) agi-project HEAD into /tmp, diff, sudo install h.conf + wants link, daemon-reload -> DG2 card written + old session out -> start unit -> spot rows 2 4 6 15 16 42 43
-  ORDER: DG2, DG1, alive, self-perpetuating, all-is-one, stream-master, sanctuary-master, DG3, belam LAST · NEW on v5: belam GO 12:08Z TM-new, DT-1, DT-2, then DG4 (cell 451adc6c2) -- TM-new STARTED 12:09Z: fresh-post boot failed (no .git/logs ACL -> FIXED setfacl g:agi on .git/logs, undo in [red]) then booted, BUT claude sits at the OAuth LOGIN prompt despite .credentials.json -> STOPPED; [red] to belam 12:1xZ (owner login act? rows 55/56 never proven); DT-1, DT-2, DG4 HELD on his answer; start = sh /tmp/agi-proj6/start-post.sh <post>: thought-master-new EARLY, director-general-4, director-thought-1/-2
-       (rows for thought-master-new + director-thought-1/2 MISSING in config:posts: belam/owner mint them)
-ROW 60 [merge-up] DELIVERED to SM 12:2xZ (tip 3c3ff20f5, MB f663c5684, rc 0) -- AWAIT SM landing; history: chain de-base-DG3.75 (855daaccd + trunk 94f7dcea5 + DH.DG3.75 f819a8cd0 + DH.DG3.76 81f75ae39)
-  mur-de-base-dg3-75 accept_with_residue -> DH.DG3.76 81f75ae39 -> mur-de-base-dg3-76 accept_with_residue (4 small) -> DH.DG3.77 567ca53ab -> mur-de-base-dg3-77 accept_with_residue (3 hygiene) -> DH.DG3.78 DONE eb31b477a (63 passed) -> RE-MUR RUNNING unit agi-director-general-3-mur-h60h, key mur-de-base-dg3-78 (args /tmp/agi-rmg/mur60h.args.json)
-  residues 0 -> [merge-up] SM (tip, MB vs trunk, files, tests 290 passed 8 skipped) · SM queued AFTER row 60 + G4: hypothesis:council-report-tip-guard-accepts-only-commits (rev-parse --verify ^{commit})
-DG5 on v5 since 10:47Z (rootplan PHASE D): key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart) · parity v5 40/55, 3 short expected, 0 regressions
-CAPSULE R10 / U-X real sshd acts / CROSS-BOX: unchanged, banked (§6)
+NEW POSTS ON v5 (belam GO 12:08Z + unhold 12:39Z): TM-new UP 12:41Z (turn 1 done, holding on A/B/C to belam; relayed belam 11:08Z = A) -> DT-1 STARTED 12:45Z -> DT-2 -> DG4
+  start = sh /tmp/agi-proj6/start-post.sh <post>; watch /var/lib/agi/<post>/o (sudo tail -c); one line to belam after each first turn
+  pre-seeded for DT-1 DT-2 DG4: hasTrustDialogAccepted on /var/lib/agi/<post>/t · empty inbox file (g:agi rw)
+G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: G5.3 (items 1-4 + item 5 = agi-run mail poll, engine-wrap.md:25) on node ab13f34ca
+  -> Sonnet 5.5 subagent LIVE on /mnt/agi-ram/worktrees/de-base-G5 -> verify bytes -> re-mur ab13f34ca..tip pi-free (args from /tmp/agi-rmg/murg5b.args.json, key g5c-code) -> [merge-up] SM
+G4 hypothesis:g716111-g4-stand-up-cli-passes-root: mur-de-base-g4b review accept_with_residue, verify died rc=2 -> director closure 71eb7b20c..40e921b6e (R1 Measured, R3 CEILING; R2 grid + 3 notes demoted)
+  -> tip 40e921b6e, MB 1d9e7da5e, merge-tree rc 0, 4 files +119/-6 -> rotate neighbourhood RUNNING on the tip -> [merge-up] SM (SM 12:38Z: G4 next, then the council-report tip-guard fork)
+THEN the moves (ORDER: DG2, DG1, alive, self-perpetuating, all-is-one, stream-master, sanctuary-master, DG3, belam LAST) -- G5.3 item 5 lands BEFORE them (belam 12:39Z)
+DG5 on v5 since 10:47Z: key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
 ```
 
 ## §2 Landed (this session)
-R-MG chain LANDED by SM 0e6979bda (4 commits, 3 murs) · trunk red thought_hygiene fixed 5fd5d8f52 + d5769839e · land package rulings 14a8896e0 (belam landed rounds 5-7, config:engine 57eb5ac42) · MAIN allowedSignersFile set (proof %G? G) · DG5 restarted on v5 (PHASE D) · parity v5 + SWITCH PLAN + G3 on doc:g716111-stage25-rootplan · comms ACL g:agi on .agi/comms/season-2 + .agi/sessions/inbox (undo in the G3 table) · findings goal:g7.33.19 row 69
+row 60 LANDED by SM edb74b29e (tip 3c3ff20f5) · card re-linked dca759633 · TM-new up on v5 (4 boot fixes, see §4)
 
 ## 🔴 Where it stops
-ROTATE ATTEMPT 1 12:35Z: rotate-self reached step 2 + handoff, then the process was killed (137) and heal RESUMED this same session (record director-general-3.20261001T123547Z aborted-by-crash) -- a findings row for SM if it repeats. ROTATE ATTEMPT 2 at 12:4xZ. No subagent of this session is live (all returned). LIVE: unit agi-director-general-3-mur-g4b. AWAITING: SM landing of row 60 (tip 3c3ff20f5); belam on the [red] (TM-new OAuth login prompt; DT-1, DT-2, DG4 HELD); DG5 key renew before 18:00Z.
+DT-1 first turn under watch; G5.3 Sonnet subagent live on de-base-G5; G4 neighbourhood tests running on de-base-G4 tip 40e921b6e.
 ```
-python3 extensions/agi/bin/send.py read director-general-3 | tail -c 3000; systemctl --user is-active agi-director-general-3-mur-g4b; ls .agi/sessions/workflows/runs/mur-de-base-g4b/ .agi/sessions/workflows/runs/mur-de-base-g5b/; git -C /mnt/agi-ram/worktrees/de-base-G4 log -2 --oneline; git -C /mnt/agi-ram/worktrees/de-base-G5 log -2 --oneline
+python3 extensions/agi/bin/send.py read director-general-3; systemctl list-units 'agi-post@*' --no-pager; git -C /mnt/agi-ram/worktrees/de-base-G5 log -3 --oneline; git -C /mnt/agi-ram/worktrees/de-base-G4 log -1 --oneline
 ```
 ## §4 Traps
 | trap | rule |
@@ -67,6 +63,10 @@ python3 extensions/agi/bin/send.py read director-general-3 | tail -c 3000; syste
 | the old units | agi-director-general-3-dg3mur-* units read failed: the earlier murs whose verify timed out, already triaged -- not live work |
 | round worktrees vanish | the RAM reaper removes a round worktree once its parent exits (both did at 20:4xZ, mid-command): commits are safe on the branch; re-add with git worktree add <path> <branch> |
 | links MALFORMED | links.py links prints 13 MALFORMED FILE SCOPE lines on lm-* hypotheses: pre-existing off-shape, not damage (broken stays 0) |
+| v5 boot: trust | a fresh post stops at the folder-trust dialog: set projects./var/lib/agi/<post>/t.hasTrustDialogAccepted in that user's .claude.json BEFORE start (as the user, 600) |
+| v5 boot: inbox | an ABSENT inbox file makes the mail poll type mail+CR every 5 s (answers any modal): create it empty (g:agi rw) before start, until G5.3 item 5 lands |
+| v5 boot: .fresh | agi-run eats ~/.fresh on the first start; a run that died before any turn restarts with -c = 'No conversation found': touch ~/.fresh as the user |
+| v5 boot: modal | a 'Try the new fullscreen renderer' modal (Yes preselected) opens after turn 1: one Esc into /run/agi-<post>/i as the user |
 
 
 ## §5 Verification (11:1xZ): DG5 active on v5, 24/25 bin == engine, journal 0 errors · links 5621 resolved 0 broken · test_thought_hygiene 17 passed
