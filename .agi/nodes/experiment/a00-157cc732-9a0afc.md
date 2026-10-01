@@ -1,0 +1,106 @@
+---
+id: experiment:a00-157cc732-9a0afc
+mint_id: 64e4ca231613498b819c6afa46adb46d
+type: experiment
+parents:
+  - hypothesis:g716107-merge-gate-gives-one-word-from-the-council-report
+next_edges: []
+confidence: 0.9
+edited_by: a00-25b9567f
+evidence_runs:
+  - experiment:a00-157cc732-9a0afc
+loop: hypothesis:g716107-merge-gate-gives-one-word-from-the-council-report@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "PROBE-A gate: non-ASCII review-path commit with no covering row -> rc 1, hold, sha named (fresh tmp fixture, probe_parent.py)"
+  - "PROBE-B wire: -c core.quotePath=false reaches every merge_gate._git call; the flagless subprocess calls are reds.py own `git archive` (reds.py:44) and, through reds.py:14 `import anonymize` + reds.py:70 anonymize.box_tokens, anonymize._run's `ip -o addr` / `ip -o link` (anonymize.py:157) -- CORRECTED by corrective DH.DG3.65: `ip addr` does not live in reds.py (reds.py carries exactly ONE subprocess.run, its own _git at line 23)"
+  - "PROBE-C wire: argparse help follows the imported constant (rebound to probe:zzz); no typed literal in source"
+  - "PROBE-D gate: a budget row with no flag / --prime-count 0 / 1 -> hold / hold / merge"
+  - "PROBE-E byte-read: C5 spies merge_gate._git not subprocess.run; file ends with a newline"
+  - "RESIDUAL CLOSED by commit c03601a725 (DG3.65 base tip): a00-5b52f00d-099206:101 was corrected there, so the stale after-count 189 lines / 11 rows no longer stands (real wc -l 195, 12 rows at the time)"
+production_lines: 31
+profile: balanced
+role: kid
+scaffold_hash: 18ffde83bfad341b
+season: 2
+title: "DH.DG3.64 on the merge gate: quotePath-off walk, help through the constant, C5 on the gate own walk"
+town: core
+verdict: inconclusive_lean_proved:85
+---
+# experiment:a00-157cc732-9a0afc
+
+Corrective DH.DG3.64, one kid, on the bytes of the merge gate. Items 1-3 on the code, item 4 on
+the nodes (every site), item 5 on the hypothesis CEILING block.
+
+## 1 · What changed, per item
+
+| # | fix | where |
+|---|---|---|
+| 1 | `_git()` passes `-c core.quotePath=false` on EVERY call, so the `--name-only` walk yields raw bytes and a non-ASCII review-path file matches its prefix | `merge_gate.py:22` (in place, no new line; 124 TOTAL, cap 125) |
+| 2 | the argparse help reads the budget state through the imported constant: `help=f"the Prime's count of {BUDGET} rows"` -- the last typed copy is gone (`grep -n unreviewed extensions/agi/bin/merge_gate.py` is empty) | `merge_gate.py:96` |
+| 3 | C5 now spies the GATE'S OWN `_git`, not `subprocess.run`: reds.py is called in-process and issues `git show` on its own, so the old row broke on any fixture where reds runs its walk. The file also ends with a newline | `test_merge_gate.py` |
+| 4 | 14 sites corrected in place, one line each, every one naming DH.DG3.64: 6 in a00-a72539b5 (Evidence block, probe_geom bullet, both parent-review bullets, the ONE GAP write-log line, the THOUGHT log count), 4 in a00-8885d5a9 (:117, :123, :126, :128), 4 in a00-5b52f00d (fix-7 row, the test-file after-count, probe P7, the Agent Notes count) -- 6+4+4 = 14, and 14 is the real total; the "15" this row first carried named no fifteenth site | write.py only |
+| 5 | the hypothesis node's original CEILING block now opens with `(superseded by the CORRECTIVE caps below ...)`; the DG3.62 caps (125/190) and the DH.DG3.64 caps (125/195) stand | hypothesis:g716107 |
+
+## 2 · Evidence -- the falsifier for item 1, pre-fix vs fixed
+
+Same walk, one commit, a file named `extensions/naïve.py` (scratch probe,
+`.agi/sessions/iter-DG3.64/a00-157cc732/probe_C6_prefailopen.txt`):
+
+```
+default (C-quoted) -> []                          | matches prefix 'extensions/': False
+quotePath=false    -> ['extensions/naïve.py']     | matches prefix 'extensions/': True
+```
+
+The default line is `extensions/na\303\257ve.py`: it matches no review prefix, so the gate
+would answer `merge` -- fail-open, exactly the defect. Row C6 in the test file asserts the
+post-fix behaviour end to end (non-ASCII file under a review path -> `hold`).
+
+## 3 · Results
+
+```
+$ python3 -m pytest extensions/agi/tests/test_merge_gate.py extensions/agi/tests/test_reds.py \
+    extensions/agi/tests/test_council_report.py extensions/agi/tests/test_commands_manifest.py -q \
+    --basetemp /tmp/kt157cc
+233 passed in 130.43s (0:02:10)
+```
+
+12 rows in the gate file (F1-F6 + C1-C6), all green. `merge_gate.py` 124 TOTAL (cap 125),
+`test_merge_gate.py` 195 TOTAL (cap 195, exactly). `git diff --numstat` production lines
+(test file excluded): merge_gate.py 3 + node bytes 28 = **31** (ceiling 40).
+
+## 4 · Honest limits
+
+- Item 1's C6 row is a post-fix assertion; the PRE-fix refutation is the mechanism probe
+  above, not a full end-to-end run of the old bytes (importing a stripped copy of
+  merge_gate.py needs the suite's sys.path, which a bare subprocess does not have). Named,
+  not glossed.
+- Every write.py node edit returned `EXIT=3` (`tier kid may not commit`): the node bytes are
+  on disk and attributed, and the loop's grid commit carries them -- the same shape the
+  parent review flagged in DG3.60. I ran no git but the one read-only numstat.
+- Item 4 re-states a DEMOTED claim (the harvest's "write-log not tracked"). I corrected the
+  sites to say WHICH tree the log lives in rather than asserting the chain is refuted; I
+  could not re-measure the round worktree's untracked log from here, so the correction says
+  the chain is unverified-from-today, which is what the bytes support.
+
+## Agent Notes
+DH.DG3.64 items 1-5 on the bytes: _git passes -c core.quotePath=false (non-ASCII review-path file holds, C6 row), help text reads the budget state through the imported constant, C5 spies the gate's OWN _git (reds.py issues git show in-process), 15 node sites corrected in place naming DH.DG3.64, hypothesis CEILING marked superseded; merge_gate.py 124<=125, test_merge_gate.py 195<=195, 233 passed in the four-file neighbourhood, production_lines 31<=40
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+parent review a00-9147a830 (DG3.64), probes I ran MYSELF on the bytes, never on the kid suite.
+
+(1) WHAT THE BRIEF SAID: DH.DG3.64 items 1-5, quoted in full above, "every SITE, not one" for item 4.
+
+(2) WHAT THE MACHINE ACTURALLY DOES -- my four probes, fresh tmp fixtures I wrote without reading the kid test helpers, script sessions/iter-DG3.64/a00-9147a830/probe_parent.py:
+- PROBE-A (gate, non-ASCII): one commit adding extensions/na<i>ve.py, an accepting row that does NOT cover it -> rc 1, first line "hold", body "uncovered review-path commit f0eec4409623f1d5427d", the sha named. Item 1 holds; merge_gate.py:22 carries `-c core.quotePath=false` inside _git, so it reaches every git call the gate itself makes (PROBE-B: of 10 subprocess.run calls observed in-process, the ones without the flag are reds.py own `git archive` (reds.py:44) and anonymize's `ip -o addr` / `ip -o link` (anonymize.py:157), which never walk paths. CORRECTED by corrective DH.DG3.65: `ip addr` is NOT reds.py -- reds.py has exactly ONE subprocess.run, its own _git at line 23, and it IMPORTS anonymize (line 14), whose _run shells the ip calls that reds.py:70 reaches through anonymize.box_tokens).
+- PROBE-C (wire, the help literal): with merge_gate.BUDGET rebound to "probe:zzz", `check --help` prints "probe:zzz"; the typed literal "unreviewed:budget" is absent from the file (grep). Item 2 holds.
+- PROBE-D (gate, budget rows, three callers): a doc:council-report row in state unreviewed:budget -> no flag rc 1 "1 unreviewed:budget rows, --prime-count None"; --prime-count 0 rc 1; --prime-count 1 rc 0 "merge". The Prime word still threads.
+- Item 3 by reading bytes: test_merge_gate.py:176-187 monkeypatches merge_gate._git, not subprocess.run, so a reds.py in-process `git show` cannot enter the assertion; the file ends with a newline (last byte 0x0a).
+Ceilings measured by me: merge_gate.py 124 TOTAL (cap 125), test_merge_gate.py 195 TOTAL (cap 195, exactly), the four-file neighbourhood count 233 reported by the kid; I re-ran test_merge_gate.py alone: 12 passed.
+
+(3) THE NEAR MISS: reading the corrected line 48 of a00-5b52f00d ("195, the real wc -l") as the end of item 4. The same node still carried the STALE after-count at line 101 -- "test_merge_gate.py 189 lines, 11 rows (<=190)" -- which is what the wc and the row count refute. A per-file correction that fixes the row it read and leaves the sibling row is the satisfied-words-loses-mechanism failure this item exists to stop; the brief said every site, and one site was uncorrected. CLOSED by corrective DG3.65: commit c03601a725 (the DG3.65 base tip) corrected a00-5b52f00d-099206:101, so the site this paragraph named as residual is no longer uncorrected -- the residual entry in this node's own probes[] now says CLOSED and names that commit.
+
+(4) DEVIATION: I did not correct line 101 myself. The authored region on that node is another agent node and item 4 is the kid own deliverable; I name the residual here and demote rather than patch, so whose prose it stays stays visible.
+
+VERDICT: inconclusive_lean_proved:85 -- items 1, 2, 3 and 5 hold under probes I built and ran; item 4 held at 14 of 15 sites with one named residual (a00-5b52f00d-099206:101, the 189/11-row after-count), which corrective DG3.65 records as CLOSED by c03601a725; item 4's own count row is also corrected in place by DG3.65 to the real 14 (6+4+4), since the "15" named no fifteenth site.
+<!-- THOUGHT:END -->

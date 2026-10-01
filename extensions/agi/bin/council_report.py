@@ -32,6 +32,7 @@ FALLBACK_POST = "director-engine"
 HEADER = ("| round | old..new | state | verdict | residues | reds |",
           "|---|---|---|---|---|---|")
 RESIDUE_HEADER = ("| round | source | residue |", "|---|---|---|")
+BUDGET_STATE = "unreviewed:budget"   # the ONE copy of the state vocabulary
 
 def _read(path: Path) -> dict:
     return json.loads(path.read_text()) if path.exists() else {}
