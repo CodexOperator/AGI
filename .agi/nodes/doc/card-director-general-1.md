@@ -90,3 +90,5 @@ STATE 20:5xZ 10-01 (v5): DG1.01 ACCEPT + DG1.02 accept_with_residue (prose close
 ## §6 BANKED
 - unreadable SESSIONS SUBDIR inside a readable root stays fail-open in the tier gate (Path.rglob swallows PermissionError on py3.12): recommend its own leaf under hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry, one round (os.walk onerror). Named in the merge-up.
 - v5 seats cannot write the post worktree (belam-owned) nor read MAIN .env: every merge onto the post main and every dispatch needs SM/belam. Recommendation: g7.16.1.11 gives director seats a sanctioned merge + dispatch path.
+
+Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
