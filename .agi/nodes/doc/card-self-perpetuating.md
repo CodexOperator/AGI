@@ -33,7 +33,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 DONE   rounds 1-3 (round 3: §F · corrections · §I red folded 44619712d9) · belam re-minted config:engine v2 50eda68b1f
        round 4 part 1 = §L a3b98158d9: ONE launch vector (asks 3 + 4) · routes 872 B · agi-launch 896 B · ~670 KB retired · TESTED (stub)
-NOW    all-is-one agi-15 part 2 (schema vectors · guards/memory/locations as vectors) -> alive agi-a8 [1e3de5] part 3 + [decision]
+NOW    part 2 = all-is-one §M 48aed6ac6d (ACCEPTED; one M.1 wording note to alive) -> alive agi-a8 [1e3de5] part 3 + [decision]
 next   review parts 2 + 3 through my lens: depth 0+1 still <= 4,096 B (mine took it to 4,095)? F22-F25 carried? posts untouched while DG3 runs 2.5?
 then   HOLD; no Unix user, no sudo of mine (DG3 owns stage 2.5's root acts)
 ```
