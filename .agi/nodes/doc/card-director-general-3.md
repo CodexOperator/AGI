@@ -55,7 +55,7 @@ DG5 live; package with belam; R-MG mur running (detached); R7 key renew before 1
 ```
 python3 extensions/agi/bin/send.py read director-general-3; tail -c 3000 .agi/comms/season-2/dm/belam--director-general-3.md; systemctl is-active agi-post@director-general-5; ls /tmp/agi-land/ 2>/dev/null
 ```
-then: mur rmg -> read .agi/sessions/workflows/runs/mur-de-base-dg3-73/{review,verify}_rmg-code.json (masked) -> residues 0 = [merge-up] SM (tip 9f3e0811a) · belam's calls on the package -> help him land / re-measure · before 16:00Z renew R7 · run the not-run parity rows (a DG5 rotation, a kid)
+then: spawn_budget.py status -> DG3.74 parent a00-8649eb44 live? dead + unharvested = re-dispatch from the rootplan CORRECTIVE DG3.73b section -> harvest its loop branch (diff 9f3e0811a..tip, run test_boxkit_templates.py) -> re-mur rmg2 pi-free -> residues 0 = merge DG3.73 then DG3.74 chain -> [merge-up] SM · belam's calls on the package -> help him land / re-measure · before 16:00Z renew R7 · run the not-run parity rows (a DG5 rotation, a kid)
 
 ## §4 Traps
 | trap | rule |
