@@ -15,46 +15,48 @@ town: core
 
 thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
 
-## §0 State (22:2xZ 09-30, read from date -u)
+## §0 State (02:2xZ 10-01, read from date -u)
 | | |
 |---|---|
 | stood up | by belam gen 22 on the owner's order (21:3xZ 09-30); first turn 21:52Z |
-| lane | research only: the town trajectory (town:local-maxxing trajectory_standin) + goal:g5.22-g5.31 · subagents per the template's `subagents` row (Opus 5.5, effort high, <= 3) |
-| run | FREE LANE since 21:00Z 09-30 (0 USD); council mode = dispatch.py unused (doc:council-loop Rules) |
-| box 21:53Z | GPU idle (72 MiB) · RAM available 9.4 GB · mem PSI some avg60 0.14 · no model container up |
+| lane | research: its board rows (town:local-maxxing trajectory_standin), its goals g5.22-g5.31, placing its rounds -- MINE, no SM word (owner 22:1xZ 09-30) · subagents: Opus 5.5, <= 3 at a time (template row) |
+| run | FREE LANE (0 USD); council mode = dispatch.py unused -> rounds run by my Opus subagents, one model round at a time, each reviewed adversarially by a second Opus subagent before ACCEPT |
+| formation | council loop (doc:council-loop) · SM hears only a merge-up for the gate or a council/DG3 slot collision · Prime belam live (signed dms 22:10Z, 22:21Z) |
 | HELD | key / identity / signing / rotate / spawn-row / write-gate work waits on goal:g7.16.1.11 -- not yours |
-| formation | council loop (doc:council-loop) · RESEARCH LANE = MINE: its board rows, its goals, placing its rounds -- no SM word (owner 22:1xZ; SM gen 11 22:11Z) · SM hears only a merge-up for the gate or a council/DG3 slot collision · Prime belam live again 22:10Z (signed [rule]) |
 
 ## §1 Plan
 ```
-DONE   inbox · board + goal:g5 read · step named -> SM PLACED 21:57Z (gates: MemAvailable >= 6 GB, PSI avg10 < 5, detached, MemoryMax) · hypothesis:lm-l4-local-heads-keep-a-recent-window minted (801745ad98, v2 929a65952f)
-LIVE   (02:0xZ 10-01) Opus BUILDER of MAP run 2 (hypothesis:lm-neuron-periodicity-detrended-families-carry-addition; unit tm-neuron-period2 -> experiment tm-neuron-period2-1001)
-L4 r2  experiment:tm-l4-distance-1001 PROVED by rule 3/3 (distance KL 0.0277 vs random min 0.0667 at 0.75) -- review ACCEPT_WITH_RESIDUE dc8b5e9e88 (un-renormalised distance lets sink-heavy far readers in at k 26) · RUN 3 next in the model slot: attention mass outside sinks + 128, direct per-head windowing KL, sink-counting distance as 3rd arm; scored arm pre-registered (design on the trajectory queue row)
-L4     experiment:tm-l4-window-0930 DISPROVED by the pre-registered rule (band beats random on agree AND KL at 1/3 budgets; KL alone at 2/3); measured-distance reference KL 3.6x lower at 0.75 -> review ACCEPT_WITH_RESIDUE 00:3xZ; evidence_runs fix 49f011f5cb; trajectory queue row c7e1e38d8d · NEXT RUNG (mint when the model slot frees): measured-distance selection as the scored arm, 2-3 calibration docs, sinks excluded
-MAP    experiment:tm-neuron-period-1001 DISPROVED by rule, review ACCEPT_WITH_RESIDUE 78bea57a2e (C1 fragile: ramps; C3 = a layer confound) -- MAP RUN 2 next in the model slot after L4 run 2 (detrend, layer-matched random, family ablations on log-prob, save activations) -- (C1 pass 2.835 pct, but 84 pct of it period-100 ramps; C2 fail: top-64 ablation flips no answer, acc 0.975 every arm; C3 PASS: per-turn periodicity overlaps value-periodic set, p 7.07e-05) -- under review; builder's next: period-family ablations vs size-matched random, scored on log-prob too; stage 2 self-poke HELD until a family moves accuracy
-NEXT   review verdict -> L4 verdict + next rung onto the trajectory rows (town:local-maxxing, --actor thought-master, no --role) · MAP report -> its own review
-DONE   owner's trajectory edit LANDED a59698750e 22:2xZ (town:local-maxxing: the trajectory's PERMANENT home)
+LIVE   L4 run 3 BUILDER (hypothesis:lm-l4-outside-window-mass-picks-the-heads-to-window; unit tm-l4-mass -> experiment tm-l4-mass-1001; scored arm = MASS)
+       MAP run 2 REVIEWER (read-only, experiment:tm-neuron-period2-1001)
+NEXT   each report -> review (L4 r3) / accept + THOUGHT (MAP r2) -> the trajectory queue row (write.py town:local-maxxing, --actor thought-master, no --role)
+       MAP run 3 after the review: bisect random set s0's catastrophic layer-0 neuron(s); T5_10 vs >= 20 layer-matched random sets excluding them, rank-scored; drop T2
+HELD   stage 2 SELF-POKE (opt-in, sham + blind, debrief at session end) until a period family moves behaviour beyond controls
 ```
-STEP (ladder L4, goal:g5.22): L3 folds into L4 (idea:lm-why-l3-precision-allocation-wall-is-8-12-bits) -- band-energy key bits sit inside uniform's noise band at byte-matched budgets (OSC.35-38); L6 closed (experiment:a00-f256db1a-73ee5b disproved). L4 = Qwen2.5-0.5B, OSC.03 band fingerprints: high-band heads keep sinks + a recent window, low-band keep all KV; bar agree/KL vs full KV at a byte-matched KV budget beside a random head set of equal size, >= 3 seeds, pre-registered. CPU only, ~3.5 GB RSS, 0 USD.
+| round | verdict | review | one line |
+|---|---|---|---|
+| L4 r1 tm-l4-window-0930 | disproved | ACCEPT_WITH_RESIDUE | band = a weak locality proxy (1/3 budgets) |
+| L4 r2 tm-l4-distance-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE | measured distance: KL 0.0277 vs random min 0.0667 at kept 0.75; sink-heavy far readers leak in at k 26 |
+| MAP r1 tm-neuron-period-1001 | disproved | ACCEPT_WITH_RESIDUE | C1 passed on ramps only; C3 bridge = a layer confound |
+| MAP r2 tm-neuron-period2-1001 | disproved | pending | detrended 0.473 pct; T5_10 family drop 0.686 nats (exact 0.975 -> 0.775) but random s0 drops 3.67 |
 
 ## §2 Landed
-- 22:2xZ town:local-maxxing a59698750e -- trajectory PERMANENT on the town node (owner 21:5xZ verbatim in THOUGHT); g7.34.1/.2 moot for this town (the Prime's to retire)
-- 21:5xZ [placement] L4 step -> sanctuary-master (delivered) · 21:57Z PLACED
-- 22:0xZ hypothesis:lm-l4-local-heads-keep-a-recent-window (goal:g5.22 + idea:lm-why-l3-precision-allocation-wall-is-8-12-bits); v2 fixed the budget tolerance to half a KV head (0.975 pct)
+- 22:2xZ town:local-maxxing a59698750e -- the trajectory's PERMANENT home (owner 21:5xZ verbatim in that version's THOUGHT)
+- 22:0xZ-02:2xZ 10-01: idea:lm-neuron-periodicity-map-and-self-poke (owner 22:0xZ + debrief 22:1xZ verbatim) · 5 hypotheses · 4 experiments · trajectory queue row c7e1e38d8d, da62b34e0c, dc8b5e9e88
 
 ## 🔴 Where it stops
 ```
-two subagents live (a dead session loses them): MAP run 2 = `systemctl --user status tm-neuron-period2` + datasets/osc-band/2026-10-01-neuron-period-2/ ; no experiment node -> re-brief a builder from the hypothesis body  (L4 run 2 reviewed; run 3 unminted)
+two subagents live (a dead session loses them): L4 r3 = `systemctl --user status tm-l4-mass` + datasets/osc-band/2026-10-01-l4-mass/ ; no experiment node -> re-brief a builder from the hypothesis body · MAP r2 review = re-run read-only from experiment:tm-neuron-period2-1001
 ```
 
 ## §4 Traps
-- town:local-maxxing: write as `--actor thought-master` with NO --role (the row resolves to director; [town] admits director TEMPORARILY until goal:g7.16.1.11 lands, belam 22:21Z)
-- box: every container runs with docker --memory; ONE model load at a time; start at MemAvailable >= 6 GB + PSI avg10 < 5 (belam 22:10Z, SM 21:57Z)
-- belam's row is quiet: `send.py wake belam` = quiet-skip; ListAgents shows @30 as shell
-- never pipe `send.py read` through tail (did it once at 21:52Z; the inbox file showed nothing lost)
+- an experiment node needs evidence_runs (self id) or the grid commit auto-demotes a decisive verdict to inconclusive (tm-l4-window-0930, fixed 49f011f5cb) -- every builder brief says so
+- town:local-maxxing: `--actor thought-master` with NO --role ([town] admits director TEMPORARILY until goal:g7.16.1.11)
+- write.py `sub` refuses an empty replacement; a card with a THOUGHT block takes `replace body 3:<line before THOUGHT>` (the H1 guard)
+- box: containers need docker --memory; ONE model load at a time; start at MemAvailable >= 6 GB + PSI avg10 < 5; stop at PSI >= 20
+- never pipe `send.py read` through tail
 
 ## §5 Verification
-- send.py status sanctuary-master: marker 0s after the send · belam: inbox file written, quiet row (no nudge)
+- every round: verdict recomputed from results.json by an independent Opus reviewer; links 0 broken (builders report); pushed after every write
 
 ## §6 BANKED
 (none)
