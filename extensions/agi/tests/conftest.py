@@ -34,6 +34,12 @@ from pathlib import Path
 import pytest
 
 GATE_TIER = "kid"
+
+# FAIL CLOSED (corrective DH.DG1.02 item 1): a worktrees entry we cannot read
+# is an UNKNOWN record, never an absent one. `_record_roots` sets this when
+# its per-entry guard drops an entry; `_effective_tier` reads it so an
+# unreadable entry can never be laundered into an AGI_TIER fallback.
+_WORKTREES_ENTRY_DROPPED = False
 REFUSAL_REASON = (
     "AGI_TIER=kid refuses a bare full-suite directory run; "
     "run a specific test file or a -k filter instead."
@@ -198,6 +204,8 @@ def _record_roots():
                             continue
                         wt_graph = locations.find_project_root(wt)
                     except OSError:
+                        global _WORKTREES_ENTRY_DROPPED
+                        _WORKTREES_ENTRY_DROPPED = True  # unknown, not absent
                         continue  # one unreadable entry never kills collection
                     if wt_graph is not None:
                         _add(Path(wt_graph) / "sessions")
@@ -273,6 +281,11 @@ def _effective_tier():
     record_tier = _resolve_tier_from_ancestors(merged, _ppid_of, os.getpid())
     if record_tier is not None:
         return record_tier
+    if _WORKTREES_ENTRY_DROPPED:
+        # Fail closed: the skipped entry may have held ANY record, so the gate
+        # answers with the most restrictive tier it knows rather than falling
+        # through to an env var the caller controls.
+        return GATE_TIER
     return os.environ.get("AGI_TIER")
 
 

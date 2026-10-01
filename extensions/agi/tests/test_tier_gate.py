@@ -1393,32 +1393,34 @@ def test_record_roots_survives_an_unreadable_worktrees_entry(tmp_path):
     locked.mkdir()
     (locked / ".agi").mkdir()             # a real graph marker inside it ...
     (locked / ".agi" / "config.json").write_text("{}")  # ... stat() on which is EACCES
-    os.chmod(locked, 0o000)
-    os.symlink(locked, wts / "locked-link")        # (a) EACCES at stat
-    os.symlink(Path(td) / "gone", wts / "dangling-link")  # (b) ENOENT
-    good = wts / "good"                             # (c) readable sibling
-    (good / ".agi" / "sessions").mkdir(parents=True)
-    (good / ".agi" / "nodes").mkdir()
-    (good / ".agi" / "config.json").write_text("{}")
-    good_sessions = str((good / ".agi" / "sessions").resolve())
-    tests = main / "extensions" / "agi" / "tests"
-    probe = tests / "test_roots_probe.py"
-    probe.write_text(
-        "import importlib.util, os\n"
-        "_c = os.path.join(os.path.dirname(__file__), 'conftest.py')\n"
-        "_s = importlib.util.spec_from_file_location('_gate_probe', _c)\n"
-        "_g = importlib.util.module_from_spec(_s)\n"
-        "_s.loader.exec_module(_g)\n"
-        "GOOD = %r\n"
-        "def test_readable_sibling_is_still_recorded():\n"
-        "    roots = _g._record_roots()\n"
-        "    assert GOOD in roots, roots\n" % good_sessions,
-        encoding="utf-8")
-    env = dict(os.environ)
-    env.pop("AGI_TIER", None)
-    for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
-        env.pop(_g, None)
     try:
+        # (a) EACCES, named to sort BEFORE the readable sibling so a guard that
+        # used `break` goes red; the chmod is INSIDE the try that restores 0o700.
+        os.chmod(locked, 0o000)
+        os.symlink(locked, wts / "aaa-locked-link")
+        os.symlink(Path(td) / "gone", wts / "dangling-link")  # (b) ENOENT
+        good = wts / "good"                             # (c) readable sibling
+        (good / ".agi" / "sessions").mkdir(parents=True)
+        (good / ".agi" / "nodes").mkdir()
+        (good / ".agi" / "config.json").write_text("{}")
+        good_sessions = str((good / ".agi" / "sessions").resolve())
+        tests = main / "extensions" / "agi" / "tests"
+        probe = tests / "test_roots_probe.py"
+        probe.write_text(
+            "import importlib.util, os\n"
+            "_c = os.path.join(os.path.dirname(__file__), 'conftest.py')\n"
+            "_s = importlib.util.spec_from_file_location('_gate_probe', _c)\n"
+            "_g = importlib.util.module_from_spec(_s)\n"
+            "_s.loader.exec_module(_g)\n"
+            "GOOD = %r\n"
+            "def test_readable_sibling_is_still_recorded():\n"
+            "    roots = _g._record_roots()\n"
+            "    assert GOOD in roots, roots\n" % good_sessions,
+            encoding="utf-8")
+        env = dict(os.environ)
+        env.pop("AGI_TIER", None)
+        for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+            env.pop(_g, None)
         proc = subprocess.run(
             [sys.executable, "-m", "pytest", str(probe), "-q"],
             cwd=str(main), capture_output=True, text=True, env=env, timeout=300)
@@ -1426,3 +1428,53 @@ def test_record_roots_survives_an_unreadable_worktrees_entry(tmp_path):
         os.chmod(locked, 0o700)  # tmp_path cleanup must be able to read it
         shutil.rmtree(td, ignore_errors=True)
     assert proc.returncode == 0, proc.stdout + proc.stderr
+
+
+def test_unreadable_worktrees_entry_fails_the_tier_gate_closed(tmp_path):
+    """corrective DH.DG1.02 item 1, committed (item 2): an entry the scan could
+    not read is an UNKNOWN record, never an absent one, so it must never be
+    laundered into an `AGI_TIER` fallback. No record at all -> the MOST
+    RESTRICTIVE tier; a readable record -> THAT record's tier, whatever it is."""
+    import shutil
+    if os.geteuid() == 0:
+        import pytest as _pytest
+        _pytest.skip("root reads a mode-000 dir: the EACCES case cannot fire")
+    for record_tier, expected in ((None, "kid"), ("kid", "kid"),
+                                  ("director", "director")):
+        td = str(tmp_path / f"case-{record_tier}")
+        main = _build_fake_main(td, with_kid_record=record_tier is not None)
+        locked = Path(td) / "locked"
+        locked.mkdir(parents=True)
+        (main / ".agi" / "worktrees").mkdir(parents=True, exist_ok=True)
+        (locked / ".agi").mkdir()
+        (locked / ".agi" / "config.json").write_text("{}")
+        probe = main / "extensions" / "agi" / "tests" / "test_tier_probe.py"
+        env = dict(os.environ)
+        env.pop("AGI_TIER", None)
+        for _g in ("GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE"):
+            env.pop(_g, None)
+        try:
+            os.chmod(locked, 0o000)
+            os.symlink(locked, main / ".agi" / "worktrees" / "aaa-locked-link")
+            rec = (main / ".agi" / "worktrees" / "kidA" / ".agi" / "sessions"
+                   / "iter-test" / "rec" / "agent.json")
+            if record_tier is not None:
+                rec.parent.mkdir(parents=True, exist_ok=True)
+                rec.write_text(json.dumps(
+                    {"status": "running", "tier": record_tier, "pid": os.getpid()}))
+            probe.write_text(
+                "import importlib.util, os\n"
+                "_c = os.path.join(os.path.dirname(__file__), 'conftest.py')\n"
+                "_s = importlib.util.spec_from_file_location('_tier_probe', _c)\n"
+                "_g = importlib.util.module_from_spec(_s)\n"
+                "_s.loader.exec_module(_g)\n"
+                "def test_effective_tier_is_restrictive_when_an_entry_was_dropped():\n"
+                "    assert _g._effective_tier() == %r, _g._effective_tier()\n"
+                % expected, encoding="utf-8")
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest", str(probe), "-q"],
+                cwd=str(main), capture_output=True, text=True, env=env, timeout=300)
+        finally:
+            os.chmod(locked, 0o700)
+            shutil.rmtree(td, ignore_errors=True)
+        assert proc.returncode == 0, (record_tier, proc.stdout + proc.stderr)
