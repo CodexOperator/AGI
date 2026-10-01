@@ -689,6 +689,127 @@ process.exit(allFail ? 0 : 1);
 | SEEN BY THE MAP | the map script (DG2's hypothesis) is not landed; its inputs show DG5: git worktree list (1) and git log --graph --all (posts/director-general-5) |
 UNDO = §3 ROLLBACK / §4 teardown; units live in /run (gone at reboot).
 
+## LIVE PARITY on DG5 (08:5xZ, Sonnet 5.5 subagent of DG3, read-only toward the post): 37/55 matched-or-better (3 better), 6 short (18 30 33 expected; 42 43 45 NEW), 12 not run (need a rotation / landing / kid / login); 56-57 not run
+
+Subject: system unit `agi-post@${P}` (agi.slice), user A = `agi-director-general-5`, Hm = /var/lib/agi/director-general-5, M = /data/work/agi.
+Method: READ-ONLY toward the post. No restart/stop/kill/signal, no write into Hm/t/fifo/pane, no commit on its branch, no mail to it, no `sudo -u A`.
+Reads of the post's tree were done as the owner uid with `safe.directory=*` set through env (read verbs only; `git status` of the post tree = 0 lines before and after).
+Scratch work only under /tmp/agi-parity (scr/, g4/, x1/, x3/). Pane `o`: counts only. Masked: owner user = `<user>`, home = `<home>`.
+
+Live state at measure time: active/running since 08:44:37Z, NRestarts 0, Result success, ControlGroup /agi.slice/agi-post@${P}.service,
+MemoryCurrent ~0.6 GB (peak 0.61 GB; unit MemoryHigh 4 GiB), TasksCurrent 18, harness env `H=pi --provider openrouter --model stealth/space-bunny-alpha --thinking medium --skill skills -e ../bin/cccc.ts`, AGI_HARNESS=pi-free.
+Session so far: 1 pi session, 17 messages, 14 tool-use turns, 19 tool calls (2 isError=true), context 23,084 tokens, first turn commit 3952c0ed7 SIGNED.
+
+Verdict legend: matched / better = Phase-A' expectation met by an executed proof (a leg that needs a write/restart/kid is named in the result);
+short = a gap (S-exp = expected short, S-NEW = new vs the Phase A' expectation); NOT RUN = the proof needs a write, restart, kid, login, the owner, a landing, or an event that has not happened yet.
+Because the live post runs **pi-free** tonight (no Claude credential), rows whose v4c expectation is the CC harness are measured against the pi (v4b) expectation, and said so.
+
+#### The 55 rows
+
+| # | claim | command (shortened) | result (masked) | verdict |
+|---|---|---|---|---|
+| 1 | identity = one row | `sect agi-project HEAD \| sh -s /tmp/x HEAD; ls x/multi-user.target.wants` (sect/agi-project from v4c bin, nodes at HEAD) | `agi-post@${P}.service`, `agi-project.path`; all 24 v4c pieces cmp byte-exact vs `sect <piece> HEAD` (0 DIFF); live wants dir = `agi-post@${P}.service` only (R4b: path unit removed) | matched |
+| 2 | stand up | `systemctl is-active U` | active | matched |
+| 3 | take down / no double seat | scratch repo (objects via alternates): HEAD engine.md + posts.md with the DG5 engine cell removed, then agi-project; `rotate.py stand-up --post director-general-5` | dropped cell: wants = `agi-project.path` only (link gone); `cmd_stand_up()` returns 1 `ERR: stand-up refused: director-general-5 is engine v4 (systemd-owned)`; `pytest test_stand_up.py` 51 passed; row cells `pid 0, recover false, engine {v 4, harness pi-free ...}` | matched (NOTE the CLI entry `rotate.py stand-up` itself dies with `TypeError: cmd_stand_up() missing 'root'`: main() never passes root for `stand-up` — pre-existing at e81abd3f6, so the sanctioned hand command crashes for EVERY post; it cannot double-seat, but the C2 message is not what the CLI prints) |
+| 4 | harness + model cell | `systemctl show -p Environment U \| grep -c 'model stealth/space-bunny-alpha'` | 1 (`--provider openrouter --model stealth/space-bunny-alpha`) | matched (pi, as the Phase C row; v4c-CC string N/A tonight) |
+| 5 | effort cell | `... grep -c 'thinking medium'` | 1 | matched |
+| 6 | settings cell | `jq -c '.hooks\|keys' Hm/.claude/settings.json` | `["SessionStart","Stop","UserPromptSubmit"]`; top keys `["hooks","skipDangerousModePermissionPrompt"]` (the v4c shape) | matched |
+| 7 | the brief | `sed -n 1,8p Hm/.brief`; re-ran `brief.py` (bin copy) read-only on Hm/t nodes with the same seeds | 20-line ranked list, 1,318 B; top 8 incl. goal:g7.16.1, doc:unified-head, doc:card-director-general-5, doc:unified-director-brief, goal:g7.16.1.11; replica ids == live .brief ids (0 diff); node bodies of those 20 = 326,439 B, `B=40000` on pi inlines the first 40,000 B | better (EXCEEDS on pi; the v4c CC expectation is MATCH) |
+| 8 | first-turn STARTUP OUTPUT | read rotations.md first_turn entries for role director (same sed\|jq as agi-brief), count + labels; agi-brief exec seen in track | 9 entries: rotation-record, facts, prime-authority, git-state, predecessor-log, inbox, live-spawns, send-verbs, skills. The injected text goes into pi's system prompt (not logged, not in `o`): first-turn usage 20,096 tok is consistent with brief+STARTUP injected | matched (config leg proven; injection inferred — running agi-brief would write ~/.brief + a rotation record) |
+| 9 | the meter | `echo '{"tokens":480000,"context_window":1000000}' \| AGI_ROTATE_PCT=47 agi-meter` (bin copy); CC path with a transcript tail; live track shows agi-meter exec'd | `At the line (480000/1000000): write your card, git commit it, then run: touch ~/.fresh;kill $PPID`; CC path 470015 -> out-line; 100000 -> silent (0 B); live post context 23,084 tok (under the line); `agi-meter` appears in `Hm/track` (UserPromptSubmit fired on the live post) | matched |
+| 10 | rotation = fresh successor | needs the post to rotate | before-values: `Hm/.fresh` absent, 1 pi session dir entry, last assistant usage 23,084 tok | NOT RUN (needs a rotation) |
+| 11 | rotation record | `ls M/.agi/sessions/rotations \| grep -c '^director-general-5\.2026'`; `rotate.py status --post director-general-5 --record latest` | 7 records (was 6; new `director-general-5.20261001T084442Z.json`, 177 B, ACL-writable by A); latest = `{seat director-general-5, rotation engine-v4, result success, source startup, pid 0, recorded_at 08:44:42Z}` | matched |
+| 12 | one unit = one cgroup, reap | `systemctl show -p NRestarts,TasksCurrent U` | NRestarts 0 (no restart yet), TasksCurrent 18, one cgroup /agi.slice/agi-post@${P} (8 procs: pi, script, strace, agi-track, awk, grep, sh x2) | matched (static leg; "NRestarts increments / tree reaped" leg NOT RUN: needs a restart) |
+| 13 | card write | `git log -1 --format=%s -- doc/card-director-general-5.md` in Hm/t | last card commit is the OLD seat's (`write.py: doc:card-director-general-5 (director-general-5)`); the new post has not written its card yet | NOT RUN (event not yet happened; recheck after its first card write) |
+| 14 | inbox read | `send.py peek director-general-5` from Hm/t (peek = no marker write); `getfacl` inbox | `_inbox_dir()` from the worktree = `M/.agi/sessions/inbox` (git-common-root resolution works); peek rc 0 "empty"; inbox dir + `director-general-5.md` carry `user:agi-director-general-5:rwx/rw-` (+ default); 2,345 inbox files | matched (resolution + ACL; "unread blocks once" leg needs `read` = a marker write: NOT RUN) |
+| 15 | send dm/room/report | needs a signed send | no send/report by the post yet (0 inbox files newer than 08:44Z; 0 files owned by A under comms) | NOT RUN (a write) |
+| 16 | wake / nudge | needs a mail to the post (types into the live post) | `cccc.ts` in bin == v4c piece (byte-exact), loaded via `-e ../bin/cccc.ts`; inbox watch is the extension's; pane fifo `i` = 600 A | NOT RUN (a wake turns the live post) |
+| 17 | whois / authority | `send.py whois <ref>` after a send | seat key ACL: `user:agi-director-general-5:r--` on `seats/director-general-5.key`; row pubkey sha256 == the P0.7 before-value (same); `whois` by seat name returns NO-MATCH/UNSIGNED (it takes a session_ref; no signed send exists yet) | NOT RUN (VERIFIED needs a signed send) |
+| 18 | key rotation / key_history | `jq '.key_history\|length'` of the row, vs BF/row.json | 3, unchanged vs before; seat key stays | short (S-exp, named) |
+| 19 | signed commits | `git -c gpg.ssh.allowedSignersFile=Hm/.signers verify-commit HEAD` in Hm/t | `Good "git" signature ... ED25519 SHA256:<fp>` rc 0, `%G?` G on 3952c0ed7; Hm/.signers = `director-general-5 ssh-ed25519 ...`; gitconfig: gpgsign true, ssh format, signers file | better (EXCEEDS) |
+| 20 | write a node | `write.py goal:g7.16.1.11 'read body 1:5'` from Hm/t (as the owner uid) | rc 0, 5 lines; worktree clean after (0 status lines) | matched |
+| 21 | commit at turn end | `git show --stat HEAD` in Hm/t | 3952c0ed7 subject `agi-director-general-5` (agi-turn), 1 file `.agi/keys/director-general-5` (the post's own path only), signed | matched |
+| 22 | hand up the work | `git rev-parse --verify posts/director-general-5`; `merge-base --is-ancestor trunk branch` | sha 3952c0ed7; ancestor rc 1: branch is 3 commits BEHIND `local-maxxing/season2/main` (and 1 ahead) — expected before a flush | matched (sha leg) / ancestor leg pending a flush (the proof says "after a flush") |
+| 23 | master gate | `sect agi-gate <rev> \| sh -s <rev>` for HEAD, trunk, posts/director-general-5 | rc 0, rc 0, rc 0 (v4c gate; Round 5's live-tip rc 0 holds) | matched |
+| 24 | path ownership | A's gids (970, 984) vs `.git/config` (664, gid 1000) / `.git/hooks` (775, gid 1000); `getfacl` | no ACL for A on .git/config, .git/hooks, .git, .git/info, .agi/nodes, .agi, seats dir; A ACL rwx only on objects (2), refs, refs/heads, logs, worktrees, sessions, inbox, rotations; seat key r. (derived from modes/ACL/gids — no exec as A) | matched |
+| 25 | grid versions | `grid.py log <node the post edited>` after a landing | nothing landed from the post yet | NOT RUN (after landing) |
+| 26 | node <-> code file | `cat Hm/link` after a code edit | `Hm/link` exists, empty (the only commit touched `.agi/keys/`, not code); `agi-link` exec'd (track) | NOT RUN (needs a code edit by the post) |
+| 27 | per-node RAM tree | `agi-wt pull` under `$RUNTIME_DIRECTORY/wt` | /run/agi-director-general-5 is tmpfs; `wt/` not yet created (no pull) | NOT RUN (needs a pull by the post; tmpfs leg ok) |
+| 28 | the post's checkout | `git worktree list \| grep -c /var/lib/agi/director-general-5/t` | 1 (731 worktrees total; before 729) | matched |
+| 29 | claims | `update-ref refs/claims/<mint>` by A | `.git/refs/claims` absent: 0 claims (by A: 0) | NOT RUN (a write) |
+| 30 | dispatch parents/kids | A's access to `M/.env` (600 owner, 0 ACL entries for A) | A cannot read the provisioning key: `provisioning: unavailable` for A by construction | short (S-exp, named: key broker) |
+| 31 | per-spawn key / spend floor | `provisioning.py status \| grep -c agi-director-general-5` | 1: outstanding, used=0, expires 2026-10-01T16:44Z (480 min); env file `600 root`, 93 B (not read) | matched |
+| 32 | commit guard hooks | cmp A's copy vs the owner's guard + denylist; guard run on a scratch repo | `precommit_guard.py` and `scrub-denylist.json` byte-equal to the owner's; hook = `exec python3 $HOME/.config/agi/precommit_guard.py`; guard on a scratch staged file holding the host token rc 1, clean file rc 0; post `.gitconfig` `core.hooksPath=~/hooks`, repo config has no hooksPath override | matched (safe leg; R9's in-post G4 commit probe NOT RUN: a write) |
+| 33 | review / workflows | A's user manager | `loginctl show-user`: "not logged in or lingering"; no /run/user/970; no linger file | short (S-exp, named: linger + broker) |
+| 34 | judge / goal edits | `season.py status` from Hm/t (owner uid) | prints (Season 2 status) | matched |
+| 35 | crash heal | `systemctl kill U`, tick.sh | static unit: `Restart=always`, `RestartSec=30`, `SuccessExitStatus=1 SIGTERM`, ExecStartPre PSI `some avg10 > 40` refuse, `ExecStopPost=agi-flush`; 2 unit fragments | NOT RUN (kill = destructive; static legs match) |
+| 36 | memory caps | `systemctl show -p ControlGroup,Slice,MemoryHigh,MemoryMax,ManagedOOM... agi.slice`; `oomctl dump`; `systemd-analyze verify` | unit Slice=agi.slice, cgroup /agi.slice/agi-post@${P}.service, MemoryHigh 4 GiB; agi.slice MemoryHigh 9,261,023,232 (= 8832M), MemoryMax 10,290,724,864 (= 9814M) == user agi.slice, SwapMax 2047M, ManagedOOMMemoryPressure=kill, limit 40%; oomctl: 2 `/agi.slice` lines, Memory Pressure Limit 40.00%; verify 0 lines; 2 unit fragments | matched |
+| 37 | box reads / stop runaway | the guard's readings (/proc, df) | MemAvailable 4.4-4.6 GiB, PSI some avg10 0.00, full 0.00, df 76% (/var /opt) and tmpfs /run 1% ; /proc has no hidepid | matched (reads; "stop own process" leg NOT RUN) |
+| 38 | verify + suite lock | `verification.py window` from Hm/t | `lock: free`, tip names M's (MAIN HEAD line); A has `rwx` ACL on `M/.agi/sessions` | matched |
+| 39 | live view | `tail -c 300 Hm/o` as the owner, no sudo | 300 B; `o` = 640 via ACL `user:<user>:r--` (mask r--), other `---`; i = 600 A | matched (v4c says EXCEEDS only with RC; pi tonight = MATCH) |
+| 40 | crons | `crons.py show` | `crons_live: True`, "up to date" present, installed lines present | matched |
+| 41 | file-access trace | `wc -l Hm/track` three samples 20 s apart | 19,180 -> 21,961 -> 21,961 (growth flattens; the 2,697/75 s of T7 was a smaller tree; 28k-node brief walk dominates); agi-brief/agi-meter/agi-turn/cccc.ts appear | better (bounded) |
+| 42 | anonymize | `git log -1 --format='%an %ae'` on the post branch (+ M repo config keys) | author/committer on the post's commits = `local-town <email>`, NOT `director-general-5 agi at agi`: M/.git/config (`user.name`, `user.email`, local scope) overrides the post's `~/.gitconfig` (email agi at agi; name only from GECOS) inside the shared worktree config. Identical to every other commit on the trunk; the OWNER'S EMAIL (contains his username) is in the post's commit objects | SHORT — S-NEW, REGRESSED vs the Phase A' expectation (matches today's posts, not the claim) |
+| 43 | agi-memguard | `oom_score_adj` of every proc in the unit cgroup | all 8 procs = 0 (pi, script, strace, agi-track, awk, grep, sh x2) | SHORT — S-NEW vs Phase A' (it became MATCH only for comm `claude`; tonight the post is pi: unprotected, the base expectation "0 today") |
+| 44 | agi-ram-main | `systemctl show -p After U \| grep -c agi-ram-main`; `findmnt -T` | 1; M on tmpfs; Hm/t on ext4 | matched |
+| 45 | memory alarm for posts | `crons.py show \| grep -c memory_alarm_posts`; crontab | 0 — cadence not in config:crons; only the box memory_alarm job (1/min) is installed | SHORT — S-NEW (C3 not landed: Phase C lists C1, C2, C4 only) |
+| 46 | watchdog reboot | `systemctl is-active watchdog`; health.env | active; `LIMIT=60`, `GRACE=900` | matched |
+| 47 | config:guard slices | N4 lines | Slice agi.slice; MemoryMax/High finite == user agi.slice; kill at 40% | matched |
+| 48 | keysync | `git grep -c '"engine": {"v": 4' local-maxxing/season2/main -- posts.md` | 1 (the trunk carries the cell; `season2/main` itself does not yet) | matched |
+| 49 | box crontab | `crontab -l \| grep -vc '^#'` | 12 jobs (+2 comment lines); no change from before; no `memory_alarm_posts` (see 45) | matched |
+| 50 | heal vs tick | reaper log, DEAD/crash-recovery lines for the post since the cutover (05:20Z) | 0 new `DEAD seat`/`crash-recovery record` lines (last = 2026-09-30T02:14Z, the old seat); 4 `wake director-general-5: idle no-target` (hourly, harmless); 8 `after_join skipped for 'director-general-5': no live session` since 08:44 (~45 s cadence: log noise) | matched |
+| 51 | oomd interplay | `oomctl dump \| grep -A3 'Path: /agi.slice'` | Path /agi.slice, Memory Pressure Limit 40.00%, pressure avg10/60/300 0.00, usage 325.9M | matched |
+| 52 | magic pane anchor | `printf 'pane-anchor-probe\r' > i` | writing the fifo types into the live post | NOT RUN (a pane write); anchor present: `i` fifo 600 A, `o` regular, unit active |
+| 53 | skills | `ls Hm/t/skills \| grep -c '^agi-'`; `[Skills]` in `o` (count) | 13 agi-* skill dirs; `[Skills]` header 1x in the pane; `--skill skills` in H | matched |
+| 54 | pane hygiene | `journalctl -u U \| grep -c openrouter`; `o` header; modes | 0; `COMMAND="agi-run"` in the typescript header; i=600, o=640 (ACL), `SHELL=/bin/sh` set; journal = 2 lines total; StandardOutput=null | matched |
+| 55 | CC harness, non-owner uid | R16 (a)(b)(c) | skipped by design tonight (no Claude credential): `Hm/.claude/.credentials.json` and `Hm/.claude.json` absent; `/opt/agi/bin/claude --version` = 2.1.286, `pi --version` = 0.67.68; `P0.8` env check (no ANTHROPIC_/GROWTHBOOK vars) = 0 | NOT RUN (no login tonight) |
+| 56 | NEW Remote Control in the app | R16'(b)(c)(d) | N/A tonight (pi-free; pi never poses as RC) | NOT RUN (N/A) |
+| 57 | NEW pi-free kid on CCCC | R17 `agi-kid cccc-probe` | needs DG5 to run a kid (a spawn); `agi-kid` 390 B present in bin; `Hm/k` absent (0 kid trees; 0 `/k/` track lines) | NOT RUN (a kid) |
+
+##### CCCC rows
+
+| CC | proof | result | verdict |
+|---|---|---|---|
+| CC1 SessionStart | `.brief` mtime vs ActiveEnterTimestamp | `.brief` written 5 s after the unit became active; agi-brief in track; rotation record source=startup | matched |
+| CC2 UserPromptSubmit | the out-line after lowering the line | `agi-meter` exec'd on the live post (track), line 47% (no out-line at 23k tok) | NOT RUN (out-line leg needs `rotate_pct` lowered = a restart; hook-fired leg matched) |
+| CC3 Stop | commits by agi-turn in the last 30 min | 1 (3952c0ed7 at 08:45:09Z, signed); agi-turn in track; no further commit because nothing is dirty | matched |
+| CC4 Pre/PostToolUse | none configured | settings hooks = SessionStart, UserPromptSubmit, Stop only (matches) | NOT RUN (harness-proven, T7) |
+
+#### Totals (the 55 original rows)
+
+- **matched-or-better: 37 / 55** — better 3 (7, 19, 41), matched 34 (1-6, 8, 9, 11, 12, 14, 20-24, 28, 31, 32, 34, 36-40, 44, 46-51, 53, 54).
+  Rows 12, 14, 22, 32, 37 are matched on their safe leg only (restart / marker-write / flush / in-post commit / stop legs named NOT RUN above).
+- **short: 6 / 55** — expected 3: 18, 30, 33 · NEW 3: 42, 43, 45.
+- **not run: 12 / 55** — 10, 13, 15, 16, 17, 25, 26, 27, 29, 35, 52, 55 (every reason above: a rotation, a post write or event not yet happened, a landing, a restart/kill, a mail/pane write, no Claude login tonight).
+- New rows: **56 NOT RUN (N/A tonight, pi-free)** · **57 NOT RUN (a kid)** · CCCC: CC1 matched, CC3 matched, CC2 + CC4 NOT RUN.
+- Phase A' said 52/55 matched-or-better, short 18/30/33. If all 12 NOT RUN rows pass later: 49/55 and 6 short. The drop from 52 to 49 is exactly the three NEW shorts.
+
+#### Regressed / short vs the Phase A' expectation (one line each)
+
+- **42 anonymize (S-NEW)**: commits on posts/director-general-5 carry author/committer `local-town <email>`: M/.git/config `user.name`/`user.email` (local scope, shared by the worktree) beat `~/.gitconfig` (agi at agi). The owner's email is in the post's commit objects. Same as all trunk commits today. Candidates: set `GIT_AUTHOR_*`/`GIT_COMMITTER_*` (or `git config --worktree` with `extensions.worktreeConfig`, already true) in the unit/agi-turn; BANK for the owner.
+- **43 memguard (S-NEW vs A')**: pi under /opt/agi is `oom_score_adj` 0 (unprotected); A' counted MATCH for comm `claude` only. Pi-free tonight = the base expectation (SHORT) holds; R-MG remains banked.
+- **45 memory alarm (S-NEW)**: C3 (`memory_alarm_posts` on /sys/fs/cgroup/agi.slice) is not in config:crons; only the box-wide alarm runs.
+- **18, 30, 33**: unchanged, expected shorts.
+- **3 (note, not a verdict change)**: `rotate.py stand-up` CLI raises `TypeError: cmd_stand_up() missing 'root'` (main() does not pass root for that subcommand; pre-existing since e81abd3f6, so skill agi-post's hand-restart command is broken for every post).
+
+#### Round 5 live rows — before-values recorded (nothing is landed; mostly after-landing)
+
+- **F36 'before' snapshot**: `/tmp/agi-parity/bin.v4c` — **22 files** (23 directory entries incl. the dir; all byte-identical to the 22 v4c pieces; `diff -rq` vs the live bin = identical at 08:52Z). Per-file sha256 (first 12 hex) in `/tmp/agi-parity/bin.v4c.sha256`. Before-values for the 4 changing files: sect 149 B `35512939992d`, agi-project 1,679 B `de4ef349804c`, agi-gate 276 B `8027fae33847`, agi-post@ template 1,252 B `2a098e7e59c4`; `agi-infer` absent (new in R5). Expected after landing + restart: `diff -rq` differs only in sect, agi-project, agi-gate, agi-post@ template, + new agi-infer.
+- row 1 (projector) before: v4c `sect agi-project HEAD | sh -s x HEAD` -> `agi-post@${P}.service agi-project.path` (done above).
+- row 2: active · row 3: drop-cell test done on a scratch commit (link gone) · row 4: `grep -c -- --model` = 1 · row 6: `.hooks` = SessionStart agi-brief (timeout 180), UserPromptSubmit agi-meter, Stop agi-turn · row 19: verify-commit HEAD rc 0 (3952c0ed7) · row 23: agi-gate rc 0 on HEAD / trunk / the post branch · row 36: `Slice=agi.slice`, `MemoryHigh=4294967296`.
+- row 35 (kill -> active again, bin identical) NOT RUN (destructive); F37 agi-infer NOT RUN (not landed, needs a live local endpoint).
+- Note for the landing: the gate passes with engine-wrap.md missing (Round 5 pick 5), so re-run row 23 against the landed three-node engine.
+
+#### Health of the live post (counts only)
+
+- unit: NRestarts 0, Result success, TasksCurrent 18, MemoryCurrent 0.59 GB (peak 0.61 GB), unit journal 2 lines, 0 warnings, 0 `dubious ownership`, 0 `openrouter` strings; systemd-oomd lines mentioning agi since 08:40Z = 0.
+- pane `o`: 2.95 MB after ~9 min (1.14 MB at ~3 min; TUI redraw typescript, ~0.3 MB/min): `error` 5 hits, `warning` 1 (pi: `Model "stealth/space-bunny-alpha" not found for provider "openrouter". Using custom model id.` — works, but unregistered), `No API key` 0, HTTP 401 0, rate-limit 0. Watch the growth: ~18 MB/h, unbounded by design.
+- session: 17 messages, 14 tool-use turns, 19 tool results (2 isError=true — not inspected), 0 stop reasons other than toolUse.
+- box: MemAvailable 4.4-4.6 GiB (the gate floor is 4 GiB: thin), PSI memory some avg10 0.00, df 76%.
+- reaper log: 8 `after_join skipped for 'director-general-5': no live session` lines since 08:44Z (~45 s cadence) — log noise from heal's after_join watching an engine-v4 post.
+- MAIN side: M/.agi/sessions/seats/director-general-5.key shows mode 640 vs the 600 before-value: that is the ACL mask (`user:agi-director-general-5:r--`, group::--- unchanged), not a group grant.
+
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PHASE A' (v4c): DG5 moves from pi-free to Claude Code Sonnet 5.5 with Remote Control (owner 04:40Z) and the owner logs DG5's user in by hand (04:49Z), so the credential copy R8 becomes R8a (owner login) + R8b (onboarding/trust); RC proof R16' + app proof; R17 = the ONE pi-free kid on CCCC; engine-v4 at 16,384/16,384 B (agi-seed.service dropped for stage 3); parity 52/55 matched-or-better + rows 56-57 pending live proof. First Phase A' run died at the 04:45Z rotation (only assemble.py touched); this is the relaunch.
 <!-- THOUGHT:END -->
