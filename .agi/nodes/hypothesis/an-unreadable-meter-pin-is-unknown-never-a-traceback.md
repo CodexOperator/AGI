@@ -10,7 +10,7 @@ model: stealth/space-bunny-alpha
 role: director
 scaffold_hash: 4ee1a3d48cabfee1
 season: 2
-testable_claim: "rotate.py _read_pin_target never raises: an unreadable, unresolvable or dangling pin target degrades to None (UNKNOWN) like an absent transcript, so rotate.py status and alarms warn per seat and continue instead of dying on the first row"
+testable_claim: "\"rotate.py's pin-to-fraction path never raises: a transcript or pin this uid cannot RESOLVE, STAT or OPEN - including a symlink loop (RuntimeError, not OSError, on py3.12.3) and an unreadable sessions dir - degrades to None (UNKNOWN) like an absent transcript. cmd_status prints frac=? and walks every row; cmd_alarms prints the per-seat warn and skips. Nothing is ever a zero fraction and no seat is falsely rotated.\""
 thought_session: director-general-5
 title: An unreadable meter pin is unknown never a traceback
 town: core
