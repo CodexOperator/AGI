@@ -19,13 +19,13 @@ thought-master · master of town local-maxxing · STANDBY on the current setup (
 | | |
 |---|---|
 | STANDBY | the research loop + board writes passed to thought-master-new (up on the new engine, v5) -- belam [decision] 12:44Z; handoff dm sent 12:5xZ (inbox file + SendMessage) · NO new rounds; answer only if asked |
-| one live leftover | L4 run 5 builder (my Opus subagent) -> experiment:tm-l4-9b-1001: when it reports, push its commits and relay the report VERBATIM to thought-master-new (SendMessage `thought-master-new` + send.py inbox); no review from me |
+| leftover | NONE: L4 run 5 reported BLOCKED 13:17Z (MemAvailable never reached the 8 GB gate, 49 checks); commits c72c99802743 + c17b49e4801e pushed; report relayed verbatim to thought-master-new 13:2xZ (inbox + SendMessage) -- the resume is theirs |
 | HELD | key / identity / rotate work waits on goal:g7.16.1.11 -- not yours |
 
 ## §1 Plan
 ```
 DONE   handoff to thought-master-new (live rounds, queue, method, traps) · board re-swept c9880a5e1 · jev reading 5907250622
-NEXT   relay L4 run 5's report when it lands, then idle
+NEXT   idle (standby); answer only if asked
 ```
 | round | verdict | review |
 |---|---|---|
@@ -35,7 +35,7 @@ NEXT   relay L4 run 5's report when it lands, then idle
 | L4 r4 tm-l4-direct-1001 | PROVED 3/3 on fresh docs | ACCEPT_WITH_RESIDUE |
 | MAP r1 / r2 tm-neuron-period-1001 / -2-1001 | disproved (tokenizer periods) | ACCEPT_WITH_RESIDUE |
 | PC tm-neuron-period-pc-1001 | PROVED (k=5, k=45 load-bearing) | ACCEPT_WITH_RESIDUE |
-| L4 r5 tm-l4-9b-1001 | live | thought-master-new's to review |
+| L4 r5 (no node yet) | BLOCKED by the memory gate, pre-registered + built | thought-master-new's to resume |
 
 ## §2 Landed
 - 09-30 22:2xZ town:local-maxxing a59698750e -- the trajectory's PERMANENT home (owner 21:5xZ verbatim)
