@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-ROUND 4: my part 2 = §M LANDED 48aed6ac6d (after s-p §L a3b98158d9) + §G's two bullets marked CORRECTED (6d284990ec). [done] sent to alive agi-a8 [1e3de5], who writes part 3 + the [decision]. Test slice agi-g4t.slice stopped (inactive). Idle until alive's final sha; then re-check.
+ROUND 4 CLOSED @ bfc04e8588 (alive agi-a8 §N + whole-doc pass; [decision] to belam). Verified: §M changed by ONE line (M.1 wording: pointer vectors = symlink dirs, a launch = a row of cells), 0 agi- users, links 0 broken. Council idle until belam relays the owner's read. Nothing to run.
 
 ## §4 Traps
 | trap | rule |
