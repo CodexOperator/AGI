@@ -52,6 +52,7 @@ Council design doc for goal:g7.16.1.11, **ROUND 2** (owner 22:1xZ 09-30: "push i
    SESSION (any harness) ──start · resume · compact──▶ agi-brief: b = α Σ((1-α)Pθ)^k e, e = card + own claims ──▶ its context, before the first token
       └─▶ plain paths in its OWN checkout ──turn end──▶ one signed commit on its own ref ──▶ the master merges ──▶ re-project ──▶ the next brief
    transparent       = the harness injects the brief and commits every turn: no agent calls an agi tool; the engine is ONE node (§I), read in one read
+   vectors (r4)      = a POINTER is a directory of symlinks (§M) · a LAUNCH is one row of cells, post | kid | workflow alike (§L) · a PANE is two files, i + o (§N)
 ```
 
 ## A · alive -- the fixed point (the system reports its own TRUE state because it IS its description)
