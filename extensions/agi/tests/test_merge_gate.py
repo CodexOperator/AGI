@@ -2,10 +2,12 @@
 prints ONE word: merge, or hold by name. One row per falsifier F1-F5 (the F6 row that read
 skills/agi-merge-pass/SKILL.md was DROPPED by corrective DH.DG3.65 -- the skill is restored
 to its merge-base, so its retirement becomes its own leaf) and one row per corrective
-DH.DG3.62 C1-C6. Values are SYNTHETIC; every repo and config is a tmp fixture -- no test
-touches the live repo, its history or its report node."""
+DH.DG3.62 C1-C6 except C6, which is DH.DG3.64 item 1 (core.quotePath). Values are SYNTHETIC;
+every repo and config is a tmp fixture -- no test touches the live repo, its history or its
+report node; the ONE live read is C5 PARSING the gate module's own source, read-only."""
 from __future__ import annotations
 
+import ast
 import json
 import subprocess
 import sys
@@ -175,10 +177,14 @@ def test_c5_one_walk_and_no_git_show(proj, monkeypatch):
                             "--repo", str(repo)]) == 1
     assert "show" not in seen and seen.count("log") == 1
     # the spy is INVISIBLE to a subprocess.run a later edit adds DIRECTLY: the gate itself
-    # must carry exactly ONE call site, inside _git (measured: line 22).
-    src = (BIN / "merge_gate.py").read_text(encoding="utf-8")
-    assert src.count("subprocess.run") == 1
-    assert "subprocess.run" in src.split("def _git(", 1)[1].split("\ndef ", 1)[0]
+    # must carry exactly ONE such CALL, inside _git. Counted with ast over the module's own
+    # source, so a comment or docstring that merely NAMES subprocess.run is not a call.
+    tree = ast.parse((BIN / "merge_gate.py").read_text(encoding="utf-8"))
+    calls = [n for n in ast.walk(tree) if isinstance(n, ast.Call)
+             and isinstance(n.func, ast.Attribute) and getattr(n.func.value, "id", "") == "subprocess"]
+    assert len(calls) == 1
+    assert calls[0].lineno >= next(f.lineno for f in tree.body
+                                   if isinstance(f, ast.FunctionDef) and f.name == "_git")
 
 # C6 -- a non-ASCII file under a review path -> hold; a C-quoted path is fail-open.
 def test_c6_non_ascii_review_path_is_not_fail_open(proj):
