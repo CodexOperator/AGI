@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (13:5xZ 10-01) · WIND-DOWN (belam 13:50Z: owner window ended 14:00Z; NO new work until the owner's morning; no moves) · LANES: subagents Sonnet 5.5; murs pi-free
+## §0 State (15:1xZ 10-01) · WIND-DOWN LIFTED (owner 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete) · BOX REBOOTED 14:42Z (/run, /tmp, RAM worktrees wiped; branches safe) · LANES: subagents Sonnet 5.5; murs pi-free
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
@@ -27,7 +27,7 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan (the owner's morning)
 ```
-v5 LIVE (stay up): thought-master-new (lane A, research loop; old TM on standby) · director-thought-1 · director-thought-2 · director-general-5 (key expires 18:46Z: RENEW BEFORE 18:00Z, R7 + restart)
+RESTORE after reboot (belam 15:03Z order: DG5 > thought-master-new > DT-1 > DT-2, ONE at a time, gate between): re-projected trunk into scratchpad proj7 (G6 live: AGI_BOX in every drop-in); template + wants dir re-created in /run; DG5 STARTED 15:09Z. Then: thought-master-new (lane A, research loop; old TM on standby) · director-thought-1 · director-thought-2 · director-general-5 (key expires 18:46Z: RENEW BEFORE 18:00Z, R7 + restart)
 v5 STOPPED: director-general-4 (13:00Z, belam: memory relief; wants link kept; restarts ONLY on belam's word, with an assignment)
 G6 hypothesis:g716111-g6-projection-carries-agi-box: [merge-up] DELIVERED 13:24Z (tip 5a31a9cf7) -> LANDED by SM 6c87be791 (14:01Z) -- NO auto re-projection on this box (agi-project.path/.service not loaded): the morning moves RE-PROJECT HEAD into a fresh /tmp dir first (/tmp/agi-proj6 predates G5 + G6), diff, then install each h.conf; then remove /mnt/agi-ram/worktrees/de-base-G6
 G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: chain G5 -> G5.2 -> G5.3 cfa9b3e27 -> G5.4 7dad3b4d4 -> G5.5 3315ac438 -> mur-de-base-g5e verify ACCEPT 11/11 MET -> record closed 8a450c0c0 -> [merge-up] DELIVERED to SM 13:54Z (tip 8a450c0c0, MB 2a9baac18, rc 0, 508 passed) -> SM: queued for the MORNING gate (merge-tree vs 6c87be791 re-run then)
@@ -43,7 +43,7 @@ GATE before ANY start or dispatch: loadavg1 < 16 AND io PSI some avg60 < 50 (bel
 row 60 LANDED edb74b29e · G4 LANDED 900728906 (13:41Z) · 4 new posts booted on v5 (TM-new, DT-1, DT-2, DG4) · G6 built + reviewed clean · G5.3-G5.5 built · findings rows 70-72 on goal:g7.33.19 (b3bdbb998) · 15 landed RAM worktrees removed (RAM 59 -> 28 pct; records in .agi/sessions/harvest-20261001) · old DG3 scope (3 orphan itest loops) stopped · card re-linked dca759633
 
 ## 🔴 Where it stops
-WIND-DOWN 13:5xZ: G5 + G6 both DELIVERED to SM, awaiting [landed]; no unit, subagent or round of mine is live.
+WIND-DOWN 13:5xZ: G6 LANDED 6c87be791; G5 queued for SM morning gate; no unit, subagent or round of mine is live. 15:07Z heal crash-resume: ack already answered continue; MAIN posts.md left DIRTY by heal on MY row (session_name "" -> agi-6a, but ListAgents names this session agi-e9 [9e8bc5]) -- not committed, not reverted: SM/belam to judge in the morning.
 ```
 python3 extensions/agi/bin/send.py read director-general-3; systemctl --user is-active agi-director-general-3-mur-g5e; ls .agi/sessions/workflows/runs/mur-de-base-g5e/; systemctl is-active agi-post@thought-master-new agi-post@director-thought-1 agi-post@director-thought-2 agi-post@director-general-5
 ```
