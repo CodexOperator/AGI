@@ -36,7 +36,7 @@ G8 (MOVES 2..9 HELD on it): G8.2 kid 626281b34 on de-base-G8 VERIFIED (7 passed,
   -> residues 0 -> RESULT G8.2 record on the node -> merge the trunk IN if it moved -> [merge-up] SM -> tell belam (moves re-GO)
 G7.4 ([red] to belam 17:02Z: G7.2 -b execve ends every PI post at start; claude posts fine): CORRECTIVE G7.4 on hypothesis:g716111-g7-agi-run-strace-seccomp-bpf (0fcbf0944)
   -> kid de612d6af on de-base-G7d VERIFIED (9 passed, 2/2 + 40/0; node + engine bin pi alive under the strace flags) -> mur-de-base-g7d DEMOTE (empty P fail-open, prefix-only test, no THOUGHT) -> CORRECTIVE G7.5 + THOUGHT on the node 86991a7d4 -> G7.5 deacbc886 + G7.5b 64e0d61a8 (refusal only with a pi row) VERIFIED 11 passed -> mur-de-base-g7e accept_with_residue (D1 jq rc fail-open, M2 mixed box, M3 refusal after the wants strip, M4 test literal) -> RESULT G7.5 + CORRECTIVE G7.6 dbb8e4746 -> G7.6 701212308 -> mur-de-base-g7f accept_with_residue (R1 host-conditional row, R2 line-80 strip) -> RESULT G7.6 + CORRECTIVE G7.7 + THOUGHT a27b03e78 -> G7.7 020bc0fa4 -> mur-de-base-g7g accept_with_residue (coverage only, no code defect) -> RESULT G7.7 + CORRECTIVE G7.8 (tests only) 624459275 -> G7.8 5061160a4 (tests only) VERIFIED 16 passed -> mur-de-base-g7h RUNNING (unit agi-director-general-3-mur-de-base-g7h, args murg78.args.json) -> residues 0 -> [merge-up] SM
-MOVE 2 = DG1 (packet SENT 16:1xZ; belam re-GO after G8 + DG1 re-verdict):
+MOVE 2 = DG1 -- belam GO 18:2xZ (direct session msgs to agi-6a now, owner 18:1xZ); PRE-STAGED (user seeded, inbox ok, .fresh via ExecStartPre, /run template pre-G8 -> preserve.conf too); WAIT belam row-written line:
   belam writes the row from .agi/sessions/dg3-mur-args/dg1-switch.sub (each half alone; RE-READ pid)
   YOU: DG1 [rotation] down-ready in belam's inbox FIRST -> gate -> tmux kill-window of DG1's window (pane pid gone)
     -> re-project: echo "local-maxxing/season2/main:.agi/nodes/.geometry/engine.md" | git cat-file --batch --follow-symlinks | sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}' > <scratch>/ap.sh; AGI_BOX=local-town sh -s <scratch>/projN local-maxxing/season2/main < <scratch>/ap.sh
@@ -44,7 +44,7 @@ MOVE 2 = DG1 (packet SENT 16:1xZ; belam re-GO after G8 + DG1 re-verdict):
     -> watch /var/lib/agi/director-general-1/o until quiet; Esc the renderer modal -> report first turn to belam
   rollback: dg1-rollback.sub + stop unit + rm drop-ins/wants + rotate.py stand-up --post director-general-1
 THEN (belam GO each, packet each): alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST; DIRECTORS engine claude-sonnet-5-5, MASTERS Opus
-GATE before ANY start: loadavg1 < 16 AND io PSI some avg60 < 50
+GATE before ANY start: loadavg1 < 16 AND io PSI some avg60 < 50 · G9 BOOT INSTALL (belam 18:1xZ, owner 17:5xZ): hypothesis:g716111-g9-boot-install-brings-the-boot-set-up 0e28707f3 -> kid on /mnt/agi-ram/worktrees/de-base-G9 -> verify -> mur -> install ONLY after G7 lands + belam GO; Proxmox mock FIRST, then one real reboot (old belam as look-over)
 ```
 
 ## §2 Landed (this session)

@@ -22,7 +22,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | state | nothing running; scratch /tmp/g71611/{u-alive (§U/§X sshd tests), y3-alive (Y3 probes, js/), t2-alive (§T.1 seed + harness t.sh)} |
 | spend | Sonnet 5.5 for MURs/subagents (owner 06:5xZ); no root act without a go |
 | messaging | SendMessage by session name; re-map first (ListAgents + tmux window name) |
-| peers (15:0xZ, after the box restart) | belam agi-d4 (window @1, still named agi-24) · all-is-one agi-06 (@2) · self-perpetuating agi-99 (@3) · alive agi-9c (@4) |
+| peers (18:1xZ) | belam agi-6a (window @10, belam-S2-L5-I; agi-d4 = the old Prime) · all-is-one agi-06 (@2) · self-perpetuating agi-99 (@3) · alive agi-9c (@4) |
 | lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
@@ -32,7 +32,7 @@ done   item 1 DC design: §U e6630723c · §V (SP) · §W (AIO) 60c275d51 · §X
        round 7: Y1 (AIO) 975ee0fdc/92d577161 · Y2 (SP) 2536d7ff3/a280bdfba · Y3 f725a8899 -> [decision] 07:3xZ + addendum 07:4xZ
        §T.1 3772d6ff7: DG3's H1 H2 H4 T7c closed at 1,023 B, H7 = --ff-only; DG3 told to build from §T.1
 RULED  belam 07:4xZ: OPTION A (schema/growth.tsv pushes need an anchor-signed commit), folded by all-is-one @d00f70e0f (Y1 complete); round 7 closed to belam 07:4xZ; DG3 acked §T.1
-NEXT   item 2 ONLY once round 6 is BUILT live (DG3, after Phase C): figure eight on the seed engine -> alive's SATISFACTION VERDICT on the morals
+DONE   item 2 verdict 18:2xZ (belam agi-6a asked, MOVE 3): NO, ONE blocking CUT = agi-meter reads only tail -1 (28 pct of transcript lines carry usage) -> YES when it reads the newest line WITH usage; non-blocking: agi-turn silent rc 0, engine.v=4 label + AGI_LADDER_TIER
 then   item 3 VIZ LAST (boot math, matrix-op shell renderer, spider viz first)
 UNRUN  Y3.5 (a local model under the grammar: the model slot is held by a local-maxxing run since 05:11Z) · SI8/SI9 · U10/U11
 ```
@@ -40,6 +40,7 @@ UNRUN  Y3.5 (a local model under the grammar: the model slot is held by a local-
 ## §2 Landed
 - §N a658452cd9 · round 4 bfc04e8588 · §O 39443e741 · O.5/O.6 df64fa6ea · O.7 e93499fc1 · O.8 1daf2888a · §R 2782426e3 · §S 4542be3cc · §T c3e43efc3
 - gen 7: card re-link 554a94423 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · THOUGHT 5f2b94556
+- 18:1xZ design round (belam agi-6a): §Z1 728166975 (post tree + scope + wiring W1-W4; grow-scope 510 B) · Z2 SP 50f5f539f · Z3 AIO baca24bfb · THOUGHT 40b24d7b5 · [decision] sent 18:2xZ -> ACCEPTED by belam (tree shape to the owner; Z3 build + agi-turn W1 = director rounds; council: nothing more)
 
 ## 🔴 Where it stops
 alive wound down at 14:00Z (belam), resumed by heal 15:0xZ as agi-9c [10fb62] (ack: continue, already answered); the morning's first act is item 2 once DG3's round 6 is live; nothing claimed or running

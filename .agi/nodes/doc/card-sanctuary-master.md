@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:46Z 10-01, date -u) — WORKING: wind-down LIFTED (owner 15:1xZ via belam, verbatim on goal:g7.16.1.11: "keep going until we finish the goal bundle now") · no gate running
+## §0 State (18:22Z 10-01, date -u) — WORKING (wind-down lifted 15:1xZ: "keep going until we finish the goal bundle now") · G7d suite running · 3 A+ dispatches live · meter 0.39 / 0.47
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -25,14 +25,15 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate (Prime-laned exceptions only: G4 stand-up) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
 | skills | agi-master-gate (every landing) · agi-memory-guard (box) · agi-rotate · agi-node-write · agi-send · agi-goal |
+| peers | Prime = belam (agi-6a) · DG1 (v5, bridge director-general-1) · DG2 (v5, bridge director-general-2) · DG3 (agi-e1, the ONLY director that can still dispatch) · DG5 (pi, INBOX only; sends bare /tmp paths: cat them, world-readable) · TM-new (v5 bridge, NO seat key: inbox sends UNSIGNED, trust direct) · council: alive agi-9c · all-is-one agi-06 · self-perpetuating agi-99 · old TM agi-63 · COMMS SWITCH (owner 18:1xZ): DIRECT SendMessage, not inbox dms |
+| A+ interim | belam 18:2xZ, bounded: I run a v5 director's dispatch ONLY on its WRITTEN order (quoted), pi-free only, 0 USD, from ITS worktree under MAIN (.agi/worktrees/...) with --from <director>, ONE line to it per dispatch; git there via GIT_CONFIG_COUNT/KEY/VALUE safe.directory per process (never global); ENDS at the key broker (parity row 30) or owner .env B |
 
 ## §1 Plan
 ```
-done   seated 13:08Z · box reboot 14:42Z, heal resume, own posts row ca9b4e81a · orphan grep scope stopped 13:21Z · row 60 CLOSED live (DG2)
-done   4 landings (§2) · C2 mur run + RETURNED to DG5 (5 residues) · .env finding banked: belam agreed (A) masters/Prime run director murs
-done   G7 2e94bd1f3 + TM-new a001a3c61 landed (whole-.agi/context leak -> rule in skill agi-master-gate 62e1fc541; Prime accepted)
-NEXT   G8 LANDED c34954f72 18:01Z. TM-new leak fix 88836f90e gate GREEN but RETURNED 18:1xZ: conflicts on goal:g7.33.19 row 78 (DG3 landed 78+79 at 61b9f5329) -> TM-new renumbers to 80 + refs, re-sends; re-gate = read the delta + the culprit file alone. WATCH: row 79 = G7.2 -b execve ended pi-harness v5 posts at start; DG3 [red] to belam 17:02Z, fix G7.4-G7.7 in review -> gate it first when it comes. C2 LANDED cfda80960 17:5xZ (4d608c5ff, lean :90). Was (17:17Z, all residues read CLOSED: landmine defused both worlds, evidence_runs [] / list): gate /dev/shm/smgatec2 (ids /dev/shm/sm-gate-c2.txt), anonymize ok, evidence [], 0 D; suite RUNNING since 17:21:04Z -> numbers + land ask to belam (held class). DG1 runs DG1.01 cursor + DG1.02 conftest EACCES quick fix. Was 2a0152805 (17:05Z): suite account + Dispatch line + 273b2e39 body CLOSED (read); STILL OPEN = landmine test + self-cited / scalar evidence_runs, re-sent 17:2xZ dm+inbox (DG5 cursor passed my 17:0xZ order = 3rd cursor case, given to DG1). Was: re-mur -2 accept_with_residue -> RETURNED 17:0xZ (landmine test, 1 suite account, Dispatch line cut, self-cited evidence_runs, a00-273b2e39 list form); next re-send: read the small delta myself + evidence dry-run + links schema, then gate; Falsifier 1 naming routed to DG1. Was: re-mur RUNNING since 16:36:38Z (run mur-season2-loops-goal-g1-31-4-6-2-a00-3014f810-2; args in scratchpad c2b-mur-args.json) -> then gate + land, numbers to belam. Was: re-mur pi-free (load1 < 16, io avg60 < 50) -> numbers to belam
-LATER  [PLACED 17:1xZ: inbox-cursor comms red -> hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line 56e68de01, DG1 dispatch now, ack awaited; until it lands every action order needs a one-line ack] · place a round: the nudge sweep skips pid-0 / recover-false rows or checks window name = seat (SP [red] 15:2xZ; belam cleared 5 rows 6efa87be4) · DG3: tip-guard fork -> then merge_gate cells · map v0 last
+live   G7d 57de5fb1d (DG3: pi-post red fix, row 79) suite since 18:19:48Z /dev/shm/smgate7d (ids /dev/shm/sm-gate-g7d.txt, log /dev/shm/smtmp7d/suite.log) -> LAND FIRST on green
+live   DG5 pin leaf (laned 18:2xZ): mur mur-posts-director-general-5 running (scratchpad pin-mur-args.json); tip 24c4e561b CONFLICTS add/add on a00-35ca5dd6 -> DG5 merges trunk + re-sends; then gate
+live   A+ dispatches: DG1.01 corrective a00-3eeb965e (de-base-dg101-1) · DG1.02 corrective a00-4020de01 (de-base-dg102-1) · DG2.01 a00-25dd8372 (de-base-dg2-1, NO loop branch) -> directors harvest; I run their murs on their word
+LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells
 ```
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
@@ -41,13 +42,12 @@ LATER  [PLACED 17:1xZ: inbox-cursor comms red -> hypothesis:g1-inbox-read-cursor
 
 ## 🔴 Where it stops
 ```
-sanctuary-master: G5 landed fec9f352f; waiting on DG3's G7 merge-up and DG5's C2 re-send; no gate running
-G7: merge-tree vs live HEAD rc + --name-only · range = merge-base..tip · tmpfs gate tree /dev/shm/<gate> + own TMPDIR · full suite under the mem guard · land by commit-tree
-C2: run key mur-season2-loops-goal-g1-31-4-6-2-a00-3014f810 (args in my scratchpad: rebuild from the [merge-up] dm) -- re-mur only after DG5 says the 5 residues are closed
+sanctuary-master: G7d suite running (land first on green); DG5 pin-leaf mur running; 3 A+ dispatches live under the directors
+G7d land: T = merge-tree(live HEAD, 57de5fb1d); newcomers vs the gated base byte-identical to HEAD; commit-tree -p HEAD -p tip; git -c gc.auto=0 merge --ff-only; push
+context gates: NEVER the whole .agi/context dir -- the range's own context tests one file at a time (skill agi-master-gate context+)
 HELD: MAP v0 60817b0ac (DG2; gotty 127.0.0.1:8787 read-only) -- VIZ LAST; gate reads anonymize.py filter verb, config.json map cell, gotty sha256 pin, --permit-write=false
 HELD: g75213 7cd127824e code gate COMPLETE -> GO on the Prime's DISK bind (re-derive T2)
 UNOWNED (DG4 down; never land a returned tip): lineage 4620846a3f · DG4.13 9baba2bc99 + r49 7eb1c65aed · DG4.18 c576956960
-WITH THE PRIME: merge_gate cells (after the tip-guard fork) · council.residue_leaves · hold_wait_s (g1.31.5.1.3.1.1) · DG4.18 cells · C2 (DG5, held class): merge-up 83f492f11 (goal:g1.31.4.6.2, +681/-7, 0 prod lines) QUEUED -- I run its mur once the Prime lanes it · skills_first_turn (the only trunk red)
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
 
