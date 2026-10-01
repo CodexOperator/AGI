@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1539,17 +1539,17 @@ REAL     the phone's own key (Secure Enclave P-256, O.7) gets an owner-phone row
 **Tested 07:1xZ** on §U's scratch sshd (throwaway CA, the stand-in key generated on tmpfs, certified, loaded into a scratch agent, its files removed in under a second; capsule-login = §O.5's 692 B, byte for byte, pointed at a scratch spool and pane; a random dummy code):
 | # | case | result |
 |---|---|---|
-| X1 | the stand-in + an open ask, the code on stdin | the code typed into the pane exactly once (rc 0) |
-| X2 | the same ask replayed | refused (rc 3) |
-| X3 | the stand-in asking for a shell · for a pty + a command | refused (rc 2 · rc 3): restrict + the forced command |
-| X4 | a cert under the dg5 row with principal owner-standin | refused (rc 255): the row pins the principal |
-| X5 | the stand-in row deleted (= the replacement) | refused at the next login (rc 255) |
-| X6 | the code at rest in spool, ledger, sshd log | 0 copies; the ledger keeps post + id + time only |
-| X7 | key files left on tmpfs or disk | 0 |
+| SI1 | the stand-in + an open ask, the code on stdin | the code typed into the pane exactly once (rc 0) |
+| SI2 | the same ask replayed | refused (rc 3) |
+| SI3 | the stand-in asking for a shell · for a pty + a command | refused (rc 2 · rc 3): restrict + the forced command |
+| SI4 | a cert under the dg5 row with principal owner-standin | refused (rc 255): the row pins the principal |
+| SI5 | the stand-in row deleted (= the replacement) | refused at the next login (rc 255) |
+| SI6 | the code at rest in spool, ledger, sshd log | 0 copies; the ledger keeps post + id + time only |
+| SI7 | key files left on tmpfs or disk | 0 |
 
 **One seam with §V, decided here (decide-and-document):** §V's limit (3) has the stand-in arm the CA window. The owner's ruling (a) authorises the stand-in for capsule-login ONLY, and a box key that arms the CA would make the box its own owner's half of the mutual quorum (O.8). So tonight: the stand-in arms only a THROWAWAY test CA (its own `TrustedUserCAKeys` line, for the test users, removed after) and never signs a real identity; the real CA's first window waits for the real phone. Cost: F42 cross-box runs on the test CA tonight.
-**For DG3's build (in its night order):** (1) the owner-standin row with `valid` ending at 14:00Z (one row, `date -u` read when it is written) (2) the §O.5 root act: `i` writable by agi-capsule (~60 B, ExecStartPre=+) (3) one end-to-end run on DG5's login, X1-X7 re-read on the real units (4) at the owner's wake: delete the row, and record the rid that died.
-**Falsifiers.** X1-X7 PASS (scratch) · **X8** at 14:00Z+1 min the stand-in cert is refused with the row still present (UNRUN; the expiry alone ends it) · **X9** the real phone's key logs in under owner-phone and the owner-standin rid is absent from every box's rows (UNRUN; the owner's step).
+**For DG3's build (in its night order):** (1) the owner-standin row with `valid` ending at 14:00Z (one row, `date -u` read when it is written) (2) the §O.5 root act: `i` writable by agi-capsule (~60 B, ExecStartPre=+) (3) one end-to-end run on DG5's login, SI1-SI7 re-read on the real units (4) at the owner's wake: delete the row, and record the rid that died.
+**Falsifiers.** SI1-SI7 PASS (scratch) · **SI8** at 14:00Z+1 min the stand-in cert is refused with the row still present (UNRUN; the expiry alone ends it) · **SI9** the real phone's key logs in under owner-phone and the owner-standin rid is absent from every box's rows (UNRUN; the owner's step).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 alive (agi-1d, gen 7), 07:1xZ 10-01 (owner night plan item 1, belam 07:00Z + 07:05Z signed [decision]s; council split U alive · V self-perpetuating · W all-is-one · X alive). Owner 06:3x-06:5xZ, verbatim: "Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." / "I can’t access it today so it might have to wait and do a stand in key on the box for now and auth it yourself as test." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math. Like the way we use our matrices to help hook into the login method but not the private key itself. Same here the matrices describe how the short lived ssh key can even be “popped” securely into whatever interface takes it. And it could itself be not even a raw ssh but a matrix compressed version that maybe is generated from how the whole system is setup with matrices encoding setup/use parameters." WHY this version differs: added §U (the DC directory = ONE public matrix in the graph, synced by §T to every box; a cert's key-id = the sha256 rid of its row, so editing a row revokes every cert under it; dc-project 288 B + dc-principals 302 B + 4 sshd lines in a Match block; U1-U9c PASS on a scratch sshd) and §X (the phone stand-in = one row + one §V cert ending at the owner's wake; X1-X7 PASS through §O.5's capsule-login byte for byte). U9c caught a real gap in the first form: a row with empty opts gave a full shell; dc-principals now fails closed on any row not opening restrict (+68 B). The KDF-from-the-row idea (belam 07:05Z) is NOT used: §V keeps the per-login key as fresh randomness and the rid as key-id only, which is the sound half of it. Decided in §X against §V's limit (3): the stand-in arms only a throwaway test CA, per the owner's ruling (a) capsule-login ONLY. §V (self-perpetuating, 983d2475c/52ad87a72) and the §T THOUGHT before it are in the grid. || all-is-one (agi-f0), 07:14Z 10-01 (night plan item 1, split with alive gen 7: U = the rows, V = self-perpetuating's login + CA, W = mine). Owner 06:5xZ, verbatim: "also have them move around boxes or spawn more on encryption town to confirm cross box easy seeding and cross-comms via GitHub initially and maybe eventually via for direct and mesh addresses? Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math." WHY this version differs: added §W. Seeding, sync and a message are ONE act (move a signed commit), the transport is one remote cell, and §S + §T run VERBATIM over a GitHub stand-in and an ssh-cert mesh hub with byte-identical bodies (X1-X3). The compression: ONE cert-authority allowed-signers line verifies every per-login key everywhere, the sender's name is the cert principal from the U row. Found and closed on owned boxes: git judges a cert at the commit's own date, so a stolen key can backdate (X11a), and a 2-line skew check in the hub's pre-receive refuses it (X11b). Via GitHub it stays a named limit. Recommended to keep the engine anchor K apart from the CA (X9 shows it could merge). xb 1,025 B + pre-receive 681 B, 0 B in the zygote.
