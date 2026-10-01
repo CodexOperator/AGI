@@ -31,9 +31,9 @@ v5 UP (restored 15:09-15:24Z, re-projected trunk = G6 AGI_BOX live): DG5 · thou
   DG5 key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
 G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: LANDED fec9f352f (15:45Z)
 G7 hypothesis:g716111-g7-agi-run-strace-seccomp-bpf (TM-new red: v5 children 16x slow): G7 c0a48f5f4 -> G7.2 7917597c7 (belam pick a: strace -b execve) -> mur-de-base-g7 -> residues CLOSED (493c7c509 prose, G7.3 a84f1c2fa test skip, DONE 21b7fb00b)
-  on /mnt/agi-ram/worktrees/de-base-G7 (cut from trunk 3c257bce6) -> trunk merged IN f9c503dd5 (conflict resolved: G5 lines 24-25 + G7.2 line 26; 372 passed) -> [merge-up] DELIVERED to SM 15:45Z (MB fec9f352f, rc 0) -> AWAIT [landed] -> then belam GO DG2. Stale worktree entries de-base-G5/G6 (RAM wiped): git worktree remove each by path, never a bare prune
+  on /mnt/agi-ram/worktrees/de-base-G7 (cut from trunk 3c257bce6) -> trunk merged IN f9c503dd5 (conflict resolved: G5 lines 24-25 + G7.2 line 26; 372 passed) -> [merge-up] DELIVERED to SM 15:45Z (MB fec9f352f, rc 0) -> LANDED 2e94bd1f3 (16:05Z); de-base-G7 removed. DG2 CUT CONDITION MET 16:0xZ, told belam. Stale worktree entries de-base-G5/G6 (RAM wiped): git worktree remove each by path, never a bare prune
   -> run test_agi_run_strace.py + test_send.py -k g5 on the merged tip -> [merge-up] SM (tip, MB, rc, numstat, tests; review = mur-de-base-g7 + closures)
-DG2 MOVE (belam 15:31Z ACCEPTED; GO fires when G5 AND G7.2 are on the trunk; belam WRITES THE ROW, DG3 runs stop/install/start):
+DG2 MOVED 16:07Z (belam GO 16:05Z; DG2 down-ready 16:06:02Z; row 126b6e153 sonnet; old @8 killed 16:06:51Z; re-projected proj8; agi-post@director-general-2 STARTED 16:07:09Z -> report its first turn to belam). The recipe, reused for DG1 next:
   row subs: .agi/sessions/dg3-mur-args/dg2-switch.sub (engine claude-code claude-sonnet-5-5 high; RE-READ the live pid at GO) · rollback: dg2-rollback.sub (proven on a copy)
   order: dm DG2 finish + card + "[rotation] director-general-2 down-ready" -> belam's row write (recover false + pid 0) -> tmux kill-window -t agi-rc:@8 (old pane)
   -> re-project trunk (agi-project section from engine.md into the scratchpad) -> install its drop-in + wants link -> gate -> systemctl start agi-post@director-general-2 -> watch o, Esc the modal
