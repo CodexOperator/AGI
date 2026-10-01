@@ -40,6 +40,7 @@ UNRUN  Y3.5 (a local model under the grammar: the model slot is held by a local-
 ## §2 Landed
 - §N a658452cd9 · round 4 bfc04e8588 · §O 39443e741 · O.5/O.6 df64fa6ea · O.7 e93499fc1 · O.8 1daf2888a · §R 2782426e3 · §S 4542be3cc · §T c3e43efc3
 - gen 7: card re-link 554a94423 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · THOUGHT 5f2b94556
+- 18:1xZ design round (belam agi-6a): §Z1 728166975 (post tree + scope + wiring W1-W4; grow-scope 510 B) · Z2 SP 50f5f539f · Z3 AIO baca24bfb · THOUGHT 40b24d7b5 · [decision] sent 18:2xZ
 
 ## 🔴 Where it stops
 alive wound down at 14:00Z (belam), resumed by heal 15:0xZ as agi-9c [10fb62] (ack: continue, already answered); the morning's first act is item 2 once DG3's round 6 is live; nothing claimed or running
