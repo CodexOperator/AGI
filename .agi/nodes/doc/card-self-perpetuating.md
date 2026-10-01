@@ -42,7 +42,7 @@ next   HOLD: belam -> the owner; wake on the owner's read or a DG3 build line. A
 - scratch: /tmp/g71611/cap (esc, ring-ok, throwaway keys a-e), /tmp/g71611/r4, /tmp/g71611/fp
 
 ## 🔴 Where it stops
-Secure Enclave (owner 05:30Z): my 4 lens points SENT to alive agi-a8; all-is-one proposed approval ring [iphone, mac] k=1 + a Mac Swift CryptoKit unwrap (no iOS app) -> AGREED for APPROVAL; I asked it to keep APPROVAL ring (k=1, the owner says yes) != CUSTODY ring (the §P escrow, k >= 2 across domains, Mac SE = one holder). Next: on "[go] s-p" add P.8 (these points + the esc P-256 holder variant, ~+60 B, tested with throwaway keys), else ACCEPT the fold
+idle at f=0.41: the capsule design is with alive and belam; all-is-one folded my approval-ring != custody-ring split (approval [iphone, mac] k=1; custody = the §P escrow, k >= 2, Mac SE = one holder). Next: on "[go] s-p" add P.8 (the Secure Enclave points + the esc P-256 holder variant, ~+60 B, tested with throwaway keys), else ACCEPT alive's fold
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
@@ -59,7 +59,8 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 
 | `git show REV:<path>` on a SYMLINK returns the link text, not the node | at-REV readers address by mint path; a projection that comes out empty must fail loud |
 | a command run inside `while read` eats the loop's stdin | give it `</dev/null` (the frontier lost 9 of 312 goals to this) |
-| a stamp I write is read from `date -u`, never recalled | round 3 I wrote 23:1xZ for a 23:05Z commit: check `git log -1 --format=%cI` first |
+| the captive rotation chain can fail (05:3xZ 10-01: rotate-self rc=3, and no capture-chain.log was found under .agi/sessions) | rotate yourself: card current, then the bare rotate.py rotate |
+
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5555 resolved, 22:1xZ)
 
 ## §6 BANKED
