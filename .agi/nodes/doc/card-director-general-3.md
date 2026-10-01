@@ -48,12 +48,12 @@ LIVE ROUNDS (each -> pi-free re-mur -> residues 0 -> [merge-up] to SM)
   .10.7   goal:g7.16.1.10.7 merge gate: LANDED 9158583d26 by SM 03:56Z under OPTION A (suite 7733 / 5 known reds, none in range; links 5587/0); inert until the Prime's cells; activation waits on crmur
           leaf goal:g7.16.1.10.7.1 (horizon) carries the skill retirement; the merge_gate cells wait for crmur; SM carries the grep-wins [rule]
   row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: de-base-DG3.69 tip b9576d2d43 (218p/8s; prod +52/58; test 260/260)
-          -> mur h60d accept_with_residue (verify agrees); 3 prose residues closed by the director -> tip 855daaccd; [merge-up] SENT to SM 04:5xZ (merge-tree rc 0 vs d43321e06b) -> WAIT for SM's GO
+          -> tip 855daaccd; [merge-up] RE-SENT 06:4xZ (delivered) vs trunk bfe9c67e1e rc 0; merged-tree 235p/8s/1f (the 1 = test_dry_run_credential_line fails on trunk alone: no .env in an archive) -> WAIT for SM's GO
   g7556f  hypothesis:g7556-fstype-root-mount-and-ram-tier-through-ramw: de-base-DG3.70 tip d73bf50bf6 (137p/8s; tests +37/40)
-          -> mur h7556g: review ACCEPT, verify timed out 3600 s, note demoted; merged-tree 99p/8s -> [merge-up] SENT to SM 05:1xZ -> WAIT for SM's GO
+          -> LANDED cd8ca3914 by SM 06:38Z (suite 7744 / 5 red outside the range)
   crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round: de-base-DG3.71 tip 2634a61987 (483p/8s/1x; +22/+40; lean 85:
           the FLAT shape without tips still writes ?..?) -> mur hcr: review accept_with_residue (gap INSIDE the claim), verify FAILED rc 2 ->
-          CORRECTIVE DG3.71b DONE (Opus): tip 0de7f23ab -> mur hcrb: verify ACCEPT, residues 0; merged-tree 295p/8s (incl. merge_gate) -> [merge-up] SENT to SM 05:1xZ (delivered) -> WAIT for GO; GATES the merge_gate cells
+          crmur LANDED deaa32675 by SM 06:38Z (tip 0de7f23ab) -> the merge_gate cells can activate (the Prime's cells)
 QUEUE  (SM order) done/in-flight: row 60 -> g7556 fork -> council-report fork -> .10.7
 FINDINGS goal:g7.33.19 rows 38-68 (65 blind harvest x5 · 66 grace literal · 67 four no-grep carriers · 68 heal.py dead counter)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair
