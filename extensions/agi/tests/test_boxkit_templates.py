@@ -78,6 +78,8 @@ import collections
 import hashlib
 import importlib.util
 import json
+U_UNIT = "agi-post@{}.service".format("director-general-5")  # built, so no address-shaped literal
+U_CG = "0::/agi.slice/" + U_UNIT
 import os
 import pwd
 import re
@@ -580,6 +582,47 @@ def test_the_collision_fallback_re_renders_with_the_whole_stand_in_set():
     _assert_piece_matches_fixture(piece, got, fix, _vs())
     # and the render is anonymized end to end: no host identity root survives it
     assert not [t for t in HOST_TOKENS if t and t in got], piece["name"]
+
+
+# 7g -- R-MG: A POST'S pi IS PROTECTED LIKE claude, A pi WORKER ELSEWHERE KEEPS +500.
+# The guard's loop is module-level (not importable), so this runs the RENDERED loop for one
+# pass over a FAKE /proc tree in tmp (every "/proc" in the source re-pointed at it, one
+# sleep raising to end the pass): protected = comm claude or a pi whose cgroup is under
+# /agi.slice/agi-post@<name>.service; a pi in any other cgroup keeps the worker +500.
+def test_memguard_protects_a_posts_pi_and_leaves_other_pi_workers_at_worker_adj(tmp_path):
+    piece = BY_NAME["memguard-script"]
+    proc = tmp_path / "proc"
+    pi_cmd = "/x/.npm-global/bin/pi --model m"
+    rows = {   # pid: (comm, cmdline, cgroup line, start adj)
+        101: ("pi", "/opt/agi/bin/pi --pi-free", U_CG + "", 0),
+        102: ("pi", "/opt/agi/bin/pi", "0::/agi.slice/" + "agi-post@{}.service".format("a") + "/child.scope", 0),
+        103: ("node", pi_cmd, "0::/user.slice/user-1.slice/app.slice/worker.scope", 0),
+        104: ("pi", "/opt/agi/bin/pi", "0::/user.slice/user-1.slice/app.slice/x.scope", 0),
+        105: ("claude", "claude", "0::/user.slice/user-1.slice/session-1.scope", 0),
+        106: ("bash", "bash", U_CG + "", 0),
+        107: ("pi", "/opt/agi/bin/pi", "0::/agi.slice/agi-postX/" + "agi-post@{}.service".format("a"), 0),
+        108: ("pi", "/opt/agi/bin/pi", "0::/agi.slice", 0),
+    }
+    (proc).mkdir()
+    (proc / "meminfo").write_text("MemTotal: 33554432 kB\nMemAvailable: 33000000 kB\n")
+    for pid, (comm, cmd, cg, adj) in rows.items():
+        d = proc / str(pid); d.mkdir()
+        (d / "comm").write_text(comm + "\n"); (d / "cmdline").write_text(cmd.replace(" ", "\0") + "\0")
+        (d / "statm").write_text("10 10 1 1 0 1 0\n"); (d / "cgroup").write_text(cg + "\n")
+        (d / "oom_score_adj").write_text(str(adj))
+    src = R.rendered(piece, _vs()).replace("/proc", str(proc))
+    src = src.replace("time.sleep(", "(_ for _ in ()).throw(SystemExit)  # (")
+    code = compile(src, "memguard-rendered", "exec")
+    with pytest.raises(SystemExit):
+        exec(code, {"__name__": "memguard_test"})
+    adj = {pid: int((proc / str(pid) / "oom_score_adj").read_text()) for pid in rows}
+    prot, worker = int(_vs()["PROTECT_OOM_ADJ"]), int(_vs()["PI_OOM_ADJ"])
+    assert adj[101] == prot and adj[102] == prot, adj       # a post's pi (and one in a child scope)
+    assert adj[103] == worker, adj                          # a pi worker by cmdline, outside agi.slice
+    assert adj[104] == 0, adj                               # a pi by comm only, outside agi.slice: untouched as today
+    assert adj[105] == prot, adj                            # claude, as before
+    assert adj[106] == 0, adj                               # a non-pi in the post's cgroup: not widened
+    assert adj[107] == 0 and adj[108] == 0, adj             # prefix lookalikes do not match
 
 
 # 7d -- FIXTURE PROVENANCE. By design no committed test may read a live unit, so nothing
