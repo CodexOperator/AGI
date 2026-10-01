@@ -75,6 +75,14 @@ ANON      no user name, home or repo path value, host name or IP other than 127.
 FILE SCOPE extensions/agi/bin/map.sh · extensions/agi/tests/test_map_sh.py
 CEILING   HARD CAP: 1 kid · map.sh <= 150 lines total · tests <= 200 lines total · 0 other production lines · Sonnet 5.5 lane · 0 USD
 
+## CORRECTIVE DH.4 -- closes the Sonnet re-review of 04e317ac1..75f8e43b6 (accept_with_residue)
+BASE      CONTINUE ON worktree-agent-a2c7f206afa857d38 tip 75f8e43b6. No merge. Never rebase.
+1. WATCH CADENCE UNPROVEN -- test_map_sh.py:134-135 -- the 6 s / >= 2 redraws window passes for any sleep up to ~5 s: keep the long timeout, require >= 4 redraws at the fixture's refresh_s (or assert the median redraw gap is within 3x refresh_s), so a hardcoded sleep fails it.
+2. SETENV UNTESTED -- test_map_sh.py:147-149 -- one `unit` test row with MAP_CONFIG set to a RELATIVE path holding a space: the stubbed systemd-run argv carries ONE `--setenv=MAP_CONFIG=<absolute path>` argument.
+DEMOTED: the C.UTF-8 pin has no fallback -- the locale exists on this box (the re-review ran it); a missing locale is a box finding, not this round's.
+FILE SCOPE extensions/agi/tests/test_map_sh.py only
+CEILING   HARD CAP: 1 kid · 0 production lines · tests <= 200 lines total · Sonnet 5.5 lane · 0 USD
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.3: Sonnet re-review of 9cb9ad4f3..04e317ac1 = accept_with_residue -- DH.2 items 1-5 closed; 1 residue (a clean trunk checkout reads claimed, predates DH.2) + 4 notes worth a line each (locale cut regression under a LANG-less unit, silent empty frame, unquoted MAP_CONFIG setenv, cryptic missing-key error) + the comment's scope; demoted: config_max literals are invariants (a configurable --config reopens falsifier 2), raw ESC = git's own exposure. Measured by the director from MAIN: 4 renders 0.48-0.56 s, no hostname/home in the frame.
+corrective DH.4: Sonnet re-review of 04e317ac1..75f8e43b6 = accept_with_residue -- DH.3 items 1-5 closed; 1 residue (the watch test widened to 6 s / >= 2 redraws no longer proves refresh_s) + 1 note worth a row (the absolute quoted MAP_CONFIG setenv untested); demoted: C.UTF-8 fallback (present on this box). Director at 75f8e43b6: test_map_sh 8 passed, test_anonymize_guard 52 passed, test_bin_help_smoke 73 passed on a rerun (a first run errored 81/81 in 0.85 s, not reproduced); MAIN renders 2.18 / 0.62 / 0.47 s, no host or home in the frame.
 <!-- THOUGHT:END -->
