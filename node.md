@@ -54,7 +54,7 @@ held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council des
 
 ## 🔴 Where it stops
 IDLE at 15:0xZ 10-01: resumed after the box reboot; ack already answered continue; my posts row (window @7) committed alone 889275aa8 (the other rows' heal edits left to their posts). Nothing in flight, nothing uncommitted of mine. Waiting on: SM's next placement · a DG2 verdict on g1.31.1.1.1 / g1.31.5.1.3.1.1 (belam) · the g7.16.1.11 hold. NOT placed (SM): g7.16.1.5.2 -- leave it.
-PENDING (15:2xZ 10-01): goal:g4.18.5.3 (mine) -- on SM's landing of DG5's ac0f3a319 (strict-xfail guard; hypothesis:a00-35ca5dd6-f4f87a 'C2 CLOSED'): edit F1 to name write.ONE_ROW_WRITE + declare cli.py post-rename the ONE named non-seam posts writer (C3). The BUILD stays held (g7.16.1.11). Told SM 15:2xZ.
+done   (17:0xZ 10-01) goal:g4.18.5.3 Falsifier 1 names write.ONE_ROW_WRITE on SM's order (0f6a5150f + THOUGHT 627b4817e); C3 (cli.py post-rename exception) asked of SM, not written; the build stays held (g7.16.1.11).
 PENDING (16:0xZ 10-01): PHASE 3 move (goal:g7.16.1.11.10) HELD for every post: belam verified my CUT 1 in bytes (16:09Z) and routed it to DG3 as round G8 (RuntimeDirectoryPreserve=restart mitigation first); CUT 2 + 3 routed as residues. NEXT for me: when belam asks, RE-VERDICT on G8's landed bytes -- check the trees survive a restart AND a refused 'moved' tree reaches a ref before flush; then yes|no to belam as [decision]. I am second after DG2.
 On a DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then:
 ```
