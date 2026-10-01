@@ -63,6 +63,18 @@ ANON      no user name, home or repo path value, host name or IP other than 127.
 FILE SCOPE extensions/agi/bin/map.sh · .agi/config.json (the `map` cell) · extensions/agi/tests/test_map_sh.py
 CEILING   HARD CAP: 1 kid · map.sh <= 150 lines total · tests <= 180 lines total · 0 other production lines · Sonnet 5.5 lane · 0 USD
 
+## CORRECTIVE DH.3 -- closes the Sonnet re-review of 9cb9ad4f3..04e317ac1 (accept_with_residue)
+BASE      CONTINUE ON worktree-agent-a2c7f206afa857d38 tip 04e317ac1 (its own worktree). No merge. Never rebase.
+1. TRUNK CHECKOUT READS CLAIMED -- map.sh:51 -- a clean worktree whose checked-out branch IS the cell's trunk reads `landed`; every other clean worktree with no commit past its merge-base stays `claimed` (a live worktree is a live claim). Test row: a clean trunk checkout -> landed colour.
+2. LOCALE CUT -- map.sh:72 -- pin a UTF-8 locale for the awk cut (export LC_ALL=C.UTF-8 or the cell's value) so a multi-byte char is never cut mid-sequence under a unit with no LANG; test row under LC_ALL=C in the caller's env.
+3. SILENT EMPTY FRAME -- map.sh:71 -- a failing `anonymize filter` prints ONE error line (`map: filter failed, frame withheld`) and never the unfiltered render (pipefail or an explicit status check); test row with the filter forced to fail.
+4. QUOTING + MISSING KEY -- map.sh:90 quote the MAP_CONFIG setenv and make it absolute; map.sh:25 every required key checked once after the eval -> `map: cell key <k> missing` exit 2 (the cell's key names validated against [a-z_]+ before eval).
+5. COMMENT -- map.sh:10-12 the demoted limit reads "unstaged or untracked edits".
+DEMOTED: config_max on `--config /dev/null` / `-maxdepth 2` / the row fallback = invariants, not tunables (a configurable --config would reopen falsifier 2); raw ESC in a subject = the same exposure git's own cut had (not a regression).
+ANON      no user name, home or repo path value, host name or IP other than 127.0.0.1; patterns write <user>
+FILE SCOPE extensions/agi/bin/map.sh · extensions/agi/tests/test_map_sh.py
+CEILING   HARD CAP: 1 kid · map.sh <= 150 lines total · tests <= 200 lines total · 0 other production lines · Sonnet 5.5 lane · 0 USD
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.2: Sonnet review of 675dbf1e8..9cb9ad4f3 = accept_with_residue -- 4 residues (truncate-before-filter leaves a secret prefix; -uno makes untracked-only work read as claimed; committed-not-landed refs uncoloured -> a 5th stage; no unit in the bytes -> a unit verb) + hardening notes folded in (explicit write-off, connection cap, colours/xargs width to the cell). Demoted: unstaged edits behind an old index (the scan bound is falsifier 4; agi-track v1 fixes it). Ceiling breach tests +121/+120 = a findings row, not a corrective.
+corrective DH.3: Sonnet re-review of 9cb9ad4f3..04e317ac1 = accept_with_residue -- DH.2 items 1-5 closed; 1 residue (a clean trunk checkout reads claimed, predates DH.2) + 4 notes worth a line each (locale cut regression under a LANG-less unit, silent empty frame, unquoted MAP_CONFIG setenv, cryptic missing-key error) + the comment's scope; demoted: config_max literals are invariants (a configurable --config reopens falsifier 2), raw ESC = git's own exposure. Measured by the director from MAIN: 4 renders 0.48-0.56 s, no hostname/home in the frame.
 <!-- THOUGHT:END -->
