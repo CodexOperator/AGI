@@ -37,7 +37,7 @@ G9 BOOT INSTALL: residues 0, [merge-up] SENT to SM 19:5xZ (de-base-G9 tip 2561b3
 HEAL ROUNDS (SM queue, belam-laned):
   (1) hypothesis:heal-crash-respawn-writes-the-new-pid-into-the-row: kid d7a541b94 on /mnt/agi-ram/worktrees/heal-respawn-pid VERIFIED (26 passed) -> NEXT: mur --harness claude-code (owner 07:00Z), args = a murg10.args.json-shaped file, key heal-pid-code, range 14e06f47b..d7a541b94 -> residues 0 -> [merge-up] SM
   (2) hypothesis:heal-ack-line-comes-from-config-rotations-by-role: kid on /mnt/agi-ram/worktrees/heal-ack-by-role (see §2 for its state at rotation)
-SM = agi-1f · belam = agi-6a (ListAgents if either rotates)
+all-is-one CUT residues -> findings rows on goal:g7.33.19 (NOT yet placed): (1) leaf goal:g7.16.1.11.8 growth gate is BUILT not HELD -- the switch is not DONE until .8 holds (2) = heal respawn-pid round above (3) 15 engine files still open the ladder (Z3). SM = agi-1f · belam = agi-6a (ListAgents if either rotates)
 ```
 
 ## §2 Landed (this session)
