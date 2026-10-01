@@ -628,6 +628,36 @@ echo "${2:-HEAD}:.agi/nodes/.geometry/engine.md"|git cat-file --batch --follow-s
 ~~~
 ````
 
+## J · ROUND 3 · the owner-approved spike (F17 paid leg + root-once), measured 2026-10-01 00:3xZ by alive
+Owner 00:28Z (verbatim on goal:g7.16.1.11): F17 "Go, one short run" · root-once "Go after F17". F17 ran first (one Sonnet 5.5 session on a scratch clone, $0.2829), then the root-once step on throwaway users agi-spike-a/b, a bare repo under /tmp and units in /run, with a stub harness (sleep infinity: no session, no spend). Every root act was listed with its undo; all were undone at 00:40Z and the box verified clean (no spike users, units, dirs, or dtach).
+```
+F1  homeostat   detect PASS only with S5 (observe needs --state=active) · record PASS only with S7 (-qSm) · heal FAIL (S8: tick as the post user cannot start a system unit)
+F2  PASS  b cannot lock a's head; a moves its own
+F3  PASS  2 x 100 concurrent commits on own refs, 0 failures, fsck clean, 0 lock files, refs stay loose (the suite arm not run)
+F4  PASS  8 racers on 2 claims -> exactly 2 winners
+F5  PASS  b drops into a's box; b cannot list (EACCES) or delete mail it did not drop (EPERM); a merges (receipt = merge parent) and clears the box
+F6  NOT RUN  needs real sessions (spend beyond F17 not authorized)
+F7  PASS  (round 2, pure)
+F8  PASS  projector over the throwaway posts -> exactly agi-post@spike-a/b; rm + re-project = diff -r empty
+F9  NOT BUILT  no gate piece in config:engine (the fixed-point gate is a test, not a hook)
+F10 NOT BUILT  the V gate is ~120 B inline prose, no piece
+F11 NOT RUN  no verb-node piece designed
+F12 PASS  6,029 B counted
+F13-F16 PASS  depth 0+1 3,806 B · fixed point through links · every piece parses · r == cat, rc 1 on missing and dangling
+L1  PASS on the throwaway (0) · live graph 25-27 until the migration re-points them
+L2  PASS  git mv of one address: 0 dangling, parent links unchanged
+L3  PASS  card -> parent +1.0, siblings 0 on the body
+F17 PASS  CC startup + resume + compact, one Sonnet 5.5 session, $0.2829 · CC caps hook stdout at a 2 KB preview (40.5 KB saved to a file): the vector arrives, whole nodes do not
+F18 PASS  plain cat write -> exactly 1 signed commit (G) via the Stop command · trap S11: git add -A sweeps every untracked file
+F19 PASS  sect 20/20 from the minted node
+F20 PASS  claim owner = the ref FILE's owner (a: 2, b: 0; then b's real claim seeds b's brief)
+F21 PASS  3,806 · 6,029 · 11,305 B
+F22 PASS  origin = /tmp/agi-spike/shared.git (plain path)
+P1  PASS  pre-receive refuses b's push on a's card by name, accepts b's own path
+FINDINGS (each a template line or a guard, for DG3): S1 gitconfig needs [safe] directory=<shared repo> (git refuses every op otherwise, exit 128) · S2/S3 the post unit's %h=/root and %t=/run in a SYSTEM unit -> explicit home path cell, RuntimeDirectory=agi-%i, $HOME inside sh -c, ExecStopPost=sh -c agi-flush (corrected unit 424 B, ran both posts) · S4 .agi/keys/ absent in a clone, the '-' prefix hides the failed cp -> signers empty, silently · S5 observe lists failed units as present -> --state=active · S6 agi-flush pushes the trunk (the master's ref) -> push refs/posts/<p>/head · S7 git commit -qSm<msg> parses m<msg> as the signing KEY ID (-S takes an optional arg): tick and agi-flush never commit -> -qm (gpgsign is in gitconfig) · S8 the heal needs root: tick as a system timer, or a polkit rule for agi-post@* · S10 agi-brief's default brief.py path is never placed -> read it with sect · S11 the turn-end commit sweeps untracked files -> git add -A .agi or a .gitignore · S12 brief.py crashes on a node with no parents (git drops the empty p/) -> isdir guard, +41 B (603 B)
+```
+**Read:** the spine holds as designed (F2-F5, F8, F13-F22, P1, L2, L3). The body as written did NOT run: twelve findings, each a template line or a small guard (S1-S12 above), and four rows are not built (F9, F10: the gates; F11: the verb piece) or not run (F6: needs real sessions). S7 is the sharpest: `git commit -qSm<msg>` makes `m<msg>` the signing key id, so neither tick nor agi-flush ever committed. The corrected post unit (424 B) is in the ledger, not in config:engine: config:engine changes only through the Prime.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 5, 23:3xZ 09-30 (date -u): v1 of round 3 part 3, two reds found by the council's re-check after delivery, both folded here and tested. (1) all-is-one: the brief read a claim's owner from the author of the commit its ref points at -- a claim may point at any commit, and the post's checkout holds only fetched claims; now the kernel decides: the owner of the loose ref FILE in the shared repo (find -type f -user; the dir itself and a .lock excluded, both caught in the test). (2) self-perpetuating: at boot a dangling engine or posts link made the seed succeed over an empty body; its proposed && fix left the dangling-ENGINE case at rc 0 (empty extract, empty sh script), so the check moved into the callers: reload only over >= 1 post unit (rc 2 on both dangling cases, measured). Also s-p's re-scope of F13/F15 for the one engine node, and every byte figure recomputed from the files (code 6,029 B, node body 11,305 B, depth 0+1 3,806 B). belam minted v0 at 2dadf20c17; §I is v1 for re-mint.
+alive gen 5, 00:4xZ 10-01 (date -u): added §J, the owner-approved spike's results (owner 00:28Z: F17 "Go, one short run"; root-once "Go after F17"). F17 PASS on all three legs for $0.2829; the root-once step found 12 defects in the body as written (S1-S12), 4 rows not built or not run; every root act undone and verified. The engine node itself was not touched (config is the Prime's).
 <!-- THOUGHT:END -->
