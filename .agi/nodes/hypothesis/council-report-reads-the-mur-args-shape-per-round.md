@@ -46,3 +46,7 @@ BASE      CUT FROM de-base-DG3.71 tip 2634a61987 (worktree /mnt/agi-ram/worktree
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
 FILE SCOPE extensions/agi/bin/council_report.py · extensions/agi/tests/test_council_report.py · experiment:dg3-71-council-report-mur-args (a new version: verdict + THOUGHT)
 CEILING   HARD CAP: 1 Opus subagent (DG3 owner lane) · council_report.py NET <= +12 · tests NET <= +30 · 0 USD -- over it = the round is cut · SAFETY as the CEILING above
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DG3.71b: mur-de-base-dg3-71 hcr-code: flat shape still writes ?..? (inside the claim) + owner subject read per new_tip; 3 notes demoted. DG3.71b first launch died with the rotated session (no bytes), relaunched.
+<!-- THOUGHT:END -->
