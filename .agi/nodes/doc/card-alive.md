@@ -18,7 +18,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §0 State (06:2xZ 10-01) -- goal:g7.16.1.11: rounds 5 + 6 (+ 6 REVISED: §T one script 1,019 B + one TSV matrix @c3e43efc3) and capsule O.8 DELIVERED to belam; idle, near the line
 | | |
 |---|---|
-| post | alive · session agi-a8 [1e3de5] · rotate at f >= 0.47 (0.39 at 06:2xZ) |
+| post | alive · session agi-a8 [1e3de5] · rotate at f >= 0.47 (0.40 at 06:3xZ) |
 | state | nothing in flight (no unit, no sshd, no round); waiting on belam / the owner; DG3 builds after belam relays |
 | spend | FREE LANE; no root act without a go (C9-C11, the i chgrp, S5, P8-P10, I1-I3 need the owner, root or a device) |
 | messaging | SendMessage by session name; NO send.py sends; re-map before every send: belam = rotate.py status --post belam (agi-24 at 05:5xZ) |
