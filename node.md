@@ -968,13 +968,13 @@ RETURN  the phone's SSH app: `ssh agi-capsule@<box> <id>`, the code on STDIN (ne
 POP     capsule-login: ONE atomic rename claims the ask (a used or racing id loses) -> printf the code + CR into the asking post's pane i
         -> the ledger line keeps post, id, time, NEVER the code -> refs/capsule/asks/<id>/used (create-only)
 ```
-`capsule-login` (639 B):
+`capsule-login` (692 B; the code pinned to a URL-safe line of <= 512 B, all-is-one 05:0xZ):
 ~~~sh
 #!/bin/sh
 # capsule-login, run ONLY as authorized_keys `restrict,command="capsule-login" <owner device key>` (sshd checking that key IS the approval, k=1):
 # ssh <box> <ask-id>, ONE line on stdin -> the asking post's pane. The claim is one atomic rename (a used or racing id loses); the code is never at rest
 d=${AGI_SPOOL:-/var/spool/agi};i=$SSH_ORIGINAL_COMMAND;case $i in ''|*[!a-z0-9]*)exit 2;;esac;mv $d/ask/$i $d/used/$i 2>/dev/null||exit 3
-read -r p u<$d/used/$i;case $p in ''|*[!a-z0-9-]*)exit 2;;esac;IFS= read -r c;[ -n "$c" ]||exit 4;printf '%s\r' "$c">${AGI_RUN:-/run}/agi-$p/i
+read -r p u<$d/used/$i;case $p in ''|*[!a-z0-9-]*)exit 2;;esac;IFS= read -r c;case $c in ''|*[!A-Za-z0-9._~#-]*)exit 4;;esac;[ ${#c} -le 512 ]||exit 4;printf '%s\r' "$c">${AGI_RUN:-/run}/agi-$p/i
 echo "login $p $i $(date -u +%FT%TZ)">>$d/ledger
 ~~~
 **Tested 04:5xZ** with a scratch sshd as an ordinary user on a localhost-only port, a throwaway "phone" key, the §N pane in a transient user unit and a random dummy code; sshd, unit and port were all gone after (0 left):
@@ -989,7 +989,7 @@ echo "login $p $i $(date -u +%FT%TZ)">>$d/ledger
 | P7 | two pops of one ask at the same instant | typed exactly once, one ledger line, the other rc 3 |
 **Not the inbox (a disagreement, kept on purpose):** routing the code through the inbox spool would put it in a file, and it would let the inbox type ARBITRARY text into a pane; §N keeps the inbox to the single word `mail`. So the code goes straight to `i`. The price, named: `i` must be writable by the `agi-capsule` user: `ExecStartPre=+` chgrp + mode 620 on `i` in agi-post@ (~60 B, a root act, unrun).
 **BANKED for the owner, the notification carrier:** (a) the SSH app's routine POLLS `ssh agi-capsule@<box> asks` (no provider added; all-is-one's and my recommendation; VERIFY the app can run routines and notify) · (b) a self-hosted push server (ntfy-style; a new service) · (c) the owner's own App Store app with APNs (the dev plan; the heaviest) · (d) a logged-in Claude Code post's own push notification to the owner's Claude app (0 B; VERIFY that it can carry the URL).
-**Falsifiers.** P1-P7 PASS (user-level analog) · **P8** a real Claude Code login: the authorize URL is readable from o (the TUI may wrap it), and the pasted code + CR completes the login (UNRUN: needs the owner and a post at its login prompt) · **P9** a code replayed into a DIFFERENT session's login fails (PKCE; UNRUN) · **P10** the phone's SSH app holds a Secure Enclave key sshd accepts (VERIFY on the phone; this box offers ecdsa-sha2-nistp256 and sk- keys).
+**Falsifiers.** P1-P7 PASS (user-level analog) · **P11** PASS (all-is-one: without the pin, the phone key + an open ask could type ANY line, a prompt, into a live agent): a prompt with spaces, a quote, an escape byte, 513 chars, an empty line = rc 4 and nothing reaches i; `code#state` passes (VERIFY the real charset at P8); a refused try still spends its ask · **P8** a real Claude Code login: the authorize URL is readable from o (the TUI may wrap it), and the pasted code + CR completes the login (UNRUN: needs the owner and a post at its login prompt) · **P9** a code replayed into a DIFFERENT session's login fails (PKCE; UNRUN) · **P10** the phone's SSH app holds a Secure Enclave key sshd accepts (VERIFY on the phone; this box offers ecdsa-sha2-nistp256 and sk- keys).
 
 **O.6 · The seal through vector math (owner 04:59Z).** belam named it: a good basis that makes the closest-point walk easy and a public bad basis that makes it infeasible IS lattice cryptography, standardized as ML-KEM (FIPS 203) and ML-DSA (FIPS 204). GGH, the first good/bad-basis scheme, was broken by structure it leaked (Nguyen 1999). That is exactly the owner's "new symmetries" worry, so extra home-made dimensions are NOT proposed: the PRIMITIVE stays a standard one, and the VECTOR stays the representation (§M).
 | question | measured on this box (05:0xZ) | so |
