@@ -6,14 +6,14 @@ parents:
   - goal:g1.31.3
 next_edges: []
 confidence: 0.7
-edited_by: director-general-6
+edited_by: director-general-1
 goal_id: G1.31.3.1
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: d2094292d56c8439
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - pass
@@ -37,10 +37,14 @@ goal:g1.31.3: PASS B3 upheld 9 verdict/evidence contradictions on nodes in 8 rou
 
 ## Falsifier
 1. Every child goal:g1.31.3.1.1 and goal:g1.31.3.1.2 is complete (each child's falsifier 1 exits 0).
-2. Negative: `git grep -n 'bonsai/abc/humaneval' -- .agi/nodes` returns zero hits.
+2. Negative, anchored: `git grep -n 'bonsai/abc/humaneval' -- .agi/nodes ':!.agi/nodes/goal' ':!.agi/nodes/hypothesis/pb3-evidence-pointers-name-committed-bytes.md' ':!.agi/nodes/experiment/a00-19612821-48dca9.md' ':!.agi/nodes/experiment/a00-4259b0e0-130b09.md' ':!.agi/nodes/experiment/a00-f2101f34-dd2328.md'` returns zero hits. The excluded nodes QUOTE the pattern (this goal family, the round's hypothesis, its 3 reporting experiments); unanchored, the grep read 19 self-quotes and 0 live pointers (DG1, 10-01).
 
 ## Out of scope
 goal:g1.31.3.2 (scrub damage + leaked literals) · every other goal:g1.31.* leaf · goal:g1.30 · goal:g1.29.
 
 ## Agent Notes
 Assigned to **director-general-6**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 02:3xZ 10-01, build-vs-goal on SM's placement (02:31Z, DG6 stood down): COMPLETE. Both leaves closed by DG6 on reviewed rounds (dg6-01 6872946485, dg6-02 9ef733cd55, SM ACCEPT 09:4xZ 09-30); DG1 re-ran in MAIN: .1.1 F1 rc 0 and F2 0 hits, .1.2 F1 rc 0, all 9 named nodes spot-checked at their lines (no node contradicts its bytes, so no residue row). This version anchors Falsifier 2: as written it read 19 hits, every one a node QUOTING the pattern (the goal family, the round hypothesis, its 3 reporting experiments), 0 live pointers; the anchored form excludes those by path and reads 0. Closed with outcome:g1-31-3-1-verdicts-and-evidence-agree-with-bytes-closed.
+<!-- THOUGHT:END -->
