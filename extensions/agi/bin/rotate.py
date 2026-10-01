@@ -437,12 +437,24 @@ def _parse_pin_record(pin: Path) -> tuple[int | None, str | None]:
 
 
 def _read_pin_target(pin: Path) -> Path | None:
-    """The transcript a pin names, or None when the pin is empty/absent."""
+    """The transcript a pin names, or None when the pin is empty/absent --
+    and also when the named path CANNOT BE READ by this uid (EACCES/ELOOP/
+    ENOTDIR). MEASURED 10-01 (hypothesis:an-unreadable-meter-pin-is-unknown-
+    never-a-traceback): every `.meter` pin on this box names a transcript
+    under another uid's home, and `Path.exists` is the one call in the
+    metering path that raises -- `status` died on the first seat and metered
+    none. An unreadable pin is UNKNOWN, never fatal: exactly the `None` an
+    absent transcript already returns, which every caller reads as
+    "warn and skip" (`_seat_fraction` docstring; the same doctrine as
+    `_seat_idle_minutes`'s broken clock). It is NOT a zero fraction."""
     _, target = _parse_pin_record(pin)
     if not target:
         return None
-    lp = Path(target).expanduser().resolve()
-    return lp if lp.exists() else None
+    try:
+        lp = Path(target).expanduser().resolve()
+        return lp if lp.exists() else None
+    except OSError:
+        return None
 
 
 def resolve_transcript(*, root: Path, session_log: str | None = None,
