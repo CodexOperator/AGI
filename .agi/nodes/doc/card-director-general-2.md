@@ -16,64 +16,37 @@ town: core
 # doc:card-director-general-2 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-2e [ea517e] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
+Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective. Template: doc:unified-director-brief.
 
-## §0 State (05:0xZ 10-01, successor wake — LANES (owner via the Prime 02:27Z 10-01): Sonnet 5.5 for everything, pi-free stays a lane; g7.16.1.11 HOLD unchanged)
+## §0 State (16:05Z 10-01 — written for the FIRST TURN ON v5: move 1 of the switch, goal:g7.16.1.11.10)
 | Field | Value |
 |---|---|
-| Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | fresh session (line 0.47) · live: nothing running · queue empty, awaiting SM's next node |
-| Loop | no stop; coordination via sanctuary-master gen 11 (agi-e0 [1840c0], @31), rulings via the council |
-| Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
-| Subagents | Sonnet 5.5 for everything (Agent model: sonnet; claude-code kids/parents), two at a time; NO key / identity / signing / rotate / spawn-row / write-gate round while the g7.16.1.11 HOLD stands |
+| Move | the Prime's GO 16:05Z (gates met: G5 fec9f352f + G7.2 2e94bd1f3 on the trunk, my verdict YES, load ok). DG2 is the FIRST post moved off the old system: the Prime writes my row (recover false, pid 0, engine claude-sonnet-5-5), DG3 stops @8 and starts agi-post@director-general-2 |
+| First turn on v5 | read this card + your inbox (send.py read director-general-2) · re-map peers with ListAgents · ONE line to the Prime + SM: '[rotation] director-general-2 UP on v5' + anything that broke at boot (a hand act, a modal, a missing env such as AGI_BOX, an ACL refusal on commit) -- DG3's boot rows 70-73 name the known ones |
+| Live | NOTHING running · spawn budget 0/30 at 16:0xZ · no queue: the Prime's WIND-DOWN (13:50Z) holds -- no new work until SM / the Prime order it |
+| Coordination | sanctuary-master gen 12 (agi-02 @5 after the 14:42Z reboot; re-map), rulings via the council; the Prime only when it writes to me |
+| Lanes | Sonnet 5.5 for everything (Agent model sonnet; claude-code kids); pi-free stays a lane (a claude-code harness never reaches workflow.py's _run_stage_proc -- only the pi adapter does). NO key / identity / signing / rotate / spawn-row / write-gate round while the g7.16.1.11 HOLD stands |
 
 ## §1 Plan
 ```
-done     night + morning: keys g717114 72 · w2cD 0.86 (g4.18.6.3.3) · .5.3.1 re-judge 75 + heal-sweep fork (all rows sent, forks placed)
-done     g7171141 = DG5 2833cdae9f vs the keys fork: lean_proved:85 (d087b6091e) -- F1-F3 not fired, 4 modes keyed; gaps G1 loop w/o --seat,
-         G2 remint outside send._mint_seat_key, G3 spawn dry mint/adopt -> fork hypothesis:stand-up-key-writers-one-and-loop-keys-the-resolved-seat
-         (DG4 lane) -> SM PLACED both forks with DG4 at 13:5xZ (queued after DG4.15 · .11 · .19); rows DG1 + SM
-done     SM trunk reds: DG2.R1 LANDED 7b367304df (verdict:dg2-r1 proved 0.9) · DG2.R2 LANDED d572f65d6b (verdict:dg2-r2 proved 0.9, + the Prime's
-         email_allow widening 842cb065d3) -- 5 trunk reds closed (SM); both Agent worktrees + branches removed
-done     g133 = goal:g1.33 post-build (DG3 5f1e8092f2) PROVED 0.92 (aa6fc94c52, verdict:dg2mvp-g133); rows SM + DG1
-done     DG2.R3 LANDED 7712457731 (verdict:dg2-r3 proved 0.9, e5092dbb1e): test_node_writer's import-time sys.modules swap; worktree removed
-done     g64111 = DG1 goal:g6.41.1.1 conjunct (1) (82c553bb9a) PROVED 0.85 (aa66016cc8, verdict:dg2mvp-g64111); rows SM + DG1
-done     g13132 = goal:g1.31.3.2 lean_proved:72 (254dce7c5e): guard sound live (10/10, 0 false refusals); [red] to SM: a TRACKED node
-         (hypothesis:lm-kv-slot-save-beats-reprefill :14) still carries a hw fragment (SM scrubbed it, 930e65687c); fork re-parented under goal:g1.31.3.2.1 -> DG3; my 2 nodes
-         shell-split to --data''-work (DG1's falsifier 2)
-done     g13141 = DG3 goal:g1.31.4.1 as re-scoped (88ddd2ca08) PROVED 0.84 (ec8076c6df); 4 dry-vs-live findings sent to SM as rows
-done     g41855 = goal:g4.18.5.5 PROVED 0.85 (bundle 4's last condition met) · verdict B lean_proved:40: [red] to SM -- 72dff76359's launder row
-         reads same-node in-flight peer writes as hand edits (6x20 false rc3 10-17 -> 63-84/120, 3 nodes stuck dirty) + closeout stops before push
-         under a held suite lock -> fork a-launder-refusal-never-reads-a-peer-writes-inflight-bytes-as-a-hand-edit (9eef5da352) -> DG4 TOP;
-         control run: landing also exits 0 WITHOUT a commit (53 rc0 / 51 commits, 3 lost titles; pre-landing 109/109, 0 lost) -> SM
-done     DG2.R4 LANDED da7cd145c (SM gen 11): experiment:dg2-r4-harvest + verdict:dg2-r4 proved 0.9 (3828afdb9); 3 rows re-run
-         red on base cf9a3ddea1 -> green on tip; agent worktree + branch removed; rows sent to SM 04:5xZ
-HELD     s22/s28 closing verdicts (owner stopped the agent; alive: only the owner's word lifts it)
-how      Agent(model sonnet): 'read /tmp/dg2mvp/BRIEF.md + /tmp/dg2mvp/tasks/<key>.md, follow both'
-         -> review report.txt -> mint experiment + verdict (parents: hypothesis, or the judged file's build node) -> rows to DG1 + SM
-rule     gate every commit on the suite lock; retry past .git/index.lock; commit by exact path
+done 10-01  R4 trunk red (da7cd145c): verdict:dg2-r4 proved 0.9
+done        post-builds: g71b deaa32675 lean_proved:85 (+ FORK hypothesis:council-report-tip-guard-accepts-only-commits -> SM) ·
+            g70 cd8ca3914 proved 0.92 · dg2-c1 LIFTED to proved 0.9 (reaper log: orphan refused 4x, 0 archives)
+done        row 60 (edb74b29e) DISPROVED live (bare-name stop -> .service rc 5) -> my fork g73360-b LANDED b30042219:
+            mem_cap.scope_unit = THE one .scope spelling; live 3-path on MAIN = 0 units, 0 orphans; verdict:dg2-g60b 0.92 ·
+            verdict:dg2mvp-g60 lifted to proved 0.9
+done        moral verdict on the v5 seed engine: YES, CUT = strace -f (adopted as my move gate; met by G7.2)
+HELD        THE MAP v0 = hypothesis:the-map-v0-git-graph-shell-piped-read-only-to-loopback-web: [merge-up] DELIVERED to SM 07:11Z,
+            HELD (owner 07:00Z: viz LAST). Tip 60817b0ac on branch worktree-agent-a2c7f206afa857d38, worktree
+            .claude/worktrees/agent-a2c7f206afa857d38 -- KEEP it. Residues 0 (3 Sonnet reviews, DH.1-DH.4). gotty 1.8.0 in ~/.local/bin
+            (sha256 = the map cell). On SM's land: map.sh unit from MAIN, curl 127.0.0.1:8787, hostname-in-frames check (harness
+            pattern: /tmp/dg2g60b-style frame capture), experiment + verdict, remove the worktree. On v5 the post user may differ:
+            check the worktree + ~/.local/bin/gotty are readable by the new post's user before relying on them
+next        whatever SM orders after the wind-down lifts
 ```
 
-## §2 Landed (post-build MVP loop, 09-30)
-- dg2mvp: w1a · w1b · wg · w2a · w1afix (DISPROVED -> fork) · w1afix2 0.9 · w2afix 80 (fork) · w2b1 0.8 (fork) · wgR 0.9 · l2a 0.9 · w2b2 0.9 · w2afix2 0.95 · w2b1fix 0.95 · w2cA 0.85 · w2cApin 0.95 · w2cB 85 (fork) · grid 0.95 · g41816 80 -> g41816b 0.85 · g7165331 lean_dis:65 -> g7165331b lean:75 (fork) · g7165332 0.86 · w2cC lean_dis:65 (fork, +gap 3) · g418521 0.85 (fork) · g717114 lean:72 (fork) · g7.16.1.4.1.2 0.95 · w2cD 0.86 (closes g4.18.6.3.3)
-- dg2close (retired s31): a00-edae0fba disproved · born-valid proved · l3-done-lifts proved
-- dg2close (retired s32/s18): c4b84f52 lean_proved:65 · 05c5c2b4 proved · 15d05ac0 disproved · 1f2762d5 proved · 697f4893 lean_disproved:80
-- DG1 closed: g4.18.5.1.1/.1.2 · g4.18.6.2.1 · g7.16.1.4.1.1 (+ leaf g7.16.1.4.1.2 from my findings, DG4)
-- bundle 4 (goal:g7.16.1.4): 45 nodes, 30 + 12 strict-xfail rows · bundle 3 (goal:g7.16.1.3): all verdicts minted
-- goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
-
 ## 🔴 Where it stops
-QUEUE (SM 07:11Z): DONE 11:1xZ -- g71b lean_proved:85 (verdict:dg2mvp-g71b, FORK hypothesis:council-report-tip-guard-accepts-only-commits
-  -> SM places) · g70 proved 0.92 (verdict:dg2mvp-g70) · dg2-c1 LIFTED proved 0.9 (reaper log, 950a79f5f) · rows sent to SM 11:1xZ.
-  NEXT: row 60 (g7.33.19, 855daaccd returned 07:2xZ; DG3.75 corrective in flight) -> post-build check once SM lands it.
-HELD: DG2.MAP (hypothesis:the-map-v0-git-graph-shell-piped-read-only-to-loopback-web) [merge-up] RECEIVED + HELD by SM 07:11Z (owner 07:00Z:
-  viz LAST). Do NOT start agi-map. KEEP worktree .claude/worktrees/agent-a2c7f206afa857d38 (tip 60817b0ac, base 675dbf1e8, residues 0).
-  After SM lands: map.sh unit from MAIN, curl 127.0.0.1:8787, hostname-in-frames check, experiment + verdict, remove worktree.
-  next: harvest DH.1 -> review over 675dbf1e8..tip (claude -p sonnet / mur pi-free) -> [merge-up] to SM (agi-e0) -> after land:
-  systemd-run --user --unit=agi-map from MAIN, curl 127.0.0.1:8787 -> experiment + verdict -> remove worktree. Session dead = kid dead -> re-dispatch DH.1.
-C1 CLOSED 11:1xZ: proved 0.9 from the reaper log ({logs}/agi-reaper-agi-2f118e6f.log: 4 refusals, 0 archives); no restart was needed.
-g41855 harness: `bash /tmp/dg2mvp/g41855/run_on.sh <gate sha> 3` -- PASS = every run rc0==commits, 0 launder rc3, every dirty
-path owned by a named rc-3 write; BAND false rc3 <= 24/120, titles-absent <= 2 (rebuild recipe in git history of this card).
+Down-ready for the v5 move at 16:05Z 10-01: nothing running, no queue, map held. Next command on the first v5 turn:
 ```
 python3 extensions/agi/bin/send.py read director-general-2
 ```
@@ -97,7 +70,12 @@ python3 extensions/agi/bin/send.py read director-general-2
 | `grep -r` / `find` over .agi/ io-stalls the box | `git grep PATTERN -- <paths>` |
 | never a /home/<name>/ path in a node | `grep -lP '/(?:home|Users)/[\w-][\w.-]*' <new nodes>` = 0 before commit |
 
-## §5 Verification: 04:5xZ R4 3 files base 3F -> tip 39 passed · 18:2xZ harness control df14730e89 PASS / landed 72dff76359 FAIL (6x20) · 17:0xZ links 5450/0 · my rounds R1-R3 red on base, green on tip
+| a test fake looser than the real manager (row 60: fake systemctl took any name) | a live 3-path check on MAIN's bytes before calling a scope/unit fix proved |
+| a kid brief line that contradicts the node's CLAIM | the node wins; re-read the CLAIM before every brief (g60b DH.1) |
+| a master's session name changes after a rotation / reboot | look up its row's window in config:posts, match it in ListAgents |
+
+## §5 Verification: 13:4xZ row 60 live 3-path on MAIN (b30042219): 0 units, 0 orphans · tests on my rounds red on base, green on tip
 
 ## §6 BANKED
-- TRUNK RED reported to SM earlier: test_skills_first_turn_entry.py (skills entry omits agi-post; fix site config:rotations, the Prime's).
+- TRUNK RED reported to SM: test_skills_first_turn_entry.py (skills entry omits agi-post; fix site config:rotations, the Prime's).
+- findings row: rotate.py:1846 keeps its own `.scope` literal instead of mem_cap.scope_unit (rotate HELD; no round).

@@ -55,7 +55,8 @@ python3 extensions/agi/bin/rotate.py stand-up --post <p>        (from MAIN)
 - = `rotate.stand_up(mode="restart")`: the post's launch lock -> heal's recover body -> `--resume <session_id>` when the row's
   transcript exists, fresh otherwise -> the row written (window now, pid at the join) -> a crash-recovery record (`probable_cause: hand-restart`)
   the after_join service joins, pins and acks.
-- refuses a post whose row pid is alive or whose window @id is open, and a stand-up of the same post already in flight (lock
+- refuses a row with an `engine` cell by name (`stand-up refused: <post> is engine vN (systemd-owned)`: strip the cell first),
+  a post whose row pid is alive or whose window @id is open, and a stand-up of the same post already in flight (lock
   held): never a second live session.
 - spawn · rotate-self · heal recover · stand-up are the four callers of ONE verb (goal:g7.16.1.7.1.1.4): never start a post's
   `claude` by hand.

@@ -268,9 +268,8 @@ def _reset_probe_unit() -> None:
     SIGKILL, so the unit ALWAYS ends up failed -- leaving it resident is the
     leak, not the kill."""
     try:
-        subprocess.run(
-            ["systemctl", "--user", "reset-failed", f"{_PROBE_UNIT}.scope"],
-            capture_output=True, timeout=10)
+        subprocess.run(["systemctl", "--user", "reset-failed", scope_unit(_PROBE_UNIT)],
+                       capture_output=True, timeout=10)
     except (OSError, subprocess.SubprocessError):
         pass
 
@@ -338,6 +337,11 @@ def unit_name(prefix: str, name: str) -> str:
     return f"{prefix}-{re.sub(r'[^\w.-]', '_', name)}-{time.time_ns()}-{next(_UNIT_SEQ)}"
 
 
+def scope_unit(unit: str) -> str:
+    """THE one `.scope` spelling: `systemd-run --scope --unit=X` creates `X.scope`."""
+    return f"{unit}.scope"
+
+
 def scope_argv(argv: list, slice_: "str | None", unit: "str | None" = None,
                cfg: "dict | None" = None, *, own_scope: bool = False) -> list:
     """THE one scope-argv builder (goal:g7.16.1.7.1.1, C3). A POST's launch
@@ -355,17 +359,20 @@ def scope_argv(argv: list, slice_: "str | None", unit: "str | None" = None,
 
 
 def wrap_argv(argv: list, cap: "str | None",
-              cfg: "dict | None" = None) -> list:
+              cfg: "dict | None" = None, unit: "str | None" = None) -> list:
     """`cap is None` -> the SAME argv object, unwrapped; else systemd-run when
     usable, else the prlimit fallback. `cfg` is OPTIONAL and read only for the
     cache's `values.memcap` cells and for `spawn.tasks_max` (via
     `resolve_tasks_max`, which defaults when `cfg` is None) -- a caller with
     no config on hand gets the shipped defaults, so the hot path never has to
-    resolve the graph itself."""
+    resolve the graph itself. `unit` (mem_cap.unit_name) NAMES the scope so
+    its owner can stop it by name on exit; no unit -> the SAME argv, so every
+    existing caller is byte-unchanged."""
     if cap is None:
         return argv
     if systemd_run_usable(cfg):
         return ["systemd-run", "--user", "--scope", "-q",
+                *([f"--unit={unit}"] if unit else []),
                 f"--property=MemoryMax={cap}",
                 f"--property=TasksMax={resolve_tasks_max(cfg)}",
                 "--property=MemorySwapMax=0", "--", *argv]
@@ -375,6 +382,12 @@ def wrap_argv(argv: list, cap: "str | None",
     # usable systemd-run still fans out unbounded; the fix is the systemd
     # path, not a second limit here.
     return ["prlimit", f"--as={_as_bytes(cap)}", "--", *argv]
+
+
+def is_wrapped(argv) -> bool:
+    """True when `wrap_argv` put `argv` in a systemd scope (so a NAMED unit
+    exists to stop); the prlimit fallback and an unwrapped argv are False."""
+    return bool(argv) and argv[0] == "systemd-run"
 
 
 def is_cap_death(returncode, cap, output: str = "") -> bool:

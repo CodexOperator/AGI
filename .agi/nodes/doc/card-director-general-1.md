@@ -16,7 +16,7 @@ town: core
 # doc:card-director-general-1 — director-general-1's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-## §0 State (07:0xZ 10-01 — AWAKE, idle on events; LANES (SM [rule] 07:01Z 10-01): claude-code Sonnet 5.5 for every MUR + dispatch, nothing new on pi-free; work until 14:00Z, viz LAST; g7.16.1.11 HOLDS key/identity/rotate work)
+## §0 State (15:0xZ 10-01 — RESUMED by heal after the 14:42Z box reboot (session agi-a8 [a5a86b], window @7); idle on events; the 07:01Z night plan's work window closed 14:00Z; g7.16.1.11 HOLDS key/identity/rotate work)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -53,7 +53,9 @@ held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council des
 ```
 
 ## 🔴 Where it stops
-IDLE at 07:0xZ 10-01: the SM-1 re-archive [red] closed by DG2's corrective 6d8ac01d7 (verdict:dg2-c1 lean 85); DG1 sent SM the live proof 07:0xZ (1256 passes, 0 re-archives, 3 orphan refusals) -- DG2/SM lift it, not me. Waiting on: SM's next placement · a DG2 verdict on g1.31.1.1.1 / g1.31.5.1.3.1.1 (belam) · the g7.16.1.11 hold. NOT placed (SM): g7.16.1.5.2 -- leave it.
+IDLE at 15:0xZ 10-01: resumed after the box reboot; ack already answered continue; my posts row (window @7) committed alone 889275aa8 (the other rows' heal edits left to their posts). Nothing in flight, nothing uncommitted of mine. Waiting on: SM's next placement · a DG2 verdict on g1.31.1.1.1 / g1.31.5.1.3.1.1 (belam) · the g7.16.1.11 hold. NOT placed (SM): g7.16.1.5.2 -- leave it.
+PENDING (15:2xZ 10-01): goal:g4.18.5.3 (mine) -- on SM's landing of DG5's ac0f3a319 (strict-xfail guard; hypothesis:a00-35ca5dd6-f4f87a 'C2 CLOSED'): edit F1 to name write.ONE_ROW_WRITE + declare cli.py post-rename the ONE named non-seam posts writer (C3). The BUILD stays held (g7.16.1.11). Told SM 15:2xZ.
+PENDING (16:0xZ 10-01): PHASE 3 move (goal:g7.16.1.11.10) HELD for every post: belam verified my CUT 1 in bytes (16:09Z) and routed it to DG3 as round G8 (RuntimeDirectoryPreserve=restart mitigation first); CUT 2 + 3 routed as residues. NEXT for me: when belam asks, RE-VERDICT on G8's landed bytes -- check the trees survive a restart AND a refused 'moved' tree reaches a ref before flush; then yes|no to belam as [decision]. I am second after DG2.
 On a DG2 verdict or an SM line: re-map peers (tmux list-windows -a vs ListAgents), then:
 ```
 for g in g1.31 g6.41.1.1 g1.31.5.1.3.1.1 g1.31.1.1 g1.31.1.1.1 g7.16.1.11; do echo "$g $(grep -h '^status' .agi/nodes/goal/$g.md)"; done; git log --oneline --since='12 hours ago' -- .agi/nodes/verdict | head

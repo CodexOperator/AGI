@@ -103,5 +103,7 @@ def test_no_cfg_in_hand_still_uses_the_shipped_defaults(monkeypatch):
 
 def test_the_seam_reads_the_cfg_aware_call():
     src = (BIN / "workflow.py").read_text()
-    assert "mem_cap.wrap_argv(cmd, cap, cfg)" in src
+    # cfg stays third; the named unit rides along (hypothesis:g73360-a-workflow-
+    # stage-stops-its-own-scope-on-exit).
+    assert "mem_cap.wrap_argv(cmd, cap, cfg, unit=unit)" in src
     assert "mem_cap.wrap_argv(cmd, cap)" not in src

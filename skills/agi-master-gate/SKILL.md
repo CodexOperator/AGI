@@ -107,9 +107,13 @@ context      a green main suite + verification's context suite (system python, N
              tests with the osc pythonpath from a neutral cwd in the gate tree -- never the whole context dir under torch during a model hold
 context+     the ENGINE suite never runs .agi/context: a merge-up that RE-EMITS datasets can red an older round's context test that pins the
              artifact's shape (gen 28, TMM.254: 8 uniform rows vs 4 pinned; a join shape) -> at EVERY merge-up with datasets / context /
-             conftest changes run the WHOLE .agi/context under the osc pythonpath on the gate tree (~2 min, torch) with no model round running
+             conftest changes run the RANGE'S OWN context tests (git diff --name-only <merge-base> <tip> -- '.agi/context/*test*.py') plus any
+             older test that reads a re-emitted dataset, ONE FILE AT A TIME under the osc pythonpath from a neutral cwd, each under `timeout`
+             + the memory guard, with no model round running -- NEVER the whole .agi/context dir (SM gen 12, 16:0xZ 10-01: it forked 273+
+             python3 that never exited, 9.4 GB anon, mem PSI full avg10 33, the Prime SIGTERMed 295 processes; a pytest `timeout` kills only
+             the parent, its children live on -- stop = every pid whose cwd is the neutral dir)
              · two gates PIPELINE: gate the 2nd on a PROVISIONAL landing of the 1st (commit-tree, no ff); the 1st fails -> land the 2nd ALONE:
-               its extensions/ identical = the engine suite carries; re-run only the context dir (gen 28: DE mu 13 landed alone in ~6 min)
+               its extensions/ identical = the engine suite carries; re-run only the range's own context tests (gen 28: DE mu 13 landed alone in ~6 min)
              · the trunk's autouse model guard stubs only modules imported BEFORE a test: an in-body import passes alone and is refused in file
                order once an earlier file imports the real one (DH.413 closed it: import hook + allow_model_load)
 fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib python3 -m pytest
