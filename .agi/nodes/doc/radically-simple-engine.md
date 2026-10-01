@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: all-is-one
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1844,6 +1844,47 @@ the gate at receive          Y1's grow-gate: for each added or changed node, run
 **Dropped, on purpose:** my first draft of this section was its own reader (`fmt`, 2,671 B: rows + check + a regex->GBNF translator). Y2's `sch()` already reads the schema once, and llama.cpp already turns JSON Schema into grammar, so `fmt` would have been a SECOND source for the same rule. Kept from it: its parity sweep, which agrees with Y2's (the engine-stamped keys `edited_by`, `season`, `scaffold_hash`, `town` ... are in no schema's fields, so a model row naming one is refused; the window writes them).
 **Honest limits.** (1) `\d` -> `[0-9]` narrows the gate to ASCII digits (Python's `\d` also matches other scripts' digits; 0 live nodes use one). (2) The compile probe proves the grammar EXISTS and is complete; it does not prove a model writes well under it (Y3.5). (3) A fixed field order is a choice of the fence; the gate accepts any order.
 **Falsifiers.** **Y3.1** 25/25 compile clean after 1-3 (PASS) · **Y3.2** 0 gate verdicts moved on 5,381 live nodes (PASS) · **Y3.3** the tags cell equivalence, 16,637 strings (PASS) · **Y3.4** forced share 7.2 % (MEASURED) · **Y3.5** the 9B on this box, ROW mode under the closed grammar, 20 fills of `goal[subgoal]` and `hypothesis`: 0 format refusals by the gate, every refusal a meaning one (UNRUN: needs the model slot; = Y2's F49) · **Y3.6** a node pushed without the window, carrying `status: banana`, is refused at receive by grow-gate + check (UNRUN: the ~150 B verb).
+
+## Z1 · DESIGN ROUND (belam 18:1xZ) · alive -- the POST TREE is two cells in config:posts; what a post may grow = its grow mask times the growth matrix, inside the subtree of its cert's roots; measured: today's owning_goal would refuse 71 % of real work, so the ROOTS come from the cert, never from the row
+**Owner (verbatim on goal:g7.16.1.11, THOUGHT @bd53e5b0e / @3f37df695):** "... Then also each individual node has its own private key so when a post is assigned to grow a specific chain they can only keep growing that chain via the key-chain rules. The matrix weights determine which graph actions are and aren't allowed based on which node schemas allow which other node schemas as parents, and also determine which specific graph coordinate(s) the given post is able to fill in given their permission scope over the graph" / "... We could have the posts be setup as an actual hierarchical shape in the .geometry graph section and the parent-child relationships between posts determine how scope certificates get nested." **What may this post TRULY grow, as one read?** Three facts, each already a matrix: the growth matrix (Y1), the post's grow mask, and the subtree under its roots.
+```
+TREE     config:posts IS the shape (already .geometry): each row + `parent` (the post that issues to it; belam's = owner) + `grow` (child types, * = any)
+         `roots` = the CEILING of what its issuer may hand it (the row's owning_goal today, a list, * = all) -- never the scope itself
+CERT     Z2: owner -> belam -> master -> director -> parent -> kid, each link = sub · iss · roots · grow · nb · na · par, a SUBSET of its issuer's
+         an ASSIGNMENT is a link: "grow hypothesis:X's chain" = roots [hypothesis:X], issued by the assigner, for the round's life
+SCOPE    usable rows   = grow(p) x G          the growth rows (Y1: child · parents · ring) whose child type is in the post's mask
+         coordinates   = closure(roots(p))    every node whose parent chain reaches one of the cert's roots (grow-scope, below)
+GATE     a node add lands only if: its Y1 row's nid = its key: · child type in grow(p) · EVERY parent under roots(p) · the cert chain verifies to the anchor (Z2)
+```
+**Measured 18:1xZ on the live graph** (5,418 live nodes; 5,984 parent edges, the `hyp:` / `exp:` aliases resolved through Y1's alias rows):
+| reading | number |
+|---|---|
+| nodes whose writer row has an owning_goal | 1,562 |
+| ... inside that writer's own owning_goal chain | 454 (29 %) |
+| ... OUTSIDE it | **1,108 (71 %)**: experiments 486 · hypotheses 337 · goals 143 · verdicts 68 · mvp 24 · outcome 15 · build 13 · idea 9 |
+| where the outside ones sit | under other goals 365 · under hypotheses outside the chain 337 · goal:g5 202 · goal:g7.33 73 · ... |
+| writers that are not post rows at all (kids, the owner, the old engine) | 2,787 nodes |
+| parentless · dangling parent refs | 97 · 95 |
+
+**So the true state:** owning_goal names where a post STARTED, not what it grows: masters hand directors new goals by order, and directors hand parents their hypotheses. Keying the key-chain to the row would refuse 71 % of today's real growth. The scope therefore has to travel WITH the assignment, as a Z2 link issued at dispatch time (the dispatch order already names the node: it becomes the cert's roots), and the row keeps only the ceiling. Kids (2,787 nodes) are covered the same way: a kid's link comes from its parent post, never from a row.
+`grow-scope` -- the coordinates check, whole (510 B; the cov() hook Z2 leaves open; edges.tsv = the adjacency matrix grow-project already walks, projected as child<TAB>parent):
+~~~sh
+#!/bin/sh
+# grow-scope ROOTS PARENT.. < edges.tsv (child<TAB>parent): rc 0 iff EVERY parent is one of ROOTS (comma list, * = all) or descends from one
+awk -F'\t' -v R="$1" -v P="$(shift;echo "$*")" 'BEGIN{n=split(R,r,",");for(i=1;i<=n;i++)root[r[i]]=1}{up[$1]=up[$1] SUBSEP $2}
+function u(x,d, a,k,i){if(root["*"]||root[x])return 1;if(d>64||seen[x]++)return 0;k=split(up[x],a,SUBSEP);for(i=2;i<=k;i++)if(u(a[i],d+1))return 1;return 0}
+END{m=split(P,p," ");for(j=1;j<=m;j++){delete seen;if(!u(p[j],0))exit 1}}'
+~~~
+**Tested:** parity with a Python ancestry walk on all 1,558 live adds that have a writer row and a parent: **1,558 / 1,558** (14.5 ms each on the whole graph) · a cycle terminates, refused · `*` passes · a first draft named its function `in` (an awk keyword) and silently refused all 454 legal adds; the parity sweep caught it.
+**THE WIRING ORDER (c)**, each step with the reading that says it is done (self-perpetuating's report-only step folded in):
+| # | step | why here | done when (falsifier) | today |
+|---|---|---|---|---|
+| W1 | SIGN every trunk landing (the landing post's §V cert, `-S` ssh) | every later check asks WHO landed it | 100 consecutive landings read `G` against the anchor-projected signers | local-maxxing trunk, last 300: 32 G · 67 U (a key outside the signers file) · 201 N · season2/main: 300 N |
+| W2 | ISSUE the tree's links (Z2) + run the land gate REPORT-ONLY | a refusal must be a reading before it is a rule | every live post's chain verifies; one day of reports with 0 unexplained refusals | 0 links · `parent`/`grow` cells absent from all 31 rows |
+| W3 | key: on every add (Y2's window writes it) | the gate checks the row by its key, never by inference | 0 adds without key: over a day of reports | 0 of 5,418 nodes carry key: |
+| W4 | grow-gate ENFORCING at the land step (Y1 ratchet + Y3 check + this scope) | only after W1-W3 can a refusal name signer, row and chain | Y3.6 + an out-of-chain add refused + a legal add lands | no pre-receive on any trunk |
+**Named, not hidden.** (1) v5's `agi-turn` stages with `git add -A`: W1 needs it to commit by path and sign, or every gate check reads a landing that nobody owns. (2) `edited_by` is the LAST editor, so the 71 % mixes adds and edits; the gate judges adds (and Y1's ratchet judges edits), so the true add-only share may differ: the land gate's report-only day (W2) measures it exactly. (3) Two cells per row (`parent`, `grow`) are a config:posts edit = an owner/Prime act; the tree's first shape is the formation as written (owner -> belam -> masters -> directors), proposed, not written.
+**Falsifiers.** grow-scope parity 1,558/1,558 (PASS) · **Z1.1** W2's report-only day: every refusal is out-of-chain or unkeyed, none a walk error (UNRUN) · **Z1.2** a dispatch issues the round's link with roots = the dispatched node and a kid grows only under it (UNRUN; Z2 + the dispatch line).
 
 ## Z2 · DESIGN ROUND (belam 18:1xZ) · self-perpetuating -- RECURSIVE SCOPE CERTS: owner -> belam -> posts, each link a subset of its issuer, a revocation or a re-parent kills the whole subtree
 **Owner (goal:g7.16.1.11 THOUGHT @3f37df695):** scope certs are recursive, owner -> belam -> the posts under it, each a SUBSET of its issuer; the post hierarchy decides who may issue to whom. **What am I ACTUALLY trying to get the machine to do here?** Let authority regrow down the tree without ever growing on the way: a post can hand on only what it holds, for no longer than it holds it, and pulling one link pulls everything that hangs from it.
