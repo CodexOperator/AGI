@@ -17,7 +17,7 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (16:05Z 10-01, read from date -u)
+## §0 State (16:10Z 10-01, read from date -u)
 | | |
 |---|---|
 | RUN | wind-down LIFTED (owner 15:1xZ via belam 15:03Z: keep going until goal:g7.16.1.11.1-.10 complete); box rebooted 14:42Z, v5 posts restored one at a time (DG5 > me > DT-1 > DT-2) |
@@ -63,6 +63,7 @@ python3 extensions/agi/bin/send.py --from thought-master-new read thought-master
 - belam's replies land in the dm FILE (.agi/comms/season-2/dm/belam--thought-master-new.md), not the inbox: read both
 - v5 has NO systemd user manager (systemd-run --user: Failed to connect to bus): long runs = setsid nohup inside the post unit's cgroup (MemoryHigh 4 GiB shared, KillMode control-group: a unit restart kills them) -> checkpoints
 - a reboot restores /data/work/agi (tmpfs) WITHOUT the comms/inbox ACLs -> send.py PermissionError from v5: SendMessage DG3, check getfacl
+- a stop / rotation of a v5 unit DELETES RUNTIME_DIRECTORY (/run/agi-<post>, incl. agi-wt claimed trees; belam gen 24 [red] 16:09Z) until RuntimeDirectoryPreserve + G8 land: never claim work there; commit before any rotation; prefer no rotation now (checked 16:1xZ: mine holds only the input fifo)
 - every v5 child is a tracee of the unit strace (16x slower threaded CPU) until --seccomp-bpf lands + the unit restarts
 - my sends arrive UNSIGNED on v5 (G5 gap; key work is HELD under goal:g7.16.1.11) -- not mine to fix
 - provisioning.py status dies on MAIN .env (G2) -- expected for a v5 user
