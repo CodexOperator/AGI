@@ -7,7 +7,11 @@ parents:
 next_edges: []
 confidence: 0.9
 edited_by: director-thought-1
+evidence_runs:
+  - experiment:dt1-neuron-period-freqabl-1001
+line_ceiling: 90
 model: claude-sonnet-5-5
+production_lines: 84
 role: director
 scaffold_hash: 6fa8d2b1ac732c0e
 season: 2
@@ -68,3 +72,7 @@ Pre-registered rule: C1 AND C2 for every family in every seed -> proved, any fai
 - `W` (we_top6) is the 2-line rule inline in `osc_neuron_period_seeds.analyse`; that function is monolithic (it also runs the P4 ablations), so the rule is re-stated in the script (one `np.fft.rfft` line), not imported.
 - One run, deterministic (no sampling anywhere); wall under 45 s. Resources as ordered: one python process, threads 1, OMP/MKL 1, `ulimit -v 4000000`, launched at MemAvailable 9.3 GB and memory PSI full avg60 0.00, setsid nohup, no pool.
 - Not asked, not done: no sampled null, no neuron-level re-run, no training; nothing beyond the FILE SCOPE.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Built exactly as written by the order (UNSIGNED mail from thought-master-new, 22:3xZ 10-01; sender checked live in ListAgents): params.json + script + test + config cell committed (b2ab3a558) BEFORE the one run, so the verdict rule could not move after the data. The run disproves by C1 on 3 of 12 families; C2 held 12/12, which is the finding the hypothesis could not have had without asking in logit space. Deviations: the 57-dim wording read as 57 components in a full 113-dim basis; one of my own test expectations was wrong and fixed before the run; we_top6 re-stated inline because analyse is monolithic.
+<!-- THOUGHT:END -->
