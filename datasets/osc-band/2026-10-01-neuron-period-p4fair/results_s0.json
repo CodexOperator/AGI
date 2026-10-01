@@ -1,0 +1,57 @@
+{
+ "seed": 0,
+ "void": null,
+ "base_test_acc": 0.9997762613267703,
+ "n_p1": 509,
+ "families": {
+  "5": {
+   "size": 151,
+   "drop": 0.5930193533952344,
+   "fam_norm": 0.49908891320228577,
+   "pU": 99.5,
+   "pN": 98.5,
+   "u_q": 0.5400201364805906,
+   "n_q": 0.6010325539769548,
+   "n_accepted": 200,
+   "load_bearing": false,
+   "n_untestable": false
+  },
+  "1": {
+   "size": 133,
+   "drop": 0.04564268933885218,
+   "fam_norm": 0.41997626423835754,
+   "pU": 8.5,
+   "pN": 24.0,
+   "u_q": 0.4844949099451838,
+   "n_q": 0.2726770332251928,
+   "n_accepted": 200,
+   "load_bearing": false,
+   "n_untestable": false
+  },
+  "45": {
+   "size": 128,
+   "drop": 0.5961516948204497,
+   "fam_norm": 0.5072126984596252,
+   "pU": 100.0,
+   "pN": 99.5,
+   "u_q": 0.5267255845172838,
+   "n_q": 0.5162892941044859,
+   "n_accepted": 200,
+   "load_bearing": true,
+   "n_untestable": false
+  },
+  "34": {
+   "size": 84,
+   "drop": 0.0004474773464593351,
+   "fam_norm": 0.4111863970756531,
+   "pU": 0.5,
+   "pN": 5.5,
+   "u_q": 0.3082839243763282,
+   "n_q": 0.16665063206175182,
+   "n_accepted": 200,
+   "load_bearing": false,
+   "n_untestable": false
+  }
+ },
+ "n_load_bearing": 1
+}
