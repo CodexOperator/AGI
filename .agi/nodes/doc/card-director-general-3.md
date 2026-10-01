@@ -29,7 +29,7 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 ```
 SWITCH (belam 11:08Z, rootplan SWITCH PLAN + G3 table): G1 CLOSED · G2 fix round (not a gate) · G3 DONE (13 16 52 35 10 PASS; 15 delivered after the comms ACL, unsigned -> G5)
   G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: DONE bc5b0171b on de-base-G5 (492 passed 8 skipped; dm now signed) -> MUR RUNNING unit agi-director-general-3-mur-g5, key mur-de-base-g5 (args /tmp/agi-rmg/murg5.args.json)
-  G4 hypothesis:g716111-g4-stand-up-cli-passes-root 1d9e7da5e -> Sonnet subagent on de-base-G4 (wt /mnt/agi-ram/worktrees/de-base-G4) RUNNING 11:1xZ (SM: DG2 had not started it)
+  G4 hypothesis:g716111-g4-stand-up-cli-passes-root: DONE 167dfc206 + node da9ebf919 on de-base-G4 (1289 passed) -> MUR RUNNING unit agi-director-general-3-mur-g4, key mur-de-base-g4 (args /tmp/agi-rmg/murg4.args.json)
   each: verify bytes -> mur pi-free (old_tip = its base, key g5-code / g4-code) -> [merge-up] SM -> landed = gate holds
   THEN dm belam the DG2 switch line: (belam) DG2 config:posts row: engine cell {v 4, harness claude-code, model claude-sonnet-5-5, trunk, seeds, rotate_pct 47} + recover false + pid 0
        -> (DG3) agi-project HEAD into /tmp, diff, sudo install h.conf + wants link, daemon-reload -> DG2 card written + old session out -> start unit -> spot rows 2 4 6 15 16 42 43
