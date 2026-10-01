@@ -74,5 +74,5 @@ DEMOTED   M3 (tests run on the NEW checkout by rule, the same as G5.4) · R7 the
 FILE SCOPE extensions/agi/bin/send.py · extensions/agi/bin/heal.py (_repair_stranded_wakes only) · extensions/agi/tests/test_send.py · this node.  CEILING production net +10 · tests +30 · Sonnet 5.5 subagent · 0 USD.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective G5.4: mur-de-base-g5c verify confirmed R1 (sibling stat line 24) R3 (foreign engine row told pane-busy) + missed M1 (heal repair walks foreign rows) M2 (boxless row unpinned); R4 testable_claim narrowed here by the director (the dm path says written, not delivered)
+corrective G5.5: mur-de-base-g5d verify confirmed R1-R6 + missed M1 M2 M4; R1 was the director own slip (set testable_claim=a wrote a NEW key: set takes key SPACE value), fixed here by unset + set
 <!-- THOUGHT:END -->
