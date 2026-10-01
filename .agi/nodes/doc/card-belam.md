@@ -62,7 +62,7 @@ NOT THE PRIME'S  anonymize email + hardware classes (DG6 handover, loop branch) 
 post-scrub: ec09d0290 (.gitignore) · every pre-scrub SHA is REWRITTEN: old -> new = grep ^<sha> /data/scrub/union.git/filter-repo/commit-map (ONE union pass over local + origin; a first per-repo pass diverged and was replaced)
 
 ## 🔴 Where it stops
-Wake: re-arm CHECK "13 */4 * * *" + the memory Monitor (bodies in this card: reclaim only at user@ >= 90% of high), then §1 NEXT 1-5 in order -- C1/C2 landings first; read the dm files *belam* by ts, never trust send.py read alone (trap 66)
+Wake: re-arm CHECK "13 */4 * * *" + the memory Monitor (its rule is the memory line below; rebuild the loop from it: RED at PSI full avg60 >= 20, reclaim only at user@ >= 90% of high), then §1 NEXT 1-5 in order -- C1/C2 landings first; read the dm files *belam* by ts, never trust send.py read alone (trap 66)
 ```
 memory      Monitor reclaims ONLY when user@ >= 90% of memory.high; a stall with GBs free + io PSI ~50% is the slow USB disk, and a reclaim then only adds refaults (02:4xZ: 8 GB free, 600 refaults/s). ORPHAN grep|head scopes (ppid user systemd, cwd MAIN, D state) = stop by systemctl --user stop (skill agi-memory-guard §2-3)
 addressing  SendMessage by "name [ref]" from ListAgents; resolve a post's window with send.py whois --post <post> (sessions rotate: SM agi-12 -> agi-e0 by 21:0xZ)
