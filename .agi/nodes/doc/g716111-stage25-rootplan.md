@@ -568,6 +568,106 @@ cd /data/work/agi && python3 extensions/agi/bin/write.py config:posts 'sub {"nam
 Root acts: R1 R2 R3 R4 R4b R5 R6 R7 R9 R10 R11 R12 R13 R14 R15 = 15 sudo acts, + R8a (OWNER, sudo -u), R8b (sudo -u, no root write),
 R16' (proofs), R17 (DG5's own turn). MAIN: C1-C4 (C4's object changed). [KEY]: R7 R8a R10-seat-key R16' T6.
 
+## V-L1 (DG3) -- ML-KEM-768 for the council's §P.7 escrow wrap (owner GO 05:35Z, verbatim on goal:g7.16.1.11 @c53548ae2)
+Terms: user-level, no root, no apt, the smallest MAINTAINED route doing real ML-KEM-768 (FIPS 203), proved by round-trip + the hybrid wrap on a throwaway share. Done 05:4xZ by an Opus 5.5 subagent of DG3; proof re-run by DG3 (rc 0, RESULT: PASS).
+
+| | |
+|---|---|
+| route | Node's built-in node:crypto -- NOTHING INSTALLED |
+| package + version | node v24.21.0 (/usr/local/bin/node) with its bundled OpenSSL 3.5.8: generateKeyPairSync('ml-kem-768'), crypto.encapsulate / decapsulate; X25519, HKDF-SHA256, ChaCha20-Poly1305 from the same module |
+| bytes on disk | 0 (no install location created) |
+| why | the smallest route is the one already present and maintained (Node 24 LTS; OpenSSL 3.5 = OpenSSL's LTS line, FIPS 203 final, not draft Kyber) |
+| candidates checked | system OpenSSL 3.0.13: no ML-KEM (root to upgrade) · system python cryptography 41.0.7: no mlkem (50.0.2 has it: a user venv, 4.75 MB wheel + cffi) · @noble/post-quantum 0.7.1 (745 KB) + curves/hashes/ciphers (~2.8 MB more) · liboqs-python 0.16.0.1: needs the C library built |
+| KDF binding | HKDF-SHA256, salt empty, info "agi-escrow-hybrid-v1", IKM = ss_mlkem ‖ ss_x25519 ‖ ct_mlkem ‖ eph_x25519_pub ‖ rcpt_x25519_pub |
+| AEAD | ChaCha20-Poly1305, random 12 B nonce, AAD = label ‖ eph_pub ‖ ct_mlkem; envelope = eph_pub(32) ‖ ct(1088) ‖ nonce(12) ‖ tag(16) ‖ body |
+| caveats | escrow tooling must use node:crypto, never shell openssl (3.0.13 here) · ML-KEM is as current as Node's bundled OpenSSL · no published KAT run · implicit rejection: a tampered ML-KEM ct yields a pseudo-random secret; the AEAD tag is what refuses it (by design) · Python callers would need the cryptography >= 50 venv |
+
+Proof output (DG3 re-run, secret prefixes masked):
+```
+node v24.21.0 openssl 3.5.8
+[1] ML-KEM-768 ek=1184 B ct=1088 B ss=32 B equal=true
+[2] hybrid wrap: share=32 B envelope=1180 B (32 eph + 1088 ct + 12 nonce + 16 tag + 32 body) unwrap_equal=true
+[3] flip byte in mlkem_ct / eph_pub / nonce / tag / aead_body, and a wrong x25519 key: all 6 rejected (Unsupported state or unable to authenticate data)
+RESULT: PASS
+```
+The proof script (4,424 B, sha256 prefix 5461de863c829243), byte-exact; run with `node proof.mjs`; keys are throwaway, in memory only:
+~~~~~javascript
+// V-L1 proof (goal:g7.16.1.11): hybrid X25519 + ML-KEM-768 escrow wrap, Node built-in crypto only.
+// All keys are THROWAWAY, in memory only; nothing is written to disk. Only lengths / short hex prefixes print.
+import crypto from 'node:crypto';
+
+const LABEL = Buffer.from('agi-escrow-hybrid-v1');            // domain separation
+const hex8 = (b) => Buffer.from(b).toString('hex').slice(0, 16) + '...';
+const x25519Raw = (pub) => Buffer.from(pub.export({ format: 'jwk' }).x, 'base64url');
+
+console.log('node', process.version, 'openssl', process.versions.openssl);
+
+// (1) ML-KEM-768 keygen -> encapsulate -> decapsulate
+const kem = crypto.generateKeyPairSync('ml-kem-768');
+const ek = kem.publicKey.export({ format: 'raw-public' });
+const { sharedKey: ssA, ciphertext: ct0 } = crypto.encapsulate(kem.publicKey);
+const ssB = crypto.decapsulate(kem.privateKey, ct0);
+console.log(`[1] ML-KEM-768 ek=${ek.length} B ct=${ct0.length} B ss=${ssA.length} B equal=${crypto.timingSafeEqual(ssA, ssB)} ss~${hex8(ssA)}`);
+
+// Recipient (escrow holder) long-term keys: X25519 static + ML-KEM-768
+const rcptX = crypto.generateKeyPairSync('x25519');
+const rcptK = kem;
+
+function deriveKey(ssK, ssX, ctK, ephPub, rcptXPub) {
+  // KDF binds: ss_mlkem || ss_x25519 || ct_mlkem || eph_x25519_pub || rcpt_x25519_pub ; info = LABEL
+  const ikm = Buffer.concat([ssK, ssX, ctK, ephPub, rcptXPub]);
+  return Buffer.from(crypto.hkdfSync('sha256', ikm, Buffer.alloc(0), LABEL, 32));
+}
+
+// Envelope: eph_pub(32) || ct_mlkem(1088) || nonce(12) || tag(16) || aead_ct(len(share))
+function wrap(share, rcptXPub, rcptEk) {
+  const eph = crypto.generateKeyPairSync('x25519');
+  const ephPub = x25519Raw(eph.publicKey);
+  const ssX = crypto.diffieHellman({ privateKey: eph.privateKey, publicKey: rcptXPub });
+  const { sharedKey: ssK, ciphertext: ctK } = crypto.encapsulate(rcptEk);
+  const key = deriveKey(ssK, ssX, ctK, ephPub, x25519Raw(rcptXPub));
+  const nonce = crypto.randomBytes(12);
+  const c = crypto.createCipheriv('chacha20-poly1305', key, nonce, { authTagLength: 16 });
+  c.setAAD(Buffer.concat([LABEL, ephPub, ctK]));
+  const body = Buffer.concat([c.update(share), c.final()]);
+  return Buffer.concat([ephPub, ctK, nonce, c.getAuthTag(), body]);
+}
+
+function unwrap(env, rcptXPriv, rcptXPub, rcptDk) {
+  const ephPub = env.subarray(0, 32), ctK = env.subarray(32, 1120);
+  const nonce = env.subarray(1120, 1132), tag = env.subarray(1132, 1148), body = env.subarray(1148);
+  const ephKey = crypto.createPublicKey({ key: { kty: 'OKP', crv: 'X25519', x: ephPub.toString('base64url') }, format: 'jwk' });
+  const ssX = crypto.diffieHellman({ privateKey: rcptXPriv, publicKey: ephKey });
+  const ssK = crypto.decapsulate(rcptDk, ctK);           // implicit rejection: bad ct -> pseudo-random ss
+  const key = deriveKey(ssK, ssX, ctK, ephPub, x25519Raw(rcptXPub));
+  const d = crypto.createDecipheriv('chacha20-poly1305', key, nonce, { authTagLength: 16 });
+  d.setAAD(Buffer.concat([LABEL, ephPub, ctK]));
+  d.setAuthTag(tag);
+  return Buffer.concat([d.update(body), d.final()]);    // throws on tag mismatch
+}
+
+// (2) hybrid wrap / unwrap of a throwaway 32-byte share
+const share = crypto.randomBytes(32);
+const env = wrap(share, rcptX.publicKey, rcptK.publicKey);
+const back = unwrap(env, rcptX.privateKey, rcptX.publicKey, rcptK.privateKey);
+console.log(`[2] hybrid wrap: share=${share.length} B envelope=${env.length} B (32 eph + 1088 ct + 12 nonce + 16 tag + 32 body) unwrap_equal=${crypto.timingSafeEqual(share, back)} share~${hex8(share)}`);
+
+// (3) negatives: one flipped byte in each region must fail to unwrap
+let allFail = true;
+for (const [name, off] of [['mlkem_ct', 32 + 500], ['eph_pub', 5], ['nonce', 1125], ['tag', 1140], ['aead_body', 1150]]) {
+  const bad = Buffer.from(env); bad[off] ^= 0x01;
+  let ok;
+  try { unwrap(bad, rcptX.privateKey, rcptX.publicKey, rcptK.privateKey); ok = 'UNWRAPPED (BAD)'; allFail = false; }
+  catch (e) { ok = `rejected (${e.message})`; }
+  console.log(`[3] flip byte in ${name.padEnd(9)} @${off}: ${ok}`);
+}
+// wrong recipient X25519 key must also fail
+try { unwrap(env, crypto.generateKeyPairSync('x25519').privateKey, rcptX.publicKey, rcptK.privateKey); allFail = false; console.log('[3] wrong x25519 key: UNWRAPPED (BAD)'); }
+catch (e) { console.log(`[3] wrong x25519 key        : rejected (${e.message})`); }
+console.log(allFail ? 'RESULT: PASS' : 'RESULT: FAIL');
+process.exit(allFail ? 0 : 1);
+~~~~~
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PHASE A' (v4c): DG5 moves from pi-free to Claude Code Sonnet 5.5 with Remote Control (owner 04:40Z) and the owner logs DG5's user in by hand (04:49Z), so the credential copy R8 becomes R8a (owner login) + R8b (onboarding/trust); RC proof R16' + app proof; R17 = the ONE pi-free kid on CCCC; engine-v4 at 16,384/16,384 B (agi-seed.service dropped for stage 3); parity 52/55 matched-or-better + rows 56-57 pending live proof. First Phase A' run died at the 04:45Z rotation (only assemble.py touched); this is the relaunch.
 <!-- THOUGHT:END -->
