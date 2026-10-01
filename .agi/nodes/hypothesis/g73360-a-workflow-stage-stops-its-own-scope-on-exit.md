@@ -93,6 +93,17 @@ DEMOTED   UNVERIFIED 3b (the hazardous probe was rightly not run; the code read 
 SAFETY    never run a real pi / claude / dispatch.py / workflow.py run / systemd-run from a test or probe.
 FILE SCOPE extensions/agi/tests/test_workflow_slice_isolation.py · extensions/agi/tests/conftest.py · extensions/agi/tests/suite_guards.py (only the exception mechanism) · this node.
 CEILING   tests net +40 lines · production 0 · Sonnet 5.5 subagent · 0 USD.
+DONE      81f75ae39: the per-file guard deleted; NO_REAL_PROCESSES = True (suite_guards home); 290 passed 8 skipped.
+
+## CORRECTIVE DH.DG3.77 -- closes mur-de-base-dg3-76 h60f-code (accept_with_residue, verify upheld)
+BASE      de-base-DG3.75 tip 81f75ae39 + this node commit, same worktree. Never rebase.
+1. _REAL_LEAF is a module global (test_workflow_slice_isolation.py:48): scope the one real child to the bash tick row ONLY -- a fixture or a local in that row whose leaf itself refuses any argv but the declared bash tick (assert at the leaf, not the call site). TRUE WHEN no module-level name in the file holds the raw Popen (paste git grep -n _REAL_LEAF) and the bash row passes.
+2. Deny-by-default not pinned (verify missed): test_opt_in_refuses_every_real_launch adds a benign NON-harness argv (e.g. ['true']) refused on Popen and run. TRUE WHEN that row would FAIL against a harness-shape-only guard (say why in the commit message).
+3. Stale module docstring (:24-27) rewritten to the opt-in truth (one real bash child, everything else refused by suite_guards).
+4. _CFG read at import (:74): read the config snapshot inside the fixture (lazily, before the fence engages), never at module import.
+DEMOTED   UNVERIFIED other guard files (290 passed reported) · the bash-child kill note (unreachable) · the silent-fallback note (the conftest fence loads for this suite) · the config-frozen note (closed by item 4).
+FILE SCOPE extensions/agi/tests/test_workflow_slice_isolation.py · this node.
+CEILING   tests net +25 lines · production 0 · Sonnet 5.5 subagent · 0 USD.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.DG3.76: mur-de-base-dg3-75 h60e-code accept_with_residue: the test guard becomes deny-by-default (a dispatch.py-shaped child was passable), string argv normalized, and the policy folds into the suite_guards home with the bash row as its one exception.
