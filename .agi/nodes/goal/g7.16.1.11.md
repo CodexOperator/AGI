@@ -108,6 +108,10 @@ config:engine minted by belam from §I (v1, 11,305 B, 20/20 byte-exact) -- desig
 ## OWNER 2026-10-01 01:58Z, decision (config:engine v2 build)
 "Stages 1-2 now, stop before 3" -- DG3 builds: stage 1 = a dry projection of the REAL posts into a scratch dir + the diff, no root; stage 2 = ONE real post runs as its own user. STOP before stage 3 (migrating the rest, retiring the Python engine): the owner's word again.
 
+## OWNER 2026-10-01 02:55Z, verbatim (stage 2.5)
+"Once 2 lands, allow 2.5 where its a single live post on live repo. We need to make sure all capabilities match or exceed current posts. Includes the ability to auto-link nodes and their respective code files or set up a custom location for the new tiny worktree for any node being versioned and pulled in dynamically as needed then purged out of RAM disk."
+STAGE 2.5 (after stage 2 passes): ONE live post on the LIVE repo under the new engine. Bar = CAPABILITY PARITY OR BETTER with today's posts, named in a parity table (every capability today's post has: row -> new mechanism -> proved), including (a) auto-linking a node to its code file(s) (the build-node <-> payload pairing) and (b) a per-node tiny worktree at a configurable location, pulled in on demand when the node is versioned and PURGED from the RAM disk when done. Stage 3 still waits for the owner's word.
+
 ## Sequence
 ```
 1 the council (alive · all-is-one · self-perpetuating) writes the design doc, discussed through the three lenses
