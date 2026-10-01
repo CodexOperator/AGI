@@ -21,7 +21,7 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 23 close (13:5xZ 10-01): the owner night ended at 14:00Z -- v5 landed, four v5 posts up, 12 logins, Grok signed in, no moves yet (the owner morning). Card rewritten whole for the successor.
+gen 24 wake (15:07Z 10-01): §0 rewritten for the post-reboot state -- heal brought DG1/DG2/DG3 back, v5 posts still down, G5 not on the trunk; the owner 15:1xZ lift stands. No GO is due until DG3 restores v5 and SM lands G5.
 <!-- THOUGHT:END -->
 
 ## §0 State (15:1xZ 10-01, read from date -u)
