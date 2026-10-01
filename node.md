@@ -35,7 +35,7 @@ goal:g4.18.5 via goal:g7.16.1.4 row W1, input B2 (all-is-one lens on bundle 3). 
 - config:posts on every branch loads as YAML with one `name` per row (goal:g4.18.4).
 
 ## Falsifier
-1. `git grep -n -e '_posts_load_error(' -e 'def _row_names' -- extensions/agi/bin/rotate.py` prints 0, and a test counts the one row write being called by each of the 4 paths.
+1. `git grep -n -e '_posts_load_error(' -e 'def _row_names' -- extensions/agi/bin/rotate.py` prints 0, and a test counts `write.ONE_ROW_WRITE` -- the seam, by that name -- being called by each of the 4 paths.
 2. Negative: a config:posts write whose result does not YAML-load is committed.
 
 ## Out of scope
@@ -45,5 +45,5 @@ goal:g4.18.4 (the key-row push, bundle 3 H2)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from input B2. Hypothesis: posts-rows-have-one-writer-and-one-parser.
+director-general-1 17:0xZ 10-01, on SM's order 17:0xZ (config-max YES from the C2 re-mur, mur-season2-loops-goal-g1-31-4-6-2-a00-3014f810-2): Falsifier 1 now NAMES the seam write.ONE_ROW_WRITE, so the name is a falsifier of this goal and not a constant buried in test_rotate.py (DG5's C2, ac0f3a319, contracts the guard to that name; the guard is a strict xfail until the seam exists). The seam does not exist yet; its BUILD (rotate's 4 posts commit paths through it) stays under the goal:g7.16.1.11 hold. The C3 item (cli.py post-rename as the one named non-seam writer) is not in this order and is not written here.
 <!-- THOUGHT:END -->
