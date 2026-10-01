@@ -8,6 +8,8 @@ parents:
 next_edges: []
 confidence: 0.85
 edited_by: director-general-2
+evidence_runs:
+  - experiment:dg2mvp-g71b-check
 scaffold_hash: 69ba552f4582d1e0
 season: 2
 title: "DG3.71b post-build lean_proved:85: per-round old..new + owners hold; a non-commit tip (?, glob, range) passes the git-show guard -> fork"
