@@ -42,6 +42,11 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(BIN))
 
+NO_REAL_PROCESSES = True     # suite_guards: no real child, but the one below
+# The ONE declared exception: the bash tick row runs a real child. The leaf is
+# read BEFORE the fixture refuses it, and only that row's spy may call it.
+_REAL_LEAF = getattr(_sp.Popen, "__agi_spawn_fence__", _sp.Popen)
+
 import workflow as _wf  # noqa: E402
 from workflow import run_workflow  # noqa: E402
 
@@ -52,38 +57,29 @@ _SCHEMA = {"type": "object", "properties": {"ok": {"type": "boolean"}},
            "required": ["ok"]}
 
 
+def test_opt_in_refuses_every_real_launch():
+    """DH.DG3.76: the suite_guards home (NO_REAL_PROCESSES) denies EVERY real
+    launch -- a dispatch.py-shaped argv and a pi-shaped STRING alike. Binaries
+    that do not exist: were the fence broken, this is FileNotFoundError, never
+    a child."""
+    for argv in (["/nonexistent/python3", "/nonexistent/dispatch.py", "root",
+                  "iter", "--tier", "parent", "--role", "parent", "--detach"],
+                 "/nonexistent/pi -p --provider x prompt"):
+        for launch in (_sp.Popen, _sp.run):
+            with pytest.raises(AssertionError, match="NO_REAL_PROCESSES"):
+                launch(argv)
+
+
+_CFG = (REPO / ".agi" / "config.json").read_text(encoding="utf-8")
+
+
 @pytest.fixture(autouse=True)
-def _no_real_harness(monkeypatch):
-    """DH.DG3.75: no test here may reach a REAL harness. A real child whose argv
-    is a harness launch (pi / claude / a scope wrap / `--provider`) is recorded
-    and RAISES before the child exists; the teardown re-asserts, so a seam
-    failure is a RED even if something swallows the raise. `_REAL_POPEN` moves
-    with it, so the seam's `Popen is _REAL_POPEN` reading is unchanged."""
-    launched, real = [], _sp.Popen
-
-    def _guard(args, *a, **kw):
-        argv = [str(x) for x in (args if isinstance(args, (list, tuple))
-                                 else [args])]
-        if ("--provider" in argv or _wf.mem_cap.is_wrapped(argv) or
-                os.path.basename(argv[0]) in ("pi", "claude", "prlimit",
-                                              "systemctl")):
-            launched.append(os.path.basename(argv[0]))
-            raise AssertionError("a real harness launch under the seam")
-        return real(args, *a, **kw)
-
-    monkeypatch.setattr(_sp, "Popen", _guard)
-    monkeypatch.setattr(_wf, "_REAL_POPEN", _guard)
-    yield launched
-    assert launched == [], "real harness launch attempted: %s" % launched
-
-
-def test_guard_refuses_a_real_harness_launch(_no_real_harness):
-    # a binary that does not exist: if the guard were broken this is a
-    # FileNotFoundError, never a child
-    with pytest.raises(AssertionError):
-        _sp.Popen(["/nonexistent/pi", "-p", "--provider", "x", "prompt"])
-    assert _no_real_harness == ["pi"]
-    _no_real_harness.clear()               # refusal is the expected outcome
+def _config_from_snapshot(monkeypatch):
+    # the opt-in refuses a live .agi/config.json open mid-test: the config is
+    # read once at import and handed to run_workflow as a fresh parse; the
+    # systemd-run probe (reads /proc, may launch) is answered, never run
+    monkeypatch.setattr(_wf, "_load_config", lambda root: json.loads(_CFG))
+    monkeypatch.setattr(_wf.mem_cap, "systemd_run_usable", lambda cfg=None: False)
 
 
 def _tmp_session_root(tmp_path_factory, wf_mod):
@@ -402,9 +398,10 @@ def test_counter_keeps_counting_through_the_extension(tmp_path):
         "i=0\nwhile [ $i -lt 20 ]; do\n"
         f"  i=$((i+1)); echo $i >> {counter}\n  sleep 0.1\ndone\n")
     built = []
-    real = _sp.Popen
+    real = _REAL_LEAF
 
     def spy(cmd, **kw):
+        assert cmd[0] == "bash", "only the declared bash tick may be real"
         p = real(cmd, **kw)
         built.append(p)
         return p
