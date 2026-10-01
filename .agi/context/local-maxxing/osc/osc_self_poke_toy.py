@@ -3,7 +3,7 @@
 scales a family's W_out columns on the sha-pinned PC toy (its pipeline imported, unchanged) under REAL / SHAM / BLIND
 arms; the stand-in report = mean entropy. Grid = <cell osc_self_poke_toy_dir>/params.json. Void run: move aside."""
 import hashlib, json, os, subprocess, sys, time
-import numpy as np, torch
+import numpy as np, safetensors.torch as ST, torch
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [HERE, os.path.dirname(HERE)]
@@ -27,8 +27,8 @@ def edit(model, ids, s):   # the controller's reversible scale: W_out column i i
         model.w_out.weight[:, ids] *= s
 
 
-def restore(model, ckpt):   # reload every weight from the checkpoint file -> the state-dict sha
-    model.load_state_dict(torch.load(ckpt))
+def restore(model, ckpt):   # reload every weight from the checkpoint (torch zip, or safetensors by magic) -> state sha
+    model.load_state_dict(torch.load(ckpt) if open(ckpt, "rb").read(2) == b"PK" else ST.load_file(ckpt))
     return state_sha(model)
 
 

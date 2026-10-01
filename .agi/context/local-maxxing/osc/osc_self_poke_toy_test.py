@@ -9,6 +9,7 @@ import os
 import sys
 
 import pytest
+import safetensors.torch as ST
 
 torch = pytest.importorskip("torch")
 np = pytest.importorskip("numpy")
@@ -25,28 +26,39 @@ CK, Pc = os.path.join(PCD, "model.pt"), json.load(open(os.path.join(PCD, "params
 N = P["probe_size"]
 
 
-@pytest.fixture(scope="module")
-def world():
-    model = PC.make(Pc, 0).eval()
-    sha0 = S.restore(model, CK)
-    return model, sha0, PC.data(Pc)[0], S.families(model, Pc)
+@pytest.fixture
+def ckpt(tmp_path, allow_model_load):
+    """The context suite's model fence refuses torch.load's unpickler (it carries no path to declare): the test builds ITS OWN
+    checkpoint (a seeded random-init toy, safetensors) in tmp, declares it, and S.restore reads it back by its magic bytes."""
+    ST.save_file({k: v.contiguous() for k, v in PC.make(Pc, 0).state_dict().items()}, str(tmp_path / "model.pt"))
+    allow_model_load(tmp_path)
+    return str(tmp_path / "model.pt")
 
 
-def test_1_edit_then_restore_returns_the_state_sha(world):
+@pytest.fixture
+def world(ckpt):
+    model = PC.make(Pc, 1).eval()   # a different init than the checkpoint: restore must overwrite every weight
+    fams, lo = {}, 0
+    for k, n in P["family_sizes"].items():   # disjoint stand-in families with the registered sizes (the real ones: test 1b)
+        fams[int(k)], lo = list(range(lo, lo + n)), lo + n
+    return model, S.restore(model, ckpt), PC.data(Pc)[0], fams
+
+
+def test_1_edit_then_restore_returns_the_state_sha(world, ckpt):
     model, sha0, X, fams = world
     S.edit(model, fams[5], 0.0)
     assert S.state_sha(model) != sha0
-    assert S.restore(model, CK) == sha0
-    assert S.sha_file(CK) == P["pc_model_sha256"]
+    assert S.restore(model, ckpt) == sha0
+    assert not torch.equal(PC.make(Pc, 1).w_out.weight, model.w_out.weight)   # restore replaced the other init
 
 
-def test_1b_the_checkpoint_and_the_family_sizes_match_the_pre_registration(world):
-    model, sha0, X, fams = world
+def test_1b_the_real_checkpoint_pin_and_the_committed_family_sizes_match_the_pre_registration():
     assert S.sha_file(CK) == P["pc_model_sha256"] and S.sha_file(os.path.join(PCD, "params.json")) == P["pc_params_sha256"]
-    assert {str(k): len(v) for k, v in fams.items() if k in P["families"]} == P["family_sizes"]
+    R = json.load(open(os.path.join(paths.get_local("osc_self_poke_toy_dir"), "results.json")))   # the run's own recomputation
+    assert {str(k): R["family_sizes"][str(k)] for k in P["families"]} == P["family_sizes"] and R["void"] is False
 
 
-def test_2_scale_one_leaves_the_logits_bit_identical(world):
+def test_2_scale_one_leaves_the_logits_bit_identical(world, ckpt):
     model, sha0, X, fams = world
     xb = S.probe(X, 5, N)
     with torch.no_grad():
@@ -54,7 +66,7 @@ def test_2_scale_one_leaves_the_logits_bit_identical(world):
     S.edit(model, fams[5], 1.0)
     with torch.no_grad():
         assert torch.equal(model(xb), before)
-    S.restore(model, CK)
+    S.restore(model, ckpt)
 
 
 def test_3_told_reaches_no_computation():
@@ -64,13 +76,13 @@ def test_3_told_reaches_no_computation():
     assert 'told' not in src.replace("the told flag is bookkeeping", "")
 
 
-def test_4_a_declining_consent_stub_leaves_the_trial_unedited_and_logs_it(world):
+def test_4_a_declining_consent_stub_leaves_the_trial_unedited_and_logs_it(world, ckpt):
     model, sha0, X, fams = world
     t = {"trial": "t000", "family": 5, "s": 0.0, "arm": "REAL", "told": True, "probe_seed": 7}
-    r0, _ = S.run_trial(model, CK, X, {**t, "arm": "SHAM"}, fams, N)
-    r, rec = S.run_trial(model, CK, X, t, fams, N, consent=lambda t: False)
+    r0, _ = S.run_trial(model, ckpt, X, {**t, "arm": "SHAM"}, fams, N)
+    r, rec = S.run_trial(model, ckpt, X, t, fams, N, consent=lambda t: False)
     assert r == r0 and rec["declined"] is True and rec["edit_applied"] is False
-    r, rec = S.run_trial(model, CK, X, t, fams, N)
+    r, rec = S.run_trial(model, ckpt, X, t, fams, N)
     assert r != r0 and rec["edit_applied"] is True and rec["consent"] == "n/a (toy)" and rec["restore_sha"] == sha0
 
 
