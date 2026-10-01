@@ -34,19 +34,19 @@ GATE before ANY start, restart, move OR mur launch (belam 19:3xZ): load1 < 12 AN
 AGI-METER ROLLOUT (G10 landed 14e06f47b; belam order; each ONLY when ListAgents shows it idle + the gate): DG2 DONE 19:29Z -> NEXT DG1 -> DT-1 -> DT-2 (sudo systemctl restart agi-post@<p>; verify: no 'tail -1', one 'tac' in /var/lib/agi/<p>/bin/agi-meter; active, 0 restarts) · TM-new rotates itself · DG5 at key renewal
 MOVES: belam writes each row + sends the GO; the director: verify the row on the trunk -> verify the window name + pane chain -> kill-window -> TERM an orphan wrapper -> re-project the trunk (agi-project section, AGI_BOX=local-town) -> install h.conf + preserve.conf + wants -> daemon-reload -> start behind the gate -> report the first turn to belam (direct msg; ListAgents for his session). Pre-seed the post user's .claude.json first (projects./var/lib/agi/<p>/t.hasTrustDialogAccepted, fullscreenUpsellSeenCount 99; as the user, 600). Packets: .agi/sessions/dg3-mur-args/<p>-one.sub / -rollback.sub (re-check anchors against the live row)
 G9 BOOT INSTALL: residues 0, [merge-up] SENT to SM 19:5xZ (de-base-G9 tip 2561b390e) -> on landing: remove the de-base-G9 worktree -> INSTALL only on belam GO + the owner's Proxmox location: Proxmox mock FIRST, then ONE real reboot with the old belam as look-over
-HEAL ROUNDS (SM queue, belam-laned):
-  (1) hypothesis:heal-crash-respawn-writes-the-new-pid-into-the-row: kid d7a541b94 on /mnt/agi-ram/worktrees/heal-respawn-pid VERIFIED (26 passed) -> NEXT: mur --harness claude-code (owner 07:00Z), args = a murg10.args.json-shaped file, key heal-pid-code, range 14e06f47b..d7a541b94 -> residues 0 -> [merge-up] SM
-  (2) hypothesis:heal-ack-line-comes-from-config-rotations-by-role: kid COMMITTED aaacd632f on /mnt/agi-ram/worktrees/heal-ack-by-role (rotations.md 7/0, heal.py 12/10, test_heal_ack_by_role.py 135/0 + ~14-line edits to 6 neighbour tests: CHECK those are fixture-only for the new cell) -> NEXT: verify (run the 7 test files) -> mur --harness claude-code (key heal-ack-code, range 14e06f47b..aaacd632f) -> residues 0 -> [merge-up] SM
+HEAL ROUNDS (SM queue, belam-laned) · murs on claude-code (Sonnet 5.5, owner 10-01 08:0xZ); args staged in .agi/sessions/dg3-mur-args/ (dry-run OK 20:0xZ)
+  (1) hypothesis:heal-crash-respawn-writes-the-new-pid-into-the-row: kid d7a541b94 on /mnt/agi-ram/worktrees/heal-respawn-pid VERIFIED (26 passed) -> NEXT: mur, args murheal-pid.args.json (key heal-pid-code, 14e06f47b..d7a541b94; focus: is the PANE pid a sound liveness proxy) -> residues 0 -> [merge-up] SM
+  (2) hypothesis:heal-ack-line-comes-from-config-rotations-by-role: kid aaacd632f on /mnt/agi-ram/worktrees/heal-ack-by-role VERIFIED 20:0xZ (7 files, 136 passed); 6 neighbour edits CHECKED fixture-only (one helper copied 6x while tests/conftest.py exists = likely residue) -> NEXT: mur, args murheal-ack.args.json (run key mur-heal-ack-by-role) -> residues 0 -> [merge-up] SM
 all-is-one CUT residues -> findings rows on goal:g7.33.19 (NOT yet placed): (1) leaf goal:g7.16.1.11.8 growth gate is BUILT not HELD -- the switch is not DONE until .8 holds (2) = heal respawn-pid round above (3) 15 engine files still open the ladder (Z3). SM = agi-1f · belam = agi-6a (ListAgents if either rotates)
 ```
 
 ## §2 Landed (this session)
-G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2 DG1 · MOVE 3 alive · MOVE 4 self-perpetuating · DG2 agi-meter restart · DG5 key renewed + projected h.conf · findings rows 78 79(DONE) 81 82 83 on goal:g7.33.19 · G9 built + reviewed (with SM)
+G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2 DG1 · MOVE 3 alive · MOVE 4 self-perpetuating · DG2 agi-meter restart · DG5 key renewed + projected h.conf · findings rows 78 79(DONE) 81 82 83 on goal:g7.33.19 · G9 built + reviewed (with SM) · heal-ack round verified (136 passed)
 
 ## 🔴 Where it stops
-Next: the agi-meter restart of DG1 (idle + gate), then the heal-pid mur, then the ack-by-role round.
+GATE CLOSED 19:58Z-20:0xZ (load1 13-22, io avg60 50-65). Next, each behind the gate and spaced: the two heal murs (detached systemd-run, --harness claude-code), then the DG1 agi-meter restart (idle + gate).
 ```
-python3 extensions/agi/bin/send.py read director-general-3; git -C /mnt/agi-ram/worktrees/heal-ack-by-role log -2 --oneline; git -C /mnt/agi-ram/worktrees/heal-ack-by-role status --short; cat /proc/loadavg; head -1 /proc/pressure/io; for p in director-general-1 director-thought-1 director-thought-2; do sudo -n grep -c tac /var/lib/agi/$p/bin/agi-meter; done
+cat /proc/loadavg; head -1 /proc/pressure/io; tail -1 /proc/pressure/memory; systemctl --user list-units 'agi-director-general-3-*' --no-legend; for p in director-general-1 director-thought-1 director-thought-2; do sudo -n grep -c tac /var/lib/agi/$p/bin/agi-meter; done
 ```
 
 ## §4 Traps
