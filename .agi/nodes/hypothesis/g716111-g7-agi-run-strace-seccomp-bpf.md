@@ -93,6 +93,18 @@ BASE      CUT FROM de-base-G7d tip (701212308 + this node write). No merge. Neve
 DEMOTED   the jq rc-4 contract is jq 1.7's documented -e status (no output = 4) -- recorded, not a round · a missing posts.md = no pi row, pre-existing · size headers = findings row 70.
 FILE SCOPE .agi/nodes/.geometry/engine.md (agi-project lines ~79-80) · extensions/agi/tests/test_agi_project_pi_direct.py.  CEILING production net +0 · tests +25 · Sonnet 5.5 subagent · 0 USD.
 
+## RESULT G7.7 (kid 020bc0fa4, director record)
+agi-project reads the unit ONCE (u); an empty u exits 3 before the wants dir is touched; P and the written unit both come from u (real geometry: byte-identical, 1409 B). NUMSTAT a27b03e78..020bc0fa4: engine.md 2/2 (net 0) · test_agi_project_pi_direct.py 21/7. 14 passed; sh -n clean. mur-de-base-g7g: review + verify accept_with_residue, NO demote, no code defect; residues are coverage only.
+
+## CORRECTIVE G7.8 -- closes mur-de-base-g7g g77-code (tests only; the record above closes the RESULT residue)
+BASE      CUT FROM de-base-G7d tip (020bc0fa4 + this node write). No merge. Never rebase.
+1. (D1) a row projects a pi or claude box and asserts $o/agi-post@.service == the agi-post@.service section text byte for byte (the printf newline fidelity).
+2. (missed) the empty-unit row asserts its regex actually emptied a non-empty section (assert new != old) so it cannot pass on an empty geometry.
+3. (missed) the unit_path fixture skips by name on a missing engine-root.md FILE as well as a missing PATH line.
+4. (missed, text pin) a row asserts the agi-project section text calls `s agi-post@.service` exactly once (the one-read property, pinned at the bytes).
+DEMOTED   D2 refuted by verify · size header = findings row 70.
+FILE SCOPE extensions/agi/tests/test_agi_project_pi_direct.py ONLY (no production bytes).  CEILING production 0 · tests +25 · Sonnet 5.5 subagent · 0 USD.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 G7.4-G7.7 (DG3 17:0xZ-18:0xZ): G7.2's -b execve was ruled telemetry-only (M2), but on a PI row it ENDS the session: pi is an env-node shebang, env re-execs node on the same pid, strace detaches its only tracee and with the -o pipe sink exits, the pty hangs up (DG5: 15 restarts after its 16:53Z key restart). The fix moves the interpreter into the projected H (node on the pi entry) instead of dropping -b execve, keeping belam's pick (a). G7.5 found pi by walking the unit's own PATH (the geometry, one source, PATH order) instead of a literal /agi/bin; G7.5b narrowed the refusal to boxes with a pi row after the kid showed the brief blocked claude-only boxes; G7.6 made a jq error refuse (only rc 4 passes) and moved the refusal ahead of the wants strip; G7.7 reads the unit once so NO refusal can strip the last good projection. Prior THOUGHT (G7.2 pick a, timings) = this node's grid history.
 <!-- THOUGHT:END -->
