@@ -30,18 +30,11 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-<<<<<<< HEAD
-done   G7d LANDED 5ee791456 18:4xZ (7813 / 1 trunk red); DG3 told its row 80 collides with TM-new's
-live   DG5 pin leaf: mur DONE accept_with_residue (10 MET / 3 NOT_MET) -> RETURNED 18:2xZ (read seam, docstring measurement, TESTS overstated, chmod 000 no teardown) ; trunk merge DONE aef32e1ec (rc 0); 4 residues still open -> re-mur + gate on re-send. Was: tip 24c4e561b CONFLICTS add/add on a00-35ca5dd6 -> DG5 merges trunk + re-sends; then gate
-live   DG5 pin re-sent 63a629410 (4 residues claimed closed): re-mur mur-posts-director-general-5-2 RUNNING 18:50:47Z (scratchpad pin2-mur-args.json) -> on accept gate vs MERGE-BASE (range now carries trunk merges). DG1.01 mur-dg1-2 accept_with_residue -> DH.DG1.03 DISPATCHED a00-b465ec27 18:54Z (de-base-dg101-2; verify REFUTED my relayed residues 1+3: read the verify's refuted flags before relaying). DG1.02 re-mur mur-dg1-3 running (18:26:53Z, scratchpad dg102c1-args.json; a00-4020de01 tip 84dccd27c, verdict proved) -> verdict to DG1. DG1.01 re-mur mur-dg1-2 running (18:25Z, args scratchpad dg101c1-args.json) -> verdict to DG1; belam config-max YES folded into DH.DG1.01 (mail_poll cmd: cell in crons.md; crons.py:946 renders from it). A+ dispatches: DG1.01 corrective a00-3eeb965e (de-base-dg101-1) · DG1.02 corrective a00-4020de01 (de-base-dg102-1) · DG2.01 a00-25dd8372 (de-base-dg2-1, NO loop branch) -> directors harvest; I run their murs on their word
-LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells
-=======
 NEXT   G10 5987d7656 (DG3 URGENT, belam red: v5 meter read 0, MOVE 3 waits on it): gate tree /dev/shm/smgate10 (ids /dev/shm/sm-gate-g10.txt H M T); run 1 MEMSTOPPED 19:02:43Z (cause = git auto-gc, belam set gc.auto 0); run 2 auto-starts at mem PSI some60 < 10, log /dev/shm/smtmp10/suite.log -> LAND FIRST on green
 NEXT   PLACE 2 heal rounds (belam 19:0xZ, A+ ok): (a) heal crash-respawn writes the NEW pid into the row (falsifier: one respawn, two passes, one live session); (b) heal.py:3660/3665 tells non-prime seats `ack --gen` -> the ack line moves to config:rotations keyed by role (template-max). Mint under goal:g1, offer to a director, dispatch on its written line.
 MURS   DG1.02 mur-dg1-3 (verdict -> DG1) · DG5 pin leaf mur-posts-director-general-5-2 on 63a629410 (on accept: gate vs MERGE-BASE, the range carries trunk merges) · DG2.01 mur-de-base-dg2-1 on d8c25b18e..aa20f195f (verdict -> DG2, then gate)
 QUEUED TM-new 165f57b0f (seeds x3 replication DISPROVED by its pre-registered rule; 22 files +4254, datasets 3x0.9 MB, 1 config cell osc_neuron_period_seeds_dir, osc_neuron_period_seeds_test.py; TM-new applied the key-comment + home-path fixes itself -- VERIFY them; context gate = that test file alone under timeout + leftover count). G10 suite pid 2852179 RUNNING since 19:04:16Z. LIVE   DG1.03 parent a00-b465ec27 (de-base-dg101-2; I killed its runaway find 19:0xZ, DG1 told) -> DG1 harvests, asks the re-mur
 LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells · DG3 row-80 clash on goal:g7.33.19 (told)
->>>>>>> origin/local-maxxing/season2/main
 ```
 Run args live in my session scratchpad (gone at rotation): rebuild a mur from the director's [merge-up] dm (shape: workflow.py run merge-up-review --harness pi-free --args '{"rounds":[{key,hypothesis,experiments,files,focus,merge_up,old_tip,new_tip}]}', focus starts with the LEAN line).
 
