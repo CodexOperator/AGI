@@ -1626,8 +1626,8 @@ def _engine_post(root: Path, to: str) -> bool:
     """True when the post's config:posts row carries an `engine` cell: it runs
     on the new engine and reads its mail through its OWN poll (no tmux window
     to nudge). The cell, not a literal version, is the marker."""
-    return bool((_seat_row_by_name(_locally_loaded_rows(root), to) or {})
-                .get("engine"))
+    row = _seat_row_by_name(_locally_loaded_rows(root), to) or {}
+    return bool(row.get("engine")) and boxes.row_is_local(root, row)
 
 
 def _row_is_quiet(root: Path, to: str) -> bool:
@@ -1786,12 +1786,15 @@ def _clear_pending(root: Path, seat: str, observed: int | None = None) -> None:
         pass
 
 
-def _announce_nudge(root: Path, to: str, delivered: bool) -> None:
+def _announce_nudge(root: Path, to: str, delivered: bool,
+                    inboxed: bool = True) -> None:
     """Conjunct (2): typed -> `[delivered]`; else `[undelivered-yet]`. An
-    engine post is delivered by mail: its own poll takes the turn."""
+    engine post is delivered by mail ONLY when the message reached the inbox
+    file its poll reads (`inboxed`); a dm file alone is written, not delivered."""
     if _engine_post(root, to):
-        print(f"[delivered] {to} -- by mail (its own poll reads the inbox)",
-              file=sys.stderr)
+        print(f"[delivered] {to} -- by mail (its own poll reads the inbox)"
+              if inboxed else f"[written] {to} -- dm file only; its mail poll "
+              f"reads the inbox, not delivered", file=sys.stderr)
         return
     if not (row := _seat_row_by_name(_locally_loaded_rows(root), to)) \
             or not (row.get("window") or row.get("pid")):
@@ -2485,8 +2488,6 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     """
     rows = _locally_loaded_rows(root)
     row = _seat_row_by_name(rows, to)
-    if (row or {}).get("engine"):
-        return None         # an engine post has no pane: never tmux (F3)
     if row is not None and not boxes.row_is_local(root, row):
         # A foreign box's row window/pid are NOT addressable here. Refuse by
         # name, exactly like the stale-@id and name-window refusals below -- and
@@ -2498,6 +2499,8 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
             print(f"nudge: {to} is a FOREIGN box row "
                   f"(box {label}); refusing as a target", file=sys.stderr)
         return None
+    if (row or {}).get("engine"):
+        return None         # an engine post has no pane: never tmux (F3)
     # The row is addressable (or was never refused): forget any old refusal so a
     # LATER foreign cause on the same row is named again -- the DURABLE memo
     # too, and in THIS tick's process, which may not be the one that named it.
@@ -2963,7 +2966,7 @@ def _wake_outcome(outcome: str, delivered: bool, seat: str,
     `<state>` is one of delivered | deferred | nothing-pending | no-target;
     `<path>` is idle | strand, the path the wake travelled (strand for a
     resubmitted stranded line). """
-    print(outcome)
+    print(f"{outcome} {seat}" if outcome == "by-mail" else outcome)
     state = {
         "no-target": "no-target",
         "resubmitted-strand": "delivered" if delivered else "deferred",
@@ -2971,6 +2974,7 @@ def _wake_outcome(outcome: str, delivered: bool, seat: str,
         "busy-deferred": "deferred",
         "typed-token": "delivered",
         "delivered-deferred": "delivered",
+        "by-mail": "delivered",
     }.get(outcome, "deferred")
     path = "strand" if outcome == "resubmitted-strand" else "idle"
     wid = f" {window_id}" if window_id else ""
@@ -3014,9 +3018,8 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
         # quiet: never re-fire a stale marker, never type (skip by name).
         print(f"wake {to}: quiet-skip")
         return False
-    if _engine_post(root, to):      # its own poll reads the mail: one line,
-        print("by-mail")            # no reaper-log entry per heal poll
-        return True
+    if _engine_post(root, to):      # its own poll reads the mail
+        return _wake_outcome("by-mail", delivered=True, seat=to)
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
         return _wake_outcome("no-target", delivered=False, seat=to)
@@ -3167,7 +3170,8 @@ def status(root: Path, to: str, tmux_session: str | None = None) -> str:
     line (hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-stale-
     marker, clause (3)). A `quiet` row prints `quiet` so an operator sees why
     no nudge ever came. READ-ONLY: never types, never cancels, never stamps."""
-    resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
+    resolved = None if _engine_post(root, to) else _nudge_target(
+        root, to, tmux_session, repair_stale_id=True)   # engine first, as wake
     if resolved is None:
         in_mode: str = "by-mail" if _engine_post(root, to) else "no-target"
     else:
@@ -4358,7 +4362,8 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # silently dropped the plain `[undelivered-yet]` line whenever the graph
     # root could not be reached by a rebase (a test fixture, or any layout
     # without a git common root): the announcement vanished with no error.
-    _announce_nudge(locations.find_project_root(croot) or croot, other, ok)
+    _announce_nudge(locations.find_project_root(croot) or croot, other, ok,
+                    inboxed=False)
     return path
 
 

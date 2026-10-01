@@ -8133,7 +8133,8 @@ def test_g5_f1_f3_send_to_engine_row_is_delivered_by_mail_no_tmux(
     send_mod.send_dm(project / ".agi" / "comms", "seat-a", "post-v5", "hi",
                      "seat-a")
     err = capsys.readouterr().err
-    assert err.count("[delivered] post-v5 -- by mail") == 2, err
+    assert [err.count("[delivered] post-v5 -- by mail"),     # G5.3 #1: send is
+            err.count("[written] post-v5 -- dm file")] == [1, 1], err  # mail, dm not
     assert "undelivered" not in err and "is gone" not in err, err
     send_mod.wake(project, "post-v5")
     send_mod.status(project, "post-v5")
@@ -8226,11 +8227,50 @@ def test_g52_signed_dm_reads_back_through_read_dm_text_intact(project: Path):
 
 def test_g52_wake_and_status_of_an_engine_post_say_by_mail_once(
         project: Path, monkeypatch, capsys):
-    """G5.2 item 4: one `by-mail` line, no reaper-log write."""
+    """G5.2 item 4 / G5.3 item 3: one named `by-mail` line, one reaper row."""
     _write_seats_node(project, [_V5_ROW])
     logged = []
     monkeypatch.setattr(send_mod.reaper_log, "log", logged.append)
     assert send_mod.wake(project, "post-v5") is True
-    assert capsys.readouterr().out == "by-mail\n"
+    assert capsys.readouterr().out == "by-mail post-v5\n"     # G5.3 #3: named
     assert "in_mode=by-mail" in send_mod.status(project, "post-v5")
-    assert logged == []
+    assert logged == ["wake post-v5: idle delivered"]          # one reaper row
+
+
+def test_g53_foreign_engine_row_is_refused_and_wake_status_agree(
+        project: Path, monkeypatch, capsys):
+    """G5.3 #2 foreign engine row -> FOREIGN, not by-mail; #4 live window: wake = status."""
+    calls = _fake_tmux(monkeypatch, ["post-v5"])
+    _write_seats_node(project, [dict(_V5_ROW, box="far")])
+    monkeypatch.setattr(send_mod.boxes, "row_is_local", lambda r, x: False)
+    send_mod._forget_refusals()
+    send_mod.send(project, "post-v5", "hello", "seat-a")
+    err = capsys.readouterr().err
+    assert "FOREIGN box row" in err and "by mail" not in err, err
+    monkeypatch.setattr(send_mod.boxes, "row_is_local", lambda r, x: True)
+    assert send_mod.wake(project, "post-v5") is True
+    assert "by-mail post-v5" in capsys.readouterr().out
+    assert "in_mode=by-mail" in send_mod.status(project, "post-v5")
+    assert calls == [], calls
+
+
+def _run_mail_poll(tmp_path: Path, create_inbox: bool):
+    """Run engine-wrap.md's mail-poll line under sh; return (typed, stderr)."""
+    node = (Path(__file__).resolve().parents[3] / ".agi" / "nodes"
+            / ".geometry" / "engine-wrap.md").read_text()
+    line = next(ln for ln in node.splitlines() if ln.startswith("case $H in"))
+    line = (line.replace("sleep 5", "sleep 0.1").replace("sleep 1&", "sleep 0.1&")
+            .replace(">$i", ">>$i"))     # a plain file stands in for the fifo
+    inbox, typed = tmp_path / "p.md", tmp_path / "i"
+    script = (f"f={inbox};i={typed};{line}\nsleep 0.5\n"
+              + (f"echo mail > {inbox}\nsleep 0.5\n" * create_inbox) + "kill $!")
+    cp = subprocess.run(["sh", "-c", script], capture_output=True, text=True,
+                        timeout=20, env={**os.environ, "H": "claude", "AGI_SEAT": "p"})
+    return (typed.read_text() if typed.exists() else ""), cp.stderr
+
+
+def test_g53_mail_poll_types_nothing_while_the_inbox_is_absent(tmp_path):
+    """G5.3 #5: absent inbox -> nothing typed, no stderr; an append still types."""
+    assert _run_mail_poll(tmp_path, False) == ("", "")
+    typed, err = _run_mail_poll(tmp_path, True)
+    assert "mail: send.py read p" in typed and err == ""
