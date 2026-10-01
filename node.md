@@ -130,9 +130,9 @@ mv $o $o.1;sh -c "$(sed -n 's/^ExecStart=sh -c "\(.*\)&&systemctl.*/\1/p' $o.1/a
 r=${2:-HEAD};git ls-tree --full-tree --name-only $r .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$r:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"
 ~~~
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+[THOUGHT of the proposed node, markers dropped in this doc (one THOUGHT per node, test_thought_hygiene); the landed node carries them]
 PROPOSED v5, NOT MINTED (owner GO 06:1xZ; doc:radically-simple-engine §Q + §R folds): v4c cut by one rule, ZYGOTE = what runs before any post exists + the map; the body (config:engine-post) and the wrappers (config:engine-wrap, + agi-infer) are EXPANSION read by sect @REV. Only the 4 readers changed (sect, agi-project, agi-gate, agi-post@.service): every .geometry/engine*.md at the REV, ranges end at ^##; the gate refuses a duplicate name (2) and an empty unit template (1). Every other piece = v4c bytes.
-<!-- THOUGHT:END -->
+[end of that THOUGHT]
 ~~~~~
 
 ## out/engine-post.md (8079 B, sha256 4bc40cc3220c110a), byte-exact
@@ -310,9 +310,9 @@ c=$(echo "$n"|sed -n '/^## Falsifier/,/^## Out/p'|grep -o '`[^`]*`'|tr -d '`'|gr
 [ "$c" ]||{ echo mute $g;continue;};timeout 30 sh -c "$c"</dev/null>/dev/null 2>&1&&echo met $g||echo red $g;done
 ~~~
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+[THOUGHT of the proposed node, markers dropped in this doc (one THOUGHT per node, test_thought_hygiene); the landed node carries them]
 PROPOSED v5 (round 5, §Q): v4c's body pieces cut whole out of config:engine, byte for byte; agi-post@.service is the one changed (its extraction loop reads every engine*.md, ranges end at ^##).
-<!-- THOUGHT:END -->
+[end of that THOUGHT]
 ~~~~~
 
 ## out/engine-wrap.md (4253 B, sha256 7c5d9096b8e047e2), byte-exact
@@ -376,7 +376,11 @@ h=$(mktemp);trap 'rm -f $h' 0;[ "$AGI_INFER_KEY" ]&&printf 'Authorization: Beare
 jq -Rsc --arg m "${1:-$AGI_INFER_MODEL}" '{model:$m,messages:[{role:"user",content:.}]}'|curl -sf -H @$h -H 'Content-Type: application/json' -d @- ${AGI_INFER_URL:-http://127.0.0.1:8080/v1}/chat/completions|jq -er '.choices[0].message.content'
 ~~~
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+[THOUGHT of the proposed node, markers dropped in this doc (one THOUGHT per node, test_thought_hygiene); the landed node carries them]
 PROPOSED v5 (round 5, §Q): v4c's wrapper pieces cut whole, byte for byte, + agi-infer (owner 05:50Z, b60af0b63): one OpenAI-compatible chat call; cells infer_url/infer_model/infer_key (a var NAME, never a key).
-<!-- THOUGHT:END -->
+[end of that THOUGHT]
 ~~~~~
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PROPOSED v5 build record for round 5 (doc:radically-simple-engine §Q + §R folds), carrying the proposed config:engine / engine-post / engine-wrap bodies in ~~~~~ fences. This version (DG3 10:4xZ 10-01, SM trunk red test_thought_hygiene): the embedded nodes THOUGHT markers are dropped to plain labels so this doc holds ONE THOUGHT; the landed nodes carry their own (land package doc:g716111-land-package).
+<!-- THOUGHT:END -->
