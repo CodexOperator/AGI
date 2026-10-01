@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:42Z 10-01, date -u) — seated 13:08Z after the memory-red rotation · chain LANDED 13:41Z · G6 suite running · owner night plan: work to 14:00Z
+## §0 State (14:02Z 10-01, date -u) — IDLE on the Prime's 13:50Z WIND-DOWN (owner window ended 14:00Z) · no gate running · no move until the owner's morning word
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -28,22 +28,21 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   seated 13:08Z · quorum card re-linked (9969cb7b3) · orphan grep scope run-u11445 stopped 13:21Z (48.9 GB read, D state) · DG3 freed its old scope + 2.2 GB RAM-disk
-done   chain LANDED: G4 900728906 + g73360-b b30042219 (suite run 2: 7773 / 1 = skills_first_turn, red on pure HEAD fafb9eefb) · DG2, DG3, the Prime told · row 60 CLOSED live on MAIN by DG2 13:4xZ (4 paths 0 units 0 orphans; verdict:dg2-g60b proved 0.92, dg2mvp-g60 lifted 0.9; evidence dry-run []) -> tell the Prime with G6
-NEXT   G6 5a31a9cf7 (DG3; AGI_BOX in the v4 drop-in; mur g6b ACCEPT, residues 0): gate M in /dev/shm/smgate12 on b30042219, ids /dev/shm/sm-gate-g6.txt,
-       merge-tree rc 0 · 0 D · anonymize ok · evidence [] · full suite since 13:41:39Z, log /dev/shm/smtmp12/suite-g6.log (guarded: stops at MemAvail < 3 GiB / PSI full60 > 15)
-MORNING G5 8a450c0c0 (DG3 13:5xZ; send treats a v5 post as a peer; mur g5e 11/11 MET, residues 0; merge-tree vs HEAD rc 0, 5 files, 0 D): held by the Prime's 13:50Z wind-down -- gate at the owner's word, BEFORE any move · LATER DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
+done   seated 13:08Z · quorum card re-linked · orphan grep scope run-u11445 stopped 13:21Z (48.9 GB read, D state) · DG3 freed its old scope + 2.2 GB RAM-disk
+done   3 landings (§2) · row 60 CLOSED live on MAIN by DG2 (verdict:dg2-g60b proved 0.92; evidence dry-run []) · DG2, DG3, the Prime told
+NEXT   (at the owner's morning word, BEFORE any move) G5 8a450c0c0 (DG3; send treats a v5 post as a peer; mur g5e 11/11 MET, residues 0)
+LATER  DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
 ```
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
-- 900728906 G4 (DG3: stand-up/merge-up resolve the project root) · b30042219 g73360-b (DG2: stage stop names <unit>.scope)
+- 900728906 G4 (DG3: stand-up/merge-up resolve the project root) · b30042219 g73360-b (DG2: stage stop names <unit>.scope) · 6c87be791 G6 (DG3: v4 drop-in carries AGI_BOX)
+- suites: chain 7773 / 1 · G6 7776 / 1 -- the 1 = test_skills_first_turn_entry, red on pure HEAD fafb9eefb (the trunk's)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master: G6 5a31a9cf7 suite running in /dev/shm/smgate12 since 13:41:39Z -- read its log, land on green (trunk red skills_first_turn excepted)
-LAND G6: T = merge-tree(live HEAD, 5a31a9cf7); newcomers vs the gated base (first field of /dev/shm/sm-gate-g6.txt) byte-identical to HEAD; commit-tree -p HEAD -p 5a31a9cf7; ff; push
-  then: remove /dev/shm/smgate12 (git worktree remove) + /dev/shm/smtmp12 + /dev/shm/sm-*.txt · dm DG3 · one [merge-up] line to the Prime
-  first live effect: agi-project.path re-projects on the ref change -> v4 drop-ins gain AGI_BOX=<row box>; live posts read it at next restart
+sanctuary-master idle on the 14:00Z wind-down: trunk 6c87be791 pushed, no gate running; G5 waits for the morning gate
+MORNING (owner's word): gate G5 8a450c0c0 -- merge-tree vs live HEAD, tmpfs gate tree, full suite only at MemAvailable >= 4 GiB + mem PSI some60 < 10, land BEFORE any move
+G6 first live effect: agi-project.path/.service are NOT loaded on this box's manager (14:01Z) -- AGI_BOX reaches a v4 drop-in only at the next projection run
 HELD: MAP v0 60817b0ac (DG2; gotty 127.0.0.1:8787 read-only) -- VIZ LAST; gate reads anonymize.py filter verb, config.json map cell, gotty sha256 pin, --permit-write=false
 HELD: g75213 7cd127824e code gate COMPLETE -> GO on the Prime's DISK bind (re-derive T2)
 UNOWNED (DG4 down; never land a returned tip): lineage 4620846a3f · DG4.13 9baba2bc99 + r49 7eb1c65aed · DG4.18 c576956960
