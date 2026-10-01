@@ -51,3 +51,10 @@ BASE      CUT FROM heal-ack-by-role tip aaacd632f (worktree /mnt/agi-ram/worktre
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
 FILE SCOPE extensions/agi/bin/heal.py (the ack_gate block only) · .agi/nodes/.geometry/rotations.md (recovery_ack only) · extensions/agi/tests/test_heal_ack_by_role.py · skills/agi-rotate/SKILL.md (line 40) · this node (director)
 CEILING   HARD CAP: 1 Sonnet 5.5 kid · <= 14 production lines · <= 90 test lines · 0 USD -- over it = the round is cut
+
+## CORRECTIVE DH.2 -- closes mur-heal-ack-by-role-3 heal-ack-code (accept_with_residue; gating, claude-code) -- TEXT ONLY
+BASE      CUT FROM heal-ack-by-role tip ef1ddf9e6 (worktree /mnt/agi-ram/worktrees/heal-ack-by-role). No merge. Never rebase.
+1. a test name + the module docstring overstate -- test_heal_ack_by_role.py (test_non_prime_seat_recovered_line_has_no_gen + docstring) -- TRUE WHEN both say what they pin: the FIXTURE cell's non-prime arm, while the LIVE default.recovered carries --gen (DH.1); no logic change.
+DEMOTED   CLAIM / FALSIFIER 1 wording = node prose, corrected by the director (4b2947e58) · 6 fixture seeds copied = the suite idiom (mur-heal-ack-by-role-2 verify: conftest has no rotations seeder; 20 test modules write their own rotations node) · SimpleNamespace bypasses argparse = verify confirmed --post is a real alias (rotate.py ~22747).
+FILE SCOPE extensions/agi/tests/test_heal_ack_by_role.py (names + docstring only)
+CEILING   HARD CAP: 1 Sonnet 5.5 kid · 0 production lines · <= 12 test lines changed · 0 USD
