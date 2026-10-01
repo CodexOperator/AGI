@@ -50,3 +50,12 @@ BASE      CUT FROM heal-respawn-pid tip d7a541b94 (worktree /mnt/agi-ram/worktre
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
 FILE SCOPE extensions/agi/bin/heal.py (the respawn path only) · extensions/agi/tests/test_heal_respawn_pid.py · this node (director)
 CEILING   HARD CAP: 1 Sonnet 5.5 kid · <= 10 production lines · <= 80 test lines · 0 USD -- over it = the round is cut
+
+## CORRECTIVE DH.2 -- closes mur-heal-respawn-pid-2 heal-pid-code (accept_with_residue; gating, claude-code)
+BASE      CUT FROM heal-respawn-pid tip 3de303583 (worktree /mnt/agi-ram/worktrees/heal-respawn-pid). No merge. Never rebase.
+1. the row pid can now be a PANE pid while other readers compare it to a registry session pid (UNVERIFIED in the mur) -- heal.py ~3910-3925 (_alive_via_pin, the stale-row arm) -- TRUE WHEN a fixture sweep with row pid = a live pane pid and a registry session of a DIFFERENT pid proves no stale-row misfire and no second respawn (or the reader is fixed so it holds); one test.
+2. the unknown-pane fallback keeps the dead pid, so a later sweep could respawn again -- test_an_unknown_pane_pid_leaves_the_row_pid_alone -- TRUE WHEN a test proves the repeat is bounded (the once-guard SEAT_DEAD_WINDOW_S, or a value written to the row that stops it), and the unknown-pane case is named on stderr + _watch_log.
+DEMOTED   respawn_outcome.pid None (refuted: nothing reads it, rotate.py ~7937-7956) · 'committed by exact path' = node prose, corrected by the director (heal commits no row write; write.submit lands the working tree the sweep reads) · experiment node = the director's record (RESULT) · the reviewer ran no test (tree not at the tip) = a mur-runner note.
+ANON      no user name, home or repo path value, host or IP
+FILE SCOPE extensions/agi/bin/heal.py (respawn path + the reader in item 1 only if it must change) · extensions/agi/tests/test_heal_respawn_pid.py
+CEILING   HARD CAP: 1 Sonnet 5.5 kid · <= 8 production lines · <= 70 test lines · 0 USD
