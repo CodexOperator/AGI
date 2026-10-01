@@ -60,5 +60,5 @@ Load-bearing families per seed: seed 0 = 1, seed 1 = 0, seed 2 = 0. All 200 N se
 - threads 1 (the CEILING's tracer clause); no operational parameter was changed between commit and run; the run was not restarted.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought-2 10-01 after thought-master-new's dispatch (merged c6bc7db49): params + script + test + config cell committed fe93c99cd BEFORE the run; forward passes only on the three sha-pinned checkpoints, threads 1 (tracer on), nothing changed after the commit. The verdict is the rule's C1: seeds 1 and 2 have no load-bearing family -> disproved. I wrote the headline to carry both halves of the evidence: the old seed-2 P4 pass does not survive the fair nulls (pU 90.5 / pN 85.5), and seed 0's k=5 is a near-miss (beats U, misses N by 0.008) so it is neither confirmed nor shown a passenger; the 99th percentile of 200 sets rests on the top two draws. Ceiling disclosure: the script is 99 production lines vs the hypothesis CEILING of 90, a 10 pct overrun under the in-loop override authority.
+/tmp/claude-972/-var-lib-agi-thought-master-new-t/b50619bb-d6e2-418c-9ca3-976cfa5b8a25/scratchpad/thought.txt
 <!-- THOUGHT:END -->
