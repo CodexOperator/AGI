@@ -67,3 +67,4 @@ python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:250
 ## §6 BANKED
 - the 716 standing trees (~96 GB): pass 3 (`git worktree remove` of clean + merged trees) is irreversible -> the owner's go (doc §4 Migration)
 - CAPSULE ring holders (doc §P.2): every post key lives on ONE box, so a per-post-key ring fails the spread rule (per box <= min(K-1, N-K)). Options: (a) the owner's device(s) + posts on 2 other boxes, (b) hardware keys, (c) a different K-of-N. Recommendation: 3-of-5 with 2 here, 2 on another town box, 1 owner device. Owner's call
+- CAPSULE phone holder (doc §P + the passkey route): the iPhone's escrow share must be opened ON the phone (iOS CryptoKit Curve25519 + ChaChaPoly = esc's construction) -> a tiny app on the owner's dev plan, or the phone is a signer only and a third box holds that share. Recommendation: the tiny app. Owner's call
