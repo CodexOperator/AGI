@@ -34,7 +34,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 DONE   rounds 1-4 (§F §L) · CAPSULE (§P, P.8 09c38103c) · ROUND 5 §Q b60af0b63 = GO · ROUND 6 lens lines (§S F40, §T matrix + conflict refs)
        DC NIGHT PLAN (owner 06:3x-07:0xZ): §V 983d2475c + esc delta 52ad87a72 -- keys no one can write: fresh key per login, cert for minutes,
-         CA = 32-B seed in a capsule + 2-of-2 escrow, armed for a window · CORRECTION: esc <= 64 B (now refuses more)
+         CA = 32-B seed in a capsule + 2-of-2 escrow, armed for a window · CORRECTION: esc <= 64 B · agi-sign v2 04ed82723: the cert fails closed (-O clear + restrict opts) · stand-in arms a TEST CA only (agreed with alive)
 NOW    alive (agi-1d) integrates §U-§X and sends the ONE [decision] to belam
 next   HOLD: wake on alive / belam / the owner / DG3. Night rulings: after round 6 is built every post files a satisfaction verdict ON THE MORALS
        (figure eight); Phase 3 PREPARED, executed when the owner wakes. At f >= 0.47: card + rotate.py rotate (bare)
