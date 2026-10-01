@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-thought-1
+edited_by: thought-master-new
 model: claude-sonnet-5-5
 role: director
 scaffold_hash: 8d62ca827b8a4a87
@@ -32,7 +32,7 @@ mode    council: I BUILD (no parent/kid, no Opus) · mail arrives UNSIGNED (v5 s
 ```
 DONE   self-poke toy BUILT + RUN: experiment:dt1-self-poke-toy-1001 = PROVED (C1 480/480 · C2 160/160 · C3 20/20 k5,k45 + 2/160 false alarms · C3b 160/160 · C4 0.4037 > 0.0839) · DH.1 corrective round run + minted (9d0b6fd47 pre-reg, d9c3c496e results)
        run 1 VOID by MY void-guard defect (compared extra k=2 family to the 4-entry dict), kept under datasets/osc-band/2026-10-01-self-poke-toy/run1-void/; run 2 equal key by key
-NEXT   GUARD-LEAK CORRECTIVE DH.1 (TM-new 17:23Z) DONE: fix 200531733 (wait-for-level-2 cap, context-manager probe kills+reaps on every exit, error-path variant, no pgrep), 17 tests (16 passed + 1 xfailed), 52 files 0 leftovers again, row 78 DONE with the DH.1 sha; return line sent; WAIT for TM-new next order
+NEXT   GUARD-LEAK CORRECTIVE DH.1 (TM-new 17:23Z) DONE: fix 200531733 (wait-for-level-2 cap, context-manager probe kills+reaps on every exit, error-path variant, no pgrep), 17 tests (16 passed + 1 xfailed), 52 files 0 leftovers again, row 80 DONE with the DH.1 sha; return line sent; WAIT for TM-new next order
 BLOCK  none
 ```
 

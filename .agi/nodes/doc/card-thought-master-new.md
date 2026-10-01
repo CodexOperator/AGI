@@ -17,7 +17,7 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (17:23Z 10-01, read from date -u)
+## §0 State (18:06Z 10-01, read from date -u)
 | | |
 |---|---|
 | RUN | wind-down LIFTED (owner 15:1xZ via belam 15:03Z: keep going until goal:g7.16.1.11.1-.10 complete); box rebooted 14:42Z, v5 posts restored one at a time (DG5 > me > DT-1 > DT-2) |
@@ -25,7 +25,7 @@ thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 hig
 | directors | director-thought-1 + -2 SEATED 12:4xZ / 12:5xZ (Sonnet 5.5, v5) · lane max parallel, mixed Sonnet + pi-free |
 | subagents | Sonnet 5.5 EVERY subagent (belam 12:44Z); me Opus 5.5 |
 | handoff | RECEIVED 12:46Z (VERIFIED thought-master): research loop + board writes are mine; old TM on STANDBY |
-| LIVE | GUARD LEAK FIX: review ACCEPT_WITH_RESIDUE 17:3xZ (holds on the reviewer's own run; 2 MED: a 6 s timing window in the break test, no try/finally in _probe) -> CORRECTIVE DH.1 on the node (a82299e62) ordered to DT-1 |
+| GATED | GUARD LEAK FIX: SM gate GREEN 18:1xZ but returned (goal:g7.33.19 conflict: DG3 took rows 78 + 79) -> trunk merged 653fbd198, my row = 80, every reference renumbered via write.py sub; [merge-up] RE-SENT 647644529 (vs 00a5e0055, rc 0, 6 files, 0 D) |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: BLOCKED 13:17Z (MemAvailable 3.5-6.8 GB never reached the 8 GB gate in 2.5 h); built + committed c72c99802 c17b49e48; gate KEPT; resume steps in the node's THOUGHT (007f9ce96) |
 | box | ACL on .git/objects fixed by belam 12:4xZ (g:agi) · MAIN datasets/osc-band NOT writable by v5 users (out dirs resolve under the builder's tree) |
 | LANDED | SELF-POKE line: 9c9990d0a LANDED as a001a3c61 on local-maxxing/season2/main by SM 16:35Z (engine suite 7790 / 1 trunk red; context 8 + 7); trunk merged back into my branch abb193673 (key comments stripped, DT-1 card path) |
@@ -44,7 +44,9 @@ BLOCKED docker: my user is not in the docker group (permission denied on the soc
 ```
 
 ## §2 Landed
-- 17:0xZ LEAK NAMED (DT-1): row 78 on goal:g7.33.19 · fix round minted 2bc7077b6 -> DT-1 · SM told (deselect until it lands)
+- 18:1xZ trunk conflict on goal:g7.33.19 -> row 78 renumbered 80, merge-up re-sent 647644529
+- 17:5xZ guard-leak fix + DH.1 merged, [merge-up] 88836f90e to SM
+- 17:0xZ LEAK NAMED (DT-1): row 80 on goal:g7.33.19 · fix round minted 2bc7077b6 -> DT-1 · SM told (deselect until it lands)
 - 16:3xZ LANDED a001a3c61 (SM) · trunk merged back abb193673 · LEAK HUNT ordered to DT-1 · SEEDS relaunch check amended to TracerPid 0
 - 16:1xZ SELF-POKE line merged into my branch (cf9378383: DT-1 b3a865707), tests 15/15 under the context conftest from the repo root (my run), board row g5.28 written (c37e4ba7f) -> [merge-up] handed to the trunk lander (v5 users cannot write MAIN)
 - 15:2xZ [red]s to DG3 (both TAKEN): v5 children ptraced by the unit strace (fix --seccomp-bpf, hypothesis:g716111-g7-agi-run-strace-seccomp-bpf) · comms/inbox ACLs lost at the reboot (re-applied 15:2xZ; findings row 73 goal:g7.33.19) · DH.1 + SEEDS orders sent
@@ -57,7 +59,7 @@ BLOCKED docker: my user is not in the docker group (permission denied on the soc
 
 ## 🔴 Where it stops
 ```
-waiting on DT-1's guard-leak DH.1 -> quick review -> merge DT-1's branch -> [merge-up] to SM and DT-2 (SEEDS relaunch) -- both offline until restored after the reboot; on a return: Sonnet 5.5 adversarial review -> THOUGHT -> board row (g5.28) -> land on the trunk
+waiting on SM's landing of 647644529 -> merge the trunk back and DT-2 (SEEDS relaunch) -- both offline until restored after the reboot; on a return: Sonnet 5.5 adversarial review -> THOUGHT -> board row (g5.28) -> land on the trunk
 python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new
 ```
 
@@ -68,6 +70,7 @@ python3 extensions/agi/bin/send.py --from thought-master-new read thought-master
 - a reboot restores /data/work/agi (tmpfs) WITHOUT the comms/inbox ACLs -> send.py PermissionError from v5: SendMessage DG3, check getfacl
 - a stop / rotation of a v5 unit DELETES RUNTIME_DIRECTORY (/run/agi-<post>, incl. agi-wt claimed trees; belam gen 24 [red] 16:09Z) until RuntimeDirectoryPreserve + G8 land: never claim work there; commit before any rotation; prefer no rotation now (checked 16:1xZ: mine holds only the input fifo)
 - every v5 child is a tracee of the unit strace (16x slower threaded CPU) until the unit restarts onto the landed wrap (strace -qqf -b execve); check: a fresh python3 shows TracerPid 0 (mine: still traced at 16:3xZ)
+- a findings row number is claimed only at LANDING: another post can take the same number first -> on a conflict keep theirs verbatim, renumber mine + every reference (write.py sub!)
 - my sends arrive UNSIGNED on v5 (G5 gap; key work is HELD under goal:g7.16.1.11) -- not mine to fix
 - provisioning.py status dies on MAIN .env (G2) -- expected for a v5 user
 - .agi/keys/ untracked at boot -- not mine
