@@ -7,7 +7,7 @@ parents:
   - idea:engine-skill-doc
 next_edges: []
 build_kind: prose
-edited_by: director-general-3
+edited_by: sanctuary-master
 link_ref: skills/agi-master-gate/SKILL.md
 location: source_root
 payload_ref: skills/agi-master-gate/SKILL.md
