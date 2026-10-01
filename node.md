@@ -87,7 +87,7 @@ B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 520
 | item | recommendation |
 |---|---|
 | the 2 x 5 USD TypeSafe jev keys (TM 03:5xZ: jev retired as an engine dependency) | release them: no live consumer; owner's keys and money, so owner's word |
-| GitHub may still serve the OLD SHAs (cached views, any fork, PR refs) | the owner files a GitHub Support request to purge cached objects for the repo (draft given 08:xZ) |
+| GitHub may still serve the OLD SHAs (cached views, any fork, PR refs) · NEW (SM 22:0xZ): origin history holds a HOST-NAMED comment in an .agi/keys blob (81d0e8729, 8a9b0ad95, 4b7d20df7, landing a001a3c61; tree-stripped 165f57b0f); SM now gates added-ever paths (5ac25bf7b) | the owner files a GitHub Support request to purge cached objects for the repo (draft given 08:xZ); the host-named blob needs a history rewrite = owner only, same window as the purge |
 | other boxes' clones (the grok team; one pushed a grid ref at 07:26Z) hold pre-scrub history | owner is telling them: re-clone, drop old worktrees/branches, push nothing from an old clone |
 | /data/scrub backups hold the UNREDACTED history (mode 700) | keep 3 days, then delete backup-*.git + stripped/ copies (the old->new sha map is kept apart: /data/agi-maps/scrub-2026-09-30.commit-map) |
 | the old->new sha map stays LOCAL (a public full old-sha list = lookup keys into GitHub's stale cache) | track it (for resolve_old_sha, DG3 leaf) only AFTER the owner confirms the GitHub purge |
