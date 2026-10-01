@@ -27,14 +27,17 @@ def main():
     rd = lambda seed: T.readout(model, T.probe(X, seed, n))
     seeds, taus = [P["c5_base"] + r for r in range(P["reps"])], [rd(P["tau_base"] + i) for i in range(P["tau_n"])]
     ru, r_med, tau = {s: rd(s) for s in seeds}, float(np.median(taus)), P["tau_mult"] * float(np.std(taus, ddof=1))
-    D, ok = {}, True   # (set, s) -> [(abs(r - r_unedited), call)] over the common seeds; ok = every restore equals sha0
+    D, ok = {}, True   # (set, s) -> [(abs(r - r_unedited), call, r)] per common seed; ok = every restore equals sha0
     for name, ids in S.items():
         for s in P["scales"]:
             D[(name, s)] = []
             for sd in seeds:
                 r = (T.edit(model, ids, s), rd(sd))[1]   # edit, then read
                 ok &= T.restore(model, ckpt) == sha0
-                D[(name, s)].append((abs(r - ru[sd]), abs(r - r_med) > tau))
+                D[name, s].append((abs(r - ru[sd]), abs(r - r_med) > tau, r))
+    open(f("raw.jsonl"), "w").write("".join(   # the per-trial raw rows
+        json.dumps({"set": k[0], "s": k[1], "seed": seeds[i], **dict(zip(("dr", "call", "r"), d))}) + "\n"
+        for k, v in D.items() for i, d in enumerate(v)))
     mean = lambda name, s, i=0: float(np.mean([d[i] for d in D[(name, s)]]))   # i 0 = mean abs dr, 1 = detection rate
     dr, rnd = {k: mean(k, 0.0) for k in S}, [mean(k, 0.0) for k in S if k.startswith("rand")]
     c5a, c5b = (min(dr[f"k{k}"] for k in P["bearing"]) > max(rnd), max(dr[f"k{k}"] for k in P["passengers"]) < min(rnd))

@@ -81,6 +81,9 @@ def test_7_reduced_end_to_end_smoke_writes_the_results_shape(tmp_path, monkeypat
     R = json.load(open(tmp_path / "results.json"))
     assert R["void"] is True and R["verdict"] == "void"   # the tmp params are untracked: the committed-params guard fires
     assert {"k5", "k45", "k1", "k34", "rand0", "rand1"} == set(R["dr"])
+    raw = [json.loads(l) for l in open(tmp_path / "raw.jsonl")]
+    assert len(raw) == 6 * 2 * 2 and {"set", "s", "seed", "r", "dr", "call"} == set(raw[0])   # 6 sets x 2 scales x 2 seeds
+    assert abs(sum(x["dr"] for x in raw if x["set"] == "k5" and x["s"] == 0.0) / 2 - R["dr"]["k5"]) < 1e-12
     assert isinstance(R["c5a"], bool) and isinstance(R["c5b"], bool)
     assert set(R["c3"]["det_rate_s0"]) == {"5", "45", "1", "34"} and 0 <= R["c3"]["sham_rate"] <= 1
     assert set(R["unscored"]["detect_by_scale"]["k5"]) == {"0.0", "0.5"} and -1 <= R["unscored"]["spearman_dr_norm"] <= 1
