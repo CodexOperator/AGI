@@ -115,3 +115,17 @@ Read-set impact: as built +516 B on the all-nodes read (32,928 -> 33,444), post-
 - **hub wiring of grow-gate** (needs the hub path and `AGI_ALLOWED` = the allowed_signers file; I do not know the hub): `sect grow-gate HEAD > hooks/pre-receive`, plus `grow-check`, `agi-fill` on the hub's PATH (extract: `sect NAME HEAD`), `AGI_TRUNK=refs/heads/<trunk>`. Proof to run there: push a node with a wrong `key:` -> `refused: locked`. A push that changes ONLY a schema or growth.tsv lands unguarded (R7 hole 4).
 - **the seed (§T.1 round 6)**: `asbuilt/agi-seed.template` == §T.1's seed block byte for byte (985 B; text with `@ANCHOR@` hashes to the doc's cd97baf8f62b6460). The anchor is ONE allowed_signers line, 82 B (`* ssh-ed25519 <68 b64>`) = the owner's or the master's PUBLIC key: DG3 does not have it and invented none. To finish: `K='* ssh-ed25519 <the 68 chars>'; python3 -c "import sys;t=open('asbuilt/agi-seed.template').read();open('/tmp/agi-seed','w').write(t.replace('<the anchor: ONE allowed_signers line, 82 B>',sys.argv[1]))" "$K"; wc -c /tmp/agi-seed` -> **1,023** (T8: <= 1,024), then root: `install -m755 /tmp/agi-seed /opt/agi/bin/agi-seed` (+ `git config --global --add safe.directory <repo>` as root, AGI_ROOT=<repo>). Needs the trunk tip SIGNED by that anchor (S7) or every sync is rc 1.
 - **T7** (a Prime wake line for `refs/conflicts/*`): one `first_turn` row under prime_director in config:rotations, `git -C {repo} for-each-ref refs/conflicts/` (round-6 doc), after the seed is live.
+
+#### RULINGS (belam 09:39Z) -> the package as it lands
+| call | ruling | in the bytes |
+|---|---|---|
+| 1 set | SPLIT (a post reads 20,374 B at start) | land.sh runs split-pkg (unchanged) |
+| 2 identity | %i AT agi.invalid IF the privacy guard admits it, else %i@agi | guard REFUSED %i AT agi.invalid (scratch detached commit, 09:4xZ, rc 1 "staged diff carries email") -> engine-root keeps %i@agi; DG5's live ident.conf drop-in aligns to %i@agi at its next restart (the R7 renew) |
+| 3 parents | engine-post / engine-wrap / engine-root -> goal:g7.16.1.11.5 · engine-grow -> goal:g7.16.1.11.8 | land.sh step 3: one `case` line picks the parent (pre-patch copy land.sh.pre-parents; bash -n OK); the [config] spawn gate lists goal parents |
+| 4 order | expansions first, config:engine LAST | unchanged (step 3 then step 4) |
+| 5 seed anchor | not tonight; the §T.1 matrix + seed land with @ANCHOR@ pending | unchanged (no root install in land.sh) |
+Also run by DG3 on belam's approval: MAIN gpg.ssh.allowedSignersFile -> .git/allowed_signers (1 line, posts/director-general-5); proof %G? = G, the post's 2 commits G, the 2 trunk commits N; undo `git config --unset gpg.ssh.allowedSignersFile` + rm the file.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+belam 09:39Z rulings applied: SPLIT · identity %i@agi (the guard refused %i AT agi.invalid) · parents .11.5 (post/wrap/root) and .11.8 (grow) in land.sh step 3 · config:engine last · seed anchor pending
+<!-- THOUGHT:END -->
