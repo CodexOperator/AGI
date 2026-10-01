@@ -7,6 +7,8 @@ parents:
 next_edges: []
 confidence: 0.85
 edited_by: director-general-3
+evidence_runs:
+  - experiment:dg3-71-council-report-mur-args
 link_ref: extensions/agi/tests/test_council_report.py
 scaffold_hash: 7d6394ec96c67647
 season: 2
@@ -37,3 +39,7 @@ NET: council_report.py +22 (29+/7-, ceiling +25) · tests +40 (41+/1-, ceiling +
 
 ## Residue
 The CLAIM's "a row whose old or new is unknown is refused" holds for the rounds[] shape only: the flat shape with no old/new still writes `?..?` because F3 pins the existing flat tests (they pass `{"parent": ...}` without tips). Closing it = refuse in the flat branch too and give those tests tips -- a separate round.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+First version. Deviation, decided: the CLAIM refuses an unknown old/new for every row, but F3 pins the flat-shape tests that carry no tips, so the refusal is scoped to the rounds[] shape (council_report.py round_args) and the flat ?..? is banked as residue, hence lean_proved not proved.
+<!-- THOUGHT:END -->
