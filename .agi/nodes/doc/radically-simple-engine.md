@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: all-is-one
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1643,6 +1643,102 @@ for f in sorted(glob.glob(sys.argv[1]+'/[[]*].md')):
 **Not carried by Y1 (named, each its own home):** (1) parent EXISTENCE: `links.py` (broken = 0) stays that gate; Y1 checks types and order, never that a parent file exists (2) the per-town VISION CAP (spawn_gate 5b) is a COUNT, not a shape: a cell + a count line, unbuilt (3) `season_parents` is a second edge field (vision -> overview): the same matrix with an `edge` column, unbuilt (4) Y1 gates ADDS: a later edit of a node's `parents` is not re-gated (`--diff-filter=AM` would, but then the 303 grandfathered nodes refuse every edit until a season cell exempts them) (5) the matrix must be re-projected when a schema changes: a CHECK line `grow-project | cmp - matrix` (the §U pattern) catches drift; a schema edit re-keys ONLY the rows it changes.
 **Flag for the council (not a Y1 rule):** belam's brief reads "a hypothesis under an idea, never under a bare goal", but `[hypothesis].md` allows `goal` today (row `21e059b9381fa3cf hypothesis - goal *`). Y1 maps the schemas AS THEY ARE; forbidding it is a one-cell schema edit (drop `goal` from allowed_parents), which re-keys 4 rows and grandfathers the live ones.
 **Falsifiers.** T1-T11 · P · G1-G8 PASS (scratch) · **Y1.12** DG3's build: write.py's create path calls `grow-check` and the parity run stays 5,390/5,390 (UNRUN) · **Y1.13** parity row 20 MATCH with the old write.py REMOVED from the clone (UNRUN; the Phase 3 gate) · **Y1.14** a Y2 window opened with a nid writes a node that `grow-gate` lands, and one opened with no nid writes nothing (UNRUN; the seam with Y2) · **Y1.15** the owner ring: a moral lands only under the owner's phone cert (§X) (UNRUN).
+
+## Y2 · ROUND 7 · self-perpetuating -- the CAPTIVE FILL WINDOW: a node key opens it, the format comes first, ONE tool call (or row by row) closes it
+**Owner 07:1xZ:** "only the correct node key schema unlocks next node add to graph. And that smoothly launches a captive graph fill window that uses standard tool call shorthand capture or similar and lists appropriate formate first thing. Also has a row by row option with row by row checks to allow weaker models to slot in better." **What am I ACTUALLY trying to get the machine to do here?** Make the only way a node can grow be the way its schema says, and make that way easy enough for the smallest model: show the shape, take one answer, check it, write it, close. A grown node carries the key and the exact schema bytes it grew under, so the graph can always be re-checked against its own history.
+```
+Y1 unlock (nid)  ─▶ agi-fill open NID PARENT..   parent TYPES re-checked against the row (wrong order -> refused, rc 2)
+                 ─▶ ~/.fill  = the window (nid · child · parents · schema id · the JSON Schema · opened · tries · rows)
+                 ─▶ PRINTS, FORMAT FIRST: an OpenAI tool definition {name: add_<child>, parameters: <JSON Schema from [child].md>}
+captive          PreToolUse hook agi-captive: while ~/.fill exists, EVERY tool but `agi-fill` is refused (exit 2; pi through cccc.ts)
+answer   call    ONE tool call on stdin, any of 3 shorthands: OpenAI {name, arguments(obj|str)} · Anthropic {type: tool_use, input} · bare arguments
+         row     agi-fill row "field: value": each row checked AS IT LANDS against its own sub-schema; it prints the next required field; "." writes
+gate             the Draft-7 check of the WHOLE object (Y3 owns the gate; this is its deterministic stand-in) -> refused: each field named, tries+1
+close            written (node file with key: <nid> + schema: <child>@<blob>) · agi-fill close · timeout (cell fill_window, 900 s) · N failed tries (cell fill_tries, 3)
+```
+**The schema -> format rule, measured for parity with the old gate (write.py / schema_registry):** required = `validation.required` minus what the window writes itself (id, type, mint_id, parents, next_edges, key, schema) · types ONLY from `validation.types` · `regex` / `item_regex` -> `^(?:..)$` (the old gate uses fullmatch) and a regex field must be a STRING · the variant's discriminator (goal_kind, build_kind) = `const` · every other field = a property with its declared type as a DESCRIPTION hint (Y3 may decode with it; the gate does not enforce it) · extra fields allowed (5,322 live nodes carry fields outside their schema).
+**What a post sees** (verbatim, a hypothesis under an idea):
+```
+FILL WINDOW OPEN: hypothesis under idea:i-x · key ffdc586128924f86 · schema hypothesis@35ddbda8c73f
+FORMAT (answer with ONE call to this tool, nothing else):
+{"type": "function", "function": {"name": "add_hypothesis", "parameters": {"type": "object", "properties": {"title": ...
+send: agi-fill call (OpenAI, Anthropic or bare arguments) · row by row: agi-fill row "field: value", then "." · abort: agi-fill close · closes after 900s or 3 failed tries
+```
+**Tested 07:2xZ** (scratch workspace with the live schemas, a stand-in growth matrix in Y1's columns; nothing written to MAIN):
+| claim | result |
+|---|---|
+| PARITY: every live node through the window's schema vs the OLD gate | 5,398 nodes: 5,393 same verdict; the 5 others lack next_edges / mint_id, which the window always writes |
+| every [type] + variant renders a valid Draft-7 JSON Schema | 25 of 25 (22 types; goal x4, build x2) |
+| wrong order: a hypothesis under a bare goal | refused, rc 2, naming the row's order |
+| captive: Write · Bash ls · Bash agi-fill, while open; Write after close | 2 · 2 · 0 ; 0 |
+| OpenAI shorthand missing testable_claim · Anthropic tool_use valid · OpenAI nested with STRING arguments | refused, the field named · written · written |
+| row mode, goal[subgoal]: goal_kind perpetual · goal_id 7.99 · G7.99 · confidence high · an unknown field · "." | refused (const subgoal) · refused (pattern) · ok · refused (number) · refused · written |
+| a number in a regex field via call | refused (must be a string) -- the first draft let it through and the OLD gate caught it: the oracle earned its place |
+| 3 failed tries · close · timeout | closed, nothing written · closed · closed, rc 4 |
+| every node the window wrote, through the OLD gate | 0 errors |
+
+**Bytes (expansion, config:engine-wrap; 0 B in the zygote):** `agi-fill` 4410 B (python3 + yaml + jsonschema, both already on the box) · `agi-captive` 311 B · settings.json +61 B (one PreToolUse line) · cells `fill_window`, `fill_tries`. Retires, once Y1-Y3 are built: write.py's spawn gate and create path for NEW nodes (parity row 20 stops leaning on the old Python; the old gate stays the ORACLE in the suite until Phase 3 closes).
+**Honest limits.** (1) The captive hook only fences TOOLS: a post can still type prose; it cannot write a file or run another command until the window closes. (2) A lookahead in `tags`'s item_regex (`(?!parked:)`) is a JSON-Schema pattern here but cannot be a GBNF rule: under Y3's grammar that one field stays gate-checked, not decode-fenced. (3) The body (the schema's prose order, e.g. a hypothesis's ## Measured .. ## CEILING) is one free string: format-first shows it only if Y3 adds it as a pattern; a merge-up reviewer still checks prose. (4) Real ids come from the slug of the title; a clash is refused (rc 5), never overwritten.
+Falsifiers: **F46** the parity sweep above (PASS: 5,393/5,398, the 5 explained) · **F47** the test table (PASS) · **F48** a pi-free post, captive, fills a hypothesis through the window in one call (unrun: needs DG5 on the new engine) · **F49** a 1-3 B local model in ROW mode under Y3's grammar writes a node the old gate accepts (unrun: Y3).
+`agi-captive` whole:
+```sh
+#!/bin/sh
+# PreToolUse while a fill window is open: ONLY agi-fill passes; exit 2 = refused (claude natively; pi through cccc.ts)
+[ -e "${AGI_FILL:-$HOME/.fill}" ]||exit 0;jq -r '.tool_input.command//""'|grep -q '^agi-fill '&&exit 0;echo "captive: a fill window is open -- agi-fill call | row | close">&2;exit 2
+```
+`agi-fill` whole:
+```python
+#!/usr/bin/env python3
+# agi-fill open NID PARENT.. | call <TOOLCALL | row <"field: value".. | close -- the captive fill window a node key opens (§Y2): format FIRST, one tool call or row by row, closes on write, abort, timeout or N tries
+import sys,os,re,json,time,uuid,subprocess as S,yaml,jsonschema
+A=sys.argv;E=os.environ.get;W=os.path.expanduser(E('AGI_FILL','~/.fill'));L=int(E('AGI_FILL_WINDOW','900'));N=int(E('AGI_FILL_TRIES','3'))
+X={'id','type','mint_id','parents','next_edges','key','schema','scaffold_hash'};J={'str':'string','int':'integer','float':'number','bool':'boolean','dict':'object','list':'array'}
+def sch(c,v):
+ p=f'.agi/context/schemas/[{c}].md';d=yaml.safe_load(open(p).read().split('\n---',1)[0][4:]);V=d.get('validation')or{};T=V.get('types')or{};F=d.get('fields')or{};P={}
+ for k in [*F,*V.get('required',[])]:
+  if k in X or k in P:continue
+  f=F.get(k);t=T.get(k);s={'type':J.get(t,'string')}if t else{'description':str((f.get('type')if isinstance(f,dict)else f)or'str')}
+  if k in(V.get('regex')or{}):s={'type':'string','pattern':f"^(?:{V['regex'][k]})$"}
+  if k in(V.get('item_regex')or{}):s['items']={'type':'string','pattern':f"^(?:{V['item_regex'][k]})$"}
+  P[k]=s
+ k=(d.get('spawn')or{}).get('discriminator')
+ if k and v!='-':P[k]={'const':v}
+ P['body']={'type':'string'};return c+'@'+S.run(['git','hash-object',p],capture_output=True,text=True).stdout[:12],{'type':'object','properties':P,'required':[k for k in V.get('required',[])if k not in X],'additionalProperties':True}
+def end(m,r=0):
+ os.path.exists(W)and os.remove(W);print(m);sys.exit(r)
+def done(w,a):
+ e=sorted(jsonschema.Draft7Validator(w['js']).iter_errors(a),key=lambda e:list(e.path))
+ if e:
+  w['tries']+=1;[print('refused',e.path[0]if e.path else'-',':',e.message[:160])for e in e]
+  w['tries']<N or end(f'window closed: {N} failed tries, nothing written',4);json.dump(w,open(W,'w'));sys.exit(3)
+ s=re.sub('[^a-z0-9]+','-',str(a.get('title')or w['nid']).lower()).strip('-')[:60];p=f".agi/nodes/{w['child']}/{s}.md"
+ os.path.exists(p)and end('refused: '+p+' exists',5);os.makedirs(os.path.dirname(p),exist_ok=True);b=a.pop('body','# '+str(a.get('title',s)))
+ fm={'id':w['child']+':'+s,'type':w['child'],'mint_id':uuid.uuid4().hex,'parents':w['parents'],'next_edges':[],'key':w['nid'],'schema':w['schema'],**a}
+ open(p,'w').write('---\n'+yaml.safe_dump(fm,sort_keys=False,allow_unicode=True)+'---\n\n'+b.rstrip('\n')+'\n');end('written '+p)
+if A[1]=='open':
+ r=[l.rstrip('\n').split('\t')for l in open(E('AGI_GROWTH','.agi/nodes/.geometry/growth.tsv'))if l.startswith(A[2]+'\t')]or end('refused: no growth row '+A[2],2)
+ n,c,v,par=r[0][:4];g='+'.join(sorted(x.split(':')[0]for x in A[3:]))
+ g==par or end(f'refused: parents {g} but row {n} unlocks {par} -> {c}',2)
+ sid,js=sch(c,v);json.dump({'nid':n,'child':c,'parents':A[3:],'schema':sid,'js':js,'t':time.time(),'tries':0,'rows':{}},open(W,'w'))
+ print('FILL WINDOW OPEN: '+c+('' if v=='-' else f'[{v}]')+f' under {" ".join(A[3:])} · key {n} · schema {sid}\nFORMAT (answer with ONE call to this tool, nothing else):')
+ print(json.dumps({'type':'function','function':{'name':'add_'+c,'parameters':js}}))
+ print(f'send: agi-fill call (OpenAI, Anthropic or bare arguments) · row by row: agi-fill row "field: value", then "." · abort: agi-fill close · closes after {L}s or {N} failed tries');sys.exit()
+os.path.exists(W)or end('no window open',2);w=json.load(open(W))
+time.time()-w['t']<L or end('window closed: timeout, nothing written',4)
+if A[1]=='close':end('window closed: aborted, nothing written')
+if A[1]=='call':
+ x=json.loads(sys.stdin.read());a=x.get('arguments')or x.get('input')or(x.get('function')or{}).get('arguments')or x
+ done(w,json.loads(a)if isinstance(a,str)else a)
+for l in(A[2:]or sys.stdin.read().splitlines()):
+ if l.strip()=='.':done(w,dict(w['rows']))
+ k,_,v=l.partition(':');k=k.strip();v=v.strip();s=w['js']['properties'].get(k)
+ if s is None:print('refused row',k,': not a field of',w['child']);continue
+ if s.get('type',s.get('description','str'))not in('string','str'):v=yaml.safe_load(v or'null')
+ m=[e.message[:160]for e in jsonschema.Draft7Validator(s).iter_errors(v)]
+ if m:print('refused row',k,':',m[0])
+ else:w['rows'][k]=v;print('ok',k)
+json.dump(w,open(W,'w'));r=[k for k in w['js']['required']if k not in w['rows']];print('next:',(r[0]+' ('+json.dumps(w['js']['properties'][r[0]])+')')if r else'"." to write')
+```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 alive (agi-1d, gen 7), 07:1xZ 10-01 (owner night plan item 1, belam 07:00Z + 07:05Z signed [decision]s; council split U alive · V self-perpetuating · W all-is-one · X alive). Owner 06:3x-06:5xZ, verbatim: "Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." / "I can’t access it today so it might have to wait and do a stand in key on the box for now and auth it yourself as test." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math. Like the way we use our matrices to help hook into the login method but not the private key itself. Same here the matrices describe how the short lived ssh key can even be “popped” securely into whatever interface takes it. And it could itself be not even a raw ssh but a matrix compressed version that maybe is generated from how the whole system is setup with matrices encoding setup/use parameters." WHY this version differs: added §U (the DC directory = ONE public matrix in the graph, synced by §T to every box; a cert's key-id = the sha256 rid of its row, so editing a row revokes every cert under it; dc-project 288 B + dc-principals 302 B + 4 sshd lines in a Match block; U1-U9c PASS on a scratch sshd) and §X (the phone stand-in = one row + one §V cert ending at the owner's wake; X1-X7 PASS through §O.5's capsule-login byte for byte). U9c caught a real gap in the first form: a row with empty opts gave a full shell; dc-principals now fails closed on any row not opening restrict (+68 B). The KDF-from-the-row idea (belam 07:05Z) is NOT used: §V keeps the per-login key as fresh randomness and the rid as key-id only, which is the sound half of it. Decided in §X against §V's limit (3): the stand-in arms only a throwaway test CA, per the owner's ruling (a) capsule-login ONLY. §V (self-perpetuating, 983d2475c/52ad87a72) and the §T THOUGHT before it are in the grid. || all-is-one (agi-f0), 07:14Z 10-01 (night plan item 1, split with alive gen 7: U = the rows, V = self-perpetuating's login + CA, W = mine). Owner 06:5xZ, verbatim: "also have them move around boxes or spawn more on encryption town to confirm cross box easy seeding and cross-comms via GitHub initially and maybe eventually via for direct and mesh addresses? Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math." WHY this version differs: added §W. Seeding, sync and a message are ONE act (move a signed commit), the transport is one remote cell, and §S + §T run VERBATIM over a GitHub stand-in and an ssh-cert mesh hub with byte-identical bodies (X1-X3). The compression: ONE cert-authority allowed-signers line verifies every per-login key everywhere, the sender's name is the cert principal from the U row. Found and closed on owned boxes: git judges a cert at the commit's own date, so a stolen key can backdate (X11a), and a 2-line skew check in the hub's pre-receive refuses it (X11b). Via GitHub it stays a named limit. Recommended to keep the engine anchor K apart from the CA (X9 shows it could merge). xb 1,025 B + pre-receive 681 B, 0 B in the zygote. || all-is-one (agi-f0), 07:26Z 10-01: added §Y1 (ROUND 7, alive's split: Y1 all-is-one · Y2 self-perpetuating · Y3 alive). Owner 07:1xZ, verbatim: "make sure the engine still maintains graph growth order so posts can’t just grow nodes without respecting order. Could expand key ring system to also include node keys so only the correct node key schema unlocks next node add to graph". WHY this version differs: growth order = ONE matrix projected from every [type].md spawn block (149 shape rows + 2 alias rows), node key = the row hash, gate = an awk lookup against the RECEIVING side's matrix. Parity with the old spawn_gate on every live node: 5,390/5,390 (151 first disagreed, all short hyp:/exp: parent prefixes -> a 2-row alias cell, not code). Flagged, not ruled: [hypothesis].md allows a bare goal parent, contrary to belam's brief example.
