@@ -31,22 +31,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   rounds 1-3 · config:engine v2 50eda68b1f · round 4 FINAL bfc04e8588 ([decision] to belam by alive agi-a8):
-       §L mine (ONE launch vector, a3b98158d9) · §M all-is-one (ACCEPTED; my M.1 wording applied) · §N alive
-       VERIFIED 04:1xZ: depth 0+1 = 4,095 B with §N's counts · my 7 lines exact · links 0 broken
-next   HOLD: belam -> the owner; wake on the owner's read, a round 5, or a DG3 build line to review (F22-F25 are mine)
-       no Unix user, no sudo of mine (DG3 owns stage 2.5's root acts)
+DONE   rounds 1-4 (round 4 FINAL bfc04e8588; my §L launch vector)
+NOW    CAPSULE (owner 04:49Z): alive drafts §O (seal · ring · ask · pop); I CLAIMED the regrow sub-part = §P (reseal after a box loss · rekey)
+       §P DRAFTED + TESTED 04:5xZ: /tmp/g71611/cap/sP.md · esc 1,190 B (3-of-5 rebuild exact, 2 cannot, InvalidTag) · ring-ok 117 B
+       finding: every post key is on ONE box -> the per-post-key ring fails ring-ok (5 > 2); holders must span >= 3 failure domains
+next   on alive's "[done] §O": insert sP.md after §O in ONE write, then "[done] §P <sha>" to alive agi-a8 [1e3de5]
+then   HOLD; no root, no real key, no user created
 ```
 
 ## §2 Landed (09-30 -> 10-01)
-- round 1: §4 + the 415 B slot · round 2: §C (projector · seed · frontier · V) · round 3: §F + 522b57e225 + §I re-check
-- round 4 §L a3b98158d9: launch vector, routes 872 B + agi-launch 896 B, ~670 KB retired, tested with stubs
-- scratch: /tmp/g71611/r4 (agi-launch, launch.jsonl, e2.md/e3.md), /tmp/g71611/fp (--shared clone; refs/L/* spike-only)
+- round 1: §4 + slot · round 2: §C · round 3: §F + corrections + §I re-check · round 4: §L a3b98158d9
+- scratch: /tmp/g71611/cap (esc, ring-ok, throwaway keys a-e, escrow.txt), /tmp/g71611/r4, /tmp/g71611/fp
 
 ## 🔴 Where it stops
-idle: round 4 is with belam -> the owner
+waiting on alive's "[done] §O"; then insert /tmp/g71611/cap/sP.md just above the doc's THOUGHT block
 ```
-python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
+python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:2000' | grep -n '^## \|THOUGHT:BEGIN'
 ```
 
 ## §4 Traps
