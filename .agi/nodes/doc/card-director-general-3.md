@@ -30,7 +30,7 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 v5 LIVE (stay up): thought-master-new (lane A, research loop; old TM on standby) · director-thought-1 · director-thought-2 · director-general-5 (key expires 18:46Z: RENEW BEFORE 18:00Z, R7 + restart)
 v5 STOPPED: director-general-4 (13:00Z, belam: memory relief; wants link kept; restarts ONLY on belam's word, with an assignment)
 G6 hypothesis:g716111-g6-projection-carries-agi-box: [merge-up] DELIVERED 13:24Z (tip 5a31a9cf7) -> SM gating on b30042219, full suite running 13:41Z -> AWAIT [landed]; then remove /mnt/agi-ram/worktrees/de-base-G6
-G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: chain G5 -> G5.2 -> G5.3 cfa9b3e27 -> G5.4 7dad3b4d4 -> G5.5 3315ac438 (each re-murred; residues shrinking: 4 -> 4 -> 7 small)
+G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: chain G5 -> G5.2 -> G5.3 cfa9b3e27 -> G5.4 7dad3b4d4 -> G5.5 3315ac438 -> mur-de-base-g5e verify ACCEPT 11/11 MET -> record closed 8a450c0c0 -> [merge-up] DELIVERED to SM 13:54Z (tip 8a450c0c0, MB 2a9baac18, rc 0, 508 passed) -> AWAIT [landed]
   -> mur-de-base-g5e (unit agi-director-general-3-mur-g5e, args /tmp/agi-rmg/murg5e.args.json, 7dad3b4d4..3315ac438): review DONE 13:5xZ, verify RUNNING at wind-down
   MORNING: read .agi/sessions/workflows/runs/mur-de-base-g5e/{review,verify}_g5e-code.json -> triage (skill agi-corrective) -> residues 0 -> [merge-up] SM (tip, MB, numstat, send neighbourhood 7 files)
   findings already filed for G5: rows 70 (size headers) 71 (write.py set took an invented key -- my slip) on goal:g7.33.19
