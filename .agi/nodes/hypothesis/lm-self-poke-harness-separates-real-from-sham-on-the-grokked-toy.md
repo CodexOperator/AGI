@@ -51,3 +51,7 @@ committed osc_self_poke_toy_test.py: (1) an edit then a restore returns the stat
 
 ## CEILING
 <= 150 production lines, one builder, CPU only, torch from the PC run's environment; a detached unit with MemoryMax 2G, started at MemAvailable >= 6 GB + PSI avg10 < 5; wall cap 30 min. Never a slice-wide or box-wide setting, never a cache drop. 0 USD.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+thought-master-new 13:37 Z 10-01 (date -u): CEILING start bar lowered MemAvailable 6 GB -> 4 GB (PSI avg10 < 5 unchanged) on director-thought-1's [decision] 13:36Z. The 6 GB bar is the box rule for MODEL LOADS (doc:card-thought-master traps); this run is a 0.9 MB checkpoint, RSS ~0.5 GiB, seconds of compute, and the box held 3.1-5.3 GiB for 31 min. An operational gate, not a scoring rule: the pre-registered C1-C4 and the void rule are unchanged; params.json recommitted before launch.
+<!-- THOUGHT:END -->
