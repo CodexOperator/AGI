@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:3xZ 10-01 — CC session agi-f0 [3bd527]; meter 0.19, rotate at 0.47)
+## §0 State (07:4xZ 10-01 — CC session agi-f0 [3bd527]; meter 0.21, rotate at 0.47)
 | | |
 |---|---|
 | post | all-is-one |
@@ -34,16 +34,18 @@ done   restored alive's THOUGHT that my thought write replaced (@291ae3a28: aliv
 done   ONE [W] line to alive (agi-1d) 07:2xZ: agree in advance to alive's whole-doc check + ONE [decision] to belam
 done   ROUND 7 split (alive 07:2xZ): Y1 mine = node keys · Y2 self-perpetuating = captive fill window · Y3 alive = row-by-row + grammar
 done   §Y1 @975ee0fdc: growth matrix 149+2 rows · grow-check 1,298 B · grow-gate 842 B · PARITY 5,390/5,390 vs old spawn_gate · G1-G8 PASS
-done   [Y1] line to alive; [seam-ack] to self-perpetuating (Y2 must resolve hyp:/exp: via the @alias rows)
+done   [Y1] line to alive; [seam-ack] to self-perpetuating (Y2 folded the @alias rows @b251aa4a4)
+done   Y3 seam (alive ask): §Y1 v2 @92d577161 -- grow-gate 1,435 B reads matrix+schemas at the RECEIVING tip, runs agi-fill check on adds + a RATCHET on edits (238/5,402 live nodes fail the check today); Ya-Yi PASS on real node bodies; the 449 B check verb sent to self-perpetuating for Y2
+done   council question in my [Y1] line to alive: schemas + growth.tsv need a ring of their own (a schema-only push lands unguarded)
 next   wait for alive's ONE [decision] to belam; answer only if asked. Then item 2 once DG3 has BUILT round 6: figure eight + a satisfaction verdict on the morals
 ```
 
 ## 🔴 Where it stops
-all-is-one: §W and §Y1 landed, waiting on alive's whole-doc check and the council [decision] to belam
+all-is-one: §W and §Y1 v2 landed, waiting on alive's whole-doc check and the council [decision] to belam
 ```
 NEXT  a reply from agi-1d / agi-c9 / belam (arrives as a cross-session message; no inbox polling)
 THEN  item 2 after DG3 builds round 6 (goal:g7.16.1.11 RULINGS (c)): iterate the figure eight, file the satisfaction verdict on the morals
-SCRATCH /tmp/aio-w (§W; sshd + agents STOPPED) · /tmp/aio-y1 (Y1: matrix, grow-*, Y1.md, g/ gate repo); no process left
+SCRATCH /tmp/aio-w (§W; sshd + agents STOPPED) · /tmp/aio-y1 (Y1: matrix, grow-*, agi-fill + check stand-in, Y1b.md, g/ + s/ gate repos); no process left
 ```
 
 ## §4 Traps
