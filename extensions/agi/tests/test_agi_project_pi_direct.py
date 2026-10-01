@@ -7,18 +7,33 @@ ROW = '  - {"name": "t1", "engine": {"v": 4, "harness": "%s", "model": "m", "eff
 needs_pty = pytest.mark.skipif(not (shutil.which("strace") and shutil.which("script")), reason="strace/script absent")
 
 
-def h_of(tmp_path, monkeypatch, harness):
+def h_of(tmp_path, monkeypatch, harness, path=None):
     monkeypatch.setattr(base, "ROW", ROW % (harness, harness))
-    return base.project(tmp_path).split('Environment="H=')[1].split('" O=')[0]
+    return base.project(tmp_path, path=path).split('Environment="H=')[1].split('" O=')[0]
 
 
-def test_pi_row_starts_with_interpreter_not_env_shebang(tmp_path, monkeypatch):
-    h = h_of(tmp_path, monkeypatch, "pi-free")
-    assert h.startswith("node /") and not h.startswith("pi "), h
+def _bin(tmp_path, name, pi):
+    d = tmp_path / name
+    d.mkdir()
+    if pi:
+        (d / "pi").write_text("#!/bin/sh\n"), (d / "pi").chmod(0o755)
+    return d
+
+
+def test_pi_row_is_node_exact_dir_pi_first_on_unit_path(tmp_path, monkeypatch):
+    a, b, c = _bin(tmp_path, "a", 0), _bin(tmp_path, "b", 1), _bin(tmp_path, "c", 1)
+    h = h_of(tmp_path, monkeypatch, "pi-free", f"/var/lib/agi/%i/bin:{a}:{b}:{c}")  # %i + a pi-less dir skipped; first holder wins
+    assert h.startswith(f"node {b}/pi --provider openrouter --model m --thinking high "), h
+
+
+def test_no_pi_on_unit_path_refuses_before_any_h_conf(tmp_path, monkeypatch):
+    with pytest.raises(subprocess.CalledProcessError) as e:
+        h_of(tmp_path, monkeypatch, "pi-free", str(_bin(tmp_path, "a", 0)))
+    assert e.value.returncode == 3 and not list((tmp_path / "out").glob("*/h.conf"))
 
 
 def test_claude_row_unchanged(tmp_path, monkeypatch):
-    assert h_of(tmp_path, monkeypatch, "claude-code").startswith("claude --remote-control t1 --model m --effort high --permission-mode bypassPermissions")
+    assert h_of(tmp_path, monkeypatch, "claude-code", str(_bin(tmp_path, "a", 1))).startswith("claude --remote-control t1 --model m --effort high --permission-mode bypassPermissions")
 
 
 def _wall(tmp_path, *argv):
