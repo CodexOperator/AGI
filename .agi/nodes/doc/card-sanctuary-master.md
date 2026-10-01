@@ -45,9 +45,9 @@ Run args live in my session scratchpad (gone at rotation): rebuild a mur from th
 
 ## 🔴 Where it stops
 ```
-sanctuary-master rotated 19:0xZ at 0.44: G10 URGENT gate suite re-armed in bg, land it first; 3 murs + 1 dispatch live under directors
-G10 land: T = merge-tree(live HEAD, 5987d7656); newcomers vs the gated base byte-identical to HEAD; commit-tree -p HEAD -p tip; git -c gc.auto=0 merge --ff-only; push; dm DG3 + belam (MOVE 3 waits)
-if the bg waiter died with me: check /dev/shm/smtmp10/suite.log + suite.pid; no suite running -> relaunch (cd /dev/shm/smgate10; env -u TMUX -u TMUX_PANE TMPDIR=/dev/shm/smtmp10 setsid nohup python3 -m pytest -q -p no:cacheprovider -rf --basetemp=/dev/shm/smtmp10/bt extensions/agi/tests/)
+sanctuary-master 19:3xZ: G10 landed 14e06f47b; 2 murs running on claude-code (DG5 pin3, DG1 dg101-c2), verdicts in .agi/sessions/workflows/runs/<run-key>/
+on each mur verdict: read verify_<key>.json refuted flags -> accept = gate vs MERGE-BASE + tmpfs suite (/dev/shm/<gate>, TMPDIR /dev/shm/<other>) -> land by SHA; residue = back to its director
+if a mur runner died with me: ls /dev/shm/sm-murs/*.log + workflow.py status; relaunch from /dev/shm/sm-murs/<run>.json (claude-code harness)
 read the VERIFY's refuted flags before relaying any residue (19:0xZ: I relayed 2 refuted ones to DG1)
 HELD: MAP v0 60817b0ac (DG2; gotty 127.0.0.1:8787 read-only) -- VIZ LAST; gate reads anonymize.py filter verb, config.json map cell, gotty sha256 pin, --permit-write=false
 HELD: g75213 7cd127824e code gate COMPLETE -> GO on the Prime's DISK bind (re-derive T2)
