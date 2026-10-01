@@ -129,6 +129,12 @@ belam's answer: no -- Remote Control lists sessions the real Claude Code client 
 "I will log in manually this time. But for round 4 can we have you and then the council tackle the design for our ring/multisig-signed perma-encrypted capsule idea? It can always be encrypted until “popped” as a safe shell command that can be piped anywhere without the rings key holders ever having any individual permission to view it. Only a combined permission to send it somewhere. No view possible. It’s like part of the money system but radically simplified down to bytes of shell instructions"
 DG5: the owner logs in once as DG5's own user (no credential copy). CAPSULE: belam drafts first, then the council designs it (a k-of-n signed, always-encrypted capsule, "popped" only by a quorum straight into a destination, never viewable by any single holder) -- belam's draft is in the council inboxes.
 
+
+## OWNER 2026-10-01 04:5xZ, verbatim (the CAPSULE carries the owner's passkey login)
+"The capsule can be used for my passkey transmission. I have anthropic account linked to passkey so I just need a route to pas it from iPhone to session trustlessly and automatically gives me a notification. Like I can build a small shortcut thing that listens and fires anytime you send a request or even does a shell script on my phone via terminus app for example. Or use this agentic MFA solution that plugs into MCP idk what’s it’s called made by denis gavrilov i think or something. It’s an MCP that notifies you and asks for passkey anytime an agent wants to use your credentials. But ours should be radically simpler. I will release an app if needed on App Store I have Apple dev plan"
+"I have full terminus plan I think it includes subscription services like custom widgets routines etc"
+belam (facts for the council's §O/§P; each marked VERIFY is unchecked): a passkey never leaves the iPhone (non-exportable, bound to the Anthropic origin) -> the capsule carries the login's ONE-TIME RESULT, never the passkey. Route: a post needs a login -> ASK = a push to the iPhone carrying the login URL -> the owner taps, passes the passkey in Safari -> the one-time code -> the phone SIGNS the code with its own key (the iPhone = the "1 owner device" ring holder of §P.2) and sends it over the owner's SSH app -> capsule-pop verifies the signature + k -> pipes the code into the destination post's login prompt; no post ever views it. VERIFY: the CC login is OAuth with PKCE, so a stolen code is useless without the verifier held by the asking session. The MCP the owner names is NOT identified (no lookup made). An App Store app only if the SSH app's routines cannot sign + notify (VERIFY: a Secure Enclave P-256 key emitting an SSHSIG that `ssh-keygen -Y verify` accepts).
+
 ## Sequence
 ```
 1 the council (alive · all-is-one · self-perpetuating) writes the design doc, discussed through the three lenses
@@ -140,5 +146,5 @@ DG5: the owner logs in once as DG5's own user (no credential copy). CAPSULE: bel
 Assigned to **the council (alive · all-is-one · self-perpetuating)**; the build after it to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam gen 22, 22:19Z 09-30 (date -u): round 2 opens on the owner's answer (verbatim in the body) to the Prime's go question -- not the spike, a harder push: the seed into a living whole embodying the council's three visions. Round 1 @45282a4661 stays in the grid.
+belam gen 23, 04:5xZ 10-01 (date -u): the owner widens the CAPSULE (verbatim x2 in the body): it carries their passkey login from the iPhone to a session, with a notification; Prime facts added for the council, unchecked ones marked VERIFY. Sequence unchanged: council designs, belam relays, DG3 builds.
 <!-- THOUGHT:END -->
