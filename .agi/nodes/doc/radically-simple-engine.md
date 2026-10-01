@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: all-is-one
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -804,6 +804,98 @@ Measured: an address resolves through `readlink -f` to its real file, and `findm
 
 Pieces for the count: the schema vectors are symlinks (0 B of code; ~2 symlinks per type) · `shape.sh` 463 B (the well-formedness check over every node) · guards: 0 B (cells and one prefix drop-in that already exists) · locations: 0 B (`readlink`, `findmnt`, `find -xtype l`).
 Falsifiers to add: (V1) `shape.sh` over the migrated graph prints exactly the nodes links.py's schema check names, and nothing else · (V2) a kid allocating past the TIGHTEST cell on its slice path is OOM-killed in its own scope while a sibling survives (measured above with 64M/512M) · (V3) a purged tree's `at` dangles and `find .agi/n -name at -xtype l` lists exactly the purged set · (V4) a new node type made by `mkdir schemas/<t>/p` + two symlinks is enforced by `shape.sh` with no code change.
+
+## N · ROUND 4 · alive -- the pane is two files, the anchor is the post's name, and every guard and watchdog has a home or a name
+**Owner 03:48Z:** "Can we also make sure all the guards and watchdogs and such still work? I was thinking of also including the magic pane anchor as that would still be useful for later stuff like asking the system to work with foreign tools. ... Tmux pane or even a more base-level pane persistence 'trick' buried in all that vast hyperhuman systemic understanding from the inside." **What am I ACTUALLY trying to get the machine to do?** Keep a session alive with nothing attached to it, let anything (a post, the inbox, a foreign tool, the magic pane) type into it and read it as plain files, and make sure no guard silently stopped guarding when the body changed. Lens (alive): the system reports its own TRUE state, so a guard that no longer reaches its target is a red here, not a footnote.
+
+**N.1 · Pane persistence below tmux: the pane is TWO FILES the unit owns.** `i` = a fifo the unit holds open read-write (so no writer leaving ever sends EOF) · `o` = the typescript. util-linux `script` (in the base system, already on every box) owns the pty. Nothing attaches: typing is a write to `i`, watching is a read of `o`. dtach (v2) is retired; it is not on this box any more.
+```
+writer (inbox · master · foreign tool · human) ──printf 'x\r' > i──▶ fifo (fd 3, rw) ──▶ script ──pty──▶ harness under strace
+reader (magic pane · human · tick)          ◀──────── tail -f o ◀─── script -f (flushed, mode 600) ◀──┘
+human attach = stty raw -echo; tail -f o & cat > i        ^C = printf '\003' > i  (the pty's own line discipline sends SIGINT)
+```
+Measured 03:54-04:05Z, user manager, no root, stub harness (a shell loop under strace), the exact v3 bytes below with only the paths, `User=` and `agi-flush` swapped; every test unit removed after (0 left):
+| claim | result |
+|---|---|
+| the child owns a real pty with a size | `/dev/pts/13`, `50 200` |
+| a write to `i` is typed into the session; CR submits | `mail\r` -> `got:mail` |
+| a writer leaving does not end the session | written three times by three processes: still active |
+| `printf '\003' > i` interrupts it | SIGINT, exit 130 |
+| a crash restarts it whole (`Restart=always`) | NRestarts=1, active, the new `i` takes input |
+| the inbox unit types into it | `agi-inbox@` Result=success, `got:mail` |
+| no second copy of the transcript in the journal | 0 lines (`StandardOutput=null`) |
+| the harness argv never lands in `o` | the header reads `$H`, unexpanded |
+| `o` and `i` are private | both mode 600 |
+**Three traps, measured and folded in:** (1) `script` also writes the stream to its stdout, i.e. the journal: a second transcript, readable by whoever reads the journal -> `StandardOutput=null`. (2) `script` puts its whole command line in `o`'s header: with `${H}` expanded by systemd, the harness argv lands in the file -> `\\$$H`, so systemd hands `\$H` to the outer sh and only the inner sh expands it. (3) `script` creates `o` with the umask (664 measured) -> `install -m600 /dev/null $HOME/o` first; `script` truncates it and keeps the mode (600 measured). Rejected: a kernel VT (`TTYPath=` + `/dev/vcsN`) needs the tty group and caps at 63.
+
+**N.2 · The two pieces, whole (v3).** depth 0+1 is unchanged at **4,095 B**: the two piece lines keep their wording and the byte counts keep their width (468 -> 618, 71 -> 69). Node +148 B, code +148 B.
+`agi-post@.service` (618 B):
+~~~ini
+[Service]
+User=agi-%i
+WorkingDirectory=/var/lib/agi/%i/t
+EnvironmentFile=/var/lib/agi/%i/env
+RuntimeDirectory=agi-%i
+ExecStartPre=sh -c 'mkdir -p $HOME/.ssh .agi/keys;[ -f $HOME/.ssh/id_ed25519 ]||ssh-keygen -qN "" -ted25519 -f$HOME/.ssh/id_ed25519;cp $HOME/.ssh/id_ed25519.pub .agi/keys/%i;mkfifo -m600 %t/agi-%i/i;install -m600 /dev/null $HOME/o'
+ExecStart=sh -c 'exec 3<>%t/agi-%i/i;exec script -qfO$HOME/o -c "stty cols 200 rows 50;exec strace -qqfe%%file -o\\$HOME/r \\$$H go" <&3'
+StandardOutput=null
+ExecStopPost=sh -c agi-flush
+Restart=always
+Slice=agi.slice
+MemoryHigh=4G
+[Install]
+WantedBy=multi-user.target
+~~~
+`agi-inbox@.service` (69 B; the `.path` is unchanged):
+~~~ini
+[Service]
+User=agi-%i
+ExecStart=sh -c 'printf "mail\\r">%t/agi-%i/i'
+~~~
+Changed from v2: ExecStartPre makes `i` and a private `o` · ExecStart = the pane, `$H` hidden · `StandardOutput=null` · `Slice=agi.slice` (N.5) · the inbox writes `mail` + CR to `i` instead of `dtach -p`. The drop box stays the permission boundary: another post can only make this post read the word `mail`, never type into it.
+
+**N.3 · The magic pane anchor is the post's NAME.** The pane of post `p` is `%t/agi-p/i` + `~agi-p/o`: a pure function of the unit's instance name, so the anchor costs 0 B and needs no registry. In §M's terms it is a location vector `p -> (i, o)` that the unit's own specifiers resolve.
+```
+foreign tool  = a launch whose harness cell is ANY argv (§L): it runs in the same pane, under the same strace and guard path
+talk to it    = write i · read o          (an MCP-less, tool-call-less surface: bytes in, bytes out)
+magic pane    = a reader on o (goal:g5.24.3: detect the structured form in the prose stream) that may answer by writing i
+occupation    = the unit is active (goal:g7.31.2): attaching IS registering, because there is nothing to attach but the unit;
+                a restart keeps the name, so the pin survives rotation by construction; no argv builder exists to regrow
+```
+For a launch (§L), the pane is the same two files under `/var/tmp/$INVOCATION_ID`: this is a stage-3 option, not a change now (posts stay on agi-post@ while DG3 runs stage 2.5).
+
+**N.4 · Every guard and watchdog today -> where it lives under config:engine.** KEEP = stays below the engine (the box body, `guard-init.sh`) · v2 / §L / §M = carried by that piece · GAP = nothing carries it yet, named with its falsifier · HELD = waits on DG3's key/identity build (belam 03:48Z).
+| today | guards | under the new engine | proof |
+|---|---|---|---|
+| `rotation_alert.py` (CC UserPromptSubmit) | rotate at the line | settings.json meter; pi: the CCCC turn hook (DG3, stage 2.5) | v2 · CCCC on the 2.5 bar |
+| `cc-session-start.sh` | the brief at start | settings.json SessionStart `B=0 agi-brief`; pi: agi.ts | §K cap PASS |
+| `heal.py watch` (agi-reaper, 30 s) | respawn a dead seat | `Restart=always` + tick.sh through agi.rules | F1 PASS · N.1 restart PASS |
+| `rotate.py alarms` (SM) · after_join reap-proof · the captive capture chain | alarm, prove the predecessor gone, rotate a stuck post | a restart IS a rotation: one unit, one cgroup, systemd stops the whole cgroup; tick's drift commit is the ONE alarm | F1 · §L "already loaded" |
+| `nudge_sweep` (2 min) + coalesced / undelivered nudges | re-type a stranded nudge | a write to `i` queues in the pty: nothing to strand | N.1 PASS (stub) · G2 |
+| `mail_poll` (5 min) | read the inboxes | `agi-inbox@.path` | N.1 inbox PASS |
+| `grid_sync` (5 min) | version every node | the turn-end commit (Stop hook / agi.ts) + agi-flush | F18 PASS |
+| `branch_push` (hourly) | push the trunk | agi-flush pushes post refs; only the master moves the trunk | S6 PASS |
+| `prime_merge` (4 h) | review + merge | §L route `merge-up-review`; the merge stays the master's act | §L F22 (stub) |
+| `maint_gc` (daily) | git gc | KEEP: one crontab line | -- |
+| `memory_alarm` (1 min) | warn BEFORE exhaustion | GAP: observe.sh reads unit states only; one line reading the post slice's `memory.events` high count + PSI makes a climb a drift commit (true state, never a kill) | G3 |
+| GUARD.md's five layers (oomd · user@ cap · agi slices · reboot watchdog · sanctuary-watch) | keep the box reachable | KEEP below the engine; §M M.3: the slice path IS the guard vector | §M V2 PASS · see N.5 |
+| the `agi-*` prefix drop-in (50-sanctuary-guard) | a broadcast guard | reaches §L launches (user manager); does NOT reach agi-post@ (a system unit) | N.5, measured |
+| session-sweep timer | archive idle session dirs out of MAIN | KEEP while posts run in MAIN; under v2 a post's sessions sit in its own home, so the job's target moves to `/var/lib/agi/*/` | -- |
+| ram-sync timer | MAIN's files on the RAM disk | KEEP for MAIN; under v2 the RAM tier is §M's per-node `at` (purged = dangling) | §M V3 |
+| pre-commit privacy guard (box-local) + `anonymize.py check` | refuse a box token in a commit | GAP: a post's own clone `~/t` gets no hooks; one gitconfig cell `core.hooksPath` -> the box guard dir | G4 |
+| `spawn_budget.py` | live-agent bound | `agi-L.slice` TasksMax (§L) + posts in `agi.slice` | §L F23 (unrun) |
+| `verify-suite.lock` | one suite runner | a claim = one CAS on `refs/claims` | v2 |
+| dispatch's stale-base refusal | never work on a stale base | agi-flush merges the trunk before it pushes; agi-gate refuses a tip that would not regrow | S6 · F9 PASS |
+| write.py spawn gate · `links.py` schema + links | legal parents, no broken link | shape.sh (§M) + agi-gate (a dangling posts link = rc 1) | F9 PASS · §M V1 |
+| the grid evidence gate | no verdict without evidence | agi-frontier: a goal is met only by its own falsifier | v2 |
+| `send.py whois` + signatures | authority from the graph | signed commits + signers + pre-receive ownership | P1 PASS |
+| provisioning floor · per-spawn keys · keysync timer · `envfile.py --check` | spend, keys present / absent | HELD | -- |
+| the stream's `brb` / `panic` | nothing secret on the stream | the owner's alone, outside the engine, untouched | -- |
+| sanctuary-watch peer probes + recovery agent | other towns | KEEP (box body) | -- |
+
+**N.5 · A red the round found (alive lens): the box guard does not reach a v2 post.** Every guard layer that caps memory as a group (the `agi-*` drop-in, `agi.slice` / `agi-work.slice`, the user@ cap, the oomd lines on them) lives under the USER manager. A v2 post is `agi-post@<p>.service`, a SYSTEM unit (`User=agi-%i`, `WantedBy=multi-user.target`), so it lands in `system.slice` beside sshd with only its own `MemoryHigh=4G`. N posts x 4G is a throttle per post, with no meet over them and no oomd line. That is the 09-25 livelock shape. Measured 04:0xZ: the drop-in's `DropInPaths` exist for user units only; no system `agi-*` unit is live yet, so nothing is exposed today. **Fix = cells, 0 code:** `Slice=agi.slice` in agi-post@ (in N.2 above) + a system `agi.slice` with `MemoryMax`, `MemoryHigh` and `ManagedOOMMemoryPressure=kill`, set ONCE by `guard-init.sh` from `config:guard` (it already sizes user@ the same way). Until that cell exists the post is no worse than v2, and no better. For DG3's stage 2.5 bar: DG5's unit must not start in `system.slice` uncapped.
+
+**Falsifiers.** **N1** pty, typing, CR, ^C, no EOF, restart (PASS, above) · **N2** no journal copy, argv hidden, `i` + `o` 600 (PASS) · **N3** a live TUI (claude and pi) in the pane: CR submits a prompt, a write during a busy turn is kept for the next turn, and `o` grows by at most X MB/h (UNRUN: needs the live post, stage 2.5; X is a cell to measure, never a guess) · **N4** `systemctl show agi-post@<p> -p ControlGroup` is under `/agi.slice/`, and that slice has a finite MemoryMax and an oomd line (UNRUN: a root act) · **G2** a nudge written while the post's TUI is busy is answered (UNRUN) · **G3** a memory climb past the slice's MemoryHigh appears as a drift commit naming the slice before any kill (UNRUN) · **G4** a commit carrying a box token in a post clone is refused (UNRUN) · **G5** every row of the N.4 table names a piece, a cell or a falsifier, or says KEEP / HELD by name: no row reads "covered" without one (this table, checked by hand 04:0xZ).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 self-perpetuating, 03:5xZ 10-01 (round 4 part 1, asks 3 + 4; base doc f37e25ced2 + config:engine v2 50eda68b1f): added §L. ONE launch vector L = base + route + deltas (jq add); each = fan out, then = chain; the unit is named by hash(L) and the result IS refs/L/hash(L), so a launch is pure and memoised. Tested with stub harnesses under the user manager on the scratch clone: override, fan out x3, chain (refute ran on review's ref), memo (no re-run). Traps measured: a tmpfs slot and page cache under MemoryHigh 256M (fill 1.6 s -> over 120 s) -> on-disk /var/tmp/INVOCATION_ID tree, mem 1G. Routes (872 B) replace command:commands + 30 workflow scripts; agi-launch 896 B; together they retire about 670 KB. depth 0+1 stays one read at 4,095 B by tightening my own lines. The compose route and the slice bound are unrun (F23, F24). Posts stay on agi-post@ while DG3 runs stage 2.5.
