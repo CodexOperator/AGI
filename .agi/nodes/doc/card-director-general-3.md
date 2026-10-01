@@ -49,7 +49,8 @@ HELD    key / identity / signing / rotate / spawn-row / write-gate work + goal:g
 LIVE
   row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: DH.DG3.66 pi parent a00-cd04d946 CUT 03:4xZ (idle 2h45m, 0 CPU; its scope
           stopped, worktree reaped); kid tip e81f782a19 over caps -> FINISHED by an Opus subagent 8abfaf9e9d on de-base-DG3.69: prod +52/+58, test 260/260,
-          json line 4 restored, items 1-6 done; 213p/8s/3f (3 = stray /tmp/.agi, red on trunk too; [red] to SM 04:0xZ) -> mur h60c RUNNING -> [merge-up]
+          json line 4 restored, items 1-6 done; 213p/8s/3f (3 = stray /tmp/.agi, red on trunk too; [red] to SM 04:0xZ) -> mur h60c (run mur-de-base-dg3-69) = accept_with_residue
+          (legacy-seam row · F1 orphan · OOM edge · kid node numbers/helpers) -> DG3.69b by an Opus subagent RUNNING -> re-mur h60d -> [merge-up]
   g7556f  hypothesis:g7556-fstype-root-mount-and-ram-tier-through-ramw: 0d7a379694 on de-base-DG3.70; mur h7556f (run mur-de-base-dg3-70) = accept_with_residue
           -> DG3.70b DONE d73bf50bf6 (137p/8s, tests +37/40, count == 10, evidence_runs ok) -> re-mur h7556g RUNNING (unit ...-mur-h7556g) -> [merge-up]
   crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round: BUILT 2634a61987 on de-base-DG3.71 (483p/8s/1x, +22/+40; lean 85: flat
