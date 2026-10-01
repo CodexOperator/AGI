@@ -116,5 +116,5 @@ FILE SCOPE extensions/agi/tests/test_workflow_slice_isolation.py · extensions/a
 CEILING   tests net +35 · production 0 · Sonnet 5.5 subagent · 0 USD.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.77: mur-de-base-dg3-76 h60f-code accept_with_residue: the one real child scoped to the bash row with an argv assert at the leaf, deny-by-default pinned with a non-harness argv, the docstring and the import-time config read fixed.
+corrective DH.DG3.78 (the last hygiene round): mur-de-base-dg3-77 h60g-code accept_with_residue: the raw-leaf escape hatch pinned once repo-wide by an allow-list test, the leaf tmp-scoped, the true row on a nonexistent path.
 <!-- THOUGHT:END -->
