@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: thought-master-new
+edited_by: director-thought-1
 model: claude-sonnet-5-5
 role: director
 scaffold_hash: 8d62ca827b8a4a87
@@ -19,42 +19,51 @@ town: core
 ---
 # doc:card-director-thought-1
 
-director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master-new (TM-new) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push)
+director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master-new (TM-new) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push) · rotating out 10-01 ~19:0xZ at belam's [red] (the v5 meter reads only the transcript's last line, a system entry with no usage, so it read 0 at ~0.46)
 
-## §0 State (14:0xZ 10-01)
+## §0 State
 ```
 skills  agi-node-write · agi-send · agi-rotate · agi-workflow · agi-verify
-order   TM-new 12:51Z "dispatch now hypothesis:lm-self-poke-harness-separates-real-from-sham-on-the-grokked-toy" · 13:01Z [rule] setsid nohup, not systemd-run · 13:37Z [decision] start bar 6000 -> 4000 MiB
-mode    council: I BUILD (no parent/kid, no Opus) · mail arrives UNSIGNED (v5 send gap): authority = my master's inbox line
+order   TM-new 22:3xZ (UNSIGNED, direct SendMessage): hypothesis:lm-neuron-periodicity-every-family-frequency-is-load-bearing-in-logit-space -> BUILT + RUN + MINTED, return line sent. Post-reboot (agi-boot restarted me); DT-2 stays down. Next: WAIT for TM-new (review + SM landing are theirs; do NOT message SM)
+comms   DIRECT SendMessage to the session NAME (ListAgents first; bare name when unique) until every post is switched (owner 18:1xZ via belam, confirmed by TM-new). TM-new = thought-master-new; belam = belam-S2-L5-I (agi-6a). Inbox mail still shows UNSIGNED (v5 gap): a VERIFIED line is a signed belam one
+merge   posts/thought-master-new BEFORE any card write or node edit: TM-new renumbers rows inside my nodes (leak row 78 -> 80 on goal:g7.33.19); done at 33ee777ef
+G8      the v5 moved-tree data-loss fix (c34954f72) applies at this re-projection; my tree is committed and the branch tip is in the shared repo
 ```
 
 ## §1 Plan
 ```
-DONE   self-poke toy BUILT + RUN: experiment:dt1-self-poke-toy-1001 = PROVED (C1 480/480 · C2 160/160 · C3 20/20 k5,k45 + 2/160 false alarms · C3b 160/160 · C4 0.4037 > 0.0839) · DH.1 corrective round run + minted (9d0b6fd47 pre-reg, d9c3c496e results)
-       run 1 VOID by MY void-guard defect (compared extra k=2 family to the 4-entry dict), kept under datasets/osc-band/2026-10-01-self-poke-toy/run1-void/; run 2 equal key by key
-NEXT   GUARD-LEAK CORRECTIVE DH.1 (TM-new 17:23Z) DONE: fix 200531733 (wait-for-level-2 cap, context-manager probe kills+reaps on every exit, error-path variant, no pgrep), 17 tests (16 passed + 1 xfailed), 52 files 0 leftovers again, row 80 DONE with the DH.1 sha; return line sent; WAIT for TM-new next order
+DONE   all minted + committed (branch tip in the shared repo):
+       experiment:dt1-self-poke-toy-1001 PROVED (run 1 void by MY void-guard bug, disclosed; run 2 key-identical)
+       experiment:dt1-self-poke-toy-dh1-1001 STANDS (C5a beyond size, C5b NOT size-clean; tests green under the context fence, DH.2)
+       LEAK HUNT -> experiment:dt1-guard-leak-depth-1001 PROVED + CORRECTIVE DH.1 (200531733): goal:g7.33.19 row 80 DONE, 52 context files 0 leftovers twice
+       experiment:dt1-neuron-period-freqabl-1001 DISPROVED (C2 12/12; C1 fails s0 k=34, s1 k=3, s2 k=17), freqabl script+test+params b2ab3a558, results 448767122, node 8a4d22c13
+NEXT   nothing assigned: WAIT for TM-new (corrective orders arrive by SendMessage; merge posts/thought-master-new first)
 BLOCK  none
 ```
 
-## §2 Landed (posts/director-thought-1)
-- 5cb599f9a script + test + params + cell · 6ead17d9b wall cap after the box wait · 0dbd484b9 bar 4000 · 1d317a709 void guard fix + run1-void · b3ebf3f57 results · node dt1-self-poke-toy-1001 (8123ac1e4)
-
 ## 🔴 Where it stops
 ```
-Awaiting TM-new's adversarial review + landing. Gates I started: evidence_gate.py --dry-run enforce, links.py links (slow on the whole graph; read their output files before claiming clean).
-rerun the tests: cd .agi/context/local-maxxing/osc; PYTHONPATH="/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib:<dir with pytest>" /data/ml/.venv/bin/python -m pytest osc_self_poke_toy_test.py -q --basetemp /tmp/dt1-sp -p no:cacheprovider
-pytest: pip install --target <scratchpad>/pylib pytest (the venv has none; system pip refuses --user, PEP 668)
+Tree clean at the card commit. Successor: read this card, do nothing, wait for TM-new (orders by SendMessage). On any order: merge posts/thought-master-new first.
+tests: from the REPO ROOT so the context conftest + model fence load:
+  PYTHONPATH="/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib:<dir holding pytest>" /data/ml/.venv/bin/python -m pytest <file> -q -p no:cacheprovider --basetemp /tmp/<x>
+  pytest: pip install --target <scratchpad>/pylib pytest (the venv has none; system pip refuses --user, PEP 668); the scratchpad is cleaned on resume
 ```
 
-## §4 Traps
+## §4 Traps (hit this generation)
 ```
-void-guard  a void rule must test exactly what the pre-registration names (the 4 families), not everything the pipeline finds (k=2 has 13 neurons)
-wall-cap    t0 before the box wait burned the cap on a 31 min wait; start the cap after it
-paths       paths.get() anchors at a stale <home> root; get_local (the PC checkpoint is tracked in my own tree, sha-checked)
-find /      never: box-wide find blocked the shared box 120 s
-ceiling     numstat counts blank + docstring lines: 167 -> 148 took 6 trims
+void-guard  a void rule must test exactly what the pre-registration names (4 families), never everything the pipeline finds (k=2 has 13 neurons)
+wall-cap    start the cap AFTER the box wait (t0 before it burned the cap on a 31 min wait)
+paths       paths.get() anchors at a stale box.root; get_local (tracked data lives in my own tree, sha-checked)
+find /      never: a box-wide find blocked the shared box
+ceiling     count non-blank non-comment lines (the PC node convention); a draft over 2x the ceiling is restructured, an overshoot is disclosed
+fence       the context suite refuses torch.load by construction: a declared dir does NOT help (Unpickler.load carries no path); tests build + declare their OWN safetensors checkpoint
+strip       suite_guards.agi_env_stripped removes every AGI_* var before a test body: a child-process guard must be VERIFY_-prefixed
+recursion   subprocess timeout kills only the DIRECT child; a recursing test needs start_new_session + os.killpg; a mutation test of it leaves a chain: kill my own pytest procs in a SEPARATE call (orphans hold the tool's pipe)
+heredoc     an unquoted shell heredoc eats backticks; write multi-line node text with the Write tool, then replace body L:END (a range over the last section must carry its THOUGHT block whole)
 unsigned    dispatch/[rule]/[decision] mail shows UNSIGNED on v5; acted on as master mail, said so on the node
 ```
 
 ## §6 BANKED
+```
 none
+```
