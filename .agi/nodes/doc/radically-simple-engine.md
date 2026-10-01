@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -690,6 +690,67 @@ F22  PASS  origin is a plain path
 unchanged by v2 and not re-run: F2-F5, F7, F8, F13-F16, F17, F20, L1-L3 (§J)
 ```
 
+## L · ROUND 4 · self-perpetuating -- ONE launch vector (asks 3 + 4): no workflow.py; the commands template is a vector base with routes
+**Owner 03:48Z:** "No more workflow.py needed because all things are infinitely composable and run inside the 'wrapper.' There's no distinction between posts, subagents, workflows, etc. ... preset routes ... a vector base pointing/multiplying/operating on other relevant vectors. And even a 'compose new launch vector' vector to guide a model step by step." **What am I ACTUALLY trying to get the machine to do here?** Start a mind on a task, inside bounds, and get its result back as a commit. Whatever it is called (post, kid, subagent, workflow stage, round), that is the whole act.
+
+```
+L = base (+) route (+) deltas            one JSON vector; (+) = jq `add` (a cell-wise override), so a route IS a sparse vector
+basis = the cells of base:  run · harness · task · base · mem · time · each · then        (8 cells, one line)
+  each : [t1..tn]   =>  L (x) T  = n launches  {L (+) {task: ti}}                    fan out   (workflow rounds[], a parent's kids)
+  then : D          =>  D (+) {base: refs/L/hash(L)} starts when L stops               chain     (review -> refute, stage -> stage)
+  run  : fill a slot at `base` -> the harness works in it -> keep the result -> refs/L/hash(L)   (round-1 §4 slot, on disk)
+unit name = agi-L-hash(L) · result = refs/L/hash(L) · result exists => done, never re-run    a launch is a PURE function of its vector
+what it SEES = agi-brief's walk with e = the task node: b = sum((1-a) P)^k e_task          the 4th product, already in config:engine
+```
+- **Preset routes = the commands template (ask 4):** `post` · `kid` · `review` · `refute` · `merge-up-review` (= review, `then` refute) · `compose`. A route may name another route (`merge-up-review` builds on `review`), so routes operate on routes, and a call adds its own deltas. Today's command:commands (115,841 B of argv registry) and 30 workflow scripts (233,926 B) become 7 lines (872 B).
+- **The compose vector:** the route `compose` launches a model with the basis, in order, and asks for ONE cell per step, reusing a route where one fits. Its output is one JSON line, validated by `jq -e`, and it becomes a new route line. NOT yet run against a model (the free lane is open for it; spike F24).
+- **Posts stay on agi-post@ for now.** A post is the route `post` (time = infinity). DG3 is bringing DG5 up live on agi-post@.service (stage 2.5), so this round changes nothing there. Folding agi-post@ into agi-launch is a stage-3 option, not a change to the running path.
+
+**Tested 03:5xZ** (user manager, the `--shared` scratch clone, stub harnesses that write a file: no model, no root, MAIN untouched):
+| claim | result |
+|---|---|
+| override: `{"route":"kid","task":"A"}` | refs/L/<hash> holds `A` |
+| fan out: `{"route":"kid","each":["x","y","z"]}` | 3 units, 3 refs holding x, y, z |
+| chain: `{"route":"merge-up-review","task":"g7.16.1.11"}` | review's ref, then refute's ref, which holds BOTH outputs: refute ran on review's result |
+| memo: the same chain vector launched again | no unit started: its ref already existed |
+| a second identical launch while the first runs | systemd refuses it ("already loaded"): one name per vector |
+**Two measured traps, now in the base cells:** (1) a slot on the unit's RuntimeDirectory is tmpfs: a full 148 MB tree in RAM. (2) Page cache counts against MemoryHigh: at 256M a fill crawled from 1.6 s (by hand, on disk) to more than 120 s and 2 of 5 units timed out. So the tree lives on disk at `/var/tmp/$INVOCATION_ID` and is removed when the run ends, and the base `mem` is 1G. A sparse fill (only the task's paths) is the next saving, unmeasured.
+
+**Genome lens: it regrows from config:engine and adds two sections, nothing installed.** `### agi-launch` (~~~sh, 896 B) and `### launch` (~~~json, 872 B), read with `sect launch` at any REV. **depth 0+1 stays one read:** two new piece lines, paid for by tightening my own five lines, give 4,095 B (limit 4,096; v2 is 4,057). The exact lines:
+```
+agi-project          941 B  the genome: post rows -> units, read from here; re-reads itself
+agi-seed.service     447 B  the ONE installed unit: boot -> agi-project
+agi-frontier         460 B  the hunger: goal falsifiers -> met | red | mute
+agi-gate             273 B  refuse a trunk tip whose body would not regrow
+sect                 149 B  ONE piece of this node, byte-exact, any REV
+agi-launch           896 B  post|kid|workflow: ONE vector L; result = refs/L/hash(L)
+launch               872 B  base + routes: each=fan out, then=chain, compose=new
+```
+The whole node grows by ~1.9 KB, to ~14.9 KB (budget 16,384).
+
+**It retires** workflow.py 156,824 B · dispatch.py 227,309 B · spawn_budget.py 51,688 B (the bound becomes the `agi-L.slice` properties; not yet set, F23) · 30 workflow scripts 233,926 B. That is **~670 KB replaced by 1,768 B.**
+
+Falsifiers: **F22** override · fan out · chain · memo, as in the table (PASS with stub harnesses) · **F23** `agi-L.slice` with TasksMax=N: an each of N+5 runs at most N at once (unrun) · **F24** `{"route":"compose"}` on pi-free returns a jq-valid vector whose keys are a subset of the basis, in <= 8 steps (unrun) · **F25** depth 0+1 of config:engine with the two lines <= 4,096 B (4,095 measured on a copy).
+
+`agi-launch` whole (896 B counted; the test copy differs only in absolute paths and passing AGI_ROUTES):
+```sh
+#!/bin/sh
+# agi-launch DELTA..: L = base (+) route (+) deltas (jq add); one transient unit named by the hash of L; its result IS refs/L/<hash> (exists = done); each = fan out, then = chain
+R=${AGI_ROUTES:-$(sect launch)};L=$(printf '%s\n' "$@"|jq -sc --argjson R "$(echo "$R"|jq -sc .)" 'def x(d):($R[]|select(.name=="base"))+(if d.route then x($R[]|select(.name==d.route)) else {} end)+d|del(.name,.route);reduce .[] as $d({};.+x($d))')
+[ "$(echo "$L"|jq '.each|length')" -gt 0 ]&&{ echo "$L"|jq -c '.each[] as $t|del(.each)+{task:$t}'|while read -r l;do agi-launch "$l";done;exit;}
+i=agi-L-$(echo "$L"|git hash-object --stdin|cut -c1-12);git rev-parse -q --verify refs/L/$i>/dev/null&&exit;c(){ echo "$L"|jq -r .$1;};t=$(echo "$L"|jq -c '.then//empty|.+{base:"refs/L/'$i'"}')
+systemd-run --user -q --unit=$i --slice=agi-L.slice -p WorkingDirectory=$PWD -p MemoryHigh=$(c mem) -p RuntimeMaxSec=$(c time) ${t:+-p "ExecStopPost=agi-launch '$t'"} --setenv=AGI_TASK="$(c task)" --setenv=AGI_BASE="$(c base)" --setenv=AGI_RET=refs/L/$i --setenv=AGI_HARNESS="$(c harness)" sh -c "$(c run)"
+```
+`launch` whole (872 B, one vector per line; the first is the base):
+```json
+{"name":"base","run":"d=/var/tmp/$INVOCATION_ID;mkdir $d;slot $d fill $AGI_BASE&&(cd $d&&sh -c \"$AGI_HARNESS\");slot $d keep $AGI_RET;rm -rf $d $d.?","harness":"pi -p @$AGI_TASK","task":"","base":"trunk","mem":"1G","time":"1800","each":null,"then":null}
+{"name":"post","time":"infinity","mem":"4G"}
+{"name":"kid","harness":"pi -p @$AGI_TASK","time":"1800"}
+{"name":"review","harness":"pi -p \"review $AGI_BASE against the claim in $AGI_TASK\"","time":"1800"}
+{"name":"refute","harness":"pi -p \"refute the review on $AGI_BASE\"","time":"900"}
+{"name":"merge-up-review","route":"review","then":{"route":"refute"}}
+{"name":"compose","harness":"pi -p \"Compose ONE launch vector. Fill exactly one cell per step, in this order: $(sect launch|head -1|jq -r 'keys_unsorted|join(\", \")'). Reuse a route where one fits. Print one JSON line; jq -e validates it.\"","time":"600"}
+```
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 alive gen 5, 00:4xZ 10-01 (date -u): §I is config:engine v2 and §K its results, on belam's word 00:41Z (signed inbox) under the owner's 00:28Z go. Folded S1-S12 plus S14 (found in the re-run: the master's own good trunk push was refused by the per-path owner check), the CC 2 KB cap (SessionStart = the vector only), the heal through ONE root-owned polkit rule, F9 built as agi-gate (its first form passed a do-nothing self-run; fixed to regrow into an empty dir), F10 and F11 dropped by name. Re-run on throwaway users with every root act undone and verified. The live config:engine is v1 until the Prime re-mints.
 <!-- THOUGHT:END -->
