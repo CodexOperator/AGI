@@ -1108,6 +1108,81 @@ if v=='join':
 # ring-ok K <ring (lines: holder box): every box holds <= min(K-1, N-K) holder keys -- no box can pop alone, and losing any one box leaves >= K
 awk -v k=$1 '{n++;b[$2]++}END{m=k-1<n-k?k-1:n-k;for(x in b)if(b[x]>m){print "box "x" holds "b[x]" > "m;e=1};exit e}'
 ```
+
+## Q · ROUND 5 · alive -- the BOOTSTRAP is one 5.7 KB node; everything a post runs is an EXPANSION, read by name
+**Owner 05:38Z:** "Our engine code is getting too large. Do we need to offload more of it into the math somehow? Rethink things or recompose them? We can go up to 20kb while needed but ideally I'd want it back under 8kb when possible via another simplification redesign. Mind you the expanded vectors for live posts and post wrappers can be bigger than 8kb I just mean the 'bootstrap' package is under 8kb you get it?" **What am I ACTUALLY trying to get the machine to do?** Make the one read that a box needs to come alive small, and let everything a post runs be fetched by NAME only when it is needed, with no piece rewritten (so parity holds by construction, and is then measured, not argued).
+
+**Q.1 · The redesign is one idea: the engine is a SET of nodes, and `sect` is the only resolver.** `config:engine` (`engine.md`) = the BOOTSTRAP (diagram · loop · pieces table · `sect` · `agi-project` · `agi-gate`). `engine-post.md`, `engine-cc.md` and `engine-pi.md` = the EXPANSIONS. Every reader that named `engine.md` now reads `.geometry/engine*.md` at the REV, so a piece is found by name wherever it lives; adding an expansion = a new `engine-<x>.md` + one line in the bootstrap's pieces table, no code. Only FOUR pieces change (the readers); the other 20 move byte for byte.
+| node | bytes | holds |
+|---|---|---|
+| **config:engine (BOOTSTRAP)** | **5,731** (target 8,192; v4c 16,384) | diagram, loop, pieces table (3 pieces + 3 expansion lines), sect, agi-project, agi-gate, THOUGHT |
+| config:engine-post | 9,080 | the post body: unit, pane, meter, turn, links, trees, brief, tick (18 pieces) |
+| config:engine-pi | 2,548 | cccc.ts + agi-kid: loaded only by a pi post |
+| config:engine-cc | 670 | settings.json: loaded only by a Claude Code post |
+| total | 18,029 | +1,645 B vs v4c: three frontmatters, three tables, the four readers (+361 B) |
+
+**Q.2 · Every v4c piece, mapped (bytes v4c -> split):**
+| piece | v4c | split | side | change |
+|---|---|---|---|---|
+| agi-post@.service | 1,252 | 1,252 | engine-post | extraction loop: engine*.md, grep -h, range ends at ^## |
+| agi-run | 357 | 357 | engine-post | moved verbatim |
+| settings.json | 272 | 272 | engine-cc | moved verbatim |
+| cccc.ts | 1,647 | 1,647 | engine-pi | moved verbatim |
+| agi-kid | 390 | 390 | engine-pi | moved verbatim |
+| agi-brief | 938 | 938 | engine-post | moved verbatim |
+| brief.py | 810 | 810 | engine-post | moved verbatim |
+| agi-meter | 439 | 439 | engine-post | moved verbatim |
+| agi-turn | 269 | 269 | engine-post | moved verbatim |
+| agi-link | 358 | 358 | engine-post | moved verbatim |
+| agi-wt | 688 | 688 | engine-post | moved verbatim |
+| agi-track | 89 | 89 | engine-post | moved verbatim |
+| agi-flush | 181 | 181 | engine-post | moved verbatim |
+| gitconfig | 180 | 180 | engine-post | moved verbatim |
+| signers | 65 | 65 | engine-post | moved verbatim |
+| sysusers.conf | 41 | 41 | engine-post | moved verbatim |
+| agi.rules | 211 | 211 | engine-post | moved verbatim |
+| project.sh | 161 | 161 | engine-post | moved verbatim |
+| observe.sh | 255 | 255 | engine-post | moved verbatim |
+| tick.sh | 254 | 254 | engine-post | moved verbatim |
+| agi-project | 1,679 | 1,793 | BOOTSTRAP | s() reads every engine*.md; range ends at ^## |
+| agi-frontier | 460 | 460 | engine-post | moved verbatim |
+| agi-gate | 276 | 504 | BOOTSTRAP | + every named expansion exists + the unit template non-empty |
+| sect | 149 | 202 | BOOTSTRAP | reads every engine*.md |
+None is GONE in this round: removing a piece changes behaviour, and this round's bar is parity. The seeds that DO remove bytes are named in Q.5, each a later round.
+
+**Q.3 · The four changed readers, whole:**
+`sect` (202 B, bootstrap):
+~~~sh
+#!/bin/sh
+r=${2:-HEAD};git ls-tree --name-only $r .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s/^/$r:/"|git cat-file --batch --follow-symlinks|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"
+~~~
+`agi-project`: only `s()` changes (the rest of the 1,793 B is v4c's): `s(){ git ls-tree --name-only $r .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s/^/$r:/"|git cat-file --batch --follow-symlinks|sed -n "/^### $1 /,/^##/{/^~~~/,/^~~~/{//!p}}";}`
+`agi-post@.service`: only the extraction loop changes: `e=t/.agi/nodes/.geometry/engine*.md;for x in $(grep -ho "^### [^ ]*" $e|cut -c5-);do sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}" $e>bin/$x;done` (same 1,252 B)
+`agi-gate` (504 B, bootstrap):
+~~~sh
+#!/bin/sh
+echo $1:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n 's/^\(engine-[a-z]*\) .*/\1/p'|while read n;do git cat-file -e $1:.agi/nodes/.geometry/$n.md||exit 1;done||exit 1
+o=$(mktemp -d);sect agi-project $1|sh -s $o $1&&[ -s $o/agi-post@.service ]&&ls $o/multi-user.target.wants/agi-post@*>/dev/null||{ rm -rf $o;exit 1;}
+mv $o $o.1;sh -c "$(sed -n 's/^ExecStart=sh -c "\(.*\)&&systemctl.*/\1/p' $o.1/agi-project.service)";diff -r $o.1 $o;r=$?;rm -rf $o $o.1;exit $r
+~~~
+
+**Q.4 · Measured 05:5xZ, unprivileged, on a scratch repo (v4c commit vs split commit, the live posts.md + one synthetic engine-v4 row, so the per-post path runs):**
+| # | claim | result |
+|---|---|---|
+| R1 | `sect <piece>` at the split == v4c's `sect <piece>` at v4c, for all 24 names | 20 byte-identical; the 4 that differ are the 4 changed readers |
+| R2 | the projector into an empty dir, v4c vs split | the same file set; the per-post drop-in (harness argv, env cells) and the sysusers lines byte-identical; only the unit template (Q.3) and the REV name differ |
+| R3 | a post's own extraction (the loop taken from each REV's unit bytes, run over a checkout of that REV) | 24 files each side; only the 4 changed readers differ |
+| R4 | the gate | a complete split: rc 0 · `engine-post.md` missing: rc 1 · the unit template renamed away: rc 1 |
+**Two defects found by the proofs, not by reading:** (1) the extraction loop and `s()` ended a piece at the next `### `, so the LAST piece of each node ran on into the next node's pieces table (settings.json, agi-kid, agi-frontier came out wrong) -> they now end at `^##`, as `sect` already did (pieces never hold a line that starts `##`: checked, 0). (2) The gate passed with an expansion missing, and also (in v4c already) with the unit template gone -> two checks, +228 B, both refused now. Three harness slips of mine were caught and redone: a pipe tested with `-s`, a tamper commit on the branch under test, a non-executable `sect`.
+**Parity:** the doc:g716111-stage25-parity rows ride on these bytes; with 20 pieces identical, the readers resolving the same 24 pieces (R1, R3) and the projector's per-post output identical (R2), no row's mechanism changes. Re-run the rows on the live post after the build: the split is unproven live.
+
+**Q.5 · What comes next (seeds from belam, measured as options, none needed for the 8 KB bar):**
+- ONE BRIEF (all-is-one, built and parity-tested on its side): `brief` 1,161 B (python, one process) + `agi-firstturn` 659 B replace agi-brief + brief.py (1,748 B): +72 B today, -587 B once stage 3 retires the first-turn half; the hook wiring becomes a cell (B per harness). It lives in engine-post.
+- key=value units -> cells + ONE projector line per file type (all-is-one's lens): agi-post@.service (1,252 B) is mostly constants; the per-post values are already cells. A later round, with its own parity proof.
+- per-post selection: today every post extracts every expansion (bytes on disk, harmless); a post-vector cell naming its expansions (`AGI_X`) would load only `engine-post` + its harness's node.
+
+**Falsifiers.** R1-R4 PASS (scratch) · **R5** DG3's build: the live post boots from the split with every parity row green (UNRUN) · **R6** `wc -c engine.md` <= 8,192 at every trunk tip: a gate line, so the bootstrap can never silently regrow past the bar (proposed, unbuilt).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 alive (agi-a8), 05:3xZ 10-01: the capsule after two owner widenings since 59cbe58c6 (the owner lines of 04:49Z to 04:59Z are banked in that version of this THOUGHT; the grid keeps it). Owner 05:30Z, verbatim: "So terminus is upgraded to student plan I now have key exchange and background run. I also have quantum resistant key exchange…could…could I borrow my iPhone 14s secure chip if it has one? For true, system-invisible, obfuscation? I also have access to a MacBook Air so one or the other should work." WHY this version differs: (1) O.5 pins the login code to a URL-safe line of at most 512 B (all-is-one: without it the phone key plus an open ask could type a prompt into a live agent); P11 PASS. (2) O.7, the Secure Enclave: it hides the KEY, never the payload. An SSH app can only sign with it, and ECDSA signatures are randomized, so wrapping a seal needs the chip ECDH = about 40 lines of Swift on the Mac (no App Store). The council split it by job: the iPhone APPROVES (its SE SSH key is a ring holder; background run makes the polling carrier work), the Mac is a CUSTODY holder. all-is-one, on self-perpetuating correction: approval ring != custody ring. The Mac SE alone must never unwrap (its root plus Z plus the public ciphertext would open it), so custody = the host-key seal AND the Mac SE (2-of-2, two domains), and the §P escrow (k >= 2, never needing the Mac) is the regrow path, since the chip key is non-exportable. Measured with a software P-256 key standing in for the chip: se-wrap 1,277 B (AES-GCM, authenticated), E1 a P-256 ring key pops with an ed25519 holder and alone is refused, E2a-d the device Z opens it, another Z or a guessed one or a flipped bit is refused. Near miss: my first O.7 draft made the Mac the sole at-rest anchor; the custody correction arrived before the write.
 <!-- THOUGHT:END -->
