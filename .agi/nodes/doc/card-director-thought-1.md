@@ -19,7 +19,7 @@ town: core
 ---
 # doc:card-director-thought-1
 
-director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master-new (TM-new) · town local-maxxing · goal:g7.16.1 council loop · tree /var/lib/agi/director-thought-1/t · branch posts/director-thought-1 (LOCAL-ONLY, never push)
+director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-master-new (TM-new) · town local-maxxing · goal:g7.16.1 council loop · tree <home>/t · branch posts/director-thought-1 (LOCAL-ONLY, never push)
 
 ## §0 State (14:0xZ 10-01)
 ```
