@@ -1857,19 +1857,14 @@ def _stage_is_producing(stage: dict) -> bool:
     return (time.time() - mtime) <= stage.get("silence_s", 300)
 
 
-#: bounded grace for a killed stage's pipes after its scope was stopped: a
-#: pipe an orphan still holds must cost a wall kill, never an unbounded wait.
+#: bounded read of a killed stage's pipes: an orphan's pipe never blocks forever.
 _WALL_STOP_GRACE_S = 30.0
 
 
 def _stop_stage_unit(unit: str) -> None:
-    """Stop ONE stage's OWN scope by name, on whatever exit the stage takes
-    (hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit). A stage
-    that leaves a child behind keeps the scope, and its I/O, alive with
-    nothing to stop it by name -- so the stop belongs to the stage, not to
-    the run's luck. A failing stop -- one that exits NON-ZERO, or cannot run
-    at all -- is ONE stderr line, never a raise: the stage's own result is the
-    run's business, not the stopper's."""
+    """Stop ONE stage's OWN scope by name, so no child it left behind outlives
+    it (hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit). A stop
+    that exits non-zero or cannot run is ONE stderr line, never a raise."""
     try:
         r = subprocess.run(["systemctl", "--user", "stop", unit],
                            capture_output=True, timeout=30, text=True)
@@ -1897,15 +1892,11 @@ def _run_stage_proc(cmd, *, budget: float, stage: dict,
     scope (`mem_cap.unit_name`) and stops it in the `finally` below, so no
     orphan outlives its stage on ANY of the three exit paths."""
     # SM.112 -- one cap for the stage child, in a NAMED scope, only on a REAL
-    # launch: a test that injected the Popen seam owns its own child. `cfg`
-    # is the graph the CALLER already holds, so the seam reads the declared
-    # `values.memcap.*` cells exactly as `dispatch.py` does; None keeps the
-    # shipped defaults. The `finally` below is the exit-path contract.
+    # launch: a test that injected the Popen seam owns its own child, and the
+    # legacy run seam launches nothing this function can stop (ANONYMOUS wrap).
+    # `cfg` is the graph the CALLER holds (`values.memcap.*`, as dispatch.py).
     unit = None
     env = spawn_env if spawn_env is not None else _pi_env()
-    # The legacy run-seam caller owns dispatch itself (it launches nothing
-    # this function can stop), so it keeps the ANONYMOUS wrap it always had;
-    # every REAL launch names its scope and stops it in the `finally`.
     legacy = (subprocess.Popen is _REAL_POPEN
               and subprocess.run is not _REAL_RUN)
     try:
@@ -1932,33 +1923,25 @@ def _run_stage_proc(cmd, *, budget: float, stage: dict,
                                                    out, err)
             except subprocess.TimeoutExpired:
                 if n >= grants or not _stage_is_producing(stage):
-                    # Read ONCE, BEFORE the stop and the kill: after them the
-                    # stage is dead either way, so re-reading says "already
-                    # exited" for a REAL wall timeout too -- which would answer
-                    # the caller with a bare negative rc and SKIP its
-                    # TimeoutExpired handling ('timed out after N s', rc 2).
+                    # Whether the stage ALREADY exited (an orphan holds its
+                    # pipe) is read ONCE, BEFORE the stop and the kill: only
+                    # that stage returns its own rc + whatever the bounded read
+                    # got; every other wall path raises TimeoutExpired, so the
+                    # caller's timeout handling runs. The stop goes first: it
+                    # kills the orphan, so the read returns (g7.33.19 row 60).
                     already_done = proc.poll() is not None
-                    # The scope stop goes FIRST: an orphan that inherited the
-                    # stage's pipe kept the bare communicate() below blocking
-                    # forever, so the `finally` never ran (g7.33.19 row 60).
                     if unit:
                         _stop_stage_unit(unit); unit = None
                     proc.kill()
-                    read_back = False
                     try:
                         out, err = proc.communicate(timeout=_WALL_STOP_GRACE_S)
-                        read_back = True
                     except subprocess.TimeoutExpired:
                         out = err = None   # an orphan still holds the pipe
-                    # A stage that had ALREADY exited is not a wall kill, whether
-                    # the bounded read came back (the stop closed the pipe) or
-                    # not: its own rc, and whatever the read got, is the result.
                     if already_done:
-                        return subprocess.CompletedProcess(cmd, proc.returncode, out, err)
-                    if read_back:
-                        raise subprocess.TimeoutExpired(cmd, deadline, output=out,
-                                                        stderr=err)
-                    raise subprocess.TimeoutExpired(cmd, deadline)
+                        return subprocess.CompletedProcess(cmd, proc.returncode,
+                                                           out, err)
+                    raise subprocess.TimeoutExpired(cmd, deadline, output=out,
+                                                    stderr=err)
                 n += 1
                 budget = stage.get("extension_s") or budget
                 deadline = time.monotonic() + budget
