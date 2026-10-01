@@ -52,5 +52,5 @@ FILE SCOPE extensions/agi/bin/map.sh · .agi/config.json (the `map` cell) · ext
 CEILING   HARD CAP: 1 kid · map.sh <= 150 lines total · tests <= +40 over 19151e383 · 0 other production lines · Sonnet 5.5 lane · 0 USD
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.1: director harvest of 9a0e12f86..19151e383 -- ttyd 1.7.7 sends the box hostname in its SET_WINDOW_TITLE frame (kid report, titleFixed hides it client-side only; socket.gethostname() differs from the town alias, measured); the render path itself is clean (anonymize box_tokens carries the hostname class). Swap to a server-side title template package.
+corrective DH.2: Sonnet review of 675dbf1e8..9cb9ad4f3 = accept_with_residue -- 4 residues (truncate-before-filter leaves a secret prefix; -uno makes untracked-only work read as claimed; committed-not-landed refs uncoloured -> a 5th stage; no unit in the bytes -> a unit verb) + hardening notes folded in (explicit write-off, connection cap, colours/xargs width to the cell). Demoted: unstaged edits behind an old index (the scan bound is falsifier 4; agi-track v1 fixes it). Ceiling breach tests +121/+120 = a findings row, not a corrective.
 <!-- THOUGHT:END -->
