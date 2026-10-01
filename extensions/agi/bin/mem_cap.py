@@ -380,6 +380,12 @@ def wrap_argv(argv: list, cap: "str | None",
     return ["prlimit", f"--as={_as_bytes(cap)}", "--", *argv]
 
 
+def is_wrapped(argv) -> bool:
+    """True when `wrap_argv` put `argv` in a systemd scope (so a NAMED unit
+    exists to stop); the prlimit fallback and an unwrapped argv are False."""
+    return bool(argv) and argv[0] == "systemd-run"
+
+
 def is_cap_death(returncode, cap, output: str = "") -> bool:
     """The cap's kill: cgroup SIGKILL (negative rc) or RLIMIT_AS exhaustion
     (MemoryError / out of memory). A wall timeout raises before this."""

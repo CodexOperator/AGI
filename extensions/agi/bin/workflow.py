@@ -1906,7 +1906,7 @@ def _run_stage_proc(cmd, *, budget: float, stage: dict,
                     "agi-stage",
                     f"{run_key or 'run'}/{stage.get('label') or 'stage'}")
             cmd = mem_cap.wrap_argv(cmd, cap, cfg, unit=unit)
-            unit = unit if (cmd and cmd[0] == "systemd-run") else None  # no scope, no stop
+            unit = unit if mem_cap.is_wrapped(cmd) else None  # no scope, no stop
         if legacy:
             return subprocess.run(cmd, capture_output=True, text=True, env=env,
                                   timeout=budget)

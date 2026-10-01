@@ -52,6 +52,40 @@ _SCHEMA = {"type": "object", "properties": {"ok": {"type": "boolean"}},
            "required": ["ok"]}
 
 
+@pytest.fixture(autouse=True)
+def _no_real_harness(monkeypatch):
+    """DH.DG3.75: no test here may reach a REAL harness. A real child whose argv
+    is a harness launch (pi / claude / a scope wrap / `--provider`) is recorded
+    and RAISES before the child exists; the teardown re-asserts, so a seam
+    failure is a RED even if something swallows the raise. `_REAL_POPEN` moves
+    with it, so the seam's `Popen is _REAL_POPEN` reading is unchanged."""
+    launched, real = [], _sp.Popen
+
+    def _guard(args, *a, **kw):
+        argv = [str(x) for x in (args if isinstance(args, (list, tuple))
+                                 else [args])]
+        if ("--provider" in argv or _wf.mem_cap.is_wrapped(argv) or
+                os.path.basename(argv[0]) in ("pi", "claude", "prlimit",
+                                              "systemctl")):
+            launched.append(os.path.basename(argv[0]))
+            raise AssertionError("a real harness launch under the seam")
+        return real(args, *a, **kw)
+
+    monkeypatch.setattr(_sp, "Popen", _guard)
+    monkeypatch.setattr(_wf, "_REAL_POPEN", _guard)
+    yield launched
+    assert launched == [], "real harness launch attempted: %s" % launched
+
+
+def test_guard_refuses_a_real_harness_launch(_no_real_harness):
+    # a binary that does not exist: if the guard were broken this is a
+    # FileNotFoundError, never a child
+    with pytest.raises(AssertionError):
+        _sp.Popen(["/nonexistent/pi", "-p", "--provider", "x", "prompt"])
+    assert _no_real_harness == ["pi"]
+    _no_real_harness.clear()               # refusal is the expected outcome
+
+
 def _tmp_session_root(tmp_path_factory, wf_mod):
     """Redirect workflow's `<project>/sessions/` resolution into a temp dir so
     no test writes the live `.agi/sessions/` (same seam test_workflow uses)."""
@@ -324,6 +358,9 @@ class _FakePopen:
             raise _sp.TimeoutExpired(self.cmd, timeout)
         self.returncode = 0
         return _OK, ""
+
+    def poll(self):
+        return self.returncode
 
     def kill(self):
         self.returncode = -9
