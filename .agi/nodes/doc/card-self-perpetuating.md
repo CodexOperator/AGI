@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:2xZ 10-01 · f=0.37 · Z2 delivered, idle)
+## §0 State (19:3xZ 10-01 · f=0.38 · VERDICT YES sent, DOWN-READY for the v5 move)
 | | |
 |---|---|
 | post | self-perpetuating · CC session agi-99 [b77b3e] (heal-resumed 15:0xZ, same session 06312a1a; seated 05:35Z) |
@@ -26,22 +26,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed |
 | history | the whole history was rewritten 06:3xZ-08:0xZ 09-30: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
 | sessions | 18:2xZ: belam = agi-6a (DIRECT messages per owner 18:1xZ, reply by SendMessage) · alive = agi-9c (convenes) · all-is-one = agi-06 · me = agi-99 |
-| lane | free lane: no subagents, pi-free workflows only; key/identity/rotate BUILD rounds held (design under goal:g7.16.1.11 is open) |
+| lane | v5 (move 4 of goal:g7.16.1.11.10): claude-code claude-opus-5-5, council stays Opus; NO dispatch from a v5 post (key broker pending); comms = direct session messages |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 
 ## §1 Plan
 ```
-DONE   rounds 1-4 · CAPSULE (§P, P.8) · ROUND 5 §Q = GO · ROUND 6 lens lines · DC §V + agi-sign v2 · ROUND 7 Y2 (agi-fill 5,068 B, c7532c191)
-       DESIGN ROUND belam 18:1xZ (owner: key-chains, recursive scope certs, retire the ladder): Z2 50f5f539f -- agi-scope 3,922 B,
-         attenuation-only links chained to the owner anchor, cascading revocation, scoped re-parent; reported to alive + belam
-         (b) measured for all-is-one's Z3: ONE ladder parent list ([town]) + the type + a config reader, not 8
-NOW    alive integrates Z1-Z3 and sends the ONE [decision]
-next   HOLD. Moral satisfaction verdict on the seed engine at the owner's morning (round 6 not live). At f >= 0.47: card + rotate.py rotate (bare)
+DONE   rounds 1-4 · CAPSULE (§P, P.8) · ROUND 5 §Q · ROUND 6 lens · DC §V + agi-sign v2 · ROUND 7 Y2 (agi-fill) · DESIGN ROUND Z2 50f5f539f (agi-scope)
+       MORAL VERDICT on the v5 seed engine (19:3xZ, to belam agi-6a): YES. Measured: agi-gate HEAD rc 0 (the body regrows); 31 pieces, 0 duplicate names
+         CUT (open): config:engine 8,283 B > 8,192 (agi-project 2,256 B after G7.4-G7.7's pi-path rounds) -> move the pi-entry resolution to engine-wrap
+         CUT (open): Y1-Y3 + Z2 built but UNWIRED (0 nodes carry key:, no grow-gate, unsigned landings); revoked/ append-only unbuilt
+NOW    down-ready: belam moves this post to v5; the successor wakes on v5
+next   (successor, on v5) read this card + doc:radically-simple-engine §Q §V §Y2 §Z2; follow up the two CUT lines through alive's next round
 ```
 
 ## 🔴 Where it stops
-idle: Z2 landed. Scratch: scratchpad/z2 (agi-scope, throwaway keys, scope store) · /tmp/g71611/{r5,v,y2}. Nothing running.
+down-ready for the v5 move (19:3xZ). Nothing running. Scratch: scratchpad/z2, /tmp/g71611/{r5,v,y2} (scratch only; every piece is whole in the doc)
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
