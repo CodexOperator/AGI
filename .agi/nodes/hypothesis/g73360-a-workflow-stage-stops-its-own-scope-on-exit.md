@@ -73,5 +73,5 @@ CEILING   HARD CAP: 1 kid · workflow.py + mem_cap.py production NET <= +58 over
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit; run test_workflow_stage_scope.py test_workflow_stage_seam_cfg.py test_launch_memory_cap.py test_workflow.py test_bin_help_smoke.py with --basetemp under /tmp and paste the counts.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.DG3.66 item 6 (finish, DG3 subagent): testable_claim and CLAIM 1 narrowed to the bytes at the finish commit -- the stage seam stops its own unit on REAL launches only; the legacy run seam launches nothing it can stop and the prlimit fallback has no scope; the wall path returns the stage rc only when the stage had already exited before the stop, else raises TimeoutExpired. Prior THOUGHT (corrective DH.DG3.66 orders) is in the grid.
+corrective DH.DG3.75: SM 07:18Z returned 855daaccd with 3 gate-tree reds -- the systemd-run token asked of mem_cap, the Popen fakes gain poll in the same commit, and a seam failure must never fall through to a real harness launch; base = 855daaccd with the trunk merged in.
 <!-- THOUGHT:END -->
