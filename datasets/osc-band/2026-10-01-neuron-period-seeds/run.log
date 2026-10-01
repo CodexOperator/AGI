@@ -4,3 +4,4 @@ seed 1 step 1000: train loss/acc 7.004e-06/1.0000 test loss/acc 32.49/0.0204 psi
 --- run 1 ABORTED 14:05Z (ptrace artifact, 1561 s per 1000 steps at 4 threads); run 2 relaunch: threads=1, wall cap 2680 per seed (params recommitted)
 launch: params sha256 baf32fc01366a37260a08052e1569062304f16deb87051cdf8af340e57e1dfa0, torch 2.14.0+cu130
 seed 1 step 0: train loss/acc 4.731/0.0081 test loss/acc 4.73/0.0114 psi 0.0 (0s)
+seed 1 step 1000: train loss/acc 7.004e-06/1.0000 test loss/acc 32.49/0.0204 psi 0.05 (179s)
