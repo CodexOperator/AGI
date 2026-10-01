@@ -13,7 +13,7 @@ town: core
 ---
 # doc:g716111-stage25-rootplan
 
-Stage 2.5 of goal:g7.16.1.11 (belam GO 03:48Z; owner: DG5 under the new engine on the LIVE repo, parity matched-or-better incl. guards + the magic pane anchor; council [red] §N.5: agi.slice + N4 HARD GATE). PHASE A by an Opus 5.5 subagent of director-general-3, no root. Unit names spelled agi-post@${P}.service, P=director-general-5. Off-graph inputs: /tmp/agi-stage25/v4/ (engine-v4.md 16,375 B, pieces/, test.txt). Not run yet.
+Stage 2.5 of goal:g7.16.1.11 (belam GO 03:48Z; owner: DG5 under the new engine on the LIVE repo, parity matched-or-better incl. guards + the magic pane anchor; council [red] §N.5: agi.slice + N4 HARD GATE). PHASE A by an Opus 5.5 subagent of director-general-3, no root. Unit names spelled agi-post@${P}.service, P=director-general-5. Off-graph inputs: /tmp/agi-stage25/v4/ (engine-v4.md 16,375 B, pieces/, test.txt). PHASE A' (owner 04:40Z: DG5 = Claude Code Sonnet 5.5 + Remote Control; owner 04:49Z: he logs DG5's user in by hand, no credential copy) by a second Opus 5.5 subagent, no root: the PHASE A' DELTA section at the end SUPERSEDES the base where they differ; the v4c engine bytes are on doc:g716111-stage25-engine-v4c; off-graph inputs now /tmp/agi-stage25/v4c/. Not run yet.
 
 ## CCCC -- Claude Code hooks mirrored on pi
 
@@ -401,3 +401,173 @@ Phase-A evidence lives in test.txt; "(T#)" points at it.
   - 52: the anchor matches by construction; the core magic_pane modules are on origin/core/* only
   - 55: it holds only if R16 shows a clean start
 - **Versus 12 of 42 matched in doc:g716111-stage25-parity:** 39 of the original 42 rows are now matched-or-better; 18, 30 and 33 are still short.
+
+## PHASE A' rootplan DELTA v4b -> v4c — DG5 = Claude Code (Sonnet 5.5) + Remote Control; ONE pi-free kid on CCCC -- SUPERSEDES the sections above where they differ (owner 04:40Z + 04:49Z on goal:g7.16.1.11)
+
+goal:g7.16.1.11 stage 2.5, PHASE A' (DG3 Opus subagent, no root, nothing installed, no node written). Base = doc:g716111-stage25-rootplan
+(= /tmp/agi-stage25/v4b/rootplan.md). Every act NOT named below is unchanged. V = /tmp/agi-stage25/v4c from here on (engine-v4.md,
+pieces/, this file). Shorthands as in the base: P = director-general-5 · A = agi-director-general-5 · M = MAIN · Hm = /var/lib/agi/director-general-5.
+
+### 0 · The orders this delta implements
+- Owner 04:40Z (via belam): DG5 = Claude Code, Sonnet 5.5, Remote Control ON (visible in the app), as its own user, inside the
+  capped agi.slice (N4 first); ONE kid runs pi-free with CCCC; pi never poses as a CC session to Remote Control.
+- Owner 04:49Z (goal body): "I will log in manually this time" — DG5's user is logged in ONCE BY THE OWNER; NO credential copy.
+  This supersedes the base R8 (copy claudeAiOauth). The copy analysis is kept in §2 as the record for belam's open call.
+
+### 1 · Remote Control: the invocation found on this box (claude 2.1.286; help text only, nothing started)
+Verbatim, `claude --help`:
+```
+  --remote-control [name]               Start an interactive session with Remote
+                                        Control enabled (optionally named)
+  --remote-control-session-name-prefix <prefix>
+      Prefix for auto-generated Remote Control session names (default: hostname)
+```
+Verbatim, `claude remote-control --help` (a hidden subcommand = a multi-session SERVER, spawns up to 32 sessions):
+```
+Remote Control - Control local sessions from claude.ai/code or the Claude mobile app
+  claude remote-control [options]
+```
+Also a settings key `remoteControlAtStartup` (user/global scope only — binary: "repo-scoped settings cannot enable Remote Control").
+**Chosen: the flag, `claude --remote-control director-general-5 ...`** — one interactive session in the §N pane, the RC bridge in the
+same process (so inside the unit cgroup, agi.slice), the CC hooks native, and an EXPLICIT name (the unnamed default is the hostname
+— a privacy leak into the app list). This is byte-for-byte the shape today's posts use (templates/harness/claude-code.toml: first argv
+`--remote-control <name>`, then `--permission-mode bypassPermissions --model --effort`). Not the server subcommand (it accepts app-side
+spawns of new sessions in the dir = a second, unbounded seat). Not the setting (no name → hostname).
+RC preconditions, read from the binary's own refusal strings (measured): claude.ai subscription auth ("Remote Control requires a
+claude.ai subscription"); NOT ANTHROPIC_API_KEY / apiKeyHelper / ANTHROPIC_AUTH_TOKEN; a FULL-SCOPE login ("Long-lived tokens (from
+`claude setup-token` or CLAUDE_CODE_OAUTH_TOKEN) are limited to inference-only ... Run `claude auth login` to use Remote Control");
+an organization uuid (from ~/.claude.json oauthAccount); feature flags reachable (refuses if DISABLE_GROWTHBOOK is set).
+
+### 2 · The credentials: path, key names, binding (values never read or printed)
+| item | answer | how known |
+|---|---|---|
+| file | `<home>/.claude/.credentials.json`, mode 600 | measured (owner's) |
+| top-level keys | `claudeAiOauth`, `mcpOAuth` (10 connector entries) | measured, key names only |
+| claudeAiOauth keys | `accessToken, expiresAt, rateLimitTier, refreshToken, refreshTokenExpiresAt, scopes, subscriptionType` | measured, key names only |
+| scopes (names) | `user:file_upload user:inference user:mcp_servers user:plugins user:profile user:sessions:claude_code` | measured |
+| account/org identity | NOT in the credential file: `<home>/.claude.json` `oauthAccount` (holds organizationUuid, accountUuid, emailAddress, ...) | measured, key names only |
+| uid-bound? | NO field names a uid; protection = file mode 600 + owner uid only | measured (key names) / inferred (no binding beyond the file) |
+| host/machine-bound? | NO host or device field; /etc/machine-id is read only for a LOCAL pid-domain registry; RC's own machine id (`remoteControlMachineId`) lives in the per-user ~/.claude.json, generated per config → A shows as its own machine | measured (code strings) / inferred (effect in the app) |
+| network-bound? | no IP field; OAuth bearer tokens are not documented as IP-bound; one box = one egress, so it cannot be excluded here | inferred |
+| device keys | a `.device-keys.json` / trusted-device enrolment exists for orgs that REQUIRE trusted devices; the owner has none (0 files) | measured (file absent) / inferred (applies to enterprise orgs) |
+| refresh token | a COPY shares one refresh family: a rotation on either side can log the other out | inferred (refreshToken + refreshTokenExpiresAt keys) |
+| setup-token instead | NOT usable for RC (inference-only scope) | measured (refusal string) |
+| claudeAiOauth-only copy | would lack `oauthAccount` → RC "Unable to determine your organization" until a profile refetch | inferred (code: organizationUuid check) |
+**With the owner's manual login (04:49Z) A gets its OWN token family**: no shared refresh token (base risk K1 closes), nothing copied,
+oauthAccount written by the login itself. Binding then = A's file (600, A) + A's ~/.claude.json machine id; same account, same egress.
+
+### 3 · Engine change (V/engine-v4.md, assembled by V/build/assemble.py from V/pieces/)
+| piece | v4b B | v4c B | change |
+|---|---|---|---|
+| agi-project | 1,653 | 1,679 | claude rows: `claude --remote-control <name> --model .. --effort .. --permission-mode bypassPermissions` |
+| agi-post@.service | 1,324 | 1,252 | `DISABLE_AUTOUPDATER=1` (root-owned /opt binary); tool list DERIVED from the `### ` headers (agi-kid included; net -72 B) |
+| agi-run | 124 | 357 | claude panes: inbox growth (5 s poll) types `mail: send.py read <p>`, 1 s, then a separate CR into `i` |
+| settings.json | 231 | 272 | `skipDangerousModePermissionPrompt: true` (no bypass dialog in a pane nobody answers) |
+| cccc.ts | 1,633 | 1,647 | inbox watch `persistent:!1` (F15: `pi -p` never exited) |
+| agi-kid | — | 390 | NEW: `agi-kid <name> <task>` = pi-free `-p` + cccc.ts, own HOME ~/k/<name>, tree on kids/<name>, AGI_ROLE=kid, own AGI_WT, stdin null |
+| tick.sh | 250 | 254 | F14: scratch lists to ~/.p ~/.q (it overwrote the pane typescript ~/o) |
+| agi-seed.service | 514 | — | moved to dropped/ (cap): never installed in 2.5; returns in stage 3 (byte-exact in v4b and the grid) |
+| whole / depth 0+1 | 16,375 / 3,418 | **16,384 / 3,478** | caps 16,384 / 4,096: AT the whole cap, 0 B spare |
+
+### 4 · Pre-flight delta
+- **P0.6 REMOVED** (freshness of the owner's credential: nothing is copied).
+- **P0.6' the owner is at a terminal** for R8a and says in words that the login is his act. Otherwise HOLD after R7.
+- **P0.8 RC needs feature flags**: after R13, `systemctl show -p Environment agi-post@${P} | grep -cE 'DISABLE_GROWTHBOOK|NONESSENTIAL_TRAFFIC|ANTHROPIC_'` -> 0.
+- P0.2 unchanged and still a HOLD: an old-engine DG5 scope with a live `claude` is stopped by SM or belam only (open call).
+
+### 5 · MAIN acts delta
+- **C1** unchanged in form; PROOF now from V: `cd M; for f in V/pieces/*; do sh V/pieces/sect "$(basename $f)" HEAD | cmp -s - "$f" || echo DIFF $f; done` -> silent (24/24, measured on a scratch commit).
+- **C2, C3** unchanged (Prime landings; open call).
+- **C4 the ONE row cell**, new object (dry-run on a scratch clone: 1 match, ring gate admitted):
+  ```
+  python3 extensions/agi/bin/write.py config:posts 'sub {"name": "director-general-5", => {"name": "director-general-5", "engine": {"v": 4, "harness": "claude-code", "model": "claude-sonnet-5-5", "effort": "high", "trunk": "local-maxxing/season2/main", "seeds": "doc:unified-director-brief,doc:unified-head,goal:g7.16.1", "rotate_pct": 47, "kid_model": "stealth/space-bunny-alpha"},' --actor belam --role prime_director --dry-run
+  ```
+  (`effort: high` = today's director rows; a cell, belam may change it.) UNDO = the reverse sub (§7). PROOF: projection as base C4 ->
+  wants = `agi-post@${P}.service agi-project.path` (measured).
+
+### 6 · Root acts delta (each: command · UNDO · PROOF)
+Unchanged: R1, R2 (pi copy — now for the kid), R4b, R5, R6, R9, R10 (covers the kid too: worktrees + refs/heads), R11, R12, R13, R14, R15.
+- **R3 claude for a non-owner uid — now REQUIRED (it IS DG5's harness)**. Command/UNDO as base.
+  PROOF adds: `sudo -u nobody /opt/agi/bin/claude remote-control --help </dev/null | head -1` -> `Remote Control - Control local sessions from claude.ai/code or the Claude mobile app`.
+- **R4** PROOF line changes: `grep -c 'H=claude --remote-control director-general-5 --model claude-sonnet-5-5' '/run/systemd/system/agi-post@${P}.service.d/h.conf'` -> 1 (the pi grep goes).
+- **R7 [KEY]** command unchanged (ONE per-spawn zero-USD OpenRouter key) — it now feeds the KID only; DG5 itself runs on the account.
+  PROOF adds: `sudo grep -c '^ANTHROPIC' /var/lib/agi/director-general-5.env` -> 0 (an API key would make RC refuse).
+- **R8 REPLACED -> R8a [KEY] OWNER: log DG5's user in, once, by hand** (after R3 + R6; the owner's own terminal):
+  `sudo -u agi-director-general-5 -H env DISABLE_AUTOUPDATER=1 /opt/agi/bin/claude auth login --claudeai`
+  It prints a sign-in URL; the owner opens it, signs in to his claude.ai account, pastes the code back. Nothing is logged by the plan.
+  - UNDO: `sudo -u agi-director-general-5 -H env DISABLE_AUTOUPDATER=1 /opt/agi/bin/claude auth logout`, then T6. Server-side: the owner may revoke the session in his claude.ai settings.
+  - PROOF (booleans / key names only):
+    - `sudo -u agi-director-general-5 -H env DISABLE_AUTOUPDATER=1 /opt/agi/bin/claude auth status --json | jq -c '{loggedIn,authMethod}'` -> `{"loggedIn":true,"authMethod":"claude.ai"}` (field names measured on the owner's)
+    - `sudo stat -c '%a %U' Hm/.claude/.credentials.json` -> `600 agi-director-general-5`
+    - `sudo jq '.claudeAiOauth.scopes|index("user:sessions:claude_code")!=null' Hm/.claude/.credentials.json` -> `true` (full scope = RC-eligible)
+    - `sudo jq 'has("oauthAccount")' Hm/.claude.json` -> `true`
+    - token family, prints `same`/`differs` only: `[ "$(jq -r .claudeAiOauth.refreshToken ~/.claude/.credentials.json | sha256sum)" = "$(sudo jq -r .claudeAiOauth.refreshToken Hm/.claude/.credentials.json | sha256sum)" ] && echo same || echo differs` -> `differs` (own family: K1 closed)
+- **R8b NEW: onboarding + workspace trust for ~/t**, as A (no root write), after R8a (tested on a fake file):
+  `sudo -u agi-director-general-5 -H sh -c 'f=$HOME/.claude.json;[ -s $f ]||echo {}>$f;jq --arg t "$HOME/t" ".hasCompletedOnboarding=true|.projects[\$t].hasTrustDialogAccepted=true" $f>$f.n&&mv $f.n $f&&chmod 600 $f'`
+  - UNDO: same shape with `"del(.hasCompletedOnboarding)|del(.projects[\$t])"`
+  - PROOF: `sudo -u agi-director-general-5 -H sh -c 'jq -r --arg t "$HOME/t" ".projects[\$t].hasTrustDialogAccepted" ~/.claude.json'` -> `true`
+  (the bypass-permissions dialog is skipped by the engine's settings.json, rewritten at every start.)
+- **R16 REPLACED -> R16' the RC + binding proof** (after R14; counts only — the pane line carries a session URL, the banner can show the email):
+  - (a) R8a's auth-status line, again, after the start.
+  - (b) RC up, no refusal: `sudo grep -aci 'remote control' Hm/o` -> >= 1 · `sudo grep -acE 'Remote Control (requires|cannot start|is disabled|is not available)|verify Remote Control|/login' Hm/o` -> 0
+  - (c) uid + slice of the RC client: `for p in $(cat /sys/fs/cgroup/agi.slice/agi-post@${P}.service/cgroup.procs); do echo "$(cat /proc/$p/comm) $(stat -c %U /proc/$p)"; done | grep -c '^claude agi-director-general-5$'` -> 1 (comm + owner, never argv)
+  - (d) **APP PROOF (the owner reads)**: in the Claude app / claude.ai/code session list, a session named `director-general-5` is listed and live; the owner types `app-ping` there and `sudo grep -ac app-ping Hm/o` -> >= 1. The owner answers: **DG5 visible in the app: yes / no.**
+  - (e) REPORT row: uid binding = A's own file (600 A), own refresh family (R8a `differs`); machine = A's own RC machine id (inferred); network = the box's one egress, not separable (inferred).
+  - UNDO: T1 (the session leaves the app list when the unit stops).
+- **R17 NEW: the pi-free kid proves CCCC** (not a root act; DG3 orders DG5 in one line, so the kid runs INSIDE the unit/slice):
+  DG5 runs `agi-kid cccc-probe "<one small committed edit>"` (uses R7's key).
+  - PROOF: `sudo test -s Hm/k/cccc-probe/.brief && echo brief` (SessionStart via cccc) · `git -C M log -1 --format=%G? kids/cccc-probe` -> `G` (Stop -> turn_end -> agi-turn) · `ls M/.agi/sessions/rotations | grep -c '^cccc-probe\.'` -> >= 1 · `sudo grep -c '/k/cccc-probe/' Hm/track` -> >= 1 (traced under DG5's strace = in the cgroup)
+  - UNDO: `git -C M worktree remove --force Hm/k/cccc-probe/t` (after T5c, as the owner); branch kids/cccc-probe is kept for the master.
+- **R-MG** (memguard patch): no longer needed for DG5 — the live memguard protects comm `claude` (-900) for any uid (measured: PROTECT_COMM). The kid's pi gets +500 like today's pi workers. Stays BANKED, optional.
+
+### 7 · Rollback (ONE command) — the engine string changes
+```
+cd /data/work/agi && python3 extensions/agi/bin/write.py config:posts 'sub {"name": "director-general-5", "engine": {"v": 4, "harness": "claude-code", "model": "claude-sonnet-5-5", "effort": "high", "trunk": "local-maxxing/season2/main", "seeds": "doc:unified-director-brief,doc:unified-head,goal:g7.16.1", "rotate_pct": 47, "kid_model": "stealth/space-bunny-alpha"}, => {"name": "director-general-5",' --actor belam --role prime_director && sudo systemctl stop agi-post@${P} && sudo rm -f /run/systemd/system/multi-user.target.wants/agi-post@${P}.service && sudo systemctl daemon-reload && python3 extensions/agi/bin/rotate.py stand-up --post director-general-5
+```
+
+### 8 · Teardown delta
+- **T5** adds, after (a): `git -C M worktree prune` (kid trees under Hm/k go with T7); kids/* branches are handed back by (c) like posts/*.
+- **T6 [KEY]**: first R8a's UNDO (`claude auth logout` as A), then `sudo shred -u /var/lib/agi/director-general-5.env Hm/.claude/.credentials.json Hm/.claude.json Hm/.config/agi/scrub-denylist.json`.
+- T7 also removes Hm/k (kid homes, their .pi tool downloads).
+
+### 9 · Parity delta (base: 55 rows, 51 matched-or-better)
+| # | was | v4c | why / proof change |
+|---|---|---|---|
+| 4 harness+model | MATCH (pi) | MATCH | h.conf `H=claude --remote-control director-general-5 --model claude-sonnet-5-5 ...` (measured); proof greps `model claude-sonnet-5-5` |
+| 5 effort | MATCH | MATCH | `--effort high`; proof greps `effort high` |
+| 6 settings | MATCH | MATCH | keys `["hooks","skipDangerousModePermissionPrompt"]` (measured); hooks unchanged |
+| 7 brief | EXCEEDS | **MATCH** | claude gets the ranked list + STARTUP (B=0); pi inlined node bodies |
+| 9 meter | MATCH | MATCH | CC path: transcript_path tail (v4b T6: 470015 tokens -> out-line) |
+| 10 rotation | MATCH | MATCH (inferred) | `kill $PPID` from CC's Bash tool = claude (inferred); proof counts `Hm/.claude/projects/*/*.jsonl` +1 |
+| 16 wake | EXCEEDS | **MATCH** | typed mail into `i` (= today's typed nudge, send.py's pause rule); measured 1 append -> 1 line, rewrite -> 0 |
+| 30 dispatch kids | SHORT | SHORT (partial) | pi-free kids via agi-kid on the unit's ONE key; per-spawn keys still need the broker (stage 3) |
+| 39 live view | MATCH | **EXCEEDS** | the pane `o` AND the owner's app (read + type), R16'(d) |
+| 43 memguard | SHORT | **MATCH** | comm `claude` is protected -900 for any uid (measured); R-MG not needed for DG5 |
+| 53 skills | MATCH | MATCH | CC loads `~/t/.claude/skills` natively; proof `AS ls ~/t/.claude/skills | grep -c agi-` |
+| 54 pane hygiene | MATCH | MATCH | o header `agi-run` (measured, RC name absent); RC line carries a URL: o stays 600 + owner ACL |
+| 55 CC as non-owner uid | MATCH (cond. R16) | MATCH (cond. R8a + R16') | the post IS claude; own login, own token family |
+| 56 NEW Remote Control in the app | — | MATCH (cond. R16') | today's posts run `--remote-control <name>`; R16'(b)(c)(d) |
+| 57 NEW pi-free kid on CCCC | — | MATCH (cond. R17) | both harnesses proven in one post: R17 |
+| CC1-CC3 | on DG5 | on the kid | native on DG5; the CCCC proofs move to R17 |
+**Count, the original 55: 52 matched-or-better** (EXCEEDS 6: 12, 19, 26, 27, 39, 41 · MATCH 46), **short 3**: 18 (seat-key rotation),
+30 (broker; partial now), 33 (detached workflows). With the 2 new rows: 54 of 57, rows 55-57 conditional on the live proofs.
+
+### 10 · Risks (new or changed) and the open calls kept
+- **RC1** the app can drive DG5 (prompts typed in the app run with bypassPermissions) — the same surface as today's RC posts.
+- **RC2** RC refuses silently-ish if flags are unreachable / an API key is set / the token is inference-only: P0.8, R7 proof, R16'(b).
+- **RC3** an unnamed session would show the HOSTNAME in the app: the name is always passed (agi-project).
+- **K1 closed** by the manual login (own refresh family). **K1'** A holds a full-scope token of the owner's account (600, A; root and DG5's own Bash tool can read it — as today's posts can read the owner's).
+- **U1** DG5 draws on the owner's subscription limits shared by every CC post (as today).
+- **S2** strace -f on claude: heavier than on pi, and the kid's pi is traced too (track grows faster; base P1).
+- **Q1** typed mail while claude is busy: queued by CC (inferred; today's nudge relies on it); `kill $PPID` reaching claude: inferred. Both are live proofs (rows 10, 16).
+- **KID** the kid shares DG5's uid, ssh key, cgroup and ONE zero-USD key; its identity is the branch kids/<k> + its rotation record (named, not faked); its first provider call came after 30-66 s in scratch (brief walk + pi's own fd/rg fetch from GitHub into Hm/k/<k>/.pi).
+- **B0** engine at exactly 16,384 B: any 2.5 fix must trim elsewhere; agi-seed.service is out until stage 3 (a reboot leaves DG5 down, as in v4b).
+- **Open calls (NOT decided here)**: copied-creds shared refresh token — superseded by the owner's 04:49Z manual login (belam confirms) · agi.slice + user@ overcommit G1 (accept for ONE post) · memguard R-MG (now optional) · key broker = stage 3 · the old-engine DG5 scope stopped by SM or belam (P0.2) · C1/C2 = Prime landings.
+
+### 11 · Act count v4c
+Root acts: R1 R2 R3 R4 R4b R5 R6 R7 R9 R10 R11 R12 R13 R14 R15 = 15 sudo acts, + R8a (OWNER, sudo -u), R8b (sudo -u, no root write),
+R16' (proofs), R17 (DG5's own turn). MAIN: C1-C4 (C4's object changed). [KEY]: R7 R8a R10-seat-key R16' T6.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PHASE A' (v4c): DG5 moves from pi-free to Claude Code Sonnet 5.5 with Remote Control (owner 04:40Z) and the owner logs DG5's user in by hand (04:49Z), so the credential copy R8 becomes R8a (owner login) + R8b (onboarding/trust); RC proof R16' + app proof; R17 = the ONE pi-free kid on CCCC; engine-v4 at 16,384/16,384 B (agi-seed.service dropped for stage 3); parity 52/55 matched-or-better + rows 56-57 pending live proof. First Phase A' run died at the 04:45Z rotation (only assemble.py touched); this is the relaunch.
+<!-- THOUGHT:END -->
