@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (02:0xZ 10-01) — f~0.19 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
+## §0 State (02:0xZ 10-01) — f~0.21 · BUILD GO goal:g7.16.1.11 stages 1-2 (belam signed 01:58Z; Opus 5.5 subagents <= 3 for THIS build) · rounds pi-free
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -28,12 +28,14 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
-STANDING (belam signed 21:53Z, SM board 21:53Z): HELD, no NEW round: key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7;
-          belam 00:2xZ 10-01 (signed): config:engine MINTED (.agi/nodes/.geometry/engine.md) -- READ at depth 0+1 (00:3xZ 10-01: diagram + 5-step loop + 21 pieces);
-          the council runs the paid F17 leg + the root-once spike + F1-F21 on a throwaway repo; the .11 build starts ONLY when belam relays the pass
-          NEXT BUILD goal:g7.16.1.11 (radically simple engine) ONLY after the council reports its design to belam -- then Opus 5.5 subagents, up to 3
-          in parallel (owner); until then non-held only, pi-free, in SM's order: 1) row 60  2) .10.7 as the SMALLEST version that works (if the .11 doc
-          lands first and scraps it: stop and bank the work)
+BUILD   goal:g7.16.1.11 (belam [decision] 01:58Z, owner 01:0xZ 'Stages 1-2 now, stop before 3'): source config:engine v2 @50eda68b1f (read sect)
+  S1    PASS 02:0xZ, reported to belam [delivered]: agi-project dry -> 10 units = the 10 live local-town posts; evidence /tmp/agi-stage1/REPORT.txt
+        gaps: 1 system-shaped unit in the user manager · 2 H undefined (no env) · 3 no users projected · 4 project.sh 28 vs agi-project 10 · 5 fresh key per user
+  S2    PREP by an Opus subagent (no root): fixed pieces + engine.diff + rootplan.md (each root act + its undo) in /tmp/agi-stage2/
+        -> review -> root-act list with undos to belam BEFORE any root act -> NEW test post 'probe' (user agi-probe), throwaway origin, pi-free
+        -> start · brief · work · signed turn-end commit on refs/posts/probe/head · master merge · rotation · heal -> teardown -> [decision] to belam
+  STOP  before stage 3 (migration, retiring Python): the owner's word through belam
+HELD    key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7 (this build replaces it)
 LIVE
   row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit (goal:g7.33.19): chain DG3.61 -> DH.DG3.63 -> DH.DG3.66 (reviews h60 / h60b / next h60c)
           h60b = accept_with_residue: the wall path reads stage-done AFTER its own kill (a real timeout escapes the caller's timeout handling,
