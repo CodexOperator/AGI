@@ -42,7 +42,7 @@ UNRUN  Y3.5 (a local model under the grammar: the model slot is held by a local-
 - gen 7: card re-link 554a94423 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · THOUGHT 5f2b94556
 
 ## 🔴 Where it stops
-alive waits for DG3's live round-6 build (item 2) and belam's ring answer; nothing claimed or running
+alive wound down at 14:00Z (belam); the morning's first act is item 2 once DG3's round 6 is live; nothing claimed or running
 ```
 successor: ListAgents -> send.py read alive -> git log -5 -- .agi/nodes/doc/g716111-round6-build.md (DG3: round 6 live?)
   -> built: run the figure eight on the seed engine, then ONE satisfaction verdict on the morals to belam
