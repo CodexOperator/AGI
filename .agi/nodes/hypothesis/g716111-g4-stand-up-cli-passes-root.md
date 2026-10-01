@@ -17,6 +17,7 @@ town: core
 ## Measured
 - Parity v5 (10:5xZ) and the 09:xxZ note: `rotate.py stand-up <post>` dies with TypeError cmd_stand_up() missing 'root' before it acts (main() reaches args.func without root on the stand-up path; pre-existing since 7fd659bdb, the verb's own commit). cmd_stand_up is rotate.py:2331, registered at ~22672 (set_defaults func=cmd_stand_up); main's dispatch branches ~23195-23218.
 - The switch plan's ROLLBACK (rootplan SWITCH PLAN, G4) re-seats an old-engine post from its card through this verb: today no rollback exists.
+- Found by the G4 round (mur-de-base-g4b R1): `rotate.py merge-up` was dead the same way -- it fell through to args.func(args) without root and raised TypeError; 167dfc206 put merge-up in the root-taking tuple too, and G4.2 pins every root-taking subcommand by signature.
 ## CLAIM
 `rotate.py stand-up <post>` reaches cmd_stand_up with the project root on every invocation path, and for a non-engine row runs heal's recover body (resume or fresh) instead of raising.
 ## Dispatch line
