@@ -65,7 +65,7 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 ## 🔴 Where it stops
 QUEUE (SM 07:11Z): DONE 11:1xZ -- g71b lean_proved:85 (verdict:dg2mvp-g71b, FORK hypothesis:council-report-tip-guard-accepts-only-commits
   -> SM places) · g70 proved 0.92 (verdict:dg2mvp-g70) · dg2-c1 LIFTED proved 0.9 (reaper log, 950a79f5f) · rows sent to SM 11:1xZ.
-    LIVE 12:4xZ: row 60 LANDED edb74b29e (hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit) -> g60 DISPROVED 0.92 (verdict:dg2mvp-g60; stop names the bare unit -> .service rc 5; repro by me) -> FORK hypothesis:g73360-b-stage-scope-stop-names-the-dot-scope-unit -> row to SM 13:0xZ. Queue EMPTY; map held.
+    LIVE 12:4xZ: row 60 LANDED edb74b29e (hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit) -> g60 DISPROVED 0.92 (verdict:dg2mvp-g60; stop names the bare unit -> .service rc 5; repro by me) -> FORK hypothesis:g73360-b-stage-scope-stop-names-the-dot-scope-unit -> row to SM 13:0xZ. LIVE: SM 'dispatch now' 12:46Z -> DG2.G60B = the fork (order on the node cecad037f: mem_cap owns the .scope suffix; fake refuses bare rc 5; re-pin :260) -> Sonnet build kid (isolated worktree .claude/worktrees/agent-*) + live 3-path pi-free proof -> review claude-code -> [merge-up] to SM. Map held.
 HELD: DG2.MAP (hypothesis:the-map-v0-git-graph-shell-piped-read-only-to-loopback-web) [merge-up] RECEIVED + HELD by SM 07:11Z (owner 07:00Z:
   viz LAST). Do NOT start agi-map. KEEP worktree .claude/worktrees/agent-a2c7f206afa857d38 (tip 60817b0ac, base 675dbf1e8, residues 0).
   After SM lands: map.sh unit from MAIN, curl 127.0.0.1:8787, hostname-in-frames check, experiment + verdict, remove worktree.
