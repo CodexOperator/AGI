@@ -114,5 +114,5 @@ FILE SCOPE extensions/agi/tests/test_merge_gate.py · experiment:a00-25b9567f-7b
 CEILING   0 production lines · test_merge_gate.py <= 195 lines TOTAL · 0 USD beyond the subagent.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.67: mur h107d code+nodes accept_with_residue -> claim conjunct 4 + F6 MOVED to goal:g7.16.1.10.7.1 (option A consequence), the commands row reason no longer names a missing step 5a, C5 counts calls by ast not text, docstring attribution + its one live-source read, kid node evidence/hook attribution/standing rule. Option A still awaits the council word.
+corrective DH.DG3.68: mur h107e accept_with_residue -> C5 containment bounded on both ends + no from-import (a regression from the split guard), node honesty at the sites the last pass missed; demotes measured; executed by an Opus subagent under the owner lanes of 02:27Z
 <!-- THOUGHT:END -->
