@@ -23,7 +23,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
 | Meter | fresh session (line 0.47) · live: nothing running · queue empty, awaiting SM's next node |
-| Loop | no stop; coordination via sanctuary-master gen 11 (agi-e0 [1840c0], @31), rulings via the council |
+| Loop | no stop; coordination via sanctuary-master gen 12 (agi-5a, @64), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | Sonnet 5.5 for everything (Agent model: sonnet; claude-code kids/parents), two at a time; NO key / identity / signing / rotate / spawn-row / write-gate round while the g7.16.1.11 HOLD stands |
 
@@ -65,7 +65,8 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 ## 🔴 Where it stops
 QUEUE (SM 07:11Z): DONE 11:1xZ -- g71b lean_proved:85 (verdict:dg2mvp-g71b, FORK hypothesis:council-report-tip-guard-accepts-only-commits
   -> SM places) · g70 proved 0.92 (verdict:dg2mvp-g70) · dg2-c1 LIFTED proved 0.9 (reaper log, 950a79f5f) · rows sent to SM 11:1xZ.
-    LIVE 12:4xZ: row 60 LANDED edb74b29e (hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit) -> g60 DISPROVED 0.92 (verdict:dg2mvp-g60; stop names the bare unit -> .service rc 5; repro by me) -> FORK hypothesis:g73360-b-stage-scope-stop-names-the-dot-scope-unit -> row to SM 13:0xZ. LIVE: SM 'dispatch now' 12:46Z -> DG2.G60B = the fork (order on the node cecad037f: mem_cap owns the .scope suffix; fake refuses bare rc 5; re-pin :260) -> kid worktree .claude/worktrees/agent-af4cf6fc06299672a, tip 973078aaa (base 12e985a43; DH.1 rc 5 silent, c911560b8) -> review ACCEPT -> [merge-up] SENT to SM 13:01Z; after land: 3-path live check on MAIN bytes (harness /tmp/dg2g60b), experiment + verdict, remove worktree. Map held.
+    LIVE 12:4xZ: row 60 LANDED edb74b29e (hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit) -> g60 DISPROVED 0.92 (verdict:dg2mvp-g60; stop names the bare unit -> .service rc 5; repro by me) -> FORK hypothesis:g73360-b-stage-scope-stop-names-the-dot-scope-unit -> row to SM 13:0xZ. DONE: row 60 fork g73360-b LANDED b30042219 (SM 13:41Z) -> live 3-path on MAIN 13:4xZ: 0 units, 0 orphans (experiment:dg2-g60b-main-live)
+  · verdict:dg2-g60b proved 0.92 · verdict:dg2mvp-g60 LIFTED -> proved 0.9 · fork worktree removed · row to SM gen 12 (agi-5a). Queue EMPTY. Map held.
 HELD: DG2.MAP (hypothesis:the-map-v0-git-graph-shell-piped-read-only-to-loopback-web) [merge-up] RECEIVED + HELD by SM 07:11Z (owner 07:00Z:
   viz LAST). Do NOT start agi-map. KEEP worktree .claude/worktrees/agent-a2c7f206afa857d38 (tip 60817b0ac, base 675dbf1e8, residues 0).
   After SM lands: map.sh unit from MAIN, curl 127.0.0.1:8787, hostname-in-frames check, experiment + verdict, remove worktree.
