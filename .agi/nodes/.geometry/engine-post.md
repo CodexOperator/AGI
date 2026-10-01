@@ -72,7 +72,7 @@ git diff --name-only ${1:-HEAD~} HEAD -- ${AGI_LINK_ROOTS:-extensions skills src
 set -e;cd ~/t;r=${3:-HEAD};w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};f=$(git grep -lE "^(id|mint_id): $2$" $r -- .agi/nodes|head -1|cut -d: -f2-);[ "$f" ]||exit 2;d=$w/$(git show $r:$f|sed -n 's/^mint_id: //p')
 P="$f $(git show $r:$f|sed -n 's/^payload_ref: "\{0,1\}\([^"]*\)"\{0,1\}$/\1/p')";case $1 in pull)[ -d $d ]&&{ echo $d;exit;};mkdir -p $w
 [ $(df --output=pcent $w|tail -1|tr -dc 0-9) -lt ${AGI_WT_HOLD:-60} ]||{ echo "hold $w";exit 3;};mkdir $d;git archive $r $P|tar -xC $d;git rev-parse $r>$d/.b;echo $d;;
-drop)git diff --quiet $(cat $d/.b) -- $P||{ echo "moved $2";exit 4;};tar -cC $d --exclude=.b .|tar -x;git add $P;git commit -qm"$USER: $2">/dev/null||:;rm -rf $d;;esac
+drop)git diff --quiet $(cat $d/.b) -- $P||{ (x=$(mktemp -u);b=$(cat $d/.b);export GIT_INDEX_FILE=$x;git read-tree $b;git --work-tree=$d add -A -- $P;git update-ref refs/archive/wt/${AGI_SEAT:-$AGI_POST}/$(basename $d) $(git commit-tree $(git write-tree) -p $b -m wt);rm -f $x)||:;echo "moved $2";exit 4;};tar -cC $d --exclude=.b .|tar -x;git add $P;git commit -qm"$USER: $2">/dev/null||:;rm -rf $d;;esac
 ~~~
 
 ### agi-track (89 B)
