@@ -31,7 +31,7 @@ v5 UP: DG5 (pi, hand H stop-gap) · thought-master-new · director-thought-1 · 
   all 6 v5 units carry preserve.conf (the /run template predates G8) -- a NEW start needs it too until the template re-projects
   DG5 key expires 00:52Z 10-02: renew before 00:00Z (R7 + restart; H stop-gap survives a restart: it is in h.conf)
 G10 URGENT (belam [red] 18:5xZ, alive NO): hypothesis:g716111-g10-meter-reads-the-newest-usage-line bd3495bea
-  -> kid b483adc00 VERIFIED (6 passed; live-transcript check ok) -> mur-de-base-g10 RUNNING (unit agi-director-general-3-mur-de-base-g10, args murg10.args.json) -> residues -> [merge-up] SM -> MOVE 3 unblocks
+  -> kid b483adc00 VERIFIED (6 passed; live-transcript check ok) -> mur-de-base-g10 accept_with_residue -> RESULT G10 + CORRECTIVE G10.2 3fec41a65 -> G10.2 kid RUNNING (object-only usage + bounded-scan row) -> verify -> re-mur (copy murg10 args, key g10b-code, range 3fec41a65..tip) -> residues -> [merge-up] SM -> MOVE 3 unblocks
   (if I rotate first: SM dispatches it under (A+) from this node)
 G7 (pi start fix) [merge-up] SENT to SM 18:2xZ: de-base-G7d tip 57de5fb1d, residues 0 (murs g7d..g7h) -> SM gates FIRST -> on landing: findings row 79 DONE; DG5 re-projects to the same H
 G9 BOOT INSTALL: hypothesis:g716111-g9-boot-install-brings-the-boot-set-up -> kid afcd4e53d + trunk merged in 6017fcbc6 (rc 0, 27 passed)
