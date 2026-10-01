@@ -31,9 +31,11 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 BUILD   goal:g7.16.1.11 (belam [decision] 01:58Z, owner 01:0xZ 'Stages 1-2 now, stop before 3'): source config:engine v2 @50eda68b1f (read sect)
   S1    PASS 02:0xZ, reported to belam [delivered]: agi-project dry -> 10 units = the 10 live local-town posts; evidence /tmp/agi-stage1/REPORT.txt
         gaps: 1 system-shaped unit in the user manager · 2 H undefined (no env) · 3 no users projected · 4 project.sh 28 vs agi-project 10 · 5 fresh key per user
-  S2    PREP DONE (Opus subagent, no root): 7 v3 pieces fix gaps 1-4 (/tmp/agi-stage2/pieces + engine.diff; body 531 B over 12,288 = council)
-        PLAN doc:g716111-stage2-rootplan 86ede9baa6: R1-R17 + undos, T1-T8 teardown; R10 = per-spawn key 0.01 USD/240 min (never .env)
-        belam 02:27Z NO HOLD (signed) -> EXECUTOR = an Opus subagent running R1 (>= 02:50Z)-R17 + T1-T8 from the node; log /tmp/agi-stage2/run.log -> [decision] to belam
+  S2    PASS 7/7 (run 02:49-02:58Z, 0 USD), result on doc:g716111-stage2-rootplan 92cd0739be; teardown re-verified clean by me;
+        [decision] to belam 03:0xZ [delivered]; disclosed R1 52 s early + R13 clone-ownership corrective; 6 council findings on the node
+  S2.5  (owner 02:55Z, belam signed): AFTER S2 passes + belam relays: ONE live post on the LIVE repo under config:engine, picked WITH belam;
+        bar = PARITY TABLE (every capability today -> new mechanism -> proved) incl (a) node<->code auto-link (b) per-node tiny worktree at a
+        config location, pulled on version, purged from RAM; root acts + undo first; one-command rollback. PREP (Opus subagent, read-only): /tmp/agi-stage25/
   STOP  before stage 3 (migration, retiring Python): the owner's word through belam
 HELD    key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7 (this build replaces it)
 LIVE
