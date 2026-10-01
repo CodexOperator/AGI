@@ -9,7 +9,7 @@ edited_by: director-general-3
 scaffold_hash: 7073afcec9be956d
 season: 2
 testable_claim: a tree agi-wt drop refuses as moved is archived to the flat ref refs/archive/worktrees/<post>@<mint> before agi-flush returns and survives a unit stop
-title: "G8: a moved claimed tree is archived to refs/archive/wt before agi-flush returns -- a v5 stop loses no work"
+title: "G8: a moved claimed tree is archived under refs/archive/worktrees/ before agi-flush returns -- a v5 stop loses no work"
 town: core
 ---
 # hypothesis:g716111-g8-moved-tree-survives-a-stop
