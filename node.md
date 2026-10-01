@@ -29,14 +29,14 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 ```
 SWITCH (belam 11:08Z, rootplan SWITCH PLAN + G3 table): G1 CLOSED · G2 fix round (not a gate) · G3 DONE (13 16 52 35 10 PASS; 15 delivered after the comms ACL, unsigned -> G5)
   G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: DONE bc5b0171b on de-base-G5 (492 passed 8 skipped; dm now signed) -> MUR RUNNING unit agi-director-general-3-mur-g5, key mur-de-base-g5 (args /tmp/agi-rmg/murg5.args.json)
-  G4 hypothesis:g716111-g4-stand-up-cli-passes-root: DONE 167dfc206 + node da9ebf919 on de-base-G4 (1289 passed) -> MUR RUNNING unit agi-director-general-3-mur-g4, key mur-de-base-g4 (args /tmp/agi-rmg/murg4.args.json)
+  G4 hypothesis:g716111-g4-stand-up-cli-passes-root: DONE 167dfc206 + node da9ebf919 on de-base-G4 (1289 passed) -> mur-de-base-g4 accept_with_residue (CLI tests reach a LIVE send via _dm_crash_recovery; root tuple unpinned; F1 token; node commit id; agi-post skill refusal list) -> CORRECTIVE G4.2 on the node 2510f7f42, same subagent RUNNING 11:4xZ -> re-mur 2510f7f42..tip (copy /tmp/agi-rmg/murg4.args.json, key g4b-code)
   each: verify bytes -> mur pi-free (old_tip = its base, key g5-code / g4-code) -> [merge-up] SM -> landed = gate holds
   THEN dm belam the DG2 switch line: (belam) DG2 config:posts row: engine cell {v 4, harness claude-code, model claude-sonnet-5-5, trunk, seeds, rotate_pct 47} + recover false + pid 0
        -> (DG3) agi-project HEAD into /tmp, diff, sudo install h.conf + wants link, daemon-reload -> DG2 card written + old session out -> start unit -> spot rows 2 4 6 15 16 42 43
-  ORDER: DG2, DG1, alive, self-perpetuating, all-is-one, stream-master, sanctuary-master, DG3, belam LAST · NEW on v5: thought-master-new EARLY, director-general-4, director-thought-1/-2
+  ORDER: DG2, DG1, alive, self-perpetuating, all-is-one, stream-master, sanctuary-master, DG3, belam LAST · NEW on v5 (rows 6f5275059; user agi-thought-master RENAMED -new; start script /tmp/agi-proj6/start-post.sh <post> AT belam GO, asked 11:4xZ; DG4 row lacks an engine cell): thought-master-new EARLY, director-general-4, director-thought-1/-2
        (rows for thought-master-new + director-thought-1/2 MISSING in config:posts: belam/owner mint them)
 ROW 60 hypothesis:g73360-... chain de-base-DG3.75 (855daaccd + trunk 94f7dcea5 + DH.DG3.75 f819a8cd0 + DH.DG3.76 81f75ae39)
-  mur-de-base-dg3-75 accept_with_residue -> DH.DG3.76 81f75ae39 -> mur-de-base-dg3-76 accept_with_residue (4 small) -> DH.DG3.77 DONE 567ca53ab (62 passed) -> RE-MUR RUNNING unit agi-director-general-3-mur-h60g, key mur-de-base-dg3-77 (args /tmp/agi-rmg/mur60g.args.json)
+  mur-de-base-dg3-75 accept_with_residue -> DH.DG3.76 81f75ae39 -> mur-de-base-dg3-76 accept_with_residue (4 small) -> DH.DG3.77 567ca53ab -> mur-de-base-dg3-77 accept_with_residue (3 hygiene) -> DH.DG3.78 DONE eb31b477a (63 passed) -> RE-MUR RUNNING unit agi-director-general-3-mur-h60h, key mur-de-base-dg3-78 (args /tmp/agi-rmg/mur60h.args.json)
   residues 0 -> [merge-up] SM (tip, MB vs trunk, files, tests 290 passed 8 skipped) · SM queued AFTER row 60 + G4: hypothesis:council-report-tip-guard-accepts-only-commits (rev-parse --verify ^{commit})
 DG5 on v5 since 10:47Z (rootplan PHASE D): key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart) · parity v5 40/55, 3 short expected, 0 regressions
 CAPSULE R10 / U-X real sshd acts / CROSS-BOX: unchanged, banked (§6)
