@@ -35,11 +35,13 @@ config-max: none (no tunable belongs to this defect) / template-max: none / code
 3. `rotate.py status` in this seat still prints a traceback after the fix -> false.
 
 ## TESTS
-In `extensions/agi/tests/test_rotate.py` (the module's own file; no new test file), red on today's trunk:
-- `test_an_unreadable_pin_target_is_unknown_not_a_crash` — monkeypatched `Path.exists` raises PermissionError for the pinned path; asserts `_read_pin_target(pin) is None`.
-- `test_seat_fraction_is_none_when_the_pin_target_is_unreadable` — a real mode-000 directory; `skipif` root with a stated reason.
-- `test_status_survives_a_seat_whose_pin_is_unreadable` — the command-level proof: one readable row + one unreadable row, exit 0, and the warning names the seat.
-Assert the CONTRACT (no raise, `None`), never the function name; mutate the guard and confirm RED before landing.
+In `extensions/agi/tests/test_rotate.py` (the module; no new test file), FOUR tests over TWO seams:
+- `test_an_unreadable_pin_target_is_unknown_not_a_crash` — monkeypatched `Path.exists` raises PermissionError for the pinned path; asserts `_read_pin_target(pin) is None`. THE STAT seam.
+- `test_seat_fraction_is_none_when_the_pin_target_is_unreadable` — a real mode-000 PARENT dir; asserts `_seat_fraction is None`. THE STAT seam, no monkeypatch. Mode restored in a `finally` so tmp_path can be cleaned.
+- `test_seat_fraction_is_none_when_the_transcript_stats_but_cannot_be_opened` — mode 000 on the FILE inside a readable dir: `exists()` succeeds, `_read_pin_target` returns the path, and only the READ fails. Asserts both preconditions explicitly before the result, so the test cannot pass vacuously. THE READ seam — mur residue (1); the first version of this node had only the two stat tests and passed the suite while the read still raised.
+- `test_status_survives_a_seat_whose_pin_is_unreadable` — the command-level proof on the READ seam: one sealed seat, `cmd_status` exits 0 and prints `frac=?`.
+Assert the CONTRACT (no raise, `None`), never the function name. Mutate: deleting the `_seat_fraction` guard reds EXACTLY the two read-seam tests and leaves the two stat-seam tests green — measured 10-01 18:4xZ.
+
 
 ## FILE SCOPE
 `extensions/agi/bin/rotate.py` (`_read_pin_target` only) · `extensions/agi/tests/test_rotate.py` · this node. NOT the ACL, NOT any `.meter` pin, NOT a live worktree, NOT `.env`, NOT `config:*`.
