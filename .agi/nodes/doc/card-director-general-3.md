@@ -34,7 +34,7 @@ G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: chain G5 -> G5.2 -> G5
   after G5 + G6 land: remove /mnt/agi-ram/worktrees/de-base-G5 and de-base-G6 (harvest write-log first, plain git worktree remove)
   (mur-de-base-g5e run files: .agi/sessions/workflows/runs/mur-de-base-g5e/)
   findings already filed for G5: rows 70 (size headers) 71 (write.py set took an invented key -- my slip) on goal:g7.33.19
-MOVES (owner's morning, belam 13:00Z): G5 + G6 LANDED FIRST; then from DG2 in the ORDER below, ONE at a time, gate between each, the OLD session STOPPED before the NEW one starts
+MOVES (owner 15:1xZ: NOW): DG2 MOVE PACKET sent to belam 15:3xZ (switch + rollback subs in .agi/sessions/dg3-mur-args/dg2-{switch,rollback}.sub, proven on a copy; old window @8 pane 64912; DG2 user pre-seeded); belam GOes on G5 landed + DG2 down-ready + parity + gate; G5 + G6 LANDED FIRST; then from DG2 in the ORDER below, ONE at a time, gate between each, the OLD session STOPPED before the NEW one starts
   ORDER: DG2, DG1, alive, self-perpetuating, all-is-one, stream-master, sanctuary-master, DG3, belam LAST
 GATE before ANY start or dispatch: loadavg1 < 16 AND io PSI some avg60 < 50 (belam 12:58Z)
 ```
