@@ -8,6 +8,11 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: 1aa85202b02c1f05
 season: 2
+tags:
+  - doc
+  - engine
+  - g7.16.1.11
+  - stage-2.5
 title: "g7.16.1.11 stage 2.5 engine v4c bytes (16,384 B): DG5 on Claude Code + Remote Control, one pi-free kid on CCCC; C1 writes it into config:engine"
 town: core
 ---
