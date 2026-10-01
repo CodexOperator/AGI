@@ -52,11 +52,12 @@ NOT YET: seed root install + anchor line · hub grow-gate wiring · T7 wake row 
 C1 e1e0dbaaf · C2 aa2f2e28a · C4 81ed274fc · C3 5ee794d45 · R5-R7 57eb5ac42 (+6) · rows 6f5275059 · DG4 cell 451adc6c2 · 10 goal leaves g7.16.1.11.1-.10 · ACLs (refs, comms, objects, logs, worktrees; seats UNTOUCHED) · director brief MUR -> claude-code
 
 ## 🔴 Where it stops
-Owner 15:1xZ: keep going until goal:g7.16.1.11.1-.10 are done -- the moves are GO (verbatim in the goal THOUGHT c3d13648a; relayed to all 15:1xZ).
-Order: v5 restore after the 14:42Z hard reboot (DG3 when heal brings it back: DG5 > thought-master-new > DT-1 > DT-2, gate between) > G5 8a450c0c0 lands (SM) > MOVES DG2 > DG1 > alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST (fresh, gen continued): each = ONE config:posts write by the Prime AT its GO (engine cell + recover false + pid 0; DG3 sends the sub), old session stopped before the new starts.
-Wake: CronList first, re-arm CHECK (13 */4) + memory Monitor (python3 -u /data/tmp/belam23/memmon.py); read .agi/comms/season-2/dm/*belam* AND .agi/sessions/inbox/belam.md by ts (DG3 + v5 posts write to the INBOX; v5 posts by dm FILE or their Remote Control name).
-BOOT (owner 17:5xZ, verbatim goal:g7.16.1.11 @bd53e5b0e): local projection now; anchor = owner key (iPhone, Mac later); boot set = belam(v5) + alive + all-is-one + self-perpetuating + TM-new + DT-1 + SM + DG1; Proxmox mock FIRST (location ASKED), then 1 real reboot, old belam = look-over; sync 10 min -> round G9 to DG3 (ack pending). GROWTH: Y1-Y3 built, NOT wired (0 key:, no pre-receive, unsigned trunk) -> council design ask sent (quiet rows: no nudge). git gc fails on v5-owned worktree admin dirs (SM 17:5xZ) = box ACL, later. Owner picks open: DG4 assignment · Round 8 start · the seed boot install (root + anchor line) so v5 posts survive a reboot · phone route (Mac WireGuard) · Terminus certs.
-
+MOVE 3 alive: on "[rotation] alive down-ready" (direct message) write scratchpad alive-one.sub ALONE (anchor = live pid 33188 @4; DG3's alive-switch.sub anchors the DEAD 2806129 -- do not use it), then tell DG3 (agi-e1, or its successor) to kill @4 + start the unit.
+Exact: python3 extensions/agi/bin/write.py config:posts "$(cat <scratchpad>/alive-one.sub)" --actor belam --role prime_director   (sub "box": "local-town", "pid": 33188, "window": "@4", => ... "pid": 0, "window": "", "recover": false, "engine": {... "claude-opus-5-5" ... "seeds": "doc:unified-master-brief,doc:unified-head,doc:card-alive", "rotate_pct": 47},)
+Then MOVES 4-6 (self-perpetuating, all-is-one, SM) each: verdict -> packet re-anchored on the LIVE row pid -> down-ready -> row -> DG3 switch. DIRECTOR moves (DG3) paused until the v5 key broker (owner asked). stream-master: owner order slot 6.
+G10 rollout (DG3): restart idle v5 posts one at a time DG2 > DG1 > DT-1 > DT-2; TM-new rotates itself (0.39 at 19:1xZ, told). Prime v5 meter Monitor until all are restarted.
+Owner open: Proxmox location (G9 mock restart) · tree first shape (Z1) · key broker vs .env (B) · council-or-beside + director-engine master.
+Wake: CronList, re-arm CHECK (13 */4) + memory Monitor (scratchpad memmon copy alerts avg10>=30 too); comms = DIRECT SendMessage (map in §0 COMMS line); ListAgents for SM's successor name.
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
 |---|---|---|
