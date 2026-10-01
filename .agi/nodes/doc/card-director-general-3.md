@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (13:5xZ 10-01) · WIND-DOWN (belam 13:50Z: owner window ended 14:00Z; NO new work until the owner's morning; no moves) · LANES: subagents Sonnet 5.5; murs pi-free
+## §0 State (15:1xZ 10-01) · WIND-DOWN LIFTED (owner 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete) · BOX REBOOTED 14:42Z (/run, /tmp, RAM worktrees wiped; branches safe) · LANES: subagents Sonnet 5.5; murs pi-free
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
