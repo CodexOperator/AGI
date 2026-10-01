@@ -17,53 +17,58 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:54Z 09-30, date -u) — gen 11 · LANES 02:27Z 10-01: Sonnet 5.5 for everything + pi-free; DG3 Opus medium ≤ 3 (free lane ENDED; relayed to DG1-3 + council-loop 02:27Z) · HOLD on key/identity/signing/rotate/spawn-row/write-gate rounds (Prime [rule] 21:53Z, owner 21:3xZ; goal:g7.16.1.11)
+## §0 State (13:05Z 10-01, date -u) — gen 11 rotating on the Prime's BOX MEMORY RED (13:04Z) · owner night plan: work to 14:00Z
 | | |
 |---|---|
-| post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
-| lanes | since 02:27Z 10-01 (owner via the Prime): Sonnet 5.5 for everything (cc kids + parents, subagents, reviews) · pi-free stays a lane · DG3: Opus 5.5 subagents effort medium, ≤ 3, for everything · TM: Sonnet 5.5 · research placement = TM's own |
+| post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
+| lanes | owner 02:27Z + 07:00Z 10-01: Sonnet 5.5 for everything; every MUR = workflow.py run agi-merge-up-review --harness claude-code (NOT pi-free) · DG5 pi-free · DG3 Opus medium ≤ 3 · VIZ LAST · research placement = thought-master's own |
+| holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate (Prime-laned exceptions only: G4 stand-up) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
-| skills | agi-master-gate (every landing) · agi-rotate · agi-node-write · agi-send · agi-goal |
-| peers | Prime = belam (send.py --to belam) · DG1 agi-8c · DG2 agi-e3 · DG3 agi-03 · TM thought-master STOOD UP @34 (research lane) · council: alive · all-is-one · self-perpetuating (designing goal:g7.16.1.11 first) · DG4 STOOD DOWN 21:5xZ · DG5 DG6 DOWN |
+| skills | agi-master-gate (every landing) · agi-memory-guard (box) · agi-rotate · agi-node-write · agi-send · agi-goal |
+| peers | Prime = belam · DG1 · DG2 · DG3 · DG5 (new-engine user; ACL fixed 11:4xZ) · TM (research) · council: alive · all-is-one · self-perpetuating · DG4 STOOD DOWN |
 
 ## §1 Plan
 ```
-done   gen 10 landings: g1.33 5f1e8092f2 · DG2.R1-3 · brief g15 ef0d152992 · g6.41.1.1(1) 82c553bb9a · dg6-04 08b1ca1c94 · g1.31.4.1 88ddd2ca08 · DG4 STACK 72dff76359 · SM-1 d5d9107d43 · DG4.17 2cbe754da1 · keys d01befa390
-done   gen 11: g1315131 a2e42a3bf0 · DG4.10+20 5a7a3bb828 · DG4.19 e81abd3f69 · g7556 627c94a040 · .10.3 521ebaa951 · .10.5 2ed4492434 · bundle 4 v4 = 0.9 8d5cd831fb · 21:00Z free-lane rule relayed (DG3 DG4 council-loop) · Prime grep-orphan red = g7.33.19 row 60
-NEXT   DG1: g1.31.3 + .3.1 + .3.2 COMPLETE + g6.49 COMPLETE -> placed 02:4xZ: does SM-1 d5d9107d43 hold? (re-archives after 18:33Z 09-30; > 0 = corrective) · g7.16.1.5.2 NOT placed (alive's uncommitted edit, alive told) · DG2 post-builds: .10.3 PROVED 0.85 · .10.5 lean 70 (fork 06265dc5d7 -> DG3 before .10.7) · DG2.C1 LANDED 6d8ac01d74 (orphan refusal; live on heal watch restart; post-build = reaper-log grep after it) · bytes pinned /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz (never remove the tree) · DG2.R4 town re-pin LANDED da7cd145c, verdict proved 0.9 (trunk reds now = skills_first_turn only) · reaper restart NOT needed (sweep loads heal.py fresh; orphan refusal live 03:16:57Z; Prime told, withdrawn) · DG5 (new-engine user) 11:21Z: C2 REAL (banked, held class) + ACL only 1 level deep + SM->DG5 dm DENIED (old uid not in group agi) -> ACL FIXED by the Prime 11:4xZ (group agi + old uid, default ACLs; seat keys private); my DG5 reply re-sent · OWNER NIGHT PLAN 07:00Z (work to 14:00Z): MURs --harness claude-code (Sonnet 5.5) for all but DG5 (pi-free) + DG3 (Opus) -- relayed + reported · MAP v0 DELIVERED 60817b0ac (DG2; gotty 127.0.0.1:8787 read-only; touches anonymize.py + config.json) HELD -- gate after the rest (owner: viz LAST) · row 60 LANDED edb74b29e but DISPROVED live 0.92 (bare unit name -> rc 5, scope never stopped; I reproduced) -> fix g73360-b on DG2 dispatch now; the Prime's grep-orphan red stays OPEN · DG2 queue: post-builds -> map (held) · stand-up CLI fix -> DG3 (Prime re-lane 11:08Z; its a00-436c8384 lean 92) · VIZ LAST: DG2 post-builds (deaa32675, cd8ca3914, row 60) -> after DG3's night order spider viz -> map v0 / sanctuary viz last · 06:2xZ stopped 4 orphan scopes (2 grep over MAIN 46 GB read, 2 python3 /tmp spinners 22 h) · DG1 FREE (g7556 PROVED 0.85 6f1f26c027; fork c9fd3e67a7 -> DG3 behind row 60; DG2 rotate-self rc 3 unattributed, asked for stderr) · research placement = TM's own (owner in my pane 22:1xZ, relayed verbatim to TM + belam) · was placed by me 21:5xZ: L4 geometry under goal:g5.22 (CPU, MemAvailable >= 6 GB + PSI < 5 to start, one model round) -> stage 1 MAP goal:g5.28 behind it (stage 2 GPU = re-ask) · DG3 placed 21:5xZ: g7.33.19 row 60 -> .10.7 smallest (the .11 doc may scrap it) · g75213 GO on the Prime bind · DG4 tips unowned (below)
+done   gen 11: 13 landings (§2) · bundle 4 -> 0.9 (8d5cd831fb) · 4 orphan scopes stopped 06:2xZ · /tmp/.agi stray marker moved aside
+NEXT   re-gate ONE chain: G4 40e921b6e (DG3) + g73360-b 973078aaa (DG2), full suite -- both suites STOPPED by me at 13:05Z on the memory red, no result
+LATER  DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
 ```
 
-## §2 Landed this gen
-- a2e42a3bf0 g1315131 · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19 · 627c94a040 g7556 · 521ebaa951 .10.3 · 2ed4492434 .10.5 · 6d8ac01d74 DG2.C1 · 9158583d26 .10.7 merge gate OPTION A (inert) · deaa32675 crmur (lean 85; merge_gate cells WAIT on the tip-guard fork -> DG3) · post-builds: g70 proved 0.92, dg2-c1 proved 0.9 · cd8ca3914 g7556 fork · 0e6979bda R-MG memguard post pi (its trunk red closed by DG3 5fd5d8f52 + d5769839e; row 60 corrective DG3.75 in flight) (trunk reds now 5: skills + 3 town tests from f4dc505011 + test_commands wrapper, all the Prime's)
-- suites: chain 1 7684/9 (8 lineage + Prime) · chain 2 7700/1 · chain 3 7726/1 (Prime skills_first_turn only) · harness x3 rc {0:120}
+## §2 Landed this gen (each landing message carries its gate numbers)
+- a2e42a3bf0 g1315131 · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19 · 627c94a040 g7556 · 521ebaa951 .10.3 · 2ed4492434 .10.5 · 6d8ac01d74 DG2.C1
+- 9158583d26 .10.7 merge gate OPTION A (inert) · da7cd145c DG2.R4 · deaa32675 crmur · cd8ca3914 g7556 fork · 0e6979bda R-MG · edb74b29e row 60
+- post-builds: g1315131 lean 75 · g7556 0.85 · .10.3 0.85 · .10.5 lean 70 · crmur lean 85 · g70 0.92 · dg2-c1 0.9 · row 60 DISPROVED live 0.92 (-> g73360-b)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 11 at 21:54Z: 6 landed + bundle 4 at 0.9; gate idle, nothing of mine running; DG4 stood down
-DG4 TIPS, UNOWNED since the stand-down (their leaves are horizon on the board): lineage 4620846a3f (8 reds; rotate/spawn-row = HELD) · DG4.13 9baba2bc99 (4 ring reds) + r49 7eb1c65aed · DG4.18 c576956960 (3 Prime cells) -- never land a returned tip; a new owner re-sends
-WAITING ON THE PRIME: goal:g1.31.5.1.3.1.1 hold_wait_s cell -> DG1 closes .3.1 -> .3
-HELD: g75213 7cd127824e CODE GATE COMPLETE (chain 3 suite green, first live run measured; guard, not a held class) -> GO on the Prime DISK bind; re-derive T2 at landing
-LIVE RED (older): 72dff76359 same-node writes exit 0 w/o commit -- a2e42a3bf0 is the fix; watch the next rotate-self rc
-WITH THE PRIME: DG4.18 cells · hold_wait_s (g1.31.5.1.3.1.1) · merge_gate.red_classes · council.residue_leaves · g1.31.1.1.1 config half · g6.41.1.1 wake/ack cells · email_allow RFC 2606 · hw fragment scrub (930e65687c) · skills entry
-GATE RECIPE: skill agi-master-gate · pipelined chain = one suite for N tips, reds attributed on a pair tree
+sanctuary-master gen 11 rotated 13:0xZ on the box memory red: no gate running, two tips wait for ONE re-gate
+RE-GATE FIRST (only at MemAvailable >= 4 GiB AND memory PSI some avg60 < 10; ONE suite at a time):
+  chain HEAD + 40e921b6e (G4: rotate.py main passes root to stand-up/merge-up, +2/-1) + 973078aaa (g73360-b: stop <unit>.scope via mem_cap.scope_unit)
+  both pre-checked: merge-tree rc 0, 0 D, anonymize ok; reviews accept (G4 9/9 MET; g73360-b ACCEPT 0 residues)
+  green -> land G4 then g73360-b -> DG2 re-runs its 3-path live check on MAIN + lifts dg2mvp-g60; DG3 told; the Prime: stand-up red + grep-orphan red close
+HELD: MAP v0 60817b0ac (DG2; gotty 127.0.0.1:8787 read-only) -- VIZ LAST; gate reads anonymize.py filter verb, config.json map cell, gotty sha256 pin, --permit-write=false
+HELD: g75213 7cd127824e code gate COMPLETE -> GO on the Prime's DISK bind (re-derive T2)
+UNOWNED (DG4 down; never land a returned tip): lineage 4620846a3f · DG4.13 9baba2bc99 + r49 7eb1c65aed · DG4.18 c576956960
+WITH THE PRIME: merge_gate cells (after the tip-guard fork) · council.residue_leaves · hold_wait_s (g1.31.5.1.3.1.1) · DG4.18 cells · C2 (DG5, held class) · skills_first_turn (the only trunk red)
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
-## §4 Traps
+
+## §4 Traps (learned this gen; rules live in skills)
 | trap | rule |
 |---|---|
-| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
-| a write-path gate | green suite + matching dry-runs MISSED 72dff76359: also run DG2's concurrent harness (run_on.sh) landed vs control |
-| a harness metric with noise on the control | run the control too (titles-absent 2/22 on df14730e89) before calling a bar hard |
-| a live code path (heal, brief, driver.sh, guard/) | measure its FIRST live run on MAIN's data before GO (boot-resume: 0 seats; briefs identical) |
-| hardware / home tokens | never print: find + replace inside python, print counts; write.py dry-run diffs echo the old line |
-| rotate flattens the quorum card | re-link: `ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md` |
-| rotate-self may fail rc 3 on a held suite lock (the live red) | check `ls .agi/sessions/verify-suite.lock`; if it fails, rotate by hand per skill agi-rotate |
-| write.py sub with `\n` | stored literally: use `replace body N:M <file>` (paragraph guard: widen to a blank line) |
-| a post rotates mid-thread | its old session name dies: re-read ListAgents / rotation records before a send |
-| a bigger_outcome before the directors' outcomes | never: DG1 writes one OUTCOME per goal first |
-| card stamps | read `date -u`, never estimate |
+| my /dev/shm gate trees + suites are charged to MY scope (926 MB shmem at 13:0xZ) | start a suite only at MemAvailable >= 4 GiB + PSI low; never two at once under pressure; stop = every pid with cwd under the gate path, then worktree remove |
+| a stray /tmp/.agi project marker | reddens root-discovery tests (test_workflow root rows, test_commands wrapper-flag): moved aside to /tmp/agi-stray-copy-created-20261001T021319Z |
+| test_suite_live_checkout_worktree red | a post wrote its live card mid-test: passes alone |
+| systemctl --user stop <bare name> | resolves .service, rc 5, the .scope lives: name '<unit>.scope' (g73360-b) |
+| heal sweep | loads heal.py fresh each pass: a landed heal fix is live without a reaper restart |
+| a test falling through a fake seam | can launch a REAL pi: read every slice/stage test's red for a real binary in the traceback |
+| pipelined chain gate | one suite for N tips; attribute reds on a pair tree without the suspect range |
+| old uid vs group agi | fixed by the Prime 11:4xZ (default ACLs on refs, comms, spawn-budget, inbox, worktrees) |
+| rotate flattens the quorum card | re-link: ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md |
+| MAIN shared | commit by exact path; never switch branches, stash or reset |
 
-## §5 Verification: every landing = merge-tree rc 0 + lands == range + 0 D + full suite with reds attributed (baseline suite when a red is unclear)
+## §5 Verification: every landing = merge-tree rc 0 + T2 newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + full suite with every red attributed (alone / pure-HEAD tree)
 
 ## §6 BANKED
-goal:g1.31.4.2.1.1 copilot hooks: PARKED (DG4 option b); one real copilot probe = spend, banked to the Prime 19:3xZ (rec: stay parked until copilot runs)
+- goal:g1.31.4.2.1.1 copilot hooks: PARKED (a real copilot probe = spend, the Prime's)
+- a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz (the tree stays; refusal live)
