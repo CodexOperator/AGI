@@ -3715,7 +3715,19 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                 "reason": "launcher reported no successor process",
                 "row": "skipped"}
     # pid is None (launched, unknown) or a real int -> the recovery landed.
-    row_pid = pid if pid else None   # None keeps `_successor_row_write` pid-free
+    # a launcher that cannot name the pid (the real one: `None`) -> the new
+    # window's PANE pid, else the row keeps the DEAD pid and the next sweep
+    # re-judges that corpse (measured: all-is-one respawned twice).
+    row_pid = pid or None  # None = the row keeps its PRIOR pid (rotate._successor_row_write)
+    if row_pid is None and window_id:
+        reason = f"pane pid unknown for {window_id}: row keeps its prior pid"
+        try:
+            row_pid = _pane_pid_of(window_id, window_path) or None
+        except Exception as exc:  # noqa: BLE001 -- the row write below still runs
+            reason = f"pane pid lookup raised: {exc}"
+        if row_pid is None:
+            print(f"watch: {reason}", file=sys.stderr)
+            _watch_log(f"watch: {reason}")
     try:
         row_text = _rotate._successor_row_write(
             root, actor=seat, seat=seat, role=role, session_ref="",
