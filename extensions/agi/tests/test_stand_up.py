@@ -134,6 +134,29 @@ def test_an_engine_row_is_never_stood_up_by_hand(graph, calls, monkeypatch,
     assert not list((graph / "sessions").glob("rotations/seat-a.*.json"))
 
 
+def _cli(graph, monkeypatch, launched):
+    monkeypatch.setattr(rotate, "find_project_root", lambda: graph)
+    monkeypatch.setattr(heal, "_launch_recovered", _launcher(launched))
+    return rotate.main(["stand-up", "--post", "seat-a",
+                        "--window-path", str(graph / "windows.txt")])
+
+
+def test_cli_stand_up_passes_the_root(graph, monkeypatch, capsys):
+    """F1 (g716111-g4): main() hands stand-up the root; a scratch row re-seats."""
+    launched: list = []
+    assert _cli(graph, monkeypatch, launched) == 0, capsys.readouterr()
+    assert len(launched) == 1 and "stood up seat-a" in capsys.readouterr().out
+
+
+def test_cli_stand_up_refuses_an_engine_row(graph, monkeypatch, capsys):
+    """F2: through the CLI, an `engine` row refuses by name, nothing launched."""
+    p = graph / "nodes" / ".geometry" / "seats.md"
+    p.write_text(p.read_text().replace('"model"', '"engine": {"v": 4}, "model"'))
+    launched: list = []
+    assert _cli(graph, monkeypatch, launched) == 1 and launched == []
+    assert "stand-up refused: seat-a is engine v4" in capsys.readouterr().err
+
+
 def test_rotate_self_successor_is_a_stand_up(_fix, tmp_path, monkeypatch):
     class _Stop(Exception):
         pass
