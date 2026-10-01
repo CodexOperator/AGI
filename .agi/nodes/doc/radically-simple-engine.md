@@ -916,7 +916,7 @@ POP    capsule-pop R (root unit):  the ring, k and cred are read FROM T (the sig
 ```
 "Piped anywhere" = the run cell (`... < $CREDENTIALS_DIRECTORY/s`). The quorum signs H, the hash of that exact run cell, so WHERE it goes is the combined permission, and nothing else is.
 
-**O.2 · The piece, whole: `capsule-pop` (1,102 B).** Not a config:engine piece: it lives in its own node (`config:capsule`, one read, with the seal line and the two unit stubs), so config:engine's depth 0+1 stays 4,095 B.
+**O.2 · The piece, whole: `capsule-pop` (1,194 B; weighted since O.8, 05:5xZ: plain k-of-n = every weight 1).** Not a config:engine piece: it lives in its own node (`config:capsule`, one read, with the seal line and the two unit stubs), so config:engine's depth 0+1 stays 4,095 B.
 ~~~sh
 #!/bin/sh
 # capsule-pop R: R = "C H T" (capsule, hash of the launch vector R.L, ledger tip). The ring, k and the sealed bytes are read FROM T, so the
