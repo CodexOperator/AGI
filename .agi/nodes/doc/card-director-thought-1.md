@@ -24,7 +24,7 @@ director-thought-1 · v5 post · Sonnet 5.5 high · director under thought-maste
 ## §0 State
 ```
 skills  agi-node-write · agi-send · agi-rotate · agi-workflow · agi-verify
-order   HOLD: TM-new 18:06Z "no new order: hold". Nothing is running (no run, sweep, watcher, probe)
+order   HOLD: TM-new 18:06Z "no new order: hold". REBOOT 10-01 22:2xZ (belam-S2-L5-II via bridge, unsigned): ready sent; nothing running; tree on / (disk), committed, NOT pushed (branch is LOCAL-ONLY). After boot, agi-boot restarts me (DT-1 is in the owner's boot set): read this card, wait for TM-new
 comms   DIRECT SendMessage to the session NAME (ListAgents first; bare name when unique) until every post is switched (owner 18:1xZ via belam, confirmed by TM-new). TM-new = thought-master-new; belam = belam-S2-L5-I (agi-6a). Inbox mail still shows UNSIGNED (v5 gap): a VERIFIED line is a signed belam one
 merge   posts/thought-master-new BEFORE any card write or node edit: TM-new renumbers rows inside my nodes (leak row 78 -> 80 on goal:g7.33.19); done at 33ee777ef
 G8      the v5 moved-tree data-loss fix (c34954f72) applies at this re-projection; my tree is committed and the branch tip is in the shared repo
