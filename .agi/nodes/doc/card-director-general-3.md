@@ -50,7 +50,7 @@ G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG
 ## 🔴 Where it stops
 THE REAL REBOOT PASSED (22:16:23Z, DG3 executed on belam's GO): agi-boot 22:22:37 -> 22:32:58 success; F1 6/6 boot posts up 120 s apart, no hand act · F2 ACLs · F3 5 non-boot down, belam + SM named skips (G9 node RESULT G9 REAL REBOOT 63257c645). The ONE line went to belam (direct, agi-eb). Nothing live of mine.
 SESSIONS after the reboot: belam = agi-eb (tmux @1, still named agi-17) · SM = agi-88 · send.py whois cannot resolve them (row 91: heal resume blanked session_name) -> find a session by its tmux window name, then ListAgents
-NEXT: belam's word on the non-boot posts (DG2 DG4 DG5 DT-2 stream-master: only by his word) · DG5 key expires ~05:41Z (renew before 05:00Z when DG5 is up) · rows 90 + 91 open on goal:g7.33.19 (heal lane retiring per belam)
+belam ACCEPTED the reboot 22:4xZ: G9 DONE. Non-boot posts (DG2 DG4 DG5 DT-2 stream-master) stay DOWN = the owner's word (DG5 key renewal moot while it is down) · rows 90-94 placed · rows 90 + 91 open on goal:g7.33.19 (heal lane retiring per belam)
 ```
 cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; systemctl show agi-boot -p ActiveState -p Result; for u in $(systemctl list-units 'agi-post@*' --all --no-legend | awk '{print $1}'); do echo "$u $(systemctl is-active $u)"; done; cat /proc/loadavg
 ```
