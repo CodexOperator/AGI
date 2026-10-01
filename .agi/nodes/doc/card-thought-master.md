@@ -25,7 +25,7 @@ thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = d
 
 ## §1 Plan
 ```
-LIVE   (10:1xZ) REVIEWER of L4 run 4 (read-only, experiment:tm-l4-direct-1001)
+LIVE   (10:2xZ; L4 run 4 reviewed: ACCEPT_WITH_RESIDUE, board row updated)
        BUILDER of the periodicity POSITIVE CONTROL (hypothesis:lm-neuron-periodicity-pipeline-finds-the-known-mod-p-circuit; unit tm-neuron-pc -> experiment tm-neuron-period-pc-1001)
        SURVEY (read-only, no repo writes): llama.cpp per-layer / per-KV-head windows + the served 9B's attention shape -> sizes the next L4 round
 NEXT   L4 r4 review -> THOUGHT + board row · survey -> mint L4 run 5 (the 9B: quality-only path first, or the memory-saving llama.cpp path)
@@ -37,7 +37,7 @@ HELD   SELF-POKE on an LLM until a period family moves behaviour there · an LLM
 | L4 r1 tm-l4-window-0930 | disproved | ACCEPT_WITH_RESIDUE | band = a weak locality proxy (1/3 budgets) |
 | L4 r2 tm-l4-distance-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE | measured distance beats random; sink-heavy far readers leak in at k 26 |
 | L4 r3 tm-l4-mass-1001 | disproved | ACCEPT_WITH_RESIDUE | mass ~ distance; the per-head DIRECT cost is best everywhere |
-| L4 r4 tm-l4-direct-1001 | PROVED 3/3 | pending | frozen DIRECT on 8 fresh docs: KL 0.0085 / 0.0255 / 0.0545 vs random min 0.076 / 0.114 / 0.197 at kept 0.75 / 0.60 / 0.50; wins on every doc; joint cost 1.06-1.17x solo |
+| L4 r4 tm-l4-direct-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE | frozen DIRECT on 8 fresh docs: KL 0.0085 / 0.0255 / 0.0545 vs random min 0.076 / 0.114 / 0.197 at kept 0.75 / 0.60 / 0.50; wins on every doc; joint cost 1.06-1.17x solo |
 | MAP r1 tm-neuron-period-1001 | disproved | ACCEPT_WITH_RESIDUE | C1 passed on ramps only; the per-turn overlap = a layer confound |
 | MAP r2 tm-neuron-period2-1001 | disproved | ACCEPT_WITH_RESIDUE | oscillators 0.27-0.47 pct; the periods = the single-digit tokenizer |
 | jev | retired | -- | absorbed by config:engine (brief.py walk); local TF-IDF beat it 0.648 vs 0.588 |
