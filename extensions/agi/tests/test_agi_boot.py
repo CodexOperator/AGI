@@ -1,5 +1,5 @@
 """G9: the boot piece (engine-root.md ### agi-boot) under sh, fakes on PATH, no real systemd."""
-import json, pathlib, re, shutil, subprocess, threading, time
+import json, pathlib, re, shutil, subprocess
 import pytest
 
 WT = pathlib.Path(__file__).resolve().parents[3]
@@ -32,8 +32,8 @@ def box(tmp_path):
     g("init", "-q"); g("add", "-A"); g("-c", "user.name=t", "-c", "user.email=t.invalid", "commit", "-qm", "x")
     log = tmp_path / "log"
     (fk / "setfacl").write_text('#!/bin/sh\necho "setfacl $*">>%s\n' % log)
-    (fk / "systemctl").write_text('#!/bin/sh\necho "systemctl $*">>%s\n[ "$1" = start ]&&{ echo "b $2">>%s;echo "e $2">>%s;}\n[ -e %s/drfail ]&&[ "$1" = daemon-reload ]&&exit 1\nexit 0\n' % (log, log, log, fk))
     la, io = tmp_path / "loadavg", tmp_path / "io"
+    (fk / "systemctl").write_text('#!/bin/sh\necho "systemctl $*">>%s\n[ "$1" = start ]&&{ echo "b $2">>%s;/bin/sleep 0.1;echo "e $2">>%s;[ -e %s/rmload ]&&rm -f %s;[ -e %s/sfail.$2 ]&&exit 1;}\n[ -e %s/drfail ]&&[ "$1" = daemon-reload ]&&exit 1\nexit 0\n' % (log, log, log, fk, la, fk, fk))
     (fk / "sleep").write_text('#!/bin/sh\necho "sleep $*">>%s\n[ -e %s ]&&mv %s %s\nexec /bin/sleep "$@"\n' % (log, tmp_path / "flip", tmp_path / "flip", la))
     for f in fk.iterdir():
         f.chmod(0o755)
@@ -79,7 +79,7 @@ def test_bound_gives_up_by_name_and_moves_on(box, which):
     run, log, la, io, _ = box
     {"load": lambda: la.write_text("20.00 1 1 1/1 1\n"), "io": lambda: io.write_text("some avg10=0.00 avg60=60.00 avg300=0.00 total=1\n"),
      "noload": la.unlink, "emptyload": lambda: la.write_text("")}[which]()
-    r = run(); assert r.returncode == 0
+    r = run(); assert r.returncode != 0  # a give-up fails the boot unit
     assert "skipping a" in r.stderr and "skipping b" in r.stderr and not any(l.startswith("b ") for l in lines(log))
 
 
@@ -92,6 +92,20 @@ def test_acl_or_reload_failure_is_named_continues_and_exits_nonzero(box, which):
         (tp / "fk/drfail").write_text("")
     r = run(); assert r.returncode != 0 and f"agi-boot: failed: {which if which == 'setfacl' else 'systemctl daemon-reload'}" in r.stderr
     assert sum(l.startswith("b ") for l in lines(log)) == 2
+
+
+def test_failed_start_is_named_exits_nonzero_next_row_still_starts(box):
+    run, log, *_, tp = box
+    (tp / "fk" / ("sfail.agi-post" + "@a")).write_text("")
+    r = run(); assert r.returncode != 0 and "start failed a" in r.stderr and "b " + "agi-post" + "@b" in lines(log)
+
+
+def test_second_load_read_failing_keeps_gate_closed(box):
+    run, log, *_, tp = box
+    (tp / "fk/rmload").write_text("")  # a's start removes the load file: b's first read finds none, must not reuse a's good value
+    r = run(); L = lines(log)
+    assert r.returncode != 0 and "skipping b" in r.stderr and "skipping a" not in r.stderr
+    assert "b " + "agi-post" + "@a" in L and "b " + "agi-post" + "@b" not in L
 
 
 def test_unit_execstart_reads_head_no_trunk_literal(box):
