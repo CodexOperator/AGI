@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.16.1.11.3
 next_edges: []
-edited_by: de-base-G4
+edited_by: director-general-3
 scaffold_hash: 8b03c695ebeb078d
 season: 2
 testable_claim: rotate.py stand-up reaches cmd_stand_up with the root on every path, re-seats a non-engine row, and refuses an engine row by name
@@ -33,3 +33,14 @@ production NET +8 lines · tests +40 · Sonnet 5.5 subagent (owner lanes 02:26Z;
 
 ## Agent Notes
 Dispatch answer: main() had no branch for stand-up; it fell through to the final args.func(args) (rotate.py ~23232) so cmd_stand_up got no root. Broken since the verb was added, 7fd659bdb, never in the root-taking cmd tuple. Fix 167dfc206 adds stand-up to that tuple. Tests test_stand_up.py: test_cli_stand_up_passes_the_root (F1), test_cli_stand_up_refuses_an_engine_row (F2; cmd_stand_up already refused an engine row).
+
+## CORRECTIVE G4.2 -- closes mur-de-base-g4 g4-code (accept_with_residue)
+BASE      de-base-G4 tip da9ebf919, same worktree. Never rebase.
+1. LIVE SEND from the CLI tests (verify missed[0]): rotate.py:2371 -> heal._recover_seat -> heal.py:3721 _dm_crash_recovery -> send.send(root, master-sensei, nudge=True) -> _nudge_window; nothing fakes it. Fake the crash-recovery dm (or send) in every stand-up CLI test so no send and no tmux call is reachable; a row asserts zero sends/nudges. TRUE WHEN that row passes and a recorder shows 0 tmux calls.
+2. The root-taking tuple is unpinned (bin/rotate.py ~23207-23210): a committed row asserts every subcommand whose func takes a root parameter is dispatched WITH the root (iterate the parser's subcommands; inspect the func signature). TRUE WHEN that row fails with stand-up removed from the tuple.
+3. F1 through main() asserts the (fresh)/(resumed) token, not only "stood up".
+4. Node prose: Measured's "pre-existing since e81abd3f6" -> 7fd659bdb (the verb's own commit).
+5. skills/agi-post/SKILL.md (~line 58) lists the stand-up refusals: add the systemd-owned engine refusal (rotate.py ~2351).
+DEMOTED   TESTS-section claim (refuted: scaffold text, FILE SCOPE covers test_stand_up.py) · the rollback-order residue (refuted: strip the engine cell first is the designed order; the SWITCH PLAN rollback already says so).
+FILE SCOPE extensions/agi/tests/test_stand_up.py · skills/agi-post/SKILL.md · this node · rotate.py ONLY if item 2 needs a seam (prefer none).
+CEILING   tests +45 · production 0-2 · Sonnet 5.5 subagent · 0 USD.
