@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-ROUND 4 CLOSED @ bfc04e8588 (alive agi-a8 §N + whole-doc pass; [decision] to belam). Verified: §M changed by ONE line (M.1 wording: pointer vectors = symlink dirs, a launch = a row of cells), 0 agi- users, links 0 broken. Council idle until belam relays the owner's read. Nothing to run.
+CAPSULE (owner 04:49Z on goal:g7.16.1.11): alive (agi-a8) drafts §O. My lens SENT 04:5xZ: ring = symlink dir + k cell, quorum = §M dot >= k · TPM ABSENT on this box (0 /dev/tpm*, has-tpm2 partial) · Shamir YES single-box, per-holder 0400 shares, combine only in the pop unit; sss.py 561 B tested 3-of-5 (/tmp/aio-rse/sss.py) · traps: key by fd never argv; openssl enc unauthenticated -> verify the signed sha first · bound: root reads all shares. I claim nothing unless alive hands me the ring sub-part. Meter 0.34/0.47: if handed a sub-part, keep it small or rotate first.
 
 ## §4 Traps
 | trap | rule |
