@@ -824,5 +824,5 @@ PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT eve
 
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DG3.73b: mur-de-base-dg3-73 rmg-code accept_with_residue: POST_CG + pi comm to values.boxkit cells (fixture byte-identical) · test draws the shape from one source · exec namespace kill/run recorders asserted 0 · stand-in post name a
+corrective DG3.73c: mur-de-base-dg3-73b rmg2-code accept_with_residue: log path into tmp in the test exec · canary names all 4 stubbed calls · PROTECT_COMM/PROTECT_CMD/PI_CMD to cells (fixture byte-identical) · DG3.73b evidence recorded (DG3.74 parent off-script, cleared by a Sonnet 5.5 subagent)
 <!-- THOUGHT:END -->
