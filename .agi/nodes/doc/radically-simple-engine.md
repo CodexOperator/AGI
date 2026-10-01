@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: all-is-one
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1424,16 +1424,18 @@ CA     a 32-B ed25519 SEED: sealed in a capsule (§O) + escrowed 2-of-2 (iPhone,
 | CA rotation: old + new pub in TrustedUserCAKeys, then the old dropped | both certs log in during the overlap; after it, the old-CA cert is refused, the new one logs in |
 | box loss: the CA seed (32 B) escrowed 2-of-2 (iPhone + E), rejoined | same public key, byte-exact (escrow 671 B per CA) |
 | files left after a login | 0 key files; the DC dir holds rows, ca.pub, krl only |
+| v2 (07:3xZ, after alive's U9c): the CERT fails closed on its own -- `-O clear`, then only what the row's `restrict` opts grant | `restrict`: a command runs, a pty is refused, a remote forward is refused (extensions: none) · `restrict,command="..."`: the forced command runs whatever the client asks · `restrict,pty`: a pty · empty opts or `no-pty` (not opening `restrict`): signer exit 3 -- so a box whose sshd lacks dc-principals still gets a restricted cert |
 
 **A correction to §P found here:** `esc` splits over the field 2^521-1, so it carries **at most 64 B**; a 400-B OpenSSH key file was wrapped modulo p into garbage, silently. Fixed: `esc split` now refuses a secret over 64 B (+86 B; 1,833 B with P.8's P-256 holder) and the rule is **escrow a 32-B key, never a file**. Every escrow made so far was 48 B or less (P.1), so none is affected.
 
-**Bytes (expansion, config:capsule beside esc; 0 B in the zygote):** `agi-sign` 458 B · `agi-login` 337 B · sshd: 4 lines, projected by U · the CA window and KEY_LIFE = 2 cells (`ca_window`, `key_life`). Retires, once built: the per-seat signing keys in MAIN (`.agi/sessions/seats/<p>.key`, parity row 17) and the never-rotated per-post ssh key minted in ExecStartPre (row 18 MISSING -> EXCEEDS).
+**Bytes (expansion, config:capsule beside esc; 0 B in the zygote):** `agi-sign` 722 B (v2, 07:3xZ: the cert fails closed) · `agi-login` 337 B · sshd: 4 lines, projected by U · the CA window and KEY_LIFE = 2 cells (`ca_window`, `key_life`). Retires, once built: the per-seat signing keys in MAIN (`.agi/sessions/seats/<p>.key`, parity row 17) and the never-rotated per-post ssh key minted in ExecStartPre (row 18 MISSING -> EXCEEDS).
 `agi-sign` whole:
 ```sh
 #!/bin/sh
-# agi-sign RID <pub: sign a fresh login key under directory row RID (U: key-id = rid, principal + validity from the row); the CA key lives ONLY in the CA agent, popped from its capsule
-l=$(awk -F'\t' -v r=$1 '$1==r' dc/rows);[ "$l" ]||exit 3;t=$(mktemp -d);cat>$t/k.pub;s=$(date +%s%N)
-SSH_AUTH_SOCK=$CA_SOCK ssh-keygen -q -Us dc/ca.pub -I $1 -n $(echo "$l"|cut -f4) -V $(echo "$l"|cut -f5) -z $s $t/k.pub&&cat $t/k-cert.pub;r=$?;rm -rf $t;exit $r
+# agi-sign RID <pub: sign a fresh login key under the §U row RID (rid box user principal valid opts); the cert fails closed: -O clear + only what the row's restrict opts grant; the CA key lives ONLY in the CA agent
+d=${DC:-/etc/agi/dc};l=$(awk -F'\t' -v r=$1 '$1==r' $d/rows);o=$(echo "$l"|cut -f6);case $o in restrict*);;*)exit 3;;esac
+set -- -I $1 -n $(echo "$l"|cut -f4) -V $(echo "$l"|cut -f5) -O clear;case ,$o, in *,pty,*)set -- "$@" -O permit-pty;;esac;c=$(echo "$o"|sed -n 's/.*command="\([^"]*\)".*/\1/p');[ "$c" ]&&set -- "$@" -O "force-command=$c"
+t=$(mktemp -d);cat>$t/k.pub;SSH_AUTH_SOCK=$CA_SOCK ssh-keygen -q -Us $d/ca.pub "$@" -z $(date +%s%N) $t/k.pub&&cat $t/k-cert.pub;r=$?;rm -rf $t;exit $r
 ```
 `agi-login` whole:
 ```sh
@@ -1441,7 +1443,7 @@ SSH_AUTH_SOCK=$CA_SOCK ssh-keygen -q -Us dc/ca.pub -I $1 -n $(echo "$l"|cut -f4)
 # agi-login PRINCIPAL: a fresh key pair per login, in RAM (tmpfs) for < 1 s, then held ONLY by the session agent; the private key is never written to disk
 t=$(mktemp -d -p $XDG_RUNTIME_DIR);ssh-keygen -q -t ed25519 -N "" -f $t/k&&./agi-sign $1<$t/k.pub>$t/k-cert.pub&&ssh-add -q -t ${KEY_LIFE:-300} $t/k;r=$?;rm -rf $t;exit $r
 ```
-**Honest limits.** (1) `ssh-keygen` writes its pair to a file, so the key touches tmpfs (RAM, 0700, < 1 s) before the agent holds it; a pure-stdin path (python -> `ssh-add -`) loses the cert pairing, unmeasured. (2) Root on the DC inside an armed window can sign: the window is the bound, not zero. (3) A pop needs the owner's iPhone (mutual quorum): one window per owner tap, so `ca_window` trades taps for exposure; tonight's stand-in key (§X) arms it. (4) The sshd side is U's projection, tested here only by hand-written stand-ins for its rows.
+**Honest limits.** (1) `ssh-keygen` writes its pair to a file, so the key touches tmpfs (RAM, 0700, < 1 s) before the agent holds it; a pure-stdin path (python -> `ssh-add -`) loses the cert pairing, unmeasured. (2) Root on the DC inside an armed window can sign: the window is the bound, not zero. (3) A pop needs the owner's iPhone (mutual quorum): one window per owner tap, so `ca_window` trades taps for exposure. Tonight's stand-in key (§X) arms a THROWAWAY TEST CA only (alive's call, agreed 07:3xZ: a box key arming the real CA would make the box its own owner half of the mutual quorum, O.8); the real CA's first window waits for the real phone, so F42 cross-box runs on the test CA. (4) The sshd side is U's projection, tested here only by hand-written stand-ins for its rows.
 Falsifiers: **F41** the login table above (PASS, scratch sshd) · **F42** after a window closes, no login anywhere succeeds until a new pop (PASS for one box; cross-box with §W unrun) · **F43** `find / -xdev` on DC and box after 100 logins shows no user private key file (unrun at scale) · **F44** a box rebuilt from the seed (§T) trusts the CA through U's projection and logs a post in with no key copied over (unrun) · **F45** `esc split` on more than 64 B exits non-zero (PASS).
 
 `esc` delta (P.8 + this section; every other line = §P's `esc`):
