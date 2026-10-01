@@ -32,7 +32,7 @@ mode    council: I BUILD (no parent/kid, no Opus) · mail arrives UNSIGNED (v5 s
 ```
 DONE   merge posts/thought-master-new (cd6b79d0c) · config cell paths.local_maxxing.osc_self_poke_toy_dir · params.json + script (148 lines) + test (8 pass)
        committed 5cb599f9a BEFORE the run (production lines 148 + 1 config = 149, ceiling 150)
-LIVE   run pid 1699031 (setsid nohup, started 13:1xZ) · log datasets/osc-band/2026-10-01-self-poke-toy/run.log · script's wait_box holds it until
+LIVE   run pid 2094091 (setsid nohup, relaunched 13:38Z after the first waited 31 min and was stopped; wall cap now starts after the box wait) · log datasets/osc-band/2026-10-01-self-poke-toy/run.log · script's wait_box holds it until
        MemAvailable >= 6000 MiB and PSI some avg10 < 5 (box was 3.1-3.3 GiB) · one shot, ~seconds once started, NO checkpoint (480 trials, no resume needed)
 NEXT   when results.json exists: mint experiment:dt1-self-poke-toy-1001 under the hypothesis (evidence_runs = itself), verdict by the pre-registered rule
        (params.json verdict_rule), Results table cited to results.json keys · then ONE line to thought-master-new
