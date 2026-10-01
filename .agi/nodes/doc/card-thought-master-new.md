@@ -17,15 +17,15 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (22:3xZ 10-01; box rebooted 22:18Z; owner "go" in this session 22:3xZ = the go for the next round)
+## §0 State (23:0xZ 10-01; box rebooted 22:18Z; owner "go" 22:3xZ = the go for the FREQ-ABLATION round)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
 | run | owner 15:1xZ: keep going until goal:g7.16.1.11.1-.10 complete · COMMS = DIRECT session messages (SendMessage, names from ListAgents), not inbox dms (owner 18:1xZ) · belam = belam-S2-L5-I · SM lands my merge-ups (a v5 post cannot write MAIN) |
-| directors | director-thought-1: ORDERED 22:3xZ (SendMessage, delivery unconfirmed) to build the FREQ-ABLATION round · director-thought-2: DOWN after the reboot until the owner says |
+| directors | director-thought-1: idle after FREQ-ABLATION (returned a352fc937) · director-thought-2: DOWN after the reboot until the owner says |
 | subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
 | LANDED | SEEDS x3 + FAIR P4 (both DISPROVED): a6ac4d92e = 67680d223 on local-maxxing/season2/main, pushed by SM (suite 7876 passed / 1 = the trunk red; links 5670/0; grid commit --all run by SM, 31 versions). Trunk merged back into my branch 6d8bb6265 |
-| ROUND OUT | FREQ-ABLATION = hypothesis:lm-neuron-periodicity-every-family-frequency-is-load-bearing-in-logit-space (minted d05c57e81): logit-space ablation of each family frequency vs an EXHAUSTIVE non-key-frequency null (C1) + family direct-logit energy >= 0.5 in its own frequency (C2); builder DT-1, expected experiment:dt1-neuron-period-freqabl-1001 |
+| QUEUED LANDING | FREQ-ABLATION DISPROVED: [merge-up] 3fb85474f sent to SM [ef86e2] 23:0xZ (review CONFIRMED_DISPROVED, 0 mismatches; C2 12/12, C1 fails s0 k=34 / s1 k=3 / s2 k=17; 4 overclaims fixed on the node; hypothesis conf 0.25; board g5.28; DT-1 key host comment stripped 44e0830b6). Delivery unconfirmed; asked SM to run grid commit --all |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: needs MemAvailable >= 8 GB held + a docker-capable user (v5 has none); resume steps in its THOUGHT |
 
 ## §1 Plan
@@ -33,8 +33,9 @@ thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 hig
 DONE   self-poke toy line LANDED a001a3c61 · guard-leak fix LANDED 0376b07da (goal:g7.33.19 row 80) · seeds x3 reviewed + merged, merge-up queued
 DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + gated + [merge-up] a6ac4d92e to SM
 DONE   SM landed 67680d223; trunk merged back 6d8bb6265
-NOW    (1) FREQ-ABLATION round out to DT-1; await its ONE return line (tip sha, verdict, C1/C2 per seed)
-NEXT   (2) adversarial ONE-process Sonnet review recomputing from raw (brief as the FAIR P4 one: ulimit -v 4000000, PSI gate, 40 min) -> THOUGHT + board g5.28 + merge DT-1 -> gate -> [merge-up] to SM
+DONE   FREQ-ABLATION built by DT-1, reviewed CONFIRMED_DISPROVED, recorded, merged 956e7b179, gated, [merge-up] 3fb85474f to SM
+NEXT   (1) when SM lands 3fb85474f: git merge local-maxxing/season2/main into my branch
+       (2) next research round = §6 (score LOSS or margin, not accuracy) -- awaits a go; do not mint it unasked
 BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
 ```
 
@@ -49,8 +50,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-DT-1 RETURNED a352fc937: experiment:dt1-neuron-period-freqabl-1001 DISPROVED by C1 (s0 k=34, s1 k=3, s2 k=17 drop ~0), C2 12/12; one-process Sonnet review RUNNING (also loss deltas + sufficiency arm). My error: the hypothesis said 57-dim basis, it is 113 dims (57 components) -- fix in the hypothesis THOUGHT
-next command if silent > 60 min: ListAgents, then git log --oneline -5 posts/director-thought-1 (reconcile by branch, never by inbox alone)
+Waiting on SM to land merge-up 3fb85474f (FREQ-ABLATION DISPROVED); then merge the trunk into my branch
+next command: git merge-base --is-ancestor 3fb85474f local-maxxing/season2/main && git merge local-maxxing/season2/main
 ```
 
 ## §4 Traps
@@ -63,7 +64,7 @@ next command if silent > 60 min: ListAgents, then git log --oneline -5 posts/dir
 - before a merge-up: grep added lines for the host name + absolute home paths (.agi/keys/* ssh comments; cards) and fix them on my branch
 - a findings row number is claimed only at landing: on a conflict keep theirs verbatim, renumber mine + every reference (write.py sub!)
 - anonymize.py and provisioning.py die on MAIN .env (G2) -- grep by hand instead
-- tests: NO pytest anywhere on the box -> scratch shim (pytest.py with importorskip/approx/mark.parametrize + a runner) on PYTHONPATH with /data/ml/scratch/osc03/pylib, run by /data/ml/.venv/bin/python3; never pip install
+- tests: NO pytest anywhere on the box -> scratch shim (scratch is under /tmp: a reboot WIPES it, so rebuild it) (pytest.py with importorskip/approx/mark.parametrize + a runner) on PYTHONPATH with /data/ml/scratch/osc03/pylib, run by /data/ml/.venv/bin/python3; never pip install
 - import torch needs ulimit -v >= 4000000 (2000000 fails to map); brief subagents with 4000000
 - git push fails (no creds for a v5 user); grid.py commit --all fails (MAIN .grid.lock) -- SM does both at landing
 - write.py `thought` takes the TEXT inline ("thought $(cat f)"), not a path
@@ -76,7 +77,7 @@ next command if silent > 60 min: ListAgents, then git log --oneline -5 posts/dir
 ## §6 BANKED
 - L4 r5 on the 9B: (a) run when the owner thins the live posts (RECOMMENDED) · (b) lower the 8 GB gate = OOM risk · (c) a smaller-model rung first; + a docker grant for v5 users
 - an LLM periodicity / self-poke test needs a model whose tokenizer holds multi-digit numbers as one token = a download (owner call)
-- next-round design: per-frequency logit lens MINTED d05c57e81 on the owner's go (22:3xZ); path patching stays the fallback lens if it is disproved
+- next-round design: FREQ-ABLATION (d05c57e81) DISPROVED on accuracy; the next lens scores held-out LOSS or logit margin with a pre-registered loss null (accuracy saturates: s2 k=17 is a 0-0 tie that passes on loss); path patching stays the fallback. Needs a go
 
 ## Skills
 agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
