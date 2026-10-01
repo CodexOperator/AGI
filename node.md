@@ -30,15 +30,14 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-GATE   PIPELINED ONE suite on /dev/shm/smgatec (ids /dev/shm/sm-gate-dg1.txt = MTM MF TGF T; log /dev/shm/smtmpc/suite.log) covering TWO landings, in order: (1) TM-new a6ac4d92e (SUPERSEDES 165f57b0f; 35 files, 0 under extensions/; static GREEN; context seeds 8/8 + p4fair 8/8; provisional MTM in /dev/shm/sm-gate-tm.txt = H MTM TGTM T) then (2) DG1 merge-up 1554cb042 (DG1.01 ACCEPT + DG1.02 prose closed in-loop e3cfa7e6c..e99a0566a, read; 16 files, 0 D; first live cron run = mail_poll gains --peek ONLY, 12 other lines identical; IN-GATE anonymize fix: 3 home paths in experiment a00-5e11b8a9-011f6d + a00-ea11ccba-033965 -> home_relative, blobs in TGF). On green: land TM (T2 on live HEAD, newcomers byte-identical, posts clash = UNION), then DG1 as T2' = TGF re-derived on the new HEAD (temp index with the 2 fixed blobs), push, grid.py commit --all, tell TM-new + DG1 + belam. A red = attribute: TM range has no extensions/
+GATE   ONE pipelined suite over THREE tips on /dev/shm/smgate3 (log /dev/shm/smtmp3/suite.log, pid in suite.pid; started 20:2xZ): TM-new a6ac4d92e (supersedes 165f57b0f; static green; context 8/8 + 8/8) -> DG1 1554cb042 (DG1.01 ACCEPT, DG1.02 prose closed in-loop; first live cron run = mail_poll gains --peek only; in-gate anonymize fix = 2 blobs) -> DG5 c700bd684 (pin4: both defects refuted; 2 out-of-claim items = DG5 leaves). Gate ids: /dev/shm/sm-gate-{tm,dg1,dg5}.txt
+ON GREEN  sed -i "s/@SUITE@/<passed/failed numbers>/" /dev/shm/sm-murs/msg-*.txt; sh /dev/shm/sm-murs/land3.sh (mints L1 L2 L3 on the LIVE HEAD + proves them; writes land-ready; dry-run 20:2xZ rc 0); then git -c gc.auto=0 merge --ff-only <L3>; push; python3 extensions/agi/bin/grid.py commit --all; tell TM-new + DG1 + DG5 + belam. A red: TM range has no extensions/, DG5 = rotate.py + test_rotate.py only, DG1 = the rest
 MURS   route = the Claude Workflow tool, name agi-merge-up-review, args {rounds, model: sonnet, effort: high, project_root} (workflow.py --harness claude-code only PRINTS that call). Verdict files: runs/<run-key>/ (gitignored)
-DG1    merge-up 1554cb042 IN THE PIPELINED GATE above (DG1 told: no post-main ff, in-gate anonymize fix, no hand crons apply needed)
-DG2    DG2.02 a00-484df03a dispatched 20:0xZ (corrective of mur-de-base-dg2-1, 6 residues) -> DG2 harvests -> Sonnet re-mur eae497672..tip
+DG2    DG5 59637fdca = [decision] hold (a 2nd implementation of DG2s node; tests may later ride on top as coverage) · DG2.02 a00-484df03a dispatched 20:0xZ (corrective of mur-de-base-dg2-1, 6 residues) -> DG2 harvests -> Sonnet re-mur eae497672..tip
 DG3    heal-pid fix d7a541b94 -> its [merge-up] (offered the Sonnet mur route); heal ack-line round queued after it. DG3 rotated 19:56Z (new session: inbox)
-DG5    pin3 closed by DG5 (tip c700bd684: key untracked + per-file .gitignore line, RuntimeError loop guard, find_pin_log guard, claim text) -> pin4 mur wf_bac3e10d-9d7 RUNNING in this session (harvest before rotating; verdict files -> runs/mur-posts-director-general-5-4) -> on accept gate vs MERGE-BASE 2bead3113
 LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells · DG3 row-80 clash on goal:g7.33.19 (told)
 ```
-Run args: /dev/shm/sm-murs/ (mur-all.json = a Workflow args example; orders-dg10{4,5}.md). A mur round = {key, hypothesis, experiments, files, focus (starts with the LEAN line), merge_up, old_tip, new_tip}.
+Run args: /dev/shm/sm-murs/ (mur-all.json = a Workflow args example; orders-dg10{4,5}.md; land3.sh + msg-*.txt). A mur round = {key, hypothesis, experiments, files, focus (starts with the LEAN line), merge_up, old_tip, new_tip}.
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
 - 900728906 G4 (DG3) · b30042219 g73360-b (DG2) · 6c87be791 G6 (DG3: v4 drop-in AGI_BOX) · fec9f352f G5 (DG3: send treats a v5 post as a peer) · 2e94bd1f3 G7 (DG3: strace -b execve) · a001a3c61 TM-new research (key comments + DT-1 home path fixed in-gate) · cfda80960 C2 (DG5: guard fails by name, 0 prod lines) · c34954f72 G8 (DG3: moved v5 tree archived) · 0376b07da TM-new context leak fix (row 80)
@@ -74,6 +73,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | MAIN shared | commit by exact path; never switch branches, stash or reset |
 | dispatch output filtered by grep (19:55Z) | hid a stale-base refusal (exit, no spawn line): read the WHOLE output, then confirm with spawn_budget status |
 | a bare cd in a Bash call | moves THIS session cwd into a worktree: always a ( subshell ) or absolute paths |
+| spawn_budget 0/30 | NOT proof a parent exited (twice today): scan /proc cwd for the agent id before calling it dead |
 | A+ dispatch | the director line is run VERBATIM: a stale-base refusal goes back to the director (add --allow-stale-base reason, or merge) |
 
 ## §5 Verification: every landing = merge-tree rc 0 + T2 newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + full suite with every red attributed (alone / pure-HEAD tree)
