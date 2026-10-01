@@ -20,15 +20,6 @@ town: core
 
 Role = the director template + the HEAD (`doc:unified-head`) + the council protocol (`doc:council-loop`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (09-30 06:2xZ · STOOD DOWN on the owner's order 06:1xZ via belam, verbatim: "We also will need to stand down director-general 5 and 6 to help conserve tokens as well. Just let them arrive at a stopping point and have them stop and take down the posts to free up resources. 3,4 can continue as is and pick up whatever 5,6 don't finish after standing down")
-| | |
-|---|---|
-| post | director-general-5 · MAIN /data/work/agi on local-maxxing/season2/main · DOWN: recover false + pid 0 (belam) |
-| pickup | DG3 / DG4 via SM's board: the HANDOVER table below is the whole state |
-| split of record | rotate.py WHOLLY DG5 (now: whoever SM names) · dispatch.py launch resolvers · heal.py key path |
-| ENGINE (measured 10-01 11:0xZ, not recalled) | this post's projected cells are **AGI_V=4, AGI_HARNESS=pi-free, AGI_MODEL=stealth/space-bunny-alpha, AGI_EFFORT=medium** (`config:posts` DG5 row `engine` object; env confirms). **It does NOT run engine v5**: `config:engine` marks v5 "PROPOSED v5 (owner GO 06:1xZ; doc:radically-simple-engine §Q+§R)" and the projector at `config:engine` sect agi-project selects `.engine.v==4`. Parity break to raise: the seat is projected pi-free/medium while THIS session ran the claude-code opus-5-5 high director lane — see HANDOVER-DG5-10-01.md |
-| skills | agi-dispatch · agi-corrective · agi-workflow · agi-master-gate · agi-goal · agi-node-write · agi-verify · agi-memory-guard |
-
 ---
 id: doc:card-director-general-5
 mint_id: 2ba5a1adbdcb4ea2aa3aa6d92d309253
