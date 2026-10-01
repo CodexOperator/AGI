@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1108,6 +1108,38 @@ if v=='join':
 # ring-ok K <ring (lines: holder box): every box holds <= min(K-1, N-K) holder keys -- no box can pop alone, and losing any one box leaves >= K
 awk -v k=$1 '{n++;b[$2]++}END{m=k-1<n-k?k-1:n-k;for(x in b)if(b[x]>m){print "box "x" holds "b[x]" > "m;e=1};exit e}'
 ```
+
+## Q · ROUND 5 · self-perpetuating -- the ZYGOTE: config:engine keeps the code that runs before any post exists; the body it grows is EXPANSION, read at the same REV
+**Owner 05:38Z:** "the expanded vectors for live posts and post wrappers can be bigger than 8kb I just mean the 'bootstrap' package is under 8kb". **What am I ACTUALLY trying to get the machine to do here?** Regrow every post from one small read. A seed does not carry the organism: it carries the code that builds it and reads the rest from where it lands. Here that is the graph at the same REV, which `sect` already reads. So the cut is a rule, not a squeeze:
+```
+ZYGOTE    = the code that runs before any post exists + the map (diagram · loop · one line per piece, all 24)
+EXPANSION = every file that code writes and everything a post runs: read with sect @REV, extracted whole into the post's bin
+config:engine        7,263 B  ZYGOTE: diagram · loop · 24 piece lines · sect · agi-project · agi-gate            (v4c: 16,384)
+config:engine-post   7,673 B  the body: agi-post@.service · agi-brief · brief.py · agi-meter · agi-turn · agi-link · agi-wt
+                              · agi-track · agi-flush · gitconfig · signers · sysusers.conf · agi.rules · project.sh · observe.sh · tick.sh · agi-frontier
+config:engine-wrap   3,236 B  the post wrappers: agi-run · settings.json · cccc.ts · agi-kid
+total               18,172 B  (cap 20,480) · zygote headroom 929 B · gone: none · every other piece byte-identical to v4c
+```
+**The only code changes** (v4c -> v5; the new expansion nodes are v4c's sections cut whole, by the map above):
+| piece | change | bytes |
+|---|---|---|
+| sect | reads EVERY `.geometry/engine*.md` at REV: `r=${2:-HEAD};git ls-tree --name-only $r .agi/nodes/.geometry/\|grep "/engine[^/]*\.md$"\|sed "s\|^\|$r:\|"\|git cat-file --batch --follow-symlinks\|sed -n` + v4c's range; no caller changes | 149 -> 202 |
+| agi-project | `s()` = the same read; after writing the unit: `[ -s $o/agi-post@.service ]\|\|exit 3` (a missing expansion fails loud) | 1679 -> 1833 |
+| agi-gate | first line: `git grep -ho "^### [^ ]*" $1 -- ".agi/nodes/.geometry/engine*.md"\|sort\|uniq -d\|grep -q .&&exit 2` (one name, one piece) | 276 -> 373 |
+| agi-post@.service | `e=...engine.md;for x in ...;done;` -> `for e in t/.agi/nodes/.geometry/engine*.md;do for x in ...;done;done;` -- bare `$e`, never `${e}`: systemd 255 empties `${x}` even inside `sh -c '...'` (measured: `x=[5] br=[]`) | 1252 -> 1268 |
+| diagram | +1 line: `ZYGOTE = this read ... ──sect @REV──▶ EXPANSION: config:engine-post · config:engine-wrap` | +128 |
+
+**Tested 05:4xZ** (`--shared` scratch clone, rows zz-claude / zz-pi / zz-off on another box; commit A = v4c, C = v5; no root, no unit started, MAIN untouched):
+| claim | result |
+|---|---|
+| sect parity: v4c `sect X A` vs v5 `sect X C`, all 24 names + diagram + loop | 21 byte-identical; the 5 that differ are the 4 edited pieces + diagram |
+| projection parity: v4c agi-project @A vs v5 @C | 9 files each; zz-off skipped; users, h.conf drop-ins, .path identical; the units differ ONLY in the extraction loop |
+| a post's bin: v4c extraction vs v5 extraction | 24 files each; only sect, agi-project, agi-post@.service differ |
+| gate: good tip · engine-post missing · a duplicate name | 0 · 1 · 2 |
+
+**Why the wrappers stay whole per post:** `cccc.ts` is not pi-only: `agi-kid` loads it in EVERY post (a claude post spawns pi kids). Narrowing the wrap per harness is free later (expansion bytes are not capped) and saves nothing in the zygote. **Seeds not taken, on purpose:** cells + ONE projector for the key=value units, and one brief, shrink the EXPANSION, not the zygote, and each rewrites a piece whose parity rows are proven: take them when a parity row needs touching anyway. **The zygote's next cut, if 8 KB gets tight:** agi-project's three printf blocks (agi-project.service, .path, h.conf, ~900 B) become cells in config:engine-post read by the same `s()`; est. -500 B, unmeasured.
+
+Falsifiers: **F32** `wc -c` config:engine <= 8,192 (7,263) · **F33** sect parity as in the table (PASS) · **F34** projection parity (PASS) · **F35** gate 0/1/2 (PASS) · **F36** on DG3's stage-2 post: its bin under v5 = its bin under v4c except the 3 edited pieces (unrun). Drafts: /tmp/g71611/r5/v5 (scratch; rebuildable from v4c by the map + the 5 edits above).
 
 ## Q · ROUND 5 · alive -- the BOOTSTRAP is one 5.7 KB node; everything a post runs is an EXPANSION, read by name
 **Owner 05:38Z:** "Our engine code is getting too large. Do we need to offload more of it into the math somehow? Rethink things or recompose them? We can go up to 20kb while needed but ideally I'd want it back under 8kb when possible via another simplification redesign. Mind you the expanded vectors for live posts and post wrappers can be bigger than 8kb I just mean the 'bootstrap' package is under 8kb you get it?" **What am I ACTUALLY trying to get the machine to do?** Make the one read that a box needs to come alive small, and let everything a post runs be fetched by NAME only when it is needed, with no piece rewritten (so parity holds by construction, and is then measured, not argued).
