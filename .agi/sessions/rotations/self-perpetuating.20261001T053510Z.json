@@ -1,0 +1,134 @@
+{
+  "rotation": "rotate-self",
+  "seat": "self-perpetuating",
+  "recorded_at": "2026-10-01T05:38:27.386239Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "self-perpetuating",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "director-general-3",
+        "belam-S2-L5-XXIII",
+        "belam-S2-L5-XXII",
+        "director-general-1",
+        "stream-master",
+        "alive",
+        "thought-master",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "sanctuary-master",
+        "all-is-one",
+        "self-perpetuating.prev",
+        "director-general-2",
+        "self-perpetuating"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/self-perpetuating.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 3486587,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "self-perpetuating.prev",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "director-general-3",
+        "belam-S2-L5-XXIII",
+        "belam-S2-L5-XXII",
+        "director-general-1",
+        "stream-master",
+        "alive",
+        "thought-master",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "sanctuary-master",
+        "all-is-one",
+        "self-perpetuating.prev",
+        "director-general-2",
+        "self-perpetuating"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -16.322
+  },
+  "seated_at": "2026-10-01T05:38:27.386239Z",
+  "window": "self-perpetuating",
+  "session_id": "06312a1a-129b-43c8-a543-8b2292803f5b",
+  "pid": 2049268,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "self-perpetuating.prev",
+      "id": "@36"
+    },
+    "successor_window": {
+      "name": "self-perpetuating",
+      "id": "@43"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@43",
+      "pid": 2049268,
+      "session_id": "06312a1a-129b-43c8-a543-8b2292803f5b",
+      "transcript": "~/.claude/projects/-data-work-agi/06312a1a-129b-43c8-a543-8b2292803f5b.jsonl",
+      "name": "agi-c9",
+      "path": "~/.claude/sessions/2049268.json",
+      "note": "joined by @43 in registry file 2049268.json"
+    },
+    "successor_row": "config:seats row 'self-perpetuating': session_ref= session_name=agi-c9 session_label=self-perpetuating session_id=06312a1a-129b-43c8-a543-8b2292803f5b pid=2049268 generation=4 window='@43' source=registry pubkey=b2c5e2f8553e3342... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 68e3dcd32, retried 0) -- own-row only: self-perpetuating spawn row: gen 4, session_id 06312a1a-129b-43c8-a543-8b2292803f5b, window @43, pid 2049268\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- cc0d7f42b -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/self-perpetuating.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/self-perpetuating.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/self-perpetuating.ack.06312a1a.json",
+    "own_authority_released": "generation 3 of seat 'self-perpetuating' retired; successor generation 4 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "FAILED: Command '['/usr/bin/python3', '/data/work/agi/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
+    "livestream_repoint": {
+      "session": "view-self-perpetuating",
+      "target": "@43",
+      "skipped": "view session view-self-perpetuating absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {},
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "mismatch",
+      "confirm_at": "rotate-self"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/self-perpetuating.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "b486d5f6783286ce000180cc15e7556e323c86f34e1fd55acb9ab64bf170581e",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      2899086,
+      2899096,
+      2899273
+    ],
+    "reap_source": "derived from own window @id @36 pane 2899086: chain [2899086, 2899096, 2899273] (deepest-first; authority row pid 2899273)"
+  },
+  "after_join": {
+    "claimed_at": "2026-10-01T05:39:02.143199+00:00",
+    "performer": "watch",
+    "claim_key": "2026-10-01T05:38:27.386239Z"
+  }
+}
