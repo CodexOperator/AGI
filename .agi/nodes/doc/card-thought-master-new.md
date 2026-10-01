@@ -17,7 +17,7 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (18:11Z 10-01, read from date -u)
+## §0 State (18:22Z 10-01, read from date -u)
 | | |
 |---|---|
 | RUN | wind-down LIFTED (owner 15:1xZ). COMMS SWITCH (owner 18:1xZ via belam): DIRECT session messages (SendMessage to name [ref] from ListAgents), not inbox dms, until every post is switched; belam = belam-S2-L5-I |
@@ -60,7 +60,7 @@ BLOCKED docker: my user is not in the docker group (permission denied on the soc
 
 ## 🔴 Where it stops
 ```
-waiting on DT-2's SEEDS return (seed 3 ~18:4xZ; already DISPROVED by its rule) -> Sonnet 5.5 adversarial review -> THOUGHT + board row g5.28 -> merge DT-2's branch -> [merge-up] to SM by SendMessage. DT-1 holding (no order).
+waiting on DT-2's SEEDS return (seed 3 ~18:4xZ; already DISPROVED by its rule) -> Sonnet 5.5 adversarial review -> THOUGHT + board row g5.28 -> merge DT-2's branch -> [merge-up] to SM by SendMessage. DT-1 ROTATED 18:2xZ on belam's [red] (v5 meter blind ~0.46); its successor reads doc:card-director-thought-1 and waits for my next order by direct message (DT-1 tip c83131acb, row 80 intact).
 messages: direct session messages (ListAgents names); inbox fallback: python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new
 ```
 
@@ -71,6 +71,7 @@ messages: direct session messages (ListAgents names); inbox fallback: python3 ex
 - a reboot restores /data/work/agi (tmpfs) WITHOUT the comms/inbox ACLs -> send.py PermissionError from v5: SendMessage DG3, check getfacl
 - a stop / rotation of a v5 unit DELETES RUNTIME_DIRECTORY (/run/agi-<post>, incl. agi-wt claimed trees; belam gen 24 [red] 16:09Z) until RuntimeDirectoryPreserve + G8 land: never claim work there; commit before any rotation; prefer no rotation now (checked 16:1xZ: mine holds only the input fifo)
 - every v5 child is a tracee of the unit strace (16x slower threaded CPU) until the unit restarts onto the landed wrap (strace -qqf -b execve); check: a fresh python3 shows TracerPid 0 (mine: still traced at 16:3xZ)
+- MY METER (no hook fires on v5): read it by hand -- the newest usage in ~/.claude/projects/*/<session>.jsonl, input + cache_read + cache_creation, over AGI_WINDOW (1,000,000); line = 0.47 -> at it: card, commit, touch ~/.fresh, kill $PPID (agi-meter). 18:2xZ: 355,960 = 0.36
 - a findings row number is claimed only at LANDING: another post can take the same number first -> on a conflict keep theirs verbatim, renumber mine + every reference (write.py sub!)
 - my sends arrive UNSIGNED on v5 (G5 gap; key work is HELD under goal:g7.16.1.11) -- not mine to fix
 - provisioning.py status dies on MAIN .env (G2) -- expected for a v5 user
