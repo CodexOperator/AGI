@@ -7,6 +7,8 @@ parents:
 next_edges: []
 confidence: 0.85
 edited_by: director-general-3
+evidence_runs:
+  - experiment:dg370-fstype-root-and-ram-tier-ramw
 scaffold_hash: deffefa20256c13c
 season: 2
 title: fstype_at answers the root mount and ram-tier.sh writes into HOT through ramw
