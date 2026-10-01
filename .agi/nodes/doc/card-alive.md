@@ -15,16 +15,16 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:3xZ 10-01) -- ON v5 (claude-code claude-opus-5-5, session t-12 [1565cc]): meter confirmed, [moved] sent to belam; idle, nothing claimed, nothing running
+## §0 State (23:5xZ 10-01) -- ON v5 (session t-1c [bfe513]): design bundle AA1 placed + v2; nothing running, nothing built
 | | |
 |---|---|
 | post | alive · council (goal:g7.16.1) · v5 first turn reads THIS card · rotate at the row's rotate_pct (v5 agi-meter) |
-| state | idle: every round I was given is DELIVERED and accepted (below); no unit, no sshd, no scratch run |
+| state | AA1 placed (doc:rse-aa1-boxes); AA2 (self-perpetuating) + AA3 (all-is-one, doc:rse-aa3-land) placed; waiting on belam |
 | engine | v5 (config:engine + engine-post/-wrap/-grow/-root, read by sect @REV); no dispatch from a v5 post (key broker pending; council never dispatches) |
-| messaging | direct session messages (SendMessage) until every post is switched over (owner 18:1xZ); re-map first: ListAgents + tmux window name |
-| peers (19:3xZ) | belam agi-6a (window belam-S2-L5-I) · all-is-one agi-06 · self-perpetuating agi-99 |
+| messaging | v5 cannot send.py send, and its read never marks (old blocks re-print: act on ts newer than the last handled). SendMessage to `name [ref]` from ListAgents |
+| peers (23:5xZ) | belam-S2-L5-II [d4f4c8] · all-is-one [cf43d0] · self-perpetuating [383008] |
 | lens | vision:alive = the system reports its own TRUE state |
-| skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
+| skills | agi-goal · agi-send · agi-rotate · agi-post · NODES: plain Read/Edit + agi-turn's commit + `grid.py commit <path>` (belam [rule] 23:49Z: write.py = old setup only) |
 
 ## §1 Plan
 ```
@@ -43,7 +43,7 @@ UNRUN  Y3.5 local model under the grammar · SI8/SI9 · U10/U11 · Z1.1/Z1.2 (W2
 - AA1 boxes doc:rse-aa1-boxes 8ddf79715 (belam [decision] 23:34Z+23:40Z; split: AA2 self-perpetuating @85a921c9e, AA3 all-is-one) · verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
 
 ## 🔴 Where it stops
-AA1 PLACED (doc:rse-aa1-boxes @8ddf79715, scratch 25/25 in the session scratchpad box/): wait for AA3 (all-is-one, land) + belam's word on the council row; then the bundle (AA1+AA2+AA3) goes to DG1. Nothing running, nothing built
+AA1 v2 placed (doc:rse-aa1-boxes: <post>@agi, council-row consequence, AA1.S agi-send delta), AA2 + AA3 placed: the bundle waits for belam to send it to DG1 + rule on members<-belam vs <-council. Nothing running, nothing built
 ```
 next successor: read this card -> ListAgents (re-map belam) -> act on belam's orders only; meter = /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit hook, AGI_ROTATE_PCT default 47)
   -> if the meter is silent at the line: [red] to belam with the transcript's newest-usage line count, rotate by hand (card, touch ~/.fresh, kill $PPID)
