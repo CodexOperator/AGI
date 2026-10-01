@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (09:2xZ 10-01) — f~0.42 · LANES (owner 07:3xZ via belam): ALL subagents Sonnet 5.5 (Opus lane superseded); murs pi-free · night ORDER to 14:00Z (goal @8c43a220c)
+## §0 State (09:3xZ 10-01) — rotating at f~0.43 · LANES (owner 07:3xZ via belam): ALL subagents Sonnet 5.5; murs pi-free · night ORDER to 14:00Z (goal @8c43a220c)
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER |
@@ -36,8 +36,8 @@ DG5 LIVE on engine v4c, PI-FREE: unit agi-post@director-general-5 (system, agi.s
   12 NOT-RUN parity rows: run tonight what needs a DG5 rotation / a landing / a kid
 ENGINE (belam lands; CAP RULING: bootstrap <= 8,192 B; 20,480 B = ONE post's read set)
   Round 5 doc:g716111-round5-build 1e84c1d02 · Round 6 doc:g716111-round6-build (BUILD FROM §T.1 @3772d6ff7) · Round 7 doc:g716111-round7-build 0a0eda87e
-  LAND-READY PACKAGE: Sonnet subagent -> /tmp/agi-land/ (MANIFEST.tsv, LAND.md, read sets, + the GIT_* identity line in agi-post@ + the pane trim cell)
-     IF LOST at rotation: re-dispatch (inputs: the 3 docs above + §T.1 + the two adds) -> verify -> ONE [decision] to belam
+  LAND-READY PACKAGE DONE: doc:g716111-land-package d18ca7571 (bodies /tmp/agi-land/asbuilt + split-pkg, land.sh) -> [decision] to belam 09:3xZ: his calls = as-built vs SPLIT (rec; post read set 20,374 B) · identity domain (guard refuses example.invalid -> %i@agi) · parents goal only · order expansions first
+     belam LANDS; after his landing: the live parity re-measure on v5 (round5 doc rows; F36 snapshot /tmp/agi-parity/bin.v4c) + restart DG5 on the new engine
 CAPSULE: rehearsal R1-R9 INSTALLED (doc:g716111-capsule-build 32426bb7d); stand-in key file DELETED (T9); R10 = owner's go
 §U-§X: phase A DONE dry (doc:g716111-uvwx-build 324fc96d8, 10 holes); real-box sshd acts await belam (patched vs doc + tonight or after cutover)
 CROSS-BOX (item 6): doc:g716111-crossbox-plan f227e5393 -- BLOCKED on the owner's cutover (banked)
@@ -51,11 +51,11 @@ code: C2 bf5fb95c82 (landed by belam aa2f2e28a) · R-MG 9f3e0811a (loop branch, 
 box (root, each with undo): /opt/agi/{bin,pi,capsule} · DG5 unit + user + slice + polkit + ACLs (rootplan §3/§4) · capsule rehearsal (/tmp/agi-capsule/undo.sh) · agi-memguard R-MG (.pre-rmg backup)
 
 ## 🔴 Where it stops
-DG5 live; land-ready package building (Sonnet); R-MG repo form needs a mur; R7 key renew before 16:00Z. First commands on wake:
+DG5 live; package with belam; R-MG mur running (detached); R7 key renew before 16:00Z. First commands on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; tail -c 3000 .agi/comms/season-2/dm/belam--director-general-3.md; systemctl is-active agi-post@director-general-5; ls /tmp/agi-land/ 2>/dev/null
 ```
-then: package back -> verify cmp + integration -> [decision] to belam · mur rmg: read .agi/sessions/workflows/runs/mur-de-base-dg3-73/{review,verify}_rmg-code.json (masked) -> [merge-up] SM · before 16:00Z renew R7.
+then: mur rmg -> read .agi/sessions/workflows/runs/mur-de-base-dg3-73/{review,verify}_rmg-code.json (masked) -> residues 0 = [merge-up] SM (tip 9f3e0811a) · belam's calls on the package -> help him land / re-measure · before 16:00Z renew R7 · run the not-run parity rows (a DG5 rotation, a kid)
 
 ## §4 Traps
 | trap | rule |
