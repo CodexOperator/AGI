@@ -45,12 +45,12 @@ GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --use
 ```
 
 ## §2 Landed (this session)
-G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · DG2 + DG1 agi-meter restarts · DG5 key renewed · G9 LANDED 0b8f086a5 + MOCK passed · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 = held for SM's report_integrity item, BANKED)
+G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-Three kids live (above). On each return: read the numstat vs the CEILING, run its tests, launch its GATING mur detached (systemd-run --user, --working-directory /data/work/agi, ccrun.py), then triage -> residues 0 -> [merge-up] SM.
+Nothing live of mine (no kid, no mur unit). WAITING on: SM's landings (order above), then belam's SEPARATE install GO. On each landing: confirm ancestry + remove that RAM worktree. DG5 key: renew before 05:00Z.
 ```
-for w in heal-ack-by-role heal-respawn-pid de-base-G9.5; do git -C /mnt/agi-ram/worktrees/$w log -1 --oneline; done; systemctl --user list-units 'agi-director-general-3-*' --no-legend; cat /proc/loadavg; head -1 /proc/pressure/io
+cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; for b in 64ae63ef6 d9e5409f2 7caa0ab4d; do git merge-base --is-ancestor $b local-maxxing/season2/main && echo "$b LANDED" || echo "$b pending"; done; git worktree list | grep agi-ram; cat /proc/loadavg; head -1 /proc/pressure/io
 ```
 
 ## §4 Traps
