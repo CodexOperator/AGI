@@ -43,7 +43,7 @@ HELD   YouTube / X (owner) · full streaming-suite charter (owner HOLD 09-26)
 ## 🔴 Where it stops
 17:4xZ stream-master: idle on local-town awaiting the Prime's new-box row; next command after the move: `~/bin/sb-status` on the new box
 ```
-python3 extensions/agi/bin/send.py read stream-master     # once, when the Prime nudges
+SendMessage by session name only (owner: internal messaging only until bundles land); the Prime is agi-79
 ```
 
 ## §4 Traps
