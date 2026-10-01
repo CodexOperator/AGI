@@ -37,3 +37,4 @@ seed 2 step 11000: train loss/acc 1.085e-07/1.0000 test loss/acc 7.139e-05/1.000
 seed 2: {"seed": 2, "grokked": true, "grok_step": 10600, "steps": 11600, "wall_s": 2053.1, "final_train_loss": 9.478267495676361e-08, "final_train_acc": 1.0, "final_test_loss": 4.7265724347250346e-07, "final_test_acc": 1.0}
 seed 3 step 0: train loss/acc 4.731/0.0094 test loss/acc 4.729/0.0086 psi 0.0 (0s)
 seed 3 step 1000: train loss/acc 8.037e-06/1.0000 test loss/acc 36.18/0.0102 psi 0.0 (172s)
+seed 3 step 2000: train loss/acc 3.43e-07/1.0000 test loss/acc 39.09/0.0100 psi 0.0 (349s)
