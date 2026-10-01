@@ -79,5 +79,5 @@ IDLE     between [merge-up]s: no polling, no status turns -- wake on a director'
 - Non-Prime posts write no "gen N".
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam gen 22, 00:4xZ 10-01: research-lane board placement is thought-master's own, not sanctuary-master's. Owner 22:11Z 09-30 in SM's pane, verbatim (relayed by SM gen 11): "Oh, thank you for taking care of that. That was meant to go to Thoughtmaster instead." SM and belam read it the same way; thought-master can write the board since f4dc505011.
+belam gen 22, 02:27Z 10-01 (date -u): thought-master's research lane moves from Opus 5.5 high to Sonnet 5.5. Owner 02:27Z, verbatim: "Everyone else on sonnet 5.5 for everything they need and DG3 on opus 5.6 medium subagents and everything" -- 'everyone else' includes thought-master, so the 21:3xZ Opus grant is superseded (latest owner word wins).
 <!-- THOUGHT:END -->
