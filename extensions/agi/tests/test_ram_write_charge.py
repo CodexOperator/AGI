@@ -271,10 +271,13 @@ def test_R1_a_path_on_the_root_mount_is_answered(fake, tmp_path, monkeypatch):
     assert (r.returncode, r.stderr) == (0, ""), r.stderr
     assert [l for l in _entries(fake) if SCOPE_FLAG in l] == [], _entries(fake)
 
-def test_T1_ram_tier_writes_into_hot_through_the_entry(fake, tmp_path):
-    """T1 (F2, F3) -- shipped ram-tier.sh ensure, fakes only: tier a real dir, restore a missing one, then an emptied HOT; every write INTO hot is scoped, the cold-bound ones never are, and no scope argv is built in shell."""
+def test_T1_ram_tier_sources_the_entry_and_builds_no_scope_argv():
+    """T1 (F3, static) -- ram-tier.sh sources ram-write.sh and never builds a scope argv in shell."""
     text = (GUARD / "ram-tier.sh").read_text()
     assert "systemd-run" not in text and '. "$HERE/ram-write.sh"' in text
+
+def test_T2_ram_tier_writes_into_hot_through_the_entry(fake, tmp_path):
+    """T2 (F2, behavioural) -- shipped ram-tier.sh ensure, fakes only: tier a real dir, restore a missing one, then an emptied HOT; every write INTO hot is scoped (exactly 10), the cold-bound ones never are."""
     hot, cold, home = tmp_path / "hot", tmp_path / "cold", tmp_path / "home"
     hot.mkdir(); (home / ".claude").mkdir(parents=True); (home / ".claude" / "a").write_text("a")
     (cold / "pi").mkdir(parents=True); (cold / "pi" / "b").write_text("b")
@@ -289,4 +292,4 @@ def test_T1_ram_tier_writes_into_hot_through_the_entry(fake, tmp_path):
     assert (home / ".pi").is_symlink() and (hot / "pi" / "b").read_text() == "b"
     assert [l for l in _entries(fake) if SCOPE_FLAG not in l and _writes_under(l, hot)] == []
     scoped = [l for l in _entries(fake) if SCOPE_FLAG in l]
-    assert len(scoped) >= 8 and all(_writes_under(l, hot) for l in scoped), scoped
+    assert len(scoped) == 10 and all(_writes_under(l, hot) for l in scoped), scoped
