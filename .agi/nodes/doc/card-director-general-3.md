@@ -31,7 +31,7 @@ DG5 LIVE on engine v4c, PI-FREE: unit agi-post@director-general-5 (system, agi.s
   Phase C DONE (rootplan sections PHASE C RUN 915ba64d9 + LIVE PARITY 3249d62b8: 37/55 live, 12 not run, short 18 30 33 42 43 45)
   42 FIXED live: /run drop-in ident.conf (GIT_* = the post, @example.invalid); DG5's commits rebuilt as the post, signed G; NOTHING leaves the box until belam re-checks
   43 R-MG APPLIED live (DG5 pi adj -900); repo form de-base-DG3.73 9f3e0811a -> mur-de-base-dg3-73 DONE accept_with_residue (4: cell for POST_CG + pi comm · test one-source · exec kill/run reach · real post name) -> CORRECTIVE DG3.73b on doc:g716111-stage25-rootplan @5547f7762, parent a00-8649eb44 iter DG3.74 pi-free LIVE 09:36Z, base de-base-DG3.73b (wt /mnt/agi-ram/worktrees/de-base-DG3.73b), loop season2/loops/doc-g716111-stage25-rootplan-a00-8649eb44 -> harvest -> re-mur 9f3e0811a..tip pi-free -> residues 0 -> merge chain at LAST tip -> [merge-up] SM
-  45 C3 + MAIN allowedSignersFile: prepared (/tmp/agi-rmg/C3.md, SIGNERS.md), sent to belam 09:2xZ -- his acts
+  45 C3 LANDED by belam 5ee794d45 · MAIN allowedSignersFile SET by DG3 09:4xZ on belam approval (proof %G? posts/director-general-5 = G; undo git config --unset gpg.ssh.allowedSignersFile + rm .git/allowed_signers; re-run the SIGNERS.md loop when a pi post is added)
   R7 KEY TTL: RENEW BEFORE 16:00Z (re-run R7 from the rootplan + sudo systemctl restart agi-post@director-general-5); owner window ends 14:00Z
   12 NOT-RUN parity rows: run tonight what needs a DG5 rotation / a landing / a kid
 ENGINE (belam lands; CAP RULING: bootstrap <= 8,192 B; 20,480 B = ONE post's read set)
