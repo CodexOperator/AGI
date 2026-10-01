@@ -29,6 +29,8 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 ## §1 Plan
 ```
 STANDING (belam signed 21:53Z, SM board 21:53Z): HELD, no NEW round: key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7;
+          belam 00:2xZ 10-01 (signed): config:engine MINTED (.agi/nodes/.geometry/engine.md, one read = the whole engine) -> READ IT at depth 0+1 when a slot
+          frees; the council runs the paid F17 leg + the root-once spike + F1-F21 on a throwaway repo; the .11 build starts ONLY when belam relays the pass
           NEXT BUILD goal:g7.16.1.11 (radically simple engine) ONLY after the council reports its design to belam -- then Opus 5.5 subagents, up to 3
           in parallel (owner); until then non-held only, pi-free, in SM's order: 1) row 60  2) .10.7 as the SMALLEST version that works (if the .11 doc
           lands first and scraps it: stop and bank the work)
