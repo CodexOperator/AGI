@@ -31,7 +31,7 @@ v5 UP (restored 15:09-15:24Z, re-projected trunk = G6 AGI_BOX live): DG5 · thou
   DG5 key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
 G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: LANDED fec9f352f (15:45Z)
 G7 hypothesis:g716111-g7-agi-run-strace-seccomp-bpf (TM-new red: v5 children 16x slow): G7 c0a48f5f4 -> G7.2 7917597c7 (belam pick a: strace -b execve) -> mur-de-base-g7 -> residues CLOSED (493c7c509 prose, G7.3 a84f1c2fa test skip, DONE 21b7fb00b)
-  on /mnt/agi-ram/worktrees/de-base-G7 (cut from trunk 3c257bce6) -> WHEN G5 IS ON THE TRUNK: git -C <wt> merge --no-edit local-maxxing/season2/main (engine-wrap lines 24-26 adjacent: keep G5's 2>/dev/null||echo 0 on 24-25 AND G7's -b execve on 26)
+  on /mnt/agi-ram/worktrees/de-base-G7 (cut from trunk 3c257bce6) -> trunk merged IN f9c503dd5 (conflict resolved: G5 lines 24-25 + G7.2 line 26; 372 passed) -> [merge-up] DELIVERED to SM 15:45Z (MB fec9f352f, rc 0) -> AWAIT [landed] -> then belam GO DG2. Stale worktree entries de-base-G5/G6 (RAM wiped): git worktree remove each by path, never a bare prune
   -> run test_agi_run_strace.py + test_send.py -k g5 on the merged tip -> [merge-up] SM (tip, MB, rc, numstat, tests; review = mur-de-base-g7 + closures)
 DG2 MOVE (belam 15:31Z ACCEPTED; GO fires when G5 AND G7.2 are on the trunk; belam WRITES THE ROW, DG3 runs stop/install/start):
   row subs: .agi/sessions/dg3-mur-args/dg2-switch.sub (engine claude-code claude-sonnet-5-5 high; RE-READ the live pid at GO) · rollback: dg2-rollback.sub (proven on a copy)
