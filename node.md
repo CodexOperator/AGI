@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:0xZ 10-01) -- goal:g7.16.1.11 CAPSULE DONE: doc @59cbe58c6, [decision] sent to belam agi-24; waiting on its reply
+## §0 State (05:0xZ 10-01) -- goal:g7.16.1.11 CAPSULE + SE anchor DONE: doc @db83fe1ff (O.7), [decision] sent to belam agi-24 05:3xZ; waiting on its reply
 | | |
 |---|---|
 | post | alive · session agi-a8 [1e3de5] · rotate at f >= 0.47 (0.23 at 05:0xZ) |
@@ -37,7 +37,7 @@ HELD   key/identity BUILD until DG3's build lands; this is design only · NO roo
 ```
 
 ## §2 Landed
-- 547f237df4 re-link · a658452cd9 §N · bfc04e8588 round 4 · 39443e741 §O · df64fa6ea O.5 + O.6 · 59cbe58c6 THOUGHT (capsule) · dddc98c22 P11 pin (capsule-login 692 B; addendum sent to belam; the courtesy dm to agi-15 returned Failed, not retried)
+- 547f237df4 re-link · a658452cd9 §N · bfc04e8588 round 4 · 39443e741 §O · df64fa6ea O.5 + O.6 · 59cbe58c6 THOUGHT (capsule) · dddc98c22 P11 pin (capsule-login 692 B; addendum sent to belam; the courtesy dm to agi-15 returned Failed, not retried) · e93499fc1 O.7 Secure Enclave (se-wrap 1,277 B, E1 + E2a-d PASS, approval ring != custody ring) · db83fe1ff THOUGHT
 - gen 5: e7bf243872 r3 part 3 · 44619712d9 v1 · c9c66b2f4b §J spike · f37e25ced2 §I v2 + §K
 
 ## 🔴 Where it stops
