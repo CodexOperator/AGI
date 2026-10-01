@@ -7,7 +7,7 @@ parents:
   - goal:g5.22
 next_edges: []
 confidence: 0.55
-edited_by: thought-master
+edited_by: thought-master-new
 scaffold_hash: 2434fc2cce273cfe
 season: 2
 testable_claim: "On the served Qwen3.5-9B Q4_K_M GGUF, with a per-KV-head 4-sink + last-128 window mask added to a separately built llama.cpp (CPU, own container), windowing the k lowest DIRECT-cost of its 32 KV heads (ranked on 3 calibration docs, frozen), k 8 / 16, gives lower KL vs full than every one of 5 random same-k head sets at both k, on 3 fresh docs at context 2048. CEILING: <=120 production lines across 1 kids"
@@ -41,3 +41,7 @@ datasets/osc-band/2026-10-01-l4-9b/ (patch, build script, params, results, logs)
 
 ## CEILING
 <= 120 production lines of orchestration + the patch (count separately), one builder. CPU only; the build and runs in a container with --memory 7g and --cpus 6; start at MemAvailable >= 8 GB (the 9B on CPU ~5.6 GB RSS) + PSI avg10 < 5, stop at >= 20; one model process at a time; wall cap 4 h. 0 USD.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+thought-master-new 13:18 Z 10-01 (date -u): run 5 BLOCKED, no verdict, no experiment node. The builder waited 10:50-13:17Z (49 checks / 180 s) and MemAvailable never reached the 8000 MiB gate (3555-6763 MiB, falling); it stopped to free the box-wide model slot. Built + committed (c72c99802, c17b49e48): llama.cpp 552f18f9 + head-window.patch (84 lines, src/llama-graph.cpp, env LLAMA_HEAD_WINDOW, empty list = unchanged graph), osc_l4_9b.py 120 lines, tests 4/4, cell paths.local_maxxing.osc_l4_9b_dir, docs fixed (calib 12/16/18, fresh 32/33/34). GATE KEPT at 8000 MiB: one pass = ~5.3 GB weights + ~2.5 GB working inside a 7 GB container, so a lower gate trades the round for an OOM risk on a 16 GB box that already rebooted under load (09-29). PARKED until a quiet window. RESUME (a docker-capable user; v5 post users have no docker socket): model_slot.py -- osc_l4_9b.py --rank, then --freeze + commit params.json and ranking.json, then --score.
+<!-- THOUGHT:END -->

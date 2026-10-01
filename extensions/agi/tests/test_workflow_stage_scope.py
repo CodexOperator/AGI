@@ -18,7 +18,8 @@ WF = Path(__file__).resolve().parents[1] / "workflows"
 
 def _fake_bin(tmp_path, monkeypatch, *, stop_rc=0, no_systemctl=False,
               stop_body="") -> Path:
-    """PATH-first fakes: systemd-run logs, execs; systemctl logs, `stop_body`, `stop_rc`."""
+    """PATH-first fakes: systemd-run logs, execs; systemctl logs, REFUSES (rc 5, as the
+    real one: a bare name is `X.service`) a stop not named `*.scope`, `stop_body`, `stop_rc`."""
     d = tmp_path / "bin"; d.mkdir()
     log = tmp_path / "calls.log"
     (d / "systemd-run").write_text(
@@ -28,7 +29,8 @@ def _fake_bin(tmp_path, monkeypatch, *, stop_rc=0, no_systemctl=False,
     os.chmod(d / "systemd-run", 0o755)
     if not no_systemctl:
         (d / "systemctl").write_text(
-            "#!/bin/bash\n" f'echo "ctl $*" >> "{log}"\n' f'{stop_body}exit {stop_rc}\n')
+            "#!/bin/bash\n" f'echo "ctl $*" >> "{log}"\n' '[[ "$3" == *.scope ]] || exit 5\n'
+            f'{stop_body}exit {stop_rc}\n')
         os.chmod(d / "systemctl", 0o755)
     monkeypatch.setenv("PATH", f"{d}:{os.environ['PATH']}")
     monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: True)
@@ -40,6 +42,11 @@ def _unit_of(tmp_path: Path) -> str:
     run = next(ln for ln in (tmp_path / "calls.log").read_text().splitlines()
                if ln.startswith("run "))
     return next(a.split("=", 1)[1] for a in run.split() if a.startswith("--unit="))
+
+
+def _stop_of(tmp_path: Path) -> list:
+    """The ONE stop argv expected: the unit the wrap got, as `mem_cap.scope_unit` names it."""
+    return ["systemctl", "--user", "stop", mem_cap.scope_unit(_unit_of(tmp_path))]
 
 
 def _stops(monkeypatch, fake_dir: Path) -> list[list]:
@@ -105,7 +112,7 @@ def test_F1_normal_return_stops_the_scope_it_wrapped(tmp_path, monkeypatch):
     assert _stage(["bash", str(tmp_path / "stage.sh")], d, budget=10,
                   label="review").returncode == 0
     assert (unit := _unit_of(tmp_path)).startswith("agi-stage-mur-39_review-")
-    assert stops == [["systemctl", "--user", "stop", unit]]   # never silence
+    assert stops == [_stop_of(tmp_path)] and unit + ".scope" in stops[0]   # never silence
 
 
 def test_F2_wall_kill_and_exception_still_stop(tmp_path, monkeypatch):
@@ -115,7 +122,7 @@ def test_F2_wall_kill_and_exception_still_stop(tmp_path, monkeypatch):
     (tmp_path / "slow.sh").write_text("#!/bin/bash\nexec sleep 30\n")
     with pytest.raises(subprocess.TimeoutExpired):
         _stage(["bash", str(tmp_path / "slow.sh")], d, budget=0.2)
-    assert stops == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
+    assert stops == [_stop_of(tmp_path)]
 
     boom = tmp_path / "boom"; boom.mkdir()
     d2 = _fake_bin(boom, monkeypatch)
@@ -142,6 +149,31 @@ def test_F3_a_failing_stop_is_one_stderr_line_and_never_a_raise(tmp_path,
         err = capsys.readouterr().err
         assert err.count("could not stop stage scope") == 1, kwargs
         assert _unit_of(root) in err, kwargs                # the line NAMES it
+
+
+def test_F12_a_bare_name_stop_is_refused_and_the_orphan_survives(tmp_path, monkeypatch):
+    """F12: a bare-name stop (what `scope_unit` replaced) is refused rc 5 by the
+    manager: the stage's rc is unchanged and the orphan stays ALIVE (the old bug)."""
+    pids = tmp_path / "pids"
+    d = _fake_bin(tmp_path, monkeypatch, stop_body=f"kill -9 $(cat {pids})\n")
+    seen = _stops(monkeypatch, d)
+    monkeypatch.setattr(mem_cap, "scope_unit", lambda u: u)
+    (tmp_path / "s.sh").write_text(
+        f"#!/bin/bash\nsleep 30 >/dev/null 2>&1 &\necho $! > {pids}\nexit 3\n")
+    assert _stage(["bash", str(tmp_path / "s.sh")], d, budget=10).returncode == 3
+    assert seen == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
+    os.kill(int(pids.read_text()), 9)   # still alive: raises if the stop had worked
+
+
+def test_F13_an_already_collected_scope_rc5_stop_is_silent(tmp_path, monkeypatch, capsys):
+    """F13: rc 5 (unit not loaded: the scope emptied and was collected) is a finished
+    scope, not a failure: the `.scope` stop IS attempted, stderr stays empty."""
+    d = _fake_bin(tmp_path, monkeypatch, stop_rc=5)
+    seen = _stops(monkeypatch, d)
+    assert _stage(["/bin/bash", "-c", "exit 3"], d, budget=10,
+                  label="review").returncode == 3
+    assert seen == [_stop_of(tmp_path)]
+    assert "could not stop" not in capsys.readouterr().err
 
 
 def test_F4_wrap_argv_without_a_unit_is_byte_unchanged(monkeypatch):
@@ -199,7 +231,7 @@ def test_F6_an_orphan_holding_the_stage_pipe_dies_with_the_scope(tmp_path, monke
     with pytest.raises(subprocess.TimeoutExpired):
         _stage(argv, d, budget=0.5)
     assert time.monotonic() - t0 < 20, "the wall path hung again"
-    assert stops == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
+    assert stops == [_stop_of(tmp_path)]
     assert _orphan_dead(pids)
 
 
@@ -212,7 +244,7 @@ def test_F7_a_stage_that_exited_with_a_held_pipe_returns_its_own_rc(
     d, stops, pids, argv = _held_pipe_stage(tmp_path, monkeypatch, tail + "\n")
     r = _stage(argv, d, budget=2.0)
     assert (r.returncode, mem_cap.is_cap_death(r.returncode, "64M")) == (rc, rc < 0)
-    assert stops == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
+    assert stops == [_stop_of(tmp_path)]
     assert _orphan_dead(pids)
 
 
@@ -222,7 +254,7 @@ def test_F8_a_real_wall_timeout_raises_though_the_orphan_survives(tmp_path, monk
     d, stops, pids, argv = _held_pipe_stage(tmp_path, monkeypatch, kills=False)
     with pytest.raises(subprocess.TimeoutExpired):
         _stage(argv, d)
-    assert stops == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
+    assert stops == [_stop_of(tmp_path)]
     _wait_for(pids)
     os.kill(int(pids.read_text().split()[0]), 9)   # the survivor, by design
 

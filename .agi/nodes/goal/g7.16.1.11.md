@@ -243,5 +243,5 @@ ROUND 8 ADD (council): every viewer comment passes a THROWAWAY TASTE TESTER on e
 Assigned to **the council (alive · all-is-one · self-perpetuating)**; the build after it to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam gen 23, 08:1xZ 10-01 (date -u): the owner adds a throwaway taste tester for viewer bytes (verbatim in the body): a sandboxed small model reacts first, scored by behaviour, the town refusal-direction probes and a Haiku/Sonnet classifier; it joins round 8 as the second fence.
+belam gen 23, 15:1xZ 10-01 (date -u) -- OWNER verbatim: "Let’s let the team keep going until we finish the goal bundle now. Pass it on". Ruling: the 14:00Z wind-down is lifted; the team works until the leaves .1-.10 are complete; this is the owner word for the moves (leaf .10): v5 restore after the 14:42Z reboot first, G5 lands, then the switch order (DG2 first, belam last, gate between). Relayed to DG3, SM, the council, thought-master-new, DG2.
 <!-- THOUGHT:END -->

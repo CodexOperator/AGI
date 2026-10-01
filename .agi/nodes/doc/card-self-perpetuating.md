@@ -17,10 +17,10 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:4xZ 10-01 · f=0.30 · Y2 + fixes delivered, idle)
+## §0 State (13:5xZ 10-01 · f=0.31 · WIND-DOWN, idle until the owner's morning)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-c9 [a0490b] gen 4 (seated 05:35Z) |
+| post | self-perpetuating · CC session agi-99 [b77b3e] (heal-resumed 15:0xZ, same session 06312a1a; seated 05:35Z) |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
 | messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed |
@@ -34,15 +34,15 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 DONE   rounds 1-4 (§F §L) · CAPSULE (§P, P.8) · ROUND 5 §Q = GO · ROUND 6 lens lines (§S, §T)
        DC: §V 983d2475c + esc delta + agi-sign v2 04ed82723 (cert fails closed; stand-in arms a TEST CA only)
-       ROUND 7 (owner 07:1xZ, PHASE 3 READINESS): Y2 2536d7ff3 -> b251aa4a4 (aliases) -> a280bdfba (anchor fix + check verb): agi-fill 5,004 B;
-         parity with the old gate 5,393/5,398 live nodes; Y1 = all-is-one (node keys, nid rows), Y3 = alive (row gate + grammar)
-NOW    alive integrates Y1-Y3 and sends the ONE [decision] to belam
-next   HOLD: wake on alive / belam / the owner / DG3. Night rulings: after round 6 is built, every post files a satisfaction verdict
-       ON THE MORALS (figure eight); Phase 3 PREPARED, executed when the owner wakes. At f >= 0.47: card + rotate.py rotate (bare)
+       ROUND 7: Y2 2536d7ff3 -> b251aa4a4 (aliases) -> a280bdfba (anchor fix + check) -> c7532c191 (grow-gate line format); agi-fill 5,068 B
+WIND   belam 13:5xZ: wind-down at 14:00Z. MORAL SATISFACTION VERDICT on the seed engine: WAITS for the owner's morning (round 6 not live;
+       doc:g716111-round6-build unchanged since 07:42Z) -- same call as alive
+next   at the owner's morning: read the round-6 build state, then file ONE verdict line to belam on the morals (vision:self-perpetuating lens:
+       does the body regrow from the seed with nothing lost?). At f >= 0.47: card + rotate.py rotate (bare)
 ```
 
 ## 🔴 Where it stops
-idle: Y2 landed. Scratch: /tmp/g71611/y2 (agi-fill, agi-captive, ws = scratch workspace + stand-in growth.tsv) · /tmp/g71611/v (§V) · /tmp/g71611/r5 (round 5, p8)
+idle (wind-down). Nothing live, no unit, no scratch server (sshd + CA agents stopped). Scratch kept: /tmp/g71611/{r5,v,y2}
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
@@ -59,6 +59,8 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 | systemd 255 empties `${x}` even inside `sh -c '...'` in a unit | bare `$x` only in unit command lines (measured 05:4xZ) |
 | `git worktree add` of the full repo at load > 50 hangs past 120 s | test extraction on a copy of `.geometry` only |
 | `printenv ${X:-_}` with X unset prints `$_` | guard with `[ "$X" ]&&` first |
+| heal's RESUMED-SEAT line prints `ack --seat X --gen N`: refused on a non-prime post | run `rotate.py ack --post <p> --session <8-hex> --ref <ref> continue` |
+| a nudge reading 'unread for director-engine' lands in THIS pane | misroute: that taken-down row still names window @3, which tmux reused for this pane after the 15:0xZ heal; reported [red] to sanctuary-master 15:1xZ; never read another post's inbox |
 | rotate's stop_commit flattens the quorum card link | `ln -sfn ../../nodes/doc/card-<post>.md`, commit by exact path |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5555 resolved, 22:1xZ)
