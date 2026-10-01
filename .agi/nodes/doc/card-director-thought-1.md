@@ -32,7 +32,7 @@ mode    council: I BUILD (no parent/kid, no Opus) · mail arrives UNSIGNED (v5 s
 ```
 DONE   self-poke toy BUILT + RUN: experiment:dt1-self-poke-toy-1001 = PROVED (C1 480/480 · C2 160/160 · C3 20/20 k5,k45 + 2/160 false alarms · C3b 160/160 · C4 0.4037 > 0.0839) · DH.1 corrective round run + minted (9d0b6fd47 pre-reg, d9c3c496e results)
        run 1 VOID by MY void-guard defect (compared extra k=2 family to the 4-entry dict), kept under datasets/osc-band/2026-10-01-self-poke-toy/run1-void/; run 2 equal key by key
-NEXT   LEAK HUNT (TM-new 16:18Z) DONE, returned: culprit osc/test_model_load_guard.py::test_standins_never_leak_into_a_later_module (suite_guards.agi_env_stripped strips AGI_GUARD_LEAK_CHILD, so the child never skips -> recursive pytest chain); fix not applied (not my file); WAIT for TM-new next order. Sweep script + reports: scratchpad sweep.sh, /tmp/dt1-leak/ (volatile)
+NEXT   GUARD-LEAK FIX (TM-new 17:00Z) DONE: experiment:dt1-guard-leak-depth-1001 proved (fix 48a6d53b3, C1-C4 pass, 52 context files 0 leftovers), goal:g7.33.19 row 78 DONE; return line next; WAIT for TM-new next order. Tools: scratchpad sweep.sh + measure.sh (volatile)
 BLOCK  none
 ```
 
