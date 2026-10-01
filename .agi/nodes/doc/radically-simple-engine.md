@@ -1106,6 +1106,24 @@ ring changes ─▶ REKEY = ROTATE the secret: a pop into a destination that min
 - **The phone holder opens its own share ON the phone** (O.5): iOS CryptoKit's Curve25519 key agreement + ChaChaPoly is esc's construction, so the phone needs a tiny app, not a box. A box that opened the phone's share beside its own two would hold k = 3 alone (P.2). Which holder keys, and whether the owner's dev plan builds that app, are the owner's calls (banked).
 Falsifiers: **F30** a share wrapped hybrid opens only when BOTH the X25519 and the ML-KEM secret are present (on go: needs the package) · **F31** an escrow line opens on a box running a DIFFERENT model with the same holder key (the activation fingerprint is not on the opening path).
 
+**P.8 · Custody = the iPhone ONLY, the quorum MUTUAL (owner 05:45Z): the escrow becomes 2-of-2 over (the iPhone, the posts' quorum), `esc` run twice; the Mac leaves the ring.**
+```
+seal   secret ─▶ esc split 2 iphone.pub E.pub ─▶ escrow           E = a fresh X25519 key per capsule; E.key is never stored whole
+       E.key  ─▶ esc split k post1.pub .. postN.pub ─▶ escrow-E  the posts' half: k-of-n over the post keys
+open   k posts: open + join ─▶ E.key ─▶ opens E's line  ┐
+       the iPhone opens ITS line ON the phone (the app) ─┴▶ esc join ─▶ secret   (neither half alone carries a bit: Shamir 2-of-2)
+```
+| claim (05:5xZ, throwaway keys: iPhone = a P-256 'enclave' key, posts b c d, k = 2) | result |
+|---|---|
+| 2 of 3 posts rebuild E · E + the iPhone's share rebuild the secret | yes · byte-exact |
+| the iPhone alone · all 3 posts without the iPhone · 1 post | no · no · no |
+| the iPhone's share wrapped to a P-256 key (the Secure Enclave's only curve), opened by a stand-in for the app (ECDH with the SE key -> SHA-256 -> ChaChaPoly, = CryptoKit) | byte-exact |
+| an escrow made by the old `esc` opens under the new one | yes |
+- **`esc` grows +363 B** (1,384 -> 1,747 on this copy): `split` wraps to P-256 when the holder's public key is 65 B (uncompressed point, what the SE exports), else X25519. `open` is unchanged: the SE key never leaves the phone, so the box never opens a P-256 share; the app does. Lives in config:capsule, outside the zygote. Bytes per capsule: escrow 682 B + escrow-E 920 B (3 posts).
+- **Box loss under mutual custody.** The iPhone's half lives off-box; E survives only if the post keys span boxes, so `ring-ok` now applies to the posts' half ALONE (per box <= min(k-1, n-k)). With every post key on this box (F27), losing the box loses E, so the capsule is lost: acceptable for a secret that rotates at its provider (P.3: re-mint), NOT for one that cannot. **Rule until a second town box holds post keys: capsules hold rotatable secrets only.**
+- **Answers two BANKED owner questions** (my card): the ring holder = the iPhone via the owner's app (not 3-of-5 across devices); the phone opens its own share in the app (the 'tiny app' branch). The app's job here is ONE call: ECDH(SE key, the line's 65-B point) -> SHA-256 -> ChaChaPoly.open -> send `i:y` back over the O.5 route.
+Falsifiers: **F38** the escrow table above (PASS) · **F39** the real app opens an SE-wrapped line made by `esc split` (unrun: needs the owner's app) · **F27** stays FAILED by design until a second box holds post keys.
+
 Falsifiers: **F26** box loss (on a throwaway box): delete capsule.cred and the host secret; K holders rebuild byte-exact and reseal, K-1 cannot (the escrow half PASSES today; the reseal is on go) · **F27** `ring-ok K` over the live ring exits 0 (FAILS today, by design: every key is on one box) · **F28** after a ring change, the old holders' K shares from git history rebuild the OLD secret and its provider refuses it · **F29** a holder opening another holder's line -> InvalidTag (PASS).
 
 `esc` whole (1,190 B counted):
