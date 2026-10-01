@@ -1,0 +1,172 @@
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 8.56 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<01:33,  3.08it/s]Loading weights:  10%|█         | 29/290 [00:00<00:03, 83.18it/s]Loading weights:  18%|█▊        | 51/290 [00:00<00:01, 123.09it/s]Loading weights:  24%|██▍       | 69/290 [00:00<00:01, 120.86it/s]Loading weights:  29%|██▉       | 85/290 [00:00<00:01, 126.29it/s]Loading weights:  34%|███▍      | 100/290 [00:00<00:01, 114.58it/s]Loading weights:  42%|████▏     | 121/290 [00:01<00:01, 130.97it/s]Loading weights:  47%|████▋     | 136/290 [00:01<00:01, 117.98it/s]Loading weights:  51%|█████▏    | 149/290 [00:02<00:03, 35.51it/s] Loading weights:  59%|█████▉    | 172/290 [00:02<00:02, 45.76it/s]Loading weights:  62%|██████▏   | 181/290 [00:02<00:02, 47.02it/s]Loading weights:  66%|██████▌   | 192/290 [00:02<00:01, 50.69it/s]Loading weights:  72%|███████▏  | 208/290 [00:03<00:01, 61.00it/s]Loading weights:  76%|███████▌  | 220/290 [00:03<00:01, 69.85it/s]Loading weights:  80%|████████  | 232/290 [00:03<00:00, 74.93it/s]Loading weights:  87%|████████▋ | 251/290 [00:03<00:00, 93.05it/s]Loading weights:  92%|█████████▏| 268/290 [00:03<00:00, 106.94it/s]Loading weights:  97%|█████████▋| 281/290 [00:03<00:00, 92.55it/s] Loading weights: 100%|██████████| 290/290 [00:03<00:00, 76.63it/s]
+    101s doc 0 b 0.75 distance agree 0.9355 kl 0.01732
+    124s doc 0 b 0.75 band agree 0.8926 kl 0.05786
+    146s doc 0 b 0.75 random_s0 agree 0.8838 kl 0.10434
+    168s doc 0 b 0.75 random_s1 agree 0.8828 kl 0.07993
+    189s doc 0 b 0.75 random_s2 agree 0.9014 kl 0.05775
+    209s doc 0 b 0.75 random_s3 agree 0.8750 kl 0.09678
+    228s doc 0 b 0.75 random_s4 agree 0.8750 kl 0.09187
+    249s doc 0 b 0.6 distance agree 0.8809 kl 0.06831
+    269s doc 0 b 0.6 band agree 0.8760 kl 0.07282
+    288s doc 0 b 0.6 random_s0 agree 0.8340 kl 0.15242
+    307s doc 0 b 0.6 random_s1 agree 0.8838 kl 0.08821
+    329s doc 0 b 0.6 random_s2 agree 0.8525 kl 0.12436
+    350s doc 0 b 0.6 random_s3 agree 0.8525 kl 0.13470
+    372s doc 0 b 0.6 random_s4 agree 0.8330 kl 0.19109
+    394s doc 0 b 0.5 distance agree 0.8545 kl 0.09983
+    417s doc 0 b 0.5 band agree 0.8633 kl 0.09203
+    440s doc 0 b 0.5 random_s0 agree 0.8486 kl 0.12267
+    463s doc 0 b 0.5 random_s1 agree 0.7998 kl 0.22846
+    484s doc 0 b 0.5 random_s2 agree 0.8047 kl 0.27996
+    504s doc 0 b 0.5 random_s3 agree 0.8301 kl 0.16238
+    525s doc 0 b 0.5 random_s4 agree 0.8252 kl 0.21470
+    569s doc 1 b 0.75 distance agree 0.9150 kl 0.03031
+    588s doc 1 b 0.75 band agree 0.8779 kl 0.08908
+    609s doc 1 b 0.75 random_s0 agree 0.8398 kl 0.20952
+    629s doc 1 b 0.75 random_s1 agree 0.8740 kl 0.09768
+    649s doc 1 b 0.75 random_s2 agree 0.8682 kl 0.07463
+    668s doc 1 b 0.75 random_s3 agree 0.8516 kl 0.13319
+    689s doc 1 b 0.75 random_s4 agree 0.8418 kl 0.15350
+    714s doc 1 b 0.6 distance agree 0.8506 kl 0.11831
+    739s doc 1 b 0.6 band agree 0.8467 kl 0.12498
+    772s doc 1 b 0.6 random_s0 agree 0.8027 kl 0.21726
+    799s doc 1 b 0.6 random_s1 agree 0.8271 kl 0.11917
+    819s doc 1 b 0.6 random_s2 agree 0.8037 kl 0.19993
+    839s doc 1 b 0.6 random_s3 agree 0.7910 kl 0.26596
+    858s doc 1 b 0.6 random_s4 agree 0.7803 kl 0.29791
+    878s doc 1 b 0.5 distance agree 0.8193 kl 0.21384
+    897s doc 1 b 0.5 band agree 0.8203 kl 0.14273
+    917s doc 1 b 0.5 random_s0 agree 0.7959 kl 0.25244
+    937s doc 1 b 0.5 random_s1 agree 0.7627 kl 0.33155
+    957s doc 1 b 0.5 random_s2 agree 0.7549 kl 0.39458
+    976s doc 1 b 0.5 random_s3 agree 0.7666 kl 0.34396
+    998s doc 1 b 0.5 random_s4 agree 0.7744 kl 0.29468
+   1047s doc 3 b 0.75 distance agree 0.9092 kl 0.03762
+   1067s doc 3 b 0.75 band agree 0.8730 kl 0.07946
+   1087s doc 3 b 0.75 random_s0 agree 0.8467 kl 0.13893
+   1106s doc 3 b 0.75 random_s1 agree 0.8672 kl 0.08398
+   1126s doc 3 b 0.75 random_s2 agree 0.8623 kl 0.08215
+   1145s doc 3 b 0.75 random_s3 agree 0.8281 kl 0.11821
+   1165s doc 3 b 0.75 random_s4 agree 0.8271 kl 0.13759
+   1184s doc 3 b 0.6 distance agree 0.8320 kl 0.12244
+   1204s doc 3 b 0.6 band agree 0.8320 kl 0.12099
+   1225s doc 3 b 0.6 random_s0 agree 0.7988 kl 0.22032
+   1244s doc 3 b 0.6 random_s1 agree 0.8281 kl 0.14036
+   1263s doc 3 b 0.6 random_s2 agree 0.7842 kl 0.20918
+   1283s doc 3 b 0.6 random_s3 agree 0.7979 kl 0.21952
+   1305s doc 3 b 0.6 random_s4 agree 0.8018 kl 0.23419
+   1327s doc 3 b 0.5 distance agree 0.8125 kl 0.19503
+   1350s doc 3 b 0.5 band agree 0.8135 kl 0.14238
+   1370s doc 3 b 0.5 random_s0 agree 0.7920 kl 0.23063
+   1389s doc 3 b 0.5 random_s1 agree 0.7734 kl 0.26965
+   1410s doc 3 b 0.5 random_s2 agree 0.7393 kl 0.35119
+   1429s doc 3 b 0.5 random_s3 agree 0.7725 kl 0.26497
+   1451s doc 3 b 0.5 random_s4 agree 0.7490 kl 0.31324
+   1495s doc 4 b 0.75 distance agree 0.9160 kl 0.02726
+   1514s doc 4 b 0.75 band agree 0.8428 kl 0.06093
+   1533s doc 4 b 0.75 random_s0 agree 0.8613 kl 0.09027
+   1552s doc 4 b 0.75 random_s1 agree 0.8594 kl 0.07666
+   1572s doc 4 b 0.75 random_s2 agree 0.8701 kl 0.05826
+   1592s doc 4 b 0.75 random_s3 agree 0.8379 kl 0.08134
+   1615s doc 4 b 0.75 random_s4 agree 0.8535 kl 0.09188
+   1637s doc 4 b 0.6 distance agree 0.8379 kl 0.07761
+   1658s doc 4 b 0.6 band agree 0.8271 kl 0.08235
+   1678s doc 4 b 0.6 random_s0 agree 0.8125 kl 0.13372
+   1697s doc 4 b 0.6 random_s1 agree 0.8447 kl 0.08791
+   1716s doc 4 b 0.6 random_s2 agree 0.7949 kl 0.14814
+   1736s doc 4 b 0.6 random_s3 agree 0.8213 kl 0.12844
+   1756s doc 4 b 0.6 random_s4 agree 0.8086 kl 0.15826
+   1776s doc 4 b 0.5 distance agree 0.8223 kl 0.12346
+   1795s doc 4 b 0.5 band agree 0.8340 kl 0.09607
+   1815s doc 4 b 0.5 random_s0 agree 0.8213 kl 0.14609
+   1835s doc 4 b 0.5 random_s1 agree 0.7822 kl 0.17237
+   1855s doc 4 b 0.5 random_s2 agree 0.7803 kl 0.20445
+   1875s doc 4 b 0.5 random_s3 agree 0.8125 kl 0.15279
+   1895s doc 4 b 0.5 random_s4 agree 0.7773 kl 0.17967
+   1945s doc 5 b 0.75 distance agree 0.9307 kl 0.02486
+   1965s doc 5 b 0.75 band agree 0.8877 kl 0.06733
+   1984s doc 5 b 0.75 random_s0 agree 0.8311 kl 0.17240
+   2003s doc 5 b 0.75 random_s1 agree 0.8701 kl 0.09277
+   2024s doc 5 b 0.75 random_s2 agree 0.8623 kl 0.08471
+   2043s doc 5 b 0.75 random_s3 agree 0.8457 kl 0.12932
+   2062s doc 5 b 0.75 random_s4 agree 0.8447 kl 0.19249
+   2082s doc 5 b 0.6 distance agree 0.8555 kl 0.09814
+   2101s doc 5 b 0.6 band agree 0.8496 kl 0.10250
+   2121s doc 5 b 0.6 random_s0 agree 0.7979 kl 0.25682
+   2140s doc 5 b 0.6 random_s1 agree 0.8506 kl 0.12015
+   2160s doc 5 b 0.6 random_s2 agree 0.8018 kl 0.17406
+   2180s doc 5 b 0.6 random_s3 agree 0.7852 kl 0.24650
+   2201s doc 5 b 0.6 random_s4 agree 0.7900 kl 0.28886
+   2224s doc 5 b 0.5 distance agree 0.8164 kl 0.23660
+   2247s doc 5 b 0.5 band agree 0.8379 kl 0.11885
+   2267s doc 5 b 0.5 random_s0 agree 0.8076 kl 0.22935
+   2286s doc 5 b 0.5 random_s1 agree 0.7637 kl 0.31291
+   2307s doc 5 b 0.5 random_s2 agree 0.7686 kl 0.40221
+   2327s doc 5 b 0.5 random_s3 agree 0.7803 kl 0.34848
+   2347s doc 5 b 0.5 random_s4 agree 0.7793 kl 0.31649
+   2391s doc 6 b 0.75 distance agree 0.9072 kl 0.03686
+   2411s doc 6 b 0.75 band agree 0.8477 kl 0.08254
+   2429s doc 6 b 0.75 random_s0 agree 0.8564 kl 0.15405
+   2449s doc 6 b 0.75 random_s1 agree 0.8633 kl 0.09068
+   2468s doc 6 b 0.75 random_s2 agree 0.8711 kl 0.06502
+   2487s doc 6 b 0.75 random_s3 agree 0.8398 kl 0.11128
+   2509s doc 6 b 0.75 random_s4 agree 0.8408 kl 0.13682
+   2532s doc 6 b 0.6 distance agree 0.8311 kl 0.11488
+   2553s doc 6 b 0.6 band agree 0.8281 kl 0.11551
+   2573s doc 6 b 0.6 random_s0 agree 0.7998 kl 0.24443
+   2592s doc 6 b 0.6 random_s1 agree 0.8369 kl 0.11546
+   2612s doc 6 b 0.6 random_s2 agree 0.8252 kl 0.18409
+   2632s doc 6 b 0.6 random_s3 agree 0.8096 kl 0.20914
+   2652s doc 6 b 0.6 random_s4 agree 0.8057 kl 0.23892
+   2672s doc 6 b 0.5 distance agree 0.8252 kl 0.15156
+   2693s doc 6 b 0.5 band agree 0.8096 kl 0.12621
+   2712s doc 6 b 0.5 random_s0 agree 0.8213 kl 0.19559
+   2733s doc 6 b 0.5 random_s1 agree 0.7725 kl 0.24776
+   2753s doc 6 b 0.5 random_s2 agree 0.7822 kl 0.35910
+   2773s doc 6 b 0.5 random_s3 agree 0.7900 kl 0.24819
+   2793s doc 6 b 0.5 random_s4 agree 0.7734 kl 0.31438
+   2844s doc 7 b 0.75 distance agree 0.9326 kl 0.02493
+   2863s doc 7 b 0.75 band agree 0.8799 kl 0.07863
+   2883s doc 7 b 0.75 random_s0 agree 0.8691 kl 0.14059
+   2902s doc 7 b 0.75 random_s1 agree 0.8672 kl 0.09434
+   2921s doc 7 b 0.75 random_s2 agree 0.8770 kl 0.05990
+   2941s doc 7 b 0.75 random_s3 agree 0.8496 kl 0.12734
+   2963s doc 7 b 0.75 random_s4 agree 0.8389 kl 0.12262
+   2982s doc 7 b 0.6 distance agree 0.8701 kl 0.09116
+   3002s doc 7 b 0.6 band agree 0.8506 kl 0.10364
+   3022s doc 7 b 0.6 random_s0 agree 0.8193 kl 0.16816
+   3043s doc 7 b 0.6 random_s1 agree 0.8359 kl 0.09376
+   3064s doc 7 b 0.6 random_s2 agree 0.8311 kl 0.13362
+   3084s doc 7 b 0.6 random_s3 agree 0.8271 kl 0.15893
+   3105s doc 7 b 0.6 random_s4 agree 0.8262 kl 0.22012
+   3128s doc 7 b 0.5 distance agree 0.8330 kl 0.13445
+   3150s doc 7 b 0.5 band agree 0.8350 kl 0.11555
+   3170s doc 7 b 0.5 random_s0 agree 0.8369 kl 0.14954
+   3190s doc 7 b 0.5 random_s1 agree 0.8066 kl 0.24749
+   3210s doc 7 b 0.5 random_s2 agree 0.7881 kl 0.28727
+   3230s doc 7 b 0.5 random_s3 agree 0.8174 kl 0.20533
+   3249s doc 7 b 0.5 random_s4 agree 0.8115 kl 0.21390
+   3293s doc 10 b 0.75 distance agree 0.9307 kl 0.02258
+   3312s doc 10 b 0.75 band agree 0.8740 kl 0.06202
+   3332s doc 10 b 0.75 random_s0 agree 0.8916 kl 0.07031
+   3352s doc 10 b 0.75 random_s1 agree 0.8877 kl 0.05945
+   3371s doc 10 b 0.75 random_s2 agree 0.8867 kl 0.05139
+   3391s doc 10 b 0.75 random_s3 agree 0.8701 kl 0.07742
+   3413s doc 10 b 0.75 random_s4 agree 0.8633 kl 0.08269
+   3435s doc 10 b 0.6 distance agree 0.8506 kl 0.08198
+   3457s doc 10 b 0.6 band agree 0.8506 kl 0.07995
+   3476s doc 10 b 0.6 random_s0 agree 0.8242 kl 0.12955
+   3496s doc 10 b 0.6 random_s1 agree 0.8574 kl 0.08049
+   3516s doc 10 b 0.6 random_s2 agree 0.8213 kl 0.10828
+   3538s doc 10 b 0.6 random_s3 agree 0.8418 kl 0.12830
+   3560s doc 10 b 0.6 random_s4 agree 0.8213 kl 0.14938
+   3582s doc 10 b 0.5 distance agree 0.8457 kl 0.09758
+   3604s doc 10 b 0.5 band agree 0.8340 kl 0.10255
+   3627s doc 10 b 0.5 random_s0 agree 0.8369 kl 0.12166
+   3649s doc 10 b 0.5 random_s1 agree 0.8096 kl 0.16600
+   3671s doc 10 b 0.5 random_s2 agree 0.8037 kl 0.21763
+   3694s doc 10 b 0.5 random_s3 agree 0.8311 kl 0.15050
+   3716s doc 10 b 0.5 random_s4 agree 0.7812 kl 0.18750
+{"verdict": "proved", "budget_wins": 3, "spearman": {"12-16": 0.9841511072514111, "12-18": 0.9760095527572731, "16-18": 0.9558184976118106}, "wall_s": 3716.4}
