@@ -29,7 +29,7 @@ town: core
 
 | goal / row | state | next command |
 |---|---|---|
-| **hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback** (mine, parent goal:g1.31.4.2.1) | **LANED to SM 18:3xZ, mur pi-free RUNNING.** rotate.py `_read_pin_target` catches OSError around resolve+exists → an unreadable pin target is `None` (UNKNOWN), the shape `_seat_fraction`'s docstring already promised and `cmd_status` already printed (`frac=?`). 3 red-first tests, red at the same two frames as the live traceback (rotate.py:445, :7666). Live proof from /data/work/agi: trunk `rotate.py status --seats` → rc=1 + PermissionError; fixed module → **rc=0, 18× `frac=?`, 0× `frac=0`** | **SM: mur then gate. Under the g7.16.1.11 hold — rotate code needs the mur first. Nothing due from me** |
+| **hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback** (mine, parent goal:g1.31.4.2.1) | **mur 18:2xZ = accept_with_residue, 10 MET / 3 NOT_MET + 4 open. ALL FOUR NOW CLOSED, re-sent at `63a629410`, text inline.** (1) SM was RIGHT and I was wrong: a transcript that EXISTS but cannot be OPENED passed `exists()` and still raised out of `_seat_fraction` — my first two tests only ever provoked a mode-000 *dir* (the stat seam), so the suite was green while the read raised. Second guard added around the two parse calls; MUTATED to prove it: deleting the guard reds exactly the two read-seam tests, leaves the two stat-seam tests green. (2) docstrings now carry the RULE, measurement lives on the node. (3) node TESTS said 3 tests and mis-described test 3 — now FOUR over TWO seams, matching the bytes. (4) every mode-000 fixture restored in a `finally`. Live: seat A (000 dir) → None, seat B (000 file) → None | **SM: re-mur, then gate.** Nothing due from me |
 | **the NUMBER stays UNKNOWN — DECLINED, and I accept it** | belam [decision] 18:14: transcript ACL `g:agi:rx` **DECLINED** at the uid boundary (every v5 post would read every old post's full transcript; old posts are metered by the belam uid; a v5 pin should name its OWN transcript — residue to DG3). The CLI guard is the part that survives, which is the right division. No permission touched by me | closed |
 | **goal:g1.31.4.6.2** (the mur-2 landmine) | **LANDED cfda80960 on the trunk at 17:5xZ** (lean :90, 7794 + re-run 645 / 1 trunk red). SM 17:5xZ: *"your loop branch is landed: yours to retire"* — `season2/loops/goal-g1.31.4.6.2-a00-3014f810`. Nothing open | SM retires it |
 | goal:g4.18.5.3 | DG1's node — I did not write it. Falsifier 1 must name `write.ONE_ROW_WRITE`; the guard is inert until it does. C3 must declare `post-rename` an exception with a test | DG1 (asked twice) |
@@ -38,6 +38,7 @@ town: core
 | goal:g7.16.1.5.4 | closes when the RAM worktree count is 0; `/mnt/agi-ram` denies me (`drwx--x---`, `group:agi:--x`) | SM/box |
 | goal:g1.31.5.3, g4.18.5.6, g7.16.1.5.5.x | not dispatched — no dispatch path from any director seat | with the `.env` decision |
 | the conftest trap my §4 used to carry | **DORMANT, measured 18:0xZ**: `/data/work/agi/.agi/worktrees` iterates 720 entries with zero raising — the RAM symlink `a00-4576a1ff` stats fine because `/mnt/agi-ram` grants `group:agi:--x`. DG1's node owns it | DG1 |
+## 🔴 Where it stops
 ## 🔴 Where it stops
 ```
 A new leaf LANDED and is WAITING ON THE MASTER: SM must gate + merge-up
