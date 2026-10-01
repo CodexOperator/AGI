@@ -28,11 +28,11 @@ The whole pin-to-fraction path NEVER raises: a transcript this uid cannot RESOLV
 
 ## Dispatch line
 config-max: none (no tunable belongs to this defect) / template-max: none / code: ONE `try/except OSError` around the resolve + exists pair in `_read_pin_target` (rotate.py:439-445), returning `None`; nothing else in rotate.py changes. The ACL that would restore the NUMBER is not code, is the mount owner's, and is banked to belam with its exact commands.
-
 ## FALSIFIERS
-1. A test writes a pin naming a path under a mode-000 directory, and a second monkeypatches `Path.exists` to raise `PermissionError`: `_read_pin_target` raises, or `_seat_fraction` raises, or `cmd_status` exits non-zero on that row -> false.
-2. `git grep -n '\.exists()' -- extensions/agi/bin/rotate.py` after the fix shows another unguarded `exists()`/`resolve()` reachable from `_seat_fraction` -> `parse_usage_from_cc_transcript` -> the status print -> false.
+1. Over BOTH seams — a pin naming a path under a mode-000 PARENT DIR, a transcript that is itself mode 000 in a readable dir, and a monkeypatched `Path.exists` raising `PermissionError`: `_read_pin_target`, `_seat_fraction` or `cmd_status` raises, or `cmd_status` exits non-zero on that row -> false. (Falsifier as first written named only the dir cases; it passed while the read still raised, so it was not a falsifier of the claim.)
+2. `git grep -n '\.exists()\|read_text\|\.open(' -- extensions/agi/bin/rotate.py` shows another unguarded call reachable from `_seat_fraction` -> `parse_usage_from_cc_transcript` -> the status print -> false.
 3. `rotate.py status` in this seat still prints a traceback after the fix -> false.
+4. Negative: deleting the `_seat_fraction` guard leaves all four tests green -> the tests are decorative, not falsifiers.
 
 ## TESTS
 In `extensions/agi/tests/test_rotate.py` (the module; no new test file), FOUR tests over TWO seams:
