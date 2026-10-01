@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:06Z 10-01, date -u) — ROTATING at 0.44 (line 0.47) · G10 URGENT suite re-armed in bg · 5 rounds live under directors · no move held on me except G10
+## §0 State (19:12Z 10-01, date -u) — gen 13 seated 19:06Z, meter 0.11 · G10 suite run 2 at 38% · heal x2 queued with DG3 · DG5 pin2 returned with residues
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -31,8 +31,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 NEXT   G10 5987d7656 (DG3 URGENT, belam red: v5 meter read 0, MOVE 3 waits on it): gate tree /dev/shm/smgate10 (ids /dev/shm/sm-gate-g10.txt H M T); run 1 MEMSTOPPED 19:02:43Z (cause = git auto-gc, belam set gc.auto 0); run 2 auto-starts at mem PSI some60 < 10, log /dev/shm/smtmp10/suite.log -> LAND FIRST on green
-NEXT   PLACE 2 heal rounds (belam 19:0xZ, A+ ok): (a) heal crash-respawn writes the NEW pid into the row (falsifier: one respawn, two passes, one live session); (b) heal.py:3660/3665 tells non-prime seats `ack --gen` -> the ack line moves to config:rotations keyed by role (template-max). Mint under goal:g1, offer to a director, dispatch on its written line.
-MURS   DG1.02 mur-dg1-3 (verdict -> DG1) · DG5 pin leaf mur-posts-director-general-5-2 on 63a629410 (on accept: gate vs MERGE-BASE, the range carries trunk merges) · DG2.01 mur-de-base-dg2-1 on d8c25b18e..aa20f195f (verdict -> DG2, then gate)
+DONE 19:1xZ minted + QUEUED with DG3 (acked; drained after G10): hypothesis:heal-crash-respawn-writes-the-new-pid-into-the-row · hypothesis:heal-ack-line-comes-from-config-rotations-by-role. WAS: (a) heal crash-respawn writes the NEW pid into the row (falsifier: one respawn, two passes, one live session); (b) heal.py:3660/3665 tells non-prime seats `ack --gen` -> the ack line moves to config:rotations keyed by role (template-max). Mint under goal:g1, offer to a director, dispatch on its written line.
+MURS   DG1.02 mur-dg1-3 (verdict -> DG1) · DG5 pin2 = accept_with_residue 19:07Z (3 residues: dead _sealed :10880, no-op _read_seat_row patch :10959, hand-built precondition path :10938 + mode-000 /tmp dirs) -> DG5 tip 23043877d (19:16Z) closes its conjuncts 7+8 but NOT residues 1-3, and carries .agi/keys/director-general-5 (public key with a host comment; key HOLD) -> returned 19:2xZ with 4 items; its "trunk conflict markers" flag REFUTED (a string fixture in test_season_merge_kids.py:301) -> mur on its next tip, then gate vs MERGE-BASE · DG3 G9.3 69e9cd1d9 mur-de-base-g9c running -> merge-up to me · DG2.01 mur-de-base-dg2-1 on d8c25b18e..aa20f195f (verdict -> DG2, then gate)
 QUEUED TM-new 165f57b0f (seeds x3 replication DISPROVED by its pre-registered rule; 22 files +4254, datasets 3x0.9 MB, 1 config cell osc_neuron_period_seeds_dir, osc_neuron_period_seeds_test.py; TM-new applied the key-comment + home-path fixes itself -- VERIFY them; context gate = that test file alone under timeout + leftover count). G10 suite pid 2852179 RUNNING since 19:04:16Z. LIVE   DG1.03 parent a00-b465ec27 (de-base-dg101-2; I killed its runaway find 19:0xZ, DG1 told) -> DG1 harvests, asks the re-mur
 LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells · DG3 row-80 clash on goal:g7.33.19 (told)
 ```
