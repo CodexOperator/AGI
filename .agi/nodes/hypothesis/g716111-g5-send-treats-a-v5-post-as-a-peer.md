@@ -73,6 +73,9 @@ BASE      CUT FROM de-base-G5 tip 7dad3b4d4 + the node commits after it (worktre
 DEMOTED   M3 (tests run on the NEW checkout by rule, the same as G5.4) · R7 the (NNNN B) size headers: a findings row (no reader; drift on every edit), proposed to SM with G6 · R1 (testable_claim written as a new key testable_claim=a): FIXED by the director in this node version (unset + set); write.py set accepted an invented key: a findings row.
 FILE SCOPE extensions/agi/bin/send.py · extensions/agi/bin/heal.py (_repair_stranded_wakes only) · extensions/agi/tests/test_send.py · this node.  CEILING production net +10 · tests +30 · Sonnet 5.5 subagent · 0 USD.
 
+## DONE (director record, closes mur-de-base-g5e missed M1)
+G5.3 DONE cfa9b3e27 (mur-de-base-g5c) · G5.4 DONE 7dad3b4d4 (mur-de-base-g5d) · G5.5 DONE 3315ac438 (mur-de-base-g5e: review 11/11 MET, verify ACCEPT) -- item-to-test binding lives in the test docstrings (test_g53_* / test_g54_* / test_g55_* in test_send.py).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective G5.5: mur-de-base-g5d verify confirmed R1-R6 + missed M1 M2 M4; R1 was the director own slip (set testable_claim=a wrote a NEW key: set takes key SPACE value), fixed here by unset + set
 <!-- THOUGHT:END -->
