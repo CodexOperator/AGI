@@ -32,10 +32,10 @@ PRECISE ABOUT WHAT EACH COMMAND PRINTS (corrected after mur conjunct 7, and kept
 config-max: none (no tunable belongs to this defect) / template-max: none / code: TWO `try/except OSError` guards, both returning `None` — one around the resolve+exists pair in `_read_pin_target` (rotate.py:439), one around the two parse calls in `_seat_fraction`, because the stat seam cannot see a file that stats but will not open. Nothing else in rotate.py changes; the docstrings carry the RULE and point at this node for the measurement. The ACL that would restore the NUMBER is not code, is the mount owner's, and was DECLINED by belam 18:14 at the uid boundary.
 
 ## FALSIFIERS
-1. Over BOTH seams — a pin naming a path under a mode-000 PARENT DIR, a transcript that is itself mode 000 in a readable dir, and a monkeypatched `Path.exists` raising `PermissionError`: `_read_pin_target`, `_seat_fraction` or `cmd_status` raises, or `cmd_status` exits non-zero on that row -> false. (Falsifier as first written named only the dir cases; it passed while the read still raised, so it was not a falsifier of the claim.)
+1. Over ALL FOUR seams — a mode-000 PARENT DIR, a transcript that is itself mode 000 in a readable dir, a REAL `a -> b -> a` symlink loop, a mode-000 sessions DIR, and a monkeypatched `Path.exists` raising: `_read_pin_target`, `find_pin_log`, `_seat_fraction` or `cmd_status` raises, or `cmd_status` exits non-zero on that row -> false.
 2. `git grep -n '\.exists()\|read_text\|\.open(' -- extensions/agi/bin/rotate.py` shows another unguarded call reachable from `_seat_fraction` -> `parse_usage_from_cc_transcript` -> the status print -> false.
 3. `rotate.py status` in this seat still prints a traceback after the fix -> false.
-4. Negative: deleting the `_seat_fraction` guard leaves all four tests green -> the tests are decorative, not falsifiers.
+4. NEGATIVE, and the one that matters: each guard removed individually must red EXACTLY its own test and no other. All three measured 10-01 20:0xZ.
 
 ## TESTS
 In `extensions/agi/tests/test_rotate.py` (the module; no new test file), SIX tests over FOUR seams:
