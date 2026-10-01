@@ -105,5 +105,5 @@ CEILING   HARD CAP: 1 kid · 0 production lines · test_merge_gate.py <= 195 lin
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit (the pre-commit hook admits a branch kid in its own worktree); run test_merge_gate.py test_reds.py test_council_report.py test_commands_manifest.py test_bin_help_smoke.py with --basetemp under /tmp and paste the counts.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.65: mur h107c code+nodes accept_with_residue -> C6 names the sha, C5 pins one subprocess call, docstring inventory, two node-honesty sites; council decision option A (skill restore + drop test_f6) applied as the safe default pending the council word, reversible at harvest
+corrective DH.DG3.67: mur h107d code+nodes accept_with_residue -> claim conjunct 4 + F6 MOVED to goal:g7.16.1.10.7.1 (option A consequence), the commands row reason no longer names a missing step 5a, C5 counts calls by ast not text, docstring attribution + its one live-source read, kid node evidence/hook attribution/standing rule. Option A still awaits the council word.
 <!-- THOUGHT:END -->
