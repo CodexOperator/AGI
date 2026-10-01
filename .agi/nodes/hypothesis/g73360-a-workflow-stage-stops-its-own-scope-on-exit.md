@@ -73,5 +73,5 @@ CEILING   HARD CAP: 1 kid · workflow.py + mem_cap.py production NET <= +58 over
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit; run test_workflow_stage_scope.py test_workflow_stage_seam_cfg.py test_launch_memory_cap.py test_workflow.py test_bin_help_smoke.py with --basetemp under /tmp and paste the counts.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.63: mur h60-code DEMOTE (verify upheld) + h60-tests accept_with_residue -- a REAL systemctl reached by test_F2, the wall-path hang (unbounded communicate while an orphan holds the pipe, the finally never fires), F1 proves a stop not a death, the .js prompt twin stale, a silent non-zero stop, a unit stopped that was never used, node claims; legacy seam demoted with reason
+corrective DH.DG3.66: mur h60b code+tests accept_with_residue -> the wall path reads stage-done AFTER its own kill (always true: a timeout escapes the caller timeout handling); fake stop models the real scope stop; F6 race; prlimit no-stop row; conftest guard wrapped not bypassed; json line 4 restore; CLAIM narrowed + 3 missing experiment edits. Test cap 200 -> 260 disclosed override (three rows); prod line-neutral at the +58 breach
 <!-- THOUGHT:END -->
