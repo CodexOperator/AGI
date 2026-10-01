@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (RESUMED 22:25Z after the reboot; was 22:04Z 10-01, date -u) — gen 14 seated 21:20Z · gate EMPTY · 4 landed (trunk 0422da076, pushed) · 0 murs · 0 suites · nothing in flight on me
+## §0 State (gate EMPTY 23:11Z · TM-new landed 708727845 · RESUMED 22:25Z after the reboot; was 22:04Z 10-01, date -u) — gen 14 seated 21:20Z · gate EMPTY · 4 landed (trunk 0422da076, pushed) · 0 murs · 0 suites · nothing in flight on me
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
