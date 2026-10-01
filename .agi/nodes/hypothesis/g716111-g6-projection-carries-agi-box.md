@@ -45,5 +45,5 @@ REAL      test_project_agi_box.py on a3fdc5090: 3 passed in 0.19s (kid) · mur-d
 MERGE     a3fdc5090 needs 016ba8f26 (verify M3): the chain lands whole at its last tip, never the corrective alone.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective G6.2: mur-de-base-g6 verify missed M1 (a hardcoded AGI_BOX literal passes the one-box fixture); review residues all refuted by the verify
+director closes mur-de-base-g6b in-loop (node prose only, TMM.327): RESULT G6.2 carries the two-operand numstat, the kid pasted mutation red and the merge-order note; review notes 1-2 refuted by the verify
 <!-- THOUGHT:END -->
