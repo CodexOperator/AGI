@@ -91,5 +91,5 @@ B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 520
 | `*.pre-tier-*` backups: ~/.claude.pre-tier-20260930T0145Z + ~/.pi.pre-tier-20260930T0146Z (on /) | delete after a day of clean tiering |
 | an on-disk /tmp makes every boot wait 5+ min in systemd-tmpfiles | tmpfs /tmp or a /tmp age cleaner, owner's call |
 | belam row says opus-5-5 / high; the live Prime runs opus-5-5[1m] / max | owner sets the row |
-| .env mode 600: agi-* director posts fail provisioning.available -> no director can dispatch (DG5 + SM 15:3xZ) | (A) masters/Prime run director murs until the owner rules; (B) group:agi READ-only ACL on .env = owner money, owner word |
+| .env mode 600: agi-* director posts fail provisioning.available -> no v5 director can dispatch (DG5 + SM 15:3xZ); at 18:4xZ DG1 + DG2 + DG5 on v5 = DG3 the ONLY dispatcher (near its line) | INTERIM (A+) 18:4xZ: SM dispatches pi-free/0 USD on a director WRITTEN order from its worktree --from <director>; ENDS at the key broker (parity row 30 -- belam ruled it a non-gate 15:3xZ, wrong) OR owner (B) group:agi READ ACL on .env. RECOMMEND: build the key broker before more director moves |
 | docker data-root still on / · sda ~35 ms/op · origin remote moved | owner's window: smartctl + dmesg; `git remote set-url` |
