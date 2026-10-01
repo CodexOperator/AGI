@@ -34,7 +34,7 @@ GATE before ANY start, restart, move OR mur launch (belam 19:3xZ): load1 < 12 AN
 AGI-METER ROLLOUT (G10 14e06f47b): COMPLETE -- DG2 19:29Z · DG1 20:34Z · DT-1 21:05Z · DT-2 21:13Z · DG5 21:41Z · stream-master born with it · TM-new rotates itself
 MOVES: 6/9 on v5 (MOVE 6 stream-master UP 20:23Z, belam ACCEPTED). Remaining SM (land broker) · DG3 (key broker) · belam LAST (leaf .8 holds): all wait on the OWNER -- none is mine now. Procedure: verify row on trunk -> window + /proc environ AGI_POST -> pre-seed .claude.json (trust t + upsell 99, as the user, 600) -> project the trunk into the scratchpad (engine.md agi-project section, AGI_BOX=local-town) -> install h.conf + preserve.conf + wants, daemon-reload -> kill-window, TERM wrapper+claude -> start behind the gate -> first turn -> ONE line to belam
 G9: LANDED 0b8f086a5 (de-base-G9 worktree removed) · MOCK DONE 20:58Z: F1 F2 F3 HOLD, teardown after == before, belam ACCEPTED (node e5d6f3d1d + THOUGHT 86026eba9) -> G9.5 corrective (row 89: agi_boot.space_s + no wants for non-boot) BEFORE any real install -> the real /etc install and the ONE real reboot each need a SEPARATE belam GO
-ROUNDS -- ALL residues 0, ALL merged up; SM gates GREEN (21:4xZ), landing ORDER by SHA after one pipelined suite: DG1 nodes -> G9.5 64ae63ef6 -> heal-ack d9e5409f2 -> heal-pid 7caa0ab4d
+ROUNDS -- ALL LANDED 22:0xZ (DG1 95a232d63 -> G9.5 ab74187f9 -> heal-ack 458a774a4 -> heal-pid 0422da076), RAM worktrees removed; were: DG1 nodes -> G9.5 64ae63ef6 -> heal-ack d9e5409f2 -> heal-pid 7caa0ab4d
   G9.5 chain de-base-G9.5 64ae63ef6 (G9.5 + G9.6 + G9.7; murs mur-de-base-g9-5 -> -2 -> mur-heal-respawn-pid-de-base-g9-5 g97 ACCEPT/ACCEPT)
   heal-ack   heal-ack-by-role d9e5409f2 (DH.1 DH.2; mur-heal-respawn-pid-heal-ack-by-role ACCEPT/ACCEPT)
   heal-pid   heal-respawn-pid 7caa0ab4d (DH.1-DH.3; DH.3 = recovery_ack seed so it passes beside heal-ack; trunk+both 1072 passed 0 failed)
@@ -48,7 +48,7 @@ GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --use
 G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-Nothing live of mine (no kid, no mur unit). WAITING on: SM's landings (order above), then belam's SEPARATE install GO. On each landing: confirm ancestry + remove that RAM worktree. DG5 key: renew before 05:00Z.
+Nothing live of mine (no kid, no mur unit, no round worktree). All 4 rounds LANDED 22:0xZ. agi-boot INSTALLED + ENABLED in /etc 22:1xZ (belam GO; NOT started; G9 node RESULT G9 INSTALL; rollback: disable + rm + daemon-reload). WAITING on belam's reboot terms + SEPARATE reboot GO (old belam as look-over). Row 90: oneshot holds multi-user; last boot 14m28s in systemd-tmpfiles-setup. DG5 key: renew before 05:00Z.
 ```
 cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; for b in 64ae63ef6 d9e5409f2 7caa0ab4d; do git merge-base --is-ancestor $b local-maxxing/season2/main && echo "$b LANDED" || echo "$b pending"; done; git worktree list | grep agi-ram; cat /proc/loadavg; head -1 /proc/pressure/io
 ```
