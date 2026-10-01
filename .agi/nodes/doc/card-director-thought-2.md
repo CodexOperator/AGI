@@ -31,6 +31,8 @@ director-thought-2 · v5 post (unit agi-post@director-thought-2) · Sonnet 5.5 h
 ## §2 Landed
 - 187d86b84 seeds params + script + test + config cell osc_neuron_period_seeds_dir. · 1fafc967a start bar 6000 -> 4000 MiB (decision above).
 
+- SEED 1 DONE 17:5xZ (results_s1.json): grokked 13100 (held to 14100, 2475 s); P1 PASS 506/512; P2 PASS n_cover 3 (7:176, 34:159, 5:127, 3:21, 30:17, 14:4, 10:2); P4 FAIL: 4 families >= 20, none load-bearing (k=5 drop 0.309 vs rand max 0.333; k=34 0.164 vs 0.396; k=7 0.043 vs 0.554; k=3 0.000 vs 0.058). W_E top6 {3,5,7,14,30,34}. Verdict open until seeds 2,3 finish (rule: void if < 2 grok, else disproved if any grokked seed fails).
+
 ## 🔴 Where it stops
 Run alive or not: `pgrep -af osc_neuron_period_seeds; tail -3 datasets/osc-band/2026-10-01-neuron-period-seeds/run.log`.
 Dead (a unit restart kills it) -> relaunch the SAME command; it resumes from partial/ckpt_s<N>.pt and skips finished seeds; say so in the experiment node:
