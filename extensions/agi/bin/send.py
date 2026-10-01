@@ -1193,8 +1193,12 @@ def _dm_path(croot: Path, a: str, b: str) -> Path:
     return croot / "dm" / f"{name}.md"
 
 
-def _block(ts: str, from_id: str, to: str, text: str) -> str:
-    return f"{MSG_SEP}ts: {ts}\nfrom: {from_id}\nto: {to}\n\n{text}\n"
+def _block(ts: str, from_id: str, to: str, text: str,
+           sig_line: str | None = None) -> str:
+    """One message block; a signed one carries `env: v1` + its `sig:` line
+    (the envelope, Prime ruling B) after `to:`, an unsigned one is unchanged."""
+    env = f"env: v1\n{sig_line}\n" if sig_line else ""
+    return f"{MSG_SEP}ts: {ts}\nfrom: {from_id}\nto: {to}\n{env}\n{text}\n"
 
 
 def _parse_blocks(text: str) -> list[dict]:
@@ -1618,6 +1622,14 @@ def _seat_row_by_name(rows: list, name: str) -> dict | None:
     return None
 
 
+def _engine_post(root: Path, to: str) -> bool:
+    """True when the post's config:posts row carries an `engine` cell: it runs
+    on the new engine and reads its mail through its OWN poll (no tmux window
+    to nudge). The cell, not a literal version, is the marker."""
+    row = _seat_row_by_name(_locally_loaded_rows(root), to) or {}
+    return bool(row.get("engine")) and boxes.row_is_local(root, row)
+
+
 def _row_is_quiet(root: Path, to: str) -> bool:
     """True when the row's `settings` carries the `quiet` token (a list or
     JSON object). A quiet row still WRITES the dm but types no nudge."""
@@ -1732,6 +1744,8 @@ def _register_unresolved(root: Path, seat: str, before_pending: int,
     rows = _locally_loaded_rows(root)   # DH.542 ITEM 3: an UNLISTED recipient
     if rows and _seat_row_by_name(rows, seat) is None:
         return                         # gains no pending sidecar nobody reads
+    if rows and not boxes.row_is_local(root, _seat_row_by_name(rows, seat)):
+        return                         # a FOREIGN refusal: no retry, no mark
     if _deferred_blob(root, seat) != before_deferred:
         return
     if _pending_more(root, seat) != before_pending:
@@ -1774,10 +1788,30 @@ def _clear_pending(root: Path, seat: str, observed: int | None = None) -> None:
         pass
 
 
-def _announce_nudge(root: Path, to: str, delivered: bool) -> None:
-    """Conjunct (2): typed -> `[delivered]`; else `[undelivered-yet]`."""
-    if not (row := _seat_row_by_name(_locally_loaded_rows(root), to)) \
-            or not (row.get("window") or row.get("pid")):
+def _foreign_label(row: dict) -> str:
+    """The ONE label a FOREIGN refusal names: the row's box, else `(unset)`."""
+    return str(row.get("box") or "(unset)")
+
+
+def _announce_nudge(root: Path, to: str, delivered: bool,
+                    inboxed: bool = True) -> None:
+    """Conjunct (2): typed -> `[delivered]`; else `[undelivered-yet]`. An
+    engine post is delivered by mail ONLY when the message reached the inbox
+    file its poll reads (`inboxed`); a dm file alone is written, not delivered.
+    A row of ANOTHER box (engine or not) gets the ONE `[refused]` line, the
+    sender's outcome (every send; `_nudge_target` stays quiet on a send): never
+    pane-busy, no retry."""
+    if _engine_post(root, to):
+        print(f"[delivered] {to} -- by mail (its own poll reads the inbox)"
+              if inboxed else f"[written] {to} -- dm file only; its mail poll "
+              f"reads the inbox, not delivered", file=sys.stderr)
+        return
+    row = _seat_row_by_name(_locally_loaded_rows(root), to)
+    if row is not None and not boxes.row_is_local(root, row):
+        print(f"[refused] {to} -- FOREIGN box row (box "
+              f"{_foreign_label(row)}); not nudged, no retry", file=sys.stderr)
+        return
+    if not row or not (row.get("window") or row.get("pid")):
         return
     t = _comms_config(root).get("undelivered_after_minutes") or 10
     print(f"[delivered] {to}" if delivered else
@@ -2442,7 +2476,7 @@ def _forget_refusals(to: str | None = None, root: Path | None = None) -> None:
 
 
 def _nudge_target(root: Path, to: str, tmux_session: str | None,
-                  repair_stale_id: bool = True,
+                  repair_stale_id: bool = True, say: bool = True,
                   ) -> tuple[str, object, str] | None:
     """Resolve the send-keys target a seat's wake lands in, exactly as
     `_nudge_window` uses it, so a silent re-check (`wake`) and the delivery
@@ -2474,11 +2508,13 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
         # say it ONCE per (row, cause): a later sweep that finds the same
         # refusal silent is a stuck loop, not news. No send-keys is ever issued
         # into that row's window; the return below is the whole refusal.
-        label = str(row.get("box") or "(unset)")
-        if _foreign_refusal_said(root, to, label):
+        label = _foreign_label(row)
+        if _foreign_refusal_said(root, to, label) and say:
             print(f"nudge: {to} is a FOREIGN box row "
                   f"(box {label}); refusing as a target", file=sys.stderr)
         return None
+    if (row or {}).get("engine"):
+        return None         # an engine post has no pane: never tmux (F3)
     # The row is addressable (or was never refused): forget any old refusal so a
     # LATER foreign cause on the same row is named again -- the DURABLE memo
     # too, and in THIS tick's process, which may not be the one that named it.
@@ -2558,6 +2594,8 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
     # mode cancel, no marker, no pending/deferred write.
     if _row_is_quiet(root, to):
         return True
+    if _engine_post(root, to):
+        return True         # mail IS the delivery; no pane, no pending mark
     if (sender is not None and _row_is_quiet_system(root, to)
             and _sender_class(root, sender, to) == "service"):
         # a service sender that NAMES ITSELF never types; `wake` passes no
@@ -2567,7 +2605,8 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         target, pid, tmux_session = resolved
     else:
         resolved = _nudge_target(root, to, tmux_session,
-                                 repair_stale_id=repair_stale_id)
+                                 repair_stale_id=repair_stale_id,
+                                 say=sender is None)   # a send's sender hears [refused]
         if resolved is None:
             return False
         target, pid, tmux_session = resolved
@@ -2942,7 +2981,7 @@ def _wake_outcome(outcome: str, delivered: bool, seat: str,
     `<state>` is one of delivered | deferred | nothing-pending | no-target;
     `<path>` is idle | strand, the path the wake travelled (strand for a
     resubmitted stranded line). """
-    print(outcome)
+    print(f"{outcome} {seat}" if outcome == "by-mail" else outcome)
     state = {
         "no-target": "no-target",
         "resubmitted-strand": "delivered" if delivered else "deferred",
@@ -2950,6 +2989,7 @@ def _wake_outcome(outcome: str, delivered: bool, seat: str,
         "busy-deferred": "deferred",
         "typed-token": "delivered",
         "delivered-deferred": "delivered",
+        "by-mail": "delivered",
     }.get(outcome, "deferred")
     path = "strand" if outcome == "resubmitted-strand" else "idle"
     wid = f" {window_id}" if window_id else ""
@@ -2993,6 +3033,8 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
         # quiet: never re-fire a stale marker, never type (skip by name).
         print(f"wake {to}: quiet-skip")
         return False
+    if _engine_post(root, to):      # its own poll reads the mail
+        return _wake_outcome("by-mail", delivered=True, seat=to)
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
         return _wake_outcome("no-target", delivered=False, seat=to)
@@ -3143,9 +3185,10 @@ def status(root: Path, to: str, tmux_session: str | None = None) -> str:
     line (hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-stale-
     marker, clause (3)). A `quiet` row prints `quiet` so an operator sees why
     no nudge ever came. READ-ONLY: never types, never cancels, never stamps."""
-    resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
+    resolved = None if _engine_post(root, to) else _nudge_target(
+        root, to, tmux_session, repair_stale_id=True)   # engine first, as wake
     if resolved is None:
-        in_mode: str = "no-target"
+        in_mode: str = "by-mail" if _engine_post(root, to) else "no-target"
     else:
         in_mode = "1" if _pane_in_mode(resolved[0]) else "0"
 
@@ -3244,14 +3287,8 @@ def send(root: Path, to: str, text: str, sender: str | None,
     ts = _now()
     from_id = _detect_sender(sender)
     sig_line = _sign_line(root, from_id, ts, to, text)
-    head = f"{MSG_SEP}ts: {ts}\nfrom: {from_id}\nto: {to}\n"
-    if sig_line is not None:
-        # The envelope (Prime ruling B, hypothesis:l4-every-live-row-is-keyed...):
-        # a signed message carries `env: v1` beside its `sig:` line so a reader
-        # can tell the envelope version from the payload. The scheme NAME on the
-        # sig line comes from the signing key's row, never a literal.
-        head += "env: v1\n" + sig_line + "\n"
-    block = head + f"\n{text}\n"
+    # The scheme NAME on the sig line comes from the signing key's row.
+    block = _block(ts, from_id, to, text, sig_line)
 
     with open(inbox, "a") as f:
         f.write(block)
@@ -4310,15 +4347,17 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     a, b, _ = _dm_pair(me, other)
     path = _dm_path(croot, me, other)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "a") as f:
-        f.write(_block(_now(), _detect_sender(sender), other, text))
+    root = locations.find_project_root(croot) or croot
+    ts, from_id = _now(), _detect_sender(sender)
+    with open(path, "a") as f:     # signed like an inbox send (seat key in MAIN)
+        f.write(_block(ts, from_id, other, text,
+                       _sign_line(root, from_id, ts, other, text)))
     # Wake nudge of the other party when it exists (silent no-op otherwise),
     # carrying the DM body INLINE as `[nudge: <me>]: <text>` so the
     # recipient sees the message without a `send.py read` round-trip
     # (hypothesis:l4-the-nudge-carries-the-dm-body-inline); idempotent under
     # a busy pane. The body STILL lands in the dm file -- the pane line is
     # delivery, the file is the record.
-    root = locations.find_project_root(croot) or croot
     before = _pending_more(root, other)
     d_before = _deferred_blob(root, other)
     ok = _nudge_window(root, other,
@@ -4338,7 +4377,8 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # silently dropped the plain `[undelivered-yet]` line whenever the graph
     # root could not be reached by a rebase (a test fixture, or any layout
     # without a git common root): the announcement vanished with no error.
-    _announce_nudge(locations.find_project_root(croot) or croot, other, ok)
+    _announce_nudge(locations.find_project_root(croot) or croot, other, ok,
+                    inboxed=False)
     return path
 
 
@@ -4353,8 +4393,11 @@ def send_room(croot: Path, room: str, text: str, sender: str | None,
         raise SystemExit(1)
     path = _room_path(croot, room)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "a") as f:
-        f.write(_block(_now(), _detect_sender(sender), room, text))
+    root = locations.find_project_root(croot) or croot
+    ts, from_id = _now(), _detect_sender(sender)
+    with open(path, "a") as f:     # signed like an inbox send and a dm
+        f.write(_block(ts, from_id, room, text,
+                       _sign_line(root, from_id, ts, room, text)))
     return path
 
 
