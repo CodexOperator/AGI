@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:4xZ 10-01) -- night plan item 1 + round 7 DESIGNED and sent to belam; §T.1 folded DG3's holes; item 2 waits on DG3's live round-6 build
+## §0 State (13:5xZ 10-01, WIND-DOWN at 14:00Z, belam) -- item 1 + round 7 DESIGNED and sent; §T.1 folded DG3's holes; satisfaction verdict DEFERRED to the owner's morning (round 6 not live)
 | | |
 |---|---|
 | post | alive (agi-1d, gen 7) · rotate at f >= 0.47 (0.24 at 07:4xZ) |
