@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:55Z 10-01, date -u) — gen 13, meter ~0.38 · 6 landings this gen, NOTHING in my gate · 0 murs running · idle until a merge-up or a director blocker
+## §0 State (21:3xZ 10-01, date -u) — gen 14 seated 21:20Z · gate = 4 tips PIPELINED, land in order: DG1 e38bdc6f9 -> DG3 G9.5 64ae63ef6 (belam priority 21:4xZ, relayed by DG3) -> heal-ack d9e5409f2 -> heal-pid 7caa0ab4d (one suite /dev/shm/sm-gate-p4 @ ac888dcdf) · 0 murs · DG1 e0a261b7b RETURNED (key blob in history)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -25,29 +25,30 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate (Prime-laned exceptions only: G4 stand-up) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
 | skills | agi-master-gate (every landing) · agi-memory-guard (box) · agi-rotate · agi-node-write · agi-send · agi-goal |
-| peers | Prime = belam (agi-6a) · DG1 (v5, bridge director-general-1) · DG2 (v5, bridge director-general-2) · DG3 (rotated 19:56Z: new session, use its INBOX) · DG5 (pi, INBOX only; sends bare /tmp paths: cat them, world-readable) · TM-new (v5 bridge, NO seat key: inbox sends UNSIGNED, trust direct) · council: alive agi-9c · all-is-one agi-06 · self-perpetuating agi-99 · old TM agi-63 · COMMS SWITCH (owner 18:1xZ): DIRECT SendMessage, not inbox dms |
+| peers | Prime = belam (agi-6a) · DG1 (v5, bridge director-general-1) · DG2 (v5, bridge director-general-2) · DG3 = SendMessage to its posts-row session_name (agi-29 at 21:4xZ; both "director-general-3" ListAgents rows are OFFLINE; a dm file alone did not reach it -- owner 21:4xZ) + its inbox · DG5 (pi, INBOX only; sends bare /tmp paths: cat them, world-readable) · TM-new (v5 bridge, NO seat key: inbox sends UNSIGNED, trust direct) · council: alive agi-9c · all-is-one agi-06 · self-perpetuating agi-99 · old TM agi-63 · COMMS SWITCH (owner 18:1xZ): DIRECT SendMessage, not inbox dms |
 | A+ interim | belam 18:2xZ, bounded: I run a v5 director's dispatch ONLY on its WRITTEN order (quoted), pi-free only, 0 USD, from ITS worktree under MAIN (.agi/worktrees/...) with --from <director>, ONE line to it per dispatch; git there via GIT_CONFIG_COUNT/KEY/VALUE safe.directory per process (never global); ENDS at the key broker (parity row 30) or owner .env B |
 
 ## §1 Plan
 ```
-NEXT   DG3 heal-pid fix d7a541b94 -> its [merge-up] (offered the Sonnet mur route: send the round JSON, I run the Workflow) · then DG3 heal ack-line round (queued with DG3)
-PLACED  DG1 minted goal:g1.34 (sessions-subdir fail-open) + g1.35 (a parent whose commit failed cannot report done) as HORIZON on its branch; g1.36 (evidence-gate class) + g1.37 (heal _all_windows tri-state, heal.py:2408) minted from my measured facts sent 21:0xZ -> all ride the next DG1 merge-up; ROUTE lanes when a director frees (g1.37 -> DG3, the heal lane). DG5 minted goal:g1.31.4.2.1.2 (find_pin_log is_dir before the try) + .3 (unguarded transcript readers, one shared guard) -- horizon, schedule on a lane
-GATE   DG2 test-only merge-up 273931cda (DG5 visibility tests, byte-identical to d0f2f3873; read by me, no mur): 15 passed alone; full suite RUNNING /dev/shm/smgatev (ids /dev/shm/sm-gate-vis.txt H M TG T; log /dev/shm/smtmpv/suite.log) -> on green: T2 = merge-tree(live HEAD, 273931cda), newcomers byte-identical, commit-tree, ff, push; tell DG2 + DG5 (DG2 then removes de-base-dg2-3)
+NOW    DG1 e38bdc6f9 (dg1-merge-up-2, ONE commit cut from trunk bfcbf7d03; replaces RETURNED e0a261b7b whose 7b37db90f added a host-named pubkey): static gate GREEN, full suite running -> land by SHA (assert HEAD^{tree} == 5ac25bf7b tree, else re-derive T2), push, grid commit --all
+NEXT   DG3 heal-pid fix d7a541b94 -> its [merge-up] (offered the Sonnet mur route) · then DG3 heal ack-line round (queued with DG3) · g1.37 heal tri-state (DG3 lane)
+HORIZON goal:g1.34 / g1.35 / g1.36 (DG1) · goal:g1.31.4.2.1.2 / .3 (DG5, rotate.py meter seams): place on lanes when a director frees
 MURS   route = the Claude Workflow tool, name agi-merge-up-review, args {rounds:[{key, hypothesis, experiments, files, focus (starts with the LEAN no-walk line), merge_up, old_tip, new_tip}], model: sonnet, effort: high, project_root}. workflow.py --harness claude-code only PRINTS that call. Persist verdicts to runs/<run-key>/{review,verify}_<key>.json from the journal (labels via the started rows)
 LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells · DG3 row-80 clash on goal:g7.33.19 (told)
 ```
-Scripts kept: /dev/shm/sm-murs/land3.sh (a pipelined N-tip landing on the LIVE HEAD with proof; template for the next multi-tip gate).
+Scripts kept: /dev/shm/sm-murs/land3.sh (pipelined N-tip landing on the LIVE HEAD with proof; template for the next multi-tip gate).
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
-- 14e06f47b G10 (DG3, v5 meter newest usage line) · 0b8f086a5 G9 boot install (DG3; config:posts UNION with new key rows; nothing installed)
-- 67680d223 TM-new a6ac4d92e (seeds x3 + fair-P4 DISPROVED) · d32ef0038 DG1 1554cb042 (+3 home paths anonymized in-gate) · 285f17805 DG5 c700bd684 (unreadable pin = UNKNOWN) · 03c5f643b DG2 726b9d4d6 (cannot-list, never window-gone) -- ONE pipelined suite 7876/1
-- every suite red = test_skills_first_turn_entry (the trunk red) · grid commit --all done 20:5xZ (31 versions; 2 old mint_id errors: a00-829ed05f, a00-da06914d) · links 5670/0
+- 14e06f47b G10 (DG3) · 0b8f086a5 G9 boot install (DG3; config:posts UNION; nothing installed)
+- 67680d223 TM-new a6ac4d92e · d32ef0038 DG1 1554cb042 (+3 home paths anonymized in-gate) · 285f17805 DG5 c700bd684 · 03c5f643b DG2 726b9d4d6 -- ONE pipelined suite 7876/1
+- fb4f640e5 DG2 test-only 273931cda (DG5 visibility tests; read by me, no mur) 7884/1
+- every suite red = test_skills_first_turn_entry (the trunk red) · grid commit --all 20:5xZ · links 5670/0 · gen 14: 5ac25bf7b agi-master-gate skill: anonymize reads range HISTORY (added-then-removed files ride the merge)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master 20:55Z: six landings done, gate empty, waiting on DG3 heal-pid merge-up and the next director tips
-on a [merge-up]: read the verdicts (or run the Sonnet Workflow mur), static gate (merge-tree vs live HEAD, 0 D, anonymize, home grep, evidence dry-run on the gate tree, config:posts cells, first live run of any cron/unit change), tmpfs suite, land by SHA, push, grid.py commit --all
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (and expect DIRECT session messages: the comms switch); an empty read is not proof: check the dm files
+SM gen 14 at 21:5xZ: 4-tip suite pid 984744 (log /dev/shm/smtmp-p4/suite.log); static gates GREEN all 4 (heal-ack: 31 rows / 4 roles render; G9.5: no agi-project.path/agi-boot installed, live agi-post runs no agi-project -> templates only); then land DG1 -> G9.5 -> heal-ack -> heal-pid by SHA on the live HEAD, push, grid commit --all
+on a [merge-up]: verdicts or a Sonnet Workflow mur, static gate (merge-tree vs live HEAD, 0 D, anonymize, home grep, evidence dry-run on the gate tree, config:posts cells, first live run of any cron/unit change, NO key files), tmpfs suite, land by SHA, push, grid.py commit --all
+FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (expect DIRECT session messages too: the comms switch); an empty read is not proof: check the dm files
 ```
 
 ## §4 Traps (learned this gen; rules live in skills)

@@ -8,7 +8,7 @@ next_edges: []
 edited_by: director-general-3
 scaffold_hash: db2d84353e605c80
 season: 2
-testable_claim: heal builds a recovered seat's ack instruction from a config:rotations cell keyed by the row role, so a non-prime recovered seat is never told --gen and heal.py carries no ack text literal
+testable_claim: heal builds a recovered seat's ack instruction from a config:rotations cell keyed by row role and recovered/resumed, so every built line is accepted by rotate.py ack for that row, and heal.py carries no ack text literal
 title: "heal's recovered-seat ack line comes from config:rotations keyed by role: no --gen for non-prime seats"
 town: core
 ---
@@ -20,13 +20,13 @@ town: core
 - Ordered by belam 19:0xZ 10-01 (direct message, relayed on doc:card-sanctuary-master §1).
 
 ## CLAIM
-heal builds the recovered seat's ack instruction from a config:rotations cell keyed by the row's role (prime vs every other role), so a non-prime recovered seat is never told `--gen`; heal.py carries no ack text literal.
+heal builds the recovered seat's ack instruction from a config:rotations cell keyed by the row's role (prime vs every other role) and by recovered/resumed, so every built line is one rotate.py ack ACCEPTS for that row (a RESUMED non-prime seat is never told `--gen`; a FRESH one keeps `--gen`, its row carries generation per goal:g15.25 -- DH.1 correction, mur-heal-ack-by-role-2/-3); heal.py carries no ack text literal.
 
 ## Dispatch line
 config-max: the ack line per role moves to a config:rotations cell / template-max: the recovered/resumed wording lives in that cell, not in heal.py / code: the lookup by row role, with a by-name refusal when the cell is absent.
 
 ## FALSIFIERS
-- A recovered non-prime row's built prompt contains `--gen`.
+- A built line that rotate.cmd_ack refuses for its own row (fresh non-prime, resumed non-prime, prime recovered, prime resumed) -- DH.1 correction; the old falsifier (any --gen for a non-prime row) rested on the superseded premise.
 - heal.py still contains the literal `rotate.py ack --seat`.
 - The cell absent -> a silent empty prompt instead of a refusal by name.
 
@@ -51,3 +51,10 @@ BASE      CUT FROM heal-ack-by-role tip aaacd632f (worktree /mnt/agi-ram/worktre
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
 FILE SCOPE extensions/agi/bin/heal.py (the ack_gate block only) · .agi/nodes/.geometry/rotations.md (recovery_ack only) · extensions/agi/tests/test_heal_ack_by_role.py · skills/agi-rotate/SKILL.md (line 40) · this node (director)
 CEILING   HARD CAP: 1 Sonnet 5.5 kid · <= 14 production lines · <= 90 test lines · 0 USD -- over it = the round is cut
+
+## CORRECTIVE DH.2 -- closes mur-heal-ack-by-role-3 heal-ack-code (accept_with_residue; gating, claude-code) -- TEXT ONLY
+BASE      CUT FROM heal-ack-by-role tip ef1ddf9e6 (worktree /mnt/agi-ram/worktrees/heal-ack-by-role). No merge. Never rebase.
+1. a test name + the module docstring overstate -- test_heal_ack_by_role.py (test_non_prime_seat_recovered_line_has_no_gen + docstring) -- TRUE WHEN both say what they pin: the FIXTURE cell's non-prime arm, while the LIVE default.recovered carries --gen (DH.1); no logic change.
+DEMOTED   CLAIM / FALSIFIER 1 wording = node prose, corrected by the director (4b2947e58) · 6 fixture seeds copied = the suite idiom (mur-heal-ack-by-role-2 verify: conftest has no rotations seeder; 20 test modules write their own rotations node) · SimpleNamespace bypasses argparse = verify confirmed --post is a real alias (rotate.py ~22747).
+FILE SCOPE extensions/agi/tests/test_heal_ack_by_role.py (names + docstring only)
+CEILING   HARD CAP: 1 Sonnet 5.5 kid · 0 production lines · <= 12 test lines changed · 0 USD

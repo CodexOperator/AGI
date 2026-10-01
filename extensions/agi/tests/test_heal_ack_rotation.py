@@ -53,6 +53,19 @@ rotate = _load("rotate")
 heal = _load("heal")
 
 
+def _seed_recovery_ack(gdir):
+    """config:rotations `recovery_ack` -- the recovered-seat ack wording
+    (hypothesis:heal-ack-line-comes-from-config-rotations-by-role)."""
+    geo = Path(gdir) / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\nrecovery_ack:\n"
+        "  prime_director: {recovered: \"RECOVERED SEAT {seat} --gen {gen}\","
+        " resumed: \"RESUMED SEAT {seat} --gen {gen}\"}\n"
+        "  default: {recovered: \"RECOVERED SEAT {seat}\","
+        " resumed: \"RESUMED SEAT {seat}\"}\n---\n")
+
+
 @pytest.fixture
 def _fix(tmp_path, monkeypatch):
     """Fixture root (repo-root shape: nodes/, sessions/, context/schemas/,
@@ -60,6 +73,7 @@ def _fix(tmp_path, monkeypatch):
     rotate.cmd_ack resolve — never the live seats row."""
     root = tmp_path
     (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _seed_recovery_ack(root)
     schemas = root / "context" / "schemas"
     schemas.mkdir(parents=True, exist_ok=True)
     (schemas / "[config].md").write_text(

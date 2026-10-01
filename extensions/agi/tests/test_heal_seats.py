@@ -35,6 +35,19 @@ def _load(name):
 heal = _load("heal")
 
 
+def _seed_recovery_ack(gdir):
+    """config:rotations `recovery_ack` -- the recovered-seat ack wording
+    (hypothesis:heal-ack-line-comes-from-config-rotations-by-role)."""
+    geo = Path(gdir) / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\nrecovery_ack:\n"
+        "  prime_director: {recovered: \"RECOVERED SEAT {seat} --gen {gen}\","
+        " resumed: \"RESUMED SEAT {seat} --gen {gen}\"}\n"
+        "  default: {recovered: \"RECOVERED SEAT {seat}\","
+        " resumed: \"RESUMED SEAT {seat}\"}\n---\n")
+
+
 @pytest.fixture
 def graph(tmp_path: Path) -> Path:
     """A fixture graph root whose seats row + sessions dir are all ours."""
@@ -42,6 +55,7 @@ def graph(tmp_path: Path) -> Path:
     g.mkdir(parents=True, exist_ok=True)
     (g / "config.json").write_text(json.dumps({"metric_primary": "x"}))
     (g / "sessions").mkdir(parents=True, exist_ok=True)
+    _seed_recovery_ack(g)
     return g
 
 

@@ -3655,16 +3655,20 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                 or gdir / "sessions" / "quorum" / f"{seat}.md")
         if Path(card).is_file():
             card_file = str(card)
-    ack_gate = (
-        "RECOVERED SEAT (crash-recovery): first act after reading your handoff, "
-        f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
-        "--ref <your ListAgents ref> continue` to take your identity."
-    ) if not resume else (
-        "RESUMED SEAT (crash-recovery, heal): your process died and heal resumed "
-        "this same session. Re-read your card (it may have moved on), then run "
-        f"`python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
-        "--ref <your ListAgents ref> continue` and carry on."
-    )
+    # hypothesis:heal-ack-line-comes-from-config-rotations-by-role: the wording
+    # is config:rotations `recovery_ack[role|default][recovered|resumed]`.
+    try:
+        _cell = _rotate.frontmatter.load_node_file(
+            _rotate._rotations_node_path(root)).frontmatter["recovery_ack"]
+        ack_gate = _cell[role if role in _cell else "default"][
+            "resumed" if resume else "recovered"].format(seat=seat, gen=gen)
+    except Exception as exc:  # noqa: BLE001 -- any bad cell refuses, never raises into the watch loop
+        reason = (f"config:rotations cell recovery_ack[{role or 'default'}] "
+                  f"unusable in {_rotate._rotations_node_path(root)}: {exc!r}")
+        print(f"watch: {reason}", file=sys.stderr)
+        _watch_log(f"watch: {reason}")
+        return {"respawned": False, "name": spawn_name, "generation": gen,
+                "reason": reason, "row": "skipped"}
     try:
         rc, shell_cmd = _rotate.spawn_window(
             name=spawn_name, tier=tier, prompt_file=None,
@@ -3711,7 +3715,19 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                 "reason": "launcher reported no successor process",
                 "row": "skipped"}
     # pid is None (launched, unknown) or a real int -> the recovery landed.
-    row_pid = pid if pid else None   # None keeps `_successor_row_write` pid-free
+    # a launcher that cannot name the pid (the real one: `None`) -> the new
+    # window's PANE pid, else the row keeps the DEAD pid and the next sweep
+    # re-judges that corpse (measured: all-is-one respawned twice).
+    row_pid = pid or None  # None = the row keeps its PRIOR pid (rotate._successor_row_write)
+    if row_pid is None and window_id:
+        reason = f"pane pid unknown for {window_id}: row keeps its prior pid"
+        try:
+            row_pid = _pane_pid_of(window_id, window_path) or None
+        except Exception as exc:  # noqa: BLE001 -- the row write below still runs
+            reason = f"pane pid lookup raised: {exc}"
+        if row_pid is None:
+            print(f"watch: {reason}", file=sys.stderr)
+            _watch_log(f"watch: {reason}")
     try:
         row_text = _rotate._successor_row_write(
             root, actor=seat, seat=seat, role=role, session_ref="",
