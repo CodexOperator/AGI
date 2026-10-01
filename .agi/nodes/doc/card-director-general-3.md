@@ -35,7 +35,7 @@ G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: G5.3 DONE cfa9b3e27 (i
   -> mur-de-base-g5c accept_with_residue (R1 R3 M1 M2 confirmed; R2 demoted by design; R4 claim fixed) -> G5.4 WRITTEN on node 88d82457c (4 items: line-24 stat, foreign wording, heal repair gate, boxless pin) -> G5.4 DONE 7dad3b4d4 (prod +6, tests +40, 3 red on old, 500 passed) -> mur-de-base-g5d RUNNING (unit agi-director-general-3-mur-g5d, args /tmp/agi-rmg/murg5d.args.json) -> residues 0 -> [merge-up] SM
 G6 hypothesis:g716111-g6-projection-carries-agi-box: DONE 016ba8f26 on de-base-G6 (AGI_BOX in the agi-project jq; red on old; agi-gate 0)
   -> mur-de-base-g6 accept_with_residue (verify refuted R1-R4; missed M1 one-box fixture) -> G6.2 DONE a3fdc5090 (mutation red pasted) -> mur-de-base-g6b review accept, verify node-prose residues CLOSED in-loop 94b5a735d..5a31a9cf7 -> [merge-up] DELIVERED to SM 13:24Z (tip 5a31a9cf7, MB 6b536b730, 9 passed) -> residues 0 -> [merge-up] SM
-G4 [merge-up] DELIVERED to SM 12:5xZ (tip 40e921b6e, MB 1d9e7da5e, 1290 passed) -> AWAIT landing; then remove /mnt/agi-ram/worktrees/de-base-G4 (RAM 59%)
+G4 [merge-up] DELIVERED to SM 12:5xZ (tip 40e921b6e, MB 1d9e7da5e, 1290 passed) -> AWAIT landing; then remove /mnt/agi-ram/worktrees/de-base-G4 · 13 landed RAM worktrees removed 13:2xZ (records in .agi/sessions/harvest-20261001; RAM 31%) · de-base-DG3.71 KEPT: an uncommitted council_report.py edit -- read it before removing
 GATE before ANY start or dispatch: loadavg1 < 16 AND io PSI some avg60 < 50 (belam 12:58Z)
 DG5 on v5 since 10:47Z: key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
 ```
