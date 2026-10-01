@@ -10975,3 +10975,41 @@ def test_status_walks_past_an_unreadable_seat_to_the_next_row(tmp_path, monkeypa
         "the seat AFTER the unreadable one must still be reached -- that is "
         "the 'keeps going' this test exists to prove")
     assert "frac=?" in out, out
+
+
+# hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback, mur pin3
+# residues 1-2: a symlink loop and an unreadable sessions dir are UNKNOWN
+# like any other unreadable pin. Both were MEASURED first, not assumed.
+def test_a_symlink_loop_in_the_pin_is_unknown_not_a_traceback(tmp_path):
+    # MEASURED py3.12.3: Path.resolve() on a loop raises RuntimeError
+    # ('Symlink loop'), NOT OSError -- so `except OSError` alone still let a
+    # loop escape as a traceback out of `status`.
+    if os.geteuid() == 0:
+        pytest.skip("root still resolves loops to ELOOP; skip with a reason")
+    a = tmp_path / "a"
+    b = tmp_path / "b"
+    a.symlink_to(b)
+    b.symlink_to(a)
+    g, _pin = _pin_naming(tmp_path, "loop-seat", a)
+    assert rotate._read_pin_target(g / "sessions" / "loop-seat.meter") is None, (
+        "a symlink loop is UNKNOWN, not a RuntimeError")
+    assert rotate._seat_fraction(g, {"name": "loop-seat"}) is None, (
+        "and it never reaches the fraction as a raise")
+
+
+def test_find_pin_log_is_none_when_the_sessions_dir_is_unreadable(tmp_path):
+    # An unreadable sessions DIR made sp.is_file() raise PermissionError,
+    # which escaped every meter caller before the guard.
+    if os.geteuid() == 0:
+        pytest.skip("root reads a mode-000 dir; the defect cannot be provoked")
+    target = tmp_path / "t.jsonl"
+    target.write_text("{}\n", encoding="utf-8")
+    g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
+    sessions = g / "sessions"
+    sessions.chmod(0o000)
+    try:
+        assert rotate.find_pin_log(g, "sealed-seat") is None, (
+            "a pin under an unreadable sessions dir is UNKNOWN, not a raise")
+        assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None
+    finally:
+        sessions.chmod(0o755)
