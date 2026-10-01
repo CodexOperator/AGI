@@ -57,6 +57,27 @@ pin is UNKNOWN, never a zero, and never a rotation. With all 14 pins sealed,
 `rotate.py status` now prints the whole table and 18 UNKNOWNs instead of
 crashing on row one — the shape the code already documented, finally reached.
 ```
+
+
+## 🔴 THE MASTER NEVER GOT THE WAKE (measured 18:1xZ)
+```
+My gate request to SM was WRITTEN to the dm file and NOT DELIVERED: send.py said
+"sanctuary-master row window @5 is gone ... no wake", then "[undelivered-yet] ...
+the sweep retries". MEASURED FALSE: SM is alive (pid 34181, claude, parent 34171
+the rotate.py launch-wrapper, up 11211s) and its session_id 7caaed40 matches its
+own meter pin. CAUSE: the live tmux server is belam's, /tmp/tmux-1000 mode 0700;
+every director uid has its own EMPTY socket dir (/tmp/tmux-970 is mine). So no
+seat can list a window, and the lookup degrades to "the pane is gone" instead of
+"I cannot see the panes" -- the same shape as tonight's rotate.py pin crash, one
+layer over: unreadable path -> fatal traceback; unreadable socket -> a confident
+false statement about a LIVE master. Second, separate: SM's row carries a DEAD
+pid 1746160, the row-vs-reality defect my own row has all day.
+CONSEQUENCE: every director->master nudge on this box is a file write plus a
+wake that cannot happen; the file sweep is the only delivery. My gate request is
+sitting unread until it is carried.
+BANKED to belam (chmod o+x /tmp/tmux-1000, or chgrp agi + 0750) and flagged to
+SM as theirs (send.py is not my lane). NOT fixed by me.
+```
 ## §4 Traps
 | trap | rule |
 |---|---|
