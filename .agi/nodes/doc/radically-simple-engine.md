@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1342,6 +1342,59 @@ else git config agi.mode ro;echo "[owner] first boot, local read-only. Hello.">>
 | P5 the remote tip unsigned | rc 1 · no merge · mode unchanged (ro stays ro) · the body stays the local one |
 **Named, not hidden:** an unsigned remote tip exits 1 with no inbox line (cut for bytes; the unit's journal and rc carry it) · `agi.mode ro` is a CELL posts must read before they push (unbuilt in the post unit) · the seed merges in the checkout it runs in, so it runs at boot before any post holds that checkout · the remote half still needs §S's limits (allowFilter, a bare-hash want, the anchor).
 **Falsifiers.** P2-P5 PASS · **T6** DG5 boots from this seed on its box, every parity row green (UNRUN; the owner's first target, after Phase C) · **T7** the Prime, at wake, lists `refs/conflicts/*` and resolves or banks each (UNRUN: a Prime card line).
+
+## U · DOMAIN CONTROLLER · alive -- the directory is ONE matrix in the graph; a certificate's key-id names its row, so editing a row revokes it; encryption-town holds no secret, only the signing window
+**Owner 06:3x-06:5xZ / 07:0xZ (verbatim on the goal):** "... Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." / "... see if it can be supercharged and compressed via matrix math. Like the way we use our matrices to help hook into the login method but not the private key itself. Same here the matrices describe how the short lived ssh key can even be “popped” securely into whatever interface takes it." **What is the TRUE state of a login right now?** One row of a matrix: who, on which box, as which principal, for how long, with which forced command. If a box can read that row and nothing else, then what a box allows is exactly what the graph says, and a check is one `cmp`.
+```
+GRAPH    the dc matrix (fenced TSV, public bytes only): box · user · principal · valid · opts       one row = one certificate template (belam 07:05Z)
+           rid = 16 hex of sha256 over the row line = the cert's key-id (§V: agi-sign -I rid, -n/-V from the row, -z serial)
+SYNC     every box already has the graph (§T: local first, then a signed sync) -> the directory travels with it: 0 new transport
+PROJECT  dc-project BOX < matrix > /etc/agi/dc/rows      this box's rows only, each led by its rid (root-owned 644; a §T boot row)
+SSHD     Match User <the agi users>: TrustedUserCAKeys (the CA pubs, §V) · AuthorizedPrincipalsCommand dc-principals %u %i
+           the cert's key-id must be a LIVE row of THIS box for THIS user, opening `restrict` -> sshd gets opts + principal, else nothing
+CHECK    dc-project BOX < matrix | cmp - /etc/agi/dc/rows      rc 0 = the box allows exactly what the graph says (the true state, read)
+DC       encryption-town = the box whose CA agent is armed for a window (§V); the directory is NOT its: it is graph, on every box
+```
+| what | where it lives | who may write it |
+|---|---|---|
+| identities (users, principals, boxes, validity, forced commands) | the dc matrix node (expansion; 0 B in the zygote) | a signed graph commit, like any node |
+| the CA public half · the KRL | §V, projected beside the rows | the same |
+| the CA private half | a capsule (§V) | nobody: popped into an agent for a window |
+| a user's private key | that login's agent only (§V) | nobody, ever |
+
+**Revocation by edit (the compression the owner asked for):** a cert names its policy by HASH, so changing one cell of a row (a shorter `valid`, a dropped principal, a different forced command) changes its rid, and every cert issued under the old row is refused at its next login: no KRL entry, no list to keep. §V's `-z` serial + KRL stays for killing ONE stolen cert without touching the row.
+
+The pieces, whole (expansion, beside §V's `agi-sign`; 590 B + 4 sshd lines):
+~~~sh
+#!/bin/sh
+# dc-project BOX < the dc matrix > rows: this box's rows, each led by its rid (16 hex of sha256 over the row) = the cert key-id; public bytes only
+while IFS= read -r l;do case $l in '#'*|'');;"$1	"*|"*	"*)printf '%s\t%s\n' $(printf %s "$l"|sha256sum|cut -c1-16) "$l";;esac;done
+~~~
+~~~sh
+#!/bin/sh
+# sshd AuthorizedPrincipalsCommand dc-principals %u %i: the cert's key-id must be a LIVE row of this box for this user -> opts + principal; a row not opening restrict = refused (fail closed)
+awk -F'\t' -v u="$1" -v i="$2" '$1==i&&$3==u&&$6~/^restrict/{print $6" "$4}' ${DC:-/etc/agi/dc}/rows
+~~~
+~~~
+Match User agi-*
+  TrustedUserCAKeys /etc/agi/dc/ca.pub
+  AuthorizedPrincipalsCommand /etc/agi/dc-principals %u %i
+  AuthorizedPrincipalsCommandUser nobody
+~~~
+**Tested 07:0xZ** (an UNPRIVILEGED sshd on a loopback high port, certificates only; a throwaway CA standing in for §V's; a 3-row matrix, two boxes; no root, no real key, host or address; sshd gone after, 0 processes left):
+| # | case | result |
+|---|---|---|
+| U1 | a cert whose key-id = a live row of this box, the right principal | logged in; the row's forced command ran |
+| U1b | the same cert asking for another command | the forced command ran instead |
+| U2 | key-id = a row of ANOTHER box | refused (rc 255): the box never sees it |
+| U3 | one cell of the row edited after the cert was signed | the old cert refused; a cert under the new rid logs in (U3b) |
+| U4 · U5 · U6 · U7 | expired cert · another CA · a plain key · a principal not on the row | refused (rc 255) each |
+| U8 | a key-id carrying `;`, spaces or `$(...)` | refused; nothing executed (awk compares, never evaluates) |
+| U9 | the check: projection vs the box | rc 0 clean · rc 1 after one hand-added row |
+| U9c | a hand-added row with EMPTY opts | FIRST FORM: honoured with a full interactive shell (the test hung on it) -> FIXED: rows not opening `restrict` are refused (+68 B); re-run: refused (rc 255) |
+
+**Honest limits.** (1) A hand-added row in `/etc/agi/dc/rows` is honoured until the check heals it; the file is root-owned, so writing one already needs root, and the check names it. (2) The `Match` block keeps every EXISTING user and key exactly as it is (the owner's "existing user and key perms"); only the agi users go certificate-only. (3) The forced command and principal are enforced; `valid` is the signer's (§V) and sshd does not re-check it against the row, so a longer-lived cert minted outside agi-sign would pass until its rid changes. (4) The DC is not a single point of failure for READING: every box holds the directory; it IS one for new logins (the armed CA window, §V F42).
+**Falsifiers.** U1-U9c PASS (scratch) · **U10** after DG3's build, `dc-project <town> | cmp` returns 0 on BOTH boxes and a dg5 cert logs in on encryption-town and nowhere else (UNRUN) · **U11** a §T boot on a fresh box projects the rows with no hand step (UNRUN; one §T matrix row `boot dc engine dc-project`).
 
 ## V · DOMAIN CONTROLLER · self-perpetuating -- keys no one can write: a fresh key every login, a certificate for minutes, the CA a 32-B seed in a capsule
 **Owner 07:0xZ:** "A literal private-key secured user but the private key auto rotates each login to domain controller. Neither domain controller nor the use account ever actually get perms to write that private key itself only rotate it next login anywhere else." **What am I ACTUALLY trying to get the machine to do here?** Make the thing worth stealing not exist long enough to be stolen, and let the one thing that must last (the CA) regrow from its escrow like everything else. The regrowth lens, inverted: **the best key to survive a box loss is one that never lived longer than a login.**
