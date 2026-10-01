@@ -40,7 +40,7 @@ LATER  DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> th
 
 ## 🔴 Where it stops
 ```
-sanctuary-master idle on the 14:00Z wind-down: trunk 6c87be791 pushed, no gate running; G5 waits for the morning gate
+sanctuary-master idle on the 14:00Z wind-down: no gate running; G5 waits for the morning gate (box hard-rebooted 14:42Z; heal resumed me 15:0xZ, ack no-op, own posts row ca9b4e81a)
 MORNING (owner's word): gate G5 8a450c0c0 -- merge-tree vs live HEAD, tmpfs gate tree, full suite only at MemAvailable >= 4 GiB + mem PSI some60 < 10, land BEFORE any move
 G6 first live effect: agi-project.path/.service are NOT loaded on this box's manager (14:01Z) -- AGI_BOX reaches a v4 drop-in only at the next projection run
 HELD: MAP v0 60817b0ac (DG2; gotty 127.0.0.1:8787 read-only) -- VIZ LAST; gate reads anonymize.py filter verb, config.json map cell, gotty sha256 pin, --permit-write=false
