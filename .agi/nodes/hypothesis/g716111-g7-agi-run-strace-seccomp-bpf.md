@@ -70,6 +70,18 @@ BASE      CUT FROM de-base-G7d tip (de612d6af + this node write). No merge. Neve
 DEMOTED   D4 D5 D6 refuted by verify · size header drift = findings row 70 (pre-existing) · the live-entry probe = the director's measurement above (rc 124), not a CI row (box path).
 FILE SCOPE .agi/nodes/.geometry/engine.md (agi-project) · extensions/agi/tests/test_agi_project_pi_direct.py.  CEILING production net +2 · tests +30 · Sonnet 5.5 subagent · 0 USD.
 
+## RESULT G7.5 (kids deacbc886 + 64e0d61a8, director record)
+G7.5 deacbc886: P = the first dir of the unit's own Environment=PATH holding an executable pi; refusal exit 3. G7.5b 64e0d61a8 AMENDS item 1 (the kid flagged the director's brief): the refusal fires only when P is empty AND this box has a pi row (line 80's own filter) -- a claude-only box projects without pi. NUMSTAT 86991a7d4..64e0d61a8: engine.md 1/1 · test_agi_project_pi_direct.py 27/5 · test_project_agi_box.py 5/2. 11 passed. Real geometry on this box: P = the engine bin dir, H = node <dir>/pi .... mur-de-base-g7e: review accept_with_residue · verify accept_with_residue (D1 confirmed with corrected evidence; D2 D3 refuted; M1-M4).
+
+## CORRECTIVE G7.6 -- closes mur-de-base-g7e g75-code (D1 + M2 M3 M4; M1 = the record above)
+BASE      CUT FROM de-base-G7d tip (64e0d61a8 + this node write). No merge. Never rebase.
+1. (D1) the refusal reads ANY non-zero jq status as 'no pi row' (`!` inverts rc 5 parse errors): a valid pi row followed by a malformed one projects node /pi. TRUE WHEN only jq's rc 4 (no match) lets an empty P pass; rc 0 (a pi row) and any other rc (error) exit 3; a row with a pi row followed by a malformed row and no pi on PATH asserts exit 3 and no h.conf.
+2. (M3) the refusal runs AFTER `mkdir -p $w;rm -f $w/agi-post@*`, so it strips the last good wants links and writes nothing back. TRUE WHEN P and the refusal are computed BEFORE the wants dir is touched (read the unit text from the section function s, not from $o); a row pre-seeds a wants link, forces the refusal, and asserts the link survives.
+3. (M2) a row for the live shape: one box with a pi row AND a claude row, pi on PATH -> both h.conf written, pi H = node <dir>/pi, claude H unchanged.
+4. (M4) the test reads the unit's PATH from the copied engine-root.md instead of re-typing its first element.
+DEMOTED   D2 D3 refuted by verify · a malformed posts.md with a non-empty P is pre-existing (line 80 prints the valid prefix), not this node.
+FILE SCOPE .agi/nodes/.geometry/engine.md (agi-project lines ~78-79) · extensions/agi/tests/test_agi_project_pi_direct.py (+ test_project_agi_box.py helper only if needed).  CEILING production net +1 · tests +35 · Sonnet 5.5 subagent · 0 USD.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 G7.4/G7.5 (DG3 17:0xZ-17:3xZ): G7.2's -b execve was ruled telemetry-only (M2), but on a PI row it ENDS the session: pi is an env-node shebang, env re-execs node on the same pid, strace detaches its only tracee and with the -o pipe sink exits, the pty hangs up (DG5: 15 restarts after its 16:53Z key restart; bisect rc 0 in 0 s vs 124 alive). The fix moves the interpreter into the projected H (node on the pi entry) instead of dropping -b execve, keeping belam's pick (a) for compute. G7.5 replaces G7.4's grep of a literal /agi/bin with a walk of the unit's own PATH for the first dir holding pi -- the geometry stays the one source, PATH-lookup order is kept, and no pi = the projection refuses (exit 3) instead of emitting node /pi. Prior THOUGHT (G7.2 pick a, measured timings) = this node's grid history.
 <!-- THOUGHT:END -->
