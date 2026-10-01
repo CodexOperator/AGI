@@ -8339,3 +8339,62 @@ def test_g54_heal_repair_skips_a_foreign_engine_row(project: Path, monkeypatch):
     monkeypatch.setattr(real_send, "wake", lambda r, s, *a: woken.append(s))
     heal_mod._repair_stranded_wakes(project)
     assert woken == ["near"], woken
+
+
+# ── mark=False: a reader whose stdout is CAPTURED must never retire a line
+# ── (hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line) ──────
+# The advancer of both measured 10-01 reds: crons.py's mail_poll line renders
+# `send.py read --box-local >> <log> 2>&1` -- a reader whose stdout lands in a
+# cron LOG FILE, never a pane. Every unread line it printed was retired, so the
+# seat's own next read answered `empty` and the log file was the only copy.
+
+
+def _captured_read(project, seat, **kw):
+    import contextlib
+    import io
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        send_mod.read(project, seat, None, **kw)
+    return buf.getvalue()
+
+
+def test_captured_read_never_advances_the_cursor(project: Path, capsys):
+    """A mark=False read PRINTS the line and leaves it UNREAD, so the seat's
+    next printing read still delivers it (RED on trunk: the captured read
+    advanced the marker and the next read printed `empty`)."""
+    send_mod.send(project, "director-general-5", "[red] G8 order, act now",
+                  "belam")
+    inbox = project / ".agi" / "sessions" / "inbox" / "director-general-5.md"
+    before = inbox.read_bytes()
+
+    captured = _captured_read(project, "director-general-5", mark=False)
+    assert "G8 order, act now" in captured, "a captured read still PRINTS"
+    assert inbox.read_bytes() == before, \
+        "a read whose stdout is captured advanced the cursor"
+
+    pane = _captured_read(project, "director-general-5")   # the printing one
+    assert "G8 order, act now" in pane, \
+        "the seat's own read must still deliver the line the log already saw"
+    text = inbox.read_text()
+    assert text.index("G8 order") < text.index("read up to here"), \
+        "the marker must sit after the line that WAS printed"
+
+
+def test_mail_poll_cron_renders_the_capturing_read_as_peek(tmp_path,
+                                                             monkeypatch):
+    """The NAMED advancer, pinned where it is rendered: crons.py's mail_poll
+    line redirects `read --box-local` into the cron LOG FILE, so it must
+    render with `--peek` or it retires every line no pane ever saw."""
+    import crons
+    monkeypatch.setattr(crons, "_require_git_repo", lambda *a, **k: None)
+    root = tmp_path / ".agi"
+    root.mkdir()
+    (root / "config.json").write_text("{}")
+    cfg = {"crons_live": True, "jobs": {"mail_poll": {
+        "enabled": True, "every_mins": 5, "schedule": None}}}
+    lines = crons.render_managed_lines(root, tmp_path, tmp_path, cfg)
+    poll = [ln for ln in lines if "--box-local" in ln]
+    assert poll, lines
+    assert "--peek" in poll[0], \
+        "a cron whose stdout goes to a log file must not retire the cursor"
+    assert "migrate --receive" in poll[0]

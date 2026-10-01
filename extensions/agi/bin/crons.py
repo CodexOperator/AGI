@@ -936,9 +936,16 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         # SAME tick then receives: `migrate --receive` seats a verified
         # quick-migrate record addressed to THIS box (SM.123 conjunct 2).
         # `;` not `&&` -- a read refusal must never skip the receive half.
+        # `--peek`: this tick's stdout is redirected into the cron LOG FILE,
+        # so it reaches no pane. Without --peek the read still advanced every
+        # LOCAL row's `# read up to here` past lines only the log ever held,
+        # and the seat's own next read answered `empty` -- the two measured
+        # 10-01 red cases (hypothesis:g1-inbox-read-cursor-never-passes-an-
+        # unprinted-line). Print, never retire; the seat's read is the
+        # printing one.
         lines.append(
             f"{sched} cd {root} && git -C {repo_root} fetch -q origin && "
-            f"python3 {send_py} read --box-local >> {log} 2>&1; "
+            f"python3 {send_py} read --box-local --peek >> {log} 2>&1; "
             f"python3 {rotate_py} migrate --receive >> {log} 2>&1"
         )
 
