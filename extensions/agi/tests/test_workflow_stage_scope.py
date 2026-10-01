@@ -1,17 +1,8 @@
-"""F1-F10 of hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: a
-workflow stage runs in a NAMED scope and stops it on EVERY exit path, so no
-orphan (a repo-wide grep the stage left behind) outlives its stage.
-FAKES ONLY. `systemd-run` / `systemctl` are tmp scripts put FIRST ON PATH, and
-`_stops` asserts every stop resolved INSIDE that tmp dir. The recorder WRAPS the
-conftest autouse guard (never the stdlib original) and runs the proven tmp fake
-itself, so the guard still fires for what the fake does not cover (F10)."""
-import contextlib
-import json
-import os
-import shutil
-import subprocess
-import sys
-import time
+"""F1-F11 of hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: a stage
+runs in a NAMED scope and stops it on EVERY exit path, so no orphan outlives it.
+FAKES ONLY: `systemd-run`/`systemctl` are tmp scripts FIRST ON PATH, `_stops` proves
+every stop resolved inside that dir and WRAPS the conftest guard (F10)."""
+import contextlib, json, os, shutil, subprocess, sys, time  # noqa: E401
 from pathlib import Path
 
 import pytest
@@ -20,17 +11,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
 import mem_cap  # noqa: E402
 import workflow as _wf  # noqa: E402
 
-#: the TRUE stdlib subprocess.run, for the proven tmp fake only (see `_stops`)
+#: the conftest import fence's run wrapper, NOT the stdlib original (`_stops` only)
 _TRUE_RUN = subprocess.run
 WF = Path(__file__).resolve().parents[1] / "workflows"
 
 
 def _fake_bin(tmp_path, monkeypatch, *, stop_rc=0, no_systemctl=False,
               stop_body="") -> Path:
-    """PATH-first tmp fakes: systemd-run logs then execs; systemctl logs, runs
-    `stop_body`, exits `stop_rc`."""
-    d = tmp_path / "bin"
-    d.mkdir()
+    """PATH-first fakes: systemd-run logs, execs; systemctl logs, `stop_body`, `stop_rc`."""
+    d = tmp_path / "bin"; d.mkdir()
     log = tmp_path / "calls.log"
     (d / "systemd-run").write_text(
         "#!/bin/bash\n" f'echo "run $*" >> "{log}"\n'
@@ -48,17 +37,14 @@ def _fake_bin(tmp_path, monkeypatch, *, stop_rc=0, no_systemctl=False,
 
 def _unit_of(tmp_path: Path) -> str:
     """The `--unit=` the fake systemd-run ACTUALLY received."""
-    log = tmp_path / "calls.log"
-    run = next(ln for ln in (log.read_text().splitlines() if log.exists() else [])
+    run = next(ln for ln in (tmp_path / "calls.log").read_text().splitlines()
                if ln.startswith("run "))
     return next(a.split("=", 1)[1] for a in run.split() if a.startswith("--unit="))
 
 
 def _stops(monkeypatch, fake_dir: Path) -> list[list]:
-    """Every `systemctl` argv issued, in order, each PROVEN to resolve inside
-    `fake_dir`; declared `_wf._REAL_RUN` so the seam takes its real-launch path.
-    The spy WRAPS the CURRENT `subprocess.run` (the conftest guard): only a stop
-    proven inside `fake_dir` runs that tmp script; all else hits the guard."""
+    """Every `systemctl` argv, in order, PROVEN inside `fake_dir` (only that tmp
+    script runs; all else hits the WRAPPED guard); declared `_wf._REAL_RUN`."""
     stops: list[list] = []
     chained = subprocess.run
 
@@ -76,8 +62,28 @@ def _stops(monkeypatch, fake_dir: Path) -> list[list]:
 
 
 def _env(d: Path) -> dict:
-    """The stage's env: the tmp fakes FIRST on PATH."""
-    return {"PATH": f"{d}:{os.environ['PATH']}"}
+    """The stage's env: the tmp fakes FIRST on PATH, every process TAGGED."""
+    return {"PATH": f"{d}:{os.environ['PATH']}", "AGI_ROW": f"{d}/"}
+
+
+@pytest.fixture(autouse=True)
+def _no_process_left(tmp_path):
+    """h60c item 2: after EVERY row, no process a stage of it started (tagged by
+    `_env`) is alive; a leftover is killed, then the row FAILS."""
+    yield
+    tag, left = f"AGI_ROW={tmp_path}/".encode(), []
+    for _ in range(60):
+        left = []
+        for p in Path("/proc").glob("[0-9]*"):
+            with contextlib.suppress(OSError):
+                if tag in (p / "environ").read_bytes():
+                    left.append(int(p.name))
+        if not left:
+            return
+        time.sleep(0.05)
+    for pid in left:
+        with contextlib.suppress(OSError): os.kill(pid, 9)
+    assert not left, f"processes left behind: {left}"
 
 
 def _stage(args, d: Path, *, budget=1.0, label="verify"):
@@ -90,14 +96,15 @@ def _stage(args, d: Path, *, budget=1.0, label="verify"):
 
 def test_F1_normal_return_stops_the_scope_it_wrapped(tmp_path, monkeypatch):
     """A stage that backgrounds a child and exits 0 stops the unit the wrap
-    USED exactly once; `_stops` asserts no real systemctl was reachable."""
-    d = _fake_bin(tmp_path, monkeypatch)
+    USED exactly once; the fake stop kills that child, as a real scope stop does."""
+    pids = tmp_path / "pids"
+    d = _fake_bin(tmp_path, monkeypatch, stop_body=f"kill -9 $(cat {pids})\n")
     stops = _stops(monkeypatch, d)
-    (tmp_path / "stage.sh").write_text("#!/bin/bash\nsleep 30 >/dev/null 2>&1 &\nexit 0\n")
+    (tmp_path / "stage.sh").write_text(
+        f"#!/bin/bash\nsleep 30 >/dev/null 2>&1 &\necho $! > {pids}\nexit 0\n")
     assert _stage(["bash", str(tmp_path / "stage.sh")], d, budget=10,
                   label="review").returncode == 0
-    unit = _unit_of(tmp_path)
-    assert unit.startswith("agi-stage-mur-39_review-")
+    assert (unit := _unit_of(tmp_path)).startswith("agi-stage-mur-39_review-")
     assert stops == [["systemctl", "--user", "stop", unit]]   # never silence
 
 
@@ -124,11 +131,9 @@ def test_F3_a_failing_stop_is_one_stderr_line_and_never_a_raise(tmp_path,
         monkeypatch, capsys):
     """F3: a failing stop never raises; it is ONE stderr line naming the unit --
     the fake's rc 1, and no systemctl on PATH at all (the guard answers rc 1)."""
-    script = tmp_path / "s.sh"
-    script.write_text("#!/bin/bash\nexit 3\n")
+    script = tmp_path / "s.sh"; script.write_text("#!/bin/bash\nexit 3\n")
     for kwargs in (dict(stop_rc=1), dict(no_systemctl=True)):
-        root = tmp_path / next(iter(kwargs))
-        root.mkdir()
+        root = tmp_path / next(iter(kwargs)); root.mkdir()
         d = _fake_bin(root, monkeypatch, **kwargs)
         monkeypatch.setenv("PATH", str(d))   # the REAL systemctl unreachable
         seen = _stops(monkeypatch, d)
@@ -150,8 +155,7 @@ def test_F4_wrap_argv_without_a_unit_is_byte_unchanged(monkeypatch):
 
 
 def test_F5_both_merge_up_review_prompts_forbid_a_recursive_grep():
-    """F5: the no-grep line is in BOTH carriers -- the workflow's stage prompts
-    and the script's own REVIEW/VERIFY templates."""
+    """F5: the no-grep line is in BOTH carriers: stage prompts and the .js templates."""
     want = ("never grep -r", "never `rg`", "never `find`")
     prompts = [s["prompt"] for s in
                json.loads((WF / "merge-up-review.json").read_text())["stages"]]
@@ -162,37 +166,21 @@ def test_F5_both_merge_up_review_prompts_forbid_a_recursive_grep():
 
 def _wait_for(pids: Path) -> None:
     for _ in range(200):
-        if pids.exists():
-            return
-        time.sleep(0.05)
-
-
-@contextlib.contextmanager
-def _reaped(pids: Path):
-    """Never leave a 300 s sleeper behind, pass or fail."""
-    try:
-        yield
-    finally:
-        _wait_for(pids)
-        for p in (pids.read_text().split() if pids.exists() else []):
-            with contextlib.suppress(OSError, ValueError):
-                os.kill(int(p), 9)
+        time.sleep(0 if pids.exists() else 0.05)
 
 
 def _orphan_dead(pids: Path) -> bool:
     """The recorded orphan is gone or a zombie (a missing pids file FAILS)."""
     _wait_for(pids)
     try:
-        stat = Path(f"/proc/{pids.read_text().split()[0]}/stat")
-        return stat.read_text().split()[2] in "ZX"
+        return Path(f"/proc/{pids.read_text().split()[0]}/stat").read_text().split()[2] in "ZX"
     except FileNotFoundError:
         return pids.exists()
 
 
 def _held_pipe_stage(tmp_path, monkeypatch, tail="exec sleep 300\n", kills=True):
-    """A stage that backgrounds an orphan HOLDING its stdout pipe, records its pid
-    atomically, then runs `tail`. `kills`: the fake stop models a REAL scope
-    stop (stage AND orphan go), WAITING for the pids file -- never a race (item 3)."""
+    """A stage backgrounds an orphan HOLDING its stdout pipe, records its pid, runs
+    `tail`. `kills`: the fake stop kills the orphan as a REAL scope stop does (no race)."""
     monkeypatch.setattr(_wf, "_WALL_STOP_GRACE_S", 1.0)   # seconds, not 30
     pids = tmp_path / "pids"
     body = (f"for _ in $(seq 200); do [ -s {pids} ] && break; sleep 0.05; done\n"
@@ -207,45 +195,57 @@ def test_F6_an_orphan_holding_the_stage_pipe_dies_with_the_scope(tmp_path, monke
     """F6: an orphan INHERITING the stage's stdout pipe hung the wall path forever
     (the `finally` never ran). Now: a wall kill inside a bound, the ORPHAN DEAD."""
     d, stops, pids, argv = _held_pipe_stage(tmp_path, monkeypatch)
-    with _reaped(pids):
-        t0 = time.monotonic()
-        with pytest.raises(subprocess.TimeoutExpired):
-            _stage(argv, d, budget=0.5)
-        assert time.monotonic() - t0 < 20, "the wall path hung again"
-        assert stops == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
-        assert _orphan_dead(pids)
+    t0 = time.monotonic()
+    with pytest.raises(subprocess.TimeoutExpired):
+        _stage(argv, d, budget=0.5)
+    assert time.monotonic() - t0 < 20, "the wall path hung again"
+    assert stops == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
+    assert _orphan_dead(pids)
 
 
-def test_F7_a_stage_that_exited_with_a_held_pipe_returns_its_own_rc(tmp_path, monkeypatch):
-    """item 2(a): the stage EXITED (rc 7) with an orphan still holding its pipe:
-    its own rc is the result, the unit IS stopped, nothing is left alive."""
-    d, stops, pids, argv = _held_pipe_stage(tmp_path, monkeypatch, "exit 7\n")
-    with _reaped(pids):
-        assert _stage(argv, d, budget=2.0).returncode == 7
-        assert stops == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
-        assert _orphan_dead(pids)
+@pytest.mark.parametrize("tail,rc", [("exit 7", 7), ("kill -9 $$", -9)])
+def test_F7_a_stage_that_exited_with_a_held_pipe_returns_its_own_rc(
+        tmp_path, monkeypatch, tail, rc):
+    """item 2(a): the stage EXITED (rc 7) -- or was OOM-KILLED (-9, h60c item 3)
+    -- with an orphan still holding its pipe: its own rc is the result, so a cap
+    death is named 'memory-cap', never 'timed out' (what 96a7dd7173 raised)."""
+    d, stops, pids, argv = _held_pipe_stage(tmp_path, monkeypatch, tail + "\n")
+    r = _stage(argv, d, budget=2.0)
+    assert (r.returncode, mem_cap.is_cap_death(r.returncode, "64M")) == (rc, rc < 0)
+    assert stops == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
+    assert _orphan_dead(pids)
 
 
 def test_F8_a_real_wall_timeout_raises_though_the_orphan_survives(tmp_path, monkeypatch):
-    """item 2(b): a stage STILL RUNNING at the wall whose orphan SURVIVES the
-    stop raises TimeoutExpired -- the caller's 'timed out after N s' branch,
-    never a bare negative rc read as 'memory-cap' (what 96a7dd7173 returned)."""
+    """item 2(b): a stage STILL RUNNING at the wall, orphan SURVIVING the stop, raises
+    TimeoutExpired ('timed out'), never a bare -9 read as 'memory-cap' (96a7dd7173)."""
     d, stops, pids, argv = _held_pipe_stage(tmp_path, monkeypatch, kills=False)
-    with _reaped(pids):
-        with pytest.raises(subprocess.TimeoutExpired):
-            _stage(argv, d)
-        assert stops == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
+    with pytest.raises(subprocess.TimeoutExpired):
+        _stage(argv, d)
+    assert stops == [["systemctl", "--user", "stop", _unit_of(tmp_path)]]
+    _wait_for(pids)
+    os.kill(int(pids.read_text().split()[0]), 9)   # the survivor, by design
 
 
 def test_F9_a_prlimit_fallback_launch_stops_nothing(tmp_path, monkeypatch):
-    """item 2(c): the prlimit fallback wraps in `prlimit`, not `systemd-run`, so
-    no scope exists and NO stop is attempted."""
+    """item 2(c): the prlimit fallback has no scope, so NO stop is attempted."""
     d = _fake_bin(tmp_path, monkeypatch)
     stops = _stops(monkeypatch, d)
     monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: False)
     assert _stage(["/bin/bash", "-c", "exit 5"], d, budget=10,
                   label="review").returncode == 5
     assert stops == []
+
+
+def test_F11_the_legacy_run_seam_keeps_the_anonymous_wrap_and_stops_nothing(monkeypatch):
+    """C6: an injected-`subprocess.run`-only caller: ANONYMOUS wrap, launch only, NO stop."""
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: True)
+    calls: list = []
+    monkeypatch.setattr(subprocess, "run", lambda cmd, *a, **k: calls.append(cmd)
+                        or subprocess.CompletedProcess(cmd, 0, "", ""))
+    assert _stage(["true"], Path("/nonexistent"), label="review").returncode == 0
+    assert [c[:3] for c in calls] == [["systemd-run", "--user", "--scope"]]
+    assert not [a for a in calls[0] if a.startswith("--unit=")]
 
 
 def test_F10_the_conftest_guard_still_stops_a_real_shaped_unit(tmp_path, monkeypatch, capsys):
