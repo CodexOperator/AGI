@@ -24,16 +24,16 @@ thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 hig
 | directors | director-thought-1 + -2 SEATED 12:4xZ / 12:5xZ (Sonnet 5.5, v5) · lane max parallel, mixed Sonnet + pi-free |
 | subagents | Sonnet 5.5 EVERY subagent (belam 12:44Z); me Opus 5.5 |
 | handoff | RECEIVED 12:46Z (VERIFIED thought-master): research loop + board writes are mine; old TM on STANDBY |
-| LIVE (1) | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: OLD TM's Opus builder subagent (llama.cpp per-KV-head 4-sink + last-128 mask, CPU container --memory 7g, served Qwen3.5-9B GGUF read-only; waits MemAvailable >= 8 GB) -> lands experiment:tm-l4-9b-1001; old TM pushes its commits + relays the report verbatim to me |
+| PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: BLOCKED 13:17Z (MemAvailable 3.5-6.8 GB never reached the 8 GB gate in 2.5 h); built + committed c72c99802 c17b49e48; gate KEPT; resume steps in the node's THOUGHT (007f9ce96) |
 | box | ACL on .git/objects fixed by belam 12:4xZ (g:agi) · MAIN datasets/osc-band NOT writable by v5 users (out dirs resolve under the builder's tree) |
-| LIVE (3) | SELF-POKE toy = hypothesis:lm-self-poke-harness-separates-real-from-sham-on-the-grokked-toy (fe3c1bf78), builder director-thought-1, ordered 12:5xZ (inbox form; nudge refused = foreign row, its cccc poll wakes it); building since 12:5xZ (config cell + out dir in its tree at 13:00Z) |
+| LIVE (2) | SELF-POKE toy = hypothesis:lm-self-poke-harness-separates-real-from-sham-on-the-grokked-toy (fe3c1bf78), builder director-thought-1, ordered 12:5xZ (inbox form; nudge refused = foreign row, its cccc poll wakes it); building since 12:5xZ (config cell + out dir in its tree at 13:00Z) |
 | | SEEDS x3 = hypothesis:lm-neuron-periodicity-control-replicates-across-training-seeds (cd6281988), builder director-thought-2, ordered 13:0xZ |
 
 ## §1 Plan
 ```
 DONE   boot · lane = A · card committed
 DONE   handoff received 12:46Z
-NEXT   (1) L4 r5 report (relayed by old TM) -> adversarial review (Sonnet 5.5) -> THOUGHT + board row; if PROVED -> split-cache patch (b) (~0.5 / 1.0 GiB freed at 64K; survey facts in r5 Measured)
+NEXT   (1) L4 r5 PARKED: resume only when MemAvailable >= 8 GB holds (a quiet box) by a docker-capable user; then review; if PROVED -> split-cache patch (b)
        (2) SELF-POKE toy: DT-1's one-line return -> adversarial review (Sonnet 5.5) -> THOUGHT + board row (g5.28 side of trajectory_standin) -> land
        (3) SEEDS x3: DT-2's return -> adversarial review -> THOUGHT + board row -> land
        (4) later: the brief's walk vector as a kid's read prior
@@ -42,12 +42,13 @@ BLOCKED docker: my user is not in the docker group (permission denied on the soc
 ```
 
 ## §2 Landed
+- 13:1xZ L4 r5 BLOCKED (relay from old TM) -> parked, gate kept, THOUGHT 007f9ce96
 - 13:0xZ hypothesis:lm-neuron-periodicity-control-replicates-across-training-seeds minted (cd6281988), ordered to DT-2 · [rule] to both: detached run = setsid nohup (no user manager on v5)
 - 12:5xZ hypothesis:lm-self-poke-harness-separates-real-from-sham-on-the-grokked-toy minted (fe3c1bf78), ordered to DT-1
 
 ## 🔴 Where it stops
 ```
-awaiting (a) the L4 r5 report relayed by old TM and (b) DT-1's return on the SELF-POKE toy (c) DT-2's return on SEEDS x3: python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new (+ dm file belam--thought-master-new)
+awaiting (b) DT-1's return on the SELF-POKE toy (c) DT-2's return on SEEDS x3: python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new (+ dm file belam--thought-master-new)
 ```
 
 ## §4 Traps
@@ -65,6 +66,7 @@ awaiting (a) the L4 r5 report relayed by old TM and (b) DT-1's return on the SEL
 - none yet
 
 ## §6 BANKED
+- L4 r5 on the 9B needs MemAvailable >= 8 GB (a 7 GB container) on a 16 GB box with ~12 live posts and the MAIN repo on a 7 GB tmpfs (3.2 GB shared): options (a) run it when the owner thins the live posts (RECOMMENDED) · (b) lower the gate to ~6.5 GB with the container cap at 7 GB = OOM risk · (c) a smaller-model rung first. Also: v5 users have no docker socket -- the resume needs old TM's user or a docker group grant (belam/owner)
 - (inherited from doc:card-thought-master) an LLM periodicity re-test needs a multi-digit-number tokenizer = a download; owner call
 
 ## Skills
