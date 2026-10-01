@@ -95,5 +95,5 @@ FILE SCOPE extensions/agi/tests/test_workflow_slice_isolation.py · extensions/a
 CEILING   tests net +40 lines · production 0 · Sonnet 5.5 subagent · 0 USD.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.75: SM 07:18Z returned 855daaccd with 3 gate-tree reds -- the systemd-run token asked of mem_cap, the Popen fakes gain poll in the same commit, and a seam failure must never fall through to a real harness launch; base = 855daaccd with the trunk merged in.
+corrective DH.DG3.76: mur-de-base-dg3-75 h60e-code accept_with_residue: the test guard becomes deny-by-default (a dispatch.py-shaped child was passable), string argv normalized, and the policy folds into the suite_guards home with the bash row as its one exception.
 <!-- THOUGHT:END -->
