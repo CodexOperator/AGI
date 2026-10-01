@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (04:4xZ 10-01) — f~0.40 · LANES (owner via belam 02:27Z): DG3 = Opus 5.5 subagents at effort MEDIUM for EVERYTHING, up to 3 live; murs pi-free · no STOP
+## §0 State (04:5xZ 10-01, new session) — f~0.09 · LANES (owner via belam 02:27Z): DG3 = Opus 5.5 subagents at effort MEDIUM for EVERYTHING, up to 3 live; murs pi-free · no STOP
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the .11 BUILDER (Opus subagents) |
@@ -34,13 +34,13 @@ BUILD goal:g7.16.1.11 (radically simple engine; config:engine)
        council [red] §N.5 folded: Slice=agi.slice + a system agi.slice capped FROM config:guard; N4 proved BEFORE DG5 starts; council pane (no dtach)
        HARNESS CHANGE (owner 04:40Z): DG5 = Claude Code Sonnet 5.5 + REMOTE CONTROL ON, own user, copied CC creds (claudeAiOauth, 600), in agi.slice;
          ONE kid on pi-free + CCCC; NEVER pi posing as CC to RC; report app-visible y/n + the creds' uid/network binding
-       PHASE A' (Opus, no root) RUNNING -> /tmp/agi-stage25/v4b/ -> re-mint/update doc:g716111-stage25-rootplan -> PHASE C ON belam's WORD
+       PHASE A' first run LOST at the 04:45Z rotation (only build/assemble.py touched) -> RELAUNCHED 04:5xZ (Opus, no root) into /tmp/agi-stage25/v4c/ (v4b untouched) -> mint doc:g716111-stage25-rootplan update -> [decision] to belam -> PHASE C ON belam's WORD
        OPEN with belam (04:3xZ, acked 04:4xZ): shared-refresh-token RISK of copied creds · slice overcommit · memguard patch R-MG · key broker = stage 3 ·
          WHO STOPS the OLD-engine director-general-5 scope still running (plan holds while it lives) · C1/C2 = Prime landings
   STOP before stage 3 (migration, retiring Python): the owner's word through belam
 HELD   key / identity / signing / rotate / spawn-row / write-gate rounds + goal:g7.16.1.7 (the build replaces them)
 LIVE ROUNDS (each -> pi-free re-mur -> residues 0 -> [merge-up] to SM)
-  .10.7   goal:g7.16.1.10.7 merge gate: [merge-up] 27042fc3cf SENT; SM 03:30Z COORDINATOR CALL = land under OPTION A after its suite (GO pending);
+  .10.7   goal:g7.16.1.10.7 merge gate: LANDED 9158583d26 by SM 03:56Z under OPTION A (suite 7733 / 5 known reds, none in range; links 5587/0); inert until the Prime's cells; activation waits on crmur
           leaf goal:g7.16.1.10.7.1 (horizon) carries the skill retirement; the merge_gate cells wait for crmur; SM carries the grep-wins [rule]
   row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: de-base-DG3.69 tip b9576d2d43 (218p/8s; prod +52/58; test 260/260)
           -> re-mur h60d RUNNING (unit agi-director-general-3-mur-h60d) over 8abfaf9e9d..b9576d2d43
@@ -48,7 +48,7 @@ LIVE ROUNDS (each -> pi-free re-mur -> residues 0 -> [merge-up] to SM)
           -> re-mur h7556g RUNNING (unit ...-mur-h7556g) over 0d7a379694..d73bf50bf6
   crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round: de-base-DG3.71 tip 2634a61987 (483p/8s/1x; +22/+40; lean 85:
           the FLAT shape without tips still writes ?..?) -> mur hcr: review accept_with_residue (gap INSIDE the claim), verify FAILED rc 2 ->
-          DG3.71b by an Opus subagent RUNNING (flat shape refuses missing tips rc 2; F3 pin -> refusal) -> re-mur -> [merge-up]; GATES the merge_gate cells
+          CORRECTIVE DG3.71b on the node (66e57e929); first run LOST at rotation (no bytes) -> RELAUNCHED: Opus subagent on branch de-base-DG3.71b (worktree /mnt/agi-ram/worktrees/de-base-DG3.71b, cut 2634a61987) -> re-mur over 2634a61987..<tip> -> [merge-up]; GATES the merge_gate cells
 QUEUE  (SM order) done/in-flight: row 60 -> g7556 fork -> council-report fork -> .10.7
 FINDINGS goal:g7.33.19 rows 38-68 (65 blind harvest x5 · 66 grace literal · 67 four no-grep carriers · 68 heal.py dead counter)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair
@@ -60,7 +60,7 @@ this session (loop branches, sent/under review): .10.7 chain -> 27042fc3cf · ro
 earlier: .10.5 2ed4492434 · g7556 627c94a040 · .10.3 521ebaa951 · goal:g1.31.3.2.1 e585436f87 (previous card versions: grid)
 
 ## 🔴 Where it stops
-Three pi-free murs running (h60d, h7556g, hcr) + Opus Phase A' for stage 2.5; .10.7 waits on SM's GO; Phase C waits on belam's word. First commands on wake:
+Two pi-free murs running (h60d, h7556g; hcr finished = triaged into DG3.71b) + two Opus subagents (DG3.71b, Phase A' v4c); .10.7 LANDED 9158583d26 (SM 03:56Z); Phase C waits on belam's word. First commands on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; tail -5 .agi/comms/season-2/dm/director-general-3--sanctuary-master.md; for u in h60d h7556g hcr; do echo $u $(systemctl --user is-active agi-director-general-3-mur-$u); done; ls /tmp/agi-stage25/v4b/ 2>/dev/null
 ```
@@ -95,4 +95,4 @@ then per finished mur: read .agi/sessions/workflows/runs/mur-de-base-dg3-{69,70-
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 
-ROTATION NOTE: Agent-tool subagents die with this session -- rotate only once Phase A' + DG3.71b have returned (or name them lost in the stops line).
+ROTATION NOTE: Agent-tool subagents die with this session -- rotate only once Phase A' (v4c) + DG3.71b have returned (or name them lost in the stops line).
