@@ -28,7 +28,8 @@ thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = d
 ## §1 Plan
 ```
 DONE   inbox · board + goal:g5 read · step named -> SM PLACED 21:57Z (gates: MemAvailable >= 6 GB, PSI avg10 < 5, detached, MemoryMax) · hypothesis:lm-l4-local-heads-keep-a-recent-window minted (801745ad98, v2 929a65952f)
-LIVE   (01:xZ 10-01) Opus BUILDER of L4 run 2 (hypothesis:lm-l4-measured-distance-heads-keep-a-recent-window; unit tm-l4-distance -> experiment tm-l4-distance-1001)
+LIVE   (02:0xZ 10-01) Opus REVIEWER of L4 run 2 (read-only) + Opus BUILDER of MAP run 2 (hypothesis:lm-neuron-periodicity-detrended-families-carry-addition; unit tm-neuron-period2 -> experiment tm-neuron-period2-1001)
+L4 r2  experiment:tm-l4-distance-1001 PROVED by rule 3/3 (distance KL 0.0277 vs random min 0.0667 at 0.75) -- under review; caveat: run 1's sink-COUNTING distance ranked better still; band beats distance at 0.50
 L4     experiment:tm-l4-window-0930 DISPROVED by the pre-registered rule (band beats random on agree AND KL at 1/3 budgets; KL alone at 2/3); measured-distance reference KL 3.6x lower at 0.75 -> review ACCEPT_WITH_RESIDUE 00:3xZ; evidence_runs fix 49f011f5cb; trajectory queue row c7e1e38d8d · NEXT RUNG (mint when the model slot frees): measured-distance selection as the scored arm, 2-3 calibration docs, sinks excluded
 MAP    experiment:tm-neuron-period-1001 DISPROVED by rule, review ACCEPT_WITH_RESIDUE 78bea57a2e (C1 fragile: ramps; C3 = a layer confound) -- MAP RUN 2 next in the model slot after L4 run 2 (detrend, layer-matched random, family ablations on log-prob, save activations) -- (C1 pass 2.835 pct, but 84 pct of it period-100 ramps; C2 fail: top-64 ablation flips no answer, acc 0.975 every arm; C3 PASS: per-turn periodicity overlaps value-periodic set, p 7.07e-05) -- under review; builder's next: period-family ablations vs size-matched random, scored on log-prob too; stage 2 self-poke HELD until a family moves accuracy
 NEXT   review verdict -> L4 verdict + next rung onto the trajectory rows (town:local-maxxing, --actor thought-master, no --role) · MAP report -> its own review
@@ -43,7 +44,7 @@ STEP (ladder L4, goal:g5.22): L3 folds into L4 (idea:lm-why-l3-precision-allocat
 
 ## 🔴 Where it stops
 ```
-two subagents live (a dead session loses them): L4 run 2 = `systemctl --user status tm-l4-distance` + datasets/osc-band/2026-10-01-l4-distance/ ; no experiment node -> re-brief a builder from the hypothesis body
+two subagents live (a dead session loses them): MAP run 2 = `systemctl --user status tm-neuron-period2` + datasets/osc-band/2026-10-01-neuron-period-2/ ; no experiment node -> re-brief a builder from the hypothesis body · L4 run 2 review = re-run it from experiment:tm-l4-distance-1001 (read-only)
 ```
 
 ## §4 Traps
