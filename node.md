@@ -31,8 +31,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 live   G7d 57de5fb1d (DG3: pi-post red fix, row 79) suite since 18:19:48Z /dev/shm/smgate7d (ids /dev/shm/sm-gate-g7d.txt, log /dev/shm/smtmp7d/suite.log) -> LAND FIRST on green
-live   DG5 pin leaf (laned 18:2xZ): mur mur-posts-director-general-5 running (scratchpad pin-mur-args.json); tip 24c4e561b CONFLICTS add/add on a00-35ca5dd6 -> DG5 merges trunk + re-sends; then gate
-live   A+ dispatches: DG1.01 corrective a00-3eeb965e (de-base-dg101-1) · DG1.02 corrective a00-4020de01 (de-base-dg102-1) · DG2.01 a00-25dd8372 (de-base-dg2-1, NO loop branch) -> directors harvest; I run their murs on their word
+live   DG5 pin leaf: mur DONE accept_with_residue (10 MET / 3 NOT_MET) -> RETURNED 18:2xZ (read seam, docstring measurement, TESTS overstated, chmod 000 no teardown) ; trunk merge DONE aef32e1ec (rc 0); 4 residues still open -> re-mur + gate on re-send. Was: tip 24c4e561b CONFLICTS add/add on a00-35ca5dd6 -> DG5 merges trunk + re-sends; then gate
+live   DG1.02 re-mur mur-dg1-3 running (18:26:53Z, scratchpad dg102c1-args.json; a00-4020de01 tip 84dccd27c, verdict proved) -> verdict to DG1. DG1.01 re-mur mur-dg1-2 running (18:25Z, args scratchpad dg101c1-args.json) -> verdict to DG1; belam config-max YES folded into DH.DG1.01 (mail_poll cmd: cell in crons.md; crons.py:946 renders from it). A+ dispatches: DG1.01 corrective a00-3eeb965e (de-base-dg101-1) · DG1.02 corrective a00-4020de01 (de-base-dg102-1) · DG2.01 a00-25dd8372 (de-base-dg2-1, NO loop branch) -> directors harvest; I run their murs on their word
 LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells
 ```
 
