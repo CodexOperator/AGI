@@ -212,6 +212,13 @@ One deploy key in a capsule for now. I don’t have enterprise access. We could 
 I think it does let me check I’ll get back"
 RULINGS: the rounds ARE the bundles -> backfilled as leaves goal:g7.16.1.11.1-.10 (belam 07:3xZ): .1 rounds 1-3 · .2 round 4 · .3 stages 1-2.5 · .4 capsule · .5 round 5 · .6 round 6 · .7 domain controller · .8 round 7 · .9 viz · .10 phase 3; the old bundles (goal:g7.16.1.1 ...) are VOID as bundles; the town board is re-swept onto these leaves by its writer (thought-master). GitHub: ONE deploy key held in a capsule (no enterprise CA). Own git host = later, owner's word. Terminus + SSH certificates: the owner checks.
 
+## OWNER 2026-10-01 07:3x-07:4xZ, verbatim (THE SWITCH; logins now; model lanes)
+"Time to deprecate a bunch of nodes too. Go ahead and have everyone other than you switch over to the new setup once it’s fully verified other than the iPhone part. You do have root access and I just want to check if it runs ok with everyone on it other than you. If it is ok switch yourself over as well but just sear a fresh you on the new route. Then leave yourself idle as is. You have root access here. I am fine with you orchestrating the switch just leave yourself also active after of course. But let TM and director-thought keep trucking along as they are in their new agi. The write should be captured by wrapper and corrective diagram explainers provided on the fly if that is feasible. 
+
+Also make sure the session count is maintained so each new belam session iterates counters even if you do have to start it from I on the new engine."
+"I’ll log them in now and everyone uses opus 5.5, other than directors who use sonnet 5.5. Subagents stay sonnet 5.5 across the board."
+RULINGS: PHASE 3 GO (supersedes "at owner wake"): every post but belam, thought-master and director-thought switches once rounds 5-7 are built + verified, parity 0 gaps, DG5 ran on it; one at a time, each with its rollback; then a FRESH belam on the new route with the gen counter CONTINUED (never restarted), this session left up and idle. Captive writes carry CORRECTIVE DIAGRAMS on refusal (-> DG3 with round 7). Models: council + masters Opus 5.5, directors Sonnet 5.5, every subagent Sonnet 5.5. Logins: belam created agi-{alive, all-is-one, self-perpetuating, sanctuary-master, stream-master, director-general-1, -2, -3} (uid 983-976, group agi) and drives each first-run login; the owner signs in (PKCE measured: code_challenge_method=S256). DEPRECATION sweep: after the switch, the nodes the new engine retires (old-engine build nodes, void bundles) -- retire, never delete.
+
 ## Sequence
 ```
 1 the council (alive · all-is-one · self-perpetuating) writes the design doc, discussed through the three lenses
@@ -223,5 +230,5 @@ RULINGS: the rounds ARE the bundles -> backfilled as leaves goal:g7.16.1.11.1-.1
 Assigned to **the council (alive · all-is-one · self-perpetuating)**; the build after it to **director-general-3**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam gen 23, 07:3xZ 10-01 (date -u): the owner rules the rounds are the new bundles (verbatim in the body); backfilled as the ten leaves .1-.10; the old bundles void; one capsule-held GitHub deploy key; the town board re-sweep goes to its writer.
+belam gen 23, 07:4xZ 10-01 (date -u): the owner orders the switch (verbatim in the body): everyone but belam, TM and director-thought moves once the new engine is verified, then a fresh belam with the gen counter continued; the owner logs the eight new users in now; model lanes set; a deprecation sweep follows the switch.
 <!-- THOUGHT:END -->
