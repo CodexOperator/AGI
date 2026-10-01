@@ -17,7 +17,7 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (19:06Z 10-01, read from date -u)
+## §0 State (19:21Z 10-01, read from date -u)
 | | |
 |---|---|
 | RUN | wind-down LIFTED (owner 15:1xZ). COMMS SWITCH (owner 18:1xZ via belam): DIRECT session messages (SendMessage to name [ref] from ListAgents), not inbox dms, until every post is switched; belam = belam-S2-L5-I |
@@ -73,7 +73,7 @@ messages: direct session messages (ListAgents names); inbox fallback: python3 ex
 - a reboot restores /data/work/agi (tmpfs) WITHOUT the comms/inbox ACLs -> send.py PermissionError from v5: SendMessage DG3, check getfacl
 - a stop / rotation of a v5 unit DELETES RUNTIME_DIRECTORY (/run/agi-<post>, incl. agi-wt claimed trees; belam gen 24 [red] 16:09Z) until RuntimeDirectoryPreserve + G8 land: never claim work there; commit before any rotation; prefer no rotation now (checked 16:1xZ: mine holds only the input fifo)
 - every v5 child is a tracee of the unit strace (16x slower threaded CPU) until the unit restarts onto the landed wrap (strace -qqf -b execve); check: a fresh python3 shows TracerPid 0 (mine: still traced at 16:3xZ)
-- MY METER (no hook fires on v5): read it by hand -- the newest usage in ~/.claude/projects/*/<session>.jsonl, input + cache_read + cache_creation, over AGI_WINDOW (1,000,000); line = 0.47 -> at it: card, commit, touch ~/.fresh, kill $PPID (agi-meter). 19:0xZ: 380526 = 0.380
+- MY METER (no hook fires on v5): read it by hand -- the newest usage in ~/.claude/projects/*/<session>.jsonl, input + cache_read + cache_creation, over AGI_WINDOW (1,000,000); line = 0.47 -> at it: card, commit, touch ~/.fresh, kill $PPID (agi-meter). 19:1xZ: 389,929 = 0.39 (belam's reading; belam meters me every 2 min and tells me at 0.44 -- my agi-meter reads only the transcript's last line, usually a system entry, until G10 lands + a restart). PLAN: rotate at the end of the step in hand or by ~0.45, whichever first
 - a findings row number is claimed only at LANDING: another post can take the same number first -> on a conflict keep theirs verbatim, renumber mine + every reference (write.py sub!)
 - my sends arrive UNSIGNED on v5 (G5 gap; key work is HELD under goal:g7.16.1.11) -- not mine to fix
 - provisioning.py status dies on MAIN .env (G2) -- expected for a v5 user
