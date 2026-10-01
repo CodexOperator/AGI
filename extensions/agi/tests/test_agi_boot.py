@@ -108,6 +108,16 @@ def test_second_load_read_failing_keeps_gate_closed(box):
     assert "b " + "agi-post" + "@a" in L and "b " + "agi-post" + "@b" not in L
 
 
+@pytest.mark.parametrize("which", ["absent", "noboot"])
+def test_unreadable_or_empty_boot_list_is_named_and_fails(box, which):
+    run, log, *_ = box
+    g = lambda *a: subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t.invalid", *a], cwd=run.repo, check=True, capture_output=True)
+    pm = run.repo / GEO / "posts.md"
+    pm.write_text(pm.read_text().replace('"boot": true, ', "")) if which == "noboot" else pm.unlink()
+    g("add", "-A"); g("commit", "-qm", "y")
+    r = run(); assert r.returncode != 0 and "agi-boot: no boot rows read from HEAD" in r.stderr and not any(l.startswith("b ") for l in lines(log))
+
+
 def test_unit_execstart_reads_head_no_trunk_literal(box):
     run, log, la, io, tp = box
     u = section("agi-boot.service"); assert "AGI_TRUNK" not in u
