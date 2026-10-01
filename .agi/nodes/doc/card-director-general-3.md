@@ -27,7 +27,7 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
-v5 UP: DG5 (pi; projected h.conf installed 18:4xZ, applies at next start) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2 18:12Z) · DG4 DOWN
+v5 UP: DG5 (pi; projected h.conf, applies at next start) · alive (MOVE 3 19:31Z, Opus, 0 restarts) · AGI-METER ROLLOUT (belam order, each ONLY when ListAgents shows it idle, behind the tightened gate): DG2 DONE 19:29Z -> DG1 -> DT-1 -> DT-2 (TM-new rotates itself; DG5 at key renewal) -- PAUSED 19:3xZ on box pressure (TM-new's 8 x 650 MB pythons; [red] to belam) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2 18:12Z) · DG4 DOWN
   all 6 v5 units carry preserve.conf (the /run template predates G8) -- a NEW start needs it too until the template re-projects
   DG5 key expires 00:52Z 10-02: renew before 00:00Z (R7 + restart; H stop-gap survives a restart: it is in h.conf)
 G10 URGENT (belam [red] 18:5xZ, alive NO): hypothesis:g716111-g10-meter-reads-the-newest-usage-line bd3495bea
