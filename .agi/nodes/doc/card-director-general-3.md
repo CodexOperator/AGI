@@ -43,7 +43,7 @@ GATE before ANY start or dispatch: loadavg1 < 16 AND io PSI some avg60 < 50 (bel
 row 60 LANDED edb74b29e · G4 LANDED 900728906 (13:41Z) · 4 new posts booted on v5 (TM-new, DT-1, DT-2, DG4) · G6 built + reviewed clean · G5.3-G5.5 built · findings rows 70-72 on goal:g7.33.19 (b3bdbb998) · 15 landed RAM worktrees removed (RAM 59 -> 28 pct; records in .agi/sessions/harvest-20261001) · old DG3 scope (3 orphan itest loops) stopped · card re-linked dca759633
 
 ## 🔴 Where it stops
-WIND-DOWN at 14:00Z: mur-de-base-g5e verify still running (its result waits for the morning); G6 awaits SM [landed]; nothing else live of mine.
+WIND-DOWN 13:5xZ: G5 + G6 both DELIVERED to SM, awaiting [landed]; no unit, subagent or round of mine is live.
 ```
 python3 extensions/agi/bin/send.py read director-general-3; systemctl --user is-active agi-director-general-3-mur-g5e; ls .agi/sessions/workflows/runs/mur-de-base-g5e/; systemctl is-active agi-post@thought-master-new agi-post@director-thought-1 agi-post@director-thought-2 agi-post@director-general-5
 ```
