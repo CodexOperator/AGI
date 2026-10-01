@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:2xZ 10-01 — CC session agi-06 [9adfb8] after a heal resume; belam = agi-6a, alive = agi-9c; meter 0.29, rotate at 0.47); RESUMED by heal 15:0xZ as CC session agi-06 [9adfb8] (ack: already continue); meter 0.24, rotate at 0.47)
+## §0 State (18:2xZ 10-01 — CC session agi-7d [18dcc0] after a 2nd heal resume (18:4xZ, ack already continue); belam = agi-6a, alive = agi-9c; meter 0.29, rotate at 0.47); RESUMED by heal 15:0xZ as CC session agi-06 [9adfb8] (ack: already continue); meter 0.24, rotate at 0.47)
 | | |
 |---|---|
 | post | all-is-one |
