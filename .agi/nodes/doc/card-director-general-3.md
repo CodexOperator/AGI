@@ -31,22 +31,24 @@ v5 UP (11): DG5 (pi) · thought-master-new · director-thought-1 · director-tho
   every v5 unit carries preserve.conf (the /run template predates G8): a NEW start installs it too
   DG5 key expires 00:52Z 10-02: renew before 00:00Z (R7 in doc:g716111-stage25-rootplan + restart, behind the gate); the restart also picks up its projected h.conf + the G10 agi-meter
 GATE before ANY start, restart, move OR mur launch (belam 19:3xZ): load1 < 12 AND io PSI some avg60 < 20 AND mem PSI full avg60 well under 40 -- space every start
-AGI-METER ROLLOUT (G10 landed 14e06f47b; belam order; each ONLY when ListAgents shows it idle + the gate): DG2 DONE 19:29Z -> NEXT DG1 -> DT-1 -> DT-2 (sudo systemctl restart agi-post@<p>; verify: no 'tail -1', one 'tac' in /var/lib/agi/<p>/bin/agi-meter; active, 0 restarts) · TM-new rotates itself · DG5 at key renewal
-MOVES: belam writes each row + sends the GO; the director: verify the row on the trunk -> verify the window name + pane chain -> kill-window -> TERM an orphan wrapper -> re-project the trunk (agi-project section, AGI_BOX=local-town) -> install h.conf + preserve.conf + wants -> daemon-reload -> start behind the gate -> report the first turn to belam (direct msg; ListAgents for his session). Pre-seed the post user's .claude.json first (projects./var/lib/agi/<p>/t.hasTrustDialogAccepted, fullscreenUpsellSeenCount 99; as the user, 600). Packets: .agi/sessions/dg3-mur-args/<p>-one.sub / -rollback.sub (re-check anchors against the live row)
-G9 BOOT INSTALL: residues 0, [merge-up] SENT to SM 19:5xZ (de-base-G9 tip 2561b390e) -> on landing: remove the de-base-G9 worktree -> INSTALL only on belam GO + the owner's Proxmox location: Proxmox mock FIRST, then ONE real reboot with the old belam as look-over
-HEAL ROUNDS (SM queue, belam-laned) · murs on claude-code (Sonnet 5.5, owner 10-01 08:0xZ); args staged in .agi/sessions/dg3-mur-args/ (dry-run OK 20:0xZ)
-  (1) hypothesis:heal-crash-respawn-writes-the-new-pid-into-the-row: kid d7a541b94 on /mnt/agi-ram/worktrees/heal-respawn-pid VERIFIED (26 passed) -> NEXT: mur, args murheal-pid.args.json (key heal-pid-code, 14e06f47b..d7a541b94; focus: is the PANE pid a sound liveness proxy) -> residues 0 -> [merge-up] SM
-  (2) hypothesis:heal-ack-line-comes-from-config-rotations-by-role: kid aaacd632f on /mnt/agi-ram/worktrees/heal-ack-by-role VERIFIED 20:0xZ (7 files, 136 passed); 6 neighbour edits CHECKED fixture-only (one helper copied 6x while tests/conftest.py exists = likely residue) -> NEXT: mur, args murheal-ack.args.json (run key mur-heal-ack-by-role) -> residues 0 -> [merge-up] SM
-all-is-one CUT residues -> findings rows on goal:g7.33.19 (NOT yet placed): (1) leaf goal:g7.16.1.11.8 growth gate is BUILT not HELD -- the switch is not DONE until .8 holds (2) = heal respawn-pid round above (3) 15 engine files still open the ladder (Z3). SM = agi-1f · belam = agi-6a (ListAgents if either rotates)
+AGI-METER ROLLOUT (G10 14e06f47b): DG2 DONE 19:29Z · DG1 DONE 20:34Z (clean, 0 restarts) · stream-master born with it (MOVE 6) -> NEXT DT-1 -> DT-2 (ONLY when ListAgents shows idle + the gate; sudo systemctl restart agi-post@<p>; verify tac 1 / tail -1 0, active, 0 restarts) · TM-new rotates itself · DG5 at key renewal
+MOVES: 6/9 on v5 (MOVE 6 stream-master UP 20:23Z, belam ACCEPTED). Remaining SM (land broker) · DG3 (key broker) · belam LAST (leaf .8 holds): all wait on the OWNER -- none is mine now. Procedure: verify row on trunk -> window + /proc environ AGI_POST -> pre-seed .claude.json (trust t + upsell 99, as the user, 600) -> project the trunk into the scratchpad (engine.md agi-project section, AGI_BOX=local-town) -> install h.conf + preserve.conf + wants, daemon-reload -> kill-window, TERM wrapper+claude -> start behind the gate -> first turn -> ONE line to belam
+G9: LANDED 0b8f086a5 (de-base-G9 worktree removed) · MOCK DONE 20:58Z: F1 F2 F3 HOLD, teardown after == before, belam ACCEPTED (node e5d6f3d1d + THOUGHT 86026eba9) -> G9.5 corrective (row 89: agi_boot.space_s + no wants for non-boot) BEFORE any real install -> the real /etc install and the ONE real reboot each need a SEPARATE belam GO
+ROUNDS LIVE (Sonnet 5.5 subagent kids, 21:1xZ; orders ON the nodes):
+  heal-ack DH.1 (demote: fresh non-prime ack exits 2 · FrontmatterError escapes · skill line copy) wt /mnt/agi-ram/worktrees/heal-ack-by-role from aaacd632f
+  heal-pid DH.1 (residues: unguarded pane lookup · pane vs agent pid · comment · pins)     wt /mnt/agi-ram/worktrees/heal-respawn-pid from d7a541b94
+  G9.5 (spacing cell + wants)                                                            wt /mnt/agi-ram/worktrees/de-base-G9.5 from 20edc635e
+  then per round: verify tests -> GATING mur on claude-code via ccrun.py (belam card trap 61, passB3) --args <json> (CC_MODEL Sonnet 5.5; belam 21:0xZ: the template's claude-code mur holds, row 88 DECLINED; pi-free = extra signal only) -> residues 0 -> [merge-up] SM
+  mur range = the ORIGINAL base..new tip (14e06f47b..<tip> for heal; 20edc635e..<tip> for G9.5)
 ```
 
 ## §2 Landed (this session)
-G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2 DG1 · MOVE 3 alive · MOVE 4 self-perpetuating · DG2 agi-meter restart · DG5 key renewed + projected h.conf · findings rows 78 79(DONE) 81 82 83 on goal:g7.33.19 · G9 built + reviewed (with SM) · heal-ack round verified (136 passed)
+G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · DG2 + DG1 agi-meter restarts · DG5 key renewed · G9 LANDED 0b8f086a5 + MOCK passed · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 = held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-GATE CLOSED 19:58Z-20:0xZ (load1 13-22, io avg60 50-65). Next, each behind the gate and spaced: the two heal murs (detached systemd-run, --harness claude-code), then the DG1 agi-meter restart (idle + gate).
+Three kids live (above). On each return: read the numstat vs the CEILING, run its tests, launch its GATING mur detached (systemd-run --user, --working-directory /data/work/agi, ccrun.py), then triage -> residues 0 -> [merge-up] SM.
 ```
-cat /proc/loadavg; head -1 /proc/pressure/io; tail -1 /proc/pressure/memory; systemctl --user list-units 'agi-director-general-3-*' --no-legend; for p in director-general-1 director-thought-1 director-thought-2; do sudo -n grep -c tac /var/lib/agi/$p/bin/agi-meter; done
+for w in heal-ack-by-role heal-respawn-pid de-base-G9.5; do git -C /mnt/agi-ram/worktrees/$w log -1 --oneline; done; systemctl --user list-units 'agi-director-general-3-*' --no-legend; cat /proc/loadavg; head -1 /proc/pressure/io
 ```
 
 ## §4 Traps
