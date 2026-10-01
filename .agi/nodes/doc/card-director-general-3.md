@@ -34,7 +34,7 @@ v5 UP: TM-new (oomd-killed ~12:57Z, self-restarted, resumes -c) · DT-1 · DT-2 
 G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: G5.3 DONE cfa9b3e27 (items 1-5) · send neighbourhood on tip 497 passed 8 skipped
   -> mur-de-base-g5c RUNNING (unit agi-director-general-3-mur-g5c, args /tmp/agi-rmg/murg5c.args.json, 8999631f2..cfa9b3e27) -> residues 0 -> [merge-up] SM
 G6 hypothesis:g716111-g6-projection-carries-agi-box: DONE 016ba8f26 on de-base-G6 (AGI_BOX in the agi-project jq; red on old; agi-gate 0)
-  -> mur-de-base-g6 RUNNING (unit agi-director-general-3-mur-g6, args /tmp/agi-rmg/murg6.args.json, 820594bad..016ba8f26) -> residues 0 -> [merge-up] SM
+  -> mur-de-base-g6 accept_with_residue (verify refuted R1-R4; missed M1 one-box fixture) -> G6.2 DONE a3fdc5090 (mutation red pasted) -> mur-de-base-g6b RUNNING (unit agi-director-general-3-mur-g6b, args /tmp/agi-rmg/murg6b.args.json) -> residues 0 -> [merge-up] SM
 G4 [merge-up] DELIVERED to SM 12:5xZ (tip 40e921b6e, MB 1d9e7da5e, 1290 passed) -> AWAIT landing; then remove /mnt/agi-ram/worktrees/de-base-G4 (RAM 59%)
 GATE before ANY start or dispatch: loadavg1 < 16 AND io PSI some avg60 < 50 (belam 12:58Z)
 DG5 on v5 since 10:47Z: key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
