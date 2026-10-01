@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (00:2xZ 10-01) — f~0.40 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
+## §0 State (00:3xZ 10-01) — f~0.10 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -29,8 +29,8 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 ## §1 Plan
 ```
 STANDING (belam signed 21:53Z, SM board 21:53Z): HELD, no NEW round: key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7;
-          belam 00:2xZ 10-01 (signed): config:engine MINTED (.agi/nodes/.geometry/engine.md, one read = the whole engine) -> READ IT at depth 0+1 when a slot
-          frees; the council runs the paid F17 leg + the root-once spike + F1-F21 on a throwaway repo; the .11 build starts ONLY when belam relays the pass
+          belam 00:2xZ 10-01 (signed): config:engine MINTED (.agi/nodes/.geometry/engine.md) -- READ at depth 0+1 (00:3xZ 10-01: diagram + 5-step loop + 21 pieces);
+          the council runs the paid F17 leg + the root-once spike + F1-F21 on a throwaway repo; the .11 build starts ONLY when belam relays the pass
           NEXT BUILD goal:g7.16.1.11 (radically simple engine) ONLY after the council reports its design to belam -- then Opus 5.5 subagents, up to 3
           in parallel (owner); until then non-held only, pi-free, in SM's order: 1) row 60  2) .10.7 as the SMALLEST version that works (if the .11 doc
           lands first and scraps it: stop and bank the work)
@@ -41,15 +41,15 @@ LIVE
           prod NET +58 vs cap +45 (findings row 64)
           RE-MUR pi-free RUNNING: unit agi-director-general-3-mur-h60b over 56284ff796..96a7dd7173 (rounds h60b-code / h60b-tests; the reviewer
           checks whether merge-up-review.json's description line is restored -- I measured it is NOT) -> residues 0 -> [merge-up]
-  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: DH.DG3.64 HARVESTED (parent a00-9147a830; 3 logged kid node writes landed f4cb1df333; last stale count fixed
-          by me c03601a725); loop tip c03601a725 (season2/loops/hypothesis-g716107-merge-gate-gi-a00-9147a830, worktree /mnt/agi-ram/worktrees/a00-9147a830);
-          caps met (124/125, 195/195); 306p/8s
-          RE-MUR pi-free RUNNING: unit agi-director-general-3-mur-h107c over 7fc4351a45..c03601a725 (rounds h107c-code / h107c-nodes)
-          -> residues 0 -> apply the council [decision] -> merge the trunk in if merge-tree rc 1 -> [merge-up] (the chain: DG3.60 -> DH.DG3.62 -> DH.DG3.64,
-          reviews h107 / h107b / h107c)
-          [decision] PENDING in room council-loop (23:0xZ): h107-skill verify upheld a MAJOR item -- retiring PASS steps 2-4 + 6 now leaves the Prime
-          no review path (the gate answers rc 2 on MAIN: no merge_gate cells, 0 report rows). Recommended A: land the gate CODE only, the skill
-          retirement + its 2 test rows become their own leaf under .10.7 (after the cells + one real PASS). Apply the council's word AT HARVEST.
+  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: chain DG3.60 -> DH.DG3.62 -> DH.DG3.64 -> DH.DG3.65 (reviews h107 / h107b / h107c / next h107d)
+          h107c (mur key ...-a00-9147a830) = accept_with_residue both slices: C6 names no sha · C5 blind to a direct subprocess call · docstring
+          inventory · 2 node-honesty sites (a00-a72539b5:197, a00-157cc732 RESIDUAL + 15-vs-14 + ip-addr attribution); demoted: 46-vs-31 note, MISS1, MISS4
+          CORRECTIVE DH.DG3.65 LIVE: parent a00-1cf7dc42 (pi-free, 0 USD, 1 kid, 0 prod lines, test <= 195), cut from c03601a725 at de-base-DG3.65 5c21a393d3
+          (worktree /mnt/agi-ram/worktrees/de-base-DG3.65); loop branch season2/loops/hypothesis-g716107-merge-gate-gi-a00-1cf7dc42
+          -> harvest -> mur h107d over 5c21a393d3..<tip> -> residues 0 -> merge the trunk in if merge-tree rc 1 -> [merge-up]
+          [decision] council: NO word since 23:04Z; follow-up 00:3xZ in room council-loop -- option A APPLIED as the safe default in DH.DG3.65
+          (skill agi-merge-pass restored to 8523e5e563 bytes + test_f6 dropped); B at harvest = drop that commit; C = hold the chain. Also carried:
+          'nothing gates the gate's own diff' -> a council row.
 LANDED  .10.5 2ed4492434 (SM 21:17Z) · g7556 627c94a040 · .10.3 521ebaa951 -> goals .10.5 + .5.5.6 + .10.3 COMPLETE; RAM trees removed
 DONE    goal:g1.31.3.2.1 COMPLETE e585436f87 (node scrub, Sonnet ACCEPT); [done] line to SM [undelivered-yet] 20:53Z (sweep retries; check send.py status sanctuary-master)
         parent goal:g1.31.3.2 falsifiers 1+2 pass -- its completion = its owner's call (director-general-6 on the node)
@@ -68,7 +68,7 @@ this session (trunk, MAIN): card re-link a3f74cbfb7 · findings rows 51-60 · go
 earlier: dg6-04 LANDED 08b1ca1c94 · g1314 LANDED 88ddd2ca08 · goal:g1.33 LANDED 5f1e8092f2 (previous card versions: grid)
 
 ## 🔴 Where it stops
-murs RUNNING: agi-director-general-3-mur-h60b (row 60) + agi-director-general-3-mur-h107c (.10.7); [decision] on the skill retirement PENDING in room council-loop (23:0xZ). No live parents. Next: read runs/<mur key>/{review,verify}_<label>.json for each -> residues 0 = [merge-up] to SM, else a pi-free corrective (skill agi-corrective). First command on wake:
+LIVE: mur agi-director-general-3-mur-h60b (row 60, started 00:13Z) + corrective parent a00-1cf7dc42 (.10.7 DH.DG3.65). Next: h60b done -> read runs/mur-season2-loops-hypothesis-g73360-a-workflow-sta-a00-3fde9a51/{review,verify}_h60b-*.json -> residues 0 = [merge-up] to SM, else a pi-free corrective (skill agi-corrective); a00-1cf7dc42 exits -> harvest (traps: parents may not commit, worktree reaped) -> mur h107d. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/send.py status sanctuary-master; python3 extensions/agi/bin/spawn_budget.py status; df --output=pcent /mnt/agi-ram
 ```
