@@ -8398,3 +8398,74 @@ def test_mail_poll_cron_renders_the_capturing_read_as_peek(tmp_path,
     assert "--peek" in poll[0], \
         "a cron whose stdout goes to a log file must not retire the cursor"
     assert "migrate --receive" in poll[0]
+
+
+# ── the residual the third kid named: a CONCURRENT second `read` of the same
+# seat (hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line,
+# experiment:a00-a238ee0a-cab2a6). `read` resolves `marker_index` from
+# `_scan_messages` and applies it to the file it RE-READS just before writing
+# the marker, so an append or a marker move between those two moments drifts
+# the index space. Measured across every interleaving: the drift can only make
+# `head` SMALLER (a marker that moves forward inserts a line before the stale
+# index and drops the same bytes out of `region`), so `cut` UNDER-shoots --
+# the reader leaves behind lines it already printed. Never over-shoots: no
+# line is retired that no pane printed.
+@pytest.mark.parametrize("phase", ["before", "after"])
+@pytest.mark.parametrize("other", ["append", "read", "partial", "peek"])
+def test_concurrent_second_read_never_retires_an_unprinted_line(
+        project: Path, monkeypatch, phase, other):
+    seat = "sanctuary-director"
+    inbox = send_mod._inbox_path(project, seat)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text(
+        "to: sanctuary-director\n"
+        + "ts: 2026-09-30T00:00:00Z\nfrom: prime\n\none\n"
+        + "---\nts: 2026-09-30T00:00:01Z\nfrom: prime\n\ntwo\n")
+    shown = []
+    real = send_mod._print_blocks_with_labels
+
+    fired = []
+
+    def _other_actor(root, me, blocks, wrap=160):
+        """what the OTHER caller does to the same seat, mid-read (ONCE --
+        the nested reader reaches the same printer seam)"""
+        if fired:
+            return real(root, me, blocks, wrap=wrap)
+        fired.append(other)
+        if other == "append":
+            with inbox.open("a") as f:
+                f.write("---\nts: 2026-09-30T00:00:02Z\nfrom: prime\n"
+                        "\nthree\n")
+        elif other == "read":
+            send_mod.read(root, me, "prime")
+        elif other == "peek":
+            send_mod.peek(root, me)
+        elif other == "partial":
+            send_mod._print_blocks_with_labels = real
+            try:
+                send_mod.read(root, me, "prime")
+            finally:
+                send_mod._print_blocks_with_labels = _other_actor
+        return real(root, me, blocks, wrap=wrap)
+
+    def seam(root, me, blocks, wrap=160):
+        shown.extend(blocks)
+        if phase == "before":
+            _other_actor(root, me, blocks, wrap=wrap)
+        ans = real(root, me, blocks, wrap=wrap)
+        if phase == "after":
+            _other_actor(root, me, blocks, wrap=wrap)
+        return ans
+
+    monkeypatch.setattr(send_mod, "_print_blocks_with_labels", seam)
+
+    assert send_mod.read(project, seat, "prime") == 2, \
+        "the measured read sees the two blocks present at its scan"
+
+    text = inbox.read_text()
+    assert send_mod.READ_MARKER in text, "the read must mark"
+    retired = text.split(send_mod.READ_MARKER)[0]
+    for body in ("one", "two", "three"):
+        if ("\n" + body + "\n") in retired:
+            assert any(("\n" + body + "\n") in b for b in shown), \
+                f"'{body}' sits behind the cursor but NO call printed it"

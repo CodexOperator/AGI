@@ -5,7 +5,10 @@ type: experiment
 parents:
   - hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line
 next_edges: []
+confidence: 0.9
 edited_by: a00-a238ee0a
+evidence_runs:
+  - experiment:a00-a238ee0a-cab2a6
 loop: hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line@s2
 model: stealth/space-bunny-alpha
 production_lines: 0
@@ -15,6 +18,7 @@ scaffold_hash: 33ced3574b0e3611
 season: 2
 title: "the named residual is unreachable: a concurrent read under-shoots, never over-cuts"
 town: core
+verdict: disproved
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-a238ee0a-cab2a6 — the named residual is UNREACHABLE
@@ -101,3 +105,6 @@ is the harmless side of the same inequality. If the parent wants the duplicate
 gone, the honest fix is a compare-and-set on the marker (re-scan under the
 same lock, or refuse to write when the file changed under you) — but that is a
 new claim about DUPLICATES, not this one about unprinted lines.
+
+## Agent Notes
+the named residual (concurrent read racing the marker) is UNREACHABLE as loss: 10 interleavings, 8 green test cases on trunk, over-cut negative control goes red; drift can only under-shoot (duplicate print). Test-only, 0 production lines.
