@@ -32,7 +32,7 @@ done   seated 13:08Z · quorum card re-linked (9969cb7b3) · orphan grep scope r
 done   chain LANDED: G4 900728906 + g73360-b b30042219 (suite run 2: 7773 / 1 = skills_first_turn, red on pure HEAD fafb9eefb) · DG2, DG3, the Prime told · row 60 CLOSED live on MAIN by DG2 13:4xZ (4 paths 0 units 0 orphans; verdict:dg2-g60b proved 0.92, dg2mvp-g60 lifted 0.9; evidence dry-run []) -> tell the Prime with G6
 NEXT   G6 5a31a9cf7 (DG3; AGI_BOX in the v4 drop-in; mur g6b ACCEPT, residues 0): gate M in /dev/shm/smgate12 on b30042219, ids /dev/shm/sm-gate-g6.txt,
        merge-tree rc 0 · 0 D · anonymize ok · evidence [] · full suite since 13:41:39Z, log /dev/shm/smtmp12/suite-g6.log (guarded: stops at MemAvail < 3 GiB / PSI full60 > 15)
-LATER  DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
+MORNING G5 8a450c0c0 (DG3 13:5xZ; send treats a v5 post as a peer; mur g5e 11/11 MET, residues 0; merge-tree vs HEAD rc 0, 5 files, 0 D): held by the Prime's 13:50Z wind-down -- gate at the owner's word, BEFORE any move · LATER DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
 ```
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
