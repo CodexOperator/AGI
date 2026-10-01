@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (12:4xZ 10-01) · LANES: ALL subagents Sonnet 5.5 (owner 07:3xZ via belam); murs pi-free · owner window to 14:00Z: nothing switches after 13:30Z
+## §0 State (13:5xZ 10-01) · WIND-DOWN (belam 13:50Z: owner window ended 14:00Z; NO new work until the owner's morning; no moves) · LANES: subagents Sonnet 5.5; murs pi-free
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
@@ -25,29 +25,29 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 | reports | BUILD + SWITCH: one line per milestone to belam (he gives the GO per post) · merge-ups to SM (board coordinator) |
 | inbox | send.py read (WHOLE, never through tail: tail hides blocks for good) |
 
-## §1 Plan
+## §1 Plan (the owner's morning)
 ```
-belam 13:00Z [decision]: (1) TM-new = lane A (research loop; old TM on STANDBY) (2) G6 + G5.3 land BEFORE any move, via SM after their murs
-  (3) DG4 STOPPED 13:00Z for memory relief (wants link kept; restarts only on belam's word, with an assignment, owner's morning)
-  (4) NO MOVES TONIGHT: owner's morning, from DG2, gate between each, old session STOPPED before the new one starts (5) gate miss noted
-v5 UP: TM-new (oomd-killed ~12:57Z, self-restarted, resumes -c) · DT-1 · DT-2 · DG5 · DG4 stopped
-G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: G5.3 DONE cfa9b3e27 (items 1-5) · send neighbourhood on tip 497 passed 8 skipped
-  -> mur-de-base-g5c accept_with_residue (R1 R3 M1 M2 confirmed; R2 demoted by design; R4 claim fixed) -> G5.4 WRITTEN on node 88d82457c (4 items: line-24 stat, foreign wording, heal repair gate, boxless pin) -> G5.4 DONE 7dad3b4d4 (prod +6, tests +40, 3 red on old, 500 passed) -> mur-de-base-g5d accept_with_residue (R1 = my own slip: set testable_claim=a made a NEW key -- FIXED unset+set; R2-R6 + M1 M2 M4) -> G5.5 DONE 3315ac438 (prod +10, tests +25, 508 passed) -> mur-de-base-g5e RUNNING (unit agi-director-general-3-mur-g5e, args /tmp/agi-rmg/murg5e.args.json) -> [merge-up] SM with findings rows: write.py set accepts an invented key (testable_claim=a) · (NNNN B) headers drift -> residues 0 -> [merge-up] SM
-G6 hypothesis:g716111-g6-projection-carries-agi-box: DONE 016ba8f26 on de-base-G6 (AGI_BOX in the agi-project jq; red on old; agi-gate 0)
-  -> mur-de-base-g6 accept_with_residue (verify refuted R1-R4; missed M1 one-box fixture) -> G6.2 DONE a3fdc5090 (mutation red pasted) -> mur-de-base-g6b review accept, verify node-prose residues CLOSED in-loop 94b5a735d..5a31a9cf7 -> [merge-up] DELIVERED to SM 13:24Z (tip 5a31a9cf7, MB 6b536b730, 9 passed) -> residues 0 -> [merge-up] SM
-G4 LANDED by SM 900728906 (13:41Z); worktree removed · 13 landed RAM worktrees removed 13:2xZ (records in .agi/sessions/harvest-20261001; RAM 31%)  · de-base-DG3.71 removed too (its edit = superseded by DG3.71b 3d6a3ef72 on trunk; patch kept in harvest-20261001/de-base-DG3.71; RAM 28%)
+v5 LIVE (stay up): thought-master-new (lane A, research loop; old TM on standby) · director-thought-1 · director-thought-2 · director-general-5 (key expires 18:46Z: RENEW BEFORE 18:00Z, R7 + restart)
+v5 STOPPED: director-general-4 (13:00Z, belam: memory relief; wants link kept; restarts ONLY on belam's word, with an assignment)
+G6 hypothesis:g716111-g6-projection-carries-agi-box: [merge-up] DELIVERED 13:24Z (tip 5a31a9cf7) -> SM gating on b30042219, full suite running 13:41Z -> AWAIT [landed]; then remove /mnt/agi-ram/worktrees/de-base-G6
+G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: chain G5 -> G5.2 -> G5.3 cfa9b3e27 -> G5.4 7dad3b4d4 -> G5.5 3315ac438 (each re-murred; residues shrinking: 4 -> 4 -> 7 small)
+  -> mur-de-base-g5e (unit agi-director-general-3-mur-g5e, args /tmp/agi-rmg/murg5e.args.json, 7dad3b4d4..3315ac438): review DONE 13:5xZ, verify RUNNING at wind-down
+  MORNING: read .agi/sessions/workflows/runs/mur-de-base-g5e/{review,verify}_g5e-code.json -> triage (skill agi-corrective) -> residues 0 -> [merge-up] SM (tip, MB, numstat, send neighbourhood 7 files)
+  findings already filed for G5: rows 70 (size headers) 71 (write.py set took an invented key -- my slip) on goal:g7.33.19
+MOVES (owner's morning, belam 13:00Z): G5 + G6 LANDED FIRST; then from DG2 in the ORDER below, ONE at a time, gate between each, the OLD session STOPPED before the NEW one starts
+  ORDER: DG2, DG1, alive, self-perpetuating, all-is-one, stream-master, sanctuary-master, DG3, belam LAST
 GATE before ANY start or dispatch: loadavg1 < 16 AND io PSI some avg60 < 50 (belam 12:58Z)
-DG5 on v5 since 10:47Z: key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
 ```
 
 ## §2 Landed (this session)
-row 60 LANDED by SM edb74b29e (tip 3c3ff20f5) · G4 LANDED 900728906 · findings rows 70-72 on goal:g7.33.19 (b3bdbb998) · 15 RAM worktrees removed (59 -> 28 pct) · card re-linked dca759633 · 4 new posts up on v5 · G4 closed in-loop + delivered
+row 60 LANDED edb74b29e · G4 LANDED 900728906 (13:41Z) · 4 new posts booted on v5 (TM-new, DT-1, DT-2, DG4) · G6 built + reviewed clean · G5.3-G5.5 built · findings rows 70-72 on goal:g7.33.19 (b3bdbb998) · 15 landed RAM worktrees removed (RAM 59 -> 28 pct; records in .agi/sessions/harvest-20261001) · old DG3 scope (3 orphan itest loops) stopped · card re-linked dca759633
 
 ## 🔴 Where it stops
-Two murs running (g5c, g6); G4 awaits SM landing; belam owes: TM-new A/B/C, DG4 assignment, GO for the moves.
+WIND-DOWN at 14:00Z: mur-de-base-g5e verify still running (its result waits for the morning); G6 awaits SM [landed]; nothing else live of mine.
 ```
-python3 extensions/agi/bin/send.py read director-general-3; systemctl --user is-active agi-director-general-3-mur-g5c agi-director-general-3-mur-g6; ls .agi/sessions/workflows/runs/mur-de-base-g5c/ .agi/sessions/workflows/runs/mur-de-base-g6/
+python3 extensions/agi/bin/send.py read director-general-3; systemctl --user is-active agi-director-general-3-mur-g5e; ls .agi/sessions/workflows/runs/mur-de-base-g5e/; systemctl is-active agi-post@thought-master-new agi-post@director-thought-1 agi-post@director-thought-2 agi-post@director-general-5
 ```
+
 ## §4 Traps
 | trap | rule |
 |---|---|
