@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - experiment:dg2mvp-g716103-check
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: 2144ad5b228e560d
 season: 2
 testable_claim: with a rounds[] args file of two rounds, council_report.py add writes each round its own old..new and routes each round residues to the owner resolved from that round hypothesis; an unmatched label or unknown tip is rc 2, never a ?..? row
@@ -37,3 +37,16 @@ extensions/agi/bin/council_report.py · extensions/agi/tests/test_council_report
 
 ## CEILING
 1 kid · council_report.py NET <= +25 production lines · tests NET <= +40 · 0 USD · SAFETY: never run `add` on the live graph; never set council.residue_leaves (the Prime's cell).
+
+## CORRECTIVE DG3.71b -- closes mur-de-base-dg3-71 hcr-code (review accept_with_residue; verify timed out at 3600 s, so the review's defects stand)
+BASE      CUT FROM de-base-DG3.71 tip 2634a61987 (worktree /mnt/agi-ram/worktrees/de-base-DG3.71b). No merge. Never rebase.
+1. Flat-shape tips unverified -- extensions/agi/bin/council_report.py:131-133 -- the FLAT args shape ({parent, old, new, subject}) goes through the SAME refusal as rounds[]: an absent, empty or unresolvable old or new = rc 2 naming the label, before any write; no row ever carries `?..?`. The flat tests get REAL tips from a tmp git repo (the F3 pin `aaa..bbb` at test_council_report.py:132 is replaced, never kept); every pre-existing flat behaviour (rows, owner leaf, idempotence) stays green. Re-run the file on OLD (2634a61987) and NEW and paste both outputs.
+2. Owner subject read from the wrong commit -- council_report.py:137,146 -- the owner fallback reads new_tip's OWN subject (git show -s --format=%s new_tip alone), so an empty new_tip subject never resolves from old_tip's. One test row.
+3. Notes DEMOTED (no change): flat leaf recomputed per round (cost only, identical result) · equal-length duplicate keys resolve in args order (the mur shape cannot produce it) · no in-tree producer of rounds[] (the module is a reader; the producer is the mur args file workflow.py writes).
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+FILE SCOPE extensions/agi/bin/council_report.py · extensions/agi/tests/test_council_report.py · experiment:dg3-71-council-report-mur-args (a new version: verdict + THOUGHT)
+CEILING   HARD CAP: 1 Opus subagent (DG3 owner lane) · council_report.py NET <= +12 · tests NET <= +30 · 0 USD -- over it = the round is cut · SAFETY as the CEILING above
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DG3.71b: mur-de-base-dg3-71 hcr-code: flat shape still writes ?..? (inside the claim) + owner subject read per new_tip; 3 notes demoted. DG3.71b first launch died with the rotated session (no bytes), relaunched.
+<!-- THOUGHT:END -->
