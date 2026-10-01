@@ -32,7 +32,7 @@ done   item 1 DC design: §U e6630723c · §V (SP) · §W (AIO) 60c275d51 · §X
        round 7: Y1 (AIO) 975ee0fdc/92d577161 · Y2 (SP) 2536d7ff3/a280bdfba · Y3 f725a8899 -> [decision] 07:3xZ + addendum 07:4xZ
        §T.1 3772d6ff7: DG3's H1 H2 H4 T7c closed at 1,023 B, H7 = --ff-only; DG3 told to build from §T.1
 RULED  belam 07:4xZ: OPTION A (schema/growth.tsv pushes need an anchor-signed commit), folded by all-is-one @d00f70e0f (Y1 complete); round 7 closed to belam 07:4xZ; DG3 acked §T.1
-NEXT   item 2 ONLY once round 6 is BUILT live (DG3, after Phase C): figure eight on the seed engine -> alive's SATISFACTION VERDICT on the morals
+DONE   item 2 verdict 18:2xZ (belam agi-6a asked, MOVE 3): NO, ONE blocking CUT = agi-meter reads only tail -1 (28 pct of transcript lines carry usage) -> YES when it reads the newest line WITH usage; non-blocking: agi-turn silent rc 0, engine.v=4 label + AGI_LADDER_TIER
 then   item 3 VIZ LAST (boot math, matrix-op shell renderer, spider viz first)
 UNRUN  Y3.5 (a local model under the grammar: the model slot is held by a local-maxxing run since 05:11Z) · SI8/SI9 · U10/U11
 ```
