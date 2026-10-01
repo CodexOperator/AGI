@@ -53,7 +53,7 @@ C1 e1e0dbaaf · C2 aa2f2e28a · C4 81ed274fc · C3 5ee794d45 · R5-R7 57eb5ac42 
 
 ## 🔴 Where it stops
 MOVE 3 alive: on "[rotation] alive down-ready" (direct message) write .agi/sessions/dg3-mur-args/alive-one.sub ALONE (anchor = live pid 33188 @4; DG3's alive-switch.sub anchors the DEAD 2806129 -- do not use it), then tell DG3 (agi-e1, or its successor) to kill @4 + start the unit.
-Exact: python3 extensions/agi/bin/write.py config:posts "$(cat <scratchpad>/alive-one.sub)" --actor belam --role prime_director   (sub "box": "local-town", "pid": 33188, "window": "@4", => ... "pid": 0, "window": "", "recover": false, "engine": {... "claude-opus-5-5" ... "seeds": "doc:unified-master-brief,doc:unified-head,doc:card-alive", "rotate_pct": 47},)
+Exact: python3 extensions/agi/bin/write.py config:posts "$(cat .agi/sessions/dg3-mur-args/alive-one.sub)" --actor belam --role prime_director   (sub "box": "local-town", "pid": 33188, "window": "@4", => ... "pid": 0, "window": "", "recover": false, "engine": {... "claude-opus-5-5" ... "seeds": "doc:unified-master-brief,doc:unified-head,doc:card-alive", "rotate_pct": 47},)
 Then MOVES 4-6 (self-perpetuating, all-is-one, SM) each: verdict -> packet re-anchored on the LIVE row pid -> down-ready -> row -> DG3 switch. DIRECTOR moves (DG3) paused until the v5 key broker (owner asked). stream-master: owner order slot 6.
 G10 rollout (DG3): restart idle v5 posts one at a time DG2 > DG1 > DT-1 > DT-2; TM-new rotates itself (0.39 at 19:1xZ, told). Prime v5 meter Monitor until all are restarted.
 Owner open: Proxmox location (G9 mock restart) · tree first shape (Z1) · key broker vs .env (B) · council-or-beside + director-engine master.
