@@ -1193,8 +1193,12 @@ def _dm_path(croot: Path, a: str, b: str) -> Path:
     return croot / "dm" / f"{name}.md"
 
 
-def _block(ts: str, from_id: str, to: str, text: str) -> str:
-    return f"{MSG_SEP}ts: {ts}\nfrom: {from_id}\nto: {to}\n\n{text}\n"
+def _block(ts: str, from_id: str, to: str, text: str,
+           sig_line: str | None = None) -> str:
+    """One message block; a signed one carries `env: v1` + its `sig:` line
+    (the envelope, Prime ruling B) after `to:`, an unsigned one is unchanged."""
+    env = f"env: v1\n{sig_line}\n" if sig_line else ""
+    return f"{MSG_SEP}ts: {ts}\nfrom: {from_id}\nto: {to}\n{env}\n{text}\n"
 
 
 def _parse_blocks(text: str) -> list[dict]:
@@ -1618,6 +1622,14 @@ def _seat_row_by_name(rows: list, name: str) -> dict | None:
     return None
 
 
+def _engine_post(root: Path, to: str) -> bool:
+    """True when the post's config:posts row carries an `engine` cell: it runs
+    on the new engine and reads its mail through its OWN poll (no tmux window
+    to nudge). The cell, not a literal version, is the marker."""
+    return bool((_seat_row_by_name(_locally_loaded_rows(root), to) or {})
+                .get("engine"))
+
+
 def _row_is_quiet(root: Path, to: str) -> bool:
     """True when the row's `settings` carries the `quiet` token (a list or
     JSON object). A quiet row still WRITES the dm but types no nudge."""
@@ -1775,7 +1787,12 @@ def _clear_pending(root: Path, seat: str, observed: int | None = None) -> None:
 
 
 def _announce_nudge(root: Path, to: str, delivered: bool) -> None:
-    """Conjunct (2): typed -> `[delivered]`; else `[undelivered-yet]`."""
+    """Conjunct (2): typed -> `[delivered]`; else `[undelivered-yet]`. An
+    engine post is delivered by mail: its own poll takes the turn."""
+    if _engine_post(root, to):
+        print(f"[delivered] {to} -- by mail (its own poll reads the inbox)",
+              file=sys.stderr)
+        return
     if not (row := _seat_row_by_name(_locally_loaded_rows(root), to)) \
             or not (row.get("window") or row.get("pid")):
         return
@@ -2468,6 +2485,8 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     """
     rows = _locally_loaded_rows(root)
     row = _seat_row_by_name(rows, to)
+    if (row or {}).get("engine"):
+        return None         # an engine post has no pane: never tmux (F3)
     if row is not None and not boxes.row_is_local(root, row):
         # A foreign box's row window/pid are NOT addressable here. Refuse by
         # name, exactly like the stale-@id and name-window refusals below -- and
@@ -2558,6 +2577,8 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
     # mode cancel, no marker, no pending/deferred write.
     if _row_is_quiet(root, to):
         return True
+    if _engine_post(root, to):
+        return True         # mail IS the delivery; no pane, no pending mark
     if (sender is not None and _row_is_quiet_system(root, to)
             and _sender_class(root, sender, to) == "service"):
         # a service sender that NAMES ITSELF never types; `wake` passes no
@@ -3244,14 +3265,8 @@ def send(root: Path, to: str, text: str, sender: str | None,
     ts = _now()
     from_id = _detect_sender(sender)
     sig_line = _sign_line(root, from_id, ts, to, text)
-    head = f"{MSG_SEP}ts: {ts}\nfrom: {from_id}\nto: {to}\n"
-    if sig_line is not None:
-        # The envelope (Prime ruling B, hypothesis:l4-every-live-row-is-keyed...):
-        # a signed message carries `env: v1` beside its `sig:` line so a reader
-        # can tell the envelope version from the payload. The scheme NAME on the
-        # sig line comes from the signing key's row, never a literal.
-        head += "env: v1\n" + sig_line + "\n"
-    block = head + f"\n{text}\n"
+    # The scheme NAME on the sig line comes from the signing key's row.
+    block = _block(ts, from_id, to, text, sig_line)
 
     with open(inbox, "a") as f:
         f.write(block)
@@ -4310,15 +4325,17 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     a, b, _ = _dm_pair(me, other)
     path = _dm_path(croot, me, other)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "a") as f:
-        f.write(_block(_now(), _detect_sender(sender), other, text))
+    root = locations.find_project_root(croot) or croot
+    ts, from_id = _now(), _detect_sender(sender)
+    with open(path, "a") as f:     # signed like an inbox send (seat key in MAIN)
+        f.write(_block(ts, from_id, other, text,
+                       _sign_line(root, from_id, ts, other, text)))
     # Wake nudge of the other party when it exists (silent no-op otherwise),
     # carrying the DM body INLINE as `[nudge: <me>]: <text>` so the
     # recipient sees the message without a `send.py read` round-trip
     # (hypothesis:l4-the-nudge-carries-the-dm-body-inline); idempotent under
     # a busy pane. The body STILL lands in the dm file -- the pane line is
     # delivery, the file is the record.
-    root = locations.find_project_root(croot) or croot
     before = _pending_more(root, other)
     d_before = _deferred_blob(root, other)
     ok = _nudge_window(root, other,

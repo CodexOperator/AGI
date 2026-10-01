@@ -8115,3 +8115,59 @@ def test_undecodable_deferred_bytes_are_still_kept(project: Path, monkeypatch,
     assert send_mod._read_deferred(project, "director") is None
     assert send_mod._pending_more(project, "director") == 1
     assert "unreadable" in capsys.readouterr().err
+
+
+# ── G5 (goal:g7.16.1.11.3): a v5 post is a peer: mail-delivered, signed ────
+
+_V5_ROW = {"name": "post-v5", "engine": {"v": 4}, "window": "@22"}
+
+
+def test_g5_f1_f3_send_to_engine_row_is_delivered_by_mail_no_tmux(
+        project: Path, monkeypatch, capsys):
+    """F1: a send and a dm TO a row with an `engine` cell print ONE delivered-
+    by-mail line, never undelivered-yet. F3: no tmux call on any send path
+    (send, dm, wake, status, type_input) -- the row's @id is not a window."""
+    _write_seats_node(project, [_V5_ROW])
+    calls = _fake_tmux(monkeypatch, [])            # recorder, no real tmux
+    send_mod.send(project, "post-v5", "hello", "seat-a")
+    send_mod.send_dm(project / ".agi" / "comms", "seat-a", "post-v5", "hi",
+                     "seat-a")
+    err = capsys.readouterr().err
+    assert err.count("[delivered] post-v5 -- by mail") == 2, err
+    assert "undelivered" not in err and "is gone" not in err, err
+    send_mod.wake(project, "post-v5")
+    send_mod.status(project, "post-v5")
+    assert send_mod.type_input(project, "post-v5", "x") is False
+    assert calls == [], calls
+    assert send_mod._pending_more(project, "post-v5") == 0   # no strand mark
+
+
+def test_g5_f2_dm_from_a_post_worktree_is_signed_and_whois_verified(
+        tmp_path: Path, monkeypatch):
+    """F2: AGI_SEAT set, cwd a linked worktree, the seat key only in MAIN's
+    sessions: the dm carries `env: v1` + a sig and whois reads VERIFIED."""
+    monkeypatch.setattr(send_mod, "subprocess", _GitAllowFakeTmux())
+    priv, pub = send_mod.seatsig.get("ed25519").keygen()
+    main = _git_project(tmp_path, [{"name": "seat-a"}])
+    _seat_key_write(main, "seat-a", priv.hex())
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(main), "worktree", "add", "-b", "p@s2",
+                    str(wt)], check=True, capture_output=True)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
+    monkeypatch.setenv("AGI_SEAT", "seat-a")
+    monkeypatch.chdir(wt)
+    croot = send_mod.comms_root(send_mod._project_root())
+    path = send_mod.send_dm(croot, "seat-a", "recv", "from the worktree", None)
+    head, _, body = path.read_text().partition("\n\n")
+    hdr = dict(ln.split(": ", 1) for ln in head.splitlines()[1:])
+    assert hdr["env"] == "v1" and "sig" in hdr, hdr
+    canonical = send_mod._canonical_msg(hdr["ts"], "seat-a", "recv",
+                                        body.strip())
+    _stub_seat_rows(monkeypatch, [{"name": "seat-a", "session_ref": "seat-a",
+                                   "sig_scheme": "ed25519",
+                                   "pubkey": pub.hex()}])
+    _rc, text = send_mod.whois(main, "seat-a", claim="seat-a",
+                               source="refs/x", do_fetch=False,
+                               sig_line=hdr["sig"], msg_text=canonical)
+    assert "VERIFIED seat-a (ed25519)" in text, text
