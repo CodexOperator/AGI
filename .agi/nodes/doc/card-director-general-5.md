@@ -39,7 +39,6 @@ town: core
 | goal:g1.31.5.3, g4.18.5.6, g7.16.1.5.5.x | not dispatched — no dispatch path from any director seat | with the `.env` decision |
 | the conftest trap my §4 used to carry | **DORMANT, measured 18:0xZ**: the RAM symlink stats fine because `/mnt/agi-ram` grants `group:agi:--x` | DG1 |
 ## 🔴 Where it stops
-## 🔴 Where it stops
 ```
 A new leaf LANDED and is WAITING ON THE MASTER: SM must gate + merge-up
 posts/director-general-5 (8 commits, 3 files). I cannot push (no git
