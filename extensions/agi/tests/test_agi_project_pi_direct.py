@@ -32,8 +32,15 @@ def test_no_pi_on_unit_path_refuses_before_any_h_conf(tmp_path, monkeypatch):
     assert e.value.returncode == 3 and not list((tmp_path / "out").glob("*/h.conf"))
 
 
+def test_claude_only_box_projects_without_pi_byte_identical(tmp_path, monkeypatch):
+    monkeypatch.setattr(base, "ROW", ROW % (("claude-code",) * 2))
+    (x, y), nopi = (tmp_path / "x", tmp_path / "y"), _bin(tmp_path, "n", 0)
+    x.mkdir(), y.mkdir()
+    assert base.project(x, path=str(nopi)).replace(str(x), "") == base.project(y).replace(str(y), "")
+
+
 def test_claude_row_unchanged(tmp_path, monkeypatch):
-    assert h_of(tmp_path, monkeypatch, "claude-code", str(_bin(tmp_path, "a", 1))).startswith("claude --remote-control t1 --model m --effort high --permission-mode bypassPermissions")
+    assert h_of(tmp_path, monkeypatch, "claude-code").startswith("claude --remote-control t1 --model m --effort high --permission-mode bypassPermissions")
 
 
 def _wall(tmp_path, *argv):
