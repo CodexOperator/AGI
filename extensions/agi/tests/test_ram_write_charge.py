@@ -256,3 +256,37 @@ def test_W0_live_table_and_N2_argv_strict(fake, tmp_path):
     for argv in (["ram-exec", "true"], ["ram-exec", "--to", "/tmp", "--"]):
         rc = _rc(argv)
         assert rc.returncode == 2 and "ram-exec" in rc.stderr, (argv, rc.returncode)
+
+def test_R1_a_path_on_the_root_mount_is_answered(fake, tmp_path, monkeypatch):
+    """R1 (F1) -- "/" is a mount like any other: a path whose longest mount is "/" gets ITS type, so no false UNCHARGED line, and the write runs plain."""
+    mi = tmp_path / "rootinfo"; ram = tmp_path / "ram"; ram.mkdir()
+    mi.write_text(f"21 1 0:19 / / rw - ext4 /dev/root rw\n8 35 0:29 / {os.path.realpath(ram)} rw - tmpfs tmpfs rw\n")
+    monkeypatch.setenv("AGI_MEMCAP_MOUNTINFO", str(mi)); sys.path.insert(0, str(BIN))
+    try:
+        import mem_cap
+    finally:
+        sys.path.pop(0)
+    assert (mem_cap.fstype_at(str(tmp_path)), mem_cap.fstype_at(str(ram / "x"))) == ("ext4", "tmpfs")
+    r = _run(_shell_env(fake, tmp_path, ram) | {"AGI_MEMCAP_MOUNTINFO": str(mi)}, f"{sys.executable} {MEM_CAP} ram-exec --to {tmp_path} -- true")
+    assert (r.returncode, r.stderr) == (0, ""), r.stderr
+    assert [l for l in _entries(fake) if SCOPE_FLAG in l] == [], _entries(fake)
+
+def test_T1_ram_tier_writes_into_hot_through_the_entry(fake, tmp_path):
+    """T1 (F2, F3) -- shipped ram-tier.sh ensure, fakes only: tier a real dir, restore a missing one, then an emptied HOT; every write INTO hot is scoped, the cold-bound ones never are, and no scope argv is built in shell."""
+    text = (GUARD / "ram-tier.sh").read_text()
+    assert "systemd-run" not in text and '. "$HERE/ram-write.sh"' in text
+    hot, cold, home = tmp_path / "hot", tmp_path / "cold", tmp_path / "home"
+    hot.mkdir(); (home / ".claude").mkdir(parents=True); (home / ".claude" / "a").write_text("a")
+    (cold / "pi").mkdir(parents=True); (cold / "pi" / "b").write_text("b")
+    _install(fake["dir"], "findmnt", "#!/bin/sh\necho tmpfs\n")
+    env = dict(_shell_env(fake, tmp_path, hot), GUARD_BOX="tbox", GUARD_ENV_NODE=str(tmp_path / "none"),
+               GUARD_TIER_HOT_tbox=str(hot), GUARD_TIER_COLD_tbox=str(cold), GUARD_TIER_DIRS_tbox=f"{home}/.claude {home}/.pi")
+    for i in range(2):
+        r = _run(env, f"bash {GUARD / 'ram-tier.sh'} ensure")
+        assert r.returncode == 0, r.stderr
+        _ = i or (shutil.rmtree(hot / "claude"), (hot / "claude").mkdir())   # the reboot: HOT empties
+    assert (hot / "claude" / "a").read_text() == "a" == (cold / "claude" / "a").read_text()
+    assert (home / ".pi").is_symlink() and (hot / "pi" / "b").read_text() == "b"
+    assert [l for l in _entries(fake) if SCOPE_FLAG not in l and _writes_under(l, hot)] == []
+    scoped = [l for l in _entries(fake) if SCOPE_FLAG in l]
+    assert len(scoped) >= 8 and all(_writes_under(l, hot) for l in scoped), scoped

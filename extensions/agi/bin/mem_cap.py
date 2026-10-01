@@ -417,7 +417,7 @@ def fstype_at(path: str) -> str:
             for line in fh:
                 f = line.split()
                 mp = re.sub(r"\\([0-7]{3})", lambda m: chr(int(m[1], 8)), f[4].rstrip("/") or "/") if len(f) > 9 and "-" in f[:-1] else None
-                if mp and len(mp) > len(best) and (p == mp or p.startswith(mp + "/")):
+                if mp and len(mp) > len(best) and (p == mp or p.startswith(mp.rstrip("/") + "/")):
                     best, kind = mp, f[f.index("-") + 1]
     except OSError:     # fails OPEN; ram-exec says so, once
         return ""
