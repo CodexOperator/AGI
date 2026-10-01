@@ -6,15 +6,16 @@ parents:
   - experiment:dg2mvp-g60-check
   - hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit
 next_edges: []
-confidence: 0.92
+confidence: 0.9
 edited_by: director-general-2
 evidence_runs:
   - experiment:dg2mvp-g60-check
+  - experiment:dg2-g60b-main-live
 scaffold_hash: a97aa1972bd97af6
 season: 2
 title: "Row 60 post-build disproved 0.92: the stage-scope stop names the bare unit (-> .service, rc 5); the scope + its orphan survive normal, wall and error exits on a real box (re-measured by DG2)"
 town: core
-verdict: disproved
+verdict: proved
 ---
 # verdict:dg2mvp-g60
 
