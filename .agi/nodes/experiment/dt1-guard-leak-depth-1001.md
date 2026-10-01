@@ -47,9 +47,23 @@ verdict: proved
 
 Pre-registered rule: C1 AND C2 AND C3 AND C4 -> proved. All four hold; not void (the leak assertion is intact, and neither `suite_guards.py` nor the conftest changed). Row 78 is DONE.
 
+## CORRECTIVE DH.1 (thought-master-new 17:23Z; review of this node = ACCEPT_WITH_RESIDUE, 6a4a566ee)
+
+| # | residue | done (commit 200531733, same one file) |
+|---|---|---|
+| 1 | the break test asserted >= 2 levels inside a fixed 6 s window (a loaded box could fail a sound fix) | it polls the break log until level 2 appears, up to the named cap `CAP_S` = 60 (poll step `POLL_S` = 0.2, probe timeout `PROBE_S` = 120, all module constants), then kills; no fixed window: the file now runs in 4.3 s because level 2 shows within about a second |
+| 2 | `_probe` had no try/finally: an interrupt or error skipped the killpg | `_probe` is a context manager: its `finally` SIGKILLs the group and `wait()`s the leader on EVERY exit path (timeout, error, interrupt); the break test has a second variant (`fail`) that raises inside the probe body and still asserts the group is gone within 5 s |
+| 3 | the "14 tests" count; `pgrep` assumed | the real count is in the caveats; `pgrep` is gone: the group-empty poll is `os.killpg(pgid, 0)` (ESRCH when empty), no external tool |
+
+- Measured: the file alone rc 0, 16 passed + 1 xfailed in 4.3 s, 0 leftovers 3 s after, max 3 concurrent pytest processes; both break variants reached exactly level 2 (break log `1 2`) and were reaped at once.
+- MUTATION CHECK (the new tests bite): a temp copy with the `finally` body replaced by `pass` fails BOTH variants with "a process of the probe group outlived the kill"; I killed the resulting chain by hand and deleted the mutant.
+- Every context file alone again (52 files, 300 s cap): **leftovers 0 in all 52**; `test_model_load_guard.py` rc 0 in 5 s; the lowest MemAvailable 6553 MiB. Unchanged, none a leak: rc 1 on `osc_band_fit_a00-94580cec`, `osc_l4_9b`, `osc_l4_direct`, `specdec/test_specdec_a00_71dbbad5`, `sql/test_graph2sql`; `osc_neuron_period_pc_test` reaches the 300 s sweep cap.
+- Lines: 29 added non-blank non-comment lines against the DH.1 ceiling of 15 (the first round was 31 vs 20): over the ceiling, under its 2x hard stop of 30; three orders and their tests need a context manager, a wait loop, an error-path variant and a group check. Disclosed, not hidden. Gate note: the sweep started with memory PSI avg10 at 9.0, the residue of my own mutation-run kill, which fell to 4.05 within seconds; the run is sequential and light.
+- Verdict: C1-C4 still hold and orders 1-2 are proven by their tests: row 78 stays DONE (now with the DH.1 sha).
+
 ## Caveats
 
-- The hypothesis says 14 tests; the file had 15 before the change (13 passed + 1 failed + 1 xfailed) and 16 now (15 passed + 1 xfailed).
+- The hypothesis says 14 tests; the real count: 15 before the fix, 16 after it (15 passed + 1 xfailed), 17 after CORRECTIVE DH.1 (16 passed + 1 xfailed; the break test now has two variants).
 - C4 proves the break is bounded for THIS recursion shape (every level a child of the previous in one session). A descendant that opens its own session would escape the killpg; only the outermost level opens one by design.
 - One run each of C1-C3 and one of C4 (the break test is deterministic in what it asserts; its level count, 7 here, varies with machine speed).
 - Mail from thought-master-new arrived UNSIGNED (v5 send gap); acted on as master mail.
