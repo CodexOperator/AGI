@@ -1041,6 +1041,33 @@ else:
 **BANKED for the owner:** (1) the at-rest anchor: the Mac (recommended: a local Swift CLI, no App Store) or the iPhone (a small app) · (2) switch a given capsule from the host-key seal to the SE seal (a tap per pop, escrow mandatory) or keep the host key for it.
 **Falsifiers.** E1, E2a-d PASS (software stand-in) · **S1** the real Mac SE's Z for a test vector equals the software ECDH of the same keys (VERIFY on the Mac) · **S2** a pop of an SE-wrapped capsule with the Mac asleep WAITS, even with the phone's approval: approval and unwrap are two taps, named as such · **S3** the iPhone lost: the Mac approves (k = 1), and custody still needs the host key AND the Mac's Z; the Mac lost: the escrow (k >= 2, never needing the Mac) regrows the seal (§P) · **S5** the Mac alone, holding Z and the git ciphertext, cannot open a 2-of-2 capsule (the outer host-key seal; UNRUN: a root act for the outer seal) · **S4** the SSH app holds an SE-backed key that sshd accepts (= P10).
 
+**O.8 · The owner's picks (05:45Z) folded in: the iPhone alone, a MUTUAL quorum, an iMessage face.** Owner, verbatim: "1. iPhone only for now I don’t have the Mac with me. If not just plain key stored in iPhone as capsule signed by posts. So my capsule only pops with you all, yours only with mine assuming you let me unlock mine. I’m fine with a small app having to be released. I’m already dropping a list app soon. Can this be a messenger extension as well so it can just text receive responses via text not just terminus. Notification through app that opens response in text via iMessage applet. / 2. Works for me, if needed can use 2-2 setup to do passkey passing or just use ssh I guess. (belam's rulings (1)-(2) on the goal).
+```
+CUSTODY + APPROVAL  the iPhone ONLY: O.7's Mac row moves to a small owner app (the owner's list app may carry it): CryptoKit Secure
+                    Enclave P-256 = signing (the approval) + ECDH (the inner seal of a 2-of-2 capsule). No app yet -> a PLAIN key in
+                    the iPhone's keychain, itself kept in a capsule the posts sign (a lost phone is recovered by the posts' quorum);
+                    named honestly: a plain key is visible to iOS, the Secure Enclave guarantee starts with the app
+MUTUAL QUORUM       all-is-one's weights, ONE formula, ONE line in capsule-pop: ring/<holder>@<w>, k = the threshold; it pops iff
+                    the weights of the distinct valid signers sum to k (no @w = 1, so plain k-of-n is unchanged)
+                    the POSTS' capsules: owner@(n+1), posts @1, k = n+1+m  -> the owner AND >= m posts; no number of posts suffices
+                    the OWNER's capsule: everyone @1, k = 1+n               -> "only pops with you all"
+iMESSAGE            the app's iMessage extension is the FACE: the push opens the ask in Messages, the owner taps approve there;
+                    the approval still LEAVES by the app's own call to the box (SSH to agi-capsule, O.5), never as a text: the box
+                    reads no iMessage, and a text reply is an unauthenticated channel
+SEAL PER CAPSULE    long-lived secrets = the 2-of-2 (host key AND the iPhone SE); short login codes = O.5 over plain SSH (ruling 2)
+```
+**Tested 05:5xZ** (weighted capsule-pop, user manager, four throwaway keys, the 19-byte dummy):
+| # | capsule | signers | result |
+|---|---|---|---|
+| Q1 | posts' (owner@4, p1-p3 @1, k = 6) | all three posts, no owner | refused (3 < 6) |
+| Q2 | posts' | owner + 1 post | refused (5 < 6) |
+| Q3 | posts' | owner + 2 posts | popped, 19 B |
+| Q4 | posts' | p1 + p2, after `p1@9` was written into the WORKTREE ring | refused: weights are read from the signed tip (T7 holds) |
+| Q5 | owner's (all @1, k = 4) | owner + 2 posts | refused |
+| Q6 | owner's | owner + all 3 posts | popped, 19 B |
+| T1/T5 | plain (p1-p3, k = 2) | 1 / 2 signers | refused / popped: unchanged |
+**Falsifiers.** Q1-Q6 PASS · **I1** the app's Secure Enclave signature verifies under `ssh-keygen -Y verify` (the app must emit SSHSIG; VERIFY) · **I2** the iMessage extension reaches its app's Secure Enclave key (a shared keychain group; VERIFY) · **I3** the iPhone lost: the posts' quorum pops the escrowed plain key, or §P's escrow regrows a 2-of-2 seal without that phone (UNRUN).
+
 ## P · CAPSULE · self-perpetuating -- the capsule regrows: reseal after a box loss, rekey when the ring changes
 **What am I ACTUALLY trying to get the machine to do here?** Make a sealed secret outlive the box that sealed it, without ever letting one holder, or one box, see it ("If I die, let nothing be lost").
 
