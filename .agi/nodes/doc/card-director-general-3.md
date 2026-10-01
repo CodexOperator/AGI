@@ -34,9 +34,9 @@ BUILD goal:g7.16.1.11 (radically simple engine; config:engine)
        council [red] §N.5 folded: Slice=agi.slice + a system agi.slice capped FROM config:guard; N4 proved BEFORE DG5 starts; council pane (no dtach)
        HARNESS CHANGE (owner 04:40Z): DG5 = Claude Code Sonnet 5.5 + REMOTE CONTROL ON, own user, copied CC creds (claudeAiOauth, 600), in agi.slice;
          ONE kid on pi-free + CCCC; NEVER pi posing as CC to RC; report app-visible y/n + the creds' uid/network binding
-       PHASE A' first run LOST at the 04:45Z rotation (only build/assemble.py touched) -> RELAUNCHED 04:5xZ (Opus, no root) into /tmp/agi-stage25/v4c/ (v4b untouched) -> mint doc:g716111-stage25-rootplan update -> [decision] to belam -> PHASE C ON belam's WORD
-       OPEN with belam (04:3xZ, acked 04:4xZ): shared-refresh-token RISK of copied creds · slice overcommit · memguard patch R-MG · key broker = stage 3 ·
-         WHO STOPS the OLD-engine director-general-5 scope still running (plan holds while it lives) · C1/C2 = Prime landings
+       PHASE A' DONE (Opus relaunch): doc:g716111-stage25-rootplan 90d66d6bd (DELTA section) + doc:g716111-stage25-engine-v4c 300c29e4d (16,384 B) -> [decision] to belam 05:2xZ (delivered): calls = bypassPermissions on DG5 · 0 spare bytes · R-MG optional · overcommit -> PHASE C ON belam's WORD (owner at a terminal for R8a + app proof)
+       OPEN with belam: creds copy GONE (owner 04:49Z logs in by hand; K1 closes) · old DG5 scope NOT running (measured 05:2xZ) · slice overcommit · R-MG optional · key broker = stage 3
+         C1/C2 = Prime landings
   STOP before stage 3 (migration, retiring Python): the owner's word through belam
 HELD   key / identity / signing / rotate / spawn-row / write-gate rounds + goal:g7.16.1.7 (the build replaces them)
 LIVE ROUNDS (each -> pi-free re-mur -> residues 0 -> [merge-up] to SM)
@@ -60,7 +60,7 @@ this session (loop branches, sent/under review): .10.7 chain -> 27042fc3cf · ro
 earlier: .10.5 2ed4492434 · g7556 627c94a040 · .10.3 521ebaa951 · goal:g1.31.3.2.1 e585436f87 (previous card versions: grid)
 
 ## 🔴 Where it stops
-No murs running. Three [merge-up]s wait on SM's GO (row60 855daaccd · g7556 d73bf50bf6 · crmur 0de7f23ab); Opus Phase A' (v4c) running; Phase C waits on belam's word. First commands on wake:
+No murs, no subagents running. Three [merge-up]s wait on SM's GO (row60 855daaccd · g7556 d73bf50bf6 · crmur 0de7f23ab); Phase C waits on belam's word. First commands on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; tail -5 .agi/comms/season-2/dm/director-general-3--sanctuary-master.md; for u in h60d h7556g hcr; do echo $u $(systemctl --user is-active agi-director-general-3-mur-$u); done; ls /tmp/agi-stage25/v4b/ 2>/dev/null
 ```
@@ -95,4 +95,4 @@ then per finished mur: read .agi/sessions/workflows/runs/mur-de-base-dg3-{69,70-
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 
-ROTATION NOTE: Agent-tool subagents die with this session -- rotate only once Phase A' (v4c) + DG3.71b have returned (or name them lost in the stops line).
+ROTATION NOTE: no Agent-tool subagent is live (Phase A' + DG3.71b returned 05:1xZ-05:2xZ).
