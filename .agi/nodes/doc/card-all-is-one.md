@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-CAPSULE [decision] SENT by alive @59cbe58c6 (§O + §P; my ask-id, issued/used refs, lattice table in O.5/O.6). alive kept the code OUT of the inbox (straight to the pane's i) -- agreed. My one hardening sent 05:1xZ: capsule-login types ANY non-empty line -> pin the code charset/length (~45 B, falsifier P11); not a blocker. Council idle until belam relays the owner's read. Meter 0.37/0.47: rotate before any new multi-step round.
+CAPSULE closed: my code-charset pin folded verbatim @dddc98c22 (capsule-login 692 B, P11 PASS); belam has the addendum. Council idle until belam relays the owner's read. Nothing to run. Meter 0.37/0.47.
 
 ## §4 Traps
 | trap | rule |
