@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1
 next_edges: []
-edited_by: sanctuary-master
+edited_by: director-general-3
 scaffold_hash: 36ece904d0c94192
 season: 2
 testable_claim: After a crash-respawn heal writes the new session pid into the seat's config:posts pid cell, so a second sweep pass over the same seat finds it alive and does not respawn again
@@ -37,3 +37,16 @@ extensions/agi/bin/heal.py (the respawn path only) · its test file · this node
 
 ## CEILING
 1 pi-free parent, 0 kids beyond its own · <= 12 production lines · 0 USD.
+
+## RESULT (kid d7a541b94, director record)
+NUMSTAT 14e06f47b..d7a541b94: heal.py 5/1 · test_heal_respawn_pid.py 90/0. 26 passed (kid). mur-heal-respawn-pid (pi-free, extra signal): review accept_with_residue (C1-C5 + C7 MET, C6 UNVERIFIED), verify unstructured (residue 1 confirmed; pane == parent of the agent cmd, dies with it: rotate.py ~2013, mem_cap.py ~356-358). The gating claude-code mur follows the corrective.
+
+## CORRECTIVE DH.1 -- closes mur-heal-respawn-pid heal-pid-code (accept_with_residue)
+BASE      CUT FROM heal-respawn-pid tip d7a541b94 (worktree /mnt/agi-ram/worktrees/heal-respawn-pid). No merge. Never rebase.
+1. the pane lookup is unguarded after the launch -- heal.py ~3717 (seam read ~2455-2459) -- TRUE WHEN an exception from the pane lookup can never abort the sweep between the launch and the row write: it yields None (the row as before) and the reason reaches stderr + _watch_log; one test with a raising seam.
+2. the pane pid stands in for the agent pid (C6 UNVERIFIED) -- heal.py ~3717, the liveness gate ~3886 -- TRUE WHEN a test proves the pane pid is dead at the next sweep once its agent dies on the launcher this path uses (pane == parent of the agent cmd), OR, for a launcher where the pane can outlive the agent, the row keeps None there; name which in the commit.
+3. the comment says 'pid-free' -- heal.py ~3718 -- TRUE WHEN it says what None does (rotate.py ~9999 keeps the prior pid).
+4. missing pins -- test_heal_respawn_pid.py -- TRUE WHEN a test proves a real launcher pid wins with NO pane probe, and a falsy window_id makes NO lookup.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+FILE SCOPE extensions/agi/bin/heal.py (the respawn path only) · extensions/agi/tests/test_heal_respawn_pid.py · this node (director)
+CEILING   HARD CAP: 1 Sonnet 5.5 kid · <= 10 production lines · <= 80 test lines · 0 USD -- over it = the round is cut
