@@ -62,6 +62,13 @@ kid commits  DH.386 (DE, lands with e362e7947): `cli.py done` auto-commits the r
              (config:posts, config:rotations, doc:unified-head, town:local-maxxing, goal:g5 measured) until DH.390 lands -> at every gate
              list changed .geometry / doc:unified-* / town:* / goal:* files and read each
 anonymize    anonymize.py guards the classes named in anonymize.CLASSES (loopback exempt); the home class is anonymize.HOME_PATH_RE (ANY box, bare or with a path) -- read them there, never a list here; it takes NO file args: git diff <merge-base> <tip> > F; anonymize.py check --root <gate> --diff-file F · the model name needs its own grep: grep the added lines ('^+') for the box's GPU model name yourself (anonymize.py does not cover it; never write the pattern into a node)
+             · the net diff hides HISTORY: a file ADDED then removed inside the range rides to origin with the merge (SM gen 14, 21:2xZ
+               10-01: DG1 e0a261b7b untracked .agi/keys/director-general-1, but 7b37db90f had added it with a host-named comment) ->
+               git log --diff-filter=A --name-only <merge-base>..<tip> lists every path ever added; read each one the net diff no longer
+               shows (a key file = return the tip; the director re-cuts ONE commit from the live trunk, never a rebase)
+               · scan every VERSION of a key file in the range, not only adds (a modified one can carry the host too) -- UNLESS the
+                 identical blob is already reachable from origin (a push sends only objects the remote lacks: no new bytes leave);
+                 name it in the landing message (gen 14: TM-new d60422468 = the blob 81d0e8729 already published, banked)
 evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOTES a proved / disproved verdict without a resolvable
              evidence_runs (a JSON list of existing type:slug ids) IN MAIN'S WORKING TREE, uncommitted, 'caught at grid commit' -> gate
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)

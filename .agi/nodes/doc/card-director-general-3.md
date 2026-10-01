@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (18:5xZ 10-01) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free · belam + SM by DIRECT session message (owner 18:1xZ): belam = agi-6a, SM = agi-02 (SendMessage)
+## §0 State (22:3xZ 10-01, after the real reboot) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free · belam + SM by DIRECT session message (owner 18:1xZ): belam = agi-6a, SM = agi-02 (SendMessage)
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
@@ -29,26 +29,30 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 ```
 v5 UP (11): DG5 (pi) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2) · alive (MOVE 3 19:31Z) · self-perpetuating (MOVE 4 19:43Z) · all-is-one (MOVE 5 19:48Z) · NEXT MOVE 6 = SM (belam verdict + GO first), then stream-master; DG3 itself = director class, PAUSED on the key broker · DG4 DOWN
   every v5 unit carries preserve.conf (the /run template predates G8): a NEW start installs it too
-  DG5 key expires 00:52Z 10-02: renew before 00:00Z (R7 in doc:g716111-stage25-rootplan + restart, behind the gate); the restart also picks up its projected h.conf + the G10 agi-meter
+  DG5 key RENEWED 21:41Z (R7 per-spawn, 480 min -> expires ~05:41Z 10-02) + restarted 21:41:45Z, 0 restarts after 90 s: renew again before 05:00Z (R7 in doc:g716111-stage25-rootplan + systemctl restart, behind the gate)
 GATE before ANY start, restart, move OR mur launch (belam 19:3xZ): load1 < 12 AND io PSI some avg60 < 20 AND mem PSI full avg60 well under 40 -- space every start
-AGI-METER ROLLOUT (G10 14e06f47b): DG2 DONE 19:29Z · DG1 DONE 20:34Z (clean, 0 restarts) · stream-master born with it (MOVE 6) -> NEXT DT-1 -> DT-2 (ONLY when ListAgents shows idle + the gate; sudo systemctl restart agi-post@<p>; verify tac 1 / tail -1 0, active, 0 restarts) · TM-new rotates itself · DG5 at key renewal
+AGI-METER ROLLOUT (G10 14e06f47b): COMPLETE -- DG2 19:29Z · DG1 20:34Z · DT-1 21:05Z · DT-2 21:13Z · DG5 21:41Z · stream-master born with it · TM-new rotates itself
 MOVES: 6/9 on v5 (MOVE 6 stream-master UP 20:23Z, belam ACCEPTED). Remaining SM (land broker) · DG3 (key broker) · belam LAST (leaf .8 holds): all wait on the OWNER -- none is mine now. Procedure: verify row on trunk -> window + /proc environ AGI_POST -> pre-seed .claude.json (trust t + upsell 99, as the user, 600) -> project the trunk into the scratchpad (engine.md agi-project section, AGI_BOX=local-town) -> install h.conf + preserve.conf + wants, daemon-reload -> kill-window, TERM wrapper+claude -> start behind the gate -> first turn -> ONE line to belam
 G9: LANDED 0b8f086a5 (de-base-G9 worktree removed) · MOCK DONE 20:58Z: F1 F2 F3 HOLD, teardown after == before, belam ACCEPTED (node e5d6f3d1d + THOUGHT 86026eba9) -> G9.5 corrective (row 89: agi_boot.space_s + no wants for non-boot) BEFORE any real install -> the real /etc install and the ONE real reboot each need a SEPARATE belam GO
-ROUNDS LIVE (Sonnet 5.5 subagent kids, 21:1xZ; orders ON the nodes):
-  heal-ack DH.1 (demote: fresh non-prime ack exits 2 · FrontmatterError escapes · skill line copy) wt /mnt/agi-ram/worktrees/heal-ack-by-role from aaacd632f
-  heal-pid DH.1 (residues: unguarded pane lookup · pane vs agent pid · comment · pins)     wt /mnt/agi-ram/worktrees/heal-respawn-pid from d7a541b94
-  G9.5 (spacing cell + wants)                                                            wt /mnt/agi-ram/worktrees/de-base-G9.5 from 20edc635e
-  then per round: verify tests -> GATING mur on claude-code via ccrun.py (belam card trap 61, passB3) --args <json> (CC_MODEL Sonnet 5.5; belam 21:0xZ: the template's claude-code mur holds, row 88 DECLINED; pi-free = extra signal only) -> residues 0 -> [merge-up] SM
-  mur range = the ORIGINAL base..new tip (14e06f47b..<tip> for heal; 20edc635e..<tip> for G9.5)
+ROUNDS -- ALL LANDED 22:0xZ (DG1 95a232d63 -> G9.5 ab74187f9 -> heal-ack 458a774a4 -> heal-pid 0422da076), RAM worktrees removed; were: DG1 nodes -> G9.5 64ae63ef6 -> heal-ack d9e5409f2 -> heal-pid 7caa0ab4d
+  G9.5 chain de-base-G9.5 64ae63ef6 (G9.5 + G9.6 + G9.7; murs mur-de-base-g9-5 -> -2 -> mur-heal-respawn-pid-de-base-g9-5 g97 ACCEPT/ACCEPT)
+  heal-ack   heal-ack-by-role d9e5409f2 (DH.1 DH.2; mur-heal-respawn-pid-heal-ack-by-role ACCEPT/ACCEPT)
+  heal-pid   heal-respawn-pid 7caa0ab4d (DH.1-DH.3; DH.3 = recovery_ack seed so it passes beside heal-ack; trunk+both 1072 passed 0 failed)
+  ON EACH LANDING: git merge-base --is-ancestor <tip> local-maxxing/season2/main -> remove its RAM worktree (/mnt/agi-ram/worktrees/{de-base-G9.5,heal-ack-by-role,heal-respawn-pid}; git worktree remove, never bare prune)
+  belam (agi-17) 21:4xZ: heal guards only the OLD-setup posts (v5 rows recover:false; systemd Restart=always) and retires with the last move -- no more heal rounds beyond these
+G9 INSTALL: after G9.5 lands, belam reads the landed unit text and sends a SEPARATE GO for the real /etc install (agi-boot.service + enable; the mock's steps in the G9 node RESULT G9 MOCK), then a SEPARATE GO for the ONE real reboot (old belam as look-over). Nothing before each GO.
+GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --user --unit=agi-director-general-3-mur-<k> --working-directory=/data/work/agi -p MemoryMax=6G -p MemorySwapMax=0 -- python3 <ccrun.py> --root /data/work/agi --args <json>; args files in .agi/sessions/dg3-mur-args/ (bare workflow.py --harness claude-code runs NO stage: row 88, belam DECLINED the template change)
 ```
 
 ## §2 Landed (this session)
-G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · DG2 + DG1 agi-meter restarts · DG5 key renewed · G9 LANDED 0b8f086a5 + MOCK passed · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 = held for SM's report_integrity item, BANKED)
+G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-Three kids live (above). On each return: read the numstat vs the CEILING, run its tests, launch its GATING mur detached (systemd-run --user, --working-directory /data/work/agi, ccrun.py), then triage -> residues 0 -> [merge-up] SM.
+THE REAL REBOOT PASSED (22:16:23Z, DG3 executed on belam's GO): agi-boot 22:22:37 -> 22:32:58 success; F1 6/6 boot posts up 120 s apart, no hand act · F2 ACLs · F3 5 non-boot down, belam + SM named skips (G9 node RESULT G9 REAL REBOOT 63257c645). The ONE line went to belam (direct, agi-eb). Nothing live of mine.
+SESSIONS after the reboot: belam = agi-eb (tmux @1, still named agi-17) · SM = agi-88 · send.py whois cannot resolve them (row 91: heal resume blanked session_name) -> find a session by its tmux window name, then ListAgents
+belam ACCEPTED the reboot 22:4xZ: G9 DONE. Non-boot posts (DG2 DG4 DG5 DT-2 stream-master) stay DOWN = the owner's word (DG5 key renewal moot while it is down) · rows 90-94 placed · rows 90 + 91 open on goal:g7.33.19 (heal lane retiring per belam)
 ```
-for w in heal-ack-by-role heal-respawn-pid de-base-G9.5; do git -C /mnt/agi-ram/worktrees/$w log -1 --oneline; done; systemctl --user list-units 'agi-director-general-3-*' --no-legend; cat /proc/loadavg; head -1 /proc/pressure/io
+cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; systemctl show agi-boot -p ActiveState -p Result; for u in $(systemctl list-units 'agi-post@*' --all --no-legend | awk '{print $1}'); do echo "$u $(systemctl is-active $u)"; done; cat /proc/loadavg
 ```
 
 ## §4 Traps
