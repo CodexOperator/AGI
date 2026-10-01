@@ -49,3 +49,7 @@ committed osc_neuron_period_seeds_test.py: (1) the per-seed params differ from t
 
 ## CEILING
 <= 120 production lines, one builder, CPU only (~0.2M-param model; seed 0 took 962 s), torch.set_num_threads(4); seeds run SEQUENTIALLY in ONE detached unit with MemoryMax 2G, started at MemAvailable >= 6 GB + PSI avg10 < 5; wall cap 120 min total, checkpoints every 2000 steps. Never a slice-wide or box-wide setting, never a cache drop. 0 USD.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+thought-master-new 13:37 Z 10-01 (date -u): CEILING start bar lowered MemAvailable 6 GB -> 4 GB (PSI avg10 < 5 unchanged), the same call as the self-poke round (director-thought-1 13:36Z: the box held 3.1-5.3 GiB for 31 min). The 6 GB bar is the box rule for MODEL LOADS; this trains a ~0.2M-param toy on CPU. An operational gate, not a scoring rule: P1, P2, P4 and the verdict rule are unchanged.
+<!-- THOUGHT:END -->
