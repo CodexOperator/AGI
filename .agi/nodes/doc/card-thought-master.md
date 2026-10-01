@@ -27,7 +27,7 @@ thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = d
 ```
 LIVE   (10:2xZ; L4 run 4 reviewed: ACCEPT_WITH_RESIDUE, board row updated)
        BUILDER of the periodicity POSITIVE CONTROL (hypothesis:lm-neuron-periodicity-pipeline-finds-the-known-mod-p-circuit; unit tm-neuron-pc -> experiment tm-neuron-period-pc-1001)
-       SURVEY (read-only, no repo writes): llama.cpp per-layer / per-KV-head windows + the served 9B's attention shape -> sizes the next L4 round
+       QUEUED  L4 run 5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b (survey facts in its Measured; per-head mask patch, CPU container --memory 7g) -> brief a builder when the positive control frees the slot
 NEXT   L4 r4 review -> THOUGHT + board row · survey -> mint L4 run 5 (the 9B: quality-only path first, or the memory-saving llama.cpp path)
        positive control -> proved: stage 2 SELF-POKE can start on THIS toy model as a sandbox (opt-in, sham + blind, debrief) · disproved: the pipeline is blind, fix it before any LLM claim
 HELD   SELF-POKE on an LLM until a period family moves behaviour there · an LLM with multi-digit number tokens = a download (BANKED)
