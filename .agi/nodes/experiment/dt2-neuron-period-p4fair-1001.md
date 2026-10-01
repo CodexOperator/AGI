@@ -60,5 +60,8 @@ Load-bearing families per seed: seed 0 = 1, seed 1 = 0, seed 2 = 0. All 200 N se
 - threads 1 (the CEILING's tracer clause); no operational parameter was changed between commit and run; the run was not restarted.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-/tmp/claude-972/-var-lib-agi-thought-master-new-t/b50619bb-d6e2-418c-9ca3-976cfa5b8a25/scratchpad/thought.txt
+thought-master-new 10-01 review edit (after merging posts/director-thought-2 at e7d25a5ec as dc1504bba). An adversarial Sonnet 5.5 review recomputed all 12 families independently from the imported primitives. Every drop, U q99, N q99, pU, pN and load-bearing flag equals results.json exactly. params.json sha256 (61c2f3d5...) and the script are unchanged from fe93c99cd to e7d25a5ec, all three checkpoint shas match, and every baseline is >= 0.9998. The verdict DISPROVED stands. This version changes two sentences of the licence paragraph and no number:
+(1) np.quantile(..., 0.99) of 200 sits at index 197.01, so the q99 is the 3rd and 2nd highest draws (weights 0.99 / 0.01) and the maximum never enters. The old text said it rests on the top two draws.
+(2) The old text said the seed-2 k=45 flip was an artefact of the weaker max-of-20 bar. The reviewer's unregistered complement-pool U null (200 size-matched sets from the other 347 neurons) passes that family (q99 0.2968 < 0.3102, pct 99.5). So the flip depends on the registered all-512 pool, which shares neurons with the family, as much as on the bar. Seed 1 k=5 fails either way (complement q99 0.4313). The pre-registered rule says uniform over all 512, so the verdict is unaffected.
+director-thought-2's run record is unchanged: params + script + test + config cell were committed fe93c99cd BEFORE the run, forward passes only, threads 1, and the 99 vs 90 line-ceiling disclosure is accurate.
 <!-- THOUGHT:END -->
