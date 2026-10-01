@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -956,6 +956,67 @@ Two bugs caught by the tests, not by reading: (1) the first form read ring, k an
 **Unbuilt, named:** `capsule-pop@.path` on a sticky spool (holders drop `R.sig.<post>`; a k-1 drop just waits) + its service (the git identity for the ledger commit in its Environment) · a pre-receive line: only the pop unit's user moves `refs/capsule/*`, and a ring or k change is itself a pop (§P).
 **Falsifiers.** **C1-C8** = T1-T8 (PASS, user manager) · **C9** the system form: `LoadCredentialEncrypted` under `DynamicUser` delivers the sealed bytes exactly, and `systemd-creds decrypt` as any post user fails (UNRUN: a root act, needs belam's or the owner's go) · **C10** a push moving `refs/capsule/C` from any user but the pop unit's is refused (UNRUN, unbuilt) · **C11** nothing of the payload in `journalctl`, `ps` or swap during a pop (UNRUN at root; null stdout/stderr measured in §N's analog).
 
+## P · CAPSULE · self-perpetuating -- the capsule regrows: reseal after a box loss, rekey when the ring changes
+**What am I ACTUALLY trying to get the machine to do here?** Make a sealed secret outlive the box that sealed it, without ever letting one holder, or one box, see it ("If I die, let nothing be lost").
+
+```
+seal     secret ─┬─▶ systemd-creds encrypt ─▶ capsule.cred        BOX-BOUND: the fast pop on this box (§O)
+                 └─▶ esc split K <holder pubs> ─▶ escrow           N sealed shares + a check line, committed beside it: SURVIVES the box
+box lost ─▶ a new box: seed + graph regrow the body (§C) ─▶ K holders each run `esc open <own key>` on THEIR line
+         ─▶ the shares stream into capsule-reseal (a root unit): esc join │ check │ systemd-creds encrypt ─▶ a new capsule.cred ─▶ ledger commit
+ring changes ─▶ REKEY = ROTATE the secret: a pop into a destination that mints a new one at its provider and revokes the old,
+               then seal + split to the NEW ring (re-splitting the same secret revokes nobody: see P.3)
+```
+
+**P.1 · Measured 04:5xZ on this box (unprivileged, throwaway X25519 holder keys, a secret starting with two zero bytes):**
+| claim | result |
+|---|---|
+| 3 of 5 holders rebuild the secret | byte-exact (`cmp`), and the check line matches |
+| 2 of 5 holders | cannot (Shamir: K-1 points on a random degree-(K-1) polynomial carry no information) |
+| a holder opens another holder's line | `InvalidTag`: each line opens only under its own key |
+| what a holder ever sees | one point `i:y`, never the secret |
+| the seal on THIS box | `systemd-creds has-tpm2` = partial (no TPM firmware or driver), so the seal is host-key ONLY: root, or a copy of the host secret plus the capsule, reads it |
+| an unprivileged reseal | refused ("Permission denied" on the host secret; systemd 255 has no `--user` creds), so capsule-reseal is a root unit (on go) |
+
+**P.2 · The ring has to span failure domains: the math.** With K-of-N and holder keys spread over boxes, **every box must hold at most min(K-1, N-K) holder keys**. The K-1 bound: no box's root can combine alone. The N-K bound: losing any one box still leaves K holders. So 3-of-5 needs at least 3 failure domains. `ring-ok` checks it (117 B): 2/2/1 passes · 3 on one box fails · **all 5 on this box fails, and that is today.** Every post key lives on ONE box, so the per-post keys alone (the draft's RING) cannot be the ring. Holders must include keys off this box: the owner's device(s), a post on another town's box, a hardware key. **Who holds is the owner's call (banked).**
+
+**P.3 · Rekey cannot revoke in an append-only graph.** A retired escrow line stays in git history, so the OLD holders can still open and join it forever. A ring change therefore means **rotating the secret at its source** (a pop into a destination that mints a new key and revokes the old one at the provider). A secret that cannot be rotated (a seed phrase) keeps its first quorum for life, so choose K and N for those once, and carefully.
+
+**P.4 · Honest limits.** At join time the secret exists in capsule-reseal's memory on the NEW box, so that box's root sees it (the same limit as §O's destination). The check line is sha256(secret): fine for high-entropy keys, but a brute-force oracle for a low-entropy one, so capsules hold keys, never passwords. TPM sealing adds nothing against box LOSS (it is box-bound by design); it only raises the bar against a disk copy, and this box has none.
+
+**P.5 · Bytes, kept out of the engine's one read.** `esc` 1,190 B (python3 + the installed `cryptography`: X25519 + ChaCha20-Poly1305 per share, Shamir over 2^521-1) · `ring-ok` 117 B · capsule-reseal ~0.2 KB (unwritten; root). About 1.5 KB in its own `.geometry` node (`config:capsule`), so config:engine's depth 0+1 stays at 4,095 B. Off-shelf alternative: `age` with ssh-ed25519 recipients would reuse the post keys as share keys. It is not installed (a root act).
+
+**P.6 · Fitted to §O, and the two items §O left unbuilt, owned here.** The escrow lives beside the capsule, at `.agi/capsule/C/escrow` (one line per holder, plus the check line), and is read FROM the ledger tip T like the ring. Shares need an ENCRYPTION key, while §O's ring points at ssh SIGNING keys, so each holder carries one more file, `keys/<post>.x25519` (32 B public), beside its ssh key (`age` would derive it from the ssh key instead: not installed). **(1) Only the pop unit moves `refs/capsule/*`: 0 B, the kernel.** `refs/capsule/` is a ref directory owned by the pop unit's user, so §B's property rule applies: an `update-ref` from any other uid fails with "Permission denied" (measured in §B, F2). No pre-receive line is needed. **(2) A ring or k change IS a pop.** Its destination is a `rotate` launch (one NEW §L route line, ~120 B): it mints the new secret at the provider, revokes the old one, writes the new ring + k + escrow under the new tip, and seals. One quorum act covers rekey and rotation together, so a ring can never change without the secret changing (P.3).
+
+Falsifiers: **F26** box loss (on a throwaway box): delete capsule.cred and the host secret; K holders rebuild byte-exact and reseal, K-1 cannot (the escrow half PASSES today; the reseal is on go) · **F27** `ring-ok K` over the live ring exits 0 (FAILS today, by design: every key is on one box) · **F28** after a ring change, the old holders' K shares from git history rebuild the OLD secret and its provider refuses it · **F29** a holder opening another holder's line -> InvalidTag (PASS).
+
+`esc` whole (1,190 B counted):
+```python
+#!/usr/bin/env python3
+# esc split K PUB.. <secret >escrow | esc open KEY <escrow-line | esc join <shares: Shamir K-of-N over 2^521-1, each share sealed to ONE holder (X25519+ChaCha20-Poly1305)
+import sys,os,hashlib,base64 as B;from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey as K,X25519PublicKey as P;from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as C
+p=2**521-1;a=sys.argv;v=a[1];r=lambda b:P.from_public_bytes(b);h=lambda x:hashlib.sha256(x).digest()
+if v=='split':
+ s=sys.stdin.buffer.read();k=int(a[2]);c=[int.from_bytes(b'\1'+s,'big')]+[int.from_bytes(os.urandom(65),'big')%p for _ in range(k-1)];print('check',h(s).hex())
+ for i,f in enumerate(a[3:],1):
+  e=K.generate();q=r(B.b64decode(open(f).read()));y=sum(x*pow(i,j,p) for j,x in enumerate(c))%p;print(f,B.b64encode(e.public_key().public_bytes_raw()+C(h(e.exchange(q))).encrypt(bytes(12),f'{i}:{y}'.encode(),None)).decode())
+if v=='open':
+ d=K.from_private_bytes(B.b64decode(open(a[2]).read()));z=B.b64decode(sys.stdin.read().split()[1]);print(C(h(d.exchange(r(z[:32])))).decrypt(bytes(12),z[32:],None).decode())
+if v=='join':
+ S=[tuple(map(int,l.split(':'))) for l in sys.stdin.read().split()];s=0
+ for i,y in S:
+  n=d=1
+  for j,_ in S:
+   if j!=i:n=n*-j%p;d=d*(i-j)%p
+  s=(s+y*n*pow(d,-1,p))%p
+ sys.stdout.buffer.write(s.to_bytes((s.bit_length()+7)//8,'big')[1:])
+```
+`ring-ok` whole (117 B counted):
+```sh
+#!/bin/sh
+# ring-ok K <ring (lines: holder box): every box holds <= min(K-1, N-K) holder keys -- no box can pop alone, and losing any one box leaves >= K
+awk -v k=$1 '{n++;b[$2]++}END{m=k-1<n-k?k-1:n-k;for(x in b)if(b[x]>m){print "box "x" holds "b[x]" > "m;e=1};exit e}'
+```
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 alive (agi-a8), 04:5xZ 10-01 (the capsule, on belam 04:49Z signed [decision]; base = this doc after round 4, bfc04e8588). Owner 04:49Z, verbatim: "I will log in manually this time. But for round 4 can we have you and then the council tackle the design for our ring/multisig-signed perma-encrypted capsule idea? It can always be encrypted until “popped” as a safe shell command that can be piped anywhere without the rings key holders ever having any individual permission to view it. Only a combined permission to send it somewhere. No view possible. It’s like part of the money system but radically simplified down to bytes of shell instructions" WHY this version differs: added §O, the capsule. belam drafted it first (systemd-creds TPM seal, ssh-keygen -Y k-of-n, a root pop unit, a ledger commit); this version keeps that spine and changes four things on measurement. (1) No TPM on this box and no user-scoped credentials in systemd 255, so the anchor is the host key, root-only; a non-root holder cannot even seal (Permission denied, measured). (2) The quorum signs C, the hash of the DESTINATION launch vector (§L) and the ledger tip T, so the tip is the nonce (one update-ref CAS, no nonce store) and WHERE it goes is the signed thing. (3) The ring, k and the sealed bytes are read FROM T, not the worktree: the first form did not pin them, caught by tests T7/T8, not by reading. (4) cat-file --batch appended a newline (20 B for a 19 B payload): cred and k now read with cat-file blob. T1-T8 PASS in the user manager with throwaway keys and a dummy payload; the root form (C9-C11) is unrun and needs a go. The council split: all-is-one gave the ring-as-vector lens and a tested 561 B stdlib Shamir (§O.4 cites it); self-perpetuating claimed the regrow part as §P (box-bound seal, per box <= min(k-1, n-k) holder keys, a ring change rotates the secret).
 <!-- THOUGHT:END -->
