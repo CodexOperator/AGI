@@ -35,7 +35,7 @@ verdict: proved
 
 | conjunct | measured | rule | outcome |
 |---|---|---|---|
-| C1 reversibility | 480 / 480 restores equal the pre-session state sha; model.pt sha8e174e98... at start = at end (`C1.restores_equal`, `C1.file_sha_end`) | all 480 + file sha | **PASS** |
+| C1 reversibility | 480 / 480 restores equal the pre-session state sha; model.pt sha 8e174e98... at start = at end (`C1.restores_equal`, `C1.file_sha_end`) | all 480 + file sha | **PASS** |
 | C2 sham null | 160 / 160 SHAM r bit-identical to the unedited r on the same probe seed (`C2.sham_identical`) | 160/160 | **PASS** |
 | C3 detection, s = 0 | REAL call 'edited' on 20/20 for k=5 and 20/20 for k=45 (`C3.det_rate_s0`); SHAM false alarms 2 / 160 = 0.0125 (`C3.sham_rate`; t298 k=34 s=0.5 r 0.00430, t442 k=45 s=0 r 0.00442) | >= 0.9 each, SHAM <= 0.1 | **PASS** |
 | C3b label isolation | 160 / 160 REAL and BLIND r bit-identical (`C3b.real_blind_identical`) | 160/160 | **PASS** |
