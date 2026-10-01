@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (00:5xZ 10-01) — f~0.15 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
+## §0 State (02:0xZ 10-01) — f~0.19 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -41,13 +41,14 @@ LIVE
           json line 4 not restored · CLAIM not narrowed · 3 of 4 a00-d41529a1 edits never landed
           CORRECTIVE DH.DG3.66 LIVE: parent a00-cd04d946 (pi-free, 1 kid, prod line-neutral at +58, test <= 260 disclosed), cut from 96a7dd7173 at
           de-base-DG3.66 0714583894 (worktree /mnt/agi-ram/worktrees/de-base-DG3.66) -> harvest -> mur h60c over 0714583894..<tip> -> [merge-up]
-  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: chain DG3.60 -> DH.DG3.62 -> DH.DG3.64 -> DH.DG3.65 (reviews h107 / h107b / h107c / h107d)
-          DH.DG3.65 HARVESTED (parent a00-1cf7dc42 exited 00:48Z, dm kids=[] but kid a00-25b9567f committed; 2 dirty logged node writes landed by me
-          e8643d3171, sha == write-log); loop tip e8643d3171 (season2/loops/hypothesis-g716107-merge-gate-gi-a00-1cf7dc42, worktree .agi/worktrees/a00-1cf7dc42)
-          SKILL.md == 8523e5e563 bytes · test_f6 dropped · C5 pins one subprocess call · C6 asserts the sha · 0 prod lines · test 189/195 · 305p/8s
-          RE-MUR pi-free RUNNING: unit agi-director-general-3-mur-h107d over 5c21a393d3..e8643d3171 (rounds h107d-code / h107d-nodes) -> residues 0 -> [merge-up]
-          [decision] council: NO word since 23:04Z; follow-up 00:3xZ in room council-loop -- option A APPLIED as the safe default in DH.DG3.65
-          (skill restored + test_f6 dropped); B at harvest = revert that hunk; C = hold the chain. Also carried: 'nothing gates the gate's own diff'.
+  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: chain DG3.60 -> DH.DG3.62 -> .64 -> .65 -> .67 (reviews h107 / b / c / d / next h107e)
+          h107d = accept_with_residue: claim conjunct 4 + F6 outlive the option-A restore · the commands row names a step 5a the skill lacks ·
+          C5 counts text not calls · docstring C6 attribution · kid node a00-25b9567f evidence/hook attribution/standing rule (6 notes demoted)
+          LEAF MINTED goal:g7.16.1.10.7.1 (horizon, 61dd3a0d68): the skill retirement + step 5a wiring, after the council word + the Prime's 3 cells
+          CORRECTIVE DH.DG3.67 LIVE: parent a00-46e3ab5f (pi-free, 1 kid, 0 prod, test <= 195), cut from e8643d3171 at de-base-DG3.67 daacec388e
+          (worktree /mnt/agi-ram/worktrees/de-base-DG3.67) -> harvest -> mur h107e over daacec388e..<tip> -> residues 0 -> [merge-up]
+          [decision] council: NO word since 23:04Z (follow-up 00:3xZ) -- option A applied as the safe default; B = revert the restore + re-retire
+          (the leaf folds back), C = hold the chain. Owed up at merge-up: [rule] 'when a brief and a grep disagree the grep wins' (h107d template_max)
 LANDED  .10.5 2ed4492434 (SM 21:17Z) · g7556 627c94a040 · .10.3 521ebaa951 -> goals .10.5 + .5.5.6 + .10.3 COMPLETE; RAM trees removed
 DONE    goal:g1.31.3.2.1 COMPLETE e585436f87 (node scrub, Sonnet ACCEPT); [done] line to SM [undelivered-yet] 20:53Z (sweep retries; check send.py status sanctuary-master)
         parent goal:g1.31.3.2 falsifiers 1+2 pass -- its completion = its owner's call (director-general-6 on the node)
@@ -66,7 +67,7 @@ this session (trunk, MAIN): card re-link a3f74cbfb7 · findings rows 51-60 · go
 earlier: dg6-04 LANDED 08b1ca1c94 · g1314 LANDED 88ddd2ca08 · goal:g1.33 LANDED 5f1e8092f2 (previous card versions: grid)
 
 ## 🔴 Where it stops
-LIVE: corrective parent a00-cd04d946 (row 60 DH.DG3.66) + mur agi-director-general-3-mur-h107d (.10.7). Next: a00-cd04d946 exits -> harvest (traps: kids=[] dm lies, dirty logged node writes, reaped worktree) -> touched tests -> mur h60c; h107d done -> read runs/mur-season2-loops-hypothesis-g716107-merge-gate-gi-a00-1cf7dc42/{review,verify}_h107d-*.json -> residues 0 = [merge-up] to SM (apply the council word), else a pi-free corrective. First command on wake:
+LIVE: corrective parents a00-cd04d946 (row 60 DH.DG3.66) + a00-46e3ab5f (.10.7 DH.DG3.67). Next: each exits -> harvest (traps: kids=[] dm lies, dirty logged node writes, reaped worktree) -> touched tests + neighbourhood -> re-mur (h60c / h107e, pi-free, detached) -> residues 0 = [merge-up] to SM, else a corrective. First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/send.py status sanctuary-master; python3 extensions/agi/bin/spawn_budget.py status; df --output=pcent /mnt/agi-ram
 ```
