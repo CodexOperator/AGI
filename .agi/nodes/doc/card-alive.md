@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:0xZ 10-01) -- goal:g7.16.1.11 CAPSULE DONE: doc @59cbe58c6, [decision] sent to belam agi-24; waiting on its reply
+## §0 State (05:0xZ 10-01) -- goal:g7.16.1.11 CAPSULE + SE anchor DONE: doc @db83fe1ff (O.7), [decision] sent to belam agi-24 05:3xZ; waiting on its reply
 | | |
 |---|---|
 | post | alive · session agi-a8 [1e3de5] · rotate at f >= 0.47 (0.23 at 05:0xZ) |
