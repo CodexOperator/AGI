@@ -17,27 +17,27 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (19:4xZ 10-01, read from date -u) -- successor seated after the 0.40 rotation (belam meters me; my agi-meter is blind until G10 + a restart)
+## §0 State (20:2xZ 10-01) -- successor seated 19:4xZ after the 0.40 rotation (belam meters me; my agi-meter is blind until G10 + a restart)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
 | run | owner 15:1xZ: keep going until goal:g7.16.1.11.1-.10 complete · COMMS = DIRECT session messages (SendMessage, names from ListAgents), not inbox dms (owner 18:1xZ) · belam = belam-S2-L5-I · SM lands my merge-ups (a v5 post cannot write MAIN) |
 | directors | director-thought-1 (successor after its 18:2xZ rotation): HOLD, no order · director-thought-2: idle after FAIR P4 |
 | subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
-| PENDING REVIEW | FAIR P4 = hypothesis:lm-neuron-periodicity-fair-p4-every-seed-has-a-load-bearing-family; experiment:dt2-neuron-period-p4fair-1001 DISPROVED (posts/director-thought-2 e7d25a5ec, results 2e6238e08): only seed 0 has a load-bearing family (k=45, pU 100 / pN 99.5); seeds 1 + 2 none; seed 0 k=5 misses N q99 by 0.008. First Sonnet review CUT 19:4xZ (belam [red]: 8 python workers x 650 MB). RE-LAUNCHED 19:4xZ (PSI full avg60 3.3, MemAvailable 9.6 GB): ONE Sonnet 5.5 subagent, ONE process, ulimit -v 2000000, threads 1, PSI gate per run, 40 min compute cap, tip e7d25a5ec -- RUNNING |
-| QUEUED LANDING | SEEDS x3 DISPROVED, [merge-up] 165f57b0f queued by SM 19:05Z (its successor gates after the urgent G10) |
+| QUEUED LANDING | [merge-up] a6ac4d92e sent to SM [e49de4] by SendMessage ~20:2xZ (SUPERSEDES 165f57b0f, contains it): SEEDS x3 + FAIR P4 DISPROVED (review CONFIRMED_DISPROVED, all 12 families recomputed exactly; residues fixed on the experiment node; hypothesis conf 0.2; board g5.28). Delivery NOT confirmed (remote route reports nothing back). grid.py commit --all NOT run: v5 PermissionError on MAIN .grid.lock -- asked SM to run it at landing |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: needs MemAvailable >= 8 GB held + a docker-capable user (v5 has none); resume steps in its THOUGHT |
 
 ## §1 Plan
 ```
 DONE   self-poke toy line LANDED a001a3c61 · guard-leak fix LANDED 0376b07da (goal:g7.33.19 row 80) · seeds x3 reviewed + merged, merge-up queued
-NOW    (1) FAIR P4 review RUNNING (one-process brief, launched 19:4xZ) -- await its verdict; if it is lost with a rotation, re-launch the same brief
-NEXT   (2) on its verdict: THOUGHT on the hypothesis + board row g5.28 (append to the SEEDS x3 text) -> merge posts/director-thought-2 -> gate -> [merge-up] to SM by SendMessage
-       (3) when SM lands 165f57b0f: git merge local-maxxing/season2/main into my branch
+DONE   FAIR P4 reviewed CONFIRMED_DISPROVED + recorded + merged (dc1504bba) + gated + [merge-up] a6ac4d92e to SM
+NEXT   (1) when SM lands a6ac4d92e on local-maxxing/season2/main: git merge it into my branch (check: git merge-base --is-ancestor a6ac4d92e local-maxxing/season2/main)
+       (2) next research round = the BANKED next lens (§6) -- awaits a go from belam/owner; do not mint it unasked
 BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
 ```
 
 ## §2 Landed
+- 20:2xZ FAIR P4 review CONFIRMED_DISPROVED (one process, peak RSS 0.7 GB; one supplementary run started at PSI 7.19, over its gate -- disclosed to SM); merged DT-2 dc1504bba; residue text 9bfaa48aa..0d4116d54; hypothesis c5b2d8e04; board a6ac4d92e; links 5661/0; p4fair test 8/8
 - 19:4xZ seated after rotation; keys file host comment reverted; FAIR P4 review re-launched one-process; 165f57b0f still NOT on local-maxxing/season2/main
 - 19:4xZ CUT my reviewer's 8 workers on belam's [red] (PSI full avg60 36-39 vs the 40 reboot line); belam told; scratch removed
 - 19:3xZ FAIR P4 minted c6bc7db49 -> DT-2 -> DISPROVED · 19:0xZ SEEDS x3 DISPROVED reviewed + DH.1 text, board row 3201a0277, DT-2 key comment + card paths fixed (165f57b0f)
@@ -46,8 +46,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-FAIR P4 review running (one-process Sonnet subagent, tip e7d25a5ec); on its verdict: THOUGHT + board g5.28 + merge DT-2 + merge-up
-next command (if this session died): cat /proc/pressure/memory, then re-launch the review (Agent, model sonnet, ONE-process brief, tip e7d25a5ec)
+Waiting on SM to land merge-up a6ac4d92e onto local-maxxing/season2/main; then merge the trunk into my branch
+next command: git fetch -q origin; git merge-base --is-ancestor a6ac4d92e origin/local-maxxing/season2/main && git merge origin/local-maxxing/season2/main
 ```
 
 ## §4 Traps
@@ -60,7 +60,10 @@ next command (if this session died): cat /proc/pressure/memory, then re-launch t
 - before a merge-up: grep added lines for the host name + absolute home paths (.agi/keys/* ssh comments; cards) and fix them on my branch
 - a findings row number is claimed only at landing: on a conflict keep theirs verbatim, renumber mine + every reference (write.py sub!)
 - anonymize.py and provisioning.py die on MAIN .env (G2) -- grep by hand instead
-- tests: PYTHONPATH=/data/ml/scratch/osc03/pylib:<a venv site-packages with pytest>; the ml venv has no pytest; never pip install system-wide
+- tests: NO pytest anywhere on the box -> scratch shim (pytest.py with importorskip/approx/mark.parametrize + a runner) on PYTHONPATH with /data/ml/scratch/osc03/pylib, run by /data/ml/.venv/bin/python3; never pip install
+- import torch needs ulimit -v >= 4000000 (2000000 fails to map); brief subagents with 4000000
+- git push fails (no creds for a v5 user); grid.py commit --all fails (MAIN .grid.lock) -- SM does both at landing
+- write.py `thought` takes the TEXT inline ("thought $(cat f)"), not a path
 - send.py from me arrives UNSIGNED (a v5 post has no seat key; key work HELD) -- direct session messages are the route
 - write.py create on a town node: --actor thought-master-new, NO --role; a card write: --role director
 
