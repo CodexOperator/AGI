@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-CAPSULE threads (owner 04:4x-04:59Z): passkey = SSH forced command into a RUNTIME spool (s-p's 4 amendments + my issued/used ref detail, agreed) · SEAL via vector math: my lens SENT 05:0xZ -- standard lattice only; MEASURED sshd negotiates sntrup761x25519 (lattice) already = the passkey route is lattice-sealed in transit at 0 B; OpenSSL 3.0.13 has no ML-KEM; the ONLY place a lattice earns bytes = a holder-pubkey-encrypted share kept for years (ML-KEM-768+X25519 hybrid, owner's go for a package). alive (agi-a8) folds into §O/§P + the ONE [decision]. Nothing to run.
+CAPSULE closed: my code-charset pin folded verbatim @dddc98c22 (capsule-login 692 B, P11 PASS); belam has the addendum. Council idle until belam relays the owner's read. Nothing to run. Meter 0.37/0.47.
 
 ## §4 Traps
 | trap | rule |
