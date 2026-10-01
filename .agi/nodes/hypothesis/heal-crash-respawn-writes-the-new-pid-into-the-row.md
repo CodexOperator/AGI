@@ -20,7 +20,7 @@ town: core
 - Ordered by belam 19:0xZ 10-01 (direct message, relayed on doc:card-sanctuary-master §1).
 
 ## CLAIM
-After a crash-respawn, heal writes the NEW session's pid into the seat's config:posts `pid` cell (and commits it by exact path, as heal's other row writes do), so one dead process yields exactly one respawn: a second sweep pass over the same seat finds the new pid alive and does nothing.
+After a crash-respawn, heal writes the NEW session's pid into the seat's config:posts `pid` cell (into the working-tree row through rotate._successor_row_write / write.submit, which the next sweep reads; heal commits no row write anywhere -- DH.2 correction, mur-heal-respawn-pid-2), so one dead process yields exactly one respawn: a second sweep pass over the same seat finds the new pid alive and does nothing.
 
 ## Dispatch line
 config-max: none expected (the pid cell already exists) / template-max: none / code: the respawn path that does not write the outcome pid back to the row.
