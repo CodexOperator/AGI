@@ -924,7 +924,7 @@ POP    capsule-pop R (root unit):  the ring, k and cred are read FROM T (the sig
 set -e;read -r c h t<"$1";x=.agi/capsule/$c;r=$(mktemp);trap 'rm -f $r $r.ok $r.c' EXIT;[ "$(git hash-object "$1.L")" = "$h" ]
 g(){ echo "$t:$1"|git cat-file --batch --follow-symlinks|tail -n+2;};git ls-tree --name-only $t $x/ring/|while read f;do echo "${f##*/} namespaces=\"capsule\" $(g $f)";done>$r
 for s in "$1".sig.*;do p=$(ssh-keygen -Y find-principals -s "$s" -f $r)&&ssh-keygen -Y verify -f $r -I "$p" -n capsule -s "$s"<"$1">/dev/null 2>&1&&echo "$p";done|sort -u>$r.ok
-[ $(wc -l<$r.ok) -ge $(git cat-file blob $t:$x/k) ];git update-ref refs/capsule/$c $(cat "$1" $r.ok|git commit-tree $t^{tree} -p $t) $t;git cat-file blob $t:$x/cred>$r.c
+[ $(awk -F@ '{s+=NF>1?$NF:1}END{print s+0}' $r.ok) -ge $(git cat-file blob $t:$x/k) ];git update-ref refs/capsule/$c $(cat "$1" $r.ok|git commit-tree $t^{tree} -p $t) $t;git cat-file blob $t:$x/cred>$r.c
 systemd-run -q --wait -p LoadCredentialEncrypted=s:$r.c -p DynamicUser=yes -p StandardOutput=null -p StandardError=null sh -c "$(jq -r .run "$1.L")"
 ~~~
 **Tested 04:5xZ:** user manager, a scratch repo, three throwaway holder keys + one outsider, k = 2, a 19-byte dummy payload. The test copy differs only in `systemd-run --user`, `LoadCredential=` (plain) and no `DynamicUser` (the encrypted, system form is the root act below). No real key was touched.
