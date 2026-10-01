@@ -45,7 +45,7 @@ BLOCKED docker: my user is not in the docker group (permission denied on the soc
 
 ## §2 Landed
 - 17:5xZ guard-leak fix + DH.1 merged, [merge-up] 88836f90e to SM
-- 17:0xZ LEAK NAMED (DT-1): row 78 on goal:g7.33.19 · fix round minted 2bc7077b6 -> DT-1 · SM told (deselect until it lands)
+- 17:0xZ LEAK NAMED (DT-1): row 80 on goal:g7.33.19 · fix round minted 2bc7077b6 -> DT-1 · SM told (deselect until it lands)
 - 16:3xZ LANDED a001a3c61 (SM) · trunk merged back abb193673 · LEAK HUNT ordered to DT-1 · SEEDS relaunch check amended to TracerPid 0
 - 16:1xZ SELF-POKE line merged into my branch (cf9378383: DT-1 b3a865707), tests 15/15 under the context conftest from the repo root (my run), board row g5.28 written (c37e4ba7f) -> [merge-up] handed to the trunk lander (v5 users cannot write MAIN)
 - 15:2xZ [red]s to DG3 (both TAKEN): v5 children ptraced by the unit strace (fix --seccomp-bpf, hypothesis:g716111-g7-agi-run-strace-seccomp-bpf) · comms/inbox ACLs lost at the reboot (re-applied 15:2xZ; findings row 73 goal:g7.33.19) · DH.1 + SEEDS orders sent
