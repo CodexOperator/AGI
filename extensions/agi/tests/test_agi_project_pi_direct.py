@@ -1,5 +1,5 @@
 """G7.4: strace -b execve detaches on the harness pid's 2nd exec, so a pi row (env-shebang) must start with the interpreter."""
-import os, shutil, subprocess, tempfile, time
+import os, re, shutil, subprocess, tempfile, time
 import pytest
 from tests import test_project_agi_box as base
 
@@ -20,16 +20,41 @@ def _bin(tmp_path, name, pi):
     return d
 
 
+UNIT_PATH = re.search(r"(?m)^Environment=PATH=(\S+)", (base.WT / base.GEO / "engine-root.md").read_text())[1]
+
+
 def test_pi_row_is_node_exact_dir_pi_first_on_unit_path(tmp_path, monkeypatch):
     a, b, c = _bin(tmp_path, "a", 0), _bin(tmp_path, "b", 1), _bin(tmp_path, "c", 1)
-    h = h_of(tmp_path, monkeypatch, "pi-free", f"/var/lib/agi/%i/bin:{a}:{b}:{c}")  # %i + a pi-less dir skipped; first holder wins
+    h = h_of(tmp_path, monkeypatch, "pi-free", f"{UNIT_PATH.split(':')[0]}:{a}:{b}:{c}")  # the unit's own first dir (%i) + a pi-less dir skipped; first holder wins
     assert h.startswith(f"node {b}/pi --provider openrouter --model m --thinking high "), h
 
 
-def test_no_pi_on_unit_path_refuses_before_any_h_conf(tmp_path, monkeypatch):
+def _refuses(tmp_path, monkeypatch, extra=""):
+    """pi row (+ extra rows), no pi on PATH, a seeded wants link: exit 3, no h.conf, the link survives."""
+    monkeypatch.setattr(base, "ROW", ROW % (("pi-free",) * 2) + extra)
+    w = tmp_path / "out" / "multi-user.target.wants"
+    link = w / ("agi-post" + "@old.service")
+    w.mkdir(parents=True), link.symlink_to("../agi-post" + "@.service")
     with pytest.raises(subprocess.CalledProcessError) as e:
-        h_of(tmp_path, monkeypatch, "pi-free", str(_bin(tmp_path, "a", 0)))
-    assert e.value.returncode == 3 and not list((tmp_path / "out").glob("*/h.conf"))
+        base.project(tmp_path, path=str(_bin(tmp_path, "a", 0)))
+    assert e.value.returncode == 3 and not list((tmp_path / "out").glob("*/h.conf")) and os.path.islink(link)
+
+
+def test_no_pi_on_unit_path_refuses_before_any_h_conf_or_wants_strip(tmp_path, monkeypatch):
+    _refuses(tmp_path, monkeypatch)
+
+
+def test_pi_row_then_malformed_row_refuses_not_node_slash_pi(tmp_path, monkeypatch):
+    _refuses(tmp_path, monkeypatch, "  - {oops\n")
+
+
+def test_mixed_box_pi_and_claude_rows_both_project(tmp_path, monkeypatch):
+    d = _bin(tmp_path, "a", 1)
+    monkeypatch.setattr(base, "ROW", ROW % (("pi-free",) * 2) + ((ROW % (("claude-code",) * 2)) % "local-town").replace('"t1"', '"t2"'))
+    pi = base.project(tmp_path, path=str(d))
+    cl = (tmp_path / "out" / ("agi-post" + "@t2.service.d") / "h.conf").read_text()
+    assert f'H=node {d}/pi --provider openrouter --model m --thinking high ' in pi
+    assert 'H=claude --remote-control t2 --model m --effort high --permission-mode bypassPermissions" ' in cl
 
 
 def test_claude_only_box_projects_without_pi_byte_identical(tmp_path, monkeypatch):
