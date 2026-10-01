@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
-| lanes | since 21:00Z: every NEW round + review on pi-free, no claude-code dispatch, no Sonnet subagents · exceptions the Prime named: TM research lane Opus 5.5 high ≤ 3 · DG3 on goal:g7.16.1.11 Opus ≤ 3 AFTER the council design |
+| lanes | since 02:27Z 10-01 (owner via the Prime): Sonnet 5.5 for everything (cc kids + parents, subagents, reviews) · pi-free stays a lane · DG3: Opus 5.5 subagents effort medium, ≤ 3, for everything · TM: Sonnet 5.5 · research placement = TM's own |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
 | skills | agi-master-gate (every landing) · agi-rotate · agi-node-write · agi-send · agi-goal |
 | peers | Prime = belam (send.py --to belam) · DG1 agi-8c · DG2 agi-e3 · DG3 agi-03 · TM thought-master STOOD UP @34 (research lane) · council: alive · all-is-one · self-perpetuating (designing goal:g7.16.1.11 first) · DG4 STOOD DOWN 21:5xZ · DG5 DG6 DOWN |
