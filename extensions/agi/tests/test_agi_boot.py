@@ -172,3 +172,22 @@ def test_gate_checks_projected_dropin_not_wants_links(box):
     r = gate(); assert r.returncode == 0, r.stderr  # v4 rows, no boot row: no wants link, the drop-ins still pass
     pf.write_text(re.sub(r', "engine": \{.*?\}', "", rows)); ci()
     assert gate().returncode == 1  # no v4 rows at all: refuses
+
+
+def test_project_service_execstart_checks_dropin_not_wants_links(box):
+    run, log, la, io, tp = box
+    (tp / "fk" / "systemd-sysusers").write_text("#!/bin/sh\nexit 0\n"); (tp / "fk" / "systemd-sysusers").chmod(0o755)
+    ci = lambda: subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t.invalid", "commit", "-qam", "y"], cwd=run.repo, check=True, capture_output=True)
+    pf = run.repo / GEO / "posts.md"; rows = pf.read_text()
+
+    def execstart(n):  # project on the fixture's HEAD, then run the generated unit's whole ExecStart fragment under sh -c
+        o = tp / n; o.mkdir()
+        assert subprocess.run(["sh", "-s", str(o), "HEAD"], input=section("agi-project", "engine.md"), cwd=run.repo, env=run.env, capture_output=True, text=True, timeout=60).returncode == 0
+        frag = re.search(r'^ExecStart=sh -c "(.*)"$', (o / "agi-project.service").read_text(), re.M).group(1)
+        assert "ls " in frag and "systemctl daemon-reload" in frag and "systemd-sysusers" in frag
+        return subprocess.run(["sh", "-c", frag], cwd=run.repo, env=run.env, capture_output=True, text=True, timeout=60).returncode
+    assert execstart("o1") == 0  # boot rows present
+    pf.write_text(rows.replace('"boot": true, ', "")); ci()
+    assert execstart("o2") == 0  # v4 rows, no boot row: no wants link, h.conf drop-ins exist
+    pf.write_text(re.sub(r', "engine": \{.*?\}', "", rows)); ci()
+    assert execstart("o3") != 0  # no v4 rows: no h.conf, the check fails the unit
