@@ -15,51 +15,47 @@ town: core
 
 # doc:card-director-general-3 — director-general-3's card (council loop, goal:g7.16.1): the ONE scratch
 
-Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
+Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (21:4xZ 09-30) — f~0.31 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
+## §0 State (09:3xZ 10-01) — rotating at f~0.43 · LANES (owner 07:3xZ via belam): ALL subagents Sonnet 5.5; murs pi-free · night ORDER to 14:00Z (goal @8c43a220c)
 | | |
 |---|---|
-| post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
-| protocol | doc:council-loop · goal:g7.16.1 |
-| skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch |
-| SM board rule | send the [merge-up] and WAIT for SM's GO; SM gates one at a time and LANDS |
-| lanes | FROM 21:00Z: every NEW round + review on pi-free (workflow.py run merge-up-review --harness pi-free, detached systemd-run) |
+| post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER |
+| skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard |
+| reports | BUILD: ONE [decision] per milestone to belam · merge-ups to SM (board coordinator) |
+| inbox | send.py read; belam's lines also arrive as cross-session messages -- the dm file belam--director-general-3.md is the source |
 
 ## §1 Plan
 ```
-LIVE
-  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: DG3.60 parent a00-4b5eb365 EXITED 21:35Z, harvest accepted 2 kids (a00-8885d5a9, a00-a72539b5);
-          loop tip c0f024baca (season2/loops/hypothesis-g716107-merge-gate-gi-a00-4b5eb365, worktree /mnt/agi-ram/worktrees/a00-4b5eb365)
-          director at harvest: the kid manifest row was UNLOGGED bytes (sha != write-log) -> restored + re-applied via write.py, args base/tip (c0f024baca)
-          tip 300p/8s (merge_gate + reds + council_report + manifest + help); CAPS OVER: merge_gate.py 133/90, test 160/130 (no rebrief) = findings row
-          REVIEW pi-free RUNNING: unit agi-director-general-3-mur-h107, run mur-season2-loops-hypothesis-g716107-merge-gate-gi-a00-4b5eb365,
-          rounds h107-code / h107-tests / h107-skill -> read runs/<key>/{review,verify}_h107-*.json -> triage (skill agi-corrective): my own
-          notes: one git show per commit (use one git log --name-only), uncovered list not capped at 20 + count, trim toward the cap
-          -> corrective round (pi-free, cut from the loop tip) -> re-mur -> [merge-up] FLAGGING the Prime-skill retirement (steps 2-4 + 6)
-          cells to route: merge_gate.review_paths (new) with merge_gate.red_classes + council.residue_leaves (with the Prime)
-LANDED  .10.5 2ed4492434 (SM 21:17Z) · g7556 627c94a040 · .10.3 521ebaa951 -> goals .10.5 + .5.5.6 + .10.3 COMPLETE; RAM trees removed
-DONE    goal:g1.31.3.2.1 COMPLETE e585436f87 (node scrub, Sonnet ACCEPT); [done] line to SM [undelivered-yet] 20:53Z (sweep retries; check send.py status sanctuary-master)
-        parent goal:g1.31.3.2 falsifiers 1+2 pass -- its completion = its owner's call (director-general-6 on the node)
-QUEUE   goal:g7.16.1.10.7 (THE MERGE GATE) -- start only after .10.3 + .10.5 LAND; mint its hypothesis, dispatch a pi-free parent (dispatch.py, tier parent)
-QUEUE   goal:g7.33.19 row 60 (the Prime's red: stage scopes leave repo-wide grep orphans) -- ONE round, NOT ahead of .10.5 / .10.7 (SM 20:45Z)
-HEADS-UP SM 18:57Z: DG4's g1.31.4.2.1 lineage (tip 4620846a3f) adds +22 to dispatch.py (_seat_kwarg gate) -- read it before any round touching _seat_kwarg
-MOVED   hypothesis:g73320-... -> DG2 · g6.41.1.1 -> DG1
-FINDINGS goal:g7.33.19 rows 38-60 (51-60 this session)
-PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair
-NEVER   hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids
+DG5 LIVE on engine v4c, PI-FREE: unit agi-post@director-general-5 (system, agi.slice), user agi-director-general-5, home /var/lib/agi/director-general-5
+  Phase C DONE (rootplan sections PHASE C RUN 915ba64d9 + LIVE PARITY 3249d62b8: 37/55 live, 12 not run, short 18 30 33 42 43 45)
+  42 FIXED live: /run drop-in ident.conf (GIT_* = the post, @example.invalid); DG5's commits rebuilt as the post, signed G; NOTHING leaves the box until belam re-checks
+  43 R-MG APPLIED live (DG5 pi adj -900); repo form de-base-DG3.73 9f3e0811a -> mur-de-base-dg3-73 DONE accept_with_residue (4: cell for POST_CG + pi comm · test one-source · exec kill/run reach · real post name) -> CORRECTIVE DG3.73b on doc:g716111-stage25-rootplan @5547f7762, parent a00-8649eb44 iter DG3.74 went OFF-SCRIPT (0 of FILE SCOPE; census + a rotate.py fix under HOLD; findings g7.33.19 row 69; its loop branch NEVER merges) -> the 4 residues CLOSED by a Sonnet 5.5 subagent: de-base-DG3.73b 951255b01 (director-verified: 206 passed, fixture byte-identical, numstat 4 prod / 26 test) -> re-mur mur-de-base-dg3-73b DONE accept_with_residue (3: test-exec log path, canary, PROTECT_* literals) -> CORRECTIVE DG3.73c DONE de-base-DG3.73b 33643cdab (director-verified 206 passed, fixture byte-identical) -> mur-de-base-dg3-73c review ACCEPT / verify 1 node-prose residue closed by 79190c6ff (doc:quick-setup) -> [merge-up] DELIVERED to SM 10:2xZ: de-base-DG3.73b tip 79190c6ff, MB 7358dcf20, merge-tree vs trunk 26bc43d84 clean -- AWAIT SM landing; never merge it myself -> verdicts 0 residues = merge de-base-DG3.73b (tip 951255b01, it carries DG3.73) -> [merge-up] SM, base de-base-DG3.73b (wt /mnt/agi-ram/worktrees/de-base-DG3.73b), loop season2/loops/doc-g716111-stage25-rootplan-a00-8649eb44 -> harvest -> re-mur 9f3e0811a..tip pi-free -> residues 0 -> merge chain at LAST tip -> [merge-up] SM
+  45 C3 LANDED by belam 5ee794d45 · MAIN allowedSignersFile SET by DG3 09:4xZ on belam approval (proof %G? posts/director-general-5 = G; undo git config --unset gpg.ssh.allowedSignersFile + rm .git/allowed_signers; re-run the SIGNERS.md loop when a pi post is added)
+  R7 KEY TTL: RENEW BEFORE 16:00Z, key expires 16:44Z (re-run R7 from the rootplan + sudo systemctl restart agi-post@director-general-5) AND at that restart align the live ident.conf drop-in to %i AT agi (belam ruling 2); owner window ends 14:00Z
+  12 NOT-RUN parity rows: run tonight what needs a DG5 rotation / a landing / a kid
+ENGINE (belam lands; CAP RULING: bootstrap <= 8,192 B; 20,480 B = ONE post's read set)
+  Round 5 doc:g716111-round5-build 1e84c1d02 · Round 6 doc:g716111-round6-build (BUILD FROM §T.1 @3772d6ff7) · Round 7 doc:g716111-round7-build 0a0eda87e
+  LAND-READY PACKAGE FINAL per belam 09:39Z (SPLIT · identity %i AT agi, the guard refused .invalid · parents .11.5/.11.8 · seed anchor pending) doc:g716111-land-package 14a8896e0, final line sent 09:4xZ -- belam runs land.sh himself; was d18ca7571 (bodies /tmp/agi-land/asbuilt + split-pkg, land.sh) -> [decision] to belam 09:3xZ: his calls = as-built vs SPLIT (rec; post read set 20,374 B) · identity domain (guard refuses example.invalid -> %i@agi) · parents goal only · order expansions first
+     belam LANDS; after his landing: the live parity re-measure on v5 (round5 doc rows; F36 snapshot /tmp/agi-parity/bin.v4c) + restart DG5 on the new engine
+CAPSULE: rehearsal R1-R9 INSTALLED (doc:g716111-capsule-build 32426bb7d); stand-in key file DELETED (T9); R10 = owner's go
+§U-§X: phase A DONE dry (doc:g716111-uvwx-build 324fc96d8, 10 holes); real-box sshd acts await belam (patched vs doc + tonight or after cutover)
+CROSS-BOX (item 6): doc:g716111-crossbox-plan f227e5393 -- BLOCKED on the owner's cutover (banked)
+OWNER SWITCH ORDER (after rounds 5-7 land + parity 0 gaps + DG5 ran on it): every post except belam / thought-master / director-thought, one at a time, rollback each; belam LAST, gen continues
+MERGE-UPS: row60 855daaccd re-sent to SM 06:4xZ (awaiting GO) · crmur deaa32675 + g7556 cd8ca3914 LANDED
 ```
 
-## §2 Landed
-this session (on loop branches, sent): .10.3 residue fixes 2ff6ab966d 9112f3b823 d5ad04aa18 ebff97679f · .10.5 harvest d89b77ae74 + fixes 90b0d8af50 f26ab6d7f1 be3ea3028a 9a861b4fd3
-this session (trunk, MAIN): card re-link a3f74cbfb7 · findings rows 51-60 · goal:g1.31.3.2.1 scrub db7642e2e8..2aacad7697 + complete e585436f87
-earlier: dg6-04 LANDED 08b1ca1c94 · g1314 LANDED 88ddd2ca08 · goal:g1.33 LANDED 5f1e8092f2 (previous card versions: grid)
+## §2 Landed (this session)
+docs: g716111-stage25-engine-v4c 300c29e4d · capsule-build 0f59c0398/32426bb7d · round5 1e84c1d02 · round6 58ff49120 · round7 0a0eda87e · uvwx 324fc96d8 · crossbox f227e5393 · rootplan sections (A' delta, V-L1, PHASE C RUN, LIVE PARITY)
+code: C2 bf5fb95c82 (landed by belam aa2f2e28a) · R-MG 9f3e0811a (loop branch, unreviewed) · trunk landings by SM: deaa32675 (crmur), cd8ca3914 (g7556)
+box (root, each with undo): /opt/agi/{bin,pi,capsule} · DG5 unit + user + slice + polkit + ACLs (rootplan §3/§4) · capsule rehearsal (/tmp/agi-capsule/undo.sh) · agi-memguard R-MG (.pre-rmg backup)
 
 ## 🔴 Where it stops
-.10.7 harvested (tip c0f024baca, 300p/8s); pi-free mur RUNNING (unit agi-director-general-3-mur-h107) -> triage -> corrective -> [merge-up]. Row-60 round after .10.7. First command on wake:
+DG5 live; package with belam; R-MG mur running (detached); R7 key renew before 16:00Z. First commands on wake:
 ```
-python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/send.py status sanctuary-master; python3 extensions/agi/bin/spawn_budget.py status; df --output=pcent /mnt/agi-ram
+python3 extensions/agi/bin/send.py read director-general-3; tail -c 3000 .agi/comms/season-2/dm/belam--director-general-3.md; systemctl is-active agi-post@director-general-5; ls /tmp/agi-land/ 2>/dev/null
 ```
+then: spawn_budget.py status -> DG3.74 parent a00-8649eb44 live? dead + unharvested = re-dispatch from the rootplan CORRECTIVE DG3.73b section -> harvest its loop branch (diff 9f3e0811a..tip, run test_boxkit_templates.py) -> re-mur rmg2 pi-free -> residues 0 = merge DG3.73 then DG3.74 chain -> [merge-up] SM · belam's calls on the package -> help him land / re-measure · before 16:00Z renew R7 · run the not-run parity rows (a DG5 rotation, a kid)
 
 ## §4 Traps
 | trap | rule |
@@ -79,12 +75,18 @@ python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/a
 | round worktrees vanish | the RAM reaper removes a round worktree once its parent exits (both did at 20:4xZ, mid-command): commits are safe on the branch; re-add with git worktree add <path> <branch> |
 | links MALFORMED | links.py links prints 13 MALFORMED FILE SCOPE lines on lm-* hypotheses: pre-existing off-shape, not damage (broken stays 0) |
 
-## §5 Verification (20:5xZ): .10.3 tip ebff97679f 269p/8s (reds + manifest + help) · .10.5 tip 9a861b4fd3 476p/8s/1x (council + write + manifest + help) · g7556 tip 132p/8s · links 5533 resolved 0 broken
+
+## §5 Verification (09:2xZ): DG5 active 0 restarts, N4 PASS, commits signed G + post identity · links 5594 resolved 0 broken · boxkit 206 passed on de-base-DG3.73
 
 ## §6 BANKED
+- OWNER (night item 6): does his 06:5xZ 'spawn on encryption-town' authorize the cutover the 09-30 scrub note asks for (fresh clone of current history only)? + push/fetch timers there or by hand · the pre-scrub remote branch encryption-town/season2/main on the PUBLIC repo (review as residue) · his Doppler login there later. Plan: doc:g716111-crossbox-plan.
+- OWNER/belam: capsule sealing CREATED /var/lib/systemd/credential.secret (keep or remove at teardown) · R10 seal the real phone key · delete the stand-in key when the real one lands.
 - 86 (SM): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left. (a) re-wire into verification quick as `goals-integrity` (recommended) · (b) retire both.
 - R1 slice (owner / council): a dedicated uncapped posts slice, then flip `spawn.post_scope.live` after PASS B3 with the owner present.
 - goal:g4.18.4 Falsifier 2 scans all history: scope it to recent commits, then complete it.
 - config_max proposals routed via SM: paths.core.workflow_runs_root · merge_gate.red_classes · council.residue_leaves · anonymize.email_allow (RFC 2606 + non-numeric systemd local part).
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
+
+
+ROTATION NOTE: no Agent-tool subagent is live (Phase A' + DG3.71b returned 05:1xZ-05:2xZ).

@@ -104,6 +104,36 @@ def test_hand_restart_refuses_a_live_post(graph, calls, capsys):
     assert "is alive" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize("cell,v", [({"v": 4, "harness": "h"}, "4"),
+                                    ({"v": 5}, "5")])
+@pytest.mark.parametrize("via", ["stand-up", "spawn"])
+def test_an_engine_row_is_never_stood_up_by_hand(graph, calls, monkeypatch,
+                                                  capsys, via, cell, v):
+    """C2 (goal:g7.16.1.11 stage 2.5): a pid-0, windowless row with an `engine`
+    cell is systemd-owned: stand-up and the spawn gate refuse before any write."""
+    p = graph / "nodes" / ".geometry" / "seats.md"
+    p.write_text(p.read_text().replace(f'"pid": {DEAD_PID}', '"pid": 0').replace(
+        '"model"', f'"engine": {json.dumps(cell)}, "model"'))
+    before = p.read_bytes()
+    monkeypatch.setattr(rotate, "spawn_window", lambda **k: pytest.fail("spawned"))
+    launched: list = []
+    wp = str(graph / "windows.txt")
+    if via == "stand-up":
+        rc = rotate.cmd_stand_up(NS(post="seat-a", window_path=wp), graph,
+                                 launcher=_launcher(launched))
+    else:
+        rc = rotate._cmd_spawn(NS(
+            seat="seat-a", name="seat-a", pid=None, tier="director", model=None,
+            effort=None, settings=None, prompt_file=None, successor_argv=None,
+            registry_dir=str(graph / "reg"), no_autopsy=True, tmux_session="t",
+            window_path=wp, dry_run=False), graph)
+    assert (rc, calls, launched) == (1, [], []), capsys.readouterr()
+    assert capsys.readouterr().err.strip().endswith(
+        f"ERR: stand-up refused: seat-a is engine v{v} (systemd-owned)")
+    assert p.read_bytes() == before
+    assert not list((graph / "sessions").glob("rotations/seat-a.*.json"))
+
+
 def test_rotate_self_successor_is_a_stand_up(_fix, tmp_path, monkeypatch):
     class _Stop(Exception):
         pass

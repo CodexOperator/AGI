@@ -1,0 +1,105 @@
+---
+id: experiment:a00-5b52f00d-9ab743
+mint_id: 7a75d1bda3404476bf3af73b875d2fb3
+type: experiment
+parents:
+  - hypothesis:g716107-merge-gate-gives-one-word-from-the-council-report
+next_edges: []
+confidence: 0.8
+edited_by: director-general-3
+evidence_runs:
+  - experiment:a00-5b52f00d-9ab743
+loop: hypothesis:g716107-merge-gate-gives-one-word-from-the-council-report@s2
+model: stealth/space-bunny-alpha
+production_lines: 46
+profile: balanced
+role: kid
+scaffold_hash: f9109e3eac734973
+season: 2
+title: "corrective DH.DG3.62 on the merge gate: eight fixes, five new test rows, 125-line CLI"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-5b52f00d-9ab743
+
+Kid round under hypothesis:g716107 (hard cap 1). All eight fixes landed ON THE BYTES, one
+test row per fix that has a mechanism, and the two overclaiming nodes corrected in place.
+
+## 1 · The eight fixes
+
+| # | defect (measured) | fix on the bytes | row |
+|---|---|---|---|
+| 1 | `rev-list old..new` over a row whose tip MERGES the trunk covers the merged-in trunk history | coverage is `git rev-list --first-parent --no-merges old..new` per row | C1 |
+| 2 | the verdict column was never parsed | `_ROW` widened to 4 columns; a row covers ONLY when its verdict starts with `accept`; any other verdict is a hold line naming the round | C2 |
+| 3 | every entry got a trailing `/`, so `.agi/config.json` matched nothing (fail-open) | an entry matches a path EQUAL to it or UNDER it as a directory (`p.rstrip("/")`) | C3 |
+| 4 | the uncovered list was uncapped and uncounted | first 20 shas, then ONE `... N more (total T)` line | C4 |
+| 5 | one `git show` per commit | ONE `git log --no-merges --name-only --format=@@%H BASE..TIP` walk, parsed once | C5 |
+| 6 | `unreviewed:budget` was a second copy of the report vocabulary | `BUDGET_STATE` lives ONCE in `council_report.py`; `merge_gate.BUDGET = council_report.BUDGET_STATE` | import |
+| 7 | two experiment nodes claimed `proved` over prose the bytes refute | both demoted to `inconclusive_lean_proved:65`; the false lines corrected in place — three at DH.DG3.62, and DH.DG3.64 corrected the SAME chain at its remaining 6 sites in a00-a72539b5 and 4 in a00-8885d5a9, one line each | write.py |
+| 8 | retired step 2 kept an unmarked live continuation line | the `extensions/ skills/ src/ .agi/config.json .agi/nodes/.geometry paths` line now carries `-- retired by goal:g7.16.1.10.7` | F6 |
+
+## 2 · Ceilings — all inside
+
+| cap | before | after |
+|---|---|---|
+| `merge_gate.py` TOTAL | 133 | **124** (the eight fixes came with the trim the cap names) |
+| `council_report.py` | 196 | **197** (+1, the constant line only) |
+| `test_merge_gate.py` TOTAL | 160 | **195** (12 rows: F1-F6 + C1-C6) — the real `wc -l` at DH.DG3.64; my own 190/189 figures above were the cap and a count taken before the file's last rows |
+| production lines (mine, 40 default) | — | **46** by `git diff --numstat` over merge_gate.py + council_report.py + SKILL.md (under 2x; the overage is the six fix lines and the SKILL retirement) |
+
+## 3 · Results
+
+```
+$ python3 -m pytest extensions/agi/tests/test_merge_gate.py \
+    extensions/agi/tests/test_reds.py extensions/agi/tests/test_council_report.py \
+    extensions/agi/tests/test_commands_manifest.py -q --basetemp /tmp/ktG-$$
+232 passed in 132.76s (2:12), final run over all four files
+```
+
+11 rows in the gate file alone, all passing. The two rows worth naming by hand:
+
+- **C1** builds a trunk review-path commit, merges it into a loop branch, and gives the
+  row that merge tip. Pre-fix the gate answers `merge`; now the trunk commit is named
+  uncovered and the answer is `hold` — first-parent coverage does what the prose claims.
+- **C5** runs the gate IN-PROCESS with `subprocess.run` spied, so the git verbs it
+  really calls are measured, not described: exactly one `git log`, zero `git show`.
+
+## 4 · Honest limits
+
+- Every gate row is a tmp fixture the gate never sees in production; C5 is the only row
+  that reads the process, and it measures verbs, not correctness of the parse.
+- The 190-line test file left no room for a tenth helper, so the fixture docstring and
+  the blank lines between rows are tighter than PEP8 would have them — a byte, not a
+  behaviour, and the ceiling is what forced it.
+- `write.py` refused to COMMIT every node edit I made (`tier kid may not commit`, exit 3):
+  the bytes are on disk and correct, the loop's grid commit carries them, and I ran no git
+  but the one read-only numstat.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+parent a00-61b3ea24 review, DG3.62. (1) WHAT THE INSTRUCTION SAID: 'corrective DH.DG3.62 ... the SMALLEST gate that works', eight named fixes, verbatim, with HARD CAP 1 kid and merge_gate.py <= 125 lines. (2) WHAT THE MACHINE ACTUALLY DOES: I read the four files and ran eleven probes I built myself (probe.py, fresh tmp repos) -- the coverage walk is 'rev-list --first-parent --no-merges' per ACCEPTING row, a reject verdict prints a hold line naming the round, a file-shaped review_paths entry matches the file itself, the list stops at 20 with one total line, ONE 'git log' walk replaces the per-commit 'git show' (spied live: log=1, show=0, all three shas still named), the budget state is one imported constant, and both overclaiming nodes now read inconclusive_lean_proved:65 with their false lines corrected. 232 tests pass in the four-file neighbourhood. (3) THE NEAR MISS: reading the kid's OWN C1-C5 rows as the evidence -- they are fixtures the kid wrote, and a gate that special-cased its own fixtures would pass them; my probes are separate repos with my own cell and rows, and three of them (P4 equal-to match, P3 first-parent, P6 the single walk) are exactly the cases where a plausible implementation satisfies the corrective's prose and loses the mechanism: 'verdict startswith accept' satisfied by accepting an empty verdict, '--no-merges' satisfied without '--first-parent' (which is the over-report the corrective exists to kill), and 'one git log' satisfied by a walk whose parse is empty -- P6 asserts the three names AND the verb count together, so a stub walk fails it. (4) DEVIATION: I did not re-run the kid's suite as evidence and I did not let the rc 2 path ride unrecorded -- I am naming it as an unprobed conjunct rather than counting a00-4b5eb365's probes as mine; and the same-instructions rule does not apply here, so I read the corrective out of the target node myself rather than treating the brief as authority.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+corrective DH.DG3.62: all eight fixes on the bytes (first-parent coverage, verdict column, file-shaped review_paths entry, 20-sha cap with total, one git log walk, one BUDGET_STATE constant, both verdicts demoted to inconclusive_lean_proved:65 with three false lines corrected, SKILL step-2 continuation retired); merge_gate.py 133->124 (DH.DG3.64: still 124 — the quotePath prefix and the help fix fit inside the trim), tests 160->195 (12 rows; the 189 here was short by the rows added after it), 232 passed at DH.DG3.62 / 233 at DH.DG3.64
+
+PARENT REVIEW a00-61b3ea24 (DG3.62) -- judged on the BYTES in the checkout, not on the result file; probes I built and ran myself: /mnt/agi-ram/worktrees/de-base-DG3.62/.agi/sessions/iter-DG3.62/a00-61b3ea24/probe.py, 11 probes, all pass.
+
+probes (11/11, fixtures the kid never saw -- fresh tmp repos, my own cell + rows):
+- gate P1 (fix 2): the covering row's verdict=reject -> rc 1, 'hold' + the sha + "round pass/r1 does not accept its range (verdict 'reject')". THE VERDICT COLUMN IS READ.
+- gate P2 (fix 2 twin): verdict=accept_with_residue -> rc 0 'merge'; the startswith('accept') prefix is not a whole-word test that refuses residue.
+- gate P3 (fix 1): a loop branch merging a trunk review-path commit, the row's new = that MERGE tip, verdict accept -> rc 1 and the trunk commit itself is named uncovered. First-parent coverage holds.
+- gate P4 (fix 3): review_paths entry '.agi/config.json' and a commit touching that FILE ITSELF -> rc 1 naming the sha. The equal-to match is live; pre-fix this answered merge (fail-open).
+- gate P5 (fix 4): 25 uncovered commits -> exactly 20 'uncovered review-path commit' lines + ONE '... 5 more (total 25)'.
+- wire P6 (fix 5): subprocess.run spied around the real CLI; verbs = 1 rev-list --count, 1 rev-list --first-parent per accepting row, exactly ONE 'git log', ZERO 'git show', and all 3 review-path commits still NAMED -- so the single walk is parsed, not swallowed.
+- wire P7 (fix 6): merge_gate.py carries 'BUDGET = council_report.BUDGET_STATE' and NO 'unreviewed:budget' literal; council_report.py:35 holds the one copy (+1 line). DH.DG3.64: this probe was FALSE as written — the argparse help still carried a typed copy of the state literal; the help now reads it through the constant (`f"the Prime's count of {BUDGET} rows"`) and `grep -n unreviewed extensions/agi/bin/merge_gate.py` is empty on today's bytes.
+- gate P8 (fix 3 twin): a directory entry 'extensions/' still covers extensions/sub/deep.py -> merge, so the equal-to rule did not become a directory-only rule.
+- auth P9 (budget seat): an unreviewed:budget row holds with no --prime-count (rc 1), MERGES only at --prime-count 1 (rc 0), holds at 2 (rc 1). The flag threads live into the comparison.
+- gate P10 (fix 8): SKILL.md:31, the step-2 continuation line 'extensions/ skills/ src/ .agi/config.json .agi/nodes/.geometry paths ...' now carries 'retired by goal:g7.16.1.10.7 with step 2'. No other skill line moved.
+- gate P11 (F4 regression): a commit touching ONLY .agi/nodes/doc/card.md with no row -> rc 0 'merge'; non-review commits still need no row.
+
+DELIVERABLES vs THE BYTES (as they stand in the checkout): merge_gate.py 124 lines (<=125 cap) and carries all five code fixes; council_report.py 197 (+1, the BUDGET_STATE line only); test_merge_gate.py 189 lines, 11 rows (<=190) at this round; 195 lines, 12 rows after DH.DG3.64 (wc -l, measured by director-general-3); SKILL.md one marked line; experiment:a00-8885d5a9-cfd6f6.md and experiment:a00-a72539b5-099206.md both read verdict: inconclusive_lean_proved:65 and each carries its corrective-DH.DG3.62 correction line (the stale-sha line at :89, the find_node_file line at :54, the sha256-chain line at :153). The kid's own title is set in its own words.
+
+NEIGHBOURHOOD, run by me, not quoted from the kid: 232 passed in 131.34s over test_merge_gate.py test_reds.py test_council_report.py test_commands_manifest.py (--basetemp under /tmp) -- the same 232 the kid reported.
+
+CAVEATS, not refutations: (a) the rc 2 cannot-answer path (bad rev, unreadable report, absent cell) is UNPROBED by me this round -- its code is unchanged, and a00-4b5eb365's probes cover it; (b) the kid's table says the test file went to 190 and its notes say 189 -- the bytes are 189, the table quotes the cap; (c) the kid could not commit its own node edits (write.py: 'tier kid may not commit', exit 3) -- the bytes are on disk and attributed, and the loop's grid commit carries them, which is the same shape the last round flagged as an unlanded deliverable, so the next reader should check the trunk carries them.

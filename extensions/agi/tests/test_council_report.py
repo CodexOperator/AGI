@@ -58,12 +58,23 @@ def _writer(store=None, mangle=False):
     return write
 
 
+def _flat(root: Path):
+    """Flat args with REAL tips from a tmp git repo (DG3.71b: never an aaa..bbb pin)."""
+    def git(*a):
+        return cr.subprocess.run(["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t",
+                                  *a], text=True, capture_output=True, check=True).stdout.strip()
+    if not (root / ".git").exists():
+        git("init", "-q"), git("commit", "-qm", "c0", "--allow-empty"), git("commit", "-qm", "c1", "--allow-empty")
+    return {"parent": "goal:g7.9", "old": git("rev-parse", "--short=10", "HEAD~1"),
+            "new": git("rev-parse", "--short=10", "HEAD")}
+
+
 def test_c1_an_incomplete_cell_refuses_rc2_with_nothing_written(tmp_path):
     root = _project(tmp_path, cell={**LEAVES, "post-a": ""})   # a hole
     _run(root, verify={"final_recommendation": "accept", "missed": ["x"]})
     store = {}
     with pytest.raises(SystemExit) as exc:
-        cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+        cr.add(root / ".agi", "k1", _flat(root), writer=_writer(store))
     assert "post-a" in str(exc.value) and store == {}     # no partial row
 
 
@@ -78,7 +89,7 @@ def test_c3_counts_reconcile_or_rc2_naming_the_round(tmp_path):
     root = _project(tmp_path)
     _run(root, verify={"final_recommendation": "accept", "missed": ["miss A"]})
     with pytest.raises(SystemExit) as exc:
-        cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer({}, True))
+        cr.add(root / ".agi", "k1", _flat(root), writer=_writer({}, True))
     assert "k1/a1" in str(exc.value)
 
 
@@ -87,7 +98,7 @@ def test_c3b_a_writer_that_drops_a_row_silently_is_rc2_off_the_reread(tmp_path):
     root = _project(tmp_path)
     _run(root, verify={"final_recommendation": "accept", "missed": ["miss A"]})
     with pytest.raises(SystemExit) as exc:
-        cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=lambda r, n, b: None)
+        cr.add(root / ".agi", "k1", _flat(root), writer=lambda r, n, b: None)
     assert "k1/a1" in str(exc.value) and "0 landed" in str(exc.value)
 
 
@@ -95,12 +106,12 @@ def test_c3c_a_re_add_with_a_changed_residue_set_is_no_false_rc2(tmp_path):
     """The count names THIS run's rows: an older row under the same key is not counted."""
     root, store = _project(tmp_path), {}
     _run(root, verify={"final_recommendation": "accept", "missed": ["miss A"]})
-    cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+    cr.add(root / ".agi", "k1", _flat(root), writer=_writer(store))
     _run(root, verify={"final_recommendation": "accept", "missed": ["miss B"]})
-    cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+    cr.add(root / ".agi", "k1", _flat(root), writer=_writer(store))
     assert "miss A" in store["goal:g7.9"] and "miss B" in store["goal:g7.9"]
     _run(root, verify={"final_recommendation": "accept", "missed": ["miss\nC"]})
-    cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+    cr.add(root / ".agi", "k1", _flat(root), writer=_writer(store))
     assert "| k1/a1 | verify | miss C |" in store["goal:g7.9"]   # a line break folds
 
 
@@ -109,16 +120,15 @@ def test_c1b_a_leaf_that_resolves_to_no_node_writes_nothing(tmp_path):
     _run(root, verify={"final_recommendation": "accept", "missed": ["miss A"]})
     store = {}
     with pytest.raises(SystemExit) as exc:
-        cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+        cr.add(root / ".agi", "k1", _flat(root), writer=_writer(store))
     assert "goal:g404" in str(exc.value) and store == {}
 
 
 def test_c5_the_real_write_py_writer_lands_the_row_on_a_tmp_node(tmp_path):
     """Corrective 5: the REAL write.py writer, on a tmp project + tmp git repo."""
     root = _project(tmp_path)
-    cr.subprocess.run(["git", "init", "-q", str(root)], check=True, capture_output=True)
     _run(root, verify={"final_recommendation": "accept", "missed": ["miss A"]})
-    cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=cr.write_body)
+    cr.add(root / ".agi", "k1", _flat(root), writer=cr.write_body)
     assert "| k1/a1 | verify | miss A |" in cr.node_body(root / ".agi", "goal:g7.9")
 
 
@@ -127,8 +137,9 @@ def test_f1_one_row_per_round_and_a_re_add_never_duplicates(tmp_path):
     _run(root, label="a1", verify={"final_recommendation": "pass", "verdicts": []})
     _run(root, label="a2", verify={"final_recommendation": "pass", "verdicts": []})
     store = {}
-    args = {"parent": "goal:g7.9", "old": "aaa", "new": "bbb"}
+    args = _flat(root)
     cr.add(root / ".agi", "k1", args, writer=_writer(store))
+    assert f"| k1/a1 | {args['old']}..{args['new']} |" in store["doc:council-report"]
     assert len([ln for ln in store["doc:council-report"].splitlines()
                 if ln.startswith("|")]) == 4          # header + sep + 2 rows
     store2 = {}
@@ -144,7 +155,7 @@ def test_f2_a_residue_only_in_verify_missed_lands_on_the_owner_leaf(tmp_path):
          verify={"final_recommendation": "accept", "verdicts": [],
                  "missed": ["the blind spot"]})
     store = {}
-    cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+    cr.add(root / ".agi", "k1", _flat(root), writer=_writer(store))
     assert "the blind spot" in store["goal:g7.9"]
 
 
@@ -155,7 +166,7 @@ def test_f2b_every_residue_of_a_round_reaches_the_leaf(tmp_path):
         {"defect": {"title": "the defect"}}, {"defect": {"title": "z"}, "refuted": True}],
         "missed": ["miss A", "miss B"]})
     store = {}
-    cr.add(root / ".agi", "k2", {"parent": "goal:g7.9"}, writer=_writer(store))
+    cr.add(root / ".agi", "k2", _flat(root), writer=_writer(store))
     leaf = store["goal:g7.9"]
     assert leaf.count("| k2/b1 |") == 3                 # 3 residues, 3 rows
     for title in ("the defect", "miss A", "miss B"):
@@ -169,8 +180,8 @@ def test_f2c_a_residue_re_added_twice_is_one_row(tmp_path):
     _run(root, "k2", label="b1", verify={"final_recommendation": "accept",
                                    "missed": ["miss A", "miss A"]})
     store = {}
-    cr.add(root / ".agi", "k2", {"parent": "goal:g7.9"}, writer=_writer(store))
-    cr.add(root / ".agi", "k2", {"parent": "goal:g7.9"}, writer=_writer(store))
+    cr.add(root / ".agi", "k2", _flat(root), writer=_writer(store))
+    cr.add(root / ".agi", "k2", _flat(root), writer=_writer(store))
     assert store["goal:g7.9"].count("| k2/b1 |") == 1
 
 
@@ -179,7 +190,7 @@ def test_f3_a_refuted_verdict_lands_nowhere(tmp_path):
     _run(root, verify={"final_recommendation": "accept",
                        "verdicts": [{"defect": {"title": "no"}, "refuted": True}]})
     store = {}
-    cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+    cr.add(root / ".agi", "k1", _flat(root), writer=_writer(store))
     assert "goal:g7.9" not in store and store["doc:council-report"].count("| 0 |") == 1
 
 
@@ -188,7 +199,7 @@ def test_f4_the_prime_resolves_to_director_engine_never_its_own_leaf(tmp_path):
     _run(root, verify={"final_recommendation": "accept",
                        "missed": ["owned by the Prime"]})
     store = {}
-    cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+    cr.add(root / ".agi", "k1", _flat(root), writer=_writer(store))
     assert "owned by the Prime" in store["goal:g9.2"]
     assert "belam" not in cr.owner_post("round (assigned: belam)", "")
 
@@ -199,7 +210,7 @@ def test_f5_no_verify_is_review_only_and_a_note_is_not_a_residue(tmp_path):
         {"title": "a residue", "severity": "residue"},
         {"title": "a note", "severity": "note"}]})
     store = {}
-    cr.add(root / ".agi", "k1", {"parent": "goal:g7.9"}, writer=_writer(store))
+    cr.add(root / ".agi", "k1", _flat(root), writer=_writer(store))
     assert "REVIEWED:review-only" in store["doc:council-report"]
     assert "a residue" in store["goal:g7.9"] and "a note" not in store["goal:g7.9"]
 
@@ -239,3 +250,62 @@ def test_write_body_is_a_no_op_when_the_body_is_unchanged(tmp_path, monkeypatch)
 def test_help(script):
     assert cr.subprocess.run([sys.executable, str(_BIN / "council_report.py"), script],
                               capture_output=True).returncode == 0
+
+
+def _mur(tmp_path, sp=cr.subprocess):
+    """mur F1/F2: 2 rounds, own tips; h1 -> goal (assigned: post-a), h2 -> commit subject."""
+    root = _project(tmp_path)
+    (root / ".agi/nodes/hypothesis").mkdir()
+    for slug, parents in (("h1", ["goal:g7.9"]), ("h2", ["idea:x"])):
+        (root / f".agi/nodes/hypothesis/{slug}.md").write_text(
+            f"---\nid: hypothesis:{slug}\nparents: {json.dumps(parents)}\n---\n")
+    sp.run(["git", "init", "-q", str(root)], check=True)
+    for msg in ("c0 (belam)", "c1 (post-a)", "c2 (director-engine)"):
+        sp.run(["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t",
+                "commit", "-q", "--allow-empty", "-m", msg], check=True)
+    tip = [sp.run(["git", "-C", str(root), "rev-parse", f"HEAD~{n}"], text=True,
+                  capture_output=True).stdout.strip()[:10] for n in (2, 1, 0)]
+    _run(root, label="a1", verify={"final_recommendation": "accept", "missed": ["r one"]})
+    _run(root, label="a2-code", verify={"final_recommendation": "accept", "missed": ["r two"]})
+    return root, tip, {"rounds": [
+        {"key": "a1", "hypothesis": "hypothesis:h1", "old_tip": tip[0], "new_tip": tip[1]},
+        {"key": "a2", "hypothesis": "hypothesis:h2", "old_tip": tip[1], "new_tip": tip[2]}]}
+
+
+def test_mur_f1_each_round_writes_its_own_tips_and_routes_to_its_own_owner(tmp_path):
+    (root, tip, args), store = _mur(tmp_path), {}
+    cr.add(root / ".agi", "k1", args, writer=_writer(store))
+    assert f"| k1/a1 | {tip[0]}..{tip[1]} |" in store["doc:council-report"]
+    assert f"| k1/a2-code | {tip[1]}..{tip[2]} |" in store["doc:council-report"]
+    assert "r one" in store["goal:g7.9"] and "r two" not in store["goal:g7.9"]
+    assert "r two" in store["goal:g9.2"] and "r one" not in store["goal:g9.2"]
+
+
+@pytest.mark.parametrize("bad", [{"key": "zz"}, {"old_tip": "deadbeef0"}, {"new_tip": ""}])
+def test_mur_f2_an_unmatched_label_or_unknown_tip_is_rc2_never_a_qq_row(tmp_path, capsys, bad):
+    root, _tip, args = _mur(tmp_path)
+    args["rounds"][1].update(bad)
+    (tmp_path / "a.json").write_text(json.dumps(args))
+    rc = cr.main(["add", "--run", "k1", "--args", str(tmp_path / "a.json"), "--root", str(root)])
+    assert (rc, "a2-code" in capsys.readouterr().out) == (2, True)
+    assert "?..?" not in (root / ".agi/nodes/doc/council-report.md").read_text()
+
+
+@pytest.mark.parametrize("bad", [{"old": None}, {"new": ""}, {"new": "deadbeef0"}])
+def test_g1_a_flat_tip_missing_or_unknown_is_rc2_with_nothing_written(tmp_path, bad):
+    root, store = _project(tmp_path), {}
+    _run(root, verify={"final_recommendation": "accept", "missed": ["r one"]})
+    args = {k: v for k, v in {**_flat(root), **bad}.items() if v is not None}
+    with pytest.raises(SystemExit) as exc:
+        cr.add(root / ".agi", "k1", args, writer=_writer(store))
+    assert "'a1'" in str(exc.value) and store == {}   # never a ?..? row, nothing written
+
+
+def test_g2_the_owner_subject_is_new_tips_own_never_old_tips(tmp_path):
+    (root, tip, args), store = _mur(tmp_path), {}
+    cr.subprocess.run(["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t", "commit",
+                       "-q", "--allow-empty", "--allow-empty-message", "-m", ""], check=True)
+    args["rounds"][1]["new_tip"] = cr.subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                                                     text=True, capture_output=True).stdout.strip()
+    cr.add(root / ".agi", "k1", args, writer=_writer(store))   # old_tip subject: c1 (post-a)
+    assert "r two" in store["goal:g9.2"] and "r two" not in store["goal:g7.9"]

@@ -15,42 +15,38 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:4xZ 09-30) -- RESUMED until 18:00Z (belam [rule]; owner ~12:4xZ: "Oh neat continue now until 2pm EST."); a STOP comes at 18:00Z
+## §0 State (07:4xZ 10-01) -- night plan item 1 + round 7 DESIGNED and sent to belam; §T.1 folded DG3's holes; item 2 waits on DG3's live round-6 build
 | | |
 |---|---|
-| post | alive gen 4 · session agi-e3 [761106] · rotate at f >= 0.47 (0.23 at STOP) |
-| state | waiting: nothing in flight of mine; §1 next = watch lines |
-| spend | subagents on Sonnet 5.5 only (owner 06:1xZ via the Prime: "ease off expensive subagents"); workflow.py pi-free |
-| role | the council IS prime to the directors (owner 02:5xZ): a director [decision] -> ONE lens round (10 min, silence = agree) -> ONE consolidated ruling from the convener |
-| messaging | SendMessage by session name, "name [ref]" where names collide; NO send.py, NO rooms; town nodes are Prime-gated |
-| peers (13:4xZ) | alive agi-e3 [761106] · Prime agi-23 [ecd665] · SM agi-5c [da1a42] · all-is-one agi-8f [242e8c] · SP uds 2078668.sock · DG1 agi-8c [9e0227] · DG2 agi-e3 [78fffb] · DG3 agi-b4 [a470d3] (@26) · DG4 agi-1c [c38ba9] (@25) · stood down: DG5, DG6 · RE-MAP at wake: ListAgents + tmux list-windows -t agi-rc |
-| lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" |
+| post | alive (agi-1d, gen 7) · rotate at f >= 0.47 (0.24 at 07:4xZ) |
+| state | nothing running; scratch /tmp/g71611/{u-alive (§U/§X sshd tests), y3-alive (Y3 probes, js/), t2-alive (§T.1 seed + harness t.sh)} |
+| spend | Sonnet 5.5 for MURs/subagents (owner 06:5xZ); no root act without a go |
+| messaging | SendMessage by session name; re-map first (ListAgents + tmux window name) |
+| peers (07:4xZ) | belam agi-24 · self-perpetuating agi-c9 · all-is-one agi-f0 · DG3 agi-57 |
+| lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   gen 4 (details in git + the grid; every sha REMAPPED after the 06:3xZ-08:0xZ history scrub):
-       · belam resume items 1-3: s18/s32 -> complete · g1.31 LANES 47 each once (verified) · goal:g7.16.1.10 minted + placed (DG1 leaves .1-.6, horizon)
-       · rulings: boxkit memory home = config:guard (a) · g1.31.4.2.2 meter falls back tagged unmeasured:<model> (3 conditions, applied)
-       · bundle-4 vision:alive review: ALIGNED + MISSING limit (4) (the suite-lock path exits 0 uncommitted) -> SM v2, v3 10876e2b25
-       · council ruling, 3 leaves: goal:g4.18.5.5 (exit 3; DG4, ACTIVE 08:37) · goal:g4.18.5.6 (rotation commits the resolved card; DG4) · goal:g7.16.1.6.1 (suite on a snapshot, lock retires; council, horizon)
-       · findings placed: provenance (edited_by: belam default) = goal:g7.33.20.2 (DG3) · names collide -> "name [ref]" (SM card + belam) · future stamps -> HEAD FORM rule (belam)
-       · OVERVIEW -> belam (bundle 4 through the three lenses)
-HELD   DG2 closing verdicts hypothesis:a00-0d182e77-3f4501 (s22) + hypothesis:s28-manifest-merge (s28): the OWNER stopped the run; only the owner lifts it
-done   13:4xZ resume check: g7.16.1.10 re-lane on the bytes (.1/.2/.6 DG4 · .4 DG3) · provenance fix LANDED 8a9656b2b4 (goal:g7.33.20.2: no-AGI_ACTOR -> resolved seat)
-done   13:4xZ: all-is-one ACCEPT on bundle-4 v3 + 2 notes -> SM for v4 (W3 g4.18.7 first; limit (1) = TWO homes: DG4 hypothesis stopgap + g7.16.1.6 A CAS) · finding -> SM: send.py read printed empty over unread (all-is-one lost 11:0xZ-13:4xZ)
-done   13:4xZ: goal:g7.16.1.10.7 (merge gate) -> DG3 AGREED (SP proposal) + falsifier adds: a planted RED refused · unreviewed:budget without the Prime's count refused
-next   bundle-4 v3 -> 0.9 when goal:g4.18.5.5 lands: DG4.15 returned 11:44Z (tip 6575a88d7), UNHARVESTED -> DG4 harvests + murs first; write.py:4396-4399 still returns False (rc 0) on the trunk -> confirm the rc-3 test on the bytes after the merge
-       · watch DG4's load (g4.18.5.5 + .5.6 + g7.16.1.10.1/.2/.6 + workflow.py CC route + heal-sweep): flag only a real stall
+done   item 1 DC design: §U e6630723c · §V (SP) · §W (AIO) 60c275d51 · §X d693651ec (+SI rename 3a46f35ce) -> [decision] to belam 07:2xZ
+       round 7: Y1 (AIO) 975ee0fdc/92d577161 · Y2 (SP) 2536d7ff3/a280bdfba · Y3 f725a8899 -> [decision] 07:3xZ + addendum 07:4xZ
+       §T.1 3772d6ff7: DG3's H1 H2 H4 T7c closed at 1,023 B, H7 = --ff-only; DG3 told to build from §T.1
+RULED  belam 07:4xZ: OPTION A (schema/growth.tsv pushes need an anchor-signed commit), folded by all-is-one @d00f70e0f (Y1 complete); round 7 closed to belam 07:4xZ; DG3 acked §T.1
+NEXT   item 2 ONLY once round 6 is BUILT live (DG3, after Phase C): figure eight on the seed engine -> alive's SATISFACTION VERDICT on the morals
+then   item 3 VIZ LAST (boot math, matrix-op shell renderer, spider viz first)
+UNRUN  Y3.5 (a local model under the grammar: the model slot is held by a local-maxxing run since 05:11Z) · SI8/SI9 · U10/U11
 ```
 
-## §2 Landed (this generation)
-- c24f021ef 6bce4aafd df7e2d655 670c893d3 3bb0a37e6 96ac80e95 eee4e5951 85063f1a3 7a857e140 fc70d6b5b 2ee4d0180 5dca1fc47 a1ef46951 11b2f1e95 3c2e83db3 bc3bb8700 d57507672 df64e98c6 4a83b52eb
+## §2 Landed
+- §N a658452cd9 · round 4 bfc04e8588 · §O 39443e741 · O.5/O.6 df64fa6ea · O.7 e93499fc1 · O.8 1daf2888a · §R 2782426e3 · §S 4542be3cc · §T c3e43efc3
+- gen 7: card re-link 554a94423 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · THOUGHT 5f2b94556
 
 ## 🔴 Where it stops
-alive gen 4 RESUMED 13:4xZ until 18:00Z; waiting on DG4's g4.18.5.5 harvest -> merge; nothing in flight
+alive waits for DG3's live round-6 build (item 2) and belam's ring answer; nothing claimed or running
 ```
-successor / resume: ListAgents + tmux list-windows (names COLLIDE) -> read SendMessage replies -> §1 next; never a sha from memory
+successor: ListAgents -> send.py read alive -> git log -5 -- .agi/nodes/doc/g716111-round6-build.md (DG3: round 6 live?)
+  -> built: run the figure eight on the seed engine, then ONE satisfaction verdict on the morals to belam
+  -> not built: stay idle (no new goals); answer only what arrives
 ```
 
 ## §4 Traps
@@ -58,7 +54,7 @@ successor / resume: ListAgents + tmux list-windows (names COLLIDE) -> read SendM
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; filter a dirty posts.md to YOUR hunk (git apply --cached) |
 | write.py commits each write itself, EXCEPT while .agi/sessions/verify-suite.lock is held | it prints "commit refused" and the write lands uncommitted: wait for the lock, THEN commit by exact path; never commit MAIN under the lock |
-| my timestamps were guessed TWICE | `date -u` before writing ANY time; git log --date=format-local for a past one |
+| my timestamps were guessed TWICE, then a THIRD time as a "fix" (round 2: SP's 22:4xZ -> 22:3xZ from the clock at check time; the commit was 22:28Z) | a time you write = date -u in the same step; a PAST event's time = git log -1 --format=%cI <sha>, never the clock now |
 | `send.py read` shows only new blocks; a [red] sat in the inbox FILE alone | after any wake, tail the inbox file too |
 | `send.py status belam` marker stuck after an inbox send | SendMessage the Prime directly as well |
 | `sub` has no newline: `\n` lands LITERALLY | build a multi-line change in python and `replace body` the WHOLE paragraph or section |
@@ -73,16 +69,25 @@ successor / resume: ListAgents + tmux list-windows (names COLLIDE) -> read SendM
 | a send to an idle .prev session (agi-79, 06:1xZ) reached only the rotated-out Prime, which relayed it | re-map before every send to a post that may have rotated: ListAgents + tmux window NAME |
 | a SendMessage that returns Failed may still DELIVER (the overview to agi-79, 06:1xZ: the retry was dropped as a duplicate) | never retry blind: wait for the reply or a delivery notice |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
+| pi -p hangs with an inherited stdin | `</dev/null`, always; a model-free pi probe = PI_CODING_AGENT_DIR scratch + a provider on a closed local port + a before_provider_request probe |
+| a `^##* ` end pattern matches a one-# shell comment | section headings are `##`+ (`^###* `); a piece holds no line starting `##` or `~~~` |
+| `git show REV:<address>` under the symlink layout returns the LINK TEXT | at-REV reads go through `git cat-file --batch --follow-symlinks` (F.7); a unit ExecStart may carry no `$` (systemd expands it) |
+| config:* nodes are written_by owner/prime_director | the council authors bytes (doc §I), the Prime or DG3 mints |
+| §I checks (re-run after any edit) | scratch /tmp/g71611/r3-alive: final/ = the 20 files, engine.body.md, clone/ (--shared, branch trunk); F19 = `sh final/sect <f> trunk \| cmp - final/<f>` for each |
+| a heredoc for python with backticks or $ | ALWAYS quoted (<<'EOF'), pass values by env; an unquoted one ate the backticks once |
+| replace body guard | the range must start/end on a blank or heading; mid-table = refused: widen to the block, carry it whole |
+| a scratch ssh login whose row has no forced command | it opens a SHELL and the test hangs: every scratch ssh = timeout 10 + </dev/null |
+| a check run as yourself over root-owned paths | "Permission denied" is not "absent": re-check as root before calling a collision |
 
-## §5 Verification: links 5355 resolved, 0 broken (06:0xZ) · post-scrub (belam 08:0xZ): nodes 5457, links 0 broken · S goals: complete 22 · retired 10
+## §5 Verification: links 5,598 resolved, 0 broken (07:1xZ) · §I == v2 tested (cmp) · F19 22/22 · box clean after both root runs
 
 ## §6 BANKED
 | question | options | recommendation |
 |---|---|---|
-| row R live cutover (restart drops every post) | the Prime gen 17: dummy proof GO; live step = owner's word after PASS B3 (doc:card-belam §6) | step 1 at the cutover commit: `env AGI_LIVE_SYSTEMD=1 python3 -m pytest extensions/agi/tests/test_rotate.py -k test_r1_cutover_dummy_one_kill_is_one_post -q`; no pass line = (a) restart, never (c); form = GROUPED Delegate=yes scopes (R1 v3 6897cba7b) |
+| row R live cutover (restart drops every post) | the Prime gen 17: dummy proof GO; live step = owner's word after PASS B3 (doc:card-belam §6) | as before (doc:card-belam §6); superseded if config:engine replaces the rotation machinery |
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole rewrite at the STOP (belam [rule] 11:0xZ 09-30; the owner's run ended 11:00Z, owner 04:58Z: "until 7am"). Since the 04:4xZ whole write: gen 4 seated on a stale card (the captive rotation fired before gen 3's last write), rebuilt from gen 3's final version; the council ran belam's resume items 1-3, two rulings, and the bundle-4 vision:alive review, which caught a false claim (exit 0 = committed fails under the suite lock) and minted 3 leaves; a 2-hour freeze for the owner-ordered history scrub (every sha remapped via the commit-map); DG5 + DG6 stood down (owner 06:1xZ), so their leaves re-laned to DG3/DG4.
+alive gen 7, 07:1xZ 10-01 (date -u): whole rewrite DURING item 1 -- §U/§X landed, §V acked from self-perpetuating, §W landed by all-is-one 60c275d51; the 🔴 = the whole-doc check then ONE [decision] to belam. One trap added (a scratch ssh row without a forced command opens a shell and hangs the test).
 <!-- THOUGHT:END -->

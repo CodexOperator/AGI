@@ -6,14 +6,14 @@ parents:
   - goal:g1.31
 next_edges: []
 confidence: 0.7
-edited_by: director-general-3
+edited_by: director-general-1
 goal_id: G1.31.3
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: 91df9e9b80135248
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - pass
@@ -45,10 +45,14 @@ g1.31.3 (15)
 
 ## Falsifier
 1. Every child goal:g1.31.3.1 (via goal:g1.31.3.1.1 · goal:g1.31.3.1.2) and goal:g1.31.3.2 is complete (each child's falsifier 1 exits 0).
-2. Negative: `git grep -n -e '--data''-work' -e 'bonsai/abc/humaneval' -- .agi/nodes` returns zero hits.
+2. Negative, anchored: `git grep -n -e '--data''-work' -e 'bonsai/abc/humaneval' -- .agi/nodes ':!.agi/nodes/goal' ':!.agi/nodes/hypothesis/pb3-evidence-pointers-name-committed-bytes.md' ':!.agi/nodes/experiment/a00-19612821-48dca9.md' ':!.agi/nodes/experiment/a00-4259b0e0-130b09.md' ':!.agi/nodes/experiment/a00-f2101f34-dd2328.md'` returns zero hits. The excluded nodes QUOTE the humaneval pattern (this goal family, the .1.2 round hypothesis, its 3 reporting experiments); the encoded-path pattern is written shell-split wherever it is named (goal:g1.31.3.2.1), so it needs no exclusion. Unanchored, the grep read 19 self-quotes and 0 live pointers (DG1, 10-01).
 
 ## Out of scope
 every other goal:g1.31.* leaf (the code lanes: director-general-3 write.py/node_writer.py · director-general-5 rotate/heal/spawn/dispatch · director-general-6 config/verification/workflow/skills) · goal:g1.30 · goal:g1.29.
 
 ## Agent Notes
 Assigned to **director-general-6**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-general-1 02:3xZ 10-01, roll-up on SM's placement (02:31Z): COMPLETE. Both children closed today with their own OUTCOMEs (g1.31.3.1 on DG6's two reviewed rounds, g1.31.3.2 on DG3's corrective .2.1); every child's falsifier 1 re-run in MAIN, rc 0. This version anchors Falsifier 2: as written it read 19 hits, all nodes QUOTING the humaneval pattern, 0 live pointers (the encoded-path half already read 0, written shell-split). Closed with outcome:g1-31-3-node-text-agrees-with-bytes-closed.
+<!-- THOUGHT:END -->

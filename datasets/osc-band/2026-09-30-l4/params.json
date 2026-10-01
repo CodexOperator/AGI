@@ -1,0 +1,26 @@
+{
+ "hypothesis": "hypothesis:lm-l4-local-heads-keep-a-recent-window",
+ "model_cell": "osc03_hf_dir",
+ "profiles_cell": "osc_band_dir",
+ "profiles_file": "profiles.json",
+ "high_pairs": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+ "text_cell": "wikitext2_test_raw",
+ "text_file": "wiki.valid.raw",
+ "text_note": "WikiText-2 raw VALIDATION split, the sibling file of the cell wikitext2_test_raw (no download). OSC.03 profiles were measured on the TEST split + HumanEval, so every doc here is held out from the profiles. An article = the text between two top-level ' = Title = ' headings; each doc = the first L tokens of its article body. Selection rule: the first 9 articles in file order with >= 2048 tokens; the first 8 are eval, the 9th is calibration (reference arm only).",
+ "eval_docs": [
+  [0, "Homarus gammarus"], [1, "Frank Headlam"], [3, "Shikamaru Nara"], [4, "Meridian , Mississippi"],
+  [5, "Papa Stour"], [6, "Angel of Death ( Slayer song )"], [7, "Calvin McCarty"], [10, "Sorry ( Madonna song )"]
+ ],
+ "calib_doc": [12, "Tim Richmond"],
+ "L": 2048,
+ "W": 128,
+ "sinks": 4,
+ "score_lo": 1024,
+ "score_hi": 2048,
+ "budgets": [0.75, 0.60, 0.50],
+ "k": [13, 21, 26],
+ "seeds": [0, 1, 2, 3, 4],
+ "min_budget_wins": 2,
+ "lm_head_chunk": 128,
+ "threads": 6
+}

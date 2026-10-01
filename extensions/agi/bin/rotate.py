@@ -2348,6 +2348,9 @@ def cmd_stand_up(args: argparse.Namespace, root: Path | None,
         print(f"ERR: stand-up: no config:posts row named {post!r}",
               file=sys.stderr)
         return 1
+    if eng := row.get("engine"):  # C2 goal:g7.16.1.11: systemd owns the post
+        print(f"ERR: stand-up refused: {post} is engine v{eng.get('v') if isinstance(eng, dict) else eng} (systemd-owned)", file=sys.stderr)
+        return 1
     gdir = _heal._seat_geometry_dir(root, row)
     if gdir is not None:
         row = _heal._live_seat_row(gdir, post, me) or row
@@ -2484,7 +2487,10 @@ def _cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # spawn-gate-and-autopsy-share-one-pid).
         _row_pid = None
         if root is not None:
-            _row_pid = (_find_seat(root, seat) or {}).get("pid")
+            _row_pid = (_erow := _find_seat(root, seat) or {}).get("pid")
+            if eng := _erow.get("engine"):  # C2 goal:g7.16.1.11: no 2nd seat
+                print(f"ERR: stand-up refused: {seat} is engine v{eng.get('v') if isinstance(eng, dict) else eng} (systemd-owned)", file=sys.stderr)
+                return 1
             if _pred_pid is None:
                 _pred_pid = _row_pid
         _alive_note = None

@@ -15,40 +15,39 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:5xZ 09-30 — RESUMED to 18:00Z (owner ~12:4xZ: "continue now until 2pm EST"); STOP comes 18:00Z; meter 0.44, rotate at 0.47)
+## §0 State (07:5xZ 10-01 — CC session agi-f0 [3bd527]; meter 0.23, rotate at 0.47)
 | | |
 |---|---|
 | post | all-is-one |
-| stage | council — embody vision:all-is-one ONLY ("everyone uses a unified set of tools ... same UI/UX by any role"); TOP-DOWN, generations, never the nitty gritty (doc:council-loop "The council's lens") |
-| role (owner 02:5xZ 09-30) | "directors should reach out to council for rulings who discuss it among themselves using the lenses to keep you free. Remember the council IS prime to everyone else." alive convenes: ONE lens line to alive; alive sends ONE ruling; silence = agree |
-| place | local-town · MAIN /data/work/agi (RAM disk, same path) on local-maxxing/season2/main · claude-code Opus 5.5 high · CC session agi-8f [242e8c] |
-| messaging (owner, until bundles land) | SendMessage by "name [ref]" ONLY (short names collide); NO send.py, NO rooms |
-| spend | subagents + reviews on Sonnet 5.5 (owner 04:5xZ); workflow.py pi-free |
-| history | REWRITTEN 06:3x-08:0xZ 09-30 (owner: redact email / hardware name / pytest-of path): every sha before 08:0xZ changed -> commit-map below |
+| stage | goal:g7.16.1.11: §W cross-box (round 6 DC) + §Y1 node keys (ROUND 7, Phase 3 readiness) on doc:radically-simple-engine |
+| peers (SendMessage by name) | alive gen 7 = agi-1d [0775ee] · self-perpetuating = agi-c9 · belam = agi-24 (re-map: ListAgents) |
+| place | MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 |
+| spend | lanes 02:26Z 10-01: Sonnet 5.5 for subagents/reviews; none used this gen |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundles 1-3 reviewed · bigger_outcome 1-3 v2 accepted (home-path false green named, residue 128)
-done   goals rewritten from OWNER lines: mine g7.32.6 (one conversation node; push_on_write; wake = adapter verb) + g4.18.5 (write = one commit on its own ref; era cell write.commit_target)
-done   12 S goals closed: mine s7 (leaf g4.18.6.6) · s35 -> g4.18.8 · s18 · s32 (leaf g2.4.1 = cache + storage + apply_umap_coords bridge); retire IN PLACE
-done   rulings for directors: DG5 keys (C) own-box remint (box = AGI_BOX; rule = key_template row) · DG3 replace payload not extended · DG1 body refs -> g4.18.6.4
-       · DG3 residue 154 fail closed · DG6 meter fallback + one finding · bundle 4: write rc under the suite lock (g4.18.5.5 stopgap) + suite on a tip snapshot (g7.16.1.6.1: the lock retires)
-done   g7.16.1.5 placement check -> belam: .5.5.3 restates .5.5 · two session-dir movers (.5.2 vs .5.3.2) -> one mover
-done   goal:g1.31 (PASS B3 residues): DG6 first assignment (SM agreed); 47 upheld triaged INTO its Target LANES: DG3 3 · DG5 8 · DG6 17 · NODE 19 (#22 #25 closed)
-open   horizon leaves g4.18.6.6 + g2.4.1 wait for their lines · no OVERVIEW until .6, .7 and bundle 4 close (all 3 council posts agreed)
+done   split (alive 07:1xZ): U alive = the dc matrix rows · V self-perpetuating = login + CA · W mine = cross-box · X alive = phone stand-in
+done   §W @60c275d51: §S+§T verbatim over GitHub stand-in + ssh-cert hub (X1-X3) · xb send/recv 1,025 B · pre-receive 681 B (X4-X11c PASS)
+done   FINDING X11a: git judges a cert at the commit's own date -> backdating; closed on owned boxes (skew check), named limit via GitHub
+done   restored alive's THOUGHT that my thought write replaced (@291ae3a28: alive verbatim first, mine after " || ")
+done   ONE [W] line to alive (agi-1d) 07:2xZ: agree in advance to alive's whole-doc check + ONE [decision] to belam
+done   ROUND 7 split (alive 07:2xZ): Y1 mine = node keys · Y2 self-perpetuating = captive fill window · Y3 alive = row-by-row + grammar
+done   §Y1 @975ee0fdc: growth matrix 149+2 rows · grow-check 1,298 B · grow-gate 842 B · PARITY 5,390/5,390 vs old spawn_gate · G1-G8 PASS
+done   [Y1] line to alive; [seam-ack] to self-perpetuating (Y2 folded the @alias rows @b251aa4a4)
+done   Y3 seam (alive ask): §Y1 v2 @92d577161 -- grow-gate 1,435 B reads matrix+schemas at the RECEIVING tip, runs agi-fill check on adds + a RATCHET on edits (238/5,402 live nodes fail the check today); Ya-Yi PASS on real node bodies; the 449 B check verb sent to self-perpetuating for Y2
+done   council question -> belam 07:4xZ OPTION A: schema/growth.tsv changes land only anchor-signed; folded = §Y1 v3 @d00f70e0f (grow-gate 1,720 B, Ya-Yl PASS with Y2's real check verb @c7532c191; 238/5,402 re-measured)
+next   wait for alive's ONE [decision] to belam; answer only if asked. Then item 2 once DG3 has BUILT round 6: figure eight + a satisfaction verdict on the morals
 ```
-Lens questions for every ask: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
 ## 🔴 Where it stops
-21:5xZ 09-30 rotating at 0.46: goal:g7.16.1.11 council design doc handed to the successor whole, not started
+all-is-one: §W and §Y1 v2 landed, waiting on alive's whole-doc check and the council [decision] to belam
 ```
-FIRST: read goal:g7.16.1.11 by id (owner verbatim 21:3x-21:4xZ) + the belam block at .agi/sessions/inbox/all-is-one.md ts 21:53:08 (the full brief: WHAT / COVER / TEST / ORDER / LANE)
-then: agree the doc SHAPE with alive + self-perpetuating by SendMessage ("name [ref]"), ONE doc node under goal:g7.16.1.11, all three lenses
-       all-is-one lens = ONE tool per act for every role: write = one script over git commit (one gate), render = one script / the git graph, identity = the Unix user (no second key store), messaging = files in git (g7.32.6 shape)
-       KEEP / REPLACE-BY / SCRAP table over rotate.py 23k · send.py 6.4k · write.py 4.6k · heal.py 4.3k; spike falsifiers (a)-(d) end the doc
-ORDER: design -> ONE [decision] line to belam with the doc id -> DG3 builds only after; no user created, no sudo; free lane (pi-free workflows ok); key/identity/rotate rounds HELD
+NEXT  a reply from agi-1d / agi-c9 / belam (arrives as a cross-session message; no inbox polling)
+THEN  item 2 after DG3 builds round 6 (goal:g7.16.1.11 RULINGS (c)): iterate the figure eight, file the satisfaction verdict on the morals
+SCRATCH /tmp/aio-w (§W; sshd + agents STOPPED) · /tmp/aio-y1 (Y1: matrix, grow-*, agi-fill + check stand-in, Y1b.md, g/ + s/ gate repos); no process left
 ```
+
 ## §4 Traps
 | trap | rule |
 |---|---|
@@ -64,6 +63,7 @@ ORDER: design -> ONE [decision] line to belam with the doc id -> DG3 builds only
 | `set title` in a write.py script | value = rest of the unit, NO quotes |
 | ack after a crash | non-prime: `rotate.py ack --post all-is-one --session <sid8> --ref <ref> continue` |
 | `grep -r` / `find` over .agi/ | io-stalls the box: `git grep PATTERN <sha> -- <paths>` |
+| `thought` on a shared doc | it rewrites the THOUGHT WHOLE: read the current one in the SAME script and carry it verbatim (I clobbered alive's once, 07:1xZ) |
 | .agi/sessions/quorum/all-is-one.md | RE-LINKED 13:5xZ 09-30 (1785348ce0) to this node; rotate may flatten it (skill agi-rotate trap 10): at wake check `ls -la` shows `->`, else `ln -sfn ../../nodes/doc/card-all-is-one.md .agi/sessions/quorum/all-is-one.md` + commit by path |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (belam 08:0xZ post-scrub: nodes 5457, links 0 broken)

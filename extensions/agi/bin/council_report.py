@@ -6,7 +6,8 @@ agi-merge-pass S4): missed[] are residues, refuted:true is not, review defects
 only when there is no verify file. Owner = the parent goal title's
 `(assigned: <post>)`, else the commit subject's post, else director-engine; the
 Prime never owns one. Leaf = the ONE cell `council.residue_leaves`, absent = rc 2
-naming it. Writes go through write.py.
+naming it. Writes go through write.py. --args is the flat per-run dict OR the mur
+args file {rounds:[...]}, read PER ROUND (round_args).
 """
 from __future__ import annotations
 
@@ -32,6 +33,7 @@ FALLBACK_POST = "director-engine"
 HEADER = ("| round | old..new | state | verdict | residues | reds |",
           "|---|---|---|---|---|---|")
 RESIDUE_HEADER = ("| round | source | residue |", "|---|---|---|")
+BUDGET_STATE = "unreviewed:budget"   # the ONE copy of the state vocabulary
 
 def _read(path: Path) -> dict:
     return json.loads(path.read_text()) if path.exists() else {}
@@ -122,6 +124,32 @@ def write_body(root: Path, node_id: str, body: str) -> None:
         raise SystemExit(f"council_report: write.py refused the {node_id} row: "
                          f"{(proc.stderr or proc.stdout).strip()}")
 
+def round_args(root: Path, label: str, args: dict, cell: dict) -> tuple[str, str]:
+    """(old..new, leaf) for ONE label: the mur rounds[] entry whose key is the
+    label or its longest prefix -- old_tip..new_tip, owner from its hypothesis's
+    goal parents, else new_tip's commit subject -- else the flat per-run dict.
+    The flat dict IS one round: its old/new meet the SAME refusal -- no round,
+    or a tip absent / unknown to git, is rc 2 naming the label."""
+    flat = "rounds" not in args
+    hit = [{"old_tip": args.get("old"), "new_tip": args.get("new")}] if flat else sorted(
+        (r for r in args["rounds"] if label.startswith(str(r.get("key") or "\0"))),
+        key=lambda r: len(str(r["key"])))
+    tips = [str(hit[-1].get(t) or "") for t in ("old_tip", "new_tip")] if hit else ["", ""]
+    shown = [subprocess.run(["git", "show", "-s", "--format=%s", "--end-of-options", t],
+                            cwd=root.parent if root.name == ".agi" else root,
+                            capture_output=True, text=True, check=False) for t in tips if t]
+    if len(shown) < 2 or any(g.returncode for g in shown):
+        raise SystemExit(f"council_report: label {label!r} matches no round with known "
+                         "old_tip/new_tip -- nothing written, never a ?..? row")
+    if flat:
+        assigned, subject = title_of(root, str(args.get("parent") or "")), str(args.get("subject") or "")
+    else:   # owner: the hypothesis's goal parents, else new_tip's OWN subject
+        hyp = node_writer.find_node_file(root, str(hit[-1].get("hypothesis") or ""))
+        parents = (frontmatter.read_frontmatter(hyp.read_text()) or {}).get("parents") if hyp else []
+        assigned = " ".join(title_of(root, str(p)) for p in parents or [] if str(p).startswith("goal:"))
+        subject = shown[1].stdout.strip()
+    return "..".join(tips), leaf_for(owner_post(assigned, subject), cell)
+
 def add(root: Path, run_key: str, args: dict, writer=write_body, reader=None) -> list[str]:
     """Write the report rows and route the residues. Returns the messages."""
     read = reader or getattr(writer, "read", node_body)   # counts re-READ what landed
@@ -139,10 +167,9 @@ def add(root: Path, run_key: str, args: dict, writer=write_body, reader=None) ->
                          "(default goal:g7.33.19) before routing any residue")
     runs_root = root / args.get("runs_root", "sessions/workflows/runs")
     report = args.get("report_node", REPORT_NODE)
-    assigned = title_of(root, args.get("parent", ""))
-    old, new = args.get("old", "?"), args.get("new", "?")
-    leaf = leaf_for(owner_post(assigned, args.get("subject", "")), cell)
-    gone = [n for n in (report, leaf) if node_writer.find_node_file(root, n) is None]
+    plan = [(r, *round_args(root, r["label"], args, cell)) for r in rounds(runs_root / run_key)]
+    gone = sorted({n for n in [report] + [p[2] for p in plan]
+                   if node_writer.find_node_file(root, n) is None})
     if gone:   # every target resolves BEFORE any write, never half-way
         raise SystemExit(f"council_report: {gone} resolve to no node -- nothing written")
     out, cache = [], {}
@@ -153,9 +180,9 @@ def add(root: Path, run_key: str, args: dict, writer=write_body, reader=None) ->
             cache[node_id] = read(root, node_id)
         return cache[node_id]
 
-    for r in rounds(runs_root / run_key):
+    for r, span, leaf in plan:
         key = f"{run_key}/{r['label']}"
-        row = (f"| {key} | {old}..{new} | {r['state']} | {r['verdict']} | {len(r['residues'])} | unchecked |")
+        row = (f"| {key} | {span} | {r['state']} | {r['verdict']} | {len(r['residues'])} | unchecked |")
         cache[report] = merge_table(body_of(report), [row], HEADER)
         writer(root, report, cache[report])
         for title, source in r["residues"]:

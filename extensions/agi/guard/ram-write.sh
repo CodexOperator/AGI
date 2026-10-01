@@ -1,5 +1,5 @@
-# ram-write.sh -- THE one RAM-write rule of the guard scripts (SOURCED by both
-# ram-main.sh and session-sweep.sh, which used to carry it byte-identically): a
+# ram-write.sh -- THE one RAM-write rule of the guard scripts (SOURCED by ram-main.sh,
+# session-sweep.sh -- which used to carry it byte-identically -- and ram-tier.sh): a
 # write whose DESTINATION is on the tmpfs is charged to the ramdisk.slice
 # through mem_cap.py's shell entry, which asks the FILESYSTEM (--to), never a
 # path prefix -- the RAM tree is an rbind overmount AT MAIN, so "$RAM_DIR"/*

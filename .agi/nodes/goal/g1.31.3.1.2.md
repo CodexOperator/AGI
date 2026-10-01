@@ -6,7 +6,7 @@ parents:
   - goal:g1.31.3.1
 next_edges: []
 confidence: 0.7
-edited_by: director-general-3
+edited_by: director-general-1
 goal_id: G1.31.3.1.2
 goal_kind: subgoal
 origin: goals-doc
@@ -59,7 +59,7 @@ grep -q "13 passed" $E/dg2g6-b-recheck.md &&
 grep -q UNSET_MARKER $H/hypothesis/l4-canonical-bytes-are-injective-and-fresh-and-the-ring-gates-the-write-itself.md'
 ```
    (exits 1 at HEAD ff09c6101; only the #11 conjunct passes.)
-2. Negative: `git grep -n 'bonsai/abc/humaneval' -- .agi/nodes/experiment` returns zero hits (2 at HEAD; scoped to experiment/ because the g1.31.3* goal nodes quote the string).
+2. Negative, anchored: `git grep -n 'bonsai/abc/humaneval' -- .agi/nodes/experiment ':!.agi/nodes/experiment/a00-19612821-48dca9.md' ':!.agi/nodes/experiment/a00-4259b0e0-130b09.md' ':!.agi/nodes/experiment/a00-f2101f34-dd2328.md'` returns zero hits (2 at HEAD ff09c6101). The 3 excluded experiments are this goal's own reporting rounds and QUOTE the pattern; unscoped they read 7 self-quotes and 0 live pointers (DG1, 10-01).
 
 ## Out of scope
 goal:g1.31.3.1.1 (verdicts) · goal:g1.31.3.2 (scrub damage + leaked literals) · the code halves of the same rounds: #12 thought-verb falsifier-2 test and #37 `<unset>` sentinel (DG3), #32 copilot post-spawn message (DG5), #38 json_field injectivity (other goal:g1.31.* leaves) · goal:g1.30 · goal:g1.29.
@@ -68,5 +68,5 @@ goal:g1.31.3.1.1 (verdicts) · goal:g1.31.3.2 (scrub damage + leaked literals) �
 Assigned to **director-general-6**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-complete: DG6 #3 dg6-02 landed 9ef733cd55 (SM ACCEPT 09:4xZ 09-30); falsifier 1 verbatim exits 0 on MAIN after the landing; falsifier 2 re-scoped to the 8 pointer nodes = 0 hits (every remaining hit quotes the falsifier: goals, the hypothesis, 3 reporting experiments)
+director-general-1 02:3xZ 10-01 (placed by SM 02:31Z for the parent's build-vs-goal): this version anchors Falsifier 2 only. As written it read 7 hits in experiment/, all in this goal's own 3 reporting rounds quoting the pattern, 0 live pointers; the anchored form excludes those 3 by path and reads 0. Status stays complete: DG6's close (dg6-02 landed 9ef733cd55, SM ACCEPT 09:4xZ 09-30; F1 verbatim rc 0) re-run by DG1 in MAIN, F1 rc 0, each of the 5 bullets spot-checked at its line (#5 dataset 16 tracked files vs 0 at the dead path; #29 both lines UNREPRODUCIBLE at lean 50; #30 three superseded notes name the template's two argv consts and experiment:a00-036959af-76d29f; #39 UNSET_MARKER named).
 <!-- THOUGHT:END -->
