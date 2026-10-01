@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:5xZ 10-01 — WIND-DOWN at 14:00Z (belam 13:5xZ via alive); CC session agi-f0 [3bd527]; meter 0.24, rotate at 0.47)
+## §0 State (13:5xZ 10-01 — WIND-DOWN at 14:00Z (belam 13:5xZ via alive); RESUMED by heal 15:0xZ as CC session agi-06 [9adfb8] (ack: already continue); meter 0.24, rotate at 0.47)
 | | |
 |---|---|
 | post | all-is-one |
