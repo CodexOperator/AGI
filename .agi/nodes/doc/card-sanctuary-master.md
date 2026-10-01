@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:02Z 10-01, date -u) — IDLE on the Prime's 13:50Z WIND-DOWN (owner window ended 14:00Z) · no gate running · no move until the owner's morning word
+## §0 State (15:46Z 10-01, date -u) — WORKING: wind-down LIFTED (owner 15:1xZ via belam, verbatim on goal:g7.16.1.11: "keep going until we finish the goal bundle now") · no gate running
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -28,21 +28,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   seated 13:08Z · quorum card re-linked · orphan grep scope run-u11445 stopped 13:21Z (48.9 GB read, D state) · DG3 freed its old scope + 2.2 GB RAM-disk
-done   3 landings (§2) · row 60 CLOSED live on MAIN by DG2 (verdict:dg2-g60b proved 0.92; evidence dry-run []) · DG2, DG3, the Prime told
-NEXT   WIND-DOWN LIFTED (owner 15:1xZ via belam: "keep going until we finish the goal bundle now"). G5 suite RUNNING since 15:25:29Z in /dev/shm/smgate5 (ids /dev/shm/sm-gate-g5.txt, log /dev/shm/smtmp5/suite.log) -- land on green, gates the moves. C2 83f492f11 mur pi-free RUNNING since 15:26:20Z (run mur-season2-loops-goal-g1-31-4-6-2-a00-3014f810) -> numbers to belam. G5 8a450c0c0 (DG3; send treats a v5 post as a peer; mur g5e 11/11 MET, residues 0)
-LATER  MORNING round to place (SP [red] 15:2xZ; the Prime cleared 5 stopped rows' windows 6efa87be4): the nudge sweep skips pid-0 / recover-false rows or checks window name = seat before typing · DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
+done   seated 13:08Z · box reboot 14:42Z, heal resume, own posts row ca9b4e81a · orphan grep scope stopped 13:21Z · row 60 CLOSED live (DG2)
+done   4 landings (§2) · C2 mur run + RETURNED to DG5 (5 residues) · .env finding banked: belam agreed (A) masters/Prime run director murs
+NEXT   G7 [merge-up] from DG3 (on fec9f352f; G7.2 is the DG2 move's last gate) -> gate + land at once
+NEXT   C2 re-send from DG5 after in-loop closure -> re-mur pi-free (load1 < 16, io avg60 < 50) -> numbers to belam
+LATER  place a round: the nudge sweep skips pid-0 / recover-false rows or checks window name = seat (SP [red] 15:2xZ; belam cleared 5 rows 6efa87be4) · DG3: tip-guard fork -> then merge_gate cells · map v0 last
 ```
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
-- 900728906 G4 (DG3: stand-up/merge-up resolve the project root) · b30042219 g73360-b (DG2: stage stop names <unit>.scope) · 6c87be791 G6 (DG3: v4 drop-in carries AGI_BOX)
-- suites: chain 7773 / 1 · G6 7776 / 1 -- the 1 = test_skills_first_turn_entry, red on pure HEAD fafb9eefb (the trunk's)
+- 900728906 G4 (DG3) · b30042219 g73360-b (DG2) · 6c87be791 G6 (DG3: v4 drop-in AGI_BOX) · fec9f352f G5 (DG3: send treats a v5 post as a peer)
+- suites: chain 7773 / 1 · G6 7776 / 1 · G5 7787 / 1 -- the 1 = test_skills_first_turn_entry, red on pure HEAD fafb9eefb (the trunk's)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master idle on the 14:00Z wind-down: no gate running; G5 waits for the morning gate (box hard-rebooted 14:42Z; heal resumed me 15:0xZ, ack no-op, own posts row ca9b4e81a)
-MORNING (owner's word): gate G5 8a450c0c0 -- merge-tree vs live HEAD, tmpfs gate tree, full suite only at MemAvailable >= 4 GiB + mem PSI some60 < 10, land BEFORE any move
-G6 first live effect: agi-project.path/.service are NOT loaded on this box's manager (14:01Z) -- AGI_BOX reaches a v4 drop-in only at the next projection run
+sanctuary-master: G5 landed fec9f352f; waiting on DG3's G7 merge-up and DG5's C2 re-send; no gate running
+G7: merge-tree vs live HEAD rc + --name-only · range = merge-base..tip · tmpfs gate tree /dev/shm/<gate> + own TMPDIR · full suite under the mem guard · land by commit-tree
+C2: run key mur-season2-loops-goal-g1-31-4-6-2-a00-3014f810 (args in my scratchpad: rebuild from the [merge-up] dm) -- re-mur only after DG5 says the 5 residues are closed
 HELD: MAP v0 60817b0ac (DG2; gotty 127.0.0.1:8787 read-only) -- VIZ LAST; gate reads anonymize.py filter verb, config.json map cell, gotty sha256 pin, --permit-write=false
 HELD: g75213 7cd127824e code gate COMPLETE -> GO on the Prime's DISK bind (re-derive T2)
 UNOWNED (DG4 down; never land a returned tip): lineage 4620846a3f · DG4.13 9baba2bc99 + r49 7eb1c65aed · DG4.18 c576956960
