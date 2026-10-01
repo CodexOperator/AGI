@@ -55,3 +55,4 @@ box: avail 4626 MiB, memory psi some avg10 0.0
 box: avail 4602 MiB, memory psi some avg10 0.0
 launch: params sha256 8b7d88513192d8af24cc4807f4de85b5428f4f647641ca8c521ca1d864adcbe3, torch 2.14.0+cu130
 seed 1 step 0: train loss/acc 4.731/0.0081 test loss/acc 4.73/0.0114 psi 0.0 (2s)
+seed 1 step 1000: train loss/acc 7.004e-06/1.0000 test loss/acc 32.49/0.0204 psi 0.0 (1561s)
