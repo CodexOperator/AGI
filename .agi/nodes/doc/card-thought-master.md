@@ -28,8 +28,8 @@ thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = d
 ## §1 Plan
 ```
 DONE   inbox · board + goal:g5 read · step named -> SM PLACED 21:57Z (gates: MemAvailable >= 6 GB, PSI avg10 < 5, detached, MemoryMax) · hypothesis:lm-l4-local-heads-keep-a-recent-window minted (801745ad98, v2 929a65952f)
-LIVE   (00:2xZ 10-01) Opus REVIEWER of the L4 round (read-only, no model) + Opus BUILDER of stage 1 MAP (unit tm-neuron-period, MemoryMax 5G -> experiment tm-neuron-period-1001)
-L4     experiment:tm-l4-window-0930 DISPROVED by the pre-registered rule (band beats random on agree AND KL at 1/3 budgets; KL alone at 2/3); measured-distance reference KL 3.6x lower at 0.75 -> candidate next rung, pending the review
+LIVE   (00:2xZ 10-01) Opus BUILDER of stage 1 MAP (unit tm-neuron-period, MemoryMax 5G -> experiment tm-neuron-period-1001)
+L4     experiment:tm-l4-window-0930 DISPROVED by the pre-registered rule (band beats random on agree AND KL at 1/3 budgets; KL alone at 2/3); measured-distance reference KL 3.6x lower at 0.75 -> review ACCEPT_WITH_RESIDUE 00:3xZ; evidence_runs fix 49f011f5cb; trajectory queue row c7e1e38d8d · NEXT RUNG (mint when the model slot frees): measured-distance selection as the scored arm, 2-3 calibration docs, sinks excluded
 MAP    hypothesis:lm-neuron-periodicity-map-finds-function-neurons minted 00:2xZ (idea:lm-neuron-periodicity-map-and-self-poke + goal:g5.28)
 NEXT   review verdict -> L4 verdict + next rung onto the trajectory rows (town:local-maxxing, --actor thought-master, no --role) · MAP report -> its own review
 DONE   owner's trajectory edit LANDED a59698750e 22:2xZ (town:local-maxxing: the trajectory's PERMANENT home)
