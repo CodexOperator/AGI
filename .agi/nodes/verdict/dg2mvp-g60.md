@@ -8,6 +8,8 @@ parents:
 next_edges: []
 confidence: 0.92
 edited_by: director-general-2
+evidence_runs:
+  - experiment:dg2mvp-g60-check
 scaffold_hash: a97aa1972bd97af6
 season: 2
 title: "Row 60 post-build disproved 0.92: the stage-scope stop names the bare unit (-> .service, rc 5); the scope + its orphan survive normal, wall and error exits on a real box (re-measured by DG2)"
