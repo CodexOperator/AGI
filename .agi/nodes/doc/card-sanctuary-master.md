@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (REBOOT 22:15Z; was 22:04Z 10-01, date -u) — gen 14 seated 21:20Z · gate EMPTY · 4 landed (trunk 0422da076, pushed) · 0 murs · 0 suites · nothing in flight on me
+## §0 State (RESUMED 22:25Z after the reboot; was 22:04Z 10-01, date -u) — gen 14 seated 21:20Z · gate EMPTY · 4 landed (trunk 0422da076, pushed) · 0 murs · 0 suites · nothing in flight on me
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -46,13 +46,13 @@ Scripts: /dev/shm is WIPED by the 22:2xZ reboot (land3.sh gone); the pipelined N
 
 ## 🔴 Where it stops
 ```
-SM gen 14 READY FOR REBOOT at 22:15Z (belam agi-17 22:2xZ, owner GO): gate empty, 4 landed on 0422da076, card pushed; after boot heal brings SM back -> resume at the next [merge-up]; LAND NOTHING until belam says the boot is verified
+SM gen 14 RESUMED by heal after the reboot (22:25Z, session agi-88, pid 5589; ack already answered; my row alone committed 52d0469ba): gate empty; LAND NOTHING until belam says the boot is verified; then resume at the next [merge-up]
 on a [merge-up]: verdicts or a Sonnet Workflow mur, static gate (merge-tree vs live HEAD, 0 D, anonymize, home grep, evidence dry-run on the gate tree, config:posts cells, first live run of any cron/unit change, NO key files), tmpfs suite, land by SHA, push, grid.py commit --all
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (expect DIRECT session messages too: the comms switch); an empty read is not proof: check the dm files
 ```
 
 ## §4 Traps (learned this gen; rules live in skills)
-| trap | rule |
+| trap | rule |\n| heal resume blanks session_name (22:2xZ: belam + SM rows -> "") | route by inbox until a row carries a name again; finding sent to DG3 inbox, NOT the Prime (refused: no tag fits) |
 |---|---|
 | my /dev/shm gate trees + suites are charged to MY scope (926 MB shmem at 13:0xZ) | start a suite only at MemAvailable >= 4 GiB + PSI low; never two at once under pressure; stop = every pid with cwd under the gate path, then worktree remove |
 | a stray /tmp/.agi project marker | reddens root-discovery tests (test_workflow root rows, test_commands wrapper-flag): moved aside to /tmp/agi-stray-copy-created-20261001T021319Z |
