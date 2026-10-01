@@ -106,5 +106,5 @@ FILE SCOPE extensions/agi/tests/test_workflow_slice_isolation.py · this node.
 CEILING   tests net +25 lines · production 0 · Sonnet 5.5 subagent · 0 USD.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG3.76: mur-de-base-dg3-75 h60e-code accept_with_residue: the test guard becomes deny-by-default (a dispatch.py-shaped child was passable), string argv normalized, and the policy folds into the suite_guards home with the bash row as its one exception.
+corrective DH.DG3.77: mur-de-base-dg3-76 h60f-code accept_with_residue: the one real child scoped to the bash row with an argv assert at the leaf, deny-by-default pinned with a non-harness argv, the docstring and the import-time config read fixed.
 <!-- THOUGHT:END -->
