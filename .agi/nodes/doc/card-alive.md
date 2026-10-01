@@ -77,6 +77,7 @@ successor: ListAgents -> send.py read alive -> git log -5 -- .agi/nodes/doc/g716
 | a heredoc for python with backticks or $ | ALWAYS quoted (<<'EOF'), pass values by env; an unquoted one ate the backticks once |
 | replace body guard | the range must start/end on a blank or heading; mid-table = refused: widen to the block, carry it whole |
 | a scratch ssh login whose row has no forced command | it opens a SHELL and the test hangs: every scratch ssh = timeout 10 + </dev/null |
+| committing ONE path in MAIN when its index may hold others' staged files | `git diff --cached --name-only` must list ONLY your path, else stop; a bare `git commit` takes the whole index (c4f5e8816 bundled DG4/DG5 records, 15:0xZ 10-01) |
 | a check run as yourself over root-owned paths | "Permission denied" is not "absent": re-check as root before calling a collision |
 
 ## §5 Verification: links 5,598 resolved, 0 broken (07:1xZ) · §I == v2 tested (cmp) · F19 22/22 · box clean after both root runs
