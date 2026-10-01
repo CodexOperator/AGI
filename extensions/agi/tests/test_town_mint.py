@@ -87,6 +87,13 @@ def _write(g: Path, rel: str, content: str):
     p.write_text(content)
 
 
+def _live_town_schema_path() -> Path:
+    import locations
+    root = locations.find_project_root(Path(__file__))
+    assert root is not None, "no project root for the live [town].md"
+    return Path(root) / "context" / "schemas" / "[town].md"
+
+
 def _fixture(tmp_path: Path) -> Path:
     """Build a fresh fixture PROJECT under tmp_path; returns the project root.
     Layout (the G11 shape):
@@ -327,14 +334,23 @@ def test_no_required_nonempty_schema_still_warns_and_writes(tmp_path, monkeypatc
 
 def test_non_prime_actor_refused_naming_admitted_roles(tmp_path, monkeypatch, capsys):
     """A kid actor is REFUSED by `_enforce_written_by` naming the admitted
-    roles — 'may be hand-edited only by admitted roles owner, prime_director'
-    — and nothing is written."""
+    roles — 'may be hand-edited only by admitted roles <sorted list>' — and
+    nothing is written. The list is READ from the live [town] schema through
+    links.parse_written_by (the production reader), never typed: it carries a
+    TEMPORARY `director` admit (owner 22:21Z 09-30, until goal:g7.16.1.11
+    lands), and a later schema change needs no edit here."""
+    import links
+    from graph_core.persistence import load_node_file
+    admitted = links.parse_written_by(
+        load_node_file(_live_town_schema_path(), body=True).frontmatter["written_by"])
+    assert "kid" not in admitted and "a00-someone" not in admitted, admitted
     proj = _fixture(tmp_path)
     rc = _mint(monkeypatch, proj, "kidtown", visions=["vision:a"],
                council="council-core", season=2, agi_season="2",
                actor="a00-someone")
     msg = capsys.readouterr().err       # goal:g7.33.20.3: refused by name, rc 2, never a traceback
-    assert rc == 2 and "only by admitted roles owner, prime_director" in msg, (rc, msg)
+    assert rc == 2 and ("only by admitted roles "
+                        + ", ".join(sorted(admitted))) in msg, (rc, msg)
     assert not (proj / ".agi" / "nodes" / "town" / "kidtown.md").exists()
 
 

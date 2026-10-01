@@ -55,7 +55,14 @@ def test_schema_required_and_written_by(engine_on_path):
     nf = _town_schema()
     fm = nf.frontmatter
     assert fm["validation"]["required"] == ["visions", "council", "season"]
-    assert fm["written_by"] == ["prime_director", "owner"]
+    # The admitted list is READ from the schema (one source); the pin is the
+    # floor [prime_director, owner] plus the TEMPORARY `director` admit (owner
+    # 22:21Z 09-30, until goal:g7.16.1.11 lands) -- and never a kid.
+    import links
+    admitted = links.parse_written_by(fm["written_by"])
+    assert {"prime_director", "owner"} <= admitted, admitted
+    assert admitted <= {"prime_director", "owner", "director"}, admitted
+    assert "kid" not in admitted, admitted
 
 
 def test_schema_refuses_branches_cell(engine_on_path):
