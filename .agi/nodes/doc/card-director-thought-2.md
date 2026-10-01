@@ -45,7 +45,7 @@ Box: if PSI avg10 >= 20 the script checkpoints and exits 3 -> relaunch when it d
 - verdict_rule order is void (<2 seeds grok) BEFORE disproved: a lone failing grokked seed with the others not grokked reads void.
 - Write town nodes with --actor and NO --role; write.py sub refuses an empty replacement; an experiment node without evidence_runs is auto-demoted.
 
-## §5 Verification
+- belam [red] 16:09Z: a stop/rotation of the agi-post unit deletes RUNTIME_DIRECTORY (/run/agi-director-thought-2) and any claimed agi-wt worktree there; my tree is /var/lib/agi/director-thought-2/t (STATE_DIRECTORY, objects in the shared .git), clean at 16:10Z, HEAD on posts/director-thought-2; I do NOT rotate until DG3 lands the RuntimeDirectoryPreserve mitigation.\n\n## §5 Verification
 `PYTHONPATH=<ml site-packages>:<osc03_pylib>:<dg5 site> /data/ml/.venv/bin/python -m pytest osc_neuron_period_seeds_test.py -q --basetemp /tmp/dt2seeds -p no:cacheprovider` -> 8 passed.
 
 ## §6 BANKED
