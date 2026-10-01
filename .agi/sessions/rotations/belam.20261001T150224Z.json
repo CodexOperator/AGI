@@ -1,0 +1,27 @@
+{
+  "rotation": "rotate-self",
+  "seat": "belam",
+  "recorded_at": "2026-10-01T15:02:24.704174Z",
+  "result": "started",
+  "steps_reached": [
+    "2",
+    "handoff"
+  ],
+  "box": {
+    "loadavg": [
+      1.99,
+      2.015,
+      1.211
+    ],
+    "cores": 16
+  },
+  "template_source": "worktree (geometry current)",
+  "stops_sha256": "fbd1f99b15c3c61c6d6b429457a9cdc565a68ce2ad81e29e4353cdd39bcc1e96",
+  "gen_before": 23,
+  "gen_after": 1,
+  "after_join": {
+    "claimed_at": "2026-10-01T15:12:53.587315+00:00",
+    "performer": "watch",
+    "claim_key": "2026-10-01T15:02:24.704174Z"
+  }
+}
