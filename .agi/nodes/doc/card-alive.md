@@ -31,7 +31,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 done   round 4 (§N, bfc04e8588) · capsule §O + O.5 passkey + O.6 lattice + O.7 Secure Enclave + O.8 owner picks (weighted
        mutual quorum, capsule-pop 1,194 B, Q1-Q6 PASS) @1daf2888a · round 5: §R alive VARIANT B (bootstrap 5,731 B, R1-R4 PASS)
        beside §Q self-perpetuating ZYGOTE (7,263 B, RECOMMENDED) -> [decision]s to belam 05:5xZ (round 5) + 06:0xZ (O.8)
-NEXT   answer belam / the owner if asked; s-p (agi-c9) owns raw inference + P.8 custody escrow; DG3 builds on the owner's go
+NEXT   answer belam / the owner if asked; round 5 GO -> DG3 builds §Q + §R folds; round 6 §S seed: S6-S8 unrun (root, a box, a gate line)
 LESSON round 5 was written TWICE: a claim must reach EVERY council member, a rotating one's successor included (ListAgents)
 HELD   key/identity BUILD until DG3's build lands; this post designs and measures only · NO root, NO paid run
 ```
