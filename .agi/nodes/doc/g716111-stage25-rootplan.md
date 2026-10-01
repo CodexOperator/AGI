@@ -401,3 +401,7 @@ Phase-A evidence lives in test.txt; "(T#)" points at it.
   - 52: the anchor matches by construction; the core magic_pane modules are on origin/core/* only
   - 55: it holds only if R16 shows a clean start
 - **Versus 12 of 42 matched in doc:g716111-stage25-parity:** 39 of the original 42 rows are now matched-or-better; 18, 30 and 33 are still short.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PHASE A' (v4c): DG5 moves from pi-free to Claude Code Sonnet 5.5 with Remote Control (owner 04:40Z) and the owner logs DG5's user in by hand (04:49Z), so the credential copy R8 becomes R8a (owner login) + R8b (onboarding/trust); RC proof R16' + app proof; R17 = the ONE pi-free kid on CCCC; engine-v4 at 16,384/16,384 B (agi-seed.service dropped for stage 3); parity 52/55 matched-or-better + rows 56-57 pending live proof. First Phase A' run died at the 04:45Z rotation (only assemble.py touched); this is the relaunch.
+<!-- THOUGHT:END -->
