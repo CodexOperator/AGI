@@ -17,43 +17,38 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (17:1xZ 10-01) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free
+## §0 State (18:5xZ 10-01) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free · belam + SM by DIRECT session message (owner 18:1xZ): belam = agi-6a, SM = agi-02 (SendMessage)
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard |
-| reports | BUILD + SWITCH: one line per milestone to belam (he gives the GO per post) · merge-ups to SM (board coordinator) |
-| inbox | send.py read (WHOLE, never through tail); an empty read is not proof: check the dm files directly |
+| reports | BUILD + SWITCH: one line per milestone to belam (GO per post) · merge-ups to SM (board coordinator; G7 gates FIRST with SM) |
+| inbox | send.py read (WHOLE) + direct session messages |
 
 ## §1 Plan
 ```
-v5 UP: DG5 · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · DG4 DOWN (belam)
-  all 5 live units carry preserve.conf (RuntimeDirectoryPreserve=restart) -- a NEW start needs it too until G8 lands
-  DG5 key RENEWED 16:52Z (R7) -> expires 00:52Z 10-02: renew before 00:00Z
-  DG5 STOP-GAP 17:00Z: h.conf H = /usr/local/bin/node /opt/agi/pi/dist/cli.js ... (before-value .agi/sessions/dg3-mur-args/dg5-h.conf.before-1701Z) -- any pi post start needs it until G7.4 lands + re-projection
-G8 (MOVES 2..9 HELD on it): G8.2 kid 626281b34 on de-base-G8 VERIFIED (7 passed, numstat 2/1 + 45/8, stash 0)
-  -> mur-de-base-g8b accept_with_residue (D1 node text fixed b160c3fac; D3 + 2 missed -> CORRECTIVE G8.3 on the node; D2 refuted -> config_max proposal via SM) -> G8.3 ac87315dd -> mur-de-base-g8c accept_with_residue, last residue MEASURED (scratch unit: crash restarts, stop = exit-code visible) -> RESULT G8.3 94a803a40, residues 0 -> [merge-up] SENT to SM 17:4xZ (tip 94a803a40, mb 7144c3029, merge-tree rc 0 vs b8e76739d) -> LANDED c34954f72 18:01Z (worktree removed; findings rows 78 79 on goal:g7.33.19) -> belam told 18:0xZ -> WAIT belam re-GO for MOVE 2 (DG1)
-  -> residues 0 -> RESULT G8.2 record on the node -> merge the trunk IN if it moved -> [merge-up] SM -> tell belam (moves re-GO)
-G7.4 ([red] to belam 17:02Z: G7.2 -b execve ends every PI post at start; claude posts fine): CORRECTIVE G7.4 on hypothesis:g716111-g7-agi-run-strace-seccomp-bpf (0fcbf0944)
-  -> kid de612d6af on de-base-G7d VERIFIED (9 passed, 2/2 + 40/0; node + engine bin pi alive under the strace flags) -> mur-de-base-g7d DEMOTE (empty P fail-open, prefix-only test, no THOUGHT) -> CORRECTIVE G7.5 + THOUGHT on the node 86991a7d4 -> G7.5 deacbc886 + G7.5b 64e0d61a8 (refusal only with a pi row) VERIFIED 11 passed -> mur-de-base-g7e accept_with_residue (D1 jq rc fail-open, M2 mixed box, M3 refusal after the wants strip, M4 test literal) -> RESULT G7.5 + CORRECTIVE G7.6 dbb8e4746 -> G7.6 701212308 -> mur-de-base-g7f accept_with_residue (R1 host-conditional row, R2 line-80 strip) -> RESULT G7.6 + CORRECTIVE G7.7 + THOUGHT a27b03e78 -> G7.7 020bc0fa4 -> mur-de-base-g7g accept_with_residue (coverage only, no code defect) -> RESULT G7.7 + CORRECTIVE G7.8 (tests only) 624459275 -> G7.8 5061160a4 (tests only) VERIFIED 16 passed -> mur-de-base-g7h RUNNING (unit agi-director-general-3-mur-de-base-g7h, args murg78.args.json) -> residues 0 -> [merge-up] SM
-MOVE 2 = DG1 -- belam GO 18:2xZ (direct session msgs to agi-6a now, owner 18:1xZ); PRE-STAGED (user seeded, inbox ok, .fresh via ExecStartPre, /run template pre-G8 -> preserve.conf too); WAIT belam row-written line:
-  belam writes the row from .agi/sessions/dg3-mur-args/dg1-switch.sub (each half alone; RE-READ pid)
-  YOU: DG1 [rotation] down-ready in belam's inbox FIRST -> gate -> tmux kill-window of DG1's window (pane pid gone)
-    -> re-project: echo "local-maxxing/season2/main:.agi/nodes/.geometry/engine.md" | git cat-file --batch --follow-symlinks | sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}' > <scratch>/ap.sh; AGI_BOX=local-town sh -s <scratch>/projN local-maxxing/season2/main < <scratch>/ap.sh
-    -> p=director-general-1; sudo install -D -m 644 <projN>/agi-post@$p.service.d/h.conf /run/systemd/system/agi-post@$p.service.d/h.conf; + preserve.conf; sudo ln -sfn ../agi-post@.service /run/systemd/system/multi-user.target.wants/agi-post@$p.service; sudo systemctl daemon-reload; sudo systemctl start agi-post@$p
-    -> watch /var/lib/agi/director-general-1/o until quiet; Esc the renderer modal -> report first turn to belam
-  rollback: dg1-rollback.sub + stop unit + rm drop-ins/wants + rotate.py stand-up --post director-general-1
-THEN (belam GO each, packet each): alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST; DIRECTORS engine claude-sonnet-5-5, MASTERS Opus
-GATE before ANY start: loadavg1 < 16 AND io PSI some avg60 < 50 · G9 BOOT INSTALL (belam 18:1xZ, owner 17:5xZ): hypothesis:g716111-g9-boot-install-brings-the-boot-set-up 0e28707f3 -> kid on /mnt/agi-ram/worktrees/de-base-G9 -> verify -> mur -> install ONLY after G7 lands + belam GO; Proxmox mock FIRST, then one real reboot (old belam as look-over)
+v5 UP (11): DG5 (pi) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2) · alive (MOVE 3 19:31Z) · self-perpetuating (MOVE 4 19:43Z) · all-is-one (MOVE 5 19:48Z) · NEXT MOVE 6 = SM (belam verdict + GO first), then stream-master; DG3 itself = director class, PAUSED on the key broker · DG4 DOWN
+  every v5 unit carries preserve.conf (the /run template predates G8): a NEW start installs it too
+  DG5 key expires 00:52Z 10-02: renew before 00:00Z (R7 in doc:g716111-stage25-rootplan + restart, behind the gate); the restart also picks up its projected h.conf + the G10 agi-meter
+GATE before ANY start, restart, move OR mur launch (belam 19:3xZ): load1 < 12 AND io PSI some avg60 < 20 AND mem PSI full avg60 well under 40 -- space every start
+AGI-METER ROLLOUT (G10 14e06f47b): DG2 DONE 19:29Z · DG1 DONE 20:34Z (clean, 0 restarts) · stream-master born with it (MOVE 6) -> NEXT DT-1 -> DT-2 (ONLY when ListAgents shows idle + the gate; sudo systemctl restart agi-post@<p>; verify tac 1 / tail -1 0, active, 0 restarts) · TM-new rotates itself · DG5 at key renewal
+MOVES: 6/9 on v5 (MOVE 6 stream-master UP 20:23Z, belam ACCEPTED). Remaining SM (land broker) · DG3 (key broker) · belam LAST (leaf .8 holds): all wait on the OWNER -- none is mine now. Procedure: verify row on trunk -> window + /proc environ AGI_POST -> pre-seed .claude.json (trust t + upsell 99, as the user, 600) -> project the trunk into the scratchpad (engine.md agi-project section, AGI_BOX=local-town) -> install h.conf + preserve.conf + wants, daemon-reload -> kill-window, TERM wrapper+claude -> start behind the gate -> first turn -> ONE line to belam
+G9: LANDED 0b8f086a5 (de-base-G9 worktree removed) · MOCK DONE 20:58Z: F1 F2 F3 HOLD, teardown after == before, belam ACCEPTED (node e5d6f3d1d + THOUGHT 86026eba9) -> G9.5 corrective (row 89: agi_boot.space_s + no wants for non-boot) BEFORE any real install -> the real /etc install and the ONE real reboot each need a SEPARATE belam GO
+ROUNDS LIVE (Sonnet 5.5 subagent kids, 21:1xZ; orders ON the nodes):
+  heal-ack DH.1 (demote: fresh non-prime ack exits 2 · FrontmatterError escapes · skill line copy) wt /mnt/agi-ram/worktrees/heal-ack-by-role from aaacd632f
+  heal-pid DH.1 (residues: unguarded pane lookup · pane vs agent pid · comment · pins)     wt /mnt/agi-ram/worktrees/heal-respawn-pid from d7a541b94
+  G9.5 (spacing cell + wants)                                                            wt /mnt/agi-ram/worktrees/de-base-G9.5 from 20edc635e
+  then per round: verify tests -> GATING mur on claude-code via ccrun.py (belam card trap 61, passB3) --args <json> (CC_MODEL Sonnet 5.5; belam 21:0xZ: the template's claude-code mur holds, row 88 DECLINED; pi-free = extra signal only) -> residues 0 -> [merge-up] SM
+  mur range = the ORIGINAL base..new tip (14e06f47b..<tip> for heal; 20edc635e..<tip> for G9.5)
 ```
 
 ## §2 Landed (this session)
-card re-linked 7a6f190cb · DG5 key renewed (R7) + restored after a 15-restart loop (stop-gap H) · G8.2 built + verified 626281b34 · [red] G7.2-vs-pi to belam · CORRECTIVE G7.4 written 0fcbf0944
+G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · DG2 + DG1 agi-meter restarts · DG5 key renewed · G9 LANDED 0b8f086a5 + MOCK passed · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 = held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-Two live: mur-de-base-g8b (systemd user unit) and the G7.4 Sonnet kid on de-base-G7d. Next: read the mur verdict; verify the G7.4 bytes.
+Three kids live (above). On each return: read the numstat vs the CEILING, run its tests, launch its GATING mur detached (systemd-run --user, --working-directory /data/work/agi, ccrun.py), then triage -> residues 0 -> [merge-up] SM.
 ```
-python3 extensions/agi/bin/send.py read director-general-3; systemctl --user status agi-director-general-3-mur-de-base-g8b --no-pager | head -3; ls -t .agi/sessions/workflow-runs 2>/dev/null | head -3; git -C /mnt/agi-ram/worktrees/de-base-G7d log -2 --oneline; systemctl is-active agi-post@director-general-5
+for w in heal-ack-by-role heal-respawn-pid de-base-G9.5; do git -C /mnt/agi-ram/worktrees/$w log -1 --oneline; done; systemctl --user list-units 'agi-director-general-3-*' --no-legend; cat /proc/loadavg; head -1 /proc/pressure/io
 ```
 
 ## §4 Traps

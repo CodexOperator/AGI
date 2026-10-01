@@ -281,6 +281,8 @@
       "osc_neuron_period_dir": "datasets/osc-band/2026-10-01-neuron-period",
       "osc_neuron_period2_dir": "datasets/osc-band/2026-10-01-neuron-period-2",
       "osc_neuron_period_pc_dir": "datasets/osc-band/2026-10-01-neuron-period-pc",
+      "osc_neuron_period_seeds_dir": "datasets/osc-band/2026-10-01-neuron-period-seeds",
+      "osc_neuron_period_p4fair_dir": "datasets/osc-band/2026-10-01-neuron-period-p4fair",
       "osc_self_poke_toy_dir": "datasets/osc-band/2026-10-01-self-poke-toy",
       "osc_self_poke_toy_dh1_dir": "datasets/osc-band/2026-10-01-self-poke-toy-dh1",
       "model_slot_lock": ".agi/sessions/locks/model-slot.lock",
@@ -375,6 +377,7 @@
     "local_maxxing": {
       "osc_band_seeds": [7, 21, 99],
       "de_live_parents": {"arm": 10, "arms": [10, 5, 15], "ceiling": 16, "ceiling_if": {"loadavg1_lt": 16, "io_psi_some_avg60_lt": 50}, "hypothesis": "hypothesis:swarm-size-5-10-15-parents-fixes-per-hour"},
+      "agi_boot": {"poll_s": 20, "wait_max_s": 600},
       "model_slot_min_avail_gib": 3,
       "lowpeak_head_rows": 64,
       "osc_band_row_contract": {
