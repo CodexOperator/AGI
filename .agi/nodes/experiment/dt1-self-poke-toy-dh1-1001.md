@@ -36,7 +36,7 @@ verdict: proved
 | conjunct | measured | rule | outcome |
 |---|---|---|---|
 | C5a | k45 0.4350, k5 0.4211 vs the 20 random 128-sets max 0.2740 (`dr`, mean abs dr at s = 0) | min bearing > max random | **PASS, beyond size** (+3.4 sd over the norm line; beats all 93 / 70 norm-matched sets for k5 / k45) (margin 0.147) |
-| C5b | k1 0.0827, k34 0.0810 vs the random sets min 0.1194 | max passenger < min random | **PASS** (margin 0.037) |
+| C5b | k1 0.0827, k34 0.0810 vs the random sets min 0.1194 | max passenger < min random | **PASS by the registered rule, NOT size-clean** (k1 / k34 -1.5 / -1.3 sd of the norm line; 8-9 pct of norm-matched sets go lower) (margin 0.037) |
 
 - Random sets at s = 0, sorted dr: 0.119 0.137 0.151 0.168 0.168 0.172 0.182 0.194 0.211 0.212 0.212 0.223 0.226 0.235 0.245 0.247 0.248 0.258 0.266 0.274 (mean 0.207).
 - Not void: model.pt and PC params shas equal the pre-registered; baseline test acc within 1e-4; the four family sizes equal {5:151, 45:128, 1:133, 34:84}; every one of the 2400 restores equals the pre-session state sha (`ok`); script clean, tracked, commit 9d0b6fd47, params sha at launch = at analysis.
