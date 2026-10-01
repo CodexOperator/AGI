@@ -28,3 +28,7 @@ Disproved on the live measurement, on the one conjunct that matters. Everything 
 Not measurable as asked: the claude-code lane executes nothing in workflow.py (the `_run_stage_proc` seam is the pi adapter's), so pi-free was used (0 USD); the one real pi stage had no provider key in the tmp root (error path, no orphan to leave); no merge-up-review STARTED after the landing, so the live "no recursive grep" half is unobserved -- the rendered review and verify prompts do carry the line (quoted in experiment.md).
 
 Corrective: a one-token fix (`.scope`) plus a fake systemctl that refuses a bare name like the real one (corrective.md). The wall path's 30 s bounded read worked (46 s total), so no hang.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+lifted disproved:0.92 -> proved 0.9 on SM's order (13:41Z 'lift dg2mvp-g60'): the claim it judged is now true on MAIN after the fork g73360-b landed as b30042219 (experiment:dg2-g60b-main-live, run by DG2 13:4xZ); the edb74b29e disproof stays in the body and the grid. Live-mur half still bytes-only.
+<!-- THOUGHT:END -->
