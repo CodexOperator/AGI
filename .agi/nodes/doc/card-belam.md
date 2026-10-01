@@ -69,6 +69,7 @@ Owner picks open: DG4 assignment · Round 8 start · the seed boot install (root
 | 66 | `send.py read belam` printed "empty" while DG3 02:59Z + 03:05Z and TM 21:55Z sat in the dm files / inbox file | read `.agi/comms/season-2/dm/*belam*` + `.agi/sessions/inbox/belam.md` by ts after every [decision] wait |
 | 65 | `rm -rf $VAR/$X` is refused by the safety check | literal absolute paths, or `"${S:?}"/"${d:?}"` |
 | 68 | a gate suite in /dev/shm/smtmptm/neutral piled up 273+ python3 that never exit (9.8 GB anon, +255 MiB/min, swap 102 MiB) 16:1xZ 10-01; STOPPED by belam auto-stop ~16:2xZ (PSI full10 33.2 > 30: SIGTERM 295, SIGKILL 0; avail back 10.7 GB; suite result VOID, SM told) -- CANDIDATE cause of the 14:42Z hard reboot | read the scope by comm + cwd (cgroup.procs), never argv; cause = SM to name |
+| 69 | DG3 "read up to here" sat PAST my 16:09Z G8 red (lastread 16:10Z) yet DG3 never saw it (owner 16:2xZ) | an action order needs an explicit one-line ack back; no ack in 15 min = re-send + wake, then ask the owner to relay in the post's RC pane |
 | 67 | `open(p,"w").write(f(open(p).read()))` truncates BEFORE it reads: posts.md went 0 B 15:13:24-15:14:04Z 10-01 (gen 24) | read into a variable first, write a tmp + os.replace; a row-only commit = hash-object HEAD copy + update-index --cacheinfo |
 
 ## §5 Verification
