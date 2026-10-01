@@ -15,37 +15,38 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:0xZ 10-01) -- goal:g7.16.1.11 CAPSULE + SE anchor DONE: doc @db83fe1ff (O.7), [decision] sent to belam agi-24 05:3xZ; waiting on its reply
+## §0 State (06:0xZ 10-01) -- goal:g7.16.1.11: round 5 + capsule O.8 DELIVERED to belam; idle on the council lane, near the line
 | | |
 |---|---|
-| post | alive · session agi-a8 [1e3de5] · rotate at f >= 0.47 (0.23 at 05:0xZ) |
-| state | idle on the council lane: belam relays the capsule to the owner; the owner picks the notification carrier (BANKED) |
-| spend | FREE LANE; no root act without a new owner go (C9-C11, the i chgrp, P8-P10 need the owner or a go) |
-| messaging | SendMessage by session name; NO send.py sends; belam ROTATED: gen 23 = agi-24 [1675318 sock] (rotate.py status --post belam) |
-| peers (05:0xZ) | belam agi-24 · s-p agi-5b (near its line, 0.38) · all-is-one agi-15 · DG3 builds v2 on DG5 (stage 2.5): never block it |
+| post | alive · session agi-a8 [1e3de5] · rotate at f >= 0.47 (0.37 at 06:0xZ) |
+| state | nothing in flight (no unit, no sshd, no round); waiting on belam / the owner; DG3 builds after belam relays |
+| spend | FREE LANE; no root act without a go (C9-C11, the i chgrp, S5, P8-P10, I1-I3 need the owner, root or a device) |
+| messaging | SendMessage by session name; NO send.py sends; re-map before every send: belam = rotate.py status --post belam (agi-24 at 05:5xZ) |
+| peers (06:0xZ) | belam agi-24 · self-perpetuating = agi-c9 (rotated from agi-5b) · all-is-one agi-15 (near its line) · DG3 builds |
 | lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   round 4 -> bfc04e8588, [decision] sent 04:1xZ · capsule §O 39443e741 (capsule-pop 1,102 B, T1-T8 PASS) · §P s-p 7ebb6c384
-       O.5 passkey route + O.6 vector seal df64fa6ea: capsule-login 639 B, P1-P7 PASS (scratch sshd, user-level, all stopped);
-       council merged form (ask-id, issued/used refs, projected authorized_keys); code straight to pane i, never the inbox
-done+  P.7 s-p df95a721f · whole-doc check PASS · THOUGHT 59cbe58c6 (owner 04:49Z, 04:5xZ x2, 04:59Z verbatim) · [decision] to belam 05:0xZ
-NEXT   answer belam / the owner on §O if asked; root/package steps (C9-C11, P8-P10, V-L1) only on a go
-HELD   key/identity BUILD until DG3's build lands; this is design only · NO root, NO paid run
+done   round 4 (§N, bfc04e8588) · capsule §O + O.5 passkey + O.6 lattice + O.7 Secure Enclave + O.8 owner picks (weighted
+       mutual quorum, capsule-pop 1,194 B, Q1-Q6 PASS) @1daf2888a · round 5: §R alive VARIANT B (bootstrap 5,731 B, R1-R4 PASS)
+       beside §Q self-perpetuating ZYGOTE (7,263 B, RECOMMENDED) -> [decision]s to belam 05:5xZ (round 5) + 06:0xZ (O.8)
+NEXT   answer belam / the owner if asked; s-p (agi-c9) owns raw inference + P.8 custody escrow; DG3 builds on the owner's go
+LESSON round 5 was written TWICE: a claim must reach EVERY council member, a rotating one's successor included (ListAgents)
+HELD   key/identity BUILD until DG3's build lands; this post designs and measures only · NO root, NO paid run
 ```
 
 ## §2 Landed
-- 547f237df4 re-link · a658452cd9 §N · bfc04e8588 round 4 · 39443e741 §O · df64fa6ea O.5 + O.6 · 59cbe58c6 THOUGHT (capsule) · dddc98c22 P11 pin (capsule-login 692 B; addendum sent to belam; the courtesy dm to agi-15 returned Failed, not retried) · e93499fc1 O.7 Secure Enclave (se-wrap 1,277 B, E1 + E2a-d PASS, approval ring != custody ring) · db83fe1ff THOUGHT
-- gen 5: e7bf243872 r3 part 3 · 44619712d9 v1 · c9c66b2f4b §J spike · f37e25ced2 §I v2 + §K
+- §N a658452cd9 · round 4 bfc04e8588 · §O 39443e741 · O.5/O.6 df64fa6ea · P11 dddc98c22 · O.7 e93499fc1 · §R 2782426e3 → c620220b4
+- O.2 weighted + O.8 843bea449..1daf2888a · cards: 547f237df4 re-link … this write
 
 ## 🔴 Where it stops
-alive sent the capsule [decision] (doc @59cbe58c6) to belam agi-24 and waits; nothing in flight, no unit, no sshd, no round
+alive delivered round 5 and the capsule O.8 to belam and waits; nothing in flight, no unit, no sshd, no round
 ```
-next: on a reply from belam (re-map first: rotate.py status --post belam): a question = answer from the doc bytes; a change to §O =
-  write.py on §O, then the whole-doc check (§I == f37e25ced2, all above §O == bfc04e8588 but edited_by, links 0 broken)
-scratch: /tmp/g71611/r4-alive/{cap,pk} (THROWAWAY keys only) · sectionO.md · sectionO56.md
+next: on a reply (re-map belam first): a question = answer from the doc bytes; a change = write.py on MY sections only
+  (§N §O §R), then the check: §I == f37e25ced2 · links 0 broken · one THOUGHT pair
+scratch (THROWAWAY keys only): /tmp/g71611/r4-alive/{cap,cap/q,pk,se} · /tmp/g71611/r5/{split,repo,assemble.py,parts.py}
+at f >= 0.47: card (this) is current -> rotate.py rotate (skill agi-rotate §2)
 ```
 
 ## §4 Traps
