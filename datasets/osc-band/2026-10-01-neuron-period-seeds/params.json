@@ -84,7 +84,7 @@
   19
  ],
  "verdict_rule": "EVALUATED IN THIS ORDER: (1) VOID if < 2 of the 3 seeds grok (held-out acc >= 0.99 held 1000 steps within step_cap 40000 / wall_cap_s), or any random set not size-matched / intersecting its family, or acts shape != (5,113,512), or the params.json sha256 differs from the one recorded at launch; (2) else DISPROVED if any grokked seed fails P1, P2 or P4; (3) else PROVED. P1 and P2 as in the PC params (p1_min_fraction, p2_max_freqs, p2_cover)",
- "box_min_avail_mib": 6000,
+ "box_min_avail_mib": 4000,
  "box_max_psi_some_avg10": 5,
  "box_stop_psi_some_avg10": 20,
  "box_stop": "training checks memory PSI some avg10 at each eval; >= 20 -> checkpoint and exit 3 (resumable)",
@@ -97,5 +97,6 @@
  "family_floor": 20,
  "p4_def": "family = the P1 neurons sharing one dominant frequency; every family with >= family_floor (20) neurons is mean-ablated (post-ReLU at '=' replaced by its mean over ALL 12769 inputs), scored on the held-out split; each against 20 size-matched random sets (numpy default_rng(s).choice(512 minus the family, |family|, replace=False) for s in random_seeds), disjoint from the family. pass = at least ONE such family's drop > the MAX of its 20 random drops (strict); no family reaching the floor = fail",
  "unscored": "per seed: family frequencies and sizes; load-bearing (drop > random max) vs passenger (drop < random mean) counts; whether the top-6 W_E Fourier frequencies (power over the 113 token rows, k in 1..56) equal the frequencies of the families at the floor",
- "resume": "per-seed results_s<N>.json are written when a seed finishes; a relaunch skips finished seeds and resumes the current one from partial/ckpt_s<N>.pt (a restart of the post unit kills the detached run)"
+ "resume": "per-seed results_s<N>.json are written when a seed finishes; a relaunch skips finished seeds and resumes the current one from partial/ckpt_s<N>.pt (a restart of the post unit kills the detached run)",
+ "box_min_avail_note": "6000 -> 4000 (thought-master-new [decision] 13:37Z 10-01): 6 GB is the box rule for MODEL loads; this run is a toy (RSS ~0.5 GiB); PSI avg10 < 5 unchanged; scoring rules unchanged; recommitted before launch, no training had started"
 }
