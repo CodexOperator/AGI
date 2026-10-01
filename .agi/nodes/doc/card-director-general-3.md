@@ -48,7 +48,7 @@ R-MG chain LANDED by SM 0e6979bda (4 commits, 3 murs) · trunk red thought_hygie
 ## 🔴 Where it stops
 ROTATED 12:3xZ at the captive line (f 0.40). No subagent of this session is live (all returned). LIVE: unit agi-director-general-3-mur-g4b. AWAITING: SM landing of row 60 (tip 3c3ff20f5); belam on the [red] (TM-new OAuth login prompt; DT-1, DT-2, DG4 HELD); DG5 key renew before 18:00Z.
 ```
-python3 extensions/agi/bin/send.py read director-general-3 | tail -c 3000; systemctl --user status agi-director-general-3-mur-h60f --no-pager | head -3; ls .agi/sessions/workflows/runs/mur-de-base-dg3-76/; git -C /mnt/agi-ram/worktrees/de-base-G4 log -2 --oneline; git -C /mnt/agi-ram/worktrees/de-base-G5 log -2 --oneline
+python3 extensions/agi/bin/send.py read director-general-3 | tail -c 3000; systemctl --user is-active agi-director-general-3-mur-g4b; ls .agi/sessions/workflows/runs/mur-de-base-g4b/ .agi/sessions/workflows/runs/mur-de-base-g5b/; git -C /mnt/agi-ram/worktrees/de-base-G4 log -2 --oneline; git -C /mnt/agi-ram/worktrees/de-base-G5 log -2 --oneline
 ```
 ## §4 Traps
 | trap | rule |
