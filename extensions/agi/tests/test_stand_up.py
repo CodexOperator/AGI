@@ -9,9 +9,12 @@ Every launch goes to a fake launcher or stops at a sentinel; no tmux.
 """
 from __future__ import annotations
 
+import argparse
 import ast
 import json
+import inspect
 import os
+import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace as NS
@@ -134,6 +137,33 @@ def test_an_engine_row_is_never_stood_up_by_hand(graph, calls, monkeypatch,
     assert not list((graph / "sessions").glob("rotations/seat-a.*.json"))
 
 
+class _Live(AssertionError):
+    pass
+
+
+@pytest.fixture(autouse=True)
+def no_live(monkeypatch):
+    """G4.2: no send, nudge or tmux call is reachable from any row here (the
+    crash-recovery dm goes through send.send -> _nudge_window). Recorders."""
+    import send  # noqa: PLC0415
+    rec = {"sends": [], "nudges": [], "tmux": [], "dms": []}
+    monkeypatch.setattr(heal, "_dm_crash_recovery",
+                        lambda *a, **k: rec["dms"].append(a))
+    monkeypatch.setattr(send, "send", lambda *a, **k: rec["sends"].append(a))
+    monkeypatch.setattr(send, "_nudge_window",
+                        lambda *a, **k: rec["nudges"].append(a))
+    real = subprocess.run
+
+    def run(cmd, *a, **k):
+        if (cmd[0] if isinstance(cmd, (list, tuple)) else str(cmd)) == "tmux":
+            rec["tmux"].append(cmd)
+            raise _Live(f"tmux reached: {cmd}")
+        return real(cmd, *a, **k)
+
+    monkeypatch.setattr(subprocess, "run", run)
+    return rec
+
+
 def _cli(graph, monkeypatch, launched):
     monkeypatch.setattr(rotate, "find_project_root", lambda: graph)
     monkeypatch.setattr(heal, "_launch_recovered", _launcher(launched))
@@ -141,20 +171,61 @@ def _cli(graph, monkeypatch, launched):
                         "--window-path", str(graph / "windows.txt")])
 
 
-def test_cli_stand_up_passes_the_root(graph, monkeypatch, capsys):
+def test_cli_stand_up_passes_the_root(graph, monkeypatch, capsys, no_live):
     """F1 (g716111-g4): main() hands stand-up the root; a scratch row re-seats."""
     launched: list = []
     assert _cli(graph, monkeypatch, launched) == 0, capsys.readouterr()
-    assert len(launched) == 1 and "stood up seat-a" in capsys.readouterr().out
+    assert len(launched) == 1
+    assert "stood up seat-a (fresh)" in capsys.readouterr().out
+    assert (no_live["sends"], no_live["nudges"], no_live["tmux"]) == ([], [], [])
+    assert len(no_live["dms"]) == 1  # the dm was faked, never sent
 
 
-def test_cli_stand_up_refuses_an_engine_row(graph, monkeypatch, capsys):
+def test_cli_stand_up_refuses_an_engine_row(graph, monkeypatch, capsys, no_live):
     """F2: through the CLI, an `engine` row refuses by name, nothing launched."""
     p = graph / "nodes" / ".geometry" / "seats.md"
     p.write_text(p.read_text().replace('"model"', '"engine": {"v": 4}, "model"'))
     launched: list = []
     assert _cli(graph, monkeypatch, launched) == 1 and launched == []
     assert "stand-up refused: seat-a is engine v4" in capsys.readouterr().err
+    assert not any(no_live.values())
+
+
+def test_every_root_taking_subcommand_is_dispatched_with_the_root(monkeypatch):
+    """main() hands a root to every subcommand whose func takes a `root`
+    REQUIRED `root` parameter (signatures inspected, no verb list); only
+    `complete` is root-free by design."""
+    seen: dict = {}
+
+    def grab(self, args=None, namespace=None):
+        seen["ap"] = self
+        raise _Live("parser captured")
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", grab)
+    with pytest.raises(_Live):
+        rotate.main([])
+    subs = next(a for a in seen["ap"]._actions
+                if isinstance(a, argparse._SubParsersAction)).choices
+    funcs = {n: sp._defaults["func"] for n, sp in subs.items()}
+    sentinel = Path("/nonexistent-root")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: sentinel)
+    got: dict = {}
+    checked, bad = 0, []
+    for name, fn in funcs.items():
+        prm = inspect.signature(fn).parameters.get("root")
+        if prm is None or prm.default is not prm.empty:
+            continue  # no root, or an optional one the verb resolves itself
+        checked += 1
+        ns = NS(cmd=name, root=sentinel,
+                func=lambda *a, _n=name: got.__setitem__(_n, a) or 0)
+        monkeypatch.setattr(argparse.ArgumentParser, "parse_args",
+                            lambda self, args=None, namespace=None, _ns=ns: _ns)
+        rotate.main([])
+        want = None if name == "complete" else sentinel
+        if len(got[name]) != 2 or got[name][1] != want:
+            bad.append(name)
+    assert checked >= 5 and "stand-up" in funcs
+    assert not bad, f"dispatched without the root: {bad}"
 
 
 def test_rotate_self_successor_is_a_stand_up(_fix, tmp_path, monkeypatch):
@@ -331,8 +402,6 @@ def test_a_post_with_no_row_is_never_keyed(graph):
 
 # ---------- council ruling 09-30: a keyed row with NO key file ---------------
 
-import inspect  # noqa: E402
-import subprocess  # noqa: E402
 
 
 def _keyed_repo(graph: Path, box: str, monkeypatch) -> tuple[list, str]:
