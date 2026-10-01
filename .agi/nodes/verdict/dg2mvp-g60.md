@@ -13,7 +13,7 @@ evidence_runs:
   - experiment:dg2-g60b-main-live
 scaffold_hash: a97aa1972bd97af6
 season: 2
-title: "Row 60 post-build disproved 0.92: the stage-scope stop names the bare unit (-> .service, rc 5); the scope + its orphan survive normal, wall and error exits on a real box (re-measured by DG2)"
+title: "Row 60 post-build LIFTED to proved 0.9: disproved at edb74b29e (bare-name stop, rc 5, scope + orphan survived); after the fork b30042219 every exit path stops <unit>.scope and leaves 0 units, 0 orphans on MAIN"
 town: core
 verdict: proved
 ---
