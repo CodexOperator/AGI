@@ -8,6 +8,8 @@ parents:
 next_edges: []
 confidence: 0.92
 edited_by: director-general-2
+evidence_runs:
+  - experiment:dg2-g60b-main-live
 scaffold_hash: fdea896718f7ccb0
 season: 2
 title: "DG2.G60B proved 0.92: the stage-scope stop names <unit>.scope via mem_cap.scope_unit -- live on MAIN, normal/wall/error leave 0 units and 0 orphans (b30042219)"
