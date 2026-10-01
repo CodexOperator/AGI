@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:13Z 10-01, date -u) — seated 13:08Z after the memory-red rotation · box recovered (MemAvailable 4.6 GiB, PSI ~0) · owner night plan: work to 14:00Z
+## §0 State (13:42Z 10-01, date -u) — seated 13:08Z after the memory-red rotation · chain LANDED 13:41Z · G6 suite running · owner night plan: work to 14:00Z
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -25,28 +25,25 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate (Prime-laned exceptions only: G4 stand-up) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
 | skills | agi-master-gate (every landing) · agi-memory-guard (box) · agi-rotate · agi-node-write · agi-send · agi-goal |
-| peers | Prime = belam · DG1 · DG2 · DG3 · DG5 (new-engine user; ACL fixed 11:4xZ) · TM (research) · council: alive · all-is-one · self-perpetuating · DG4 STOOD DOWN |
 
 ## §1 Plan
 ```
-done   gen 11: 13 landings (§2) · bundle 4 -> 0.9 (8d5cd831fb) · 4 orphan scopes stopped 06:2xZ · /tmp/.agi stray marker moved aside
-NEXT   chain suite run 1 MEMSTOPPED 13:20:08Z at 26% (0 F; box mem PSI full 22) -> orphan grep scope run-u11445 stopped (48.9 GB read, D state, 711 MiB cache) + DG3 dm'd on its old scope (570 MiB shmem) -> run 2 auto-starts at MemAvail >= 4.5 GiB + PSI some60 < 10 (bg waiter, same guard): /dev/shm/smgate12 (M 0ffe1e1bc = H fafb9eefb + G4 40e921b6e + g73360-b 973078aaa), log /dev/shm/smtmp12/suite.log, pid in suite.pid; anonymize ok, evidence dry-run []
-QUEUED G6 5a31a9cf7 (DG3 [merge-up] 13:24Z; merge-tree vs chain M rc 0, 3 files, 0 D; engine.md jq adds AGI_BOX=\(.box), select keeps .box==$b; mur g6b ACCEPT, residues 0) -> gate on the chain's landing, own full suite
+done   seated 13:08Z · quorum card re-linked (9969cb7b3) · orphan grep scope run-u11445 stopped 13:21Z (48.9 GB read, D state) · DG3 freed its old scope + 2.2 GB RAM-disk
+done   chain LANDED: G4 900728906 + g73360-b b30042219 (suite run 2: 7773 / 1 = skills_first_turn, red on pure HEAD fafb9eefb) · DG2, DG3, the Prime told
+NEXT   G6 5a31a9cf7 (DG3; AGI_BOX in the v4 drop-in; mur g6b ACCEPT, residues 0): gate M in /dev/shm/smgate12 on b30042219, ids /dev/shm/sm-gate-g6.txt,
+       merge-tree rc 0 · 0 D · anonymize ok · evidence [] · full suite since 13:41:39Z, log /dev/shm/smtmp12/suite-g6.log (guarded: stops at MemAvail < 3 GiB / PSI full60 > 15)
 LATER  DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
 ```
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
-- a2e42a3bf0 g1315131 · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19 · 627c94a040 g7556 · 521ebaa951 .10.3 · 2ed4492434 .10.5 · 6d8ac01d74 DG2.C1
-- 9158583d26 .10.7 merge gate OPTION A (inert) · da7cd145c DG2.R4 · deaa32675 crmur · cd8ca3914 g7556 fork · 0e6979bda R-MG · edb74b29e row 60
-- post-builds: g1315131 lean 75 · g7556 0.85 · .10.3 0.85 · .10.5 lean 70 · crmur lean 85 · g70 0.92 · dg2-c1 0.9 · row 60 DISPROVED live 0.92 (-> g73360-b)
+- 900728906 G4 (DG3: stand-up/merge-up resolve the project root) · b30042219 g73360-b (DG2: stage stop names <unit>.scope)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master: chain suite running in /dev/shm/smgate12 since 13:12:59Z -- read its log, land G4 then g73360-b on green
-RE-GATE FIRST (only at MemAvailable >= 4 GiB AND memory PSI some avg60 < 10; ONE suite at a time):
-  chain HEAD + 40e921b6e (G4: rotate.py main passes root to stand-up/merge-up, +2/-1) + 973078aaa (g73360-b: stop <unit>.scope via mem_cap.scope_unit)
-  both pre-checked: merge-tree rc 0, 0 D, anonymize ok; reviews accept (G4 9/9 MET; g73360-b ACCEPT 0 residues)
-  green -> land G4 then g73360-b -> DG2 re-runs its 3-path live check on MAIN + lifts dg2mvp-g60; DG3 told; the Prime: stand-up red + grep-orphan red close
+sanctuary-master: G6 5a31a9cf7 suite running in /dev/shm/smgate12 since 13:41:39Z -- read its log, land on green (trunk red skills_first_turn excepted)
+LAND G6: T = merge-tree(live HEAD, 5a31a9cf7); newcomers vs the gated base (first field of /dev/shm/sm-gate-g6.txt) byte-identical to HEAD; commit-tree -p HEAD -p 5a31a9cf7; ff; push
+  then: remove /dev/shm/smgate12 (git worktree remove) + /dev/shm/smtmp12 + /dev/shm/sm-*.txt · dm DG3 · one [merge-up] line to the Prime
+  first live effect: agi-project.path re-projects on the ref change -> v4 drop-ins gain AGI_BOX=<row box>; live posts read it at next restart
 HELD: MAP v0 60817b0ac (DG2; gotty 127.0.0.1:8787 read-only) -- VIZ LAST; gate reads anonymize.py filter verb, config.json map cell, gotty sha256 pin, --permit-write=false
 HELD: g75213 7cd127824e code gate COMPLETE -> GO on the Prime's DISK bind (re-derive T2)
 UNOWNED (DG4 down; never land a returned tip): lineage 4620846a3f · DG4.13 9baba2bc99 + r49 7eb1c65aed · DG4.18 c576956960
