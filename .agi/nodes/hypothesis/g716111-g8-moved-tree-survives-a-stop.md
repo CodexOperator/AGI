@@ -44,3 +44,15 @@ BASE      CUT FROM de-base-G8 tip (worktree /mnt/agi-ram/worktrees/de-base-G8). 
 4. (R7 + M3) tests: the fixture env sets USER (no real account name in a commit); one row runs agi-flush (the extracted piece) end to end over a moved tree and asserts the archive ref.
 DEMOTED   R3 R4 R5 refuted · R6 size header = findings row 70 · M2 (no reader) answered by item 2 (heal's namespace has its reader) · M4 recorded above.
 FILE SCOPE engine-post.md (agi-wt drop line) · extensions/agi/tests/test_agi_wt_archive.py · this node (+ heal.py ONLY if item 2 takes a shared cell).  CEILING production net +3 · tests +40 · Sonnet 5.5 subagent · 0 USD.
+
+
+## RESULT G8.2 (kid 626281b34, director record)
+NUMSTAT 12611d2af..626281b34: engine-post.md 2/1 (net +1 vs +3) · test_agi_wt_archive.py 45/8 (net +37 vs +40). Rows 5 failed / 2 passed on the old bytes, 7 passed at the tip (director re-ran: 7 passed). mur-de-base-g8b: review accept_with_residue · verify accept_with_residue (D2 refuted; D1, D3 confirmed; 2 missed).
+
+## CORRECTIVE G8.3 -- closes mur-de-base-g8b g8b-code (D1 D3 + verify missed a b + notes)
+BASE      CUT FROM de-base-G8 tip (626281b34 + this node write). No merge. Never rebase.
+1. (D3 + missed a) agi-flush (engine-post.md ~88) ends `:` so ExecStopPost always exits 0 and the exit 5 is lost; test :93 even pins rc 0. TRUE WHEN agi-flush still drops every tree, runs agi-turn and the trunk merge, then exits 5 if ANY drop exited 5 (an exit 4 = archived = success), else 0; a row drives a forced archive failure THROUGH agi-flush and asserts rc 5 + the named stderr line; the old rc-0 assert stays true for the moved-and-archived case.
+2. (missed b) heal writes FLAT refs/archive/worktrees/<name> (heal.py:1689); agi-wt writes NESTED <post>/<mint> -> a reachable D/F clash in one namespace. TRUE WHEN agi-wt writes a FLAT ref refs/archive/worktrees/<post>@<mint> and the pin row asserts the shape (no slash after the namespace), not only the prefix; test_r1 forces its failure some other way (e.g. a pre-existing <ref>.lock).
+3. (notes) the fixture sets AGI_POST unset explicitly in the both-unset row (not relying on the suite strip) · the module docstring names refs/archive/worktrees · the heal pin row fails with a readable message (assert the match is not None) when heal.py's spelling changes.
+DEMOTED   D1 (node text) fixed by the director in this write · D2 refuted by verify (item 2's sanctioned literal + pin, red on base) -> the shared cell goes up as a config_max proposal via SM (card BANKED) · agi-turn's per-turn drop 2>/dev/null: the tree stays in the runtime dir and the next flush retries it, not the stop path · no-identity refusal archives nothing = recorded design (live units always export AGI_SEAT).
+FILE SCOPE engine-post.md (agi-wt drop line + agi-flush line) · extensions/agi/tests/test_agi_wt_archive.py.  CEILING production net +2 · tests +30 · Sonnet 5.5 subagent · 0 USD.
