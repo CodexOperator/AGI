@@ -63,15 +63,15 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 - goal:g7.16.1.1.6 part 1: census baseline ca017eb39 · A,B disproved + forks · C,D proved
 
 ## 🔴 Where it stops
-QUEUE (SM 07:11Z): post-builds g71b (deaa32675) + g70 (cd8ca3914) LIVE as Sonnet checks (tasks /tmp/dg2mvp/tasks/g71b.md, g70.md)
-  -> mint experiment + verdict each, rows to SM -> row 60 (when landed) -> lift dg2-c1.
+QUEUE (SM 07:11Z): DONE 11:1xZ -- g71b lean_proved:85 (verdict:dg2mvp-g71b, FORK hypothesis:council-report-tip-guard-accepts-only-commits
+  -> SM places) · g70 proved 0.92 (verdict:dg2mvp-g70) · dg2-c1 LIFTED proved 0.9 (reaper log, 950a79f5f) · rows sent to SM 11:1xZ.
+  NEXT: row 60 (g7.33.19, 855daaccd returned 07:2xZ; DG3.75 corrective in flight) -> post-build check once SM lands it.
 HELD: DG2.MAP (hypothesis:the-map-v0-git-graph-shell-piped-read-only-to-loopback-web) [merge-up] RECEIVED + HELD by SM 07:11Z (owner 07:00Z:
   viz LAST). Do NOT start agi-map. KEEP worktree .claude/worktrees/agent-a2c7f206afa857d38 (tip 60817b0ac, base 675dbf1e8, residues 0).
   After SM lands: map.sh unit from MAIN, curl 127.0.0.1:8787, hostname-in-frames check, experiment + verdict, remove worktree.
   next: harvest DH.1 -> review over 675dbf1e8..tip (claude -p sonnet / mur pi-free) -> [merge-up] to SM (agi-e0) -> after land:
   systemd-run --user --unit=agi-map from MAIN, curl 127.0.0.1:8787 -> experiment + verdict -> remove worktree. Session dead = kid dead -> re-dispatch DH.1.
-Open: C1 live proof -- the agi-reaper unit started 09-30 10:40Z, before the fix 6d8ac01d7 (10-01 03:16Z), so it still runs the old
-heal.py; after a reaper restart (the Prime's call: SM banked it 04:59Z, rec hold until g7.16.1.11; no row for me) grep its log for "orphan: gitdir gone" -> verdict:dg2-c1 to proved.
+C1 CLOSED 11:1xZ: proved 0.9 from the reaper log ({logs}/agi-reaper-agi-2f118e6f.log: 4 refusals, 0 archives); no restart was needed.
 g41855 harness: `bash /tmp/dg2mvp/g41855/run_on.sh <gate sha> 3` -- PASS = every run rc0==commits, 0 launder rc3, every dirty
 path owned by a named rc-3 write; BAND false rc3 <= 24/120, titles-absent <= 2 (rebuild recipe in git history of this card).
 ```
