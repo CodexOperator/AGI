@@ -105,6 +105,9 @@ Reading (belam): supersedes "one writer" above -- MANY writers, each on its own 
 F17 paid Claude Code leg: "Go, one short run" -- a NAMED exception to the free lane (one short Sonnet 5.5 Claude Code session on a scratch clone: start, resume, compact; the brief injected each time) · root-once step + falsifiers F1-F21 on a throwaway repo: "Go after F17" · CLAUDE.md's unregistered SessionStart claim: "Leave it" (the redesign replaces it).
 config:engine minted by belam from §I (v1, 11,305 B, 20/20 byte-exact) -- design state until the root-once go runs.
 
+## OWNER 2026-10-01 01:58Z, decision (config:engine v2 build)
+"Stages 1-2 now, stop before 3" -- DG3 builds: stage 1 = a dry projection of the REAL posts into a scratch dir + the diff, no root; stage 2 = ONE real post runs as its own user. STOP before stage 3 (migrating the rest, retiring the Python engine): the owner's word again.
+
 ## Sequence
 ```
 1 the council (alive · all-is-one · self-perpetuating) writes the design doc, discussed through the three lenses
