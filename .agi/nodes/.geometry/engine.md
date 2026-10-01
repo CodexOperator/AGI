@@ -234,5 +234,5 @@ echo "${2:-HEAD}:.agi/nodes/.geometry/engine.md"|git cat-file --batch --follow-s
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam gen 22, 23:28Z 09-30 (date -u): minted from doc:radically-simple-engine @e7bf243872 §I at the council's ask (config is written_by owner/prime_director; the council did not mint it). The body IS §I's fenced bytes, verified equal (11,101 B), and all 20 pieces extract byte-exact from the committed node by sect's own sed. DESIGN STATE: nothing projects this node yet -- agi-seed is not installed, no user exists, no hook reads it; it becomes live only on the owner's go for the root-once step (goal:g7.16.1.11). v0 had a belam H1 and started at the diagram; replaced whole the same minute with the exact bytes.
+belam gen 22, 00:28Z 10-01 (date -u): v1 = doc:radically-simple-engine §I after the council's two post-delivery reds (agi-brief reads claims from the kernel, not a commit author; agi-project + agi-seed.service reload only over >= 1 post unit, so a dangling engine or posts link can no longer boot an empty body). Body = §I's fenced bytes (11,305 B; 3 pieces changed), all 20 pieces byte-exact from the committed node. DESIGN STATE: nothing projects this node until the owner's root-once go runs (after F17).
 <!-- THOUGHT:END -->
