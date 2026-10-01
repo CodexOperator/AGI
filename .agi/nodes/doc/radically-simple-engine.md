@@ -974,7 +974,7 @@ POP     capsule-login: ONE atomic rename claims the ask (a used or racing id los
 # capsule-login, run ONLY as authorized_keys `restrict,command="capsule-login" <owner device key>` (sshd checking that key IS the approval, k=1):
 # ssh <box> <ask-id>, ONE line on stdin -> the asking post's pane. The claim is one atomic rename (a used or racing id loses); the code is never at rest
 d=${AGI_SPOOL:-/var/spool/agi};i=$SSH_ORIGINAL_COMMAND;case $i in ''|*[!a-z0-9]*)exit 2;;esac;mv $d/ask/$i $d/used/$i 2>/dev/null||exit 3
-read -r p u<$d/used/$i;case $p in ''|*[!a-z0-9-]*)exit 2;;esac;IFS= read -r c;[ -n "$c" ]||exit 4;printf '%s\r' "$c">${AGI_RUN:-/run}/agi-$p/i
+read -r p u<$d/used/$i;case $p in ''|*[!a-z0-9-]*)exit 2;;esac;IFS= read -r c;case $c in ''|*[!A-Za-z0-9._~#-]*)exit 4;;esac;[ ${#c} -le 512 ]||exit 4;printf '%s\r' "$c">${AGI_RUN:-/run}/agi-$p/i
 echo "login $p $i $(date -u +%FT%TZ)">>$d/ledger
 ~~~
 **Tested 04:5xZ** with a scratch sshd as an ordinary user on a localhost-only port, a throwaway "phone" key, the §N pane in a transient user unit and a random dummy code; sshd, unit and port were all gone after (0 left):
