@@ -2,9 +2,11 @@
 
 heal._recover_seat builds the recovered / resumed ack instruction from the
 config:rotations `recovery_ack` cell keyed by the row's role (prime_director
-vs every other role), so a non-prime recovered seat is never told `--gen` and
-heal.py carries no ack text literal. An absent cell refuses by name. Every
-launch goes to a fake launcher; fixture roots only, no tmux, no live root.
+vs every other role) and heal.py carries no ack text literal. The non-prime
+tests pin the FIXTURE cell's arms (its non-prime recovered line has no `--gen`),
+not the live cell: the LIVE default.recovered carries `--gen {gen}` (DH.1).
+An absent cell refuses by name. Every launch goes to a fake launcher; fixture
+roots only, no tmux, no live root.
 """
 from __future__ import annotations
 
@@ -93,7 +95,7 @@ def test_prime_seat_resumed_arm_is_its_own_cell(tmp_path, monkeypatch):
     assert "FIXTURE-PRIME-RESUMED" in cmd and "--gen 4" in cmd, cmd
 
 
-def test_non_prime_seat_recovered_line_has_no_gen(tmp_path, monkeypatch):
+def test_fixture_non_prime_recovered_arm_is_what_heal_builds(tmp_path, monkeypatch):
     out, seen = _recover(tmp_path, monkeypatch, _row("director"))
     assert out["respawned"], out
     (cmd,) = seen
