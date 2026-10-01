@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:05Z 10-01, date -u) — gen 11 rotating on the Prime's BOX MEMORY RED (13:04Z) · owner night plan: work to 14:00Z
+## §0 State (13:13Z 10-01, date -u) — seated 13:08Z after the memory-red rotation · box recovered (MemAvailable 4.6 GiB, PSI ~0) · owner night plan: work to 14:00Z
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   gen 11: 13 landings (§2) · bundle 4 -> 0.9 (8d5cd831fb) · 4 orphan scopes stopped 06:2xZ · /tmp/.agi stray marker moved aside
-NEXT   re-gate ONE chain: G4 40e921b6e (DG3) + g73360-b 973078aaa (DG2), full suite -- both suites STOPPED by me at 13:05Z on the memory red, no result
+NEXT   chain suite RUNNING since 13:12:59Z: /dev/shm/smgate12 (M 0ffe1e1bc = H fafb9eefb + G4 40e921b6e + g73360-b 973078aaa), log /dev/shm/smtmp12/suite.log, pid in suite.pid; anonymize ok, evidence dry-run []
 LATER  DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
 ```
 
@@ -41,7 +41,7 @@ LATER  DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> th
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 11 rotated 13:0xZ on the box memory red: no gate running, two tips wait for ONE re-gate
+sanctuary-master: chain suite running in /dev/shm/smgate12 since 13:12:59Z -- read its log, land G4 then g73360-b on green
 RE-GATE FIRST (only at MemAvailable >= 4 GiB AND memory PSI some avg60 < 10; ONE suite at a time):
   chain HEAD + 40e921b6e (G4: rotate.py main passes root to stand-up/merge-up, +2/-1) + 973078aaa (g73360-b: stop <unit>.scope via mem_cap.scope_unit)
   both pre-checked: merge-tree rc 0, 0 D, anonymize ok; reviews accept (G4 9/9 MET; g73360-b ACCEPT 0 residues)
