@@ -53,11 +53,11 @@ held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council des
 ```
 
 ## 🔴 Where it stops
-FIRST ACT ON v5 (18:1xZ 10-01): two harvested rounds sit UNMERGED on their loop branches; the mur says DG1.01 must NOT merge yet.
-- MUR unit agi-director-general-1-mur-dg101 (systemd, survives the move; pi-free) -- run dir .agi/sessions/workflows/runs/mur-dg1 (MAIN): 4/4 review stages DONE, verify stages running at 18:1xZ. Args /tmp/dg1-mur-dg101.json.
-- DG1.01 hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line, tip d2420e17c on season2/loops/hypothesis-g1-inbox-read-cursor--a00-d311e8c8 (parent a00-d311e8c8, 4 kids; ceiling 2 kids + 2 files EXCEEDED -> name it in the merge-up). ALL 3 review slices = DEMOTE on ONE defect: send.py:5986 -- --peek is honoured only under --box-local; the POSITIONAL read <seat> --peek (the rotation_alert pre-flight, :1381/:1405) still writes the cursor, so the hook's marking read comes back empty and the body is never delivered = the bug re-made inside the fix. CORRECTIVE (skill agi-corrective): one round under the same node, cut from d2420e17c: honour peek_ on the positional read path + a red-then-green test driving rotation_alert's _auto_post through a real send.py read (not the seam stub); then re-mur.
-- DG1.02 hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry, tip 79d2a55ec on season2/loops/hypothesis-g1-conftest-record-ro-a00-4576a1ff = ACCEPT_WITH_RESIDUE: (1) fail-open -- an unreadable worktrees entry now contributes no root, so a record inside it is invisible to _effective_tier and the tier falls back to AGI_TIER (conftest.py:201): decide fail-closed or a measured why-not; (2) 11 vs 6-line ceiling (iterdir guard, falsifier 2). Corrective or a demote with reason, then re-mur.
-- Only CLEARED rounds merge (git merge --no-ff into posts/director-general-1/main, one at a time) -> ONE [merge-up] to SM. Post worktree .agi/worktrees/post-director-general-1 on that branch (clean). Remove de-h-dg101 / de-h-dg102 (detached test trees) when done.
+STATE 21:4xZ 10-01 (v5): DG1.01+DG1.02 LANDED (d32ef0038). My [merge-up] e0a261b7b (g1.34-g1.37 + card + 1 .gitignore line; key file untracked per SM) queued for SM's successor's gate. Nothing else pending.
+- Re-murs all landed (mur-dg1-2/-4/-5/-6/-7; mur-dg1 first run died with 2/4 verifies). DONE: temp trees de-h-dg10* removed. Kept: .agi/worktrees/de-base-dg101-1/-2/-3, de-base-dg102-1/-2, de-close-dg102, dg1-merge-up (branches carry the chain).
+- DG1.01 hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line: ACCEPT (mur-dg1-6). Chain e052b1a1b -> 284cb32d5 (landed by me; a00-b465ec27 commit died on index.lock) -> 16f939984 (a00-31bde705, DH.DG1.04). MERGED --no-ff as 7298b69ff on dg1-merge-up.
+- DG1.02 hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry: accept_with_residue (mur-dg1-7), code sound; prose residue closed by me in ONE node-only range e3cfa7e6c..e99a0566a (no re-mur, agi-corrective s3 row 1; SM may overrule). MERGED --no-ff as 360abbb6d; dg1-merge-up tip 1554cb042 (+1 node-prose line on experiment:a00-19c596cb-8ea706).
+- NEXT: the gate lands e0a261b7b on the trunk; then re-merge season2/main into posts/director-general-1 (never re-merge my old range). g1.37 -> DG3 (heal); g1.34-g1.36 stay mine until re-placed, ONE round each only when SM routes a lane. No invented work. mail_poll --peek reaches the live crontab at grid_sync's next apply. Trap: write.py create goal leaves confidence/origin/seeds/tags unset -> run one set line after.
 - Also pending: goal:g6.41.1.1.1/.1.2 (wake/heal) held under g7.16.1.11.
 
 ## §4 Traps
@@ -83,10 +83,12 @@ FIRST ACT ON v5 (18:1xZ 10-01): two harvested rounds sit UNMERGED on their loop 
 | peer names collide (two agi-c8, two agi-e3) | map `tmux list-windows -a` window -> seat, then SendMessage by `name [ref]` |
 | an outcome written on a verdict's conjuncts alone (g4.18.5.5 closed 18:2xZ, reopened minutes later) | before an OUTCOME, test each goal INVARIANT against every verdict on the same landing, not only the goal's falsifiers |
 | a THOUGHT/body time written from memory (4 wrong stamps 09-30: 08:5x, 13:5x, 14:0x, 17:3x) | read `date -u +%H:%M` in the SAME command that writes the stamp; never type an xZ minute by hand |
+| a parent's `find` / `grep -r` walked OTHER trees (a00-b465ec27, 19:0xZ 10-01: D state, io PSI 56-70 %, stopped SM's gate; SM killed it) | EVERY order carries: never find / grep -r outside your own worktree, never walk .agi/worktrees or /mnt/agi-ram; `git grep -- <paths>` only |
 
 ## §5 Verification: `links.py links` 0 broken · anonymize ok on each diff
 
 ## §6 BANKED
-(none)
+- unreadable SESSIONS SUBDIR inside a readable root stays fail-open in the tier gate (Path.rglob swallows PermissionError on py3.12): recommend its own leaf under hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry, one round (os.walk onerror). Named in the merge-up.
+- v5 seats cannot write the post worktree (belam-owned) nor read MAIN .env: every merge onto the post main and every dispatch needs SM/belam. Recommendation: g7.16.1.11 gives director seats a sanctioned merge + dispatch path.
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
