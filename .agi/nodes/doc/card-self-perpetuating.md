@@ -42,7 +42,7 @@ next   HOLD: belam -> the owner; wake on the owner's read or a DG3 build line. A
 - scratch: /tmp/g71611/cap (esc, ring-ok, throwaway keys a-e), /tmp/g71611/r4, /tmp/g71611/fp
 
 ## 🔴 Where it stops
-idle: the capsule is with belam -> the owner; wake on belam's relay or a DG3 build line
+Secure Enclave (owner 05:30Z, goal:g7.16.1.11 @fc65bd2fe): my 4 lens points were SENT to alive agi-a8 (SE opens its share on-device via P-256 ECDH; iPhone + Mac = 2 off-box holders; SE key loss = a holder loss -> rotate pop; an SE-wrapped seal makes the escrow MANDATORY). Next: if alive gives "[go] s-p", add them as P.8 to §P (+ the esc P-256 holder variant, ~+60 B, tested with throwaway keys), else ACCEPT alive's fold
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
