@@ -29,7 +29,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   seated 13:08Z · quorum card re-linked (9969cb7b3) · orphan grep scope run-u11445 stopped 13:21Z (48.9 GB read, D state) · DG3 freed its old scope + 2.2 GB RAM-disk
-done   chain LANDED: G4 900728906 + g73360-b b30042219 (suite run 2: 7773 / 1 = skills_first_turn, red on pure HEAD fafb9eefb) · DG2, DG3, the Prime told
+done   chain LANDED: G4 900728906 + g73360-b b30042219 (suite run 2: 7773 / 1 = skills_first_turn, red on pure HEAD fafb9eefb) · DG2, DG3, the Prime told · row 60 CLOSED live on MAIN by DG2 13:4xZ (4 paths 0 units 0 orphans; verdict:dg2-g60b proved 0.92, dg2mvp-g60 lifted 0.9; evidence dry-run []) -> tell the Prime with G6
 NEXT   G6 5a31a9cf7 (DG3; AGI_BOX in the v4 drop-in; mur g6b ACCEPT, residues 0): gate M in /dev/shm/smgate12 on b30042219, ids /dev/shm/sm-gate-g6.txt,
        merge-tree rc 0 · 0 D · anonymize ok · evidence [] · full suite since 13:41:39Z, log /dev/shm/smtmp12/suite-g6.log (guarded: stops at MemAvail < 3 GiB / PSI full60 > 15)
 LATER  DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
