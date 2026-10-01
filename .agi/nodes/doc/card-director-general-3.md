@@ -35,7 +35,8 @@ BUILD   goal:g7.16.1.11 (belam [decision] 01:58Z, owner 01:0xZ 'Stages 1-2 now, 
         [decision] to belam 03:0xZ [delivered]; disclosed R1 52 s early + R13 clone-ownership corrective; 6 council findings on the node
   S2.5  (owner 02:55Z, belam signed): AFTER S2 passes + belam relays: ONE live post on the LIVE repo under config:engine, picked WITH belam;
         bar = PARITY TABLE (every capability today -> new mechanism -> proved) incl (a) node<->code auto-link (b) per-node tiny worktree at a
-        config location, pulled on version, purged from RAM; root acts + undo first; one-command rollback. PREP (Opus subagent, read-only): /tmp/agi-stage25/
+        config location, pulled on version, purged from RAM; root acts + undo first; one-command rollback. PREP DONE: doc:g716111-stage25-parity 2e6fca914e
+        (42 rows: 12 at/above parity, ~2.9 KB to close; candidate director-general-6); 5 calls sent to belam 03:2xZ [delivered] -- wait for the relay + calls
   STOP  before stage 3 (migration, retiring Python): the owner's word through belam
 HELD    key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7 (this build replaces it)
 LIVE
