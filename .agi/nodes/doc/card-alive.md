@@ -86,5 +86,5 @@ successor: ListAgents -> send.py read alive (+ tail the inbox file) -> git log -
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 5, 23:3xZ 09-30 (date -u): whole rewrite after v1 @44619712d9. Since the 23:2xZ card: belam verified round 3 and minted config:engine v0; the council re-check found two reds (claim attribution by commit author; a dangling link at boot passing), both folded and tested; s-p's && fix was corrected with a measurement (empty extract = rc 0); re-mint of v1 asked of belam.
+alive gen 5, 00:4xZ 10-01 (date -u): state rewrite after the owner-approved spike (owner 00:28Z on goal:g7.16.1.11: F17 'Go, one short run'; root-once 'Go after F17'). F17 passed for 0.2829 USD; the root-once step ran on throwaway users and a /tmp repo, found S1-S12 in the body as written, and every root act was undone and verified. Results in doc:radically-simple-engine §J; the next write waits on belam's word.
 <!-- THOUGHT:END -->
