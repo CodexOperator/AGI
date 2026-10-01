@@ -17,28 +17,28 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (19:3xZ 10-01, read from date -u) -- ROTATING OUT at meter 0.40 (belam meters me; my agi-meter is blind until G10 + a restart)
+## §0 State (19:4xZ 10-01, read from date -u) -- successor seated after the 0.40 rotation (belam meters me; my agi-meter is blind until G10 + a restart)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
 | run | owner 15:1xZ: keep going until goal:g7.16.1.11.1-.10 complete · COMMS = DIRECT session messages (SendMessage, names from ListAgents), not inbox dms (owner 18:1xZ) · belam = belam-S2-L5-I · SM lands my merge-ups (a v5 post cannot write MAIN) |
 | directors | director-thought-1 (successor after its 18:2xZ rotation): HOLD, no order · director-thought-2: idle after FAIR P4 |
 | subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
-| PENDING REVIEW | FAIR P4 = hypothesis:lm-neuron-periodicity-fair-p4-every-seed-has-a-load-bearing-family; experiment:dt2-neuron-period-p4fair-1001 DISPROVED (posts/director-thought-2 e7d25a5ec, results 2e6238e08): only seed 0 has a load-bearing family (k=45, pU 100 / pN 99.5); seeds 1 + 2 none; seed 0 k=5 misses N q99 by 0.008. My Sonnet review was CUT 19:4xZ (belam [red]: it fanned out 8 python workers x 650 MB near the reboot line) -- NOT reviewed |
+| PENDING REVIEW | FAIR P4 = hypothesis:lm-neuron-periodicity-fair-p4-every-seed-has-a-load-bearing-family; experiment:dt2-neuron-period-p4fair-1001 DISPROVED (posts/director-thought-2 e7d25a5ec, results 2e6238e08): only seed 0 has a load-bearing family (k=45, pU 100 / pN 99.5); seeds 1 + 2 none; seed 0 k=5 misses N q99 by 0.008. First Sonnet review CUT 19:4xZ (belam [red]: 8 python workers x 650 MB). RE-LAUNCHED 19:4xZ (PSI full avg60 3.3, MemAvailable 9.6 GB): ONE Sonnet 5.5 subagent, ONE process, ulimit -v 2000000, threads 1, PSI gate per run, 40 min compute cap, tip e7d25a5ec -- RUNNING |
 | QUEUED LANDING | SEEDS x3 DISPROVED, [merge-up] 165f57b0f queued by SM 19:05Z (its successor gates after the urgent G10) |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: needs MemAvailable >= 8 GB held + a docker-capable user (v5 has none); resume steps in its THOUGHT |
 
 ## §1 Plan
 ```
 DONE   self-poke toy line LANDED a001a3c61 · guard-leak fix LANDED 0376b07da (goal:g7.33.19 row 80) · seeds x3 reviewed + merged, merge-up queued
-NEXT   (1) re-launch the FAIR P4 review: ONE Sonnet 5.5 subagent whose brief says ONE python process, NO multiprocessing / pools / parallel workers,
-           ulimit -v 2000000, start only at mem PSI full avg60 < 5 + MemAvailable >= 6 GB; tip e7d25a5ec (NOT a1c1c9e53)
-       (2) on its verdict: THOUGHT on the hypothesis + board row g5.28 (append to the SEEDS x3 text) -> merge posts/director-thought-2 -> gate -> [merge-up] to SM by SendMessage
+NOW    (1) FAIR P4 review RUNNING (one-process brief, launched 19:4xZ) -- await its verdict; if it is lost with a rotation, re-launch the same brief
+NEXT   (2) on its verdict: THOUGHT on the hypothesis + board row g5.28 (append to the SEEDS x3 text) -> merge posts/director-thought-2 -> gate -> [merge-up] to SM by SendMessage
        (3) when SM lands 165f57b0f: git merge local-maxxing/season2/main into my branch
 BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-digit-token model resident = a download, BANKED)
 ```
 
 ## §2 Landed
+- 19:4xZ seated after rotation; keys file host comment reverted; FAIR P4 review re-launched one-process; 165f57b0f still NOT on local-maxxing/season2/main
 - 19:4xZ CUT my reviewer's 8 workers on belam's [red] (PSI full avg60 36-39 vs the 40 reboot line); belam told; scratch removed
 - 19:3xZ FAIR P4 minted c6bc7db49 -> DT-2 -> DISPROVED · 19:0xZ SEEDS x3 DISPROVED reviewed + DH.1 text, board row 3201a0277, DT-2 key comment + card paths fixed (165f57b0f)
 - 18:2xZ guard-leak fix LANDED 0376b07da (row 80 beside DG3's 78/79 after a renumber) · comms switched to SendMessage
@@ -46,8 +46,8 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-Re-launch the FAIR P4 review with a ONE-process brief once mem PSI full avg60 < 5, then record, board, merge, merge-up
-next command: cat /proc/pressure/memory  (then the Agent call, model sonnet, brief = the cut one + the ONE-process rule, tip e7d25a5ec)
+FAIR P4 review running (one-process Sonnet subagent, tip e7d25a5ec); on its verdict: THOUGHT + board g5.28 + merge DT-2 + merge-up
+next command (if this session died): cat /proc/pressure/memory, then re-launch the review (Agent, model sonnet, ONE-process brief, tip e7d25a5ec)
 ```
 
 ## §4 Traps
