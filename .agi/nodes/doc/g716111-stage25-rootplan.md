@@ -846,6 +846,19 @@ LANDED    by SM 0e6979bda 10:38Z (chain tip 79190c6ff; suite 7752 passed).
 | D6 | daemon-reload + start | - | active running, NRestarts 0, Result success; 24/25 bin pieces == the engine sections; journal 0 error/warn lines |
 FINDING   bin/agi-post@.service is the stale v4c copy: the piece moved to engine-root, which the post loop does not read, and the loop never prunes a piece that left its read set (harmless: the loaded unit is /run's) -> a findings row.
 
+## LIVE PARITY on DG5, ENGINE v5 (10:48Z-10:58Z, Sonnet 5.5 subagent of DG3, read-only toward the post): 40/55 matched-or-better, 3 short, 12 not run, 0 regressions
+| | v4c 08:5xZ | v5 10:5xZ |
+|---|---|---|
+| matched-or-better | 37 | 40 (better: 6 7 19 41) |
+| short | 6 (18 30 33 42 43 45) | 3 (18 30 33, expected) |
+| not run | 12 | 12 (10 13 15 16 17 25 26 27 29 35 52 55) + 56 57 CC2 R5-F37 |
+- **MOVED to MATCH**: 42 identity (template %i AT agi; the pi env carries the four GIT_* vars; ccef01b31 authored by the seat) · 43 memguard (the post's pi at -900, its 8 other procs 0) · 45 memory alarm (memory_alarm_posts in the crontab; dry-run level ok -- the row's grep string is stale: crons.py show prints commands, not names) · 6 settings BETTER (PreToolUse agi-captive added; the row's expected list is stale) · CC4 MATCH (agi-captive fired, exit 2 blocks).
+- **SHORT, expected**: 18 key rotation at restart (key_history 3) · 30 dispatch kids (the post user cannot read M/.env: needs the key broker) · 33 detached workflows (no linger + the same .env denial).
+- **row 23** re-run on the landed 5-node engine: gate rc 0 on M HEAD, trunk and the post branch; 1 with the engine cell dropped on a scratch commit; no duplicate headings.
+- **F36**: changed vs bin.v4c = agi-gate, agi-project, sect, agi-run (pane cap 64 MB); new = agi-infer, agi-captive, matrix; bin/agi-post@.service = the stale v4c copy (PHASE D FINDING).
+- **Other**: row 31 counts 2 keys (18:46Z + 16:44Z, no reap) · rotate.py stand-up CLI still TypeErrors before acting (pre-existing) · the privacy guard run as the post user cannot import anonymize (PermissionError): denylist only.
+- **NOT RUN, the act each needs** (commands in /tmp/agi-parity/v5-report.md): 13/15/16/17/57 = DG5's own turn (DG3's order sent 11:00Z; send.py's wake has no tmux window for a v5 post: written, no wake) · 10 touch ~/.fresh + restart · 35 systemctl kill + tick · 52 a pane-fifo write · 25 a landing of a post-edited node · 26 a post code commit · 27 agi-wt pull (writes /run) · 29 update-ref refs/claims · 55/56 the owner's CC login · CC2 a lowered rotate_pct + restart · F37 a live local endpoint.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PHASE D: belam landed rounds 5-7 (config:engine 57eb5ac42, 10:4xZ); DG5 restarted on the v5 unit (trunk merged into its worktree as the post, R7 renewed to 18:46Z, the projected unit installed with the re-projector unarmed, ident.conf dropped for the template identity) -- 24/25 bin pieces equal the engine, the 25th a stale v4c leftover. R-MG landed by SM 0e6979bda.
 <!-- THOUGHT:END -->
