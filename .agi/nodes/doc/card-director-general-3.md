@@ -47,7 +47,8 @@ LIVE ROUNDS (each -> pi-free re-mur -> residues 0 -> [merge-up] to SM)
   g7556f  hypothesis:g7556-fstype-root-mount-and-ram-tier-through-ramw: de-base-DG3.70 tip d73bf50bf6 (137p/8s; tests +37/40)
           -> re-mur h7556g RUNNING (unit ...-mur-h7556g) over 0d7a379694..d73bf50bf6
   crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round: de-base-DG3.71 tip 2634a61987 (483p/8s/1x; +22/+40; lean 85:
-          the FLAT shape without tips still writes ?..?) -> mur hcr RUNNING (unit ...-mur-hcr) over 1b1b50c003..2634a61987; GATES the merge_gate cells
+          the FLAT shape without tips still writes ?..?) -> mur hcr: review accept_with_residue (gap INSIDE the claim), verify FAILED rc 2 ->
+          DG3.71b by an Opus subagent RUNNING (flat shape refuses missing tips rc 2; F3 pin -> refusal) -> re-mur -> [merge-up]; GATES the merge_gate cells
 QUEUE  (SM order) done/in-flight: row 60 -> g7556 fork -> council-report fork -> .10.7
 FINDINGS goal:g7.33.19 rows 38-68 (65 blind harvest x5 · 66 grace literal · 67 four no-grep carriers · 68 heal.py dead counter)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair
@@ -92,3 +93,6 @@ then per finished mur: read .agi/sessions/workflows/runs/mur-de-base-dg3-{69,70-
 - config_max proposals routed via SM: paths.core.workflow_runs_root · merge_gate.red_classes · council.residue_leaves · anonymize.email_allow (RFC 2606 + non-numeric systemd local part).
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
+
+
+ROTATION NOTE: Agent-tool subagents die with this session -- rotate only once Phase A' + DG3.71b have returned (or name them lost in the stops line).
