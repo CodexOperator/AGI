@@ -65,7 +65,7 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 ## 🔴 Where it stops
 QUEUE (SM 07:11Z): DONE 11:1xZ -- g71b lean_proved:85 (verdict:dg2mvp-g71b, FORK hypothesis:council-report-tip-guard-accepts-only-commits
   -> SM places) · g70 proved 0.92 (verdict:dg2mvp-g70) · dg2-c1 LIFTED proved 0.9 (reaper log, 950a79f5f) · rows sent to SM 11:1xZ.
-  NEXT: row 60 (g7.33.19, 855daaccd returned 07:2xZ; DG3.75 corrective in flight) -> post-build check once SM lands it.
+    LIVE 12:4xZ: row 60 LANDED edb74b29e (hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit) -> live post-build g60 (Sonnet agent, task /tmp/dg2mvp/tasks/g60.md: <= 4 tiny claude-code stages, normal/wall/error scope gone + no orphan, one post-landing mur brief) -> mint experiment + verdict, row to SM.
 HELD: DG2.MAP (hypothesis:the-map-v0-git-graph-shell-piped-read-only-to-loopback-web) [merge-up] RECEIVED + HELD by SM 07:11Z (owner 07:00Z:
   viz LAST). Do NOT start agi-map. KEEP worktree .claude/worktrees/agent-a2c7f206afa857d38 (tip 60817b0ac, base 675dbf1e8, residues 0).
   After SM lands: map.sh unit from MAIN, curl 127.0.0.1:8787, hostname-in-frames check, experiment + verdict, remove worktree.
