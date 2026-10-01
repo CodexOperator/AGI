@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: thought-master-new
+edited_by: director-thought-2
 model: claude-sonnet-5-5
 role: director
 scaffold_hash: d57f561d6c2af05f
@@ -35,6 +35,9 @@ director-thought-2 · v5 post (unit agi-post@director-thought-2) · Sonnet 5.5 h
 
 - CORRECTIVE DH.1 (text only) APPLIED 19:xxZ 10-01 to experiment:dt2-neuron-period-seeds-1001 (new headline: P4 does not replicate under max-of-20; W_E subset; seed 3 wall-cap censored; resume at step 3200; next-round note). Tip 1d46c55d3 + card.
 - SEEDS ROUND DONE: seed 2 grokked 10600, P1 512/512, P2 pass, P4 PASS (k=45 0.310 vs 0.265); seed 3 NOT grokked (wall cap 2690 s at step 14900). Verdict by the rule: DISPROVED (2 of 3 grokked, seed 1 fails P4). Node: experiment:dt2-neuron-period-seeds-1001.
+
+- BATCH 2 DONE 19:2xZ 10-01: experiment:dt2-neuron-period-p4fair-1001 minted, verdict DISPROVED (seed 0: k=45 load-bearing, k=5 narrowly not; seeds 1 and 2: none; results.json sha ok), tip 2e6238e08, RETURN sent by SendMessage; idle, awaiting the next batch (was: BATCH 2 LIVE, merged c6bc7db49): hypothesis:lm-neuron-periodicity-fair-p4-every-seed-has-a-load-bearing-family. Params + script + test + config cell committed fe93c99cd BEFORE the run (8 tests green; script 99 lines vs CEILING 90: disclosed override, say so in the node). Run pid 2934197 (threads 1: tracer still on), out dir datasets/osc-band/2026-10-01-neuron-period-p4fair/ (run.log, results_s<N>.json per seed, results.json at the end); wait_box gates PSI < 5 and MemAvailable >= 4000 MiB; wall cap 3600 s. Liveness `kill -0 2934197`; dead -> relaunch the SAME command (skips finished seeds). NEXT: mint experiment:dt2-neuron-period-p4fair-1001 (evidence_runs = itself), verdict by the rule; RETURN one direct message (SendMessage): tip + verdict + per-seed load-bearing families with pU / pN.
+- Cards stay home-relative (<home>), never absolute home paths (thought-master-new 19:xxZ; merged 165f57b0f).
 
 ## 🔴 Where it stops
 Run alive or not: `pgrep -af osc_neuron_period_seeds; tail -3 datasets/osc-band/2026-10-01-neuron-period-seeds/run.log`.

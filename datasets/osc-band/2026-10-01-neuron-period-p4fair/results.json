@@ -1,0 +1,178 @@
+{
+ "verdict": "disproved",
+ "params_sha256": "61c2f3d53de59d38cb62d87377ffad56b844a800446c74a9df054154d30edc7f",
+ "launch_sha256": "61c2f3d53de59d38cb62d87377ffad56b844a800446c74a9df054154d30edc7f",
+ "seeds": [
+  {
+   "seed": 0,
+   "void": null,
+   "base_test_acc": 0.9997762613267703,
+   "n_p1": 509,
+   "families": {
+    "5": {
+     "size": 151,
+     "drop": 0.5930193533952344,
+     "fam_norm": 0.49908891320228577,
+     "pU": 99.5,
+     "pN": 98.5,
+     "u_q": 0.5400201364805906,
+     "n_q": 0.6010325539769548,
+     "n_accepted": 200,
+     "load_bearing": false,
+     "n_untestable": false
+    },
+    "1": {
+     "size": 133,
+     "drop": 0.04564268933885218,
+     "fam_norm": 0.41997626423835754,
+     "pU": 8.5,
+     "pN": 24.0,
+     "u_q": 0.4844949099451838,
+     "n_q": 0.2726770332251928,
+     "n_accepted": 200,
+     "load_bearing": false,
+     "n_untestable": false
+    },
+    "45": {
+     "size": 128,
+     "drop": 0.5961516948204497,
+     "fam_norm": 0.5072126984596252,
+     "pU": 100.0,
+     "pN": 99.5,
+     "u_q": 0.5267255845172838,
+     "n_q": 0.5162892941044859,
+     "n_accepted": 200,
+     "load_bearing": true,
+     "n_untestable": false
+    },
+    "34": {
+     "size": 84,
+     "drop": 0.0004474773464593351,
+     "fam_norm": 0.4111863970756531,
+     "pU": 0.5,
+     "pN": 5.5,
+     "u_q": 0.3082839243763282,
+     "n_q": 0.16665063206175182,
+     "n_accepted": 200,
+     "load_bearing": false,
+     "n_untestable": false
+    }
+   },
+   "n_load_bearing": 1
+  },
+  {
+   "seed": 1,
+   "void": null,
+   "base_test_acc": 1.0,
+   "n_p1": 506,
+   "families": {
+    "7": {
+     "size": 176,
+     "drop": 0.04340530260655551,
+     "fam_norm": 0.44828033447265625,
+     "pU": 1.5,
+     "pN": 2.0,
+     "u_q": 0.5839433941156728,
+     "n_q": 0.5682783309094973,
+     "n_accepted": 200,
+     "load_bearing": false,
+     "n_untestable": false
+    },
+    "34": {
+     "size": 159,
+     "drop": 0.16388857814073166,
+     "fam_norm": 0.4522715210914612,
+     "pU": 30.5,
+     "pN": 27.500000000000004,
+     "u_q": 0.5067278219040158,
+     "n_q": 0.48660700302047194,
+     "n_accepted": 200,
+     "load_bearing": false,
+     "n_untestable": false
+    },
+    "5": {
+     "size": 127,
+     "drop": 0.3093187157400157,
+     "fam_norm": 0.4435378313064575,
+     "pU": 91.0,
+     "pN": 96.0,
+     "u_q": 0.39404743259872466,
+     "n_q": 0.41260543684975903,
+     "n_accepted": 200,
+     "load_bearing": false,
+     "n_untestable": false
+    },
+    "3": {
+     "size": 21,
+     "drop": 0.0,
+     "fam_norm": 0.4261721968650818,
+     "pU": 64.0,
+     "pN": 76.0,
+     "u_q": 0.06396688667636177,
+     "n_q": 0.016228884662713626,
+     "n_accepted": 200,
+     "load_bearing": false,
+     "n_untestable": false
+    }
+   },
+   "n_load_bearing": 0
+  },
+  {
+   "seed": 2,
+   "void": null,
+   "base_test_acc": 1.0,
+   "n_p1": 512,
+   "families": {
+    "39": {
+     "size": 167,
+     "drop": 0.11500167804004924,
+     "fam_norm": 0.4531809985637665,
+     "pU": 34.0,
+     "pN": 60.5,
+     "u_q": 0.40637319610694683,
+     "n_q": 0.4027027631726142,
+     "n_accepted": 200,
+     "load_bearing": false,
+     "n_untestable": false
+    },
+    "45": {
+     "size": 165,
+     "drop": 0.31021367043293435,
+     "fam_norm": 0.4982198178768158,
+     "pU": 90.5,
+     "pN": 85.5,
+     "u_q": 0.4398769437297234,
+     "n_q": 0.4759100570533613,
+     "n_accepted": 200,
+     "load_bearing": false,
+     "n_untestable": false
+    },
+    "21": {
+     "size": 129,
+     "drop": 0.010515717641794375,
+     "fam_norm": 0.4835614264011383,
+     "pU": 15.0,
+     "pN": 8.0,
+     "u_q": 0.364683969124063,
+     "n_q": 0.2696890032442107,
+     "n_accepted": 200,
+     "load_bearing": false,
+     "n_untestable": false
+    },
+    "17": {
+     "size": 51,
+     "drop": 0.0,
+     "fam_norm": 0.4317363202571869,
+     "pU": 53.5,
+     "pN": 69.5,
+     "u_q": 0.07220494462467827,
+     "n_q": 0.03279337733527241,
+     "n_accepted": 200,
+     "load_bearing": false,
+     "n_untestable": false
+    }
+   },
+   "n_load_bearing": 0
+  }
+ ]
+}
