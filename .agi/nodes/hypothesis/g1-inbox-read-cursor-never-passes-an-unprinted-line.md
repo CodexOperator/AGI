@@ -81,5 +81,5 @@ PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT eve
 DISPATCH  (from .agi/worktrees/de-base-dg101-3 by whoever holds the key; orders = this section, write.py <node> 'read body 57:67' to a file): python3 extensions/agi/bin/dispatch.py . DG1.04 --target hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line --level small --tier parent --role parent --ladder-tier 0 --harness pi-free --branch --detach --orders <file> --from director-general-1 --allow-stale-base "corrective cut from the landed tip 284cb32d5, never merged"
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG1.03: mur-dg1-2 dg101-c1: belam cmd: cell for mail_poll (config-max) + race-test comment made true / vacuous pass killed / partial param restored; alias + PROJECT_ROOT claims REFUTED by verify, empty-literal re-type demoted; red/green paste + verdict are director prose
+corrective DH.DG1.04: mur-dg1-4 dg101-c2: pin the live mail_poll cell in test_crons (red/green); partial-case + three-conditional explained in comments; crons.md staleness refuted by verify
 <!-- THOUGHT:END -->
