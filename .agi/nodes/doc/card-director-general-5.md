@@ -124,7 +124,7 @@ Next command (pickup post):
 | replace body on this card | §0 slice is 1..75; re-derive before every write |
 
 ## §5 Verification
-`links.py links` 5367 resolved, 0 broken · guard `1 passed, 4 xfailed` (still strict-xfail RED — correct, the re-point has not landed) · full `test_rotate.py` in this seat `5 failed, 349 passed, 1 skipped, 5 xfailed` (the 5 = no `origin` here; reviewer measures 0) · both mutants re-run: seam-writes-nothing → RED, hasattr-deleted → RED
+`links.py links` 0 broken · `verification.py window` lock: free · `merge-tree` vs the live trunk CLEAN (exit 0), merge-base still `baf2cc2d7` · `test_evidence_gate.py` 139 passed incl. `test_no_live_node_carries_an_out_of_range_lean` · guard baseline `1 passed, 4 xfailed` (strict-xfail RED — correct, the re-point has not landed) · full `test_rotate.py` in this seat `5 failed, 350 passed, 1 skipped, 5 xfailed` (the 5 = this seat missing `origin`; SM's gate measures 0) · both contract tests pass in BOTH worlds (re-point landed / not landed), simulated by a `-p` plugin
 
 ## §6 BANKED
 **`.env` blocks every director dispatch (owner decision, banked not taken).** `workflow.py run` cannot even dry-run from any `agi-*` seat. Recommendation: leave it shut — it is the owner's money — and let SM/belam run every mur, which is how the council already works. The alternative, if directors are meant to review their own rounds, is a `group:agi` READ entry on `.env` alone, 0640 unchanged. I touched nothing under `.env`.
