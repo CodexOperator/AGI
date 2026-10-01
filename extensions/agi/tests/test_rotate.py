@@ -10709,6 +10709,86 @@ def test_w1b2_guard_names_a_double_row_write(tmp_path, monkeypatch):
     assert "called the one row write 2x" in str(exc.value), str(exc.value)
 
 
+# ---------------------------------------------------------------- the CONTRACT
+# These two are NOT xfail and NOT inside the strict-xfail guard, on purpose.
+# Inside it, a wrong-named re-point and a correct one both print `xxxx` in an
+# ordinary suite run, and the name only shows under `--runxfail` -- so the
+# refusal was real but invisible exactly when it mattered (measured 10-01:
+# mur `review_c2.json` marked that conjunct NOT_MET for this reason). A refusal
+# nobody can see in the normal run is not a refusal.
+
+
+def test_the_one_row_write_seam_is_one_contracted_name_not_a_guess_list():
+    """The seam is a CONTRACT: one name, declared, on one module. A future edit
+    that reinstates a list of plausible names -- the defect this replaced --
+    fails HERE, in an ordinary run, rather than restoring a guard that reads the
+    same either way."""
+    tr = sys.modules[__name__]
+    assert tr._ONE_ROW_WRITE == "ONE_ROW_WRITE", (
+        f"the contracted seam name moved: {tr._ONE_ROW_WRITE!r}")
+    assert not hasattr(tr, "_ROW_WRITE_SEAMS"), (
+        "_ROW_WRITE_SEAMS is back -- the guard must spy ONE name, and the name "
+        "must be a falsifier of goal:g4.18.5.3, not a guess inside a test")
+
+
+def test_a_correctly_repointed_write_under_another_name_is_refused_by_name(
+        tmp_path, monkeypatch):
+    """The world the seven-name list could not tell apart: a re-point that is
+    perfectly correct, routes the path, and is published under a name nobody
+    guessed. The guard must refuse it AND SAY WHICH NAME it wanted -- asserted
+    here, outside the xfail, so it is visible in a normal run."""
+    tr = sys.modules[__name__]
+    mod = tr._one_row_write_module()
+    wrong = "write_row"                       # a correct, uncontracted name
+    monkeypatch.setattr(mod, wrong, lambda *a, **k: "posted", raising=False)
+
+    def drive(root, top):
+        getattr(mod, wrong)(root, top)        # the path DOES reach the seam
+        return "posted"
+
+    monkeypatch.setattr(tr, "_W1B2_DRIVERS", {
+        "_ack_commit_seats": (tr._ack_root_with_dirty_row, drive, ())})
+    with pytest.raises(AssertionError) as exc:
+        tr.test_each_posts_commit_path_calls_the_one_row_write(
+            "_ack_commit_seats", tmp_path, monkeypatch)
+    # The phrase below appears ONLY in the contract refusal. Asserting the bare
+    # name instead would be satisfied by the count assert's message too -- which
+    # mentions the name while refusing for an unrelated reason -- so this test
+    # would have passed with the hasattr DELETED. Measured: it did.
+    assert "goal:g4.18.5.3 Falsifier 1" in str(exc.value), (
+        f"refused, but not BY the contract: {exc.value}")
+
+
+# C1 -- "config:posts changes ONLY through that one call". Those five
+# assertions (`digest at the call == digest after`, `moved`, `rev moved`,
+# `committed file set`) sat unreachable in the strict-xfail guard: with no seam
+# installed the count assert fails first, so nothing after it ever ran. This
+# runs them against a FAITHFUL seam -- a real `git add` + `git commit` of
+# config:posts, which is what the re-point will do -- and drives one path body
+# through it. It proves the assertions are satisfiable and not dead code; it does
+# NOT claim the production paths are re-pointed (that is the strict-xfail
+# guard's job, and it is still RED).
+def test_c1_config_posts_moves_only_through_the_one_call(tmp_path, monkeypatch):
+    tr = sys.modules[__name__]
+    mod = tr._one_row_write_module()
+
+    def one_row_write(root, top, *_a, **_k):
+        rel = tr._rel(top, rotate._ack_seats_path(root))
+        subprocess.run(["git", "-C", str(top), "add", "--", rel], check=True)
+        subprocess.run(["git", "-C", str(top), "commit", "-q", "-m",
+                        "the one row write", "--", rel], check=True)
+
+    monkeypatch.setattr(mod, tr._ONE_ROW_WRITE, one_row_write, raising=False)
+    monkeypatch.setattr(tr, "_W1B2_DRIVERS", {
+        "_ack_commit_seats": (
+            tr._ack_root_with_dirty_row,
+            lambda root, top: mod.ONE_ROW_WRITE(root, top),
+            ())})
+    # no xfail, no try: every assertion below MUST hold, or this is a red
+    tr.test_each_posts_commit_path_calls_the_one_row_write(
+        "_ack_commit_seats", tmp_path, monkeypatch)
+
+
 # goal:g7.16.1.7.1.1 SM rotate candidate: the announced handoff path is tree-relative, never the box's absolute layout
 def test_announcement_handoff_path_is_tree_relative(tmp_path):
     g = tmp_path / "proj" / ".agi"
