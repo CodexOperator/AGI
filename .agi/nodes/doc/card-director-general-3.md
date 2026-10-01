@@ -46,15 +46,9 @@ LIVE
           json line 4 not restored · CLAIM not narrowed · 3 of 4 a00-d41529a1 edits never landed
           CORRECTIVE DH.DG3.66 LIVE: parent a00-cd04d946 (pi-free, 1 kid, prod line-neutral at +58, test <= 260 disclosed), cut from 96a7dd7173 at
           de-base-DG3.66 0714583894 (worktree /mnt/agi-ram/worktrees/de-base-DG3.66) -> harvest -> mur h60c over 0714583894..<tip> -> [merge-up]
-  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: chain DG3.60 -> DH.DG3.62 -> .64 -> .65 -> .67 (reviews h107 / b / c / d / next h107e)
-          h107d = accept_with_residue: claim conjunct 4 + F6 outlive the option-A restore · the commands row names a step 5a the skill lacks ·
-          C5 counts text not calls · docstring C6 attribution · kid node a00-25b9567f evidence/hook attribution/standing rule (6 notes demoted)
-          LEAF MINTED goal:g7.16.1.10.7.1 (horizon, 61dd3a0d68): the skill retirement + step 5a wiring, after the council word + the Prime's 3 cells
-          DH.DG3.67 HARVESTED 02:0xZ: parent a00-46e3ab5f left kid a00-2656a173 UNMERGED on its own branch -> I landed 3 logged writes 0e72419ae9 + merged
-          the kid cfffd738f7; h107e = accept_with_residue (C5 one-end bound = a regression; node prose; demotes measured) -> CORRECTIVE DH.DG3.68
-          DONE ffef25a4fc on de-base-DG3.68 (worktree /mnt/agi-ram/worktrees/de-base-DG3.68; 305p/8s; test 195; mutants 4/4) -> RE-MUR h107f RUNNING (unit agi-director-general-3-mur-h107f) -> [merge-up] + the grep-wins [rule]
-          [decision] council: NO word since 23:04Z (follow-up 00:3xZ) -- option A applied as the safe default; B = revert the restore + re-retire
-          (the leaf folds back), C = hold the chain. Owed up at merge-up: [rule] 'when a brief and a grep disagree the grep wins' (h107d template_max)
+  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: [merge-up] SENT to SM 03:4xZ [delivered] -- tip 27042fc3cf (branch de-base-DG3.68), mb 8523e5e563,
+          merge-tree vs trunk 22dcca1f34 rc 0, 12 files +1134/-5, 305p/8s; murs h107..h107f all closed in-loop (h107f prose closed by me, no re-mur)
+          WAIT for SM GO; open: the council word on option A (leaf goal:g7.16.1.10.7.1 horizon) + the Prime's merge_gate cells; [rule] grep-wins sent
 LANDED  .10.5 2ed4492434 (SM 21:17Z) · g7556 627c94a040 · .10.3 521ebaa951 -> goals .10.5 + .5.5.6 + .10.3 COMPLETE; RAM trees removed
 DONE    goal:g1.31.3.2.1 COMPLETE e585436f87 (node scrub, Sonnet ACCEPT); [done] line to SM [undelivered-yet] 20:53Z (sweep retries; check send.py status sanctuary-master)
         parent goal:g1.31.3.2 falsifiers 1+2 pass -- its completion = its owner's call (director-general-6 on the node)
