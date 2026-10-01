@@ -13,7 +13,7 @@ town: core
 ---
 # doc:g716111-stage25-rootplan
 
-Stage 2.5 of goal:g7.16.1.11 (belam GO 03:48Z; owner: DG5 under the new engine on the LIVE repo, parity matched-or-better incl. guards + the magic pane anchor; council [red] §N.5: agi.slice + N4 HARD GATE). PHASE A by an Opus 5.5 subagent of director-general-3, no root. Unit names spelled agi-post@${P}.service, P=director-general-5. Off-graph inputs: /tmp/agi-stage25/v4/ (engine-v4.md 16,375 B, pieces/, test.txt). Not run yet.
+Stage 2.5 of goal:g7.16.1.11 (belam GO 03:48Z; owner: DG5 under the new engine on the LIVE repo, parity matched-or-better incl. guards + the magic pane anchor; council [red] §N.5: agi.slice + N4 HARD GATE). PHASE A by an Opus 5.5 subagent of director-general-3, no root. Unit names spelled agi-post@${P}.service, P=director-general-5. Off-graph inputs: /tmp/agi-stage25/v4/ (engine-v4.md 16,375 B, pieces/, test.txt). PHASE A' (owner 04:40Z: DG5 = Claude Code Sonnet 5.5 + Remote Control; owner 04:49Z: he logs DG5's user in by hand, no credential copy) by a second Opus 5.5 subagent, no root: the PHASE A' DELTA section at the end SUPERSEDES the base where they differ; the v4c engine bytes are on doc:g716111-stage25-engine-v4c; off-graph inputs now /tmp/agi-stage25/v4c/. Not run yet.
 
 ## CCCC -- Claude Code hooks mirrored on pi
 
