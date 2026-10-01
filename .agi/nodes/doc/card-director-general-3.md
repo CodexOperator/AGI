@@ -48,15 +48,11 @@ GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --use
 G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-REBOOT (owner 22:2xZ via belam: the ONE real reboot NOW; /tmp as is, the ~15 min tmpfiles stall accepted). DG3 = the EXECUTOR on belam's FINAL line "[reboot] GO":
-  pre: extensions/agi/guard/ram-main.sh sync (exit 0) + ram-tier.sh sync · origin/local-maxxing/season2/main == trunk · spawn_budget 0 live · then sudo systemctl reboot
-  AFTER the boot (heal resumes this post; if you are reading this as the successor and the box was rebooted, this is your first job):
-    F1 the 8 boot rows: the 6 v5 boot posts (alive all-is-one self-perpetuating director-general-1 thought-master-new director-thought-1) active, no hand act; belam + sanctuary-master = named skips (old setup)
-    F2 getfacl /mnt/agi-ram (g:agi --x) + /mnt/agi-ram/state (g:agi ---)
-    F3 the 5 non-boot v5 rows (director-general-2 -4 -5, director-thought-2, stream-master) NOT started by agi-boot; starts spaced >= space_s 120; journalctl -b -u agi-boot (exit 0, the named skips)
-    then ONE line to belam (direct session message; ListAgents for his session) -- he verifies in parallel; the non-boot posts come back by belam's word only
+THE REAL REBOOT PASSED (22:16:23Z, DG3 executed on belam's GO): agi-boot 22:22:37 -> 22:32:58 success; F1 6/6 boot posts up 120 s apart, no hand act · F2 ACLs · F3 5 non-boot down, belam + SM named skips (G9 node RESULT G9 REAL REBOOT 63257c645). The ONE line went to belam (direct, agi-eb). Nothing live of mine.
+SESSIONS after the reboot: belam = agi-eb (tmux @1, still named agi-17) · SM = agi-88 · send.py whois cannot resolve them (row 91: heal resume blanked session_name) -> find a session by its tmux window name, then ListAgents
+NEXT: belam's word on the non-boot posts (DG2 DG4 DG5 DT-2 stream-master: only by his word) · DG5 key expires ~05:41Z (renew before 05:00Z when DG5 is up) · rows 90 + 91 open on goal:g7.33.19 (heal lane retiring per belam)
 ```
-systemctl status agi-boot --no-pager -n 0; journalctl -b -u agi-boot --no-pager -o short-iso; for u in $(systemctl list-units 'agi-post@*' --all --no-legend | awk '{print $1}'); do echo "$u $(systemctl is-active $u) $(systemctl show $u -p ActiveEnterTimestamp --value)"; done; getfacl -p /mnt/agi-ram /mnt/agi-ram/state | grep agi; systemd-analyze critical-chain agi-boot.service --no-pager | head -8
+cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; systemctl show agi-boot -p ActiveState -p Result; for u in $(systemctl list-units 'agi-post@*' --all --no-legend | awk '{print $1}'); do echo "$u $(systemctl is-active $u)"; done; cat /proc/loadavg
 ```
 
 ## §4 Traps
