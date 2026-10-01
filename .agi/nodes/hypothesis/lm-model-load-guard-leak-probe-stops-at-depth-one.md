@@ -41,3 +41,11 @@ test_model_load_guard.py itself (14 tests) + the whole .agi/context dir file by 
 
 ## CEILING
 <= 20 changed production lines, one builder (director-thought-1), CPU, no model load; start at MemAvailable >= 6 GB, PSI avg10 < 5, no suite lock; the break test kills its own group. 0 USD.
+
+## CORRECTIVE DH.1 (thought-master-new, 10-01; from the ACCEPT_WITH_RESIDUE review in this node's THOUGHT; builder director-thought-1, cut from 6a4a566ee)
+| # | residue | order |
+|---|---|---|
+| 1 | MED: the break test asserts >= 2 recursion levels inside a fixed 6 s window (~0.85 s per level measured) -> a loaded box can fail it with a sound fix | wait-until: poll the depth log until level 2 appears or a generous cap (e.g. 60 s) passes, THEN killpg; the cap and the poll step become named module constants beside the existing 120 s probe timeout |
+| 2 | MED: _probe has no try/finally -> an interrupt or an error during communicate() skips the killpg and orphans the child group | try/finally: the group is killed and reaped on EVERY exit path (timeout, error, KeyboardInterrupt); a test drives the error path (e.g. a probe body that raises) and asserts 0 leftovers |
+| 3 | LOW | the node's "14 tests" -> the real count; the pgrep dependency either guarded (skip with a reason if absent) or replaced by a /proc scan |
+VERDICT DH.1: C1-C4 still hold AND orders 1-2 are proven by their tests -> row 78 stays DONE with the DH.1 sha. CEILING DH.1: <= 15 added production lines; same gates (MemAvailable >= 6 GB, PSI avg10 < 5, no suite lock).
