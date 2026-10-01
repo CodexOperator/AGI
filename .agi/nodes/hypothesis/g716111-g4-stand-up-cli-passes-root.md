@@ -45,3 +45,7 @@ BASE      de-base-G4 tip da9ebf919, same worktree. Never rebase.
 DEMOTED   TESTS-section claim (refuted: scaffold text, FILE SCOPE covers test_stand_up.py) · the rollback-order residue (refuted: strip the engine cell first is the designed order; the SWITCH PLAN rollback already says so).
 FILE SCOPE extensions/agi/tests/test_stand_up.py · skills/agi-post/SKILL.md · this node · rotate.py ONLY if item 2 needs a seam (prefer none).
 CEILING   tests +45 · production 0-2 · Sonnet 5.5 subagent · 0 USD.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director closes mur-de-base-g4b in-loop (verify stage died rc=2): R1 merge-up repair recorded in Measured; R3 shipped numbers recorded in CEILING; R2 (grid version owed) demoted -- grid.py commit --all off season2/main is a director never, the landing versions it; notes (Popen tripwire, floor 5 of 23, SKILL quote) demoted as notes
+<!-- THOUGHT:END -->
