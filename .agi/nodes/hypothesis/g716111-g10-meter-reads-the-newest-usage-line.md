@@ -31,3 +31,12 @@ rows that run the extracted agi-meter piece under sh with a tmp transcript: (a) 
 .agi/nodes/.geometry/engine-post.md (agi-meter line) · one test file · this node.
 ## CEILING
 production net 0 (~20 B) · tests +45 · Sonnet 5.5 subagent · 0 USD.
+
+## RESULT G10 (kid b483adc00, director record)
+agi-meter: `xargs tac | jq -nR 'first(inputs|fromjson?|select(.message.usage)|...)'`, null fields 0, .tokens still wins. NUMSTAT bd3495bea..b483adc00: engine-post.md 2/2 (line + size header) · test_agi_meter.py 45/0. Rows (a) + (e) red on the old bytes; 6 passed. Director live check: on its own transcript the piece reads the correct total and fires at a lowered line. mur-de-base-g10: review accept_with_residue (verify stage unstructured/empty).
+
+## CORRECTIVE G10.2 -- closes mur-de-base-g10 g10-code (D2 D3; D1 = findings row 70; D4 = the record above)
+BASE      CUT FROM de-base-G10 tip (b483adc00 + this node write). No merge. Never rebase.
+1. (D2) a line whose .message.usage is a string / array / number raises a jq runtime error outside fromjson?, t goes empty, the out-line is silent again. TRUE WHEN the select requires .message.usage to be an OBJECT (type=="object") so such a line is skipped like any other; a row puts a non-object usage line newest and an over-the-line object line earlier -> out-line printed.
+2. (D3) a row pins the bounded scan: a large fake transcript (>= 200k lines) with the over-the-line usage line LAST, run under a wall-time bound well below a full parse -- or, deterministically, a transcript whose EARLY lines are invalid JSON-breaking bytes that fromjson? must never reach because first() stopped.
+FILE SCOPE engine-post.md (agi-meter line) · extensions/agi/tests/test_agi_meter.py.  CEILING production net 0 · tests +25 · Sonnet 5.5 subagent · 0 USD.
