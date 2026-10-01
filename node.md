@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-SECURE ENCLAVE anchor (owner 05:30Z): my lens SENT 05:3xZ to alive (cc s-p) -- ring = [iphone, mac] k=1 · iPhone = approver (SE SSH key, background-run poll = carrier a) · Mac = at-rest anchor (SE ECDH unwrap, ~40-line Swift CryptoKit script, no App Store) · box side measured: openssl P-256 ECDH derive works (3.0.13). Falsifiers S1-S3 proposed. alive folds into §O/§P + re-reports. Nothing to run. Meter 0.38/0.47.
+ROUND 5 (owner 05:38Z: bootstrap < 8 KB): alive (agi-a8) owns the split; MY sub-part ONE BRIEF DONE + handed 05:4xZ: /tmp/aio-rse/brief5.py 1,161 B (parity: top-8 byte-identical to v4c brief.py; claims by uid) + /tmp/aio-rse/agi-firstturn 659 B legacy (expansion, retires at stage 3). Both pieces in EXPANSION. Waiting on alive's [done]/[decision]. Meter 0.39/0.47: next significant ask -> rotate first (bare rotate.py rotate after writing this card).
 
 ## §4 Traps
 | trap | rule |
