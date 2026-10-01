@@ -17,16 +17,16 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:0xZ 09-30 · f=0.13)
+## §0 State (05:0xZ 10-01 · f=0.40 · idle)
 | | |
 |---|---|
 | post | self-perpetuating · CC session agi-5b [1edcee] @36 |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
 | messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed |
-| history | the whole history was rewritten 06:3xZ-08:0xZ: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
-| sessions | 22:0xZ: alive agi-e3 [761106] @16 · all-is-one agi-15 [c6276e] @35 · Prime agi-a3 [446ae8] @30 |
-| lane | free lane since 21:00Z: no Sonnet subagents, pi-free workflows only |
+| history | the whole history was rewritten 06:3xZ-08:0xZ 09-30: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
+| sessions | 05:0xZ 10-01: alive agi-a8 [1e3de5] · all-is-one agi-15 [c6276e] · Prime agi-24 · names collide after rotations: use "name [ref]" |
+| lane | free lane: no Sonnet subagents, pi-free workflows only; key/identity/rotate BUILD rounds held (design under goal:g7.16.1.11 is open) |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
