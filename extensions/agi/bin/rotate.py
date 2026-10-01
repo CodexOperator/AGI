@@ -369,7 +369,13 @@ def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
         return None
     if seat is not None:
         sp = sessions / f"{seat}{METER_PIN_EXT}"
-        return sp if sp.is_file() else None
+        try:
+            return sp if sp.is_file() else None
+        except OSError:
+            # An unreadable sessions DIR makes is_file() raise, which would
+            # escape every meter caller (mur residue 2 on 0c16b7daf). A pin we
+            # cannot stat is UNKNOWN, the same reading as an absent one.
+            return None
     pins = sorted(sessions.glob(f"*{METER_PIN_EXT}"),
                   key=lambda p: p.stat().st_mtime)
     return pins[-1] if pins else None
@@ -453,7 +459,11 @@ def _read_pin_target(pin: Path) -> Path | None:
     try:
         lp = Path(target).expanduser().resolve()
         return lp if lp.exists() else None
-    except OSError:
+    except (OSError, RuntimeError):
+        # MEASURED 10-01 (py3.12.3): a symlink loop makes `Path.resolve()`
+        # raise RuntimeError('Symlink loop'), NOT an OSError — so an
+        # `except OSError` alone still tracebacks, which mur residue 1 on
+        # 0c16b7daf caught. A loop is UNKNOWN like any other unreadable pin.
         return None
 
 
