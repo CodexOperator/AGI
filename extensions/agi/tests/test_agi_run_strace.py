@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 WRAP = Path(__file__).resolve().parents[3] / ".agi/nodes/.geometry/engine-wrap.md"
-pytestmark = pytest.mark.skipif(not shutil.which("strace"), reason="strace absent")
+needs_strace = pytest.mark.skipif(not shutil.which("strace"), reason="strace absent")  # only the rows that run strace; the F1 text guard always runs
 
 
 def _line():
@@ -38,11 +38,13 @@ def test_f1_line_detaches_at_exec_not_seccomp():
     assert "-b execve" in " ".join(t) and "--seccomp-bpf" not in t
 
 
+@needs_strace
 def test_f2_direct_command_open_in_stream(tmp_path):
     a, _, s = _stream(tmp_path)
     assert _opened(a, s), s
 
 
+@needs_strace
 def test_execd_grandchild_open_not_in_stream(tmp_path):  # the designed loss of -b execve
     a, b, s = _stream(tmp_path)
     assert _opened(a, s) and not _opened(b, s), s
