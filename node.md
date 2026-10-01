@@ -1303,6 +1303,46 @@ git ls-tree --name-only $h .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s
 **Honest limits:** (0) the REMOTE must allow uploadpack.allowFilter and a bare-hash want (allowAnySHA1InWant or allowReachableSHA1InWant), else it only WARNS and ships the whole snapshot (self-perpetuating measured 76 MB on its clone): two cells on the remote, and the seed counts as correct but not small there; the gate stays at LAND, not in the seed (self-perpetuating: it decides which hash may be named), while the seed keeps verify-commit, because it is about to run fetched code as root · (1) a seed needs the repo it names (or any copy holding that commit): it is a NAME, not the bytes · (2) trust = the anchor key line: whoever holds that key can publish an engine the seed will grow, so the anchor is the owner's or the master's key, and a ring of anchors is the capsule's quorum (§O) applied to the engine · (3) SHA-1 here: git's hardened SHA-1 (collision-DETECTING, not collision-proof); a sha256-format repo removes it at the cost of a repo migration · (4) the seed regrows the ENGINE; a post's work needs the graph, which the post fetches as it reads (the same promisor remote) · (5) one more root act: the seed runs as root once per box, like v4c's agi-seed.
 **Falsifiers.** S1-S5 PASS (scratch) · **S6** on a clean box: the seed alone, the trunk's signed tip and the town remote bring a post up with every parity row green (UNRUN: root, a box) · **S7** the trunk's tip is signed by the anchor at every landing (a gate line; unbuilt) · **S8** a remote that serves a corrupted object is refused at fetch by fsck (by git's design; not reproduced here).
 
+
+## T · ROUND 6 REVISED · alive -- ONE script (1,019 B) + ONE matrix (100 B): local first, then a timed signed sync; conflicts become refs for the Prime; no remote = read-only + a greeting
+**Owner 06:24-06:2xZ (verbatim on the goal):** "... What if we use the matrices more? A matrix showing how all the other matrices need to expand that then show how things should be populated. The one script could be the entire bootstrap ..." / "... first a local check to have something at least then it initiates a remote sync on local with timeout, and hands sync conflicts to prime post once its up. If remote connection unavailable, then pick local read only no remote sync hand prime seed expansion state and first boot owner greeting." §S stays the remote half's proof (fetch blob-less, fsck, verify-commit).
+**The matrix** = a `### matrix` section in config:engine, fenced TSV (self-perpetuating: a pipe table would read back empty through `sect`), columns `when · target · node · verb`; its FIRST row expands the matrix itself, so the seed knows ONE name and the rest describes itself. `boot` rows run in the seed, `post` rows inside each post's unit:
+~~~
+boot	matrix	engine	sect
+boot	body	posts	agi-project
+post	bin	engine*	sect
+post	brief	card-<p>	brief
+~~~
+**The script, whole** (937 B of text + the 82 B anchor line = 1,019 B):
+~~~sh
+#!/bin/sh
+# agi seed [REMOTE] [S]
+K='<the anchor: ONE allowed_signers line, 82 B>'
+cd ${AGI_ROOT:-/data/work/agi}||exit 1;b=$(git symbolic-ref --short HEAD);g=$(git rev-parse --git-dir);i=.agi/sessions/inbox/belam.md;mkdir -p ${i%/*}
+e(){ git ls-tree --name-only $1 .agi/nodes/.geometry/|grep /engine|sed "s/^/$1:/"|git cat-file --batch --follow-symlinks|sed -n "/^### $2 /,/^##/{/^~~~/,/^~~~/{//!p}}";}
+x(){ e $1 matrix|awk '$1=="boot"&&$4!="sect"{print $4}'|while read v;do e $1 $v|sh -s ${AGI_OUT:-/run/systemd/system} $1;done;};x HEAD;echo "$K">$g/s
+if timeout ${2:-60} git -c transfer.fsckObjects=1 fetch -q ${1:-origin} $b;then git -c gpg.ssh.allowedSignersFile=$g/s verify-commit FETCH_HEAD||exit 1
+git config agi.mode rw;h=$(git rev-parse HEAD);git merge -q FETCH_HEAD&&x HEAD||{ git merge --abort;git update-ref refs/conflicts/$h FETCH_HEAD '';echo "[conflict] refs/conflicts/$h">>$i;}
+else git config agi.mode ro;echo "[owner] first boot, local read-only. Hello.">>$i;fi
+~~~
+```
+1 LOCAL   the graph is here: expand every boot row of the matrix at HEAD at once -> the body exists before any network
+2 REMOTE  fetch the branch under `timeout` with fsck -> verify-commit vs the anchor -> merge -> re-expand (agi.mode = rw)
+3 CONFLICT  merge aborted (HEAD untouched) -> refs/conflicts/<local tip> -> the remote tip, CREATE-ONLY (two posts never claim
+          one conflict; it survives rotation and rides the next sync; self-perpetuating) + one notice line in the Prime's inbox
+4 NO REMOTE  unreachable OR past the timeout -> agi.mode = ro, no sync, the Prime's inbox gets the first-boot owner greeting
+```
+**Tested 06:3xZ** (a clone of the round-5 scratch repo as LOCAL, its origin as REMOTE, the matrix added and anchor-signed, a throwaway anchor key, the body written into a scratch dir; no root):
+| path | result |
+|---|---|
+| P4 remote unreachable | rc 0 · mode ro · body expanded (agi-post@dg9 + agi-project.path) · greeting in the Prime's inbox |
+| P4b remote hangs (a `sleep 30` upload-pack, timeout 3 s) | rc 0 · mode ro · body expanded · greeting |
+| P2 a signed fast-forward | rc 0 · mode rw · HEAD moved to the remote tip · re-expanded |
+| P3 both sides edited the same line | rc 0 · merge aborted, HEAD = the local tip · `refs/conflicts/<local tip>` -> the remote tip · one inbox line |
+| P5 the remote tip unsigned | rc 1 · no merge · mode unchanged (ro stays ro) · the body stays the local one |
+**Named, not hidden:** an unsigned remote tip exits 1 with no inbox line (cut for bytes; the unit's journal and rc carry it) · `agi.mode ro` is a CELL posts must read before they push (unbuilt in the post unit) · the seed merges in the checkout it runs in, so it runs at boot before any post holds that checkout · the remote half still needs §S's limits (allowFilter, a bare-hash want, the anchor).
+**Falsifiers.** P2-P5 PASS · **T6** DG5 boots from this seed on its box, every parity row green (UNRUN; the owner's first target, after Phase C) · **T7** the Prime, at wake, lists `refs/conflicts/*` and resolves or banks each (UNRUN: a Prime card line).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive (agi-a8), 06:2xZ 10-01 (round 6 on belam 06:18Z signed [decision]; base: this doc at 09c38103c). Owner 06:1xZ, verbatim: "Q is go and I’m fine with going with R. Heck if we can aply that principle even harder and layer it with compression maybe we could get it under a 1kb seed? Math is compression then we compress the compression math. WHY this version differs: added §S, the seed: 959 B (877 of text + an 82 B anchor key line) fetch ONE signed commit blob-less with fsck, verify it against the anchor, read the engine nodes by name (blobs fetched only when read) and run the projector. S1-S5 PASS: anchor-signed grows the body, another key, unsigned and an unknown hash are refused, the projection equals the direct one; 10 objects crossed the wire. The vector is all-is-one: one signed commit. Compression ends at the hash: git already sends the engine as zlib (18,029 -> 9,172 B), and a self-extracting seed saves 6% at the cost of readability, so it stays plain. self-perpetuating measured the remote cells the seed needs (allowFilter, a bare-hash want; without them 76 MB) and argued the gate stays at land, which this version adopts.
+alive (agi-a8), 06:3xZ 10-01 (round 6 REVISED, belam 06:29Z signed [decision]). Owner 06:24-06:2xZ, verbatim: "I don’t think we need to lean on GitHub or git. What if we use the matrices more? A matrix showing how all the other matrices need to expand that then show how things should be populated. The one script could be the entire bootstrap assuming graph is also here to also instantly pick up your project including an auto-sync route to bring repo up to speed with latest version of that branch and hand conflicts to bootstrapped posts, first just dg5 as obvious test target, as needed." / "Sorry it’ll have both as part of seed process. So first a local check to have something at least then it initiates a remote sync on local with timeout, and hands sync conflicts to prime post once it’s up. If remote connection unavailable, then pick local read only no remote sync hand prime seed expansion state and first boot owner greeting." WHY this version differs: added §T. The bootstrap is ONE script (1,019 B incl. the 82 B anchor line) + ONE matrix (a fenced TSV in config:engine whose first row expands the matrix itself; boot rows run in the seed, post rows in the unit). Flow: local expand at once, then a fetch under timeout with fsck, verify-commit, merge and re-expand; a conflict is aborted into a create-only refs/conflicts/<local tip> for the Prime (self-perpetuating lens, adopted); no remote or a timeout = agi.mode ro + a first-boot owner greeting. P2-P5 PASS on a scratch clone. A first draft was 1,504 B; comments and messages were cut to fit, and the unsigned-tip inbox line went with them (named in §T). The mode is now set only after verification (P5 caught it).
 <!-- THOUGHT:END -->
