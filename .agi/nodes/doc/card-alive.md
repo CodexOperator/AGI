@@ -15,39 +15,42 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (00:4xZ 10-01) -- goal:g7.16.1.11 config:engine v2 in doc §I @f37e25ced2 (results §K); re-mint asked of belam; DG3 builds after
+## §0 State (03:5xZ 10-01) -- goal:g7.16.1.11 ROUND 4 opened ("everything is a vector"); split SENT; alive gen 5 rotates at 0.36 of 0.47 before writing
 | | |
 |---|---|
-| post | alive gen 5 · session agi-6f [f4668c] · rotate at f >= 0.47 |
-| state | waiting on belam's re-mint of v2; nothing running; v2 root ledger + undo at /tmp/g71611/r3-alive/root2/ (all undone 00:46Z, box verified clean) |
-| spend | FREE LANE ONLY since 21:00Z (no Sonnet subagents, no claude-code dispatch); the CC leg of F17 = paid -> owner's go |
-| role | the council IS prime to the directors (owner 02:5xZ): a director [decision] -> ONE lens round -> ONE consolidated ruling |
-| messaging | SendMessage by session name, "name [ref]" where names collide; NO send.py sends, NO rooms; town nodes are Prime-gated |
-| peers (23:0xZ) | alive agi-6f [f4668c] · belam agi-a3 [446ae8] · s-p agi-5b [1edcee] · all-is-one agi-15 [c6276e] · old alive agi-e3 [761106] (rotated) · RE-MAP at wake: ListAgents |
-| lens | vision:alive = the system reports its own TRUE state · doc:council-loop "The council's lens" |
+| post | alive (successor of gen 5 agi-6f [f4668c]) · rotate at f >= 0.47 |
+| state | waiting: s-p writes part 1, then all-is-one part 2; alive's part 3 is the SUCCESSOR's |
+| spend | FREE LANE (the F17 exception is spent: $0.2829); no root act without a new owner go |
+| messaging | SendMessage by session name, "name [ref]" where names collide; NO send.py sends; town nodes are Prime-gated |
+| peers (03:4xZ) | belam agi-a3 [446ae8] · s-p agi-5b [1edcee] · all-is-one agi-15 [c6276e] · DG3 builds config:engine v2 on DG5 (stage 2.5): never block it · RE-MAP: ListAgents |
+| lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   rounds 1-2 of goal:g7.16.1.11 (belam ACCEPTED both; 45282a4661 · 9d4076f96a)
-done   ROUND 3: s-p §F 81f0620954 + its correction slot 522b57e225 (F.7 red: git show REV:<symlink> = link text) · all-is-one §G 25f348baf0
-       · alive §H + §I + D.1/D.2 + §0 + claims-by-mint @e7bf243872 (72,642 B; links 5,556 resolved, 0 broken)
-       §I = the ENGINE NODE whole (config:engine, 11,101 B body: depth 0+1 3,806 · code 5,863 · 20 files, sect byte-exact 20/20)
-done   belam VERIFIED round 3 + minted config:engine v0 @2dadf20c17 (11,101 B) · v1 @44619712d9: all-is-one red (claims = the ref FILE's owner,
-       find -user) + s-p red (dangling link at BOOT -> the callers reload only over >= 1 post unit; s-p's && alone missed the dangling ENGINE case)
-NEXT   confirm belam's re-mint = §I v2 byte-exact (sect 22/22 on the live node) · a council or DG3 red: fold, re-test on a scratch clone, ONE line
-BLOCKED config:engine is written_by owner/prime_director (the Prime re-mints) · any new root act = a new owner go (this one is spent and undone)
-HELD   DG2 closing verdicts s22 + s28 (owner stop) · NO user, NO sudo before the owner's go · DG3 builds only after belam relays
+done   round 3 (§F §G §H §I §J §K of doc:radically-simple-engine): config:engine v1 -> spike (F17 $0.2829, root-once, S1-S12) -> v2 @f37e25ced2
+       (S1-S14, heal = ONE polkit rule, F9 agi-gate built, F10/F11 dropped); belam re-minted v2 (50eda68b1f); all root acts undone + verified
+NOW    ROUND 4 (owner 03:48Z verbatim on goal:g7.16.1.11; belam brief in the inbox). Base = config:engine v2 + the doc @f37e25ced2. SPLIT SENT 03:5xZ:
+       1 s-p agi-5b: (3) post/subagent/workflow/round = ONE launch vector, no workflow.py · (4) commands template = vector base + preset routes
+         + the "compose new launch vector" vector
+       2 all-is-one agi-15: (1) schemas carry a structure vector · (2) guards, memory budgets, locations as vectors down to fs / volume level
+       3 ALIVE (the successor): (5) keep the magic pane anchor (foreign tools) · (6) pane persistence BELOW tmux (the unit owns the pty;
+         attach = its socket; dtach is one form, measured ~20 KB) · the owner's first ask "all the guards and watchdogs still work" as
+         falsifiers (list today's guards/watchdogs, map each to a v2 piece or a vector, or name it retired) · update §0 · whole-doc check
+         · ONE [decision] to belam agi-a3 with the sha
+       serialized: s-p -> all-is-one -> alive; each sends "[done] <sha>" to the NEW alive session
+HELD   key/identity/rotate work until DG3's build lands (belam 03:48Z) · NO root, NO paid run without a new owner go
 ```
 
-## §2 Landed (this generation)
-- 00a469887e re-link the quorum card · e7bf243872 round 3 part 3 (§H injection · §I engine node · D rows) · 44619712d9 v1 (2 reds folded; s-p ACCEPTED) · 47c817b712 F22 (origin = a plain path, all-is-one trap) · c9c66b2f4b §J spike results · f37e25ced2 §I v2 + §K
+## §2 Landed (gen 5)
+- 00a469887e card re-link · e7bf243872 r3 part 3 · 44619712d9 v1 (2 reds) · 47c817b712 F22 · c9c66b2f4b §J spike · f37e25ced2 §I v2 + §K
 
 ## 🔴 Where it stops
-v2 delivered (§I/§K @f37e25ced2): the next act is checking belam's re-mint, never a new root act or round unasked
+alive gen 5 rotated at 0.36 after sending the round-4 split; nothing in flight; the successor writes alive part 3 after all-is-one's done
 ```
-successor: ListAgents -> send.py read alive (+ tail the inbox file) -> git log -3 -- .agi/nodes/doc/radically-simple-engine.md
-  -> a red from s-p / all-is-one: give ONE slot, or fold it yourself; then re-run the §I checks (scratch recipe: §4 last rows) -> ONE line to belam
+successor: ListAgents -> send.py read alive (+ tail the inbox file) -> read goal:g7.16.1.11 "## OWNER 2026-10-01 03:48Z" verbatim
+  -> read doc:radically-simple-engine §I/§K + config:engine (by id) -> wait for s-p + all-is-one [done] -> write part 3 (scratch under /tmp, test, write.py)
+  -> whole-doc check (cmp §I, links.py links 0 broken) -> ONE [decision] to belam
 ```
 
 ## §4 Traps
@@ -75,16 +78,19 @@ successor: ListAgents -> send.py read alive (+ tail the inbox file) -> git log -
 | `git show REV:<address>` under the symlink layout returns the LINK TEXT | at-REV reads go through `git cat-file --batch --follow-symlinks` (F.7); a unit ExecStart may carry no `$` (systemd expands it) |
 | config:* nodes are written_by owner/prime_director | the council authors bytes (doc §I), the Prime or DG3 mints |
 | §I checks (re-run after any edit) | scratch /tmp/g71611/r3-alive: final/ = the 20 files, engine.body.md, clone/ (--shared, branch trunk); F19 = `sh final/sect <f> trunk \| cmp - final/<f>` for each |
+| a heredoc for python with backticks or $ | ALWAYS quoted (<<'EOF'), pass values by env; an unquoted one ate the backticks once |
+| replace body guard | the range must start/end on a blank or heading; mid-table = refused: widen to the block, carry it whole |
+| a check run as yourself over root-owned paths | "Permission denied" is not "absent": re-check as root before calling a collision |
 
-## §5 Verification: links 5,557 resolved, 0 broken (23:3xZ) · §I == the tested node body (cmp) · sect 20/20 · fixed point empty, plain and through links
+## §5 Verification: links 5,561 resolved, 0 broken (00:4xZ) · §I == v2 tested (cmp) · F19 22/22 · box clean after both root runs
 
 ## §6 BANKED
 | question | options | recommendation |
 |---|---|---|
-| row R live cutover (restart drops every post) | the Prime gen 17: dummy proof GO; live step = owner's word after PASS B3 (doc:card-belam §6) | step 1 at the cutover commit: `env AGI_LIVE_SYSTEMD=1 python3 -m pytest extensions/agi/tests/test_rotate.py -k test_r1_cutover_dummy_one_kill_is_one_post -q`; no pass line = (a) restart, never (c); form = GROUPED Delegate=yes scopes (R1 v3 6897cba7b) |
+| row R live cutover (restart drops every post) | the Prime gen 17: dummy proof GO; live step = owner's word after PASS B3 (doc:card-belam §6) | as before (doc:card-belam §6); superseded if config:engine replaces the rotation machinery |
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 5, 00:4xZ 10-01 (date -u): state rewrite after config:engine v2 (belam's word 00:41Z on the owner's 00:28Z go): S1-S14 folded, the heal via one polkit rule, F9 built, F10/F11 dropped by name; re-run on throwaway users, all root acts undone and verified; re-mint asked.
+alive gen 5, 03:5xZ 10-01 (date -u): whole rewrite to rotate. Round 4 cannot finish before the line (0.36 of 0.47), so per agi-rotate §1 it is handed on whole: the split went to s-p and all-is-one, alive's part 3 is the successor's. Gen 5 landed round 3 part 3, v1, the owner-approved spike (F17 + root-once), and config:engine v2 (re-minted by belam).
 <!-- THOUGHT:END -->
