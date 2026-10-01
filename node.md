@@ -42,7 +42,7 @@ agi-inbox@.path       37 B  mail wakes a post: a change in its drop box ...
 agi-inbox@.service    69 B  ... types "mail" into its session
 settings.json        458 B  the harness wiring every post gets: the meter (rotate at the line), the brief at every start, one commit at every turn end
 agi.ts               372 B  the same wiring for pi: the brief in the system prompt on every turn, one commit at every turn end
-agi-brief            722 B  what a session sees first: the walk from its card + its own claims; the vector, then whole nodes by |b|
+agi-brief            766 B  what a session sees first: the walk from its card + its own claims; the vector, then whole nodes by |b|
 brief.py             562 B  b = a sum((1-a) P_theta)^k e: the complex walk over parent symlinks; |b| = how near, phase = how far up
 gitconfig             79 B  every commit is signed by the post's own key
 agi-flush            125 B  on exit: commit, merge, push: a dying session loses nothing
@@ -53,10 +53,10 @@ project.sh           282 B  what the body SHOULD be, read from the graph
 observe.sh           317 B  what the body IS, read from the box
 tick.sh              221 B  the homeostat: diff them; heal what drifted and commit the wound
 simhash.awk          241 B  stage-0 latent sense: near-duplicate and misfiled prose, no package
-agi-project          982 B  the genome: units for every post row, read from this node @REV; its own unit re-reads it
-agi-seed.service     383 B  the ONE installed unit: at boot, run agi-project from this node @trunk
+agi-project         1078 B  the genome: units for every post row, read from this node @REV; its own unit re-reads it
+agi-seed.service     447 B  the ONE installed unit: at boot, run agi-project from this node @trunk
 agi-frontier         632 B  the hunger: every active goal runs its falsifier: met | red | mute
-sect                  257 B  the narrowed read: ONE section or piece of this node, byte-exact, at any REV
+sect                 257 B  the narrowed read: ONE section or piece of this node, byte-exact, at any REV
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
@@ -101,12 +101,12 @@ export default(pi:any)=>{pi.on("session_start",()=>{try{b=x("agi-brief",{encodin
 pi.on("before_agent_start",(e:any)=>b?{systemPrompt:e.systemPrompt+"\n\n"+b}:undefined);pi.on("turn_end",c);pi.on("agent_end",c)}
 ~~~
 
-### agi-brief (722 B)
+### agi-brief (766 B)
 ~~~sh
 #!/bin/sh
-# agi-brief: b = the walk from e (the card + this post's own claims); the vector, then whole nodes by |b| up to B bytes. Every harness start runs it.
+# agi-brief: b = the walk from e (the card + the claims whose ref FILE this post owns, in the shared repo); the vector, then whole nodes by |b| up to B bytes. Every harness start runs it.
 p=${AGI_POST:-${USER#agi-}};cd "${AGI_ROOT:-$HOME/t}/.agi"||exit 0;c=$(readlink -f nodes/doc/card-$p.md)||exit 0;c=${c%/node.md}
-e=${c##*/}$(git for-each-ref refs/claims --format='%(authorname) %(refname:lstrip=2)'|sed -n "s/^agi-$p /,/p"|tr -d '\n')
+e=${c##*/}$(find "$(git config remote.origin.url)/refs/claims" -type f -user agi-$p ! -name '*.lock' -printf ',%f' 2>/dev/null)
 python3 ${BRIEF:-brief.py} n $e ${K:-20}|while read a f m;do echo "$a $f $(sed -n '/^id:/{s/^id: *//p;q}' n/$m/node.md) .agi/n/$m/node.md";done>~/.brief
 echo "# brief: $p (|b| · levels up · address · path)";cat ~/.brief;cut -d' ' -f4 ~/.brief|sed 's|^.agi/||'|xargs tail -n+1 2>/dev/null|head -c ${B:-40000}
 ~~~
@@ -194,25 +194,25 @@ BEGIN{for(i=32;i<127;i++)o[sprintf("%c",i)]=i}
 END{for(b=0;b<32;b++)x=x (v[b]>0);print x,FILENAME}
 ~~~
 
-### agi-project (982 B)
+### agi-project (1078 B)
 ~~~sh
 #!/bin/sh
 # agi-project OUT REV: this box's units = f(graph@REV); every piece is read FROM the engine node through the links, so no copy can drift
-o=$1 r=$2 w=$1/default.target.wants;g(){ echo "$r:.agi/nodes/.geometry/$1"|git cat-file --batch --follow-symlinks;};mkdir -p $w
+o=$1 r=$2 w=$1/default.target.wants;g(){ echo "$r:.agi/nodes/.geometry/$1"|git cat-file --batch --follow-symlinks|{ read a t s;[ "$t" = blob ]&&head -c $s;};};mkdir -p $w
 g engine.md|sed -n '/^### agi-post@.service /,/^### /{/^~~~/,/^~~~/{//!p}}'>$o/agi-post@.service
 for p in $(g posts.md|sed -n 's/^  - {/{/p'|jq -r "select(.box==\"${AGI_BOX:-local-town}\" and .recover!=false).name//empty");do ln -sf ../agi-post@.service $w/agi-post@$p.service;done
-printf '[Service]\nType=oneshot\nWorkingDirectory=%s\nExecStart=sh -c "echo %s:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n \047/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}\047|sh -s %s %s;systemctl --user daemon-reload"\n' $PWD $r $o $r>$o/agi-project.service
+printf '[Service]\nType=oneshot\nWorkingDirectory=%s\nExecStart=sh -c "echo %s:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n \047/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}\047|sh -s %s %s&&ls %s/default.target.wants/agi-post@*>/dev/null&&systemctl --user daemon-reload"\n' $PWD $r $o $r $o>$o/agi-project.service
 printf '[Path]\nPathChanged=%s\n' $(git rev-parse --absolute-git-dir)/logs/$r>$o/agi-project.path;ln -sf ../agi-project.path $w
 ~~~
 
-### agi-seed.service (383 B)
+### agi-seed.service (447 B)
 ~~~ini
 [Unit]
 RequiresMountsFor=/data/work/agi
 [Service]
 Type=oneshot
 WorkingDirectory=/data/work/agi
-ExecStart=sh -c "echo trunk:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s %t/systemd/user trunk;systemctl --user daemon-reload;systemctl --user start default.target"
+ExecStart=sh -c "echo trunk:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s %t/systemd/user trunk&&ls %t/systemd/user/default.target.wants/agi-post@*>/dev/null&&systemctl --user daemon-reload&&systemctl --user start default.target"
 [Install]
 WantedBy=default.target
 ~~~
@@ -234,5 +234,5 @@ echo "${2:-HEAD}:.agi/nodes/.geometry/engine.md"|git cat-file --batch --follow-s
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam gen 22, 23:28Z 09-30 (date -u): minted from doc:radically-simple-engine @e7bf243872 §I at the council's ask (config is written_by owner/prime_director; the council did not mint it). The body IS §I's fenced bytes, verified equal (11,101 B), and all 20 pieces extract byte-exact from the committed node by sect's own sed. DESIGN STATE: nothing projects this node yet -- agi-seed is not installed, no user exists, no hook reads it; it becomes live only on the owner's go for the root-once step (goal:g7.16.1.11). v0 had a belam H1 and started at the diagram; replaced whole the same minute with the exact bytes.
+belam gen 22, 00:28Z 10-01 (date -u): v1 = doc:radically-simple-engine §I after the council's two post-delivery reds (agi-brief reads claims from the kernel, not a commit author; agi-project + agi-seed.service reload only over >= 1 post unit, so a dangling engine or posts link can no longer boot an empty body). Body = §I's fenced bytes (11,305 B; 3 pieces changed), all 20 pieces byte-exact from the committed node. DESIGN STATE: nothing projects this node until the owner's root-once go runs (after F17).
 <!-- THOUGHT:END -->
