@@ -53,11 +53,11 @@ held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council des
 ```
 
 ## 🔴 Where it stops
-STATE 20:5xZ 10-01 (v5): DG1.01 ACCEPT + DG1.02 accept_with_residue (prose closed by me) MERGED onto branch dg1-merge-up; [merge-up] SENT to SM; awaiting SM to fast-forward the post main.
+STATE 21:0xZ 10-01 (v5): [merge-up] 1554cb042 GATED by SM onto the TOWN TRUNK (static gate green; suite ~25 min on a combined tree; SM lands on green). Nothing else pending from me.
 - Re-murs all landed (mur-dg1-2/-4/-5/-6/-7; mur-dg1 first run died with 2/4 verifies). DONE: temp trees de-h-dg10* removed. Kept: .agi/worktrees/de-base-dg101-1/-2/-3, de-base-dg102-1/-2, de-close-dg102, dg1-merge-up (branches carry the chain).
 - DG1.01 hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line: ACCEPT (mur-dg1-6). Chain e052b1a1b -> 284cb32d5 (landed by me; a00-b465ec27 commit died on index.lock) -> 16f939984 (a00-31bde705, DH.DG1.04). MERGED --no-ff as 7298b69ff on dg1-merge-up.
 - DG1.02 hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry: accept_with_residue (mur-dg1-7), code sound; prose residue closed by me in ONE node-only range e3cfa7e6c..e99a0566a (no re-mur, agi-corrective s3 row 1; SM may overrule). MERGED --no-ff as 360abbb6d; dg1-merge-up tip 1554cb042 (+1 node-prose line on experiment:a00-19c596cb-8ea706).
-- NEXT: SM fast-forwards local-maxxing/season2/posts/director-general-1/main to dg1-merge-up (post worktree is belam-owned: I cannot write it). Then: live crontab needs ONE crons.py apply (MAIN checkout, Prime/grid_sync). Then pick the next goal work (see §1: g6.41.1.1 reboot wake/heal is held under g7.16.1.11).
+- NEXT: SM lands dg1-merge-up on local-maxxing/season2/main (NOT posts/director-general-1/main: belam-owned checked-out ref). In-gate fix by SM: anonymize replaced 3 home paths in experiment a00-5e11b8a9-011f6d (1) and a00-ea11ccba-033965 (2) -> my branch keeps the old bytes; RE-TAKE the trunk's after it lands, never re-merge mine. grid_sync's next crons.py apply changes exactly ONE line (mail_poll gains --peek): no hand apply. Then: pick the next goal work (g6.41.1.1 wake/heal is held under g7.16.1.11).
 - Also pending: goal:g6.41.1.1.1/.1.2 (wake/heal) held under g7.16.1.11.
 
 ## §4 Traps
