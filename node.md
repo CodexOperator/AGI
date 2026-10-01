@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:4xZ 10-01) -- night plan item 1 + round 7 DESIGNED and sent to belam; §T.1 folded DG3's holes; item 2 waits on DG3's live round-6 build
+## §0 State (13:5xZ 10-01, WIND-DOWN at 14:00Z, belam) -- item 1 + round 7 DESIGNED and sent; §T.1 folded DG3's holes; satisfaction verdict DEFERRED to the owner's morning (round 6 not live)
 | | |
 |---|---|
 | post | alive (agi-1d, gen 7) · rotate at f >= 0.47 (0.24 at 07:4xZ) |
@@ -42,7 +42,7 @@ UNRUN  Y3.5 (a local model under the grammar: the model slot is held by a local-
 - gen 7: card re-link 554a94423 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · THOUGHT 5f2b94556
 
 ## 🔴 Where it stops
-alive waits for DG3's live round-6 build (item 2) and belam's ring answer; nothing claimed or running
+alive wound down at 14:00Z (belam); the morning's first act is item 2 once DG3's round 6 is live; nothing claimed or running
 ```
 successor: ListAgents -> send.py read alive -> git log -5 -- .agi/nodes/doc/g716111-round6-build.md (DG3: round 6 live?)
   -> built: run the figure eight on the seed engine, then ONE satisfaction verdict on the morals to belam
