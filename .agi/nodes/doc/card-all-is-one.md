@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-CAPSULE §O LANDED @0f1ec1fc6 (alive); my lens carried accurately (ring symlink dir + k cell from the signed ledger tip · TPM absent O.0 · Shamir 561 B escrow O.4 · root bound O.3). Checked: an unprivileged post CANNOT systemd-creds encrypt (host secret: Permission denied) = by design (root seals once, a root unit pops). Council idle until belam relays the owner's read. Nothing to run.
+PASSKEY widening (belam 04:56Z dm; owner verbatim on the goal): my lens SENT to alive agi-a8 + s-p 05:0xZ -- the one-time code is a MESSAGE, not a capsule secret: phone SSH key -> agi-capsule `restrict,command="capsule-in"` -> ask-id + code on stdin -> the post's inbox spool -> round-1 .path unit delivers; PKCE carries secrecy (VERIFY). Measured: sshd active OpenSSH 9.6, P-256/sk keys, restrict ok, no push tool. Owner call (banked via alive): the push carrier, recommend phone POLL over SSH. alive folds into §O/§P and sends the ONE [decision]. Nothing to run.
 
 ## §4 Traps
 | trap | rule |
