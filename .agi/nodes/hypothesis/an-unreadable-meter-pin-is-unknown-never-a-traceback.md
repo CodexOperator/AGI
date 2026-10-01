@@ -26,7 +26,7 @@ town: core
 
 ## CLAIM
 The whole pin-to-fraction path NEVER raises: a transcript this uid cannot RESOLVE, STAT, or OPEN — EACCES, ELOOP, ENOTDIR, any `OSError` — degrades to `None`, i.e. UNKNOWN, exactly as an absent transcript already does, and the caller carries on to the next row instead of dying. UNKNOWN is honest: it is NOT a zero fraction and it does not stop a seat rotating on a readable pin. TWO SEAMS, not one: `_read_pin_target` guards the resolve+stat, and `_seat_fraction` guards the READ — a file that stats cleanly but cannot be opened is invisible to a stat guard, and that was the hole the first version of this leaf left open (mur residue 1).
-PRECISE ABOUT WHAT EACH COMMAND PRINTS, corrected after mur conjunct 7: `status` prints `frac=?` for an UNKNOWN seat (rotate.py:3798) and **no warning at all**; the warn-and-skip line lives in `cmd_alarms` (rotate.py:7745-7747), a different command. My earlier claim that "`status` and `alarms` print the seat's warning" was half-wording for `status`. What `status` does is walk every row and never die — which is the whole point — but do not go looking in it for a warning.
+PRECISE ABOUT WHAT EACH COMMAND PRINTS, corrected after mur conjunct 7: `status` prints `frac=?` for an UNKNOWN seat (rotate.py:3798) and **no warning at all**; the warn-and-skip line lives in `cmd_alarms` (cmd_alarms' warn line (name the function, not the line — the line moves)), a different command. My earlier claim that "`status` and `alarms` print the seat's warning" was half-wording for `status`. What `status` does is walk every row and never die — which is the whole point — but do not go looking in it for a warning.
 
 
 ## Dispatch line
