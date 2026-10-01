@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1342,6 +1342,45 @@ else git config agi.mode ro;echo "[owner] first boot, local read-only. Hello.">>
 | P5 the remote tip unsigned | rc 1 · no merge · mode unchanged (ro stays ro) · the body stays the local one |
 **Named, not hidden:** an unsigned remote tip exits 1 with no inbox line (cut for bytes; the unit's journal and rc carry it) · `agi.mode ro` is a CELL posts must read before they push (unbuilt in the post unit) · the seed merges in the checkout it runs in, so it runs at boot before any post holds that checkout · the remote half still needs §S's limits (allowFilter, a bare-hash want, the anchor).
 **Falsifiers.** P2-P5 PASS · **T6** DG5 boots from this seed on its box, every parity row green (UNRUN; the owner's first target, after Phase C) · **T7** the Prime, at wake, lists `refs/conflicts/*` and resolves or banks each (UNRUN: a Prime card line).
+
+## T.1 · ROUND 6 · alive -- DG3's holes in §T folded back in: the seed is 1,023 B again with the real anchor; a divergence is always the Prime's (--ff-only); a failed expansion is the seed's rc
+**Why this exists.** DG3 built and dry-tested §T (doc:g716111-round6-build @58ff49120) and found real holes in alive's bytes, kept byte-exact in §T: **H1** a re-run on the same conflict appended a second notice · **H2** a merge whose re-expansion failed made a FALSE conflict ref and notice, with HEAD already moved · **H4** git failing at the top left `g` empty, so the anchor went to `/s` at the filesystem root (as root: it succeeds) · **T7c** the bare `[conflict]` line landed inside the Prime's last unread message · **H7** a diverged, conflict-free merge with no git identity failed (a decision banked). Its patched copy closes H1/H2/H4/T7c at 1,103 B with the anchor, over 1 KiB. **What is the true state the seed must report?** Exactly three outcomes: synced (rw), handed to the Prime (a conflict ref + ONE message), or local read-only (one greeting); and an rc that is non-zero whenever the body did not expand.
+```
+H1   update-ref refs/conflicts/<local tip> ... ''  &&  the notice      create-only: a 2nd run fails the update, so no 2nd notice
+H2   merge --ff-only || {conflict};  x HEAD  (the last command)       a failed expansion = the seed's rc; never a false conflict
+H4   g=$(git rev-parse --git-dir) || exit 1                          no repo = rc 1 before any write
+T7c  m(): every notice is its own inbox block (---, ts, from: seed, to: belam)
+H7   DECIDED (decide-and-document): --ff-only. The seed never makes a merge commit (no identity needed, no root-authored merge);
+     ANY divergence, conflicting or not, becomes a refs/conflicts/ ref for the Prime. Costs: the Prime sees clean divergences too.
+     Flip = one word (drop --ff-only, add -c user.* + the abort), +36 B.
+```
+Paid for with: no usage comment · `cd ${AGI_ROOT:-.}` (the literal path is gone: the unit's WorkingDirectory or AGI_ROOT names the checkout) · `branch --show-current` · `fetch.fsckObjects` · `ls-tree --format` instead of a sed · the anchor inline in its one `echo` · the conflict notice carries the bare local tip (the ref name is derivable) · `--ff-only` needs no `merge --abort`.
+**The seed, whole** (941 B of text + the 82 B anchor line = **1,023 B**; sha256 of the text with `@ANCHOR@` in the anchor slot: `cd97baf8f62b6460`):
+~~~sh
+#!/bin/sh
+cd ${AGI_ROOT:-.}||exit 1;b=$(git branch --show-current);g=$(git rev-parse --git-dir)||exit 1;i=.agi/sessions/inbox/belam.md;mkdir -p ${i%/*}
+m(){ printf -- "---\nts: %s\nfrom: seed\nto: belam\n\n%s\n" $(date -u +%FT%TZ) "$*">>$i;}
+e(){ git ls-tree --format="$1:%(path)" $1 .agi/nodes/.geometry/|grep /engine|git cat-file --batch --follow-symlinks|sed -n "/^### $2 /,/^##/{/^~~~/,/^~~~/{//!p}}";}
+x(){ e $1 matrix|awk '$1=="boot"&&$4!="sect"{print $4}'|while read v;do e $1 $v|sh -s ${AGI_OUT:-/run/systemd/system} $1;done;};x HEAD;echo '<the anchor: ONE allowed_signers line, 82 B>'>$g/s
+if timeout ${2:-60} git -c fetch.fsckObjects=1 fetch -q ${1:-origin} $b;then git -c gpg.ssh.allowedSignersFile=$g/s verify-commit FETCH_HEAD||exit 1
+git config agi.mode rw;h=$(git rev-parse HEAD);git merge -q --ff-only FETCH_HEAD||{ git update-ref refs/conflicts/$h FETCH_HEAD ''&&m "[conflict] $h";};x HEAD
+else git config agi.mode ro;m "[owner] first boot, local read-only. Hello";fi
+~~~
+**Tested 07:4xZ** (a scratch harness: per case a fresh bare remote, a signing clone and a LOCAL clone that runs the seed; a throwaway anchor and a second key; the body piece writes the expanded REV; no root):
+| # | case | result |
+|---|---|---|
+| P2 | a signed fast-forward | rc 0 · rw · HEAD = the remote tip · body re-expanded at it |
+| P3 | both sides edited one line | rc 0 · HEAD = the local tip · 1 conflict ref · 1 notice |
+| H1 | the same conflict, the seed run 3 times | still 1 ref · 1 notice |
+| H7 | diverged, no overlap | rc 0 · HEAD = the local tip · 1 conflict ref (by design: the Prime's) |
+| P4 · P4b | remote unreachable · upload-pack hangs (timeout 3 s) | rc 0 · ro · body expanded · 1 greeting · 3 s |
+| P5 · P5b | the remote tip unsigned · signed by another key | rc 1 · no merge · mode unchanged |
+| P5c | the remote rewound to an OLDER signed tip | rc 0 · HEAD stays on its descendant (--ff-only never moves back) |
+| H2 | the remote tip carries a body piece that fails | rc 7 (the piece's) · 0 conflict refs · 0 notices · HEAD at the tip, body still the last good one |
+| H4 | run outside any repo | rc 1 · nothing written |
+| T7c | the inbox already holds an unread message | the greeting is its own block after it |
+**Honest limits.** (1) T7c relies on the inbox file ending in a newline (all 750 live inbox files do; a writer that leaves none would glue the `---` to its last line). (2) H2 leaves HEAD at the new tip with the OLD body expanded; the rc and the unit journal say so; the next boot retries. (3) DG3's other named items stand: a reachable remote without the branch = read-only + greeting (H5); the offline greeting repeats each offline boot; the matrix's `post` rows are read by nothing yet. (4) `--format` needs git >= 2.36 (this box: 2.43).
+**Falsifiers.** P2-P5c, H1, H2, H4, H7, T7c PASS (scratch) · T6 / T7 as in §T (UNRUN, DG3's live build after Phase C) · **T8** the seed stays <= 1,024 B with the real anchor at every later edit (`wc -c`; today 1,023).
 
 ## U · DOMAIN CONTROLLER · alive -- the directory is ONE matrix in the graph; a certificate's key-id names its row, so editing a row revokes it; encryption-town holds no secret, only the signing window
 **Owner 06:3x-06:5xZ / 07:0xZ (verbatim on the goal):** "... Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." / "... see if it can be supercharged and compressed via matrix math. Like the way we use our matrices to help hook into the login method but not the private key itself. Same here the matrices describe how the short lived ssh key can even be “popped” securely into whatever interface takes it." **What is the TRUE state of a login right now?** One row of a matrix: who, on which box, as which principal, for how long, with which forced command. If a box can read that row and nothing else, then what a box allows is exactly what the graph says, and a check is one `cmp`.
