@@ -87,10 +87,10 @@ def debrief(out, rows, recs):
 def main():
     out = paths.get_local("osc_self_poke_toy_dir")
     pp, f = os.path.join(out, "params.json"), lambda n: os.path.join(out, n)
-    P, sha, t0 = json.load(open(pp)), sha_file(pp), time.time()
+    P, sha = json.load(open(pp)), sha_file(pp)
     sys.exit("scores.json exists: a finished session is never overwritten") if os.path.exists(f("scores.json")) else 0
     log = lambda m: print(m, flush=True)   # the launcher redirects stdout to <out>/run.log
-    torch.set_num_threads(P["threads"]), R2.S.wait_box(P)
+    t0 = (torch.set_num_threads(P["threads"]), R2.S.wait_box(P), time.time())[2]
     pc = paths.get_local(P["pc_dir_cell"])
     ckpt, Pc = os.path.join(pc, "model.pt"), json.load(open(os.path.join(pc, "params.json")))
     fsha0, model = sha_file(ckpt), PC.make(Pc, Pc["train_seed"]).eval()
