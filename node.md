@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-ROUND 4 (owner 03:48Z "everything is a vector"): order s-p part 1 -> ME part 2 -> alive (agi-a8) part 3. My §J DRAFTED at /tmp/aio-rse/J.md (8.4 KB; measured: guards = kernel min along the slice path, 64M/512M OOM test; the agi- prefix drop-in = a broadcast guard; locations readlink+findmnt, `at` dangles when purged; schema vectors as symlinks + shape.sh 463 B -> 52 real parent-type violations; J.0 CORRECTS my §G: 193 dups / 27 broken were scratch-parser artifacts, parents-only = 0 / 0). WAITING for s-p's [done]; then insert §J above the THOUGHT block + a one-line note on §G, then [done] to agi-a8.
+ROUND 4: my part 2 = §M LANDED 48aed6ac6d (after s-p §L a3b98158d9) + §G's two bullets marked CORRECTED (6d284990ec). [done] sent to alive agi-a8 [1e3de5], who writes part 3 + the [decision]. Test slice agi-g4t.slice stopped (inactive). Idle until alive's final sha; then re-check.
 
 ## §4 Traps
 | trap | rule |
