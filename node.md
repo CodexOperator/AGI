@@ -21,20 +21,20 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 23 close (13:5xZ 10-01): the owner night ended at 14:00Z -- v5 landed, four v5 posts up, 12 logins, Grok signed in, no moves yet (the owner morning). Card rewritten whole for the successor.
+gen 24 wake (15:07Z 10-01): §0 rewritten for the post-reboot state -- heal brought DG1/DG2/DG3 back, v5 posts still down, G5 not on the trunk; the owner 15:1xZ lift stands. No GO is due until DG3 restores v5 and SM lands G5.
 <!-- THOUGHT:END -->
 
-## §0 State (13:5xZ 10-01, read from date -u)
+## §0 State (15:1xZ 10-01, read from date -u)
 | | |
 |---|---|
-| post | belam-S2-L5-XX gen 23 agi-24 (woke 04:53Z), meter 0.45; predecessors idle: gen 22 agi-a3 · 21 agi-23 · 20 agi-79 · 19 agi-c2 |
-| REBOOT | 14:42Z HARD reboot (journal ends 14:41:35, no shutdown, memguard silent: cause UNKNOWN). After it: tmux agi-rc = bash + agi-24 (belam) + all-is-one only; ALL v5 units GONE (/run) -- DG5, TM-new, DT-1/-2 down until re-projected; heal respawns recover-true rows; DG3 asked (dm 15:0xZ) to restore v5 one at a time when it is back. Trunk 6c87be791 (G6 landed by SM 14:01Z); G5 8a450c0c0 MET, waits for the owner word with the moves |
-| run | owner window CLOSED 14:00Z (10am EST); all posts wound down 13:50Z; owner morning report = the last belam reply of gen 23 |
+| post | belam-S2-L5-XX gen 24 (woke 15:07Z, rotate record 150403Z; its gen_after reads 1 while the row reads 23 -> g1 residue for DE); predecessors idle: gen 23 agi-24 · 22 agi-a3 · 21 agi-23 · 20 agi-79 |
+| REBOOT | 14:42Z HARD reboot (cause UNKNOWN). heal respawned DG1 gen 5 @7 (15:05Z) · DG2 gen 5 @8 (15:06Z) · DG3 gen 15 @9 (15:06Z); v5 units GONE until DG3 restores them (DG5 > TM-new > DT-1 > DT-2, gate between) |
+| run | owner 15:1xZ LIFTED the wind-down: keep going until goal:g7.16.1.11.1-.10 are complete · G5 8a450c0c0 NOT on the trunk (15:1xZ) |
 | engine | v5 LANDED 10:4xZ: config:engine 7,904 B 57eb5ac42 + engine-post/wrap/grow/root + growth.tsv + schemas (verify 12/13, bin-suite-fresh known) |
-| v5 posts | UP: director-general-5 (pi-free) · thought-master-new (research loop; RC visible) · director-thought-1/-2 (RC visible, idle) · STOPPED: director-general-4 (memory; restart with an assignment) |
-| old posts | all still on the old setup (no moves tonight) · old thought-master = STANDBY (handed off 12:5xZ) · SM rotated 13:1xZ (gen 12) · DG3 = agi-6a |
+| v5 posts | DOWN since the reboot; before it UP: director-general-5 (pi-free) · thought-master-new (research loop; RC visible) · director-thought-1/-2 (RC visible, idle) · STOPPED: director-general-4 (memory; restart with an assignment) |
+| old posts | all still on the old setup (moves wait on G5 + the v5 restore) · old thought-master = STANDBY (handed off 12:5xZ) · SM rotated 13:1xZ (gen 12) · DG3 = agi-6a |
 | users | 12 owner-logged-in agi-<post> (983..972, onboarding flags set 12:4xZ) + agi-grok 971 (xAI SuperGrok OAuth, 13 models) |
-| crons | session-only: CHECK daa581ac (13 */4) · memory Monitor = python3 -u /data/tmp/belam23/memmon.py (re-arm each 30 min) |
+| crons | session-only: CHECK ae1c3bdb (13 */4) · memory Monitor = python3 -u /data/tmp/belam23/memmon.py (re-arm each 30 min) |
 
 ## §1 Plan (owner morning)
 ```
