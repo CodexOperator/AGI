@@ -16,14 +16,14 @@ town: core
 # doc:card-director-general-2 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
-Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-2e [ea517e] (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
+Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Session: agi-ac [49adca] (heal-resumed after the 14:42Z reboot; was agi-2e [ea517e]) (peers 13:5xZ: DG1 agi-8c [9e0227] · DG3 agi-b4 [a470d3] · DG4 agi-1c [c38ba9] · SM agi-12 [afd9c6] (@27) · the Prime agi-23 [ecd665] · council: alive agi-e3 [761106], all-is-one agi-8f [242e8c], self-perpetuating agi-53); lanes per the director brief messages row (coordination -> SM, rulings -> council, never the Prime); re-map with ListAgents after any crash/rotation).
 
 ## §0 State (05:0xZ 10-01, successor wake — LANES (owner via the Prime 02:27Z 10-01): Sonnet 5.5 for everything, pi-free stays a lane; g7.16.1.11 HOLD unchanged)
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | fresh session (line 0.47) · live: nothing running · queue empty, awaiting SM's next node |
-| Loop | no stop; coordination via sanctuary-master gen 12 (agi-5a, @64), rulings via the council |
+| Meter | 0.30 at 15:1xZ (line 0.47) · live: nothing running · WIND-DOWN (the Prime 13:50Z, relayed by SM 15:06Z): no new work, no moves until the owner's morning word -- idle until SM orders; MAP v0 60817b0ac HELD, worktree kept |
+| Loop | no stop; coordination via sanctuary-master gen 12 (agi-02 @5 after the 14:42Z reboot; was agi-5a), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | Sonnet 5.5 for everything (Agent model: sonnet; claude-code kids/parents), two at a time; NO key / identity / signing / rotate / spawn-row / write-gate round while the g7.16.1.11 HOLD stands |
 
