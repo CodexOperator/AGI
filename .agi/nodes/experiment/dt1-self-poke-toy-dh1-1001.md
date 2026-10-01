@@ -34,6 +34,8 @@ verdict: proved
 
 ## Results (datasets/osc-band/2026-10-01-self-poke-toy-dh1/results.json)
 
+**HEADLINE (DH.2, after the review of this node).** C5a holds BEYOND SIZE: k5 and k45 sit +3.4 sd above the reviewer's dr-vs-norm line and beat all 93 / 70 norm-matched random sets. C5b is NOT size-clean: k1 and k34 sit -1.5 / -1.3 sd of that line, 8-9 pct of norm-matched sets go lower, and 1.3 pct of uniform sets fall below 0.0827; random-set dr follows W_out norm (R^2 0.43), not the count of bearing neurons (R^2 0.00). Reviewer's 600 extra random 128-sets (numbers in the hypothesis THOUGHT, thought-master-new 15:48Z). By the REGISTERED rule both pass and the verdict is 'stands'; the licence is 'the whole load-bearing family moves the readout beyond any size-matched random set', NOT 'passengers move it less than random' and NOT 'the readout tracks a graded causal load'.
+
 | conjunct | measured | rule | outcome |
 |---|---|---|---|
 | C5a | k45 0.4350, k5 0.4211 vs the 20 random 128-sets max 0.2740 (`dr`, mean abs dr at s = 0) | min bearing > max random | **PASS, beyond size** (+3.4 sd over the norm line; beats all 93 / 70 norm-matched sets for k5 / k45) (margin 0.147) |
