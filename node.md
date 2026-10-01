@@ -17,11 +17,11 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:54Z 09-30, date -u) — gen 11 · FREE LANE since 21:00Z (pi-free only) · HOLD on key/identity/signing/rotate/spawn-row/write-gate rounds (Prime [rule] 21:53Z, owner 21:3xZ; goal:g7.16.1.11)
+## §0 State (21:54Z 09-30, date -u) — gen 11 · LANES 02:27Z 10-01: Sonnet 5.5 for everything + pi-free; DG3 Opus medium ≤ 3 (free lane ENDED; relayed to DG1-3 + council-loop 02:27Z) · HOLD on key/identity/signing/rotate/spawn-row/write-gate rounds (Prime [rule] 21:53Z, owner 21:3xZ; goal:g7.16.1.11)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
-| lanes | since 21:00Z: every NEW round + review on pi-free, no claude-code dispatch, no Sonnet subagents · exceptions the Prime named: TM research lane Opus 5.5 high ≤ 3 · DG3 on goal:g7.16.1.11 Opus ≤ 3 AFTER the council design |
+| lanes | since 02:27Z 10-01 (owner via the Prime): Sonnet 5.5 for everything (cc kids + parents, subagents, reviews) · pi-free stays a lane · DG3: Opus 5.5 subagents effort medium, ≤ 3, for everything · TM: Sonnet 5.5 · research placement = TM's own |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
 | skills | agi-master-gate (every landing) · agi-rotate · agi-node-write · agi-send · agi-goal |
 | peers | Prime = belam (send.py --to belam) · DG1 agi-8c · DG2 agi-e3 · DG3 agi-03 · TM thought-master STOOD UP @34 (research lane) · council: alive · all-is-one · self-perpetuating (designing goal:g7.16.1.11 first) · DG4 STOOD DOWN 21:5xZ · DG5 DG6 DOWN |
@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   gen 10 landings: g1.33 5f1e8092f2 · DG2.R1-3 · brief g15 ef0d152992 · g6.41.1.1(1) 82c553bb9a · dg6-04 08b1ca1c94 · g1.31.4.1 88ddd2ca08 · DG4 STACK 72dff76359 · SM-1 d5d9107d43 · DG4.17 2cbe754da1 · keys d01befa390
 done   gen 11: g1315131 a2e42a3bf0 · DG4.10+20 5a7a3bb828 · DG4.19 e81abd3f69 · g7556 627c94a040 · .10.3 521ebaa951 · .10.5 2ed4492434 · bundle 4 v4 = 0.9 8d5cd831fb · 21:00Z free-lane rule relayed (DG3 DG4 council-loop) · Prime grep-orphan red = g7.33.19 row 60
-NEXT   research placement = TM's own (owner in my pane 22:1xZ, relayed verbatim to TM + belam) · was placed by me 21:5xZ: L4 geometry under goal:g5.22 (CPU, MemAvailable >= 6 GB + PSI < 5 to start, one model round) -> stage 1 MAP goal:g5.28 behind it (stage 2 GPU = re-ask) · DG3 placed 21:5xZ: g7.33.19 row 60 -> .10.7 smallest (the .11 doc may scrap it) · g75213 GO on the Prime bind · DG4 tips unowned (below)
+NEXT   DG2 placed 02:3xZ: post-builds .10.3 + .10.5 (before .10.7) -> g7556 · research placement = TM's own (owner in my pane 22:1xZ, relayed verbatim to TM + belam) · was placed by me 21:5xZ: L4 geometry under goal:g5.22 (CPU, MemAvailable >= 6 GB + PSI < 5 to start, one model round) -> stage 1 MAP goal:g5.28 behind it (stage 2 GPU = re-ask) · DG3 placed 21:5xZ: g7.33.19 row 60 -> .10.7 smallest (the .11 doc may scrap it) · g75213 GO on the Prime bind · DG4 tips unowned (below)
 ```
 
 ## §2 Landed this gen
