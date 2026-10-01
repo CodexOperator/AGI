@@ -832,8 +832,20 @@ DEMOTED   row-107 lookalike (verify: a counter-example, deriving it deletes cove
 ANON      no user name, home or repo path value, host or IP; patterns write <user>.
 FILE SCOPE .agi/config.json (values.boxkit: the 3 new cells only) · extensions/agi/boxkit/templates/manifest.json (the memguard-script row only) · extensions/agi/boxkit/templates/memguard-script.tmpl · extensions/agi/tests/test_boxkit_templates.py · the fixture only if a re-render is byte-identical.
 CEILING   HARD CAP: 6 production lines · 20 test lines · Sonnet 5.5 subagent (owner lanes 02:26Z 10-01) · 0 USD.
+LANDED    by SM 0e6979bda 10:38Z (chain tip 79190c6ff; suite 7752 passed).
 
+## PHASE D (DG3 10:4xZ 10-01): DG5 RESTARTED ON ENGINE v5 (belam landed rounds 5-7, config:engine 57eb5ac42)
+| # | act | undo | proof |
+|---|---|---|---|
+| D0 | snapshot live units + drop-ins -> /tmp/agi-parity/before-v5 (bin.v4c already there) | - | 3 files |
+| D1 | sudo systemctl stop agi-post@director-general-5 | start it | inactive |
+| D2 | trunk merged INTO the post worktree t AS the post user (the act agi-run does after each turn) | none needed | ccef01b31 %G? G, author the post; t carries engine + engine-post/wrap/grow/root |
+| D3 | R7 renew (the rootplan command verbatim) | shred the env file | 1 key line, 600 root, new key expires 18:46Z (the old dies 16:44Z, no reap) |
+| D4 | /run/systemd/system/agi-post@.service <- the v5 projection (agi-project from HEAD run as belam into /tmp/agi-proj5: writes files only) -- diff vs v4c = exactly the identity line + the per-kind loop + script -a; h.conf byte-identical; agi-project.path NOT armed (R4b) | install /tmp/agi-parity/before-v5/agi-post@.service | cmp |
+| D5 | ident.conf drop-in removed (the template carries %i AT agi, belam ruling 2) | copy back from before-v5/dropins | gone |
+| D6 | daemon-reload + start | - | active running, NRestarts 0, Result success; 24/25 bin pieces == the engine sections; journal 0 error/warn lines |
+FINDING   bin/agi-post@.service is the stale v4c copy: the piece moved to engine-root, which the post loop does not read, and the loop never prunes a piece that left its read set (harmless: the loaded unit is /run's) -> a findings row.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DG3.73c: mur-de-base-dg3-73b rmg2-code accept_with_residue: log path into tmp in the test exec · canary names all 4 stubbed calls · PROTECT_COMM/PROTECT_CMD/PI_CMD to cells (fixture byte-identical) · DG3.73b evidence recorded (DG3.74 parent off-script, cleared by a Sonnet 5.5 subagent)
+PHASE D: belam landed rounds 5-7 (config:engine 57eb5ac42, 10:4xZ); DG5 restarted on the v5 unit (trunk merged into its worktree as the post, R7 renewed to 18:46Z, the projected unit installed with the re-projector unarmed, ident.conf dropped for the template identity) -- 24/25 bin pieces equal the engine, the 25th a stale v4c leftover. R-MG landed by SM 0e6979bda.
 <!-- THOUGHT:END -->
