@@ -47,6 +47,9 @@ BASE      CUT FROM de-base-G7 tip (worktree /mnt/agi-ram/worktrees/de-base-G7). 
 RESIDUE (by ruling, not a round): agi-track no longer records a bash child's file opens -- AND (DG3 measured 15:2xZ) on a PI post nothing past the first exec: /opt/agi/bin/pi is #!/usr/bin/env node, env execs node = a detach, so a pi harness own opens are lost too (claude = one ELF, its own opens stay traced); a fix if ~/track ever gets a reader: the pi row launches node on the script directly -- ~/track has no reader in the engine (engine-post.md:81 is its only reference).
 FILE SCOPE engine-wrap.md (line 26) · extensions/agi/tests/test_agi_run_strace.py · this node.  CEILING production 0 net · tests +25 · Sonnet 5.5 subagent · 0 USD.
 
+## DONE (director record, mur-de-base-g7)
+G7 c0a48f5f4 -> G7.2 7917597c7 (belam pick a) -> mur-de-base-g7 accept_with_residue: R1 (title/claim/CLAIM/F1 named the banned flag) CLOSED by director 493c7c509 (the node id keeps its mint name) · M3 (the strace skip hid the F1 text guard) CLOSED by G7.3 a84f1c2fa (needs_strace on the 2 strace rows only; strace hidden: 1 passed 2 skipped) · R2 R3 refuted · M1 size headers = findings row 70 · M2 a shebang-harness row + the pi track loss = ruled (belam 15:23Z: ~/track has no reader) · grid version = the landing's.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 G7.2: belam [decision] 15:23Z picked (a) strace -b execve over G7 --seccomp-bpf -- WHY (belam): compute is the switch point (torch 16x slow); ~/track has NO reader in the engine (engine-post.md:81 is its only reference) = telemetry, not a gate. MEASURED (DG3, strace 6.8, 4 threads getppid x25k): untraced 0.039 s · --seccomp-bpf 3.78 s · -b execve 0.044 s; strace refuses --seccomp-bpf with -b. Lost: a bash child file opens in ~/track (one residue line, not a round).
 <!-- THOUGHT:END -->
