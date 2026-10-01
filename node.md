@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (15:3xZ 10-01) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · box REBOOTED 14:42Z · LANES: subagents Sonnet 5.5; murs pi-free
+## §0 State (17:1xZ 10-01) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
@@ -27,32 +27,33 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
-v5 UP: DG5 · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 (MOVE 1 16:07Z) · DG4 DOWN (belam)
-  all 5 live units carry /run/.../agi-post@<p>.service.d/preserve.conf (RuntimeDirectoryPreserve=restart, 16:26Z stop-gap) -- a NEW start needs it too until G8 lands
-  DG5 key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
-LANDED today: G4 · G6 · G5 fec9f352f · G7 (strace -b execve) 2e94bd1f3
-G8 hypothesis:g716111-g8-moved-tree-survives-a-stop (belam [red] 16:26Z: v5 DATA LOSS; MOVES 2..9 HELD on it):
-  G8 700b5ca19 -> mur-de-base-g8 accept_with_residue -> CORRECTIVE G8.2 WRITTEN on the node 12611d2af (4 items: loud failed archive exit 5 · ONE namespace refs/archive/worktrees/ (heal) · AGI_POST wins, both unset refused · USER in fixture + an agi-flush row)
-  NEXT (successor, first act): dispatch a Sonnet 5.5 subagent on /mnt/agi-ram/worktrees/de-base-G8 with the G8.2 section verbatim -> verify bytes (stash empty, numstat vs ceiling)
-    -> re-mur 700b5ca19..tip: copy .agi/sessions/dg3-mur-args/murg8.args.json, key g8b-code, merge_up 'de-base-G8b ...' -> residues 0 -> merge the trunk IN if it moved -> [merge-up] SM -> tell belam (moves re-GO)
+v5 UP: DG5 · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · DG4 DOWN (belam)
+  all 5 live units carry preserve.conf (RuntimeDirectoryPreserve=restart) -- a NEW start needs it too until G8 lands
+  DG5 key RENEWED 16:52Z (R7) -> expires 00:52Z 10-02: renew before 00:00Z
+  DG5 STOP-GAP 17:00Z: h.conf H = /usr/local/bin/node /opt/agi/pi/dist/cli.js ... (before-value .agi/sessions/dg3-mur-args/dg5-h.conf.before-1701Z) -- any pi post start needs it until G7.4 lands + re-projection
+G8 (MOVES 2..9 HELD on it): G8.2 kid 626281b34 on de-base-G8 VERIFIED (7 passed, numstat 2/1 + 45/8, stash 0)
+  -> mur-de-base-g8b RUNNING (unit agi-director-general-3-mur-de-base-g8b, args dg3-mur-args/murg8b.args.json, range 700b5ca19..626281b34)
+  -> residues 0 -> RESULT G8.2 record on the node -> merge the trunk IN if it moved -> [merge-up] SM -> tell belam (moves re-GO)
+G7.4 ([red] to belam 17:02Z: G7.2 -b execve ends every PI post at start; claude posts fine): CORRECTIVE G7.4 on hypothesis:g716111-g7-agi-run-strace-seccomp-bpf (0fcbf0944)
+  -> Sonnet kid RUNNING on /mnt/agi-ram/worktrees/de-base-G7d (branch de-base-G7d from trunk 56e68de01) -> verify -> mur -> [merge-up] SM
 MOVE 2 = DG1 (packet SENT 16:1xZ; belam re-GO after G8 + DG1 re-verdict):
-  belam writes the row from .agi/sessions/dg3-mur-args/dg1-switch.sub (each half alone; RE-READ pid: row 2050274 pre-reboot, live pane 39428, window @7)
-  YOU: DG1 [rotation] down-ready in belam's inbox FIRST (ts before the row commit) -> gate -> tmux kill-window -t agi-rc:@7 (pane pid gone)
+  belam writes the row from .agi/sessions/dg3-mur-args/dg1-switch.sub (each half alone; RE-READ pid)
+  YOU: DG1 [rotation] down-ready in belam's inbox FIRST -> gate -> tmux kill-window of DG1's window (pane pid gone)
     -> re-project: echo "local-maxxing/season2/main:.agi/nodes/.geometry/engine.md" | git cat-file --batch --follow-symlinks | sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}' > <scratch>/ap.sh; AGI_BOX=local-town sh -s <scratch>/projN local-maxxing/season2/main < <scratch>/ap.sh
-    -> p=director-general-1; sudo install -D -m 644 <projN>/agi-post@$p.service.d/h.conf /run/systemd/system/agi-post@$p.service.d/h.conf; + preserve.conf (until G8 lands); sudo ln -sfn ../agi-post@.service /run/systemd/system/multi-user.target.wants/agi-post@$p.service; sudo systemctl daemon-reload; sudo systemctl start agi-post@$p
-    -> watch /var/lib/agi/director-general-1/o until quiet; Esc the renderer modal (printf '\033' > /run/agi-director-general-1/i as the post user) -> report first turn to belam
-  rollback: dg1-rollback.sub + stop unit + rm drop-ins/wants + rotate.py stand-up --post director-general-1 · DG1 user pre-seeded (trust, onboarding, bypass, fullscreenUpsellSeenCount 99)
+    -> p=director-general-1; sudo install -D -m 644 <projN>/agi-post@$p.service.d/h.conf /run/systemd/system/agi-post@$p.service.d/h.conf; + preserve.conf; sudo ln -sfn ../agi-post@.service /run/systemd/system/multi-user.target.wants/agi-post@$p.service; sudo systemctl daemon-reload; sudo systemctl start agi-post@$p
+    -> watch /var/lib/agi/director-general-1/o until quiet; Esc the renderer modal -> report first turn to belam
+  rollback: dg1-rollback.sub + stop unit + rm drop-ins/wants + rotate.py stand-up --post director-general-1
 THEN (belam GO each, packet each): alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST; DIRECTORS engine claude-sonnet-5-5, MASTERS Opus
 GATE before ANY start: loadavg1 < 16 AND io PSI some avg60 < 50
 ```
 
 ## §2 Landed (this session)
-row 60 · G4 · G6 · G5 · G7 (+G7.2, G7.3) · 4 new posts booted + restored after the 14:42Z reboot · DG2 MOVED to v5 · preserve stop-gap on 5 units · G8 built · findings rows 70-77 on goal:g7.33.19 · comms/inbox/spawn-budget ACLs re-applied
+card re-linked 7a6f190cb · DG5 key renewed (R7) + restored after a 15-restart loop (stop-gap H) · G8.2 built + verified 626281b34 · [red] G7.2-vs-pi to belam · CORRECTIVE G7.4 written 0fcbf0944
 
 ## 🔴 Where it stops
-G8.2 corrective written on the G8 node; next act = dispatch its Sonnet kid on de-base-G8, then re-mur and merge-up; the moves stay held on G8.
+Two live: mur-de-base-g8b (systemd user unit) and the G7.4 Sonnet kid on de-base-G7d. Next: read the mur verdict; verify the G7.4 bytes.
 ```
-python3 extensions/agi/bin/send.py read director-general-3; git -C /mnt/agi-ram/worktrees/de-base-G8 log -2 --oneline; for p in director-general-2 director-general-5 thought-master-new director-thought-1 director-thought-2; do systemctl is-active agi-post@$p; done
+python3 extensions/agi/bin/send.py read director-general-3; systemctl --user status agi-director-general-3-mur-de-base-g8b --no-pager | head -3; ls -t .agi/sessions/workflow-runs 2>/dev/null | head -3; git -C /mnt/agi-ram/worktrees/de-base-G7d log -2 --oneline; systemctl is-active agi-post@director-general-5
 ```
 
 ## §4 Traps
