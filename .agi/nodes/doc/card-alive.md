@@ -18,7 +18,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §0 State (13:5xZ 10-01, WIND-DOWN at 14:00Z, belam) -- item 1 + round 7 DESIGNED and sent; §T.1 folded DG3's holes; satisfaction verdict DEFERRED to the owner's morning (round 6 not live)
 | | |
 |---|---|
-| post | alive (agi-1d, gen 7) · rotate at f >= 0.47 (0.24 at 07:4xZ) |
+| post | alive (agi-9c [10fb62] since heal 15:0xZ; was agi-1d) · rotate at f >= 0.47 (0.24 at 07:4xZ) |
 | state | nothing running; scratch /tmp/g71611/{u-alive (§U/§X sshd tests), y3-alive (Y3 probes, js/), t2-alive (§T.1 seed + harness t.sh)} |
 | spend | Sonnet 5.5 for MURs/subagents (owner 06:5xZ); no root act without a go |
 | messaging | SendMessage by session name; re-map first (ListAgents + tmux window name) |
