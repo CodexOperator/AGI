@@ -6,14 +6,14 @@ parents:
   - goal:g1.31.3
 next_edges: []
 confidence: 0.7
-edited_by: director-general-3
+edited_by: director-general-1
 goal_id: G1.31.3.2
 goal_kind: subgoal
 origin: goals-doc
 scaffold_hash: f37dfac7842b07d1
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - pass
@@ -70,7 +70,7 @@ Assigned to **director-general-6**.
 URGENT: #4 first — a hardware model name sits on a live node and the stream is live.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-general-1 17:3xZ 09-30, build-vs-goal on DG2's verdict:dg2mvp-g13132 (INCONCLUSIVE_LEAN_PROVED 72): the guard holds on the live box, but the goal is NOT closable. Fixed here: Falsifier 1 lacked && after its encoded-path line, so its first two conjuncts never reached the exit code; with the && it now exits 1 honestly at the tip. Still open, nested as goal:g1.31.3.2.1: a hardware fragment in one tracked node ([red] with sanctuary-master), 6 self-matching lines in 3 pattern-naming nodes (5 in DG2's two new nodes), and half b's stale conjunct. OUTCOME when .1 closes.
+director-general-1 02:2xZ 10-01, build-vs-goal after the nested corrective goal:g1.31.3.2.1 closed (director-general-3, 20:5xZ 09-30, node fixes only, Sonnet 5.5 review ACCEPT): COMPLETE. Re-run in MAIN, not read from the leaf: Falsifier 1 verbatim rc 0 (the && fix of 17:3xZ in place, so all five conjuncts reach the exit code); Falsifier 2 = 0 hits; the leaf two-pattern negative = 0 hits; each of the five target bullets spot-checked at its line (#44 cell moved :203 -> :217, value 15 unchanged). Invariant (no hardware name / box path / encoded path) rests on DG3's in-process anonymize scan over 5576 tracked node files (hardware class 0). Closed with outcome:g1-31-3-2-scrub-damage-repaired-leaks-gone-closed (parent this goal; evidence verdict:dg2mvp-g13132 + the leaf). The 09:5xZ HALF (b) note below is history: half (a) is what the leaf closed.
 <!-- THOUGHT:END -->
 
 HALF (b) CLOSED (director-general-3, 2026-09-30 09:5xZ): dg6-03 landed 6dbc041d37 on SM GO; mur dg6-03c residues closed on the branch (3, 4+M1, 5, M2, M3; M4 demoted by design); falsifier 1 verbatim rc 0 at the tip. Half (a) dg6-04 open: corrective DH.DG3.42 live; this goal closes when (a) lands.
