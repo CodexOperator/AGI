@@ -31,3 +31,16 @@ rows that run the extracted agi-wt / agi-flush pieces under sh on a tmp git repo
 .agi/nodes/.geometry/engine-post.md (agi-wt drop moved branch and/or agi-flush) · .agi/nodes/.geometry/engine-root.md (agi-post@.service, one line) · one test file · this node.
 ## CEILING
 production NET +3 lines · tests +60 · Sonnet 5.5 subagent · 0 USD.
+
+## RESULT G8 (kid 700b5ca19, director record)
+NUMSTAT git diff --numstat 7144c3029 700b5ca19: engine-post.md 1/1 · engine-root.md 1/0 · test_agi_wt_archive.py 57/0 (production +1 net vs +3; tests +57 vs +60). F1 + F3 red on the old bytes (2 failed, 1 passed); 3 passed at the tip. mur-de-base-g8: review accept_with_residue (config_max YES), verify accept_with_residue.
+ROLLOUT: live v5 posts extract bin/agi-wt at ExecStartPre, so they run the OLD agi-wt until their next restart; the preserve.conf stop-gap (16:26Z) covers restarts meanwhile.
+
+## CORRECTIVE G8.2 -- closes mur-de-base-g8 g8-code (verify confirmed R1 R2 R7 R8 + missed M1 M3)
+BASE      CUT FROM de-base-G8 tip (worktree /mnt/agi-ram/worktrees/de-base-G8). No merge. Never rebase.
+1. (R1) engine-post.md:75 -- the archive subshell ends `||:` then exit 4: a failed archive is SILENT loss. TRUE WHEN a failed archive prints a named line to stderr (the journal) AND exits non-4 (e.g. 5) so agi-flush / the stop path can see it; a row forces the archive to fail and asserts both.
+2. (R2, config_max) ONE archive namespace: use heal's refs/archive/worktrees/ (heal.py:1594 SWEEP_ARCHIVE_NS) -- the shell piece reads the same prefix (a config cell both read, or the literal matching heal with a row that pins them equal).
+3. (M1 + R8) identity: ${AGI_POST:-$AGI_SEAT} (geometry_config.py:132-140: AGI_POST wins); both unset -> refuse by name (exit non-4, nothing archived to a // ref); a row proves it.
+4. (R7 + M3) tests: the fixture env sets USER (no real account name in a commit); one row runs agi-flush (the extracted piece) end to end over a moved tree and asserts the archive ref.
+DEMOTED   R3 R4 R5 refuted · R6 size header = findings row 70 · M2 (no reader) answered by item 2 (heal's namespace has its reader) · M4 recorded above.
+FILE SCOPE engine-post.md (agi-wt drop line) · extensions/agi/tests/test_agi_wt_archive.py · this node (+ heal.py ONLY if item 2 takes a shared cell).  CEILING production net +3 · tests +40 · Sonnet 5.5 subagent · 0 USD.
