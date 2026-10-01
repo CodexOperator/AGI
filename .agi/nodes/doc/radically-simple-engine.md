@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: all-is-one
+edited_by: self-perpetuating
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1844,6 +1844,95 @@ the gate at receive          Y1's grow-gate: for each added or changed node, run
 **Dropped, on purpose:** my first draft of this section was its own reader (`fmt`, 2,671 B: rows + check + a regex->GBNF translator). Y2's `sch()` already reads the schema once, and llama.cpp already turns JSON Schema into grammar, so `fmt` would have been a SECOND source for the same rule. Kept from it: its parity sweep, which agrees with Y2's (the engine-stamped keys `edited_by`, `season`, `scaffold_hash`, `town` ... are in no schema's fields, so a model row naming one is refused; the window writes them).
 **Honest limits.** (1) `\d` -> `[0-9]` narrows the gate to ASCII digits (Python's `\d` also matches other scripts' digits; 0 live nodes use one). (2) The compile probe proves the grammar EXISTS and is complete; it does not prove a model writes well under it (Y3.5). (3) A fixed field order is a choice of the fence; the gate accepts any order.
 **Falsifiers.** **Y3.1** 25/25 compile clean after 1-3 (PASS) · **Y3.2** 0 gate verdicts moved on 5,381 live nodes (PASS) · **Y3.3** the tags cell equivalence, 16,637 strings (PASS) · **Y3.4** forced share 7.2 % (MEASURED) · **Y3.5** the 9B on this box, ROW mode under the closed grammar, 20 fills of `goal[subgoal]` and `hypothesis`: 0 format refusals by the gate, every refusal a meaning one (UNRUN: needs the model slot; = Y2's F49) · **Y3.6** a node pushed without the window, carrying `status: banana`, is refused at receive by grow-gate + check (UNRUN: the ~150 B verb).
+
+## Z2 · DESIGN ROUND (belam 18:1xZ) · self-perpetuating -- RECURSIVE SCOPE CERTS: owner -> belam -> posts, each link a subset of its issuer, a revocation or a re-parent kills the whole subtree
+**Owner (goal:g7.16.1.11 THOUGHT @3f37df695):** scope certs are recursive, owner -> belam -> the posts under it, each a SUBSET of its issuer; the post hierarchy decides who may issue to whom. **What am I ACTUALLY trying to get the machine to do here?** Let authority regrow down the tree without ever growing on the way: a post can hand on only what it holds, for no longer than it holds it, and pulling one link pulls everything that hangs from it.
+```
+link     agi-scope v1 · sub <post> · iss <issuer> · roots <chain roots, * = all> · grow <child types, * = any> · nb · na · par <hash of the issuer's own link | anchor>
+         signed by the ISSUER with its §V short-lived login cert (ssh-keygen -Y sign, namespace agi-scope); the owner signs with the anchor key
+         content-addressed: name = 16 hex of sha256(link text); an identical statement is never re-signed over
+verify   walk leaf -> anchor; per link: the signature verifies for iss AT nb (-Overify-time: a signature cannot outlive its login cert)
+         · iss = sub's parent in the post tree (Z1: the config:posts `parent` cell) · roots within the issuer's (Z1: graph ancestry) · grow subset
+         · [nb, na] within the issuer's · no revocation signed by iss or an ancestor of iss · only the owner anchors
+cascade  revoke = ONE signed line naming a link hash, by its issuer or any ancestor -> every chain through that link fails; a sibling's revocation is ignored
+tree     move POST NEWPARENT: only a STRICT ancestor of POST, NEWPARENT inside the mover's subtree, never into POST's own subtree (no cycle), never self
+         re-parenting IS revocation: the old issuer is no longer the tree parent, so the old chain fails at once; the new parent re-issues
+```
+**Tested 18:1xZ** (scratchpad, throwaway CA + anchor + 5 post keys with 20-min login certs; tree owner -> belam -> {dg3, dg5, sm}, dg3 -> kid; no root, nothing in MAIN):
+| claim | result |
+|---|---|
+| owner -> belam (* / *) -> dg3 (g7.16.1.11 / hypothesis, experiment, goal) -> kid (g7.16.1.11.3 / hypothesis) | `ok kid <- dg3 <- belam <- owner` |
+| kid grows hypothesis under g7.16.1.11.3.2 · under g7.16.1.12 · a goal under its root | ok · refused · refused |
+| dg3 widens kid's roots to g7 · widens grow to build · gives kid a longer life than its own | refused · refused · refused (each names the link and both scopes) |
+| belam issues to kid (not its tree child) · a non-owner anchors a chain | refused · refused |
+| sm forges dg3's link with sm's own key (same second · a new second) · a link's text edited after signing | refused (exists, never re-signed over) · refused (signature) · refused (signature) |
+| sm (a sibling) revokes belam -> dg3 · belam revokes it | ignored, kid still ok · kid refused, belam's own chain still ok |
+| dg3 re-parents itself · kid moves itself · belam moves dg3 under kid · belam moves kid under belam | refused · refused · refused (cycle) · moved: kid's OLD chain refused at once; belam's re-issue verifies |
+| size | a link 129 B + its SSHSIG 829 B; a 4-link chain ~3.8 KB |
+**A bug the tests caught before landing:** links are content-addressed, so a forged issue with byte-identical text first OVERWROTE the real link's signature, failed, and its cleanup DELETED the real link. Fixed: an existing hash is refused untouched, and cleanup removes only what that call made.
+**Bytes:** `agi-scope` 3922 B (python3 + ssh-keygen; expansion, config:capsule beside agi-sign) · the store: `.agi/scope/{certs,revoked}` + allowed_signers (2 lines: the owner anchor, the §V CA as cert-authority, both namespace agi-scope).
+**Wiring order (c), the regrowth lens, ONE line for Z1:** sign landings -> **issue the tree's links and run the land gate REPORT-ONLY until every live post verifies** (a ratchet, like all-is-one's 238) -> key: on adds -> grow-gate enforcing; enforcing before every post holds a chain refuses every add.
+**Honest limits.** (1) The prototype's tree is a file; live, it is config:posts rows landed through signed trunk landings, and the land gate applies the move rule to the row diff. (2) Revocations must be APPEND-ONLY: deleting a revoked/ file un-revokes, so the land gate refuses any removal under .agi/scope (unbuilt). (3) Roots coverage is an id-prefix stand-in; Z1's graph-ancestry walk replaces `cov()`. (4) A link's nb is the signer's claim, bounded only by its login cert's window (minutes). (5) Tonight the anchor key is a stand-in: like §V's CA, the stand-in signs only a TEST anchor; the real owner -> belam link waits for the owner's device.
+Falsifiers: **F50** the table above (PASS) · **F51** the land gate verifies the commit signer's chain covers every added node's root and type (unrun: Z1 wiring) · **F52** a landing that deletes a file under .agi/scope/revoked is refused (unrun) · **F53** after one real rotation, a post's new session signs with a fresh §V cert and its scope chain still verifies (unrun).
+`agi-scope` whole:
+```python
+#!/usr/bin/env python3
+# agi-scope issue SUB ROOTS GROW NA PAR | verify CERT [ROOT TYPE] | revoke HASH | move POST NEWPARENT -- recursive scope certs (§Z2): attenuation-only links chained to the owner anchor; a revocation or a re-parent kills the whole subtree
+import sys,os,time,hashlib,subprocess as S
+A=sys.argv;D=os.environ.get('AGI_SCOPE','.agi/scope');ME=os.environ.get('AGI_SEAT','');K=os.environ.get('AGI_SIGN_KEY','')
+def no(m):print('refused:',m);sys.exit(3)
+def rd(p):return dict(l.split(' ',1)for l in open(p).read().splitlines()[1:])
+def hx(p):return hashlib.sha256(open(p,'rb').read()).hexdigest()[:16]
+def T():return dict(l.rstrip('\n').split('\t')[:2]for l in open(D+'/tree.tsv')if l.strip())
+def up(p):
+ t=T();r=[]
+ while p in t and t[p]not in r:p=t[p];r.append(p)
+ return r
+def st(s):return time.strftime('%Y%m%d%H%M%S',time.gmtime(int(s)))
+def sig(p,who,at):return S.run(['ssh-keygen','-q','-Y','verify','-n','agi-scope','-f',D+'/allowed_signers','-I',who,'-s',p+'.sig','-Overify-time='+st(at)],stdin=open(p,'rb'),capture_output=True).returncode==0
+def sign(p):S.run(['ssh-keygen','-q','-Y','sign','-n','agi-scope','-f',K,p],check=True,capture_output=True)
+def cov(c,P):return'*'in P or any(c==x or c.startswith(x+'.')for x in P)   # Z1 swaps in the graph-ancestry walk
+def sub(c,p):return all(cov(x,p['roots'].split(','))for x in c['roots'].split(','))and('*'in p['grow'].split(',')or set(c['grow'].split(','))<=set(p['grow'].split(',')))
+def chain(c):
+ L=[]
+ while True:
+  f=rd(c);x=hx(c);L.append(f)
+  r=f'{D}/revoked/{x}'
+  if os.path.exists(r):
+   v=rd(r)
+   if v['by']in[f['iss'],*up(f['iss'])]and sig(r,v['by'],v['at']):no(f'link {x} ({f["iss"]} -> {f["sub"]}) revoked by {v["by"]}')
+  if not sig(c,f['iss'],f['nb']):no(f'link {x}: signature by {f["iss"]} does not verify at its own time')
+  if T().get(f['sub'])!=f['iss']:no(f'link {x}: {f["iss"]} is not the parent of {f["sub"]} in the post tree')
+  if f['par']=='anchor':
+   if f['iss']!='owner':no('only the owner anchors a chain')
+   return L
+  c=f'{D}/certs/{f["par"]}';os.path.exists(c)or no(f'link {x}: parent cert {f["par"]} missing');p=rd(c)
+  if p['sub']!=f['iss']:no(f'link {x}: parent cert is not the issuer\'s')
+  if not sub(f,p):no(f'link {x}: scope {f["roots"]}/{f["grow"]} not within {p["roots"]}/{p["grow"]}')
+  if not(int(p['nb'])<=int(f['nb'])and int(f['na'])<=int(p['na'])):no(f'link {x}: validity outside the issuer\'s')
+if A[1]=='issue':
+ s,ro,gr,na,par=A[2:7];t=f'{D}/certs/new.{os.getpid()}';os.makedirs(D+'/certs',exist_ok=True)
+ open(t,'w').write(f'agi-scope v1\nsub {s}\niss {ME}\nroots {ro}\ngrow {gr}\nnb {int(time.time())}\nna {na}\npar {par}\n');sign(t)
+ x=hx(t)
+ if os.path.exists(f'{D}/certs/{x}'):os.remove(t);os.remove(t+'.sig');no(f'{x} already exists: an identical statement is never re-signed over')
+ os.rename(t,f'{D}/certs/{x}');os.rename(t+'.sig',f'{D}/certs/{x}.sig')
+ try:chain(f'{D}/certs/{x}')
+ except SystemExit:os.remove(f'{D}/certs/{x}');os.remove(f'{D}/certs/{x}.sig');raise
+ print(x)
+elif A[1]=='verify':
+ L=chain(A[2]);f=L[0]
+ if int(f['na'])<time.time():no('leaf expired')
+ if A[3:]and not(cov(A[3],f['roots'].split(','))and(f['grow']=='*'or A[4]in f['grow'].split(','))):no(f'{f["sub"]} may not grow {A[4]} under {A[3]}')
+ print('ok',' <- '.join(l['sub']for l in L),'<- owner')
+elif A[1]=='revoke':
+ os.makedirs(D+'/revoked',exist_ok=True);r=f'{D}/revoked/{A[2]}';open(r,'w').write(f'agi-revoke v1\nby {ME}\nat {int(time.time())}\n');sign(r);print('revoked',A[2],'by',ME)
+elif A[1]=='move':
+ p,np=A[2:4];u=up(p)
+ if ME not in u:no(f'{ME} is not a strict ancestor of {p}')
+ if np!=ME and ME not in up(np):no(f'{np} is outside {ME}\'s subtree')
+ if np==p or p in up(np):no(f'{np} is under {p}: a cycle')
+ t=T();t[p]=np;open(D+'/tree.tsv','w').write(''.join(f'{a}\t{b}\n'for a,b in t.items()));print('moved',p,'under',np,'by',ME,'-- its old chain no longer verifies; its new parent re-issues')
+```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 alive (agi-1d, gen 7), 07:1xZ 10-01 (owner night plan item 1, belam 07:00Z + 07:05Z signed [decision]s; council split U alive · V self-perpetuating · W all-is-one · X alive). Owner 06:3x-06:5xZ, verbatim: "Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." / "I can’t access it today so it might have to wait and do a stand in key on the box for now and auth it yourself as test." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math. Like the way we use our matrices to help hook into the login method but not the private key itself. Same here the matrices describe how the short lived ssh key can even be “popped” securely into whatever interface takes it. And it could itself be not even a raw ssh but a matrix compressed version that maybe is generated from how the whole system is setup with matrices encoding setup/use parameters." WHY this version differs: added §U (the DC directory = ONE public matrix in the graph, synced by §T to every box; a cert's key-id = the sha256 rid of its row, so editing a row revokes every cert under it; dc-project 288 B + dc-principals 302 B + 4 sshd lines in a Match block; U1-U9c PASS on a scratch sshd) and §X (the phone stand-in = one row + one §V cert ending at the owner's wake; X1-X7 PASS through §O.5's capsule-login byte for byte). U9c caught a real gap in the first form: a row with empty opts gave a full shell; dc-principals now fails closed on any row not opening restrict (+68 B). The KDF-from-the-row idea (belam 07:05Z) is NOT used: §V keeps the per-login key as fresh randomness and the rid as key-id only, which is the sound half of it. Decided in §X against §V's limit (3): the stand-in arms only a throwaway test CA, per the owner's ruling (a) capsule-login ONLY. §V (self-perpetuating, 983d2475c/52ad87a72) and the §T THOUGHT before it are in the grid. || all-is-one (agi-f0), 07:14Z 10-01 (night plan item 1, split with alive gen 7: U = the rows, V = self-perpetuating's login + CA, W = mine). Owner 06:5xZ, verbatim: "also have them move around boxes or spawn more on encryption town to confirm cross box easy seeding and cross-comms via GitHub initially and maybe eventually via for direct and mesh addresses? Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math." WHY this version differs: added §W. Seeding, sync and a message are ONE act (move a signed commit), the transport is one remote cell, and §S + §T run VERBATIM over a GitHub stand-in and an ssh-cert mesh hub with byte-identical bodies (X1-X3). The compression: ONE cert-authority allowed-signers line verifies every per-login key everywhere, the sender's name is the cert principal from the U row. Found and closed on owned boxes: git judges a cert at the commit's own date, so a stolen key can backdate (X11a), and a 2-line skew check in the hub's pre-receive refuses it (X11b). Via GitHub it stays a named limit. Recommended to keep the engine anchor K apart from the CA (X9 shows it could merge). xb 1,025 B + pre-receive 681 B, 0 B in the zygote. || all-is-one (agi-f0), 07:26Z 10-01: added §Y1 (ROUND 7, alive's split: Y1 all-is-one · Y2 self-perpetuating · Y3 alive). Owner 07:1xZ, verbatim: "make sure the engine still maintains graph growth order so posts can’t just grow nodes without respecting order. Could expand key ring system to also include node keys so only the correct node key schema unlocks next node add to graph". WHY this version differs: growth order = ONE matrix projected from every [type].md spawn block (149 shape rows + 2 alias rows), node key = the row hash, gate = an awk lookup against the RECEIVING side's matrix. Parity with the old spawn_gate on every live node: 5,390/5,390 (151 first disagreed, all short hyp:/exp: parent prefixes -> a 2-row alias cell, not code). Flagged, not ruled: [hypothesis].md allows a bare goal parent, contrary to belam's brief example. || alive (agi-1d, gen 7), 07:3xZ 10-01 (round 7, belam 07:18Z signed [decision]; split Y1 all-is-one · Y2 self-perpetuating · Y3 alive). Owner 07:1xZ, verbatim: "Also has a row by row option with row by row checks to allow weaker models to slot in better. Local models could slot in and be able to bypass decoder entirely potentially due to matrix math base. Tiny models could help do the format checking natively like jev but like absolutely tiny where we can trace everything fully" WHY this version differs: added §Y3. The gate and the fence are ONE JSON Schema (Y2's sch); llama.cpp compiles it itself, so 0 new grammar bytes. Measured with this box's llama-cli -j (schema compiled at argument parse, no model, no GPU, model slot untouched): Y2 as written fenced 15/25 formats -- every enum fell to 'accepting any string' (inner anchors), then \d, then the tags lookahead; three changes (strip the cell's anchors, \d->[0-9], a lookahead-free tags cell, 0/16,637 disagreements) give 25/25 with 0 gate verdicts moved on 5,381 live nodes. Forced bytes under a closed grammar = 7.2 percent of frontmatter, so the decoder is fenced, not bypassed. My first draft (fmt, 2,671 B, its own schema reader + GBNF translator) was dropped as a second source; Y3.5 (a local model under the grammar) waits for the model slot. || all-is-one (agi-f0), 07:39Z: §Y1 v2 on alive's Y3 seam ask (agi-1d [landed] @f725a8899): grow-gate now reads matrix AND schemas at the RECEIVING trunk tip and runs Y2's agi-fill check on every added node and, as a RATCHET, on every changed one -- measured why: the check refuses 238 of 5,402 live nodes today, so strict-on-edit would freeze them. Ya-Yi PASS on real node bodies. Named for the council: a push that changes ONLY a schema or the matrix is unguarded; their ring is a decision. || alive (agi-1d, gen 7), 07:4xZ 10-01: added §T.1 -- DG3's dry build of §T (doc:g716111-round6-build @58ff49120) found holes H1 H2 H4 T7c H7 in alive's seed; folded back in at 1,023 B with the real anchor (DG3's patch: 1,103 B), paid for by cuts named in §T.1; H7 DECIDED as --ff-only (the seed never authors a merge; every divergence is the Prime's), flip = one word +36 B. P2-P5c H1 H2 H4 H7 T7c PASS on a fresh scratch harness; the doc's bytes cmp-equal the tested ones. §T stays byte-exact as the record. || all-is-one (agi-f0), 07:46Z: §Y1 v3 folds belam's 07:4xZ ruling (option A, relayed by alive): a commit touching a schema or growth.tsv lands only signed by the seed's anchor; built into grow-gate (1,720 B) with §T's verify-commit, Yj-Yl PASS. The gate now runs self-perpetuating's real agi-fill check (@c7532c191) instead of my stand-in, and the 238/5,402 count is re-measured with it (unchanged, now by field).
