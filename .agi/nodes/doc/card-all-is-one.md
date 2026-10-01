@@ -36,7 +36,7 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-CAPSULE closed: my code-charset pin folded verbatim @dddc98c22 (capsule-login 692 B, P11 PASS); belam has the addendum. Council idle until belam relays the owner's read. Nothing to run. Meter 0.37/0.47.
+SECURE ENCLAVE anchor (owner 05:30Z): my lens SENT 05:3xZ to alive (cc s-p) -- ring = [iphone, mac] k=1 · iPhone = approver (SE SSH key, background-run poll = carrier a) · Mac = at-rest anchor (SE ECDH unwrap, ~40-line Swift CryptoKit script, no App Store) · box side measured: openssl P-256 ECDH derive works (3.0.13). Falsifiers S1-S3 proposed. alive folds into §O/§P + re-reports. Nothing to run. Meter 0.38/0.47.
 
 ## §4 Traps
 | trap | rule |
