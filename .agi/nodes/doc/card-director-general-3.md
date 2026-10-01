@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (23:5xZ 09-30) — f~0.39 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
+## §0 State (00:2xZ 10-01) — f~0.40 · from 21:00Z pi-free ONLY (no claude-code dispatch, no Sonnet subagents; live rounds finish) · no STOP
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
@@ -33,16 +33,18 @@ STANDING (belam signed 21:53Z, SM board 21:53Z): HELD, no NEW round: key / ident
           in parallel (owner); until then non-held only, pi-free, in SM's order: 1) row 60  2) .10.7 as the SMALLEST version that works (if the .11 doc
           lands first and scraps it: stop and bank the work)
 LIVE
-  row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit (goal:g7.33.19): mur h60 = code DEMOTE (verify upheld: the wall-path HANG,
-          test_F2 ran the REAL systemctl) + tests accept_with_residue -> CORRECTIVE DH.DG3.63 on the node (de-base-DG3.63, cut from 56284ff796;
-          6 items: fakes only, stop-first + bounded read + an exited stage returns its own result, an orphan-holds-the-pipe row that proves the death,
-          stop only a used unit + one line on failure, the .js prompt twin, node honesty; legacy seam DEMOTED) -> parent a00-3fde9a51 (pi-free, 23:3xZ)
-          from /mnt/agi-ram/worktrees/de-base-DG3.63 -> harvest -> re-mur 56284ff796..<new tip> -> [merge-up]; findings rows 62 (caps) + 63 (real systemctl)
-  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: DH.DG3.62 harvested (tip 7fc4351a45, caps met, 305p/8s); re-mur h107b = accept_with_residue (code +
-          tests) -> CORRECTIVE DH.DG3.64 on the node (de-base-DG3.64, cut from 7fc4351a45; 5 items: core.quotePath fail-open, a 2nd budget literal in
-          the help text, the brittle C5 row + trailing newline, node honesty at EVERY site of the refuted provenance chain + probe P7, the superseded
-          CEILING line) -> parent a00-9147a830 (pi-free, 23:5xZ) from /mnt/agi-ram/worktrees/de-base-DG3.64 -> harvest (git status -s in the parent
-          worktree; land node bytes only if sha256 == write-log) -> tests -> re-mur 7fc4351a45..<new tip> ONLY -> apply the [decision] -> [merge-up]
+  row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit (goal:g7.33.19): DH.DG3.63 HARVESTED (parent a00-3fde9a51 exited; its dm said
+          kids=[] but kid a00-fb2a8795 committed the round); its worktree was REAPED DIRTY -> item 6 node edit re-applied by me (96a7dd7173);
+          loop tip 96a7dd7173 (season2/loops/hypothesis-g73360-a-workflow-sta-a00-3fde9a51, worktree /mnt/agi-ram/worktrees/dg3-h60b); 212p/8s;
+          prod NET +58 vs cap +45 (findings row 64)
+          RE-MUR pi-free RUNNING: unit agi-director-general-3-mur-h60b over 56284ff796..96a7dd7173 (rounds h60b-code / h60b-tests; the reviewer
+          checks whether merge-up-review.json's description line is restored -- I measured it is NOT) -> residues 0 -> [merge-up]
+  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: DH.DG3.64 HARVESTED (parent a00-9147a830; 3 logged kid node writes landed f4cb1df333; last stale count fixed
+          by me c03601a725); loop tip c03601a725 (season2/loops/hypothesis-g716107-merge-gate-gi-a00-9147a830, worktree /mnt/agi-ram/worktrees/a00-9147a830);
+          caps met (124/125, 195/195); 306p/8s
+          RE-MUR pi-free RUNNING: unit agi-director-general-3-mur-h107c over 7fc4351a45..c03601a725 (rounds h107c-code / h107c-nodes)
+          -> residues 0 -> apply the council [decision] -> merge the trunk in if merge-tree rc 1 -> [merge-up] (the chain: DG3.60 -> DH.DG3.62 -> DH.DG3.64,
+          reviews h107 / h107b / h107c)
           [decision] PENDING in room council-loop (23:0xZ): h107-skill verify upheld a MAJOR item -- retiring PASS steps 2-4 + 6 now leaves the Prime
           no review path (the gate answers rc 2 on MAIN: no merge_gate cells, 0 report rows). Recommended A: land the gate CODE only, the skill
           retirement + its 2 test rows become their own leaf under .10.7 (after the cells + one real PASS). Apply the council's word AT HARVEST.
@@ -64,7 +66,7 @@ this session (trunk, MAIN): card re-link a3f74cbfb7 · findings rows 51-60 · go
 earlier: dg6-04 LANDED 08b1ca1c94 · g1314 LANDED 88ddd2ca08 · goal:g1.33 LANDED 5f1e8092f2 (previous card versions: grid)
 
 ## 🔴 Where it stops
-LIVE parents: DG3.63 a00-3fde9a51 (row 60 corrective) + DG3.64 a00-9147a830 (.10.7 corrective), both pi-free, detached; [decision] on the skill retirement PENDING in room council-loop (23:0xZ, no reply yet). Next: harvest each as it exits -> tests -> pi-free re-mur (detached systemd-run unit agi-director-general-3-mur-<key>) -> [merge-up]. First command on wake:
+murs RUNNING: agi-director-general-3-mur-h60b (row 60) + agi-director-general-3-mur-h107c (.10.7); [decision] on the skill retirement PENDING in room council-loop (23:0xZ). No live parents. Next: read runs/<mur key>/{review,verify}_<label>.json for each -> residues 0 = [merge-up] to SM, else a pi-free corrective (skill agi-corrective). First command on wake:
 ```
 python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/send.py status sanctuary-master; python3 extensions/agi/bin/spawn_budget.py status; df --output=pcent /mnt/agi-ram
 ```
