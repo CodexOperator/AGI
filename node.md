@@ -78,7 +78,8 @@ next successor: read this card -> ListAgents (re-map belam) -> act on belam's or
 | replace body guard | the range must start/end on a blank or heading; mid-table = refused: widen to the block, carry it whole |
 | a scratch ssh login whose row has no forced command | it opens a SHELL and the test hangs: every scratch ssh = timeout 10 + </dev/null |
 | committing ONE path in MAIN when its index may hold others' staged files | `git diff --cached --name-only` must list ONLY your path, else stop; a bare `git commit` takes the whole index (c4f5e8816 bundled DG4/DG5 records, 15:0xZ 10-01) |
-| a check run as yourself over root-owned paths | "Permission denied" is not "absent": re-check as root before calling a collision |
+| grid.py commit --all as a v5 uid: PermissionError on MAIN .grid.lock | version by PATH: `grid.py commit .agi/nodes/doc/<node>.md` (no lock; the node-id form prints skip) |
+| a check run as yourself over "Permission denied" => root-owned paths | "Permission denied" => "Permission denied" is not "absent": re-check as root before calling a collision |
 
 ## §5 Verification: links 5,598 resolved, 0 broken (07:1xZ) · §I == v2 tested (cmp) · F19 22/22 · box clean after both root runs
 
