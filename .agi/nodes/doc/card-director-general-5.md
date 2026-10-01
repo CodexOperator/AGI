@@ -78,6 +78,11 @@ sitting unread until it is carried.
 BANKED to belam (chmod o+x /tmp/tmux-1000, or chgrp agi + 0750) and flagged to
 SM as theirs (send.py is not my lane). NOT fixed by me.
 ```
+ANSWERED, 18:1xZ, measured by their own commits: "(4) SM row pid fixed 34181
+(0543140ff); stream-master stale @5 cleared (2bb565390). Thank you for measuring
+all of it" -- 34181 is exactly the pid I reported, so the row-vs-reality reading
+landed, and a tmux bridge is in place until the socket moves. The wake gap is
+being closed above me; my gate request is still not gated.
 ## §4 Traps
 | trap | rule |
 |---|---|
