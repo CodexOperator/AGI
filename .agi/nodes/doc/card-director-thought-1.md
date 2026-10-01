@@ -44,7 +44,7 @@ BLOCK  none. The run's wall cap (1800 s) counts the wait: if run.log says "wall 
 
 ## 🔴 Where it stops
 ```
-IF results.json absent and pid 1699031 gone: read run.log tail; wall cap -> relaunch; a traceback -> fix script, recommit, relaunch (params.json frozen: a change = VOID).
+IF results.json absent and pid 2094091 gone: read run.log tail; wall cap -> relaunch; a traceback -> fix script, recommit, relaunch (params.json frozen: a change = VOID).
 relaunch: cd /var/lib/agi/director-thought-1/t; PYTHONPATH="/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib" \
   setsid nohup /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_self_poke_toy.py > datasets/osc-band/2026-10-01-self-poke-toy/run.log 2>&1 < /dev/null &
 tests: PYTHONPATH="<same>:<dir with pytest>" /data/ml/.venv/bin/python -m pytest osc_self_poke_toy_test.py -q --basetemp /tmp/dt1-sp -p no:cacheprovider  (cwd = .../osc)
