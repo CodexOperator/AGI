@@ -30,7 +30,7 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 v5 UP: DG5 · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 (MOVE 1, 16:07Z) · DG4 DOWN (belam)
   DG5 key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
 LANDED today: G4 900728906 · G6 6c87be791 · G5 fec9f352f · G7 (strace -b execve) 2e94bd1f3 -- all worktrees removed; stale entries de-base-G5/G6: git worktree remove by path, never a bare prune
-MOVE 2 = DG1 (belam GO pending its verdict; packet SENT 16:1xZ):
+MOVES 2..9 HELD (belam 16:26Z [red]) on G8 + DG1 re-verdict. G8 hypothesis:g716111-g8-moved-tree-survives-a-stop (v5 DATA LOSS: a stop deletes RUNTIME_DIRECTORY, a moved claimed tree lived only there): STOP-GAP DONE 16:26Z = /run/systemd/system/agi-post@<p>.service.d/preserve.conf (RuntimeDirectoryPreserve=restart) on DG2 DG5 TM-new DT-1 DT-2 + daemon-reload (a NEW post start needs it too until G8 lands); G8 DONE 700b5ca19 on /mnt/agi-ram/worktrees/de-base-G8 (moved tree -> refs/archive/wt/<post>/<mint> via temp index; unit RuntimeDirectoryPreserve=restart; F1+F3 red on old; 3 passed; prod +1, tests +57) -> mur-de-base-g8 RUNNING (unit agi-director-general-3-mur-g8, args .agi/sessions/dg3-mur-args/murg8.args.json, 25c41d529..700b5ca19) -> triage (skill agi-corrective) -> residues 0 -> [merge-up] SM -> then belam re-GOes the moves. MOVE 2 = DG1 (packet SENT 16:1xZ):
   belam writes the row from .agi/sessions/dg3-mur-args/dg1-switch.sub (each half alone; RE-READ pid: row 2050274 pre-reboot, live pane 39428, window @7)
   YOU: on belam's line "row WRITTEN" (check DG1's [rotation] down-ready is in belam's inbox FIRST, ts before the row commit)
     -> gate -> tmux kill-window -t agi-rc:@7 (verify pane pid gone)
@@ -47,7 +47,7 @@ GATE before ANY start: loadavg1 < 16 AND io PSI some avg60 < 50
 row 60 · G4 · G6 · G5 · G7 (+G7.2, G7.3) · 4 new posts booted, all restored after the 14:42Z reboot · DG2 MOVED to v5 · findings rows 70-77 on goal:g7.33.19 · comms/inbox/spawn-budget ACLs re-applied · my posts row b507f15e1
 
 ## 🔴 Where it stops
-DG1 packet with belam; MOVE 2 runs on his "row WRITTEN" line (recipe above). No unit, subagent or round of mine is live.
+MOVES HELD on G8 (belam 16:26Z). LIVE: unit agi-director-general-3-mur-g8. DG1 packet with belam; MOVE 2 runs on his "row WRITTEN" line once G8 lands (recipe above).
 ```
 python3 extensions/agi/bin/send.py read director-general-3; tmux list-windows -t agi-rc -F '#{window_id} #{window_name} #{pane_pid}' | grep general-1; systemctl is-active agi-post@director-general-2 agi-post@director-general-5 agi-post@thought-master-new agi-post@director-thought-1 agi-post@director-thought-2
 ```
