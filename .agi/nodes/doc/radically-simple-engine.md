@@ -1670,6 +1670,7 @@ send: agi-fill call (OpenAI, Anthropic or bare arguments) · row by row: agi-fil
 | PARITY: every live node through the window's schema vs the OLD gate | 5,398 nodes: 5,393 same verdict; the 5 others lack next_edges / mint_id, which the window always writes |
 | every [type] + variant renders a valid Draft-7 JSON Schema | 25 of 25 (22 types; goal x4, build x2) |
 | wrong order: a hypothesis under a bare goal | refused, rc 2, naming the row's order |
+| a parent written with a short prefix (`hyp:x`), resolved through Y1's `@short type` alias rows (all-is-one 07:3xZ: 151 live nodes use them) | opens; `hypothesis:x` opens the same window; an `idea` parent is still refused |
 | captive: Write · Bash ls · Bash agi-fill, while open; Write after close | 2 · 2 · 0 ; 0 |
 | OpenAI shorthand missing testable_claim · Anthropic tool_use valid · OpenAI nested with STRING arguments | refused, the field named · written · written |
 | row mode, goal[subgoal]: goal_kind perpetual · goal_id 7.99 · G7.99 · confidence high · an unknown field · "." | refused (const subgoal) · refused (pattern) · ok · refused (number) · refused · written |
@@ -1677,7 +1678,7 @@ send: agi-fill call (OpenAI, Anthropic or bare arguments) · row by row: agi-fil
 | 3 failed tries · close · timeout | closed, nothing written · closed · closed, rc 4 |
 | every node the window wrote, through the OLD gate | 0 errors |
 
-**Bytes (expansion, config:engine-wrap; 0 B in the zygote):** `agi-fill` 4410 B (python3 + yaml + jsonschema, both already on the box) · `agi-captive` 311 B · settings.json +61 B (one PreToolUse line) · cells `fill_window`, `fill_tries`. Retires, once Y1-Y3 are built: write.py's spawn gate and create path for NEW nodes (parity row 20 stops leaning on the old Python; the old gate stays the ORACLE in the suite until Phase 3 closes).
+**Bytes (expansion, config:engine-wrap; 0 B in the zygote):** `agi-fill` 4484 B (python3 + yaml + jsonschema, both already on the box) · `agi-captive` 311 B · settings.json +61 B (one PreToolUse line) · cells `fill_window`, `fill_tries`. Retires, once Y1-Y3 are built: write.py's spawn gate and create path for NEW nodes (parity row 20 stops leaning on the old Python; the old gate stays the ORACLE in the suite until Phase 3 closes).
 **Honest limits.** (1) The captive hook only fences TOOLS: a post can still type prose; it cannot write a file or run another command until the window closes. (2) A lookahead in `tags`'s item_regex (`(?!parked:)`) is a JSON-Schema pattern here but cannot be a GBNF rule: under Y3's grammar that one field stays gate-checked, not decode-fenced. (3) The body (the schema's prose order, e.g. a hypothesis's ## Measured .. ## CEILING) is one free string: format-first shows it only if Y3 adds it as a pattern; a merge-up reviewer still checks prose. (4) Real ids come from the slug of the title; a clash is refused (rc 5), never overwritten.
 Falsifiers: **F46** the parity sweep above (PASS: 5,393/5,398, the 5 explained) · **F47** the test table (PASS) · **F48** a pi-free post, captive, fills a hypothesis through the window in one call (unrun: needs DG5 on the new engine) · **F49** a 1-3 B local model in ROW mode under Y3's grammar writes a node the old gate accepts (unrun: Y3).
 `agi-captive` whole:
@@ -1716,8 +1717,9 @@ def done(w,a):
  fm={'id':w['child']+':'+s,'type':w['child'],'mint_id':uuid.uuid4().hex,'parents':w['parents'],'next_edges':[],'key':w['nid'],'schema':w['schema'],**a}
  open(p,'w').write('---\n'+yaml.safe_dump(fm,sort_keys=False,allow_unicode=True)+'---\n\n'+b.rstrip('\n')+'\n');end('written '+p)
 if A[1]=='open':
- r=[l.rstrip('\n').split('\t')for l in open(E('AGI_GROWTH','.agi/nodes/.geometry/growth.tsv'))if l.startswith(A[2]+'\t')]or end('refused: no growth row '+A[2],2)
- n,c,v,par=r[0][:4];g='+'.join(sorted(x.split(':')[0]for x in A[3:]))
+ G=[l.rstrip('\n').split('\t')for l in open(E('AGI_GROWTH','.agi/nodes/.geometry/growth.tsv'))];Z={l[0][1:]:l[1]for l in G if l[0][:1]=='@'}
+ r=[l for l in G if l[0]==A[2]]or end('refused: no growth row '+A[2],2)
+ n,c,v,par=r[0][:4];g='+'.join(sorted(Z.get(x.split(':')[0],x.split(':')[0])for x in A[3:]))
  g==par or end(f'refused: parents {g} but row {n} unlocks {par} -> {c}',2)
  sid,js=sch(c,v);json.dump({'nid':n,'child':c,'parents':A[3:],'schema':sid,'js':js,'t':time.time(),'tries':0,'rows':{}},open(W,'w'))
  print('FILL WINDOW OPEN: '+c+('' if v=='-' else f'[{v}]')+f' under {" ".join(A[3:])} · key {n} · schema {sid}\nFORMAT (answer with ONE call to this tool, nothing else):')
