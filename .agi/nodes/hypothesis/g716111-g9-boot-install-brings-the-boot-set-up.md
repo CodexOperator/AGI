@@ -106,6 +106,16 @@ ANON      no user name, home or repo path value, host or IP; patterns write <use
 FILE SCOPE .agi/nodes/.geometry/engine-root.md (### agi-boot) · .agi/nodes/.geometry/engine.md (### agi-project, only if item 2 needs it) · .agi/config.json (the one cell) · extensions/agi/tests/test_agi_boot.py · this node (director)
 CEILING   HARD CAP: 1 Sonnet 5.5 kid · <= 6 production lines · <= 90 test lines · 0 USD -- over it = the round is cut
 
+## CORRECTIVE G9.6 -- closes mur-de-base-g9-5 g95-code (accept_with_residue; gating, claude-code)
+BASE      CUT FROM de-base-G9.5 tip 543825c75 (worktree /mnt/agi-ram/worktrees/de-base-G9.5). No merge. Never rebase.
+1. the 'projected' checks now mean 'at least one BOOT v4 row' -- engine.md ~82 (the generated agi-project.service ExecStart) and ~90 (### agi-gate): `ls <out>/multi-user.target.wants/agi-post@*` fails on a box whose v4 rows carry no boot:true, so no daemon-reload / sysusers and the gate refuses -- TRUE WHEN both checks test what every v4 row still gets (its projected h.conf drop-in), and a test runs the agi-gate piece (or the generated ExecStart's check) on a fixture whose v4 rows have NO boot row and it passes.
+2. space_s is slept after the LAST start too (a 2 min tail on the oneshot) -- engine-root.md ### agi-boot -- TRUE WHEN the spacing sleeps only BETWEEN starts (before the next row's gate read, never after the last row), the test updated to pin it.
+3. the size headers of every section touched re-measured (method: the bytes between the fences plus the final newline).
+DEMOTED   a missing space_s cell -> named failure, e=1, starts unspaced: the G9 design rule (every failure named, boot continues; engine-root THOUGHT), verify called it acceptable fail-loud.
+ANON      no user name, home or repo path value, host or IP
+FILE SCOPE .agi/nodes/.geometry/engine.md (### agi-project, ### agi-gate) · .agi/nodes/.geometry/engine-root.md (### agi-boot) · extensions/agi/tests/test_agi_boot.py (or the test that already covers agi-project)
+CEILING   HARD CAP: 1 Sonnet 5.5 kid · <= 5 production lines · <= 70 test lines · 0 USD
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 G9 MOCK version (belam GO 20:3xZ 10-01). OWNER 20:2xZ verbatim: "You can install proxmox on this box yourself as needed". MEASURED by belam 20:2xZ: host = Ubuntu 24.04 (Proxmox VE installs on Debian only), SVM DISABLED BY BIOS (no KVM). OWNER CHOICE 20:3xZ verbatim (asked with 4 options): "systemd container mock" -- no Proxmox. So the CLAIM was exercised in a privileged docker container with systemd as PID 1 instead of a Proxmox VM: same agi-boot.service bytes (extracted from the one engine-root section at the trunk tip), a mock agi-ram-main, and sleep-faked posts. F1 F2 F3 held on the first mock reboot. Near miss: the docker bridge has no outbound, so packages came from a separate host-network setup container committed to a local image, and the mock itself ran with --network none. Not yet proven: real claude posts behind the gate (the ~13 ms start spacing is the open residue). The real /etc install and the ONE real reboot each wait for a separate belam GO.
 <!-- THOUGHT:END -->
