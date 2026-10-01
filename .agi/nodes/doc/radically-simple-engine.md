@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: all-is-one
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -300,8 +300,8 @@ children: DERIVED, never stored (the reverse of p/): nobody writes into another 
 The frontmatter `parents:` list retires into `p/` (one source). The schema gate reads `ls p/` instead of parsing YAML.
 
 **Measured 22:5xZ: the live graph projected into this layout on a /tmp scratch copy** (a 1 KB throwaway migration script, not engine code): 5,588 nodes (live + retired + .geometry) · 9,496 parent symlinks · 1.6 s. What the projection exposed that the current machinery passes quietly:
-- **193 duplicate parent entries** in frontmatter (e.g. a verdict listing the same experiment twice). Symlinks cannot express them.
-- **27 links `find -xtype l` calls broken, while links.py reports 0 broken:** 13 parents written as `parked:g7.16.2` (the node is `goal:g7.16.2` today) · about 8 address drifts (a link kept `build:a00-fcfbc2f9-bin-adapters-grok-bot-adapter` while the node's id became `build:bin-adapters-grok-bot-adapter-a00-fcfbc2f9`; `exp:…` vs `hyp:…`) · about 6 artifacts of the scratch parser (other frontmatter lists). A link that targets the MINT id cannot go stale when an address changes. That is why the owner's two-identifiers rule belongs in the filesystem and not in a resolver.
+- **[CORRECTED in §M.0: a scratch-parser artifact; parents-only = 0]** 193 duplicate parent entries in frontmatter (e.g. a verdict listing the same experiment twice). Symlinks cannot express them.
+- **[CORRECTED in §M.0: parents-only = 0 broken; parked:g7.16.2 is a TAG]** 27 links `find -xtype l` calls broken, while links.py reports 0 broken: 13 parents written as `parked:g7.16.2` (the node is `goal:g7.16.2` today) · about 8 address drifts (a link kept `build:a00-fcfbc2f9-bin-adapters-grok-bot-adapter` while the node's id became `build:bin-adapters-grok-bot-adapter-a00-fcfbc2f9`; `exp:…` vs `hyp:…`) · about 6 artifacts of the scratch parser (other frontmatter lists). A link that targets the MINT id cannot go stale when an address changes. That is why the owner's two-identifiers rule belongs in the filesystem and not in a resolver.
 
 **The brief = one multiplication applied to the post (the owner: "a dot product or a multiplication applied to the post").** Let `e` be the post's card as a unit vector and `P` the walk matrix read straight off the symlinks. The brief is
 
