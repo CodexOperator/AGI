@@ -1,4 +1,4 @@
-"""G8: a moved claimed tree is archived to refs/archive/wt before agi-wt drop exits 4."""
+"""G8: a moved claimed tree is archived to the flat ref refs/archive/worktrees/<post>@<mint> before agi-wt drop exits 4."""
 import os, re, shutil, subprocess
 from pathlib import Path
 
@@ -38,12 +38,16 @@ def move(g, t, d):
     g("git", "commit", "-qam", "move")
 
 
+def lock(t, ref):  # a pre-existing <ref>.lock: git cannot write the archive ref
+    (t / ".git" / ref).parent.mkdir(parents=True, exist_ok=True), (t / ".git" / f"{ref}.lock").write_text("")
+
+
 def test_f1_moved_tree_archived_and_survives_stop(tmp_path):
     g, t, rt, d = setup(tmp_path)
     move(g, t, d)
     r = g("agi-wt", "drop", "doc:t1")
     assert r.returncode == 4 and "moved" in r.stdout
-    ref = "refs/archive/worktrees/p1/m1"
+    ref = "refs/archive/worktrees/p1@m1"
     assert g("git", "show", f"{ref}:.agi/nodes/n.md").stdout == NODE + "edited\n"
     assert g("git", "status", "--porcelain", "--", ".agi").stdout.strip() == ""
     shutil.rmtree(rt)
@@ -66,22 +70,23 @@ def test_f3_unit_keeps_runtime_dir_across_restart():
 def test_r1_failed_archive_is_loud_and_not_4(tmp_path):
     g, t, rt, d = setup(tmp_path)
     move(g, t, d)
-    g("git", "update-ref", "refs/archive/worktrees/p1", "HEAD")  # d/f clash: the archive cannot be written
+    lock(t, "refs/archive/worktrees/p1@m1")
     r = g("agi-wt", "drop", "doc:t1")
     assert r.returncode == 5 and "agi-wt: archive of doc:t1 failed" in r.stderr and "moved" not in r.stdout
 
 
 def test_r2_one_namespace_with_heal():
-    ns = re.search(r'^SWEEP_ARCHIVE_NS = "([^"]+)"', (GEO.parents[2] / "extensions/agi/bin/heal.py").read_text(), re.M)[1]
-    assert f"update-ref {ns}$s/" in piece("agi-wt")
+    m = re.search(r'^SWEEP_ARCHIVE_NS = "([^"]+)"', (GEO.parents[2] / "extensions/agi/bin/heal.py").read_text(), re.M)
+    assert m, "heal.py no longer spells SWEEP_ARCHIVE_NS = \"...\" -- re-pin the namespace"
+    assert f"update-ref {m[1]}$s@" in piece("agi-wt")
 
 
 def test_m1_identity_post_wins_and_none_refuses(tmp_path):
     g, t, rt, d = setup(tmp_path / "a", AGI_POST="p2")
     move(g, t, d)
     assert g("agi-wt", "drop", "doc:t1").returncode == 4
-    assert g("git", "for-each-ref", "refs/archive").stdout.split()[-1] == "refs/archive/worktrees/p2/m1"
-    g, t, rt, d = setup(tmp_path / "b", AGI_SEAT=None)
+    assert g("git", "for-each-ref", "refs/archive").stdout.split()[-1] == "refs/archive/worktrees/p2@m1"  # flat: no slash after the namespace
+    g, t, rt, d = setup(tmp_path / "b", AGI_SEAT=None, AGI_POST=None)
     move(g, t, d)
     r = g("agi-wt", "drop", "doc:t1")
     assert r.returncode == 5 and "no AGI_POST/AGI_SEAT" in r.stderr and g("git", "for-each-ref", "refs/archive").stdout == ""
@@ -91,4 +96,12 @@ def test_m3_agi_flush_archives_moved_tree_end_to_end(tmp_path):
     g, t, rt, d = setup(tmp_path)
     move(g, t, d)
     assert g("agi-flush").returncode == 0
-    assert g("git", "show", "refs/archive/worktrees/p1/m1:.agi/nodes/n.md").stdout == NODE + "edited\n"
+    assert g("git", "show", "refs/archive/worktrees/p1@m1:.agi/nodes/n.md").stdout == NODE + "edited\n"
+
+
+def test_g83_agi_flush_exits_5_when_a_drop_exits_5(tmp_path):
+    g, t, rt, d = setup(tmp_path)
+    move(g, t, d)
+    lock(t, "refs/archive/worktrees/p1@m1")
+    r = g("agi-flush")
+    assert r.returncode == 5 and "agi-wt: archive of m1 failed" in r.stderr and d.exists()

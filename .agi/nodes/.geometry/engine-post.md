@@ -73,7 +73,7 @@ set -e;cd ~/t;r=${3:-HEAD};w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};f=$(git grep -lE "
 P="$f $(git show $r:$f|sed -n 's/^payload_ref: "\{0,1\}\([^"]*\)"\{0,1\}$/\1/p')";case $1 in pull)[ -d $d ]&&{ echo $d;exit;};mkdir -p $w
 [ $(df --output=pcent $w|tail -1|tr -dc 0-9) -lt ${AGI_WT_HOLD:-60} ]||{ echo "hold $w";exit 3;};mkdir $d;git archive $r $P|tar -xC $d;git rev-parse $r>$d/.b;echo $d;;
 drop)git diff --quiet $(cat $d/.b) -- $P||{ s=${AGI_POST:-$AGI_SEAT};[ "$s" ]||{ echo "agi-wt: no AGI_POST/AGI_SEAT, $2 not archived" >&2;exit 5;}
-(x=$(mktemp -u);trap "rm -f $x" EXIT;b=$(cat $d/.b);export GIT_INDEX_FILE=$x;git read-tree $b&&git --work-tree=$d add -A -- $P&&git update-ref refs/archive/worktrees/$s/$(basename $d) $(git commit-tree $(git write-tree) -p $b -m wt))||{ echo "agi-wt: archive of $2 failed" >&2;exit 5;};echo "moved $2";exit 4;};tar -cC $d --exclude=.b .|tar -x;git add $P;git commit -qm"$USER: $2">/dev/null||:;rm -rf $d;;esac
+(x=$(mktemp -u);trap "rm -f $x" EXIT;b=$(cat $d/.b);export GIT_INDEX_FILE=$x;git read-tree $b&&git --work-tree=$d add -A -- $P&&git update-ref refs/archive/worktrees/$s@$(basename $d) $(git commit-tree $(git write-tree) -p $b -m wt))||{ echo "agi-wt: archive of $2 failed" >&2;exit 5;};echo "moved $2";exit 4;};tar -cC $d --exclude=.b .|tar -x;git add $P;git commit -qm"$USER: $2">/dev/null||:;rm -rf $d;;esac
 ~~~
 
 ### agi-track (89 B)
@@ -85,7 +85,7 @@ grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'>>$HOME/track
 ### agi-flush (181 B)
 ~~~sh
 #!/bin/sh
-cd ~/t;for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -d $d ]&&agi-wt drop $(basename $d);done;agi-turn;git merge -q --no-edit ${AGI_TRUNK:-trunk}||git merge --abort;:
+cd ~/t;k=0;for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -d $d ]||continue;agi-wt drop $(basename $d);[ $? = 5 ]&&k=5;done;agi-turn;git merge -q --no-edit ${AGI_TRUNK:-trunk}||git merge --abort;exit $k
 ~~~
 
 ### gitconfig (180 B)
