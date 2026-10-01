@@ -10877,14 +10877,6 @@ def _pin_naming(tmp_path, seat, target):
     return g, pin
 
 
-def _sealed(mode_too: bool):
-    """A transcript this uid can STAT but not OPEN (mode 000 on the FILE), or
-    not even stat (mode 000 on its PARENT DIR). The first is the seam a stat
-    guard cannot see; the second is the one the box actually produced.
-    Restores the mode in a finally so tmp_path can be cleaned."""
-    return mode_too
-
-
 def test_an_unreadable_pin_target_is_unknown_not_a_crash(tmp_path, monkeypatch):
     # The STAT is what fails (EACCES on a tree this uid cannot enter); pin
     # TEXT is readable, so _parse_pin_record is happy and the crash lands on
@@ -10935,7 +10927,9 @@ def test_seat_fraction_is_none_when_the_transcript_stats_but_cannot_be_opened(tm
     try:
         assert target.exists(), "precondition: the transcript MUST stat cleanly"
         g, _pin = _pin_naming(tmp_path, "sealed-seat", target)
-        assert rotate._read_pin_target(g / "sessions" / "sealed-seat.meter") == target, (
+        pin = rotate.find_pin_log(g, "sealed-seat")
+        assert pin is not None, "precondition: the seat-stable pin must resolve"
+        assert rotate._read_pin_target(pin) == target, (
             "precondition: the stat seam passes it through, which is why the "
             "guard has to live at the READ")
         assert rotate._seat_fraction(g, {"name": "sealed-seat"}) is None, (
@@ -10963,16 +10957,14 @@ def test_status_walks_past_an_unreadable_seat_to_the_next_row(tmp_path, monkeypa
     readable = tmp_path / "readable.jsonl"
     readable.write_text('{"usage": {"input_tokens": 1}}\n', encoding="utf-8")
     g, _p1 = _pin_naming(tmp_path, "aaa-sealed-seat", sealed)
-    g2, _p2 = _pin_naming(tmp_path / "b", "zzz-readable-seat", readable)
+    g, _p1 = _pin_naming(tmp_path, "aaa-sealed-seat", sealed)
+    # the readable seat's pin goes in the SAME graph, via the same helper, so
+    # cmd_status resolves both the way it resolves in production
+    (g / "sessions" / "zzz-readable-seat.meter").write_text(
+        f"4\t{readable}\n", encoding="utf-8")
     rows = [{"name": "aaa-sealed-seat"}, {"name": "zzz-readable-seat"}]
     monkeypatch.setattr(rotate, "_load_seats", lambda r: rows)
     monkeypatch.setattr(rotate, "_read_generation", lambda r, s: 1)
-    monkeypatch.setattr(rotate, "_read_seat_row", lambda r, s: None, raising=False)
-    # both pins must resolve out of the SAME graph so cmd_status finds them
-    for p in (g / "sessions" / "aaa-sealed-seat.meter",):
-        assert p.exists(), p
-    (g / "sessions" / "zzz-readable-seat.meter").write_text(
-        f"4\t{readable}\n", encoding="utf-8")
     try:
         rc = rotate.cmd_status(argparse.Namespace(seats=True, record=None), g)
     finally:
