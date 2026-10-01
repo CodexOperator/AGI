@@ -9,9 +9,9 @@ import os, re, time, signal, subprocess, collections
 PAGE = os.sysconf('SC_PAGE_SIZE'); ME = os.getpid()
 def meminfo(k): return int(re.search(rf'^{k}:\s+(\d+)', open('/proc/meminfo').read(), re.M).group(1)) * 1024
 TOTAL = meminfo('MemTotal')
-PROTECT_COMM = {'claude', 'tmux: server', 'ffmpeg', 'tmux'}
-PROTECT_CMD = re.compile(r'streamer-stub|rotate\.py launch-wrapper|agi-memguard')
-PI_CMD = re.compile(r'\.npm-global/(bin/pi\b|lib/node_modules/\S*pi)')
+PROTECT_COMM = {{PROTECT_COMM}}
+PROTECT_CMD = re.compile(r'{{PROTECT_CMD}}')
+PI_CMD = re.compile(r'{{PI_CMD}}')
 POST_CG = re.compile(r'{{POST_CGROUP_RE}}', re.M)
 hist = collections.deque(); stopped = set(); last_alert = 0.0
 def log(msg, red=False):

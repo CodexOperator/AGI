@@ -616,10 +616,11 @@ def test_memguard_protects_a_posts_pi_and_leaves_other_pi_workers_at_worker_adj(
         (d / "comm").write_text(comm + "\n"); (d / "cmdline").write_text(cmd.replace(" ", "\0") + "\0")
         (d / "statm").write_text("10 10 1 1 0 1 0\n"); (d / "cgroup").write_text(cg + "\n")
         (d / "oom_score_adj").write_text(str(adj))
-    src = R.rendered(piece, _vs()).replace("/proc", str(proc))
+    src = R.rendered(piece, _vs(MEMGUARD_LOG=str(tmp_path / "guard.log"))).replace("/proc", str(proc))
+    assert "/var/log" not in src       # log() writes a tmp path here, never the live log
     src = src.replace("time.sleep(", "(_ for _ in ()).throw(SystemExit)  # (")
     calls = []   # recorders stand in for os.kill / subprocess.run: no real signal, no spawn
-    assert "os.kill(" in src and "subprocess.run(" in src
+    assert all(c in src for c in ("os.kill(", "subprocess.run(", "os.getpriority(", "os.setpriority("))
     src = src.replace("os.kill(", "_kill(").replace("subprocess.run(", "_run(")
     src = src.replace("os.getpriority(", "_gp(").replace("os.setpriority(", "_sp(")   # fake pids may be real ones
     ns = {"__name__": "memguard_test", "_kill": lambda *a, **k: calls.append(("kill", a)),
