@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: all-is-one
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1343,6 +1343,59 @@ else git config agi.mode ro;echo "[owner] first boot, local read-only. Hello.">>
 **Named, not hidden:** an unsigned remote tip exits 1 with no inbox line (cut for bytes; the unit's journal and rc carry it) · `agi.mode ro` is a CELL posts must read before they push (unbuilt in the post unit) · the seed merges in the checkout it runs in, so it runs at boot before any post holds that checkout · the remote half still needs §S's limits (allowFilter, a bare-hash want, the anchor).
 **Falsifiers.** P2-P5 PASS · **T6** DG5 boots from this seed on its box, every parity row green (UNRUN; the owner's first target, after Phase C) · **T7** the Prime, at wake, lists `refs/conflicts/*` and resolves or banks each (UNRUN: a Prime card line).
 
+## U · DOMAIN CONTROLLER · alive -- the directory is ONE matrix in the graph; a certificate's key-id names its row, so editing a row revokes it; encryption-town holds no secret, only the signing window
+**Owner 06:3x-06:5xZ / 07:0xZ (verbatim on the goal):** "... Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." / "... see if it can be supercharged and compressed via matrix math. Like the way we use our matrices to help hook into the login method but not the private key itself. Same here the matrices describe how the short lived ssh key can even be “popped” securely into whatever interface takes it." **What is the TRUE state of a login right now?** One row of a matrix: who, on which box, as which principal, for how long, with which forced command. If a box can read that row and nothing else, then what a box allows is exactly what the graph says, and a check is one `cmp`.
+```
+GRAPH    the dc matrix (fenced TSV, public bytes only): box · user · principal · valid · opts       one row = one certificate template (belam 07:05Z)
+           rid = 16 hex of sha256 over the row line = the cert's key-id (§V: agi-sign -I rid, -n/-V from the row, -z serial)
+SYNC     every box already has the graph (§T: local first, then a signed sync) -> the directory travels with it: 0 new transport
+PROJECT  dc-project BOX < matrix > /etc/agi/dc/rows      this box's rows only, each led by its rid (root-owned 644; a §T boot row)
+SSHD     Match User <the agi users>: TrustedUserCAKeys (the CA pubs, §V) · AuthorizedPrincipalsCommand dc-principals %u %i
+           the cert's key-id must be a LIVE row of THIS box for THIS user, opening `restrict` -> sshd gets opts + principal, else nothing
+CHECK    dc-project BOX < matrix | cmp - /etc/agi/dc/rows      rc 0 = the box allows exactly what the graph says (the true state, read)
+DC       encryption-town = the box whose CA agent is armed for a window (§V); the directory is NOT its: it is graph, on every box
+```
+| what | where it lives | who may write it |
+|---|---|---|
+| identities (users, principals, boxes, validity, forced commands) | the dc matrix node (expansion; 0 B in the zygote) | a signed graph commit, like any node |
+| the CA public half · the KRL | §V, projected beside the rows | the same |
+| the CA private half | a capsule (§V) | nobody: popped into an agent for a window |
+| a user's private key | that login's agent only (§V) | nobody, ever |
+
+**Revocation by edit (the compression the owner asked for):** a cert names its policy by HASH, so changing one cell of a row (a shorter `valid`, a dropped principal, a different forced command) changes its rid, and every cert issued under the old row is refused at its next login: no KRL entry, no list to keep. §V's `-z` serial + KRL stays for killing ONE stolen cert without touching the row.
+
+The pieces, whole (expansion, beside §V's `agi-sign`; 590 B + 4 sshd lines):
+~~~sh
+#!/bin/sh
+# dc-project BOX < the dc matrix > rows: this box's rows, each led by its rid (16 hex of sha256 over the row) = the cert key-id; public bytes only
+while IFS= read -r l;do case $l in '#'*|'');;"$1	"*|"*	"*)printf '%s\t%s\n' $(printf %s "$l"|sha256sum|cut -c1-16) "$l";;esac;done
+~~~
+~~~sh
+#!/bin/sh
+# sshd AuthorizedPrincipalsCommand dc-principals %u %i: the cert's key-id must be a LIVE row of this box for this user -> opts + principal; a row not opening restrict = refused (fail closed)
+awk -F'\t' -v u="$1" -v i="$2" '$1==i&&$3==u&&$6~/^restrict/{print $6" "$4}' ${DC:-/etc/agi/dc}/rows
+~~~
+~~~
+Match User agi-*
+  TrustedUserCAKeys /etc/agi/dc/ca.pub
+  AuthorizedPrincipalsCommand /etc/agi/dc-principals %u %i
+  AuthorizedPrincipalsCommandUser nobody
+~~~
+**Tested 07:0xZ** (an UNPRIVILEGED sshd on a loopback high port, certificates only; a throwaway CA standing in for §V's; a 3-row matrix, two boxes; no root, no real key, host or address; sshd gone after, 0 processes left):
+| # | case | result |
+|---|---|---|
+| U1 | a cert whose key-id = a live row of this box, the right principal | logged in; the row's forced command ran |
+| U1b | the same cert asking for another command | the forced command ran instead |
+| U2 | key-id = a row of ANOTHER box | refused (rc 255): the box never sees it |
+| U3 | one cell of the row edited after the cert was signed | the old cert refused; a cert under the new rid logs in (U3b) |
+| U4 · U5 · U6 · U7 | expired cert · another CA · a plain key · a principal not on the row | refused (rc 255) each |
+| U8 | a key-id carrying `;`, spaces or `$(...)` | refused; nothing executed (awk compares, never evaluates) |
+| U9 | the check: projection vs the box | rc 0 clean · rc 1 after one hand-added row |
+| U9c | a hand-added row with EMPTY opts | FIRST FORM: honoured with a full interactive shell (the test hung on it) -> FIXED: rows not opening `restrict` are refused (+68 B); re-run: refused (rc 255) |
+
+**Honest limits.** (1) A hand-added row in `/etc/agi/dc/rows` is honoured until the check heals it; the file is root-owned, so writing one already needs root, and the check names it. (2) The `Match` block keeps every EXISTING user and key exactly as it is (the owner's "existing user and key perms"); only the agi users go certificate-only. (3) The forced command and principal are enforced; `valid` is the signer's (§V) and sshd does not re-check it against the row, so a longer-lived cert minted outside agi-sign would pass until its rid changes. (4) The DC is not a single point of failure for READING: every box holds the directory; it IS one for new logins (the armed CA window, §V F42).
+**Falsifiers.** U1-U9c PASS (scratch) · **U10** after DG3's build, `dc-project <town> | cmp` returns 0 on BOTH boxes and a dg5 cert logs in on encryption-town and nowhere else (UNRUN) · **U11** a §T boot on a fresh box projects the rows with no hand step (UNRUN; one §T matrix row `boot dc engine dc-project`).
+
 ## V · DOMAIN CONTROLLER · self-perpetuating -- keys no one can write: a fresh key every login, a certificate for minutes, the CA a 32-B seed in a capsule
 **Owner 07:0xZ:** "A literal private-key secured user but the private key auto rotates each login to domain controller. Neither domain controller nor the use account ever actually get perms to write that private key itself only rotate it next login anywhere else." **What am I ACTUALLY trying to get the machine to do here?** Make the thing worth stealing not exist long enough to be stolen, and let the one thing that must last (the CA) regrow from its escrow like everything else. The regrowth lens, inverted: **the best key to survive a box loss is one that never lived longer than a login.**
 ```
@@ -1405,6 +1458,97 @@ Falsifiers: **F41** the login table above (PASS, scratch sshd) · **F42** after 
 +   print(f,B.b64encode(u+C(h(z)).encrypt(bytes(12),f'{i}:{y}'.encode(),None)).decode())
 ```
 
+## W · CROSS-BOX · all-is-one -- ONE vector for seeding and comms: a remote is a URL cell, a message is a signed commit, the §V cert is the only key; GitHub and the mesh run the same verbs
+**Owner 06:5xZ, item 1 (verbatim on the goal):** "... also have them move around boxes or spawn more on encryption town to confirm cross box easy seeding and cross-comms via GitHub initially and maybe eventually via for direct and mesh addresses? Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." **What am I ACTUALLY trying to get the machine to do?** Move ONE kind of thing between boxes, a signed commit, so seeding, sync and a message are the same act, and the transport shrinks to a URL in a cell. Keyed to §U (rows: box · user · principal · valid · opts; rid = the cert key-id) and §V (`agi-login` / `agi-sign`); 0 new login bytes.
+```
+            remote = ONE cell per box (where to fetch/push): GitHub = a URL · mesh/direct = ssh://<alias>/<path> · nothing else differs
+SEED   empty box ─ §S seed REMOTE HASH ─▶ fetch blob-less + fsck ─▶ verify-commit vs K ─▶ the body             0 new B
+SYNC   live box  ─ §T seed REMOTE S    ─▶ fetch under timeout + fsck ─▶ verify ─▶ merge ─▶ re-expand          0 new B
+SAY    post P    ─ xb send REMOTE TO MSG ─▶ ONE commit on refs/agi/P/TO, signed by P's §V login key + cert ─▶ push
+HEAR   post Q    ─ xb recv REMOTE ─▶ fetch refs/agi/*/Q + fsck ─▶ keep a commit only if its cert principal IS the ref's <from>
+GATE   a box we own (encryption-town = the DC hub first): sshd = §U rows (who logs in as which existing user; opts =
+       git-shell + AGI_POST) · pre-receive = own namespace only, signed by itself, dated within S s of now
+RELAY  GitHub runs no hook of ours: anyone with its write credential can push anything, so HEAR carries the whole check
+CHANGE "modify local stuff across boxes" = a commit pushed into YOUR namespace on that box; its own post applies it -- nobody
+       writes another box's checkout, so "existing user + key perms" = a §U row, never a shared shell
+```
+| check | mesh (a box we own) | GitHub (relay) |
+|---|---|---|
+| transport login | §V cert under a §U row; sshd refuses expired / no row (X7, X8) | GitHub's own credential: one write key per town repo, capsule-held (§O) -- it does not honour our CA (limit 1) |
+| who wrote it | pre-receive (X6a) + recv | recv only (X6b) |
+| when it was written | pre-receive skew check (X11b) | the ref chain only (limit 2) |
+| bytes intact | fsck on push and on fetch | fsck on fetch |
+| the DC holds | rows, CA pubs, KRL (§V) + one bare hub repo: public bytes only | -- |
+
+**Tested 07:1xZ** (throwaway CA + anchor, per-login keys held only in their own agent (stand-in for `agi-login`, key-id = rid), an UNPRIVILEGED sshd on a loopback high port trusting only certs, principals = §U-shaped rows with opts; two bare remotes: a file URL as the GitHub stand-in, the ssh URL as encryption-town's hub; no root, one unix user; §S and §T run VERBATIM from this doc, only K substituted):
+| # | case | result |
+|---|---|---|
+| X1 X2 | §S on an empty box over GitHub · over the mesh | rc 0 both · the two bodies byte-identical · sshd log: ED25519-CERT, ID = the rid |
+| X3 | §T sync of a signed engine v2 over GitHub · over the mesh · mesh unreachable | rw + v2 re-expanded · same · ro + the owner greeting |
+| X4 X5 | dg5 -> belam over the mesh · over GitHub | `[dg5] hello ...` both |
+| X6a | the dg5 login pushes refs/agi/alive/* to the hub | refused by pre-receive (`for dg5`) |
+| X6b | the same forgery to GitHub (no hook) | push lands; recv prints `[refused] alive <sha>`, nothing delivered |
+| X7 X8 | an expired cert · a principal with no row on the box | ssh refused (rc 128; log: `Certificate invalid: expired`) · refused |
+| X8b | a row'd login asks for a shell (`id`) | git-shell: `unrecognized command` |
+| X9 | engine anchor K as `belam cert-authority <CA>` | a belam-cert commit verifies (rc 0) · a dg5-cert commit does not (rc 1) |
+| X10 | key files after every login | none for any post (the CA + anchor files are the fixture's; built, the CA is §V's capsule) |
+| X11a | a key whose cert EXPIRED signs a commit backdated into the cert's window | `verify-commit`: Good, `for old` -- git judges a cert at the commit's OWN date |
+| X11b | the same backdate (30 min) pushed to the hub | before the skew check: accepted · after it: refused (`not signed by dg5 now`); a now-dated send still lands (X11c) |
+| -- | one mesh send, end to end | 0.35 s |
+
+**Bytes (expansion, 0 B in the zygote):** `xb` 1,025 B · `pre-receive` 681 B · §S, §T, `agi-login`, `agi-sign` unchanged · the remote = 1 cell per box, the skew = 1 cell (`xb_skew_s`, 120). `xb` whole:
+```sh
+#!/bin/sh
+# xb send REMOTE TO MSG | xb recv REMOTE -- a message = ONE signed commit on refs/agi/<from>/<to>; any remote, the same verbs.
+# recv keeps a commit only if fsck passes AND its signer's cert principal IS <from> (the CA line in agi.allowed); else [refused].
+P=${AGI_POST:?};V="git -c gpg.ssh.allowedSignersFile=$(git config agi.allowed) verify-commit --raw"
+case $1 in
+send)r=refs/agi/$P/$3;p=$(git rev-parse -q --verify $r)&&p="-p $p";t=$(git hash-object -w -t tree /dev/null)
+ c=$(echo "$4"|git -c gpg.format=ssh commit-tree -S $p $t)&&git update-ref $r $c&&git push -q $2 $r;;
+recv)git -c transfer.fsckObjects=1 fetch -q $2 "+refs/agi/*/$P:refs/xb/*/$P"||exit 1
+ git for-each-ref --format='%(refname)' refs/xb|while read r;do f=${r#refs/xb/};f=${f%/*};s=refs/xbseen/$f/$P
+  for c in $(git rev-list --reverse $r --not $(git rev-parse -q --verify $s));do
+   if $V $c 2>&1|grep -q "for $f with";then echo "[$f] $(git log -1 --format=%s $c)";git update-ref $s $c;else echo "[refused] $f $c";break;fi;done;done;;
+esac
+```
+`pre-receive` whole (the allowed-signers path is §U's projected file; a literal here):
+```sh
+#!/bin/sh
+# pre-receive on a box we own: the row's opts set AGI_POST; a login writes only refs/agi/<itself>/*, every new commit signed by itself
+# and dated within S s of now (the login proved the cert valid NOW, so the signature date cannot be backdated past it)
+S=${AGI_SKEW:-120};T=$(date +%s)
+while read o n r;do case $r in refs/agi/$AGI_POST/*);;*)echo "refused: $r for ${AGI_POST:-none}";exit 1;;esac
+ for c in $(git rev-list $n --not --all);do git -c gpg.ssh.allowedSignersFile=<U: allowed> verify-commit --raw $c 2>&1|grep -q "for $AGI_POST with"&&[ $((T-$(git log -1 --format=%ct $c))) -lt $S ]||{ echo "refused: $c not signed by $AGI_POST now";exit 1;};done;done
+```
+**The compression the owner asked for, measured:** every post's signing key is gone from every verifier. ONE allowed-signers line (`* cert-authority <CA pub>`) verifies every per-login key on every box over every transport (X4-X6b), and the principal written by `agi-sign` from the §U row is the sender's name; the per-seat pubkey rows retire with §V's. The engine anchor K CAN be the same CA, restricted by principal (X9), but **recommended: keep K a separate anchor**: a CA window then cannot publish an engine, and the two compromises stay apart (§S limit 2).
+**Honest limits.** (1) GitHub authenticates its own keys; our certs reach it only through an org SSH CA on an enterprise plan (VERIFY), so its write credential is one deploy key per town repo in a capsule. Whoever holds it can also SQUAT a ref (push its own chain into refs/agi/<p>/*, so the real post's next push is non-fast-forward): denial, never forgery (X6b) (2) Backdating via GitHub: a key read out of a live agent (O.3) signs commits dated inside its own cert window forever (X11a). Over the hub the skew check closes it (X11b). Over GitHub only the chain bounds it: a forgery must extend the ref's tip, so it lands only while no later real message exists on that ref (unmeasured) (3) "existing users" = §U's user column; scratch ran ONE unix user, so the principal -> account mapping across real accounts is untested (needs a second account or root) (4) a refused commit stays under refs/xb and is reported at every recv: loud by design, unpruned (5) tonight there is no mesh path to the owner's boxes (remote access only, WireGuard pending), so GitHub goes first, as ruled.
+**Falsifiers.** X1-X11c PASS (scratch) · **W12** DG5 seeded on encryption-town by §S over GitHub, then kept by §T (UNRUN; the first live target, after Phase C) · **W13** one dg5 -> belam message by GitHub and by the hub, the two recv lines identical (UNRUN live) · **W14** = §V F42 cross-box: once the CA window closes, no box accepts a login or a push (UNRUN) · **W15** a post on box A changes box B only through its own namespace, and B's post applies it (UNRUN; needs §U's user column on two real accounts).
+
+## X · THE PHONE STAND-IN · alive -- tonight's phone is ONE row and ONE cert that expires at the owner's wake; the real phone replaces it by editing that row
+**Owner 06:3x-06:5xZ (verbatim on the goal):** "... I can’t access it today so it might have to wait and do a stand in key on the box for now and auth it yourself as test." Ruling (a): a stand-in phone key on the box, authorised ONLY for capsule-login, tested end to end, then replaced. **What does the stand-in TRULY allow?** Exactly one row: one principal, one forced command, until a stated minute. Nothing about it is special code: it is §U's row + §V's login + §O.5's capsule-login, with a short `valid`.
+```
+ROW      enc · agi-capsule · owner-standin · <until the owner's wake> · restrict,command="capsule-login"        (its own rid, never owner-phone's)
+KEY      §V agi-login owner-standin: a fresh key in RAM, a cert under that rid, held ONLY by the tester's agent; no key file, ever
+TEST     a post's login asks (§O.5 ASK) -> the tester answers as the phone: ssh agi-capsule@<town> <ask-id>, the code on stdin -> the pane
+ENDS     the cert's validity runs out at the owner's wake, AND the row is deleted when the real phone key arrives -> the rid dies (§U revocation by edit)
+REAL     the phone's own key (Secure Enclave P-256, O.7) gets an owner-phone row: a cert signed once at enrolment if the SSH app takes certs (VERIFY),
+         else the O.5 authorized_keys line (restrict,command="capsule-login"), projected the same way
+```
+**Tested 07:1xZ** on §U's scratch sshd (throwaway CA, the stand-in key generated on tmpfs, certified, loaded into a scratch agent, its files removed in under a second; capsule-login = §O.5's 692 B, byte for byte, pointed at a scratch spool and pane; a random dummy code):
+| # | case | result |
+|---|---|---|
+| X1 | the stand-in + an open ask, the code on stdin | the code typed into the pane exactly once (rc 0) |
+| X2 | the same ask replayed | refused (rc 3) |
+| X3 | the stand-in asking for a shell · for a pty + a command | refused (rc 2 · rc 3): restrict + the forced command |
+| X4 | a cert under the dg5 row with principal owner-standin | refused (rc 255): the row pins the principal |
+| X5 | the stand-in row deleted (= the replacement) | refused at the next login (rc 255) |
+| X6 | the code at rest in spool, ledger, sshd log | 0 copies; the ledger keeps post + id + time only |
+| X7 | key files left on tmpfs or disk | 0 |
+
+**One seam with §V, decided here (decide-and-document):** §V's limit (3) has the stand-in arm the CA window. The owner's ruling (a) authorises the stand-in for capsule-login ONLY, and a box key that arms the CA would make the box its own owner's half of the mutual quorum (O.8). So tonight: the stand-in arms only a THROWAWAY test CA (its own `TrustedUserCAKeys` line, for the test users, removed after) and never signs a real identity; the real CA's first window waits for the real phone. Cost: F42 cross-box runs on the test CA tonight.
+**For DG3's build (in its night order):** (1) the owner-standin row with `valid` ending at 14:00Z (one row, `date -u` read when it is written) (2) the §O.5 root act: `i` writable by agi-capsule (~60 B, ExecStartPre=+) (3) one end-to-end run on DG5's login, X1-X7 re-read on the real units (4) at the owner's wake: delete the row, and record the rid that died.
+**Falsifiers.** X1-X7 PASS (scratch) · **X8** at 14:00Z+1 min the stand-in cert is refused with the row still present (UNRUN; the expiry alone ends it) · **X9** the real phone's key logs in under owner-phone and the owner-standin rid is absent from every box's rows (UNRUN; the owner's step).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive (agi-a8), 06:3xZ 10-01 (round 6 REVISED, belam 06:29Z signed [decision]). Owner 06:24-06:2xZ, verbatim: "I don’t think we need to lean on GitHub or git. What if we use the matrices more? A matrix showing how all the other matrices need to expand that then show how things should be populated. The one script could be the entire bootstrap assuming graph is also here to also instantly pick up your project including an auto-sync route to bring repo up to speed with latest version of that branch and hand conflicts to bootstrapped posts, first just dg5 as obvious test target, as needed." / "Sorry it’ll have both as part of seed process. So first a local check to have something at least then it initiates a remote sync on local with timeout, and hands sync conflicts to prime post once it’s up. If remote connection unavailable, then pick local read only no remote sync hand prime seed expansion state and first boot owner greeting." WHY this version differs: added §T. The bootstrap is ONE script (1,019 B incl. the 82 B anchor line) + ONE matrix (a fenced TSV in config:engine whose first row expands the matrix itself; boot rows run in the seed, post rows in the unit). Flow: local expand at once, then a fetch under timeout with fsck, verify-commit, merge and re-expand; a conflict is aborted into a create-only refs/conflicts/<local tip> for the Prime (self-perpetuating lens, adopted); no remote or a timeout = agi.mode ro + a first-boot owner greeting. P2-P5 PASS on a scratch clone. A first draft was 1,504 B; comments and messages were cut to fit, and the unsigned-tip inbox line went with them (named in §T). The mode is now set only after verification (P5 caught it).
+all-is-one (agi-f0), 07:14Z 10-01 (night plan item 1, split with alive gen 7: U = the rows, V = self-perpetuating's login + CA, W = mine). Owner 06:5xZ, verbatim: "also have them move around boxes or spawn more on encryption town to confirm cross box easy seeding and cross-comms via GitHub initially and maybe eventually via for direct and mesh addresses? Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." Owner 07:0xZ, verbatim: "I love it use standard forms but see if it can be supercharged and compressed via matrix math." WHY this version differs: added §W. Seeding, sync and a message are ONE act (move a signed commit), the transport is one remote cell, and §S + §T run VERBATIM over a GitHub stand-in and an ssh-cert mesh hub with byte-identical bodies (X1-X3). The compression: ONE cert-authority allowed-signers line verifies every per-login key everywhere, the sender's name is the cert principal from the U row. Found and closed on owned boxes: git judges a cert at the commit's own date, so a stolen key can backdate (X11a), and a 2-line skew check in the hub's pre-receive refuses it (X11b). Via GitHub it stays a named limit. Recommended to keep the engine anchor K apart from the CA (X9 shows it could merge). xb 1,025 B + pre-receive 681 B, 0 B in the zygote.
 <!-- THOUGHT:END -->
