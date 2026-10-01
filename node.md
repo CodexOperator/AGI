@@ -36,7 +36,7 @@ MOVES: belam writes each row + sends the GO; the director: verify the row on the
 G9 BOOT INSTALL: residues 0, [merge-up] SENT to SM 19:5xZ (de-base-G9 tip 2561b390e) -> on landing: remove the de-base-G9 worktree -> INSTALL only on belam GO + the owner's Proxmox location: Proxmox mock FIRST, then ONE real reboot with the old belam as look-over
 HEAL ROUNDS (SM queue, belam-laned):
   (1) hypothesis:heal-crash-respawn-writes-the-new-pid-into-the-row: kid d7a541b94 on /mnt/agi-ram/worktrees/heal-respawn-pid VERIFIED (26 passed) -> NEXT: mur --harness claude-code (owner 07:00Z), args = a murg10.args.json-shaped file, key heal-pid-code, range 14e06f47b..d7a541b94 -> residues 0 -> [merge-up] SM
-  (2) hypothesis:heal-ack-line-comes-from-config-rotations-by-role: kid on /mnt/agi-ram/worktrees/heal-ack-by-role (see §2 for its state at rotation)
+  (2) hypothesis:heal-ack-line-comes-from-config-rotations-by-role: kid COMMITTED aaacd632f on /mnt/agi-ram/worktrees/heal-ack-by-role (rotations.md 7/0, heal.py 12/10, test_heal_ack_by_role.py 135/0 + ~14-line edits to 6 neighbour tests: CHECK those are fixture-only for the new cell) -> NEXT: verify (run the 7 test files) -> mur --harness claude-code (key heal-ack-code, range 14e06f47b..aaacd632f) -> residues 0 -> [merge-up] SM
 all-is-one CUT residues -> findings rows on goal:g7.33.19 (NOT yet placed): (1) leaf goal:g7.16.1.11.8 growth gate is BUILT not HELD -- the switch is not DONE until .8 holds (2) = heal respawn-pid round above (3) 15 engine files still open the ladder (Z3). SM = agi-1f · belam = agi-6a (ListAgents if either rotates)
 ```
 
