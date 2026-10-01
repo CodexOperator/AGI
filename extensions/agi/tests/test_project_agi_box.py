@@ -1,5 +1,5 @@
 """G6: the projected agi-post drop-in carries AGI_BOX=<row box>."""
-import pathlib, shutil, subprocess
+import pathlib, re, shutil, subprocess
 import pytest
 
 WT = pathlib.Path(__file__).resolve().parents[3]
@@ -9,13 +9,16 @@ ROW = ('  - {"name": "t1", "engine": {"v": 4, "harness": "claude-code", "model":
 SECT = "/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}"
 
 
-def project(tmp_path, engine_text=None, box="local-town"):
+def project(tmp_path, engine_text=None, box="local-town", path=None):
     if not shutil.which("jq"):
         pytest.skip("jq absent")
     repo, out = tmp_path / "repo", tmp_path / "out"
     (repo / GEO).mkdir(parents=True)
     for f in (WT / GEO).glob("engine*.md"):
         shutil.copy(f, repo / GEO / f.name)
+    if path:  # G7.5: pin the projected unit's Environment=PATH inside the tmp copy
+        u = repo / GEO / "engine-root.md"
+        u.write_text(re.sub(r"(?m)^(Environment=PATH=)\S+", lambda m: m[1] + path, u.read_text()))
     if engine_text is not None:
         (repo / GEO / "engine.md").write_text(engine_text)
     (repo / GEO / "posts.md").write_text("---\nposts:\n" + ROW % box)

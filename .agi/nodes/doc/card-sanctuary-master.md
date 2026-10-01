@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:46Z 10-01, date -u) — WORKING: wind-down LIFTED (owner 15:1xZ via belam, verbatim on goal:g7.16.1.11: "keep going until we finish the goal bundle now") · no gate running
+## §0 State (19:12Z 10-01, date -u) — gen 13 seated 19:06Z, meter 0.11 · G10 suite run 2 at 38% · heal x2 queued with DG3 · DG5 pin2 returned with residues
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -25,31 +25,37 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate (Prime-laned exceptions only: G4 stand-up) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
 | skills | agi-master-gate (every landing) · agi-memory-guard (box) · agi-rotate · agi-node-write · agi-send · agi-goal |
-| peers | Prime = belam · DG1 · DG2 (v5) · DG3 · DG5 (pi) · TM-new + DT-1/DT-2 (v5, research) · council: alive · all-is-one · self-perpetuating · DG4 STOOD DOWN · COMMS SWITCH (owner 18:1xZ via belam): DIRECT SendMessage until all are switched -- belam agi-6a · DG1 agi-a8 · DG3 agi-e1 · alive agi-9c · all-is-one agi-06 · self-perpetuating agi-99 · old TM agi-63 · v5 posts by Remote Control name (director-general-2, thought-master-new = bridge session, director-thought-1/-2) · DG5 (pi) stays on its inbox · TM-new has NO seat key (v5 identity gap, held g7.16.1.11): its inbox sends arrive UNSIGNED, trust its direct messages |
+| peers | Prime = belam (agi-6a) · DG1 (v5, bridge director-general-1) · DG2 (v5, bridge director-general-2) · DG3 (agi-e1, the ONLY director that can still dispatch) · DG5 (pi, INBOX only; sends bare /tmp paths: cat them, world-readable) · TM-new (v5 bridge, NO seat key: inbox sends UNSIGNED, trust direct) · council: alive agi-9c · all-is-one agi-06 · self-perpetuating agi-99 · old TM agi-63 · COMMS SWITCH (owner 18:1xZ): DIRECT SendMessage, not inbox dms |
+| A+ interim | belam 18:2xZ, bounded: I run a v5 director's dispatch ONLY on its WRITTEN order (quoted), pi-free only, 0 USD, from ITS worktree under MAIN (.agi/worktrees/...) with --from <director>, ONE line to it per dispatch; git there via GIT_CONFIG_COUNT/KEY/VALUE safe.directory per process (never global); ENDS at the key broker (parity row 30) or owner .env B |
 
 ## §1 Plan
 ```
-done   seated 13:08Z · box reboot 14:42Z, heal resume, own posts row ca9b4e81a · orphan grep scope stopped 13:21Z · row 60 CLOSED live (DG2)
-done   4 landings (§2) · C2 mur run + RETURNED to DG5 (5 residues) · .env finding banked: belam agreed (A) masters/Prime run director murs
-done   G7 2e94bd1f3 + TM-new a001a3c61 landed (whole-.agi/context leak -> rule in skill agi-master-gate 62e1fc541; Prime accepted)
-NEXT   G8 LANDED c34954f72 18:01Z. TM-new leak fix 88836f90e gate GREEN but RETURNED 18:1xZ: conflicts on goal:g7.33.19 row 78 (DG3 landed 78+79 at 61b9f5329) -> TM-new renumbers to 80 + refs, re-sends; re-gate = read the delta + the culprit file alone. HELD (asked belam 18:3xZ, LANE recommended): DG5 rotate leaf an-unreadable-meter-pin-is-unknown-never-a-traceback (825ca9072..24c4e561b, rotate.py +15/-3, no mur) -- gate only once laned, mur first. DG5 sends bare /tmp paths: the files are world-readable, cat them. WATCH: row 79 = G7.2 -b execve ended pi-harness v5 posts at start; DG3 [red] to belam 17:02Z, fix G7.4-G7.7 in review -> gate it first when it comes. C2 LANDED cfda80960 17:5xZ (4d608c5ff, lean :90). Was (17:17Z, all residues read CLOSED: landmine defused both worlds, evidence_runs [] / list): gate /dev/shm/smgatec2 (ids /dev/shm/sm-gate-c2.txt), anonymize ok, evidence [], 0 D; suite RUNNING since 17:21:04Z -> numbers + land ask to belam (held class). DG1 runs DG1.01 cursor + DG1.02 conftest EACCES quick fix. Was 2a0152805 (17:05Z): suite account + Dispatch line + 273b2e39 body CLOSED (read); STILL OPEN = landmine test + self-cited / scalar evidence_runs, re-sent 17:2xZ dm+inbox (DG5 cursor passed my 17:0xZ order = 3rd cursor case, given to DG1). Was: re-mur -2 accept_with_residue -> RETURNED 17:0xZ (landmine test, 1 suite account, Dispatch line cut, self-cited evidence_runs, a00-273b2e39 list form); next re-send: read the small delta myself + evidence dry-run + links schema, then gate; Falsifier 1 naming routed to DG1. Was: re-mur RUNNING since 16:36:38Z (run mur-season2-loops-goal-g1-31-4-6-2-a00-3014f810-2; args in scratchpad c2b-mur-args.json) -> then gate + land, numbers to belam. Was: re-mur pi-free (load1 < 16, io avg60 < 50) -> numbers to belam
-LATER  [PLACED 17:1xZ: inbox-cursor comms red -> hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line 56e68de01, DG1 dispatch now, ack awaited; until it lands every action order needs a one-line ack] · place a round: the nudge sweep skips pid-0 / recover-false rows or checks window name = seat (SP [red] 15:2xZ; belam cleared 5 rows 6efa87be4) · DG3: tip-guard fork -> then merge_gate cells · map v0 last
+GATE   ONE pipelined suite over FOUR tips on /dev/shm/smgate4 (log /dev/shm/smtmp4/suite.log, pid in suite.pid; started 20:31:49Z; 4th = DG2 726b9d4d6 chain d8c25b18e.., re-mur FINAL ACCEPT, ids /dev/shm/sm-gate-dg2.txt): TM-new a6ac4d92e (supersedes 165f57b0f; static green; context 8/8 + 8/8) -> DG1 1554cb042 (DG1.01 ACCEPT, DG1.02 prose closed in-loop; first live cron run = mail_poll gains --peek only; in-gate anonymize fix = 2 blobs) -> DG5 c700bd684 (pin4: both defects refuted; 2 out-of-claim items = DG5 leaves). Gate ids: /dev/shm/sm-gate-{tm,dg1,dg5}.txt
+ON GREEN  sed -i "s/@SUITE@/<passed/failed numbers>/" /dev/shm/sm-murs/msg-*.txt; sh /dev/shm/sm-murs/land3.sh (mints L1 L2 L3 L4 on the LIVE HEAD (ff to L4) + proves them; writes land-ready; dry-run 20:2xZ rc 0); then git -c gc.auto=0 merge --ff-only <L3>; push; python3 extensions/agi/bin/grid.py commit --all; tell TM-new + DG1 + DG5 + belam. A red: TM range has no extensions/, DG5 = rotate.py + test_rotate.py only, DG1 = the rest
+MURS   route = the Claude Workflow tool, name agi-merge-up-review, args {rounds, model: sonnet, effort: high, project_root} (workflow.py --harness claude-code only PRINTS that call). Verdict files: runs/<run-key>/ (gitignored)
+DG2    DH.1 harvested by DG2 (tip 726b9d4d6, de-base-dg2-2) -> re-mur wf_9094ca85-322 RUNNING in this session (dg201-c1, eae497672..726b9d4d6; harvest before rotating) -> on accept gate the full chain d8c25b18e..726b9d4d6 · DG5 59637fdca = [decision] hold (a 2nd implementation of the same node)
+DG3    heal-pid fix d7a541b94 -> its [merge-up] (offered the Sonnet mur route); heal ack-line round queued after it. DG3 rotated 19:56Z (new session: inbox)
+LATER  map v0 last · DG3 tip-guard fork -> merge_gate cells · DG3 row-80 clash on goal:g7.33.19 (told)
 ```
+Run args: /dev/shm/sm-murs/ (mur-all.json = a Workflow args example; orders-dg10{4,5}.md; land3.sh + msg-*.txt). A mur round = {key, hypothesis, experiments, files, focus (starts with the LEAN line), merge_up, old_tip, new_tip}.
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
 - 900728906 G4 (DG3) · b30042219 g73360-b (DG2) · 6c87be791 G6 (DG3: v4 drop-in AGI_BOX) · fec9f352f G5 (DG3: send treats a v5 post as a peer) · 2e94bd1f3 G7 (DG3: strace -b execve) · a001a3c61 TM-new research (key comments + DT-1 home path fixed in-gate) · cfda80960 C2 (DG5: guard fails by name, 0 prod lines) · c34954f72 G8 (DG3: moved v5 tree archived) · 0376b07da TM-new context leak fix (row 80)
 - suites: chain 7773 / 1 · G6 7776 / 1 · G5 7787 / 1 · G7 7790 / 1 · TM-new 7790 / 1 -- the 1 = test_skills_first_turn_entry, red on pure HEAD fafb9eefb (the trunk's)
+- gen 13: 0b8f086a5 G9 boot install (DG3; posts.md UNION; 7838/1 trunk red; nothing installed)
+- gen 13: 14e06f47b G10 (DG3, v5 meter reads the newest usage line; 7823/1 trunk red)
+- after 18:0xZ: 0376b07da TM-new context leak fix · cfda80960 C2 · c34954f72 G8 · 5ee791456 G7d -- every suite 1 red = skills_first_turn (trunk's)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master: G5 landed fec9f352f; waiting on DG3's G7 merge-up and DG5's C2 re-send; no gate running
-G7: merge-tree vs live HEAD rc + --name-only · range = merge-base..tip · tmpfs gate tree /dev/shm/<gate> + own TMPDIR · full suite under the mem guard · land by commit-tree
-C2: run key mur-season2-loops-goal-g1-31-4-6-2-a00-3014f810 (args in my scratchpad: rebuild from the [merge-up] dm) -- re-mur only after DG5 says the 5 residues are closed
+sanctuary-master 19:3xZ: G10 landed 14e06f47b; 2 murs running on claude-code (DG5 pin3, DG1 dg101-c2), verdicts in .agi/sessions/workflows/runs/<run-key>/
+on each mur verdict: read verify_<key>.json refuted flags -> accept = gate vs MERGE-BASE + tmpfs suite (/dev/shm/<gate>, TMPDIR /dev/shm/<other>) -> land by SHA; residue = back to its director
+if a mur runner died with me: ls /dev/shm/sm-murs/*.log + workflow.py status; relaunch from /dev/shm/sm-murs/<run>.json (claude-code harness)
+read the VERIFY's refuted flags before relaying any residue (19:0xZ: I relayed 2 refuted ones to DG1)
 HELD: MAP v0 60817b0ac (DG2; gotty 127.0.0.1:8787 read-only) -- VIZ LAST; gate reads anonymize.py filter verb, config.json map cell, gotty sha256 pin, --permit-write=false
 HELD: g75213 7cd127824e code gate COMPLETE -> GO on the Prime's DISK bind (re-derive T2)
 UNOWNED (DG4 down; never land a returned tip): lineage 4620846a3f · DG4.13 9baba2bc99 + r49 7eb1c65aed · DG4.18 c576956960
-WITH THE PRIME: merge_gate cells (after the tip-guard fork) · council.residue_leaves · hold_wait_s (g1.31.5.1.3.1.1) · DG4.18 cells · C2 (DG5, held class): merge-up 83f492f11 (goal:g1.31.4.6.2, +681/-7, 0 prod lines) QUEUED -- I run its mur once the Prime lanes it · skills_first_turn (the only trunk red)
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
+FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (and expect DIRECT session messages: the comms switch)
 ```
 
 ## §4 Traps (learned this gen; rules live in skills)
@@ -65,10 +71,15 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 | old uid vs group agi | fixed by the Prime 11:4xZ (default ACLs on refs, comms, spawn-budget, inbox, worktrees) |
 | rotate flattens the quorum card | re-link: ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md |
 | MAIN shared | commit by exact path; never switch branches, stash or reset |
+| dispatch output filtered by grep (19:55Z) | hid a stale-base refusal (exit, no spawn line): read the WHOLE output, then confirm with spawn_budget status |
+| a bare cd in a Bash call | moves THIS session cwd into a worktree: always a ( subshell ) or absolute paths |
+| spawn_budget 0/30 | NOT proof a parent exited (twice today): scan /proc cwd for the agent id before calling it dead |
+| A+ dispatch | the director line is run VERBATIM: a stale-base refusal goes back to the director (add --allow-stale-base reason, or merge) |
 
 ## §5 Verification: every landing = merge-tree rc 0 + T2 newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + full suite with every red attributed (alone / pure-HEAD tree)
 
 ## §6 BANKED
+- v5 MOVE 6 (19:5xZ): my verdict NO -- uid agi-sanctuary-master cannot write MAIN .git/index, ORIG_HEAD, FETCH_HEAD or the working tree (no group:agi ACL), so ff-landing dies; belam ACCEPTED: SM STAYS on this seat; belam banks a LAND BROKER for the owner (never opening MAIN to group:agi, never an update-ref landing). The next move is stream-master, not me.
 - goal:g1.31.4.2.1.1 copilot hooks: PARKED (a real copilot probe = spend, the Prime's)
 - a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz (the tree stays; refusal live)
 - .env is 600 belam:belam, no group ACL (verified 15:3xZ): NO agi-* director can dispatch (provisioning PermissionError) -> (A) masters/Prime run directors' murs [recommended; today's practice] · (B) group:agi read ACL [owner's money: owner's call] -- sent to belam 15:3xZ

@@ -59,6 +59,55 @@ BASE      CUT FROM the town trunk local-maxxing/season2/main tip (G7 landed 2e94
 FALSIFIERS F1 a projected pi H still starts with an env-shebang launcher · F2 the claude row changes · F3 row (b) does not reproduce the 0 s exit on the old shape.
 FILE SCOPE .agi/nodes/.geometry/engine.md (agi-project pi branch) · one test file (+ .agi/config.json ONLY for one path cell) · this node.  CEILING production net +2 · tests +45 · Sonnet 5.5 subagent · 0 USD.
 
+## RESULT G7.4 (kid de612d6af, director record)
+NUMSTAT 56e68de01..de612d6af: engine.md 2/2 (net 0 vs +2) · test_agi_project_pi_direct.py 40/0 (vs +45). 9 passed (new + test_project_agi_box + test_agi_run_strace). Kid measured the fault needs the -o pipe sink: -o /dev/null keeps strace alive, -o'|cat' exits in 0.02 s. Director measured node <engine bin>/pi alive under the exact flags (rc 124 at timeout). mur-de-base-g7d: review accept_with_residue · verify DEMOTE (D1 D2 D3 confirmed; D4 D5 D6 refuted).
+
+## CORRECTIVE G7.5 -- closes mur-de-base-g7d g74-code (D1 D2 D3 + verify missed: narrowing, config_max)
+BASE      CUT FROM de-base-G7d tip (de612d6af + this node write). No merge. Never rebase.
+1. (D1 + missed narrowing + config_max) agi-project picks P by grepping a literal /agi/bin out of the unit and appends a literal /pi: fail-open on an empty P (H = node /pi, exit 0) and narrower than PATH lookup. TRUE WHEN P = the FIRST directory of the projected unit's own Environment=PATH (the geometry, one source) that holds an executable pi -- PATH-lookup order, no /agi/bin selector literal -- and NO such dir = the projection exits 3 before writing any h.conf (the file's own [ -s ... ]||exit 3 idiom).
+2. (D2) tests: the pi row asserts H == node <the expected dir>/pi --provider ... (the exact dir, from a fixture unit PATH pointing at a tmp dir holding a fake executable pi), never a prefix; a negative row (no pi on the unit PATH) asserts exit non-0 and no h.conf; a row where an earlier PATH dir lacks pi and a later one has it picks the later one.
+3. (D3) the THOUGHT delta is the director's (written with this section).
+DEMOTED   D4 D5 D6 refuted by verify · size header drift = findings row 70 (pre-existing) · the live-entry probe = the director's measurement above (rc 124), not a CI row (box path).
+FILE SCOPE .agi/nodes/.geometry/engine.md (agi-project) · extensions/agi/tests/test_agi_project_pi_direct.py.  CEILING production net +2 · tests +30 · Sonnet 5.5 subagent · 0 USD.
+
+## RESULT G7.5 (kids deacbc886 + 64e0d61a8, director record)
+G7.5 deacbc886: P = the first dir of the unit's own Environment=PATH holding an executable pi; refusal exit 3. G7.5b 64e0d61a8 AMENDS item 1 (the kid flagged the director's brief): the refusal fires only when P is empty AND this box has a pi row (line 80's own filter) -- a claude-only box projects without pi. NUMSTAT 86991a7d4..64e0d61a8: engine.md 1/1 · test_agi_project_pi_direct.py 27/5 · test_project_agi_box.py 5/2. 11 passed. Real geometry on this box: P = the engine bin dir, H = node <dir>/pi .... mur-de-base-g7e: review accept_with_residue · verify accept_with_residue (D1 confirmed with corrected evidence; D2 D3 refuted; M1-M4).
+
+## CORRECTIVE G7.6 -- closes mur-de-base-g7e g75-code (D1 + M2 M3 M4; M1 = the record above)
+BASE      CUT FROM de-base-G7d tip (64e0d61a8 + this node write). No merge. Never rebase.
+1. (D1) the refusal reads ANY non-zero jq status as 'no pi row' (`!` inverts rc 5 parse errors): a valid pi row followed by a malformed one projects node /pi. TRUE WHEN only jq's rc 4 (no match) lets an empty P pass; rc 0 (a pi row) and any other rc (error) exit 3; a row with a pi row followed by a malformed row and no pi on PATH asserts exit 3 and no h.conf.
+2. (M3) the refusal runs AFTER `mkdir -p $w;rm -f $w/agi-post@*`, so it strips the last good wants links and writes nothing back. TRUE WHEN P and the refusal are computed BEFORE the wants dir is touched (read the unit text from the section function s, not from $o); a row pre-seeds a wants link, forces the refusal, and asserts the link survives.
+3. (M2) a row for the live shape: one box with a pi row AND a claude row, pi on PATH -> both h.conf written, pi H = node <dir>/pi, claude H unchanged.
+4. (M4) the test reads the unit's PATH from the copied engine-root.md instead of re-typing its first element.
+DEMOTED   D2 D3 refuted by verify · a malformed posts.md with a non-empty P is pre-existing (line 80 prints the valid prefix), not this node.
+FILE SCOPE .agi/nodes/.geometry/engine.md (agi-project lines ~78-79) · extensions/agi/tests/test_agi_project_pi_direct.py (+ test_project_agi_box.py helper only if needed).  CEILING production net +1 · tests +35 · Sonnet 5.5 subagent · 0 USD.
+
+## RESULT G7.6 (kid 701212308, director record)
+P + the rc-4 gate now run BEFORE the wants strip, reading the unit through s; only jq rc 4 lets an empty P pass. NUMSTAT dbb8e4746..701212308: engine.md 2/1 (net +1 vs +1) · test_agi_project_pi_direct.py 30/5. 13 passed; sh -n clean. mur-de-base-g7f: review + verify accept_with_residue (no demote): R1 a host-conditional row, R2 M3 half-closed at line 80, R3 this record.
+
+## CORRECTIVE G7.7 -- closes mur-de-base-g7f g76-code (R1 R2; R3 = the record above + the THOUGHT)
+BASE      CUT FROM de-base-G7d tip (701212308 + this node write). No merge. Never rebase.
+1. (R2) line 80 `mkdir -p $w;rm -f $w/agi-post@*;s agi-post@.service>$o/...;[ -s ... ]||exit 3` still strips the wants links before its own refusal. TRUE WHEN the unit text is read ONCE (u=$(s agi-post@.service)), an empty u exits 3 BEFORE the wants dir is touched, P is derived from that same u (one s call, not two), and $o/agi-post@.service is written from u; a row empties the agi-post@.service section, pre-seeds a wants link, and asserts exit 3 with the link intact.
+2. (R1) the exact-dir row is hermetic: the fixture PATH's first element is a tmp dir KNOWN to lack pi (never the live unit's first element); the live engine-root.md read stays only to assert the real unit carries an Environment=PATH line, and a missing line SKIPS with a named reason (no import-time TypeError -- resolve it inside a fixture or helper, not at module import).
+3. (note) rename the malformed-row test so its name claims only what it asserts (rc 3 + no h.conf), or add the no 'node /pi' assertion.
+DEMOTED   the jq rc-4 contract is jq 1.7's documented -e status (no output = 4) -- recorded, not a round · a missing posts.md = no pi row, pre-existing · size headers = findings row 70.
+FILE SCOPE .agi/nodes/.geometry/engine.md (agi-project lines ~79-80) · extensions/agi/tests/test_agi_project_pi_direct.py.  CEILING production net +0 · tests +25 · Sonnet 5.5 subagent · 0 USD.
+
+## RESULT G7.7 (kid 020bc0fa4, director record)
+agi-project reads the unit ONCE (u); an empty u exits 3 before the wants dir is touched; P and the written unit both come from u (real geometry: byte-identical, 1409 B). NUMSTAT a27b03e78..020bc0fa4: engine.md 2/2 (net 0) · test_agi_project_pi_direct.py 21/7. 14 passed; sh -n clean. mur-de-base-g7g: review + verify accept_with_residue, NO demote, no code defect; residues are coverage only.
+
+## CORRECTIVE G7.8 -- closes mur-de-base-g7g g77-code (tests only; the record above closes the RESULT residue)
+BASE      CUT FROM de-base-G7d tip (020bc0fa4 + this node write). No merge. Never rebase.
+1. (D1) a row projects a pi or claude box and asserts $o/agi-post@.service == the agi-post@.service section text byte for byte (the printf newline fidelity).
+2. (missed) the empty-unit row asserts its regex actually emptied a non-empty section (assert new != old) so it cannot pass on an empty geometry.
+3. (missed) the unit_path fixture skips by name on a missing engine-root.md FILE as well as a missing PATH line.
+4. (missed, text pin) a row asserts the agi-project section text calls `s agi-post@.service` exactly once (the one-read property, pinned at the bytes).
+DEMOTED   D2 refuted by verify · size header = findings row 70.
+FILE SCOPE extensions/agi/tests/test_agi_project_pi_direct.py ONLY (no production bytes).  CEILING production 0 · tests +25 · Sonnet 5.5 subagent · 0 USD.
+
+## RESULT G7.8 (kid 5061160a4, director record) -- G7 residues 0
+Tests only (production byte-identical): byte-for-byte unit row, non-vacuous empty-unit row, unit_path skips on a missing file, one-read text pin. NUMSTAT 624459275..5061160a4: test_agi_project_pi_direct.py 26/1. 16 passed. mur-de-base-g7h: review + verify accept_with_residue; review D2 D3 D4 REFUTED by verify (one unconditional unit write before the row loop; the tmp copy equals the committed blob by construction; the text pin is the brief's own). D1 = this record. DEMOTED by measured reason (none can turn a row falsely green): the test's escaped-dot range is STRICTER than s()'s (fail-loud) · a moved unit section fails one row and skips another (no false green) · _unit_and_section's unused engine_text parameter (cosmetic). CHAIN: G7.4 de612d6af -> G7.5 deacbc886 + G7.5b 64e0d61a8 -> G7.6 701212308 -> G7.7 020bc0fa4 -> G7.8 5061160a4; murs g7d demote -> g7e g7f g7g g7h accept_with_residue, each residue closed in-loop.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-G7.2: belam [decision] 15:23Z picked (a) strace -b execve over G7 --seccomp-bpf -- WHY (belam): compute is the switch point (torch 16x slow); ~/track has NO reader in the engine (engine-post.md:81 is its only reference) = telemetry, not a gate. MEASURED (DG3, strace 6.8, 4 threads getppid x25k): untraced 0.039 s · --seccomp-bpf 3.78 s · -b execve 0.044 s; strace refuses --seccomp-bpf with -b. Lost: a bash child file opens in ~/track (one residue line, not a round).
+G7.4-G7.7 (DG3 17:0xZ-18:0xZ): G7.2's -b execve was ruled telemetry-only (M2), but on a PI row it ENDS the session: pi is an env-node shebang, env re-execs node on the same pid, strace detaches its only tracee and with the -o pipe sink exits, the pty hangs up (DG5: 15 restarts after its 16:53Z key restart). The fix moves the interpreter into the projected H (node on the pi entry) instead of dropping -b execve, keeping belam's pick (a). G7.5 found pi by walking the unit's own PATH (the geometry, one source, PATH order) instead of a literal /agi/bin; G7.5b narrowed the refusal to boxes with a pi row after the kid showed the brief blocked claude-only boxes; G7.6 made a jq error refuse (only rc 4 passes) and moved the refusal ahead of the wants strip; G7.7 reads the unit once so NO refusal can strip the last good projection. Prior THOUGHT (G7.2 pick a, timings) = this node's grid history.
 <!-- THOUGHT:END -->
