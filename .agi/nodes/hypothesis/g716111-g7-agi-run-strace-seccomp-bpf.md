@@ -23,7 +23,7 @@ The agi-run strace detaches at each child exec (-b execve, G7.2; G7 tried --secc
 ## Dispatch line
 Kid answers FIRST: what agi-track reads from the strace stream (which fields), and does --seccomp-bpf with -f change any line shape it parses.
 ## FALSIFIERS
-- F1 the agi-run line still runs strace without --seccomp-bpf.
+- F1 the agi-run line runs strace without -b execve, or with --seccomp-bpf (strace refuses the two together).
 - F2 under the new line a %file syscall of a forked grandchild is missing from the stream agi-track receives.
 - F3 a futex/compute-heavy child under the new line is not materially faster than under the old (paste both timings, same box, same command).
 ## TESTS
