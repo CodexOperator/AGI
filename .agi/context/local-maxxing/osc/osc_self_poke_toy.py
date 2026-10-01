@@ -127,7 +127,7 @@ def main():
          "C3b": c3b == len(sham), "C4": min(drop0[k] for k in lb) > max(drop0[k] for k in ps)}
     void = not (fsha0 == P["pc_model_sha256"] and sha_file(os.path.join(pc, "params.json")) == P["pc_params_sha256"]
                 and abs(base - P["baseline_test_acc"]) <= P["baseline_test_acc_tol"]
-                and {str(k): len(m) for k, m in fams.items()} == P["family_sizes"]
+                and {str(k): len(fams.get(k, [])) for k in P["families"]} == P["family_sizes"]
                 and commit and len(git("ls-files").stdout.split()) == 2 and not dirty and sha_file(pp) == sha)
     R = {"verdict": "void" if void else "proved" if all(v.values()) else "disproved", "void": void, "conjuncts": v,
          "C1": {"restores_equal": c1, "n_trials": len(rows), "file_sha_start": fsha0, "file_sha_end": sha_file(ckpt)},
