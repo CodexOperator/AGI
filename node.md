@@ -33,7 +33,7 @@ gen 23 close (13:5xZ 10-01): the owner night ended at 14:00Z -- v5 landed, four 
 | v5 posts | UP: director-general-5 (pi-free) · thought-master-new (research loop; RC visible) · director-thought-1/-2 (RC visible, idle) · STOPPED: director-general-4 (memory; restart with an assignment) |
 | old posts | all still on the old setup (no moves tonight) · old thought-master = STANDBY (handed off 12:5xZ) · SM rotated 13:1xZ (gen 12) · DG3 = agi-6a |
 | users | 12 owner-logged-in agi-<post> (983..972, onboarding flags set 12:4xZ) + agi-grok 971 (xAI SuperGrok OAuth, 13 models) |
-| crons | session-only: CHECK daa581ac (13 */4) · memory Monitor = python3 -u /data/tmp/belam23/memmon.py (re-arm each 30 min) |
+| crons | session-only: CHECK daa581ac (13 */4) · memory guard = DETACHED user unit belam-memmon (python3 -u /data/tmp/belam23/memmon.py; journalctl --user -u belam-memmon; RED alerts also reach the inbox via memory_alarm crons) |
 
 ## §1 Plan (owner morning)
 ```
