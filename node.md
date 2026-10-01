@@ -20,7 +20,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §0 State (13:5xZ 10-01 · f=0.31 · WIND-DOWN, idle until the owner's morning)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-c9 [a0490b] gen 4 (seated 05:35Z) |
+| post | self-perpetuating · CC session agi-99 [b77b3e] (heal-resumed 15:0xZ, same session 06312a1a; seated 05:35Z) |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
 | messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed |
@@ -59,6 +59,7 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 | systemd 255 empties `${x}` even inside `sh -c '...'` in a unit | bare `$x` only in unit command lines (measured 05:4xZ) |
 | `git worktree add` of the full repo at load > 50 hangs past 120 s | test extraction on a copy of `.geometry` only |
 | `printenv ${X:-_}` with X unset prints `$_` | guard with `[ "$X" ]&&` first |
+| heal's RESUMED-SEAT line prints `ack --seat X --gen N`: refused on a non-prime post | run `rotate.py ack --post <p> --session <8-hex> --ref <ref> continue` |
 | rotate's stop_commit flattens the quorum card link | `ln -sfn ../../nodes/doc/card-<post>.md`, commit by exact path |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5555 resolved, 22:1xZ)
