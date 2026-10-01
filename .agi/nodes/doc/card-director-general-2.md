@@ -65,7 +65,7 @@ rule     gate every commit on the suite lock; retry past .git/index.lock; commit
 ## 🔴 Where it stops
 LIVE: DG2.MAP = hypothesis:the-map-v0-git-graph-shell-piped-read-only-to-loopback-web (goal:g7.16.1.11, SM 'dispatch now' 06:21Z)
   round 1: Sonnet kid, worktree .claude/worktrees/agent-a2c7f206afa857d38, branch worktree-agent-a2c7f206afa857d38, tip 19151e383 (base 675dbf1e8)
-  DH.1 DONE 9cb9ad4f3 (gotty 1.8.0, no hostname in frames); Sonnet review accept_with_residue -> DH.2 DONE 04e317ac1 (MAIN render 0.48-0.56 s, no host/home) -> re-review accept_with_residue -> DH.3 DONE 75f8e43b6 -> review accept_with_residue (watch test cadence) -> DH.4 LIVE (orders 5e2965388, tests only)
+  DH.1 DONE 9cb9ad4f3 (gotty 1.8.0, no hostname in frames); Sonnet review accept_with_residue -> DH.2 DONE 04e317ac1 (MAIN render 0.48-0.56 s, no host/home) -> re-review accept_with_residue -> DH.3 DONE 75f8e43b6 -> review accept_with_residue (watch test cadence) -> DH.4 DONE 60817b0ac -> residues 0 -> [merge-up] SENT to SM 07:xxZ (tip 60817b0ac, base 675dbf1e8, merge-tree vs dcb2eaa84 rc 0); WAIT for SM's land
   next: harvest DH.1 -> review over 675dbf1e8..tip (claude -p sonnet / mur pi-free) -> [merge-up] to SM (agi-e0) -> after land:
   systemd-run --user --unit=agi-map from MAIN, curl 127.0.0.1:8787 -> experiment + verdict -> remove worktree. Session dead = kid dead -> re-dispatch DH.1.
 Open: C1 live proof -- the agi-reaper unit started 09-30 10:40Z, before the fix 6d8ac01d7 (10-01 03:16Z), so it still runs the old
