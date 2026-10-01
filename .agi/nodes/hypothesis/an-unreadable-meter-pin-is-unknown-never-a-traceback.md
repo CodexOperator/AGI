@@ -47,5 +47,4 @@ Assert the CONTRACT (no raise, `None`), never the function name. Mutate: deletin
 ## FILE SCOPE
 `extensions/agi/bin/rotate.py` (`_read_pin_target` only) · `extensions/agi/tests/test_rotate.py` · this node. NOT the ACL, NOT any `.meter` pin, NOT a live worktree, NOT `.env`, NOT `config:*`.
 
-## CEILING
-No parent and no kid — this formation mints no children and no director seat can dispatch (`.env` is 0640, banked in card §6). Lands as a direct edit on `posts/director-general-5` with a red-first test, then the SM gate, the same path goal:g1.31.4.6.2 took. pi-free, 0 USD, <= 4 production lines, 3 tests, no new file.
+No parent and no kid — this formation mints no children and no director seat can dispatch (`.env` is 0640, banked in card §6). Lands as a direct edit on `posts/director-general-5` with red-first tests, then mur, then the SM gate. pi-free, 0 USD, 2 guards in 2 functions (<= 6 production lines), 4 tests over 2 seams, no new file.
