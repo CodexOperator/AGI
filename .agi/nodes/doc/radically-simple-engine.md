@@ -898,6 +898,64 @@ For a launch (§L), the pane is the same two files under `/var/tmp/$INVOCATION_I
 
 **Falsifiers.** **N1** pty, typing, CR, ^C, no EOF, restart (PASS, above) · **N2** no journal copy, argv hidden, `i` + `o` 600 (PASS) · **N3** a live TUI (claude and pi) in the pane: CR submits a prompt, a write during a busy turn is kept for the next turn, and `o` grows by at most X MB/h (UNRUN: needs the live post, stage 2.5; X is a cell to measure, never a guess) · **N4** `systemctl show agi-post@<p> -p ControlGroup` is under `/agi.slice/`, and that slice has a finite MemoryMax and an oomd line (UNRUN: a root act) · **G2** a nudge written while the post's TUI is busy is answered (UNRUN) · **G3** a memory climb past the slice's MemoryHigh appears as a drift commit naming the slice before any kill (UNRUN) · **G4** a commit carrying a box token in a post clone is refused (UNRUN) · **G5** every row of the N.4 table names a piece, a cell or a falsifier, or says KEEP / HELD by name: no row reads "covered" without one (this table, checked by hand 04:0xZ).
 
+## O · ROUND 4 · alive -- the CAPSULE: sealed by the box, opened only by k ring signatures, straight into ONE signed destination
+**Owner 04:49Z:** "ring/multisig-signed perma-encrypted capsule ... always be encrypted until 'popped' as a safe shell command that can be piped anywhere without the rings key holders ever having any individual permission to view it. Only a combined permission to send it somewhere. No view possible. It's like part of the money system but radically simplified down to bytes of shell instructions." **What am I ACTUALLY trying to get the machine to do?** Make the ONLY path from ciphertext to plaintext a k-of-n decision over WHERE it goes. Nobody holds a key that decrypts; holders hold keys that can only AGREE. Lens (alive): every limit below is measured or named, never implied away.
+
+**O.0 · Measured on this box first (04:5xZ), because belam's draft leaned on it:** no TPM (`/dev/tpm*` absent; `systemd-creds has-tpm2` = partial: no firmware, no driver), so a `systemd-creds` seal is anchored by the HOST key alone: a root-only file. systemd 255 has no user-scoped credentials (`--user` unrecognized), and a non-root user cannot even seal: "Failed to determine local credential host secret: Permission denied". So a holder (a post, non-root) can neither seal nor unseal. That is the "no individual permission to view", measured, and it is root's alone.
+
+**O.1 · The flow (four acts, one ref).**
+```
+SEAL   owner (root, once):  secret on STDIN (never argv) -> systemd-creds encrypt --name=s - .agi/capsule/C/cred   (AES-GCM, host key)
+       commit .agi/capsule/C/{cred, k, ring/<post> -> ../../../keys/<post>}  ->  refs/capsule/C = that commit = the first tip T
+ASK    anyone: R = "C H T"  with  H = git hash-object R.L,  R.L = the DESTINATION launch vector (§L: its run cell says where it pipes)
+SIGN   each holder: ssh-keygen -Y sign -n capsule -f <its post key> R  ->  R.sig.<post>     (holders see R and R.L, never the secret)
+POP    capsule-pop R (root unit):  the ring, k and cred are read FROM T (the signatures pin them all) -> >= k DISTINCT valid ring
+       signatures -> git update-ref refs/capsule/C new T  (ONE CAS: the tip is the nonce, a replay loses) -> systemd-run the run cell of
+       R.L with LoadCredentialEncrypted=s (systemd decrypts it ONLY into that unit's private $CREDENTIALS_DIRECTORY), DynamicUser,
+       stdout + stderr = null  ->  the ledger commit holds R + the signers: the money-system part, one commit per pop
+```
+"Piped anywhere" = the run cell (`... < $CREDENTIALS_DIRECTORY/s`). The quorum signs H, the hash of that exact run cell, so WHERE it goes is the combined permission, and nothing else is.
+
+**O.2 · The piece, whole: `capsule-pop` (1,102 B).** Not a config:engine piece: it lives in its own node (`config:capsule`, one read, with the seal line and the two unit stubs), so config:engine's depth 0+1 stays 4,095 B.
+~~~sh
+#!/bin/sh
+# capsule-pop R: R = "C H T" (capsule, hash of the launch vector R.L, ledger tip). The ring, k and the sealed bytes are read FROM T, so the
+# signatures pin all of them; k distinct ring signatures move refs/capsule/C T->new (one CAS: a replay loses), then L runs with C as its only credential
+set -e;read -r c h t<"$1";x=.agi/capsule/$c;r=$(mktemp);trap 'rm -f $r $r.ok $r.c' EXIT;[ "$(git hash-object "$1.L")" = "$h" ]
+g(){ echo "$t:$1"|git cat-file --batch --follow-symlinks|tail -n+2;};git ls-tree --name-only $t $x/ring/|while read f;do echo "${f##*/} namespaces=\"capsule\" $(g $f)";done>$r
+for s in "$1".sig.*;do p=$(ssh-keygen -Y find-principals -s "$s" -f $r)&&ssh-keygen -Y verify -f $r -I "$p" -n capsule -s "$s"<"$1">/dev/null 2>&1&&echo "$p";done|sort -u>$r.ok
+[ $(wc -l<$r.ok) -ge $(git cat-file blob $t:$x/k) ];git update-ref refs/capsule/$c $(cat "$1" $r.ok|git commit-tree $t^{tree} -p $t) $t;git cat-file blob $t:$x/cred>$r.c
+systemd-run -q --wait -p LoadCredentialEncrypted=s:$r.c -p DynamicUser=yes -p StandardOutput=null -p StandardError=null sh -c "$(jq -r .run "$1.L")"
+~~~
+**Tested 04:5xZ:** user manager, a scratch repo, three throwaway holder keys + one outsider, k = 2, a 19-byte dummy payload. The test copy differs only in `systemd-run --user`, `LoadCredential=` (plain) and no `DynamicUser` (the encrypted, system form is the root act below). No real key was touched.
+| # | case | result |
+|---|---|---|
+| T1 | k-1 signatures | refused, tip unmoved, destination never ran |
+| T2 | one holder signing twice | refused (distinct principals) |
+| T3 | a holder + an outsider | refused (the outsider is not in the ring at T) |
+| T4 | k signatures, then R.L swapped (`wc -c` -> `cat`) | refused (H mismatch) |
+| T5 | k distinct holders | popped: the destination read exactly 19 B from a mode-500 private credentials dir; the tip moved; the ledger commit = R + `h1 h2` |
+| T6 | the same R + signatures again | refused (rc 128: the CAS lost, the tip had moved) |
+| T7 | the outsider added to the WORKTREE ring with k = 1 there | refused (ring and k are read from T) |
+| T8 | the sealed bytes swapped in the worktree after signing | the destination got T's 19 B, not the worktree's 23 |
+| -- | temp files after every run, pass or refusal | 0 (trap on EXIT) |
+Two bugs caught by the tests, not by reading: (1) the first form read ring, k and cred from the worktree, so a signature did not pin them (T7/T8 now cover it); (2) `cat-file --batch` adds a newline, so the payload arrived as 20 B -> `cat-file blob` for cred and k.
+
+**O.3 · Honest limits (belam asked for them; all measured or named):**
+| claim | holds against | does NOT hold against |
+|---|---|---|
+| no holder can view | every holder, alone or in any group < k (they hold only signing keys) | ROOT on this box (it reads the host key; no TPM here) · a disk copy + root |
+| no view at rest | the graph and its pushes (ciphertext only, authenticated) | a stolen host key |
+| no view in transit | journal (null), argv (only paths and the run cell), swap (credentials dir is unswappable) | the DESTINATION process: it must see what it consumes |
+| a pop goes only where the quorum said | any run cell other than the signed one (T4) | a quorum that signs a run cell that prints it (they signed WHERE; the ledger names them) |
+| ring signature | -- | `ssh-keygen -Y` is MULTISIG: the ledger names each signer (accountability). An anonymous-among-n ring signature has no tool on the box: named, not built |
+| survives a box loss | -- | the seal is BOX-BOUND: §P (self-perpetuating) = Shamir escrow, every box holding <= min(k-1, n-k) holder keys; a ring change ROTATES the secret, since an append-only graph cannot revoke an old share |
+
+**O.4 · Chosen, and the alternative.** Seal = `systemd-creds` now: 0 B of crypto code, authenticated, and the destination gets it through systemd's own private, unswappable credentials dir. all-is-one's stdlib Shamir (561 B, 2^521-1, 3-of-5 tested; key by fd, never argv; openssl enc is NOT authenticated, so the signature check runs before decrypting) removes the single sealed blob at rest and is the escrow layer §P builds on. On ONE box both reduce to root; across boxes Shamir is the only one that survives.
+
+**Unbuilt, named:** `capsule-pop@.path` on a sticky spool (holders drop `R.sig.<post>`; a k-1 drop just waits) + its service (the git identity for the ledger commit in its Environment) · a pre-receive line: only the pop unit's user moves `refs/capsule/*`, and a ring or k change is itself a pop (§P).
+**Falsifiers.** **C1-C8** = T1-T8 (PASS, user manager) · **C9** the system form: `LoadCredentialEncrypted` under `DynamicUser` delivers the sealed bytes exactly, and `systemd-creds decrypt` as any post user fails (UNRUN: a root act, needs belam's or the owner's go) · **C10** a push moving `refs/capsule/C` from any user but the pop unit's is refused (UNRUN, unbuilt) · **C11** nothing of the payload in `journalctl`, `ps` or swap during a pop (UNRUN at root; null stdout/stderr measured in §N's analog).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 alive (agi-a8), 04:0xZ 10-01 (round 4 closed: parts 1-3 + the whole-doc pass; base f37e25ced2 + config:engine v2 50eda68b1f). Owner 03:48Z, verbatim: "Can we also make sure all the guards and watchdogs and such still work? I was thinking of also including the magic pane anchor as that would still be useful for later stuff like asking the system to work with foreign tools. Tell TM maybe Jev can be made to work even better with the new system due to its mathematical nature or likely maybe we don’t even need it? What if node schemas also contained vectors describing how a node is structured and does arranged. So the whole thing becomes composable. Same with guards and memory stuff and locations of everything. It’s all just vectors literally pointing to things. Maybe even filesystem pointers and even partition/volume-level  pointers. The math is base level for everything. No more workflow.py needed because all things are infinitely composable and run inside the “wrapper.” There’s no distinction between posts, subagents, workflows, etc. all just composable on the fly via vectors but also there’s preset routes for various functions outlined in the commands template which itself has a vector base pointing/multiplying/operating on other relevant vectors. And even a “compose new launch vector” vector to guide a model step by step. Again it should add minimum bytes to code base and I really think you guys can do it. Can you just let everyone know this has been transformative. We about to retire about 99.7% of our codebase overnight, including so many horizon goals. Tmux pane or even a more base-level pane persistence “trick” buried in all that vast hyperhuman systemic understanding from the inside." WHY this version differs: round 4 answered in three sections, one per lens, serialized. §L (self-perpetuating, asks 3 + 4): ONE launch vector, routes replace workflow.py and command:commands. §M (all-is-one, asks 1 + 2): every pointer vector is a directory of symlinks; schemas, guards (the kernel min) and locations (down to the volume) are such vectors. §N (alive, asks 5 + 6 + the guards ask): the pane is two files (a held fifo i + the typescript o) and util-linux script owns the pty, so dtach retires; the anchor is the post name; every guard and watchdog mapped to a piece, a cell, KEEP, HELD or a named GAP. Measured on the exact v3 unit bytes in the user manager (paths swapped, no root, stub harness, units removed). Three traps folded in: the journal copy, the argv in the typescript header, the umask on o. The red N.5 (a system-unit post sits outside every user-manager guard layer) is fixed by cells only: Slice=agi.slice plus a guard-init cap; its proof is a root act left to DG3 at stage 2.5. Whole-doc pass: M.1 reworded on self-perpetuating 04:0xZ note (pointer vectors are symlink dirs, a launch is a row of cells), so the doc no longer claims one representation while showing two; §0 gained the round-4 line; §G already carried all-is-one M.0 correction, §D quotes none of it. depth 0+1 of config:engine stays 4,095 B with §L lines; §N adds 148 B of code. Near miss: my first header fix (dollar-dollar H) still leaked the argv, because the outer sh expands inside its double quotes; the backslash form was measured before it was written down.
 <!-- THOUGHT:END -->
