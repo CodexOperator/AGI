@@ -15,41 +15,37 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:56Z 10-01) -- goal:g7.16.1.11 ROUND 4 ("everything is a vector"); alive waits for parts 1 + 2, part 3 prep MEASURED in scratch
+## §0 State (04:11Z 10-01) -- goal:g7.16.1.11 ROUND 4 DONE: doc @bfc04e8588, [decision] sent to belam agi-a3; waiting on its reply
 | | |
 |---|---|
-| post | alive · session agi-a8 [1e3de5] (successor of agi-6f [f4668c]) · rotate at f >= 0.47 |
-| state | waiting: s-p writes part 1, then all-is-one part 2; then alive writes part 3 |
+| post | alive · session agi-a8 [1e3de5] · rotate at f >= 0.47 (0.12 at 04:1xZ) |
+| state | idle on the council lane: belam relays round 4 to the owner; DG3 builds after (goal sequence step 3) |
 | spend | FREE LANE (the F17 exception is spent: $0.2829); no root act without a new owner go |
 | messaging | SendMessage by session name, "name [ref]" where names collide; NO send.py sends; town nodes are Prime-gated |
-| peers (03:5xZ) | belam agi-a3 [446ae8] · s-p agi-5b [1edcee] · all-is-one agi-15 [c6276e] (both told: [done] goes to agi-a8) · DG3 builds config:engine v2 on DG5 (stage 2.5): never block it |
+| peers (04:1xZ) | belam agi-a3 [446ae8] (window @30) · s-p agi-5b [1edcee] · all-is-one agi-15 [c6276e] · DG3 builds config:engine v2 on DG5 (stage 2.5): never block it |
 | lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   round 3: config:engine v2 @f37e25ced2 (doc:radically-simple-engine §I + §K); belam re-minted v2 (50eda68b1f)
-       wake: card re-linked 547f237df4 · part-3 prep in /tmp/g71611/r4-alive/notes.md (pane test + guard inventory draft)
-NOW    ROUND 4 (owner 03:48Z verbatim on goal:g7.16.1.11). Base = config:engine v2. Serialized: s-p -> all-is-one -> alive
-       1 s-p agi-5b: (3) post/subagent/workflow/round = ONE launch vector, no workflow.py · (4) commands template + compose vector
-       2 all-is-one agi-15: (1) schema structure vector · (2) guards, memory budgets, locations as vectors to fs / volume level
-       3 ALIVE: (5) magic pane anchor = a location vector post -> (in, out) · (6) pane below tmux = in (fifo, held rw) + out
-         (typescript), script owns the pty: 0 B added, dtach retired (MEASURED 03:54Z: real pty, typing = a write, ^C = SIGINT,
-         no EOF when a writer leaves; trap: StandardOutput=null or the journal holds a 2nd transcript) · guards/watchdogs ->
-         v2 piece | vector | retired, each a falsifier · update §0 of the doc · whole-doc check · ONE [decision] to belam agi-a3
+done   round 3: config:engine v2 @f37e25ced2 (§I + §K); belam re-minted v2 (50eda68b1f)
+       round 4: §L s-p a3b98158d9 · §M all-is-one 48aed6ac6d · §N alive a658452cd9 + whole-doc pass (M.1 reworded on s-p's note,
+       §0 round-4 line, THOUGHT) -> tip bfc04e8588 · [decision] to belam 04:1xZ (incl. the N.5 red for DG3)
+NEXT   answer belam / the owner on §N if asked · on the owner's go, DG3 builds: N3 (a live TUI in the pane) and N4 (the post's
+       cgroup under a capped agi.slice) are proved at stage 2.5 on DG5, not by alive
 HELD   key/identity/rotate work until DG3's build lands (belam 03:48Z) · NO root, NO paid run without a new owner go
 ```
 
 ## §2 Landed
-- 547f237df4 card re-link (this session) · gen 5: e7bf243872 r3 part 3 · 44619712d9 v1 · c9c66b2f4b §J spike · f37e25ced2 §I v2 + §K
+- 547f237df4 card re-link · a658452cd9 §N · b278b510a2 M.1 · 2fa28c053b §0 · 214d4dea0a + bfc04e8588 THOUGHT
+- gen 5: e7bf243872 r3 part 3 · 44619712d9 v1 · c9c66b2f4b §J spike · f37e25ced2 §I v2 + §K
 
 ## 🔴 Where it stops
-alive waits for "[done] <sha>" from s-p (part 1) and all-is-one (part 2); part 3 is drafted in scratch, not yet in the doc
+alive sent round 4's [decision] (doc @bfc04e8588) to belam and waits for its reply; nothing in flight, no unit, no round
 ```
-next: on all-is-one's [done]: git log -3 -- .agi/nodes/doc/radically-simple-engine.md -> read their sections -> fold
-  /tmp/g71611/r4-alive/notes.md into part 3 against THEIR vector form -> write.py (scratch file, replace body) -> whole-doc
-  check (cmp §I, links.py links 0 broken) -> ONE [decision] to belam agi-a3 with the sha
-scratch lost? re-run the pane test: notes.md §(6) lists every step (transient user unit, stub harness, no root)
+next: on a reply from belam: read it (SendMessage arrives in the pane; also send.py read alive + tail the inbox file)
+  -> a question on §N = answer from the doc's bytes (scratch /tmp/g71611/r4-alive: post.v3 inbox.v3 sectionN.md notes.md)
+  -> a change to §N = write.py replace body on §N, re-run the whole-doc check (cmp §I vs f37e25ced2, links.py links 0 broken)
 ```
 
 ## §4 Traps
