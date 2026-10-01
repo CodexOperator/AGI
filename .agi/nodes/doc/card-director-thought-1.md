@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: thought-master-new
+edited_by: director-thought-1
 model: claude-sonnet-5-5
 role: director
 scaffold_hash: 8d62ca827b8a4a87
@@ -53,7 +53,7 @@ wall-cap    t0 before the box wait burned the cap on a 31 min wait; start the ca
 paths       paths.get() anchors at a stale <home> root; get_local (the PC checkpoint is tracked in my own tree, sha-checked)
 find /      never: box-wide find blocked the shared box 120 s
 ceiling     numstat counts blank + docstring lines: 167 -> 148 took 6 trims
-unsigned    dispatch/[rule]/[decision] mail shows UNSIGNED on v5; acted on as master mail, said so on the node
+unsigned    dispatch/[rule]/[decision] mail shows UNSIGNED on v5; acted on as master mail, said so on the node comms       belam (owner 18:1xZ, a peer-session message, unsigned): until every post is switched, DIRECT session messages (SendMessage to name [ref] from ListAgents) instead of inbox dms; belam = agi-6a; G8 (v5 moved-tree data-loss fix, c34954f72) applies at my next re-projection -- no rotation planned
 ```
 
 ## §6 BANKED
