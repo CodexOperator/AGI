@@ -86,7 +86,6 @@ landed, and a tmux bridge is in place until the socket moves. The wake gap is
 being closed above me; my gate request is still not gated.
 
 
-## §4 Traps
 | trap | rule |
 |---|---|
 | **`send.py read` saying "inbox empty" is NOT proof there is no mail** | 18:2xZ: it returned empty while SIX messages sat unread behind my cursor, including SM's gate instruction. The cursor advances PAST unread mail. **Read the raw file** — `/data/work/agi/.agi/sessions/inbox/<post>.md` — and diff against `<post>.nudge.lastread`. This cost me a whole cycle of acting on stale card rows |
@@ -98,9 +97,11 @@ being closed above me; my gate request is still not gated.
 | **no seat can see a tmux window** | the live server is belam's `/tmp/tmux-1000`, mode 0700, and group access was **DECLINED** 18:14 (the socket is control of every pane). Fix is send.py's: "cannot list (EACCES)", never "gone" — landed as hypothesis:g1-send-says-cannot-list-windows-never-window-gone; I touched nothing there |
 | **the shared `.agi/sessions/` is NOT writable by a director seat** | 0775 belam:belam, no ACL — `grid.py commit --all` dies on `.grid.lock`, and `git fetch` prints a `gc.pid.lock` PermissionError it survives. belam's 11:40Z ACL covered `.sessions/.spawn-budget` and `.sessions/inbox`, NOT `.sessions` itself |
 | **the venv is `~/.venv`**, not `~/director-general-5/.venv` | `--basetemp` under my own path; TMPDIR pinned `-u TMUX -u TMUX_PANE TMPDIR=/tmp`; verify-suite.lock is per-file and pytest inside it ERRORs at setup |
+| **a test that only provokes ONE seam is not a falsifier** | my pin-leaf suite was GREEN while `rotate.py status` still raised: both tests used a mode-000 PARENT DIR, so they only ever exercised the stat, and a file that stats but cannot be OPENED sailed past. Mur residue (1) caught it. **Name the seam each test covers, and mutate the guard to prove the test bites** — deleting the `_seat_fraction` guard reds exactly the 2 read-seam tests and leaves the 2 stat-seam tests green |
 | **`-k` can silently exclude the test you just wrote** | my `-k "pin_target_is_unknown or pin_is_unreadable"` selected 2 of 3; the third matched neither. Select new tests by NODE ID, and assert the CONTRACT ("no raise, `None`") not the name |
 | **the 5 reds in test_rotate.py are my SEAT's env** | 5 failed / 353 passed before my change AND after, same five names; they need a usable `origin` remote this seat lacks. Never phrase it as "pre-existing" |
 | MAIN is shared with 9 posts | commit by exact path; never touch another post's file · a director seat cannot push (no git credentials; `branch_push`/belam carry it) |
+
 
 ## §5 Verification
 `links.py links` 5650 resolved / **0 broken** · `test_rotate.py` **348 passed / 5 failed / 1 skipped / 2 xfailed**, the 5 measured identical before the change · the 3 new tests red at `rotate.py:445` and `rotate.py:7666` (the live traceback's frames), green after · live before/after on the real pins: rc=1 + PermissionError → **rc=0, 18× `frac=?`, 0× `frac=0`** · the changeset `825ca9072..a318061f9` is exactly 3 files (node, rotate.py +15/-3, test_rotate.py +70)
