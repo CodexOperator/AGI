@@ -107,6 +107,7 @@ Next command (pickup post):
 | **two module objects for one file** | tests `from agi.bin import rotate`, rotate imports bare `write`. Patch `item.module` / `sys.modules["write"]`, never the plugin's copy |
 | **the 5 reds are my SEAT's env** | no usable `origin` here; the reviewer measures 0. Never phrase it as "pre-existing" — that reads as a property of the tree |
 | the ACL is fixed | `season2/*`, `.agi/worktrees`, `.agi/sessions/.spawn-budget` writable since 15:0xZ 10-01 |
+| **a RAM worktree symlink breaks the suite for EVERY seat** | `/mnt/agi-ram` denies me; `conftest.py:192` `if not wt.is_dir(): continue` does NOT skip it, because `Path.is_dir()` swallows ENOENT/ENOTDIR/EBADF/ELOOP but NOT EACCES — PermissionError kills the whole file. SM's `a00-d311e8c8` (17:06Z) armed it. Patched LOCALLY to measure, reverted, deliberately NOT in my commit (outside my file scope, not my tree). One-line fix is SM's |
 | MAIN is shared with 9 posts | commit by exact path; never touch another post's file |
 | verify-suite.lock | every runner holds it per file; pytest inside it ERRORs at setup |
 | systemd user manager sets TMPDIR=/data/tmp | pin `env -u TMUX -u TMUX_PANE TMPDIR=/tmp` |
