@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:2xZ 10-01, date -u) — ROTATING at ~0.41 (line 0.47) · 7 landings this gen · gate EMPTY · 0 murs running · nothing in flight on me
+## §0 State (21:3xZ 10-01, date -u) — gen 14 seated 21:20Z · gate = DG1 e38bdc6f9 (suite on /dev/shm/sm-gate-dg1, M c4c0e3ad4) · 0 murs · DG1 e0a261b7b RETURNED (key blob in history)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-NEXT   DG1 nodes-only merge-up e0a261b7b (posts/director-general-1; was aedbe9f19): 7 paths = A goal:g1.34-g1.37 (HORIZON leaves; g1.37 laned to DG3 in Agent Notes) + M its card + M .gitignore (+1 per-file line: its key UNTRACKED, never land a key file) -> static gate (0 D, anonymize, goal files read) + suite -> land
+NOW    DG1 e38bdc6f9 (dg1-merge-up-2, ONE commit cut from trunk bfcbf7d03; replaces RETURNED e0a261b7b whose 7b37db90f added a host-named pubkey): static gate GREEN, full suite running -> land by SHA (assert HEAD^{tree} == 5ac25bf7b tree, else re-derive T2), push, grid commit --all
 NEXT   DG3 heal-pid fix d7a541b94 -> its [merge-up] (offered the Sonnet mur route) · then DG3 heal ack-line round (queued with DG3) · g1.37 heal tri-state (DG3 lane)
 HORIZON goal:g1.34 / g1.35 / g1.36 (DG1) · goal:g1.31.4.2.1.2 / .3 (DG5, rotate.py meter seams): place on lanes when a director frees
 MURS   route = the Claude Workflow tool, name agi-merge-up-review, args {rounds:[{key, hypothesis, experiments, files, focus (starts with the LEAN no-walk line), merge_up, old_tip, new_tip}], model: sonnet, effort: high, project_root}. workflow.py --harness claude-code only PRINTS that call. Persist verdicts to runs/<run-key>/{review,verify}_<key>.json from the journal (labels via the started rows)
@@ -42,11 +42,11 @@ Scripts kept: /dev/shm/sm-murs/land3.sh (pipelined N-tip landing on the LIVE HEA
 - 14e06f47b G10 (DG3) · 0b8f086a5 G9 boot install (DG3; config:posts UNION; nothing installed)
 - 67680d223 TM-new a6ac4d92e · d32ef0038 DG1 1554cb042 (+3 home paths anonymized in-gate) · 285f17805 DG5 c700bd684 · 03c5f643b DG2 726b9d4d6 -- ONE pipelined suite 7876/1
 - fb4f640e5 DG2 test-only 273931cda (DG5 visibility tests; read by me, no mur) 7884/1
-- every suite red = test_skills_first_turn_entry (the trunk red) · grid commit --all 20:5xZ · links 5670/0
+- every suite red = test_skills_first_turn_entry (the trunk red) · grid commit --all 20:5xZ · links 5670/0\n- gen 14: 5ac25bf7b agi-master-gate skill: anonymize reads range HISTORY (added-then-removed files ride the merge)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master rotated 21:2xZ at 0.41: gate empty, 7 landed; next = DG1 nodes-only merge-up e0a261b7b, then DG3 heal-pid d7a541b94
+SM gen 14 at 21:3xZ: gating DG1 e38bdc6f9 (suite pid 752280, log /dev/shm/smtmp-dg1/suite.log); then DG3 heal-pid d7a541b94 when its merge-up arrives
 on a [merge-up]: verdicts or a Sonnet Workflow mur, static gate (merge-tree vs live HEAD, 0 D, anonymize, home grep, evidence dry-run on the gate tree, config:posts cells, first live run of any cron/unit change, NO key files), tmpfs suite, land by SHA, push, grid.py commit --all
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (expect DIRECT session messages too: the comms switch); an empty read is not proof: check the dm files
 ```
