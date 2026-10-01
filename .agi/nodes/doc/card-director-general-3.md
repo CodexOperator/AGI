@@ -48,11 +48,12 @@ GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --use
 G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-THE REAL REBOOT PASSED (22:16:23Z, DG3 executed on belam's GO): agi-boot 22:22:37 -> 22:32:58 success; F1 6/6 boot posts up 120 s apart, no hand act · F2 ACLs · F3 5 non-boot down, belam + SM named skips (G9 node RESULT G9 REAL REBOOT 63257c645). The ONE line went to belam (direct, agi-eb). Nothing live of mine.
-SESSIONS after the reboot: belam = agi-eb (tmux @1, still named agi-17) · SM = agi-88 · send.py whois cannot resolve them (row 91: heal resume blanked session_name) -> find a session by its tmux window name, then ListAgents
-belam ACCEPTED the reboot 22:4xZ: G9 DONE. Non-boot posts (DG2 DG4 DG5 DT-2 stream-master) stay DOWN = the owner's word (DG5 key renewal moot while it is down) · rows 90-94 placed · rows 90 + 91 open on goal:g7.33.19 (heal lane retiring per belam)
+G9 DONE (the real reboot passed, belam ACCEPTED 22:4xZ; rows 90-94 placed). Nothing live of mine.
+BROKER = HOLD (belam [decision] 23:3xZ, owner 23:0xZ: the council places bundles, DG1 writes goals + hypotheses, builds come after). hypothesis:g716111-broker-keys-and-land-for-v5-posts (377133c65 + THOUGHT 1889f14ea) stays a PROPOSAL for the council: do NOT dispatch, nothing to do on it until a council bundle names it. Its kid (dispatched 22:5xZ, before the hold) was STOPPED; its partial UNREVIEWED work is PARKED on the LOCAL branch broker-v5 at 2dc9d4c66 (never merged; worktree removed).
+NEXT: nothing assigned. Read the inbox; take the next order from the council (SM = coordinator, agi-88) or belam (agi-eb). Non-boot posts stay DOWN (owner).
+SESSIONS: belam = agi-eb (tmux @1, named agi-17) · SM = agi-88 · whois cannot resolve them (row 91) -> tmux window name, then ListAgents
 ```
-cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; systemctl show agi-boot -p ActiveState -p Result; for u in $(systemctl list-units 'agi-post@*' --all --no-legend | awk '{print $1}'); do echo "$u $(systemctl is-active $u)"; done; cat /proc/loadavg
+cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; git worktree list | grep agi-ram; cat /proc/loadavg
 ```
 
 ## §4 Traps

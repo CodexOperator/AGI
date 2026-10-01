@@ -17,13 +17,14 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (23:xxZ 10-01) -- lane IDLE: FREQ-ABLATION landed; next round awaits a go
+## §0 State (23:5xZ 10-01) -- lane IDLE: FREQ-ABLATION landed; next round awaits a go · NEW ENGINE RULE in force (below)
 | | |
 |---|---|
 | lane | research loop: town:local-maxxing board, goal:g5.22-g5.31, round placement (belam 12:44Z; owner 07:5xZ) |
 | run | owner 15:1xZ: keep going until goal:g7.16.1.11.1-.10 complete · COMMS = DIRECT session messages (SendMessage, names from ListAgents), not inbox dms (owner 18:1xZ) · belam = belam-S2-L5-I · SM lands my merge-ups (a v5 post cannot write MAIN) |
 | directors | director-thought-1: idle after FREQ-ABLATION (returned a352fc937) · director-thought-2: DOWN after the reboot until the owner says |
 | subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
+| RULE | belam [rule] 23:49Z, VERIFIED ed25519 (owner 23:3xZ): my row is engine.v 4 (parent council) -> write.py is RETIRED for me. Read with cat/grep/git (+ `sect <piece>`); write node files with plain Write/Edit; agi-turn (Stop hook: git add -A + ONE commit per turn) commits; grid by path (`grid.py commit <path>`, never --all). Landed 75c04c848; trunk merged in this turn with --no-commit so agi-turn concludes it |
 | LANDED | SEEDS x3 + FAIR P4 (both DISPROVED): a6ac4d92e = 67680d223 on local-maxxing/season2/main, pushed by SM (suite 7876 passed / 1 = the trunk red; links 5670/0; grid commit --all run by SM, 31 versions). Trunk merged back into my branch 6d8bb6265 |
 | LANDED 2 | FREQ-ABLATION DISPROVED: 3fb85474f = 708727845 on local-maxxing/season2/main, pushed by SM (suite 7905 / 2 = skills_first_turn trunk red + a post-reboot test_dispatch pid-4242 flake, placed on DG1; grid 8 versions; links 5676/0). Trunk merged back 2bd54de9c |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: needs MemAvailable >= 8 GB held + a docker-capable user (v5 has none); resume steps in its THOUGHT |
@@ -51,7 +52,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 ## 🔴 Where it stops
 ```
 Lane idle: FREQ-ABLATION landed (708727845); the next round (score LOSS / margin, §6) awaits a go from the owner or belam
-next command on a go: write.py create hypothesis under experiment:dt1-neuron-period-freqabl-1001 + idea:lm-neuron-periodicity-map-and-self-poke, order DT-1 by SendMessage
+next command on a go: Write a new .agi/nodes/hypothesis/<slug>.md (frontmatter as in the FREQ-ABLATION hypothesis; parents experiment:dt1-neuron-period-freqabl-1001 + idea:lm-neuron-periodicity-map-and-self-poke; fresh mint_id), order DT-1 by SendMessage
 ```
 
 ## §4 Traps
@@ -62,14 +63,15 @@ next command on a go: write.py create hypothesis under experiment:dt1-neuron-per
 - a stop / rotation of a v5 unit DELETES RUNTIME_DIRECTORY (/run/agi-<post>) until G8 is projected: never keep work there
 - MAIN is not writable by a v5 user: SM lands; datasets/osc-band in MAIN too -> out dirs resolve under the builder's tree
 - before a merge-up: grep added lines for the host name + absolute home paths (.agi/keys/* ssh comments; cards) and fix them on my branch
-- a findings row number is claimed only at landing: on a conflict keep theirs verbatim, renumber mine + every reference (write.py sub!)
+- a findings row number is claimed only at landing: on a conflict keep theirs verbatim, renumber mine + every reference
 - anonymize.py and provisioning.py die on MAIN .env (G2) -- grep by hand instead
 - tests: NO pytest anywhere on the box -> scratch shim (scratch is under /tmp: a reboot WIPES it, so rebuild it) (pytest.py with importorskip/approx/mark.parametrize + a runner) on PYTHONPATH with /data/ml/scratch/osc03/pylib, run by /data/ml/.venv/bin/python3; never pip install
 - import torch needs ulimit -v >= 4000000 (2000000 fails to map); brief subagents with 4000000
-- git push fails (no creds for a v5 user); grid.py commit --all fails (MAIN .grid.lock) -- SM does both at landing
-- write.py `thought` takes the TEXT inline ("thought $(cat f)"), not a path
+- git push fails (no creds for a v5 user); grid.py commit --all fails (MAIN .grid.lock), but `grid.py commit <path>` WORKS (card v5, 23:5xZ) -- SM pushes at landing
+- NO hand `git commit` / `git merge` that commits: agi-turn makes the ONE commit per turn (git add -A at Stop), so anything dirty gets committed -- clean the .agi/keys/<post> host comment BEFORE the turn ends; sync the trunk with `git merge --no-commit`
+- a THOUGHT block is edited in place between its BEGIN / END markers, rewritten whole; a new node needs its own mint_id (32 hex)
 - send.py from me arrives UNSIGNED (a v5 post has no seat key; key work HELD) -- direct session messages are the route
-- write.py create on a town node: --actor thought-master-new, NO --role; a card write: --role director
+- send.py read <me> prints the mail, then dies writing the read marker (PermissionError on MAIN inbox): the same mail shows again next read -- judge by ts, act once
 
 ## §5 Verification
 - every round: an adversarial Sonnet review recomputes the verdict from the raw files; my own test run from the repo root; evidence dry-run []; links 0 broken (5648 resolved at 17:5xZ)
@@ -80,4 +82,4 @@ next command on a go: write.py create hypothesis under experiment:dt1-neuron-per
 - next-round design: FREQ-ABLATION (d05c57e81) DISPROVED on accuracy; the next lens scores held-out LOSS or logit margin with a pre-registered loss null (accuracy saturates: s2 k=17 is a 0-0 tie that passes on loss); path patching stays the fallback. Needs a go
 
 ## Skills
-agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
+agi-send · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
