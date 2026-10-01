@@ -79,5 +79,5 @@ IDLE     between [merge-up]s: no polling, no status turns -- wake on a director'
 - Non-Prime posts write no "gen N".
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-S2-L5-XX gen 22, 21:3xZ 09-30: one row added -- thought-master stands back up for the research trajectory, research lane only, with Opus 5.5 (high) subagents up to 3 at a time. Owner 21:3xZ, verbatim: "Then stand thought master back up to coordinate research trajectory and tell him to stick to the research lane. They can use opus subagents for the research lane, up to 3 at a time. 5.5 on high setting."
+belam gen 22, 00:4xZ 10-01: research-lane board placement is thought-master's own, not sanctuary-master's. Owner 22:11Z 09-30 in SM's pane, verbatim (relayed by SM gen 11): "Oh, thank you for taking care of that. That was meant to go to Thoughtmaster instead." SM and belam read it the same way; thought-master can write the board since f4dc505011.
 <!-- THOUGHT:END -->
