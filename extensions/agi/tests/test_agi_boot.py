@@ -26,7 +26,7 @@ def box(tmp_path):
     z = '  - {"name": "z", "boot": true, "role": "director", "tier": 1, "box": "local-town"}\n'  # boot-flagged, no engine row
     (repo / GEO / "posts.md").write_text("---\nposts:\n" + "".join(ROW % (n, '"boot": true, ' if b else "") for n, b in rows) + z)
     cfg = json.loads((WT / ".agi/config.json").read_text())
-    cfg["values"]["local_maxxing"]["agi_boot"] = {"poll_s": 0.1, "wait_max_s": 1}
+    cfg["values"]["local_maxxing"]["agi_boot"] = {"poll_s": 0.1, "wait_max_s": 1, "space_s": 0.2}
     (repo / ".agi/config.json").write_text(json.dumps(cfg))
     g = lambda *a: subprocess.run(["git", *a], cwd=repo, check=True, capture_output=True, text=True)
     g("init", "-q"); g("add", "-A"); g("-c", "user.name=t", "-c", "user.email=t.invalid", "commit", "-qm", "x")
@@ -133,3 +133,29 @@ def test_unit_text_one_section():
         assert need in u
     n = sum(f.read_text().count("Requires=agi-ram-main.service") for f in (WT / GEO).glob("*.md"))
     assert n == 1 and "Requires=" not in section("agi-boot")  # F4: one copy, none in the script
+
+
+def test_space_s_slept_after_every_start_gate_read_after_it(box):
+    run, log, la, *_, tp = box
+    assert run().returncode == 0
+    p = lambda n: "agi-post" + "@" + n
+    seq = [l for l in lines(log) if l[:2] in ("b ", "e ") or l == "sleep 0.2"]  # poll_s is 0.1: the gate is open, never polled
+    assert seq == [f"b {p('a')}", f"e {p('a')}", "sleep 0.2", f"b {p('b')}", f"e {p('b')}", "sleep 0.2"]  # two starts never closer than space_s
+    (tp / "flip").write_text("20.00 1 1 1/1 1\n")  # the first space sleep closes the gate: b's re-read, after it, must see that
+    log.write_text(""); r = run()
+    assert r.returncode != 0 and "skipping b" in r.stderr and "b " + p("a") in lines(log) and "b " + p("b") not in lines(log)
+
+
+def test_missing_space_cell_is_named_and_fails(box):
+    run, log, *_ = box
+    p = run.repo / ".agi/config.json"; cfg = json.loads(p.read_text()); del cfg["values"]["local_maxxing"]["agi_boot"]["space_s"]
+    p.write_text(json.dumps(cfg)); subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t.invalid", "commit", "-qam", "y"], cwd=run.repo, check=True, capture_output=True)
+    r = run(); assert r.returncode != 0 and "agi-boot: failed: sleep null" in r.stderr
+
+
+def test_non_boot_row_gets_no_wants_link_boot_rows_do(box):
+    run, *_, tp = box
+    assert run().returncode == 0
+    w = tp / "out" / "multi-user.target.wants"
+    assert sorted(x.name for x in w.glob("agi-post@*")) == ["agi-post" + "@a.service", "agi-post" + "@b.service"]  # x: projected unit + h.conf, no wants link
+    assert (tp / "out" / ("agi-post" + "@x.service.d") / "h.conf").exists()
