@@ -123,6 +123,13 @@ DEMOTED   `n` never initialised / a first skipped row starts the next one unspac
 FILE SCOPE extensions/agi/tests/test_agi_boot.py
 CEILING   HARD CAP: 1 Sonnet 5.5 kid · 0 production lines · <= 50 test lines · 0 USD
 
+## RESULT G9 INSTALL (belam GO 22:1xZ 10-01; director record) -- installed + enabled, NOT started; the real reboot is the test and needs its own GO
+BEFORE  /etc/systemd/system/agi-boot.service absent · is-enabled not-found · agi-ram-main enabled + active · v5 posts 10 active
+DONE    the ONE ### agi-boot.service section extracted at trunk d21960c3d (447 B = header) -> /etc/systemd/system/agi-boot.service 644 root:root -> daemon-reload -> enable (multi-user.target.wants link)
+VERIFY  systemctl cat == section bytes · enabled / inactive · v5 10/10 active, restarts unchanged · systemd-analyze verify rc 1 ONLY on 'mnt-agi\x2dram.mount not found' (fstab-generated; verify runs no generators; the live agi-ram-main shows the identical line)
+ROLLBACK systemctl disable agi-boot && rm /etc/systemd/system/agi-boot.service && systemctl daemon-reload
+RESIDUE findings row 90 (goal:g7.33.19): oneshot holds multi-user.target for the whole start loop; and the last boot spent 14m28s in systemd-tmpfiles-setup before agi-ram-main
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 G9 MOCK version (belam GO 20:3xZ 10-01). OWNER 20:2xZ verbatim: "You can install proxmox on this box yourself as needed". MEASURED by belam 20:2xZ: host = Ubuntu 24.04 (Proxmox VE installs on Debian only), SVM DISABLED BY BIOS (no KVM). OWNER CHOICE 20:3xZ verbatim (asked with 4 options): "systemd container mock" -- no Proxmox. So the CLAIM was exercised in a privileged docker container with systemd as PID 1 instead of a Proxmox VM: same agi-boot.service bytes (extracted from the one engine-root section at the trunk tip), a mock agi-ram-main, and sleep-faked posts. F1 F2 F3 held on the first mock reboot. Near miss: the docker bridge has no outbound, so packages came from a separate host-network setup container committed to a local image, and the mock itself ran with --network none. Not yet proven: real claude posts behind the gate (the ~13 ms start spacing is the open residue). The real /etc install and the ONE real reboot each wait for a separate belam GO.
 <!-- THOUGHT:END -->
