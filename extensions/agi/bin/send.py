@@ -2342,6 +2342,14 @@ def _window_listed(tmux_session: str, name: str) -> bool | None:
     return name in listing
 
 
+def _nudge_cannot_list(tmux_session: str, to: str) -> None:
+    """THE one cannot-list line: an UNREADABLE tmux server is never reported
+    as a gone window; both `_nudge_target` unreadable arms call THIS."""
+    print(f"nudge: cannot list windows in {tmux_session} "
+          f"(unreadable tmux server) -- the file sweep carries {to}, no wake",
+          file=sys.stderr)
+
+
 def _window_id_listed(tmux_session: str, wid: str) -> bool | None:
     """True when the tmux window `@id` (`wid`, e.g. `@267`) is a CURRENT
     window of the session -- judged by `#{window_id}`, never by window name
@@ -2538,6 +2546,8 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     # never None here: the old `elif` arm was unreachable.
     _forget_refusals(to, root)
     window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
+    # what the row CLAIMED, before any arm nulls it
+    claimed_ref = window_ref
     pid = (row or {}).get("pid")
     if tmux_session is None:
         import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
@@ -2546,14 +2556,14 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     if window_ref and str(window_ref).startswith("@"):
         # CLAUSE (3): an @id is only a live target while it is a CURRENT
         # window; a stale one is named, then repaired by name below.
+        # `repair_stale_id=False` is the DOCUMENTED opt-out: every production
+        # caller passes True, so False trusts the @id without a listing.
         live = _window_id_listed(tmux_session, str(window_ref)) \
             if repair_stale_id else True
         if live is None:
             # The windows could not be READ: say THAT, never "gone" -- a
             # confident false statement about a live post.
-            print(f"nudge: cannot list windows in {tmux_session} "
-                  f"(unreadable tmux server) -- the file sweep carries {to}, "
-                  f"no wake", file=sys.stderr)
+            _nudge_cannot_list(tmux_session, to)
             return None
         if live is False:
             print(f"nudge repair: {to} row window {window_ref} is gone; "
@@ -2583,10 +2593,8 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
             # (a rowless / windowless recipient stays the silent no-op it has
             # always been, so an unreadable box is not a per-tick stderr
             # flood); the file sweep carries the message either way.
-            if stale_ref is not None:
-                print(f"nudge: cannot list windows in {tmux_session} "
-                      f"(unreadable tmux server) -- the file sweep carries "
-                      f"{to}, no wake", file=sys.stderr)
+            if claimed_ref is not None:
+                _nudge_cannot_list(tmux_session, to)
             return None
         if not listed:
             # A stale @id that the by-name fallback ALSO cannot find is

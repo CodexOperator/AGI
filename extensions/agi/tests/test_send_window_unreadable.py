@@ -11,10 +11,10 @@ Two fixtures, both fake subprocess: an UNREADABLE listing (rc != 0) must say
 "cannot list windows" and never "gone"; a READABLE listing that lacks the
 target must still say "gone" (falsifier 2 -- the true case survives).
 
-The first test is the RED-ON-TRUNK witness: it re-executes send.py's source
-with the fix string-reverted to today's collapsing semantics and asserts that
-THAT build prints "gone". If the revert stops changing the behaviour, the
-witness is measuring nothing and fails.
+The red-on-trunk witness is the FOURTH test: it monkeypatches the two lookup
+helpers (`_window_listed`, `_window_id_listed`) back to today's collapsing
+`False`-for-everything semantics and asserts THAT build prints "gone". If the
+patch stops changing the behaviour, the witness is measuring nothing.
 """
 from __future__ import annotations
 
@@ -65,13 +65,14 @@ def _readable_tmux(monkeypatch, window_names):
 
 # ── (1) unreadable server: "cannot list", never "gone" ────────────────────
 
-def test_unreadable_server_never_says_the_window_is_gone(monkeypatch, capsys):
+def test_unreadable_lookups_answer_none_not_false(monkeypatch):
+    """The TRI-STATE contract on its own: an unreadable server answers None
+    from BOTH lookups -- never False, which the send arm would read as a gone
+    window. (These pure helpers print nothing, so the "no gone wording" half
+    lives in the seat-row tests below.)"""
     _unreadable_tmux(monkeypatch)
     assert send_mod._window_listed("agi", "sanctuary-master") is None
     assert send_mod._window_id_listed("agi", "@5") is None
-    err = capsys.readouterr().err
-    assert "gone" not in err
-    assert "no window named" not in err
 
 
 def test_windowless_recipient_stays_a_silent_no_op(tmp_path, monkeypatch,
@@ -110,11 +111,49 @@ def test_unreadable_never_calls_a_live_at_id_stale(tmp_path, monkeypatch,
 
 def test_absent_window_in_a_readable_listing_still_says_gone(
         tmp_path, monkeypatch, capsys):
+    """Falsifier 2, NON-vacuously: a seats row CLAIMS "@5" and the READABLE
+    listing holds neither "@5" nor the name -- so the target really is absent
+    and the line must be the positive "is gone" one."""
     _readable_tmux(monkeypatch, ["@246", "somebody-else"])
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
-    assert send_mod._window_listed("agi", "sanctuary-master") is False
+    _write_seats(tmp_path, [{"name": "sanctuary-master", "role": "director",
+                             "window": "@5", "pid": 424242}])
     assert send_mod._nudge_target(tmp_path, "sanctuary-master", None) is None
-    assert "cannot list windows" not in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "is gone" in err, err
+    assert "no window named sanctuary-master is listed" in err, err
+    assert "cannot list windows" not in err, err
+
+
+def test_name_window_row_on_an_unreadable_server_says_cannot_list(
+        tmp_path, monkeypatch, capsys):
+    """The carve-out is as wide as the claim: a row that CLAIMED a window --
+    here a NAME, which the refusal arm clears -- still hears the ONE
+    cannot-list line, never "gone". A rowless recipient stays silent (above)."""
+    _unreadable_tmux(monkeypatch)
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    _write_seats(tmp_path, [{"name": "sanctuary-master", "role": "director",
+                             "window": "sanctuary-master", "pid": 424242}])
+    assert send_mod._nudge_target(tmp_path, "sanctuary-master", None) is None
+    err = capsys.readouterr().err
+    assert "cannot list windows" in err, err
+    assert "gone" not in err, err
+
+
+def test_repair_stale_id_false_builds_the_at_id_target_in_silence(
+        tmp_path, monkeypatch, capsys):
+    """The DOCUMENTED opt-out: repair_stale_id=False never lists, so it must
+    build the target straight from the @id -- and say nothing, not even
+    cannot-list. The TARGET is the assertion; stderr alone would be vacuous.
+    """
+    _unreadable_tmux(monkeypatch)
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    _write_seats(tmp_path, [{"name": "sanctuary-master", "role": "director",
+                             "window": "@5", "pid": 424242}])
+    got = send_mod._nudge_target(tmp_path, "sanctuary-master", "agi",
+                                 repair_stale_id=False)
+    assert got == ("agi:@5", 424242, "agi"), got
+    assert capsys.readouterr().err == ""
 
 
 # ── (4) red-on-trunk witness ─────────────────────────────────────────────
