@@ -39,12 +39,15 @@ config-max: none (no tunable belongs to this defect) / template-max: none / code
 4. Negative: deleting the `_seat_fraction` guard leaves all four tests green -> the tests are decorative, not falsifiers.
 
 ## TESTS
-In `extensions/agi/tests/test_rotate.py` (the module; no new test file), FOUR tests over TWO seams:
-- `test_an_unreadable_pin_target_is_unknown_not_a_crash` — monkeypatched `Path.exists` raises PermissionError for the pinned path; asserts `_read_pin_target(pin) is None`. THE STAT seam.
-- `test_seat_fraction_is_none_when_the_pin_target_is_unreadable` — a real mode-000 PARENT dir; asserts `_seat_fraction is None`. THE STAT seam, no monkeypatch. Mode restored in a `finally` so tmp_path can be cleaned.
-- `test_seat_fraction_is_none_when_the_transcript_stats_but_cannot_be_opened` — mode 000 on the FILE inside a readable dir: `exists()` succeeds, `_read_pin_target` returns the path, and only the READ fails. Asserts BOTH preconditions before the result, and resolves the pin through `rotate.find_pin_log(g, seat)` — the resolver the code actually uses — so the test cannot go vacuous if that fallback moves (mur residue 3).
-- `test_status_walks_past_an_unreadable_seat_to_the_next_row` — the command-level proof, on the READ seam, with **TWO rows and the UNREADABLE ONE FIRST**, so "keeps going" is proven rather than asserted: a readable seat sits AFTER the sealed one and must still be printed. My first version stubbed `_load_seats` to the single unreadable row, so nothing was reached past it (mur conjunct 7). Asserts the two NAMES and `frac=?`, and deliberately no warning string, because `cmd_status` never emits one.
-Assert the CONTRACT (no raise, `None`), never the function name. Mutate: deleting the `_seat_fraction` guard reds EXACTLY the two read-seam tests and leaves the two stat-seam tests green — re-measured 19:1xZ after the test was strengthened. Every mode-000 fixture restores its mode in a `finally` (mur residue 4): MEASURED after the whole file runs, `find <basetemp> -type d ! -perm -u+rwx` is empty and no `garbage-*` is created under the runner's uid.
+In `extensions/agi/tests/test_rotate.py` (the module; no new test file), SIX tests over FOUR seams:
+- `test_an_unreadable_pin_target_is_unknown_not_a_crash` — monkeypatched `Path.exists` raises PermissionError; asserts `_read_pin_target(pin) is None`. THE STAT seam.
+- `test_seat_fraction_is_none_when_the_pin_target_is_unreadable` — a real mode-000 PARENT dir. THE STAT seam, no monkeypatch. Mode restored in a `finally`.
+- `test_seat_fraction_is_none_when_the_transcript_stats_but_cannot_be_opened` — mode 000 on the FILE in a readable dir: `exists()` succeeds, only the READ fails. Asserts BOTH preconditions first and resolves the pin through `rotate.find_pin_log` so it cannot go vacuous (residue 3). THE READ seam.
+- `test_status_walks_past_an_unreadable_seat_to_the_next_row` — command level, two rows, UNREADABLE FIRST, so "keeps going" is proven. Its two asserts DISCRIMINATE: the sealed row must read `frac=?` and the readable row must read a NUMBER (residue: a usage-less fixture made both read `frac=?` and the assert blind — re-measured, the blind form goes RED).
+- `test_a_symlink_loop_in_the_pin_is_unknown_not_a_traceback` — a REAL `a -> b -> a` loop. THE LOOP seam (residue 1). MEASURED py3.12.3: `Path.resolve()` raises `RuntimeError('Symlink loop')`, NOT `OSError`.
+- `test_find_pin_log_is_none_when_the_sessions_dir_is_unreadable` — mode 000 on the sessions DIR, so `sp.is_file()` raises. THE ENUMERATION seam (residue 2).
+Assert the CONTRACT (no raise, `None`), never the function name. Every mutation is measured, not assumed: removing the `_read_pin_target` RuntimeError catch reds ONLY the loop test; removing the `find_pin_log` guard reds ONLY the enumeration test; removing the `_seat_fraction` guard reds EXACTLY the two read-seam tests. All four seams independently falsifiable. Every mode-000 fixture restores its mode in a `finally` — after a whole-file run, `find <basetemp> -type d ! -perm -u+rwx` is empty.
+
 
 
 
