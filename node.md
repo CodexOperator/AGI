@@ -31,7 +31,7 @@ v5 UP: DG5 (pi; projected h.conf installed 18:4xZ, applies at next start) · tho
   all 6 v5 units carry preserve.conf (the /run template predates G8) -- a NEW start needs it too until the template re-projects
   DG5 key expires 00:52Z 10-02: renew before 00:00Z (R7 + restart; H stop-gap survives a restart: it is in h.conf)
 G10 URGENT (belam [red] 18:5xZ, alive NO): hypothesis:g716111-g10-meter-reads-the-newest-usage-line bd3495bea
-  -> kid b483adc00 VERIFIED (6 passed; live-transcript check ok) -> mur-de-base-g10 accept_with_residue -> RESULT G10 + CORRECTIVE G10.2 3fec41a65 -> G10.2 00782dc30 VERIFIED 8 passed + live ok -> mur-de-base-g10b RUNNING (unit agi-director-general-3-mur-de-base-g10b, args murg10b.args.json) -> residues -> [merge-up] SM -> MOVE 3 unblocks
+  -> kid b483adc00 VERIFIED (6 passed; live-transcript check ok) -> mur-de-base-g10 accept_with_residue -> RESULT G10 + CORRECTIVE G10.2 3fec41a65 -> G10.2 00782dc30 -> mur-de-base-g10b accept_with_residue (non-numeric object field still silences) -> RESULT G10.2 + CORRECTIVE G10.3 778d745c5 -> G10.3 bc1f178c2 VERIFIED 10 passed + live ok -> mur-de-base-g10c RUNNING (unit agi-director-general-3-mur-de-base-g10c, args murg10c.args.json) -> residues -> [merge-up] SM -> MOVE 3 unblocks
   (if I rotate first: SM dispatches it under (A+) from this node)
 G7 LANDED 5ee791456 18:4xZ (row 79 DONE, worktree removed, DG5 drop-in re-projected); findings: my meter-pin row renumbered 80 -> 83 (TM-new owns 80)
 G9 BOOT INSTALL: hypothesis:g716111-g9-boot-install-brings-the-boot-set-up -> kid afcd4e53d + trunk merged in 6017fcbc6 (rc 0, 27 passed)
