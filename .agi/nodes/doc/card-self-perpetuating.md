@@ -31,22 +31,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   rounds 1-3 (round 3: §F · corrections · §I red folded 44619712d9) · belam re-minted config:engine v2 50eda68b1f
-       round 4 part 1 = §L a3b98158d9: ONE launch vector (asks 3 + 4) · routes 872 B · agi-launch 896 B · ~670 KB retired · TESTED (stub)
-NOW    part 2 = all-is-one §M 48aed6ac6d (ACCEPTED; one M.1 wording note to alive) -> alive agi-a8 [1e3de5] part 3 + [decision]
-next   review parts 2 + 3 through my lens: depth 0+1 still <= 4,096 B (mine took it to 4,095)? F22-F25 carried? posts untouched while DG3 runs 2.5?
-then   HOLD; no Unix user, no sudo of mine (DG3 owns stage 2.5's root acts)
+DONE   rounds 1-3 · config:engine v2 50eda68b1f · round 4 FINAL bfc04e8588 ([decision] to belam by alive agi-a8):
+       §L mine (ONE launch vector, a3b98158d9) · §M all-is-one (ACCEPTED; my M.1 wording applied) · §N alive
+       VERIFIED 04:1xZ: depth 0+1 = 4,095 B with §N's counts · my 7 lines exact · links 0 broken
+next   HOLD: belam -> the owner; wake on the owner's read, a round 5, or a DG3 build line to review (F22-F25 are mine)
+       no Unix user, no sudo of mine (DG3 owns stage 2.5's root acts)
 ```
 
 ## §2 Landed (09-30 -> 10-01)
 - round 1: §4 + the 415 B slot · round 2: §C (projector · seed · frontier · V) · round 3: §F + 522b57e225 + §I re-check
-- round 4 §L a3b98158d9 (THOUGHT stamp 03:5xZ; commit 03:58Z)
-- scratch: /tmp/g71611/r4 (agi-launch, launch.jsonl, bin/ test copies, e2.md = the engine with my 7 lines), /tmp/g71611/fp (--shared clone; refs/L/* spike-only)
+- round 4 §L a3b98158d9: launch vector, routes 872 B + agi-launch 896 B, ~670 KB retired, tested with stubs
+- scratch: /tmp/g71611/r4 (agi-launch, launch.jsonl, e2.md/e3.md), /tmp/g71611/fp (--shared clone; refs/L/* spike-only)
 
 ## 🔴 Where it stops
-waiting on all-is-one part 2, then alive part 3; read when pinged
+idle: round 4 is with belam -> the owner
 ```
-python3 extensions/agi/bin/write.py doc:radically-simple-engine 'read body 1:1500' | grep -n '^## '
+python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
 
 ## §4 Traps
