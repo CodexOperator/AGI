@@ -8411,7 +8411,7 @@ def test_mail_poll_cron_renders_the_capturing_read_as_peek(tmp_path,
 # the reader leaves behind lines it already printed. Never over-shoots: no
 # line is retired that no pane printed.
 @pytest.mark.parametrize("phase", ["before", "after"])
-@pytest.mark.parametrize("other", ["append", "read", "peek"])
+@pytest.mark.parametrize("other", ["append", "read", "peek", "partial"])
 def test_concurrent_second_read_never_retires_an_unprinted_line(
         project: Path, monkeypatch, phase, other):
     seat = "sanctuary-director"
@@ -8465,11 +8465,18 @@ def test_concurrent_second_read_never_retires_an_unprinted_line(
     text = inbox.read_text()
     assert send_mod.READ_MARKER in text, "the read must mark"
     retired = text.split(send_mod.READ_MARKER)[0]
-    # UNCONDITIONAL (hypothesis:g1-inbox-read-cursor-never-passes-an-
-    # unprinted-line): the invariant is over EVERY body, not only the ones the
-    # `if` happens to catch -- a body the loop skips proves nothing, and a
-    # vacuous pass would have hidden every over-cut. `shown` is what a pane
-    # received, so a body behind the cursor absent from it is the defect.
+    # The invariant is CONDITIONAL and the comment now says so: a body AHEAD
+    # of the cursor is read by the NEXT call and owes THIS one nothing, so the
+    # check runs over the bodies that ended up behind the marker. A vacuous
+    # pass -- nothing behind the marker at all -- would hide every over-cut,
+    # so both bodies present at the scan are asserted to be behind it AND in
+    # what a pane received.
+    for body in ("one", "two"):
+        assert ("\n" + body + "\n") in retired, \
+            f"'{body}' was present at the scan but is not behind the cursor: " \
+            "the loop below would pass with nothing to check"
+        assert any(("\n" + body + "\n") in b for b in shown), \
+            f"'{body}' sits behind the cursor but NO call printed it"
     for body in ("one", "two", "three"):
         if ("\n" + body + "\n") in retired:
             assert any(("\n" + body + "\n") in b for b in shown), \

@@ -1719,3 +1719,49 @@ def test_audit_flags_a_gated_generic_job_without_why_box(tmp_path, monkeypatch):
     crons.cmd_apply(root, crontab_file=fixture)
     found = crons.cmd_audit(root, crontab_file=fixture)
     assert any("town_probe" in f and "why_box" in f for f in found), found
+
+
+# --- config-max (belam 10-01 18:3xZ, DH.DG1.03 item 1): the command of the row
+# that retires a cursor lived in crons.py. These pin the MOVE, not a copy of it.
+MAIL_POLL_CMD = ("git -C {repo_root} fetch -q origin && python3 {engine_root}"
+                 "/extensions/agi/bin/send.py read --box-local --peek >> {log}"
+                 " 2>&1; python3 {engine_root}/extensions/agi/bin/rotate.py"
+                 " migrate --receive >> {log} 2>&1")
+
+
+def _poll(root, monkeypatch, drop_cell=False):
+    monkeypatch.setattr(crons, "_require_git_repo", lambda *a, **k: None)
+    node = crons.load_crons_node(root)
+    if drop_cell:
+        node["jobs"]["mail_poll"].pop("cmd", None)
+    lines = crons.render_managed_lines(root, root, root, node, "local-town")
+    return [ln for ln in lines if "--box-local" in ln]
+
+
+def _poll_project(tmp_path, cmd=None):
+    cad = {"mail_poll": {"every_mins": 5, "enabled": True, "box": "local-town",
+                         "why_box": "the remote reader"}}
+    if cmd is not None:
+        cad["mail_poll"]["cmd"] = cmd
+    return make_project(tmp_path, cadences=cad)
+
+
+def test_mail_poll_cmd_cell_renders_the_fstring_line_byte_for_byte(
+        tmp_path, monkeypatch):
+    """Falsifier (b): a MOVE renders the built-in's bytes for the same root."""
+    root = _poll_project(tmp_path, MAIL_POLL_CMD)
+    with_cell = _poll(root, monkeypatch)
+    assert with_cell == _poll(root, monkeypatch, drop_cell=True) and with_cell
+    assert "--peek" in with_cell[0] and "migrate --receive" in with_cell[0]
+    with pytest.raises(crons.CronsError, match=r"cadences\.mail_poll\.cmd"):
+        crons.load_crons_node(_poll_project(tmp_path / "e", "   "))
+
+
+def test_mail_poll_line_comes_from_the_cell_not_the_fstring(tmp_path,
+                                                            monkeypatch):
+    """The wire half: the test above passes a renderer that ignores the cell."""
+    edited = MAIL_POLL_CMD.replace("read --box-local", "read --box-local -v")
+    line = _poll(_poll_project(tmp_path, edited), monkeypatch)[0]
+    assert "read --box-local -v" in line
+    assert " >> " in line and line.rstrip().endswith("2>&1")
+
