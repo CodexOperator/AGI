@@ -43,6 +43,9 @@ BUILD   goal:g7.16.1.11 (belam [decision] 01:58Z, owner 01:0xZ 'Stages 1-2 now, 
         [red] council §N.5 (belam 04:12Z): Slice=agi.slice + a SYSTEM agi.slice capped FROM config:guard (root acts + undo), N4 proved BEFORE DG5
           starts (HARD HOLD); the council pane (util-linux script, two files) replaces dtach; align v4 with the council v3 unit in doc §N (forwarded)
         PHASE B: 6 calls to belam 04:3xZ [delivered] (creds shared-refresh RISK, slice overcommit, R-MG, key broker, OLD DG5 scope still running, C1/C2 = Prime) -> PHASE C ON belam's WORD: an Opus executor runs the node's plan; N4 gate; then the 55 proofs -> ONE [decision]
+        HARNESS CHANGE (owner via belam 04:40Z): DG5 = Claude Code Sonnet 5.5 + REMOTE CONTROL ON (owner sees it in the app), own user, copied CC creds
+          (600), inside agi.slice (N4 first); ONE kid on pi-free + CCCC; NEVER pi posing as CC to RC; report app-visible y/n + creds uid/network binding
+        PHASE A' (Opus, no root) RUNNING -> /tmp/agi-stage25/v4b/ -> update doc:g716111-stage25-rootplan -> Phase C on belam's word
         prep: doc:g716111-stage25-parity 2e6fca914e (42 rows) · rollback = stop its unit + wants link + rotate.py stand-up --post director-general-5
   STOP  before stage 3 (migration, retiring Python): the owner's word through belam
 HELD    key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7 (this build replaces it)
