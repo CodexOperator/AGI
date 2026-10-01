@@ -59,3 +59,10 @@ DEMOTED   respawn_outcome.pid None (refuted: nothing reads it, rotate.py ~7937-7
 ANON      no user name, home or repo path value, host or IP
 FILE SCOPE extensions/agi/bin/heal.py (respawn path + the reader in item 1 only if it must change) · extensions/agi/tests/test_heal_respawn_pid.py
 CEILING   HARD CAP: 1 Sonnet 5.5 kid · <= 8 production lines · <= 70 test lines · 0 USD
+
+## CORRECTIVE DH.3 -- the INTEGRATION gap with hypothesis:heal-ack-line-comes-from-config-rotations-by-role (director, 21:2xZ 10-01; DH.2 = mur-heal-respawn-pid-heal-ack-by-role accept/accept)
+BASE      CUT FROM heal-respawn-pid tip 3f4f6cb54 (worktree /mnt/agi-ram/worktrees/heal-respawn-pid). No merge. Never rebase.
+MEASURED  trunk 5ac25bf7b + heal-respawn-pid + heal-ack-by-role (merge-tree clean): the heal family = 8 failed / 323 passed -- ALL 8 in test_heal_respawn_pid.py: its fixture root has no config:rotations, so the ack round's _recover_seat refuses by name ('recovery_ack[director] unusable ... FileNotFoundError'); trunk alone 314 passed.
+1. TRUE WHEN test_heal_respawn_pid.py's fixture seeds the config:rotations recovery_ack cell (the suite idiom: a per-module seed helper, as the 6 neighbour tests of the ack round do) and the file passes BOTH alone on this branch AND on the combined tree (trunk + both rounds). Test-only.
+FILE SCOPE extensions/agi/tests/test_heal_respawn_pid.py
+CEILING   HARD CAP: 1 Sonnet 5.5 kid · 0 production lines · <= 20 test lines · 0 USD
