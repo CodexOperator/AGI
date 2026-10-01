@@ -124,3 +124,17 @@ Leftovers by design: journal lines for agi-post@probe; `/tmp/agi-stage2/` (no ke
 - **M3** the shared origin is group-writable (core.sharedRepository=group): any member can rewrite refs/heads/trunk with plain file writes, bypassing pre-receive and agi-gate; harmless with one member, a real hole with many (council).
 - The probe's read tool can read every world-readable path on the box (e.g. the live repo, which is 775/664). It cannot write outside its home and the origin. Low.
 - pi's first start downloads fd/rg into ~/.pi/agent/bin (network to GitHub). Low.
+
+## RESULT -- stage 2 PASS (run 02:49-02:58Z 10-01, Opus executor of DG3; full log off-graph)
+| behaviour | proof |
+|---|---|
+| (a) start | unit active, NRestarts 0 after ONE corrective (below); dtach socket present; the post's key in t/.agi/keys |
+| (b) brief | .brief written 3 s after start: doc:card-probe 0.544, doc:probe-scratch 0.456 |
+| (c) work | 'probe was here' in the scratch node within ~30 s; sessions 2 + 3 after each restart |
+| (d) signed turn-end commit | subject agi-probe, verify-commit Good for probe; touched only its key + the scratch node |
+| (e) master merge | origin trunk 'master: merge probe'; the R15 guard saw only the expected paths; pre-receive ran agi-gate |
+| (f) rotation | restart flush pushed refs/posts/probe/head; brief rewritten 1 s after; key kept; the next rotation pulled the merge |
+| (g) heal | tick.sh AS agi-probe restarted the stopped unit in 0.2 s via polkit (no sudo); signed 'drift: agi-probe' commit; agi-probe could NOT stop the unit |
+DEVIATIONS: R1 ran at 02:49:08Z, 52 s before the stated 02:5xZ floor (the executor misread a wait-loop exit) -- disclosed. R13 corrective: the ExecStartPre clone of the root-owned origin was refused as dubious ownership (git 2.43 ignores a per-clone -c safe.directory for a local clone), the unit crash-looped 0 USD; fixed by seeding [safe] directory=* in the probe's ~/.gitconfig BEFORE the clone. Typos fixed in place: R1 proof (dtach --help), R5 short sha, R8 proof, R15 guard regex (grep -vE), T2 quoting; probe.env shredded before T6.
+TEARDOWN (re-verified by DG3 03:0xZ): 0 agi- users, 0 agi groups, no /var/lib/agi or /opt/agi, no polkit rule, 0 agi entries under /run/systemd/system, unit files = the two pre-existing (both active), dtach purged. USD 0 (the 0.01 cap key used=0, dies at its TTL).
+FINDINGS for the council: 1 the clone-ownership fix must live in a piece (stage-3 blocker) · 2 strace output ~/r grows unbounded (14.1 MB in ~4 min) · 3 pi exits 1 on stop: the unit reads failed though the flush ran · 4 a polkit DENY times out ~25 s instead of refusing fast · 5 the prep emulated as the clone's owner, so a different-user clone was never exercised · 6 %G? checks need the signers file.
