@@ -751,6 +751,60 @@ systemd-run --user -q --unit=$i --slice=agi-L.slice -p WorkingDirectory=$PWD -p 
 {"name":"merge-up-review","route":"review","then":{"route":"refute"}}
 {"name":"compose","harness":"pi -p \"Compose ONE launch vector. Fill exactly one cell per step, in this order: $(sect launch|head -1|jq -r 'keys_unsorted|join(\", \")'). Reuse a route where one fits. Print one JSON line; jq -e validates it.\"","time":"600"}
 ```
+
+## M · ROUND 4 · all-is-one -- one representation for every vector: a directory of symlinks; schemas, guards and locations are vectors
+**What am I ACTUALLY trying to get the machine to do here?** Owner 03:48Z: "It's all just vectors literally pointing to things. Maybe even filesystem pointers and even partition/volume-level pointers. The math is base level for everything." Give the machine ONE way to say "this points at that, with this weight", and let every structure (a node's parents, a schema, a guard, a location, a launch) be that one thing, so that composing any two is the same act.
+
+**M.1 · The one representation.** A vector is a DIRECTORY OF SYMLINKS. Each entry points at a basis element (a node by mint, a type, a slice, a path, a volume). The entry's name carries the coefficient only where one is needed; it defaults to 1. Three operations cover everything, and none is ours:
+```
+walk     P·v       readlink each entry (and its p/): one step through the graph        §G brief.py = Σ((1-α)Pθ)^k e
+dot      <u,v>     comm -12 <(ls u) <(ls v): the shared basis elements                 a schema check, a claim overlap
+mask     g∘v       the meet along a path: the kernel's own min (cgroups, mode bits)    a guard
+```
+§G's `p/` is the first such vector. Round 4 adds nothing new; it reads four more things as the same object.
+
+**M.2 · A schema is a vector over TYPES (structure) plus an ordered list (arrangement).**
+```
+.agi/context/schemas/<type>/p/<parent-type> -> ../../<parent-type>    the allowed parents = the type's row of the type graph (structure)
+.agi/context/schemas/<type>/s/<NN>-<section>                         the body's fixed order = numbered entries; ls is the order (arrangement)
+the [<type>].md prose stays beside it: the vector is the part a machine checks, the prose the part a model reads
+```
+A node is well-formed iff the TYPES of its `p/` entries are a subset of its schema's `p/` (a dot product that leaves nothing out), and its `## ` headings follow `s/` in order. **Composable, because it is matrix algebra:** with T the type graph, T² is every legal grandparent type, and a CHAIN (goal → idea → hypothesis → experiment → verdict → outcome) is legal iff each step is a non-zero entry of T. A new node type is a new directory with a few symlinks, and every check composes it at once. The spawn gate's parent-type rule (spawn_gate.py, 1,507 lines of Python) becomes a lookup in a directory.
+Measured 04:0xZ on the scratch projection (5,619 nodes, 6,176 parent symlinks read from `parents:` only): 20 schema vectors built from the real schemas' `allowed_parents` (every line unioned, 0 dangling) · `shape.sh` (463 B, one `grep` + two `find`s + one `awk`, 8.6 s over the whole graph) finds **52 nodes whose parent TYPE their own schema does not allow**: 17 `vision` under a `bigger_outcome` ([vision] allows only `moral`) · 10 `mvp` under a `goal` · 10 `experiment` under a `goal` · 10 `town` under a `vision` or `goal` ([town] allows only `ladder`) · 5 others. No checker reports them today: links.py's `schema` mode checks required FIELDS, and the spawn gate runs only at create. Each is either a schema behind practice (one symlink fixes it) or a node mis-filed (re-file it). The vector form makes the disagreement visible in one pass.
+
+**M.3 · A guard is a vector the kernel multiplies by MIN along a path, and a broadcast guard is a name prefix.** A post's resources (memory, CPU, tasks, IO) are cells on its unit; its slice is its parent. The limit the kernel ENFORCES is the minimum of every cell on the path from the box root down to the process. That is a (min, ×) product along the slice tree, computed by the kernel, with no code of ours. Measured 03:5xZ on this box, user manager, no root:
+| test | result |
+|---|---|
+| a kid with its own MemoryMax=512M inside a slice with MemoryMax=64M allocates 128M | OOM-killed (rc 1, `oom_kill 1` on the SLICE): the effective guard = min(64M, 512M) |
+| the same kid allocates 32M | runs, rc 0 |
+| a unit named `agi-*` asked for a different slice | placed in `agi-work.slice` with CPUWeight=50, MemoryHigh, MemoryMax all the same: an existing prefix drop-in (`agi-.service.d/50-sanctuary-guard.conf`) is ALREADY a broadcast guard vector over every `agi-*` unit |
+So a guard is never code that watches. It is a cell, set ONCE on the right node of the slice tree. Its scope is the subtree (a slice) or the name prefix (a drop-in), and the kernel takes the meet. The memory budgets of the town, the post and its kids are one path (box → `agi.slice` → town slice → post unit → kid scope). `mem_cap.py` and most of `guard-init.sh` become cells (round 1 §7). **What still needs a watcher:** pressure that is not a limit (PSI) and liveness. Both are the homeostat (§A): sense, compare to the cell, act, record.
+
+**M.4 · A location is a pointer the kernel already resolves down to the volume.** Every "where" in the graph is a symlink, and the chain below it is the kernel's own:
+```
+address  .agi/nodes/<type>/<slug>.md ─▶ .agi/n/<mint>/node.md      (§G: the mint never moves)
+tree     .agi/n/<mint>/at ─▶ <a tiny per-node tree on a RAM volume> (stage 2.5: pulled in on demand, purged when done)
+volume   findmnt -T <path>   ─▶ mount point + filesystem type        (the kernel's mount table)
+device   the mount's source  ─▶ udev's own /dev/disk/by-* symlinks  (the volume layer is ALREADY a symlink graph)
+```
+Measured: an address resolves through `readlink -f` to its real file, and `findmnt -T` names its volume (tmpfs for the live graph, ext4 for the scratch copy), with 0 B of our code. The stage-2.5 per-node tree is ONE symlink, `at`. **Pulled in** = the target exists (measured: it resolves, on tmpfs). **Purged** = the target is gone, so `at` dangles (measured: `find -name at -xtype l` lists it). The purge list, the "which trees are live" census and the RAM accounting are therefore one `find`. A custom location per node is just a different target for `at`. Device and partition names never enter the graph (the anonymize rule): the chain stops at "a RAM volume" / "the repo volume" in anything written, and `findmnt` resolves the rest at run time.
+
+**M.0 · A correction to §G (mine), found while building M.2.** The round-3 scratch projection read EVERY `- x:y` list item in the frontmatter as a parent (tags, `evidence_runs`, `blocked_by`, `seeds` as well as `parents`). Rebuilt from `parents:` only: **0 duplicate parents and 0 broken parent links** (not 193 and 27), and 6,176 parent links (not 9,496). The 13 `parked:g7.16.2` were TAGS. The stale ids that remain (e.g. `exp:test-coverage-r1`, `run:1`, `task:t-020`) sit in `evidence_runs` / `blocked_by`, fields links.py does not resolve as links. The symlink design is unchanged; the measured case for it is smaller than §G said, and §G now carries this note.
+
+**M.5 · The same vector, everywhere (one read):**
+| structure | the directory | basis | combined by |
+|---|---|---|---|
+| a node's parents | `.agi/n/<mint>/p/` | nodes (mint) | walk (§G) |
+| latent nearness | `.agi/n/<mint>/near/` | nodes | walk |
+| a post's live work | `refs/claims/<mint>` owned by the post | nodes | the brief's seed (§I) |
+| a schema | `schemas/<type>/p/` + `s/` | types · sections | dot + order |
+| a guard | unit/slice cells + prefix drop-ins | resources on the slice tree | the kernel's min |
+| a location | `at`, an address | paths → volumes | readlink + findmnt |
+| a launch | §L's launch basis (run · harness · task · base · mem · time · each · then) | its `mem`/`time` cells ARE its guard vector | the kernel takes their min with the slice path (M.3) |
+
+Pieces for the count: the schema vectors are symlinks (0 B of code; ~2 symlinks per type) · `shape.sh` 463 B (the well-formedness check over every node) · guards: 0 B (cells and one prefix drop-in that already exists) · locations: 0 B (`readlink`, `findmnt`, `find -xtype l`).
+Falsifiers to add: (V1) `shape.sh` over the migrated graph prints exactly the nodes links.py's schema check names, and nothing else · (V2) a kid allocating past the TIGHTEST cell on its slice path is OOM-killed in its own scope while a sibling survives (measured above with 64M/512M) · (V3) a purged tree's `at` dangles and `find .agi/n -name at -xtype l` lists exactly the purged set · (V4) a new node type made by `mkdir schemas/<t>/p` + two symlinks is enforced by `shape.sh` with no code change.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 self-perpetuating, 03:5xZ 10-01 (round 4 part 1, asks 3 + 4; base doc f37e25ced2 + config:engine v2 50eda68b1f): added §L. ONE launch vector L = base + route + deltas (jq add); each = fan out, then = chain; the unit is named by hash(L) and the result IS refs/L/hash(L), so a launch is pure and memoised. Tested with stub harnesses under the user manager on the scratch clone: override, fan out x3, chain (refute ran on review's ref), memo (no re-run). Traps measured: a tmpfs slot and page cache under MemoryHigh 256M (fill 1.6 s -> over 120 s) -> on-disk /var/tmp/INVOCATION_ID tree, mem 1G. Routes (872 B) replace command:commands + 30 workflow scripts; agi-launch 896 B; together they retire about 670 KB. depth 0+1 stays one read at 4,095 B by tightening my own lines. The compose route and the slice bound are unrun (F23, F24). Posts stay on agi-post@ while DG3 runs stage 2.5.
 <!-- THOUGHT:END -->
