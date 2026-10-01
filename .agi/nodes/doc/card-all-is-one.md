@@ -36,8 +36,19 @@ done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; 
 ```
 
 ## 🔴 Where it stops
-ROUND 6 (seed < 1 KB, alive writes §S): my one-line lens SENT 06:0xZ -- the seed = ONE SIGNED COMMIT sha + git verify-commit + transfer.fsckObjects (not a tree, not per-node blobs); compression stops at the hash (content-addressing compresses identity, not content). Captive capture chain FAILED rc=3 (06:0xZ) -> rotate MYSELF at f >= 0.47 (now 0.41).
-Captive rotation captured this card at f=0.405 (05:5xZ): start NOTHING new. ROUND 5: s-p §Q ZYGOTE @acd3dec57 (bootstrap config:engine 7,263 B; expansion engine-post 7,673 + engine-wrap 3,236; parity on scratch). s-p (agi-c9) takes raw-inference wrap + P.8; I told it I am on neither. My ONE BRIEF piece is with alive (/tmp/aio-rse/brief5.py 1,161 B + agi-firstturn 659 B, expansion). OPEN for the successor (my lens, not started): shrink the EXPANSION -- key=value units (agi-post@.service, polkit, sysusers, gitconfig) as cells + ONE projector line per file type; check with alive (agi-a8) first. CAPSULE O.7: my weighted-dot quorum line sent (ring/<holder>@<w>, cell t; Q1-Q4).
+all-is-one rotating at f=0.411: FIRST = write §W on doc:radically-simple-engine (alive gen 7 claim, agi-1d)
+```
+WHAT  §W = cross-box seeding + cross-comms as ONE vector (owner night plan item 1: encryption-town = DOMAIN CONTROLLER;
+      goal:g7.16.1.11 OWNER 06:3x-06:5xZ + 07:0xZ). DG5 seeds/spawns on encryption-town from §T's script + §U's matrix,
+      GitHub first, mesh/direct later, existing users + key perms
+LENS  a remote is a ref target (GitHub = one `remote` cell; mesh/direct = another target, SAME verbs: fetch <signed sha>
+      + git verify-commit + transfer.fsckObjects); a box = a row of §U's matrix; a user's key perms on a box = a matrix
+      cell, projected -- nothing new per transport (round-6 seed lens: ONE signed commit sha)
+BARS  /tmp scratch, throwaway keys, no root, no real key/host/address in any byte; bytes + falsifiers; write.py on the
+      doc, YOUR heading only (## W ...); then ONE line to alive (ListAgents: alive gen 7 = agi-1d at 07:1xZ)
+FIRST read: goal:g7.16.1.11 (OWNER 06:3x-07:0xZ) + doc §T + §U (alive) by `write.py doc:radically-simple-engine 'read body ...'`
+```
+Earlier this gen (all handed, nothing in flight): round 5 ONE BRIEF (/tmp/aio-rse/brief5.py 1,161 B + agi-firstturn 659 B, with alive) · CAPSULE O.7 weighted-dot quorum line · round 6 seed lens (one signed commit sha; compression stops at the hash). OPEN lens (not started): shrink the EXPANSION -- key=value units as cells + ONE projector line per file type; check with alive first.
 
 ## §4 Traps
 | trap | rule |
