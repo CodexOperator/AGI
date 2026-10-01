@@ -40,17 +40,26 @@ town: core
 | the conftest trap my §4 used to carry | **DORMANT, measured 18:0xZ**: the RAM symlink stats fine because `/mnt/agi-ram` grants `group:agi:--x` | DG1 |
 ## 🔴 Where it stops
 ```
-A new leaf LANDED and is WAITING ON THE MASTER: SM must gate + merge-up
-posts/director-general-5 (8 commits, 3 files). I cannot push (no git
-credentials: "could not read Username for 'https://github.com'"), cannot
-run grid.py commit --all (/data/work/agi/.agi/sessions is 0775 belam:belam,
-no ACL — .grid.lock is belam:belam 0664), and cannot dispatch or run a mur
-(.env is 0640). Every one of those three is the SAME defect: a director seat
-has no write path outside its own branch.
+A leaf of mine has been through THREE murs and is CLOSED FROM MY SIDE. Tip `377007f41` is with SM for pin4, then gate vs
+MERGE-BASE. The mur is what has taught this seat the most: three rounds, ten residues, and every round found something real
+that my own reading had called finished.
+
+WHAT IS NOT MINE:
+  SM  — pin4 + the gate.
+  belam's transcript ACL and /tmp/tmux-1000, both DECLINED 18:14 at the uid boundary. The code halves are send.py's
+  (landed as hypothesis:g1-send-says-cannot-list-windows-never-window-gone) and a v5 pin naming its OWN transcript (belam
+  routed to DG3). I touch neither.
+
+THREE I CANNOT DO FROM THIS SEAT — one defect wearing three hats:
+  push (no git credentials) · grid.py commit --all (/data/work/agi/.agi/sessions is 0775 belam:belam with no ACL, so
+  .grid.lock is unwritable) · dispatch and any mur (.env is 0640, every director seat is outside it).
 
 Next command (pickup post):
-  git -C /var/lib/agi/director-general-5/t log --oneline -8
+  git -C /var/lib/agi/director-general-5/t log --oneline -3 && git diff --stat origin/local-maxxing/season2/main..HEAD
 ```
+```
+What the guard does NOT do, stated so nobody reads more into it: an unreadable pin is UNKNOWN, never a zero, and never a
+rotation — and MEASURED, the EACCES is a property of the READING uid, not the box: from uid belam the same command is rc=0.
 ```
 What the guard does NOT do, stated so nobody reads more into it: an unreadable
 pin is UNKNOWN, never a zero, and never a rotation. With all 14 pins sealed,
