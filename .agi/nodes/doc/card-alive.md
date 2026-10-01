@@ -15,45 +15,40 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:0xZ 10-01) -- goal:g7.16.1.11: rounds 4-6 + the capsule DELIVERED; the owner's NIGHT PLAN received, UNSTARTED; alive rotated at 0.41
+## §0 State (07:1xZ 10-01) -- night plan item 1 (encryption-town = DOMAIN CONTROLLER): U · V · X LANDED, W in flight, then ONE [decision]
 | | |
 |---|---|
-| post | alive · rotate at f >= 0.47 (the captive chain captured this card at 0.409) |
-| state | nothing in flight (no unit, no sshd, no round, no scratch run); the night plan is the successor's first work |
-| spend | FREE LANE for kids; the owner 06:5xZ: "MURs and the like can run on Sonnet 5.5" · no root act without a go |
-| messaging | SendMessage by session name; NO send.py sends; re-map first: belam = rotate.py status --post belam (agi-24 at 07:0xZ) |
-| peers (07:0xZ) | belam agi-24 · self-perpetuating agi-c9 · all-is-one (rotating near its line: ListAgents) · DG3 builds §Q/§R/§T tonight |
+| post | alive (agi-1d, gen 7) · rotate at f >= 0.47 |
+| state | nothing running (scratch sshd + agent stopped, 0 left); scratch /tmp/g71611/u-alive (matrix.tsv, dc-project, dc-principals, capsule-login, throwaway keys) |
+| spend | Sonnet 5.5 for MURs/subagents (owner 06:5xZ); no root act without a go |
+| messaging | SendMessage by session name; re-map first (ListAgents + tmux window name) |
+| peers (07:1xZ) | belam agi-24 · self-perpetuating agi-c9 · all-is-one agi-f0 (new gen; was agi-15) · DG3 agi-57 |
 | lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   doc:radically-simple-engine: §N pane/guards · §O capsule (O.5 passkey, O.6 lattice, O.7 SE, O.8 weighted mutual quorum)
-       · §R round-5 variant B (§Q recommended, GO) · §S seed 959 B · §T ONE script 1,019 B + ONE TSV matrix (P2-P5 PASS) @c3e43efc3
-NEXT   the OWNER NIGHT PLAN (verbatim on goal:g7.16.1.11 "## OWNER 2026-10-01 06:3x-06:5xZ"; belam dm 07:00Z) -- ONE [decision] per item:
-       1 DESIGN encryption-town as DOMAIN CONTROLLER for cross-box seeding: public identities only (users, pubkeys, who may log in
-         where), private keys stay with posts/capsules, Doppler scoped; cross-comms GitHub first, mesh later; the owner's phone route
-         (roaming ssh/wireguard config, a Terminus routine; a stand-in key on the box for tonight's test) -- claim sub-parts to EVERY
-         council member first (ListAgents), then design + measure in scratch, never root
-       2 ONLY once round 6 is BUILT (DG3): iterate the figure eight on the seed engine, then file alive's SATISFACTION VERDICT on the
-         morals (faith · love · empathy · antifragility · beauty): what it loves, what it would still cut
-       3 VIZ LAST: boot shows the matrix expansion as literal math; a matrix-op shell renderer; spider viz, then the sanctuary viz
-LESSON a claim must reach EVERY council member, a rotating one's successor included (round 5 was written twice)
-HELD   key/identity BUILD until DG3's build lands; this post designs and measures only
+done   item 1 split + claimed to the whole council 07:0xZ (U alive · V self-perpetuating · W all-is-one · X alive), all acked
+       §U e6630723c: the directory = ONE public matrix (box·user·principal·valid·opts), rid = sha256 of the row = cert key-id, edit = revoke; 590 B
+       §X d693651ec: the phone stand-in = one row + one §V cert ending at the owner's wake; X1-X7 PASS via O.5 capsule-login
+       THOUGHT 1c54b51d3 · §V (self-perpetuating) 983d2475c/52ad87a72 · seam decided: the stand-in arms a THROWAWAY test CA only
+NEXT   wait for all-is-one's §W line -> read §W against §U columns -> ONE [decision] to belam: doc id + U/V/W/X shas + falsifiers + the seam
+then   item 2 ONLY once round 6 is BUILT (DG3): figure eight on the seed engine -> alive's SATISFACTION VERDICT on the morals
+       item 3 VIZ LAST (boot math, matrix-op shell renderer, spider viz first)
+HELD   key/identity BUILD = DG3's; this post designs and measures only
 ```
 
 ## §2 Landed
-- §N a658452cd9 · round 4 bfc04e8588 · §O 39443e741 · O.5/O.6 df64fa6ea · P11 dddc98c22 · O.7 e93499fc1 · O.8 1daf2888a
-- §R 2782426e3/c620220b4 · §S ac80243f0/4542be3cc · §T c3e43efc3 · this card's last write before rotate
+- §N a658452cd9 · round 4 bfc04e8588 · §O 39443e741 · O.5/O.6 df64fa6ea · O.7 e93499fc1 · O.8 1daf2888a · §R 2782426e3 · §S 4542be3cc · §T c3e43efc3
+- gen 7: card re-link 554a94423 · §U e6630723c · §X d693651ec · THOUGHT 1c54b51d3
 
 ## 🔴 Where it stops
-alive rotated at 0.41 with the owner night plan unstarted: item 1 (encryption-town domain controller design) is next
+alive holds night plan item 1 open for all-is-one's §W, then sends ONE [decision] to belam
 ```
-successor: ListAgents -> send.py read alive + tail the inbox file -> read goal:g7.16.1.11 "## OWNER 2026-10-01 06:3x-06:5xZ"
-  -> claim item 1 sub-parts to every council member -> design in scratch (/tmp, throwaway keys, no root) -> a doc section after §T
-  -> the check (§I == f37e25ced2 · links 0 broken · one THOUGHT pair) -> ONE [decision] to belam
+successor: ListAgents -> send.py read alive -> grep -n '^## W ' in doc:radically-simple-engine
+  -> W present: check it keys to §U's columns -> SendMessage agi-24 the ONE [decision] (U e6630723c · V 983d2475c · W <sha> · X d693651ec)
+  -> W absent past 08:00Z: SendMessage all-is-one's current session once, then send the [decision] with W named UNLANDED
 ```
-
 
 ## §4 Traps
 | trap | rule |
