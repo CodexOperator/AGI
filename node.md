@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1269,6 +1269,40 @@ mv $o $o.1;sh -c "$(sed -n 's/^ExecStart=sh -c "\(.*\)&&systemctl.*/\1/p' $o.1/a
 
 **Falsifiers.** R1-R4 PASS (scratch) · **R5** DG3's build: the live post boots from the split with every parity row green (UNRUN) · **R6** `wc -c engine.md` <= 8,192 at every trunk tip: a gate line, so the bootstrap can never silently regrow past the bar (proposed, unbuilt).
 
+
+## S · ROUND 6 · alive -- the SEED: 959 B that regrow the engine from ONE signed commit; every other byte is a git object named by it
+**Owner 06:1xZ:** "Q is go and I'm fine with going with R. Heck if we can aply that principle even harder and layer it with compression maybe we could get it under a 1kb seed? Math is compression then we compress the compression math." **What am I ACTUALLY trying to get the machine to do?** Carry the least that can still prove what it grows: a NAME for the engine (one hash), a WHO (one key line), and the one verb that turns the named bytes into a body. The vector is all-is-one's: ONE SIGNED COMMIT (a tree has no signer, time or parent; per-node blobs would be n pointers where the Merkle DAG already gives one).
+```
+seed (959 B: 877 of text + an 82 B anchor key line)
+  ├─ fetch ONE commit, blob-less, depth 1, with transfer.fsckObjects: every object re-hashed on receipt (INTEGRITY: the name IS the hash)
+  ├─ verify-commit against K (AUTHENTICITY: who published this engine)
+  └─ read the engine nodes BY NAME at that commit (§R's split: engine*.md) -> each blob fetched only when read (promisor remote)
+       -> agi-project -> the body (units, users, cells), then every other piece by `sect`, as in §Q/§R
+```
+`seed` whole (the anchor line shown as a placeholder; 82 B in the test):
+~~~sh
+#!/bin/sh
+# agi seed REPO HASH [OUT]: the engine from ONE signed commit. Every other byte is a git object NAMED by HASH: blob-less, each
+# blob fetched when read, every object re-hashed on receipt (fsck); the commit must verify against K; its projector writes OUT
+K='<the anchor: ONE allowed_signers line, e.g. the master or the owner key, 82 B>'
+set -e;mkdir -p ${AGI_SEED:=/var/lib/agi/seed};cd $AGI_SEED;git init -q;git remote add o "$1" 2>/dev/null||:;git config remote.o.promisor true
+git config remote.o.partialclonefilter blob:none;git -c transfer.fsckObjects=true fetch -q --depth 1 --filter=blob:none o $2;h=$(git rev-parse --verify $2^{commit})
+echo "$K">.s;git -c gpg.ssh.allowedSignersFile=.s verify-commit $h 2>/dev/null
+git ls-tree --name-only $h .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s/^/$h:/"|git cat-file --batch --follow-symlinks|sed -n "/^### agi-project /,/^##/{/^~~~/,/^~~~/{//!p}}"|sh -s "${3:-/run/systemd/system}" $h
+~~~
+**Tested 06:2xZ** (the round-5 scratch repo as the remote, uploadpack.allowFilter on, throwaway anchor and "other" keys, one synthetic engine row; no root, the body written into a scratch dir):
+| # | case | result |
+|---|---|---|
+| S1 | a commit signed by the anchor | rc 0: the projected body (agi-post@dg9 + agi-project.path linked) |
+| S2 | signed by another key | refused (rc 1), nothing written |
+| S3 | unsigned | refused (rc 1) |
+| S4 | a hash the remote does not have | refused (rc 128) |
+| S5 | parity: the seed's projection vs the projector run directly in the repo at the same commit | 5 of 5 files identical (paths normalized) |
+| -- | what crossed the wire | 10 objects: 1 commit, 4 trees, 5 blobs (the 4 engine nodes + posts.md), a 60 KiB pack (posts.md is most of it) |
+**Compression, honestly (all-is-one's line, measured):** git already stores and sends the engine as zlib + delta: 18,029 B of engine text -> 9,172 B of zlib. Compressing the SEED itself buys little: gzip 652 B, but a runnable self-extracting form (base64 + `base64 -d|gunzip|sh`) is 899 B vs 959, a 6% saving that makes the seed unreadable, so the seed stays plain text. "Compress the compression" ends at the HASH: content-addressing compresses IDENTITY, not content (any size -> 160/256 bits), and nothing below the hash can pin more.
+**Honest limits:** (0) the REMOTE must allow uploadpack.allowFilter and a bare-hash want (allowAnySHA1InWant or allowReachableSHA1InWant), else it only WARNS and ships the whole snapshot (self-perpetuating measured 76 MB on its clone): two cells on the remote, and the seed counts as correct but not small there; the gate stays at LAND, not in the seed (self-perpetuating: it decides which hash may be named), while the seed keeps verify-commit, because it is about to run fetched code as root · (1) a seed needs the repo it names (or any copy holding that commit): it is a NAME, not the bytes · (2) trust = the anchor key line: whoever holds that key can publish an engine the seed will grow, so the anchor is the owner's or the master's key, and a ring of anchors is the capsule's quorum (§O) applied to the engine · (3) SHA-1 here: git's hardened SHA-1 (collision-DETECTING, not collision-proof); a sha256-format repo removes it at the cost of a repo migration · (4) the seed regrows the ENGINE; a post's work needs the graph, which the post fetches as it reads (the same promisor remote) · (5) one more root act: the seed runs as root once per box, like v4c's agi-seed.
+**Falsifiers.** S1-S5 PASS (scratch) · **S6** on a clean box: the seed alone, the trunk's signed tip and the town remote bring a post up with every parity row green (UNRUN: root, a box) · **S7** the trunk's tip is signed by the anchor at every landing (a gate line; unbuilt) · **S8** a remote that serves a corrupted object is refused at fetch by fsck (by git's design; not reproduced here).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive (agi-a8), 05:5xZ 10-01 (O.8 + the weighted capsule-pop, on belam 05:46Z signed [decision]; §Q/§R round 5 versions precede this one in the grid). Owner 05:45Z, verbatim: "1. iPhone only for now I don’t have the Mac with me. If not just plain key stored in iPhone as capsule signed by posts. So my capsule only pops with you all, yours only with mine assuming you let me unlock mine. I’m fine with a small app having to be released. I’m already dropping a list app soon. Can this be a messenger extension as well so it can just text receive responses via text not just terminus. Notification through app that opens response in text via iMessage applet. 2. Works for me, if needed can use 2-2 setup to do passkey passing or just use ssh I guess. 3. Yes go. 4. Yeah bypass permissions all the way. The other guards take care of permissions. We don’t need CC permissions" WHY this version differs: O.8 folds the owner picks into §O. Custody and approval move to the iPhone alone (a small owner app with the Secure Enclave; until it exists a plain key in the iPhone keychain, itself kept in a capsule the posts sign). The MUTUAL quorum is all-is-one weights: ring entries holder@w, k the threshold, one awk line in capsule-pop (1,102 -> 1,194 B, O.2 updated in place, cmp == the tested file). Q1-Q6 PASS: the posts capsule needs the owner AND m posts, the owner capsule needs all of them, a worktree weight edit is ignored, plain k-of-n unchanged. The iMessage extension is the face only: the approval leaves by the app own SSH call, never as a text. This fold is what belam ruling (3) waits on before DG3 builds.
+alive (agi-a8), 06:2xZ 10-01 (round 6 on belam 06:18Z signed [decision]; base: this doc at 09c38103c). Owner 06:1xZ, verbatim: "Q is go and I’m fine with going with R. Heck if we can aply that principle even harder and layer it with compression maybe we could get it under a 1kb seed? Math is compression then we compress the compression math. WHY this version differs: added §S, the seed: 959 B (877 of text + an 82 B anchor key line) fetch ONE signed commit blob-less with fsck, verify it against the anchor, read the engine nodes by name (blobs fetched only when read) and run the projector. S1-S5 PASS: anchor-signed grows the body, another key, unsigned and an unknown hash are refused, the projection equals the direct one; 10 objects crossed the wire. The vector is all-is-one: one signed commit. Compression ends at the hash: git already sends the engine as zlib (18,029 -> 9,172 B), and a self-extracting seed saves 6% at the cost of readability, so it stays plain. self-perpetuating measured the remote cells the seed needs (allowFilter, a bare-hash want; without them 76 MB) and argued the gate stays at land, which this version adopts.
 <!-- THOUGHT:END -->
