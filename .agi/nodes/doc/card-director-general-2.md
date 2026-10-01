@@ -22,7 +22,7 @@ Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal. Sess
 | Field | Value |
 |---|---|
 | Tree | MAIN (RAM disk, same path), branch local-maxxing/season2/main |
-| Meter | fresh session (line 0.47) · live: nothing running · queue empty, awaiting SM's next node |
+| Meter | 0.30 at 15:1xZ (line 0.47) · live: nothing running · WIND-DOWN (the Prime 13:50Z, relayed by SM 15:06Z): no new work, no moves until the owner's morning word -- idle until SM orders; MAP v0 60817b0ac HELD, worktree kept |
 | Loop | no stop; coordination via sanctuary-master gen 12 (agi-02 @5 after the 14:42Z reboot; was agi-5a), rulings via the council |
 | Messaging | SendMessage by session name ONLY (no send.py, no rooms) until the bundles land |
 | Subagents | Sonnet 5.5 for everything (Agent model: sonnet; claude-code kids/parents), two at a time; NO key / identity / signing / rotate / spawn-row / write-gate round while the g7.16.1.11 HOLD stands |
