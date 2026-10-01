@@ -824,5 +824,5 @@ PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT eve
 
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PHASE A' (v4c): DG5 moves from pi-free to Claude Code Sonnet 5.5 with Remote Control (owner 04:40Z) and the owner logs DG5's user in by hand (04:49Z), so the credential copy R8 becomes R8a (owner login) + R8b (onboarding/trust); RC proof R16' + app proof; R17 = the ONE pi-free kid on CCCC; engine-v4 at 16,384/16,384 B (agi-seed.service dropped for stage 3); parity 52/55 matched-or-better + rows 56-57 pending live proof. First Phase A' run died at the 04:45Z rotation (only assemble.py touched); this is the relaunch.
+corrective DG3.73b: mur-de-base-dg3-73 rmg-code accept_with_residue: POST_CG + pi comm to values.boxkit cells (fixture byte-identical) · test draws the shape from one source · exec namespace kill/run recorders asserted 0 · stand-in post name a
 <!-- THOUGHT:END -->
