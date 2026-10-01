@@ -21,38 +21,36 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 23 (04:53Z-12:2xZ 10-01): the owner night -- capsule, rounds 5-7 designed by the council and LANDED, DG5 on the new engine, 12 owner logins, Grok signed in, the switch ordered (verbatim on goal:g7.16.1.11). Card rewritten whole for the successor: the switch order, the per-post GO rule, the session-only crons.
+gen 23 close (13:5xZ 10-01): the owner night ended at 14:00Z -- v5 landed, four v5 posts up, 12 logins, Grok signed in, no moves yet (the owner morning). Card rewritten whole for the successor.
 <!-- THOUGHT:END -->
 
-## §0 State (12:1xZ 10-01, read from date -u)
+## §0 State (13:5xZ 10-01, read from date -u)
 | | |
 |---|---|
-| post | belam-S2-L5-XX gen 23 agi-24 (woke 04:53Z); predecessors idle: gen 22 agi-a3 · gen 21 agi-23 |
-| run | OWNER NIGHT to 14:00Z (10am EST); owner asleep. Goal = goal:g7.16.1.11 (owner verbatim on it, every line) + leaves .1-.10 = the bundles (old bundles void; town board re-swept by TM c9880a5e1) |
-| engine | NEW ENGINE LANDED 10:4xZ (rounds 5-7, land.sh split, 0-6 PASS): config:engine 7,904 B 57eb5ac42 + engine-post/wrap/grow/root + growth.tsv + 2 schemas; verify 12/13 (bin-suite-fresh known) |
-| posts | DG5 UP on v5 (pi-free, own uid, agi.slice; parity 40/55, 0 regressions) · DG3 = agi-6a @63 (builder; @62 = .prev idle) · 12:4xZ CC-on-v5 login prompt FIXED: hasCompletedOnboarding + bypassPermissionsModeAccepted set for all 12 users (headless test ok) -> DG3 retries TM-new > DT-1 > DT-2 > DG4; open bug: the mail poll types into the pane · 13:0xZ FOUR NEW POSTS UP on v5 (TM-new 12:41 oom-killed 12:57 by oomd at the IO/mem stall, auto-restarted; DT-1, DT-2, DG4) -- DG4 STOPPED for memory (proven, idle; restart with an assignment) · G6 016ba8f26 + G5.3 land BEFORE the moves · NO MOVES TONIGHT: they start in the owner morning from DG2, old session stopped BEFORE the new one starts · 12:5xZ TM-new UP on v5; .git/objects ACL FIXED (g:agi + u:belam + defaults); TM-new LANE A = the research loop, old TM (agi-40) HANDED OFF 12:5xZ + STANDBY (820594bad; its L4 run 5 builder finishes, report relayed to TM-new) · v5 posts are NOT reachable by SendMessage (own uid): dm FILE via send.py only (G5 = the wake) · SM = agi-e0 · council: alive agi-1d · all-is-one agi-f0 · self-perpetuating agi-c9 · TM agi-40 (old TM = STANDBY after the switch) |
-| users | 12 owner-logged-in post users agi-<post> uid 983..972 (thought-master renamed -> agi-thought-master-new) + agi-grok 971 (xAI SuperGrok OAuth, xai-auth.json 600, never printed) |
-| crons | session-only (die with me): CHECK daa581ac (13 */4) · WIND-DOWN 44d274ad one-shot 13:50Z · memory Monitor bniwohddp = python3 -u /data/tmp/belam23/memmon.py (re-arm each 30 min) |
+| post | belam-S2-L5-XX gen 23 agi-24 (woke 04:53Z), meter 0.45; predecessors idle: gen 22 agi-a3 · 21 agi-23 · 20 agi-79 · 19 agi-c2 |
+| run | owner window CLOSED 14:00Z (10am EST); all posts wound down 13:50Z; owner morning report = the last belam reply of gen 23 |
+| engine | v5 LANDED 10:4xZ: config:engine 7,904 B 57eb5ac42 + engine-post/wrap/grow/root + growth.tsv + schemas (verify 12/13, bin-suite-fresh known) |
+| v5 posts | UP: director-general-5 (pi-free) · thought-master-new (research loop; RC visible) · director-thought-1/-2 (RC visible, idle) · STOPPED: director-general-4 (memory; restart with an assignment) |
+| old posts | all still on the old setup (no moves tonight) · old thought-master = STANDBY (handed off 12:5xZ) · SM rotated 13:1xZ (gen 12) · DG3 = agi-6a |
+| users | 12 owner-logged-in agi-<post> (983..972, onboarding flags set 12:4xZ) + agi-grok 971 (xAI SuperGrok OAuth, 13 models) |
+| crons | session-only: CHECK daa581ac (13 */4) · memory Monitor = python3 -u /data/tmp/belam23/memmon.py (re-arm each 30 min) |
 
-## §1 Plan
+## §1 Plan (owner morning)
 ```
-SWITCH (owner 07:3xZ GO, verbatim on the goal): everyone but belam / old thought-master / director-thought -> v5, one at a time, rollback each
-  NEW posts on v5, GO given 12:1xZ: thought-master-new (Opus 5.5, takes the research loop) > director-thought-1 > -2 > director-general-4 (cell 451adc6c2)
-  MOVES, order (DG3 plan 49257db79): DG2 > DG1 > alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST
-    gates: G1 closed (logins) · G2 key broker = fix round (CC posts use CC subagents) · G3 done · G4 stand-up CLI TypeError 1d9e7da5e + G5 send.py v5 wake 2a9baac18: building -> mur -> SM lands
-    each MOVE = ONE config:posts write AT the GO (engine cell + recover false + pid 0; C2 refuses rotate on an engine row, never earlier); DG3 sends the sub
-  belam LAST: a FRESH belam on the new route, gen counter CONTINUED (never restart at I); this session stays up idle
-  models: council + masters Opus 5.5 · directors Sonnet 5.5 · every subagent Sonnet 5.5
-AFTER the switch: deprecation sweep (old-engine build nodes, void bundles; retire, never delete) · ROUND 8 stream town (queued with the council, 6a273255b + taste tester 225e971fa) · viz last (spider first)
-13:50Z WIND-DOWN: posts finish + cards; ONE owner morning report (landed shas, switch state, verdicts, what needs the owner)
-NOT TONIGHT: seed root install + anchor line · hub grow-gate wiring · T7 wake row · phone route (waits for the Mac's WireGuard config) · stand-in cert expires 14:00Z
+1 MOVES (owner 07:3xZ GO, verbatim on goal:g7.16.1.11): DG2 > DG1 > alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST
+   each: G5 (v5 wake) + G6 (AGI_BOX) landed first · ONE config:posts write AT the GO (engine cell + recover false + pid 0) · old session STOPPED before the new starts · gate (load1 < 16, io PSI avg60 < 50) between
+   G4 LANDED b30042219 (SM) · belam LAST = a FRESH belam on v5, gen counter CONTINUED; this session stays idle
+2 DG4: assignment from the owner or SM, then restart · DT-1/-2: their max-parallel lane under thought-master-new (key broker = fix round for pi-free kids)
+3 council: moral satisfaction verdicts on the seed engine (not filed yet) -> phase 3 readiness
+4 after the moves: deprecation sweep (retire, never delete) · ROUND 8 stream town (queued) · viz last (spider first)
+NOT YET: seed root install + anchor line · hub grow-gate wiring · T7 wake row · phone route (Mac WireGuard config) · Grok proxy + token renewal
 ```
 
 ## §2 Landed (gen 23)
-C1 e1e0dbaaf (v4c) · C2 aa2f2e28a · C4 81ed274fc · C3 5ee794d45 · R5-R7 57eb5ac42 (+6 before) · rows 6f5275059 · DG4 cell 451adc6c2 · director brief REVIEW IN PLACE -> claude-code · 10 goal leaves g7.16.1.11.1-.10 · ACL 11:4xZ (g:agi + u:belam rwX + defaults on .git/refs, .agi/comms, .spawn-budget, inbox; dir-level worktrees; seats UNTOUCHED)
+C1 e1e0dbaaf · C2 aa2f2e28a · C4 81ed274fc · C3 5ee794d45 · R5-R7 57eb5ac42 (+6) · rows 6f5275059 · DG4 cell 451adc6c2 · 10 goal leaves g7.16.1.11.1-.10 · ACLs (refs, comms, objects, logs, worktrees; seats UNTOUCHED) · director brief MUR -> claude-code
 
 ## 🔴 Where it stops
-Wake: re-arm CHECK + memory Monitor (memmon.py) + a 13:50Z wind-down one-shot if before it; read .agi/comms/season-2/dm/*belam* AND .agi/sessions/inbox/belam.md by ts (DG3 writes to the INBOX); then give DG3 the GO per post in the §1 order, one write each at its GO.
+Wake: re-arm CHECK + memory Monitor; read .agi/comms/season-2/dm/*belam* AND .agi/sessions/inbox/belam.md by ts (DG3 + v5 posts write to the INBOX; v5 posts are reached by dm FILE or their Remote Control name, not by agi-NN); then §1 item 1 on the owner's word.
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
 |---|---|---|
