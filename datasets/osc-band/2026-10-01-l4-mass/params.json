@@ -1,0 +1,16 @@
+{
+ "hypothesis": "hypothesis:lm-l4-outside-window-mass-picks-the-heads-to-window",
+ "run1_cell": "osc_band_l4_dir",
+ "inherit": ["model_cell", "text_cell", "text_file", "eval_docs", "L", "W", "sinks", "score_lo", "score_hi",
+             "budgets", "k", "seeds", "lm_head_chunk", "threads"],
+ "run2_cell": "osc_band_l4_distance_dir",
+ "inherit_run2": ["calib_docs", "exclude_docs", "min_spearman"],
+ "inherit_note": "every key in 'inherit' is read from <cell run1_cell>/params.json and every key in 'inherit_run2' from <cell run2_cell>/params.json at run time, never retyped here; the merged grid is written to results.json key P",
+ "mass_def": "per KV head: mean over its 7 query heads of the mean over query rows score_lo..score_hi-1 (1024..2047, all with t >= W + sinks so the window binds) of sum_j w[t,j] over the keys the window drops, sinks <= j <= t - W (= osc_l4_window.disallow(L, W, sinks); j > t carries 0 weight); full KV; averaged over the 3 calibration docs; ascending (the k LOWEST-mass heads are windowed), ties by index. SCORED arm.",
+ "direct_def": "per KV head h: window h alone (sinks + last W, all 7 query heads) on each calibration doc, KL(full || windowed) per scored position over rows score_lo..score_hi-1 (run 1's score, lm_head under no_grad); averaged over the 3 calibration docs; ascending, ties by index. Reported, not scored.",
+ "sinkcount_def": "run 1's mean attention distance (osc_l4_window.attn hook, sinks COUNTED) over rows score_lo..score_hi-1, KV head = mean over its 7 query heads, averaged over the 3 calibration docs; ascending, ties by index. Reported, not scored.",
+ "reuse_rule": "band (run 1 per_doc) and distance (run 2 per_doc) are reused on a doc iff its full-KV hidden-state sha256 equals run 2's full_h_sha256 AND every random arm's per-doc (agree, kl) equals run 1's exactly; else both are rerun on that doc (and the verdict is void). Arms with identical head sets at a budget are run once.",
+ "rule": "inconclusive (stop before scoring) if any pairwise calibration Spearman of the mass vector < min_spearman; void on calibration leak, k/kept mismatch, non-bit-exact full KV, or full-KV/random mismatch vs runs 1/2; else proved iff mass agree > random max agree AND mass KL < random min KL at need_random_wins budgets AND mass KL < run 2 distance KL at >= need_distance_kl_wins budgets; else disproved",
+ "need_random_wins": 3,
+ "need_distance_kl_wins": 2
+}
