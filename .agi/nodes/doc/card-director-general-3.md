@@ -15,74 +15,55 @@ town: core
 
 # doc:card-director-general-3 — director-general-3's card (council loop, goal:g7.16.1): the ONE scratch
 
-Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator) · MAIN /data/work/agi on local-maxxing/season2/main.
+Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (02:3xZ 10-01) — f~0.26 · LANES (belam 02:27Z, owner): DG3 = Opus 5.5 subagents at effort MEDIUM for everything, up to 3; free lane ENDED (pi-free stays a lane)
+## §0 State (04:4xZ 10-01) — f~0.40 · LANES (owner via belam 02:27Z): DG3 = Opus 5.5 subagents at effort MEDIUM for EVERYTHING, up to 3 live; murs pi-free · no STOP
 | | |
 |---|---|
-| post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 + DG5 |
-| protocol | doc:council-loop · goal:g7.16.1 |
-| skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch |
-| SM board rule | send the [merge-up] and WAIT for SM's GO; SM gates one at a time and LANDS |
-| lanes | FROM 21:00Z: every NEW round + review on pi-free (workflow.py run merge-up-review --harness pi-free, detached systemd-run) |
+| post | director-general-3 · graph-builder · the .11 BUILDER (Opus subagents) |
+| skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard |
+| SM board rule | [merge-up] to SM, WAIT for SM's GO; SM gates + LANDS. BUILD stages report ONE [decision] line to belam each |
+| inbox | send.py read is the source; the dm FILES (comms/season-2/dm/*director-general-3*) can hold [board] lines the read missed -- tail them at wake |
 
 ## §1 Plan
 ```
-BUILD   goal:g7.16.1.11 (belam [decision] 01:58Z, owner 01:0xZ 'Stages 1-2 now, stop before 3'): source config:engine v2 @50eda68b1f (read sect)
-  S1    PASS 02:0xZ, reported to belam [delivered]: agi-project dry -> 10 units = the 10 live local-town posts; evidence /tmp/agi-stage1/REPORT.txt
-        gaps: 1 system-shaped unit in the user manager · 2 H undefined (no env) · 3 no users projected · 4 project.sh 28 vs agi-project 10 · 5 fresh key per user
-  S2    PASS 7/7 (run 02:49-02:58Z, 0 USD), result on doc:g716111-stage2-rootplan 92cd0739be; teardown re-verified clean by me;
-        [decision] to belam 03:0xZ [delivered]; disclosed R1 52 s early + R13 clone-ownership corrective; 6 council findings on the node
-  S2.5  GO (belam signed 03:48Z; S2 ACCEPTED, box re-verified clean). POST = director-general-5 (owner), NOT DG6. HARNESS pi-free + a pi
-        extension mirroring CC hooks (CCCC: SessionStart->session_start+before_agent_start, UserPromptSubmit->input, Stop->turn_end, Pre/PostToolUse)
-        CREDS: copy the owner's CC credential file to the new user (600, never printed/committed), prove ONE claude start, report uid-/network-bound
-        root acts on MAIN APPROVED (undo listed first) · keep both keys · engine <= 16,384 B, depth 0+1 <= 4,096 B · BAR: parity all matched-or-better
-        PHASE A DONE: doc:g716111-stage25-rootplan 29044ff734 (v4 16,375/16,384 B, d0+1 3,418; 55 parity rows: 51 ok, 4 named gaps; 17 root acts + 4 MAIN commits)
-        + owner 03:48Z: one parity row each for memguard · ram-main · memory-alarm · PSI-40% watchdog · config:guard slices · keysync · box crontab ·
-          heal · oomd + the MAGIC PANE ANCHOR (goal:g7.31.2); a guard v4 cannot carry = a NAMED gap (forwarded to the Phase A subagent)
-        [red] council §N.5 (belam 04:12Z): Slice=agi.slice + a SYSTEM agi.slice capped FROM config:guard (root acts + undo), N4 proved BEFORE DG5
-          starts (HARD HOLD); the council pane (util-linux script, two files) replaces dtach; align v4 with the council v3 unit in doc §N (forwarded)
-        PHASE B: 6 calls to belam 04:3xZ [delivered] (creds shared-refresh RISK, slice overcommit, R-MG, key broker, OLD DG5 scope still running, C1/C2 = Prime) -> PHASE C ON belam's WORD: an Opus executor runs the node's plan; N4 gate; then the 55 proofs -> ONE [decision]
-        HARNESS CHANGE (owner via belam 04:40Z): DG5 = Claude Code Sonnet 5.5 + REMOTE CONTROL ON (owner sees it in the app), own user, copied CC creds
-          (600), inside agi.slice (N4 first); ONE kid on pi-free + CCCC; NEVER pi posing as CC to RC; report app-visible y/n + creds uid/network binding
-        PHASE A' (Opus, no root) RUNNING -> /tmp/agi-stage25/v4b/ -> update doc:g716111-stage25-rootplan -> Phase C on belam's word
-        prep: doc:g716111-stage25-parity 2e6fca914e (42 rows) · rollback = stop its unit + wants link + rotate.py stand-up --post director-general-5
-  STOP  before stage 3 (migration, retiring Python): the owner's word through belam
-HELD    key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7 (this build replaces it)
-LIVE
-  row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: DH.DG3.66 pi parent a00-cd04d946 CUT 03:4xZ (idle 2h45m, 0 CPU; its scope
-          stopped, worktree reaped); kid tip e81f782a19 over caps -> FINISHED by an Opus subagent 8abfaf9e9d on de-base-DG3.69: prod +52/+58, test 260/260,
-          json line 4 restored, items 1-6 done; 213p/8s/3f (3 = stray /tmp/.agi, red on trunk too; [red] to SM 04:0xZ) -> mur h60c (run mur-de-base-dg3-69) = accept_with_residue
-          (legacy-seam row · F1 orphan · OOM edge · kid node numbers/helpers) -> DG3.69b by an Opus subagent RUNNING -> re-mur h60d -> [merge-up]
-  g7556f  hypothesis:g7556-fstype-root-mount-and-ram-tier-through-ramw: 0d7a379694 on de-base-DG3.70; mur h7556f (run mur-de-base-dg3-70) = accept_with_residue
-          -> DG3.70b DONE d73bf50bf6 (137p/8s, tests +37/40, count == 10, evidence_runs ok) -> re-mur h7556g RUNNING (unit ...-mur-h7556g) -> [merge-up]
-  crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round: BUILT 2634a61987 on de-base-DG3.71 (483p/8s/1x, +22/+40; lean 85: flat
-          shape w/o tips still ?..?) -> mur hcr RUNNING (unit agi-director-general-3-mur-hcr) -> [merge-up] -> SM tells the Prime the cells may be set
-  .10.7   goal:g7.16.1.10.7 THE MERGE GATE: [merge-up] SENT to SM 03:4xZ [delivered] -- tip 27042fc3cf (branch de-base-DG3.68), mb 8523e5e563,
-          merge-tree vs trunk 22dcca1f34 rc 0, 12 files +1134/-5, 305p/8s; murs h107..h107f all closed in-loop (h107f prose closed by me, no re-mur)
-          SM 03:30Z COORDINATOR CALL: land under OPTION A after its full suite (GO or return pending); cells wait for crmur; SM carries the [rule]
-LANDED  .10.5 2ed4492434 (SM 21:17Z) · g7556 627c94a040 · .10.3 521ebaa951 -> goals .10.5 + .5.5.6 + .10.3 COMPLETE; RAM trees removed
-DONE    goal:g1.31.3.2.1 COMPLETE e585436f87 (node scrub, Sonnet ACCEPT); [done] line to SM [undelivered-yet] 20:53Z (sweep retries; check send.py status sanctuary-master)
-        parent goal:g1.31.3.2 falsifiers 1+2 pass -- its completion = its owner's call (director-general-6 on the node)
-QUEUE   goal:g7.16.1.10.7 (THE MERGE GATE) -- start only after .10.3 + .10.5 LAND; mint its hypothesis, dispatch a pi-free parent (dispatch.py, tier parent)
-QUEUE   goal:g7.33.19 row 60 (the Prime's red: stage scopes leave repo-wide grep orphans) -- ONE round, NOT ahead of .10.5 / .10.7 (SM 20:45Z)
-HEADS-UP SM 18:57Z: DG4's g1.31.4.2.1 lineage (tip 4620846a3f) adds +22 to dispatch.py (_seat_kwarg gate) -- read it before any round touching _seat_kwarg
-MOVED   hypothesis:g73320-... -> DG2 · g6.41.1.1 -> DG1
-FINDINGS goal:g7.33.19 rows 38-67 (51-67 this session; 65 blind harvest x2, 66 grace literal, 67 four no-grep carriers)
+BUILD goal:g7.16.1.11 (radically simple engine; config:engine)
+  S1   PASS (02:0xZ) reported · S2 PASS 7/7 (doc:g716111-stage2-rootplan 92cd0739be) ACCEPTED by belam 03:48Z, box re-verified clean
+  S2.5 GO (belam 03:48Z): director-general-5 on the LIVE repo under engine v4; bar = parity matched-or-better (55 rows incl. guards + magic pane anchor)
+       PHASE A done: doc:g716111-stage25-rootplan 29044ff734 (v4 16,375 B; 51/55 parity; 17 root acts + 4 MAIN commits; N4 HARD GATE)
+       council [red] §N.5 folded: Slice=agi.slice + a system agi.slice capped FROM config:guard; N4 proved BEFORE DG5 starts; council pane (no dtach)
+       HARNESS CHANGE (owner 04:40Z): DG5 = Claude Code Sonnet 5.5 + REMOTE CONTROL ON, own user, copied CC creds (claudeAiOauth, 600), in agi.slice;
+         ONE kid on pi-free + CCCC; NEVER pi posing as CC to RC; report app-visible y/n + the creds' uid/network binding
+       PHASE A' (Opus, no root) RUNNING -> /tmp/agi-stage25/v4b/ -> re-mint/update doc:g716111-stage25-rootplan -> PHASE C ON belam's WORD
+       OPEN with belam (04:3xZ, acked 04:4xZ): shared-refresh-token RISK of copied creds · slice overcommit · memguard patch R-MG · key broker = stage 3 ·
+         WHO STOPS the OLD-engine director-general-5 scope still running (plan holds while it lives) · C1/C2 = Prime landings
+  STOP before stage 3 (migration, retiring Python): the owner's word through belam
+HELD   key / identity / signing / rotate / spawn-row / write-gate rounds + goal:g7.16.1.7 (the build replaces them)
+LIVE ROUNDS (each -> pi-free re-mur -> residues 0 -> [merge-up] to SM)
+  .10.7   goal:g7.16.1.10.7 merge gate: [merge-up] 27042fc3cf SENT; SM 03:30Z COORDINATOR CALL = land under OPTION A after its suite (GO pending);
+          leaf goal:g7.16.1.10.7.1 (horizon) carries the skill retirement; the merge_gate cells wait for crmur; SM carries the grep-wins [rule]
+  row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: de-base-DG3.69 tip b9576d2d43 (218p/8s; prod +52/58; test 260/260)
+          -> re-mur h60d RUNNING (unit agi-director-general-3-mur-h60d) over 8abfaf9e9d..b9576d2d43
+  g7556f  hypothesis:g7556-fstype-root-mount-and-ram-tier-through-ramw: de-base-DG3.70 tip d73bf50bf6 (137p/8s; tests +37/40)
+          -> re-mur h7556g RUNNING (unit ...-mur-h7556g) over 0d7a379694..d73bf50bf6
+  crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round: de-base-DG3.71 tip 2634a61987 (483p/8s/1x; +22/+40; lean 85:
+          the FLAT shape without tips still writes ?..?) -> mur hcr RUNNING (unit ...-mur-hcr) over 1b1b50c003..2634a61987; GATES the merge_gate cells
+QUEUE  (SM order) done/in-flight: row 60 -> g7556 fork -> council-report fork -> .10.7
+FINDINGS goal:g7.33.19 rows 38-68 (65 blind harvest x5 · 66 grace literal · 67 four no-grep carriers · 68 heal.py dead counter)
 PRIVACY the scrub commit-map is local-only: NEVER track, print or copy an old sha / old->new pair
-NEVER   hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids
 ```
 
 ## §2 Landed
-this session (on loop branches, sent): .10.3 residue fixes 2ff6ab966d 9112f3b823 d5ad04aa18 ebff97679f · .10.5 harvest d89b77ae74 + fixes 90b0d8af50 f26ab6d7f1 be3ea3028a 9a861b4fd3
-this session (trunk, MAIN): card re-link a3f74cbfb7 · findings rows 51-60 · goal:g1.31.3.2.1 scrub db7642e2e8..2aacad7697 + complete e585436f87
-earlier: dg6-04 LANDED 08b1ca1c94 · g1314 LANDED 88ddd2ca08 · goal:g1.33 LANDED 5f1e8092f2 (previous card versions: grid)
+this session (trunk): card re-link 823060f68e · goal:g7.16.1.10.7.1 minted 61dd3a0d68 · findings rows 65-68 · docs g716111-stage2-rootplan / stage25-parity / stage25-rootplan
+this session (loop branches, sent/under review): .10.7 chain -> 27042fc3cf · row 60 -> b9576d2d43 · g7556 fork -> d73bf50bf6 · crmur -> 2634a61987
+earlier: .10.5 2ed4492434 · g7556 627c94a040 · .10.3 521ebaa951 · goal:g1.31.3.2.1 e585436f87 (previous card versions: grid)
 
 ## 🔴 Where it stops
-LIVE: corrective parents a00-cd04d946 (row 60 DH.DG3.66) + a00-46e3ab5f (.10.7 DH.DG3.67). Next: each exits -> harvest (traps: kids=[] dm lies, dirty logged node writes, reaped worktree) -> touched tests + neighbourhood -> re-mur (h60c / h107e, pi-free, detached) -> residues 0 = [merge-up] to SM, else a corrective. First command on wake:
+Three pi-free murs running (h60d, h7556g, hcr) + Opus Phase A' for stage 2.5; .10.7 waits on SM's GO; Phase C waits on belam's word. First commands on wake:
 ```
-python3 extensions/agi/bin/send.py read director-general-3; python3 extensions/agi/bin/send.py status sanctuary-master; python3 extensions/agi/bin/spawn_budget.py status; df --output=pcent /mnt/agi-ram
+python3 extensions/agi/bin/send.py read director-general-3; tail -5 .agi/comms/season-2/dm/director-general-3--sanctuary-master.md; for u in h60d h7556g hcr; do echo $u $(systemctl --user is-active agi-director-general-3-mur-$u); done; ls /tmp/agi-stage25/v4b/ 2>/dev/null
 ```
+then per finished mur: read .agi/sessions/workflows/runs/mur-de-base-dg3-{69,70-*,71}/{review,verify}_*.json (masked) -> residues 0 = [merge-up] to SM (tip, merge-base, merge-tree vs trunk rc, numbers, mur keys) else an Opus corrective on the same de-base branch + re-mur.
 
 ## §4 Traps
 | trap | rule |
