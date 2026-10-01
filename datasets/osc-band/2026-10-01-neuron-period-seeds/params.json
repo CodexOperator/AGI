@@ -33,11 +33,11 @@
  "early_stop": "stop once held-out acc >= 0.99 at EVERY eval over the last 1000 steps (11 consecutive evals at eval_every 100); grok_step = the first eval step of that sustained run",
  "grok_threshold": 0.99,
  "grok_hold_steps": 1000,
- "wall_cap_s": 2400,
+ "wall_cap_s": 2680,
  "checkpoint_every": 2000,
  "fallback": "DISABLED: no fallback seed; a seed that does not grok by step_cap / wall_cap_s is recorded as not grokked",
  "fallback_seed": null,
- "threads": 4,
+ "threads": 1,
  "b_set": [
   0,
   23,
@@ -93,10 +93,11 @@
   2,
   3
  ],
- "wall_cap_note": "PER SEED, 3 seeds sequential -> total <= 7200 s (the order's 120 min); the PC's own was 5400 for its one seed (seed 0 took 962 s)",
+ "wall_cap_note": "PER SEED, 3 seeds sequential. 2400 -> 2680 (same decision): projected 3-seed time = 3 x (10200 steps, the PC's grok 9200 + the 1000-step hold) x 0.175 s = 5355 s; cap = 1.5 x 5355 = 8033 s total = 2680 per seed",
  "family_floor": 20,
  "p4_def": "family = the P1 neurons sharing one dominant frequency; every family with >= family_floor (20) neurons is mean-ablated (post-ReLU at '=' replaced by its mean over ALL 12769 inputs), scored on the held-out split; each against 20 size-matched random sets (numpy default_rng(s).choice(512 minus the family, |family|, replace=False) for s in random_seeds), disjoint from the family. pass = at least ONE such family's drop > the MAX of its 20 random drops (strict); no family reaching the floor = fail",
  "unscored": "per seed: family frequencies and sizes; load-bearing (drop > random max) vs passenger (drop < random mean) counts; whether the top-6 W_E Fourier frequencies (power over the 113 token rows, k in 1..56) equal the frequencies of the families at the floor",
  "resume": "per-seed results_s<N>.json are written when a seed finishes; a relaunch skips finished seeds and resumes the current one from partial/ckpt_s<N>.pt (a restart of the post unit kills the detached run)",
- "box_min_avail_note": "6000 -> 4000 (thought-master-new [decision] 13:37Z 10-01): 6 GB is the box rule for MODEL loads; this run is a toy (RSS ~0.5 GiB); PSI avg10 < 5 unchanged; scoring rules unchanged; recommitted before launch, no training had started"
+ "box_min_avail_note": "6000 -> 4000 (thought-master-new [decision] 13:37Z 10-01): 6 GB is the box rule for MODEL loads; this run is a toy (RSS ~0.5 GiB); PSI avg10 < 5 unchanged; scoring rules unchanged; recommitted before launch, no training had started",
+ "threads_note": "4 -> 1 (thought-master-new [decision] 15:18Z, path b): the run is a ptrace tracee of the post unit's strace (old wrap, TracerPid 185476 at 16:3xZ); 200-step timing probe at threads=1 under the tracer = 35.1 s = 175 s per 1000 steps (<= 300 s bar). Operational change, ONCE, committed before the relaunch; seeds, step cap, P1/P2/P4 and the verdict rule unchanged"
 }

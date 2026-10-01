@@ -26,13 +26,13 @@ n = P["model"]["d_mlp"]
 def test_1_params_differ_from_the_pc_only_in_the_declared_keys():
     diff = {k for k in set(P) | set(PC) if P.get(k) != PC.get(k)}
     declared = {"hypothesis", "run", "train_seed", "train_seeds", "fallback_seed", "fallback", "wall_cap_s",
-                "wall_cap_note", "random_seeds", "family_floor", "p3_def", "p4_def", "verdict_rule", "unscored", "resume"}
+                "wall_cap_note", "threads", "threads_note", "box_min_avail_mib", "box_min_avail_note", "random_seeds", "family_floor", "p3_def", "p4_def", "verdict_rule", "unscored", "resume"}
     assert diff <= declared, sorted(diff - declared)
     assert P["train_seeds"] == [1, 2, 3] and P["fallback_seed"] is None and P["twin_seed"] == PC["twin_seed"]
     for k in ("p", "model", "optimizer", "split_seed", "train_fraction", "step_cap", "grok_threshold", "grok_hold_steps",
               "b_set", "null_seed", "null_quantile", "p1_min_fraction", "p2_max_freqs", "p2_cover"):
         assert P[k] == PC[k], k
-    assert len(P["random_seeds"]) == 20 and P["family_floor"] == 20 and P["wall_cap_s"] * 3 <= 7200
+    assert len(P["random_seeds"]) == 20 and P["family_floor"] == 20 and P["wall_cap_s"] * 3 <= 8100 and P["threads"] == 1 and P["box_min_avail_mib"] == 4000
 
 
 @pytest.mark.parametrize("size", [20, 33, 80])
