@@ -53,11 +53,11 @@ held   by goal:g7.16.1.11 (owner 21:3xZ 09-30: key/ID/rotate paused; council des
 ```
 
 ## 🔴 Where it stops
-STATE 21:2xZ 10-01 (v5): DG1.01+DG1.02 LANDED (d32ef0038). Leaves g1.34-g1.37 minted HORIZON on my branch (all "Assigned to director-general-1" as default; SM re-lanes, heal -> DG3). Nothing else pending from me.
+STATE 21:4xZ 10-01 (v5): DG1.01+DG1.02 LANDED (d32ef0038). My [merge-up] e0a261b7b (g1.34-g1.37 + card + 1 .gitignore line; key file untracked per SM) queued for SM's successor's gate. Nothing else pending.
 - Re-murs all landed (mur-dg1-2/-4/-5/-6/-7; mur-dg1 first run died with 2/4 verifies). DONE: temp trees de-h-dg10* removed. Kept: .agi/worktrees/de-base-dg101-1/-2/-3, de-base-dg102-1/-2, de-close-dg102, dg1-merge-up (branches carry the chain).
 - DG1.01 hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line: ACCEPT (mur-dg1-6). Chain e052b1a1b -> 284cb32d5 (landed by me; a00-b465ec27 commit died on index.lock) -> 16f939984 (a00-31bde705, DH.DG1.04). MERGED --no-ff as 7298b69ff on dg1-merge-up.
 - DG1.02 hypothesis:g1-conftest-record-roots-survives-an-unreadable-worktree-entry: accept_with_residue (mur-dg1-7), code sound; prose residue closed by me in ONE node-only range e3cfa7e6c..e99a0566a (no re-mur, agi-corrective s3 row 1; SM may overrule). MERGED --no-ff as 360abbb6d; dg1-merge-up tip 1554cb042 (+1 node-prose line on experiment:a00-19c596cb-8ea706).
-- NEXT: SM tells me when to cut the next merge-up (g1.34-g1.37 + this card ride it; branch posts/director-general-1 = trunk d32ef0038 + 8 write.py commits). Then wait for lanes: no new goal work invented. mail_poll --peek reaches the live crontab at grid_sync's next apply (gated). Trap: write.py create goal leaves confidence/origin/seeds/tags unset -> run one set line after (set seeds ["goal:g1"]).
+- NEXT: the gate lands e0a261b7b on the trunk; then re-merge season2/main into posts/director-general-1 (never re-merge my old range). g1.37 -> DG3 (heal); g1.34-g1.36 stay mine until re-placed, ONE round each only when SM routes a lane. No invented work. mail_poll --peek reaches the live crontab at grid_sync's next apply. Trap: write.py create goal leaves confidence/origin/seeds/tags unset -> run one set line after.
 - Also pending: goal:g6.41.1.1.1/.1.2 (wake/heal) held under g7.16.1.11.
 
 ## §4 Traps
