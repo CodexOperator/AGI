@@ -12,7 +12,7 @@ evidence_runs:
   - experiment:dg2-c1-harvest
 scaffold_hash: 0d98fdd6dfbd4dc7
 season: 2
-title: "DG2.C1 (6d8ac01d74): inconclusive_lean_proved:85 -- orphan tree refused once by name, never archived, never re-tried; live reaper-log proof waits on heal's watch restart"
+title: "DG2.C1 (6d8ac01d74) proved 0.9: the orphan tree is refused by name, never archived -- live in the reaper log 03:16:57Z-07:35:57Z (4 refusals, 0 archives), no restart needed"
 town: core
 verdict: proved
 ---
