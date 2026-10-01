@@ -1478,7 +1478,7 @@ CHANGE "modify local stuff across boxes" = a commit pushed into YOUR namespace o
 | who wrote it | pre-receive (X6a) + recv | recv only (X6b) |
 | when it was written | pre-receive skew check (X11b) | the ref chain only (limit 2) |
 | bytes intact | fsck on push and on fetch | fsck on fetch |
-| the DC holds | rows, CA pubs, KRL (§V) + one bare hub repo: public bytes only | -- |
+| encryption-town holds | the armed CA window (§V) + one bare hub repo; the rows are graph on every box (§U) | -- |
 
 **Tested 07:1xZ** (throwaway CA + anchor, per-login keys held only in their own agent (stand-in for `agi-login`, key-id = rid), an UNPRIVILEGED sshd on a loopback high port trusting only certs, principals = §U-shaped rows with opts; two bare remotes: a file URL as the GitHub stand-in, the ssh URL as encryption-town's hub; no root, one unix user; §S and §T run VERBATIM from this doc, only K substituted):
 | # | case | result |
