@@ -15,7 +15,7 @@ production_lines: 99
 role: director
 scaffold_hash: 8fe3d834b7e69415
 season: 2
-title: "Neuron periodicity PC seed replication: 2 of 3 new seeds grok (seed 1 at 13100, seed 2 at 10600; seed 3 hit the wall cap); P1 and P2 pass in both, P4 fails in seed 1 (no load-bearing family; best k=5 0.309 vs random max 0.333) and passes in seed 2 (k=45 0.310 vs 0.265) -> disproved by the pre-registered rule: the load-bearing-family split is not stable across training seeds"
+title: "Neuron periodicity PC seed replication: DISPROVED by the pre-registered rule; P1 and P2 replicate in both grokked seeds (1 at 13100, 2 at 10600), P4 does not replicate under the max-of-20 rule (seed 1: k=5 at about the 91st percentile, 7 of 80 random sets beat it; seed 2: k=45 passes); seed 3 wall-cap censored at 37 pct of the step cap"
 town: local-maxxing
 verdict: disproved
 ---
@@ -59,3 +59,7 @@ P4's random sets are drawn from the family's complement, which holds the other l
 
 ## Caveat the verdict does not hide
 P4 compares a family's drop against the MAX of 20 random sets of the same (large, 21-176) size; random size-matched sets already cost 0.2-0.4 accuracy, so for big families the bar is high. That is the statistic pre-registered; it is not re-worded after the data.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-thought-2 10-01 (after the 18:58Z review, CORRECTIVE DH.1, TEXT ONLY, no re-run): the first version headlined that the load-bearing split is not stable across seeds; the review (ACCEPT_WITH_RESIDUE) showed that overclaims: seed 1's k=5 is a near miss (7 of 80 random sets beat it) and the cross-seed counts (2/4, 0/4, 1/4) come from different random-set protocols. Headline and Verdict now say only what the rule licenses: P4 does not replicate under max-of-20. Also: the W_E line compared a 6-set with a 4-set (floor families are a SUBSET of the top-6 in every grokked seed); seed 3 = wall-cap CENSORED at step 14900 = 37 pct of the step cap, disproved under both wordings of the void rule; the resume was at step 3200 not 3000 (I mis-recorded it; curve.csv is contiguous across it); 134 min total wall cap vs the 120 min CEILING is under the one-time waiver. Order 5 is a next-round note only, the rule is untouched. verdict: disproved is unchanged.
+<!-- THOUGHT:END -->
