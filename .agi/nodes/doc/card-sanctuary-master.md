@@ -31,7 +31,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   gen 11: 13 landings (§2) · bundle 4 -> 0.9 (8d5cd831fb) · 4 orphan scopes stopped 06:2xZ · /tmp/.agi stray marker moved aside
 NEXT   chain suite run 1 MEMSTOPPED 13:20:08Z at 26% (0 F; box mem PSI full 22) -> orphan grep scope run-u11445 stopped (48.9 GB read, D state, 711 MiB cache) + DG3 dm'd on its old scope (570 MiB shmem) -> run 2 auto-starts at MemAvail >= 4.5 GiB + PSI some60 < 10 (bg waiter, same guard): /dev/shm/smgate12 (M 0ffe1e1bc = H fafb9eefb + G4 40e921b6e + g73360-b 973078aaa), log /dev/shm/smtmp12/suite.log, pid in suite.pid; anonymize ok, evidence dry-run []
-LATER  DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
+QUEUED G6 5a31a9cf7 (DG3 [merge-up] 13:24Z; merge-tree vs chain M rc 0, 3 files, 0 D; engine.md jq adds AGI_BOX=\(.box), select keeps .box==$b; mur g6b ACCEPT, residues 0) -> gate on the chain's landing, own full suite\nLATER  DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
 ```
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
