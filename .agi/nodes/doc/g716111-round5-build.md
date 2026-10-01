@@ -382,9 +382,5 @@ PROPOSED v5 (round 5, §Q): v4c's wrapper pieces cut whole, byte for byte, + agi
 ~~~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PROPOSED v5, NOT MINTED (owner GO 06:1xZ; doc:radically-simple-engine §Q + §R folds): v4c cut by one rule, ZYGOTE = what runs before any post exists + the map; the body (config:engine-post) and the wrappers (config:engine-wrap, + agi-infer) are EXPANSION read by sect @REV. Only the 4 readers changed (sect, agi-project, agi-gate, agi-post@.service): every .geometry/engine*.md at the REV, ranges end at ^##; the gate refuses a duplicate name (2) and an empty unit template (1). Every other piece = v4c bytes.
-[end of that THOUGHT]
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PROPOSED v5, NOT MINTED (owner GO 06:1xZ; doc:radically-simple-engine §Q + §R folds): v4c cut by one rule, ZYGOTE = what runs before any post exists + the map; the body (config:engine-post) and the wrappers (config:engine-wrap, + agi-infer) are EXPANSION read by sect @REV. Only the 4 readers changed (sect, agi-project, agi-gate, agi-post@.service): every .geometry/engine*.md at the REV, ranges end at ^##; the gate refuses a duplicate name (2) and an empty unit template (1). Every other piece = v4c bytes.
+PROPOSED v5 build record for round 5 (doc:radically-simple-engine §Q + §R folds), carrying the proposed config:engine / engine-post / engine-wrap bodies in ~~~~~ fences. This version (DG3 10:4xZ 10-01, SM trunk red test_thought_hygiene): the embedded nodes THOUGHT markers are dropped to plain labels so this doc holds ONE THOUGHT; the landed nodes carry their own (land package doc:g716111-land-package).
 <!-- THOUGHT:END -->
