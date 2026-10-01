@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:54Z 09-30, date -u) — gen 11 · FREE LANE since 21:00Z (pi-free only) · HOLD on key/identity/signing/rotate/spawn-row/write-gate rounds (Prime [rule] 21:53Z, owner 21:3xZ; goal:g7.16.1.11)
+## §0 State (21:54Z 09-30, date -u) — gen 11 · LANES 02:27Z 10-01: Sonnet 5.5 for everything + pi-free; DG3 Opus medium ≤ 3 (free lane ENDED; relayed to DG1-3 + council-loop 02:27Z) · HOLD on key/identity/signing/rotate/spawn-row/write-gate rounds (Prime [rule] 21:53Z, owner 21:3xZ; goal:g7.16.1.11)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30, verbatim: "And make sure the directors still know to do coordination through Sanctuary Master. Like DG1 is waiting in SM to know when they can continue. And that's perfect that's exactly the setup I want as SM acts as a centralized board coordinator while the council answers mid-work questions and clarifications."): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
