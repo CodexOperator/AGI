@@ -23,7 +23,8 @@ def box(tmp_path):
     for f in (WT / GEO).glob("engine*.md"):
         shutil.copy(f, repo / GEO / f.name)
     rows = [("a", True), ("x", False), ("b", True)]
-    (repo / GEO / "posts.md").write_text("---\nposts:\n" + "".join(ROW % (n, '"boot": true, ' if b else "") for n, b in rows))
+    z = '  - {"name": "z", "boot": true, "role": "director", "tier": 1, "box": "local-town"}\n'  # boot-flagged, no engine row
+    (repo / GEO / "posts.md").write_text("---\nposts:\n" + "".join(ROW % (n, '"boot": true, ' if b else "") for n, b in rows) + z)
     cfg = json.loads((WT / ".agi/config.json").read_text())
     cfg["values"]["local_maxxing"]["agi_boot"] = {"poll_s": 0.1, "wait_max_s": 1}
     (repo / ".agi/config.json").write_text(json.dumps(cfg))
@@ -31,14 +32,16 @@ def box(tmp_path):
     g("init", "-q"); g("add", "-A"); g("-c", "user.name=t", "-c", "user.email=t.invalid", "commit", "-qm", "x")
     log = tmp_path / "log"
     (fk / "setfacl").write_text('#!/bin/sh\necho "setfacl $*">>%s\n' % log)
-    (fk / "systemctl").write_text('#!/bin/sh\necho "systemctl $*">>%s\n[ "$1" = start ]&&{ echo "b $2">>%s;sleep 0.1;echo "e $2">>%s;}\nexit 0\n' % (log, log, log))
+    (fk / "systemctl").write_text('#!/bin/sh\necho "systemctl $*">>%s\n[ "$1" = start ]&&{ echo "b $2">>%s;echo "e $2">>%s;}\n[ -e %s/drfail ]&&[ "$1" = daemon-reload ]&&exit 1\nexit 0\n' % (log, log, log, fk))
+    la, io = tmp_path / "loadavg", tmp_path / "io"
+    (fk / "sleep").write_text('#!/bin/sh\necho "sleep $*">>%s\n[ -e %s ]&&mv %s %s\nexec /bin/sleep "$@"\n' % (log, tmp_path / "flip", tmp_path / "flip", la))
     for f in fk.iterdir():
         f.chmod(0o755)
-    la, io = tmp_path / "loadavg", tmp_path / "io"
     la.write_text("0.50 0.5 0.5 1/1 1\n"); io.write_text("some avg10=0.00 avg60=1.00 avg300=0.00 total=1\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1\n")
     env = {"PATH": f"{fk}:/usr/bin:/bin", "AGI_TRUNK": "HEAD", "AGI_RAM": str(tmp_path / "ram"), "AGI_BOOT_OUT": str(tmp_path / "out"),
            "AGI_LOADAVG": str(la), "AGI_PSI_IO": str(io)}
     run = lambda: subprocess.run(["sh", "-s"], input=section("agi-boot"), cwd=repo, env=env, capture_output=True, text=True, timeout=60)
+    run.env, run.repo = env, repo
     return run, log, la, io, tmp_path
 
 
@@ -57,26 +60,47 @@ def test_acl_pair_and_projection_from_ref(box):
 
 def test_only_boot_rows_one_start_each_in_order_no_overlap(box):
     run, log, *_ = box
-    assert run().returncode == 0
+    r = run(); assert r.returncode == 0
     seq = [l for l in lines(log) if l[:2] in ("b ", "e ")]
     p = lambda n: "agi-post" + "@" + n
     assert seq == [f"b {p('a')}", f"e {p('a')}", f"b {p('b')}", f"e {p('b')}"]  # x is projected, not boot-flagged: stays down
+    assert "agi-boot: z not projected (engine v4 row absent), skipped" in r.stderr  # boot-flagged but no projected link
 
 
 def test_high_reading_delays_next_start(box):
-    run, log, la, *_ = box
-    la.write_text("20.00 1 1 1/1 1\n")
-    threading.Timer(0.6, lambda: la.write_text("1.00 1 1 1/1 1\n")).start()
-    t = time.time(); assert run().returncode == 0
-    assert time.time() - t >= 0.6 and sum(l.startswith("b ") for l in lines(log)) == 2
+    run, log, la, *_, tp = box
+    la.write_text("20.00 1 1 1/1 1\n"); (tp / "flip").write_text("1.00 1 1 1/1 1\n")  # the fake sleep flips it on the first wait
+    assert run().returncode == 0
+    L = lines(log); assert L.index("sleep 0.1") < next(i for i, l in enumerate(L) if l.startswith("b ")) and sum(l.startswith("b ") for l in L) == 2
 
 
-@pytest.mark.parametrize("which", ["load", "io"])
+@pytest.mark.parametrize("which", ["load", "io", "noload", "emptyload"])
 def test_bound_gives_up_by_name_and_moves_on(box, which):
     run, log, la, io, _ = box
-    (la if which == "load" else io).write_text("20.00 1 1 1/1 1\n" if which == "load" else "some avg10=0.00 avg60=60.00 avg300=0.00 total=1\n")
+    {"load": lambda: la.write_text("20.00 1 1 1/1 1\n"), "io": lambda: io.write_text("some avg10=0.00 avg60=60.00 avg300=0.00 total=1\n"),
+     "noload": la.unlink, "emptyload": lambda: la.write_text("")}[which]()
     r = run(); assert r.returncode == 0
     assert "skipping a" in r.stderr and "skipping b" in r.stderr and not any(l.startswith("b ") for l in lines(log))
+
+
+@pytest.mark.parametrize("which", ["setfacl", "daemon-reload"])
+def test_acl_or_reload_failure_is_named_continues_and_exits_nonzero(box, which):
+    run, log, *_, tp = box
+    if which == "setfacl":
+        (tp / "fk/setfacl").write_text("#!/bin/sh\nexit 1\n")
+    else:
+        (tp / "fk/drfail").write_text("")
+    r = run(); assert r.returncode != 0 and f"agi-boot: failed: {which if which == 'setfacl' else 'systemctl daemon-reload'}" in r.stderr
+    assert sum(l.startswith("b ") for l in lines(log)) == 2
+
+
+def test_unit_execstart_reads_head_no_trunk_literal(box):
+    run, log, la, io, tp = box
+    u = section("agi-boot.service"); assert "AGI_TRUNK" not in u
+    cmd = next(l for l in u.splitlines() if l.startswith("ExecStart=")).split("=", 1)[1]
+    env = {k: v for k, v in run.env.items() if k != "AGI_TRUNK"}
+    assert subprocess.run(cmd, shell=True, cwd=run.repo, env=env, capture_output=True, text=True, timeout=60).returncode == 0
+    assert sum(l.startswith("b ") for l in lines(log)) == 2
 
 
 def test_unit_text_one_section():

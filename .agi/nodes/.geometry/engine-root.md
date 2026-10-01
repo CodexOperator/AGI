@@ -44,7 +44,7 @@ WantedBy=multi-user.target
 ~~~
 
 
-### agi-boot.service (491 B)
+### agi-boot.service (447 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -54,24 +54,25 @@ Type=oneshot
 RemainAfterExit=yes
 TimeoutStartSec=infinity
 WorkingDirectory=/data/work/agi
-Environment=AGI_TRUNK=local-maxxing/season2/main GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=*
-ExecStart=sh -c 'echo $$AGI_TRUNK:.agi/nodes/.geometry/engine-root.md|git cat-file --batch --follow-symlinks|sed -n "/^### agi-boot /,/^##/{/^~~~/,/^~~~/{//!p}}"|sh -s'
+Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=*
+ExecStart=sh -c 'echo HEAD:.agi/nodes/.geometry/engine-root.md|git cat-file --batch --follow-symlinks|sed -n "/^### agi-boot /,/^##/{/^~~~/,/^~~~/{//!p}}"|sh -s'
 [Install]
 WantedBy=multi-user.target
 ~~~
 
-### agi-boot (1179 B)
+### agi-boot (1338 B)
 ~~~sh
 #!/bin/sh
 R=${AGI_RAM:-/mnt/agi-ram} t=${AGI_TRUNK:-HEAD} o=${AGI_BOOT_OUT:-/run/systemd/system};w=$o/multi-user.target.wants
-setfacl -m g:agi:x $R;setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state}
+e=0;f(){ "$@"||{ echo "agi-boot: failed: $*">&2;e=1;};};f setfacl -m g:agi:x $R;f setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state}
 c(){ git show $t:.agi/config.json|jq -r ".values.local_maxxing.$1";};L=$(c de_live_parents.ceiling_if.loadavg1_lt) P=$(c de_live_parents.ceiling_if.io_psi_some_avg60_lt) N=$(c agi_boot.poll_s) M=$(c agi_boot.wait_max_s)
 echo $t:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s $o $t||exit 3
-systemctl daemon-reload
-ok(){ read l _<${AGI_LOADAVG:-/proc/loadavg};i=$(sed -n 's/^some .*avg60=\([0-9.]*\).*/\1/p' ${AGI_PSI_IO:-/proc/pressure/io});[ -n "$i" ]&&awk -v l=$l -v i=$i -v L=$L -v P=$P 'BEGIN{exit !(l<L&&i<P)}';}
-git show $t:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r 'select(.boot==true)|.name'|while read p;do [ -L $w/agi-post@$p.service ]||continue;s=$(date +%s)
+f systemctl daemon-reload
+ok(){ l=;read l _<${AGI_LOADAVG:-/proc/loadavg};i=$(sed -n 's/^some .*avg60=\([0-9.]*\).*/\1/p' ${AGI_PSI_IO:-/proc/pressure/io});[ -n "$l" ]&&[ -n "$i" ]&&awk -v l=$l -v i=$i -v L=$L -v P=$P 'BEGIN{exit !(l<L&&i<P)}';}
+git show $t:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r 'select(.boot==true)|.name'|while read p;do [ -L $w/agi-post@$p.service ]||{ echo "agi-boot: $p not projected (engine v4 row absent), skipped">&2;continue;};s=$(date +%s)
 until ok;do [ $(($(date +%s)-s)) -ge $M ]&&{ echo "agi-boot: gate not open after ${M}s, skipping $p">&2;continue 2;};sleep $N;done
 systemctl start agi-post@$p</dev/null||echo "agi-boot: start failed $p">&2;done
+exit $e
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
