@@ -438,15 +438,15 @@ def _parse_pin_record(pin: Path) -> tuple[int | None, str | None]:
 
 def _read_pin_target(pin: Path) -> Path | None:
     """The transcript a pin names, or None when the pin is empty/absent --
-    and also when the named path CANNOT BE READ by this uid (EACCES/ELOOP/
-    ENOTDIR). MEASURED 10-01 (hypothesis:an-unreadable-meter-pin-is-unknown-
-    never-a-traceback): every `.meter` pin on this box names a transcript
-    under another uid's home, and `Path.exists` is the one call in the
-    metering path that raises -- `status` died on the first seat and metered
-    none. An unreadable pin is UNKNOWN, never fatal: exactly the `None` an
-    absent transcript already returns, which every caller reads as
-    "warn and skip" (`_seat_fraction` docstring; the same doctrine as
-    `_seat_idle_minutes`'s broken clock). It is NOT a zero fraction."""
+    and also when the named path cannot be RESOLVED OR STAT'd by this uid
+    (EACCES/ELOOP/ENOTDIR). An unreadable pin is UNKNOWN, never fatal:
+    exactly the `None` an absent transcript already returns, which every
+    caller reads as "warn and skip" (`_seat_fraction` docstring; the same
+    doctrine as `_seat_idle_minutes`'s broken clock). It is NOT a zero
+    fraction. The measurement that provoked this guard is on
+    hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback, not
+    here. NOTE this guards the STAT only: a path that stats but cannot be
+    OPENED is caught one call deeper, in `_seat_fraction`."""
     _, target = _parse_pin_record(pin)
     if not target:
         return None
@@ -7663,8 +7663,12 @@ def _kill_window(name: str, tmux_session: str,
 def _seat_fraction(root: Path, row: dict) -> float | None:
     """Context fraction for a seat row: read its seat-stable pin
     (`pin_ref` -> `.agi/sessions/<name>.meter`), parse the named transcript,
-    and divide by the ladder's context window. None when the pin or a usage
-    record is absent (caller warns and skips the seat)."""
+    and divide by the ladder's context window. None when the pin, the
+    transcript, or a usage record is absent or UNREADABLE (the caller warns
+    and skips the seat). The transcript READ is guarded here, not only the
+    stat in `_read_pin_target`: a file this uid may stat but not open is
+    still UNKNOWN, never a raised PermissionError out of `status`
+    (hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback)."""
     name = row.get("name")
     if not name:
         return None
@@ -7678,9 +7682,15 @@ def _seat_fraction(root: Path, row: dict) -> float | None:
     target = _read_pin_target(pin)
     if target is None:
         return None
-    usage = parse_usage_from_cc_transcript(target)
-    if usage is None:
-        usage = parse_usage_from_rc_log(target)
+    try:
+        usage = parse_usage_from_cc_transcript(target)
+        if usage is None:
+            usage = parse_usage_from_rc_log(target)
+    except OSError:
+        # EXISTS but unreadable (EACCES on the file itself, not on a parent
+        # dir). The stat seam in _read_pin_target cannot see this; without
+        # this guard `rotate.py status` still dies on the first sealed seat.
+        return None
     if usage is None:
         return None
     context_tokens = load_ladder_field(root, "director_context_tokens",
