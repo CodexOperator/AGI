@@ -20,18 +20,23 @@ def _bin(tmp_path, name, pi):
     return d
 
 
-UNIT_PATH = re.search(r"(?m)^Environment=PATH=(\S+)", (base.WT / base.GEO / "engine-root.md").read_text())[1]
+@pytest.fixture
+def unit_path():
+    m = re.search(r"(?m)^Environment=PATH=(\S+)", (base.WT / base.GEO / "engine-root.md").read_text())
+    if not m:
+        pytest.skip("engine-root.md carries no Environment=PATH= line: the geometry's unit PATH moved")
+    return m[1]
 
 
-def test_pi_row_is_node_exact_dir_pi_first_on_unit_path(tmp_path, monkeypatch):
+def test_pi_row_is_node_exact_dir_pi_first_on_unit_path(tmp_path, monkeypatch, unit_path):
     a, b, c = _bin(tmp_path, "a", 0), _bin(tmp_path, "b", 1), _bin(tmp_path, "c", 1)
-    h = h_of(tmp_path, monkeypatch, "pi-free", f"{UNIT_PATH.split(':')[0]}:{a}:{b}:{c}")  # the unit's own first dir (%i) + a pi-less dir skipped; first holder wins
+    h = h_of(tmp_path, monkeypatch, "pi-free", f"{tmp_path}/%i/bin:{a}:{b}:{c}")  # hermetic: an absent %i dir + a pi-less dir skipped; first holder wins
     assert h.startswith(f"node {b}/pi --provider openrouter --model m --thinking high "), h
 
 
-def _refuses(tmp_path, monkeypatch, extra=""):
-    """pi row (+ extra rows), no pi on PATH, a seeded wants link: exit 3, no h.conf, the link survives."""
-    monkeypatch.setattr(base, "ROW", ROW % (("pi-free",) * 2) + extra)
+def _refuses(tmp_path, monkeypatch, extra="", harness="pi-free"):
+    """row(s) with no pi on PATH, a seeded wants link: exit 3, no h.conf, the link survives."""
+    monkeypatch.setattr(base, "ROW", ROW % ((harness,) * 2) + extra)
     w = tmp_path / "out" / "multi-user.target.wants"
     link = w / ("agi-post" + "@old.service")
     w.mkdir(parents=True), link.symlink_to("../agi-post" + "@.service")
@@ -44,8 +49,17 @@ def test_no_pi_on_unit_path_refuses_before_any_h_conf_or_wants_strip(tmp_path, m
     _refuses(tmp_path, monkeypatch)
 
 
-def test_pi_row_then_malformed_row_refuses_not_node_slash_pi(tmp_path, monkeypatch):
+def test_pi_row_then_malformed_row_refuses_rc3_no_h_conf(tmp_path, monkeypatch):
     _refuses(tmp_path, monkeypatch, "  - {oops\n")
+
+
+def test_empty_unit_section_refuses_before_wants_strip(tmp_path, monkeypatch):
+    fake = tmp_path / "wt"
+    (fake / base.GEO).mkdir(parents=True)
+    for f in (base.WT / base.GEO).glob("engine*.md"):  # a claude-only box: only the empty unit, not a pi row, can refuse
+        (fake / base.GEO / f.name).write_text(re.sub(r"(?s)(### agi-post@\.service[^\n]*\n~~~ini\n).*?(~~~\n)", r"\1\2", f.read_text()))
+    monkeypatch.setattr(base, "WT", fake)
+    _refuses(tmp_path, monkeypatch, harness="claude-code")
 
 
 def test_mixed_box_pi_and_claude_rows_both_project(tmp_path, monkeypatch):
