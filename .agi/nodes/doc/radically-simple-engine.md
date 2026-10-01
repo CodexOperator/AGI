@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -955,6 +955,51 @@ Two bugs caught by the tests, not by reading: (1) the first form read ring, k an
 
 **Unbuilt, named:** `capsule-pop@.path` on a sticky spool (holders drop `R.sig.<post>`; a k-1 drop just waits) + its service (the git identity for the ledger commit in its Environment) · a pre-receive line: only the pop unit's user moves `refs/capsule/*`, and a ring or k change is itself a pop (§P).
 **Falsifiers.** **C1-C8** = T1-T8 (PASS, user manager) · **C9** the system form: `LoadCredentialEncrypted` under `DynamicUser` delivers the sealed bytes exactly, and `systemd-creds decrypt` as any post user fails (UNRUN: a root act, needs belam's or the owner's go) · **C10** a push moving `refs/capsule/C` from any user but the pop unit's is refused (UNRUN, unbuilt) · **C11** nothing of the payload in `journalctl`, `ps` or swap during a pop (UNRUN at root; null stdout/stderr measured in §N's analog).
+
+**O.5 · The passkey route (owner 04:5xZ: "a route to pass it from iPhone to session trustlessly and automatically gives me a notification").** A passkey never leaves the phone, so the route carries the login's ONE-TIME CODE. With OAuth + PKCE (belam: VERIFY for Claude Code's login) that code is useless to any session but the one holding the verifier, so the code needs AUTHENTICITY and the right DESTINATION, not a seal. The council converged on this independently (all-is-one, self-perpetuating, alive); this is the merged form:
+```
+ASK     a post's login prints its authorize URL into its pane o (§N) -> an ask: /var/spool/agi/ask/<id> = "<post> <url>" (id = 18 random hex),
+        + refs/capsule/asks/<id>/issued (all-is-one: never <id> beside <id>/used, a D/F conflict) -> NOTIFY the phone (the carrier is the
+        owner's call, BANKED below)
+APPROVE the owner taps the URL, passes the passkey in Safari: the passkey stays on the phone, the page shows the code
+RETURN  the phone's SSH app: `ssh agi-capsule@<box> <id>`, the code on STDIN (never argv). authorized_keys: restrict,command="capsule-login"
+        <the phone's key>: sshd checking that key IS the signature (k = 1, the owner device of §P); the line is projected from the graph,
+        so it regrows on box loss (self-perpetuating)
+POP     capsule-login: ONE atomic rename claims the ask (a used or racing id loses) -> printf the code + CR into the asking post's pane i
+        -> the ledger line keeps post, id, time, NEVER the code -> refs/capsule/asks/<id>/used (create-only)
+```
+`capsule-login` (639 B):
+~~~sh
+#!/bin/sh
+# capsule-login, run ONLY as authorized_keys `restrict,command="capsule-login" <owner device key>` (sshd checking that key IS the approval, k=1):
+# ssh <box> <ask-id>, ONE line on stdin -> the asking post's pane. The claim is one atomic rename (a used or racing id loses); the code is never at rest
+d=${AGI_SPOOL:-/var/spool/agi};i=$SSH_ORIGINAL_COMMAND;case $i in ''|*[!a-z0-9]*)exit 2;;esac;mv $d/ask/$i $d/used/$i 2>/dev/null||exit 3
+read -r p u<$d/used/$i;case $p in ''|*[!a-z0-9-]*)exit 2;;esac;IFS= read -r c;[ -n "$c" ]||exit 4;printf '%s\r' "$c">${AGI_RUN:-/run}/agi-$p/i
+echo "login $p $i $(date -u +%FT%TZ)">>$d/ledger
+~~~
+**Tested 04:5xZ** with a scratch sshd as an ordinary user on a localhost-only port, a throwaway "phone" key, the §N pane in a transient user unit and a random dummy code; sshd, unit and port were all gone after (0 left):
+| # | case | result |
+|---|---|---|
+| P1 | the phone key + an open ask | the code typed into the pane once |
+| P2 | any other key | refused by sshd (rc 255) |
+| P3 | a used or unknown ask id | refused (rc 3), and nothing on stderr (the first form echoed the spool path: fixed) |
+| P4 | the phone key asking for another command, a shell or a pty | refused (rc 2 / rc 255): `restrict` + the forced command |
+| P5 | the code anywhere at rest: spool, ledger, sshd log, journal | 0 copies (only the destination's own pane transcript o, mode 600) |
+| P6 | a path-traversal id | refused (rc 2) |
+| P7 | two pops of one ask at the same instant | typed exactly once, one ledger line, the other rc 3 |
+**Not the inbox (a disagreement, kept on purpose):** routing the code through the inbox spool would put it in a file, and it would let the inbox type ARBITRARY text into a pane; §N keeps the inbox to the single word `mail`. So the code goes straight to `i`. The price, named: `i` must be writable by the `agi-capsule` user: `ExecStartPre=+` chgrp + mode 620 on `i` in agi-post@ (~60 B, a root act, unrun).
+**BANKED for the owner, the notification carrier:** (a) the SSH app's routine POLLS `ssh agi-capsule@<box> asks` (no provider added; all-is-one's and my recommendation; VERIFY the app can run routines and notify) · (b) a self-hosted push server (ntfy-style; a new service) · (c) the owner's own App Store app with APNs (the dev plan; the heaviest) · (d) a logged-in Claude Code post's own push notification to the owner's Claude app (0 B; VERIFY that it can carry the URL).
+**Falsifiers.** P1-P7 PASS (user-level analog) · **P8** a real Claude Code login: the authorize URL is readable from o (the TUI may wrap it), and the pasted code + CR completes the login (UNRUN: needs the owner and a post at its login prompt) · **P9** a code replayed into a DIFFERENT session's login fails (PKCE; UNRUN) · **P10** the phone's SSH app holds a Secure Enclave key sshd accepts (VERIFY on the phone; this box offers ecdsa-sha2-nistp256 and sk- keys).
+
+**O.6 · The seal through vector math (owner 04:59Z).** belam named it: a good basis that makes the closest-point walk easy and a public bad basis that makes it infeasible IS lattice cryptography, standardized as ML-KEM (FIPS 203) and ML-DSA (FIPS 204). GGH, the first good/bad-basis scheme, was broken by structure it leaked (Nguyen 1999). That is exactly the owner's "new symmetries" worry, so extra home-made dimensions are NOT proposed: the PRIMITIVE stays a standard one, and the VECTOR stays the representation (§M).
+| question | measured on this box (05:0xZ) | so |
+|---|---|---|
+| is lattice math already in the route? | OpenSSH 9.6 offers `sntrup761x25519-sha512` (NTRU Prime lattice + X25519 hybrid), OpenSSH's default since 9.0 | the passkey route's transport (O.5) is lattice-hybrid TODAY, 0 B, when the phone's SSH app negotiates it (VERIFY) |
+| a lattice seal at rest? | no ML-KEM in OpenSSL 3.0.13, none in python cryptography 41.0.7; no ML-DSA in `ssh -Q sig` | a package (liboqs, or OpenSSL >= 3.5) = the owner's go; it fits keys meant to live for years, not a code that dies in minutes |
+| what is quantum-exposed in §O + §P? | the seal is AES-256-GCM (symmetric: Grover only halves it); Shamir shares are information-theoretic; the quorum signs with ed25519, which rotates; the ESCROW share is wrapped to X25519 and lives in git forever | the ONE piece that must be post-quantum now is the escrow share wrap (harvest-now-decrypt-later): hybrid X25519 + ML-KEM-768, §P.7 (self-perpetuating); ML-DSA for ring signatures later, when OpenSSH ships it |
+| seed it with the post's activations, thermal noise, time? | the kernel CSPRNG already mixes hardware noise (entropy_avail 256 = a seeded pool); activations are reproducible from weights + inputs; timestamps are guessable | neither is secret entropy. An activation fingerprint may enter as a BINDING input (KDF info: this key belongs to THIS post), never as the randomness |
+"Several more dimensions just in case": security comes from the standard parameter set (ML-KEM-768: module rank 3, n = 256); extra dimensions in a custom scheme add structure, never margin (all-is-one). Activations may BIND a short-lived key (HKDF info, e.g. the §L launch-vector hash) but never be needed to OPEN a long-lived one: the model changes over generations and the key would die with it (self-perpetuating).
+**Falsifier V-L1:** a capsule sealed with ML-KEM under a package the owner approves round-trips byte-exact, and the same quorum flow (T1-T8) passes unchanged with ML-DSA ring signatures (UNRUN: needs the package).
 
 ## P · CAPSULE · self-perpetuating -- the capsule regrows: reseal after a box loss, rekey when the ring changes
 **What am I ACTUALLY trying to get the machine to do here?** Make a sealed secret outlive the box that sealed it, without ever letting one holder, or one box, see it ("If I die, let nothing be lost").
