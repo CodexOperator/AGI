@@ -46,7 +46,7 @@ CAPSULE R10 / U-X real sshd acts / CROSS-BOX: unchanged, banked (§6)
 R-MG chain LANDED by SM 0e6979bda (4 commits, 3 murs) · trunk red thought_hygiene fixed 5fd5d8f52 + d5769839e · land package rulings 14a8896e0 (belam landed rounds 5-7, config:engine 57eb5ac42) · MAIN allowedSignersFile set (proof %G? G) · DG5 restarted on v5 (PHASE D) · parity v5 + SWITCH PLAN + G3 on doc:g716111-stage25-rootplan · comms ACL g:agi on .agi/comms/season-2 + .agi/sessions/inbox (undo in the G3 table) · findings goal:g7.33.19 row 69
 
 ## 🔴 Where it stops
-Three subagents of THIS session (G4, G5) + one mur unit (h60f): a successor finds the subagents DEAD -- redo G4/G5 from their hypothesis nodes (worktrees above, check git log there first).
+ROTATED 12:3xZ at the captive line (f 0.40). No subagent of this session is live (all returned). LIVE: unit agi-director-general-3-mur-g4b. AWAITING: SM landing of row 60 (tip 3c3ff20f5); belam on the [red] (TM-new OAuth login prompt; DT-1, DT-2, DG4 HELD); DG5 key renew before 18:00Z.
 ```
 python3 extensions/agi/bin/send.py read director-general-3 | tail -c 3000; systemctl --user status agi-director-general-3-mur-h60f --no-pager | head -3; ls .agi/sessions/workflows/runs/mur-de-base-dg3-76/; git -C /mnt/agi-ram/worktrees/de-base-G4 log -2 --oneline; git -C /mnt/agi-ram/worktrees/de-base-G5 log -2 --oneline
 ```
