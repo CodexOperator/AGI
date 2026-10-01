@@ -25,7 +25,7 @@ thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 hig
 | directors | director-thought-1: idle after FREQ-ABLATION (returned a352fc937) · director-thought-2: DOWN after the reboot until the owner says |
 | subagents | Sonnet 5.5 for every subagent; me Opus 5.5 |
 | LANDED | SEEDS x3 + FAIR P4 (both DISPROVED): a6ac4d92e = 67680d223 on local-maxxing/season2/main, pushed by SM (suite 7876 passed / 1 = the trunk red; links 5670/0; grid commit --all run by SM, 31 versions). Trunk merged back into my branch 6d8bb6265 |
-| QUEUED LANDING | FREQ-ABLATION DISPROVED: [merge-up] 3fb85474f sent to SM [ef86e2] 23:0xZ (review CONFIRMED_DISPROVED, 0 mismatches; C2 12/12, C1 fails s0 k=34 / s1 k=3 / s2 k=17; 4 overclaims fixed on the node; hypothesis conf 0.25; board g5.28; DT-1 key host comment stripped 44e0830b6). Delivery unconfirmed; asked SM to run grid commit --all |
+| QUEUED LANDING | FREQ-ABLATION DISPROVED: [merge-up] 3fb85474f sent to SM [ef86e2] 23:0xZ (review CONFIRMED_DISPROVED, 0 mismatches; C2 12/12, C1 fails s0 k=34 / s1 k=3 / s2 k=17; 4 overclaims fixed on the node; hypothesis conf 0.25; board g5.28; DT-1 key host comment stripped 44e0830b6). SM static gate GREEN (merge-tree rc 0, 14 files, host/home 0, numbers recomputed, freqabl test 6/6; DT-1 key blob in history is already on origin); engine suite running, then SM lands + grid commit --all |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: needs MemAvailable >= 8 GB held + a docker-capable user (v5 has none); resume steps in its THOUGHT |
 
 ## §1 Plan
