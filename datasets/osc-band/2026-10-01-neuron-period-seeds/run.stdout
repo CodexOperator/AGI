@@ -82,3 +82,4 @@ memory psi >= 20 at step 3200: checkpointed, exit 3
 box: avail 7279 MiB, memory psi some avg10 0.46
 launch: params sha256 baf32fc01366a37260a08052e1569062304f16deb87051cdf8af340e57e1dfa0, torch 2.14.0+cu130
 seed 1: {"seed": 1, "grokked": true, "grok_step": 13100, "steps": 14100, "wall_s": 2474.8, "final_train_loss": 9.634653836360624e-08, "final_train_acc": 1.0, "final_test_loss": 3.0186512539857097e-07, "final_test_acc": 1.0}
+seed 2 step 4000: train loss/acc 2.92e-07/1.0000 test loss/acc 23.48/0.0809 psi 0.0 (706s)
