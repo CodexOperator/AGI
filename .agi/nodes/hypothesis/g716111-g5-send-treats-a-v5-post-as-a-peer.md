@@ -53,3 +53,7 @@ BASE      de-base-G5 tip 8999631f2 + this node commit. Never rebase.
 5. (belam 12:39Z [decision], measured DG3 12:40Z on thought-master-new) the agi-run mail poll -- .agi/nodes/.geometry/engine-wrap.md:25 -- with the post's inbox file ABSENT both stat calls print to the pane and return empty, so the test collapses to a one-argument test, always true: every 5 s it types the mail line + CR into the pane (it answered No-exit on a trust dialog). TRUE WHEN a missing inbox reads as size 0 with no stderr in the pane (stat ... 2>/dev/null || echo 0, both calls) and a row proves no line is typed while the inbox is absent or unchanged.
 DEMOTED   room signatures not rendered by read_room/peek_room (a reader design item, not this claim) · the veto-via-room-line claim (refuted by the g5b verify).
 FILE SCOPE send.py · test_send.py · .agi/nodes/.geometry/engine-wrap.md (item 5, one line) + its test row · this node.  CEILING production net +15 · tests +40 · Sonnet 5.5 subagent · 0 USD.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective G5.3 item 5: the agi-run mail poll types into the pane when the inbox is absent (belam 12:39Z decision: "SEPARATE BUG (yours, with G5): the mail poll TYPES its stat line into a post pane -- nothing may type into a pane but the post own input route; fix before the moves"); measured on thought-master-new 12:40Z
+<!-- THOUGHT:END -->
