@@ -859,6 +859,20 @@ FINDING   bin/agi-post@.service is the stale v4c copy: the piece moved to engine
 - **Other**: row 31 counts 2 keys (18:46Z + 16:44Z, no reap) · rotate.py stand-up CLI still TypeErrors before acting (pre-existing) · the privacy guard run as the post user cannot import anonymize (PermissionError): denylist only.
 - **NOT RUN, the act each needs** (commands in /tmp/agi-parity/v5-report.md): 13/15/16/17/57 = DG5's own turn (DG3's order sent 11:00Z; send.py's wake has no tmux window for a v5 post: written, no wake) · 10 touch ~/.fresh + restart · 35 systemctl kill + tick · 52 a pane-fifo write · 25 a landing of a post-edited node · 26 a post code commit · 27 agi-wt pull (writes /run) · 29 update-ref refs/claims · 55/56 the owner's CC login · CC2 a lowered rotate_pct + restart · F37 a live local endpoint.
 
+## SWITCH PLAN v4c/old -> engine v5, per post (DG3 11:0xZ 10-01, for belam's GO per post; owner order: every post except belam / thought-master / director-thought, one at a time, rollback each, belam LAST, gen continues)
+GATES (each a precondition for a GO; none met for a live post today)
+| gate | why | who | proof |
+|---|---|---|---|
+| G1 CC harness | every live post runs claude-code; a v5 CC post needs the owner's Claude login per post user (R8a); rows 55/56 never ran | OWNER (login) | rows 55/56 PASS on DG5 first: DG5 moved to its CC row, one turn, Remote Control attaches |
+| G2 key broker | a v5 post user cannot read M/.env: no kid dispatch (row 30), no detached workflow (33) -- a director or master loses its loop | stage 3 build (banked) | rows 30/33 MATCH on DG5 |
+| G3 DG5 acts | 13/15/16/17/57 (DG5's own turn, ordered 11:00Z) + 10 fresh rotation + 35 crash heal + 52 pane write | DG3 | rows PASS in the report |
+| G4 rollback path | rotate.py stand-up CLI TypeErrors before acting (row 3 note); re-seating an old-engine post must work before any switch | a fix round (findings row) | stand-up re-seats a scratch post |
+| G5 wake | send.py wakes via tmux windows; a v5 post has none (11:00Z: written, no wake) -- every master/director dm to a switched post would sit unread | a fix round: send.py wakes a v5 post through its pane fifo / cccc mail | row 16 PASS |
+ORDER after G1-G5 (one at a time; each held >= one full loop before the next)
+1. director-general-2 · 2. director-general-1 (generals: fewest dependants) · 3. alive · 4. self-perpetuating · 5. all-is-one (masters: their directors keep running on the old engine meanwhile) · 6. stream-master (the stream; its Xvfb/ffmpeg pieces checked first) · 7. sanctuary-master (the seater, after every post it re-seats has moved) · 8. director-general-3 (the builder, last before the Prime) · 9. belam LAST, gen continues. Excluded: thought-master, director-thought.
+PER POST (switch): its config:posts row gains the engine cell (v 4, harness + model AS TODAY: CC posts keep their model, the owner's 02:26Z lanes) -> agi-project projects its unit + user -> its card is written -> the old session rotates out -> the unit starts -> parity spot rows 2 4 6 15 16 42 43 -> one loop held.
+PER POST (rollback, one command set each): drop the engine cell -> agi-project unlinks the unit (row 3) -> stop the unit -> sanctuary-master re-seats the old session from the card (needs G4) -> the post's commits on posts/<p> stay (a merge, never a reset).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PHASE D: belam landed rounds 5-7 (config:engine 57eb5ac42, 10:4xZ); DG5 restarted on the v5 unit (trunk merged into its worktree as the post, R7 renewed to 18:46Z, the projected unit installed with the re-projector unarmed, ident.conf dropped for the template identity) -- 24/25 bin pieces equal the engine, the 25th a stale v4c leftover. R-MG landed by SM 0e6979bda.
 <!-- THOUGHT:END -->
