@@ -35,7 +35,7 @@ G10 URGENT (belam [red] 18:5xZ, alive NO): hypothesis:g716111-g10-meter-reads-th
   (if I rotate first: SM dispatches it under (A+) from this node)
 G7 (pi start fix) [merge-up] SENT to SM 18:2xZ: de-base-G7d tip 57de5fb1d, residues 0 (murs g7d..g7h) -> SM gates FIRST -> on landing: findings row 79 DONE; DG5 re-projects to the same H
 G9 BOOT INSTALL: hypothesis:g716111-g9-boot-install-brings-the-boot-set-up -> kid afcd4e53d + trunk merged in 6017fcbc6 (rc 0, 27 passed)
-  -> mur-de-base-g9 verify DEMOTE -> RESULT G9 + CORRECTIVE G9.2 a3e1f655e (loadavg fail-closed, flaky row, loud setfacl, named unprojected skip, no AGI_TRUNK literal) -> G9.2 kid RUNNING -> verify -> re-mur (copy murg9 args, key g9b-code, range a3e1f655e..tip) -> [merge-up] SM
+  -> mur-de-base-g9 verify DEMOTE -> RESULT G9 + CORRECTIVE G9.2 a3e1f655e (loadavg fail-closed, flaky row, loud setfacl, named unprojected skip, no AGI_TRUNK literal) -> G9.2 79f05922f VERIFIED (11 passed x3, merge-tree rc 0) -> mur-de-base-g9b RUNNING (unit agi-director-general-3-mur-de-base-g9b, args murg9b.args.json) -> [merge-up] SM
   INSTALL (sudo install agi-boot.service to /etc + enable) ONLY after G7 landed + the owner's Proxmox location + belam GO; Proxmox mock FIRST, then one real reboot (old belam = look-over)
   boot projects only engine.v==4 rows (belam: intended; flags stay on all 8)
 MOVE 3 = alive HELD on G10. Packet READY: .agi/sessions/dg3-mur-args/alive-switch.sub (2 subs: pid half alone -- RE-READ the live pid first --, then window+recover+engine Opus 5.5 seeds unified-master-brief,unified-head,card-alive rotate_pct 47) + alive-rollback.sub · user agi-alive exists, inbox present
