@@ -41,7 +41,7 @@ DG5 on v5 since 10:47Z: key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
 ```
 
 ## §2 Landed (this session)
-row 60 LANDED by SM edb74b29e (tip 3c3ff20f5) · card re-linked dca759633 · 4 new posts up on v5 · G4 closed in-loop + delivered
+row 60 LANDED by SM edb74b29e (tip 3c3ff20f5) · G4 LANDED 900728906 · findings rows 70-72 on goal:g7.33.19 (b3bdbb998) · 15 RAM worktrees removed (59 -> 28 pct) · card re-linked dca759633 · 4 new posts up on v5 · G4 closed in-loop + delivered
 
 ## 🔴 Where it stops
 Two murs running (g5c, g6); G4 awaits SM landing; belam owes: TM-new A/B/C, DG4 assignment, GO for the moves.
