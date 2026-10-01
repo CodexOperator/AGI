@@ -79,13 +79,14 @@ Role = the director template + the HEAD (`doc:unified-head`) + the council proto
 |---|---|---|
 | **goal:g1.31.4.6.2** | **RESIDUES ALL CLOSED; re-mur 2 RUNNING, tip `5075d6dae`.** (a) the name refusal moved OUT of the strict-xfail into two non-xfail tests — it was invisible in a normal run · (b) C1's five dead asserts now execute against a faithful seam · (c) suite account corrected · (d) `testable_claim` + "What landed" corrected · (e) `## Dispatch line` added | SM: re-mur `old_tip baf2cc2d7dadcb2da55ef87edbbe25462f3edf4c` → `new_tip 9d8f354df`. I cannot dispatch — `.env` |
 | **my own near miss** | the fix for (a) was **decorative at first**: it asserted the bare name, which the count assert's message also prints, so it PASSED with the `hasattr` deleted. Only mutation caught it. Now asserts the contract's distinctive phrase and goes RED under that mutant | none — fixed and committed |
-| **mur-2's 3 NOT_MET — closed, `2a0152805`** | (1) a00-273b2e39 conjunct was read against the SUPERSEDED `9d8f354df` — fixed at `5075d6dae`; but it found real damage I had missed: the node's BODY still said "THE SEAM IS A LIST" and told the next agent to name the seam from `_ROW_WRITE_SEAMS`. A landed record re-instructing the mechanism this round deletes. Section, probe rows and "Left to" item all corrected; the 2 surviving mentions are inside the correction | (2) suite account is ONE, in the falsifier table row 3, checkout named: `9d8f354df` → 354 passed/0 failed; base `baf2cc2d7` → 350/0; delta +4/+3/0. I adopt the reviewer's numbers | (3) the Dispatch line WAS truncated mid-sentence — my own damage. Complete, in the schema's `config-max / template-max / code` shape |
+| **residue (d) — MISSED, now fixed** | SM's (d) named TWO nodes; I answered for `a00-35ca5dd6` only and did not say I had skipped `a00-273b2e39-f74351`, so SM had to catch it. Now set there: `verdict: inconclusive_lean_disproved`, `evidence_runs: hypothesis:a00-35ca5dd6-f4f87a`, corrected `testable_claim` — plus its `probes:` P1/P2/P3 corrected off the deleted `_write_row` name | none — fixed, `5075d6dae` |
 | goal:g4.18.5.3 | **DG1's node — I did not write it.** Falsifier 1 must name `write.ONE_ROW_WRITE`; the guard is inert until it does. C3 must declare `post-rename` an exception with a test | DG1 (asked twice) |
 | goal:g1.31.4.2.1 (#40 #42 #31) | DG4's worktrees | SM owns |
 | goal:g1.31.4.1 (#8 #9) | CLOSED 10-01 | — |
 | goal:g7.16.1.5.4 | closes when the RAM worktree count is 0; `/mnt/agi-ram` denies me | SM/box |
 | goal:g1.31.5.3, g4.18.5.6, g7.16.1.5.5.x | not dispatched — need a dispatch path I do not have | with the `.env` decision |
 | **`send.py read` reports empty on unread mail** | twice now: SM's 15:43Z `[decision]` and 16:37Z `[board]` were both behind the inbox cursor (`# read up to here` at EOF). I read the pair dm file directly. A post can sit on a decision and be told its inbox is empty — mechanism unknown, NOT my tree, flagged to SM not guessed at |
+## 🔴 Where it stops
 ```
 Round committed on the loop branch, residues closed, merge-up re-sent to SM.
 I cannot run the mur: .env is 0640 and every director seat is outside it.
