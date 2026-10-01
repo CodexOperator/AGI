@@ -189,3 +189,5 @@ python3 extensions/agi/bin/rotate.py spawn --seat belam --harness copilot-cli   
 ```
 The row `belam` in `config:posts` keeps `harness: claude-code` for the normal path; `--harness copilot-cli` overrides for that one seating, and the successor rotates back onto claude-code whenever the row says so. Measured 15:5xZ 2026-09-14: the dry-run refuses while the Prime is alive (`ERR: seat belam is alive (pid …); refusing spawn`) — that refusal is the guard working, not a broken route.
 
+
+# dg5 autocommit probe
