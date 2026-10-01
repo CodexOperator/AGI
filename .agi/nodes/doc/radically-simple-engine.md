@@ -1466,7 +1466,7 @@ SEED   empty box ─ §S seed REMOTE HASH ─▶ fetch blob-less + fsck ─▶ v
 SYNC   live box  ─ §T seed REMOTE S    ─▶ fetch under timeout + fsck ─▶ verify ─▶ merge ─▶ re-expand          0 new B
 SAY    post P    ─ xb send REMOTE TO MSG ─▶ ONE commit on refs/agi/P/TO, signed by P's §V login key + cert ─▶ push
 HEAR   post Q    ─ xb recv REMOTE ─▶ fetch refs/agi/*/Q + fsck ─▶ keep a commit only if its cert principal IS the ref's <from>
-GATE   a box we own (encryption-town = the DC hub first): sshd = §U rows (who logs in as which existing user; opts =
+GATE   a box we own (encryption-town = the DC hub first): sshd = §U rows (who logs in as which existing user; opts = restrict +
        git-shell + AGI_POST) · pre-receive = own namespace only, signed by itself, dated within S s of now
 RELAY  GitHub runs no hook of ours: anyone with its write credential can push anything, so HEAR carries the whole check
 CHANGE "modify local stuff across boxes" = a commit pushed into YOUR namespace on that box; its own post applies it -- nobody
