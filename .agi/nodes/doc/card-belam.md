@@ -87,7 +87,7 @@ B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 520
 | item | recommendation |
 |---|---|
 | the 2 x 5 USD TypeSafe jev keys (TM 03:5xZ: jev retired as an engine dependency) | release them: no live consumer; owner's keys and money, so owner's word |
-| GitHub may still serve the OLD SHAs (cached views, any fork, PR refs) · NEW (SM 22:0xZ): origin history holds a HOST-NAMED comment in an .agi/keys blob (81d0e8729, 8a9b0ad95, 4b7d20df7, landing a001a3c61; tree-stripped 165f57b0f); SM now gates added-ever paths (5ac25bf7b) | the owner files a GitHub Support request to purge cached objects for the repo (draft given 08:xZ); the host-named blob needs a history rewrite = owner only, same window as the purge |
+| GitHub history: ssh key comment = user@host (NOT an email) in 81d0e8729 8a9b0ad95 4b7d20df7 | OWNER 22:5xZ: "I’m over it at this point fuck it just leave it in" -> NO rewrite, NO purge request; SM’s added-ever gate (5ac25bf7b) stays |
 | other boxes' clones (the grok team; one pushed a grid ref at 07:26Z) hold pre-scrub history | owner is telling them: re-clone, drop old worktrees/branches, push nothing from an old clone |
 | /data/scrub backups hold the UNREDACTED history (mode 700) | keep 3 days, then delete backup-*.git + stripped/ copies (the old->new sha map is kept apart: /data/agi-maps/scrub-2026-09-30.commit-map) |
 | the old->new sha map stays LOCAL (a public full old-sha list = lookup keys into GitHub's stale cache) | track it (for resolve_old_sha, DG3 leaf) only AFTER the owner confirms the GitHub purge |
@@ -95,6 +95,6 @@ B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 520
 | `*.pre-tier-*` backups: ~/.claude.pre-tier-20260930T0145Z + ~/.pi.pre-tier-20260930T0146Z (on /) | delete after a day of clean tiering |
 | an on-disk /tmp makes every boot wait 5+ min in systemd-tmpfiles | tmpfs /tmp or a /tmp age cleaner, owner's call |
 | belam row says opus-5-5 / high; the live Prime runs opus-5-5[1m] / max | owner sets the row |
-| .env mode 600: agi-* director posts fail provisioning.available -> no v5 director can dispatch (DG5 + SM 15:3xZ); at 18:4xZ DG1 + DG2 + DG5 on v5 = DG3 the ONLY dispatcher (near its line) | INTERIM (A+) 18:4xZ: SM dispatches pi-free/0 USD on a director WRITTEN order from its worktree --from <director>; ENDS at the key broker (parity row 30 -- belam ruled it a non-gate 15:3xZ, wrong) OR owner (B) group:agi READ ACL on .env. RECOMMEND: build the key broker before more director moves |
-| LAND BROKER (SM NO 19:5xZ): v5 masters cannot land on MAIN | RECOMMEND a narrow landing service (one uid that ff-merges MAIN on a signed, gated request) over group:agi rw on MAIN .git + working tree (= any v5 post could rewrite MAIN); same family as the key broker; until then SM + old TM stay on the old setup |
+| KEY + LAND BROKER (owner 22:5xZ: yes, compact, under budget, automated; ring = a root-held key on the box now, the owner’s secure key later; reuse the existing setup) | ASSIGNED to DG3 22:5xZ: ONE broker unit under goal:g7.16.1.11.3 (row 30): (a) capped per-spawn keys on a row-key-signed request (b) ff-only MAIN land of a master-signed commit; install = separate belam GO |
+| SM on the old setup | until the broker lands (above); then SM’s own move verdict |
 | docker data-root still on / · sda ~35 ms/op · origin remote moved | owner's window: smartctl + dmesg; `git remote set-url` |
