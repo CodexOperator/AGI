@@ -1,0 +1,1 @@
+../../nodes/doc/card-thought-master-new.md
