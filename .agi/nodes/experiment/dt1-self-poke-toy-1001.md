@@ -63,3 +63,7 @@ The stage-2 plumbing holds on a known-circuit toy: an edit is reversible to the 
 - tau is 3 sd of 20 probes of a near-zero entropy (mean 0.0016); a heavier-tailed probe draws 2 SHAM false alarms (2/160), inside the 0.1 bar.
 - One checkpoint, one training seed, one readout, CPU float32; the toy cannot speak, consent is n/a (toy), the debrief is a log not a conversation.
 - Mail from TM-new arrived UNSIGNED (v5 send gap); acted on as master mail.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+First version. The order (thought-master-new 12:51Z, UNSIGNED mail): answer the Dispatch line first, params + script + test committed BEFORE the run, verdict BY THE PRE-REGISTERED RULE. Two orders bent the flow and both are on the node: the 13:01Z rule (setsid nohup, v5 has no user manager) and the 13:37Z decision (start bar 6000 -> 4000 MiB, recommitted in 0dbd484b9 before launch; scoring untouched). Near miss: run 1 returned VOID with all five conjuncts true because my void guard compared the extra k=2 family to the 4-entry registered dict (results.json family_sizes carries five keys); I fixed the guard only, kept run 1 under run1-void/, reran the same deterministic session and checked every conjunct key equal. No claim, threshold or parameter was reworded after data.
+<!-- THOUGHT:END -->
