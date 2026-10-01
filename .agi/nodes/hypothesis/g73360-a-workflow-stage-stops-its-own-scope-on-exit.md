@@ -82,6 +82,17 @@ SAFETY    never run a real pi / claude / dispatch / systemd-run from a test or p
 ANON      no user name, home or repo path value, host or IP.
 FILE SCOPE extensions/agi/bin/workflow.py · extensions/agi/bin/mem_cap.py · extensions/agi/tests/test_workflow_slice_isolation.py · extensions/agi/tests/test_ram_worktrees.py (only if the guard lives there) · this node.
 CEILING   HARD CAP: production NET +12 lines · tests +40 lines · Sonnet 5.5 subagent (owner lanes 02:26Z 10-01) · 0 USD.
+DONE      f819a8cd0 (Sonnet 5.5 subagent): mem_cap.is_wrapped, _FakePopen.poll, autouse _no_real_harness; 240 passed 8 skipped (7 files).
+
+## CORRECTIVE DH.DG3.76 -- closes mur-de-base-dg3-75 h60e-code (accept_with_residue, verify upheld 3 residues)
+BASE      de-base-DG3.75 tip f819a8cd0, same worktree. Never rebase.
+1. The guard is argv-SHAPE, not a launch ban -- test_workflow_slice_isolation.py:67-69 -- a real child of any other shape forks; worst case (verify missed[0]): workflow.py _run_round_stage (~2307-2311) runs [python3, dispatch.py, ... --tier parent ... --detach] through subprocess.run and the guard passes it = a REAL parent dispatch from a test. Make it DENY BY DEFAULT: every real launch under the seam is refused unless the one test that needs a real child (the bash tick row ~395-421) opts in explicitly for that argv. TRUE WHEN a committed row shows a dispatch.py-shaped argv refused, and the bash row still passes.
+2. String-shaped argv bypasses every check -- :65-66 -- normalize a str argv (shlex.split) before the checks, or refuse non-list argv outright. TRUE WHEN a committed row shows Popen of a pi-shaped STRING refused.
+3. A second home for the no-real-child policy -- the declared home is suite_guards (conftest.py ~641-647 NO_REAL_PROCESSES, suite_guards.py ~340-354) -- fold this file into that home (opt in, with the bash row's real child as the one declared exception), or, if suite_guards cannot carry an exception, extend suite_guards ONCE so it can and delete the per-file guard body. TRUE WHEN the per-file guard body is gone or reduced to an opt-in plus the exception, and `git grep -n 'def _guard' extensions/agi/tests/test_workflow_slice_isolation.py` shows no second policy body.
+DEMOTED   UNVERIFIED 3b (the hazardous probe was rightly not run; the code read found no fall-through) · UNVERIFIED F1-F3 (test_workflow_stage_scope.py excluded by the brief; 240 passed reported) · the finally AssertionError note (no test exercises it) · no experiment node (a note; the hypothesis closes at the merge-up).
+SAFETY    never run a real pi / claude / dispatch.py / workflow.py run / systemd-run from a test or probe.
+FILE SCOPE extensions/agi/tests/test_workflow_slice_isolation.py · extensions/agi/tests/conftest.py · extensions/agi/tests/suite_guards.py (only the exception mechanism) · this node.
+CEILING   tests net +40 lines · production 0 · Sonnet 5.5 subagent · 0 USD.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.DG3.75: SM 07:18Z returned 855daaccd with 3 gate-tree reds -- the systemd-run token asked of mem_cap, the Popen fakes gain poll in the same commit, and a seam failure must never fall through to a real harness launch; base = 855daaccd with the trunk merged in.
