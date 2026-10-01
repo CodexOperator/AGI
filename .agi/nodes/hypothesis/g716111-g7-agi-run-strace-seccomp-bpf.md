@@ -38,3 +38,7 @@ F1 red on old: assert '--seccomp-bpf' in ['exec', 'strace', '-qqfe%file', ...] -
 F3 timings (strace 6.8, -o /dev/null): single-thread getppid x100k untraced 0.038 s · old 3.416 s · NEW 0.058 s | 4 threads lock+50us sleep untraced 2.170 · old 3.946 · new 4.333 | 4 threads getppid x100k untraced 0.146 · old 14.153 · new 13.576.
 READING: --seccomp-bpf frees the MAIN thread and forked processes (59x on the syscall loop) but strace 6.8 still stops every syscall of a clone'd thread (isolated: looping main + idle thread 0.062 s; looping thread + idle main 3.3 s). Torch intra-op threads stay slow: the 16x is NOT recovered by this round alone.
 NEXT (a design call above this node -> belam/council): strace -b execve (detach from every exec'd child: compute children run untraced; agi-track then sees only the harness process's own file opens, not a bash child's) vs keep tracing children. G7 itself is strictly better and lands as is.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+G7.2: belam [decision] 15:23Z picked (a) strace -b execve over G7 --seccomp-bpf -- WHY (belam): compute is the switch point (torch 16x slow); ~/track has NO reader in the engine (engine-post.md:81 is its only reference) = telemetry, not a gate. MEASURED (DG3, strace 6.8, 4 threads getppid x25k): untraced 0.039 s · --seccomp-bpf 3.78 s · -b execve 0.044 s; strace refuses --seccomp-bpf with -b. Lost: a bash child file opens in ~/track (one residue line, not a round).
+<!-- THOUGHT:END -->
