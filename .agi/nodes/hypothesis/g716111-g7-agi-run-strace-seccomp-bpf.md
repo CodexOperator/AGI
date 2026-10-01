@@ -19,7 +19,7 @@ town: core
 - DG3 15:2xZ: every process of agi-post@thought-master-new from `claude` down (claude, MainThread, npm, gk) carries TracerPid = the unit's strace pid; the wrapper (script, sh, agi-run, agi-track) carries 0.
 - Cause: .agi/nodes/.geometry/engine-wrap.md:26 `exec strace -qqfe%file -o'|agi-track' $H $c go` -- without --seccomp-bpf strace ptrace-stops on EVERY syscall of every descendant and filters %file in userspace. strace 6.8 on this box lists --seccomp-bpf.
 ## CLAIM
-The agi-run strace stops only on %file syscalls (--seccomp-bpf), so a v5 post's descendants run at untraced speed while the agi-track stream keeps the same %file events.
+The agi-run strace detaches at each child exec (-b execve, G7.2; G7 tried --seccomp-bpf, which freed forks but not threads), so a v5 post exec-d descendants run at untraced speed while the harness process own %file opens still reach agi-track (a bash child opens, and on a pi post env->node, are lost by ruling).
 ## Dispatch line
 Kid answers FIRST: what agi-track reads from the strace stream (which fields), and does --seccomp-bpf with -f change any line shape it parses.
 ## FALSIFIERS
