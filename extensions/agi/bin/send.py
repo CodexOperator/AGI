@@ -3014,6 +3014,9 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
         # quiet: never re-fire a stale marker, never type (skip by name).
         print(f"wake {to}: quiet-skip")
         return False
+    if _engine_post(root, to):      # its own poll reads the mail: one line,
+        print("by-mail")            # no reaper-log entry per heal poll
+        return True
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
         return _wake_outcome("no-target", delivered=False, seat=to)
@@ -3166,7 +3169,7 @@ def status(root: Path, to: str, tmux_session: str | None = None) -> str:
     no nudge ever came. READ-ONLY: never types, never cancels, never stamps."""
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
-        in_mode: str = "no-target"
+        in_mode: str = "by-mail" if _engine_post(root, to) else "no-target"
     else:
         in_mode = "1" if _pane_in_mode(resolved[0]) else "0"
 
@@ -4370,8 +4373,11 @@ def send_room(croot: Path, room: str, text: str, sender: str | None,
         raise SystemExit(1)
     path = _room_path(croot, room)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "a") as f:
-        f.write(_block(_now(), _detect_sender(sender), room, text))
+    root = locations.find_project_root(croot) or croot
+    ts, from_id = _now(), _detect_sender(sender)
+    with open(path, "a") as f:     # signed like an inbox send and a dm
+        f.write(_block(ts, from_id, room, text,
+                       _sign_line(root, from_id, ts, room, text)))
     return path
 
 
