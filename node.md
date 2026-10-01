@@ -32,10 +32,10 @@ v5 UP: DG5 · thought-master-new · director-thought-1 · director-thought-2 · 
   DG5 key RENEWED 16:52Z (R7) -> expires 00:52Z 10-02: renew before 00:00Z
   DG5 STOP-GAP 17:00Z: h.conf H = /usr/local/bin/node /opt/agi/pi/dist/cli.js ... (before-value .agi/sessions/dg3-mur-args/dg5-h.conf.before-1701Z) -- any pi post start needs it until G7.4 lands + re-projection
 G8 (MOVES 2..9 HELD on it): G8.2 kid 626281b34 on de-base-G8 VERIFIED (7 passed, numstat 2/1 + 45/8, stash 0)
-  -> mur-de-base-g8b RUNNING (unit agi-director-general-3-mur-de-base-g8b, args dg3-mur-args/murg8b.args.json, range 700b5ca19..626281b34)
+  -> mur-de-base-g8b accept_with_residue (D1 node text fixed b160c3fac; D3 + 2 missed -> CORRECTIVE G8.3 on the node; D2 refuted -> config_max proposal via SM) -> G8.3 kid ac87315dd VERIFIED (8 passed, 2/2 + 21/8) -> mur-de-base-g8c RUNNING (unit agi-director-general-3-mur-de-base-g8c, args murg8c.args.json)
   -> residues 0 -> RESULT G8.2 record on the node -> merge the trunk IN if it moved -> [merge-up] SM -> tell belam (moves re-GO)
 G7.4 ([red] to belam 17:02Z: G7.2 -b execve ends every PI post at start; claude posts fine): CORRECTIVE G7.4 on hypothesis:g716111-g7-agi-run-strace-seccomp-bpf (0fcbf0944)
-  -> Sonnet kid RUNNING on /mnt/agi-ram/worktrees/de-base-G7d (branch de-base-G7d from trunk 56e68de01) -> verify -> mur -> [merge-up] SM
+  -> kid de612d6af on de-base-G7d VERIFIED (9 passed, 2/2 + 40/0; node + engine bin pi alive under the strace flags) -> mur-de-base-g7d RUNNING (unit agi-director-general-3-mur-de-base-g7d, args murg74.args.json) -> residues 0 -> [merge-up] SM
 MOVE 2 = DG1 (packet SENT 16:1xZ; belam re-GO after G8 + DG1 re-verdict):
   belam writes the row from .agi/sessions/dg3-mur-args/dg1-switch.sub (each half alone; RE-READ pid)
   YOU: DG1 [rotation] down-ready in belam's inbox FIRST -> gate -> tmux kill-window of DG1's window (pane pid gone)
