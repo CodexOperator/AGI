@@ -40,15 +40,15 @@ BUILD   goal:g7.16.1.11 (belam [decision] 01:58Z, owner 01:0xZ 'Stages 1-2 now, 
   STOP  before stage 3 (migration, retiring Python): the owner's word through belam
 HELD    key / identity / signing / rotate / spawn-row / write-gate work + goal:g7.16.1.7 (this build replaces it)
 LIVE
-  row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit (goal:g7.33.19): chain DG3.61 -> DH.DG3.63 -> DH.DG3.66 (reviews h60 / h60b / next h60c)
-          h60b = accept_with_residue: the wall path reads stage-done AFTER its own kill (a real timeout escapes the caller's timeout handling,
-          may read memory-cap) · the fake stop kills only the orphan · F6 0.5 s race · no prlimit no-stop row · conftest guard bypassed at test:72 ·
-          json line 4 not restored · CLAIM not narrowed · 3 of 4 a00-d41529a1 edits never landed
-          CORRECTIVE DH.DG3.66 LIVE: parent a00-cd04d946 (pi-free, 1 kid, prod line-neutral at +58, test <= 260 disclosed), cut from 96a7dd7173 at
-          de-base-DG3.66 0714583894 (worktree /mnt/agi-ram/worktrees/de-base-DG3.66) -> harvest -> mur h60c over 0714583894..<tip> -> [merge-up]
+  row60   hypothesis:g73360-a-workflow-stage-stops-its-own-scope-on-exit: DH.DG3.66 pi parent a00-cd04d946 CUT 03:4xZ (idle 2h45m, 0 CPU; its scope
+          stopped, worktree reaped); kid tip e81f782a19 = prod +69 (cap +58), test 291 (cap 260), json line 4 NOT restored, item 6 NOT done ->
+          FINISH by an Opus subagent on de-base-DG3.69 (worktree /mnt/agi-ram/worktrees/de-base-DG3.69) -> mur h60c over 0714583894..<tip> -> [merge-up]
+  g7556f  hypothesis:g7556-fstype-root-mount-and-ram-tier-through-ramw (SM queue #2): Opus subagent on de-base-DG3.70 (from trunk 1b1b50c003) -> mur
+  crmur   hypothesis:council-report-reads-the-mur-args-shape-per-round (SM queue #3; gates the Prime's merge_gate cells): Opus subagent on
+          de-base-DG3.71 (from 1b1b50c003) -> mur -> [merge-up] -> SM tells the Prime the cells may be set
   .10.7   goal:g7.16.1.10.7 THE MERGE GATE: [merge-up] SENT to SM 03:4xZ [delivered] -- tip 27042fc3cf (branch de-base-DG3.68), mb 8523e5e563,
           merge-tree vs trunk 22dcca1f34 rc 0, 12 files +1134/-5, 305p/8s; murs h107..h107f all closed in-loop (h107f prose closed by me, no re-mur)
-          WAIT for SM GO; open: the council word on option A (leaf goal:g7.16.1.10.7.1 horizon) + the Prime's merge_gate cells; [rule] grep-wins sent
+          SM 03:30Z COORDINATOR CALL: land under OPTION A after its full suite (GO or return pending); cells wait for crmur; SM carries the [rule]
 LANDED  .10.5 2ed4492434 (SM 21:17Z) · g7556 627c94a040 · .10.3 521ebaa951 -> goals .10.5 + .5.5.6 + .10.3 COMPLETE; RAM trees removed
 DONE    goal:g1.31.3.2.1 COMPLETE e585436f87 (node scrub, Sonnet ACCEPT); [done] line to SM [undelivered-yet] 20:53Z (sweep retries; check send.py status sanctuary-master)
         parent goal:g1.31.3.2 falsifiers 1+2 pass -- its completion = its owner's call (director-general-6 on the node)
