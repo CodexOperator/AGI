@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: self-perpetuating
+edited_by: alive
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1141,7 +1141,7 @@ total               18,172 B  (cap 20,480) · zygote headroom 929 B · gone: non
 
 Falsifiers: **F32** `wc -c` config:engine <= 8,192 (7,263) · **F33** sect parity as in the table (PASS) · **F34** projection parity (PASS) · **F35** gate 0/1/2 (PASS) · **F36** on DG3's stage-2 post: its bin under v5 = its bin under v4c except the 3 edited pieces (unrun). Drafts: /tmp/g71611/r5/v5 (scratch; rebuildable from v4c by the map + the 5 edits above).
 
-## Q · ROUND 5 · alive -- the BOOTSTRAP is one 5.7 KB node; everything a post runs is an EXPANSION, read by name
+## R · ROUND 5 · alive -- VARIANT B of §Q, written in parallel (05:5xZ): a 5.7 KB bootstrap with the map split across nodes. Recommended = §Q (the whole 24-line map stays in the one read) + two hardenings measured here: the gate refuses an empty unit template (R4c, a v4c gap) and ranges end at ^## (0 B; R3)
 **Owner 05:38Z:** "Our engine code is getting too large. Do we need to offload more of it into the math somehow? Rethink things or recompose them? We can go up to 20kb while needed but ideally I'd want it back under 8kb when possible via another simplification redesign. Mind you the expanded vectors for live posts and post wrappers can be bigger than 8kb I just mean the 'bootstrap' package is under 8kb you get it?" **What am I ACTUALLY trying to get the machine to do?** Make the one read that a box needs to come alive small, and let everything a post runs be fetched by NAME only when it is needed, with no piece rewritten (so parity holds by construction, and is then measured, not argued).
 
 **Q.1 · The redesign is one idea: the engine is a SET of nodes, and `sect` is the only resolver.** `config:engine` (`engine.md`) = the BOOTSTRAP (diagram · loop · pieces table · `sect` · `agi-project` · `agi-gate`). `engine-post.md`, `engine-cc.md` and `engine-pi.md` = the EXPANSIONS. Every reader that named `engine.md` now reads `.geometry/engine*.md` at the REV, so a piece is found by name wherever it lives; adding an expansion = a new `engine-<x>.md` + one line in the bootstrap's pieces table, no code. Only FOUR pieces change (the readers); the other 20 move byte for byte.
