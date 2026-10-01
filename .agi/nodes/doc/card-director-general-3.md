@@ -38,6 +38,8 @@ BUILD   goal:g7.16.1.11 (belam [decision] 01:58Z, owner 01:0xZ 'Stages 1-2 now, 
         CREDS: copy the owner's CC credential file to the new user (600, never printed/committed), prove ONE claude start, report uid-/network-bound
         root acts on MAIN APPROVED (undo listed first) · keep both keys · engine <= 16,384 B, depth 0+1 <= 4,096 B · BAR: parity all matched-or-better
         PHASE A (Opus, no root) RUNNING -> /tmp/agi-stage25/v4/ (engine-v4.md, cccc.md, rootplan.md, parity-proofs.md, test.txt)
+        + owner 03:48Z: one parity row each for memguard · ram-main · memory-alarm · PSI-40% watchdog · config:guard slices · keysync · box crontab ·
+          heal · oomd + the MAGIC PANE ANCHOR (goal:g7.31.2); a guard v4 cannot carry = a NAMED gap (forwarded to the Phase A subagent)
         PHASE B: review + root plan into the graph (doc node) -> PHASE C: executor runs it on DG5 + proves the 42 rows -> ONE [decision] to belam
         prep: doc:g716111-stage25-parity 2e6fca914e (42 rows) · rollback = stop its unit + wants link + rotate.py stand-up --post director-general-5
   STOP  before stage 3 (migration, retiring Python): the owner's word through belam
