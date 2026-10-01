@@ -10731,14 +10731,23 @@ def test_the_one_row_write_seam_is_one_contracted_name_not_a_guess_list():
         "must be a falsifier of goal:g4.18.5.3, not a guess inside a test")
 
 
-def test_a_correctly_repointed_write_under_another_name_is_refused_by_name(
-        tmp_path, monkeypatch):
+def test_a_wrong_named_seam_is_refused_by_the_contract(tmp_path, monkeypatch):
     """The world the seven-name list could not tell apart: a re-point that is
     perfectly correct, routes the path, and is published under a name nobody
     guessed. The guard must refuse it AND SAY WHICH NAME it wanted -- asserted
-    here, outside the xfail, so it is visible in a normal run."""
+    here, outside the xfail, so it is visible in a normal run.
+
+    HERMETIC ON PURPOSE. The contract seam is deleted first, so this test's world
+    is the same before and after goal:g4.18.5.3 lands. Without that it was green
+    ONLY while `ONE_ROW_WRITE` was absent: once the re-point ships, the hasattr
+    passes, the spy counts 0, and the refusal arrives via the COUNT -- so the
+    assertion below fails and the test goes RED the day the work succeeds. That
+    is not a test that breaks, it is a test that punishes the fix. Measured
+    17:0xZ with the seam simulated present; the pair below holds in both worlds.
+    """
     tr = sys.modules[__name__]
     mod = tr._one_row_write_module()
+    monkeypatch.delattr(mod, tr._ONE_ROW_WRITE, raising=False)
     wrong = "write_row"                       # a correct, uncontracted name
     monkeypatch.setattr(mod, wrong, lambda *a, **k: "posted", raising=False)
 
@@ -10757,6 +10766,39 @@ def test_a_correctly_repointed_write_under_another_name_is_refused_by_name(
     # would have passed with the hasattr DELETED. Measured: it did.
     assert "goal:g4.18.5.3 Falsifier 1" in str(exc.value), (
         f"refused, but not BY the contract: {exc.value}")
+
+
+def test_a_path_that_bypasses_the_contract_still_fails_after_the_re_point(
+        tmp_path, monkeypatch):
+    """The other half, and the one that must survive the landing. ONCE
+    `write.ONE_ROW_WRITE` exists, a path that keeps its own hand-rolled
+    `_write_row`-style commit is no longer stopped by the missing attribute --
+    the contract exists and is simply bypassed. It must still be caught, and
+    caught on the COUNT (0 calls), which is the assertion that means something
+    here.
+
+    Together with the test above this pins the asymmetry: the contract's NAME is
+    what stops a wrong-name re-point, and the count is what stops a bypassing one
+    after the contract has landed. Neither test depends on the other world.
+    """
+    tr = sys.modules[__name__]
+    mod = tr._one_row_write_module()
+    monkeypatch.setattr(mod, tr._ONE_ROW_WRITE, lambda *a, **k: "posted",
+                        raising=False)          # the re-point HAS landed
+    wrong = "write_row"                          # and this path bypasses it
+    monkeypatch.setattr(mod, wrong, lambda *a, **k: "posted", raising=False)
+
+    def drive(root, top):
+        getattr(mod, wrong)(root, top)
+        return "posted"
+
+    monkeypatch.setattr(tr, "_W1B2_DRIVERS", {
+        "_ack_commit_seats": (tr._ack_root_with_dirty_row, drive, ())})
+    with pytest.raises(AssertionError) as exc:
+        tr.test_each_posts_commit_path_calls_the_one_row_write(
+            "_ack_commit_seats", tmp_path, monkeypatch)
+    assert "called the one row write 0x" in str(exc.value), (
+        f"a bypassing path was not caught on the count: {exc.value}")
 
 
 # C1 -- "config:posts changes ONLY through that one call". Those five
