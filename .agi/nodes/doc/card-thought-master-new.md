@@ -17,7 +17,7 @@ town: core
 
 thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 high · RESEARCH LOOP of town:local-maxxing (successor lane of doc:card-thought-master; old TM on STANDBY) · trunk local-maxxing/season2/main · worktree <home>/t, branch posts/thought-master-new · template doc:unified-director-brief + HEAD doc:unified-head
 
-## §0 State (16:10Z 10-01, read from date -u)
+## §0 State (16:18Z 10-01, read from date -u)
 | | |
 |---|---|
 | RUN | wind-down LIFTED (owner 15:1xZ via belam 15:03Z: keep going until goal:g7.16.1.11.1-.10 complete); box rebooted 14:42Z, v5 posts restored one at a time (DG5 > me > DT-1 > DT-2) |
@@ -25,9 +25,10 @@ thought-master-new · v5 post (unit agi-post@thought-master-new) · Opus 5.5 hig
 | directors | director-thought-1 + -2 SEATED 12:4xZ / 12:5xZ (Sonnet 5.5, v5) · lane max parallel, mixed Sonnet + pi-free |
 | subagents | Sonnet 5.5 EVERY subagent (belam 12:44Z); me Opus 5.5 |
 | handoff | RECEIVED 12:46Z (VERIFIED thought-master): research loop + board writes are mine; old TM on STANDBY |
+| LIVE | LEAK HUNT (SM 16:16Z: the whole .agi/context run forks 273+ python3 that never exit, 9.4 GB): static pass found nothing; director-thought-1 measures file by file after SM's landing (gated MemAvailable >= 6 GB, no suite lock) -> I write the findings row (goal:g7.33.19) |
 | PARKED | L4 r5 = hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b: BLOCKED 13:17Z (MemAvailable 3.5-6.8 GB never reached the 8 GB gate in 2.5 h); built + committed c72c99802 c17b49e48; gate KEPT; resume steps in the node's THOUGHT (007f9ce96) |
 | box | ACL on .git/objects fixed by belam 12:4xZ (g:agi) · MAIN datasets/osc-band NOT writable by v5 users (out dirs resolve under the builder's tree) |
-| GATED | SELF-POKE line: DH.2 returned 15:58Z (b3a865707), merged cf9378383, tests 15/15 (mine), board row c37e4ba7f -> [merge-up] LANED to sanctuary-master after G7.2 (belam gen 24 16:04Z: pre-read clean); .agi/keys/* (engine-committed ssh pubkeys with a host comment) flagged, NOT mine to land |
+| GATED | SELF-POKE line: DH.2 returned 15:58Z (b3a865707), merged cf9378383, tests 15/15 (mine), board row c37e4ba7f -> [merge-up] IN SM's GATE 16:16Z (land ~16:35Z; its in-gate fixes: key comments stripped, DT-1 card home path -> merge the trunk into my branch after it lands); .agi/keys/* (engine-committed ssh pubkeys with a host comment) flagged, NOT mine to land |
 | LIVE | SEEDS x3 (cd6281988): run 1 ABORTED 14:05Z by the v5 strace slowdown (16x); decision a19f4a5fc: relaunch unchanged once DG3's hypothesis:g716111-g7-agi-run-strace-seccomp-bpf lands + DT-2 restarts, else a threads=1 probe -> ordered to DT-2 15:2xZ |
 
 ## §1 Plan
@@ -54,7 +55,7 @@ BLOCKED docker: my user is not in the docker group (permission denied on the soc
 
 ## 🔴 Where it stops
 ```
-waiting on sanctuary-master's landing of 9c9990d0a (laned after G7.2; a v5 post cannot write MAIN) and DT-2 (SEEDS relaunch) -- both offline until restored after the reboot; on a return: Sonnet 5.5 adversarial review -> THOUGHT -> board row (g5.28) -> land on the trunk
+waiting on SM's landing of 9c9990d0a (~16:35Z) -> git merge local-maxxing/season2/main into my branch; DT-1's leak return -> findings row on goal:g7.33.19 and DT-2 (SEEDS relaunch) -- both offline until restored after the reboot; on a return: Sonnet 5.5 adversarial review -> THOUGHT -> board row (g5.28) -> land on the trunk
 python3 extensions/agi/bin/send.py --from thought-master-new read thought-master-new
 ```
 
