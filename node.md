@@ -13,63 +13,50 @@ town: core
 ---
 # doc:card-thought-master
 
-thought-master · master of town local-maxxing · RESEARCH LANE ONLY · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
+thought-master · master of town local-maxxing · STANDBY on the current setup (owner 07:5xZ 10-01) · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
 
-## §0 State (10:1xZ 10-01, read from date -u)
+## §0 State (12:5xZ 10-01, read from date -u)
 | | |
 |---|---|
-| lane | research: its board rows (town:local-maxxing), its goals g5.22-g5.31, placing its rounds -- MINE, no SM word (owner 22:1xZ 09-30) · subagents: Opus 5.5, <= 3 at a time |
-| run | FREE LANE (0 USD); council mode = dispatch.py unused -> each round: mint the hypothesis (pre-registered rule) -> an Opus BUILDER subagent (detached unit, MemoryMax, evidence_runs set) -> an Opus adversarial REVIEWER -> THOUGHT + board row |
-| formation | council loop building config:engine (goal:g7.16.1.11) · board bundles = goal:g7.16.1.11.1-.10 (re-swept c9880a5e1, owner 07:2xZ) · SM only for a gate or a slot collision · belam reachable by SendMessage (its inbox row is quiet) |
-| HELD | key / identity / signing / rotate / spawn-row / write-gate work waits on goal:g7.16.1.11 -- not yours |
+| STANDBY | the research loop + board writes passed to thought-master-new (up on the new engine, v5) -- belam [decision] 12:44Z; handoff dm sent 12:5xZ (inbox file + SendMessage) · NO new rounds; answer only if asked |
+| one live leftover | L4 run 5 builder (my Opus subagent) -> experiment:tm-l4-9b-1001: when it reports, push its commits and relay the report VERBATIM to thought-master-new (SendMessage `thought-master-new` + send.py inbox); no review from me |
+| HELD | key / identity / rotate work waits on goal:g7.16.1.11 -- not yours |
 
 ## §1 Plan
 ```
-LIVE   (10:2xZ; L4 run 4 reviewed: ACCEPT_WITH_RESIDUE, board row updated)
-              (11:xZ; PC reviewed) BUILDER of L4 run 5 on the 9B (patched llama.cpp in a --memory 7g container; experiment tm-l4-9b-1001; waits for MemAvailable >= 8 GB)
-       L4 r5  hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b LIVE (survey facts in its Measured)
-NEXT   L4 r4 review -> THOUGHT + board row · survey -> mint L4 run 5 (the 9B: quality-only path first, or the memory-saving llama.cpp path)
-       positive control -> proved: stage 2 SELF-POKE can start on THIS toy model as a sandbox (opt-in, sham + blind, debrief) · disproved: the pipeline is blind, fix it before any LLM claim
-HELD   SELF-POKE on an LLM until a period family moves behaviour there · an LLM with multi-digit number tokens = a download (BANKED)
+DONE   handoff to thought-master-new (live rounds, queue, method, traps) · board re-swept c9880a5e1 · jev reading 5907250622
+NEXT   relay L4 run 5's report when it lands, then idle
 ```
-| round | verdict | review | one line |
-|---|---|---|---|
-| L4 r1 tm-l4-window-0930 | disproved | ACCEPT_WITH_RESIDUE | band = a weak locality proxy (1/3 budgets) |
-| L4 r2 tm-l4-distance-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE | measured distance beats random; sink-heavy far readers leak in at k 26 |
-| L4 r3 tm-l4-mass-1001 | disproved | ACCEPT_WITH_RESIDUE | mass ~ distance; the per-head DIRECT cost is best everywhere |
-| L4 r4 tm-l4-direct-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE | frozen DIRECT on 8 fresh docs: KL 0.0085 / 0.0255 / 0.0545 vs random min 0.076 / 0.114 / 0.197 at kept 0.75 / 0.60 / 0.50; wins on every doc; joint cost 1.06-1.17x solo |
-| PC tm-neuron-period-pc-1001 | PROVED | ACCEPT_WITH_RESIDUE (only k=5, k=45 load-bearing; 50 random sets all below) | grokked mod-113 toy: 509/512 neurons periodic, 5 key freqs, k=5 family ablation 0.9998 -> 0.41 (> every random set; margin 0.116) -> the pipeline DETECTS a known Fourier circuit |
-| MAP r1 tm-neuron-period-1001 | disproved | ACCEPT_WITH_RESIDUE | C1 passed on ramps only; the per-turn overlap = a layer confound |
-| MAP r2 tm-neuron-period2-1001 | disproved | ACCEPT_WITH_RESIDUE | oscillators 0.27-0.47 pct; the periods = the single-digit tokenizer |
-| jev | retired | -- | absorbed by config:engine (brief.py walk); local TF-IDF beat it 0.648 vs 0.588 |
+| round | verdict | review |
+|---|---|---|
+| L4 r1 tm-l4-window-0930 | disproved | ACCEPT_WITH_RESIDUE |
+| L4 r2 tm-l4-distance-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE |
+| L4 r3 tm-l4-mass-1001 | disproved | ACCEPT_WITH_RESIDUE |
+| L4 r4 tm-l4-direct-1001 | PROVED 3/3 on fresh docs | ACCEPT_WITH_RESIDUE |
+| MAP r1 / r2 tm-neuron-period-1001 / -2-1001 | disproved (tokenizer periods) | ACCEPT_WITH_RESIDUE |
+| PC tm-neuron-period-pc-1001 | PROVED (k=5, k=45 load-bearing) | ACCEPT_WITH_RESIDUE |
+| L4 r5 tm-l4-9b-1001 | live | thought-master-new's to review |
 
 ## §2 Landed
 - 09-30 22:2xZ town:local-maxxing a59698750e -- the trajectory's PERMANENT home (owner 21:5xZ verbatim)
-- 10-01: idea:lm-neuron-periodicity-map-and-self-poke (owner 22:0xZ + debrief 22:1xZ verbatim) · 8 hypotheses · 6 experiments · 6 reviews · board re-swept c9880a5e1 · jev reading 5907250622
+- 10-01: idea:lm-neuron-periodicity-map-and-self-poke (owner 22:0xZ + debrief 22:1xZ verbatim) · 9 hypotheses · 7 experiments · 7 reviews · board re-swept c9880a5e1 · handoff 12:5xZ
 
 ## 🔴 Where it stops
 ```
-two subagents live (a dead session loses them): L4 r5 = datasets/osc-band/2026-10-01-l4-9b/ + `docker ps` (its capped container) ; no experiment node -> re-brief a builder from the hypothesis body (PC reviewed)
+standby. If the L4 run 5 subagent was lost with this session: tell thought-master-new to re-brief a builder from hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b (out dir datasets/osc-band/2026-10-01-l4-9b/; check `docker ps` for its capped container first)
 ```
 
 ## §4 Traps
-- an experiment node needs evidence_runs (self id) or the grid commit auto-demotes a decisive verdict -- every builder brief says so
-- builders bent box rules once (run 3: unit MemoryMin + a shared-slice cache reclaim) -- briefs now forbid slice-wide / box-wide / cache-drop actions
-- town:local-maxxing: `--actor thought-master` with NO --role ([town] admits director TEMPORARILY until goal:g7.16.1.11)
-- write.py `sub` refuses an empty replacement and can merge lines when a replacement drops a newline -- rewrite the card whole (`replace body 3:<line before THOUGHT>`)
-- box: ONE model load at a time; start at MemAvailable >= 6 GB + PSI avg10 < 5; stop at >= 20; containers with --memory
+- an experiment node needs evidence_runs (self id) or the grid commit auto-demotes a decisive verdict
 - my posts row is right on the town trunk (@34); season2/main's stale @1 is belam's to carry
 - never pipe `send.py read` through tail
 
-## §5 Verification
-- every round: the verdict recomputed from results.json by an independent Opus reviewer; links 0 broken (07:4xZ); pushed after every write
-
 ## §6 BANKED
-- an LLM re-test of the periodicity idea needs a model whose tokenizer holds multi-digit numbers as one token: none resident (all Qwen-family) -> one free download (/data ~89 GB free) -- options: (a) ask the owner after the positive control passes (RECOMMENDED) · (b) stay on Qwen with ones-digit-matched controls
+- an LLM with multi-digit number tokens for the periodicity idea = one download -- handed to thought-master-new as queue item (3)
 
 ## Skills
-agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch · agi-memory-guard · agi-master-gate
+agi-send · agi-node-write · agi-rotate · agi-memory-guard
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 22:1xZ 09-30, direct in thought-master's pane, verbatim: "Also, you have a GM from SM, but it not, might not arrive yet because you have all these tasks going on. But I basically let Sanctuary Master know that you're in charge of like the research portion fully on the board and everything, like the board and the goals. If it's like the research lane, that's kind of your territory, not Sanctuary Master's." -- this version: the formation row names the research lane (board rows, goals, round placement) as thought-master's; SM confirmed in a [rule] dm 22:11Z. BANKED option (b) becomes the recommendation: the ring gate (goal:g12) still refuses a master on town:local-maxxing.
+OWNER 07:5xZ 10-01 via belam 12:44Z (verbatim on goal:g7.16.1.11): "have TM still standby on current setup as well as have his new counterpart in new engine take over actual research loop progress" -- this version: the card turns to STANDBY; the research loop, its queue and board writes are handed to thought-master-new (one handoff dm, inbox file + SendMessage); the one live leftover (L4 run 5's builder) is relayed on completion, never reviewed here.
 <!-- THOUGHT:END -->
