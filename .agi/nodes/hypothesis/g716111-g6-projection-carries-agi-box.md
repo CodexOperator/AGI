@@ -37,3 +37,7 @@ BASE      CUT FROM de-base-G6 tip 016ba8f26 (worktree /mnt/agi-ram/worktrees/de-
 1. Mutation blind spot -- extensions/agi/tests/test_project_agi_box.py -- the fixture's row box equals the projection's AGI_BOX (local-town), so a hardcoded "AGI_BOX=local-town" in engine.md:80 passes both tests. TRUE WHEN a row projects a fixture whose box is NOT local-town (run with AGI_BOX=<that box>) and asserts AGI_BOX=<that box>; paste the run of that mutation (hardcoded literal in a scratch copy) going red.
 DEMOTED   review R1-R4 (all refuted by the g6 verify: house skip convention · no engine cell named box exists · the file IS the drop-in · env-file precedence out of diff) · notes (size annotation, default-box literal pre-existing, WT bytes, F3 cells) · verify M2 (F2 stays a gate run, never a test) · M3 (merge-scope fact).
 FILE SCOPE extensions/agi/tests/test_project_agi_box.py · this node.  CEILING tests +20 · production 0 · Sonnet 5.5 subagent · 0 USD.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective G6.2: mur-de-base-g6 verify missed M1 (a hardcoded AGI_BOX literal passes the one-box fixture); review residues all refuted by the verify
+<!-- THOUGHT:END -->
