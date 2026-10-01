@@ -36,7 +36,7 @@ DG5 LIVE on engine v4c, PI-FREE: unit agi-post@director-general-5 (system, agi.s
   12 NOT-RUN parity rows: run tonight what needs a DG5 rotation / a landing / a kid
 ENGINE (belam lands; CAP RULING: bootstrap <= 8,192 B; 20,480 B = ONE post's read set)
   Round 5 doc:g716111-round5-build 1e84c1d02 · Round 6 doc:g716111-round6-build (BUILD FROM §T.1 @3772d6ff7) · Round 7 doc:g716111-round7-build 0a0eda87e
-  LAND-READY PACKAGE DONE: doc:g716111-land-package d18ca7571 (bodies /tmp/agi-land/asbuilt + split-pkg, land.sh) -> [decision] to belam 09:3xZ: his calls = as-built vs SPLIT (rec; post read set 20,374 B) · identity domain (guard refuses example.invalid -> %i@agi) · parents goal only · order expansions first
+  LAND-READY PACKAGE FINAL per belam 09:39Z (SPLIT · identity %i AT agi, the guard refused .invalid · parents .11.5/.11.8 · seed anchor pending) doc:g716111-land-package 14a8896e0, final line sent 09:4xZ -- belam runs land.sh himself; was d18ca7571 (bodies /tmp/agi-land/asbuilt + split-pkg, land.sh) -> [decision] to belam 09:3xZ: his calls = as-built vs SPLIT (rec; post read set 20,374 B) · identity domain (guard refuses example.invalid -> %i@agi) · parents goal only · order expansions first
      belam LANDS; after his landing: the live parity re-measure on v5 (round5 doc rows; F36 snapshot /tmp/agi-parity/bin.v4c) + restart DG5 on the new engine
 CAPSULE: rehearsal R1-R9 INSTALLED (doc:g716111-capsule-build 32426bb7d); stand-in key file DELETED (T9); R10 = owner's go
 §U-§X: phase A DONE dry (doc:g716111-uvwx-build 324fc96d8, 10 holes); real-box sshd acts await belam (patched vs doc + tonight or after cutover)
