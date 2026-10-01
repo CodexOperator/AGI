@@ -1834,8 +1834,8 @@ def test_l5_nudge_prompt_auto_posts_delivered_in_this_turn(
     body NAMED as delivered-in-this-turn, plus a do-not-read-again line (F25);
     the [meter] line still prints last."""
     calls = []
-    def _fake(bin_dir, seat):
-        calls.append(seat)
+    def _fake(bin_dir, seat, peek=False):
+        calls.append(("peek" if peek else "mark", seat))
         return "VERIFIED seat-a (ed25519)\n  hello from sender\n"
     monkeypatch.setattr(hook, "_run_send_read", _fake)
     cwd = agi_project.parent / "worktrees" / "seat-a"
@@ -1847,7 +1847,8 @@ def test_l5_nudge_prompt_auto_posts_delivered_in_this_turn(
     payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
     code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
     assert code == 0, err
-    assert calls == ["a"], f"the ONE read must run for self: {calls}"
+    assert calls == [("peek", "a"), ("mark", "a")], \
+        f"peek first, then the marking read, and nothing else: {calls}"
     assert "DELIVERED IN THIS TURN" in out, out
     assert "VERIFIED seat-a (ed25519)" in out, out
     assert "Do NOT read again this turn (F25)." in out
@@ -1897,7 +1898,7 @@ def test_l5_empty_body_is_not_delivered(
     do-not-read-again suppression, exactly the ONE undelivered line, and the
     inbox left unconsumed (nothing suppressed). Never raises (exit 0)."""
     calls = []
-    def _fake(bin_dir, seat):
+    def _fake(bin_dir, seat, peek=False):
         calls.append(seat)
         return ""                       # timeout / mail-less inbox
     monkeypatch.setattr(hook, "_run_send_read", _fake)
@@ -1943,9 +1944,14 @@ def test_l5_missing_transcript_never_consumes(
 def test_l5_byte_cap_truncate_fixture(
         agi_project, run_hook, tmp_path, monkeypatch, capsys):
     """hypothesis:l5 conjunct (c) committed fixture — a body big enough that
-    the assembled text exceeds `_AUTOPOST_BYTE_CAP` takes the truncate branch:
-    the delivered banner prints once plus a named 'exceeds byte cap' tail line."""
-    def _fake(bin_dir, seat):
+    the assembled text exceeds `_AUTOPOST_BYTE_CAP` takes the REFUSAL branch:
+    a named 'over the auto-post cap' line, NO 'DELIVERED IN THIS TURN' claim,
+    NO F25 suppression, and NO marking read
+    (hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line — the pane
+    received no body at all, so the cursor must not move)."""
+    calls = []
+    def _fake(bin_dir, seat, peek=False):
+        calls.append("peek" if peek else "mark")
         return "VERIFIED seat-a (ed25519)\n" + "x" * (hook._AUTOPOST_BYTE_CAP + 5000)
     monkeypatch.setattr(hook, "_run_send_read", _fake)
     cwd = agi_project.parent / "worktrees" / "seat-a"
@@ -1957,8 +1963,11 @@ def test_l5_byte_cap_truncate_fixture(
     payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
     code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
     assert code == 0, err
-    assert "exceeds byte cap" in out, out
-    assert "DELIVERED IN THIS TURN" in out, out
+    assert "over the" in out and "auto-post cap" in out, out
+    assert "DELIVERED IN THIS TURN" not in out, out
+    assert "Do NOT read again this turn (F25)." not in out, out
+    assert calls == ["peek"], \
+        f"an over-cap wake must NEVER run the marking read: {calls}"
 
 
 def test_l5_no_spawn_declines_never_reads(
@@ -1997,3 +2006,63 @@ def test_capture_cluster_templates_preserve_exact_output():
     assert hook.render("rotation_alert", "captive_deferred_body",
                        prefix=hook.DEFER_PREFIX, which="suite-lock-held") == \
         f"{hook.DEFER_PREFIX} (suite-lock-held) — the captive auto-rotate does not fire while that holds."
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line — the second
+# advancer. `_auto_post` read the seat's inbox with the PRINTING read and only
+# THEN discovered the body was over `_AUTOPOST_BYTE_CAP`: it printed the first
+# 6000 bytes, told the seat to read "the rest", and the cursor had already
+# moved past every remaining line — so that follow-up read answered `empty`.
+# RED on the shipped trunk of that shape; the fix makes the cap a REFUSAL that
+# never advances the cursor, and routes the pre-flight read through `--peek`.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def test_captured_cap_wakes_never_advance_the_cursor(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """A >6000-byte wake: the hook's ONLY read carries `--peek` (retires
+    nothing), the pane gets a named refusal instead of a head-6000-bytes
+    delivery, and the seat's own `send.py read` still reports the rest."""
+    calls = []
+    def _fake(bin_dir, seat, peek=False):
+        calls.append("peek" if peek else "mark")
+        return "VERIFIED seat-a (ed25519)\n" + "x" * (hook._AUTOPOST_BYTE_CAP + 5000)
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    transcript = tmp_path / "sess.jsonl"
+    _write_transcript(transcript, 12_000)
+    state_dir = tmp_path / "state-captured"
+    payload = _payload(agi_project, transcript, "sess-captured", cwd=str(cwd))
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == ["peek"], \
+        f"over the cap nothing may retire the unread lines: {calls}"
+    assert "NOT marked read" in out, out
+    assert f"send.py read {('a')}" in out, out
+    assert "x" * 200 not in out, "no truncated body may reach the pane"
+    assert "DELIVERED IN THIS TURN" not in out, out
+
+
+def test_send_read_argv_carries_peek_for_the_preflight_only(monkeypatch):
+    """The wire: `_run_send_read` appends `--peek` iff asked, so the pre-flight
+    read prints without retiring and the marking read does the retiring."""
+    seen = []
+
+    class _P:
+        def __init__(self, argv, **kw):
+            seen.append(argv)
+            self._out = io.StringIO("BODY\n")
+
+        def communicate(self, timeout=None):
+            return self._out.read(), ""
+
+    monkeypatch.setattr(hook, "_Popen", _P)
+    assert hook._run_send_read(Path("/nonexistent/bin"), "a", peek=True) == "BODY\n"
+    assert hook._run_send_read(Path("/nonexistent/bin"), "a") == "BODY\n"
+    assert seen[0][-1] == "--peek", seen
+    assert "--peek" not in seen[1], seen
+    assert seen[0][:4] == seen[1][:4] == \
+        ["python3", str(Path("/nonexistent/bin") / "send.py"), "read", "a"], seen

@@ -1371,11 +1371,15 @@ _NUDGE_READ_HEAD = "[agi-nudge] unread for "
 _AUTOPOST_BYTE_CAP = 6000
 
 
-def _run_send_read(bin_dir: Path, seat: str) -> str:
-    """`send.py read <seat>` stdout, else '' — the ONE seam a fixture
-    replaces so no real subprocess fires under pytest (P7)."""
+def _run_send_read(bin_dir: Path, seat: str, peek: bool = False) -> str:
+    """`send.py read <seat> [--peek]` stdout, else '' — the ONE seam a fixture
+    replaces so no real subprocess fires under pytest (P7). `peek=True` prints
+    the SAME blocks and retires NOTHING (hypothesis:g1-inbox-read-cursor-never-
+    passes-an-unprinted-line): the pre-flight read here, so the cursor only ever
+    moves behind bytes this pane actually received."""
     try:
-        out, _ = _Popen(["python3", str(bin_dir / "send.py"), "read", seat],
+        out, _ = _Popen(["python3", str(bin_dir / "send.py"), "read", seat]
+                        + (["--peek"] if peek else []),
                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                         text=True).communicate(timeout=20)
     except Exception:  # noqa: BLE001
@@ -1397,7 +1401,8 @@ def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
         print(f"[ack] nudge for {seat} NOT auto-read (AGI_HOOK_NO_SPAWN); "
               f"run `send.py read {seat}` yourself.")
         return False
-    body = _run_send_read(Path(__file__).resolve().parents[1] / "bin", seat)
+    bin_dir = Path(__file__).resolve().parents[1] / "bin"
+    body = _run_send_read(bin_dir, seat, peek=True)   # prints, retires nothing
     if not body:
         # l5 (a) — nothing could actually be delivered (a timeout and a
         # genuinely mail-less inbox both read back as '' from the seam): print
@@ -1409,14 +1414,25 @@ def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
               f"manually.")
         return False
     text = (f"---\nMail DELIVERED IN THIS TURN by this hook (`[agi-nudge]` "
-            f"for {seat}); the ONE `send.py read {seat}` ran. Do NOT read "
-            f"again this turn (F25).\n{body}")
+            f"for {seat}); the `send.py read {seat} --peek` below is the WHOLE "
+            f"unread body, printed here. Do NOT read again this turn (F25).\n"
+            f"{body}")
     if len(text.encode()) > _AUTOPOST_BYTE_CAP:
-        print(text.encode()[:_AUTOPOST_BYTE_CAP].decode("utf-8", "replace"))
-        print(f"\n[acked] {seat}: exceeds byte cap; run `send.py read {seat}` "
-              f"for the rest.")
-    else:
-        print(text)
+        # hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line — the
+        # cap is a REFUSAL, never a truncation: printing the first N bytes and
+        # telling the seat to read "the rest" claimed bytes this pane never
+        # got, while the cursor had already moved past them (the read the seat
+        # was told to run answered `empty`). Print NO body, claim NO delivery,
+        # suppress NO F25, and leave the cursor where it was: the seat's own
+        # `send.py read` still reports every unread line.
+        print(f"[acked] {seat}: unread body is {len(text.encode())} bytes, over "
+              f"the {_AUTOPOST_BYTE_CAP}-byte auto-post cap; NOT delivered and "
+              f"NOT marked read. Run `send.py read {seat}` yourself.")
+        return True
+    print(text)
+    # Every byte the pane holds is now printed, so the ONE marking read may
+    # retire exactly those lines (the pre-flight peek above moved nothing).
+    _run_send_read(bin_dir, seat)
     return True
 
 
