@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1.11
 next_edges: []
-edited_by: alive
+edited_by: all-is-one
 scaffold_hash: c712f0b1f14ac325
 season: 2
 tags:
@@ -1457,6 +1457,72 @@ Falsifiers: **F41** the login table above (PASS, scratch sshd) · **F42** after 
 +   else:e=K.generate();z=e.exchange(r(b));u=e.public_key().public_bytes_raw()
 +   print(f,B.b64encode(u+C(h(z)).encrypt(bytes(12),f'{i}:{y}'.encode(),None)).decode())
 ```
+
+## W · CROSS-BOX · all-is-one -- ONE vector for seeding and comms: a remote is a URL cell, a message is a signed commit, the §V cert is the only key; GitHub and the mesh run the same verbs
+**Owner 06:5xZ, item 1 (verbatim on the goal):** "... also have them move around boxes or spawn more on encryption town to confirm cross box easy seeding and cross-comms via GitHub initially and maybe eventually via for direct and mesh addresses? Modifying local stuff across boxes via existing user and key perms. Encryption town can be domain controller." **What am I ACTUALLY trying to get the machine to do?** Move ONE kind of thing between boxes, a signed commit, so seeding, sync and a message are the same act, and the transport shrinks to a URL in a cell. Keyed to §U (rows: box · user · principal · valid · opts; rid = the cert key-id) and §V (`agi-login` / `agi-sign`); 0 new login bytes.
+```
+            remote = ONE cell per box (where to fetch/push): GitHub = a URL · mesh/direct = ssh://<alias>/<path> · nothing else differs
+SEED   empty box ─ §S seed REMOTE HASH ─▶ fetch blob-less + fsck ─▶ verify-commit vs K ─▶ the body             0 new B
+SYNC   live box  ─ §T seed REMOTE S    ─▶ fetch under timeout + fsck ─▶ verify ─▶ merge ─▶ re-expand          0 new B
+SAY    post P    ─ xb send REMOTE TO MSG ─▶ ONE commit on refs/agi/P/TO, signed by P's §V login key + cert ─▶ push
+HEAR   post Q    ─ xb recv REMOTE ─▶ fetch refs/agi/*/Q + fsck ─▶ keep a commit only if its cert principal IS the ref's <from>
+GATE   a box we own (encryption-town = the DC hub first): sshd = §U rows (who logs in as which existing user; opts =
+       git-shell + AGI_POST) · pre-receive = own namespace only, signed by itself, dated within S s of now
+RELAY  GitHub runs no hook of ours: anyone with its write credential can push anything, so HEAR carries the whole check
+CHANGE "modify local stuff across boxes" = a commit pushed into YOUR namespace on that box; its own post applies it -- nobody
+       writes another box's checkout, so "existing user + key perms" = a §U row, never a shared shell
+```
+| check | mesh (a box we own) | GitHub (relay) |
+|---|---|---|
+| transport login | §V cert under a §U row; sshd refuses expired / no row (X7, X8) | GitHub's own credential: one write key per town repo, capsule-held (§O) -- it does not honour our CA (limit 1) |
+| who wrote it | pre-receive (X6a) + recv | recv only (X6b) |
+| when it was written | pre-receive skew check (X11b) | the ref chain only (limit 2) |
+| bytes intact | fsck on push and on fetch | fsck on fetch |
+| the DC holds | rows, CA pubs, KRL (§V) + one bare hub repo: public bytes only | -- |
+
+**Tested 07:1xZ** (throwaway CA + anchor, per-login keys held only in their own agent (stand-in for `agi-login`, key-id = rid), an UNPRIVILEGED sshd on a loopback high port trusting only certs, principals = §U-shaped rows with opts; two bare remotes: a file URL as the GitHub stand-in, the ssh URL as encryption-town's hub; no root, one unix user; §S and §T run VERBATIM from this doc, only K substituted):
+| # | case | result |
+|---|---|---|
+| X1 X2 | §S on an empty box over GitHub · over the mesh | rc 0 both · the two bodies byte-identical · sshd log: ED25519-CERT, ID = the rid |
+| X3 | §T sync of a signed engine v2 over GitHub · over the mesh · mesh unreachable | rw + v2 re-expanded · same · ro + the owner greeting |
+| X4 X5 | dg5 -> belam over the mesh · over GitHub | `[dg5] hello ...` both |
+| X6a | the dg5 login pushes refs/agi/alive/* to the hub | refused by pre-receive (`for dg5`) |
+| X6b | the same forgery to GitHub (no hook) | push lands; recv prints `[refused] alive <sha>`, nothing delivered |
+| X7 X8 | an expired cert · a principal with no row on the box | ssh refused (rc 128; log: `Certificate invalid: expired`) · refused |
+| X8b | a row'd login asks for a shell (`id`) | git-shell: `unrecognized command` |
+| X9 | engine anchor K as `belam cert-authority <CA>` | a belam-cert commit verifies (rc 0) · a dg5-cert commit does not (rc 1) |
+| X10 | key files after every login | none for any post (the CA + anchor files are the fixture's; built, the CA is §V's capsule) |
+| X11a | a key whose cert EXPIRED signs a commit backdated into the cert's window | `verify-commit`: Good, `for old` -- git judges a cert at the commit's OWN date |
+| X11b | the same backdate (30 min) pushed to the hub | before the skew check: accepted · after it: refused (`not signed by dg5 now`); a now-dated send still lands (X11c) |
+| -- | one mesh send, end to end | 0.35 s |
+
+**Bytes (expansion, 0 B in the zygote):** `xb` 1,025 B · `pre-receive` 681 B · §S, §T, `agi-login`, `agi-sign` unchanged · the remote = 1 cell per box, the skew = 1 cell (`xb_skew_s`, 120). `xb` whole:
+```sh
+#!/bin/sh
+# xb send REMOTE TO MSG | xb recv REMOTE -- a message = ONE signed commit on refs/agi/<from>/<to>; any remote, the same verbs.
+# recv keeps a commit only if fsck passes AND its signer's cert principal IS <from> (the CA line in agi.allowed); else [refused].
+P=${AGI_POST:?};V="git -c gpg.ssh.allowedSignersFile=$(git config agi.allowed) verify-commit --raw"
+case $1 in
+send)r=refs/agi/$P/$3;p=$(git rev-parse -q --verify $r)&&p="-p $p";t=$(git hash-object -w -t tree /dev/null)
+ c=$(echo "$4"|git -c gpg.format=ssh commit-tree -S $p $t)&&git update-ref $r $c&&git push -q $2 $r;;
+recv)git -c transfer.fsckObjects=1 fetch -q $2 "+refs/agi/*/$P:refs/xb/*/$P"||exit 1
+ git for-each-ref --format='%(refname)' refs/xb|while read r;do f=${r#refs/xb/};f=${f%/*};s=refs/xbseen/$f/$P
+  for c in $(git rev-list --reverse $r --not $(git rev-parse -q --verify $s));do
+   if $V $c 2>&1|grep -q "for $f with";then echo "[$f] $(git log -1 --format=%s $c)";git update-ref $s $c;else echo "[refused] $f $c";break;fi;done;done;;
+esac
+```
+`pre-receive` whole (the allowed-signers path is §U's projected file; a literal here):
+```sh
+#!/bin/sh
+# pre-receive on a box we own: the row's opts set AGI_POST; a login writes only refs/agi/<itself>/*, every new commit signed by itself
+# and dated within S s of now (the login proved the cert valid NOW, so the signature date cannot be backdated past it)
+S=${AGI_SKEW:-120};T=$(date +%s)
+while read o n r;do case $r in refs/agi/$AGI_POST/*);;*)echo "refused: $r for ${AGI_POST:-none}";exit 1;;esac
+ for c in $(git rev-list $n --not --all);do git -c gpg.ssh.allowedSignersFile=<U: allowed> verify-commit --raw $c 2>&1|grep -q "for $AGI_POST with"&&[ $((T-$(git log -1 --format=%ct $c))) -lt $S ]||{ echo "refused: $c not signed by $AGI_POST now";exit 1;};done;done
+```
+**The compression the owner asked for, measured:** every post's signing key is gone from every verifier. ONE allowed-signers line (`* cert-authority <CA pub>`) verifies every per-login key on every box over every transport (X4-X6b), and the principal written by `agi-sign` from the §U row is the sender's name; the per-seat pubkey rows retire with §V's. The engine anchor K CAN be the same CA, restricted by principal (X9), but **recommended: keep K a separate anchor**: a CA window then cannot publish an engine, and the two compromises stay apart (§S limit 2).
+**Honest limits.** (1) GitHub authenticates its own keys; our certs reach it only through an org SSH CA on an enterprise plan (VERIFY), so its write credential is one deploy key per town repo in a capsule. Whoever holds it can also SQUAT a ref (push its own chain into refs/agi/<p>/*, so the real post's next push is non-fast-forward): denial, never forgery (X6b) (2) Backdating via GitHub: a key read out of a live agent (O.3) signs commits dated inside its own cert window forever (X11a). Over the hub the skew check closes it (X11b). Over GitHub only the chain bounds it: a forgery must extend the ref's tip, so it lands only while no later real message exists on that ref (unmeasured) (3) "existing users" = §U's user column; scratch ran ONE unix user, so the principal -> account mapping across real accounts is untested (needs a second account or root) (4) a refused commit stays under refs/xb and is reported at every recv: loud by design, unpruned (5) tonight there is no mesh path to the owner's boxes (remote access only, WireGuard pending), so GitHub goes first, as ruled.
+**Falsifiers.** X1-X11c PASS (scratch) · **W12** DG5 seeded on encryption-town by §S over GitHub, then kept by §T (UNRUN; the first live target, after Phase C) · **W13** one dg5 -> belam message by GitHub and by the hub, the two recv lines identical (UNRUN live) · **W14** = §V F42 cross-box: once the CA window closes, no box accepts a login or a push (UNRUN) · **W15** a post on box A changes box B only through its own namespace, and B's post applies it (UNRUN; needs §U's user column on two real accounts).
 
 ## X · THE PHONE STAND-IN · alive -- tonight's phone is ONE row and ONE cert that expires at the owner's wake; the real phone replaces it by editing that row
 **Owner 06:3x-06:5xZ (verbatim on the goal):** "... I can’t access it today so it might have to wait and do a stand in key on the box for now and auth it yourself as test." Ruling (a): a stand-in phone key on the box, authorised ONLY for capsule-login, tested end to end, then replaced. **What does the stand-in TRULY allow?** Exactly one row: one principal, one forced command, until a stated minute. Nothing about it is special code: it is §U's row + §V's login + §O.5's capsule-login, with a short `valid`.
