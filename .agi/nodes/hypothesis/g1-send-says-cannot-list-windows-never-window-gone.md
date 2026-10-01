@@ -52,3 +52,7 @@ ANON      no user name, home or repo path value, host or IP; patterns write <use
 FILE SCOPE extensions/agi/bin/send.py (the unreadable arms + the one message site) · extensions/agi/tests/test_send_window_unreadable.py · the kid's own node. heal.py is OUT.
 CEILING   HARD CAP: 1 pi parent · kids <= 2 · 12 net production lines on send.py (two-operand numstat de-base-dg2-1 tip..new tip) · 70 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut. Run only committed single test files under `env -u TMUX -u TMUX_PANE`: test_send_window_unreadable.py + test_send.py.
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.1: mur-de-base-dg2-1 dg201 accept_with_residue: vacuous falsifier-1/2 witnesses, wrong docstring, NAME-row unreadable silence, duplicated message, repair opt-out undocumented; evidence_runs + ceiling + heal.py closed or placed by the director
+<!-- THOUGHT:END -->
