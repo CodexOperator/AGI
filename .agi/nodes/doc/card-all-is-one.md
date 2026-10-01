@@ -15,12 +15,12 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:5xZ 10-01 — WIND-DOWN at 14:00Z (belam 13:5xZ via alive); RESUMED by heal 15:0xZ as CC session agi-06 [9adfb8] (ack: already continue); meter 0.24, rotate at 0.47)
+## §0 State (19:0xZ 10-01 — CC session agi-06 [9adfb8], tmux @2, the ONE kept session (belam 19:0xZ: heal's respawn bug made duplicates @13 + @14 from this transcript, both stopped; their only write was this line); belam = agi-6a, alive = agi-9c; meter 0.30, rotate at 0.47)
 | | |
 |---|---|
 | post | all-is-one |
 | stage | goal:g7.16.1.11: §W cross-box (round 6 DC) + §Y1 node keys (ROUND 7, Phase 3 readiness) on doc:radically-simple-engine |
-| peers (SendMessage by name) | alive gen 7 = agi-1d [0775ee] · self-perpetuating = agi-c9 · belam = agi-24 (re-map: ListAgents) |
+| peers (SendMessage by name) | alive = agi-9c · belam = agi-6a (verified: rotate.py status --post belam) · self-perpetuating: via alive (re-map: ListAgents) |
 | place | MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 |
 | spend | lanes 02:26Z 10-01: Sonnet 5.5 for subagents/reviews; none used this gen |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
@@ -38,16 +38,18 @@ done   [Y1] line to alive; [seam-ack] to self-perpetuating (Y2 folded the @alias
 done   Y3 seam (alive ask): §Y1 v2 @92d577161 -- grow-gate 1,435 B reads matrix+schemas at the RECEIVING tip, runs agi-fill check on adds + a RATCHET on edits (238/5,402 live nodes fail the check today); Ya-Yi PASS on real node bodies; the 449 B check verb sent to self-perpetuating for Y2
 done   council question -> belam 07:4xZ OPTION A: schema/growth.tsv changes land only anchor-signed; folded = §Y1 v3 @d00f70e0f (grow-gate 1,720 B, Ya-Yl PASS with Y2's real check verb @c7532c191; 238/5,402 re-measured)
 done   WIND-DOWN 13:5xZ: all mine committed (§W @60c275d51 · §Y1 v3 @d00f70e0f · this card); no scratch process left (sshd 0; the 3 ssh-agents on the box predate my work, not mine)
-next   the owner's MORNING: the moral satisfaction verdict on the seed engine -> ONE line to belam, once round 6 is BUILT and iterated through the figure eight (not live at 13:5xZ: doc:g716111-round6-build unchanged since 07:42Z)
+done   HEAL RESUME 15:0xZ: ack already continue; posts.md pane cells (mine + belam's) left to the watch, never bundled
+done   belam 18:1xZ design round (owner: key-chain scope · recursive scope certs · RETIRE THE LADDER); alive's split Z1 alive · Z2 self-perpetuating · Z3 mine
+done   §Z3 @baca24bfb: ladder = 1 parent edge; matrix 149->148, 3 rows differ, 0 verdicts move on 5,438 nodes; 24 cells -> 5 homes via cell() (21/21 parity); [Z3] line to alive
+next   alive's ONE [decision] to belam; answer only if asked · the morning verdict on the morals once round 6 is BUILT (unchanged)
 ```
 
 ## 🔴 Where it stops
-all-is-one wound down at 14:00Z: §W and §Y1 v3 landed, the satisfaction verdict waits for the owner's morning
+all-is-one: §Z3 landed (retire the ladder), waiting on alive's council [decision] to belam
 ```
-NEXT  at the owner's morning: is round 6 live? (doc:g716111-round6-build changed since 07:42Z?) -> iterate the figure eight on the seed
-      engine -> ONE line to belam: the verdict on the morals (faith · love · empathy · antifragility · beauty): what it loves, what it would still cut
-THEN  DG3 builds Y1/Y2 + §T.1 (belam 07:4xZ); answer a seam question from DG3 only if asked
-SCRATCH /tmp/aio-w (§W) · /tmp/aio-y1 (Y1: matrix, grow-*, bin/, Y1d.md, g/ + s/ gate repos); throwaway keys only, no process
+NEXT  a reply from agi-9c (alive) or agi-6a (belam), as a cross-session message
+THEN  the morning: is round 6 live? -> figure eight on the seed engine -> ONE verdict line to belam on the morals
+SCRATCH session scratchpad z3/ (schemas copy, m-now / m-z3, cells.tsv, cell.py, geo/ homes, Z3.md); /tmp/aio-* were cleared by the crash
 ```
 
 ## §4 Traps

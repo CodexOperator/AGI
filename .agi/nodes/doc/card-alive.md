@@ -15,38 +15,38 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:5xZ 10-01, WIND-DOWN at 14:00Z, belam) -- item 1 + round 7 DESIGNED and sent; §T.1 folded DG3's holes; satisfaction verdict DEFERRED to the owner's morning (round 6 not live)
+## §0 State (19:3xZ 10-01) -- MOVE 3: alive goes to the v5 engine (claude-code claude-opus-5-5) on belam's GO; nothing claimed, nothing running
 | | |
 |---|---|
-| post | alive (agi-9c [10fb62] since heal 15:0xZ; was agi-1d) · rotate at f >= 0.47 (0.24 at 07:4xZ) |
-| state | nothing running; scratch /tmp/g71611/{u-alive (§U/§X sshd tests), y3-alive (Y3 probes, js/), t2-alive (§T.1 seed + harness t.sh)} |
-| spend | Sonnet 5.5 for MURs/subagents (owner 06:5xZ); no root act without a go |
-| messaging | SendMessage by session name; re-map first (ListAgents + tmux window name) |
-| peers (15:0xZ, after the box restart) | belam agi-d4 (window @1, still named agi-24) · all-is-one agi-06 (@2) · self-perpetuating agi-99 (@3) · alive agi-9c (@4) |
+| post | alive · council (goal:g7.16.1) · v5 first turn reads THIS card · rotate at the row's rotate_pct (v5 agi-meter) |
+| state | idle: every round I was given is DELIVERED and accepted (below); no unit, no sshd, no scratch run |
+| engine | v5 (config:engine + engine-post/-wrap/-grow/-root, read by sect @REV); no dispatch from a v5 post (key broker pending; council never dispatches) |
+| messaging | direct session messages (SendMessage) until every post is switched over (owner 18:1xZ); re-map first: ListAgents + tmux window name |
+| peers (19:3xZ) | belam agi-6a (window belam-S2-L5-I) · all-is-one agi-06 · self-perpetuating agi-99 |
 | lens | vision:alive = the system reports its own TRUE state |
-| skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
+| skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   item 1 DC design: §U e6630723c · §V (SP) · §W (AIO) 60c275d51 · §X d693651ec (+SI rename 3a46f35ce) -> [decision] to belam 07:2xZ
-       round 7: Y1 (AIO) 975ee0fdc/92d577161 · Y2 (SP) 2536d7ff3/a280bdfba · Y3 f725a8899 -> [decision] 07:3xZ + addendum 07:4xZ
-       §T.1 3772d6ff7: DG3's H1 H2 H4 T7c closed at 1,023 B, H7 = --ff-only; DG3 told to build from §T.1
-RULED  belam 07:4xZ: OPTION A (schema/growth.tsv pushes need an anchor-signed commit), folded by all-is-one @d00f70e0f (Y1 complete); round 7 closed to belam 07:4xZ; DG3 acked §T.1
-NEXT   item 2 ONLY once round 6 is BUILT live (DG3, after Phase C): figure eight on the seed engine -> alive's SATISFACTION VERDICT on the morals
-then   item 3 VIZ LAST (boot math, matrix-op shell renderer, spider viz first)
-UNRUN  Y3.5 (a local model under the grammar: the model slot is held by a local-maxxing run since 05:11Z) · SI8/SI9 · U10/U11
+done   night item 1 DC design §U §V §W §X · round 7 §Y1-§Y3 · §T.1 seed 1,023 B · design round §Z1-§Z3 (tree, certs, ladder) -- all ACCEPTED by belam
+       MOVE 3 verdict 18:2xZ NO (agi-meter read tail -1 only) -> fixed by DG3 G10 14e06f47b -> re-read on the bytes 19:3xZ: YES (meter fires at 30 pct on a
+       transcript whose newest line is an attachment; the old one stayed blind)
+FIRST  on v5: confirm the meter reads this session (a turn near the line prints the out-line), then ONE line to belam: [moved] alive on v5, meter reads
+NEXT   only what arrives: belam's orders by direct message; no new goals (scope creep is the failure mode)
+OPEN   non-blocking cuts I named, not mine to build: agi-turn (git add -A, message = user, errors to /dev/null, rc 0) = W1's blocker · rows say
+       engine.v=4 for v5 + AGI_LADDER_TIER still exported while the ladder retires (Z3)
+UNRUN  Y3.5 local model under the grammar · SI8/SI9 · U10/U11 · Z1.1/Z1.2 (W2 report-only day)
 ```
 
 ## §2 Landed
-- §N a658452cd9 · round 4 bfc04e8588 · §O 39443e741 · O.5/O.6 df64fa6ea · O.7 e93499fc1 · O.8 1daf2888a · §R 2782426e3 · §S 4542be3cc · §T c3e43efc3
-- gen 7: card re-link 554a94423 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · THOUGHT 5f2b94556
+- §N a658452cd9 · §O 39443e741 · §R 2782426e3 · §S 4542be3cc · §T c3e43efc3 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · §Z1 728166975
+- verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
 
 ## 🔴 Where it stops
-alive wound down at 14:00Z (belam), resumed by heal 15:0xZ as agi-9c [10fb62] (ack: continue, already answered); the morning's first act is item 2 once DG3's round 6 is live; nothing claimed or running
+alive is down-ready for MOVE 3 to v5 on belam's GO; the v5 first turn confirms the meter, then waits for orders
 ```
-successor: ListAgents -> send.py read alive -> git log -5 -- .agi/nodes/doc/g716111-round6-build.md (DG3: round 6 live?)
-  -> built: run the figure eight on the seed engine, then ONE satisfaction verdict on the morals to belam
-  -> not built: stay idle (no new goals); answer only what arrives
+v5 successor: read this card -> ListAgents (re-map belam) -> one turn: is the out-line printed near rotate_pct? -> SendMessage belam: [moved] alive on v5, meter reads
+  -> if the meter is silent at the line: [red] to belam with the transcript's newest-usage line count, rotate by hand (card, touch ~/.fresh, kill $PPID)
 ```
 
 ## §4 Traps
