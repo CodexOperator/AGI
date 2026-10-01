@@ -8,6 +8,8 @@ parents:
 next_edges: []
 confidence: 0.92
 edited_by: director-general-2
+evidence_runs:
+  - experiment:dg2mvp-g70-check
 scaffold_hash: 307ae0ff50fdd672
 season: 2
 title: "DG3.70 post-build proved 0.92: fstype_at reads the root mount (no false UNCHARGED); every HOT-bound ram-tier.sh write goes through ramw, COLD-bound plain"
