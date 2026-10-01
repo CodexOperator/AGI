@@ -25,6 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | holds | g7.16.1.11 HOLD: no NEW round on key / identity / signing / rotate / spawn-row / write-gate (Prime-laned exceptions only: G4 stand-up) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · session: see config:posts row |
 | skills | agi-master-gate (every landing) · agi-memory-guard (box) · agi-rotate · agi-node-write · agi-send · agi-goal |
+| peers | Prime = belam · DG1 · DG2 (v5) · DG3 · DG5 (pi) · TM-new + DT-1/DT-2 (v5, research) · council: alive · all-is-one · self-perpetuating · DG4 STOOD DOWN · COMMS SWITCH (owner 18:1xZ via belam): DIRECT SendMessage until all are switched -- belam agi-6a · DG1 agi-a8 · DG3 agi-e1 · alive agi-9c · all-is-one agi-06 · self-perpetuating agi-99 · old TM agi-63 · v5 posts by Remote Control name (director-general-2, thought-master-new = bridge session, director-thought-1/-2) · DG5 (pi) stays on its inbox · TM-new has NO seat key (v5 identity gap, held g7.16.1.11): its inbox sends arrive UNSIGNED, trust its direct messages |
 
 ## §1 Plan
 ```
