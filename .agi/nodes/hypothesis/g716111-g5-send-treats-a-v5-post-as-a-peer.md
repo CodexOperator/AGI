@@ -63,6 +63,16 @@ BASE      CUT FROM de-base-G5 tip cfa9b3e27 + this node commit (worktree /mnt/ag
 DEMOTED   R2 as a change (design per boxes.row_is_local + belam 09-27: an unset box is refused; all 6 engine rows carry box) · R4 fixed by the director in this commit (testable_claim) · M3 (tests run on the NEW checkout by rule) · M4 refuted · notes (reaper row per pass, poll env, double _engine_post).
 FILE SCOPE .agi/nodes/.geometry/engine-wrap.md (line 24 only) · extensions/agi/bin/send.py · extensions/agi/bin/heal.py (_repair_stranded_wakes only) · extensions/agi/tests/test_send.py · this node.  CEILING production net +12 · tests +40 · Sonnet 5.5 subagent · 0 USD.
 
+## CORRECTIVE G5.5 -- closes mur-de-base-g5d g5d-code (verify accept_with_residue: R1-R6 confirmed + missed M1 M2 M4)
+BASE      CUT FROM de-base-G5 tip 7dad3b4d4 + the node commits after it (worktree /mnt/agi-ram/worktrees/de-base-G5). No merge. Never rebase.
+1. (R2 + M4) send.py _announce_nudge (~1799-1810): the FOREIGN branch tests row.get("engine") only, so a foreign NON-engine row with a window/pid is still told pane busy / the sweep retries; its comment claims a locality check that does not run. TRUE WHEN the branch gates on boxes.row_is_local (the same guard as _nudge_target ~2496) for ANY row, the comment is true, and a row proves a foreign non-engine row gets the refusal, never pane-busy.
+2. (M2) send ~3303: a foreign refusal still calls _register_unresolved, so the sender is told no retry while a pending mark waits forever. TRUE WHEN a refused-as-foreign send registers no unresolved/pending mark (same for the dm path if it pairs the same way); a row proves it.
+3. (R4) one send to a foreign row prints the refusal TWICE (the memoised nudge line ~2504 + the [refused] line ~1801) and the (unset) label expression exists twice: ONE label source (a small helper or the memo's own) and ONE refusal line per send to the sender.
+4. (R3 + M1) tests: the trim-loop row gets a positive control (AGI_PANE_MAX_MB=0 + a sized ~/o -> the trim happened); the foreign-row G5.4 row asserts calls == [] on its tmux recorder like its G5.3 sibling.
+5. (R5 + R6) heal._repair_stranded_wakes uses heal's own module-level boxes import (not _send.boxes); the _announce_nudge and _repair_stranded_wakes docstrings name the FOREIGN outcome / the local-only walk.
+DEMOTED   M3 (tests run on the NEW checkout by rule, the same as G5.4) · R7 the (NNNN B) size headers: a findings row (no reader; drift on every edit), proposed to SM with G6 · R1 (testable_claim written as a new key testable_claim=a): FIXED by the director in this node version (unset + set); write.py set accepted an invented key: a findings row.
+FILE SCOPE extensions/agi/bin/send.py · extensions/agi/bin/heal.py (_repair_stranded_wakes only) · extensions/agi/tests/test_send.py · this node.  CEILING production net +10 · tests +30 · Sonnet 5.5 subagent · 0 USD.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective G5.4: mur-de-base-g5c verify confirmed R1 (sibling stat line 24) R3 (foreign engine row told pane-busy) + missed M1 (heal repair walks foreign rows) M2 (boxless row unpinned); R4 testable_claim narrowed here by the director (the dm path says written, not delivered)
 <!-- THOUGHT:END -->
