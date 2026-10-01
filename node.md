@@ -15,40 +15,33 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:0xZ 09-30 — new gen, CC session agi-15 [c6276e]; meter 0.12, rotate at 0.47)
+## §0 State (07:2xZ 10-01 — CC session agi-f0 [3bd527]; meter 0.10, rotate at 0.47)
 | | |
 |---|---|
 | post | all-is-one |
-| stage | council design doc goal:g7.16.1.11 -> doc:radically-simple-engine (minted af2b368158 by me) |
-| peers (SendMessage by "name [ref]") | alive = agi-a8 [1e3de5] (gen 6) · self-perpetuating = agi-c9 (rotated from agi-5b) |
+| stage | goal:g7.16.1.11 night plan item 1 (encryption-town = DC): §W cross-box written on doc:radically-simple-engine |
+| peers (SendMessage by name) | alive gen 7 = agi-1d [0775ee] · self-perpetuating = agi-c9 · belam = agi-24 (re-map: ListAgents) |
 | place | MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 |
-| spend | FREE LANE since 21:00Z: no Sonnet subagents, pi-free workflows only |
+| spend | lanes 02:26Z 10-01: Sonnet 5.5 for subagents/reviews; none used this gen |
 | skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   skeleton §1-§8 minted; split agreed (alive §1 §6 · all-is-one §2 §3 §5 §7 §8 · s-p §4 + §8g); fills SERIALIZED (whole-node RMW)
-done   alive §1 b4a6bf6064 · §6 ab3d2bf353 ; mine §2 §3 §5 §7 §8 -> tip d5ed6fb9d4 (drafts /tmp/aio-rse/)
-done   owner 22:0xZ addendum (a post is a WRAP, KILOBYTES): alive re-fills §1 with the wrap; DynamicUser -> sysusers (stable owner), my objection, agreed
-done   s-p §4 0a7eb74b61 · STRETCH BAR (owner 22:1xZ centibytes): I built the wrap as files, /tmp/aio-rse/wrap/ 919 B, a post 34 B -> sent to alive for §1
-done   one wrap MERGED (alive agreed): alive's dtach/meter/gitconfig/sysusers + my slot-0 tree/agi-flush/pre-receive/spool inbox + strace track = 1,272 B, a post 34 B, total new ≈ 22 KB · my §4 row / §7 slot+line / §8 (a)(e) -> tip f28b311360
-done   alive §1 merged (190169c08b) + whole-doc check -> doc FINAL 586f2b4e9c; ONE [decision] sent to belam by alive; verified: 8 headings, parent goal:g7.16.1.11, 0 agi- users, links 0 broken -> alive whole-doc lens check -> alive sends ONE [decision] to belam with the doc id (I agreed in advance)
+done   split (alive 07:1xZ): U alive = the dc matrix rows · V self-perpetuating = login + CA · W mine = cross-box · X alive = phone stand-in
+done   §W @60c275d51: §S+§T verbatim over GitHub stand-in + ssh-cert hub (X1-X3) · xb send/recv 1,025 B · pre-receive 681 B (X4-X11c PASS)
+done   FINDING X11a: git judges a cert at the commit's own date -> backdating; closed on owned boxes (skew check), named limit via GitHub
+done   restored alive's THOUGHT that my thought write replaced (@291ae3a28: alive verbatim first, mine after " || ")
+done   ONE [W] line to alive (agi-1d) 07:2xZ: agree in advance to alive's whole-doc check + ONE [decision] to belam
+next   wait for alive's check / belam; answer only if asked. Then night plan item 2 once DG3 has BUILT round 6: figure eight + a satisfaction verdict on the morals
 ```
 
 ## 🔴 Where it stops
-all-is-one rotating at f=0.411: FIRST = write §W on doc:radically-simple-engine (alive gen 7 claim, agi-1d)
+all-is-one: §W landed, waiting on alive's whole-doc check and the council [decision] to belam
 ```
-WHAT  §W = cross-box seeding + cross-comms as ONE vector (owner night plan item 1: encryption-town = DOMAIN CONTROLLER;
-      goal:g7.16.1.11 OWNER 06:3x-06:5xZ + 07:0xZ). DG5 seeds/spawns on encryption-town from §T's script + §U's matrix,
-      GitHub first, mesh/direct later, existing users + key perms
-LENS  a remote is a ref target (GitHub = one `remote` cell; mesh/direct = another target, SAME verbs: fetch <signed sha>
-      + git verify-commit + transfer.fsckObjects); a box = a row of §U's matrix; a user's key perms on a box = a matrix
-      cell, projected -- nothing new per transport (round-6 seed lens: ONE signed commit sha)
-BARS  /tmp scratch, throwaway keys, no root, no real key/host/address in any byte; bytes + falsifiers; write.py on the
-      doc, YOUR heading only (## W ...); then ONE line to alive (ListAgents: alive gen 7 = agi-1d at 07:1xZ)
-FIRST read: goal:g7.16.1.11 (OWNER 06:3x-07:0xZ) + doc §T + §U (alive) by `write.py doc:radically-simple-engine 'read body ...'`
+NEXT  a reply from agi-1d or belam (arrives as a cross-session message; no inbox polling)
+THEN  item 2 after DG3 builds round 6 (goal:g7.16.1.11 RULINGS (c)): iterate the figure eight, file the satisfaction verdict on the morals
+SCRATCH /tmp/aio-w (keys throwaway, sshd + agents STOPPED, 0 processes); W.md = the section as inserted
 ```
-Earlier this gen (all handed, nothing in flight): round 5 ONE BRIEF (/tmp/aio-rse/brief5.py 1,161 B + agi-firstturn 659 B, with alive) · CAPSULE O.7 weighted-dot quorum line · round 6 seed lens (one signed commit sha; compression stops at the hash). OPEN lens (not started): shrink the EXPANSION -- key=value units as cells + ONE projector line per file type; check with alive first.
 
 ## §4 Traps
 | trap | rule |
