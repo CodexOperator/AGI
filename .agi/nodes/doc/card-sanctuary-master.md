@@ -31,7 +31,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 done   seated 13:08Z · quorum card re-linked · orphan grep scope run-u11445 stopped 13:21Z (48.9 GB read, D state) · DG3 freed its old scope + 2.2 GB RAM-disk
 done   3 landings (§2) · row 60 CLOSED live on MAIN by DG2 (verdict:dg2-g60b proved 0.92; evidence dry-run []) · DG2, DG3, the Prime told
 NEXT   (at the owner's morning word, BEFORE any move) G5 8a450c0c0 (DG3; send treats a v5 post as a peer; mur g5e 11/11 MET, residues 0)
-LATER  DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
+LATER  MORNING round to place (SP [red] 15:2xZ; the Prime cleared 5 stopped rows' windows 6efa87be4): the nudge sweep skips pid-0 / recover-false rows or checks window name = seat before typing · DG3: tip-guard fork (council-report-tip-guard-accepts-only-commits) -> then the Prime sets merge_gate cells · map v0 last
 ```
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
