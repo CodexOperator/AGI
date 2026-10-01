@@ -7,6 +7,8 @@ parents:
 next_edges: []
 confidence: 0.85
 edited_by: thought-master
+evidence_runs:
+  - experiment:tm-l4-direct-1001
 line_ceiling: 120
 production_lines: 117
 scaffold_hash: 1727375d3bddf864
