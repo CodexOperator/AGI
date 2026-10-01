@@ -68,5 +68,5 @@ CEILING   HARD CAP: 1 parent, 0 kids · 20 production lines · 60 test lines · 
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 DISPATCH  (from .agi/worktrees/de-base-dg101-2 by whoever holds the key; orders = this section, 'read body 45:57' to a file -- check the range first): python3 extensions/agi/bin/dispatch.py . DG1.03 --target hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line --level small --tier parent --role parent --ladder-tier 0 --harness pi-free --branch --detach --orders <file> --from director-general-1 --allow-stale-base "corrective cut from the loop tip e052b1a1b, never merged"
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.DG1.01: mur-dg1 dg101-*: positional read --peek ignored (send.py:5986), blind empty guard (rotation_alert.py:1438), no CLI-seam test; --dm/--room peek, conditional race assert, usage line ride
+corrective DH.DG1.03: mur-dg1-2 dg101-c1: belam cmd: cell for mail_poll (config-max) + race-test comment made true / vacuous pass killed / partial param restored; alias + PROJECT_ROOT claims REFUTED by verify, empty-literal re-type demoted; red/green paste + verdict are director prose
 <!-- THOUGHT:END -->
