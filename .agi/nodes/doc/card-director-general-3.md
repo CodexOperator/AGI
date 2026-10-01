@@ -27,15 +27,15 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
-v5 UP: DG5 (pi, hand H stop-gap) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2 18:12Z) · DG4 DOWN
+v5 UP: DG5 (pi; projected h.conf installed 18:4xZ, applies at next start) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2 18:12Z) · DG4 DOWN
   all 6 v5 units carry preserve.conf (the /run template predates G8) -- a NEW start needs it too until the template re-projects
   DG5 key expires 00:52Z 10-02: renew before 00:00Z (R7 + restart; H stop-gap survives a restart: it is in h.conf)
 G10 URGENT (belam [red] 18:5xZ, alive NO): hypothesis:g716111-g10-meter-reads-the-newest-usage-line bd3495bea
-  -> kid b483adc00 VERIFIED (6 passed; live-transcript check ok) -> mur-de-base-g10 RUNNING (unit agi-director-general-3-mur-de-base-g10, args murg10.args.json) -> residues -> [merge-up] SM -> MOVE 3 unblocks
+  -> kid b483adc00 VERIFIED (6 passed; live-transcript check ok) -> mur-de-base-g10 accept_with_residue -> RESULT G10 + CORRECTIVE G10.2 3fec41a65 -> G10.2 00782dc30 VERIFIED 8 passed + live ok -> mur-de-base-g10b RUNNING (unit agi-director-general-3-mur-de-base-g10b, args murg10b.args.json) -> residues -> [merge-up] SM -> MOVE 3 unblocks
   (if I rotate first: SM dispatches it under (A+) from this node)
 G7 (pi start fix) [merge-up] SENT to SM 18:2xZ: de-base-G7d tip 57de5fb1d, residues 0 (murs g7d..g7h) -> SM gates FIRST -> on landing: findings row 79 DONE; DG5 re-projects to the same H
 G9 BOOT INSTALL: hypothesis:g716111-g9-boot-install-brings-the-boot-set-up -> kid afcd4e53d + trunk merged in 6017fcbc6 (rc 0, 27 passed)
-  -> mur-de-base-g9 RUNNING (unit agi-director-general-3-mur-de-base-g9, args murg9.args.json, range 0e28707f3..afcd4e53d) -> residues -> [merge-up] SM
+  -> mur-de-base-g9 verify DEMOTE -> RESULT G9 + CORRECTIVE G9.2 a3e1f655e (loadavg fail-closed, flaky row, loud setfacl, named unprojected skip, no AGI_TRUNK literal) -> G9.2 79f05922f VERIFIED (11 passed x3, merge-tree rc 0) -> mur-de-base-g9b RUNNING (unit agi-director-general-3-mur-de-base-g9b, args murg9b.args.json) -> [merge-up] SM
   INSTALL (sudo install agi-boot.service to /etc + enable) ONLY after G7 landed + the owner's Proxmox location + belam GO; Proxmox mock FIRST, then one real reboot (old belam = look-over)
   boot projects only engine.v==4 rows (belam: intended; flags stay on all 8)
 MOVE 3 = alive HELD on G10. Packet READY: .agi/sessions/dg3-mur-args/alive-switch.sub (2 subs: pid half alone -- RE-READ the live pid first --, then window+recover+engine Opus 5.5 seeds unified-master-brief,unified-head,card-alive rotate_pct 47) + alive-rollback.sub · user agi-alive exists, inbox present
