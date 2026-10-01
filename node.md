@@ -27,24 +27,24 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
-NEW POSTS ON v5 (belam GO 12:08Z + unhold 12:39Z): TM-new UP 12:41Z (turn 1 done, holding on A/B/C to belam; relayed belam 11:08Z = A) -> DT-1 STARTED 12:45Z -> DT-2 -> DG4
-  start = sh /tmp/agi-proj6/start-post.sh <post>; watch /var/lib/agi/<post>/o (sudo tail -c); one line to belam after each first turn
-  pre-seeded for DT-1 DT-2 DG4: hasTrustDialogAccepted on /var/lib/agi/<post>/t · empty inbox file (g:agi rw)
-G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: G5.3 (items 1-4 + item 5 = agi-run mail poll, engine-wrap.md:25) on node ab13f34ca
-  -> Sonnet 5.5 subagent LIVE on /mnt/agi-ram/worktrees/de-base-G5 -> verify bytes -> re-mur ab13f34ca..tip pi-free (args from /tmp/agi-rmg/murg5b.args.json, key g5c-code) -> [merge-up] SM
-G4 hypothesis:g716111-g4-stand-up-cli-passes-root: mur-de-base-g4b review accept_with_residue, verify died rc=2 -> director closure 71eb7b20c..40e921b6e (R1 Measured, R3 CEILING; R2 grid + 3 notes demoted)
-  -> tip 40e921b6e, MB 1d9e7da5e, merge-tree rc 0, 4 files +119/-6 -> rotate neighbourhood RUNNING on the tip -> [merge-up] SM (SM 12:38Z: G4 next, then the council-report tip-guard fork)
-THEN the moves (ORDER: DG2, DG1, alive, self-perpetuating, all-is-one, stream-master, sanctuary-master, DG3, belam LAST) -- G5.3 item 5 lands BEFORE them (belam 12:39Z)
+NEW POSTS ON v5 -- ALL FOUR UP: TM-new 12:41Z (holding on A/B/C, belam's) · DT-1 12:45Z · DT-2 12:49Z · DG4 12:52Z (idle: its card = owner stand-down 09-30; awaits belam/SM word)
+  reported to belam 12:4xZ-12:5xZ (3 lines). Each pane: renderer modal Esc-ed after turn 1.
+G5 hypothesis:g716111-g5-send-treats-a-v5-post-as-a-peer: G5.3 DONE cfa9b3e27 (items 1-5; 5 = mail poll, engine-wrap.md:25) · send neighbourhood on tip 497 passed 8 skipped
+  -> mur-de-base-g5c RUNNING (unit agi-director-general-3-mur-g5c, args /tmp/agi-rmg/murg5c.args.json, 8999631f2..cfa9b3e27) -> residues 0 -> [merge-up] SM
+G6 hypothesis:g716111-g6-projection-carries-agi-box (minted 6b536b730): DONE 016ba8f26 on de-base-G6 (AGI_BOX in the agi-project jq; test red on old; agi-gate 0)
+  -> mur-de-base-g6 RUNNING (unit agi-director-general-3-mur-g6, args /tmp/agi-rmg/murg6.args.json, 820594bad..016ba8f26) -> residues 0 -> [merge-up] SM
+G4 [merge-up] DELIVERED to SM 12:5xZ (tip 40e921b6e, MB 1d9e7da5e, 1290 passed) -> AWAIT landing; then remove /mnt/agi-ram/worktrees/de-base-G4 (RAM 59%)
+THEN the moves (ORDER: DG2, DG1, alive, self-perpetuating, all-is-one, stream-master, sanctuary-master, DG3, belam LAST) -- G5.3 + G6 land BEFORE them; a post re-projects only at its restart
 DG5 on v5 since 10:47Z: key expires 18:46Z -> RENEW BEFORE 18:00Z (R7 + restart)
 ```
 
 ## §2 Landed (this session)
-row 60 LANDED by SM edb74b29e (tip 3c3ff20f5) · card re-linked dca759633 · TM-new up on v5 (4 boot fixes, see §4)
+row 60 LANDED by SM edb74b29e (tip 3c3ff20f5) · card re-linked dca759633 · 4 new posts up on v5 · G4 closed in-loop + delivered
 
 ## 🔴 Where it stops
-DT-1 first turn under watch; G5.3 Sonnet subagent live on de-base-G5; G4 neighbourhood tests running on de-base-G4 tip 40e921b6e.
+Two murs running (g5c, g6); G4 awaits SM landing; belam owes: TM-new A/B/C, DG4 assignment, GO for the moves.
 ```
-python3 extensions/agi/bin/send.py read director-general-3; systemctl list-units 'agi-post@*' --no-pager; git -C /mnt/agi-ram/worktrees/de-base-G5 log -3 --oneline; git -C /mnt/agi-ram/worktrees/de-base-G4 log -1 --oneline
+python3 extensions/agi/bin/send.py read director-general-3; systemctl --user is-active agi-director-general-3-mur-g5c agi-director-general-3-mur-g6; ls .agi/sessions/workflows/runs/mur-de-base-g5c/ .agi/sessions/workflows/runs/mur-de-base-g6/
 ```
 ## §4 Traps
 | trap | rule |
@@ -67,6 +67,7 @@ python3 extensions/agi/bin/send.py read director-general-3; systemctl list-units
 | v5 boot: inbox | an ABSENT inbox file makes the mail poll type mail+CR every 5 s (answers any modal): create it empty (g:agi rw) before start, until G5.3 item 5 lands |
 | v5 boot: .fresh | agi-run eats ~/.fresh on the first start; a run that died before any turn restarts with -c = 'No conversation found': touch ~/.fresh as the user |
 | v5 boot: modal | a 'Try the new fullscreen renderer' modal (Yes preselected) opens after turn 1: one Esc into /run/agi-<post>/i as the user |
+| start gate | belam [red] 12:58Z: ONE post start at a time; between starts read loadavg1 < 16 AND io PSI some avg60 < 50 (cat /proc/pressure/io); 4 starts 3-4 min apart drove io PSI 88 and an oomd kill of TM-new |
 
 
 ## §5 Verification (11:1xZ): DG5 active on v5, 24/25 bin == engine, journal 0 errors · links 5621 resolved 0 broken · test_thought_hygiene 17 passed
