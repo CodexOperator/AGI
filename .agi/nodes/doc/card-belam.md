@@ -68,6 +68,7 @@ Owner picks open: DG4 assignment · Round 8 start · the seed boot install (root
 | 64 | RAM MAIN: tmpfs pages are charged to the FIRST writer's slice and stay there | heal's writes land on agi-engine.slice as shmem; the budget line is goal:g7.16.1.5.5 |
 | 66 | `send.py read belam` printed "empty" while DG3 02:59Z + 03:05Z and TM 21:55Z sat in the dm files / inbox file | read `.agi/comms/season-2/dm/*belam*` + `.agi/sessions/inbox/belam.md` by ts after every [decision] wait |
 | 65 | `rm -rf $VAR/$X` is refused by the safety check | literal absolute paths, or `"${S:?}"/"${d:?}"` |
+| 67 | `open(p,"w").write(f(open(p).read()))` truncates BEFORE it reads: posts.md went 0 B 15:13:24-15:14:04Z 10-01 (gen 24) | read into a variable first, write a tmp + os.replace; a row-only commit = hash-object HEAD copy + update-index --cacheinfo |
 
 ## §5 Verification
 SCRUB 08:3xZ: GitHub fresh mirror 259,334 objects -> 0 hits · origin/season2/main ancestor of the trunk again · local 229,343 objects -> 0 hits, fsck ok (stale refs/remotes/origin-posts/director-thought dropped: the last holder) · nodes 5457 = before · links 5414 / 0 broken · grid 5450 clean
