@@ -8,6 +8,7 @@ with `ts`, `from`, `to`, and `text`.
 Usage:
     send.py send <to> <text>      — append a message, print the inbox path
     send.py read <me>             — print unread blocks and mark them read
+    send.py read <me> --peek      — print, and NEVER advance the read cursor
     send.py peek <me>             — print unread blocks without marking
 
 Rooms (hypothesis:l3w0-send-rooms) — conversations as files under
@@ -4165,7 +4166,8 @@ def _block_end_offsets(region: str) -> list[int]:
 
 
 def read(root: Path, me: str, sender: str | None,
-         wrap: int = 160, *, quiet_empty: bool = False) -> int:
+         wrap: int = 160, *, quiet_empty: bool = False,
+         mark: bool = True) -> int:
     """Print unread blocks (bodies wrapped at `wrap` columns, display-only)
     and mark them read. Returns how many unread ITEMS the inbox held (blocks
     plus a stored deferred dm, counted whether or not the printer emitted
@@ -4178,7 +4180,12 @@ def read(root: Path, me: str, sender: str | None,
     unread VALID block that was not printed, so a printer that ran and
     stopped short retires nothing behind it), while the inbox still drains
     so the same refused bytes are never re-refused and the quarantine keeps
-    the copy."""
+    the copy. `mark=False` PRINTS THE SAME BLOCKS AND RETIRES NOTHING: a
+    reader whose stdout is captured rather than shown to a pane (the
+    mail_poll cron redirects `read --box-local` into a log file) must
+    never move the cursor, or that log becomes the only copy of a line the
+    seat's own read then answers `empty`
+    (hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line)."""
     _lockdown_warn(root)
     inbox = _inbox_path(root, me)
     blocks, marker_index = _scan_messages(inbox)
@@ -4203,7 +4210,8 @@ def read(root: Path, me: str, sender: str | None,
     # (`_clear_deferred` is the same no-op-guarded helper that path uses).
     if deferred is not None:
         _print_deferred_block(root, me, deferred, wrap=wrap)
-        _clear_deferred(root, me)
+        if mark:
+            _clear_deferred(root, me)
 
     # Print inbox blocks, each prefixed by its verification label. The printer
     # reports the LAST BLOCK IT PRINTED; a stub printing nothing answers None
@@ -4219,7 +4227,7 @@ def read(root: Path, me: str, sender: str | None,
     # Mark read: the marker is placed in the SAME index space the blocks were
     # printed from (see `cut` below), so it can never sit past a VALID block
     # nobody saw (conjunct 2) nor re-print what it already printed.
-    if inbox.is_file():
+    if mark and inbox.is_file():
         # newline="" too: a rewrite here must not be the thing that strips the
         # CR the writer preserved (mur-39 order (d)).
         text = inbox.open("r", newline="").read()
@@ -4263,6 +4271,8 @@ def read(root: Path, me: str, sender: str | None,
     # The seat just consumed its unread (clause (1) of hypothesis:l4-wake-
     # repair-is-quiet-honest-and-readable): drop the announced-state sidecar
     # so a LATER new unread state is never mistaken for one already typed.
+    if not mark:
+        return len(blocks) + (1 if deferred is not None else 0)
     _clear_announced(root, me)
     # clause (2): stamp the post's last-read signal so a STANDING nudge marker
     # that predates THIS read is judged stale (hypothesis:l4-a-nudge-cancels-
@@ -5648,6 +5658,9 @@ def main(argv: list[str] | None = None) -> int:
                         help="wrap message bodies at N columns (0 = raw)")
     p_read.add_argument("--box-local", dest="box_local", action="store_true",
                         help="service read: every LOCAL box row's inbox")
+    p_read.add_argument("--peek", dest="peek_", action="store_true",
+                        help="print but NEVER advance the read cursor: for a "
+                             "reader whose stdout is captured, not shown")
 
     p_peek = sub.add_parser("peek", parents=[common], help="peek without marking read")
     p_peek.add_argument("target", nargs="?", default=None,
@@ -5921,6 +5934,16 @@ def main(argv: list[str] | None = None) -> int:
         me = args.me or _detect_sender(sender)
         all_ = getattr(args, "all_", False)
         wrap = args.wrap
+        if (args.room is not None or args.dm is not None) and \
+                getattr(args, "peek_", False):
+            # `--peek` promises it never advances a cursor; the room/dm reads
+            # below have no mark/commit switch, so honouring it would be a
+            # promise the code does not keep. REFUSE, naming the verb that does
+            # the job (hypothesis:g1-inbox-read-cursor-never-passes-an-
+            # unprinted-line): a flag that silently does nothing is the defect.
+            print("ERR: `read --peek` applies to an INBOX only; use "
+                  "`send.py peek --room|--dm` for a transcript", file=sys.stderr)
+            return 2
         if args.room is not None:
             for line in read_room(croot, args.room, me, args.since, sender,
                                   all_, wrap=wrap):
@@ -5941,7 +5964,8 @@ def main(argv: list[str] | None = None) -> int:
                     continue
                 if boxes.row_is_local(root, r):
                     shown = read(root, nm, sender, wrap=wrap,
-                                 quiet_empty=True)
+                                 quiet_empty=True,
+                                 mark=not getattr(args, "peek_", False))
                     # clause (1) for the SERVICE reader too: mail_poll must
                     # sweep the same row's dm channels, or a dm pushed from
                     # another box lands in a file this reader never opens
@@ -5949,7 +5973,8 @@ def main(argv: list[str] | None = None) -> int:
                     # to-a-post...). Same per-row loop, same box gate -- and
                     # the SAME `empty` verdict the positional path decides
                     # after the sweep, never inside `read` before it.
-                    shown += read_dms(croot, nm, wrap=wrap)
+                    shown += read_dms(croot, nm, wrap=wrap,
+                                       commit=not getattr(args, "peek_", False))
                     if not shown:
                         print(f"inbox for {nm}: empty")
                 else:
@@ -5969,9 +5994,15 @@ def main(argv: list[str] | None = None) -> int:
                                     resolved):
             return 2
         target = _alias_canon(root, args.target) or args.target
-        shown = read(root, target, sender, wrap=wrap, quiet_empty=True)
+        shown = read(root, target, sender, wrap=wrap, quiet_empty=True,
+                     mark=not getattr(args, "peek_", False))
         # clause (1): the same call also consumes every dm naming the post.
-        shown += read_dms(croot, resolved, wrap=wrap)
+        # `--peek` retires NOTHING on either seam: a positional
+        # `read <seat> --peek` is the pre-flight rotation_alert fires, and a
+        # cursor that moved behind bytes captured into a pipe nobody reads is
+        # the exact hole this hypothesis names (proved by running the CLI).
+        shown += read_dms(croot, resolved, wrap=wrap,
+                          commit=not getattr(args, "peek_", False))
         # The seat is empty only when the INBOX held nothing AND the dm sweep
         # showed nothing (conjunct 1): decided here, after both, never inside
         # `read` before the sweep.
