@@ -40,17 +40,17 @@ goal:g7.16.1.11: the council's Z4 section (doc:rse-z4-ladder-out, on the trunk a
 - Deliberately NOT built: Z3's cells.tsv + cell.py resolver (1,156 B): a resolver for the old Python readers is bytes spent on code that retires with the old setup (owner 23:0xZ: 'you are over engineering it again'); it comes back only for a reader that must outlive the old setup and cannot read a row.
 
 ## Invariants
-- Each phase strands nothing: no reader loses a cell it reads before it moves; G4 parity per file; ONE named exception: workflow.py's director stages move claude-fable-5-1 -> Sonnet 5.5 by the owner's 'every subagent Sonnet 5.5' (AA2.25), a deliberate change, held for belam.
+- Each phase strands nothing: no reader loses a cell it reads before it moves; G4 parity per file; ONE named exception: workflow.py's director stages move claude-fable-5-1 -> Sonnet 5.5 by the owner's 'every subagent Sonnet 5.5' (AA2.25), a deliberate change, CONFIRMED by belam 05:07Z.
 - Nothing is deleted: ladder.md and [ladder].md are retired and moved, never `git rm`.
 - 0 B in the zygote; the base stays <= 8,192 B (kid-of runs inside agi-kid, never in agi-project).
-- THREE owner items are open with belam (the count caps retire, the AA2.25 exception, the kid cell): leaves that depend on them stay HELD.
+- THE THREE OWNER ITEMS ARE RULED: belam 05:07Z 10-02 RULED all three: (1) the moral/vision COUNT caps RETIRE (owner 03:4xZ); (2) the AA2.25 exception is CONFIRMED; (3) belam's `kid` cell is WRITTEN (e56869124 = {harness: claude-code, model: claude-sonnet-5-5, max: 3}), so A4's writer is done; belam: 'Phase A may start via DG1' (it still needs belam's anchor signature on the [town] schema edit). Nothing in this goal stays HELD on them; phase A is the one startable round.
 
 ## Falsifier
 1. Z4.a after A on the trunk: grow-check parity moves 0 verdicts except the 5 towns (L5 on the landed bytes: 5,494 nodes, 0 verdicts move on scratch) · Z4.b after A: dispatch.py resolve_role_spec for all 8 (tier, role) AND workflow.py's director-stage model == before (A touches no spec) · Z4.c B1: a season rollover writes 0 bytes to ladder.md (G2 = 0) and the town's season cell moves · Z4.d C: G1-G4 all 0/equal on the trunk the same day ladder.md moves.
 2. Negative: `git grep -l ladder -- .agi/nodes/.geometry/engine*.md` stays 0 hits throughout.
 
 ## Out of scope
-goal:g7.16.1.11.12 (the AA2 side: depth, kid-of, the kid cell: its hypotheses are shared parents) · the moral/vision COUNT caps (open for the owner via belam: a matrix count column, or retire them) · the old setup's own move to v5 (belam, SM, DG3, old TM).
+goal:g7.16.1.11.12 (the AA2 side: depth, kid-of, the kid cell: its hypotheses are shared parents) · the moral/vision COUNT caps (RETIRE: ruled by belam 05:07Z, owner 03:4xZ; no matrix count column) · the old setup's own move to v5 (belam, SM, DG3, old TM).
 
 ## Agent Notes
 Assigned to **director-general-1**.
