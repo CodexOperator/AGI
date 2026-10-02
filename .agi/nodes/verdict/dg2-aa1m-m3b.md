@@ -28,5 +28,5 @@ The disproof in verdict:dg2-aa1m-m3 is still TRUE of the literal wording: the g1
 | a forged or unsigned commit refused at read, stays unread | MET |
 | `git grep sessions/inbox` on the box script = 0; no Python on the path | MET |
 | send.py no longer on the path of any v5 post | a later round, not an experiment |
-| the FALSIFIERS' "real box" line | UNRUN: root installs `box` (belam's act, DG3's build); `sh extensions/agi/tests/box-mail.t.sh` runs there with BOX=<the build> |
+| the FALSIFIERS' "real box" line | UNRUN, UNVERIFIED: a separate probe on the installed box (live posts.md filter + real sends), after belam fixes the rows and GOes host act 1; box-mail.t.sh pins a scratch fixture and cannot answer it |
 Why `inconclusive_lean_proved` and not `proved`: the real-box line is unrun. Confidence 0.85: the same file reproduces DG1's independent re-run, and the loud bound is measured, not argued.

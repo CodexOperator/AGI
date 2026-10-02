@@ -34,7 +34,7 @@ Wrote `extensions/agi/tests/box-mail.t.sh` (a shell test: one `ok`/`FAIL` line p
 The same file against the no-retry `box` (BOX=<it>): c2-retry-100of100, c2-retry-0-stderr, c5-unsent-message, c5-exactly-5-tries go RED (4 FAIL; c2 delivers 50 with 9,624 B of stderr).
 
 ## Not measured here
-The "on the real box" line of the hypothesis' FALSIFIERS needs root to install `box` and the signers line (belam's act, DG3's build); the same file runs there with BOX=<the built piece> (the mutation case needs the doc-extracted default).
+The "on the real box" line of the hypothesis' FALSIFIERS needs root to install `box` and the signers line (belam's act, DG3's build); The installed-box falsifier is a SEPARATE probe (the box's jq adjacency filter over the live posts.md + one real send), UNVERIFIED until belam fixes the rows and GOes host act 1; box-mail.t.sh pins AGI_TRUNK=HEAD on a scratch fixture and cannot answer it. The test's default BOX is `sect box` (the trunk piece); c3's no-retry variant is derived from it.
 
 ## Trap found (cost me one run)
 `box send`'s matrix read uses `${AGI_TRUNK:-HEAD}` and a v5 pane EXPORTS AGI_TRUNK=<a branch name>: in a scratch repo that branch does not exist, every send answers `[off-matrix]`. The test pins AGI_TRUNK=HEAD itself; a landing test must do the same.
