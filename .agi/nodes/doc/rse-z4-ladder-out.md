@@ -91,3 +91,33 @@ Z4.c B1: after a rollover, EVERY season reader (the 11 sites) returns the new se
 Z4.d C: G1-G4 all 0/equal on the trunk the same day ladder.md moves; `git grep -l ladder -- .agi/nodes/.geometry/engine*.md` stays 0.
 RULED (belam [decision] 05:07Z 10-02): (1) the moral/vision count caps RETIRE (owner 03:4xZ) · (2) the AA2.25 G4 exception CONFIRMED · (3) belam's `kid` cell WRITTEN e56869124. "Phase A may start via DG1."
 Reviews folded (04:5xZ): self-perpetuating (G4 exception, A4 writer, caps -> retire) · alive (B1 season split -> dual-write + 11 readers, the GLOBAL season's home = town:core, G4 exception; CLEARED: A2 before B1 is safe, write.py's set gate returns no refusal without a schema).
+
+## Z4.6 RE-CUT on the owner's 14:0xZ 10-02 line (belam [owner] 14:01Z): phases B and C SUPERSEDED as written above
+OWNER, verbatim: "we don't need to fix the ladder.py readers ... we're not gonna have any of those readers ... we don't have a workflow anymore. Remember, everything got smushed and coalesced into just spawns ... we just need to retire workflow.py entirely and stop wasting time on it." (record: goal:g5.33 owner 09-28 + goal:g4.6 one spawn path: spawn = dispatch = workflow = subagent)
+MEASURED 14:0xZ, every post's ~/track (agi-track: each opened path once per unit run; a v5-native record of what a post actually RUNS):
+| post | ladder.md lines | workflow.py lines |
+|---|---|---|
+| director-general-5 (pi) | 425 | 4 |
+| thought-master-new | 6 | 1 |
+| director-thought-1 · -2 | 4 · 4 | 2 · 1 |
+| director-general-4 | 2 | 0 |
+| self-perpetuating | 1 | 0 |
+| alive · all-is-one · DG1 · DG2 · DG3 · stream-master | 0 | 0 |
+So v5 posts DO still reach the ladder, through old-setup Python tools they call, and the thought side (DG5, TM-new, DT-1, DT-2) still runs workflow.py.
+```
+A   UNCHANGED (graph only; DG1's round is in flight): [town] -> [goal, vision] · [ladder].md out · 149 -> 148 · 5 towns drop ladder:ladder
+B'  FREEZE ONLY. No ladder reader moves (owner). ladder.md takes no new cell. The season dual-write and the AA2.25 parity exception
+    are DROPPED: they existed only to move readers. town:core stays the named home of the global season, for whenever a v5 piece
+    needs one (none does today).
+W   workflow.py RETIRES ENTIRELY, now (owner), as ONE round:
+    users today (track): DG5, TM-new, DT-1, DT-2 -> their review/research runs become plain spawns (agi-kid / the engine.kid cell)
+    retire (status deprecated + moved, never deleted): extensions/agi/bin/workflow.py · the 30 manifests in extensions/agi/workflows/
+      · skill agi-workflow · config:workflows · hooks/workflow_note.py
+    drop the reference: skills agi, agi-corrective, agi-master-gate, agi-merge-pass · config:commands
+    old-setup callers (dispatch, heal, adapters, glitch_master) keep their dead branch until they retire with the old setup
+C'  ladder.md (+ the 16 old-setup readers, + season.py's write) retire WITH the old-setup Python, never moved.
+    GATE = by USE, not by AST (code nobody runs strands nobody): every live post's ~/track gains 0 ladder.md lines over 24 h
+    (snapshot the counts above, compare a day later) AND the last old-setup post (belam, last) is on v5.
+```
+Falsifiers: Z4.e after W, 0 posts' tracks gain a workflow.py line over 24 h, and DG5 / TM-new / DT-1 / DT-2 still complete a review as a spawn · Z4.f C' as gated above; at the move, `git grep -l ladder -- .agi/nodes/.geometry/engine*.md` stays 0.
+Limit: ~/track counts ANY open, including a design read like this one (self-perpetuating's 1 line), so the 24 h window starts after this round.
