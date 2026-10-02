@@ -68,6 +68,7 @@ agi-captive        576 B  window open: only agi-fill passes
 grow-check        1298 B  one node vs its matrix row + key
 grow-gate         1435 B  pre-receive: added/changed nodes must pass
 grow-project      1185 B  schemas -> the growth matrix
+box               1927 B  mail: one signed ref update per send (5x CAS), read from the store
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
