@@ -91,5 +91,4 @@ REBOOT: agi-boot exit 0 · F1 6/6 (22:22:57 .. 22:32:58) · F3 5/5 + boot-only w
 | `*.pre-tier-*` backups (~/.claude, ~/.pi, on /) | past the day of clean tiering: delete on the owner's word |
 | /tmp on disk: tmpfiles 3m30s this boot (14m28s before) | owner 22:2xZ "Leave it for now" |
 | belam row opus-5-5 / high vs the live Prime opus-5-5[1m] / max | owner sets the row |
-| config:ladder tier-3 parent = claude-code Opus max: the ONLY claude-code parent allowed to run dispatch.py (SM 00:5xZ); SM cites an owner "Sonnet for everything" 02:26Z that no node holds | HELD (no write on an unverified quote). Owner: Sonnet for that row? Not blocking: DG1 runs kid-only rounds; v5 dispatch = the council keys piece |
 | docker data-root on / · sda ~35 ms/op · origin remote moved | owner's window: smartctl + dmesg; `git remote set-url` |
