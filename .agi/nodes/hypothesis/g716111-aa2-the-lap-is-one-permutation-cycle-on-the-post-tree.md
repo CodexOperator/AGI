@@ -26,7 +26,7 @@ On today's config:posts cells (council a real inert row, every member under it),
 config-max: none (the lap is projected, not a cell) / template-max: none / code: lap-project (268 B awk) folded INTO grow-project; no new piece.
 
 ## FALSIFIERS
-AA2.1 PHI on the live tree is a permutation with one cycle covering every dart · AA2.2 on any cells where a parent value is not a row, the cycle covers < all darts (the projection REFUSES, naming the missing row) · AA2.3 subtree laps = 2|T| · negative: the engine's piece list is unchanged (0 new pieces).
+AA2.1 PHI on the live tree is a permutation with one cycle covering every dart · AA2.2 on any cells where a parent value is not a row, the cycle covers < all darts (the projection REFUSES, naming the missing row) · AA2.3 subtree laps = 2|T| · negative: the engine's piece list is unchanged (0 new pieces). · AA2.10 PHI on belam's landed cells (ec5daa28a) is one 18-cycle over all 18 darts and AA2.11 the same on the ruled cells (1efd017e6): both PASS on scratch (self-perpetuating 370cd4433), to re-run on the live cells
 
 ## TESTS
 a test over a fixture posts.md (the live tree + a broken one) asserting the cycle length, uniqueness and the 2|T| rule; grow-project's own tests stay green.

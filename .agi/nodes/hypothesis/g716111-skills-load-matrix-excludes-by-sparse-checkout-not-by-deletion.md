@@ -26,7 +26,7 @@ With a per-worktree sparse-checkout that marks agi-node-write skip-worktree, `gi
 config-max: the load matrix cell (which skills a row loads) / template-max: none / code: the sparse-checkout setup at post stand-up.
 
 ## FALSIFIERS
-`git sparse-checkout list` in a v4 worktree names the exclusion; `git status --porcelain | grep -c '^ D'` = 0 after `git add -A`; negative: the committed .claude/skills link for agi-node-write still exists on the trunk.
+`git sparse-checkout list` in a v4 worktree names the exclusion; `git status --porcelain | grep -c '^ D'` = 0 after `git add -A`; negative: the committed .claude/skills link for agi-node-write still exists on the trunk. · AA2.9 the `skills` matrix row's sparse line removes agi-node-write from the post's tree on BOTH harness paths, git status clean, MAIN untouched: PASS on scratch (self-perpetuating 370cd4433)
 
 ## TESTS
 a scratch repo test: sparse-checkout + add -A stages 0 deletions; the old-setup posts still load all skills.

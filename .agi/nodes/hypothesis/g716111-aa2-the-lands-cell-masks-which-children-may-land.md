@@ -27,7 +27,7 @@ With the cell `lands` on the council row naming sanctuary-master, a council memb
 config-max: the `lands` cell on the council row of config:posts (belam's) / template-max: none / code: the one-line mask check in agi-land (AA3's hypothesis, counted in its 1,797 B).
 
 ## FALSIFIERS
-AA3.9 lane 3g reads `ok` (the cell exists on the trunk since b6b2c33d3; it was FAIL before) · negative: delete the cell and 3g flips to FAIL while the other 12 lanes stay ok.
+AA3.9 lane 3g reads `ok` (the cell exists on the trunk since b6b2c33d3; it was FAIL before) · negative: delete the cell and 3g flips to FAIL while the other 12 lanes stay ok. · AA2.16 AA3's land refuses an UP outside lands(P) and a non-ff: PASS on scratch via all-is-one's lane 3g; the council row carries `lands: [sanctuary-master]` on the trunk since b6b2c33d3, so 3g is ok live
 
 ## TESTS
 lanes.sh (AA3.9) with and without the cell on a scratch trunk.
