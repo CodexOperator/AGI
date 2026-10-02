@@ -42,8 +42,8 @@ A  NOW, graph only (no reader touched, ladder.md untouched)                     
    A3 the 5 towns drop `ladder:ladder` from parents (they keep vision:the-living-being + goal:g26.towns)
    A4 v5 replacements land beside it (AA2): tier = depth from parent cells (never stored; the stale `tier` cell retires from v4 rows)
       · the roles table = ONE inherited engine.kid cell (kid-of, nearest ancestor-or-self) · read_order = the rows' seeds · caps.director_kids = kid.max
-      A4's WRITER = belam (config:posts, like council `lands`): ONE `"kid": {"harness":"claude-code","model":"claude-sonnet-5-5","max":3}` on
-      belam's row covers the whole tree via kid-of. A4 lands BEFORE B2 (workflow.py's move reads it).
+      A4's WRITER = belam: WRITTEN e56869124 (05:0xZ 10-02) `"kid": {"harness":"claude-code","model":"claude-sonnet-5-5","max":3}` on
+      belam's row; kid-of covers the whole tree. A4 lands BEFORE B2 (workflow.py's move reads it).
 B  FREEZE + MOVE (old setup still running)
    B1 ladder.md FROZEN: no new cell. ONE exception until its readers move: the rollover DUAL-WRITES the global season (ladder
       current_season AND town:core's `season`), because 11 reader sites in 6 files still read the ladder's (alive): spawn_gate :742 :1414 ·
@@ -51,7 +51,7 @@ B  FREEZE + MOVE (old setup still running)
    B2 each reader in a tool a v4 post still RUNS reads the tree/row instead, one file per round, FIRST the three spawners
       (workflow.py serves both setups, then dispatch.py, heal.py), then send, brief, verification, ...;
       G4 = parity EXCEPT ONE named change: workflow.py's director stages move claude-fable-5-1 -> claude-sonnet-5-5 (AA2.25; owner
-      02:27Z 10-01 "Everyone else on sonnet 5.5 for everything they need"), flagged to belam; every other spec stays equal
+      02:27Z 10-01 "Everyone else on sonnet 5.5 for everything they need"), CONFIRMED by belam 05:07Z; every other spec stays equal
       parity (alive's G4) proven per file before the next
    B3 readers in tools only old-setup posts run stay on the ladder until that post moves
 C  RETIRE when the LAST old-setup post (belam, last) is on v5 AND alive's gate reads 0/equal:
@@ -69,7 +69,7 @@ NOT BUILT, deliberately: Z3's `cells.tsv` + `cell.py` resolver (1,156 B). A reso
 | season_names · caps_apply_from_season | the town node's season cells | yes |
 | current_loop | none on v5 (the loop counter is the old driver's) | retires |
 | towns · town_branches | each row's `town` cell + the town nodes | yes |
-| caps (moral 5, vision 3, director_kids 3) · caps_vision_scope | director_kids -> kid.max (AA2); moral/vision = a COUNT rule | NO: no v5 piece enforces a count cap today (0 hits in engine*.md) -> owner: RETIRE recommended (a count cap limits the GRAPH, not the engine; owner 23:2xZ "the graph can hold as much as you want just the engine itself needs to be tiny"); else a count column on growth.tsv rows checked by grow-check (one awk count, expansion) |
+| caps (moral 5, vision 3, director_kids 3) · caps_vision_scope | director_kids -> kid.max (AA2; belam's kid cell max 3); moral/vision count caps RETIRED | owner 03:4xZ 10-02 chose "Retire the caps (Recommended)" (belam 05:07Z): a count cap limits the graph, not the engine; no v5 piece enforced one |
 | read_order | the rows' seeds | yes |
 | captive_rotate_ratio · capture_chain_log · card_capture_minutes · alarms_idle_minutes | config:rotations (old setup) | retire with the old setup |
 | budget_usd_week · spawn_profiles · zoom | none (0 readers, Z3) | dead |
@@ -89,5 +89,5 @@ Z4.a after A on the trunk: grow-check parity moves 0 verdicts except the 5 towns
 Z4.b after A: dispatch.py resolve_role_spec for all 8 (tier, role) AND workflow.py's director-stage model == before (phase A touches no spec). After B2: equal except the ONE named AA2.25 change.
 Z4.c B1: after a rollover, EVERY season reader (the 11 sites) returns the new season, read from town:core once moved; when they read 0 from the ladder, the dual-write stops and G2 = 0.
 Z4.d C: G1-G4 all 0/equal on the trunk the same day ladder.md moves; `git grep -l ladder -- .agi/nodes/.geometry/engine*.md` stays 0.
-OPEN for the owner (via belam): (1) the moral/vision COUNT caps: RETIRE (recommended) or a growth.tsv count column · (2) the AA2.25 G4 exception (workflow director stages -> Sonnet 5.5) · (3) belam writes A4's `kid` cell on its row.
+RULED (belam [decision] 05:07Z 10-02): (1) the moral/vision count caps RETIRE (owner 03:4xZ) · (2) the AA2.25 G4 exception CONFIRMED · (3) belam's `kid` cell WRITTEN e56869124. "Phase A may start via DG1."
 Reviews folded (04:5xZ): self-perpetuating (G4 exception, A4 writer, caps -> retire) · alive (B1 season split -> dual-write + 11 readers, the GLOBAL season's home = town:core, G4 exception; CLEARED: A2 before B1 is safe, write.py's set gate returns no refusal without a schema).
