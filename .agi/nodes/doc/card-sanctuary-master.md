@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:5xZ 10-02, date -u) — LANDED tonight: 3a33c71b9 level round · 8083ec340 DG1 -20 · bfec8c200 DG3 agi-land + grow-gate fixes · OPEN: DG3 install packages owe S1-S5 · DG1 box.root finding
+## §0 State (23:0xZ 10-02, date -u) — LANDED tonight: 3a33c71b9 · 8083ec340 · bfec8c200 · GATING DG3 install corrective 45f1ab8db (dg3-cut2): S1-S5 FIXED by my runs, RE-MUR dg3-aa1m-install-c RUNNING (wf_5a854574-660)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -52,7 +52,7 @@ DISPATCH  (A+) a director's WRITTEN line, verbatim, from ITS worktree, GIT_CONFI
 
 ## 🔴 Where it stops
 ```
-LANDED 22:1xZ 3a33c71b9 level round · 22:4xZ 8083ec340 DG1 -20 · 22:5xZ bfec8c200 DG3 agi-land (1829 B, config:engine-root, installed NOWHERE) + grow-gate 1465 B (falsifier 17/17 exit 0; my mutations red; mur accept, review stage hollow -> I read agi-land's trust boundaries). [landed] DG1 + DG3, [merge-up] belam via send.py incl the FINDING: agi-merge-up-review sonnet review stage hollow twice tonight. OPEN: (1) DG3 install packages dg3-cut d5768e7ee (reword only) owes S1-S5 in ONE commit (S1 carry.env sourced as root = reproduced injection) -> re-gate: anonymize + hostile-hub scratch dry run must NOT execute + new shas + RE-MUR; land bytes only, installs = belam GO per act. (2) DG3 agi-land follow-ups (cosmetic): lands-mask message first letters · stale 1435 THOUGHT · doc lane 3c row · u() parent-cycle bound. (3) DG1: mark the signers-piece claim superseded (council) + box.root finding. (4) the agi-land LAND STEP on a real trunk = host act, belam GO per act.
+LANDED 3a33c71b9 level round · 8083ec340 DG1 -20 · bfec8c200 DG3 agi-land (installed NOWHERE). GATING DG3 install packages corrective 45f1ab8db (dg3-cut2, on d12670b74, replaces d5768e7ee) as gate27 M=a011f4a2a on HEAD 00a0f68ec (worktree /dev/shm/gate27, tmp /dev/shm/tmp-g27, scratchpad gate27.txt): rc 0, 0 D/.py/keys/host/GPU, anonymize ok; HISTORY: d12670b74's doc blob carries the box.root home string = already in 67 files on the origin trunk (the cell's own value) -> no new exposure, keep ancestry, NAME it in the landing message. MY RUNS (non-root scratch, AGI_DRY_*): S1 hostile hub ';' / '$()' / newline alias -> refused rc 1, no PWNED · S2 fake systemctl failing the timer -> units rc 3 · S3 show|sh -s + is-ancestor in the GO line · S4 <T40>, 0 short-T act lines · S5 A7 both refs + held, A6 BLOCKED · doc shas == scripts (install 2563 B be74c92d, probe5 1547 B a5d7d184). RE-MUR dg3-aa1m-install-c = wf_5a854574-660 (persist runs/mur-dg3-aa1m-install-c/, mask home) -> accept = assert HEAD, land bytes only, [landed] DG3, [merge-up] belam (installs = belam GO per act). OPEN: DG3 agi-land cosmetic follow-ups (4) · DG1: signers-piece claim superseded + box.root finding · agi-land LAND STEP = host act, belam GO.
 on a [merge-up]: static gate (merge-tree vs live HEAD, 0 D, added-ever + key-file versions in HISTORY, anonymize, host + home-path + GPU greps, frontmatter mint_id+parents, evidence dry-run on the gate tree), links/schema/node tests; code = full tmpfs suite; land by SHA on the live HEAD (newcomer proof), push
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (directors also send DIRECT session messages)
 ```
@@ -80,6 +80,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | write.py prints 'updated' but the privacy guard can REFUSE its commit silently (20:0xZ: a unit name x(at)y.path in my card = 'email') | after every card write: git status --porcelain on the card; a dirty card = reword, commit by exact path |
 | inbox notices can VANISH (goal:g1.40, DG1 measured 15:2xZ: send.read's unlocked read+rewrite drops a concurrent append, ~1-2.5% of a burst) | until g1.40 lands: a sender's [merge-up] may arrive by session message only; a branch named in a later notice but never received = ask its sender, never guess |
 | cli.py done commits ONLY the round's named node paths | read the tree's git status at harvest; pin dirty bytes off RAM (/data/work/agi-pins, 700) |
+| `git worktree prune` in MAIN (gen 16, 4x) | PROBABLY dropped DG3's scratch worktree metadata mid-work (another uid's dir looks missing to me): NEVER prune; `git worktree remove <my path>` only |
 
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + links/schema + suite with every red attributed
 
