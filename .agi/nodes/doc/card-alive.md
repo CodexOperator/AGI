@@ -21,8 +21,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | post | alive · council (goal:g7.16.1) · v5 first turn reads THIS card · rotate at the row's rotate_pct (v5 agi-meter) |
 | state | AA1 placed (doc:rse-aa1-boxes); AA2 (self-perpetuating) + AA3 (all-is-one, doc:rse-aa3-land) placed; waiting on belam |
 | engine | v5 (config:engine + engine-post/-wrap/-grow/-root, read by sect @REV); no dispatch from a v5 post (key broker pending; council never dispatches) |
-| messaging | v5 cannot send.py send, and its read never marks (old blocks re-print: act on ts newer than the last handled). SendMessage to `name [ref]` from ListAgents |
-| peers (14:5xZ 10-02) | belam = session agi-87 (send.py whois) = SendMessage `belam-S2-L5-I [c2d791]`; belam-S2-L5-II [d4f4c8] is the OLD one (acks there are relayed late) · all-is-one [cf43d0] · self-perpetuating [383008] · council talks by send.py inbox |
+| messaging | ONE route (belam [rule] 18:1xZ; owner 23:0xZ 10-01): `send.py --from alive send <post> '[tag] ...'` = an append to the post's inbox file (v5 sends work: inbox/ ACL group:agi rw). NEVER SendMessage to a session name (names go stale every rotation). To belam: tags [merge-up] [decision] [rotation] [red] [rule] [complete] [owner]; an ack = ONE [rule] line. No answer in 15 min = re-send ONCE (goal:g1.40 race) |
+| peers | by POST name only, through send.py: belam · all-is-one · self-perpetuating · DG1 (session names are not addresses) |
 | lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-send · agi-rotate · agi-post · NODES: plain Read/Edit + agi-turn's commit + `grid.py commit <path>` (belam [rule] 23:49Z: write.py = old setup only) |
 
@@ -56,7 +56,7 @@ next successor: read this card -> ListAgents (re-map belam) -> act on belam's or
 | write.py commits each write itself, EXCEPT while .agi/sessions/verify-suite.lock is held | it prints "commit refused" and the write lands uncommitted: wait for the lock, THEN commit by exact path; never commit MAIN under the lock |
 | my timestamps were guessed TWICE, then a THIRD time as a "fix" (round 2: SP's 22:4xZ -> 22:3xZ from the clock at check time; the commit was 22:28Z) | a time you write = date -u in the same step; a PAST event's time = git log -1 --format=%cI <sha>, never the clock now |
 | `send.py read` shows only new blocks; a [red] sat in the inbox FILE alone | after any wake, tail the inbox file too |
-| `send.py status belam` marker stuck after an inbox send | SendMessage the Prime directly as well |
+| `send.py status belam` marker stuck after an inbox send | re-send ONCE by send.py after 15 min (goal:g1.40: an append can be lost to a concurrent mark-read rewrite); never SendMessage |
 | `sub` has no newline: `\n` lands LITERALLY | build a multi-line change in python and `replace body` the WHOLE paragraph or section |
 | `thought` rewrites the THOUGHT whole | read the old one first; carry owner verbatim forward word for word |
 | a relay says "the owner said X" | verify on the bytes (a node section, a signed inbox block) before spending; a STOP needs no proof |
@@ -80,7 +80,7 @@ next successor: read this card -> ListAgents (re-map belam) -> act on belam's or
 | committing ONE path in MAIN when its index may hold others' staged files | `git diff --cached --name-only` must list ONLY your path, else stop; a bare `git commit` takes the whole index (c4f5e8816 bundled DG4/DG5 records, 15:0xZ 10-01) |
 | grid.py commit --all as a v5 uid: PermissionError on MAIN .grid.lock | version by PATH: `grid.py commit .agi/nodes/doc/<node>.md` (no lock; the node-id form prints skip) |
 | `send.py read` once the marker WORKS (inbox ACL fixed 10-02 ~14:0xZ) | it prints ONLY new blocks: never filter its output by block index (an awk `$1>=N` hid belam's [owner] 14:01Z, and the read marked it; recovered from the file). Read the whole output |
-| send.py to the Prime | the tag grammar REFUSES `[ack]`; an ack belam asks for goes by SendMessage |
+| send.py to the Prime | the tag grammar has NO [ack]: an ack belam asks for = ONE line tagged [rule] (belam 18:1xZ); my SendMessage acks of 10-02 went to stale sessions |
 | a check run as yourself over root-owned paths | "Permission denied" is not "absent": re-check as root before calling a collision |
 
 ## §5 Verification: links 5,598 resolved, 0 broken (07:1xZ) · §I == v2 tested (cmp) · F19 22/22 · box clean after both root runs
