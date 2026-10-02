@@ -21,10 +21,10 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 26 (07:1xZ 10-02): Z4 phase A LANDED as ONE trunk update c2decf431 (SM, 07:03Z): my 4 anchor commits as authored (held on belam/z4a-anchor so the trunk was never red) + DG1's C4 + prose + DG1.11 tests on top. Verified on the trunk by belam. "Anchor-signed" = Prime-authored (no schema commit here has ever carried a git signature; grow-gate's AGI_ANCHOR is design only, doc:radically-simple-engine §Y1).
+gen 26 (14:4xZ 10-02): OWNER 14:0xZ (verbatim on town:local-maxxing Agent Notes 64bf778d4): no ladder reader moves, workflow.py retires entirely (spawn = dispatch = workflow = subagent; goal:g5.33 + g4.6), fix the skill-load test, shell tests? -> relayed whole to the council + SM + DG1, 5/5 acked; all-is-one re-cut Z4.6 (8356d4114, reviewed = matches). The skill-load red closed: belam wrote the config:rotations half (the [config] ring is belam's) on a branch, landed with DG1's build nodes as ONE update 96140880b. Pattern for every [config]/[schema] half a round cannot write: belam writes it on a branch, SM lands both together.
 <!-- THOUGHT:END -->
 
-## §0 State (07:1xZ 10-02, read from date -u)
+## §0 State (14:4xZ 10-02, read from date -u)
 | | |
 |---|---|
 | post | belam gen 26 (row generation fixed 1 -> 26 ff323856c per gen 25 [red] 06:12Z; window @5), session 285ac5d4, OLD engine (owner 00:1xZ: the belam v5 move = the successor-after-next, only after AA3 land + keys are BUILT) |
@@ -49,11 +49,12 @@ NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 �
 ```
 
 ## §2 Landed (gen 26)
-wake: trunk synced w/ origin/season2/main 895c1ad3c (trap 70) cd6d99162 · card re-linked 00b79c1e7 · Z4 phase A anchor set 52d7fc4ca (4 blobs == DG1's) -> LANDED c2decf431 (SM, one atomic update, 07:03Z) · scratch worktrees removed
+wake syncs cd6d99162 00b79c1e7 · Z4 phase A c2decf431 (anchor set 52d7fc4ca) · row generation 1 -> 26 ff323856c · owner 14:0xZ banked 64bf778d4 + relayed · pb3 config:rotations half (ae3d4e366 ab864f427) landed with DG1 = 96140880b, trunk red closed
 
 ## 🔴 Where it stops
-Nothing open for belam: Z4 phase A landed c2decf431 and verified; phase B (freeze + move readers, workflow.py first) = DG1/DG2/DG3 work, reviewed via SM's [merge-up]s
-- standing residue: test_town_mint_final.py:175 needs the a00-80511a41 fence's ladder parent -> ONE later DG1 round (fence fix + substitution delete); not belam's
+Nothing open for belam until Z4.6 W (workflow.py retires, ONE round, DG1) merges up: it needs a belam [config] step (both config:rotations skills entries drop build:skills-agi-workflow-SKILL.md + byte_cap) -- DG1 hands the exact sub; belam writes it on a branch; SM lands both in ONE update (pb3 pattern, flagged 14:4xZ)
+- shell tests vs Python = council design (alive convenes); Z4 C' = ladder retires WITH the old setup, gated by ~/track use over 24 h
+- standing residue: test_town_mint_final.py:175 (fence round, DG1)
 Council bundle is with DG1; DG2 + DG3 on v5 work DG1's leaves; belam reviews only; next belam stays on the old engine
 - wake: CronList -> re-arm CHECK (13 */4) + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · read .agi/sessions/inbox/belam.md by ts (trap 66)
 - watch: SM's [merge-up]s of DG1/DG2/DG3 work; review against the 8 KB base / 1 KB seed and the owner lines on town:local-maxxing (Agent Notes)
@@ -80,7 +81,8 @@ Council bundle is with DG1; DG2 + DG3 on v5 work DG1's leaves; belam reviews onl
 | 78 | SendMessage "Failed" can still deliver; a v5 uid cannot append to another's inbox until AA1 | wait for a reply; v5 -> v5 mail = AA1 boxes |
 
 ## §5 Verification
-Z4A on the trunk c2decf431: 4 anchor commits as authored · 3 anchor blobs == 52d7fc4ca · 0/5 towns parent ladder:ladder · 10 test files 76 passed 0 failed · links 5719/0 · schema 246/18/0 (unchanged) · growth.tsv == grow-project · verify 12/13 (bin-suite-fresh known) · nodes 5,760
+pb3 on the trunk 96140880b: rotations.md == ab864f427 · test_skills_first_turn_entry 4 passed · wake reads agi-post + agi-stream rc 0 · links 5724/0
+Z4A on the trunk c2decf431: 76 passed · links 5719/0 · schema 246/18/0 · growth.tsv == grow-project · verify 12/13 (bin-suite-fresh known) · nodes 5,760
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
