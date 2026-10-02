@@ -21,20 +21,20 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 25 out (01:2xZ 10-02): MOVE 6 stream-master; G9 boot unit mock -> G9.5 -> /etc install -> ONE real reboot PASSED; DG2 + DG3 up on v5; the owner corrected the Prime twice (design belongs to the council = the figure eight; mail = inbox files, not direct messages; grid = the only commit surface) -> both written into the Prime template + HEAD; the council's bundle (AA1-AA3 + versioning) is with DG1. Every owner line of this generation is banked verbatim on the town board, town:local-maxxing Agent Notes (moved 03:2xZ from l5-owner-decisions, owner) before this card collapsed them.
+gen 26 (06:3xZ 10-02): the card's FIRST line done in its safe form -- C1 C1b C2 C3 re-authored byte-identical to DG1's shas and held on branch belam/z4a-anchor (tip 52d7fc4ca), NOT on the trunk: the anchor bytes alone on the trunk would redden 6 town tests until SM lands C4 + tests, and branch_push pushes hourly. SM puts C4 + prose + DG1.11 tests on top = ONE trunk update = phase A atomic, my 4 commits as authored. "Anchor-signed" in practice = Prime-authored (no schema commit on this trunk has ever carried a git signature; grow-gate's AGI_ANCHOR is design only, doc:radically-simple-engine §Y1).
 <!-- THOUGHT:END -->
 
-## §0 State (01:2xZ 10-02, read from date -u)
+## §0 State (06:3xZ 10-02, read from date -u)
 | | |
 |---|---|
-| post | belam gen 25 = agi-eb [1c1020] @1, OLD engine (owner 00:1xZ: the belam v5 move = the successor-after-next, only after AA3 land + keys are BUILT) |
+| post | belam gen 26 (gen_after 1, row window @5), session 285ac5d4, OLD engine (owner 00:1xZ: the belam v5 move = the successor-after-next, only after AA3 land + keys are BUILT) |
 | box | REBOOTED 22:17:34Z 10-01 (owner GO). agi-boot in /etc, enabled: exit 0 22:32:58Z · F1 6/6 120 s apart · F2 ACL pair · F3 5/5 down · heal 4/4 old posts |
 | v5 up | alive · all-is-one · self-perpetuating · DG1 · TM-new · DT-1 (boot set) + DG2 (00:0xZ) + DG3 (moved 00:0xZ, row dbce857b4, h.conf only) |
 | down | DG4 · DG5 · DT-2 · stream-master: owner "keep the 5 down" (disabled, recover false, 0 procs) |
 | old setup | belam @1 · SM @2 · old TM @3 (heal guards ONLY these; v5 = systemd Restart) |
 | tree | config:posts parent cells: owner > belam > council{members alive, all-is-one, self-perpetuating · lands [SM]} > SM > DG1 · TM-new > DT-1 (f3a7eb1da ec5daa28a 1efd017e6 faabf9b7a b6b2c33d3) |
 | mail | = append to the post's inbox file in MAIN; the v5 wrapper turns growth into a turn. `send.py --from belam send <p> "<text>"`. Inbox dir g:agi rwx + default rw (01:1xZ). SendMessage = fallback only |
-| crons | session-only: CHECK (13 */4) + memory Monitor (memmon.py, re-arm each 30 min): both die with me, re-arm at wake |
+| crons | session-only: CHECK e8519b0a (13 */4) + memory Monitor (inline /proc/meminfo + PSI, 30 min, re-arm; memmon.py not found without an io sweep): both die with me, re-arm at wake |
 | merge pass | paused_by_owner (05:1xZ 09-30: council / automated). BASE 1f2b49ffc9 |
 | A+ | ladder tier-3 claude-code parent = Sonnet 5.5 (d9d1cb7a1; owner 02:27Z 10-01 "Everyone else on sonnet 5.5 for everything they need") · SM runs a v5 director's WRITTEN dispatch order on claude-code Sonnet 5.5, 0 USD (01:1xZ); ends when the council's keys land |
 
@@ -48,18 +48,20 @@ belam: answer [decision]s · give each host act (sudo, /etc, unit installs) its 
 NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 · ladder:ladder retires for the post tree (owner 03:1xZ, sent to the council; Z3) -- built by the directors
 ```
 
-## §2 Landed (gen 25)
-MOVE 6 stream-master 20:23Z · G9 mock + G9.5 + /etc install + real reboot · DG2 up · DG3 to v5 · v5 = plain tools, write.py old-setup only (HEAD, briefs, skill 75c04c848) · template rules 76f1129d1 · tree + council cells · inbox ACL · ladder tier-3 parent Sonnet d9d1cb7a1 · belam kid cell e56869124 · count caps RETIRE (owner 03:4xZ) · ladder-out = doc:rse-z4-ladder-out (council -> DG1) · per-post stores (b) ACCEPTED · owner lines on the town board · trunk syncs 7f328e99e
+## §2 Landed (gen 26)
+wake: trunk synced with origin/season2/main 895c1ad3c (identical key row, trap 70) cd6d99162 · quorum card re-linked 00b79c1e7 · pushed · Z4 phase A anchor set on belam/z4a-anchor 52d7fc4ca (4 blobs == DG1's; growth.tsv re-projected cmp equal) · mailed SM 06:3xZ
 
 ## 🔴 Where it stops
-FIRST: sign Z4 phase A (ladder-out) as the anchor once DG1.11 tests read green: SM option (a), chosen by belam gen 25 05:1xZ
-- re-author + sign on the trunk, in this order, content byte-identical to DG1's branch z4a-recut (cut from 4f88246d5): C1 e8e567554 [town].md spawn block -> [goal, vision] · C1b 91be9fdf5 [town].md ## spawn prose · C2 01274a7a7 [ladder].md -> ladder.md · C3 a93acbb17 growth.tsv regenerated (L5: 6 verdict lines move, none flips accepted->refused)
-- then SM lands C4 2227bb8a9 (5 towns drop ladder:ladder) + prose + the DG1.11 tests the same minute; phase A = ONE atomic set. Verify each re-authored blob == DG1's (git diff <dg1 sha> <yours> empty) before signing
-Council bundle is with DG1 (goals landed); DG2 + DG3 on v5 work DG1's leaves; belam reviews only; next belam stays on the old engine
+FIRST: Z4 phase A anchor set is SIGNED on branch belam/z4a-anchor 52d7fc4ca -- wait for SM's ack + land (C4 + prose + DG1.11 tests ON TOP, one trunk update)
+- ad84458e5 C1 == e8e567554 · 61919604b C1b == 91be9fdf5 · 47b1fd8cb C2 == 01274a7a7 · 52d7fc4ca C3 == a93acbb17 · cut from trunk 8cbd0487c
+- SM acks? none 15 min after 06:3xZ = re-send (trap 69): `send.py --from belam send sanctuary-master <body file>`
+- SM conflicts on the 3 anchor paths -> SM returns it; re-cut from the new trunk the same way (git show <dg1 sha>:<path>), verify blobs, re-mail
+- after the land: verify on the trunk (skill agi-verify; 76 passed · links 0 · schema 246/18/0 at b455c15ad) · then `git worktree remove` scratchpad/z4a-check + z4a-anchor (never --force)
+Council bundle is with DG1; DG2 + DG3 on v5 work DG1's leaves; belam reviews only; next belam stays on the old engine
 - wake: CronList -> re-arm CHECK (13 */4) + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · read .agi/sessions/inbox/belam.md by ts (trap 66)
 - watch: SM's [merge-up]s of DG1/DG2/DG3 work; review against the 8 KB base / 1 KB seed and the owner lines on town:local-maxxing (Agent Notes)
 - each host act a v5 post asks for (sudo, install, unit start) = its own belam GO, before-state recorded, rollback named
-- nothing is owed to the owner right now; every open item is in §6
+- nothing is owed to the owner; every open item is in §6
 
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
@@ -81,7 +83,8 @@ Council bundle is with DG1 (goals landed); DG2 + DG3 on v5 work DG1's leaves; be
 | 78 | SendMessage "Failed" can still deliver; a v5 uid cannot append to another's inbox until AA1 | wait for a reply; v5 -> v5 mail = AA1 boxes |
 
 ## §5 Verification
-REBOOT: agi-boot exit 0 · F1 6/6 (22:22:57 .. 22:32:58) · F3 5/5 + boot-only wants · F2 · heal 4/4 · DG3 v5 first turn 00:0xZ · nodes 5,745 · trunk == origin
+Z4A at kid tip b455c15ad: 10 test files 76 passed 0 failed · links 5719/0 · schema 246/18/0 == trunk · grow-project 1,185 B re-projects C3 byte-equal
+REBOOT (gen 25): agi-boot exit 0 · F1 6/6 · F3 5/5 · F2 · heal 4/4 · nodes 5,745
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
