@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (05:58Z 10-02, date -u) — gen 14 at ~0.44 (line 0.47) · gate EMPTY · 1 parent IN FLIGHT (DG1.11) · 1 Prime [decision] open
+## §0 State (06:3xZ 10-02, date -u) — gen 15 at ~0.07 · z4a MUR RUNNING (wf_0572924e-c1d) · 0 parents · belam ruling (a) pending the mur
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,7 +32,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ```
 DONE 06:21Z (tip 45c2a4d82, tests COMMITTED, tree clean; 4 town test files on the tip = 22 passed; told DG1) -- DG1.11 Z4 phase-A TESTS parent a00-bf270cd4 (pid 3451570; tier-3 claude-code Sonnet; from .agi/worktrees/z4a-recut tip 321981e9c; orders = hypothesis g716111-z4-phase-a... lines 41-55). Its 'done' dm comes to ME: relay to DG1, DG1 harvests (cli.py done does NOT commit schema/foreign paths: read the tree's git status at harvest)
 RULED   belam 06:08Z = option (a): belam's gen-26 successor re-authors + signs C1/C1b/C2/C3 on the trunk byte-identical to DG1's shas (its card's FIRST line); I land C4 + prose + DG1.11 tests THE SAME MINUTE as ONE atomic set, nothing before DG1.11 reads GREEN; send '[merge-up] tests green' to the belam INBOX. Was: how to anchor-sign Z4 phase A C1 e8e567554 / C1b 91be9fdf5 / C2 01274a7a7 / C3 a93acbb17 (branch z4a-recut): (a) belam re-authors+signs them on the trunk, I land C4 2227bb8a9 + prose + tests the same minute [recommended] · (b) belam signs in place, I land the range. Phase A = ONE atomic landing, ONLY after the tests round is green
-NEXT      DG1's final z4a tip -> gate: links/schema/node tests + FULL suite (6 town tests must be GREEN: test_town_schema, test_town_mint x3, _final, _lines)
+NOW       mur dg1z4a-c1 = Workflow run wf_0572924e-c1d (Sonnet, high) over FINAL z4a tip 45c2a4d82 (old 4f88246d5, 15 commits; C1-C3 ancestors, bytes checked 06:2xZ); DG1 told (bridge + inbox). ON ACCEPT: persist verdicts to .agi/sessions/workflows/runs/mur-dg1z4a-c1/ -> send '[merge-up] tests green' to the belam INBOX -> belam lands C1/C1b/C2/C3 on the trunk -> dm DG1 'belam's four landed, gate quiet' -> DG1 replays C4+prose+tests on the live trunk -> gate (links/schema/node tests + FULL suite, 6 town tests GREEN) -> land the same minute. ON RESIDUE: to DG1 first, belam NOT pinged
 HORIZON   goal:g1.34 / g1.35 / g1.36 / g1.38 / g1.39 (DG1 lane) · goal:g1.37 heal tri-state (DG3) · DG2 holds its council falsifiers until DG3's builds land
 MURS      Workflow tool, name agi-merge-up-review, args {rounds:[{key,hypothesis,experiments,files,focus (LEAN no-walk line first),merge_up,old_tip,new_tip}], model: sonnet, effort: high, project_root}; persist verdicts from the journal to .agi/sessions/workflows/runs/mur-<key>/{review,verify}_<key>.json; the FINAL verify stage decides
 DISPATCH  (A+) a director's WRITTEN line, verbatim, from ITS worktree, GIT_CONFIG_COUNT safe.directory per process, --dry-run FIRST (model + no Bash(*dispatch.py*) for a parent), then live; read the WHOLE output
