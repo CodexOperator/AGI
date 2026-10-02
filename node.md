@@ -2098,7 +2098,7 @@ The will box is already the `post brief card-<p> brief` row, so the boxes and th
     UP   v→u (u = parent(v)) : u may FAST-FORWARD to v's tip, only if v ∈ lands(u)   (Z1's pattern: matrix × mask)
     lands(u) = a cell on u's row; ABSENT (null) = all children; EMPTY [] = NONE (never read [] as absent: all-is-one's trap, 20:0xZ)
     an INERT group has no branch: an UP dart into it passes through to its first non-inert ancestor, masked by the group's own lands (AA3.14)
-    rows after belam's 20:0xZ round: keep lands = [sanctuary-master, thought-master-new]; council lands = NOBODY: spelled [] once agi-land tells null (all) from [] (none); until then the interim spelling is ["none"] (alive 20:02Z); members' work reaches the trunk via SM's gate
+    rows after belam's 20:0xZ round: keep lands = [sanctuary-master, thought-master-new]; council lands = []  (= NOBODY: agi-land tells null from [] since all-is-one's 20:04Z fix, +32 B, 17 lanes = 15 ok + the 2 pre-existing; a member landing on council refused); members' work reaches the trunk via SM's gate
   the work petal:  council ──DOWN──▶ SM ──DOWN──▶ DG1 ──UP──▶ SM ──UP (lands)──▶ council ──UP──▶ belam
 ~~~
 The rule has no new state: DOWN/UP is read off the parent cell, and lands(u) is one optional cell. AA3's land check is the whole enforcement: `(c→P) is UP && c ∈ lands(P) && git merge-base --is-ancestor P c`. Nothing moves sideways (siblings never merge each other) and nothing skips a level. Members' and TM-new's work, outside council's lands mask, reach the trunk as today, through SM's gate.
