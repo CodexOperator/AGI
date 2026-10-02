@@ -18,7 +18,7 @@ town: core
 ## Measured
 - doc:rse-z4-ladder-out Z4.2 phase C; AA1.L (doc:rse-aa1-boxes, alive's count 05:0xZ). ladder.md is 10,670 B + [ladder].md to remove at C.
 - C waits for the LAST old-setup post (belam, last) to be on v5; the old setup is belam, SM, DG3 and old TM today.
-- OPEN for the owner (via belam): the moral/vision COUNT caps (moral 5, vision 3) have no v5 home (no v5 piece enforces a count cap: 0 hits in engine*.md): a matrix count column, or retire them.
+- RULED (belam 05:07Z, owner 03:4xZ): the moral/vision COUNT caps (moral 5, vision 3) RETIRE with the ladder: no v5 piece enforces a count cap (0 hits in engine*.md) and none is added.
 
 ## CLAIM
 On the trunk the same day ladder.md moves, every season reader (the 11 sites) returns the new season from town:core (Z4.c), G1 (AST readers) = 0, G2 (writers) = 0, G3 (`source = "ladder"`) = 0 and G4 (spec parity for every (tier, role) + every row a spawner reads) is equal; ladder.md is deprecated and moved, not deleted; `git grep -l ladder -- .agi/nodes/.geometry/engine*.md` stays 0 hits (Z4.d).

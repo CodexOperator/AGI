@@ -33,7 +33,12 @@ Z4.a after A on the trunk grow-check parity moves 0 verdicts except the 5 towns 
 the Z4 scratch cases L1-L5 re-run on the landed bytes; the 8-spec parity script (alive's G4) before/after.
 
 ## FILE SCOPE
-[town].md (signed anchor, the Prime's) · [ladder].md moved to deprecated/ (status deprecated, never deleted) · the 5 town:* nodes' parents · growth.tsv (projected). No Python.
+[town].md (signed anchor, the Prime's) · [ladder].md renamed in place to ladder.md (unbracketed, `active: false`; the projector glob skips it; NOT moved to deprecated/) · the 5 town:* nodes' parents · growth.tsv (projected). No Python.
 
 ## CEILING
-1 parent · kids <= 1 · 3 schema lines + 5 parent lines · regular review. NEEDS the anchor signature (belam).
+1 parent · kids <= 1 · 3 schema lines + 5 parent lines · regular review. STARTABLE (belam 05:07Z: 'Phase A may start via DG1'); the [town] schema commit needs belam's anchor signature, so it is its OWN commit.
+
+## Residue (mur dg1z4a-c1)
+Verdict accept_with_residue (verify wins; files `.agi/sessions/workflows/runs/mur-dg1z4a-c1/{review,verify}_dg1z4a-c1.json`). Four conjuncts MET; L5 UNVERIFIED (the 5.5k-node walk; the experiment names `.geometry/ladder.md` as the 6th mover). Refuted, nothing owed: C1-C3 carry no per-commit signature norm (belam re-authored them blob-equal at landing); `create.sh` / `core.md:122` stale ladder text is phase B/C scope.
+- ONE later round (not owed in phase A): `extensions/agi/tests/test_town_mint_final.py:175` asserts the a00-80511a41 fence still says `--parent ladder:ladder` (fence at `experiment/a00-80511a41-c96c9f.md:69-71`; the new schema refuses that line). The round fixes the fence to the goal:g26.towns + vision lines AND deletes the substitution at `:176-177` together; the test goes loudly red if only one half moves.
+- Notes, left as they are (tests stay byte-equal to 45c2a4d82): `test_illegal_parent_ladder_refused_by_name` compares list order with the sorted print (wrap in `sorted()` in that round); the numstat in `experiment:a00-ed087c41-517fc1` says 36/21 for `test_town_mint.py` where the bytes say 31/21 (text only).
