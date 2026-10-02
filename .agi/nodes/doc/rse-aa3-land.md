@@ -195,37 +195,41 @@ It needs no pytest: sh · git · jq · awk · ssh-keygen · python3 (agi-fill al
 SHAPE (common with AA1.T's agi-meter.t.sh, agreed 14:0xZ): one file per piece, extracted from its node by sed, one `ok <case>` / `FAIL <case>` line each, exit = the number of FAILs. lanes.sh now exits 2 on today's trunk (4m + 4v, the byte-fix witnesses) and 0 with all four AA3.4 fixes, measured.
 For DG1: a gate change lands only with its lanes green (exit 0); the lanes run as the row `sh extensions/agi/tests/aa3-lanes.t.sh` (AA3.9 RUNNER line), never as code sliced from this doc; the 7,917 old-setup tests retire with their code, never ported (AA1.T).
 
-## AA3.14 The keep round, part (2): an inert group passes a land through to its parent (belam [decision] 20:0xZ 10-02; pass-through = self-perpetuating 19:59Z, AA2)
-RULE: a row with a `members` cell is an INERT group (no branch, no level, sends nothing). For post p with parent Q: Q non-inert -> the lander is Q; Q inert -> the lander is parent(Q). The mask is ALWAYS lands(Q), the immediate parent's cell. No member lookup is left, so a group member can never land itself or a peer (the members path would have let SM land itself once parent(SM) = keep). The literal "council" is gone. 1,797 -> 1,785 B (-12).
+
+## AA3.14 The keep round, part (2): an inert group passes a land through to its parent; `lands: []` = none (belam [decision] 20:0xZ 10-02; pass-through + null-vs-[] = self-perpetuating 19:59Z / 20:03Z, AA2; council cell = alive 20:02Z)
+RULE: a row with a `members` cell is an INERT group (no branch, no level, sends nothing). For post p with parent Q: Q non-inert -> the lander is Q; Q inert -> the lander is parent(Q). The mask is ALWAYS lands(Q), the immediate parent's cell: ABSENT = all children, [] = NONE (jq emits a "Q>" marker for any cell; select(.) keeps [], drops null), so no post name is magic. No member lookup is left, so a group member can never land itself or a peer (the members path would have let SM land itself once parent(SM) = keep). The literal "council" is gone. 1,797 -> 1,829 B (+32).
 ```diff
-@@ -3,10 +3,11 @@
+@@ -1,12 +1,13 @@
+ #!/bin/sh
+-# agi-land <sender> <post> <sha>: root ff-lands <post>'s <sha> on the trunk, ONE parent edge up: sender = parent(post); parent "council" (inert row) = a name in its members cell (absent = nobody); a parent-owner post lands itself; a `lands` cell on the parent narrows which children it takes (AA2: council lands only SM).
++# agi-land <sender> <post> <sha>: root ff-lands <post>'s <sha> on the trunk, ONE parent edge up: sender = parent(post); a parent with a members cell is an inert group: the land passes to ITS parent; a parent-owner post lands itself; a `lands` cell on the parent narrows which children it takes (absent = all, [] = none).
  # each commit in $o..$n signed (root's ring) by the sender or a post under <post> on the parent cells · grow-gate on $o..$n · agi-gate · CAS ff
  T=${AGI_TRUNK:-refs/heads/trunk};A=${AGI_RING:?};o=$(git rev-parse -q --verify $T)||exit 1;n=$(git rev-parse -q --verify "$3^{commit}")||exit 1
  git merge-base --is-ancestor $o $n||{ echo "refused: not ff";exit 1;};t=$(mktemp -d);trap 'rm -rf $t' EXIT
 -git show $o:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r '"\(.name) \(.parent//"")",(select(.name=="council")|.members[]?|"M \(.)"),(.name as $n|.lands[]?|"\($n)>\(.)")'>$t/p
-+git show $o:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r '"\(.name) \(.parent//"")",(select(.members)|"I \(.name)"),(.name as $n|.lands[]?|"\($n)>\(.)")'>$t/p
++git show $o:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r '"\(.name) \(.parent//"")",(select(.members)|"I \(.name)"),(.name as $n|.lands|select(.)|"\($n)>",(.[]|"\($n)>\(.)"))'>$t/p
  u(){ x=$1;while [ "$x" ];do [ $x = $2 ]&&return;x=$(awk -v n=$x '$1==n{print $2}' $t/p);done;return 1;}
 -grep -qx "$2 $1" $t/p||{ grep -qx "$2 council" $t/p&&grep -qx "M $1" $t/p;}||{ [ $1 = $2 ]&&grep -qx "$1 owner" $t/p;}||{ echo "refused: $1 is not the parent of $2";exit 1;}
 -P=$(awk -v n=$2 '$1==n{print $2}' $t/p);grep -q "^$P>" $t/p&&! grep -qx "$P>$2" $t/p&&{ echo "refused: $P lands only $(sed -n "s/^$P>//p" $t/p|tr '\n' ' ')";exit 1;}
 +q(){ awk -v n=$1 '$1==n{print $2}' $t/p;};Q=$(q $2);P=$Q;grep -qx "I $Q" $t/p&&P=$(q $Q)
 +{ [ "$P" != owner ]&&[ "$1" = "$P" ];}||{ [ $1 = $2 ]&&[ "$P" = owner ];}||{ echo "refused: $1 is not the parent of $2";exit 1;}
-+grep -q "^$Q>" $t/p&&! grep -qx "$Q>$2" $t/p&&{ echo "refused: $Q lands only $(sed -n "s/^$Q>//p" $t/p|tr '\n' ' ')";exit 1;}
++grep -q "^$Q>" $t/p&&! grep -qx "$Q>$2" $t/p&&{ m=$(sed -n "s/^$Q>\(.\)/\1/p" $t/p|tr '\n' ' ');echo "refused: $Q lands only ${m:-nothing}";exit 1;}
  for c in $(git rev-list $o..$n);do s=$(git -c gpg.ssh.allowedSignersFile=$A verify-commit --raw $c 2>&1|sed -n 's/.*signature for \([^@]*\)@agi with.*/\1/p')
  [ "$s" ]&&{ [ $s = $1 ]||u $s $2;}||{ echo "refused: $c signed by ${s:-nobody}: not $1, not under $2";exit 1;};done
  echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gate $n||{ echo "refused: engine would not regrow";exit 1;}
 ```
-LANES: AA3.9 -> 16 lanes for the new rows. 3c turns to refuse; 3d = belam lands SM; 3g = belam lands alive (council mask); NEW 3h SM lands itself, 3i peer TM-new lands SM, 3j belam lands TM-new:
+LANES: AA3.9 -> 17 lanes for the new rows. 3c turns to refuse; 3d = belam lands SM; 3g = belam lands alive (council lands []); NEW 3h SM lands itself, 3i peer TM-new lands SM, 3j belam lands TM-new, 3k a council member lands alive:
 ```diff
 @@ -1,11 +1,11 @@
 -# lanes.sh [TRUNK] [GITDIR]: AA3.3's 13 lanes on a throwaway repo borrowing GITDIR's objects (0 shared refs written). One line per lane: ok | FAIL; exit = the number of FAILs.
-+# lanes.sh [TRUNK] [GITDIR]: AA3.3's 16 lanes on a throwaway repo borrowing GITDIR's objects (0 shared refs written). One line per lane: ok | FAIL; exit = the number of FAILs.
++# lanes.sh [TRUNK] [GITDIR]: AA3.3's 17 lanes on a throwaway repo borrowing GITDIR's objects (0 shared refs written). One line per lane: ok | FAIL; exit = the number of FAILs.
 -# Committed as extensions/agi/tests/aa3-lanes.t.sh (AA2's runner admits `sh extensions/agi/tests/<name>.t.sh`); exit = the number of FAILs, 13 = agi-land not built.
-+# Committed as extensions/agi/tests/aa3-lanes.t.sh (AA2's runner admits `sh extensions/agi/tests/<name>.t.sh`); exit = the number of FAILs, 16 = agi-land not built.
++# Committed as extensions/agi/tests/aa3-lanes.t.sh (AA2's runner admits `sh extensions/agi/tests/<name>.t.sh`); exit = the number of FAILs, 17 = agi-land not built.
 -[ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;[ "$AGI_LAND" ]&&cp $AGI_LAND $D/b/agi-land;chmod +x $D/b/*;[ -s $D/b/agi-land ]||{ echo "FAIL all 13 lanes: no ### agi-land in .geometry/engine*.md at $T (not built; AGI_LAND=<file> tests a candidate)";exit 13;}
 -for p in sanctuary-master director-general-1 alive all-is-one belam;do ssh-keygen -qN "" -ted25519 -f$D/k/$p;echo "$p@agi namespaces=\"git\" $(cut -d' ' -f1,2 $D/k/$p.pub)">>$D/ring;done
-+[ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;[ "$AGI_LAND" ]&&cp $AGI_LAND $D/b/agi-land;chmod +x $D/b/*;[ -s $D/b/agi-land ]||{ echo "FAIL all 16 lanes: no ### agi-land in .geometry/engine*.md at $T (not built; AGI_LAND=<file> tests a candidate)";exit 16;}
++[ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;[ "$AGI_LAND" ]&&cp $AGI_LAND $D/b/agi-land;chmod +x $D/b/*;[ -s $D/b/agi-land ]||{ echo "FAIL all 17 lanes: no ### agi-land in .geometry/engine*.md at $T (not built; AGI_LAND=<file> tests a candidate)";exit 17;}
 +for p in sanctuary-master director-general-1 alive all-is-one belam thought-master-new;do ssh-keygen -qN "" -ted25519 -f$D/k/$p;echo "$p@agi namespaces=\"git\" $(cut -d' ' -f1,2 $D/k/$p.pub)">>$D/ring;done
-@@ -16,10 +16,13 @@
+@@ -16,10 +16,14 @@
 -L land "3c member all-is-one lands SM" all-is-one sanctuary-master $m
 -L land "3d member alive lands SM" alive sanctuary-master $m
 +L refuse "3c member all-is-one lands SM (inert keep passes through to belam)" all-is-one sanctuary-master $m
@@ -235,12 +239,15 @@ LANES: AA3.9 -> 16 lanes for the new rows. 3c turns to refuse; 3d = belam lands 
 +L land "3j belam lands TM-new through the inert keep" belam thought-master-new $(mk thought-master-new thought-master-new $o $C $D/c)
 -L refuse "3g member all-is-one lands alive (council lands only SM; FAIL until AA2 writes the cell)" all-is-one alive $(mk alive alive $o $C $D/c)
 +L refuse "3g belam lands alive (council's lands mask)" belam alive $(mk alive alive $o $C $D/c)
++L refuse "3k council member all-is-one lands alive (council lands [])" all-is-one alive $(mk alive alive $o $C $D/c)
 ```
-MEASURED 20:0xZ on a scratch trunk = 77e90611b + the Q2 rows (keep{SM, TM-new} lands [SM, TM-new], SM + TM-new parent -> keep; an object only, NO ref):
+MEASURED 20:0xZ on scratch trunks = 77e90611b + the Q2 rows (keep{SM, TM-new} lands [SM, TM-new], SM + TM-new parent -> keep; objects only, NO ref):
 | agi-land | lanes | rows | result |
 |---|---|---|---|
-| AA3.14 | 16 | keep trunk | 14 ok + FAIL 4m + 4v (exit 2; the pre-existing AA3.4 grow-gate witnesses, unchanged) |
-| AA3.2 (today) | 16 | keep trunk | + FAIL 3d, 3j: SM and TM-new landable by NOBODY (belam: "the keep row alone makes SM unlandable") |
+| AA3.14 | 17 | Q2 + council lands [] | 15 ok + FAIL 4m + 4v (exit 2; the pre-existing AA3.4 grow-gate witnesses). 3g: "refused: council lands only nothing" |
+| AA3.14 | 17 | Q2 + council lands [SM] or ["none"] | the same 15 ok |
+| AA3.14 without the null-vs-[] check | 17 | Q2 + council lands [] | + FAIL 3g: belam LANDS alive ([] read as no cell = all children: the trap) |
+| AA3.2 (today) | 16 | Q2 rows | + FAIL 3d, 3j: SM and TM-new landable by NOBODY (belam: "the keep row alone makes SM unlandable") |
 | AA3.14 | 13 | today's trunk | + FAIL 3c, 3d: council members no longer land SM. So code + rows + lanes move in ONE update (the atomic round) |
-FOR THE COUNCIL, part (3): with SM under keep, council's lands=[sanctuary-master] names no council child, so it masks ALL of them (3g: nobody lands alive / all-is-one / self-perpetuating; their docs keep reaching the trunk through SM's gate). TRAP: `lands: []` is NOT "nobody": jq's .lands[]? emits nothing, which reads as NO cell = ALL children, so belam would land every council member. To mean nobody, keep a cell that names no child; to mean all, drop the cell.
-FOR DG1: the round commits AA3.14 agi-land in place of AA3.2 and the 16-lane block as extensions/agi/tests/aa3-lanes.t.sh; the falsifier at the merge-up = 16 lanes on the trunk tip, exit 2 until the AA3.4 grow-gate fixes, then 0.
+THE ROUND'S ROWS (part 4, belam writes): keep {parent belam, members [sanctuary-master, thought-master-new], lands [sanctuary-master, thought-master-new]} · SM + TM-new parent -> keep · council lands [] (council docs keep reaching the trunk through SM's gate; belam landing members directly = a new trunk writer nobody asked for, alive 20:02Z).
+FOR DG1: the round commits AA3.14 agi-land in place of AA3.2 and the 17-lane block as extensions/agi/tests/aa3-lanes.t.sh; the falsifier at the merge-up = 17 lanes on the trunk tip, exit 2 until the AA3.4 grow-gate fixes, then 0.
