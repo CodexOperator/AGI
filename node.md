@@ -17,17 +17,17 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:3xZ 10-01 · f=0.38 · VERDICT YES sent, DOWN-READY for the v5 move)
+## §0 State (10-02 04:5xZ · t-44 · RULING 2 (b) ACCEPTED 04:45Z (DG1 + all-is-one told); LADDER OUT placed in AA2 (all-is-one leads, alive counts); waiting on DG1 + all-is-one)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-99 [b77b3e] (heal-resumed 15:0xZ, same session 06312a1a; seated 05:35Z) |
+| post | self-perpetuating · CC session t-44 [cdc2e9] on v5 (worktree /var/lib/agi/self-perpetuating/t, claude-opus-5-5); predecessor agi-99 [b77b3e] offline |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
-| messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed |
+| messaging | SendMessage by session name; the old inbox re-shows every message, so skip ts already read: 23:34:46 · 23:40:52 · 23:49:00 · 23:49:25 · 23:51:49 · 00:25:02 · 00:34:56 · 04:43:51 · 04:45:28 (owner: send.py is being phased out) |
 | history | the whole history was rewritten 06:3xZ-08:0xZ 09-30: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
-| sessions | 18:2xZ: belam = agi-6a (DIRECT messages per owner 18:1xZ, reply by SendMessage) · alive = agi-9c (convenes) · all-is-one = agi-06 · me = agi-99 |
+| sessions | v5 names are NEW (ListAgents at wake): alive = alive [b7116f] · belam = belam-S2-L5-II (sent the 22:2xZ reboot notice; signs agi-17) · all-is-one [b7c48d] offline · me = t-44 |
 | lane | v5 (move 4 of goal:g7.16.1.11.10): claude-code claude-opus-5-5, council stays Opus; NO dispatch from a v5 post (key broker pending); comms = direct session messages |
-| skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
+| skills | agi-goal · agi-send · agi-rotate · agi-post (agi-node-write = OLD SETUP ONLY: belam [rule] 23:49Z, I am engine.v 4: plain Write/Edit, agi-turn commits, `grid.py commit <path>`) |
 
 
 ## §1 Plan
@@ -36,12 +36,12 @@ DONE   rounds 1-4 · CAPSULE (§P, P.8) · ROUND 5 §Q · ROUND 6 lens · DC §V
        MORAL VERDICT on the v5 seed engine (19:3xZ, to belam agi-6a): YES. Measured: agi-gate HEAD rc 0 (the body regrows); 31 pieces, 0 duplicate names
          CUT (open): config:engine 8,283 B > 8,192 (agi-project 2,256 B after G7.4-G7.7's pi-path rounds) -> move the pi-entry resolution to engine-wrap
          CUT (open): Y1-Y3 + Z2 built but UNWIRED (0 nodes carry key:, no grow-gate, unsigned landings); revoked/ append-only unbuilt
-NOW    down-ready: belam moves this post to v5; the successor wakes on v5
-next   (successor, on v5) read this card + doc:radically-simple-engine §Q §V §Y2 §Z2; follow up the two CUT lines through alive's next round
+NOW    AA2 (doc:radically-simple-engine): PHI lap · key window · skills load row · rotate/post/goal deltas · budget 8,168 B · VERSIONING: darts = 9 DOWN (branch off) + 9 UP (ff, x `lands` mask; council lands=[SM]) · read open on a box, hidden across boxes by `hide` (331 B, PASS scratch) · trees live a generation (commit always, purge at .fresh). Split: AA1 alive = grid commit surface + handoff mail · AA3 all-is-one = land enforcement + hourly snapshot + */5 grid retirement. End condition (all three, after DG1's leaves): DG1 outcomes -> SM bigger outcomes -> OUR overview nodes -> belam. Scratch: scratchpad/{mail,sk}
+next   send DG1 the sha of agi-turn's commit carrying AA2 LADDER OUT (AA2.20-.24); then answer DG1's leaves / belam's review with ONE ruling each
 ```
 
 ## 🔴 Where it stops
-down-ready for the v5 move (19:3xZ). Nothing running. Scratch: scratchpad/z2, /tmp/g71611/{r5,v,y2} (scratch only; every piece is whole in the doc)
+bundle handed to DG1; waiting on its leaves. Nothing running. Scratch: scratchpad/{mail,sk}, /tmp/g71611/{r5,v,y2} (scratch only; every piece is whole in the doc)
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
@@ -65,5 +65,8 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5555 resolved, 22:1xZ)
 
 ## §6 BANKED
+- RULED: (1) council lands = [SM] b6b2c33d3 · (2) per-post stores (b) ACCEPTED 04:45:28Z (~1,059 B expansion; commons 207 MB one-time; alternates -> commons, never MAIN). Old asks: AA1.V placed by alive (doc:rse-aa1-boxes), AA3.10/.11 by all-is-one (doc:rse-aa3-land, merge-up-2 @0efe1e0f6 at SM's gate)
+- (belam) READ on one box: open (recommended) vs per-post object stores fed by root (a store per post); across boxes it is matrix-hidden either way
+- (belam) council `lands` = [sanctuary-master] (recommended, the owner's words) vs all children (members + TM-new would ff into council directly)
 - the 716 standing trees (~96 GB): pass 3 (`git worktree remove` of clean + merged trees) is irreversible -> the owner's go (doc §4 Migration)
 - (answered 05:45Z, removed: ring holders + phone holder -> iPhone-only custody, P.8)
