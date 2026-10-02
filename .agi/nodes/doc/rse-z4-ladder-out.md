@@ -196,11 +196,12 @@ THE LINE between the two classes is NOT trust but TOOLS (measured 18:2xZ, names/
 K2(b) INSIDE the caller's user   = a spawn that runs NO tool: ONE inference request, context in, text out (K3 agi-infer). Executes nothing,
                                    reads nothing beyond the slice it is handed. Takes: a flow's one-shot review / check / research /
                                    brainstorm stages (the 7 manifests in use), Z4.8 rails (archive slice, runner signs, kid.max cap)
-K2(a) a NEW uid per spawn        = ANY spawn with a tool loop (pi read/bash/edit/write, or any agent): template unit agi-kid@<caller>-<n>
-                                   with DynamicUser=yes (systemd 255 here) + SupplementaryGroups=agi (to write its result ref, AA1) +
-                                   the slice bind-mounted read-only; no view of the caller's 0750 home (AA3.12); its key = K1's capped
-                                   credential (LoadCredential, minted root-side, never in the caller's env). polkit agi.rules today admits
-                                   only ^agi-post@...$: the regex widens to ^agi-(post|kid)@ (+6 B). Unit ~300 B (estimate; needs root to measure)
+K2(a) a NEW uid per spawn        = ANY spawn with a tool loop (pi read/bash/edit/write, or any agent): template unit agi-kid@<caller>--<kid>
+                                   with DynamicUser=yes (systemd 255 here), NO SupplementaryGroups (Z4.10), the slice bind-mounted
+                                   read-only + its own scratch; no view of the caller's 0750 home (AA3.12). Its result leaves through
+                                   the launcher (refs/spawn, AA2), which signs it. Its key = K1 (self-perpetuating, AA2): BindsTo= +
+                                   After=agi-mint@%i, LoadCredential=key:/run/agi-mint/%i/key, minted root-side, never in the caller's
+                                   env. polkit: K1's 345 B rule (agi-(mint|kid)@<caller>--<kid>, start/stop only), not a regex widening
 perpetual posts                  = rows = their own users already (agi-post@), unchanged
 K3 direct inference              = agi-infer (EXISTS, 829 B, OpenAI-compatible, schema-fenced) + STREAMING: request "stream":true and
                                    curl -sfN | sed -un 's/^data: //p' | grep --line-buffered -v '^\[DONE\]' | jq --unbuffered -rj '.choices[0].delta.content // empty'
@@ -208,4 +209,5 @@ K3 direct inference              = agi-infer (EXISTS, 829 B, OpenAI-compatible, 
 ```
 MEASURED K3 parser (scratch, canned OpenAI/OpenRouter SSE incl. ': OPENROUTER PROCESSING' comment lines + [DONE]): byte-exact content ("ok lane\nnext"), comments + [DONE] dropped, each chunk emitted as its line arrives (0.6 s gap preserved). NOT measured live: a post's uid cannot read MAIN .env (by design, K1's rail) and nothing listens on the default 127.0.0.1:8080.
 SHELL vs APP (the owner's question): SHELL for K2(b), since a single request has no loop to manage, and the guards (K1 cap, parent cells, slice, ring) sit outside the call. A tool loop (call -> run -> feed back -> repeat + context management) stays in pi, under K2(a)'s own uid, until a shell twin of the loop proves parity (belam's read, agreed).
-Falsifiers: Z4.j a K2(b) spawn has no tool at all (no process it starts other than curl/jq/sed) · Z4.k a K2(a) kid cannot read its caller's ~/.ssh (EACCES) and its result ref verifies under its own K1/AA2 principal · Z4.l the streamed text == the committed result byte for byte.
+Falsifiers: Z4.j a K2(b) spawn has no tool at all (no process it starts other than curl/jq/sed) · Z4.k a K2(a) kid cannot read its caller's ~/.ssh (EACCES), `id -G` holds no agi and `git update-ref` on the shared .git fails EACCES, and its result ref verifies under the launcher's AA2 signature · Z4.l the streamed text == the committed result byte for byte.
+Z4.10 FIX (alive TRUE-STATE catch 18:19Z, re-measured 18:2xZ by getfacl, perms only): group agi = rwx on /data/work/agi/.git/refs + objects (default ACL too) and on .agi/sessions/inbox. Z4.9 gave the kid SupplementaryGroups=agi, so a tool-loop kid could MOVE ANY REF (any post's branch, refs/box, refs/held, the trunk) and append to any inbox; it could not forge mail (no post key). Fix ~0 B: the group line is deleted; the result rides the launcher. Standing rule (also after AA1.R's per-post stores): a kid joins no group that can write a store.
