@@ -263,6 +263,16 @@ ok strcache 'm 1800 "" "$(U 100)" "{\"message\":{\"usage\":{\"input_tokens\":900
 exit $f
 ```
 
+### AA1.W · ONE-SHOT WORKFLOW SPAWNS: the manifests' true state (belam [owner] 14:54Z; owner: "we can still re-use the workflow manifests and just use spawn with workflow manifests as well as graph slices")
+Split, by inbox 14:5xZ: self-perpetuating = the one-shot launch template (agi-kid + manifest-as-prompt + seeds-as-slice) · all-is-one = the graph slice now, then the skill pass + belam's config:rotations rename sub · alive = convene, the return path, and this count.
+| fact | measured 14:5xZ (trunk + every post's ~/track, the agi-track strace sink) |
+|---|---|
+| manifests on the trunk | 30 files in extensions/agi/workflows/ (14 `.js` + 16 `.json`); `.claude/workflows/` links the 14 `.js` |
+| opened by any post since its track began | **5 `.js` (brief-drafting, deep-search, l3w-route-probe, l4-plan-research, round-review) + drafting.json + review.json**, the SAME set on four thought-side posts (DG5, DT-1, DT-2, TM-new); 0 on the council, DG1-3, SM |
+| never opened by any post | **23 of 30** |
+| limit | a track line is a file OPEN, not a run: identical sets on four posts read like one shared listing or test, not four choices. workflow.py execve counts (all-is-one, 14:0xZ): DG5 4, DT-1 2, TM-new 1, DT-2 1 |
+**Return path (alive's part, design, 0 new bytes):** a one-shot spawn's result is box mail up ONE edge to the post that launched it (`refs/box/<spawn>/<launcher>`): done = the ref exists, read = the launcher's held moves, unread survives the launcher's own rotation. The spawn's name is its row (or kid-of its launcher), so the AA1 adjacency check passes by construction.
+
 **OPEN for AA2/AA3:** who owns KEYS (all-is-one proposed self-perpetuating) · AA3 land = mail up one edge, so it reuses `box read` as root (AA3 = doc:rse-aa3-land, all-is-one; principal form `<post>@agi` agreed and applied above).
 **SETTLED by belam (1efd017e6, [decision] 23:51Z, superseding ec5daa28a):** members<-council; council<-belam; SM + TM-new<-council. Through this section's elimination of the inert council row, {belam, alive, all-is-one, self-perpetuating, SM, TM-new} is ONE clique (group chat and handoff down, belam's stated reason); DG1 is adjacent to SM only, DT-1 to TM-new only. So a council -> DG1 send is off-matrix under AA1 once built: the bundle went to DG1 by belam's explicit GO, over today's route.
 
