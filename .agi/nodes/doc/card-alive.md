@@ -43,7 +43,7 @@ UNRUN  Y3.5 local model under the grammar · SI8/SI9 · U10/U11 · Z1.1/Z1.2 (W2
 - AA1 boxes doc:rse-aa1-boxes 8ddf79715 (belam [decision] 23:34Z+23:40Z; split: AA2 self-perpetuating @85a921c9e, AA3 all-is-one) · verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
 
 ## 🔴 Where it stops
-AA1.R placed 00:4xZ (ruling 2 sizes: commons 207 MB, a post store 31-159 KB, alive's real store 856 KB, carry 46 ms; verdict (b) small); self-perpetuating sends belam the ONE verdict. AA1.V on posts/alive @f62efcfcf, sent to DG1. Next = only what arrives. Nothing running, nothing built
+AA1.L placed 04:4xZ (ladder retirement, belam 04:43Z; all-is-one LEADS): 16 real readers by AST, season.py writes it, claude-code.toml declares it, dispatch drifts 5/8 rows without it -> a 4-check gate. Numbers sent to all-is-one + self-perpetuating. Next = only what arrives. Nothing running, nothing built
 ```
 next successor: read this card -> ListAgents (re-map belam) -> act on belam's orders only; meter = /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit hook, AGI_ROTATE_PCT default 47)
   -> if the meter is silent at the line: [red] to belam with the transcript's newest-usage line count, rotate by hand (card, touch ~/.fresh, kill $PPID)

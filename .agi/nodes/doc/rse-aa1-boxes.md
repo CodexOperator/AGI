@@ -176,9 +176,60 @@ Split: the plumbing is AA2's (self-perpetuating: agi-store 264 B, agi-carry 454 
 | why MAIN cannot be the alternate | it holds every posts/* branch and 53,592 objects on no trunk path, and is group agi + other r-x; privacy covers only work after the switch |
 **For AA1:** agi-turn's grid commit (AA1.V) writes posts/<p> in the post's OWN store (~/g.git), not in MAIN; ~/t becomes a worktree of that store. Mail refs live in each store, and root's carry pipe moves refs/box/<from>/<to> between two local stores exactly as `box carry` does between boxes: one box = N boxes, so the cross-box read rule (AA2's hideRefs projection) IS the one-box rule. **Verdict from these numbers: (b) is small**, about 1,059 B of expansion (264 + 454 + 313 + 22 for StateDirectoryMode=0750 + 6 for AA2's `AGI_COMMONS` cell: the alternate is $AGI_COMMONS/objects, never MAIN; the pointer cell `engine.store` costs 0 B, projected as AGI_STORE) plus the one-time commons. Untested without root: the 0750 barrier, runuser, and keeping the commons never pruned.
 
+### AA1.L · RETIRE THE LADDER: the zero-reader gate and the do-not-strand measurement (belam [decision] 04:43Z; owner 03:1xZ)
+**Owner 03:1xZ, verbatim:** "we should be phasing out the ladder anyway in favor of post trees. The ladder doesn't need to exist since each post already linked to templates and other stuff via the matrix math."
+Split, by message 04:4xZ: all-is-one LEADS (Z3's author: the cell map, the homes, the retire order, the design doc for DG1) · self-perpetuating = what the tree replaces structurally (tier = depth projection; roles dissolve into rows) · alive = the TRUE reader count + the gate that must read 0 before the retire + dispatch's do-not-strand constraint.
+**Measured on trunk 3928fed44 (04:4xZ), by AST over every non-test .py under extensions/ (comments and docstrings excluded): 16 files really read the ladder** (a `ladder.md` path in code, or a call to one of the 9 accessors):
+| file | reads | | file | reads |
+|---|---|---|---|---|
+| rotate.py | 21 (load_ladder_field 16) | | heal.py | 2 (roles row) |
+| spawn_gate.py | 10 (7 path sites) | | workflow.py | 2 (roles row) |
+| hierarchy.py | 6 | | seatsig/countersign.py | 2 (threshold cell) |
+| dispatch.py | 5 (roles + season) | | brief.py · rolslice.py · season.py · send.py · verification.py · hooks/rotation_alert.py | 1 each |
+| cli.py | 4 | | | |
+| seat_status.py | 3 | | towns.py | 3 |
+Against Z3's 15: **write.py, harness_template.py, crons.py, adapters/ no longer READ it** (write.py's `_LADDER` is a role-order dict; adapters/ only DEFINES `ladder_role_row`) · **new since Z3: heal.py, workflow.py, seatsig/countersign.py, rolslice.py, verification.py**. Two dependencies a reader count misses: **season.py WRITES ladder:ladder at the rollover** (line 1061, via write.py) and **templates/harness/claude-code.toml declares `source = "ladder"`**, which harness_template.py + rotate.py act on.
+**Do-not-strand, measured with dispatch.py's OWN resolver** (`resolve_role_spec(cfg, roles, tier, role)` with the ladder's roles vs with None, trunk config.json):
+| (tier, role) | with the ladder | without it | |
+|---|---|---|---|
+| 3 prime_director | claude-code · claude-fable-5-1 · max | pi-free · - · - | DRIFT |
+| 3 parent (belam's Sonnet kid spawner, d9d1cb7a1) | claude-code · claude-sonnet-5-5 · max | pi-free · stealth/space-bunny-alpha · - | DRIFT |
+| 1 director | claude-code · claude-fable-5-1 · max | pi-free · - · - | DRIFT |
+| 1 liaison | claude-code · claude-sonnet-5 · high | pi-free · - · - | DRIFT |
+| 0 director | pi-free · stealth/space-bunny-alpha | pi-free · - | DRIFT |
+| 1 parent · 0 parent · 0 kid | pi-free · stealth/space-bunny-alpha | same | same |
+**5 of 8 rows change spec silently** (no error, no warning: `from_ladder` just turns False), because the fallback is config.json's `harnesses.*`, whose default harness is pi-free. Deleting or emptying the ladder first would turn the only claude-code dispatcher into a pi-free stealth parent. So the order is fixed: **homes first, parity proven, readers moved, THEN retire.**
+**The gate (all four must read 0 / equal before `ladder:ladder` is deprecated):**
+```
+G1 readers      AST count below over extensions/ (+ skills/ scripts)       == 0 files
+G2 writers      git grep -n '"ladder:ladder"' -- extensions ':!*/tests/*' (season.py rollover)  == 0
+G3 declarations git grep -n 'source *= *"ladder"' -- extensions/agi/templates  == 0
+G4 parity       for every (tier, role) in the ladder AND every config:posts row a spawner reads:
+                resolve_role_spec with the ladder == the spec from its new home (row / template)   byte-equal, 8/8 + rows
+```
+G1's counter, whole (the one used for the table above):
+```python
+import ast,pathlib,collections,sys
+acc={'load_ladder','load_ladder_field','read_ladder_season','read_ladder_towns','read_ladder_roles','_ladder_roles_table','_ladder_global_season','ladder_path','ladder_role_row'}
+uses=collections.defaultdict(collections.Counter)
+for f in sorted(pathlib.Path(sys.argv[1]).rglob('*.py')):
+    if '/tests/' in str(f): continue
+    t=ast.parse(f.read_text()); doc=set()
+    for n in ast.walk(t):
+        if isinstance(n,(ast.Module,ast.FunctionDef,ast.ClassDef,ast.AsyncFunctionDef)) and n.body and isinstance(n.body[0],ast.Expr) and isinstance(getattr(n.body[0],'value',None),ast.Constant): doc.add(id(n.body[0].value))
+    for n in ast.walk(t):
+        if isinstance(n,ast.Constant) and isinstance(n.value,str) and id(n) not in doc and 'ladder.md' in n.value: uses[str(f)]['path']+=1
+        if isinstance(n,ast.Call):
+            nm=n.func.attr if isinstance(n.func,ast.Attribute) else getattr(n.func,'id',None)
+            if nm in acc: uses[str(f)][nm]+=1
+for k,v in sorted(uses.items(), key=lambda x:-sum(x[1].values())): print(f"{sum(v.values()):3d} {k.replace(sys.argv[1]+'/','')}  {dict(v)}")
+print('FILES', len(uses))
+```
+Not built: these are the falsifiers DG1 turns into the retirement's acceptance test. Today: G1 = 16, G2 = 1, G3 = 1, G4 = 5/8 drift with no home.
+
 **OPEN for AA2/AA3:** who owns KEYS (all-is-one proposed self-perpetuating) · AA3 land = mail up one edge, so it reuses `box read` as root (AA3 = doc:rse-aa3-land, all-is-one; principal form `<post>@agi` agreed and applied above).
 **SETTLED by belam (1efd017e6, [decision] 23:51Z, superseding ec5daa28a):** members<-council; council<-belam; SM + TM-new<-council. Through this section's elimination of the inert council row, {belam, alive, all-is-one, self-perpetuating, SM, TM-new} is ONE clique (group chat and handoff down, belam's stated reason); DG1 is adjacent to SM only, DT-1 to TM-new only. So a council -> DG1 send is off-matrix under AA1 once built: the bundle went to DG1 by belam's explicit GO, over today's route.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v4, alive 00:4xZ 10-02: + AA1.R, the real sizes for belam's ruling 2 (per-post object stores), measured from the box's own data; the plumbing is AA2's, not redone here. v3, alive 00:2xZ 10-02 (date -u): + AA1.V versioning, on belam's [decision] 00:25Z (owner 00:3xZ/00:4xZ: every turn is a grid commit from a tiny tree). The grid commit reuses box send's primitive with a one-node tree, so mail and versioning share ONE git shape. agi-link retires because a payload can only change inside its node's tree. ~/t becomes a detached read view whose stray edits are REPORTED rather than silently committed (true state over convenience). Scratch 19/19. v2, alive 23:5xZ 10-01 (date -u): three deltas. (1) principal form `<post>@agi` (all-is-one's vote; what the unit already sets), box re-tested 25/25, 1,769 -> 1,785 B. (2) belam's council row ec5daa28a computed through the elimination: members adjacent to belam only, stated as a consequence for belam to rule on, not chosen here. (3) owner 23:4xZ skills line: AA1.S = the agi-send delta only, as a table; no skill text changes before the bundle is built. Edited with plain Edit per belam's [rule] 23:49Z (write.py is old-setup only). FIRST VERSION 23:4xZ: own node, because doc:radically-simple-engine is 268,943 B and three branches appending at its tail would conflict; scratch only; the inert-row elimination is the smallest rule that keeps a crossing one clique without a new cell.
+v5, alive 04:4xZ 10-02: + AA1.L, the ladder's true reader count by AST (16 files, 5 new since Z3, 4 gone) and the do-not-strand drift by dispatch's own resolver (5/8 rows); a gate of four checks, not built. v4, alive 00:4xZ 10-02: + AA1.R, the real sizes for belam's ruling 2 (per-post object stores), measured from the box's own data; the plumbing is AA2's, not redone here. v3, alive 00:2xZ 10-02 (date -u): + AA1.V versioning, on belam's [decision] 00:25Z (owner 00:3xZ/00:4xZ: every turn is a grid commit from a tiny tree). The grid commit reuses box send's primitive with a one-node tree, so mail and versioning share ONE git shape. agi-link retires because a payload can only change inside its node's tree. ~/t becomes a detached read view whose stray edits are REPORTED rather than silently committed (true state over convenience). Scratch 19/19. v2, alive 23:5xZ 10-01 (date -u): three deltas. (1) principal form `<post>@agi` (all-is-one's vote; what the unit already sets), box re-tested 25/25, 1,769 -> 1,785 B. (2) belam's council row ec5daa28a computed through the elimination: members adjacent to belam only, stated as a consequence for belam to rule on, not chosen here. (3) owner 23:4xZ skills line: AA1.S = the agi-send delta only, as a table; no skill text changes before the bundle is built. Edited with plain Edit per belam's [rule] 23:49Z (write.py is old-setup only). FIRST VERSION 23:4xZ: own node, because doc:radically-simple-engine is 268,943 B and three branches appending at its tail would conflict; scratch only; the inert-row elimination is the smallest rule that keeps a crossing one clique without a new cell.
 <!-- THOUGHT:END -->
