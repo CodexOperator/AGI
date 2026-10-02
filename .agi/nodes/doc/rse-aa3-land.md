@@ -107,22 +107,24 @@ The first alias ("sender's parent is council") LET SM LAND ALIVE (lane 3 moved).
 | faabf9b7a: belam WROTE the cell (23:53Z), the REAL trunk | refused | land (11/11 lanes) |
 The cell is written (belam faabf9b7a, 23:53Z): the fail-closed reading stands. The council's own docs reach the trunk through SM's gate until agi-land exists (belam 23:51Z).
 
-## AA3.9 lanes.sh — the falsifier as bytes (4,213 B, 13 lanes; for goal:g7.16.1.11.13 falsifier 1, DG1 00:0xZ 10-02)
+## AA3.9 lanes.sh — the falsifier as bytes (4,464 B, 13 lanes, exit = FAIL count, 13 = agi-land not built; for goal:g7.16.1.11.13 falsifier 1, DG1 00:0xZ 10-02)
 Run from a worktree: `sed -n '/^## AA3.9/,$p' .agi/nodes/doc/rse-aa3-land.md | sed -n '/^```sh/,/^```$/{//!p}' > /tmp/lanes.sh; sh /tmp/lanes.sh`. Writes 0 shared refs (alternates); scratch keys named as the real posts.
-TODAY (trunk b6b2c33d3, 00:3xZ 10-02; belam wrote council `lands` there): 11 ok + `FAIL 4m` + `FAIL 4v` = the real grow-gate is vacuous at a land AND blind to merges. With all FOUR AA3.4 byte fixes (`GROW_GATE=<fixed> sh lanes.sh`): 13/13 ok, measured. 4m + 4v ARE the blocking order DG1 wrote.
+TODAY (trunk 1517e4b7d, 14:1xZ 10-02): exit 13 = agi-land is NOT BUILT (every tool, agi-land included, now comes from the trunk's engine nodes, never from this prose doc: self-perpetuating 14:0xZ, agi-frontier's whitelist refuses code sliced out of an editable doc). `AGI_LAND=<AA3.2 extracted> sh lanes.sh` = 11 ok + FAIL 4m + FAIL 4v, exit 2; with all FOUR AA3.4 fixes too (`GROW_GATE=<fixed>`): 13/13, exit 0. 4m + 4v ARE the blocking order DG1 wrote.
+RUNNER (AA2): the build commits this block VERBATIM as extensions/agi/tests/aa3-lanes.t.sh; goal:g7.16.1.11.13 falsifier 1 = `sh extensions/agi/tests/aa3-lanes.t.sh` (13 now -> 2 once agi-land is built -> 0 once the byte fixes land).
 ```sh
 #!/bin/sh
-# lanes.sh [TRUNK] [GITDIR]: AA3.3's 13 lanes on a throwaway repo borrowing GITDIR's objects (0 shared refs written). One line per lane: ok | FAIL.
-# Tools come from TRUNK by sect (grow-gate from $GROW_GATE if set); agi-land from $AGI_LAND, else AA3.2 of doc:rse-aa3-land in this tree. Keys are scratch keys named as the real posts.
+# lanes.sh [TRUNK] [GITDIR]: AA3.3's 13 lanes on a throwaway repo borrowing GITDIR's objects (0 shared refs written). One line per lane: ok | FAIL; exit = the number of FAILs.
+# EVERY tool, agi-land included, comes from TRUNK by sect (reviewed engine nodes, never a prose doc); $GROW_GATE / $AGI_LAND test a candidate. Keys are scratch keys named as the real posts.
+# Committed as extensions/agi/tests/aa3-lanes.t.sh (AA2's runner admits `sh extensions/agi/tests/<name>.t.sh`); exit = the number of FAILs, 13 = agi-land not built.
 T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k
-o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill agi-gate agi-project;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
-[ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;if [ "$AGI_LAND" ];then cp $AGI_LAND $D/b/agi-land;else sed -n '/^## AA3.2/,/^## AA3.3/{/^```sh/,/^```$/{//!p}}' .agi/nodes/doc/rse-aa3-land.md>$D/b/agi-land;fi;chmod +x $D/b/*
+o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill agi-gate agi-project agi-land;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
+[ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;[ "$AGI_LAND" ]&&cp $AGI_LAND $D/b/agi-land;chmod +x $D/b/*;[ -s $D/b/agi-land ]||{ echo "FAIL all 13 lanes: no ### agi-land in .geometry/engine*.md at $T (not built; AGI_LAND=<file> tests a candidate)";exit 13;}
 for p in sanctuary-master director-general-1 alive all-is-one belam;do ssh-keygen -qN "" -ted25519 -f$D/k/$p;echo "$p@agi namespaces=\"git\" $(cut -d' ' -f1,2 $D/k/$p.pub)">>$D/ring;done
 git init -q $D/r;echo $G/objects>$D/r/.git/objects/info/alternates;cd $D/r;git update-ref refs/heads/trunk $o;export PATH=$D/b:$PATH AGI_RING=$D/ring AGI_TRUNK=refs/heads/trunk
 mk(){ x=$D/i;GIT_INDEX_FILE=$x git read-tree $3;GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w $5),$4;t=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x
 GIT_COMMITTER_NAME=$2 GIT_COMMITTER_EMAIL=$2@agi GIT_AUTHOR_NAME=$2 GIT_AUTHOR_EMAIL=$2@agi git -c gpg.format=ssh -c user.signingkey=$D/k/$1 commit-tree -S -p $3 -m lane $t;}
 C=.agi/nodes/doc/card-director-general-1.md;git show $o:$C>$D/c;echo lane>>$D/c;printf -- '---\nid: hypothesis:zz-lane\ntype: hypothesis\ntitle: lane\n---\n# lane\n'>$D/h
-L(){ git update-ref refs/heads/trunk $o;w=$1;n=$2;shift 2;agi-land "$@">$D/out 2>&1;[ $(git rev-parse trunk) != $o ]&&v=land||v=refuse;[ $v = $w ]&&echo "ok   $n  [$(tail -1 $D/out|cut -c1-60)]"||echo "FAIL $n (want $w, got $v: $(tail -1 $D/out|cut -c1-80))";}
+L(){ git update-ref refs/heads/trunk $o;w=$1;n=$2;shift 2;agi-land "$@">$D/out 2>&1;[ $(git rev-parse trunk) != $o ]&&v=land||v=refuse;[ $v = $w ]&&echo "ok   $n  [$(tail -1 $D/out|cut -c1-60)]"||{ F=$((F+1));echo "FAIL $n (want $w, got $v: $(tail -1 $D/out|cut -c1-80))";};}
 g=$(mk director-general-1 director-general-1 $o $C $D/c);m=$(mk sanctuary-master sanctuary-master $o $C $D/c);q=$(mk belam belam $o $C $D/c)
 L land "1 SM lands DG1" sanctuary-master director-general-1 $g
 L refuse "2 forged: alive's key, committer DG1" sanctuary-master director-general-1 $(mk alive director-general-1 $o $C $D/c)
@@ -138,6 +140,7 @@ s2=$(mk director-general-1 director-general-1 $o .agi/nodes/doc/card-sanctuary-m
 L refuse "4m a signed merge adding a node in NEITHER parent (diff-tree skips merges before AA3.4 fix 4)" sanctuary-master director-general-1 $(GIT_COMMITTER_EMAIL=director-general-1@agi GIT_AUTHOR_EMAIL=director-general-1@agi git -c gpg.format=ssh -c user.signingkey=$D/k/director-general-1 commit-tree -S -p $g -p $s2 -m lane $e)
 L refuse "5 not ff (on trunk~1)" sanctuary-master director-general-1 $(mk director-general-1 director-general-1 $(git rev-parse $o~1) $C $D/c)
 git update-ref refs/heads/posts/director-general-1 $b;L refuse "4v lane 4 with posts/<p> pointing at it (vacuous before AA3.4)" sanctuary-master director-general-1 $b
+exit ${F:-0}
 ```
 
 ## AA3.10 Versioning: the hourly snapshot + retiring the global grid (belam [decision] 00:25Z, owner 00:3x-00:4xZ; split settled 00:3xZ)
@@ -185,3 +188,9 @@ The row cell `store` is the owner's pointer, graph-led: absent = the unit's fixe
 | a DG1-signed sha NOT on posts/director-general-1 | refused "is not on director-general-1's branch" |
 | a post with no store | refused "no store for alive" |
 NOT tested without root: the uid barrier itself (0750 homes). Risk: an alternates store breaks if the commons loses objects it references; the commons only grows by lands and never deletes a ref, so maint_gc must never prune it.
+
+## AA3.13 The gate side as shell tests (owner 14:0xZ 10-02: "can the tests also be shell scripts"; council split: AA1.T alive = true state · AA3 = gates · AA2 = test as a matrix row)
+MEASURED (trunk 1517e4b7d, 14:1xZ): ZERO pytest tests guard grow-gate, grow-check, agi-gate or agi-land (the only test file naming those pieces, test_agi_boot.py, covers agi-boot). Their ONLY test is AA3.9 lanes.sh: 13 lanes, 4.06 s wall end to end (5 ssh keygens, a throwaway alternates repo, the real trunk tools by sect, agi-gate's full unit projection).
+It needs no pytest: sh · git · jq · awk · ssh-keygen · python3 (agi-fill alone is python; `import pytest` fails for a v5 uid, AA1.T).
+SHAPE (common with AA1.T's agi-meter.t.sh, agreed 14:0xZ): one file per piece, extracted from its node by sed, one `ok <case>` / `FAIL <case>` line each, exit = the number of FAILs. lanes.sh now exits 2 on today's trunk (4m + 4v, the byte-fix witnesses) and 0 with all four AA3.4 fixes, measured.
+For DG1: a gate change lands only with its lanes green (exit 0); the lanes run as the row `sh extensions/agi/tests/aa3-lanes.t.sh` (AA3.9 RUNNER line), never as code sliced from this doc; the 7,917 old-setup tests retire with their code, never ported (AA1.T).
