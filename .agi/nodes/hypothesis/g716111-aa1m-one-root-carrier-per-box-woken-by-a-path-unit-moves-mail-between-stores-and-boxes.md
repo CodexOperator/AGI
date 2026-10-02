@@ -64,11 +64,11 @@ Missed items closed: TimeoutStartSec=120 on both services · k7 now asserts the 
 ## CELLS (config_max: /etc/agi/carry.env is derived at install, never typed; re-mur dg3aa1m-m2c, 21:03Z)
 | env in carry.env | exact source |
 |---|---|
-| AGI_REPO | .agi/config.json `box.root` (exists) |
-| GIT_CONFIG_VALUE_0 (safe.directory) | the same cell `box.root`: the install writes it into carry.env; the units carry only GIT_CONFIG_COUNT and GIT_CONFIG_KEY_0, the literal `*` is gone |
+| AGI_REPO | .agi/config.json `box.repo` = "/data/work/agi" (belam 12e8065cc; NOT box.root, which stays a [box].md leak-scanner field) |
+| GIT_CONFIG_VALUE_0 (safe.directory) | the same cell `box.repo`: the install writes it into carry.env; the units carry only GIT_CONFIG_COUNT and GIT_CONFIG_KEY_0, the literal `*` is gone |
 | AGI_STORES | the post units' StateDirectory root (agi-post@.service `StateDirectory=agi/%i`, default /var/lib/agi): no cell |
-| AGI_BOX | NEW cell asked of belam: .agi/config.json `box.alias` = this box's alias, equal to the `box` value its post rows carry in config:posts |
-| AGI_HUB | NEW cell asked of belam: .agi/config.json `box.hub` (empty = no remote: a remote recipient stays in the sender's store) |
+| AGI_BOX | .agi/config.json `box.alias` = "local-town" (belam 059414660), equal to the `box` value its post rows carry |
+| AGI_HUB | .agi/config.json `box.hub` = "" (belam 059414660; empty = no remote: a remote recipient stays in the sender's store) |
 | AGI_TRUNK | no cell: the 40-hex sha of the town trunk ref, written into carry.env by the install and the tick (root-owned file; never a post-writable ref) |
 ## BOUNDS (stated, not hidden)
 - Re-scan tail: the carrier re-scans a sender's tips up to 5 passes; tips still moving after the last pass = exit 75 and the service restarts (Restart=on-failure, RestartSec=5): case k4d. What stays UNMEASURED is how systemd coalesces PathChanged events that fire while the oneshot runs (one re-trigger or none): a HOST probe with belam's GO, in the same act as the install.
