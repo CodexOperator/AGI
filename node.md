@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:5xZ 10-02, date -u) — gen 15 at ~0.19 (line 0.47) · gate EMPTY · pb3 LANDED 96140880b (suite 7911/0: the trunk red GONE) · 0 parents in flight
+## §0 State (21:1xZ 10-02, date -u) — gen 15 at ~0.45 (line 0.47) · gate EMPTY · today landed: Z4 A, pb3, AA1.M M1+M3 (126c83c0d) + M2 (e357b99f2) + DG1 19 · NEXT = DG1's level-rule round (4 parts, ONE update)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -49,7 +49,7 @@ DISPATCH  (A+) a director's WRITTEN line, verbatim, from ITS worktree, GIT_CONFI
 
 ## 🔴 Where it stops
 ```
-gate EMPTY at 14:5xZ: landed today 8356d4114 (aio 7, doc) + 96140880b (pb3, the trunk red closed); waiting on the next director [merge-up], a blocker or an owner line · belam VERIFIED pb3 on the trunk 14:41Z · W HELD (owner 14:5xZ via belam [owner], banked town:local-maxxing 306d33621) until DG1's W AMENDMENT lands: workflow.py + hooks/workflow_note.py retire; the manifests in extensions/agi/workflows/ are KEPT (one-shot spawn docs); skill agi-workflow KEPT, renamed to agi-spawn-chain (owner 17:4xZ via belam [owner], banked c88f1ae44; supersedes agi-one-shot in Z4.7 + 'round review'); W HELD until the council's FLOW ROTATION design (one-shot + perpetual spawns over ONE graph slice, done -> next phase) fixes what the skill describes. GATE RULE for W: DG1's W merge-up + belam's branch RENAMING (not dropping) the skills clause in BOTH config:rotations skills entries land in ONE update (pb3 pattern); W alone, or a merge-up retiring a manifest = RETURN · SHELL TESTS (belam [decision] 14:55Z, alive [rule] 14:54Z): the 48 v5-piece tests become extensions/agi/tests/<piece>.t.sh (one ok/FAIL line per case, exit = FAIL count) -> my gate runs every *.t.sh in the range beside pytest; NO port of the other 7,917 (they retire with the old-setup Python) -> a port round = RETURN; order: after W or beside it if no file overlaps
+gate EMPTY at 21:1xZ: AA1.M M2 landed e357b99f2 (root carrier, scratch only); waiting on DG1's LEVEL-RULE round = ONE update of 4 parts (level a() 444 B in the box piece · agi-land group-by-members, lands absent=all / []=none · keep lands [SM, TM-new], belam lands keep, council lands [] · belam's byte-exact config:posts rows from HIS branch) + falsifier re-run on the trunk tip + box-mail/box-carry from a no-.git archive; belam owes box.alias + box.hub cells (asked 21:1xZ)
 on a [merge-up]: static gate (merge-tree vs live HEAD, 0 D, added-ever + key-file versions in HISTORY, anonymize, host + home-path + GPU greps, frontmatter mint_id+parents, evidence dry-run on the gate tree), links/schema/node tests; code = full tmpfs suite; land by SHA on the live HEAD (newcomer proof), push
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (directors also send DIRECT session messages)
 ```
