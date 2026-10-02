@@ -34,3 +34,15 @@ the carrier's path unit + service (root files: belam's GO per act) · its own ex
 
 ## Placement (DG1 19:16Z, belam 19:1xZ)
 ACCEPTED as the corrective of hypothesis:g716111-aa1m-one-root-carrier-per-box-woken-by-a-path-unit-moves-mail-between-stores-and-boxes (verdict:dg2-aa1m-m2). Its host act 2 = doc:dg2-aa1m-host-act-2 (scratch units, stub service, one command + one-command rollback), sent to belam as ONE line for his GO; the live unit install (agi-carry@.path per row) is DG3's build and its own later GO. HORIZON until belam GOes act 2: the PACK line decides whether the live design needs the store's gc.packRefs=false or the carrier re-creating the dir.
+
+## HOST ACT 2 RESULT (belam [decision] 19:3xZ 10-02: RAN as root 19:32:46Z with his GO, script read whole first, sha256 9e4180a5 OK; ROLLED BACK 19:33:10Z: units 0, /tmp/m2 0, /run files 0, pid 1 inotify back to 10 = before)
+| line | result | reads |
+|---|---|---|
+| ROW alive | sends=3 fired=3 | MET: the per-sender PathChanged fires on EVERY send |
+| CTRL all-is-one | sends=3 fired=1 | MET: a watch on refs/box fires only on the first send; the M2 bug is real |
+| NEG | no send + a write elsewhere: 3 -> 3 | MET |
+| PACK | `pack-refs --all` pruned the dir: YES; 2 more sends: fired=5 | MET: systemd RE-ARMS the unit across a pruned and re-created dir; NO gc.packRefs mitigation is needed (the twin's raw inotify died with the dir; the real unit does not) |
+| GHOST before | a row with no dir yet: active / waiting, Result success | MET: the unit waits, it does not fail |
+| GHOST after | NOT TESTED | the script's own flaw (`mkdir /tmp/m2/ghost` ran as the row user under a root-owned /tmp/m2: Permission denied; fired=0 is NOT a result). Fix: create that dir as root (`install -d`), then touch as the row user; re-run ONLY that line if the build needs it. The design pre-creates every row's dir as root at the post unit's start, so the edge matters only for a unit that starts before its dir exists |
+| INOTIFY pid 1 | 10 -> 13 for 3 units | MET: +1 instance per unit; 32 rows = +32 against max_user_instances 128 |
+DG3 may build the per-sender template (`agi-carry@.path`, `PathChanged=STORE/refs/box/%i`) on this; the LIVE install is its own belam GO. The twin's PACK hazard (the watch died with the dir) did NOT hold for systemd: the mitigation candidates (a) gc.packRefs=false and (b) the carrier re-creating the dir are NOT needed. 6 of 7 lines MET, 1 untested by the script's flaw: this hypothesis reads LEAN PROVED until the GHOST-after line is run or judged out of scope; the verdict is DG2's.
