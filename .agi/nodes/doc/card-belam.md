@@ -21,10 +21,10 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 26 (15:0xZ 10-02): two owner lines this hour, both verbatim on town:local-maxxing Agent Notes (64bf778d4 14:0xZ, 306d33621 14:5xZ) and relayed whole: no ladder reader moves · workflow.py retires BUT the manifests are KEPT (spawn = manifest + graph slice; a one-shot launch template = council design; skill agi-workflow renamed + re-aligned inside W) · shell tests: the council's rule ACCEPTED and routed to DG1. Paid this gen: a watcher that exits on one event can miss mail landing seconds later -> start the next watch at the CURRENT file size and read the inbox by ts after every exit.
+gen 26 (18:5xZ 10-02): the owner worked live with belam all afternoon; every line is verbatim on town:local-maxxing Agent Notes (64bf778d4 .. 62e8ea465). Ruled: no ladder reader moves · workflow.py retires, manifests KEPT, skill = agi-spawn-chain, the FLOW ROTATION = council (growth.tsv + parent cells only) · shell tests for v5 pieces · per-spawn key from the .env provisioning key + 2 spawn classes + direct inference = council (K1-K3) · mail without send.py = AA1.M ACCEPTED (owner GO; path unit; no worktree hop) and LANED to DG2/DG3 (SM's g7.16.1.11 HOLD lifts only by a named belam [rule]). Paid: posts lost acks because send.py has no [ack] to the Prime and their cards named a stale belam session -> route rule sent, 6/6 re-acked by send.py.
 <!-- THOUGHT:END -->
 
-## §0 State (15:0xZ 10-02, read from date -u)
+## §0 State (18:5xZ 10-02, read from date -u)
 | | |
 |---|---|
 | post | belam gen 26 (row generation fixed 1 -> 26 ff323856c per gen 25 [red] 06:12Z; window @5), session 285ac5d4, OLD engine (owner 00:1xZ: the belam v5 move = the successor-after-next, only after AA3 land + keys are BUILT) |
@@ -49,14 +49,11 @@ NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 �
 ```
 
 ## §2 Landed (gen 26)
-wake syncs cd6d99162 00b79c1e7 · Z4 phase A c2decf431 · row gen 1 -> 26 ff323856c · owner lines banked 64bf778d4 306d33621 · pb3 rotations half (ae3d4e366 ab864f427) in 96140880b, trunk red closed (suite 7911/0) · pb3 Prime steps: locations.stream 369b03607 · why cells 9917f032d · shell-tests rule ACCEPTED -> DG1
-
+Z4 phase A c2decf431 · row gen -> 26 ff323856c · pb3 (skill-load red) 96140880b + Prime steps 369b03607 9917f032d · owner lines banked (town board) + relayed · AA1.M host act 1 RUN as root 18:27Z (CARRIED U, barrier holds; rolled back) -> alive's signers fix · AA1.M laned 18:5xZ: DG1 .11.1 ACTIVE, DG2 falsifiers, DG3 builds M1 M3 M2, SM gates
 ## 🔴 Where it stops
-OWNER 17:4xZ (town board c88f1ae44): skill = agi-spawn-chain; the FLOW ROTATION (one-shot + perpetual spawns over one slice, review fires when growth is done, recursive) = council design on growth.tsv + parent cells only; belam-on-v5 leaf FILED by DG1 = goal:g7.16.1.11.17 (HORIZON; rides DG1's next merge-up; verify it lands)
-- W HELD at SM's gate until DG1's amendment lands (workflow.py + workflow_note retire; manifests KEPT; skill agi-workflow RENAMED). belam step at W's merge-up: RENAME (not drop) the skills clause in both config:rotations skills entries, on a branch; SM lands both in ONE update
-- launch template (one-shot workflow spawn) = council: self-perpetuating leads, all-is-one the skill pass, alive convenes
-- shell tests = DG1 goals + hypotheses (twin the 48 as .t.sh, gate lanes rows); SM's gate runs *.t.sh beside pytest
-- a00-dd443bfa re-judge = DG1's (its node); residue test_town_mint_final.py:175 = DG1's fence round
+NEXT belam acts are all ARRIVALS: (1) a HOST ACT GO for AA1.M (DG1/DG3/alive send ONE line: command + before-state + rollback) -- read the script whole first (sudo cat if private), run with the sha256 check, record, roll back if scratch · (2) the council's K1-K3 + flow-rotation designs -> review against the owner lines, then name each Prime lane by [rule] (SM's HOLD needs it) · (3) W lands with agi-spawn-chain -> belam RENAMES the skills clause in both config:rotations entries on a branch, SM lands both in ONE update
+- mail route: posts send.py to belam only, acks as ONE [rule] line (send.py has no [ack] to the Prime); watch the inbox FILE from its current size, re-read by ts after each exit
+- goal:g7.16.1.11.17 (belam on v5) HORIZON: AA3 land · AA2 keys · v5 [config] ring · anchor signer
 Council bundle is with DG1; DG2 + DG3 on v5 work DG1's leaves; belam reviews only; next belam stays on the old engine
 - wake: CronList -> re-arm CHECK (13 */4) + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · read .agi/sessions/inbox/belam.md by ts (trap 66)
 - watch: SM's [merge-up]s of DG1/DG2/DG3 work; review against the 8 KB base / 1 KB seed and the owner lines on town:local-maxxing (Agent Notes)
