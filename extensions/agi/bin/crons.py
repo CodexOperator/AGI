@@ -270,6 +270,14 @@ def load_crons_node(root: Path) -> dict:
         if job is None:
             continue  # never declared: never rendered, distinct from enabled:false
         jobs[name] = _resolve_cadence(path, name, job)
+        # config-max (belam 10-01 18:3xZ): a KNOWN job may carry its own
+        # `cmd`; ABSENT keeps the built-in renderer, byte for byte.
+        cmd = job.get("cmd")
+        if cmd is not None:
+            if not isinstance(cmd, str) or not cmd.strip():
+                raise CronsError(
+                    f"{path}: cadences.{name}.cmd must be a non-empty string")
+            jobs[name]["cmd"] = cmd
         if name == "grid_sync":
             # The town MIRROR flag (item 2 of the I-3a-2 order): when true,
             # `render_managed_lines` appends one GUARDED push per declared
@@ -936,11 +944,26 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         # SAME tick then receives: `migrate --receive` seats a verified
         # quick-migrate record addressed to THIS box (SM.123 conjunct 2).
         # `;` not `&&` -- a read refusal must never skip the receive half.
-        lines.append(
-            f"{sched} cd {root} && git -C {repo_root} fetch -q origin && "
-            f"python3 {send_py} read --box-local >> {log} 2>&1; "
-            f"python3 {rotate_py} migrate --receive >> {log} 2>&1"
-        )
+        # `--peek`: this tick's stdout is redirected into the cron LOG FILE,
+        # so it reaches no pane. Without --peek the read still advanced every
+        # LOCAL row's `# read up to here` past lines only the log ever held,
+        # and the seat's own next read answered `empty` -- the two measured
+        # 10-01 red cases (hypothesis:g1-inbox-read-cursor-never-passes-an-
+        # unprinted-line). Print, never retire; the seat's read is the
+        # printing one.
+        # The command is graph content when the row declares it (the cell
+        # moves the whole line, redirections included). `{engine_root}` and
+        # `{log}` resolve HERE, not in `_substitute`: a `source_root()` result
+        # and a content-hashed name are computed values, not box cells.
+        # Absent cell -> the built-in f-string; both replaces are no-ops.
+        text = jobs["mail_poll"].get("cmd") or (
+            f"git -C {repo_root} fetch -q origin && "
+            f"python3 {send_py} read --box-local --peek >> {log} 2>&1; "
+            f"python3 {rotate_py} migrate --receive >> {log} 2>&1")
+        for token, value in (("{engine_root}", engine_root), ("{log}", log)):
+            text = text.replace(token, str(value))
+        lines.append(f"{sched} cd {root} && "
+                     f"{_substitute(text, root, repo_root, own)}")
 
     if "nudge_sweep" in jobs and jobs["nudge_sweep"]["enabled"] and _on_this_box(jobs["nudge_sweep"], own):
         # The sweep walks every LOCAL row itself (`wake --all-local`), so no

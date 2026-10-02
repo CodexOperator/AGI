@@ -86,6 +86,7 @@ def _fixture(tmp_path: Path) -> Path:
            + "\n".join(f"  - {json.dumps(r)}" for r in posts) + "\n---\n")
     _write(g, "nodes/ladder/ladder.md",
            "---\nid: ladder:ladder\ntype: ladder\n---\nbody\n")
+    _write(g, "nodes/goal/g1.md", "---\nid: goal:g1\ntype: goal\ntitle: x\n---\nbody\n")
     for v in ("vision:a", "vision:b", "vision:c",
               "vision:streaming-suite", "vision:web-app-suite"):
         _write(g, f"nodes/vision/{v.split(':')[-1]}.md",
@@ -107,7 +108,8 @@ def _create_line(proj: Path, slug: str, season: int, visions: list[str],
                  council: str) -> str:
     """The exact corrected DELIVERABLE line shape for one town."""
     return (f"AGI_SEASON={season} {RUNNER} {WRITE_PY} create town {slug} "
-            f"--parent ladder:ladder --root {proj} --actor prime_director "
+            f"--parent goal:g1 --parent {visions[0]} --root {proj} "
+            f"--actor prime_director "
             f"--set visions={json.dumps(visions)} --set council={council} "
             f"--set season={season}")
 
@@ -131,7 +133,7 @@ def test_corrected_create_lines_mint_the_ruling_seasons(tmp_path, monkeypatch):
     g = proj / ".agi"
 
     for slug, agi_season, visions, council, season in DELIVERABLE:
-        argv = ["create", "town", slug, "--parent", "ladder:ladder",
+        argv = ["create", "town", slug, "--parent", "goal:g1", "--parent", visions[0],
                 "--root", str(proj), "--actor", "prime_director",
                 "--set", f"visions={json.dumps(visions)}",
                 "--set", f"council={council}",

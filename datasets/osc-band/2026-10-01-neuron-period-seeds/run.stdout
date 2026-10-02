@@ -1,0 +1,114 @@
+box: avail 4136 MiB, memory psi some avg10 0.0
+box: avail 4091 MiB, memory psi some avg10 0.0
+box: avail 4366 MiB, memory psi some avg10 0.0
+box: avail 4614 MiB, memory psi some avg10 0.0
+box: avail 4578 MiB, memory psi some avg10 0.18
+box: avail 4534 MiB, memory psi some avg10 28.73
+box: avail 4315 MiB, memory psi some avg10 5.84
+box: avail 4352 MiB, memory psi some avg10 1.01
+box: avail 4276 MiB, memory psi some avg10 0.09
+box: avail 4017 MiB, memory psi some avg10 0.0
+box: avail 4140 MiB, memory psi some avg10 0.0
+box: avail 4219 MiB, memory psi some avg10 0.0
+box: avail 4323 MiB, memory psi some avg10 0.0
+box: avail 4193 MiB, memory psi some avg10 0.0
+box: avail 4180 MiB, memory psi some avg10 0.0
+box: avail 4113 MiB, memory psi some avg10 0.4
+box: avail 4059 MiB, memory psi some avg10 0.01
+box: avail 3902 MiB, memory psi some avg10 0.58
+box: avail 3701 MiB, memory psi some avg10 1.88
+box: avail 3682 MiB, memory psi some avg10 53.9
+box: avail 3983 MiB, memory psi some avg10 10.41
+box: avail 4402 MiB, memory psi some avg10 12.0
+box: avail 4506 MiB, memory psi some avg10 0.61
+box: avail 4550 MiB, memory psi some avg10 0.01
+box: avail 4329 MiB, memory psi some avg10 0.0
+box: avail 5745 MiB, memory psi some avg10 0.0
+box: avail 5768 MiB, memory psi some avg10 0.0
+box: avail 5680 MiB, memory psi some avg10 0.0
+box: avail 5605 MiB, memory psi some avg10 0.0
+box: avail 5701 MiB, memory psi some avg10 0.0
+box: avail 5633 MiB, memory psi some avg10 0.0
+box: avail 5745 MiB, memory psi some avg10 0.0
+box: avail 5722 MiB, memory psi some avg10 0.0
+box: avail 5716 MiB, memory psi some avg10 0.0
+box: avail 5645 MiB, memory psi some avg10 0.0
+box: avail 5631 MiB, memory psi some avg10 0.0
+box: avail 5644 MiB, memory psi some avg10 0.0
+box: avail 5629 MiB, memory psi some avg10 0.0
+box: avail 5446 MiB, memory psi some avg10 0.0
+box: avail 5358 MiB, memory psi some avg10 0.0
+box: avail 5330 MiB, memory psi some avg10 0.0
+box: avail 5444 MiB, memory psi some avg10 0.0
+box: avail 5433 MiB, memory psi some avg10 0.0
+box: avail 5344 MiB, memory psi some avg10 0.0
+box: avail 5380 MiB, memory psi some avg10 0.0
+box: avail 5368 MiB, memory psi some avg10 0.0
+box: avail 5345 MiB, memory psi some avg10 0.0
+box: avail 5076 MiB, memory psi some avg10 0.0
+box: avail 5287 MiB, memory psi some avg10 0.0
+box: avail 5011 MiB, memory psi some avg10 0.0
+box: avail 4979 MiB, memory psi some avg10 0.0
+box: avail 4915 MiB, memory psi some avg10 0.0
+box: avail 5086 MiB, memory psi some avg10 0.0
+box: avail 4626 MiB, memory psi some avg10 0.0
+box: avail 4602 MiB, memory psi some avg10 0.0
+launch: params sha256 8b7d88513192d8af24cc4807f4de85b5428f4f647641ca8c521ca1d864adcbe3, torch 2.14.0+cu130
+seed 1 step 0: train loss/acc 4.731/0.0081 test loss/acc 4.73/0.0114 psi 0.0 (2s)
+seed 1 step 1000: train loss/acc 7.004e-06/1.0000 test loss/acc 32.49/0.0204 psi 0.0 (1561s)
+box: avail 9256 MiB, memory psi some avg10 0.0
+launch: params sha256 baf32fc01366a37260a08052e1569062304f16deb87051cdf8af340e57e1dfa0, torch 2.14.0+cu130
+seed 1 step 0: train loss/acc 4.731/0.0081 test loss/acc 4.73/0.0114 psi 0.0 (0s)
+seed 1 step 1000: train loss/acc 7.004e-06/1.0000 test loss/acc 32.49/0.0204 psi 0.05 (179s)
+seed 1 step 2000: train loss/acc 3.279e-07/1.0000 test loss/acc 33.72/0.0241 psi 0.0 (354s)
+seed 1 step 3000: train loss/acc 3.165e-07/1.0000 test loss/acc 30.77/0.0295 psi 0.0 (531s)
+seed 1 step 4000: train loss/acc 3.078e-07/1.0000 test loss/acc 28.6/0.0341 psi 0.17 (705s)
+seed 1 step 5000: train loss/acc 2.99e-07/1.0000 test loss/acc 26.78/0.0395 psi 0.0 (880s)
+seed 1 step 6000: train loss/acc 2.922e-07/1.0000 test loss/acc 25.07/0.0456 psi 0.0 (1051s)
+seed 1 step 7000: train loss/acc 2.849e-07/1.0000 test loss/acc 23.39/0.0520 psi 0.0 (1219s)
+seed 1 step 8000: train loss/acc 2.789e-07/1.0000 test loss/acc 21.74/0.0603 psi 0.0 (1389s)
+seed 1 step 9000: train loss/acc 2.731e-07/1.0000 test loss/acc 19.94/0.0756 psi 0.0 (1561s)
+seed 1 step 10000: train loss/acc 2.661e-07/1.0000 test loss/acc 17.74/0.1006 psi 0.0 (1740s)
+seed 1 step 11000: train loss/acc 2.559e-07/1.0000 test loss/acc 14.17/0.1542 psi 0.0 (1920s)
+seed 1 step 12000: train loss/acc 2.235e-07/1.0000 test loss/acc 6.675/0.3716 psi 0.46 (2103s)
+seed 1 step 13000: train loss/acc 1.409e-07/1.0000 test loss/acc 0.0424/0.9868 psi 0.0 (2282s)
+seed 1 step 14000: train loss/acc 9.762e-08/1.0000 test loss/acc 3.813e-07/1.0000 psi 0.0 (2456s)
+seed 1: {"seed": 1, "grokked": true, "grok_step": 13100, "steps": 14100, "wall_s": 2474.8, "final_train_loss": 9.634653836360624e-08, "final_train_acc": 1.0, "final_test_loss": 3.0186512539857097e-07, "final_test_acc": 1.0}
+seed 2 step 0: train loss/acc 4.73/0.0107 test loss/acc 4.731/0.0077 psi 0.0 (0s)
+seed 2 step 1000: train loss/acc 6.538e-06/1.0000 test loss/acc 27.56/0.0569 psi 0.0 (177s)
+seed 2 step 2000: train loss/acc 3.141e-07/1.0000 test loss/acc 28.01/0.0666 psi 0.0 (348s)
+seed 2 step 3000: train loss/acc 3.018e-07/1.0000 test loss/acc 25.31/0.0734 psi 3.78 (527s)
+memory psi >= 20 at step 3200: checkpointed, exit 3
+box: avail 7279 MiB, memory psi some avg10 0.46
+launch: params sha256 baf32fc01366a37260a08052e1569062304f16deb87051cdf8af340e57e1dfa0, torch 2.14.0+cu130
+seed 1: {"seed": 1, "grokked": true, "grok_step": 13100, "steps": 14100, "wall_s": 2474.8, "final_train_loss": 9.634653836360624e-08, "final_train_acc": 1.0, "final_test_loss": 3.0186512539857097e-07, "final_test_acc": 1.0}
+seed 2 step 4000: train loss/acc 2.92e-07/1.0000 test loss/acc 23.48/0.0809 psi 0.0 (706s)
+seed 2 step 5000: train loss/acc 2.846e-07/1.0000 test loss/acc 22.04/0.0893 psi 0.01 (889s)
+seed 2 step 6000: train loss/acc 2.782e-07/1.0000 test loss/acc 20.67/0.0986 psi 0.0 (1067s)
+seed 2 step 7000: train loss/acc 2.723e-07/1.0000 test loss/acc 19.19/0.1087 psi 0.0 (1243s)
+seed 2 step 8000: train loss/acc 2.646e-07/1.0000 test loss/acc 17.35/0.1253 psi 0.0 (1421s)
+seed 2 step 9000: train loss/acc 2.538e-07/1.0000 test loss/acc 14.01/0.1737 psi 0.0 (1598s)
+seed 2 step 10000: train loss/acc 2.013e-07/1.0000 test loss/acc 4.124/0.5091 psi 0.0 (1777s)
+seed 2 step 11000: train loss/acc 1.085e-07/1.0000 test loss/acc 7.139e-05/1.0000 psi 0.0 (1949s)
+seed 2: {"seed": 2, "grokked": true, "grok_step": 10600, "steps": 11600, "wall_s": 2053.1, "final_train_loss": 9.478267495676361e-08, "final_train_acc": 1.0, "final_test_loss": 4.7265724347250346e-07, "final_test_acc": 1.0}
+seed 3 step 0: train loss/acc 4.731/0.0094 test loss/acc 4.729/0.0086 psi 0.0 (0s)
+seed 3 step 1000: train loss/acc 8.037e-06/1.0000 test loss/acc 36.18/0.0102 psi 0.0 (172s)
+seed 3 step 2000: train loss/acc 3.43e-07/1.0000 test loss/acc 39.09/0.0100 psi 0.0 (349s)
+seed 3 step 3000: train loss/acc 3.364e-07/1.0000 test loss/acc 36.9/0.0124 psi 0.0 (521s)
+seed 3 step 4000: train loss/acc 3.272e-07/1.0000 test loss/acc 35.4/0.0129 psi 0.0 (694s)
+seed 3 step 5000: train loss/acc 3.2e-07/1.0000 test loss/acc 34.34/0.0130 psi 0.0 (864s)
+seed 3 step 6000: train loss/acc 3.158e-07/1.0000 test loss/acc 33.57/0.0145 psi 0.0 (1045s)
+seed 3 step 7000: train loss/acc 3.116e-07/1.0000 test loss/acc 32.92/0.0152 psi 0.0 (1224s)
+seed 3 step 8000: train loss/acc 3.078e-07/1.0000 test loss/acc 32.38/0.0159 psi 0.0 (1398s)
+seed 3 step 9000: train loss/acc 3.031e-07/1.0000 test loss/acc 31.89/0.0162 psi 0.0 (1581s)
+seed 3 step 10000: train loss/acc 3.001e-07/1.0000 test loss/acc 31.39/0.0168 psi 0.0 (1763s)
+seed 3 step 11000: train loss/acc 2.979e-07/1.0000 test loss/acc 30.84/0.0189 psi 0.0 (1944s)
+seed 3 step 12000: train loss/acc 2.943e-07/1.0000 test loss/acc 30.22/0.0201 psi 2.75 (2126s)
+seed 3 step 13000: train loss/acc 2.921e-07/1.0000 test loss/acc 29.53/0.0208 psi 0.0 (2300s)
+seed 3 step 14000: train loss/acc 2.879e-07/1.0000 test loss/acc 28.81/0.0223 psi 0.64 (2494s)
+seed 3: {"seed": 3, "grokked": false, "grok_step": null, "steps": 14900, "wall_s": 2690.7, "final_train_loss": 2.8525138272884906e-07, "final_train_acc": 1.0, "final_test_loss": 28.081694844661634, "final_test_acc": 0.024051907372189284}
+# SEED REPLICATION: disproved
+
+- seed 1: {"grokked": true, "grok_step": 13100, "steps": 14100, "wall_s": 2474.8, "final_train_loss": 9.634653836360624e-08, "final_train_acc": 1.0, "final_test_loss": 3.0186512539857097e-07, "final_test_acc": 1.0, "analysis": {"shape_ok": true, "match_ok": true, "base_test_acc": 1.0, "null_q999": 0.1609938008158899, "twin_max": 0.15166161924186583, "p1": {"pass": true, "count": 506, "fraction": 0.98828125}, "p2": {"pass": true, "n_cover": 3, "freq_counts": {"7": 176, "34": 159, "5": 127, "3": 21, "30": 17, "14": 4, "10": 2}}, "p4": {"pass": false, "families": {"7": {"size": 176, "drop": 0.04340530260655551, "rand_max": 0.5538650855800424, "rand_mean": 0.4092627810717082, "load_bearing": false, "passenger": true}, "34": {"size": 159, "drop": 0.16388857814073166, "rand_max": 0.39590558227989703, "rand_mean": 0.17420293097661932, "load_bearing": false, "passenger": true}, "5": {"size": 127, "drop": 0.3093187157400157, "rand_max": 0.33292314576574555, "rand_mean": 0.1376719991050453, "load_bearing": false, "passenger": false}, "3": {"size": 21, "drop": 0.0, "rand_max": 0.05761270835663945, "rand_mean": 0.008731401722787791, "load_bearing": false, "passenger": true}}, "n_load_bearing": 0, "n_passenger": 3}, "we_top6": [3, 5, 7, 14, 30, 34], "we_equals_families": false}}
+- seed 2: {"grokked": true, "grok_step": 10600, "steps": 11600, "wall_s": 2053.1, "final_train_loss": 9.478267495676361e-08, "final_train_acc": 1.0, "final_test_loss": 4.7265724347250346e-07, "final_test_acc": 1.0, "analysis": {"shape_ok": true, "match_ok": true, "base_test_acc": 1.0, "null_q999": 0.15292917371571227, "twin_max": 0.15166161924186583, "p1": {"pass": true, "count": 512, "fraction": 1.0}, "p2": {"pass": true, "n_cover": 3, "freq_counts": {"39": 167, "45": 165, "21": 129, "17": 51}}, "p4": {"pass": true, "families": {"39": {"size": 167, "drop": 0.11500167804004924, "rand_max": 0.507103702875042, "rand_mean": 0.225399932878398, "load_bearing": false, "passenger": true}, "45": {"size": 165, "drop": 0.31021367043293435, "rand_max": 0.2649065891039266, "rand_mean": 0.0868665398814185, "load_bearing": true, "passenger": false}, "21": {"size": 129, "drop": 0.010515717641794375, "rand_max": 0.47712272066226646, "rand_mean": 0.13104374091061644, "load_bearing": false, "passenger": true}, "17": {"size": 51, "drop": 0.0, "rand_max": 0.04060856919118472, "rand_mean": 0.007948316366483948, "load_bearing": false, "passenger": true}}, "n_load_bearing": 1, "n_passenger": 3}, "we_top6": [17, 21, 23, 39, 42, 45], "we_equals_families": false}}
+- seed 3: {"grokked": false, "grok_step": null, "steps": 14900, "wall_s": 2690.7, "final_train_loss": 2.8525138272884906e-07, "final_train_acc": 1.0, "final_test_loss": 28.081694844661634, "final_test_acc": 0.024051907372189284, "analysis": null}

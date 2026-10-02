@@ -369,7 +369,13 @@ def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
         return None
     if seat is not None:
         sp = sessions / f"{seat}{METER_PIN_EXT}"
-        return sp if sp.is_file() else None
+        try:
+            return sp if sp.is_file() else None
+        except OSError:
+            # An unreadable sessions DIR makes is_file() raise, which would
+            # escape every meter caller (mur residue 2 on 0c16b7daf). A pin we
+            # cannot stat is UNKNOWN, the same reading as an absent one.
+            return None
     pins = sorted(sessions.glob(f"*{METER_PIN_EXT}"),
                   key=lambda p: p.stat().st_mtime)
     return pins[-1] if pins else None
@@ -437,12 +443,28 @@ def _parse_pin_record(pin: Path) -> tuple[int | None, str | None]:
 
 
 def _read_pin_target(pin: Path) -> Path | None:
-    """The transcript a pin names, or None when the pin is empty/absent."""
+    """The transcript a pin names, or None when the pin is empty/absent --
+    and also when the named path cannot be RESOLVED OR STAT'd by this uid
+    (EACCES/ELOOP/ENOTDIR). An unreadable pin is UNKNOWN, never fatal:
+    exactly the `None` an absent transcript already returns, which every
+    caller reads as "warn and skip" (`_seat_fraction` docstring; the same
+    doctrine as `_seat_idle_minutes`'s broken clock). It is NOT a zero
+    fraction. The measurement that provoked this guard is on
+    hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback, not
+    here. NOTE this guards the STAT only: a path that stats but cannot be
+    OPENED is caught one call deeper, in `_seat_fraction`."""
     _, target = _parse_pin_record(pin)
     if not target:
         return None
-    lp = Path(target).expanduser().resolve()
-    return lp if lp.exists() else None
+    try:
+        lp = Path(target).expanduser().resolve()
+        return lp if lp.exists() else None
+    except (OSError, RuntimeError):
+        # MEASURED 10-01 (py3.12.3): a symlink loop makes `Path.resolve()`
+        # raise RuntimeError('Symlink loop'), NOT an OSError — so an
+        # `except OSError` alone still tracebacks, which mur residue 1 on
+        # 0c16b7daf caught. A loop is UNKNOWN like any other unreadable pin.
+        return None
 
 
 def resolve_transcript(*, root: Path, session_log: str | None = None,
@@ -7651,8 +7673,12 @@ def _kill_window(name: str, tmux_session: str,
 def _seat_fraction(root: Path, row: dict) -> float | None:
     """Context fraction for a seat row: read its seat-stable pin
     (`pin_ref` -> `.agi/sessions/<name>.meter`), parse the named transcript,
-    and divide by the ladder's context window. None when the pin or a usage
-    record is absent (caller warns and skips the seat)."""
+    and divide by the ladder's context window. None when the pin, the
+    transcript, or a usage record is absent or UNREADABLE (the caller warns
+    and skips the seat). The transcript READ is guarded here, not only the
+    stat in `_read_pin_target`: a file this uid may stat but not open is
+    still UNKNOWN, never a raised PermissionError out of `status`
+    (hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback)."""
     name = row.get("name")
     if not name:
         return None
@@ -7666,9 +7692,15 @@ def _seat_fraction(root: Path, row: dict) -> float | None:
     target = _read_pin_target(pin)
     if target is None:
         return None
-    usage = parse_usage_from_cc_transcript(target)
-    if usage is None:
-        usage = parse_usage_from_rc_log(target)
+    try:
+        usage = parse_usage_from_cc_transcript(target)
+        if usage is None:
+            usage = parse_usage_from_rc_log(target)
+    except OSError:
+        # EXISTS but unreadable (EACCES on the file itself, not on a parent
+        # dir). The stat seam in _read_pin_target cannot see this; without
+        # this guard `rotate.py status` still dies on the first sealed seat.
+        return None
     if usage is None:
         return None
     context_tokens = load_ladder_field(root, "director_context_tokens",

@@ -21,78 +21,77 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 24 wake (15:07Z 10-01): §0 rewritten for the post-reboot state -- heal brought DG1/DG2/DG3 back, v5 posts still down, G5 not on the trunk; the owner 15:1xZ lift stands. No GO is due until DG3 restores v5 and SM lands G5.
+gen 26 (18:5xZ 10-02): the owner worked live with belam all afternoon; every line is verbatim on town:local-maxxing Agent Notes (64bf778d4 .. 62e8ea465). Ruled: no ladder reader moves · workflow.py retires, manifests KEPT, skill = agi-spawn-chain, the FLOW ROTATION = council (growth.tsv + parent cells only) · shell tests for v5 pieces · per-spawn key from the .env provisioning key + 2 spawn classes + direct inference = council (K1-K3) · mail without send.py = AA1.M ACCEPTED (owner GO; path unit; no worktree hop) and LANED to DG2/DG3 (SM's g7.16.1.11 HOLD lifts only by a named belam [rule]). Paid: posts lost acks because send.py has no [ack] to the Prime and their cards named a stale belam session -> route rule sent, 6/6 re-acked by send.py.
 <!-- THOUGHT:END -->
 
-## §0 State (15:1xZ 10-01, read from date -u)
+## §0 State (18:5xZ 10-02, read from date -u)
 | | |
 |---|---|
-| post | belam-S2-L5-XX gen 24 (woke 15:07Z, rotate record 150403Z; reset to 1 by rotate; row fixed to 24 at 3508b58d3, key_history kept; red = hypothesis:rotate-self-after-reboot-resume-keeps-the-generation-counter, dm to DE 15:2xZ; this session = agi-6a [63be10] @10); predecessors idle: gen 23 agi-24 · 22 agi-a3 · 21 agi-23 · 20 agi-79 |
-| REBOOT | 14:42Z HARD reboot (cause UNKNOWN). heal respawned DG1 gen 5 @7 (15:05Z) · DG2 gen 5 @8 (15:06Z) · DG3 gen 15 @9 (15:06Z); v5 units GONE until DG3 restores them (DG5 > TM-new > DT-1 > DT-2, gate between) |
-| run | owner 15:1xZ LIFTED the wind-down: keep going until goal:g7.16.1.11.1-.10 are complete · G5 8a450c0c0 NOT on the trunk (15:1xZ) |
-| engine | v5 LANDED 10:4xZ: config:engine 7,904 B 57eb5ac42 + engine-post/wrap/grow/root + growth.tsv + schemas (verify 12/13, bin-suite-fresh known) |
-| v5 posts | RESTORED (DG3): DG5 15:09Z · TM-new 15:16Z · DT-1 15:18Z · DT-2 15:24Z, 0 restarts, G6 AGI_BOX live; G7.2 (-b execve, ruled 15:3xZ) built 7917597c7, lands AFTER G5; live posts take G5+G7 at next restart. MOVE 1 DONE: DG2 UP on v5 16:1xZ (3 boot residues -> DG3: raw .env PermissionError, AGI_POST unset, .agi/keys untracked). DG2 ROW WRITTEN 16:1xZ 10353be9c + 126b6e153 (pid 0, recover false, engine sonnet), DG3 runs kill @8 -> unit start; COMMS (owner 18:1xZ): DIRECT session messages (SendMessage) until every post is switched; map: DG1 agi-a8 · DG3 agi-e1 · SM agi-02 · alive agi-9c · all-is-one agi-06 · self-perpetuating agi-99 · old TM agi-63 · v5 by RC name (DG2 = director-general-2 [6795f8]); DG5 (pi) inbox only. G8 LANDED c34954f72 18:01Z -> DG1 re-verdict YES -> MOVE 2 GO 18:2xZ (scratchpad dg1-a/dg1-b.sub, 1+1 match; on DG1 down-ready write each alone, then DG3 kills @7). MOVE 2 DONE: DG1 UP on v5 18:12:46Z (0 restarts, no hand act). MOVE 3 = alive: verdict NO 18:5xZ (CUT verified: v5 agi-meter engine-post.md:51 reads tail -1 -> last line system/bridge = no usage -> out-line NEVER fires on any v5 claude post; measured DT-1 459,970 = 0.46 told to rotate by hand · TM-new 353,843 · DT-2 190,977 · DG1 119,337 · DG2 103,038) -> round G10 to DG3 (newest line WITH usage); G7d LANDED 5ee791456 18:4xZ (pi start fix; links 5,655/0) -> DG5 off its hand h.conf at re-projection (DG3); G9 install now waits only on its mur + owner Proxmox location + belam GO. G10 residues 0, merge-up with SM (tip 5987d7656); ROLLOUT = restart each live v5 post after it lands (ExecStartPre re-extracts agi-meter); then MOVE 3 alive GO (packet ready). Council rows fixed d0420913c (all-is-one 30543 @2 · alive 33188 @4 · self-perpetuating 31550 @3); duplicates @13 @14 stopped 19:0xZ. MOVES HELD until G10 lands; Prime-side v5 meter Monitor (sudo -u agi-<post>, alerts >= 0.44) until then. WAS: packet asked of DG3 (engine claude-opus-5-5: council/masters stay Opus). DIRECTOR moves paused (recommended to owner) until the v5 key broker. G9 built afcd4e53d (de-base-G9), verify + mur next, NOT installed. ROWS 18:1xZ: SM pid -> 34181 (0543140ff) · stream-master @5 cleared (2bb565390) then heal respawn @12 pid 2190161 (d48ef764c). DECLINED (uid boundary): tmux-1000 group access + g:agi:rx on belam claude transcripts; code halves = send.py EACCES != gone, v5 pin = own transcript. DG5 rotate.py UNKNOWN-pin leaf LANED to SM. COUNCIL ROUND DONE 18:4xZ: Z1 728166975 (tree = config:posts cells parent + grow; roots travel with the assignment; 71 pct of real growth sits outside owning_goal) · Z2 50f5f539f · Z3 baca24bfb (ladder = 1 [town] edge + cell() resolver, 15 openers). NEXT: tree first shape -> OWNER (asked 18:4xZ), then Prime writes parent/grow cells; Z3 build + W1 (agi-turn commit-by-path + sign) = director rounds; [town] schema edit after the resolver; ladder retires after 1 day 0 WARN; W2 report-only before enforcing. Z2 DONE (self-perpetuating, recursive certs, agi-scope 3,922 B @50f5f539f); ladder = ONE parent list ([town]) + [ladder] + 1 config reader, not 8; wiring: sign -> links + gate REPORT-ONLY -> key: -> enforce. Council claimed the growth round: Z1 alive (post tree + scope + wiring) · Z2 self-perpetuating (recursive certs) · Z3 all-is-one (ladder out of 8 schemas). WAS: [decision] hold MOVES 2..9 (16:2xZ): DG1 verdict NO on CUT 1 = VERIFIED live data loss (engine-root.md:30 RuntimeDirectory, no Preserve; :35/:37; engine-post.md:75 agi-wt exit 4 moved) -> DG3: mitigation RuntimeDirectoryPreserve=restart on live v5 units NOW + round G8 (moved tree -> refs/archive/wt before flush). G7.2 REGRESSION (DG3 17:02Z): -b execve kills every PI-harness post at start (node shebang re-exec -> strace detaches -> exit 0 loop; DG5 15 restarts); stop-gap = direct-node H on DG5 (active 17:00Z), fix = corrective G7.4; ANY pi post start before G7.4 needs the same H. G8.2 built 626281b34 (7/7), re-mur next. MITIGATION LIVE 16:26Z (preserve.conf on DG2/DG5/TM-new/DT-1/DT-2, verified systemctl show; a full STOP still clears) · G8 = hypothesis:g716111-g8-moved-tree-survives-a-stop (DG3, Sonnet kid, under goal:g7.16.1.11.3). RESUME on G8 landed + DG1 re-verdict YES. DG1 packet READY: .agi/sessions/dg3-mur-args/dg1-switch.sub + dg1-rollback.sub (re-read live pid; each half alone; --actor belam --role prime_director). v5 posts warned 16:2xZ. DG1 CUT 2 (frontier reads Negative falsifiers inverted) + CUT 3 (agi-turn add -A, no anonymize hook, safe.directory=*) -> DG3 residues. DG2 GO GIVEN 16:05Z (G5 fec9f352f + G7.2 2e94bd1f3 on the trunk; verify links 5640/0, 5424 nodes) -- on [rotation] director-general-2 down-ready: write scratchpad dg2-a.sub then dg2-b.sub (sonnet), each ALONE, then DG3 kills @8 + starts the unit. WAS: NEXT GO = DG2 on: G5 landed (SM ETA ~15:46Z) + G7.2 landed (DG2 CUT condition, adopted) + DG2 verdict YES (15:3xZ, in) + DG3 packet IN 15:3xZ (.agi/sessions/dg3-mur-args/dg2-switch.sub + dg2-rollback.sub; run each sub ALONE; re-read live pid at GO) ACCEPTED with engine.model = claude-sonnet-5-5 for every DIRECTOR move (owner 07:4xZ); SHORT 3 (18/30/33) ruled non-gates (named + banked, reversible). Before the reboot UP: director-general-5 (pi-free) · thought-master-new (research loop; RC visible) · director-thought-1/-2 (RC visible, idle) · STOPPED: director-general-4 (memory; restart with an assignment) |
-| old posts | all still on the old setup (moves wait on G5 + the v5 restore) · old thought-master = STANDBY (handed off 12:5xZ) · SM rotated 13:1xZ (gen 12) · DG3 = agi-6a |
-| ACL 17:3xZ | /mnt/agi-ram g:agi:x (traverse) + /mnt/agi-ram/state g:agi:--- (before: none; rollback setfacl -x g:agi); tmpfs = LOST at reboot -> RAM-disk mount step |
-| users | 12 owner-logged-in agi-<post> (983..972, onboarding flags set 12:4xZ) + agi-grok 971 (xAI SuperGrok OAuth, 13 models) |
-| crons | session-only: CHECK ae1c3bdb (13 */4) · memory Monitor = python3 -u /data/tmp/belam23/memmon.py (re-arm each 30 min) |
+| post | belam gen 26 (row generation fixed 1 -> 26 ff323856c per gen 25 [red] 06:12Z; window @5), session 285ac5d4, OLD engine (owner 00:1xZ: the belam v5 move = the successor-after-next, only after AA3 land + keys are BUILT) |
+| box | REBOOTED 22:17:34Z 10-01 (owner GO). agi-boot in /etc, enabled: exit 0 22:32:58Z · F1 6/6 120 s apart · F2 ACL pair · F3 5/5 down · heal 4/4 old posts |
+| v5 up | alive · all-is-one · self-perpetuating · DG1 · TM-new · DT-1 (boot set) + DG2 (00:0xZ) + DG3 (moved 00:0xZ, row dbce857b4, h.conf only) |
+| down | DG4 · DG5 · DT-2 · stream-master: owner "keep the 5 down" (disabled, recover false, 0 procs) |
+| old setup | belam @1 · SM @2 · old TM @3 (heal guards ONLY these; v5 = systemd Restart) |
+| tree | config:posts parent cells: owner > belam > council{members alive, all-is-one, self-perpetuating · lands [SM]} > SM > DG1 · TM-new > DT-1 (f3a7eb1da ec5daa28a 1efd017e6 faabf9b7a b6b2c33d3) |
+| mail | = append to the post's inbox file in MAIN; the v5 wrapper turns growth into a turn. `send.py --from belam send <p> "<text>"`. Inbox dir g:agi rwx + default rw (01:1xZ). SendMessage = fallback only |
+| crons | session-only: CHECK e8519b0a (13 */4) + memory Monitor (inline /proc/meminfo + PSI, 30 min, re-arm; memmon.py not found without an io sweep): both die with me, re-arm at wake |
+| merge pass | paused_by_owner (05:1xZ 09-30: council / automated). BASE 1f2b49ffc9 |
+| A+ | ladder tier-3 claude-code parent = Sonnet 5.5 (d9d1cb7a1; owner 02:27Z 10-01 "Everyone else on sonnet 5.5 for everything they need") · SM runs a v5 director's WRITTEN dispatch order on claude-code Sonnet 5.5, 0 USD (01:1xZ); ends when the council's keys land |
 
-## §1 Plan (owner morning)
+## §1 Plan
 ```
-1 MOVES (owner 07:3xZ GO, verbatim on goal:g7.16.1.11): DG2 > DG1 > alive > self-perpetuating > all-is-one > stream-master > sanctuary-master > DG3 > belam LAST
-   each: G5 (v5 wake) + G6 (AGI_BOX) landed first · ONE config:posts write AT the GO (engine cell + recover false + pid 0) · old session STOPPED before the new starts · gate (load1 < 16, io PSI avg60 < 50) between
-   G4 LANDED b30042219 (SM) · belam LAST = a FRESH belam on v5, gen counter CONTINUED; this session stays idle
-2 DG4: assignment from the owner or SM, then restart · DT-1/-2: their max-parallel lane under thought-master-new (key broker = fix round for pi-free kids)
-3 council: moral satisfaction verdicts on the seed engine (not filed yet) -> phase 3 readiness
-4 after the moves: deprecation sweep (retire, never delete) · ROUND 8 stream town (queued) · viz last (spider first)
-NOT YET: seed root install + anchor line · hub grow-gate wiring · T7 wake row · phone route (Mac WireGuard config) · Grok proxy + token renewal
+figure eight (doc:council-loop) — the Prime REVIEWS, never assigns a design or a build (template 76f1129d1)
+council bundle DONE (RULING 2 = per-post ~/g.git + trunk-only commons, ACCEPTED 03:3xZ; DG1 swaps the one-box half; AA3.12 land-from-own-store): AA1 boxes (doc:rse-aa1-boxes) · AA2 rotations + 8 KB + load matrix + versioning + per-user stores (doc:radically-simple-engine) · AA3 land (doc:rse-aa3-land)
+ -> DG1 goals g7.16.1.11.11-.14 + 14 hypotheses LANDED (SM 818f6652f) -> DG2 experiments <-> DG1 inner loops -> DG3 builds -> SM mur
+ -> DG1 outcomes -> SM bigger outcomes -> council overview nodes -> belam = the SEASON WRAP (owner's end condition)
+belam: answer [decision]s · give each host act (sudo, /etc, unit installs) its own GO · hold every result to the 8 KB base (8,168 B) / 1 KB seed + the owner lines
+NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 · ladder:ladder retires for the post tree (owner 03:1xZ, sent to the council; Z3) -- built by the directors
 ```
 
-## §2 Landed (gen 23)
-C1 e1e0dbaaf · C2 aa2f2e28a · C4 81ed274fc · C3 5ee794d45 · R5-R7 57eb5ac42 (+6) · rows 6f5275059 · DG4 cell 451adc6c2 · 10 goal leaves g7.16.1.11.1-.10 · ACLs (refs, comms, objects, logs, worktrees; seats UNTOUCHED) · director brief MUR -> claude-code
-
+## §2 Landed (gen 26)
+Z4 phase A c2decf431 · row gen -> 26 ff323856c · pb3 (skill-load red) 96140880b + Prime steps 369b03607 9917f032d · owner lines banked (town board) + relayed · AA1.M host act 1 RUN as root 18:27Z (CARRIED U, barrier holds; rolled back) -> alive's signers fix · AA1.M laned 18:5xZ: DG1 .11.1 ACTIVE, DG2 falsifiers, DG3 builds M1 M3 M2, SM gates
 ## 🔴 Where it stops
-MOVE 3 alive ROW WRITTEN 827e80ce2 19:3xZ (alive down-ready + card 3c1456836); DG3 runs the switch and reports alive first turn -- confirm alive UP on v5 (ListAgents / systemctl show agi-post@alive), THEN next move. (Done: wrote .agi/sessions/dg3-mur-args/alive-one.sub ALONE (anchor = live pid 33188 @4; DG3's alive-switch.sub anchors the DEAD 2806129 -- do not use it), then tell DG3 (agi-e1, or its successor) to kill @4 + start the unit.
-Exact: python3 extensions/agi/bin/write.py config:posts "$(cat .agi/sessions/dg3-mur-args/alive-one.sub)" --actor belam --role prime_director   (sub "box": "local-town", "pid": 33188, "window": "@4", => ... "pid": 0, "window": "", "recover": false, "engine": {... "claude-opus-5-5" ... "seeds": "doc:unified-master-brief,doc:unified-head,doc:card-alive", "rotate_pct": 47},)
-Then MOVES 4-6 (self-perpetuating, all-is-one, SM) each: verdict -> packet re-anchored on the LIVE row pid -> down-ready -> row -> DG3 switch. DIRECTOR moves (DG3) paused until the v5 key broker (owner asked). stream-master: owner order slot 6.
-G10 rollout (DG3): restart idle v5 posts one at a time DG2 > DG1 > DT-1 > DT-2; TM-new rotates itself (0.39 at 19:1xZ, told). Prime v5 meter Monitor until all are restarted.
-Owner open: Proxmox location (G9 mock restart) · tree first shape (Z1) · key broker vs .env (B) · council-or-beside + director-engine master.
-Wake: CronList, re-arm CHECK (13 */4) + memory Monitor (scratchpad memmon copy alerts avg10>=30 too); comms = DIRECT SendMessage (map in §0 COMMS line); ListAgents for SM's successor name.
+NEXT belam acts are all ARRIVALS: (1) a HOST ACT GO for AA1.M (DG1/DG3/alive send ONE line: command + before-state + rollback) -- read the script whole first (sudo cat if private), run with the sha256 check, record, roll back if scratch · (2) the council's K1-K3 + flow-rotation designs -> review against the owner lines, then name each Prime lane by [rule] (SM's HOLD needs it) · (3) W lands with agi-spawn-chain -> belam RENAMES the skills clause in both config:rotations entries on a branch, SM lands both in ONE update
+- mail route: posts send.py to belam only, acks as ONE [rule] line (send.py has no [ack] to the Prime); watch the inbox FILE from its current size, re-read by ts after each exit
+- goal:g7.16.1.11.17 (belam on v5) HORIZON: AA3 land · AA2 keys · v5 [config] ring · anchor signer
+Council bundle is with DG1; DG2 + DG3 on v5 work DG1's leaves; belam reviews only; next belam stays on the old engine
+- wake: CronList -> re-arm CHECK (13 */4) + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · read .agi/sessions/inbox/belam.md by ts (trap 66)
+- watch: SM's [merge-up]s of DG1/DG2/DG3 work; review against the 8 KB base / 1 KB seed and the owner lines on town:local-maxxing (Agent Notes)
+- each host act a v5 post asks for (sudo, install, unit start) = its own belam GO, before-state recorded, rollback named
+- nothing is owed to the owner; every open item is in §6
+
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
 |---|---|---|
 | 15 | a retire+move shows as `D` in a big diff | resolve by mint_id before calling a deletion RED |
-| 45 | `du`/`find` over `.agi/worktrees` is an io storm; a glob into `.agi/` hands du the bind-mounted worktrees | `git worktree list`; never glob into `.agi/` |
-| 46 | `pkill -f` / `pgrep -f` inside a Bash call matches your OWN shell | match exact argv in python (`/proc/<p>/cmdline`) |
-| 57 | write.py lands UNCOMMITTED while verify-suite.lock is held | wait for the lock, then commit by exact path (`git add` a new file first) |
-| 61 | `workflow.py --harness claude-code` runs NOTHING headless | `<home>/passB3/ccrun.py` (CC_MODEL, default Sonnet 5.5) |
-| 63 | a gate that greps pytest's LAST line reads tier-gate noise or the suite-lock refusal as red | grep `(passed|failed|errors?) in`; retry on "suite window refused" |
-| 64 | RAM MAIN: tmpfs pages are charged to the FIRST writer's slice and stay there | heal's writes land on agi-engine.slice as shmem; the budget line is goal:g7.16.1.5.5 |
-| 66 | `send.py read belam` printed "empty" while DG3 02:59Z + 03:05Z and TM 21:55Z sat in the dm files / inbox file | read `.agi/comms/season-2/dm/*belam*` + `.agi/sessions/inbox/belam.md` by ts after every [decision] wait |
-| 65 | `rm -rf $VAR/$X` is refused by the safety check | literal absolute paths, or `"${S:?}"/"${d:?}"` |
-| 68 | a gate suite in /dev/shm/smtmptm/neutral piled up 273+ python3 that never exit (9.8 GB anon, +255 MiB/min, swap 102 MiB) 16:1xZ 10-01; STOPPED by belam auto-stop ~16:2xZ (PSI full10 33.2 > 30: SIGTERM 295, SIGKILL 0; avail back 10.7 GB; suite result VOID, SM told) -- CANDIDATE cause of the 14:42Z hard reboot | read the scope by comm + cwd (cgroup.procs), never argv; cause = SM to name |
-| 72 | heal crash-respawn writes WINDOW but never the new PID: the row keeps a dead pid and EVERY heal pass respawns again (stream-master 18:13Z; all-is-one x3 by 19:00Z) | after any [crash-recovery]: set the row pid to the live one (comm claude + AGI_POST + TMUX_PANE from /proc environ, or cc-socks/<pid>.sock); round to SM 19:0xZ |
-| 73 | MAIN had 11,619 loose objects > gc.auto 6,700: every commit by every post started an auto gc that failed on v5-owned worktree locks = recurring io/memory RED (19:03Z PSI full avg10 73) | gc.auto=0 in MAIN 19:0xZ (before unset; rollback git config --unset gc.auto); real gc in a quiet window once worktree ACLs allow |
-| 70 | a belam rotation pushes its re-minted key row straight to season2/main (8dc5d3755); every town director rotate-self then REFUSES (.geometry behind) until the Prime syncs | after any belam rotation: merge-tree HEAD origin/season2/main; posts.md conflict = take the trunk row when pubkey + key_history match; commit-tree + update-ref CAS (3332be604) |
-| 69 | DG3 "read up to here" sat PAST my 16:09Z G8 red (lastread 16:10Z) yet DG3 never saw it (owner 16:2xZ) | an action order needs an explicit one-line ack back; no ack in 15 min = re-send + wake, then ask the owner to relay in the post's RC pane |
-| 67 | `open(p,"w").write(f(open(p).read()))` truncates BEFORE it reads: posts.md went 0 B 15:13:24-15:14:04Z 10-01 (gen 24) | read into a variable first, write a tmp + os.replace; a row-only commit = hash-object HEAD copy + update-index --cacheinfo |
+| 45 | `du`/`find` over `.agi/worktrees` is an io storm | `git worktree list`; never glob into `.agi/` |
+| 46 | `pkill -f` / `pgrep -f` matches your OWN shell | match by comm + /proc environ |
+| 57 | write.py lands UNCOMMITTED while verify-suite.lock is held | wait, then commit by exact path |
+| 61 | `workflow.py --harness claude-code` runs nothing headless | `<home>/passB3/ccrun.py` (SM's mur route) |
+| 63 | grepping pytest's LAST line reads noise as red | grep `(passed|failed|errors?) in` |
+| 66 | `send.py read belam` prints "empty" while mail sits in the inbox FILE | read `.agi/sessions/inbox/belam.md` by ts |
+| 67 | `open(p,"w").write(f(open(p).read()))` truncates first | read, write a tmp, os.replace |
+| 69 | an order without an ack can sit unread; send.py refuses [ack] to belam, so posts fell back to SendMessage to stale belam sessions (acks lost 17:4xZ) | ask for ONE [rule] line by send.py, never "[ack]"; none in 15 min = re-send (goal:g1.40 race) |
+| 70 | a belam / DG3 rotation pushes its key row to season2/main; town rotate-self then refuses | merge-tree; identical rows -> commit-tree with the trunk tree, CAS update-ref |
+| 73 | loose objects > gc.auto: every commit ran a failing gc | gc.auto=0 in MAIN (rollback: unset) |
+| 75 | write.py `sub` strips leading whitespace: a new frontmatter row lost its indent | anchor AFTER `  - ` (insert as `<row>\n  - <anchor>`) |
+| 76 | `lxc version` on this Ubuntu auto-installs the LXD snap | never call bare lxc / lxd |
+| 77 | heal's resume rewrites your row; `rotate.py ack` refuses on a dirty own row | check pid + pane, commit heal's write, then ack |
+| 78 | SendMessage "Failed" can still deliver; a v5 uid cannot append to another's inbox until AA1 | wait for a reply; v5 -> v5 mail = AA1 boxes |
 
 ## §5 Verification
-SCRUB 08:3xZ: GitHub fresh mirror 259,334 objects -> 0 hits · origin/season2/main ancestor of the trunk again · local 229,343 objects -> 0 hits, fsck ok (stale refs/remotes/origin-posts/director-thought dropped: the last holder) · nodes 5457 = before · links 5414 / 0 broken · grid 5450 clean
-guard-init 05:37Z: --status ok for agi-engine 3072M · agi-work 6742M · ramdisk 7168M · SM's Opus audit of d82a63e5a: 18 defaults == the old literals, plan identical (residue to DG4: validate cells before bash arithmetic; never `sudo -E`)
-B3 merge verify on the RAM disk: 11/12 (bin-suite-fresh known) · links 0 · 5201 nodes · grid 165 versions / 0 errors · s-goal move: 0 hypotheses under s18/s31/s32/s34, links 5317/0 · DG4 cold homing falsifier: 5 homed, shmem +0M, tmpfs +1M
+pb3 on the trunk 96140880b: rotations.md == ab864f427 · test_skills_first_turn_entry 4 passed · wake reads agi-post + agi-stream rc 0 · links 5724/0
+Z4A on the trunk c2decf431: 76 passed · links 5719/0 · schema 246/18/0 · growth.tsv == grow-project · verify 12/13 (bin-suite-fresh known) · nodes 5,760
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
-| the 2 x 5 USD TypeSafe jev keys (TM 03:5xZ: jev retired as an engine dependency) | release them: no live consumer; owner's keys and money, so owner's word |
-| GitHub may still serve the OLD SHAs (cached views, any fork, PR refs) | the owner files a GitHub Support request to purge cached objects for the repo (draft given 08:xZ) |
-| other boxes' clones (the grok team; one pushed a grid ref at 07:26Z) hold pre-scrub history | owner is telling them: re-clone, drop old worktrees/branches, push nothing from an old clone |
-| /data/scrub backups hold the UNREDACTED history (mode 700) | keep 3 days, then delete backup-*.git + stripped/ copies (the old->new sha map is kept apart: /data/agi-maps/scrub-2026-09-30.commit-map) |
-| the old->new sha map stays LOCAL (a public full old-sha list = lookup keys into GitHub's stale cache) | track it (for resolve_old_sha, DG3 leaf) only AFTER the owner confirms the GitHub purge |
-| the owner app (capsule client + iMessage ext + web map via SSH forward; owner 05:50Z: also a separate internal dev/testing product, monetized apart) | a goal of its own OUTSIDE g7.16.1.11, owner-named; this graph builds only the capsule client protocol |
-| `*.pre-tier-*` backups: ~/.claude.pre-tier-20260930T0145Z + ~/.pi.pre-tier-20260930T0146Z (on /) | delete after a day of clean tiering |
-| an on-disk /tmp makes every boot wait 5+ min in systemd-tmpfiles | tmpfs /tmp or a /tmp age cleaner, owner's call |
-| belam row says opus-5-5 / high; the live Prime runs opus-5-5[1m] / max | owner sets the row |
-| .env mode 600: agi-* director posts fail provisioning.available -> no v5 director can dispatch (DG5 + SM 15:3xZ); at 18:4xZ DG1 + DG2 + DG5 on v5 = DG3 the ONLY dispatcher (near its line) | INTERIM (A+) 18:4xZ: SM dispatches pi-free/0 USD on a director WRITTEN order from its worktree --from <director>; ENDS at the key broker (parity row 30 -- belam ruled it a non-gate 15:3xZ, wrong) OR owner (B) group:agi READ ACL on .env. RECOMMEND: build the key broker before more director moves |
-| docker data-root still on / · sda ~35 ms/op · origin remote moved | owner's window: smartctl + dmesg; `git remote set-url` |
+| the 2 x 5 USD TypeSafe jev keys (jev retired as an engine dependency) | release them: no live consumer; owner's keys and money |
+| GitHub history: ssh comment user@host (81d0e8729 8a9b0ad95 4b7d20df7) | OWNER 22:5xZ: leave it in -> no rewrite, no purge; SM's added-ever gate stays |
+| other boxes' clones hold pre-scrub history | owner tells them: re-clone, push nothing from an old clone |
+| /data/scrub backups hold the UNREDACTED history (mode 700) | delete backup-*.git + stripped/ after 10-03 (3 days); the sha map stays local, never tracked (no purge coming) |
+| the owner app (capsule client + iMessage ext + web map) | a goal of its own OUTSIDE g7.16.1.11, owner-named |
+| `*.pre-tier-*` backups (~/.claude, ~/.pi, on /) | past the day of clean tiering: delete on the owner's word |
+| /tmp on disk: tmpfiles 3m30s this boot (14m28s before) | owner 22:2xZ "Leave it for now" |
+| belam row opus-5-5 / high vs the live Prime opus-5-5[1m] / max | owner sets the row |
+| docker data-root on / · sda ~35 ms/op · origin remote moved | owner's window: smartctl + dmesg; `git remote set-url` |

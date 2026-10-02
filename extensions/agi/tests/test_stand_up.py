@@ -47,6 +47,19 @@ def calls(monkeypatch):
     return seen
 
 
+def _seed_recovery_ack(gdir):
+    """config:rotations `recovery_ack` -- the recovered-seat ack wording
+    (hypothesis:heal-ack-line-comes-from-config-rotations-by-role)."""
+    geo = Path(gdir) / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\nrecovery_ack:\n"
+        "  prime_director: {recovered: \"RECOVERED SEAT {seat} --gen {gen}\","
+        " resumed: \"RESUMED SEAT {seat} --gen {gen}\"}\n"
+        "  default: {recovered: \"RECOVERED SEAT {seat}\","
+        " resumed: \"RESUMED SEAT {seat}\"}\n---\n")
+
+
 @pytest.fixture
 def graph(tmp_path: Path) -> Path:
     g = tmp_path / "repo" / ".agi"
@@ -54,6 +67,7 @@ def graph(tmp_path: Path) -> Path:
     (g / "config.json").write_text(json.dumps({"metric_primary": "x"}))
     p = g / "nodes" / ".geometry" / "seats.md"
     p.parent.mkdir(parents=True)
+    _seed_recovery_ack(g)
     row = {"name": "seat-a", "role": "director", "pid": DEAD_PID,
            "window": "@50", "generation": 2, "model": "m-1"}
     p.write_text("---\nid: config:seats\nseats:\n  - " + json.dumps(row)

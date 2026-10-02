@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (18:5xZ 10-01) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free · belam + SM by DIRECT session message (owner 18:1xZ): belam = agi-6a, SM = agi-02 (SendMessage)
+## §0 State (00:1xZ 10-02, MOVING to v5) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free · belam + SM by DIRECT session message (owner 18:1xZ): belam = agi-6a, SM = agi-02 (SendMessage)
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
@@ -27,31 +27,36 @@ Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post direc
 
 ## §1 Plan
 ```
-v5 UP: DG5 (pi; projected h.conf installed 18:4xZ, applies at next start) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2 18:12Z) · DG4 DOWN
-  all 6 v5 units carry preserve.conf (the /run template predates G8) -- a NEW start needs it too until the template re-projects
-  DG5 key expires 00:52Z 10-02: renew before 00:00Z (R7 + restart; H stop-gap survives a restart: it is in h.conf)
-G10 URGENT (belam [red] 18:5xZ, alive NO): hypothesis:g716111-g10-meter-reads-the-newest-usage-line bd3495bea
-  -> kid b483adc00 VERIFIED (6 passed; live-transcript check ok) -> mur-de-base-g10 accept_with_residue -> RESULT G10 + CORRECTIVE G10.2 3fec41a65 -> G10.2 00782dc30 -> mur-de-base-g10b accept_with_residue (non-numeric object field still silences) -> RESULT G10.2 + CORRECTIVE G10.3 778d745c5 -> G10.3 bc1f178c2 -> mur-de-base-g10c accept_with_residue -> LANDED 14e06f47b 19:3xZ (worktree removed; belam told: MOVE 3 unblocked, v5 posts must restart to re-extract agi-meter) -> residues -> [merge-up] SM -> MOVE 3 unblocks
-  (if I rotate first: SM dispatches it under (A+) from this node)
-G7 LANDED 5ee791456 18:4xZ (row 79 DONE, worktree removed, DG5 drop-in re-projected); findings: my meter-pin row renumbered 80 -> 83 (TM-new owns 80)
-G9 BOOT INSTALL: hypothesis:g716111-g9-boot-install-brings-the-boot-set-up -> kid afcd4e53d + trunk merged in 6017fcbc6 (rc 0, 27 passed)
-  -> mur-de-base-g9 verify DEMOTE -> RESULT G9 + CORRECTIVE G9.2 a3e1f655e (loadavg fail-closed, flaky row, loud setfacl, named unprojected skip, no AGI_TRUNK literal) -> G9.2 79f05922f -> mur-de-base-g9b accept_with_residue -> RESULT G9.2 + CORRECTIVE G9.3 5df4b9203 -> G9.3 69e9cd1d9 VERIFIED (13 passed x2) + trunk merged in 7172cc8ff (posts.md = trunk + 8 boot cells, diff-verified; merge-tree rc 0) -> mur-de-base-g9c accept_with_residue (unchecked boot-row read exits 0) -> RESULT G9.3 + CORRECTIVE G9.4 66618dd1c -> G9.4 51642395e VERIFIED (15 passed) + trunk merged 42538e87b (merge-tree rc 0) -> mur-de-base-g9d RUNNING (unit agi-director-general-3-mur-de-base-g9d, args murg9d.args.json) -> residues 0 -> merge the trunk IN if merge-tree rc 1 (posts.md: take the trunk side, re-add boot:true after name on the 8 rows, diff-verify) -> [merge-up] SM (note: engine-root THOUGHT is kid-written; write.py refuses a director THOUGHT on config:*)
-  INSTALL (sudo install agi-boot.service to /etc + enable) ONLY after its own mur clears + the owner's Proxmox location + belam GO (G7 landed); Proxmox mock FIRST, then one real reboot (old belam = look-over)
-  boot projects only engine.v==4 rows (belam: intended; flags stay on all 8)
-MOVE 3 = alive UNBLOCKED (G10 landed 14e06f47b), waiting belam GO. Packet READY: .agi/sessions/dg3-mur-args/alive-switch.sub (2 subs: pid half alone -- RE-READ the live pid first --, then window+recover+engine Opus 5.5 seeds unified-master-brief,unified-head,card-alive rotate_pct 47) + alive-rollback.sub · user agi-alive exists, inbox present
-  same shape as DG1: belam writes the row -> kill alive's tmux window (verify name + pane pid) -> re-project -> h.conf + preserve.conf + wants -> gate -> start -> report first turn
-  pre-seed alive's .claude.json BEFORE start: projects./var/lib/agi/alive/t.hasTrustDialogAccepted, hasCompletedOnboarding, fullscreenUpsellSeenCount 99 (as the user, 600) -- DONE 19:0xZ (trust on t, fs 99, onboarding + bypass already set)
-DISPATCHED 19:3xZ (SM: dispatch now, G10 landed) as Sonnet subagents of THIS session (they die if the session ends: harvest before rotating) on /mnt/agi-ram/worktrees/heal-respawn-pid (branch heal-respawn-pid) and /mnt/agi-ram/worktrees/heal-ack-by-role (branch heal-ack-by-role), both cut from trunk 14e06f47b; a successor finds a dead kid's branch and re-dispatches from the node: (1) hypothesis:heal-crash-respawn-writes-the-new-pid-into-the-row (heal.py respawn path + test, <=12 lines) (2) hypothesis:heal-ack-line-comes-from-config-rotations-by-role (heal.py ack_gate + rotations.md cell + test) -- each: loop branch from the trunk, a Sonnet 5.5 kid (fakes only, 0 USD), verify, mur --harness claude-code (owner 07:00Z), residues 0, [merge-up] SM (agi-1f; ListAgents if it rotates). GATE before ANY start: loadavg1 < 16 AND io PSI some avg60 < 50
+v5 UP (11): DG5 (pi) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2) · alive (MOVE 3 19:31Z) · self-perpetuating (MOVE 4 19:43Z) · all-is-one (MOVE 5 19:48Z) · NEXT MOVE 6 = SM (belam verdict + GO first), then stream-master; DG3 itself = director class, PAUSED on the key broker · DG4 DOWN
+  every v5 unit carries preserve.conf (the /run template predates G8): a NEW start installs it too
+  DG5 key RENEWED 21:41Z (R7 per-spawn, 480 min -> expires ~05:41Z 10-02) + restarted 21:41:45Z, 0 restarts after 90 s: renew again before 05:00Z (R7 in doc:g716111-stage25-rootplan + systemctl restart, behind the gate)
+GATE before ANY start, restart, move OR mur launch (belam 19:3xZ): load1 < 12 AND io PSI some avg60 < 20 AND mem PSI full avg60 well under 40 -- space every start
+AGI-METER ROLLOUT (G10 14e06f47b): COMPLETE -- DG2 19:29Z · DG1 20:34Z · DT-1 21:05Z · DT-2 21:13Z · DG5 21:41Z · stream-master born with it · TM-new rotates itself
+MOVES: 6/9 on v5 (MOVE 6 stream-master UP 20:23Z, belam ACCEPTED). Remaining SM (land broker) · DG3 (key broker) · belam LAST (leaf .8 holds): all wait on the OWNER -- none is mine now. Procedure: verify row on trunk -> window + /proc environ AGI_POST -> pre-seed .claude.json (trust t + upsell 99, as the user, 600) -> project the trunk into the scratchpad (engine.md agi-project section, AGI_BOX=local-town) -> install h.conf + preserve.conf + wants, daemon-reload -> kill-window, TERM wrapper+claude -> start behind the gate -> first turn -> ONE line to belam
+G9: LANDED 0b8f086a5 (de-base-G9 worktree removed) · MOCK DONE 20:58Z: F1 F2 F3 HOLD, teardown after == before, belam ACCEPTED (node e5d6f3d1d + THOUGHT 86026eba9) -> G9.5 corrective (row 89: agi_boot.space_s + no wants for non-boot) BEFORE any real install -> the real /etc install and the ONE real reboot each need a SEPARATE belam GO
+ROUNDS -- ALL LANDED 22:0xZ (DG1 95a232d63 -> G9.5 ab74187f9 -> heal-ack 458a774a4 -> heal-pid 0422da076), RAM worktrees removed; were: DG1 nodes -> G9.5 64ae63ef6 -> heal-ack d9e5409f2 -> heal-pid 7caa0ab4d
+  G9.5 chain de-base-G9.5 64ae63ef6 (G9.5 + G9.6 + G9.7; murs mur-de-base-g9-5 -> -2 -> mur-heal-respawn-pid-de-base-g9-5 g97 ACCEPT/ACCEPT)
+  heal-ack   heal-ack-by-role d9e5409f2 (DH.1 DH.2; mur-heal-respawn-pid-heal-ack-by-role ACCEPT/ACCEPT)
+  heal-pid   heal-respawn-pid 7caa0ab4d (DH.1-DH.3; DH.3 = recovery_ack seed so it passes beside heal-ack; trunk+both 1072 passed 0 failed)
+  ON EACH LANDING: git merge-base --is-ancestor <tip> local-maxxing/season2/main -> remove its RAM worktree (/mnt/agi-ram/worktrees/{de-base-G9.5,heal-ack-by-role,heal-respawn-pid}; git worktree remove, never bare prune)
+  belam (agi-17) 21:4xZ: heal guards only the OLD-setup posts (v5 rows recover:false; systemd Restart=always) and retires with the last move -- no more heal rounds beyond these
+G9 INSTALL: after G9.5 lands, belam reads the landed unit text and sends a SEPARATE GO for the real /etc install (agi-boot.service + enable; the mock's steps in the G9 node RESULT G9 MOCK), then a SEPARATE GO for the ONE real reboot (old belam as look-over). Nothing before each GO.
+GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --user --unit=agi-director-general-3-mur-<k> --working-directory=/data/work/agi -p MemoryMax=6G -p MemorySwapMax=0 -- python3 <ccrun.py> --root /data/work/agi --args <json>; args files in .agi/sessions/dg3-mur-args/ (bare workflow.py --harness claude-code runs NO stage: row 88, belam DECLINED the template change)
 ```
 
 ## §2 Landed (this session)
-G8 c34954f72 (murs g8 -> g8b -> g8c) · MOVE 2 DG1 on v5 · DG5 key renewed + pi start stop-gap · findings rows 78 79 80 · G7 chain built + reviewed (G7.4-G7.8) · G9 built · G10 minted + dispatched
+G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-Live: G10 kid (de-base-G10), mur-de-base-g9. Waiting: SM gate on G7; belam GO for G9 install + MOVE 3 after G10.
-```
-python3 extensions/agi/bin/send.py read director-general-3; git -C /mnt/agi-ram/worktrees/de-base-G10 log -2 --oneline; systemctl --user is-active agi-director-general-3-mur-de-base-g9; ls .agi/sessions/workflows/runs/mur-de-base-g9/; for p in director-general-1 director-general-2 director-general-5 thought-master-new director-thought-1 director-thought-2; do echo $p $(systemctl is-active agi-post@$p); done
-```
+MOVED TO v5 (belam executes the packet, 00:1xZ 10-02). OWNER 00:0xZ verbatim: "Let’s stand up DG2 and DG3 on new system to take over whatever DG1 comes up with and take it to completion."
+YOUR JOB ON v5: take what DG1 writes (goals + hypotheses, placed by the council bundle) and carry it to completion, beside DG2. Order: council (SM = coordinator) -> DG1 writes -> you build. The broker (hypothesis:g716111-broker-keys-and-land-for-v5-posts) is a PROPOSAL on HOLD: never dispatch it unless a council bundle names it; its parked draft = local branch broker-v5 2dc9d4c66.
+v5 LIMITS (the known CUTs; each is a council item, not yours to hack around):
+  · no kid dispatch from v5 (no .env, no per-spawn key) -> keys = the council's AA2/AA3 (rows 92 93) -- until then build what you can directly or ask belam to dispatch
+  · inbox writes from v5 fail until AA1 -> report by direct session message (ListAgents)
+  · node edits = plain Write/Edit on the node file; agi-turn commits (write.py is OLD SETUP ONLY, owner 23:3xZ)
+  · no sudo: every host act (systemctl, /etc, /run, other users' homes) = belam's
+  · v5 uids cannot git push (row 93); the Stop hook's git add -A is row 94
+FIRST TURN: read this card, the head, the director template; ListAgents (belam = agi-eb, SM = agi-88; whois cannot resolve them, row 91); ONE line to belam: UP + what you read; then wait for the council's bundle / DG1's output.
 
 ## §4 Traps
 | trap | rule |
