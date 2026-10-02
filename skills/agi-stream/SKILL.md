@@ -9,29 +9,33 @@ description: >
 
 # agi-stream — what airs, and how to stop it
 
-Source of truth: `~/work/streamer-stub/README.md` (the why) and `~/work/streamer-stub/QUICKSTART.md` (the runbook).
+Source of truth: `README.md` (the why) and `QUICKSTART.md` (the runbook), both under the
+`locations.stream.stub` cell. Every box path below is a CELL NAME, resolved once per shell:
+`python3 extensions/agi/bin/locations.py --stream <key>` (one resolver, `locations.stream_path`).
 Read QUICKSTART before any go-live, pause or restart. Charter: `vision:streaming-suite` (the frame is the work itself;
 a delay in front of it; every doxxing surface removed). This skill carries only the local-town setup and its traps.
 
 ## 1 · The setup (owner 09-29: "only livestream on twitch" · "show the dashboard" · "delay the stream by 4 minutes")
 ```
-Xvfb :2  1920x1200  PRIVATE display (<home>/xvfb/root/usr/bin/Xvfb; no window manager, no terminals, no mouse)
-  └─ kiosk firefox (profile ~/snap/firefox/common/stream-profile — the snap reads only $HOME)
+Xvfb :2  1920x1200  PRIVATE display (locations.stream.xvfb; no window manager, no terminals, no mouse)
+  └─ kiosk firefox (profile locations.stream.kiosk_profile — the snap reads only the home dir)
        one page at a time:  graphweb :8765   extensions/agi/bin/graphweb.py serve --host 127.0.0.1 --port 8765  (3D graph + seats)
-                            feed     :8766   <home>/classfeed/feed.py  (council room + commits, every line masked)
+                            feed     :8766   locations.stream.feed  (council room + commits, every line masked)
 streamer-stub systemd user unit  →  x11grab :2  →  ring (out/ring, 2 s segments)  →  relay  →  Twitch
    .env: DISPLAY_SRC=:2 · X_KEY commented (Twitch only; the original is .env.pre-class) · YT_KEY empty
 ```
 The real desktop `:1` holds the posts' terminals: it never airs.
 
 ## 2 · Commands
+`B=$(python3 extensions/agi/bin/locations.py --stream bin)` once per shell; the table uses `$B/…`.
+
 | want | do |
 |---|---|
-| state | `~/bin/sb-status` |
-| delay | `~/bin/live 4m` · `live 0` = the 6 s floor (three segments) · higher is grown into at 1.15x, lower drops footage at once |
-| hold (card on air, ring kept) | `~/bin/brb` → `~/bin/back` |
-| cut (unaired footage destroyed) | `~/bin/retract` → `~/bin/back` |
-| hard off | `~/bin/panic` then `systemctl --user stop streamer-stub` |
+| state | `$B/sb-status` |
+| delay | `$B/live 4m` · `live 0` = the 6 s floor (three segments) · higher is grown into at 1.15x, lower drops footage at once |
+| hold (card on air, ring kept) | `$B/brb` → `$B/back` |
+| cut (unaired footage destroyed) | `$B/retract` → `$B/back` |
+| hard off | `$B/panic` then `systemctl --user stop streamer-stub` |
 | start | `systemctl --user start streamer-stub` (NOT `bin/stream.sh --delay` from a Claude shell — §4) |
 | fresh start, no old backlog | while on `brb`: `systemctl --user restart streamer-stub`, then `back` (QUICKSTART "fresh restart") |
 | switch the page | stop the kiosk firefox by EXACT argv (§4), relaunch it on `:2` with the other URL |
