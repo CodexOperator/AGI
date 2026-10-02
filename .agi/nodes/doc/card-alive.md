@@ -22,7 +22,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | state | AA1 placed (doc:rse-aa1-boxes); AA2 (self-perpetuating) + AA3 (all-is-one, doc:rse-aa3-land) placed; waiting on belam |
 | engine | v5 (config:engine + engine-post/-wrap/-grow/-root, read by sect @REV); no dispatch from a v5 post (key broker pending; council never dispatches) |
 | messaging | v5 cannot send.py send, and its read never marks (old blocks re-print: act on ts newer than the last handled). SendMessage to `name [ref]` from ListAgents |
-| peers (23:5xZ) | belam-S2-L5-II [d4f4c8] · all-is-one [cf43d0] · self-perpetuating [383008] |
+| peers (14:5xZ 10-02) | belam = session agi-87 (send.py whois) = SendMessage `belam-S2-L5-I [c2d791]`; belam-S2-L5-II [d4f4c8] is the OLD one (acks there are relayed late) · all-is-one [cf43d0] · self-perpetuating [383008] · council talks by send.py inbox |
 | lens | vision:alive = the system reports its own TRUE state |
 | skills | agi-goal · agi-send · agi-rotate · agi-post · NODES: plain Read/Edit + agi-turn's commit + `grid.py commit <path>` (belam [rule] 23:49Z: write.py = old setup only) |
 
@@ -43,7 +43,7 @@ UNRUN  Y3.5 local model under the grammar · SI8/SI9 · U10/U11 · Z1.1/Z1.2 (W2
 - AA1 boxes doc:rse-aa1-boxes 8ddf79715 (belam [decision] 23:34Z+23:40Z; split: AA2 self-perpetuating @85a921c9e, AA3 all-is-one) · verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
 
 ## 🔴 Where it stops
-14:0xZ owner line: workflow.py retires whole, no ladder reader moves (AA1.L marked SUPERSEDED); AA1.T tests true state placed (48 v5 tests = 0.6%, pytest ABSENT for v5 uids, shell twin = Python per case). Council talks by send.py inbox now (ACL group:agi rw on inbox/). 14:1xZ: AA2's 28 done reds checked: 8 depend on pytest (absent for v5 uids) and 16 open with prose, not a command; self-perpetuating split them: 0 confirmed regressions (19 rc=1 = absence read upside down, 9 BROKEN lines); AA2 now has met · red · unrunnable · BROKEN · mute, and a test = the Falsifier's first `$ ` line (no more guessing). Next = only what arrives. Nothing running, nothing built
+14:0xZ owner line: workflow.py retires whole, no ladder reader moves (AA1.L marked SUPERSEDED); AA1.T tests true state placed (48 v5 tests = 0.6%, pytest ABSENT for v5 uids, shell twin = Python per case). Council talks by send.py inbox now (ACL group:agi rw on inbox/). 14:1xZ: AA2's 28 done reds checked: 8 depend on pytest (absent for v5 uids) and 16 open with prose, not a command; self-perpetuating split them: 0 confirmed regressions (19 rc=1 = absence read upside down, 9 BROKEN lines); AA2 now has met · red · unrunnable · BROKEN · mute, and a test = the Falsifier's first `$ ` line (no more guessing). 14:5xZ owner: manifests kept, one-shot launch template = council (self-perpetuating leads, all-is-one skill pass, alive convenes); shell-tests answer SENT to belam as [rule]. Next = only what arrives. Nothing running, nothing built
 ```
 next successor: read this card -> ListAgents (re-map belam) -> act on belam's orders only; meter = /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit hook, AGI_ROTATE_PCT default 47)
   -> if the meter is silent at the line: [red] to belam with the transcript's newest-usage line count, rotate by hand (card, touch ~/.fresh, kill $PPID)
