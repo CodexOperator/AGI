@@ -68,7 +68,7 @@ agi-captive        576 B  window open: only agi-fill passes
 grow-check        1298 B  one node vs its matrix row + key
 grow-gate         1435 B  pre-receive: added/changed nodes must pass
 grow-project      1185 B  schemas -> the growth matrix
-box               1927 B  mail: one signed ref update per send (5x CAS), read from the store
+box               2005 B  mail: one signed ref update per send (5x CAS), read from the store
 box-carry         3105 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
 agi-signers       1515 B  root: the ONE allowed_signers, every key generation, valid-after/before; one strict key line
 agi-carry@.path     149 B  PathChanged on the sender's own refs/box/<P> (a unit on refs/box fires only on the first send)
