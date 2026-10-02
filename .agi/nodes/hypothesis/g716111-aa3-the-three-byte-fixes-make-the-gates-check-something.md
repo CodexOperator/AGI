@@ -30,7 +30,7 @@ config-max: none / template-max: none / code: grow-gate `--not ${AGI_NOT:---all}
 AA3.4(1) verify-commit Good for `<post>@agi` · AA3.4(2) lane 4 refuses under AGI_NOT=$o and passes nothing vacuously (lane 4v flips from rc 0 to refused) · AA3.4(3) the stripped name equals the ring cell · negative: the hub's pre-receive still passes `--all` (hub keeps its quarantine semantics).
 
 ## TESTS
-a gate test with the lane-4 fixture under both bounds; the gate's own neighbourhood stays green.
+a gate test with the lane-4 fixture under both bounds; the gate's own neighbourhood stays green. The live witness is AA3.9 (lanes.sh in doc:rse-aa3-land): `FAIL 4v` today (10 ok + FAIL 4v on trunk faabf9b7a+) and it must read `ok 4v` after these fixes.
 
 ## FILE SCOPE
 grow-gate · the signers piece (engine-post) · their tests. Never the live trunk.

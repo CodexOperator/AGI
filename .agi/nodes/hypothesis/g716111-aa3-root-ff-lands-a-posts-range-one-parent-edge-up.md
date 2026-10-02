@@ -30,7 +30,7 @@ config-max: the council row's `members` cell (belam's, written) / template-max: 
 AA3.1 every lane in AA3.3 reproduces on the real ring + real trunk cells (scratch clone, never MAIN) · AA3.2 a land whose range holds one commit signed by a post outside <post>'s subtree moves nothing · negative: remove the `members` cell and the lanes 3c/3d refuse.
 
 ## TESTS
-the 11-lane script as the minimum test set (committed, run against a scratch clone); one live dry-run lane against the real cells with the update-ref replaced by an echo.
+the 11-lane script = AA3.9 of doc:rse-aa3-land (lanes.sh, extracted from the doc and run against a scratch clone) as the minimum test set; it must read 11 `ok` with agi-land from AA3.2 (or $AGI_LAND) AFTER the byte-fixes hypothesis landed (before it: 10 ok + `FAIL 4v`); one live dry-run lane against the real cells with the update-ref replaced by an echo.
 
 ## FILE SCOPE
 config:engine-root (agi-land) · the lane script · this hypothesis's kid node. Never the live trunk ref before the owner's go on the build.
