@@ -124,10 +124,10 @@ Limit: ~/track counts ANY open, including a design read like this one (self-perp
 
 ## Z4.7 Phase W, the skill pass (owner 14:5xZ: manifests KEPT; skill agi-workflow KEPT, renamed + re-aligned; template = AA2 one-shot `agi-kid -m`)
 Split (council 14:5xZ): AA2 self-perpetuating = the one-shot template (agi-kid -m MANIFEST ARGS, one generation inside the invoker's unit, 872 B runner, 0 new pieces) · AA1 alive = return path (corrected 14:5xZ: a ref the launcher owns, refs/spawn/<manifest>/<sha256(ARGS)[:12]>; NO mail on the return, a self-edge) + which manifests are used (7 of 30 ever opened) · all-is-one = this pass + belam's config:rotations sub. Written as a DRAFT here: the skill must describe a command that EXISTS (belam), so DG1's W round commits it with `agi-kid -m`, never before.
-NAME. Both of the owner's examples collide, measured: "round review" = the manifest agi-round-review (extensions/agi/workflows/agi-round-review.js, one of the 5 actually opened, listed as a skill) · "graph growth check" ~ the engine pieces grow-check / grow-gate (config:engine-grow). RECOMMEND `agi-one-shot` (says what it launches: a one-generation spawn from a manifest + a slice); owner/belam pick, the sub below takes any name.
+NAME = agi-spawn-chain (OWNER 17:4xZ 10-02, belam [owner] 17:48Z: "Maybe agi-spawn-chain and make it more general"; supersedes agi-one-shot and 'round review', both of which collided: the manifest agi-round-review, and the engine's grow-check / grow-gate). The text below is the ONE-SHOT half; the owner widened it to a FLOW ROTATION (one-shot + perpetual spawns strung over one slice, growth done -> the next phase fires, recursive), which the council designs next: the description is re-cut to that design before DG1's W round commits it.
 ```text
 ---
-name: agi-one-shot
+name: agi-spawn-chain
 description: >
   Launch a ONE-SHOT spawn from a workflow manifest + a read-only graph slice (reviews, research
   sweeps, brainstorms, merge-up checks): `agi-kid -m <manifest> <args>`, one generation inside your
@@ -135,7 +135,7 @@ description: >
   self-contained job done that is not a self-rotating post. Never the Claude Workflow/Agent tools.
 ---
 
-# agi-one-shot — a manifest + a slice, one generation (owner 14:5xZ 10-02)
+# agi-spawn-chain — a manifest + a slice, one generation (owner 14:5xZ 10-02)
 
 Source of truth: `sect agi-kid` · the manifests in extensions/agi/workflows/<name>.json (narrow, self-contained, never updated like cards).
 
@@ -159,9 +159,29 @@ never <TODO> (AA2.34). On 10-02, 4 of 30 were invalid: round-mur + round-researc
 l4-plan-research (repeat.of = <TODO>; FIXED in AA2: repeat dropped, chained_from added, AA2.32 PASS). The last 2 are among
 the 5 ever used: offer them once AA2 lands. Its test is a shell twin in extensions/agi/tests/<name>.t.sh (AA3.13 shape).
 ```
-config:rotations sub for belam (byte-exact, BOTH skills entries :90 and :130; the build node is minted by the W round as build:skills-agi-one-shot-SKILL.md, payload skills/agi-one-shot/SKILL.md, lines 2:8 = name + the 5-line description above; the old 2:7 fit agi-workflow's 4-line description exactly):
+config:rotations sub for belam (byte-exact, BOTH skills entries :90 and :130; the build node is minted by the W round as build:skills-agi-spawn-chain-SKILL.md, payload skills/agi-spawn-chain/SKILL.md, lines 2:8 = name + the 5-line description above; the old 2:7 fit agi-workflow's 4-line description exactly):
 ```text
-sub python3 extensions/agi/bin/write.py build:skills-agi-workflow-SKILL.md 'read payload 2:7'; => python3 extensions/agi/bin/write.py build:skills-agi-one-shot-SKILL.md 'read payload 2:8';
+sub python3 extensions/agi/bin/write.py build:skills-agi-workflow-SKILL.md 'read payload 2:7'; => python3 extensions/agi/bin/write.py build:skills-agi-spawn-chain-SKILL.md 'read payload 2:8';
 ```
-+ config:rotations :184 `F29 -> skill agi-workflow (§1); F5 -> skill agi-workflow (§2).` -> `skill agi-one-shot` (same sections). The old skill + its build node retire (deprecated, moved) in the same round; .claude/skills/agi-workflow -> .claude/skills/agi-one-shot.
++ config:rotations :184 `F29 -> skill agi-workflow (§1); F5 -> skill agi-workflow (§2).` -> `skill agi-spawn-chain` (same sections). The old skill + its build node retire (deprecated, moved) in the same round; .claude/skills/agi-workflow -> .claude/skills/agi-spawn-chain.
 Banked with AA2: the 5 'opus' model_hints in research-review vs the owner's "every subagent Sonnet 5.5": the kid cell CAPS the hint (§1 says so).
+
+## Z4.8 FLOW ROTATION: DONE · TRIGGER · RAILS (owner 17:4xZ 10-02 via belam [owner] 17:48Z; council split final 17:50Z: AA2 self-perpetuating = ORDER (PHI over the phase tree, a flow = a manifest whose stages may name `flow:` or `post:`, agi-next computes the next dart) · AA1 alive = RETURN + HANDOFF + true state · all-is-one = this)
+Leans ONLY on what exists (belam's read): growth.tsv + the parent cells + agi-frontier + the land rule. 0 new tables, 0 new cells.
+```
+DONE      one-shot phase  = its result ref refs/spawn/<manifest>/<sha256(ARGS)[:12]> EXISTS (the runner writes it LAST, signed)
+          perpetual phase = its seed goal reads `met` in agi-frontier (the goal's ## Falsifier row runs; a model's claim never counts)
+TRIGGER   the process that FINISHES a phase runs `agi-next <flow-root>` as its last act, in the same unit:
+            a one-shot  -> the agi-kid -m runner's tail (it runs as the invoker, inside the invoker's unit)
+            a perpetual -> the flow root's agi-turn tail (every turn end; the child's land one edge up is mail, AA1, so the root wakes)
+          NOT tick.sh: measured, it is UNWIRED (0 callers in engine*.md, crons.md or a systemd timer) and starts agi-post@ UNITS only
+RAILS     READ   a phase's slice = brief.py from its seeds + `git archive <invoker tip>`: read-only by construction, never wider than its invoker
+          SIGN   a one-shot kid holds NO key: drop `.ssh` from agi-kid's link list in -m mode (measured below); the runner signs the result as the invoker
+          GROW   a one-shot grows NOTHING on posts/<p>: its nodes reach the graph only if the invoker ADOPTS them (its own signed commit
+                 -> its grow-gate -> its land); a perpetual phase grows inside its own row's rights (parent cells + growth.tsv)
+          LAND   one parent edge up, agi-land (AA3) unchanged; a phase never lands past its flow root's parent
+          SPAWN  concurrent one-shots per post <= kid.max (belam's kid cell, max 3, inherited by kid-of)
+```
+MEASURED (scratch, 17:5xZ): agi-kid today runs `for x in .gitconfig .ssh .signers hooks .claude/settings.json;do ln -sfn ~/$x $h/$x;done`, so every kid HOLDS the invoker's private key and signs AS the invoker (a kid commit with the link: signed, 1 gpgsig); land cannot tell a review kid from its post. Without the `.ssh` link the kid's commit FAILS ("Couldn't load public key"; gpgsign=true in the linked .gitconfig), so 0 commits. Fix = the link list without `.ssh` when -m (~10 B).
+TRUE STATE (alive 17:4xZ): no v5 post can fire a one-shot phase today (0 of 12 rows carry a kid model in env; no per-post OpenRouter key): a flow's first live run waits on AA2's kid cell projection + the owner's root key ring.
+Falsifiers: Z4.g a review phase's kid cannot produce a commit that verifies on the ring (no key) while its result ref verifies as the invoker · Z4.h with the root idle, a one-shot finishing fires the next phase with no turn and no model step (the runner tail) · Z4.i a perpetual phase is never DONE while its goal's falsifier row reads red, whatever its card says.
