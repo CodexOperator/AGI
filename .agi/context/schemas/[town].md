@@ -26,9 +26,11 @@ validation:
     season: int
     season_history: list
 spawn:
-  allowed_parents: [ladder]
-  min_parents: 1
-  max_parents: 1
+  allowed_parents: [goal, vision]
+  parent_shapes:
+    - [goal, vision]
+  min_parents: 2
+  max_parents: 2
 ---
 
 # town
