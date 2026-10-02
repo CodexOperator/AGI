@@ -109,7 +109,7 @@ The cell is written (belam faabf9b7a, 23:53Z): the fail-closed reading stands. T
 
 ## AA3.9 lanes.sh — the falsifier as bytes (4,213 B, 13 lanes; for goal:g7.16.1.11.13 falsifier 1, DG1 00:0xZ 10-02)
 Run from a worktree: `sed -n '/^## AA3.9/,$p' .agi/nodes/doc/rse-aa3-land.md | sed -n '/^```sh/,/^```$/{//!p}' > /tmp/lanes.sh; sh /tmp/lanes.sh`. Writes 0 shared refs (alternates); scratch keys named as the real posts.
-TODAY (trunk b6b2c33d3, 01:0xZ 10-02; belam wrote council `lands` there): 11 ok + `FAIL 4m` + `FAIL 4v` = the real grow-gate is vacuous at a land AND blind to merges. With all FOUR AA3.4 byte fixes (`GROW_GATE=<fixed> sh lanes.sh`): 13/13 ok, measured. 4m + 4v ARE the blocking order DG1 wrote.
+TODAY (trunk b6b2c33d3, 00:3xZ 10-02; belam wrote council `lands` there): 11 ok + `FAIL 4m` + `FAIL 4v` = the real grow-gate is vacuous at a land AND blind to merges. With all FOUR AA3.4 byte fixes (`GROW_GATE=<fixed> sh lanes.sh`): 13/13 ok, measured. 4m + 4v ARE the blocking order DG1 wrote.
 ```sh
 #!/bin/sh
 # lanes.sh [TRUNK] [GITDIR]: AA3.3's 13 lanes on a throwaway repo borrowing GITDIR's objects (0 shared refs written). One line per lane: ok | FAIL.
@@ -163,3 +163,25 @@ OPEN for belam: whether refs/grid/* stay pushed to origin (they are history GitH
 AA2: ff(P) = UP-darts into P x a `lands` cell on P's row (no cell = all children); the owner's "council only from SM" = council row `lands: ["sanctuary-master"]`.
 agi-land enforces it in ONE line after the edge check: the post's parent P has a `lands` cell and the post is not in it -> "refused: P lands only ...". +294 B (1,503 -> 1,797).
 Measured: lane 3g (a member lands alive) on a scratch trunk carrying the cell = refused "council lands only sanctuary-master"; every other lane is unchanged. belam WROTE the cell (b6b2c33d3, 00:29Z): 3g reads ok on the real trunk.
+
+## AA3.12 Landing from a post's OWN object store (belam ruling 2, 00:35Z = the owner's option (b); measured 00:4xZ)
+Owner: "store a git object store per user instead ... post node updates to maybe also store a filesystem pointer to where a given posts object store is at."
+Shape (AA1 alive, sizes measured on real data): ONE trunk-only COMMONS readable by all (the trunk is public: it goes to GitHub); each post's store = a bare ~/git whose objects/info/alternates -> the commons, holding ONLY its own unlanded objects (31-159 KB; alive's real store 856 KB; commons 207 MB once). Alternates point at the COMMONS, never at MAIN: today's MAIN holds every posts/* branch, so alternates into it would expose them all.
+The land path: root FETCHES the post's branch from its store into the commons, then every AA3 check runs unchanged. The asked sha must be ON that branch.
+```diff
+4c4,6
+< T=${AGI_TRUNK:-refs/heads/trunk};A=${AGI_RING:?};o=$(git rev-parse -q --verify $T)||exit 1;n=$(git rev-parse -q --verify "$3^{commit}")||exit 1
+---
+> T=${AGI_TRUNK:-refs/heads/trunk};A=${AGI_RING:?};o=$(git rev-parse -q --verify $T)||exit 1
+> s=$(git show $o:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p $2 'select(.name==$p)|.store//empty');git fetch -q ${s:-${AGI_HOMES:-/var/lib/agi}/$2/git} posts/$2||{ echo "refused: no store for $2";exit 1;}
+> n=$(git rev-parse -q --verify "$3^{commit}")&&git merge-base --is-ancestor $n FETCH_HEAD||{ echo "refused: $3 is not on $2's branch";exit 1;}
+```
+The row cell `store` is the owner's pointer, graph-led: absent = the unit's fixed home path /var/lib/agi/<p>/git, so a local post needs no cell; a post on another box names its store there.
++313 B in agi-land (1,797 -> 2,110) · +22 B unit (`StateDirectoryMode=0750`: homes are 755 today, so any post reads any home) · whole (b) shape ~1,053 B expansion (AA1 sum), 0 B in the zygote.
+| lane (scratch: receiving repo + one --shared post store) | got |
+|---|---|
+| before the land, the receiving repo has the post's commit? | NO (private until landed) |
+| SM lands DG1's tip from DG1's store | land |
+| a DG1-signed sha NOT on posts/director-general-1 | refused "is not on director-general-1's branch" |
+| a post with no store | refused "no store for alive" |
+NOT tested without root: the uid barrier itself (0750 homes). Risk: an alternates store breaks if the commons loses objects it references; the commons only grows by lands and never deletes a ref, so maint_gc must never prune it.
