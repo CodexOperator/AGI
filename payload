@@ -171,6 +171,7 @@
     }
   },
   "box": {
+    "alias": "local-town", "hub": "",
     "root": "/home/ubuntu/work/agi",
     "logs_dir": "/home/ubuntu/logs",
     "tmux_session": "agi-rc",
