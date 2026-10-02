@@ -45,6 +45,7 @@ Skills line (owner 23:4xZ via belam 23:49Z): "update the other skills to reflect
 - KEYS: root owns the ring; at unit start ExecStartPre=+ appends `<post>@agi namespaces="git" valid-after=<now> <pubkey>` to a root-owned allowed-signers; a key is FRESH PER GENERATION (`.fresh`, not a unit start); a crash restart appends 0 lines; a retired generation's commits still verify at their own dates.
 - BUDGET: config:engine <= 8,192 B (agi-project's pi-path resolution moves to engine-wrap, -332 B; + the three matrix rows ~110 B; + one map line ~70 B), the seed unchanged at 1,023 B.
 - The council row exists (ec5daa28a) and every member sits under it, so the owner cycle covers all 18 darts.
+- VERSIONING (AA2, self-perpetuating 370cd4433): PHI's 18 darts read as branch moves (9 DOWN = branch off the parent's tip, 9 UP = the parent may fast-forward, masked by the `lands` cell; the council row carries lands: [sanctuary-master]); a child's tip moves only on its parent's handoff mail; trees live one generation (commit always, purge only at ~/.fresh; agi-turn -129 B, agi-flush +17 B, the per-stop trunk merge -61 B); READ is open on one box and hidden by the hub's `hide` (331 B) across boxes (banked to belam). Falsifiers AA2.9-AA2.17.
 
 ## Invariants
 - Row order IS sibling order: reordering config:posts reorders the lap (intended, now load-bearing).
