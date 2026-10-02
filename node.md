@@ -229,9 +229,43 @@ print('FILES', len(uses))
 ```
 Not built: these are the falsifiers DG1 turns into the retirement's acceptance test. Today: G1 = 16, G2 = 1, G3 = 1, G4 = 5/8 drift with no home.
 
+### AA1.T · TESTS: shell or Python, the true state (owner 14:0xZ via belam [owner] 14:01Z)
+**Owner, verbatim:** "do we even need all these tests to be in Python or can the tests also be shell scripts and they could probably run a lot faster that way?"
+Split, by inbox 14:0xZ (the first council round over send.py from v5 uids): alive = TRUE STATE · all-is-one = the gate side as shell checks (lanes.sh is a 13-lane shell test today) · self-perpetuating = the test as a matrix row run by the projector (agi-frontier) + the 8 KB budget.
+| fact | measured 14:0xZ on trunk 1517e4b7d |
+|---|---|
+| tests that guard a v5 ENGINE piece (open an engine*.md and run the piece) | **6 files, 48 tests** (meter 10, boot 15, project_pi_direct 10, run_strace 3, wt_archive 8, project_agi_box 2) = **0.6% of 7,965**; the other 99.4% guard old-setup Python that retires with the old setup |
+| can a v5 post run the Python suite at all? | **NO: `python3 -m pytest` -> "No module named pytest" for agi-alive**; no venv under /data/work/agi or /opt/agi. Every v5 engine test is unrunnable by the posts it guards |
+| one shell twin, `agi-meter.t.sh` (2,015 B), vs its Python file (10 cases, the same assertions, the meter extracted from engine-post.md the same way) | 10/10 ok · wall **116-148 ms** (3 runs) |
+| the same file through a minimal Python runner (no pytest: import + call each test with a tmp dir) | 10/10 · wall **135-138 ms** (3 runs) |
+**Reading, not the hoped-for one:** per case, shell is NOT faster for a test that already runs a shell piece; both are dominated by spawning the piece (one `sh` + `jq` per case). The real wins are elsewhere: (1) no 3.2 s pytest collection for the whole suite, (2) **no pytest dependency at all**, which today makes the v5 tests unrunnable by v5 posts, (3) a twin is plain `sh`, the same language as the piece it guards. So: move the 48 v5 tests to shell twins (or matrix rows, AA2), and let the 7,917 old-setup tests retire with their code, never porting them.
+The twin, whole (not committed under extensions/: no build before the bundle):
+```sh
+#!/bin/sh
+# agi-meter.t.sh: the shell twin of test_agi_meter.py (10 cases, same assertions); prints one line per case, exit = number of fails
+G=$(cd "$(dirname "$0")/../../.." && pwd)/.agi/nodes/.geometry;T=$(mktemp -d);trap 'rm -rf $T' 0;f=0
+sed -n '/^### agi-meter /,/^### /{/^~~~/,/^~~~/{//!p}}' $G/engine-post.md>$T/m.sh
+U(){ echo "{\"type\":\"assistant\",\"message\":{\"usage\":{\"input_tokens\":$1,\"cache_read_input_tokens\":0,\"cache_creation_input_tokens\":0}}}";}
+S='{"type":"system","subtype":"bridge"}';P='{"message":{"usage":{"input_tokens":"a","cache_read_input_tokens":"b"}}}'
+m(){ w=$1;h=$2;shift 2;printf '%s\n' "$@">$T/t;echo "{\"transcript_path\":\"$T/t\"$h}"|AGI_WINDOW=$w AGI_ROTATE_PCT=50 sh $T/m.sh 2>$T/e;}
+ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
+ok a  '[ "$(m 1000 "" "$(U 900)" "$S")" = "At the line (900/1000): write your card, git commit it, then run: touch ~/.fresh;kill \$PPID" ]'
+ok b  '[ -z "$(m 1000 "" "$(U 100)" "$S")" ]'
+ok c1 'm 1000 ",\"tokens\":900" "$(U 100)" "$S"|grep -qF "(900/1000)"'
+ok c2 '[ -z "$(m 1000 ",\"tokens\":100" "$(U 900)" "$S")" ]'
+ok d  '[ -z "$(m 1000 "" "$S" "{\"type\":\"user\"}" "not json")" ]'
+ok e  'm 1000 "" "$(U 900)" "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"text\",\"text\":\"the \\\"usage\\\" word\"}]}}" "$S"|grep -qF "(900/1000)"'
+ok null 'm 1000 "" "{\"message\":{\"usage\":{\"input_tokens\":900,\"cache_read_input_tokens\":null}}}"|grep -qF "(900/1000)"'
+ok nonobj 'm 1000 "" "$(U 900)" "{\"message\":{\"usage\":\"x\"}}" "{\"message\":{\"usage\":[1]}}" "{\"message\":{\"usage\":7}}" "{\"message\":\"s\"}" 5 "$S"|grep -qF "(900/1000)"'
+ok stop 'm 1000 "" "$P" "$P" "$P" "$S" "$(U 900)"|grep -qF "(900/1000)"'
+ok poison 'm 1000 "" "$(U 900)" "$P" "$S"|grep -qF "(900/1000)"&&[ ! -s $T/e ]'
+ok strcache 'm 1800 "" "$(U 100)" "{\"message\":{\"usage\":{\"input_tokens\":900,\"cache_read_input_tokens\":\"b\",\"cache_creation_input_tokens\":5}}}"|grep -qF "(905/1800)"&&[ ! -s $T/e ]'
+exit $f
+```
+
 **OPEN for AA2/AA3:** who owns KEYS (all-is-one proposed self-perpetuating) · AA3 land = mail up one edge, so it reuses `box read` as root (AA3 = doc:rse-aa3-land, all-is-one; principal form `<post>@agi` agreed and applied above).
 **SETTLED by belam (1efd017e6, [decision] 23:51Z, superseding ec5daa28a):** members<-council; council<-belam; SM + TM-new<-council. Through this section's elimination of the inert council row, {belam, alive, all-is-one, self-perpetuating, SM, TM-new} is ONE clique (group chat and handoff down, belam's stated reason); DG1 is adjacent to SM only, DT-1 to TM-new only. So a council -> DG1 send is off-matrix under AA1 once built: the bundle went to DG1 by belam's explicit GO, over today's route.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v5, alive 04:4xZ 10-02: + AA1.L, the ladder's true reader count by AST (16 files, 5 new since Z3, 4 gone) and the do-not-strand drift by dispatch's own resolver (5/8 rows); a gate of four checks, not built. v4, alive 00:4xZ 10-02: + AA1.R, the real sizes for belam's ruling 2 (per-post object stores), measured from the box's own data; the plumbing is AA2's, not redone here. v3, alive 00:2xZ 10-02 (date -u): + AA1.V versioning, on belam's [decision] 00:25Z (owner 00:3xZ/00:4xZ: every turn is a grid commit from a tiny tree). The grid commit reuses box send's primitive with a one-node tree, so mail and versioning share ONE git shape. agi-link retires because a payload can only change inside its node's tree. ~/t becomes a detached read view whose stray edits are REPORTED rather than silently committed (true state over convenience). Scratch 19/19. v2, alive 23:5xZ 10-01 (date -u): three deltas. (1) principal form `<post>@agi` (all-is-one's vote; what the unit already sets), box re-tested 25/25, 1,769 -> 1,785 B. (2) belam's council row ec5daa28a computed through the elimination: members adjacent to belam only, stated as a consequence for belam to rule on, not chosen here. (3) owner 23:4xZ skills line: AA1.S = the agi-send delta only, as a table; no skill text changes before the bundle is built. Edited with plain Edit per belam's [rule] 23:49Z (write.py is old-setup only). FIRST VERSION 23:4xZ: own node, because doc:radically-simple-engine is 268,943 B and three branches appending at its tail would conflict; scratch only; the inert-row elimination is the smallest rule that keeps a crossing one clique without a new cell.
+v6, alive 14:0xZ 10-02: AA1.L marked SUPERSEDED (owner 14:0xZ: no reader moves, workflow.py retires whole) + AA1.T tests true state (0.6% guard v5, pytest absent for v5 uids, one shell twin measured equal per case). v5, alive 04:4xZ 10-02: + AA1.L, the ladder's true reader count by AST (16 files, 5 new since Z3, 4 gone) and the do-not-strand drift by dispatch's own resolver (5/8 rows); a gate of four checks, not built. v4, alive 00:4xZ 10-02: + AA1.R, the real sizes for belam's ruling 2 (per-post object stores), measured from the box's own data; the plumbing is AA2's, not redone here. v3, alive 00:2xZ 10-02 (date -u): + AA1.V versioning, on belam's [decision] 00:25Z (owner 00:3xZ/00:4xZ: every turn is a grid commit from a tiny tree). The grid commit reuses box send's primitive with a one-node tree, so mail and versioning share ONE git shape. agi-link retires because a payload can only change inside its node's tree. ~/t becomes a detached read view whose stray edits are REPORTED rather than silently committed (true state over convenience). Scratch 19/19. v2, alive 23:5xZ 10-01 (date -u): three deltas. (1) principal form `<post>@agi` (all-is-one's vote; what the unit already sets), box re-tested 25/25, 1,769 -> 1,785 B. (2) belam's council row ec5daa28a computed through the elimination: members adjacent to belam only, stated as a consequence for belam to rule on, not chosen here. (3) owner 23:4xZ skills line: AA1.S = the agi-send delta only, as a table; no skill text changes before the bundle is built. Edited with plain Edit per belam's [rule] 23:49Z (write.py is old-setup only). FIRST VERSION 23:4xZ: own node, because doc:radically-simple-engine is 268,943 B and three branches appending at its tail would conflict; scratch only; the inert-row elimination is the smallest rule that keeps a crossing one clique without a new cell.
 <!-- THOUGHT:END -->
