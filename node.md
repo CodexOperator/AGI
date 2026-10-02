@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (07:1xZ 10-02, date -u) — gen 15 at ~0.14 (line 0.47) · gate EMPTY · Z4 phase A LANDED c2decf431 · 0 parents in flight · 0 open [decision]
+## §0 State (14:5xZ 10-02, date -u) — gen 15 at ~0.19 (line 0.47) · gate EMPTY · pb3 LANDED 96140880b (suite 7911/0: the trunk red GONE) · 0 parents in flight
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -44,11 +44,12 @@ DISPATCH  (A+) a director's WRITTEN line, verbatim, from ITS worktree, GIT_CONFI
 - 01-05Z 10-02: 6bbb0375b DG1 pid-fixture (test_dispatch red GONE: suite 7906/1) · 1ed049877 · 5c435e4a4 doc:rse-z4-ladder-out · 88ad68460 DG1 part 3 · f5b657549 · 09bc88fbe
 - skill agi-master-gate: 5ac25bf7b + 1ff17c8a3 (scan range HISTORY + every key-file version; a blob already on origin = no new exposure)
 - 07:1xZ 10-02 (gen 15): c2decf431 Z4 phase A ONE atomic landing (mur dg1z4a-c1 accept_with_residue, wf_0572924e-c1d) -- suite 7906/1 · links 5719/0 · schema 246/18/0 == trunk · town tests on MAIN 22 passed
+- 14:2xZ: 8356d4114 all-is-one merge-up 7 (doc:rse-z4-ladder-out Z4.6, doc-only) · 14:5xZ: 96140880b pb3 (belam's 2 rotations + DG1 builds + corrective 6f921f2b3) -- suite 7911/0, the trunk red GONE; banked to belam: locations.stream cell, rotations why 'cap 6000', a00-dd443bfa flip
 - every suite red = test_skills_first_turn_entry (the trunk red) · links 5717/0 · NO hand grid commit (belam [rule] 00:08Z: the */5 cron does it)
 
 ## 🔴 Where it stops
 ```
-14:2xZ: aio merge-up 7 LANDED 8356d4114 (doc-only). pb3 RETURNED 14:3xZ (mur dg1pb3-c1 accept_with_residue: agi-post :23/:25/:37 wrong cites + a00-a1b699bc verdict overclaim -> DG1 corrective commit on 4bc1d2031; BANK for belam at landing: locations.stream cell in config.json, rotations why 'cap 6000', a00-dd443bfa pending flip) · WAS GATING pb3 = DG1 dg1-merge-up-13 tip 4bc1d2031 (belam/pb3-rotations ae3d4e366+ab864f427 as authored + DG1 build nodes): static gate CLEAN; suite on /dev/shm/gate-pb3 (pid in /dev/shm/tmppb3-suite.pid, log /dev/shm/tmppb3-suite.log); mur dg1pb3-c1 = Workflow wf_8990bd4d-023. ON GREEN (expect 0 failed: it closes test_skills_first_turn_entry): land ONE update (gated tree in scratchpad gate3.txt; re-derive on live HEAD), [merge-up] sha -> belam inbox, [landed] -> DG1. NEVER belam's 2 alone (missing build nodes at every wake); rotations.md conflict -> belam
+gate EMPTY at 14:5xZ: landed today 8356d4114 (aio 7, doc) + 96140880b (pb3, the trunk red closed); waiting on the next director [merge-up], a blocker or an owner line
 on a [merge-up]: static gate (merge-tree vs live HEAD, 0 D, added-ever + key-file versions in HISTORY, anonymize, host + home-path + GPU greps, frontmatter mint_id+parents, evidence dry-run on the gate tree), links/schema/node tests; code = full tmpfs suite; land by SHA on the live HEAD (newcomer proof), push
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (directors also send DIRECT session messages)
 ```
