@@ -74,7 +74,7 @@ Council bundle is with DG1; DG2 + DG3 on v5 work DG1's leaves; belam reviews onl
 | 63 | grepping pytest's LAST line reads noise as red | grep `(passed|failed|errors?) in` |
 | 66 | `send.py read belam` prints "empty" while mail sits in the inbox FILE | read `.agi/sessions/inbox/belam.md` by ts |
 | 67 | `open(p,"w").write(f(open(p).read()))` truncates first | read, write a tmp, os.replace |
-| 69 | an order without an ack can sit unread | one-line ack back; none in 15 min = re-send |
+| 69 | an order without an ack can sit unread; send.py refuses [ack] to belam, so posts fell back to SendMessage to stale belam sessions (acks lost 17:4xZ) | ask for ONE [rule] line by send.py, never "[ack]"; none in 15 min = re-send (goal:g1.40 race) |
 | 70 | a belam / DG3 rotation pushes its key row to season2/main; town rotate-self then refuses | merge-tree; identical rows -> commit-tree with the trunk tree, CAS update-ref |
 | 73 | loose objects > gc.auto: every commit ran a failing gc | gc.auto=0 in MAIN (rollback: unset) |
 | 75 | write.py `sub` strips leading whitespace: a new frontmatter row lost its indent | anchor AFTER `  - ` (insert as `<row>\n  - <anchor>`) |
