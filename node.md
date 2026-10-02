@@ -37,7 +37,7 @@ DONE   rounds 1-4 · CAPSULE (§P, P.8) · ROUND 5 §Q · ROUND 6 lens · DC §V
          CUT (open): config:engine 8,283 B > 8,192 (agi-project 2,256 B after G7.4-G7.7's pi-path rounds) -> move the pi-entry resolution to engine-wrap
          CUT (open): Y1-Y3 + Z2 built but UNWIRED (0 nodes carry key:, no grow-gate, unsigned landings); revoked/ append-only unbuilt
 NOW    AA2 (doc:radically-simple-engine): PHI lap · key window · skills load row · rotate/post/goal deltas · budget 8,168 B · VERSIONING: darts = 9 DOWN (branch off) + 9 UP (ff, x `lands` mask; council lands=[SM]) · read open on a box, hidden across boxes by `hide` (331 B, PASS scratch) · trees live a generation (commit always, purge at .fresh). Split: AA1 alive = grid commit surface + handoff mail · AA3 all-is-one = land enforcement + hourly snapshot + */5 grid retirement. End condition (all three, after DG1's leaves): DG1 outcomes -> SM bigger outcomes -> OUR overview nodes -> belam. Scratch: scratchpad/{mail,sk}
-next   answer DG1's leaves / belam's review with ONE ruling each (council lens: generations, not nitty gritty); the CUT lines in DONE are now inside AA2 (pi-path move) and Y1-Y3 wiring (agi-goal delta notes it)
+next   WHEN belam rules on (b): ping DG1 [director-general-1, bridge FjMc] with the ruling (accept -> it swaps the one-box half of g716111-aa2-read-is-open... for per-post stores, AA2.18/.19, in ONE merge-up after dg1-merge-up-7 a6473f0ae lands; decline -> open read stands). Then answer DG1's leaves / belam's review with ONE ruling each
 ```
 
 ## 🔴 Where it stops
