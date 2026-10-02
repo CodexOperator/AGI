@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:2xZ 10-02, date -u) — LANDED tonight: 3a33c71b9 · 8083ec340 · bfec8c200 · 819331783 (DG1 -22) · 3 RETURNED, each awaiting ONE small commit: DG3 install (A7/A8 rollbacks) · DG1 -21 (2 home paths) · DG3 agi-land follow-ups (ceiling text 1,829 -> 1,855)
+## §0 State (23:2xZ 10-02, date -u) — ALL GATES CLEAR: tonight LANDED 3a33c71b9 · 8083ec340 · bfec8c200 · 819331783 · c59788625 (DG1 -21 + DG3 agi-land follow-ups + DG3 install packages); idle until the next [merge-up]
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -49,11 +49,12 @@ DISPATCH  (A+) a director's WRITTEN line, verbatim, from ITS worktree, GIT_CONFI
 - 22:4xZ 10-02: 8083ec340 DG1 -20 (nodes only: goals .11.11/.11.1 at 2,005 B, A3 leaf + hyp, g7.16.1.11.13 active) -- links 5751/0, anonymize ok
 - 22:5xZ 10-02: bfec8c200 DG3 AA3 agi-land + grow-gate 3 fixes -- aa3-lanes 17/17 exit 0, grow-gate-ring 2/2, 3 mutations red, 228 py pass, links 5751/0, mur accept
 - 23:1xZ 10-02: 819331783 DG1 -22 (nodes, 1 file: hollow-review findings hyp) -- links 5752/0, anonymize ok
+- 23:2xZ 10-02: c59788625 DG1 -21 + DG3 agi-land follow-ups + DG3 AA1.M install packages (one update) -- lanes 17/17, bounds 2/2, ring 2/2, hostile-cell runs refuse, links 5754/0, anonymize ok x3
 - every suite red = test_skills_first_turn_entry (the trunk red) · links 5717/0 · NO hand grid commit (belam [rule] 00:08Z: the */5 cron does it)
 
 ## 🔴 Where it stops
 ```
-LANDED 3a33c71b9 level round · 8083ec340 DG1 -20 · bfec8c200 DG3 agi-land · 23:1xZ 819331783 DG1 -22 (findings hyp: hollow mur review stage fails by name, under g7.33.19; NOT dispatched). RETURNED, each = ONE small commit then a BYTES re-check (no new mur): (a) DG3 install 45f1ab8db (dg3-cut2): R1 A8 rollback (hub '' + pieces <T40> + timer disable) · R2 A7 rollback as runuser agi-P/agi-Q · notes AGI_STORES uid-0, 'quoted' wording, leading '-' hub, GO line show>f && sha && sh f; re-run my hostile-cell + fake-systemctl scratch runs (non-root, AGI_DRY_*); landing msg names d12670b74's box.root string (already in 67 origin files) · (b) DG1 -21 ba8d79006: anonymize refused 2 home paths in hyp g73314-the-box-audit-... -> `<home>/`; rest clean; ON LANDING relay to belam (send.py) DG1's Prime decision: box.root = the live repo + box.scan prefix list (extensions/ skills/ src/ .claude/ .agi/context/ .agi/nodes/.geometry/) · (c) DG3 agi-land follow-ups 55f502f95 (dg3-land2): hyp claim lines 12/24/27 still 1,829 B vs piece 1,855 B; all else green (lanes 17/17, bounds 2/2, ring 2/2, unbounded mutation -> l1 RED, anonymize ok, links 5752/0; u() bound fails closed -> no mur). OPEN: agi-land LAND STEP = host act, belam GO.
+LANDED 3a33c71b9 level round · 8083ec340 DG1 -20 · bfec8c200 DG3 agi-land · 819331783 DG1 -22 · 23:2xZ c59788625 = DG1 -21 aad8ab34c + DG3 agi-land follow-ups c40a32819 (1,855 B, 32-hop bound) + DG3 install packages ea30d0dba (2 security murs, residues closed by bytes). [landed] DG1 + DG3; [merge-up] + [decision] belam via send.py: box.root = live repo + box.scan prefix list (DG1's, on hyp g73314-the-box-audit-...). NOTHING at my gate. OWNER/PRIME-side: every install act A1..A8 + the agi-land LAND STEP = belam's own GO per act (the GO line: mktemp file + is-ancestor + sha256 + sh, pinned 40-hex T). NEXT on a [merge-up]: static gate (merge-tree vs live HEAD, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps, frontmatter, evidence dry-run), links/schema, code = tests (+ suite on tmpfs for .py), ROOT code = Sonnet security mur + my own read of trust boundaries (review stage may be HOLLOW: read the verify stage + bytes).
 on a [merge-up]: static gate (merge-tree vs live HEAD, 0 D, added-ever + key-file versions in HISTORY, anonymize, host + home-path + GPU greps, frontmatter mint_id+parents, evidence dry-run on the gate tree), links/schema/node tests; code = full tmpfs suite; land by SHA on the live HEAD (newcomer proof), push
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (directors also send DIRECT session messages)
 ```
