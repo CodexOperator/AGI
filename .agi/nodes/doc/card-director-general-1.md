@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-02 ~23:5xZ, gen 6 awake, box audit round: code half SENT 2507bad35, belam config half handed; waiting)
+## §0 State (10-02 ~23:5xZ, gen 6 awake, box audit LANDED bae704905; -23 (outcome note + decisions) SENT 4b741b4f9; queue empty)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1, cgroup-confirmed; row engine.v 4, boot true) · parent SM · trunk local-maxxing/season2/main |
@@ -25,10 +25,9 @@ town: core
 
 ## §1 Plan
 ```
-done   ALL LANDED: level round 3a33c71b9 · -20 8083ec340 · -22 819331783 · -21 c59788625 · -19 -16 -17 · DG3 M1/M3 M2 + agi-land follow-ups
-now    BOX AUDIT ROUND (belam [decision] 23:2xZ, hyp g73314-the-box-audit-..., ONE atomic update): CODE HALF SENT to SM 23:4xZ: branch dg1-box-scan, worktree /data/work/agi/.agi/worktrees/dg1-box-scan, tip 2507bad35 ONE commit on f0dbe9332, 4 files (boxes.scan_prefixes, paths.files, +27 test lines, -1 retired-prefix exemption). belam's HALF handed by mail: .agi/config.json [a] root = /data/work/agi [b] logs_dir = /home/belam/logs (UNVERIFIED path: /home/belam unreadable to me, asked him to confirm) [c] box.scan = [extensions/ skills/ src/ .claude/ .agi/context/ .agi/nodes/.geometry/]; [d] user left "ubuntu" on purpose (user=belam adds 1,114 false hits: post name). Diff at /tmp/dg1-config-box-scan.diff. Measured: 1,150 findings (today 8,673), box class 6 (380); 455 tests pass with his edits; code alone + stale config = test_retired_box_prefix T1 red. WAIT for belam's branch name + SM [landed]/[returned]
-       pytest: my account has none, pip --user blocked (PEP 668, not overridden): venv with system site packages at the scratchpad (rebuild: python3 -m venv --system-site-packages V; V/bin/pip install pytest)
-bank   belam's config half WRITTEN 23:3xZ: branch belam/box-scan 3a6a7cbaf (root + scan; logs_dir NOT written: ~/logs is a symlink into /data/home-belam, a registered home root, so the privacy guard refuses any literal logs path; user stays); merge-tree clean with dg1-box-scan; SM lands both in ONE update (my measure for that state: 1,155 findings). LATER ROUND, mine, belam's call, not started: paths.py expands {home} in box cells so logs_dir = {home}/logs (hyp g73314 stays the parent); do not start without an order.  DG3: A3 round (goal .11.11.1.1) after A2, install acts A1-A8 + agi-land land step (each its own belam GO line)
+done   ALL LANDED: level round 3a33c71b9 · -20 8083ec340 · -22 819331783 · -21 c59788625 · BOX AUDIT bae704905 (code 2507bad35 + belam/box-scan 3a6a7cbaf; 1,152 findings vs 8,708) · -19 -16 -17 · DG3 M1/M3 M2 + agi-land follow-ups
+now    -23 SENT to SM 23:5xZ (nodes only, ONE file): branch dg1-minus-23, worktree /data/work/agi/.agi/worktrees/dg1-minus-23, tip 4b741b4f9 on d877c368e: OUTCOME on hyp g73314 + two decisions in the graph: logs_dir stays (no {home} expansion: 2 `logs` hits, a lister that is not a gate), user stays. links 5754/0. WAIT for SM [landed]/[returned]; then `git worktree remove` dg1-minus-23
+bank   the 6 portable box hits belong to their owning builds (DG3 install acts, box.allow); DG3: A3 round (goal .11.11.1.1) after A2, install acts A1-A8 + agi-land land step (each its own belam GO line)
 hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon
 ```
 
@@ -36,7 +35,7 @@ hold   phase W (skill agi-spawn-chain) until the council flow-rotation design la
 c2decf431 Z4 phase A · 96140880b pb3 · 3e10246bd Z4 re-cut · 2e9902533 W amended + shell-tests nodes · bc9658da7 g1.40 + .17 + agi-spawn-chain name · 71b8677c3 AA1.M leaf + 3 hyps · 826a0d831 AA1.M active
 
 ## 🔴 Where it stops + the exact next command
-Box audit code half sent (2507bad35), belam's config branch is belam/box-scan 3a6a7cbaf, waiting on SM to land both. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; on [returned]: skill agi-corrective, fix on dg1-box-scan (amend), re-run `$VENV/bin/python -m pytest extensions/agi/tests/test_paths_audit.py extensions/agi/tests/test_retired_box_prefix.py -q` with the config diff applied temporarily (cp .agi/config.json away first, restore after, never commit it), re-send. On [landed]: `git -C /data/work/agi worktree remove .agi/worktrees/dg1-box-scan`.
+-23 sent (4b741b4f9), waiting on SM; nothing else queued on me. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; act only on blocks newer than 23:5xZ. On [landed]: `git -C /data/work/agi worktree remove .agi/worktrees/dg1-minus-23`. On [returned]: skill agi-corrective, fix on dg1-minus-23 (amend), links (nohup), re-send. No invented goals.
 
 ## §4 Traps
 | trap | rule |
