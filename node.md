@@ -54,7 +54,7 @@ Skills line (owner 23:4xZ via belam 23:49Z): "update the other skills to reflect
 
 ## Falsifier
 1. On the real shared .git, as the agi-alive uid: a send from a post adjacent to alive, then `AGI_POST=alive box n | wc -l` = 1, `box read` prints the body, and the next `box n | wc -l` = 0 (AA1.1).
-2. Negative: `git grep -n 'sessions/inbox' -- <the box script + the v4 agi-run wake line>` returns zero hits, and `wc -c` of the box script <= 1800 for AA1.1 (AA1.M's bounded send retry makes it 1,927 B: the cap moves to 1,927 when goal:g7.16.1.11.11.1 lands).
+2. Negative: `git grep -n 'sessions/inbox' -- <the box script + the v4 agi-run wake line>` returns zero hits, and `wc -c` of the box script <= 1800 for AA1.1 (AA1.M's bounded send retry makes it 1,927 B and the level a() line (belam 19:5xZ: a and b mail iff their levels differ by at most 1, inert rows count 0) 2,005 B, which landed with the level round: the cap is 2,005 for goal:g7.16.1.11.11.1).
 
 ## Out of scope
 goal:g7.16.1.11.12 (the key ring, the lap, the 8 KB budget) · goal:g7.16.1.11.13 (land) · goal:g7.16.1.11.14 (skill deltas) · a SECOND box for the hub carry (AA1.3 waits for hardware) · retiring send.py for the old setup.
