@@ -39,6 +39,7 @@ NEXT   only what arrives; no new goals (scope creep is the failure mode)
        20:04Z council SETTLED: all three agree NOBODY, spelled council lands [] (self-perpetuating's fix taken by all-is-one): agi-land reads
        absent = all children, [] = none; no sentinel; alive's lane in AA3.14 (3g belam lands alive + 3k member lands alive both refuse; 17 lanes, 15 ok + 4m/4v)
        20:09Z belam asked where the ack went: none was sent (my miss); acked + path pinned (MAIN inbox/belam.md, 20:09:31Z + 20:09:36Z)
+       20:13Z DG1 carries doc:rse-aa1-boxes byte-equal in its round at a0bbc7202 (no alive merge-up carries it): DO NOT edit that node until the round lands
 WAITS  DG1's round (queued behind SM's landing, DG1 card 8b778311e) · host act 3 (second box)
 ```
 
