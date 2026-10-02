@@ -110,9 +110,63 @@ Split agreed by message 23:5xZ: AA1 = agi-send · AA2 (self-perpetuating) = the 
 | §3 tags to the Prime | unchanged | unchanged: the tag grammar is content, not transport; a body is stdin from a file (no backtick or `$(` in a shell string) |
 Delta size: one table in this node; the skill text itself changes when the bundle is built, not before.
 
+### AA1.V · VERSIONING (belam [decision] 00:25Z; owner 00:3xZ + 00:4xZ): every turn is a GRID commit, ONE node per commit, made from the node's tiny tree onto the post's branch
+**Owner 00:3xZ, verbatim (the part this section answers):** "Couldn't the grid become the only commit surface instead ... Every turn is a GRID commit. ... The grid commit is a smaller total commit just a tiny worktree for a single node getting updated per turn as needed. Other node worktrees la get brought in and spawned dynamically as needed then purged."
+Split, settled by message 00:2xZ: AA1 = this commit surface + the handoff carried as mail · AA2 (self-perpetuating) = read / branch / ff as projections of the lap PHI + tree lifetime · AA3 (all-is-one) = enforcing ff at land + the hourly snapshot + retiring the */5 grid (and a new home for `crons.py apply`, which grid_sync also runs).
+**Today (read from the pieces at the trunk):** `agi-turn` = `git add -A` + one whole-tree commit per turn in ~/t, and it drops every unclaimed tree EACH turn · `agi-wt drop` copies the tree BACK into ~/t and commits it there · `agi-link` then guesses node <-> code from the changed paths · grid = a separate */5 cron writing refs/grid/* (9,563 of 11,779 refs, all-is-one) that the v5 engine never touches.
+```
+ pull   agi-wt pull ID      node file + its payload_ref -> RAM tree $w/<mint> (.p = its paths, .b = the tip it came from)     unchanged
+ new    agi-wt new PATH [P] an empty tree for a node that does not exist yet (no .b)                                            +1 line
+ turn   agi-turn            for each tree: temp index = tip; add the tree's paths; tree unchanged -> nothing;
+                            else ONE commit-tree -S -p tip + update-ref CAS on refs/heads/posts/P (= box send's primitive, a one-node tree)
+                            the tip changed THIS node since pull -> the version goes to refs/archive/P/<mint>, [moved], tree dropped (never overwrite)
+                            then ~/t = a DETACHED read view of the tip; any change left in ~/t = [out-of-tree], reported, never committed
+ drop   agi-wt drop ID      agi-turn, then rm the tree (no copy-back)           session end = agi-flush drops them all (lifetime: AA2)
+ grid   = posts/P itself: every version is a signed one-node commit on the post's branch; it reaches the trunk by land (AA3); no refs/grid, no cron
+```
+**Handoff = mail (AA1's second half, 0 new bytes):** a branch handoff down or up the figure eight is `box send <next> <<<'handoff posts/P@<sha>'`: signed by P, refused off-matrix at send and at read, ordered by AA2's lap. The receiver branches off that sha (DOWN) or AA3's root lands it (UP). Which in-darts may hand to whom is AA2's projection, and AA1 checks only adjacency.
+**Whole, `agi-wt` (819 B, was 688):**
+```sh
+#!/bin/sh
+# agi-wt pull ID [REV] | new PATH [PAYLOAD] | drop ID: a node's tiny tree (node + payload) in RAM for the session; agi-turn versions it, drop purges it
+cd ~/t;w=${AGI_WT:-$RUNTIME_DIRECTORY/wt};r=${3:-posts/$AGI_POST};mkdir -p $w
+case $1 in new)d=$w/$(basename $2 .md);mkdir $d||exit 3;echo "$2 $3">$d/.p;echo $d;exit;;esac
+f=$(git grep -lE "^(id|mint_id): $2$" $r -- .agi/nodes|head -1|cut -d: -f2-);[ "$f" ]||exit 2;d=$w/$(git show $r:$f|sed -n 's/^mint_id: //p')
+case $1 in pull)[ -d $d ]&&{ echo $d;exit;};[ $(df --output=pcent $w|tail -1|tr -dc 0-9) -lt ${AGI_WT_HOLD:-60} ]||{ echo "hold $w";exit 3;}
+mkdir $d;echo "$f $(git show $r:$f|sed -n 's/^payload_ref: "\{0,1\}\([^"]*\)"\{0,1\}$/\1/p')">$d/.p;git archive $r $(cat $d/.p)|tar -xC $d;git rev-parse $r>$d/.b;echo $d;;
+drop)agi-turn;rm -rf $d;;esac
+```
+**Whole, `agi-turn` (1,074 B, was 269):**
+```sh
+#!/bin/sh
+# agi-turn: each changed node tree = ONE grid commit on posts/P (temp index from the tip, signed, CAS); the tip moved it since pull = archived + dropped; ~/t = a detached read view
+cd ~/t;P=${AGI_POST:?};b=refs/heads/posts/$P;x=$(mktemp -u);trap 'rm -f $x' 0;export GIT_INDEX_FILE=$x
+for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -f $d.p ]||continue;p=$(cat $d.p);m=$(basename $d);t=$(git rev-parse $b);git read-tree $t;git --work-tree=$d add -A -- $p;n=$(git write-tree)
+ [ $n = $(git rev-parse $t^{tree}) ]&&continue;r=$b;[ ! -f $d.b ]||git diff --quiet $(cat $d.b) $t -- $p||r=refs/archive/$P/$m
+ c=$(echo "$P: ${p%% *}"|git commit-tree -S -p $t $n)&&git update-ref $r $c $([ $r = $b ]&&echo $t)||echo "[raced] $m">&2
+ [ $r = $b ]&&git rev-parse $b>$d.b||{ echo "[moved] $m: changed on the tip since pull; your version is $r, the tree is dropped">&2;rm -rf $d;};done
+unset GIT_INDEX_FILE;git checkout -q --detach $b;git status -s|grep -q .&&echo "[out-of-tree] ~/t has $(git status -s|wc -l) unversioned change(s): edit in a node's tree (agi-wt pull)">&2;:
+```
+Retires `agi-link` (358 B): a payload can only change inside its node's tree, so every code change is versioned WITH its node by construction, and a change anywhere else is reported as [out-of-tree]. Net for the post pieces: +131 +805 -358 = **+578 B, expansion only, 0 B in the zygote** (AA2 owns the 8 KB account).
+**Tested 00:2xZ (scratch only: a fixture repo with a trunk, posts/alive, a detached ~/t worktree, throwaway signing key; HOME/AGI_WT in scratch):**
+| # | case | result |
+|---|---|---|
+| G1 | pull a doc node · a build node with payload_ref | .p = the node path · node + src/c.sh |
+| G2 | a turn with no edits | no commit |
+| G3 | edit doc:a in its tree + build:c's payload in its tree, one turn | 2 commits, one node each (`alive: <path>`), a = the node file only, c = src/c.sh only, both %G? = G, doc:b untouched |
+| G4 | after the turn | ~/t HEAD = the new tip and shows the edit; no stderr |
+| G5 | a stray edit straight in ~/t | `[out-of-tree] ...` on stderr; NOT committed |
+| G6 | doc:b pulled, then changed on the tip by a merge, then edited in its tree | the tip's version kept; mine on refs/archive/alive/bbbb; `[moved] bbbb:`; tree dropped |
+| G7 | `agi-wt new` + write a new node there | the node lands on posts/alive |
+| G8 | edit, then `agi-wt drop` | versioned, then purged |
+| G9 | after all of it | trunk untouched (1 commit); 0 refs/grid |
+19/19 PASS. Scratch: the session scratchpad `grid/` (fix.sh + t.sh re-run it whole).
+**Honest limits.** (1) ~/t becomes a read view: a post that edits there loses nothing (the edit stays in ~/t) but versions nothing, and is told so every turn until it moves the edit into a tree; the briefs and agi-node-write's replacement must say "edit in `agi-wt pull`'s directory". (2) `agi-flush`'s `git merge` of the trunk needs a checked-out branch; with ~/t detached, the DOWN merge becomes merge-tree + commit-tree (the agi-master-gate pattern), and WHEN it runs is AA2's rule. (3) N trees changed in one turn = N commits: the owner's "every turn is a grid commit" read per node. (4) A [raced] CAS (two writers of posts/P) is reported, not retried; only P writes posts/P, so it means a second session of the same post. (5) READ cannot be restricted on one box (measured by alive and all-is-one; banked by AA2, recommend open read on a box, hidden by the hub's hideRefs across boxes).
+**Falsifiers (UNRUN live):** AA1.V1 one live turn of a v5 post with two trees = two signed one-node commits on posts/<p>, and `git log -1 --format=%s` names the node · AA1.V2 a stray ~/t edit in a live turn prints [out-of-tree] and lands nowhere · AA1.V3 24 h after the switch, refs/grid/* gains 0 refs from a v5 post (with AA3's cron retirement, 0 from anyone).
+
 **OPEN for AA2/AA3:** who owns KEYS (all-is-one proposed self-perpetuating) · AA3 land = mail up one edge, so it reuses `box read` as root (AA3 = doc:rse-aa3-land, all-is-one; principal form `<post>@agi` agreed and applied above).
 **SETTLED by belam (1efd017e6, [decision] 23:51Z, superseding ec5daa28a):** members<-council; council<-belam; SM + TM-new<-council. Through this section's elimination of the inert council row, {belam, alive, all-is-one, self-perpetuating, SM, TM-new} is ONE clique (group chat and handoff down, belam's stated reason); DG1 is adjacent to SM only, DT-1 to TM-new only. So a council -> DG1 send is off-matrix under AA1 once built: the bundle went to DG1 by belam's explicit GO, over today's route.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v2, alive 23:5xZ 10-01 (date -u): three deltas. (1) principal form `<post>@agi` (all-is-one's vote; what the unit already sets), box re-tested 25/25, 1,769 -> 1,785 B. (2) belam's council row ec5daa28a computed through the elimination: members adjacent to belam only, stated as a consequence for belam to rule on, not chosen here. (3) owner 23:4xZ skills line: AA1.S = the agi-send delta only, as a table; no skill text changes before the bundle is built. Edited with plain Edit per belam's [rule] 23:49Z (write.py is old-setup only). FIRST VERSION 23:4xZ: own node, because doc:radically-simple-engine is 268,943 B and three branches appending at its tail would conflict; scratch only; the inert-row elimination is the smallest rule that keeps a crossing one clique without a new cell.
+v3, alive 00:2xZ 10-02 (date -u): + AA1.V versioning, on belam's [decision] 00:25Z (owner 00:3xZ/00:4xZ: every turn is a grid commit from a tiny tree). The grid commit reuses box send's primitive with a one-node tree, so mail and versioning share ONE git shape. agi-link retires because a payload can only change inside its node's tree. ~/t becomes a detached read view whose stray edits are REPORTED rather than silently committed (true state over convenience). Scratch 19/19. v2, alive 23:5xZ 10-01 (date -u): three deltas. (1) principal form `<post>@agi` (all-is-one's vote; what the unit already sets), box re-tested 25/25, 1,769 -> 1,785 B. (2) belam's council row ec5daa28a computed through the elimination: members adjacent to belam only, stated as a consequence for belam to rule on, not chosen here. (3) owner 23:4xZ skills line: AA1.S = the agi-send delta only, as a table; no skill text changes before the bundle is built. Edited with plain Edit per belam's [rule] 23:49Z (write.py is old-setup only). FIRST VERSION 23:4xZ: own node, because doc:radically-simple-engine is 268,943 B and three branches appending at its tail would conflict; scratch only; the inert-row elimination is the smallest rule that keeps a crossing one clique without a new cell.
 <!-- THOUGHT:END -->
