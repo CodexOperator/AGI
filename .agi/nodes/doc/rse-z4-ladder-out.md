@@ -187,3 +187,27 @@ RAILS     READ   a phase's slice = brief.py from its seeds + `git archive <invok
 MEASURED (scratch, 17:5xZ): agi-kid today runs `for x in .gitconfig .ssh .signers hooks .claude/settings.json;do ln -sfn ~/$x $h/$x;done`, so every kid HOLDS the invoker's private key and signs AS the invoker (a kid commit with the link: signed, 1 gpgsig); land cannot tell a review kid from its post. Without the `.ssh` link the kid's commit FAILS ("Couldn't load public key"; gpgsign=true in the linked .gitconfig), so 0 commits. Fix = the link list without `.ssh` when -m (~10 B).
 TRUE STATE (alive 17:4xZ): no v5 post can fire a one-shot phase today (0 of 12 rows carry a kid model in env; no per-post OpenRouter key): a flow's first live run waits on AA2's kid cell projection + the owner's root key ring.
 Falsifiers: Z4.g a review phase's kid cannot produce a commit that verifies on the ring (no key) while its result ref verifies as the invoker · Z4.h with the root idle, a one-shot finishing fires the next phase with no turn and no model step (the runner tail) · Z4.i a perpetual phase is never DONE while its goal's falsifier row reads red, whatever its card says.
+
+## Z4.9 K2 spawn classes + K3 direct inference (owner 18:1xZ 10-02 via belam [owner] 18:16Z; council split 18:17Z by inbox ts: alive M1 · self-perpetuating K1 · all-is-one K2 + K3)
+THE LINE between the two classes is NOT trust but TOOLS (measured 18:2xZ, names/perms only, no key value read):
+  a post's signing key ~/.ssh/id_ed25519 is 0600 owned by the post's uid, so ANY process of that uid reads it, `.ssh` link or not (Z4.8's link fix stops git signing, not `cat`)
+  pi's default tools = read, bash, edit, write (`pi --help`); even read-only tools (read, grep, find, ls) can put the key into a model's context, i.e. send it to a provider
+```
+K2(b) INSIDE the caller's user   = a spawn that runs NO tool: ONE inference request, context in, text out (K3 agi-infer). Executes nothing,
+                                   reads nothing beyond the slice it is handed. Takes: a flow's one-shot review / check / research /
+                                   brainstorm stages (the 7 manifests in use), Z4.8 rails (archive slice, runner signs, kid.max cap)
+K2(a) a NEW uid per spawn        = ANY spawn with a tool loop (pi read/bash/edit/write, or any agent): template unit agi-kid@<caller>--<kid>
+                                   with DynamicUser=yes (systemd 255 here), NO SupplementaryGroups (Z4.10), the slice bind-mounted
+                                   read-only + its own scratch; no view of the caller's 0750 home (AA3.12). Its result leaves through
+                                   the launcher (refs/spawn, AA2), which signs it. Its key = K1 (self-perpetuating, AA2): BindsTo= +
+                                   After=agi-mint@%i, LoadCredential=key:/run/agi-mint/%i/key, minted root-side, never in the caller's
+                                   env. polkit: K1's 345 B rule (agi-(mint|kid)@<caller>--<kid>, start/stop only), not a regex widening
+perpetual posts                  = rows = their own users already (agi-post@), unchanged
+K3 direct inference              = agi-infer (EXISTS, 829 B, OpenAI-compatible, schema-fenced) + STREAMING: request "stream":true and
+                                   curl -sfN | sed -un 's/^data: //p' | grep --line-buffered -v '^\[DONE\]' | jq --unbuffered -rj '.choices[0].delta.content // empty'
+                                   (115 B) teed into the session log; the runner commits the full text as the phase's result ref
+```
+MEASURED K3 parser (scratch, canned OpenAI/OpenRouter SSE incl. ': OPENROUTER PROCESSING' comment lines + [DONE]): byte-exact content ("ok lane\nnext"), comments + [DONE] dropped, each chunk emitted as its line arrives (0.6 s gap preserved). NOT measured live: a post's uid cannot read MAIN .env (by design, K1's rail) and nothing listens on the default 127.0.0.1:8080.
+SHELL vs APP (the owner's question): SHELL for K2(b), since a single request has no loop to manage, and the guards (K1 cap, parent cells, slice, ring) sit outside the call. A tool loop (call -> run -> feed back -> repeat + context management) stays in pi, under K2(a)'s own uid, until a shell twin of the loop proves parity (belam's read, agreed).
+Falsifiers: Z4.j a K2(b) spawn has no tool at all (no process it starts other than curl/jq/sed) · Z4.k a K2(a) kid cannot read its caller's ~/.ssh (EACCES), `id -G` holds no agi and `git update-ref` on the shared .git fails EACCES, and its result ref verifies under the launcher's AA2 signature · Z4.l the streamed text == the committed result byte for byte.
+Z4.10 FIX (alive TRUE-STATE catch 18:19Z, re-measured 18:2xZ by getfacl, perms only): group agi = rwx on /data/work/agi/.git/refs + objects (default ACL too) and on .agi/sessions/inbox. Z4.9 gave the kid SupplementaryGroups=agi, so a tool-loop kid could MOVE ANY REF (any post's branch, refs/box, refs/held, the trunk) and append to any inbox; it could not forge mail (no post key). Fix ~0 B: the group line is deleted; the result rides the launcher. Standing rule (also after AA1.R's per-post stores): a kid joins no group that can write a store.
