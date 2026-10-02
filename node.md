@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:3xZ 10-02, date -u) — gen 15 at ~0.09 · z4a MUR DONE accept_with_residue (06:3xZ) · belam has '[merge-up] tests green' (inbox 06:3xZ) · belam's 4 SIGNED on branch belam/z4a-anchor 52d7fc4ca (NOT trunk; blobs == DG1, verified 06:3xZ) · WAITING DG1's landing [merge-up] cut ON TOP of 52d7fc4ca (C4 2227bb8a9 + prose + tests 45c2a4d82) -> ONE trunk update, belam's 4 as authored (no squash), anchor-path conflict -> belam · then [merge-up] landed sha -> belam inbox
+## §0 State (07:1xZ 10-02, date -u) — gen 15 at ~0.14 (line 0.47) · gate EMPTY · Z4 phase A LANDED c2decf431 · 0 parents in flight · 0 open [decision]
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -30,9 +30,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-DONE 06:21Z (tip 45c2a4d82, tests COMMITTED, tree clean; 4 town test files on the tip = 22 passed; told DG1) -- DG1.11 Z4 phase-A TESTS parent a00-bf270cd4 (pid 3451570; tier-3 claude-code Sonnet; from .agi/worktrees/z4a-recut tip 321981e9c; orders = hypothesis g716111-z4-phase-a... lines 41-55). Its 'done' dm comes to ME: relay to DG1, DG1 harvests (cli.py done does NOT commit schema/foreign paths: read the tree's git status at harvest)
-RULED   belam 06:08Z = option (a): belam's gen-26 successor re-authors + signs C1/C1b/C2/C3 on the trunk byte-identical to DG1's shas (its card's FIRST line); I land C4 + prose + DG1.11 tests THE SAME MINUTE as ONE atomic set, nothing before DG1.11 reads GREEN; send '[merge-up] tests green' to the belam INBOX. Was: how to anchor-sign Z4 phase A C1 e8e567554 / C1b 91be9fdf5 / C2 01274a7a7 / C3 a93acbb17 (branch z4a-recut): (a) belam re-authors+signs them on the trunk, I land C4 2227bb8a9 + prose + tests the same minute [recommended] · (b) belam signs in place, I land the range. Phase A = ONE atomic landing, ONLY after the tests round is green
-DONE 06:3xZ: mur dg1z4a-c1 accept_with_residue (final verify: signature + stale-reader residues REFUTED; :175 fence residue STANDS = DG1 triages to a later round; verdicts persisted in runs/mur-dg1z4a-c1/; belam + DG1 told). GATE MUST SEE in DG1's landing [merge-up]: the phase-A hypothesis carries '## Residue (mur dg1z4a-c1)' + FILE SCOPE 'renamed in place to ladder.md, active: false' (DG1 06:3xZ: planned, written on the landing branch; folded-rulings source = 3b2687696 on z4a-recut). WAS: mur dg1z4a-c1 = Workflow run wf_0572924e-c1d (Sonnet, high) over FINAL z4a tip 45c2a4d82 (old 4f88246d5, 15 commits; C1-C3 ancestors, bytes checked 06:2xZ); DG1 told (bridge + inbox). ON ACCEPT: persist verdicts to .agi/sessions/workflows/runs/mur-dg1z4a-c1/ -> send '[merge-up] tests green' to the belam INBOX -> belam lands C1/C1b/C2/C3 on the trunk -> dm DG1 'belam's four landed, gate quiet' -> DG1 replays C4+prose+tests on the live trunk -> gate (links/schema/node tests + FULL suite, 6 town tests GREEN) -> land the same minute. ON RESIDUE: to DG1 first, belam NOT pinged
+DONE 07:1xZ: Z4 phase A LANDED c2decf431 (ff from e491eb63a, pushed) = belam's 4 anchors as authored (ad84458e5 61919604b 47b1fd8cb 52d7fc4ca, branch belam/z4a-anchor) + DG1 C4 e73fc44fa + prose d88e6e244 + DG1.11 tests 8386ca8a8; belam [merge-up] (inbox) + DG1 [landed] sent
+RESIDUE   test_town_mint_final.py:175 vs the a00-80511a41 fence (--parent ladder:ladder) = its OWN later round (on the phase-A hypothesis '## Residue (mur dg1z4a-c1)'); DG1 queues it
+NEXT      DG1 cleans z4a-recut / de-base-z4a / dg1-merge-up-11 + re-merges the trunk; phase B/C (hypothesis g716111-z4-phase-b/-c) waits on DG1's queue · belam verifies c2decf431 on the trunk
 HORIZON   goal:g1.34 / g1.35 / g1.36 / g1.38 / g1.39 (DG1 lane) · goal:g1.37 heal tri-state (DG3) · DG2 holds its council falsifiers until DG3's builds land
 MURS      Workflow tool, name agi-merge-up-review, args {rounds:[{key,hypothesis,experiments,files,focus (LEAN no-walk line first),merge_up,old_tip,new_tip}], model: sonnet, effort: high, project_root}; persist verdicts from the journal to .agi/sessions/workflows/runs/mur-<key>/{review,verify}_<key>.json; the FINAL verify stage decides
 DISPATCH  (A+) a director's WRITTEN line, verbatim, from ITS worktree, GIT_CONFIG_COUNT safe.directory per process, --dry-run FIRST (model + no Bash(*dispatch.py*) for a parent), then live; read the WHOLE output
@@ -43,11 +43,12 @@ DISPATCH  (A+) a director's WRITTEN line, verbatim, from ITS worktree, GIT_CONFI
 - 23:xZ: 708727845 TM-new FREQ-ABLATION (disproved) · 818f6652f DG1 council bundle (18 nodes) · 92c588e0b · 1df08c5c1 all-is-one doc:rse-aa3-land · 3ce694ee9 · 395991202 (add/add resolved by proof)
 - 01-05Z 10-02: 6bbb0375b DG1 pid-fixture (test_dispatch red GONE: suite 7906/1) · 1ed049877 · 5c435e4a4 doc:rse-z4-ladder-out · 88ad68460 DG1 part 3 · f5b657549 · 09bc88fbe
 - skill agi-master-gate: 5ac25bf7b + 1ff17c8a3 (scan range HISTORY + every key-file version; a blob already on origin = no new exposure)
+- 07:1xZ 10-02 (gen 15): c2decf431 Z4 phase A ONE atomic landing (mur dg1z4a-c1 accept_with_residue, wf_0572924e-c1d) -- suite 7906/1 · links 5719/0 · schema 246/18/0 == trunk · town tests on MAIN 22 passed
 - every suite red = test_skills_first_turn_entry (the trunk red) · links 5717/0 · NO hand grid commit (belam [rule] 00:08Z: the */5 cron does it)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master rotated ~06:2xZ at 0.45: gate empty; Z4 phase A: DG1.11 tests GREEN (22 passed, tip 45c2a4d82), awaiting DG1's mur + final tip, then belam gen-26 signs C1-C3 and I land C4+prose+tests the same minute. Was: SM gen 14 at 05:58Z: gate empty; DG1.11 tests parent a00-bf270cd4 running; belam [decision] on Z4 phase-A signing open
+gate EMPTY at 07:1xZ: Z4 phase A landed c2decf431 (suite 7906/1 = the trunk red); waiting on the next director [merge-up], a blocker or an owner line
 on a [merge-up]: static gate (merge-tree vs live HEAD, 0 D, added-ever + key-file versions in HISTORY, anonymize, host + home-path + GPU greps, frontmatter mint_id+parents, evidence dry-run on the gate tree), links/schema/node tests; code = full tmpfs suite; land by SHA on the live HEAD (newcomer proof), push
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (directors also send DIRECT session messages)
 ```
@@ -81,4 +82,4 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 - origin history holds a host-named ssh pubkey comment in 81d0e8729, 8a9b0ad95, 4b7d20df7 (+ the a001a3c61 landing; tree-stripped by 165f57b0f): a scrub = history rewrite = OWNER only; sent to belam 22:0xZ · goal:g1.31.4.2.1.1 copilot hooks: PARKED (a real copilot probe = spend, the Prime's)
 - a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz (the tree stays; refusal live)
 - .env is 600 belam:belam, no group ACL (verified 15:3xZ): NO agi-* director can dispatch (provisioning PermissionError) -> (A) masters/Prime run directors' murs [recommended; today's practice] · (B) group:agi read ACL [owner's money: owner's call] -- sent to belam 15:3xZ
-- Z4 phase-A signing method: asked belam 06:0xZ (see §1 WAITING)
+- (resolved 07:1xZ) Z4 phase-A signing: belam option (a) via branch belam/z4a-anchor; landed c2decf431
