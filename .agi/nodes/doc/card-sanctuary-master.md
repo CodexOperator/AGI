@@ -49,7 +49,7 @@ DISPATCH  (A+) a director's WRITTEN line, verbatim, from ITS worktree, GIT_CONFI
 
 ## 🔴 Where it stops
 ```
-gate EMPTY at 14:5xZ: landed today 8356d4114 (aio 7, doc) + 96140880b (pb3, the trunk red closed); waiting on the next director [merge-up], a blocker or an owner line
+gate EMPTY at 14:5xZ: landed today 8356d4114 (aio 7, doc) + 96140880b (pb3, the trunk red closed); waiting on the next director [merge-up], a blocker or an owner line · belam VERIFIED pb3 on the trunk 14:41Z · GATE RULE for Z4.6 W (workflow.py retires; belam [rule] 14:41Z): DG1's W merge-up + belam's branch dropping build:skills-agi-workflow-SKILL.md from BOTH config:rotations skills entries (+ byte_cap) land in ONE update (pb3 pattern); W alone = RETURN (test_skills_first_turn_entry would red)
 on a [merge-up]: static gate (merge-tree vs live HEAD, 0 D, added-ever + key-file versions in HISTORY, anonymize, host + home-path + GPU greps, frontmatter mint_id+parents, evidence dry-run on the gate tree), links/schema/node tests; code = full tmpfs suite; land by SHA on the live HEAD (newcomer proof), push
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (directors also send DIRECT session messages)
 ```
