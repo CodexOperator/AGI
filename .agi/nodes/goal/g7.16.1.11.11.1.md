@@ -14,7 +14,7 @@ scaffold_hash: 3d33126ccc292cab
 season: 2
 seeds:
   - goal:g7.16.1.11.11
-status: horizon
+status: active
 tags:
   - council
   - aa1
@@ -40,6 +40,7 @@ goal:g7.16.1.11.11 (AA1 boxes): belam [owner] 18:16Z (item M1) relayed the owner
 - CASCADE: ONE carrier per box (root; the owner's "local box cron"), reading the rows' LOCATION cells (box, store): Q on this box -> a runuser pipe moves P's `refs/box/P/Q` into Q's store (AA2's agi-carry, 454 B); Q on another box -> push `refs/box/P/*` to the remote head, Q's box carrier fetches it. WOKEN by a path unit on each store's `refs/box` (PathChanged: no polling cron) plus ONE timer for remote fetches (belam ACCEPTED deviation 1). About 260 B of expansion (carrier line ~200 B + path unit ~60 B).
 - READ: `box read` verifies signer + adjacency, prints, moves `refs/held/Q/P` (only Q writes it). NO worktree hop: mail is read from the post's store, never copied into a worktree (belam ACCEPTED deviation 2: a worktree copy would be a second store that can drift from the first; the owner's "then worktree" collapses).
 - send.py (317,096 B) retires for every v5 post; goal:g1.40 closes when this lands.
+- SIGNERS (alive 18:29Z, included by belam [rule] 18:5xZ): ONE root-owned allowed_signers written by root at unit start from each post's own ~/.ssh/id_ed25519.pub (`<post>@agi valid-after=<now> <pub>`, `valid-before` stamping the previous generation); `.agi/keys/` stops being a source; host act 1 re-run reads G, not U. NOTE the lane: PRIME LANE named by belam 18:5xZ (owner 18:5xZ: "Feel free to pass the design on to dg2 and dg3 so they can build it"): DG1 hands the hypotheses on -> DG2 experiments / falsifiers <-> DG1 inner loops -> DG3 builds -> SM gate + mur -> trunk; rails: 8 KB base / 1 KB seed, sh + git + jq, no Python, 0 key bytes in any version, no new provider or spend, each host act its own belam GO.
 
 ## Invariants
 - Every ref has ONE writer (out = the sender, held = the reader) and every move is an atomic update-ref: no shared file is rewritten, so the g1.40 race (an append lost to a concurrent mark-read rewrite) cannot happen.
