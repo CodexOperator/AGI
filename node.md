@@ -80,7 +80,7 @@ NOT measured by me: whether another writer of the inbox file (the nudge/sidecar 
 2. Negative: `git grep -n -E 'inbox.*write_text' -- extensions/agi/bin/send.py` shows no inbox rewrite outside the lock.
 
 ## Out of scope
-goal:g7.32.6 (the send redesign: it replaces the inbox form; this is the fix to the form every post still uses until then) · the pane nudge path and its sidecars · the tracked-vs-untracked state of the inbox files (they are runtime, untracked by design).
+goal:g7.16.1.11.11 (AA1 boxes; belam [owner] 18:1xZ M1: mail WITHOUT send.py and without Python = a message is a git commit to the recipient's branch / nearest remote head, a box cron cascades it to the branch then the worktree; a ref update is atomic and no shared file is rewritten, so it ENDS this race by design -- this leaf stays the fix for the inbox form every post uses until then; belam: re-send once if unanswered in 15 min) · goal:g7.32.6 (the send redesign: it replaces the inbox form; this is the fix to the form every post still uses until then) · the pane nudge path and its sidecars · the tracked-vs-untracked state of the inbox files (they are runtime, untracked by design).
 
 ## Agent Notes
 Assigned to **director-general-1**.
