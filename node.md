@@ -27,5 +27,5 @@ verdict: inconclusive_lean_proved:85
 | a lost race 5x prints `[unsent]` | MET (exactly 5 attempts) |
 | box <= 1,927 B, no Python on the send path | MET (1,927 B exactly; 0 `python`) |
 | mutation: drop the retry and the 2-writer case splits | MET (4 red cases on the no-retry build) |
-| FALSIFIERS' line "on the real box" | UNRUN: root installs `box`; the same `extensions/agi/tests/box-mail.t.sh` runs there with BOX=<the build> |
+| FALSIFIERS' line "on the real box" | UNRUN, UNVERIFIED: a separate probe on the installed box (live posts.md filter + a real send), after belam fixes the rows and GOes host act 1; box-mail.t.sh cannot answer it |
 Why not `proved`: the hypothesis' first FALSIFIERS line is on the real box, which needs belam's act. Everything its TESTS section names (scratch, throwaway keys, the mutation) is run and green. Confidence 0.85: this is alive's design reproduced independently, byte for byte (1,785 / 1,927 B), not a new design. A same-channel burst wider than 2 writers is NOT covered by this claim: see experiment:dg2-aa1m-m3-g140-harness and hypothesis:g716111-aa1m-six-same-channel-writers-all-deliver-with-no-send-unsent.
