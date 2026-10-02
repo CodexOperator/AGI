@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-02 ~22:5xZ, gen 6 awake, -20 LANDED 8083ec340; -21 SENT ba8d79006 (SUPERSEDED mark + box.root finding hypothesis); nothing else queued)
+## §0 State (10-02 ~23:3xZ, gen 6 awake, everything landed, queue empty, waiting for orders)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1, cgroup-confirmed; row engine.v 4, boot true) · parent SM · trunk local-maxxing/season2/main |
@@ -25,19 +25,17 @@ town: core
 
 ## §1 Plan
 ```
-done   LEVEL ROUND 3a33c71b9 · -20 8083ec340 (A3 leaf goal:g7.16.1.11.11.1.1 + hyp, goal .13 active, AA3 hyps at 17 lanes, ceiling 1,829 B) · -19 -16 -17 · DG3 M1/M3 M2
-now    -21 SENT to SM 22:5xZ (nodes only): branch dg1-minus-21, worktree /data/work/agi/.agi/worktrees/dg1-minus-21, tip aad8ab34c (was ba8d79006, RETURNED 23:1xZ by anonymize: 2 home-path literals in the g73314 hyp, reworded to <home>/...) ONE commit on 8083ec340, 3 files: signers-piece claim + goal .13 item (1) SUPERSEDED by A3 (alive 22:1xZ via SM 22:4xZ) · NEW hyp g73314-the-box-audit-scans-... under goal:g7.33.14 (box.root finding: with the true root the audit adds 1,449 hits, 94% records; 9 portable hits; recommendation = belam sets box.root + new box.scan cell, small paths.py + test build). links 5752/0. WAIT for SM [landed]/[returned]
-       -22 LANDED 819331783 (was sent 23:0xZ; nodes only, ONE new file): branch dg1-minus-22, worktree /data/work/agi/.agi/worktrees/dg1-minus-22, tip 02d55eb87 on 7f89243b5: belam [rule] 22:5xZ hollow-review finding = hyp g733-a-merge-up-review-stage-that-returns-a-hollow-result-... under goal:g7.33.19 (414 B / 327 B reviews, x placeholders, config_max + template_max absent; 19 of 60 recent reviews lack both; NOT dispatched, not urgent). links 5752/0
-       DG3's dg3-land c4d0bc6a4 (agi-land engine node + grow-gate fixes, built on my -20) is at SM's gate: lanes 17/17 exit 0, Sonnet SECURITY mur running (not mine)
-next   nothing queued on me: after -21 lands, remove the old worktrees (dg1-merge-up-19, dg1-level-rule, dg1-minus-20, dg1-minus-21, dg1-minus-22: all clean once landed); then the hold items
-hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon · belam's GO on the box.root cells (banked to SM) · DG3 A3 round (goal .11.11.1.1) after A2
+done   ALL LANDED: level round 3a33c71b9 · -20 8083ec340 (A3 leaf goal:g7.16.1.11.11.1.1 + hyp, goal .13 active, AA3 hyps handed) · -22 819331783 (hollow-review finding hyp under g7.33.19) · -21 in c59788625 (SUPERSEDED mark + box.root finding hyp under g7.33.14) · -19 -16 -17 · DG3 M1/M3 M2 + agi-land follow-ups
+now    NOTHING QUEUED ON ME (SM 23:2xZ: no open item in my lane). The five dg1-* worktrees are removed (clean, tips on trunk; branches kept). Waiting for the next order
+bank   belam [decision] pending (relayed by SM): box.root = the real root + a box.scan prefix list, then the paths.py + test build (hyp g73314-...); DG3: A3 round (goal .11.11.1.1) after A2; agi-land engine node + grow-gate fixes landed/at gate (DG3 lane)
+hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon
 ```
 
 ## §2 Landed today (one line each; trunk shas)
 c2decf431 Z4 phase A · 96140880b pb3 · 3e10246bd Z4 re-cut · 2e9902533 W amended + shell-tests nodes · bc9658da7 g1.40 + .17 + agi-spawn-chain name · 71b8677c3 AA1.M leaf + 3 hyps · 826a0d831 AA1.M active
 
 ## 🔴 Where it stops + the exact next command
--21 corrective (aad8ab34c) sent, -22 landed 819331783; waiting on SM; nothing else queued on me. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; on [returned]: skill agi-corrective, fix on dg1-minus-21 (amend), links (nohup), re-send; on [landed]: `git worktree remove` the four clean worktrees, then ask SM/belam for the next order (hold items need the council's flow-rotation design).
+Idle, queue empty. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; act only on a block newer than 23:2xZ. If nothing: hold items need the council's flow-rotation design (phase W) or belam's GO on box.root + box.scan. Never invent goals to fill the budget.
 
 ## §4 Traps
 | trap | rule |
