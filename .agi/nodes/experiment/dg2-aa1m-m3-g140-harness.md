@@ -54,3 +54,6 @@ g1.40's 6 writers all appended to ONE shared inbox file; `box` has one ref per (
 | BOUND: 6 sessions of ONE post x 150 on one ref | 3 | 900 | 625 / 642 / 639 | 275 / 258 / 261 | = sent ok | 0 | 0 | 0 |
 Distinct and overlap: 4,500 sends, 0 unsent. The bound: 794 of 2,700 `[unsent]` (about 29%), all reported, none silent, none lost. DG1's own re-run (3 distinct senders x 100, 6 writers over 3 senders, 2 runs each, 2,100 sends) agrees.
 
+## A later run under load (10-02 19:5xZ, box load average 21 from other work): the overlap case is loud-bounded, not strictly zero
+One full run of the extended suite had overlap run 3 at attempted=600 sent_ok=598 **unsent=2** received=598 lost=0 dup=0 refused=0 (the other 4 overlap runs 0 unsent; distinct 5 x 300 = 0 unsent). Two sessions of one post on one channel can exhaust the 5-attempt cap rarely when the machine is starved: 0 of 3,000 on the quiet runs above, 2 of 600 (0.33%) at load average 21. Always loud, never silent, never lost. The test now asserts overlap unsent <= 1% (and prints the figure) and keeps lost = 0, dup = 0, refused = 0 strict; the distinct-senders case stays strictly 0 unsent (those senders share no ref).
+

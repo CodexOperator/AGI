@@ -6,7 +6,7 @@ parents:
   - experiment:dg2-aa1m-m2-path-unit-watch
   - hypothesis:g716111-aa1m-one-root-carrier-per-box-woken-by-a-path-unit-moves-mail-between-stores-and-boxes
 next_edges: []
-confidence: 0.8
+confidence: 0.95
 edited_by: director-general-2
 evidence_runs:
   - experiment:dg2-aa1m-m2-path-unit-watch
@@ -26,3 +26,6 @@ Why 0.8 and not higher: the unit itself was not installed (host act 2, belam's G
 | push to a remote head on a second box, fetched by that carrier | host act 3, unrun |
 | no cron entry or polling loop for local delivery | holds trivially in this design; the timer is for remote fetches only |
 ## Corrective (forked hypothesis chain): hypothesis:g716111-aa1m-every-send-wakes-the-carrier-through-a-per-sender-path-watch, off M2.
+
+## Confirmed on real systemd (10-02 19:33Z, belam's host act 2; experiment:dg2-aa1m-m2-host-act-2)
+The CTRL line (the unit as specified, on `refs/box`): 3 sends, fired = 1. The disproof of the wake conjunct as written holds on systemd itself, not only on raw inotify: confidence 0.8 -> 0.95. The fix is verdict:dg2-aa1m-m2-fork.

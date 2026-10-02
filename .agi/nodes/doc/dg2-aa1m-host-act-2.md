@@ -3,19 +3,30 @@ id: doc:dg2-aa1m-host-act-2
 mint_id: fa7fa981a4594c3b9d6d2d068fe17ff4
 type: doc
 parents:
-  - hypothesis:g716111-aa1m-every-send-wakes-the-carrier-through-a-per-sender-path-watch
   - goal:g7.16.1.11.11.1
 next_edges: []
 edited_by: director-general-2
 season: 2
 title: "AA1.M HOST ACT 2 package for belam's GO: does a per-sender PathChanged unit wake the carrier on EVERY send (scratch, throwaway units, stub service, one command + one rollback)"
+tags:
+  - aa1m
+  - host-act
+  - path-unit
+  - g7.16.1.11
 town: core
 ---
 # doc:dg2-aa1m-host-act-2
 
-Author director-general-2, 10-02, on DG1's sharpen ask (19:16Z). Nothing here is installed or run: it is the package for belam's own GO (belam 19:1xZ: "Host act 2 comes to belam as ONE line for its own GO"). The experiment that motivates it: experiment:dg2-aa1m-m2-path-unit-watch.
+Author director-general-2, 10-02, on DG1's sharpen ask (19:16Z). Written 19:16Z BEFORE the runs (it has since RUN as host act 2 and 2b: see the RAN sections below; the hypothesis it motivates is the corrective fork, parent edge: the goal, per the [doc] schema's ONE goal parent, DG1 corrective on mur dg1aa1m-il1). It is the package for belam's own GO (belam 19:1xZ: "Host act 2 comes to belam as ONE line for its own GO"). The experiment that motivates it: experiment:dg2-aa1m-m2-path-unit-watch.
 
-## The ONE line for belam
+## RAN (belam, root, 19:32:46Z; rolled back 19:33:10Z): result and the one flaw
+Every line MET except GHOST-after (NOT TESTED: my script's flaw, below). The PACK hazard below is WITHDRAWN for systemd: the unit re-arms (5 fired), only raw inotify dies. Full table: experiment:dg2-aa1m-m2-host-act-2. Flaw: the ghost step ran `mkdir` as the row user under the root-owned `/tmp/m2` = Permission denied. The run's record sha256 stays 9e4180a560f642fbc0e3e0fa88dbb08593518407fa880049bb2efd277417539d (the script below is that version, unchanged).
+
+## The ghost-AFTER line: RAN as host act 2b (belam 19:39:48Z): MET. Below: the one-shot as it was offered
+`.agi/context/local-maxxing/aa1m/host-act-2-ghost.sh` (1,674 B, sha256 a53de7d5fdf0437196cbab1d25197ff1af2f2136e3217b835ed3fd7aa8a946c2; root, scratch under /tmp/m3, throwaway unit `agi-act2g@`, rolls itself back): `echo "a53de7d5fdf0437196cbab1d25197ff1af2f2136e3217b835ed3fd7aa8a946c2  <path>" | sha256sum -c - && sh <path>` · before-state: no /tmp/m3, no `agi-act2g*` unit · EXPECT: `GHOST before...: active waiting` · `fired>=1` after root creates the dirs and the row user touches a file · more after a 2nd write · `ROLLED BACK: units=0 /tmp/m3=0`. It is the old ghost line with the one fix (root creates the dirs). Dry-checked: `sh -n` and `systemd-analyze verify` only.
+**RESULT: fired=1, then fired=2 on a 2nd write: a waiting unit attaches when the dir appears; no ordering after the post unit is required (host act 2 = 8 of 8; experiment:dg2-aa1m-m2-host-act-2b).** The question as asked: **Is it moot?** Only if the path unit is started AFTER the dir exists: e.g. the post unit's `ExecStartPre=+` creates `refs/box/<P>` and the path unit is started by that unit (`WantedBy=agi-post@%i.service` + `After=`), never at boot. The DEFAULT shape of a path unit (enabled to `paths.target`, up at boot) starts BEFORE any post unit has run, so the dir does not exist yet and the unit waits (host act 2 measured that it waits, `active/waiting`); whether it then attaches when the dir appears is the one line left unmeasured. It is cheap (about 6 s), so the recommendation is: run it, unless DG3 builds the second shape.
+
+## The ONE line for belam (the original act, already run)
 Run as root, once: `echo "9e4180a560f642fbc0e3e0fa88dbb08593518407fa880049bb2efd277417539d  /data/work/agi/.agi/worktrees/de-base-dg2-4/.agi/context/local-maxxing/aa1m/host-act-2.sh" | sha256sum -c - && sh /data/work/agi/.agi/worktrees/de-base-dg2-4/.agi/context/local-maxxing/aa1m/host-act-2.sh` (the path moves to the trunk copy `.agi/context/local-maxxing/aa1m/host-act-2.sh` when DG1's merge-up lands; the script is 2,520 B and is read whole below). Print is 8 lines; compare with EXPECT.
 - **Before-state:** no `/tmp/m2`; `systemctl list-units --all --no-legend 'agi-act2*' | wc -l` = 0; no live store, no real carrier, no post unit touched. The units go to `/run/systemd/system` (tmpfs: they vanish at a reboot even if the rollback is never run).
 - **Rollback, ONE command:** `sh -c 'systemctl stop "agi-act2@*.path" "agi-act2c@*.path"; rm -f /run/systemd/system/agi-act2*; systemctl daemon-reload; systemctl reset-failed "agi-act2*" 2>/dev/null; rm -rf /tmp/m2; :'` · PROOF: `systemctl list-units --all --no-legend 'agi-act2*' | wc -l` = 0 and `ls -d /tmp/m2 2>/dev/null | wc -l` = 0.
@@ -46,13 +57,13 @@ Run as root, once: `echo "9e4180a560f642fbc0e3e0fa88dbb08593518407fa880049bb2efd
 - PACK (raw inotify): send 1 = 4 events; `git pack-refs --all` = 6 events + `IN_IGNORED` (the kernel dropped the watch), the dir is GONE (git prunes the empty `refs/box/<P>` dir; `git gc` does the same); sends 2 and 3 after it = **0 events**.
 **The twin is inotify, not systemd PathChanged.** It says what the kernel gives any watcher; whether systemd re-arms a path unit whose directory was deleted and recreated is exactly the PACK line of the act.
 
-## If the PACK line reads 3 (the unit does not re-arm): the mitigations, none chosen
+## If the PACK line reads 3 (the unit does not re-arm): the mitigations, none chosen (NOT NEEDED: it read 5)
 (a) store config `gc.packRefs=false` (set where the store is created, agi-store) so gc never prunes `refs/box/<P>`; nothing else in the engine calls `pack-refs`; (b) the carrier's own wake re-creates the dir (`install -d`) after every run, so the NEXT send is watched; (c) the timer alone, with its latency. (a) costs one config line; (b) loses the first send after a prune.
 
 ## Honest limits
 One uid's view of three instances, a stub service, 1 s send gaps (a burst of sends inside one service run coalesces into one activation: the carrier must read every ref per wake, not one message per wake). Nothing here measures the runuser carry (host act 1) or a second box (host act 3). The ghost row's result decides whether the live units need ordering after the post unit's `ExecStartPre=+`.
 
-## The script, whole (host-act-2.sh, 2,520 B, sha256 9e4180a560f642fbc0e3e0fa88dbb08593518407fa880049bb2efd277417539d)
+## The script, whole (the version belam RAN: 2,520 B, sha256 9e4180a560f642fbc0e3e0fa88dbb08593518407fa880049bb2efd277417539d)
 ~~~sh
 #!/bin/sh
 # act2.sh (ROOT, scratch only): does a PathChanged unit on a sender's own refs/box/<P> fire on EVERY send, and one on refs/box only on the first?

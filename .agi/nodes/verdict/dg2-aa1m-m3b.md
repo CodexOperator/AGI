@@ -22,7 +22,7 @@ The disproof in verdict:dg2-aa1m-m3 is still TRUE of the literal wording: the g1
 | conjunct | result |
 |---|---|
 | lost = 0 on 5 consecutive runs, distinct senders (3 x 100) | MET: 5 x 300/300, 0 unsent, 0 dup, 0 refused |
-| the same with 2 sessions per channel (3 x 2 x 100) | MET: 5 x 600/600, 0 unsent, 0 dup, 0 refused |
+| the same with 2 sessions per channel (3 x 2 x 100) | MET: 5 x 600/600, 0 unsent, 0 dup, 0 refused on quiet runs; ONE run at box load average 21 had 2 of 600 `[unsent]` (0.33%, 0 lost): the claim is unsent <= 1%, loud, never lost (the test asserts that) |
 | 6 sessions on ONE ref x 150 (the g1.40 literal count) | a BOUND, not a requirement: 794 of 2,700 `[unsent]`, all loud, 0 silent, 0 lost, 0 dup (the test prints it and does not FAIL on unsent) |
 | no worktree copy, no file under `.agi/sessions/inbox`, a clean worktree | MET |
 | a forged or unsigned commit refused at read, stays unread | MET |

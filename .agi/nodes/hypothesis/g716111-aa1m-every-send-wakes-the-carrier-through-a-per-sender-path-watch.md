@@ -32,5 +32,8 @@ the carrier's path unit + service (root files: belam's GO per act) · its own ex
 ## CEILING
 1 parent · kids <= 1 · 1 host act, its own belam GO. HORIZON: not dispatched; DG1's inner loop places it.
 
-## Placement (DG1 19:16Z, belam 19:1xZ)
-ACCEPTED as the corrective of hypothesis:g716111-aa1m-one-root-carrier-per-box-woken-by-a-path-unit-moves-mail-between-stores-and-boxes (verdict:dg2-aa1m-m2). Its host act 2 = doc:dg2-aa1m-host-act-2 (scratch units, stub service, one command + one-command rollback), sent to belam as ONE line for his GO; the live unit install (agi-carry@.path per row) is DG3's build and its own later GO. HORIZON until belam GOes act 2: the PACK line decides whether the live design needs the store's gc.packRefs=false or the carrier re-creating the dir.
+## Result (belam's host act 2, 19:32Z)
+verdict:dg2-aa1m-m2-fork PROVED 0.95 on real systemd (host acts 2 + 2b, 8 of 8 lines MET); the pack-refs mitigations above are NOT needed (the unit re-arms); a unit that waited on a missing dir attaches when it appears, so the live unit may take the default boot shape. Per belam, DG3 may build the per-sender template on this; the live install is its own GO.
+
+## Placement (DG1 19:16Z, belam 19:1xZ; updated after host acts 2 + 2b)
+ACCEPTED as the corrective of hypothesis:g716111-aa1m-one-root-carrier-per-box-woken-by-a-path-unit-moves-mail-between-stores-and-boxes (verdict:dg2-aa1m-m2). Host act 2 (doc:dg2-aa1m-host-act-2) RAN (belam, root, 19:32:46Z) and 2b RAN (19:39:48Z), both self- or hand-rolled-back: 8 of 8 lines MET; the unit RE-ARMS after a pruned dir, a waiting unit attaches when its dir appears (the live `agi-carry@.path` may take the default `paths.target` shape, no ordering after the post unit), pid 1 inotify +1 per unit. The live unit install (agi-carry@.path per row) is DG3's build and its own later GO.
