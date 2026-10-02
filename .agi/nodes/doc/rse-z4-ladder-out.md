@@ -171,6 +171,8 @@ Leans ONLY on what exists (belam's read): growth.tsv + the parent cells + agi-fr
 ```
 DONE      one-shot phase  = its result ref refs/spawn/<manifest>/<sha256(ARGS)[:12]> EXISTS (the runner writes it LAST, signed)
           perpetual phase = its seed goal reads `met` in agi-frontier (the goal's ## Falsifier row runs; a model's claim never counts)
+          GUARD: a done-check line must be captured and NON-EMPTY before it runs; `whitelist | sh` with an empty or refused line
+          exits 0 and reads MET (self-perpetuating, AA2.38 17:5xZ). agi-frontier already guards ([ "$c" ]); every other runner must.
 TRIGGER   the process that FINISHES a phase runs `agi-next <flow-root>` as its last act, in the same unit:
             a one-shot  -> the agi-kid -m runner's tail (it runs as the invoker, inside the invoker's unit)
             a perpetual -> the flow root's agi-turn tail (every turn end; the child's land one edge up is mail, AA1, so the root wakes)
