@@ -69,6 +69,12 @@ grow-check        1298 B  one node vs its matrix row + key
 grow-gate         1435 B  pre-receive: added/changed nodes must pass
 grow-project      1185 B  schemas -> the growth matrix
 box               1927 B  mail: one signed ref update per send (5x CAS), read from the store
+box-carry         2294 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
+agi-signers       1283 B  root: the ONE allowed_signers, every key generation, valid-after/before; one strict key line
+agi-carry@.path     149 B  PathChanged on the sender's own refs/box/<P> (a unit on refs/box fires only on the first send)
+agi-carry@.service  125 B  oneshot: box-carry %i
+agi-carry-fetch.timer   88 B  every 60 s: fetch the hub's refs/box (remote senders)
+agi-carry-fetch.service 99 B  oneshot: box-carry --fetch
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]

@@ -75,6 +75,79 @@ systemctl start agi-post@$p</dev/null||{ echo "agi-boot: start failed $p">&2;e=1
 exit $e
 ~~~
 
+### box-carry (2294 B)
+~~~sh
+#!/bin/sh
+# box-carry P (ROOT, agi-carry@P.service, woken by P's own refs/box/P): P's refs/box/P/<Q> -> the store of each recipient on this box (pipe, ff-only, strict), or -> the hub when Q's box is elsewhere
+# box-carry --fetch (the timer): push what a failed push left in C, then the hub's refs/box/*/Q -> Q's store, for a Q here and a sender elsewhere
+# root runs git only in its OWN repos (C, AGI_REPO): a post's store is read and written AS that post; a ref name is data (validated, passed as an argument, never spliced into a script)
+S=${AGI_STORES:-/var/lib/agi};R=${AGI_RUN:-runuser};B=${AGI_BOX:?};H=$AGI_HUB;C=${AGI_CARRY:-$S/carry.git};m=refs/box
+W=$(git -C ${AGI_REPO:?} show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r '"\(.name) \(.box//"")"');[ -n "$W" ]||exit 1
+bx(){ echo "$W"|awk -v n=$1 '$1==n{print $2}';}
+ok(){ case $1 in ""|-*|*[!A-Za-z0-9._-]*)return 1;;esac;}
+as(){ u=$1;shift;case $u in -)"$@";;*)case $R in runuser)runuser -u agi-$u -- "$@";;none)"$@";;*)return 1;;esac;;esac;}
+put(){ n=$(as $1 git -C $2 rev-parse "$5")||return;o=$(as $3 git -C $4 rev-parse -q --verify "$5");[ "$o" = "$n" ]&&return
+ { echo $n;[ -z "$o" ]||echo ^$o;}|as $1 git -C $2 pack-objects --revs --stdout|as $3 sh -c 'git -C $0 unpack-objects -q --strict&&{ [ -z "$2" ]||git -C $0 merge-base --is-ancestor $2 $1||exit 3;git -C $0 update-ref $3 $1 "$2";}' $4 $n "$o" "$5"||{ echo "[carry-failed] $5 -> $4">&2;return 1;};}
+[ -d $C ]||git init -q --bare $C
+if [ "$1" = --fetch ];then [ -n "$H" ]||exit 0
+ for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $f)" = $B ]&&[ "$(bx $q)" != $B ]&&git -C $C push -q $H $r:$r;done
+ git -C $C -c transfer.fsckObjects=1 fetch -q $H "$m/*:$m/*"
+ for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $q)" = $B ]&&[ "$(bx $f)" != $B ]&&put - $C $q $S/$q/g.git $r;done
+else P=$1;ok $P&&[ -n "$(bx $P)" ]||exit 1;for r in $(as $P git -C $S/$P/g.git for-each-ref --format='%(refname)' $m/$P/);do q=${r##*/};[ $r = $m/$P/$q ]&&ok $q||continue
+ if [ "$(bx $q)" = $B ];then put $P $S/$P/g.git $q $S/$q/g.git $r;elif [ -n "$H" ];then put $P $S/$P/g.git - $C $r&&git -C $C push -q $H $r:$r;fi;done;fi;:
+~~~
+
+### agi-signers (1283 B)
+~~~sh
+#!/bin/sh
+# agi-signers POST (ROOT, ExecStartPre=+ of the post unit): the ONE allowed_signers, root-owned, append-only: every generation of every post key; a changed key stamps the old line valid-before and the new one valid-after=NOW, so an old commit still verifies at its own date
+# the key file is the POST's: read AS the post (a symlink cannot reach a root-only file), ONE line, strictly `ssh-ed25519 <base64>`, else refused (a post can add no other line, no other principal, no option)
+p=$1;S=${AGI_STORES:-/var/lib/agi};F=${AGI_SIGNERS:-$S/allowed_signers};t=$(date -u +%Y%m%d%H%M%SZ);case $p in ""|*[!a-z0-9-]*)exit 1;;esac
+case ${AGI_RUN:-runuser} in runuser)k=$(runuser -u agi-$p -- head -c 400 $S/$p/.ssh/id_ed25519.pub);;none)k=$(head -c 400 $S/$p/.ssh/id_ed25519.pub);;*)exit 1;;esac
+[ "$(echo "$k"|wc -l)" = 1 ]&&echo "$k"|grep -qE '^ssh-ed25519 AAAAC3NzaC1lZDI1NTE5[A-Za-z0-9+/]{48}( .*)?$'||{ echo "agi-signers: $p key file refused">&2;exit 1;};k=$(echo "$k"|cut -d' ' -f1,2)
+touch $F;chmod 644 $F;exec 9>>$F.lock;flock 9;grep -q "^$p@agi namespaces=\"git\",valid-after=\"[0-9Z]*\" $k\$" $F&&exit 0
+sed -i "/^$p@agi /{/valid-before/!s/valid-after=\"\([0-9Z]*\)\"/valid-after=\"\1\",valid-before=\"$t\"/}" $F;echo "$p@agi namespaces=\"git\",valid-after=\"$t\" $k">>$F
+~~~
+
+### agi-carry@.path (149 B)
+~~~ini
+[Unit]
+Description=box mail wake for %i
+StartLimitIntervalSec=0
+[Path]
+PathChanged=/var/lib/agi/%i/g.git/refs/box/%i
+[Install]
+WantedBy=paths.target
+~~~
+
+### agi-carry@.service (125 B)
+~~~ini
+[Unit]
+StartLimitIntervalSec=0
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/agi/carry.env
+ExecStart=/opt/agi/bin/box-carry %i
+~~~
+
+### agi-carry-fetch.timer (88 B)
+~~~ini
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=60
+AccuracySec=1s
+[Install]
+WantedBy=timers.target
+~~~
+
+### agi-carry-fetch.service (99 B)
+~~~ini
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/agi/carry.env
+ExecStart=/opt/agi/bin/box-carry --fetch
+~~~
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 SPLIT (DG3 read sets): agi-post@.service moved here whole from engine-post; its ONE loop edit: for e in engine.md engine-[pw]*.md (was engine*.md), so a post reads engine + engine-post + engine-wrap only. G9 + G9.2 + G9.3 (hypothesis:g716111-g9-boot-install-brings-the-boot-set-up; owner 17:5xZ via belam): agi-boot.service + agi-boot run as root once at boot -- the agi-ram ACL pair, a projection of MAIN's checked-out HEAD (the local trunk; no trunk literal in the unit, WorkingDirectory is the one install-time literal) by REUSING the agi-project section, daemon-reload, then ONE start at a time of the boot:true rows that were projected, behind the shared de_live_parents load/io gate cells (fail-CLOSED on a missing or stale reading); every failure is named on stderr, boot CONTINUES, and any failure (ACL, reload, start, gate give-up) makes the unit exit non-zero; a boot row not yet on v5 is skipped by name (belam: by design until its move). G9.4: an unreadable or empty boot-row list is named and fails the unit.
 <!-- THOUGHT:END -->
