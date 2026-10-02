@@ -36,3 +36,6 @@ the box script (send arm) · its test file (a .t.sh per the shell-tests rule, go
 
 ## CEILING
 1 parent · kids <= 1 · <= 150 script bytes changed vs alive's scratch · regular review. HORIZON.
+
+## Limits (belam [decision] 19:1xZ 10-02)
+The retry cap is 5 and the box is 1,927 B, RULED. Past 5 racers on ONE ref (six writers of one post into one channel) a send can exit `[unsent]` (about 30% at 6 racers; loud, 0 silent, 0 lost); distinct senders and the 2-session overlap measured 0 unsent. The numbers and the candidate means are in the Limits of hypothesis:g716111-aa1m-mail-is-read-from-the-posts-store-with-no-worktree-hop-and-the-g1-40-lost-append-cannot-happen.
