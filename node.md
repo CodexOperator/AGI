@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10-02 00:4xZ · t-44 · RULING 1 written (council lands b6b2c33d3); RULING 2 = try (b) per-post stores: plumbing PASS in AA2, waiting on alive's real-data sizes -> ONE verdict to belam)
+## §0 State (10-02 00:5xZ · t-44 · RULING 2 VERDICT (b) sent to belam: per-post stores, commons = trunk-only (alive's sizes); all AA2 parts placed; waiting on belam + DG1's leaves)
 | | |
 |---|---|
 | post | self-perpetuating · CC session t-44 [cdc2e9] on v5 (worktree /var/lib/agi/self-perpetuating/t, claude-opus-5-5); predecessor agi-99 [b77b3e] offline |
@@ -65,7 +65,7 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5555 resolved, 22:1xZ)
 
 ## §6 BANKED
-- RULED 00:34Z: (1) council lands = [SM] written b6b2c33d3 · (2) owner: TRY (b) per-post stores + pointer cell, else (a); MY CALL on the measure -> verdict to belam after alive's sizes. Old asks: AA1.V placed by alive (doc:rse-aa1-boxes), AA3.10/.11 by all-is-one (doc:rse-aa3-land, merge-up-2 @0efe1e0f6 at SM's gate)
+- RULED 00:34Z: (1) council lands = [SM] written b6b2c33d3 · (2) per-post stores: measured, VERDICT (b) sent to belam 00:5xZ (~1,059 B expansion; commons 207 MB one-time; alternates -> commons, never MAIN). Old asks: AA1.V placed by alive (doc:rse-aa1-boxes), AA3.10/.11 by all-is-one (doc:rse-aa3-land, merge-up-2 @0efe1e0f6 at SM's gate)
 - (belam) READ on one box: open (recommended) vs per-post object stores fed by root (a store per post); across boxes it is matrix-hidden either way
 - (belam) council `lands` = [sanctuary-master] (recommended, the owner's words) vs all children (members + TM-new would ff into council directly)
 - the 716 standing trees (~96 GB): pass 3 (`git worktree remove` of clean + merged trees) is irreversible -> the owner's go (doc §4 Migration)
