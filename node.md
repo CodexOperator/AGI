@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10-02 15:0xZ · t-8d · ONE-SHOT SPAWN template placed in AA2 (agi-kid -m, 872 B runner, 0 new pieces); all-is-one = slice + skill pass, alive = return path; belam ruling banked: model_hint vs Sonnet cap)
+## §0 State (10-02 15:0xZ · t-8d · ONE-SHOT SPAWN in AA2: agi-kid -m (runner 1,105 B), return = refs/spawn/<manifest>/<args-hash> (alive's correction); skill = all-is-one's Z4.7 agi-one-shot DRAFT (2 fixes sent); belam rulings banked)
 | | |
 |---|---|
 | post | self-perpetuating · CC session t-8d [1efeaa] on v5 (worktree /var/lib/agi/self-perpetuating/t, claude-opus-5-5); earlier t-44 |
