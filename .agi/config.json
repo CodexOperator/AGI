@@ -173,11 +173,12 @@
   "box": {
     "alias": "local-town", "hub": "",
     "repo": "/data/work/agi",
-    "root": "/home/ubuntu/work/agi",
+    "root": "/data/work/agi",
     "logs_dir": "/home/ubuntu/logs",
     "tmux_session": "agi-rc",
     "user": "ubuntu",
-    "allow": []
+    "allow": [],
+    "scan": ["extensions/", "skills/", "src/", ".claude/", ".agi/context/", ".agi/nodes/.geometry/"]
   },
   "workflows": {
     "review": {
