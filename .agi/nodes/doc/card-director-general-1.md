@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-02 ~23:3xZ, gen 6 awake, everything landed, queue empty, waiting for orders)
+## §0 State (10-02 ~23:5xZ, gen 6 awake, box audit round: code half SENT 2507bad35, belam config half handed; waiting)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1, cgroup-confirmed; row engine.v 4, boot true) · parent SM · trunk local-maxxing/season2/main |
@@ -25,9 +25,10 @@ town: core
 
 ## §1 Plan
 ```
-done   ALL LANDED: level round 3a33c71b9 · -20 8083ec340 (A3 leaf goal:g7.16.1.11.11.1.1 + hyp, goal .13 active, AA3 hyps handed) · -22 819331783 (hollow-review finding hyp under g7.33.19) · -21 in c59788625 (SUPERSEDED mark + box.root finding hyp under g7.33.14) · -19 -16 -17 · DG3 M1/M3 M2 + agi-land follow-ups
-now    NOTHING QUEUED ON ME (SM 23:2xZ: no open item in my lane). The five dg1-* worktrees are removed (clean, tips on trunk; branches kept). Waiting for the next order
-bank   belam [decision] pending (relayed by SM): box.root = the real root + a box.scan prefix list, then the paths.py + test build (hyp g73314-...); DG3: A3 round (goal .11.11.1.1) after A2; agi-land engine node + grow-gate fixes landed/at gate (DG3 lane)
+done   ALL LANDED: level round 3a33c71b9 · -20 8083ec340 · -22 819331783 · -21 c59788625 · -19 -16 -17 · DG3 M1/M3 M2 + agi-land follow-ups
+now    BOX AUDIT ROUND (belam [decision] 23:2xZ, hyp g73314-the-box-audit-..., ONE atomic update): CODE HALF SENT to SM 23:4xZ: branch dg1-box-scan, worktree /data/work/agi/.agi/worktrees/dg1-box-scan, tip 2507bad35 ONE commit on f0dbe9332, 4 files (boxes.scan_prefixes, paths.files, +27 test lines, -1 retired-prefix exemption). belam's HALF handed by mail: .agi/config.json [a] root = /data/work/agi [b] logs_dir = /home/belam/logs (UNVERIFIED path: /home/belam unreadable to me, asked him to confirm) [c] box.scan = [extensions/ skills/ src/ .claude/ .agi/context/ .agi/nodes/.geometry/]; [d] user left "ubuntu" on purpose (user=belam adds 1,114 false hits: post name). Diff at /tmp/dg1-config-box-scan.diff. Measured: 1,150 findings (today 8,673), box class 6 (380); 455 tests pass with his edits; code alone + stale config = test_retired_box_prefix T1 red. WAIT for belam's branch name + SM [landed]/[returned]
+       pytest: my account has none, pip --user blocked (PEP 668, not overridden): venv with system site packages at the scratchpad (rebuild: python3 -m venv --system-site-packages V; V/bin/pip install pytest)
+bank   belam [decision] pending on [d] user value; DG3: A3 round (goal .11.11.1.1) after A2, install acts A1-A8 + agi-land land step (each its own belam GO line)
 hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon
 ```
 
@@ -35,7 +36,7 @@ hold   phase W (skill agi-spawn-chain) until the council flow-rotation design la
 c2decf431 Z4 phase A · 96140880b pb3 · 3e10246bd Z4 re-cut · 2e9902533 W amended + shell-tests nodes · bc9658da7 g1.40 + .17 + agi-spawn-chain name · 71b8677c3 AA1.M leaf + 3 hyps · 826a0d831 AA1.M active
 
 ## 🔴 Where it stops + the exact next command
-Idle, queue empty. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; act only on a block newer than 23:2xZ. If nothing: hold items need the council's flow-rotation design (phase W) or belam's GO on box.root + box.scan. Never invent goals to fill the budget.
+Box audit code half sent (2507bad35), waiting on belam's config branch + SM. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; on [returned]: skill agi-corrective, fix on dg1-box-scan (amend), re-run `$VENV/bin/python -m pytest extensions/agi/tests/test_paths_audit.py extensions/agi/tests/test_retired_box_prefix.py -q` with the config diff applied temporarily (cp .agi/config.json away first, restore after, never commit it), re-send. On [landed]: `git -C /data/work/agi worktree remove .agi/worktrees/dg1-box-scan`.
 
 ## §4 Traps
 | trap | rule |
