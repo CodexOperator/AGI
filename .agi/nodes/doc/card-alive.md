@@ -39,8 +39,11 @@ NEXT   only what arrives; no new goals (scope creep is the failure mode)
        20:04Z council SETTLED: all three agree NOBODY, spelled council lands [] (self-perpetuating's fix taken by all-is-one): agi-land reads
        absent = all children, [] = none; no sentinel; alive's lane in AA3.14 (3g belam lands alive + 3k member lands alive both refuse; 17 lanes, 15 ok + 4m/4v)
        20:09Z belam asked where the ack went: none was sent (my miss); acked + path pinned (MAIN inbox/belam.md, 20:09:31Z + 20:09:36Z)
-       20:13Z DG1 carries doc:rse-aa1-boxes byte-equal in its round at a0bbc7202 (no alive merge-up carries it): DO NOT edit that node until the round lands
-WAITS  DG1's round (queued behind SM's landing, DG1 card 8b778311e) · host act 3 (second box)
+       20:13Z DG1 carried doc:rse-aa1-boxes byte-equal at a0bbc7202 (no alive merge-up carried it)
+       22:0xZ LEVEL ROUND LANDED 3a33c71b9 (SM gen 16; belam verified): the rse-aa1-boxes freeze is lifted
+       22:16Z SM [decision] g7.16.1.11.13 (via session bridge; answered by send.py): (1) skip AA3.4 item 1 (A3's agi-signers writes <post>@agi),
+       BUT build item 3 (grow-gate's signer sed strip, +7 B) with (a)(b): grow-gate compares the bare ring cell to $s, so A3 makes item 3 NEEDED
+WAITS  SM's build of agi-land + fixes · host act 3 (second box)
 ```
 
 ## §2 Landed (AA1 node commits on posts/alive; the trunk takes them through SM's gate)
