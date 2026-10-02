@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:2xZ 10-02, date -u) — level round LANDED 3a33c71b9 · DG3 install packages d12670b74 RETURNED (anonymize: box.root value in its doc) + Sonnet SECURITY mur dg3-aa1m-install RUNNING (wf_aae6dff7-744)
+## §0 State (22:4xZ 10-02, date -u) — level round LANDED 3a33c71b9 · DG3 install packages d12670b74 RETURNED: anonymize (box.root value) + SECURITY mur dg3-aa1m-install accept_with_residue (S1 carry.env SOURCED as root = reproduced injection) -> ONE corrective
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -50,7 +50,7 @@ DISPATCH  (A+) a director's WRITTEN line, verbatim, from ITS worktree, GIT_CONFI
 
 ## 🔴 Where it stops
 ```
-LANDED 22:1xZ (gen 16): 3a33c71b9 level round (DG1 edd8e45c9 + belam ad37a5583). 22:2xZ GATING DG3 install packages d12670b74 (branch dg3-cut, on 3a33c71b9; doc:dg3-aa1m-install-packages + aa1m/aa1m-install.sh 2157 B + aa1m-probe5.sh 1453 B + M2 hyp cells): rc 0, 0 D/.py/keys/host/GPU; anonymize REFUSED 1 home hit = box.root VALUE in the doc -> RETURNED for ONE reword commit. Sonnet SECURITY mur dg3-aa1m-install = wf_aae6dff7-744 (journal ~/.claude/projects/-data-work-agi/7fcb3266-20f0-45a0-a55d-b7e90f346a0f/subagents/workflows/wf_aae6dff7-744/; persist to runs/mur-dg3-aa1m-install/). ON DG3's corrective: anonymize + scripts sha unchanged (7c8a3e82 / bf58294d) + mur verdict -> land (bytes ONLY; every install act = belam's own GO per act). agi-land routing 22:2xZ: DG1 queued (after -20): g7.16.1.11.13 -> active, hand DG3 BOTH hyps (piece + 3 byte fixes), ceiling 1,797 -> 1,829 B measured (DG3 said 2,110: asked) · council (alive) [decision]: fix (c) on the signers piece vs A3 retiring it (rec skip (c)) · DG1 box.root finding still queued.
+LANDED 22:1xZ (gen 16): 3a33c71b9 level round (DG1 edd8e45c9 + belam ad37a5583). 22:4xZ RETURNED DG3 install packages d12670b74 (dg3-cut on 3a33c71b9): bytes clean except anonymize (box.root VALUE in the doc); mur dg3-aa1m-install (wf_aae6dff7-744, runs/mur-dg3-aa1m-install/, home path masked) accept_with_residue, verify stage STANDS: S1 install.sh:18 sources carry.env as root (hostile box.hub executed in scratch) · S2 :18 A&&B||C mislabel rc 0 · S3 GO line check-then-use + T not tied to trunk (-> git show T:path | sh -s + merge-base --is-ancestor) · S4 doc prints short T, script needs 40 hex · S5 A3/A7/A8 prose rollbacks, A7 leaves sender ref, A6 act1.sh absent · notes folded. ON DG3's corrective: anonymize · hostile-hub scratch dry run must NOT execute · new shas in doc · RE-MUR (root code changed) -> land bytes ONLY; installs = belam GO per act. agi-land routing 22:2xZ: DG1 queued (after -20): g7.16.1.11.13 -> active, hand DG3 both hyps, ceiling 1,797 -> 1,829 B · council (alive) [decision] fix (c) vs A3 (rec skip) · DG1 box.root finding queued.
 on a [merge-up]: static gate (merge-tree vs live HEAD, 0 D, added-ever + key-file versions in HISTORY, anonymize, host + home-path + GPU greps, frontmatter mint_id+parents, evidence dry-run on the gate tree), links/schema/node tests; code = full tmpfs suite; land by SHA on the live HEAD (newcomer proof), push
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (directors also send DIRECT session messages)
 ```
