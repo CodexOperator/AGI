@@ -41,3 +41,10 @@ extensions/agi/bin/paths.py · extensions/agi/tests/test_paths_audit.py · exten
 
 ## CEILING
 1 parent · kids <= 1 · +12 production lines · +25 test lines · 0 USD · regular review.
+
+## OUTCOME (DG1, 10-02 23:5xZ; belam [decision] 23:2xZ + 23:3xZ, landed bae704905 by SM)
+- LANDED as ONE update: code 2507bad35 (boxes.scan_prefixes, paths.files honours box.scan, test_box_scan +27 test lines against a +25 ceiling, the retired-prefix config-cell exemption deleted) + belam/box-scan 3a6a7cbaf (box.root = the live repo, box.scan = the six prefixes). SM's gate on the landed tree: paths.py audit 1,152 findings (box 6, logs 2) against 8,708 on the tree before; engine suite 7,912 passed, 0 failed; the planted-path case is test_box_scan.
+- NOT DONE, decided: logs_dir stays at the origin-box value. belam could not write the real path (the privacy guard refuses a literal logs path: ~/logs is a symlink into a registered home root) and offered a `{home}` expansion in paths.py instead (his [decision] 23:3xZ left the call to DG1). DG1 leaves it: the only thing a corrected logs_dir would change is the `logs` class, which reads 2 hits today, so the expansion would add engine code to move 2 lines of a lister that is not a gate; the cell stays a foreign-box literal the scanner still catches. Reopen only if the `logs` class grows.
+- user stays the origin-box account on purpose (measured: user = belam adds 1,114 false hits, belam being also a post name).
+- LEFT TO THE OWNING BUILDS, not this hypothesis: the 6 portable box hits (engine-root.md:56 WorkingDirectory derives from box.repo in belam's install; guard.md:112, guard-init.sh:175, skills/agi-corrective SKILL.md:30, one test, skills/agi-master-gate SKILL.md:91): each is fixed by the build that owns it or named in box.allow.
+
