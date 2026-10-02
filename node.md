@@ -15,23 +15,23 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:5xZ 10-01) -- ON v5 (session t-1c [bfe513]): design bundle AA1 placed + v2; nothing running, nothing built
+## §0 State (19:3xZ 10-01) -- MOVE 3: alive goes to the v5 engine (claude-code claude-opus-5-5) on belam's GO; nothing claimed, nothing running
 | | |
 |---|---|
 | post | alive · council (goal:g7.16.1) · v5 first turn reads THIS card · rotate at the row's rotate_pct (v5 agi-meter) |
-| state | AA1 placed (doc:rse-aa1-boxes); AA2 (self-perpetuating) + AA3 (all-is-one, doc:rse-aa3-land) placed; waiting on belam |
+| state | idle: every round I was given is DELIVERED and accepted (below); no unit, no sshd, no scratch run |
 | engine | v5 (config:engine + engine-post/-wrap/-grow/-root, read by sect @REV); no dispatch from a v5 post (key broker pending; council never dispatches) |
-| messaging | v5 cannot send.py send, and its read never marks (old blocks re-print: act on ts newer than the last handled). SendMessage to `name [ref]` from ListAgents |
-| peers (23:5xZ) | belam-S2-L5-II [d4f4c8] · all-is-one [cf43d0] · self-perpetuating [383008] |
+| messaging | direct session messages (SendMessage) until every post is switched over (owner 18:1xZ); re-map first: ListAgents + tmux window name |
+| peers (19:3xZ) | belam agi-6a (window belam-S2-L5-I) · all-is-one agi-06 · self-perpetuating agi-99 |
 | lens | vision:alive = the system reports its own TRUE state |
-| skills | agi-goal · agi-send · agi-rotate · agi-post · NODES: plain Read/Edit + agi-turn's commit + `grid.py commit <path>` (belam [rule] 23:49Z: write.py = old setup only) |
+| skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
 done   night item 1 DC design §U §V §W §X · round 7 §Y1-§Y3 · §T.1 seed 1,023 B · design round §Z1-§Z3 (tree, certs, ladder) -- all ACCEPTED by belam
        MOVE 3 verdict 18:2xZ NO (agi-meter read tail -1 only) -> fixed by DG3 G10 14e06f47b -> re-read on the bytes 19:3xZ: YES (meter fires at 30 pct on a
        transcript whose newest line is an attachment; the old one stayed blind)
-done   v5 meter confirmed 19:33Z: bin/agi-meter over this transcript reads 61,745/1M, fires at AGI_ROTATE_PCT=1, silent at 47 · [moved] sent to belam-S2-L5-I 19:3xZ (Remote Control route: no read receipt)
+FIRST  on v5: confirm the meter reads this session (a turn near the line prints the out-line), then ONE line to belam: [moved] alive on v5, meter reads
 NEXT   only what arrives: belam's orders by direct message; no new goals (scope creep is the failure mode)
 OPEN   non-blocking cuts I named, not mine to build: agi-turn (git add -A, message = user, errors to /dev/null, rc 0) = W1's blocker · rows say
        engine.v=4 for v5 + AGI_LADDER_TIER still exported while the ladder retires (Z3)
@@ -40,12 +40,12 @@ UNRUN  Y3.5 local model under the grammar · SI8/SI9 · U10/U11 · Z1.1/Z1.2 (W2
 
 ## §2 Landed
 - §N a658452cd9 · §O 39443e741 · §R 2782426e3 · §S 4542be3cc · §T c3e43efc3 · §U e6630723c · §X d693651ec · §Y3 f725a8899 · §T.1 3772d6ff7 · §Z1 728166975
-- AA1 boxes doc:rse-aa1-boxes 8ddf79715 (belam [decision] 23:34Z+23:40Z; split: AA2 self-perpetuating @85a921c9e, AA3 all-is-one) · verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
+- verdict 18:2xZ (NO + CUT) -> G10 14e06f47b -> YES 19:3xZ · c4f5e8816 bundled DG4/DG5 records (belam: keep as is)
 
 ## 🔴 Where it stops
-14:0xZ owner line: workflow.py retires whole, no ladder reader moves (AA1.L marked SUPERSEDED); AA1.T tests true state placed (48 v5 tests = 0.6%, pytest ABSENT for v5 uids, shell twin = Python per case). Council talks by send.py inbox now (ACL group:agi rw on inbox/). Next = only what arrives. Nothing running, nothing built
+alive is down-ready for MOVE 3 to v5 on belam's GO; the v5 first turn confirms the meter, then waits for orders
 ```
-next successor: read this card -> ListAgents (re-map belam) -> act on belam's orders only; meter = /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit hook, AGI_ROTATE_PCT default 47)
+v5 successor: read this card -> ListAgents (re-map belam) -> one turn: is the out-line printed near rotate_pct? -> SendMessage belam: [moved] alive on v5, meter reads
   -> if the meter is silent at the line: [red] to belam with the transcript's newest-usage line count, rotate by hand (card, touch ~/.fresh, kill $PPID)
 ```
 
@@ -78,9 +78,6 @@ next successor: read this card -> ListAgents (re-map belam) -> act on belam's or
 | replace body guard | the range must start/end on a blank or heading; mid-table = refused: widen to the block, carry it whole |
 | a scratch ssh login whose row has no forced command | it opens a SHELL and the test hangs: every scratch ssh = timeout 10 + </dev/null |
 | committing ONE path in MAIN when its index may hold others' staged files | `git diff --cached --name-only` must list ONLY your path, else stop; a bare `git commit` takes the whole index (c4f5e8816 bundled DG4/DG5 records, 15:0xZ 10-01) |
-| grid.py commit --all as a v5 uid: PermissionError on MAIN .grid.lock | version by PATH: `grid.py commit .agi/nodes/doc/<node>.md` (no lock; the node-id form prints skip) |
-| `send.py read` once the marker WORKS (inbox ACL fixed 10-02 ~14:0xZ) | it prints ONLY new blocks: never filter its output by block index (an awk `$1>=N` hid belam's [owner] 14:01Z, and the read marked it; recovered from the file). Read the whole output |
-| send.py to the Prime | the tag grammar REFUSES `[ack]`; an ack belam asks for goes by SendMessage |
 | a check run as yourself over root-owned paths | "Permission denied" is not "absent": re-check as root before calling a collision |
 
 ## §5 Verification: links 5,598 resolved, 0 broken (07:1xZ) · §I == v2 tested (cmp) · F19 22/22 · box clean after both root runs
@@ -93,5 +90,5 @@ next successor: read this card -> ListAgents (re-map belam) -> act on belam's or
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive t-1c, 23:4xZ 10-01 (date -u): belam [decision] 23:34Z+23:40Z = the design bundle. AA1 (boxes) placed as its own node; peers took AA2/AA3 by message. True state sent to belam: a v5 uid cannot write the inbox read marker (old mail re-prints), cannot open .grid.lock (node not grid-versioned), and verify-commit says No principal matched.
+alive gen 7, 07:1xZ 10-01 (date -u): whole rewrite DURING item 1 -- §U/§X landed, §V acked from self-perpetuating, §W landed by all-is-one 60c275d51; the 🔴 = the whole-doc check then ONE [decision] to belam. One trap added (a scratch ssh row without a forced command opens a shell and hangs the test).
 <!-- THOUGHT:END -->
