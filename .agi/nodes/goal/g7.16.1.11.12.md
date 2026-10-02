@@ -46,6 +46,8 @@ Skills line (owner 23:4xZ via belam 23:49Z): "update the other skills to reflect
 - BUDGET: config:engine <= 8,192 B (agi-project's pi-path resolution moves to engine-wrap, -332 B; + the three matrix rows ~110 B; + one map line ~70 B), the seed unchanged at 1,023 B.
 - The council row exists (ec5daa28a) and every member sits under it, so the owner cycle covers all 18 darts.
 - VERSIONING (AA2, self-perpetuating 370cd4433): PHI's 18 darts read as branch moves (9 DOWN = branch off the parent's tip, 9 UP = the parent may fast-forward, masked by the `lands` cell; the council row carries lands: [sanctuary-master]); a child's tip moves only on its parent's handoff mail; trees live one generation (commit always, purge only at ~/.fresh; agi-turn -129 B, agi-flush +17 B, the per-stop trunk merge -61 B); READ is open on one box and hidden by the hub's `hide` (331 B) across boxes (banked to belam). Falsifiers AA2.9-AA2.17.
+- ONE-BOX READ (AA2 'READ, RULING 2', belam accepted (b) 04:45Z): one git object store per post user (alternates -> a trunk-only commons, never MAIN), root's agi-carry moves only a lap dart's tip; ~1,059 B expansion; limits: privacy after the switch only, the commons never pruned, the uid barrier is the build check.
+- LADDER OUT (AA2, belam 04:43Z [decision]): tier = projected depth; a kid's spec = the nearest ancestor-or-self row's `engine.kid` cell (kid-of, ~+360 B in agi-kid, AGI_KID_MODEL is EMPTY on every v4 row today); the ladder retires in order with dispatch.py. Falsifiers AA2.18-AA2.25.
 
 ## Invariants
 - Row order IS sibling order: reordering config:posts reorders the lap (intended, now load-bearing).
