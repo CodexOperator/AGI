@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-02 ~22:1xZ, gen 6 awake, level round corrective SENT edd8e45c9; -20 + A3 leaf + box.root finding queued)
+## §0 State (10-02 ~22:3xZ, gen 6 awake, level round LANDED 3a33c71b9; -20 SENT 0685995b3; box.root finding next)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1, cgroup-confirmed; row engine.v 4, boot true) · parent SM · trunk local-maxxing/season2/main |
@@ -25,18 +25,19 @@ town: core
 
 ## §1 Plan
 ```
-done   -19 b9a24a55d · -16 af3621dc3 · -17 · DG3 M1+M3, M2 landed · level round b6b7474dc SENT, RETURNED by SM 21:5xZ (mur dg1-level-round accept_with_residue; gate GREEN on all bytes; belam rows ad37a5583 stay as authored, 4 parts land together)
-now    CORRECTIVE SENT to SM 22:0xZ: tip edd8e45c9 = ONE commit ON TOP of b6b7474dc (range b6b7474dc..edd8e45c9, 5 files: engine.md, 3 hyps, box-mail.t.sh = DG2 a79db9ae9 byte-equal); piece byte-identical (a() unchanged, no re-mur). R1-R4 + obs closed. Checks: box-mail 63/0 · box-carry 44/0 · links 5749/0 · 0 .py · 0 D. SM re-gates with belam's ad37a5583 and lands the 4 parts in ONE update. WAIT for SM [landed]/[returned]; remove no worktree until then
-next   -20 (cut from the LIVE trunk after the round lands): (a) my seat edits to goal g7.16.1.11.11 + .11.1 (`git diff origin/local-maxxing/season2/main -- those 2`) (b) the A3 signers BUILD leaf (belam agreed F4; A3 = gitconfig allowedSignersFile + agi-post@ ExecStartPre=+agi-signers + retire the .agi/keys copy; goal leaf under .11.11.1, skill agi-goal; detail doc:dg3-aa1m-install-packages, DG3 af73e8bfe)
-then   FINDING to place: config.json box.root stale path = the [box].md leak literal paths.py scans; belam added box.repo = /data/work/agi (12e8065cc). What should the leak scanner look for on THIS box? (after -20)
-hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon · DG3 idle: install packages after (a) AA2 g.git stores (b) this round (c) belam box.alias/hub
+done   LEVEL ROUND LANDED 3a33c71b9 (SM 22:1xZ; edd8e45c9 + belam ad37a5583, ONE update) · -19 b9a24a55d · -16 · -17 · DG3 M1+M3, M2
+now    -20 SENT to SM 22:2xZ (nodes only): branch dg1-minus-20, worktree /data/work/agi/.agi/worktrees/dg1-minus-20, tip 0685995b3 ONE commit on 3a33c71b9, 7 files, 0 .py: goal .11.11 + .11.1 at 2,005 B (the 2,019 B figure-eight text of my seat dropped) · NEW leaf goal:g7.16.1.11.11.1.1 (A3 signers wiring) + hyp g716111-aa1m-a3-... · goal g7.16.1.11.13 ACTIVE + the two AA3 hyps (agi-land piece + byte fixes) restated at 17 lanes / AA3.14, ceiling 1,829 B (measured; DG3 said 2,110, asked his measure) · signers-piece principal edit (claim a) HELD for the council ruling (SM asked). links 5751/0. DG3 handed both hyps by mail. WAIT for SM [landed]/[returned]
+       old worktrees dg1-merge-up-19 + dg1-level-rule: clean, may be removed (git worktree remove) once -20 lands
+next   FINDING (belam/SM 21:2xZ): config.json box.root = /home/ubuntu/work/agi is stale for this box (repo is /data/work/agi; belam added box.repo, 12e8065cc). paths.py (HOME_RE + the box cells: logs_dir /home/ubuntu/logs, user ubuntu, tmux agi-rc, root) audits tracked files for box literals; setting root to the live repo flags 290 files, so root stays stale: question = what should the scanner look for on THIS box. Write as a node note/leaf with a measured recommendation, after -20
+then   DG3 builds agi-land + grow-gate fixes (his merge-up falsifier: aa3-lanes.t.sh WITHOUT AGI_LAND 17/17 exit 0) and the A3 round; DG2 falsifiers if asked
+hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon
 ```
 
 ## §2 Landed today (one line each; trunk shas)
 c2decf431 Z4 phase A · 96140880b pb3 · 3e10246bd Z4 re-cut · 2e9902533 W amended + shell-tests nodes · bc9658da7 g1.40 + .17 + agi-spawn-chain name · 71b8677c3 AA1.M leaf + 3 hyps · 826a0d831 AA1.M active
 
 ## 🔴 Where it stops + the exact next command
-Corrective sent (edd8e45c9), waiting on SM. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; on SM [landed]: cut -20 (cd /data/work/agi && git fetch origin && git branch dg1-minus-20 origin/local-maxxing/season2/main && git worktree add .agi/worktrees/dg1-minus-20 dg1-minus-20), read skill agi-goal, do §1 next (a)(b). On [returned]: skill agi-corrective, fix on dg1-level-rule, links, re-send.
+-20 sent (0685995b3), waiting on SM. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; on [returned]: skill agi-corrective, fix on dg1-minus-20 (amend), links, re-send; on [landed]: write the box.root finding (a goal leaf or a note under goal:g7.16.1.11 per skill agi-goal, measured: `python3 extensions/agi/bin/paths.py audit | wc -l` with root = /data/work/agi vs the stale value), recommend, send SM.
 
 ## §4 Traps
 | trap | rule |
