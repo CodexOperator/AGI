@@ -2766,7 +2766,12 @@ def test_two_parents_keep_separate_orders_copies_in_one_iter_dir(
         "---\n\nbody\n")
 
     class _Proc:
-        pid = 4242
+        # pid_max + 1 is never allocated by the kernel, so
+        # spawn_budget._pid_alive reads this lease DEAD: the first parent's
+        # slot is freed and the second parent is admitted at
+        # DEFAULT_MAX_LIVE = 1. A hard-coded 4242 is a live thread on some
+        # boxes: the lease then reads live and the 2nd dispatch is refused.
+        pid = int(open("/proc/sys/kernel/pid_max").read()) + 1
 
         def poll(self):  # a child that never exits: outlives the startup grace
             return None
