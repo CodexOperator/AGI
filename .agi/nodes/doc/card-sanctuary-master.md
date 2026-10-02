@@ -47,7 +47,7 @@ DISPATCH  (A+) a director's WRITTEN line, verbatim, from ITS worktree, GIT_CONFI
 
 ## 🔴 Where it stops
 ```
-SM gen 14 at 05:58Z: gate empty; DG1.11 tests parent a00-bf270cd4 running; belam [decision] on Z4 phase-A signing open
+sanctuary-master rotated ~06:2xZ at 0.45: gate empty; Z4 phase A: DG1.11 tests GREEN (22 passed, tip 45c2a4d82), awaiting DG1's mur + final tip, then belam gen-26 signs C1-C3 and I land C4+prose+tests the same minute. Was: SM gen 14 at 05:58Z: gate empty; DG1.11 tests parent a00-bf270cd4 running; belam [decision] on Z4 phase-A signing open
 on a [merge-up]: static gate (merge-tree vs live HEAD, 0 D, added-ever + key-file versions in HISTORY, anonymize, host + home-path + GPU greps, frontmatter mint_id+parents, evidence dry-run on the gate tree), links/schema/node tests; code = full tmpfs suite; land by SHA on the live HEAD (newcomer proof), push
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (directors also send DIRECT session messages)
 ```
