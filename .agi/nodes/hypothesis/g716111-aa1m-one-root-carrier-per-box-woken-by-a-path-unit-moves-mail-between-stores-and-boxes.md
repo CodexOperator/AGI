@@ -50,3 +50,22 @@ NOT BUILT, host side (each its own belam GO): (1) install of the four units + bo
 
 ## REVIEW (director-general-3, 10-02 20:03Z)
 Sonnet review 1 REJECT (2 critical: a ref name spliced into sh -c as the recipient or root; a post-owned pub file copied whole into the root allowed_signers; + as() re-running as root when the post-uid command failed) -> fixed 742432512, re-review ACCEPT_WITH_RESIDUE (criticals closed; mutation-checked). Residues closed in the next commit: agi-signers reads <= 400 B and needs the exact ed25519 blob shape (a 2 MB line is refused), lock on $F.lock (sed -i swaps the inode), AGI_RUN other than runuser|none refused, a name starting with - refused, fetch exit code 0 on a clean run. Open LOW: a hub-bound ref is not checked against the matrix for its recipient (a post can push a channel name to the hub that no one reads) · the symlinked-key probe needs two real uids (HOST ACT 1) · StartLimit on the path unit's own trigger limit untested (needs root). NOT closed: config_max (AGI_BOX / AGI_HUB / AGI_REPO live in /etc/agi/carry.env, to be generated from graph cells by the install).
+
+## SECURITY MUR CORRECTIVE (director-general-3, 10-02 20:46Z; mur dg3aa1m-m2 accept_with_residue, 6 stood)
+| # | residue | closed by |
+|---|---|---|
+| 1 | root read the matrix from a post-writable repo HEAD (refs/replace honoured) | box-carry needs a PINNED 40-hex AGI_TRUNK (refuses a ref or HEAD), exports GIT_NO_REPLACE_OBJECTS=1, reads posts.md and box's a() at that sha (k0, k0b) |
+| 2 | root git on a foreign-owned repo, no safe.directory | the units carry GIT_CONFIG_COUNT/KEY_0/VALUE_0 (the agi-boot pattern), never global |
+| 3 | hub-bound and hub-sourced refs not matrix-checked | box's own a() (sect box at the pinned sha, so the level rule flows in with no copy) gates local, hub-bound and hub-sourced refs (k5c, k5d) |
+| 4 | a send during the oneshot is coalesced | the carrier re-scans P's tips until they stop moving (max 5), k4c |
+| 5 | config_max | the cells below |
+| 6 | untested guards | s0 (a held lock blocks), k3f (unknown run mode), k0, k0b, k5c, k5d, k4c: each turned red by removing its guard; the symlinked key file is read AS the post by runuser: it needs two real uids = HOST ACT 1's probe, stated, not tested here |
+Missed items closed: TimeoutStartSec=120 on both services · k7 now asserts the matrix repo's files and status are untouched and no path named *inbox* exists · k3d asserts the runuser path was tried (a runuser shim logs agi-belam) · the old-key date window is a stated BOUND (agi-signers comment): git checks a signature at the commit's own date, which its signer writes · engine.md piece count refreshed.
+## CELLS (config_max: carry.env is derived at install, never typed)
+| env | derived from |
+|---|---|
+| AGI_REPO, GIT_CONFIG_VALUE_0 | config.json box.root |
+| AGI_BOX | this box's alias = the posts row `box` cell value for the post units it runs |
+| AGI_STORES | the post units' StateDirectory root (default /var/lib/agi) |
+| AGI_TRUNK | the sha of the trunk ref, written by root at install/tick (a root-owned file, never a post-writable ref) |
+| AGI_HUB | NEW cell proposed: config.json box.hub (empty = no remote: a remote recipient stays in the sender's store) · routed to belam via SM |

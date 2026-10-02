@@ -6,6 +6,7 @@ T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname 
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 [ -n "$BOX" ]||{ sect box>$T/box;BOX=$T/box;};[ -n "$CARRY" ]||{ sect box-carry>$T/carry;CARRY=$T/carry;};[ -n "$SIGNERS" ]||{ sect agi-signers>$T/signers.sh;SIGNERS=$T/signers.sh;}
 [ -s $BOX ]&&[ -s $CARRY ]&&[ -s $SIGNERS ]||{ echo "FAIL extract: box $(wc -c<$BOX) carry $(wc -c<$CARRY) signers $(wc -c<$SIGNERS)";exit 99;}
+mkdir $T/bin;printf '#!/bin/sh\ncat %s/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"\n' $R0>$T/bin/sect;chmod +x $T/bin/sect
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 # --- fixture: keys, signers, per-post gitconfig, a repo holding the matrix (rows carry their box cell), per-post bare stores on two boxes, one hub
 mkdir $T/k $T/c;: >$T/allowed
@@ -19,15 +20,16 @@ cat >$T/r/.agi/nodes/.geometry/posts.md<<'XX'
   - {"name":"alive","parent":"council","harness":"claude","box":"A"}
   - {"name":"dg5","parent":"council","harness":"claude","box":"B"}
   - {"name":"sm","parent":"council","harness":"claude","box":"A"}
+  - {"name":"dg1","parent":"sm","harness":"claude","box":"B"}
 XX
 $G -C $T/r add -A;$G -C $T/r -c user.name=x -c user.email=x@x commit -qm fixture;TR=$($G -C $T/r rev-parse HEAD)
 $G init -q --bare $T/hub.git
 for b in A B;do mkdir -p $T/$b;done
-for pb in belam:A alive:A sm:A dg5:B;do u=${pb%:*};b=${pb#*:};$G init -q --bare $T/$b/$u/g.git;echo $T/r/.git/objects>$T/$b/$u/g.git/objects/info/alternates;done
+for pb in belam:A alive:A sm:A dg5:B dg1:B;do u=${pb%:*};b=${pb#*:};$G init -q --bare $T/$b/$u/g.git;echo $T/r/.git/objects>$T/$b/$u/g.git/objects/info/alternates;done
 # as BOX-LETTER POST ARGS...: the box script as POST in POST's own store, trunk pinned by sha
 box(){ b=$1;u=$2;shift 2;(cd $T/$b/$u/g.git&&AGI_POST=$u AGI_TRUNK=$TR GIT_CONFIG_GLOBAL=$T/c/$u GIT_CONFIG_SYSTEM=/dev/null sh $BOX "$@");}
 # carry BOX-LETTER ARGS: the carrier as root of that box (one uid: plain calls)
-carry(){ b=$1;shift;AGI_RUN=${RUN:-none} AGI_BOX=$b AGI_STORES=$T/$b AGI_REPO=$T/r AGI_TRUNK=$TR AGI_HUB=${HUB-$T/hub.git} AGI_CARRY=$T/$b/carry.git sh $CARRY "$@";}
+carry(){ b=$1;shift;PATH=$T/bin:$PATH AGI_RUN=${RUN:-none} AGI_BOX=$b AGI_STORES=$T/$b AGI_REPO=$T/r AGI_TRUNK=${TRK-$TR} AGI_HUB=${HUB-$T/hub.git} AGI_CARRY=$T/$b/carry.git sh $CARRY "$@";}
 tip(){ $G -C $T/$1/$2/g.git rev-parse -q --verify $3||echo none;}
 # --- k1: belam -> alive, same box: one carry, then alive reads it FROM ITS OWN STORE; held moves
 echo order1|box A belam send alive;carry A belam 2>$T/k1.err
@@ -50,11 +52,28 @@ for nm in 'x;touch${IFS}PWN_LOCAL;alive' 'zz;touch${IFS}PWN_HUB;zz' '-x';do pw=$
 ok k3c-ref-name-not-executed '[ ! -e $T/PWN_LOCAL ]&&[ ! -e $T/PWN_HUB ]&&[ ! -e $T/A/PWN_LOCAL ]&&[ -z "$(find / -maxdepth 3 -name "PWN_*" -newer $T/r 2>/dev/null)" ]'
 ok k3c-ref-name-not-carried '[ -z "$($G -C $T/hub.git for-each-ref refs/box/sm/ | grep -E "PWN|/-x")" ]&&[ -z "$($G -C $T/A/alive/g.git for-each-ref | grep PWN)" ]'
 # the post-uid command failing must NEVER fall back to running it as root: a runuser that always fails + a git shim that logs: no call touches a post store
-mkdir $T/fk;printf '#!/bin/sh\nexit 1\n'>$T/fk/runuser;printf '#!/bin/sh\necho "$*">>%s/gitlog\nexec %s "$@"\n' $T $G>$T/fk/git;chmod +x $T/fk/*;: >$T/gitlog
+mkdir $T/fk;printf '#!/bin/sh\necho "$*">>%s/rulog\nexit 1\n' $T>$T/fk/runuser;printf '#!/bin/sh\necho "$*">>%s/gitlog\nexec %s "$@"\n' $T $G>$T/fk/git;chmod +x $T/fk/*;: >$T/gitlog
 echo order5|box A belam send alive;(PATH=$T/fk:$PATH RUN=runuser carry A belam 2>/dev/null)
+ok k3d-runuser-was-tried 'grep -q "agi-belam" $T/rulog'
 ok k3d-no-root-fallback '! grep -q -E "/(belam|alive|sm|dg5)/g.git" $T/gitlog'
 # fail closed: an unreadable matrix or an unknown sender carries nothing and exits non-zero
 carry A ghost 2>/dev/null;ok k3e-unknown-sender-refused '[ $? != 0 ]'
+# the matrix is read at a PINNED sha: an unpinned trunk (a ref, HEAD) refuses to run, and a refs/replace entry a post can write does not change a cell
+echo m0|box A sm send alive;TRK=HEAD carry A sm 2>/dev/null;ok k0-unpinned-trunk-refused '[ "$(tip A alive refs/box/sm/alive)" = none ]'
+old=$($G -C $T/r rev-parse $TR:.agi/nodes/.geometry/posts.md);nw=$($G -C $T/r cat-file -p $old|sed 's/"name":"dg1","parent":"sm","harness":"claude","box":"B"/"name":"dg1","parent":"sm","harness":"claude","box":"A"/'|$G -C $T/r hash-object -w --stdin);$G -C $T/r replace $old $nw
+echo forge|box A sm send dg1;carry A sm 2>/dev/null;ok k0b-replace-ref-ignored '[ "$($G -C $T/hub.git rev-parse -q --verify refs/box/sm/dg1)" = "$(tip A sm refs/box/sm/dg1)" ]'
+$G -C $T/r replace -d $old >/dev/null 2>&1
+# hub-bound and hub-sourced refs are checked with the box's own a(): an off-matrix channel is neither pushed nor delivered
+pl=$($G -C $T/A/alive/g.git commit-tree -m offm $($G -C $T/A/alive/g.git hash-object -w -t tree /dev/null));$G -C $T/A/alive/g.git update-ref refs/box/alive/dg1 $pl;carry A alive 2>/dev/null
+ok k5c-hub-bound-off-matrix-not-pushed '! $G -C $T/hub.git rev-parse -q --verify refs/box/alive/dg1>/dev/null'
+hp=$($G -C $T/hub.git commit-tree -m offh $($G -C $T/hub.git hash-object -w -t tree /dev/null));$G -C $T/hub.git update-ref refs/box/dg1/alive $hp;carry A --fetch 2>/dev/null
+ok k5d-hub-sourced-off-matrix-not-delivered '[ "$(tip A alive refs/box/dg1/alive)" = none ]'
+# an unknown run mode delivers nothing
+echo u|box A alive send sm;RUN=bogus carry A alive 2>/dev/null;ok k3f-unknown-run-mode-delivers-nothing '[ "$(tip A sm refs/box/alive/sm)" = none ]'
+# a send that arrives while the carrier is running is not lost (the oneshot would coalesce it): the carrier re-scans until P's tips stop moving
+mkdir $T/fk2;printf '#!/bin/sh\nif [ "$3" = pack-objects ]&&[ ! -e %s/late ];then touch %s/late;(cd %s/A/sm/g.git&&echo late|PATH=%s AGI_POST=sm AGI_TRUNK=%s GIT_CONFIG_GLOBAL=%s/c/sm GIT_CONFIG_SYSTEM=/dev/null sh %s send belam);fi\nexec %s "$@"\n' $T $T $T "$PATH" $TR $T $BOX $G>$T/fk2/git;chmod +x $T/fk2/git
+echo first|box A sm send belam;(PATH=$T/fk2:$PATH carry A sm 2>/dev/null)
+ok k4c-send-during-run-not-lost '[ "$(box A belam read|grep -c "^\[sm\] ")" = 2 ]'
 # --- k4: a diverged tip in the recipient's store is refused, loud, and left as it is
 box A alive read>/dev/null;x=$($G -C $T/A/alive/g.git commit-tree -m diverge $($G -C $T/A/alive/g.git hash-object -w -t tree /dev/null));$G -C $T/A/alive/g.git update-ref refs/box/belam/alive $x
 echo order4|box A belam send alive;carry A belam 2>$T/k4.err;rc=$?
@@ -74,13 +93,15 @@ ok k5-local-not-pushed '! $G -C $T/hub.git rev-parse -q --verify refs/box/belam/
 # --- k6: no hub cell = a remote recipient is left in the sender'"'"'s store, nothing pushed, rc 0
 echo lonely|box A sm send dg5;HUB= carry A sm 2>$T/k6.err;rc=$?;ok k6-no-hub '[ "$($G -C $T/hub.git rev-parse refs/box/sm/dg5)" != "$(tip A sm refs/box/sm/dg5)" ]&&[ $rc = 0 ]&&[ ! -s $T/k6.err ]'
 # --- k7: nothing outside the stores is written: no inbox file, no worktree change
-ok k7-no-inbox-file '[ -z "$(find $T -path "*sessions/inbox*" -not -path "*/.git/*" 2>/dev/null)" ]'
-ok k7-worktree-clean '[ -z "$($G -C $T/r status --porcelain)" ]'
+ok k7-no-inbox-anywhere '[ -z "$(find $T -iname "*inbox*" -not -path "*/.git/*" 2>/dev/null)" ]'
+ok k7-matrix-repo-untouched '[ -z "$($G -C $T/r status --porcelain)" ]&&[ "$(find $T/r -type f -not -path "*/.git/*"|wc -l)" = 1 ]'
 # --- s1-s4: the signers fix (agi-signers): one root-owned file, append-only, old generations verify at their own date
 mkdir -p $T/s/p/.ssh;ssh-keygen -q -t ed25519 -N '' -f $T/s/p/.ssh/id_ed25519 -C x>/dev/null;sg(){ AGI_RUN=none AGI_STORES=$T/s AGI_SIGNERS=$T/s/allowed sh $SIGNERS p;}
 e0=$(date -u +%s);sg;sg;ok s1-once '[ "$(wc -l<$T/s/allowed)" = 1 ]&&grep -q "^p@agi namespaces=\"git\",valid-after=\"[0-9]*Z\" ssh-ed25519 " $T/s/allowed'
 cp $T/s/p/.ssh/id_ed25519 $T/s/old;sleep 2;rm $T/s/p/.ssh/id_ed25519*;ssh-keygen -q -t ed25519 -N '' -f $T/s/p/.ssh/id_ed25519 -C y>/dev/null;sg;sg
 ok s2-rotation-appends '[ "$(wc -l<$T/s/allowed)" = 2 ]&&[ "$(grep -c valid-before $T/s/allowed)" = 1 ]&&sed -n 1p $T/s/allowed|grep -q valid-before'
+# the lock is real: while another process holds $F.lock the signers run BLOCKS (timeout), it neither appends nor skips
+sz=$(wc -c<$T/s/allowed);flock $T/s/allowed.lock sleep 3&sleep 0.3;AGI_RUN=none AGI_STORES=$T/s AGI_SIGNERS=$T/s/allowed timeout 1 sh $SIGNERS p 2>/dev/null;ok s0-flock-blocks-while-locked '[ $? = 124 ]&&[ "$(wc -c<$T/s/allowed)" = $sz ]';wait
 # a post-owned key file cannot add a line, a principal or an option: a 2-line file, a symlink to a root-only file and a non-ed25519 line are all refused and leave the file untouched
 sz=$(wc -c<$T/s/allowed);mkdir -p $T/s/h/.ssh;kg=$(cut -d' ' -f1,2 $T/k/belam.pub)
 printf '%s\nbelam@agi namespaces="git" %s\n' "$(cut -d' ' -f1,2 $T/s/p/.ssh/id_ed25519.pub)" "$kg">$T/s/h/.ssh/id_ed25519.pub;AGI_RUN=none AGI_STORES=$T/s AGI_SIGNERS=$T/s/allowed sh $SIGNERS h 2>/dev/null
@@ -104,6 +125,6 @@ ok s4-new-key-verifies 'vk $nc'
 # --- negative: no Python, no cron, no inbox path, no polling loop for LOCAL delivery in the carrier or the signers piece
 ok n1-no-python '! grep -qi python $CARRY $SIGNERS'
 ok n2-no-cron-no-inbox '! grep -q -E "cron|sessions/inbox" $CARRY $SIGNERS'
-ok n3-no-sleep-loop '! grep -q -E "sleep|while " $CARRY'
+ok n3-no-polling-loop '! grep -q -E "sleep|while :|while true|until " $CARRY'
 echo "# box-carry $(wc -c<$CARRY) B · agi-signers $(wc -c<$SIGNERS) B"
 exit $f

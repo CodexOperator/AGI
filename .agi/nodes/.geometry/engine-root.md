@@ -75,14 +75,17 @@ systemctl start agi-post@$p</dev/null||{ echo "agi-boot: start failed $p">&2;e=1
 exit $e
 ~~~
 
-### box-carry (2294 B)
+### box-carry (2932 B)
 ~~~sh
 #!/bin/sh
-# box-carry P (ROOT, agi-carry@P.service, woken by P's own refs/box/P): P's refs/box/P/<Q> -> the store of each recipient on this box (pipe, ff-only, strict), or -> the hub when Q's box is elsewhere
+# box-carry P (ROOT, agi-carry@P.service, woken by P's own refs/box/P): P's refs/box/P/<Q> -> the store of each recipient on this box (pipe, ff-only, strict), or -> the hub when Q's box is elsewhere; re-scanned (max 5x) as long as P's tips keep moving
 # box-carry --fetch (the timer): push what a failed push left in C, then the hub's refs/box/*/Q -> Q's store, for a Q here and a sender elsewhere
-# root runs git only in its OWN repos (C, AGI_REPO): a post's store is read and written AS that post; a ref name is data (validated, passed as an argument, never spliced into a script)
-S=${AGI_STORES:-/var/lib/agi};R=${AGI_RUN:-runuser};B=${AGI_BOX:?};H=$AGI_HUB;C=${AGI_CARRY:-$S/carry.git};m=refs/box
-W=$(git -C ${AGI_REPO:?} show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r '"\(.name) \(.box//"")"');[ -n "$W" ]||exit 1
+# trust: root reads the matrix at a PINNED 40-hex trunk sha (a post can write AGI_REPO's refs, never a sha's bytes; replace refs ignored) and runs git only in its OWN repos (C, AGI_REPO); a post's store is read and written AS that post; a ref name is data (validated, an argument, never script text); every edge is the box script's own a() at that sha, both for local, hub-bound and hub-sourced refs
+export GIT_NO_REPLACE_OBJECTS=1
+S=${AGI_STORES:-/var/lib/agi};R=${AGI_RUN:-runuser};B=${AGI_BOX:?};H=$AGI_HUB;C=${AGI_CARRY:-$S/carry.git};m=refs/box;AGI_TRUNK=${AGI_TRUNK:?}
+case $AGI_TRUNK in *[!0-9a-f]*)exit 1;;esac;[ ${#AGI_TRUNK} = 40 ]||exit 1;export AGI_TRUNK
+cd ${AGI_REPO:?}||exit 1;eval "$(sect box $AGI_TRUNK|sed -n '/^a(){/p')";type a>/dev/null||exit 1
+W=$(git show $AGI_TRUNK:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r '"\(.name) \(.box//"")"');[ -n "$W" ]||exit 1
 bx(){ echo "$W"|awk -v n=$1 '$1==n{print $2}';}
 ok(){ case $1 in ""|-*|*[!A-Za-z0-9._-]*)return 1;;esac;}
 as(){ u=$1;shift;case $u in -)"$@";;*)case $R in runuser)runuser -u agi-$u -- "$@";;none)"$@";;*)return 1;;esac;;esac;}
@@ -90,18 +93,21 @@ put(){ n=$(as $1 git -C $2 rev-parse "$5")||return;o=$(as $3 git -C $4 rev-parse
  { echo $n;[ -z "$o" ]||echo ^$o;}|as $1 git -C $2 pack-objects --revs --stdout|as $3 sh -c 'git -C $0 unpack-objects -q --strict&&{ [ -z "$2" ]||git -C $0 merge-base --is-ancestor $2 $1||exit 3;git -C $0 update-ref $3 $1 "$2";}' $4 $n "$o" "$5"||{ echo "[carry-failed] $5 -> $4">&2;return 1;};}
 [ -d $C ]||git init -q --bare $C
 if [ "$1" = --fetch ];then [ -n "$H" ]||exit 0
- for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $f)" = $B ]&&[ "$(bx $q)" != $B ]&&git -C $C push -q $H $r:$r;done
+ for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $f)" = $B ]&&[ "$(bx $q)" != $B ]&&a $f $q&&git -C $C push -q $H $r:$r;done
  git -C $C -c transfer.fsckObjects=1 fetch -q $H "$m/*:$m/*"
- for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $q)" = $B ]&&[ "$(bx $f)" != $B ]&&put - $C $q $S/$q/g.git $r;done
-else P=$1;ok $P&&[ -n "$(bx $P)" ]||exit 1;for r in $(as $P git -C $S/$P/g.git for-each-ref --format='%(refname)' $m/$P/);do q=${r##*/};[ $r = $m/$P/$q ]&&ok $q||continue
- if [ "$(bx $q)" = $B ];then put $P $S/$P/g.git $q $S/$q/g.git $r;elif [ -n "$H" ];then put $P $S/$P/g.git - $C $r&&git -C $C push -q $H $r:$r;fi;done;fi;:
+ for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $q)" = $B ]&&[ "$(bx $f)" != $B ]&&a $f $q&&put - $C $q $S/$q/g.git $r;done
+else P=$1;ok $P&&[ -n "$(bx $P)" ]||exit 1;k=;i=0
+ while [ $i -lt 5 ];do s=$(as $P git -C $S/$P/g.git for-each-ref --format='%(objectname) %(refname)' $m/$P/);[ "$s" = "$k" ]&&break;k=$s;i=$((i+1))
+  for r in $(echo "$s"|cut -d' ' -f2);do q=${r##*/};[ $r = $m/$P/$q ]&&ok $q&&a $P $q||continue
+   if [ "$(bx $q)" = $B ];then put $P $S/$P/g.git $q $S/$q/g.git $r;elif [ -n "$H" ];then put $P $S/$P/g.git - $C $r&&git -C $C push -q $H $r:$r;fi;done;done;fi;:
 ~~~
 
-### agi-signers (1283 B)
+### agi-signers (1515 B)
 ~~~sh
 #!/bin/sh
 # agi-signers POST (ROOT, ExecStartPre=+ of the post unit): the ONE allowed_signers, root-owned, append-only: every generation of every post key; a changed key stamps the old line valid-before and the new one valid-after=NOW, so an old commit still verifies at its own date
 # the key file is the POST's: read AS the post (a symlink cannot reach a root-only file), ONE line, strictly `ssh-ed25519 <base64>`, else refused (a post can add no other line, no other principal, no option)
+# BOUND: git checks a signature at the COMMIT's own date, which its signer writes: a rotated-out key still verifies a commit it dates inside its own window; rotation does not stop that key backdating, only dating after valid-before
 p=$1;S=${AGI_STORES:-/var/lib/agi};F=${AGI_SIGNERS:-$S/allowed_signers};t=$(date -u +%Y%m%d%H%M%SZ);case $p in ""|*[!a-z0-9-]*)exit 1;;esac
 case ${AGI_RUN:-runuser} in runuser)k=$(runuser -u agi-$p -- head -c 400 $S/$p/.ssh/id_ed25519.pub);;none)k=$(head -c 400 $S/$p/.ssh/id_ed25519.pub);;*)exit 1;;esac
 [ "$(echo "$k"|wc -l)" = 1 ]&&echo "$k"|grep -qE '^ssh-ed25519 AAAAC3NzaC1lZDI1NTE5[A-Za-z0-9+/]{48}( .*)?$'||{ echo "agi-signers: $p key file refused">&2;exit 1;};k=$(echo "$k"|cut -d' ' -f1,2)
@@ -120,13 +126,15 @@ PathChanged=/var/lib/agi/%i/g.git/refs/box/%i
 WantedBy=paths.target
 ~~~
 
-### agi-carry@.service (125 B)
+### agi-carry@.service (276 B)
 ~~~ini
 [Unit]
 StartLimitIntervalSec=0
 [Service]
 Type=oneshot
+TimeoutStartSec=120
 EnvironmentFile=/etc/agi/carry.env
+Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=* PATH=/opt/agi/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/opt/agi/bin/box-carry %i
 ~~~
 
@@ -140,11 +148,13 @@ AccuracySec=1s
 WantedBy=timers.target
 ~~~
 
-### agi-carry-fetch.service (99 B)
+### agi-carry-fetch.service (250 B)
 ~~~ini
 [Service]
 Type=oneshot
+TimeoutStartSec=120
 EnvironmentFile=/etc/agi/carry.env
+Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=* PATH=/opt/agi/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/opt/agi/bin/box-carry --fetch
 ~~~
 
