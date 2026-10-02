@@ -121,3 +121,43 @@ C'  ladder.md (+ the 16 old-setup readers, + season.py's write) retire WITH the 
 ```
 Falsifiers: Z4.e after W, 0 posts' tracks gain a workflow.py line over 24 h, and DG5 / TM-new / DT-1 / DT-2 still complete a review as a spawn · Z4.f C' as gated above; at the move, `git grep -l ladder -- .agi/nodes/.geometry/engine*.md` stays 0.
 Limit: ~/track counts ANY open, including a design read like this one (self-perpetuating's 1 line), so the 24 h window starts after this round.
+
+## Z4.7 Phase W, the skill pass (owner 14:5xZ: manifests KEPT; skill agi-workflow KEPT, renamed + re-aligned; template = AA2 one-shot `agi-kid -m`)
+Split (council 14:5xZ): AA2 self-perpetuating = the one-shot template (agi-kid -m MANIFEST ARGS, one generation inside the invoker's unit, 872 B runner, 0 new pieces) · AA1 alive = return path (box mail up one edge) + which manifests are used (7 of 30 ever opened) · all-is-one = this pass + belam's config:rotations sub. Written as a DRAFT here: the skill must describe a command that EXISTS (belam), so DG1's W round commits it with `agi-kid -m`, never before.
+NAME. Both of the owner's examples collide, measured: "round review" = the manifest agi-round-review (extensions/agi/workflows/agi-round-review.js, one of the 5 actually opened, listed as a skill) · "graph growth check" ~ the engine pieces grow-check / grow-gate (config:engine-grow). RECOMMEND `agi-one-shot` (says what it launches: a one-generation spawn from a manifest + a slice); owner/belam pick, the sub below takes any name.
+```text
+---
+name: agi-one-shot
+description: >
+  Launch a ONE-SHOT spawn from a workflow manifest + a read-only graph slice (reviews, research
+  sweeps, brainstorms, merge-up checks): `agi-kid -m <manifest> <args>`, one generation inside your
+  own unit, result returned as box mail. Use whenever a post wants a review or a narrow
+  self-contained job done that is not a self-rotating post. Never the Claude Workflow/Agent tools.
+---
+
+# agi-one-shot — a manifest + a slice, one generation (owner 14:5xZ 10-02)
+
+Source of truth: `sect agi-kid` · the manifests in extensions/agi/workflows/<name>.json (narrow, self-contained, never updated like cards).
+
+## 1 · The route
+    agi-kid -m <name> "$(cat args.json)"     # per stage x per repeat.of item: one kid; stages chain per item
+- spec per stage = the manifest's model_hint CAPPED by kid-of <you> (the inherited engine.kid cell); never a ladder row.
+- slice = brief.py from the args' seed nodes, top K, `git archive <your tip>` read-only: a kid reads only what you can read.
+- result = box mail up ONE edge to you (refs/box); done = the ref exists, read = your held ref moves. Never stdout.
+- a stage that died empty re-runs ALONE (an args file holding only it).
+## 2 · Shape
+- kids run inside YOUR unit (agi.slice, MemoryHigh): keep concurrent kids <= the box guard (~6 pi on local-town).
+- stop = stop the kid pids in your own unit (comm + cwd under ~/k/<kid>, never argv); a one-shot leaves no unit behind.
+- LEAN focus in every prompt: diffs only (`git diff old new -- <path>`), `git grep PATTERN <sha> -- <paths>`; never
+  grep -r / find over .agi/ or the repo root.
+## 3 · Author
+A manifest = ONE <name>.json in extensions/agi/workflows/ (the .js halves retired with workflow.py). It runs only with
+>= 1 stage and a concrete repeat.of (4 of 30 failed this on 10-02: l3w-route-probe, l4-plan-research, round-mur,
+round-research-review). Its test is a shell twin in extensions/agi/tests/<name>.t.sh (AA3.13 shape).
+```
+config:rotations sub for belam (byte-exact, BOTH skills entries :90 and :130; the build node is minted by the W round as build:skills-agi-one-shot-SKILL.md, payload skills/agi-one-shot/SKILL.md, lines 2:8 = name + the 5-line description above; the old 2:7 fit agi-workflow's 4-line description exactly):
+```text
+sub python3 extensions/agi/bin/write.py build:skills-agi-workflow-SKILL.md 'read payload 2:7'; => python3 extensions/agi/bin/write.py build:skills-agi-one-shot-SKILL.md 'read payload 2:8';
+```
++ config:rotations :184 `F29 -> skill agi-workflow (§1); F5 -> skill agi-workflow (§2).` -> `skill agi-one-shot` (same sections). The old skill + its build node retire (deprecated, moved) in the same round; .claude/skills/agi-workflow -> .claude/skills/agi-one-shot.
+Banked with AA2: the 5 'opus' model_hints in research-review vs the owner's "every subagent Sonnet 5.5": the kid cell CAPS the hint (§1 says so).
