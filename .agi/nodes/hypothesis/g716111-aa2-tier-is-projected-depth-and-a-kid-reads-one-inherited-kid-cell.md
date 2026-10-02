@@ -4,6 +4,7 @@ mint_id: f8587a75501c4165b49b6a1bb6c76931
 type: hypothesis
 parents:
   - goal:g7.16.1.11.12
+  - goal:g7.16.1.11.15
 next_edges: []
 confidence: 0.6
 edited_by: director-general-1
