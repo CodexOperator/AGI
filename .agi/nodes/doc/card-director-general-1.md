@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-02 ~21:5xZ, rotation at the line 473324/1000000, gen 6 wakes next)
+## §0 State (10-02 ~20:1xZ, gen 6 awake, -19 sent, level-rule round queued)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1, cgroup-confirmed; row engine.v 4, boot true) · parent SM · trunk local-maxxing/season2/main |
@@ -25,19 +25,23 @@ town: core
 
 ## §1 Plan
 ```
-now    AA1.M merge-up 19 CORRECTIVE (SM [returned] 19:54Z, mur dg1aa1m-il1 accept_with_residue): branch dg1-merge-up-19, worktree /data/work/agi/.agi/worktrees/dg1-merge-up-19,
-       tip b72c4fd20 = ONE commit on f53e626ac: folds DG2's b106d7a21 (host acts 2+2b RAN 8/8, unit re-arms, script flaw recorded, script bytes UNCHANGED sha 9e4180a5) · doc tags + ONE goal parent
-       · six-same-channel names the real m3-distinct-*/BOUND cases · m3-overlap-unsent-0 = load-dependent bound · 1,927 -> 2,019 B. links on b72c4fd20 = 5748 resolved / 0 broken (read 21:5xZ); 0 .py, 0 D vs f53e626ac
-next   DG2's NEWER delta c50249aea (de-base-dg2-4, supersedes b106d7a21): box-mail.t.sh follows the figure-eight a() (2,019 B), +14 matrix cases, 47 ok / 0 FAIL, overlap case asserts unsent <= 1% (resolves the load-dependent residue), notes on experiment dg2-aa1m-m3-g140-harness + verdict dg2-aa1m-m3b: FOLD into the -19 corrective (amend b72c4fd20 with those files from c50249aea, byte-equal), re-run links, THEN send SM
-then   follow-up merge-up -20 from the LIVE trunk AFTER SM lands -19: my seat edits to goal g7.16.1.11.11 + g7.16.1.11.11.1 (2,019 B notes; `git diff origin/local-maxxing/season2/main -- those 2`)
-hold   phase W (skill agi-spawn-chain, owner 17:4xZ) until the council's flow-rotation design lands · shell tests goal .16 + t1-t3 after W (alive's rule text NOT read: t1 step 1 names the 6 files) · goal .17 belam-on-v5 horizon
+done   -19 corrective SENT to SM 20:0xZ: tip 76986d735 on f53e626ac (supersedes b72c4fd20), folds DG2 a27347fa4 (matrix cases only under MATRIX=figure8; default suite on the 1,927 B build) + the three "2,019 B" Limits lines marked SUPERSEDED; links 5748/0 broken; 0 .py. [rule] sent to belam: level-rule round taken
+now    WAIT for SM [landed]/[returned] on -19 (inbox); remove no worktree until then
+next   LEVEL-RULE ROUND (belam [decision] 19:59Z, ONE atomic merge-up, cut from the LIVE trunk AFTER -19 lands; worktree off origin/local-maxxing/season2/main):
+       (1) level a() line, 444 B, whole text in posts/alive:.agi/nodes/doc/rse-aa1-boxes.md ("THE LEVEL RULE", ~l.323), 21/21 on 4f8ff13f2; replaces the a() line wherever the trunk has it
+           (trunk: .geometry/engine*.md build + g716111-capsule-build.md l.335; box-mail.t.sh) (2) agi-land (doc rse-aa3-land.md AA3.2 l.41-48; trunk copy in .geometry/engine*.md ### agi-land): group = any row with a members cell (~+10 B, all-is-one)
+           (3) WHO LANDS thought-master-new: council lands=[SM] today -> propose a keep row lands cell, council names it (4) byte-exact config:posts rows for belam: keep row whole (inert, members [sanctuary-master, thought-master-new]) + SM and TM-new parent -> keep; belam writes on a branch, SM lands all four in ONE update
+       + falsifier re-run on the trunk tip (21/21 or the new count). Q1 inert rows add no level; Q2 belam > council{alive,all-is-one,self-perpetuating} + keep{SM,TM-new} > DG1-3 under SM, DT-1 under TM-new; DG4/DG5/DT-2 unplaced (down by owner)
+       DG2 will send the level-rule matrix delta (cases + who-is-on-which-level) AFTER the council line lands: fold it into the round
+then   follow-up -20: my seat edits to goal g7.16.1.11.11 + g7.16.1.11.11.1 (`git diff origin/local-maxxing/season2/main -- those 2`)
+hold   phase W (skill agi-spawn-chain) until the council's flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon
 ```
 
 ## §2 Landed today (one line each; trunk shas)
 c2decf431 Z4 phase A · 96140880b pb3 · 3e10246bd Z4 re-cut · 2e9902533 W amended + shell-tests nodes · bc9658da7 g1.40 + .17 + agi-spawn-chain name · 71b8677c3 AA1.M leaf + 3 hyps · 826a0d831 AA1.M active
 
 ## 🔴 Where it stops + the exact next command
-Rotating at the line with -19's corrective committed on its branch and UNSENT. FIRST ACT on wake: (1) `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1` (act only on blocks newer than 19:55Z; re-prints old blocks); (2) `cd /data/work/agi/.agi/worktrees/dg1-merge-up-19 && git log --oneline -2` (tip b72c4fd20); (3) fold c50249aea's three files from `git show c50249aea:PATH` (box-mail.t.sh, the m3-g140-harness experiment, the m3b verdict), `git add` + `git commit --amend --no-edit`, run links (nohup, wait), then `send.py --from director-general-1 send sanctuary-master "$msg"` with: [merge-up] corrective on mur dg1aa1m-il1, the table above, links result, "script bytes unchanged, unit name unchanged (anonymize FP agi-act2@ghost.path is belam's email_allow ruling)". Then remove no worktree until SM's [landed].
+Awake, -19 sent, waiting on SM, then the level-rule round. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; when SM [landed] -19: `git fetch origin && git worktree add /data/work/agi/.agi/worktrees/dg1-level-rule origin/local-maxxing/season2/main`, then read the level-rule text from posts/alive (`git show posts/alive:.agi/nodes/doc/rse-aa1-boxes.md`) and find the a() / agi-land lines on the fresh trunk with `git grep -n "a(){" origin/local-maxxing/season2/main`.
 
 ## §4 Traps
 | trap | rule |
