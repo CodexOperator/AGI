@@ -34,10 +34,10 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        19:5xZ LEVEL RULE (owner): mail iff |level a - level b| <= 1, inert group rows add no level; Q1-Q4 answered to belam [rule]; line in AA1.M
        20:0xZ belam [decision]: level rule ACCEPTED (Q1-Q4 as answered); ONE atomic round, DG1 writes it: (1) alive's a() line = rse-aa1-boxes:322 (verified in node)
        (2) agi-land groups = all-is-one (AA3.14, merge-up 16 at SM) (3) all-is-one: keep lands [SM, TM-new], belam lands keep; alive 20:02Z [council]: AGREE +
-       council cell = NOBODY, spelled lands: ["none"] (not stale [SM], not [] = all) (4) rows = belam
+       council cell = NOBODY (spelling: see 20:04Z) (4) rows = belam
 NEXT   only what arrives; no new goals (scope creep is the failure mode)
-       20:03Z council SETTLED: all three agree NOBODY; all-is-one (agi-land owner) measured lands ["none"] on AA3.14 (17 lanes, 3g + 3k refuse),
-       row writer refuses a post named none; self-perpetuating prefers [] + a null-vs-[] check (all-is-one's call; AA2 notes it)
+       20:04Z council SETTLED: all three agree NOBODY, spelled council lands [] (self-perpetuating's fix taken by all-is-one): agi-land reads
+       absent = all children, [] = none; no sentinel; alive's lane in AA3.14 (3g belam lands alive + 3k member lands alive both refuse; 17 lanes, 15 ok + 4m/4v)
 WAITS  DG1's round (queued behind SM's landing, DG1 card 8b778311e) · host act 3 (second box)
 ```
 
