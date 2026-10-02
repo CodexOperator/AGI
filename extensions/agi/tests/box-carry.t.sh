@@ -19,7 +19,7 @@ for u in belam sm alive dg5;do ssh-keygen -q -t ed25519 -N '' -f $T/k/$u -C $u>/
  printf '[user]\n\tname=%s\n\temail=%s@agi\n\tsigningkey=%s\n[gpg]\n\tformat=ssh\n[gpg "ssh"]\n\tallowedSignersFile=%s\n[commit]\n\tgpgsign=false\n[safe]\n\tdirectory=*\n' $u $u $T/k/$u $T/allowed>$T/c/$u;done
 $G init -q $T/r;mkdir -p $T/r/.agi/nodes/.geometry
 cat >$T/r/.agi/nodes/.geometry/posts.md<<'XX'
-  - {"name":"belam","parent":"","harness":"claude","box":"A"}
+  - {"name":"belam","parent":"owner","harness":"claude","box":"A"}
   - {"name":"council","parent":"belam","box":"A"}
   - {"name":"alive","parent":"council","harness":"claude","box":"A"}
   - {"name":"dg5","parent":"council","harness":"claude","box":"B"}
@@ -72,11 +72,14 @@ echo m0|box A sm send alive;TRK=HEAD carry A sm 2>/dev/null;ok k0-unpinned-trunk
 old=$($G -C $T/r rev-parse $TR:.agi/nodes/.geometry/posts.md);nw=$($G -C $T/r cat-file -p $old|sed 's/"name":"dg1","parent":"sm","harness":"claude","box":"B"/"name":"dg1","parent":"sm","harness":"claude","box":"A"/'|$G -C $T/r hash-object -w --stdin);$G -C $T/r replace $old $nw
 echo forge|box A sm send dg1;carry A sm 2>/dev/null;ok k0b-replace-ref-ignored '[ "$($G -C $T/hub.git rev-parse -q --verify refs/box/sm/dg1)" = "$(tip A sm refs/box/sm/dg1)" ]'
 $G -C $T/r replace -d $old >/dev/null 2>&1
-# hub-bound and hub-sourced refs are checked with the box's own a(): an off-matrix channel is neither pushed nor delivered
-pl=$($G -C $T/A/alive/g.git commit-tree -m offm $($G -C $T/A/alive/g.git hash-object -w -t tree /dev/null));$G -C $T/A/alive/g.git update-ref refs/box/alive/dg1 $pl;carry A alive 2>/dev/null
-ok k5c-hub-bound-off-matrix-not-pushed '! $G -C $T/hub.git rev-parse -q --verify refs/box/alive/dg1>/dev/null'
-hp=$($G -C $T/hub.git commit-tree -m offh $($G -C $T/hub.git hash-object -w -t tree /dev/null));$G -C $T/hub.git update-ref refs/box/dg1/alive $hp;carry A --fetch 2>/dev/null
-ok k5d-hub-sourced-off-matrix-not-delivered '[ "$(tip A alive refs/box/dg1/alive)" = none ]'
+# hub-bound and hub-sourced refs are checked with the box's own a() (the LEVEL rule: same level or one apart; inert rows send and receive nothing): belam (level 1) and dg1 (level 3) are two apart
+pl=$($G -C $T/A/belam/g.git commit-tree -m offm $($G -C $T/A/belam/g.git hash-object -w -t tree /dev/null));$G -C $T/A/belam/g.git update-ref refs/box/belam/dg1 $pl;carry A belam 2>/dev/null
+ok k5c-hub-bound-off-level-not-pushed '! $G -C $T/hub.git rev-parse -q --verify refs/box/belam/dg1>/dev/null'
+hp=$($G -C $T/hub.git commit-tree -m offh $($G -C $T/hub.git hash-object -w -t tree /dev/null));$G -C $T/hub.git update-ref refs/box/dg1/belam $hp;carry A --fetch 2>/dev/null
+ok k5d-hub-sourced-off-level-not-delivered '[ "$(tip A belam refs/box/dg1/belam)" = none ]'
+# and a pair ONE level apart still crosses to the hub (alive level 2 -> dg1 level 3, dg1 on box B): the gate is not a blanket refusal
+pa=$($G -C $T/A/alive/g.git commit-tree -m onelevel $($G -C $T/A/alive/g.git hash-object -w -t tree /dev/null));$G -C $T/A/alive/g.git update-ref refs/box/alive/dg1 $pa;carry A alive 2>/dev/null
+ok k5e-hub-bound-one-level-apart-pushed '[ "$($G -C $T/hub.git rev-parse -q --verify refs/box/alive/dg1)" = "$pa" ]'
 # an unknown run mode delivers nothing
 echo u|box A alive send sm;RUN=bogus carry A alive 2>/dev/null;ok k3f-unknown-run-mode-delivers-nothing '[ "$(tip A sm refs/box/alive/sm)" = none ]'
 # a send that arrives while the carrier is running is not lost (the oneshot would coalesce it): the carrier re-scans until P's tips stop moving
