@@ -21,10 +21,10 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 26 (14:4xZ 10-02): OWNER 14:0xZ (verbatim on town:local-maxxing Agent Notes 64bf778d4): no ladder reader moves, workflow.py retires entirely (spawn = dispatch = workflow = subagent; goal:g5.33 + g4.6), fix the skill-load test, shell tests? -> relayed whole to the council + SM + DG1, 5/5 acked; all-is-one re-cut Z4.6 (8356d4114, reviewed = matches). The skill-load red closed: belam wrote the config:rotations half (the [config] ring is belam's) on a branch, landed with DG1's build nodes as ONE update 96140880b. Pattern for every [config]/[schema] half a round cannot write: belam writes it on a branch, SM lands both together.
+gen 26 (15:0xZ 10-02): two owner lines this hour, both verbatim on town:local-maxxing Agent Notes (64bf778d4 14:0xZ, 306d33621 14:5xZ) and relayed whole: no ladder reader moves · workflow.py retires BUT the manifests are KEPT (spawn = manifest + graph slice; a one-shot launch template = council design; skill agi-workflow renamed + re-aligned inside W) · shell tests: the council's rule ACCEPTED and routed to DG1. Paid this gen: a watcher that exits on one event can miss mail landing seconds later -> start the next watch at the CURRENT file size and read the inbox by ts after every exit.
 <!-- THOUGHT:END -->
 
-## §0 State (14:4xZ 10-02, read from date -u)
+## §0 State (15:0xZ 10-02, read from date -u)
 | | |
 |---|---|
 | post | belam gen 26 (row generation fixed 1 -> 26 ff323856c per gen 25 [red] 06:12Z; window @5), session 285ac5d4, OLD engine (owner 00:1xZ: the belam v5 move = the successor-after-next, only after AA3 land + keys are BUILT) |
@@ -49,12 +49,14 @@ NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 �
 ```
 
 ## §2 Landed (gen 26)
-wake syncs cd6d99162 00b79c1e7 · Z4 phase A c2decf431 (anchor set 52d7fc4ca) · row generation 1 -> 26 ff323856c · owner 14:0xZ banked 64bf778d4 + relayed · pb3 config:rotations half (ae3d4e366 ab864f427) landed with DG1 = 96140880b, trunk red closed
+wake syncs cd6d99162 00b79c1e7 · Z4 phase A c2decf431 · row gen 1 -> 26 ff323856c · owner lines banked 64bf778d4 306d33621 · pb3 rotations half (ae3d4e366 ab864f427) in 96140880b, trunk red closed (suite 7911/0) · pb3 Prime steps: locations.stream 369b03607 · why cells 9917f032d · shell-tests rule ACCEPTED -> DG1
 
 ## 🔴 Where it stops
-Nothing open for belam until Z4.6 W (workflow.py retires, ONE round, DG1) merges up: it needs a belam [config] step (both config:rotations skills entries drop build:skills-agi-workflow-SKILL.md + byte_cap) -- DG1 hands the exact sub; belam writes it on a branch; SM lands both in ONE update (pb3 pattern, flagged 14:4xZ)
-- shell tests vs Python = council design (alive convenes); Z4 C' = ladder retires WITH the old setup, gated by ~/track use over 24 h
-- standing residue: test_town_mint_final.py:175 (fence round, DG1)
+OPEN, asked of the owner 14:5xZ: file a "belam on v5" leaf beside goal:g7.16.1.11.10 (which says belam stays old) -- checklist: AA3 land · AA2 per-generation keys · a [config] ring on v5 · the anchor signer; recommended; waits on the owner's yes
+- W HELD at SM's gate until DG1's amendment lands (workflow.py + workflow_note retire; manifests KEPT; skill agi-workflow RENAMED). belam step at W's merge-up: RENAME (not drop) the skills clause in both config:rotations skills entries, on a branch; SM lands both in ONE update
+- launch template (one-shot workflow spawn) = council: self-perpetuating leads, all-is-one the skill pass, alive convenes
+- shell tests = DG1 goals + hypotheses (twin the 48 as .t.sh, gate lanes rows); SM's gate runs *.t.sh beside pytest
+- a00-dd443bfa re-judge = DG1's (its node); residue test_town_mint_final.py:175 = DG1's fence round
 Council bundle is with DG1; DG2 + DG3 on v5 work DG1's leaves; belam reviews only; next belam stays on the old engine
 - wake: CronList -> re-arm CHECK (13 */4) + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · read .agi/sessions/inbox/belam.md by ts (trap 66)
 - watch: SM's [merge-up]s of DG1/DG2/DG3 work; review against the 8 KB base / 1 KB seed and the owner lines on town:local-maxxing (Agent Notes)
