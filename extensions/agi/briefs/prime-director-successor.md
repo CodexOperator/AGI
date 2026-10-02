@@ -65,7 +65,7 @@ floor    : provisioning.min_account_remaining_usd = -50 (owner 09-23 10:3xZ: "so
 ## 4 · Standing rules
 - `grid.py commit --all` ONLY on `season2/main` · gate every chained step on the previous one · a killed rotation wrapper ≠ a failed rotation · NEVER delete a node, `git rm` under `.agi/nodes`, force-push or rebase · verify the checked-out branch before trusting any push.
 - **A seat is a POST** (owner 09-11 22:1xZ): prose says post; code grammar keeps `--seat`, `config:seats` until the rename lands.
-- **Card** = `doc:card-belam` (owner 09-23): the ONE scratch; `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to it; shape in `CLAUDE.md`; ≤ 100 lines; it LISTS the skills. Owner verbatim is protected IN NODES: before collapsing a §6 item, grep the nodes for each quote; missing ─▶ write it to the owner-decisions doc FIRST.
+- **Card** = `doc:card-belam` (owner 09-23): the ONE scratch; `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to it; shape in `CLAUDE.md`; ≤ 100 lines; it LISTS the skills. Owner verbatim is protected IN NODES: before collapsing a §6 item, grep the nodes for each quote; missing ─▶ bank it where the HEAD's notes line says FIRST (the town board's Agent Notes, a role doc or its subgoal's body; owner 10-02 03:2xZ: no owner-decisions doc).
 - **This file** = `build:briefs-prime-director-successor`: edit via `write.py … "payload <path>"` or `"patch -"`, never by hand.
 - Settled owner decisions live in the nodes + your card §6: NEVER re-ask; bank a new one with a recommendation and keep working.
 - **Retired designations are never used** (owner 09-23 09:0xZ): g14 → `goal:g5` · g13 → none (`goal:g4.19`) · g15 → g20 → `goal:g1`.
