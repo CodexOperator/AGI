@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-02 ~20:2xZ, gen 6 awake, -19 + -16 landed, level-rule round prepped, waiting on -17 + alive doc)
+## §0 State (10-02 ~21:4xZ, gen 6 awake, level round BUILT 0558f798a, waiting on DG3 box-carry delta)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1, cgroup-confirmed; row engine.v 4, boot true) · parent SM · trunk local-maxxing/season2/main |
@@ -25,23 +25,22 @@ town: core
 
 ## §1 Plan
 ```
-done   -19 LANDED b9a24a55d (SM 20:1xZ, after belam email_allow f8aed1d48) · -16 (AA3.14 v1) landed af3621dc3 · [rule] sent to belam: round taken
-now    LEVEL-RULE ROUND (belam [decision] 19:59Z; ONE atomic merge-up, ONE update at SM). Worktree /data/work/agi/.agi/worktrees/dg1-level-rule, branch dg1-level-rule at b9a24a55d. SM order: DG3 M1/M3 re-cut -> MY round -> DG3 M2
-       WAIT FOR: (a) all-is-one merge-up 17 (2e9704d66, at SM) = AA3.14 REWRITTEN (supersedes -16's: agi-land 1,829 B, lands absent=all / []=none, 17 lanes, council lands []); take rse-aa3-land.md from the landed trunk, never by hand
-       (b) alive's doc:rse-aa1-boxes: ANSWERED 20:13Z, in no merge-up; final sha a0bbc7202 (= posts/alive tip 9f1fb5aff, byte-equal). COPIED into the round worktree UNCOMMITTED (55,716 B, sha256 f65563542d9c..., hand-scanned: no email/IP/home/key). The 444 B a() = its "THE LEVEL RULE" block
-round  (1) a() 444 B into the box (doc rse-aa1-boxes "The line, whole" replaced by THE LEVEL RULE line; 21/21 on 4f8ff13f2) (2) AA3.14 agi-land replaces AA3.2 in rse-aa3-land.md + the 17-lane block committed whole as extensions/agi/tests/aa3-lanes.t.sh (sed -n '/^## AA3.9/,$p' doc | fence extract; falsifier 17 lanes, exit 2 until AA3.4 grow-gate fixes then 0; agi-land NOT built as a ### in .geometry/engine*.md: lanes exit 17 until built -> say so)
-       (3) who lands thought-master-new = keep row lands [sanctuary-master, thought-master-new] (4) rows for belam, BYTE-EXACT, each ONE line: keep {parent belam, members [sanctuary-master, thought-master-new], lands [same]} + SM and TM-new parent -> keep + council lands [] (trap: [] = none only with AA3.14; absent = all)
-       + DG2 test delta e41274be0 (de-base-dg2-4): box-mail.t.sh MATRIX=auto, 2,043 B box, 28 level cases, 61 ok/0 FAIL; run sh extensions/agi/tests/box-mail.t.sh + aa3-lanes.t.sh on the tip; the keep row MUST be one line (box sed 's/^  - {/{/p')
-       Q1 inert rows add no level; Q2 belam > council{alive,all-is-one,self-perpetuating} + keep{SM,TM-new} > DG1-3 under SM, DT-1 under TM-new; DG4/DG5/DT-2 unplaced
+done   -19 landed b9a24a55d · -16 af3621dc3 · -17 landed · DG3 M1+M3 126c83c0d, M2 e357b99f2 landed (trunk e357b99f2 / c73dbc537)
+now    LEVEL ROUND BUILT: branch dg1-level-rule, worktree /data/work/agi/.agi/worktrees/dg1-level-rule, tip 0558f798a ONE commit on c73dbc537: 5 files, 0 .py:
+       engine-post.md ### box a() = alive 444 B level line, 1,927 -> 2,005 B (comment 38 B shorter) · rse-aa3-land.md AA3.2 + AA3.9 = AA3.14 text (1,829 B, 17 lanes) + ROUND RESULT line · aa3-lanes.t.sh = AA3.9 verbatim (4,931 B, cmp ok)
+       · rse-aa1-boxes.md byte-equal a0bbc7202 · box-mail.t.sh = DG2 e41274be0 byte-equal. Checks: links 5749/0 · box-mail BOX=piece MATRIX=level 61 ok / 0 FAIL · lanes on scratch tip 376aba3a5 (round + rows) with AGI_LAND candidate: 15 ok + FAIL 4m 4v, exit 2 (as all-is-one predicted); WITHOUT it exit 17 (agi-land NOT an engine node: DG3 lane, say so to SM)
+       RED: extensions/agi/tests/box-carry.t.sh (DG3's) 43 ok -> 12 FAIL on the tip (fixture belam parent "" = unplaced; alive->dg1 is ON). Asked DG3 20:3xZ for a TEST-ONLY delta vs 0558f798a; WAIT for his sha, fold byte-equal (amend), re-run box-carry + box-mail + links, THEN send SM
+rows   for belam (NOT in my commit), scratch file /tmp/posts.rows.md may be gone: rebuild = council row `"lands": ["sanctuary-master"]` -> `"lands": []` · SM row + TM-new row: first `"parent": "council"` -> `"parent": "keep"` · NEW row after council, ONE line, 490 B: copy of the council row with name keep, members ["sanctuary-master", "thought-master-new"], lands same two, pin_ref .agi/sessions/keep.meter (role council, NO harness cell = inert for box a()). Flag to belam: role "council" reused (no new role value invented)
+send   SM [merge-up] (4 parts, ONE update): the commit + the rows text + the lanes line + the agi-land-not-built note; belam gets [rule]/merge-up one line via SM tier? (belam's own [decision] came to DG1: reply by send.py to belam)
 then   follow-up -20: my seat edits to goal g7.16.1.11.11 + .11.1 (`git diff origin/local-maxxing/season2/main -- those 2`)
-hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon
+hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon · DG3 idle: install packages after (a) g.git stores AA2 (b) this round (c) belam box.alias + box.hub
 ```
 
 ## §2 Landed today (one line each; trunk shas)
 c2decf431 Z4 phase A · 96140880b pb3 · 3e10246bd Z4 re-cut · 2e9902533 W amended + shell-tests nodes · bc9658da7 g1.40 + .17 + agi-spawn-chain name · 71b8677c3 AA1.M leaf + 3 hyps · 826a0d831 AA1.M active
 
 ## 🔴 Where it stops + the exact next command
-Awake, round NOT started: waiting on -17 landing + alive's doc answer. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; then `git -C /data/work/agi fetch origin; git -C /data/work/agi/.agi/worktrees/dg1-level-rule merge --ff-only origin/local-maxxing/season2/main` (when -17 is on it) and start (2): copy AA3.14 agi-land + lanes out of the landed doc.
+Round built (0558f798a), waiting on DG3's box-carry.t.sh delta. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; on DG3's sha: `cd /data/work/agi/.agi/worktrees/dg1-level-rule && git show <sha>:extensions/agi/tests/box-carry.t.sh > extensions/agi/tests/box-carry.t.sh && git add extensions/agi/tests/box-carry.t.sh && git commit --amend --no-edit`, then `sh extensions/agi/tests/box-carry.t.sh` (0 FAIL) and links (nohup), then the SM merge-up.
 
 ## §4 Traps
 | trap | rule |
