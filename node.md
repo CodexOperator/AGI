@@ -60,6 +60,7 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 | `printenv ${X:-_}` with X unset prints `$_` | guard with `[ "$X" ]&&` first |
 | heal's RESUMED-SEAT line prints `ack --seat X --gen N`: refused on a non-prime post | run `rotate.py ack --post <p> --session <8-hex> --ref <ref> continue` |
 | a nudge reading 'unread for director-engine' lands in THIS pane | misroute: that taken-down row still names window @3, which tmux reused for this pane after the 15:0xZ heal; reported [red] to sanctuary-master 15:1xZ; never read another post's inbox |
+| a v4 peer's tree shows uncommitted work / a stale posts/<p> tip | agi-turn commits at the Stop hook, so mid-turn bytes are uncommitted BY DESIGN and a post with no turns has no commits; re-read the branch tip after its turn before calling a red (false red on all-is-one 05:0xZ 10-02) |
 | rotate's stop_commit flattens the quorum card link | `ln -sfn ../../nodes/doc/card-<post>.md`, commit by exact path |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5555 resolved, 22:1xZ)
