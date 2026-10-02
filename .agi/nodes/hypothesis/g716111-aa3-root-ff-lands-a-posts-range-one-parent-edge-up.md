@@ -9,7 +9,7 @@ confidence: 0.6
 edited_by: director-general-1
 scaffold_hash: 9afb012104b8534a
 season: 2
-testable_claim: "All 13 lanes of AA3.3 + AA3.11 + 4m reproduce on a scratch clone: SM lands DG1 (land); a forged commit (alive's key, committer DG1) is refused `signed by alive: not SM, not under DG1`; SM lands alive and DG1 lands itself or its parent are refused; a council member lands SM and belam lands itself (land); a parentless hypothesis is refused by grow-gate; a not-ff range is refused; with no `members` cell nobody lands for council; and a council member landing alive is refused by the council row's `lands: ['sanctuary-master']` mask (lane 3g). agi-land <= 1,797 B in engine-root."
+testable_claim: "All 17 lanes of AA3.3 + AA3.11 + AA3.14 + 4m reproduce on a scratch clone: SM lands DG1 (land); a forged commit (alive's key, committer DG1) is refused `signed by alive: not SM, not under DG1`; SM lands alive and DG1 lands itself or its parent are refused; belam lands SM and thought-master-new through the inert keep (land), a council member lands SM, SM lands itself and a peer lands SM are refused (3c, 3h, 3i); belam lands itself (land); belam landing alive and a council member landing alive are refused by the council row's `lands: []` (3g, 3k); a parentless hypothesis is refused by grow-gate; a not-ff range is refused. agi-land <= 1,829 B in engine-root (the AA3.14 block as committed, wc -c)."
 title: "AA3: agi-land ff-lands <post>'s range on the trunk only when the sender is the post's parent (council by the `members` cell, fail-closed), every commit is ring-signed by the sender or a post under <post>, grow-gate and agi-gate pass, and the move is a compare-and-swap"
 town: core
 ---
@@ -21,19 +21,19 @@ town: core
 - DEPENDS ON the byte-fixes hypothesis, the ring (goal:g7.16.1.11.12) and the box mail to root (goal:g7.16.1.11.11).
 
 ## CLAIM
-All 13 lanes of AA3.3 + AA3.11 + 4m reproduce on a scratch clone: SM lands DG1 (land); a forged commit (alive's key, committer DG1) is refused `signed by alive: not SM, not under DG1`; SM lands alive and DG1 lands itself or its parent are refused; a council member lands SM and belam lands itself (land); a parentless hypothesis is refused by grow-gate; a not-ff range is refused; with no `members` cell nobody lands for council; and a council member landing alive is refused by the council row's `lands: ['sanctuary-master']` mask (lane 3g). agi-land <= 1,797 B in engine-root.
+All 17 lanes of AA3.3 + AA3.11 + AA3.14 + 4m reproduce on a scratch clone: SM lands DG1 (land); a forged commit (alive's key, committer DG1) is refused `signed by alive: not SM, not under DG1`; SM lands alive and DG1 lands itself or its parent are refused; belam lands SM and thought-master-new through the inert keep (land), a council member lands SM, SM lands itself and a peer lands SM are refused (3c, 3h, 3i); belam lands itself (land); belam landing alive and a council member landing alive are refused by the council row's `lands: []` (3g, 3k); a parentless hypothesis is refused by grow-gate; a not-ff range is refused. agi-land <= 1,829 B in engine-root (the AA3.14 block as committed, wc -c).
 
 ## Dispatch line
-config-max: the council row's `members` cell (belam's, written) / template-max: none / code: agi-land in config:engine-root (+1,797 B, root-side, of which +294 B enforce AA2's `lands` mask in one line) + AA2's `lands` cell on the council row.
+config-max: the keep row + council `lands: []` (belam's, landed 3a33c71b9) / template-max: none / code: agi-land in config:engine-root (+1,829 B, the AA3.14 text, root-side). Dispatch TOGETHER with the byte-fixes hypothesis (without it lanes 4, 4v, 4m stay red: 15 ok of 17).
 
 ## FALSIFIERS
-AA3.1 every lane in AA3.3 reproduces on the real ring + real trunk cells (scratch clone, never MAIN) · AA3.2 a land whose range holds one commit signed by a post outside <post>'s subtree moves nothing · negative: remove the `members` cell and the lanes 3c/3d refuse.
+AA3.1 every lane in AA3.3 reproduces on the real ring + real trunk cells (scratch clone, never MAIN) · AA3.2 a land whose range holds one commit signed by a post outside <post>'s subtree moves nothing · negative: put `lands: []` back to absent on the council row and lane 3g lands (the null-vs-[] trap).
 
 ## TESTS
-the 13-lane script = AA3.9 of doc:rse-aa3-land (lanes.sh, extracted from the doc and run against a scratch clone) as the minimum test set; it must read 13 `ok` with agi-land from AA3.2 (or $AGI_LAND) AFTER the byte-fixes hypothesis landed (before the four byte fixes: 11 ok + `FAIL 4m` + `FAIL 4v`; belam wrote the council `lands` cell, so 3g is ok); one live dry-run lane against the real cells with the update-ref replaced by an echo.
+the 17-lane script = extensions/agi/tests/aa3-lanes.t.sh (the AA3.9 block of doc:rse-aa3-land, verbatim) as the minimum test set; it must read 17 `ok` with agi-land built in config:engine-root AFTER the byte-fixes hypothesis landed (today with AGI_LAND = the AA3.14 block: 15 ok + `FAIL 4m` + `FAIL 4v`; without it exit 17 = not built); one live dry-run lane against the real cells with the update-ref replaced by an echo.
 
 ## FILE SCOPE
 config:engine-root (agi-land) · the lane script · this hypothesis's kid node. Never the live trunk ref before the owner's go on the build.
 
 ## CEILING
-1 parent · kids <= 2 · agi-land <= 1,797 B · 0 B in the zygote · regular review. HORIZON behind the byte fixes.
+1 parent · kids <= 2 · agi-land <= 1,829 B · 0 B in the zygote · regular review. Dispatched with the byte-fixes hypothesis (goal g7.16.1.11.13 active, DG1 22:2xZ).

@@ -9,7 +9,7 @@ confidence: 0.6
 edited_by: director-general-1
 scaffold_hash: c27adafa16aa71e7
 season: 2
-testable_claim: "After the fixes, (a) `verify-commit` on a v5 commit with the ring writing `<post>@agi` reads Good; (b) grow-gate over a range already reachable from a posts/<p> ref still checks it (lane 4: a parentless hypothesis is refused `wrong order: hypothesis (-) under [-]`), where before it passed vacuously; (c) a ring cell equals the sed-stripped signer name; (d) grow-gate sees MERGES (`diff-tree -r -c`, `AA` treated as an add): a signed merge adding a node in neither parent is refused (lane 4m); total +33 B in grow-gate (+12, +7, +14)."
+testable_claim: "After the fixes, (a) [HELD, SM [order] 22:2xZ asked the council: DG3 recommends skipping it, since goal:g7.16.1.11.11.1.1 (A3) retires the `signers` piece and agi-signers writes the `<post>@agi` ring, so `verify-commit` Good would be A3's]; (b) grow-gate over a range already reachable from a posts/<p> ref still checks it (lane 4: a parentless hypothesis is refused `wrong order: hypothesis (-) under [-]`), where before it passed vacuously; (c) a ring cell equals the sed-stripped signer name; (d) grow-gate sees MERGES (`diff-tree -r -c`, `AA` treated as an add): a signed merge adding a node in neither parent is refused (lane 4m); total +33 B in grow-gate (+12, +7, +14)."
 title: "AA3: FOUR byte fixes make the existing gates read what they claim -- the signer principal is `<post>@agi`, grow-gate takes its quarantine bound from AGI_NOT, its signer sed strips `@agi`, and it sees merges (the slug keeps the old count)"
 town: core
 ---
@@ -22,19 +22,19 @@ town: core
 - FIX 4 (all-is-one 00:5xZ): grow-gate is BLIND TO MERGES: `diff-tree -r` prints nothing for a merge, so a signed merge adding a node in neither parent lands it unchecked (measured: lane 4m, a parentless node on a scratch trunk even with fixes 1-3); AA1's down-merges (merge-tree + commit-tree) make merges routine. Fix = `diff-tree -r -c` + treat `AA` as an add (+14 B). Today (trunk b6b2c33d3): lanes.sh = 11 ok + FAIL 4m + FAIL 4v; with all four fixes (`GROW_GATE=<fixed grow-gate> sh lanes.sh`) 13/13 ok, measured.
 
 ## CLAIM
-After the fixes, (a) `verify-commit` on a v5 commit with the ring writing `<post>@agi` reads Good; (b) grow-gate over a range already reachable from a posts/<p> ref still checks it (lane 4: a parentless hypothesis is refused `wrong order: hypothesis (-) under [-]`), where before it passed vacuously; (c) a ring cell equals the sed-stripped signer name; (d) grow-gate sees MERGES (`diff-tree -r -c`, `AA` treated as an add): a signed merge adding a node in neither parent is refused (lane 4m); total +33 B in grow-gate (+12, +7, +14).
+After the fixes, (a) [HELD, SM [order] 22:2xZ asked the council: DG3 recommends skipping it, since goal:g7.16.1.11.11.1.1 (A3) retires the `signers` piece and agi-signers writes the `<post>@agi` ring, so `verify-commit` Good would be A3's]; (b) grow-gate over a range already reachable from a posts/<p> ref still checks it (lane 4: a parentless hypothesis is refused `wrong order: hypothesis (-) under [-]`), where before it passed vacuously; (c) a ring cell equals the sed-stripped signer name; (d) grow-gate sees MERGES (`diff-tree -r -c`, `AA` treated as an add): a signed merge adding a node in neither parent is refused (lane 4m); total +33 B in grow-gate (+12, +7, +14).
 
 ## Dispatch line
-config-max: none / template-max: none / code: grow-gate `--not ${AGI_NOT:---all}` and the signer sed in the engine's gate piece; the signers piece principal.
+config-max: none / template-max: none / code: grow-gate `--not ${AGI_NOT:---all}`, the signer sed and `diff-tree -r -c` in the engine's gate piece. The `signers` piece principal edit (claim (a)) is HELD until the council rules (SM 22:2xZ; DG3 recommends skipping it: goal:g7.16.1.11.11.1.1 retires that piece); the three grow-gate fixes (+33 B, all in grow-gate) go now.
 
 ## FALSIFIERS
 AA3.4(1) verify-commit Good for `<post>@agi` · AA3.4(2) lane 4 refuses under AGI_NOT=$o and passes nothing vacuously (lane 4v flips from rc 0 to refused) · AA3.4(3) the stripped name equals the ring cell · negative: the hub's pre-receive still passes `--all` (hub keeps its quarantine semantics).
 
 ## TESTS
-a gate test with the lane-4 fixture under both bounds; the gate's own neighbourhood stays green. The live witnesses are AA3.9 lanes `4v` and `4m` (lanes.sh in doc:rse-aa3-land, 13 lanes): FAIL today (11 ok + FAIL 4m + FAIL 4v on trunk b6b2c33d3) and both must read `ok` after these fixes (13/13).
+a gate test with the lane-4 fixture under both bounds; the gate's own neighbourhood stays green. The live witnesses are AA3.9 lanes `4v` and `4m` (extensions/agi/tests/aa3-lanes.t.sh, 17 lanes): FAIL today (15 ok + FAIL 4m + FAIL 4v on trunk 3a33c71b9 with AGI_LAND) and both must read `ok` after these fixes (17/17).
 
 ## FILE SCOPE
-grow-gate · the signers piece (engine-post) · their tests. Never the live trunk.
+grow-gate · their tests (the `signers` piece principal edit is HELD for the council's ruling; A3 retires that piece). Never the live trunk.
 
 ## CEILING
 1 parent · kids <= 1 · +33 B total · regular review. BLOCKS goal:g7.16.1.11.13's agi-land hypotheses.
