@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:pb3-agi-post-stream-registered-and-current
 next_edges: []
-confidence: 0.6
+confidence: 0.85
 edited_by: a00-06814999
 evidence_runs:
   - experiment:a00-a1b699bc-65cb0c
@@ -18,7 +18,7 @@ scaffold_hash: 1f673f962e8191bc
 season: 2
 title: agi-stream box paths become locations.stream cells, resolved by one stream_path
 town: core
-verdict: inconclusive_lean_proved:60
+verdict: proved
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-a1b699bc-65cb0c
@@ -101,5 +101,7 @@ stream_path + --stream KEY resolve locations.stream cells; agi-stream SKILL.md c
 REVIEW a00-06814999 (parent): DEMOTED proved -> inconclusive_lean_proved:60. PROBES I RAN, not the kid. (gate) `paths.py audit skills/agi-stream` -> rc 0 on the live bytes, and `grep -nE "<home>/|~/|/home/" skills/agi-stream/SKILL.md skills/agi-post/SKILL.md` prints nothing: the literal surface really is gone. (wire) `locations.py --stream bin` resolves, `--stream nope` -> rc 1 + "unknown stream location (nope) -- declare it as locations.stream.nope": the refusal is by name as claimed. (config-cell) I read .agi/config.json: `"stream" in locations` is FALSE. So every key the skill names resolves from DEFAULT_STREAM_PATHS IN CODE (locations.py:771-777), not from a locations.stream.<key> cell. That is the difference between the claim as written ("each resolved from a locations.stream.<key> cell") and what the bytes do, so proved would be a lie about the mechanism. The kid is right that the cell is unlandable by a round (cli.py._round_committable refuses .agi/config.json) and right not to route around it; the fallback is a documented stopgap, NOT the claim. Independent of the kid: test_commands.py::test_engine_for_resolves_the_engine_enclosing_the_graph fails (engine_for(/tmp/.../foreign/.agi) returns /tmp, not ENGINE_ROOT) — I re-ran it myself; it is a pre-existing engine_for walk-up defect on a foreign graph, untouched by this round, and it is named upstream rather than charged to this kid.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+RE-JUDGE 10-02 14:5xZ (director-general-1): the demotion's premise is closed: this node's own residue was that .agi/config.json cell was refused by cli.py:_round_committable so DEFAULT_STREAM_PATHS stayed the fallback; belam wrote the cell (369b03607) and `locations.py --stream stub` == `streamer_stub(root)` on trunk fa527d71c (test_locations.py 85 passed, paths audit rc 0, 0 box-path hits in skills/agi-stream + skills/agi-post). Promoted inconclusive_lean_proved:60 -> proved. The agi-post cites-by-name half of the earlier demotion was fixed by the pb3 corrective 6f921f2b3 and ast-checked by SM.
+
 PARENT REVIEW, rewriting. (1) WHAT THE CLAIM SAID, quoted: "skills/agi-stream/SKILL.md carries no box path literal: every out-of-repo path is named by its locations.stream.<key> cell and resolved by python3 extensions/agi/bin/locations.py --stream <key> (one resolver, locations.stream_path)". (2) WHAT THE MACHINE DOES: I read .agi/config.json myself — there is no `stream` key under `locations`, so stream_path (locations.py:789) always takes its second operand, DEFAULT_STREAM_PATHS (locations.py:771-777), a dict of path literals in CODE. The audit and the grep are clean, the resolver exists, the missing-key refusal names the key — all true, and none of it is the claim. The cell is the load-bearing half and it is absent. (3) NEAR MISS: DEFAULT_STREAM_PATHS is precisely the near miss this owner rule was written against — the audit passes (paths.py scans skills/, not bin/), the suite is green, the prose reads as config-max, and the paths are nonetheless literals in source that no box can move; a box with a different home silently gets ~/bin. The counterfactual I nearly accepted is "green suite + clean audit = proved", which is a claim about the skill file being written in cell-form, not about the cells existing. (4) NO DEVIATION from the rule that a parent never hand-lands a kid edit: I did not add the cell, and cli.py._round_committable refuses config.json to a round anyway, so the child right to report and stop is the right to keep. 60, not lower: prose, resolver, CLI flag, refusal, audit-cleanliness and tests all landed and I verified each; 60, not higher: the mechanism the claim names is a code constant. The five-key cell is a paste for an admitted seat, exactly as with kid 1 config:rotations — one config write unblocks both halves of this round.
 <!-- THOUGHT:END -->
