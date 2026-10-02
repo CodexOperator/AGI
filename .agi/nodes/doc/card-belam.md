@@ -52,7 +52,7 @@ NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 �
 wake syncs cd6d99162 00b79c1e7 · Z4 phase A c2decf431 · row gen 1 -> 26 ff323856c · owner lines banked 64bf778d4 306d33621 · pb3 rotations half (ae3d4e366 ab864f427) in 96140880b, trunk red closed (suite 7911/0) · pb3 Prime steps: locations.stream 369b03607 · why cells 9917f032d · shell-tests rule ACCEPTED -> DG1
 
 ## 🔴 Where it stops
-OPEN, asked of the owner 14:5xZ: file a "belam on v5" leaf beside goal:g7.16.1.11.10 (which says belam stays old) -- checklist: AA3 land · AA2 per-generation keys · a [config] ring on v5 · the anchor signer; recommended; waits on the owner's yes
+OWNER 17:4xZ (town board c88f1ae44): skill = agi-spawn-chain; the FLOW ROTATION (one-shot + perpetual spawns over one slice, review fires when growth is done, recursive) = council design on growth.tsv + parent cells only; belam-on-v5 leaf FILED by DG1 = goal:g7.16.1.11.17 (HORIZON; rides DG1's next merge-up; verify it lands)
 - W HELD at SM's gate until DG1's amendment lands (workflow.py + workflow_note retire; manifests KEPT; skill agi-workflow RENAMED). belam step at W's merge-up: RENAME (not drop) the skills clause in both config:rotations skills entries, on a branch; SM lands both in ONE update
 - launch template (one-shot workflow spawn) = council: self-perpetuating leads, all-is-one the skill pass, alive convenes
 - shell tests = DG1 goals + hypotheses (twin the 48 as .t.sh, gate lanes rows); SM's gate runs *.t.sh beside pytest
