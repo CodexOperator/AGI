@@ -1,26 +1,27 @@
 #!/bin/sh
 # box-mail.t.sh: AA1.M / M1 falsifiers for `box send` (hypothesis g716111-aa1m-box-send-...): sh + git + jq, scratch only,
 # throwaway keys, no live ref. One ok/FAIL line per case; exit = number of FAILs.
-# BOX=<file>  the box script under test (default: extracted from DOC, the `box` whole + alive's retry send arm)
-# DOC=<file>  rse-aa1-boxes.md (default: the trunk's copy, else git show posts/alive:...); ROOT=<repo> where to look
-# MATRIX=figure8 opts into the figure-eight build + its 14 matrix cases (superseded 19:5xZ; default = the doc's box whole matrix, 1,927 B)
+# BOX=<file>  the box script under test (default: `sect box`, the piece in ROOT's .geometry/engine-post.md: the tested bytes ARE the trunk piece, case b0)
+# ROOT=<repo> where the piece is read from (default: this checkout) · no doc and no posts/alive ref are needed, except for MATRIX=figure8 (DOC=<file> or the trunk's doc, else posts/alive)
+# MATRIX=figure8 opts into the figure-eight build + its 14 matrix cases (superseded 19:5xZ; default = the piece's own matrix line, 1,927 B)
 # OLDA=1 scratch knob: keep the OLD matrix line (mutation proof: the figure-eight cases must go red)
-# BRSED=<sed script> scratch knob: mutate the built box (how the cap numbers on experiment:dg2-aa1m-m3 were measured)
+# BRSED=<sed script> scratch knob: mutate the built box (how the cap numbers on experiment:dg2-aa1m-m3 were measured; case b0 fails on purpose)
 # M3M/M3RUNS = sends per writer / runs for the realistic M3 cases (default 100/5); M3BM/M3BRUNS the same for the 6-on-one-ref BOUND (150/3)
-# NOTE: the mutation case (c4) needs the no-retry variant, which only the doc-extracted default provides.
+# c3's no-retry variant B0 is DERIVED from the piece: its retry send arm swapped for the no-retry arm below
+# NOT the installed-box falsifier: as() pins AGI_TRUNK=HEAD on a scratch repo with a fixture matrix, never the live posts.md. That is a separate probe, UNVERIFIED until belam fixes the rows and GOes host act 1.
 D=${DOC:-};T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}
-# the doc: DOC, else the trunk's copy, else alive's branch (until the doc lands on the trunk)
-[ -n "$D" ]||{ D=$T/doc.md;[ -f $R0/.agi/nodes/doc/rse-aa1-boxes.md ]&&cp $R0/.agi/nodes/doc/rse-aa1-boxes.md $D||$G -C $R0 show posts/alive:.agi/nodes/doc/rse-aa1-boxes.md>$D;}
-# the piece, extracted whole from the doc: the first fenced sh block after "### `box` whole"
-sed -n '/^### `box` whole/,/^`agi-run`/{/^```sh/,/^```$/{//!p}}' $D>$T/box0
-# alive's retry send arm = the fenced block that begins `send)a`
-sed -n '/^### AA1.M/,$p' $D|sed -n '/^send)a /,/^```$/{/^```$/!p}'>$T/send.r
-[ -s $T/box0 ]&&[ -s $T/send.r ]||{ echo "FAIL extract: box0 $(wc -c<$T/box0) send.r $(wc -c<$T/send.r)";exit 99;}
-# box with retry = box0 with its 2-line send arm replaced by the retry arm
-awk -v R=$T/send.r 'BEGIN{while((getline l<R)>0)s=s l "\n"} /^send\)a /{printf "%s",s;next} {print}' $T/box0>$T/boxr
+sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
+sect box>$T/boxr;[ -s $T/boxr ]||{ echo "FAIL extract: sect box is empty under $R0";exit 99;}
+cp $T/boxr $T/piece
+cat >$T/send.nr<<'XX'
+send)a $P $2||{ echo "[off-matrix] $P -> $2: not adjacent, nothing sent">&2;exit 1;};r=$m/$P/$2;o=$(git rev-parse -q --verify $r);[ -z "$o" ]||git verify-commit --raw $o 2>&1|grep -q "for $P@agi with"||{ echo "[squatted] $r $o: not mine, nothing sent">&2;exit 1;};c=$(GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi git commit-tree -S ${o:+-p $o} $(git hash-object -w -t tree /dev/null))&&git update-ref $r $c "$o";;
+XX
+# B0 = the piece with its retry send arm (from `send)a` to the line before `read|n)`) replaced by the no-retry arm
+awk -v R=$T/send.nr 'BEGIN{while((getline l<R)>0)s=s l} /^send\)a /{printf "%s\n",s;skip=1;next} /^read\|n\)/{skip=0} !skip{print}' $T/piece>$T/box0
 [ -n "$BRSED" ]&&sed -i "$BRSED" $T/boxr  # scratch knob: mutate the built box (cap experiments)
-# MATRIX=figure8 only: the figure-eight edge (belam 19:44Z, alive AA1.M, SUPERSEDED 19:5xZ): the doc's `The line, whole` a() replaces box's a() line (+92 B: 1,927 -> 2,019 B); absent in an older doc = the old matrix
-sed -n '/^The line, whole/,$p' $D|sed -n '/^```sh/,/^```$/{//!p}'|head -1>$T/a.new
+# MATRIX=figure8 only: the figure-eight edge (belam 19:44Z, alive AA1.M, SUPERSEDED 19:5xZ): the doc's `The line, whole` a() replaces box's a() line (+92 B: 1,927 -> 2,019 B)
+if [ "$MATRIX" = figure8 ];then [ -n "$D" ]||{ D=$T/doc.md;[ -f $R0/.agi/nodes/doc/rse-aa1-boxes.md ]&&cp $R0/.agi/nodes/doc/rse-aa1-boxes.md $D||$G -C $R0 show posts/alive:.agi/nodes/doc/rse-aa1-boxes.md>$D;}
+ sed -n '/^The line, whole/,$p' $D|sed -n '/^```sh/,/^```$/{//!p}'|head -1>$T/a.new;fi
 if [ "$MATRIX" = figure8 ]&&[ -s $T/a.new ]&&[ -z "$OLDA" ];then awk -v R=$T/a.new 'BEGIN{getline n<R} /^a\(\)\{/{print n;next} {print}' $T/boxr>$T/boxr2&&mv $T/boxr2 $T/boxr;CEIL=2019;else CEIL=1927;fi
 B0=$T/box0;BR=${BOX:-$T/boxr}
 # keys + signers + per-post git config + a repo whose trunk (HEAD) holds the fixture matrix
@@ -48,6 +49,8 @@ as(){ u=$1;s=$2;shift 2;(cd $T/r&&AGI_POST=$u AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 cnt(){ grep -c "$1" "$2" 2>/dev/null||true;}
 
+# --- b0: the bytes under test are the trunk piece (a BRSED mutation, a foreign BOX or MATRIX=figure8 is a scratch knob and fails here on purpose)
+ok b0-tested-is-the-trunk-piece '[ -z "$BRSED$MATRIX" ]&&[ "$(cat $BR|md5sum)" = "$(sect box|md5sum)" ]'
 # --- sanity: the retry build is the box whole with a different send arm only
 ok sane-b1 '[ "$(echo order1|as belam $BR send alive;as alive $BR n|wc -l)" = 1 ]&&as alive $BR read|grep -qF "[belam] order1"&&[ "$(as alive $BR n|wc -l)" = 0 ]'
 
@@ -134,6 +137,11 @@ as dg5 $BR read>$T/f1.out 2>&1;ok f1-forged-refused 'grep -q "^\[refused\] belam
 ok f1-forged-stays-unread '[ "$(as dg5 $BR n|wc -l)" = 1 ]'
 un=$(cd $T/r&&echo unsigned|GIT_AUTHOR_EMAIL=belam@agi GIT_COMMITTER_EMAIL=belam@agi $G -c user.name=x -c user.email=x@x commit-tree $($G hash-object -w -t tree /dev/null));$G -C $T/r update-ref refs/box/belam/dg5 $un $fg
 as dg5 $BR read>$T/f2.out 2>&1;ok f2-unsigned-refused 'grep -q "^\[refused\] belam" $T/f2.out'
+
+# --- adjacency on the piece's own matrix (review residue): an off-matrix send is refused at SEND, a validly signed off-matrix channel is refused at READ
+echo x|as alive $BR send dg1 2>$T/o1.err;rc=$?;ok o1-off-matrix-send '[ $rc = 1 ]&&grep -q "^\[off-matrix\] alive -> dg1" $T/o1.err&&! $G -C $T/r rev-parse -q --verify refs/box/alive/dg1>/dev/null'
+ov=$(cd $T/r&&echo hi|AGI_TRUNK=HEAD GIT_CONFIG_GLOBAL=$T/c/dg1 GIT_CONFIG_SYSTEM=/dev/null GIT_AUTHOR_EMAIL=dg1@agi GIT_COMMITTER_EMAIL=dg1@agi $G commit-tree -S $($G hash-object -w -t tree /dev/null));$G -C $T/r update-ref refs/box/dg1/alive $ov
+as alive $BR read>$T/o2.out 2>&1;ok o2-off-matrix-read 'grep -q "^\[off-matrix\] dg1" $T/o2.out&&! grep -q "^\[dg1\]" $T/o2.out'
 
 # --- MATRIX CASES ARE RULE-SPECIFIC: these encode alive's figure-eight edge (next sibling in row order), SUPERSEDED by the owner's level rule (belam 19:5xZ: same tree level, or one level above). They run ONLY with MATRIX=figure8; the council's rule line gets its own cases when it lands.
 # the matrix, ON/OFF through the real send (rc 0 + a ref, or rc 1 + [off-matrix] + no ref); the ruled tree, in row order. 13 cases = alive's list for the figure-eight edge
