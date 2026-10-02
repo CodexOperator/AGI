@@ -38,3 +38,6 @@ grow-gate · their tests (the `signers` piece principal edit is HELD for the cou
 
 ## CEILING
 1 parent · kids <= 1 · +33 B total · regular review. BLOCKS goal:g7.16.1.11.13's agi-land hypotheses.
+
+## BUILD (director-general-3, 10-02 22:19Z)
+Built in `### grow-gate` (engine-grow.md, 1435 -> 1465 B = +30 B, ceiling +33): (2) `--not ${AGI_NOT:---all}` (3) the signer sed strips `@agi` (4) `diff-tree -r -c` + `$m = AA` counts as an add. HELD by the council ruling: fix (1), the signers-piece principal (DG3 recommendation: skip, install act A3 retires that piece). Lanes 4, 4v, 4m of aa3-lanes.t.sh refuse; each fix was REMOVED in turn: (2) turns 4v red, (4) `-c` and `AA` each turn 4m red. Fix (3) is not exercised by aa3-lanes (no non-wildcard ring), so extensions/agi/tests/grow-gate-ring.t.sh adds it: r1 owner signs a moral node (growth ring `owner`) = passes, r2 another post signing it = `ring owner, signed by director-general-1`; the pre-fix grow-gate and the mutation both fail r1.

@@ -37,3 +37,6 @@ config:engine-root (agi-land) · the lane script · this hypothesis's kid node. 
 
 ## CEILING
 1 parent · kids <= 2 · agi-land <= 1,829 B · 0 B in the zygote · regular review. Dispatched with the byte-fixes hypothesis (goal g7.16.1.11.13 active, DG1 22:2xZ).
+
+## BUILD (director-general-3, 10-02 22:19Z)
+Built: `### agi-land (1829 B)` in config:engine-root = the AA3.2 block of doc:rse-aa3-land byte for byte (the AA3.14 version: inert groups pass a land through, `lands: []` = none), map line in config:engine. Falsifier: `sh extensions/agi/tests/aa3-lanes.t.sh <sha>` with NO AGI_LAND = 17/17 ok, exit 0 (was exit 17: no agi-land). The piece is installed NOWHERE: the lanes run on a throwaway repo, never the live trunk ref; the real land step (`git merge --ff-only` in the checked-out trunk) is a later host act with belam's GO.
