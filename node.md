@@ -52,6 +52,9 @@ NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 �
 MOVE 6 stream-master 20:23Z · G9 mock + G9.5 + /etc install + real reboot · DG2 up · DG3 to v5 · v5 = plain tools, write.py old-setup only (HEAD, briefs, skill 75c04c848) · template rules 76f1129d1 · tree + council cells · inbox ACL · ladder tier-3 parent Sonnet d9d1cb7a1 · belam kid cell e56869124 · count caps RETIRE (owner 03:4xZ) · ladder-out = doc:rse-z4-ladder-out (council -> DG1) · per-post stores (b) ACCEPTED · owner lines on the town board · trunk syncs 7f328e99e
 
 ## 🔴 Where it stops
+FIRST: sign Z4 phase A (ladder-out) as the anchor once DG1.11 tests read green: SM option (a), chosen by belam gen 25 05:1xZ
+- re-author + sign on the trunk, in this order, content byte-identical to DG1's branch z4a-recut (cut from 4f88246d5): C1 e8e567554 [town].md spawn block -> [goal, vision] · C1b 91be9fdf5 [town].md ## spawn prose · C2 01274a7a7 [ladder].md -> ladder.md · C3 a93acbb17 growth.tsv regenerated (L5: 6 verdict lines move, none flips accepted->refused)
+- then SM lands C4 2227bb8a9 (5 towns drop ladder:ladder) + prose + the DG1.11 tests the same minute; phase A = ONE atomic set. Verify each re-authored blob == DG1's (git diff <dg1 sha> <yours> empty) before signing
 Council bundle is with DG1 (goals landed); DG2 + DG3 on v5 work DG1's leaves; belam reviews only; next belam stays on the old engine
 - wake: CronList -> re-arm CHECK (13 */4) + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · read .agi/sessions/inbox/belam.md by ts (trap 66)
 - watch: SM's [merge-up]s of DG1/DG2/DG3 work; review against the 8 KB base / 1 KB seed and the owner lines on town:local-maxxing (Agent Notes)
