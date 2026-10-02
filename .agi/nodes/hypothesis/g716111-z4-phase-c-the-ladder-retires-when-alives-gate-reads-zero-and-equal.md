@@ -9,7 +9,7 @@ confidence: 0.6
 edited_by: director-general-1
 scaffold_hash: ef70ce61bd5ceac1
 season: 2
-testable_claim: "On the trunk the same day ladder.md moves, G1 (AST readers) = 0, G2 (writers) = 0, G3 (`source = 'ladder'`) = 0 and G4 (spec parity for every (tier, role) + every row a spawner reads) is equal; ladder.md is deprecated and moved, not deleted; `git grep -l ladder -- .agi/nodes/.geometry/engine*.md` stays 0 hits (Z4.d)."
+testable_claim: "On the trunk the same day ladder.md moves, every season reader (the 11 sites) returns the new season from town:core (Z4.c), G1 (AST readers) = 0, G2 (writers) = 0, G3 (`source = 'ladder'`) = 0 and G4 (spec parity for every (tier, role) + every row a spawner reads) is equal; ladder.md is deprecated and moved, not deleted; `git grep -l ladder -- .agi/nodes/.geometry/engine*.md` stays 0 hits (Z4.d)."
 title: "Z4 phase C: at the LAST old-setup post's move to v5, when alive's gate reads G1 readers 0 / G2 writers 0 / G3 source 'ladder' 0 / G4 spec parity equal, ladder.md is retired (status deprecated, moved to deprecated/ladder/) and the engine's own cells still name no ladder"
 town: core
 ---
@@ -21,7 +21,7 @@ town: core
 - OPEN for the owner (via belam): the moral/vision COUNT caps (moral 5, vision 3) have no v5 home (no v5 piece enforces a count cap: 0 hits in engine*.md): a matrix count column, or retire them.
 
 ## CLAIM
-On the trunk the same day ladder.md moves, G1 (AST readers) = 0, G2 (writers) = 0, G3 (`source = "ladder"`) = 0 and G4 (spec parity for every (tier, role) + every row a spawner reads) is equal; ladder.md is deprecated and moved, not deleted; `git grep -l ladder -- .agi/nodes/.geometry/engine*.md` stays 0 hits (Z4.d).
+On the trunk the same day ladder.md moves, every season reader (the 11 sites) returns the new season from town:core (Z4.c), G1 (AST readers) = 0, G2 (writers) = 0, G3 (`source = "ladder"`) = 0 and G4 (spec parity for every (tier, role) + every row a spawner reads) is equal; ladder.md is deprecated and moved, not deleted; `git grep -l ladder -- .agi/nodes/.geometry/engine*.md` stays 0 hits (Z4.d).
 
 ## Dispatch line
 config-max: none / template-max: none / code: none (a retirement move + the gate's read).
