@@ -193,3 +193,5 @@ OWNER LINES 2026-10-01 22:5xZ .. 10-02 01:0xZ (to belam gen 25, banked verbatim 
 - 00:5xZ (branch read; council chose (b) per-user stores, ~1,059 B expansion): "One on a box but maybe could just store a git object store per user instead since users stay steady and have their own directories all convenient. Just needs post node updates to maybe also store a filesystem pointer to where a given posts object store is at. Idk if it’d need that much more code really if leaning on graph. But if it does it’s fine don’t worry about it if it’s not doable just go with option a in that case"
 
 OWNER 03:1xZ 10-02 (ladder; to the council as design, after belam set the tier-3 parent row to Sonnet d9d1cb7a1): "Oh okay yeah well we should be phasing out the ladder anyway in favor of post trees. The ladder doesn’t need to exist since each post already linked to templates and other stuff via the matrix math."
+
+OWNER 03:4xZ 10-02 (count caps; asked by belam with two options from the council, all-is-one doc:rse-z4-ladder-out): chose "Retire the caps (Recommended)" -- the moral 5 / vision 3 count caps retire with the ladder.
