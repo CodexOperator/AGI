@@ -49,7 +49,7 @@ NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 �
 ```
 
 ## §2 Landed (gen 25)
-MOVE 6 stream-master 20:23Z · G9 mock + G9.5 + /etc install + real reboot · DG2 up · DG3 to v5 · v5 = plain tools, write.py old-setup only (HEAD, briefs, skill 75c04c848) · template rules 76f1129d1 · tree + council cells · inbox ACL · owner lines on the town board · trunk syncs 7f328e99e
+MOVE 6 stream-master 20:23Z · G9 mock + G9.5 + /etc install + real reboot · DG2 up · DG3 to v5 · v5 = plain tools, write.py old-setup only (HEAD, briefs, skill 75c04c848) · template rules 76f1129d1 · tree + council cells · inbox ACL · ladder tier-3 parent Sonnet d9d1cb7a1 · belam kid cell e56869124 · count caps RETIRE (owner 03:4xZ) · ladder-out = doc:rse-z4-ladder-out (council -> DG1) · per-post stores (b) ACCEPTED · owner lines on the town board · trunk syncs 7f328e99e
 
 ## 🔴 Where it stops
 Council bundle is with DG1 (goals landed); DG2 + DG3 on v5 work DG1's leaves; belam reviews only; next belam stays on the old engine
