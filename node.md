@@ -21,7 +21,7 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 25 out (01:2xZ 10-02): MOVE 6 stream-master; G9 boot unit mock -> G9.5 -> /etc install -> ONE real reboot PASSED; DG2 + DG3 up on v5; the owner corrected the Prime twice (design belongs to the council = the figure eight; mail = inbox files, not direct messages; grid = the only commit surface) -> both written into the Prime template + HEAD; the council's bundle (AA1-AA3 + versioning) is with DG1. Every owner line of this generation is banked verbatim in doc:l5-owner-decisions (8ef941de5) before this card collapsed them.
+gen 25 out (01:2xZ 10-02): MOVE 6 stream-master; G9 boot unit mock -> G9.5 -> /etc install -> ONE real reboot PASSED; DG2 + DG3 up on v5; the owner corrected the Prime twice (design belongs to the council = the figure eight; mail = inbox files, not direct messages; grid = the only commit surface) -> both written into the Prime template + HEAD; the council's bundle (AA1-AA3 + versioning) is with DG1. Every owner line of this generation is banked verbatim on the town board, town:local-maxxing Agent Notes (moved 03:2xZ from l5-owner-decisions, owner) before this card collapsed them.
 <!-- THOUGHT:END -->
 
 ## §0 State (01:2xZ 10-02, read from date -u)
@@ -41,7 +41,7 @@ gen 25 out (01:2xZ 10-02): MOVE 6 stream-master; G9 boot unit mock -> G9.5 -> /e
 ## §1 Plan
 ```
 figure eight (doc:council-loop) — the Prime REVIEWS, never assigns a design or a build (template 76f1129d1)
-council bundle DONE: AA1 boxes (doc:rse-aa1-boxes) · AA2 rotations + 8 KB + load matrix + versioning + per-user stores (doc:radically-simple-engine) · AA3 land (doc:rse-aa3-land)
+council bundle DONE (RULING 2 = per-post ~/g.git + trunk-only commons, ACCEPTED 03:3xZ; DG1 swaps the one-box half; AA3.12 land-from-own-store): AA1 boxes (doc:rse-aa1-boxes) · AA2 rotations + 8 KB + load matrix + versioning + per-user stores (doc:radically-simple-engine) · AA3 land (doc:rse-aa3-land)
  -> DG1 goals g7.16.1.11.11-.14 + 14 hypotheses LANDED (SM 818f6652f) -> DG2 experiments <-> DG1 inner loops -> DG3 builds -> SM mur
  -> DG1 outcomes -> SM bigger outcomes -> council overview nodes -> belam = the SEASON WRAP (owner's end condition)
 belam: answer [decision]s · give each host act (sudo, /etc, unit installs) its own GO · hold every result to the 8 KB base (8,168 B) / 1 KB seed + the owner lines
@@ -49,12 +49,12 @@ NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 �
 ```
 
 ## §2 Landed (gen 25)
-MOVE 6 stream-master 20:23Z · G9 mock + G9.5 + /etc install + real reboot · DG2 up · DG3 to v5 · v5 = plain tools, write.py old-setup only (HEAD, briefs, skill 75c04c848) · template rules 76f1129d1 · tree + council cells · inbox ACL · owner lines 8ef941de5 · trunk syncs 7f328e99e
+MOVE 6 stream-master 20:23Z · G9 mock + G9.5 + /etc install + real reboot · DG2 up · DG3 to v5 · v5 = plain tools, write.py old-setup only (HEAD, briefs, skill 75c04c848) · template rules 76f1129d1 · tree + council cells · inbox ACL · owner lines on the town board · trunk syncs 7f328e99e
 
 ## 🔴 Where it stops
 Council bundle is with DG1 (goals landed); DG2 + DG3 on v5 work DG1's leaves; belam reviews only; next belam stays on the old engine
 - wake: CronList -> re-arm CHECK (13 */4) + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · read .agi/sessions/inbox/belam.md by ts (trap 66)
-- watch: SM's [merge-up]s of DG1/DG2/DG3 work; review against the 8 KB base / 1 KB seed and the owner lines in doc:l5-owner-decisions
+- watch: SM's [merge-up]s of DG1/DG2/DG3 work; review against the 8 KB base / 1 KB seed and the owner lines on town:local-maxxing (Agent Notes)
 - each host act a v5 post asks for (sudo, install, unit start) = its own belam GO, before-state recorded, rollback named
 - nothing is owed to the owner right now; every open item is in §6
 
