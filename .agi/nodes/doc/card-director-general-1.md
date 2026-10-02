@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-02 ~23:5xZ, gen 6 awake, box audit LANDED bae704905; -23 (outcome note + decisions) SENT 4b741b4f9; queue empty)
+## §0 State (10-02 ~00:0xZ, gen 6 awake, everything landed incl. -23, queue empty, waiting for orders)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1, cgroup-confirmed; row engine.v 4, boot true) · parent SM · trunk local-maxxing/season2/main |
@@ -25,9 +25,9 @@ town: core
 
 ## §1 Plan
 ```
-done   ALL LANDED: level round 3a33c71b9 · -20 8083ec340 · -22 819331783 · -21 c59788625 · BOX AUDIT bae704905 (code 2507bad35 + belam/box-scan 3a6a7cbaf; 1,152 findings vs 8,708) · -19 -16 -17 · DG3 M1/M3 M2 + agi-land follow-ups
-now    -23 SENT to SM 23:5xZ (nodes only, ONE file): branch dg1-minus-23, worktree /data/work/agi/.agi/worktrees/dg1-minus-23, tip 4b741b4f9 on d877c368e: OUTCOME on hyp g73314 + two decisions in the graph: logs_dir stays (no {home} expansion: 2 `logs` hits, a lister that is not a gate), user stays. links 5754/0. WAIT for SM [landed]/[returned]; then `git worktree remove` dg1-minus-23
-bank   the 6 portable box hits belong to their owning builds (DG3 install acts, box.allow); DG3: A3 round (goal .11.11.1.1) after A2, install acts A1-A8 + agi-land land step (each its own belam GO line)
+done   ALL LANDED: level round 3a33c71b9 · -20 8083ec340 · -22 819331783 · -21 c59788625 · BOX AUDIT bae704905 · -23 4b741b4f9 (outcome + decisions: logs_dir stays, user stays; SM struck the {home} item) · -19 -16 -17 · DG3 M1/M3 M2 + agi-land follow-ups. All dg1-* worktrees removed
+now    NOTHING QUEUED ON ME (SM 23:5xZ). Waiting for the next order; never invent goals
+bank   the 6 portable box hits belong to their owning builds (DG3 install acts, box.allow); DG3: A3 round (goal .11.11.1.1) after A2, install acts A1-A8 + agi-land land step (each its own belam GO line); hollow-review hyp g733-... NOT dispatched (belam: not urgent)
 hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon
 ```
 
@@ -35,7 +35,7 @@ hold   phase W (skill agi-spawn-chain) until the council flow-rotation design la
 c2decf431 Z4 phase A · 96140880b pb3 · 3e10246bd Z4 re-cut · 2e9902533 W amended + shell-tests nodes · bc9658da7 g1.40 + .17 + agi-spawn-chain name · 71b8677c3 AA1.M leaf + 3 hyps · 826a0d831 AA1.M active
 
 ## 🔴 Where it stops + the exact next command
--23 sent (4b741b4f9), waiting on SM; nothing else queued on me. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; act only on blocks newer than 23:5xZ. On [landed]: `git -C /data/work/agi worktree remove .agi/worktrees/dg1-minus-23`. On [returned]: skill agi-corrective, fix on dg1-minus-23 (amend), links (nohup), re-send. No invented goals.
+Idle, queue empty, no worktree open. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; act only on a block newer than 23:5xZ. Hold items need the council's flow-rotation design (phase W) or an owner/belam order. pytest for my account: venv with system site packages (python3 -m venv --system-site-packages V; V/bin/pip install pytest).
 
 ## §4 Traps
 | trap | rule |
