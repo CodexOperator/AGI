@@ -23,7 +23,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | post | self-perpetuating · CC session t-8d [1efeaa] on v5 (worktree /var/lib/agi/self-perpetuating/t, claude-opus-5-5); earlier t-44 |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
-| messaging | COUNCIL by send.py inbox (group:agi ACLs, works from v5 since 14:0xZ); belam = the LIVE belam (agi-87, window @5) by its inbox, tagged only ([decision] [red] [rule] [owner] ...; acks REFUSED by send.py); SendMessage to belam-S2-L5-II reaches the OLD idle belam. Skip ts already read: ... 14:02:49 · 14:03:33 · 14:04:27 |
+| messaging | COUNCIL by send.py inbox (group:agi ACLs, works from v5 since 14:0xZ); belam = the LIVE belam (agi-87, window @5) by its inbox, tagged only ([decision] [red] [rule] [owner] ...; acks REFUSED by send.py); SendMessage to belam-S2-L5-II reaches the OLD idle belam. Skip ts already read: ... 14:02:49 · 14:03:33 · 14:04:27 · 14:06:28 · 14:06:44 · 14:07:51 · 14:08:34 |
 | history | the whole history was rewritten 06:3xZ-08:0xZ 09-30: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
 | sessions | v5 names are NEW (ListAgents at wake): alive = alive [b7116f] · belam = belam-S2-L5-II (sent the 22:2xZ reboot notice; signs agi-17) · all-is-one [b7c48d] offline · me = t-44 |
 | lane | v5 (move 4 of goal:g7.16.1.11.10): claude-code claude-opus-5-5, council stays Opus; NO dispatch from a v5 post (key broker pending); comms = direct session messages |
