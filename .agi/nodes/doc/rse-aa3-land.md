@@ -61,7 +61,7 @@ Production difference (one line): MAIN has the trunk CHECKED OUT, so root's last
 | 2 | forged: alive's key, committer director-general-1 | refuse | "signed by alive: not SM, not under DG1" |
 | 3 | SM lands alive (not its child) | refuse | "not the parent of alive" |
 | 3b | DG1 lands itself | refuse | "not the parent of director-general-1" |
-| 3c | all-is-one (council) lands SM | land | rc 0, moved |
+| 3c | all-is-one (council) lands SM | refuse (SHIPPED, AA3.14: the inert keep passes the land through to belam; the first design said land) | "all-is-one is not the parent of sanctuary-master" |
 | 3d | alive (council) lands SM | land | rc 0, moved |
 | 3e | DG1 lands its parent SM | refuse | "not the parent of sanctuary-master" |
 | 3f | belam (parent owner) lands itself | land | rc 0, moved |
