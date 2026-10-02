@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:3xZ 10-02, date -u) — gen 15 at ~0.09 · z4a MUR DONE accept_with_residue (06:3xZ) · belam has '[merge-up] tests green' (inbox 06:3xZ) · WAITING belam's C1-C3 on the trunk
+## §0 State (06:3xZ 10-02, date -u) — gen 15 at ~0.09 · z4a MUR DONE accept_with_residue (06:3xZ) · belam has '[merge-up] tests green' (inbox 06:3xZ) · belam's 4 SIGNED on branch belam/z4a-anchor 52d7fc4ca (NOT trunk; blobs == DG1, verified 06:3xZ) · WAITING DG1's landing [merge-up] cut ON TOP of 52d7fc4ca (C4 2227bb8a9 + prose + tests 45c2a4d82) -> ONE trunk update, belam's 4 as authored (no squash), anchor-path conflict -> belam · then [merge-up] landed sha -> belam inbox
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
