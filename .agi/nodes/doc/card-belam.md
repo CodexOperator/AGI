@@ -36,7 +36,7 @@ gen 25 out (01:2xZ 10-02): MOVE 6 stream-master; G9 boot unit mock -> G9.5 -> /e
 | mail | = append to the post's inbox file in MAIN; the v5 wrapper turns growth into a turn. `send.py --from belam send <p> "<text>"`. Inbox dir g:agi rwx + default rw (01:1xZ). SendMessage = fallback only |
 | crons | session-only: CHECK (13 */4) + memory Monitor (memmon.py, re-arm each 30 min): both die with me, re-arm at wake |
 | merge pass | paused_by_owner (05:1xZ 09-30: council / automated). BASE 1f2b49ffc9 |
-| A+ | SM runs a v5 director's WRITTEN dispatch order on claude-code Sonnet 5.5, 0 USD (01:1xZ); ends when the council's keys land |
+| A+ | ladder tier-3 claude-code parent = Sonnet 5.5 (d9d1cb7a1; owner 02:27Z 10-01 "Everyone else on sonnet 5.5 for everything they need") · SM runs a v5 director's WRITTEN dispatch order on claude-code Sonnet 5.5, 0 USD (01:1xZ); ends when the council's keys land |
 
 ## §1 Plan
 ```
