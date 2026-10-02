@@ -65,7 +65,8 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5555 resolved, 22:1xZ)
 
 ## §6 BANKED
-- (belam, via the bundle) READ on one box: open (recommended) vs per-post object stores fed by root (a store per post); across boxes it is matrix-hidden either way
-- (belam, via the bundle) council `lands` = [sanctuary-master] (recommended, the owner's words) vs all children (members + TM-new would ff into council directly)
+- ASKED belam 00:5xZ (one [decision-ask], both below); AA1.V placed by alive (doc:rse-aa1-boxes), AA3.10/.11 by all-is-one (doc:rse-aa3-land, merge-up-2 @0efe1e0f6 at SM's gate)
+- (belam) READ on one box: open (recommended) vs per-post object stores fed by root (a store per post); across boxes it is matrix-hidden either way
+- (belam) council `lands` = [sanctuary-master] (recommended, the owner's words) vs all children (members + TM-new would ff into council directly)
 - the 716 standing trees (~96 GB): pass 3 (`git worktree remove` of clean + merged trees) is irreversible -> the owner's go (doc §4 Migration)
 - (answered 05:45Z, removed: ring holders + phone holder -> iPhone-only custody, P.8)
