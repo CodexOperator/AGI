@@ -24,7 +24,7 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 26 (18:5xZ 10-02): the owner worked live with belam all afternoon; every line is verbatim on town:local-maxxing Agent Notes (64bf778d4 .. 62e8ea465). Ruled: no ladder reader moves · workflow.py retires, manifests KEPT, skill = agi-spawn-chain, the FLOW ROTATION = council (growth.tsv + parent cells only) · shell tests for v5 pieces · per-spawn key from the .env provisioning key + 2 spawn classes + direct inference = council (K1-K3) · mail without send.py = AA1.M ACCEPTED (owner GO; path unit; no worktree hop) and LANED to DG2/DG3 (SM's g7.16.1.11 HOLD lifts only by a named belam [rule]). Paid: posts lost acks because send.py has no [ack] to the Prime and their cards named a stale belam session -> route rule sent, 6/6 re-acked by send.py.
 <!-- THOUGHT:END -->
 
-## §0 State (18:5xZ 10-02, read from date -u)
+## §0 State (20:3xZ 10-02, read from date -u)
 | | |
 |---|---|
 | post | belam gen 26 (row generation fixed 1 -> 26 ff323856c per gen 25 [red] 06:12Z; window @5), session 285ac5d4, OLD engine (owner 00:1xZ: the belam v5 move = the successor-after-next, only after AA3 land + keys are BUILT) |
@@ -49,11 +49,13 @@ NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 �
 ```
 
 ## §2 Landed (gen 26)
-Z4 phase A c2decf431 · row gen -> 26 ff323856c · pb3 (skill-load red) 96140880b + Prime steps 369b03607 9917f032d · owner lines banked (town board) + relayed · AA1.M host act 1 RUN as root 18:27Z (CARRIED U, barrier holds; rolled back) -> alive's signers fix · AA1.M laned 18:5xZ: DG1 .11.1 ACTIVE, DG2 falsifiers, DG3 builds M1 M3 M2, SM gates
+Z4 phase A c2decf431 · row gen -> 26 ff323856c · pb3 96140880b + 369b03607 9917f032d · owner lines banked (town board, last 88f53816b) · AA1.M: host acts 1 / 2 / 2b RUN as root + rolled back (U -> alive's signers fix; per-sender path unit 8/8) · config:posts 87fb057c5 (council inert, DG2 + DG3 under SM) · anonymize unit names f8aed1d48 · DG1 19 b9a24a55d + DG3 M1/M3 126c83c0d on the trunk (box 1,927 B, box-mail 36 ok, 0 .py, links 5748/0)
 ## 🔴 Where it stops
-NEXT belam acts are all ARRIVALS: (1) a HOST ACT GO for AA1.M (DG1/DG3/alive send ONE line: command + before-state + rollback) -- read the script whole first (sudo cat if private), run with the sha256 check, record, roll back if scratch · (2) the council's K1-K3 + flow-rotation designs -> review against the owner lines, then name each Prime lane by [rule] (SM's HOLD needs it) · (3) W lands with agi-spawn-chain -> belam RENAMES the skills clause in both config:rotations entries on a branch, SM lands both in ONE update
-- mail route: posts send.py to belam only, acks as ONE [rule] line (send.py has no [ack] to the Prime); watch the inbox FILE from its current size, re-read by ts after each exit
-- goal:g7.16.1.11.17 (belam on v5) HORIZON: AA3 land · AA2 keys · v5 [config] ring · anchor signer
+NEXT: DG1's LEVEL-RULE round arrives (owner 19:5xZ: mail within a level or one apart; level = non-inert ancestors; council + KEEP inert, flat above the directors). It hands belam the BYTE-EXACT config:posts rows: the keep row {members: sanctuary-master, thought-master-new; keep lands [SM, TM-new]; belam lands keep; council lands []} + SM and TM-new parent -> keep. belam writes them on a branch (write.py config:posts in a scratch worktree), SM lands the 4 parts + the rows in ONE update; then verify the falsifier (21/21 or the new count) + box-mail on the trunk
+- then DG3 M2 (carrier + per-sender path unit agi-carry@.path): its LIVE install = a host act -> read the unit files whole, GO, record before-state + rollback
+- HELD: K1-K3 (council design) · W agi-spawn-chain (flow-rotation design; at its merge-up belam RENAMES the skills clause in both config:rotations entries on a branch)
+- mail: posts send.py to belam only, acks = ONE [rule] line; my [decision]s end 'ONE [rule] line each'
+- goal:g7.16.1.11.17 (belam on v5) HORIZON
 Council bundle is with DG1; DG2 + DG3 on v5 work DG1's leaves; belam reviews only; next belam stays on the old engine
 - wake: CronList -> re-arm CHECK (13 */4) + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · read .agi/sessions/inbox/belam.md by ts (trap 66)
 - watch: SM's [merge-up]s of DG1/DG2/DG3 work; review against the 8 KB base / 1 KB seed and the owner lines on town:local-maxxing (Agent Notes)
