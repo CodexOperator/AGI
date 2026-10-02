@@ -9,31 +9,31 @@ confidence: 0.6
 edited_by: director-general-1
 scaffold_hash: db95699021c60fe2
 season: 2
-testable_claim: "(B1) the rollover DUAL-WRITES the GLOBAL season -- the ladder's current_season AND town:core's `season` (core = the root town: core 2 == ladder 2 today, while local-maxxing, streaming-suite and web-app-suite carry their OWN counters of 1 and sanctuary 2, so a per-town season cannot replace the global; the global needs ONE named home, town:core, and towns.py's global-vs-town compare reads core) -- until the 11 season reader sites in 6 files read town:core (spawn_gate :742 :1414 · dispatch :1457 :2349 · send :1153 · rotate :275 :885 :21902 :22240 · seat_status :191 · towns :285); the dual-write ends when those sites read 0 from the ladder, after which a rollover writes 0 bytes to ladder.md (G2 = 0); (B2) after each reader's round, alive's G4 reads equal for every (tier, role) and every row a spawner reads, and the spawners go FIRST in the order workflow.py (serves both setups; its director stages move claude-fable-5-1 -> Sonnet 5.5 as the one named exception, AA2.25), dispatch.py, heal.py, then send, brief, verification; (B3) readers in tools only old-setup posts run stay on the ladder until that post moves."
-title: "Z4 phase B: ladder.md is FROZEN, the season rollover DUAL-WRITES the global season to the ladder AND town:core's `season`, and each ladder reader that a v4 post still runs reads the tree/row instead, one file per round, the three spawners first (workflow.py, dispatch.py, heal.py), with spec parity proven per file"
+testable_claim: "(B') ladder.md is FROZEN: no new cell is added to it and no ladder reader is added or MOVED (owner 14:0xZ: the old-setup readers are not fixed, they retire with the old-setup Python); town:core stays the named home of the GLOBAL season (core 2 == ladder 2 today; local-maxxing, streaming-suite, web-app-suite carry their OWN 1, sanctuary 2); the season dual-write and the AA2.25 workflow.py director-stage exception of the old phase B are DROPPED with the move. Z4.b holds: dispatch.py resolve_role_spec for all 8 (tier, role) is unchanged."
+title: "Z4 phase B': ladder.md is FROZEN and no ladder reader is moved (owner 14:0xZ: the old-setup readers retire with the old-setup Python, they are not fixed); the old season dual-write + reader-by-reader parity + AA2.25 exception are DROPPED"
 town: core
 ---
 # hypothesis:g716111-z4-phase-b-freeze-the-ladder-and-move-each-reader-one-file-per-round
 
 ## Measured
-- doc:rse-z4-ladder-out Z4.2 phase B; doc:radically-simple-engine AA2 'Retire ORDER' (self-perpetuating 265eb2c25: workflow.py resolves each stage as a kid of the invoking post via kid-of, overridden by a per-stage model in the workflow's own manifest, BEFORE anything retires).
-- season.py writes ladder:ladder at rollover (:1061); claude-code.toml declares source = 'ladder'; 11 season reader sites (listed above). The GLOBAL season's home is town:core (all-is-one 05:xxZ, folded from the reviewed doc:rse-z4-ladder-out at the trunk version 05a5c9a6b): the other towns' own counters cannot replace it.
-- RELEASED (belam 05:07Z): the AA2.25 exception is CONFIRMED and the `kid` cell is WRITTEN (e56869124), so B2's workflow.py round is startable after phase A. dispatch.py and heal.py serve only the OLD setup, so they move only as it moves.
+- SUPERSEDED 10-02 14:0xZ by belam [owner] 14:01Z (verbatim on goal:g7.16.1.11.15 and town:local-maxxing Agent Notes 64bf778d4): "we don't need to fix the ladder.py readers because we're not gonna, or ladder.md, because we're not gonna have any of those readers". The old phase B (season dual-write; one reader file per round, workflow.py first; AA2.25 parity) is DROPPED: it existed only to move readers. HOLD any phase-B round. (The file slug still says move-each-reader: a mint id never moves, the address may.)
+- council re-cut: all-is-one 14:03Z, Z4.6 of doc:rse-z4-ladder-out (posts/all-is-one; not on the trunk yet).
+- Facts that stay: season.py writes ladder:ladder at rollover (:1061); claude-code.toml declares source = 'ladder'; the 11 season reader sites are old-setup Python; the v5 engine reads 0 ladder bytes.
 
 ## CLAIM
-(B1) the rollover DUAL-WRITES the GLOBAL season -- the ladder's current_season AND town:core's `season` (core = the root town: core 2 == ladder 2 today, while local-maxxing, streaming-suite and web-app-suite carry their OWN counters of 1 and sanctuary 2, so a per-town season cannot replace the global; the global needs ONE named home, town:core, and towns.py's global-vs-town compare reads core) -- until the 11 season reader sites in 6 files read town:core (spawn_gate :742 :1414 · dispatch :1457 :2349 · send :1153 · rotate :275 :885 :21902 :22240 · seat_status :191 · towns :285); the dual-write ends when those sites read 0 from the ladder, after which a rollover writes 0 bytes to ladder.md (G2 = 0); (B2) after each reader's round, alive's G4 reads equal for every (tier, role) and every row a spawner reads, and the spawners go FIRST in the order workflow.py (serves both setups; its director stages move claude-fable-5-1 -> Sonnet 5.5 as the one named exception, AA2.25), dispatch.py, heal.py, then send, brief, verification; (B3) readers in tools only old-setup posts run stay on the ladder until that post moves.
+(B') ladder.md is FROZEN: no new cell is added to it and no ladder reader is added or MOVED (owner 14:0xZ: the old-setup readers are not fixed, they retire with the old-setup Python); town:core stays the named home of the GLOBAL season (core 2 == ladder 2 today; local-maxxing, streaming-suite, web-app-suite carry their OWN 1, sanctuary 2); the season dual-write and the AA2.25 workflow.py director-stage exception of the old phase B are DROPPED with the move. Z4.b holds: dispatch.py resolve_role_spec for all 8 (tier, role) is unchanged.
 
 ## Dispatch line
-config-max: the per-stage `model` key in a workflow manifest (graph) and town:core's `season` cell (the global season's one home) / template-max: none / code: one reader file per round (build rounds, each with its own parity proof).
+config-max: none / template-max: none / code: none (a freeze is the ABSENCE of work; no round is dispatched for B').
 
 ## FALSIFIERS
-Z4.c B1 after a rollover EVERY season reader (the 11 sites) returns the new season, read from town:core once moved; when they read 0 from the ladder the dual-write stops and a rollover writes 0 bytes to ladder.md (G2 = 0) · per round G4 parity equal for the moved reader · negative: no round moves two reader files.
+Z4.b: dispatch.py resolve_role_spec for all 8 (tier, role) == before, on the trunk, any day · negative: `git log` shows no commit adding a cell to ladder.md or a new ladder reader after the A landing (c2decf431).
 
 ## TESTS
-alive's G1-G4 count/parity script run before and after each round; a season-rollover dry run; the moved file's own tests.
+the 8-spec parity script (alive's G4) run once on the trunk; `git log --oneline c2decf431.. -- .agi/nodes/.geometry/ladder.md` empty.
 
 ## FILE SCOPE
-one reader file per round (workflow.py first) · season.py's rollover write · claude-code.toml source. HORIZON until phase A lands (belam's three owner items are ruled).
+none: nothing is edited. HORIZON; kept as the record of the superseded phase.
 
 ## CEILING
-1 parent per round · kids <= 1 · one file per round · regular review.
+0 rounds.
