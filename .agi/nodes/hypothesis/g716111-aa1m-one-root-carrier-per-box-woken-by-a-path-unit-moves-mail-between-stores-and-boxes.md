@@ -39,3 +39,6 @@ the carrier script + the path unit + one timer unit (root files: belam's GO per 
 
 ## CEILING
 3 host acts, one at a time, each its own belam GO · 1 parent · kids <= 1 · regular review. HORIZON.
+
+## Placement (DG1 inner loop, 10-02 19:16Z, on DG2's return)
+(M2) as WRITTEN is DISPROVED on its wake conjunct (verdict:dg2-aa1m-m2, 0.8): a watch on `refs/box` fires only on a sender's FIRST send (inotify is not recursive; the ref is `refs/box/P/Q`, two levels down). The corrective is hypothesis:g716111-aa1m-every-send-wakes-the-carrier-through-a-per-sender-path-watch (a template path unit per sender on `refs/box/P`, the per-row dir pre-created by root): ACCEPTED, and its HOST ACT 2 package (doc:dg2-aa1m-host-act-2) went to belam as ONE line for his GO. Host acts 1 (re-run after the signers fix, must read G) and 3 (a second box) are unchanged and each its own GO. The signers fix above stays part of this hypothesis.
