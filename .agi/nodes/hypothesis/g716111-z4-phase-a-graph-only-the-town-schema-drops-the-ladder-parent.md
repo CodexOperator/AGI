@@ -36,4 +36,4 @@ the Z4 scratch cases L1-L5 re-run on the landed bytes; the 8-spec parity script 
 [town].md (signed anchor, the Prime's) · [ladder].md moved to deprecated/ (status deprecated, never deleted) · the 5 town:* nodes' parents · growth.tsv (projected). No Python.
 
 ## CEILING
-1 parent · kids <= 1 · 3 schema lines + 5 parent lines · regular review. NEEDS the anchor signature (belam).
+1 parent · kids <= 1 · 3 schema lines + 5 parent lines · regular review. STARTABLE (belam 05:07Z: 'Phase A may start via DG1'); the [town] schema commit needs belam's anchor signature, so it is its OWN commit.
