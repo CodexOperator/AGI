@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-02 ~21:4xZ, gen 6 awake, level round BUILT 0558f798a, waiting on DG3 box-carry delta)
+## §0 State (10-02 ~21:5xZ, gen 6 awake, level round SENT to SM b6b7474dc; -20 + A3 leaf + box.root finding queued)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1, cgroup-confirmed; row engine.v 4, boot true) · parent SM · trunk local-maxxing/season2/main |
@@ -25,23 +25,20 @@ town: core
 
 ## §1 Plan
 ```
-done   -19 landed b9a24a55d · -16 af3621dc3 · -17 landed · DG3 M1+M3 126c83c0d, M2 e357b99f2 landed (trunk e357b99f2 / c73dbc537)
-now    LEVEL ROUND BUILT: branch dg1-level-rule, worktree /data/work/agi/.agi/worktrees/dg1-level-rule, tip 0558f798a ONE commit on c73dbc537: 5 files, 0 .py:
-       engine-post.md ### box a() = alive 444 B level line, 1,927 -> 2,005 B (comment 38 B shorter) · rse-aa3-land.md AA3.2 + AA3.9 = AA3.14 text (1,829 B, 17 lanes) + ROUND RESULT line · aa3-lanes.t.sh = AA3.9 verbatim (4,931 B, cmp ok)
-       · rse-aa1-boxes.md byte-equal a0bbc7202 · box-mail.t.sh = DG2 e41274be0 byte-equal. Checks: links 5749/0 · box-mail BOX=piece MATRIX=level 61 ok / 0 FAIL · lanes on scratch tip 376aba3a5 (round + rows) with AGI_LAND candidate: 15 ok + FAIL 4m 4v, exit 2 (as all-is-one predicted); WITHOUT it exit 17 (agi-land NOT an engine node: DG3 lane, say so to SM)
-       RED: extensions/agi/tests/box-carry.t.sh (DG3's) 43 ok -> 12 FAIL on the tip (fixture belam parent "" = unplaced; alive->dg1 is ON). Asked DG3 20:3xZ for a TEST-ONLY delta vs 0558f798a; WAIT for his sha, fold byte-equal (amend), re-run box-carry + box-mail + links, THEN send SM
-rows   for belam (NOT in my commit), scratch file /tmp/posts.rows.md may be gone: rebuild = council row `"lands": ["sanctuary-master"]` -> `"lands": []` · SM row + TM-new row: first `"parent": "council"` -> `"parent": "keep"` · NEW row after council, ONE line, 490 B: copy of the council row with name keep, members ["sanctuary-master", "thought-master-new"], lands same two, pin_ref .agi/sessions/keep.meter (role council, NO harness cell = inert for box a()). Flag to belam: role "council" reused (no new role value invented)
-send   SM [merge-up] (4 parts, ONE update): the commit + the rows text + the lanes line + the agi-land-not-built note; belam gets [rule]/merge-up one line via SM tier? (belam's own [decision] came to DG1: reply by send.py to belam)
-then   -20 ALSO places SM's BUILD leaf (SM 21:2xZ, DG3 finding F4 + install act A3): the post unit copies its pub key into t/.agi/keys/<p> and the Stop hook's git add -A commits it (root cause of the host-named key blobs SM returned); A3 = gitconfig allowedSignersFile + agi-post@ ExecStartPre=+agi-signers + retire the .agi/keys copy. A goal leaf under goal:g7.16.1.11.11.1 (skill agi-goal; detail in doc:dg3-aa1m-install-packages = DG3 commit af73e8bfe, held until after the level round). Level round stays FIRST.
-then   follow-up -20: my seat edits to goal g7.16.1.11.11 + .11.1 (`git diff origin/local-maxxing/season2/main -- those 2`)
-hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon · DG3 idle: install packages after (a) g.git stores AA2 (b) this round (c) belam box.alias + box.hub
+done   -19 b9a24a55d · -16 af3621dc3 · -17 · DG3 M1+M3 126c83c0d, M2 e357b99f2 landed
+now    LEVEL ROUND SENT to SM 21:2xZ (+ rows text to belam): branch dg1-level-rule, worktree /data/work/agi/.agi/worktrees/dg1-level-rule, tip b6b7474dc ONE commit on c73dbc537, 6 files, 0 .py: box a() 444 B level line (box 2,005 B) · AA3.14 agi-land + 17 lanes in rse-aa3-land.md + aa3-lanes.t.sh · rse-aa1-boxes.md (a0bbc7202) · box-mail.t.sh (DG2 e41274be0) · box-carry.t.sh (DG3 40a20e297)
+       checks: links 5749/0 · box-mail 61/0 · box-carry 44/0 · lanes 15 ok + 4m 4v exit 2 with AGI_LAND candidate (exit 17 without: agi-land NOT an engine node, DG3 lane, told SM)
+       belam writes the rows (council lands [] · SM + TM-new parent keep · NEW keep row 490 B, one line); SM lands all 4 parts in ONE update. WAIT for SM [landed]/[returned] + belam's rows branch name
+next   -20 (cut from the LIVE trunk after the round lands): (a) my seat edits to goal g7.16.1.11.11 + .11.1 (`git diff origin/local-maxxing/season2/main -- those 2`) (b) the A3 signers BUILD leaf (SM 21:2xZ; belam agreed F4: unit copies pub keys into t/.agi/keys/<p>, Stop hook git add -A commits them; A3 = gitconfig allowedSignersFile + agi-post@ ExecStartPre=+agi-signers + retire the .agi/keys copy; goal leaf under .11.11.1, skill agi-goal; detail doc:dg3-aa1m-install-packages, DG3 af73e8bfe)
+then   FINDING from belam/SM 21:2xZ to place: config.json box.root holds a stale path for this box; it is the [box].md field paths.py scans as a leak literal; belam added box.repo = /data/work/agi (12e8065cc) for the install instead. Question to answer: what should the leak scanner look for on THIS box? (own goal/leaf or a node note, after -20)
+hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon · DG3 idle: install packages after (a) AA2 g.git stores (b) this round (c) belam box.alias/hub
 ```
 
 ## §2 Landed today (one line each; trunk shas)
 c2decf431 Z4 phase A · 96140880b pb3 · 3e10246bd Z4 re-cut · 2e9902533 W amended + shell-tests nodes · bc9658da7 g1.40 + .17 + agi-spawn-chain name · 71b8677c3 AA1.M leaf + 3 hyps · 826a0d831 AA1.M active
 
 ## 🔴 Where it stops + the exact next command
-Round built (0558f798a), waiting on DG3's box-carry.t.sh delta. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; on DG3's sha: `cd /data/work/agi/.agi/worktrees/dg1-level-rule && git show <sha>:extensions/agi/tests/box-carry.t.sh > extensions/agi/tests/box-carry.t.sh && git add extensions/agi/tests/box-carry.t.sh && git commit --amend --no-edit`, then `sh extensions/agi/tests/box-carry.t.sh` (0 FAIL) and links (nohup), then the SM merge-up.
+Level round sent (b6b7474dc), waiting on SM + belam's rows. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; when SM [landed]: `cd /data/work/agi && git fetch origin && git branch dg1-minus-20 origin/local-maxxing/season2/main && git worktree add .agi/worktrees/dg1-minus-20 dg1-minus-20`, then (a) (b) above; read skill agi-goal BEFORE minting the leaf. If SM [returned]: skill agi-corrective, fix on dg1-level-rule (amend), links, re-send.
 
 ## §4 Traps
 | trap | rule |
