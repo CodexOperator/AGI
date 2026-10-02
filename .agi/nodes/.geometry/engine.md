@@ -10,7 +10,7 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 37 pieces (40 `###` blocks in engine*.md: agi-boot, agi-boot.service and matrix are not mapped)
+# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 38 pieces (41 `###` blocks in engine*.md: agi-boot, agi-boot.service and matrix are not mapped)
 Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
@@ -66,8 +66,9 @@ sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
 agi-fill          5973 B  a node key opens a captive fill window
 agi-captive        576 B  window open: only agi-fill passes
 grow-check        1298 B  one node vs its matrix row + key
-grow-gate         1435 B  pre-receive: added/changed nodes must pass
+grow-gate         1465 B  pre-receive: added/changed nodes must pass
 grow-project      1185 B  schemas -> the growth matrix
+agi-land          1829 B  root: ff-lands a post range on the trunk, one parent edge up (ring-signed, grow-gate, agi-gate)
 box               2005 B  mail: one signed ref update per send (5x CAS), read from the store
 box-carry         3105 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
 agi-signers       1515 B  root: the ONE allowed_signers, every key generation, valid-after/before; one strict key line
