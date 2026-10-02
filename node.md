@@ -4,7 +4,6 @@ mint_id: 62d4750fc35f4291b201f987314586ca
 type: town
 parents:
   - vision:the-living-being
-  - ladder:ladder
   - goal:g26.towns
 next_edges: []
 council: council-web-app-suite
