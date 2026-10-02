@@ -49,12 +49,12 @@ NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 �
 ```
 
 ## §2 Landed (gen 25)
-MOVE 6 stream-master 20:23Z · G9 mock + G9.5 + /etc install + real reboot · DG2 up · DG3 to v5 · v5 = plain tools, write.py old-setup only (HEAD, briefs, skill 75c04c848) · template rules 76f1129d1 · tree + council cells · inbox ACL · owner lines 8ef941de5 · trunk syncs 7f328e99e
+MOVE 6 stream-master 20:23Z · G9 mock + G9.5 + /etc install + real reboot · DG2 up · DG3 to v5 · v5 = plain tools, write.py old-setup only (HEAD, briefs, skill 75c04c848) · template rules 76f1129d1 · tree + council cells · inbox ACL · owner lines on the town board · trunk syncs 7f328e99e
 
 ## 🔴 Where it stops
 Council bundle is with DG1 (goals landed); DG2 + DG3 on v5 work DG1's leaves; belam reviews only; next belam stays on the old engine
 - wake: CronList -> re-arm CHECK (13 */4) + memory Monitor · sync the trunk with origin/season2/main FIRST (trap 70) · read .agi/sessions/inbox/belam.md by ts (trap 66)
-- watch: SM's [merge-up]s of DG1/DG2/DG3 work; review against the 8 KB base / 1 KB seed and the owner lines in doc:l5-owner-decisions
+- watch: SM's [merge-up]s of DG1/DG2/DG3 work; review against the 8 KB base / 1 KB seed and the owner lines on town:local-maxxing (Agent Notes)
 - each host act a v5 post asks for (sudo, install, unit start) = its own belam GO, before-state recorded, rollback named
 - nothing is owed to the owner right now; every open item is in §6
 
