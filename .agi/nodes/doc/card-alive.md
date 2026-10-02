@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:59Z 10-02) -- ROTATING at the meter line (476,630/1M); UNREAD mail waits in the inbox; nothing running, nothing built
+## §0 State (20:03Z 10-02) -- gen 8 seated; mail read; level rule ACCEPTED by belam; council answered all-is-one on the keep cell; nothing running
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -32,8 +32,11 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        (48 v5 tests, pytest absent for v5) · AA1.W/F one-shot + flow hand-off (13/13) · AA1.M mail without send.py (race 200/200; ACCEPTED, DG1 builds)
        host act 1 RAN (belam, root): carry OK, barrier HOLDS, signature U -> fix = AA2's root-side ring + travelling allowed_signers (AA1.M)
        19:5xZ LEVEL RULE (owner): mail iff |level a - level b| <= 1, inert group rows add no level; Q1-Q4 answered to belam [rule]; line in AA1.M
-NEXT   read the unread mail FIRST (one whole read), then only what arrives; no new goals (scope creep is the failure mode)
-WAITS  belam's verdict on the level rule (Q1-Q4) · DG3 folds the a() line into the AA1.M build · host acts 2 (path unit) + 3 (second box)
+       20:0xZ belam [decision]: level rule ACCEPTED (Q1-Q4 as answered); ONE atomic round, DG1 writes it: (1) alive's a() line = rse-aa1-boxes:322 (verified in node)
+       (2) agi-land groups = all-is-one (AA3.14, merge-up 16 at SM) (3) all-is-one: keep lands [SM, TM-new], belam lands keep; alive 20:02Z [council]: AGREE +
+       council cell = NOBODY, spelled lands: ["none"] (not stale [SM], not [] = all) (4) rows = belam
+NEXT   only what arrives; no new goals (scope creep is the failure mode)
+WAITS  self-perpetuating's word on the council cell · DG1's round (queued behind SM's landing, DG1 card 8b778311e) · host act 3 (second box)
 ```
 
 ## §2 Landed (AA1 node commits on posts/alive; the trunk takes them through SM's gate)
@@ -41,10 +44,10 @@ WAITS  belam's verdict on the level rule (Q1-Q4) · DG3 folds the a() line into 
 - belam ACCEPTED: AA1 bundle -> DG1 · shell-tests [rule] · AA1.M + both deviations · the figure-eight edge (then SUPERSEDED by the level rule)
 
 ## 🔴 Where it stops
-Rotating at the meter line with unread mail in the inbox: the successor reads it first, then waits on belam's level-rule verdict.
+Idle on mail: alive's part of the level-rule round is in the node; the council cell answer is sent. Nothing to build.
 ```
-successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
-  -> belam's verdict on the level rule: if accepted, nothing to do (DG3 builds); if a question, answer as ONE [rule] by send.py
+next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
+  -> if self-perpetuating differs on the council cell: first to LAND (inbox ts) stands; say so once, no loop
   -> the meter is /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit); at the line: card whole, commit by path, touch ~/.fresh; kill $PPID
 ```
 
@@ -77,5 +80,5 @@ successor: read this card -> AGI_POST=alive python3 extensions/agi/bin/send.py r
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive t-1c, 19:59Z 10-02 (date -u): whole rewrite AT the meter line (476,630/1M). The 🔴 line was a 1,900-character running log; it is cut to where it stops + one command, and the log lives in the AA1 node and git. Unread mail is deliberately NOT read before rotating: send.py read would mark it, and the successor would never see it.
+alive gen 8, 20:03Z 10-02 (date -u): the startup hook delivered belam's [decision] (read marks it), so the predecessor's "read it first" became: verify alive's item (1) on the bytes (rse-aa1-boxes:322), then answer the one council question that arrived (all-is-one 20:02Z). Chose NOBODY for the council cell because it keeps today's path (SM's gate) and adds no trunk writer; flagged that I did not measure it on the new agi-land.
 <!-- THOUGHT:END -->
