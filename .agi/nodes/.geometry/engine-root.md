@@ -75,10 +75,10 @@ systemctl start agi-post@$p</dev/null||{ echo "agi-boot: start failed $p">&2;e=1
 exit $e
 ~~~
 
-### box-carry (2932 B)
+### box-carry (3105 B)
 ~~~sh
 #!/bin/sh
-# box-carry P (ROOT, agi-carry@P.service, woken by P's own refs/box/P): P's refs/box/P/<Q> -> the store of each recipient on this box (pipe, ff-only, strict), or -> the hub when Q's box is elsewhere; re-scanned (max 5x) as long as P's tips keep moving
+# box-carry P (ROOT, agi-carry@P.service, woken by P's own refs/box/P): P's refs/box/P/<Q> -> the store of each recipient on this box (pipe, ff-only, strict), or -> the hub when Q's box is elsewhere; re-scanned (max 5x) as long as P's tips keep moving; still moving after the last pass = exit 75 (the unit restarts it)
 # box-carry --fetch (the timer): push what a failed push left in C, then the hub's refs/box/*/Q -> Q's store, for a Q here and a sender elsewhere
 # trust: root reads the matrix at a PINNED 40-hex trunk sha (a post can write AGI_REPO's refs, never a sha's bytes; replace refs ignored) and runs git only in its OWN repos (C, AGI_REPO); a post's store is read and written AS that post; a ref name is data (validated, an argument, never script text); every edge is the box script's own a() at that sha, both for local, hub-bound and hub-sourced refs
 export GIT_NO_REPLACE_OBJECTS=1
@@ -99,7 +99,7 @@ if [ "$1" = --fetch ];then [ -n "$H" ]||exit 0
 else P=$1;ok $P&&[ -n "$(bx $P)" ]||exit 1;k=;i=0
  while [ $i -lt 5 ];do s=$(as $P git -C $S/$P/g.git for-each-ref --format='%(objectname) %(refname)' $m/$P/);[ "$s" = "$k" ]&&break;k=$s;i=$((i+1))
   for r in $(echo "$s"|cut -d' ' -f2);do q=${r##*/};[ $r = $m/$P/$q ]&&ok $q&&a $P $q||continue
-   if [ "$(bx $q)" = $B ];then put $P $S/$P/g.git $q $S/$q/g.git $r;elif [ -n "$H" ];then put $P $S/$P/g.git - $C $r&&git -C $C push -q $H $r:$r;fi;done;done;fi;:
+   if [ "$(bx $q)" = $B ];then put $P $S/$P/g.git $q $S/$q/g.git $r;elif [ -n "$H" ];then put $P $S/$P/g.git - $C $r&&git -C $C push -q $H $r:$r;fi;done;done;[ "$(as $P git -C $S/$P/g.git for-each-ref --format='%(objectname) %(refname)' $m/$P/)" = "$k" ]||exit 75;fi;:
 ~~~
 
 ### agi-signers (1515 B)
@@ -126,15 +126,17 @@ PathChanged=/var/lib/agi/%i/g.git/refs/box/%i
 WantedBy=paths.target
 ~~~
 
-### agi-carry@.service (276 B)
+### agi-carry@.service (287 B)
 ~~~ini
 [Unit]
 StartLimitIntervalSec=0
 [Service]
 Type=oneshot
 TimeoutStartSec=120
+Restart=on-failure
+RestartSec=5
 EnvironmentFile=/etc/agi/carry.env
-Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=* PATH=/opt/agi/bin:/usr/local/bin:/usr/bin:/bin
+Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory PATH=/opt/agi/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/opt/agi/bin/box-carry %i
 ~~~
 
@@ -148,13 +150,13 @@ AccuracySec=1s
 WantedBy=timers.target
 ~~~
 
-### agi-carry-fetch.service (250 B)
+### agi-carry-fetch.service (229 B)
 ~~~ini
 [Service]
 Type=oneshot
 TimeoutStartSec=120
 EnvironmentFile=/etc/agi/carry.env
-Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=* PATH=/opt/agi/bin:/usr/local/bin:/usr/bin:/bin
+Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory PATH=/opt/agi/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/opt/agi/bin/box-carry --fetch
 ~~~
 

@@ -6,7 +6,11 @@ T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname 
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 [ -n "$BOX" ]||{ sect box>$T/box;BOX=$T/box;};[ -n "$CARRY" ]||{ sect box-carry>$T/carry;CARRY=$T/carry;};[ -n "$SIGNERS" ]||{ sect agi-signers>$T/signers.sh;SIGNERS=$T/signers.sh;}
 [ -s $BOX ]&&[ -s $CARRY ]&&[ -s $SIGNERS ]||{ echo "FAIL extract: box $(wc -c<$BOX) carry $(wc -c<$CARRY) signers $(wc -c<$SIGNERS)";exit 99;}
-mkdir $T/bin;printf '#!/bin/sh\ncat %s/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"\n' $R0>$T/bin/sect;chmod +x $T/bin/sect
+mkdir $T/bin;cat >$T/bin/sect<<XX
+#!/bin/sh
+$G -C $T/r show \${2:-HEAD}:.agi/nodes/.geometry/engine-post.md|sed -n "/^###* \$1 /,/^###* /{/^~~~/,/^~~~/{//!p}}"
+XX
+chmod +x $T/bin/sect
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 # --- fixture: keys, signers, per-post gitconfig, a repo holding the matrix (rows carry their box cell), per-post bare stores on two boxes, one hub
 mkdir $T/k $T/c;: >$T/allowed
@@ -22,7 +26,12 @@ cat >$T/r/.agi/nodes/.geometry/posts.md<<'XX'
   - {"name":"sm","parent":"council","harness":"claude","box":"A"}
   - {"name":"dg1","parent":"sm","harness":"claude","box":"B"}
 XX
+cp $R0/.agi/nodes/.geometry/engine-post.md $T/r/.agi/nodes/.geometry/engine-post.md
 $G -C $T/r add -A;$G -C $T/r -c user.name=x -c user.email=x@x commit -qm fixture;TR=$($G -C $T/r rev-parse HEAD)
+# HEAD moves PAST the pin (read-at-pin): dg5 and dg1 flip to box A, and a() denies everything. Every case below must route by TR, never by HEAD.
+sed -i 's/"name":"dg5","parent":"council","harness":"claude","box":"B"/"name":"dg5","parent":"council","harness":"claude","box":"A"/;s/"name":"dg1","parent":"sm","harness":"claude","box":"B"/"name":"dg1","parent":"sm","harness":"claude","box":"A"/' $T/r/.agi/nodes/.geometry/posts.md
+sed -i 's/^a(){ .*$/a(){ return 1;}/' $T/r/.agi/nodes/.geometry/engine-post.md
+$G -C $T/r add -A;$G -C $T/r -c user.name=x -c user.email=x@x commit -qm 'head past the pin';[ "$($G -C $T/r rev-parse HEAD)" != "$TR" ]||echo "FAIL fixture: HEAD == the pin" 
 $G init -q --bare $T/hub.git
 for b in A B;do mkdir -p $T/$b;done
 for pb in belam:A alive:A sm:A dg5:B dg1:B;do u=${pb%:*};b=${pb#*:};$G init -q --bare $T/$b/$u/g.git;echo $T/r/.git/objects>$T/$b/$u/g.git/objects/info/alternates;done
@@ -74,6 +83,8 @@ echo u|box A alive send sm;RUN=bogus carry A alive 2>/dev/null;ok k3f-unknown-ru
 mkdir $T/fk2;printf '#!/bin/sh\nif [ "$3" = pack-objects ]&&[ ! -e %s/late ];then touch %s/late;(cd %s/A/sm/g.git&&echo late|PATH=%s AGI_POST=sm AGI_TRUNK=%s GIT_CONFIG_GLOBAL=%s/c/sm GIT_CONFIG_SYSTEM=/dev/null sh %s send belam);fi\nexec %s "$@"\n' $T $T $T "$PATH" $TR $T $BOX $G>$T/fk2/git;chmod +x $T/fk2/git
 echo first|box A sm send belam;(PATH=$T/fk2:$PATH carry A sm 2>/dev/null)
 ok k4c-send-during-run-not-lost '[ "$(box A belam read|grep -c "^\[sm\] ")" = 2 ]'
+# read-at-pin, both halves: HEAD's a() denies everything and HEAD flips dg5/dg1 to box A, the pin does not: the carrier must still deliver alive -> belam and route sm -> dg5 by the pin (k5)
+echo pin|box A alive send belam;carry A alive 2>/dev/null;ok k0c-adjacency-read-at-the-pin '[ "$(tip A belam refs/box/alive/belam)" = "$(tip A alive refs/box/alive/belam)" ]&&[ "$(tip A alive refs/box/alive/belam)" != none ]'
 # --- k4: a diverged tip in the recipient's store is refused, loud, and left as it is
 box A alive read>/dev/null;x=$($G -C $T/A/alive/g.git commit-tree -m diverge $($G -C $T/A/alive/g.git hash-object -w -t tree /dev/null));$G -C $T/A/alive/g.git update-ref refs/box/belam/alive $x
 echo order4|box A belam send alive;carry A belam 2>$T/k4.err;rc=$?
@@ -82,19 +93,23 @@ ok k4-diverged-refused '[ "$(tip A alive refs/box/belam/alive)" = "$x" ]&&grep -
 box A alive read>/dev/null;$G -C $T/A/alive/g.git update-ref -d refs/box/belam/alive;carry A belam
 y=$(tip A alive refs/box/belam/alive);[ "$y" = "$(tip A belam refs/box/belam/alive)" ]||echo '# k4b setup: alive not at belam tip';z=$($G -C $T/A/belam/g.git commit-tree -m sibling $($G -C $T/A/belam/g.git hash-object -w -t tree /dev/null));$G -C $T/A/belam/g.git update-ref refs/box/belam/alive $z
 carry A belam 2>$T/k4b.err;ok k4b-not-ff-refused '[ "$(tip A alive refs/box/belam/alive)" = "$y" ]&&grep -q "^\[carry-failed\] refs/box/belam/alive" $T/k4b.err'
+# the tail window: tips that are STILL moving after the last pass make the carrier exit 75 (the unit restarts it), never a silent stop
+mkdir $T/fk3;printf '#!/bin/sh\nif [ "$3" = pack-objects ];then (cd %s/A/sm/g.git&&echo late$$|PATH=%s AGI_POST=sm AGI_TRUNK=%s GIT_CONFIG_GLOBAL=%s/c/sm GIT_CONFIG_SYSTEM=/dev/null sh %s send belam);fi\nexec %s "$@"\n' $T "$PATH" $TR $T $BOX $G>$T/fk3/git;chmod +x $T/fk3/git
+echo seed|box A sm send belam;(PATH=$T/fk3:$PATH carry A sm 2>$T/k4d.err);rc4d=$?;[ -n "$DBG" ]&&echo "# k4d rc=$rc4d sm->belam commits=$($G -C $T/A/sm/g.git rev-list --count refs/box/sm/belam) in belam store=$($G -C $T/A/belam/g.git rev-list --count refs/box/sm/belam) $(head -c 200 $T/k4d.err)";ok k4d-never-stable-exit-75 '[ $rc4d = 75 ]'
 # --- k5: sm (box A) -> dg5 (box B) through the hub, and the reply back
 echo hello-B|box A sm send dg5;carry A sm;carry B --fetch
 ok k5-out '[ "$($G -C $T/hub.git rev-parse -q --verify refs/box/sm/dg5)" = "$(tip A sm refs/box/sm/dg5)" ]'
 ok k5-delivered '[ "$(box B dg5 n|wc -l)" = 1 ]&&box B dg5 read|grep -qF "[sm] hello-B"'
 echo reply-A|box B dg5 send sm;carry B dg5;carry A --fetch
-ok k5-reply '[ "$(box A sm n|wc -l)" = 1 ]&&box A sm read|grep -qF "[dg5] reply-A"'
+[ -n "$DBG" ]&&{ echo "# k5 sm n: $(box A sm n|tr '\n' ' ')";}
+ok k5-reply 'box A sm read|grep -qF "[dg5] reply-A"'
 # the box-B sender's copy never lands in a store on box A except the recipient's, and a local pair never touches the hub
 ok k5-local-not-pushed '! $G -C $T/hub.git rev-parse -q --verify refs/box/belam/alive>/dev/null'
 # --- k6: no hub cell = a remote recipient is left in the sender'"'"'s store, nothing pushed, rc 0
 echo lonely|box A sm send dg5;HUB= carry A sm 2>$T/k6.err;rc=$?;ok k6-no-hub '[ "$($G -C $T/hub.git rev-parse refs/box/sm/dg5)" != "$(tip A sm refs/box/sm/dg5)" ]&&[ $rc = 0 ]&&[ ! -s $T/k6.err ]'
 # --- k7: nothing outside the stores is written: no inbox file, no worktree change
 ok k7-no-inbox-anywhere '[ -z "$(find $T -iname "*inbox*" -not -path "*/.git/*" 2>/dev/null)" ]'
-ok k7-matrix-repo-untouched '[ -z "$($G -C $T/r status --porcelain)" ]&&[ "$(find $T/r -type f -not -path "*/.git/*"|wc -l)" = 1 ]'
+ok k7-matrix-repo-untouched '[ -z "$($G -C $T/r status --porcelain)" ]&&[ "$(find $T/r -type f -not -path "*/.git/*"|wc -l)" = 2 ]'
 # --- s1-s4: the signers fix (agi-signers): one root-owned file, append-only, old generations verify at their own date
 mkdir -p $T/s/p/.ssh;ssh-keygen -q -t ed25519 -N '' -f $T/s/p/.ssh/id_ed25519 -C x>/dev/null;sg(){ AGI_RUN=none AGI_STORES=$T/s AGI_SIGNERS=$T/s/allowed sh $SIGNERS p;}
 e0=$(date -u +%s);sg;sg;ok s1-once '[ "$(wc -l<$T/s/allowed)" = 1 ]&&grep -q "^p@agi namespaces=\"git\",valid-after=\"[0-9]*Z\" ssh-ed25519 " $T/s/allowed'

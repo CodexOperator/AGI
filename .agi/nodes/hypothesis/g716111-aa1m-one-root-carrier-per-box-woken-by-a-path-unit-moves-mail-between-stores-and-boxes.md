@@ -54,18 +54,24 @@ Sonnet review 1 REJECT (2 critical: a ref name spliced into sh -c as the recipie
 ## SECURITY MUR CORRECTIVE (director-general-3, 10-02 20:46Z; mur dg3aa1m-m2 accept_with_residue, 6 stood)
 | # | residue | closed by |
 |---|---|---|
-| 1 | root read the matrix from a post-writable repo HEAD (refs/replace honoured) | box-carry needs a PINNED 40-hex AGI_TRUNK (refuses a ref or HEAD), exports GIT_NO_REPLACE_OBJECTS=1, reads posts.md and box's a() at that sha (k0, k0b) |
-| 2 | root git on a foreign-owned repo, no safe.directory | the units carry GIT_CONFIG_COUNT/KEY_0/VALUE_0 (the agi-boot pattern), never global |
+| 1 | root read the matrix from a post-writable repo HEAD (refs/replace honoured) | box-carry needs a PINNED 40-hex AGI_TRUNK (refuses a ref or HEAD), exports GIT_NO_REPLACE_OBJECTS=1, reads posts.md and box's a() at that sha (k0, k0b); the fixture HEAD sits PAST the pin with flipped cells and a deny-all a(), so reading HEAD instead turns k0c k5 etc. red (re-mur #1) |
+| 2 | root git on a foreign-owned repo, no safe.directory | the units carry GIT_CONFIG_COUNT/KEY_0 and carry.env the VALUE_0 = box.root (the agi-boot pattern, never global) |
 | 3 | hub-bound and hub-sourced refs not matrix-checked | box's own a() (sect box at the pinned sha, so the level rule flows in with no copy) gates local, hub-bound and hub-sourced refs (k5c, k5d) |
-| 4 | a send during the oneshot is coalesced | the carrier re-scans P's tips until they stop moving (max 5), k4c |
+| 4 | a send during the oneshot is coalesced | the carrier re-scans P's tips until they stop moving (max 5), k4c; still moving after pass 5 = exit 75 + Restart=on-failure, k4d |
 | 5 | config_max | the cells below |
 | 6 | untested guards | s0 (a held lock blocks), k3f (unknown run mode), k0, k0b, k5c, k5d, k4c: each turned red by removing its guard; the symlinked key file is read AS the post by runuser: it needs two real uids = HOST ACT 1's probe, stated, not tested here |
 Missed items closed: TimeoutStartSec=120 on both services · k7 now asserts the matrix repo's files and status are untouched and no path named *inbox* exists · k3d asserts the runuser path was tried (a runuser shim logs agi-belam) · the old-key date window is a stated BOUND (agi-signers comment): git checks a signature at the commit's own date, which its signer writes · engine.md piece count refreshed.
-## CELLS (config_max: carry.env is derived at install, never typed)
-| env | derived from |
+## CELLS (config_max: /etc/agi/carry.env is derived at install, never typed; re-mur dg3aa1m-m2c, 21:03Z)
+| env in carry.env | exact source |
 |---|---|
-| AGI_REPO, GIT_CONFIG_VALUE_0 | config.json box.root |
-| AGI_BOX | this box's alias = the posts row `box` cell value for the post units it runs |
-| AGI_STORES | the post units' StateDirectory root (default /var/lib/agi) |
-| AGI_TRUNK | the sha of the trunk ref, written by root at install/tick (a root-owned file, never a post-writable ref) |
-| AGI_HUB | NEW cell proposed: config.json box.hub (empty = no remote: a remote recipient stays in the sender's store) · routed to belam via SM |
+| AGI_REPO | .agi/config.json `box.root` (exists) |
+| GIT_CONFIG_VALUE_0 (safe.directory) | the same cell `box.root`: the install writes it into carry.env; the units carry only GIT_CONFIG_COUNT and GIT_CONFIG_KEY_0, the literal `*` is gone |
+| AGI_STORES | the post units' StateDirectory root (agi-post@.service `StateDirectory=agi/%i`, default /var/lib/agi): no cell |
+| AGI_BOX | NEW cell asked of belam: .agi/config.json `box.alias` = this box's alias, equal to the `box` value its post rows carry in config:posts |
+| AGI_HUB | NEW cell asked of belam: .agi/config.json `box.hub` (empty = no remote: a remote recipient stays in the sender's store) |
+| AGI_TRUNK | no cell: the 40-hex sha of the town trunk ref, written into carry.env by the install and the tick (root-owned file; never a post-writable ref) |
+## BOUNDS (stated, not hidden)
+- Re-scan tail: the carrier re-scans a sender's tips up to 5 passes; tips still moving after the last pass = exit 75 and the service restarts (Restart=on-failure, RestartSec=5): case k4d. What stays UNMEASURED is how systemd coalesces PathChanged events that fire while the oneshot runs (one re-trigger or none): a HOST probe with belam's GO, in the same act as the install.
+- Old-key date window: a rotated-out key still verifies a commit it dates inside its own window (git checks a signature at the commit's own date, which its signer writes).
+- Symlinked key file: read AS the post by runuser, so it cannot reach a root-only file: needs two real uids (host act 1).
+- Pieces: engine.md maps 37 pieces; 40 `###` blocks exist in engine*.md (agi-boot, agi-boot.service and matrix are not in the map).
