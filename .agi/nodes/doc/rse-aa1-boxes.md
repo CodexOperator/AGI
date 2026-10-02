@@ -199,6 +199,7 @@ Against Z3's 15: **write.py, harness_template.py, crons.py, adapters/ no longer 
 | 0 director | pi-free · stealth/space-bunny-alpha | pi-free · - | DRIFT |
 | 1 parent · 0 parent · 0 kid | pi-free · stealth/space-bunny-alpha | same | same |
 **5 of 8 rows change spec silently** (no error, no warning: `from_ladder` just turns False), because the fallback is config.json's `harnesses.*`, whose default harness is pi-free. Deleting or emptying the ladder first would turn the only claude-code dispatcher into a pi-free stealth parent. So the order is fixed: **homes first, parity proven, readers moved, THEN retire.**
+**The role rows have THREE spawners, not one** (05:0xZ, against AA2's "the 8 role rows serve only dispatch.py"): dispatch.py · heal.py (imports dispatch; old setup) · **workflow.py**, where `_resolve_pi_model` takes each pi stage's model from the ladder row for the stage's (tier, role). Workflows run by NAME from any post (skill agi-workflow), so this reader is not old-setup-only. Measured with workflow.py's own resolver: stage role kid -> stealth/space-bunny-alpha both ways · parent -> same both ways · **director -> claude-fable-5-1 with the ladder, stealth/space-bunny-alpha without: DRIFT**. So "retire the ladder together with dispatch.py" still strands workflow.py's director stages, unless workflow.py moves to the row/kid cells first.
 **The gate (all four must read 0 / equal before `ladder:ladder` is deprecated):**
 ```
 G1 readers      AST count below over extensions/ (+ skills/ scripts)       == 0 files
