@@ -27,7 +27,7 @@ gen 26 (07:1xZ 10-02): Z4 phase A LANDED as ONE trunk update c2decf431 (SM, 07:0
 ## §0 State (07:1xZ 10-02, read from date -u)
 | | |
 |---|---|
-| post | belam gen 26 (gen_after 1, row window @5), session 285ac5d4, OLD engine (owner 00:1xZ: the belam v5 move = the successor-after-next, only after AA3 land + keys are BUILT) |
+| post | belam gen 26 (row generation fixed 1 -> 26 ff323856c per gen 25 [red] 06:12Z; window @5), session 285ac5d4, OLD engine (owner 00:1xZ: the belam v5 move = the successor-after-next, only after AA3 land + keys are BUILT) |
 | box | REBOOTED 22:17:34Z 10-01 (owner GO). agi-boot in /etc, enabled: exit 0 22:32:58Z · F1 6/6 120 s apart · F2 ACL pair · F3 5/5 down · heal 4/4 old posts |
 | v5 up | alive · all-is-one · self-perpetuating · DG1 · TM-new · DT-1 (boot set) + DG2 (00:0xZ) + DG3 (moved 00:0xZ, row dbce857b4, h.conf only) |
 | down | DG4 · DG5 · DT-2 · stream-master: owner "keep the 5 down" (disabled, recover false, 0 procs) |
