@@ -1,7 +1,8 @@
 ---
 name: agi-node-write
 description: >
-  Read, edit or create ANY agi graph node through write.py (the only sanctioned node
+  OLD SETUP ONLY (a post whose row has engine.v 4 edits node files with plain Write/Edit
+  and agi-turn commits; owner 10-01 23:3xZ). Read, edit or create ANY agi graph node through write.py (the old setup's node
   writer): the verb grammar, create with the spawn gate, build nodes and their two legal
   parent shapes, config:* nodes, THOUGHT blocks, deprecate-never-delete. Use whenever a
   post touches a node file, a payload, a card or a config:* node. For goals use agi-goal.

@@ -66,6 +66,9 @@ anonymize    anonymize.py guards the classes named in anonymize.CLASSES (loopbac
                10-01: DG1 e0a261b7b untracked .agi/keys/director-general-1, but 7b37db90f had added it with a host-named comment) ->
                git log --diff-filter=A --name-only <merge-base>..<tip> lists every path ever added; read each one the net diff no longer
                shows (a key file = return the tip; the director re-cuts ONE commit from the live trunk, never a rebase)
+               · scan every VERSION of a key file in the range, not only adds (a modified one can carry the host too) -- UNLESS the
+                 identical blob is already reachable from origin (a push sends only objects the remote lacks: no new bytes leave);
+                 name it in the landing message (gen 14: TM-new d60422468 = the blob 81d0e8729 already published, banked)
 evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOTES a proved / disproved verdict without a resolvable
              evidence_runs (a JSON list of existing type:slug ids) IN MAIN'S WORKING TREE, uncommitted, 'caught at grid commit' -> gate
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)

@@ -130,6 +130,14 @@ VERIFY  systemctl cat == section bytes · enabled / inactive · v5 10/10 active,
 ROLLBACK systemctl disable agi-boot && rm /etc/systemd/system/agi-boot.service && systemctl daemon-reload
 RESIDUE findings row 90 (goal:g7.33.19): oneshot holds multi-user.target for the whole start loop; and the last boot spent 14m28s in systemd-tmpfiles-setup before agi-ram-main
 
+## RESULT G9 REAL REBOOT (owner 22:2xZ via belam: the ONE real reboot NOW; belam "[reboot] GO" 22:1xZ; director record) -- F1 F2 F3 HOLD
+PRE      ram-main.sh sync rc 0 · ram-tier.sh sync rc 0 · trunk == origin 03fa5bc21 · spawn_budget 0/30 · sudo systemctl reboot 22:16:23Z
+BOOT     up 22:17:34Z · systemd-tmpfiles-setup 3m30s (14m28s the boot before) · agi-ram-main 1 min · agi-boot started 22:22:37Z, Finished 22:32:58Z, Result success, exit 0
+F1 HOLDS 6/6 boot rows active, NO hand act, 0 restarts: all-is-one 22:22:57 · self-perpetuating 22:24:57 · alive 22:26:58 · director-general-1 22:28:58 · thought-master-new 22:30:58 · director-thought-1 22:32:58 (exactly space_s 120 apart, none after the last)
+F2 HOLDS /mnt/agi-ram g:agi --x · /mnt/agi-ram/state g:agi --- (re-applied after the wipe)
+F3 HOLDS 5/5 non-boot v5 rows inactive (director-general-2 -4 -5, director-thought-2, stream-master), no wants link · named skips: belam 22:22:37, sanctuary-master 22:26:58 ('not projected (engine v4 row absent)') · load1 3.86 / io avg60 9.18 at the end
+OPEN     the non-boot posts come back by belam's word only · findings row 90 (oneshot holds multi-user ~10 min) · row 91 (heal resume blanks session_name)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 G9 MOCK version (belam GO 20:3xZ 10-01). OWNER 20:2xZ verbatim: "You can install proxmox on this box yourself as needed". MEASURED by belam 20:2xZ: host = Ubuntu 24.04 (Proxmox VE installs on Debian only), SVM DISABLED BY BIOS (no KVM). OWNER CHOICE 20:3xZ verbatim (asked with 4 options): "systemd container mock" -- no Proxmox. So the CLAIM was exercised in a privileged docker container with systemd as PID 1 instead of a Proxmox VM: same agi-boot.service bytes (extracted from the one engine-root section at the trunk tip), a mock agi-ram-main, and sleep-faked posts. F1 F2 F3 held on the first mock reboot. Near miss: the docker bridge has no outbound, so packages came from a separate host-network setup container committed to a local image, and the mock itself ran with --network none. Not yet proven: real claude posts behind the gate (the ~13 ms start spacing is the open residue). The real /etc install and the ONE real reboot each wait for a separate belam GO.
 <!-- THOUGHT:END -->

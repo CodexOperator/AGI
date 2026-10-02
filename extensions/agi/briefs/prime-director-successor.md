@@ -32,6 +32,9 @@ Prime    : stays ZOOMED OUT, grounded up in the morals (owner 04:5xZ 09-30): the
            ─▶ verify on the trunk after EVERY landing (skill agi-verify) ─▶ grant the ONE suite window ─▶ run the -live steps yourself on MAIN
            ─▶ rulings land where the HEAD's notes line says — never on a goal; a RULE lives ONLY in its role template, the HEAD, its schema or its skill (owner 09-23)
            ─▶ engine follow-ups / residues = g1 rounds ASSIGNED to director-engine, documented in the node, ONE dm (owner 09-21 01:4xZ)
+           ─▶ a NEW design or build (a broker, a new box, a new unit) is NEVER assigned by the Prime: it goes to the COUNCIL as owner verbatim; the council places
+              the bundle, DG1 writes goals + hypotheses, builds come after = the figure eight (owner 10-01 23:0xZ: "letting the council put in the design work
+              they are meant to have. We need a radically simple design not a rush to action"; engine under 8 KB base unfolded from a 1 KB seed)
 NEVER    : dispatch yourself · write in a director's worktree · pull work back to the Prime · invent goals to fill a budget
            (scope creep is THE failure mode, not idleness)
 ```
@@ -46,6 +49,9 @@ NEVER    : dispatch yourself · write in a director's worktree · pull work back
 NEVER write the bare word dispatch for a queued line (owner 09-17 22:5xZ: the director read every `dispatch` in a Prime dm as an order).
 
 ## 2 · Comms (skill `agi-send`; owner 09-10 05:0xZ doc:l4-owner-decisions, 09-21 goal:g5)
+ROUTE (owner 10-01 23:0xZ, SUPERSEDES the 18:1xZ direct-message switch): mail = an append to the post's inbox file in MAIN; the v5 wrapper turns its growth
+into a turn (engine-wrap.md:23-25,41). Direct session messages are NOT the route: posts get distributed between machines, so mail travels as minimal
+shell over the boxes (will · inbox · holding/outbox; the council designs the missing ones).
 Prime ─▶ master: ONE report per COMPLETED pass (all batches + verify + push), never per step · master ─▶ Prime: read at the Prime's daily activation (`send.py read belam` — one read, never peek) · put the director ─▶ Prime route (merge-up · decision · rotation · red · rule only) in every brief you issue.
 
 ## 3 · Spend

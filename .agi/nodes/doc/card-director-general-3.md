@@ -17,7 +17,7 @@ town: core
 
 Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
-## §0 State (21:4xZ 10-01) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free · belam + SM by DIRECT session message (owner 18:1xZ): belam = agi-6a, SM = agi-02 (SendMessage)
+## §0 State (00:1xZ 10-02, MOVING to v5) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free · belam + SM by DIRECT session message (owner 18:1xZ): belam = agi-6a, SM = agi-02 (SendMessage)
 | | |
 |---|---|
 | post | director-general-3 · graph-builder · the g7.16.1.11 BUILDER + the SWITCH to engine v5 |
@@ -48,10 +48,15 @@ GATING MUR = claude-code via ccrun.py (belam trap 61, passB3): systemd-run --use
 G8 c34954f72 · G7 (pi start) 5ee791456 · G10 (meter) 14e06f47b · MOVE 2-6 (DG1 alive self-perpetuating all-is-one stream-master) · agi-meter on all v5 posts · DG5 key renewed 2x · G9 LANDED 0b8f086a5 + MOCK passed (F1-F3, teardown proven) · G9.5/G9.6/G9.7 + heal-ack + heal-pid merged up, residues 0 · findings rows 78 79(DONE) 81-85 87 88 89 on goal:g7.33.19 (86 held for SM's report_integrity item, BANKED)
 
 ## 🔴 Where it stops
-Nothing live of mine (no kid, no mur unit, no round worktree). All 4 rounds LANDED 22:0xZ. agi-boot INSTALLED + ENABLED in /etc 22:1xZ (belam GO; NOT started; G9 node RESULT G9 INSTALL; rollback: disable + rm + daemon-reload). WAITING on belam's reboot terms + SEPARATE reboot GO (old belam as look-over). Row 90: oneshot holds multi-user; last boot 14m28s in systemd-tmpfiles-setup. DG5 key: renew before 05:00Z.
-```
-cd /data/work/agi; python3 extensions/agi/bin/send.py read director-general-3; for b in 64ae63ef6 d9e5409f2 7caa0ab4d; do git merge-base --is-ancestor $b local-maxxing/season2/main && echo "$b LANDED" || echo "$b pending"; done; git worktree list | grep agi-ram; cat /proc/loadavg; head -1 /proc/pressure/io
-```
+MOVED TO v5 (belam executes the packet, 00:1xZ 10-02). OWNER 00:0xZ verbatim: "Let’s stand up DG2 and DG3 on new system to take over whatever DG1 comes up with and take it to completion."
+YOUR JOB ON v5: take what DG1 writes (goals + hypotheses, placed by the council bundle) and carry it to completion, beside DG2. Order: council (SM = coordinator) -> DG1 writes -> you build. The broker (hypothesis:g716111-broker-keys-and-land-for-v5-posts) is a PROPOSAL on HOLD: never dispatch it unless a council bundle names it; its parked draft = local branch broker-v5 2dc9d4c66.
+v5 LIMITS (the known CUTs; each is a council item, not yours to hack around):
+  · no kid dispatch from v5 (no .env, no per-spawn key) -> keys = the council's AA2/AA3 (rows 92 93) -- until then build what you can directly or ask belam to dispatch
+  · inbox writes from v5 fail until AA1 -> report by direct session message (ListAgents)
+  · node edits = plain Write/Edit on the node file; agi-turn commits (write.py is OLD SETUP ONLY, owner 23:3xZ)
+  · no sudo: every host act (systemctl, /etc, /run, other users' homes) = belam's
+  · v5 uids cannot git push (row 93); the Stop hook's git add -A is row 94
+FIRST TURN: read this card, the head, the director template; ListAgents (belam = agi-eb, SM = agi-88; whois cannot resolve them, row 91); ONE line to belam: UP + what you read; then wait for the council's bundle / DG1's output.
 
 ## §4 Traps
 | trap | rule |
