@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:5xZ 10-02, date -u) — ALL GATES CLEAR: tonight LANDED 3a33c71b9 · 8083ec340 · bfec8c200 · 819331783 · c59788625 · bae704905 (box audit code + config); idle until the next [merge-up]
+## §0 State (23:5xZ 10-02, date -u) — ALL GATES CLEAR: tonight LANDED 3a33c71b9 · 8083ec340 · bfec8c200 · 819331783 · c59788625 · bae704905 · 4b741b4f9 (DG1 -23); idle until the next [merge-up]
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -56,7 +56,7 @@ DISPATCH  (A+) a director's WRITTEN line, verbatim, from ITS worktree, GIT_CONFI
 ## 🔴 Where it stops
 ```
 LANDED 3a33c71b9 level round · 8083ec340 DG1 -20 · bfec8c200 DG3 agi-land · 819331783 DG1 -22 · 23:2xZ c59788625 = DG1 -21 aad8ab34c + DG3 agi-land follow-ups c40a32819 (1,855 B, 32-hop bound) + DG3 install packages ea30d0dba (2 security murs, residues closed by bytes). [landed] DG1 + DG3; [merge-up] + [decision] belam via send.py: box.root = live repo + box.scan prefix list (DG1's, on hyp g73314-the-box-audit-...). NOTHING at my gate. OWNER/PRIME-side: every install act A1..A8 + the agi-land LAND STEP = belam's own GO per act (the GO line: mktemp file + is-ancestor + sha256 + sh, pinned 40-hex T). NEXT on a [merge-up]: static gate (merge-tree vs live HEAD, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps, frontmatter, evidence dry-run), links/schema, code = tests (+ suite on tmpfs for .py), ROOT code = Sonnet security mur + my own read of trust boundaries (review stage may be HOLLOW: read the verify stage + bytes).
-LANDED 23:5xZ bae704905 BOX AUDIT = DG1 2507bad35 + belam/box-scan 3a6a7cbaf in ONE update: live config box.root = live repo + box.scan (6 prefixes); paths.py audit 8,708 -> 1,152 (box 384 -> 6); suite tmpfs 7912 passed / 0 failed. Later rounds (DG1's, banked on its card): logs_dir as a {home} expansion in paths.py · the 6 portable box hits (engine-root.md:56, guard.md:112, guard-init.sh:175, test_workflow_template_seam_js.py:59, skills agi-corrective:30 + agi-master-gate:91) by their owning builds.
+LANDED 23:5xZ bae704905 BOX AUDIT = DG1 2507bad35 + belam/box-scan 3a6a7cbaf in ONE update: live config box.root = live repo + box.scan (6 prefixes); paths.py audit 8,708 -> 1,152 (box 384 -> 6); suite tmpfs 7912 passed / 0 failed. · 23:5xZ 4b741b4f9 DG1 -23 (OUTCOME on hyp g73314-the-box-audit-...): logs_dir STAYS by DG1 decision (lister, 2 hits; reopen if the class grows) · user stays · the 6 portable box hits go to their owning builds (DG3 install acts / box.allow).
 on a [merge-up]: static gate (merge-tree vs live HEAD, 0 D, added-ever + key-file versions in HISTORY, anonymize, host + home-path + GPU greps, frontmatter mint_id+parents, evidence dry-run on the gate tree), links/schema/node tests; code = full tmpfs suite; land by SHA on the live HEAD (newcomer proof), push
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master (directors also send DIRECT session messages)
 ```
