@@ -288,6 +288,36 @@ Split (settled 17:5xZ): self-perpetuating = the ORDER (PHI over a phase tree; a 
 **True state (17:4xZ):** today NO v5 post can fire a one-shot phase: 0 of 12 engine rows carry a kid model, no v5 post has an OpenRouter key in its env (only director-general-5.env exists under /var/lib/agi), pi is installed. A `post:` phase can already run (box mail, once AA1 is built). So the first live flow needs AA2's kid cell + a per-post key (the owner's root key ring) before its one-shot phases fire.
 **Matrix answer for the owner (with AA2):** no new matrix. The order is PHI over a different tree, done is the growth matrix + falsifier rows, and the hand-off is the adjacency projection AA1 already checks; a flow's state is a chain of refs.
 
+### AA1.M · MAIL WITHOUT send.py (belam [owner] 18:16Z, item M1): a message is a ref update; a box carrier cascades it; goal:g1.40's lost append cannot happen
+**Owner 18:1xZ, verbatim:** "we should have a way to send messages without using send.py at all just a simple shell command to send stuff to someone else's inbox if they have permission to do so via user perms and our other clever guard combos. I don't believe it's that complicated it needs a python file, a message sent is just a git commit to the appropriate branch or nearest remote head and a local box cron takes care of cascading it down into the appropriate branch then worktree via the other location references the posts hold."
+Split (settled 18:17Z, first to land): alive = M1 · self-perpetuating = K1 (per-spawn capped key) · all-is-one = K2 (spawn classes) + K3 (direct inference).
+```
+ SEND     box send Q <msg      sh + git + jq, no Python: ONE signed commit on refs/box/P/Q in P's own store; adjacency + squat checked; CAS update-ref, retried <= 5x
+ PERMIT   user perms (P writes only its own store, AA1.R) x the parent-cell matrix (AA1's projection, at send AND read)
+ CASCADE  ONE carrier per box (root; the owner's "local box cron"), reading the rows' LOCATION cells (box, store):
+            Q.box == this box  -> runuser pipe: P's store refs/box/P/Q -> Q's store (AA2's agi-carry, 454 B)
+            Q.box != this box  -> push refs/box/P/* to the remote head; Q's box carrier fetches it (box carry, AA1)
+          woken by a path unit on each store's refs/box (PathChanged: no polling cron), plus one timer for remote fetches
+ WAKE     Q's pane: agi-run's `box n` grew -> "mail: box read" (AA1, already designed)
+ READ     box read: verify signer + adjacency, print, move refs/held/Q/P (only Q writes it)
+```
+**"then worktree" collapses:** mail lives in refs and is read by `box read`; a worktree copy would be a second store that can drift from the first. The cascade stops at Q's store.
+**goal:g1.40 (the lost append), measured on scratch 18:1xZ:** send.py appends to ONE shared file per post, and a mark-read REWRITES that file, so an append in between is lost. Boxes rewrite nothing shared: each ref has one writer (out = sender, held = reader) and every move is an atomic update-ref.
+| case | result |
+|---|---|
+| 2 senders (belam, sm) x 100 sends to alive while alive reads in a loop the whole time | **200/200 delivered**, 0 duplicates, 0 refused, each sender's order kept, 5 s |
+| 2 writers on the SAME channel (two sessions of one post) x 50, no retry | 100/100 accounted: 50 delivered + 50 reported `cannot lock ref`, **0 silent** (42/8 split on a re-run: real races) |
+| the same with send's 5x CAS retry (+142 B, box now 1,927 B) | **100/100 delivered**, 0 unsent, 0 stderr |
+| the 25-case AA1 suite after the retry | 25/25 |
+send, whole (the retry re-reads the tip; a squatted tip still stops at once, never retried):
+```sh
+send)a $P $2||{ echo "[off-matrix] $P -> $2: not adjacent, nothing sent">&2;exit 1;};r=$m/$P/$2;b=$(cat);k=0
+ until o=$(git rev-parse -q --verify $r);[ -z "$o" ]||git verify-commit --raw $o 2>&1|grep -q "for $P@agi with"||{ echo "[squatted] $r $o: not mine, nothing sent">&2;exit 1;}
+  c=$(printf '%s\n' "$b"|GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi git commit-tree -S ${o:+-p $o} $(git hash-object -w -t tree /dev/null))&&git update-ref $r $c "$o" 2>/dev/null;do k=$((k+1));[ $k -lt 5 ]||{ echo "[unsent] $r: the tip moved 5 times">&2;exit 1;};done;;
+```
+**Bytes:** box 1,927 B (+142 for the retry) · the carrier = AA2's agi-carry (454 B) + one rows-reading line (~200 B) + a path unit (~60 B), all expansion, 0 B in the zygote · retires send.py (317,096 B) for every v5 post.
+**Not measured (needs root):** runuser between two real post uids, the path unit firing on a store write, a remote head on a second box.
+
 **OPEN for AA2/AA3:** who owns KEYS (all-is-one proposed self-perpetuating) · AA3 land = mail up one edge, so it reuses `box read` as root (AA3 = doc:rse-aa3-land, all-is-one; principal form `<post>@agi` agreed and applied above).
 **SETTLED by belam (1efd017e6, [decision] 23:51Z, superseding ec5daa28a):** members<-council; council<-belam; SM + TM-new<-council. Through this section's elimination of the inert council row, {belam, alive, all-is-one, self-perpetuating, SM, TM-new} is ONE clique (group chat and handoff down, belam's stated reason); DG1 is adjacent to SM only, DT-1 to TM-new only. So a council -> DG1 send is off-matrix under AA1 once built: the bundle went to DG1 by belam's explicit GO, over today's route.
 
