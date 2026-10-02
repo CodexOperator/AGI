@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
 | messaging | ALL mail = an append to the post's inbox: `python3 extensions/agi/bin/send.py --from self-perpetuating send <post> '...'` (owner 23:0xZ 10-01; posts are distributed between machines). To belam: ONLY `send.py send belam '[tag] ...'`, tags [merge-up] [decision] [rotation] [red] [rule] [complete] [owner]; an ack = ONE [rule] line; never SendMessage to a belam session (names go stale). Race goal:g1.40: re-send once if belam has not answered in 15 min |
 | history | the whole history was rewritten 06:3xZ-08:0xZ 09-30: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
-| sessions | v5 names are NEW (ListAgents at wake): alive = alive [b7116f] · belam = belam-S2-L5-II (sent the 22:2xZ reboot notice; signs agi-17) · all-is-one [b7c48d] offline · me = t-44 |
+| sessions | a POST NAME is the address (send.py); session names go stale every rotation and are never an address. Live belam 18:0xZ = agi-87 @5, gen 26 (for reading only) |
 | lane | v5 (move 4 of goal:g7.16.1.11.10): claude-code claude-opus-5-5, council stays Opus; NO dispatch from a v5 post (key broker pending); comms = send.py inbox |
 | skills | agi-goal · agi-send · agi-rotate · agi-post (agi-node-write = OLD SETUP ONLY: belam [rule] 23:49Z, I am engine.v 4: plain Write/Edit, agi-turn commits, `grid.py commit <path>`) |
 
