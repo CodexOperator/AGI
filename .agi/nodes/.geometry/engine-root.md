@@ -160,7 +160,7 @@ Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory PATH=/opt/agi/bin
 ExecStart=/opt/agi/bin/box-carry --fetch
 ~~~
 
-### agi-land (1829 B)
+### agi-land (1855 B)
 ~~~sh
 #!/bin/sh
 # agi-land <sender> <post> <sha>: root ff-lands <post>'s <sha> on the trunk, ONE parent edge up: sender = parent(post); a parent with a members cell is an inert group: the land passes to ITS parent; a parent-owner post lands itself; a `lands` cell on the parent narrows which children it takes (absent = all, [] = none).
@@ -168,7 +168,7 @@ ExecStart=/opt/agi/bin/box-carry --fetch
 T=${AGI_TRUNK:-refs/heads/trunk};A=${AGI_RING:?};o=$(git rev-parse -q --verify $T)||exit 1;n=$(git rev-parse -q --verify "$3^{commit}")||exit 1
 git merge-base --is-ancestor $o $n||{ echo "refused: not ff";exit 1;};t=$(mktemp -d);trap 'rm -rf $t' EXIT
 git show $o:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r '"\(.name) \(.parent//"")",(select(.members)|"I \(.name)"),(.name as $n|.lands|select(.)|"\($n)>",(.[]|"\($n)>\(.)"))'>$t/p
-u(){ x=$1;while [ "$x" ];do [ $x = $2 ]&&return;x=$(awk -v n=$x '$1==n{print $2}' $t/p);done;return 1;}
+u(){ x=$1;i=0;while [ "$x" ]&&[ $((i+=1)) -le 32 ];do [ $x = $2 ]&&return;x=$(awk -v n=$x '$1==n{print $2}' $t/p);done;return 1;}
 q(){ awk -v n=$1 '$1==n{print $2}' $t/p;};Q=$(q $2);P=$Q;grep -qx "I $Q" $t/p&&P=$(q $Q)
 { [ "$P" != owner ]&&[ "$1" = "$P" ];}||{ [ $1 = $2 ]&&[ "$P" = owner ];}||{ echo "refused: $1 is not the parent of $2";exit 1;}
 grep -q "^$Q>" $t/p&&! grep -qx "$Q>$2" $t/p&&{ m=$(sed -n "s/^$Q>\(.\)/\1/p" $t/p|tr '\n' ' ');echo "refused: $Q lands only ${m:-nothing}";exit 1;}
