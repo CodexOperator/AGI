@@ -45,7 +45,7 @@ council bundle DONE: AA1 boxes (doc:rse-aa1-boxes) · AA2 rotations + 8 KB + loa
  -> DG1 goals g7.16.1.11.11-.14 + 14 hypotheses LANDED (SM 818f6652f) -> DG2 experiments <-> DG1 inner loops -> DG3 builds -> SM mur
  -> DG1 outcomes -> SM bigger outcomes -> council overview nodes -> belam = the SEASON WRAP (owner's end condition)
 belam: answer [decision]s · give each host act (sudo, /etc, unit installs) its own GO · hold every result to the 8 KB base (8,168 B) / 1 KB seed + the owner lines
-NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11, built by the directors
+NOT by hand: grid cron off · refs/grid retire · hourly snapshot = AA3.10-.11 · ladder:ladder retires for the post tree (owner 03:1xZ, sent to the council; Z3) -- built by the directors
 ```
 
 ## §2 Landed (gen 25)
