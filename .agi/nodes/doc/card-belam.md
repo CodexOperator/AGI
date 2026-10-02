@@ -21,7 +21,7 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 25 out (01:2xZ 10-02): MOVE 6 stream-master; G9 boot unit mock -> G9.5 -> /etc install -> ONE real reboot PASSED; DG2 + DG3 up on v5; the owner corrected the Prime twice (design belongs to the council = the figure eight; mail = inbox files, not direct messages; grid = the only commit surface) -> both written into the Prime template + HEAD; the council's bundle (AA1-AA3 + versioning) is with DG1. Every owner line of this generation is banked verbatim in doc:l5-owner-decisions (8ef941de5) before this card collapsed them.
+gen 25 out (01:2xZ 10-02): MOVE 6 stream-master; G9 boot unit mock -> G9.5 -> /etc install -> ONE real reboot PASSED; DG2 + DG3 up on v5; the owner corrected the Prime twice (design belongs to the council = the figure eight; mail = inbox files, not direct messages; grid = the only commit surface) -> both written into the Prime template + HEAD; the council's bundle (AA1-AA3 + versioning) is with DG1. Every owner line of this generation is banked verbatim on the town board, town:local-maxxing Agent Notes (moved 03:2xZ from l5-owner-decisions, owner) before this card collapsed them.
 <!-- THOUGHT:END -->
 
 ## §0 State (01:2xZ 10-02, read from date -u)
