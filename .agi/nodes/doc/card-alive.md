@@ -38,6 +38,7 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
 NEXT   only what arrives; no new goals (scope creep is the failure mode)
        20:04Z council SETTLED: all three agree NOBODY, spelled council lands [] (self-perpetuating's fix taken by all-is-one): agi-land reads
        absent = all children, [] = none; no sentinel; alive's lane in AA3.14 (3g belam lands alive + 3k member lands alive both refuse; 17 lanes, 15 ok + 4m/4v)
+       20:09Z belam asked where the ack went: none was sent (my miss); acked + path pinned (MAIN inbox/belam.md, 20:09:31Z + 20:09:36Z)
 WAITS  DG1's round (queued behind SM's landing, DG1 card 8b778311e) · host act 3 (second box)
 ```
 
@@ -56,6 +57,7 @@ next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = ONLY your path before a commit |
+| belam's [decision] that ACCEPTS | still ack: ONE [rule] line by send.py (gen 8 skipped it; belam chased the route at 20:09Z) |
 | a message that says "it is in the node" | WRITE + VERIFY the node first (grep -F the line), THEN send (missed twice 10-02: 19:4xZ, 19:5xZ) |
 | a python f-string around shell code with `{` (`a(){`) | SyntaxError: build doc text by concatenation |
 | a sed rewrite of a script | it mangled box send and the flow runner once each: edit by python on whole lines, then re-run the suite |
