@@ -1,0 +1,40 @@
+---
+id: hypothesis:g716111-ab-agi-signers-retires-when-the-box-allowed-signers-is-the-rings-projection-and-the-base-map-shrinks
+mint_id: 671142c90a2a4dabb9fbf17d70e8b595
+type: hypothesis
+parents:
+  - goal:g7.16.1.11.12
+next_edges: []
+confidence: 0.6
+edited_by: director-general-1
+season: 2
+testable_claim: "(a) after the ring node and the projection exist, a scratch box's allowed_signers file equals the projection of the trunk's ring byte for byte (one sed), written by no root piece reading homes; (b) every post's FIRST ring line is written once by its parent (cases C8 and E7: stand-up), so agi-signers has nothing left to do; (c) config:engine <= 8,192 B and the seed 1,023 B, `agi-gate HEAD` rc 0: the base map lines go -60 B (signers) -119 B (agi-signers) +~62 B (ckpt) +~58 B (revoke) +~58 B (pq) from 8,186, section AB.5 puts the total near 8,185 B with 7 B spare, so the gate is AA2.63 and a build that crosses 8,192 B is REFUSED, not accepted; (d) no node outside the ring carries the box root key as an anchor and AGI_ANCHOR's separate file is gone (the anchor is the owner line of the ring)."
+title: "AB: agi-signers (the 1,515 B root piece) retires when the box's allowed_signers is only the projection of the trunk's ring, and the base map keeps config:engine within 8,192 B with agi-gate HEAD rc 0 (AA2.63, AA2.64)"
+town: core
+---
+# hypothesis:g716111-ab-agi-signers-retires-when-the-box-allowed-signers-is-the-rings-projection-and-the-base-map-shrinks
+
+## Measured
+- doc:radically-simple-engine section AB (landed, trunk 1c0edcf20: AB + AB.5 + AB.6 + the AGI_SEAL_ID cell, byte-equal to self-perpetuating's branch); belam [decision] 03:07Z, owner 02:3xZ 'Is the design finished and looks sound? If so send on'. Terms: SM lands first (met), DG1 writes from the LANDED text, DG2 falsifiers, DG3 builds, SM gates, every root act its own belam GO, AA2.63 is the gate (the 8 KB base).
+- AB.5 bytes: 'the base is FULL again' (8,185 B, 7 B spare). AA2.63 originally read -117 B before AB.5 added revoke and pq.
+- agi-signers is INSTALLED and stays installed until AA2.64 proves (belam [decision] 03:07Z term 3); its A1 security re-run (env -i PATH) still goes to belam once DG3 refreshes the install doc sha. Retiring it is a root act: its own belam GO.
+
+## CLAIM
+(a) after the ring node and the projection exist, a scratch box's allowed_signers file equals the projection of the trunk's ring byte for byte (one sed), written by no root piece reading homes; (b) every post's FIRST ring line is written once by its parent (cases C8 and E7: stand-up), so agi-signers has nothing left to do; (c) config:engine <= 8,192 B and the seed 1,023 B, `agi-gate HEAD` rc 0: the base map lines go -60 B (signers) -119 B (agi-signers) +~62 B (ckpt) +~58 B (revoke) +~58 B (pq) from 8,186, section AB.5 puts the total near 8,185 B with 7 B spare, so the gate is AA2.63 and a build that crosses 8,192 B is REFUSED, not accepted; (d) no node outside the ring carries the box root key as an anchor and AGI_ANCHOR's separate file is gone (the anchor is the owner line of the ring).
+
+## Dispatch line
+config-max: the map lines of config:engine (the base) / template-max: none / code: the projection (one sed), the stand-up ring-line write, and the removal of the signers and agi-signers map lines.
+
+## FALSIFIERS
+AA2.63: `wc -c` of config:engine <= 8,192 B, the seed == 1,023 B, `agi-gate HEAD` rc 0 on a scratch tree carrying the integrated build; the number is printed with the per-line deltas and a build over the bar is RED.
+AA2.64: on a scratch box after agi-signers is removed from the map, allowed_signers == the projection of the trunk's ring (cmp), a post's first ring line written by its parent makes its commits verify, and no file outside the projection is read for trust.
+AA2.64b: the one-box agi-fresh.t.sh cases that depend on agi-signers are re-pointed to the ring commit path and pass.
+
+## TESTS
+Shell, scratch tree built from the trunk's engine*.md with the candidate edits; throwaway keys; `agi-gate` run on the scratch tree. No live key, no network, nothing pushed: scratch keys generated at run time in a throwaway dir (no test file, node or commit message holds an armoured block; spell the header with dots). Every ROOT act (a unit edit, the out-line in engine-root, retiring agi-signers, block_push, seal.yml on master) is its own belam GO with before-state and rollback; the build lands the bytes, belam installs them.
+
+## FILE SCOPE
+config:engine map lines (engine.md), the projection, the removal of the retired pieces' text from engine-root.md only after belam's GO.
+
+## CEILING
+1 parent - kids <= 1 - config:engine <= 8,192 B (HARD) - the seed 0 B - 1 new test file - 0 USD - regular review + security mur on root code. Depends on: the ring, ckpt, pq and revoke hypotheses.

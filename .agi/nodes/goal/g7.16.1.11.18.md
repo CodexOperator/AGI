@@ -47,7 +47,7 @@ OWNER correction, verbatim: "Provision key is already here in the .env that’s 
 - 0 B in the zygote; the base stays <= 8,192 B.
 
 ## Falsifier
-1. Z4.j + Z4.l (K3, no root): sh extensions/agi/tests/k3-infer.t.sh exits 0: a K2(b) spawn starts no process but curl, sed, grep, jq, and the streamed text == the committed result byte for byte (canned SSE incl. ': OPENROUTER PROCESSING' comments + [DONE]).
+1. (test file ceiling 1,100 B, DG1 [rule] 03:3xZ 10-03, was 1,000: measured 829 -> 960 parser -> 994 key guard -> 1,067 provider-error clause -> 1,077 digit/inherited-k guard on dg2-k3-mu2 f2a7c83ce; past 1,100 B needs a new [rule]) Z4.j + Z4.l (K3, no root): sh extensions/agi/tests/k3-infer.t.sh exits 0: a K2(b) spawn starts no process but curl, sed, grep, jq, and the streamed text == the committed result byte for byte (canned SSE incl. ': OPENROUTER PROCESSING' comments + [DONE]).
 2. Z4.k (K2(a), as root, AA2.44): inside an agi-kid@ unit, cat of the caller's ~/.ssh/id_ed25519 fails EACCES, id -G holds no agi, git update-ref on the shared .git fails EACCES, and the result ref verifies under the launcher's AA2 signature.
 3. K1 (self-perpetuating's): the kid's key spends at most its cap (server-side refusal past it), and the caller's env and files never hold the provisioning key name or a minted key value.
 4. Negative: git grep -n SupplementaryGroups -- .agi/nodes/.geometry/ shows 0 hits in the agi-kid@ unit.
