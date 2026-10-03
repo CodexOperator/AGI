@@ -94,7 +94,7 @@
         "model": "claude-opus-5-5"
       },
       "verdict": "ok",
-      "confirm_at": "rotate-self"
+      "confirm_at": "after_join"
     },
     "bootstrap": "/data/work/agi/.agi/sessions/seats/sanctuary-master.bootstrap.json"
   },
@@ -113,8 +113,47 @@
     "reap_source": "derived from own window @id @9 pane 3327859: chain [3327859, 3327893, 3329015] (deepest-first; authority row pid 3329015)"
   },
   "after_join": {
-    "claimed_at": "2026-10-03T05:21:21.552732+00:00",
     "performer": "watch",
-    "claim_key": "2026-10-03T05:20:28.169492Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sanctuary-master",
+        "rc": 0,
+        "output": "@10 sanctuary-master\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/sanctuary-master.meter --session-log ~/.claude/projects/-data-work-agi/d42bffb2-9de3-4838-94a1-086eb8aa0168.jsonl",
+        "rc": 0,
+        "output": "0.1039\t103883/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(3327859|3327893|3329015)\\b'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(3327859|3327893|3329015)\\b'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post sanctuary-master --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post sanctuary-master --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "sanctuary-master",
+    "dm_signed": true,
+    "code_head": "482f4e1",
+    "code_loaded": "1790887846:1177428",
+    "claimed_at": "2026-10-03T05:21:21.552732+00:00",
+    "claim_key": "2026-10-03T05:20:28.169492Z",
+    "performed_after_s": 52.38087487220764
   }
 }
