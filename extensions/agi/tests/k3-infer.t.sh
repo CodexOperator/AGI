@@ -71,6 +71,12 @@ ok "req-schema the schema fence still rides with streaming (closed, name fill) a
 # no key NAME in the cells = NO Authorization header at all (a keyless local server), not an empty 'Bearer '
 AGI_INFER_URL=$U/nokey/v1 sh $PIECE m<$T/prompt>$T/nk.out 2>/dev/null
 ok "req-nokey with no infer_key cell no Authorization header is sent (got: '$(cat $T/auth.nokey)') and the text still streams" '[ ! -s $T/auth.nokey ]&&cmp -s $T/nk.out $T/want'
+# the key cell is a NAME, never shell text: a non-name cell (metacharacters, a space) exits 2, runs nothing and sends no request (all-is-one measured: AGI_INFER_KEY="X;touch F" ran the touch under eval)
+for raw in 'X;touch @T@/PWN1' 'X$(touch @T@/PWN2)' 'X`touch @T@/PWN3`' 'a b' '-x';do
+ bad=$(printf %s "$raw"|sed "s,@T@,$T,g");rm -f $T/body.evil;AGI_INFER_URL=$U/evil/v1 AGI_INFER_KEY="$bad" sh $PIECE m<$T/prompt>$T/bad.out 2>/dev/null;rc=$?
+ ok "key-name a non-name infer_key cell ($raw) exits 2, sends no request, prints nothing (rc=$rc)" '[ $rc = 2 ]&&[ ! -e $T/body.evil ]&&[ ! -s $T/bad.out ]'
+done
+ok "key-name-noexec no cell text was executed (no PWN file)" '[ -z "$(ls $T|grep PWN)" ]'
 # --- streaming, not buffering: the first chunk is in the log while the request is still open (the slow case holds the 2nd chunk back 3 s)
 AGI_INFER_URL=$U/slow/v1 AGI_INFER_KEY=TESTK TESTK=$KEY sh $PIECE m<$T/prompt>$T/slow.out 2>$T/slow.err & P=$!
 n=0;while [ ! -s $T/slow.out ]&&[ $n -lt 20 ];do sleep 0.1;n=$((n+1));done
