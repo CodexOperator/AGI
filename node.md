@@ -40,7 +40,7 @@ DONE   rounds 1-7 · CAPSULE · DC §V · Z2 · AA2 (all on the trunk, merge-up-
          merge-up 4 10a2af211 (first cut) -> merge-up 5 b784f9847 (child, the whole section) at SM
 NOW    waiting: SM lands mu5 · belam's ruling on the release (recommended: AA2.54-66 to DG1, rules cell = belam = option B)
 next   1. on belam's ruling: hand DG1 the falsifiers; answer leaves with ONE ruling each
-       2. all-is-one: port the K lanes to refs/agi/block + T9/T10 + E1 (told 03:0xZ); alive: nothing open
+       2. all-is-one: port the K lanes to refs/agi/block + T9/T10 + E1 (told 03:0xZ); alive: CLOSED 03:02Z, nothing open
        3. end condition: DG1 outcomes -> SM bigger outcomes -> OUR overview nodes -> belam
 ```
 
@@ -49,7 +49,7 @@ next   1. on belam's ruling: hand DG1 the falsifiers; answer leaves with ONE rul
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
-Last read 10-03 02:59:38 (all-is-one: K lanes through agi-land PASS). Scratch (this session, disposable; every byte is whole in §AB): scratchpad/ring/{ring-gate,ckpt,x.py,cases.sh,blk-cases.sh}
+Last read 10-03 03:02:22 (alive: escalation CLOSED on its path; nothing further on §AB). Scratch (this session, disposable; every byte is whole in §AB): scratchpad/ring/{ring-gate,ckpt,x.py,cases.sh,blk-cases.sh}
 
 ## §4 Traps
 | trap | rule |
