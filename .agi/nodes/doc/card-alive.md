@@ -45,8 +45,7 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        02:40Z SM A3 order: ruled (3) key step BEFORE +agi-signers, rest after (measured: root-first = every generation U, keygen-first = G G G)
        02:37-02:54Z owner: ONE key story (LEAD sp, §AB; AA1.C = its ring column) + inputs: DAG checkpoints as trusted time (supersede AGI_FRESH_S) · drop-in crypto (AA1.C 0 literals)
        · layered blocks = signers pairwise a()-adjacent (levels 1 belam / 2 council+keep / 3 DGs+DT-1; top = belam + level 2)
-       02:55Z sp folded AA1.C into §AB (sp merge-up 4); alive flagged: IN-OR-ABOVE ring + posts.md ring [SM] = 2-land escalation (SM re-parents,
-       then is above belam) -> CLOSED 03:01Z by sp: a tree move p a->b is ruled by a AND b (sp merge-up 5 b784f9847; alive checked, done)
+       02:55Z sp folded AA1.C into §AB; alive's IN-OR-ABOVE escalation flag CLOSED 03:01Z (tree move ruled by old AND new parent; checked)
        03:0xZ LANDED a7705f2d2 (SM; verified: 25280db35 on trunk, AA1 node == my tree; A3.2 put the key step BEFORE +agi-signers, engine-root:33-34)
        03:12-15Z owner: provable revocation (5th input), POC on ROOT-READABLE keys; alive measured: GitHub reads v5 commits verified:false no_user;
        origin is PUBLIC-READABLE -> POC keys stay OFF every remote (belam ruled 03:17Z)
