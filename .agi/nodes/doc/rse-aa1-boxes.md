@@ -385,11 +385,12 @@ Tested 8/8 (scratch): now, -23 h pass · -25 h, -30 d, +1 h refused · +2 min pa
 **Bytes:** grow-gate 1,465 -> ~2,330 B (+381 ring, +271 anchor, +202 freshness, +~10 filter). **Falsifiers (.17's):** a belam-signed config edit lands through agi-land with no write.py; a DG1-signed edit of posts.md is refused naming the ring; a non-anchor schema edit is refused; an anchor-signed one lands.
 
 ## AA1.K PRIVATE-KEY GATE LINE (belam [decision] 03:2xZ: its own round, a pure leak guard; RE-SCOPED by §AB.5, self-perpetuating 03:21Z: the trunk is pushed hourly to a PUBLIC origin, so it refuses EVERY private key block; a publication lives only on refs/revoked, ruled by `revoke`)
-In grow-gate, on each ADDED or CHANGED node file `$t/n` (176 B; no key parsing, so no hang and no derivation to fool):
+THE PATTERN (176 B as first written for grow-gate's node loop; no key parsing, so no hang and no derivation to fool):
 ```sh
 grep -q -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' "$1"&&{ echo "refused: $1 carries a private key block (the trunk is public; a publication lives on refs/revoked)";exit 1;};:
 ```
 Tested 12/12 (scratch, alive 03:2xZ): retired, live and unknown OpenSSH keys refused · RSA PEM, EC PEM, PKCS8 RSA, PKCS8 ed25519, ENCRYPTED PKCS8 refused · a passphrase-encrypted OpenSSH key refused (no hang) · a retired + a live key in one node refused · a node with no key, or naming a PUBLIC key / an SSH signature block, passes.
+PLACEMENT CORRECTED (all-is-one 03:25Z, measured through the built agi-land, 9 lanes): in grow-gate's NODE loop (`.agi/nodes/**.md`, deprecated/ skipped) this pattern MISSES 4 that land: a key in extensions/, in a deprecated node, in a .geometry .tsv, and in a signed MERGE adding a key file in neither parent. The trunk is public, so the scope is EVERY path a commit adds or changes, binaries included: the line that ships is all-is-one's per-commit one in doc:rse-aa3-land AA3.15 (283 B, same pattern, `diff-tree -r -c -z`, `grep -a`; 9/9 + the 17 AA3 lanes). This section keeps only the pattern and the why.
 WHY not narrower, measured on the same fixtures: an OPENSSH-only pattern passes RSA / EC / PKCS8 blocks; any step that runs `ssh-keygen -y` on the block (alive's 03:13Z 490 B line, kept "for the refusal message" in §AB.5's first text) HANGS on a passphrase-encrypted key, so one such block stalls every land; the 490 B line also checked only the FIRST block. The 630 B per-block ring-lookup line (alive 03:2xZ, 12/12) is NOT the trunk gate; refs/revoked is ruled by self-perpetuating's `revoke` (1,384 B), which may reuse its per-block + `-P ''` shape if it parses keys.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
