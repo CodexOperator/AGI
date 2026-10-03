@@ -46,20 +46,20 @@ rn(){ git show "$h:$1" 2>/dev/null|awk '/^---$/{n++;next} n==1&&/^ring:/{sub(/^r
 pm(){ git show $1:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -s 'map({(.name):.parent})|add';}
 dt(){ git diff-tree -r -c --root --no-commit-id "$@">$t/d||{ echo "refused: $c: git diff-tree failed";exit 1;};}
 while read o n r;do h=$R;w=$(git rev-list --reverse --topo-order $n --not ${AGI_NOT:---all})&&x=$(git rev-list -1 --full-history $R -- $G/ring)||{ echo "refused: git rev-list failed";exit 1;};L=;[ "$x" ]||L=1;for c in $w;do
- if git show $h:$G/ring>$t/r 2>/dev/null;then L=;grep -aE "$E" $t/r|sed -E 's/^([a-z0-9-]+) /\1@agi namespaces="git" /'>$t/a;else :>$t/a;[ "$L" ]&&cp $A $t/a;fi;git show $h:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r 'select(all(.name,.parent;type=="string" and test("\\A[a-z][a-z0-9-]*\\z")))|"\(.name) \(.parent)"'>$t/u
+ x=$(git ls-tree --name-only $h -- $G/ring)||{ echo "refused: git ls-tree failed";exit 1;};if [ "$x" ];then git show $h:$G/ring>$t/r||{ echo "refused: the ring is unreadable";exit 1;};L=;grep -aE "$E" $t/r|sed -E 's/^([a-z0-9-]+) /\1@agi namespaces="git" /'>$t/a;else :>$t/a;[ "$L" ]&&cp $A $t/a;fi;git show $h:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r 'select(all(.name,.parent;type=="string" and test("\\A[a-z][a-z0-9-]*\\z")))|"\(.name) \(.parent)"'>$t/u
  s=$(git -c gpg.ssh.allowedSignersFile=$t/a verify-commit --raw $c 2>&1|sed -n 's/.*signature for \(.*\)@agi with.*/\1/p')
  [ "$L" -o "$s" ]||{ echo "refused: $c is not signed by a ring line open at the receiving tip";exit 1;}
  dt --diff-filter=AMT $h $c;(while IFS= read -r l;do p=${l#*	};o=$(echo "${l%%	*}"|awk '{print $(NF-1)}');git cat-file blob $o>$t/b||{ echo "refused: $c $p unreadable";exit 1;};grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' $t/b&&{ echo "refused: $c $p carries a private key block (the trunk is public)";exit 1;};case $p in $G/ring/*)echo "refused: $c $p: the ring is one file";exit 1;;$G/ring)[ "$s" ]||{ echo "refused: $c: the ring is changed by an unsigned commit";exit 1;};git show $c:$p>$t/g2&&{ grep -aEqv "$E" $t/g2;[ $? = 1 ];}||{ echo "refused: $c: a ring line off shape";exit 1;};;esac;done<$t/d)||exit 1
  [ "$L" ]||{ dt --name-only $h $c;(while IFS= read -r f;do case $f in \"*)echo "refused: $c $f: a quoted path";exit 1;;
   $G/ring)git diff --text $h $c -- "$f">$t/g||{ echo "refused: $c: git diff failed";exit 1;};r=$(sed -n 's/^[-+]\([a-z][a-z0-9-]*\) .*/\1/p' $t/g|sort -u);;
-  .agi/context/schemas/*|$G/growth.tsv|.github/*)r=${AGI_RULES:-owner};;
+  .agi/context/schemas/*|$G/growth.tsv|.github/*|.gitattributes|*/.gitattributes)r=${AGI_RULES:-owner};;
   $G/posts.md)pm $h>$t/o;pm $c>$t/n;jq -e '[keys[],(.[]|select(.!=null))]|all(test("\\A[a-z][a-z0-9-]*\\z"))' $t/n>/dev/null||{ echo "refused: $c: a posts.md name off [a-z0-9-]";exit 1;};r=$(jq -rn --slurpfile o $t/o --slurpfile n $t/n '$o[0] as $o|$n[0] as $n|($o+$n|keys[]) as $k|select($o[$k]!=$n[$k])|$o[$k],$n[$k]|select(.!=null)');;
   *)r=$(rn "$f");;esac
   for q in $r;do ru $s $q||{ echo "refused: $c $f is ruled by $q; ${s:-nobody} is not $q or above it";exit 1;};done;done<$t/d)||exit 1;}
- dt --diff-filter=AM --name-status $c -- .agi/nodes;grep '\.md$' $t/d|grep -v /deprecated/>$t/l
- while read m f;do git show $c:$f>$t/n;if [ $m = A -o $m = AA ];then v=$(grow-check $t/.agi/nodes/.geometry/growth.tsv $t/n)||{ echo "$f: $v";exit 1;}
+ dt --diff-filter=AM --name-status $h $c -- .agi/nodes;grep '\.md$' $t/d|grep -v /deprecated/>$t/l
+ while read m f;do git show $c:$f>$t/n;if [ $m = A ];then v=$(grow-check $t/.agi/nodes/.geometry/growth.tsv $t/n)||{ echo "$f: $v";exit 1;}
   g=${v##* };[ "$g" = '*' ]||[ "$g" = "$s" ]||{ echo "$f: ring $g, signed by ${s:-nobody}";exit 1;};k n||{ echo "$f:";cat $t/e;exit 1;}
-  else k n||{ git show $c^:$f>$t/p;! k p||{ echo "$f: was valid:";k n;cat $t/e;exit 1;};};fi;done<$t/l||exit 1;h=$c;done;done
+  else k n||{ git show $h:$f>$t/p||{ echo "refused: $c $f: the replaced version is unreadable";exit 1;};! k p||{ echo "$f: was valid:";k n;cat $t/e;exit 1;};};fi;done<$t/l||exit 1;h=$c;done;done
 ~~~
 
 ### grow-project (1185 B)
