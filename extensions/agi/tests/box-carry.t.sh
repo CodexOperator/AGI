@@ -144,6 +144,7 @@ ok s3-old-key-in-its-window 'vk $oc'
 ok s3-old-key-after-valid-before-refused '! vk $oa'
 ok s4-new-key-verifies 'vk $nc'
 # --- negative: no Python, no cron, no inbox path, no polling loop for LOCAL delivery in the carrier or the signers piece
+ok u1-signers-unit-line-env-i '[ "$(grep -c "^ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i\$" $R0/.agi/nodes/.geometry/engine-root.md)" = 1 ]'
 ok n1-no-python '! grep -qi python $CARRY $SIGNERS'
 ok n2-no-cron-no-inbox '! grep -q -E "cron|sessions/inbox" $CARRY $SIGNERS'
 ok n3-no-polling-loop '! grep -q -E "sleep|while :|while true|until " $CARRY'
