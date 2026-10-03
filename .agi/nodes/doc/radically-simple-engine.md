@@ -2291,75 +2291,84 @@ belam: rules change ─[owner] ask─▶ owner taps ─▶ capsule-pop arms the 
 self-perpetuating (t-8d, v5), 17:5xZ 10-02, belam's 17:48Z [owner] (skill = agi-spawn-chain; a FLOW ROTATION of one-shot + perpetual phases over one slice, recursive; 'more matrix math?'). WHY this version differs: added FLOW ROTATION. A flow is PHI over a phase tree (measured: 12 darts, LAUNCH/DONE in order, recursion = subtree); declared as a manifest whose stages may name flow: or post: (0 new table, 0 new cell); the runner is resumable (a phase with output is done), so position is never stored and firing = re-running. Answer to the owner: one permutation, no new matrix; state = (post-lap dart, flow dart, generation). Earlier: ONE-SHOT SPAWN with return at refs/spawn (alive's correction), the 2 in-use manifests' fix. Design only.
 <!-- THOUGHT:END -->
 
-## AB · THE RING IS THE TREE · self-perpetuating (lead), alive (AA1.C), all-is-one (land + review) -- ONE key / ring / anchor / capsule / time / algorithm story at the base of the matrix math: the post tree that PHI laps is also the tree of who may sign; the trunk's DAG is the clock; checkpoints the sanctuary signs are the calendar; every algorithm is a cell
-**Asked (belam [owner] 02:37Z + 02:46Z + 02:49Z, owner verbatim, through belam's [owner] mails, relayed by alive):** "even more integrated into the math as the base layer ... something to just feel otherworldly as far as encryption setups go. Something that only the sanctuary could possibly pull off" · "use the DAG as the timestamp backer. Timestamps past a certain overall block defined by cryptographic proof of the whole sanctuary signing off on it ... A semi-manual process on purpose. Key-based bureaucracy" · "make the encryption scheme drop in so future updates and quantum proofing aren't arduous". DESIGN ONLY (the owner's 21:3xZ key hold stands); one section + its measurements, under the 8 KB base / 1 KB seed.
-**What am I actually trying to get the machine to do?** Make trust a FUNCTION of bytes the sanctuary already keeps: (the tree cells, the ring lines, the DAG). Then nothing about trust has to travel, be stamped with a clock, or be remembered by a box: any box that holds the trunk computes the same verdict.
+## AB · THE RING IS THE TREE · self-perpetuating (lead), alive (AA1.C), all-is-one (land + review) -- ONE key / ring / anchor / capsule / time / algorithm story at the base of the matrix math: the post tree that PHI laps is also the tree of who may sign; the trunk's DAG is the clock; layered blocks the sanctuary signs are the calendar; every algorithm is a cell
+**Asked (belam [owner] 02:37Z, 02:46Z, 02:49Z, 02:54Z; owner verbatim, through belam's [owner] mails, relayed by alive):** "even more integrated into the math as the base layer ... something to just feel otherworldly as far as encryption setups go. Something that only the sanctuary could possibly pull off" · "use the DAG as the timestamp backer. Timestamps past a certain overall block defined by cryptographic proof of the whole sanctuary signing off on it ... A semi-manual process on purpose. Key-based bureaucracy" · "make the encryption scheme drop in so future updates and quantum proofing aren't arduous" · layered blocks: DGs sign among themselves often, less often with SM + council, council + SM among themselves, rarely all together with the prime; every workflow phase (sub)transition is a multi-party sign of ITS parties. DESIGN ONLY (the owner's 21:3xZ key hold stands); one section + its measurements, under the 8 KB base / 1 KB seed.
+**What am I actually trying to get the machine to do?** Make trust a FUNCTION of bytes the sanctuary already keeps (the tree cells, the ring lines, the DAG). Then nothing about trust has to travel, be stamped by a clock, or be remembered by a box: any box holding the trunk computes the same verdict.
 
 ```
-ONE TREE (config:posts parent cells; PHI laps it)          ONE RING (.agi/nodes/.geometry/ring, a node: one line per post x algorithm)
-  owner ─ belam ─ council ─ alive · all-is-one · s-p          owner cert-authority <CA>        the root: a CA whose 32-B seed lives ONLY in the §O/P.8 capsule
-               └ keep ─ SM ─ DG1 DG2 DG3                      owner <CA>                       the same pub, plain: the seed's anchor slot (CA signs checkpoints itself)
-                      └ TM-new ─ DT-1                        belam ssh-ed25519 <gen g>        every other line: that post's CURRENT generation, one per algorithm column
-                                                             alive ssh-ed25519 <gen g> · alive <alg2> <gen g> ...
-AUTHORITY = the closure of the parent matrix:  may(s, x) <=> s in up*(ruler(x)),  up* = (I - P)^-1 over booleans = ancestors-or-self
-  ruler(ring line q) = q   ·   ruler(node f) = f's `ring:` cell (alive AA1.C)   ·   ruler(schemas, growth.tsv, the owner lines) = the rules cell (owner; option B: belam)
-TIME = the DAG: a commit is checked against the ring AT THE RECEIVING TIP (advanced only by commits admitted before it), never against a date
-  a generation shift = ONE line edit signed by the outgoing key (k <- k + (pub_g+1 - pub_g) e_p); generation number = how many commits touched the line (computed, no cell)
-CALENDAR = checkpoints: refs/agi/checkpoint, a chain of commits over trunk tips, each holding iff the ring AT ITS TIP signed "tip time hash digest" k-of-n (weighted)
-  grace: a line closed ABOVE the newest holding checkpoint still verifies (an honest unlanded commit of a retired generation lands until the next checkpoint)
-  expiry: an owner cert whose valid-before is below the checkpoint's time is refused, whatever date the commit claims
-ALGORITHMS = cells: sign columns (AGI_SIGN, hybrid = AND across columns), hash (each checkpoint names its own; AGI_HASHES = the allowed set), commit signer = gpg.ssh.program
-ONE KEY per post per generation does everything: signs commits, signs checkpoints, holds its capsule share (X25519 of the same key), carries its §V login cert
+ONE TREE (config:posts parent cells; PHI laps it)          ONE RING (.agi/nodes/.geometry/ring: one line per post x algorithm column)
+  owner(0) ─ belam(1) ─ council ─ alive · all-is-one · s-p (2)   owner cert-authority <CA> · owner <CA>   the root: a CA whose 32-B seed lives ONLY in the §O/P.8 capsule
+                    └ keep ─ SM(2) ─ DG1 DG2 DG3 (3)             belam ssh-ed25519 <gen g>               every other line: that post's CURRENT generation
+                           └ TM-new(2) ─ DT-1(3)                 alive ssh-ed25519 <gen g> · alive <alg2> <gen g> ...
+  (level = rows up to owner; an inert row (council, keep) adds 0 -- the landed level a(), owner = 0)
+
+WHO MAY SIGN   may(s, x) <=> s in up*(ruler(x)),  up* = (I - P)^-1 over booleans = ancestors-or-self, read at the RECEIVING tip
+  ruler(ring line q) = q · ruler(node f) = f's `ring:` cell (alive AA1.C) · ruler(schemas, growth.tsv) = the rules cell (owner; option B: belam)
+  ruler(a TREE MOVE in posts.md: row p's parent a -> b) = a AND b   (stand-up: b · removal: a)  -> nobody can lift itself above its own ancestors
+WHEN           a commit meets the ring AT THE RECEIVING TIP (advanced only by commits admitted before it) -- never a date
+  a generation shift = ONE line edit signed by the outgoing key; the generation number = how many commits touched the line (computed, no cell)
+CALENDAR       blocks: commits under refs/agi/block/*, git parents = the blocks they seal, k signatures as BLOBS in the block's tree over "tip time hash digest"
+  a block holds iff its signers are current at its tip (every AGI_SIGN column) · PAIRWISE level-adjacent (|la - lb| <= 1) · >= k for its lowest level
+  grace: a ring change NO holding block contains yet keeps the closed line verifying (`git rev-list R --not <holding tips> -- ring`)
+  sealed: the LOWEST block containing it ends that grace, at any date; an owner cert past the newest holding block's time is refused
+ALGORITHMS     cells: sign columns AGI_SIGN (hybrid = AND), hash (each block names its own; AGI_HASHES = allowed), commit signer = gpg.ssh.program
+ONE KEY per post per generation: signs commits, signs blocks, holds its capsule share (X25519 of the same key), carries its §V login cert
+
+level 3 ── DG1+DG2 ──▶ often          (a workflow phase transition = a block of ITS parties, sealing the phase's commits)
+level 2+3 ── SM+DG1 ──▶ sealing L3    level 2 ── council+SM ──▶ sealing L2+3    level 1+2 ── belam+council ──▶ the rare top
+level 0+1 ── owner(CA)+belam ──▶ the anchor block: a fresh box needs only this (the seed's slot = the CA pub)
 ```
 
-**What it replaces (fewer pieces, all measured below):**
+**What it replaces (fewer pieces):**
 | was | becomes | why it can go |
 |---|---|---|
 | agi-signers (1,515 B root piece) reading every home at unit start; valid-after / valid-before stamped by root | the ring node, projected (one sed) | the post writes its own next line, signed by its current key; a box root is never an authority |
-| ring travel at refs/agi/ring/<box>, signed by a box root key, append-only merge | nothing | the ring IS a trunk node: it travels with the trunk, and every box computes the same ring at the same tip |
-| the box root key as the anchor | the `owner` line (a CA in the capsule) | the anchor is the tree's root vertex, not a machine |
-| AGI_FRESH_S (alive's 202 B line) and my KEYS-FOR-.17 freshness cell | the receiving-tip rule + checkpoint grace | no clock is read: retirement is a DAG fact; the window is the checkpoint cadence ("semi-manual on purpose") |
-| AGI_ANCHOR, a separate allowed-signers file | the rules cell = `owner` (or `belam`, option B) inside the same ring | one ring, one closure; moving the anchor = changing the owner line, which only owner rules |
-| write.py's [config] ring (owner + prime_director) and its row grants | AA1.C's `ring:` cell + the closure | an ancestor of a ring member is admitted automatically, so the cells list only the leaf (posts.md ring [SM] already admits belam and owner) |
-| capsule holder keys (separate X25519 keys, P.3: "rekey cannot revoke") | the ring keys themselves | a generation's key dies at its out-line, so an old wrap in git history dies with it: rotation IS revocation |
+| ring travel at refs/agi/ring/<box>, a box root key, append-only merge | nothing | the ring IS a trunk node: it travels with the trunk; every box computes the same ring at the same tip |
+| the box root key as the anchor; AGI_ANCHOR's separate file | the `owner` lines + the rules cell inside the same ring | the anchor is the tree's root vertex, not a machine |
+| AGI_FRESH_S (alive) / my KEYS-FOR-.17 freshness cell / one checkpoint chain | the receiving-tip rule + layered blocks | no clock is read: retirement is a DAG fact; the window is the block cadence, per level ("semi-manual on purpose") |
+| write.py's [config] ring and row grants | AA1.C's `ring:` cell + the closure + the tree-move rule | an ancestor of a ring member is admitted, so a cell lists only the leaf; a move needs both old and new parent |
+| capsule holder keys (separate X25519; P.3 "rekey cannot revoke") | the ring keys themselves | a generation's key dies at its out-line, so an old wrap in git history dies with it: rotation IS revocation |
+| agi-land: the signer must be the sender or UNDER the landed post | ancestor-or-self both ways (all-is-one 02:56Z: `u $s $2||u $2 $s`, 1,855 -> 1,851 B, 17/17 AA3 lanes + 6u lands, 6v refused) | the closure lets the above in; ring-gate rules the path |
 
-**Measured on scratch (02:4xZ-02:5xZ; throwaway CA + post keys; git 2.43, OpenSSH 9.6, python3 cryptography; no root, no real key, no network). 23 + 11 + 8 + 2 cases, every one PASS:**
+**Measured on scratch (02:4xZ-03:0xZ; throwaway CA + post keys; git 2.43, OpenSSH 9.6, python3 cryptography; no root, no real key, no network). 58 cases, every one PASS:**
 | # | case | verdict |
 |---|---|---|
-| C1 C4 | a post's current key, plain node edit | admitted |
-| C2 C18a | gen g hands off to g+1 (its own line, signed by g) | admitted |
-| C3 C3b | gen g after its handoff · the same commit BACKDATED a day | refused · refused (no date is read) |
+| C1 C4 · C2 C18a | a post's current key, plain node edit · gen g hands off to g+1 (its own line) | admitted · admitted |
+| C3 C3b | gen g after its handoff · the same commit BACKDATED a day (no block) | refused · refused |
 | C5 | SM merges an OLD-BASE side commit signed by the retired generation | refused (the side commit meets the receiving ring) |
-| C6 C9 | DG1 rewrites alive's line · alive stands up DG9 | refused · refused (not above them) |
-| C7 C8 | belam re-vouches alive (recovery / revocation) · SM stands up DG9 (its parent) | admitted · admitted |
+| C6 C9 · C7 C8 | DG1 rewrites alive's line, alive stands up DG9 · belam re-vouches alive, SM stands up DG9 | refused · admitted |
 | C10 C13 · C11 C12 | a node ringed [sanctuary-master]: DG1, alive · SM, belam | refused · admitted (belam through the closure) |
-| C14 · C15 · C16 | a schema change: belam plain · belam + an owner window cert · option B (rules = belam) | refused · admitted · admitted |
-| C17 | the owner (cert) edits a node ringed [SM] | admitted: the root of every closure |
+| C14 · C15 · C16 · C17 | a schema: belam plain · belam + an owner window cert · option B · the owner edits a node ringed [SM] | refused · admitted · admitted · admitted |
 | C18 · C19 | an owner cert on RETIRED belam gen1, still in date · on current gen2 | refused · admitted (the cert dies with its subject's generation) |
 | C20 C21 | SM, then belam, replaces the owner line | refused · refused (only owner is above owner) |
-| K0-K1 | a handoff above the newest checkpoint; the retired key signs after it | admitted (GRACE) |
-| ckpt-1 · ckpt-2 | a checkpoint signed by a RETIRED key + belam · with one signature (k = 2) | does not hold · does not hold (the older one stays newest) |
-| K2 K3 | the retired key after a checkpoint ABOVE its handoff · backdated | refused · refused |
-| K5 · K6 | an owner cert expired before the checkpoint's time, commit backdated into its window · a cert valid then | refused · admitted (closes the hole git leaves open: git checks a cert at the committer date, measured G) |
-| ckpt-4 · ckpt-5 | mutual quorum (O.8: owner@4, k = 5): three posts, no owner · owner (cert) + one post | does not hold · holds |
-| owner-direct | the owner signs a checkpoint with the CA key itself (the plain owner line) + one post | holds: the seed's anchor slot keeps its 82 B form, the CA pub in it |
-| H1 · H2 | a checkpoint signed ed25519 only: under the classical cell · under the hybrid cell (ED25519 AND a 2nd column) | holds · does not hold |
-| H3 · H4 · H5 | hybrid: both posts in both columns · one post missing a column · a post with no 2nd-column line adds an outside key | holds · no · no |
-| H6 · H7 · H8 | a checkpoint naming sha512 · sha512 dropped from AGI_HASHES · a hash file that is not the tip's digest | holds · no · no |
-| X1 · X2 | a capsule share wrapped to alive gen1's RING LINE (public only), opened by gen1's own ssh key file · re-wrapped at the handoff to gen2 | opens · opens (101 B per wrap) |
-| X3 · X4 | retired gen1 opens the new wrap · another post opens alive's | no · no |
-The 2nd algorithm column was ECDSA P-256 as a STAND-IN: OpenSSH 9.6 has PQ key exchange but NO PQ signature type (alive, 02:49Z). The hybrid AND is algorithm-blind (the gate reads the key type ssh-keygen prints), so ML-DSA drops in as a column the day a verifier exists on the box. For commits (ONE signature slot per object, all-is-one 02:50Z) the drop-in point is `gpg.ssh.program`: a cell naming the program git calls to sign and verify, so a hybrid commit is ONE composite blob that program checks both halves of.
+| L1 · L2 · L3 | DG1+DG2 (3) · SM+DG1 (2+3) sealing L1 · alive+all-is-one+SM (2) sealing L2 | hold |
+| L4 · L7 · L8 | belam+DG1 (1, 3) · owner+alive (0, 2) · one signer (k = 2) | no · no · no |
+| L5 · L6 | belam+alive (1+2) sealing L3 · owner (the CA key itself) + belam: the anchor block | hold · hold |
+| T1 T2 | DG1 gen1 hands off; the retired key signs before any holding block contains the handoff | admitted (GRACE) |
+| T3 · T4 | the next level-3 block over the handoff (DG1 gen2 + DG2) · the same signed by the RETIRED gen1 | holds · no |
+| T5 T6 · T7 | the retired key once the LOWEST block seals its handoff · backdated a day · gen2 | refused · refused · admitted |
+| T8 | a block over an OLDER tip than a block it seals | no |
+| T9 · T10 | an owner cert expired before the newest block's time, backdated into its window · a cert valid then | refused · admitted (git alone admits the first: it checks a cert at the committer date, measured G) |
+| E1 | SM (posts.md ring member) re-parents belam under itself (alive's 02:55Z escalation) | refused: ruled by owner (belam's old parent) |
+| E2 · E3 · E4 | SM moves DG2 under DG1 · SM moves DG2 out to keep · belam does that move | admitted · refused · admitted |
+| E5 · E6 · E7 · E8 | SM edits DG1's tier · DG1 edits its own row · SM stands up DG9 under itself · SM stands up a row under belam | admitted · refused · admitted · refused |
+| H1 · H2 · H3 | the hybrid cell (ED25519 AND a 2nd column): an ed25519-only block · DG1+DG2 in both columns · DG2 missing one | no · holds · no |
+| H4 · H5 | a block naming sha512 · sha512 dropped from AGI_HASHES | holds · no |
+| X1 · X2 · X3 · X4 | a capsule share wrapped to alive gen1's RING LINE, opened by gen1's ssh key file · re-wrapped at handoff, opened by gen2 · gen1 opens the new wrap · another post opens it | opens · opens · no · no (101 B per wrap) |
+The 2nd column was ECDSA P-256 as a STAND-IN: OpenSSH 9.6 has PQ key exchange but NO PQ signature type (alive 02:49Z). The AND is algorithm-blind (the gate reads the key type ssh-keygen prints), so ML-DSA drops in as a column the day a verifier exists on the box. For commits (ONE signature slot per object, all-is-one 02:50Z) the drop-in point is `gpg.ssh.program`: a cell naming the program git calls to sign and verify; a hybrid commit is ONE composite blob that program checks both halves of. A block needs no such program: its k signatures are blobs in its own tree (the third shape beside all-is-one's composite blob and k tags; measured above, 0 tags, 0 new programs).
 
-**The out-line (the generation shift, ~60 B in engine-root, replacing AA2's ~35 B `.fresh` key drop):** `ssh-keygen` the next key beside the current one · commit `<post> <next pub>` over its own line, signed by the CURRENT key · land it (agi-flush) · re-wrap the post's capsule shares to the next key · `touch ~/.fresh` · at restart, ExecStartPre moves next over current. A crash anywhere before the land leaves the old line in force (nothing changed); a crash after it leaves a line whose key is lost, which the parent re-vouches (C7): ONE recovery rule, the same as stand-up and revocation. Emergency revocation = re-vouch + cut a checkpoint at once (the grace window then closes immediately).
-**A fresh box needs ONE thing:** the seed's anchor slot (the owner CA pub). It verifies the newest holding checkpoint (owner + m posts), whose tip's ring is then trusted whole, and the gate takes every later commit from there. No history replay, no ring travel, no box key.
+**The out-line (the generation shift, ~60 B in engine-root, replacing AA2's ~35 B `.fresh` key drop):** `ssh-keygen` the next key beside the current one · commit `<post> <next pub>` over its own line, signed by the CURRENT key · land it (agi-flush) · re-wrap the post's capsule shares to the next key · `touch ~/.fresh` · at restart ExecStartPre moves next over current. A crash before the land leaves the old line in force; a crash after it leaves a line whose key is lost, which the parent re-vouches (C7): ONE recovery rule, the same as stand-up and revocation. Emergency revocation = re-vouch + cut a block at once at the post's own level (its grace closes immediately).
+**A workflow phase transition** (AA2 FLOW ROTATION's phase tree) = a block signed by the phase's parties over the phase's done commit; its sub-transitions are blocks it seals. The block DAG IS the phase tree, signed.
+**A fresh box needs ONE thing:** the seed's anchor slot (the owner CA pub, its 82 B form unchanged). It verifies the newest holding anchor block (owner + belam), whose tip's ring and tree are then trusted whole; the gate takes every later commit from there. No history replay, no ring travel, no box key.
 
-`ring-gate` whole (2328 B, sha256 729227ae5e4e1504; the prototype the measurements ran: in the build its loop IS grow-gate's loop, so the delta is the projection, the closure and the two refusals):
+`ring-gate` whole (2845 B, sha256 668cc669efdf796c; the prototype the measurements ran -- in the build its loop IS grow-gate's loop, so the delta is the projection, the closure, the tree-move rule and the two refusals):
 ```sh
 #!/bin/sh
-# ring-gate R N: every commit in R..N, in landing order, is signed by its signer's CURRENT line in the ring AS RECEIVED (the ring at R, advanced only by commits already admitted in this range); each changed path is admitted only if the signer is an ancestor-or-self (the closure of the posts tree's parent cells) of every name that rules it
+# ring-gate R N: every commit in R..N, in landing order, is signed by a ring line open in the ring AS RECEIVED (the ring at R, advanced only by commits already admitted, plus every line a change no holding block seals yet closed); each changed path is admitted only if the signer is an ancestor-or-self (the closure of the posts tree's parent cells) of every name that rules it
 G=.agi/nodes/.geometry;t=$(mktemp -d);trap 'rm -rf $t' EXIT;h=$1
 p(){ { git show $h:$G/ring;cat $t/g; }|sort -u>$t/r;sed -E 's/^([a-z0-9-]+) cert-authority /\1@agi cert-authority,namespaces="git" /;t;s/^([a-z0-9-]+) /\1@agi namespaces="git" /' $t/r>$t/a;grep -v ' cert-authority ' $t/r|cut -d' ' -f2-|ssh-keygen -lf /dev/stdin|cut -d' ' -f2>$t/f;git show $h:$G/posts.md|sed -n 's/^  - {/{/p'|jq -r '"\(.name) \(.parent)"'>$t/u;}
-set -- $1 $2 $(sh ${AGI_CKPT:-ckpt} check);[ "$3" ]&&for v in $3 $(git rev-list $3..$1 -- $G/ring);do git show $v:$G/ring;done>$t/g;touch $t/g
+sh ${AGI_CKPT:-ckpt} check>$t/b;B=$(cut -d" " -f1 $t/b);[ "$B" ]&&for v in $(git rev-list $1 --not $B -- $G/ring);do git show $v^:$G/ring;done>$t/g;touch $t/g
+set -- $1 $2 x $(cut -d" " -f2 $t/b|sort -n|tail -1)
 vb(){ git cat-file commit $1|sed -n '/^gpgsig /,/END SSH/p'|sed 's/^gpgsig //;s/^ //'|python3 -c "import sys,base64 as B,struct as S
 b=B.b64decode(''.join(l for l in sys.stdin.read().split(chr(10)) if l and l[0]!='-'));n=S.unpack('>I',b[10:14])[0];k=b[14:14+n]
 def r(o):l=S.unpack('>I',k[o:o+4])[0];return o+4+l
@@ -2367,29 +2376,33 @@ o=r(r(r(0)))+12;o=r(r(o));print(S.unpack('>Q',k[o+8:o+16])[0])"; }
 up(){ awk -v s=$1 -v q=$2 '{u[$1]=$2}END{while(q!=""){if(q==s)exit 0;q=u[q]}exit 1}' $t/u;}
 T=$4;for c in $(git rev-list --reverse --topo-order $1..$2);do p
  set -- $(git -c gpg.ssh.allowedSignersFile=$t/a log -1 --format='%G? %GS %GK' $c);s=${2%@agi}
- [ "$1" = G ]&&grep -qxF "$3" $t/f||{ echo "refused: $c not signed by a ring line open above the latest checkpoint";exit 1;}
- [ "$s" = owner ]&&[ "$T" ]&&[ $(vb $c) -lt $T ]&&{ echo "refused: $c owner cert expired before the latest checkpoint";exit 1;}
+ [ "$1" = G ]&&grep -qxF "$3" $t/f||{ echo "refused: $c not signed by a ring line open above every holding block";exit 1;}
+ [ "$s" = owner ]&&[ "$T" ]&&[ $(vb $c) -lt $T ]&&{ echo "refused: $c owner cert expired before the newest holding block";exit 1;}
  for f in $(git diff-tree -r -c --root --no-commit-id --name-only $c);do
   case $f in $G/ring) r=$(git diff $c^ $c -- $f|sed -n 's/^[-+]\([a-z][a-z0-9-]*\) .*/\1/p'|sort -u);;
    .agi/context/schemas/*|$G/growth.tsv) r=${AGI_RULES:-owner};;
+   $G/posts.md) for v in $h $c;do git show $v:$f|sed -n 's/^  - {/{/p'|jq -s 'map({(.name):.parent})|add'>$t/$v;done
+    r="$(git show $h:$f|awk '/^---$/{n++;next} n==1&&/^ring:/{sub(/^ring: *\[/,"");sub(/\].*/,"");gsub(/[ ,]+/," ");print;exit} n>1{exit}') $(jq -rn --slurpfile o $t/$h --slurpfile n $t/$c '$o[0] as $o|$n[0] as $n|($o+$n|keys[]) as $k|select($o[$k]!=$n[$k])|$o[$k],$n[$k]|select(.!=null)')";;
    *) r=$(git show $h:$f 2>/dev/null|awk '/^---$/{n++;next} n==1&&/^ring:/{sub(/^ring: *\[/,"");sub(/\].*/,"");gsub(/[ ,]+/," ");print;exit} n>1{exit}');;esac
   for q in $r;do up $s $q||{ echo "refused: $c $f is ruled by $q; $s is not $q or above it";exit 1;};done;done;h=$c;done
 ```
-`ckpt` whole (1800 B, sha256 ce310b2268792c67): a lane fixture writes a checkpoint as: one blob per signature (`ckpt sign <post> <key> <tip> <time>`), a tree `hash` (`<alg> <digest of git archive tip>`) + `sigs/<post>.<n>` + `time` + `tip`, `git commit-tree` with the previous checkpoint as parent, `git update-ref refs/agi/checkpoint`:
+`ckpt` whole (2439 B, sha256 b944222c7681ba26). A lane fixture writes a block as: one blob per signature (`ckpt sign <post> <keyfile> <tip> <time>`), a tree `hash` (`<alg> <digest of git archive --format=tar tip>`) + `sigs/<post>.<n>` + `time` + `tip`, `git commit-tree` with `-p` per sealed block, `git update-ref refs/agi/block/<name>`:
 ```sh
 #!/bin/sh
-# ckpt sign POST KEY TIP TIME | ckpt check: a CHECKPOINT = one commit on refs/agi/checkpoint: files tip, time, hash (the cells AGI_HASH + its digest of `git archive tip`), sigs/<post>.<n>; payload = "tip time hash digest"
-# it holds iff the posts current in the ring AT THAT TIP signed the payload (namespace agi-checkpoint) in EVERY algorithm of the cell AGI_SIGN (hybrid = AND), with weights AGI_CKW ("name:w ...", default 1) summing to AGI_CKK (default 2); check prints "<tip> <time>" of the newest holding checkpoint
+# ckpt sign POST KEY TIP TIME | ckpt check: a BLOCK = a commit under refs/agi/block/*: files tip, time, hash ("<AGI_HASH> <digest of git archive tip>"), sigs/<post>.<n> over "tip time hash digest" (namespace agi-checkpoint); its git PARENTS are the blocks it seals
+# it holds iff: every signer is current in the ring AT ITS TIP in every algorithm of AGI_SIGN (hybrid = AND) · the signers are PAIRWISE level-adjacent (level = rows up to owner, an inert row counts 0, owner = 0) · their number >= AGI_CKK's k for the block's lowest level ("0:2 1:2 2:2 3:2", default 2) · every parent's tip is an ancestor of its tip. check prints "<tip> <time>" for EVERY holding block
 G=.agi/nodes/.geometry;t=$(mktemp -d);trap 'rm -rf $t' EXIT;H=${AGI_HASH:-sha256}
 d(){ echo "$1 $2 $H $(git archive --format=tar $1|${H}sum|cut -d' ' -f1)"; }
+lv(){ git show $1:$G/posts.md|sed -n 's/^  - {/{/p'|jq -rs --arg a $2 'map({(.name):.})|add as $r|def l(x;n):if x=="owner" then 0 elif n>20 or $r[x]==null then -99 else (if $r[x]|has("harness") then 1 else 0 end)+l($r[x].parent//"";n+1) end;l($a;0)'; }
 case $1 in sign) d $4 $5>$t/m;ssh-keygen -q -Y sign -n agi-checkpoint -f $3 $t/m&&cat $t/m.sig;;
-check) for c in $(git rev-list refs/agi/checkpoint 2>/dev/null);do x=$(git show $c:tip) y=$(git show $c:time) H=$(git show $c:hash|cut -d" " -f1);case " ${AGI_HASHES:-sha256 sha384 sha512} " in *" $H "*);;*)continue;;esac;[ "$(git show $c:hash)" = "$(d $x $y|cut -d' ' -f3-)" ]||continue;d $x $y>$t/m
- git show $x:$G/ring|sed -E 's/^([a-z0-9-]+) cert-authority /\1@agi cert-authority,namespaces="agi-checkpoint" /;t;s/^([a-z0-9-]+) /\1@agi namespaces="agi-checkpoint" /'>$t/a;n=0
+check) for c in $(git rev-list $(git for-each-ref --format='%(objectname)' refs/agi/block) 2>/dev/null);do x=$(git show $c:tip) y=$(git show $c:time) H=$(git show $c:hash|cut -d" " -f1);case " ${AGI_HASHES:-sha256 sha384 sha512} " in *" $H "*);;*)continue;;esac;[ "$(git show $c:hash)" = "$(d $x $y|cut -d' ' -f3-)" ]||continue;d $x $y>$t/m
+ for q in $(git rev-parse $c^@);do git merge-base --is-ancestor $(git show $q:tip) $x||continue 2;done
+ git show $x:$G/ring|sed -E 's/^([a-z0-9-]+) cert-authority /\1@agi cert-authority,namespaces="agi-checkpoint" /;t;s/^([a-z0-9-]+) /\1@agi namespaces="agi-checkpoint" /'>$t/a;:>$t/l
  for p in $(git ls-tree --name-only $c sigs/|sed 's|sigs/||;s|\.[0-9]*$||'|sort -u);do for f in $(git ls-tree --name-only $c sigs/|grep "^sigs/$p\.");do git show $c:$f>$t/s
   ssh-keygen -Y verify -f $t/a -I $p@agi -n agi-checkpoint -s $t/s<$t/m 2>/dev/null|sed -n 's/.* with \([A-Z0-9-]*\) key.*/\1/p';done|sort -u>$t/k
-  for a in ${AGI_SIGN:-ED25519};do grep -qx "$a" $t/k||continue 2;done;n=$((n+$(echo " $AGI_CKW "|sed -n "s/.* $p:\([0-9]*\) .*/\1/p;t;s/.*/1/p")));done
- [ $n -ge ${AGI_CKK:-2} ]&&{ echo "$x $y";exit;};done;;esac
+  for a in ${AGI_SIGN:-ED25519};do grep -qx "$a" $t/k||continue 2;done;lv $x $p>>$t/l;done
+ sort -n $t/l|awk -v K=" ${AGI_CKK:-} " '$1<0{exit 1}NR==1{m=$1}{M=$1;n++}END{k=2;if(match(K," "m":[0-9]+"))k=substr(K,RSTART+length(m)+2,RLENGTH-length(m)-2);exit !(n&&M-m<=1&&n>=k)}'&&echo "$x $y $c";done;;esac
 ```
-**Bytes against the rails.** BASE (config:engine map lines): -60 B `signers` -119 B `agi-signers` +~62 B `ckpt` = **-117 B** (the base had 6 B spare; it gets 123). grow-gate grows by about the ring-gate delta (expansion, not base). SEED: 0 B (the anchor slot's form is unchanged; its value becomes the owner CA pub). Graph data: the ring node (~100 B per post per column) and the cells AGI_SIGN · AGI_HASHES · AGI_CKW · AGI_CKK · the rules cell · gpg.ssh.program.
-**Honest limits.** (1) Inside ONE generation an owner cert can still be stretched by backdating up to the next checkpoint (expiry is read at the checkpoint's time); outside the generation it is dead (C18). (2) The grace window is the checkpoint cadence: a key leaked and retired stays usable until the next checkpoint, so revocation = re-vouch + checkpoint now. (3) The repo's object hash is sha1: a checkpoint's own digest (sha256/sha512 of the whole tip tree, a cell) is the collision-resistant anchor until the repo moves to sha256 objects; git's sha256 repos interoperate poorly today (UNMEASURED here). (4) The X25519 fold is ed25519-specific (the birational map); a PQ seal column (ML-KEM) is a separate ring line per post, the same rule. (5) Root on a box can read a live generation's key (no TPM, O.3); what it gets dies at the out-line. (6) Retiring agi-signers needs the out-line to write the first ring line per post: the stand-up order is the parent writes it (C8), once, from the post's first pub.
-**Falsifiers (AA2.54-AA2.64).** AA2.54 C1-C21 on the integrated grow-gate (one loop, no second script): DG1's build · AA2.55 a box with ONLY the seed + the trunk reaches the same verdicts as this box on all 44 cases: UNRUN (two boxes) · AA2.56 the out-line on a live post: one ring commit per `.fresh`, 0 per crash restart: DG1's build · AA2.57 K0-K6 through agi-land (all-is-one's lane 6s'): all-is-one · AA2.58 ckpt-1/2/4/5 + owner-direct: PASS scratch · AA2.59 H1-H8: PASS scratch · AA2.60 X1-X4: PASS scratch · AA2.61 a real PQ column (ML-DSA) under the hybrid cell, the day a verifier exists: UNRUN · AA2.62 `gpg.ssh.program` = a composite signer: a commit verifies only if both halves do: UNRUN · AA2.63 base map lines -117 B with agi-gate HEAD rc 0: DG1's build · AA2.64 after agi-signers retires, `find /var/lib/agi -name allowed_signers` holds only the projection of the trunk's ring: DG1's build.
+**Bytes against the rails.** BASE (config:engine map lines): -60 B `signers`, -119 B `agi-signers`, +~62 B `ckpt` = **-117 B** (the base had 6 B spare; it gets 123). grow-gate grows by the ring-gate delta (expansion, not base); agi-land -4 B. SEED: 0 B. Graph data: the ring node (~100 B per post per column) and the cells AGI_SIGN · AGI_HASHES · AGI_CKK (k per level) · the rules cell · gpg.ssh.program.
+**Honest limits.** (1) Inside one generation an owner cert can still be stretched by backdating up to the next block (expiry is read at the newest block's time); outside it, it is dead (C18). (2) The grace window is the block cadence at the post's level: revocation = re-vouch + a block now. (3) The repo's object hash is sha1: a block's own digest (sha256/sha512 of the whole tip tree, a cell) is the collision-resistant anchor until the repo moves to sha256 objects (UNMEASURED: git's sha256 repos interoperate poorly today). (4) The X25519 fold is ed25519-specific (the birational map); a PQ seal column (ML-KEM) is a separate ring line per post, same rule. (5) Root on a box can read a live generation's key (no TPM, O.3); what it gets dies at the out-line. (6) Retiring agi-signers needs each post's first ring line, written once by its parent (C8 / E7). (7) Level adjacency admits owner at level 0 for blocks; the mail matrix a() still excludes owner (it has no harness): the one place blocks and mail read the tree differently.
+**Falsifiers (AA2.54-AA2.66).** AA2.54 C1-C21 + E1-E8 on the integrated grow-gate (one loop): DG1's build · AA2.55 a box with ONLY the seed + the trunk reaches the same verdicts on all 58: UNRUN (two boxes) · AA2.56 the out-line on a live post: one ring commit per `.fresh`, 0 per crash restart: DG1's build · AA2.57 T1-T10 through agi-land (all-is-one's lane 6s', ring-gate as GROW_GATE): all-is-one · AA2.58 L1-L8: PASS scratch · AA2.59 H1-H5: PASS scratch · AA2.60 X1-X4: PASS scratch · AA2.61 a real PQ column (ML-DSA) under the hybrid cell: UNRUN · AA2.62 `gpg.ssh.program` = a composite signer: a commit verifies only if both halves do: UNRUN · AA2.63 base map lines -117 B with agi-gate HEAD rc 0: DG1's build · AA2.64 after agi-signers retires, the box's allowed_signers is only the projection of the trunk's ring: DG1's build · AA2.65 agi-land ancestor-or-self: 6u lands, 6v refused: PASS (all-is-one) · AA2.66 a FLOW ROTATION run cuts one block per phase transition, its parties only, and the run's phase tree equals its block DAG: DG1's build.
