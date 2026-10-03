@@ -23,4 +23,14 @@ c3=$(mk $c2 legacy none three);gate $c2 $c3 refs/heads/trunk;ok c-commit-after-r
 c3b=$(mk $c2 owner none threeb);gate $c2 $c3b refs/heads/trunk;ok d-even-the-owner-is-not-open-after-deletion '[ $? != 0 ]'
 # one push holding the deleting commit and an unsigned-by-ring follow-up: the follow-up is refused
 c4=$(mk $c2 legacy none four);echo "$c1 $c4 refs/heads/x"|AGI_ALLOWED=$D/allowed AGI_TRUNK=refs/heads/trunk AGI_NOT=$c1 grow-gate>$D/out 2>&1;ok e-in-one-push-follow-up-after-deletion-refused '[ $? != 0 ]'
+# --- DG1 04:40Z (SM landing note): a git error in the commit walk REFUSES the land (dash has no pipefail: an empty loop would admit). A shim `git` fails ONE subcommand (FAILSUB); the old bytes read RED.
+mkdir $D/shim;printf '#!/bin/sh\nskip=;for a in "$@";do [ -n "$skip" ]&&{ skip=;continue;};case $a in -C|-c)skip=1;continue;;-*)continue;;*)sub=$a;break;;esac;done\n[ "$sub" = "$FAILSUB" ]&&{ echo "shim: $sub failed" >&2;exit 1;}\nexec /usr/bin/git "$@"\n' >$D/shim/git;chmod +x $D/shim/git
+fgate(){ echo "$1 $2 refs/heads/x"|(FAILSUB=$3 PATH=$D/shim:$PATH AGI_ALLOWED=$D/allowed AGI_TRUNK=refs/heads/trunk AGI_NOT=$1 grow-gate)>$D/out 2>&1;}
+git update-ref refs/heads/trunk $o;c9=$(mk $o legacy none nine)
+fgate $o $c9 rev-list;ok f-rev-list-error-refuses '[ $? != 0 ]&&grep -q "git rev-list failed" $D/out'
+fgate $o $c9 diff-tree;ok g-diff-tree-error-refuses '[ $? != 0 ]&&grep -q "git diff-tree failed" $D/out'
+fgate $o $c9 none;ok h-control-no-failure-lands '[ $? = 0 ]'
+git update-ref refs/heads/trunk $c1;c10=$(mk $c1 owner del ten)
+fgate $c1 $c10 diff;ok i-ring-diff-error-refuses '[ $? != 0 ]&&grep -q "git diff failed" $D/out'
+fgate $c1 $c10 none;ok j-control-ring-delete-by-owner-lands '[ $? = 0 ]'
 echo "grow-gate-bootstrap: $f FAIL";exit $f
