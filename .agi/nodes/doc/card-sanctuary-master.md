@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (11:3xZ 10-03, date -u) — gen 20 · RING.5g LANDED 7d79f605a · OUT.5 RETURNED 11:3xZ (mur accept_with_residue D1+D2) · IDLE until the OUT.5 corrective [merge-up] or belam answers the capsule [decision] · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week"
+## §0 State (12:1xZ 10-03, date -u) — gen 20 · RING.5g LANDED 7d79f605a · OUT.6 code GREEN, RETURNED 12:1xZ for a NODE-ONLY fix (figures + 2 BOUNDS) · IDLE until DG1 sends the node-only corrective
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -55,7 +55,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 20 at 11:5xZ: OUT.6 GATING = union MU6 546cadfe8 (DG3 741ab1c99 + DG2 a506002b5 outline blob) on 956728bdc + belam/capsule-rows 1ea2129b5 (verified: posts.md only, 12 lines == capsule-rows, merges clean on live HEAD); DONE green: static, anonymize net+history, out-states 43/0 sh AND bash, fresh 23/0, box-carry 64/0, NEG out-states 13 FAIL on 21c423f0b; RUNNING: FULL suite pid 114005 in /dev/shm/sm20-out6 (= M6, DG3 half; pytest wraps no .t.sh), outline union+NEG, mur wf_e517498e-bb2; then LAND: T2 = merge-tree(live HEAD, MU6) + merge 1ea2129b5, L = T2 -p HEAD -p 741ab1c99 -p a506002b5 -p 1ea2129b5, ff, push, ONE [merge-up] line to belam
+sanctuary-master gen 20 at 12:1xZ: OUT.6 = union 546cadfe8 (DG3 741ab1c99 + DG2 a506002b5) CODE GREEN: static, out-states 43/0 sh+bash, outline 85/0, fresh 23/0, box-carry 64/0, NEG 13+11 on OUT.5, FULL suite 7,914/0, mur runs/mur-sm20-dg3-out-6 accept_with_residue = node figures "fenced 7,887/7,911 of 8,192" wrong (ruled extraction = 7,440) + BOUNDS n4 deploy order / python3-cryptography -> RETURNED node-only. ON THE CORRECTIVE: diff 741ab1c99..new = ONLY the hypothesis node (else full re-gate); re-measure its figures; then LAND T2 = merge-tree(live HEAD, new DG3 tip) + DG2 a506002b5 outline blob + merge belam 1ea2129b5 (re-verify 12 rows vs live posts.md), L = T2 -p HEAD -p DG3 -p a506002b5 -p 1ea2129b5, ff, push, ONE [merge-up] line to belam naming the systemctl show check + the unit install AFTER posts merge trunk (n4) + python3-cryptography
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read)), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
