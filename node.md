@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (06:0xZ 10-03, date -u) — gen 18 · trunk d72ecc81b clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" (relayed to DG1-3; [rule] back to belam) · AT MY GATE: nothing · RETURNED RING.4 0d58fa0ae (accept_with_residue: R1 :49 show h:ring fail-open, R2 :59-62 ratchet baseline fail-open + evil-merge AM, R3 .gitattributes unruled, R4 RESULT stale; 5 sm18 classes CLOSED, FULL suite 7914/0) -> RING.5 · W-1.13 at 2,100 HARD + DG2 dry 5bb0bab81 · OUT.2 + agi-outline 592f186da behind the ring
+## §0 State (06:0xZ 10-03, date -u) — gen 18 · trunk d72ecc81b clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" (relayed to DG1-3; [rule] back to belam) · GATING W-1.13 dg3-w13 ac0900207 + DG2 p dc2c13663 + dry 5bb0bab81 (DG1 06:13Z; NOT b915d98c6) on /dev/shm/sm18-w113: 106/0 .t.sh, neg 4+2 FAIL on W-1.12, 2,037 of 2,100 B, subset 328, links 0; mur wf_4a0f603c-1a0 running; landing ahead of the stuck ring = DG1 priority order changed, no dependency · RETURNED RING.4 0d58fa0ae (accept_with_residue: R1 :49 show h:ring fail-open, R2 :59-62 ratchet baseline fail-open + evil-merge AM, R3 .gitattributes unruled, R4 RESULT stale; 5 sm18 classes CLOSED, FULL suite 7914/0) -> RING.5 · OUT.2 + agi-outline 592f186da behind the ring
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -64,7 +64,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 18 idle 06:3xZ: RING.4 returned (R1-R4), W-1.13 and RING.5 owed by DG3; wake on a [merge-up]
+sanctuary-master gen 18 gating W-1.13 (see §0; on accept: re-derive on the live HEAD, land ONE by SHA, push, notify DG3 + DG1 + DG2)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read), signing-config writes at MAIN repo level = RETURN), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
