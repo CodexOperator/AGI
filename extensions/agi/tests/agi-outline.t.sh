@@ -71,6 +71,10 @@ ok "a-outline-others-untouched every other post keeps its lines byte for byte" '
 ok "a-outline-all-three-new none of the three columns repeats generation 0 (a column left unchanged would keep a retired key in force)" '[ "$C1" != "$B" ]&&distinct $B $C1'
 ok "a-outline-signed-by-current the commit is signed by the CURRENT (generation 0) sign key: its key fingerprint is key0's, and verify-commit against the ring at its parent exits 0" 'vp $C1&&[ "$($G -C $H/t -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=$T/al log -1 --format=%GK $C1)" = "$(fp $K/key0.pub)" ]'
 ok "a-outline-key-installed after the restart the live sign key IS the ring's new ssh-ed25519 column and differs from generation 0" '[ "$(pub)" != "$K0" ]&&[ "$(own $C1|awk "\$2==\"ssh-ed25519\"{print \$2,\$3}")" = "$(pub)" ]'
+# D1 (mur on 00ffbe04c; DG1 05:47Z): the unit's steps in FILE ORDER (key step, root agi-signers, the rest, agi-out) must leave the file the BOX verifies against ($T/allowed, written by the unit's own agi-signers step) holding the NEW key after the ONE start that swapped it: nv KEYFILE = a commit by post1's identity signed with that key, verified against $T/allowed (hermetic)
+nv(){ echo n$2>$T/nb;nh=$($G -C $H/t hash-object -w $T/nb);ntr=$(printf "100644 blob %s\tn\n" $nh|$G -C $H/t mktree);nvc=$(env GIT_COMMITTER_NAME=$P GIT_COMMITTER_EMAIL=$P@agi GIT_AUTHOR_NAME=$P GIT_AUTHOR_EMAIL=$P@agi $G -C $H/t -c gpg.format=ssh -c user.signingkey=$1 commit-tree -S -m n $ntr)&&$G -C $H/t -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=$T/allowed verify-commit $nvc>$T/nv.out 2>&1;}
+ok "d1a-new-key-verifies-after-one-start after the ONE start that swapped the key (agi-out ran AFTER agi-signers in the unit's order, so a file written before the swap lacks it) a commit signed by the NEW sign key verifies against the box file as $P@agi" 'nv $H/.ssh/id_ed25519 1'
+ok "d1b-old-key-commit-still-verifies the out-line commit itself (signed by the OLD key, dated before the stamp) still verifies against the box file after that start" '$G -C $H/t -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=$T/allowed verify-commit $C1>/dev/null 2>&1'
 ok "a-outline-pq-32 the pq-sha256 column is 32 raw bytes" '[ "$C1" != "$B" ]&&[ "$(own $C1|awk "\$2==\"pq-sha256\"{print \$3}"|base64 -d 2>/dev/null|wc -c|tr -d " ")" = 32 ]'
 ok "a-outline-seal-is-ring the x25519 column is 32 raw bytes and IS the public half of ~/seal.key" '[ "$C1" != "$B" ]&&x=$(own $C1|awk "\$2==\"x25519\"{print \$3}");[ "$(echo $x|base64 -d 2>/dev/null|wc -c|tr -d " ")" = 32 ]&&[ "$x" = "$(sealpub $H/seal.key)" ]'
 ok "a-outline-no-key-bytes-in-commit the commit holds no private key block (the trunk is public)" '[ "$C1" != "$B" ]&&! $G -C $H/t show $C1|grep -aq -e "-\{5\}BEGIN [A-Z0-9 ]*PRIVATE KEY-\{5\}"'
@@ -80,6 +84,8 @@ agirun
 # --- the crash restarts AFTER the out-line, and a RETRY of the out-line before agi-run consumes .fresh
 up;agirun;up;agirun
 ok "a-crash-after-outline two crash restarts after the out-line keep the NEW key and add 0 commits (still $(rc $B))" '[ "$(pub)" = "$K1" ]&&[ "$(rc $B)" = 1 ]'
+ok "d1c-still-after-restarts after those two crash restarts the NEW key's commit still verifies against the box file (a second start cannot lose the key the first one made)" 'nv $K/key1 2'
+ok "d1d-old-key-after-restarts and the OLD key's out-line commit still verifies (the old key was stamped valid-before AFTER its own commit's date)" '$G -C $H/t -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=$T/allowed verify-commit $C1>/dev/null 2>&1'
 sleep 1;touch $H/.fresh;up;K2=$(pub);up;up
 ok "a-retry-idempotent an out-line whose start is RETRIED twice before agi-run consumes .fresh adds exactly 1 commit in all and keeps the key its first attempt made (ring commits $(rc $B), want 2)" '[ "$K2" != "$K1" ]&&[ "$(pub)" = "$K2" ]&&[ "$(rc $B)" = 2 ]'
 C2=$($G -C $H/t rev-parse HEAD);agirun
