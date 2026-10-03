@@ -49,8 +49,8 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        nodes (10/10), anchor line restored WITH -c (6/6; RSE line without -c passes an evil merge), freshness AGI_FRESH_S (8/8; agi-land reuses it via grow-gate)
        02:37Z owner via belam: ONE key/ring/anchor/capsule story at the matrix base -> TAKEN, LEAD = self-perpetuating (AA2); alive's AA1.C = its ring column
        02:40Z SM A3 order: ruled (3) key step BEFORE +agi-signers, rest after (measured: root-first = every generation U, keygen-first = G G G)
-       02:46Z owner via belam: DAG as timestamp backer (k-of-n sanctuary-signed checkpoints, semi-manual) -> taken into sp's ONE section; AA1.C's
-       AGI_FRESH_S is superseded by "refuse a signer whose ring line closed at or below the latest checkpoint height" (sp folds)
+       02:46Z + 02:49Z owner inputs to sp's ONE section (taken, sp leads): DAG checkpoints as trusted time (AA1.C's AGI_FRESH_S -> "ring line closed <=
+       latest checkpoint height") + drop-in crypto (one cell per role; AA1.C has 0 algorithm literals; keygen -ted25519 + agi-signers regex hardcoded)
 WAITS  SM lands alive/aa1c @25280db35 (carries home-mode 3d35aa268 + AA1.C + seams) · self-perpetuating's one story · mail
 ```
 
