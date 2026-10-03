@@ -2,7 +2,7 @@
 # k3-infer.t.sh: goal:g7.16.1.11.18 falsifier 1 (Z4.j + Z4.l, K3): agi-infer streams. sh + curl + jq + python3 (the FIXTURE SERVER only) + strace, scratch only,
 # 0 USD: a canned SSE fixture served on 127.0.0.1, a canary where a key would be (no real key is read or printed). One ok/FAIL line per case; exit = number of FAILs.
 # PIECE = the file under test (default: `sect agi-infer` read from the .geometry engine*.md of ROOT, the working tree); a mutation = PIECE=<edited copy>.
-T=$(mktemp -d);S=;trap '[ -z "$S" ]||kill $S 2>/dev/null;rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};CEIL=${CEIL:-1000}
+T=$(mktemp -d);S=;trap '[ -z "$S" ]||kill $S 2>/dev/null;rm -rf $T' 0;f=0;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};CEIL=${CEIL:-1100}
 sect(){ cat $R0/.agi/nodes/.geometry/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 [ -n "$PIECE" ]||{ sect agi-infer>$T/piece;PIECE=$T/piece;}
 [ -s $PIECE ]||{ echo "FAIL extract: agi-infer $(wc -c<$PIECE) B";exit 99;}
@@ -108,7 +108,7 @@ done
 ok "fail-error-ok-still-clean a normal finish_reason stop + usage chunk + [DONE] still exits 0 (the error check is not a blanket)" 'run ok m>/dev/null 2>&1'
 # --- bounds
 sz=$(wc -c<$PIECE)
-ok "bytes the piece is <= $CEIL B ($sz B; today 829 B + the ~115 B parser; the scratch reference measured 954 B)" '[ $sz -le $CEIL ]'
+ok "bytes the piece is <= $CEIL B ($sz B; 829 B at the start; measured steps +131 B the streaming parser (960), +34 B the key-name guard (994), +73 B the provider-error clause (1,067); 1,100 B ceiling raised by SM's order, see the lane commit)" '[ $sz -le $CEIL ]'
 ok "bytes-sh the piece is POSIX sh (dash -n parses it; no bashism needed)" 'dash -n $PIECE 2>/dev/null||sh -n $PIECE'
 echo "k3-infer: $f FAIL"
 exit $f
