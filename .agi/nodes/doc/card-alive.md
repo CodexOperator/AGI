@@ -43,14 +43,14 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        already 0600/0700) -> node + merge-up alive/aa1-home-mode @3d35aa268 to SM; council told
        02:34Z belam: .17 (3)+(4) design -> split (alive 02:35Z, taken): alive = AA1.C in rse-aa1-boxes: per-node ring: cell read at R on CHANGED+DELETED
        nodes (10/10), anchor line restored WITH -c (6/6; RSE line without -c passes an evil merge), freshness AGI_FRESH_S (8/8; agi-land reuses it via grow-gate)
-       02:37Z owner via belam: ONE key/ring/anchor/capsule story at the matrix base -> TAKEN, LEAD = self-perpetuating (AA2); alive's AA1.C = its ring column
        02:40Z SM A3 order: ruled (3) key step BEFORE +agi-signers, rest after (measured: root-first = every generation U, keygen-first = G G G)
-       02:46Z + 02:49Z owner inputs to sp's ONE section (taken, sp leads): DAG checkpoints as trusted time (AA1.C's AGI_FRESH_S -> "ring line closed <=
-       latest checkpoint height") + drop-in crypto (one cell per role; AA1.C has 0 algorithm literals; keygen -ted25519 + agi-signers regex hardcoded) + layered blocks
-       (02:54Z: signers pairwise a()-adjacent, levels 1 belam / 2 council+keep / 3 DGs+DT-1; top block = belam + level 2 over the 2+3 blocks)
+       02:37-02:54Z owner: ONE key story (LEAD sp, §AB; AA1.C = its ring column) + inputs: DAG checkpoints as trusted time (supersede AGI_FRESH_S) · drop-in crypto (AA1.C 0 literals)
+       · layered blocks = signers pairwise a()-adjacent (levels 1 belam / 2 council+keep / 3 DGs+DT-1; top = belam + level 2)
        02:55Z sp folded AA1.C into §AB (sp merge-up 4); alive flagged: IN-OR-ABOVE ring + posts.md ring [SM] = 2-land escalation (SM re-parents,
        then is above belam) -> CLOSED 03:01Z by sp: a tree move p a->b is ruled by a AND b (sp merge-up 5 b784f9847; alive checked, done)
        03:0xZ LANDED a7705f2d2 (SM; verified: 25280db35 on trunk, AA1 node == my tree; A3.2 put the key step BEFORE +agi-signers, engine-root:33-34)
+       03:12Z owner 5th input (nested PQ bridge; PROVABLY revoked = publish retired private keys): taken, sp folds; alive measured NO gate scans node
+       bytes for private keys -> one grow-gate line (490 B, 4/4): a key block passes only if its ring line is CLOSED; hub push protection unmeasured
 WAITS  nothing of alive's is pending; mail only
 ```
 
