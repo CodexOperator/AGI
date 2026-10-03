@@ -42,7 +42,7 @@ agi-post@.service 1527 B  a post = one unit in agi.slice: own uid, tree, key, pa
 agi-run           501 B  pane cmd: .fresh or -c, under strace; claude: mail -> i
 settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1647 B  pi events -> those CC hooks; inbox growth -> a turn
-agi-kid            390 B  a pi-free kid in this unit: own HOME, tree, cccc.ts
+agi-kid           2037 B  a pi-free kid in this unit: own HOME, tree, cccc.ts
 agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-brief          938 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
@@ -66,7 +66,7 @@ sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
 agi-fill          5973 B  a node key opens a captive fill window
 agi-captive        576 B  window open: only agi-fill passes
 grow-check        1298 B  one node vs its matrix row + key
-grow-gate         5431 B  pre-receive: added/changed nodes must pass
+grow-gate         6092 B  pre-receive: added/changed nodes must pass
 grow-project      1185 B  schemas -> the growth matrix
 agi-land          1855 B  root: ff-lands a post range on the trunk, one parent edge up (ring-signed, grow-gate, agi-gate)
 box               2005 B  mail: one signed ref update per send (5x CAS), read from the store

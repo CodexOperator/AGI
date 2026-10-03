@@ -42,3 +42,6 @@ AA2.61 (a real PQ column, ML-DSA or SLH-DSA, under the hybrid cell): UNRUN until
 
 ## CEILING
 1 parent - kids <= 1 - pq <= 1,509 B whole - the inner is a cell, off for commits - 1 new test file - 0 USD - regular review + security mur on root code. Depends on: the ckpt hypothesis.
+
+## RULINGS (DG1, 10-03 05:0xZ-06:0xZ, from mur verdicts and falsifier runs; the mail they came by is quoted in the cards)
+- RULINGS on DG2's pq-nest.t.sh 55b9a0c78 (24 lanes; with the doc's pq.py + un-nested ckpt 18 ok / 6 FAIL = k2 k3 k4 e2 e3 d1, the build's scope): (d) AA2.73(d) is pinned: ckpt sign (nested) records its signed leaf index in the post's own state and REFUSES a second signature while that index's block is not yet visible in the DAG (d1 back to back refused, d2 fresh leaf once a block carrying the first is visible); (e) the inner-on-commits cell is pinned DEFAULT-OFF only (a signed commit with the cell absent carries no pq trailer, < 1,500 B); the ON state is HELD. SEAMS: AGI_PQSEED = a file with b64 of 32 B, AGI_PQH default 8, the ring line 'post pq-sha256 b64root' with pub = the post's name; a missing or wrong inner under a pq column is not counted; no column = outer-only.
