@@ -61,5 +61,13 @@ gate $R1 $(mkl $R1 "$SP" $D/nv 120000 owner1);ok "r1k-spaced-symlink-node-refuse
 gate $R1 $(mkl $R1 "$SP" $D/nv 100644 owner1);ok "r1l-control-spaced-regular-node-admitted the same spaced path as a regular valid node (owner, key right): admitted" '[ $r = 0 ]'
 gateS $R1 $(mkc $R1 owner1 $NN:$D/nv) "$NN" "" ls-tree;ok "r1m-ls-tree-failure-refuses git ls-tree failing on the added node path: refused (ls-tree failed)" 'refused&&grep -q "ls-tree failed" $D/out'
 gateS $R1 $(mkc $R1 owner1 $NN:$D/nv) ":$NN" "" show;ok "r1n-show-failure-refuses git show of the added node failing: refused (unreadable)" 'refused&&grep -q unreadable $D/out'
+# --- RING.5f (SM mur sm19 on RING.5e, R1/R2): r1o lg compares two reads: BOTH failing (rev-parse shimmed on the node path) must refuse the launder [M1, C1], not read "" = "" as landed · r1p/r1q an agi-fill that EXISTS but crashes (rc 1) makes k n and k p both fail: a corrupting edit (r1p) and a valid one (r1q) are refused with `agi-fill rc 1`
+gateR(){ git update-ref refs/heads/trunk $1;echo "$1 $2 refs/heads/x"|PATH=$D/sh:$PATH FAILPAT="$4" FAILNTH= FAILCMD=rev-parse FAILCNT=$D/cnt AGI_ALLOWED=$D/over AGI_TRUNK=refs/heads/trunk AGI_NOT="$3" timeout 60 grow-gate>$D/out 2>&1;r=$?;}
+gateR $R1 $C1 "$R1 $X" ":$NN";ok "r1o-lg-both-reads-fail-refused the launder [M1, C1] (r1h) with git rev-parse failing on the node path (both reads of lg fail): refused, never admitted as landed" 'refused'
+mkdir -p $D/crash;printf '#!/bin/sh\nexit 1\n'>$D/crash/agi-fill;chmod +x $D/crash/agi-fill
+gateC(){ git update-ref refs/heads/trunk $1;echo "$1 $2 refs/heads/x"|PATH=$D/crash:$PATH AGI_ALLOWED=$D/over AGI_TRUNK=refs/heads/trunk AGI_NOT=$1 timeout 60 grow-gate>$D/out 2>&1;r=$?;}
+gateC $R1 $(mkc $R1 dg1 $AFB:$D/af-bad);ok "r1p-agi-fill-crash-corrupting-edit-refused agi-fill exits 1 (a crash, not invalid = 3) and dg1 deletes a node's type: line: refused (agi-fill rc 1), not admitted because both checks failed" 'refused&&grep -q "agi-fill rc 1" $D/out'
+gateC $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "r1q-agi-fill-crash-valid-edit-refused the same crash on a VALID edit: refused too (the gate cannot judge it)" 'refused&&grep -q "agi-fill rc 1" $D/out'
+gate $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "r1q0-control-valid-edit-admitted the same valid edit with the real agi-fill: admitted" '[ $r = 0 ]'
 echo "grow-gate-ring5e-dg3: $f FAIL"
 exit $f
