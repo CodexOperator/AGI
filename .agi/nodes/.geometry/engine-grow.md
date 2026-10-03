@@ -58,7 +58,7 @@ while read o n r;do h=$R;w=$(git rev-list --reverse --topo-order $n --not ${AGI_
   *)r=$(rn "$f");;esac
   for q in $r;do ru $s $q||{ echo "refused: $c $f is ruled by $q; ${s:-nobody} is not $q or above it";exit 1;};done;done<$t/d)||exit 1;}
  for y in "$c" "$h $c";do dt --diff-filter=AMT --name-status $y -- .agi/nodes;grep '\.md$' $t/d|grep -v /deprecated/>$t/l;b=${y%% *};[ $b = $c ]&&b=$c^
- while read m f;do [ "$y" != "$c" ]&&lg $f&&continue;case $(git ls-tree $c -- $f) in 12*|16*)echo "refused: $c $f: a symlink or submodule node";exit 1;;esac;git show $c:$f>$t/n;if [ "${m#*A}" != "$m" ];then v=$(grow-check $t/.agi/nodes/.geometry/growth.tsv $t/n)||{ echo "$f: $v";exit 1;}
+ while read m f;do [ "$y" != "$c" ]&&lg $f&&m=M;case $(git ls-tree $c -- $f) in 12*|16*)echo "refused: $c $f: a symlink or submodule node";exit 1;;esac;git show $c:$f>$t/n;if [ "${m#*A}" != "$m" ];then v=$(grow-check $t/.agi/nodes/.geometry/growth.tsv $t/n)||{ echo "$f: $v";exit 1;}
   g=${v##* };[ "$g" = '*' ]||[ "$g" = "$s" ]||{ echo "$f: ring $g, signed by ${s:-nobody}";exit 1;};k n||{ echo "$f:";cat $t/e;exit 1;}
   else k n||{ git show $b:$f>$t/p&&! k p||{ echo "$f: was valid:";k n;cat $t/e;exit 1;};};fi;done<$t/l||exit 1;done;h=$c;done;done
 ~~~
