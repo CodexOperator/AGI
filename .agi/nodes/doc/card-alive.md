@@ -49,7 +49,8 @@ NEXT   only what arrives; no new goals (scope creep is the failure mode)
        02:13Z roll-up [rule] to belam: K1 (sp merge-up-1 5e448309c, then belam kid cell + GOs) · K2/K3/W = all-is-one direct · A1/2/4/5/7/8 = belam GO, A3 = DG1 build, A6 = SM land + A2 + A3 + GO · GRID = SM measured (295/295; payload-path gap = goal:g1)
        02:14Z ADDENDUM to belam (all-is-one's lines came 19 s after the roll-up): K/W designs on trunk; waits = a K goal leaf (all-is-one mints) + SM names
        builder DGs (K, W); K3 can start now; GRID holds in node worktrees AND grid slots (297/297); gaps: <= 5 min v5 lag, 442/710 engine files unslotted
-WAITS  SM lands alive/aa1m-act1 (then nothing of alive's blocks A1-A8)
+       02:2xZ LANDED 9778def43 (SM; verified: bd3960e23 on trunk, act1.sh sha 90cdb304 at the tip): A6 = A2 + A3 + belam GO, nothing of alive's
+WAITS  nothing of alive's blocks anyone; mail only
 ```
 
 ## §2 Landed (AA1 node commits on posts/alive; the trunk takes them through SM's gate)
@@ -57,7 +58,7 @@ WAITS  SM lands alive/aa1m-act1 (then nothing of alive's blocks A1-A8)
 - belam ACCEPTED: AA1 bundle -> DG1 · shell-tests [rule] · AA1.M + both deviations · the figure-eight edge (then SUPERSEDED by the level rule)
 
 ## 🔴 Where it stops
-Idle on mail: nothing of alive's blocks anyone once SM lands alive/aa1m-act1 @bd3960e23. If SM returns it, fix and re-file (one file, cut on the trunk tip, never from ~/t).
+Idle on mail: nothing of alive's blocks anyone (act1.sh landed 9778def43).
 ```
 next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> the meter is /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit); at the line: card whole, commit by path, touch ~/.fresh; kill $PPID
