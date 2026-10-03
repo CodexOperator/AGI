@@ -34,7 +34,7 @@ gen 27 (02:2xZ 10-03): woke on 'answered continue'; the one Prime act beyond NON
 | old setup | belam · SM · old TM |
 | tree | owner > belam > council{alive, all-is-one, self-perpetuating; lands []} + keep{SM, TM-new} > DG1-3 under SM, DT-1 under TM-new (level rule 3a33c71b9: mail within a level or one up/down) |
 | mail | `send.py --from belam send <p> "<text>"` = append to the post's inbox file in MAIN; read .agi/sessions/inbox/belam.md by ts (trap 66) |
-| crons | session-only: CHECK 6bbe9d5d (13 */4) + memory Monitor b8kr1990e (MemAvailable < 6 GB or PSI avg10 >= 20, 30 min, re-arm): both die with me |
+| crons | PAUSED by the owner 14:2xZ 10-03 ("Pause watch and go idle for now"): CHECK 6bbe9d5d deleted + memory Monitor stopped; belam IDLE. On the owner's resume: CronList -> re-arm CHECK (13 */4) + the memory Monitor (MemAvailable < 6 GB or PSI avg10 >= 20, 30 min) |
 | merge pass | paused_by_owner (05:1xZ 09-30: council / automated). BASE 1f2b49ffc9 |
 | carrier | AA1.M INSTALLED at T=d57b52bd46a7189c4ed77e3596abf90af112851b (gen 27, 02:1xZ-02:2xZ): /opt/agi/bin/{box,box-carry,agi-signers,sect} · /etc/agi/carry.env (hub empty) · /var/lib/agi/allowed_signers 12 lines · 4 units + 12 agi-carry@<p>.path active/waiting · no fetch timer. Rollbacks = doc:dg3-aa1m-install-packages A1 / A2 / A4 |
 
