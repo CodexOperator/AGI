@@ -70,7 +70,7 @@ ok "b-new-key-verifies g1's key verifies now" 'vk $nn'
 ok "c-principal-form every commit that verifies says 'for $P@agi' and never 'No principal matched'" 'vk $oi&&grep -q "for $P@agi" $T/vk.out&&! grep -q "No principal matched" $T/vk.out&&vk $nn&&grep -q "for $P@agi" $T/vk.out&&! grep -q "No principal matched" $T/vk.out'
 ok "c-unit-email the unit exports the committer identity as %i@agi (the form the ring holds)" 'sed -n "/^### agi-post@.service/,/^~~~\$/p" $GEO/engine-root.md|grep -q "GIT_COMMITTER_EMAIL=%i@agi"'
 # --- bounds: the unit edit is small, the ring writer is the existing root piece (not edited), no live key
-ok "bytes the ExecStartPre line is <= $CEIL B ($(wc -c<$UNIT) B; today 685 B + ~35 + the idempotence guard; 745 -> 810 at OUT.7 (DG1 15:3xZ), the same ceiling as agi-outline, which hands it CEIL)" '[ $(wc -c<$UNIT) -le $CEIL ]'
+ok "bytes the ExecStartPre line is <= $CEIL B ($(wc -c<$UNIT) B; today 685 B + ~35 + the idempotence guard; 745 -> 810 at OUT.7 (the stale-t skip step adds 69 B: this join 740 -> 809 B, agi-outline's 718 -> 787 B; the same ceiling as agi-outline, whose fresh-still-passes lane hands it CEIL)" '[ $(wc -c<$UNIT) -le $CEIL ]'
 ok "no-ring-write-in-unit the post-side line writes no allowed_signers / valid-after / valid-before (root does)" '! grep -qE "valid-(after|before)|allowed_signers" $UNIT'
 ok "scratch-only every step ran in the scratch HOME: the keys, ring and worktree are under the scratch dir (a find of the real ~/.ssh was a flake risk and is gone)" '[ "${H#$T/}" != "$H" ]&&[ -f $H/.ssh/id_ed25519 ]&&[ -f $RING ]&&[ -d $H/t ]'
 echo "agi-fresh: $f FAIL"

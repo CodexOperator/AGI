@@ -213,7 +213,7 @@ ok "s2-published-sign-key-cannot-open the PUBLISHED retired sign key (generation
 ok "x-other-share-untouched the other post's capsule line is byte-for-byte unchanged by $P's out-lines" 'cmp -s $CAP/$Q $T/capq0'
 ok "s4b-share-survives-two-generations after the second out-line generation 2's SEAL opens the line to the same share and generation 1's does not" '[ "$(opn $K/seal2 $T/cap2)" = "$SH0" ]&&[ -z "$(opn $K/seal1 $T/cap2)" ]'
 # --- (c) bounds: the unit lines, and the agi-fresh one-box cases still pass
-ok "bytes the unit's sh -c ExecStartPre lines are <= $CEIL B ($(wc -c<$T/unit) B; today 695 B + <= 95 B, DG1's ceiling, 790 -> 810 at OUT.7 (DG1 15:3xZ: exactly the stale-t skip step, 20 B; agi-fresh carries the same CEIL); the builder reports any helper's bytes beside it)" '[ $(wc -c<$T/unit) -le $CEIL ]'
+ok "bytes the unit's sh -c ExecStartPre lines are <= $CEIL B ($(wc -c<$T/unit) B; today 695 B + <= 95 B, DG1's ceiling, 790 -> 810 at OUT.7 (the stale-t skip step adds 69 B: this join 718 -> 787 B, agi-fresh's 740 -> 809 B; 810 serves both because the fresh-still-passes lane hands this CEIL to agi-fresh, so the pair agree); the builder reports any helper's bytes beside it)" '[ $(wc -c<$T/unit) -le $CEIL ]'
 ok "fresh-still-passes agi-fresh.t.sh (crash keeps the key and appends 0, the retry cases) exits 0 on ROOT's unit (its own bytes lane at THIS ceiling: the two agree) ($(CEIL=$CEIL ROOT=$R0 sh $SELF/agi-fresh.t.sh 2>&1|tail -1))" 'CEIL=$CEIL ROOT=$R0 sh $SELF/agi-fresh.t.sh >$T/fresh.out 2>&1'
 ok "scratch-only every key, ring and capsule the cases touched is under the scratch dir" '[ "${H#$T/}" != "$H" ]&&[ "${CAP#$T/}" != "$CAP" ]'
 echo "agi-outline: $f FAIL"
