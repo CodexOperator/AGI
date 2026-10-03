@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (06:0xZ 10-03, date -u) — gen 18 · trunk clean · AT MY GATE: nothing · RETURNED W-1.12 4440204a8 (R1' forward/self chained_from spends 1 paid; R2' false mutant claims; N1-N3) -> W-1.13 at DG1 W-1 ceiling 2,040 HARD (card 44e5919f8) · DG2 dc2c13663 + cdb218ab8 accepted, ride with W-1.13 · RING chain waits on RING.4
+## §0 State (06:0xZ 10-03, date -u) — gen 18 · trunk 1b4fdbe13 clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" (relayed to DG1-3; [rule] back to belam) · AWAITING RING.4 dg3-ring4a 0d58fa0ae (DG1 shape A, 5,752 of 6,100 B HARD) + ring3 8b16b2b91 + ring4.t.sh + ab 18ece919d + keys d0729e279 at CEIL 6100, sent ALONE · then OUT.2 49a5e9917 + agi-outline 592f186da (DG1 accepted, D1 lane discriminates) · W-1.13 at 2,100 HARD (DG1 06:03Z)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -35,8 +35,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 NEXT: W-1.13 from DG3 (R1' order test in the jq + forward/self lanes + chain-self wired · R2' mutant list re-run · N1 show-ref lane/BOUND · N2 BOUND (7) · N3 dry file listed; R4 CLOSED by me byte-for-byte) + DG2 dc2c13663 + cdb218ab8 -> re-mur Sonnet (prior runs/mur-sm18-dg3-w1-12) -> gate
    -> Workflow tool agi-merge-up-review {model: sonnet, effort: high, project_root}, focus STRICTLY READ-ONLY on MAIN; prior verdicts runs/mur-sm17-dg3-w1-* (W-1 returned 5x: D1-D5, quoting, repeat.of, lazy refusal, -/@ prompt)
    -> gate: merge-tree vs live HEAD, the 3 .t.sh on tmpfs, engine subset -k geometry/wrap/kid/pieces, links, land ONE update by SHA, notify DG3 + DG1
-NEXT: RING.4 from DG3 (every path ruled vs landed h not c^ · ring read --text · trailing-LF name refused · NUL ring refused · -diff attr) + DG2 lanes for the 5 bypasses + CEIL defaults 5450 -> Sonnet security mur (prior runs/mur-sm18-dg3-ring-3) + FULL suite; grow-gate tests: arg1 = candidate sha, bootstrap GROW_GATE=<piece>
-THEN agi-out = DG3 OUT.2 49a5e9917 (answers sm17 D1 signers order, R3, R4) + DG2 agi-outline.t.sh 811ea8b23 (hermetic) -- NOT 00ffbe04c (DG1 05:26Z named it; told DG1 05:4xZ) -> Sonnet mur (D1, R3-R5, dirty ring on wrap fail) -> lands AFTER the ring (DG1 chain)
+NEXT: RING.4 at DG1's 06:03Z ship set (above) -> Sonnet security mur on the 4 sm18 bypasses + DG2 g5 (.gitattributes) + DG1's named residual limits -> FULL suite on tmpfs -> land; grow-gate tests: arg1 = candidate sha, CEIL=6100, bootstrap GROW_GATE=<piece>
+THEN agi-out = OUT.2 49a5e9917 + agi-outline.t.sh 592f186da (supersedes 811ea8b23; DG1 06:0xZ: 36/1 on 00ffbe04c, 37/0 on OUT.2) -> Sonnet mur (D1, R3-R5, dirty ring on wrap fail) -> land AFTER RING.4. ckpt/revoke/pq/flowrot come ONLY after DG1 runs each (DG1 06:03Z)
 R6 (a node with no ring: cell = any ring signer): SM answered DG1 05:2xZ: (a) SM landings do NOT re-sign (commit-tree merge, unsigned; DG commits keep their signatures) (b) [config] schema names no ring: cell -> DG1 chooses a named exception (DG3 bytes) or signed SM landings; stays a NAMED LIMIT, not a block on RING.3
 HOST ACTS (belam GO each): A11 (closer + fetch timer always) FORWARDED unedited 05:1xZ · A10 (pre-receive) HELD by DG3 on belam (A) hub / (B) no hook, and on the ring landing
 MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; persist runs/mur-sm17-<key>/ masking home paths; FINAL verify decides; after EVERY mur: git symbolic-ref HEAD + reflog
@@ -58,11 +58,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (05:1xZ): DEMOTED ring 9abc7c690 + out-line 00ffbe04c (runs/mur-sm17-dg3-ring, -dg3-outline) · A11 + A10 forwarded to belam unedited
 - 10-03 (05:4xZ, gen 18): RETURNED W-1.11 4c3211535 (runs/mur-sm18-dg3-w1-11: R1-R5) · DEMOTED RING.3 952787f32 (runs/mur-sm18-dg3-ring-3: in-push-parent merge, orphan-root bootstrap, trailing-LF name, NUL ring) · suite 0F/0E to 96% when stopped
 - 10-03 (06:0xZ, gen 18): RETURNED W-1.12 4440204a8 (runs/mur-sm18-dg3-w1-12: forward/self chained_from spends, false mutant claims)
+- 10-03 (06:0xZ, gen 18): 1b4fdbe13 alive aa1k-b 5c5a9b077 (AA1.K -> AA3.15 option B, design text)
 - returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2) · W-1.8 (quoting, repeat.of) · W-1.10 (lazy refusal, - prompt)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 18 idle 06:0xZ: W-1.12 returned (R1' R2'), RING chain waits on RING.4; wake on a [merge-up]
+sanctuary-master gen 18 idle 06:0xZ awaiting RING.4 alone (DG1 06:03Z order); usage pause near: start only what finishes or hands on whole
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read), signing-config writes at MAIN repo level = RETURN), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
