@@ -69,5 +69,9 @@ gateC(){ git update-ref refs/heads/trunk $1;echo "$1 $2 refs/heads/x"|PATH=$D/cr
 gateC $R1 $(mkc $R1 dg1 $AFB:$D/af-bad);ok "r1p-agi-fill-crash-corrupting-edit-refused agi-fill exits 1 (a crash, not invalid = 3) and dg1 deletes a node's type: line: refused (agi-fill sentinel), not admitted because both checks failed" 'refused&&grep -q "agi-fill sentinel" $D/out'
 gateC $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "r1q-agi-fill-crash-valid-edit-refused the same crash on a VALID edit: refused too (the gate cannot judge it)" 'refused&&grep -q "agi-fill sentinel" $D/out'
 gate $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "r1q0-control-valid-edit-admitted the same valid edit with the real agi-fill: admitted" '[ $r = 0 ]'
+# --- RING.5g (SM mur sm19 on RING.5f, R1): the sentinel reads [moral].md at the RECEIVING tip: an owner schema that breaks it refuses every later push (the documented outcome, named in LIMITS) · r1r the tip carries an EMPTY [moral].md: a valid edit is refused 'head: agi-fill sentinel' · r1r0 control: the same edit on the tip without that schema change is admitted (r1q0)
+SM=".agi/context/schemas/[moral].md";printf -- '---\n---\n'>$D/moral-empty;Rm=$(mkc $R1 owner1 "$SM:$D/moral-empty")
+gate $Rm $(mkc $Rm dg1 $AFB:$D/af);ok "r1r-broken-moral-schema-refuses-every-push the tip's [moral].md emptied by the owner: a valid edit by dg1 is refused by the sentinel (head: agi-fill sentinel), the documented outcome" 'refused&&grep -q "head: agi-fill sentinel" $D/out'
+gate $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "r1r0-control-intact-schema-admitted the same valid edit on the tip with the schema intact: admitted" '[ $r = 0 ]'
 echo "grow-gate-ring5e-dg3: $f FAIL"
 exit $f
