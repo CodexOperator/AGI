@@ -4,7 +4,6 @@ mint_id: 49485cd3546d4087bf134a4984f4fd62
 type: town
 parents:
   - vision:the-living-being
-  - ladder:ladder
   - goal:g26.towns
 next_edges: []
 council: council-sanctuary

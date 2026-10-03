@@ -106,6 +106,38 @@ ANON      no user name, home or repo path value, host or IP; patterns write <use
 FILE SCOPE .agi/nodes/.geometry/engine-root.md (### agi-boot) · .agi/nodes/.geometry/engine.md (### agi-project, only if item 2 needs it) · .agi/config.json (the one cell) · extensions/agi/tests/test_agi_boot.py · this node (director)
 CEILING   HARD CAP: 1 Sonnet 5.5 kid · <= 6 production lines · <= 90 test lines · 0 USD -- over it = the round is cut
 
+## CORRECTIVE G9.6 -- closes mur-de-base-g9-5 g95-code (accept_with_residue; gating, claude-code)
+BASE      CUT FROM de-base-G9.5 tip 543825c75 (worktree /mnt/agi-ram/worktrees/de-base-G9.5). No merge. Never rebase.
+1. the 'projected' checks now mean 'at least one BOOT v4 row' -- engine.md ~82 (the generated agi-project.service ExecStart) and ~90 (### agi-gate): `ls <out>/multi-user.target.wants/agi-post@*` fails on a box whose v4 rows carry no boot:true, so no daemon-reload / sysusers and the gate refuses -- TRUE WHEN both checks test what every v4 row still gets (its projected h.conf drop-in), and a test runs the agi-gate piece (or the generated ExecStart's check) on a fixture whose v4 rows have NO boot row and it passes.
+2. space_s is slept after the LAST start too (a 2 min tail on the oneshot) -- engine-root.md ### agi-boot -- TRUE WHEN the spacing sleeps only BETWEEN starts (before the next row's gate read, never after the last row), the test updated to pin it.
+3. the size headers of every section touched re-measured (method: the bytes between the fences plus the final newline).
+DEMOTED   a missing space_s cell -> named failure, e=1, starts unspaced: the G9 design rule (every failure named, boot continues; engine-root THOUGHT), verify called it acceptable fail-loud.
+ANON      no user name, home or repo path value, host or IP
+FILE SCOPE .agi/nodes/.geometry/engine.md (### agi-project, ### agi-gate) · .agi/nodes/.geometry/engine-root.md (### agi-boot) · extensions/agi/tests/test_agi_boot.py (or the test that already covers agi-project)
+CEILING   HARD CAP: 1 Sonnet 5.5 kid · <= 5 production lines · <= 70 test lines · 0 USD
+
+## CORRECTIVE G9.7 -- closes mur-de-base-g9-5-2 g96-code (accept_with_residue; gating, claude-code) -- TEST ONLY
+BASE      CUT FROM de-base-G9.5 tip e1572a842 (worktree /mnt/agi-ram/worktrees/de-base-G9.5). No merge. Never rebase.
+1. the generated agi-project.service ExecStart check (engine.md ~82, now `ls <out>/agi-post@*.service.d/h.conf`) is untested: reverting only it to the wants-link form leaves every test green (verify reproduced) -- TRUE WHEN a test extracts that ExecStart fragment with the same sed agi-gate uses, runs it under sh -c (fakes for systemctl / systemd-sysusers on PATH, a tmp out dir) on a fixture whose v4 rows have NO boot row -> exit 0, and on a fixture with NO v4 rows -> non-zero; and the test FAILS against the wants-link form (say how you proved it).
+DEMOTED   `n` never initialised / a first skipped row starts the next one unspaced: harmless (verify: spacing only matters between starts; the gate still reads before every start); a root unit's environment carries no n.
+FILE SCOPE extensions/agi/tests/test_agi_boot.py
+CEILING   HARD CAP: 1 Sonnet 5.5 kid · 0 production lines · <= 50 test lines · 0 USD
+
+## RESULT G9 INSTALL (belam GO 22:1xZ 10-01; director record) -- installed + enabled, NOT started; the real reboot is the test and needs its own GO
+BEFORE  /etc/systemd/system/agi-boot.service absent · is-enabled not-found · agi-ram-main enabled + active · v5 posts 10 active
+DONE    the ONE ### agi-boot.service section extracted at trunk d21960c3d (447 B = header) -> /etc/systemd/system/agi-boot.service 644 root:root -> daemon-reload -> enable (multi-user.target.wants link)
+VERIFY  systemctl cat == section bytes · enabled / inactive · v5 10/10 active, restarts unchanged · systemd-analyze verify rc 1 ONLY on 'mnt-agi\x2dram.mount not found' (fstab-generated; verify runs no generators; the live agi-ram-main shows the identical line)
+ROLLBACK systemctl disable agi-boot && rm /etc/systemd/system/agi-boot.service && systemctl daemon-reload
+RESIDUE findings row 90 (goal:g7.33.19): oneshot holds multi-user.target for the whole start loop; and the last boot spent 14m28s in systemd-tmpfiles-setup before agi-ram-main
+
+## RESULT G9 REAL REBOOT (owner 22:2xZ via belam: the ONE real reboot NOW; belam "[reboot] GO" 22:1xZ; director record) -- F1 F2 F3 HOLD
+PRE      ram-main.sh sync rc 0 · ram-tier.sh sync rc 0 · trunk == origin 03fa5bc21 · spawn_budget 0/30 · sudo systemctl reboot 22:16:23Z
+BOOT     up 22:17:34Z · systemd-tmpfiles-setup 3m30s (14m28s the boot before) · agi-ram-main 1 min · agi-boot started 22:22:37Z, Finished 22:32:58Z, Result success, exit 0
+F1 HOLDS 6/6 boot rows active, NO hand act, 0 restarts: all-is-one 22:22:57 · self-perpetuating 22:24:57 · alive 22:26:58 · director-general-1 22:28:58 · thought-master-new 22:30:58 · director-thought-1 22:32:58 (exactly space_s 120 apart, none after the last)
+F2 HOLDS /mnt/agi-ram g:agi --x · /mnt/agi-ram/state g:agi --- (re-applied after the wipe)
+F3 HOLDS 5/5 non-boot v5 rows inactive (director-general-2 -4 -5, director-thought-2, stream-master), no wants link · named skips: belam 22:22:37, sanctuary-master 22:26:58 ('not projected (engine v4 row absent)') · load1 3.86 / io avg60 9.18 at the end
+OPEN     the non-boot posts come back by belam's word only · findings row 90 (oneshot holds multi-user ~10 min) · row 91 (heal resume blanks session_name)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 G9 MOCK version (belam GO 20:3xZ 10-01). OWNER 20:2xZ verbatim: "You can install proxmox on this box yourself as needed". MEASURED by belam 20:2xZ: host = Ubuntu 24.04 (Proxmox VE installs on Debian only), SVM DISABLED BY BIOS (no KVM). OWNER CHOICE 20:3xZ verbatim (asked with 4 options): "systemd container mock" -- no Proxmox. So the CLAIM was exercised in a privileged docker container with systemd as PID 1 instead of a Proxmox VM: same agi-boot.service bytes (extracted from the one engine-root section at the trunk tip), a mock agi-ram-main, and sleep-faked posts. F1 F2 F3 held on the first mock reboot. Near miss: the docker bridge has no outbound, so packages came from a separate host-network setup container committed to a local image, and the mock itself ran with --network none. Not yet proven: real claude posts behind the gate (the ~13 ms start spacing is the open residue). The real /etc install and the ONE real reboot each wait for a separate belam GO.
 <!-- THOUGHT:END -->

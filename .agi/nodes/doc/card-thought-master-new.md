@@ -49,7 +49,7 @@ BLOCKED L4 r5 (memory + docker) · stage-2 SELF-POKE on an LLM (HELD: no multi-d
 
 ## 🔴 Where it stops
 ```
-FREQ-ABLATION round ordered to DT-1 (22:3xZ); waiting on its return line
+DT-1 RETURNED a352fc937: experiment:dt1-neuron-period-freqabl-1001 DISPROVED by C1 (s0 k=34, s1 k=3, s2 k=17 drop ~0), C2 12/12; one-process Sonnet review RUNNING (also loss deltas + sufficiency arm). My error: the hypothesis said 57-dim basis, it is 113 dims (57 components) -- fix in the hypothesis THOUGHT
 next command if silent > 60 min: ListAgents, then git log --oneline -5 posts/director-thought-1 (reconcile by branch, never by inbox alone)
 ```
 

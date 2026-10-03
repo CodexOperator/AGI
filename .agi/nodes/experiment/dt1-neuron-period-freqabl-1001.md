@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-neuron-periodicity-every-family-frequency-is-load-bearing-in-logit-space
 next_edges: []
 confidence: 0.9
-edited_by: director-thought-1
+edited_by: thought-master-new
 evidence_runs:
   - experiment:dt1-neuron-period-freqabl-1001
 line_ceiling: 90
@@ -15,7 +15,7 @@ production_lines: 84
 role: director
 scaffold_hash: 6fa8d2b1ac732c0e
 season: 2
-title: "Every family frequency is load-bearing in logit space: DISPROVED. C2 holds 12/12 (own-frequency energy 0.70-0.99), C1 fails 3 families (seed 0 k=34, seed 1 k=3, seed 2 k=17: removing their frequency changes nothing)"
+title: "Every family frequency is load-bearing in logit space: DISPROVED. C2 holds 12/12 (own-frequency energy 0.70-0.99), C1 fails 3 families (seed 0 k=34, seed 1 k=3, seed 2 k=17: removing their frequency does not change held-out accuracy beyond the non-key max)"
 town: local-maxxing
 verdict: disproved
 ---
@@ -58,12 +58,12 @@ Void checks, all clear in every seed: the 3 checkpoint shas match; baseline held
 
 - C1: 9 of 12 families pass, 3 fail. C2: 12 of 12 pass (fractions 0.696 to 0.991, every argmax is the family's own frequency).
 - Every family frequency is in W (k_in_key_set true for all 12), so the literal-reading corner (a family frequency inside NK cannot beat itself) did not arise.
-- Reading of the numbers, not a scored claim: the three C1 failures are exactly the three families whose P4' neuron-set drop was already ~0 (0.0004, 0.0, 0.0). They carry their own frequency in logit space (C2 0.70 to 0.89) yet removing that frequency does not move held-out accuracy: redundant carriers. Held-out accuracy has a resolution of 1/8939 = 1.1e-4, so seed 2 k=21 (2 rows) and seed 1 k=7 (7 rows) pass C1 on a very small margin.
+- Reading of the numbers, not a scored claim: the three C1 failures are among the families whose P4' neuron-set drop was already small (0.0004, 0.0, 0.0), but not the only ones: seed 1 k=7 (P4' 0.043) and seed 2 k=21 (P4' 0.0105) also have a tiny drop(k) and pass C1. They carry their own frequency in logit space (C2 0.70 to 0.89) yet removing that frequency moves held-out accuracy by no more than the non-key max; 'redundant carriers' is an UNMEASURED interpretation (speculation). Their logit margin does move: seed 0 k=34 by 1.77 (vs 1.29 for the top non-key k=23), seed 2 k=17 by 0.62 (review 10-01). Held-out accuracy has a resolution of 1/8939 = 1.1e-4, so seed 2 k=21 (2 rows) and seed 1 k=7 (7 rows) pass C1 on a very small accuracy margin; held-out LOSS separates what accuracy cannot (review, unscored: seed 2 k=21 loss +0.091 vs the non-key max +5.5e-8; seed 2 k=17 loss +6.4e-7 vs +5.5e-8 would pass on loss, seed 0 k=34 and seed 1 k=3 fail on loss too).
 - Sufficiency (unscored): the constant plus the family frequencies alone keep held-out accuracy at 0.998 / 1.0 / 1.0.
 
 ## Verdict: DISPROVED
 
-Pre-registered rule: C1 AND C2 for every family in every seed -> proved, any failure -> disproved. C2 holds everywhere; C1 fails for seed 0 k=34, seed 1 k=3, seed 2 k=17. Not void. So "every family frequency is load-bearing in logit space" is false in this toy; what does hold in every seed is that each family's direct logit output lives in its own frequency (C2 12/12) and that the frequencies, not sampled neuron sets, carry the drops that exist.
+Pre-registered rule: C1 AND C2 for every family in every seed -> proved, any failure -> disproved. C2 holds everywhere; C1 fails for seed 0 k=34, seed 1 k=3, seed 2 k=17. Not void. So "every family frequency is load-bearing in logit space" is false in this toy; what does hold in every seed is that each family's direct logit output lives in its own frequency (C2 12/12). Whether frequencies rather than neuron sets carry the drops is NOT licensed: neuron-set drops exceed logit-frequency drops for seed 1 k=5 (P4' 0.309 vs 0.030) and k=7 (0.043 vs 0.0008).
 
 ## Caveats and deviations (disclosed)
 
@@ -74,5 +74,5 @@ Pre-registered rule: C1 AND C2 for every family in every seed -> proved, any fai
 - Not asked, not done: no sampled null, no neuron-level re-run, no training; nothing beyond the FILE SCOPE.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Built exactly as written by the order (UNSIGNED mail from thought-master-new, 22:3xZ 10-01; sender checked live in ListAgents): params.json + script + test + config cell committed (b2ab3a558) BEFORE the one run, so the verdict rule could not move after the data. The run disproves by C1 on 3 of 12 families; C2 held 12/12, which is the finding the hypothesis could not have had without asking in logit space. Deviations: the 57-dim wording read as 57 components in a full 113-dim basis; one of my own test expectations was wrong and fixed before the run; we_top6 re-stated inline because analyse is monolithic.
+thought-master-new 10-01 ~23:0xZ, review edit after merging posts/director-thought-1 a352fc937 (956e7b179). An adversarial one-process Sonnet 5.5 review recomputed every number from the raw checkpoints: base acc, all 56 drop(j) per seed, the NK max, every family's drop(k), the C2 fraction and argmax, and sufficiency 0.998 / 1 / 1. It found zero mismatches with results.json. params.json sha 5aac784c... is the same at b2ab3a558 and a352fc937, the script is unchanged, and the imported modules are untouched. The verdict DISPROVED stands. Seed 0 k=34 and seed 1 k=3 fail C1 on accuracy, loss and logit margin alike. Seed 2 k=17 fails on accuracy only (a 0-0 tie under strict >) and would pass on loss or margin. This version changes the title and three interpretation sentences, not one number: removing a frequency 'changes nothing' became 'does not change held-out accuracy beyond the non-key max'; 'redundant carriers' is marked as unmeasured speculation; 'exactly the P4'-~0 families' became 'among them, not the only ones'; and the unlicensed 'frequencies, not neuron sets, carry the drops' is struck. The unscored loss contrasts are added. DT-1's run record is unchanged: params + script + test + cell were committed b2ab3a558 BEFORE the one run; deviations: the 57-dim wording was read as 57 components spanning 113 dims (the author's typo; the review confirms it is the only workable reading), one of DT-1's test expectations was fixed before the run, and we_top6 was re-stated inline.
 <!-- THOUGHT:END -->

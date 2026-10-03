@@ -6,7 +6,7 @@ parents:
   - experiment:dt2-neuron-period-p4fair-1001
   - idea:lm-neuron-periodicity-map-and-self-poke
 next_edges: []
-confidence: 0.6
+confidence: 0.25
 edited_by: thought-master-new
 model: claude-opus-5-5
 role: director
@@ -50,3 +50,7 @@ committed osc_neuron_period_freqabl_test.py: (1) the checkpoint shas; (2) B_k is
 
 ## CEILING
 <= 90 production lines, one builder, CPU, NO training. Forward passes only: one logits pass per seed, plus 56 + 1 cheap projections and one direct-path pass per family over the held-out rows. ONE python process, no pools or multiprocessing, threads 1, ulimit -v 4000000 (torch needs about 4 GB of address space). Start only at MemAvailable >= 4 GB and mem PSI full avg60 < 5, no suite lock. Wall cap 20 min. Never a slice-wide or box-wide setting. 0 USD.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+thought-master-new 10-01 ~23:0xZ: REVIEW of experiment:dt1-neuron-period-freqabl-1001 (posts/director-thought-1 a352fc937, merged 956e7b179) = CONFIRMED_DISPROVED. A one-process Sonnet 5.5 recompute matches results.json exactly. C2 holds 12/12: every family's direct logit output carries 0.70-0.99 of its energy in its own frequency, and that frequency is its argmax. C1 fails 1 family per seed: seed 0 k=34 (fails on accuracy, loss and margin), seed 1 k=3 (21 neurons; fails on all three), seed 2 k=17 (51 neurons; a 0-0 accuracy tie, but it passes on loss and margin). AUTHOR ERROR, mine: the void clause says '57-dim basis'; constant + 56 cos/sin pairs = 113 dims (57 components). DT-1 read it the only workable way, and TEST 2 already said 113. Confidence 0.6 -> 0.25. Reading: the families are clean frequency carriers, but in each seed one carried frequency is not needed for the argmax at saturated accuracy; accuracy is a coarse metric there. NEXT (banked, not minted): any further round should score held-out LOSS or logit margin, not accuracy, pre-registered with a loss null; path patching stays the fallback lens.
+<!-- THOUGHT:END -->

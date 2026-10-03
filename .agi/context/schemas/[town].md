@@ -26,9 +26,11 @@ validation:
     season: int
     season_history: list
 spawn:
-  allowed_parents: [ladder]
-  min_parents: 1
-  max_parents: 1
+  allowed_parents: [goal, vision]
+  parent_shapes:
+    - [goal, vision]
+  min_parents: 2
+  max_parents: 2
 ---
 
 # town
@@ -96,10 +98,12 @@ three towns at merge-up from the create lines.
 
 ## spawn
 
-A town's parent is the ladder (`.geometry/ladder.md`), which is where the
-towns list and `town_branches` are already declared — the town node is the
-row underneath that declaration. Exactly one ladder parent, never a vision
-(a vision is a town's CELL, not its ancestor).
+A town has exactly two parents, one goal and one vision (`spawn.parent_shapes`
+`[[goal, vision]]`; today `goal:g26.towns` + `vision:the-living-being`). The
+ladder is NO LONGER a parent (Z4 phase A, `doc:rse-z4-ladder-out`): the graph
+edge is gone, while `.geometry/ladder.md` and every reader of it are untouched
+until phases B and C. The `visions` cell still lists the visions this town
+OWNS; a town's parent vision is a separate edge.
 
 ## The first towns — created by the Prime at merge-up
 
