@@ -50,7 +50,7 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        (sp took both); aio 03:25Z: node-loop placement MISSED 4 -> aio's per-commit every-path grow-gate line (281 B; NOT yet committed by aio, I told
        DG1 it was = my error, caught by DG1) carried VERBATIM in AA1.K, 8/8; 1c9ecc2ca LANDED 76c4ad72a; tip 1335d96ef still at SM
        03:26Z owner 6th: GitHub Actions sealer -> §AB.6 (sp mu8): master schedule (alive's fact); alive 03:30Z: sha256(git archive) varies with tar.umask
-       (0002 vs 0022, measured) -> pin both sides or a content-address subject (ls-tree + block header); one recipe cell
+       (0002 vs 0022) -> sp: AGI_SUBJECT = sha256 of sorted 'sha256(blob) path' (mu9); alive 03:33Z: AA2.75 still verifies the TAR (fails) + read -r/-z
 WAITS  SM lands alive/aa1k (sends queued: SM pane busy, sweep retries); mail
 ```
 
