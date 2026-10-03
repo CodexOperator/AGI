@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.6
 edited_by: director-general-1
 season: 2
-testable_claim: "(a) after the ring node and the projection exist, a scratch box's allowed_signers file equals the projection of the trunk's ring byte for byte (one sed), written by no root piece reading homes; (b) every post's FIRST ring line is written once by its parent (cases C8 and E7: stand-up), so agi-signers has nothing left to do; (c) config:engine <= 8,192 B and the seed 1,023 B, `agi-gate HEAD` rc 0: the base map lines go -60 B (signers) -119 B (agi-signers) +~62 B (ckpt) +~58 B (revoke) +~58 B (pq) from 8,186, section AB.5 puts the total near 8,185 B with 7 B spare, so the gate is AA2.63 and a build that crosses 8,192 B is REFUSED, not accepted; (d) no node outside the ring carries the box root key as an anchor and AGI_ANCHOR's separate file is gone (the anchor is the owner line of the ring)."
+testable_claim: "(a) after the ring node and the projection exist, a scratch box's allowed_signers file equals the projection of the trunk's ring byte for byte (one sed), written by no root piece reading homes; (b) every post's FIRST ring line is written once by its parent (cases C8 and E7: stand-up), so agi-signers has nothing left to do; (c) AA2.63 reads belam's RULED rail (04:21Z, written once as 'THE 8 KB RAIL, RULED', trunk 5873ba4e2; the owner may overturn it): after the build BOTH tiers hold: (1) the CODE inside config:engine's `~~~` fences <= 8,192 B, extracted `git show REV:.agi/nodes/.geometry/engine.md | awk '/^~~~/{c=!c;next} c' | wc -c` (fence lines excluded; 7,358 B at d6864e8c5) and (2) the WHOLE engine.md <= 12,288 B, `git show REV:.agi/nodes/.geometry/engine.md | wc -c` (9,132 B); section AB's per-line delta is REPORTED (-60 B signers, -119 B agi-signers, +~62 B ckpt = -117 B, then -1 B with revoke and pq at ~58 B each), the seed stays 1,023 B and `agi-gate HEAD` rc 0. The earlier absolute '8,186 B / 7 B spare' was never reproducible and is withdrawn; R6/F32 (`wc -c engine.md` <= 8,192) RETIRE as rails and stay as reported numbers; (d) no node outside the ring carries the box root key as an anchor and AGI_ANCHOR's separate file is gone (the anchor is the owner line of the ring)."
 title: "AB: agi-signers (the 1,515 B root piece) retires when the box's allowed_signers is only the projection of the trunk's ring, and the base map keeps config:engine within 8,192 B with agi-gate HEAD rc 0 (AA2.63, AA2.64)"
 town: core
 ---
@@ -26,7 +26,7 @@ town: core
 config-max: the map lines of config:engine (the base) / template-max: none / code: the projection (one sed), the stand-up ring-line write, and the removal of the signers and agi-signers map lines.
 
 ## FALSIFIERS
-AA2.63: `wc -c` of config:engine <= 8,192 B, the seed == 1,023 B, `agi-gate HEAD` rc 0 on a scratch tree carrying the integrated build; the number is printed with the per-line deltas and a build over the bar is RED.
+AA2.63: on a scratch tree carrying the integrated build, the fenced-code count is <= 8,192 B AND the whole-file count is <= 12,288 B (the two extractions above, both printed), the per-line delta against the trunk is printed, the seed == 1,023 B and `agi-gate HEAD` rc 0; either tier over its bar is RED. Mutations RED: a build that adds 900 B of fenced code (tier 1), one that adds 3,200 B of prose outside the fences (tier 2).
 AA2.64: on a scratch box after agi-signers is removed from the map, allowed_signers == the projection of the trunk's ring (cmp), a post's first ring line written by its parent makes its commits verify, and no file outside the projection is read for trust.
 AA2.64b: the one-box agi-fresh.t.sh cases that depend on agi-signers are re-pointed to the ring commit path and pass.
 
@@ -37,4 +37,4 @@ Shell, scratch tree built from the trunk's engine*.md with the candidate edits; 
 config:engine map lines (engine.md), the projection, the removal of the retired pieces' text from engine-root.md only after belam's GO.
 
 ## CEILING
-1 parent - kids <= 1 - config:engine <= 8,192 B (HARD) - the seed 0 B - 1 new test file - 0 USD - regular review + security mur on root code. Depends on: the ring, ckpt, pq and revoke hypotheses.
+1 parent - kids <= 1 - code inside the fences <= 8,192 B AND whole engine.md <= 12,288 B (AA2.63, the ruled rail; every build reports both numbers and its per-line delta) - the seed 0 B - 1 new test file - 0 USD - regular review + security mur on root code. Depends on: the ring, ckpt, pq and revoke hypotheses. Today's numbers (trunk f02495529): fenced code and whole file are read by the builder with the two extractions before it starts.
