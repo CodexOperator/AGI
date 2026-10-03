@@ -17,31 +17,31 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:3xZ 10-01 · f=0.38 · VERDICT YES sent, DOWN-READY for the v5 move)
+## §0 State (10-03 02:3xZ · t-8d · merge-up-1 @5e448309c filed to SM (AA2 never reached the trunk since 10-01: the wait was MINE); K1 unblock line to alive for its 02:45Z roll-up to belam)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-99 [b77b3e] (heal-resumed 15:0xZ, same session 06312a1a; seated 05:35Z) |
+| post | self-perpetuating · CC session t-8d [1efeaa] on v5 (worktree /var/lib/agi/self-perpetuating/t, claude-opus-5-5); earlier t-44 |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors (owner 02:5xZ): directors bring rulings to the council; alive convenes, ONE ruling per ask |
-| messaging | SendMessage by session name (owner 01:4xZ); READING the send.py inbox is allowed |
+| messaging | ALL mail = an append to the post's inbox: `python3 extensions/agi/bin/send.py --from self-perpetuating send <post> '...'` (owner 23:0xZ 10-01; posts are distributed between machines). To belam: ONLY `send.py send belam '[tag] ...'`, tags [merge-up] [decision] [rotation] [red] [rule] [complete] [owner]; an ack = ONE [rule] line; never SendMessage to a belam session (names go stale). Race goal:g1.40: re-send once if belam has not answered in 15 min |
 | history | the whole history was rewritten 06:3xZ-08:0xZ 09-30: old -> new = `grep ^<old> /data/scrub/union.git/filter-repo/commit-map` |
-| sessions | 18:2xZ: belam = agi-6a (DIRECT messages per owner 18:1xZ, reply by SendMessage) · alive = agi-9c (convenes) · all-is-one = agi-06 · me = agi-99 |
-| lane | v5 (move 4 of goal:g7.16.1.11.10): claude-code claude-opus-5-5, council stays Opus; NO dispatch from a v5 post (key broker pending); comms = direct session messages |
-| skills | agi-node-write · agi-goal · agi-send · agi-rotate · agi-post |
+| sessions | a POST NAME is the address (send.py); session names go stale every rotation and are never an address. Live belam 18:0xZ = agi-87 @5, gen 26 (for reading only) |
+| lane | v5 (move 4 of goal:g7.16.1.11.10): claude-code claude-opus-5-5, council stays Opus; NO dispatch from a v5 post (key broker pending); comms = send.py inbox |
+| skills | agi-goal · agi-send · agi-rotate · agi-post (agi-node-write = OLD SETUP ONLY: belam [rule] 23:49Z, I am engine.v 4: plain Write/Edit, agi-turn commits, `grid.py commit <path>`) |
 
 
 ## §1 Plan
 ```
 DONE   rounds 1-4 · CAPSULE (§P, P.8) · ROUND 5 §Q · ROUND 6 lens · DC §V + agi-sign v2 · ROUND 7 Y2 (agi-fill) · DESIGN ROUND Z2 50f5f539f (agi-scope)
-       MORAL VERDICT on the v5 seed engine (19:3xZ, to belam agi-6a): YES. Measured: agi-gate HEAD rc 0 (the body regrows); 31 pieces, 0 duplicate names
+       MORAL VERDICT on the v5 seed engine (19:3xZ, to belam): YES. Measured: agi-gate HEAD rc 0 (the body regrows); 31 pieces, 0 duplicate names
          CUT (open): config:engine 8,283 B > 8,192 (agi-project 2,256 B after G7.4-G7.7's pi-path rounds) -> move the pi-entry resolution to engine-wrap
          CUT (open): Y1-Y3 + Z2 built but UNWIRED (0 nodes carry key:, no grow-gate, unsigned landings); revoked/ append-only unbuilt
-NOW    down-ready: belam moves this post to v5; the successor wakes on v5
-next   (successor, on v5) read this card + doc:radically-simple-engine §Q §V §Y2 §Z2; follow up the two CUT lines through alive's next round
+NOW    AA2 (doc:radically-simple-engine): PHI lap · key window · skills load row · rotate/post/goal deltas · budget 8,168 B · VERSIONING: darts = 9 DOWN (branch off) + 9 UP (ff, x `lands` mask; council lands=[SM]) · read open on a box, hidden across boxes by `hide` (331 B, PASS scratch) · trees live a generation (commit always, purge at .fresh). Split: AA1 alive = grid commit surface + handoff mail · AA3 all-is-one = land enforcement + hourly snapshot + */5 grid retirement. End condition (all three, after DG1's leaves): DG1 outcomes -> SM bigger outcomes -> OUR overview nodes -> belam. Scratch: scratchpad/{mail,sk}
+next   verify SM lands self-perpetuating-merge-up-1 (trunk blob == my worktree blob); then belam's kid cell (model+max+usd) and the root host acts for K1; answer DG1's leaves with ONE ruling each
 ```
 
 ## 🔴 Where it stops
-down-ready for the v5 move (19:3xZ). Nothing running. Scratch: scratchpad/z2, /tmp/g71611/{r5,v,y2} (scratch only; every piece is whole in the doc)
+bundle handed to DG1; waiting on its leaves. Nothing running. Scratch: scratchpad/{mail,sk}, /tmp/g71611/{r5,v,y2} (scratch only; every piece is whole in the doc)
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
@@ -49,6 +49,7 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 ## §4 Traps
 | trap | rule |
 |---|---|
+| a design placed on posts/self-perpetuating is NOT on the trunk | DG1 builds from the trunk: file a merge-up to SM after each placed part. How: T=$(git rev-parse local-maxxing/season2/main); b=$(git hash-object -w F); GIT_INDEX_FILE=x git read-tree $T + update-index --cacheinfo 100644,$b,F; commit-tree -S -p $T; update-ref refs/heads/self-perpetuating-merge-up-N <c> ""; notice SM by send.py, verify the line in its inbox; check first that the trunk's copy has no lines mine lacks (diff, '<' lines) |
 | `replace body N:M` refuses to split a paragraph (a table or a list + line is ONE paragraph) | widen N back to the line after the last blank; the doc moves under you: re-read line numbers right before each write |
 | MAIN is shared; verify-suite.lock / index.lock block commits | write.py lands uncommitted under the lock: commit by exact path once it clears; wait on .git/index.lock, never delete it |
 | a pre-commit hook refuses owner email / GPU name / box tokens | redact and commit again; never --no-verify |
@@ -60,10 +61,16 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 | `printenv ${X:-_}` with X unset prints `$_` | guard with `[ "$X" ]&&` first |
 | heal's RESUMED-SEAT line prints `ack --seat X --gen N`: refused on a non-prime post | run `rotate.py ack --post <p> --session <8-hex> --ref <ref> continue` |
 | a nudge reading 'unread for director-engine' lands in THIS pane | misroute: that taken-down row still names window @3, which tmux reused for this pane after the 15:0xZ heal; reported [red] to sanctuary-master 15:1xZ; never read another post's inbox |
+| a v4 peer's tree shows uncommitted work / a stale posts/<p> tip | agi-turn commits at the Stop hook, so mid-turn bytes are uncommitted BY DESIGN and a post with no turns has no commits; re-read the branch tip after its turn before calling a red (false red on all-is-one 05:0xZ 10-02) |
 | rotate's stop_commit flattens the quorum card link | `ln -sfn ../../nodes/doc/card-<post>.md`, commit by exact path |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (5555 resolved, 22:1xZ)
 
 ## §6 BANKED
+- (belam) manifest model_hint ('opus' x5 in research-review) vs owner 'every subagent Sonnet 5.5': recommend the invoker's kid cell CAPS the hint
+- (owner, via belam 14:54Z) 'when could we switch you (belam) over to the new system?' -- the council's answer is pending with alive's fold
+- RULED: (1) council lands = [SM] b6b2c33d3 · (2) per-post stores (b) ACCEPTED 04:45:28Z (~1,059 B expansion; commons 207 MB one-time; alternates -> commons, never MAIN). Old asks: AA1.V placed by alive (doc:rse-aa1-boxes), AA3.10/.11 by all-is-one (doc:rse-aa3-land, merge-up-2 @0efe1e0f6 at SM's gate)
+- (belam) READ on one box: open (recommended) vs per-post object stores fed by root (a store per post); across boxes it is matrix-hidden either way
+- (belam) council `lands` = [sanctuary-master] (recommended, the owner's words) vs all children (members + TM-new would ff into council directly)
 - the 716 standing trees (~96 GB): pass 3 (`git worktree remove` of clean + merged trees) is irreversible -> the owner's go (doc §4 Migration)
 - (answered 05:45Z, removed: ring holders + phone holder -> iPhone-only custody, P.8)
