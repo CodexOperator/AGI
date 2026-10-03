@@ -141,7 +141,7 @@ ok "r4-no-share-bytes-in-any-version no version of ~/t ($($G -C $H/t rev-list --
 # r1: a capsule value the rail refuses: the SAME distinct code as the R5 refusal ($XA), ONE line, 0 ring commit, no .ssh/n, nothing created at the value's path; state saved and restored around each case
 sv(){ rm -rf $T/sv;mkdir $T/sv;cp -a $H/.ssh $T/sv/ssh;cp -a $H/seal.key $T/sv/seal.key;cp -a $CAP/$P $T/sv/share;Bs=$($G -C $H/t rev-parse HEAD);}
 rsv(){ rm -rf $H/.ssh $H/seal.key;cp -a $T/sv/ssh $H/.ssh;cp -a $T/sv/seal.key $H/seal.key;cp -a $T/sv/share $CAP/$P;$G -C $H/t reset -q --hard $Bs;rm -rf $H/.ssh/n $CAP/$P.new $H/.out-refused;}
-r1c(){ sv;sleep 1;touch $H/.fresh;ex "export AGI_CAPSULE='$1';agi-out" 2>$T/r1.err;xr=$?;nl=$(grep -c 'agi-out:' $T/r1.err);hdc=0;[ "$($G -C $H/t rev-parse HEAD)" = "$Bs" ]||hdc=1;nn=0;[ -e $H/.ssh/n ]&&nn=1;ab=0;[ -n "$2" ]&&[ -e "$2" ]&&ab=1;rm -rf "$2";rsv;}
+r1c(){ sv;sleep 1;touch $H/.fresh;ex "export AGI_CAPSULE='$1';agi-out" 2>$T/r1.err;xr=$?;nl=$(grep -c 'agi-out:' $T/r1.err);sks=0;cmp -s $H/seal.key $T/sv/seal.key&&sks=1;sho=0;[ "$(opn $H/seal.key $CAP/$P 2>/dev/null)" = "$SH0" ]&&sho=1;hdc=0;[ "$($G -C $H/t rev-parse HEAD)" = "$Bs" ]||hdc=1;nn=0;[ -e $H/.ssh/n ]&&nn=1;ab=0;[ -n "$2" ]&&[ -e "$2" ]&&ab=1;rm -rf "$2";rsv;}
 r1ok(){ [ "$xr" = "$XA" ]&&[ "$xr" != 1 ]&&[ "$xr" != 0 ]&&[ "$nl" = 1 ]&&[ "$hdc" = 0 ]&&[ "$nn" = 0 ]&&[ "$ab" = 0 ];}
 r1c t/x $H/t/x;ok "r1a-capsule-inside-t-refused AGI_CAPSULE=t/x (inside the post's worktree): refused with the R5 refusal's code ($XA; got $xr), ONE refusal line (got $nl), 0 ring commit, no .ssh/n, nothing created at t/x" 'r1ok'
 r1c "$T/abscap" "$T/abscap";ok "r1b-capsule-absolute-refused AGI_CAPSULE=<an absolute dir>: refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn, dir created $ab)" 'r1ok'
@@ -150,6 +150,25 @@ r1c capsule/../../x $S/x;ok "r1d-capsule-embedded-dotdot-refused AGI_CAPSULE=cap
 r1c capsule/.. '';ok "r1e-capsule-trailing-dotdot-refused AGI_CAPSULE=capsule/.. (resolves to the home itself): refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn)" 'r1ok'
 mv $H/capsule $H/capsule.real;ln -s t $H/capsule;r1c capsule '';rm -f $H/capsule;mv $H/capsule.real $H/capsule
 ok "r1f-capsule-symlink-into-t-refused ~/capsule is a SYMLINK to t (it resolves inside the worktree): AGI_CAPSULE=capsule is refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn)" 'r1ok'
+# r1g-r1k (SM 10:06Z, mur sm19 dg3-out-4 R1-R3): a symlink into t with TWO missing trailing components (readlink -f prints nothing), a symlink that LEAVES the home, a glob and an option-shaped value: refused the same way (the R5 code, ONE line, 0 ring commit, no .ssh/n, nothing created)
+mkdir -p $T/outA $T/outB;ln -s t $H/lnk;r1c lnk/a/b $H/t/a;rm -f $H/lnk
+ok "r1g-symlink-into-t-two-missing-refused ~/lnk is a symlink to t and AGI_CAPSULE=lnk/a/b (two trailing components missing: readlink -f prints nothing, so a resolution compared as a string matches no pattern): refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn, dir created INSIDE t $ab)" 'r1ok'
+mv $H/capsule $H/capsule.real;ln -s t $H/capsule;r1c capsule/x/y $H/t/x;rm -f $H/capsule;mv $H/capsule.real $H/capsule
+ok "r1h-capsule-symlink-into-t-two-missing-refused ~/capsule is a symlink to t and AGI_CAPSULE=capsule/x/y: refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn, dir created inside t $ab)" 'r1ok'
+mv $H/capsule $H/capsule.real;ln -s ../../outA $H/capsule;r1c capsule '';oa=$(ls -A $T/outA|wc -l|tr -d ' ');rm -f $H/capsule;mv $H/capsule.real $H/capsule
+ok "r1i-capsule-relative-symlink-leaving-home-refused ~/capsule is a RELATIVE symlink that LEAVES the home (../../outA, outside ~): AGI_CAPSULE=capsule is refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn) and nothing was written there ($oa entries)" 'r1ok&&[ "$oa" = 0 ]'
+mv $H/capsule $H/capsule.real;ln -s $T/outB $H/capsule;r1c capsule '';ob=$(ls -A $T/outB|wc -l|tr -d ' ');rm -f $H/capsule;mv $H/capsule.real $H/capsule
+ok "r1i2-capsule-absolute-symlink-leaving-home-refused the same with an ABSOLUTE symlink target outside the home: refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn), nothing written there ($ob entries)" 'r1ok&&[ "$ob" = 0 ]'
+r1c 'cap*' '';ok "r1j-capsule-glob-refused AGI_CAPSULE='cap*' (a glob that matches the real dir ~/capsule, but the quoted [ -f \"\$C\" ] sees the literal and no share is re-wrapped: a share loss): refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn), the share still opens with its seal key ($sho) and ~/seal.key is NOT replaced ($sks): NOT a silent rc 0 with no re-wrap" 'r1ok&&[ "$sho" = 1 ]&&[ "$sks" = 1 ]'
+r1c '-m777' $H/-m777;ok "r1k-capsule-option-shaped-refused AGI_CAPSULE='-m777' (reaches mkdir / rm as a FLAG when unquoted): refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn, a path named after it $ab)" 'r1ok'
+r1c '-x' $H/-x;ok "r1l-capsule-leading-dash-refused AGI_CAPSULE='-x' (a leading '-'): refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn, a path named after it $ab)" 'r1ok'
+r1c 'a b' "$H/a b";ok "r1m-capsule-space-refused AGI_CAPSULE='a b' (a space): refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn, dir created $ab)" 'r1ok'
+r1c 'a$b' "$H/a\$b";ok "r1n-capsule-dollar-refused AGI_CAPSULE='a\$b' (a literal dollar): refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn, dir created $ab)" 'r1ok'
+r1c "$(printf 'a\nb')" '';ok "r1o-capsule-newline-refused AGI_CAPSULE='a<newline>b' (a newline): refused the same way (code $xr, lines $nl, ring commits moved $hdc, .ssh/n $nn)" 'r1ok'
+# control: a capsule two components deep works: the share lives at ~/capsule/sub/<post>, is re-wrapped there, and opens with the new seal
+mkdir -p $H/capsule/sub;cp $CAP/$P $H/capsule/sub/$P;sv;sleep 1;touch $H/.fresh;ex 'export AGI_CAPSULE=capsule/sub;agi-out' 2>$T/r1.err;xr=$?
+ok "r1-control-two-components-works AGI_CAPSULE=capsule/sub (two components, a real dir under the home) rotates: exit 0 (got $xr), exactly ONE ring commit (got $($G -C $H/t rev-list --count $Bs..HEAD -- $R)), the share at ~/capsule/sub/$P is re-wrapped and opens with the live seal" '[ "$xr" = 0 ]&&[ "$($G -C $H/t rev-list --count $Bs..HEAD -- $R)" = 1 ]&&[ "$(opn $H/seal.key $H/capsule/sub/$P)" = "$SH0" ]'
+rsv;rm -rf $H/capsule/sub
 sv;sleep 1;touch $H/.fresh;ex 'export AGI_CAPSULE=capsule;agi-out' 2>$T/r1.err;xr=$?
 ok "r1-control-capsule-works AGI_CAPSULE=capsule (the relative value, a real dir under the home) rotates: exit 0 (got $xr), exactly ONE ring commit (got $($G -C $H/t rev-list --count $Bs..HEAD -- $R)), the share opens with the live seal" '[ "$xr" = 0 ]&&[ "$($G -C $H/t rev-list --count $Bs..HEAD -- $R)" = 1 ]&&[ "$(opn $H/seal.key $CAP/$P)" = "$SH0" ]'
 agirun
