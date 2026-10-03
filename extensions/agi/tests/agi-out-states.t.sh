@@ -44,6 +44,15 @@ mkh 10;CAP=./t out;ok "p4-dot-t-refused ./t resolves to t: refused" 'chk'
 mkh 11;ln -s t $H/lnk;CAP=lnk out;ok "p5-symlink-into-t-refused a relative value that is a SYMLINK into t resolves inside t: refused" 'chk'
 mkh 12;CAP=capsule out;rc=$?;ok "p6-valid-lands-modes a valid relative value (capsule): lands (rc=$rc, commits $(nc)), the share is 0600 ($(stat -c %a $H/capsule/post1); a dir that already exists keeps its mode: named), no marker" '[ "$rc" = 0 ]&&[ "$(nc)" = 2 ]&&[ "$(stat -c %a $H/capsule/post1)" = 600 ]&&[ ! -e $H/.ssh/out-refused ]'
 mkh 13;rm -rf $H/capsule;CAP=capsule out;rc=$?;ok "p7-dir-created-0700 the capsule dir absent: agi-out creates it 0700 as the post (rc=$rc, mode $(stat -c %a $H/capsule 2>/dev/null))" '[ "$rc" = 0 ]&&[ "$(stat -c %a $H/capsule)" = 700 ]'
+# --- OUT.5 (SM mur sm19 on OUT.4, R1-R3): the rail resolves with readlink -m (a deep missing tail through a symlink into t resolves INTO t), requires the result under HOME and not t, and takes only [A-Za-z0-9._/-] without a leading -
+mkh 14;ln -s t $H/lnk;CAP=lnk/a/b out;ok "q1-deep-missing-through-symlink-into-t-refused ~/lnk -> t with AGI_CAPSULE=lnk/a/b (two missing components, readlink -f prints nothing): refused, nothing created inside t (commits $(nc))" 'chk&&[ ! -e $H/t/a ]'
+mkh 15;rm -rf $H/capsule;ln -s t $H/capsule;CAP=capsule/x/y out;ok "q2-capsule-symlink-into-t-deep-refused ~/capsule -> t with capsule/x/y: refused, nothing created inside t" 'chk&&[ ! -e $H/t/x ]'
+mkh 16;rm -rf $H/capsule;mkdir $D/outside16;ln -s $D/outside16 $H/capsule;CAP=capsule out;ok "q3-symlink-leaving-home-refused ~/capsule -> a directory outside HOME: refused (relative to HOME means under HOME), nothing written there" 'chk&&[ -z "$(ls $D/outside16)" ]'
+mkh 17;CAP='cap*' out;ok "q4-glob-refused a glob value (cap*) is refused: a rotation with rc 0 and NO re-wrap would lose the share" 'chk'
+mkh 18;CAP=-m777 out;ok "q5-option-shaped-refused an option-shaped value (-m777) is refused (it would reach mkdir / rm as a flag)" 'chk'
+mkh 19;CAP='a b' out;ok "q6-space-refused a value with a space is refused" 'chk'
+mkh 20;CAP='a:b' out;ok "q7-colon-refused a value with a colon is refused" 'chk'
+mkh 21;CAP=capsule/deep/er out;rc=$?;ok "q8-deep-missing-under-home-ok a valid DEEP relative value whose tail does not exist yet is created under HOME and lands (rc=$rc, commits $(nc), dir $(stat -c %a $H/capsule/deep/er 2>/dev/null))" '[ "$rc" = 0 ]&&[ "$(nc)" = 2 ]&&[ -d $H/capsule/deep/er ]'
 # the unit's ExecCondition: exit 2 (SuccessExitStatus=1 would let 1 through) skips the start when the marker is not older than .fresh
 git show $o:$GEO/engine-root.md|sed -n '/^### agi-post@.service/,/^~~~$/p'>$D/unit;ec=$(sed -n "s/^ExecCondition=sh -c '\(.*\)'\$/\1/p" $D/unit)
 ok "c0-execcondition-first the unit carries ONE ExecCondition line, before the first ExecStartPre, and SuccessExitStatus keeps 1 (so the skip code must be neither 0 nor 1)" '[ -n "$ec" ]&&[ "$(grep -c "^ExecCondition=" $D/unit)" = 1 ]&&[ "$(grep -n "^ExecCondition=" $D/unit|cut -d: -f1)" -lt "$(grep -n "^ExecStartPre=" $D/unit|head -1|cut -d: -f1)" ]&&grep -q "^SuccessExitStatus=1 " $D/unit'

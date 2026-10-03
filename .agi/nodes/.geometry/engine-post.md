@@ -88,13 +88,13 @@ grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'>>$HOME/track
 cd ~/t;k=0;for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -d $d ]||continue;agi-wt drop $(basename $d);[ $? = 5 ]&&k=5;done;agi-turn;git merge -q --no-edit ${AGI_TRUNK:-trunk}||git merge --abort;exit $k
 ~~~
 
-### agi-out (3371 B)
+### agi-out (3096 B)
 ~~~sh
 #!/bin/sh
-# agi-out (ExecStartPre, after the extraction): the out-line = one generation g -> g+1 (AB). A ring in ~/t and `.fresh` newer than the key: the NEXT sign + seal keys are born in ~/.ssh/n, ONE ring commit replaces the post's own lines, signed by the CURRENT key (that commit IS the self-revocation), the capsule share is re-wrapped to the next seal FIRST (no ring byte reaches the worktree before the wrap: agi-turn sweeps it), then the ring commit, then next moves over current. No ring, no .fresh: nothing. A refusal (any exit after the cd; AGI_CAPSULE absolute, with .. or inside t) writes its reason to ~/.ssh/out-refused + stderr and exits 75 (RestartPreventExitStatus is a no-op for ExecStartPre): with that marker and no newer .fresh a start exits 75 silently and the unit's ExecCondition skips it (no failure, no Restart=); every other start clears it. Capsule dir 0700, shares 0600. A crash after the land resumes and never commits twice. PQ column: 32 random bytes until the pq piece.
+# agi-out (ExecStartPre): the out-line g -> g+1 (AB; the full account is in the node). A ring in ~/t and .fresh newer than the key: new keys in ~/.ssh/n, the capsule share re-wrapped to the next seal FIRST, ONE ring commit signed by the CURRENT key (the self-revocation), then next moves over current. A refusal (any exit after the cd; an AGI_CAPSULE off [A-Za-z0-9._/-], absolute, with .., resolving outside HOME or inside t) writes its reason to ~/.ssh/out-refused + stderr, exits 75; with that marker and no newer .fresh a start exits 75 silently and the unit's ExecCondition skips it; every other start clears it. Dir 0700, share 0600.
 cd||exit 1;m=.ssh/out-refused;[ -e $m ]&&{ [ .fresh -nt $m ]||exit 75;};rm -f $m;x(){ echo "agi-out: $*">&2;echo "$*">$m;exit 75;};P=$AGI_SEAT;R=.agi/nodes/.geometry/ring;N=.ssh/n;C=${AGI_CAPSULE:+$AGI_CAPSULE/$P}
 [ -f t/$R ]&&{ [ -d $N ]||[ .fresh -nt .ssh/id_ed25519 ];}||exit 0
-case $AGI_CAPSULE:$(readlink -f -- "${AGI_CAPSULE:-.}") in /*|*..*|*:$(readlink -f t)|*:$(readlink -f t)/*)x "AGI_CAPSULE must be relative to HOME, without .., outside t";;esac
+c=$AGI_CAPSULE;[ -z "$c" ]||{ case $c in -*|/*|*..*|*[!A-Za-z0-9._/-]*)x "AGI_CAPSULE off the safe set";;esac;h=$(pwd -P);case $(readlink -m -- "$c") in "$h"/t|"$h"/t/*)x "AGI_CAPSULE inside t";;"$h"/?*);;*)x "AGI_CAPSULE outside HOME";;esac;}
 y='import sys,base64 as B,hashlib as H
 from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey as K,X25519PublicKey as P
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as C
@@ -105,13 +105,13 @@ else:
 o=$(git -C t show HEAD:$R)||x "the ring is unreadable";umask 77
 [ -s $N/seal.pub -a "$(printf '%s\n' "$o"|awk -v p=$P '$1==p&&$2=="x25519"{print $3}')" = "$(cat $N/seal.pub 2>/dev/null)" ]||{
  { [ -f seal.key -a -z "$C" ]||[ -f "$C" -a ! -f seal.key ];}&&x "the capsule share cannot be re-wrapped (no capsule, or no seal key to open it with)"
- rm -rf $N ${C:+$C.new};mkdir -p $N $AGI_CAPSULE&&ssh-keygen -qN "" -ted25519 -f$N/id_ed25519||x "keygen failed"
+ rm -rf $N ${C:+"$C.new"};mkdir -p $N ${C:+"$c"}&&ssh-keygen -qN "" -ted25519 -f$N/id_ed25519||x "keygen failed"
  s=$(python3 -c "$y" gen $N/seal.key)||x "seal keygen failed";echo $s>$N/seal.pub
- [ -f "$C" -a -f seal.key ]&&{ python3 -c "$y" wrap seal.key $C $s>$C.new||{ rm -rf $N $C.new;x "the wrap failed";};}
+ [ -f "$C" -a -f seal.key ]&&{ python3 -c "$y" wrap seal.key "$C" $s>"$C.new"||{ rm -rf $N "$C.new";x "the wrap failed";};}
  { printf '%s\n' "$o"|awk -v p=$P 'NF&&$1!=p';printf '%s ssh-ed25519 %s\n%s pq-sha256 %s\n%s x25519 %s\n' $P $(cut -d' ' -f2 $N/id_ed25519.pub) $P $(head -c32 /dev/urandom|base64) $P $s;}>t/$R
- git -C t commit -qm "out-line $P" -- $R||{ git -C t checkout -q -- $R;rm -rf $N ${C:+$C.new};x "the ring commit failed";}
+ git -C t commit -qm "out-line $P" -- $R||{ git -C t checkout -q -- $R;rm -rf $N ${C:+"$C.new"};x "the ring commit failed";}
 }
-[ -f "$C.new" ]&&mv $C.new $C
+[ -f "$C.new" ]&&mv "$C.new" "$C"
 [ -f $N/id_ed25519.pub ]&&{ [ -f $N/id_ed25519 ]&&mv $N/id_ed25519 .ssh/;mv $N/id_ed25519.pub .ssh/;}
 [ -f $N/seal.key ]&&mv $N/seal.key seal.key;rm -rf $N
 ~~~
