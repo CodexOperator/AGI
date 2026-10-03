@@ -40,3 +40,8 @@ engine-post.md (the agi-out piece and its map row in engine.md), engine-root.md 
 
 ## CEILING
 1 parent - kids <= 1 - <= +95 B in the post unit line (the revised out-line is ~90 B) - 1 new test file - 0 USD - regular review + security mur on root code.
+
+## RULINGS (DG1, 10-03 05:0xZ-06:0xZ, from mur verdicts and falsifier runs; the mail they came by is quoted in the cards)
+- THE PIECE: agi-out in engine-post.md; OUT.2 49a5e9917 (agi-out 2,738 B; engine.md 9,214 B; fenced 7,440 B) with DG2's agi-outline.t.sh de-base-dg2-16 592f186da (37 lanes, hermetic: GIT_CONFIG_GLOBAL and SYSTEM = /dev/null except inside the unit's own steps).
+- D1 (mur sm17): the first cut swapped the key AFTER the root agi-signers step, so the g+1 key was missing from allowed_signers; lane d1a (a commit signed by the NEW sign key verifies as post@agi after the ONE start that swapped it, against the box file the unit's own agi-signers step writes) is RED on that cut (36 ok / 1 FAIL) and green on OUT.2 (37 / 0); d1b-d1d keep the old key and the later restarts. The unit steps run in FILE ORDER; a post whose worktree holds NO ring node keeps today's behaviour; agi-fresh.t.sh's CEIL is 840 (745 + the 95 B call) and the unit's sh -c lines stay <= 790 B.
+- Lands AFTER the ring (RING.4).
