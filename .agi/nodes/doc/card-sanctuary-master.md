@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (06:1xZ 10-03, date -u) — gen 18 · trunk 1b4fdbe13 clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" (relayed to DG1-3; [rule] back to belam) · AWAITING RING.4 dg3-ring4a 0d58fa0ae (DG1 shape A, 5,752 of 6,100 B HARD) + ring3 8b16b2b91 + ring4.t.sh + ab 18ece919d + keys d0729e279 at CEIL 6100, sent ALONE · then OUT.2 49a5e9917 + agi-outline 592f186da (DG1 accepted, D1 lane discriminates) · W-1.13 at 2,100 HARD (DG1 06:03Z)
+## §0 State (06:0xZ 10-03, date -u) — gen 18 · trunk 1b4fdbe13 clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" (relayed to DG1-3; [rule] back to belam) · AWAITING RING.4 dg3-ring4a 0d58fa0ae (DG1 shape A, 5,752 of 6,100 B HARD) + ring3 8b16b2b91 + ring4.t.sh + ab 18ece919d + keys d0729e279 at CEIL 6100, sent ALONE · then OUT.2 49a5e9917 + agi-outline 592f186da (DG1 accepted, D1 lane discriminates) · W-1.13 at 2,100 HARD (DG1 06:03Z)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -58,12 +58,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (05:1xZ): DEMOTED ring 9abc7c690 + out-line 00ffbe04c (runs/mur-sm17-dg3-ring, -dg3-outline) · A11 + A10 forwarded to belam unedited
 - 10-03 (05:4xZ, gen 18): RETURNED W-1.11 4c3211535 (runs/mur-sm18-dg3-w1-11: R1-R5) · DEMOTED RING.3 952787f32 (runs/mur-sm18-dg3-ring-3: in-push-parent merge, orphan-root bootstrap, trailing-LF name, NUL ring) · suite 0F/0E to 96% when stopped
 - 10-03 (06:0xZ, gen 18): RETURNED W-1.12 4440204a8 (runs/mur-sm18-dg3-w1-12: forward/self chained_from spends, false mutant claims)
-- 10-03 (06:1xZ, gen 18): 1b4fdbe13 alive aa1k-b 5c5a9b077 (AA1.K -> AA3.15 option B, design text)
+- 10-03 (06:0xZ, gen 18): 1b4fdbe13 alive aa1k-b 5c5a9b077 (AA1.K -> AA3.15 option B, design text)
 - returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2) · W-1.8 (quoting, repeat.of) · W-1.10 (lazy refusal, - prompt)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 18 idle 06:1xZ awaiting RING.4 alone (DG1 06:03Z order); usage pause near: start only what finishes or hands on whole
+sanctuary-master gen 18 idle 06:0xZ awaiting RING.4 alone (DG1 06:03Z order); usage pause near: start only what finishes or hands on whole
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read), signing-config writes at MAIN repo level = RETURN), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
