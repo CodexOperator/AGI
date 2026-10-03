@@ -31,36 +31,37 @@ END{if(t==""){print "refused: not a node (no type:)";exit 1};for(i=1;i<=p;i++){s
  if(k!=o[1]){print "refused: locked: key "(k?k:"none")" is not "o[1]" for "t" under ["r"]";exit 1};print "ok "o[1]" "o[2]}' "$1" "$2"
 ~~~
 
-### grow-gate (6267 B)
+### grow-gate (6195 B)
 ~~~sh
 #!/bin/sh
 # pre-receive (the land gate), all against the RECEIVING trunk tip (matrix + schemas via git archive; a push cannot re-key or re-schema itself):
 # ADDED node -> grow-check (order + key; a ring other than * = the commit's signer, §W) + agi-fill check (Y2's fields) · CHANGED node -> agi-fill
 # check as a RATCHET (refused only if the version it replaces passed: legacy nodes stay editable, nothing that passed can regress)
 # the ring (.agi/nodes/.geometry/ring, `post keytype b64` lines): when the RECEIVING tip holds one, a commit lands only if its signer is a ring line open at that tip (AGI_ALLOWED is not read) and an ancestor-or-self of every name ruling each path that differs between the LANDED tip h and the commit, merges and in-push parents included (ring line: its post · node: its ring: cell · schemas, growth.tsv, .github, .gitattributes: AGI_RULES, default owner · posts.md: the old AND new parent of each moved row). No ring at the tip = the gate as it was ONLY while the ring never existed in the RECEIVING tip's history (rev-list -1 R -- ring prints nothing; read once per push); once it has, deleting or emptying it answers to every name it removes; no date is read.
-# LIMITS: every git read is checked (no pipefail) except rn (the ring: cell read; a node WITH NO ring: cell, engine*.md included, needs only a ring signer: DG1 to rule). A ring line is exactly the canonical shape or refused (grep -a, --text); a posts.md name/parent is \A[a-z][a-z0-9-]*\z. Phase 3 (agi-fill / grow-check) runs twice: on the combined diff of c and on diff(h, c). Named, not closed: a mode-only ring change has no ruler line; verify-commit runs gpg/x509 on pushed armour (refused after); no wall clock.
+# LIMITS: every git read is checked (no pipefail) except rn (the ring: cell read; a node WITH NO ring: cell, engine*.md included, needs only a ring signer: DG1 to rule). A ring line is exactly the canonical shape or refused (grep -a, --text); a posts.md name/parent is \A[a-z][a-z0-9-]*\z. Phase 3 (agi-fill / grow-check) runs twice: on the combined diff of c and on diff(h, c). A merge-carried node is the trunk's only if its blob equals the RECEIVING tip's (not by ancestry); a legacy-invalid trunk node refuses a merge-up carrying it (no h:node baseline). Named, not closed: a mode-only ring change has no ruler line; verify-commit runs gpg/x509 on pushed armour (refused after); no wall clock.
 A=${AGI_ALLOWED:?};export LC_ALL=C GIT_NO_REPLACE_OBJECTS=1;set -f;t=$(mktemp -d);trap 'rm -rf $t' EXIT;R=$(git rev-parse -q --verify ${AGI_TRUNK:-refs/heads/main})||{ echo "refused: no receiving trunk";exit 1;}
 G=.agi/nodes/.geometry;mkdir -p $t/$G $t/.agi/context/schemas&&git archive $R:.agi/context/schemas|tar -x -C $t/.agi/context/schemas 2>/dev/null||exit 1;git show $R:$G/growth.tsv>$t/$G/growth.tsv||exit 1;command -v agi-fill>/dev/null||{ echo "refused: no agi-fill";exit 1;};k(){ (cd $t&&agi-fill check $1)>$t/e 2>&1;}
-lg(){ for q in $(git rev-list --parents -n1 $c|cut -s -d" " -f2-);do { git merge-base --is-ancestor $q $R||git merge-base --is-ancestor $q $h;}&&[ "$(git rev-parse -q --verify $q:$1)" = "$(git rev-parse $c:$1)" ]&&return 0;done;return 1;}
+lg(){ [ "$(git rev-parse -q --verify "$R:$1")" = "$(git rev-parse "$c:$1")" ];}
 E='^[a-z][a-z0-9-]* (ssh-ed25519|ecdsa-sha2-nistp256|pq-sha256|x25519|cert-authority (ssh-ed25519|ecdsa-sha2-nistp256)) [A-Za-z0-9+/]+=*$';ru(){ awk -v s=$1 -v q=$2 '{u[$1]=$2}END{while(q!=""&&n++<40){if(q==s)exit 0;q=u[q]}exit 1}' $t/u;}
 rn(){ git show "$h:$1" 2>/dev/null|awk '/^---$/{n++;next} n==1&&/^ring:/{sub(/^ring: *\[/,"");sub(/\].*/,"");gsub(/[ ,]+/," ");print;exit} n>1{exit}';}
 pm(){ git show $1:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -s 'map({(.name):.parent})|add';}
-dt(){ git diff-tree -r -c --root --no-commit-id "$@">$t/d||{ echo "refused: $c: git diff-tree failed";exit 1;};}
+die(){ echo "refused: $c: $*";exit 1;}
+dt(){ git diff-tree -r -c --root --no-commit-id "$@">$t/d||die "git diff-tree failed";}
 while read o n r;do h=$R;w=$(git rev-list --reverse --topo-order $n --not ${AGI_NOT:---all})&&x=$(git rev-list -1 --full-history $R -- $G/ring)||{ echo "refused: git rev-list failed";exit 1;};L=;[ "$x" ]||L=1;for c in $w;do
- if git show $h:$G/ring>$t/r 2>/dev/null;then L=;grep -aE "$E" $t/r|sed -E 's/^([a-z0-9-]+) /\1@agi namespaces="git" /'>$t/a;else :>$t/a;[ "$L" ]&&{ x=$(git rev-list -1 --full-history $h -- $G/ring)&&[ -z "$x" ]||{ echo "refused: $c: the ring is unreadable at the tip";exit 1;};cp $A $t/a;};fi;git show $h:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r 'select(all(.name,.parent;type=="string" and test("\\A[a-z][a-z0-9-]*\\z")))|"\(.name) \(.parent)"'>$t/u
+ if git show $h:$G/ring>$t/r 2>/dev/null;then L=;grep -aE "$E" $t/r|sed -E 's/^([a-z0-9-]+) /\1@agi namespaces="git" /'>$t/a;else :>$t/a;[ "$L" ]&&{ x=$(git rev-list -1 --full-history $h -- $G/ring)&&[ -z "$x" ]||die "the ring is unreadable at the tip";cp $A $t/a;};fi;git show $h:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r 'select(all(.name,.parent;type=="string" and test("\\A[a-z][a-z0-9-]*\\z")))|"\(.name) \(.parent)"'>$t/u
  s=$(git -c gpg.ssh.allowedSignersFile=$t/a verify-commit --raw $c 2>&1|sed -n 's/.*signature for \(.*\)@agi with.*/\1/p')
  [ "$L" -o "$s" ]||{ echo "refused: $c is not signed by a ring line open at the receiving tip";exit 1;}
- dt --diff-filter=AMT $h $c;(while IFS= read -r l;do p=${l#*	};o=$(echo "${l%%	*}"|awk '{print $(NF-1)}');git cat-file blob $o>$t/b||{ echo "refused: $c $p unreadable";exit 1;};grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' $t/b&&{ echo "refused: $c $p carries a private key block (the trunk is public)";exit 1;};case $p in $G/ring/*)echo "refused: $c $p: the ring is one file";exit 1;;$G/ring)[ "$s" ]||{ echo "refused: $c: the ring is changed by an unsigned commit";exit 1;};git show $c:$p>$t/g2&&{ grep -aEqv "$E" $t/g2;[ $? = 1 ];}||{ echo "refused: $c: a ring line off shape";exit 1;};;esac;done<$t/d)||exit 1
+ dt --diff-filter=AMT $h $c;(while IFS= read -r l;do p=${l#*	};o=$(echo "${l%%	*}"|awk '{print $(NF-1)}');git cat-file blob $o>$t/b||{ echo "refused: $c $p unreadable";exit 1;};grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' $t/b&&{ echo "refused: $c $p carries a private key block (the trunk is public)";exit 1;};case $p in $G/ring/*)echo "refused: $c $p: the ring is one file";exit 1;;$G/ring)[ "$s" ]||die "the ring is changed by an unsigned commit";git show $c:$p>$t/g2&&{ grep -aEqv "$E" $t/g2;[ $? = 1 ];}||die "a ring line off shape";;esac;done<$t/d)||exit 1
  [ "$L" ]||{ dt --name-only $h $c;(while IFS= read -r f;do case $f in \"*)echo "refused: $c $f: a quoted path";exit 1;;
-  $G/ring)git diff --text $h $c -- "$f">$t/g||{ echo "refused: $c: git diff failed";exit 1;};r=$(sed -n 's/^[-+]\([a-z][a-z0-9-]*\) .*/\1/p' $t/g|sort -u);;
+  $G/ring)git diff --text $h $c -- "$f">$t/g||die "git diff failed";r=$(sed -n 's/^[-+]\([a-z][a-z0-9-]*\) .*/\1/p' $t/g|sort -u);;
   .agi/context/schemas/*|$G/growth.tsv|.github/*|.gitattributes|*/.gitattributes)r=${AGI_RULES:-owner};;
-  $G/posts.md)pm $h>$t/o;pm $c>$t/n;jq -e '[keys[],(.[]|select(.!=null))]|all(test("\\A[a-z][a-z0-9-]*\\z"))' $t/n>/dev/null||{ echo "refused: $c: a posts.md name off [a-z0-9-]";exit 1;};r=$(jq -rn --slurpfile o $t/o --slurpfile n $t/n '$o[0] as $o|$n[0] as $n|($o+$n|keys[]) as $k|select($o[$k]!=$n[$k])|$o[$k],$n[$k]|select(.!=null)')||{ echo "refused: $c: the posts.md ruler failed";exit 1;};;
+  $G/posts.md)pm $h>$t/o;pm $c>$t/n;jq -e '[keys[],(.[]|select(.!=null))]|all(test("\\A[a-z][a-z0-9-]*\\z"))' $t/n>/dev/null||die "a posts.md name off [a-z0-9-]";r=$(jq -rn --slurpfile o $t/o --slurpfile n $t/n '$o[0] as $o|$n[0] as $n|($o+$n|keys[]) as $k|select($o[$k]!=$n[$k])|$o[$k],$n[$k]|select(.!=null)')||die "the posts.md ruler failed";;
   *)r=$(rn "$f");;esac
   for q in $r;do ru $s $q||{ echo "refused: $c $f is ruled by $q; ${s:-nobody} is not $q or above it";exit 1;};done;done<$t/d)||exit 1;}
  for y in "$c" "$h $c";do dt --diff-filter=AMT --name-status $y -- .agi/nodes;grep '\.md$' $t/d|grep -v /deprecated/>$t/l;b=${y%% *};[ $b = $c ]&&b=$c^
- while read m f;do [ "$y" != "$c" ]&&lg $f&&m=M;case $(git ls-tree $c -- $f) in 12*|16*)echo "refused: $c $f: a symlink or submodule node";exit 1;;esac;git show $c:$f>$t/n;if [ "${m#*A}" != "$m" ];then v=$(grow-check $t/.agi/nodes/.geometry/growth.tsv $t/n)||{ echo "$f: $v";exit 1;}
+ while read m f;do [ "$y" != "$c" ]&&lg "$f"&&m=M;z=$(git ls-tree $c -- "$f")||die "$f: ls-tree failed";case $z in 12*)echo "refused: $c $f: a symlink node";exit 1;;esac;git show "$c:$f">$t/n||die "$f unreadable";if [ "${m#*A}" != "$m" ];then v=$(grow-check $t/.agi/nodes/.geometry/growth.tsv $t/n)||{ echo "$f: $v";exit 1;}
   g=${v##* };[ "$g" = '*' ]||[ "$g" = "$s" ]||{ echo "$f: ring $g, signed by ${s:-nobody}";exit 1;};k n||{ echo "$f:";cat $t/e;exit 1;}
-  else k n||{ git show $b:$f>$t/p&&! k p||{ echo "$f: was valid:";k n;cat $t/e;exit 1;};};fi;done<$t/l||exit 1;done;h=$c;done;done
+  else k n||{ git show "$b:$f">$t/p&&! k p||{ echo "$f: was valid:";k n;cat $t/e;exit 1;};};fi;done<$t/l||exit 1;done;h=$c;done;done
 ~~~
 
 ### grow-project (1185 B)
