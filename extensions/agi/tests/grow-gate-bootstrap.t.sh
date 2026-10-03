@@ -1,6 +1,6 @@
 #!/bin/sh
 # grow-gate-bootstrap.t.sh: the ring gate opens ONLY while the ring has never existed in the receiving history (git rev-list -1 TIP -- ring prints nothing). Scratch repo borrowing the common gitdir objects, scratch keys; tools from TRUNK by sect, GROW_GATE=<file> tests a candidate. One ok/FAIL line per case; exit = number of FAILs.
-T=local-maxxing/season2/main;G=$(git rev-parse --path-format=absolute --git-common-dir);D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
+T=${1:-local-maxxing/season2/main};G=$(git rev-parse --path-format=absolute --git-common-dir);D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
 [ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;chmod +x $D/b/*;[ -s $D/b/grow-gate ]||{ echo "FAIL no grow-gate";exit 99;}
 for p in owner legacy;do ssh-keygen -qN "" -ted25519 -f$D/k/$p>/dev/null;done
