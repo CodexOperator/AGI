@@ -2202,6 +2202,54 @@ jq -rs --arg p $1 'map({(.name):.})|add as $r|def k(n):if $r[n].engine.kid then 
 Bytes: agi-mint 1,248 B + agi-mint@.service 278 B + agi-kid@.service 288 B (engine-root EXPANSION) · agi.rules 211 -> 345 B. The base stays at 8,186 B (one agi-mint map line; agi-kid@ is listed on agi-kid's existing line).
 **Seams:** K3's agi-infer reads the class-(b) key file; belam's `kid` cell must carry `usd` (one number) next to model/max; the class-(a) path (credential present in the kid, absent from the caller, revoked at stop) is only provable as root.
 
+**K1 BYTES (10-03 02:2xZ, the ONE copy; build on these, never a twin).** Each block is extracted whole by its `### K1 <name>` heading; sha256 = the block's bytes plus a final newline. Fixed from the 10-02 scratch while placing them: (1) agi-mint read `.engine.kid`, but belam's landed cell is the row's TOP-LEVEL `kid` (trunk 10-03), so every lookup was empty -> now `.kid` (kid-of on trunk rows: self-perpetuating, alive, sanctuary-master -> belam's cell; stream-master (no parent) -> nothing). (2) `$O`/`trunk:` were unset -> `$AGI_REPO`/`$AGI_TRUNK` from /etc/agi/carry.env (dg3 A1), plus the safe.directory env (finding S1) and absolute Exec paths under /opt/agi/bin. Stub re-run (no network, no key): mint POSTs `limit:0.5` from an inherited `usd` 0.5, key + hash 0600, class (b) hand-over k-k1 0600; `-d` = one DELETE by hash, hand-over file gone; a post outside the tree rc 3. Until belam's `kid` cell carries `usd`, agi-mint returns rc 3 for EVERY post (fail-safe: no key, no spend).
+
+### K1 agi.rules (345 B, sha256 a17953ca0912901e)
+~~~js
+polkit.addRule(function(a,s){if(a.id!="org.freedesktop.systemd1.manage-units"||!s.isInGroup("agi"))return;var u=a.lookup("unit"),v=a.lookup("verb"),m=/^agi-(mint|kid)@([a-z0-9-]+)--[a-z0-9-]+\.service$/.exec(u);if(v=="start"&&/^agi-post@[a-z0-9-]+\.service$/.test(u)||m&&(v=="start"||v=="stop")&&"agi-"+m[2]==s.user)return polkit.Result.YES;});
+~~~
+
+### K1 agi-mint (1239 B, sha256 1a7349e67d3e1e1c)
+~~~sh
+#!/bin/sh
+# agi-mint [-d] POST--KID (root, agi-mint@.service): mint ONE key capped by POST's inherited kid.usd (read from the trunk, never from the caller) into $RUNTIME_DIRECTORY/key (root 0600)
+# class (b) = started directly by the post: the key is also handed to /run/agi-POST/k-KID (0600, the post's uid) for a no-tool agi-infer; class (a) = pulled by agi-kid@%i: the key reaches the kid ONLY as its LoadCredential
+i=$2 p=${2%%--*} k=${2#*--} d=$RUNTIME_DIRECTORY h="Authorization: Bearer $OPENROUTER_PROVISIONING_KEY";u=https://openrouter.ai/api/v1/keys
+[ "$1" = -d ]&&{ curl -sf -X DELETE $u/$(cat $d/hash) -H "$h";rm -f ${AGI_RUN:-/run}/agi-$p/k-$k;exit;}
+c=$(git -C $AGI_REPO show $AGI_TRUNK:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -rs --arg p $p 'map({(.name):.})|add as $r|def k(n):if $r[n].kid then $r[n].kid elif $r[n].parent then k($r[n].parent) else empty end;k($p).usd//empty')
+[ "$c" ]||exit 3;umask 077;curl -sf $u -H "$h" -d "{\"name\":\"$i\",\"limit\":$c}"|jq -r .key,.data.hash|{ read -r x;echo "$x">$d/key;read -r y;echo $y>$d/hash;}
+[ -s $d/key ]||exit 4;systemctl list-jobs --no-legend "agi-kid@$i.service" 2>/dev/null|grep -q .||install ${AGI_OWN--o agi-$p} -m600 $d/key ${AGI_RUN:-/run}/agi-$p/k-$k
+~~~
+
+### K1 agi-mint@.service (458 B, sha256 65fae5ff51b7339e)
+~~~ini
+[Unit]
+Description=agi: ONE capped OpenRouter key for spawn %i (post--kid); any stop revokes it
+[Service]
+Type=exec
+RuntimeMaxSec=4h
+EnvironmentFile=/etc/agi/carry.env
+EnvironmentFile=/data/work/agi/.env
+Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory PATH=/opt/agi/bin:/usr/local/bin:/usr/bin:/bin
+RuntimeDirectory=agi-mint/%i
+ExecStartPre=/opt/agi/bin/agi-mint + %i
+ExecStart=/usr/bin/sleep infinity
+ExecStopPost=/opt/agi/bin/agi-mint -d %i
+~~~
+
+### K1 agi-kid@.service (301 B, sha256 edf8eea0597bfdb9)
+~~~ini
+[Unit]
+Description=agi: a tool-loop kid %i (post--kid) as its OWN dynamic uid; its key is a credential, revoked when it stops
+BindsTo=agi-mint@%i.service
+After=agi-mint@%i.service
+[Service]
+DynamicUser=yes
+LoadCredential=key:/run/agi-mint/%i/key
+RuntimeMaxSec=4h
+ExecStart=/opt/agi/bin/agi-kid-run %i
+~~~
+
 **Seams.** AA1 owns send / read / unread / carry / land; AA2 adds PHI (projection + route check + lap mode in box), the council row, the `skills` load row and the agi-rotate / agi-post / agi-goal deltas. The pane wake (agi-run:25 stat loop, cccc.ts:41 watchFile) changes from "inbox file grew" to "the out-tips + held-tips set changed".
 **Honest limits.** (1) A group vertex has no key: who issues SM's cert under Z2 (council -> SM) is the §O ring (k of the members), not built; banked to the council. (2) Row order IS sibling order: reordering config:posts reorders the lap, which is intended (a cell) but now load-bearing. (3) The lap closes at `owner`, who is not a post: reaching owner = ONE report per lap (g7.16.2's "one message per lap"), delivered through the owner's phone row (§X). (4) The route check needs the dart a baton came in on, so the FIRST `[lap]` of a lap (belam -> council) is legal only from belam, the lap's root; that is one more row condition, not measured yet.
 **Falsifiers.** AA2.1 PHI on the fixed tree is a permutation with one 18-cycle: PASS scratch · AA2.2 today's cells: the owner cycle covers 8 of 16 darts: PASS (measured broken, above) · AA2.3 subtree laps = 2|T|: PASS scratch (4, 16) · AA2.4 config:engine <= 8,192 after the move and agi-gate HEAD rc 0: DG1's build · AA2.5 an unread `[lap]` survives an out-line + wake (the successor's agi-unread is non-empty): DG1's build · AA2.6 a `[lap]` sent to any T other than PHI's is refused at the gate: DG1's build · AA2.7 a commit by generation g's key dated after g+1's start fails verify-commit: DG1's build · AA2.8 a crash restart (no `.fresh`) keeps the key and appends 0 ring lines; an out-line (`.fresh`) appends exactly 1: DG1's build · AA2.9 the `skills` row's sparse line removes agi-node-write from the post's tree on both harness paths, git status clean, MAIN untouched: PASS scratch · AA2.10 PHI on belam's landed cells (ec5daa28a) is one 18-cycle over all 18 darts: PASS · AA2.11 the same on the ruled cells (1efd017e6): PASS · AA2.12 PHI's 18 darts on the ruled cells = 9 DOWN + 9 UP: PASS · AA2.13 a hub under `hide` shows each post only itself, its parent and its lands children, and refuses a hidden fetch by name: PASS scratch · AA2.14 a crash restart keeps every tree and its uncommitted edit; the next turn commits it; an out-line purges all: DG1's build · AA2.15 trees created per session <= distinct nodes touched (no per-turn re-pull): DG1's build · AA2.16 AA3's land refuses an UP outside lands(P) and a non-ff: PASS scratch (all-is-one, agi-land lane 3g: a member landing on council is refused; on today's trunk 3g FAILS until belam writes the council `lands` cell) · AA2.17 a child's tip moves only on a DOWN handoff mail; a stop and a turn move nothing: DG1's build · AA2.18 per-post stores: P's unlanded commit is absent from commons and from Q; carry/UP/LAND/alternates all PASS scratch · AA2.19 as root: agi-Q cannot read ~P/g.git (700), and agi-carry moves only a lap dart's tip: one-box half PASS (alive, host act 1 as root, 18:2xZ: runuser carry works, the 0700 barrier holds); its signature read U because the row `pubkey` cell is send.py's seatsig key, not the git key, which AA2 keys' root ring (from ~<post>/.ssh/*.pub at unit start, no `sshkey` cell) fixes · AA2.20 depth projected from the ruled cells = 1/2/3/4 as tabled: PASS · AA2.21 kid-of with one `kid` cell on belam resolves every tree post and nothing outside the tree: PASS scratch · AA2.22 every v4 row's AGI_KID_MODEL is empty today: PASS (measured, a gap) · AA2.23 a kid spawned by DG1 runs the inherited spec and agi-kid refuses past kid.max: DG1's build · AA2.24 0 ladder reads on the v4 path before and after the retire: alive's count · AA2.25 (SUPERSEDED 14:0xZ: workflow.py retires) workflow.py resolves every stage via kid-of + manifest override with the ladder file absent; only director stages change, and only to the kid cell's model: DG1's build · AA2.26 widened agi-frontier on HEAD: active 40/18/263, done 28 met/28 red/87 mute: PASS (measured) · AA2.27 a done node whose line goes red produces exactly one drift line naming it on the next tick: DG1's build · AA2.28 every one of the 28 reds is resolved by a line fix (`! cmd`) or a status fix, 0 auto-flips: DG1's residue · AA2.29 a v5 post runs the whole test matrix with no python3 -m pytest: DG1's build · AA2.30 agi-kid -m over every parseable manifest: one spawn per item, {field} labels filled, chained stages fed: PASS scratch (stub kid) · AA2.31 a one-shot's tree has no .git and holds only the slice's K paths; it cannot commit into it: DG1's build · AA2.32 its result is ONE commit at refs/spawn/<manifest>/<args-hash> in the invoker's store, the invoker's tree untouched: PASS scratch (merge-up-review: 4 outputs in one commit, 0 status lines) · AA2.34 l3w-route-probe + l4-plan-research run under the runner after the manifest fix, chained as their .js: DG1's residue · AA2.35 a flow manifest's phase events follow PHI over its phase tree (LAUNCH/DONE pairs, recursion as a subtree): PASS scratch · AA2.36 resume: a post: phase stops the run; after its output arrives the next run continues; a third run launches nothing: PASS scratch · AA2.37 on v5 with the kid cell + a key: a review one-shot fires at the growth phase's done (the runner tail or the root's agi-turn tail), with no manual step: DG1's build · AA2.38 a post: phase's done line that is not whitelisted (or empty) is NOT met and creates nothing: PASS scratch · AA2.39 a post: phase hands off ONCE and pauses rc 75; no result ref until the flow completes, then one signed commit: PASS scratch · AA2.40 polkit: a post starts/stops only agi-mint@<itself>--*: PASS 10/10 (node) · AA2.41 agi-mint mints with the GRAPH's inherited cap, writes 0600, revokes by hash on -d; a post outside the tree gets nothing: PASS scratch (stub curl) · AA2.42 live, as root: a kid's key exists only while its agi-mint@ unit is active; after stop, OpenRouter lists 0 keys named <post>--<kid>: DG1's build · AA2.43 config:engine <= 8,192 with the agi-mint map line: DG1's build · AA2.44 class (a) as root: the kid reads its key from $CREDENTIALS_DIRECTORY/key, the caller's /run/agi-<post>/ holds NO k-<kid>, and stopping agi-kid@ revokes the key: DG1's build · AA2.45 polkit 13/13 incl. agi-kid@: PASS (node) · AA2.47 a [lap] from DG1 straight to DG2 passes the route check via the row `DG1 SM DG2`; DG3 -> DG1 (around) is refused: PASS scratch for the rows, DG1's build for the check · AA2.46 a ring commit from box B is accepted on box A only if signed by a key already in A's ring; a merge that would DROP a valid-before or a line is refused: DG1's build (two boxes) · AA2.33 workflow.py + workflow_note.py + the 14 .js retire with 0 live readers: DG1's build.
