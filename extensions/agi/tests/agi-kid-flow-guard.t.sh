@@ -30,6 +30,9 @@ w empty '{"name":"empty","stages":[]}'
 w chain-miss '{"name":"chain-miss","stages":[{"label":"a","chained_from":"nothere","prompt":"MISS"}]}'
 w chain-rep '{"name":"chain-rep","stages":[{"label":"review","repeat":{"of":"rounds","label_template":"review:{key}"},"prompt":"REVIEW {key}"},{"label":"verify","repeat":{"of":"rounds","label_template":"verify:{key}"},"chained_from":"review","prompt":"VERIFY {key}"}]}'
 w chain-lazy '{"name":"chain-lazy","stages":[{"label":"a","prompt":"PAID-A"},{"label":"b","chained_from":"nothere","prompt":"PAID-B"}]}'
+w chain-flow '{"name":"chain-flow","stages":[{"label":"f","flow":"cap3"},{"label":"b","chained_from":"f","prompt":"PAID-B"}]}'
+w chain-fwd '{"name":"chain-fwd","stages":[{"label":"a","prompt":"PAID-A"},{"label":"b","chained_from":"c","prompt":"PAID-B"},{"label":"c","prompt":"PAID-C"}]}'
+w chain-self2 '{"name":"chain-self2","stages":[{"label":"a","prompt":"PAID-A"},{"label":"b","chained_from":"b","prompt":"PAID-B"}]}'
 w chain-self '{"name":"chain-self","stages":[{"label":"a","chained_from":"a","prompt":"PAID-A"}]}'
 w unmet-post '{"name":"unmet-post","stages":[{"label":"a","prompt":"PAID-A"},{"label":"p","post":"director-general-1","goal":"gk-unmet"},{"label":"c","prompt":"SHOULD-NOT-RUN"}]}'
 w lazy-field '{"name":"lazy-field","stages":[{"label":"ok","prompt":"PAID-OK"},{"label":"bad","post":"director-general-1","goal":"g.md --output=victim zz"}]}'
@@ -90,6 +93,16 @@ ok "w12-chain-label-ok control: a chained_from that names a manifest label (the 
 # The dry pass SKIPS the post: line (`[ "$V" ]&&return;`): if it evaluated the gate it would hand off and stop BEFORE the paid launch (launches 0), so launches = 1 pins the skip.
 : >$LOG;: >$MAIL;n5=$(refs|wc -l|tr -d " ");flow unmet-post '{}'>/dev/null 2>&1;rc=$?
 ok "w12-unmet-post-after-paid [paid a, then an unmet post: gate, then c] = 1 paid launch, 1 hand-off mail, rc 75, c never runs, no ref (rc=$rc, launches $(nl $LOG), mail $(nl $MAIL))" '[ $rc = 75 ]&&[ "$(nl $LOG)" = 1 ]&&[ "$(nl $MAIL)" = 1 ]&&grep -q "^send director-general-1 handoff" $MAIL&&! grep -q SHOULD-NOT-RUN $LOG&&[ "$(refs|wc -l|tr -d " ")" = $n5 ]'
+# --- W-1.13 (mur sm18 W-1.12 R1'): a chained_from must name an EARLIER stage: a FORWARD or a SELF label exists but has no output yet, so it is refused in the dry pass with 0 launches
+for m in chain-fwd chain-self2 chain-self;do : >$LOG;: >$MAIL;n6=$(refs|wc -l|tr -d " ");flow $m '{}'>/dev/null 2>&1;rc=$?
+ ok "w13-chain-order-$m [paid stage(s), a chained_from naming a LATER or its OWN label] ($m) refuses with 0 launches, 0 mail, no ref (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]&&[ "$(nl $MAIL)" = 0 ]&&[ "$(refs|wc -l|tr -d " ")" = $n6 ]'
+done
+# a chained_from naming a flow: stage passes the dry pass (an earlier label) but that stage leaves NO output file: the wet-pass read refuses (`||exit 1`), the sub-flow's leaf is the only launch
+: >$LOG;flow chain-flow '{}'>/dev/null 2>&1;rc=$?
+ok "w13-chain-flow-pred a stage chained_from a flow: stage (no output file) launches the sub-flow leaf, then refuses b: nonzero, 1 launch, b never runs (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 1 ]&&! grep -q PAID-B $LOG'
+# --- W-1.13 (mur sm18 N1): a flow whose result ref exists is DONE: with the state dir GONE the re-run launches NOTHING (only the ref test says so; `git show-ref -q` tail-matches, BOUNDS (10))
+: >$LOG;flow one '{"n":"w13"}'>/dev/null 2>&1;rc1=$?;l1=$(nl $LOG);rm -rf $H/s;: >$LOG;flow one '{"n":"w13"}'>/dev/null 2>&1;rc2=$?
+ok "w13-done-ref-resume a flow run twice with its state dir removed between: the 2nd run launches nothing (rc $rc1 $rc2, launches $l1 then $(nl $LOG))" '[ $rc1 = 0 ]&&[ $rc2 = 0 ]&&[ "$l1" = 1 ]&&[ "$(nl $LOG)" = 0 ]'
 # --- recursion (mur sm17 W-1.4 R2, DG1 04:16Z): the depth cap is PINNED by counting paid launches. cyc-a launches one one-shot then names cyc-b which names cyc-a: with no cap the run goes until a system limit (63 launches measured), with the depth cap (${#d} -lt 2: the deepest real nesting over the manifests is 0, plus 2) it stops after 2 levels.
 # The cost is bounded by the cap: a cyclic manifest spends at most 3 paid one-shots (BOUND 3). An EXPORTED P (or d) must not seed the prefix (P= and d= at -m entry): the same run with a 150-byte P in the environment launches the same number.
 LP=$(head -c 150 /dev/zero|tr '\0' x);fl2(){ ( cd $T;env $1 HOME=$H GIT_CONFIG_GLOBAL=$H/.gitconfig GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH LOG=$LOG AGI_POST=inv timeout 30 sh $PIECE -m $2 "${3:-{\}}" )>/dev/null 2>&1;rc=$?;}
@@ -131,6 +144,6 @@ for v in '{"rounds":"abc"}' '{"rounds":{"a":{"key":"k"}}}' '{"rounds":null}' '{"
 done
 : >$LOG;flow miss-of '{"rounds":[]}'>/dev/null 2>&1;rc=$?
 ok "r2-empty-of an EMPTY rounds list is a real list: the flow runs its other stage and signs (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 1 ]'
-ok "bytes the piece is <= ${CEIL:-2000} B ($(wc -c<$PIECE) B)" '[ $(wc -c<$PIECE) -le ${CEIL:-2000} ]'
+ok "bytes the piece is <= ${CEIL:-2040} B ($(wc -c<$PIECE) B)" '[ $(wc -c<$PIECE) -le ${CEIL:-2040} ]'
 echo "agi-kid-flow-guard: $f FAIL"
 exit $f
