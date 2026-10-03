@@ -4,11 +4,14 @@
 #   up      = the unit's ExecStartPre line, then agi-signers POST        (agi-run then consumes ~/.fresh: simulated by rm)
 #   crash   = up with NO ~/.fresh        out-line = touch ~/.fresh, then up
 # (A3.2 split the user steps in two, key step then the rest, with the root agi-signers line between: the default JOINS the sh -c lines into the one script this test models.)
-# UNIT = the ExecStartPre line under test (default: the `sh -c` line of the unit in .geometry/engine-root.md of ROOT); a mutation = UNIT=<file holding the edited line>. One ok/FAIL line per case; exit = FAIL count.
+# STEPS = the unit's ExecStartPre lines in file order (default: from engine-root.md of ROOT; a reorder mutation = STEPS=<edited copy>).
+# UNIT = the joined sh -c lines (bytes / no-ring-write cases) (default: the `sh -c` line of the unit in .geometry/engine-root.md of ROOT); a mutation = UNIT=<file holding the edited line>. One ok/FAIL line per case; exit = FAIL count.
 T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};GEO=$R0/.agi/nodes/.geometry;CEIL=${CEIL:-745}
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 [ -n "$UNIT" ]||{ sed -n "/^### agi-post@.service/,/^~~~\$/{/^ExecStartPre=sh -c /p}" $GEO/engine-root.md|awk -v q="'" 'NR==1{sub(q"$","");printf "%s",$0;next}{sub("^ExecStartPre=sh -c "q,"");printf ";%s",$0}END{print ""}'>$T/unit;UNIT=$T/unit;}
-sect agi-signers>$T/signers.sh;[ -s $UNIT ]&&[ -s $T/signers.sh ]||{ echo "FAIL extract: unit $(wc -c<$UNIT) B, signers $(wc -c<$T/signers.sh) B";exit 99;}
+[ -n "$STEPS" ]||{ sed -n "/^### agi-post@.service/,/^~~~\$/{/^ExecStartPre=/p}" $GEO/engine-root.md>$T/steps;STEPS=$T/steps;}
+sect agi-signers>$T/signers.sh;[ -s $STEPS ]||{ echo "FAIL extract: no ExecStartPre lines";exit 99;}
+[ -s $UNIT ]&&[ -s $T/signers.sh ]||{ echo "FAIL extract: unit $(wc -c<$UNIT) B, signers $(wc -c<$T/signers.sh) B";exit 99;}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM AGI_TRUNK
 P=post1;S=$T/stores;H=$S/$P;RING=$T/ring;RUN=$T/run;mkdir -p $H $RUN/agi-$P;O=$T/main
@@ -17,7 +20,8 @@ $G init -q $O;mkdir -p $O/.agi/nodes/.geometry;for x in engine.md engine-post.md
 $G -C $O add -A;$G -C $O -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm fixture;TR=$($G -C $O rev-parse HEAD)
 # the unit line as sh would get it: the quoted script, %i and %t substituted
 Q=$(sed 's/^ExecStartPre=sh -c //' $UNIT|sed "s,%i,$P,g;s,%t,$RUN,g")
-up(){ (cd $H&&export HOME=$H O=$O AGI_TRUNK=$TR PATH=$H/bin:$PATH&&eval "sh -c $Q" >$T/up.out 2>$T/up.err;AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P);}
+up(){ (cd $H&&export HOME=$H O=$O AGI_TRUNK=$TR PATH=$H/bin:$PATH&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$RING sh $T/signers.sh $P;;esac;done<$STEPS);}
+# up = every ExecStartPre line of the unit IN FILE ORDER (key step, root agi-signers, the rest): a reorder of the lines changes what runs first and is RED below
 agirun(){ rm -f $H/.fresh;}
 pub(){ cut -d' ' -f1,2 $H/.ssh/id_ed25519.pub;}
 lines(){ [ -f $RING ]&&wc -l<$RING|tr -d ' '||echo 0;}
@@ -26,6 +30,10 @@ mkdir $T/v;$G init -q $T/v
 vc(){ (cd $T/v&&GIT_AUTHOR_DATE=@$2 GIT_COMMITTER_DATE=@$2 GIT_AUTHOR_NAME=$P GIT_COMMITTER_NAME=$P GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi $G -c gpg.format=ssh -c user.signingkey=$1 commit-tree -S -m m $($G hash-object -w -t tree /dev/null));}
 # vk SHA: git verify-commit's EXIT STATUS decides (a refused signature still prints "Good git signature" with no principal), its text lands in $T/vk.out
 vk(){ (cd $T/v&&$G -c gpg.ssh.allowedSignersFile=$RING verify-commit $1>$T/vk.out 2>&1);}
+# --- the ORDER the unit runs its steps in (mur sm17 R3: a reorder of the key / signers / rest lines stayed green): key step, then the root agi-signers, then the rest (worktree, bin, .signers)
+ko=$(grep -n 'ssh-keygen' $STEPS|head -1|cut -d: -f1);so=$(grep -n 'ExecStartPre=+.*agi-signers' $STEPS|head -1|cut -d: -f1);ro=$(grep -n 'worktree add' $STEPS|head -1|cut -d: -f1)
+ok "order-key-signers-rest the unit's lines are in the order key step ($ko), root agi-signers ($so), the rest ($ro)" '[ -n "$ko" ]&&[ -n "$so" ]&&[ -n "$ro" ]&&[ "$ko" -lt "$so" ]&&[ "$so" -lt "$ro" ]'
+ok "order-signers-is-root the ring writer is a root step (ExecStartPre=+) with a scrubbed env (env -i)" 'sed -n "${so}p" $STEPS|grep -q "^ExecStartPre=+/usr/bin/env -i "'
 # --- generation 0: the first start (no key, no worktree: the unit makes both and touches .fresh); the ring gets ONE line
 up;agirun;K0=$(pub);cp $H/.ssh/id_ed25519 $T/key0;e0=$(date -u +%s)
 ok "g0-first-start the first start makes the key and the worktree, and the ring holds exactly 1 line (got $(lines))" '[ -n "$K0" ]&&[ -d $H/t ]&&[ "$(lines)" = 1 ]'
@@ -64,6 +72,6 @@ ok "c-unit-email the unit exports the committer identity as %i@agi (the form the
 # --- bounds: the unit edit is small, the ring writer is the existing root piece (not edited), no live key
 ok "bytes the ExecStartPre line is <= $CEIL B ($(wc -c<$UNIT) B; today 685 B + ~35 + the idempotence guard)" '[ $(wc -c<$UNIT) -le $CEIL ]'
 ok "no-ring-write-in-unit the post-side line writes no allowed_signers / valid-after / valid-before (root does)" '! grep -qE "valid-(after|before)|allowed_signers" $UNIT'
-ok "scratch-only nothing outside the scratch dir was keyed: no ~/.ssh of this uid was touched" '[ -z "$(find ${HOME:-/nonexistent}/.ssh -newer $T/signers.sh -type f 2>/dev/null)" ]'
+ok "scratch-only every step ran in the scratch HOME: the keys, ring and worktree are under the scratch dir (a find of the real ~/.ssh was a flake risk and is gone)" '[ "${H#$T/}" != "$H" ]&&[ -f $H/.ssh/id_ed25519 ]&&[ -f $RING ]&&[ -d $H/t ]'
 echo "agi-fresh: $f FAIL"
 exit $f
