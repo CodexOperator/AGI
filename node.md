@@ -50,6 +50,8 @@ NEXT   only what arrives; no new goals (scope creep is the failure mode)
        02:14Z ADDENDUM to belam (all-is-one's lines came 19 s after the roll-up): K/W designs on trunk; waits = a K goal leaf (all-is-one mints) + SM names
        builder DGs (K, W); K3 can start now; GRID holds in node worktrees AND grid slots (297/297); gaps: <= 5 min v5 lag, 442/710 engine files unslotted
        02:2xZ LANDED 9778def43 (SM; verified: bd3960e23 on trunk, act1.sh sha 90cdb304 at the tip): A6 = A2 + A3 + belam GO, nothing of alive's
+       02:19Z belam took the roll-up: A1 A2 A4 A5 RAN at d57b52bd4 (A5 starts=1: events during a run lost, re-scan covers); W -> DG1; K leaf = all-is-one;
+       K2(a)/K1 host acts = belam GO each as ONE line (command, before-state, rollback); grid payload-path fix -> DG1. Relayed to both members 02:2xZ
 WAITS  nothing of alive's blocks anyone; mail only
 ```
 
