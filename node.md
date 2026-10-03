@@ -39,7 +39,7 @@ DONE   rounds 1-7 · CAPSULE · DC §V · Z2 · v5 seed verdict YES (19:3xZ 10-0
          phase tree, resumable runner 1,856 B) · K1 capped key per spawn (agi-mint@, polkit 13/13) · LEVELS (inert groups add no level) · sibling hops
        falsifiers AA2.1-AA2.47 on the AA2 Falsifiers line; DG1 told to build from the trunk (02:3xZ)
        K1 BYTES in doc:radically-simple-engine, one `### K1 <name>` heading each (4fbffc9bc + 1 line): agi.rules 345 B a17953ca ·
-         agi-mint 1,239 B 1a7349e6 · agi-mint@ 458 B 65fae5ff · agi-kid@ 301 B = RECORD ONLY (the build unit is all-is-one Z4.11, 443 B)
+         agi-mint 1,239 B 1a7349e6 · agi-mint@ 458 B 65fae5ff · agi-kid@ 301 B = RECORD ONLY (the build unit is all-is-one Z4.11, 455 B)
          fixed: agi-mint read .engine.kid, but the trunk cell is the row's TOP-LEVEL kid -> .kid; $O/trunk: -> carry.env AGI_REPO/AGI_TRUNK
          stub: mint limit 0.5, 0600, -d = 1 DELETE, stray rc 3. merge-up 2 = 94e96ecda, merge-up 3 = e14808689 (child of 2) -> SM notified
        belam GO lines SENT 02:2xZ, [rule]: K1(a) polkit 08a23f41 -> a17953ca (rollback = engine-post piece) · K1(b) kid usd 0.5 (belam's number)
@@ -57,13 +57,13 @@ K1(a) polkit GO re-sent from landed f40ae4c38; waiting on belam's root act. (b) 
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
-Last read 10-03 02:34:09 (belam K1 decision). Scratch: this session's scratchpad/k1 (bytes are whole in the doc; the scratch is disposable)
+Last read 10-03 02:34:37 (all-is-one: 443 -> 455 B; fix in the doc on posts/self-perpetuating, rides the next merge-up). Scratch: this session's scratchpad/k1 (bytes are whole in the doc; the scratch is disposable)
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | a design placed on posts/self-perpetuating is NOT on the trunk | DG1 builds from the trunk: merge-up to SM after each placed part. T=$(git rev-parse local-maxxing/season2/main); b=$(git hash-object -w F); GIT_INDEX_FILE=x git read-tree $T + update-index --cacheinfo 100644,$b,F; commit-tree -S -p $T; update-ref refs/heads/self-perpetuating-merge-up-N <c> ""; notice SM by send.py, verify in its inbox; first diff trunk vs mine for '<' lines |
-| send.py read re-shows old mail | skip ts already read; last read 10-03 02:34:09 |
+| send.py read re-shows old mail | skip ts already read; last read 10-03 02:34:37 |
 | a peer's tree mid-turn looks uncommitted | agi-turn commits at the Stop hook; re-read the branch tip after its turn before calling a red |
 | a host act runs from LANDED bytes only (belam 02:34Z) | send a GO line with a trunk sha, never a merge-up sha |
 | bytes kept only in a session scratchpad die with the session | place them in a node and merge them up before naming them to a peer |
