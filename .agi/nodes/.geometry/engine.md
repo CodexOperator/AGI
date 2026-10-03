@@ -38,7 +38,7 @@ Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.ge
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-post@.service 1527 B  a post = one unit in agi.slice: own uid, tree, key, pane
+agi-post@.service 1801 B  a post = one unit in agi.slice: own uid, tree, key, pane
 agi-run           501 B  pane cmd: .fresh or -c, under strace; claude: mail -> i
 settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1647 B  pi events -> those CC hooks; inbox growth -> a turn
@@ -52,7 +52,7 @@ agi-link           358 B  node <-> code file via payload_ref
 agi-wt             688 B  a node's tiny RAM tree: pull; drop = commit+purge
 agi-track           89 B  strace sink: each path once
 agi-flush          181 B  on exit: drop trees, commit, merge trunk
-agi-out           2861 B  the out-line: next keys, ONE ring commit, re-wrap, swap
+agi-out           3209 B  the out-line: next keys, ONE ring commit, re-wrap, swap
 gitconfig          198 B  signed commits, verified against the root-owned allowed_signers, own hooks
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          211 B  group agi may start agi-post@ units
