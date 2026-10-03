@@ -29,41 +29,16 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-DONE   rounds 1-7 · CAPSULE · DC §V · Z2 · AA2 (all on the trunk, merge-up-1)
-       K1: bytes placed whole in AA2 'K1 BYTES' (merge-ups 2+3 LANDED f40ae4c38); belam ran (b) kid.usd 0.5 b15b6461e and (a) polkit
-         50-agi.rules a17953ca from f40ae4c38 (02:46Z); post-uid check waits for agi-mint@ (pkcheck absent) = AA2.40/45 at DG1's install
-       §AB THE RING IS THE TREE (lead; alive AA1.C, all-is-one land): owner inputs 02:37Z/02:46Z/02:49Z/02:54Z folded:
-         ring = trunk node, one line per post x algorithm · who may sign = closure of parent cells (+ tree move = old AND new parent)
-         · time = receiving tip · calendar = refs/agi/block/* (pairwise level-adjacent, k per level, grace until the lowest block seals)
-         · owner = CA line, seed in capsule · hybrid = AND across columns · ring key = capsule holder (X25519)
-         58 scratch cases PASS (C 23 · L/T/E/H 31 · X 4); ring-gate 2,845 B 668cc669 · ckpt 2,439 B b944222c; base -117 B, seed 0 B
-         merge-up 4 10a2af211 (first cut) -> merge-up 5 b784f9847 (child, the whole section) at SM
-       03:07Z belam RELEASED §AB: (1) SM lands mu4+mu5 FIRST, DG1 writes AA2.54-66 from the LANDED section -> DG2 -> DG3 -> SM gate
-         (2) rules = belam (B) interim (3) agi-signers stays installed until AA2.64 (4) every root act its own GO (5) limit 3 open (6) AA2.63 = gate
-         acked ONE [rule] line 03:1xZ · SM LANDED mu4+mu5 in 8c70b656e
-       §AB.5 (owner 03:1xZ, 5th input): nested PQ inner on blocks (hash-only prototype pq.py, N1-N4) · SEAL its own column, never
-         published (conflict 1, S1-S4) · provable revocation = refs/revoked (never pushed), revoke 1,384 B (R1-R6) · conflict 2 = only
-         ring-gate counts, keys off origin · conflict 3 = owner: root-readable POC. 21 cases PASS. merge-up 6 = 7cf711113 -> SM; belam, alive,
-         all-is-one, DG1 told 03:2xZ · alive's 2 corrections + revoke -P '' (R7) = merge-up 7 d63ffe3f5 (child of 6)
-       mu6 LANDED 76c4ad72a · §AB.6 (owner 03:25Z, 6th input: outward sealer = GitHub Actions): scheduled sweep on master attests
-         sha256(git archive <block>) (the payload digest is shared across blocks: G1); block_push backoff, rc 0 always; gate fact optional;
-         G1-G5 PASS, nothing outward run; merge-up 8 = 36ec2e7ac (child of 7) -> SM; belam asked for 2 GOs (seal.yml on master, block_push cell)
-       03:3xZ fixes: .github/* = rules path (all-is-one W1/W2), AGI_SUBJECT recipe (alive: tar is umask-dependent, G6/G7) -> merge-up 9
-         54bea6fe6 (child of 8); ring-gate 2,855 B efa4fca6 · seal.yml 1,381 B 393db4ba
-       mu8 (carries 7) LANDED ba2a399d6 · 03:3xZ review: block shape rule (B1/B2), outsider verifies the LISTING, workflow identity pinned
-         whole -> merge-up 10 (child of 9); ckpt 2,666 B 9ce7cd41 · seal.yml 1,489 B 686368aa
-       AGI_SEAL_ID = one literal identity cell (all-is-one: the remote URL carries .git) -> merge-up 11 (child of 10)
-       mu11 (carries 9+10) LANDED 1c0edcf20: §AB WHOLE on the trunk (AB + AB.5 + AB.6 + AGI_SEAL_ID), byte-equal to my branch
-         DG1 told to write AA2.54-80 from the landed text; belam reminded of the 2 open GOs (seal.yml on master, block_push)
-       03:56Z DG1 wrote AA2.54-80 as 8 build hyps (dg1-minus-28 674518abb at SM); Q1 RULED: ring path FINAL .agi/nodes/.geometry/ring
-         (plain lines, belam writes the first, no owner lines under B) · Q2 RULED: ONE fixture runner .agi/context/local-maxxing/ab/run.sh
-         (extracts the pieces from the doc at a rev, keys at run time, 86 PASS 0 FAIL) = merge-up 12 08cb04dc7 -> SM
-       04:0xZ SM RETURNED mu12 (84/2: revoke read %GK via the CALLER's global git config); fixed (verify vs the ring at the parent,
-         1,588 B) + runner HERMETIC -> merge-up 13 f7b5f0bda replaces 12, 86/0 under empty + normal config. DG1's base question: my
-         '8,186' WITHDRAWN (unreproducible); AA2.63 = delta <= 0 on wc -c engine.md; rail defined 2 ways (F21 vs R6) -> belam to rule
+DONE   rounds 1-7 · CAPSULE · DC §V · Z2 · AA2 (on the trunk) · K1: bytes landed f40ae4c38, belam ran (a) polkit a17953ca + (b) kid.usd 0.5
+       §AB THE RING IS THE TREE (lead; 6 owner inputs) WHOLE on the trunk at 1c0edcf20: ring = trunk node · signing = parent-cell closure
+         (+ tree move = old AND new parent) · time = receiving tip · calendar = refs/agi/block/* · AB.5 nested PQ + SEAL column + refs/revoked
+         · AB.6 outward sealer (sweep on master, AGI_SUBJECT, AGI_SEAL_ID). belam RELEASED 03:07Z (rules = belam, option B)
+       DG1 wrote AA2.54-80 (dg1-minus-28); ruled: ring path FINAL .agi/nodes/.geometry/ring · fixture = .agi/context/local-maxxing/ab/run.sh
+       04:0xZ SM returned mu12 (revoke used the CALLER's git config) -> fixed + hermetic runner = merge-up 13 f7b5f0bda, 86/0
+       base: my '8,186' WITHDRAWN; AA2.63 = delta <= 0 on wc -c engine.md; rail defined 2 ways (F21 vs R6) -> belam to rule
 NOW    waiting: SM lands mu13 · belam's rail ruling + 2 GOs · DG1/DG2 next leaves
-next   1. answer DG1's AA2.54-80 leaves with ONE ruling each (DG1 writes them; never hand it unlanded text); tell DG1 the C18 binding up front (all-is-one misread it once)
-       2. all-is-one: port the K lanes to refs/agi/block + T9/T10 + E1 (told 03:0xZ); alive: CLOSED 03:02Z, nothing open
+next   1. answer DG1/DG2's AA2.54-80 leaves with ONE ruling each, from LANDED text only (C18 + block shape + root-act GOs already told)
+       2. on belam's rail ruling: fix AA2.63's wording to the ruled definition (one line, a merge-up)
        3. end condition: DG1 outcomes -> SM bigger outcomes -> OUR overview nodes -> belam
 ```
 
