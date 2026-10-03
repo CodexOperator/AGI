@@ -65,11 +65,11 @@ while read o n r;do h=$R;w=$(git rev-list --reverse --topo-order $n --not ${AGI_
   else k n||{ git show "$b:$f">$t/p&&! k p||{ echo "$f: was valid:";k n;cat $t/e;exit 1;};};fi;done<$t/l||exit 1;done;h=$c;done;done
 ~~~
 
-### ckpt (3182 B)
+### ckpt (3444 B)
 ~~~sh
 #!/bin/sh
 # ckpt sign POST KEY TIP TIME | ckpt check: a BLOCK = a commit under refs/agi/block/*: files tip, time, hash ("<AGI_HASH> <digest of git archive tip>"), sigs/<post>.<n> over "tip time hash digest" (namespace agi-checkpoint); its git PARENTS are the blocks it seals
-# it holds iff: its tree is ONLY tip, time, hash, sigs/<post>.<n> (so every path is plain ASCII: the AGI_SUBJECT recipe never parses an odd name) · every signer is current in the ring AT ITS TIP in every algorithm of AGI_SIGN (hybrid = AND) · the signers are PAIRWISE level-adjacent (level = rows up to owner, an inert row counts 0, owner = 0) · their number >= AGI_CKK's k for the block's lowest level ("0:2 1:2 2:2 3:2", default 2) · every parent's tip is an ancestor of its tip. check prints "<tip> <time>" for EVERY holding block · a bad tip or time = the block is skipped · a key counts once however many names list it · check exits 1 only when a listing step fails
+# it holds iff: its tree is ONLY tip, time, hash, sigs/<post>.<n> (so every path is plain ASCII: the AGI_SUBJECT recipe never parses an odd name) · every signer is current in the ring AT ITS TIP in every algorithm of AGI_SIGN (hybrid = AND) · the signers are PAIRWISE level-adjacent (level = rows up to owner, an inert row counts 0, owner = 0) · their number >= AGI_CKK's k for the block's lowest level ("0:2 1:2 2:2 3:2", default 2) · every parent's tip is an ancestor of its tip. check prints "<tip> <time>" for EVERY holding block · a bad tip or time = the block is skipped · only gate-shaped ring lines count · a signer whose level cannot be read does not count · a key counts once however many names list it · check exits 1 only when a listing step fails
 G=.agi/nodes/.geometry;t=$(mktemp -d);trap 'rm -rf $t' EXIT;H=${AGI_HASH:-sha256};set -f
 d(){ echo "$1 $2 $H $(git archive --format=tar "$1"|${H}sum|cut -d' ' -f1)"; }
 v(){ case $1 in ''|*[!0-9a-f]*)return 1;esac;case ${#1} in 40|64)git cat-file -e "$1^{commit}";;*)return 1;esac; }
@@ -78,10 +78,10 @@ case $1 in sign) d "$4" "$5">$t/m;ssh-keygen -q -Y sign -n agi-checkpoint -f $3 
 check) L=$(git for-each-ref --format='%(objectname)' refs/agi/block)||exit 1;B=;[ "$L" ]&&{ B=$(git rev-list $L)||exit 1;}
 for c in $B;do git ls-tree -r --name-only $c|grep -qvE '^(tip|time|hash|sigs/[a-z0-9-]+\.[0-9]+)$'&&continue;x=$(git show $c:tip) y=$(git show $c:time) H=$(git show $c:hash|cut -d" " -f1);case $y in ''|*[!0-9]*)continue;esac;v "$x"||continue;case " ${AGI_HASHES:-sha256 sha384 sha512} " in *" $H "*);;*)continue;;esac;[ "$(git show $c:hash)" = "$(d "$x" "$y"|cut -d' ' -f3-)" ]||continue;d "$x" "$y">$t/m
  for q in $(git rev-parse $c^@);do w=$(git show $q:tip);v "$w"&&git merge-base --is-ancestor "$w" "$x"||continue 2;done
- git show "$x:$G/ring"|sed -E 's/^([a-z0-9-]+) cert-authority /\1@agi cert-authority,namespaces="agi-checkpoint" /;t;s/^([a-z0-9-]+) /\1@agi namespaces="agi-checkpoint" /'>$t/a;:>$t/l
+ git show "$x:$G/ring"|grep -aE '^[a-z][a-z0-9-]* (ssh-ed25519|ecdsa-sha2-nistp256|pq-sha256|x25519|cert-authority (ssh-ed25519|ecdsa-sha2-nistp256)) [A-Za-z0-9+/]+=*$'|sed -E 's/^([a-z0-9-]+) cert-authority /\1@agi cert-authority,namespaces="agi-checkpoint" /;t;s/^([a-z0-9-]+) /\1@agi namespaces="agi-checkpoint" /'>$t/a;:>$t/l
  for p in $(git ls-tree --name-only $c sigs/|sed 's|sigs/||;s|\.[0-9]*$||'|sort -u);do for f in $(git ls-tree --name-only $c sigs/|grep "^sigs/$p\.");do git show $c:$f>$t/s
   ssh-keygen -Y verify -f $t/a -I $p@agi -n agi-checkpoint -s $t/s<$t/m 2>/dev/null|sed -n 's/.* with \([A-Z0-9-]*\) key \([^ ]*\).*/\1 \2/p';done|sort -u>$t/k
-  for a in ${AGI_SIGN:-ED25519};do grep -q "^$a " $t/k||continue 2;done;echo "$(lv "$x" $p) $(cut -d' ' -f2 $t/k|sort -u|tr '\n' ' ')">>$t/l;done
+  for a in ${AGI_SIGN:-ED25519};do grep -q "^$a " $t/k||continue 2;done;l=$(lv "$x" $p)&&[ "$l" ]||continue;echo "$l $(cut -d' ' -f2 $t/k|sort -u|tr '\n' ' ')">>$t/l;done
  sort -n $t/l|awk -v K=" ${AGI_CKK:-} " '$1<0{exit 1}{u=1;for(i=2;i<=NF;i++)if($i in S)u=0;for(i=2;i<=NF;i++)S[$i];if(u){if(!n++)m=$1;M=$1}}END{k=2;if(match(K," "m":[0-9]+"))k=substr(K,RSTART+length(m)+2,RLENGTH-length(m)-2);exit !(n&&M-m<=1&&n>=k)}'&&echo "$x $y $c";done;:;;esac
 ~~~
 
