@@ -1,0 +1,23 @@
+# .github/workflows/seal.yml on master (the default branch: GitHub runs schedule + dispatch only from it). The OUTWARD sealer (owner 03:25Z):
+# every 30 min, attest each block on origin whose WHOLE-BLOCK digest (the AGI_SUBJECT recipe: sha256 over sorted 'sha256(file) path' lines of the block's tree: tip, time, hash, every signature) has none yet; a subject is a DIGEST, never a key; a miss = the next sweep
+name: seal
+on:
+  schedule: [{cron: '*/30 * * * *'}]
+  workflow_dispatch:
+permissions: {contents: read, id-token: write, attestations: write}
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - id: s
+        env: {GH_TOKEN: '${{ github.token }}', R: '${{ github.repository }}'}
+        run: |
+          git init -q b && cd b && git fetch -q "https://github.com/$R" '+refs/agi/block/*:refs/agi/block/*' || true
+          for c in $(git for-each-ref --format='%(objectname)' refs/agi/block); do
+            git ls-tree -r --name-only $c|grep -qvE '^(tip|time|hash|sigs/[a-z0-9-]+\.[0-9]+)$' && continue
+            d=$(git ls-tree -r --name-only $c|LC_ALL=C sort|while read f;do printf '%s %s\n' "$(git show $c:$f|sha256sum|cut -c1-64)" "$f";done|sha256sum|cut -c1-64)
+            gh api "repos/$R/attestations/sha256:$d" >/dev/null 2>&1 || echo "$d  block-$c"; done > ../subjects
+          echo "n=$(wc -l < ../subjects)" >> "$GITHUB_OUTPUT"
+      - if: steps.s.outputs.n != '0'
+        uses: actions/attest-build-provenance@v2
+        with: {subject-checksums: subjects}
