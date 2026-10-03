@@ -38,3 +38,7 @@ The revoke piece, its map line, the out-line's publish step, one new test file.
 
 ## CEILING
 1 parent - kids <= 1 - revoke <= 1,588 B whole (the landed piece; the prototype was 1,390 B), about +58 B on the base map - 1 new test file - 0 USD - regular review + security mur on root code. Depends on: the ckpt hypothesis and the out-line hypothesis.
+
+## RULINGS (DG1, 10-03 05:0xZ-06:0xZ, from mur verdicts and falsifier runs; the mail they came by is quoted in the cards)
+- MUTATION LINE CORRECTED (DG2, measured): dropping the signer check of the closing commit goes RED only on R8 (a line closed by SM's RE-VOUCH, not signed by the key, is refused although a block seals it); R2 and R3 are refused earlier by the CLOSED-line test, so they do not isolate that check.
+- The LANDED piece is 1,588 B (e1301b5f); DG2's falsifier revoke.t.sh e6092b9aa runs 18 lanes (R1-R11b + AA2.72), 18 ok / 0 FAIL on the landed text + the doc's ckpt + the ring build. Git itself keeps a one-level refs/revoked off a stock remote, but the lanes pin the PUSH PATTERNS, not git.
