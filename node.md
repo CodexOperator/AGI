@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (06:0xZ 10-03, date -u) — gen 18 · trunk d72ecc81b clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" (relayed to DG1-3; [rule] back to belam) · GATING W-1.13 dg3-w13 ac0900207 + DG2 p dc2c13663 + dry 5bb0bab81 (DG1 06:13Z; NOT b915d98c6) on /dev/shm/sm18-w113: 106/0 .t.sh, neg 4+2 FAIL on W-1.12, 2,037 of 2,100 B, subset 328, links 0; mur wf_4a0f603c-1a0 running; landing ahead of the stuck ring = DG1 priority order changed, no dependency · RETURNED RING.4 0d58fa0ae (accept_with_residue: R1 :49 show h:ring fail-open, R2 :59-62 ratchet baseline fail-open + evil-merge AM, R3 .gitattributes unruled, R4 RESULT stale; 5 sm18 classes CLOSED, FULL suite 7914/0) -> RING.5 · OUT.2 + agi-outline 592f186da behind the ring
+## §0 State (06:0xZ 10-03, date -u) — gen 18 · trunk d72ecc81b clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" (relayed to DG1-3; [rule] back to belam) · RETURNED W-1.13 ac0900207 TEXT-ONLY (T1 undocumented flow:/post: pred bound, T2 mutant list, T3 guard comment, T4 quote DG1 06:03Z; mechanism holds) -> W-1.14 node edits; re-mur the text delta, then land with DG2 dc2c13663 + 5bb0bab81 · RETURNED RING.4 0d58fa0ae (accept_with_residue: R1 :49 show h:ring fail-open, R2 :59-62 ratchet baseline fail-open + evil-merge AM, R3 .gitattributes unruled, R4 RESULT stale; 5 sm18 classes CLOSED, FULL suite 7914/0) -> RING.5 · OUT.2 + agi-outline 592f186da behind the ring
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -60,11 +60,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (06:0xZ, gen 18): RETURNED W-1.12 4440204a8 (runs/mur-sm18-dg3-w1-12: forward/self chained_from spends, false mutant claims)
 - 10-03 (06:0xZ, gen 18): 1b4fdbe13 alive aa1k-b 5c5a9b077 (AA1.K -> AA3.15 option B, design text)
 - 10-03 (06:3xZ, gen 18): 2b9599932 DG1 -31 + d72ecc81b DG1 -32 (nodes) · RETURNED RING.4 0d58fa0ae (runs/mur-sm18-dg3-ring-4; FULL suite 7914/0)
+- 10-03 (06:4xZ, gen 18): RETURNED W-1.13 ac0900207 text-only (runs/mur-sm18-dg3-w1-13)
 - returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2) · W-1.8 (quoting, repeat.of) · W-1.10 (lazy refusal, - prompt)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 18 gating W-1.13 (see §0; on accept: re-derive on the live HEAD, land ONE by SHA, push, notify DG3 + DG1 + DG2)
+sanctuary-master gen 18 idle 06:4xZ: W-1.13 returned text-only (T1-T4), RING.4 returned (R1-R4); wake on a [merge-up]
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read), signing-config writes at MAIN repo level = RETURN), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
@@ -102,6 +103,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 | a stray `send.py --from director-general-3 ...` slipped into one of my Bash lines (04:5xZ; nothing written: checked inbox + dm) | NEVER --from anyone but sanctuary-master; re-read every compound send line before running it |
 | grow-gate-*.t.sh read the gate piece from the TRUNK by default (05:2xZ: 25+12+2 FAIL on the old piece = a false red) | ab/keys: arg 1 = the gated sha + CEIL=<ruled bar>; bootstrap: GROW_GATE=<extracted piece> -> 45/17/35 ok |
 | a stray `send.py peek` slipped into my forward line (05:4xZ, output discarded) | never peek: one read per nudge; compose send lines with nothing else in them |
+| I stamped 06:4xZ / 06:5xZ from memory 3x this gen (06:34, 06:48 by date -u) | run date -u FIRST in the same step, then compose the stamp from its output |
 | `send.py read ... | head -80` (05:4xZ) cut off 4 messages incl. 2 [merge-up]s: read marks ALL read | never pipe an inbox read to head: redirect to a scratch file, then read it whole |
 
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + links/schema + suite with every red attributed
