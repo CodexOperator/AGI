@@ -2303,7 +2303,7 @@ ONE TREE (config:posts parent cells; PHI laps it)          ONE RING (.agi/nodes/
   (level = rows up to owner; an inert row (council, keep) adds 0 -- the landed level a(), owner = 0)
 
 WHO MAY SIGN   may(s, x) <=> s in up*(ruler(x)),  up* = (I - P)^-1 over booleans = ancestors-or-self, read at the RECEIVING tip
-  ruler(ring line q) = q · ruler(node f) = f's `ring:` cell (alive AA1.C) · ruler(schemas, growth.tsv) = the rules cell (owner; option B: belam)
+  ruler(ring line q) = q · ruler(node f) = f's `ring:` cell (alive AA1.C) · ruler(schemas, growth.tsv, .github/*) = the rules cell (owner; option B: belam)
   ruler(a TREE MOVE in posts.md: row p's parent a -> b) = a AND b   (stand-up: b · removal: a)  -> nobody can lift itself above its own ancestors
 WHEN           a commit meets the ring AT THE RECEIVING TIP (advanced only by commits admitted before it) -- never a date
   a generation shift = ONE line edit signed by the outgoing key; the generation number = how many commits touched the line (computed, no cell)
@@ -2362,7 +2362,7 @@ The 2nd column was ECDSA P-256 as a STAND-IN: OpenSSH 9.6 has PQ key exchange bu
 **A workflow phase transition** (AA2 FLOW ROTATION's phase tree) = a block signed by the phase's parties over the phase's done commit; its sub-transitions are blocks it seals. The block DAG IS the phase tree, signed.
 **A fresh box needs ONE thing:** the seed's anchor slot (the owner CA pub, its 82 B form unchanged). It verifies the newest holding anchor block (owner + belam), whose tip's ring and tree are then trusted whole; the gate takes every later commit from there. No history replay, no ring travel, no box key.
 
-`ring-gate` whole (2845 B, sha256 668cc669efdf796c; the prototype the measurements ran -- in the build its loop IS grow-gate's loop, so the delta is the projection, the closure, the tree-move rule and the two refusals):
+`ring-gate` whole (2,855 B, sha256 efa4fca6c8e8c8f1; the prototype the measurements ran -- in the build its loop IS grow-gate's loop, so the delta is the projection, the closure, the tree-move rule and the two refusals):
 ```sh
 #!/bin/sh
 # ring-gate R N: every commit in R..N, in landing order, is signed by a ring line open in the ring AS RECEIVED (the ring at R, advanced only by commits already admitted, plus every line a change no holding block seals yet closed); each changed path is admitted only if the signer is an ancestor-or-self (the closure of the posts tree's parent cells) of every name that rules it
@@ -2381,22 +2381,22 @@ T=$4;for c in $(git rev-list --reverse --topo-order $1..$2);do p
  [ "$s" = owner ]&&[ "$T" ]&&[ $(vb $c) -lt $T ]&&{ echo "refused: $c owner cert expired before the newest holding block";exit 1;}
  for f in $(git diff-tree -r -c --root --no-commit-id --name-only $c);do
   case $f in $G/ring) r=$(git diff $c^ $c -- $f|sed -n 's/^[-+]\([a-z][a-z0-9-]*\) .*/\1/p'|sort -u);;
-   .agi/context/schemas/*|$G/growth.tsv) r=${AGI_RULES:-owner};;
+   .agi/context/schemas/*|$G/growth.tsv|.github/*) r=${AGI_RULES:-owner};;
    $G/posts.md) for v in $h $c;do git show $v:$f|sed -n 's/^  - {/{/p'|jq -s 'map({(.name):.parent})|add'>$t/$v;done
     r="$(git show $h:$f|awk '/^---$/{n++;next} n==1&&/^ring:/{sub(/^ring: *\[/,"");sub(/\].*/,"");gsub(/[ ,]+/," ");print;exit} n>1{exit}') $(jq -rn --slurpfile o $t/$h --slurpfile n $t/$c '$o[0] as $o|$n[0] as $n|($o+$n|keys[]) as $k|select($o[$k]!=$n[$k])|$o[$k],$n[$k]|select(.!=null)')";;
    *) r=$(git show $h:$f 2>/dev/null|awk '/^---$/{n++;next} n==1&&/^ring:/{sub(/^ring: *\[/,"");sub(/\].*/,"");gsub(/[ ,]+/," ");print;exit} n>1{exit}');;esac
   for q in $r;do up $s $q||{ echo "refused: $c $f is ruled by $q; $s is not $q or above it";exit 1;};done;done;h=$c;done
 ```
-`ckpt` whole (2439 B, sha256 b944222c7681ba26). A lane fixture writes a block as: one blob per signature (`ckpt sign <post> <keyfile> <tip> <time>`), a tree `hash` (`<alg> <digest of git archive --format=tar tip>`) + `sigs/<post>.<n>` + `time` + `tip`, `git commit-tree` with `-p` per sealed block, `git update-ref refs/agi/block/<name>`:
+`ckpt` whole (2,666 B, sha256 9ce7cd418feb4c90). A lane fixture writes a block as: one blob per signature (`ckpt sign <post> <keyfile> <tip> <time>`), a tree `hash` (`<alg> <digest of git archive --format=tar tip>`) + `sigs/<post>.<n>` + `time` + `tip`, `git commit-tree` with `-p` per sealed block, `git update-ref refs/agi/block/<name>`:
 ```sh
 #!/bin/sh
 # ckpt sign POST KEY TIP TIME | ckpt check: a BLOCK = a commit under refs/agi/block/*: files tip, time, hash ("<AGI_HASH> <digest of git archive tip>"), sigs/<post>.<n> over "tip time hash digest" (namespace agi-checkpoint); its git PARENTS are the blocks it seals
-# it holds iff: every signer is current in the ring AT ITS TIP in every algorithm of AGI_SIGN (hybrid = AND) · the signers are PAIRWISE level-adjacent (level = rows up to owner, an inert row counts 0, owner = 0) · their number >= AGI_CKK's k for the block's lowest level ("0:2 1:2 2:2 3:2", default 2) · every parent's tip is an ancestor of its tip. check prints "<tip> <time>" for EVERY holding block
+# it holds iff: its tree is ONLY tip, time, hash, sigs/<post>.<n> (so every path is plain ASCII: the AGI_SUBJECT recipe never parses an odd name) · every signer is current in the ring AT ITS TIP in every algorithm of AGI_SIGN (hybrid = AND) · the signers are PAIRWISE level-adjacent (level = rows up to owner, an inert row counts 0, owner = 0) · their number >= AGI_CKK's k for the block's lowest level ("0:2 1:2 2:2 3:2", default 2) · every parent's tip is an ancestor of its tip. check prints "<tip> <time>" for EVERY holding block
 G=.agi/nodes/.geometry;t=$(mktemp -d);trap 'rm -rf $t' EXIT;H=${AGI_HASH:-sha256}
 d(){ echo "$1 $2 $H $(git archive --format=tar $1|${H}sum|cut -d' ' -f1)"; }
 lv(){ git show $1:$G/posts.md|sed -n 's/^  - {/{/p'|jq -rs --arg a $2 'map({(.name):.})|add as $r|def l(x;n):if x=="owner" then 0 elif n>20 or $r[x]==null then -99 else (if $r[x]|has("harness") then 1 else 0 end)+l($r[x].parent//"";n+1) end;l($a;0)'; }
 case $1 in sign) d $4 $5>$t/m;ssh-keygen -q -Y sign -n agi-checkpoint -f $3 $t/m&&cat $t/m.sig;;
-check) for c in $(git rev-list $(git for-each-ref --format='%(objectname)' refs/agi/block) 2>/dev/null);do x=$(git show $c:tip) y=$(git show $c:time) H=$(git show $c:hash|cut -d" " -f1);case " ${AGI_HASHES:-sha256 sha384 sha512} " in *" $H "*);;*)continue;;esac;[ "$(git show $c:hash)" = "$(d $x $y|cut -d' ' -f3-)" ]||continue;d $x $y>$t/m
+check) for c in $(git rev-list $(git for-each-ref --format='%(objectname)' refs/agi/block) 2>/dev/null);do git ls-tree -r --name-only $c|grep -qvE '^(tip|time|hash|sigs/[a-z0-9-]+\.[0-9]+)$'&&continue;x=$(git show $c:tip) y=$(git show $c:time) H=$(git show $c:hash|cut -d" " -f1);case " ${AGI_HASHES:-sha256 sha384 sha512} " in *" $H "*);;*)continue;;esac;[ "$(git show $c:hash)" = "$(d $x $y|cut -d' ' -f3-)" ]||continue;d $x $y>$t/m
  for q in $(git rev-parse $c^@);do git merge-base --is-ancestor $(git show $q:tip) $x||continue 2;done
  git show $x:$G/ring|sed -E 's/^([a-z0-9-]+) cert-authority /\1@agi cert-authority,namespaces="agi-checkpoint" /;t;s/^([a-z0-9-]+) /\1@agi namespaces="agi-checkpoint" /'>$t/a;:>$t/l
  for p in $(git ls-tree --name-only $c sigs/|sed 's|sigs/||;s|\.[0-9]*$||'|sort -u);do for f in $(git ls-tree --name-only $c sigs/|grep "^sigs/$p\.");do git show $c:$f>$t/s
@@ -2491,26 +2491,31 @@ def verify(root,pub,h,m,s):
 ```
 box: a holding block ──(block_push: git push origin 'refs/agi/block/*:refs/agi/block/*', backoff 1-2-4-8 min, then give up quietly)──▶ origin
 origin master: .github/workflows/seal.yml ── every 30 min (and on dispatch) ── fetch refs/agi/block/* ── for each block:
-     subject = sha256( git archive --format=tar <block> )      (tip, time, hash, EVERY signature blob: binds WHICH quorum sealed it)
+     subject = AGI_SUBJECT(<block>) = sha256 over sorted "sha256(file) path" lines of its tree (tip, time, hash, EVERY signature: binds WHICH quorum)
      already attested? (GET repos/<origin>/attestations/sha256:<subject>) ── yes: skip   no: one line in subjects
   ── actions/attest-build-provenance@v2 (subject-checksums) ──▶ a Sigstore cert for this workflow on master ──▶ Rekor (public, append-only)
-an OUTSIDE reader: git fetch origin refs/agi/block/<b> (8 objects, no trunk history) · git archive --format=tar <b> > b.tar · gh attestation verify b.tar -R <origin>
-the gate (optional second fact, never a requirement): the same GET by subject -> "externally sealed" beside "holds"
+an OUTSIDE reader: git fetch origin refs/agi/block/<b> (8 objects, no trunk history) · write AGI_SUBJECT's LISTING to a file (its sha256 IS the subject)
+     · gh attestation verify <listing> -R <origin> --cert-identity <origin>/.github/workflows/seal.yml@refs/heads/master (the WHOLE identity, never the path alone)
+the gate (optional second fact, never a requirement): the same check, the WHOLE workflow identity pinned -> "externally sealed" beside "holds"
 ```
 **The trigger, chosen: the scheduled sweep on `master`.** It is the only shape that retries by itself (a missed or failed run = the next sweep; attesting is idempotent by subject) and it puts 0 bytes on the trunk. A tag per block needs `.github/workflows` IN the tagged commit, i.e. on the trunk, plus a tag push per block (one more outward write per block, and no retry). `workflow_dispatch` stays as a manual nudge only. The footprint row names the branch: `master: .github/workflows/seal.yml` (master is not the trunk; who writes master is belam's call).
 **Measured (03:3xZ, scratch, no network, nothing pushed):**
 | # | case | result |
 |---|---|---|
 | G1 | the signed payload's digest (`tip time hash digest`) across 10 fixture blocks | only 5 distinct: every block over the SAME tip at the SAME time shares it (the payload does not name the signers or the sealed blocks), so it cannot pin WHICH quorum sealed |
-| G2 | the whole-block subject `sha256(git archive --format=tar <block>)` across the same 10 | 10 distinct: the subject binds the signature set |
-| G3 | an OUTSIDER fetches only `refs/agi/block/L3` into an empty repo and recomputes | the same subject (52ff28b4...), 8 objects fetched, no trunk history |
+| G2 | the whole-block subject across the same blocks | all distinct: the subject binds the signature set |
+| G6 | `git archive` tar bytes under tar.umask 0002 / 0022 / 0077 (alive 03:30Z) | THREE different digests: tar is an implementation detail, so box and runner could disagree on an honest block |
+| G7 | the AGI_SUBJECT recipe (no tar: sha256 per file, sorted paths) under the same three umasks · in an outsider's fresh clone | ONE digest · the same digest; 9/9 blocks distinct |
+| G3 | an OUTSIDER fetches only `refs/agi/block/L3` into an empty repo and recomputes | the same subject, 8 objects fetched, no trunk history |
+| B1 · B2 | a signed block plus one extra file `evil name` · the same block without it | does not hold · holds: a block's tree is ONLY tip, time, hash, sigs/<post>.<n>, so every path the recipe reads is plain ASCII (alive 03:33Z: `read f` and core.quotePath would otherwise digest EMPTY content for an odd name, silently, on both sides) |
+| W1 · W2 | DG1 (current key) adds `.github/workflows/zz.yml` on the trunk · the owner (cert on belam's current key) adds it (all-is-one 03:30Z) | refused: ruled by owner · admitted. Without the row ANY post could land a workflow that GitHub runs on the next hourly push |
 | G4 | the sweep's run block against the fixture "origin" with a stub `gh` (one subject already attested) | lists exactly the un-attested subjects; with every subject attested, lists 0 (idempotent) |
 | G5 | `seal.yml` parses (pyyaml 6.0.1): triggers schedule + workflow_dispatch, permissions contents read, id-token write, attestations write | ok |
 NOT run (outward, needs the GO): the workflow on GitHub, an attestation, `gh attestation verify`, the push of block refs to origin.
-`seal.yml` whole (1217 B, sha256 53502b66221245f7):
+`seal.yml` whole (1,489 B, sha256 686368aa896cb1e8):
 ```yaml
 # .github/workflows/seal.yml on master (the default branch: GitHub runs schedule + dispatch only from it). The OUTWARD sealer (owner 03:25Z):
-# every 30 min, attest each block on origin whose WHOLE-BLOCK digest (sha256 of git archive: tip, time, hash, every signature) has none yet; a subject is a DIGEST, never a key; a miss = the next sweep
+# every 30 min, attest each block on origin whose WHOLE-BLOCK digest (the AGI_SUBJECT recipe: sha256 over sorted 'sha256(file) path' lines of the block's tree: tip, time, hash, every signature) has none yet; a subject is a DIGEST, never a key; a miss = the next sweep
 name: seal
 on:
   schedule: [{cron: '*/30 * * * *'}]
@@ -2525,7 +2530,8 @@ jobs:
         run: |
           git init -q b && cd b && git fetch -q "https://github.com/$R" '+refs/agi/block/*:refs/agi/block/*' || true
           for c in $(git for-each-ref --format='%(objectname)' refs/agi/block); do
-            d=$(git archive --format=tar $c|sha256sum|cut -d' ' -f1)
+            git ls-tree -r --name-only $c|grep -qvE '^(tip|time|hash|sigs/[a-z0-9-]+\.[0-9]+)$' && continue
+            d=$(git ls-tree -r --name-only $c|LC_ALL=C sort|while read f;do printf '%s %s\n' "$(git show $c:$f|sha256sum|cut -c1-64)" "$f";done|sha256sum|cut -c1-64)
             gh api "repos/$R/attestations/sha256:$d" >/dev/null 2>&1 || echo "$d  block-$c"; done > ../subjects
           echo "n=$(wc -l < ../subjects)" >> "$GITHUB_OUTPUT"
       - if: steps.s.outputs.n != '0'
@@ -2534,6 +2540,8 @@ jobs:
 ```
 **Box side, `block_push` (a crons.md job cell, belam's GO): ~110 B, one line:** `for i in 1 2 4 8;do git push -q origin 'refs/agi/block/*:refs/agi/block/*'&&break;sleep $((i*60));done;:`. It always exits 0, so a failed push leaves the block UNSEALED-EXTERNALLY and the next run retries. A block holds only public signatures over a public trunk tip, so it may go to origin. The PILE (`refs/revoked`) never does, and refs/revoked is not under the pushed pattern.
 **What an outside reader then trusts, said plainly:** GitHub's OIDC identity for `seal.yml` on `master` of origin, and Sigstore's Rekor log. That is the external anchor; it proves WHEN a block existed (Rekor's inclusion time) and that THIS workflow saw it, not that its quorum is honest (that is the ring's and the blocks' job, checkable from the bytes). A rewrite of `seal.yml` on master changes the identity: the gate's optional fact names the workflow path it accepts.
+**The recipe is ONE cell, AGI_SUBJECT, read by both sides** (the box's optional gate fact and seal.yml carry the same line; AA2.79 checks they are byte-equal). It is pure sha256 over file contents, so it does not lean on the repo's sha1 object ids.
+**The identity is pinned WHOLE (all-is-one 03:33Z):** a Sigstore certificate names `<origin>/.github/workflows/seal.yml@<ref>`, and a copy of seal.yml pushed on ANY other origin branch (posts/*, a pushed merge-up ref: not under the land gate) gets the same PATH under another @ref, so every check matches `@refs/heads/master` too (from the GitHub docs, not run).
 **Honest limits (adding to §AB's).** (12) GitHub's schedule is best-effort (runs can be delayed or dropped under load); the sweep makes a drop cost one interval, never a block. (13) Origin's `refs/agi/<town>/*` is the town mirror's namespace, so `block` is a reserved town name. (14) The external anchor is GitHub + Sigstore: trustless of the SANCTUARY, not of them.
-**Falsifiers (AA2.74-AA2.78).** AA2.74 G1-G5: PASS scratch · AA2.75 after belam's GO for block_push + seal.yml: a block pushed at t is attested within two sweep intervals, and `gh attestation verify` on its tar passes for an outside reader: UNRUN (outward) · AA2.76 a second sweep creates 0 new attestations: UNRUN · AA2.77 with origin unreachable, block_push exits 0, the block still HOLDS on the box and reads "unsealed externally": DG1's build · AA2.78 `git ls-remote origin` lists refs/agi/block/* and NO refs/revoked: UNRUN (outward, read-only once pushed).
+**Falsifiers (AA2.74-AA2.78).** AA2.74 G1-G5: PASS scratch · AA2.75 after belam's GO for block_push + seal.yml: a block pushed at t is attested within two sweep intervals, and `gh attestation verify` on its rebuilt LISTING file, with the whole --cert-identity, passes for an outside reader (on a tar it fails by construction: alive 03:33Z): UNRUN (outward) · AA2.76 a second sweep creates 0 new attestations: UNRUN · AA2.77 with origin unreachable, block_push exits 0, the block still HOLDS on the box and reads "unsealed externally": DG1's build · AA2.78 `git ls-remote origin` lists refs/agi/block/* and NO refs/revoked: UNRUN (outward, read-only once pushed) · AA2.79 the AGI_SUBJECT line in seal.yml and in the box's gate fact are byte-equal, and G6/G7 hold on GitHub's runner: UNRUN · AA2.80 W1/W2 through agi-land: all-is-one's lane.
 
