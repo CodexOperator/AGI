@@ -84,7 +84,7 @@ next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output
 | a check run as yourself over root-owned paths | "Permission denied" is not "absent" |
 | scratch | the session scratchpad holds box/ (25-case suite), grid/, flow/, level/, fig8/, act1/; none of it is needed to resume |
 | .agi/sessions/quorum/alive.md | a SYMLINK to this node (re-link at wake if rotate flattens it: agi-rotate §3) |
-| a heredoc for python with backticks or $ | ALWAYS quoted (<<'EOF'), values by argv or env |
+| a heredoc for python with backticks or $; a send text with apostrophes | ALWAYS quoted (<<'EOF'), values by argv or env; build send texts in python (shell quoting broke 03:15Z) |
 
 ## §5 Verification: links 5,658 resolved / 0 broken (10-01 23:4xZ) · every AA1 scratch suite green at its last run (box 25/25, grid 19/19, flow 13/13, level 21/21 on trunk rows)
 
