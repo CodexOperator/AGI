@@ -45,9 +45,22 @@ on("tool_call",e=>{const r=h("PreToolUse",t(e));return r.k&&{block:true,reason:r
 on("session_before_compact",()=>{h("PreCompact",{trigger:"auto"})});on("turn_end",()=>{h("Stop")});on("session_shutdown",()=>{h("SessionEnd",{reason:"other"})})}
 ~~~
 
-### agi-kid (390 B)
+### agi-kid (1852 B)
 ~~~sh
 #!/bin/sh
+if [ "$1" = -m ];then M=$2;A=$3;cd ~/t;s=$(printf %s "$A"|sha256sum|cut -c1-12);D=~/s/$M/$s;R=refs/spawn/$M/$s;U=$(printf '\037');mkdir -p $D
+git rev-parse -q --verify $R>/dev/null&&exit 0
+fl(){ while IFS=$U read -r l p g f c r k;do o=$D/$(echo "$2$l"|tr / _)
+ if [ "$p" ];then q=$(git show HEAD:.agi/nodes/goal/$g.md|sed -n '/^## Falsifier/,/^## /s/^\$ //p'|head -1)
+  echo "$q"|grep -Eq '^(grep|test|ls|getent|git (log|show|grep|rev-parse|ls-files|diff|for-each-ref)) [^;&|<>`$()]*$'&&timeout 30 sh -c "$q"</dev/null>/dev/null 2>&1||{ [ -e $o.h ]||{ m="handoff $M $l $g";echo "$m"|box send $p "$m"&&:>$o.h;};exit 75;}
+ elif [ "$f" ];then (fl $f "$2$l/")||exit $?
+ elif [ ! -f $o ];then [ "$c" ]&&{ b=$D/$(echo "$2$c"|tr / _);[ -f $b ]||b=$b:$k;r="$r
+$(cat $b)";};W=$(mktemp -d);mkdir $W/w;git archive HEAD|tar -x -C $W/w
+  (cd $W/w;GIT_CEILING_DIRECTORIES=$W HOME=$W pi --provider openrouter --model "$AGI_KID_MODEL" -p "$r"</dev/null>$o.t)||{ rm -rf $W $o.t;exit 1;};rm -rf $W;mv $o.t $o;fi;done<<EOF
+$(git show HEAD:extensions/agi/workflows/$1.json|jq -r --argjson a "$A" '.stages[]|(if .repeat then $a[.repeat.of][]?.key else "" end) as $k|[(.repeat.label_template//.label),.post//"",.goal//"",.flow//"",.chained_from//"",.prompt//"",$k]|join("\u001f")|gsub("\\{key\\}";$k)')
+EOF
+}
+fl $M "";(export GIT_DIR=$PWD/.git GIT_WORK_TREE=$D GIT_INDEX_FILE=$(mktemp -u);cd $D&&git add -A&&git update-ref $R $(git commit-tree -S -m $s $(git write-tree)));exit $?;fi
 k=$1;shift;h=~/k/$k;mkdir -p $h/.claude;cd ~/t;[ -d $h/t ]||git worktree add -q $h/t -b kids/$k
 for x in .gitconfig .ssh .signers hooks .claude/settings.json;do ln -sfn ~/$x $h/$x;done
 cd $h/t;HOME=$h AGI_SEAT=$k AGI_ROLE=kid AGI_HARNESS=pi-free AGI_WT=$RUNTIME_DIRECTORY/k-$k exec pi --provider openrouter --model $AGI_KID_MODEL --skill skills -e ~/bin/cccc.ts -p "$*"</dev/null
