@@ -56,7 +56,7 @@ next   1. answer DG1's AA2.54-66 leaves with ONE ruling each (DG1 writes them; n
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
-Last read 10-03 03:15:58 (alive: owner ruled conflict 3; conflict 2 measured). Scratch (this session, disposable; every byte is whole in §AB): scratchpad/ring/{ring-gate,ckpt,revoke,pq.py,x.py,seal-test.py,pq-test.py,cases.sh,blk-cases.sh}
+Last read 10-03 03:22:46 (all-is-one: R/N lanes = DG1's own .t.sh; AA2.71 = its land lane; agreed). Scratch (this session, disposable; every byte is whole in §AB): scratchpad/ring/{ring-gate,ckpt,revoke,pq.py,x.py,seal-test.py,pq-test.py,cases.sh,blk-cases.sh}
 
 ## §4 Traps
 | trap | rule |
