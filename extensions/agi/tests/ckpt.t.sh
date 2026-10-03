@@ -152,6 +152,41 @@ mh=$mh0
 # R3f (DG1 15:28Z, GAP 2): a SIGNED block with a non-digit time (dg1 + dg2 sign tip / time / hash / digest with time abc or 1e9) must not be listed: listed, the gate dies on EVERY push ("a holding block names a non-numeric time"), a DoS by two level-3 signers
 iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;mk TA $R0 abc -- dg1:dg1 dg2:dg2;mk TB $R0 1e9 -- dg1:dg1 dg2:dg2;ckc;gate $R0 $CE
 ok "r3f-signed-nondigit-time-not-listed two blocks SIGNED by dg1 + dg2 over time 'abc' (TA) and '1e9' (TB): neither is listed, exit 0 (got $ckrc), the control HB is listed, and the gate admits a plain edit (rc $r). Observed: TA $(holds TA&&echo LISTED||echo not-listed), TB $(holds TB&&echo LISTED||echo not-listed)" '[ $ckrc = 0 ]&&holds HB&&! holds TA&&! holds TB&&[ $r = 0 ]'
+# R4 (DG1 15:53Z, SM mur sm20-dg3-ckpt-2 D1 D2, on 0d57750d7): D1 the ring text reaches allowed_signers UNFILTERED (the gate greps the canonical shape first). A tip whose ring carries an off-shape line beside the canonical ones: a block signed with that key is NOT listed; controls: the canonical keys of the same ring still hold, a key under a CANONICAL name holds. A RAW (empty sigs) block can never hold, so every lane here is SIGNED. attacker keys atk1 atk2 are in NO canonical line
+for n in atk1 atk2;do ssh-keygen -qN "" -ted25519 -f$K/$n -C $n>/dev/null;done
+ringt(){ cp $GEO/ring $E.rg;printf '%s\n' "$@">>$E.rg;mkc $R0 dg1 $GEO/ring:$E.rg;}
+d1(){ bn=$1;shift;iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;TR=$(ringt "$@");mk RK $TR $now -- dg1:dg1 dg2:dg2;mk $bn $TR $now -- $SG;ckc;}
+SG="dg1:dg1 dg2:atk1";d1 W1 "* $(pk atk1)"
+ok "r4-d1a-wildcard-principal-one-key the tip ring holds a wildcard line '* ssh-ed25519 KEY' (ONE attacker key atk1): a block signed by dg1 (canonical) + dg2 = atk1 is NOT listed (the wildcard would let ONE key verify as ANY post). Controls: the canonical dg1 + dg2 block on the same tip (RK) and HB are listed. Observed: W1 $(holds W1&&echo LISTED||echo not-listed), RK $(holds RK&&echo ok||echo LOST)" '[ $ckrc = 0 ]&&holds HB&&holds RK&&! holds W1'
+SG="dg1:atk1 dg2:atk2";d1 W2 "* $(pk atk1)" "* $(pk atk2)"
+ok "r4-d1b-wildcard-principal-two-keys two wildcard lines (atk1, atk2): a block signed by atk1 as dg1 + atk2 as dg2, NO canonical key at all, is NOT listed. Observed: W2 $(holds W2&&echo LISTED||echo not-listed), RK $(holds RK&&echo ok||echo LOST)" '[ $ckrc = 0 ]&&holds HB&&holds RK&&! holds W2'
+SG="dg1:dg1 dg2:atk1";d1 W3 "dg2@agi $(pk atk1)"
+ok "r4-d1c-presuffixed-principal a line already in allowed_signers form 'dg2@agi ssh-ed25519 KEY' (no namespace option; the sed leaves it as it is): a block signed by dg1 + dg2 = atk1 is NOT listed. Observed: W3 $(holds W3&&echo LISTED||echo not-listed), RK $(holds RK&&echo ok||echo LOST)" '[ $ckrc = 0 ]&&holds HB&&holds RK&&! holds W3'
+SG="dg1:dg1 dg2:atk1";d1 W4 " dg2@agi $(pk atk1)"
+ok "r4-d1d-leading-space-before-name a line with SPACES before the name ' dg2@agi ssh-ed25519 KEY': not listed. Observed: W4 $(holds W4&&echo LISTED||echo not-listed), RK $(holds RK&&echo ok||echo LOST)" '[ $ckrc = 0 ]&&holds HB&&holds RK&&! holds W4'
+SG="dg1:dg1 dg2:atk1";d1 W5 "$(printf 'dg2@agi\t%s' "$(pk atk1)")"
+ok "r4-d1e-tab-in-line a line with a TAB between the principal and the key: not listed. Observed: W5 $(holds W5&&echo LISTED||echo not-listed), RK $(holds RK&&echo ok||echo LOST)" '[ $ckrc = 0 ]&&holds HB&&holds RK&&! holds W5'
+SG="dg1:dg1 dg2:atk1";d1 W6 "DG2@agi $(pk atk1)" "Dg2 $(pk atk1)" "dg2 namespaces=\"git\" $(pk atk1)"
+ok "r4-d1f-uppercase-and-options-harmless uppercase names (DG2@agi, Dg2) and a name followed by an option are off shape too; ssh-keygen does not match them as dg2@agi, so they are GREEN BY LUCK today (named; the lane pins that a filter fix keeps them out): not listed. Observed: W6 $(holds W6&&echo LISTED||echo not-listed), RK $(holds RK&&echo ok||echo LOST)" '[ $ckrc = 0 ]&&holds HB&&holds RK&&! holds W6'
+SG="dg1:dg1 dg2:atk1";d1 W7 "dg2 $(pk atk1)"
+ok "r4-d1g-canonical-name-holds CONTROL: the key under a CANONICAL name ('dg2 ssh-ed25519 KEY' beside dg2's own line) holds: the filter must not drop canonical lines. Observed: W7 $(holds W7&&echo listed||echo NOT-LISTED)" '[ $ckrc = 0 ]&&holds W7'
+# D2: lv (jq over posts.md at the tip) fails -> the row becomes ' FP ' and the awk reads the fingerprint as the level (a string = 0). A tip whose posts.md makes jq reject: no block holds there; one signer unreadable among good ones does not count
+pst(){ cp $GEO/posts.md $E.ps;"$@">>$E.ps;mkc $R0 dg1 $GEO/posts.md:$E.ps;}
+badline(){ printf '%s\n' "$BL";}
+d2(){ bn=$1;bs=$2;iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;TP=$(pst badline);mk $bn $TP $now -- $bs;ckc;}
+BL='  - {"name": "zz", "parent": ';d2 P1 "dg1:dg1 dg2:dg2"
+ok "r4-d2a-posts-invalid-json a tip whose posts.md carries an invalid JSON row (jq rejects the whole file): the dg1 + dg2 block on that tip is NOT listed (no level is readable), exit 0 (got $ckrc), HB listed. Observed: P1 $(holds P1&&echo LISTED||echo not-listed)" '[ $ckrc = 0 ]&&holds HB&&! holds P1'
+BL='  - {"parent": "sm", "harness": "x"}';d2 P2 "dg1:dg1 dg2:dg2"
+ok "r4-d2b-posts-row-without-name a posts.md row WITHOUT a name (jq: object keys must be strings): not listed. Observed: P2 $(holds P2&&echo LISTED||echo not-listed)" '[ $ckrc = 0 ]&&holds HB&&! holds P2'
+BL='  - {"name": "lpa", "parent": "lpb"}
+  - {"name": "lpb", "parent": "lpa"}';d2 P3 "dg1:dg1 dg2:dg2"
+ok "r4-d2c-posts-parent-loop a parent LOOP in posts.md (lpa <-> lpb): the dg1 + dg2 rows are unaffected, so the block on that tip still holds (the loop only hurts a signer INSIDE it: level -99). CONTROL for the rows: P3 $(holds P3&&echo listed||echo NOT-LISTED)" '[ $ckrc = 0 ]&&holds HB&&holds P3'
+# one signer's row unreadable (dg2's parent is a NUMBER: jq errors only on dg2's chain)
+pst2(){ sed 's|^  - {"name": "dg2", "parent": "sm"|  - {"name": "dg2", "parent": 5|' $GEO/posts.md>$E.ps2;mkc $R0 dg1 $GEO/posts.md:$E.ps2;}
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;TQ=$(pst2);mk Q1 $TQ $now -- belam:belam1 dg2:dg2;mk Q2 $TQ $now -- alive:alive1 aio:aio1 sm:sm1 dg2:dg2;mk Q3 $TQ $now -- dg1:dg1 dg2:dg2;ckc
+ok "r4-d2d-one-signer-level-unreadable posts.md at the tip where ONLY dg2's row is unreadable (parent 5): Q1 belam (level 1) + dg2 (unreadable) must NOT hold (k = 2 not met: the unreadable signer does not count; today its fingerprint reads as level 0, adjacent to 1); Q3 dg1 + dg2 must NOT hold; Q2 alive + all-is-one + sm + dg2 (three good level-2 signers) MUST hold (the rest still reach k). Observed: Q1 $(holds Q1&&echo LISTED||echo not-listed), Q3 $(holds Q3&&echo LISTED||echo not-listed), Q2 $(holds Q2&&echo listed||echo NOT-LISTED)" '[ $ckrc = 0 ]&&holds HB&&! holds Q1&&! holds Q3&&holds Q2'
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;mkdir -p $D/jqs;printf '#!/bin/sh\necho "shim: jq failed" >&2\nexit 5\n'>$D/jqs/jq;chmod +x $D/jqs/jq;PJ=$PATH;PATH=$D/jqs:$PATH;ckc;PATH=$PJ
+ok "r4-d2e-jq-fails-for-the-run jq shimmed to fail for the whole run: NOTHING is listed (HB not either), ckpt check exits 0 (got $ckrc: a failed level read is a skipped signer, not a crash). Observed: $(wc -l <$D/ck.out) lines listed" '[ $ckrc = 0 ]&&[ ! -s $D/ck.out ]'
 # n1: ONE key listed under two post names counts ONCE (distinct KEYS, not names)
 iso;sed "s|^dg2 .*|dg2 $(pk dg1)|" $GEO/ring>$E.ring2;T1=$(mkc $R0 dg1 $GEO/ring:$E.ring2);mk SH $T1 $now -- dg1:dg1 dg2:dg1;mk CTRL $R0 $now -- dg1:dg1 dg2:dg2
 ok "n1-one-key-two-names-no the ring lists ONE key under two post names (dg1 and dg2, a parent writing its own key as a child's line) and two signatures from that key under the two names, k = 2: the block does NOT hold (distinct keys count, not names); control: two DISTINCT keys (CTRL) hold" '! holds SH&&holds CTRL'
