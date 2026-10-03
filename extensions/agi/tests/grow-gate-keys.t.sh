@@ -3,7 +3,7 @@
 # grow-gate refuses EVERY commit that adds or changes ANY path (node, script, payload, binary, deprecated node, a path with spaces; a merge's own changes included) whose bytes hold a private key block, whatever the ring says; it never prints the key
 # and never parses one (no ssh-keygen: an encrypted block must refuse inside a timeout, not hang). Scratch repo borrowing GITDIR's objects (0 shared refs written), scratch keys GENERATED AT RUN TIME (4c: this file holds no armoured block;
 # every header below is assembled from parts). Tools from TRUNK by sect; GROW_GATE=<file> tests a candidate grow-gate. One ok/FAIL line per case; exit = number of FAILs.
-SELF=$(cd "$(dirname "$0")" && pwd)/$(basename "$0");T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k $D/f;f=0;CEIL=${CEIL:-1748}
+SELF=$(cd "$(dirname "$0")" && pwd)/$(basename "$0");T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k $D/f;f=0;CEIL=${CEIL:-1833}
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
 [ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;chmod +x $D/b/*;[ -s $D/b/grow-gate ]||{ echo "FAIL no grow-gate at $T";exit 99;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE
@@ -19,6 +19,10 @@ for u in live retired unknown encr;do ssh-keygen -qN "$([ $u = encr ]&&echo hunt
 echo "live@agi namespaces=\"git\" $(cut -d' ' -f1,2 $D/f/live.pub)">>$D/ring;echo "retired@agi namespaces=\"git\",valid-before=\"20200101000000Z\" $(cut -d' ' -f1,2 $D/f/retired.pub)">>$D/ring
 # --- commit builders: mkc "P1[,P2]" path:file ... = a signed commit whose tree is TRUNK + those files (a path:- removes nothing: add only)
 mkc(){ ps=$1;shift;x=$D/i;GIT_INDEX_FILE=$x git read-tree $o;for a in "$@";do GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w "${a#*:}"),"${a%%:*}";done;tr=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x
+ pa=;for q in $(echo $ps|tr , ' ');do pa="$pa -p $q";done
+ GIT_COMMITTER_NAME=owner GIT_COMMITTER_EMAIL=owner@agi GIT_AUTHOR_NAME=owner GIT_AUTHOR_EMAIL=owner@agi git -c gpg.format=ssh -c user.signingkey=$D/k/owner commit-tree -S $pa -m k $tr;}
+# mkz "P1[,P2]" mode:file:path ... = as mkc, any mode (120000 = a symlink whose target text is the file) and a path with a newline; mode 0 = a blob oid the store LACKS (file only names the text hashed, never written)
+mkz(){ ps=$1;shift;x=$D/i;GIT_INDEX_FILE=$x git read-tree $o;for a in "$@";do m=${a%%:*};a=${a#*:};fl=${a%%:*};pt=${a#*:};if [ $m = 0 ];then m=100644;h=$(git hash-object $fl);else h=$(git hash-object -w $fl);fi;printf '%s %s 0\t%s\0' $m $h "$pt"|GIT_INDEX_FILE=$x git update-index -z --index-info;done;tr=$(GIT_INDEX_FILE=$x git write-tree --missing-ok);rm -f $x
  pa=;for q in $(echo $ps|tr , ' ');do pa="$pa -p $q";done
  GIT_COMMITTER_NAME=owner GIT_COMMITTER_EMAIL=owner@agi GIT_AUTHOR_NAME=owner GIT_AUTHOR_EMAIL=owner@agi git -c gpg.format=ssh -c user.signingkey=$D/k/owner commit-tree -S $pa -m k $tr;}
 # gate TIP: the receiving trunk is TRUNK; refused = non-zero. Output in $D/out; rc in $r
@@ -51,6 +55,16 @@ mm=$(mkc $p1,$p2 extensions/m1.txt:$D/b1 extensions/m2.txt:$D/b2 extensions/evil
 mc=$(mkc $p1,$p2 extensions/m1.txt:$D/b1 extensions/m2.txt:$D/b2);gate $mc;ok "f4b-clean-merge a CLEAN merge of the same two parents passes" '[ $r = 0 ]'
 # a public key, an SSH signature block and prose that says private key without the header: all pass
 { cat $D/f/unknown.pub;printf '%sBEGIN SSH SIGNATURE%s\nU1NIU0lH\n%sEND SSH SIGNATURE%s\nthe private key never leaves the post\n' $DD $DD $DD $DD;}>$D/pub;gate $(mkc $o extensions/pub.txt:$D/pub);ok "f4b-public-and-signature-pass a public key, an SSH SIGNATURE block and the words private key (no header) land" '[ $r = 0 ]'
+# --- R1/R2 (DG1 rule 04:02Z, option B): the paths and blobs a name-list loop misses
+NL=$(printf 'extensions/zz-nl\nkey.sh')
+gate $(mkz $o 100644:$D/plain:"$NL");ok "r1-newline-path a key in a file whose PATH holds a newline is refused, the output names the path" 'refused&&grep -q zz-nl $D/out'
+gate $(mkz $o 100644:$D/b1:"$NL");ok "r1b-newline-path-clean a clean file at a newline path lands" '[ $r = 0 ]'
+gate $(mkz $o 120000:$D/plain:.agi/nodes/moral/antifragility.md);ok "r2-type-change a trunk file REPLACED by a symlink (T) whose target text is the key block is refused, names the path" 'refused&&grep -q antifragility $D/out'
+gate $(mkz $o 120000:$D/plain:extensions/zz-new-link);ok "r2a-new-symlink a NEW symlink whose target text is the key block is refused" 'refused&&grep -q zz-new-link $D/out'
+printf 'extensions/benign-target\n'>$D/lt;gate $(mkz $o 120000:$D/lt:.agi/nodes/moral/antifragility.md);r2=$r;ok "r2c-type-change-clean a file replaced by a symlink with a benign target is not refused by the key gate (rc=$r2: a node refusal other than the key line may follow)" '! grep -q "private key" $D/out'
+head -c 40 /dev/urandom|base64>$D/miss;git cat-file -e $(git hash-object $D/miss) 2>/dev/null&&echo 'fixture: the missing blob exists'>&2
+gate $(mkz $o 0:$D/miss:extensions/zz-missing.sh);ok "r2b-unreadable-blob a path whose blob the store cannot read REFUSES (never lands), naming the exact path" 'refused&&grep -q zz-missing $D/out'
+gate $(mkz $o 0:$D/miss:"$NL");ok "r2b-unreadable-newline-path an unreadable blob at a newline path refuses too" 'refused&&grep -q zz-nl $D/out'
 # --- 5: prose that quotes the armour WITH DOTS lands (no key body); the EXACT header quote is refused by design
 printf 'the gate refuses a block that starts with %sBEGIN ... PRIVATE KEY%s and nothing else\n' $DD $DD|node>$D/dots;gate $(mkc $o .agi/nodes/moral/zz-key-lane.md:$D/dots);ok "f5-dotted-armour-prose-lands a node quoting the armour with dots in place of the label lands" '[ $r = 0 ]'
 printf 'quoted exactly: %s\n' "$(hdr OPENSSH)"|node>$D/exact;gate $(mkc $o .agi/nodes/moral/zz-key-lane.md:$D/exact);ok "f5-exact-header-refused prose that quotes the header EXACTLY (one line, five dashes) is refused, by design" 'refused'
@@ -59,6 +73,6 @@ node </dev/null>$D/plainnode;gate $(mkc $o .agi/nodes/moral/zz-key-lane.md:$D/pl
 # --- 6: the refusal never prints a slice of the key body
 body|blk OPENSSH|node>$D/ns;sl=$(sed -n '/BEGIN/{n;p;q}' $D/ns|cut -c1-24);gate $(mkc $o .agi/nodes/moral/zz-key-lane.md:$D/ns);ok "f6-no-key-in-output the refusal output holds no 24-char slice of the key body ('$(echo $sl|cut -c1-6)...')" 'refused&&[ -n "$sl" ]&&! grep -qF -- "$sl" $D/out'
 # --- 7: bytes
-sz=$(wc -c<$D/b/grow-gate);ok "f7-bytes grow-gate <= $CEIL B ($sz B; 1,465 B + the 283 B per-commit line)" '[ $sz -le $CEIL ]'
+sz=$(wc -c<$D/b/grow-gate);ok "f7-bytes grow-gate <= $CEIL B ($sz B; 1,465 B + the 283 B per-commit line + the R1/R2 loop, DG1 ruling 04:02Z)" '[ $sz -le $CEIL ]'
 echo "grow-gate-keys: $f FAIL"
 exit $f
