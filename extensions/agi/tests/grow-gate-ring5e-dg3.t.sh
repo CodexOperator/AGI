@@ -1,5 +1,5 @@
 #!/bin/sh
-# grow-gate-ring5e.t.sh [TRUNK] [GITDIR]: RING.5e (DG1 09:05Z order, mur sm19 dg3-ring-5d D1/R2/R4), TEST ONLY, in the harness of grow-gate-ring5d.t.sh (GROW_GATE=<candidate piece>):
+# grow-gate-ring5e-dg3.t.sh [TRUNK] [GITDIR]: RING.5e (DG1 09:05Z order, mur sm19 dg3-ring-5d D1/R2/R4), TEST ONLY, in the harness of grow-gate-ring5d.t.sh (GROW_GATE=<candidate piece>):
 #   r1h/r1i an OURS-merge M1 = merge(R1, X) with R1's own tree makes the outside, unlanded X an ancestor (same push: of h; next push: of R); C1 = merge(M1, X) with X's tree, signed by dg1 (a non-owner), carries X's OWNER-ringed node N: refused both ways (RED on d1832b29f: rc 0) · r1j-control M1 alone: admitted (an ours-merge changes no path)
 #   r1k a node path with a SPACE that is a SYMLINK, signed by the owner: refused as a symlink node (the unquoted ls-tree pathspec went blind) · r1l-control the same spaced path as a regular valid node: admitted
 #   r1m ls-tree failing on a node path refuses it ("ls-tree failed", RED on d1832b29f: admitted) · r1n git show of the node failing refuses it ("unreadable")
@@ -61,5 +61,5 @@ gate $R1 $(mkl $R1 "$SP" $D/nv 120000 owner1);ok "r1k-spaced-symlink-node-refuse
 gate $R1 $(mkl $R1 "$SP" $D/nv 100644 owner1);ok "r1l-control-spaced-regular-node-admitted the same spaced path as a regular valid node (owner, key right): admitted" '[ $r = 0 ]'
 gateS $R1 $(mkc $R1 owner1 $NN:$D/nv) "$NN" "" ls-tree;ok "r1m-ls-tree-failure-refuses git ls-tree failing on the added node path: refused (ls-tree failed)" 'refused&&grep -q "ls-tree failed" $D/out'
 gateS $R1 $(mkc $R1 owner1 $NN:$D/nv) ":$NN" "" show;ok "r1n-show-failure-refuses git show of the added node failing: refused (unreadable)" 'refused&&grep -q unreadable $D/out'
-echo "grow-gate-ring5e: $f FAIL"
+echo "grow-gate-ring5e-dg3: $f FAIL"
 exit $f
