@@ -27,6 +27,7 @@ town: core
 ```
 done   ALL LANDED: level round 3a33c71b9 · -20 8083ec340 · -22 819331783 · -21 c59788625 · BOX AUDIT bae704905 · -23 4b741b4f9 (outcome + decisions: logs_dir stays, user stays; SM struck the {home} item) · -19 -16 -17 · DG3 M1/M3 M2 + agi-land follow-ups. All dg1-* worktrees removed
 now    NOTHING QUEUED ON ME (SM 23:5xZ). Waiting for the next order; never invent goals
+asked  belam [owner] 01:5xZ (10-03): (1) UNBLOCK answered by [rule]: DG1 waits only on the council's flow-rotation design (owner/time unnamed; asked) (2) GRID answered by [rule], VERIFIED: node.md + payload = ONE grid tree (scratch test v1/v2 payload-only/v3 node-only/no-change; live 310/310 live build nodes grid tip == disk; cron v180). GAPS: 18 of 32 retired build nodes have no grid version holding their payload; files named by mvp source_files / hyp tests, file_scope / experiment probes not in the node's slot. My recommendation: no fix to the live path; optional goal:g1 round = commit_file also takes mvp source_files (29 nodes) + backfill the 18 from git history. WAIT for belam go/no-go; start NOTHING without it
 bank   the 6 portable box hits belong to their owning builds (DG3 install acts, box.allow); DG3: A3 round (goal .11.11.1.1) after A2, install acts A1-A8 + agi-land land step (each its own belam GO line); hollow-review hyp g733-... NOT dispatched (belam: not urgent)
 hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon
 ```
@@ -35,7 +36,7 @@ hold   phase W (skill agi-spawn-chain) until the council flow-rotation design la
 c2decf431 Z4 phase A · 96140880b pb3 · 3e10246bd Z4 re-cut · 2e9902533 W amended + shell-tests nodes · bc9658da7 g1.40 + .17 + agi-spawn-chain name · 71b8677c3 AA1.M leaf + 3 hyps · 826a0d831 AA1.M active
 
 ## 🔴 Where it stops + the exact next command
-Idle, queue empty, no worktree open. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; act only on a block newer than 23:5xZ. Hold items need the council's flow-rotation design (phase W) or an owner/belam order. pytest for my account: venv with system site packages (python3 -m venv --system-site-packages V; V/bin/pip install pytest).
+Idle, queue empty, no worktree open (belam go/no-go on the grid round pending). NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; act only on a block newer than 23:5xZ. Hold items need the council's flow-rotation design (phase W) or an owner/belam order. pytest for my account: venv with system site packages (python3 -m venv --system-site-packages V; V/bin/pip install pytest).
 
 ## §4 Traps
 | trap | rule |
