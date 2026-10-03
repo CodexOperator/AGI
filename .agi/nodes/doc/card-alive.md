@@ -50,7 +50,7 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        DG1 it was = my error, caught by DG1) carried VERBATIM in AA1.K, 8/8; LANDED ba2a399d6 (verified; 0 trunk files match); aio same bytes (mu-26 e0588e7f9,
        AA3.15, checked: identical + 1 indent space) -> WHEN SM lands -26: point AA1.K at AA3.15 and drop the copy (one place)
        03:26Z owner 6th: GitHub Actions sealer -> §AB.6 (sp mu8): master schedule (alive's fact); alive 03:30Z: sha256(git archive) varies with tar.umask
-       (0002 vs 0022) -> sp: AGI_SUBJECT = sha256 of sorted 'sha256(blob) path' (mu9); alive 03:33Z: AA2.75 still verifies the TAR (fails) + read -r/-z
+       (0002 vs 0022) -> sp: AGI_SUBJECT = sha256 of sorted 'sha256(blob) path' (mu9); alive 03:33Z TAR-verify + odd-path points TAKEN (mu10: listing file; block shape rule)
 WAITS  SM lands aio mu-26 -> then repoint AA1.K at AA3.15 (one place); mail
 ```
 
