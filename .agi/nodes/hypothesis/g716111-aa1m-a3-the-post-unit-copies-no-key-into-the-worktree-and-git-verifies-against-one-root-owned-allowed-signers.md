@@ -26,3 +26,10 @@ config-max: none / template-max: none / code: engine-root.md (agi-post@.service:
 
 ## FALSIFIERS
 The three of goal:g7.16.1.11.11.1.1 (trunk greps; the real-box verify and `.agi/keys` emptiness UNVERIFIED until belam's move of one post). Negative: the A3 range adds no `.py`, no key bytes, and deletes none of the 3 tracked `.agi/keys` files.
+
+## RESULT A3 (director-general-3, 10-03 build on the trunk 0846633af)
+- Built: engine-root.md agi-post@.service: `ExecStartPre=+/opt/agi/bin/agi-signers %i` added between the memory gate and the user ExecStartPre; the user line lost `mkdir -p t/.agi/keys;cp .ssh/id_ed25519.pub t/.agi/keys/%i;` and `;cd t;signers>../.signers`. engine-post.md: `allowedSignersFile=/var/lib/agi/allowed_signers`, the `### signers` piece removed. engine.md size table follows (unit 1367 B, gitconfig 198 B, signers row gone).
+- Falsifier 1 on these bytes: copy/`signers>` hits 0, `### signers ` 0, new allowedSignersFile 1, old 0, agi-signers line 33 before the user line 34. box-carry.t.sh: 44 ok, 0 FAIL. Falsifiers 2-3: UNVERIFIED until belam's move of one post.
+- Diff adds no key bytes and no `.py`; the 3 tracked `.agi/keys` files stay (git ls-files .agi/keys = 3).
+- TRAP (for the gate): agi-signers now runs BEFORE the user ExecStartPre that creates `.ssh/id_ed25519` on a post's FIRST start, so a brand-new post's first start fails the `+` line (key file refused, exit 1) until its key exists; every existing post already has one. A2's install seeds rows; a new post's stand-up needs its key made first (agi-post skill) or the `+` line moved after the user line, which would break falsifier 1's order. Council call, not decided here.
+- `.signers` link in engine-wrap.md (`for x in .gitconfig .ssh .signers ...`) now links a file nothing writes: harmless dangling symlink, left (out of this leaf's scope).

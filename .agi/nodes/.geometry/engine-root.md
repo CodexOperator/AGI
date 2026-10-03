@@ -16,7 +16,7 @@ EXPANSION of config:engine: the unit template (root's agi-project reads it throu
 Read only through `sect <name> [REV]`.
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
-### agi-post@.service (1409 B)
+### agi-post@.service (1367 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -30,7 +30,8 @@ Environment=GIT_AUTHOR_NAME=%i GIT_COMMITTER_NAME=%i GIT_AUTHOR_EMAIL=%i@agi GIT
 RuntimeDirectory=agi-%i
 RuntimeDirectoryPreserve=restart
 ExecStartPre=awk -F"[= ]" "/some/{exit $$3>40}" /proc/pressure/memory
-ExecStartPre=sh -c 'mkdir -p .ssh bin .claude hooks;git config --global safe.directory "*";[ -f .ssh/id_ed25519 ]||ssh-keygen -qN "" -ted25519 -f.ssh/id_ed25519;[ -d t ]||{ git -C $O branch posts/%i $AGI_TRUNK;git -C $O worktree add -fq $PWD/t posts/%i;touch .fresh;};for e in t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md;do for x in $(grep -o "^### [^ ]*" $e|cut -c5-);do sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}" $e>bin/$x;done;done;chmod +x bin/*;mv bin/gitconfig .gitconfig;mv bin/settings.json .claude;mkdir -p t/.agi/keys;cp .ssh/id_ed25519.pub t/.agi/keys/%i;mkfifo -m600 %t/agi-%i/i;[ -e o ]||install -m600 /dev/null o;cd t;signers>../.signers'
+ExecStartPre=+/opt/agi/bin/agi-signers %i
+ExecStartPre=sh -c 'mkdir -p .ssh bin .claude hooks;git config --global safe.directory "*";[ -f .ssh/id_ed25519 ]||ssh-keygen -qN "" -ted25519 -f.ssh/id_ed25519;[ -d t ]||{ git -C $O branch posts/%i $AGI_TRUNK;git -C $O worktree add -fq $PWD/t posts/%i;touch .fresh;};for e in t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md;do for x in $(grep -o "^### [^ ]*" $e|cut -c5-);do sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}" $e>bin/$x;done;done;chmod +x bin/*;mv bin/gitconfig .gitconfig;mv bin/settings.json .claude;mkfifo -m600 %t/agi-%i/i;[ -e o ]||install -m600 /dev/null o'
 ExecStart=sh -c 'exec 3<>%t/agi-%i/i;exec script -qfaO$HOME/o -c agi-run <&3'
 StandardOutput=null
 ExecStopPost=sh -c agi-flush
