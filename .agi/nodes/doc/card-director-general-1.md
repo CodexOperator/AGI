@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-02 ~00:0xZ, gen 6 awake, everything landed incl. -23, queue empty, waiting for orders)
+## §0 State (10-03 ~02:4xZ, gen 6 awake, -24 SENT 96a604141 (AA2 placement); DG2/DG3 handed; waiting)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1, cgroup-confirmed; row engine.v 4, boot true) · parent SM · trunk local-maxxing/season2/main |
@@ -25,18 +25,17 @@ town: core
 
 ## §1 Plan
 ```
-done   ALL LANDED: level round 3a33c71b9 · -20 8083ec340 · -22 819331783 · -21 c59788625 · BOX AUDIT bae704905 · -23 4b741b4f9 (outcome + decisions: logs_dir stays, user stays; SM struck the {home} item) · -19 -16 -17 · DG3 M1/M3 M2 + agi-land follow-ups. All dg1-* worktrees removed
-now    NOTHING QUEUED ON ME (SM 23:5xZ). Waiting for the next order; never invent goals
-asked  belam [owner] 01:5xZ (10-03): (1) UNBLOCK answered by [rule]: DG1 waits only on the council's flow-rotation design (owner/time unnamed; asked) (2) GRID answered by [rule], VERIFIED: node.md + payload = ONE grid tree (scratch test v1/v2 payload-only/v3 node-only/no-change; live 310/310 live build nodes grid tip == disk; cron v180). GAPS: 18 of 32 retired build nodes have no grid version holding their payload; files named by mvp source_files / hyp tests, file_scope / experiment probes not in the node's slot. My recommendation: no fix to the live path; optional goal:g1 round = commit_file also takes mvp source_files (29 nodes) + backfill the 18 from git history. WAIT for belam go/no-go; start NOTHING without it
-bank   the 6 portable box hits belong to their owning builds (DG3 install acts, box.allow); DG3: A3 round (goal .11.11.1.1) after A2, install acts A1-A8 + agi-land land step (each its own belam GO line); hollow-review hyp g733-... NOT dispatched (belam: not urgent)
-hold   phase W (skill agi-spawn-chain) until the council flow-rotation design lands · shell tests goal .16 + t1-t3 after W · goal .17 belam-on-v5 horizon
+done   ALL LANDED through -23 4b741b4f9 (level round, box audit, -19..-23)
+now    -24 SENT to SM 10-03 ~02:4xZ (nodes only, 7 files): branch dg1-minus-24, worktree /data/work/agi/.agi/worktrees/dg1-minus-24, tip 96a604141 on 8831cdc86: goal .11.12 ACTIVE · phase W UNHELD + DESIGN LANDED (AA2 one-shot/flow + Z4.8) + 3 build rounds W-1/W-2/W-3 · K1 hyp (not dispatched) · AA2.19 barrier PASSED note · NEW lost-wake closer hyp under .11.11.1 (SM order, A5 starts=1: the --fetch timer also sweeps local, box-carry <= 3,255 B) · NEW leaf goal:g7.33.19.1 + hyp (grid.py commit of a payload path; belam GO). links 5758/0. Handed by mail: DG3 (A3 first, closer, grid, W-1), DG2 (falsifiers: closer case, agi-kid-flow.t.sh, grid cases), belam [rule] line sent. WAIT for SM [landed]/[returned]
+bank   belam: model_hint ruling (a) cap by the invoker's kid cell; kid cell with usd + K1 GOs; skills clause rename at W's merge-up; owner options: mvp source_files in the grid slot + the 18 retired payloads (NO-GO for now). Council: nothing owed to me
+hold   shell tests goal .16 + t1-t3 (nodes exist; builds after W-1) · goal .17 belam-on-v5 horizon
 ```
 
 ## §2 Landed today (one line each; trunk shas)
 c2decf431 Z4 phase A · 96140880b pb3 · 3e10246bd Z4 re-cut · 2e9902533 W amended + shell-tests nodes · bc9658da7 g1.40 + .17 + agi-spawn-chain name · 71b8677c3 AA1.M leaf + 3 hyps · 826a0d831 AA1.M active
 
 ## 🔴 Where it stops + the exact next command
-Idle, queue empty, no worktree open (belam go/no-go on the grid round pending). NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; act only on a block newer than 23:5xZ. Hold items need the council's flow-rotation design (phase W) or an owner/belam order. pytest for my account: venv with system site packages (python3 -m venv --system-site-packages V; V/bin/pip install pytest).
+-24 sent (96a604141), waiting on SM; builders handed. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; act only on blocks newer than 02:4xZ 10-03. On [returned]: skill agi-corrective, fix on dg1-minus-24 (amend), links (nohup), re-send. On [landed]: `git -C /data/work/agi worktree remove .agi/worktrees/dg1-minus-24`; then judge DG2/DG3 returns (skill agi-dispatch §5) as they arrive.
 
 ## §4 Traps
 | trap | rule |
