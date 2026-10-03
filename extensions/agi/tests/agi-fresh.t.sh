@@ -46,6 +46,12 @@ ok "a-no-leftover the dropped generation left no key file under another name in 
 sleep 2;touch $H/.fresh;up;K2=$(pub);n2=$(lines);sleep 1;up;up
 ok "a-fresh-retry-idempotent an out-line whose start is RETRIED twice before agi-run consumes .fresh keeps the key made by its first attempt and adds exactly 1 ring line in all (key same: $([ "$(pub)" = "$K2" ]&&echo yes||echo NO); ring $n2 -> $(lines))" '[ "$K2" != "$K1" ]&&[ "$(pub)" = "$K2" ]&&[ "$n2" = 3 ]&&[ "$(lines)" = 3 ]'
 agirun
+# --- a FIRST start that dies before agi-run (mur sm17 R1): its retry has .fresh from the first attempt and a key made after it: the retry keeps that key, ONE ring line
+P1=$P;H1=$H;Q1=$Q;RING1=$RING;P=post2;H=$S/$P;RING=$T/ring2;mkdir -p $H $RUN/agi-$P;Q=$(sed 's/^ExecStartPre=sh -c //' $UNIT|sed "s,%i,$P,g;s,%t,$RUN,g")
+up;KF=$(pub);sleep 1;up;up
+ok "a-first-start-retry a first start that dies before agi-run, retried twice, keeps the key its first attempt made and the ring holds exactly 1 line (key same: $([ "$(pub)" = "$KF" ]&&echo yes||echo NO); ring $(lines))" '[ -n "$KF" ]&&[ "$(pub)" = "$KF" ]&&[ "$(lines)" = 1 ]&&[ -e $H/.fresh ]'
+agirun;up;ok "a-first-start-then-crash after agi-run ate .fresh a crash restart keeps the key and adds nothing" '[ "$(pub)" = "$KF" ]&&[ "$(lines)" = 1 ]'
+P=$P1;H=$H1;Q=$Q1;RING=$RING1
 # --- (b) a commit by generation g's key dated AFTER g+1 started fails verify-commit; inside g's window it verifies
 cp $H/.ssh/id_ed25519 $T/key1
 oi=$(vc $T/key0 $((e0+1)));oa=$(vc $T/key0 $(( $(date -u +%s)+3600 )));nn=$(vc $T/key1 $(( $(date -u +%s)+3 )))

@@ -41,5 +41,10 @@ The three of goal:g7.16.1.11.11.1.1 (trunk greps; the real-box verify and `.agi/
 - Sizes: agi-post@.service 1485 B, agi-signers 1727 B, gitconfig 198 B (engine.md table follows).
 
 ## A3.3 (DG1 [rule] 02:56Z, AA2 per-generation keys, one-box half; falsifier = DG2's agi-fresh.t.sh, de-base-dg2-8 2cca158ef)
-- The key step's drop guard is `[ .fresh -nt .ssh/id_ed25519 ]&&rm -f .ssh/id_ed25519*` (was `[ -e .fresh ]`, the naive form that mints a key per Restart=always retry: the mutation FAILs a-fresh-retry-idempotent, checked). agi-fresh.t.sh: 0 FAIL (22 cases); the joined user line is 670 B <= 745. Unit label 1502 B.
+- The key step's drop guard is `[ .fresh -nt .ssh/id_ed25519 ]&&rm -f .ssh/id_ed25519*` (was `[ -e .fresh ]`, the naive form that mints a key per Restart=always retry: the mutation FAILs a-fresh-retry-idempotent, checked). agi-fresh.t.sh: 0 FAIL (21 ok lines); the joined user line is 670 B <= 745. Unit label 1502 B.
 - agi-fresh.t.sh is folded with ONE change to its default UNIT extraction: it now JOINS the two `ExecStartPre=sh -c` lines (key step + rest, the root agi-signers line sits between them since A3.2) into the single script it models; unchanged, it read two lines and failed g0. The signers-after-the-line order it simulates equals the real key-then-signers order for every case it tests.
+
+## A3.4 (security mur sm17 on A3.3, residues R1 + R2 + note)
+- R1 first-start retry CLOSED: the key step now touches .fresh itself when there is no worktree yet and no .fresh (`[ -d t ]||[ -e .fresh ]||touch .fresh`), BEFORE the drop test, and the rest of the user line no longer touches it. A first start that dies before agi-run's rm .fresh is retried with .fresh OLDER than the key it made, so the retry keeps that key: ONE ring line. New cases a-first-start-retry (up; up; up without agi-run) and a-first-start-then-crash in agi-fresh.t.sh; both FAIL on the A3.3 unit (checked), pass now. Joined user line 695 B <= 745; agi-post@.service 1527 B.
+- R2: the case count was wrong; agi-fresh.t.sh prints 21 ok lines, 0 FAIL.
+- BOUND (not a defect): a killed ssh-keygen that left the private key without its .pub does not self-heal (the drop test is on the private key): agi-signers refuses the missing .pub, the start fails closed, a person removes ~/.ssh/id_ed25519* and restarts.
