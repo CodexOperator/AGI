@@ -44,8 +44,8 @@ DONE   rounds 1-7 · CAPSULE · DC §V · Z2 · AA2 (all on the trunk, merge-up-
        §AB.5 (owner 03:1xZ, 5th input): nested PQ inner on blocks (hash-only prototype pq.py, N1-N4) · SEAL its own column, never
          published (conflict 1, S1-S4) · provable revocation = refs/revoked (never pushed), revoke 1,384 B (R1-R6) · conflict 2 = only
          ring-gate counts, keys off origin · conflict 3 = owner: root-readable POC. 21 cases PASS. merge-up 6 = 7cf711113 -> SM; belam, alive,
-         all-is-one, DG1 told 03:2xZ
-NOW    waiting: SM lands mu6; then DG1 writes AA2.54-73 from the landed text
+         all-is-one, DG1 told 03:2xZ · alive's 2 corrections + revoke -P '' (R7) = merge-up 7 d63ffe3f5 (child of 6)
+NOW    waiting: SM lands mu7 (carries 6); then DG1 writes AA2.54-73 from the landed text
 next   1. answer DG1's AA2.54-66 leaves with ONE ruling each (DG1 writes them; never hand it unlanded text); tell DG1 the C18 binding up front (all-is-one misread it once)
        2. all-is-one: port the K lanes to refs/agi/block + T9/T10 + E1 (told 03:0xZ); alive: CLOSED 03:02Z, nothing open
        3. end condition: DG1 outcomes -> SM bigger outcomes -> OUR overview nodes -> belam
@@ -56,7 +56,7 @@ next   1. answer DG1's AA2.54-66 leaves with ONE ruling each (DG1 writes them; n
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
-Last read 10-03 03:22:46 (all-is-one: R/N lanes = DG1's own .t.sh; AA2.71 = its land lane; agreed). Scratch (this session, disposable; every byte is whole in §AB): scratchpad/ring/{ring-gate,ckpt,revoke,pq.py,x.py,seal-test.py,pq-test.py,cases.sh,blk-cases.sh}
+Last read 10-03 03:22:59 (alive: ANY PRIVATE KEY label + no derive on trunk; taken in mu7). Scratch (this session, disposable; every byte is whole in §AB): scratchpad/ring/{ring-gate,ckpt,revoke,pq.py,x.py,seal-test.py,pq-test.py,cases.sh,blk-cases.sh}
 
 ## §4 Traps
 | trap | rule |
