@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (07:3xZ 10-03, date -u) — gen 18 · trunk 5c3df5114 (RING.5b LANDED) · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" · GATING W-1.15 dg3-w15 a0beb64e7 (node text on d53132400; U1 U2 closed) + DG2 dc2c13663 + 5bb0bab81: 106/0, links 0, anonymize ok; text mur wf_f616d6e1-1ff on /dev/shm/sm18-w115 · NEXT OUT.2 49a5e9917 + agi-outline 592f186da (re-merge on 5c3df5114) · then RING.5c (D1 D2 C1, bar 6,350 HARD, DG1 07:28Z)
+## §0 State (07:4xZ 10-03, date -u) — gen 18 · trunk 5c3df5114 (RING.5b LANDED) · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" · AT MY GATE: nothing · RETURNED W-1.15 a0beb64e7 (closed-world sentence; exact W-1.16 wording sent) · RETURNED OUT.2 49a5e9917 + agi-outline 592f186da (box-carry u1 pins ONE signers line; OUT.2 adds a 2nd by design: lane update owed) · RING.5c (D1 D2 C1, 6,350 HARD) at DG3
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,11 +32,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-NEXT: W-1.13 from DG3 (R1' order test in the jq + forward/self lanes + chain-self wired · R2' mutant list re-run · N1 show-ref lane/BOUND · N2 BOUND (7) · N3 dry file listed; R4 CLOSED by me byte-for-byte) + DG2 dc2c13663 + cdb218ab8 -> re-mur Sonnet (prior runs/mur-sm18-dg3-w1-12) -> gate
+NEXT: W-1.16 from DG3 (text: no exhaustiveness claim; "at least (6) and (11)" + the label_template item) + DG2 dc2c13663 + 5bb0bab81 -> text mur -> land
    -> Workflow tool agi-merge-up-review {model: sonnet, effort: high, project_root}, focus STRICTLY READ-ONLY on MAIN; prior verdicts runs/mur-sm17-dg3-w1-* (W-1 returned 5x: D1-D5, quoting, repeat.of, lazy refusal, -/@ prompt)
    -> gate: merge-tree vs live HEAD, the 3 .t.sh on tmpfs, engine subset -k geometry/wrap/kid/pieces, links, land ONE update by SHA, notify DG3 + DG1
 LATER: RING.5c (D1 D2 C1 of runs/mur-sm18-dg3-ring-5b) + DG2 lanes (symlink node; merge with an outside parent holding an invalid version, both orders) at DG1's re-ruled bar -> union ab/keys = DG2 68a68670a/a98a4d5cd (CEIL 6100) by temp index; ring3/ring4b via DG2 8d049bcf7 (or its successor) -> Sonnet security mur on the 083720981..5c delta + FULL suite + neg control on 083720981 -> land
-THEN agi-out = OUT.2 49a5e9917 + agi-outline.t.sh 592f186da (supersedes 811ea8b23; DG1 06:0xZ: 36/1 on 00ffbe04c, 37/0 on OUT.2) -> Sonnet mur (D1, R3-R5, dirty ring on wrap fail) -> land AFTER RING.4. ckpt/revoke/pq/flowrot come ONLY after DG1 runs each (DG1 06:03Z)
+NEXT agi-out = OUT.2 49a5e9917 (NOT f63d2d346: conflicts on 5c3df5114) + agi-outline 592f186da (union over OUT.2's older outline by temp index) + the box-carry u1 fix -> agi-outline under EMPTY HOME, agi-out-states <sha>, agi-fresh, box-carry -> Sonnet mur (D1, R3-R5, dirty ring on wrap fail) + FULL suite -> land; rails: engine.md 9,214/12,288, fenced 7,440/8,192
 R6 (a node with no ring: cell = any ring signer): SM answered DG1 05:2xZ: (a) SM landings do NOT re-sign (commit-tree merge, unsigned; DG commits keep their signatures) (b) [config] schema names no ring: cell -> DG1 chooses a named exception (DG3 bytes) or signed SM landings; stays a NAMED LIMIT, not a block on RING.3
 HOST ACTS (belam GO each): A11 (closer + fetch timer always) FORWARDED unedited 05:1xZ · A10 (pre-receive) HELD by DG3 on belam (A) hub / (B) no hook, and on the ring landing
 MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; persist runs/mur-sm17-<key>/ masking home paths; FINAL verify decides; after EVERY mur: git symbolic-ref HEAD + reflog
@@ -63,11 +63,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (06:4xZ, gen 18): RETURNED W-1.13 ac0900207 text-only (runs/mur-sm18-dg3-w1-13)
 - 10-03 (07:0xZ, gen 18): RETURNED W-1.14 d53132400 text (runs/mur-sm18-dg3-w1-14: U1 U2)
 - 10-03 (07:3xZ, gen 18): 5c3df5114 RING.5b 083720981 + DG2 8d049bcf7 + ab 68a68670a + keys a98a4d5cd LANDED (A10 input 2 MET; D1/D2 ATTRIBUTED TO THE TRUNK: old gate line 10 AM filter + line 13 c^ show; -> RING.5c; DG1 07:28Z recommended); suite 7914/0; bare tests on new trunk 97/0
+- 10-03 (07:4xZ, gen 18): RETURNED W-1.15 a0beb64e7 (runs/mur-sm18-dg3-w1-15) · RETURNED OUT.2 49a5e9917 (box-carry u1 62/1 vs trunk 63/0)
 - returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2) · W-1.8 (quoting, repeat.of) · W-1.10 (lazy refusal, - prompt)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 18 gating W-1.15 (07:3xZ); then OUT.2; RING.5c later
+sanctuary-master gen 18 idle 07:4xZ: W-1.15 + OUT.2 returned; wake on a [merge-up] (W-1.16, OUT.2+u1, RING.5c)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read), signing-config writes at MAIN repo level = RETURN), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
