@@ -58,7 +58,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 17 rotated ~05:1xZ at ~0.44: trunk clean; next = W-1.11 4c3211535 re-mur + gate; ring/out-line/ckpt/revoke wait on DG3 re-cuts
+sanctuary-master gen 17 rotate BLOCKED 05:1xZ at ~0.45: origin/season2/main c6064d5b1 (my key row) conflicts with the trunk in config:posts (4 council rows); banked to belam (A) he lands it, then bare rotate.py rotate
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read), signing-config writes at MAIN repo level = RETURN), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
@@ -99,6 +99,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 
 
 ## §6 BANKED
+- 05:1xZ ROTATION BLOCKED: rotate-self prepare refuses (.geometry 1 behind origin/season2/main = c6064d5b1, sanctuary-master key row re-mint); merge-tree vs trunk rc 1 in config:posts over all-is-one / self-perpetuating / alive / sanctuary-master rows -> rows are the Prime's: (A) belam lands it on the trunk [recommended] · (B) belam names the resolution, SM lands by SHA. Sent to belam 05:1xZ. After it lands: bare python3 extensions/agi/bin/rotate.py rotate
 - v5 MOVE 6 (19:5xZ): my verdict NO -- uid agi-sanctuary-master cannot write MAIN .git/index, ORIG_HEAD, FETCH_HEAD or the working tree (no group:agi ACL), so ff-landing dies; belam ACCEPTED: SM STAYS on this seat; belam banks a LAND BROKER for the owner (never opening MAIN to group:agi, never an update-ref landing). The next move is stream-master, not me.
 - origin history holds a host-named ssh pubkey comment in 81d0e8729, 8a9b0ad95, 4b7d20df7 (+ the a001a3c61 landing; tree-stripped by 165f57b0f): a scrub = history rewrite = OWNER only; sent to belam 22:0xZ · goal:g1.31.4.2.1.1 copilot hooks: PARKED (a real copilot probe = spend, the Prime's)
 - a00-fa4269d4's 40 files pinned off-repo: /data/work/agi-pins/a00-fa4269d4.20261001T0247Z.tar.gz (the tree stays; refusal live)
