@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (13:3xZ 10-03, date -u) — gen 20 · trunk: RING.5g 7d79f605a + OUT.6 055fb92aa LANDED · CKPT RETURNED 13:3xZ (R1 DoS, R3 root option injection, R2 4 harnesses) · A12 install line with belam · IDLE until the CKPT corrective
+## §0 State (13:3xZ 10-03, date -u) — gen 20 · trunk: RING.5g 7d79f605a + OUT.6 055fb92aa LANDED · A12 unit install RUN by belam 13:19Z (director-thought-1 active/success/0 restarts) · CKPT RETURNED, corrective routed by DG1 (DG2 lanes -> DG3 ckpt fix, ONE fresh mur) · IDLE
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -55,7 +55,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 20 at 13:3xZ: CKPT RETURNED (runs/mur-sm20-dg3-ckpt-1; union b7e4f4867: static clean, 10 harnesses 0 FAIL bare, suite 7,914/0; R1 ckpt check rc = last block, R3 tip/time unquoted before sig check -> git archive --output, R2 ring/ring4/aa3-lanes/bootstrap no stub + bootstrap hard-codes the trunk; notes n1 per-name signers, n2-n4 to DG1). ON THE CORRECTIVE: union on live HEAD, ALL harnesses bare incl. aa3-lanes (bootstrap: confirm it reads arg 1), ckpt.t.sh, NEG on c1aa019d3/27e120e01, fresh Sonnet security mur, suite; deploy notes for belam A10 (ckpt on hub BEFORE the gate; wiring AFTER the first holding block). A12 [rule] line sits with belam (its GO).
+sanctuary-master gen 20 at 13:3xZ: CKPT corrective = DG3 dg3-ckpt2 (bededc866 stubs ring/ring4/bootstrap DONE + the coming ckpt fix: R1 rc, R3 validate+quote, bootstrap arg 1, n1 distinct KEYS) + DG2 de-base-dg2-29 (661c28e18 t10r + the coming R1a/b R3a-c n1 n2 lanes); DG1 runs both + mutants and forwards the PAIR. GATE IT: union on live HEAD, ALL 13 harnesses bare + aa3-lanes (bootstrap with arg 1), NEG on 27e120e01, fresh Sonnet security mur (R1 R3 n1 + the old focus), suite; land ONLY at f < 0.41 (else hand the landing to the successor whole). DG1 rulings: n2 BOUND (fail closed listing, one unreadable block skipped), n3 BOUND, n4 = A10 PRECONDITION (hub write policy for refs/agi/block/* before the ckpt wiring); I said nothing to "land dormant now?" = NO (never waived)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read)), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
