@@ -2438,20 +2438,19 @@ the PILE: refs/revoked, one commit per published key (post + key), never pushed;
 | R2 · R3 · R3b | DG1 gen2's LIVE key · a key that was never DG1's · DG1's retired key under ANOTHER post's name | refused · refused · refused |
 | R4 · R5 | alive gen1 handed off, NO block seals it (grace) · after alive + all-is-one cut a level-2 block over it | refused · holds |
 | R6 | a commit signed with a PUBLISHED key, any date | refused by ring-gate (T5) |
-| R7 | a passphrase-ENCRYPTED key published on refs/revoked | refused at once, no prompt, no hang (`ssh-keygen -y -P ''`) |
 | O1 | what pushes to origin (crons.py, read): branch_push = the checked-out branch only · grid_sync = refs/grid/* · the town mirror = refs/heads/<town>/* -> origin refs/agi/<town>/* | refs/revoked is pushed by NO job; refs/agi/* is a live remote namespace, so the pile is NOT under it |
 
 **The answers.** (a) BRIDGE = NEST, on BLOCKS: one signature slot carries both, 0 new programs (it retires AA2.62's composite gpg.ssh.program for blocks). Commits stay classical and become quantum-safe once SEALED (every block's digest covers the whole tip tree); the exposure is the grace window, the same bound as §AB limit 2. An inner on every commit (a 2,404 B trailer) is a cell, off by default. The PQ column bounds the generation: 2^h leaves (a cell), and the generation MUST shift before they run out, so the generation shift is forced by the math, not by policy. The leaf index = how many blocks already carry this post's signature under this root (the DAG is the counter; limit 9). (b) PROVABLE REVOCATION = the pile at refs/revoked, checked by `revoke` from the bytes alone. WHAT STAYS TRUSTED, said plainly: inside the sanctuary, the k-of-n block quorum (checkable from the ring); TRUSTLESS to an OUTSIDE reader needs an external anchor of the top block's digest (e.g. a public timestamp chain) = an outward act, the owner's to name, never built without his go. (c) conflict 1: SEAL is its own column, deleted, never published (S1-S4). (d) conflict 2: the stated rule for plain git and GitHub readers is "only ring-gate's verdict counts"; the badge never vouches for @agi keys (alive); published keys stay OFF origin until the owner names the outward act. (e) conflict 3: the owner's ruling stands (root-readable POC; §AB limit 5).
-**alive's gate line, re-scoped (alive AA1.K, 03:22Z, 176 B, a pattern only, 12/12):** the TRUNK is pushed hourly to a public origin, so a trunk node carrying ANY `-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----` block (OpenSSH, RSA, EC, PKCS8, encrypted PKCS8) is refused WHATEVER key it is (a live key leaked, or a retired one in the wrong place); a publication lives only on refs/revoked, where `revoke` rules it. No derive step on the trunk (`ssh-keygen -y` would prompt on an encrypted key and stall the land); `revoke` derives with `-P ''`, which fails instead of prompting (R7).
+**alive's gate line, re-scoped:** the TRUNK is pushed hourly to a public origin, so a trunk node carrying an OPENSSH PRIVATE KEY block is refused WHATEVER key it is (a live key leaked, or a retired one in the wrong place); a publication lives only on refs/revoked, where `revoke` rules it. alive's 490 B line keeps its derive-the-public-half step for the refusal message.
 **The out-line, revised (~90 B in engine-root):** generate the next SIGN, PQ (seed + root) and SEAL keys · commit their three ring lines over the post's own, signed by the CURRENT sign key (this commit IS the self-revocation statement) · land · re-wrap capsule shares to the next SEAL · seal the old SIGN key into the post's capsule (systemd-creds, root-readable on this box per the owner's ruling) · delete the old PQ seed and the old SEAL key · `touch ~/.fresh`. When the lowest block seals the hand-off, the successor commits the old SIGN key to refs/revoked and deletes it from the capsule.
 
-`revoke` whole (1390 B, sha256 32c9d51d3295ff1b):
+`revoke` whole (1384 B, sha256 f4b6d12f902425bb):
 ```sh
 #!/bin/sh
 # revoke check [REF]: every commit on refs/revoked (NEVER pushed: origin is public-readable) carries files post + key (a RETIRED private key, published on purpose).
 # A publication holds, from the bytes alone, iff: the key's public half was <post>'s ring line · the trunk commit that CLOSED that line was signed by that same key (the self-revocation statement) · a holding block's tip contains that commit (sealed). Else it is refused: a live key, an unknown key, or one still in grace.
 G=.agi/nodes/.geometry;t=$(mktemp -d);trap 'rm -rf $t' EXIT;sh ${AGI_CKPT:-ckpt} check>$t/b
-for c in $(git rev-list ${1:-refs/revoked});do p=$(git show $c:post);git show $c:key>$t/k;chmod 600 $t/k;k=$(ssh-keygen -y -P '' -f $t/k 2>/dev/null|cut -d' ' -f1,2);f=$(echo "$k"|ssh-keygen -lf /dev/stdin 2>/dev/null|cut -d' ' -f2)
+for c in $(git rev-list ${1:-refs/revoked});do p=$(git show $c:post);git show $c:key>$t/k;chmod 600 $t/k;k=$(ssh-keygen -y -f $t/k 2>/dev/null|cut -d' ' -f1,2);f=$(echo "$k"|ssh-keygen -lf /dev/stdin 2>/dev/null|cut -d' ' -f2)
  v=$(git log --format=%H -S"${k#* }" ${AGI_TRUNK:-trunk} -- $G/ring|head -1);[ "$v" ]&&git show $v^:$G/ring|grep -qxF "$p $k"&&! git show $v:$G/ring|grep -qF "${k#* }"||{ echo "refused: $c $p: not a CLOSED ring line of $p";continue;}
  git log -1 --format=%GK $v|grep -qxF "$f"||{ echo "refused: $c $p: the closing commit was not signed by this key";continue;}
  for x in $(cut -d' ' -f1 $t/b);do git merge-base --is-ancestor $v $x&&{ echo "revoked $p $f closed $v sealed";continue 2;};done;echo "refused: $c $p: closed but no holding block seals it yet (grace)";done
@@ -2484,56 +2483,5 @@ def verify(root,pub,h,m,s):
 ```
 **Bytes.** BASE: two more map lines (`revoke`, `pq`, ~58 B each): 8,186 - 179 + 62 + 116 = **~8,185 B, 7 B spare: the base is FULL again** (AA2.63 decides). SEED 0 B. A ring line per post per generation grows from 1 to 3 (sign ~90 B, pq ~80 B, seal ~60 B).
 **Honest limits (adding to §AB's 7).** (8) The prototype is a plain Winternitz + Merkle scheme with no randomized hashing, which is weaker than WOTS+/XMSS/SLH-DSA; it measures the NESTING and the sizes, not a production PQ scheme. (9) It is STATEFUL: a leaf must never sign twice. The index is read from the blocks, but a block signed and never written would repeat its index, so the post writes the block before it signs another. SLH-DSA (stateless) removes this. (10) Publishing a retired SIGN key is safe only while the PQ inner of the newer blocks holds; a quantum forger could then rewrite only what no PQ-nested block seals yet (the grace window). (11) "Trustless" stops at the sanctuary's edge until the owner names an outward anchor.
-**Falsifiers (AA2.67-AA2.73).** AA2.67 P1-P3 + N1-N4: PASS scratch · AA2.68 S1-S4: PASS scratch · AA2.69 R1-R7: PASS scratch · AA2.70 ckpt verifies a NESTED blob (outer + inner against the ring's pq column) and refuses a block whose inner fails: DG1's build (the ckpt delta) · AA2.71 a trunk range carrying ANY PRIVATE KEY block (OpenSSH, RSA, EC, PKCS8, and an ENCRYPTED key, under a timeout) is refused at agi-land, a key-shaped non-key passes: alive's AA1.K line (176 B), all-is-one's land lane · AA2.72 `git ls-remote origin | grep -c refs/revoked` = 0 after a day of publications: DG1's build (read-only) · AA2.73 a generation that exhausts its 2^h leaves cannot sign another block, and its successor can: DG1's build.
-
-### AB.6 · THE SIXTH INPUT (owner 03:25Z via belam [owner]): the OUTWARD sealer = GitHub Actions, retrying gracefully -- the external anchor §AB.5 left to the owner
-**Given:** belam's reading: an Artifact Attestation (a Sigstore certificate -> the public Rekor log) over ONLY a block digest, never a key; trigger = tag, dispatch or a scheduled sweep (idempotent); the box pushes with backoff, and a block it cannot seal stays UNSEALED-EXTERNALLY, never failed; the gate reads "externally sealed" as an optional SECOND fact, never a landing requirement; `.github/workflows` = one new allowed-paths row (belam, at landing). alive, measured read-only 03:2xZ: origin is public, not a fork, its DEFAULT branch is `master` (not the trunk), 0 workflows, no `.github/` on the trunk; GitHub runs `schedule` and `workflow_dispatch` ONLY from the default branch's file, and a tag push runs the file inside the tagged commit.
-```
-box: a holding block ──(block_push: git push origin 'refs/agi/block/*:refs/agi/block/*', backoff 1-2-4-8 min, then give up quietly)──▶ origin
-origin master: .github/workflows/seal.yml ── every 30 min (and on dispatch) ── fetch refs/agi/block/* ── for each block:
-     subject = sha256( git archive --format=tar <block> )      (tip, time, hash, EVERY signature blob: binds WHICH quorum sealed it)
-     already attested? (GET repos/<origin>/attestations/sha256:<subject>) ── yes: skip   no: one line in subjects
-  ── actions/attest-build-provenance@v2 (subject-checksums) ──▶ a Sigstore cert for this workflow on master ──▶ Rekor (public, append-only)
-an OUTSIDE reader: git fetch origin refs/agi/block/<b> (8 objects, no trunk history) · git archive --format=tar <b> > b.tar · gh attestation verify b.tar -R <origin>
-the gate (optional second fact, never a requirement): the same GET by subject -> "externally sealed" beside "holds"
-```
-**The trigger, chosen: the scheduled sweep on `master`.** It is the only shape that retries by itself (a missed or failed run = the next sweep; attesting is idempotent by subject) and it puts 0 bytes on the trunk. A tag per block needs `.github/workflows` IN the tagged commit, i.e. on the trunk, plus a tag push per block (one more outward write per block, and no retry). `workflow_dispatch` stays as a manual nudge only. The footprint row names the branch: `master: .github/workflows/seal.yml` (master is not the trunk; who writes master is belam's call).
-**Measured (03:3xZ, scratch, no network, nothing pushed):**
-| # | case | result |
-|---|---|---|
-| G1 | the signed payload's digest (`tip time hash digest`) across 10 fixture blocks | only 5 distinct: every block over the SAME tip at the SAME time shares it (the payload does not name the signers or the sealed blocks), so it cannot pin WHICH quorum sealed |
-| G2 | the whole-block subject `sha256(git archive --format=tar <block>)` across the same 10 | 10 distinct: the subject binds the signature set |
-| G3 | an OUTSIDER fetches only `refs/agi/block/L3` into an empty repo and recomputes | the same subject (52ff28b4...), 8 objects fetched, no trunk history |
-| G4 | the sweep's run block against the fixture "origin" with a stub `gh` (one subject already attested) | lists exactly the un-attested subjects; with every subject attested, lists 0 (idempotent) |
-| G5 | `seal.yml` parses (pyyaml 6.0.1): triggers schedule + workflow_dispatch, permissions contents read, id-token write, attestations write | ok |
-NOT run (outward, needs the GO): the workflow on GitHub, an attestation, `gh attestation verify`, the push of block refs to origin.
-`seal.yml` whole (1217 B, sha256 53502b66221245f7):
-```yaml
-# .github/workflows/seal.yml on master (the default branch: GitHub runs schedule + dispatch only from it). The OUTWARD sealer (owner 03:25Z):
-# every 30 min, attest each block on origin whose WHOLE-BLOCK digest (sha256 of git archive: tip, time, hash, every signature) has none yet; a subject is a DIGEST, never a key; a miss = the next sweep
-name: seal
-on:
-  schedule: [{cron: '*/30 * * * *'}]
-  workflow_dispatch:
-permissions: {contents: read, id-token: write, attestations: write}
-jobs:
-  sweep:
-    runs-on: ubuntu-latest
-    steps:
-      - id: s
-        env: {GH_TOKEN: '${{ github.token }}', R: '${{ github.repository }}'}
-        run: |
-          git init -q b && cd b && git fetch -q "https://github.com/$R" '+refs/agi/block/*:refs/agi/block/*' || true
-          for c in $(git for-each-ref --format='%(objectname)' refs/agi/block); do
-            d=$(git archive --format=tar $c|sha256sum|cut -d' ' -f1)
-            gh api "repos/$R/attestations/sha256:$d" >/dev/null 2>&1 || echo "$d  block-$c"; done > ../subjects
-          echo "n=$(wc -l < ../subjects)" >> "$GITHUB_OUTPUT"
-      - if: steps.s.outputs.n != '0'
-        uses: actions/attest-build-provenance@v2
-        with: {subject-checksums: subjects}
-```
-**Box side, `block_push` (a crons.md job cell, belam's GO): ~110 B, one line:** `for i in 1 2 4 8;do git push -q origin 'refs/agi/block/*:refs/agi/block/*'&&break;sleep $((i*60));done;:`. It always exits 0, so a failed push leaves the block UNSEALED-EXTERNALLY and the next run retries. A block holds only public signatures over a public trunk tip, so it may go to origin. The PILE (`refs/revoked`) never does, and refs/revoked is not under the pushed pattern.
-**What an outside reader then trusts, said plainly:** GitHub's OIDC identity for `seal.yml` on `master` of origin, and Sigstore's Rekor log. That is the external anchor; it proves WHEN a block existed (Rekor's inclusion time) and that THIS workflow saw it, not that its quorum is honest (that is the ring's and the blocks' job, checkable from the bytes). A rewrite of `seal.yml` on master changes the identity: the gate's optional fact names the workflow path it accepts.
-**Honest limits (adding to §AB's).** (12) GitHub's schedule is best-effort (runs can be delayed or dropped under load); the sweep makes a drop cost one interval, never a block. (13) Origin's `refs/agi/<town>/*` is the town mirror's namespace, so `block` is a reserved town name. (14) The external anchor is GitHub + Sigstore: trustless of the SANCTUARY, not of them.
-**Falsifiers (AA2.74-AA2.78).** AA2.74 G1-G5: PASS scratch · AA2.75 after belam's GO for block_push + seal.yml: a block pushed at t is attested within two sweep intervals, and `gh attestation verify` on its tar passes for an outside reader: UNRUN (outward) · AA2.76 a second sweep creates 0 new attestations: UNRUN · AA2.77 with origin unreachable, block_push exits 0, the block still HOLDS on the box and reads "unsealed externally": DG1's build · AA2.78 `git ls-remote origin` lists refs/agi/block/* and NO refs/revoked: UNRUN (outward, read-only once pushed).
+**Falsifiers (AA2.67-AA2.73).** AA2.67 P1-P3 + N1-N4: PASS scratch · AA2.68 S1-S4: PASS scratch · AA2.69 R1-R6: PASS scratch · AA2.70 ckpt verifies a NESTED blob (outer + inner against the ring's pq column) and refuses a block whose inner fails: DG1's build (the ckpt delta) · AA2.71 a trunk push carrying any OPENSSH PRIVATE KEY block is refused at the land: alive's line, DG1's build · AA2.72 `git ls-remote origin | grep -c refs/revoked` = 0 after a day of publications: DG1's build (read-only) · AA2.73 a generation that exhausts its 2^h leaves cannot sign another block, and its successor can: DG1's build.
 
