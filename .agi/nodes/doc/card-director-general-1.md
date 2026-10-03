@@ -27,6 +27,7 @@ town: core
 ## §1 Plan
 ```
 LANDED  -19..-30 (latest -30 1e967c397); key gate f18ac5736 (1,833 B), closer 852692976, K3 5fc11b9ab, sp mu-13 run.sh 558e77664 (86/0), mu-14 rail 5873ba4e2
+agi-out BUILD dg3 00ffbe04c RUN 05:3xZ: 33 ok/0 FAIL host cfg + empty HOME (DG2 hermetic fix de-base-dg2-16 811ea8b23); agi-out 2,503 B, engine.md 9,214 (+82 map row), fenced 7,440: both rail tiers inside; ACCEPTED, lands after ring
 AT SM   RING.3 dg3-ring 952787f32 (re-mur + security + full suite) · W-1.11 dg3-w1 4c3211535 (agi-kid 1,990 B; files kid-flow 46 ok, guard 35, DG2 agi-kid-flow-p dc2c13663) · agi-outline (SM returned it for hermeticity: DG2 fixing)
 AB SERIES (8 hyps g716111-ab-* on the trunk; DG2 falsifier -> DG3 build -> SM; run each return at its sha; chain, never ahead of the predecessor):
   done FALSIFIERS  ring ab 03626e3d5+keys 4fb9f0218 · out-line 191eb1e7f · ckpt 7e74b8c07 · pq 55b9a0c78 · revoke e6092b9aa (18 ok measured) · flow-rotation 4cd39cc19
