@@ -52,7 +52,9 @@ NEXT   only what arrives; no new goals (scope creep is the failure mode)
        02:2xZ LANDED 9778def43 (SM; verified: bd3960e23 on trunk, act1.sh sha 90cdb304 at the tip): A6 = A2 + A3 + belam GO, nothing of alive's
        02:19Z belam took the roll-up: A1 A2 A4 A5 RAN at d57b52bd4 (A5 starts=1: events during a run lost, re-scan covers); W -> DG1; K leaf = all-is-one;
        K2(a)/K1 host acts = belam GO each as ONE line (command, before-state, rollback); grid payload-path fix -> DG1. Relayed to both members 02:2xZ
-WAITS  nothing of alive's blocks anyone; mail only
+       02:3xZ HOME MODE ruled (AA1, asked by all-is-one): homes stay 0755 until AA1.V's own-store switch (MAIN worktree-prune hazard at 0750; secrets
+       already 0600/0700) -> node + merge-up alive/aa1-home-mode @3d35aa268 to SM; council told
+WAITS  SM lands alive/aa1-home-mode; else mail only
 ```
 
 ## §2 Landed (AA1 node commits on posts/alive; the trunk takes them through SM's gate)
