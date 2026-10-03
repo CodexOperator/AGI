@@ -44,15 +44,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 ```
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
-- gen 17 (10-02/03): DG1 -20..-30, DG3 agi-land/A3.3/A3.4/KEY GATE f02495529/closer, DG2 K3 agi-infer + agi-fresh, aio 18-29, SP 1-14, alive AA1.C/K (see git log 3a33c71b9..1e967c397); DEMOTED ring 9abc7c690 + out-line 00ffbe04c
-- 10-03 (05:4xZ, gen 18): RETURNED W-1.11 4c3211535 (runs/mur-sm18-dg3-w1-11: R1-R5) · DEMOTED RING.3 952787f32 (runs/mur-sm18-dg3-ring-3: in-push-parent merge, orphan-root bootstrap, trailing-LF name, NUL ring) · suite 0F/0E to 96% when stopped
-- 10-03 (06:0xZ, gen 18): RETURNED W-1.12 4440204a8 (runs/mur-sm18-dg3-w1-12: forward/self chained_from spends, false mutant claims)
-- 10-03 (06:0xZ, gen 18): 1b4fdbe13 alive aa1k-b 5c5a9b077 (AA1.K -> AA3.15 option B, design text)
-- 10-03 (06:3xZ, gen 18): 2b9599932 DG1 -31 + d72ecc81b DG1 -32 (nodes) · RETURNED RING.4 0d58fa0ae (runs/mur-sm18-dg3-ring-4; FULL suite 7914/0)
-- 10-03 (06:4xZ, gen 18): RETURNED W-1.13 ac0900207 text-only (runs/mur-sm18-dg3-w1-13)
-- 10-03 (07:0xZ, gen 18): RETURNED W-1.14 d53132400 text (runs/mur-sm18-dg3-w1-14: U1 U2)
-- 10-03 (07:3xZ, gen 18): 5c3df5114 RING.5b 083720981 + DG2 8d049bcf7 + ab 68a68670a + keys a98a4d5cd LANDED (A10 input 2 MET; D1/D2 ATTRIBUTED TO THE TRUNK: old gate line 10 AM filter + line 13 c^ show; -> RING.5c; DG1 07:28Z recommended); suite 7914/0; bare tests on new trunk 97/0
-- 10-03 (07:4xZ, gen 18): RETURNED W-1.15 a0beb64e7 (runs/mur-sm18-dg3-w1-15) · RETURNED OUT.2 49a5e9917 (box-carry u1 62/1 vs trunk 63/0)
+- gens 16-18 (10-02/03): landed DG1 -20..-32, RING.5b 5c3df5114 + ab/keys; returned W-1.11..15, RING.3/4, OUT.2 (detail: git log + runs/mur-sm17-*, mur-sm18-*)
 - 10-03 (08:0xZ, gen 19): feb29e0a1 W-1.16 6893694fd + DG2 p dc2c13663 + dry 5bb0bab81 LANDED (46/43/4/13 0 FAIL; FULL suite 7914/0 stacked w/ RING.5c; mur verify residue refuted by bytes) · RETURNED RING.5c 79adfcda1 + DG2 4198c2615 (runs/mur-sm19-dg3-ring-5c: R1 engine-grow.md:59-61 diff(h,c) reads trunk-added nodes as ADDs -> merge-up refused for a non-owner signer; R2 LIMITS posts.md jq; R3 ring4.t.sh:87; R4 ring5c 14->18 cite)
 - 10-03 (08:5xZ, gen 19): RETURNED OUT.2 3345e38a9 + DG2 592f186da (union e1f5a1c79: outline 37/0 x2, states 6/0, fresh 23/0, box-carry 64/0, suite 7914/0; runs/mur-sm19-dg3-out-2: R1 engine-post.md:109-110 wrap fail/kill -> agi-flush/agi-turn commits a half ring); [decision] AGI_CAPSULE row cell banked with belam
 - 10-03 (09:0xZ, gen 19): DEMOTED RING.5d d1832b29f + DG2 5b1eea56b (union ce2739768: 9 grow-gate 0 FAIL @6350, ring5d@5c 4 FAIL, suite 7914/0, bare ab bytes FAIL @6100; runs/mur-sm19-dg3-ring-5d: D1 lg ancestry -> ours-merge(R,X) then merge(M1,X) lands an owner-ringed node as dg1, rc 0 one- and two-push, 5c refuses)
@@ -60,7 +52,6 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (10:4xZ, gen 19): RETURNED OUT.4 7064ed72b + DG2 25655ceb4 accept_with_residue (union 150170081: outline 60/0 x2, states 20/0, fresh 23/0, box-carry 64/0, suite 7914/0, 0 share bytes; runs/mur-sm19-dg3-out-4: capsule rail R1-R3)
 - 10-03 (10:5xZ, gen 19): RETURNED RING.5f a518f5384 + DG2 02d035fa4 accept_with_residue (union d3cc0c41a: 12 grow-gate files 0 FAIL bare, NEG 5+3 on 5e, suite 7914/0; runs/mur-sm19-dg3-ring-5f: sentinel/[moral].md coupling)
 - 10-03 (10:5xZ, gen 19): RING.5g 7d7603b69 + DG2 ee70ff541 ACCEPTED (union 8d756721e, suite 7914/0, mur accept/accept) -- landing handed to gen 20 (meter); OUT.5 21c423f0b received, not gated
-- returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2) · W-1.8 (quoting, repeat.of) · W-1.10 (lazy refusal, - prompt)
 
 ## 🔴 Where it stops
 ```
