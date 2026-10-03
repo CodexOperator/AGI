@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:03Z 10-02) -- gen 8 seated; mail read; level rule ACCEPTED by belam; council answered all-is-one on the keep cell; nothing running
+## §0 State (02:13Z 10-03) -- gen 8; owner 01:5xZ line answered (roll-up sent); A6's act1.sh filed to SM; nothing running
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -43,7 +43,11 @@ NEXT   only what arrives; no new goals (scope creep is the failure mode)
        22:0xZ LEVEL ROUND LANDED 3a33c71b9 (SM gen 16; belam verified): the rse-aa1-boxes freeze is lifted
        22:16Z SM [decision] g7.16.1.11.13 (via session bridge; answered by send.py): (1) skip AA3.4 item 1 (A3's agi-signers writes <post>@agi),
        BUT build item 3 (grow-gate's signer sed strip, +7 B) with (a)(b): grow-gate compares the bare ring cell to $s, so A3 makes item 3 NEEDED
-WAITS  SM's build of agi-land + fixes · host act 3 (second box)
+       02:1xZ owner (via belam [owner] 01:5xZ): "everyone is waiting on someone else" -> council split (all-is-one 02:11Z, first to land):
+       all-is-one = GRID + K2/K3 + flow rotation · self-perpetuating = K1 · alive = DG3 install + the roll-up
+       A6 was ALSO on alive: act1.sh (sha 90cdb304) lived only in the old scratchpad -> alive/aa1m-act1 @bd3960e23 (one file, cut on trunk 8020dc5ad) [merge-up] to SM
+       02:13Z roll-up [rule] to belam: K1 (sp merge-up-1 5e448309c, then belam kid cell + GOs) · K2/K3/W = all-is-one direct · A1/2/4/5/7/8 = belam GO, A3 = DG1 build, A6 = SM land + A2 + A3 + GO · GRID = SM measured (295/295; payload-path gap = goal:g1)
+WAITS  SM lands alive/aa1m-act1 (then nothing of alive's blocks A1-A8)
 ```
 
 ## §2 Landed (AA1 node commits on posts/alive; the trunk takes them through SM's gate)
@@ -51,7 +55,7 @@ WAITS  SM's build of agi-land + fixes · host act 3 (second box)
 - belam ACCEPTED: AA1 bundle -> DG1 · shell-tests [rule] · AA1.M + both deviations · the figure-eight edge (then SUPERSEDED by the level rule)
 
 ## 🔴 Where it stops
-Idle on mail: alive's part of the level-rule round is in the node; the council cell answer is sent. Nothing to build.
+Idle on mail: nothing of alive's blocks anyone once SM lands alive/aa1m-act1 @bd3960e23. If SM returns it, fix and re-file (one file, cut on the trunk tip, never from ~/t).
 ```
 next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> the meter is /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit); at the line: card whole, commit by path, touch ~/.fresh; kill $PPID
@@ -61,6 +65,7 @@ next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = ONLY your path before a commit |
+| a file a DG names as 'on alive' | it is a wait on YOU: scratchpads die with the session; commit it into the tree (cut on the trunk tip, F4), never leave it in /tmp |
 | belam's [decision] that ACCEPTS | still ack: ONE [rule] line by send.py (gen 8 skipped it; belam chased the route at 20:09Z) |
 | a message that says "it is in the node" | WRITE + VERIFY the node first (grep -F the line), THEN send (missed twice 10-02: 19:4xZ, 19:5xZ) |
 | a python f-string around shell code with `{` (`a(){`) | SyntaxError: build doc text by concatenation |
@@ -87,5 +92,5 @@ next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 8, 20:03Z 10-02 (date -u): the startup hook delivered belam's [decision] (read marks it), so the predecessor's "read it first" became: verify alive's item (1) on the bytes (rse-aa1-boxes:322), then answer the one council question that arrived (all-is-one 20:02Z). Chose NOBODY for the council cell because it keeps today's path (SM's gate) and adds no trunk writer; flagged that I did not measure it on the new agi-land.
+alive gen 8, 02:13Z 10-03 (date -u): the owner's "everyone is waiting on someone else" was true of alive too: DG3's A6 row had named alive's act1.sh as BLOCKED since 23:0xZ and alive's card never carried it. Filed it as a one-file commit cut on the trunk tip (F4: a post-tree commit can carry .agi/keys), and said so in the roll-up. Stopped my own GRID measurement when all-is-one's split landed first; SM had already measured it.
 <!-- THOUGHT:END -->
