@@ -47,7 +47,7 @@ opn(){ python3 $ESCF open $1 <$2 2>/dev/null;}   # opn KEYFILE LINEFILE: prints 
 SH0=$(opn $H/seal.key $CAP/$P)
 # --- the shim: `git` that fails the land (commit, commit-tree, update-ref, push, merge) while $T/failland exists
 printf '#!/bin/sh\nskip=;sub=;for a in "$@";do [ -n "$skip" ]&&{ skip=;continue;};case $a in -C|-c)skip=1;continue;;-*)continue;;*)sub=$a;break;;esac;done\n[ -e %s/failland ]&&case $sub in commit|commit-tree|update-ref|push|merge)echo "shim: land refused" >&2;exit 1;;esac\nexec /usr/bin/git "$@"\n' $T>$T/shim/git;chmod +x $T/shim/git
-up(){ (cd $H&&unset GIT_CONFIG_GLOBAL XDG_CONFIG_HOME&&export HOME=$H O=$O AGI_TRUNK=$TR AGI_SEAT=$P AGI_CAPSULE=$CAP RUNTIME_DIRECTORY=$RUN/agi-$P ESC=$ESCF SEALPY=$T/seal.py OLREF=$OLREF PATH=$T/shim:$H/bin:$PATH GIT_AUTHOR_NAME=$P GIT_COMMITTER_NAME=$P GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$T/allowed sh $T/signers.sh $P;;esac;done<$STEPS);}
+up(){ (cd $H&&unset GIT_CONFIG_GLOBAL XDG_CONFIG_HOME&&export HOME=$H O=$O AGI_TRUNK=$TR AGI_SEAT=$P AGI_CAPSULE=${CAPV-$CAP} RUNTIME_DIRECTORY=$RUN/agi-$P ESC=$ESCF SEALPY=$T/seal.py OLREF=$OLREF PATH=$T/shim:$H/bin:$PATH GIT_AUTHOR_NAME=$P GIT_COMMITTER_NAME=$P GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$T/allowed sh $T/signers.sh $P;;esac;done<$STEPS);}
 agirun(){ rm -f $H/.fresh;}
 pub(){ cut -d' ' -f1,2 $H/.ssh/id_ed25519.pub;}
 rc(){ $G -C $H/t rev-list --count $1..HEAD -- $R;}                       # ring commits since $1
@@ -99,7 +99,7 @@ ok "b-old-line-in-force the old key still verifies a commit against the ring (th
 # --- (b) the COMMIT-failure handler of agi-out (DG1 08:43Z; the handler `git -C t checkout -q -- $R` was RED in no lane): `git commit` of the ring fails at the land: the start FAILS (rc 1), the ring is RESTORED (nothing dirty for the agi-turn sweep to commit), no ~/.ssh/n, no capsule .new, the share unchanged, 0 new commits after the sweep; the retry below then re-wraps from scratch. ex CMD = CMD under the unit's environment (the same one `up` builds), rc kept
 ex(){ (cd $H&&unset GIT_CONFIG_GLOBAL XDG_CONFIG_HOME&&export HOME=$H O=$O AGI_TRUNK=$TR AGI_SEAT=$P AGI_CAPSULE=$CAP RUNTIME_DIRECTORY=$RUN/agi-$P ESC=$ESCF SEALPY=$T/seal.py OLREF=$OLREF PATH=$T/shim:$H/bin:$PATH GIT_AUTHOR_NAME=$P GIT_COMMITTER_NAME=$P GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi&&sh -c "$1");}
 Bx=$($G -C $H/t rev-parse HEAD);cp $CAP/$P $T/capx;sleep 1;touch $H/.fresh;: >$T/failland;ex agi-out>$T/ex.out 2>&1;rcx=$?;rm -f $T/failland
-ok "e1-commit-failure-exits-1 the ring commit fails (the shim, no network, nothing else changed): agi-out exits 1 (got $rcx), so the start fails and .fresh stays pending" '[ "$rcx" = 1 ]&&[ -e $H/.fresh ]'
+ok "e1-commit-failure-exits-nonzero the ring commit fails (the shim, no network, nothing else changed): agi-out exits NON-ZERO (got $rcx; OUT.4 pins the code in o4f), so the start fails and .fresh stays pending" '[ "$rcx" != 0 ]&&[ -e $H/.fresh ]'
 ok "e2-commit-failure-ring-restored after the refused commit \`git -C t status --porcelain -- \$R\` is EMPTY: the ring is restored, so nothing is left in the worktree for agi-flush / agi-turn to commit as a half ring naming the next keys" '[ -z "$($G -C $H/t status --porcelain -- $R)" ]'
 ok "e3-commit-failure-no-leftovers no ~/.ssh/n and no capsule .new is left, and the post's share line is byte for byte as before" '[ ! -e $H/.ssh/n ]&&[ ! -e $CAP/$P.new ]&&cmp -s $CAP/$P $T/capx'
 ex agi-turn>/dev/null 2>&1;Hx=$($G -C $H/t rev-parse HEAD);$G -C $H/t reset -q --hard $Bx
@@ -107,6 +107,27 @@ ok "e4-commit-failure-sweep-0-commits after the agi-turn sweep (git add -A; git 
 up;agirun
 ok "b-retry-completes after the refused land, the next start completes the out-line with exactly 1 commit and a new key (ring commits $(rc $B3), want 1)" '[ "$(rc $B3)" = 1 ]&&[ "$(pub)" != "$K3" ]&&[ "$(own|awk "\$2==\"ssh-ed25519\"{print \$2,\$3}")" = "$(pub)" ]'
 ok "e5-retry-rewraps-from-scratch after the refused commit the retry re-wraps from scratch: the live ~/seal.key opens the post's share to the SAME secret and IS the key the ring's x25519 column names; no ~/.ssh/n is left" '[ "$(opn $H/seal.key $CAP/$P)" = "$SH0" ]&&[ "$(own|awk "\$2==\"x25519\"{print \$3}")" = "$(sealpub $H/seal.key)" ]&&[ ! -e $H/.ssh/n ]'
+# --- OUT.4 (DG1 09:09Z, belam's rule 08:43Z via SM 09:08Z): a REFUSED out-line stops LOUD and ONCE (one distinct exit code the unit does not restart on, one refusal line, a marker that is READ and not rewritten, cleared by a newer .fresh or a success)
+# shims on top of the git one: ssh-keygen / python3 fail when $T/fail.<name> holds a word that is one of the arguments (-qN for the key, gen / wrap for the seal)
+for x in python3 ssh-keygen;do rp=$(command -v $x);printf '#!/bin/sh\n[ -e %s/fail.%s ]&&case " $* " in *" $(cat %s/fail.%s) "*)exit 1;;esac\nexec %s "$@"\n' $T $x $T $x $rp>$T/shim/$x;chmod +x $T/shim/$x;done
+snap(){ (cd $H&&find . -path ./t -prune -o -print|sort);}
+Bq=$($G -C $H/t rev-parse HEAD);sleep 1;touch $H/.fresh;snap>$T/l0
+ex 'unset AGI_CAPSULE;agi-out' 2>$T/r5a;XA=$?;snap>$T/l1;M=$(comm -13 $T/l0 $T/l1);ex 'unset AGI_CAPSULE;agi-out' 2>$T/r5b;XB=$?
+n0=$(grep -c 'agi-out' $T/up.err);CAPV=;up;up;unset CAPV;n1=$(grep -c 'agi-out' $T/up.err)
+ok "o4a-r5-refusal-distinct-code AGI_CAPSULE unset on a rotation of a post the ring holds (.fresh newer, ~/seal.key present): agi-out exits with ONE distinct code, not 0 and not 1 (got $XA), and prints ONE refusal line (got $(grep -c 'agi-out:' $T/r5a))" '[ "$XA" != 0 ]&&[ "$XA" != 1 ]&&[ "$(grep -c "agi-out:" $T/r5a)" = 1 ]'
+ok "o4b-refusal-once-in-total the same start run AGAIN (agi-out twice more, the unit's ExecStartPre twice) prints NO further refusal line (one in total, got $(( $(grep -c 'agi-out:' $T/r5a)+$(grep -c 'agi-out:' $T/r5b)+n1-n0 ))) and keeps the same exit code ($XB): the marker is READ, not rewritten" '[ $(( $(grep -c "agi-out:" $T/r5a)+$(grep -c "agi-out:" $T/r5b)+n1-n0 )) = 1 ]&&[ "$XB" = "$XA" ]'
+ok "o4c-unit-restart-prevent the unit template (engine-root.md, agi-post@.service) carries RestartPreventExitStatus=$XA, the code the refusal exits with" '[ "$XA" != 1 ]&&[ "$(sed -n "/^### agi-post@.service/,/^~~~\$/p" $GEO/engine-root.md|grep -c "^RestartPreventExitStatus=$XA\$")" = 1 ]'
+# the other refusals exit with the SAME code (a keygen, gen, wrap or commit failure is a refused out-line too)
+fl(){ sleep 1;touch $H/.fresh;ex agi-out>/dev/null 2>&1;xc=$?;rm -f $T/fail.python3 $T/fail.ssh-keygen $T/failland;rm -rf $H/.ssh/n;$G -C $H/t checkout -q -- $R 2>/dev/null;$G -C $H/t reset -q --hard $Bq;cp $T/capx2 $CAP/$P;}
+cp $CAP/$P $T/capx2
+printf %s -qN>$T/fail.ssh-keygen;fl;XK=$xc;printf %s gen>$T/fail.python3;fl;XG=$xc;printf %s wrap>$T/fail.python3;fl;XW=$xc;: >$T/failland;fl;XM=$xc
+ok "o4f-failures-same-code a keygen failure ($XK), a seal gen failure ($XG), a wrap failure ($XW) and a commit failure ($XM) exit with the SAME code as the R5 refusal ($XA), which is not 1" '[ "$XA" != 1 ]&&[ "$XK" = "$XA" ]&&[ "$XG" = "$XA" ]&&[ "$XW" = "$XA" ]&&[ "$XM" = "$XA" ]'
+sleep 1;touch $H/.fresh;ex 'unset AGI_CAPSULE;agi-out' 2>$T/r5c;XC=$?
+ok "o4d-newer-fresh-clears-the-marker a .fresh NEWER than the refusal: the next start tries again: still refused = ONE refusal line again (got $(grep -c 'agi-out:' $T/r5c)) with the same code ($XC)" '[ "$(grep -c "agi-out:" $T/r5c)" = 1 ]&&[ "$XC" = "$XA" ]'
+sleep 1;touch $H/.fresh;up;K4=$(pub)
+ok "o4d-success-lands-one-commit a rotation that now SUCCEEDS (the capsule is back) lands exactly ONE ring commit (got $($G -C $H/t rev-list --count $Bq..HEAD -- $R)) and the share opens with the live seal" '[ "$($G -C $H/t rev-list --count $Bq..HEAD -- $R)" = 1 ]&&[ "$(opn $H/seal.key $CAP/$P)" = "$SH0" ]'
+agirun;gone=1;for m in $M;do [ ! -e $H/$m ]||gone=0;done
+ok "o4e-success-leaves-no-marker the refusal left a marker under the post's home ($(echo $M|tr '\n' ' ')) and the SUCCESSFUL rotation removed it" '[ -n "$M" ]&&[ "$gone" = 1 ]'
 # --- (b) a crash AFTER the land leaves a line whose key is LOST: a restart writes 0 ring commits (a post cannot vouch for itself); the PARENT re-vouches with ONE commit the gate admits (C7); a sibling is refused
 B4=$($G -C $H/t rev-parse HEAD);rm -f $H/.ssh/id_ed25519 $H/.ssh/id_ed25519.pub $H/seal.key;up;agirun;KN=$(pub)
 ok "b-lost-key-restart-0 the key lost after the land: a restart makes a new key and writes 0 ring commits (the ring's line is stale until the parent re-vouches)" '[ "$($G -C $H/t rev-parse HEAD)" = "$B4" ]&&[ "$(own|awk "\$2==\"ssh-ed25519\"{print \$2,\$3}")" != "$KN" ]'
