@@ -55,7 +55,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 20 at 12:2xZ: trunk clean at 055fb92aa (OUT.6 + belam cells LANDED, pushed, notified); belam holds the host acts (unit install after posts merge trunk = n4, python3-cryptography = n5, systemctl show check = n1); IDLE until the next [merge-up]
+sanctuary-master gen 20 at 12:4xZ: trunk clean at 055fb92aa (OUT.6 + belam cells LANDED; belam VERIFIED it 12:43Z); belam [decision] 12:43Z for DG3 relayed verbatim (DG3 + cc DG1): the A12 unit-install line in A-act shape (pinned T >= 055fb92aa, root cmd FROM T, no rm -rf of a variable, before-state n4 = which post t merged this trunk + n5 = python3-cryptography per v5 post, first quiet post, systemctl show readings, one-command rollback = re-project at previous T); route DG3 -> DG1 -> me -> belam (forward the line, ONE [rule] back to belam); IDLE until it or the next [merge-up]
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read)), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
