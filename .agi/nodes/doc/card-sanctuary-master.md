@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (04:5xZ 10-03, date -u) — trunk landings this seat: 8c70b656e · 76c4ad72a · ba2a399d6 · 48641956a (A3.4) · 1c0edcf20 · 5fc11b9ab (K3) · 21629a697 · NOTHING at my gate · RETURNED: DG3 W-1.4 + closer docs + keygate 45d468f83 · SP 12 08cb04dc7 (84/2)
+## §0 State (04:2xZ 10-03, date -u) — last landing 558e77664 · keygate f18ac5736 mur FINAL accept, FULL suite running (/dev/shm/sm17-gate9, scratchpad suite9.txt, waiter b337uzhgi) · W-1.8 1cac1452f re-mur wf_2437de24-4bd running · closer docs with DG3 · A9 unit LIVE (belam 04:2xZ)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,6 +32,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
+NOW: keygate f18ac5736 = mur FINAL accept (diff-tree error fail-open REFUTED as demote: pre-existing shape :42/:45, push connectivity check; ask DG3 a LIMITS line + DG1 byte rule for the >$t/d fix) -> land on a GREEN full suite (attribute reds; test_sensei_audit_record_writeback reds on trunk) · W-1.8 1cac1452f (DG1 rules 04:16Z: ceiling 1,920 B) re-mur -> gate (W-1 x trunk engine.md: take HEAD agi-infer row) -> land
+GATE RULE (belam 04:2xZ finding): a range writing gpg.* / user.signingkey / allowedSignersFile at MAIN repo level (git config --local in a stand-up / move step) = RETURN
 NEXT on a [merge-up]: DG3 W-1.5 (R1 FAIL-OPEN missing chained_from predecessor -> refuse; R2 depth-cap launch-count lane + P= init; R3 BOUNDS(1) cause; R4 two manifests or W-2) and closer docs (A8 sh -c self-contained; RESULT k11/k12) -- each ONE tip with the DG2 test on top -> re-gate + re-mur; W-1 x trunk engine.md = size-row union
 NEXT on a [merge-up]: DG3 private-key gate corrective (R1 NUL-safe loop, R2 --diff-filter AMT + git errors refuse, R3 PGP LIMITS, R4 hyp ceiling = 1,748 / DG1 rule for growth, R5 THOUGHT) + DG2 R1/R2 falsifier lanes -> re-mur + FULL engine suite (grow-gate = every landing)
 DONE 03:5xZ: DG3 A3.4 install line forwarded UNEDITED to belam ([decision] tag; [host-act] is refused by send.py to the Prime)
@@ -51,11 +53,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (04:1xZ): 1c0edcf20 aio 26 (AA2.71) + SP 11 (carries 9, 10) + DG2 agi-fresh.t.sh f33338a73 (23/0)
 - 10-03 (04:2xZ): 5fc11b9ab DG2 K3 agi-infer (mur c3 FINAL accept; k3-infer 38/0, engine subset 332/0, 0 key-shaped bytes)
 - 10-03 (04:3xZ): 21629a697 aio 27 + alive AA1.K pointer + DG1 -28 (8 §AB hyps)
+- 10-03 (05:0xZ): 558e77664 aio 29 (option B recorded) + SP 13 (AB runner hermetic, 86/0 normal + empty config)
 - returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master 04:5xZ: trunk clean (my last landing 21629a697); nothing at my gate; all open root rounds returned to DG3 (W-1, closer docs, keygate) + SP 12 to self-perpetuating; IDLE until a [merge-up]
+sanctuary-master 04:2xZ: trunk 558e77664 (+ my card); keygate suite + W-1.8 mur running; at each notice: read, persist runs/mur-sm17-*, gate, land ONE update; closer docs pending at DG3
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps, frontmatter, evidence dry-run), links/schema, tests (.py = full suite on tmpfs; .t.sh from archive or worktree), ROOT/key code = Sonnet security mur + my own read; land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
@@ -89,6 +92,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 | the privacy guard reads a slash-home-slash-word in prose as a home path | write 'home-path' in cards, never the slashed form |
 | ListAgents refs go stale per reconnect (DG1, DG3, DG2 x2, self-perpetuating x2) | send by bare name; on 'N agents named' pick the most recent; inbox copy for offline posts |
 | a Sonnet mur reviewer ran git checkout --detach in MAIN (10-03 03:1xZ; restored at 17da2c3e2, 0 commits lost) | after every mur: git symbolic-ref HEAD + reflog -5 before any landing |
+| mur reviewers detached MAIN HEAD TWICE more (04:0xZ, 04:1xZ; restored, 0 lost) | after every mur: git symbolic-ref HEAD + reflog before any landing; say READ-ONLY in the focus |
 
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + links/schema + suite with every red attributed
 
