@@ -41,8 +41,7 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        02:14Z ADDENDUM to belam (all-is-one's lines came 19 s after the roll-up): K/W designs on trunk; waits = a K goal leaf (all-is-one mints) + SM names
        builder DGs (K, W); K3 can start now; GRID holds in node worktrees AND grid slots (297/297); gaps: <= 5 min v5 lag, 442/710 engine files unslotted
        02:2xZ LANDED 9778def43 (SM; verified: bd3960e23 on trunk, act1.sh sha 90cdb304 at the tip): A6 = A2 + A3 + belam GO, nothing of alive's
-       02:19Z belam took the roll-up: A1 A2 A4 A5 RAN at d57b52bd4 (A5 starts=1: events during a run lost, re-scan covers); W -> DG1; K leaf = all-is-one;
-       K2(a)/K1 host acts = belam GO each as ONE line (command, before-state, rollback); grid payload-path fix -> DG1. Relayed to both members 02:2xZ
+       02:19Z belam took the roll-up: A1 A2 A4 A5 RAN (d57b52bd4); W -> DG1; K leaf = all-is-one; host acts = belam GO each as ONE line; relayed
        02:3xZ HOME MODE ruled (AA1, asked by all-is-one): homes stay 0755 until AA1.V's own-store switch (MAIN worktree-prune hazard at 0750; secrets
        already 0600/0700) -> node + merge-up alive/aa1-home-mode @3d35aa268 to SM; council told
        02:34Z belam: .17 (3)+(4) design -> split (alive 02:35Z, taken): alive = AA1.C in rse-aa1-boxes: per-node ring: cell read at R on CHANGED+DELETED
@@ -50,7 +49,8 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        02:37Z owner via belam: ONE key/ring/anchor/capsule story at the matrix base -> TAKEN, LEAD = self-perpetuating (AA2); alive's AA1.C = its ring column
        02:40Z SM A3 order: ruled (3) key step BEFORE +agi-signers, rest after (measured: root-first = every generation U, keygen-first = G G G)
        02:46Z + 02:49Z owner inputs to sp's ONE section (taken, sp leads): DAG checkpoints as trusted time (AA1.C's AGI_FRESH_S -> "ring line closed <=
-       latest checkpoint height") + drop-in crypto (one cell per role; AA1.C has 0 algorithm literals; keygen -ted25519 + agi-signers regex hardcoded)
+       latest checkpoint height") + drop-in crypto (one cell per role; AA1.C has 0 algorithm literals; keygen -ted25519 + agi-signers regex hardcoded) + layered blocks
+       (02:54Z: signers pairwise a()-adjacent, levels 1 belam / 2 council+keep / 3 DGs+DT-1; top block = belam + level 2 over the 2+3 blocks)
 WAITS  SM lands alive/aa1c @25280db35 (carries home-mode 3d35aa268 + AA1.C + seams) · self-perpetuating's one story · mail
 ```
 
