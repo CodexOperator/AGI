@@ -16,7 +16,7 @@ town: core
 
 ## Measured
 - doc:radically-simple-engine section AB (landed, trunk 1c0edcf20: AB + AB.5 + AB.6 + the AGI_SEAL_ID cell, byte-equal to self-perpetuating's branch); belam [decision] 03:07Z, owner 02:3xZ 'Is the design finished and looks sound? If so send on'. Terms: SM lands first (met), DG1 writes from the LANDED text, DG2 falsifiers, DG3 builds, SM gates, every root act its own belam GO, AA2.63 is the gate (the 8 KB base).
-- revoke whole is 1,390 B (sha256 32c9d51d3295ff1b); it derives the public half with -P '' because a bare `ssh-keygen -y` prompts on an encrypted key and would stall a land (alive, R7).
+- revoke whole is 1,390 B as the prototype (sha256 32c9d51d3295ff1b); the LANDED piece is 1,588 B (e1301b5f, trunk 558e77664), which verifies against the ring at the closing commit's PARENT; it derives the public half with -P '' because a bare `ssh-keygen -y` prompts on an encrypted key and would stall a land (alive, R7).
 - Origin is PUBLIC-READABLE (alive 03:1xZ, read-only GitHub API) and a landed v5 commit reads verified:false, reason no_user on GitHub: the rule for plain-git readers is 'only ring-gate's verdict counts' (the council places it in section AB and the agi-verify skill, one place each).
 
 ## CLAIM
@@ -37,4 +37,4 @@ Shell, scratch repos and a scratch bare origin only; no key leaves the scratch d
 The revoke piece, its map line, the out-line's publish step, one new test file.
 
 ## CEILING
-1 parent - kids <= 1 - revoke <= 1,390 B whole, about +58 B on the base map - 1 new test file - 0 USD - regular review + security mur on root code. Depends on: the ckpt hypothesis and the out-line hypothesis.
+1 parent - kids <= 1 - revoke <= 1,588 B whole (the landed piece; the prototype was 1,390 B), about +58 B on the base map - 1 new test file - 0 USD - regular review + security mur on root code. Depends on: the ckpt hypothesis and the out-line hypothesis.
