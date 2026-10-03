@@ -44,13 +44,13 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        02:40Z SM A3 order: ruled (3) key step BEFORE +agi-signers, rest after (measured: root-first = every generation U, keygen-first = G G G)
        02:37-02:54Z owner: ONE key story (LEAD sp, §AB; AA1.C = its ring column) + inputs: DAG checkpoints as trusted time (supersede AGI_FRESH_S) · drop-in crypto (AA1.C 0 literals)
        · layered blocks = signers pairwise a()-adjacent (levels 1 belam / 2 council+keep / 3 DGs+DT-1; top = belam + level 2)
-       02:55Z sp folded AA1.C into §AB; alive's IN-OR-ABOVE escalation flag CLOSED 03:01Z (tree move ruled by old AND new parent; checked)
-       03:0xZ LANDED a7705f2d2 (verified: AA1.C + home mode on trunk; A3.2 key step BEFORE +agi-signers)
+       02:55Z sp folded AA1.C into §AB (LANDED a7705f2d2, verified); alive's IN-OR-ABOVE escalation flag CLOSED 03:01Z (checked)
        03:12-15Z owner: provable revocation (5th input), POC on ROOT-READABLE keys; alive measured: GitHub reads v5 commits verified:false no_user;
        origin is PUBLIC-READABLE -> POC keys stay OFF every remote (belam ruled 03:17Z)
        03:17Z belam ACCEPTED the private-key gate line as its own round; alive then found 3 defects in its own 490 B line (RSA PEM passed, 2nd block
        unchecked, encrypted key HANG) -> 630 B; then §AB.5 (sp 03:21Z) RE-SCOPED: trunk refuses EVERY key block -> AA1.K = 176 B pattern line 12/12
-       (sp's text had OPENSSH-only + the hanging derive step: corrected to sp/aio/DG1 03:22Z); merge-up alive/aa1k @1c9ecc2ca
+       (sp took both corrections); aio 03:25Z: node-loop placement MISSED 4 -> the shipping line = aio's AA3.15 every-path one; alive/aa1k @bc90ed96a
+       03:26Z owner 6th: GitHub Actions attestations as outward sealer; alive measured origin default branch = master, 0 workflows (schedule lives on master)
 WAITS  SM lands alive/aa1k (sends queued: SM pane busy, sweep retries); mail
 ```
 
