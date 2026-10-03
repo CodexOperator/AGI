@@ -24,7 +24,7 @@ town: core
 (a) one `.fresh` writes exactly ONE ring commit (three lines: SIGN ssh-ed25519, PQ pq-sha256 root, SEAL x25519) over the post's own lines, signed by the CURRENT sign key (that commit IS the self-revocation statement), then lands, then `touch ~/.fresh`; a crash restart (no `.fresh`) writes 0 ring commits; (b) a crash BEFORE the land leaves the old line in force, a crash AFTER it leaves a line whose key is lost and the parent re-vouches it (case C7), one recovery rule; (c) the capsule shares are re-wrapped to the next SEAL key at hand-off, the next generation's SEAL opens the re-wrap, the retired generation's SEAL does not open the new one, another post's does not; (d) the retired SIGN key, even PUBLISHED, does not open any wrap (cases S1-S4), because SEAL is a separate key that is deleted at its out-line and never published; (e) the unit line stays within the revised ceiling and writes no ring text itself beyond that one signed commit.
 
 ## Dispatch line
-config-max: none new (the ring columns are ring-node data) / template-max: none / code: ~90 B in the post unit's ExecStartPre (engine-root.md agi-post@.service) plus the post-side ring commit helper if the line cannot carry it; capsule re-wrap uses the existing systemd-creds path.
+config-max: none new (the ring columns are ring-node data) / template-max: none / code: the out-line is its OWN piece, `agi-out`, in engine-post.md (expansion: only its map row touches engine.md); the unit's ExecStartPre line only CALLS it and touches `.fresh` (<= 95 B over today's). `agi-out` calls `pq` (keys, inner) and `esc` (wrap) by sect name, commits the three ring lines over the post's own, and NEVER lands them (the post's flush does); the capsule re-wrap uses the existing systemd-creds path. (DG1 ruling 04:1xZ to DG2 and DG3: a ~90 B unit line cannot hold keygen, three ring lines, the commit and the re-wrap by itself.)
 
 ## FALSIFIERS
 AA2.56: on a scratch post unit, one `.fresh` yields exactly one ring commit holding the three lines, signed by the current key; a crash restart yields none; three restarts yield none; the commit verifies against the ring at the receiving tip.
@@ -36,7 +36,7 @@ AA2.56c: the unit's ExecStartPre line <= 95 B over today's; the agi-fresh.t.sh c
 Shell, the agi-fresh.t.sh pattern (the REAL unit lines extracted from engine-root.md, a scratch HOME and a scratch repo, a stub systemctl); real ssh-keygen for the sign key; the PQ and SEAL keys from the pq piece and the existing X25519 fold; capsule wraps against a scratch directory. No live key, no network, nothing pushed: scratch keys generated at run time in a throwaway dir (no test file, node or commit message holds an armoured block; spell the header with dots). Every ROOT act (a unit edit, the out-line in engine-root, retiring agi-signers, block_push, seal.yml on master) is its own belam GO with before-state and rollback; the build lands the bytes, belam installs them.
 
 ## FILE SCOPE
-engine-root.md (agi-post@.service), the ring node data, one new test file. The root '+' install of the unit is belam's own GO.
+engine-post.md (the agi-out piece and its map row in engine.md), engine-root.md (the one ExecStartPre line that calls it), the ring node data, one new test file. The root '+' install of the unit is belam's own GO.
 
 ## CEILING
 1 parent - kids <= 1 - <= +95 B in the post unit line (the revised out-line is ~90 B) - 1 new test file - 0 USD - regular review + security mur on root code.
