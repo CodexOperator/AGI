@@ -33,6 +33,11 @@ class H(http.server.BaseHTTPRequestHandler):
     def w(l):s.wfile.write(l+b'\n\n');s.wfile.flush()
     if k=='slow':
       w(C[1]);w(C[3]);time.sleep(3);w(C[4]);w(b'data: [DONE]');return
+    E={'err':b'data: {"id":"g1","error":{"code":"server_error","message":"upstream died"},"choices":[{"index":0,"delta":{"content":""},"finish_reason":"error"}]}',
+       'err2':b'data: {"id":"g1","choices":[{"index":0,"delta":{"content":""},"finish_reason":"error"}]}',
+       'err3':b'data: {"id":"g1","error":{"code":429,"message":"rate limited"},"choices":[]}'}
+    if k in E:
+      w(C[1]);w(C[3]);w(C[4]);w(E[k]);w(b'data: [DONE]');return
     for l in C:
       w(l)
       if k=='ok':time.sleep(0.05)
@@ -95,6 +100,12 @@ run e500 m>$T/e.out 2>/dev/null;rc=$?
 ok "fail-http an HTTP 500 exits nonzero with nothing on stdout (rc=$rc)" '[ $rc -ne 0 ]&&[ ! -s $T/e.out ]'
 run trunc m>$T/t.out 2>/dev/null;rc=$?
 ok "fail-trunc a stream cut before [DONE] exits nonzero (rc=$rc): a cut text is never committed as the result" '[ $rc -ne 0 ]'
+# --- a provider ERROR event in the stream is NOT a clean result: OpenRouter sends {"error":{..},"choices":[{"finish_reason":"error"}]} (or either half alone) and THEN [DONE], so the stream looks complete
+# while the text is cut. The runner commits stdout as the result, so the exit status is the only signal (security mur dg2-k3, SM 03:0xZ).
+for e in err err2 err3;do run $e m>$T/$e.out 2>/dev/null;rc=$?
+ ok "fail-error-$e a mid-stream error event ($([ $e = err ]&&echo 'error + finish_reason error'||{ [ $e = err2 ]&&echo 'finish_reason error alone'||echo 'an error object alone, no choices'; })) then [DONE] exits nonzero (rc=$rc)" '[ $rc -ne 0 ]'
+done
+ok "fail-error-ok-still-clean a normal finish_reason stop + usage chunk + [DONE] still exits 0 (the error check is not a blanket)" 'run ok m>/dev/null 2>&1'
 # --- bounds
 sz=$(wc -c<$PIECE)
 ok "bytes the piece is <= $CEIL B ($sz B; today 829 B + the ~115 B parser; the scratch reference measured 954 B)" '[ $sz -le $CEIL ]'
