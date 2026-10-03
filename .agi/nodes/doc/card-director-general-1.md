@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-03 ~06:1xZ, ROTATING at the line 475295/1000000; gen 8 wakes next; USAGE WINDOW open: owner via belam 06:02Z, CC usage runs out in ~2 h, land or park, start nothing unfinishable)
+## §0 State (10-03 ~06:3xZ, gen 8 awake; USAGE WINDOW open: owner via belam 06:02Z, CC usage runs out in ~2 h, land or park, start nothing unfinishable)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1; engine.v 4) · parent SM (gen 17 successor) · trunk local-maxxing/season2/main |
@@ -29,10 +29,7 @@ town: core
 SM GATE ORDER (window): RING.4 dg3-ring4a 0d58fa0ae ALONE (security mur + full suite ~35 min) -> OUT.2 49a5e9917 + agi-outline 592f186da -> W-1.13 (cut at 2,100 B)
 AT SM, mine  -31 dg1-minus-31 59ad2a451 (belam-on-v5 (3)+(4) nested under goal .11.17, 2 hyps) · -32 dg1-minus-32 5d9e1a1ee (RULINGS sections on 7 AB hyps): on [landed] remove /data/work/agi/.agi/worktrees/dg1-minus-31 and -32
 RING.4 files (judged, mine ran them): ring3 8b16b2b91 48 ok · ring4 (DG3) 16 ok · ab/keys now 68a68670a / a98a4d5cd (CEIL 6100; I ran 18ece919d/d0729e279 at CEIL=6100: 45 / 35 ok); grow-gate 5,752 B, engine.md 9,132
-TO JUDGE FIRST (DG2 returns not yet run by me):  (1) run.sh lines de-base-dg2-27 8332a668e (new ab/ring4-cases.sh + ONE run.sh edit; doc prototype 91 PASS / 7 FAIL = classes real) -> run `sh .agi/context/local-maxxing/ab/run.sh REV` from that sha
-   (2) agi-kid-flow-dry.t.sh de-base-dg2-25 5bb0bab81 (19 lanes: o1 forward / o2 self / o3 later-fan-out chained_from = 0 launches, r1 finished flow, r2 ref that only ENDS with the result ref): on W-1.12 4440204a8 = 4 FAIL (o1 o2 o3 r2) -> run it on W-1.13 when cut
-   FINDING: the exact ref check is `git show-ref --verify -q REF`; `rev-parse --verify` DWIMs refs/heads/<name> and FAILS r2 (my suggestion in the W-1.12 ruling was wrong: correct it in the W hyp text)
-   (3) W-1.13 dg3-w13 b915d98c6 (DG3 06:07Z, from 4440204a8): agi-kid 2,028 B; his claims: flow 46/0, guard 43/0, p dc2c13663 4/0, dry cdb218ab8 7/0, geometry pytest 58; RUN IT with DG2's NEWER dry file 5bb0bab81 (19 lanes; the 4 W-1.12 FAILs o1 o2 o3 r2 must be green) + its own bytes/engine.md; check the exact ref check is `show-ref --verify -q`; also built: dg3-flowrot 880c62691 (agi-kid +37 B, ckpt +1,627 B, DG2 flow-rotation 14/0; needs W-1.13 first + a ckpt stub line in DG2's flow-p/dry files) — judge only after W-1.13 lands; RING.4 dg3-ring4a 0d58fa0ae was SENT to SM alone (merge-tree rc 0 vs 0e2ac66ac), the ring4b python shape is dropped
+JUDGED 10-03 06:3xZ (all mailed): run.sh lines 8332a668e 91/7 as claimed ACCEPTED; dry file 5bb0bab81 ACCEPTED (r2 is the real defect); W-1.13 b915d98c6 NOT accepted: only red = r2, line 4 of agi-kid in engine-wrap.md `git show-ref -q $R` needs `--verify` (patched scratch: flow 46, guard 43, p 4, dry 0 FAIL; 2,037 B; engine.md 9,132 unchanged); DG3 re-cuts, run the four files at the new sha (dry file = git show 5bb0bab81:extensions/agi/tests/agi-kid-flow-dry.t.sh, p = dc2c13663; pytest venv in scratchpad V), forward to SM alone. His geometry pytest "58" = 18 here (asked). dg3-flowrot 880c62691 waits for W-1.13 to land.
 W-1.13 (DG3, runner 2,100 B HARD, the LAST raise): dry-pass ORDER check in the same jq (chained_from index < stage index), exact ref check, R2' RESULT claims corrected, BOUND 7, dry file listed. Flow round after it 2,130 HARD (ckpt cut call). Ruled bars: ring 6,100 / ckpt round 7,100 grow-gate; K3 test 1,100
 PARKED (usage window, ordered of DG2+DG3, not started): ckpt build (grace wiring + python-free cert read) -> pq -> revoke piece -> flow cut (ckpt cut once) -> round B mail collection (flow-collect.t.sh) -> agi-signers retires (belam GO) -> sealer box side; DG2 order 8, K1 (belam kid cell)
 BELAM OPEN: R6 [decision] (a signed ff landings + ring: on engine*.md / b rules cell / c leave; I recommended c now, a later); model_hint ruling; kid cell with usd; install GOs for the series (every root act); outward act before any published key leaves the box
@@ -42,7 +39,7 @@ never invent goals; belam-on-v5 .17 stays a HORIZON
 ```
 
 ## 🔴 Where it stops + the exact next command
-Nothing half-done on my side. FIRST ACT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1` (act only on blocks newer than 06:06Z 10-03; last handled: DG2's W-1.12 R1' lanes). Then in order: run DG2's (1) run.sh lines and (2) dry file as in §1 and mail the verdict to DG2 + DG3 + SM; if SM mails [landed] on RING.4 / OUT.2 / -31 / -32 -> `git -C /data/work/agi worktree remove --force PATH` for each of mine, then update §1; if SM mails [return] -> read .agi/sessions/workflows/runs/mur-*/verify_*.json, rule by mail; if W-1.13 arrives -> run kid-flow 46+, guard, p, dry files at its sha + count agi-kid bytes (<= 2,100) and engine.md (+<=20).
+Nothing half-done on my side. FIRST ACT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1` (act only on blocks newer than 06:3xZ 10-03). Then: if SM mails [landed] on RING.4 / OUT.2 / -31 / -32 -> `git -C /data/work/agi worktree remove --force PATH` for each of mine, then update §1; if SM mails [return] -> read .agi/sessions/workflows/runs/mur-*/verify_*.json, rule by mail; if W-1.13 arrives -> run kid-flow 46+, guard, p, dry files at its sha + count agi-kid bytes (<= 2,100) and engine.md (+<=20).
 
 ## §4 Traps
 | trap | rule |
