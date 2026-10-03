@@ -12,7 +12,7 @@ r=0
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
 [ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;chmod +x $D/b/*;[ -s $D/b/grow-gate ]||{ echo "FAIL no grow-gate at $T";exit 99;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_RULES AGI_TRUNK;export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
-for n in belam1 alive1 sm1 dg1 dg2 atk;do ssh-keygen -qN "" -ted25519 -f$D/k/$n -C $n>/dev/null;done
+for n in belam1 alive1 sm1 dg1 dg1b dg2 atk;do ssh-keygen -qN "" -ted25519 -f$D/k/$n -C $n>/dev/null;done
 pk(){ cut -d' ' -f1,2 $D/k/$1.pub;}
 : >$D/over;for n in belam1 alive1 sm1 dg1 dg2 atk;do p=${n%[0-9]};echo "$p@agi namespaces=\"git\" $(pk $n)">>$D/over;done   # OVER-PERMISSIVE: every key made
 git init -q $D/r;echo $G/objects>$D/r/.git/objects/info/alternates;cd $D/r;export PATH=$D/b:$PATH
@@ -72,5 +72,31 @@ gate $o $(mkc $o dg1 $RG:$D/ring);ok "r5a-first-ring-signed-admitted a SIGNED si
 mku $o $RG:$D/ring>$D/u1;gate $o $(cat $D/u1);ok "r5b-first-ring-unsigned-refused the same ring in an UNSIGNED commit: refused" 'refused'
 gate $o $(mkc $o dg1 $RG/dg1:$D/ring);ok "r5c-first-ring-directory-refused the first ring as a DIRECTORY (ring/dg1): refused (the ring is one file)" 'refused'
 printf 'belam %s extra\n' "$(pk belam1)">$D/bad;gate $o $(mkc $o dg1 $RG:$D/bad);ok "r5d-first-ring-off-shape-refused a signed first ring with an off-shape line: refused" 'refused'
+# --- RING.4 (mur sm18 demoted RING.3 952787f32 on four bypasses; SM 05:43Z, DG1 05:44Z): each lane beside an admitted control
+# (1) a merge whose FIRST parent is IN the push and whose tree IS an old parent's (P0, the ring-less tree): a gate that diffs only the parents OUTSIDE the push never sees the ring go; an octopus the same
+git show $o:.agi/nodes/moral/antifragility.md>$D/af;echo 'plain-edit'>>$D/af;S1=$(mkc $R1 dg1 .agi/nodes/moral/antifragility.md:$D/af);echo 'second-edit'>>$D/af;S2=$(mkc $R1 dg2 .agi/nodes/moral/antifragility.md:$D/af)
+gate $R1 $S1;ok "g1a-control-plain-push dg1's edit of an unringed node alone is admitted (the push the merge rides on)" '[ $r = 0 ]'
+M=$(mkm $S1 $P0 $P0 dg1);gate $R1 $M;ok "g1b-first-parent-in-push-refused a merge of S1 (IN the push) and P0 whose tree is P0's (the ring deleted) signed by dg1: refused" 'refused'
+M=$(env GIT_COMMITTER_NAME=dg1 GIT_COMMITTER_EMAIL=dg1@agi GIT_AUTHOR_NAME=dg1 GIT_AUTHOR_EMAIL=dg1@agi git -c gpg.format=ssh -c user.signingkey=$D/k/dg1 commit-tree -S -p $S1 -p $S2 -p $P0 -m octo $(git rev-parse $P0^{tree}));gate $R1 $M;ok "g1c-octopus-refused an OCTOPUS of S1, S2 (both IN the push) and P0 with P0's tree: refused" 'refused'
+M=$(mkm $S1 $S2 $S1 dg1);gate $R1 $M;ok "g1d-control-merge-keeping-ring an in-push merge of S1 and S2 (both signed, both IN the push) that KEEPS the ring (its tree is S1's) signed by dg1 is admitted" '[ $r = 0 ]'
+# (2) an ORPHAN root (no ring in ITS history) signed by a ring line, then an UNSIGNED merge of it and the receiving tip whose tree is the orphan's: the bootstrap must open only for a ring path with no history on the RECEIVING tip's ancestry
+echo orphan>$D/or;x=$D/i;GIT_INDEX_FILE=$x git read-tree --empty;GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w $D/or),zz-orphan.txt;C1=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x
+C1=$(env GIT_COMMITTER_NAME=dg1 GIT_COMMITTER_EMAIL=dg1@agi GIT_AUTHOR_NAME=dg1 GIT_AUTHOR_EMAIL=dg1@agi git -c gpg.format=ssh -c user.signingkey=$D/k/dg1 commit-tree -S -m orphan $C1)
+M=$(env GIT_COMMITTER_NAME=u GIT_COMMITTER_EMAIL=u@agi GIT_AUTHOR_NAME=u GIT_AUTHOR_EMAIL=u@agi git commit-tree -p $C1 -p $R1 -m um $(git rev-parse $C1^{tree}));gate $R1 $M;ok "g2a-orphan-then-unsigned-merge-refused a ring-signed ORPHAN root, then an UNSIGNED merge of it and the receiving tip whose tree is the orphan's (the ring deleted): refused (the bootstrap does not reopen from the push's own history)" 'refused'
+gate $R1 $C1;ok "g2b-orphan-root-alone the ring-signed orphan root ALONE (a tree with one innocuous file) is not what is refused: rc $r (the lane above is the verdict; this one records whether the root itself lands)" 'true'
+# (3) a posts.md name or parent with a TRAILING LF: jq's \$ matches before it, and the ancestor map is poisoned
+pr '  - {"name": "x\\n", "parent": "sm"}\n';gate $R $(mkc $R sm1 $GEO/posts.md:$D/e);ok "g3a-trailing-lf-name-refused sm adds a row whose name is x + LF: refused" 'refused'
+pr '  - {"name": "dg10", "parent": "sm\\n"}\n';gate $R $(mkc $R sm1 $GEO/posts.md:$D/e);ok "g3b-trailing-lf-parent-refused a row whose PARENT is sm + LF: refused" 'refused'
+pr '  - {"name": "dg10", "parent": "sm"}\n';gate $R $(mkc $R sm1 $GEO/posts.md:$D/e);ok "g3c-control-canonical-row sm adds a canonical row: admitted" '[ $r = 0 ]'
+# (4) a ring with a NUL byte (own line, or NUL-separated whole): a binary ring matches no shape and locks the owner out
+ringadd $R "dg1 ssh-ed25519 $(echo $ATK|cut -d' ' -f2)\000\n";gate $R $(mkc $R dg1 $RG:$D/e);ok "g4a-nul-in-own-line-refused dg1 adds a line of its own with a NUL byte: refused" 'refused'
+{ sh_ $R $RG|tr '\n' '\000';}>$D/e;gate $R $(mkc $R belam1 $RG:$D/e);ok "g4b-nul-separated-ring-refused the whole ring NUL-separated, even signed by belam: refused (it would parse as no line: nobody could sign)" 'refused'
+ringadd $R "dg1 ssh-ed25519 $(echo $ATK|cut -d' ' -f2)\n";gate $R $(mkc $R dg1 $RG:$D/e);ok "g4c-control-clean-own-line dg1 adds a clean second line of its own: admitted" '[ $r = 0 ]'
+# (5) .gitattributes 'ring -diff' LANDED earlier: in a BARE repo (the land gate's) git reads attributes from the receiving HEAD's tree, so a text diff of the ring prints 'Binary files differ' and names no line
+printf '%s -diff\n' $RG>$D/ga;git init -q --bare $D/rb;echo $D/r/.git/objects>$D/rb/objects/info/alternates;git --git-dir=$D/rb symbolic-ref HEAD refs/heads/trunk
+gate2(){ git --git-dir=$D/rb update-ref refs/heads/trunk $1;echo "$1 $2 refs/heads/x"|GIT_DIR=$D/rb AGI_ALLOWED=$D/over AGI_TRUNK=refs/heads/trunk AGI_NOT=$1 timeout 60 grow-gate>$D/out 2>&1;r=$?;}
+RA=$(mkc $R1 dg1 .gitattributes:$D/ga);gate2 $R1 $RA;ok "g5a-attributes-landed an unringed .gitattributes marking the ring -diff lands (the setup push, signed by dg1): admitted" '[ $r = 0 ]'
+edit $RA $RG "s|^dg2 .*|dg2 ssh-ed25519 $(echo $ATK|cut -d' ' -f2)|";gate2 $RA $(mkc $RA dg1 $RG:$D/e);ok "g5b-ring-diff-blind-refused with that attribute in force dg1 replaces dg2's line (a sibling's) with an attacker key: refused (the ruler reads the ring as text, whatever its attributes)" 'refused'
+edit $RA $RG "s|^dg1 .*|dg1 ssh-ed25519 $(pk dg1b|cut -d' ' -f2)|";gate2 $RA $(mkc $RA dg1 $RG:$D/e);ok "g5c-control-own-line-under-attribute with the attribute in force dg1 replaces ITS OWN line: admitted" '[ $r = 0 ]'
 echo "grow-gate-ring3: $f FAIL"
 exit $f
