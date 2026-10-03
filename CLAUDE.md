@@ -35,6 +35,7 @@ fantasia/                   any other project: its own .agi/; agi/ cloned in (gi
 | `.agi/context/schemas/` | node-type schemas; `schema_registry` reads `[name].md` |
 | `.agi/config.json` | project marker + loop tuning |
 | `refs/grid/*` | per-node version history |
+| `.github/workflows/seal.yml` | on `master` ONLY (GitHub runs schedule + dispatch from the default branch): the §AB.6 outward sealer, attesting block digests to the public Sigstore log every 30 min, never a key (owner 2026-10-03: "Could we have GitHub actions be the sealer for us as proof of concept? ... Just have it retry gracefully"; "Merge it in": master stays merges-only). `.github/*` is a RULES path |
 | `COMPLETE.md` | post-loop report (`goal:g1.13`), **replaced whole at each loop close** (owner 2026-09-05, reaffirmed 09-11: "Complete should be a whole replacement as it's already versioned anyway"); appended only when the owner asks. Shape in `skills/agi/SKILL.md` |
 | `HANDOFF.md` | symlink to the Prime's card (`doc:card-belam`); every post's card = `.agi/sessions/quorum/<post>.md` → its doc node |
 | `QUICKSTART.md` | standing bootstrap: clone, deps, install, safety rail, one iteration |
