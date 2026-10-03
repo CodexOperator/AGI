@@ -88,7 +88,7 @@ grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'>>$HOME/track
 cd ~/t;k=0;for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -d $d ]||continue;agi-wt drop $(basename $d);[ $? = 5 ]&&k=5;done;agi-turn;git merge -q --no-edit ${AGI_TRUNK:-trunk}||git merge --abort;exit $k
 ~~~
 
-### agi-out (2503 B)
+### agi-out (2738 B)
 ~~~sh
 #!/bin/sh
 # agi-out (ExecStartPre, after the extraction): the out-line = one generation g -> g+1 (AB). A ring in ~/t and `.fresh` newer than the key: the NEXT sign + seal keys are born in ~/.ssh/n, ONE ring commit replaces the post's own lines (ssh-ed25519, pq-sha256 root, x25519 seal), signed by the CURRENT key (that commit IS the self-revocation), the capsule share is re-wrapped to the next seal, then next moves over current: the retired keys are gone. No ring, no .fresh: nothing (the unit's own key drop covers a post with no ring). A refused land leaves everything as it was and fails the start (.fresh stays); a crash after the land resumes the install and never commits twice. PQ column: 32 random bytes until the pq piece.
@@ -102,7 +102,8 @@ if a[1]=="gen":k=K.generate();open(a[2],"w").write(d(k.private_bytes_raw()));pri
 else:
  p,z=open(a[3]).read().split();z=B.b64decode(z);m=C(h(K.from_private_bytes(B.b64decode(open(a[2]).read())).exchange(P.from_public_bytes(z[:32])))).decrypt(bytes(12),z[32:],None);e=K.generate();print(p,d(e.public_key().public_bytes_raw()+C(h(e.exchange(P.from_public_bytes(B.b64decode(a[4]))))).encrypt(bytes(12),m,None)))'
 o=$(git -C t show HEAD:$R)||exit 1;umask 77
-[ "$(printf '%s\n' "$o"|awk -v p=$P '$1==p&&$2=="x25519"{print $3}')" = "$(cat $N/seal.pub 2>/dev/null)" -a -f $N/seal.key ]||{
+[ -s $N/seal.pub -a "$(printf '%s\n' "$o"|awk -v p=$P '$1==p&&$2=="x25519"{print $3}')" = "$(cat $N/seal.pub 2>/dev/null)" ]||{
+ { [ -f seal.key -a -z "$C" ]||[ -f "$C" -a ! -f seal.key ];}&&{ echo "agi-out: the capsule share cannot be re-wrapped (no capsule, or no seal key to open it with)">&2;exit 1;}
  rm -rf $N ${C:+$C.new};mkdir -p $N&&ssh-keygen -qN "" -ted25519 -f$N/id_ed25519||exit 1
  s=$(python3 -c "$y" gen $N/seal.key)||exit 1;echo $s>$N/seal.pub
  { printf '%s\n' "$o"|awk -v p=$P 'NF&&$1!=p';printf '%s ssh-ed25519 %s\n%s pq-sha256 %s\n%s x25519 %s\n' $P $(cut -d' ' -f2 $N/id_ed25519.pub) $P $(head -c32 /dev/urandom|base64) $P $s;}>t/$R
@@ -110,8 +111,8 @@ o=$(git -C t show HEAD:$R)||exit 1;umask 77
  git -C t commit -qm "out-line $P" -- $R||{ git -C t checkout -q -- $R;rm -rf $N ${C:+$C.new};exit 1;}
 }
 [ -f "$C.new" ]&&mv $C.new $C
-[ -f $N/id_ed25519 ]&&mv $N/id_ed25519 $N/id_ed25519.pub .ssh/
-mv $N/seal.key seal.key&&rm -rf $N
+[ -f $N/id_ed25519.pub ]&&{ [ -f $N/id_ed25519 ]&&mv $N/id_ed25519 .ssh/;mv $N/id_ed25519.pub .ssh/;}
+[ -f $N/seal.key ]&&mv $N/seal.key seal.key;rm -rf $N
 ~~~
 
 ### gitconfig (198 B)
