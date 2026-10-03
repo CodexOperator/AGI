@@ -31,20 +31,20 @@ END{if(t==""){print "refused: not a node (no type:)";exit 1};for(i=1;i<=p;i++){s
  if(k!=o[1]){print "refused: locked: key "(k?k:"none")" is not "o[1]" for "t" under ["r"]";exit 1};print "ok "o[1]" "o[2]}' "$1" "$2"
 ~~~
 
-### grow-gate (3783 B)
+### grow-gate (4099 B)
 ~~~sh
 #!/bin/sh
 # pre-receive (the land gate), all against the RECEIVING trunk tip (matrix + schemas via git archive; a push cannot re-key or re-schema itself):
 # ADDED node -> grow-check (order + key; a ring other than * = the commit's signer, §W) + agi-fill check (Y2's fields) · CHANGED node -> agi-fill
 # check as a RATCHET (refused only if the version it replaces passed: legacy nodes stay editable, nothing that passed can regress)
-# the ring (.agi/nodes/.geometry/ring, `post keytype b64` lines): when the RECEIVING tip holds one, a commit lands only if its signer is a ring line open at that tip (advanced only by commits admitted before; AGI_ALLOWED is not read) and an ancestor-or-self of every name ruling each path it changes (ring line: its post · node: its ring: cell · schemas, growth.tsv, .github: AGI_RULES, default owner · posts.md: the old AND new parent of each moved row). No ring at the tip = the gate as it was, so the first ring commit lands; no date is read.
+# the ring (.agi/nodes/.geometry/ring, `post keytype b64` lines): when the RECEIVING tip holds one, a commit lands only if its signer is a ring line open at that tip (advanced only by commits admitted before; AGI_ALLOWED is not read) and an ancestor-or-self of every name ruling each path it changes (ring line: its post · node: its ring: cell · schemas, growth.tsv, .github: AGI_RULES, default owner · posts.md: the old AND new parent of each moved row). No ring at the tip = the gate as it was, so the first ring commit lands, but ONLY while the ring has never existed in that history (git rev-list -1 TIP -- ring prints nothing): once it has, a commit that deletes or empties it answers to every name it removes (top signers only) and the gate stays on for every commit after it; no date is read.
 A=${AGI_ALLOWED:?};t=$(mktemp -d);trap 'rm -rf $t' EXIT;R=$(git rev-parse -q --verify ${AGI_TRUNK:-refs/heads/main})||{ echo "refused: no receiving trunk";exit 1;}
 git archive $R .agi/context/schemas .agi/nodes/.geometry/growth.tsv|tar -x -C $t||exit 1;k(){ (cd $t&&agi-fill check $1)>$t/e 2>&1;}
 G=.agi/nodes/.geometry;ru(){ awk -v s=$1 -v q=$2 '{u[$1]=$2}END{while(q!=""&&n++<40){if(q==s)exit 0;q=u[q]}exit 1}' $t/u;}
 rn(){ git show "$h:$1" 2>/dev/null|awk '/^---$/{n++;next} n==1&&/^ring:/{sub(/^ring: *\[/,"");sub(/\].*/,"");gsub(/[ ,]+/," ");print;exit} n>1{exit}';}
 pm(){ git show $1:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -s 'map({(.name):.parent})|add';}
 while read o n r;do h=$R;for c in $(git rev-list --reverse --topo-order $n --not ${AGI_NOT:---all});do
- if git show $h:$G/ring>$t/r 2>/dev/null;then L=;sed -E 's/^([a-z0-9-]+) /\1@agi namespaces="git" /' $t/r>$t/a;else L=1;cp $A $t/a;fi;git show $h:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r '"\(.name) \(.parent)"'>$t/u
+ if git show $h:$G/ring>$t/r 2>/dev/null;then L=;sed -E 's/^([a-z0-9-]+) /\1@agi namespaces="git" /' $t/r>$t/a;elif [ -z "$(git rev-list -1 $h -- $G/ring)" ];then L=1;cp $A $t/a;else L=;:>$t/a;fi;git show $h:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r '"\(.name) \(.parent)"'>$t/u
  s=$(git -c gpg.ssh.allowedSignersFile=$t/a verify-commit --raw $c 2>&1|sed -n 's/.*signature for \(.*\)@agi with.*/\1/p')
  [ "$L" -o "$s" ]||{ echo "refused: $c is not signed by a ring line open at the receiving tip";exit 1;}
  git diff-tree -r -c --root --no-commit-id --diff-filter=AMT $c|while IFS= read -r l;do p=${l#*	};o=$(echo "${l%%	*}"|awk '{print $(NF-1)}');git cat-file blob $o>$t/b||{ echo "refused: $c $p unreadable";exit 1;};grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' $t/b&&{ echo "refused: $c $p carries a private key block (the trunk is public)";exit 1;};:;done||exit 1
