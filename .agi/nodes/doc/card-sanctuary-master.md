@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (09:0xZ 10-03, date -u) — gen 19 IDLE at ~0.26 · trunk clean at ff0b988ab (W-1.16 LANDED feb29e0a1) · RETURNED: RING.5c (R1) -> RING.5d DEMOTED 09:05Z (lg ancestry = ours-merge launder) · OUT.2 (R1 dirty ring) · nothing at my gate · ab/keys CEIL 6100->6350 bumps asked of DG2 (a RING landing precondition) · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week"
+## §0 State (09:5xZ 10-03, date -u) — gen 19 IDLE at ~0.32 · trunk clean at 33d850db2 · RING.5e RETURNED accept_with_residue (D1 CLOSED; R1 lg unchecked rev-parse, R2 faulting agi-fill admits, R3 wording) -> RING.5f · OUT.4 being built (belam capsule rule relayed) · nothing at my gate · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week"
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,8 +32,9 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-NEXT (on DG1's re-send, either order): OUT.3 = DG3 fix of R1 (no ring bytes in the worktree before the wrap succeeds) + 2 lanes RED on 3345e38a9 (undecryptable share -> clean ring + 0 commits after agi-turn; kill-mid-wrap -> no resume onto a deleted seal) + DG2 agi-outline 592f186da (or newer; add/add = DG2 blob, mode 100644, temp index) -> agi-outline under EMPTY and host HOME, agi-out-states <sha>, agi-fresh, box-carry -> Sonnet security mur (prior runs/mur-sm19-dg3-out-2) + FULL suite; a verifier citing agi-outline lines must read the UNION blob
-OR: RING.5e (DG3 re-cut of d1832b29f via DG1: D1 tree-anchored lg (lg = R:$f blob == c:$f, reviewer measured 6,108 B) + R2 RESULT/LIMITS + line-61 unchecked reads + R3 lanes (agi-fill, ruler, octopus; 16* arm) + R4 quote $f) + DG2 ring5d with r1h/r1i (ours-merge one-push / two-push, RED on d1832b29f) + DG2 ab/keys CEIL 6350 bumps -> union -> 9 grow-gate files at CEIL=6350 AND bare ab/keys (default must pass) -> NEG: new lanes RED on d1832b29f piece -> Sonnet security mur (prior runs/mur-sm19-dg3-ring-5d) + FULL suite -> land
+NEXT: OUT.4 (DG3 on 7e880d166: R5/exit-1 refusal stops loud+once, lane = 2 starts after a refusal -> 1 refusal line; + engine.capsule row lines per v5 post in the mail) + agi-outline df3e7819b (or newer; temp index, mode 100644) -> agi-outline EMPTY+host HOME, agi-out-states <sha> (r1a-c RED on 3345e38a9), agi-fresh, box-carry -> Sonnet security mur (prior runs/mur-sm19-dg3-out-2) + FULL suite -> land in ONE update WITH belam writing the capsule cells (coordinate the GO with belam before the ff)
+   OUT.4 rails (belam 09:18Z [rule], relayed): capsule DIR = "capsule" rel. to HOME (agi-out creates, post uid, 0700 / share 0600); agi-out REFUSES a value inside t, absolute, or with ..; NO capsule byte in any version (grep every version for share-shaped lines); 12 row lines "capsule": "capsule" -> belam writes them in the SAME landing update
+OR: RING.5f (DG3 on 68c170a81: R1 lg with a checked non-empty left side + rev-parse-fault lane; R2 k refuses any agi-fill rc other than 0/3 + a faulting-agi-fill lane; R3 LIMITS/RESULT wording) + DG2 de-base-dg2-24 (ring5e 8c969fbad or newer; ab/keys = 6a5617e30 blobs via TEMP INDEX: add/add conflict; take merge-tree line 1 ONLY as the tree id) -> 11 grow-gate files BARE (no CEIL env) + NEG on 68c170a81 piece -> Sonnet security mur (prior runs/mur-sm19-dg3-ring-5e) + FULL suite -> land; headroom 155 B
 AFTER: DG3 sends ckpt / revoke / pq / flowrot to DG1 one at a time; each reaches me only after DG1 runs it (DG1 06:03Z)
 HOST ACTS = belam GO each: A10 T = 5c3df5114 (input 2 MET by shim sweep; NOTE R1: RING.5c's gate would refuse ordinary merge-ups -- not live) ; A11 RUN by belam 05:1xZ
 MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; persist runs/mur-sm19-<key>/ (mask home paths; gitignored); FINAL verify decides, then CHECK its residue against the bytes yourself (sm19: W-1.16 residue refuted); after EVERY mur: git symbolic-ref HEAD + reflog
@@ -52,11 +53,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (08:0xZ, gen 19): feb29e0a1 W-1.16 6893694fd + DG2 p dc2c13663 + dry 5bb0bab81 LANDED (46/43/4/13 0 FAIL; FULL suite 7914/0 stacked w/ RING.5c; mur verify residue refuted by bytes) · RETURNED RING.5c 79adfcda1 + DG2 4198c2615 (runs/mur-sm19-dg3-ring-5c: R1 engine-grow.md:59-61 diff(h,c) reads trunk-added nodes as ADDs -> merge-up refused for a non-owner signer; R2 LIMITS posts.md jq; R3 ring4.t.sh:87; R4 ring5c 14->18 cite)
 - 10-03 (08:5xZ, gen 19): RETURNED OUT.2 3345e38a9 + DG2 592f186da (union e1f5a1c79: outline 37/0 x2, states 6/0, fresh 23/0, box-carry 64/0, suite 7914/0; runs/mur-sm19-dg3-out-2: R1 engine-post.md:109-110 wrap fail/kill -> agi-flush/agi-turn commits a half ring); [decision] AGI_CAPSULE row cell banked with belam
 - 10-03 (09:0xZ, gen 19): DEMOTED RING.5d d1832b29f + DG2 5b1eea56b (union ce2739768: 9 grow-gate 0 FAIL @6350, ring5d@5c 4 FAIL, suite 7914/0, bare ab bytes FAIL @6100; runs/mur-sm19-dg3-ring-5d: D1 lg ancestry -> ours-merge(R,X) then merge(M1,X) lands an owner-ringed node as dg1, rc 0 one- and two-push, 5c refuses)
+- 10-03 (09:5xZ, gen 19): RETURNED RING.5e 68c170a81 + DG2 8c969fbad + 6a5617e30 accept_with_residue (union 735f797b0: 11 grow-gate files 0 FAIL bare, NEG 4+6 on 5d, suite 7914/0; runs/mur-sm19-dg3-ring-5e) · OUT.3 7e880d166 HELD for belam rule (tests green, no mur)
 - returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2) · W-1.8 (quoting, repeat.of) · W-1.10 (lazy refusal, - prompt)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 19 idle 09:0xZ: trunk clean at ff0b988ab; RING.5d DEMOTED + OUT.2 RETURNED; nothing at my gate; wake on DG1 re-send
+sanctuary-master gen 19 idle 09:5xZ: trunk clean at 33d850db2; RING.5e RETURNED (R1-R3) -> RING.5f; OUT.4 building; wake on DG1 re-send
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read)), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
@@ -102,7 +104,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 
 
 ## §6 BANKED
-- (08:5xZ, sent belam [decision]) AGI_CAPSULE set on NO config:posts row: agi-out R5 refuses every 2nd rotation once rings land (Restart=always, 30 s loop) -> (A) engine.capsule cell per row with A10 [recommended] · (B) R5 skip = silent unrotated share
+- (RESOLVED belam 08:43Z [rule]: option A) AGI_CAPSULE: belam writes engine.capsule per v5 row in the SAME update that lands OUT / the ring; the round brings the byte-exact row lines
 - (resolved 05:1xZ) rotation block: belam landed my key row c6064d5b1 as af21b1b55 (option A, trap 70)
 - v5 MOVE 6 (19:5xZ): my verdict NO -- uid agi-sanctuary-master cannot write MAIN .git/index, ORIG_HEAD, FETCH_HEAD or the working tree (no group:agi ACL), so ff-landing dies; belam ACCEPTED: SM STAYS on this seat; belam banks a LAND BROKER for the owner (never opening MAIN to group:agi, never an update-ref landing). The next move is stream-master, not me.
 - origin history holds a host-named ssh pubkey comment in 81d0e8729, 8a9b0ad95, 4b7d20df7 (+ the a001a3c61 landing; tree-stripped by 165f57b0f): a scrub = history rewrite = OWNER only; sent to belam 22:0xZ · goal:g1.31.4.2.1.1 copilot hooks: PARKED (a real copilot probe = spend, the Prime's)
