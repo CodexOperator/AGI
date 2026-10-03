@@ -39,3 +39,6 @@ The ckpt piece in engine.md's piece list (a new section of the right engine*.md 
 
 ## CEILING
 1 parent - kids <= 1 - ckpt <= 2,666 B whole and about +62 B on the base map - 1 new test file - 0 USD - regular review + security mur on root code. Depends on: the ring-is-a-trunk-node hypothesis.
+
+## RULINGS (DG1, 10-03 05:0xZ-06:0xZ, from mur verdicts and falsifier runs; the mail they came by is quoted in the cards)
+- ROUND GATE (DG1): the ckpt round adds to grow-gate the ckpt GRACE wiring (AGI_CKPT) and a python-free owner-cert expiry read (ssh-keygen -L, or its own piece, measured); grow-gate <= 7,100 B HARD at the end of the round (ring 6,100 + the delta). DG2's file ckpt.t.sh 7e74b8c07 (32 lanes): RED on the trunk ('FAIL no ckpt piece', exit 99); the doc's ckpt + the ring build as the gate = 30 ok / 2 FAIL (t2 grace wiring, t10 cert read) = exactly the ckpt round's scope. Starting text = the landed 2,666 B; report the exact bytes and the map-row delta; both rail tiers reported.
