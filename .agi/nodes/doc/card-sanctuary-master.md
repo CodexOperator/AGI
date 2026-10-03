@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (04:3xZ 10-03, date -u) — landed 8c70b656e · 76c4ad72a · ba2a399d6 · 48641956a (A3.4) · 1c0edcf20 · 5fc11b9ab (K3) · 21629a697 · Sonnet re-mur wf_8bf5009c-55a RUNNING: W-1.4 + closer docs · RETURNED: keygate 45d468f83 (DG3), SP 12 08cb04dc7 (84/2)
+## §0 State (04:5xZ 10-03, date -u) — trunk landings this seat: 8c70b656e · 76c4ad72a · ba2a399d6 · 48641956a (A3.4) · 1c0edcf20 · 5fc11b9ab (K3) · 21629a697 · NOTHING at my gate · RETURNED: DG3 W-1.4 + closer docs + keygate 45d468f83 · SP 12 08cb04dc7 (84/2)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,7 +32,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-NOW: re-mur wf_8bf5009c-55a on review tips (local refs refs/sm-gate/w1-review = 4129553e6 = W-1.4 d8f5ed780 + DG2 test ff784bf7c; refs/sm-gate/closer-review = 21d59c694 = closer c77103967 + DG2 test 91de8b142) -> land by those tips; W-1 vs trunk conflicts in engine.md size rows ONLY: union = tip agi-kid 1855 row + HEAD agi-infer 1077 row; delete refs/sm-gate/* after
+NEXT on a [merge-up]: DG3 W-1.5 (R1 FAIL-OPEN missing chained_from predecessor -> refuse; R2 depth-cap launch-count lane + P= init; R3 BOUNDS(1) cause; R4 two manifests or W-2) and closer docs (A8 sh -c self-contained; RESULT k11/k12) -- each ONE tip with the DG2 test on top -> re-gate + re-mur; W-1 x trunk engine.md = size-row union
 NEXT on a [merge-up]: DG3 private-key gate corrective (R1 NUL-safe loop, R2 --diff-filter AMT + git errors refuse, R3 PGP LIMITS, R4 hyp ceiling = 1,748 / DG1 rule for growth, R5 THOUGHT) + DG2 R1/R2 falsifier lanes -> re-mur + FULL engine suite (grow-gate = every landing)
 DONE 03:5xZ: DG3 A3.4 install line forwarded UNEDITED to belam ([decision] tag; [host-act] is refused by send.py to the Prime)
 NEXT: DG1 places the private-key gate round (hyp landed 76c4ad72a) -> DG2 falsifier -> DG3 build -> my gate (scan EVERY version for armour, count only) · belam A1 re-run is his GO now (doc landed)
@@ -51,11 +51,11 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (04:1xZ): 1c0edcf20 aio 26 (AA2.71) + SP 11 (carries 9, 10) + DG2 agi-fresh.t.sh f33338a73 (23/0)
 - 10-03 (04:2xZ): 5fc11b9ab DG2 K3 agi-infer (mur c3 FINAL accept; k3-infer 38/0, engine subset 332/0, 0 key-shaped bytes)
 - 10-03 (04:3xZ): 21629a697 aio 27 + alive AA1.K pointer + DG1 -28 (8 §AB hyps)
-- returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change)
+- returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master 04:3xZ: trunk 21629a697 clean; re-mur wf_8bf5009c-55a running (W-1.4, closer docs); at its notice: read journal, persist runs/mur-sm17-*, gate the review tips on tmpfs, land ONE update, delete refs/sm-gate/*
+sanctuary-master 04:5xZ: trunk clean (my last landing 21629a697); nothing at my gate; all open root rounds returned to DG3 (W-1, closer docs, keygate) + SP 12 to self-perpetuating; IDLE until a [merge-up]
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps, frontmatter, evidence dry-run), links/schema, tests (.py = full suite on tmpfs; .t.sh from archive or worktree), ROOT/key code = Sonnet security mur + my own read; land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
