@@ -1,0 +1,120 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sanctuary-master",
+  "recorded_at": "2026-10-03T07:45:49.347829Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sanctuary-master",
+      "windows": [
+        "bash",
+        "agi-17",
+        "sanctuary-master.prev",
+        "thought-master",
+        "belam-S2-L5-I",
+        "belam-S2-L5-II",
+        "sanctuary-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/sanctuary-master.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 6133990,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sanctuary-master.prev",
+      "windows": [
+        "bash",
+        "agi-17",
+        "sanctuary-master.prev",
+        "thought-master",
+        "belam-S2-L5-I",
+        "belam-S2-L5-II",
+        "sanctuary-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -55.471
+  },
+  "seated_at": "2026-10-03T07:45:49.347829Z",
+  "window": "sanctuary-master",
+  "session_id": "36b28a3e-323a-4ca0-824a-ef79af2b8fcd",
+  "pid": 3336144,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sanctuary-master.prev",
+      "id": "@10"
+    },
+    "successor_window": {
+      "name": "sanctuary-master",
+      "id": "@11"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@11",
+      "pid": 3336144,
+      "session_id": "36b28a3e-323a-4ca0-824a-ef79af2b8fcd",
+      "transcript": "~/.claude/projects/-data-work-agi/36b28a3e-323a-4ca0-824a-ef79af2b8fcd.jsonl",
+      "name": "agi-82",
+      "path": "~/.claude/sessions/3336144.json",
+      "note": "joined by @11 in registry file 3336144.json"
+    },
+    "successor_row": "config:seats row 'sanctuary-master': session_ref= session_name=agi-82 session_label=sanctuary-master session_id=36b28a3e-323a-4ca0-824a-ef79af2b8fcd pid=3336144 generation=19 window='@11' source=registry pubkey=980560d8eafc9deb... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha f0057f7de, retried 0) -- own-row only: sanctuary-master spawn row: gen 19, session_id 36b28a3e-323a-4ca0-824a-ef79af2b8fcd, window @11, pid 3336144\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- 8e7f190ff -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/sanctuary-master.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/sanctuary-master.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/sanctuary-master.ack.36b28a3e.json",
+    "own_authority_released": "generation 18 of seat 'sanctuary-master' retired; successor generation 19 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch local-maxxing/season2/main",
+    "livestream_repoint": {
+      "session": "view-sanctuary-master",
+      "target": "@11",
+      "skipped": "view session view-sanctuary-master absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "rotate-self"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/sanctuary-master.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "dc09753c9258a8d07974ffca73bccaadc3170bc036fa8dff0be1fcdada31fb7c",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      2850469,
+      2850474,
+      2850488
+    ],
+    "reap_source": "derived from own window @id @10 pane 2850469: chain [2850469, 2850474, 2850488] (deepest-first; authority row pid 2850488)"
+  },
+  "after_join": {
+    "claimed_at": "2026-10-03T07:46:31.624792+00:00",
+    "performer": "watch",
+    "claim_key": "2026-10-03T07:45:49.347829Z"
+  }
+}
