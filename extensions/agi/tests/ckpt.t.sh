@@ -88,8 +88,8 @@ iso(){ git for-each-ref --format='%(refname)' refs/agi/block|while read rf;do gi
 rst(){ iso;while read ob rf;do git update-ref $rf $ob;done<$D/blk.all;}
 ckc(){ sh $AGI_CKPT check>$D/ck.out 2>$D/ck.err;ckrc=$?;}
 OLD='1000000000 +0000'
-# mkraw NAME TIP TIME [HASH] [DATE]: a block with the given RAW tip / time / hash text (an empty sigs tree), committer date DATE
-mkraw(){ nm=$1;hb=$(printf '%s' "${4:-sha256 0}"|git hash-object -w --stdin);st=$(git mktree </dev/null);tr=$(printf '100644 blob %s\thash\n040000 tree %s\tsigs\n100644 blob %s\ttime\n100644 blob %s\ttip\n' $hb $st $(printf '%s' "$3"|git hash-object -w --stdin) $(printf '%s' "$2"|git hash-object -w --stdin)|git mktree);[ -n "$5" ]&&export GIT_COMMITTER_DATE="$5";git update-ref refs/agi/block/$nm $(echo "block $nm"|git commit-tree $tr);unset GIT_COMMITTER_DATE;}
+# mkraw NAME TIP TIME [HASH] [DATE] [SIGSTREE]: a block with the given RAW tip / time / hash text (an empty sigs tree unless SIGSTREE), committer date DATE
+mkraw(){ nm=$1;hb=$(printf '%s' "${4:-sha256 0}"|git hash-object -w --stdin);st=${6:-$(git mktree </dev/null)};tr=$(printf '100644 blob %s\thash\n040000 tree %s\tsigs\n100644 blob %s\ttime\n100644 blob %s\ttip\n' $hb $st $(printf '%s' "$3"|git hash-object -w --stdin) $(printf '%s' "$2"|git hash-object -w --stdin)|git mktree);[ -n "$5" ]&&export GIT_COMMITTER_DATE="$5";git update-ref refs/agi/block/$nm $(echo "block $nm"|git commit-tree $tr);unset GIT_COMMITTER_DATE;}
 git show $R0:.agi/nodes/doc/y.md>$E.cy;echo cr>>$E.cy;CE=$(mkc $R0 dg1 .agi/nodes/doc/y.md:$E.cy)
 # R1a: the LAST block listed is non-holding: the exit status must not be that of the loop's last test
 iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;GIT_COMMITTER_DATE="$OLD";export GIT_COMMITTER_DATE;mk NB $R0 $now -- dg1:dg1;unset GIT_COMMITTER_DATE;ckc;gate $R0 $CE
@@ -115,6 +115,30 @@ ok "r3b-nonhex-option-glob-skipped tip 'zzzz', tip '--version', tip '-h', time '
 # R3c: a valid-looking hex that names NO object: skipped, not a crash for the others
 iso;mkraw NX 0123456789abcdef0123456789abcdef01234567 $now;GIT_COMMITTER_DATE="$OLD";export GIT_COMMITTER_DATE;mk HB $R0 $now -- dg1:dg1 dg2:dg2;unset GIT_COMMITTER_DATE;ckc
 ok "r3c-hex-no-object-skipped a tip that is 40 hex characters naming NO object: the block is skipped and the OTHER block (visited after it) is still listed, exit 0 (got $ckrc)" '[ $ckrc = 0 ]&&holds HB&&! holds NX'
+# R3d (DG1 13:39Z): r3b is green only because the hash compare skips a tip that carries extra words. r3d = tips that START like a real object and carry more, with the hash line MATCHED to what `d` prints for the CLEAN 40-hex (the digest of git archive of the hex alone), so ONLY a validation of the tip can refuse them. Each lane: block not listed, the FILE (inside $D) NOT created, the control HB still listed. SIGNED variants (mks: dg1 + dg2 sign the message `ckpt sign` builds from the SPLIT tip words, exactly what check verifies) show whether the block would HOLD
+hx=$(git rev-parse $R0);mh="sha256 $(git archive --format=tar $hx|sha256sum|cut -d' ' -f1)"
+mks(){ nm=$1;tp=$2;shift 2;i=$(mktemp);j=0;for a in "$@";do j=$((j+1));p=${a%%:*};k=${a#*:};b=$(ckpt sign $p $K/$k $tp|git hash-object -w --stdin);printf '100644 blob %s\t%s.%s\n' $b $p $j;done>$i;mkraw $nm "$tp" $now "$mh" "" $(git mktree<$i);rm -f $i;}
+wr(){ find "$D"/$1* -type f 2>/dev/null|wc -l;}
+mkdir -p "$D/w1:$GEO" "$D/w2:$GEO" "$D/w3:$GEO" "$D/w4:$GEO"
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;mkraw A1 "$hx --output=$D/w1" $now "$mh";ckc
+ok "r3d-a-hex-space-output a block whose tip is a valid 40-hex of an EXISTING commit + a space + '--output=FILE' (hash line matched to the clean hex): skipped, exit 0 (got $ckrc), HB listed, and no file was written at FILE (the unquoted tip splits into git show's arguments: --output=FILE:<path> would open it). Observed: A1 $(holds A1&&echo LISTED||echo not-listed), files written $(wr w1)" '[ $ckrc = 0 ]&&holds HB&&! holds A1&&[ "$(wr w1)" = 0 ]'
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;mks A2 "$hx --output=$D/w2" dg1:dg1 dg2:dg2;ckc
+ok "r3d-a-signed-hex-space-output the same tip, SIGNED by dg1 + dg2 over what check verifies: not listed, exit 0 (got $ckrc), HB listed, no file written at FILE. Observed: A2 $(holds A2&&echo LISTED||echo not-listed), files written $(wr w2)" '[ $ckrc = 0 ]&&holds HB&&! holds A2&&[ "$(wr w2)" = 0 ]'
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;mkraw B1 "$hx
+--output=$D/w3" $now "$mh";mks B2 "$hx
+--output=$D/w4" dg1:dg1 dg2:dg2;ckc
+ok "r3d-b-hex-newline-second-word a tip that is a valid 40-hex + a NEWLINE + '--output=FILE' (raw, and signed by dg1 + dg2): neither is listed, exit 0 (got $ckrc), HB listed, no file written at FILE. Observed: B1 $(holds B1&&echo LISTED||echo not-listed) files $(wr w3), B2 $(holds B2&&echo LISTED||echo not-listed) files $(wr w4)" '[ $ckrc = 0 ]&&holds HB&&! holds B1&&! holds B2&&[ "$(wr w3)" = 0 ]&&[ "$(wr w4)" = 0 ]'
+# r3d-b3: the second word is a REF: git show would read the ring from THAT revision instead of the tip's (git show hex dg1:<path>), and lv reads the second word as the post name
+iso;sed "s|^dg1 ssh-ed25519 .*|dg1 $(pk dg1b)|" $GEO/ring>$E.ring3;TR=$(mkc $R0 dg1 $GEO/ring:$E.ring3);git update-ref refs/heads/dg1 $TR
+mk HB $R0 $now -- dg1:dg1 dg2:dg2;mks RC "$hx" dg1:dg1b dg2:dg2;mks RR "$hx
+dg1" dg1:dg1b dg2:dg2;mk RT $TR $now -- dg1:dg1b dg2:dg2;ckc
+ok "r3d-b3-second-word-ref-redirects-the-ring a tip '<R0 hex> NEWLINE dg1' where a branch named dg1 holds a ring in which dg1's key is dg1b's: signed by dg1b + dg2 it must NOT hold (the ring is the tip's, R0 has dg1's own key). Controls in the same repo: the CLEAN tip R0 signed the same way does not hold (RC), the clean tip of the commit with that ring does hold (RT), HB holds. Observed: RR $(holds RR&&echo LISTED||echo not-listed), RC $(holds RC&&echo LISTED||echo not-listed), RT $(holds RT&&echo LISTED||echo not-listed)" '[ $ckrc = 0 ]&&holds HB&&holds RT&&! holds RC&&! holds RR'
+git update-ref -d refs/heads/dg1
+# r3d-c: a lone star (a glob over the hook's cwd) and a star after a valid hex; files in the cwd whose names are options for git archive; default hash (d runs BEFORE the compare)
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;ls -A $D/r>$D/ls0;: >"$D/r/--output=cs";mkraw S1 '*' $now;ckc;ls -A $D/r>$D/ls1;rm -f "$D/r/--output=cs" $D/r/cs
+ok "r3d-c-lone-star a tip that is '*' with a file named '--output=cs' in the hook's cwd (a glob would expand it into git archive): skipped, exit 0 (got $ckrc), HB listed, nothing created in the cwd besides the planted file. Observed: S1 $(holds S1&&echo LISTED||echo not-listed), new names in the cwd $(diff $D/ls0 $D/ls1|grep -c '^>') (want 1 = the planted file)" '[ $ckrc = 0 ]&&holds HB&&! holds S1&&[ "$(diff $D/ls0 $D/ls1|grep -c "^>")" = 1 ]'
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;: >"$D/r/${hx}x";mkraw S2 "$hx*" $now "$mh";mks S3 "$hx*" dg1:dg1 dg2:dg2;ckc;rm -f "$D/r/${hx}x"
+ok "r3d-c-star-after-hex a tip that is a valid 40-hex + '*' (raw with the matched hash, and signed) with a file '<hex>x' in the cwd: neither listed, exit 0 (got $ckrc), HB listed. Observed: S2 $(holds S2&&echo LISTED||echo not-listed), S3 $(holds S3&&echo LISTED||echo not-listed)" '[ $ckrc = 0 ]&&holds HB&&! holds S2&&! holds S3'
 # n1: ONE key listed under two post names counts ONCE (distinct KEYS, not names)
 iso;sed "s|^dg2 .*|dg2 $(pk dg1)|" $GEO/ring>$E.ring2;T1=$(mkc $R0 dg1 $GEO/ring:$E.ring2);mk SH $T1 $now -- dg1:dg1 dg2:dg1;mk CTRL $R0 $now -- dg1:dg1 dg2:dg2
 ok "n1-one-key-two-names-no the ring lists ONE key under two post names (dg1 and dg2, a parent writing its own key as a child's line) and two signatures from that key under the two names, k = 2: the block does NOT hold (distinct keys count, not names); control: two DISTINCT keys (CTRL) hold" '! holds SH&&holds CTRL'
