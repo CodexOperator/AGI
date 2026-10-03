@@ -56,6 +56,9 @@ mk L3x $H1 $now L3 -- dg1:dg1 dg2:dg2;ok "t4-retired-key-block-no a block over t
 git show $H1:.agi/nodes/doc/y.md>$E.y;echo b>>$E.y;P5=$(mkc $H1 dg1 .agi/nodes/doc/y.md:$E.y);gate $H1 $P5;ok "t5-sealed-refused once the LOWEST block (level 3) seals the hand-off the retired gen1 is refused, at any date" 'refused'
 CD="$(date -d '-1 day' -R)";gate $H1 $(mkc $H1 dg1 .agi/nodes/doc/y.md:$E.y);unset CD;ok "t6-backdated-refused the same commit BACKDATED a day is refused" 'refused'
 echo c>>$E.y;gate $H1 $(mkc $H1 dg1b .agi/nodes/doc/y.md:$E.y);ok "t7-gen2-admitted DG1 gen2's plain edit is admitted" '[ $r = 0 ]'
+# t11 (DG1 12:52Z, optional): the grace set's `git rev-list` (the ring changes no holding block contains: --not <holding tips> -- the ring path) FAILS (a git shim): the whole push is refused 'git rev-list failed' (it fails SAFE for a retired signer, but a gen2 edit would be admitted by a gate that ignores the failure)
+mkdir -p $D/shg;printf '#!/bin/sh\n[ "$1" = rev-list ]&&case "$*" in *--reverse*);;*--not*geometry/ring*)echo "shim: rev-list failed" >&2;exit 1;;esac\nexec /usr/bin/git "$@"\n'>$D/shg/git;chmod +x $D/shg/git
+PATH=$D/shg:$PATH;gate $H1 $(mkc $H1 dg1b .agi/nodes/doc/y.md:$E.y);PATH=${PATH#$D/shg:};ok "t11-grace-rev-list-failure-refused the grace set's git rev-list fails (a shim on the --not ... ring path call only): DG1 gen2's plain edit (current, would otherwise be admitted, t7) is REFUSED 'git rev-list failed' (a failed read is never an empty grace set)" 'refused&&grep -q "rev-list failed" $D/out'
 mk OLD $R0 $now L3b -- dg1:dg1 dg2:dg2;ok "t8-older-tip-no a block over an OLDER tip than the block it seals does not hold" '! holds OLD';git update-ref -d refs/agi/block/OLD
 # --- T9 T10 (and C18/C19): an owner window cert on belam's key; expiry is read at the newest holding block's time
 cd $K;for n in x y;do rm -f b$n b$n.pub b$n-cert.pub;cp belam1 b$n;cp belam1.pub b$n.pub;done;ssh-keygen -qs ca -I w-old -n owner@agi -V -3h:-2h -z 31 bx.pub;ssh-keygen -qs ca -I w-now -n owner@agi -V -1m:+30m -z 32 by.pub;cd $D/r
@@ -64,6 +67,10 @@ gate $H1 $(mkc $H1 by-cert.pub .agi/context/schemas/s.md:$E.s);ok "t10-valid-cer
 # t10p (DG1 10:5xZ round gate: a PYTHON-FREE owner-cert expiry read): the same valid-cert push with python and python3 SHIMMED to exit 127 (a box without python): still admitted; the gate may not shell out to python for the cert
 mkdir -p $D/nopy;for x in python python3;do printf '#!/bin/sh\necho "shim: $0 not found" >&2\nexit 127\n'>$D/nopy/$x;chmod +x $D/nopy/$x;done
 PATH=$D/nopy:$PATH;gate $H1 $(mkc $H1 by-cert.pub .agi/context/schemas/s.md:$E.s);PATH=${PATH#$D/nopy:};ok "t10p-valid-cert-admitted-without-python the valid owner cert push with python and python3 absent from PATH (shimmed to exit 127): admitted (the cert read is python-free)" '[ $r = 0 ]'
+# t10q: the cert is checked AT THE NEWEST HOLDING BLOCK'S TIME (git itself verified it at the commit date): ONE holding block, time = now - 150 min; the cert by is valid [-1m, +30m], i.e. valid NOW and at the commit date but NOT YET valid at the block's time: refused. A gate that verifies at the wall clock (no -Overify-time) admits it
+git for-each-ref --format='%(objectname) %(refname)' refs/agi/block>$D/blk.save;while read ob rf;do git update-ref -d $rf;done<$D/blk.save
+mk BQ $R0 $((now-9000)) -- dg1:dg1 dg2:dg2;gate $H1 $(mkc $H1 by-cert.pub .agi/context/schemas/s.md:$E.s);rq=$r;git update-ref -d refs/agi/block/BQ;while read ob rf;do git update-ref $rf $ob;done<$D/blk.save
+r=$rq;ok "t10q-cert-not-yet-valid-at-block-time-refused an owner cert valid NOW (and at the commit date) but NOT YET valid at the newest holding block's time (now - 150 min) is refused: the cert is read at the block's time, never the wall clock" 'refused'
 # --- H1-H5: the hybrid cell and the hash (blocks over the genesis tip R0; DG1/DG2 hold ed25519 AND ecdsa columns in the ring)
 export AGI_SIGN="ED25519 ECDSA"
 mk HA $R0 $now -- dg1:dg1 dg2:dg2;ok "h1-hybrid-ed-only-no under a two-column cell the ed25519-only level-3 block does not hold" '! holds HA'
