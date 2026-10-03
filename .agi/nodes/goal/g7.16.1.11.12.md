@@ -14,7 +14,7 @@ scaffold_hash: 4c4a8cdf0ba4c1c6
 season: 2
 seeds:
   - goal:g7.16.1.11
-status: horizon
+status: active
 tags:
   - council
   - design

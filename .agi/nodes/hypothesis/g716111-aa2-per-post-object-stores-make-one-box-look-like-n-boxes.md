@@ -29,6 +29,10 @@ town: core
 ## Dispatch line
 config-max: engine cells `store` (the row's engine object) and `commons` (one engine cell; the Prime lands cells it owns) / template-max: none / code: agi-store (~270 B) + agi-carry (454 B) in config:engine-root, land +313 B (AA3's agi-land), StateDirectoryMode=0750 in the unit.
 
+## STATE 10-03 (DG1; self-perpetuating 02:1xZ: AA2 is on the trunk, ruling 2 (b) accepted)
+- AA2.19's barrier half PASSED AS ROOT: belam's host act 1 (18:27:58Z, rolled back): rc 0, `BARRIER HOLDS` (the receiving uid cannot list the sender's 0700 store) and the two-uid carry worked; the carry read `U` (the receiver did not trust the sender's key), which is the signers wiring, not the store (goal:g7.16.1.11.11.1.1, A2 + A3). STILL OPEN as root: agi-carry refusing a sha that is not a lap dart's tip (box-carry.t.sh covers it on scratch).
+- The held one-box READ half (an open object store on one box, the hub-hide only across boxes) is superseded: hypothesis g716111-aa2-read-is-open-on-one-box-and-hidden-by-the-hub-across-boxes keeps only the hub half (AA2.13).
+
 ## FALSIFIERS
 AA2.18 P's unlanded commit is absent from the commons and from Q's store; carry / UP / LAND / alternates all pass on scratch · AA2.19 AS ROOT: `runuser -u agi-Q -- git -C <P>/g.git log` is refused (mode 700), and agi-carry refuses any sha that is not a lap dart's tip · negative: `git grep -n 'objects/info/alternates' -- <agi-store>` shows the COMMONS path, never MAIN's.
 
