@@ -258,3 +258,39 @@ THE ROUND'S ROWS (part 4, belam writes): keep {parent belam, members [sanctuary-
 FOR DG1: the round commits AA3.14 agi-land in place of AA3.2 and the 17-lane block as extensions/agi/tests/aa3-lanes.t.sh; the falsifier at the merge-up = 17 lanes on the trunk tip, exit 2 until the AA3.4 grow-gate fixes, then 0.
 
 ROUND RESULT (DG1, 10-02 ~21:3xZ, the atomic level round, scratch tip 376aba3a5 = round files + the keep rows; an object only, no ref): AA3.2 and AA3.9 above are now the AA3.14 text (1,829 B, 17 lanes; extensions/agi/tests/aa3-lanes.t.sh is the AA3.9 block verbatim, cmp-checked). `AGI_LAND=<AA3.2 as committed> sh extensions/agi/tests/aa3-lanes.t.sh <tip>` = 15 ok + FAIL 4m + FAIL 4v, exit 2 (the AA3.4 grow-gate witnesses, unchanged). WITHOUT the candidate the lanes exit 17: agi-land is still NOT an engine node (no `### agi-land` in .geometry/engine*.md), so the root-side build stays DG3's lane. The rows (belam writes): keep {parent belam, members + lands = [sanctuary-master, thought-master-new], role council, no harness cell}, SM + TM-new parent -> keep, council lands []. The a() line in the box piece (engine-post.md) is alive's 444 B level line; box 1,927 -> 2,005 B (the comment is shorter by 38 B than the line it replaces).
+
+
+
+## AA3.15 Rule edits on v5, the LAND side of goal:g7.16.1.11.17 (3) config ring + (4) anchor (belam [rule] 02:34Z 10-03; council split 02:35Z: alive = the gate lines, AA1.C · self-perpetuating = keys and custody, LEAD of the one story (AA2 §AB, owner 02:37Z) · all-is-one = the land side + review; DESIGN ONLY, owner hold 21:3xZ stands)
+TRUE STATE (built pieces, trunk 82eef92e7, 02:4xZ): grow-gate rings only ADDED nodes; a CHANGED node gets the agi-fill ratchet and NO signer check; .agi/context/schemas/* and growth.tsv are never scanned (.agi/nodes, *.md only). agi-land admits a commit only if its signer is the sender or a post UNDER the landed post, so every edit signed from ABOVE (an anchor, the owner, belam re-vouching a post) is refused at the land before any gate reads it.
+THE LAND RULE (§AB form, 03:0xZ): ANCESTOR-OR-SELF. A commit in the range passes agi-land's signer check iff its signer is under the landed post OR the post is under its signer (the sender is an ancestor, so it is subsumed; the inert-group pass-through too). Which PATHS an ancestor may change is the gate's job (§AB ring-gate: each changed path is admitted only if the signer rules it or is above its ruler; schemas + growth.tsv ruled by the owner). This REPLACES the earlier AGI_ANCHOR line of this section (02:4xZ: an anchor allowed-signers file + path scope, +232 B): §AB retires the separate anchor file. 1,855 -> 1,857 B (+2, the refusal text):
+```diff
+@@ -9,6 +9,6 @@
+ { [ "$P" != owner ]&&[ "$1" = "$P" ];}||{ [ $1 = $2 ]&&[ "$P" = owner ];}||{ echo "refused: $1 is not the parent of $2";exit 1;}
+ grep -q "^$Q>" $t/p&&! grep -qx "$Q>$2" $t/p&&{ m=$(sed -n "s/^$Q>\(.\)/\1/p" $t/p|tr '\n' ' ');echo "refused: $Q lands only ${m:-nothing}";exit 1;}
+ for c in $(git rev-list $o..$n);do s=$(git -c gpg.ssh.allowedSignersFile=$A verify-commit --raw $c 2>&1|sed -n 's/.*signature for \([^@]*\)@agi with.*/\1/p')
+-[ "$s" ]&&{ [ $s = $1 ]||u $s $2;}||{ echo "refused: $c signed by ${s:-nobody}: not $1, not under $2";exit 1;};done
++[ "$s" ]&&{ u $s $2||u $2 $s;}||{ echo "refused: $c signed by ${s:-nobody}: neither above nor under $2";exit 1;};done
+ echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gate $n||{ echo "refused: engine would not regrow";exit 1;}
+ git update-ref $T $n $o
+```
+The tree is read ONCE, from posts.md at the receiving tip $o: a range cannot raise its own signer inside one land. Across lands it can (alive 02:55Z: a posts.md ring member re-parents itself above a post, then signs as its ancestor), so a tree-cell change (parent, members, lands) must be a RULES edit (alive's lean, backed here).
+MEASURED (scratch, objects only; the throwaway repo's own refs):
+| lane | want | built agi-land | AA3.15 agi-land |
+|---|---|---|---|
+| the 17 AA3 lanes (1-5, 3b-3k, 4m, 4v) | as AA3.14 | ok | ok |
+| 6u an owner-signed card edit inside DG1's range (owner = an ancestor) | land | REFUSE (FAIL) | land |
+| 6v an alive-signed card edit inside DG1's range (neither above nor under) | refuse | refuse | refuse |
+| 6c a belam-signed edit inside DG1's range | land (§AB closure, C13) | REFUSE | land at agi-land; the path rule is ring-gate's |
+AA2.57, the K lanes THROUGH agi-land with §AB ring-gate (729227ae5e4e1504) as its gate (a 3-line shim: agi-land pipes "o n T", ring-gate takes R N) and ckpt (ce310b2268792c67); fixture = trunk + a ring file (belam, SM, DG1 gen1) = R0, DG1's gen1-signed handoff to gen2 = R1, checkpoints signed belam + SM (k = 2):
+| lane | want | built agi-land | AA3.15 agi-land |
+|---|---|---|---|
+| K0 GRACE: retired gen1 signs after its handoff, newest checkpoint BELOW the handoff | land | land | land |
+| K1 the new gen2 key signs after the handoff | land | land | land |
+| K2 retired gen1 signs, newest checkpoint ABOVE its handoff | refuse | refuse | refuse "not signed by a ring line open above the latest checkpoint" |
+| K3 the same commit BACKDATED 10 days | refuse | refuse | refuse (no date is read) |
+| K4 gen2 signs after that checkpoint | land | land | land |
+| K-anc belam (an ancestor of DG1) signs a card edit inside DG1's range | land | REFUSE (FAIL) | land |
+So the land side of §AB is ONE rule (+2 B). NOT run here: §AB's K5/K6 (owner cert expiry) need a CA fixture; the AA1.C-integrated measurement of 02:5xZ (27 lanes: built 6 / AA1.C 1 / both 0, with an anchor file and AGI_FRESH_S) stands as the record of a design §AB superseded.
+COMMIT SIGNATURES (measured 02:5xZ): a git commit carries ONE signature slot (gpgsig; gpgsig-sha256 only in a sha256 repo; this repo = sha1). agi-land reads the signer from git's SSH verify text, which is key-type agnostic (ED25519 and ECDSA both parse). So a hybrid (classical AND PQ) commit is ONE composite blob verified by the program the sign cell names (gpg.ssh.program, which git calls for sign AND verify), and a k-of-n block is k signature blobs beside the commit (§AB's ckpt: sigs/<post>.<n>), never k signatures on one commit.
+REVIEW of the build (AA3.14 as built): agi-land on the trunk differs from AA3.14 v2 in ONE line, the 32-hop bound on the parent walk u() that SM's follow-up 55f502f95 already records (agi-land-bounds.t.sh). Confirmed: correct and fail-closed (a parent cycle or a chain deeper than 32 is refused, never a hang); all 17 AA3.14 lanes stay ok on the built pieces.

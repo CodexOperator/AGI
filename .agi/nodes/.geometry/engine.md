@@ -38,7 +38,7 @@ Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.ge
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-post@.service 1409 B  a post = one unit in agi.slice: own uid, tree, key, pane
+agi-post@.service 1485 B  a post = one unit in agi.slice: own uid, tree, key, pane
 agi-run           501 B  pane cmd: .fresh or -c, under strace; claude: mail -> i
 settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1647 B  pi events -> those CC hooks; inbox growth -> a turn
@@ -52,8 +52,7 @@ agi-link           358 B  node <-> code file via payload_ref
 agi-wt             688 B  a node's tiny RAM tree: pull; drop = commit+purge
 agi-track           89 B  strace sink: each path once
 agi-flush          181 B  on exit: drop trees, commit, merge trunk
-gitconfig          180 B  signed commits, signers, own hooks
-signers             65 B  allowed_signers = the posts' keys
+gitconfig          198 B  signed commits, verified against the root-owned allowed_signers, own hooks
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          211 B  group agi may start agi-post@ units
 project.sh         161 B  what the body SHOULD be
@@ -71,7 +70,7 @@ grow-project      1185 B  schemas -> the growth matrix
 agi-land          1855 B  root: ff-lands a post range on the trunk, one parent edge up (ring-signed, grow-gate, agi-gate)
 box               2005 B  mail: one signed ref update per send (5x CAS), read from the store
 box-carry         3105 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
-agi-signers       1515 B  root: the ONE allowed_signers, every key generation, valid-after/before; one strict key line
+agi-signers       1727 B  root: the ONE allowed_signers, every key generation, valid-after/before; one strict key line
 agi-carry@.path     149 B  PathChanged on the sender's own refs/box/<P> (a unit on refs/box fires only on the first send)
 agi-carry@.service  287 B  oneshot: box-carry %i
 agi-carry-fetch.timer   88 B  every 60 s: fetch the hub's refs/box (remote senders)
