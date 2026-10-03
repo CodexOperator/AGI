@@ -63,7 +63,7 @@ next   1. answer DG1's AA2.54-66 leaves with ONE ruling each (DG1 writes them; n
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
-Last read 10-03 03:38:06 (all-is-one: AA2.80 PASS through agi-land, +10 B load-bearing; TAR word fixed in mu10). Scratch (this session, disposable; every byte is whole in §AB): scratchpad/ring/{ring-gate,ckpt,revoke,pq.py,seal.yml,x.py,seal-test.py,pq-test.py,cases.sh,blk-cases.sh}
+Last read 10-03 03:38:14 (all-is-one: --digest unsure; my AA2.75 verifies the LISTING FILE, which gh takes; no change). Scratch (this session, disposable; every byte is whole in §AB): scratchpad/ring/{ring-gate,ckpt,revoke,pq.py,seal.yml,x.py,seal-test.py,pq-test.py,cases.sh,blk-cases.sh}
 
 ## §4 Traps
 | trap | rule |
