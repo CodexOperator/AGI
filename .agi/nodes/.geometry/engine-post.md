@@ -88,10 +88,10 @@ grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'>>$HOME/track
 cd ~/t;k=0;for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -d $d ]||continue;agi-wt drop $(basename $d);[ $? = 5 ]&&k=5;done;agi-turn;git merge -q --no-edit ${AGI_TRUNK:-trunk}||git merge --abort;exit $k
 ~~~
 
-### agi-out (2738 B)
+### agi-out (2861 B)
 ~~~sh
 #!/bin/sh
-# agi-out (ExecStartPre, after the extraction): the out-line = one generation g -> g+1 (AB). A ring in ~/t and `.fresh` newer than the key: the NEXT sign + seal keys are born in ~/.ssh/n, ONE ring commit replaces the post's own lines (ssh-ed25519, pq-sha256 root, x25519 seal), signed by the CURRENT key (that commit IS the self-revocation), the capsule share is re-wrapped to the next seal, then next moves over current: the retired keys are gone. No ring, no .fresh: nothing (the unit's own key drop covers a post with no ring). A refused land leaves everything as it was and fails the start (.fresh stays); a crash after the land resumes the install and never commits twice. PQ column: 32 random bytes until the pq piece.
+# agi-out (ExecStartPre, after the extraction): the out-line = one generation g -> g+1 (AB). A ring in ~/t and `.fresh` newer than the key: the NEXT sign + seal keys are born in ~/.ssh/n, ONE ring commit replaces the post's own lines (ssh-ed25519, pq-sha256 root, x25519 seal), signed by the CURRENT key (that commit IS the self-revocation), the capsule share is re-wrapped to the next seal FIRST (no ring byte reaches the worktree until the wrap has succeeded: agi-turn sweeps the worktree), then the ring commit, then next moves over current: the retired keys are gone. No ring, no .fresh: nothing (the unit's own key drop covers a post with no ring). A refused land leaves everything as it was and fails the start (.fresh stays); a crash after the land resumes the install and never commits twice. PQ column: 32 random bytes until the pq piece.
 cd||exit 1;P=$AGI_SEAT;R=.agi/nodes/.geometry/ring;N=.ssh/n;C=${AGI_CAPSULE:+$AGI_CAPSULE/$P}
 [ -f t/$R ]&&{ [ -d $N ]||[ .fresh -nt .ssh/id_ed25519 ];}||exit 0
 y='import sys,base64 as B,hashlib as H
@@ -106,8 +106,8 @@ o=$(git -C t show HEAD:$R)||exit 1;umask 77
  { [ -f seal.key -a -z "$C" ]||[ -f "$C" -a ! -f seal.key ];}&&{ echo "agi-out: the capsule share cannot be re-wrapped (no capsule, or no seal key to open it with)">&2;exit 1;}
  rm -rf $N ${C:+$C.new};mkdir -p $N&&ssh-keygen -qN "" -ted25519 -f$N/id_ed25519||exit 1
  s=$(python3 -c "$y" gen $N/seal.key)||exit 1;echo $s>$N/seal.pub
- { printf '%s\n' "$o"|awk -v p=$P 'NF&&$1!=p';printf '%s ssh-ed25519 %s\n%s pq-sha256 %s\n%s x25519 %s\n' $P $(cut -d' ' -f2 $N/id_ed25519.pub) $P $(head -c32 /dev/urandom|base64) $P $s;}>t/$R
  [ -f "$C" -a -f seal.key ]&&{ python3 -c "$y" wrap seal.key $C $s>$C.new||{ rm -rf $N $C.new;exit 1;};}
+ { printf '%s\n' "$o"|awk -v p=$P 'NF&&$1!=p';printf '%s ssh-ed25519 %s\n%s pq-sha256 %s\n%s x25519 %s\n' $P $(cut -d' ' -f2 $N/id_ed25519.pub) $P $(head -c32 /dev/urandom|base64) $P $s;}>t/$R
  git -C t commit -qm "out-line $P" -- $R||{ git -C t checkout -q -- $R;rm -rf $N ${C:+$C.new};exit 1;}
 }
 [ -f "$C.new" ]&&mv $C.new $C

@@ -52,7 +52,7 @@ agi-link           358 B  node <-> code file via payload_ref
 agi-wt             688 B  a node's tiny RAM tree: pull; drop = commit+purge
 agi-track           89 B  strace sink: each path once
 agi-flush          181 B  on exit: drop trees, commit, merge trunk
-agi-out           2738 B  the out-line: next keys, ONE ring commit, re-wrap, swap
+agi-out           2861 B  the out-line: next keys, ONE ring commit, re-wrap, swap
 gitconfig          198 B  signed commits, verified against the root-owned allowed_signers, own hooks
 sysusers.conf       41 B  a post = one user in group agi
 agi.rules          211 B  group agi may start agi-post@ units
