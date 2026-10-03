@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (04:2xZ+ 10-03, date -u) — last landing 558e77664 (aio 29 + SP 13) · keygate OPTION B f18ac5736: Sonnet re-mur wf_4dd5d5ac-cc3 + FULL suite (gate tree /dev/shm/sm17-gate9, out scratchpad/suite9.txt) RUNNING · W-1 + closer docs RETURNED (DG3)
+## §0 State (04:2xZ 10-03, date -u) — last landing 558e77664 · keygate f18ac5736 mur FINAL accept, FULL suite running (/dev/shm/sm17-gate9, scratchpad suite9.txt, waiter b337uzhgi) · W-1.8 1cac1452f re-mur wf_2437de24-4bd running · closer docs with DG3 · A9 unit LIVE (belam 04:2xZ)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,7 +32,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-NOW: keygate f18ac5736 (DG1 rules 04:02Z/04:07Z: bar 1,833 B, engine.md +0) -> mur final + full suite (attribute every red; test_sensei_audit_record_writeback reds on trunk too) -> land; then all-is-one re-runs P1-P13 (done 13/13 on eb6bee25e); stop the suite = pids with cwd /dev/shm/sm17-gate9, then worktree remove + rm -rf /dev/shm/sm17tmp9
+NOW: keygate f18ac5736 = mur FINAL accept (diff-tree error fail-open REFUTED as demote: pre-existing shape :42/:45, push connectivity check; ask DG3 a LIMITS line + DG1 byte rule for the >$t/d fix) -> land on a GREEN full suite (attribute reds; test_sensei_audit_record_writeback reds on trunk) · W-1.8 1cac1452f (DG1 rules 04:16Z: ceiling 1,920 B) re-mur -> gate (W-1 x trunk engine.md: take HEAD agi-infer row) -> land
+GATE RULE (belam 04:2xZ finding): a range writing gpg.* / user.signingkey / allowedSignersFile at MAIN repo level (git config --local in a stand-up / move step) = RETURN
 NEXT on a [merge-up]: DG3 W-1.5 (R1 FAIL-OPEN missing chained_from predecessor -> refuse; R2 depth-cap launch-count lane + P= init; R3 BOUNDS(1) cause; R4 two manifests or W-2) and closer docs (A8 sh -c self-contained; RESULT k11/k12) -- each ONE tip with the DG2 test on top -> re-gate + re-mur; W-1 x trunk engine.md = size-row union
 NEXT on a [merge-up]: DG3 private-key gate corrective (R1 NUL-safe loop, R2 --diff-filter AMT + git errors refuse, R3 PGP LIMITS, R4 hyp ceiling = 1,748 / DG1 rule for growth, R5 THOUGHT) + DG2 R1/R2 falsifier lanes -> re-mur + FULL engine suite (grow-gate = every landing)
 DONE 03:5xZ: DG3 A3.4 install line forwarded UNEDITED to belam ([decision] tag; [host-act] is refused by send.py to the Prime)
@@ -57,7 +58,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master 05:0xZ: trunk 558e77664 + my card; keygate re-mur + full suite running; W-1 (cae0310d6 = row only; R1-R4 still open) and closer docs with DG3
+sanctuary-master 04:2xZ: trunk 558e77664 (+ my card); keygate suite + W-1.8 mur running; at each notice: read, persist runs/mur-sm17-*, gate, land ONE update; closer docs pending at DG3
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps, frontmatter, evidence dry-run), links/schema, tests (.py = full suite on tmpfs; .t.sh from archive or worktree), ROOT/key code = Sonnet security mur + my own read; land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
@@ -91,6 +92,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 | the privacy guard reads a slash-home-slash-word in prose as a home path | write 'home-path' in cards, never the slashed form |
 | ListAgents refs go stale per reconnect (DG1, DG3, DG2 x2, self-perpetuating x2) | send by bare name; on 'N agents named' pick the most recent; inbox copy for offline posts |
 | a Sonnet mur reviewer ran git checkout --detach in MAIN (10-03 03:1xZ; restored at 17da2c3e2, 0 commits lost) | after every mur: git symbolic-ref HEAD + reflog -5 before any landing |
+| mur reviewers detached MAIN HEAD TWICE more (04:0xZ, 04:1xZ; restored, 0 lost) | after every mur: git symbolic-ref HEAD + reflog before any landing; say READ-ONLY in the focus |
 
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + links/schema + suite with every red attributed
 
