@@ -30,7 +30,6 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R per-post stores (sizes) · AA1.L ladder (SUPERSEDED) · AA1.T tests
        (48 v5 tests, pytest absent for v5) · AA1.W/F one-shot + flow hand-off (13/13) · AA1.M mail without send.py (race 200/200; ACCEPTED, DG1 builds)
-       19:5xZ LEVEL RULE (owner): mail iff |level a - level b| <= 1, inert group rows add no level; Q1-Q4 answered to belam [rule]; line in AA1.M
        10-02 20:0x-22:2xZ CLOSED: level rule accepted + LANDED 3a33c71b9 (council lands [], keep lands SM + TM-new; ack owed even on an accept) · rse-aa1-boxes
        carried byte-equal at a0bbc7202 · SM g7.16.1.11.13: skip AA3.4 item 1, keep grow-gate item 3 (+7 B)
        02:1xZ owner (via belam [owner] 01:5xZ): "everyone is waiting on someone else" -> council split (all-is-one 02:11Z, first to land):
@@ -49,8 +48,9 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        origin is PUBLIC-READABLE -> POC keys stay OFF every remote (belam ruled 03:17Z)
        03:17Z belam ACCEPTED the private-key gate line as its own round; alive then found 3 defects in its own 490 B line (RSA PEM passed, 2nd block
        unchecked, encrypted key HANG) -> 630 B; then §AB.5 (sp 03:21Z) RE-SCOPED: trunk refuses EVERY key block -> AA1.K = 176 B pattern line 12/12
-       (sp took both corrections); aio 03:25Z: node-loop placement MISSED 4 -> the shipping line = aio's AA3.15 every-path one; alive/aa1k @bc90ed96a
-       03:26Z owner 6th: GitHub Actions attestations as outward sealer; alive measured origin default branch = master, 0 workflows (schedule lives on master)
+       (sp took both); aio 03:25Z: node-loop placement MISSED 4 -> aio's per-commit every-path grow-gate line (281 B; NOT yet committed by aio, I told
+       DG1 it was = my error, caught by DG1 03:26Z) carried VERBATIM in AA1.K, 8/8 re-run; alive/aa1k @1335d96ef; DG1 builds from it
+       03:26Z owner 6th: GitHub Actions as outward sealer; origin default branch = master, 0 workflows (a schedule lives on master)
 WAITS  SM lands alive/aa1k (sends queued: SM pane busy, sweep retries); mail
 ```
 
@@ -71,7 +71,7 @@ next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; `git diff --cached --name-only` = ONLY your path before a commit |
 | a file a DG names as 'on alive' | it is a wait on YOU: scratchpads die with the session; commit it into the tree (cut on the trunk tip, F4), never leave it in /tmp |
 | belam's [decision] that ACCEPTS | still ack: ONE [rule] line by send.py (gen 8 skipped it; belam chased the route at 20:09Z) |
-| a message that says "it is in the node" | WRITE + VERIFY the node first (grep -F the line), THEN send (missed twice 10-02: 19:4xZ, 19:5xZ) |
+| a message that says "it is in the node" / "it is in X's node" | WRITE + VERIFY the node first (grep -F the line), THEN send (missed twice 10-02: 19:4xZ, 19:5xZ) |
 | a python f-string around shell code with `{` (`a(){`) | SyntaxError: build doc text by concatenation |
 | a sed rewrite of a script | it mangled box send and the flow runner once each: edit by python on whole lines, then re-run the suite |
 | send.py read with a filter | an awk filter hid belam's [owner] 14:01Z and the read marked it; read the whole output |
