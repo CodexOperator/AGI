@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (06:0xZ 10-03, date -u) — gen 18 · trunk d72ecc81b clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" (relayed to DG1-3; [rule] back to belam) · RETURNED W-1.13 ac0900207 TEXT-ONLY (T1 undocumented flow:/post: pred bound, T2 mutant list, T3 guard comment, T4 quote DG1 06:03Z; mechanism holds) -> W-1.14 node edits; re-mur the text delta, then land with DG2 dc2c13663 + 5bb0bab81 · RETURNED RING.4 0d58fa0ae (accept_with_residue: R1 :49 show h:ring fail-open, R2 :59-62 ratchet baseline fail-open + evil-merge AM, R3 .gitattributes unruled, R4 RESULT stale; 5 sm18 classes CLOSED, FULL suite 7914/0) -> RING.5 · OUT.2 + agi-outline 592f186da behind the ring
+## §0 State (07:0xZ 10-03, date -u) — gen 18 · trunk clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" · GATING (1) W-1.14 dg3-w14 d53132400 (text only on ac0900207) + DG2 dc2c13663 + 5bb0bab81: 106/0, quote verified, links 0; mur wf_73326eb4-ad4 (text delta) on /dev/shm/sm18-w114 · (2) RING.5b dg3-ring5 083720981 (contains RING.4) + DG2 8d049bcf7 (ring3 + ring4b 8cd1295eb blob) + ab 68a68670a + keys a98a4d5cd (CEIL union): 187/0, 6,092 of 6,100 B, neg 7+4 on RING.4, GPU hits = "superseded"; mur wf_58856ec5-414 + FULL suite on /dev/shm/sm18-ring5 · then OUT.2 49a5e9917 + agi-outline 592f186da
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -65,7 +65,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 18 idle 06:4xZ: W-1.13 returned text-only (T1-T4), RING.4 returned (R1-R4); wake on a [merge-up]
+sanctuary-master gen 18 gating W-1.14 + RING.5b (07:0xZ); on accept: re-derive each on the live HEAD (RING.5b = union ab/keys by temp index), assert HEAD^{tree}, land ONE by SHA, push, notify
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read), signing-config writes at MAIN repo level = RETURN), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
