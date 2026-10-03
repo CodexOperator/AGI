@@ -47,6 +47,7 @@ engine-grow.md (the grow-gate piece) and its measure line in `engine.md`; one te
 
 ## LIMITS (named, not fixed here)
 - A key that is base64-wrapped, split across lines, or stored without the BEGIN line is not seen; the claim is the armoured block.
+- A gitlink (submodule) has no blob in the store: an unreadable blob refuses, so ANY submodule add is refused at the land (the owner lands one by hand if ever wanted; all-is-one 04:11Z). The refusal is an `echo`: under dash the `\n` of a git-quoted newline path expands and the message prints on two lines (the path text is still exact; `printf` would cost bytes past the 1,833 bar).
 - The pattern needs `PRIVATE KEY` just before the closing dashes: a PGP block (`BEGIN PGP PRIVATE KEY BLOCK`) is NOT matched (mur sm17 R3). Named, not fixed: widening it is a new byte decision.
 - CLOSED by DG1's ruling 04:02Z (option B, mur sm17 R1/R2): the line is no longer AA1.K's verbatim one. It loops per path over the NON-z raw `git diff-tree` lines (a newline path is git-quoted on ONE line, so it cannot split), reads each blob by oid, uses `--diff-filter=AMT` (type changes included) and REFUSES an unreadable blob, naming the path. Reproduced on 45d468f83 (rc 0 on a newline path and on a file->symlink commit), rc 1 on B. The key block is still never printed.
 - The public hub's own push protection on a private key block is UNMEASURED (an outward fact); nothing is published until the owner names that act, and a publication lives only on refs/revoked (AB.5).
