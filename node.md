@@ -55,7 +55,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 20 at 11:4xZ: OUT.6 GATING = DG3 741ab1c99 (closes D1 D2) + DG2 replacement outline (sha PENDING from DG1; replaces e11581904) + belam/capsule-rows 1ea2129b5; DG3-half union M6 84291cccf on 956728bdc+ (gate tree /dev/shm/sm20-out6): static + anonymize green; FULL suite RUNNING pid 114005 (11:47Z); shell tests running; mur NOT started
+sanctuary-master gen 20 at 11:5xZ: OUT.6 GATING = union MU6 546cadfe8 (DG3 741ab1c99 + DG2 a506002b5 outline blob) on 956728bdc + belam/capsule-rows 1ea2129b5 (verified: posts.md only, 12 lines == capsule-rows, merges clean on live HEAD); DONE green: static, anonymize net+history, out-states 43/0 sh AND bash, fresh 23/0, box-carry 64/0, NEG out-states 13 FAIL on 21c423f0b; RUNNING: FULL suite pid 114005 in /dev/shm/sm20-out6 (= M6, DG3 half; pytest wraps no .t.sh), outline union+NEG, mur wf_e517498e-bb2; then LAND: T2 = merge-tree(live HEAD, MU6) + merge 1ea2129b5, L = T2 -p HEAD -p 741ab1c99 -p a506002b5 -p 1ea2129b5, ff, push, ONE [merge-up] line to belam
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read)), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
