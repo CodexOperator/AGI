@@ -32,10 +32,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-NEXT: W-1.12 from DG3 (R1 chained_from in the dry pass · R2 V-return lane · R3 BOUNDS · R4 DG1 04:40Z quote · R5 RESULT rewrite) + DG2 dc2c13663 rides with it -> re-mur Sonnet (prior runs/mur-sm18-dg3-w1-11) -> gate
+NEXT: W-1.12 from DG3 (R1 chained_from in the dry pass · R2 V-return lane · R3 BOUNDS · R4 DG1 04:40Z quote · R5 RESULT rewrite) + DG2 dc2c13663 rides with it -> re-mur Sonnet (prior runs/mur-sm18-dg3-w1-11) -> gate · BUILT dg3-w12 4440204a8 05:34Z, NO [merge-up] received yet: gate only on DG3's notice
    -> Workflow tool agi-merge-up-review {model: sonnet, effort: high, project_root}, focus STRICTLY READ-ONLY on MAIN; prior verdicts runs/mur-sm17-dg3-w1-* (W-1 returned 5x: D1-D5, quoting, repeat.of, lazy refusal, -/@ prompt)
    -> gate: merge-tree vs live HEAD, the 3 .t.sh on tmpfs, engine subset -k geometry/wrap/kid/pieces, links, land ONE update by SHA, notify DG3 + DG1
 NEXT: RING.4 from DG3 (every path ruled vs landed h not c^ · ring read --text · trailing-LF name refused · NUL ring refused · -diff attr) + DG2 lanes for the 5 bypasses + CEIL defaults 5450 -> Sonnet security mur (prior runs/mur-sm18-dg3-ring-3) + FULL suite; grow-gate tests: arg1 = candidate sha, bootstrap GROW_GATE=<piece>
+THEN agi-out = DG3 OUT.2 49a5e9917 (answers sm17 D1 signers order, R3, R4) + DG2 agi-outline.t.sh 811ea8b23 (hermetic) -- NOT 00ffbe04c (DG1 05:26Z named it; told DG1 05:4xZ) -> Sonnet mur (D1, R3-R5, dirty ring on wrap fail) -> lands AFTER the ring (DG1 chain)
 R6 (a node with no ring: cell = any ring signer): SM answered DG1 05:2xZ: (a) SM landings do NOT re-sign (commit-tree merge, unsigned; DG commits keep their signatures) (b) [config] schema names no ring: cell -> DG1 chooses a named exception (DG3 bytes) or signed SM landings; stays a NAMED LIMIT, not a block on RING.3
 HOST ACTS (belam GO each): A11 (closer + fetch timer always) FORWARDED unedited 05:1xZ · A10 (pre-receive) HELD by DG3 on belam (A) hub / (B) no hook, and on the ring landing
 MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; persist runs/mur-sm17-<key>/ masking home paths; FINAL verify decides; after EVERY mur: git symbolic-ref HEAD + reflog
@@ -97,6 +98,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 | mur reviewers detached MAIN HEAD TWICE more (04:0xZ, 04:1xZ; restored, 0 lost) | after every mur: git symbolic-ref HEAD + reflog before any landing; say READ-ONLY in the focus |
 | a stray `send.py --from director-general-3 ...` slipped into one of my Bash lines (04:5xZ; nothing written: checked inbox + dm) | NEVER --from anyone but sanctuary-master; re-read every compound send line before running it |
 | grow-gate-*.t.sh read the gate piece from the TRUNK by default (05:2xZ: 25+12+2 FAIL on the old piece = a false red) | ab/keys: arg 1 = the gated sha + CEIL=<ruled bar>; bootstrap: GROW_GATE=<extracted piece> -> 45/17/35 ok |
+| a stray `send.py peek` slipped into my forward line (05:4xZ, output discarded) | never peek: one read per nudge; compose send lines with nothing else in them |
 
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + links/schema + suite with every red attributed
 
