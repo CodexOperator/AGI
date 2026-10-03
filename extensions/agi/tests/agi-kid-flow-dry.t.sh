@@ -26,6 +26,10 @@ w chain-ok '{"name":"chain-ok","stages":[{"label":"a","prompt":"PAID-A"},{"label
 w chain-miss '{"name":"chain-miss","stages":[{"label":"a","prompt":"PAID-A"},{"label":"b","chained_from":"nothere","prompt":"PAID-B"}]}'
 w chain-miss-sub '{"name":"chain-miss-sub","stages":[{"label":"a","prompt":"PAID-A"},{"label":"s","flow":"chain-miss-in"}]}'
 w chain-miss-in '{"name":"chain-miss-in","stages":[{"label":"x","chained_from":"nothere","prompt":"PAID-X"}]}'
+w fwd '{"name":"fwd","stages":[{"label":"a","prompt":"PAID-A"},{"label":"b","chained_from":"c","prompt":"PAID-B"},{"label":"c","prompt":"PAID-C"}]}'
+w selfref '{"name":"selfref","stages":[{"label":"a","prompt":"PAID-A"},{"label":"b","chained_from":"b","prompt":"PAID-B"}]}'
+w fwd-fan '{"name":"fwd-fan","stages":[{"label":"a","prompt":"PAID-A"},{"label":"b","chained_from":"rev","prompt":"PAID-B"},{"label":"rev","repeat":{"of":"rounds","label_template":"rev:{key}"},"prompt":"REV {key}"}]}'
+w back-fan '{"name":"back-fan","stages":[{"label":"rev","repeat":{"of":"rounds","label_template":"rev:{key}"},"prompt":"REV {key}"},{"label":"v","repeat":{"of":"rounds","label_template":"v:{key}"},"chained_from":"rev","prompt":"V {key}"}]}'
 w paid-post '{"name":"paid-post","stages":[{"label":"a","prompt":"PAID-A"},{"label":"p","post":"director-general-1","goal":"gk-later"}]}'
 $G -C $H/t add -A;$G -C $H/t -c commit.gpgsign=false commit -qm fixture
 flow(){ (cd $T;HOME=$H GIT_CONFIG_GLOBAL=$H/.gitconfig GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH LOG=$LOG AGI_POST=inv sh $PIECE -m "$1" "$2");}
@@ -45,5 +49,19 @@ flow paid-post '{}'>/dev/null 2>&1;rc=$?
 ok "b3-rerun-pending-no-second-launch-or-mail the same run again while the goal is still unmet: rc 75, still 1 launch and 1 mail in all (the paid 'a' is DONE, the hand-off is once)" '[ $rc = 75 ]&&[ "$(nl $LOG)" = 1 ]&&[ "$(nl $MAIL)" = 1 ]'
 : >$H/t/GROWN;flow paid-post '{}'>/dev/null 2>&1;rc=$?
 ok "b4-goal-met-finishes once the goal reads met the run again finishes: rc 0, still 1 launch in all, one ref (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 1 ]&&[ "$(refs|wc -l|tr -d " ")" = 1 ]'
+# --- W-1.12 R1' (SM 06:02Z, DG1 06:03Z): the dry pass tests ORDER, not only existence: a FORWARD, a SELF and a LATER-FAN-OUT chained_from each refuse before the first paid launch; a BACKWARD fan-out chain still runs
+fresh;flow fwd '{}'>/dev/null 2>&1;rc=$?
+ok "o1-forward-chained-from-refuses a paid 'a', then 'b' chained_from 'c' (a label that EXISTS but runs AFTER b), then 'c': nonzero, ZERO launches, no ref (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]&&[ -z "$(refs)" ]'
+fresh;flow selfref '{}'>/dev/null 2>&1;rc=$?
+ok "o2-self-chained-from-refuses a paid 'a', then 'b' chained_from 'b' (itself): nonzero, ZERO launches (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]&&[ -z "$(refs)" ]'
+fresh;flow fwd-fan '{"rounds":[{"key":"k1"},{"key":"k2"}]}'>/dev/null 2>&1;rc=$?
+ok "o3-later-fanout-label-refuses a paid 'a', then 'b' chained_from the label of a fan-out stage that comes LATER: nonzero, ZERO launches (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]&&[ -z "$(refs)" ]'
+fresh;flow back-fan '{"rounds":[{"key":"k1"},{"key":"k2"}]}'>/dev/null 2>&1;rc=$?
+ok "o4-control-backward-fanout a fan-out 'v' chained_from the EARLIER fan-out 'rev' runs all four (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 4 ]&&[ "$(refs|wc -l|tr -d " ")" = 1 ]'
+# --- the DONE test is on the EXACT ref: a finished flow (its ref exists) launches nothing; a ref that only ENDS with the result ref's name (git show-ref matches by TAIL) is NOT done
+fresh;flow chain-ok '{}'>/dev/null 2>&1;: >$LOG;flow chain-ok '{}'>/dev/null 2>&1;rc=$?
+ok "r1-done-resume-launches-nothing the same flow again once its result ref exists: rc 0, ZERO launches (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 0 ]'
+fresh;sh_=$(printf %s '{}'|sha256sum|cut -c1-12);$G -C $H/t update-ref refs/heads/refs/spawn/chain-ok/$sh_ $($G -C $H/t rev-parse HEAD);flow chain-ok '{}'>/dev/null 2>&1;rc=$?
+ok "r2-tail-match-is-not-done a ref refs/heads/refs/spawn/chain-ok/<sha12> (it only ENDS with the result ref's name) must NOT make the run skip: 2 launches, rc 0 (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 2 ]'
 echo "agi-kid-flow-dry: $f FAIL"
 exit $f
