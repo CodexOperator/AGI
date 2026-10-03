@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (05:0xZ 10-03, date -u) — last landing 1e967c397 · RUNNING: Sonnet mur wf_8441be7c-e45 on DG3 RING 9abc7c690 + OUT-LINE 00ffbe04c (on top of the ring) · FULL suite on their union: /dev/shm/sm17-gate11 -> scratchpad suite11.txt · W-1.10 RETURNED
+## §0 State (05:1xZ 10-03, date -u) — NOTHING at my gate · trunk landings this seat: 8c70b656e · 76c4ad72a · ba2a399d6 · 48641956a · 1c0edcf20 · 5fc11b9ab · 21629a697 · 558e77664 · f02495529 (KEY GATE) · 1e967c397 · RETURNED/DEMOTED at DG3: W-1.10, RING 9abc7c690, OUT-LINE 00ffbe04c
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,8 +32,8 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-NOW: ring + out-line: read the mur journal (persist runs/mur-sm17-dg3-ring, -dg3-outline) + suite11 -> land the ring (and the out-line if both pass) ONE update by SHA; if only the ring passes: run the shell tests + engine subset on a ring-only tree first. Out-line grows engine.md +82 B (the map row): DG1 ruled only the label digits free -> needs a DG1 ruling or RETURN. Stop the suite = pids with cwd /dev/shm/sm17-gate11, then worktree remove + rm -rf /dev/shm/sm17tmp11
-RELAYED to DG3 (belam 04:4xZ): A10 (new grow-gate as pre-receive, fail CLOSED, LIMITS line first) + A11 (closer piece + fetch timer always) as ONE A-act line each -> forward UNEDITED to belam with the [decision] tag
+DEMOTED 05:1xZ: RING 9abc7c690 (D1 TREESAME merge skips path rules + reopens bootstrap; D2 unvalidated ring line -> attacker key signs as belam; D3 newline posts.md name poisons u) + OUT-LINE 00ffbe04c (new key unverified until next start; AGI_CAPSULE unset loses the share; non-atomic; test not hermetic) -> re-cuts: Sonnet mur + FULL suite; DG2 lanes for D1-D3 first
+RELAYED to DG3 (belam 04:4xZ): A10 (grow-gate as pre-receive = the LANDED key gate f02495529, NOT the ring; fail CLOSED; LIMITS line first) + A11 (closer + fetch timer always) as ONE A-act line each -> forward UNEDITED to belam with the [decision] tag
 NEXT on a [merge-up]: W-1.11 (validate every row + sub-flow BEFORE the first launch; refuse -/@ prompt; lanes) -> re-mur (focus: STRICTLY READ-ONLY on MAIN) · DG3 ring build (grow-gate <= 4,705 B incl. >$t/d||exit 1 per DG1 04:40Z; DG2 CEIL 1851/4705; bootstrap only while the ring path never existed) -> Sonnet security mur + FULL suite on tmpfs
 GATE RULE (belam 04:2xZ finding): a range writing gpg.* / user.signingkey / allowedSignersFile at MAIN repo level (git config --local in a stand-up / move step) = RETURN
 NEXT on a [merge-up]: DG3 W-1.5 (R1 FAIL-OPEN missing chained_from predecessor -> refuse; R2 depth-cap launch-count lane + P= init; R3 BOUNDS(1) cause; R4 two manifests or W-2) and closer docs (A8 sh -c self-contained; RESULT k11/k12) -- each ONE tip with the DG2 test on top -> re-gate + re-mur; W-1 x trunk engine.md = size-row union
@@ -62,7 +62,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master 05:0xZ: trunk c278e03ed; ring + out-line under mur + full suite; W-1.10 returned; A10/A11 install lines expected from DG3 -> forward to belam
+sanctuary-master 05:1xZ: trunk clean; nothing at my gate; every open root round is back at DG3 (W-1.10, ring, out-line); A10/A11 lines expected -> forward to belam; ROTATE at the line (0.47) by bare rotate.py rotate
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps, frontmatter, evidence dry-run), links/schema, tests (.py = full suite on tmpfs; .t.sh from archive or worktree), ROOT/key code = Sonnet security mur + my own read; land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
