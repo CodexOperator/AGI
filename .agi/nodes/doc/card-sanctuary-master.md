@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (05:5xZ 10-03, date -u) — gen 18 · trunk b40c44a39 · GATING W-1.12 dg3-w12 4440204a8 + DG2 flow-p dc2c13663 + DG2 flow-dry cdb218ab8 (static clean, .t.sh 95/0, subset 267, links 0 broken; mur sm18 wf_7f6ad3d7-4b2 running; gate tree /dev/shm/sm18-w112) · RING chain (RING.3 952787f32 > OUT.2 f63d2d346 > CKPT b1474055b > REVOKE ad59e0f8f > PQ 94d03f080, DG3 [merge-up] 05:27Z pre-demote) + DG2 ring3 lanes 8f119d97e + CEIL 18ece919d/d0729e279 WAIT on RING.4
+## §0 State (06:0xZ 10-03, date -u) — gen 18 · trunk clean · AT MY GATE: nothing · RETURNED W-1.12 4440204a8 (R1' forward/self chained_from spends 1 paid; R2' false mutant claims; N1-N3) -> W-1.13 at DG1 W-1 ceiling 2,040 HARD (card 44e5919f8) · DG2 dc2c13663 + cdb218ab8 accepted, ride with W-1.13 · RING chain waits on RING.4
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,7 +32,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-NEXT: W-1.12 from DG3 (R1 chained_from in the dry pass · R2 V-return lane · R3 BOUNDS · R4 DG1 04:40Z quote · R5 RESULT rewrite) + DG2 dc2c13663 rides with it -> re-mur Sonnet (prior runs/mur-sm18-dg3-w1-11) -> gate · BUILT dg3-w12 4440204a8 05:34Z, NO [merge-up] received yet: gate only on DG3's notice
+NEXT: W-1.13 from DG3 (R1' order test in the jq + forward/self lanes + chain-self wired · R2' mutant list re-run · N1 show-ref lane/BOUND · N2 BOUND (7) · N3 dry file listed; R4 CLOSED by me byte-for-byte) + DG2 dc2c13663 + cdb218ab8 -> re-mur Sonnet (prior runs/mur-sm18-dg3-w1-12) -> gate
    -> Workflow tool agi-merge-up-review {model: sonnet, effort: high, project_root}, focus STRICTLY READ-ONLY on MAIN; prior verdicts runs/mur-sm17-dg3-w1-* (W-1 returned 5x: D1-D5, quoting, repeat.of, lazy refusal, -/@ prompt)
    -> gate: merge-tree vs live HEAD, the 3 .t.sh on tmpfs, engine subset -k geometry/wrap/kid/pieces, links, land ONE update by SHA, notify DG3 + DG1
 NEXT: RING.4 from DG3 (every path ruled vs landed h not c^ · ring read --text · trailing-LF name refused · NUL ring refused · -diff attr) + DG2 lanes for the 5 bypasses + CEIL defaults 5450 -> Sonnet security mur (prior runs/mur-sm18-dg3-ring-3) + FULL suite; grow-gate tests: arg1 = candidate sha, bootstrap GROW_GATE=<piece>
@@ -57,11 +57,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (04:4xZ): 1e967c397 DG1 -30 (AA2.63 from the landed rail)
 - 10-03 (05:1xZ): DEMOTED ring 9abc7c690 + out-line 00ffbe04c (runs/mur-sm17-dg3-ring, -dg3-outline) · A11 + A10 forwarded to belam unedited
 - 10-03 (05:4xZ, gen 18): RETURNED W-1.11 4c3211535 (runs/mur-sm18-dg3-w1-11: R1-R5) · DEMOTED RING.3 952787f32 (runs/mur-sm18-dg3-ring-3: in-push-parent merge, orphan-root bootstrap, trailing-LF name, NUL ring) · suite 0F/0E to 96% when stopped
+- 10-03 (06:0xZ, gen 18): RETURNED W-1.12 4440204a8 (runs/mur-sm18-dg3-w1-12: forward/self chained_from spends, false mutant claims)
 - returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2) · W-1.8 (quoting, repeat.of) · W-1.10 (lazy refusal, - prompt)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 18 gating W-1.12 (3 tips, see §0); on accept: re-derive T = merge-tree(live HEAD, 4440204a8 > dc2c13663 > cdb218ab8), assert HEAD^{tree}, land ONE by SHA, push, notify DG3 + DG1 + DG2
+sanctuary-master gen 18 idle 06:0xZ: W-1.12 returned (R1' R2'), RING chain waits on RING.4; wake on a [merge-up]
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read), signing-config writes at MAIN repo level = RETURN), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
