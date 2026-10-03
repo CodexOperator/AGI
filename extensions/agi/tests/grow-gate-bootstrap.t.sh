@@ -6,7 +6,7 @@ o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git
 for p in owner legacy;do ssh-keygen -qN "" -ted25519 -f$D/k/$p>/dev/null;done
 echo "legacy@agi namespaces=\"git\" $(cut -d' ' -f1,2 $D/k/legacy.pub)">$D/allowed
 printf 'owner ssh-ed25519 %s\n' "$(cut -d' ' -f2 $D/k/owner.pub)">$D/ringfile
-git init -q $D/r;echo $G/objects>$D/r/.git/objects/info/alternates;cd $D/r;git update-ref refs/heads/trunk $o;export PATH=$D/b:$PATH;printf '#!/bin/sh\nexit 0\n'>$D/b/ckpt;chmod +x $D/b/ckpt
+git init -q $D/r;echo $G/objects>$D/r/.git/objects/info/alternates;cd $D/r;git update-ref refs/heads/trunk $o;export PATH=$D/b:$PATH;[ -s $D/b/ckpt ]||{ printf '#!/bin/sh\nexit 0\n'>$D/b/ckpt;chmod +x $D/b/ckpt;}
 # commit on parent $1 with signer $2; $3 = add|del|none of the ring file; $4 = filler name
 mk(){ x=$D/i;GIT_INDEX_FILE=$x git read-tree $1
  case $3 in add)GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w $D/ringfile),.agi/nodes/.geometry/ring;;del)GIT_INDEX_FILE=$x git update-index --force-remove .agi/nodes/.geometry/ring;;esac
