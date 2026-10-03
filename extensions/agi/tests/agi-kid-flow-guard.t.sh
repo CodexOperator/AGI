@@ -26,6 +26,9 @@ for g in bs log grep diff ok;do gp $g;done
 w one '{"name":"one","stages":[{"label":"solo","prompt":"LINE1\nLINE2 tab\there"}]}'
 w fan '{"name":"fan","stages":[{"label":"review","repeat":{"of":"rounds","label_template":"review:{key}"},"prompt":"REVIEW {key}"}]}'
 w empty '{"name":"empty","stages":[]}'
+w selfie '{"name":"selfie","stages":[{"label":"a","flow":"selfie"}]}'
+w cyc-a '{"name":"cyc-a","stages":[{"label":"p","prompt":"P"},{"label":"b","flow":"cyc-b"}]}'
+w cyc-b '{"name":"cyc-b","stages":[{"label":"a","flow":"cyc-a"}]}'
 $G -C $H/t add -A;$G -C $H/t -c commit.gpgsign=false commit -qm fixture
 flow(){ (cd $T;HOME=$H GIT_CONFIG_GLOBAL=$H/.gitconfig GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH LOG=$LOG AGI_POST=inv sh $PIECE -m "$1" "$2");}
 nl(){ wc -l<$1|tr -d ' ';}
@@ -51,6 +54,11 @@ ok "d4-resume-launches-nothing with the state kept and the ref gone, the re-run 
 # --- multi-line prompt: a prompt holding a newline and a tab reaches the kid whole, in ONE launch
 : >$LOG;flow one '{}'>/dev/null 2>&1;rc=$?
 ok "ml-prompt a manifest prompt with a newline and a tab is ONE launch and the kid sees both lines (rc=$rc)" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 1 ]&&grep -q "^LINE2 tab	here" $LOG.p1'
+# --- recursion: a flow that names itself, or two that name each other, stops at the depth guard: nonzero, inside timeout 20 (124 = a runaway), no ref
+: >$LOG;n1=$(refs|wc -l|tr -d ' ')
+( cd $T;HOME=$H GIT_CONFIG_GLOBAL=$H/.gitconfig GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH LOG=$LOG AGI_POST=inv timeout 20 sh $PIECE -m selfie '{}' )>/dev/null 2>&1;rc1=$?
+( cd $T;HOME=$H GIT_CONFIG_GLOBAL=$H/.gitconfig GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH LOG=$LOG AGI_POST=inv timeout 20 sh $PIECE -m cyc-a '{}' )>/dev/null 2>&1;rc2=$?
+ok "rec-guard a self-naming flow (rc=$rc1) and a 2-cycle (rc=$rc2) stop nonzero and not by the 20 s timeout (124), and write no ref" '[ $rc1 != 0 ]&&[ $rc1 != 124 ]&&[ $rc2 != 0 ]&&[ $rc2 != 124 ]&&[ "$(refs|wc -l|tr -d " ")" = $n1 ]'
 # --- D5: a manifest name outside [a-z0-9-] is refused before anything is created
 rm -rf $H/s;flow '../t' '{}'>/dev/null 2>&1;rc1=$?;flow 'One' '{}'>/dev/null 2>&1;rc2=$?;flow 'a b' '{}'>/dev/null 2>&1;rc3=$?
 ok "d5-name-refused names '../t', 'One' and 'a b' exit nonzero and create nothing under ~/s (rc $rc1 $rc2 $rc3)" '[ $rc1 != 0 ]&&[ $rc2 != 0 ]&&[ $rc3 != 0 ]&&[ ! -e $H/s ]'

@@ -49,19 +49,19 @@ on("session_before_compact",()=>{h("PreCompact",{trigger:"auto"})});on("turn_end
 ~~~sh
 #!/bin/sh
 if [ "$1" = -m ];then M=$2;A=$3;case $M in *[!a-z0-9-]*)exit 1;;esac;cd ~/t;s=$(printf %s "$A"|sha256sum|cut -c1-12);D=~/s/$M/$s;R=refs/spawn/$M/$s
-git rev-parse -q --verify $R>/dev/null&&exit 0
+git rev-parse -q --verify $R>/dev/null&&exit
 n(){ echo $D/o.$(printf %s "$P$1"|tr -c 'A-Za-z0-9._:-' _);}
 st(){ o=$(n "$1")
  if [ "$2" ];then q=$(git show HEAD:.agi/nodes/goal/$3.md|sed -n '/^## Falsifier/,/^## /s/^\$ //p'|head -1)
-  printf %s "$q"|grep -Eq '^(grep|test|ls|git (rev-parse|ls-files|for-each-ref)) [^;&|<>`$()\\]*$'&&timeout 30 sh -c "$q"</dev/null>/dev/null 2>&1||{ [ -e $o.h ]||{ m="handoff $M $1 $3";echo "$m"|box send $2 "$m"&&:>$o.h;};exit 75;}
- elif [ "$4" ];then (P="$P$1/";fl $4)||exit $?
+  printf %s "$q"|grep -Eq '^(grep|test|ls|git (rev-parse|ls-files|for-each-ref)) [^;&|<>`$()\\]*$'&&timeout 30 sh -c "$q"</dev/null>/dev/null||{ [ -e $o.h ]||{ m="handoff $M $1 $3";echo "$m"|box send $2 "$m"&&:>$o.h;};exit 75;}
+ elif [ "$4" ];then [ ${#P} -lt 99 ]&&(P=$P$1/;fl $4)||exit $?
  elif [ ! -f $o ];then r=$6;[ "$5" ]&&{ b=$(n "$5");[ -f $b ]||b=$(n "$5:$7");r="$r
 $(cat $b)";};W=$(mktemp -d);git archive HEAD|tar -xC $W
   (cd $W;GIT_DIR=/dev/null HOME=$W pi --provider openrouter --model "$AGI_KID_MODEL" -p "$r"</dev/null>$o.t)||{ rm -rf $W $o.t;exit 1;};rm -rf $W;mv $o.t $o;fi;}
 fl(){ x=$(git show HEAD:extensions/agi/workflows/$1.json|jq -r --argjson a "$A" '.stages[]|(if .repeat then $a[.repeat.of][]?.key else "" end) as $k|"st "+([(.repeat.label_template//.label),.post//"",.goal//"",.flow//"",.chained_from//"",.prompt//"",$k]|map(gsub("\\{key\\}";$k))|@sh)')&&[ "$x" ]||exit 1;mkdir -p $D;eval "$x";}
 fl $M;(export GIT_DIR=$PWD/.git GIT_WORK_TREE=$D GIT_INDEX_FILE=$(mktemp -u);cd $D&&git add -A&&git update-ref $R $(git commit-tree -S -m $s $(git write-tree)));exit $?;fi
 k=$1;shift;h=~/k/$k;mkdir -p $h/.claude;cd ~/t;[ -d $h/t ]||git worktree add -q $h/t -b kids/$k
-for x in .gitconfig .ssh .signers hooks .claude/settings.json;do ln -sfn ~/$x $h/$x;done
+for x in .gitconfig .ssh hooks .claude/settings.json;do ln -sfn ~/$x $h/$x;done
 cd $h/t;HOME=$h AGI_SEAT=$k AGI_ROLE=kid AGI_HARNESS=pi-free AGI_WT=$RUNTIME_DIRECTORY/k-$k exec pi --provider openrouter --model $AGI_KID_MODEL --skill skills -e ~/bin/cccc.ts -p "$*"</dev/null
 ~~~
 
