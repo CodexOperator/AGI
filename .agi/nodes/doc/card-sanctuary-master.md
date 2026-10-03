@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (03:4xZ 10-03, date -u) — landed 8c70b656e + 76c4ad72a + ba2a399d6 · Sonnet re-mur wf_b9bbc2f1-35d RUNNING on DG3 W-1 7a4364047 / A3.4 d6961baf6 / closer be1ae1030 · K3 returned to DG2 (R1-R4)
+## §0 State (04:0xZ 10-03, date -u) — landed 8c70b656e + 76c4ad72a + ba2a399d6 + 48641956a (A3.4) · NOTHING at my gate · RETURNED: K3 d8e954c91 (DG2 R1-R4) · W-1 7a4364047 + closer be1ae1030 (DG3)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -33,7 +33,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 ## §1 Plan
 ```
 NEXT on a [merge-up]: K3 corrective 3 (DG2): R1 ceiling raise in its own lane commit + DG1 [rule] · R2 hyp lines 11/40 = 1,100 · R3 digit-leading key-name guard + k= init + lane · R4 size split -> gate + Sonnet re-mur
-NOW: re-mur of DG3 W-1 re-cut 7a4364047 (also needs DG2 amended agi-kid-flow.t.sh sha: 40/6 as shipped) · A3.4 d6961baf6 · closer be1ae1030 (+ install.sh timer ALWAYS, doc shas) -> final verify decides; persist runs/mur-sm17-<round>/
+NEXT on a [merge-up]: DG3 W-1 (R1 MUST drop re-added .signers, R2 RESULT rewrite, R3 bounds; + DG2 amended agi-kid-flow.t.sh sha) · closer (A8 rollback keeps the timer, A4 reading, RESULT counts) -> re-gate + re-mur
 NEXT: DG1 places the private-key gate round (hyp landed 76c4ad72a) -> DG2 falsifier -> DG3 build -> my gate (scan EVERY version for armour, count only) · belam A1 re-run is his GO now (doc landed)
 QUEUED elsewhere: phase W rounds (DG1) · DG2 falsifier cases for W-1 D1-D4 · K1 / K2(a) root = belam GOs
 HOST ACTS (belam GO each): A1 re-run for the changed agi-signers (after the doc refresh) · A3 unit install · A6 (act1.sh) · A7 (AA2 stores) · A8 LAST · agi-land land step
@@ -46,11 +46,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (03:2xZ): 8c70b656e SP 5 b784f9847 (carries 4) + DG3 grid falsifier 124951e61 (0 FAIL) + aio 22 5800f4c7e (supersedes the LANDED 21: tip blob taken)
 - 10-03 (03:3xZ): 76c4ad72a aio 25 (22-24 void) + SP 6 + alive AA1.K + DG1 -26 (AA2 private-key hyp) + DG3 install-doc refresh (box-carry.t.sh 46/0)
 - 10-03 (03:4xZ): ba2a399d6 SP 8 (carries 7) + alive AA1.K 1335d96ef + DG1 -27 (AA2 hyp renamed in place, same mint_id)
+- 10-03 (04:0xZ): 48641956a DG3 A3.3+A3.4 key step (mur FINAL accept; agi-fresh 21/0, box-carry 46/0, engine subset 331/0) -- install = belam GO
 - returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master 03:4xZ: trunk ba2a399d6 clean; re-mur wf_b9bbc2f1-35d running (W-1 / A3.4 / closer); K3 with DG2. At the mur notice: read the journal, persist, gate the survivors on tmpfs, land ONE update
+sanctuary-master 04:0xZ: trunk 48641956a clean; nothing at my gate; K3 (DG2), W-1 + closer (DG3) returned; IDLE until a [merge-up]
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps, frontmatter, evidence dry-run), links/schema, tests (.py = full suite on tmpfs; .t.sh from archive or worktree), ROOT/key code = Sonnet security mur + my own read; land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
