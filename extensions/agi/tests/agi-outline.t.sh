@@ -17,6 +17,7 @@ sect agi-signers>$T/signers.sh;for x in sect grow-check grow-gate agi-fill;do ca
 [ -s $STEPS ]&&[ -s $ESCF ]&&[ -s $T/signers.sh ]||{ echo "FAIL extract: steps $(wc -c<$STEPS) B, esc $(wc -c<$ESCF) B, signers $(wc -c<$T/signers.sh) B";exit 99;}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM AGI_TRUNK
+export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null   # HERMETIC (SM return 05:12Z): no host gitconfig (gpg.format, allowedSignersFile, signingkey, hooks) reaches any case; the unit alone (up) reads the post's OWN ~/.gitconfig under HOME=$H
 P=post1;Q=other;SM=sm;S=$T/stores;H=$S/$P;RUN=$T/run;O=$T/main;K=$T/k;CAP=$T/cap;mkdir -p $H/.ssh $RUN/agi-$P $CAP
 # --- key helpers: a ring line triple for a name, from a sign key file, a PQ root (32 random bytes) and a SEAL key (esc's KEY format)
 cat >$T/seal.py <<'PYEOF'
@@ -46,7 +47,7 @@ opn(){ python3 $ESCF open $1 <$2 2>/dev/null;}   # opn KEYFILE LINEFILE: prints 
 SH0=$(opn $H/seal.key $CAP/$P)
 # --- the shim: `git` that fails the land (commit, commit-tree, update-ref, push, merge) while $T/failland exists
 printf '#!/bin/sh\nskip=;sub=;for a in "$@";do [ -n "$skip" ]&&{ skip=;continue;};case $a in -C|-c)skip=1;continue;;-*)continue;;*)sub=$a;break;;esac;done\n[ -e %s/failland ]&&case $sub in commit|commit-tree|update-ref|push|merge)echo "shim: land refused" >&2;exit 1;;esac\nexec /usr/bin/git "$@"\n' $T>$T/shim/git;chmod +x $T/shim/git
-up(){ (cd $H&&export HOME=$H O=$O AGI_TRUNK=$TR AGI_SEAT=$P AGI_CAPSULE=$CAP RUNTIME_DIRECTORY=$RUN/agi-$P ESC=$ESCF SEALPY=$T/seal.py OLREF=$OLREF PATH=$T/shim:$H/bin:$PATH GIT_AUTHOR_NAME=$P GIT_COMMITTER_NAME=$P GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$T/allowed sh $T/signers.sh $P;;esac;done<$STEPS);}
+up(){ (cd $H&&unset GIT_CONFIG_GLOBAL XDG_CONFIG_HOME&&export HOME=$H O=$O AGI_TRUNK=$TR AGI_SEAT=$P AGI_CAPSULE=$CAP RUNTIME_DIRECTORY=$RUN/agi-$P ESC=$ESCF SEALPY=$T/seal.py OLREF=$OLREF PATH=$T/shim:$H/bin:$PATH GIT_AUTHOR_NAME=$P GIT_COMMITTER_NAME=$P GIT_AUTHOR_EMAIL=$P@agi GIT_COMMITTER_EMAIL=$P@agi&&while IFS= read -r l;do case $l in "ExecStartPre=sh -c "*)q=$(printf %s "${l#ExecStartPre=sh -c }"|sed "s,%i,$P,g;s,%t,$RUN,g");eval "sh -c $q" >>$T/up.out 2>>$T/up.err;;"ExecStartPre=+"*agi-signers*)AGI_RUN=none AGI_STORES=$S AGI_SIGNERS=$T/allowed sh $T/signers.sh $P;;esac;done<$STEPS);}
 agirun(){ rm -f $H/.fresh;}
 pub(){ cut -d' ' -f1,2 $H/.ssh/id_ed25519.pub;}
 rc(){ $G -C $H/t rev-list --count $1..HEAD -- $R;}                       # ring commits since $1
@@ -54,7 +55,7 @@ rg(){ $G -C $H/t show ${1:-HEAD}:$R;}                                      # the
 own(){ rg $1|grep "^$P ";}
 allowed(){ rg $1|awk '$2=="ssh-ed25519"{printf "%s@agi namespaces=\"git\" %s %s\n",$1,$2,$3}'>$T/al;}
 # vp COMMIT: verify-commit against the ring at the commit's PARENT (the receiving tip); the EXIT STATUS decides
-vp(){ allowed $1^;$G -C $H/t -c gpg.ssh.allowedSignersFile=$T/al verify-commit $1>$T/vk.out 2>&1;}
+vp(){ allowed $1^;$G -C $H/t -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=$T/al verify-commit $1>$T/vk.out 2>&1;}
 fp(){ ssh-keygen -lf $1|cut -d' ' -f2;}
 distinct(){ own $1|cut -d' ' -f3|sort>$T/o0;own $2|cut -d' ' -f3|sort>$T/o1;[ -z "$(comm -12 $T/o0 $T/o1)" ];}
 # --- a start whose key the ring does not know: the pre-existing generation 0 (fixture): a crash restart (no .fresh): the key is kept and the ring gets NO commit
@@ -68,7 +69,7 @@ ok "a-outline-ring-only that commit touches ONLY the ring file" '[ "$($G -C $H/t
 ok "a-outline-three-lines it leaves the post exactly 3 lines of its own: ssh-ed25519, pq-sha256, x25519 (not 6: the old ones are replaced)" '[ "$C1" != "$B" ]&&[ "$(own $C1|wc -l|tr -d " ")" = 3 ]&&[ "$(own $C1|cut -d" " -f2|sort|tr "\n" " ")" = "pq-sha256 ssh-ed25519 x25519 " ]'
 ok "a-outline-others-untouched every other post keeps its lines byte for byte" '[ "$C1" != "$B" ]&&[ "$(rg $B|grep -v "^$P ")" = "$(rg $C1|grep -v "^$P ")" ]'
 ok "a-outline-all-three-new none of the three columns repeats generation 0 (a column left unchanged would keep a retired key in force)" '[ "$C1" != "$B" ]&&distinct $B $C1'
-ok "a-outline-signed-by-current the commit is signed by the CURRENT (generation 0) sign key: its key fingerprint is key0's, and verify-commit against the ring at its parent exits 0" 'vp $C1&&[ "$($G -C $H/t log -1 --format=%GK $C1)" = "$(fp $K/key0.pub)" ]'
+ok "a-outline-signed-by-current the commit is signed by the CURRENT (generation 0) sign key: its key fingerprint is key0's, and verify-commit against the ring at its parent exits 0" 'vp $C1&&[ "$($G -C $H/t -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=$T/al log -1 --format=%GK $C1)" = "$(fp $K/key0.pub)" ]'
 ok "a-outline-key-installed after the restart the live sign key IS the ring's new ssh-ed25519 column and differs from generation 0" '[ "$(pub)" != "$K0" ]&&[ "$(own $C1|awk "\$2==\"ssh-ed25519\"{print \$2,\$3}")" = "$(pub)" ]'
 ok "a-outline-pq-32 the pq-sha256 column is 32 raw bytes" '[ "$C1" != "$B" ]&&[ "$(own $C1|awk "\$2==\"pq-sha256\"{print \$3}"|base64 -d 2>/dev/null|wc -c|tr -d " ")" = 32 ]'
 ok "a-outline-seal-is-ring the x25519 column is 32 raw bytes and IS the public half of ~/seal.key" '[ "$C1" != "$B" ]&&x=$(own $C1|awk "\$2==\"x25519\"{print \$3}");[ "$(echo $x|base64 -d 2>/dev/null|wc -c|tr -d " ")" = 32 ]&&[ "$x" = "$(sealpub $H/seal.key)" ]'
@@ -82,13 +83,13 @@ ok "a-crash-after-outline two crash restarts after the out-line keep the NEW key
 sleep 1;touch $H/.fresh;up;K2=$(pub);up;up
 ok "a-retry-idempotent an out-line whose start is RETRIED twice before agi-run consumes .fresh adds exactly 1 commit in all and keeps the key its first attempt made (ring commits $(rc $B), want 2)" '[ "$K2" != "$K1" ]&&[ "$(pub)" = "$K2" ]&&[ "$(rc $B)" = 2 ]'
 C2=$($G -C $H/t rev-parse HEAD);agirun
-ok "a-chain the second out-line is signed by generation 1 (key1's fingerprint) and verifies against the ring its parent holds; the post still holds exactly 3 lines" 'vp $C2&&[ "$($G -C $H/t log -1 --format=%GK $C2)" = "$(fp $K/key1.pub)" ]&&[ "$(own $C2|wc -l|tr -d " ")" = 3 ]'
+ok "a-chain the second out-line is signed by generation 1 (key1's fingerprint) and verifies against the ring its parent holds; the post still holds exactly 3 lines" 'vp $C2&&[ "$($G -C $H/t -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=$T/al log -1 --format=%GK $C2)" = "$(fp $K/key1.pub)" ]&&[ "$(own $C2|wc -l|tr -d " ")" = 3 ]'
 ok "a-chain-all-three-new the second out-line repeats none of the first one's three columns" 'distinct $C1 $C2'
 cp $H/seal.key $K/seal2;cp $CAP/$P $T/cap2
 # --- (b) a crash BEFORE the land leaves the old line in force; the retry then completes
 B3=$($G -C $H/t rev-parse HEAD);K3=$(pub);RG3=$(rg $B3|md5sum);sleep 1;touch $H/.fresh;: >$T/failland;up;rm -f $T/failland
 ok "b-crash-before-land the land refused: the ring is unchanged, the old key still the live key, no new commit, .fresh still pending" '[ "$(rg|md5sum)" = "$RG3" ]&&[ "$(pub)" = "$K3" ]&&[ "$($G -C $H/t rev-parse HEAD)" = "$B3" ]&&[ -e $H/.fresh ]'
-ok "b-old-line-in-force the old key still verifies a commit against the ring (the old line is the one in force)" 'cp $H/.ssh/id_ed25519 $K/live;vc=$($G -C $H/t -c user.signingkey=$K/live -c gpg.format=ssh commit-tree -S -m m $($G -C $H/t rev-parse HEAD^{tree}) -p $B3 2>/dev/null);[ -n "$vc" ]&&vp $vc'
+ok "b-old-line-in-force the old key still verifies a commit against the ring (the old line is the one in force)" 'cp $H/.ssh/id_ed25519 $K/live;vc=$($G -C $H/t -c user.name=$P -c user.email=$P@agi -c user.signingkey=$K/live -c gpg.format=ssh commit-tree -S -m m $($G -C $H/t rev-parse HEAD^{tree}) -p $B3 2>/dev/null);[ -n "$vc" ]&&vp $vc'
 up;agirun
 ok "b-retry-completes after the refused land, the next start completes the out-line with exactly 1 commit and a new key (ring commits $(rc $B3), want 1)" '[ "$(rc $B3)" = 1 ]&&[ "$(pub)" != "$K3" ]&&[ "$(own|awk "\$2==\"ssh-ed25519\"{print \$2,\$3}")" = "$(pub)" ]'
 # --- (b) a crash AFTER the land leaves a line whose key is LOST: a restart writes 0 ring commits (a post cannot vouch for itself); the PARENT re-vouches with ONE commit the gate admits (C7); a sibling is refused
