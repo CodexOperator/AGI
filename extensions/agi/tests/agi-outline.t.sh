@@ -73,7 +73,7 @@ ok "a-outline-signed-by-current the commit is signed by the CURRENT (generation 
 ok "a-outline-key-installed after the restart the live sign key IS the ring's new ssh-ed25519 column and differs from generation 0" '[ "$(pub)" != "$K0" ]&&[ "$(own $C1|awk "\$2==\"ssh-ed25519\"{print \$2,\$3}")" = "$(pub)" ]'
 ok "a-outline-pq-32 the pq-sha256 column is 32 raw bytes" '[ "$C1" != "$B" ]&&[ "$(own $C1|awk "\$2==\"pq-sha256\"{print \$3}"|base64 -d 2>/dev/null|wc -c|tr -d " ")" = 32 ]'
 ok "a-outline-seal-is-ring the x25519 column is 32 raw bytes and IS the public half of ~/seal.key" '[ "$C1" != "$B" ]&&x=$(own $C1|awk "\$2==\"x25519\"{print \$3}");[ "$(echo $x|base64 -d 2>/dev/null|wc -c|tr -d " ")" = 32 ]&&[ "$x" = "$(sealpub $H/seal.key)" ]'
-ok "a-outline-no-key-bytes-in-commit the commit holds no private key block (the trunk is public)" '[ "$C1" != "$B" ]&&! $G -C $H/t show $C1|grep -aq -e "-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----"'
+ok "a-outline-no-key-bytes-in-commit the commit holds no private key block (the trunk is public)" '[ "$C1" != "$B" ]&&! $G -C $H/t show $C1|grep -aq -e "-\{5\}BEGIN [A-Z0-9 ]*PRIVATE KEY-\{5\}"'
 ok "a-outline-no-ring-text-left (e) no uncommitted ring text beside the one commit" '[ -z "$($G -C $H/t status --porcelain -- $R)" ]'
 ok "a-outline-retired-seal-deleted the retired SEAL key survives nowhere under the post's home" '! grep -rqF "$(cat $K/seal0)" $H --exclude-dir=t'
 agirun
