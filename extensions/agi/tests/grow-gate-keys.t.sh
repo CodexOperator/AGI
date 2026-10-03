@@ -3,7 +3,7 @@
 # grow-gate refuses EVERY commit that adds or changes ANY path (node, script, payload, binary, deprecated node, a path with spaces; a merge's own changes included) whose bytes hold a private key block, whatever the ring says; it never prints the key
 # and never parses one (no ssh-keygen: an encrypted block must refuse inside a timeout, not hang). Scratch repo borrowing GITDIR's objects (0 shared refs written), scratch keys GENERATED AT RUN TIME (4c: this file holds no armoured block;
 # every header below is assembled from parts). Tools from TRUNK by sect; GROW_GATE=<file> tests a candidate grow-gate. One ok/FAIL line per case; exit = number of FAILs.
-SELF=$(cd "$(dirname "$0")" && pwd)/$(basename "$0");T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k $D/f;f=0;CEIL=${CEIL:-4705}
+SELF=$(cd "$(dirname "$0")" && pwd)/$(basename "$0");T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k $D/f;f=0;CEIL=${CEIL:-6100}
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
 [ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;chmod +x $D/b/*;[ -s $D/b/grow-gate ]||{ echo "FAIL no grow-gate at $T";exit 99;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE
