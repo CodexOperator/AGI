@@ -43,7 +43,7 @@ agi-run           501 B  pane cmd: .fresh or -c, under strace; claude: mail -> i
 settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
 cccc.ts           1647 B  pi events -> those CC hooks; inbox growth -> a turn
 agi-kid            390 B  a pi-free kid in this unit: own HOME, tree, cccc.ts
-agi-infer          1067 B  ONE chat call, OpenAI-compatible: stdin -> stdout
+agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
 agi-brief          938 B  walk card+seeds+claims; record; STARTUP
 brief.py           810 B  the complex walk over parents: edges
 agi-meter          439 B  past rotate_pct of the window: the out-line

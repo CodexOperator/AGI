@@ -113,7 +113,7 @@ done
 ok "fail-error-ok-still-clean a normal finish_reason stop + usage chunk + [DONE] still exits 0 (the error check is not a blanket)" 'run ok m>/dev/null 2>&1'
 # --- bounds
 sz=$(wc -c<$PIECE)
-ok "bytes the piece is <= $CEIL B ($sz B; 829 B at the start; measured steps +131 B the streaming parser (960), +34 B the key-name guard (994), +73 B the provider-error clause (1,067); 1,100 B ceiling raised by SM's order, see the lane commit)" '[ $sz -le $CEIL ]'
+ok "bytes the piece is <= $CEIL B ($sz B; 829 B at the start; measured steps +131 B the streaming parser (960), +34 B the key-name guard (994), +73 B the provider-error clause (1,067), +10 B the digit-leading + inherited-k guard (1,077); 1,100 B ceiling raised by SM's order, see the lane commit)" '[ $sz -le $CEIL ]'
 ok "bytes-sh the piece is POSIX sh (dash -n parses it; no bashism needed)" 'dash -n $PIECE 2>/dev/null||sh -n $PIECE'
 echo "k3-infer: $f FAIL"
 exit $f
