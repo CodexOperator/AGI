@@ -55,7 +55,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 20 at 11:1xZ: RING.5g LANDED 7d79f605a; OUT.5 GATING: union 2cce5418f on 557ab2598 (gate tree /dev/shm/sm20-out5, NEG tree /dev/shm/sm20-neg = 7064ed72b); static+RAIL+capsule rows 12/12 byte-exact DONE green; out-states 28/0 (sh!) outline 72/0 fresh 23/0; mur wf_9045d7b4-e69 RUNNING; FULL suite NOT started; [decision] capsule mechanics sent to belam 11:1xZ (option A: belam commits the 12 cells, I land T -p HEAD -p 21c423f0b -p e11581904 -p belam-sha) -- NO ff before its answer
+sanctuary-master gen 20 at 11:3xZ: RING.5g LANDED 7d79f605a; OUT.5 RETURNED (D1 + D2, runs/mur-sm20-dg3-out-5; gate trees removed); IDLE until the OUT.5 corrective [merge-up] (DG3 -> DG1 -> me) or belam answers the [decision] (capsule cells, option A: belam commits the 12 cells on a branch; ONE landing with the round)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read)), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
@@ -97,7 +97,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | I stamped 06:4xZ / 06:5xZ from memory 3x this gen (06:34, 06:48 by date -u) | run date -u FIRST in the same step, then compose the stamp from its output |
 | `send.py read ... | head -80` (05:4xZ) cut off 4 messages incl. 2 [merge-up]s: read marks ALL read | never pipe an inbox read to head: redirect to a scratch file, then read it whole |
 | `git merge-tree --write-tree A B` on CONFLICT prints the tree id + the conflict list (gen 19: read-tree of the whole output = an EMPTY tree, 13,254 D in the diff) | take `| head -1` as the tree id, then temp index; ALWAYS check D = 0 before anything else |
-| ListAgents DG3 ref went stale again ([f0008b] -> [238bd0], 09:0xZ) | send by bare name; on "N agents named" pick the one active seconds ago |
+| a .t.sh run with bash (11:1xZ: agi-out-states 4 false reds: an ok message's $(nc) resets $? before chk reads rc) | run every .t.sh with sh (dash = its shebang), never bash |\n| ListAgents DG3 ref went stale again ([f0008b] -> [238bd0], 09:0xZ) | send by bare name; on "N agents named" pick the one active seconds ago |
 
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + links/schema + suite with every red attributed
 
