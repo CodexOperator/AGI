@@ -33,4 +33,21 @@ touch $H/.fresh;CAP=capsule;out;rc2=$?;ok "r1c-restart-after-kill-rewraps the ne
 # --- D1: the new key must reach the root allowed_signers in the SAME start: an agi-signers line runs AFTER agi-out in the post unit
 git show $o:$GEO/engine-root.md>$D/er;U=$(sed -n '/^### agi-post@.service/,/^~~~$/p' $D/er);ln_out=$(echo "$U"|grep -n "ExecStartPre=sh -c 'agi-out'"|cut -d: -f1);ln_sig=$(echo "$U"|grep -n 'agi-signers %i'|tail -1|cut -d: -f1)
 ok "d1-signers-after-out the post unit runs agi-signers AFTER agi-out (agi-out at line ${ln_out:-none}, the last agi-signers at ${ln_sig:-none})" '[ -n "$ln_out" ]&&[ -n "$ln_sig" ]&&[ "$ln_sig" -gt "$ln_out" ]'
+# --- OUT.4 (belam 09:18Z rule via SM; DG1 09:1xZ order): the capsule DIR is relative to HOME and refused otherwise; a refused out-line STOPS loud and ONCE (exit 75, marker ~/.ssh/out-refused, the unit's ExecCondition skips later starts)
+chk(){ rc=$?;[ "$rc" = 75 ]&&[ "$(nc)" = 1 ]&&[ -s $H/.ssh/out-refused ]&&[ ! -d $H/.ssh/n ]&&[ -z "$(git -C $H/t status --porcelain)" ]&&[ "$(grep -c '^agi-out:' $D/o)" = 1 ];}
+mkh 7;CAP=$D/abs7;out;ok "p1-absolute-refused an ABSOLUTE AGI_CAPSULE: exit 75, no ring commit, no .ssh/n, ONE agi-out: line, the reason in ~/.ssh/out-refused (commits $(nc))" 'chk'
+cp $H/.ssh/out-refused $D/m7;out;rc=$?;ok "m1-second-start-silent the same start again (no newer .fresh): exit 75, NO output, the marker unchanged (rc=$rc, $(wc -c <$D/o) B printed)" '[ "$rc" = 75 ]&&[ ! -s $D/o ]&&cmp -s $H/.ssh/out-refused $D/m7'
+sleep 1;touch $H/.fresh;CAP=capsule out;rc=$?;ok "m2-newer-fresh-retries a .fresh newer than the marker: the retry with a valid value lands ONE ring commit (commits $(nc), want 2, rc=$rc) and the marker is gone" '[ "$rc" = 0 ]&&[ "$(nc)" = 2 ]&&[ ! -e $H/.ssh/out-refused ]'
+mkh 8;CAP=../x out;ok "p2-dotdot-refused an AGI_CAPSULE with .. : exit 75, no ring commit (commits $(nc))" 'chk'
+mkh 9;mkdir -p $H/t/cap;CAP=t/cap out;ok "p3-inside-t-refused an AGI_CAPSULE inside the worktree t (the Stop hook's git add -A would commit it): refused (commits $(nc))" 'chk'
+mkh 10;CAP=./t out;ok "p4-dot-t-refused ./t resolves to t: refused" 'chk'
+mkh 11;ln -s t $H/lnk;CAP=lnk out;ok "p5-symlink-into-t-refused a relative value that is a SYMLINK into t resolves inside t: refused" 'chk'
+mkh 12;CAP=capsule out;rc=$?;ok "p6-valid-lands-modes a valid relative value (capsule): lands (rc=$rc, commits $(nc)), the share is 0600 ($(stat -c %a $H/capsule/post1); a dir that already exists keeps its mode: named), no marker" '[ "$rc" = 0 ]&&[ "$(nc)" = 2 ]&&[ "$(stat -c %a $H/capsule/post1)" = 600 ]&&[ ! -e $H/.ssh/out-refused ]'
+mkh 13;rm -rf $H/capsule;CAP=capsule out;rc=$?;ok "p7-dir-created-0700 the capsule dir absent: agi-out creates it 0700 as the post (rc=$rc, mode $(stat -c %a $H/capsule 2>/dev/null))" '[ "$rc" = 0 ]&&[ "$(stat -c %a $H/capsule)" = 700 ]'
+# the unit's ExecCondition: exit 2 (SuccessExitStatus=1 would let 1 through) skips the start when the marker is not older than .fresh
+git show $o:$GEO/engine-root.md|sed -n '/^### agi-post@.service/,/^~~~$/p'>$D/unit;ec=$(sed -n "s/^ExecCondition=sh -c '\(.*\)'\$/\1/p" $D/unit)
+ok "c0-execcondition-first the unit carries ONE ExecCondition line, before the first ExecStartPre, and SuccessExitStatus keeps 1 (so the skip code must be neither 0 nor 1)" '[ -n "$ec" ]&&[ "$(grep -c "^ExecCondition=" $D/unit)" = 1 ]&&[ "$(grep -n "^ExecCondition=" $D/unit|cut -d: -f1)" -lt "$(grep -n "^ExecStartPre=" $D/unit|head -1|cut -d: -f1)" ]&&grep -q "^SuccessExitStatus=1 " $D/unit'
+cx(){ (cd $E&&sh -c "$ec");}
+E=$D/e1;mkdir -p $E/.ssh;touch $E/.fresh;cx;a=$?;sleep 1;echo x>$E/.ssh/out-refused;cx;b=$?;sleep 1;touch $E/.fresh;cx;c=$?;rm $E/.fresh;cx;d=$?
+ok "c1-execcondition-states no marker: $a (0); marker newer than .fresh: $b (2); .fresh newer than the marker: $c (0); marker and no .fresh: $d (2)" '[ $a = 0 ]&&[ $b = 2 ]&&[ $c = 0 ]&&[ $d = 2 ]'
 echo "agi-out-states: $f FAIL";exit $f
