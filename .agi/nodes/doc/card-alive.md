@@ -50,7 +50,7 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        latest checkpoint height") + drop-in crypto (one cell per role; AA1.C has 0 algorithm literals; keygen -ted25519 + agi-signers regex hardcoded) + layered blocks
        (02:54Z: signers pairwise a()-adjacent, levels 1 belam / 2 council+keep / 3 DGs+DT-1; top block = belam + level 2 over the 2+3 blocks)
        02:55Z sp folded AA1.C into §AB (sp merge-up 4); alive flagged: IN-OR-ABOVE ring + posts.md ring [SM] = 2-land escalation (SM re-parents,
-       then is above belam); write.py never granted SM `parent`; fix = tree cells (parent/members/lands) are a RULES edit, or drop ABOVE
+       then is above belam) -> CLOSED 03:01Z by sp: a tree move p a->b is ruled by a AND b (sp merge-up 5 b784f9847; alive checked, done)
 WAITS  SM lands alive/aa1c @25280db35 (carries home-mode 3d35aa268 + AA1.C + seams) · self-perpetuating's one story · mail
 ```
 
