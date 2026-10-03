@@ -45,12 +45,12 @@ on("tool_call",e=>{const r=h("PreToolUse",t(e));return r.k&&{block:true,reason:r
 on("session_before_compact",()=>{h("PreCompact",{trigger:"auto"})});on("turn_end",()=>{h("Stop")});on("session_shutdown",()=>{h("SessionEnd",{reason:"other"})})}
 ~~~
 
-### agi-kid (2028 B)
+### agi-kid (2037 B)
 ~~~sh
 #!/bin/sh
 K="--provider openrouter --model $AGI_KID_MODEL"
 if [ "$1" = -m ];then M=$2;A=$3;P=;d=;case $M in *[!a-z0-9-]*)exit 1;;esac;cd ~/t;s=$(printf %s "$A"|sha256sum|cut -c1-12);D=~/s/$M/$s;R=refs/spawn/$M/$s
-git show-ref -q $R&&exit
+git show-ref --verify -q $R&&exit
 n(){ echo $D/o.$(printf %s "$P$1"|tr -c 'A-Za-z0-9._:-' _);}
 st(){ case .$2.$3.$4 in *.-*|*[!a-z0-9.-]*)exit 75;;esac;case $6 in [-@]*)exit 75;;esac;o=$(n "$1")
  if [ "$2" ];then [ "$V" ]&&return;q=$(git show HEAD:.agi/nodes/goal/$3.md|sed -n '/^## Falsifier/,/^## /s/^\$ //p'|head -1)
