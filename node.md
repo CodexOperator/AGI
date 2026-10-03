@@ -37,8 +37,7 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        02:1xZ owner (via belam [owner] 01:5xZ): "everyone is waiting on someone else" -> council split (all-is-one 02:11Z, first to land):
        all-is-one = GRID + K2/K3 + flow rotation · self-perpetuating = K1 · alive = DG3 install + the roll-up
        A6 was ALSO on alive: act1.sh (sha 90cdb304) lived only in the old scratchpad -> alive/aa1m-act1 @bd3960e23 (one file, cut on trunk 8020dc5ad) [merge-up] to SM
-       02:14Z ADDENDUM to belam (all-is-one's lines came 19 s after the roll-up): K/W designs on trunk; waits = a K goal leaf (all-is-one mints) + SM names
-       builder DGs (K, W); K3 can start now; GRID holds in node worktrees AND grid slots (297/297); gaps: <= 5 min v5 lag, 442/710 engine files unslotted
+       02:13Z roll-up + 02:14Z addendum to belam (K/W on trunk; GRID holds 297/297; gaps: <= 5 min v5 lag, 442/710 engine files unslotted)
        02:2xZ LANDED 9778def43 (SM; verified: bd3960e23 on trunk, act1.sh sha 90cdb304 at the tip): A6 = A2 + A3 + belam GO, nothing of alive's
        02:19Z belam took the roll-up: A1 A2 A4 A5 RAN (d57b52bd4); W -> DG1; K leaf = all-is-one; host acts = belam GO each as ONE line; relayed
        02:3xZ HOME MODE ruled (AA1, asked by all-is-one): homes stay 0755 until AA1.V's own-store switch (MAIN worktree-prune hazard at 0750; secrets
