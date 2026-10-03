@@ -36,6 +36,16 @@ gl gk-none 'a falsifier with no check line at all'
 gl gk-touch '$ touch x'
 gl gk-empty '$ '
 for g in none touch empty missing;do w g-$g '{"name":"g-'$g'","stages":[{"label":"grow","post":"director-general-1","goal":"gk-'$g'"},{"label":"after","prompt":"SHOULD-NOT-RUN"}]}';done
+# W-1 demote fixtures (SM mur sm17-dg3-w1-agi-kid-m): done-check lines that must be REFUSED, never run
+gl gk-nl "\$ ls nothere\\n; touch $T/PWN_D1"
+gl gk-d2a '$ git grep -Osh needle_d2'
+gl gk-d2b "\$ git log --output=$T/PWN_D2b"
+gl gk-d2c "\$ git diff --no-index --output=$T/PWN_D2c /dev/null /proc/self/status"
+gl gk-d2d '$ git diff --no-index --quiet /dev/null /dev/null'
+gl gk-space 'gk grow'
+printf '# needle_d2\ntouch %s/PWN_D2a\n' $T>$H/t/pwn_d2.sh
+for g in nl d2a d2b d2c d2d;do w g-$g '{"name":"g-'$g'","stages":[{"label":"grow","post":"director-general-1","goal":"gk-'$g'"},{"label":"after","prompt":"SHOULD-NOT-RUN"}]}';done
+w g-space '{"name":"g-space","stages":[{"label":"grow","post":"director-general-1","goal":"gk grow"},{"label":"after","prompt":"SHOULD-NOT-RUN"}]}'
 $G -C $H/t add -A;$G -C $H/t -c commit.gpgsign=false commit -qm fixture
 # flow MANIFEST ARGS: the runner as the invoker would run it (rc printed by the caller)
 flow(){ (cd $T;HOME=$H GIT_CONFIG_GLOBAL=$H/.gitconfig GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH LOG=$LOG AGI_POST=inv FAILON=$FAILON sh $PIECE -m "$1" "$2");}
@@ -89,6 +99,28 @@ FAILON=CORRECTIVE flow flowfix "$A3">/dev/null 2>&1;rc=$?
 ok "fail-no-ref a kid that fails stops the flow nonzero and writes NO result ref (rc=$rc)" '[ $rc != 0 ]&&[ $rc != 75 ]&&! $G -C $H/t rev-parse -q --verify refs/spawn/flowfix/$S3>/dev/null'
 FAILON= flow flowfix "$A3">/dev/null 2>&1;rc=$?
 ok "resume-skips-done the resume does NOT relaunch the finished review (REVIEW r4 launched $(grep -c '^launch REVIEW r4|' $LOG) x), runs corrective again and rereview, and writes the ref (rc=$rc)" '[ $rc = 0 ]&&[ "$(grep -c "^launch REVIEW r4|" $LOG)" = 1 ]&&[ "$(grep -c "^launch CORRECTIVE|" $LOG)" -ge 3 ]&&$G -C $H/t rev-parse -q --verify refs/spawn/flowfix/$S3>/dev/null'
+# --- W-1 DEMOTE (SM mur sm17-dg3-w1-agi-kid-m, DG1 order 03:23Z): the done-check line is graph-authored text; the whitelist must REFUSE what writes, executes or reads outside the repo, and a malformed run must spawn NOTHING
+: >$LOG;: >$MAIL
+for g in nl d2a d2b d2c d2d space;do : >$LOG;flow g-$g '{}'>/dev/null 2>&1;rc=$?;mk=$(case $g in nl)echo PWN_D1;;d2a)echo PWN_D2a;;d2b)echo PWN_D2b;;d2c)echo PWN_D2c;;*)echo PWN_NONE;;esac)
+ ok "d-refused-$g $(case $g in nl) echo 'a falsifier line with an embedded backslash-n (dash echo expands it) never reaches sh -c as a 2nd command';; d2a) echo 'git grep -Osh (a pager = command execution) is refused';; d2b) echo 'git log --output= (a file write) is refused';; d2c) echo 'git diff --no-index --output= (a file write) is refused';; d2d) echo 'git diff --no-index outside the repo is refused (not read as met)';; space) echo 'a goal id with a space is not a goal: NOT met';; esac): rc 75, nothing launched, no ref (rc=$rc)" '[ $rc = 75 ]&&[ "$(nl $LOG)" = 0 ]&&[ -z "$(refs|grep "/g-$g/")" ]&&[ ! -e $T/$mk ]&&[ ! -e $H/t/$mk ]'
+done
+ok "d-nothing-ran none of the refused lines ran: no PWN_D1 / PWN_D2a / PWN_D2b / PWN_D2c marker anywhere" '[ -z "$(ls $T|grep PWN_D)" ]&&[ -z "$(ls $H/t|grep PWN_D)" ]'
+: >$LOG
+# a snapshot of everything under HOME except the invoker repo: a refused or malformed run must change NONE of it (no dir created before the check), and must not add a ref
+snap(){ (cd $H&&find . -mindepth 1 -not -path "./t" -not -path "./t/*"|sort|md5sum);}
+r0=$(refs|wc -l|tr -d ' ');s0=$(snap);l0=$(nl $LOG)
+flow nosuchmanifest "$A1">/dev/null 2>&1;rc=$?
+ok "d3-missing-manifest a missing manifest exits non-zero, spawns NO pi, writes NO ref and creates nothing (rc=$rc, launches $(( $(nl $LOG)-l0 )))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = $l0 ]&&[ "$(refs|wc -l|tr -d " ")" = $r0 ]&&[ "$(snap)" = "$s0" ]'
+flow flowfix 'not json'>/dev/null 2>&1;rc=$?
+ok "d3-bad-args ARGS that is not JSON exits non-zero, spawns NO pi, writes NO ref (rc=$rc, launches $(( $(nl $LOG)-l0 )))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = $l0 ]&&[ "$(refs|wc -l|tr -d " ")" = $r0 ]&&[ "$(snap)" = "$s0" ]'
+flow flowfix '[1,2]'>/dev/null 2>&1;rc=$?
+ok "d3-args-not-object ARGS that is JSON but not an object is refused the same way (rc=$rc)" '[ $rc != 0 ]&&[ "$(nl $LOG)" = $l0 ]&&[ "$(refs|wc -l|tr -d " ")" = $r0 ]'
+for k in 'a b' '*' 'x?y';do AK="{\"rounds\":[{\"key\":\"$k\"}]}";SK=$(printf %s "$AK"|sha256sum|cut -c1-12);flow flowfix "$AK">/dev/null 2>&1;rc=$?
+ ok "d4-key-[$k] a key with a space or a glob never marks its phase DONE: either its review RAN, or the flow refused (rc non-zero, no ref); never a signed ref over a skipped phase (rc=$rc, ref: $($G -C $H/t rev-parse -q --verify refs/spawn/flowfix/$SK >/dev/null&&echo yes||echo no))" '! $G -C $H/t rev-parse -q --verify refs/spawn/flowfix/$SK >/dev/null||grep -qF "launch REVIEW $k|" $LOG'
+done
+for m in '../escape' 'a/b' '..' '.hid' 'a b' './flowfix';do l0=$(nl $LOG);s1=$(snap);r1=$(refs|wc -l|tr -d ' ');flow "$m" "$A1">/dev/null 2>&1;rc=$?
+ ok "d5-manifest-[$m] a manifest name with a slash, dots or a space is refused BEFORE anything is created: rc non-zero, HOME outside ~/t unchanged, no ref, no launch (rc=$rc)" '[ $rc != 0 ]&&[ "$(snap)" = "$s1" ]&&[ "$(refs|wc -l|tr -d " ")" = $r1 ]&&[ ! -e $T/escape ]&&[ "$(nl $LOG)" = $l0 ]'
+done
 # --- bounds
 sz=$(wc -c<$PIECE)
 ok "bytes the piece is <= $CEIL B ($sz B; the design's runner is 1,856 B)" '[ $sz -le $CEIL ]'
