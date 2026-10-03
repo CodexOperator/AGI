@@ -65,15 +65,15 @@ sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
 agi-fill          5973 B  a node key opens a captive fill window
 agi-captive        576 B  window open: only agi-fill passes
 grow-check        1298 B  one node vs its matrix row + key
-grow-gate         1465 B  pre-receive: added/changed nodes must pass
+grow-gate         1833 B  pre-receive: added/changed nodes must pass
 grow-project      1185 B  schemas -> the growth matrix
 agi-land          1855 B  root: ff-lands a post range on the trunk, one parent edge up (ring-signed, grow-gate, agi-gate)
 box               2005 B  mail: one signed ref update per send (5x CAS), read from the store
-box-carry         3105 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
+box-carry         3246 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
 agi-signers       1727 B  root: the ONE allowed_signers, every key generation, valid-after/before; one strict key line
 agi-carry@.path     149 B  PathChanged on the sender's own refs/box/<P> (a unit on refs/box fires only on the first send)
 agi-carry@.service  287 B  oneshot: box-carry %i
-agi-carry-fetch.timer   88 B  every 60 s: fetch the hub's refs/box (remote senders)
+agi-carry-fetch.timer   88 B  every 60 s: carry each local post, then the hub      
 agi-carry-fetch.service 229 B  oneshot: box-carry --fetch
 ~~~
 
