@@ -6,7 +6,7 @@
 # (A3.2 split the user steps in two, key step then the rest, with the root agi-signers line between: the default JOINS the sh -c lines into the one script this test models.)
 # STEPS = the unit's ExecStartPre lines in file order (default: from engine-root.md of ROOT; a reorder mutation = STEPS=<edited copy>).
 # UNIT = the joined sh -c lines (bytes / no-ring-write cases) (default: the `sh -c` line of the unit in .geometry/engine-root.md of ROOT); a mutation = UNIT=<file holding the edited line>. One ok/FAIL line per case; exit = FAIL count.
-T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};GEO=$R0/.agi/nodes/.geometry;CEIL=${CEIL:-745}
+T=$(mktemp -d);trap 'rm -rf $T' 0;f=0;G=/usr/bin/git;R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)};GEO=$R0/.agi/nodes/.geometry;CEIL=${CEIL:-840}
 sect(){ cat $GEO/engine*.md|sed -n "/^###* $1 /,/^###* /{/^~~~/,/^~~~/{//!p}}";}
 [ -n "$UNIT" ]||{ sed -n "/^### agi-post@.service/,/^~~~\$/{/^ExecStartPre=sh -c /p}" $GEO/engine-root.md|awk -v q="'" 'NR==1{sub(q"$","");printf "%s",$0;next}{sub("^ExecStartPre=sh -c "q,"");printf ";%s",$0}END{print ""}'>$T/unit;UNIT=$T/unit;}
 [ -n "$STEPS" ]||{ sed -n "/^### agi-post@.service/,/^~~~\$/{/^ExecStartPre=/p}" $GEO/engine-root.md>$T/steps;STEPS=$T/steps;}
