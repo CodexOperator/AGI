@@ -28,6 +28,22 @@ w fan '{"name":"fan","stages":[{"label":"review","repeat":{"of":"rounds","label_
 w empty '{"name":"empty","stages":[]}'
 w chain-miss '{"name":"chain-miss","stages":[{"label":"a","chained_from":"nothere","prompt":"MISS"}]}'
 w chain-rep '{"name":"chain-rep","stages":[{"label":"review","repeat":{"of":"rounds","label_template":"review:{key}"},"prompt":"REVIEW {key}"},{"label":"verify","repeat":{"of":"rounds","label_template":"verify:{key}"},"chained_from":"review","prompt":"VERIFY {key}"}]}'
+w lazy-field '{"name":"lazy-field","stages":[{"label":"ok","prompt":"PAID-OK"},{"label":"bad","post":"director-general-1","goal":"g.md --output=victim zz"}]}'
+w sub-bad '{"name":"sub-bad","stages":[{"label":"review","repeat":{"of":"rounds","label_template":"review:{key}"},"prompt":"SUB {key}"}]}'
+w lazy-sub '{"name":"lazy-sub","stages":[{"label":"ok","prompt":"PAID-OK"},{"label":"sub","flow":"sub-bad"}]}'
+w sub-badfield '{"name":"sub-badfield","stages":[{"label":"bad","post":"director-general-1","goal":"gk-ok x"}]}'
+w mid '{"name":"mid","stages":[{"label":"m","flow":"sub-badfield"}]}'
+w lazy-deep '{"name":"lazy-deep","stages":[{"label":"ok","prompt":"PAID-OK"},{"label":"deep","flow":"mid"}]}'
+w dash-p '{"name":"dash-p","stages":[{"label":"ok","prompt":"PAID-OK"},{"label":"d","prompt":"--model=x"}]}'
+w at-p '{"name":"at-p","stages":[{"label":"ok","prompt":"PAID-OK"},{"label":"d","prompt":"@/etc/hostname"}]}'
+w key-p '{"name":"key-p","stages":[{"label":"ok","prompt":"PAID-OK"},{"label":"r","repeat":{"of":"rounds","label_template":"r:{key}"},"prompt":"{key}"}]}'
+w cap0 '{"name":"cap0","stages":[{"label":"h","flow":"cap1"}]}'
+w cap1 '{"name":"cap1","stages":[{"label":"h","flow":"cap2"}]}'
+w cap2 '{"name":"cap2","stages":[{"label":"leaf","prompt":"LEAF2"},{"label":"h","flow":"cap3"}]}'
+w cap3 '{"name":"cap3","stages":[{"label":"leaf","prompt":"LEAF3"}]}'
+w hop2 '{"name":"hop2","stages":[{"label":"h","flow":"hop2b"}]}'
+w hop2b '{"name":"hop2b","stages":[{"label":"h","flow":"hop2c"}]}'
+w hop2c '{"name":"hop2c","stages":[{"label":"leaf","prompt":"LEAF-HOP2"}]}'
 w selfie '{"name":"selfie","stages":[{"label":"a","flow":"selfie"}]}'
 w cyc-a '{"name":"cyc-a","stages":[{"label":"p","prompt":"P"},{"label":"b","flow":"cyc-b"}]}'
 w cyc-b '{"name":"cyc-b","stages":[{"label":"a","flow":"cyc-a"}]}'
@@ -66,8 +82,22 @@ ok "chain-repeat-fallback review:{key} then verify:{key} chained_from review: ea
 LP=$(head -c 150 /dev/zero|tr '\0' x);fl2(){ ( cd $T;env $1 HOME=$H GIT_CONFIG_GLOBAL=$H/.gitconfig GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH LOG=$LOG AGI_POST=inv timeout 30 sh $PIECE -m $2 "${3:-{\}}" )>/dev/null 2>&1;rc=$?;}
 n1=$(refs|wc -l|tr -d ' ');: >$LOG;fl2 X=1 selfie;rs=$rc;ls1=$(nl $LOG);: >$LOG;fl2 X=1 cyc-a;rc2=$rc;lc=$(nl $LOG);: >$LOG;fl2 "P=$LP d=.." cyc-a '{"state":"fresh"}';rp=$rc;lp=$(nl $LOG)
 ok "rec-guard-stops a self-naming flow (rc=$rs) and a 2-cycle (rc=$rc2) stop nonzero, not by the 30 s timeout (124), and write no ref" '[ $rs != 0 ]&&[ $rs != 124 ]&&[ $rc2 != 0 ]&&[ $rc2 != 124 ]&&[ "$(refs|wc -l|tr -d " ")" = $n1 ]'
-ok "rec-guard-counted the 2-cycle launches $lc paid one-shots (depth cap 2: at most 3; no cap 63; a self-naming flow launches $ls1)" '[ $lc -gt 0 ]&&[ $lc -le 3 ]'
+ok "rec-guard-counted a cyclic manifest launches NOTHING (W-1.11: the dry pass walks every flow before the first paid launch and hits the depth cap; 2-cycle $lc, self-naming $ls1, no cap = 63 paid one-shots)" '[ $lc = 0 ]&&[ $ls1 = 0 ]'
 ok "rec-guard-p-not-seeded an exported 150-byte P and an exported depth d=.. do not change the count (cap run $lc, with P exported $lp, rc=$rp)" '[ $lp = $lc ]'
+# --- W-1.11 (mur sm17 W-1.10 R1, DG1's paid-spend rule): EVERY row of the manifest and of every sub-flow (recursively) is checked BEFORE the first launch: a bad row after a good paid stage launches NOTHING
+printf keep>$H/t/victim;n3=$(refs|wc -l|tr -d " ")
+for m in lazy-field lazy-sub lazy-deep dash-p at-p;do : >$LOG;: >$MAIL;flow $m '{}'>/dev/null 2>&1;rc=$?
+ ok "w11-nothing-launched-$m [good paid stage, then a bad row] ($m) refuses with 0 launches, 0 mail, no ref, victim intact (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]&&[ "$(nl $MAIL)" = 0 ]&&[ "$(refs|wc -l|tr -d " ")" = $n3 ]&&[ "$(cat $H/t/victim)" = keep ]'
+done
+: >$LOG;flow key-p '{"rounds":[{"key":"-rf"}]}'>/dev/null 2>&1;rc=$?
+ok "w11-key-templated-prompt a prompt that BECOMES '-rf' through the key template refuses with 0 launches (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]'
+: >$LOG;flow key-p '{"rounds":[{"key":"fine"}]}'>/dev/null 2>&1;rc=$?
+ok "w11-key-templated-ok control: the same manifest with a plain key runs both stages (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 2 ]'
+# the depth cap pinned by NESTING, not by cost: two sub-flow hops run, three are refused before any launch
+: >$LOG;flow hop2 '{}'>/dev/null 2>&1;rc=$?
+ok "w11-cap-two-hops a flow that nests two sub-flows deep runs its leaf (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 1 ]'
+: >$LOG;flow cap0 '{}'>/dev/null 2>&1;rc=$?
+ok "w11-cap-three-hops a flow that nests THREE sub-flows deep is refused with 0 launches though its other stages are valid (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]'
 # --- D5: a manifest name outside [a-z0-9-] is refused before anything is created
 rm -rf $H/s;flow '../t' '{}'>/dev/null 2>&1;rc1=$?;flow 'One' '{}'>/dev/null 2>&1;rc2=$?;flow 'a b' '{}'>/dev/null 2>&1;rc3=$?
 ok "d5-name-refused names '../t', 'One' and 'a b' exit nonzero and create nothing under ~/s (rc $rc1 $rc2 $rc3)" '[ $rc1 != 0 ]&&[ $rc2 != 0 ]&&[ $rc3 != 0 ]&&[ ! -e $H/s ]'
@@ -88,6 +118,6 @@ for v in '{"rounds":"abc"}' '{"rounds":{"a":{"key":"k"}}}' '{"rounds":null}' '{"
 done
 : >$LOG;flow miss-of '{"rounds":[]}'>/dev/null 2>&1;rc=$?
 ok "r2-empty-of an EMPTY rounds list is a real list: the flow runs its other stage and signs (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 1 ]'
-ok "bytes the piece is <= ${CEIL:-1920} B ($(wc -c<$PIECE) B)" '[ $(wc -c<$PIECE) -le ${CEIL:-1920} ]'
+ok "bytes the piece is <= ${CEIL:-2000} B ($(wc -c<$PIECE) B)" '[ $(wc -c<$PIECE) -le ${CEIL:-2000} ]'
 echo "agi-kid-flow-guard: $f FAIL"
 exit $f
