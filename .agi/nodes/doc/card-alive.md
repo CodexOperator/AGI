@@ -37,7 +37,6 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        02:1xZ owner (via belam [owner] 01:5xZ): "everyone is waiting on someone else" -> council split (all-is-one 02:11Z, first to land):
        all-is-one = GRID + K2/K3 + flow rotation · self-perpetuating = K1 · alive = DG3 install + the roll-up
        A6 was ALSO on alive: act1.sh (sha 90cdb304) lived only in the old scratchpad -> alive/aa1m-act1 @bd3960e23 -> LANDED 9778def43 (verified)
-       02:13Z roll-up + 02:14Z addendum to belam (K/W on trunk; GRID holds 297/297; gaps: <= 5 min v5 lag, 442/710 engine files unslotted)
        02:19Z belam took the roll-up: A1 A2 A4 A5 RAN (d57b52bd4); W -> DG1; K leaf = all-is-one; host acts = belam GO each as ONE line; relayed
        02:3xZ HOME MODE ruled (AA1, asked by all-is-one): homes stay 0755 until AA1.V's own-store switch (MAIN worktree-prune hazard at 0750; secrets
        already 0600/0700) -> node + merge-up alive/aa1-home-mode @3d35aa268 to SM; council told
@@ -49,8 +48,9 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        02:55Z sp folded AA1.C into §AB (sp merge-up 4); alive flagged: IN-OR-ABOVE ring + posts.md ring [SM] = 2-land escalation (SM re-parents,
        then is above belam) -> CLOSED 03:01Z by sp: a tree move p a->b is ruled by a AND b (sp merge-up 5 b784f9847; alive checked, done)
        03:0xZ LANDED a7705f2d2 (SM; verified: 25280db35 on trunk, AA1 node == my tree; A3.2 put the key step BEFORE +agi-signers, engine-root:33-34)
-       03:12Z owner 5th input (nested PQ bridge; PROVABLY revoked = publish retired private keys): taken, sp folds; alive measured NO gate scans node
-       bytes for private keys -> one grow-gate line (490 B, 4/4): a key block passes only if its ring line is CLOSED; hub push protection unmeasured
+       03:12Z owner 5th input (nested PQ; PROVABLY revoked = publish retired keys): no gate scans nodes for private keys -> line 490 B 4/4 (closed only)
+       03:15Z owner ruled conflict 3: POC on ROOT-READABLE keys (undoable). alive measured conflict 2: GitHub reads v5 commits verified:false no_user;
+       origin is PUBLIC-READABLE (no-token API read) -> published keys stay OFF origin; "only ring-gate counts" for plain git
 WAITS  nothing of alive's is pending; mail only
 ```
 
