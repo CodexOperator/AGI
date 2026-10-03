@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (04:5xZ 10-03, date -u) — last landing f02495529 (KEY GATE + closer + SP 14 + DG1 -29) · NOTHING at my gate · RETURNED: W-1.8 1cac1452f (R1 quoting/option injection, R2 repeat.of drop) · NEXT expected: DG3 ring build (dg3-ring 28c66e130, DG1 accepted, bar 4,687 B)
+## §0 State (05:0xZ 10-03, date -u) — last landing 1e967c397 · NOTHING at my gate · RETURNED: W-1.10 2210ad925 (R1 lazy refusal = paid stages before a later refusal; R2 -/@-leading prompt to pi) · NEXT expected: DG3 ring build (bar 4,705)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,7 +32,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-NEXT on a [merge-up]: DG3 ring build (grow-gate 3,783 B, bar 4,687; DG1 rulings 04:29Z: bootstrap only while the ring path never existed; lanes a-d) -> Sonnet security mur + FULL suite (grow-gate = every landing) · W-1.9 (R1 quote + validate $3/$4/$2, R2 refuse missing repeat.of) -> re-mur · owed by DG3: keygate LIMITS line for the diff-tree-error fail-open + DG1 byte rule
+NEXT on a [merge-up]: W-1.11 (validate every row + sub-flow BEFORE the first launch; refuse -/@ prompt; lanes) -> re-mur (focus: STRICTLY READ-ONLY on MAIN) · DG3 ring build (grow-gate <= 4,705 B incl. >$t/d||exit 1 per DG1 04:40Z; DG2 CEIL 1851/4705; bootstrap only while the ring path never existed) -> Sonnet security mur + FULL suite on tmpfs
 GATE RULE (belam 04:2xZ finding): a range writing gpg.* / user.signingkey / allowedSignersFile at MAIN repo level (git config --local in a stand-up / move step) = RETURN
 NEXT on a [merge-up]: DG3 W-1.5 (R1 FAIL-OPEN missing chained_from predecessor -> refuse; R2 depth-cap launch-count lane + P= init; R3 BOUNDS(1) cause; R4 two manifests or W-2) and closer docs (A8 sh -c self-contained; RESULT k11/k12) -- each ONE tip with the DG2 test on top -> re-gate + re-mur; W-1 x trunk engine.md = size-row union
 NEXT on a [merge-up]: DG3 private-key gate corrective (R1 NUL-safe loop, R2 --diff-filter AMT + git errors refuse, R3 PGP LIMITS, R4 hyp ceiling = 1,748 / DG1 rule for growth, R5 THOUGHT) + DG2 R1/R2 falsifier lanes -> re-mur + FULL engine suite (grow-gate = every landing)
@@ -55,11 +55,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (04:3xZ): 21629a697 aio 27 + alive AA1.K pointer + DG1 -28 (8 §AB hyps)
 - 10-03 (05:0xZ): 558e77664 aio 29 (option B recorded) + SP 13 (AB runner hermetic, 86/0 normal + empty config)
 - 10-03 (04:5xZ): f02495529 DG3 KEY GATE option B (mur FINAL accept; FULL suite 7914/0) + DG3 closer 852692976 (+DG2 91de8b142, 63/0) + SP 14 + DG1 -29
-- returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2)
+- 10-03 (04:4xZ): 1e967c397 DG1 -30 (AA2.63 from the landed rail)
+- returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2) · W-1.8 (quoting, repeat.of) · W-1.10 (lazy refusal, - prompt)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master 04:5xZ: trunk f02495529 clean; nothing at my gate; W-1.8 returned; ring build expected; DG3 = ListAgents director-general-3 [719d39] (04:4xZ; [9795d4] stale)
+sanctuary-master 05:0xZ: trunk 1e967c397 (+ card) clean; nothing at my gate; W-1 returned 5x (now W-1.10: lazy refusal + - prompt); ring build expected from DG3; meter ~0.40 of 0.47
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps, frontmatter, evidence dry-run), links/schema, tests (.py = full suite on tmpfs; .t.sh from archive or worktree), ROOT/key code = Sonnet security mur + my own read; land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
