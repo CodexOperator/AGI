@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (03:07Z 10-03) -- gen 8; AA1.C + home mode LANDED (a7705f2d2); key story = sp's §AB; nothing running, nothing pending
+## §0 State (06:04Z 10-03) -- gen 8; CC usage ends soon (owner 06:0xZ): NO new design pass; everything of alive's is on the trunk but ONE merge-up at SM
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -28,40 +28,27 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R per-post stores (sizes) · AA1.L ladder (SUPERSEDED) · AA1.T tests
-       (48 v5 tests, pytest absent for v5) · AA1.W/F one-shot + flow hand-off (13/13) · AA1.M mail without send.py (race 200/200; ACCEPTED, DG1 builds)
-       10-02 20:0x-22:2xZ CLOSED: level rule accepted + LANDED 3a33c71b9 (council lands [], keep lands SM + TM-new; ack owed even on an accept) · rse-aa1-boxes
-       carried byte-equal at a0bbc7202 · SM g7.16.1.11.13: skip AA3.4 item 1, keep grow-gate item 3 (+7 B)
-       A6 was ALSO on alive: act1.sh (sha 90cdb304) lived only in the old scratchpad -> alive/aa1m-act1 @bd3960e23 -> LANDED 9778def43 (verified)
-       02:19Z belam took the roll-up: A1 A2 A4 A5 RAN (d57b52bd4); W -> DG1; K leaf = all-is-one; host acts = belam GO each as ONE line; relayed
-       02:3xZ HOME MODE ruled (AA1, asked by all-is-one): homes stay 0755 until AA1.V's own-store switch (MAIN worktree-prune hazard at 0750; secrets
-       already 0600/0700) -> node + merge-up alive/aa1-home-mode @3d35aa268 to SM; council told
-       02:34Z belam: .17 (3)+(4) design -> split (alive 02:35Z, taken): alive = AA1.C in rse-aa1-boxes: per-node ring: cell read at R on CHANGED+DELETED
-       nodes (10/10), anchor line restored WITH -c (6/6; RSE line without -c passes an evil merge), freshness AGI_FRESH_S (8/8; agi-land reuses it via grow-gate)
-       02:40Z SM A3 order: ruled (3) key step BEFORE +agi-signers, rest after (measured: root-first = every generation U, keygen-first = G G G)
-       02:37-02:54Z owner: ONE key story (LEAD sp, §AB; AA1.C = its ring column) + inputs: DAG checkpoints as trusted time (supersede AGI_FRESH_S) · drop-in crypto (AA1.C 0 literals)
-       · layered blocks = signers pairwise a()-adjacent (levels 1 belam / 2 council+keep / 3 DGs+DT-1; top = belam + level 2)
-       02:55Z sp folded AA1.C into §AB (LANDED a7705f2d2, verified); alive's IN-OR-ABOVE escalation flag CLOSED 03:01Z (checked)
-       03:12-15Z owner: provable revocation (5th input), POC on ROOT-READABLE keys; alive measured: GitHub reads v5 commits verified:false no_user;
-       origin is PUBLIC-READABLE -> POC keys stay OFF every remote (belam ruled 03:17Z)
-       03:17Z belam ACCEPTED the private-key gate line as its own round; alive then found 3 defects in its own 490 B line (RSA PEM passed, 2nd block
-       unchecked, encrypted key HANG) -> 630 B; then §AB.5 (sp 03:21Z) RE-SCOPED: trunk refuses EVERY key block -> AA1.K = 176 B pattern line 12/12
-       (sp took both); aio 03:25Z: node-loop placement MISSED 4 -> aio's per-commit every-path grow-gate line (281 B; NOT yet committed by aio, I told
-       DG1 it was = my error, caught by DG1) carried VERBATIM in AA1.K, 8/8; LANDED ba2a399d6 (verified; 0 trunk files match); aio same bytes (mu-26 e0588e7f9,
-       AA3.15) LANDED 1c0edcf20; DG3 built it in grow-gate (45d468f83) -> AA1.K repointed, copy dropped: LANDED 21629a697 (verified)
-       03:26Z owner 6th: GitHub Actions sealer -> §AB.6 (sp mu8): master schedule (alive's fact); alive 03:30Z: sha256(git archive) varies with tar.umask
-       (0002 vs 0022) -> sp: AGI_SUBJECT = sha256 of sorted 'sha256(blob) path' (mu9); alive 03:33Z TAR-verify + odd-path points TAKEN (mu10: listing file; block shape rule)
-WAITS  aio mu-29 b21c19473 (AA3.15 = DG1's option B, dg3-keygate eb6bee25e; -28 VOID) lands -> AA1.K prose: v1 failed open on 3 (newline path, T, unreadable blob), B = AA3.15
+done   10-01/02 AA1 bundle in doc:rse-aa1-boxes (boxes, grid commit, stores, tests, one-shot/flow, M1 mail, the level rule; ACCEPTED) · level rule LANDED 3a33c71b9
+       10-03 (all LANDED, verified on the trunk): act1.sh for DG3's A6 (9778def43) · HOME MODE: homes stay 0755 until AA1.V's own-store switch
+       (a7705f2d2) · AA1.C v5 config ring + anchor line WITH -c (a7705f2d2; folded by sp into §AB) · AA1.K private-key gate (ba2a399d6, 21629a697)
+       rulings given: A3 key step BEFORE +agi-signers (measured U U U vs G G G; built A3.2) · council lands [] · DG3 install waits = belam GOs
+       inputs to sp's ONE key section §AB (owner 02:37-03:26Z, sp leads): DAG checkpoints, drop-in crypto, layered blocks = signers pairwise
+       a()-adjacent, provable revocation (POC root-readable keys, OFF every remote), GitHub attestations sealer (master schedule; AGI_SUBJECT recipe)
+       corrections alive owned: 490 B key line had 3 defects; told DG1 a line was in AA3.15 before it was; sp's IN-OR-ABOVE escalation (closed)
+NEXT   on wake: read mail only. If SM returns alive/aa1k-b: fix and re-cut on the trunk tip. Start NO design pass (owner 06:0xZ).
+WAITS  SM lands alive/aa1k-b @5c5a9b077 (AA1.K -> AA3.15 = DG1's option B; v1 failed open on 3) · then nothing of alive's is open
 ```
 
-## §2 Landed (AA1 node commits on posts/alive; the trunk takes them through SM's gate)
-- doc:rse-aa1-boxes: AA1 8ddf79715 · AA1.V e06828689..f62efcfcf · AA1.R / L / T / W / F / M / level rule = later agi-turn commits (posts/alive tip at rotation)
-- belam ACCEPTED: AA1 bundle -> DG1 · shell-tests [rule] · AA1.M + both deviations · the figure-eight edge (then SUPERSEDED by the level rule)
+## §2 Landed (on local-maxxing/season2/main, each verified with merge-base --is-ancestor)
+- 10-02: level rule 3a33c71b9 (rse-aa1-boxes byte-equal at a0bbc7202) · 10-03: 9778def43 act1.sh · a7705f2d2 home mode + AA1.C + seams ·
+  ba2a399d6 AA1.K + per-commit line · 21629a697 AA1.K -> AA3.15 · pending: alive/aa1k-b 5c5a9b077
+- belam ACCEPTED: AA1 bundle -> DG1 · AA1.M · the level rule · the private-key gate as its own round (03:17Z)
 
 ## 🔴 Where it stops
-Idle on mail: everything of alive's is on the trunk (a7705f2d2); the key story is sp's (§AB); alive answers seams only.
+Idle on mail before the CC pause. One merge-up at SM (alive/aa1k-b); nothing running; no scratch needed to resume (all in nodes + git).
 ```
 next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
+  -> a merge-up = ONE node, cut on the trunk tip with plumbing (read-tree T; update-index; commit-tree -S -p T), branch alive/<name>, [merge-up] to SM
   -> the meter is /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit); at the line: card whole, commit by path, touch ~/.fresh; kill $PPID
 ```
 
@@ -96,5 +83,5 @@ next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-alive gen 8, 02:13Z 10-03 (date -u): the owner's "everyone is waiting on someone else" was true of alive too: DG3's A6 row had named alive's act1.sh as BLOCKED since 23:0xZ and alive's card never carried it. Filed it as a one-file commit cut on the trunk tip (F4: a post-tree commit can carry .agi/keys), and said so in the roll-up. Stopped my own GRID measurement when all-is-one's split landed first; SM had already measured it.
+alive gen 8, 06:04Z 10-03 (date -u): whole rewrite for the CC-usage pause (owner via belam 06:0xZ: "if you can't rotate on new system in the next couple hours it'll have to wait till next week"). §1 collapses the 10-03 log into what landed, what was ruled, what went to sp's §AB, and the corrections alive owned; the full record is in doc:rse-aa1-boxes, sp's §AB, the trunk and git. One merge-up is left at SM; nothing else is open.
 <!-- THOUGHT:END -->
