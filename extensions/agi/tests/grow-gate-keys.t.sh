@@ -3,7 +3,7 @@
 # grow-gate refuses EVERY commit that adds or changes ANY path (node, script, payload, binary, deprecated node, a path with spaces; a merge's own changes included) whose bytes hold a private key block, whatever the ring says; it never prints the key
 # and never parses one (no ssh-keygen: an encrypted block must refuse inside a timeout, not hang). Scratch repo borrowing GITDIR's objects (0 shared refs written), scratch keys GENERATED AT RUN TIME (4c: this file holds no armoured block;
 # every header below is assembled from parts). Tools from TRUNK by sect; GROW_GATE=<file> tests a candidate grow-gate. One ok/FAIL line per case; exit = number of FAILs.
-SELF=$(cd "$(dirname "$0")" && pwd)/$(basename "$0");T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k $D/f;f=0;CEIL=${CEIL:-1833}
+SELF=$(cd "$(dirname "$0")" && pwd)/$(basename "$0");T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k $D/f;f=0;CEIL=${CEIL:-4705}
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
 [ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;chmod +x $D/b/*;[ -s $D/b/grow-gate ]||{ echo "FAIL no grow-gate at $T";exit 99;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE
@@ -65,6 +65,9 @@ printf 'extensions/benign-target\n'>$D/lt;gate $(mkz $o 120000:$D/lt:.agi/nodes/
 head -c 40 /dev/urandom|base64>$D/miss;git cat-file -e $(git hash-object $D/miss) 2>/dev/null&&echo 'fixture: the missing blob exists'>&2
 gate $(mkz $o 0:$D/miss:extensions/zz-missing.sh);ok "r2b-unreadable-blob a path whose blob the store cannot read REFUSES (never lands), naming the exact path" 'refused&&grep -q zz-missing $D/out'
 gate $(mkz $o 0:$D/miss:"$NL");ok "r2b-unreadable-newline-path an unreadable blob at a newline path refuses too" 'refused&&grep -q zz-nl $D/out'
+# --- FAIL CLOSED (DG1 04:40Z): a git error in the commit walk refuses the land, naming the commit; a gate that reads an error as "no changes" is RED here
+C=$(mkc $o extensions/fc.txt:$D/b1);t=$(git rev-parse $C^{tree});rm -f $D/r/.git/objects/${t%${t#??}}/${t#??};gate $C;ok "fc-a-diff-tree-fails a commit whose tree object is missing (git diff-tree fails) is REFUSED, rc non-zero, naming the commit" 'refused&&grep -q $C $D/out'
+C1=$(mkc $o extensions/fc1.txt:$D/b1);C2=$(mkc $C1 extensions/fc2.txt:$D/b2);rm -f $D/r/.git/objects/${C1%${C1#??}}/${C1#??};gate $C2;ok "fc-b-rev-list-fails a range whose parent commit is unreadable (git rev-list fails) is REFUSED, rc non-zero (an error is not an empty range)" 'refused'
 # --- 5: prose that quotes the armour WITH DOTS lands (no key body); the EXACT header quote is refused by design
 printf 'the gate refuses a block that starts with %sBEGIN ... PRIVATE KEY%s and nothing else\n' $DD $DD|node>$D/dots;gate $(mkc $o .agi/nodes/moral/zz-key-lane.md:$D/dots);ok "f5-dotted-armour-prose-lands a node quoting the armour with dots in place of the label lands" '[ $r = 0 ]'
 printf 'quoted exactly: %s\n' "$(hdr OPENSSH)"|node>$D/exact;gate $(mkc $o .agi/nodes/moral/zz-key-lane.md:$D/exact);ok "f5-exact-header-refused prose that quotes the header EXACTLY (one line, five dashes) is refused, by design" 'refused'
@@ -73,6 +76,6 @@ node </dev/null>$D/plainnode;gate $(mkc $o .agi/nodes/moral/zz-key-lane.md:$D/pl
 # --- 6: the refusal never prints a slice of the key body
 body|blk OPENSSH|node>$D/ns;sl=$(sed -n '/BEGIN/{n;p;q}' $D/ns|cut -c1-24);gate $(mkc $o .agi/nodes/moral/zz-key-lane.md:$D/ns);ok "f6-no-key-in-output the refusal output holds no 24-char slice of the key body ('$(echo $sl|cut -c1-6)...')" 'refused&&[ -n "$sl" ]&&! grep -qF -- "$sl" $D/out'
 # --- 7: bytes
-sz=$(wc -c<$D/b/grow-gate);ok "f7-bytes grow-gate <= $CEIL B ($sz B; 1,465 B + the 283 B per-commit line + the R1/R2 loop, DG1 ruling 04:02Z)" '[ $sz -le $CEIL ]'
+sz=$(wc -c<$D/b/grow-gate);ok "f7-bytes grow-gate <= $CEIL B ($sz B; the ring round, DG1 ruling 04:5xZ: bar 4,705 B with the ring build; the key-gate-only bar is 1,851 B)" '[ $sz -le $CEIL ]'
 echo "grow-gate-keys: $f FAIL"
 exit $f

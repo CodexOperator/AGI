@@ -6,9 +6,13 @@
 # every refusal lane below is RED on it; the integrated gate must refuse by the ring AT THE RECEIVING TIP, never by that file. Scratch repo borrowing GITDIR's objects (0 shared refs written), scratch keys made at run time (no armoured block in this file), no network, nothing pushed.
 # SEAMS pinned (a builder may not move them; DG2 flags each): the ring is .agi/nodes/.geometry/ring, plain lines `post keytype b64`, no frontmatter, one line per post (the scratch ring is written by each fixture); the receiving trunk is AGI_TRUNK; the rules cell is env AGI_RULES (default owner;
 # option B = belam) until it is a graph cell; under option B the ring has NO owner line, belam is above every post. One ok/FAIL line per case; exit = FAIL count.
-T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};SELF=$(cd "$(dirname "$0")" && pwd);R0=${ROOT:-$(cd "$SELF/../../.." && pwd)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0;CEIL=${CEIL:-4687}
+T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};SELF=$(cd "$(dirname "$0")" && pwd);R0=${ROOT:-$(cd "$SELF/../../.." && pwd)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0;CEIL=${CEIL:-4705}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1 [rc=$r $(tail -1 $D/out 2>/dev/null|cut -c1-90)]";f=$((f+1));fi;}
 r=0
+# --- the section's own verdicts, by self-perpetuating's landed fixture runner (86 PASS / 0 FAIL on the trunk): ONE line, RUNSH=<path> overrides, a missing runner is a FAIL
+RUNSH=${RUNSH:-$R0/.agi/context/local-maxxing/ab/run.sh}
+if [ -f "$RUNSH" ];then (cd $(dirname "$RUNSH")&&timeout 600 sh $RUNSH ${AB_REV:-HEAD}>$D/run.out 2>&1);rr=$?;else echo "no runner at $RUNSH">$D/run.out;rr=99;fi
+ok "ab-runner the section's fixture runner ($(basename "$RUNSH")) exits 0 with 0 FAIL ($(tail -1 $D/run.out|cut -c1-60))" '[ $rr = 0 ]&&tail -1 $D/run.out|grep -q " 0 FAIL"'
 # --- the integrated grow-gate
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
 [ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;chmod +x $D/b/*;[ -s $D/b/grow-gate ]||{ echo "FAIL no grow-gate at $T";exit 99;}
@@ -85,9 +89,36 @@ edit $R $NA '$a\
 q';gate $R $(mkc $R alive1 $NA:$D/e);ok "x1-sanity a plain current-key edit still lands after all the above (the fixture is sound)" '[ $r = 0 ]'
 # a private-key block still refused through the integrated gate (AA2.54b: the key line stays)
 DDS=-----;{ cat $D/e;printf '%sBEGIN OPENSSH PRIVATE KEY%s\n%s\n%sEND OPENSSH PRIVATE KEY%s\n' $DDS $DDS "$(head -c 60 /dev/urandom|base64 -w 64)" $DDS $DDS;}>$D/kk;gate $R $(mkc $R alive1 $NA:$D/kk);ok "key54b-private-key-line-stays a private key block is still refused by the integrated gate" 'refused'
+# --- RING BOOTSTRAP (DG1 04:29Z): the gate is open ONLY while the ring path has NEVER existed in the receiving tip's history; after that it stays on
+mkd(){ b=$1;k=$2;shift 2;x=$D/i;GIT_INDEX_FILE=$x git read-tree $b;for a in "$@";do GIT_INDEX_FILE=$x git update-index --force-remove "$a";done;tr=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x
+ pn=${k%[0-9]};env GIT_COMMITTER_NAME=$pn GIT_COMMITTER_EMAIL=$pn@agi GIT_AUTHOR_NAME=$pn GIT_AUTHOR_EMAIL=$pn@agi git -c gpg.format=ssh -c user.signingkey=$D/k/$k commit-tree -S -p $b -m ab $tr;}
+gate $o $(mkc $o belam1 $GEO/ring:$D/ring);ok "bs-a-first-ring-commit-lands with no ring at the receiving tip and none in its history, belam's first ring commit lands (the gate behaves as today)" '[ $r = 0 ]'
+gate $R $(mkd $R dg1 $GEO/ring);ok "bs-b-delete-by-non-top-refused once the ring exists, DG1 deleting it is refused (ruled by every name it removes)" 'refused'
+A=$(mkd $R dg1 $GEO/ring);edit $R $NA '$a\
+after-delete';B=$(mkc $A alive1 $NA:$D/e);gate $R $B;ok "bs-b2-commit-after-refused-delete-still-gated a push of [DG1 deletes the ring, then a valid ring member edits a node] is refused AS A WHOLE (the second commit does not ride the first)" 'refused'
+gate $R $(mkc $R alive2 $NA:$D/e);ok "bs-b3-gate-still-on after that refusal the receiving tip still gates: a key that is no ring line at it (alive gen2 before its hand-off) is refused" 'refused'
+: >$D/empty;EM=$(mkc $R belam1 $GEO/ring:$D/empty);gate $R $EM;ok "bs-c-empty-by-top-admitted belam (the top: an ancestor of every name the commit removes) empties the ring: admitted" '[ $r = 0 ]'
+edit $EM $NA '$a\
+after-empty';gate $EM $(mkc $EM dg1 $NA:$D/e);ok "bs-c2-no-reopen after the ring was emptied, a following DG1 commit is still refused (the ring existed in history: the bootstrap does not reopen)" 'refused'
+gate $EM $(mkc $EM belam1 $NA:$D/e);ok "bs-c3-no-reopen-even-for-belam and so is belam's: an empty ring has no signer, and the gate is not off" 'refused'
+DEL=$(mkd $R belam1 $GEO/ring);gate $R $DEL;ok "bs-e-delete-by-top-admitted belam (the top) DELETES the ring file: admitted (ruled by every name it removes, and belam is above them all)" '[ $r = 0 ]'
+edit $R $NA '$a\
+after-del';gate $DEL $(mkc $DEL dg1 $NA:$D/e);ok "bs-e2-no-reopen-after-delete after the ring file was deleted, a following DG1 commit is still refused (the path existed in history: the bootstrap stays shut)" 'refused'
+gate $DEL $(mkc $DEL belam1 $NA:$D/e);ok "bs-e3-no-reopen-after-delete-belam and a following belam commit too" 'refused'
+sed 's/^id: moral:zz-ab-sm/id: moral:zz-ab-sp/;s/^mint_id: .*/mint_id: 3123456789abcdef0123456789abcdef/' $D/n-sm>$D/n-sp;R2=$(mkc $R belam1 ".agi/nodes/moral/zz ab sp.md:$D/n-sp");git show "$R2:.agi/nodes/moral/zz ab sp.md"|sed '$a\
+x'>$D/e;gate $R2 $(mkc $R2 dg1 ".agi/nodes/moral/zz ab sp.md:$D/e")
+ok "bs-d-path-with-space a node whose PATH HAS A SPACE, ringed [sm], edited by DG1 is refused (a path git quotes does not slip past the ruler lookup)" 'refused'
+# --- FAIL CLOSED (DG1 04:40Z): a git error in the commit walk refuses the land, naming the commit; RED on a gate that reads an error as 'no changes'
+edit $R $NA '$a\
+fc';FC=$(mkc $R alive1 $NA:$D/e);t=$(git rev-parse $FC^{tree});rm -f $D/r/.git/objects/${t%${t#??}}/${t#??};gate $R $FC
+ok "fc-a-diff-tree-fails a commit whose tree object is missing (git diff-tree fails) is REFUSED, rc non-zero, naming the commit" 'refused&&grep -q $FC $D/out'
+edit $R $NA '$a\
+fc1';F1=$(mkc $R alive1 $NA:$D/e);edit $F1 $NA '$a\
+fc2';F2=$(mkc $F1 alive1 $NA:$D/e);rm -f $D/r/.git/objects/${F1%${F1#??}}/${F1#??};gate $R $F2
+ok "fc-b-rev-list-fails a range whose parent commit is unreadable (git rev-list fails) is REFUSED, rc non-zero (an error is not an empty range)" 'refused&&grep -q refused $D/out'
 # --- AA2.54c: the size rails
 sz=$(wc -c<$D/b/grow-gate);eng=$(git show $o:.agi/nodes/.geometry/engine.md|sed -n 's/^grow-gate *\([0-9]*\) B.*/\1/p;q')
-ok "bytes-ceiling grow-gate is $sz B <= $CEIL B (the key-gate build's 1,833 B + a ring-gate delta strictly under the prototype's 2,855 B = 4,687 B; the builder reports the number and the engine.md before/after wc -c and per-line delta)" '[ $sz -le $CEIL ]'
+ok "bytes-ceiling grow-gate is $sz B <= $CEIL B (the key-gate build's 1,833 B + a ring-gate delta strictly under the prototype's 2,855 B = 4,705 B; the builder reports the number and the engine.md before/after wc -c and per-line delta)" '[ $sz -le $CEIL ]'
 ok "no-ssh-agent-no-python the integrated gate calls no python and no ssh-agent (the prototype's cert-date reader is python: a decision the build must name)" '! grep -qi "python\|ssh-agent" $D/b/grow-gate'
 echo "grow-gate-ab: $f FAIL"
 exit $f
