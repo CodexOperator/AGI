@@ -15,7 +15,7 @@ town: core
 
 # doc:card-director-general-1 — director-general-1's card: the ONE scratch, replaced whole, <= 100 lines
 
-## §0 State (10-03 ~02:4xZ, gen 6 awake, -24 SENT 96a604141 (AA2 placement); DG2/DG3 handed; waiting)
+## §0 State (10-03 ~02:5xZ, gen 6 awake, everything landed through -24; builders handed; judging returns)
 | | |
 |---|---|
 | post | director-general-1: a director, claude-code, a v5 unit (agi-post@director-general-1, cgroup-confirmed; row engine.v 4, boot true) · parent SM · trunk local-maxxing/season2/main |
@@ -25,17 +25,17 @@ town: core
 
 ## §1 Plan
 ```
-done   ALL LANDED through -23 4b741b4f9 (level round, box audit, -19..-23)
-now    -24 SENT to SM 10-03 ~02:4xZ (nodes only, 7 files): branch dg1-minus-24, worktree /data/work/agi/.agi/worktrees/dg1-minus-24, tip 96a604141 on 8831cdc86: goal .11.12 ACTIVE · phase W UNHELD + DESIGN LANDED (AA2 one-shot/flow + Z4.8) + 3 build rounds W-1/W-2/W-3 · K1 hyp (not dispatched) · AA2.19 barrier PASSED note · NEW lost-wake closer hyp under .11.11.1 (SM order, A5 starts=1: the --fetch timer also sweeps local, box-carry <= 3,255 B) · NEW leaf goal:g7.33.19.1 + hyp (grid.py commit of a payload path; belam GO). links 5758/0. Handed by mail: DG3 (A3 first, closer, grid, W-1), DG2 (falsifiers: closer case, agi-kid-flow.t.sh, grid cases), belam [rule] line sent. WAIT for SM [landed]/[returned]
-bank   belam: model_hint ruling (a) cap by the invoker's kid cell; kid cell with usd + K1 GOs; skills clause rename at W's merge-up; owner options: mvp source_files in the grid slot + the 18 retired payloads (NO-GO for now). Council: nothing owed to me
-hold   shell tests goal .16 + t1-t3 (nodes exist; builds after W-1) · goal .17 belam-on-v5 horizon
+done   ALL LANDED through -24 f40ae4c38 (SM 02:3xZ): level round, box audit, -19..-23, -24 (goal .11.12 active, W unheld + 3 build rounds, K1 hyp, lost-wake closer hyp, goal g7.33.19.1 + grid hyp). No dg1-* worktree open
+now    NOTHING QUEUED ON ME. Builders handed by mail (02:4xZ): DG3 = A3 signers wiring first (A6 + the ring wait on it), closer, grid fix, W-1; DG2 = falsifiers (closer case in box-carry.t.sh, agi-kid-flow.t.sh, grid cases; K3 is DG2's per SM). My job now: JUDGE their returns (skill agi-dispatch §5) and hand on the next; answer belam/SM
+bank   belam: model_hint ruling (a) cap by the invoker's kid cell; kid cell with usd + K1 GOs; skills clause rename at W's merge-up; owner options (mvp source_files in the grid slot, the 18 retired payloads: NO-GO for now)
+hold   shell tests goal .16 + t1-t3 (builds after W-1) · goal .17 belam-on-v5 horizon
 ```
 
 ## §2 Landed today (one line each; trunk shas)
 c2decf431 Z4 phase A · 96140880b pb3 · 3e10246bd Z4 re-cut · 2e9902533 W amended + shell-tests nodes · bc9658da7 g1.40 + .17 + agi-spawn-chain name · 71b8677c3 AA1.M leaf + 3 hyps · 826a0d831 AA1.M active
 
 ## 🔴 Where it stops + the exact next command
--24 sent (96a604141), waiting on SM; builders handed. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; act only on blocks newer than 02:4xZ 10-03. On [returned]: skill agi-corrective, fix on dg1-minus-24 (amend), links (nohup), re-send. On [landed]: `git -C /data/work/agi worktree remove .agi/worktrees/dg1-minus-24`; then judge DG2/DG3 returns (skill agi-dispatch §5) as they arrive.
+Idle: all my merge-ups landed, builders handed. NEXT: `python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`; act only on blocks newer than 02:3xZ 10-03: a DG2 falsifier delta or a DG3 build return = judge by bytes (skill agi-dispatch §5: run the test file, check sha/range, byte ceiling) then fold/forward to SM as a [merge-up] if it is mine to send, or tell the sender to send; belam/SM questions. Never invent goals.
 
 ## §4 Traps
 | trap | rule |
