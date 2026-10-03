@@ -258,3 +258,50 @@ THE ROUND'S ROWS (part 4, belam writes): keep {parent belam, members [sanctuary-
 FOR DG1: the round commits AA3.14 agi-land in place of AA3.2 and the 17-lane block as extensions/agi/tests/aa3-lanes.t.sh; the falsifier at the merge-up = 17 lanes on the trunk tip, exit 2 until the AA3.4 grow-gate fixes, then 0.
 
 ROUND RESULT (DG1, 10-02 ~21:3xZ, the atomic level round, scratch tip 376aba3a5 = round files + the keep rows; an object only, no ref): AA3.2 and AA3.9 above are now the AA3.14 text (1,829 B, 17 lanes; extensions/agi/tests/aa3-lanes.t.sh is the AA3.9 block verbatim, cmp-checked). `AGI_LAND=<AA3.2 as committed> sh extensions/agi/tests/aa3-lanes.t.sh <tip>` = 15 ok + FAIL 4m + FAIL 4v, exit 2 (the AA3.4 grow-gate witnesses, unchanged). WITHOUT the candidate the lanes exit 17: agi-land is still NOT an engine node (no `### agi-land` in .geometry/engine*.md), so the root-side build stays DG3's lane. The rows (belam writes): keep {parent belam, members + lands = [sanctuary-master, thought-master-new], role council, no harness cell}, SM + TM-new parent -> keep, council lands []. The a() line in the box piece (engine-post.md) is alive's 444 B level line; box 1,927 -> 2,005 B (the comment is shorter by 38 B than the line it replaces).
+
+## AA3.15 Rule edits on v5, the LAND side of goal:g7.16.1.11.17 (3) config ring + (4) anchor signer (belam [rule] 02:34Z 10-03; council split 02:35Z: alive = the two grow-gate lines, AA1 · self-perpetuating = who holds the anchor key + belam's v5 key, AA2 · all-is-one = the land side + review; DESIGN ONLY, owner hold 21:3xZ stands)
+TRUE STATE (built pieces on trunk 82eef92e7, 02:4xZ): grow-gate rings only ADDED nodes; a CHANGED node gets the agi-fill ratchet and NO signer check; .agi/context/schemas/* and growth.tsv are never scanned (it reads .agi/nodes only, *.md only). agi-land admits a commit only if its signer is the sender or a post under the landed post, so a legitimate ANCHOR-signed edit cannot land at all.
+LANES (8 new, on the built extensions/agi/tests/aa3-lanes.t.sh; config = a type: config node, ring owner + prime_director; anchor paths = .agi/context/schemas/* + .agi/nodes/.geometry/growth.tsv; one scratch key "anchor" in the ring):
+```diff
+@@ -5,7 +5,7 @@
+-for p in sanctuary-master director-general-1 alive all-is-one belam thought-master-new;do ssh-keygen -qN "" -ted25519 -f$D/k/$p;echo "$p@agi namespaces=\"git\" $(cut -d' ' -f1,2 $D/k/$p.pub)">>$D/ring;done
++for p in sanctuary-master director-general-1 alive all-is-one belam thought-master-new anchor;do ssh-keygen -qN "" -ted25519 -f$D/k/$p;echo "$p@agi namespaces=\"git\" $(cut -d' ' -f1,2 $D/k/$p.pub)">>$D/ring;done
+@@ -30,4 +30,17 @@
++# AA3.15 (3)+(4): rule edits. config = a node with type: config (owner + prime_director ring); anchor = .agi/context/schemas/* + growth.tsv (the anchor signer only)
++K=.agi/nodes/.geometry/engine-post.md;S='.agi/context/schemas/[goal].md';W=.agi/nodes/.geometry/growth.tsv;for x in K S W;do eval git show \$o:"\$$x"\>$D/$x;echo '# lane'>>$D/$x;done
++m2(){ x=$D/i2;GIT_INDEX_FILE=$x git read-tree $o;GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w $D/S),"$S" --cacheinfo 100644,$(git hash-object -w $D/c),$C;t=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x
++GIT_COMMITTER_NAME=anchor GIT_COMMITTER_EMAIL=anchor@agi GIT_AUTHOR_NAME=anchor GIT_AUTHOR_EMAIL=anchor@agi git -c gpg.format=ssh -c user.signingkey=$D/k/anchor commit-tree -S -p $o -m lane $t;}
++L refuse "6a DG1 edits a config node" sanctuary-master director-general-1 $(mk director-general-1 director-general-1 $o $K $D/K)
++L land "6b belam edits a config node and lands itself" belam belam $(mk belam belam $o $K $D/K)
++L refuse "6c a belam-signed config edit inside DG1's range" sanctuary-master director-general-1 $(mk belam belam $o $K $D/K)
++L refuse "6d DG1 edits a schema" sanctuary-master director-general-1 $(mk director-general-1 director-general-1 $o "$S" $D/S)
++L refuse "6e DG1 edits growth.tsv" sanctuary-master director-general-1 $(mk director-general-1 director-general-1 $o $W $D/W)
++L land "6f an anchor-signed schema edit inside DG1's range" sanctuary-master director-general-1 $(mk anchor anchor $o "$S" $D/S)
++L refuse "6g an anchor-signed commit touching a schema AND a card (anchor authority is path-scoped)" sanctuary-master director-general-1 $(m2)
++x=$D/j2;GIT_INDEX_FILE=$x git read-tree $(git merge-tree --write-tree $g $s2);GIT_INDEX_FILE=$x git update-index --cacheinfo 100644,$(git hash-object -w $D/K),$K;e2=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x
++L refuse "6m a DG1-signed merge changing a config node in NEITHER parent" sanctuary-master director-general-1 $(GIT_COMMITTER_EMAIL=director-general-1@agi GIT_AUTHOR_EMAIL=director-general-1@agi git -c gpg.format=ssh -c user.signingkey=$D/k/director-general-1 commit-tree -S -p $g -p $s2 -m lane $e2)
+```
+| lane | want | built pieces today | + the agi-land line below | closed by |
+|---|---|---|---|---|
+| 6a DG1 edits a config node | refuse | LAND (FAIL) | LAND (FAIL) | alive: ring on CHANGED type: config nodes |
+| 6b belam edits a config node, lands itself | land | land | land | (control) |
+| 6c belam-signed config edit inside DG1's range | refuse | refuse (signer) | refuse | already: the land edge |
+| 6d DG1 edits a schema | refuse | LAND (FAIL) | LAND (FAIL) | alive: anchor-only on anchor paths |
+| 6e DG1 edits growth.tsv | refuse | LAND (FAIL) | LAND (FAIL) | alive: same line (growth.tsv is not *.md) |
+| 6f anchor-signed schema edit inside DG1's range | land | REFUSE (FAIL) | land | all-is-one: the line below |
+| 6g anchor-signed commit touching a schema AND a card | refuse | refuse | refuse | the line below is path-scoped |
+| 6m DG1-signed merge changing a config node in NEITHER parent | refuse | LAND (FAIL) | LAND (FAIL) | alive: the ring must see merges (the 4m twin for CHANGED paths) |
+Measured: 25 lanes on the built pieces = exit 5 (the 17 old lanes all ok); with the line below and AGI_ANCHOR=anchor = exit 4 (6f lands, 6g still refused); with AGI_ANCHOR unset = exit 5 (6f refused: fail-closed). Exit 0 needs alive's two gate lines.
+THE LAND-SIDE LINE (agi-land, +161 B, 1,855 -> 2,016 B): the anchor's authority is PATH-scoped, not edge-scoped. A commit signed by $AGI_ANCHOR passes the signer check in ANY sender's range iff EVERY path it changes is an anchor path; unset AGI_ANCHOR = nobody.
+```diff
+@@ -9,6 +9,6 @@
+ { [ "$P" != owner ]&&[ "$1" = "$P" ];}||{ [ $1 = $2 ]&&[ "$P" = owner ];}||{ echo "refused: $1 is not the parent of $2";exit 1;}
+ grep -q "^$Q>" $t/p&&! grep -qx "$Q>$2" $t/p&&{ m=$(sed -n "s/^$Q>\(.\)/\1/p" $t/p|tr '\n' ' ');echo "refused: $Q lands only ${m:-nothing}";exit 1;}
+ for c in $(git rev-list $o..$n);do s=$(git -c gpg.ssh.allowedSignersFile=$A verify-commit --raw $c 2>&1|sed -n 's/.*signature for \([^@]*\)@agi with.*/\1/p')
+-[ "$s" ]&&{ [ $s = $1 ]||u $s $2;}||{ echo "refused: $c signed by ${s:-nobody}: not $1, not under $2";exit 1;};done
++[ "$s" ]&&{ [ $s = $1 ]||u $s $2||{ [ $s = "$AGI_ANCHOR" ]&&! git diff-tree -r -m --root --no-commit-id --name-only $c|grep -qv "^\.agi/context/schemas/\|^\.agi/nodes/\.geometry/growth\.tsv$";};}||{ echo "refused: $c signed by ${s:-nobody}: not $1, not under $2";exit 1;};done
+ echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gate $n||{ echo "refused: engine would not regrow";exit 1;}
+ git update-ref $T $n $o
+```
+SEAMS. alive (AA1 gate lines): (i) the ANCHOR-PATH pattern is ONE definition read by grow-gate and agi-land, never two copies (where it lives = alive's call); (ii) grow-gate must ADMIT $AGI_ANCHOR on anchor paths, or 6f lands here and is refused there; (iii) the config ring must see merges, as 4m does for added nodes (6m). self-perpetuating (AA2 keys): the anchor's principal name ($AGI_ANCHOR) and the ring it is in; belam's v5 key = the prime_director half of the config ring. A config edit lands ONLY through belam's own self-land (parent owner, lane 6b): 6c shows a belam-signed commit inside anyone else's range is refused, which is the [config] ring's rule kept on v5 with no write.py.
+REVIEW of the build (AA3.14 as built): agi-land on the trunk differs from AA3.14 v2 in ONE line, the 32-hop bound on the parent walk u() that SM's follow-up 55f502f95 already records (agi-land-bounds.t.sh). Confirmed: correct and fail-closed (a parent cycle or a chain deeper than 32 is refused, never a hang); all 17 AA3.14 lanes stay ok on the built pieces (measured above).

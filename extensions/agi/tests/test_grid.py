@@ -2523,3 +2523,42 @@ def test_commit_refuses_nested_trunk_with_only_session_refs(
     assert "refusing commit" in msg
     assert "refs/grid/t9" in msg
     assert _refs(root, "refs/grid/node/") == []        # nothing re-minted
+
+
+# --- goal:g7.33.19.1: `commit <payload path>` versions the node that carries it
+
+
+def test_commit_of_a_payload_path_versions_its_node(project, engine, capsys):
+    _payload_node(project, "plain", "level3:plain", "bin/plain.py")
+    node = project / "nodes" / "level3" / "plain.md"
+    src = engine / "bin" / "plain.py"
+    grid.cmd_commit(project, [str(node)], do_all=False, session=None, engine_root=engine)
+    assert versions(project, "level3:plain") == 1
+
+    src.write_text("print('v2')\n")          # a payload-only edit, the node file untouched
+    grid.cmd_commit(project, [str(src)], do_all=False, session=None, engine_root=engine)
+    assert versions(project, "level3:plain") == 2
+    ref = grid.resolve_ref(project, "level3:plain")
+    rev = grid.version_rev(project, ref, "level3:plain", 2)
+    assert grid.read_tree_entry(project, rev, grid.PAYLOAD_ENTRY)[1] == b"print('v2')\n"
+
+    # the same call twice, and the node file after it: no new version
+    grid.cmd_commit(project, [str(src)], do_all=False, session=None, engine_root=engine)
+    grid.cmd_commit(project, [str(node)], do_all=False, session=None, engine_root=engine)
+    assert versions(project, "level3:plain") == 2
+    # two paths naming one node make one version
+    src.write_text("print('v3')\n")
+    grid.cmd_commit(project, [str(src), str(node)], do_all=False, session=None,
+                    engine_root=engine)
+    assert versions(project, "level3:plain") == 3
+
+
+def test_commit_of_an_unowned_path_is_refused_by_name_and_writes_nothing(project, engine):
+    _payload_node(project, "plain", "level3:plain", "bin/plain.py")
+    refs = grid.git(project, "for-each-ref", "refs/grid")
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(project, [str(engine / "bin" / "run.sh")], do_all=False,
+                        session=None, engine_root=engine)
+    assert "no build node carries payload_ref" in str(exc.value)
+    assert "run.sh" in str(exc.value)
+    assert grid.git(project, "for-each-ref", "refs/grid") == refs

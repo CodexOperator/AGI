@@ -154,6 +154,9 @@ ok s9-huge-key-refused '[ "$(wc -c<$T/s/allowed)" = $sz ]'
 # an unknown run mode never runs anything as root
 AGI_RUN=bogus AGI_STORES=$T/s AGI_SIGNERS=$T/s/allowed sh $SIGNERS p 2>/dev/null;ok s10-unknown-run-mode-refused '[ $? != 0 ]'
 ok s8-allowed-only-own-principals '[ "$(cut -d@ -f1 $T/s/allowed|sort -u|tr "\n" " ")" = "p " ]'
+# a post-planted bin/date (its unit PATH puts /var/lib/agi/<p>/bin first) is NOT run by agi-signers, which runs as root: it sets its own PATH
+mkdir -p $T/s/q/.ssh $T/s/q/bin;ssh-keygen -q -t ed25519 -N '' -f $T/s/q/.ssh/id_ed25519 -C q>/dev/null;printf '#!/bin/sh\ntouch %s\n' $T/s/q/ran>$T/s/q/bin/date;chmod +x $T/s/q/bin/date
+PATH=$T/s/q/bin:$PATH AGI_RUN=none AGI_STORES=$T/s AGI_SIGNERS=$T/s/allowed sh $SIGNERS q 2>/dev/null;ok s11-planted-date-not-run '[ $? = 0 ]&&[ ! -e $T/s/q/ran ]&&grep -q "^q@agi " $T/s/allowed'
 # signed commits: the OLD key at a date inside its window verifies; the OLD key dated after valid-before is refused; the NEW key now verifies
 $G init -q $T/s/v;vc(){ k=$1;d=$2;(cd $T/s/v&&GIT_AUTHOR_DATE=$d GIT_COMMITTER_DATE=$d GIT_AUTHOR_EMAIL=p@agi GIT_COMMITTER_EMAIL=p@agi $G -c gpg.format=ssh -c user.signingkey=$k commit-tree -S -m m $($G hash-object -w -t tree /dev/null));}
 vk(){ (cd $T/s/v&&$G -c gpg.ssh.allowedSignersFile=$T/s/allowed verify-commit --raw $1 2>&1|grep -q "for p@agi with");}
