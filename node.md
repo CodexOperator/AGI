@@ -304,4 +304,39 @@ Exit 0 with ring-gate 668cc669 + the AA3.15 agi-land; the built agi-land fails K
 Fixture trap: a cert signs only through `ssh-keygen -Y sign -f <key>-cert.pub` (git: user.signingkey = the -cert.pub path); `-f <key>` with the cert beside it signs as the bare key (measured, OpenSSH 9.6p1).
 So the land side of §AB is ONE rule (+2 B). NOT run here: §AB's K5/K6 (owner cert expiry) need a CA fixture; the AA1.C-integrated measurement of 02:5xZ (27 lanes: built 6 / AA1.C 1 / both 0, with an anchor file and AGI_FRESH_S) stands as the record of a design §AB superseded.
 COMMIT SIGNATURES (measured 02:5xZ): a git commit carries ONE signature slot (gpgsig; gpgsig-sha256 only in a sha256 repo; this repo = sha1). agi-land reads the signer from git's SSH verify text, which is key-type agnostic (ED25519 and ECDSA both parse). So a hybrid (classical AND PQ) commit is ONE composite blob verified by the program the sign cell names (gpg.ssh.program, which git calls for sign AND verify), and a k-of-n block is k signature blobs beside the commit (§AB's ckpt: sigs/<post>.<n>), never k signatures on one commit.
+AA2.71 THE PRIVATE-KEY LINE (the trunk is pushed to a PUBLIC origin, so a range carrying ANY private key block, live or retired, is refused AT the land; a publication lives only on refs/revoked, ruled by self-perpetuating's revoke; pattern = alive's AA1.K, placement = this section, alive 03:25Z). One line per commit in grow-gate, beside the signer read (283 B; grow-gate 1,465 -> 1,748 B): every path the commit adds or changes, binaries and merges included (-z + tr: no path quoting; -c: a merge's own paths; grep -a: binaries; the ':' keeps a no-match iteration from failing the loop):
+```text
+ git diff-tree -r -c -z --root --no-commit-id --diff-filter=AM --name-only $c|tr '\0' '\n'|while IFS= read -r f;do git show "$c:$f"|grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----'&&{ echo "refused: $c $f carries a private key block (the trunk is public)";exit 1;};:;done||exit 1
+```
+| lane (through the built agi-land) | want | built grow-gate | AA1.K pattern in grow-gate's node loop | the line above |
+|---|---|---|---|---|
+| P1 a LIVE ed25519 key in a card | refuse | LAND (FAIL) | refuse | refuse |
+| P2 a RETIRED key in a card (revoke would admit it on refs/revoked) | refuse | LAND (FAIL) | refuse | refuse |
+| P3 an RSA PEM key in a card | refuse | LAND (FAIL) | refuse | refuse |
+| P4 a passphrase-ENCRYPTED key in a card | refuse, no hang | LAND (FAIL) | refuse | refuse |
+| P5 control: PUBLIC KEY + SSH SIGNATURE blocks + prose naming a private key | land | land | land | land |
+| P6 a live key in extensions/agi/zz-leak.txt | refuse | LAND (FAIL) | LAND (FAIL) | refuse |
+| P7 a live key in .agi/nodes/deprecated/doc/zz-leak.md | refuse | LAND (FAIL) | LAND (FAIL) | refuse |
+| P8 a live key in .agi/nodes/.geometry/zz-leak.tsv | refuse | LAND (FAIL) | LAND (FAIL) | refuse |
+| P9 a DG1-signed MERGE adding a key file in NEITHER parent | refuse | LAND (FAIL) | LAND (FAIL) | refuse |
+Exit: built 8 · node-loop placement 4 · this line 0; the 17 AA3 lanes stay exit 0 with it. The lane block (appended to aa3-lanes.t.sh; fixture keys are generated in the throwaway repo, never a real key):
+```text
+# AA2.71: a range carrying a PRIVATE KEY block anywhere is refused AT the land (the trunk is pushed to a public origin)
+k(){ cat $C>$D/$1;cat $2>>$D/$1;}
+ssh-keygen -qN "" -ted25519 -f$D/live;ssh-keygen -qN "" -ted25519 -f$D/ret;ssh-keygen -qN "" -trsa -b 2048 -m PEM -f$D/rsa;ssh-keygen -qN "pass phrase" -ted25519 -f$D/enc
+printf -- '-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAx\n-----END PUBLIC KEY-----\n-----BEGIN SSH SIGNATURE-----\nU1NIU0lH\n-----END SSH SIGNATURE-----\nthe word PRIVATE KEY in prose\n'>$D/nk
+k p1 $D/live;k p2 $D/ret;k p3 $D/rsa;k p4 $D/enc;k p5 $D/nk
+for x in 1 2 3 4 5;do eval c$x=\$\(mk director-general-1 director-general-1 \$o \$C \$D/p$x\);done
+L refuse "P1 a LIVE ed25519 key in a card" sanctuary-master director-general-1 $c1
+L refuse "P2 a RETIRED key in a card (revoke would admit it on refs/revoked; the trunk is public)" sanctuary-master director-general-1 $c2
+L refuse "P3 an RSA PEM key in a card" sanctuary-master director-general-1 $c3
+L refuse "P4 a passphrase-ENCRYPTED key in a card (no hang)" sanctuary-master director-general-1 $c4
+L land "P5 control: PUBLIC KEY + SSH SIGNATURE blocks + prose naming a private key" sanctuary-master director-general-1 $c5
+L refuse "P6 a live key in a NON-node file (extensions/agi/zz-leak.txt)" sanctuary-master director-general-1 $(mk director-general-1 director-general-1 $o extensions/agi/zz-leak.txt $D/live)
+L refuse "P7 a live key in a RETIRED node (.agi/nodes/deprecated/doc/zz-leak.md)" sanctuary-master director-general-1 $(mk director-general-1 director-general-1 $o .agi/nodes/deprecated/doc/zz-leak.md $D/p1)
+L refuse "P8 a live key in a non-.md node file (.agi/nodes/.geometry/zz-leak.tsv)" sanctuary-master director-general-1 $(mk director-general-1 director-general-1 $o .agi/nodes/.geometry/zz-leak.tsv $D/live)
+g9=$(mk director-general-1 director-general-1 $o $C $D/c);s9=$(mk director-general-1 director-general-1 $o .agi/nodes/doc/card-sanctuary-master.md $D/c)
+x=$D/j9;GIT_INDEX_FILE=$x git read-tree $(git merge-tree --write-tree $g9 $s9);GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w $D/live),extensions/agi/zz-merge.txt;e9=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x
+L refuse "P9 a DG1-signed MERGE adding a key file in NEITHER parent" sanctuary-master director-general-1 $(GIT_COMMITTER_EMAIL=director-general-1@agi GIT_AUTHOR_EMAIL=director-general-1@agi git -c gpg.format=ssh -c user.signingkey=$D/k/director-general-1 commit-tree -S -p $g9 -p $s9 -m lane $e9)
+```
 REVIEW of the build (AA3.14 as built): agi-land on the trunk differs from AA3.14 v2 in ONE line, the 32-hop bound on the parent walk u() that SM's follow-up 55f502f95 already records (agi-land-bounds.t.sh). Confirmed: correct and fail-closed (a parent cycle or a chain deeper than 32 is refused, never a hang); all 17 AA3.14 lanes stay ok on the built pieces.
