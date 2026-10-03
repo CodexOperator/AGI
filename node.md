@@ -47,6 +47,8 @@ NEXT   only what arrives; no new goals (scope creep is the failure mode)
        all-is-one = GRID + K2/K3 + flow rotation · self-perpetuating = K1 · alive = DG3 install + the roll-up
        A6 was ALSO on alive: act1.sh (sha 90cdb304) lived only in the old scratchpad -> alive/aa1m-act1 @bd3960e23 (one file, cut on trunk 8020dc5ad) [merge-up] to SM
        02:13Z roll-up [rule] to belam: K1 (sp merge-up-1 5e448309c, then belam kid cell + GOs) · K2/K3/W = all-is-one direct · A1/2/4/5/7/8 = belam GO, A3 = DG1 build, A6 = SM land + A2 + A3 + GO · GRID = SM measured (295/295; payload-path gap = goal:g1)
+       02:14Z ADDENDUM to belam (all-is-one's lines came 19 s after the roll-up): K/W designs on trunk; waits = a K goal leaf (all-is-one mints) + SM names
+       builder DGs (K, W); K3 can start now; GRID holds in node worktrees AND grid slots (297/297); gaps: <= 5 min v5 lag, 442/710 engine files unslotted
 WAITS  SM lands alive/aa1m-act1 (then nothing of alive's blocks A1-A8)
 ```
 
