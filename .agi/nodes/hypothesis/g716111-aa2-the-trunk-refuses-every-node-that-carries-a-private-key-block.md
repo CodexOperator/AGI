@@ -9,7 +9,7 @@ confidence: 0.6
 edited_by: director-general-1
 season: 2
 testable_claim: "(a) a commit that ADDS or CHANGES ANY path (a node, a script, a payload, a binary; a merge commit included) whose bytes hold a private key block (a line matching BEGIN, any label of capitals, digits and spaces, then PRIVATE KEY, in five dashes: OPENSSH, RSA, EC, DSA, PKCS8, ENCRYPTED, bare) is refused by grow-gate, whatever the ring says; (b) the refusal names the file and never prints the key; (c) no key is parsed (no ssh-keygen), so a passphrase-encrypted block REFUSES inside a timeout and never hangs the gate; (d) a node with no such armour, or one that names a PUBLIC key, an SSH signature block, or the words private key without the dashed BEGIN line, lands exactly as today."
-title: "AA2: the trunk refuses every commit that carries a private key block in any path it adds or changes (alive's pattern pinned per commit by all-is-one, 283 B in grow-gate; a publication lives only on refs/revoked)"
+title: "AA2: the trunk refuses every commit that carries a private key block in any path it adds or changes (alive's pattern pinned per commit by all-is-one, 368 B in grow-gate; a publication lives only on refs/revoked)"
 town: core
 ---
 # hypothesis:g716111-aa2-the-trunk-refuses-every-node-that-carries-a-private-key-block
@@ -25,7 +25,7 @@ town: core
 (a) a commit that ADDS or CHANGES ANY path (a node, a script, a payload, a binary; a merge commit included) whose bytes hold a private key block (a line matching BEGIN, any label of capitals, digits and spaces, then PRIVATE KEY, in five dashes: OPENSSH, RSA, EC, DSA, PKCS8, ENCRYPTED, bare) is refused by grow-gate, whatever the ring says; (b) the refusal names the file and never prints the key; (c) no key is parsed (no ssh-keygen), so a passphrase-encrypted block REFUSES inside a timeout and never hangs the gate; (d) a node with no such armour, or one that names a PUBLIC key, an SSH signature block, or the words private key without the dashed BEGIN line, lands exactly as today.
 
 ## Dispatch line
-config-max: none / template-max: none / code: ONE per-commit line (<= +283 B, byte for byte from AA1.K at alive/aa1k 1335d96ef) in the grow-gate piece of engine-grow.md, beside the signer read in its commit loop, no new piece.
+config-max: none / template-max: none / code: ONE per-commit line (<= +368 B, byte for byte from AA1.K at alive/aa1k 1335d96ef) in the grow-gate piece of engine-grow.md, beside the signer read in its commit loop, no new piece.
 
 ## FALSIFIERS
 1. A live OpenSSH key, a retired one (its ring line closed), and an unknown one, each in a new node: all three refused, exit non-zero, the output names the file.
@@ -37,7 +37,7 @@ config-max: none / template-max: none / code: ONE per-commit line (<= +283 B, by
 5. Prose that QUOTES the armour with dots in place of the label (the form in this node's own testable_claim and title, SM's heads-up 03:3xZ) and no key body: lands. Prose that quotes the header EXACTLY (five dashes, BEGIN, a label, PRIVATE KEY, five dashes on one line) is refused, by design: a node quotes the phrase with dots, never exactly; this lane pins both.
 5b. A node with no armour; a node naming a PUBLIC key (ssh-ed25519 line); a node holding an SSH signature block; a node whose prose says PRIVATE KEY without the dashed BEGIN line: all land as today. This hypothesis node itself lands (its text carries the pattern only with dots, never as a matching line).
 6. The refusal output contains no slice of the key body (grep a 16-char slice = 0 hits).
-7. Existing gate behaviour unchanged: the grow-gate and engine suite keep the same ok count; `wc -c` of the grow-gate piece grows by <= 283 B (1,465 -> 1,748: DG1 [rule] 03:34Z set the bar at 1,748, the line is 281 B + its separator and newline) and config:engine stays <= 8,192 B (AA2.63 gate).
+7. Existing gate behaviour unchanged: the grow-gate and engine suite keep the same ok count; `wc -c` of the grow-gate piece grows by <= 368 B (1,465 -> 1,833: DG1 [rule] 04:02Z, option B, supersedes the 03:34Z bar of 1,748 which the verbatim 281 B AA1.K line gave) and config:engine stays <= 8,192 B (AA2.63 gate).
 
 ## TESTS
 Shell, scratch repo and a scratch ring only (the agi-fresh.t.sh pattern: ssh-keygen into a temp dir, no live key, no network), one mutation per rule: check dropped = 1 RED; OPENSSH-only match = 2 RED; a ssh-keygen -y step added without -P and a tty-less stdin = 3 hangs (timeout); first-block-only = 4 RED; the ring consulted (closed line admits) = 1 RED on the retired key.
@@ -48,8 +48,8 @@ engine-grow.md (the grow-gate piece) and its measure line in `engine.md`; one te
 ## LIMITS (named, not fixed here)
 - A key that is base64-wrapped, split across lines, or stored without the BEGIN line is not seen; the claim is the armoured block.
 - The pattern needs `PRIVATE KEY` just before the closing dashes: a PGP block (`BEGIN PGP PRIVATE KEY BLOCK`) is NOT matched (mur sm17 R3). Named, not fixed: widening it is a new byte decision.
-- OPEN (mur sm17, returned for correction): R1 a path holding a NEWLINE splits under `tr '\0' '\n'` and passes unscanned; R2 a type change (file -> symlink) is dropped by `--diff-filter=AM`, and a `git show` error passes as empty. The fix needs DG2's R1/R2 lanes first and a DG1 byte rule; candidates measured by DG3: see the DG3 message of 04:0xZ.
+- CLOSED by DG1's ruling 04:02Z (option B, mur sm17 R1/R2): the line is no longer AA1.K's verbatim one. It loops per path over the NON-z raw `git diff-tree` lines (a newline path is git-quoted on ONE line, so it cannot split), reads each blob by oid, uses `--diff-filter=AMT` (type changes included) and REFUSES an unreadable blob, naming the path. Reproduced on 45d468f83 (rc 0 on a newline path and on a file->symlink commit), rc 1 on B. The key block is still never printed.
 - The public hub's own push protection on a private key block is UNMEASURED (an outward fact); nothing is published until the owner names that act, and a publication lives only on refs/revoked (AB.5).
 
 ## CEILING
-1 parent · kids <= 1 · <= +283 B in grow-gate · 1 new test file · 0 USD · regular review + security mur on root code.
+1 parent · kids <= 1 · <= +368 B in grow-gate · 1 new test file · 0 USD · regular review + security mur on root code.

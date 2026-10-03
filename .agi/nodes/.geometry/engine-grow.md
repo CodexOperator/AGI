@@ -31,7 +31,7 @@ END{if(t==""){print "refused: not a node (no type:)";exit 1};for(i=1;i<=p;i++){s
  if(k!=o[1]){print "refused: locked: key "(k?k:"none")" is not "o[1]" for "t" under ["r"]";exit 1};print "ok "o[1]" "o[2]}' "$1" "$2"
 ~~~
 
-### grow-gate (1748 B)
+### grow-gate (1833 B)
 ~~~sh
 #!/bin/sh
 # pre-receive (the land gate), all against the RECEIVING trunk tip (matrix + schemas via git archive; a push cannot re-key or re-schema itself):
@@ -41,7 +41,7 @@ A=${AGI_ALLOWED:?};t=$(mktemp -d);trap 'rm -rf $t' EXIT;R=$(git rev-parse -q --v
 git archive $R .agi/context/schemas .agi/nodes/.geometry/growth.tsv|tar -x -C $t||exit 1;k(){ (cd $t&&agi-fill check $1)>$t/e 2>&1;}
 while read o n r;do for c in $(git rev-list $n --not ${AGI_NOT:---all});do
  s=$(git -c gpg.ssh.allowedSignersFile=$A verify-commit --raw $c 2>&1|sed -n 's/.*signature for \(.*\)@agi with.*/\1/p')
- git diff-tree -r -c -z --root --no-commit-id --diff-filter=AM --name-only $c|tr '\0' '\n'|while IFS= read -r f;do git show "$c:$f"|grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----'&&{ echo "refused: $c $f carries a private key block (the trunk is public)";exit 1;};:;done||exit 1
+ git diff-tree -r -c --root --no-commit-id --diff-filter=AMT $c|while IFS= read -r l;do p=${l#*	};o=$(echo "${l%%	*}"|awk '{print $(NF-1)}');git cat-file blob $o>$t/b||{ echo "refused: $c $p unreadable";exit 1;};grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' $t/b&&{ echo "refused: $c $p carries a private key block (the trunk is public)";exit 1;};:;done||exit 1
  git diff-tree -r -c --root --no-commit-id --diff-filter=AM --name-status $c -- .agi/nodes|grep '\.md$'|grep -v /deprecated/>$t/l
  while read m f;do git show $c:$f>$t/n;if [ $m = A -o $m = AA ];then v=$(grow-check $t/.agi/nodes/.geometry/growth.tsv $t/n)||{ echo "$f: $v";exit 1;}
   g=${v##* };[ "$g" = '*' ]||[ "$g" = "$s" ]||{ echo "$f: ring $g, signed by ${s:-nobody}";exit 1;};k n||{ echo "$f:";cat $t/e;exit 1;}
@@ -136,5 +136,5 @@ json.dump(w,open(W,'w'));r=[k for k in w['js']['required']if k not in w['rows']]
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ROUND 7 (§Y1/§Y2): the three growth tools byte for byte from the doc (grow-check 1298 B, grow-gate 1435 B (1465 B since the AA3.4 byte fixes; 1,748 B since the AA2 per-commit private-key line, AA1.K bytes, before the node diff-tree line), grow-project 1185 B), + agi-fill (§Y2 + the corrective diagram + the const seam fix) moved here whole (SPLIT, byte for byte). Why: a post's start read = engine + engine-post + engine-wrap <= 20,480 B, and the hub's = engine + this node.
+ROUND 7 (§Y1/§Y2): the three growth tools byte for byte from the doc (grow-check 1298 B, grow-gate 1435 B (1465 B since the AA3.4 byte fixes; 1,833 B since the AA2 per-commit private-key line: AA1.K's pattern, per path over the raw non-z diff-tree lines so a newline path cannot split, --diff-filter=AMT, an unreadable blob refuses and names the path; was 1,748 B with AA1.K's verbatim line, mur sm17 R1/R2), grow-project 1185 B), + agi-fill (§Y2 + the corrective diagram + the const seam fix) moved here whole (SPLIT, byte for byte). Why: a post's start read = engine + engine-post + engine-wrap <= 20,480 B, and the hub's = engine + this node.
 <!-- THOUGHT:END -->
