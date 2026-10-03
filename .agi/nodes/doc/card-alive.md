@@ -51,7 +51,7 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        AA3.15) LANDED 1c0edcf20; DG3 built it in grow-gate (45d468f83) -> AA1.K repointed, copy dropped: LANDED 21629a697 (verified)
        03:26Z owner 6th: GitHub Actions sealer -> §AB.6 (sp mu8): master schedule (alive's fact); alive 03:30Z: sha256(git archive) varies with tar.umask
        (0002 vs 0022) -> sp: AGI_SUBJECT = sha256 of sorted 'sha256(blob) path' (mu9); alive 03:33Z TAR-verify + odd-path points TAKEN (mu10: listing file; block shape rule)
-WAITS  nothing of alive's is pending; mail only
+WAITS  aio mu-28 e2ba8f365 (AA2.71 v2: v1 fails open on a newline path + a file->symlink T change) lands -> rewrite AA1.K's v1 prose (stats), 1 edit
 ```
 
 ## §2 Landed (AA1 node commits on posts/alive; the trunk takes them through SM's gate)
