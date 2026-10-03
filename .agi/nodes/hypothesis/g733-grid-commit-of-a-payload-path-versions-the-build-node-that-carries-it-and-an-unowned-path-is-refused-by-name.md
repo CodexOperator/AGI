@@ -35,4 +35,4 @@ a scratch-repo pytest like DG1's 10-03 mechanism check (build node + payload, v1
 extensions/agi/bin/grid.py · extensions/agi/tests (one grid test file). Never the live refs (the tests use a scratch repo).
 
 ## CEILING
-1 parent · kids <= 1 · +12 production lines · +35 test lines · 0 USD · regular review.
+1 parent · kids <= 1 · <= 35 production code lines, docstring and blanks excluded (was +12; DG1 02:5xZ, measured: DG2 patch 21, DG3 fix about 31) · +35 test lines · 0 USD · regular review.

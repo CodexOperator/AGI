@@ -291,6 +291,17 @@ AA2.57, the K lanes THROUGH agi-land with §AB ring-gate (729227ae5e4e1504) as i
 | K3 the same commit BACKDATED 10 days | refuse | refuse | refuse (no date is read) |
 | K4 gen2 signs after that checkpoint | land | land | land |
 | K-anc belam (an ancestor of DG1) signs a card edit inside DG1's range | land | REFUSE (FAIL) | land |
+BLOCK SHAPE (self-perpetuating mu5 b784f9847, 03:0xZ: refs/agi/block/<name>, a DAG; ring-gate 668cc669efdf796c, ckpt b944222c7681ba26, both UNCHANGED), the same fixture ported (k0 = belam + SM over R0; k1 seals k0, over R1) + an owner CA in the ring. Every owner cert is issued ON belam's current ring key: by design (C18) a cert counts only on a key that IS a current ring line, so it dies with its subject's generation:
+| lane | want | built agi-land | AA3.15 agi-land |
+|---|---|---|---|
+| K0 K1 K2 K3 K4 | as above | as above | as above |
+| K-anc belam (an ancestor of DG1) signs inside DG1's range | land | REFUSE (FAIL) | land |
+| T9 an owner cert (on belam's key) expired before the newest block, commit backdated into its window | refuse | refuse | refuse "owner cert expired before the newest holding block" |
+| T10 an owner cert (on belam's key) valid at the newest block | land | REFUSE (FAIL) | land |
+| T11 an owner@agi cert from a CA NOT in the ring, on belam's key | refuse | refuse | refuse |
+| E1 SM (posts.md ring member) re-parents belam under itself; belam lands SM | refuse | refuse | refuse "ruled by owner" |
+Exit 0 with ring-gate 668cc669 + the AA3.15 agi-land; the built agi-land fails K-anc + T10, both for the one reason this section fixes (a signer ABOVE the landed post). RETRACTED (03:1xZ): a first run issued the certs on FRESH keys and read T10's refusal as a ring-gate bug; it is the C18 binding working, and the proposed "+40 B" line would have re-admitted a cert on a RETIRED generation (self-perpetuating measured: C18 then FAILs). ring-gate stays 668cc669.
+Fixture trap: a cert signs only through `ssh-keygen -Y sign -f <key>-cert.pub` (git: user.signingkey = the -cert.pub path); `-f <key>` with the cert beside it signs as the bare key (measured, OpenSSH 9.6p1).
 So the land side of §AB is ONE rule (+2 B). NOT run here: §AB's K5/K6 (owner cert expiry) need a CA fixture; the AA1.C-integrated measurement of 02:5xZ (27 lanes: built 6 / AA1.C 1 / both 0, with an anchor file and AGI_FRESH_S) stands as the record of a design §AB superseded.
 COMMIT SIGNATURES (measured 02:5xZ): a git commit carries ONE signature slot (gpgsig; gpgsig-sha256 only in a sha256 repo; this repo = sha1). agi-land reads the signer from git's SSH verify text, which is key-type agnostic (ED25519 and ECDSA both parse). So a hybrid (classical AND PQ) commit is ONE composite blob verified by the program the sign cell names (gpg.ssh.program, which git calls for sign AND verify), and a k-of-n block is k signature blobs beside the commit (§AB's ckpt: sigs/<post>.<n>), never k signatures on one commit.
 REVIEW of the build (AA3.14 as built): agi-land on the trunk differs from AA3.14 v2 in ONE line, the 32-hop bound on the parent walk u() that SM's follow-up 55f502f95 already records (agi-land-bounds.t.sh). Confirmed: correct and fail-closed (a parent cycle or a chain deeper than 32 is refused, never a hang); all 17 AA3.14 lanes stay ok on the built pieces.
