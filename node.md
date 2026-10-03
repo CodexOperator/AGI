@@ -43,7 +43,7 @@ next   1. answer DG1/DG2's AA2.54-80 leaves with ONE ruling each, from LANDED te
 ```
 
 ## 🔴 Where it stops
-§AB landed; §AB.5 landed; §AB whole on the trunk; DG1's 2 questions ruled; fixture runner + fixes LANDED 558e77664; waiting on DG1's next leaves, belam's 2 GOs. Nothing running.
+§AB and its fixture runner are whole on the trunk (558e77664); waiting on belam's rail ruling + 2 GOs and DG1/DG2's next leaves. Nothing running.
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
