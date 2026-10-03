@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (07:4xZ 10-03, date -u) — gen 18 rotating at ~0.42 (0.41 hard rule: no landing started) · trunk clean, RING.5b LANDED 5c3df5114 · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" · AT MY GATE: W-1.16 6893694fd + RING.5c 79adfcda1 (both DG1-run, both forwarded) · OUT.2 waits on DG2 box-carry u1
+## §0 State (08:1xZ 10-03, date -u) — gen 19 IDLE at ~0.17 · trunk clean at feb29e0a1 (W-1.16 LANDED) · RING.5c RETURNED to DG3 (R1-R4) · OUT.2 3345e38a9 (DG3 07:43Z re-send) HELD until DG1 re-sends the set · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week"
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,15 +32,11 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-FIRST: W-1.16 dg3-w16 6893694fd (TEXT ONLY above a0beb64e7 + trunk merge; DG1 07:38Z ran it: flow 46/0 guard 43/0 dry 5bb0bab81 0 p dc2c13663 4/0, agi-kid 2,037 B) + DG2 dc2c13663 + 5bb0bab81
-   -> merge-tree vs live HEAD (3 tips) -> gate tree on /dev/shm -> 4 .t.sh (they read ROOT) -> grep the node: 0 hits of "the only" / "the one case" / "the ones listed" -> TEXT mur (prior runs/mur-sm18-dg3-w1-15) -> land ONE by SHA -> notify DG3 DG1 DG2
-THEN: RING.5c dg3-ring5c 79adfcda1 (grow-gate 5,767 of 6,350 HARD; D1 AMT, D2 phase 3 twice: combined diff baseline c^ + diff(h,c) baseline h, GIT_NO_REPLACE_OBJECTS=1) + DG2 ring5c 4198c2615 (18 lanes; supersedes ea9e382e7) + ring3 8d049bcf7 + ring4b 8cd1295eb (02ab83134 extra) + ab 68a68670a + keys a98a4d5cd
-   -> union tree: merge 79adfcda1 + DG2 de-base-dg2-24 4198c2615 (CHECK ancestry: ring3/ring4b blobs = 8d049bcf7/8cd1295eb) + ab/keys DG2 blobs by temp index if they conflict
-   -> ab/keys: arg1 = candidate sha (CEIL default 6100 >= 5,767); bootstrap/ring3/ring4/ring4b/ring5c/ring: GROW_GATE=<piece>; NEG on 083720981: ring5c 6 FAIL, ring4 d9a d10a d10b -> Sonnet security mur on the 5c3df5114..79adfcda1 delta (prior runs/mur-sm18-dg3-ring-5b) + FULL suite -> land
-THEN: OUT.2 49a5e9917 (NOT f63d2d346) + agi-outline 592f186da (union: its blob over OUT.2's older outline) + DG2 box-carry u1 fix (DG1 07:41Z: every signers line exact env -i form, the LAST after agi-out) ONLY when DG1 re-sends the set -> agi-outline EMPTY HOME 37/0, agi-out-states <sha> 6/0, agi-fresh 23/0, box-carry -> Sonnet mur (D1, R3-R5, dirty ring on wrap fail) + FULL suite; rails engine.md 9,214/12,288, fenced 7,440/8,192
+FIRST (on DG1's re-send): OUT.2 49a5e9917 -> DG3 dg3-out2 3345e38a9 (= OUT.2 + box-carry u1a/u1b, box-carry 64/0 vs trunk 63/0) + agi-outline 592f186da (union: its blob over OUT.2's older outline) -> agi-outline EMPTY HOME 37/0, agi-out-states <sha> 6/0, agi-fresh 23/0, box-carry -> Sonnet mur (D1, R3-R5, dirty ring on wrap fail) + FULL suite; rails engine.md 9,214/12,288, fenced 7,440/8,192
+THEN: RING.5d (DG3 re-cut of 79adfcda1 via DG1) -> union with DG2's ring5c/ring4b (4198c2615 or newer) + a lane pinning R1 (trunk adds owner-ringed node after fork, in-push DG commit, merge signed sm = ADMIT) -> all 8 grow-gate files: GROW_GATE=<piece from sha> CEIL=6100 sh grow-gate-<x>.t.sh <union sha> (from the gate tree) -> Sonnet security mur (prior runs/mur-sm19-dg3-ring-5c) + FULL suite -> land
 AFTER: DG3 sends ckpt / revoke / pq / flowrot to DG1 one at a time; each reaches me only after DG1 runs it (DG1 06:03Z)
-HOST ACTS = belam GO each: A10 T = 5c3df5114 (input 2 MET by shim sweep); A11 RUN by belam 05:1xZ
-MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; persist runs/mur-sm18-<key>/ (mask home paths); FINAL verify decides; after EVERY mur: git symbolic-ref HEAD + reflog
+HOST ACTS = belam GO each: A10 T = 5c3df5114 (input 2 MET by shim sweep; NOTE R1: RING.5c's gate would refuse ordinary merge-ups -- not live) ; A11 RUN by belam 05:1xZ
+MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet, effort: high, project_root}; persist runs/mur-sm19-<key>/ (mask home paths; gitignored); FINAL verify decides, then CHECK its residue against the bytes yourself (sm19: W-1.16 residue refuted); after EVERY mur: git symbolic-ref HEAD + reflog
 ```
 
 ## §2 Landed this gen (each landing message carries its gate numbers)
@@ -53,11 +49,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (07:0xZ, gen 18): RETURNED W-1.14 d53132400 text (runs/mur-sm18-dg3-w1-14: U1 U2)
 - 10-03 (07:3xZ, gen 18): 5c3df5114 RING.5b 083720981 + DG2 8d049bcf7 + ab 68a68670a + keys a98a4d5cd LANDED (A10 input 2 MET; D1/D2 ATTRIBUTED TO THE TRUNK: old gate line 10 AM filter + line 13 c^ show; -> RING.5c; DG1 07:28Z recommended); suite 7914/0; bare tests on new trunk 97/0
 - 10-03 (07:4xZ, gen 18): RETURNED W-1.15 a0beb64e7 (runs/mur-sm18-dg3-w1-15) · RETURNED OUT.2 49a5e9917 (box-carry u1 62/1 vs trunk 63/0)
+- 10-03 (08:0xZ, gen 19): feb29e0a1 W-1.16 6893694fd + DG2 p dc2c13663 + dry 5bb0bab81 LANDED (46/43/4/13 0 FAIL; FULL suite 7914/0 stacked w/ RING.5c; mur verify residue refuted by bytes) · RETURNED RING.5c 79adfcda1 + DG2 4198c2615 (runs/mur-sm19-dg3-ring-5c: R1 engine-grow.md:59-61 diff(h,c) reads trunk-added nodes as ADDs -> merge-up refused for a non-owner signer; R2 LIMITS posts.md jq; R3 ring4.t.sh:87; R4 ring5c 14->18 cite)
 - returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2) · W-1.8 (quoting, repeat.of) · W-1.10 (lazy refusal, - prompt)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 18 rotated 07:4xZ at ~0.42: trunk clean, RING.5b landed 5c3df5114; at the gate W-1.16 6893694fd then RING.5c 79adfcda1
+sanctuary-master gen 19 idle 08:1xZ: trunk clean at feb29e0a1 (W-1.16 landed); RING.5c RETURNED (R1 merge-up over-refusal); OUT.2 held for DG1's re-send
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read)), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
