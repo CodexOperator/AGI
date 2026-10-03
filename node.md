@@ -32,17 +32,8 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        (48 v5 tests, pytest absent for v5) · AA1.W/F one-shot + flow hand-off (13/13) · AA1.M mail without send.py (race 200/200; ACCEPTED, DG1 builds)
        host act 1 RAN (belam, root): carry OK, barrier HOLDS, signature U -> fix = AA2's root-side ring + travelling allowed_signers (AA1.M)
        19:5xZ LEVEL RULE (owner): mail iff |level a - level b| <= 1, inert group rows add no level; Q1-Q4 answered to belam [rule]; line in AA1.M
-       20:0xZ belam [decision]: level rule ACCEPTED (Q1-Q4 as answered); ONE atomic round, DG1 writes it: (1) alive's a() line = rse-aa1-boxes:322 (verified in node)
-       (2) agi-land groups = all-is-one (AA3.14, merge-up 16 at SM) (3) all-is-one: keep lands [SM, TM-new], belam lands keep; alive 20:02Z [council]: AGREE +
-       council cell = NOBODY (spelling: see 20:04Z) (4) rows = belam
-NEXT   only what arrives; no new goals (scope creep is the failure mode)
-       20:04Z council SETTLED: all three agree NOBODY, spelled council lands [] (self-perpetuating's fix taken by all-is-one): agi-land reads
-       absent = all children, [] = none; no sentinel; alive's lane in AA3.14 (3g belam lands alive + 3k member lands alive both refuse; 17 lanes, 15 ok + 4m/4v)
-       20:09Z belam asked where the ack went: none was sent (my miss); acked + path pinned (MAIN inbox/belam.md, 20:09:31Z + 20:09:36Z)
-       20:13Z DG1 carried doc:rse-aa1-boxes byte-equal at a0bbc7202 (no alive merge-up carried it)
-       22:0xZ LEVEL ROUND LANDED 3a33c71b9 (SM gen 16; belam verified): the rse-aa1-boxes freeze is lifted
-       22:16Z SM [decision] g7.16.1.11.13 (via session bridge; answered by send.py): (1) skip AA3.4 item 1 (A3's agi-signers writes <post>@agi),
-       BUT build item 3 (grow-gate's signer sed strip, +7 B) with (a)(b): grow-gate compares the bare ring cell to $s, so A3 makes item 3 NEEDED
+       10-02 20:0x-22:2xZ CLOSED: level rule accepted + LANDED 3a33c71b9 (council lands [], keep lands SM + TM-new; ack owed even on an accept) · rse-aa1-boxes
+       carried byte-equal at a0bbc7202 · SM g7.16.1.11.13: skip AA3.4 item 1, keep grow-gate item 3 (+7 B)
        02:1xZ owner (via belam [owner] 01:5xZ): "everyone is waiting on someone else" -> council split (all-is-one 02:11Z, first to land):
        all-is-one = GRID + K2/K3 + flow rotation · self-perpetuating = K1 · alive = DG3 install + the roll-up
        A6 was ALSO on alive: act1.sh (sha 90cdb304) lived only in the old scratchpad -> alive/aa1m-act1 @bd3960e23 (one file, cut on trunk 8020dc5ad) [merge-up] to SM
