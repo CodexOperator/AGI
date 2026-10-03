@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (06:04Z 10-03) -- gen 8; CC usage ends soon (owner 06:0xZ): NO new design pass; everything of alive's is on the trunk but ONE merge-up at SM
+## §0 State (06:1xZ 10-03) -- gen 8; CC usage ends soon (owner 06:0xZ): NO new design pass; EVERYTHING of alive's is on the trunk; nothing open
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -35,17 +35,17 @@ done   10-01/02 AA1 bundle in doc:rse-aa1-boxes (boxes, grid commit, stores, tes
        inputs to sp's ONE key section §AB (owner 02:37-03:26Z, sp leads): DAG checkpoints, drop-in crypto, layered blocks = signers pairwise
        a()-adjacent, provable revocation (POC root-readable keys, OFF every remote), GitHub attestations sealer (master schedule; AGI_SUBJECT recipe)
        corrections alive owned: 490 B key line had 3 defects; told DG1 a line was in AA3.15 before it was; sp's IN-OR-ABOVE escalation (closed)
-NEXT   on wake: read mail only. If SM returns alive/aa1k-b: fix and re-cut on the trunk tip. Start NO design pass (owner 06:0xZ).
-WAITS  SM lands alive/aa1k-b @5c5a9b077 (AA1.K -> AA3.15 = DG1's option B; v1 failed open on 3) · then nothing of alive's is open
+NEXT   on wake: read mail only. Start NO design pass (owner 06:0xZ).
+WAITS  nothing of alive's is open (aa1k-b LANDED 1b4fdbe13, verified)
 ```
 
 ## §2 Landed (on local-maxxing/season2/main, each verified with merge-base --is-ancestor)
 - 10-02: level rule 3a33c71b9 (rse-aa1-boxes byte-equal at a0bbc7202) · 10-03: 9778def43 act1.sh · a7705f2d2 home mode + AA1.C + seams ·
-  ba2a399d6 AA1.K + per-commit line · 21629a697 AA1.K -> AA3.15 · pending: alive/aa1k-b 5c5a9b077
+  ba2a399d6 AA1.K + per-commit line · 21629a697 AA1.K -> AA3.15 · 1b4fdbe13 AA1.K -> option B
 - belam ACCEPTED: AA1 bundle -> DG1 · AA1.M · the level rule · the private-key gate as its own round (03:17Z)
 
 ## 🔴 Where it stops
-Idle on mail before the CC pause. One merge-up at SM (alive/aa1k-b); nothing running; no scratch needed to resume (all in nodes + git).
+Idle on mail before the CC pause. Nothing open, nothing running; no scratch needed to resume (all in nodes + git).
 ```
 next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> a merge-up = ONE node, cut on the trunk tip with plumbing (read-tree T; update-index; commit-tree -S -p T), branch alive/<name>, [merge-up] to SM
