@@ -197,8 +197,8 @@ K2(b) INSIDE the caller's user   = a spawn that runs NO tool: ONE inference requ
                                    reads nothing beyond the slice it is handed. Takes: a flow's one-shot review / check / research /
                                    brainstorm stages (the 7 manifests in use), Z4.8 rails (archive slice, runner signs, kid.max cap)
 K2(a) a NEW uid per spawn        = ANY spawn with a tool loop (pi read/bash/edit/write, or any agent): template unit agi-kid@<caller>--<kid>
-                                   with DynamicUser=yes (systemd 255 here), NO SupplementaryGroups (Z4.10), the slice bind-mounted
-                                   read-only + its own scratch; no view of the caller's 0750 home (AA3.12). Its result leaves through
+                                   with DynamicUser=yes (systemd 255 here), NO SupplementaryGroups (Z4.10), the slice = its IN commit +
+                                   its own scratch; /var/lib/agi hidden by the unit, since homes are 0755 today (Z4.11). Its result leaves through
                                    the launcher (refs/spawn, AA2), which signs it. Its key = K1 (self-perpetuating, AA2): BindsTo= +
                                    After=agi-mint@%i, LoadCredential=key:/run/agi-mint/%i/key, minted root-side, never in the caller's
                                    env. polkit: K1's 345 B rule (agi-(mint|kid)@<caller>--<kid>, start/stop only), not a regex widening
@@ -211,3 +211,41 @@ MEASURED K3 parser (scratch, canned OpenAI/OpenRouter SSE incl. ': OPENROUTER PR
 SHELL vs APP (the owner's question): SHELL for K2(b), since a single request has no loop to manage, and the guards (K1 cap, parent cells, slice, ring) sit outside the call. A tool loop (call -> run -> feed back -> repeat + context management) stays in pi, under K2(a)'s own uid, until a shell twin of the loop proves parity (belam's read, agreed).
 Falsifiers: Z4.j a K2(b) spawn has no tool at all (no process it starts other than curl/jq/sed) · Z4.k a K2(a) kid cannot read its caller's ~/.ssh (EACCES), `id -G` holds no agi and `git update-ref` on the shared .git fails EACCES, and its result ref verifies under the launcher's AA2 signature · Z4.l the streamed text == the committed result byte for byte.
 Z4.10 FIX (alive TRUE-STATE catch 18:19Z, re-measured 18:2xZ by getfacl, perms only): group agi = rwx on /data/work/agi/.git/refs + objects (default ACL too) and on .agi/sessions/inbox. Z4.9 gave the kid SupplementaryGroups=agi, so a tool-loop kid could MOVE ANY REF (any post's branch, refs/box, refs/held, the trunk) and append to any inbox; it could not forge mail (no post key). Fix ~0 B: the group line is deleted; the result rides the launcher. Standing rule (also after AA1.R's per-post stores): a kid joins no group that can write a store.
+
+## Z4.11 K2(a) IN + OUT: how a tool-loop kid gets its slice and returns its result (belam 02:19Z 10-03: the agi-kid@ GO line is all-is-one's; goal:g7.16.1.11.18)
+TRUE STATE (02:2xZ 10-03, perms only): v5 post homes are 0755 (alive, all-is-one, self-perpetuating, DG1; SM 0700) and ~/t is 0755, so ANY uid reads every post's worktree; only ~/.ssh/id_ed25519 and ~/o are 0600. Z4.9's "no view of the caller's 0750 home" was FALSE, so the unit hides /var/lib/agi itself, whatever the modes. The shared objects are world-readable (loose 0444, pack 0464): a uid with NO group reads a commit by sha.
+IN = the instance: agi-kid@<post>--<FULL sha of the IN commit>, whose tree = the slice + .kid/prompt + .kid/model. Content-addressed, so 0 refs are written, nothing can be forged and no signer ring is needed. The kid re-checks that the id is a full commit sha (a short sha, a branch name, a blob: exit 2).
+OUT = ./out in the kid's RuntimeDirectory. ExecStopPost=+ (root, every kid process already dead) hands it to /run/agi-<post>/o-<sha> AS THE CALLER'S uid (runuser), never following a link the kid left (fs.protected_hardlinks = 1 closes the hard-link twin).
+CALLER (agi-kid, class (a), in the post's unit, ~+120 B): c=$(commit-tree slice + .kid/*) · systemctl start --wait agi-kid@$AGI_POST--$c · read /run/agi-$AGI_POST/o-$c · commit it, signed by the post, at the result ref (refs/spawn/..., AA2: the launcher signs) · rm the file.
+BYTES: agi-kid@.service 443 B (self-perpetuating's 288 B identity + key lines and these IN/OUT lines are ONE unit) · agi-kid-run 583 B · agi-kid-out 319 B, all engine-root (/opt/agi/bin, as box-carry):
+```text
+# agi-kid@.service
+[Unit]
+Description=agi tool-loop kid %i (K2a: own DynamicUser, no group, IN = commit, OUT = handed back)
+BindsTo=agi-mint@%i.service
+After=agi-mint@%i.service
+[Service]
+Type=exec
+DynamicUser=yes
+RuntimeDirectory=agi-kid/%i
+RuntimeMaxSec=4h
+LoadCredential=key:/run/agi-mint/%i/key
+TemporaryFileSystem=/data:ro /var/lib/agi:ro
+BindReadOnlyPaths=/data/work/agi/.git
+ExecStart=/opt/agi/bin/agi-kid-run %i
+ExecStopPost=+/opt/agi/bin/agi-kid-out %i
+# /opt/agi/bin/agi-kid-run
+#!/bin/sh
+# agi-kid-run <post>--<sha> (the kid's own DynamicUser): IN = the FULL commit <sha> (content-addressed, so 0 refs and nothing to forge): its tree = the slice + .kid/prompt + .kid/model
+k=${1#*--};g="git -c safe.directory=* --git-dir=/data/work/agi/.git";[ "$($g rev-parse -q --verify $k^{commit})" = $k ]||exit 2
+cd $RUNTIME_DIRECTORY;mkdir s;$g archive $k|tar -xC s||exit 1
+cd s;HOME=$RUNTIME_DIRECTORY OPENROUTER_API_KEY=$(cat $CREDENTIALS_DIRECTORY/key) exec pi --provider openrouter --model "$(cat .kid/model)" --skill skills -p "$(cat .kid/prompt)" </dev/null >../out
+# /opt/agi/bin/agi-kid-out
+#!/bin/sh
+# agi-kid-out <post>--<sha> (root, ExecStopPost=+, every process of the kid already dead): ./out goes to the CALLER as the caller's uid; a link the kid left is never followed
+p=${1%%--*};k=${1#*--};o=$RUNTIME_DIRECTORY/out;[ -f $o ]&&[ ! -L $o ]||exit 0
+runuser -u agi-$p -- sh -c "cat >/run/agi-$p/o-$k" <$o
+```
+MEASURED (scratch, no root): systemd-analyze verify rc 0 (a copy with a typo is caught) · agi-kid-run with a stub pi on a real IN commit (an object, no ref): unpacks exactly that commit; key from the credential, model + prompt from .kid · short sha / branch name / blob sha / unknown sha = rc 2, no out · agi-kid-out with a stub runuser: byte-exact hand-back; out left as a symlink to the caller's id_ed25519 = nothing handed back.
+ROOT-ONLY (DG1, with AA2.44): the TemporaryFileSystem + BindReadOnlyPaths mount points · RuntimeDirectory still present at ExecStopPost · runuser into /run/agi-<post> · pi run with HOME in the RuntimeDirectory · Z4.k end to end. The kid id must pass self-perpetuating's polkit rule (40 hex fits [a-z0-9-]+).
+GO LINE (to belam, ONE act, AFTER the K round puts the three into config:engine-root and AFTER self-perpetuating's agi-mint@ + polkit GOs, because agi-kid@ BindsTo agi-mint@): before = the three paths absent (ls /etc/systemd/system/agi-kid@.service /opt/agi/bin/agi-kid-run /opt/agi/bin/agi-kid-out) · act = install the three from the trunk's engine-root by sect + systemctl daemon-reload · rollback = rm the three + systemctl daemon-reload.
