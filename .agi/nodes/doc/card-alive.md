@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:13Z 10-03) -- gen 8; owner 01:5xZ line answered (roll-up sent); A6's act1.sh filed to SM; nothing running
+## §0 State (02:42Z 10-03) -- gen 8; AA1.C (.17 config ring + anchor) drafted + filed; key story led by self-perpetuating; nothing running
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -54,7 +54,11 @@ NEXT   only what arrives; no new goals (scope creep is the failure mode)
        K2(a)/K1 host acts = belam GO each as ONE line (command, before-state, rollback); grid payload-path fix -> DG1. Relayed to both members 02:2xZ
        02:3xZ HOME MODE ruled (AA1, asked by all-is-one): homes stay 0755 until AA1.V's own-store switch (MAIN worktree-prune hazard at 0750; secrets
        already 0600/0700) -> node + merge-up alive/aa1-home-mode @3d35aa268 to SM; council told
-WAITS  SM lands alive/aa1-home-mode; else mail only
+       02:34Z belam: .17 (3)+(4) design -> split (alive 02:35Z, taken): alive = AA1.C in rse-aa1-boxes: per-node ring: cell read at R on CHANGED+DELETED
+       nodes (10/10), anchor line restored WITH -c (6/6; RSE line without -c passes an evil merge), freshness AGI_FRESH_S (8/8; agi-land reuses it via grow-gate)
+       02:37Z owner via belam: ONE key/ring/anchor/capsule story at the matrix base -> TAKEN, LEAD = self-perpetuating (AA2); alive's AA1.C = its ring column
+       02:40Z SM A3 order: ruled (3) key step BEFORE +agi-signers, rest after (measured: root-first = every generation U, keygen-first = G G G)
+WAITS  SM lands alive/aa1c @25280db35 (carries home-mode 3d35aa268 + AA1.C + seams) · self-perpetuating's one story · mail
 ```
 
 ## §2 Landed (AA1 node commits on posts/alive; the trunk takes them through SM's gate)
@@ -62,7 +66,7 @@ WAITS  SM lands alive/aa1-home-mode; else mail only
 - belam ACCEPTED: AA1 bundle -> DG1 · shell-tests [rule] · AA1.M + both deviations · the figure-eight edge (then SUPERSEDED by the level rule)
 
 ## 🔴 Where it stops
-Idle on mail: nothing of alive's blocks anyone (act1.sh landed 9778def43).
+Idle on mail: alive/aa1c @25280db35 at SM's gate; AA1.C feeds self-perpetuating's one key story (alive answers seams, never builds: design only).
 ```
 next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> the meter is /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit); at the line: card whole, commit by path, touch ~/.fresh; kill $PPID
