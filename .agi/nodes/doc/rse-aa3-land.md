@@ -322,7 +322,7 @@ AA2.71 THE PRIVATE-KEY LINE (the trunk is pushed to a PUBLIC origin, so a range 
 Exit: built 8 · node-loop placement 4 · this line 0; the 17 AA3 lanes stay exit 0 with it. The lane block (appended to aa3-lanes.t.sh; fixture keys are generated in the throwaway repo, never a real key):
 ```text
 # AA2.71: a range carrying a PRIVATE KEY block anywhere is refused AT the land (the trunk is pushed to a public origin)
-k(){ cat $C>$D/$1;cat $2>>$D/$1;}
+k(){ cat $D/c>$D/$1;cat $2>>$D/$1;}
 ssh-keygen -qN "" -ted25519 -f$D/live;ssh-keygen -qN "" -ted25519 -f$D/ret;ssh-keygen -qN "" -trsa -b 2048 -m PEM -f$D/rsa;ssh-keygen -qN "pass phrase" -ted25519 -f$D/enc
 printf -- '-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAx\n-----END PUBLIC KEY-----\n-----BEGIN SSH SIGNATURE-----\nU1NIU0lH\n-----END SSH SIGNATURE-----\nthe word PRIVATE KEY in prose\n'>$D/nk
 k p1 $D/live;k p2 $D/ret;k p3 $D/rsa;k p4 $D/enc;k p5 $D/nk
