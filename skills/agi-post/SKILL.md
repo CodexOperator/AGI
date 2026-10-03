@@ -61,3 +61,11 @@ python3 extensions/agi/bin/rotate.py stand-up --post <p>        (from MAIN)
   held): never a second live session.
 - spawn · rotate-self · heal recover · stand-up are the four callers of ONE verb (goal:g7.16.1.7.1.1.4): never start a post's
   `claude` by hand.
+
+## 5 · Never write signing config at the REPO level of MAIN (belam 10-03 04:2xZ, measured)
+MAIN's `.git/config` is shared by EVERY post's worktree, and a repo-level key OVERRIDES the post's own global cell (`~/.gitconfig`, `allowedSignersFile=~/.signers`).
+The case: `gpg.ssh.allowedSignersFile=<MAIN>/.git/allowed_signers` set once at a post's first move (10-01 09:39) made director-thought-1's next commit read
+`U ... No principal matched` until belam unset that one key (rollback: `git config --local gpg.ssh.allowedSignersFile <path>`).
+- No stand-up, move, spawn or hand step writes `gpg.*`, `user.signingkey`, `commit.gpgsign` or `tag.gpgsign` with `git config` (local) in MAIN. A post's signing config is its own global cell, written by its unit.
+- Check, read-only: `git -C <MAIN> config --local --get-regexp '^(gpg\.|user\.signingkey|commit\.gpgsign|tag\.gpgsign)'` prints NOTHING.
+

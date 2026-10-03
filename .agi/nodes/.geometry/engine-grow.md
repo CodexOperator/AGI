@@ -31,20 +31,37 @@ END{if(t==""){print "refused: not a node (no type:)";exit 1};for(i=1;i<=p;i++){s
  if(k!=o[1]){print "refused: locked: key "(k?k:"none")" is not "o[1]" for "t" under ["r"]";exit 1};print "ok "o[1]" "o[2]}' "$1" "$2"
 ~~~
 
-### grow-gate (1465 B)
+### grow-gate (6335 B)
 ~~~sh
 #!/bin/sh
 # pre-receive (the land gate), all against the RECEIVING trunk tip (matrix + schemas via git archive; a push cannot re-key or re-schema itself):
 # ADDED node -> grow-check (order + key; a ring other than * = the commit's signer, §W) + agi-fill check (Y2's fields) · CHANGED node -> agi-fill
-# check as a RATCHET (refused only if the version it replaces passed: legacy nodes stay editable, nothing that passed can regress)
-A=${AGI_ALLOWED:?};t=$(mktemp -d);trap 'rm -rf $t' EXIT;R=$(git rev-parse -q --verify ${AGI_TRUNK:-refs/heads/main})||{ echo "refused: no receiving trunk";exit 1;}
-git archive $R .agi/context/schemas .agi/nodes/.geometry/growth.tsv|tar -x -C $t||exit 1;k(){ (cd $t&&agi-fill check $1)>$t/e 2>&1;}
-while read o n r;do for c in $(git rev-list $n --not ${AGI_NOT:---all});do
- s=$(git -c gpg.ssh.allowedSignersFile=$A verify-commit --raw $c 2>&1|sed -n 's/.*signature for \(.*\)@agi with.*/\1/p')
- git diff-tree -r -c --root --no-commit-id --diff-filter=AM --name-status $c -- .agi/nodes|grep '\.md$'|grep -v /deprecated/>$t/l
- while read m f;do git show $c:$f>$t/n;if [ $m = A -o $m = AA ];then v=$(grow-check $t/.agi/nodes/.geometry/growth.tsv $t/n)||{ echo "$f: $v";exit 1;}
+# check as a RATCHET (refused only if the version it replaces passed: legacy nodes stay editable)
+# the ring (.agi/nodes/.geometry/ring, `post keytype b64` lines): when the RECEIVING tip holds one, a commit lands only if its signer is a ring line open at that tip (AGI_ALLOWED is not read) and an ancestor-or-self of every name ruling each path that differs between the LANDED tip h and the commit, merges and in-push parents included (ring line: its post · node: its ring: cell · schemas, growth.tsv, .github, .gitattributes: AGI_RULES, default owner · posts.md: the old AND new parent of each moved row). No ring at the tip = the gate as it was ONLY while the ring never existed in the RECEIVING tip's history (rev-list -1 R -- ring, once per push); once it has, deleting or emptying it answers to every name it removes; no date is read.
+# LIMITS: every git read is checked except rn (the ring: cell read; a node WITH NO ring: cell, engine*.md included, needs only a ring signer: DG1 to rule), pm, $t/u (fail closed). A ring line is exactly the canonical shape or refused (grep -a, --text); a posts.md name/parent is \A[a-z][a-z0-9-]*\z. Phase 3 (agi-fill / grow-check) runs twice: on the combined diff of c and on diff(h, c). A merge-carried node is the trunk's only if its blob equals the RECEIVING tip's; a legacy-invalid trunk node refuses a merge-up carrying it; agi-fill must read a sentinel node as rc 3 via [moral].md at the tip (a crash, or an owner schema that breaks it, refuses every push). Named, not closed: a mode-only ring change has no ruler line; verify-commit runs gpg/x509 on pushed armour (refused after); no wall clock.
+A=${AGI_ALLOWED:?};export LC_ALL=C GIT_NO_REPLACE_OBJECTS=1;set -f;t=$(mktemp -d);trap 'rm -rf $t' EXIT;R=$(git rev-parse -q --verify ${AGI_TRUNK:-refs/heads/main})||{ echo "refused: no receiving trunk";exit 1;}
+G=.agi/nodes/.geometry;mkdir -p $t/$G $t/.agi/context/schemas&&git archive $R:.agi/context/schemas|tar -x -C $t/.agi/context/schemas 2>/dev/null||exit 1;git show $R:$G/growth.tsv>$t/$G/growth.tsv||exit 1;command -v agi-fill>/dev/null||{ echo "refused: no agi-fill";exit 1;};k(){ (cd $t&&agi-fill check $1)>$t/e 2>&1;}
+lg(){ a=$(git rev-parse -q --verify "$R:$1")&&[ "$a" = "$(git rev-parse "$c:$1")" ];}
+E='^[a-z][a-z0-9-]* (ssh-ed25519|ecdsa-sha2-nistp256|pq-sha256|x25519|cert-authority (ssh-ed25519|ecdsa-sha2-nistp256)) [A-Za-z0-9+/]+=*$';ru(){ awk -v s=$1 -v q=$2 '{u[$1]=$2}END{while(q!=""&&n++<40){if(q==s)exit 0;q=u[q]}exit 1}' $t/u;}
+rn(){ git show "$h:$1" 2>/dev/null|awk '/^---$/{n++;next} n==1&&/^ring:/{sub(/^ring: *\[/,"");sub(/\].*/,"");gsub(/[ ,]+/," ");print;exit} n>1{exit}';}
+pm(){ git show $1:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -s 'map({(.name):.parent})|add';}
+die(){ echo "refused: $c: $*";exit 1;};c=head;printf -- '---\ntype: moral'>$t/z;k z;[ $? = 3 ]||die "agi-fill sentinel"
+dt(){ git diff-tree -r -c --root --no-commit-id "$@">$t/d||die "git diff-tree failed";}
+while read o n r;do h=$R;w=$(git rev-list --reverse --topo-order $n --not ${AGI_NOT:---all})&&x=$(git rev-list -1 --full-history $R -- $G/ring)||{ echo "refused: git rev-list failed";exit 1;};L=;[ "$x" ]||L=1;for c in $w;do
+ if git show $h:$G/ring>$t/r 2>/dev/null;then L=;grep -aE "$E" $t/r|sed -E 's/^([a-z0-9-]+) /\1@agi namespaces="git" /'>$t/a;else :>$t/a;[ "$L" ]&&{ x=$(git rev-list -1 --full-history $h -- $G/ring)&&[ -z "$x" ]||die "the ring is unreadable at the tip";cp $A $t/a;};fi;git show $h:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r 'select(all(.name,.parent;type=="string" and test("\\A[a-z][a-z0-9-]*\\z")))|"\(.name) \(.parent)"'>$t/u
+ s=$(git -c gpg.ssh.allowedSignersFile=$t/a verify-commit --raw $c 2>&1|sed -n 's/.*signature for \(.*\)@agi with.*/\1/p')
+ [ "$L" -o "$s" ]||{ echo "refused: $c is not signed by a ring line open at the receiving tip";exit 1;}
+ dt --diff-filter=AMT $h $c;(while IFS= read -r l;do p=${l#*	};o=$(echo "${l%%	*}"|awk '{print $(NF-1)}');git cat-file blob $o>$t/b||{ echo "refused: $c $p unreadable";exit 1;};grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' $t/b&&{ echo "refused: $c $p carries a private key block (the trunk is public)";exit 1;};case $p in $G/ring/*)echo "refused: $c $p: the ring is one file";exit 1;;$G/ring)[ "$s" ]||die "the ring is changed by an unsigned commit";git show $c:$p>$t/g2&&{ grep -aEqv "$E" $t/g2;[ $? = 1 ];}||die "a ring line off shape";;esac;done<$t/d)||exit 1
+ [ "$L" ]||{ dt --name-only $h $c;(while IFS= read -r f;do case $f in \"*)echo "refused: $c $f: a quoted path";exit 1;;
+  $G/ring)git diff --text $h $c -- "$f">$t/g||die "git diff failed";r=$(sed -n 's/^[-+]\([a-z][a-z0-9-]*\) .*/\1/p' $t/g|sort -u);;
+  .agi/context/schemas/*|$G/growth.tsv|.github/*|.gitattributes|*/.gitattributes)r=${AGI_RULES:-owner};;
+  $G/posts.md)pm $h>$t/o;pm $c>$t/n;jq -e '[keys[],(.[]|select(.!=null))]|all(test("\\A[a-z][a-z0-9-]*\\z"))' $t/n>/dev/null||die "a posts.md name off [a-z0-9-]";r=$(jq -rn --slurpfile o $t/o --slurpfile n $t/n '$o[0] as $o|$n[0] as $n|($o+$n|keys[]) as $k|select($o[$k]!=$n[$k])|$o[$k],$n[$k]|select(.!=null)')||die "the posts.md ruler failed";;
+  *)r=$(rn "$f");;esac
+  for q in $r;do ru $s $q||{ echo "refused: $c $f is ruled by $q; ${s:-nobody} is not $q or above it";exit 1;};done;done<$t/d)||exit 1;}
+ for y in "$c" "$h $c";do dt --diff-filter=AMT --name-status $y -- .agi/nodes;grep '\.md$' $t/d|grep -v /deprecated/>$t/l;b=${y%% *};[ $b = $c ]&&b=$c^
+ while read m f;do [ "$y" != "$c" ]&&lg "$f"&&m=M;z=$(git ls-tree $c -- "$f")||die "$f: ls-tree failed";case $z in 12*)echo "refused: $c $f: a symlink node";exit 1;;esac;git show "$c:$f">$t/n||die "$f unreadable";if [ "${m#*A}" != "$m" ];then v=$(grow-check $t/.agi/nodes/.geometry/growth.tsv $t/n)||{ echo "$f: $v";exit 1;}
   g=${v##* };[ "$g" = '*' ]||[ "$g" = "$s" ]||{ echo "$f: ring $g, signed by ${s:-nobody}";exit 1;};k n||{ echo "$f:";cat $t/e;exit 1;}
-  else k n||{ git show $c^:$f>$t/p;! k p||{ echo "$f: was valid:";k n;cat $t/e;exit 1;};};fi;done<$t/l||exit 1;done;done
+  else k n||{ git show "$b:$f">$t/p&&! k p||{ echo "$f: was valid:";k n;cat $t/e;exit 1;};};fi;done<$t/l||exit 1;done;h=$c;done;done
 ~~~
 
 ### grow-project (1185 B)
@@ -135,5 +152,5 @@ json.dump(w,open(W,'w'));r=[k for k in w['js']['required']if k not in w['rows']]
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ROUND 7 (§Y1/§Y2): the three growth tools byte for byte from the doc (grow-check 1298 B, grow-gate 1435 B (1465 B since the AA3.4 byte fixes), grow-project 1185 B), + agi-fill (§Y2 + the corrective diagram + the const seam fix) moved here whole (SPLIT, byte for byte). Why: a post's start read = engine + engine-post + engine-wrap <= 20,480 B, and the hub's = engine + this node.
+ROUND 7 (§Y1/§Y2): the three growth tools byte for byte from the doc (grow-check 1298 B, grow-gate 1435 B (1465 B since the AA3.4 byte fixes; 3,783 B since the AA2.54 ring-gate folded into the commit loop: the signer must be a ring line open at the RECEIVING tip and an ancestor-or-self of every name ruling each changed path; no ring at the tip = the old AGI_ALLOWED gate; 1,833 B before that, since the AA2 per-commit private-key line: AA1.K's pattern, per path over the raw non-z diff-tree lines so a newline path cannot split, --diff-filter=AMT, an unreadable blob refuses and names the path; was 1,748 B with AA1.K's verbatim line, mur sm17 R1/R2), grow-project 1185 B), + agi-fill (§Y2 + the corrective diagram + the const seam fix) moved here whole (SPLIT, byte for byte). Why: a post's start read = engine + engine-post + engine-wrap <= 20,480 B, and the hub's = engine + this node.
 <!-- THOUGHT:END -->

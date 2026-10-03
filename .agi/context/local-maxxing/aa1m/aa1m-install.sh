@@ -19,5 +19,5 @@ pieces)install -d -m 755 $O $E;for n in box box-carry agi-signers sect;do put $n
 signers)for p in $(rows);do sh $O/agi-signers $p;done;wc -l $St/allowed_signers;;
 units)install -d -m 755 $D;for n in agi-carry@.path agi-carry@.service agi-carry-fetch.timer agi-carry-fetch.service;do put $n $D/$n 644;done;sd daemon-reload
  for p in $(rows);do sd enable --now agi-carry@$p.path;done
- if [ -n "$BH" ];then sd enable --now agi-carry-fetch.timer;else echo "hub empty: fetch timer not enabled";fi;;
+ sd enable --now agi-carry-fetch.timer;;
 *)exit 1;;esac
