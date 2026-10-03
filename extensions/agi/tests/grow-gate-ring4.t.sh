@@ -84,9 +84,17 @@ gate $R1 $(mkc $R1 dg1 120000+$A1:$SL);ok "d9a-symlink-typechange-refused dg1 re
 gate $R1 $(mkc $R1 dg1 $A1:$D/n$(basename $A1));ok "d9b-plain-edit-admitted control: dg1's plain valid edit of the same node: admitted" '[ $r = 0 ]'
 # d10 (D2) a merge(V, X) with X OUTSIDE the push holding an agi-fill-INVALID version of a valid node and X's tree: diff-tree -c omits a path whose blob equals EITHER parent, so phase 3 never saw the node
 gaten(){ git update-ref refs/heads/trunk $1;echo "$1 $2 refs/heads/x"|AGI_ALLOWED=$D/over AGI_TRUNK=refs/heads/trunk AGI_NOT="$1 $3" timeout 60 grow-gate>$D/out 2>&1;r=$?;}
-X=$(mkg $R1 $A1:$D/af-bad);sed '/^type:/d' $D/n$(basename $A1)>$D/af-bad
+sed '/^type:/d' $D/n$(basename $A1)>$D/af-bad
 X=$(mkg $R1 $A1:$D/af-bad);M=$(mkx "$R1 $X" dg1 $X);gaten $R1 $M $X;ok "d10a-merge-with-outside-invalid-parent-refused M=merge(R1, X) signed dg1 with X's tree (X, outside the push, holds the INVALID version of a valid node): refused" 'refused'
 M=$(mkx "$X $R1" dg1 $X);gaten $R1 $M $X;ok "d10b-either-parent-order-refused the same with the parents swapped: refused" 'refused'
 M=$(mkx "$R1 $X" dg1 $R1);gaten $R1 $M $X;ok "d10c-merge-keeping-the-valid-tree-admitted control: merge(R1, X) with R1's own (valid) tree: admitted" '[ $r = 0 ]'
+# --- RING.5d (SM mur sm19 on RING.5c: R1 the standard MERGE-UP shape; notes: symlink/submodule node)
+# d11 the trunk gained an OWNER-ringed node after the fork: M = merge(R2, D1) signed sm, D1 (dg1, in the push) a plain edit: the second phase-3 pass (diff of the previous walked commit D1 against M) read the trunk's node as an ADD and refused sm (not the owner); a path whose blob equals a LANDED parent's is already landed
+git show $o:$A1|sed 's/^id: moral:antifragility/id: moral:zz-r5d/;s/^mint_id: .*/mint_id: 4123456789abcdef0123456789abcdef/;s/^type: moral/type: moral\nkey: 2fe50ba43c479d67/'>$D/nv
+R2=$(mkg $R1 .agi/nodes/moral/zz-r5d.md:$D/nv);D1=$(mkc $R1 dg1 $A2:$D/n$(basename $A2));M=$(mkx "$R2 $D1" sm1 $R2 $A2:$D/n$(basename $A2))
+gate $R2 $M;ok "d11a-merge-up-with-trunk-owner-node-admitted [D1, M] M=merge(R2, D1) signed sm, R2 (the tip) added an owner-ringed node after the fork: admitted" '[ $r = 0 ]'
+M=$(mkx "$R1 $D1" sm1 $D1);gate $R1 $M;ok "d11b-merge-up-without-new-trunk-node-admitted control: the same merge when the trunk gained nothing: admitted" '[ $r = 0 ]'
+# d12 a symlink whose blob is VALID node text: no more power than a delete, now refused outright (120000 / 160000 under .agi/nodes)
+git show $o:$A1>$D/validtxt;gate $R1 $(mkc $R1 dg1 120000+$A1:$D/validtxt);ok "d12a-symlink-with-valid-text-refused dg1 turns the node into a symlink whose blob IS valid node text: refused" 'refused'
 echo "grow-gate-ring4: $f FAIL"
 exit $f
