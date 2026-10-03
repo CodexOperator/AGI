@@ -33,4 +33,21 @@ fgate $o $c9 none;ok h-control-no-failure-lands '[ $? = 0 ]'
 git update-ref refs/heads/trunk $c1;c10=$(mk $c1 owner del ten)
 fgate $c1 $c10 diff;ok i-ring-diff-error-refuses '[ $? != 0 ]&&grep -q "git diff failed" $D/out'
 fgate $c1 $c10 none;ok j-control-ring-delete-by-owner-lands '[ $? = 0 ]'
+# --- RING.3 (SM mur sm17 on 9abc7c690, D1-D3 + R5): each lane is RED on the demoted piece. Ring names are real posts: owner (top) and all-is-one (under council under belam).
+ssh-keygen -qN "" -ted25519 -f$D/k/aio>/dev/null
+pkb(){ awk '{print $2}' $D/k/$1.pub;}
+printf 'owner ssh-ed25519 %s\nall-is-one ssh-ed25519 %s\n' "$(pkb owner)" "$(pkb aio)">$D/ring2
+mkx(){ ps=$1;sg=$2;shift 2;x=$D/i2;GIT_INDEX_FILE=$x git read-tree ${ps%% *}
+ for a in "$@";do pa=${a%%:*};fa=${a#*:};if [ "$fa" = - ];then GIT_INDEX_FILE=$x git update-index --force-remove $pa;else GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w $fa),$pa;fi;done
+ tr=${MTREE:-$(GIT_INDEX_FILE=$x git write-tree)};rm -f $x;pa=;for q in $ps;do pa="$pa -p $q";done
+ if [ "$sg" = - ];then git commit-tree $pa -m x $tr;else GIT_COMMITTER_NAME=$sg GIT_COMMITTER_EMAIL=$sg@agi GIT_AUTHOR_NAME=$sg GIT_AUTHOR_EMAIL=$sg@agi git -c gpg.format=ssh -c user.signingkey=$D/k/$sg commit-tree -S $pa -m x $tr;fi;}
+g2(){ git update-ref refs/heads/trunk $1;echo "$1 $2 refs/heads/x"|(AGI_ALLOWED=$D/allowed AGI_TRUNK=refs/heads/trunk AGI_NOT=$1 grow-gate)>$D/out 2>&1;}
+RG=.agi/nodes/.geometry/ring;PM=.agi/nodes/.geometry/posts.md
+C1=$(mkx "$o" legacy $RG:$D/ring2);g2 $o $C1;ok k-first-ring-signed-by-an-allowed-key-lands '[ $? = 0 ]'
+M=$(MTREE=$(git rev-parse $o^{tree}) mkx "$C1 $o" aio);g2 $C1 $M;ok l-merge-bypass-refused '[ $? != 0 ]'
+C2=$(mkx "$M" legacy $RG:$D/ring2);g2 $M $C2;ok m-bootstrap-stays-closed-through-a-merge '[ $? != 0 ]'
+cp $D/ring2 $D/ring3;printf 'owner@agi namespaces="git" ssh-ed25519 %s\n' "$(pkb aio)">>$D/ring3;C3=$(mkx "$C1" aio $RG:$D/ring3);g2 $C1 $C3;ok n-ring-line-off-shape-refused '[ $? != 0 ]'
+git show $o:$PM>$D/posts2;printf '  - {"name": "x\\nowner", "parent": "all-is-one"}\n'>>$D/posts2;C4=$(mkx "$C1" aio $PM:$D/posts2);g2 $C1 $C4;ok o-posts-name-injection-refused '[ $? != 0 ]'
+C5=$(mkx "$o" - $RG:$D/ring2);g2 $o $C5;ok p-first-ring-unsigned-refused '[ $? != 0 ]'
+C6=$(mkx "$o" legacy $RG/x:$D/ring2);g2 $o $C6;ok q-ring-directory-refused '[ $? != 0 ]'
 echo "grow-gate-bootstrap: $f FAIL";exit $f

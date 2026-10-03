@@ -31,29 +31,29 @@ END{if(t==""){print "refused: not a node (no type:)";exit 1};for(i=1;i<=p;i++){s
  if(k!=o[1]){print "refused: locked: key "(k?k:"none")" is not "o[1]" for "t" under ["r"]";exit 1};print "ok "o[1]" "o[2]}' "$1" "$2"
 ~~~
 
-### grow-gate (4484 B)
+### grow-gate (5431 B)
 ~~~sh
 #!/bin/sh
 # pre-receive (the land gate), all against the RECEIVING trunk tip (matrix + schemas via git archive; a push cannot re-key or re-schema itself):
 # ADDED node -> grow-check (order + key; a ring other than * = the commit's signer, §W) + agi-fill check (Y2's fields) · CHANGED node -> agi-fill
 # check as a RATCHET (refused only if the version it replaces passed: legacy nodes stay editable, nothing that passed can regress)
 # the ring (.agi/nodes/.geometry/ring, `post keytype b64` lines): when the RECEIVING tip holds one, a commit lands only if its signer is a ring line open at that tip (advanced only by commits admitted before; AGI_ALLOWED is not read) and an ancestor-or-self of every name ruling each path it changes (ring line: its post · node: its ring: cell · schemas, growth.tsv, .github: AGI_RULES, default owner · posts.md: the old AND new parent of each moved row). No ring at the tip = the gate as it was (the first ring commit lands) ONLY while the ring never existed in that history (git rev-list -1 TIP -- ring prints nothing); once it has, deleting or emptying it answers to every name it removes and the gate stays on; no date is read.
-# LIMITS (no pipefail): a git error refuses where checked (rev-list walk, bootstrap rev-list, dt, ring diff); still OPEN: rn (the ring: cell read) and the posts.md jq give no ruler on error, so that path needs only a ring signer. verify-commit and pm fail closed.
+# LIMITS (no pipefail): a git error refuses where checked (rev-list walk, bootstrap rev-list, dt, ring diff); still OPEN: rn (the ring: cell read, also a node WITH NO ring: cell, engine*.md included) and the posts.md jq give no ruler, so that path needs only a ring signer (DG1 to rule a default). verify-commit and pm fail closed.
 A=${AGI_ALLOWED:?};t=$(mktemp -d);trap 'rm -rf $t' EXIT;R=$(git rev-parse -q --verify ${AGI_TRUNK:-refs/heads/main})||{ echo "refused: no receiving trunk";exit 1;}
 git archive $R .agi/context/schemas .agi/nodes/.geometry/growth.tsv|tar -x -C $t||exit 1;k(){ (cd $t&&agi-fill check $1)>$t/e 2>&1;}
-G=.agi/nodes/.geometry;ru(){ awk -v s=$1 -v q=$2 '{u[$1]=$2}END{while(q!=""&&n++<40){if(q==s)exit 0;q=u[q]}exit 1}' $t/u;}
+G=.agi/nodes/.geometry;E='^[a-z][a-z0-9-]* (ssh-ed25519|ecdsa-sha2-nistp256|pq-sha256|x25519|cert-authority (ssh-ed25519|ecdsa-sha2-nistp256)) [A-Za-z0-9+/]+=*$';ru(){ awk -v s=$1 -v q=$2 '{u[$1]=$2}END{while(q!=""&&n++<40){if(q==s)exit 0;q=u[q]}exit 1}' $t/u;}
 rn(){ git show "$h:$1" 2>/dev/null|awk '/^---$/{n++;next} n==1&&/^ring:/{sub(/^ring: *\[/,"");sub(/\].*/,"");gsub(/[ ,]+/," ");print;exit} n>1{exit}';}
 pm(){ git show $1:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -s 'map({(.name):.parent})|add';}
 dt(){ git diff-tree -r -c --root --no-commit-id "$@">$t/d||{ echo "refused: $c: git diff-tree failed";exit 1;};}
 while read o n r;do h=$R;w=$(git rev-list --reverse --topo-order $n --not ${AGI_NOT:---all})||{ echo "refused: git rev-list failed";exit 1;};for c in $w;do
- if git show $h:$G/ring>$t/r 2>/dev/null;then L=;sed -E 's/^([a-z0-9-]+) /\1@agi namespaces="git" /' $t/r>$t/a;else x=$(git rev-list -1 $h -- $G/ring)||{ echo "refused: git rev-list failed";exit 1;};if [ -z "$x" ];then L=1;cp $A $t/a;else L=;:>$t/a;fi;fi;git show $h:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r '"\(.name) \(.parent)"'>$t/u
+ if git show $h:$G/ring>$t/r 2>/dev/null;then L=;grep -E "$E" $t/r|sed -E 's/^([a-z0-9-]+) /\1@agi namespaces="git" /'>$t/a;else x=$(git rev-list -1 --full-history $h -- $G/ring)||{ echo "refused: git rev-list failed";exit 1;};if [ -z "$x" ];then L=1;cp $A $t/a;else L=;:>$t/a;fi;fi;git show $h:$G/posts.md 2>/dev/null|sed -n 's/^  - {/{/p'|jq -r 'select(((.name//"")|test("^[a-z][a-z0-9-]*$"))and((.parent//"")|test("^[a-z][a-z0-9-]*$")))|"\(.name) \(.parent)"'>$t/u
  s=$(git -c gpg.ssh.allowedSignersFile=$t/a verify-commit --raw $c 2>&1|sed -n 's/.*signature for \(.*\)@agi with.*/\1/p')
  [ "$L" -o "$s" ]||{ echo "refused: $c is not signed by a ring line open at the receiving tip";exit 1;}
- dt --diff-filter=AMT $c;(while IFS= read -r l;do p=${l#*	};o=$(echo "${l%%	*}"|awk '{print $(NF-1)}');git cat-file blob $o>$t/b||{ echo "refused: $c $p unreadable";exit 1;};grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' $t/b&&{ echo "refused: $c $p carries a private key block (the trunk is public)";exit 1;};:;done<$t/d)||exit 1
- [ "$L" ]||{ dt --name-only $c;(while IFS= read -r f;do case $f in \"*)echo "refused: $c $f: a quoted path";exit 1;;
-  $G/ring)git diff $c^ $c -- "$f">$t/g||{ echo "refused: $c: git diff failed";exit 1;};r=$(sed -n 's/^[-+]\([a-z][a-z0-9-]*\) .*/\1/p' $t/g|sort -u);;
+ dt --diff-filter=AMT $c;(while IFS= read -r l;do p=${l#*	};o=$(echo "${l%%	*}"|awk '{print $(NF-1)}');git cat-file blob $o>$t/b||{ echo "refused: $c $p unreadable";exit 1;};grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' $t/b&&{ echo "refused: $c $p carries a private key block (the trunk is public)";exit 1;};case $p in $G/ring/*)echo "refused: $c $p: the ring is one file";exit 1;;$G/ring)[ "$s" ]||{ echo "refused: $c: the ring is changed by an unsigned commit";exit 1;};git show $c:$p>$t/g2&&! grep -Eqv "$E" $t/g2||{ echo "refused: $c: a ring line off shape";exit 1;};;esac;done<$t/d)||exit 1
+ [ "$L" ]||{ dt --name-only $c;ps=$(git rev-list --parents -n1 $c|cut -s -d" " -f2-);case $ps in *\ *)for q in $ps;do echo "$w"|grep -q $q||git diff-tree -r --name-only --no-commit-id $q $c>>$t/d||{ echo "refused: $c: git diff-tree failed";exit 1;};done;;esac;(while IFS= read -r f;do case $f in \"*)echo "refused: $c $f: a quoted path";exit 1;;
+  $G/ring)git diff $h $c -- "$f">$t/g||{ echo "refused: $c: git diff failed";exit 1;};r=$(sed -n 's/^[-+]\([a-z][a-z0-9-]*\) .*/\1/p' $t/g|sort -u);;
   .agi/context/schemas/*|$G/growth.tsv|.github/*)r=${AGI_RULES:-owner};;
-  $G/posts.md)pm $h>$t/o;pm $c>$t/n;r=$(jq -rn --slurpfile o $t/o --slurpfile n $t/n '$o[0] as $o|$n[0] as $n|($o+$n|keys[]) as $k|select($o[$k]!=$n[$k])|$o[$k],$n[$k]|select(.!=null)');;
+  $G/posts.md)pm $h>$t/o;pm $c>$t/n;jq -e 'keys|all(.[];test("^[a-z][a-z0-9-]*$"))' $t/n>/dev/null||{ echo "refused: $c: a posts.md name off [a-z0-9-]";exit 1;};r=$(jq -rn --slurpfile o $t/o --slurpfile n $t/n '$o[0] as $o|$n[0] as $n|($o+$n|keys[]) as $k|select($o[$k]!=$n[$k])|$o[$k],$n[$k]|select(.!=null)');;
   *)r=$(rn "$f");;esac
   for q in $r;do ru $s $q||{ echo "refused: $c $f is ruled by $q; ${s:-nobody} is not $q or above it";exit 1;};done;done<$t/d)||exit 1;}
  dt --diff-filter=AM --name-status $c -- .agi/nodes;grep '\.md$' $t/d|grep -v /deprecated/>$t/l
