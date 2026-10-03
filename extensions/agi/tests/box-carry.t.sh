@@ -110,6 +110,27 @@ ok k5-reply 'box A sm read|grep -qF "[dg5] reply-A"'
 ok k5-local-not-pushed '! $G -C $T/hub.git rev-parse -q --verify refs/box/belam/alive>/dev/null'
 # --- k6: no hub cell = a remote recipient is left in the sender'"'"'s store, nothing pushed, rc 0
 echo lonely|box A sm send dg5;HUB= carry A sm 2>$T/k6.err;rc=$?;ok k6-no-hub '[ "$($G -C $T/hub.git rev-parse refs/box/sm/dg5)" != "$(tip A sm refs/box/sm/dg5)" ]&&[ $rc = 0 ]&&[ ! -s $T/k6.err ]'
+# --- k8: the LOST WAKE (hypothesis g716111-aa1m-a-send-that-lands-after-the-carriers-last-scan...): a send that lands after the carrier's LAST for-each-ref of the sender's store and before its exit
+# wakes nothing (systemd drops PathChanged while the oneshot runs). The shim wraps `git -C <sender store> for-each-ref`, runs the real call, THEN injects one send, so the carrier's last scan misses it.
+# Calls are COUNTED first (a quiescent run = scan, re-scan, final check), then the injection fires on the LAST one. ONE sweep (box-carry --fetch) must carry it, with NO further send.
+mkdir $T/fk8;printf '#!/bin/sh\nif [ "$3" = for-each-ref ]&&[ "$2" = %s/A/belam/g.git ];then n=$(cat %s/fk8/n 2>/dev/null||echo 0);n=$((n+1));echo $n>%s/fk8/n;%s "$@">%s/fk8/o;r=$?\n [ $n = "$(cat %s/fk8/want)" ]&&(cd %s/A/belam/g.git&&echo late$n|PATH=%s AGI_POST=belam AGI_TRUNK=%s GIT_CONFIG_GLOBAL=%s/c/belam GIT_CONFIG_SYSTEM=/dev/null sh %s send sm)\n cat %s/fk8/o;exit $r;fi\nexec %s "$@"\n' $T $T $T $G $T $T $T "$PATH" $TR $T $BOX $T $G>$T/fk8/git;chmod +x $T/fk8/git
+echo 0>$T/fk8/want;echo seed8|box A belam send sm;rm -f $T/fk8/n;(PATH=$T/fk8:$PATH carry A belam 2>/dev/null);N=$(cat $T/fk8/n)
+ok "k8-count the carrier's scans of a quiescent sender store are counted (N=$N: scan, re-scan, final)" '[ "$N" -ge 3 ]'
+for HB in none hub;do
+ if [ $HB = none ];then SW='HUB= carry A --fetch';else SW='carry A --fetch';fi
+ echo late$HB|box A belam send sm;echo $N>$T/fk8/want;rm -f $T/fk8/n;(PATH=$T/fk8:$PATH carry A belam 2>$T/k8.err);rc=$?
+ a=$(tip A belam refs/box/belam/sm);b=$(tip A sm refs/box/belam/sm);[ "$(cat $T/fk8/n)" = $N ]||echo "# k8 $HB: shim saw $(cat $T/fk8/n) scans, want $N"
+ ok "k8-$HB-window-is-real the injected send is in the sender's store ($(echo $a|cut -c1-9)) but NOT in the recipient's ($(echo $b|cut -c1-9)) after the carrier exits 0 (rc=$rc)" '[ $rc = 0 ]&&[ "$a" != "$b" ]'
+ eval "$SW" 2>/dev/null;c=$(tip A sm refs/box/belam/sm)
+ ok "k8-$HB-sweep-carries ONE sweep (carry A --fetch$([ $HB = none ]&&echo ', no hub cell')) puts the sender's tip in the recipient's store with NO further send" '[ "$c" = "$a" ]'
+ eval "$SW" 2>/dev/null;ok "k8-$HB-sweep-idempotent a second sweep changes nothing" '[ "$(tip A sm refs/box/belam/sm)" = "$c" ]'
+done
+# the sweep carries nothing the matrix refuses: a channel planted in sm's store under ANOTHER post's name (council -> alive: a ref alive does not hold yet, so only the carrier's own-prefix rule keeps it out) and a recipient the matrix does not know are both left alone
+pl=$($G -C $T/A/sm/g.git commit-tree -m planted8 $($G -C $T/A/sm/g.git hash-object -w -t tree /dev/null));$G -C $T/A/sm/g.git update-ref refs/box/council/alive $pl;$G -C $T/A/sm/g.git update-ref refs/box/sm/ghost $pl
+carry A --fetch 2>/dev/null
+ok k8-sweep-planted-not-carried '[ "$(tip A alive refs/box/council/alive)" = none ]&&[ ! -e $T/A/ghost ]'
+ok k8-sweep-ghost-not-pushed '[ -z "$($G -C $T/hub.git for-each-ref refs/box/sm/ghost)" ]&&[ "$($G -C $T/hub.git rev-parse -q --verify refs/box/council/alive||echo none)" != "$pl" ]'
+
 # --- k7: nothing outside the stores is written: no inbox file, no worktree change
 ok k7-no-inbox-anywhere '[ -z "$(find $T -iname "*inbox*" -not -path "*/.git/*" 2>/dev/null)" ]'
 ok k7-matrix-repo-untouched '[ -z "$($G -C $T/r status --porcelain)" ]&&[ "$(find $T/r -type f -not -path "*/.git/*"|wc -l)" = 2 ]'
@@ -144,5 +165,6 @@ ok s4-new-key-verifies 'vk $nc'
 ok n1-no-python '! grep -qi python $CARRY $SIGNERS'
 ok n2-no-cron-no-inbox '! grep -q -E "cron|sessions/inbox" $CARRY $SIGNERS'
 ok n3-no-polling-loop '! grep -q -E "sleep|while :|while true|until " $CARRY'
+ok "k8-bytes the carrier piece is <= 3255 B ($(wc -c<$CARRY) B now)" '[ $(wc -c<$CARRY) -le 3255 ]'
 echo "# box-carry $(wc -c<$CARRY) B · agi-signers $(wc -c<$SIGNERS) B"
 exit $f

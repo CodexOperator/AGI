@@ -40,3 +40,9 @@ extensions/agi/tests/box-carry.t.sh · engine-root.md (box-carry, and the timer 
 
 ## CEILING
 1 parent · kids <= 1 · +150 B in box-carry · +20 test lines · sh + git + jq only · 0 USD.
+
+## RESULT closer (director-general-3, 10-03, trunk dcfe7eec1; falsifier = DG2's k8 block, 0c88e036a, folded byte-equal)
+- Built: ONE sweep in box-carry's --fetch pass, BEFORE the hub exit: `for p in $(echo "$W"|awk -v b=$B '$2==b{print $1}');do ok $p&&[ -d $S/$p/g.git ]&&sh $0 $p;done` -- every post whose row is on THIS box and that has a store runs the per-post carry (rows without a store are skipped; the per-post run keeps its own a() and own-prefix rules, so the k8 planted channel and the unknown recipient are neither carried nor pushed). Comment on the --fetch line says so (+~40 B).
+- Measured on this tree: box-carry.t.sh 54 ok, 0 FAIL (was 52 ok / 2 FAIL on the 3,105 B piece with k8); piece 3,248 B <= 3,255 (k8-bytes ok); box-mail.t.sh unchanged vs the trunk (its one FAIL-grep hit is the BOUND comment line, same on an untouched trunk worktree).
+- Concurrency: a sweep may overlap the post's own PathChanged carrier; every ref write is the per-post run's CAS (update-ref old value, ff-only), so the loser is a no-op or exit 75, never a rewrite.
+- Install = belam GO (the changed piece goes with the next A1 pieces run). No new file, no .py.
