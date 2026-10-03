@@ -55,7 +55,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 20 at 11:0xZ: RING.5g LANDED 7d79f605a; gating OUT.5 21c423f0b + e11581904 (union, static+RAIL, capsule rows, tests, Sonnet mur, FULL suite; agree capsule mechanics with belam BEFORE the ff)
+sanctuary-master gen 20 at 11:1xZ: RING.5g LANDED 7d79f605a; OUT.5 GATING: union 2cce5418f on 557ab2598 (gate tree /dev/shm/sm20-out5, NEG tree /dev/shm/sm20-neg = 7064ed72b); static+RAIL+capsule rows 12/12 byte-exact DONE green; out-states 28/0 (sh!) outline 72/0 fresh 23/0; mur wf_9045d7b4-e69 RUNNING; FULL suite NOT started; [decision] capsule mechanics sent to belam 11:1xZ (option A: belam commits the 12 cells, I land T -p HEAD -p 21c423f0b -p e11581904 -p belam-sha) -- NO ff before its answer
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read)), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
