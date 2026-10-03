@@ -73,7 +73,7 @@ box-carry         3246 B  root: P's refs/box/P/<Q> -> the recipient's store (pip
 agi-signers       1727 B  root: the ONE allowed_signers, every key generation, valid-after/before; one strict key line
 agi-carry@.path     149 B  PathChanged on the sender's own refs/box/<P> (a unit on refs/box fires only on the first send)
 agi-carry@.service  287 B  oneshot: box-carry %i
-agi-carry-fetch.timer   88 B  every 60 s: fetch the hub's refs/box (remote senders)
+agi-carry-fetch.timer   88 B  every 60 s: carry each local post, then the hub      
 agi-carry-fetch.service 229 B  oneshot: box-carry --fetch
 ~~~
 

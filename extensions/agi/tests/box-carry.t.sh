@@ -21,6 +21,7 @@ $G init -q $T/r;mkdir -p $T/r/.agi/nodes/.geometry
 cat >$T/r/.agi/nodes/.geometry/posts.md<<'XX'
   - {"name":"belam","parent":"owner","harness":"claude","box":"A"}
   - {"name":"council","parent":"belam","box":"A"}
+  - {"name":"hang","parent":"council","harness":"claude","box":"A"}
   - {"name":"alive","parent":"council","harness":"claude","box":"A"}
   - {"name":"dg5","parent":"council","harness":"claude","box":"B"}
   - {"name":"sm","parent":"council","harness":"claude","box":"A"}
@@ -34,11 +35,11 @@ sed -i 's/^a(){ .*$/a(){ return 1;}/' $T/r/.agi/nodes/.geometry/engine-post.md
 $G -C $T/r add -A;$G -C $T/r -c user.name=x -c user.email=x@x commit -qm 'head past the pin';[ "$($G -C $T/r rev-parse HEAD)" != "$TR" ]||echo "FAIL fixture: HEAD == the pin" 
 $G init -q --bare $T/hub.git
 for b in A B;do mkdir -p $T/$b;done
-for pb in belam:A alive:A sm:A dg5:B dg1:B;do u=${pb%:*};b=${pb#*:};$G init -q --bare $T/$b/$u/g.git;echo $T/r/.git/objects>$T/$b/$u/g.git/objects/info/alternates;done
+for pb in belam:A hang:A alive:A sm:A dg5:B dg1:B;do u=${pb%:*};b=${pb#*:};$G init -q --bare $T/$b/$u/g.git;echo $T/r/.git/objects>$T/$b/$u/g.git/objects/info/alternates;done
 # as BOX-LETTER POST ARGS...: the box script as POST in POST's own store, trunk pinned by sha
 box(){ b=$1;u=$2;shift 2;(cd $T/$b/$u/g.git&&AGI_POST=$u AGI_TRUNK=$TR GIT_CONFIG_GLOBAL=$T/c/$u GIT_CONFIG_SYSTEM=/dev/null sh $BOX "$@");}
 # carry BOX-LETTER ARGS: the carrier as root of that box (one uid: plain calls)
-carry(){ b=$1;shift;PATH=$T/bin:$PATH AGI_RUN=${RUN:-none} AGI_BOX=$b AGI_STORES=$T/$b AGI_REPO=$T/r AGI_TRUNK=${TRK-$TR} AGI_HUB=${HUB-$T/hub.git} AGI_CARRY=$T/$b/carry.git sh $CARRY "$@";}
+carry(){ b=$1;shift;PATH=$T/bin:$PATH AGI_RUN=${RUN:-none} AGI_BOX=$b AGI_STORES=$T/$b AGI_REPO=$T/r AGI_TRUNK=${TRK-$TR} AGI_HUB=${HUB-$T/hub.git} AGI_CARRY=$T/$b/carry.git ${CT:+timeout $CT} sh $CARRY "$@";}
 tip(){ $G -C $T/$1/$2/g.git rev-parse -q --verify $3||echo none;}
 # --- k1: belam -> alive, same box: one carry, then alive reads it FROM ITS OWN STORE; held moves
 echo order1|box A belam send alive;carry A belam 2>$T/k1.err
@@ -135,6 +136,27 @@ ok k8-sweep-ghost-not-pushed '[ -z "$($G -C $T/hub.git for-each-ref refs/box/sm/
 mkdir $T/fk9;printf '#!/bin/sh\nif [ "$3" = for-each-ref ]&&[ "$2" = %s/A/belam/g.git ];then sleep 25;fi\nexec %s "$@"\n' $T $G>$T/fk9/git;chmod +x $T/fk9/git
 echo late9|box A sm send belam;t9=$(date +%s);(PATH=$T/fk9:$PATH carry A --fetch 2>/dev/null);d9=$(( $(date +%s)-t9 ))
 ok "k9-hung-child-bounded the sweep returned in ${d9}s (< 20) and sm's send to belam is in belam's store" '[ $d9 -lt 20 ]&&[ "$(tip A sm refs/box/sm/belam)" = "$(tip A belam refs/box/sm/belam)" ]'
+# --- k11: the hub-less box with the install gate AS WRITTEN (mur sm17-dg3-lost-wake residue 1): the sweep lives in the --fetch pass, so a box with box.hub empty must still get agi-carry-fetch.timer ENABLED, or the closer never runs there.
+# The REAL aa1m-install.sh `units` step on a scratch repo + scratch dirs (AGI_DRY_*), a stub systemctl that logs: no root, no unit touched.
+INSTALL=${INSTALL:-$R0/.agi/context/local-maxxing/aa1m/aa1m-install.sh}
+ins(){ hub=$1;I=$T/ins$2;mkdir -p $I/repo/.agi/nodes/.geometry $I/bin;cp $R0/.agi/nodes/.geometry/engine*.md $I/repo/.agi/nodes/.geometry/
+ printf '{"box":{"alias":"A","hub":"%s","repo":"%s"}}\n' "$hub" $I/repo>$I/repo/.agi/config.json;printf '  - {"name":"belam","parent":"owner","harness":"claude","box":"A","engine":{"v":4}}\n  - {"name":"alive","parent":"belam","harness":"claude","box":"A","engine":{"v":4}}\n'>$I/repo/.agi/nodes/.geometry/posts.md
+ $G -C $I/repo init -q 2>/dev/null;$G -C $I/repo add -A;$G -C $I/repo -c user.name=x -c user.email=x@x -c commit.gpgsign=false commit -qm i;it=$($G -C $I/repo rev-parse HEAD)
+ printf '#!/bin/sh\necho "$*">>%s/sd.log\n' $I>$I/bin/systemctl;chmod +x $I/bin/systemctl;: >$I/sd.log
+ (cd $I&&PATH=$I/bin:$PATH REPO=$I/repo AGI_DRY_OPT=$I/opt AGI_DRY_ETC=$I/etc AGI_DRY_SYSD=$I/sysd AGI_DRY_BOXREPO=$I/repo sh $INSTALL units $it >$I/out 2>$I/err);echo $?;}
+rc=$(ins "" a)
+ok "k11-install-ran the real install script's units step ran on the scratch repo (rc=$rc; per-post path units enabled: $(grep -c 'enable --now agi-carry@' $T/insa/sd.log))" '[ "$rc" = 0 ]&&[ "$(grep -c "enable --now agi-carry@" $T/insa/sd.log)" = 2 ]'
+ok "k11-hubless-timer-enabled with box.hub EMPTY the fetch timer is still enabled (the sweep runs in that pass): sd.log has 'enable --now agi-carry-fetch.timer'" 'grep -q "enable --now agi-carry-fetch.timer" $T/insa/sd.log'
+rc=$(ins "hub.example:agi/hub.git" b)
+ok "k11-hub-timer-enabled with a hub cell the timer is enabled too (the gate is not narrowed)" '[ "$rc" = 0 ]&&grep -q "enable --now agi-carry-fetch.timer" $T/insb/sd.log'
+ok "k11-no-unit-written-outside the dry run wrote units only under the scratch dir (4 units, nothing real)" '[ "$(ls $T/insa/sysd|wc -l|tr -d " ")" = 4 ]'
+# --- k12: a post whose store HANGS must not starve the later posts. A git shim makes EVERY call on belam's store block (a FIFO ref does not: git skips it); ONE sweep (the sweep runs belam's child first, alive's after it in the matrix order)
+# must still carry alive's send to sm. The whole sweep runs under an outer timeout of 25 s (the unit's own bound is 120 s): a per-child bound under ~15 s passes, an unbounded child is RED (the outer timeout kills it: rc 124).
+mkdir -p $T/fk10;printf '#!/bin/sh\n[ "$2" = %s/A/hang/g.git ]&&exec sleep 40\nexec %s "$@"\n' $T $G>$T/fk10/git;chmod +x $T/fk10/git
+echo late10|box A alive send sm;a10=$(tip A alive refs/box/alive/sm);b10=$(tip A sm refs/box/alive/sm)
+t0=$(date +%s);(PATH=$T/fk10:$PATH CT=25 HUB= carry A --fetch >/dev/null 2>&1);rc10=$?;el=$(( $(date +%s)-t0 ))
+ok "k12-sweep-returns the sweep returns inside 25 s although one post's store hangs (rc=$rc10, ${el}s; 124 = the outer timeout killed it)" '[ $rc10 != 124 ]&&[ $el -lt 25 ]'
+ok "k12-later-post-carried the later post's send (alive -> sm) was carried by that one sweep (sender $(echo $a10|cut -c1-9), recipient $(echo $b10|cut -c1-9) -> $(tip A sm refs/box/alive/sm|cut -c1-9))" '[ "$a10" != "$b10" ]&&[ "$(tip A sm refs/box/alive/sm)" = "$a10" ]'
 # --- k7: nothing outside the stores is written: no inbox file, no worktree change
 ok k7-no-inbox-anywhere '[ -z "$(find $T -iname "*inbox*" -not -path "*/.git/*" 2>/dev/null)" ]'
 ok k7-matrix-repo-untouched '[ -z "$($G -C $T/r status --porcelain)" ]&&[ "$(find $T/r -type f -not -path "*/.git/*"|wc -l)" = 2 ]'
