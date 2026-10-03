@@ -75,5 +75,13 @@ gateE $R1 $E0 $D/afr;ok "f2r-invalid-new-version-refused agi-fill exiting 3 ONLY
 gateX $R1 $C1 "$R1 $X" "$C1:$NN" "" rev-parse;ok "f1b2-lg-commit-read-fails-refused only the COMMIT's read (<C1>:path) fails: refused" 'refused'
 R2=$(mkc $R1 owner1 $NN:$D/nv);D1=$(mkc $R1 dg1 $AFB:$D/af)
 gateN $R2 $(mkr $R2 $D1 $R2 sm1 $AFB:$D/af) "$R2";ok "f1e-control-standard-merge-up-admitted the standard merge-up M = merge(R2 holding the owner node, D1) signed by sm: admitted" '[ $r = 0 ]'
+# --- f3 (SM 10:20Z R1, DG3 10:27Z: NAMED, REFUSED): the agi-fill sentinel reads [moral].md AT THE RECEIVING TIP, so an owner-landed [moral].md that breaks it (required: [] or removed) refuses EVERY later push 'agi-fill sentinel', the owner's repair push included (the repair is a root-side re-land): pinned as the documented outcome
+MS=.agi/context/schemas/[moral].md;git show $o:$MS|sed 's/^  required: \[.*\]/  required: []/'>$D/moral-empty;grep -q '^  required: \[\]' $D/moral-empty||{ echo "FAIL fixture: [moral].md has no required line";f=$((f+1));}
+TE=$(mkc $R1 owner1 "$MS:$D/moral-empty")
+x=$D/i;GIT_INDEX_FILE=$x git read-tree $R1;GIT_INDEX_FILE=$x git update-index --force-remove "$MS";TR=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x;TD=$(sgn owner1 -p $R1 -m r5f $TR)
+gate $R1 $E0;ok "f3c-control-intact-moral-schema-admitted the tip with the INTACT [moral].md: dg1's valid edit is admitted (the sentinel reads rc 3)" '[ $r = 0 ]'
+gate $TE $(mkc $TE dg1 $AFB:$D/af);ok "f3a-moral-required-empty-refuses-every-push the tip holds [moral].md with required: [] (landed by the owner): dg1's valid edit is refused 'agi-fill sentinel' (named, by design)" 'refused&&grep -q "agi-fill sentinel" $D/out'
+gate $TE $(mkc $TE owner1 $MS:$(git show $o:$MS>$D/moral-ok;echo $D/moral-ok));ok "f3a2-owner-repair-push-also-refused the OWNER's repair push (restoring the intact [moral].md) on that tip is refused too: the sentinel reads the RECEIVING tip's schema (the repair path is a root-side re-land)" 'refused&&grep -q "agi-fill sentinel" $D/out'
+gate $TD $(mkc $TD dg1 $AFB:$D/af);ok "f3b-moral-removed-refuses-every-push the tip has NO [moral].md (removed): dg1's valid edit is refused 'agi-fill sentinel' (named, by design)" 'refused&&grep -q "agi-fill sentinel" $D/out'
 echo "grow-gate-ring5f: $f FAIL"
 exit $f
