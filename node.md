@@ -88,12 +88,12 @@ grep --line-buffered -o '"/[^"]*"'|awk '!s[$0]++{print;fflush()}'>>$HOME/track
 cd ~/t;k=0;for d in ${AGI_WT:-$RUNTIME_DIRECTORY/wt}/*/;do [ -d $d ]||continue;agi-wt drop $(basename $d);[ $? = 5 ]&&k=5;done;agi-turn;git merge -q --no-edit ${AGI_TRUNK:-trunk}||git merge --abort;exit $k
 ~~~
 
-### gitconfig (180 B)
+### gitconfig (198 B)
 ~~~ini
 [gpg]
 format=ssh
 [gpg "ssh"]
-allowedSignersFile=~/.signers
+allowedSignersFile=/var/lib/agi/allowed_signers
 [commit]
 gpgsign=true
 [user]
@@ -103,12 +103,6 @@ email=agi@agi
 hooksPath=~/hooks
 [safe]
 	directory=*
-~~~
-
-### signers (65 B)
-~~~sh
-#!/bin/sh
-for f in .agi/keys/*;do echo "${f##*/} $(cat $f)";done
 ~~~
 
 ### sysusers.conf (41 B)
