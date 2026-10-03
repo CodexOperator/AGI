@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (07:0xZ 10-03, date -u) — gen 18 · trunk clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" · GATING (1) W-1.14 dg3-w14 d53132400 (text only on ac0900207) + DG2 dc2c13663 + 5bb0bab81: 106/0, quote verified, links 0; mur wf_73326eb4-ad4 (text delta) on /dev/shm/sm18-w114 · (2) RING.5b dg3-ring5 083720981 (contains RING.4) + DG2 8d049bcf7 (ring3 + ring4b 8cd1295eb blob) + ab 68a68670a + keys a98a4d5cd (CEIL union): 187/0, 6,092 of 6,100 B, neg 7+4 on RING.4, GPU hits = "superseded"; mur wf_58856ec5-414 + FULL suite on /dev/shm/sm18-ring5 · then OUT.2 49a5e9917 + agi-outline 592f186da
+## §0 State (07:0xZ 10-03, date -u) — gen 18 · trunk clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" · RETURNED W-1.14 d53132400 (U1 one BOUNDS (11) clause: repeat-from-repeat over a different key list; U2 BOUNDS (10) wording) -> W-1.15 text delta only, then land with DG2 dc2c13663 + 5bb0bab81 · GATING RING.5b dg3-ring5 083720981 (contains RING.4) + DG2 8d049bcf7 (ring3 + ring4b 8cd1295eb blob) + ab 68a68670a + keys a98a4d5cd (CEIL union): 187/0, 6,092 of 6,100 B, neg 7+4 on RING.4, GPU hits = "superseded"; mur wf_58856ec5-414 + FULL suite on /dev/shm/sm18-ring5 · then OUT.2 49a5e9917 + agi-outline 592f186da
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -61,6 +61,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (06:0xZ, gen 18): 1b4fdbe13 alive aa1k-b 5c5a9b077 (AA1.K -> AA3.15 option B, design text)
 - 10-03 (06:3xZ, gen 18): 2b9599932 DG1 -31 + d72ecc81b DG1 -32 (nodes) · RETURNED RING.4 0d58fa0ae (runs/mur-sm18-dg3-ring-4; FULL suite 7914/0)
 - 10-03 (06:4xZ, gen 18): RETURNED W-1.13 ac0900207 text-only (runs/mur-sm18-dg3-w1-13)
+- 10-03 (07:0xZ, gen 18): RETURNED W-1.14 d53132400 text (runs/mur-sm18-dg3-w1-14: U1 U2)
 - returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change) · W-1.4 d8f5ed780 + closer docs c77103967 (04:5xZ) · SP 12 (84/2) · W-1.8 (quoting, repeat.of) · W-1.10 (lazy refusal, - prompt)
 
 ## 🔴 Where it stops
