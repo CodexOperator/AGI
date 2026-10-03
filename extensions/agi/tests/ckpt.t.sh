@@ -82,5 +82,45 @@ mk HC $R0 $now -- dg1:dg1 dg1:dg1q dg2:dg2;ok "h3-hybrid-missing-column-no DG2 m
 unset AGI_SIGN;MKH=sha512 mk HS $R0 $now -- dg1:dg1 dg2:dg2;ok "h4-sha512-holds a block naming sha512 holds under the default AGI_HASHES" 'holds HS'
 ok "h5-hash-not-allowed a block naming sha512 does not hold when AGI_HASHES is sha256 only" '! (AGI_HASHES=sha256;export AGI_HASHES;holds HS)'
 MKH=md5 mk HM $R0 $now -- dg1:dg1 dg2:dg2 2>/dev/null;ok "h6-unknown-hash a block naming a hash outside the cell (md5) does not hold" '! holds HM'
+# --- CORRECTIVE (DG1 13:32Z; SM mur sm20-dg3-ckpt-1 R1 R3 n1 n2): written BEFORE the fix, each lane isolated (iso clears refs/agi/block, rst restores the earlier ones); ckc = a DIRECT `ckpt check` run (rc in ckrc)
+git for-each-ref --format='%(objectname) %(refname)' refs/agi/block>$D/blk.all
+iso(){ git for-each-ref --format='%(refname)' refs/agi/block|while read rf;do git update-ref -d $rf;done;}
+rst(){ iso;while read ob rf;do git update-ref $rf $ob;done<$D/blk.all;}
+ckc(){ sh $AGI_CKPT check>$D/ck.out 2>$D/ck.err;ckrc=$?;}
+OLD='1000000000 +0000'
+# mkraw NAME TIP TIME [HASH] [DATE]: a block with the given RAW tip / time / hash text (an empty sigs tree), committer date DATE
+mkraw(){ nm=$1;hb=$(printf '%s' "${4:-sha256 0}"|git hash-object -w --stdin);st=$(git mktree </dev/null);tr=$(printf '100644 blob %s\thash\n040000 tree %s\tsigs\n100644 blob %s\ttime\n100644 blob %s\ttip\n' $hb $st $(printf '%s' "$3"|git hash-object -w --stdin) $(printf '%s' "$2"|git hash-object -w --stdin)|git mktree);[ -n "$5" ]&&export GIT_COMMITTER_DATE="$5";git update-ref refs/agi/block/$nm $(echo "block $nm"|git commit-tree $tr);unset GIT_COMMITTER_DATE;}
+git show $R0:.agi/nodes/doc/y.md>$E.cy;echo cr>>$E.cy;CE=$(mkc $R0 dg1 .agi/nodes/doc/y.md:$E.cy)
+# R1a: the LAST block listed is non-holding: the exit status must not be that of the loop's last test
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;GIT_COMMITTER_DATE="$OLD";export GIT_COMMITTER_DATE;mk NB $R0 $now -- dg1:dg1;unset GIT_COMMITTER_DATE;ckc;gate $R0 $CE
+ok "r1a-nonholding-last-exit-0 two blocks, ONE holding (HB) and ONE non-holding (NB: one signer under k = 2) that rev-list visits LAST (committer date 2001): ckpt check exits 0 (got $ckrc), lists HB and not NB, and the gate admits a plain edit (rc $r)" '[ $ckrc = 0 ]&&holds HB&&! holds NB&&[ $r = 0 ]'
+iso;GIT_COMMITTER_DATE="$OLD";export GIT_COMMITTER_DATE;mk HB2 $R0 $now -- dg1:dg1 dg2:dg2;unset GIT_COMMITTER_DATE;mk NB2 $R0 $now -- dg1:dg1;ckc;gate $R0 $CE
+ok "r1a-mirror-nonholding-first-exit-0 the MIRROR (control): the non-holding block visited FIRST, the holding one last: exit 0, HB2 listed, NB2 not, the gate admits" '[ $ckrc = 0 ]&&holds HB2&&! holds NB2&&[ $r = 0 ]'
+# R1b / n2: a ckpt that cannot READ stays NON-ZERO and the gate refuses (a fix of R1 must not become exit 0 always)
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;mkdir -p $D/shl;printf '#!/bin/sh\n[ "$1" = for-each-ref ]&&{ echo "shim: for-each-ref failed" >&2;exit 128;}\nexec /usr/bin/git "$@"\n'>$D/shl/git;chmod +x $D/shl/git
+PATH=$D/shl:$PATH;ckc;rb=$ckrc;gate $R0 $CE;rg=$r;PATH=${PATH#$D/shl:}
+ok "r1b-listing-failure-nonzero the block LISTING step (git for-each-ref) fails (a shim): ckpt check exits NON-ZERO (got $rb), not 0 with an empty list, and the gate refuses the plain edit (rc $rg)" '[ "$rb" != 0 ]&&[ "$rg" != 0 ]&&[ "$rg" != 124 ]'
+GIT_DIR=$D/nogit ckc;rb=$ckrc
+ok "r1b2-bad-gitdir-nonzero GIT_DIR names no repository: ckpt check exits NON-ZERO (got $rb)" '[ "$rb" != 0 ]'
+printf '#!/bin/sh\n[ "$1" = rev-list ]&&case "$2" in -*);;*)echo "shim: rev-list failed" >&2;exit 128;;esac\nexec /usr/bin/git "$@"\n'>$D/shl/git;PATH=$D/shl:$PATH;ckc;rb=$ckrc;PATH=${PATH#$D/shl:}
+ok "r1b3-revlist-failure-nonzero the block rev-list over the holding tips fails (a shim, ckpt's own call only): ckpt check exits NON-ZERO (got $rb)" '[ "$rb" != 0 ]'
+# R3a: a tip file that is an OPTION for git archive must not run: --output=FILE HEAD
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;mkraw PW "--output=$D/pwn HEAD" $now;ckc
+ok "r3a-tip-option-output-not-run a block whose tip file is '--output=<FILE> HEAD' (FILE does not exist) is SKIPPED: ckpt check exits 0 (got $ckrc), lists HB, and FILE was NOT created" '[ $ckrc = 0 ]&&holds HB&&[ ! -e $D/pwn ]'
+echo keep>$D/pkeep;mkraw PK "--output=$D/pkeep HEAD" $now;ckc
+ok "r3a2-tip-option-output-existing-file-kept the same with an EXISTING file: its bytes stay 'keep' (git archive --output would truncate it)" '[ "$(cat $D/pkeep)" = keep ]'
+# R3b: option-shaped / non-hex tip, a glob and an option-shaped time: each block skipped, exit 0, nothing created; HB (a valid 40-hex tip, digit time) still listed
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;ls -A $D/r>$D/ls0;mkraw T1 zzzz $now;mkraw T2 --version $now;mkraw T3 $(git rev-parse $R0) '*';mkraw T4 $(git rev-parse $R0) --x;mkraw T5 "-h" $now;ckc;ls -A $D/r>$D/ls1
+ok "r3b-nonhex-option-glob-skipped tip 'zzzz', tip '--version', tip '-h', time '*' (a glob) and time '--x' (an option): each block skipped, ckpt check exits 0 (got $ckrc), the control block HB (a 40-hex tip, a digit time) is listed, nothing was created in the repo's work dir" '[ $ckrc = 0 ]&&holds HB&&cmp -s $D/ls0 $D/ls1&&! holds T1&&! holds T2&&! holds T3&&! holds T4&&! holds T5'
+# R3c: a valid-looking hex that names NO object: skipped, not a crash for the others
+iso;mkraw NX 0123456789abcdef0123456789abcdef01234567 $now;GIT_COMMITTER_DATE="$OLD";export GIT_COMMITTER_DATE;mk HB $R0 $now -- dg1:dg1 dg2:dg2;unset GIT_COMMITTER_DATE;ckc
+ok "r3c-hex-no-object-skipped a tip that is 40 hex characters naming NO object: the block is skipped and the OTHER block (visited after it) is still listed, exit 0 (got $ckrc)" '[ $ckrc = 0 ]&&holds HB&&! holds NX'
+# n1: ONE key listed under two post names counts ONCE (distinct KEYS, not names)
+iso;sed "s|^dg2 .*|dg2 $(pk dg1)|" $GEO/ring>$E.ring2;T1=$(mkc $R0 dg1 $GEO/ring:$E.ring2);mk SH $T1 $now -- dg1:dg1 dg2:dg1;mk CTRL $R0 $now -- dg1:dg1 dg2:dg2
+ok "n1-one-key-two-names-no the ring lists ONE key under two post names (dg1 and dg2, a parent writing its own key as a child's line) and two signatures from that key under the two names, k = 2: the block does NOT hold (distinct keys count, not names); control: two DISTINCT keys (CTRL) hold" '! holds SH&&holds CTRL'
+# n2: ONE unreadable block among good ones is skipped, the others are listed, exit 0
+iso;mk HB $R0 $now -- dg1:dg1 dg2:dg2;mb=$(printf '100644 blob 0123456789abcdef0123456789abcdef01234567\ttip\n'|git mktree --missing);GIT_COMMITTER_DATE="$OLD";export GIT_COMMITTER_DATE;git update-ref refs/agi/block/UNR $(echo "block UNR"|git commit-tree $mb);unset GIT_COMMITTER_DATE;ckc
+ok "n2-unreadable-block-skipped one block whose tip blob is MISSING from the object store (visited last) among a good one: it is skipped, HB is listed, exit 0 (got $ckrc)" '[ $ckrc = 0 ]&&holds HB&&! holds UNR'
+rst
 echo "ckpt: $f FAIL"
 exit $f
