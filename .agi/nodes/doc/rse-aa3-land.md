@@ -304,4 +304,66 @@ Exit 0 with ring-gate 668cc669 + the AA3.15 agi-land; the built agi-land fails K
 Fixture trap: a cert signs only through `ssh-keygen -Y sign -f <key>-cert.pub` (git: user.signingkey = the -cert.pub path); `-f <key>` with the cert beside it signs as the bare key (measured, OpenSSH 9.6p1).
 So the land side of §AB is ONE rule (+2 B). NOT run here: §AB's K5/K6 (owner cert expiry) need a CA fixture; the AA1.C-integrated measurement of 02:5xZ (27 lanes: built 6 / AA1.C 1 / both 0, with an anchor file and AGI_FRESH_S) stands as the record of a design §AB superseded.
 COMMIT SIGNATURES (measured 02:5xZ): a git commit carries ONE signature slot (gpgsig; gpgsig-sha256 only in a sha256 repo; this repo = sha1). agi-land reads the signer from git's SSH verify text, which is key-type agnostic (ED25519 and ECDSA both parse). So a hybrid (classical AND PQ) commit is ONE composite blob verified by the program the sign cell names (gpg.ssh.program, which git calls for sign AND verify), and a k-of-n block is k signature blobs beside the commit (§AB's ckpt: sigs/<post>.<n>), never k signatures on one commit.
+AA2.71 THE PRIVATE-KEY LINE (v1; SUPERSEDED by v2 below: two fail-opens) (the trunk is pushed to a PUBLIC origin, so a range carrying ANY private key block, live or retired, is refused AT the land; a publication lives only on refs/revoked, ruled by self-perpetuating's revoke; pattern = alive's AA1.K, placement = this section, alive 03:25Z). One line per commit in grow-gate, beside the signer read (283 B; grow-gate 1,465 -> 1,748 B): every path the commit adds or changes, binaries and merges included (-z + tr: no path quoting; -c: a merge's own paths; grep -a: binaries; the ':' keeps a no-match iteration from failing the loop):
+```text
+ git diff-tree -r -c -z --root --no-commit-id --diff-filter=AM --name-only $c|tr '\0' '\n'|while IFS= read -r f;do git show "$c:$f"|grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----'&&{ echo "refused: $c $f carries a private key block (the trunk is public)";exit 1;};:;done||exit 1
+```
+| lane (through the built agi-land) | want | built grow-gate | AA1.K pattern in grow-gate's node loop | the line above |
+|---|---|---|---|---|
+| P1 a LIVE ed25519 key in a card | refuse | LAND (FAIL) | refuse | refuse |
+| P2 a RETIRED key in a card (revoke would admit it on refs/revoked) | refuse | LAND (FAIL) | refuse | refuse |
+| P3 an RSA PEM key in a card | refuse | LAND (FAIL) | refuse | refuse |
+| P4 a passphrase-ENCRYPTED key in a card | refuse, no hang | LAND (FAIL) | refuse | refuse |
+| P5 control: PUBLIC KEY + SSH SIGNATURE blocks + prose naming a private key | land | land | land | land |
+| P6 a live key in extensions/agi/zz-leak.txt | refuse | LAND (FAIL) | LAND (FAIL) | refuse |
+| P7 a live key in .agi/nodes/deprecated/doc/zz-leak.md | refuse | LAND (FAIL) | LAND (FAIL) | refuse |
+| P8 a live key in .agi/nodes/.geometry/zz-leak.tsv | refuse | LAND (FAIL) | LAND (FAIL) | refuse |
+| P9 a DG1-signed MERGE adding a key file in NEITHER parent | refuse | LAND (FAIL) | LAND (FAIL) | refuse |
+Exit: built 8 · node-loop placement 4 · this line 0; the 17 AA3 lanes stay exit 0 with it. The lane block (appended to aa3-lanes.t.sh; fixture keys are generated in the throwaway repo, never a real key):
+```text
+# AA2.71: a range carrying a PRIVATE KEY block anywhere is refused AT the land (the trunk is pushed to a public origin)
+k(){ cat $D/c>$D/$1;cat $2>>$D/$1;}
+ssh-keygen -qN "" -ted25519 -f$D/live;ssh-keygen -qN "" -ted25519 -f$D/ret;ssh-keygen -qN "" -trsa -b 2048 -m PEM -f$D/rsa;ssh-keygen -qN "pass phrase" -ted25519 -f$D/enc
+printf -- '-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAx\n-----END PUBLIC KEY-----\n-----BEGIN SSH SIGNATURE-----\nU1NIU0lH\n-----END SSH SIGNATURE-----\nthe word PRIVATE KEY in prose\n'>$D/nk
+k p1 $D/live;k p2 $D/ret;k p3 $D/rsa;k p4 $D/enc;k p5 $D/nk
+for x in 1 2 3 4 5;do eval c$x=\$\(mk director-general-1 director-general-1 \$o \$C \$D/p$x\);done
+L refuse "P1 a LIVE ed25519 key in a card" sanctuary-master director-general-1 $c1
+L refuse "P2 a RETIRED key in a card (revoke would admit it on refs/revoked; the trunk is public)" sanctuary-master director-general-1 $c2
+L refuse "P3 an RSA PEM key in a card" sanctuary-master director-general-1 $c3
+L refuse "P4 a passphrase-ENCRYPTED key in a card (no hang)" sanctuary-master director-general-1 $c4
+L land "P5 control: PUBLIC KEY + SSH SIGNATURE blocks + prose naming a private key" sanctuary-master director-general-1 $c5
+L refuse "P6 a live key in a NON-node file (extensions/agi/zz-leak.txt)" sanctuary-master director-general-1 $(mk director-general-1 director-general-1 $o extensions/agi/zz-leak.txt $D/live)
+L refuse "P7 a live key in a RETIRED node (.agi/nodes/deprecated/doc/zz-leak.md)" sanctuary-master director-general-1 $(mk director-general-1 director-general-1 $o .agi/nodes/deprecated/doc/zz-leak.md $D/p1)
+L refuse "P8 a live key in a non-.md node file (.agi/nodes/.geometry/zz-leak.tsv)" sanctuary-master director-general-1 $(mk director-general-1 director-general-1 $o .agi/nodes/.geometry/zz-leak.tsv $D/live)
+g9=$(mk director-general-1 director-general-1 $o $C $D/c);s9=$(mk director-general-1 director-general-1 $o .agi/nodes/doc/card-sanctuary-master.md $D/c)
+x=$D/j9;GIT_INDEX_FILE=$x git read-tree $(git merge-tree --write-tree $g9 $s9);GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w $D/live),extensions/agi/zz-merge.txt;e9=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x
+L refuse "P9 a DG1-signed MERGE adding a key file in NEITHER parent" sanctuary-master director-general-1 $(GIT_COMMITTER_EMAIL=director-general-1@agi GIT_AUTHOR_EMAIL=director-general-1@agi git -c gpg.format=ssh -c user.signingkey=$D/k/director-general-1 commit-tree -S -p $g9 -p $s9 -m lane $e9)
+```
+AA2.71 v2 (REJECTED 04:09Z: fails open on a blob it cannot read, see OPTION B below; SM's Sonnet refuter on DG3's build 45d468f83, 03:4xZ, both REPRODUCED here through the built pieces): v1 fails open on (P10) a path holding a NEWLINE (tr '\0' '\n' splits it, git show finds neither half, the loop passes) and (P11) a file CHANGED to a symlink whose target bytes are the key block (type change T, dropped by --diff-filter=AM). v2 reads each entry's RESULT blob id from diff-tree's raw line (the field before the status, in the plain AND the combined -c form) and cats that blob: no path is ever re-parsed (git C-quotes a control character in a raw path, so one entry = one line), and only deletions are skipped (--diff-filter=d: A M T and any status git adds later are read; a gitlink has no blob here and is skipped). The refusal names the path as git quotes it, through printf %s (dash's echo would expand a backslash in a path). 326 B; grow-gate 1,465 -> 1,793 B:
+```text
+ git diff-tree -r -c --root --no-commit-id --diff-filter=d $c|awk -F'\t' '{n=split($1,a," ");print a[n-1],$2}'|while read -r o f;do git cat-file blob $o 2>/dev/null|grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----'&&{ printf 'refused: %s %s carries a private key block (the trunk is public)\n' $c "$f";exit 1;};:;done||exit 1
+```
+| lane (through the built agi-land) | want | v1 | v2 |
+|---|---|---|---|
+| P1-P9 (above) | as above | 9/9 | 9/9 |
+| P10 a live key at a path holding a NEWLINE | refuse | LAND (FAIL: "path 'leak.txt' does not exist") | refuse |
+| P11 a card CHANGED to a symlink whose target is a key block (T) | refuse | LAND (FAIL) | refuse |
+| P12 a NEW symlink whose target is a key block | refuse | refuse | refuse |
+| P13 control: a NEW symlink with a plain target | land | land | land |
+Exit: v1 2 · v2 0. DG3's grow-gate-keys.t.sh (45d468f83) with v2: 0 FAIL but f7-bytes, whose bound moves 1,748 -> 1,793. The AA3 lane verdicts are identical v1 vs v2 (lanes.anc.sh, trunk 2c59fd5f6). The lanes appended to the block above:
+```text
+# v2: a path holding a newline, and a type change (T); mm = mk with a mode
+mm(){ x=$D/i;GIT_INDEX_FILE=$x git read-tree $3;GIT_INDEX_FILE=$x git update-index --add --cacheinfo "$6,$(git hash-object -w $5),$4";t=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x
+GIT_COMMITTER_NAME=$2 GIT_COMMITTER_EMAIL=$2@agi GIT_AUTHOR_NAME=$2 GIT_AUTHOR_EMAIL=$2@agi git -c gpg.format=ssh -c user.signingkey=$D/k/$1 commit-tree -S -p $3 -m lane $t;}
+L refuse "P10 a live key at a path holding a NEWLINE" sanctuary-master director-general-1 $(mm director-general-1 director-general-1 $o "extensions/agi/zz
+leak.txt" $D/live 100644)
+L refuse "P11 a card CHANGED to a symlink whose target is a key block (type change T)" sanctuary-master director-general-1 $(mm director-general-1 director-general-1 $o $C $D/live 120000)
+L refuse "P12 a NEW symlink whose target is a key block" sanctuary-master director-general-1 $(mm director-general-1 director-general-1 $o extensions/agi/zz-ln $D/live 120000)
+L land "P13 control: a NEW symlink with a plain target" sanctuary-master director-general-1 $(mm director-general-1 director-general-1 $o extensions/agi/zz-ln2 $D/nk 120000)
+```
+Honest limit (v1 and v2): the line refuses an ARMOURED block (-----BEGIN ... PRIVATE KEY-----). A key that is base64'd again, compressed, split across lines, or in a non-armoured format (a PuTTY .ppk, a raw hex seed) passes. Catching every encoding is not decidable from bytes; the line covers the paste and commit-the-file accidents, not a determined leaker.
+AA2.71 THE RULED LINE = OPTION B (DG1 [rule] 04:02Z; built by DG3 on dg3-keygate eb6bee25e; grow-gate 1,465 -> 1,833 B = the bar; this line 366 B, its separator is a literal TAB). v2 fails open where B refuses: `git cat-file blob $o 2>/dev/null|grep` reads an unreadable blob (or a gitlink oid) as "no key" and lands it; B writes the blob to $t/b and REFUSES on a read error, naming the path (DG2 lanes r2b-unreadable-blob + r2b-unreadable-newline-path, measured by DG3 04:09Z: v2 2 FAIL, B 0). B's --diff-filter=AMT names every status diff-tree emits without -M/-C/-B, so it equals v2's d today. Consequence: a commit adding a submodule (gitlink, no blob here) is refused, owner lands. P1-P13 above through dg3-keygate's built pieces: 13/13 exit 0. Cosmetic: B's refusal is an echo, so dash expands the \n of a git-quoted newline path and the refusal prints on two lines (the path is still exact, the commit still refused):
+```text
+ git diff-tree -r -c --root --no-commit-id --diff-filter=AMT $c|while IFS= read -r l;do p=${l#*	};o=$(echo "${l%%	*}"|awk '{print $(NF-1)}');git cat-file blob $o>$t/b||{ echo "refused: $c $p unreadable";exit 1;};grep -aq -e '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' $t/b&&{ echo "refused: $c $p carries a private key block (the trunk is public)";exit 1;};:;done||exit 1
+```
 REVIEW of the build (AA3.14 as built): agi-land on the trunk differs from AA3.14 v2 in ONE line, the 32-hop bound on the parent walk u() that SM's follow-up 55f502f95 already records (agi-land-bounds.t.sh). Confirmed: correct and fail-closed (a parent cycle or a chain deeper than 32 is refused, never a hang); all 17 AA3.14 lanes stay ok on the built pieces.
