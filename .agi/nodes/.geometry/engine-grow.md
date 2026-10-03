@@ -136,5 +136,5 @@ json.dump(w,open(W,'w'));r=[k for k in w['js']['required']if k not in w['rows']]
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ROUND 7 (§Y1/§Y2): the three growth tools byte for byte from the doc (grow-check 1298 B, grow-gate 1435 B (1465 B since the AA3.4 byte fixes), grow-project 1185 B), + agi-fill (§Y2 + the corrective diagram + the const seam fix) moved here whole (SPLIT, byte for byte). Why: a post's start read = engine + engine-post + engine-wrap <= 20,480 B, and the hub's = engine + this node.
+ROUND 7 (§Y1/§Y2): the three growth tools byte for byte from the doc (grow-check 1298 B, grow-gate 1435 B (1465 B since the AA3.4 byte fixes; 1,748 B since the AA2 per-commit private-key line, AA1.K bytes, before the node diff-tree line), grow-project 1185 B), + agi-fill (§Y2 + the corrective diagram + the const seam fix) moved here whole (SPLIT, byte for byte). Why: a post's start read = engine + engine-post + engine-wrap <= 20,480 B, and the hub's = engine + this node.
 <!-- THOUGHT:END -->
