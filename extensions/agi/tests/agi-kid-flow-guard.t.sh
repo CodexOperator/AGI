@@ -71,6 +71,20 @@ ok "rec-guard-p-not-seeded an exported 150-byte P and an exported depth d=.. do 
 # --- D5: a manifest name outside [a-z0-9-] is refused before anything is created
 rm -rf $H/s;flow '../t' '{}'>/dev/null 2>&1;rc1=$?;flow 'One' '{}'>/dev/null 2>&1;rc2=$?;flow 'a b' '{}'>/dev/null 2>&1;rc3=$?
 ok "d5-name-refused names '../t', 'One' and 'a b' exit nonzero and create nothing under ~/s (rc $rc1 $rc2 $rc3)" '[ $rc1 != 0 ]&&[ $rc2 != 0 ]&&[ $rc3 != 0 ]&&[ ! -e $H/s ]'
-ok "bytes the piece is <= ${CEIL:-1856} B ($(wc -c<$PIECE) B)" '[ $(wc -c<$PIECE) -le ${CEIL:-1856} ]'
+# --- R1 (mur sm17 W-1.8): a goal / flow / post field is a WORD, never an option: option-looking or off-charset values are refused, nothing runs, no victim file is touched
+printf keep>$H/t/victim;gp2(){ w r1-$1 '{"name":"r1-'$1'","stages":[{"label":"x","post":"'"$2"'","goal":"'"$3"'","flow":"'"$4"'"}]}';}
+gp2 goal director-general-1 'g.md --output=victim zz' '';gp2 post '--help' gk-ok '';gp2 dash director-general-1 '-p' '';gp2 flow '' '' 'a --output=victim'
+$G -C $H/t add -A;$G -C $H/t -c commit.gpgsign=false commit -qm r1
+for g in goal post dash flow;do : >$LOG;: >$MAIL;r0=$(refs|wc -l|tr -d " ");flow r1-$g '{}'>/dev/null 2>&1;rc=$?
+ ok "r1-$g the $g field of r1-$g is refused: rc 75, no launch, no mail, victim file intact, no ref (rc=$rc, 75 like any not-met line)" '[ $rc = 75 ]&&[ "$(nl $LOG)" = 0 ]&&[ "$(nl $MAIL)" = 0 ]&&[ "$(cat $H/t/victim)" = keep ]&&[ "$(refs|wc -l|tr -d " ")" = $r0 ]'
+done
+# --- R2: a repeat stage whose repeat.of is absent from ARGS refuses (it must not drop its phase and sign DONE)
+w miss-of '{"name":"miss-of","stages":[{"label":"a","prompt":"BEFORE"},{"label":"review","repeat":{"of":"rounds","label_template":"review:{key}"},"prompt":"REVIEW {key}"}]}'
+$G -C $H/t add -A;$G -C $H/t -c commit.gpgsign=false commit -qm r2
+n2=$(refs|wc -l|tr -d ' ');: >$LOG;flow miss-of '{"other":[{"key":"k"}]}'>/dev/null 2>&1;rc=$?
+ok "r2-absent-of a repeat whose repeat.of is missing from ARGS exits nonzero, launches nothing and signs NO ref (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]&&[ "$(refs|wc -l|tr -d " ")" = $n2 ]'
+: >$LOG;flow miss-of '{"rounds":[]}'>/dev/null 2>&1;rc=$?
+ok "r2-empty-of an EMPTY rounds list is a real list: the flow runs its other stage and signs (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 1 ]'
+ok "bytes the piece is <= ${CEIL:-1920} B ($(wc -c<$PIECE) B)" '[ $(wc -c<$PIECE) -le ${CEIL:-1920} ]'
 echo "agi-kid-flow-guard: $f FAIL"
 exit $f
