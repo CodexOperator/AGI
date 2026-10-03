@@ -95,7 +95,7 @@ ringadd $R "dg1 ssh-ed25519 $(echo $ATK|cut -d' ' -f2)\n";gate $R $(mkc $R dg1 $
 # (5) .gitattributes 'ring -diff' LANDED earlier: in a BARE repo (the land gate's) git reads attributes from the receiving HEAD's tree, so a text diff of the ring prints 'Binary files differ' and names no line
 printf '%s -diff\n' $RG>$D/ga;git init -q --bare $D/rb;echo $D/r/.git/objects>$D/rb/objects/info/alternates;git --git-dir=$D/rb symbolic-ref HEAD refs/heads/trunk
 gate2(){ git --git-dir=$D/rb update-ref refs/heads/trunk $1;echo "$1 $2 refs/heads/x"|GIT_DIR=$D/rb AGI_ALLOWED=$D/over AGI_TRUNK=refs/heads/trunk AGI_NOT=$1 timeout 60 grow-gate>$D/out 2>&1;r=$?;}
-RA=$(mkc $R1 dg1 .gitattributes:$D/ga);gate2 $R1 $RA;ok "g5a-attributes-landed an unringed .gitattributes marking the ring -diff lands (the setup push, signed by dg1): admitted" '[ $r = 0 ]'
+RA=$(mkc $R1 dg1 .gitattributes:$D/ga)   # the SETUP push is built WITHOUT the gate (a gate that rules .gitattributes by the owner refuses dg1 landing it: DG3 06:4xZ); g5b / g5c keep RA as a bare tip
 edit $RA $RG "s|^dg2 .*|dg2 ssh-ed25519 $(echo $ATK|cut -d' ' -f2)|";gate2 $RA $(mkc $RA dg1 $RG:$D/e);ok "g5b-ring-diff-blind-refused with that attribute in force dg1 replaces dg2's line (a sibling's) with an attacker key: refused (the ruler reads the ring as text, whatever its attributes)" 'refused'
 edit $RA $RG "s|^dg1 .*|dg1 ssh-ed25519 $(pk dg1b|cut -d' ' -f2)|";gate2 $RA $(mkc $RA dg1 $RG:$D/e);ok "g5c-control-own-line-under-attribute with the attribute in force dg1 replaces ITS OWN line: admitted" '[ $r = 0 ]'
 echo "grow-gate-ring3: $f FAIL"
