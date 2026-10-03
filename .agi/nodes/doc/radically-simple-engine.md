@@ -2486,3 +2486,54 @@ def verify(root,pub,h,m,s):
 **Honest limits (adding to §AB's 7).** (8) The prototype is a plain Winternitz + Merkle scheme with no randomized hashing, which is weaker than WOTS+/XMSS/SLH-DSA; it measures the NESTING and the sizes, not a production PQ scheme. (9) It is STATEFUL: a leaf must never sign twice. The index is read from the blocks, but a block signed and never written would repeat its index, so the post writes the block before it signs another. SLH-DSA (stateless) removes this. (10) Publishing a retired SIGN key is safe only while the PQ inner of the newer blocks holds; a quantum forger could then rewrite only what no PQ-nested block seals yet (the grace window). (11) "Trustless" stops at the sanctuary's edge until the owner names an outward anchor.
 **Falsifiers (AA2.67-AA2.73).** AA2.67 P1-P3 + N1-N4: PASS scratch · AA2.68 S1-S4: PASS scratch · AA2.69 R1-R7: PASS scratch · AA2.70 ckpt verifies a NESTED blob (outer + inner against the ring's pq column) and refuses a block whose inner fails: DG1's build (the ckpt delta) · AA2.71 a trunk range carrying ANY PRIVATE KEY block (OpenSSH, RSA, EC, PKCS8, and an ENCRYPTED key, under a timeout) is refused at agi-land, a key-shaped non-key passes: alive's AA1.K line (176 B), all-is-one's land lane · AA2.72 `git ls-remote origin | grep -c refs/revoked` = 0 after a day of publications: DG1's build (read-only) · AA2.73 a generation that exhausts its 2^h leaves cannot sign another block, and its successor can: DG1's build.
 
+### AB.6 · THE SIXTH INPUT (owner 03:25Z via belam [owner]): the OUTWARD sealer = GitHub Actions, retrying gracefully -- the external anchor §AB.5 left to the owner
+**Given:** belam's reading: an Artifact Attestation (a Sigstore certificate -> the public Rekor log) over ONLY a block digest, never a key; trigger = tag, dispatch or a scheduled sweep (idempotent); the box pushes with backoff, and a block it cannot seal stays UNSEALED-EXTERNALLY, never failed; the gate reads "externally sealed" as an optional SECOND fact, never a landing requirement; `.github/workflows` = one new allowed-paths row (belam, at landing). alive, measured read-only 03:2xZ: origin is public, not a fork, its DEFAULT branch is `master` (not the trunk), 0 workflows, no `.github/` on the trunk; GitHub runs `schedule` and `workflow_dispatch` ONLY from the default branch's file, and a tag push runs the file inside the tagged commit.
+```
+box: a holding block ──(block_push: git push origin 'refs/agi/block/*:refs/agi/block/*', backoff 1-2-4-8 min, then give up quietly)──▶ origin
+origin master: .github/workflows/seal.yml ── every 30 min (and on dispatch) ── fetch refs/agi/block/* ── for each block:
+     subject = sha256( git archive --format=tar <block> )      (tip, time, hash, EVERY signature blob: binds WHICH quorum sealed it)
+     already attested? (GET repos/<origin>/attestations/sha256:<subject>) ── yes: skip   no: one line in subjects
+  ── actions/attest-build-provenance@v2 (subject-checksums) ──▶ a Sigstore cert for this workflow on master ──▶ Rekor (public, append-only)
+an OUTSIDE reader: git fetch origin refs/agi/block/<b> (8 objects, no trunk history) · git archive --format=tar <b> > b.tar · gh attestation verify b.tar -R <origin>
+the gate (optional second fact, never a requirement): the same GET by subject -> "externally sealed" beside "holds"
+```
+**The trigger, chosen: the scheduled sweep on `master`.** It is the only shape that retries by itself (a missed or failed run = the next sweep; attesting is idempotent by subject) and it puts 0 bytes on the trunk. A tag per block needs `.github/workflows` IN the tagged commit, i.e. on the trunk, plus a tag push per block (one more outward write per block, and no retry). `workflow_dispatch` stays as a manual nudge only. The footprint row names the branch: `master: .github/workflows/seal.yml` (master is not the trunk; who writes master is belam's call).
+**Measured (03:3xZ, scratch, no network, nothing pushed):**
+| # | case | result |
+|---|---|---|
+| G1 | the signed payload's digest (`tip time hash digest`) across 10 fixture blocks | only 5 distinct: every block over the SAME tip at the SAME time shares it (the payload does not name the signers or the sealed blocks), so it cannot pin WHICH quorum sealed |
+| G2 | the whole-block subject `sha256(git archive --format=tar <block>)` across the same 10 | 10 distinct: the subject binds the signature set |
+| G3 | an OUTSIDER fetches only `refs/agi/block/L3` into an empty repo and recomputes | the same subject (52ff28b4...), 8 objects fetched, no trunk history |
+| G4 | the sweep's run block against the fixture "origin" with a stub `gh` (one subject already attested) | lists exactly the un-attested subjects; with every subject attested, lists 0 (idempotent) |
+| G5 | `seal.yml` parses (pyyaml 6.0.1): triggers schedule + workflow_dispatch, permissions contents read, id-token write, attestations write | ok |
+NOT run (outward, needs the GO): the workflow on GitHub, an attestation, `gh attestation verify`, the push of block refs to origin.
+`seal.yml` whole (1217 B, sha256 53502b66221245f7):
+```yaml
+# .github/workflows/seal.yml on master (the default branch: GitHub runs schedule + dispatch only from it). The OUTWARD sealer (owner 03:25Z):
+# every 30 min, attest each block on origin whose WHOLE-BLOCK digest (sha256 of git archive: tip, time, hash, every signature) has none yet; a subject is a DIGEST, never a key; a miss = the next sweep
+name: seal
+on:
+  schedule: [{cron: '*/30 * * * *'}]
+  workflow_dispatch:
+permissions: {contents: read, id-token: write, attestations: write}
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - id: s
+        env: {GH_TOKEN: '${{ github.token }}', R: '${{ github.repository }}'}
+        run: |
+          git init -q b && cd b && git fetch -q "https://github.com/$R" '+refs/agi/block/*:refs/agi/block/*' || true
+          for c in $(git for-each-ref --format='%(objectname)' refs/agi/block); do
+            d=$(git archive --format=tar $c|sha256sum|cut -d' ' -f1)
+            gh api "repos/$R/attestations/sha256:$d" >/dev/null 2>&1 || echo "$d  block-$c"; done > ../subjects
+          echo "n=$(wc -l < ../subjects)" >> "$GITHUB_OUTPUT"
+      - if: steps.s.outputs.n != '0'
+        uses: actions/attest-build-provenance@v2
+        with: {subject-checksums: subjects}
+```
+**Box side, `block_push` (a crons.md job cell, belam's GO): ~110 B, one line:** `for i in 1 2 4 8;do git push -q origin 'refs/agi/block/*:refs/agi/block/*'&&break;sleep $((i*60));done;:`. It always exits 0, so a failed push leaves the block UNSEALED-EXTERNALLY and the next run retries. A block holds only public signatures over a public trunk tip, so it may go to origin. The PILE (`refs/revoked`) never does, and refs/revoked is not under the pushed pattern.
+**What an outside reader then trusts, said plainly:** GitHub's OIDC identity for `seal.yml` on `master` of origin, and Sigstore's Rekor log. That is the external anchor; it proves WHEN a block existed (Rekor's inclusion time) and that THIS workflow saw it, not that its quorum is honest (that is the ring's and the blocks' job, checkable from the bytes). A rewrite of `seal.yml` on master changes the identity: the gate's optional fact names the workflow path it accepts.
+**Honest limits (adding to §AB's).** (12) GitHub's schedule is best-effort (runs can be delayed or dropped under load); the sweep makes a drop cost one interval, never a block. (13) Origin's `refs/agi/<town>/*` is the town mirror's namespace, so `block` is a reserved town name. (14) The external anchor is GitHub + Sigstore: trustless of the SANCTUARY, not of them.
+**Falsifiers (AA2.74-AA2.78).** AA2.74 G1-G5: PASS scratch · AA2.75 after belam's GO for block_push + seal.yml: a block pushed at t is attested within two sweep intervals, and `gh attestation verify` on its tar passes for an outside reader: UNRUN (outward) · AA2.76 a second sweep creates 0 new attestations: UNRUN · AA2.77 with origin unreachable, block_push exits 0, the block still HOLDS on the box and reads "unsealed externally": DG1's build · AA2.78 `git ls-remote origin` lists refs/agi/block/* and NO refs/revoked: UNRUN (outward, read-only once pushed).
+
