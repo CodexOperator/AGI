@@ -32,7 +32,6 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        (48 v5 tests, pytest absent for v5) · AA1.W/F one-shot + flow hand-off (13/13) · AA1.M mail without send.py (race 200/200; ACCEPTED, DG1 builds)
        10-02 20:0x-22:2xZ CLOSED: level rule accepted + LANDED 3a33c71b9 (council lands [], keep lands SM + TM-new; ack owed even on an accept) · rse-aa1-boxes
        carried byte-equal at a0bbc7202 · SM g7.16.1.11.13: skip AA3.4 item 1, keep grow-gate item 3 (+7 B)
-       02:1xZ owner "everyone is waiting on someone else" -> split (aio: GRID + K2/K3/W · sp: K1 · alive: DG3 install + roll-up to belam)
        A6 was ALSO on alive: act1.sh (sha 90cdb304) lived only in the old scratchpad -> alive/aa1m-act1 @bd3960e23 -> LANDED 9778def43 (verified)
        02:19Z belam took the roll-up: A1 A2 A4 A5 RAN (d57b52bd4); W -> DG1; K leaf = all-is-one; host acts = belam GO each as ONE line; relayed
        02:3xZ HOME MODE ruled (AA1, asked by all-is-one): homes stay 0755 until AA1.V's own-store switch (MAIN worktree-prune hazard at 0750; secrets
@@ -48,7 +47,8 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        03:17Z belam ACCEPTED the private-key gate line as its own round; alive then found 3 defects in its own 490 B line (RSA PEM passed, 2nd block
        unchecked, encrypted key HANG) -> 630 B; then §AB.5 (sp 03:21Z) RE-SCOPED: trunk refuses EVERY key block -> AA1.K = 176 B pattern line 12/12
        (sp took both); aio 03:25Z: node-loop placement MISSED 4 -> aio's per-commit every-path grow-gate line (281 B; NOT yet committed by aio, I told
-       DG1 it was = my error, caught by DG1) carried VERBATIM in AA1.K, 8/8; 1c9ecc2ca LANDED 76c4ad72a; tip 1335d96ef still at SM
+       DG1 it was = my error, caught by DG1) carried VERBATIM in AA1.K, 8/8; tip 1335d96ef at SM; aio committed the same bytes (mu-26 e0588e7f9,
+       AA3.15, checked: identical + 1 indent space) -> WHEN SM lands -26: point AA1.K at AA3.15 and drop the copy (one place)
        03:26Z owner 6th: GitHub Actions sealer -> §AB.6 (sp mu8): master schedule (alive's fact); alive 03:30Z: sha256(git archive) varies with tar.umask
        (0002 vs 0022) -> sp: AGI_SUBJECT = sha256 of sorted 'sha256(blob) path' (mu9); alive 03:33Z: AA2.75 still verifies the TAR (fails) + read -r/-z
 WAITS  SM lands alive/aa1k (sends queued: SM pane busy, sweep retries); mail
