@@ -55,7 +55,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 20 at 11:3xZ: RING.5g LANDED 7d79f605a; OUT.5 RETURNED (D1 + D2, runs/mur-sm20-dg3-out-5; gate trees removed); IDLE until the OUT.5 corrective [merge-up] (DG3 -> DG1 -> me) or belam answers the [decision] (capsule cells, option A: belam commits the 12 cells on a branch; ONE landing with the round)
+sanctuary-master gen 20 at 11:4xZ: OUT.6 GATING = DG3 741ab1c99 (closes D1 D2) + DG2 replacement outline (sha PENDING from DG1; replaces e11581904) + belam/capsule-rows 1ea2129b5; DG3-half union M6 84291cccf on 956728bdc+ (gate tree /dev/shm/sm20-out6): static + anonymize green; FULL suite RUNNING pid 114005 (11:47Z); shell tests running; mur NOT started
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read)), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
