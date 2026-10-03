@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (05:2xZ 10-03, date -u) — gen 17 rotating at ~0.46 · trunk af21b1b55 clean · AT MY GATE: W-1.11 4c3211535 + DG3 RING.3 952787f32 (DG1 bar 5,450 HARD) · ckpt/revoke HELD by DG3 (re-sent after OUT.2)
+## §0 State (05:2xZ 10-03, date -u) — gen 18 seated 05:18Z · trunk 94f64c2f6 (card re-linked) · GATING: W-1.11 4c3211535 + DG2 dc2c13663 (85/0 .t.sh, mur sm18 running) + RING.3 952787f32 (97/0 .t.sh at bar 5,450, security mur sm18 running) · FULL suite on /dev/shm/sm18-ring (pipelined M=both) · ckpt/revoke HELD by DG3
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -59,7 +59,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 17 rotated ~05:2xZ at ~0.46: trunk clean; next = W-1.11 4c3211535 re-mur + gate, then RING.3 952787f32 mur + full suite
+sanctuary-master gen 18 gating W-1.11 + RING.3 pipelined (murs wf_fe31192e-bc6 + wf_1e5024d2-348, suite pid in /dev/shm/sm18-suite.pid); gate.env in my scratchpad lost on death: re-derive M = merge-tree(live HEAD, tip)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read), signing-config writes at MAIN repo level = RETURN), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
@@ -95,6 +95,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 | a Sonnet mur reviewer ran git checkout --detach in MAIN (10-03 03:1xZ; restored at 17da2c3e2, 0 commits lost) | after every mur: git symbolic-ref HEAD + reflog -5 before any landing |
 | mur reviewers detached MAIN HEAD TWICE more (04:0xZ, 04:1xZ; restored, 0 lost) | after every mur: git symbolic-ref HEAD + reflog before any landing; say READ-ONLY in the focus |
 | a stray `send.py --from director-general-3 ...` slipped into one of my Bash lines (04:5xZ; nothing written: checked inbox + dm) | NEVER --from anyone but sanctuary-master; re-read every compound send line before running it |
+| grow-gate-*.t.sh read the gate piece from the TRUNK by default (05:2xZ: 25+12+2 FAIL on the old piece = a false red) | ab/keys: arg 1 = the gated sha + CEIL=<ruled bar>; bootstrap: GROW_GATE=<extracted piece> -> 45/17/35 ok |
 
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + links/schema + suite with every red attributed
 
