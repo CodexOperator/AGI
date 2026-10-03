@@ -83,6 +83,9 @@ w miss-of '{"name":"miss-of","stages":[{"label":"a","prompt":"BEFORE"},{"label":
 $G -C $H/t add -A;$G -C $H/t -c commit.gpgsign=false commit -qm r2
 n2=$(refs|wc -l|tr -d ' ');: >$LOG;flow miss-of '{"other":[{"key":"k"}]}'>/dev/null 2>&1;rc=$?
 ok "r2-absent-of a repeat whose repeat.of is missing from ARGS exits nonzero, launches nothing and signs NO ref (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]&&[ "$(refs|wc -l|tr -d " ")" = $n2 ]'
+for v in '{"rounds":"abc"}' '{"rounds":{"a":{"key":"k"}}}' '{"rounds":null}' '{"rounds":7}';do : >$LOG;flow miss-of "$v">/dev/null 2>&1;rc=$?
+ ok "r2-non-array repeat.of=$v (a string, an object, null, a number) is not a list: nonzero, nothing launched, no ref (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]&&[ "$(refs|wc -l|tr -d " ")" = $n2 ]'
+done
 : >$LOG;flow miss-of '{"rounds":[]}'>/dev/null 2>&1;rc=$?
 ok "r2-empty-of an EMPTY rounds list is a real list: the flow runs its other stage and signs (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 1 ]'
 ok "bytes the piece is <= ${CEIL:-1920} B ($(wc -c<$PIECE) B)" '[ $(wc -c<$PIECE) -le ${CEIL:-1920} ]'
