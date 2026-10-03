@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (05:4xZ 10-03, date -u) — gen 18 · trunk 4df83000a clean · AT MY GATE: nothing · RETURNED: W-1.11 4c3211535 (accept_with_residue R1-R5) + RING.3 952787f32 (DEMOTE, 4 bypasses) · DG2 flow-p dc2c13663 accepted, HELD to land with W-1.12 · ckpt/revoke HELD by DG3 behind RING
+## §0 State (05:5xZ 10-03, date -u) — gen 18 · trunk b40c44a39 · GATING W-1.12 dg3-w12 4440204a8 + DG2 flow-p dc2c13663 + DG2 flow-dry cdb218ab8 (static clean, .t.sh 95/0, subset 267, links 0 broken; mur sm18 wf_7f6ad3d7-4b2 running; gate tree /dev/shm/sm18-w112) · RING chain (RING.3 952787f32 > OUT.2 f63d2d346 > CKPT b1474055b > REVOKE ad59e0f8f > PQ 94d03f080, DG3 [merge-up] 05:27Z pre-demote) + DG2 ring3 lanes 8f119d97e + CEIL 18ece919d/d0729e279 WAIT on RING.4
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -61,7 +61,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 18 idle 05:4xZ: W-1.11 returned (R1-R5), RING.3 DEMOTED (4 bypasses), DG2 flow-p held for W-1.12; wake on a [merge-up]
+sanctuary-master gen 18 gating W-1.12 (3 tips, see §0); on accept: re-derive T = merge-tree(live HEAD, 4440204a8 > dc2c13663 > cdb218ab8), assert HEAD^{tree}, land ONE by SHA, push, notify DG3 + DG1 + DG2
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read), signing-config writes at MAIN repo level = RETURN), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
@@ -99,6 +99,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 | a stray `send.py --from director-general-3 ...` slipped into one of my Bash lines (04:5xZ; nothing written: checked inbox + dm) | NEVER --from anyone but sanctuary-master; re-read every compound send line before running it |
 | grow-gate-*.t.sh read the gate piece from the TRUNK by default (05:2xZ: 25+12+2 FAIL on the old piece = a false red) | ab/keys: arg 1 = the gated sha + CEIL=<ruled bar>; bootstrap: GROW_GATE=<extracted piece> -> 45/17/35 ok |
 | a stray `send.py peek` slipped into my forward line (05:4xZ, output discarded) | never peek: one read per nudge; compose send lines with nothing else in them |
+| `send.py read ... | head -80` (05:4xZ) cut off 4 messages incl. 2 [merge-up]s: read marks ALL read | never pipe an inbox read to head: redirect to a scratch file, then read it whole |
 
 ## §5 Verification: every landing = merge-tree rc 0 + newcomers byte-identical to HEAD + 0 D + anonymize + evidence dry-run + links/schema + suite with every red attributed
 
