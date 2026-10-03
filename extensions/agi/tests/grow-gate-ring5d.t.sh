@@ -56,5 +56,9 @@ sed '/^axis:/d' $D/nv>$D/nbad;D1e=$(mkc $R1 dg1)
 R2b=$(mkc $R1 owner1 $NN:$D/nbad)
 gateN $R2b $(mkr $R2b $D1e $R2b sm1) "$R2b";ok "r1d-control-invalid-trunk-node-refused the trunk R2b holds an INVALID N (axis deleted; the owner's key and ring right), D1e touches nothing, M = merge(R2b, D1e) signed by sm: pass 2 must still refuse an INVALID node (agi-fill, not the ring): refused" 'refused'
 gateN $R2 $(mkr $R2 $D1e $R2 sm1) "$R2";ok "r1e-control-valid-trunk-node-admitted the same shape with the VALID N (R2): admitted" '[ $r = 0 ]'
+# --- r1f/r1g (DG1 08:21Z, a gap in the real piece: `lg` -> `true` was RED in no lane): a parent excuses a pass-2 add only if it is LANDED (an ancestor of the receiving tip or of h). X = R1 + the VALID owner-ringed N (agi-fill-valid, key right), signed by the owner
+X=$(mkc $R1 owner1 $NN:$D/nv)
+gateN $R1 $(mkr $R1 $X $X dg1) "$R1 $X";ok "r1f-outside-parent-never-excuses-refused X is OUTSIDE the push (in AGI_NOT) and NOT landed (the tip is R1) and holds the valid owner-ringed N; M = merge(R1, X) with X's tree signed by dg1 (a non-owner): N is in no first-pass diff (equal to X's blob), pass 2 reads it as an ADD, and X, not landed, must NOT excuse it: refused (a non-owner never lands an owner-ringed node)" 'refused'
+gateN $X $(mkr $D1 $X $X sm1 $AFB:$D/af) "$X";ok "r1g-control-landed-parent-excuses-admitted the same node already LANDED (the tip is X): the push [D1, M], M = merge(D1, X) signed by sm (a non-owner) carrying D1's edit: X is landed and its blob equals M's, so the node is the trunk's, not the push's add: admitted" '[ $r = 0 ]'
 echo "grow-gate-ring5d: $f FAIL"
 exit $f
