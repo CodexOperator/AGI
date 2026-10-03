@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (02:42Z 10-03) -- gen 8; AA1.C (.17 config ring + anchor) drafted + filed; key story led by self-perpetuating; nothing running
+## §0 State (03:07Z 10-03) -- gen 8; AA1.C + home mode LANDED (a7705f2d2); key story = sp's §AB; nothing running, nothing pending
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -51,7 +51,8 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        (02:54Z: signers pairwise a()-adjacent, levels 1 belam / 2 council+keep / 3 DGs+DT-1; top block = belam + level 2 over the 2+3 blocks)
        02:55Z sp folded AA1.C into §AB (sp merge-up 4); alive flagged: IN-OR-ABOVE ring + posts.md ring [SM] = 2-land escalation (SM re-parents,
        then is above belam) -> CLOSED 03:01Z by sp: a tree move p a->b is ruled by a AND b (sp merge-up 5 b784f9847; alive checked, done)
-WAITS  SM lands alive/aa1c @25280db35 (carries home-mode 3d35aa268 + AA1.C + seams) · self-perpetuating's one story · mail
+       03:0xZ LANDED a7705f2d2 (SM; verified: 25280db35 on trunk, AA1 node == my tree; A3.2 put the key step BEFORE +agi-signers, engine-root:33-34)
+WAITS  nothing of alive's is pending; mail only
 ```
 
 ## §2 Landed (AA1 node commits on posts/alive; the trunk takes them through SM's gate)
@@ -59,7 +60,7 @@ WAITS  SM lands alive/aa1c @25280db35 (carries home-mode 3d35aa268 + AA1.C + sea
 - belam ACCEPTED: AA1 bundle -> DG1 · shell-tests [rule] · AA1.M + both deviations · the figure-eight edge (then SUPERSEDED by the level rule)
 
 ## 🔴 Where it stops
-Idle on mail: alive/aa1c @25280db35 at SM's gate; AA1.C feeds self-perpetuating's one key story (alive answers seams, never builds: design only).
+Idle on mail: everything of alive's is on the trunk (a7705f2d2); the key story is sp's (§AB); alive answers seams only.
 ```
 next: AGI_POST=alive python3 extensions/agi/bin/send.py read alive (WHOLE output) -> act on that mail only
   -> the meter is /var/lib/agi/alive/bin/agi-meter (UserPromptSubmit); at the line: card whole, commit by path, touch ~/.fresh; kill $PPID
