@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (04:1xZ 10-03, date -u) — landed 8c70b656e · 76c4ad72a · ba2a399d6 · 48641956a (A3.4) · 1c0edcf20 · Sonnet mur wf_b71b1303-725 RUNNING on K3 c3 f2a7c83ce + private-key gate 45d468f83 · W-1 + closer RETURNED (DG3 re-cuts pending)
+## §0 State (04:2xZ 10-03, date -u) — landed 8c70b656e · 76c4ad72a · ba2a399d6 · 48641956a (A3.4) · 1c0edcf20 · 5fc11b9ab (K3) · NOTHING at my gate · RETURNED to DG3: private-key gate 45d468f83 (2 fail-opens) · W-1 · closer
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -32,7 +32,7 @@ Replaced whole, never appended; <= 100 lines; written DURING the work so a dead 
 
 ## §1 Plan
 ```
-NOW: mur wf_b71b1303-725 = K3 c3 f2a7c83ce (DG1 [rule] 03:33Z ceiling 1,100 B in hand) + DG3 private-key gate 45d468f83 (grow-gate = every landing: full suite on tmpfs before landing; DG3 says test_sensei_audit_record_writeback reds on trunk too: attribute)
+NEXT on a [merge-up]: DG3 private-key gate corrective (R1 NUL-safe loop, R2 --diff-filter AMT + git errors refuse, R3 PGP LIMITS, R4 hyp ceiling = 1,748 / DG1 rule for growth, R5 THOUGHT) + DG2 R1/R2 falsifier lanes -> re-mur + FULL engine suite (grow-gate = every landing)
 NEXT on a [merge-up]: DG3 W-1 re-re-cut (R1 MUST drop .signers; + DG2 agi-kid-flow.t.sh ff784bf7c) · closer re-re-cut (A8 rollback / A4 reading; + DG2 box-carry.t.sh 91de8b142) · DG3 A3.4 INSTALL LINE -> forward unedited to belam (belam [decision] 03:5xZ)
 NEXT: DG1 places the private-key gate round (hyp landed 76c4ad72a) -> DG2 falsifier -> DG3 build -> my gate (scan EVERY version for armour, count only) · belam A1 re-run is his GO now (doc landed)
 QUEUED elsewhere: phase W rounds (DG1) · DG2 falsifier cases for W-1 D1-D4 · K1 / K2(a) root = belam GOs
@@ -48,11 +48,12 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-03 (03:4xZ): ba2a399d6 SP 8 (carries 7) + alive AA1.K 1335d96ef + DG1 -27 (AA2 hyp renamed in place, same mint_id)
 - 10-03 (04:0xZ): 48641956a DG3 A3.3+A3.4 key step (mur FINAL accept; agi-fresh 21/0, box-carry 46/0, engine subset 331/0) -- install = belam GO
 - 10-03 (04:1xZ): 1c0edcf20 aio 26 (AA2.71) + SP 11 (carries 9, 10) + DG2 agi-fresh.t.sh f33338a73 (23/0)
-- returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2)
+- 10-03 (04:2xZ): 5fc11b9ab DG2 K3 agi-infer (mur c3 FINAL accept; k3-infer 38/0, engine subset 332/0, 0 key-shaped bytes)
+- returned gen 16: level round R1 · DG3 install · -21 home paths · agi-land ceiling · A3 DEMOTE · K3 eval injection · 03:2xZ: A3.3 26454748c + closer 0edf571ff (accept_with_residue) · W-1 9442ece6e DEMOTE (runs/mur-sm17-*) · K3 d8e954c91 (accept_with_residue R1-R4, runs/mur-sm17-dg2-k3-c2) · keygate 45d468f83 (fail-open: newline path, T type change)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master 04:1xZ: trunk 1c0edcf20 clean; mur wf_b71b1303-725 running (K3 c3 + keygate): at its notice read the journal, persist runs/mur-sm17-*, gate survivors on tmpfs (keygate = full engine suite), land ONE update
+sanctuary-master 04:2xZ: trunk 5fc11b9ab clean; nothing at my gate; returned: keygate, W-1, closer (DG3); A3.4 install line from DG3 -> forward unedited to belam; IDLE until a [merge-up]
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps, frontmatter, evidence dry-run), links/schema, tests (.py = full suite on tmpfs; .t.sh from archive or worktree), ROOT/key code = Sonnet security mur + my own read; land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
