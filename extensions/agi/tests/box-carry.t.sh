@@ -131,6 +131,10 @@ carry A --fetch 2>/dev/null
 ok k8-sweep-planted-not-carried '[ "$(tip A alive refs/box/council/alive)" = none ]&&[ ! -e $T/A/ghost ]'
 ok k8-sweep-ghost-not-pushed '[ -z "$($G -C $T/hub.git for-each-ref refs/box/sm/ghost)" ]&&[ "$($G -C $T/hub.git rev-parse -q --verify refs/box/council/alive||echo none)" != "$pl" ]'
 
+# --- k9: a hung store of ONE post cannot starve the sweep: belam's store scan hangs 25 s, sm's send to belam must still be carried by the SAME sweep in well under that (each child is bounded: timeout 10)
+mkdir $T/fk9;printf '#!/bin/sh\nif [ "$3" = for-each-ref ]&&[ "$2" = %s/A/belam/g.git ];then sleep 25;fi\nexec %s "$@"\n' $T $G>$T/fk9/git;chmod +x $T/fk9/git
+echo late9|box A sm send belam;t9=$(date +%s);(PATH=$T/fk9:$PATH carry A --fetch 2>/dev/null);d9=$(( $(date +%s)-t9 ))
+ok "k9-hung-child-bounded the sweep returned in ${d9}s (< 20) and sm's send to belam is in belam's store" '[ $d9 -lt 20 ]&&[ "$(tip A sm refs/box/sm/belam)" = "$(tip A belam refs/box/sm/belam)" ]'
 # --- k7: nothing outside the stores is written: no inbox file, no worktree change
 ok k7-no-inbox-anywhere '[ -z "$(find $T -iname "*inbox*" -not -path "*/.git/*" 2>/dev/null)" ]'
 ok k7-matrix-repo-untouched '[ -z "$($G -C $T/r status --porcelain)" ]&&[ "$(find $T/r -type f -not -path "*/.git/*"|wc -l)" = 2 ]'
