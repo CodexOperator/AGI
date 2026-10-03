@@ -6,7 +6,7 @@
 # every refusal lane below is RED on it; the integrated gate must refuse by the ring AT THE RECEIVING TIP, never by that file. Scratch repo borrowing GITDIR's objects (0 shared refs written), scratch keys made at run time (no armoured block in this file), no network, nothing pushed.
 # SEAMS pinned (a builder may not move them; DG2 flags each): the ring is .agi/nodes/.geometry/ring, plain lines `post keytype b64`, no frontmatter, one line per post (the scratch ring is written by each fixture); the receiving trunk is AGI_TRUNK; the rules cell is env AGI_RULES (default owner;
 # option B = belam) until it is a graph cell; under option B the ring has NO owner line, belam is above every post. One ok/FAIL line per case; exit = FAIL count.
-T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};SELF=$(cd "$(dirname "$0")" && pwd);R0=${ROOT:-$(cd "$SELF/../../.." && pwd)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0;CEIL=${CEIL:-6100}
+T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};SELF=$(cd "$(dirname "$0")" && pwd);R0=${ROOT:-$(cd "$SELF/../../.." && pwd)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0;CEIL=${CEIL:-6350}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1 [rc=$r $(tail -1 $D/out 2>/dev/null|cut -c1-90)]";f=$((f+1));fi;}
 r=0
 # --- the section's own verdicts, by self-perpetuating's landed fixture runner (86 PASS / 0 FAIL on the trunk): ONE line, RUNSH=<path> overrides, a missing runner is a FAIL

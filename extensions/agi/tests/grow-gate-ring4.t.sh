@@ -24,7 +24,7 @@ A1=.agi/nodes/moral/antifragility.md;A2=.agi/nodes/moral/beauty.md
 for a in $A1 $A2;do git show $o:$a>$D/n$(basename $a);echo plain-edit>>$D/n$(basename $a);done
 # mkx "P1 P2.." SIGNER|- TREEFROM path:file ...: a commit (signed by SIGNER's key, or unsigned) with those parents (- = orphan) whose tree is TREEFROM's tree + the path:file edits (path:- removes)
 mkx(){ ps=$1;sg=$2;tf=$3;shift 3;x=$D/i;GIT_INDEX_FILE=$x git read-tree $tf^{tree}
- for a in "$@";do pa=${a%%:*};fa=${a#*:};if [ "$fa" = - ];then GIT_INDEX_FILE=$x git update-index --force-remove $pa;else GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w "$fa"),$pa;fi;done
+ for a in "$@";do md=100644;case $a in 120000+*)md=120000;a=${a#120000+};;esac;pa=${a%%:*};fa=${a#*:};if [ "$fa" = - ];then GIT_INDEX_FILE=$x git update-index --force-remove $pa;else GIT_INDEX_FILE=$x git update-index --add --cacheinfo $md,$(git hash-object -w "$fa"),$pa;fi;done
  tr=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x;pa=;for q in $ps;do [ $q = - ]||pa="$pa -p $q";done
  pn=${sg%[0-9]};if [ "$sg" = - ];then env GIT_COMMITTER_NAME=u GIT_COMMITTER_EMAIL=u@agi GIT_AUTHOR_NAME=u GIT_AUTHOR_EMAIL=u@agi git commit-tree $pa -m r4 $tr;else env GIT_COMMITTER_NAME=$pn GIT_COMMITTER_EMAIL=$pn@agi GIT_AUTHOR_NAME=$pn GIT_AUTHOR_EMAIL=$pn@agi git -c gpg.format=ssh -c user.signingkey=$D/k/$sg commit-tree -S $pa -m r4 $tr;fi;}
 mkc(){ b=$1;s=$2;shift 2;mkx $b $s $b "$@";}
@@ -61,7 +61,7 @@ sed "s|^dg2 .*|dg2 ssh-ed25519 $(kb atk)|" $D/ring>$D/e;gate $R1 $(mkc $R1 dg1 $
 { cat $D/ring;printf 'dg1 ssh-ed25519 %s\n' "$(kb atk)";}>$D/e;gate $R1 $(mkc $R1 dg1 $RG:$D/e);ok "d5b-diff-attribute-own-line-admitted control: the same attribute, dg1 adds its own line: admitted" '[ $r = 0 ]'
 rm -f $D/r/.git/info/attributes
 # --- RING.5 (mur sm18 on dg3-ring 0d58fa0ae: R1 R2 R3)
-# d6 (R2) an EVIL MERGE: the tip H deleted a node, M = merge(H, R1) re-adds it with garbage: the COMBINED diff prints AM (absent in parent 1), phase 3 tested only A and the ratchet baseline c^ was empty, so an invalid unkeyed node landed; phase 3 now rules diff(landed tip, commit) like phases 1-2
+# d6 (R2) an EVIL MERGE: the tip H deleted a node, M = merge(H, R1) re-adds it with garbage: the COMBINED diff prints AM (absent in parent 1), phase 3 tested only A and the ratchet baseline c^ was empty, so an invalid unkeyed node landed; any status holding an A is now an add (and, since RING.5c, phase 3 ALSO runs on diff(landed tip, commit))
 H=$(mkg $R1 $A2:-);EV=$D/evil;printf 'garbage, no front matter\n'>$EV
 M=$(mkx "$H $R1" dg1 $H $A2:$EV);gate $H $M;ok "d6a-evil-merge-invalid-node-refused M=merge(H, R1) signed dg1 re-adds a node H deleted, with garbage (combined diff = AM): refused" 'refused'
 M=$(mkx "$H $R1" dg1 $H);gate $H $M;ok "d6b-merge-adding-nothing-admitted control: the same merge(H, R1) keeping H's tree (no node re-added): admitted" '[ $r = 0 ]'
@@ -77,5 +77,24 @@ mkdir $D/shim;printf '#!/bin/sh\nif [ "$1" = show ]&&[ "$2" = %s ];then n=$(cat 
 rm -f $D/shim/cnt;PATH=$D/shim:$PATH gate $P1 $C0;ok "d8a-ring-read-error-refuses with the 2nd read of the ring at the landed tip failing, [S first ring, C dg1 edits a node ringed [sm]] is refused (the open bootstrap flag skipped every path rule: rc 0 on 0d58fa0ae)" 'refused'
 rm -f $D/shim/cnt;gate $P1 $C0;ok "d8b-same-push-no-error-refused control: without the shim the same push is refused by the node's ring cell (dg1 is not sm or above it)" 'refused'
 rm -f $D/shim/cnt;C1=$(mkc $S0 sm1 $NR:$D/ringed2);gate $P1 $C1;ok "d8c-same-push-sm-admitted control: sm (the ring cell's name) editing that node after the first ring: admitted" '[ $r = 0 ]'
+# --- RING.5c (SM mur sm18 on RING.5b: D1 D2)
+# d9 (D1) a TYPECHANGE: a ring member turns a valid node into a SYMLINK (mode 120000): phase 3 listed only A and M, so the symlink was never validated
+SL=$D/sl;printf 'outside-the-tree\n'>$SL
+gate $R1 $(mkc $R1 dg1 120000+$A1:$SL);ok "d9a-symlink-typechange-refused dg1 replaces the valid node $A1 by a symlink (mode 120000): refused" 'refused'
+gate $R1 $(mkc $R1 dg1 $A1:$D/n$(basename $A1));ok "d9b-plain-edit-admitted control: dg1's plain valid edit of the same node: admitted" '[ $r = 0 ]'
+# d10 (D2) a merge(V, X) with X OUTSIDE the push holding an agi-fill-INVALID version of a valid node and X's tree: diff-tree -c omits a path whose blob equals EITHER parent, so phase 3 never saw the node
+gaten(){ git update-ref refs/heads/trunk $1;echo "$1 $2 refs/heads/x"|AGI_ALLOWED=$D/over AGI_TRUNK=refs/heads/trunk AGI_NOT="$1 $3" timeout 60 grow-gate>$D/out 2>&1;r=$?;}
+sed '/^type:/d' $D/n$(basename $A1)>$D/af-bad
+X=$(mkg $R1 $A1:$D/af-bad);M=$(mkx "$R1 $X" dg1 $X);gaten $R1 $M $X;ok "d10a-merge-with-outside-invalid-parent-refused M=merge(R1, X) signed dg1 with X's tree (X, outside the push, holds the INVALID version of a valid node): refused" 'refused'
+M=$(mkx "$X $R1" dg1 $X);gaten $R1 $M $X;ok "d10b-either-parent-order-refused the same with the parents swapped: refused" 'refused'
+M=$(mkx "$R1 $X" dg1 $R1);gaten $R1 $M $X;ok "d10c-merge-keeping-the-valid-tree-admitted control: merge(R1, X) with R1's own (valid) tree: admitted" '[ $r = 0 ]'
+# --- RING.5d (SM mur sm19 on RING.5c: R1 the standard MERGE-UP shape; notes: symlink/submodule node)
+# d11 the trunk gained an OWNER-ringed node after the fork: M = merge(R2, D1) signed sm, D1 (dg1, in the push) a plain edit: the second phase-3 pass (diff of the previous walked commit D1 against M) read the trunk's node as an ADD and refused sm (not the owner); a path whose blob equals a LANDED parent's is already landed
+git show $o:$A1|sed 's/^id: moral:antifragility/id: moral:zz-r5d/;s/^mint_id: .*/mint_id: 4123456789abcdef0123456789abcdef/;s/^type: moral/type: moral\nkey: 2fe50ba43c479d67/'>$D/nv
+R2=$(mkg $R1 .agi/nodes/moral/zz-r5d.md:$D/nv);D1=$(mkc $R1 dg1 $A2:$D/n$(basename $A2));M=$(mkx "$R2 $D1" sm1 $R2 $A2:$D/n$(basename $A2))
+gate $R2 $M;ok "d11a-merge-up-with-trunk-owner-node-admitted [D1, M] M=merge(R2, D1) signed sm, R2 (the tip) added an owner-ringed node after the fork: admitted" '[ $r = 0 ]'
+M=$(mkx "$R1 $D1" sm1 $D1);gate $R1 $M;ok "d11b-merge-up-without-new-trunk-node-admitted control: the same merge when the trunk gained nothing: admitted" '[ $r = 0 ]'
+# d12 a symlink whose blob is VALID node text: no more power than a delete, now refused outright (120000 / 160000 under .agi/nodes)
+git show $o:$A1>$D/validtxt;gate $R1 $(mkc $R1 dg1 120000+$A1:$D/validtxt);ok "d12a-symlink-with-valid-text-refused dg1 turns the node into a symlink whose blob IS valid node text: refused" 'refused'
 echo "grow-gate-ring4: $f FAIL"
 exit $f

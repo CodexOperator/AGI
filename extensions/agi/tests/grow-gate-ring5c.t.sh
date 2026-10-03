@@ -1,10 +1,7 @@
 #!/bin/sh
-# grow-gate-ring4b.t.sh [TRUNK] [GITDIR]: RING.4b (DG1 06:40Z order, SM 06:34Z return on RING.4 0d58fa0ae, mur sm18 accept_with_residue): falsifiers, TEST ONLY, in the harness of grow-gate-ring3.t.sh (GROW_GATE=<candidate piece>), each lane RED on the 0d58fa0ae piece (named where it is not), GREEN on the candidate, beside an ADMIT control:
-#   L1 an EVIL MERGE: a merge whose combined diff status is AM (the node is ABSENT in parent 1, a valid add in parent 2) landing an INVALID node (key none); the plain non-merge add of the same invalid node is refused (control); a merge adding a VALID node is admitted
-#   L2 a PATH shim that makes `git show <c>^:<node>` fail on a ratchet edit of an existing node: refused; the same edit with no shim, valid, is admitted; and a CORRUPTING edit with the shim is refused
-#   L3 a .gitattributes (root AND .agi/nodes/.geometry/) with export-ignore on the schemas / growth.tsv by a ring signer that is not the owner: refused; owner-signed: admitted; a BRICK lane (a valid added node on a tip that carries those attributes is admitted: git archive would drop the schemas and refuse it); and the safety property when the attributes are already at the tip
-#   L4 a shim failing `git ls-tree` and `git show` on the ring path while the tip HOLDS a ring and the commit is signed by an UNLISTED key: refused; control: a tip with no ring at all stays the bootstrap
-#   L5 (R1 of the mur) a shim failing ONLY the read of the just-landed first ring: refused
+# grow-gate-ring5c.t.sh [TRUNK] [GITDIR]: RING.5c (SM 07:27Z return, mur sm18 accept_with_residue on RING.5b 083720981): falsifiers, TEST ONLY, in the harness of grow-gate-ring4b.t.sh (GROW_GATE=<candidate piece>), each lane RED on the 083720981 piece, GREEN on a candidate that closes it, beside an ADMIT control:
+#   D1 a ring member turns a valid [sm]-ringed node into a SYMLINK (mode 120000): the node check runs on A and M only, so a type change T is never read; must refuse (by sm, whom the ring rules, and by the owner above it); a symlink ADDED as a node path; control: a regular valid edit of the same node by sm is admitted
+#   D2 dg1 signs merge(V, X) with X's tree, X OUTSIDE the push (in AGI_NOT) and holding an agi-fill-INVALID version of a valid node: the combined diff of the merge does not list the node (it equals X's), so it is never checked; must refuse, in BOTH parent orders; controls: the plain (non-merge) add of the invalid version is refused; the same merge with a VALID X is admitted
 # Scratch repo borrowing GITDIR's objects (0 shared refs written), scratch keys at run time (no armoured block in this file), no network, nothing pushed. One ok/FAIL line per case; exit = FAIL count.
 T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1 [rc=$r $(tail -1 $D/out 2>/dev/null|cut -c1-90)]";f=$((f+1));fi;}
@@ -47,36 +44,37 @@ AFB=.agi/nodes/moral/antifragility.md;NN=.agi/nodes/moral/zz-r4b.md
 git show $o:$AFB>$D/af;echo 'plain-edit'>>$D/af;sed '/^type:/d' $D/af>$D/af-bad
 git show $o:$AFB|sed 's/^id: moral:antifragility/id: moral:zz-r4b/;s/^mint_id: .*/mint_id: 4123456789abcdef0123456789abcdef/;s/^type: moral/type: moral\nkey: 2fe50ba43c479d67/'>$D/nv;sed '/^key:/d' $D/nv>$D/ni
 sgn(){ sk=$1;shift;env GIT_COMMITTER_NAME=${sk%[0-9]} GIT_COMMITTER_EMAIL=${sk%[0-9]}@agi GIT_AUTHOR_NAME=${sk%[0-9]} GIT_AUTHOR_EMAIL=${sk%[0-9]}@agi git -c gpg.format=ssh -c user.signingkey=$D/k/$sk commit-tree -S "$@"; }
-# --- L1: the EVIL MERGE (combined status AM)
+# mkl BASE KEYNAME path:target ...: a signed commit on BASE whose paths are SYMLINK entries (mode 120000, the blob is the target text)
+mkl(){ b=$1;k=$2;shift 2;x=$D/i;GIT_INDEX_FILE=$x git read-tree $b;for a in "$@";do GIT_INDEX_FILE=$x git update-index --add --cacheinfo 120000,$(printf %s "${a#*:}"|git hash-object -w --stdin),"${a%%:*}";done;tr=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x;sgn $k -p $b -m r5c $tr;}
+# --- D1: a symlink entry in place of a node (the node check reads A and M only, a type change T is never read)
+gate $R1 $(mkc $R1 dg1 $AFB:$D/af);ok "d1a-control-valid-edit-admitted dg1's plain valid edit of an existing node is admitted" '[ $r = 0 ]'
+gate $R1 $(mkl $R1 dg1 $AFB:antifragility.md);ok "d1b-symlink-over-node-by-ring-member-refused dg1 (a ring member) replaces the valid node with a mode-120000 symlink entry (target: a sibling name): refused" 'refused'
+gate $R1 $(mkl $R1 dg1 $AFB:../../../../../../../etc/passwd);ok "d1c-symlink-out-of-tree-refused the same with a target that leaves the tree: refused" 'refused'
+sh_ $R $NS|sed '$a\
+sm-edit'>$D/e;gate $R $(mkc $R sm1 $NS:$D/e);ok "d1g-control-valid-edit-of-ringed-node-admitted sm's plain valid edit of the [sm] node is admitted" '[ $r = 0 ]'
+gate $R $(mkl $R sm1 $NS:antifragility.md);ok "d1d-symlink-over-ringed-node-by-its-ring-refused sm (the ring of [sm] node) replaces it with a symlink: refused" 'refused'
+gate $R1 $(mkl $R1 owner1 $AFB:antifragility.md);ok "d1e-symlink-over-node-by-owner-refused the OWNER, above every ring, does the same: refused" 'refused'
+gate $R1 $(mkl $R1 dg1 .agi/nodes/moral/zz-r5c-new.md:antifragility.md);ok "d1f-symlink-added-as-node-refused a symlink ADDED at a new node path: refused" 'refused'
+# --- D2: merge(V, X) with X's tree, X OUTSIDE the push (AGI_NOT) and holding an INVALID version (type line deleted) of a valid node
+X=$(mkc $R1 dg1 $AFB:$D/af-bad);XV=$(mkc $R1 dg1 $AFB:$D/af)
+gate $R1 $X;ok "d2a-control-plain-invalid-edit-refused the plain (non-merge) landing of the invalid version of the valid node is refused" 'refused'
+gateN $R1 $(mkm $R1 $X $X dg1) "$R1 $X";ok "d2b-merge-with-outside-invalid-refused M = merge(R1, X) with X's tree, signed by dg1: the node equals X's, so the combined diff does not list it; refused" 'refused'
+gateN $R1 $(mkm $X $R1 $X dg1) "$R1 $X";ok "d2c-merge-swapped-order-refused M = merge(X, R1) with X's tree (X is the FIRST parent: a baseline read from c^ is X's invalid blob): refused" 'refused'
+gateN $R1 $(mkm $R1 $XV $XV dg1) "$R1 $XV";ok "d2d-control-merge-with-valid-outside-admitted the same merge(R1, XV) with a VALID blob admitted" '[ $r = 0 ]'
+gateN $R1 $(mkm $XV $R1 $XV dg1) "$R1 $XV";ok "d2e-control-merge-swapped-valid-admitted merge(XV, R1) with the valid blob admitted" '[ $r = 0 ]'
+# --- l1c pinned (DG1 07:28Z): both parents IN the push: the evil merge of the key-lock (P1 no node, P2 the valid node) landing the INVALID version
 P1=$(mkc $R1 dg1 $AFB:$D/af);P2=$(mkc $R1 owner1 $NN:$D/nv)
 mgt(){ x=$D/i;GIT_INDEX_FILE=$x git read-tree $P1;GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w $1),$NN;t=$(GIT_INDEX_FILE=$x git write-tree);rm -f $x;sgn owner1 -p $P1 -p $P2 -m merge $t; }
-gate $R1 $P2;ok "l1a-control-valid-add-admitted a plain add of a VALID keyed node by its ring (a moral node: the owner) is admitted" '[ $r = 0 ]'
-gate $R1 $(mkc $R1 owner1 $NN:$D/ni);ok "l1b-control-invalid-add-refused the plain (non-merge) add of the same node with its key removed is refused" 'refused'
-gateN $R1 $(mgt $D/ni) "$R1 $P2";ok "l1c-evil-merge-refused P2 (the valid node) is ALREADY LANDED (AGI_NOT = the tip + P2, not in the push); the push [P1, M]: M merges P1 (no node) and P2 and lands the INVALID version (key none), combined status AM: refused" 'refused'
-gateN $R1 $(mgt $D/nv) "$R1 $P2";ok "l1d-control-valid-merge-admitted the same push landing the VALID node is admitted" '[ $r = 0 ]'
-# --- L2: a shim fails `git show <c>^:<node>` on a ratchet edit (a VALID edit never reads its parent: only the corrupting one does, so only that one is pinned)
-E=$(mkc $R1 dg1 $AFB:$D/af);CC=$(mkc $R1 dg1 $AFB:$D/af-bad)
-gate $R1 $E;ok "l2a-control-valid-ratchet-edit-admitted dg1's valid edit of an existing node (no shim) is admitted" '[ $r = 0 ]'
-gateS $R1 $CC "$CC^:$AFB" 1 show;ok "l2b-baseline-unreadable-at-the-parent-refused a CORRUPTING edit when \`git show <c>^:<node>\` (the ratchet's baseline when it is read from the commit's first parent) fails (a shim): refused. The file carries BOTH shim forms (this one and l2c/l2d on <tip>:<node>) so it does not depend on which shape of the piece wins" 'refused'
-gateS $R1 $CC "$R1:$AFB" 2 show;ok "l2c-baseline-unreadable-at-the-tip-refused a CORRUPTING edit when \`git show <receiving tip>:<node>\` (the ratchet's baseline, read from the LANDED tip h) fails (a shim): refused (an unreadable baseline is never read as an invalid one)" 'refused'
-E1=$(mkc $R1 dg1 $AFB:$D/af);echo more>>$D/af-bad;CC2=$(mkc $E1 dg1 $AFB:$D/af-bad)
-gateS $R1 $CC2 "$E1:$AFB" 3 show;ok "l2d-baseline-unreadable-at-an-inpush-h-refused the push [E1 (a valid edit), CC2 (a corrupting edit on top)]: E1 is h for CC2, and the read \`git show <E1>:<node>\` for the baseline fails (a shim): refused" 'refused'
-# --- L3: .gitattributes with export-ignore on the schemas and growth.tsv
-printf '.agi/context/schemas export-ignore\n.agi/nodes/.geometry/growth.tsv export-ignore\n'>$D/ga2;GAG=.agi/nodes/.geometry/.gitattributes
-gate $R1 $(mkc $R1 dg1 .gitattributes:$D/ga2);ok "l3a-root-attributes-by-non-owner-refused a ring signer that is not the owner lands a ROOT .gitattributes with export-ignore on the schemas / growth.tsv: refused" 'refused'
-gate $R1 $(mkc $R1 dg1 $GAG:$D/ga2);ok "l3b-geometry-attributes-by-non-owner-refused the same in .agi/nodes/.geometry/.gitattributes: refused" 'refused'
-gate $R1 $(mkc $R1 owner1 .gitattributes:$D/ga2);ok "l3c-root-attributes-by-owner-admitted the OWNER lands the root .gitattributes: admitted" '[ $r = 0 ]'
-gate $R1 $(mkc $R1 owner1 $GAG:$D/ga2);ok "l3d-geometry-attributes-by-owner-admitted the OWNER lands the geometry .gitattributes: admitted" '[ $r = 0 ]'
-# l3e / l3f DROPPED (DG1 06:47Z): once only the owner may land the attribute, an owner-landed export-ignore is the owner's act; a blob-read scratch copy (+266 B) is a NAMED LIMIT of the piece, not a lane. (Measured earlier: a valid add on a tip carrying the attributes is refused by a git-archive scratch copy and admitted by a blob-read one.)
-# --- L4: a shim fails git ls-tree AND git show on the ring path while the tip HOLDS a ring; the commit is signed by an UNLISTED key
-gateS $R1 $(mkc $R1 atk $AFB:$D/af) .geometry/ring "" "show ls-tree";ok "l4a-ring-reads-fail-unlisted-signer-refused the tip holds a ring, every ring read fails (a shim), the commit is signed by atk (in AGI_ALLOWED, NOT in the ring): refused" 'refused'
-gateS $o $(mkc $o atk $AFB:$D/af) .geometry/ring "" "show";ok "l4b-control-no-ring-tip-stays-bootstrap a tip with NO ring in any history, the shim failing \`git show\` of the ring only (a missing ring is a natural show failure; a failing ls-tree refuses, fail closed): the unlisted-key commit is admitted (the bootstrap, as before)" '[ $r = 0 ]'
-# --- L5: a shim fails ONLY the read of the just-landed FIRST ring (mur R1)
-x=$D/i;GIT_INDEX_FILE=$x git read-tree $P0;GIT_INDEX_FILE=$x git update-index --add --cacheinfo 100644,$(git hash-object -w $D/n-sm),$NS;B0=$(GIT_AUTHOR_NAME=g GIT_AUTHOR_EMAIL=g@g GIT_COMMITTER_NAME=g GIT_COMMITTER_EMAIL=g@g git commit-tree -m r4b-b0 -p $P0 $(GIT_INDEX_FILE=$x git write-tree));rm -f $x
-C1=$(mkc $B0 dg1 $RG:$D/ring);sh_ $B0 $NS|sed '$a\
-dg1-edit'>$D/e;C2=$(mkc $C1 dg1 $NS:$D/e)
-gate $B0 $C1;ok "l5a-control-first-ring-lands dg1 lands the FIRST ring on a trunk that never had one: admitted" '[ $r = 0 ]'
-gate $B0 $C2;ok "l5b-control-ruling-after-first-ring the push plus dg1's edit of a node ringed [sm]: refused by the ring just landed" 'refused'
-gateS $B0 $C2 "$C1:$RG" 2 show;ok "l5c-first-ring-read-error-is-not-absence the same push when ONLY the SECOND \`git show <first-ring commit>:ring\` (the read of the landed ring for the next commit) fails: refused" 'refused'
-echo "grow-gate-ring4b: $f FAIL"
+gateN $R1 $(mgt $D/nv) "$R1";ok "l1c-pin-control-inpush-valid-merge-admitted P1, P2 and the merge M ALL in the push; M lands the VALID node: admitted" '[ $r = 0 ]'
+gateN $R1 $(mgt $D/ni) "$R1";ok "l1c-pin-inpush-key-lock-refused P1, P2 and M all in the push; M lands the INVALID version (key none): refused (the in-push key lock, 5c cannot trade it away)" 'refused'
+# --- B: the ratchet baseline read UNCHECKED (DG1 07:36Z; `git show $b:$f>$t/p&&! k p||` -> `;! k p||`). The piece reads the baseline TWICE (pass 1 <c>^:<node>, pass 2 <h>:<node>, one shared line): in a linear push both are the same blob, so a shim failing ONE form is covered by the other pass (ring4b l2b/l2c/l2d); only a shim failing BOTH forms at once is RED on the unchecked read.
+# shim2: fails `git show` when the args contain FAILPAT (every time) or FAILPAT2 (every match after the first FAILSKIP of them: the ruling read of rn, and in a push the reads of an earlier commit, are not the baseline)
+printf '#!/bin/sh\n[ "$1" = show ]&&case "$*" in *"$FAILPAT"*)echo "shim: failed" >&2;exit 128;;*"$FAILPAT2"*)n=$(cat $FAILCNT 2>/dev/null||echo 0);n=$((n+1));echo $n>$FAILCNT;[ $n -gt "$FAILSKIP" ]&&{ echo "shim: failed" >&2;exit 128;};;esac\nexec /usr/bin/git "$@"\n'>$D/s2_git;mkdir -p $D/sh2;mv $D/s2_git $D/sh2/git;chmod +x $D/sh2/git
+gateS2(){ rm -f $D/cnt;git update-ref refs/heads/trunk $1;echo "$1 $2 refs/heads/x"|PATH=$D/sh2:$PATH FAILPAT="$3" FAILPAT2="$4" FAILSKIP="$5" FAILCNT=$D/cnt AGI_ALLOWED=$D/over AGI_TRUNK=refs/heads/trunk AGI_NOT=$1 timeout 60 grow-gate>$D/out 2>&1;r=$?;}
+gate $R1 $X;ok "b1a-control-corrupting-edit-no-shim-refused the CORRUPTING edit (type line deleted) of a valid node, no shim: refused as 'was valid' (the lane's refusal below is not the plain one)" 'refused'
+gateS2 $R1 $XV "$XV^:$AFB" "$R1:$AFB" 1;ok "b1b-control-valid-edit-both-shims-admitted dg1's VALID edit with BOTH baseline forms shimmed (<c>^:<node> and <tip>:<node>, the first <tip>:<node> read skipped = rn's ruling read): admitted (a valid edit never reads its baseline)" '[ $r = 0 ]'
+gateS2 $R1 $X "$X^:$AFB" "$R1:$AFB" 1;ok "b1c-baseline-both-forms-unreadable-refused the CORRUPTING edit when BOTH reads of its baseline fail at once (<c>^:<node> and <tip>:<node>, the first <tip>:<node> match, rn's ruling read, skipped): refused (an unreadable baseline is never read as an invalid one; RED on the unchecked read, whose pass 1 admits)" 'refused'
+E1=$XV;echo more>>$D/af-bad;CC2=$(mkc $E1 dg1 $AFB:$D/af-bad)
+gateS2 $R1 $CC2 "$CC2^:$AFB" "$E1:$AFB" 3;ok "b1d-baseline-both-forms-unreadable-inpush-refused the push [E1 (a valid edit), CC2 (a corrupting edit on top)] with both forms shimmed (<CC2>^:<node> = <E1>:<node> as pass 1 and pass 2 spell it; the three earlier <E1>:<node> reads skipped: E1's own two and rn's): refused" 'refused'
+echo "grow-gate-ring5c: $f FAIL"
 exit $f
