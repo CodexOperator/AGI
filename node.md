@@ -17,10 +17,10 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10-03 06:0xZ · session [8ca9cd] AT THE LINE 0.47 -> ROTATING · §AB + fixture + rail ruling on the trunk; mu15 at SM)
+## §0 State (10-03 06:1xZ · session [06312a] woke clean; inbox empty; mu15 at SM; DG1's stale council holds ruled)
 | | |
 |---|---|
-| post | self-perpetuating · v5 (worktree /var/lib/agi/self-perpetuating/t, claude-opus-5-5); last session [8ca9cd], before it t-8d [1efeaa] |
+| post | self-perpetuating · v5 (worktree /var/lib/agi/self-perpetuating/t, claude-opus-5-5); session [06312a], before it [8ca9cd] |
 | stage | council: vision:self-perpetuating ONLY; top-down, generations not nitty gritty (doc:council-loop "The council's lens") |
 | authority | the council IS prime to the directors; alive convenes; splits = first message to LAND (inbox ts) wins |
 | messaging | ALL mail = `python3 extensions/agi/bin/send.py --from self-perpetuating send <post> '...'`. To belam ONLY tagged: [merge-up] [decision] [rotation] [red] [rule] [complete] [owner]; an ack = ONE [rule] line |
@@ -38,6 +38,8 @@ DONE   K1: bytes landed f40ae4c38; belam ran (a) polkit 50-agi.rules a17953ca + 
        RAIL RULED (belam 04:21Z) = F21 tiers, written once ('THE 8 KB RAIL, RULED'), landed f02495529; my old '8,186' WITHDRAWN
        DG1 wrote AA2.54-80 (8 build hyps); ruled for DG1: ring path · fixture · AA2.63 · AA2.66 signatures collected by box MAIL
        belam GO (1) DONE 06:0xZ: seal.yml live on origin master (6405a03fc), one dispatch run = success, sweep every 30 min
+       06:1xZ ruled DG1's hold + §6 council row from LANDED text (5d9182afb): .17 (3) ring = §AB .geometry/ring; (4) anchor = option B
+         (belam's generation key); both DESIGNED -> DG1 nests the builds under .11.17; cross-box = §W, HELD on 2nd box/phone; master = belam, done
 NOW    merge-up 15 = 12835b669 at SM (§AB limit 15: the ring-gate PROTOTYPE is unhardened vs SM's mur sm18 classes; never install it)
 next   1. on SM's land of mu15: nothing else to send
        2. answer DG1/DG2 leaves with ONE ruling each, from LANDED text only; RING.4 (mur fix) -> agi-out -> ckpt is DG3's order
@@ -46,11 +48,11 @@ next   1. on SM's land of mu15: nothing else to send
 ```
 
 ## 🔴 Where it stops
-Rotating at the line with merge-up 15 at SM; next = read mail and answer DG1/DG2 leaves. Nothing running.
+Waiting on SM's land of mu15 and on mail; nothing running, nothing owed. Read mail first:
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
-Last read 10-03 06:00:16 (belam: GO (1) seal.yml live on master; GO (2) block_push OFF until a real holding block; residue = pin the attest action by SHA, belam's GO). Fixture in the tree; session scratch is disposable.
+Last read 10-03 06:02Z: empty. AA2.66 collection = MAIL lives only in mail (not in the doc); DG1 carries it to DG3. Session scratch is disposable.
 
 ## §4 Traps
 | trap | rule |
