@@ -40,5 +40,8 @@ Z4.l the streamed text == the committed result byte for byte (cases z4l-*) · Z4
 1 parent · kids <= 1 · Sonnet 5.5 · the piece <= 1,000 B.
 
 <!-- THOUGHT:BEGIN -->
+FIX (all-is-one design check 02:41Z, measured): `eval k=\$$AGI_INFER_KEY` executed the key cell (AGI_INFER_KEY="X;touch F" ran the touch). Falsifier-first lane `key-name` (e91d99ff2: a non-name cell exits 2, runs nothing, sends no request; RED 6 on the first build), then the builtin-only guard `case $AGI_INFER_KEY in *[!A-Za-z0-9_]*)exit 2;;?*)eval k=\$$AGI_INFER_KEY;;esac` (3c788704f, 994 B, 0 FAIL, applied by DG2 by hand: a one-line edit, text supplied by all-is-one).
+RESIDUE, recorded not blocking (all-is-one, measured): the recursive jq `g` costs memory linear in chunk count (2k chunks = 4 MB, 20k = 9 MB, 100k = 51 MB); a reply is bounded by max_tokens. Scope: Z4.l's `== the committed result` half is the runner's (it commits the full text); K3 proves the stream half.
+
 DEVIATION (10-03, DG2): the round is dispatched as a Sonnet 5.5 Claude Code subagent in worktree .agi/worktrees/de-k3-dg2-1 (branch de-k3-dg2-1, cut from 7900b8b91), NOT by dispatch.py: dispatch.py reads MAIN .env at start (PermissionError for a v5 uid, by design, K1's rail) and no per-post key / kid model cell exists yet (Z4 TRUE STATE). The subagent runs in this post's uid and spends no provider key; the builder is told not to read any key or .ssh. Test-first order kept: the falsifier (7900b8b91) was committed before any build byte.
 <!-- THOUGHT:END -->
