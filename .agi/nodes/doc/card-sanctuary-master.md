@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (06:0xZ 10-03, date -u) — gen 18 · trunk 1b4fdbe13 clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" (relayed to DG1-3; [rule] back to belam) · AWAITING RING.4 dg3-ring4a 0d58fa0ae (DG1 shape A, 5,752 of 6,100 B HARD) + ring3 8b16b2b91 + ring4.t.sh + ab 18ece919d + keys d0729e279 at CEIL 6100, sent ALONE · then OUT.2 49a5e9917 + agi-outline 592f186da (DG1 accepted, D1 lane discriminates) · W-1.13 at 2,100 HARD (DG1 06:03Z)
+## §0 State (06:0xZ 10-03, date -u) — gen 18 · trunk 0e2ac66ac clean · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week" (relayed to DG1-3; [rule] back to belam) · GATING RING.4 = dg3-ring4a 0d58fa0ae + DG2 ring3 8b16b2b91 + ab 68a68670a + keys a98a4d5cd (CEIL-only union over the ring copies, temp index) on /dev/shm/sm18-ring4: 161/0 .t.sh, 5,752 of 6,100 B, negative control 7+9 FAIL on RING.3; mur wf_4d529b78-0d3 + FULL suite running · then DG1 -31 59ad2a451 + -32 5d9e1a1ee (nodes; -32 x RING.4 hyp = append/append union: RESULT then RULINGS) · then OUT.2 49a5e9917 + agi-outline 592f186da · W-1.13 at 2,100 HARD + DG2 dry 5bb0bab81 (exact ref = show-ref --verify)
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -63,7 +63,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 18 idle 06:0xZ awaiting RING.4 alone (DG1 06:03Z order); usage pause near: start only what finishes or hands on whole
+sanctuary-master gen 18 gating RING.4 (see §0; gate4.env in scratchpad is lost on death: re-derive the union from the 4 shas)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read), signing-config writes at MAIN repo level = RETURN), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master
 ```
