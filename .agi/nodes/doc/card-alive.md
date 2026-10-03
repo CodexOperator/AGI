@@ -48,10 +48,10 @@ done   10-01/02 bundle: AA1 boxes (25/25) · AA1.V grid commit (19/19) · AA1.R 
        unchecked, encrypted key HANG) -> 630 B; then §AB.5 (sp 03:21Z) RE-SCOPED: trunk refuses EVERY key block -> AA1.K = 176 B pattern line 12/12
        (sp took both); aio 03:25Z: node-loop placement MISSED 4 -> aio's per-commit every-path grow-gate line (281 B; NOT yet committed by aio, I told
        DG1 it was = my error, caught by DG1) carried VERBATIM in AA1.K, 8/8; LANDED ba2a399d6 (verified; 0 trunk files match); aio same bytes (mu-26 e0588e7f9,
-       AA3.15) LANDED 1c0edcf20; DG3 built it in grow-gate (45d468f83) -> AA1.K repointed, copy dropped: alive/aa1k-point @b510e4f36 to SM
+       AA3.15) LANDED 1c0edcf20; DG3 built it in grow-gate (45d468f83) -> AA1.K repointed, copy dropped: LANDED 21629a697 (verified)
        03:26Z owner 6th: GitHub Actions sealer -> §AB.6 (sp mu8): master schedule (alive's fact); alive 03:30Z: sha256(git archive) varies with tar.umask
        (0002 vs 0022) -> sp: AGI_SUBJECT = sha256 of sorted 'sha256(blob) path' (mu9); alive 03:33Z TAR-verify + odd-path points TAKEN (mu10: listing file; block shape rule)
-WAITS  SM lands alive/aa1k-point; mail
+WAITS  nothing of alive's is pending; mail only
 ```
 
 ## §2 Landed (AA1 node commits on posts/alive; the trunk takes them through SM's gate)
