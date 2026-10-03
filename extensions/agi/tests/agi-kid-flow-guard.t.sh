@@ -100,7 +100,7 @@ done
 # a chained_from naming a flow: stage passes the dry pass (an earlier label) but that stage leaves NO output file: the wet-pass read refuses (`||exit 1`), the sub-flow's leaf is the only launch
 : >$LOG;flow chain-flow '{}'>/dev/null 2>&1;rc=$?
 ok "w13-chain-flow-pred a stage chained_from a flow: stage (no output file) launches the sub-flow leaf, then refuses b: nonzero, 1 launch, b never runs (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 1 ]&&! grep -q PAID-B $LOG'
-# --- W-1.13 (mur sm18 N1): a flow whose result ref exists is DONE: with the state dir GONE the re-run launches NOTHING (only the ref test says so; `git show-ref -q` tail-matches, BOUNDS (10))
+# --- W-1.13 (mur sm18 N1): a flow whose result ref exists is DONE: with the state dir GONE the re-run launches NOTHING (only the ref test says so). This lane pins an EXISTING ref = DONE (the `false&&exit` mutant); it does NOT pin the exact match: `show-ref -q` (tail-matching) leaves this file GREEN, DG2's agi-kid-flow-dry.t.sh r2-tail-match-is-not-done pins that, BOUNDS (10)
 : >$LOG;flow one '{"n":"w13"}'>/dev/null 2>&1;rc1=$?;l1=$(nl $LOG);rm -rf $H/s;: >$LOG;flow one '{"n":"w13"}'>/dev/null 2>&1;rc2=$?
 ok "w13-done-ref-resume a flow run twice with its state dir removed between: the 2nd run launches nothing (rc $rc1 $rc2, launches $l1 then $(nl $LOG))" '[ $rc1 = 0 ]&&[ $rc2 = 0 ]&&[ "$l1" = 1 ]&&[ "$(nl $LOG)" = 0 ]'
 # --- recursion (mur sm17 W-1.4 R2, DG1 04:16Z): the depth cap is PINNED by counting paid launches. cyc-a launches one one-shot then names cyc-b which names cyc-a: with no cap the run goes until a system limit (63 launches measured), with the depth cap (${#d} -lt 2: the deepest real nesting over the manifests is 0, plus 2) it stops after 2 levels.
