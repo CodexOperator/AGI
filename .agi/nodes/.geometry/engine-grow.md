@@ -31,15 +31,15 @@ END{if(t==""){print "refused: not a node (no type:)";exit 1};for(i=1;i<=p;i++){s
  if(k!=o[1]){print "refused: locked: key "(k?k:"none")" is not "o[1]" for "t" under ["r"]";exit 1};print "ok "o[1]" "o[2]}' "$1" "$2"
 ~~~
 
-### grow-gate (6092 B)
+### grow-gate (5767 B)
 ~~~sh
 #!/bin/sh
 # pre-receive (the land gate), all against the RECEIVING trunk tip (matrix + schemas via git archive; a push cannot re-key or re-schema itself):
 # ADDED node -> grow-check (order + key; a ring other than * = the commit's signer, §W) + agi-fill check (Y2's fields) · CHANGED node -> agi-fill
 # check as a RATCHET (refused only if the version it replaces passed: legacy nodes stay editable, nothing that passed can regress)
-# the ring (.agi/nodes/.geometry/ring, `post keytype b64` lines): when the RECEIVING tip holds one, a commit lands only if its signer is a ring line open at that tip (advanced only by commits admitted before; AGI_ALLOWED is not read) and an ancestor-or-self of every name ruling each path that differs between the LANDED tip h (advanced only by commits admitted) and the commit, merges and in-push parents included (diff h..c, never c^..c) (ring line: its post · node: its ring: cell · schemas, growth.tsv, .github: AGI_RULES, default owner · posts.md: the old AND new parent of each moved row). No ring at the tip = the gate as it was (the first ring commit lands) ONLY while the ring never existed in the RECEIVING tip's history (git rev-list -1 R -- ring prints nothing; read once per push, never per commit, so an orphan root cannot reopen it); once it has, deleting or emptying it answers to every name it removes and the gate stays on; no date is read.
-# LIMITS (no pipefail): a git error refuses where checked (rev-list walk, bootstrap rev-list, dt, ring diff); still OPEN: rn (the ring: cell read, also a node WITH NO ring: cell, engine*.md included) and the posts.md jq give no ruler, so that path needs only a ring signer (DG1 to rule a default). verify-commit and pm fail closed. A ring line is exactly the canonical shape or refused (grep -a, git diff --text: no NUL/CR/attribute can hide a line); a posts.md name/parent is \A[a-z][a-z0-9-]*\z or skipped/refused (no LF). .gitattributes is ruled (AGI_RULES) and every git read is checked. Named, not closed: a mode-only ring change has no ruler line; verify-commit runs gpg/x509 on pushed armour (refused after); no wall clock.
-A=${AGI_ALLOWED:?};export LC_ALL=C;set -f;t=$(mktemp -d);trap 'rm -rf $t' EXIT;R=$(git rev-parse -q --verify ${AGI_TRUNK:-refs/heads/main})||{ echo "refused: no receiving trunk";exit 1;}
+# the ring (.agi/nodes/.geometry/ring, `post keytype b64` lines): when the RECEIVING tip holds one, a commit lands only if its signer is a ring line open at that tip (AGI_ALLOWED is not read) and an ancestor-or-self of every name ruling each path that differs between the LANDED tip h and the commit, merges and in-push parents included (ring line: its post · node: its ring: cell · schemas, growth.tsv, .github, .gitattributes: AGI_RULES, default owner · posts.md: the old AND new parent of each moved row). No ring at the tip = the gate as it was ONLY while the ring never existed in the RECEIVING tip's history (rev-list -1 R -- ring prints nothing; read once per push); once it has, deleting or emptying it answers to every name it removes; no date is read.
+# LIMITS: every git read is checked (no pipefail) except rn (the ring: cell read; a node WITH NO ring: cell, engine*.md included, needs only a ring signer: DG1 to rule). A ring line is exactly the canonical shape or refused (grep -a, --text); a posts.md name/parent is \A[a-z][a-z0-9-]*\z. Phase 3 (agi-fill / grow-check) runs twice: on the combined diff of c and on diff(h, c). Named, not closed: a mode-only ring change has no ruler line; verify-commit runs gpg/x509 on pushed armour (refused after); no wall clock.
+A=${AGI_ALLOWED:?};export LC_ALL=C GIT_NO_REPLACE_OBJECTS=1;set -f;t=$(mktemp -d);trap 'rm -rf $t' EXIT;R=$(git rev-parse -q --verify ${AGI_TRUNK:-refs/heads/main})||{ echo "refused: no receiving trunk";exit 1;}
 G=.agi/nodes/.geometry;mkdir -p $t/$G $t/.agi/context/schemas&&git archive $R:.agi/context/schemas|tar -x -C $t/.agi/context/schemas 2>/dev/null||exit 1;git show $R:$G/growth.tsv>$t/$G/growth.tsv||exit 1;k(){ (cd $t&&agi-fill check $1)>$t/e 2>&1;}
 E='^[a-z][a-z0-9-]* (ssh-ed25519|ecdsa-sha2-nistp256|pq-sha256|x25519|cert-authority (ssh-ed25519|ecdsa-sha2-nistp256)) [A-Za-z0-9+/]+=*$';ru(){ awk -v s=$1 -v q=$2 '{u[$1]=$2}END{while(q!=""&&n++<40){if(q==s)exit 0;q=u[q]}exit 1}' $t/u;}
 rn(){ git show "$h:$1" 2>/dev/null|awk '/^---$/{n++;next} n==1&&/^ring:/{sub(/^ring: *\[/,"");sub(/\].*/,"");gsub(/[ ,]+/," ");print;exit} n>1{exit}';}
@@ -56,10 +56,10 @@ while read o n r;do h=$R;w=$(git rev-list --reverse --topo-order $n --not ${AGI_
   $G/posts.md)pm $h>$t/o;pm $c>$t/n;jq -e '[keys[],(.[]|select(.!=null))]|all(test("\\A[a-z][a-z0-9-]*\\z"))' $t/n>/dev/null||{ echo "refused: $c: a posts.md name off [a-z0-9-]";exit 1;};r=$(jq -rn --slurpfile o $t/o --slurpfile n $t/n '$o[0] as $o|$n[0] as $n|($o+$n|keys[]) as $k|select($o[$k]!=$n[$k])|$o[$k],$n[$k]|select(.!=null)');;
   *)r=$(rn "$f");;esac
   for q in $r;do ru $s $q||{ echo "refused: $c $f is ruled by $q; ${s:-nobody} is not $q or above it";exit 1;};done;done<$t/d)||exit 1;}
- dt --diff-filter=AM --name-status $c -- .agi/nodes;grep '\.md$' $t/d|grep -v /deprecated/>$t/l
+ for y in "$c" "$h $c";do dt --diff-filter=AMT --name-status $y -- .agi/nodes;grep '\.md$' $t/d|grep -v /deprecated/>$t/l;b=${y%% *};[ $b = $c ]&&b=$c^
  while read m f;do git show $c:$f>$t/n;if [ "${m#*A}" != "$m" ];then v=$(grow-check $t/.agi/nodes/.geometry/growth.tsv $t/n)||{ echo "$f: $v";exit 1;}
   g=${v##* };[ "$g" = '*' ]||[ "$g" = "$s" ]||{ echo "$f: ring $g, signed by ${s:-nobody}";exit 1;};k n||{ echo "$f:";cat $t/e;exit 1;}
-  else k n||{ git show $c^:$f>$t/p&&! k p||{ echo "$f: was valid:";k n;cat $t/e;exit 1;};};fi;done<$t/l||exit 1;h=$c;done;done
+  else k n||{ git show $b:$f>$t/p&&! k p||{ echo "$f: was valid:";k n;cat $t/e;exit 1;};};fi;done<$t/l||exit 1;done;h=$c;done;done
 ~~~
 
 ### grow-project (1185 B)
