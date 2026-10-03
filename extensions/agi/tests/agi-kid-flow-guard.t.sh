@@ -61,13 +61,13 @@ ok "ml-prompt a manifest prompt with a newline and a tab is ONE launch and the k
 ok "chain-missing-refused a chained stage whose predecessor has no output exits nonzero and launches NOTHING (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]'
 : >$LOG;flow chain-rep '{"rounds":[{"key":"k1"},{"key":"k2"}]}'>/dev/null 2>&1;rc=$?
 ok "chain-repeat-fallback review:{key} then verify:{key} chained_from review: each verify launch sees ITS review output (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 4 ]&&grep -q "^result(REVIEW k1)" $LOG.p3&&grep -q "^result(REVIEW k2)" $LOG.p4&&! grep -q "result(REVIEW k2)" $LOG.p3'
-# --- recursion (mur sm17 W-1.4 R2): the depth cap is PINNED by counting paid launches. cyc-a launches one one-shot then names cyc-b which names cyc-a: without the cap the run goes until a system limit (63 launches measured), with [ ${#P} -lt 99 ] it stops at ~26.
-# The cost is real: a cyclic manifest still spends about 26 paid one-shots before the cap stops it (BOUND 3). An EXPORTED P must not seed the prefix (P= at -m entry): the same run with a 150-byte P in the environment launches the same number.
+# --- recursion (mur sm17 W-1.4 R2, DG1 04:16Z): the depth cap is PINNED by counting paid launches. cyc-a launches one one-shot then names cyc-b which names cyc-a: with no cap the run goes until a system limit (63 launches measured), with the depth cap (${#d} -lt 2: the deepest real nesting over the manifests is 0, plus 2) it stops after 2 levels.
+# The cost is bounded by the cap: a cyclic manifest spends at most 3 paid one-shots (BOUND 3). An EXPORTED P (or d) must not seed the prefix (P= and d= at -m entry): the same run with a 150-byte P in the environment launches the same number.
 LP=$(head -c 150 /dev/zero|tr '\0' x);fl2(){ ( cd $T;env $1 HOME=$H GIT_CONFIG_GLOBAL=$H/.gitconfig GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH LOG=$LOG AGI_POST=inv timeout 30 sh $PIECE -m $2 "${3:-{\}}" )>/dev/null 2>&1;rc=$?;}
-n1=$(refs|wc -l|tr -d ' ');: >$LOG;fl2 X=1 selfie;rs=$rc;ls1=$(nl $LOG);: >$LOG;fl2 X=1 cyc-a;rc2=$rc;lc=$(nl $LOG);: >$LOG;fl2 P=$LP cyc-a '{"state":"fresh"}';rp=$rc;lp=$(nl $LOG)
+n1=$(refs|wc -l|tr -d ' ');: >$LOG;fl2 X=1 selfie;rs=$rc;ls1=$(nl $LOG);: >$LOG;fl2 X=1 cyc-a;rc2=$rc;lc=$(nl $LOG);: >$LOG;fl2 "P=$LP d=.." cyc-a '{"state":"fresh"}';rp=$rc;lp=$(nl $LOG)
 ok "rec-guard-stops a self-naming flow (rc=$rs) and a 2-cycle (rc=$rc2) stop nonzero, not by the 30 s timeout (124), and write no ref" '[ $rs != 0 ]&&[ $rs != 124 ]&&[ $rc2 != 0 ]&&[ $rc2 != 124 ]&&[ "$(refs|wc -l|tr -d " ")" = $n1 ]'
-ok "rec-guard-counted the 2-cycle launches $lc paid one-shots (the cap holds it under 40; without the cap 63; a self-naming flow launches $ls1)" '[ $lc -gt 0 ]&&[ $lc -lt 40 ]'
-ok "rec-guard-p-not-seeded an exported 150-byte P does not change the count (cap run $lc, with P exported $lp, rc=$rp)" '[ $lp = $lc ]'
+ok "rec-guard-counted the 2-cycle launches $lc paid one-shots (depth cap 2: at most 3; no cap 63; a self-naming flow launches $ls1)" '[ $lc -gt 0 ]&&[ $lc -le 3 ]'
+ok "rec-guard-p-not-seeded an exported 150-byte P and an exported depth d=.. do not change the count (cap run $lc, with P exported $lp, rc=$rp)" '[ $lp = $lc ]'
 # --- D5: a manifest name outside [a-z0-9-] is refused before anything is created
 rm -rf $H/s;flow '../t' '{}'>/dev/null 2>&1;rc1=$?;flow 'One' '{}'>/dev/null 2>&1;rc2=$?;flow 'a b' '{}'>/dev/null 2>&1;rc3=$?
 ok "d5-name-refused names '../t', 'One' and 'a b' exit nonzero and create nothing under ~/s (rc $rc1 $rc2 $rc3)" '[ $rc1 != 0 ]&&[ $rc2 != 0 ]&&[ $rc3 != 0 ]&&[ ! -e $H/s ]'
