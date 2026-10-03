@@ -22,12 +22,16 @@ gl(){ printf -- '---\nid: goal:%s\ntype: goal\nstatus: active\n---\n# goal:%s\n\
 gp(){ w g-$1 '{"name":"g-'$1'","stages":[{"label":"grow","post":"director-general-1","goal":"gk-'$1'"},{"label":"after","prompt":"SHOULD-NOT-RUN"}]}';}
 # D1 a literal backslash-n in the line (dash echo expands it), D2 the writing / executing git forms, a git form that IS whitelisted and met
 gl gk-bs '$ ls x\n; touch pwn-bs';gl gk-log '$ git log --output=pwn-log -1';gl gk-grep "\$ git grep -O'touch pwn-grep' x";gl gk-diff '$ git diff --no-index --output=pwn-diff /dev/null /dev/null';gl gk-ok '$ git ls-files extensions'
+gl gk-unmet '$ test -e nothere-unmet'
 for g in bs log grep diff ok;do gp $g;done
 w one '{"name":"one","stages":[{"label":"solo","prompt":"LINE1\nLINE2 tab\there"}]}'
 w fan '{"name":"fan","stages":[{"label":"review","repeat":{"of":"rounds","label_template":"review:{key}"},"prompt":"REVIEW {key}"}]}'
 w empty '{"name":"empty","stages":[]}'
 w chain-miss '{"name":"chain-miss","stages":[{"label":"a","chained_from":"nothere","prompt":"MISS"}]}'
 w chain-rep '{"name":"chain-rep","stages":[{"label":"review","repeat":{"of":"rounds","label_template":"review:{key}"},"prompt":"REVIEW {key}"},{"label":"verify","repeat":{"of":"rounds","label_template":"verify:{key}"},"chained_from":"review","prompt":"VERIFY {key}"}]}'
+w chain-lazy '{"name":"chain-lazy","stages":[{"label":"a","prompt":"PAID-A"},{"label":"b","chained_from":"nothere","prompt":"PAID-B"}]}'
+w chain-self '{"name":"chain-self","stages":[{"label":"a","chained_from":"a","prompt":"PAID-A"}]}'
+w unmet-post '{"name":"unmet-post","stages":[{"label":"a","prompt":"PAID-A"},{"label":"p","post":"director-general-1","goal":"gk-unmet"},{"label":"c","prompt":"SHOULD-NOT-RUN"}]}'
 w lazy-field '{"name":"lazy-field","stages":[{"label":"ok","prompt":"PAID-OK"},{"label":"bad","post":"director-general-1","goal":"g.md --output=victim zz"}]}'
 w sub-bad '{"name":"sub-bad","stages":[{"label":"review","repeat":{"of":"rounds","label_template":"review:{key}"},"prompt":"SUB {key}"}]}'
 w lazy-sub '{"name":"lazy-sub","stages":[{"label":"ok","prompt":"PAID-OK"},{"label":"sub","flow":"sub-bad"}]}'
@@ -77,6 +81,15 @@ ok "ml-prompt a manifest prompt with a newline and a tab is ONE launch and the k
 ok "chain-missing-refused a chained stage whose predecessor has no output exits nonzero and launches NOTHING (rc=$rc, launches $(nl $LOG))" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]'
 : >$LOG;flow chain-rep '{"rounds":[{"key":"k1"},{"key":"k2"}]}'>/dev/null 2>&1;rc=$?
 ok "chain-repeat-fallback review:{key} then verify:{key} chained_from review: each verify launch sees ITS review output (rc=$rc, launches $(nl $LOG))" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 4 ]&&grep -q "^result(REVIEW k1)" $LOG.p3&&grep -q "^result(REVIEW k2)" $LOG.p4&&! grep -q "result(REVIEW k2)" $LOG.p3'
+# --- W-1.12 (mur sm18 W-1.11 R1, DG1 04:4xZ + 05:29Z): a chained_from naming NO label of the manifest is refused in the DRY pass: a good PAID stage before it is never launched
+: >$LOG;: >$MAIL;n4=$(refs|wc -l|tr -d " ");flow chain-lazy '{}'>/dev/null 2>&1;rc=$?
+ok "w12-chain-dry-pass [good paid a, then b chained_from nothere] refuses with 0 launches, 0 mail, no ref (rc=$rc, launches $(nl $LOG), was 1 paid launch on W-1.11)" '[ $rc != 0 ]&&[ "$(nl $LOG)" = 0 ]&&[ "$(nl $MAIL)" = 0 ]&&[ "$(refs|wc -l|tr -d " ")" = $n4 ]'
+: >$LOG;flow chain-rep '{"rounds":[{"key":"k1"}]}'>/dev/null 2>&1;rc=$?
+ok "w12-chain-label-ok control: a chained_from that names a manifest label (the repeat form review -> review:k1) still runs (rc=$rc, launches $(nl $LOG), want 2)" '[ $rc = 0 ]&&[ "$(nl $LOG)" = 2 ]'
+# --- W-1.12 (mur sm18 R2 + R3, DG1 05:29Z): the post: gate after a PAID stage is the RUNTIME-STATE gate, BY DESIGN (BOUNDS): the paid stage launches, the unmet gate hands off ONCE and stops, rc 75.
+# The dry pass SKIPS the post: line (`[ "$V" ]&&return;`): if it evaluated the gate it would hand off and stop BEFORE the paid launch (launches 0), so launches = 1 pins the skip.
+: >$LOG;: >$MAIL;n5=$(refs|wc -l|tr -d " ");flow unmet-post '{}'>/dev/null 2>&1;rc=$?
+ok "w12-unmet-post-after-paid [paid a, then an unmet post: gate, then c] = 1 paid launch, 1 hand-off mail, rc 75, c never runs, no ref (rc=$rc, launches $(nl $LOG), mail $(nl $MAIL))" '[ $rc = 75 ]&&[ "$(nl $LOG)" = 1 ]&&[ "$(nl $MAIL)" = 1 ]&&grep -q "^send director-general-1 handoff" $MAIL&&! grep -q SHOULD-NOT-RUN $LOG&&[ "$(refs|wc -l|tr -d " ")" = $n5 ]'
 # --- recursion (mur sm17 W-1.4 R2, DG1 04:16Z): the depth cap is PINNED by counting paid launches. cyc-a launches one one-shot then names cyc-b which names cyc-a: with no cap the run goes until a system limit (63 launches measured), with the depth cap (${#d} -lt 2: the deepest real nesting over the manifests is 0, plus 2) it stops after 2 levels.
 # The cost is bounded by the cap: a cyclic manifest spends at most 3 paid one-shots (BOUND 3). An EXPORTED P (or d) must not seed the prefix (P= and d= at -m entry): the same run with a 150-byte P in the environment launches the same number.
 LP=$(head -c 150 /dev/zero|tr '\0' x);fl2(){ ( cd $T;env $1 HOME=$H GIT_CONFIG_GLOBAL=$H/.gitconfig GIT_CONFIG_SYSTEM=/dev/null PATH=$T/bin:$PATH LOG=$LOG AGI_POST=inv timeout 30 sh $PIECE -m $2 "${3:-{\}}" )>/dev/null 2>&1;rc=$?;}
