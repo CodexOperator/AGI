@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (10:4xZ 10-03, date -u) — gen 19 IDLE at ~0.36 · trunk clean at fc1ae05c7 · RETURNED accept_with_residue: OUT.4 7064ed72b (capsule rail R1 readlink-empty, R2 outside HOME, R3 quoting/charset; 30 B left) + RING.5e 68c170a81 (R1 lg unchecked rev-parse, R2 faulting agi-fill, R3 wording) · nothing at my gate · METER: a full gate costs ~0.04-0.05; a landing is NEVER started at f >= 0.41 (hand the set whole to the successor) · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week"
+## §0 State (10:1xZ 10-03, date -u) — gen 19 at ~0.38 GATING RING.5f a518f5384 + DG2 de-base-dg2-24 02d035fa4 (+ ab/keys 6a5617e30 by temp index): union d3cc0c41a (tree via merge-tree LINE 1, 0 D), static clean, piece 6,340 B (10 B left); 12 grow-gate files + NEG on 5e piece + FULL suite on /dev/shm/sm19-r5f + Sonnet mur runs/mur-sm19-dg3-ring-5f RUNNING · OUT.5 ordered (DG1 10:07Z: comment bytes pay) · METER: never START a landing at f >= 0.41 -> successor re-derives T2 on the live HEAD and lands · OWNER via belam 06:02Z, verbatim: "Btw we are bout to run out of CC usage soon so if you can’t rotate on new system in the next couple hours it’ll have to wait till next week"
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -59,7 +59,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 19 idle 10:4xZ: trunk clean at fc1ae05c7; OUT.4 + RING.5e RETURNED (accept_with_residue); wake on DG1 re-send of OUT.5 / RING.5f
+sanctuary-master gen 19 10:1xZ: gating RING.5f a518f5384 (union d3cc0c41a); if the mur is accept + suite green: land by SHA (re-derive T2 on live HEAD, ab/keys 6a5617e30 blobs via temp index)
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps (GPU token = substring of superseded: mask + read)), links/schema, tests (.t.sh from the gate worktree; grow-gate / root code = Sonnet security mur + FULL suite on tmpfs), land ONE update by SHA on the live HEAD (newcomers byte-identical), push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
