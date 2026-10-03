@@ -42,7 +42,7 @@ M=$(mkx "$S $P0 $o" dg1 $P0);gate $R1 $M;ok "d1c-octopus-refused the same as an 
 M=$(mkx "$S $P0" dg1 $S);gate $R1 $M;ok "d1d-merge-keeping-ring-admitted control: [S, M=merge(S, P0) with S's tree] (the ring kept) signed dg1: admitted" '[ $r = 0 ]'
 S2=$(mkc $R1 dg1 $A2:$D/n$(basename $A2));M=$(mkx "$S $S2" dg1 $S $A2:$D/n$(basename $A2));gate $R1 $M;ok "d1e-two-branch-merge-admitted control: [S, S2, merge(S, S2)] all dg1, two unringed node edits: admitted" '[ $r = 0 ]'
 # --- d2: the bootstrap stays closed through an orphan root
-X=$(mkx - dg1 $(git mktree </dev/null));M=$(mkx "$R1 $X" - $P0);gate $R1 $M;ok "d2a-orphan-empty-root-refused [X, M]: X an orphan root with the EMPTY tree signed dg1, M an UNSIGNED merge(R1, X) deleting the ring: refused" 'refused'
+X=$(mkx - belam1 $(git mktree </dev/null));M=$(mkx "$R1 $X" - $P0);gate $R1 $M;ok "d2a-orphan-empty-root-refused [X, M]: X an orphan root with the EMPTY tree signed by BELAM (a ring key that can sign an orphan), M an UNSIGNED merge(R1, X) deleting the ring: refused" 'refused'
 gate $P0 $(mkc $P0 dg1 $RG:$D/ring);ok "d2b-bootstrap-still-open control: a tip whose history never held a ring takes a first, canonical, signed ring: admitted" '[ $r = 0 ]'
 # --- d3: a trailing LF in a posts.md name / parent
 pr(){ { git show $R1:$PM;printf "$1";}>$D/e;}
@@ -60,5 +60,22 @@ printf '%s -diff\n' $RG>$D/r/.git/info/attributes
 sed "s|^dg2 .*|dg2 ssh-ed25519 $(kb atk)|" $D/ring>$D/e;gate $R1 $(mkc $R1 dg1 $RG:$D/e);ok "d5a-diff-attribute-sibling-line-refused (.git/info/attributes: ring -diff) dg1 rewrites dg2's line: refused" 'refused'
 { cat $D/ring;printf 'dg1 ssh-ed25519 %s\n' "$(kb atk)";}>$D/e;gate $R1 $(mkc $R1 dg1 $RG:$D/e);ok "d5b-diff-attribute-own-line-admitted control: the same attribute, dg1 adds its own line: admitted" '[ $r = 0 ]'
 rm -f $D/r/.git/info/attributes
+# --- RING.5 (mur sm18 on dg3-ring 0d58fa0ae: R1 R2 R3)
+# d6 (R2) an EVIL MERGE: the tip H deleted a node, M = merge(H, R1) re-adds it with garbage: the COMBINED diff prints AM (absent in parent 1), phase 3 tested only A and the ratchet baseline c^ was empty, so an invalid unkeyed node landed; phase 3 now rules diff(landed tip, commit) like phases 1-2
+H=$(mkg $R1 $A2:-);EV=$D/evil;printf 'garbage, no front matter\n'>$EV
+M=$(mkx "$H $R1" dg1 $H $A2:$EV);gate $H $M;ok "d6a-evil-merge-invalid-node-refused M=merge(H, R1) signed dg1 re-adds a node H deleted, with garbage (combined diff = AM): refused" 'refused'
+M=$(mkx "$H $R1" dg1 $H);gate $H $M;ok "d6b-merge-adding-nothing-admitted control: the same merge(H, R1) keeping H's tree (no node re-added): admitted" '[ $r = 0 ]'
+# d7 (R3) .gitattributes is ruled (default owner): a ring signer may not land export-ignore on schemas / growth.tsv (git archive would drop them and the node checks would run against nothing)
+printf '.agi/context/schemas export-ignore\n.agi/nodes/.geometry/growth.tsv export-ignore\n'>$D/ga
+gate $R1 $(mkc $R1 dg1 .gitattributes:$D/ga);ok "d7a-gitattributes-refused dg1 lands a root .gitattributes with export-ignore on the schemas: refused (ruled by owner)" 'refused'
+gate $R1 $(mkc $R1 dg1 .agi/context/.gitattributes:$D/ga);ok "d7b-nested-gitattributes-refused the same in a subdirectory: refused" 'refused'
+export AGI_RULES=dg1;gate $R1 $(mkc $R1 dg1 .gitattributes:$D/ga);unset AGI_RULES;ok "d7c-gitattributes-ruled-by-the-rules-cell control: with AGI_RULES=dg1 the same commit is admitted (the path is ruled by the rules cell like .github)" '[ $r = 0 ]'
+# d8 (R1) an error reading the ring at the landed tip must REFUSE, never leave the bootstrap flag open: [S = first ring (dg1... belam), C = dg1 edits a node ringed [sm]] with a git shim that fails the 2nd `git show S:ring`
+printf -- '---\nring: [sm]\n---\nbody\n'>$D/ringed;printf -- '---\nring: [sm]\n---\nbody edited\n'>$D/ringed2;NR=.agi/nodes/moral/zz-ringed.md
+P1=$(mkg $P0 $NR:$D/ringed);S0=$(mkc $P1 belam1 $RG:$D/ring);C0=$(mkc $S0 dg1 $NR:$D/ringed2)
+mkdir $D/shim;printf '#!/bin/sh\nif [ "$1" = show ]&&[ "$2" = %s ];then n=$(cat %s/cnt 2>/dev/null||echo 0);n=$((n+1));echo $n>%s/cnt;[ $n = 2 ]&&{ echo "fatal: shim: object unreadable">&2;exit 128;};fi\nexec /usr/bin/git "$@"\n' "$S0:$RG" $D/shim $D/shim>$D/shim/git;chmod +x $D/shim/git
+rm -f $D/shim/cnt;PATH=$D/shim:$PATH gate $P1 $C0;ok "d8a-ring-read-error-refuses with the 2nd read of the ring at the landed tip failing, [S first ring, C dg1 edits a node ringed [sm]] is refused (the open bootstrap flag skipped every path rule: rc 0 on 0d58fa0ae)" 'refused'
+rm -f $D/shim/cnt;gate $P1 $C0;ok "d8b-same-push-no-error-refused control: without the shim the same push is refused by the node's ring cell (dg1 is not sm or above it)" 'refused'
+rm -f $D/shim/cnt;C1=$(mkc $S0 sm1 $NR:$D/ringed2);gate $P1 $C1;ok "d8c-same-push-sm-admitted control: sm (the ring cell's name) editing that node after the first ring: admitted" '[ $r = 0 ]'
 echo "grow-gate-ring4: $f FAIL"
 exit $f

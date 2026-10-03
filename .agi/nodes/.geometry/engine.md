@@ -65,7 +65,7 @@ sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
 agi-fill          5973 B  a node key opens a captive fill window
 agi-captive        576 B  window open: only agi-fill passes
 grow-check        1298 B  one node vs its matrix row + key
-grow-gate         5752 B  pre-receive: added/changed nodes must pass
+grow-gate         6071 B  pre-receive: added/changed nodes must pass
 grow-project      1185 B  schemas -> the growth matrix
 agi-land          1855 B  root: ff-lands a post range on the trunk, one parent edge up (ring-signed, grow-gate, agi-gate)
 box               2005 B  mail: one signed ref update per send (5x CAS), read from the store
