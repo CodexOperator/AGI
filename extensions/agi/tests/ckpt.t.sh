@@ -71,6 +71,9 @@ PATH=$D/nopy:$PATH;gate $H1 $(mkc $H1 by-cert.pub .agi/context/schemas/s.md:$E.s
 git for-each-ref --format='%(objectname) %(refname)' refs/agi/block>$D/blk.save;while read ob rf;do git update-ref -d $rf;done<$D/blk.save
 mk BQ $R0 $((now-9000)) -- dg1:dg1 dg2:dg2;gate $H1 $(mkc $H1 by-cert.pub .agi/context/schemas/s.md:$E.s);rq=$r;git update-ref -d refs/agi/block/BQ;while read ob rf;do git update-ref $rf $ob;done<$D/blk.save
 r=$rq;ok "t10q-cert-not-yet-valid-at-block-time-refused an owner cert valid NOW (and at the commit date) but NOT YET valid at the newest holding block's time (now - 150 min) is refused: the cert is read at the block's time, never the wall clock" 'refused'
+# t10r (DG1 13:09Z): TWO holding blocks at DIFFERENT times (the old L-chain blocks at now, BO at now - 150 min): the cert bx is valid [-3h, -2h]: valid at the OLDER block's time, expired at the NEWER one: a commit dated -150 min (git verifies at the commit date: valid) is REFUSED, because the expiry is read at the NEWEST holding block's time (a sort | head -1 read takes the older time and admits it)
+mk BO $R0 $((now-9000)) -- dg1:dg1 dg2:dg2;CD="$(date -d '-150 min' -R)";gate $H1 $(mkc $H1 bx-cert.pub .agi/context/schemas/s.md:$E.s);unset CD;ro=$r;git update-ref -d refs/agi/block/BO;r=$ro
+ok "t10r-two-blocks-newest-time-refused two holding blocks (times now and now - 150 min): a cert valid at the OLDER block's time and expired at the NEWER one is refused: the cert is read at the NEWEST holding block's time" 'refused'
 # --- H1-H5: the hybrid cell and the hash (blocks over the genesis tip R0; DG1/DG2 hold ed25519 AND ecdsa columns in the ring)
 export AGI_SIGN="ED25519 ECDSA"
 mk HA $R0 $now -- dg1:dg1 dg2:dg2;ok "h1-hybrid-ed-only-no under a two-column cell the ed25519-only level-3 block does not hold" '! holds HA'
