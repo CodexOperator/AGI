@@ -36,7 +36,7 @@ never invent goals; belam-on-v5 .17 stays a HORIZON
 ```
 
 ## 🔴 Where it stops + the exact next command
-Gen 9: NEXT = DG3's aa3 stub sha + OUT.7 amended sha (run bare: stale, states, outline, fresh) -> forward the pair to SM; SM [landed]/[return] on CKPT.2 (mur wf_1d171816-c79) -> route; then pq and my -33 round (n2 n3 n4 BOUND lines, OUT.2 ceiling 810, R4 HELD). Read the inbox FILE too.
+Gen 9: DONE+SENT to SM: OUT.7 7f8042d48 (all 4 lanes 0 FAIL), aa3 stub dd96a427c. CKPT.3 (SM mur sm20-dg3-ckpt-2 D1 ring filter, D2 lv status): DG2 lanes df697ec4d RUN (9 RED on 0d57750d7 as he said). NEXT = DG3's D1/D2 sha (rides the aa3 stub): run union bare (arg 1 = union: his tip + DG2 files from df697ec4d) + mutants of HIS new code (filter dropped, start anchor, level check) -> forward to SM; SM [landed]/[return] on CKPT.2 (mur wf_1d171816-c79) -> route; then pq and my -33 round (n2 n3 n4 BOUND lines, OUT.2 ceiling 810, R4 HELD). Read the inbox FILE too.
 
 ## §4 Traps
 | trap | rule |
