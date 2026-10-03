@@ -77,11 +77,16 @@ ok "req-schema the schema fence still rides with streaming (closed, name fill) a
 AGI_INFER_URL=$U/nokey/v1 sh $PIECE m<$T/prompt>$T/nk.out 2>/dev/null
 ok "req-nokey with no infer_key cell no Authorization header is sent (got: '$(cat $T/auth.nokey)') and the text still streams" '[ ! -s $T/auth.nokey ]&&cmp -s $T/nk.out $T/want'
 # the key cell is a NAME, never shell text: a non-name cell (metacharacters, a space) exits 2, runs nothing and sends no request (all-is-one measured: AGI_INFER_KEY="X;touch F" ran the touch under eval)
-for raw in 'X;touch @T@/PWN1' 'X$(touch @T@/PWN2)' 'X`touch @T@/PWN3`' 'a b' '-x';do
+for raw in 'X;touch @T@/PWN1' 'X$(touch @T@/PWN2)' 'X`touch @T@/PWN3`' 'a b' '-x' 1 0 9ab;do
  bad=$(printf %s "$raw"|sed "s,@T@,$T,g");rm -f $T/body.evil;AGI_INFER_URL=$U/evil/v1 AGI_INFER_KEY="$bad" sh $PIECE m<$T/prompt>$T/bad.out 2>/dev/null;rc=$?
  ok "key-name a non-name infer_key cell ($raw) exits 2, sends no request, prints nothing (rc=$rc)" '[ $rc = 2 ]&&[ ! -e $T/body.evil ]&&[ ! -s $T/bad.out ]'
 done
 ok "key-name-noexec no cell text was executed (no PWN file)" '[ -z "$(ls $T|grep PWN)" ]'
+# a digit-leading cell is no variable NAME: under eval k=$1 it would read the MODEL arg (cell 1) or the script path (cell 0) and send it as the Bearer (mur dg2-k3-c2 R3). And an inherited k must never ride when the cell is empty.
+AGI_INFER_URL=$U/inh/v1 k=INHERITED-LEAK sh $PIECE m<$T/prompt>/dev/null 2>&1
+ok "key-inherited-k with NO key cell an inherited env var k is never sent as a Bearer (got: '$(cat $T/auth.inh)')" '[ ! -s $T/auth.inh ]'
+AGI_INFER_URL=$U/inh2/v1 AGI_INFER_KEY=TESTK TESTK=$KEY k=INHERITED-LEAK sh $PIECE m<$T/prompt>/dev/null 2>&1
+ok "key-cell-wins with a key cell set the cell's value is the Bearer, never an inherited k" '[ "$(cat $T/auth.inh2)" = "Bearer $KEY" ]'
 # --- streaming, not buffering: the first chunk is in the log while the request is still open (the slow case holds the 2nd chunk back 3 s)
 AGI_INFER_URL=$U/slow/v1 AGI_INFER_KEY=TESTK TESTK=$KEY sh $PIECE m<$T/prompt>$T/slow.out 2>$T/slow.err & P=$!
 n=0;while [ ! -s $T/slow.out ]&&[ $n -lt 20 ];do sleep 0.1;n=$((n+1));done
@@ -97,13 +102,13 @@ ok "z4j-set no process but curl, sed, grep, jq (saw: ${procs:-none})" '[ -n "$pr
 ok "z4j-argv the key value is in no process argument (ps-visible)" '! grep -qF "$KEY" $T/exec.log'
 # --- failure is loud: a refused request and a stream cut before [DONE] are NOT a clean result (the committed result must be the whole text)
 run e500 m>$T/e.out 2>/dev/null;rc=$?
-ok "fail-http an HTTP 500 exits nonzero with nothing on stdout (rc=$rc)" '[ $rc -ne 0 ]&&[ ! -s $T/e.out ]'
+ok "fail-http an HTTP 500 exits 5 with nothing on stdout (rc=$rc)" '[ $rc = 5 ]&&[ ! -s $T/e.out ]'
 run trunc m>$T/t.out 2>/dev/null;rc=$?
-ok "fail-trunc a stream cut before [DONE] exits nonzero (rc=$rc): a cut text is never committed as the result" '[ $rc -ne 0 ]'
+ok "fail-trunc a stream cut before [DONE] exits 5 (rc=$rc): a cut text is never committed as the result" '[ $rc = 5 ]'
 # --- a provider ERROR event in the stream is NOT a clean result: OpenRouter sends {"error":{..},"choices":[{"finish_reason":"error"}]} (or either half alone) and THEN [DONE], so the stream looks complete
 # while the text is cut. The runner commits stdout as the result, so the exit status is the only signal (security mur dg2-k3, SM 03:0xZ).
 for e in err err2 err3;do run $e m>$T/$e.out 2>/dev/null;rc=$?
- ok "fail-error-$e a mid-stream error event ($([ $e = err ]&&echo 'error + finish_reason error'||{ [ $e = err2 ]&&echo 'finish_reason error alone'||echo 'an error object alone, no choices'; })) then [DONE] exits nonzero (rc=$rc)" '[ $rc -ne 0 ]'
+ ok "fail-error-$e a mid-stream error event ($([ $e = err ]&&echo 'error + finish_reason error'||{ [ $e = err2 ]&&echo 'finish_reason error alone'||echo 'an error object alone, no choices'; })) then [DONE] exits 5 (rc=$rc)" '[ $rc = 5 ]'
 done
 ok "fail-error-ok-still-clean a normal finish_reason stop + usage chunk + [DONE] still exits 0 (the error check is not a blanket)" 'run ok m>/dev/null 2>&1'
 # --- bounds
