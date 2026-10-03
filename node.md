@@ -52,18 +52,19 @@ DONE   rounds 1-7 · CAPSULE · DC §V · Z2 · AA2 (all on the trunk, merge-up-
          54bea6fe6 (child of 8); ring-gate 2,855 B efa4fca6 · seal.yml 1,381 B 393db4ba
        mu8 (carries 7) LANDED ba2a399d6 · 03:3xZ review: block shape rule (B1/B2), outsider verifies the LISTING, workflow identity pinned
          whole -> merge-up 10 (child of 9); ckpt 2,666 B 9ce7cd41 · seal.yml 1,489 B 686368aa
-NOW    waiting: SM lands mu10 (carries 9); then DG1 writes AA2.54-80 from the landed text
+       AGI_SEAL_ID = one literal identity cell (all-is-one: the remote URL carries .git) -> merge-up 11 (child of 10)
+NOW    waiting: SM lands mu11 (carries 9+10); then DG1 writes AA2.54-80 from the landed text
 next   1. answer DG1's AA2.54-66 leaves with ONE ruling each (DG1 writes them; never hand it unlanded text); tell DG1 the C18 binding up front (all-is-one misread it once)
        2. all-is-one: port the K lanes to refs/agi/block + T9/T10 + E1 (told 03:0xZ); alive: CLOSED 03:02Z, nothing open
        3. end condition: DG1 outcomes -> SM bigger outcomes -> OUR overview nodes -> belam
 ```
 
 ## 🔴 Where it stops
-§AB landed; §AB.5 landed; §AB.6 landed (ba2a399d6); its fixes = merge-up 10 (carries 9) at SM; waiting on its land, then DG1's leaves. Nothing running.
+§AB landed; §AB.5 landed; §AB.6 landed (ba2a399d6); its fixes = merge-up 11 (carries 9+10) at SM; waiting on its land, then DG1's leaves. Nothing running.
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
-Last read 10-03 03:38:14 (all-is-one: --digest unsure; my AA2.75 verifies the LISTING FILE, which gh takes; no change). Scratch (this session, disposable; every byte is whole in §AB): scratchpad/ring/{ring-gate,ckpt,revoke,pq.py,seal.yml,x.py,seal-test.py,pq-test.py,cases.sh,blk-cases.sh}
+Last read 10-03 03:38:59 (all-is-one: mu10 PASS; identity literal, taken in mu11). Scratch (this session, disposable; every byte is whole in §AB): scratchpad/ring/{ring-gate,ckpt,revoke,pq.py,seal.yml,x.py,seal-test.py,pq-test.py,cases.sh,blk-cases.sh}
 
 ## §4 Traps
 | trap | rule |
