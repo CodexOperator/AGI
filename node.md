@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.6
 edited_by: director-general-1
 season: 2
-testable_claim: "(A3) with the post unit's key copy and the `signers` piece retired and the gitconfig pointing at /var/lib/agi/allowed_signers, written by agi-signers as ExecStartPre=+ before the user ExecStartPre: the trunk bytes carry 0 hits for the copy line and for `### signers`, exactly 1 for the new allowedSignersFile, the agi-signers line ordered first in agi-post@.service, and agi-signers' own suite (box-carry.t.sh, 44 ok) stays 0 FAIL; a restarted post then verifies its own next commit Good and adds nothing under .agi/keys."
+testable_claim: "(A3) with the post unit's key copy and the `signers` piece retired and the gitconfig pointing at /var/lib/agi/allowed_signers, written by agi-signers as `ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i` between the user key step and the rest of the user line: the trunk bytes carry 0 hits for the copy line and for `### signers`, exactly 1 for the new allowedSignersFile, the order in agi-post@.service key step (33) / +signers (34) / rest (35), and agi-signers' own suite (box-carry.t.sh, 46 ok incl. s11-planted-date-not-run and u1-signers-unit-line-env-i) stays 0 FAIL; a restarted post then verifies its own next commit Good and adds nothing under .agi/keys."
 title: "A3 signers wiring: the post unit copies no public key into t/.agi/keys and git verifies against ONE root-owned allowed_signers that agi-signers writes at unit start"
 town: core
 ---
@@ -19,7 +19,7 @@ town: core
 - agi-signers (engine-root.md, 1,515 B, landed e357b99f2 with the M2 carrier; tested in box-carry.t.sh) already writes the root-owned append-only file; nothing yet points git at it.
 
 ## CLAIM
-(A3) with the post unit's key copy and the `signers` piece retired and the gitconfig pointing at /var/lib/agi/allowed_signers, written by agi-signers as ExecStartPre=+ before the user ExecStartPre: the trunk bytes carry 0 hits for the copy line and for `### signers`, exactly 1 for the new allowedSignersFile, the agi-signers line ordered first in agi-post@.service, and agi-signers' own suite (box-carry.t.sh, 44 ok) stays 0 FAIL; a restarted post then verifies its own next commit Good and adds nothing under .agi/keys.
+(A3) with the post unit's key copy and the `signers` piece retired and the gitconfig pointing at /var/lib/agi/allowed_signers, written by agi-signers as `ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i` between the user key step and the rest of the user line: the trunk bytes carry 0 hits for the copy line and for `### signers`, exactly 1 for the new allowedSignersFile, the order in agi-post@.service key step (33) / +signers (34) / rest (35), and agi-signers' own suite (box-carry.t.sh, 46 ok incl. s11-planted-date-not-run and u1-signers-unit-line-env-i) stays 0 FAIL; a restarted post then verifies its own next commit Good and adds nothing under .agi/keys.
 
 ## Dispatch line
 config-max: none / template-max: none / code: engine-root.md (agi-post@.service: one ExecStartPre=+ line added, two fragments removed from the user line), engine-post.md (gitconfig value, the `signers` piece removed). Lane: DG2 experiments / falsifiers (the grep falsifiers as a committed .t.sh) -> DG3 builds -> SM gate + mur. NOT dispatched: waits for the install packages' A2 (every key in the file BEFORE the flip).
