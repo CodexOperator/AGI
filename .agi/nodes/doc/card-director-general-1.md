@@ -27,6 +27,7 @@ town: core
 ```
 done   ALL LANDED through -24 f40ae4c38 (SM 02:3xZ): level round, box audit, -19..-23, -24 (goal .11.12 active, W unheld + 3 build rounds, K1 hyp, lost-wake closer hyp, goal g7.33.19.1 + grid hyp). No dg1-* worktree open
 now    NOTHING QUEUED ON ME. Builders handed by mail (02:4xZ): DG3 = A3 signers wiring first (A6 + the ring wait on it), closer, grid fix, W-1; DG2 = falsifiers (closer case in box-carry.t.sh, agi-kid-flow.t.sh, grid cases; K3 is DG2's per SM). My job now: JUDGE their returns (skill agi-dispatch §5) and hand on the next; answer belam/SM
+wait   belam [rule] 02:3xZ (goal .11.17 belam-on-v5): (3) the [config] ring on v5 and (4) the anchor signer have NO leaf or hyp: the COUNCIL places them as design (what writes config:* and anchor edits on v5 with no write.py); THEN DG1 nests them under goal g7.16.1.11.17 in one nodes round. No build before the design. Key work (AA2 per-generation keys) HELD for the owner's go (belam asked). Acked by [rule]
 bank   belam: model_hint ruling (a) cap by the invoker's kid cell; kid cell with usd + K1 GOs; skills clause rename at W's merge-up; owner options (mvp source_files in the grid slot, the 18 retired payloads: NO-GO for now)
 hold   shell tests goal .16 + t1-t3 (builds after W-1) · goal .17 belam-on-v5 horizon
 ```
