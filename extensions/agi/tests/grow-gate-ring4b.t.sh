@@ -57,6 +57,7 @@ gateN $R1 $(mgt $D/nv) "$R1 $P2";ok "l1d-control-valid-merge-admitted the same p
 # --- L2: a shim fails `git show <c>^:<node>` on a ratchet edit (a VALID edit never reads its parent: only the corrupting one does, so only that one is pinned)
 E=$(mkc $R1 dg1 $AFB:$D/af);CC=$(mkc $R1 dg1 $AFB:$D/af-bad)
 gate $R1 $E;ok "l2a-control-valid-ratchet-edit-admitted dg1's valid edit of an existing node (no shim) is admitted" '[ $r = 0 ]'
+gateS $R1 $CC "$CC^:$AFB" 1 show;ok "l2b-baseline-unreadable-at-the-parent-refused a CORRUPTING edit when \`git show <c>^:<node>\` (the ratchet's baseline when it is read from the commit's first parent) fails (a shim): refused. The file carries BOTH shim forms (this one and l2c/l2d on <tip>:<node>) so it does not depend on which shape of the piece wins" 'refused'
 gateS $R1 $CC "$R1:$AFB" 2 show;ok "l2c-baseline-unreadable-at-the-tip-refused a CORRUPTING edit when \`git show <receiving tip>:<node>\` (the ratchet's baseline, read from the LANDED tip h) fails (a shim): refused (an unreadable baseline is never read as an invalid one)" 'refused'
 E1=$(mkc $R1 dg1 $AFB:$D/af);echo more>>$D/af-bad;CC2=$(mkc $E1 dg1 $AFB:$D/af-bad)
 gateS $R1 $CC2 "$E1:$AFB" 3 show;ok "l2d-baseline-unreadable-at-an-inpush-h-refused the push [E1 (a valid edit), CC2 (a corrupting edit on top)]: E1 is h for CC2, and the read \`git show <E1>:<node>\` for the baseline fails (a shim): refused" 'refused'
