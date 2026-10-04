@@ -17,17 +17,24 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-sync (1049 B)
+### agi-sync (1320 B)
 ~~~sh
 #!/bin/sh
-# graph SoT -> one rules file. Skills and routines stay their graph files.
-t=$1;o=$2;[ -n "$t" ]&&[ -n "$o" ]||exit 2;cd "$t"||exit 2;mkdir -p "$(dirname "$o")"
+# graph SoT -> rules file + grok skill index. Symlinks only. No copies. No session auto-rotation.
+t=$1;o=$2;[ -n "$t" ]&&[ -n "$o" ]||exit 2;cd "$t"||exit 2;mkdir -p "$(dirname "$o")" "$HOME/.grok/skills"
+idx=$HOME/.grok/skills
+for x in "$idx"/*; do [ -L "$x" ] && rm -f "$x"; done
+for d in skills/*/SKILL.md; do
+ [ -f "$d" ] || continue
+ n=${d#skills/}; n=${n%/SKILL.md}
+ ln -sfn "$PWD/skills/$n" "$idx/$n"
+done
 ids="doc:unified-head"
 case ${AGI_ROLE:-} in prime_director) ids="$ids doc:card-belam";; esac
 ids="$ids ${AGI_SEEDS:-}"
 {
 printf '# graph-sync seat=%s role=%s rev=%s\n' "${AGI_SEAT:-prime}" "${AGI_ROLE:-}" "$(git rev-parse --short HEAD)"
-echo '# skills: skills/*/SKILL.md (build payload_ref). routines: config:rotations. Do not fork copies. No session auto-rotation on grok.'
+echo '# skills: ~/.grok/skills -> skills/*/SKILL.md (symlink, graph SoT). routines: config:rotations. Do not fork copies. No session auto-rotation on grok.'
 git diff --stat HEAD -- skills .agi/nodes/.geometry/rotations.md .agi/nodes/doc 2>/dev/null | head -15
 printf '%s' "$ids" | tr ', ' '\n' | awk 'NF && !seen[$0]++' | while read -r id; do
  case $id in
