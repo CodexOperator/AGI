@@ -10,7 +10,7 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 39 pieces (42 `###` blocks in engine*.md: agi-boot, agi-boot.service and matrix are not mapped)
+# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 39 pieces (43 `###` blocks in engine*.md: agi-boot, agi-boot.service, matrix, seed unmapped)
 Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
@@ -114,5 +114,5 @@ post	brief	card-<p>	brief
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-g7.16.1.11.5: map-prose cut so whole engine.md <= 8192 (goal falsifier 1; owner "bootstrap package under 8kb"). Zygote scripts byte-exact vs prior tip. engine-post + engine-wrap exist. Q.2: no v4c piece GONE — shortens depth-1 descriptions, no split. F21 fenced rail holds.
+g7.16.1.11.6: seed is a ### in engine-root (T.1, expansion). Caption 42->43 unmapped (+seed). Zygote whole still <=8192; fenced unchanged.
 <!-- THOUGHT:END -->
