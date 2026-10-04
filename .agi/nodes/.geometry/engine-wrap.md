@@ -17,12 +17,39 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
+### agi-sync
+~~~sh
+#!/bin/sh
+# graph SoT -> one rules file. Skills and routines stay their graph files.
+t=$1;o=$2;[ -n "$t" ]&&[ -n "$o" ]||exit 2;cd "$t"||exit 2;mkdir -p "$(dirname "$o")"
+ids="doc:unified-head"
+case ${AGI_ROLE:-} in prime_director) ids="$ids doc:card-belam";; esac
+ids="$ids ${AGI_SEEDS:-}"
+{
+printf '# graph-sync seat=%s role=%s rev=%s\n' "${AGI_SEAT:-prime}" "${AGI_ROLE:-}" "$(git rev-parse --short HEAD)"
+echo '# skills: skills/*/SKILL.md (build payload_ref). routines: config:rotations. Do not fork copies. No session auto-rotation on grok.'
+git diff --stat HEAD -- skills .agi/nodes/.geometry/rotations.md .agi/nodes/doc 2>/dev/null | head -15
+printf '%s' "$ids" | tr ', ' '\n' | awk 'NF && !seen[$0]++' | while read -r id; do
+ case $id in
+  doc:*) f=.agi/nodes/doc/${id#doc:}.md ;;
+  goal:*) f=.agi/nodes/goal/${id#goal:}.md ;;
+  *) continue ;;
+ esac
+ if [ -f "$f" ]; then printf '\n----- %s -----\n' "$id"; awk 'BEGIN{c=0} /^---$/{c++; if(c==2){p=1; next}} p' "$f"; else printf '\n# missing %s\n' "$id"; fi
+done
+} > "$o.t" && mv "$o.t" "$o"
+~~~
+
 ### agi-run (501 B)
 ~~~sh
 #!/bin/sh
 cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i;f=$O/.agi/sessions/inbox/$AGI_SEAT.md
 (while sleep 300;do m=$((${AGI_PANE_MAX_MB:-64}<<20));[ $(stat -c%s ~/o 2>/dev/null||echo 0) -gt $m ]&&tail -c $((m/2)) ~/o>~/o.t&&cat ~/o.t>~/o;rm -f ~/o.t;done)&
 case $H in claude*)(s=$(stat -c%s $f 2>/dev/null||echo 0);while sleep 5;do n=$(stat -c%s $f 2>/dev/null||echo 0);[ $n -gt $s ]&&printf "mail: send.py read $AGI_SEAT">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
+case $H in grok*) agi-sync "$PWD" "$HOME/.grok/graph-rules.md";; esac
+if [ "${H%% *}" = grok-bot ] && [ -s "$HOME/.grok/graph-rules.md" ]; then
+ exec strace -qqf -b execve -e%file -o'|agi-track' $H --rules "$(cat "$HOME/.grok/graph-rules.md")" $c go
+fi
 exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 ~~~
 
