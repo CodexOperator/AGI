@@ -17,55 +17,54 @@ thought_session: dg3-et-grok-wake-2026-10-04
 Role: doc:unified-director-brief + this card. Post director-general-3 · master: sanctuary-master · BUILD for the council · worktree /var/lib/agi/director-general-3/t · branch posts/director-general-3 · trunk core/season2/et-grok-pilot · grok-bot grok-4.6 engine.v 4 capsule.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-08:5xZ 10-04 continuation after compaction. 5.5.6.1 already on the branch; this turn landed 1.6.2 (two named home-path census rows). Next assigned ACTIVE leaf = goal:g7.16.1.10.7. 11.3-6 / 11.7 / 10.7.1 wait on placement or Prime cells.
+owner nudge: do not wait. 11.5 bootstrap bar 8139<=8192 (map-prose, scripts exact). 20480 total still red (grow/root later). 11.8 council. 10.7 Prime cells.
 <!-- THOUGHT:END -->
 
-## §0 State (08:51Z 10-04, date -u)
+## §0 State (date -u)
 | | |
 |---|---|
 | post | director-general-3 · BUILD (MVPs + build nodes + tests) |
-| box | encryption-town · grok-bot capsule · AGI_TRUNK=core/season2/et-grok-pilot |
+| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · parent f4c4ea11e |
 | skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard · v4 writes: Write/Edit + agi-turn |
-| reports | coordination -> SM · rulings -> council · never belam for batches |
-| inbox | send.py MAIN PermissionError (AA1); grok has no poll |
+| reports | coordination -> SM via box · rulings -> council · Prime only if Shael must decide |
+| inbox | box n/read empty (owner nudge continue) |
 
 ## §1 Plan
 ```
-wake: UP to SM (unread until SM reads this branch)
-NOW: g7.16.1.10.7 merge gate (after 1.6.2 green)
-held: 10.7.1 (Prime merge_gate cells) · 11.10 host acts · 11.7 domain · 11.3-6 engine-post without placement
-NEVER: invent a top · push this branch · write.py (old setup) · sudo
+NOW: land 11.5 bootstrap cut · mail SM · next assigned BUILDABLE leaf
+held: 10.7 Prime cells · 10.7.1 · 11.10 host · 11.7 domain · 11.8 council
+NEVER: invent a top · push · write.py · sudo · start 11.8
 ```
 
 ## §2 Landed (this wake)
-card rewritten · quorum re-linked · g7.16.1.5.5.6.1 ram-recharge (ec148baf8, 8 tests) · g7.16.1.1.6.2 two named census rows anonymize-home-token + home-code-literal (verify PASS census rules=4; test_census 15) · send.py inbox/room hit MAIN PermissionError (AA1 gap)
+g7.16.1.5.5.6.1 ram-recharge ec148baf8 · g7.16.1.1.6.2 census C rows 53907e7cc · box send SM+DG2+alive rc 0 · merge_gate.py tests 11 · g7.16.1.11.5 engine.md 8139 B (map-prose)
 
 ## 🔴 Where it stops
-1.6.2 green. NEXT: g7.16.1.10.7 merge gate unless SM places otherwise. SM: merge-up when you can read this branch -- this uid cannot mkdir MAIN sessions/inbox.
-python3 extensions/agi/bin/verification.py --level rotation  # census PASS [rules=4]
-auto-captured; no self-rotate this wake
+11.5 falsifier 1 GREEN (8139); title-total 20480 still red (post+wrap grew after grow/root). 10.7 rc 2 until Prime cells. 11.8 council. NEXT: commit 11.5 then next BUILDABLE leaf.
+AGI_POST=director-general-3 box n
+auto-captured; no self-rotate (grok: no session auto-rotation)
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN / this tree is shared | commit by exact path; never switch branches, stash or reset |
-| agi-turn is `git add -A` | leave only what should land; no .agi/keys |
-| v4 writes | Write/Edit on the node file; agi-turn commits; write.py is old setup |
-| no push | this uid does not push; SM lands |
-| grok mail | no inbox poll; send.py still writes the file; read the file by ts |
-| host acts | belam GO each: systemctl /etc /run other uids |
+| agi-turn is git add -A | leave only what should land; no .agi/keys |
+| v4 writes | Write/Edit; grid.py commit PATH never --all |
+| no push | SM lands |
+| mail | bin/box (signed refs); send.py MAIN PermissionError |
+| host acts | belam GO each |
 | no kid dispatch | AA2/AA3 unbuilt; build directly |
 | grep -r / find over .agi | io storm; git grep -- paths |
 
 ## §5 Verification
-census PASS rules=4 · test_census 15 passed --noconftest · ram-recharge 24 passed · rotation verify FAIL 4/13 (pre-existing: links retired kits, spawn-budget MAIN perm, no suite ts, stray .payloads)
+census PASS rules=4 · test_census 15 · ram-recharge 24 · test_merge_gate 11 · box send 3/3 rc 0
 
 ## §6 BANKED
 - OWNER night item 6: encryption-town cutover / Doppler / public pre-scrub branch
 - 86 (SM): report_integrity + warn_premature_complete have no caller
 - R1 slice: dedicated uncapped posts slice
 - g4.18.4 Falsifier 2: scope to recent commits
-- config_max via SM: merge_gate.red_classes · council.residue_leaves (blocks 10.7.1)
-- AA1: grok cannot mkdir MAIN inbox / append MAIN council-loop
+- config_max via SM: merge_gate.review_paths · merge_gate.red_classes · council.residue_leaves (blocks 10.7.1)
+- AA1: send.py cannot mkdir MAIN inbox; box is the mail path
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
