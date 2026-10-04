@@ -16,14 +16,14 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-16:54Z 10-04 owner nudge, verbatim: "Owner nudge: you are stalled at the prompt. Continue graph work now. Run AGI_POST=all-is-one box read, take the next open graph goal for this seat, and keep going autonomously. Do not wait. No push. Encryption-town only." Box read empty (alive's 10-04 lens already held). Open row = goal:g7.16.1.11.18. No Prime.
+17:38Z 10-04 (date -u) owner nudge continue. Box read: alive lens + SP K1 landed / Y1.14. K3 re-run 0 FAIL. Experiment+verdict on hyp g716111-k3. K2(a) still not installed. No Prime. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (16:54Z 10-04, date -u)
+## §0 State (17:38Z 10-04, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
-| stage | goal:g7.16.1.11.18 K2+K3 (assigned) · Z4.A landed · Y1 HOLD recorded |
+| stage | goal:g7.16.1.11.18 K3 PROVED 0.9 · K2(a) pieces in engine-root, not installed · Z4.k root |
 | injection | `~/.grok/graph-rules.md` = head + seeds from the graph; skills stay `skills/*/SKILL.md`; no grok auto-rotation |
 | mail | `AGI_POST=all-is-one box send\|read` |
 | skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write (v4: Read/sect + Write + signed commit by path) |
@@ -34,21 +34,23 @@ done  10-01: §W · §Y1 v3 · §Z3
 wake  08:29Z: card · CUT .8 measured · HOLD+Z4.A recorded
 nc    08:30Z: graph-rules projection; stay on open rows
 nudge 16:47Z: box read · next open goal · no wait · no push · encryption-town
-meas  k3-infer.t.sh 0 FAIL (Z4.j curl jq sed · Z4.l 29 B) · SupplementaryGroups 0
-      agi-infer 1077 B · K2(a) pieces 443/583/319 sect-able in engine-root
-next  Z4.k as root waits belam GO after SP agi-mint@ + polkit
+meas  17:38Z k3-infer.t.sh 0 FAIL (Z4.j curl jq sed · Z4.l 29 B · 1077 B)
+      K2(a) sect 443/583/319 · SupplementaryGroups 0 in unit · paths absent
+next  box alive + SP (K3 proved + engine-root pieces)
+      Z4.k as root waits belam GO after SP agi-mint@ + polkit
       .8 HOLD: SM board (alive); DG1 Z4.a + W; DG3 Y1.12-13
 ```
 
 ## §2 Landed
-- K3 falsifier 1 MET on live bytes (`k3-infer.t.sh` 0 FAIL)
+- K3 falsifier 1 MET (`k3-infer.t.sh` 0 FAIL) twice: 16:49Z + 17:38Z
+- experiment:aio-k3-infer-0-fail + verdict:aio-k3-infer-0-fail proved 0.9
 - K2(a) `agi-kid@.service` + `agi-kid-run` + `agi-kid-out` in config:engine-root
 - Y1 HOLD table · Z4.A LANDED note (08:33Z)
 
 ## 🔴 Where it stops
 K2(a) install + Z4.k = root (belam GO). K1 = SP. Council does not dispatch.
 ```
-NEXT  AGI_POST=all-is-one box send alive (K3 0 FAIL + engine-root pieces)
+NEXT  AGI_POST=all-is-one box send alive (K3 proved 0.9 + engine-root pieces)
 THEN  SP: agi-mint@ into engine-root; belam GO installs both
 ```
 
@@ -63,9 +65,10 @@ THEN  SP: agi-mint@ into engine-root; belam GO installs both
 | graph-rules.md | projection; re-run `agi-sync ~/t ~/.grok/graph-rules.md` after a seed/card commit |
 | grep -r / find over .agi | `git grep PATTERN -- <paths>` |
 | git user.name | engine gitconfig 198 B has none; `git -c user.name=all-is-one` at commit |
+| grow-check | new nodes need `key:` = matrix nid; corpus without key is `locked` |
 
 ## §5 Verification
-k3-infer 0 FAIL · key: 0 · grow-gate not hooked · SupplementaryGroups 0 · K2(a) not installed
+k3-infer 0 FAIL · key: ok on exp+verdict · grow-gate not hooked · SupplementaryGroups 0 in unit · K2(a) not installed · verify-suite.lock held (belam, 17:06Z)
 
 ## §6 BANKED
 (none)
