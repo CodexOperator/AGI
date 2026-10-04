@@ -184,6 +184,41 @@ echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gat
 git update-ref $T $n $o
 ~~~
 
+### agi-kid@.service (443 B)
+~~~ini
+[Unit]
+Description=agi tool-loop kid %i (K2a: own DynamicUser, no group, IN = commit, OUT = handed back)
+BindsTo=agi-mint@%i.service
+After=agi-mint@%i.service
+[Service]
+Type=exec
+DynamicUser=yes
+RuntimeDirectory=agi-kid/%i
+RuntimeMaxSec=4h
+LoadCredential=key:/run/agi-mint/%i/key
+TemporaryFileSystem=/data:ro /var/lib/agi:ro
+BindReadOnlyPaths=/data/work/agi/.git
+ExecStart=/opt/agi/bin/agi-kid-run %i
+ExecStopPost=+/opt/agi/bin/agi-kid-out %i
+~~~
+
+### agi-kid-run (583 B)
+~~~sh
+#!/bin/sh
+# agi-kid-run <post>--<sha> (the kid's own DynamicUser): IN = the FULL commit <sha> (content-addressed, so 0 refs and nothing to forge): its tree = the slice + .kid/prompt + .kid/model
+k=${1#*--};g="git -c safe.directory=* --git-dir=/data/work/agi/.git";[ "$($g rev-parse -q --verify $k^{commit})" = $k ]||exit 2
+cd $RUNTIME_DIRECTORY;mkdir s;$g archive $k|tar -xC s||exit 1
+cd s;HOME=$RUNTIME_DIRECTORY OPENROUTER_API_KEY=$(cat $CREDENTIALS_DIRECTORY/key) exec pi --provider openrouter --model "$(cat .kid/model)" --skill skills -p "$(cat .kid/prompt)" </dev/null >../out
+~~~
+
+### agi-kid-out (319 B)
+~~~sh
+#!/bin/sh
+# agi-kid-out <post>--<sha> (root, ExecStopPost=+, every process of the kid already dead): ./out goes to the CALLER as the caller's uid; a link the kid left is never followed
+p=${1%%--*};k=${1#*--};o=$RUNTIME_DIRECTORY/out;[ -f $o ]&&[ ! -L $o ]||exit 0
+runuser -u agi-$p -- sh -c "cat >/run/agi-$p/o-$k" <$o
+~~~
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-SPLIT (DG3 read sets): agi-post@.service moved here whole from engine-post; its ONE loop edit: for e in engine.md engine-[pw]*.md (was engine*.md), so a post reads engine + engine-post + engine-wrap only. G9 + G9.2 + G9.3 (hypothesis:g716111-g9-boot-install-brings-the-boot-set-up; owner 17:5xZ via belam): agi-boot.service + agi-boot run as root once at boot -- the agi-ram ACL pair, a projection of MAIN's checked-out HEAD (the local trunk; no trunk literal in the unit, WorkingDirectory is the one install-time literal) by REUSING the agi-project section, daemon-reload, then ONE start at a time of the boot:true rows that were projected, behind the shared de_live_parents load/io gate cells (fail-CLOSED on a missing or stale reading); every failure is named on stderr, boot CONTINUES, and any failure (ACL, reload, start, gate give-up) makes the unit exit non-zero; a boot row not yet on v5 is skipped by name (belam: by design until its move). G9.4: an unreadable or empty boot-row list is named and fails the unit.
+all-is-one 16:54Z 10-04 (date -u): goal:g7.16.1.11.18 K2(a) three pieces from doc:rse-z4-ladder-out Z4.11 into this node so `sect` can extract them for the belam GO. Sizes match the design dump: agi-kid@.service 443 B, agi-kid-run 583 B, agi-kid-out 319 B. 0 SupplementaryGroups. Not installed (paths still absent). Scratch: run unpacks a full-sha IN commit + stub pi; short/branch/blob/unknown rc 2; out hands a regular file and refuses a symlink. agi-mint@ stays SP's (BindsTo). Zygote untouched (8 KB rail: fences 7605 / file 9379).
 <!-- THOUGHT:END -->

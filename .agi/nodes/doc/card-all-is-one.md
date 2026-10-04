@@ -16,14 +16,14 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-08:33Z 10-04 nc, verbatim: "read ~/.grok/graph-rules.md now. It is the shared head plus your seed docs from the graph. Skills stay skills/*/SKILL.md. No session auto-rotation. Stay on your open graph rows; mail peers with bin/box. Ask Prime only if Shael must decide." Graph-rules is a projection (agi-sync at 92b66628b still held the 10-01 card). Open rows = Y1 HOLD + Z4.A. No Prime ask.
+16:54Z 10-04 owner nudge, verbatim: "Owner nudge: you are stalled at the prompt. Continue graph work now. Run AGI_POST=all-is-one box read, take the next open graph goal for this seat, and keep going autonomously. Do not wait. No push. Encryption-town only." Box read empty (alive's 10-04 lens already held). Open row = goal:g7.16.1.11.18. No Prime.
 <!-- THOUGHT:END -->
 
-## §0 State (08:33Z 10-04, date -u)
+## §0 State (16:54Z 10-04, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
-| stage | goal:g7.16.1.11.8 HOLD + doc:rse-z4-ladder-out (lead) |
+| stage | goal:g7.16.1.11.18 K2+K3 (assigned) · Z4.A landed · Y1 HOLD recorded |
 | injection | `~/.grok/graph-rules.md` = head + seeds from the graph; skills stay `skills/*/SKILL.md`; no grok auto-rotation |
 | mail | `AGI_POST=all-is-one box send\|read` |
 | skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write (v4: Read/sect + Write + signed commit by path) |
@@ -31,24 +31,25 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done  10-01: §W · §Y1 v3 · §Z3
-wake  08:29Z: card · box n empty · CUT .8 measured
-nc    08:30Z: graph-rules is the projection; stay on open rows; box peers; Prime only if Shael must decide
-meas  Z4.A LANDED on live bytes: town schema [goal,vision] · no [ladder].md schema · growth.tsv 148 shape 0 ladder · 5 towns vision+goal
-      HOLD still open: key:=0 · grow-gate unwired (hooks=samples) · Y1.12-16 UNRUN · ladder.md live until C'
-      agi-kid -m exists; skill still agi-workflow (W waits DG1)
-next  alive whole-doc check on Y1 HOLD + Z4.A landed · DG1: Z4.a parity + W skill when it takes the round
+wake  08:29Z: card · CUT .8 measured · HOLD+Z4.A recorded
+nc    08:30Z: graph-rules projection; stay on open rows
+nudge 16:47Z: box read · next open goal · no wait · no push · encryption-town
+meas  k3-infer.t.sh 0 FAIL (Z4.j curl jq sed · Z4.l 29 B) · SupplementaryGroups 0
+      agi-infer 1077 B · K2(a) pieces 443/583/319 sect-able in engine-root
+next  Z4.k as root waits belam GO after SP agi-mint@ + polkit
+      .8 HOLD: SM board (alive); DG1 Z4.a + W; DG3 Y1.12-13
 ```
 
 ## §2 Landed
-- Y1 HOLD table on doc:radically-simple-engine
-- Z4.A LANDED note on doc:rse-z4-ladder-out
-- box to alive (wake CUT) · this turn: HOLD+Z4.A sha
+- K3 falsifier 1 MET on live bytes (`k3-infer.t.sh` 0 FAIL)
+- K2(a) `agi-kid@.service` + `agi-kid-run` + `agi-kid-out` in config:engine-root
+- Y1 HOLD table · Z4.A LANDED note (08:33Z)
 
 ## 🔴 Where it stops
-Council design recorded. Builds = DG1 (Z4.a, W) / DG3 (Y1.12-13 grow-gate). No dispatch.
+K2(a) install + Z4.k = root (belam GO). K1 = SP. Council does not dispatch.
 ```
-NEXT  AGI_POST=all-is-one box read
-THEN  if alive CLEARS the HOLD block: DG1 gets Z4.a + grow-gate land via SM, not me
+NEXT  AGI_POST=all-is-one box send alive (K3 0 FAIL + engine-root pieces)
+THEN  SP: agi-mint@ into engine-root; belam GO installs both
 ```
 
 ## §4 Traps
@@ -61,9 +62,10 @@ THEN  if alive CLEARS the HOLD block: DG1 gets Z4.a + grow-gate land via SM, not
 | `thought` on shared RSE | this version's THOUGHT only; prior SP thought is in the grid |
 | graph-rules.md | projection; re-run `agi-sync ~/t ~/.grok/graph-rules.md` after a seed/card commit |
 | grep -r / find over .agi | `git grep PATTERN -- <paths>` |
+| git user.name | engine gitconfig 198 B has none; `git -c user.name=all-is-one` at commit |
 
 ## §5 Verification
-key: 0 · grow-gate not hooked · growth.tsv 148 shape · Z4.a UNRUN
+k3-infer 0 FAIL · key: 0 · grow-gate not hooked · SupplementaryGroups 0 · K2(a) not installed
 
 ## §6 BANKED
 (none)
