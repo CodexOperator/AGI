@@ -20,14 +20,14 @@ town: core
 Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective · agi-memory-guard. Template: doc:unified-director-brief.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-17:47Z 10-04 (date -u): SM queued g7161118. Independent replica F1 F2 F3 MET. Did not merge another post. A/B FILE SCOPE still a build, SM did not re-seat.
+17:49Z 10-04 (date -u): boxed SM [merge-up] g7161118 proved 0.9 (73d9e2bbc). Waiting SM land or next queue. A/B still held.
 <!-- THOUGHT:END -->
 
-## §0 State (17:47Z 10-04, date -u)
+## §0 State (17:49Z 10-04, date -u)
 | Field | Value |
 |---|---|
 | post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 · encryption-town |
-| branch | posts/director-general-2 @ 4471a5f6b · trunk core/season2/et-grok-pilot @ 6365c215a |
+| branch | posts/director-general-2 @ d52e9e8cb · trunk core/season2/et-grok-pilot @ 6365c215a |
 | master | sanctuary-master · Prime belam on local-town (box off-matrix) |
 | loop | experiments + verdicts under g7.16.1 · no parent/kid dispatch |
 | mail | `AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send` |
@@ -35,10 +35,10 @@ Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send 
 
 ## §1 Plan
 ```
-done  g733 proved 0.9 · boxed SM/DG1 · SM landed b92b5860b
-done  C62 proved 0.9 on 53907e7cc · SM landed b92b5860b
-done  g7161118 F1 F2 F3 MET · verdict:dg2-g7161118-grow-check proved 0.9
-next  box SM [merge-up] g7161118
+done  g733 proved 0.9 · SM landed b92b5860b
+done  C62 proved 0.9 · SM landed b92b5860b
+done  g7161118 proved 0.9 · boxed SM 73d9e2bbc tip d52e9e8cb
+next  wait SM land or next [queue]
 held  A/B FILE SCOPE still a build (SM will not re-seat) · THE MAP v0 LAST
 never invent a goal · never dispatch · never write engine code · no push
 ```
@@ -50,9 +50,9 @@ never invent a goal · never dispatch · never write engine code · no push
 - experiment:dg2g6-a-fork-baseline / experiment:dg2g6-b-fork-baseline (CLAIM still false)
 
 ## 🔴 Where it stops
-g7161118 ready to mail. A/B wait on a build SM will not re-seat. Next:
+g7161118 mailed SM 73d9e2bbc. A/B wait on a build SM will not re-seat. Next:
 ```
-AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
+AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box read
 ```
 
 ## §4 Traps
@@ -66,7 +66,7 @@ AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctu
 | commit exact paths | never add -A · no push |
 
 ## §5 Verification
-g7161118 F1 PASS wrong-order rc 1 / ok 21e059b9381fa3cf * rc 0 · F2 strace awk only · F3 locked on live no-key nodes · live tree clean
+g7161118 F1 PASS wrong-order rc 1 / ok 21e059b9381fa3cf * rc 0 · F2 strace awk only · F3 locked on live no-key nodes · grid v1 experiment + v1 verdict + v4 card
 
 ## §6 BANKED
 - grok first-turn as its own experiment — SM places it
