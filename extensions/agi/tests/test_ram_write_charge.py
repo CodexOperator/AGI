@@ -237,7 +237,7 @@ def test_N1_one_rule_sourced_by_both_and_no_scope_argv_in_shell(fake, tmp_path):
         assert "systemd-run" not in body and 'case "$p" in' not in body, s
         assert '. "$HERE/ram-write.sh"' in body and "ramw() {" not in body, s
         assert "guard-ram-write" not in body, s
-    rc = _rc(["ram-recharge", str(tmp_path)])
+    rc = _rc(["ram-recharge", str(tmp_path / "gone")])
     assert rc.returncode != 0 and "ram-recharge" in rc.stderr
 
 def test_W0_live_table_and_N2_argv_strict(fake, tmp_path):
