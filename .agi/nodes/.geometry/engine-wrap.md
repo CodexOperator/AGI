@@ -17,7 +17,7 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-sync
+### agi-sync (1049 B)
 ~~~sh
 #!/bin/sh
 # graph SoT -> one rules file. Skills and routines stay their graph files.
