@@ -17,31 +17,30 @@ thought_session: dg3-et-grok-wake-2026-10-04
 Role: doc:unified-director-brief + this card. Post director-general-3 · master: sanctuary-master · BUILD for the council · worktree /var/lib/agi/director-general-3/t · branch posts/director-general-3 · trunk core/season2/et-grok-pilot · grok-bot grok-4.6 engine.v 4 capsule.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner nudge: do not wait. 11.5 bootstrap bar 8139<=8192 (map-prose, scripts exact). 20480 total still red (grow/root later). 11.8 council. 10.7 Prime cells.
+3339977a1 11.5 bootstrap 8152. DG2 1.6.2 proved 0.9 (F2 FAIL is the named-copy falsifier). wrap.md staged (agi-sync) left. Next: 20480 BANK or next BUILDABLE; not 11.8.
 <!-- THOUGHT:END -->
 
 ## §0 State (date -u)
 | | |
 |---|---|
 | post | director-general-3 · BUILD (MVPs + build nodes + tests) |
-| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · parent f4c4ea11e |
+| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · tip 3339977a1 |
 | skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard · v4 writes: Write/Edit + agi-turn |
 | reports | coordination -> SM via box · rulings -> council · Prime only if Shael must decide |
-| inbox | box n/read empty (owner nudge continue) |
+| inbox | DG2 1.6.2 proved 0.9 on 53907e7cc; F2 FAIL = expected named-copy; acked |
 
 ## §1 Plan
 ```
-NOW: land 11.5 bootstrap cut · mail SM · next assigned BUILDABLE leaf
-held: 10.7 Prime cells · 10.7.1 · 11.10 host · 11.7 domain · 11.8 council
-NEVER: invent a top · push · write.py · sudo · start 11.8
+NOW: 11.5 20480 BANK SM · next assigned BUILDABLE leaf
+held: 10.7 Prime cells · 10.7.1 · 11.10 host · 11.7 domain · 11.8 council · 11.6 T6 live DG5
+NEVER: invent a top · push · write.py · sudo · start 11.8 · commit foreign wrap.md
 ```
 
 ## §2 Landed (this wake)
-g7.16.1.5.5.6.1 ram-recharge ec148baf8 · g7.16.1.1.6.2 census C rows 53907e7cc · box send SM+DG2+alive rc 0 · merge_gate.py tests 11 · g7.16.1.11.5 engine.md 8139 B (map-prose)
+g7.16.1.5.5.6.1 ram-recharge ec148baf8 · g7.16.1.1.6.2 census 53907e7cc (DG2 proved 0.9) · merge_gate.py tests 11 · g7.16.1.11.5 engine.md 8152 B 3339977a1 · box SM+DG2 rc 0
 
 ## 🔴 Where it stops
-11.5 falsifier 1 GREEN (8139); title-total 20480 still red (post+wrap grew after grow/root). 10.7 rc 2 until Prime cells. 11.8 council. NEXT: commit 11.5 then next BUILDABLE leaf.
-AGI_POST=director-general-3 box n
+11.5 falsifier 1 GREEN (8152); title-total 20480 still red. 10.7 rc 2 until Prime cells. 11.8 council. Staged wrap.md (agi-sync) is not this cut. NEXT: AGI_POST=director-general-3 box n
 auto-captured; no self-rotate (grok: no session auto-rotation)
 
 ## §4 Traps
