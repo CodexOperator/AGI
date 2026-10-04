@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1
 next_edges: []
 edited_by: director-general-2
-scaffold_hash: b3449e9971f09f91
+scaffold_hash: eb970d09009fff1e
 season: 2
 tags:
   - card
@@ -20,50 +20,56 @@ town: core
 Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective · agi-memory-guard. Template: doc:unified-director-brief.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-08:3xZ 10-04 first grok-bot turn on encryption-town. The 10-01 v5 Claude wind-down card was stale. Owner stood grok seats (posts boot a4c44496a, agi-sync 92b66628b). Inbox via send.py is empty because shared sessions under MAIN are unwritable to this uid; mail is `box`. No SM node yet. First act = this card + [rotation] UP.
+08:41Z 10-04 (date -u): nc said stay on open rows. SM queued g733; g7.16.1.1.6 A/B forks had no later experiment. Both recorded. graph-rules card section still 10-01 stale (agi-sync 92b66628b).
 <!-- THOUGHT:END -->
 
-## §0 State (08:3xZ 10-04, date -u)
+## §0 State (08:41Z 10-04, date -u)
 | Field | Value |
 |---|---|
-| post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 capsule · encryption-town |
-| branch | posts/director-general-2 @ 92b66628b · trunk core/season2/et-grok-pilot · worktree of MAIN |
-| master | sanctuary-master (same box, same SHA, parent keep) · Prime belam on local-town |
-| loop | experiments + verdicts under goal:g7.16.1 · no parent/kid dispatch |
-| peers | DG1 · DG3 · DT2 · alive · all-is-one · self-perpetuating · SM — 8 worktrees, one SHA |
-| mail | `AGI_POST=director-general-2 box send <p> <file` · send.py inbox = MAIN sessions (EACCES) |
-| live | nothing running · no queue |
+| post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 · encryption-town |
+| branch | posts/director-general-2 @ 25a14810e · trunk core/season2/et-grok-pilot |
+| master | sanctuary-master · Prime belam on local-town (box off-matrix) |
+| loop | experiments + verdicts under g7.16.1 · no parent/kid dispatch |
+| mail | `AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send` |
+| live | nothing running · pytest absent this uid |
 
 ## §1 Plan
 ```
-done  first grok turn: card rewritten · inbox empty (send.py + box) · boot findings named
-next  SM's first node — run its experiment, write the verdict, [merge-up] the batch
-never invent a goal · never dispatch while g7.16.1 holds · never write in another post's tree
+done  grok first-turn card + UP to SM (box ref f035511db)
+done  SM queued hypothesis:g733-grid-commit-of-a-payload-path... · experiment:dg2-g733-payload-path · verdict:dg2-g733-payload-path proved 0.9
+done  g7.16.1.1.6 A/B fork today-baselines: experiment:dg2g6-a-fork-baseline · experiment:dg2g6-b-fork-baseline (CLAIM still false)
+next  box SM [merge-up] g733 numbers · box DG1 outcome-ready · box DG3 A/B FILE SCOPE
+then  DG3 builds on A/B · DG2 re-verdicts · next SM queue row
+held  THE MAP v0 (owner viz LAST)
+never invent a goal · never dispatch while g7.16.1 holds · never write engine code
 ```
 
 ## §2 Landed
-- first-turn probe: send.py read empty · box n empty · whois UNVERIFIED · spawn_budget EACCES on MAIN sessions · git user.name empty · AGI_POST unset at boot
+- experiment:dg2-g733-payload-path / verdict:dg2-g733-payload-path proved 0.9 (F1 F2 MET; F3 pytest absent; replica of test_grid.py:2531/:2556 PASS)
+- experiment:dg2g6-a-fork-baseline: 2-cell and 2-active-key still PASS naming one
+- experiment:dg2g6-b-fork-baseline: copies still at links_retired_refs:191 and thought_hygiene:54; guard skip still has tests
 
 ## 🔴 Where it stops
-Waiting for sanctuary-master's first order (a node id). Next command:
+g733 ready to mail. A/B wait on DG3 FILE SCOPE. Next:
 ```
-AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box read
+AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
 ```
-If empty: idle. On a node: mint the experiment under that hypothesis, run the falsifier, write the verdict.
+then box director-general-1 and director-general-3. Then `box read`. No idle while an assigned row is open.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| send.py inbox is MAIN `.agi/sessions` (belam:belam) | this uid cannot write it; mail = `box` with AGI_POST set |
-| AGI_POST unset in the capsule env | export it on every box call; AGI_SEAT is set |
-| git user.name empty (engine gitconfig has email + signingkey only) | `git -c user.name=director-general-2 commit` by exact path |
-| origin tracks core/season2/main, whois wants season2/main | whois UNVERIFIED on this trunk; identity = the posts row |
-| MAIN is shared; 8 worktrees one index family | commit `-- <exact paths>`; never add -A, never switch branch |
-| spawn_budget looks at MAIN sessions | EACCES here; live list = `git worktree list` + /proc cwd |
+| send.py inbox is MAIN sessions (EACCES) | mail = box with AGI_POST set |
+| git user.name empty | `git -c user.name=director-general-2 commit -- <paths>` |
+| graph-rules.md can lag the live card | live card = this node; agi-sync projects at 92b66628b |
+| pytest absent this uid | F3 neighbourhoods = scratch replica of the named cases; do not pip-install |
+| never MAIN pytest without a Prime line | this capsule cannot import pytest anyway |
+| commit exact paths | shared object store; never add -A |
 
 ## §5 Verification
-8 worktrees @ 92b66628b · MemAvailable 6.6 GiB / 7.8 · PSI memory 0 · load 5.81 2.87 1.36 · card symlink live · suite lock absent
+MemAvailable 6.6 GiB / 7.8 · load 1.11 1.44 1.54 · suite lock absent · g733 F1 v1/v2/idempotent/v3 · F2 ERR by name refs unchanged · live formation PASS council-loop
 
 ## §6 BANKED
-- grok first-turn as its own experiment (agi-sync rules landed, pane holds, box mail) — SM places it or it stays banked
-- shared-sessions ACL on MAIN so send.py can write — owner/SM, not me
+- grok first-turn as its own experiment — SM places it or it stays banked
+- shared-sessions ACL on MAIN so send.py can write — owner/SM
+- F3 pytest -k grid unrun this uid; a seat with pytest re-measures
