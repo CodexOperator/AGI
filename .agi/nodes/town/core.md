@@ -12,13 +12,14 @@ location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: belam-lm-theirs-board-a-20260930
+thought_session: belam-status-hygiene-sot-2026-09-22
 town: core
 visions:
   - vision:alive
   - vision:all-is-one
   - vision:self-perpetuating
 ---
+<!-- BODY:BEGIN -->
 # town:core
 
 ## town = ops · trajectory = KG (stand-in TEMPORARY)
@@ -46,9 +47,9 @@ DIRECTOR (no Belam chat):
   claim next   → write.py version town/geometry board: claim(goal, seat, tip)
   batch done   → residues=0 + format✓ + §3e suite green → write.py board: complete(goal, tip, suite, mur)
                  also version goal Agent Notes; mark status as fits schema
-  claim order  → REOPENED (Prime) > smallest unclaimed leaf under a live hot top
-  idle         → deepen hot tops (g7.31.1* · g7.32 umbrella)
-  status       → assignment table on geometry board (flat; active+horizon together)
+  claim order  → REOPENED (Prime) > smallest unclaimed leaf under live/hot top
+  idle         → prefer deepen hot top; only open second top when hot top has no free leaf
+  status       → claimed/worked=active · rest of town:core bundle=horizon
   talk Belam?  → NEVER for batches. ONLY instant: exposed keys / credential leak
   talk owner?  → credits empty · mesh down · HOLD until owner replies
 
@@ -57,28 +58,27 @@ BELAM (daily, not mid-batch):
   merge post tips w/ residues=0 evidence
   full verify on core/main (or post as docs say)
   vision-lens on goals · moral-lens on visions↔goals
-  residue? → reopen existing OR mint new sub/sub-sub into ACTIVE rows (judgment)
+  residue? → reopen existing OR mint new sub/sub-sub into town bundle (judgment)
   reopen = Prime priority over plain open
 ```
 
-Standing contract: `doc:standing-llm-ops`. Reopened goals = **PRIORITY** over plain open (Prime order).
+Standing contract: `doc:standing-llm-ops`. Reopened goals in this town bundle = **PRIORITY** over plain open (Prime order).
 
 ## GOAL BUNDLE (encryption / core directors)
 
 LOCATION ──▶ encryption-town
 
-**Board A (OWNER GO 2026-09-30):** flat assignment (LM shape). Active + horizon
-in ONE table — no stop-line/parked fence. Thin focus callout only.
-
 ```
 encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank encryption master LATER)
                     │
                     ▼
- town:core GOAL BUNDLE (flat · TEMP trajectory stand-in)
+ town:core bundle status (stand-in trajectory — TEMP)
  ┌─────────────────────────────────────────────────────────┐
- │ FOCUS    g7.31.1* (belam) · g7.31/g7.32 umbrellas       │
- │ DONE     g7.28 · g7.31.2–.5 · g7.32.1–.4                │
- │ HORIZON  g7.25–.27/.29–.30 · g7.33 · g7.34*             │
+ │ ACTIVE   g7.31 → .1→.1.1+.1.2; .3→.3.1+.3.2 (belam)   │
+ │ ACTIVE   g7.28; g7.31.2/.4/.5; g7.32* (helper)         │
+ │ HORIZON  g7.25; g7.26–.27; g7.29–.30                   │
+ │ HORIZON  g7.33; g7.34*                                 │
+ │ COMPLETE g7.25.1–.3 (unchanged)                        │
  └─────────────────────────────────────────────────────────┘
 ```
 
@@ -92,31 +92,24 @@ encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank e
 | goal:g7.25.3 | complete | mirror adapter interface tests |
 | goal:g7.26 | horizon | Post briefs self-sufficient |
 | goal:g7.27 | horizon | Templates sole harness arg builders |
-| goal:g7.28 | complete | Dispatch persistent mode |
+| goal:g7.28 | active | Dispatch persistent mode |
 | goal:g7.29 | horizon | Shrink rotate.py orchestration |
 | goal:g7.30 | horizon | Land grok-bot adapter + post template |
 | goal:g7.31 | active | Pane = post spine (umbrella) |
 | goal:g7.31.1 | active | Measured CLI + durable pane hold |
 | goal:g7.31.1.1 | active | Measured CLI argv |
 | goal:g7.31.1.2 | active | Durable named tmux pane |
-| goal:g7.31.2 | complete | Pane anchor ↔ post/pin/formation |
-| goal:g7.31.3 | complete | Five unified engine routes |
-| goal:g7.31.3.1 | complete | Cold post brief five routes |
-| goal:g7.31.3.2 | complete | Sample write+send+dispatch |
-| goal:g7.31.4 | complete | Native handbacks SSH-or-not |
-| goal:g7.31.5 | complete | Graph↔harness-doc sync |
+| goal:g7.31.2 | active | Pane anchor ↔ post/pin/formation |
+| goal:g7.31.3 | active | Five unified engine routes |
+| goal:g7.31.3.1 | active | Cold post brief five routes |
+| goal:g7.31.3.2 | active | Sample write+send+dispatch |
+| goal:g7.31.4 | active | Native handbacks SSH-or-not |
+| goal:g7.31.5 | active | Graph↔harness-doc sync |
 | goal:g7.32 | active | Session ingest + messaging + pane methods + send router |
-| goal:g7.32.1 | complete | Grok session ingest |
-| goal:g7.32.2 | complete | Magic-pane messaging |
-| goal:g7.32.3 | complete | Optional pane methods on one adapter |
-| goal:g7.32.4 | complete | send.py thin router |
-| goal:g7.33 | horizon | ENGINE FIXES (nested G7.33.* on nodes) |
-| goal:g7.34 | horizon | umbrella: geometry-town + trajectory spine |
-| goal:g7.34.1 | horizon | [trajectory] schema + allowed parents/links |
-| goal:g7.34.2 | horizon | mint trajectory:core + trajectory:local-maxxing |
-| goal:g7.34.3 | horizon | town → .geometry/towns/<slug>/.self |
-| goal:g7.34.4 | horizon | slim config / templates (see node) |
-| goal:g7.34.5 | horizon | (see node) |
+| goal:g7.32.1 | active | Grok session ingest |
+| goal:g7.32.2 | active | Magic-pane messaging |
+| goal:g7.32.3 | active | Optional pane methods on one adapter |
+| goal:g7.32.4 | active | send.py thin router |
 
 ### Split decision (owner tie-break 2026-09-21)
 
@@ -128,13 +121,50 @@ encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank e
 
 Town schema `parents:` = ladder only → spine listed here / Agent Notes, not town→goal parents.
 
+### UNASSIGNED / parked (engine) — until directors finish current batches
+
+Owner ask 2026-09-21: relocate engine ownership cell → `town:core`. **Do not dispatch / SendToAgent / assign directors yet.**
+
+| id | status | title (short) | note |
+|---|---|---|---|
+| goal:g7.33 | horizon | ENGINE FIXES (write.py / comms / dispatch / workflows / grid trunk / session capture / trajectory type) | nested G7.33.* not yet minted as separate nodes |
+| goal:g7.33.* | pending | sub-chunks under g7.33 body (G7.33.1–.8) | mint later under town:core when work starts |
+
+### UNASSIGNED / parked — geometry-town + trajectory spine (NEW)
+
+Minted 2026-09-21 Belam; **parked unassigned on town:core**. Nested under `goal:g7.34`. No director assignment. No g7.34.1–.5 implementation yet — mint only.
+
+| id | status | title (short) |
+|---|---|---|
+| goal:g7.34 | parked/horizon | umbrella: geometry-town + trajectory spine |
+| goal:g7.34.1 | parked/horizon | [trajectory] schema + allowed parents/links |
+| goal:g7.34.2 | parked/horizon | mint trajectory:core + trajectory:local-maxxing; town→traj; traj→chain |
+| goal:g7.34.3 | parked/horizon | town → .geometry/towns/<slug>/.self (Pass 1 raw) |
+| goal:g7.34.4 | parked/horizon | slim config / template pointer cells on town.self (L6) |
+| goal:g7.34.5 | parked/horizon | formation = nested template + single context loader (L6) |
+
+```
+goal:g7
+└─ g7.34 ★ geometry-town + trajectory spine (parked)
+   ├─ .1  [trajectory] schema
+   ├─ .2  mint trajectory:core / :local-maxxing
+   ├─ .3  town → .geometry/towns/<slug>/.self
+   ├─ .4  slim config/template cells on town.self
+   └─ .5  formation nested template + context loader
+```
+
 ## Agent Notes
 
-- Board A flatten 2026-09-30 OWNER GO (THEIRS-majority LM land follow-up): town+geometry → LM flat assignment; CORE completion stamps kept.
+- Host alias: SSH `encryption-town` → belam-prime; graph town id = `town:core`.
+- Horizon pass 2026-09-21: active only on g7.31 hot chains claimed on board; other non-complete bundle goals → horizon (§4b).
 - Actor Belam; master cell = sanctuary-master.
-- Owner ask 2026-09-21: engine goals (g7.33) relocated from local-maxxing → core; board row horizon until re-opened assign.
+- Owner ask 2026-09-21: engine goals (g7.33) relocated from local-maxxing → core; **UNASSIGNED / parked**.
 - Belam 2026-09-21: g7.34* geometry/trajectory spine minted parked; stand-in stays until trajectory type (g7.34.1/.2).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Board A flatten after THEIRS-majority LM→core merge: drop stop-line/parked fence; one flat status table; preserve CORE completes from 2026-09-29 daily (g7.28 g7.31.2-5 g7.32.1-4).
+belam-status-hygiene-sot-2026-09-22: sync status rows to goal reality — helper lanes + g7.32* active; belam .1/.3 chain
 <!-- THOUGHT:END -->
+
+Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
+
+alive (council, placed by belam) 02:2xZ: S goals (owner 00:5xZ "All S goals should have been retired...") 12 open -> 0 · retired 9 in place (s3 s4 s7 s18 s21 s24 s31 s32 s34) · renumbered 3 (s1 -> g1.6.1 · s33 -> g4.18.2.1 · s35 -> g4.18.8) · remainder leaves 6 (g7.33.10.1 g4.18.6.6 g2.4.1 g6.50 g4.21 g4.18.5.4) · links 5270/0 · residue: 10 pending hypotheses under retired s18 (4) s31 (3) s32 (3) -> verdict or re-home (DG2 / all-is-one) · goal:g7.16.1.5.5 minted unassigned (ff8beb884)

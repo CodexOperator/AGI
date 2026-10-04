@@ -251,41 +251,39 @@ def _season_ref_on_origin(root: Path, ref: str) -> bool:
 def season_branch(root: Path | None) -> str:
     """THE ONE resolver for the season branch name.
 
-    Starts from the CANONICAL `season{N}/main` spelling so callers like
-    `rotate.py status --record` never trip `branches.py: deprecated alias
-    used: season/sN -> seasonN/main` (goal:g7.33.3(e) /
-    hypothesis:lm-rotate-status-uses-canonical-season-branch). The legacy
-    ladder spelling `season/s{N}` remains the no-git / neither-on-origin
-    fallback.
+    Starts from `season/s{current_season}` in the ladder (`season/s2` only
+    when the ladder is unreadable — load_ladder_field already warns), then
+    accepts BOTH spellings and emits the canonical name ONLY when it exists
+    on origin (hypothesis:l4-branches-follow-the-season-grammar).
 
-    `branches.ref_candidates(canonical)` returns the canonical first then the
-    legacy alias as the one-season deprecated fallback — WITHOUT parsing the
-    alias, so no warn. The first candidate that resolves on origin is
-    returned: on a pre-migration tree (canonical absent, legacy present) the
-    legacy spelling is emitted; when neither resolves, the ladder spelling is
-    returned unchanged. With `root is None` the origin probe is skipped and
-    the ladder spelling is returned directly.
+    `branches.ref_candidates(branch)` returns the canonical first (`season
+    N/main`) then the legacy alias (`season/sN`) as the one-season deprecated
+    fallback; the first candidate that resolves on origin is returned, so on
+    a pre-migration tree — where only `origin/season/sN` exists and
+    `origin/season<N>/main` does NOT — the legacy spelling is emitted and a
+    canonical name that would resolve nowhere is never printed. A tree where
+    NO candidate resolves falls back to the input branch unchanged (never a
+    name that does not exist; readers address it as `origin/{season}`). With
+    `root is None` (no git) the origin probe is skipped and the ladder
+    spelling is returned directly.
 
-    Every season-branch site in rotate.py routes through this so a season
-    change is ONLY the ladder's `current_season` (hypothesis l4-the-
+    Every literal `season/s2` site in rotate.py routes through this so a
+    season change is ONLY the ladder's `current_season` (hypothesis l4-the-
     prepare-captives-measure-generation-upstream-and-season-and-the-gate-
-    is-not-a-test-seam, piece 4)."""
+    is-not-a-test-seam, piece 4: printed lines change text only by the
+    season number)."""
     s = load_ladder_field(root, "current_season", None) if root is not None \
         else None
     if s is None:
-        s = 2
-        ladder = "season/s2"
+        branch = "season/s2"
     else:
-        ladder = f"season/s{s}"
-    canonical = f"season{s}/main"
+        branch = f"season/s{s}"
     if root is None:
-        return ladder
-    # Feed the CANONICAL spelling to ref_candidates — never the alias — so
-    # status does not print the deprecated-alias warning on every call.
-    for cand in branches.ref_candidates(canonical):
+        return branch
+    for cand in branches.ref_candidates(branch):
         if _season_ref_on_origin(root, cand):
             return cand
-    return ladder
+    return branch
 
 
 def find_newest_cc_transcript(slug: str = CC_PROJECT_SLUG) -> Path | None:
@@ -658,31 +656,6 @@ def _check_branch_guard(root: Path | None) -> str | None:
     return None
 
 
-
-def _check_profile_drift(root: Path | None) -> str | None:
-    """Refuse rotation when a linked profile artifact disagrees with its node.
-
-    The graph is the SoT (`goal:g7.31.5.3`); drift is refused BY NAME before
-    any side effect, and nothing-linked/nothing-drifted is a no-op.
-    """
-    if root is None:
-        return None
-    import profile_sync  # inline: keep rotate's module load free of it
-    try:
-        bad = [r for r in profile_sync.check_all(root) if r["status"] != "ok"]
-    except Exception as e:
-        # `check_all` already tolerates malformed node files (a non-profile
-        # parse error must never block rotation), so reaching here is a
-        # guard failure, not drift. Say so, and do not let it pass silently.
-        return f"rotate refused: profile guard failure: {e}"
-    if not bad:
-        return None
-    names = ", ".join(
-        f"{r.get('path') or r['node_id']} ({r['status']})" for r in bad)
-    return (f"rotate refused: profile drift — {len(bad)} linked node(s) "
-            f"out of sync: {names}")
-
-
 # ---- role resolution (ladder roles table, else config.json, else defaults)
 
 
@@ -948,6 +921,17 @@ def _session_label(row: dict | None, gen: int) -> str | None:
 # ---- successor command ----------------------------------------------------
 
 
+def _build_claude_command(name: str, prompt_text: str, debug_file: str,
+                          model=None, effort=None, settings=None) -> list[str]:
+    """The remote-control argv: `claude --remote-control NAME ... <prompt>`.
+
+    Thin hook: the argv is rendered from `templates/harness/claude-code.toml`,
+    so no claude flag literal lives in this file (hypothesis:harness-arg-
+    builders-are-templates-only).
+    """
+    return harness_template.render(
+        "claude-code", prompt=prompt_text, name=name, debug_file=debug_file,
+        model=model, effort=effort, settings=settings)
 
 
 def _harness_row(root: Path | None, harness: str | None) -> dict:
@@ -1080,6 +1064,22 @@ def _validate_harness(root: Path | None,
     return 0, ""
 
 
+def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
+                           bin_path: str | None = None,
+                           extra_args=None) -> list[str]:
+    """The interactive GitHub Copilot CLI argv for a seat.
+
+    The argv is rendered from `templates/harness/copilot-cli.toml` — no flag
+    construction lives here; this is the thin hook that names the template.
+    `-i, --interactive <prompt>` starts interactive mode (the post stays up
+    in the tmux window and `send.py` can type into its input box); `--remote`
+    enables remote control from GitHub web and mobile; `--allow-all` keeps the
+    first tool call from blocking on a confirmation, which is what a SEAT (not
+    a fire-and-forget kid) needs.
+    """
+    return harness_template.render(
+        "copilot-cli", prompt=prompt_text, model=model, effort=effort,
+        bin_path=bin_path, extra_args=extra_args)
 
 
 def _build_harness_command(harness: str | None, *, name: str,
@@ -1942,12 +1942,7 @@ def stand_up(root: Path, post: str, body, *, mode: str,
         if (mode in KEYED_BY_STAND_UP and not keyed_in_body
                 and (note := ensure_post_key(root, post))):
             print(note, file=sys.stderr)
-        result = body()
-        if not skip_lifecycle:
-            _magic_pane_after_stand_up(
-                root, post, mode, pane_id=pane_id, dry=lifecycle_dry
-            )
-        return True, result
+        return True, body()
 
 
 def _stand_up_key_plan(root: Path, post: str) -> str:
@@ -2346,19 +2341,10 @@ def _seat_worktree_cwd(root: Path | None, row: dict | None) -> str | None:
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     """Build and (unless --dry-run) run a `claude --remote-control` command.
     A SEATED live spawn is a `stand_up(mode="spawn")` (goal:g7.16.1.7.1.1.4):
-    a second stand-up of the same post is refused.
-
-    goal:g7.16.1.7.3.7 — dry-run seated spawn still wires on_spawn (dry-safe;
-    no live tmux) so the lifecycle path is proved without a launch lock.
-    """
+    a second stand-up of the same post is refused."""
     seat = getattr(args, "seat", None)
-    if seat is None or root is None:
+    if seat is None or root is None or getattr(args, "dry_run", False):
         return _cmd_spawn(args, root)
-    if getattr(args, "dry_run", False):
-        rc = _cmd_spawn(args, root)
-        if rc == 0:
-            _magic_pane_after_stand_up(root, seat, "spawn", dry=True)
-        return rc
     held, out = stand_up(root, seat, lambda: _cmd_spawn(args, root),
                          mode="spawn", keyed_in_body=True)
     return out if held else 1
@@ -3489,13 +3475,6 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
-        return 1
-
-    # goal:g7.31.5.3: as in `cmd_rotate_self`, drift refuses BEFORE the meter
-    # (which writes) and before any spawn. Same guard, same text.
-    pguard = _check_profile_drift(root)
-    if pguard:
-        print(pguard, file=sys.stderr)
         return 1
 
     if not args.force:
@@ -5404,12 +5383,9 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
             )
         # goal:g7.16.1.7.1.1.4: a seat's first seating is a
         # `stand_up(mode="spawn")`; a dry run launches nothing, takes no lock.
-        # goal:g7.16.1.7.3.7: dry-run still wires on_spawn (dry-safe; no tmux).
         if args.dry_run:
             _stand_up_key_plan(root, name)
             rc, _ = _launch_seat()
-            if rc == 0:
-                _magic_pane_after_stand_up(root, name, "spawn", dry=True)
         else:
             held, out = stand_up(root, name, _launch_seat, mode="spawn")
             rc = out[0] if held else 1
@@ -19822,10 +19798,6 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if guard:
         print(guard, file=sys.stderr)
         return 1
-    pguard = _check_profile_drift(root)
-    if pguard:
-        print(pguard, file=sys.stderr)
-        return 1
     seat = args.name
     # goal:g15.14 P1-c — the registry gate runs FIRST: before the geometry
     # resolution below, and so before the only-behind merge that resolution
@@ -20639,11 +20611,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         )
     # goal:g7.16.1.7.1.1.4: the successor launch is a `stand_up(mode="rotate")`
     # -- a heal recovery or a spawn of this post in flight refuses it by name.
-    # goal:g7.16.1.7.3.7: dry-run still wires on_attach/on_spawn (dry-safe).
     if args.dry_run:
         rc, _ = _launch_successor()
-        if rc == 0:
-            _magic_pane_after_stand_up(root, seat, "rotate", dry=True)
     else:
         held, out = stand_up(root, seat, _launch_successor, mode="rotate")
         rc = out[0] if held else 1

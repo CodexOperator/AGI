@@ -918,13 +918,8 @@ def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
         if nf is not None and _auto_titled(nf, fm):
             notes.append(f"untitled=[{nid}]")
         measured = _kid_measured_lines(root, str(kid.get("id") or ""))
-        recorded = _budget_num(fm.get("production_lines"))
-        lines = measured if measured is not None else recorded
-        # g7.33.3(a): print measured beside recorded so drift is visible.
-        if measured is not None or recorded is not None:
-            m_s = str(measured) if measured is not None else "-"
-            r_s = str(recorded) if recorded is not None else "-"
-            notes.append(f"lines=[{nid} measured={m_s} recorded={r_s}]")
+        lines = measured if measured is not None \
+            else _budget_num(fm.get("production_lines"))
         ceiling = _kid_line_ceiling(root, fm,
                                     str(kid.get("target") or "") or None)
         if lines is None or ceiling <= 0:
@@ -1920,24 +1915,6 @@ def cmd_done(args: argparse.Namespace) -> int:
                                           commit_failed=commit_fail or "")
 
     print(f"agent {args.agent_id} status=done verdict={verdict}")
-    # g7.33.3(a): session-complete / done prints measured beside recorded.
-    if args.node_id:
-        _nf = _find_node_file(root, args.node_id)
-        _fm: dict = {}
-        if _nf is not None and _nf.exists():
-            try:
-                _fm = frontmatter.read_frontmatter(
-                    _nf.read_text(encoding="utf-8")) or {}
-            except OSError:
-                _fm = {}
-            if not isinstance(_fm, dict):
-                _fm = {}
-        _meas = _kid_measured_lines(root, args.agent_id)
-        _rec = _budget_num(_fm.get("production_lines"))
-        if _meas is not None or _rec is not None:
-            print(f"production: measured="
-                  f"{_meas if _meas is not None else '-'} "
-                  f"recorded={_rec if _rec is not None else '-'}")
     # SM.67 C2: a silent dm (no holder -> alarm returned 1) surfaces as the
     # exit code AFTER the verdict is recorded; a clean round exits 0.
     if commit_fail:

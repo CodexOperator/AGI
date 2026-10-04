@@ -35,7 +35,7 @@ scopes: /sys/fs/cgroup/user.slice/user-<uid>.slice/user@<uid>.service/app.slice/
 | PPid = systemd, the tool call that started it is gone | an ORPHAN (a recursive grep over MAIN read 25.7 GB in D state for 4 h) |
 | a lone `pi` in its own `run-*.scope`, cwd a director worktree | a workflow STAGE — it outlives its runner unit and keeps billing its key |
 | a sampler / relaunch in a round worktree after the round stopped | it OUTLIVES the stop (ppid 1, appends per sample, no fd held) |
-| a seat's cgroup | per PROCESS (`/proc/<pid>/cgroup`): a heal respawn can land in `session-N.scope`, outside user@'s cap |
+| a post's cgroup | per PROCESS (`/proc/<pid>/cgroup`): a heal respawn can land in `session-N.scope`, outside user@'s cap |
 
 `pgrep -f <pattern>` matches the waiter's own argv and the claude processes' prompts: a loop on it never ends.
 Wait on a PID found by comm + cwd.

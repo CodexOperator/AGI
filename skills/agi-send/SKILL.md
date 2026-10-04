@@ -10,7 +10,7 @@ description: >
 # agi-send — comms is one verb per act
 
 Source of truth: `python3 extensions/agi/bin/send.py <verb> -h`. Every call carries `--from <post>` —
-identity can drop mid-seat (trap 25).
+identity can drop mid-post (trap 25).
 
 ## 1 · The acts
 **ALWAYS INBOX FORM until the send redesign lands** (owner 2026-09-27 04:3xZ; goal:g7.32.6):

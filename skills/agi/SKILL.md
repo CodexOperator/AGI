@@ -146,12 +146,12 @@ due (name your own successor below that line), exit 1 means rotate.
 Bare `agi` stays valid as the graph skill; these are the two rotation verbs
 enumerated for suggestion.
 
-### Entering prime state — the seating sequence (owner, 2026-09-20)
+### Entering prime state — the stand-up sequence (owner, 2026-09-20)
 
 A session that is told "assume the role of prime director" is NOT the Prime
 until the graph says so. Measured on local-town 2026-09-20 04:2x–05:0xZ
-(belam gen 3): the hand-seated shape — row cells written by script, a pin,
-a key, seats spawned — worked but left the Prime as a bg remote-control
+(belam gen 3): the hand-stood shape — row cells written by script, a pin,
+a key, posts spawned — worked but left the Prime as a bg remote-control
 session with no window, no rotation record and no ack, i.e. not something
 `heal.py`, `rotate.py alarms` or the next rotation can reason about. Owner's
 words, verbatim: *"rotate self into the prime slot properly. If you do that
@@ -171,9 +171,9 @@ git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then li
 # 2  the key: keys never cross boxes and no model mints one — rotate-self (step 6) and every stand-up key the row
 #    from config:key-authority key_template: on the row's OWN box (step 1's committed box cell = the witness) it is
 #    reminted, the old key retired UNSIGNED into key_history + ONE finding; a foreign box is refused + ONE finding
-# 3  the pin: the seat-stable meter pin on YOUR OWN transcript (never the newest .jsonl — that is another seat's)
+# 3  the pin: the post-stable meter pin on YOUR OWN transcript (never the newest .jsonl — that is another post's)
 rotate.py meter --post belam --pin .agi/sessions/belam.meter --session-log ~/.claude/projects/<slug>/<own-session-id>.jsonl
-# 4  the seats you were told to stand up, each from its own card, then pin each to its own transcript
+# 4  the posts you were told to stand up, each from its own card, then pin each to its own transcript
 rotate.py spawn --post <name> --tier director --prompt-file .agi/sessions/quorum/<name>.md
 # 5  crons.py apply (the node is the schedule; the box filter installs only this box's lines) · the HANDOFF card
 # 6  LAST — rotate self INTO the prime slot properly. This is what makes steps 1–3 real:
@@ -183,9 +183,9 @@ rotate.py spawn --post <name> --tier director --prompt-file .agi/sessions/quorum
 AGI_SEAT=belam AGI_POST=belam rotate.py rotate --force --stops "<where it stops, one paragraph>"
 ```
 
-Two things this sequence catches that a hand seating does not: a first
+Two things this sequence catches that a hand stand-up does not: a first
 `claude` launch in a folder on a fresh box throws THREE TUI dialogs (folder
-trust → bypass-permissions accept → renderer offer) and the seat sits on them
+trust → bypass-permissions accept → renderer offer) and the post sits on them
 silently — answer with `tmux send-keys -t agi-rc:<post> Down Enter` for the
 first two and `Escape` for the third (it does not interrupt the turn); and a
 box with no push credential blocks `prepare` on `unpushed commits` — that is

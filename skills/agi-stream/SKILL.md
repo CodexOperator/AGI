@@ -19,7 +19,7 @@ a delay in front of it; every doxxing surface removed). This skill carries only 
 ```
 Xvfb :2  1920x1200  PRIVATE display (locations.stream.xvfb; no window manager, no terminals, no mouse)
   └─ kiosk firefox (profile locations.stream.kiosk_profile — the snap reads only the home dir)
-       one page at a time:  graphweb :8765   extensions/agi/bin/graphweb.py serve --host 127.0.0.1 --port 8765  (3D graph + seats)
+       one page at a time:  graphweb :8765   extensions/agi/bin/graphweb.py serve --host 127.0.0.1 --port 8765  (3D graph + posts)
                             feed     :8766   locations.stream.feed  (council room + commits, every line masked)
 streamer-stub systemd user unit  →  x11grab :2  →  ring (out/ring, 2 s segments)  →  relay  →  Twitch
    .env: DISPLAY_SRC=:2 · X_KEY commented (Twitch only; the original is .env.pre-class) · YT_KEY empty

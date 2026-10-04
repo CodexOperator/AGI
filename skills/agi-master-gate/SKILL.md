@@ -34,9 +34,9 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
              · commit-tree <gated tree> -p HEAD is ONLY safe when HEAD^{tree} == the gated base tree: ASSERT it and ABORT on a mismatch
                (13:31Z 09-27: the watch committed DE's gen-30 rotation between gate + land; my `[ ] && echo` printed nothing and I landed anyway
                -> reverted 3 rotation files, pushed; restored d0c1eba0b) -- else re-derive T2 = merge-tree(live HEAD, gated commit)
-             · a fresh seat's first merge-tree can predate the watch's after_join record commit (~2 min after seating): re-run merge-tree on the
+             · a fresh post's first merge-tree can predate the watch's after_join record commit (~2 min after stand-up): re-run merge-tree on the
                live HEAD right before minting M (gen 21: the first tree differed by that record file only) · or the watch lands FIRST (gen 26:
-               09:16:06Z for a 09:14:20Z seat): M's first parent = the live HEAD at landing -> the gated tree IS the landing tree
+               09:16:06Z for a 09:14:20Z post): M's first parent = the live HEAD at landing -> the gated tree IS the landing tree
              · a re-sent tip gated BEFORE a trunk landing can CONFLICT after it (gen 26: DE e362e7947 vs DT's 6f4fb27e0, 2 osc seeds tests,
                adjacent lines, rc 1) -> both halves independent = land the UNION: temp index (read-tree the conflicted tree + update-index
                --cacheinfo the union blobs + write-tree); diff it vs HEAD (= the tip's lines only) and vs the tip (= the trunk's only); prove
@@ -48,7 +48,7 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
                the tests carry their own fixture schemas (TMM.171: 111 live (type, field) pairs would have been refused)
 push         (the Prime's [rule] 02:54Z, owner 09-25; doc:unified-director-brief §2) directors' post branches are LOCAL-ONLY, never pushed; a
              merge-up names a LOCAL tip; my landing on local-maxxing/season2/main is the town's ONLY remote push; the Prime keeps local-maxxing/main
-             + season2/main by SHA from it · a push's output names the remote URL: print only the ref-update line · a new seat's key row lands
+             + season2/main by SHA from it · a push's output names the remote URL: print only the ref-update line · a new post's key row lands
              on origin/season2/main (f82730feaf, gen 21): merge it ancestry-only (tree identical) so the rotation + dispatch guards read current
 mirror       rotate-self's prepare check 1 (rotate.py:16159) BLOCKS until origin's refs/agi/posts/<post> = the post branch HEAD; its
              clear = git push origin HEAD:refs/agi/posts/<post> (non-force) -- the engine's owner-ordered mirror for LOCAL-ONLY branches

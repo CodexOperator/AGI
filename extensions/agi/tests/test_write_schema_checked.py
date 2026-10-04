@@ -61,7 +61,6 @@ validation:
     goal_id: '^[GS]\\d+(\\.\\d+)*$'
     goal_kind: '^(long-term|perpetual|short-term|subgoal)$'
     status: '^(active|horizon|retired|phasing-out|complete)$'
-    title: '^[GS]\\d+(\\.\\d+)*: .+'
 ---
 
 # goal
@@ -210,7 +209,7 @@ def test_a_valid_list_set_still_succeeds(project):
 
 def test_a_valid_goal_retitle_is_one_verb(project):
     """goal:g7.33.10's own "done" bar: a valid goal re-title is ONE verb."""
-    out, err, rc = _set(project, "set title G1: Renamed sample goal")
+    out, err, rc = _set(project, 'set title "G1: Renamed sample goal"')
     assert rc == 0, (out, err)
     text = (project / "nodes" / "goal" / "g1.md").read_text()
     assert "Renamed sample goal" in text
@@ -275,24 +274,3 @@ def test_submit_on_a_schema_less_type_gates_nothing(project):
                  write.Edit(node_id="doc:d1", set_fm={"anything_at_all": "1"}),
                  actor="test")
     assert "anything_at_all" in (project / "nodes" / "doc" / "d1.md").read_text()
-
-
-# --------------------------------------------------------------------------
-# goal:g7.33.9.3 — title id-prefix format (write-path residue of g7.33.10)
-# --------------------------------------------------------------------------
-
-def test_goal_title_without_id_prefix_is_refused(project):
-    """Fifth measured probe of goal:g7.33.10, landed under goal:g7.33.9.3."""
-    before = (project / "nodes" / "goal" / "g1.md").read_text()
-    out, err, rc = _set(project, "set title nope")
-    assert rc == 2, (out, err)
-    assert "title" in err and "nope" in err
-    assert (project / "nodes" / "goal" / "g1.md").read_text() == before
-
-
-def test_goal_title_id_only_without_colon_text_is_refused(project):
-    before = (project / "nodes" / "goal" / "g1.md").read_text()
-    out, err, rc = _set(project, "set title G1")
-    assert rc == 2, (out, err)
-    assert "title" in err
-    assert (project / "nodes" / "goal" / "g1.md").read_text() == before

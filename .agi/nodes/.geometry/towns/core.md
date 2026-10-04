@@ -15,7 +15,7 @@ tags:
   - tracker
   - geometry
   - town
-thought_session: belam-lm-theirs-board-a-20260930
+thought_session: belam-status-hygiene-sot-2026-09-22
 title: TOTAL GOAL BUNDLE ASSIGNMENT TRACKER — town:core (TEMP until g7.34.3)
 town: core
 ---
@@ -24,9 +24,6 @@ town: core
 > **TEMP until `goal:g7.34.3`.** Path `.agi/nodes/.geometry/towns/core.md` =
 > **TOTAL GOAL BUNDLE ASSIGNMENT TRACKER** for `town:core`.
 > Stand-in until Pass-1 raw `.self` exists — not the lasting geometry-town schema.
->
-> **Board A (OWNER GO 2026-09-30):** flattened to LM flat ASSIGNMENT shape
-> (one table; no stop-line/parked fence). CORE completion stamps preserved.
 
 ## WHAT THIS SURFACE IS
 
@@ -53,43 +50,40 @@ YES this file:  tops / major splits only (leaves shift — keep them on goal nod
 | g7.25.1–.3 | — | complete | adapter surface · config row · mirror tests |
 | g7.26 | unassigned | horizon | Post briefs self-sufficient |
 | g7.27 | unassigned | horizon | Templates sole harness arg builders |
-| g7.28 | helper | complete | Dispatch persistent mode |
+| g7.28 | helper | active | Dispatch persistent mode |
 | g7.29 | unassigned | horizon | Shrink rotate.py orchestration |
 | g7.30 | unassigned | horizon | Land grok-bot adapter + post template |
 | g7.31 | belam | active | Pane = seat spine (umbrella) |
 | g7.31.1 | belam | active | Measured CLI + durable pane hold |
-| g7.31.2 | helper | complete | Pane anchor ↔ post/pin/formation |
-| g7.31.3 | belam | complete | Five unified engine routes |
-| g7.31.4 | helper | complete | Native handbacks SSH-or-not |
-| g7.31.5 | helper | complete | Graph↔harness-doc sync |
+| g7.31.2 | helper | active | Pane anchor ↔ post/pin/formation |
+| g7.31.3 | belam | active | Five unified engine routes |
+| g7.31.4 | helper | active | Native handbacks SSH-or-not |
+| g7.31.5 | helper | active | Graph↔harness-doc sync |
 | g7.32 | helper | active | Session ingest + messaging + pane methods + send router |
-| g7.32.1–.4 | helper | complete | ingest · magic-pane · pane methods · send router |
-| g7.33 | unassigned | horizon | ENGINE FIXES — nested G7.33.* live on nodes; board row horizon until owner re-opens assign |
+| g7.33 | unassigned | horizon | ENGINE FIXES — parked; do not assign yet |
 | g7.34 | unassigned | horizon | geometry-town + trajectory spine — parked |
-| g7.34.1–.5 | unassigned | horizon | minted; no impl yet |
 
 ```
 town:core bundle                         seat          status
 ────────────────────────────────────────────────────────────────
 g7.25  harness adapter                   unassigned    horizon
   └─ .1–.3                               —             complete
-g7.26–.27/.29–.30                        unassigned    horizon
-g7.28  dispatch persistent ★             helper        complete
+g7.26–.27/.29–.30  (not g7.28)           unassigned    horizon
+g7.28  dispatch persistent ★             helper        active
 g7.31  pane = seat spine ★               belam         active
   ├─ .1  measured CLI + durable hold ★   belam         active
-  ├─ .2  pane anchor ★                   helper        complete
-  ├─ .3  five engine routes ★            belam         complete
-  ├─ .4  native handbacks ★              helper        complete
-  └─ .5  graph↔harness sync ★            helper        complete
+  ├─ .2  pane anchor ★                   helper        active
+  ├─ .3  five engine routes ★            belam         active
+  ├─ .4  native handbacks ★              helper        active
+  └─ .5  graph↔harness sync ★            helper        active
 g7.32  ingest/messaging/pane/send ★      helper        active
-  └─ .1–.4                               helper        complete
-g7.33  engine fixes                      unassigned    horizon
-g7.34  geometry + trajectory             unassigned    horizon
+  └─ .1–.4  (same seat/status) ★         helper        active
+g7.33  engine fixes (parked)             unassigned    horizon
+g7.34  geometry + trajectory (parked)    unassigned    horizon
   └─ .1–.5  (minted; no impl yet)        unassigned    horizon
 ```
-**vocab:** `active` = seat owns the top · `horizon` = free/claimable · `complete` = done
+**vocab:** `active` = seat owns the top · `horizon` = free/claimable · `complete` = done  
 **seat:** `belam` | `helper` | `unassigned` — coarse assignment only (not mid-batch who)
-**focus (thin callout, not a fence):** deepen `g7.31.1*` + `g7.32` umbrella; do not treat horizon rows as claim-blocked — claim order still REOPENED > smallest leaf under a live hot top.
 
 ## LIVE ACTIVITY → GRAPH (not here)
 
@@ -120,10 +114,6 @@ talk    Belam? NEVER mid-batch (exposed keys / cred leak ONLY)
 - Ops bundle / spine diagrams → `town:core`
 - Director CLAIM/DONE + loop spine → `doc:director-grok-internals`
 - Unified director role → `doc:unified-director-brief`
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Board A flatten 2026-09-30 OWNER GO: LM flat ASSIGNMENT shape; CORE stamps kept (g7.28/.31.2/.31.3/.31.4/.31.5/.32.1-.4 complete; g7.31.1* + g7.31/g7.32 umbrellas active). Dropped stop-line/parked fence.
+belam-status-hygiene-sot-2026-09-22: helper lanes g7.28/.31.2/.4/.5/g7.32 → helper/active matching open goal kids; belam keeps .1/.3
 <!-- THOUGHT:END -->
-
-## Agent Notes
-Board A flatten 2026-09-30: LM flat assignment; CORE completion stamps preserved.

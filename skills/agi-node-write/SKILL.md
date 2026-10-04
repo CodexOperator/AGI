@@ -21,7 +21,6 @@ python3 extensions/agi/bin/write.py create <type> <slug> --parent <id> [--parent
 - ONE single-quoted script; units joined by ` && `; a literal verb-led `&&` in prose = `\&&`.
 - `read body N:M` / `read payload N:M` — the range is REQUIRED. Read in pieces; never cat a big node.
 - `replace body N:M <file>` is STANDALONE: never in one script with `note`, `thought`, `body_patch`.
-- `replace body <NAME> <file>` (goal:g7.33.10): NAME = the ONE markdown table first-cell match; missing/ambiguous refuses by name (never by guessing line numbers).
 - `sub <old> => <new>` is literal. `--dry-run` shows the edit and writes nothing.
 - `set` is schema-gated (goal:g7.33.10): an invented field, an out-of-regex value, a raw string into a list field → refused.
 - `--no-spawn-gate` / `--no-evidence-gate` = NEVER: it stamps the node unreviewed.

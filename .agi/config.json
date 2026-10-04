@@ -48,59 +48,13 @@
     "pi": {
       "adapter": "pi",
       "bin": "~/.npm-global/bin/pi",
-      "forward_env": [
-        "TYPESAFE_KEY",
-        "TYPESAFE_KEY2",
-        "TYPESAFE_API_KEY"
-      ],
+      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"],
       "rows": [
-        {
-          "name": "free",
-          "default": true,
-          "zero_usd": true,
-          "provider": "openrouter",
-          "thinking": "medium",
-          "models": {
-            "kid": "stealth/space-bunny-alpha",
-            "parent": "stealth/space-bunny-alpha"
-          },
-          "allowed_extra": [
-            "stealth/space-bunny-alpha"
-          ]
-        },
-        {
-          "name": "paid",
-          "provider": "openrouter",
-          "thinking": "medium",
-          "models": {
-            "kid": "deepseek/deepseek-v4.1-flash",
-            "parent": "deepseek/deepseek-v4.1-flash"
-          },
-          "allowed_extra": [
-            "deepseek/deepseek-v4.1-flash",
-            "~z-ai/glm-flash-latest",
-            "anthropic/claude-opus-5"
-          ]
-        },
-        {
-          "name": "local",
-          "zero_usd": true,
-          "provider": "local-town",
-          "credential": "none",
-          "max_live": 1,
-          "models": {
-            "kid": "OrcaBonsai-27B-C2",
-            "parent": "OrcaBonsai-27B-C2"
-          },
-          "allowed_extra": [
-            "OrcaBonsai-27B-C2"
-          ]
-        }
+        {"name": "free", "default": true, "zero_usd": true, "provider": "openrouter", "thinking": "medium", "models": {"kid": "stealth/space-bunny-alpha", "parent": "stealth/space-bunny-alpha"}, "allowed_extra": ["stealth/space-bunny-alpha"]},
+        {"name": "paid", "provider": "openrouter", "thinking": "medium", "models": {"kid": "deepseek/deepseek-v4.1-flash", "parent": "deepseek/deepseek-v4.1-flash"}, "allowed_extra": ["deepseek/deepseek-v4.1-flash", "~z-ai/glm-flash-latest", "anthropic/claude-opus-5"]},
+        {"name": "local", "zero_usd": true, "provider": "local-town", "credential": "none", "max_live": 1, "models": {"kid": "OrcaBonsai-27B-C2", "parent": "OrcaBonsai-27B-C2"}, "allowed_extra": ["OrcaBonsai-27B-C2"]}
       ],
-      "aliases": {
-        "pi-free": "free",
-        "pi-local": "local"
-      }
+      "aliases": {"pi-free": "free", "pi-local": "local"}
     },
     "claude-code": {
       "adapter": "claude_code",
@@ -150,12 +104,12 @@
   "spawn": {
     "harness": "pi-free",
     "parallel": 1,
-    "max_live": 20,
+    "max_live": 30,
     "credential": {
       "provider": "openrouter",
-      "per_spawn_limit_usd": 0.01,
-      "ttl_minutes": 180,
-      "workspace_id": "7e12bcd2-321e-51ec-b3f5-80efeb4fdaf0"
+      "per_spawn_limit_usd": 1.0,
+      "ttl_minutes": 300,
+      "workspace_id": "72750376-2d45-452e-8273-197fdaabae95"
     },
     "parent_max_kids": 10,
     "memory_max": "2G",
@@ -208,36 +162,12 @@
   },
   "mint": {
     "storage_categories": {
-      "engine_code": {
-        "location": "source_root",
-        "prefix": "extensions/agi/bin",
-        "label": "engine code"
-      },
-      "tests": {
-        "location": "source_root",
-        "prefix": "extensions/agi/tests",
-        "label": "tests"
-      },
-      "skills": {
-        "location": "source_root",
-        "prefix": "skills",
-        "label": "skills"
-      },
-      "geometry": {
-        "location": "graph_root",
-        "prefix": "nodes/.geometry",
-        "label": ".geometry config"
-      },
-      "schemas": {
-        "location": "graph_root",
-        "prefix": "context/schemas",
-        "label": "schemas"
-      },
-      "context_templates": {
-        "location": "graph_root",
-        "prefix": "context",
-        "label": "context templates"
-      }
+      "engine_code": {"location": "source_root", "prefix": "extensions/agi/bin", "label": "engine code"},
+      "tests": {"location": "source_root", "prefix": "extensions/agi/tests", "label": "tests"},
+      "skills": {"location": "source_root", "prefix": "skills", "label": "skills"},
+      "geometry": {"location": "graph_root", "prefix": "nodes/.geometry", "label": ".geometry config"},
+      "schemas": {"location": "graph_root", "prefix": "context/schemas", "label": "schemas"},
+      "context_templates": {"location": "graph_root", "prefix": "context", "label": "context templates"}
     }
   },
   "box": {
@@ -290,21 +220,14 @@
     "recovery_psi_max_pct": 40,
     "recovery_defer_alert_after": 3,
     "term_grace_s": 15,
-    "chain_deadline_s": 20,
-    "worktree_archive_per_pass": 25,
-    "sweep_mem_psi_max_pct": 40,
-    "sweep_io_psi_max_pct": 40,
-    "sweep_reclaim_every": 50,
-    "sweep_reclaim_max_mib": 512
+    "chain_deadline_s": 20, "worktree_archive_per_pass": 25, "sweep_mem_psi_max_pct": 40, "sweep_io_psi_max_pct": 40, "sweep_reclaim_every": 50, "sweep_reclaim_max_mib": 512
   },
   "logs": {
     "cap_mb": 16,
     "rotations": 3,
     "mode": "copytruncate",
     "alerts_file": "memory-alarm-alerts.log",
-    "also_manage": [
-      "agi-reaper-agi-2f118e6f.log"
-    ],
+    "also_manage": ["agi-reaper-agi-2f118e6f.log"],
     "non_append": "skip"
   },
   "write": {
@@ -320,9 +243,7 @@
   "paths": {
     "core": {
       "worktrees_root": ".agi/worktrees",
-      "suite_roots": [
-        ".agi/context"
-      ],
+      "suite_roots": [".agi/context"],
       "foreign_refusal_memo": ".agi/sessions/foreign_refusals.tsv"
     },
     "boxkit": {
@@ -466,26 +387,13 @@
       "model_slot_min_avail_gib": 3,
       "lowpeak_head_rows": 64,
       "osc_band_row_contract": {
-        "fields": [
-          "cell",
-          "budget",
-          "arm",
-          "seed",
-          "n",
-          "arm_is_stochastic",
-          "widths",
-          "agree",
-          "kl"
-        ],
+        "fields": ["cell", "budget", "arm", "seed", "n", "arm_is_stochastic", "widths", "agree", "kl"],
         "text": "ROW CONTRACT (p3 reads this, cite the cell, not a script): one row per (cell, arm, seed) in cells.jsonl, carrying every field in `fields`. A STOCHASTIC arm (random) is one row per seed and its group must hold >= 3 DISTINCT seeds -- a group whose rows repeat one seed is n=1 replication-by-duplication and any call over it must be REFUSED, not returned. A DETERMINISTIC arm (uniform, key_only, inverse_energy, energy) is emitted as ONE row with seed 0, n 1, arm_is_stochastic false. A reader groups by (budget, arm) and counts DISTINCT seeds; it never counts rows. Two calls exist over the same rows and are NEVER merged into one inside? column: (a) MARGIN, key_only - uniform (sign-corrected per metric) against the FULL min-max range of >= 3 distinct random seeds -- the ADOPTED, pre-registered rule, osc_band_call2_a00-cc7b25cc.py (director-thought gen 32 per TMM.198: this text said half_range, which the rule never used); (b) RANGE, min(random) <= key_only <= max(random) -- the key_only value against the random peer. They are different denominators and they disagree; the decide layer must name the one it applies."
       }
     },
     "memcap": {
       "probe_cache_dir_name": "agi-memcap",
       "probe_cache_file": "probe"
-    },
-    "dm": {
-      "sync_interval_min": 3
     }
   }
 }

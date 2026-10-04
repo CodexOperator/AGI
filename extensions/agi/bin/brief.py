@@ -1476,9 +1476,8 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
     segs.append(
         f"YOUR PRODUCTION-LINE CEILING: {ceiling} lines.{ceiling_origin} "
         f"Your production "
-        f"lines are measured with `git diff --numstat` in ENGINE UNITS: "
-        f"source-suffix lines; data files never count "
-        f"(never `tests/` paths either). Checkpoint before "
+        f"lines are measured with `git diff --numstat` over the production "
+        f"paths you were given (test files excluded). Checkpoint before "
         f"`cli.py done`: measure those lines. If you are "
         f"above 2x the ceiling (above {2 * ceiling} lines), STOP and write a "
         f"re-brief request into your experiment node -- what you have done, "

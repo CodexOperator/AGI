@@ -11,11 +11,6 @@ fields:
   confidence: {type: float}
   origin: {type: str}       # build-site (61/105) -- generated, do not hand-edit
   tags: {type: list}
-  probes: {type: list}        # additive (hypothesis:l4-cli-done-for-tier-parent-...): the
-                              # parent-run negative probes, one per claim conjunct of the
-                              # target hypothesis; each = {conjunct:int, class, cmd,
-                              # expected, observed, result}. Recorded by cli.py done like
-                              # evidence_runs (same record, same commit).
 validation:
   required: [id, type, mint_id, title, testable_claim]
   types:
@@ -55,7 +50,7 @@ dispatch (grid history needs a real commit). Prose, so not in `validation:`; a m
 ## FALSIFIERS     what would show the claim false
 ## TESTS          the committed tests + their neighbourhood
 ## FILE SCOPE     the files the round may touch, nothing else
-## CEILING        kids · 10-12 ENGINE lines per conjunct (source-suffix lines; data files never count) · pi parents · a USD cap
+## CEILING        kids · 10-12 production lines per conjunct · pi parents · a USD cap
                  measure the CEILING with a TWO-operand numstat, <cut>..<tip before the paste commit>, labelled so (a commit never pastes a numstat that includes itself) · every cite names a function, heading or cell key -- a line number only where the claim IS the line (TMM.328 (c))
 ```
 

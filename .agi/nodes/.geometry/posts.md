@@ -3,7 +3,7 @@ id: config:posts
 mint_id: 3e88873e3c204c5088f6ab81322a26de
 type: config
 parents:
-- goal:g7
+  - goal:g7
 default_box: core-town
 edited_by: sanctuary-master
 locations: {}

@@ -37,11 +37,6 @@ from types import ModuleType
 #: when it is selected rather than when it is first spawned through.
 REQUIRED = ("build_command", "child_env", "is_alive", "restart", "needs_credential")
 
-#: Adapters MAY define these. A caller feature-detects via `pane_interface`
-#: instead of branching on a harness name; absence means a non-pane harness
-#: path, not an error (goal:g7.32.3).
-OPTIONAL_PANE = ("pane_attach", "pane_send", "pane_read")
-
 
 def scrubbed_base(explicit: dict | None = None) -> dict[str, str]:
     """The base env a RESTART child is built from.
@@ -74,19 +69,6 @@ def scrubbed_base(explicit: dict | None = None) -> dict[str, str]:
 
 class AdapterError(RuntimeError):
     """Raised for an adapter that is missing, unimportable or incomplete."""
-
-
-class PaneNotHeld(AdapterError):
-    """An optional pane method ran with no held pane target.
-
-    A NAMED refusal, so a missing hold fails closed instead of hanging on a
-    dead tmux target (goal:g7.32.3).
-    """
-
-
-def pane_interface(mod) -> tuple[str, ...]:
-    """The optional pane methods `mod` defines, in OPTIONAL_PANE order."""
-    return tuple(fn for fn in OPTIONAL_PANE if callable(getattr(mod, fn, None)))
 
 
 def resolve_bin(harness: dict, env_var: str, default: str) -> str:

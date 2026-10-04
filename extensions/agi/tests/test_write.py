@@ -518,10 +518,10 @@ def test_a_rejected_create_cleans_up_the_file_it_made(project, tmp_path):
 def test_create_body_file_lands_real_prose_not_the_placeholder(project, tmp_path):
     """CLAIM (G14.14.1b): `create --body-file PATH` reads the file in the verb
     layer and threads it to `node_writer.write_node`'s existing `body` kwarg,
-    so the new node carries the caller's own prose. `node_writer` prepends
-    BODY:BEGIN (repair anchor) + the canonical `# <id>` heading to ANY
-    supplied body; the byte-identical claim is the prose AFTER that heading;
-    the placeholder must be absent. Residue (d) of G14.14.1(b)."""
+    so the new node carries the caller's own prose. `node_writer` prepends its
+    canonical `# <id>` heading to ANY supplied body (and only a `body is None`
+    call gets the `BODY:BEGIN` marker + prompt), so the byte-identical claim is
+    the prose AFTER that heading; the placeholder must be absent."""
     _schemas(project)
     prose = tmp_path / "prose.md"
     prose.write_text("The claim, stated at length.\n\n"
@@ -533,9 +533,8 @@ def test_create_body_file_lands_real_prose_not_the_placeholder(project, tmp_path
     assert rc == 0, (out, err)
     text = (project / "nodes" / "hypothesis" / "with-prose.md").read_text()
     _fm, body = node_writer.split_frontmatter(text)
-    assert body == (node_writer.BODY_BEGIN + "\n# hypothesis:with-prose\n\n"
-                    + prose.read_text()), (
-        "the file's prose did not land verbatim (with BODY:BEGIN repair anchor)")
+    assert body == "\n# hypothesis:with-prose\n\n" + prose.read_text(), (
+        "the file's prose did not land verbatim")
     assert "What is the testable claim?" not in body, (
         "the BODY_PROMPTS placeholder leaked into a --body-file body")
 

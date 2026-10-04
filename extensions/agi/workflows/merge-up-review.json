@@ -151,7 +151,8 @@
           "template_max"
         ]
       },
-      "timeout_s": 1500
+      "timeout_s": 1800,
+      "load_factor": 0.5
     },
     {
       "label": "verify",
@@ -256,7 +257,8 @@
           "template_max"
         ]
       },
-      "timeout_s": 1500
+      "timeout_s": 1800,
+      "load_factor": 0.5
     }
   ],
   "type": "merge-up-review"

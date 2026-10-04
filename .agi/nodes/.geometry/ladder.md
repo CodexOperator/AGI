@@ -14,12 +14,13 @@ caps_apply_from_season: 2
 caps_vision_scope: town
 captive_rotate_masters: false
 captive_rotate_ratio: 0.85
+capture_chain_log: capture-chain.log
 card_capture_minutes: 10
 current_loop: 5
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.47
-edited_by: director-sanctuary
+edited_by: belam
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -37,10 +38,10 @@ roles:
   - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-sonnet-5-5", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "liaison", "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": ""}
-  - {"tier": 1, "role": "parent", "harness": "pi", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
-  - {"tier": 0, "role": "director", "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "", "settings": ""}
-  - {"tier": 0, "role": "parent", "harness": "pi", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
-  - {"tier": 0, "role": "kid", "harness": "pi", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
+  - {"tier": 1, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
+  - {"tier": 0, "role": "director", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
+  - {"tier": 0, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
+  - {"tier": 0, "role": "kid", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
 season: 1
 season_names:
   1: genesis
@@ -54,7 +55,7 @@ tags:
   - geometry
   - ladder
   - structural
-thought_session: belam-S1-L4-VII
+thought_session: belam-S2-L5-XI
 tiers:
   - {"tier": 0, "plan_types": ["subgoal", "short-term goal"], "report_type": "outcome", "judged_against": "its (sub)goal", "lens": "the long-term goal above", "cadence": "the loop (weekly)"}
   - {"tier": 1, "plan_types": ["long-term goal"], "report_type": "bigger_outcome", "judged_against": "its LT goal", "lens": "the vision above", "cadence": "mid-season"}

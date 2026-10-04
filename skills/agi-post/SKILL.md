@@ -1,7 +1,7 @@
 ---
 name: agi-post
 description: >
-  Stand a post (seat) up or take it down on this box without heal fighting you: the row cells that decide
+  Stand a post up or take it down on this box without heal fighting you: the row cells that decide
   crash-respawn (recover, pid), the one sanctioned spawn command and the row fields it reads, the card a new
   post's brief is built from, re-homing a row from another box, keys and whois, and a hand restart after a
   reboot. Use whenever a post is added, re-homed, stood up, taken down, or restarted by hand (rotate.py stand-up).

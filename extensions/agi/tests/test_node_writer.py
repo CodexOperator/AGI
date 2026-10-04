@@ -228,30 +228,15 @@ def test_the_scaffold_marks_where_the_body_begins(project):
     assert "scaffold_hash:" in parts[1]
 
 
-def test_a_caller_supplied_body_gets_the_repair_anchor(project):
-    """goal:g7.33.1 (d) / l3-done-broken-frontmatter: an explicit body still
-    gets BODY:BEGIN so cli.py done can repair a mangled frontmatter. The
-    caller's prose follows the heading; the marker is first after `---`."""
+def test_a_caller_supplied_body_gets_no_marker(project):
+    """The marker is a scaffold concept, not a body mandate: a caller that passes
+    an explicit body (e.g. `cli.py done`'s verdict-fallback path) keeps its body
+    exactly as supplied -- no marker prepended."""
     res = nw.write_node(project, "experiment", "explicit", ["hypothesis:h1"],
                         body="## Verdict\n\nproved\n")
     assert res.written
     text = res.path.read_text()
-    parts = text.split("---\n", 2)
-    assert len(parts) == 3
-    body = parts[2]
-    assert body.startswith(nw.BODY_BEGIN + "\n"), body[:80]
-    assert "## Verdict" in body
-
-
-def test_caller_body_already_carrying_marker_is_not_doubled(project):
-    """Idempotent: a body that already opens with BODY:BEGIN is kept verbatim
-    (no second marker, no forced heading re-wrap)."""
-    supplied = nw.BODY_BEGIN + "\n# experiment:premarked\n\n## Verdict\n\nok\n"
-    res = nw.write_node(project, "experiment", "premarked", ["hypothesis:h1"],
-                        body=supplied)
-    assert res.written
-    text = res.path.read_text()
-    assert text.count(nw.BODY_BEGIN) == 1, text
+    assert nw.BODY_BEGIN not in text
     assert "## Verdict" in text
 
 

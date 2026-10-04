@@ -7,11 +7,6 @@ cells are true of; a row without the cell belongs to the graph's default box.
 `AGI_BOX` in the resolved env names THIS box (box-local by construction); unset
 falls back to the `default_box` cell on the posts node.
 
-`box.*` cells (root, logs_dir, tmux_session, user) read from committed
-`.agi/config.json`, then overlay untracked `.agi/config.local.json` when
-present (local wins per key). Do NOT write this box into shared config —
-see hypothesis:a00-d089cf46-707110 / goal:g7.33.14.
-
 This is a DIFFERENT `box` from `rotate.py`'s `_box_fact()` (a machine load
 snapshot `{loadavg, cores}` stored under `rec["box"]` in rotation records).
 Same word, unrelated meanings, different places — do not merge them.
@@ -83,81 +78,12 @@ def require_box_cells(root: Path) -> tuple[str, ...]:
     return names
 
 
-def _git_common_agi(root: Path) -> Path | None:
-    """The main checkout's `.agi/` via git common-dir, or None.
-
-    Worktree checkouts each carry their own `.agi/config.json` working copy;
-    the box-LOCAL untracked override lives once on the machine (main
-    checkout) and must still win when a seat/kid reads cells from its
-    worktree graph. Mirror of envfile's "worktree resolves main `.env`".
-    """
-    import subprocess
-    try:
-        out = subprocess.check_output(
-            ["git", "-C", str(root), "rev-parse", "--git-common-dir"],
-            text=True, stderr=subprocess.DEVNULL,
-        ).strip()
-    except (OSError, subprocess.CalledProcessError):
-        return None
-    if not out:
-        return None
-    common = Path(out) if out.startswith("/") else (Path(root) / out)
-    common = common.resolve()
-    repo = common.parent if common.name == ".git" else common
-    agi = repo / ".agi"
-    return agi if agi.is_dir() else None
-
-
-def local_config_path(root: Path) -> Path | None:
-    """`config.local.json` beside this graph's config, else the main checkout's.
-
-    Untracked, box-local VALUE (gitignore). Authority for `box.*` cells on
-    THIS machine — never write this box's paths into the shared
-    `config.json` (hypothesis:a00-d089cf46-707110 / goal:g7.33.14).
-    """
-    gr = graph_root(root)
-    here = gr / "config.local.json"
-    if here.is_file():
-        return here
-    main_agi = _git_common_agi(gr)
-    if main_agi is None:
-        return None
-    alt = main_agi / "config.local.json"
-    if alt.is_file() and alt.resolve() != here.resolve():
-        return alt
-    return None
-
-
-def _read_json_box(path: Path) -> dict:
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except Exception:  # noqa: BLE001 -- absent/unreadable: no cells
-        return {}
-    box = data.get("box") if isinstance(data, dict) else None
-    return dict(box) if isinstance(box, dict) else {}
-
-
 def _box(root: Path) -> dict:
-    """Committed `box` cells, overlaid by box-local `config.local.json` (local wins).
-
-    Shared `config.json` may keep a foreign reference box; THIS box's real
-    root/logs/user live in the untracked local file so unify._real_repos on
-    every other machine is not handed nonsense paths.
-    """
-    gr = graph_root(root)
-    committed = _read_json_box(gr / "config.json")
-    local_path = local_config_path(root)
-    if local_path is None:
-        return committed
-    local = _read_json_box(local_path)
-    if not local:
-        return committed
-    merged = dict(committed)
-    for k, v in local.items():
-        if v is None:
-            continue
-        merged[k] = v
-    return merged
+    try:
+        data = json.loads((graph_root(root) / "config.json").read_text(encoding="utf-8"))
+        return data.get("box") or {}
+    except Exception:  # noqa: BLE001 -- absent/unreadable config: no cells
+        return {}
 
 
 def box_cell_names(root: Path) -> tuple[str, ...]:
@@ -172,9 +98,8 @@ def box_cells(root: Path) -> dict:
 
 
 def allow_paths(root: Path) -> list[str]:
-    """The declaring config (+ local overlay) plus every `box.allow` entry."""
-    base = ["config.json", "config.local.json"]
-    return base + [str(x) for x in (_box(root).get("allow") or [])]
+    """The declaring config plus every `box.allow` entry, from the cells."""
+    return ["config.json"] + [str(x) for x in (_box(root).get("allow") or [])]
 
 
 def scan_prefixes(root: Path) -> list[str]:

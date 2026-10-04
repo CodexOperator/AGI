@@ -67,9 +67,7 @@ import geometry_config  # noqa: E402
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver, shared with heal.py's _watch_log (clause (3))
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
-import boxes  # noqa: E402
-import dm_engine  # noqa: E402 -- g7.32.6 production façade -- the ONE box-membership guard (hyp:l4-remote-thought-town)
-import send_transport  # noqa: E402 -- rotation adapter, outside the thin router
+import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 from graph_core.persistence import frontmatter as _fm  # noqa: E402
 
 
@@ -656,13 +654,19 @@ def _commit_push_seat_row(root: Path, row: dict, seat: str,
     and pushes that branch via its push leg. Best-effort, never raises,
     never fails the mint: a refused commit or push prints one note line to
     stderr and the key stays minted."""
+    try:
+        import rotate  # local: same dir (send.py pattern, no import cycle)
+    except Exception as exc:  # noqa: BLE001
+        print(f"note: {origin} row commit/push skipped ({exc})",
+              file=sys.stderr)
+        return
     def _int(v):
         try:
             return int(v or 0)
         except (TypeError, ValueError):
             return 0
     try:
-        out = send_transport.commit_spawn_row(
+        out = rotate._commit_spawn_row(
             root, seat=seat, generation=_int(row.get("generation")),
             session_id=str(row.get("session_id") or ""),
             window=str(row.get("window") or ""),
@@ -765,9 +769,10 @@ def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
     listed = ", ".join(keyed_names)
     note = f"keygen --all-live: keyed {listed}"
     try:
+        import rotate  # local: same dir (send.py pattern, no import cycle)
         import tempfile
         main_root = _shared_graph_root(root)
-        top = send_transport.git_toplevel(main_root)
+        top = rotate._git_toplevel(main_root)
         if top is None:
             _l = f"note: {note} — no git repo; rows stay uncommitted"
             print(_l, file=sys.stderr)
@@ -829,7 +834,7 @@ def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
         subprocess.run(["git", "-C", str(top), "update-index", "--add",
                         "--cacheinfo", f"100644,{blob_sha},{rel}"],
                        capture_output=True, text=True, timeout=10)
-        push = send_transport.push_season_branch(root)
+        push = rotate._push_season_branch(root)
         _l = f"note: {note}; {push}"
         print(_l, file=sys.stderr)
         # g15.26 claim (b): a successful all-live push means origin now
@@ -862,11 +867,11 @@ def _run_pending_swap_completion(root: Path, push: str) -> None:
     byte-identical. Best-effort; never raises."""
     if not str(push or "").startswith("push: OK"):
         return
+    import rotate  # local (send.py pattern)
     for _row in _seats_rows(_graph_root(root)):
         _live_name = str(_row.get("name") or "")
         if _live_name and _live_row(_row):
-            send_transport.finish_pending_swap_on_push(
-                root, _live_name, push)
+            rotate._finish_pending_swap_on_push(root, _live_name, push)
 
 
 def _all_live_origin_sync_line(root: Path) -> str:
@@ -880,8 +885,9 @@ def _all_live_origin_sync_line(root: Path) -> str:
     Any other outcome yields a non-``push: OK`` line so the walk stays a
     strict NO-OP (a deferred swap stays deferred until origin truly holds the
     committed successor row). Never raises."""
+    import rotate  # local (send.py pattern)
     main_root = _shared_graph_root(root)
-    top = send_transport.git_toplevel(main_root)
+    top = rotate._git_toplevel(main_root)
     if top is None:
         return ("push: SKIPPED -- no git repo (gitless fixture/root); "
                 "nothing to complete")
@@ -1628,8 +1634,9 @@ def _engine_post(root: Path, to: str) -> bool:
 def _row_is_quiet(root: Path, to: str) -> bool:
     """True when the row's `settings` carries the `quiet` token (a list or
     JSON object). A quiet row still WRITES the dm but types no nudge."""
+    import rotate  # noqa: PLC0415  (same bin dir, already imported many paths)
     row = _seat_row_by_name(_locally_loaded_rows(root), to)
-    s = send_transport.normalize_settings((row or {}).get("settings"))
+    s = rotate._normalize_settings((row or {}).get("settings"))
     return bool(s and s.get("quiet"))
 
 
@@ -1655,8 +1662,9 @@ def _row_is_quiet_system(root: Path, to: str) -> bool:
     """True when the row's `settings` carries the `quiet-system` token: the
     row keeps direct post dm nudges but receives NONE from a service-class
     sender. `quiet` is still full silence; no token is today's behaviour."""
+    import rotate  # noqa: PLC0415
     row = _seat_row_by_name(_locally_loaded_rows(root), to)
-    s = send_transport.normalize_settings((row or {}).get("settings"))
+    s = rotate._normalize_settings((row or {}).get("settings"))
     return bool(s and s.get("quiet_system"))
 
 
@@ -2543,7 +2551,8 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     claimed_ref = window_ref
     pid = (row or {}).get("pid")
     if tmux_session is None:
-        tmux_session = send_transport.default_tmux_session()
+        import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
+        tmux_session = rotate.DEFAULT_TMUX_SESSION
     stale_ref: str | None = None
     if window_ref and str(window_ref).startswith("@"):
         # CLAUSE (3): an @id is only a live target while it is a CURRENT
@@ -4390,9 +4399,6 @@ def send_dm(croot: Path, me: str, other: str, text: str,
         raise SystemExit(1)
     a, b, _ = _dm_pair(me, other)
     path = _dm_path(croot, me, other)
-    # g7.32.6.6/7: refuse inbox-shaped paths by name on the pairwise route
-    import dm_no_inbox
-    dm_no_inbox.assert_allowed_dm_path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     root = locations.find_project_root(croot) or croot
     ts, from_id = _now(), _detect_sender(sender)
@@ -5896,141 +5902,11 @@ def main(argv: list[str] | None = None) -> int:
                              "through evaluate_veto -- the wire that gives "
                              "the rings m-of-n veto gate a real caller")
 
-    # `pane` is the PRODUCTION caller of adapters/magic_pane.py
-    # (goal:g7.32.2.1.2): the routing decision is magic_pane.route()'s, not
-    # this file's.
-    p_pane = sub.add_parser("pane", parents=[common],
-                            help="deliver one message through the magic pane")
-    p_pane.add_argument("pane_args", nargs="*", help="SOURCE TARGET TEXT...")
-
-    # `dm-plan` / `dm-read-plan` / `dm-sync` are the PRODUCTION callers of
-    # dm_engine (goal:g7.32.6.7–.9): compose post-branch send/read/sync plans
-    # without writing sessions/inbox. Full write.py mint cutover waits on
-    # goal:g4.18.1 (director-engine).
-    p_dm_plan = sub.add_parser("dm-plan", parents=[common],
-                               help="plan a post-branch dm send (dm_engine)")
-    p_dm_plan.add_argument("--to", required=True, help="addressee post name")
-    p_dm_plan.add_argument("--row-json", required=True,
-                           help="addressee post row as JSON (name+remote_head|town)")
-    p_dm_plan.add_argument("dm_plan_text", nargs="*", help="message body")
-
-    p_dm_read = sub.add_parser("dm-read-plan", parents=[common],
-                               help="plan a read=true dm version to sender remote")
-    p_dm_read.add_argument("--sender-json", required=True,
-                           help="sender post row as JSON")
-    p_dm_read.add_argument("--addressee", required=True,
-                           help="reader / original addressee name")
-    p_dm_read.add_argument("--body", default="", help="optional body")
-
-    p_dm_sync = sub.add_parser("dm-sync", parents=[common],
-                               help="per-box dm sync tick (plans; --dry-plan)")
-    p_dm_sync.add_argument("--dry-plan", action="store_true",
-                           help="print interval + empty plan (no pane type)")
-
-
     args = ap.parse_args(argv)
 
     root = _project_root()
     croot = comms_root(root, args.comms_root)
     sender = args.from_id
-
-    
-    if args.verb == "dm-plan":
-        import json as _json
-        import dm_engine
-        text = " ".join(args.dm_plan_text)
-        if not text:
-            print("ERR: dm-plan needs message text", file=sys.stderr)
-            return 1
-        try:
-            row = _json.loads(args.row_json)
-        except _json.JSONDecodeError as exc:
-            print(f"ERR: --row-json: {exc}", file=sys.stderr)
-            return 1
-        # name in row wins; --to must match when both present
-        if row.get("name") and str(row["name"]).strip() != str(args.to).strip():
-            print(f"ERR: --to {args.to!r} != row.name {row.get('name')!r}",
-                  file=sys.stderr)
-            return 1
-        row = dict(row)
-        row.setdefault("name", args.to)
-        try:
-            payload = dm_engine.plan_send(
-                sender=_detect_sender(sender),
-                addressee_row=row,
-                body=text,
-            )
-        except (ValueError, PermissionError) as exc:
-            print(f"ERR: {exc}", file=sys.stderr)
-            return 1
-        print(_json.dumps(payload, sort_keys=True))
-        return 0
-
-    if args.verb == "dm-read-plan":
-        import json as _json
-        import dm_engine
-        try:
-            sender_row = _json.loads(args.sender_json)
-        except _json.JSONDecodeError as exc:
-            print(f"ERR: --sender-json: {exc}", file=sys.stderr)
-            return 1
-        try:
-            payload = dm_engine.plan_read(
-                sender_row=sender_row,
-                addressee=args.addressee,
-                body=args.body or "",
-            )
-        except (ValueError, PermissionError) as exc:
-            print(f"ERR: {exc}", file=sys.stderr)
-            return 1
-        print(_json.dumps(payload, sort_keys=True))
-        return 0
-
-    if args.verb == "dm-sync":
-        import json as _json
-        import dm_engine
-        cfg_path = root / ".agi" / "config.json"
-        cfg = {}
-        if cfg_path.is_file():
-            try:
-                cfg = _json.loads(cfg_path.read_text())
-            except _json.JSONDecodeError:
-                cfg = {}
-        interval = dm_engine.sync_interval_min(cfg)
-        schedule = dm_engine.sync_schedule_expr(cfg)
-        print(f"interval_min={interval}")
-        print(f"schedule={schedule}")
-        if args.dry_plan:
-            # dry: no seats walk, no pane type — proves importer + cell
-            print(_json.dumps({"plans": [], "from_sync": True}))
-            return 0
-        # live tick: plan nudges for local unread only (no type yet —
-        # write.py push + pane type remain director-engine / g4.18.1)
-        try:
-            import boxes
-            rows = [r for r in _locally_loaded_rows(root)
-                    if boxes.row_is_local(root, r)]
-        except Exception:
-            rows = []
-        plans = dm_engine.plan_sync_tick(root, rows, [], from_sync=True)
-        print(_json.dumps({"plans": plans, "local_posts": len(rows),
-                           "from_sync": True}))
-        return 0
-
-
-    if args.verb == "pane":
-        from adapters import magic_pane
-        if len(args.pane_args) < 3:
-            print("ERR: pane needs SOURCE TARGET TEXT", file=sys.stderr)
-            return 1
-        source, target, *rest = args.pane_args
-        # the ONE side-effect seam: a nudge lands in the target seat inbox
-        magic_pane.reach = lambda seat, body: send(
-            root, _alias_canon(root, seat) or seat, body,
-            sender or _detect_sender(sender))
-        transport = magic_pane.deliver(source, target, " ".join(rest))
-        print(transport)
-        return 0 if transport != magic_pane.UNSUPPORTED else 1
 
     if args.verb == "send":
         # --room/--to: the whole positional bucket is text, nothing is a

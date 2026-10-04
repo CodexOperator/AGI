@@ -71,7 +71,6 @@ import links  # noqa: E402
 import geometry_config  # noqa: E402
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import frontmatter  # noqa: E402  # the ONE line-anchored boundary rule
-import profile_sync  # noqa: E402  # graph -> profile projection (g7.31.5.1)
 
 #: Frontmatter keys this module stamps on every submitted edit.
 PROVENANCE_ACTOR = "edited_by"
@@ -169,11 +168,6 @@ class Edit:
     # the source argument (`replace body 4:9 --force -`), so the positional
     # range/source grammar is unchanged; an API caller sets the field.
     replace_force: bool = False
-    # goal:g7.33.10 residue -- body row replace-by-NAME (not line numbers).
-    # When set, submit resolves it against the current body to a single-line
-    # N:N range via _resolve_body_row_range before the structural guard and
-    # the splice. A payload target never carries a row name.
-    replace_row_name: str = ""
     # hypothesis:write-py-inline-replace-verb -- `sub`/`sub!`: the FIRST
     # ` => ` splits `<old>` from `<new>`; plain `sub` demands exactly ONE
     # literal match, `sub!` replaces every one. `sub_target` is `payload` or
@@ -465,7 +459,7 @@ def verb_read(edit: Edit, target: str, rng: str) -> Edit:
 
 
 def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
-    """`replace <payload|body> <START:END|NAME> <path|->` — overwrite a range.
+    """`replace <payload|body> <START:END> <path|->` — overwrite a line range.
 
     The write half of line addressing, and the verb that removes the manual
     offset step. `read <target> N:M` then `replace <target> N:M` is the whole
@@ -473,18 +467,11 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     exact inverse of the `_slice_range` the read used, so nothing has to be
     counted, converted, or expressed as a `@@` hunk.
 
-    goal:g7.33.10: on `body` only, a bare NAME (no `:`) selects the ONE
-    markdown table row whose first cell equals NAME (`| NAME | ... |`).
-    submit resolves it to an N:N range against the current body — never by
-    guessing line numbers. A missing or ambiguous name refuses by name;
-    a payload target never accepts a row name.
-
-    `body` and `payload` are the same operation here for numeric ranges —
-    one reader (`_target_text`), one transform (`_splice_range`) — and they
-    differ only in where the result lands, which is forced: a body lands
-    through `update_node` (carrying the THOUGHT region and provenance), a
-    payload through `replace_payload`. Both are sanctioned writes the guard
-    sees.
+    `body` and `payload` are the same operation here, not two — one reader
+    (`_target_text`), one transform (`_splice_range`) — and they differ only
+    in where the result lands, which is forced: a body lands through
+    `update_node` (carrying the THOUGHT region and provenance), a payload
+    through `replace_payload`. Both are sanctioned writes the guard sees.
 
     The replacement text rides a file or stdin (`-`) rather than the argv
     chunk, for the reason `payload`/`patch` already do: arbitrary content can
@@ -504,23 +491,10 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     if source.startswith("--force "):
         edit.replace_force = True
         source = source[len("--force "):].strip()
-    edit.replace_target = target
-    edit.replace_from = source
-    # goal:g7.33.10 — bare NAME (no colon) = body table-row selector.
-    if ":" not in str(rng):
-        if target != "body":
-            raise EditError(
-                f"replace {target} row name {rng!r} refused — row-by-NAME "
-                f"is body-only (goal:g7.33.10). Use START:END for a payload")
-        name = str(rng).strip()
-        if not name:
-            raise EditError("replace body row name is empty — nothing written")
-        edit.replace_row_name = name
-        edit.replace_range = ""  # resolved at submit against current body
-        return edit
     _parse_range(rng)   # validates and raises early, so a typo refuses here
+    edit.replace_target = target
     edit.replace_range = rng
-    edit.replace_row_name = ""
+    edit.replace_from = source
     if target == "payload":
         edit.payload_verbs.append("replace payload")
     return edit
@@ -845,8 +819,7 @@ VERB_EXAMPLES = {
     "read": "read body 4:9",
     #: Standalone at submit(): it cannot ride the same script line as
     #: note/thought/body_patch (one body writer per submit). The rendered
-    #: NOTES block below carries that rule into `-h`. goal:g7.33.10 also
-    #: admits replace body NAME path (table first-cell NAME).
+    #: NOTES block below carries that rule into `-h`.
     "replace": "replace body 4:9 path/to/file",
     "row": "row 3 f  |  row 2:1-3 f  |  row name:<NAME> f  |  row manifest.<key> value.yaml|--remove",
     "adopt": "adopt",
@@ -2730,14 +2703,6 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
                                 payload_ref, location)
         if edit.row_ref:   # goal:g4.18.5.1: the index picks the range
             edit.replace_range = _row_range(_current, edit.row_ref)
-        # goal:g7.33.10 — resolve body row NAME -> N:N against CURRENT body
-        # before the structural guard and the splice, so a rename of an
-        # earlier line cannot desync the selection from what the caller
-        # named. Payload never carries replace_row_name (verb_replace
-        # refuses it).
-        if edit.replace_row_name:
-            edit.replace_range = _resolve_body_row_range(
-                _current, edit.replace_row_name)
         if edit.replace_target == "body":
             _refusal = _thought_marker_refusal(_current, edit.replace_range, edit.replace_text)
             if _refusal:
@@ -2746,12 +2711,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         # splices -- the body-only structural guard, before the splice and
         # before any write. A payload is arbitrary bytes and is never
         # structure-checked; `read body N:M` stays unguarded too.
-        # goal:g7.33.10 — a NAME-selected table row is an atomic unit, not a
-        # hand-picked offset: the structural guard exists to catch mis-offset
-        # N:M ranges, and does not apply when the caller named the row. A
-        # numeric range still goes through the guard (unless --force).
-        if (edit.replace_target == "body" and not edit.replace_force
-                and not edit.replace_row_name):
+        if edit.replace_target == "body" and not edit.replace_force:
             _refusal = _body_range_refusal(_current, edit.replace_range)
             if _refusal:
                 raise EditError(
@@ -3111,44 +3071,6 @@ def _has_content(lines: list[str], a: int, b: int) -> bool:
     case.
     """
     return any(ln.strip() for ln in lines[a:b])
-
-
-_TABLE_ROW_FIRST_CELL_RE = re.compile(r"^\|\s*([^|]+?)\s*\|")
-
-
-def _resolve_body_row_range(text: str, name: str) -> str:
-    """goal:g7.33.10 — resolve a body table-row NAME to a 1-based `N:N` range.
-
-    A markdown table row matches when its FIRST cell equals `name`
-    (stripped). Separator rows (`|---|---|`) are skipped. Zero matches or
-    more than one match refuse by name — a verb cannot invent a row, and an
-    ambiguous name is never guessed as a line number. Returns the inclusive
-    single-line range string `_splice_range` already understands.
-    """
-    name = str(name).strip()
-    if not name:
-        raise EditError("replace body row name is empty — nothing written")
-    hits: list[int] = []
-    for i, line in enumerate(text.split("\n"), 1):
-        m = _TABLE_ROW_FIRST_CELL_RE.match(line)
-        if not m:
-            continue
-        cell = m.group(1).strip()
-        # CommonMark separator: only dashes/colons/spaces in the first cell.
-        if cell and set(cell) <= set("-: "):
-            continue
-        if cell == name:
-            hits.append(i)
-    if not hits:
-        raise EditError(
-            f"replace body row {name!r}: no table row named {name!r} — "
-            f"nothing written (goal:g7.33.10; a verb cannot invent a row)")
-    if len(hits) > 1:
-        raise EditError(
-            f"replace body row {name!r}: {len(hits)} rows named {name!r} "
-            f"(lines {hits}) — nothing written (goal:g7.33.10)")
-    n = hits[0]
-    return f"{n}:{n}"
 
 
 def _body_range_refusal(text: str, rng: str) -> str | None:
@@ -3868,10 +3790,6 @@ def main(argv: list[str] | None = None) -> int:
         "note, thought or body_patch (one body writer per submit). "
         "Compose them as separate write.py calls.")
     epilog_lines.append(
-        "  replace body NAME path selects the ONE markdown table row whose "
-        "first cell equals NAME (goal:g7.33.10); missing or ambiguous NAME "
-        "refuses by name — never by guessing line numbers.")
-    epilog_lines.append(
         "  a prose argument carries a literal verb-led && by escaping it "
         "as \\&&; an unescaped && before a verb still separates, and "
         "&&&& (a doubled pair) separates exactly as it always did.")
@@ -4376,26 +4294,10 @@ def main(argv: list[str] | None = None) -> int:
                 except EditError as exc:
                     print(f"ERR: {exc}", file=sys.stderr)
                     return 2
-            if edit.replace_target == "body":
-                _cur = _target_text(root, edit, "body")
-                if edit.replace_row_name:
-                    try:
-                        edit.replace_range = _resolve_body_row_range(
-                            _cur, edit.replace_row_name)
-                    except EditError as exc:
-                        print(f"ERR: {exc}", file=sys.stderr)
-                        return 2
-                if not edit.replace_force and not edit.replace_row_name:
-                    _refusal = _body_range_refusal(
-                        _cur, edit.replace_range)
-                    if _refusal:
-                        print(f"ERR: {_refusal}", file=sys.stderr)
-                        return 2
             if edit.row_ref:
                 print(f"  row    {edit.row_ref} -> {edit.replace_range}")
             _src3 = "stdin" if edit.replace_from == "-" else edit.replace_from
-            _rng = (edit.replace_row_name or edit.replace_range)
-            print(f"  replace {edit.replace_target} {_rng} "
+            print(f"  replace {edit.replace_target} {edit.replace_range} "
                   f"({len(edit.replace_text)} chars, {_src3})")
         if edit.sub_resolved:
             _before = _baseline_node_text(root, edit.node_id)

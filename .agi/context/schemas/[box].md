@@ -49,18 +49,3 @@ node frontmatter block, never to the embedded `config.json` object — the
 required list is declared here so the shape is stated once, and the real
 guard for a missing cell is `paths.py audit`'s exit 2 (it refuses to report a
 class clean when its cell is unset). Absent cell, loudly: never silent.
-
-Absent cell, loudly: never silent.
-
-## Box-local override (`config.local.json`)
-
-Authority for the four cells on THIS machine is the untracked sibling
-`config.local.json` (gitignored), read by `boxes._box` after the committed
-`config.json` and winning per key. Shared `config.json` may keep a foreign
-reference box (e.g. a retired path used as a negative fixture / unify
-forbidden-set seed on other machines). **Never write this box's real
-`root`/`logs_dir`/`user` into the shared file** — that hands
-`unify._real_repos` nonsense paths on every other box
-(hypothesis:a00-d089cf46-707110 / goal:g7.33.14). Worktree graphs resolve the
-main checkout's `config.local.json` via git common-dir when their own copy is
-absent (same shape as envfile → main `.env`).
