@@ -458,6 +458,179 @@ def ram_argv(argv: list) -> list:
     return list(locations.ram_write_argv(list(argv)))
 
 
+_O_ACCMODE = 0o3
+_RECHARGE_SCOPED = "AGI_RAM_RECHARGE_SCOPED"
+
+
+def _lstat(path: str):
+    """ONE lstat so a test can fake st_dev for a nested mount stand-in."""
+    return os.lstat(path)
+
+
+def _in_ram_slice() -> bool:
+    try:
+        return b"ramdisk.slice" in pathlib.Path("/proc/self/cgroup").read_bytes()
+    except OSError:
+        return False
+
+
+def _write_open(ids: set[tuple[int, int]]) -> set[tuple[int, int]]:
+    """(dev, ino) pairs any process has open for write. Counts only; no paths."""
+    hit: set[tuple[int, int]] = set()
+    if not ids:
+        return hit
+    try:
+        pids = os.listdir("/proc")
+    except OSError:
+        return hit
+    for pid in pids:
+        if not pid.isdigit():
+            continue
+        fd_dir = f"/proc/{pid}/fd"
+        try:
+            names = os.listdir(fd_dir)
+        except OSError:
+            continue
+        for fd in names:
+            try:
+                st = os.stat(f"{fd_dir}/{fd}")
+            except OSError:
+                continue
+            key = (st.st_dev, st.st_ino)
+            if key not in ids or key in hit:
+                continue
+            try:
+                with open(f"/proc/{pid}/fdinfo/{fd}", encoding="utf-8") as fh:
+                    for line in fh:
+                        if line.startswith("flags:"):
+                            if int(line.split()[1], 8) & _O_ACCMODE:
+                                hit.add(key)
+                            break
+            except (OSError, ValueError):
+                continue
+            if len(hit) == len(ids):
+                return hit
+    return hit
+
+
+def _walk_same_dev(root: str) -> tuple[list[tuple[str, os.stat_result]], int]:
+    """Regular files on root's device. Other-dev dirs are not entered."""
+    skipped = 0
+    try:
+        rst = _lstat(root)
+    except OSError:
+        return [], 1
+    if not stat.S_ISDIR(rst.st_mode):
+        return [], 1
+    out: list[tuple[str, os.stat_result]] = []
+    stack = [root]
+    while stack:
+        d = stack.pop()
+        try:
+            with os.scandir(d) as it:
+                ents = list(it)
+        except OSError:
+            skipped += 1
+            continue
+        for ent in ents:
+            try:
+                st = _lstat(ent.path)
+            except OSError:
+                skipped += 1
+                continue
+            if st.st_dev != rst.st_dev or stat.S_ISLNK(st.st_mode):
+                continue
+            if stat.S_ISDIR(st.st_mode):
+                stack.append(ent.path)
+            elif stat.S_ISREG(st.st_mode):
+                out.append((ent.path, st))
+    return out, skipped
+
+
+def _relink_group(paths: list[str], st: os.stat_result) -> None:
+    """Copy + replace the first name, then relink the rest onto the new inode."""
+    first = paths[0]
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(first), prefix=".agi-recharge-")
+    try:
+        with os.fdopen(fd, "wb") as w, open(first, "rb") as r:
+            shutil.copyfileobj(r, w)
+            w.flush()
+            os.fsync(w.fileno())
+        try:
+            os.chown(tmp, st.st_uid, st.st_gid)
+        except OSError:
+            pass
+        os.chmod(tmp, stat.S_IMODE(st.st_mode))
+        os.utime(tmp, ns=(st.st_atime_ns, st.st_mtime_ns))
+        os.replace(tmp, first)
+        tmp = ""
+        for other in paths[1:]:
+            os.unlink(other)
+            os.link(first, other)
+    finally:
+        if tmp:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+
+
+def recharge_tree(root: str, *, dry_run: bool = False) -> tuple[int, int, int, int]:
+    """Return (rc, rewritten, skipped, failed). rc 2 missing; 1 skip/fail; 0 ok.
+
+    goal:g7.16.1.5.5.6.1 -- same-dev regular files only, skip write-open and
+    unreadable, keep bytes/mode/mtime/hardlinks, never leave a tempfile."""
+    if not os.path.isdir(root):
+        return 2, 0, 0, 0
+    files, skipped = _walk_same_dev(root)
+    groups: dict[tuple[int, int], list[tuple[str, os.stat_result]]] = {}
+    for path, st in files:
+        groups.setdefault((st.st_dev, st.st_ino), []).append((path, st))
+    open_w = _write_open(set(groups))
+    rewritten = failed = 0
+    for key, members in groups.items():
+        paths = [p for p, _ in members]
+        st = members[0][1]
+        if key in open_w or not os.access(paths[0], os.R_OK):
+            skipped += 1
+            continue
+        if dry_run:
+            rewritten += 1
+            continue
+        try:
+            _relink_group(paths, st)
+            rewritten += 1
+        except OSError:
+            failed += 1
+    return (1 if skipped or failed else 0), rewritten, skipped, failed
+
+
+def _verb_ram_recharge(root: str, dry_run: bool = False) -> int:
+    """On-demand recharge inside ramdisk.slice. dry-run skips the wrap."""
+    if not os.path.isdir(root):
+        sys.stderr.write("mem_cap.py ram-recharge: missing dir\n")
+        return 2
+    if not dry_run and not os.environ.get(_RECHARGE_SCOPED) and not _in_ram_slice():
+        if not user_manager_reachable():
+            sys.stderr.write("mem_cap.py ram-recharge: user manager UNREACHABLE\n")
+            return 2
+        scoped = ram_argv([sys.executable, str(pathlib.Path(__file__).resolve()),
+                           "ram-recharge", root])
+        if not scoped or scoped[0] != "systemd-run":
+            sys.stderr.write("mem_cap.py ram-recharge: no usable scope\n")
+            return 2
+        os.environ[_RECHARGE_SCOPED] = "1"
+        try:
+            os.execvp(scoped[0], scoped)
+        except OSError as exc:
+            sys.stderr.write(f"mem_cap.py ram-recharge: {exc}\n")
+            return 2
+    rc, rw, sk, fl = recharge_tree(root, dry_run=dry_run)
+    tag = "dry-run " if dry_run else ""
+    sys.stderr.write(f"mem_cap.py ram-recharge: {tag}rewritten={rw} skipped={sk} failed={fl}\n")
+    return rc
+
+
 def _verb_ram_exec(argv: list, to: str | None = None) -> int:
     """exec the argv after `--` in the RAM scope. No argv -> usage, 2.
 
@@ -495,4 +668,13 @@ if __name__ == "__main__":
         _i = _h.index("--")
         _to = _h[1] if _h[:1] == ["--to"] and len(_h) > 1 else None
         sys.exit(_verb_ram_exec(_h[_i + 1:], to=_to))
+    if sys.argv[1:2] == ["ram-recharge"]:
+        _h = sys.argv[2:]
+        _dry = False
+        if _h[:1] == ["--dry-run"]:
+            _dry, _h = True, _h[1:]
+        if len(_h) != 1:
+            sys.stderr.write("mem_cap.py ram-recharge [--dry-run] DIR\n")
+            sys.exit(2)
+        sys.exit(_verb_ram_recharge(_h[0], dry_run=_dry))
     argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
