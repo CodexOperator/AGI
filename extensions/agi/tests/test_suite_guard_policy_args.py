@@ -87,7 +87,7 @@ def test_one_lock_body_under_an_arbitrary_root(tmp_path, monkeypatch):
     root's lock file, stamps the window, and unlinks both on exit."""
     groot = _tmp_project(tmp_path, "proj")
     _no_inherited_marker(monkeypatch)
-    lock_file = groot / "sessions" / verification.SUITE_LOCK
+    lock_file = groot / "sessions" / verification.suite_lock_name(groot)
     guard = suite_guards.make_suite_lock_fixture(lambda: groot)
     gen = _drive(guard)
     try:
@@ -109,7 +109,7 @@ def test_the_same_body_refuses_a_live_foreign_holder_by_name(tmp_path, monkeypat
     groot = _tmp_project(tmp_path, "proj")
     _no_inherited_marker(monkeypatch)
     holder = os.getppid()
-    (groot / "sessions" / verification.SUITE_LOCK).write_text(
+    (groot / "sessions" / verification.suite_lock_name(groot)).write_text(
         str(holder), encoding="utf-8")
     assert verification.suite_lock_holder(groot) == holder
     guard = suite_guards.make_suite_lock_fixture(lambda: groot)
@@ -138,7 +138,7 @@ def test_an_inherited_marker_makes_every_policy_a_no_op(tmp_path, monkeypatch):
     guard = suite_guards.make_suite_lock_fixture(lambda: groot)
     gen = _drive(guard)
     try:
-        assert not (groot / "sessions" / verification.SUITE_LOCK).exists()
+        assert not (groot / "sessions" / verification.suite_lock_name(groot)).exists()
         with pytest.raises(StopIteration):
             next(gen)
     finally:

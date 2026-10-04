@@ -42,6 +42,19 @@ def _load(name):
 heal = _load("heal")
 
 
+def _write_recovery_ack(gdir: Path) -> None:
+    """The recovered-seat ack wording is config:rotations `recovery_ack`
+    (hypothesis:heal-ack-line-comes-from-config-rotations-by-role)."""
+    geo = gdir / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\nrecovery_ack:\n"
+        "  prime_director: {recovered: \"RECOVERED SEAT {seat} --gen {gen}\","
+        " resumed: \"RESUMED SEAT {seat} --gen {gen}\"}\n"
+        "  default: {recovered: \"RECOVERED SEAT {seat}\","
+        " resumed: \"RESUMED SEAT {seat}\"}\n---\n")
+
+
 @pytest.fixture
 def graph(tmp_path: Path) -> Path:
     """A fixture graph root whose seats row + sessions dir are all ours
@@ -50,6 +63,7 @@ def graph(tmp_path: Path) -> Path:
     g.mkdir(parents=True, exist_ok=True)
     (g / "config.json").write_text(json.dumps({"metric_primary": "x"}))
     (g / "sessions").mkdir(parents=True, exist_ok=True)
+    _write_recovery_ack(g)
     return g
 
 
@@ -854,6 +868,7 @@ def test_worktree_seat_recovery_launches_in_and_writes_main_only(graph, tmp_path
     main, wt_dir = _git_repo_with_worktree(tmp_path)
     gdir = main / ".agi"
     (gdir / "config.json").write_text(json.dumps({"metric_primary": "x"}))
+    _write_recovery_ack(gdir)
     # MAIN's seats.md: the (dead, superceded) identity.
     _write_seats(gdir, [{"name": "wt", "pid": 424242, "window": "@50",
                          "generation": 2,
@@ -961,6 +976,7 @@ def test_worktree_seat_card_resolves_in_its_own_worktree(tmp_path,
     main, wt_dir = _git_repo_with_worktree(tmp_path)
     gdir = main / ".agi"
     (gdir / "config.json").write_text(json.dumps({"metric_primary": "x"}))
+    _write_recovery_ack(gdir)
     _write_seats(gdir, [{"name": "wt", "pid": 424242, "window": "@50",
                          "role": "director", "model": "claude-sonnet-5",
                          "generation": 2, "worktree": ".agi/worktrees/seat-wt"}])

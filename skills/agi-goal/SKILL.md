@@ -25,7 +25,7 @@ python3 extensions/agi/bin/write.py goal:<id> 'read body 1:60'   # read it back 
 - `write.py` has NO goal-specific logic: `goal_id` + `goal_kind` arrive ONLY through `--set`.
   A goal minted without them (the slug alone) has no `goal_id` — fixing that later is a renumber.
 - slug = lowercased `goal_id` (`G4.18.2` → `goal:g4.18.2`); `S4` → `goal:s4`.
-- Commit the node by exact path. GOALS.md is retired (goal:g7.16.1.4.1): never recreate it.
+- A write commits itself by exact path (message: the `write.commit_message` cell in `.agi/config.json`). Under a held suite lock it writes, prints `the write landed uncommitted` and the one commit-by-path line: run THAT line, nothing else (never `git add -A`; the grid cron is never the commit path). GOALS.md is retired (goal:g7.16.1.4.1): never recreate it.
 
 ## 2 · The schema (as at 2026-09-27)
 ```
@@ -63,7 +63,7 @@ Progress on a goal is never written on the goal or a card: one numbers-only line
 |---|---|
 | edit a field | `write.py goal:<id> 'set status complete && thought <why this version>'` |
 | add a note | `write.py goal:<id> 'note <sentence>'` — notes land where the HEAD's notes line says; goals are trackers (owner 09-24) |
-| retire | `set status retired` + deprecate its seed node — NEVER delete, never `git rm` |
+| retire | `set status retired` + deprecate its seed node — NEVER delete, never `git rm`. NEVER while a child hypothesis is pending: place each child first (re-parent to the live goal it serves, or retire it too); a goal whose children PROVED it is `complete`, not retired (owner 04:4xZ 09-30, goal:s31) |
 | renumber (owner 09-23) | keep `mint_id`; re-point EVERY frontmatter reference in the SAME commit; old → new in the moved node's THOUGHT; a retired id is never reused |
 | decompose | one subgoal per leaf (§1), nest rather than widen; each is driven by a dispatched parent (skill `agi-dispatch`) and judged with `season.py judge <outcome> --against goal:<id>` |
 

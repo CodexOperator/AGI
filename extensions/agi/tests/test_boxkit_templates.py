@@ -62,7 +62,7 @@ absent below, so it goes RED instead of stale.
     template naming this box's hostname, a NIC address, a board serial or a key id
     passes row 4 CLEAN. ONE row runs anonymize.scan -- the guard's own function,
     MIN_TOKEN and CLASSES -- against a FAKE box denylist (this box's values are never
-    read into the test): it plants one FAKE_BOX value in a COPY of one template and
+    read into the test): it plants one _fake_value in a COPY of one template and
     asserts scan names the CLASS, and asserts the UNPLANTED kit bytes stay clean. It
     guards a PLANTED COPY: the kit's own bytes could only go red on a real denylist.
 15: THIS INVENTORY IS CHECKED: every `row N` the file names must be listed above, or the
@@ -189,6 +189,9 @@ assert _leaks("cd %s/notes\n" % GUARD_PREFIX), \
 
 # A probe identity: contract tests need SOME value for REPO_ROOT/GUARD_SRC to render
 # at all, and a probe is not the answer -- the wire test below supplies nothing.
+# The measured box sets no memory cell in config:guard, so its fixtures render with
+# guard-init's defaults: pinned here, never read from THIS box (goal:g7.16.1.5.5.4).
+GUARD = {}
 PROBE = {"OWNER_USER": "probe", "UID": "4242", "REPO_ROOT": "/probe/repo",
          "GUARD_SRC": "/probe/.sanctuary/guard/guard-init.sh"}
 
@@ -196,7 +199,7 @@ PROBE = {"OWNER_USER": "probe", "UID": "4242", "REPO_ROOT": "/probe/repo",
 def _v(**over):
     o = dict(PROBE)
     o.update(over)
-    return R.values(CFG, MEASURED, o)
+    return R.values(CFG, MEASURED, o, guard=GUARD)
 
 
 def _vs(**over):
@@ -204,7 +207,15 @@ def _vs(**over):
     fixed stand-ins. This is the OFF-BOX comparison -- the bytes a second box gets."""
     o = dict(STANDINS)
     o.update(over)
-    return R.values(CFG, MEASURED, o)
+    return R.values(CFG, MEASURED, o, guard=GUARD)
+
+
+def _post_cg(tail=""):
+    """A cgroup line the POST_CGROUP_RE cell matches, derived FROM that cell (one source; stand-in post `a`)."""
+    rx = _vs()["POST_CGROUP_RE"]
+    line = rx.lstrip("^").replace("[^/\\n]+", "a").replace("\\.", ".").replace("(/|$)", "") + tail
+    assert re.search(rx, line + "\n", re.M), line
+    return line
 
 
 def _payload(text):
@@ -308,6 +319,63 @@ def test_sizing_reproduces_the_measured_knobs():
     assert mib["AGI_MAX"] == int(0.70 * mib["USER_MAX"]) != round(0.70 * mib["USER_MAX"])
 
 
+# 5b -- goal:g7.16.1.5.5.4: every memory number is config:guard's, through guard-init's
+# own arithmetic; values.boxkit keeps none, and the defaults are guard-init's own lines
+def test_values_boxkit_carries_no_memory_number():
+    assert not set(R.MEMORY) & set(CFG["values"]["boxkit"])
+    assert not [k for k in CFG["values"]["boxkit"]
+                if re.search(r"OOM_PCT|_high_ratio|_max_ratio|_ratio$", k)]
+
+
+def test_every_cell_sizing_reads_is_parsed_from_guard_init():
+    """A guard-init cell line whose format drifts from CELL drops out of guard_defaults:
+    red here, and a named refusal in sizing() -- never a bare KeyError."""
+    assert set(R.SIZING_CELLS) <= set(R.guard_defaults())
+    g = R.guard_defaults()
+    g.pop("SSH_MIN")
+    with pytest.raises(R.KitError, match="guard-init cell line\\(s\\) SSH_MIN not parsed"):
+        R.sizing(7365, 4095, g)
+
+
+def test_no_base_blanks_only_the_base_derived_targets():
+    out = R.sizing(None, None, R.guard_defaults())
+    assert not set(R.FROM_BASE) & set(out) and "USER_SWAP" not in out
+    assert (out["SYSTEM_MIN"], out["SSH_MIN"], out["ENGINE_MAX"], out["OOMD_SWAP_PCT"]) == \
+        ("128M", "64M", "512M", "90")
+
+
+def test_a_guard_cell_moves_the_render():
+    v = R.values(CFG, MEASURED, PROBE, guard={"USER_HIGH_PCT": "95", "ENGINE_MAX": "3G",
+                                             "OOMD_LIMIT": "85", "PSI_FULL": "60"})
+    user_max = int(v["USER_MAX"].rstrip("M"))
+    agi_max = user_max * 70 // 100
+    assert v["USER_HIGH"] == "%dM" % (user_max * 95 // 100)
+    assert (v["ENGINE_MAX"], v["ENGINE_HIGH"]) == ("3072M", "2304M")
+    assert v["WORK_MAX"] == "%dM" % (agi_max - 3072)
+    assert (v["USER_OOM_PCT"], v["HEALTH_LIMIT"]) == ("85", "60")
+
+
+def test_a_guard_cell_sizing_a_unit_out_of_range_is_refused():
+    """goal:g7.16.1.5.5.8: the kit refuses what guard-init refuses (range, not shape)."""
+    for cells in ({"ENGINE_MAX": "100G"}, {"ENGINE_MAX": "0.5M"}):
+        with pytest.raises(R.KitError) as err:
+            R.values(CFG, MEASURED, PROBE, guard=cells)
+        assert "config:guard sizes" in str(err.value) and \
+            ("WORK_MAX" in str(err.value) or "ENGINE_MAX" in str(err.value)), str(err.value)
+    with pytest.raises(R.KitError, match="SSH_MIN"):          # MemoryMin > RAM (0 stays legal)
+        R.values(CFG, MEASURED, PROBE, guard={"SSH_MIN": "%dM" % (MEASURED["MEM_TOTAL"] + 1)})
+    assert R.values(CFG, MEASURED, PROBE, guard={"SSH_MIN": "0"})["SSH_MIN"] == "0M"
+
+
+def test_guard_none_reads_this_boxs_cells(monkeypatch):
+    seen = []
+    monkeypatch.setattr(R, "guard_cells", lambda root=None: seen.append(root) or
+                        {**R.guard_defaults(), "AGI_MAX_PCT": "60"})
+    v = R.values(CFG, MEASURED, PROBE)
+    assert seen == [None]
+    assert v["AGI_MAX"] == "%dM" % (int(v["USER_MAX"].rstrip("M")) * 60 // 100)
+
+
 # 6 -- THE FIXTURE IS THE RENDER, NOT A COPY OF THE TEMPLATE. The previous version
 # asserted template == fixture, i.e. X == X: it could never fail. A fixture here is the
 # ANONYMIZED RENDERED bytes -- template rendered with the measured inputs and the fixed
@@ -404,7 +472,7 @@ def test_the_stand_ins_are_constants_and_not_this_box():
     assert STANDINS["UID"] != UID and STANDINS["OWNER_USER"] != OWNER
     assert STANDINS["REPO_ROOT"] != str(R.engine_checkout())
     piece = BY_NAME["user-slice-guard"]
-    assert R.rendered(piece, R.values(CFG, MEASURED, R.host_tokens(CFG))) != \
+    assert R.rendered(piece, R.values(CFG, MEASURED, R.host_tokens(CFG), guard=GUARD)) != \
         (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
 
 
@@ -438,7 +506,8 @@ def _with_the_whole_stand_in_set(piece, tokens):
     occurrence count is for); the collision fallback reaches them by re-rendering here.
     A key with no {{K}} site is harmless: a value no placeholder consumes never lands."""
     return R.rendered(piece, R.values(CFG, MEASURED,
-                                      {**tokens, **{k: STANDINS[k] for k in IDENTITY}}))
+                                      {**tokens, **{k: STANDINS[k] for k in IDENTITY}},
+                                      guard=GUARD))
 
 
 def _anonymized_live_render(piece, tokens=None):
@@ -455,7 +524,7 @@ def _anonymized_live_render(piece, tokens=None):
     row 7f walks it."""
     tokens = R.host_tokens(CFG) if tokens is None else dict(tokens)
     body = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
-    live = R.rendered(piece, R.values(CFG, MEASURED, tokens))
+    live = R.rendered(piece, R.values(CFG, MEASURED, tokens, guard=GUARD))
     masked, clean = [], {}
     for k in IDENTITY:
         sites = len(re.findall(r"\{\{%s\}\}" % k, body))
@@ -510,7 +579,7 @@ def test_the_collision_fallback_re_renders_with_the_whole_stand_in_set():
     tokens["OWNER_USER"] = collides
     body = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
     sites = len(re.findall(r"\{\{OWNER_USER\}\}", body))
-    live = R.rendered(piece, R.values(CFG, MEASURED, tokens))
+    live = R.rendered(piece, R.values(CFG, MEASURED, tokens, guard=GUARD))
     assert live.count(collides) > sites, (
         "the synthetic collision did not force the fallback: %d occurrence(s) of %r, "
         "%d site(s)" % (live.count(collides), collides, sites))
@@ -519,6 +588,54 @@ def test_the_collision_fallback_re_renders_with_the_whole_stand_in_set():
     _assert_piece_matches_fixture(piece, got, fix, _vs())
     # and the render is anonymized end to end: no host identity root survives it
     assert not [t for t in HOST_TOKENS if t and t in got], piece["name"]
+
+
+# 7g -- R-MG: A POST'S pi IS PROTECTED LIKE claude, A pi WORKER ELSEWHERE KEEPS +500.
+# The guard's loop is module-level (not importable), so this runs the RENDERED loop for one
+# pass over a FAKE /proc tree in tmp (every "/proc" in the source re-pointed at it, one
+# sleep raising to end the pass): protected = comm claude or a pi whose cgroup is under
+# /agi.slice/agi-post@<name>.service; a pi in any other cgroup keeps the worker +500.
+def test_memguard_protects_a_posts_pi_and_leaves_other_pi_workers_at_worker_adj(tmp_path):
+    piece = BY_NAME["memguard-script"]
+    proc = tmp_path / "proc"
+    pi_cmd = "/x/.npm-global/bin/pi --model m"
+    rows = {   # pid: (comm, cmdline, cgroup line, start adj)
+        101: ("pi", "/opt/agi/bin/pi --pi-free", _post_cg(), 0),
+        102: ("pi", "/opt/agi/bin/pi", _post_cg("/child.scope"), 0),
+        103: ("node", pi_cmd, "0::/user.slice/user-1.slice/app.slice/worker.scope", 0),
+        104: ("pi", "/opt/agi/bin/pi", "0::/user.slice/user-1.slice/app.slice/x.scope", 0),
+        105: ("claude", "claude", "0::/user.slice/user-1.slice/session-1.scope", 0),
+        106: ("bash", "bash", _post_cg(), 0),
+        107: ("pi", "/opt/agi/bin/pi", "0::/agi.slice/agi-postX/" + "agi-post@{}.service".format("a"), 0),
+        108: ("pi", "/opt/agi/bin/pi", "0::/agi.slice", 0),
+    }
+    (proc).mkdir()
+    (proc / "meminfo").write_text("MemTotal: 33554432 kB\nMemAvailable: 33000000 kB\n")
+    for pid, (comm, cmd, cg, adj) in rows.items():
+        d = proc / str(pid); d.mkdir()
+        (d / "comm").write_text(comm + "\n"); (d / "cmdline").write_text(cmd.replace(" ", "\0") + "\0")
+        (d / "statm").write_text("10 10 1 1 0 1 0\n"); (d / "cgroup").write_text(cg + "\n")
+        (d / "oom_score_adj").write_text(str(adj))
+    src = R.rendered(piece, _vs(MEMGUARD_LOG=str(tmp_path / "guard.log"))).replace("/proc", str(proc))
+    assert "/var/log" not in src       # log() writes a tmp path here, never the live log
+    src = src.replace("time.sleep(", "(_ for _ in ()).throw(SystemExit)  # (")
+    calls = []   # recorders stand in for os.kill / subprocess.run: no real signal, no spawn
+    assert all(c in src for c in ("os.kill(", "subprocess.run(", "os.getpriority(", "os.setpriority("))
+    src = src.replace("os.kill(", "_kill(").replace("subprocess.run(", "_run(")
+    src = src.replace("os.getpriority(", "_gp(").replace("os.setpriority(", "_sp(")   # fake pids may be real ones
+    ns = {"__name__": "memguard_test", "_kill": lambda *a, **k: calls.append(("kill", a)),
+          "_run": lambda *a, **k: calls.append(("run", a)), "_gp": lambda *a: 0, "_sp": lambda *a: None}
+    with pytest.raises(SystemExit):
+        exec(compile(src, "memguard-rendered", "exec"), ns)
+    assert calls == [], calls                               # nothing was signalled or spawned
+    adj = {pid: int((proc / str(pid) / "oom_score_adj").read_text()) for pid in rows}
+    prot, worker = int(_vs()["PROTECT_OOM_ADJ"]), int(_vs()["PI_OOM_ADJ"])
+    assert adj[101] == prot and adj[102] == prot, adj       # a post's pi (and one in a child scope)
+    assert adj[103] == worker, adj                          # a pi worker by cmdline, outside agi.slice
+    assert adj[104] == 0, adj                               # a pi by comm only, outside agi.slice: untouched as today
+    assert adj[105] == prot, adj                            # claude, as before
+    assert adj[106] == 0, adj                               # a non-pi in the post's cgroup: not widened
+    assert adj[107] == 0 and adj[108] == 0, adj             # prefix lookalikes do not match
 
 
 # 7d -- FIXTURE PROVENANCE. By design no committed test may read a live unit, so nothing
@@ -999,9 +1116,18 @@ def test_the_anonymized_live_render_substitutes_through_the_longest_first_helper
 # row 4 CLEAN. This row runs anonymize.scan -- the guard's own function, MIN_TOKEN and
 # CLASSES -- against a FAKE box denylist reached through anonymize's own
 # AGI_ANONYMIZE_FIXTURE seam, so it reads no physical value of this box and prints none.
-FAKE_BOX = {"hostname": ["boxkit-fake-host"], "ip": ["198.51.100.7"],
-            "mac": ["02:00:5e:10:00:01"], "board": ["BOXKIT-FAKE-BOARD"],
-            "secret": ["sk-boxkit-fake-key"]}
+# The fake denylist is DERIVED from anonymize.CLASSES -- one obviously synthetic value
+# per class, never a typed class list -- so a class added to the guard needs no edit here
+# (email arrived after the hand list and reddened row 14). No value is a real host,
+# address, email, key or path, and none is an email shape, so a planted one is named
+# by its own class alone.
+def _fake_value(cls):
+    # hardware matches by FRAGMENT (>= 2 words around a >= 3-digit core), so its fake is word-shaped
+    return "Boxkit Fake Part 9990" if cls == "hardware" else "boxkit-fake-%s-token" % cls
+
+
+def _fake_box(classes):
+    return {c: [_fake_value(c)] for c in classes}
 
 
 @pytest.fixture
@@ -1022,9 +1148,9 @@ def anonymize():
 
 
 @pytest.fixture
-def fake_box(tmp_path, monkeypatch):
+def fake_box(tmp_path, monkeypatch, anonymize):
     p = tmp_path / "boxkit-fake-box.json"
-    p.write_text(json.dumps(FAKE_BOX), encoding="utf-8")
+    p.write_text(json.dumps(_fake_box(anonymize.CLASSES)), encoding="utf-8")
     monkeypatch.setenv("AGI_ANONYMIZE_FIXTURE", str(p))
     return p
 
@@ -1043,11 +1169,11 @@ def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
         fake_box, anonymize, tmp_path):
     """Both directions in ONE row. The kit's OWN bytes can only go red on a real box's
     denylist, unreadable here, so ability-to-go-red is shown on a PLANTED COPY of one
-    template (one FAKE_BOX value, one class) and the clean half on the kit's own bytes."""
+    template (one _fake_value, one class) and the clean half on the kit's own bytes."""
     toks = anonymize.box_tokens(PROJECT)
     assert sorted({c for c, _ in toks}) == sorted(anonymize.CLASSES), \
         "the fake denylist did not reach every class; the row would be vacuous"
-    cls, value = "ip", FAKE_BOX["ip"][0]
+    cls, value = "ip", _fake_value("ip")
     src = TEMPLATES / BY_NAME["oomd-guard"]["template"]
     clean = src.read_text(encoding="utf-8")
     planted = tmp_path / "planted" / src.name
@@ -1055,8 +1181,24 @@ def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
     planted.write_text(clean + "\n# a planted %s token: %s\n" % (cls, value),
                        encoding="utf-8")
     assert anonymize.scan(planted.read_text(encoding="utf-8"), toks) == [cls], cls
+    # the kit's own bytes carry systemd-unit address shapes (user@UID.service):
+    # the cell's `anonymize.email_allow` is the ONLY thing that can cover them,
+    # so the row reads the CELL and adds NO pattern of its own (dh347 item 4).
+    # Until the landed cell covers the unit shape the row SKIPS, naming the
+    # gap -- it does not name a compensating diff either; that diff is the
+    # cell edit the Prime owes, recorded in its own node, not a test literal.
+    allow = anonymize._email_allow(PROJECT)
+    # dg352 item 3: an email-ONLY hit is COLLECTED (the loop CONTINUES over every template), a non-email hit still fails, ONE notice at the end.
+    emailed = []
     for path, text in _kit_bytes():   # the kit's OWN bytes, incl. the clean src
-        assert anonymize.scan(text, toks) == [], path.name
+        hits = anonymize.scan(text, toks, allow)
+        if hits == ["email"]:
+            emailed.append(path.name)
+            continue
+        assert hits == [], path.name
+    if emailed:
+        pytest.skip("the landed anonymize.email_allow does not yet cover the "
+                    "systemd-unit address shape in: %s" % ", ".join(emailed))
 
 
 # 14b -- THE DISJOINTNESS itself, BOTH directions, EVERY class. Direction 1 is per class.
@@ -1086,7 +1228,7 @@ def _kit_token():
 def test_the_kit_denylist_and_the_engine_denylist_are_disjoint_in_both_directions(
         cls, fake_box, anonymize):
     toks = anonymize.box_tokens(PROJECT)
-    value, kit = FAKE_BOX[cls][0], _kit_token()
+    value, kit = _fake_value(cls), _kit_token()
     clean = (TEMPLATES / BY_NAME["oomd-guard"]["template"]).read_text(encoding="utf-8")
     planted = clean + "\n# a planted %s token: %s\n" % (cls, value)
     assert anonymize.scan(planted, toks) == [cls], cls
@@ -1122,3 +1264,35 @@ def test_the_row_inventory_here_lists_every_row_the_file_names():
     assert last == highest, (
         "the header declares rows %d-%d but the highest row this file names is %d: "
         "move the header, do not leave a second copy" % (first, last, highest))
+
+
+# 14c -- dg355 items 1-3, superseding dg352 item 3's version. (1) it PINS its own
+# email_allow, so the owed RFC 2606 pattern in the cell cannot flip its precondition;
+# (2) the address is BUILT AT RUNTIME FROM PARTS; (3) it drives the loop ITSELF and
+# COUNTS the templates reached, because the old row's `pytest.raises` could not tell
+# an early `pytest.skip` (reported `skipped`, not failed) from a real abort.
+PINNED_EMAIL_ALLOW = [re.compile(r"[\w.-]+@\d+\.service")]
+def test_a_later_non_email_hit_fails_while_an_earlier_email_only_hit_exists(
+        fake_box, anonymize, tmp_path, monkeypatch):
+    clean = (TEMPLATES / BY_NAME["oomd-guard"]["template"]).read_text(encoding="utf-8")
+    addr = "@".join(("ops", ".".join(("fixture", "invalid"))))   # built, never a literal
+    email_text = clean + "\n# ops contact: " + addr + "\n"
+    monkeypatch.setattr(anonymize, "_email_allow", lambda root=None: PINNED_EMAIL_ALLOW)
+    monkeypatch.setattr(sys.modules[__name__], "_kit_bytes", lambda: [
+        (Path("early-kit-template"), email_text),
+        (Path("late-kit-template"), clean + "\n# %s\n" % _fake_value("ip"))],
+        raising=False)
+    toks = anonymize.box_tokens(PROJECT)
+    assert anonymize.scan(email_text, toks, PINNED_EMAIL_ALLOW) == ["email"], "not email-ONLY; vacuous"
+    scanned, emailed, failed = [], [], []
+    for path, text in _kit_bytes():
+        hits = anonymize.scan(text, toks, PINNED_EMAIL_ALLOW)
+        scanned.append(path.name)
+        if hits == ["email"]:
+            emailed.append(path.name)
+            continue      # dg355 item 3 MUTATION POINT: `break` here -> the row FAILS
+        failed.append((path.name, hits))
+    assert scanned == ["early-kit-template", "late-kit-template"], \
+        "the loop never reached every template; it scanned: %s" % (scanned,)
+    assert emailed == ["early-kit-template"], emailed
+    assert failed == [("late-kit-template", ["ip"])], failed

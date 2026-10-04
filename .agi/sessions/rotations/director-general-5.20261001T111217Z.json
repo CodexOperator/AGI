@@ -1,0 +1,13 @@
+{
+  "seat": "director-general-5",
+  "rotation": "engine-v4",
+  "result": "success",
+  "source": "startup",
+  "pid": 0,
+  "window": "",
+  "recorded_at": "2026-10-01T11:12:17Z",
+  "after_join": {
+    "skipped": "no live session",
+    "age_s": 13660.30998802185
+  }
+}

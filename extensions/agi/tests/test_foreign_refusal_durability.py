@@ -126,7 +126,7 @@ from pathlib import Path
 sys.path.insert(0, sys.argv[1])
 import send
 root = Path(sys.argv[2])
-if len(sys.argv) > 3:        # an UNLOCKED pre-1f19e160c writer: bare append
+if len(sys.argv) > 3:        # an UNLOCKED pre-c4bac5654 writer: bare append
     with send._foreign_memo_path(root).open("a", encoding="utf-8") as fh:
         fh.write("old-seat\tcore-town\n")
     print("APPENDED")

@@ -17,6 +17,7 @@ cadences:
     enabled: true
     box: local-town
     why_box: "the remote-box reader: mail_poll consumes inboxes fetched from the hub"
+    cmd: git -C {repo_root} fetch -q origin && python3 {engine_root}/extensions/agi/bin/send.py read --box-local --peek >> {log} 2>&1; python3 {engine_root}/extensions/agi/bin/rotate.py migrate --receive >> {log} 2>&1
   engine_push:
     schedule: 47 * * * *
     enabled: false
@@ -41,8 +42,14 @@ cadences:
     box: local-town
     why_box: "reads this box's own /proc and user@ cgroup (OWNER 04:0xZ 09-26, after the 03:20Z memory livelock: raise a climb toward exhaustion before the box wedges); every threshold lives here, none in code"
     cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam
+  memory_alarm_posts:
+    every_mins: 1
+    enabled: true
+    box: local-town
+    why_box: same reader as memory_alarm, pointed at the SYSTEM agi.slice where the pi-engine posts (agi-post@*) live; reads this box's cgroup, so it runs on this box only (stage-2.5 rootplan C3, parity row 45)
+    cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam --cgroup /sys/fs/cgroup/agi.slice --state {root}/sessions/memory-alarm-posts.json
 crons_live: true
-edited_by: belam
+edited_by: a00-b465ec27
 season: 1
 services:
   agi-alarms-sanctuary-master:

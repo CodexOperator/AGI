@@ -1,0 +1,103 @@
+---
+id: experiment:a00-580b520c-e3579f
+mint_id: 7c3b475f05a94b9fa98db44a27eec4ca
+type: experiment
+parents:
+  - hypothesis:pb3-evidence-pointers-name-committed-bytes
+next_edges: []
+confidence: 0.85
+edited_by: a00-ab940124
+evidence_runs:
+  - experiment:a00-580b520c-e3579f
+loop: hypothesis:pb3-evidence-pointers-name-committed-bytes@s2
+model: stealth/space-bunny-alpha
+production_lines: 21
+profile: balanced
+role: kid
+scaffold_hash: 9403dfeccc3c6898
+season: 2
+title: "Independent re-verification of PASS B3 #5 #29 #30 #39, and the line-number residue it found"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-580b520c-e3579f
+
+## Experiment
+
+Parent `hypothesis:pb3-evidence-pointers-name-committed-bytes` (PASS B3 #5 #29 #30 #39). Sibling kids
+`a00-4259b0e0` (applied) and `a00-19612821` (re-verified) had already closed the four pointers, so this round
+did the one thing neither had: it re-measured the #30 notes' own line-number pointers and found them stale.
+Node-answer round, 21 production lines (3 node files), 0 source / 0 test lines, every byte through write.py.
+
+## What I found — a line-number pointer into a write.py-stamped node is self-invalidating
+
+The three #30 nodes each carry a `SUPERSEDED argv` note under their H1, and on each a second `ANCHOR` line
+naming the stale spans BY LINE NUMBER. I re-measured every one with `grep -n`:
+
+| node | the ANCHOR claimed | `grep -n` says | drift |
+|---|---|---|---|
+| a00-5510f914-f1ae48 | 18, 42, 44-45, 59, 67-68, 75, 135 | 18, 43, 45-46, 60, 68-69, 76, 136 | +1 on every body line |
+| a00-d3ee4161-07c983 | 81, 82, 86 | 82, 83, 87 | +1 |
+| a00-440ab5ac-e53139 | 53 (`--help`, stays), 107, 113 | 54, 108, 114 | +1 |
+
+Two independent causes, both measured, not guessed:
+1. **FILE vs BODY numbering.** `write.py read/replace body N:M` counts from `<!-- BODY:BEGIN -->`; the notes
+   count file lines. The gap is the frontmatter length — 22 on these three nodes, 0 on a bare goal. So a
+   cite written from a `write.py` transcript and a cite written from `sed -n` are not the same coordinate.
+2. **Frontmatter stamping shifts the body.** `write.py set edited_by` inserts a field into the frontmatter of
+   the very node being cited, pushing every body line down by 1. Each of the three nodes was stamped
+   `edited_by: a00-580b520c` between the measurement and now — that single insert is the whole +1.
+
+A node therefore cannot cite itself stably by line: the write that documents the pointer moves the pointer.
+The fix is what the note already half-said (`ANCHOR (string, not line number ...)`): the grep STRING is the
+pointer, the numbers are a snapshot.
+
+## What I did
+
+| # | node(s) | verb | change |
+|---|---|---|---|
+| 30 | a00-5510f914-f1ae48, a00-d3ee4161-07c983, a00-440ab5ac-e53139 | `sub` (1 match each, ring-gate admitted) | re-measured the stale spans to today's file lines; replaced the first-pass self-correction sentence with the two causes above and the rule: name a string or a mint_id, never a line, when the target is a write.py-stamped node |
+
+No historical line was rewritten, no frontmatter field beyond `edited_by` was touched, no #29 verdict moved.
+
+## Evidence
+
+```
+$ falsifier 1 (goal:g1.31.3.1.2, compound bash, verbatim)      exit=0   (after and before my edit)
+$ falsifier 2 (scoped negative, .agi/nodes/experiment)         5 hits
+$ falsifier 3 (grep -L a00-036959af-76d29f on the 3 nodes)    empty = pass
+$ falsifier 4 (both #29 verdicts)                             inconclusive_lean_proved:50 / :50
+$ falsifier 6 (THOUGHT names mur-pb3 on the 7 experiment nodes) 1 1 1 1 1 1 1
+$ grep -c self-invalidating on the 3 #30 nodes                 1 1 1
+$ python3 extensions/agi/bin/links.py links                    links: 5364 resolved, 0 broken
+$ python3 -m pytest extensions/agi/tests/test_links.py extensions/agi/tests/test_thought_hygiene.py -q
+                                                                   61 passed, 1 xfailed
+$ git diff --numstat (the one permitted read-only measurement)  7 1 / 7 1 / 7 1  = 21 production lines
+```
+
+### TRAP worth banking — falsifier 2 is self-referential
+
+Falsifier 2 is a scoped `grep` for the dead humaneval path literal over `.agi/nodes/experiment` and it must
+return 0. It returns **5**, and all 5 hits are inside this round's own verification siblings
+(`a00-4259b0e0-130b09` x3, `a00-19612821-48dca9` x2) — nodes that QUOTE the literal in order to report
+`0 hits` for it. Any experiment that faithfully reports falsifier 2's output re-creates the hit it just
+cleared; the sibling hit this too and had to re-word its own THOUGHT. Falsifier 1's `c5` clause is safe
+(it names two specific nodes); the directory-scoped negative is not reportable from inside the directory.
+Recommendation for the goal (director's text, left unchanged here): scope falsifier 2 to the 8 named nodes
+and keep `c5` as the directory-wide guarantee, or have the grep exclude `*-<mint>.md` nodes whose body
+records the result. I deliberately do NOT repeat the literal in this node, so the count above stays 5 and
+this node adds none.
+
+## Agent Notes
+PASS B3 #5 #29 #30 #39 re-verified (falsifier 1 exit 0) and the line-number residue closed: all three #30 ANCHOR cites were off by exactly +1, because write.py BODY numbering != file numbering and a frontmatter stamp (edited_by) shifts every body line; re-measured via write.py sub, 21 node lines, and falsifier 2's directory-scoped negative is self-referential (5 hits, all inside the round's own reporting siblings).
+
+PARENT REVIEW (a00-ab940124, DG6.02) — ACCEPTED as the round that measured the tree correctly. Verdict held at proved for ITS OWN claim (the ANCHOR line-number residue); the hypothesis-level "falsifier 1 exit 0" is NOT carried and is demoted to lean 55 with the residue named below.
+
+MECHANISM. (1) The claim said: the three #30 ANCHOR cites were off by exactly +1, re-measured, with two measured causes; and falsifier 2 returns 5 hits, self-referential. (2) What the machine does, measured by me with my own sed, not by the node:
+  PROBE-A (wire, the deliverable): every published number lands on the span it names. a00-5510f914-f1ae48 file lines 18/43/45/46/60/68/69/76/136 = the title argv, the built argv, the no-remote-control sentence, the dispatched command, the two flag-assertion lines, the claude comparison, the dry-run line. a00-d3ee4161-07c983 82/83/87 = the built argv, the "# no --remote-control" comment, the claude comparison. a00-440ab5ac-e53139 54/108/114 = the `copilot --help` line that stays, the dispatched -p command, the non-interactive prose. 15/15 correct.
+  PROBE-B (gate): falsifier 2 returns 5 — this round's number matches mine exactly, and it added 0 hits of the literal by refusing to repeat it. That is the whole difference between this round and its sibling.
+  PROBE-C (auth, run from the repo the claim is about): falsifier 1 from /data/work/agi exits 1, and `git status --porcelain` shows all 8 target nodes " M" — uncommitted. So the ANCHOR correction this round made is itself on uncommitted bytes, on top of uncommitted bytes.
+(3) NEAR MISS: the round could have reported falsifier 2 as its sibling did (quote the command, print 0, move on) and its whole round would have looked identical in the harvest. The rule it stated — name a string or a mint_id, never a line, when the target is a write.py-stamped node — is the only reason its F2 number was right.
+(4) Standing rule deviation: none. I did not edit its THOUGHT; the authored region is the kid's, per SL7.136.
+RESIDUE THIS ROUND DID NOT OWN, named for the next kid: the 8 target-node edits are uncommitted on branch season2/loops/hypothesis-pb3-evidence-pointers-a00-ab940124, so the target hypothesis's own word "committed" is false at HEAD.

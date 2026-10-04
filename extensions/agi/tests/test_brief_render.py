@@ -88,6 +88,18 @@ def test_survival_state_card_uses_the_passed_project_root(tmp_path):
         assert "TREE  5 dirty/unreviewed" not in rendered[0]
 
 
+def _formations(root: Path, active: str = "doc:A") -> Path:
+    """The ONE run-mode switch cell (hypothesis:pb3-run-mode-reads-one-
+    formation-cell): config:formations `active` names the formation template."""
+    path = root / "nodes" / ".geometry" / "formations.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f"---\nid: config:formations\nactive: {active}\n"
+        f"templates:\n  {active}: g9.9\n---\n# config:formations\n",
+        encoding="utf-8")
+    return path
+
+
 def test_default_profile_resolution_follows_project_root(monkeypatch, tmp_path):
     """The full sentinel must re-resolve the supplied root's own mode."""
     monkeypatch.delenv("AGI_BRIEF_PROFILE", raising=False)
@@ -95,8 +107,12 @@ def test_default_profile_resolution_follows_project_root(monkeypatch, tmp_path):
     for name, mode in (("survival", "survival"), ("full", "full")):
         root = _root(tmp_path / name, parts={"kid": []})
         cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
-        cfg["operating_mode"] = mode
+        # the profile rides the block bound to the active formation, not a
+        # separate top-level cell (hypothesis:pb3-run-mode-reads-one-formation-cell)
+        cfg["operating_modes"] = {"m": {"name": "m", "formation": "doc:A",
+                                       "profile": mode}}
         (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+        _formations(root)
         renders[name] = "\n".join(brief.assemble(
             tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
             scaffold=None, project_root=root))
@@ -736,9 +752,10 @@ def test_operating_mode_is_a_config_part_and_off_by_default(tmp_path):
     cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
     cfg["operating_modes"] = {"enhanced_survival": {
         "name": "enhanced survival", "seats": "three seats",
-        "models": "opus", "source": "goal:g17.1"}}
-    cfg["active_operating_mode"] = "enhanced_survival"
+        "models": "opus", "source": "goal:g17.1",
+        "formation": "doc:texas-two-step"}}
     (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    _formations(root, "doc:texas-two-step")
     assert "OPERATING MODE" not in brief.render(post="some-post", project_root=root)
     cfg["brief"]["parts"] = {"director": ["head", "operating_mode"]}
     (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")

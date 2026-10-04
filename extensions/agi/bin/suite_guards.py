@@ -94,7 +94,7 @@ def make_suite_lock_fixture(root_resolver):
                 "suite window refused — the suite lock could not be written "
                 f"under {root / 'sessions'}" if holder is None else
                 f"suite window refused — pid {holder} is a LIVE runner holding "
-                f"{root / 'sessions' / verification.SUITE_LOCK}; one suite at a "
+                f"{root / 'sessions' / verification.suite_lock_name(root)}; one suite at a "
                 "time — wait for it or ask whoever owns it")
         os.environ[SUITE_LOCK_MARKER] = str(os.getpid())
         try:

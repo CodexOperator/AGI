@@ -284,6 +284,9 @@ _LISTED_CLIS += [
 _LISTED_CLIS += [
     "sensei.py", "post_wire.py", "node_writer.py", "metrics.py",
     "hierarchy.py", "handoff.py", "benchmark.py", "anonymize.py",
+    "council_report.py",   # DH.DG3.59: declared as `council_report.py:add` in
+                           # command:commands, not exempted from the survey
+    "merge_gate.py",       # DG3.60: declared as `merge_gate.py:check`
 ]
 
 # EF.54 CLI GROUP C. Appended, like GROUP A/B, so sibling edits cannot collide.
@@ -331,6 +334,10 @@ _LISTED_CLIS += ["verification.py", "write_guard.py"]
 #: so a bare invocation has nothing to read. Declared by name in
 #: `command:commands` with that reason, never proposable.
 _LISTED_CLIS += ["memory_alarm.py"]
+
+#: `reds.py` (goal:g7.16.1.10.3): the merge gate's pre-model range check, declared
+#: as `reds.py:check` in `command:commands`, never proposable.
+_LISTED_CLIS += ["reds.py"]
 
 #: CLIs with NO argparse parser at all: `node_writer.py` is a library module
 #: with no `main`, `metrics.py` reads a manual argv, `pi_edit_forgiveness.py`

@@ -34,7 +34,7 @@ Subcommands:
       would make.
 
   status
-    - List tmux windows in sessions whose name starts with agi-master or
+    - List tmux windows in the post session (DEFAULT_TMUX_SESSION) and in sessions named agi-master* or
       belam, with their age.
 
 Both meter and spawn (and loop) refuse to run while the repo is checked out
@@ -371,7 +371,13 @@ def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
         return None
     if seat is not None:
         sp = sessions / f"{seat}{METER_PIN_EXT}"
-        return sp if sp.is_file() else None
+        try:
+            return sp if sp.is_file() else None
+        except OSError:
+            # An unreadable sessions DIR makes is_file() raise, which would
+            # escape every meter caller (mur residue 2 on 0c16b7daf). A pin we
+            # cannot stat is UNKNOWN, the same reading as an absent one.
+            return None
     pins = sorted(sessions.glob(f"*{METER_PIN_EXT}"),
                   key=lambda p: p.stat().st_mtime)
     return pins[-1] if pins else None
@@ -439,12 +445,28 @@ def _parse_pin_record(pin: Path) -> tuple[int | None, str | None]:
 
 
 def _read_pin_target(pin: Path) -> Path | None:
-    """The transcript a pin names, or None when the pin is empty/absent."""
+    """The transcript a pin names, or None when the pin is empty/absent --
+    and also when the named path cannot be RESOLVED OR STAT'd by this uid
+    (EACCES/ELOOP/ENOTDIR). An unreadable pin is UNKNOWN, never fatal:
+    exactly the `None` an absent transcript already returns, which every
+    caller reads as "warn and skip" (`_seat_fraction` docstring; the same
+    doctrine as `_seat_idle_minutes`'s broken clock). It is NOT a zero
+    fraction. The measurement that provoked this guard is on
+    hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback, not
+    here. NOTE this guards the STAT only: a path that stats but cannot be
+    OPENED is caught one call deeper, in `_seat_fraction`."""
     _, target = _parse_pin_record(pin)
     if not target:
         return None
-    lp = Path(target).expanduser().resolve()
-    return lp if lp.exists() else None
+    try:
+        lp = Path(target).expanduser().resolve()
+        return lp if lp.exists() else None
+    except (OSError, RuntimeError):
+        # MEASURED 10-01 (py3.12.3): a symlink loop makes `Path.resolve()`
+        # raise RuntimeError('Symlink loop'), NOT an OSError — so an
+        # `except OSError` alone still tracebacks, which mur residue 1 on
+        # 0c16b7daf caught. A loop is UNKNOWN like any other unreadable pin.
+        return None
 
 
 def resolve_transcript(*, root: Path, session_log: str | None = None,
@@ -1891,45 +1913,15 @@ def post_launch_lock(root: Path, post: str):
 
 #: goal:g7.16.1.7.1.1.4 -- the callers of the ONE stand-up verb.
 STAND_UP_MODES = ("spawn", "rotate", "recover", "restart")
-#: goal:g7.16.1.7.1.4 -- the modes `stand_up` keys (`ensure_post_key`): a
-#: spawn keys in its ONE seating commit (`_first_seating_key`), a rotation in
-#: rotate-self (`_rotate_first_key`); recover and restart have no key step.
-KEYED_BY_STAND_UP = ("recover", "restart")
-
-
-def _magic_pane_after_stand_up(
-    root: Path,
-    post: str,
-    mode: str,
-    *,
-    pane_id: str | None = None,
-    dry: bool = True,
-) -> dict | None:
-    """goal:g7.16.1.7.3.7 — wire on_spawn/on_attach from stand-up/rotate paths.
-
-    Dry-safe default (no live tmux). Lifecycle errors are warn-only so a
-    pane-pin glitch never blocks seating/rotation. Returns the lifecycle
-    result dict, or None when skipped/failed.
-    """
-    try:
-        import magic_pane_lifecycle as life  # noqa: PLC0415 — bin sibling
-    except Exception as exc:  # noqa: BLE001
-        print(f"warn: magic_pane_lifecycle import failed after {mode}: {exc}",
-              file=sys.stderr)
-        return None
-    try:
-        return life.from_stand_up(
-            Path(root), post, mode, pane_id=pane_id, dry=dry
-        )
-    except Exception as exc:  # noqa: BLE001
-        print(f"warn: magic_pane_lifecycle after {mode} of {post}: {exc}",
-              file=sys.stderr)
-        return None
+#: goal:g7.16.1.7.1.4 (hypothesis:stand-up-verb-keys-every-mode-through-
+#: key-template) -- `stand_up` keys EVERY mode through `ensure_post_key`; the
+#: one exception is a body that keys the row itself (`cmd_spawn`: its ONE
+#: seating commit carries the cells via `_first_seating_key`, same template).
+KEYED_BY_STAND_UP = STAND_UP_MODES
 
 
 def stand_up(root: Path, post: str, body, *, mode: str,
-             pane_id: str | None = None, lifecycle_dry: bool = True,
-             skip_lifecycle: bool = False):
+             keyed_in_body: bool = False):
     """goal:g7.16.1.7.1.1.4 -- THE one stand-up of a post: its launch lock
     around `body()`, which resolves (resume on a transcript, else fresh),
     launches through `spawn_window` / `stand_up_launch` and writes the row.
@@ -1938,13 +1930,8 @@ def stand_up(root: Path, post: str, body, *, mode: str,
     The ONLY taker of `post_launch_lock` (a flock is per open file: a nested
     take of the same post would refuse itself). Returns `(True, body())`, or
     `(False, reason)` when another stand-up of the post holds the lock --
-    named once on stderr, nothing launched.
-
-    goal:g7.16.1.7.3.7 — after a successful body(), wire magic_pane_lifecycle
-    on_spawn (spawn) / on_attach (rotate|recover|restart). dry-safe by
-    default; `skip_lifecycle=True` is the test seam that preserves prior
-    stand_up-only assertions.
-    """
+    named once on stderr, nothing launched. The post is keyed from
+    key_template first (`ensure_post_key`) unless `keyed_in_body`."""
     if mode not in STAND_UP_MODES:
         raise ValueError(f"stand_up: unknown mode {mode!r}")
     with post_launch_lock(root, post) as held:
@@ -1952,7 +1939,8 @@ def stand_up(root: Path, post: str, body, *, mode: str,
             why = f"launch lock held: another stand-up of {post} is in flight"
             print(f"ERR: {mode} refused: {why}", file=sys.stderr)
             return False, why
-        if mode in KEYED_BY_STAND_UP and (note := ensure_post_key(root, post)):
+        if (mode in KEYED_BY_STAND_UP and not keyed_in_body
+                and (note := ensure_post_key(root, post))):
             print(note, file=sys.stderr)
         result = body()
         if not skip_lifecycle:
@@ -1960,6 +1948,14 @@ def stand_up(root: Path, post: str, body, *, mode: str,
                 root, post, mode, pane_id=pane_id, dry=lifecycle_dry
             )
         return True, result
+
+
+def _stand_up_key_plan(root: Path, post: str) -> str:
+    """A dry stand-up's key line: the SAME decision `stand_up` would take
+    (`ensure_post_key(dry_run=True)`), printed, nothing written."""
+    if (note := ensure_post_key(root, post, dry_run=True)):
+        print(note, file=sys.stderr)
+    return note
 
 
 def stand_up_launch(root: Path, name: str, shell_cmd: str,
@@ -2364,7 +2360,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             _magic_pane_after_stand_up(root, seat, "spawn", dry=True)
         return rc
     held, out = stand_up(root, seat, lambda: _cmd_spawn(args, root),
-                         mode="spawn")
+                         mode="spawn", keyed_in_body=True)
     return out if held else 1
 
 
@@ -2387,6 +2383,9 @@ def cmd_stand_up(args: argparse.Namespace, root: Path | None,
     if row is None:
         print(f"ERR: stand-up: no config:posts row named {post!r}",
               file=sys.stderr)
+        return 1
+    if eng := row.get("engine"):  # C2 goal:g7.16.1.11: systemd owns the post
+        print(f"ERR: stand-up refused: {post} is engine v{eng.get('v') if isinstance(eng, dict) else eng} (systemd-owned)", file=sys.stderr)
         return 1
     gdir = _heal._seat_geometry_dir(root, row)
     if gdir is not None:
@@ -2524,7 +2523,10 @@ def _cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # spawn-gate-and-autopsy-share-one-pid).
         _row_pid = None
         if root is not None:
-            _row_pid = (_find_seat(root, seat) or {}).get("pid")
+            _row_pid = (_erow := _find_seat(root, seat) or {}).get("pid")
+            if eng := _erow.get("engine"):  # C2 goal:g7.16.1.11: no 2nd seat
+                print(f"ERR: stand-up refused: {seat} is engine v{eng.get('v') if isinstance(eng, dict) else eng} (systemd-owned)", file=sys.stderr)
+                return 1
             if _pred_pid is None:
                 _pred_pid = _row_pid
         _alive_note = None
@@ -2673,14 +2675,17 @@ def _cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         # clause (3): the dry-run PLAN names the first key this seating would
         # mint -- the ONE `would key <seat>` line -- and mints / writes
         # NOTHING (the seating writes below never run on a dry-run).
-        _first_seating_key(root, seat, dry_run=True)
+        _cells, _note = _first_seating_key(root, seat, dry_run=True)
+        if _note:  # a keyed row with no key file: the remint plan line
+            print(_note)
 
     if not args.dry_run:
         print(f"spawned {name!r} in tmux session {tmux_session!r}")
         if getattr(args, "harness", None) == "copilot-cli":
-            # Copilot has no remote-control mode / app-GUI session to watch.
+            # goal:g1.31.4.2.1 #32: copilot runs with its shipped `--remote`
+            # (templates/harness/copilot-cli.toml), not claude.ai's mode.
             print(f"  watch the tmux window {name!r} directly "
-                  f"(copilot has no remote-control mode)")
+                  f"(copilot runs in its --remote mode, not claude.ai)")
         else:
             print(f"  watch at: https://claude.ai/chat (remote-control mode)")
         # A recovery seating gets its predecessor autopsy pre-filled from
@@ -3533,11 +3538,13 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         )
     # goal:g7.16.1.7.1.1.4: the loop's successor launch is a
     # `stand_up(mode="rotate")` keyed on the seat (else the successor name).
+    # the row is the RESOLVED seat (`seat-a-II` keys `seat-a`'s row)
+    _key_seat = getattr(args, "seat", None) or _resolve_seat_for_name(root, name)
     if args.dry_run:
+        _stand_up_key_plan(root, _key_seat)
         rc, _ = _launch_successor()
     else:
-        held, out = stand_up(root, getattr(args, "seat", None) or name,
-                             _launch_successor, mode="rotate")
+        held, out = stand_up(root, _key_seat, _launch_successor, mode="rotate")
         rc = out[0] if held else 1
     if rc != 0:
         return rc
@@ -3692,8 +3699,8 @@ def _poll_record_terminal(path, deadline: float) -> tuple[bool, str]:
 
 
 def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
-    """List tmux windows in sessions whose name starts with agi-master or
-    belam; with `--seats`, list the registry seats instead — one line per
+    """List tmux windows in the post session (DEFAULT_TMUX_SESSION) and in
+    sessions whose name starts with agi-master or belam; with `--seats`, list the registry seats instead — one line per
     row of seat/fraction/age, plus `gen=<N>` for the Prime and
     `session=<id8>` for a generation-less non-prime post ("each layer lasts
     longer" is read here, never enforced).
@@ -3853,11 +3860,14 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
         print("(no tmux sessions)", file=sys.stderr)
         return 0
 
+    # goal:g1.31.4.2.1 #45: the post session (DEFAULT_TMUX_SESSION) holds
+    # every seat's window, belam-* included -- never filtered out.
     sessions = [s.strip() for s in result.stdout.strip().splitlines()
-                if s.strip().startswith("agi-master")
+                if s.strip() == DEFAULT_TMUX_SESSION
+                or s.strip().startswith("agi-master")
                 or s.strip().startswith("belam")]
     if not sessions:
-        print("(no agi-master or belam tmux sessions)")
+        print(f"(no {DEFAULT_TMUX_SESSION}, agi-master or belam tmux sessions)")
         return 0
 
     now = time.time()
@@ -4876,7 +4886,7 @@ def _suite_lock_state_readonly(groot: Path) -> str:
     not create or delete the lock file). Names the holder pid when the file
     holds a live pid, else 'free'."""
     import verification  # lazy: verification imports rotate
-    path = Path(groot) / "sessions" / verification.SUITE_LOCK
+    path = Path(groot) / "sessions" / verification.suite_lock_name(groot)
     if not path.exists():
         return "free"
     try:
@@ -5396,6 +5406,7 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
         # `stand_up(mode="spawn")`; a dry run launches nothing, takes no lock.
         # goal:g7.16.1.7.3.7: dry-run still wires on_spawn (dry-safe; no tmux).
         if args.dry_run:
+            _stand_up_key_plan(root, name)
             rc, _ = _launch_seat()
             if rc == 0:
                 _magic_pane_after_stand_up(root, name, "spawn", dry=True)
@@ -7057,20 +7068,32 @@ def _first_seating_key(root: Path, seat: str,
     import write as _w  # local: same dir (send.py pattern, no cycle)
     row = next((r for r in _w._load_seats(_shared_graph_root(root))
                 if r.get("name") == seat), None)
-    if not row or row.get("pubkey"):
-        return {}, ""
-    if dry_run:
-        print(f"would key {seat}")
+    if not row:
         return {}, ""
     import send  # local: same dir, no import cycle (send.py pattern)
-    scheme = str(row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME)
-    minted = send._mint_seat_key(root, seat, scheme)
-    if minted is None:
+    # goal:g7.16.1.7.1.4 (run-27 residue 159): the seating keys from
+    # key_template too -- a keyed row whose key file is absent takes the
+    # own-box remint rule (its own rekey commit), an existing key file on an
+    # unkeyed row is adopted, the template names the scheme.
+    if row.get("pubkey"):
+        if _key_present(send, root, seat):
+            return {}, ""
+        return {}, _rotate_first_key(root, None, seat, row, dry_run=dry_run)
+    tmpl = key_template(root)
+    if dry_run:  # the plan names the decision the real run takes
+        verb = _key_decision(send, root, seat, tmpl)[0]
+        if verb != "leave":
+            print(f"would key {seat}: would {verb}")
         return {}, ""
-    _path, pub = minted
+    scheme = str(row.get("sig_scheme") or tmpl.get("scheme")
+                 or send.seatsig.DEFAULT_SCHEME)
+    keyed = _template_key(send, root, seat, scheme, tmpl)
+    if keyed is None:
+        return {}, ""
+    scheme, pub, _path, verb = keyed
     return ({"pubkey": pub.hex(), "sig_scheme": scheme,
              "enc_scheme": row.get("enc_scheme") or "none"},
-            f"[seating] seat {seat!r} was unkeyed: minted its first key at "
+            f"[seating] seat {seat!r} was unkeyed: {verb} at "
             f"{_path} ({send.seatsig.fingerprint(pub)})")
 
 
@@ -7674,8 +7697,12 @@ def _kill_window(name: str, tmux_session: str,
 def _seat_fraction(root: Path, row: dict) -> float | None:
     """Context fraction for a seat row: read its seat-stable pin
     (`pin_ref` -> `.agi/sessions/<name>.meter`), parse the named transcript,
-    and divide by the ladder's context window. None when the pin or a usage
-    record is absent (caller warns and skips the seat)."""
+    and divide by the ladder's context window. None when the pin, the
+    transcript, or a usage record is absent or UNREADABLE (the caller warns
+    and skips the seat). The transcript READ is guarded here, not only the
+    stat in `_read_pin_target`: a file this uid may stat but not open is
+    still UNKNOWN, never a raised PermissionError out of `status`
+    (hypothesis:an-unreadable-meter-pin-is-unknown-never-a-traceback)."""
     name = row.get("name")
     if not name:
         return None
@@ -7689,9 +7716,15 @@ def _seat_fraction(root: Path, row: dict) -> float | None:
     target = _read_pin_target(pin)
     if target is None:
         return None
-    usage = parse_usage_from_cc_transcript(target)
-    if usage is None:
-        usage = parse_usage_from_rc_log(target)
+    try:
+        usage = parse_usage_from_cc_transcript(target)
+        if usage is None:
+            usage = parse_usage_from_rc_log(target)
+    except OSError:
+        # EXISTS but unreadable (EACCES on the file itself, not on a parent
+        # dir). The stat seam in _read_pin_target cannot see this; without
+        # this guard `rotate.py status` still dies on the first sealed seat.
+        return None
     if usage is None:
         return None
     context_tokens = load_ladder_field(root, "director_context_tokens",
@@ -15782,7 +15815,11 @@ def _record_accepted(rec) -> bool:
     # pin -> pending ack) runs exactly as a rotated seat's does.
     crash_ok = (rec.get("rotation") == "crash-recovery"
                 and rec.get("result") == "respawned")
-    return bool(ok_result or crash_ok)
+    # goal:g6.41.1.1: heal's boot-resume record (a session resumed after a
+    # reboot outside heal's recovery) gets the same one after_join wake.
+    boot_ok = (rec.get("rotation") == "boot-resume"
+               and rec.get("result") == "resumed")
+    return bool(ok_result or crash_ok or boot_ok)
 
 
 def _record_stamp_key(path: Path) -> str:
@@ -17861,26 +17898,62 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
         here = boxes.this_box(root)
     except Exception:  # noqa: BLE001 -- an undeclared box is never own
         here = ""
+    refusal, witness = "", ""
     if not own or own != here:
-        return _key_finding(root, seat, (
-            f"[finding] {seat}: keyed row, no key file, row box "
-            f"{own or '(none)'} is not this box {here or '(undeclared)'} -- a "
-            f"moved seat or a stolen identity; remint REFUSED"))
-    witness = (_box_cell_witness(root, seat, own)
-               if tmpl.get("witness") == "box_cell_commit" else "none")
-    if not witness:
-        return _key_finding(root, seat, (
-            f"[finding] {seat}: keyed row, no key file, own box {own}, but no "
-            f"commit witnesses the row's box cell -- remint REFUSED"))
-    if dry_run:
-        return (f"(dry-run) seat {seat!r} is keyed with no key file on its own "
-                f"box {own}; would remint (witness {witness}) -- NOTHING done")
-    scheme = row.get("sig_scheme") or tmpl.get("scheme") or send.seatsig.DEFAULT_SCHEME
-    minted = send._mint_seat_key(root, seat, scheme)
-    if minted is None:
-        return ""
-    _path, pub = minted
+        refusal = (f"[finding] {seat}: keyed row, no key file, row box "
+                   f"{own or '(none)'} is not this box {here or '(undeclared)'} "
+                   f"-- a moved seat or a stolen identity; remint REFUSED")
+    else:
+        witness = (_box_cell_witness(root, seat, own)
+                   if tmpl.get("witness") == "box_cell_commit" else "none")
+        if not witness:
+            refusal = (f"[finding] {seat}: keyed row, no key file, own box "
+                       f"{own}, but no commit witnesses the row's box cell -- "
+                       f"remint REFUSED")
+    if dry_run:  # run-27 residue 160: a dry run sends no finding, writes nothing
+        if refusal:
+            return f"(dry-run) {refusal[len('[finding] '):]} -- NOTHING sent"
+        staged, n = _orphan_staged_keys(send, root, seat, str(row.get("pubkey") or ""), True)
+        verb = (f"ADOPT its orphan staged key and sweep {n}" if staged
+                else f"remint (witness {witness}) and sweep {n}")
+        return (f"(dry-run) seat {seat!r} is keyed with no key file on its own box {own}; would {verb} -- NOTHING done")
+    if refusal:
+        return _key_finding(root, seat, refusal)
+    # 158c: a crash between the row write and the rename left the row naming
+    # a key that lives only in an orphan temp -- adopt it, sweep the rest.
     old = str(row.get("pubkey"))
+    kp = send._seat_key_path(root, seat)
+    if kp.exists() and not kp.stat().st_size:  # a crash-left empty file is missing
+        kp.unlink()                            # (before the adopt links over it)
+    adopt, swept = _orphan_staged_keys(send, root, seat, old, False)
+    if adopt is not None:
+        try:
+            send._place_seat_key(adopt, send._seat_key_path(root, seat))
+        except OSError as exc:
+            return f"seat {seat!r}: remint held -- orphan staged key not placed ({exc})"
+        note = (f"seat {seat!r}: key file absent on own box {own} (witness {witness}); "
+                f"ADOPTED its orphan staged key "
+                f"{send.seatsig.fingerprint(bytes.fromhex(old))}, {swept} temp swept")
+        try:
+            _cn = _commit_spawn_row(
+                root, seat=seat, generation=_read_generation(root, seat),
+                session_id=str(row.get("session_id") or ""),
+                window=str(row.get("window") or ""),
+                pid=int(row.get("pid") or 0), rekey=True)
+            note += f"; {_cn.splitlines()[0]}"
+        except Exception as exc:  # noqa: BLE001
+            note += f"; key row commit not performed ({exc})"
+        _key_finding(root, seat, f"[finding] {note}"); return note
+    # 158 + 158b: the key is STAGED (hidden 0600 temp) before the row names
+    # it; a refused write or a failed rename unlinks it (row restored).
+    scheme = row.get("sig_scheme") or tmpl.get("scheme") or send.seatsig.DEFAULT_SCHEME
+    try:
+        staged = send._mint_seat_key(root, seat, scheme, stage=True)
+    except OSError as exc:
+        return f"seat {seat!r}: remint held -- key file not staged ({exc}); row untouched"
+    if staged is None:
+        return f"seat {seat!r}: remint held -- a key file appeared; row untouched"
+    tmp, pub = staged
     entry = {"pub": old, "fp": send.seatsig.fingerprint(bytes.fromhex(old)),
              "signed": False, "reason": "key file absent on own box",
              "box": own, "witness": witness,
@@ -17888,27 +17961,117 @@ def _remint_missing_key(send, root: Path, seat: str, row: dict, tmpl: dict,
     cells = {"pubkey": pub.hex(), "sig_scheme": scheme,
              "enc_scheme": row.get("enc_scheme") or "none",
              "key_history": list(row.get("key_history") or []) + [entry]}
+    try:
+        if not _write_identity_cells(root, seat=seat, actor=seat,
+                                     role=str(row.get("role") or ""), cells=cells):
+            tmp.unlink(missing_ok=True)
+            return f"seat {seat!r}: remint held -- row write not admitted; no key file written"
+    except Exception as exc:  # noqa: BLE001
+        tmp.unlink(missing_ok=True)
+        return f"seat {seat!r}: remint held -- row write not admitted ({exc}); no key file written"
+    try:
+        send._place_seat_key(tmp, send._seat_key_path(root, seat))
+    except OSError as exc:
+        tmp.unlink(missing_ok=True)
+        what = ("a key file appeared" if isinstance(exc, FileExistsError)
+                else f"key file not placed ({exc})")
+        back = {"pubkey": old, "sig_scheme": row.get("sig_scheme") or scheme,
+                "enc_scheme": row.get("enc_scheme") or "none",
+                "key_history": list(row.get("key_history") or [])}
+        try:
+            restored = bool(_write_identity_cells(
+                root, seat=seat, actor=seat, role=str(row.get("role") or ""),
+                cells=back))
+        except Exception:  # noqa: BLE001
+            restored = False
+        return (f"seat {seat!r}: remint held -- {what}; "
+                f"row {'restored' if restored else 'NOT restored'} to {entry['fp']}")
     note = (f"seat {seat!r}: key file absent on own box {own}; reminted "
             f"{send.seatsig.fingerprint(pub)}, old key {entry['fp']} retired "
             f"UNSIGNED (witness {witness})")
     try:
-        if _write_identity_cells(root, seat=seat, actor=seat,
-                                 role=str(row.get("role") or ""), cells=cells):
-            _cn = _commit_spawn_row(
-                root, seat=seat, generation=_read_generation(root, seat),
-                session_id=str(row.get("session_id") or ""),
-                window=str(row.get("window") or ""),
-                pid=int(row.get("pid") or 0), rekey=True)
-            note += f"; {_cn.splitlines()[0]}"
-        else:
-            note += "; row write not admitted"
+        _cn = _commit_spawn_row(
+            root, seat=seat, generation=_read_generation(root, seat),
+            session_id=str(row.get("session_id") or ""),
+            window=str(row.get("window") or ""),
+            pid=int(row.get("pid") or 0), rekey=True)
+        note += f"; {_cn.splitlines()[0]}"
     except Exception as exc:  # noqa: BLE001
-        note += f"; row write not admitted ({exc})"
+        note += f"; key row commit not performed ({exc})"
     _key_finding(root, seat, f"[finding] {note}")
     return note
 
 
-def ensure_post_key(root: Path, post: str) -> str:
+def _key_present(send, root: Path, seat: str) -> bool:
+    """A key file that holds bytes (a zero-length crash leftover is missing)."""
+    p = send._seat_key_path(root, seat)
+    return p.exists() and p.stat().st_size > 0
+
+
+def _key_decision(send, root: Path, seat: str, tmpl: dict):
+    """The ONE mint | adopt | leave decision of an unkeyed row, shared by the
+    real run and every dry plan: `(verb, found)`, `found` = the adopted
+    `(scheme, pub)`."""
+    if not _key_present(send, root, seat):
+        return "mint", None
+    found = (_existing_seat_key(send, root, seat)
+             if tmpl.get("existing_key") == "adopt" else None)
+    return ("adopt", found) if found else ("leave", None)
+
+
+def _template_key(send, root: Path, seat: str, scheme: str, tmpl: dict):
+    """The ONE key step of an unkeyed row (seating and every stand-up):
+    mint through `send._mint_seat_key`, or -- a key file already there --
+    adopt it when the template says `existing_key: adopt`. Returns
+    `(scheme, pub, path, verb)`, or None (the key file is left alone)."""
+    verb, found = _key_decision(send, root, seat, tmpl)
+    if verb == "mint":
+        send._seat_key_path(root, seat).unlink(missing_ok=True)  # empty leftover
+        minted = send._mint_seat_key(root, seat, scheme)
+        if minted is None:
+            return None
+        return scheme, minted[1], minted[0], "minted its first key"
+    if verb == "leave":
+        return None
+    return (*found, send._seat_key_path(root, seat), "adopted its existing key")
+
+
+#: 158c: an orphan temp is touched (adopted or unlinked) only once it is this
+#: old. A YOUNGER one may be a CONCURRENT remint's in-flight stage (between its
+#: keygen and its placement); renaming or unlinking it destroys a live private
+#: key mid-mint, so a young temp -- match or not -- is left alone.
+ORPHAN_TEMP_GRACE_S = 300
+
+
+def _orphan_staged_keys(send, root: Path, seat: str, pub_hex: str, dry_run: bool):
+    """158c -- `seat`'s orphan temps past `ORPHAN_TEMP_GRACE_S`: the one whose
+    secret derives the row's CURRENT pubkey is adopted, the rest unlinked.
+    `(match, would_sweep)` -- the count a dry run reports is what it WOULD
+    unlink, not every temp it saw. A temp that vanishes mid-scan is skipped."""
+    path = send._seat_key_path(root, seat)
+    cutoff = time.time() - ORPHAN_TEMP_GRACE_S
+    match, swept = None, 0
+    for tmp in sorted(path.parent.glob(f".{path.name}.*.tmp")):
+        try:
+            if tmp.stat().st_mtime > cutoff:  # possibly a live mint's stage
+                continue
+            obj = json.loads(tmp.read_text())
+            hit = match is None and send.seatsig.get(obj["scheme"]).public_from_secret(
+                bytes.fromhex(obj["priv_hex"])).hex() == pub_hex
+        except FileNotFoundError:  # vanished: someone else's, skip
+            continue
+        except Exception:  # noqa: BLE001 -- unreadable is not the key
+            hit = False
+        if hit:
+            match = tmp
+        else:
+            swept += 1
+            if not dry_run:
+                tmp.unlink(missing_ok=True)
+    return match, swept
+
+
+def ensure_post_key(root: Path, post: str, dry_run: bool = False) -> str:
     """goal:g7.16.1.7.1.4 -- every stand-up keys its post: the post's own
     config:posts row, when it names no pubkey, is keyed from `key_template`
     through `_rotate_first_key` (mint, or adopt an existing key file), row
@@ -17918,7 +18081,7 @@ def ensure_post_key(root: Path, post: str) -> str:
         import write as _w  # local: same dir (send.py pattern, no cycle)
         row = next((r for r in _w._load_seats(_shared_graph_root(root))
                     if r.get("name") == post), None)
-        return _rotate_first_key(root, None, post, row)
+        return _rotate_first_key(root, None, post, row, dry_run=dry_run)
     except Exception as exc:  # noqa: BLE001 -- see docstring
         return f"warn: {post!r} key not assigned ({exc})"
 
@@ -17950,12 +18113,11 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
         return ""
     import send  # local: same dir, no import cycle (send.py pattern)
     if row.get("pubkey"):
-        if send._seat_key_path(root, seat).exists():
+        if _key_present(send, root, seat):
             return ""
         return _remint_missing_key(send, root, seat, row, key_template(root),
                                    dry_run=dry_run)
     tmpl = key_template(root)
-    adopt = tmpl.get("existing_key") == "adopt"
     scheme = (row.get("sig_scheme") or tmpl.get("scheme")
               or send.seatsig.DEFAULT_SCHEME)
     if dry_run:
@@ -17963,24 +18125,17 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
         # do, but mint NOTHING and write NO row cell. Already-keyed rows
         # (above) and idempotent re-rotates (key file already exists, so the
         # live path would mint nothing) both return '' -- nothing to report.
-        if send._seat_key_path(root, seat).exists():
+        verb = _key_decision(send, root, seat, tmpl)[0]
+        if verb != "mint":
             return (f"(dry-run) seat {seat!r} is unkeyed; would adopt its "
-                    f"existing key -- NOTHING done") if adopt else ""
+                    f"existing key -- NOTHING done") if verb == "adopt" else ""
         return (f"(dry-run) seat {seat!r} is unkeyed; would mint its first "
                 f"key at {send._seat_key_path(root, seat)} (0600) and write "
                 f"its pubkey cells -- NOTHING done")
-    minted = send._mint_seat_key(root, seat, scheme)
-    if minted is None:
-        # a key file already exists though the row is unkeyed: the template
-        # (goal:g7.16.1.7.1.4) adopts it -- its pubkey goes into the row --
-        # or, `existing_key: leave`, leaves it for the next pass.
-        found = _existing_seat_key(send, root, seat) if adopt else None
-        if found is None:
-            return ""
-        scheme, pub = found
-        _path, verb = send._seat_key_path(root, seat), "adopted its existing key"
-    else:
-        (_path, pub), verb = minted, "minted its first key"
+    keyed = _template_key(send, root, seat, scheme, tmpl)
+    if keyed is None:
+        return ""
+    scheme, pub, _path, verb = keyed
     note = (f"seat {seat!r} was unkeyed; {verb} at "
             f"{_path} (incremental fleet keying) -- "
             f"{send.seatsig.fingerprint(pub)}")
@@ -20954,13 +21109,34 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # The JOIN was ATTEMPTED and no registry file matched the successor's
         # window @id: the rotation is NOT a success. Record `skipped` naming
         # `registry file for @<id>` (proof a).
-        _write_rotation_record(root, _rotate_self_record(
-            seat=seat, role=role, result="skipped",
-            gen_before=gen_before, gen_after=gen,
-            succ=succ, handover=handover,
-            readback_log=Path(dbg).expanduser().resolve(),
-            refusal=joined["note"]), path=rec_path)
-        print(f"ERR: {joined['note']}; rotation NOT reported success.",
+        # (hypothesis:a-skipped-rotate-join-leaves-no-stranded-window) the
+        # successor spawned at (4) is LIVE here (stranded, seq 348). Row 34:
+        # flag first (the record heal polls, action `pending`), then kill by
+        # @id (rotate is the ONE owner), then rewrite the record with what
+        # `_kill_window` did: killed | already_gone | error.
+        st = handover["stranded"] = {
+            "action": "pending", "window": spawn_name, "id": succ_window_id,
+            "why": "join not found; the spawned successor window would "
+                   "otherwise stay live under the bare post name"}
+        for _phase in (0, 1):
+            if _phase:
+                st["action"] = _kill_window(
+                    spawn_name, tmux_session, args.window_path,
+                    window_id=succ_window_id)
+            try:
+                _write_rotation_record(root, _rotate_self_record(
+                    seat=seat, role=role, result="skipped",
+                    gen_before=gen_before, gen_after=gen,
+                    succ=succ, handover=handover,
+                    readback_log=Path(dbg).expanduser().resolve(),
+                    refusal=joined["note"]), path=rec_path)
+            except OSError as exc:
+                if _phase:
+                    raise
+                print(f"NOTE: pre-kill record write failed ({exc}); killing anyway.", file=sys.stderr)
+        print(f"ERR: {joined['note']}; rotation NOT reported success. "
+              f"Stranded successor window {spawn_name!r} "
+              f"({succ_window_id}) {st['action']}.",
               file=sys.stderr)
         return 1
 
@@ -23093,7 +23269,8 @@ def main(argv: list[str] | None = None) -> int:
     # meter, loop, alarms, rotate-self, ack and seats-launch need the project root
     if args.cmd in ("meter", "loop", "alarms", "rotate-self", "rotate", "ack",
                     "next", "seats-launch", "seq", "handoff", "prepare",
-                    "first-decision", "autopsy", "closeout", "rename-post"):
+                    "first-decision", "autopsy", "closeout", "rename-post",
+                    "stand-up", "merge-up"):
         root = find_project_root()
         if root is None:
             print("ERR: no agi project found from cwd", file=sys.stderr)

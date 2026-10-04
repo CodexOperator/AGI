@@ -564,20 +564,24 @@ def _merge_head_present(root: Path) -> bool:
 
 
 def _suite_lock_held(root: Path) -> bool:
-    """A LIVE runner holds `<sessions>/verify-suite.lock` (verification.py). A
+    """A LIVE runner holds the suite lock in `<sessions>/` -- named by
+    `values.core.suite_lock.file` through `verification.suite_lock_name`, the
+    ONE resolver. A
     lock whose holder pid is dead (or unparseable/absent) is stale-broken — NOT
     held — mirroring acquire_suite_lock's dead-pid break."""
     s = _shared_sessions_dir(root)
     if s is None:
         return False
-    lock = s / "verify-suite.lock"
-    if not lock.exists():
-        return False
     try:
-        holder = int(lock.read_text(encoding="utf-8").strip())
-    except (OSError, ValueError):
+        import verification  # noqa: PLC0415 -- bin/ is on sys.path above; the ONE resolver
+        name, rule = verification.suite_lock_name(root), verification._lock_held_by
+    except Exception:  # P7: never raises; fail safe on the default name
+        name, rule = "verify-suite.lock", lambda _root, pid: _pid_alive(pid)  # fallback ONLY
+    lock = s / name
+    try:
+        return bool(rule(root, int(lock.read_text(encoding="utf-8").strip())))
+    except Exception:
         return False
-    return _pid_alive(holder)
 
 
 def _season_unpushed_count(root: Path) -> int:
@@ -1367,16 +1371,33 @@ _NUDGE_READ_HEAD = "[agi-nudge] unread for "
 _AUTOPOST_BYTE_CAP = 6000
 
 
-def _run_send_read(bin_dir: Path, seat: str) -> str:
-    """`send.py read <seat>` stdout, else '' — the ONE seam a fixture
-    replaces so no real subprocess fires under pytest (P7)."""
+def _run_send_read(bin_dir: Path, seat: str, peek: bool = False) -> str:
+    """`send.py read <seat> [--peek]` stdout, else '' — the ONE seam a fixture
+    replaces so no real subprocess fires under pytest (P7). `peek=True` prints
+    the SAME blocks and retires NOTHING (hypothesis:g1-inbox-read-cursor-never-
+    passes-an-unprinted-line): the pre-flight read here, so the cursor only ever
+    moves behind bytes this pane actually received."""
     try:
-        out, _ = _Popen(["python3", str(bin_dir / "send.py"), "read", seat],
+        out, _ = _Popen(["python3", str(bin_dir / "send.py"), "read", seat]
+                        + (["--peek"] if peek else []),
                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                         text=True).communicate(timeout=20)
     except Exception:  # noqa: BLE001
         return ""
     return out or ""
+
+
+def _empty_verdict(out: str, seat: str) -> bool:
+    """True when `send.py read` came back with NOTHING — the CLI's truthy
+    literal `inbox for <seat>: empty` (send.py prints a line, never ''), the
+    empty string a timeout gives, or whitespace.
+    (hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line: an `if
+    not body` guard is BLIND to the literal the real seam returns, so an empty
+    inbox was announced as DELIVERED with the F25 do-not-read-again
+    suppression and an empty body.)"""
+    if not out or not out.strip():
+        return True
+    return out.strip() == f"inbox for {seat}: empty"
 
 
 def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
@@ -1393,8 +1414,9 @@ def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
         print(f"[ack] nudge for {seat} NOT auto-read (AGI_HOOK_NO_SPAWN); "
               f"run `send.py read {seat}` yourself.")
         return False
-    body = _run_send_read(Path(__file__).resolve().parents[1] / "bin", seat)
-    if not body:
+    bin_dir = Path(__file__).resolve().parents[1] / "bin"
+    body = _run_send_read(bin_dir, seat, peek=True)   # prints, retires nothing
+    if _empty_verdict(body, seat):
         # l5 (a) — nothing could actually be delivered (a timeout and a
         # genuinely mail-less inbox both read back as '' from the seam): print
         # exactly ONE undelivered line, NEVER the DELIVERED banner nor the F25
@@ -1404,15 +1426,38 @@ def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
               f"came back empty (timeout or an empty inbox); please read it "
               f"manually.")
         return False
-    text = (f"---\nMail DELIVERED IN THIS TURN by this hook (`[agi-nudge]` "
-            f"for {seat}); the ONE `send.py read {seat}` ran. Do NOT read "
-            f"again this turn (F25).\n{body}")
+    head = (f"---\nMail DELIVERED IN THIS TURN by this hook (`[agi-nudge]` "
+            f"for {seat}); the `send.py read {seat}` below is the WHOLE "
+            f"unread body, printed here. Do NOT read again this turn (F25).\n")
+    text = head + body
     if len(text.encode()) > _AUTOPOST_BYTE_CAP:
-        print(text.encode()[:_AUTOPOST_BYTE_CAP].decode("utf-8", "replace"))
-        print(f"\n[acked] {seat}: exceeds byte cap; run `send.py read {seat}` "
-              f"for the rest.")
-    else:
-        print(text)
+        # hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line — the
+        # cap is a REFUSAL, never a truncation: printing the first N bytes and
+        # telling the seat to read "the rest" claimed bytes this pane never
+        # got, while the cursor had already moved past them (the read the seat
+        # was told to run answered `empty`). Print NO body, claim NO delivery,
+        # suppress NO F25, and leave the cursor where it was: the seat's own
+        # `send.py read` still reports every unread line.
+        print(f"[acked] {seat}: unread body is {len(text.encode())} bytes, over "
+              f"the {_AUTOPOST_BYTE_CAP}-byte auto-post cap; NOT delivered and "
+              f"NOT marked read. Run `send.py read {seat}` yourself.")
+        return True
+    # PRINT WHAT THE MARKING READ RETIRES (hypothesis:g1-inbox-read-cursor-never-
+    # passes-an-unprinted-line, conjunct 2). The pre-flight peek retired nothing,
+    # so the marking read's OWN stdout is the pane's bytes: a line appended
+    # between the two reads is DELIVERED here rather than retired into a pipe
+    # nobody reads. `body` is then only the cap pre-flight.
+    marked = _run_send_read(bin_dir, seat)
+    if _empty_verdict(marked, seat):
+        print(f"[ack] nudge for {seat} NOT delivered: the marking read came "
+              f"back empty; please read `send.py read {seat}` manually.")
+        return False
+    print(head + marked)
+    if len((head + marked).encode()) > _AUTOPOST_BYTE_CAP:
+        print(f"[acked] {seat}: {len((head + marked).encode())} bytes arrived "
+              f"between the pre-flight peek and the marking read, over the "
+              f"{_AUTOPOST_BYTE_CAP}-byte cap; ALL of them are printed above "
+              f"and every one was delivered.")
     return True
 
 

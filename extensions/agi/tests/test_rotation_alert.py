@@ -14,6 +14,7 @@ Proof criteria (a)–(e) of the brief:
   (e) the hook is SILENT and exits 0 outside an agi project and on an
       unreadable transcript.
 """
+import contextlib
 import importlib.util
 import io
 import json
@@ -887,6 +888,43 @@ def _over_line_seat_fixture(tmp_path):
 
 
 # --- gate (b) FIRST — the merge-up-in-flight gate is THE point of the node ---
+def test_suite_lock_held_reads_the_name_from_the_config_block(tmp_path, monkeypatch):
+    """The hook resolves the lock path through `verification.suite_lock_name`
+    -- no `verify-suite.lock` literal in extensions/agi/hooks. A block naming
+    `other.lock` is honoured; a block naming `third.lock` is not read."""
+    monkeypatch.setattr(hook, "_shared_sessions_dir", lambda root: root / "sessions")
+    root = tmp_path / ".agi"
+    (root / "sessions").mkdir(parents=True)
+    (root / "config.json").write_text(json.dumps({"values": {"core": {
+        "suite_lock": {"file": "other.lock"}}}}))
+    lock = root / "sessions" / "other.lock"
+    lock.write_text(str(os.getppid()))          # this test's LIVE FOREIGN pid (the parent)
+    assert hook._suite_lock_held(root) is True
+    (root / "config.json").write_text(json.dumps({"values": {"core": {
+        "suite_lock": {"file": "third.lock"}}}}))
+    lock.rename(root / "sessions" / "third.lock")   # PRESENT under the configured name,
+    assert not (root / "sessions" / "verify-suite.lock").exists()   # ABSENT under the default
+    assert hook._suite_lock_held(root) is True
+
+
+def test_suite_lock_held_own_pid_is_not_held_by_the_one_rule(tmp_path, monkeypatch):
+    """The hook decides through `verification._lock_held_by`: this process's own pid is no holder."""
+    monkeypatch.setattr(hook, "_shared_sessions_dir", lambda root: root / "sessions")
+    (tmp_path / "sessions").mkdir()
+    (tmp_path / "sessions" / "verify-suite.lock").write_text(str(os.getpid()))
+    assert hook._suite_lock_held(tmp_path) is False
+
+
+def test_suite_lock_held_fails_safe_when_verification_is_unimportable(tmp_path, monkeypatch):
+    """P7: an unimportable resolver never raises out of the hook; the default
+    lock name still reads as held."""
+    monkeypatch.setattr(hook, "_shared_sessions_dir", lambda root: root / "sessions")
+    monkeypatch.setitem(sys.modules, "verification", None)   # `import verification` raises
+    (tmp_path / "sessions").mkdir()
+    (tmp_path / "sessions" / "verify-suite.lock").write_text(str(os.getpid()))
+    assert hook._suite_lock_held(tmp_path) is True
+
+
 def test_live_suite_lock_defers_rotation(tmp_path, run_hook, monkeypatch, capsys):
     """A LIVE verify-suite lock holds gate (b): the hook prints the deferral
     and does NOT rotate. A rotation landing mid-merge is worse than one extra
@@ -895,7 +933,7 @@ def test_live_suite_lock_defers_rotation(tmp_path, run_hook, monkeypatch, capsys
     monkeypatch.setenv("AGI_SEAT", "probe-director")
     lock = graph / "sessions" / "verify-suite.lock"
     lock.parent.mkdir(parents=True, exist_ok=True)
-    lock.write_text(str(os.getpid()))   # THIS test's own LIVE pid
+    lock.write_text(str(os.getppid()))   # THIS test's LIVE FOREIGN pid (the parent)
     tp = tmp_path / "lock.jsonl"
     _write_transcript(tp, 45_000)       # 0.45 >= 0.4 -> over the line
     state_dir = tmp_path / "state-lock"
@@ -1797,8 +1835,8 @@ def test_l5_nudge_prompt_auto_posts_delivered_in_this_turn(
     body NAMED as delivered-in-this-turn, plus a do-not-read-again line (F25);
     the [meter] line still prints last."""
     calls = []
-    def _fake(bin_dir, seat):
-        calls.append(seat)
+    def _fake(bin_dir, seat, peek=False):
+        calls.append(("peek" if peek else "mark", seat))
         return "VERIFIED seat-a (ed25519)\n  hello from sender\n"
     monkeypatch.setattr(hook, "_run_send_read", _fake)
     cwd = agi_project.parent / "worktrees" / "seat-a"
@@ -1810,7 +1848,8 @@ def test_l5_nudge_prompt_auto_posts_delivered_in_this_turn(
     payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
     code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
     assert code == 0, err
-    assert calls == ["a"], f"the ONE read must run for self: {calls}"
+    assert calls == [("peek", "a"), ("mark", "a")], \
+        f"peek first, then the marking read, and nothing else: {calls}"
     assert "DELIVERED IN THIS TURN" in out, out
     assert "VERIFIED seat-a (ed25519)" in out, out
     assert "Do NOT read again this turn (F25)." in out
@@ -1860,7 +1899,7 @@ def test_l5_empty_body_is_not_delivered(
     do-not-read-again suppression, exactly the ONE undelivered line, and the
     inbox left unconsumed (nothing suppressed). Never raises (exit 0)."""
     calls = []
-    def _fake(bin_dir, seat):
+    def _fake(bin_dir, seat, peek=False):
         calls.append(seat)
         return ""                       # timeout / mail-less inbox
     monkeypatch.setattr(hook, "_run_send_read", _fake)
@@ -1906,9 +1945,14 @@ def test_l5_missing_transcript_never_consumes(
 def test_l5_byte_cap_truncate_fixture(
         agi_project, run_hook, tmp_path, monkeypatch, capsys):
     """hypothesis:l5 conjunct (c) committed fixture — a body big enough that
-    the assembled text exceeds `_AUTOPOST_BYTE_CAP` takes the truncate branch:
-    the delivered banner prints once plus a named 'exceeds byte cap' tail line."""
-    def _fake(bin_dir, seat):
+    the assembled text exceeds `_AUTOPOST_BYTE_CAP` takes the REFUSAL branch:
+    a named 'over the auto-post cap' line, NO 'DELIVERED IN THIS TURN' claim,
+    NO F25 suppression, and NO marking read
+    (hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line — the pane
+    received no body at all, so the cursor must not move)."""
+    calls = []
+    def _fake(bin_dir, seat, peek=False):
+        calls.append("peek" if peek else "mark")
         return "VERIFIED seat-a (ed25519)\n" + "x" * (hook._AUTOPOST_BYTE_CAP + 5000)
     monkeypatch.setattr(hook, "_run_send_read", _fake)
     cwd = agi_project.parent / "worktrees" / "seat-a"
@@ -1920,8 +1964,11 @@ def test_l5_byte_cap_truncate_fixture(
     payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
     code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
     assert code == 0, err
-    assert "exceeds byte cap" in out, out
-    assert "DELIVERED IN THIS TURN" in out, out
+    assert "over the" in out and "auto-post cap" in out, out
+    assert "DELIVERED IN THIS TURN" not in out, out
+    assert "Do NOT read again this turn (F25)." not in out, out
+    assert calls == ["peek"], \
+        f"an over-cap wake must NEVER run the marking read: {calls}"
 
 
 def test_l5_no_spawn_declines_never_reads(
@@ -1960,3 +2007,169 @@ def test_capture_cluster_templates_preserve_exact_output():
     assert hook.render("rotation_alert", "captive_deferred_body",
                        prefix=hook.DEFER_PREFIX, which="suite-lock-held") == \
         f"{hook.DEFER_PREFIX} (suite-lock-held) — the captive auto-rotate does not fire while that holds."
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line — the second
+# advancer. `_auto_post` read the seat's inbox with the PRINTING read and only
+# THEN discovered the body was over `_AUTOPOST_BYTE_CAP`: it printed the first
+# 6000 bytes, told the seat to read "the rest", and the cursor had already
+# moved past every remaining line — so that follow-up read answered `empty`.
+# RED on the shipped trunk of that shape; the fix makes the cap a REFUSAL that
+# never advances the cursor, and routes the pre-flight read through `--peek`.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def test_captured_cap_wakes_never_advance_the_cursor(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """A >6000-byte wake: the hook's ONLY read carries `--peek` (retires
+    nothing), the pane gets a named refusal instead of a head-6000-bytes
+    delivery, and the seat's own `send.py read` still reports the rest."""
+    calls = []
+    def _fake(bin_dir, seat, peek=False):
+        calls.append("peek" if peek else "mark")
+        return "VERIFIED seat-a (ed25519)\n" + "x" * (hook._AUTOPOST_BYTE_CAP + 5000)
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    transcript = tmp_path / "sess.jsonl"
+    _write_transcript(transcript, 12_000)
+    state_dir = tmp_path / "state-captured"
+    payload = _payload(agi_project, transcript, "sess-captured", cwd=str(cwd))
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == ["peek"], \
+        f"over the cap nothing may retire the unread lines: {calls}"
+    assert "NOT marked read" in out, out
+    assert f"send.py read {('a')}" in out, out
+    assert "x" * 200 not in out, "no truncated body may reach the pane"
+    assert "DELIVERED IN THIS TURN" not in out, out
+
+
+def test_send_read_argv_carries_peek_for_the_preflight_only(monkeypatch):
+    """The wire: `_run_send_read` appends `--peek` iff asked, so the pre-flight
+    read prints without retiring and the marking read does the retiring."""
+    seen = []
+
+    class _P:
+        def __init__(self, argv, **kw):
+            seen.append(argv)
+            self._out = io.StringIO("BODY\n")
+
+        def communicate(self, timeout=None):
+            return self._out.read(), ""
+
+    monkeypatch.setattr(hook, "_Popen", _P)
+    assert hook._run_send_read(Path("/nonexistent/bin"), "a", peek=True) == "BODY\n"
+    assert hook._run_send_read(Path("/nonexistent/bin"), "a") == "BODY\n"
+    assert seen[0][-1] == "--peek", seen
+    assert "--peek" not in seen[1], seen
+    assert seen[0][:4] == seen[1][:4] == \
+        ["python3", str(Path("/nonexistent/bin") / "send.py"), "read", "a"], seen
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line, conjunct 2 —
+# the WINDOW the pre-flight/peek-then-mark shape opens: a line appended between
+# the `--peek` pre-flight and the marking read was retired into a pipe nobody
+# reads (`_run_send_read`'s return value was DISCARDED). RED on those bytes:
+# the pane printed only B while C was retired. The fix prints the marking
+# read's OWN stdout, so every retired byte reaches the pane. The cross-check
+# runs the REAL send.py against a tmp comms root, not a stub.
+# ═══════════════════════════════════════════════════════════════════════════
+
+_SEND_SPEC = importlib.util.spec_from_file_location(
+    "send_ra", Path(__file__).resolve().parents[1] / "bin" / "send.py")
+send_mod = importlib.util.module_from_spec(_SEND_SPEC)
+_SEND_SPEC.loader.exec_module(send_mod)
+
+
+def _block(text: str) -> str:
+    return f"to: a\nfrom: sanctuary-director\n\n---\n{text}\n"
+
+
+def test_a_line_arriving_before_the_marking_read_reaches_the_pane(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """The window: the pre-flight peek returns B; a line C lands after it. C
+    must be DELIVERED to the pane (it is retired) and nothing may be retired
+    without the pane having received it -- the real `send.py read a` after the
+    hook must report nothing that is missing from the hook's output."""
+    inbox = agi_project / "sessions" / "inbox" / "a.md"
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text(_block("FIRST MESSAGE"))
+    calls = []
+
+    def _fake(bin_dir, seat, peek=False):
+        calls.append("peek" if peek else "mark")
+        if not peek:
+            # lands in the window: after the peek printed B, before the mark
+            with inbox.open("a") as fh:
+                fh.write(_block("SECOND MESSAGE"))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            send_mod.read(agi_project, seat, None, mark=not peek)
+        return buf.getvalue()
+
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True, exist_ok=True)
+    transcript = tmp_path / "sess-window.jsonl"
+    _write_transcript(transcript, 12_000)
+    state_dir = tmp_path / "state-window"
+    payload = _payload(agi_project, transcript, "sess-window", cwd=str(cwd))
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == ["peek", "mark"], calls
+    assert "FIRST MESSAGE" in out, out
+    assert "SECOND MESSAGE" in out, \
+        f"the line that landed in the window was retired but never printed: {out}"
+    # the REAL reader, afterwards: whatever is still unread must be in `out`
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        send_mod.read(agi_project, "a", None, mark=False)
+    after = buf.getvalue()
+    assert after.strip() in ("", "inbox for a: empty"), \
+        f"unread after the hook, absent from `out`: {after}"
+
+
+def test_empty_verdict_literal_is_not_delivery(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line — an
+    `if not body` guard is BLIND to what the REAL CLI returns: an empty inbox
+    prints the TRUTHY literal `inbox for a: empty` (send.py), never ''. RED on
+    those bytes: the hook announced DELIVERED, suppressed F25 and delivered
+    zero bytes. The empty case must feed the REAL literal, not ''.
+    """
+    calls = []
+
+    def _fake(bin_dir, seat, peek=False):
+        calls.append("peek" if peek else "mark")
+        return f"inbox for {seat}: empty\n"      # the real CLI's literal
+
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    transcript = tmp_path / "sess-literal.jsonl"
+    _write_transcript(transcript, 12_000)
+    state_dir = tmp_path / "state-literal"
+    payload = _payload(agi_project, transcript, "sess-literal", cwd=str(cwd))
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == ["peek"], f"nothing was delivered, so nothing is marked: {calls}"
+    assert "DELIVERED IN THIS TURN" not in out, out
+    assert "Do NOT read again this turn (F25)." not in out, out
+    assert out.count("NOT delivered") == 1, f"exactly ONE undelivered line: {out}"
+    assert "[meter]" in out, "the meter must still print"
+
+
+def test_empty_verdict_helper_reads_the_real_cli_literal():
+    """the verdict helper itself, unit: '' and whitespace mean empty, the
+    CLI's literal means empty, a real body does not."""
+    assert hook._empty_verdict("", "a")
+    assert hook._empty_verdict("   \n", "a")
+    assert hook._empty_verdict("inbox for a: empty\n", "a")
+    assert not hook._empty_verdict("inbox for b: empty\n", "a")
+    assert not hook._empty_verdict("from: prime\n\nhello\n", "a")

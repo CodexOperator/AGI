@@ -684,7 +684,8 @@ def test_b4_w1b_every_write_verb_is_its_own_exact_path_commit(project):
                "replace": f"replace body 1:1 --force {project / 'x.txt'}",
                "row": f"row 1 {project / 'y.txt'}"}   # W1a's verb (DG3) joins the enumeration
     assert set(scripts) | {"read", "adopt", "payload", "payload_text", "patch",
-                           "body_patch"} == set(write.VERBS)
+                           "body_patch", "canonicalize"} == set(write.VERBS)   # canonicalize: a no-op
+    # on a node write_node minted (already canonical), so it makes no commit to enumerate (SM 154)
     g, head = _w1b(project)
     (project / "y.txt").write_text("y\n")   # row's own bytes: an identical row is UNCHANGED, no commit
     for verb, script in scripts.items():
@@ -699,10 +700,68 @@ def test_b4_w1b_the_suite_lock_refuses_the_commit_by_name(project, capsys):
     (project / ".agi" / "sessions").mkdir(exist_ok=True)
     (project / ".agi" / "sessions" / "verify-suite.lock").write_text(
         f"{__import__('os').getppid()}\n")
+    (project / ".agi" / "config.json").write_text(
+        json.dumps({"values": {"core": {"suite_lock": {"hold_wait_s": 0.2}}}}))   # g1315131: a held lock is waited
     g, head = _w1b(project)
-    write.main(["hypothesis:h9", "set confidence 0.5", "--root", str(project)])
+    # hypothesis:a-suite-lock-refused-write-exits-3-from-one-lock-policy-block:
+    # rc 3, never a sanctioned 0 over uncommitted bytes.
+    assert write.main(["hypothesis:h9", "set confidence 0.5", "--root", str(project)]) == 3
     assert g("rev-parse", "HEAD").strip() == head
     assert "verify-suite.lock" in "".join(capsys.readouterr())
+
+
+def test_b4_w1b_the_suite_lock_name_comes_from_one_config_block(project, capsys):
+    """`values.core.suite_lock.file` is the ONE home of the lock name: write.py
+    and verification.py both read it, and the default is only the resolver's
+    STOPGAP fallback (a row of the claim's falsifier 3)."""
+    sys.path.insert(0, str(BIN))
+    import verification  # noqa: E402 -- the resolver's own module
+    cfg = project / ".agi" / "config.json"
+    cfg.write_text(json.dumps({"values": {"core": {"suite_lock": {
+        "file": "other.lock", "hold_wait_s": 0.2}}}}))
+    (project / ".agi" / "sessions").mkdir(exist_ok=True)
+    (project / ".agi" / "sessions" / "other.lock").write_text(
+        f"{__import__('os').getppid()}\n")
+    assert verification.suite_lock_name(project) == "other.lock"
+    g, head = _w1b(project)
+    assert write.main(["hypothesis:h9", "set confidence 0.5", "--root", str(project)]) == 3
+    assert g("rev-parse", "HEAD").strip() == head
+    out = "".join(capsys.readouterr())
+    assert "other.lock" in out and "verify-suite.lock" not in out
+
+
+def test_b4_w1b_the_suite_lock_policy_block_carries_the_write_wait(project, capsys):
+    """`values.core.suite_lock` = {file, write_commit_wait_s, hold}: ONE block,
+    ONE resolver. The wait is read from the block FIRST; today's
+    `values.core.write_commit_wait_s` stays the STOPGAP fallback only."""
+    sys.path.insert(0, str(BIN))
+    import verification  # noqa: E402 -- the resolver's own module
+    cfg = project / ".agi" / "config.json"
+    cfg.write_text(json.dumps({"values": {"core": {"write_commit_wait_s": 99,
+                                                  "suite_lock": {
+                                                      "file": "other.lock",
+                                                      "write_commit_wait_s": 0.01,
+                                                      "hold": "live-foreign-pid"}}}}))
+    assert verification.suite_lock_policy(project) == {
+        "file": "other.lock", "write_commit_wait_s": 0.01,
+        "hold": "live-foreign-pid", "hold_wait_s": 90.0}
+    assert write._commit_wait_s(project) == 0.01     # the block WINS over 99
+    cfg.write_text(json.dumps({"values": {"core": {"write_commit_wait_s": 7}}}))
+    assert write._commit_wait_s(project) == 7.0      # STOPGAP, absent block cell
+
+
+def test_b4_w1b_the_resolver_refuses_a_file_that_is_not_a_bare_name(project, capsys):
+    """A cell is not a path: '../x.lock', 'a/b.lock' and '/abs.lock' are
+    REFUSED BY NAME (one warning naming the refused value), and the STOPGAP
+    default answers instead."""
+    sys.path.insert(0, str(BIN))
+    import verification  # noqa: E402
+    cfg = project / ".agi" / "config.json"
+    for bad in ("../x.lock", "a/b.lock", "/abs.lock"):
+        verification._SUITE_LOCK_REFUSED.clear()
+        cfg.write_text(json.dumps({"values": {"core": {"suite_lock": {"file": bad}}}}))
+        assert verification.suite_lock_name(project) == "verify-suite.lock", bad
+        assert bad in "".join(capsys.readouterr())
 
 
 def test_b4_w1b_dry_run_and_a_refused_gate_commit_nothing(project):
@@ -806,3 +865,66 @@ def test_b4_w1b_create_commits_its_new_node(project):
     assert g("show", "--name-only", "--format=", "HEAD").split() == [".agi/nodes/hypothesis/h10.md"]
     assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
 
+
+
+# goal:g1.31.5.1.3 -- a hand edit to the SAME node a write.py verb names is
+# never laundered into that write's commit: the write lands on disk, stays
+# UNCOMMITTED and is refused by name (exit 3), so write_guard still lists it.
+def test_b4_w1b_a_hand_edit_to_the_written_node_is_never_laundered(project, capsys):
+    g, _head = _w1b(project)
+    node = ".agi/nodes/hypothesis/h9.md"
+    (project / node).write_text(
+        (project / node).read_text() + "HANDEDIT-FIXTURE\n")
+    listed = lambda: g("diff", "--name-only", "HEAD", "--", node).split()   # noqa: E731
+    assert listed() == [node]      # dirty BEFORE the write
+    assert write.main(["hypothesis:h9", "set confidence 0.4", "--root", str(project)]) == 3
+    assert listed() == [node], "the hand edit must stay listed"
+    assert not g("grep", "-n", "HANDEDIT-FIXTURE", "HEAD", "--", ".agi/nodes").strip(), \
+        "no commit may carry the hand-edit bytes"
+    assert "0.4" in (project / node).read_text(), "the write still landed on disk"
+    assert node in "".join(capsys.readouterr()), "refused BY NAME"
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+    # control: the same verb on a CLEAN node is ONE exact-path commit
+    g("add", "--", node), g("commit", "-qm", "hand edit landed")
+    n = g("rev-list", "--count", "HEAD").strip()
+    assert write.main(["hypothesis:h9", "set confidence 0.7", "--root", str(project)]) == 0
+    assert g("rev-list", "--count", "HEAD").strip() == str(int(n) + 1)
+    assert g("show", "--name-only", "--format=", "HEAD").split() == [node]
+
+
+# DG4.11 -- the PAYLOAD seam: a hand edit to the node's OWN payload file is never
+# laundered either (replace payload / payload / sub payload), and the refusal names
+# the prior-uncommitted-write recovery.
+@pytest.mark.parametrize("verb", ["replace payload 1:1 NEW", "payload NEW", "sub payload hello => bye"])
+def test_dg411_a_hand_edit_to_the_payload_is_never_laundered(project, capsys, verb):
+    g, _head = _w1b(project)
+    (project / "p.sh").write_text("hello\n")
+    nw.write_node(project / ".agi", "mvp", "pl", parents=[], announce=False, bypass=True,
+                  extra_fm={"payload_ref": "p.sh", "link_ref": "p.sh"})
+    g("add", "p.sh", ".agi/nodes"), g("commit", "-qm", "pl")
+    (project / "p.sh").write_text("hello\nHANDEDIT-PAYLOAD\n")
+    (project / "new.txt").write_text("replaced\n")
+    script = verb.replace("NEW", str(project / "new.txt"))
+    assert write.main(["mvp:pl", script, "--root", str(project)]) == 3
+    assert not g("grep", "-n", "HANDEDIT-PAYLOAD", "HEAD", "--", "p.sh").strip(), "not in HEAD"
+    assert g("diff", "--name-only", "HEAD", "--", "p.sh").split() == ["p.sh"], "stays listed"
+    err = "".join(capsys.readouterr())
+    assert "p.sh" in err and "PRIOR uncommitted write.py write" in err and " commit -q -m " in err, err
+
+
+# DG4.11b -- a `git diff --quiet` that ERRORS (rc 128) is retried once, then FAILS CLOSED
+# (refused rc 3, path named); an error that clears on the retry commits.
+@pytest.mark.parametrize("fails,rc", [(2, 3), (1, 0)])
+def test_dg411_a_failed_git_diff_retries_once_then_fails_closed(project, capsys, monkeypatch, tmp_path, fails, rc):
+    import os, shutil
+    g, _head = _w1b(project)
+    (tmp_path / "bin").mkdir()
+    stub = tmp_path / "bin" / "git"
+    stub.write_text(f'#!/bin/sh\ncase "$*" in *"diff --quiet"*) n=$(cat {tmp_path}/n 2>/dev/null || echo 0)\n'
+                    f'echo $((n+1)) > {tmp_path}/n; [ "$n" -lt {fails} ] && exit 128;; esac\nexec {shutil.which("git")} "$@"\n')
+    stub.chmod(0o755)
+    monkeypatch.setenv("PATH", f"{tmp_path / 'bin'}:{os.environ['PATH']}")
+    assert write.main(["hypothesis:h9", "set confidence 0.4", "--root", str(project)]) == rc
+    err = "".join(capsys.readouterr())
+    assert ("rc [128" in err and "path refused" in err) == (rc == 3), err
+    assert (g("rev-parse", "HEAD").strip() != _head) == (rc == 0), "committed only when the retry cleared"

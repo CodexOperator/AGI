@@ -61,7 +61,7 @@ CLAUDE_MATRIX = [
 @pytest.mark.parametrize("model,effort,settings", CLAUDE_MATRIX)
 def test_claude_builder_renders_frozen_argv(model, effort, settings):
     """The PRODUCTION claude builder equals the OLD hand-built argv
-    (rotate.py@8b6dcea1f), written out here as a literal: multi-token flag,
+    (rotate.py@cc85819a4), written out here as a literal: multi-token flag,
     JSON value, positional-last prompt. This pins the seat shape, so a
     dropped/renamed flag in claude-code.toml fails this test; asserting
     `== harness_template.render(...)` could not, since the builder IS that
@@ -393,11 +393,10 @@ def test_available_includes_shipped_harnesses():
     assert "claude-code" in ids
 
 
-@pytest.mark.parametrize("model,effort", [(None, None), ("auto", None),
-                                         (None, "high"), ("auto", "high")])
-def test_copilot_builder_renders_frozen_argv(model, effort):
-    """The PRODUCTION copilot seat builder equals the OLD hand-built argv
-    (rotate.py@8b6dcea1f), the same literal shape frozen above. A dropped or
+@pytest.mark.parametrize("model,effort,extra", COPILOT_MATRIX)
+def test_copilot_builder_renders_frozen_argv(model, effort, extra):
+    """The PRODUCTION copilot builder equals the OLD hand-built argv
+    (rotate.py@cc85819a4), the same literal shape frozen above. A dropped or
     renamed seat flag in copilot-cli.toml fails this; `== render(...)` could
     not, since the builder IS that call. `extra_args` is not a production
     seat dimension (`_build_harness_command` does not accept it), so the

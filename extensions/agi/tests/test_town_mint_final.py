@@ -21,7 +21,7 @@ real subprocess. The only thing injected is ``--root <fixture>``, the one
 environmental argument the Prime does not paste (the Prime runs from the repo
 root); everything else — the command, the actor, every ``--set`` value, the
 vision ids, the ``AGI_SEASON`` env — is byte-for-byte what a Prime reads in
-the node and pastes.
+the node and pastes (the retired ladder parent is swapped, see `_run_line`).
 
 Module-level ``DELIVERABLE`` is the one source of the cells the assertions
 bind; the test that reconstructs it from the node block is the drift check
@@ -106,6 +106,7 @@ def _fixture(tmp_path: Path) -> Path:
            + "\n".join(f"  - {json.dumps(r)}" for r in posts) + "\n---\n")
     _write("nodes/ladder/ladder.md",
            "---\nid: ladder:ladder\ntype: ladder\n---\nbody\n")
+    _write("nodes/goal/g1.md", "---\nid: goal:g1\ntype: goal\ntitle: x\n---\nbody\n")
     for vid in ("vision:alive", "vision:all-is-one", "vision:self-perpetuating",
                 "vision:streaming-suite", "vision:web-app-suite"):
         _write(f"nodes/vision/{vid.split(':')[-1]}.md",
@@ -150,10 +151,11 @@ def _parse_line(line: str) -> tuple[str, str, tuple, str, int]:
 
 
 def _run_line(proj: Path, line: str) -> subprocess.CompletedProcess:
-    """Run ONE block line exactly, injecting only ``--root <fixture>``. The
-    subprocess env is the Prime's dispatch env: AGI_ROLE=prime_director (the
-    admitted actor) + AGI_SEASON per line. Everything else — command, actor,
-    every --set value, the vision ids — is byte-for-byte the node-block line."""
+    """Run ONE block line, injecting only ``--root <fixture>`` and swapping the
+    RETIRED ``--parent ladder:ladder`` pair (the new schema refuses it) for
+    ``--parent goal:g1 --parent <that line's own vision>``. Env: the Prime's
+    dispatch env (AGI_ROLE + the line's AGI_SEASON); everything else is
+    byte-for-byte the node-block line."""
     toks = shlex.split(line)
     env_season = None
     argv = []
@@ -166,6 +168,13 @@ def _run_line(proj: Path, line: str) -> subprocess.CompletedProcess:
     # interpreter token AND the literal script path, substitute the real
     # interpreter + write.py, and inject --root.
     rest = argv[2:]
+    # PREMISE PARTLY GONE (ladder parent retired): the block's ONE
+    # `--parent ladder:ladder` pair becomes goal + that line's own first vision.
+    # Asserted exactly, so other drift still fails; delete once the fence is fixed.
+    i = rest.index("--parent")
+    assert rest.count("--parent") == 1 and rest[i + 1] == "ladder:ladder", line
+    rest = rest[:i] + ["--parent", "goal:g1",
+                       "--parent", _parse_line(line)[2][0]] + rest[i + 2:]
     cmd = [RUNNER, WRITE_PY_ABS] + rest + ["--root", str(proj)]
     env = dict(os.environ)
     env["AGI_ROLE"] = "prime_director"

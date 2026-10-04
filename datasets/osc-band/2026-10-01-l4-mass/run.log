@@ -1,0 +1,277 @@
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 8.27 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<00:56,  5.08it/s]Loading weights:  10%|▉         | 28/290 [00:00<00:03, 83.53it/s]Loading weights:  14%|█▍        | 41/290 [00:00<00:02, 88.94it/s]Loading weights:  22%|██▏       | 64/290 [00:00<00:02, 97.30it/s]Loading weights:  31%|███       | 89/290 [00:00<00:01, 131.07it/s]Loading weights:  36%|███▌      | 104/290 [00:00<00:01, 126.78it/s]Loading weights:  42%|████▏     | 122/290 [00:01<00:01, 139.16it/s]Loading weights:  47%|████▋     | 137/290 [00:01<00:01, 128.57it/s]Loading weights:  53%|█████▎    | 155/290 [00:01<00:01, 124.70it/s]Loading weights:  59%|█████▉    | 171/290 [00:02<00:02, 45.04it/s] Loading weights:  59%|█████▉    | 171/290 [00:20<00:02, 45.04it/s]Loading weights:  59%|█████▉    | 172/290 [00:32<01:32,  1.28it/s]Loading weights:  63%|██████▎   | 183/290 [00:32<01:00,  1.76it/s]Loading weights:  68%|██████▊   | 196/290 [00:32<00:36,  2.57it/s]Loading weights:  72%|███████▏  | 208/290 [00:33<00:22,  3.60it/s]Loading weights:  76%|███████▌  | 221/290 [00:33<00:13,  5.18it/s]Loading weights:  80%|████████  | 232/290 [00:33<00:08,  6.96it/s]Loading weights:  84%|████████▍ | 245/290 [00:33<00:04,  9.76it/s]Loading weights:  88%|████████▊ | 256/290 [00:33<00:02, 13.05it/s]Loading weights:  91%|█████████▏| 265/290 [00:33<00:01, 16.46it/s]Loading weights:  95%|█████████▍| 275/290 [00:34<00:00, 19.89it/s]Loading weights:  98%|█████████▊| 283/290 [00:34<00:00, 24.03it/s]Loading weights: 100%|██████████| 290/290 [00:34<00:00,  8.48it/s]
+[launch 02:42:35Z] MemAvailable 8184 MiB, PSI some avg10 0.16
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 8.10 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<03:11,  1.51it/s]Loading weights:  12%|█▏        | 35/290 [00:00<00:04, 59.24it/s]Loading weights:  18%|█▊        | 52/290 [00:01<00:03, 60.43it/s]Loading weights:  22%|██▏       | 64/290 [00:01<00:03, 65.19it/s]Loading weights:  26%|██▌       | 75/290 [00:01<00:02, 73.22it/s]Loading weights:  30%|███       | 88/290 [00:01<00:02, 78.24it/s]Loading weights:  34%|███▍      | 99/290 [00:01<00:02, 83.13it/s]Loading weights:  39%|███▉      | 113/290 [00:01<00:02, 88.30it/s]Loading weights:  44%|████▍     | 129/290 [00:01<00:01, 99.70it/s]Loading weights:  48%|████▊     | 140/290 [00:01<00:01, 97.57it/s]Loading weights:  52%|█████▏    | 151/290 [00:02<00:01, 90.56it/s]Loading weights:  56%|█████▌    | 161/290 [00:02<00:01, 75.89it/s]Loading weights:  62%|██████▏   | 180/290 [00:02<00:01, 92.98it/s]Loading weights:  66%|██████▌   | 190/290 [00:02<00:01, 88.48it/s]Loading weights:  72%|███████▏  | 208/290 [00:02<00:00, 101.39it/s]Loading weights:  76%|███████▌  | 220/290 [00:02<00:00, 99.78it/s] Loading weights:  80%|████████  | 232/290 [00:03<00:00, 84.29it/s]Loading weights:  87%|████████▋ | 252/290 [00:03<00:00, 101.20it/s]Loading weights:  91%|█████████ | 263/290 [00:03<00:00, 95.08it/s] Loading weights:  91%|█████████ | 263/290 [00:32<00:00, 95.08it/s]Loading weights:  93%|█████████▎| 269/290 [00:32<00:16,  1.31it/s]Loading weights:  93%|█████████▎| 270/290 [00:32<00:14,  1.34it/s]Loading weights: 100%|██████████| 290/290 [00:32<00:00,  8.87it/s]
+[launch 03:05:57Z] MemAvailable 6913 MiB, PSI some avg10 0.00, io avg10 18.57
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 6.79 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s][launch 03:30:18Z] MemAvailable 8155 MiB, PSI some avg10 0.17, io avg10 11.29, user cgroup 7846/13319 MiB
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 7.79 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<02:42,  1.78it/s]Loading weights:   6%|▌         | 17/290 [00:00<00:08, 33.50it/s]Loading weights:  13%|█▎        | 38/290 [00:00<00:03, 68.36it/s]Loading weights:  18%|█▊        | 52/290 [00:00<00:03, 72.52it/s]Loading weights:  26%|██▌       | 76/290 [00:01<00:02, 93.66it/s]Loading weights:  33%|███▎      | 95/290 [00:01<00:01, 109.30it/s]Loading weights:  39%|███▊      | 112/290 [00:01<00:01, 119.10it/s]Loading weights:  46%|████▌     | 132/290 [00:01<00:01, 132.72it/s]Loading weights:  51%|█████     | 147/290 [00:01<00:01, 118.71it/s]Loading weights:  56%|█████▌    | 161/290 [00:01<00:01, 107.32it/s]Loading weights:  60%|█████▉    | 173/290 [00:01<00:01, 101.29it/s]Loading weights:  66%|██████▌   | 191/290 [00:02<00:00, 112.59it/s]Loading weights:  72%|███████▏  | 208/290 [00:02<00:01, 49.89it/s] Loading weights:  76%|███████▌  | 221/290 [00:02<00:01, 57.35it/s]Loading weights:  80%|████████  | 233/290 [00:03<00:00, 62.29it/s]Loading weights:  84%|████████▍ | 244/290 [00:03<00:00, 69.29it/s]Loading weights:  88%|████████▊ | 254/290 [00:03<00:00, 72.86it/s]Loading weights:  91%|█████████ | 264/290 [00:12<00:06,  3.96it/s]Loading weights:  93%|█████████▎| 271/290 [00:13<00:04,  4.54it/s][launch 03:38:58Z] MemAvailable 7450 MiB, PSI some avg10 0.63, io avg10 42.00, user cgroup 8480/13319 MiB
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 7.11 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<02:51,  1.69it/s]Loading weights:  33%|███▎      | 95/290 [00:00<00:01, 174.59it/s]Loading weights:  48%|████▊     | 139/290 [00:01<00:01, 111.78it/s]Loading weights:  57%|█████▋    | 166/290 [00:01<00:01, 81.89it/s] Loading weights:  64%|██████▍   | 185/290 [00:02<00:01, 62.87it/s]Loading weights:  68%|██████▊   | 198/290 [00:02<00:01, 66.67it/s]Loading weights:  74%|███████▍  | 215/290 [00:02<00:00, 76.05it/s]Loading weights:  79%|███████▊  | 228/290 [00:02<00:00, 82.00it/s]Loading weights:  83%|████████▎ | 241/290 [00:02<00:00, 84.98it/s]Loading weights:  87%|████████▋ | 253/290 [00:03<00:00, 74.40it/s]Loading weights:  91%|█████████ | 263/290 [00:03<00:00, 75.88it/s]Loading weights:  95%|█████████▍| 275/290 [00:03<00:00, 84.23it/s]Loading weights: 100%|██████████| 290/290 [00:03<00:00, 82.79it/s]
+    148s direct head 0 kl [0.00046202461028730735, 0.00045455301499917373, 0.0003882641006673297]
+    211s direct head 1 kl [0.0009508956120889974, 0.0006326872037589041, 0.0006536630633509922]
+    276s direct head 2 kl [0.001587034650768404, 0.0011307943170562338, 0.0016702122969993558]
+    341s direct head 3 kl [0.00021561687426935495, 0.00021796881393109643, 0.00018523039064473925]
+    408s direct head 4 kl [0.000323633528765701, 0.00028324255634186115, 0.00028686077041351494]
+    475s direct head 5 kl [0.0005969745074190928, 0.00038029146301657175, 0.0004139472662535467]
+    541s direct head 6 kl [0.016539751016319416, 0.022585015374392954, 0.016030364833728213]
+    609s direct head 7 kl [0.0010855802609462315, 0.0007407350911620943, 0.0013003620599803865]
+    679s direct head 8 kl [0.00014286880067570566, 0.0002513547297039581, 0.00026093113231339944]
+    751s direct head 9 kl [0.004047348073130867, 0.004204644193978068, 0.0037413623485037274]
+[launch 04:07:41Z] MemAvailable 7839 MiB, PSI some avg10 0.79, io avg10 33.97, user cgroup anon+shmem 5910/13319 MiB
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 7.88 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s][launch 04:40:34Z] MemAvailable 8390 MiB, PSI some avg10 0.00, io avg10 45.10, user cgroup 7760/13319 MiB
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 8.04 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<00:53,  5.39it/s]Loading weights:  46%|████▌     | 134/290 [00:00<00:00, 538.24it/s]Loading weights:  69%|██████▉   | 201/290 [00:00<00:00, 234.19it/s]Loading weights:  84%|████████▍ | 243/290 [00:01<00:00, 184.67it/s]Loading weights: 100%|██████████| 290/290 [00:01<00:00, 230.95it/s]
+    118s direct head 10 kl [0.005163689282789515, 0.004628331096734696, 0.004549897317640158]
+    186s direct head 11 kl [0.00603662902735927, 0.005239532684752803, 0.004762309131568703]
+    243s direct head 12 kl [0.002581499644888784, 0.0015801048760850692, 0.003181017586949869]
+    303s direct head 13 kl [0.0010456053130235784, 0.0012107718467063734, 0.0020783313895951895]
+    366s direct head 14 kl [0.00033976763973056826, 0.00023790978949857824, 0.0002503103565784498]
+    429s direct head 15 kl [0.008481505385642815, 0.009598366361495032, 0.008499550801963227]
+[launch 04:51:11Z] MemAvailable 7948 MiB, PSI some avg10 0.00, io avg10 29.59, user cgroup 8365/13319 MiB
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 7.17 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<00:42,  6.85it/s]Loading weights:  10%|▉         | 28/290 [00:00<00:02, 99.05it/s]Loading weights:  13%|█▎        | 39/290 [00:00<00:02, 94.86it/s]Loading weights:  22%|██▏       | 64/290 [00:00<00:01, 125.73it/s]Loading weights:  29%|██▉       | 84/290 [00:00<00:01, 126.96it/s]Loading weights:  34%|███▍      | 100/290 [00:00<00:01, 122.83it/s]Loading weights:  41%|████▏     | 120/290 [00:01<00:01, 133.77it/s]Loading weights:  46%|████▌     | 134/290 [00:01<00:01, 124.17it/s]Loading weights:  51%|█████     | 148/290 [00:01<00:01, 125.52it/s]Loading weights:  56%|█████▌    | 161/290 [00:01<00:01, 113.77it/s]Loading weights:  62%|██████▏   | 179/290 [00:01<00:00, 121.27it/s]Loading weights:  67%|██████▋   | 193/290 [00:01<00:00, 121.54it/s]Loading weights:  71%|███████   | 206/290 [00:01<00:00, 122.80it/s]Loading weights:  76%|███████▌  | 220/290 [00:01<00:00, 117.91it/s]Loading weights:  80%|████████  | 233/290 [00:02<00:00, 106.49it/s]Loading weights:  84%|████████▍ | 245/290 [00:02<00:00, 105.52it/s]Loading weights:  92%|█████████▏| 267/290 [00:02<00:00, 108.88it/s]Loading weights: 100%|██████████| 290/290 [00:02<00:00, 123.52it/s]
+[launch 05:03:47Z] MemAvailable 7416 MiB, PSI some avg10 0.00, io avg10 82.27, user cgroup anon+shmem 6526/13319 MiB
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 7.45 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<00:34,  8.44it/s]Loading weights:  63%|██████▎   | 184/290 [00:00<00:00, 949.88it/s]Loading weights:  97%|█████████▋| 282/290 [00:00<00:00, 694.73it/s]Loading weights: 100%|██████████| 290/290 [00:00<00:00, 689.90it/s]
+    120s direct head 16 kl [0.0021014574906677583, 0.0033729687259513633, 0.004235829953680366]
+[launch 05:11:11Z] MemAvailable 7391 MiB, PSI some avg10 0.08, io avg10 67.91, user cgroup anon+shmem 6562/13319 MiB
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 7.49 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<00:35,  8.18it/s]Loading weights:  62%|██████▏   | 180/290 [00:00<00:00, 950.71it/s]Loading weights: 100%|██████████| 290/290 [00:00<00:00, 946.20it/s]
+[launch 05:12:20Z] MemAvailable 7187 MiB, PSI some avg10 1.43, io avg10 45.40, user cgroup anon+shmem 6766/13319 MiB
+    138s direct head 17 kl [1.8183015478327318e-05, 1.4684778569385964e-05, 9.397651815190384e-06]
+    212s direct head 18 kl [0.0016604118920450826, 0.0016804356598828399, 0.0012992970046062494]
+    290s direct head 19 kl [0.02054512944841438, 0.028465935963745623, 0.019038897158830746]
+    347s direct head 20 kl [0.017207735431894185, 0.013078595322807071, 0.012281955353268708]
+    422s direct head 21 kl [0.004954243207947656, 0.0030100792438416003, 0.005113614780583224]
+    501s direct head 22 kl [0.01525713986497916, 0.010628224939306829, 0.009709347409394505]
+    576s direct head 23 kl [0.009392683344849434, 0.01600455821124379, 0.00552835547768132]
+    651s direct head 24 kl [0.00861272495022029, 0.006515832998828832, 0.007917375437607826]
+    745s direct head 25 kl [0.0007784734428911321, 0.0009244893786284249, 0.0009005271795624812]
+    826s direct head 26 kl [0.0036832525676531768, 0.01044260486003926, 0.004156498466619525]
+    901s direct head 27 kl [0.010487913907491883, 0.011152905518442047, 0.006397910510330219]
+    989s direct head 28 kl [0.002887439303674438, 0.0010267543426473872, 0.001341020195849911]
+   1058s direct head 29 kl [0.004448244388344831, 0.0055446690022048824, 0.005580103353264846]
+   1198s direct head 30 kl [0.0023346333636249574, 0.0030241706990076817, 0.001619027687514517]
+   1520s direct head 31 kl [0.00973369359962438, 0.010215158882019562, 0.008918501624499276]
+   1766s direct head 32 kl [0.01986637258444155, 0.028868883725342, 0.013709529178522544]
+   2098s direct head 33 kl [0.005045343721237119, 0.013545684340723571, 0.003003595721770496]
+   2600s direct head 34 kl [0.01560288021272402, 0.016766648669620188, 0.016833542819076352]
+   2979s direct head 35 kl [0.0011762321208437071, 0.0013140261664627312, 0.0007823381603967938]
+   3127s direct head 36 kl [0.0010266585004102562, 0.0012667640507151396, 0.0009708669860353141]
+   3200s direct head 37 kl [0.0003630279333197863, 0.0003070999226948313, 0.00034774379448067116]
+   3262s direct head 38 kl [0.003617256832695988, 0.005930451192054435, 0.0026413055089893668]
+   3323s direct head 39 kl [0.00019849479105462693, 0.00036660009974587976, 0.0002037683751721116]
+   3384s direct head 40 kl [0.0038289108242739985, 0.0050282711055228205, 0.009019119708675994]
+   3446s direct head 41 kl [0.006214578090732635, 0.008014557791505077, 0.005033371514153094]
+   3507s direct head 42 kl [0.009415311995002546, 0.02351363074743902, 0.00681686604897682]
+   3571s direct head 43 kl [0.00635583618746592, 0.00731606193394403, 0.003713314920564226]
+   3633s direct head 44 kl [0.010625226345404436, 0.008905120156261102, 0.008160928202506511]
+   3692s direct head 45 kl [0.024189909116214253, 0.026587221073230048, 0.01957661580899021]
+   3753s direct head 46 kl [0.002903039870781801, 0.004033368123144381, 0.002392895561898707]
+   3813s direct head 47 kl [0.00969487057932309, 0.007339538223380187, 0.007795805009243453]
+   3864s doc 0 b 0.75 mass agree, kl (0.9384765625, 0.01515826572375511)
+   3887s doc 0 b 0.75 direct agree, kl (0.9560546875, 0.006213540971000605)
+   3908s doc 0 b 0.75 sinkcount agree, kl (0.951171875, 0.01476851011446504)
+   3930s doc 0 b 0.75 random_s0 agree, kl (0.8837890625, 0.10433725854758451)
+   3950s doc 0 b 0.75 random_s1 agree, kl (0.8828125, 0.07993126650885322)
+   3972s doc 0 b 0.75 random_s2 agree, kl (0.9013671875, 0.057747400694712916)
+   3994s doc 0 b 0.75 random_s3 agree, kl (0.875, 0.09678480881322066)
+   4015s doc 0 b 0.75 random_s4 agree, kl (0.875, 0.09186903917697054)
+   4037s doc 0 b 0.6 mass agree, kl (0.8583984375, 0.09991292332037552)
+   4059s doc 0 b 0.6 direct agree, kl (0.9384765625, 0.016815409748949177)
+   4081s doc 0 b 0.6 sinkcount agree, kl (0.900390625, 0.05302588530779399)
+   4103s doc 0 b 0.6 random_s0 agree, kl (0.833984375, 0.15241937332349045)
+   4124s doc 0 b 0.6 random_s1 agree, kl (0.8837890625, 0.08821430623181774)
+   4145s doc 0 b 0.6 random_s2 agree, kl (0.8525390625, 0.1243550680378324)
+   4166s doc 0 b 0.6 random_s3 agree, kl (0.8525390625, 0.13469580973985035)
+   4188s doc 0 b 0.6 random_s4 agree, kl (0.8330078125, 0.19108932135653783)
+   4211s doc 0 b 0.5 mass agree, kl (0.8291015625, 0.158169790183747)
+   4232s doc 0 b 0.5 direct agree, kl (0.9091796875, 0.0357728669578756)
+   4252s doc 0 b 0.5 sinkcount agree, kl (0.8837890625, 0.08146449307263143)
+   4273s doc 0 b 0.5 random_s0 agree, kl (0.8486328125, 0.12266541971537179)
+   4292s doc 0 b 0.5 random_s1 agree, kl (0.7998046875, 0.22845815182021625)
+   4312s doc 0 b 0.5 random_s2 agree, kl (0.8046875, 0.27996046449188444)
+   4333s doc 0 b 0.5 random_s3 agree, kl (0.830078125, 0.16238165305768903)
+   4353s doc 0 b 0.5 random_s4 agree, kl (0.8251953125, 0.21469630834066175)
+   4398s doc 1 b 0.75 mass agree, kl (0.9208984375, 0.025895161688564282)
+   4417s doc 1 b 0.75 direct agree, kl (0.9638671875, 0.006635052882388085)
+   4437s doc 1 b 0.75 sinkcount agree, kl (0.9296875, 0.01969334008240991)
+   4459s doc 1 b 0.75 random_s0 agree, kl (0.83984375, 0.2095218295737803)
+   4479s doc 1 b 0.75 random_s1 agree, kl (0.8740234375, 0.09767525008396073)
+   4499s doc 1 b 0.75 random_s2 agree, kl (0.8681640625, 0.07462579832389135)
+   4518s doc 1 b 0.75 random_s3 agree, kl (0.8515625, 0.13319202886076326)
+   4537s doc 1 b 0.75 random_s4 agree, kl (0.841796875, 0.15349655890740463)
+   4557s doc 1 b 0.6 mass agree, kl (0.8056640625, 0.19677355867533508)
+   4578s doc 1 b 0.6 direct agree, kl (0.92578125, 0.019954149670781463)
+   4598s doc 1 b 0.6 sinkcount agree, kl (0.86328125, 0.08337443174780353)
+   4618s doc 1 b 0.6 random_s0 agree, kl (0.802734375, 0.21726238281806626)
+   4660s doc 1 b 0.6 random_s1 agree, kl (0.8271484375, 0.11916643828227592)
+   4680s doc 1 b 0.6 random_s2 agree, kl (0.8037109375, 0.199930526080474)
+   4701s doc 1 b 0.6 random_s3 agree, kl (0.791015625, 0.26596425183258926)
+   4723s doc 1 b 0.6 random_s4 agree, kl (0.7802734375, 0.297913073863201)
+   4745s doc 1 b 0.5 mass agree, kl (0.796875, 0.2947572550717436)
+   4766s doc 1 b 0.5 direct agree, kl (0.8896484375, 0.04817111837884482)
+   4788s doc 1 b 0.5 sinkcount agree, kl (0.8349609375, 0.1405018310255104)
+   4809s doc 1 b 0.5 random_s0 agree, kl (0.7958984375, 0.2524413032394473)
+   4830s doc 1 b 0.5 random_s1 agree, kl (0.7626953125, 0.3315516852890403)
+   4851s doc 1 b 0.5 random_s2 agree, kl (0.7548828125, 0.3945776285236806)
+   4871s doc 1 b 0.5 random_s3 agree, kl (0.7666015625, 0.3439553941410327)
+   4892s doc 1 b 0.5 random_s4 agree, kl (0.7744140625, 0.29467519079513316)
+   4936s doc 3 b 0.75 mass agree, kl (0.91796875, 0.03322322830608555)
+   4956s doc 3 b 0.75 direct agree, kl (0.9521484375, 0.009309101014156067)
+   4977s doc 3 b 0.75 sinkcount agree, kl (0.9072265625, 0.027404645394229387)
+   4997s doc 3 b 0.75 random_s0 agree, kl (0.8466796875, 0.13893308729556947)
+   5017s doc 3 b 0.75 random_s1 agree, kl (0.8671875, 0.083976303686938)
+   5037s doc 3 b 0.75 random_s2 agree, kl (0.8623046875, 0.08214771586633936)
+   5057s doc 3 b 0.75 random_s3 agree, kl (0.828125, 0.11821095447939375)
+   5078s doc 3 b 0.75 random_s4 agree, kl (0.8271484375, 0.13758591953157814)
+   5100s doc 3 b 0.6 mass agree, kl (0.7978515625, 0.18989667739429)
+   5119s doc 3 b 0.6 direct agree, kl (0.8984375, 0.03334047851028134)
+   5139s doc 3 b 0.6 sinkcount agree, kl (0.8544921875, 0.09841188925183221)
+   5159s doc 3 b 0.6 random_s0 agree, kl (0.798828125, 0.22031613739201816)
+   5179s doc 3 b 0.6 random_s1 agree, kl (0.828125, 0.14035861455988427)
+   5199s doc 3 b 0.6 random_s2 agree, kl (0.7841796875, 0.2091832506292597)
+   5219s doc 3 b 0.6 random_s3 agree, kl (0.7978515625, 0.21951766958658853)
+   5238s doc 3 b 0.6 random_s4 agree, kl (0.8017578125, 0.23419021203113768)
+   5286s doc 3 b 0.5 mass agree, kl (0.806640625, 0.23233299899845283)
+   5305s doc 3 b 0.5 direct agree, kl (0.87890625, 0.0656876149663378)
+   5324s doc 3 b 0.5 sinkcount agree, kl (0.8330078125, 0.14982936790282275)
+   5345s doc 3 b 0.5 random_s0 agree, kl (0.7919921875, 0.2306326496011813)
+   5367s doc 3 b 0.5 random_s1 agree, kl (0.7734375, 0.26965281805857433)
+   5387s doc 3 b 0.5 random_s2 agree, kl (0.7392578125, 0.3511908880361174)
+   5407s doc 3 b 0.5 random_s3 agree, kl (0.7724609375, 0.2649677389151041)
+   5427s doc 3 b 0.5 random_s4 agree, kl (0.7490234375, 0.3132359869953338)
+   5479s doc 4 b 0.75 mass agree, kl (0.9189453125, 0.024999534414016082)
+   5497s doc 4 b 0.75 direct agree, kl (0.947265625, 0.007618584903175149)
+   5515s doc 4 b 0.75 sinkcount agree, kl (0.93359375, 0.017739721844034537)
+   5534s doc 4 b 0.75 random_s0 agree, kl (0.861328125, 0.09027309347323544)
+   5552s doc 4 b 0.75 random_s1 agree, kl (0.859375, 0.07666372689397057)
+   5571s doc 4 b 0.75 random_s2 agree, kl (0.8701171875, 0.05825811546314244)
+   5590s doc 4 b 0.75 random_s3 agree, kl (0.837890625, 0.08133524011646258)
+   5609s doc 4 b 0.75 random_s4 agree, kl (0.853515625, 0.09188178202288241)
+   5630s doc 4 b 0.6 mass agree, kl (0.8203125, 0.12113357188299886)
+   5651s doc 4 b 0.6 direct agree, kl (0.921875, 0.01845219164322423)
+   5672s doc 4 b 0.6 sinkcount agree, kl (0.8603515625, 0.06075987848126687)
+   5693s doc 4 b 0.6 random_s0 agree, kl (0.8125, 0.1337209826348313)
+   5713s doc 4 b 0.6 random_s1 agree, kl (0.8447265625, 0.08791398412519881)
+   5732s doc 4 b 0.6 random_s2 agree, kl (0.794921875, 0.14813511888581177)
+   5752s doc 4 b 0.6 random_s3 agree, kl (0.8212890625, 0.1284360852447497)
+   5772s doc 4 b 0.6 random_s4 agree, kl (0.80859375, 0.15826392078353793)
+   5792s doc 4 b 0.5 mass agree, kl (0.8134765625, 0.14394795662972806)
+   5812s doc 4 b 0.5 direct agree, kl (0.8828125, 0.03942058737880408)
+   5832s doc 4 b 0.5 sinkcount agree, kl (0.853515625, 0.08758164085960785)
+   5851s doc 4 b 0.5 random_s0 agree, kl (0.8212890625, 0.14609300390122842)
+   5871s doc 4 b 0.5 random_s1 agree, kl (0.7822265625, 0.17236763235922703)
+   5891s doc 4 b 0.5 random_s2 agree, kl (0.7802734375, 0.20444784811036762)
+   5910s doc 4 b 0.5 random_s3 agree, kl (0.8125, 0.15279277450001494)
+   5930s doc 4 b 0.5 random_s4 agree, kl (0.77734375, 0.17967483062964543)
+   5976s doc 5 b 0.75 mass agree, kl (0.931640625, 0.022689329805551)
+   5995s doc 5 b 0.75 direct agree, kl (0.9501953125, 0.008211633791515172)
+   6014s doc 5 b 0.75 sinkcount agree, kl (0.9287109375, 0.020358902485565412)
+   6033s doc 5 b 0.75 random_s0 agree, kl (0.8310546875, 0.1723953760189554)
+   6052s doc 5 b 0.75 random_s1 agree, kl (0.8701171875, 0.09277413772222182)
+   6071s doc 5 b 0.75 random_s2 agree, kl (0.8623046875, 0.0847122475631727)
+   6091s doc 5 b 0.75 random_s3 agree, kl (0.845703125, 0.1293249803962514)
+   6110s doc 5 b 0.75 random_s4 agree, kl (0.8447265625, 0.19248664798512108)
+   6130s doc 5 b 0.6 mass agree, kl (0.8271484375, 0.1860039589637647)
+   6150s doc 5 b 0.6 direct agree, kl (0.919921875, 0.02155873728496244)
+   6169s doc 5 b 0.6 sinkcount agree, kl (0.865234375, 0.08211622618167692)
+   6189s doc 5 b 0.6 random_s0 agree, kl (0.7978515625, 0.2568232671812089)
+   6208s doc 5 b 0.6 random_s1 agree, kl (0.8505859375, 0.12014600934903447)
+   6228s doc 5 b 0.6 random_s2 agree, kl (0.8017578125, 0.1740561007946576)
+   6250s doc 5 b 0.6 random_s3 agree, kl (0.78515625, 0.2464975235458537)
+   6271s doc 5 b 0.6 random_s4 agree, kl (0.7900390625, 0.288863464552963)
+   6293s doc 5 b 0.5 mass agree, kl (0.7958984375, 0.3133249290823783)
+   6313s doc 5 b 0.5 direct agree, kl (0.8857421875, 0.04728763276266627)
+   6332s doc 5 b 0.5 sinkcount agree, kl (0.8369140625, 0.11318924038267747)
+   6352s doc 5 b 0.5 random_s0 agree, kl (0.8076171875, 0.22935119562146666)
+   6372s doc 5 b 0.5 random_s1 agree, kl (0.763671875, 0.312906487165518)
+   6392s doc 5 b 0.5 random_s2 agree, kl (0.7685546875, 0.4022131770180504)
+   6412s doc 5 b 0.5 random_s3 agree, kl (0.7802734375, 0.34847567181025285)
+   6432s doc 5 b 0.5 random_s4 agree, kl (0.779296875, 0.31649105583163034)
+   6478s doc 6 b 0.75 mass agree, kl (0.9111328125, 0.031865824996401074)
+   6497s doc 6 b 0.75 direct agree, kl (0.9560546875, 0.010570266148849086)
+   6516s doc 6 b 0.75 sinkcount agree, kl (0.9208984375, 0.02333268476514434)
+   6537s doc 6 b 0.75 random_s0 agree, kl (0.8564453125, 0.15405298221222366)
+   6559s doc 6 b 0.75 random_s1 agree, kl (0.86328125, 0.09067536424974011)
+   6581s doc 6 b 0.75 random_s2 agree, kl (0.87109375, 0.065022379680709)
+   6602s doc 6 b 0.75 random_s3 agree, kl (0.83984375, 0.11127857027501378)
+   6623s doc 6 b 0.75 random_s4 agree, kl (0.8408203125, 0.13682265054451107)
+   6644s doc 6 b 0.6 mass agree, kl (0.818359375, 0.15253510828788466)
+   6667s doc 6 b 0.6 direct agree, kl (0.919921875, 0.026850282610284604)
+   6689s doc 6 b 0.6 sinkcount agree, kl (0.8447265625, 0.09231953581295907)
+   6711s doc 6 b 0.6 random_s0 agree, kl (0.7998046875, 0.2444294290140201)
+   6733s doc 6 b 0.6 random_s1 agree, kl (0.8369140625, 0.11546008134600833)
+   6755s doc 6 b 0.6 random_s2 agree, kl (0.8251953125, 0.1840867868560382)
+   6777s doc 6 b 0.6 random_s3 agree, kl (0.8095703125, 0.20914471143681349)
+   6797s doc 6 b 0.6 random_s4 agree, kl (0.8056640625, 0.23892236801671352)
+   6818s doc 6 b 0.5 mass agree, kl (0.8173828125, 0.18786971462920257)
+   6841s doc 6 b 0.5 direct agree, kl (0.8828125, 0.05813255217328597)
+   6864s doc 6 b 0.5 sinkcount agree, kl (0.83203125, 0.15004600146376468)
+   6887s doc 6 b 0.5 random_s0 agree, kl (0.8212890625, 0.19559352913577005)
+   6909s doc 6 b 0.5 random_s1 agree, kl (0.7724609375, 0.24776051295485949)
+   6930s doc 6 b 0.5 random_s2 agree, kl (0.7822265625, 0.359095279294284)
+   6952s doc 6 b 0.5 random_s3 agree, kl (0.7900390625, 0.24819466487631353)
+   6974s doc 6 b 0.5 random_s4 agree, kl (0.7734375, 0.31437605307618083)
+   7023s doc 7 b 0.75 mass agree, kl (0.9326171875, 0.023908822811056378)
+   7042s doc 7 b 0.75 direct agree, kl (0.9609375, 0.007475806507598518)
+   7064s doc 7 b 0.75 sinkcount agree, kl (0.939453125, 0.013718579520770942)
+   7084s doc 7 b 0.75 random_s0 agree, kl (0.869140625, 0.14059003921987898)
+   7104s doc 7 b 0.75 random_s1 agree, kl (0.8671875, 0.09434284411753155)
+   7123s doc 7 b 0.75 random_s2 agree, kl (0.876953125, 0.05989845989749569)
+   7144s doc 7 b 0.75 random_s3 agree, kl (0.849609375, 0.12734327527954895)
+   7167s doc 7 b 0.75 random_s4 agree, kl (0.8388671875, 0.1226176278911482)
+   7189s doc 7 b 0.6 mass agree, kl (0.83203125, 0.12757434690878494)
+   7210s doc 7 b 0.6 direct agree, kl (0.9267578125, 0.02003210111667792)
+   7231s doc 7 b 0.6 sinkcount agree, kl (0.8720703125, 0.060821423882076515)
+   7250s doc 7 b 0.6 random_s0 agree, kl (0.8193359375, 0.1681638374042286)
+   7270s doc 7 b 0.6 random_s1 agree, kl (0.8359375, 0.09376206344445698)
+   7291s doc 7 b 0.6 random_s2 agree, kl (0.8310546875, 0.13362153590746895)
+   7310s doc 7 b 0.6 random_s3 agree, kl (0.8271484375, 0.15893159952140581)
+   7330s doc 7 b 0.6 random_s4 agree, kl (0.826171875, 0.2201161778969782)
+   7351s doc 7 b 0.5 mass agree, kl (0.8251953125, 0.19717569766467488)
+   7370s doc 7 b 0.5 direct agree, kl (0.8994140625, 0.037707414617240975)
+   7390s doc 7 b 0.5 sinkcount agree, kl (0.861328125, 0.08924758162180767)
+   7410s doc 7 b 0.5 random_s0 agree, kl (0.8369140625, 0.14954114054780218)
+   7432s doc 7 b 0.5 random_s1 agree, kl (0.806640625, 0.24749072407119635)
+   7455s doc 7 b 0.5 random_s2 agree, kl (0.7880859375, 0.28727488098640447)
+   7478s doc 7 b 0.5 random_s3 agree, kl (0.8173828125, 0.20532708020937)
+   7501s doc 7 b 0.5 random_s4 agree, kl (0.8115234375, 0.2138950620232785)
+   7547s doc 10 b 0.75 mass agree, kl (0.931640625, 0.020441446120710905)
+   7568s doc 10 b 0.75 direct agree, kl (0.9501953125, 0.008593533544920685)
+   7588s doc 10 b 0.75 sinkcount agree, kl (0.9228515625, 0.021783996923029333)
+   7608s doc 10 b 0.75 random_s0 agree, kl (0.8916015625, 0.07031200484579445)
+   7628s doc 10 b 0.75 random_s1 agree, kl (0.8876953125, 0.05945248086864339)
+   7648s doc 10 b 0.75 random_s2 agree, kl (0.88671875, 0.0513929050480683)
+   7667s doc 10 b 0.75 random_s3 agree, kl (0.8701171875, 0.07741870701843097)
+   7685s doc 10 b 0.75 random_s4 agree, kl (0.86328125, 0.08268701997422723)
+   7705s doc 10 b 0.6 mass agree, kl (0.84375, 0.09547321513228954)
+   7725s doc 10 b 0.6 direct agree, kl (0.919921875, 0.022979422440204976)
+   7745s doc 10 b 0.6 sinkcount agree, kl (0.8642578125, 0.06072146467317704)
+   7765s doc 10 b 0.6 random_s0 agree, kl (0.82421875, 0.12954856623046807)
+   7785s doc 10 b 0.6 random_s1 agree, kl (0.857421875, 0.08048919436718695)
+   7805s doc 10 b 0.6 random_s2 agree, kl (0.8212890625, 0.10827533596547556)
+   7824s doc 10 b 0.6 random_s3 agree, kl (0.841796875, 0.12829509472397732)
+   7843s doc 10 b 0.6 random_s4 agree, kl (0.8212890625, 0.1493793194774101)
+   7864s doc 10 b 0.5 mass agree, kl (0.8291015625, 0.13200936098578675)
+   7885s doc 10 b 0.5 direct agree, kl (0.8818359375, 0.04556865154003542)
+   7908s doc 10 b 0.5 sinkcount agree, kl (0.84765625, 0.09412202219771215)
+   7929s doc 10 b 0.5 random_s0 agree, kl (0.8369140625, 0.12166435820962435)
+   7950s doc 10 b 0.5 random_s1 agree, kl (0.8095703125, 0.16599906109935203)
+   7974s doc 10 b 0.5 random_s2 agree, kl (0.8037109375, 0.21762506203618748)
+   7996s doc 10 b 0.5 random_s3 agree, kl (0.8310546875, 0.15050486938457303)
+   8017s doc 10 b 0.5 random_s4 agree, kl (0.78125, 0.1875024356040942)

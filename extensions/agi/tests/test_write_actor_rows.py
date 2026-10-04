@@ -204,12 +204,38 @@ def test_sanctuary_master_sets_town_master_cell(project):
         (project / "nodes/town/core.md").read_text(encoding="utf-8")
 
 
+def _town_admitted_roles(project) -> set:
+    """The roles the [town] schema admits, read through the production reader
+    (links.parse_written_by) from the schema copy the fixture carries."""
+    import links
+    from graph_core.persistence import load_node_file
+    nf = load_node_file(project / "context/schemas/[town].md", body=True)
+    return links.parse_written_by(nf.frontmatter["written_by"])
+
+
 def test_sanctuary_master_other_town_field_refused(project):
+    """The actor_rows grant covers ONLY the `master` cell. A seat whose role
+    the schema does not admit is refused for any other town field. TEMPORARY
+    (owner 22:21Z 09-30, until goal:g7.16.1.11 lands): the schema admits the
+    `director` role, and sanctuary-master is a director, so written_by itself
+    now admits its `season` write; the refusal is still asserted for the
+    kid-role seat, and for sanctuary-master the moment `director` leaves the
+    admitted list."""
+    admitted = _town_admitted_roles(project)
     e = write.Edit("town:core")
     write.verb_set(e, "season", "9")
     with pytest.raises(write.EditError) as ei:
-        write.submit(project, e, actor="sanctuary-master")
-    assert "season" in str(ei.value)
+        write.submit(project, e, actor="kid-worker")
+    assert "season" in str(ei.value) or "admitted roles" in str(ei.value)
+    assert "kid" not in admitted
+    e = write.Edit("town:core")
+    write.verb_set(e, "season", "9")
+    if "director" in admitted:
+        write.submit(project, e, actor="sanctuary-master")   # admitted by role
+    else:
+        with pytest.raises(write.EditError) as ei:
+            write.submit(project, e, actor="sanctuary-master")
+        assert "season" in str(ei.value)
 
 
 def test_town_branches_refused_at_mint(project, capsys):

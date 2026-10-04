@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi
 next_edges: []
 confidence: 0.85
-edited_by: director-general-3
+edited_by: a00-580b520c
 evidence_runs:
   - experiment:a00-d3ee4161-07c983
 loop: hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi@s2
@@ -20,7 +20,11 @@ town: core
 verdict: proved
 ---
 <!-- BODY:BEGIN -->
+
 # experiment:a00-d3ee4161-07c983
+
+**SUPERSEDED argv (PASS B3 #30, goal:g1.31.3.1.2).** The `copilot --model auto --allow-all-tools -i` argv and the "no `--remote-control`, no `--debug-file`" assertions quoted below are what THIS round built; they no longer describe the shipped harness. The shipped argv is `extensions/agi/templates/harness/copilot-cli.toml` `[[argv]] const` — `--allow-all` and `--remote` (and `[shapes.dispatch]`) — not `--allow-all-tools` and no remote flag. Migrated by experiment:a00-036959af-76d29f. The historical lines are kept verbatim: they record the round, they are not a pointer to today's bytes.
+ANCHOR (string, not line number — lines drift when a note is inserted): grep this node for `--allow-all-tools` and for `remote-control`; the hits inside THIS round's build block are superseded, the hits inside later PARENT REVIEW PROBES lines are their own. The 3 stale lines, re-measured 2026-09-30 with `grep -n` (experiment:a00-580b520c-e3579f), are file lines 82 (the built argv), 83 (`# no --remote-control, no --debug-file`) and 87 (the claude comparison). These numbers are a SNAPSHOT and are expected to rot, for two measured reasons: (a) they are FILE lines while `write.py` addresses BODY lines, which differ by the frontmatter length (22 here); (b) stamping any frontmatter field on this node — `write.py set edited_by` does it every round — shifts every body line down by 1, which is exactly why the previous list on this node (78-79, 147, 149) missed by +1. The grep string above is the pointer; the numbers are not. Rule: a line-number pointer INTO a node that write.py also stamps frontmatter on is self-invalidating — name a string, or a mint_id, never a line.
 
 **BUILD, not measurement.** The parent is a build order: `rotate.py` must refuse
 an unknown `--harness` by name instead of silently seating a claude post. This
@@ -141,6 +145,8 @@ refuse when the name is absent from `config.json`'s `harnesses` map. That leaves
 the same silent-claude cost, one name out. So `_validate_harness` also refuses a
 declared-but-unbuildable id by its own message. It is one extra refusal on a
 path the brief left undefined, not a widened surface.
+
+PASS B3 #30 (goal:g1.31.3.1.2, kid a00-4259b0e0, 2026-09-30): a SUPERSEDED note now sits under this node's H1, listing this node's stale lines, naming the SHIPPED argv from extensions/agi/templates/harness/copilot-cli.toml ([[argv]] const = --allow-all, --remote, plus [shapes.dispatch]) and the migration round experiment:a00-036959af-76d29f. The historical lines stay verbatim: they record what THIS round built, they are not a pointer to today's bytes. Verify file mur-pb3chunk6of20/verify_l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-cla.json is gitignored; goal:g1.31.3.1.2 is the committed anchor. No historical line was rewritten.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

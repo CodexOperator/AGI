@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: belam
+edited_by: a00-2656a173
 excluded:
   write.py:patch:
     cli: write.py
@@ -975,6 +975,18 @@ manifest:
     purpose: adopt the current on-disk payload/body bytes as this node's version
     side_effects: graph-write
     proposable: true
+  write.py:canonicalize:
+    cli: write.py
+    verb: canonicalize
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write.py
+      - <node-id>
+      - canonicalize
+    args: []
+    purpose: re-render the node file in the ONE canonical form (node_writer.render_frontmatter + _serialize_node) and change nothing else; a node patch refuses on a non-canonical node and names this verb (council ruling on SM 154, goal:g4.18.1.6)
+    side_effects: graph-write
+    proposable: true
   cli.py:branch-reshuffle:
     cli: cli.py
     verb: branch-reshuffle
@@ -1432,6 +1444,20 @@ manifest:
       - {"name": "mint_id", "type": "str", "required": true, "choices": []}
       - {"name": "root", "type": "str", "required": false, "choices": []}
     purpose: resolve a mint id to the one live node carrying it (id, title, status)
+    side_effects: read
+    proposable: true
+  links.py:sha:
+    cli: links.py
+    verb: sha
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/links.py
+      - sha
+      - <mint_id>
+    args:
+      - {"name": "mint_id", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: resolve a cited commit id (known, or pre-rewrite through the cell-named local map) to its commit; never prints a map line
     side_effects: read
     proposable: true
   links.py:schema:
@@ -3036,6 +3062,61 @@ manifest:
     reason: runs the whole engine suite under the one-runner suite lock -- opt-in, never proposed
     side_effects: read
     proposable: false
+  council_report.py:add:
+    cli: council_report.py
+    verb: add
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/council_report.py
+      - add
+      - "--run"
+      - <run>
+      - "--args"
+      - <args>
+    args:
+      - {"name": "run", "type": "str", "required": true, "choices": []}
+      - {"name": "args", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: one report row per round, verify residues to owner leaves
+    side_effects: graph-write
+    proposable: false
+  reds.py:check:
+    cli: reds.py
+    verb: check
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/reds.py
+      - check
+      - <old>
+      - <new>
+    args:
+      - {"name": "old", "type": "str", "required": true, "choices": []}
+      - {"name": "new", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+      - {"name": "repo", "type": "str", "required": false, "choices": []}
+    purpose: goal:g7.16.1.10.3 — a range's mechanical reds (secrets, node_deletion, broken_link) before any model; rc 1 = a RED, rc 2 = cannot answer
+    side_effects: read
+    proposable: false
+    reason: run by the merge gate over a landed range (goal:g7.16.1.10.7), never proposed at a seat
+  merge_gate.py:check:
+    cli: merge_gate.py
+    verb: check
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/merge_gate.py
+      - check
+      - <base>
+      - <tip>
+    args:
+      - {"name": "base", "type": "str", "required": true, "choices": []}
+      - {"name": "tip", "type": "str", "required": true, "choices": []}
+      - {"name": "prime_count", "type": "int", "required": false, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+      - {"name": "repo", "type": "str", "required": false, "choices": []}
+    purpose: "goal:g7.16.1.10.7 — ONE word from the council report before a merge: merge, or hold by name over a RED, an uncovered review-path commit or an unapproved budget row; rc 1 = hold, rc 2 = cannot answer"
+    side_effects: read
+    proposable: false
+    reason: run by the Prime's merge pass; NOT yet wired into the PASS -- the skill agi-merge-pass is restored to its merge-base (option A, corrective DH.DG3.65) and the wiring is its own leaf goal:g7.16.1.10.7.1, never proposed at a seat
 ordered:
   - verify
 placement:

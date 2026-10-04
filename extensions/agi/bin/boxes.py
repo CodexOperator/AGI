@@ -177,6 +177,13 @@ def allow_paths(root: Path) -> list[str]:
     return base + [str(x) for x in (_box(root).get("allow") or [])]
 
 
+def scan_prefixes(root: Path) -> list[str]:
+    """The `box.scan` cell: path prefixes (repo-relative) the whole-repo audit reads.
+    Empty = every tracked file. A record under `.agi/sessions` or `datasets/` is
+    generated on this box and never copied to another, so it is not scanned."""
+    return [str(x) for x in (_box(root).get("scan") or [])]
+
+
 def resolve_placeholders(text: str, cells: dict, root: Path) -> str:
     """Substitute `{token}` from `cells` using the mapping declared in [box].md.
 

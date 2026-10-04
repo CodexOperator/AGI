@@ -15,6 +15,7 @@
 # Cells (config:guard, keyed by box): GUARD_TIER_HOT_<box>, GUARD_TIER_COLD_<box>, GUARD_TIER_DIRS_<box> (empty = off).
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
+. "$HERE/ram-write.sh"   # HOT-bound writes charge the ramdisk.slice (hypothesis:g7556-fstype-root-...)
 NODE=${GUARD_ENV_NODE:-$HERE/../../../.agi/nodes/.geometry/guard.md}
 box=${GUARD_BOX:-$(cat /etc/sanctuary-guard/box 2>/dev/null || hostname -s)}; key=$(printf %s "$box" | tr -c 'A-Za-z0-9' '_')
 [ -f "$NODE" ] && eval "$(awk '/^```sh guard.env$/{f=1;next} f&&/^```$/{exit} f' "$NODE")"
@@ -41,23 +42,23 @@ status)
     else printf 'DISK    %s\n' "$D"; fi; done
   { df -h --output=used,size,pcent "$HOT" 2>/dev/null || true; } | tail -1 | sed 's/^/        tmpfs /' ;;
 ensure)
-  findmnt -rn -T "$HOT" -o FSTYPE | grep -qx tmpfs || { mkdir -p "$HOT" 2>/dev/null; findmnt -rn -T "$HOT" -o FSTYPE | grep -qx tmpfs || { echo "ram-tier: $HOT is not on a tmpfs -- refused"; exit 2; }; }
-  mkdir -p "$HOT" "$COLD"
+  findmnt -rn -T "$HOT" -o FSTYPE | grep -qx tmpfs || { ramw "$HOT" mkdir -p "$HOT" 2>/dev/null; findmnt -rn -T "$HOT" -o FSTYPE | grep -qx tmpfs || { echo "ram-tier: $HOT is not on a tmpfs -- refused"; exit 2; }; }
+  ramw "$HOT" mkdir -p "$HOT"; mkdir -p "$COLD"
   for D in $DIRS; do n=$(nm "$D"); H="$HOT/$n"; C="$COLD/$n"
     if [ -L "$D" ]; then
       [ "$(readlink "$D")" = "$H" ] || log "WARN $D -> $(readlink "$D"), expected $H (left as is)"
       if empty "$H"; then
         [ -d "$C" ] && ! empty "$C" || { log "REFUSED $D: $H empty and no cold copy at $C"; exit 3; }
-        mkdir -p "$H"; rsync -a "$C/" "$H/"; log "restored $H from $C"; fi
+        ramw "$H" mkdir -p "$H"; ramw "$H/" rsync -a "$C/" "$H/"; log "restored $H from $C"; fi
     elif [ -d "$D" ]; then
-      mkdir -p "$H"; ionice -c3 rsync -a "$D/" "$H/"; rsync -a "$D/" "$H/"
+      ramw "$H" mkdir -p "$H"; ramw "$H/" ionice -c3 rsync -a "$D/" "$H/"; ramw "$H/" rsync -a "$D/" "$H/"
       ln -sfn "$H" "$D.tier-link"; exchange "$D.tier-link" "$D"            # D is now the symlink; D.tier-link the old dir
       old="$D.pre-tier-$(date -u +%Y%m%dT%H%MZ)"; mv -T "$D.tier-link" "$old"
-      rsync -a --update "$old/" "$H/"                                        # writes that landed during the swap window
+      ramw "$H/" rsync -a --update "$old/" "$H/"                                     # writes that landed during the swap window
       mkdir -p "$C"; ionice -c3 rsync -a "$H/" "$C/"
       log "tiered $D -> $H (cold $C, old dir kept at $old)"
     elif [ ! -e "$D" ] && [ -d "$C" ]; then
-      mkdir -p "$H"; rsync -a "$C/" "$H/"; ln -s "$H" "$D"; log "restored missing $D from $C"
+      ramw "$H" mkdir -p "$H"; ramw "$H/" rsync -a "$C/" "$H/"; ln -s "$H" "$D"; log "restored missing $D from $C"
     fi
   done ;;
 sync)

@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.5.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: belam
 goal_id: G4.18.5.2.2
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 7bfb65ce72444795
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - council-loop
   - bundle-4
@@ -45,5 +45,5 @@ goal:g4.18.5.2.1
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (23:5xZ 09-29, new loop: build nodes vs goals -> correctives as nested subgoals) from verdict:dg2mvp-w1b's config-max / template-max findings. Text + one cell: no hypothesis.
+Closed by director-general-1 at 05:1xZ 09-30 on sanctuary-master's ACCEPT (agi-5c: DG3 158a9fd06 de83b1d23 bb882a5f5, 0 residues). F1 by DG1: the cell write.commit_message is in .agi/config.json, read once in write.py _commit_message (:4023). F2: skills/agi-goal:28 and skills/agi-node-write:58 teach that a write commits itself by exact path, never a hand commit or the grid cron. Note, not a gap: a malformed placeholder in the cell raises KeyError after the node lands (SM).
 <!-- THOUGHT:END -->

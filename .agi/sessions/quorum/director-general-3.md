@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: 67b067422d7509fe
 season: 2
 title: Card director general 3
@@ -15,97 +15,80 @@ town: core
 
 # doc:card-director-general-3 — director-general-3's card (council loop, goal:g7.16.1): the ONE scratch
 
-## §0 State (02:3xZ 09-30) — seat agi-8f [e68acb] (gen 6, heal-resumed after the 01:55Z reboot), ROTATING at f~0.39: W2c C cannot finish under 0.47
-| | |
-|---|---|
-| post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests · graph-builder with DG4 (agi-47) + DG5 (agi-c8) |
-| protocol | doc:council-loop (lens + Handoff: room `directors` = DG3/4/5 only) · goal:g7.16.1 · MAIN /data/work/agi on local-maxxing/season2/main |
-| skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
-| sessions | DG1 agi-0c · DG2 agi-dc · DG4 agi-47 · DG5 agi-c8 · SM agi-ed · belam (Prime) agi-c2 -- config:posts session_name lags after the reboot: trust ListAgents + the sender's from-name; our own name collides with all-is-one, peers add [e68acb] — read config:posts after any rotation |
-| split | room `directors` FINAL = DG3 23:39: DG3 write.py + node_writer.py (CLAIMED) · bundle-4 W2c-W3 rest · g7.16.1.6 MACHINERY commit_node + the ~15-min snapshot cell (signature posted in the room 23:49) · DG4 non-rotate writers + grid crons + leftovers · DG5 rotate.py WHOLLY (.7 + W1c) |
+Role: doc:unified-director-brief (the director TEMPLATE) + this card. Post director-general-3 · master: the council (SM = coordinator; belam for the BUILD) · MAIN /data/work/agi on local-maxxing/season2/main.
 
+## §0 State (18:5xZ 10-01) · OWNER 15:1xZ via belam: keep going until goal:g7.16.1.11.1-.10 complete · LANES: subagents Sonnet 5.5; murs pi-free · belam + SM by DIRECT session message (owner 18:1xZ): belam = agi-6a, SM = agi-02 (SendMessage)
+| Field | Value |
+|---|---|
+| Rotation record | gen n/a, window @11, pid 1206493, model_confirm ok. |
+| Node counts | active n/a, deprecated n/a. |
+| Tree | branch local-maxxing/season2/main, behind season2/main 1, unpushed 6. |
+| Meter | 0.402045 · role director · model claude-opus-5-5. |
+| Account | total=$192.00 used=$191.39 remaining=$0.61 |
 ## §1 Plan
 ```
-done   gen 6: SM 118 96f1c6fae · 122 647501f0c (+ mvp THOUGHT dd141136d) · run-10 probe eeccfbaa1 (create --set parents/type
-       overwrote the gated rows: node_writer.GATED_ROWS) · 125 f8332a053 · 123 124 126 127 6082bf802 · 129 4be11df59 ·
-       130 22193d6ba (ONE judge: submit(dry_run=True)) · W2c A 27c454526 (graph_core resolve_parents) · test_dispatch 4a96d8bd0
-       131+132+probe e77d0515a (_MARK one constant; stdin read once before the judge) · W2c B1 d3f1d80c0 · rotate test pin 4a420102e
-       W2c B2 7e1bed5b8 · B3 9c069f7dc -- family B wired end to end (goal close = DG1's call)
-       SM verdicts: runs 13-18 in the dm journal (director-general-3--sanctuary-master)
-WAIT   SM re-mur of e77d0515a · d3f1d80c0 · 4a420102e · 7e1bed5b8 · 9c069f7dc (sent to agi-2f) -> close what they name FIRST
-       DG1: close goal:g4.18.6.3.1 on 27c454526 (its call) · DG4: SM 128 anonymize.py (routed in room directors; DG3 only on a decline)
-NEXT   W2c C goal:g4.18.6.3.3 WHOLE, one round (C1 alone would turn level3's quiet fallback into a refused mint): hypothesis:gates-resolve-
-       mint-ids-through-the-resolver · C2 node_writer.write_node gates a RESOLVED copy of plist (r = links.address_resolver(root), local
-       import: links imports node_writer) and still STORES what the caller wrote (W2d-b writes mint parents) + spawn_gate.nearest_vision
-       walks resolved parents · C3 evidence_gate: NODE_ID_RE refuses a mint evidence ref as taxonomy; normalize_evidence_runs counts
-       against an ids-only corpus -- decide: resolve at the reader that has a root, or build_corpus returns mints too (NOT a 2nd index:
-       ask SM) · C1 level3.read_mvp_map keeps `mvp:` or a ref the resolver maps to an mvp (test_level3 test_w2c xfail) · then W2d-b
-       goal:g4.18.6.4.2 (test_b4_w2db xfail) · W2e · W3a/b · W3c-1 then W3c-2
-       goal:g4.18.6.3.3 (family C: type:slug splits) · W2d · W2e · W3a/b · W3c-1 then W3c-2
-       census leaves (DG1): goal:g7.16.1.1.6.1 (config:census + verification.check_census; test_census 14 strict xfail) then .6.2
-       g7.16.1.6 machinery once the council places it + DG1 mints the leaf (commit_node signature in room directors) -- still
-       "Assigned to the council (placement)" at 03:0xZ, no leaf
-       snapshot-goals integrity pair: strict xfail test_w2cb_snapshot_goals_integrity waits on BANKED 86
-HELD   hypothesis:a-write-commit-survives-a-busy-index (DG2): commit_node replaces that path; build only if .6 stalls (<= 12 prod lines)
-ASK    hypothesis:node-type-schemas-name-a-thought-reader-that-exists (text-only, 16 schemas): DG4 or me -- ask DG4 first
-FINDINGS see the card's grid version before 02:3xZ (unchanged; hypothesis:l2w6-telemetry-rollup scalar next_edges added)
-NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids (superseded)
+v5 UP: DG5 (pi; projected h.conf installed 18:4xZ, applies at next start) · thought-master-new · director-thought-1 · director-thought-2 · director-general-2 · director-general-1 (MOVE 2 18:12Z) · DG4 DOWN
+  all 6 v5 units carry preserve.conf (the /run template predates G8) -- a NEW start needs it too until the template re-projects
+  DG5 key expires 00:52Z 10-02: renew before 00:00Z (R7 + restart; H stop-gap survives a restart: it is in h.conf)
+G10 URGENT (belam [red] 18:5xZ, alive NO): hypothesis:g716111-g10-meter-reads-the-newest-usage-line bd3495bea
+  -> kid b483adc00 VERIFIED (6 passed; live-transcript check ok) -> mur-de-base-g10 accept_with_residue -> RESULT G10 + CORRECTIVE G10.2 3fec41a65 -> G10.2 00782dc30 -> mur-de-base-g10b accept_with_residue (non-numeric object field still silences) -> RESULT G10.2 + CORRECTIVE G10.3 778d745c5 -> G10.3 bc1f178c2 -> mur-de-base-g10c accept_with_residue -> RESULT G10.3 5987d7656 residues 0 -> [merge-up] SENT to SM 19:0xZ; SM gate suite started 19:01:58Z, lands ~19:25Z -> then belam GOs MOVE 3 + posts restart to pick up agi-meter; remove de-base-G10 worktree after landing -> residues -> [merge-up] SM -> MOVE 3 unblocks
+  (if I rotate first: SM dispatches it under (A+) from this node)
+G7 LANDED 5ee791456 18:4xZ (row 79 DONE, worktree removed, DG5 drop-in re-projected); findings: my meter-pin row renumbered 80 -> 83 (TM-new owns 80)
+G9 BOOT INSTALL: hypothesis:g716111-g9-boot-install-brings-the-boot-set-up -> kid afcd4e53d + trunk merged in 6017fcbc6 (rc 0, 27 passed)
+  -> mur-de-base-g9 verify DEMOTE -> RESULT G9 + CORRECTIVE G9.2 a3e1f655e (loadavg fail-closed, flaky row, loud setfacl, named unprojected skip, no AGI_TRUNK literal) -> G9.2 79f05922f -> mur-de-base-g9b accept_with_residue -> RESULT G9.2 + CORRECTIVE G9.3 5df4b9203 -> G9.3 69e9cd1d9 VERIFIED (13 passed x2) + trunk merged in 7172cc8ff (posts.md = trunk + 8 boot cells, diff-verified; merge-tree rc 0) -> mur-de-base-g9c RUNNING (unit agi-director-general-3-mur-de-base-g9c, args murg9c.args.json) -> residues 0 -> [merge-up] SM (note: engine-root THOUGHT is kid-written; write.py refuses a director THOUGHT on config:*)
+  INSTALL (sudo install agi-boot.service to /etc + enable) ONLY after its own mur clears + the owner's Proxmox location + belam GO (G7 landed); Proxmox mock FIRST, then one real reboot (old belam = look-over)
+  boot projects only engine.v==4 rows (belam: intended; flags stay on all 8)
+MOVE 3 = alive HELD on G10. Packet READY: .agi/sessions/dg3-mur-args/alive-switch.sub (2 subs: pid half alone -- RE-READ the live pid first --, then window+recover+engine Opus 5.5 seeds unified-master-brief,unified-head,card-alive rotate_pct 47) + alive-rollback.sub · user agi-alive exists, inbox present
+  same shape as DG1: belam writes the row -> kill alive's tmux window (verify name + pane pid) -> re-project -> h.conf + preserve.conf + wants -> gate -> start -> report first turn
+  pre-seed alive's .claude.json BEFORE start: projects./var/lib/agi/alive/t.hasTrustDialogAccepted, hasCompletedOnboarding, fullscreenUpsellSeenCount 99 (as the user, 600) -- DONE 19:0xZ (trust on t, fs 99, onboarding + bypass already set)
+QUEUED (SM agi-1f 19:1xZ, belam-laned exceptions to the g7.16.1.11 hold; drain AFTER G10 lands, in order): (1) hypothesis:heal-crash-respawn-writes-the-new-pid-into-the-row (heal.py respawn path + test, <=12 lines) (2) hypothesis:heal-ack-line-comes-from-config-rotations-by-role (heal.py ack_gate + rotations.md cell + test) -- each: loop branch from the trunk, a Sonnet 5.5 kid (fakes only, 0 USD), verify, mur --harness claude-code (owner 07:00Z), residues 0, [merge-up] SM (agi-1f; ListAgents if it rotates). GATE before ANY start: loadavg1 < 16 AND io PSI some avg60 < 50
 ```
 
-## §2 Landed
-gen 6: 99a3ce3b6 (card re-link) 96f1c6fae 647501f0c dd141136d eeccfbaa1 f8332a053 6082bf802 4a96d8bd0 27c454526 4be11df59 22193d6ba
-4a420102e d3f1d80c0 e77d0515a 7e1bed5b8 9c069f7dc
-854aceb35 688d86d6f 3b61f9f73 9a39d55fa 09a8397e4 (137 THOUGHT) 74f03f003
-gen 5: see git log --author-date / the predecessor card (grid history)
+## §2 Landed (this session)
+G8 c34954f72 (murs g8 -> g8b -> g8c) · MOVE 2 DG1 on v5 · DG5 key renewed + pi start stop-gap · findings rows 78 79 80 · G7 chain built + reviewed (G7.4-G7.8) · G9 built · G10 minted + dispatched
 
 ## 🔴 Where it stops
-Rotating at f~0.39 before starting W2c C, which cannot finish under the line. HOLD lifted by belam agi-c2 (02:0xZ).
-Nothing live; nothing of mine uncommitted. Messaging: SendMessage ONLY (no send.py, no rooms) until the bundles land.
-FIRST at wake, one commit each, SHA to SM (agi-ed) by SendMessage:
-- 138 node_writer.py:1046 vs :1008: ONE END-tail constant for _THOUGHT_RE, THOUGHT_MARKER_LINE_RE and body_rows (or take the
-  THOUGHT row end from _THOUGHT_RE.search); `<!-- THOUGHT:END trailing -->` / END. / END-x / END-- / END\n--> end the row before the
-  block; derive 1046's head from _MARK; + test rows (and one `row` verb end to end)
-- 140 write.py: an EMPTY `payload -` beside another verb is dropped silently (touches_payload False) while the preview says
-  `payload (0 bytes, stdin)`: refuse an empty `payload -` dry and real, as `body_patch -` does; + row with a second verb
-THEN W2c C whole (§1 NEXT) · census leaf g7.16.1.1.6.1 · then DG1's goal:g6.41.1.1 (agi-2a, 02:3xZ): brief on hypothesis:
-a-session-resumed-outside-heal-gets-one-after-join-wake (ff358c109) -- boot-resume record + wake lines to config:rotations; NOT heal's worktree sweep (DG4). Run-17 notes (none owed): brief._parents_of builds a resolver per hop · address_resolver lets a
-GrepError propagate from telemetry/graphweb/links schema when a colon-less ref exists · post_wire:541 a dict entry would TypeError.
-First command at wake: re-read this card, then ListAgents; wait for SM's verdicts on 135 136 137 139 (sent 02:3xZ).
+Live: G10 kid (de-base-G10), mur-de-base-g9. Waiting: SM gate on G7; belam GO for G9 install + MOVE 3 after G10.
 ```
-python3 extensions/agi/bin/write.py doc:card-director-general-3 'read body 1:40'
+python3 extensions/agi/bin/send.py read director-general-3; git -C /mnt/agi-ram/worktrees/de-base-G10 log -2 --oneline; systemctl --user is-active agi-director-general-3-mur-de-base-g9; ls .agi/sessions/workflows/runs/mur-de-base-g9/; for p in director-general-1 director-general-2 director-general-5 thought-master-new director-thought-1 director-thought-2; do echo $p $(systemctl is-active agi-post@$p); done
+auto-captured at f=0.4020 at the captive ratio 0.85 x the line, no self-rotate
 ```
-
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared by every post | commit by exact path; `git diff` each file for FOREIGN hunks first (heal.py + conftest.py carry another post's WIP 01:xZ); never switch branches, stash or reset |
-| suite lock races | /tmp/dg3_pt.sh <file> [-k ..] retries until pytest gets its own window; ONE file per run (PASS B3 on the box) |
-| red-on-HEAD proof | copy the fixed file to /tmp, `git show HEAD:<f> > <f>`, run the one test, copy back, `cmp` -- never stash |
-| write.py in MAIN | commits ITSELF by exact path, but a held suite lock leaves the write UNCOMMITTED with rc 0: check git status after every write.py call |
-| write.py script | ONE script argument, verbs joined by ' && ' |
-| row <top>.<key> | src = the row's YAML VALUE; --remove removes (empty refuses); YAML keys keep their colon |
-| grid.py commit --all | never off season2/main -- the grid cron versions MAIN; do not run it by hand |
-| test counts in commit messages | quote the FULL-file run, never a -k subset (SM N4) |
-| messaging | until the bundles land (owner 01:4xZ): SendMessage to a session name ONLY -- no send.py, no rooms; context in goal nodes |
-| /tmp after a reboot | /tmp/dg3_pt.sh (lock-retry pytest wrapper) is gone: recreate it (loop until verify-suite.lock is absent, --basetemp /tmp/dg3pt) |
-| build parent shapes | [mvp] · [build, goal] · [goal, mvp] · [goal, idea] |
-| replace body on a heading/paragraph line | refused: widen to whole section or the blank line above |
-| claims | write.py + node_writer.py stay CLAIMED by DG3 in room directors; [claim]/[release] any other shared file |
-| create --set | type / parents refuse by name since eeccfbaa1: pass them as the create's type / --parent |
-| write --dry-run | = submit(dry_run=True) since 22193d6ba: a new submit refusal needs NO mirror in main; update_node's own REJECTED is still invisible to a dry run |
-| tests that fake subprocess.run | links.frontmatter_rows' git grep reads BYTES: a fake must answer it in bytes (4a96d8bd0) |
-| a new link reader | `r = links.address_resolver(root); r(x) or x` -- an address never greps; resolve per CALL, never inside a per-file cache |
+| MAIN is shared | commit by exact path; check each file for FOREIGN hunks first; never switch branches, stash or reset |
+| landing | SM lands; a chain whose merge-tree vs HEAD is rc 1: merge the trunk INTO the loop branch in its worktree, resolve (node sections: keep both sides' CORRECTIVE sections, the newer THOUGHT), re-test, re-gate |
+| parents may not commit | write.py refuses 'tier parent may not commit (goal:s27)': at harvest, land the dirty node bytes ONLY if sha256 == the last write-log entry, then merge the KID branch into the loop branch yourself; unlogged bytes: re-apply the content as the director via write.py |
+| vanishing worktrees | a round worktree can be pruned under you: re-add it on its loop branch (git worktree add <path> <branch>) |
+| write.py sub | strips leading whitespace off BOTH sides: anchor on a non-indented start, --dry-run first on frontmatter; >1 occurrence = sub! |
+| pi-free mur verify | times out at 3600 s on the memcap/dispatch slices: a dead verify = triage the review; small re-reviews go to a Sonnet 5.5 subagent (owner 16:4xZ) |
+| mur verdict JSON | read masked (hex -> <h>, emails, home paths); unstructured review = parse the defects text |
+| edited_by | pass --actor director-general-3 --role director on EVERY write.py call |
+| RAM hold | dispatch holds at the RAM disk >= 60%: remove finished RAM worktrees (never bare git worktree prune) |
 
-## §5 Verification (02:0xZ): viewport 53p/8x · metrics 60p · zoom 41p · dashboard 23p · dispatch 139p · write/ring family 14 files green · write 164p/1x · node_writer 112p/3x · write_answers_file 42p · write_guard 32p · write_sub 17p · links 42p/2x · spawn_gate 81p · rotation_record 4p · post_wire 5p · season 56p · help smoke 70p/8s · live: 5279/5279 index rows == yaml, grep 0.47 s
+| manifest row | write.py row manifest.<key> refuses an ABSENT key: set manifest <whole mapping as JSON> via a python subprocess (single quotes in the JSON; 77 KB < argv cap); --dry-run first; the diff must be the new row only |
+| the old units | agi-director-general-3-dg3mur-* units read failed: the earlier murs whose verify timed out, already triaged -- not live work |
+| round worktrees vanish | the RAM reaper removes a round worktree once its parent exits (both did at 20:4xZ, mid-command): commits are safe on the branch; re-add with git worktree add <path> <branch> |
+| links MALFORMED | links.py links prints 13 MALFORMED FILE SCOPE lines on lm-* hypotheses: pre-existing off-shape, not damage (broken stays 0) |
+| v5 boot: trust | a fresh post stops at the folder-trust dialog: set projects./var/lib/agi/<post>/t.hasTrustDialogAccepted in that user's .claude.json BEFORE start (as the user, 600) |
+| v5 boot: inbox | an ABSENT inbox file makes the mail poll type mail+CR every 5 s (answers any modal): create it empty (g:agi rw) before start, until G5.3 item 5 lands |
+| v5 boot: .fresh | agi-run eats ~/.fresh on the first start; a run that died before any turn restarts with -c = 'No conversation found': touch ~/.fresh as the user |
+| v5 boot: modal | a 'Try the new fullscreen renderer' modal (Yes preselected) opens after turn 1: one Esc into /run/agi-<post>/i as the user |
+| start gate | belam [red] 12:58Z: ONE post start at a time; between starts read loadavg1 < 16 AND io PSI some avg60 < 50 (cat /proc/pressure/io); 4 starts 3-4 min apart drove io PSI 88 and an oomd kill of TM-new |
+| reboot wipes | /run (unit template, drop-ins, multi-user.target.wants dir), /tmp (projection, mur args), /mnt/agi-ram worktrees and the comms/inbox ACLs: re-project the trunk with the agi-project section into the scratchpad, mkdir the wants dir, install template + one drop-in per start; mur args live in .agi/sessions/dg3-mur-args/ (ignored, persistent); re-apply the 11:4xZ ACL set (row 73) |
+
+
+## §5 Verification (11:1xZ): DG5 active on v5, 24/25 bin == engine, journal 0 errors · links 5621 resolved 0 broken · test_thought_hygiene 17 passed
 
 ## §6 BANKED
-- 86 (SM wf_8ce06028-a81): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left; links.py does not check parents.
-  Options: (a) re-wire both into verification level quick as a `goals-integrity` command (recommended) · (b) retire both and re-point the W2c-B xfail row.
-- 94 ([red] with belam from SM): 4 engine subprocess callers of the write.py CLI auto-commit (rotate.py closeout · season.py:274 · sensei.py:2465 ·
-  failures.py:361) -- DISSOLVES under g7.16.1.6 (a write is a grid-ref commit, no branch): recommend closing it there, not with an env opt-out.
+- OWNER (night item 6): does his 06:5xZ 'spawn on encryption-town' authorize the cutover the 09-30 scrub note asks for (fresh clone of current history only)? + push/fetch timers there or by hand · the pre-scrub remote branch encryption-town/season2/main on the PUBLIC repo (review as residue) · his Doppler login there later. Plan: doc:g716111-crossbox-plan.
+- OWNER/belam: capsule sealing CREATED /var/lib/systemd/credential.secret (keep or remove at teardown) · R10 seal the real phone key · delete the stand-in key when the real one lands.
+- 86 (SM): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left. (a) re-wire into verification quick as `goals-integrity` (recommended) · (b) retire both.
 - R1 slice (owner / council): a dedicated uncapped posts slice, then flip `spawn.post_scope.live` after PASS B3 with the owner present.
-- goal:g4.18.4 Falsifier 2 scans all history: scope it to commits after 2c412e5bb, then complete it.
-
-## Findings for the next bundle: see the previous card version (grid) -- unchanged
+- goal:g4.18.4 Falsifier 2 scans all history: scope it to recent commits, then complete it.
+- config_max proposals routed via SM: paths.core.workflow_runs_root · merge_gate.red_classes · council.residue_leaves · anonymize.email_allow (RFC 2606 + non-numeric systemd local part).
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
+
+
+ROTATION NOTE: no Agent-tool subagent is live (Phase A' + DG3.71b returned 05:1xZ-05:2xZ).

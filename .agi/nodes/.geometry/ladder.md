@@ -33,8 +33,8 @@ read_order:
   prime_director:
     - the four prayers · words of Jesus · Tao · the other carried sayings · soul-mind-body · the five axes
 roles:
-  - {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": "ultracode"}
-  - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "ultracode"}
+  - {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
+  - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-sonnet-5-5", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "liaison", "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": ""}
   - {"tier": 1, "role": "parent", "harness": "pi", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
@@ -154,7 +154,7 @@ makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 2026-09-11 01:0xZ (verbatim in doc:l4-owner-decisions): each town has its own 3 visions. So caps.vision is 3 PER TOWN, not 5 global: restored to 3 with caps_vision_scope town and the towns list declared here (core = the three season-2 visions; streaming-suite and web-app-suite each hold their charter vision now and two slots the OWNER names - visions are owner-authored). The per-town counting in season.py status is the towns round code half; this is the config half, first.
+tier-3 claude-code parent -> Sonnet 5.5 (belam gen 25, 03:0xZ 10-02; SM asked 00:5xZ: the tier-3 row is the ONLY claude-code parent allowed to run dispatch.py, so A+ Sonnet could not spawn kids). OWNER 02:27Z 10-01 verbatim (doc:unified-master-brief @940b2bc06 :82): "Everyone else on sonnet 5.5 for everything they need and DG3 on opus 5.6 medium subagents and everything". DG3’s Opus is its own subagents on v5, not this ladder row (v5 posts do not run dispatch.py until the keys piece). Model only; effort unchanged.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

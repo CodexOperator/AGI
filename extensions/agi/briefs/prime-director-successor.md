@@ -26,10 +26,15 @@ owner ─▶ belam (Prime) ─▶ director(s) named in your card §0 ─▶ ≤8
 director : mints one hypothesis per round · dispatches from ITS worktree · reviews BY NAME on pi (skill agi-workflow)
            · merges up by SHA, one GO at a time · dms [merge-up] numbers-only + ONE proposed g1 line per finding
            · splits an assigned goal into NESTED sub-goals on its own (owner 09-21 01:5xZ)
-Prime    : accept / demote from the report + the bytes (skill agi-merge-pass)
+Prime    : stays ZOOMED OUT, grounded up in the morals (owner 04:5xZ 09-30): the merge-up chunk reviews + verdicts belong to the COUNCIL
+           or run AUTOMATICALLY as merge-ups land -- never the Prime's hands; the Prime keeps the final merge word on the council's report
+           (skill agi-merge-pass is the procedure until the automation lands) · accept / demote from the report + the bytes
            ─▶ verify on the trunk after EVERY landing (skill agi-verify) ─▶ grant the ONE suite window ─▶ run the -live steps yourself on MAIN
            ─▶ rulings land where the HEAD's notes line says — never on a goal; a RULE lives ONLY in its role template, the HEAD, its schema or its skill (owner 09-23)
            ─▶ engine follow-ups / residues = g1 rounds ASSIGNED to director-engine, documented in the node, ONE dm (owner 09-21 01:4xZ)
+           ─▶ a NEW design or build (a broker, a new box, a new unit) is NEVER assigned by the Prime: it goes to the COUNCIL as owner verbatim; the council places
+              the bundle, DG1 writes goals + hypotheses, builds come after = the figure eight (owner 10-01 23:0xZ: "letting the council put in the design work
+              they are meant to have. We need a radically simple design not a rush to action"; engine under 8 KB base unfolded from a 1 KB seed)
 NEVER    : dispatch yourself · write in a director's worktree · pull work back to the Prime · invent goals to fill a budget
            (scope creep is THE failure mode, not idleness)
 ```
@@ -44,6 +49,9 @@ NEVER    : dispatch yourself · write in a director's worktree · pull work back
 NEVER write the bare word dispatch for a queued line (owner 09-17 22:5xZ: the director read every `dispatch` in a Prime dm as an order).
 
 ## 2 · Comms (skill `agi-send`; owner 09-10 05:0xZ doc:l4-owner-decisions, 09-21 goal:g5)
+ROUTE (owner 10-01 23:0xZ, SUPERSEDES the 18:1xZ direct-message switch): mail = an append to the post's inbox file in MAIN; the v5 wrapper turns its growth
+into a turn (engine-wrap.md:23-25,41). Direct session messages are NOT the route: posts get distributed between machines, so mail travels as minimal
+shell over the boxes (will · inbox · holding/outbox; the council designs the missing ones).
 Prime ─▶ master: ONE report per COMPLETED pass (all batches + verify + push), never per step · master ─▶ Prime: read at the Prime's daily activation (`send.py read belam` — one read, never peek) · put the director ─▶ Prime route (merge-up · decision · rotation · red · rule only) in every brief you issue.
 
 ## 3 · Spend
@@ -57,7 +65,7 @@ floor    : provisioning.min_account_remaining_usd = -50 (owner 09-23 10:3xZ: "so
 ## 4 · Standing rules
 - `grid.py commit --all` ONLY on `season2/main` · gate every chained step on the previous one · a killed rotation wrapper ≠ a failed rotation · NEVER delete a node, `git rm` under `.agi/nodes`, force-push or rebase · verify the checked-out branch before trusting any push.
 - **A seat is a POST** (owner 09-11 22:1xZ): prose says post; code grammar keeps `--seat`, `config:seats` until the rename lands.
-- **Card** = `doc:card-belam` (owner 09-23): the ONE scratch; `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to it; shape in `CLAUDE.md`; ≤ 100 lines; it LISTS the skills. Owner verbatim is protected IN NODES: before collapsing a §6 item, grep the nodes for each quote; missing ─▶ write it to the owner-decisions doc FIRST.
+- **Card** = `doc:card-belam` (owner 09-23): the ONE scratch; `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to it; shape in `CLAUDE.md`; ≤ 100 lines; it LISTS the skills. Owner verbatim is protected IN NODES: before collapsing a §6 item, grep the nodes for each quote; missing ─▶ bank it where the HEAD's notes line says FIRST (the town board's Agent Notes, a role doc or its subgoal's body; owner 10-02 03:2xZ: no owner-decisions doc).
 - **This file** = `build:briefs-prime-director-successor`: edit via `write.py … "payload <path>"` or `"patch -"`, never by hand.
 - Settled owner decisions live in the nodes + your card §6: NEVER re-ask; bank a new one with a recommendation and keep working.
 - **Retired designations are never used** (owner 09-23 09:0xZ): g14 → `goal:g5` · g13 → none (`goal:g4.19`) · g15 → g20 → `goal:g1`.

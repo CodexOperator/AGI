@@ -1,0 +1,127 @@
+{
+ "hypothesis": "hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b",
+ "llama_cpp_repo": "https://github.com/ggml-org/llama.cpp",
+ "llama_cpp_sha": "552f18f912a32ea86edf82e2b76431cb7131538d",
+ "patch": "head-window.patch (applied by build.sh to the pinned sha; env LLAMA_HEAD_WINDOW='il:kv_head,...', LLAMA_HEAD_WINDOW_W, LLAMA_HEAD_WINDOW_SINKS; unset = graph unchanged)",
+ "gguf_cell": "osc02_9b_gguf",
+ "text_cell": "wikitext2_test_raw",
+ "text_file": "wiki.valid.raw",
+ "prior_cells": [
+  "osc_band_l4_dir",
+  "osc_band_l4_distance_dir",
+  "osc_band_l4_mass_dir",
+  "osc_band_l4_direct_dir"
+ ],
+ "scratch": "/data/tmp/l4-9b",
+ "image": "l4-9b-build:alpine",
+ "docker_cap": [
+  "--memory",
+  "7g",
+  "--cpus",
+  "6"
+ ],
+ "threads": 6,
+ "ctx": 2048,
+ "margin": 16,
+ "W": 128,
+ "sinks": 4,
+ "full_layers": [
+  3,
+  7,
+  11,
+  15,
+  19,
+  23,
+  27,
+  31
+ ],
+ "n_kv_heads": 4,
+ "n_heads": 32,
+ "shape_note": "GGUF metadata (llama-tokenize -v, vocab only): qwen35.block_count 32, full_attention_interval 4 (llama.cpp: layer il is full attention iff (il+1) % 4 == 0 -> 3,7,...,31), attention.head_count 16, head_count_kv 4, key_length 256, n_vocab 248320, no BOS added. Head index i = 4 * (rank of its layer in full_layers) + kv_head; query heads 4*g..4*g+3 read KV head g.",
+ "ks": [
+  8,
+  16
+ ],
+ "seeds": [
+  0,
+  1,
+  2,
+  3,
+  4
+ ],
+ "calib_ids": [
+  12,
+  16,
+  18
+ ],
+ "n_fresh": 3,
+ "zero_tol": 1e-06,
+ "min_avail_mib": 8000,
+ "psi_start": 5,
+ "psi_stop": 20,
+ "wait_s": 180,
+ "calib_rule": "calibration docs = runs 2-4's calibration articles 12/16/18 of wiki.valid.raw (run 1's article split), each required to have >= ctx + margin tokens in the 9B's tokenizer (llama-tokenize on the GGUF vocab)",
+ "fresh_rule": "the first n_fresh articles of wiki.valid.raw in file order (run 1's article split) with >= ctx + margin tokens in the 9B's tokenizer, excluding every doc id runs 1-4 used (read by program from prior_cells params.json: eval_docs, calib_docs, exclude_docs, run 4's fresh_docs) and calib_ids; picked by osc_l4_9b.py --pick (tokenizer only) and fixed here BEFORE any model pass",
+ "doc_rule": "each doc file = the article body repeated past 2*ctx tokens (llama-perplexity refuses < 2*ctx); --chunks 1 evaluates only the first ctx tokens, which lie inside the first copy (>= margin tokens before the junction); KL and same-top are over the 1023 scored positions ctx/2 .. ctx-2 (llama-perplexity's second half)",
+ "direct_def": "per KV head h: h alone windowed (4 sinks + last 128 keys, its 4 query heads), llama-perplexity --kl-divergence vs the UNPATCHED build's base logits (flash-attn off, -c 2048 -b 2048 --chunks 1, 6 threads), Mean KLD per calibration doc, averaged over the 3 calibration docs; ascending, ties by index. Written to ranking.json by --rank and copied into params.json frozen_direct_ranking by --freeze BEFORE scoring",
+ "random_def": "per k: random_sets[k][s] = sorted(random.Random(seed).sample(range(32), k)) for each seed, written by --freeze",
+ "zero_rule": "the patched build with NO heads listed on calibration doc 0: (a) its Mean KLD vs the unpatched base <= zero_tol and (b) the base logits file it writes is byte-identical (sha256) to the unpatched one",
+ "rule": "void if a fresh doc is among the excluded ids (or repeats), frozen_direct_ranking differs from ranking.json or from the ranking re-read from the calibration logs, or the zero-mask check fails; else proved iff DIRECT's pooled KL (mean over fresh docs) < the minimum pooled KL of the 5 random sets at BOTH k = 8 and k = 16; else disproved. Reported: same-top (llama-perplexity 'Same top p') per arm; per-doc wins; context 8192 only if the wall allows (needs docs >= 8192 + margin tokens)",
+ "calib_docs": [
+  [
+   12,
+   "Tim Richmond",
+   4428
+  ],
+  [
+   16,
+   "2011 \u2013 12 Michigan Wolverines men 's basketball team",
+   2969
+  ],
+  [
+   18,
+   "Daniel Radcliffe",
+   4543
+  ]
+ ],
+ "fresh_docs": [
+  [
+   32,
+   "1888 \u2013 89 New Zealand Native football team",
+   7693
+  ],
+  [
+   33,
+   "\u00c9va Gauthier",
+   2397
+  ],
+  [
+   34,
+   "Battle of Sullivan 's Island",
+   4415
+  ]
+ ],
+ "excluded_docs": [
+  0,
+  1,
+  3,
+  4,
+  5,
+  6,
+  7,
+  10,
+  12,
+  13,
+  16,
+  18,
+  20,
+  21,
+  22,
+  24,
+  25,
+  28,
+  29,
+  31
+ ],
+ "pick_note": "calib_docs / fresh_docs as [id, title, tokens in the 9B tokenizer], from osc_l4_9b.py --pick (llama-tokenize, GGUF vocab only, no weights) at 2026-10-01, fixed and committed BEFORE any model pass; excluded_docs = the exclusion set that pick read by program (runs 1-4 + calib_ids)"
+}

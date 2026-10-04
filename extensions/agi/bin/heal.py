@@ -52,6 +52,7 @@ import rotation_record  # noqa: E402 -- the ONE record serializer (home-relative
 import adapters  # noqa: E402 -- the shared (tier, role, harness) resolver
 import spawn_gate  # noqa: E402
 import spawn_budget  # noqa: E402 -- liveness reader for the worktree sweep (hyp:l4-a-finished-rounds-worktree-is-removed-after-harvest)
+import verification  # noqa: E402 -- the ONE suite-lock name resolver (suite_lock_name)
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 def _default_role_for_tier(tier):
     """Mirror dispatch's default (role == tier) for the heal path."""
@@ -940,6 +941,10 @@ def _late_reap_for_skipped(root, record, *, record_path=None,
     succ_name = succ.get("name")
     if not succ_id or not own_name or not succ_name:
         return {"action": "skip", "reason": "no-handover-identity"}
+    if (hov.get("stranded") or {}).get("action") in ("killed", "already_gone"):
+        # the successor is dead either way: a registry file for its @id is
+        # stale, and reaping the predecessor chain would leave NO live window
+        return {"action": "skip", "reason": "successor-torn-down"}
     if now is None:
         now = time.time()
     reg_file = _registry_now_has(rot, succ_id, registry_dir)
@@ -1176,14 +1181,18 @@ def _sweep_resolve_base(root: Path, base: str) -> str:
     return base
 
 
-def _git(args: list[str], cwd: Path) -> tuple[list[str], int]:
+def _git(args: list[str], cwd: Path,
+         err: list | None = None) -> tuple[list[str], int]:
     """`git <args>` run in `cwd`, returning (stdout lines, returncode).
-    Best-effort: a broken git yields (empty, nonzero), never raises."""
+    Best-effort: a broken git yields (empty, nonzero), never raises. A
+    caller that wants the reason passes `err=[]`: stderr is appended to it."""
     try:
         out = subprocess.run(["git", "-C", str(cwd), *args],
                              capture_output=True, text=True)
     except (OSError, subprocess.SubprocessError):
         return [], 1
+    if err is not None:
+        err.append((out.stderr or "").strip())
     return (out.stdout or "").splitlines(), out.returncode
 
 
@@ -1392,7 +1401,7 @@ def _sweep_iter_home(wt_iter: Path, target: Path) -> bool:
 
 
 def _sweep_cold_link(root: Path, main_sessions: Path, iter_name: str):
-    """goal:g7.16.1.5.3.2 -- when config:guard names the cold sessions home
+    """goal:g7.16.1.5.2.1 -- when config:guard names the cold sessions home
     (`GUARD_AGI_SESSIONS_ARCHIVE_<box>`, the goal:g7.16.1.5.2 cell) and MAIN
     has no entry for `iter_name` yet, create `<cold>/<iter>` and symlink
     MAIN's entry to it, so session-complete's copy lands on disk -- never a
@@ -1514,6 +1523,7 @@ sweep-judges-it.
 #: worktree per 30s pass -- ~3000 process spawns per pass to reach the same
 #: answer. The cache is per-process and rebuilt on restart, never on disk.
 _SWEEP_SKIP: dict = {}
+_SWEEP_ORPHAN: set = set()  # DG2.C1: orphan trees already refused by name
 
 
 def _sweep_worktree_heads(main_checkout: Path) -> dict:
@@ -1659,6 +1669,9 @@ def _sweep_reclaim(max_mib: int) -> int:
         return 0
 
 
+SWEEP_ARCHIVE_SAME = "unchanged"  # _sweep_archive: the refs already hold this state
+
+
 def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
                    dirty: bool, force_paths: tuple = ()) -> str | None:
     """goal:g7.16.1.5.3 -- pin a worktree before it is removed, so no byte is
@@ -1667,14 +1680,21 @@ def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
     worktree's own index and HEAD are never touched) is committed onto
     `<name>-dirty`, plus `force_paths` (gitignored session dirs that never
     came home, `git add -f`). Both refs are verified before this returns None;
-    any failure returns the reason and the caller removes nothing."""
+    any failure returns the reason and the caller removes nothing. A tree the
+    refs ALREADY record byte-for-byte (HEAD ref == head, and the dirty ref's
+    tree == a fresh write-tree of the worktree -- content, not status, so a
+    new byte in an already-modified file differs) writes nothing and returns
+    SWEEP_ARCHIVE_SAME: a tree that cannot be removed is not re-archived."""
     dirty = dirty or bool(force_paths)
     ref = SWEEP_ARCHIVE_NS + name
     want = []
+    same_head = bool(head) and _git(["rev-parse", "--verify", "-q", ref],
+                                    main_checkout)[0][:1] == [head]
     if head:
-        _, rc = _git(["update-ref", ref, head], main_checkout)
-        if rc != 0:
-            return "update-ref failed"
+        if not same_head:
+            _, rc = _git(["update-ref", ref, head], main_checkout)
+            if rc != 0:
+                return "update-ref failed"
         want.append((ref, head))
     if dirty:
         fd, idx = tempfile.mkstemp(prefix="agi-sweep-idx-")
@@ -1696,6 +1716,9 @@ def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
             tree = run("write-tree")
             if tree.returncode or not tree.stdout.strip():
                 return "dirty write-tree failed"
+            if same_head and _git(["rev-parse", "--verify", "-q", ref + "-dirty^{tree}"],
+                                  main_checkout)[0][:1] == [tree.stdout.strip()]:
+                return SWEEP_ARCHIVE_SAME
             cm = run("commit-tree", tree.stdout.strip(), *(["-p", head] if head else []),
                      "-m", f"archive: dirty state of worktree {name}")
             if cm.returncode or not cm.stdout.strip():
@@ -1713,7 +1736,16 @@ def _sweep_archive(main_checkout: Path, wt: Path, name: str, head: str,
         got, rc = _git(["rev-parse", "--verify", "-q", r], main_checkout)
         if rc != 0 or not got or got[0] != sha:
             return f"archive ref {r} did not verify"
-    return None
+    return SWEEP_ARCHIVE_SAME if same_head and not dirty else None
+
+
+def _sweep_orphan(wt: Path) -> bool:
+    """DG2.C1: `<wt>/.git` is a gitfile whose `gitdir:` target no longer exists."""
+    try:
+        line = (wt / ".git").read_text().strip()
+    except OSError:
+        return False
+    return line.startswith("gitdir:") and not Path(line[7:].strip()).exists()
 
 
 def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
@@ -1849,6 +1881,17 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         if not head:
             head_lines, _ = _git(["rev-parse", "HEAD"], wt)
             head = head_lines[0] if head_lines else ""
+        if not head and _sweep_orphan(wt):
+            # DG2.C1: no HEAD and its gitdir is gone -- nothing to pin or
+            # remove. Refuse by name ONCE (never "archived"), then stay quiet.
+            if agent_id not in _SWEEP_ORPHAN:
+                refused += 1
+                _watch_log(f"[sweep] refused {agent_id}: orphan: gitdir gone "
+                           f"(no HEAD; nothing archived or removed)")
+                if not dry_run:
+                    _SWEEP_ORPHAN.add(agent_id)
+            continue
+        _SWEEP_ORPHAN.discard(agent_id)
         # (2)+(3) goal:g7.16.1.5.3: "unmerged" and "dirty" are no longer
         # terminal -- landings are fresh commits, so ancestry is rarely
         # provable. Such a tree is ARCHIVED (refs/archive/worktrees/<name>,
@@ -1938,15 +1981,23 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         elif needs_archive:
             reason = _sweep_archive(main_checkout, wt, agent_id, head,
                                     bool(status_lines), not_home_paths)
-            if reason:
+            if reason and reason != SWEEP_ARCHIVE_SAME:
                 refused += 1
                 _watch_log(f"[sweep] refused {agent_id}: archive failed "
                            f"({reason})")
                 continue
-            archived += 1
-            _watch_log(f"[sweep] archived {agent_id} ({why}) ref="
-                       f"{SWEEP_ARCHIVE_NS}{agent_id}"
-                       f"{' +dirty' if status_lines or not_home_paths else ''}")
+            if not reason:  # (SAME = refs already hold this exact state)
+                archived += 1
+                _watch_log(f"[sweep] archived {agent_id} ({why}) ref="
+                           f"{SWEEP_ARCHIVE_NS}{agent_id}"
+                           f"{' +dirty' if status_lines or not_home_paths else ''}")
+            # goal:g7.16.1.5.3.1: an archive hashes a whole tree (session dirs
+            # up to ~0.5 GiB) inside OUR cgroup -- give it back right away;
+            # the 03:32 / 03:37 / 03:43Z reaper oom-kills fell in archive bursts
+            if reclaim_mib:
+                got = _sweep_reclaim(reclaim_mib)
+                walk["asks"] += bool(got)
+                walk["mib"] += got
         if dry_run:
             _watch_log(f"[sweep] removed {agent_id} "
                        f"iter={iter_name} base={base} (dry-run)")
@@ -1956,14 +2007,16 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         # no uncommitted byte is removed before its archive ref exists).
         # a RAM worktree (goal:g7.16.1.5.4) is removed at its REAL path, then
         # its symlink under .agi/worktrees is unlinked
+        rm_err: list = []
         _, rm_rc = _git(["worktree", "remove", *(["--force"] if needs_archive
                                                  else []), str(wt.resolve())],
-                        main_checkout)
+                        main_checkout, rm_err)
         if rm_rc == 0 and wt.is_symlink():
             wt.unlink()
         if rm_rc != 0:
             refused += 1
-            _watch_log(f"[sweep] refused {agent_id}: remove failed")
+            _watch_log(f"[sweep] refused {agent_id}: remove failed"
+                       f" ({' '.join((rm_err or [''])[0].split())[:200] or 'no git reason'})")
             continue
         _git(["worktree", "prune"], main_checkout)
         _watch_log(f"[sweep] removed {agent_id} "
@@ -2269,13 +2322,13 @@ def _wake_repair_due(root: Path, now: float) -> bool:
 
 def _repair_stranded_wakes(root: Path) -> None:
     """hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter --
-    the watch pass's seat-wake repair. For every configured live seat row this
-    calls `send.wake(<seat>)`, which resubmits a stranded nudge-shaped line
-    in an IDLE pane (typed space + Enter, never Enter-only) or re-types the
-    wake token for a seat with unread, and silently no-ops on a pane with
-    nothing pending. Best-effort and read-only: missing seats / no tmux /
-    busy panes are silent no-ops; never touches the reaper logic, never
-    raises out of the watch loop."""
+    the watch pass's seat-wake repair. For every LOCAL live seat row (another
+    box's is skipped, as `send.wake_all_local` does) this calls
+    `send.wake(<seat>)`, which resubmits a stranded nudge-shaped line in an
+    IDLE pane (typed space + Enter, never Enter-only) or re-types the wake
+    token for a seat with unread, and silently no-ops on a pane with nothing
+    pending. Best-effort and read-only: missing seats / no tmux / busy panes
+    are silent no-ops; never touches the reaper logic, never raises."""
     try:
         import send as _send
     except Exception:                                     # noqa: BLE001
@@ -2286,7 +2339,7 @@ def _repair_stranded_wakes(root: Path) -> None:
         return
     for row in rows:
         seat = row.get("name") or row.get("seat")
-        if not seat:
+        if not seat or not boxes.row_is_local(root, row):
             continue
         # a QUIET row is skipped BY NAME: the dm is written, never a wake.
         try:
@@ -2514,6 +2567,58 @@ def _window_present(row: dict, windows: list[tuple[str, str]], *,
     if chain & (others - {row_pid}):
         return False, False  # provably ANOTHER seat's window
     return id_present, False
+
+
+def _boot_epoch() -> float | None:
+    """This boot's instant (epoch s), `btime` in /proc/stat; None if unread."""
+    try:
+        return float(next(ln.split()[1] for ln in
+                          Path("/proc/stat").read_text().splitlines()
+                          if ln.startswith("btime ")))
+    except (OSError, ValueError, IndexError, StopIteration):
+        return None
+
+
+def _proc_start_epoch(pid: int) -> float | None:
+    """A pid's start instant (epoch s): /proc/<pid>/stat field 22 (starttime,
+    clock ticks after boot) + btime; None if the pid or boot is unreadable."""
+    boot = _boot_epoch()
+    try:
+        ticks = int(Path(f"/proc/{pid}/stat").read_text()
+                    .rsplit(")", 1)[1].split()[19])
+        return None if boot is None else boot + ticks / os.sysconf("SC_CLK_TCK")
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+def _write_boot_resume(root: Path, seat: str, row: dict, live: dict,
+                       _rotate) -> Path | None:
+    """goal:g6.41.1.1: a seat ALIVE on a session whose process started after
+    this boot, with no accepted rotation record newer than the boot, was
+    resumed outside heal's recovery (e.g. the tmux path after a reboot). Write
+    ONE `rotation: boot-resume` record (`boot_at` names the boot) that
+    `_record_accepted` admits, so the after_join service wakes it once; the
+    record itself is newer than the boot, so a later pass writes nothing."""
+    boot = _boot_epoch()
+    started = _proc_start_epoch(int(live.get("pid") or 0))
+    if boot is None or started is None or started < boot:
+        return None
+    latest = _rotate._latest_rotate_record(root, seat)
+    last_ts = _parse_record_ts(latest[0].get("recorded_at", "")) if latest else None
+    if last_ts is not None and last_ts >= boot:
+        return None
+    gen = row.get("generation")
+    rec = {"rotation": "boot-resume", "seat": seat, "result": "resumed",
+           "recorded_at": datetime.datetime.utcnow().isoformat() + "Z",
+           "boot_at": datetime.datetime.utcfromtimestamp(boot).isoformat() + "Z",
+           "succ_name": seat, "gen": gen, "gen_after": gen, "pin_ref": "",
+           "tmux_session": _rotate.DEFAULT_TMUX_SESSION,
+           "window_id": live.get("window_id") or "", "pred_pids": [],
+           "session_id": live.get("session_id") or ""}
+    path = _rotate._write_rotation_record(root, rec)
+    _watch_log(f"watch: wrote boot-resume record for {seat}: {Path(path).name}"
+               f" (boot {rec['boot_at']}, live pid {live.get('pid')})")
+    return path
 
 
 def _parse_record_ts(s: str) -> float | None:
@@ -3350,11 +3455,11 @@ def _load_launcher(launcher) -> callable | None:
 
 
 def _clean_stale_layout_locks(root: Path, row: dict) -> None:
-    """GRACEFUL: a stale `verify-suite.lock` under the dead seat's tree is
-    removed with a log line (verification.py holds it under `<groot>/sessions/`;
-    the dead seat is the only holder that could still be mid-suite, and a stale
-    lock would wedge the next suite run forever). Live-first geometry tree;
-    best-effort, never raises.
+    """GRACEFUL: a stale suite lock (`values.core.suite_lock.file`,
+    `verification.suite_lock_name`) under the dead seat's tree is removed with
+    a log line (verification.py holds it under `<groot>/sessions/`; the dead
+    seat is the only holder that could still be mid-suite, and a stale lock
+    would wedge the next suite run forever). Best-effort, never raises.
 
     THE `gdir is None` ARM IS DEFENSIVE, NOT REACHABLE-BY-GEOMETRY: the ONE
     caller -- the watch loop's `_clean_stale_layout_locks(root, row)`, after its
@@ -3366,11 +3471,11 @@ def _clean_stale_layout_locks(root: Path, row: dict) -> None:
         _watch_log(f"watch: no geometry for dead seat "
                    f"{(row.get('name') or '')!r}; stale-lock clean skipped")
         return
-    lock = gdir / "sessions" / "verify-suite.lock"
+    lock = gdir / "sessions" / verification.suite_lock_name(gdir)
     if lock.is_file():
         try:
             lock.unlink()
-            _watch_log(f"watch: removed stale verify-suite.lock under "
+            _watch_log(f"watch: removed stale {lock.name} under "
                        f"{gdir} for dead seat {(row.get('name') or '')!r}")
         except OSError as exc:
             print(f"warn: could not remove stale lock {lock}: {exc}",
@@ -3550,16 +3655,20 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                 or gdir / "sessions" / "quorum" / f"{seat}.md")
         if Path(card).is_file():
             card_file = str(card)
-    ack_gate = (
-        "RECOVERED SEAT (crash-recovery): first act after reading your handoff, "
-        f"run `python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
-        "--ref <your ListAgents ref> continue` to take your identity."
-    ) if not resume else (
-        "RESUMED SEAT (crash-recovery, heal): your process died and heal resumed "
-        "this same session. Re-read your card (it may have moved on), then run "
-        f"`python3 extensions/agi/bin/rotate.py ack --seat {seat} --gen {gen} "
-        "--ref <your ListAgents ref> continue` and carry on."
-    )
+    # hypothesis:heal-ack-line-comes-from-config-rotations-by-role: the wording
+    # is config:rotations `recovery_ack[role|default][recovered|resumed]`.
+    try:
+        _cell = _rotate.frontmatter.load_node_file(
+            _rotate._rotations_node_path(root)).frontmatter["recovery_ack"]
+        ack_gate = _cell[role if role in _cell else "default"][
+            "resumed" if resume else "recovered"].format(seat=seat, gen=gen)
+    except Exception as exc:  # noqa: BLE001 -- any bad cell refuses, never raises into the watch loop
+        reason = (f"config:rotations cell recovery_ack[{role or 'default'}] "
+                  f"unusable in {_rotate._rotations_node_path(root)}: {exc!r}")
+        print(f"watch: {reason}", file=sys.stderr)
+        _watch_log(f"watch: {reason}")
+        return {"respawned": False, "name": spawn_name, "generation": gen,
+                "reason": reason, "row": "skipped"}
     try:
         rc, shell_cmd = _rotate.spawn_window(
             name=spawn_name, tier=tier, prompt_file=None,
@@ -3606,7 +3715,19 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                 "reason": "launcher reported no successor process",
                 "row": "skipped"}
     # pid is None (launched, unknown) or a real int -> the recovery landed.
-    row_pid = pid if pid else None   # None keeps `_successor_row_write` pid-free
+    # a launcher that cannot name the pid (the real one: `None`) -> the new
+    # window's PANE pid, else the row keeps the DEAD pid and the next sweep
+    # re-judges that corpse (measured: all-is-one respawned twice).
+    row_pid = pid or None  # None = the row keeps its PRIOR pid (rotate._successor_row_write)
+    if row_pid is None and window_id:
+        reason = f"pane pid unknown for {window_id}: row keeps its prior pid"
+        try:
+            row_pid = _pane_pid_of(window_id, window_path) or None
+        except Exception as exc:  # noqa: BLE001 -- the row write below still runs
+            reason = f"pane pid lookup raised: {exc}"
+        if row_pid is None:
+            print(f"watch: {reason}", file=sys.stderr)
+            _watch_log(f"watch: {reason}")
     try:
         row_text = _rotate._successor_row_write(
             root, actor=seat, seat=seat, role=role, session_ref="",
@@ -3814,8 +3935,13 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                 f"{_sid} pid {_pp} alive")
         print(line, file=sys.stderr)
         _watch_log(f"watch: {line}")
+        # goal:g6.41.1.1: a session resumed after this boot by anything but
+        # heal's own recovery gets ONE boot-resume record the after_join
+        # service admits, so exactly one wake reaches it.
+        _br = _write_boot_resume(root, seat, row, live, _rotate)
         return {"seat": seat, "probable_cause": "stale-row",
-                "recorded": False, "stale_row": True, "alive_pid": _pp}
+                "recorded": _br is not None, "stale_row": True,
+                "alive_pid": _pp}
     # (2) a SUCCESS rotation record newer than the row means the row's
     # pid/@id belong to the RETIRED predecessor -- the seat ROTATED, it is
     # not dead (hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-

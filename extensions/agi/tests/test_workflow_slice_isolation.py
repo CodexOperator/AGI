@@ -23,8 +23,10 @@ no-slice-isolation shape in merge-up-review). The claim built here:
 
 Every timing test uses a 1-2 s wall and a stubbed dispatch primitive
 (`subprocess.run` for the isolation tests, `subprocess.Popen` for the wall
-extension tests, which count constructions and pids) — no real minutes, no
-network, no tmux/systemd/crontab, no spawned agent.
+extension tests, which count constructions and pids). This module opts in to
+`suite_guards` (`NO_REAL_PROCESSES`): EVERY real launch is refused -- no pi, no
+dispatch, no systemd, no tmux/crontab, no network. The ONE real child is the
+bash tick of the counter row, through a leaf that refuses any other argv.
 """
 from __future__ import annotations
 
@@ -42,6 +44,8 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(BIN))
 
+NO_REAL_PROCESSES = True     # suite_guards: every real launch refused
+
 import workflow as _wf  # noqa: E402
 from workflow import run_workflow  # noqa: E402
 
@@ -50,6 +54,61 @@ WF_DIR = REPO / "extensions" / "agi" / "workflows"
 _OK = '{"ok": true}'
 _SCHEMA = {"type": "object", "properties": {"ok": {"type": "boolean"}},
            "required": ["ok"]}
+
+
+def test_opt_in_refuses_every_real_launch():
+    """DH.DG3.76: the suite_guards home (NO_REAL_PROCESSES) denies EVERY real
+    launch -- a dispatch.py-shaped argv and a pi-shaped STRING alike. Binaries
+    that do not exist: were the fence broken, this is FileNotFoundError, never
+    a child."""
+    for argv in (["/nonexistent/true"],   # NON-harness shape: refused all the same
+                 ["/nonexistent/python3", "/nonexistent/dispatch.py", "root",
+                  "iter", "--tier", "parent", "--role", "parent", "--detach"],
+                 "/nonexistent/pi -p --provider x prompt"):
+        for launch in (_sp.Popen, _sp.run):
+            with pytest.raises(AssertionError, match="NO_REAL_PROCESSES"):
+                launch(argv)
+
+
+@pytest.fixture(scope="module")
+def _cfg_text():
+    # module scope runs BEFORE the function-scoped fence engages (never at
+    # import): the fence refuses a live .agi/config.json open mid-test
+    return (REPO / ".agi" / "config.json").read_text(encoding="utf-8")
+
+
+@pytest.fixture(scope="module")
+def _bash_tick_leaf():
+    """The ONE real child: `bind(tmp_path)` is a leaf that launches only
+    `bash <tick.sh under tmp_path>`; the raw Popen lives in this closure alone
+    (module scope = before the fence)."""
+    real = getattr(_sp.Popen, "__agi_spawn_fence__", _sp.Popen)
+
+    def bind(root):
+        def leaf(cmd, **kw):
+            assert (isinstance(cmd, list) and len(cmd) == 2 and cmd[0] == "bash"
+                    and Path(cmd[1]).name == "tick.sh"
+                    and Path(root).resolve() in Path(cmd[1]).resolve().parents
+                    ), "not the declared bash tick"
+            return real(cmd, **kw)
+        return leaf
+    return bind
+
+
+def test_the_one_real_leaf_refuses_any_other_argv(_bash_tick_leaf, tmp_path):
+    for argv in (["/nonexistent/true"], ["bash", "-c", "true"],
+                 "bash /x/tick.sh", ["bash", "/nonexistent/tick.sh"],
+                 ["bash", str(tmp_path / ".." / "tick.sh")]):   # outside tmp
+        with pytest.raises(AssertionError, match="declared bash tick"):
+            _bash_tick_leaf(tmp_path)(argv)
+
+
+@pytest.fixture(autouse=True)
+def _config_from_snapshot(monkeypatch, _cfg_text):
+    # the config is handed to run_workflow as a fresh parse of the snapshot; the
+    # systemd-run probe (reads /proc, may launch) is answered, never run
+    monkeypatch.setattr(_wf, "_load_config", lambda root: json.loads(_cfg_text))
+    monkeypatch.setattr(_wf.mem_cap, "systemd_run_usable", lambda cfg=None: False)
 
 
 def _tmp_session_root(tmp_path_factory, wf_mod):
@@ -325,6 +384,9 @@ class _FakePopen:
         self.returncode = 0
         return _OK, ""
 
+    def poll(self):
+        return self.returncode
+
     def kill(self):
         self.returncode = -9
 
@@ -355,7 +417,8 @@ def test_producing_stage_gets_one_extension_then_completes(
         {"n": 1, "extension_s": 1, "pid": cls.built[0].pid}], row
 
 
-def test_counter_keeps_counting_through_the_extension(tmp_path):
+def test_counter_keeps_counting_through_the_extension(tmp_path,
+                                                      _bash_tick_leaf):
     """The positive twin, verbatim from the SM.109 residue note: a stage that
     writes a counter keeps counting through the extension without restarting
     from zero -- a REAL process, the SAME pid, the SAME output file."""
@@ -364,11 +427,10 @@ def test_counter_keeps_counting_through_the_extension(tmp_path):
     script.write_text(
         "i=0\nwhile [ $i -lt 20 ]; do\n"
         f"  i=$((i+1)); echo $i >> {counter}\n  sleep 0.1\ndone\n")
-    built = []
-    real = _sp.Popen
+    built, leaf = [], _bash_tick_leaf(tmp_path)
 
     def spy(cmd, **kw):
-        p = real(cmd, **kw)
+        p = leaf(cmd, **kw)
         built.append(p)
         return p
 

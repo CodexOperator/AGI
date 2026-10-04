@@ -905,7 +905,7 @@ def find_parent(rel_path: str, units: list[dict]) -> str | None:
 # --- id / slug minting ---------------------------------------------------
 
 
-def read_mvp_map(path: Path | None) -> list[tuple[str, str]]:
+def read_mvp_map(path: Path | None, root=None) -> list[tuple[str, str]]:
     """Goal:s29 parent map, as declared DATA: rel-path-prefix -> mvp:<id>.
 
     A NEW build node needs `parents: [mvp:<id>]` (goal:s29) — an mvp states the
@@ -916,8 +916,11 @@ def read_mvp_map(path: Path | None) -> list[tuple[str, str]]:
     data file, never an if-statement, one `prefix | mvp:<id>` line per
     subsystem. Longest-prefix wins so a specific subsystem overrides a general
     one. A missing file is an empty map — the mint then falls back to the census
-    parent, then parentless; the parent is provenance, not a gate.
+    parent, then parentless; the parent is provenance, not a gate. A mint id
+    is kept as written only when `root`'s resolver maps it to an `mvp:` address.
     """
+    import links   # goal:g4.18.6.3.3
+    resolve = links.gate_resolver(Path(root) / "nodes") if root else (lambda k: None)
     mapping: list[tuple[str, str]] = []
     if path is None or not Path(path).is_file():
         return mapping
@@ -926,8 +929,7 @@ def read_mvp_map(path: Path | None) -> list[tuple[str, str]]:
         if not line or line.startswith("#") or "|" not in line:
             continue
         prefix, mvp_id = (p.strip() for p in line.split("|", 1))
-        import links   # goal:g4.18.6.3.3: a mint id is kept as written; the spawn gate types it
-        if prefix and (mvp_id.startswith("mvp:") or links.is_mint_id(mvp_id)):
+        if prefix and (resolve(mvp_id) or mvp_id).startswith("mvp:"):
             mapping.append((prefix, mvp_id))
     return mapping
 
@@ -1286,7 +1288,7 @@ def main(argv: list[str] | None = None) -> int:
         # accidentally trip. `--from-grid` is ignored: a file with no node has no
         # grid ref to derive from, so discovery is the only possible source.
         mvp_map = read_mvp_map(
-            Path(args.mvp_map).resolve() if args.mvp_map else None)
+            Path(args.mvp_map).resolve() if args.mvp_map else None, project_root)
         return mint_missing(files, existing, units, project_root, engine_root,
                             level3_dir, args, mvp_map)
 

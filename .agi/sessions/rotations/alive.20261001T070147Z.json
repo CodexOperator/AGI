@@ -1,0 +1,175 @@
+{
+  "rotation": "rotate-self",
+  "seat": "alive",
+  "recorded_at": "2026-10-01T07:04:24.687195Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "alive",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "director-general-3",
+        "belam-S2-L5-XXIII",
+        "belam-S2-L5-XXII",
+        "director-general-1",
+        "stream-master",
+        "alive.prev",
+        "thought-master",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "sanctuary-master",
+        "all-is-one",
+        "alive",
+        "director-general-2",
+        "self-perpetuating"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/alive.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 5915534,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "alive.prev",
+      "windows": [
+        "belam-S2-L5-XIX",
+        "director-general-3",
+        "belam-S2-L5-XXIII",
+        "belam-S2-L5-XXII",
+        "director-general-1",
+        "stream-master",
+        "alive.prev",
+        "thought-master",
+        "belam-S2-L5-XXI",
+        "belam-S2-L5-XX",
+        "sanctuary-master",
+        "all-is-one",
+        "alive",
+        "director-general-2",
+        "self-perpetuating"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -71.286
+  },
+  "seated_at": "2026-10-01T07:04:24.687195Z",
+  "window": "alive",
+  "session_id": "34e3db9b-86fe-43ca-9ab1-2c3d3f3d8241",
+  "pid": 2806129,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "alive.prev",
+      "id": "@39"
+    },
+    "successor_window": {
+      "name": "alive",
+      "id": "@44"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@44",
+      "pid": 2806129,
+      "session_id": "34e3db9b-86fe-43ca-9ab1-2c3d3f3d8241",
+      "transcript": "~/.claude/projects/-data-work-agi/34e3db9b-86fe-43ca-9ab1-2c3d3f3d8241.jsonl",
+      "name": "agi-1d",
+      "path": "~/.claude/sessions/2806129.json",
+      "note": "joined by @44 in registry file 2806129.json"
+    },
+    "successor_row": "config:seats row 'alive': session_ref= session_name=agi-1d session_label=alive session_id=34e3db9b-86fe-43ca-9ab1-2c3d3f3d8241 pid=2806129 generation=7 window='@44' source=registry pubkey=c493472458136226... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha e131b6458, retried 0) -- own-row only: alive spawn row: gen 7, session_id 34e3db9b-86fe-43ca-9ab1-2c3d3f3d8241, window @44, pid 2806129\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- ab1c4386a -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/alive.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/alive.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/alive.ack.34e3db9b.json",
+    "own_authority_released": "generation 6 of seat 'alive' retired; successor generation 7 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "FAILED: Command '['/usr/bin/python3', '/data/work/agi/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
+    "livestream_repoint": {
+      "session": "view-alive",
+      "target": "@44",
+      "skipped": "view session view-alive absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/alive.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "e69d0aa0be3d9ccc4d290ef12f83716c137fa7f07bbbdbaccbbfafa0ca721b6c",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      1248550,
+      1248559,
+      1248647
+    ],
+    "reap_source": "derived from own window @id @39 pane 1248550: chain [1248550, 1248559, 1248647] (deepest-first; authority row pid 1248647)"
+  },
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep alive",
+        "rc": 0,
+        "output": "@44 alive\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/alive.meter --session-log ~/.claude/projects/-data-work-agi/34e3db9b-86fe-43ca-9ab1-2c3d3f3d8241.jsonl",
+        "rc": 0,
+        "output": "0.0924\t92435/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(1248550|1248559|1248647)\\b'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(1248550|1248559|1248647)\\b'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post alive --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post alive --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "alive",
+    "dm_signed": true,
+    "code_head": "9b2a798",
+    "code_loaded": "1790799341:1175004",
+    "claimed_at": "2026-10-01T07:05:39.182089+00:00",
+    "claim_key": "2026-10-01T07:04:24.687195Z",
+    "performed_after_s": 72.8987169265747
+  }
+}

@@ -32,8 +32,17 @@ def _load(name, filename=None):
     path = BIN / (filename or f"{name}.py")
     spec = importlib.util.spec_from_file_location(name, path)
     mod = importlib.util.module_from_spec(spec)
+    prior = sys.modules.get(name)
     sys.modules[name] = mod
-    spec.loader.exec_module(mod)
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        # A private copy must not REPLACE the process-wide module: a sibling file
+        # (test_write.py) that already imported `write` holds the original
+        # `node_writer`, and its `_ID_INDEX` is the one `write.main` reads. Leaving
+        # this copy in sys.modules split the two (hypothesis:trunk-red-g73320-...).
+        if prior is not None:
+            sys.modules[name] = prior
     return mod
 
 
@@ -874,7 +883,8 @@ def test_dash_run_rule_keeps_negative_numbers_plain():
 
     for neg in ("-1", "-42", "-0.5"):
         assert nw._needs_quoting(neg) is False, neg
-        assert nw._scalar(neg) == neg
+        assert nw._scalar(yaml.safe_load(neg)) == neg   # the NUMBER renders bare (R3: a `str` "-1" keeps its quotes)
+        assert nw._scalar(neg) == f'"{neg}"'
         assert yaml.safe_load(neg) is not None  # parses as a real number
 
     # A dash-leading word still quotes (bare `-foo` is not a negative number).
@@ -1787,3 +1797,30 @@ def test_b4_w2db_no_writer_assigns_a_bare_address_parent():
     de, sbs = ((BIN / f).read_text(encoding="utf-8") for f in ("decompose-engine.py", "snapshot-build-site.py"))
     assert 'fm["parents"] = [goal_id]' not in de
     assert '"parents": [f"idea:domain-' not in sbs and '"parents": [parent_hyp] if' not in sbs
+
+
+# goal:g4.18.1.6 R3 (SM review of 1abe85b1a): render_frontmatter / canonicalize used to UNQUOTE a string
+# whose bare spelling re-reads as another type -- '0.8' -> float, 'yes' -> bool, 'null' -> None.
+@pytest.mark.parametrize("s", ["0.8", "yes", "no", "on", "null", "~", "true", "False", "1e3", "0x1F", "1:30",
+                               "2026-09-30", "007", "1_000", ".inf", "Null"])
+def test_r3_a_string_that_reads_back_as_another_type_keeps_its_quotes(s):
+    import yaml
+    lines = nw.render_frontmatter({"k": s, "items": [s, "plain"]})
+    back = yaml.safe_load("\n".join(lines))
+    assert back == {"k": s, "items": [s, "plain"]} and type(back["k"]) is str, (s, lines)
+    assert nw._scalar(yaml.safe_load(s)) != f'"{s}"' or isinstance(yaml.safe_load(s), str)   # a typed value stays bare
+
+
+def test_r3_typed_values_and_plain_strings_render_exactly_as_before(tmp_path):
+    assert nw.render_frontmatter({"n": 5, "f": 0.8, "b": True, "z": None, "s": "plain text", "d": "a:b"}) == [
+        "b: true", "d: a:b", "f: 0.8", "n: 5", "s: plain text", "z:"]
+
+
+def test_r3_canonicalize_keeps_a_quoted_string_number(tmp_path):
+    import yaml
+    from graph_core.persistence import frontmatter as fmr
+    text = '---\nid: "x:y"\ntype: t\nver: "0.8"\nflag: "yes"\nnil: "null"\n---\n\nbody\n'
+    fm = fmr._parse_md(text, ".md", True)
+    out = nw._serialize_node(nw.render_frontmatter(fm.frontmatter), fm.body)
+    back = fmr._parse_md(out, ".md", True).frontmatter
+    assert back == fm.frontmatter and back["ver"] == "0.8" and back["flag"] == "yes" and back["nil"] == "null", out

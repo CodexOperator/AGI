@@ -26,8 +26,10 @@ STATE="$DISK/.agi/sessions/ram-main"   # on disk: survives a reboot
 EXCL=(--exclude=/.git --exclude=/.agi/worktrees --exclude=/.env)
 KEEP=(--exclude=/.agi/sessions/ram-main)   # STATE lives on DISK only: a RAM -> DISK --delete must never remove it
 ev() { mkdir -p "$STATE"; echo "$(date -u +%FT%TZ) $*" | tee -a "$STATE/events.log"; }
+# the one RAM-write rule, ONE spelling shared with session-sweep.sh
+. "$HERE/ram-write.sh"
 is_up() { [ "$(findmnt -rn --mountpoint "$MAIN" -o FSTYPE 2>/dev/null | head -1)" = tmpfs ]; }
-bind_in() { [ -e "$DISK/$1" ] || return 0; if [ -d "$DISK/$1" ]; then mkdir -p "$RAM/$1"; else mkdir -p "$(dirname "$RAM/$1")"; touch "$RAM/$1"; fi
+bind_in() { [ -e "$DISK/$1" ] || return 0; if [ -d "$DISK/$1" ]; then ramw "$RAM/$1" mkdir -p "$RAM/$1"; else ramw "$(dirname "$RAM/$1")" mkdir -p "$(dirname "$RAM/$1")"; ramw "$RAM/$1" touch "$RAM/$1"; fi
   mountpoint -q "$RAM/$1" || sudo mount --bind "$DISK/$1" "$RAM/$1"; }
 
 case "${1:-status}" in
@@ -46,8 +48,8 @@ up)
   [ "$need" -lt $(( avail * 60 / 100 )) ] || { echo "ram-main: needs ${need}M, tmpfs has ${avail}M free (60% line) -- run session-sweep.sh first"; exit 3; }
   before=$(git -C "$DISK" status --porcelain 2>/dev/null | wc -l)
   ev "up: start need=${need}M avail=${avail}M porcelain_before=$before"
-  mkdir -p "$RAM"; ionice -c3 rsync -a --delete "${EXCL[@]}" "$DISK/" "$RAM/"    # bulk, while writers run
-  rsync -a --delete "${EXCL[@]}" "$DISK/" "$RAM/"                                  # the short catch-up pass
+  ramw "$RAM" mkdir -p "$RAM"; ramw "$RAM/" ionice -c3 rsync -a --delete "${EXCL[@]}" "$DISK/" "$RAM/"    # bulk, while writers run
+  ramw "$RAM/" rsync -a --delete "${EXCL[@]}" "$DISK/" "$RAM/"                                  # the short catch-up pass
   bind_in .git; bind_in .agi/worktrees; bind_in .env
   sudo mount --rbind "$RAM" "$MAIN"; sudo mount --make-rprivate "$MAIN"
   touch "$STATE/last-sync"

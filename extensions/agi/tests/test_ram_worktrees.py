@@ -125,15 +125,17 @@ def test_a_disk_checkout_is_not_wrapped(repo):
 
 
 def test_ram_write_argv_runs_under_the_ram_slice(monkeypatch):
-    import importlib, shutil
+    """Through THE one scope-argv builder (goal:g7.16.1.7.1.1): a scope under
+    ramdisk.slice, never a second systemd-run argv of its own."""
+    import importlib
+    import mem_cap
     real = importlib.reload(locations).ram_write_argv  # the fixture-free one
-    monkeypatch.setattr(shutil, "which", lambda n: "/usr/bin/" + n)
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: True)
     argv = real(["cp", "a", "b"])
-    assert argv[:2] == ["systemd-run", "--user"]
-    assert "--slice=ramdisk.slice" in argv and "--wait" in argv
-    assert argv[argv.index("--") + 1:] == ["cp", "a", "b"]
+    assert argv == mem_cap.scope_argv(["cp", "a", "b"], "ramdisk.slice")
+    assert "--scope" in argv and "--slice=ramdisk.slice" in argv
     assert locations.RAM_SLICE == "ramdisk.slice"  # never agi-*: no dash nesting
-    monkeypatch.setattr(shutil, "which", lambda n: None)
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: False)
     assert real(["cp", "a", "b"]) == ["cp", "a", "b"]
 
 
@@ -144,4 +146,21 @@ def test_guard_init_writes_the_ram_slice_without_an_oomd_kill():
                 src.index('put "$UGUARD/ramdisk.slice"')]
     assert "MemoryMax=${RAM_BUDGET_M}M" in block
     assert not [ln for ln in block.splitlines() if ln.startswith("ManagedOOM")]
-    assert 'RAM_BUDGET_M=$(to_mib "$(hostvar RAM_BUDGET' in src
+    assert 'size_cell RAM_BUDGET_M RAM_BUDGET' in src  # read + validated as a size cell (goal:g7.16.1.5.5.5)
+    # one slice name in two languages, pinned equal (review R3 note)
+    assert f'put "$UGUARD/{locations.RAM_SLICE}"' in src
+    # R2: --uninstall removes it, --status reads it
+    assert src.count('"$UGUARD/ramdisk.slice"') >= 2
+    assert "show -p MemoryMax --value ramdisk.slice" in src
+
+
+def test_no_systemd_run_argv_outside_mem_cap():
+    """goal:g7.16.1.7.1.1 falsifier 2, pinned (SM review of 5c04bb0af): a
+    "systemd-run" argv literal lives ONLY in mem_cap.py -- the one scope-argv
+    builder -- so a second builder cannot creep back in unnoticed."""
+    import ast
+    hits = [f"{f.relative_to(BIN)}:{n.lineno}"
+            for f in sorted(BIN.rglob("*.py")) if f.name != "mem_cap.py"
+            for n in ast.walk(ast.parse(f.read_text(encoding="utf-8")))
+            if isinstance(n, ast.Constant) and n.value == "systemd-run"]
+    assert hits == []

@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: director-general-4
 scaffold_hash: 83e9e4c0ac970627
 season: 2
 tags:
@@ -17,70 +17,53 @@ town: core
 ---
 # doc:card-director-general-4
 
-Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, ≤ 100 lines; rules live in skills, progress on the town board.
+Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
 
-## §0 State (04:4xZ 09-30) — STOPPED (council STOP 04:00Z, fired 04:43Z: finish the step, card whole, idle)
+## §0 State (21:4xZ 09-30) -- STOOD DOWN (owner 21:3xZ, verbatim via the seating post: "Stand down DG 4 and pass on any leftovers back on the board as unclaimed bundle goals.")
 | | |
 |---|---|
-| post | director-general-4 · IDLE under the council STOP; resume only on a council/SM go · owner 03:2xZ: NO Opus subagents -- agentic subtasks on pi (workflow.py --harness pi-free) or Sonnet 5.5 at most |
-| protocol | doc:council-loop · MAIN on local-maxxing/season2/main · CC Opus 5.5 high · builds directly (no dispatch in this formation) |
-| messaging | SendMessage by session name ONLY (owner: "internal messaging only ... until bundles land") · LANES (owner 03:0xZ): coordination / sequencing / restarts / SHAs -> sanctuary-master agi-ed · rulings + mid-work questions -> the council (alive agi-b3 · all-is-one agi-8f · self-perpetuating agi-53) · NEVER the Prime |
-| names (03:1xZ) | Prime agi-79 · DG1 agi-2a · DG2 agi-7f (checks my builds) · DG3 agi-91 · DG5 agi-5b · SM agi-ed -- re-check at every restart |
-| skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-workflow |
-| regions | write.py `_commit_write` = mine (SM grant); the rest of write.py / node_writer / links / viewport = DG3 · rotate.py, dispatch.py launch = DG5 · paths.py HOME_RE = DG3 (g7.16.1.1.6.2) |
+| post | director-general-4 · DOWN: no live parent, kid, unit or subagent; nothing building |
+| leftovers | 25 open goal leaves -> status horizon, Agent Notes "Unassigned (was director-general-4)" (write.py sub, 25 commits) |
 
-## §1 Plan
+## §1 Where everything stopped
 ```
-g7.16.1.5.3    COMPLETE 436cd1911: worktrees 983 -> 964 -> 914, 0 refused-unmerged; census row dropped (Prime ruling b, in THOUGHT)
-  .5.3.1       BUILT b3b0024db + 4c6972981 (own-cgroup reclaim: file - shmem + slab, swappiness=0, every 50 trees + pass end)
-               Falsifier: 2 passes with agi-engine.slice below high + 0 reaper oom-kills -- engine slice is SHMEM-bound (RAM-disk tmpfs),
-               sent to SM for alive .5.5 / DG5 .5.4; this leaf cannot fix shmem
-  .5.3.2       BUILT 5a257979b + 21a579ba1 (homing lands on the cold home via a MAIN symlink; failed copy discarded THROUGH the link)
-               run 26 accept_with_residue -> 156 fixed at 21a579ba1, awaiting SM verdict
-               Falsifier: one pass homes N >= 1 with RAM disk use + engine shmem flat +/- 20 MiB
-  heal restarted 03:21:36Z (3 commits) + 03:26:37Z (21a579ba1). .5.3.2 FALSIFIER PASSED (Prime): 5 homed, engine shmem +0M, tmpfs +1M
-               -> close .5.3.2 with those numbers at resume (156 accepted by SM)
-  .5.3.2.1     MINTED ab6dd0c1a, NOT BUILT (STOP): session-sweep.sh `recent` -> `find ... -type f -newermt`; fixture row in a NEW
-               test file (the script has none): homed dir with old files + fresh dirs -> moved cold; one fresh file -> kept; red on parent
-.5.5 pairing   asked DG5 (agi-5b) for ONE leaf of goal:g7.16.1.5.5 (offered .5.5.3); no reply before the STOP
-g7.16.1.4.1.2  COMPLETE 701e9c16c + 1274ad15b (cron:crons + command:commands prose; SM accepted)
-g4.18.5.2.1    BUILT 1098822e1 (bounded index.lock retry, exit 3 by name, create recovery adds first); in SM review run 29; goal re-pointed to me
-SM residue 128 CLOSED b0bc1699f (SM accepted run 23) · stream skill literals routed to stream-master
-NEVER a manual whole-tree dry-run (a memory event) · NEVER du/find over .agi/worktrees -- git worktree list
-g7.16.1.6      WAIT: council places .6 -> DG1 leaf -> DG3 commit_node -> DG4 fills in the writers
+LANDED on local-maxxing/season2/main: 72dff76359 STACK DG4.06+15+21+11+22 · 2cbe754da1 DG4.17 · a2e42a3bf0 g1315131 (+ Prime cell hold_wait_s 90)
+  · 5a7a3bb828 DG4.10+20 · e81abd3f69 DG4.19
+WITH SM (delivered, SM gates + lands them; worktree = .agi/worktrees/<name>, remove after landing, lossless):
+  g73319 2b68fbc07e dg4-g73319 · SM-1 bd01ee8969 dg4-sm1 · SM-2 802577c1bd dg4-sm2 · DG4.12 af2c27335f dg4-dg412c (ON SM-2)
+  DG4.13 9baba2bc99 dg4-dg413c · r49 7eb1c65aed dg4-r49 (ON DG4.13) · g1.31.4.2.1 LINEAGE 2ec78512d4 dg4-fdreaders (+ dg4-dg414c)
+  g75213 7cd127824e dg4-g75213: code gate green, GO = the Prime's DISK bind of <MAIN>/.claude/worktrees + 3 guard cells
+  DG4.18 c576956960 dg4-dg418m: HELD on 3 Prime cells (locations.stream, rotations byte_cap 8000, 2 grid versions)
+PARKED  goal:g1.31.4.2.1.1 (C2c copilot hooks): 7d9f955842 in dg4-c2c, location invented -> never a merge-up until a real copilot probe (SPEND, Prime)
+BACK ON THE BOARD (horizon, unassigned): active before -> g1.31.4.2.1.1 · g1.31.5.1.3.1 · g1.31.5.1.3 · g7.16.1.5.3.1 · g7.16.1.7.1.4 · g7.16.1.7.1 · g7.16.1.7
+  already horizon -> g4.18.5.6 · g7.16.1.10.1 · .10.2 · .10.6 · g7.16.1.7.1.3 · .7.1.3.3 · .7.1.4.2 · .7.1.6 · .7.1.7 · .7.1.8 · g7.16.1.7.2 · .7.2.1-.7.2.6 · .7.2.8
+  notes: g1.31.5.1.3.1's fix LANDED (a2e42a3bf0; DG2 re-runs run_on.sh x3 on it) -> likely closeable by whoever claims it
+FINDINGS goal:g7.33.19 rows 47-50 (row 48 handed to SM: DG3 region)
 ```
-
-## §2 Landed
-- e1d710942 259d75164 6a913d85d b8d232fc6 de5507a17 0d2ace8b8 eeccfbaa1 8d053818e (predecessor lanes)
-- 873fec43f archive-then-prune sweep · eb9a80c4a terminal not-home archived with sessions
-- b0bc1699f anonymize HOME_PATH_RE roots derived (pwd + $HOME + cell anonymize.home_roots)
-- 7422ec31f 919017658 leaf .5.3.1 · b3b0024db 4c6972981 own-cgroup reclaim
-- b2c51faf3 leaf .5.3.2 · 5a257979b cold homing · 21a579ba1 residue 156
-- 701e9c16c 1274ad15b g7.16.1.4.1.2 complete · 1098822e1 g4.18.5.2.1 · 436cd1911 .5.3 complete · ab6dd0c1a leaf .5.3.2.1 minted
 
 ## 🔴 Where it stops
-Council STOP (04:00Z, fired 04:43Z): idle. Nothing of mine running; open: .5.3.2 close (falsifier passed), .5.3.2.1 build, DG5's .5.5 leaf, SM verdict on g4.18.5.2.1 (run 29).
-Next command at a go: `python3 extensions/agi/bin/write.py goal:g7.16.1.5.3.2 'set status complete && thought <5 homed, shmem +0M, tmpfs +1M; 156 accepted>'`, then build .5.3.2.1.
+Down. A successor on these leaves starts from the board; the merge-ups above are SM's to land. No command owed by this post.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN shared -- SWEPT DG3's canonicalize WIP (1098822e1) | take the hunk count IN THE SAME COMMAND as `git commit -- <paths>`; a diff checked a minute earlier is stale |
-| stale .git/index.lock | a lock no process holds (fd scan) blocks every commit -> move aside to /tmp, never delete |
-| verify-suite.lock | a check that PRINTS LOCKED but does not stop is no guard; the conftest refuses cleanly -> retry on "suite window refused" |
-| tests + box PSI | heal sweep tests stub `_sweep_pressure_ok` (autouse); reclaim cells absent in test graphs = off |
-| engine slice memory | `file` there is SHMEM (RAM disk): reclaim cannot free it; read memory.stat shmem before blaming cache |
-| reaper log | AGI_REAPER_LOG from the reaper unit's Environment=; old lines carry NO timestamp |
-| write.py on a node with a THOUGHT | replace body must cover the H1 section to the THOUGHT END (or carry the block whole); never --force |
+| MAIN shared -- swept DG3's WIP once (1098822e1) | hunk/line check IN THE SAME COMMAND as `git commit -- <paths>`; retry only on an index.lock error |
+| stale .git/index.lock | a lock no process holds (fd scan) -> move aside to /tmp, never delete |
+| verify-suite.lock | the conftest refuses cleanly -> retry on "suite window refused"; a printed LOCKED is no guard |
+| engine slice memory | `file` there can be SHMEM (RAM disk): reclaim cannot free it; read memory.stat shmem first |
+| write.py on a node with a THOUGHT | replace body must cover the H1 section through THOUGHT END (carry the block whole); never --force |
+| config.json | not json.dumps round-trippable: insert cells as text, json.loads to verify |
+| SendMessage | a bare name can fail ("Failed to send") -> ListAgents, retry with the [ref] |
+| config:guard ring | a director's write.py on config:* is refused (owner / prime_director only): hand the exact text to SM |
+| renumber by script | never str.replace a Why/id prefix: it hit the id row of .5.5.5 (d1eb5ecad); use write.py or anchor on the full line |
+| suite lock rotating | short live suites hold it with a new pid each time: retry the conftest refusal with backoff (7 tries = ~90 s) |
+| send body | never backticks or $( in a send.py body: the shell eats them (19:5xZ lost a quoted phrase) -- body from a scratch file |
+| worktree cwd | creating a worktree flips the harness cwd into it: use absolute paths / git -C /data/work/agi |
 
 ## §5 Verification
-heal_sweep 36 · cli/heal/dispatch/stale-lock/help 413 / 8 skip · write neighbourhood 351 / 8 skip / 1 xfail · anonymize 46 + 546
+links 0 broken · DG4.01 family 150 · g1.31.2 loop: test_locations 85, paths audit rc 0, cite ast rc 0 · g1.31.1.2 loop: F1 green, links 5377/0
 
 ## §6 BANKED
 (none)
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole replace under the council STOP (04:00Z, fired 04:43Z): the post idles; the card names every open item (.5.3.2 close on its passed falsifier, .5.3.2.1 build, DG5's .5.5 leaf, SM's run-29 verdict) and the exact next command at a go.
-<!-- THOUGHT:END -->

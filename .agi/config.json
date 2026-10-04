@@ -105,14 +105,15 @@
     "claude-code": {
       "adapter": "claude_code",
       "models": {
-        "kid": "claude-opus-5-5",
-        "parent": "claude-opus-5-5",
-        "director": "claude-fable-5-1"
+        "kid": "claude-sonnet-5-5",
+        "parent": "claude-sonnet-5-5",
+        "director": "claude-sonnet-5-5"
       },
       "effort": {
         "director": "max"
       },
       "allowed_models": [
+        "claude-sonnet-5-5",
         "claude-sonnet-5",
         "claude-opus-5",
         "claude-opus-5-5",
@@ -200,6 +201,7 @@
     "undelivered_after_minutes": 10
   },
   "locations": {
+    "stream": {"stub": "{home}/work/streamer-stub", "bin": "{home}/bin", "xvfb": "{home}/xvfb/root/usr/bin/Xvfb", "kiosk_profile": "{home}/snap/firefox/common/stream-profile", "feed": "{home}/classfeed/feed.py"},
     "comms_root": "comms/season-2",
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
@@ -239,11 +241,14 @@
     }
   },
   "box": {
-    "root": "/home/ubuntu/work/agi",
+    "alias": "local-town", "hub": "",
+    "repo": "/data/work/agi",
+    "root": "/data/work/agi",
     "logs_dir": "/home/ubuntu/logs",
     "tmux_session": "agi-rc",
     "user": "ubuntu",
-    "allow": []
+    "allow": [],
+    "scan": ["extensions/", "skills/", "src/", ".claude/", ".agi/context/", ".agi/nodes/.geometry/"]
   },
   "workflows": {
     "review": {
@@ -263,8 +268,20 @@
     }
   },
   "anonymize": {
-    "home_roots": [
-      "/data/home-"
+    "home_roots": ["/data/home-"],
+    "hardware": {
+      "sources": [["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                  ["lscpu"],
+                  ["@/sys/class/dmi/id/board_name", "Board Name"]],
+      "min_words": 2,
+      "core_digits": 3
+    },
+    "user_roots": ["/tmp/pytest-of-"],
+    "email_allow": [
+      "agi-[a-z0-9-]+@[A-Za-z0-9_%-]*\\.(?:path|service|timer|socket)",
+      "[^@]+@(?:[A-Za-z0-9-]+\\.)*example\\.(?:com|org|net)",
+      "[^@]+@openssh\\.com",
+      "[^@]+@(?:[0-9]+|UID)\\.service"
     ]
   },
   "reaper": {
@@ -289,6 +306,11 @@
       "agi-reaper-agi-2f118e6f.log"
     ],
     "non_append": "skip"
+  },
+  "write": {
+    "commit_message": "write.py: {node_id}{actor}",
+    "commit_actor": " ({actor})",
+    "_doc": "goal:g4.18.5.2.2 -- the ONE write-commit message template; write.py _commit_message reads it (project first, then the engine repo); {actor} renders commit_actor, or nothing when no actor"
   },
   "grid": {
     "storage_trunk": "refs/grid/local-maxxing",
@@ -316,6 +338,7 @@
       "fixtures_dir": "extensions/agi/tests/fixtures/boxkit"
     },
     "local_maxxing": {
+      "scrub_commit_map": "/data/agi-maps/scrub-2026-09-30.commit-map",
       "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
       "worktree_a00_48ed5e56_nodes": ".agi/worktrees/a00-48ed5e56/.agi/nodes",
       "sessions_dir": ".agi/sessions",
@@ -334,6 +357,19 @@
       "osc_band_q4_dir": "datasets/osc-band/2026-09-24-q4",
       "osc_band_kquant_0924_dir": "datasets/osc-band/2026-09-24-kquant",
       "osc_band_qknorm_dir": "datasets/osc-band/2026-09-24-qknorm",
+      "osc_band_l4_dir": "datasets/osc-band/2026-09-30-l4",
+      "osc_band_l4_distance_dir": "datasets/osc-band/2026-10-01-l4-distance",
+      "osc_band_l4_mass_dir": "datasets/osc-band/2026-10-01-l4-mass",
+      "osc_band_l4_direct_dir": "datasets/osc-band/2026-10-01-l4-direct",
+      "osc_l4_9b_dir": "datasets/osc-band/2026-10-01-l4-9b",
+      "osc_neuron_period_dir": "datasets/osc-band/2026-10-01-neuron-period",
+      "osc_neuron_period2_dir": "datasets/osc-band/2026-10-01-neuron-period-2",
+      "osc_neuron_period_pc_dir": "datasets/osc-band/2026-10-01-neuron-period-pc",
+      "osc_neuron_period_seeds_dir": "datasets/osc-band/2026-10-01-neuron-period-seeds",
+      "osc_neuron_period_p4fair_dir": "datasets/osc-band/2026-10-01-neuron-period-p4fair",
+      "osc_neuron_period_freqabl_dir": "datasets/osc-band/2026-10-01-neuron-period-freqabl",
+      "osc_self_poke_toy_dir": "datasets/osc-band/2026-10-01-self-poke-toy",
+      "osc_self_poke_toy_dh1_dir": "datasets/osc-band/2026-10-01-self-poke-toy-dh1",
       "model_slot_lock": ".agi/sessions/locks/model-slot.lock",
       "humaneval_file": "datasets/humaneval-abc/data/HumanEval.jsonl.gz",
       "kv_format_out_dir": "datasets/kv-format/2026-09-23",
@@ -377,27 +413,10 @@
       ]
     },
     "boxkit": {
-      "user_high_ratio": 0.9,
-      "swap_ratio": 0.5,
-      "agi_high_ratio": 0.63,
-      "agi_max_ratio": 0.7,
-      "work_high_ratio": 0.5673,
-      "work_max_ratio": 0.6305,
-      "MEM_LOW": "1024M",
       "USER_TASKS": "16384",
-      "USER_OOM_PCT": "50",
-      "SYSTEM_MIN": "128M",
-      "SSH_MIN": "64M",
       "SSH_CPU_WEIGHT": "1000",
-      "OOMD_SWAP_PCT": "90",
-      "OOMD_PRESSURE_PCT": "60",
-      "OOMD_PRESSURE_SEC": "20s",
       "AGI_TASKS": "4096",
       "AGI_CPU_WEIGHT": "50",
-      "AGI_OOM_PCT": "40",
-      "ENGINE_HIGH": "384M",
-      "ENGINE_MAX": "512M",
-      "ENGINE_SWAP": "0",
       "ENGINE_TASKS": "128",
       "ENGINE_CPU_WEIGHT": "20",
       "WORK_TASKS": "2048",
@@ -413,8 +432,6 @@
       "WD_REPAIR_MAX": "1",
       "WD_PRIORITY": "1",
       "WD_LOG_DIR": "/var/log/watchdog",
-      "HEALTH_LIMIT": "40",
-      "HEALTH_GRACE": "900",
       "HEALTH_ENV": "/etc/sanctuary-guard/health.env",
       "HEALTH_DISABLE": "/etc/sanctuary-guard/watchdog.disable",
       "HEALTH_LOG": "/var/log/sanctuary-health.log",
@@ -423,6 +440,11 @@
       "PROTECT_OOM_ADJ": "-900",
       "PROTECT_NICE": "-5",
       "PI_OOM_ADJ": "500",
+      "PI_CMD": "\\.npm-global/(bin/pi\\b|lib/node_modules/\\S*pi)",
+      "PROTECT_CMD": "streamer-stub|rotate\\.py launch-wrapper|agi-memguard",
+      "PROTECT_COMM": "{'claude', 'tmux: server', 'ffmpeg', 'tmux'}",
+      "POST_CGROUP_RE": "^0::/agi\\.slice/agi-post@[^/\\n]+\\.service(/|$)",
+      "POST_PI_COMM": "pi",
       "SUSPEND_RATIO": "0.70",
       "SUSPEND_PCT": "70",
       "SPIKE_BYTES": "3",
@@ -438,25 +460,9 @@
       "write_commit_wait_s": 30
     },
     "local_maxxing": {
-      "osc_band_seeds": [
-        7,
-        21,
-        99
-      ],
-      "de_live_parents": {
-        "arm": 10,
-        "arms": [
-          10,
-          5,
-          15
-        ],
-        "ceiling": 16,
-        "ceiling_if": {
-          "loadavg1_lt": 16,
-          "io_psi_some_avg60_lt": 50
-        },
-        "hypothesis": "hypothesis:swarm-size-5-10-15-parents-fixes-per-hour"
-      },
+      "osc_band_seeds": [7, 21, 99],
+      "de_live_parents": {"arm": 10, "arms": [10, 5, 15], "ceiling": 16, "ceiling_if": {"loadavg1_lt": 16, "io_psi_some_avg60_lt": 50}, "hypothesis": "hypothesis:swarm-size-5-10-15-parents-fixes-per-hour"},
+      "agi_boot": {"poll_s": 20, "wait_max_s": 600, "space_s": 120},
       "model_slot_min_avail_gib": 3,
       "lowpeak_head_rows": 64,
       "osc_band_row_contract": {

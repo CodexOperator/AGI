@@ -1,0 +1,56 @@
+=== launch 2026-10-01T00:28:11Z
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 9.30 GiB >= 3.00
+box: avail 9036 MiB, memory psi some avg10 0.09
+twin max peakiness 0.6069 (15s)
+box: avail 9055 MiB, memory psi some avg10 0.16
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<04:13,  1.14it/s]Loading weights:  11%|█         | 32/290 [00:01<00:06, 42.06it/s]Loading weights:  16%|█▌        | 46/290 [00:01<00:04, 53.34it/s]Loading weights:  20%|██        | 58/290 [00:01<00:04, 50.38it/s]Loading weights:  24%|██▍       | 71/290 [00:01<00:03, 60.28it/s]Loading weights:  28%|██▊       | 81/290 [00:01<00:03, 65.06it/s]Loading weights:  31%|███       | 90/290 [00:01<00:03, 60.53it/s]Loading weights:  34%|███▍      | 99/290 [00:02<00:03, 60.11it/s]Loading weights:  39%|███▉      | 113/290 [00:02<00:02, 72.70it/s]Loading weights:  42%|████▏     | 122/290 [00:02<00:02, 72.05it/s]Loading weights:  45%|████▍     | 130/290 [00:02<00:02, 73.23it/s]Loading weights:  51%|█████     | 147/290 [00:02<00:01, 95.52it/s]Loading weights:  55%|█████▌    | 160/290 [00:02<00:01, 94.99it/s]Loading weights:  61%|██████    | 177/290 [00:02<00:01, 101.87it/s]Loading weights:  67%|██████▋   | 193/290 [00:02<00:00, 109.70it/s]Loading weights:  71%|███████   | 205/290 [00:02<00:00, 108.76it/s]Loading weights:  76%|███████▌  | 219/290 [00:03<00:00, 108.15it/s]Loading weights:  80%|████████  | 232/290 [00:03<00:00, 100.52it/s]Loading weights:  88%|████████▊ | 256/290 [00:03<00:00, 123.04it/s]Loading weights:  93%|█████████▎| 269/290 [00:03<00:00, 106.72it/s]Loading weights: 100%|██████████| 290/290 [00:03<00:00, 80.42it/s] 
+C2 baseline: acc 0.9750 (47s)
+C2 top: acc 0.9750 (76s)
+C2 random_s0: acc 0.9750 (106s)
+C2 random_s1: acc 0.9750 (132s)
+C2 random_s2: acc 0.9750 (159s)
+C2 random_s3: acc 0.9750 (183s)
+C2 random_s4: acc 0.9750 (205s)
+# Neuron periodicity MAP: disproved
+
+grid 24 x 4864 ok: True; void: False
+
+C1 (pass): 3310 / 116736 = 0.02835 clear BOTH null q999 0.1962 and twin max 0.6069 (need >= 0.005); beat null 91656, beat twin 3310
+periods (C1 set): T100.0 x2781, T10.0 x292, T2.0 x95, T5.0 x91, T50.0 x36, T2.5 x12, T20.0 x1, T33.33 x1, T3.33 x1
+top: L8.4040 0.9577 T2.0, L8.1222 0.9258 T2.0, L10.454 0.9226 T2.0, L11.4756 0.9174 T2.0, L12.657 0.9118 T2.0, L16.3752 0.9045 T2.0, L7.898 0.8967 T2.0, L10.3219 0.8773 T2.0
+per layer: [422, 9, 10, 53, 26, 34, 37, 70, 58, 28, 56, 61, 131, 278, 359, 432, 111, 126, 165, 168, 160, 161, 184, 171]
+
+C2 (fail): baseline 0.9750; top-64 0.9750; random min-max 0.9750-0.9750
+
+C3 (pass, scored separately): overlap 57 of top 1167 with C1 set 3310 (expected 33.09); hypergeometric p 7.07e-05
+=== exit 0 2026-10-01T00:33:18Z
+[model-slot] waiting for /data/work/agi/.agi/sessions/locks/model-slot.lock
+[model-slot] held, MemAvailable 9.28 GiB >= 3.00
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   9%|▊         | 25/290 [00:00<00:01, 246.28it/s]Loading weights:  17%|█▋        | 50/290 [00:00<00:01, 127.48it/s]Loading weights:  23%|██▎       | 66/290 [00:00<00:01, 115.92it/s]Loading weights:  28%|██▊       | 80/290 [00:00<00:01, 109.17it/s]Loading weights:  32%|███▏      | 92/290 [00:00<00:01, 103.26it/s]Loading weights:  37%|███▋      | 107/290 [00:00<00:01, 114.22it/s]Loading weights:  41%|████▏     | 120/290 [00:01<00:01, 115.54it/s]Loading weights:  46%|████▌     | 133/290 [00:01<00:01, 110.32it/s]Loading weights:  50%|█████     | 146/290 [00:01<00:01, 111.55it/s]Loading weights:  55%|█████▍    | 159/290 [00:01<00:01, 88.91it/s] Loading weights:  62%|██████▏   | 180/290 [00:01<00:00, 110.30it/s]Loading weights:  67%|██████▋   | 195/290 [00:01<00:00, 118.68it/s]Loading weights:  72%|███████▏  | 208/290 [00:01<00:00, 116.54it/s]Loading weights:  76%|███████▌  | 221/290 [00:02<00:00, 94.25it/s] Loading weights:  84%|████████▍ | 244/290 [00:02<00:00, 105.82it/s]Loading weights:  92%|█████████▏| 267/290 [00:02<00:00, 132.18it/s]Loading weights:  97%|█████████▋| 282/290 [00:02<00:00, 125.52it/s]Loading weights: 100%|██████████| 290/290 [00:02<00:00, 118.63it/s]
+=== diagnostic (post-verdict, not scored): first-answer-token KL(base||arm) and max |dlogprob| over 50 C2 prompts
+diag top: KL 1.340e-03 max|dlogp| 2.004e+00 top1 same 50/50
+diag random_s0: KL 2.508e-04 max|dlogp| 1.210e+00 top1 same 50/50
+diag random_s1: KL 7.028e-04 max|dlogp| 1.059e+00 top1 same 50/50
+diag random_s2: KL 3.009e-04 max|dlogp| 1.078e+00 top1 same 50/50
+diag random_s3: KL 2.665e-04 max|dlogp| 8.299e-01 top1 same 50/50
+diag random_s4: KL 4.388e-04 max|dlogp| 1.008e+00 top1 same 50/50
+=== diagnostic source (inline, run once after the verdict under systemd-run MemoryMax=5G + model_slot.py; not part of the scored run):
+import json, sys, torch, numpy as np
+sys.path.insert(0, "/data/work/agi/.agi/context/local-maxxing/osc"); sys.path.insert(0, "/data/work/agi/.agi/context/local-maxxing")
+import osc_neuron_period as S, paths
+from transformers import AutoModelForCausalLM, AutoTokenizer
+out = paths.get_local("osc_neuron_period_dir"); P = json.load(open(out + "/params.json")); R = json.load(open(out + "/results.json"))
+torch.set_num_threads(6); hf = paths.get(P["model_cell"]); tok = AutoTokenizer.from_pretrained(hf)
+m = AutoModelForCausalLM.from_pretrained(hf, dtype=torch.float32).eval(); N = S.Neurons(m)
+texts, gold = S.c2_problems(P); ids = S.encode(tok, texts[:50])
+def run(ab):
+    N.ablate(ab)
+    with torch.no_grad(): lp = torch.log_softmax(m(input_ids=ids, logits_to_keep=1).logits[:, -1].double(), -1)
+    N.ablate([]); return lp
+base = run([])
+print("=== diagnostic (post-verdict, not scored): first-answer-token KL(base||arm) and max |dlogprob| over 50 C2 prompts", flush=True)
+for name, ab in R["c2"]["arms"].items():
+    if not ab: continue
+    lp = run(ab); kl = float((base.exp() * (base - lp)).sum(-1).mean())
+    print(f"diag {name}: KL {kl:.3e} max|dlogp| {float((lp - base).abs().max()):.3e} top1 same {int((lp.argmax(-1) == base.argmax(-1)).sum())}/50", flush=True)

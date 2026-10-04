@@ -283,11 +283,12 @@ def test_sweep_reclaims_on_cadence_and_decides_the_same(
     log = graph / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     assert heal._sweep_finished_worktrees(graph) == (3, 0, 1)
-    # 4 trees x 2 walks = 8 steps -> 4 cadence asks + 1 at pass end
-    assert asks == [64] * 5
+    # 4 trees x 2 walks = 8 steps -> 4 cadence asks + 1 after each of the
+    # 2 archives (B dirty, D unmerged) + 1 at pass end
+    assert asks == [64] * 7
     assert (cg / "memory.reclaim").read_text() == "64M swappiness=0"
     text = log.read_text()
-    assert "[sweep] reclaimed own cgroup: 5 ask(s), 320 MiB asked over 8 tree steps" in text
+    assert "[sweep] reclaimed own cgroup: 7 ask(s), 448 MiB asked over 8 tree steps" in text
     assert "sweep: removed=3 archived=2 refused=0 kept-live=1" in text
 
 
@@ -851,7 +852,7 @@ def test_sweep_empty_target_homes_content_before_removal(repo_root, monkeypatch)
 
 
 def _cold_cell(repo: Path, tmp_path: Path, monkeypatch) -> Path:
-    """goal:g7.16.1.5.3.2 -- config:guard names a cold sessions home for a
+    """goal:g7.16.1.5.2.1 -- config:guard names a cold sessions home for a
     fixture box (the goal:g7.16.1.5.2 cell), under tmp."""
     cold = tmp_path / "cold-sessions"
     geo = _graph(repo) / "nodes" / ".geometry"
@@ -865,7 +866,7 @@ def _cold_cell(repo: Path, tmp_path: Path, monkeypatch) -> Path:
 
 def test_sweep_homes_onto_the_cold_home_never_the_ram_disk(repo_root, tmp_path,
                                                            monkeypatch):
-    """goal:g7.16.1.5.3.2 -- with the cold-home cell set and no MAIN entry,
+    """goal:g7.16.1.5.2.1 -- with the cold-home cell set and no MAIN entry,
     the homed bytes land in <cold>/<iter> and MAIN keeps ONLY a symlink (no
     real dir is ever created under MAIN's sessions); byte-equal, the source
     and the tree removed."""
@@ -887,7 +888,7 @@ def test_sweep_homes_onto_the_cold_home_never_the_ram_disk(repo_root, tmp_path,
 
 
 def test_sweep_cold_link_rolls_back_a_refused_homing(repo_root, tmp_path, monkeypatch):
-    """goal:g7.16.1.5.3.2 -- a homing session-complete refuses (a non-terminal
+    """goal:g7.16.1.5.2.1 -- a homing session-complete refuses (a non-terminal
     round) leaves no empty cold dir and no dangling link; the tree stands."""
     repo = repo_root
     graph = _graph(repo)
@@ -1157,3 +1158,78 @@ def test_porcelain_unquote_full_escape_set_round_trips():
     # and it survives a UTF-8 re-encode as the original bytes
     assert got.encode("utf-8", "surrogateescape") == \
         b"a\tb\nc\"d\\e\xc3\xa9\xff.txt"
+
+
+def test_sweep_does_not_rearchive_a_locked_tree_until_its_state_changes(
+        repo_root, four_worktrees, monkeypatch):
+    """SM-1: a locked dirty tree cannot be removed (no second --force). Pass 1
+    archives it once and refuses WITH git's reason; pass 2 (same bytes) writes
+    no second archive and never removes it; one new byte in the already-
+    modified file (status lines unchanged) is archived again."""
+    log = _graph(repo_root) / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    wt, ref = four_worktrees["a00-bbbb22"], "refs/archive/worktrees/a00-bbbb22-dirty"
+    _sh("git", "-C", str(repo_root), "worktree", "lock", str(wt))
+    n = lambda: log.read_text().count("[sweep] archived a00-bbbb22")
+    heal._sweep_finished_worktrees(_graph(repo_root))
+    first = _ref(repo_root, ref)
+    assert first and n() == 1
+    assert "[sweep] refused a00-bbbb22: remove failed (" in log.read_text()
+    assert "locked" in log.read_text().split("[sweep] refused a00-bbbb22")[1]
+    heal._sweep_finished_worktrees(_graph(repo_root))
+    assert n() == 1 and _ref(repo_root, ref) == first, "same state: not re-archived"
+    assert wt.exists(), "a locked tree is never removed"
+    (wt / "base.txt").write_text("base\nmodified\nmore\n")
+    heal._sweep_finished_worktrees(_graph(repo_root))
+    assert n() == 2 and _ref(repo_root, ref) != first, "changed state: archived again"
+    assert wt.exists()
+
+
+@pytest.mark.parametrize("name,change", [
+    ("a00-bbbb22", "untracked"), ("a00-bbbb22", "head_move"),
+    ("a00-dddd44", None)])
+def test_sweep_locked_tree_rearchived_only_when_changed_beyond_archive(
+        repo_root, four_worktrees, monkeypatch, name, change):
+    """SM-1b: a locked tree matching its archive is re-archived for a NEW
+    untracked file or a HEAD move; a CLEAN one (no -dirty ref) writes once."""
+    log, wt = _graph(repo_root) / "reaper.log", four_worktrees[name]
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _sh("git", "-C", str(repo_root), "worktree", "lock", str(wt))
+    sweep = lambda: heal._sweep_finished_worktrees(_graph(repo_root))
+    n = lambda: log.read_text().count(f"[sweep] archived {name}")
+    sweep(), sweep()
+    assert n() == 1
+    if change:
+        (wt / "new.txt").write_text("x\n")
+    if change == "head_move":
+        _sh("git", "-C", str(wt), "add", "new.txt")
+        _sh("git", "-C", str(wt), "commit", "-q", "-m", "more")
+    sweep()
+    assert n() == (2 if change else 1) and wt.exists()
+    assert bool(_ref(repo_root, f"refs/archive/worktrees/{name}-dirty")) == (name == "a00-bbbb22")
+
+
+def test_sweep_refuses_an_orphan_tree_once_by_name(repo_root, monkeypatch):
+    """DG2.C1: a tree whose admin dir under .git/worktrees is gone has no
+    HEAD; it is refused BY NAME, never logged "archived" (no ref was written),
+    and the next pass does not try it again."""
+    log = _graph(repo_root) / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    wt = _cut(repo_root, "a00-orph99", "loop/o-O@2")
+    (wt / "stray.txt").write_text("bytes\n")
+    shutil.rmtree(repo_root / ".git" / "worktrees" / "a00-orph99")
+    assert wt.is_dir() and "a00-orph99" not in subprocess.run(
+        ["git", "-C", str(repo_root), "worktree", "list"],
+        capture_output=True, text=True).stdout
+    sweep = lambda: heal._sweep_finished_worktrees(_graph(repo_root))
+    removed, refused, _ = sweep()
+    text = log.read_text()
+    assert (removed, refused) == (0, 1)
+    refusal = [l for l in text.splitlines() if "refused a00-orph99" in l]
+    assert len(refusal) == 1 and "orphan" in refusal[0] and "gitdir gone" in refusal[0]
+    assert "archived a00-orph99" not in text
+    assert not _ref(repo_root, "refs/archive/worktrees/a00-orph99")
+    sweep()
+    after = log.read_text()
+    assert after.count("a00-orph99") == 1 and "archived a00-orph99" not in after
+    assert (wt / "stray.txt").exists(), "an orphan's bytes are never removed"

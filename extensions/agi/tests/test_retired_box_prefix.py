@@ -57,8 +57,6 @@ EXEMPT = {
     ("extensions/agi/tests/test_workflow_template_seam_js.py", 'STALE = "/home/ubuntu/work/agi"'): ("F", "inert data: negative-fixture constant, asserted absent from rendered .js output"),
     ("extensions/agi/tests/test_workflow_template_seam_json.py", "used to name `/home/ubuntu/work/agi` in their stage prompts, so a run started"): ("P", "prose: docstring naming the bug this test guards against"),
     ("extensions/agi/tests/test_workflow_template_seam_json.py", 'STALE = "/home/ubuntu/work/agi"'): ("F", "inert data: negative-fixture constant, asserted absent from rendered .json output"),
-    (".agi/config.json", '"root": "/home/ubuntu/work/agi",'): ("B", "shared box.root CELL kept as foreign-reference by design; THIS box's real root lives in untracked .agi/config.local.json (boxes._box local-wins overlay). Writing /data/work/agi into shared config would hand unify._real_repos nonsense paths on every other box (hypothesis:a00-d089cf46-707110 / goal:g7.33.14)"),
-    ("extensions/agi/tests/test_box_local_override.py", '"root": "/home/ubuntu/work/agi",'): ("F", "inert data: COMMITTED fixture for the local-overlay test; asserted that shared config.json bytes stay at this foreign value while config.local.json wins"),
 }
 # 15 entries retired here (P/F class, all in extensions/agi/bin/{commands,unify}.py,
 # env-get.sh, hooks/rotation_alert.py, test_unify.py, test_dispatch_forward_env.py,

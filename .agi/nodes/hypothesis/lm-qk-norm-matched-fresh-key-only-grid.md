@@ -7,7 +7,7 @@ parents:
 next_edges: []
 FILE SCOPE: ".agi/context/local-maxxing/osc/ (repo-tracked) and a fresh dated dir under datasets/osc-band/ only -- no router changes, no engine edits, NO new downloads (both models already resident: paths.local_maxxing.osc03_hf_dir, paths.local_maxxing.osc15_hf_dir)."
 ceiling: "kids: <=120 production lines, ONE kid. pi parent. $0 expected (CPU-only); <=1 USD hard ceiling if GPU compute is required; no live provider spend without a fresh owner yes; no new downloads."
-edited_by: director-thought
+edited_by: director-general-3
 falsifier: Qwen2.5 fails to hold the 0.98/0.02 bar by 7.75 bits, OR Qwen3 holds it at or before 10.75 bits, OR any of the 8 primary cells (4 widths x 2 models, each with key-only + matched uniform + matched random) is missing, inherited from a prior experiment or node, or captured with a pre-RoPE/layer-0-broadcast method instead of the fixed post-RoPE per-layer capture.
 scaffold_hash: 228a01a7ced90993
 season: 2
@@ -27,7 +27,7 @@ town: local-maxxing
 - experiment:a00-bcb6c85e-6b612b:68,73,76 -- the "corrected" sweep measures head_var(qq,kk) query-key interaction energy, not key-only energy, by its own Caveats field; its uniform control sits at 3.125 bits, not the required 3.5.
 - experiment:a00-6c491245-bd570f:14,47,56,59 -- 125 production lines, over its own 120-line ceiling; discloses a pre-RoPE capture + layer-0-broadcast defect (repeats layer-0 priors across layers instead of a true per-layer profile).
 - experiment:a00-edd08f38-e48bfb Director correction -- the Qwen3 profile_pooled 9.0-bit figure has no real allocator/sweep result behind it; it is inherited from the head_var experiment instead.
-- Source: workflow.py run agi-research-review, run-key rr-data-work-agi-agi-worktrees-post-director-thought-lm-qk-norm-key-wall (2026-09-24, propose-only) -- review + verify both recommend demote on exactly these 5 gaps; verify refuted a 6th (a claimed 0-tests numpy failure -- the real recorded result is 2 passed).
+- Source: workflow.py run agi-research-review, run-key rr-<encoded-worktree-path>-lm-qk-norm-key-wall (2026-09-24, propose-only) -- review + verify both recommend demote on exactly these 5 gaps; verify refuted a 6th (a claimed 0-tests numpy failure -- the real recorded result is 2 passed).
 
 ## CLAIM
 Running one self-contained key-only energy measurement -- fixed post-RoPE, per-layer capture (not layer-0 broadcast), one model per process with a memory check before each load -- for Qwen2.5 and Qwen3 at 3.5, 7.75, 9.0, and 10.75 bits, each width with matched uniform and random controls under identical allocator and control definitions, every one of the 8 primary cells measured fresh in this round (no cell inherited from a prior experiment), will show Qwen2.5 first holding the 0.98 agreement / 0.02 KL bar at 7.75 bits while Qwen3 remains below it through 10.75 bits, so the committed falsifier remains met. A pre-RoPE/layer-0-broadcast capture, if run at all, is a separately labeled control arm, never the measurement the verdict rests on.

@@ -1238,8 +1238,31 @@ def test_w2c_mvp_map_accepts_a_mint_id_like_an_address(tmp_path):
     f = tmp_path / "mvp-map.txt"
     f.write_text("bin/ | mvp:engine-bin\n")
     addr = l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f))
-    f.write_text("bin/ | " + "c" * 32 + "\n")
-    assert addr == "mvp:engine-bin" and l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f))
+    f.write_text("bin/ | " + "c" * 32 + "\n")   # the mint must be an mvp's (goal:g4.18.6.3.3 corrective)
+    write_node(tmp_path, "mvp/engine-bin.md", {"id": "mvp:engine-bin", "type": "mvp", "mint_id": "c" * 32})
+    assert addr == "mvp:engine-bin" and l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f, tmp_path))
+
+
+def test_w2cc_mint_missing_only_drops_a_map_mint_that_is_no_mvp(project, engine, tmp_path):
+    write_node(project, "mvp/bin.md", {"id": "mvp:bin", "type": "mvp", "mint_id": "e" * 32, "title": "t"})
+    write_node(project, "goal/g.md", {"id": "goal:g", "type": "goal", "mint_id": "f" * 32, "title": "t"})
+    m, seen = tmp_path / "mvp-map.md", []
+    for mint in ("e" * 32, "f" * 32, "0" * 32):   # an mvp's mint, a goal's mint, no node's mint
+        m.write_text(f"extensions/agi/bin/ | {mint}\n")
+        r = run(project, engine, "--mint-missing-only", "--mvp-map", str(m), "--dry-run")
+        seen.append((r.returncode, f"parent {mint}" in r.stdout))
+    assert seen == [(0, True), (0, False), (0, False)], seen
+
+
+def test_w2cc_read_mvp_map_keeps_an_off_shape_mvp_mint_as_its_address_twin(tmp_path):
+    off = "mint-XYZ-not-hex"   # no ':' and no 32-hex shape -- carried as `mint_id:` by an mvp; a goal's is dropped
+    write_node(tmp_path, "mvp/engine-bin.md", {"id": "mvp:engine-bin", "type": "mvp", "mint_id": off})
+    write_node(tmp_path, "goal/g.md", {"id": "goal:g", "type": "goal", "mint_id": "mint-goal-not-hex"})
+    f, seen = tmp_path / "mvp-map.md", []
+    for ref in ("mvp:engine-bin", off, "mint-goal-not-hex", "mint-none"):
+        f.write_text(f"bin/ | {ref}\n")
+        seen.append(l3.read_mvp_map(f, tmp_path))
+    assert seen == [[("bin/", "mvp:engine-bin")], [("bin/", off)], [], []], seen
 
 
 # --- bundle 4 W2d-b (director-general-2) -- goal:g4.18.6.4.2
@@ -1277,5 +1300,5 @@ def test_w2cc_gates_pass_a_mint_id_parent_exactly_as_its_address_twin(tmp_path):
         nd, rules = root / "nodes", sg.load_spawn_rules(root / "sd", root=root)
         seen.append((sg.check_spawn("hypothesis", [gp], rules=rules, type_index=sg.build_type_index(nd)).status,
                      sg.nearest_vision(nd, [gp]), eg.normalize_evidence_runs(ev, corpus=eg.build_corpus(nd)),
-                     len(eg.evidence_runs_violations(ev))))
+                     len(eg.evidence_runs_violations(ev, eg.build_corpus(nd)))))
     assert seen[0] == ("approved", ("vision:v", "core"), 1, 0) and seen[1] == seen[0], seen

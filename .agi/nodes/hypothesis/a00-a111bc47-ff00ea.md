@@ -3,10 +3,10 @@ id: hypothesis:a00-a111bc47-ff00ea
 mint_id: 9153611b5b954201a08463f0fd4b236f
 type: hypothesis
 parents:
-  - goal:s31
+  - goal:g7.33.10.1
 next_edges: []
 confidence: 0.9
-edited_by: a00-3afbadd9
+edited_by: belam
 evidence_runs:
   - experiment:a00-a111bc47-done-body-shape
 loop: goal:s31@s2
@@ -59,5 +59,5 @@ carries no `testable claim`/`claim` subheading.
 derive_required_from_body lifts testable_claim only from a literal 'testable claim'/'claim' subheading, not from ## Hypothesis where the scaffold's own BODY_PROMPT tells the kid to write.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review (a00-3afbadd9): the kid was spawned by me at the WRONG target (aimed at goal:s31 instead of hypothesis:l3-parent-never-told-to-iterate) — an aim slip of the parent, not the kid. It nonetheless did real, in-scope-for-s31 work with a genuine scratch-root experiment and a resolving evidence_runs list, so the code gate accepted proved. I accept the node but flag the provenance: this child exists because of a parent targeting error, not because s31 was deliberately chosen.
+Moved from goal:s31 to goal:g7.33.10.1 because its proved claim (derive_required_from_body lifts only a literal testable-claim subheading) bounds the one lift g7.33.10.1's links.py schema --fix must reuse to backfill the hypotheses still missing testable_claim. goal:g7.33.10.1 is the live leaf the council re-homed retired s31 into. Owner, verbatim: "Move all hypotheses under all retired s goals to be patented by appropriate nested g-goals". Parenthood only (owner: "The regime doesn't need a goal. We're just adjusting parenthood"): mint_id, body and verdict unchanged.
 <!-- THOUGHT:END -->

@@ -19,25 +19,42 @@ class GrepError(RuntimeError):
     frontmatter does not load. A guard that cannot look fails closed."""
 
 
-def home_rel(obj):
+#: the ONE resolution per process, keyed by the None the caller left (dg347)
+_CELL_ROOT = {}
+
+
+def _cell_root(root=None):
+    """The project root whose `anonymize` cell this writer honours: the one the
+    caller names, else the WRITER's own project -- never the CWD; None = no cell."""
+    if root is not None:
+        return root
+    if None not in _CELL_ROOT:
+        import locations
+        _CELL_ROOT[None] = locations.find_project_root(
+            Path(__file__).resolve().parent)
+    return _CELL_ROOT[None]
+
+
+def home_rel(obj, root=None):
     """`obj` with every string value home-relative (goal:g7.16.1.2.1): this
     box's HOME -> `~`, any other box's home dir -> `<home>/`, through
     anonymize's ONE definition. A committed rotation record never carries a
     home path -- the path fields AND the log text (after_join cmd/output, ps
-    snapshots, re-homed records from another box)."""
+    snapshots, re-homed records from another box). A `user_roots` prefix is
+    rewritten `<user>` too, which needs the project root (see _cell_root)."""
     if isinstance(obj, dict):
-        return {k: home_rel(v) for k, v in obj.items()}
+        return {k: home_rel(v, root=root) for k, v in obj.items()}
     if isinstance(obj, list):
-        return [home_rel(v) for v in obj]
+        return [home_rel(v, root=root) for v in obj]
     if isinstance(obj, str):
         from anonymize import home_relative
-        return home_relative(obj)
+        return home_relative(obj, root=_cell_root(root))
     return obj
 
 
-def dump_record(obj) -> str:
+def dump_record(obj, root=None) -> str:
     """The ONE serializer for rotation records: home-relative, indent 2."""
-    return json.dumps(home_rel(obj), indent=2) + "\n"
+    return json.dumps(home_rel(obj, root=root), indent=2) + "\n"
 
 
 def resolve_record_path(value) -> str:
@@ -81,10 +98,16 @@ def grep_live(groot: Path, needle: str, *, retired: bool = False
     return sorted(hits, key=lambda h: h[0])
 
 
+def parked_tag(goal: str) -> str:
+    """goal:g1.31.5.2 (n84) -- the ONE spelling of the park tag `parked:<goal>`;
+    the carrier grep and write.py's unpark filter both call it."""
+    return f"parked:{goal}"
+
+
 def parked_carriers(groot: Path, goal: str) -> list[tuple[str, Path, list]]:
     """goal:g7.16.1.2.6 -- live nodes whose `tags` hold `parked:<goal>` (the
     tag form in [goal].md / [hypothesis].md) -> (id, file, tags)."""
-    tag = f"parked:{goal}"
+    tag = parked_tag(goal)
     out = []
     for i, f, fm in grep_live(groot, tag):
         tags = fm.get("tags") or []

@@ -732,13 +732,12 @@ def ram_write_argv(argv: list[str]) -> list[str]:
     bulk write into the RAM disk. A tmpfs page stays charged to the cgroup
     that first wrote it and moves to that cgroup's PARENT when the writer
     exits, so pages written here park on the RAM disk's own line, never on
-    the engine or work slice. Waits and pipes stdio: the exit code and the
-    output are argv's. No `systemd-run` on PATH -> `argv` unchanged."""
-    import shutil
-    if shutil.which("systemd-run") is None:
-        return list(argv)
-    return ["systemd-run", "--user", f"--slice={RAM_SLICE}", "--wait",
-            "--collect", "--quiet", "--pipe", "--", *argv]
+    the engine or work slice. Built by THE one scope-argv builder
+    (mem_cap.scope_argv, goal:g7.16.1.7.1.1): a scope is synchronous and keeps
+    stdio, so the exit code and the output are argv's. No usable systemd-run
+    -> `argv` unchanged."""
+    import mem_cap  # local: mem_cap may read locations
+    return list(mem_cap.scope_argv(list(argv), RAM_SLICE))
 
 
 def streamer_stub(root: Path, config: dict | None = None) -> Path:
@@ -755,11 +754,44 @@ def streamer_stub(root: Path, config: dict | None = None) -> Path:
     """
     root = Path(root).resolve()
     cfg = load_config(root) if config is None else config
+    cell = (cfg.get("locations") or {}).get("stream")
+    if isinstance(cell, dict) and _is_usable_location_value("stub", cell.get("stub")):
+        return stream_path(root, "stub", cfg)  # the cell and `<stub>` agree
     declared = (cfg.get("locations") or {}).get("streamer_stub")
     if isinstance(declared, str) and declared.strip():
         p = Path(declared.strip()).expanduser()
         return p.resolve() if p.is_absolute() else (root / p).resolve()
     return Path(DEFAULT_STREAMER_STUB).expanduser().resolve()
+
+
+#: goal:g15.27.5 -- the agi-stream box paths as DEFAULTS, for a tree whose
+#: `.agi/config.json` carries no `locations.stream` cell yet: a round may not
+#: write config.json (`cli.py:_round_committable`; the seam heal.py
+#: `_reworktrees_dir` leaves its parent). A declared cell always wins.
+DEFAULT_STREAM_PATHS = {
+    "stub": DEFAULT_STREAMER_STUB,
+    "bin": "~/bin",
+    "xvfb": "{home}/xvfb/root/usr/bin/Xvfb",
+    "kiosk_profile": "~/snap/firefox/common/stream-profile",
+    "feed": "{home}/classfeed/feed.py",
+}
+
+
+def stream_path(root: Path, key: str, config: dict | None = None) -> Path:
+    """`locations.stream.<key>` -- the ONE resolver the agi-stream skill's
+    cells go through. `{home}`/`~` expand, absolute is as-is, relative resolves
+    against the graph root (as `streamer_stub` does). An unknown key refuses BY
+    NAME: a typo is a key on stderr, never a path that plausibly exists."""
+    root = Path(root).resolve()
+    cfg = load_config(root) if config is None else config
+    cell = (cfg.get("locations") or {}).get("stream")
+    cell = cell if isinstance(cell, dict) else {}
+    val = cell.get(key) or DEFAULT_STREAM_PATHS.get(key)
+    if not (isinstance(val, str) and val.strip()):
+        raise KeyError(f"unknown stream location {key!r} -- declare it as "
+                       f"`locations.stream.{key}` in the project config")
+    p = Path(val.strip().replace("{home}", str(Path.home()))).expanduser()
+    return p.resolve() if p.is_absolute() else (root / p).resolve()
 
 
 # --- iterations ------------------------------------------------------------
@@ -1110,6 +1142,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("start", nargs="?", default=None,
                     help="directory to resolve from (default: cwd)")
     ap.add_argument("--json", action="store_true", help="emit JSON")
+    ap.add_argument("--stream", default=None,
+                    help="print ONE `locations.stream.<key>` path")
     ap.add_argument("--what", choices=["root", "source", "repo"],
                     help="print one path and nothing else")
     ap.add_argument("--storage-categories", action="store_true",
@@ -1158,6 +1192,14 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     cfg = load_config(root)
+
+    if args.stream is not None:
+        try:
+            print(stream_path(root, args.stream, cfg))
+        except KeyError as exc:
+            print(f"ERR: {exc}", file=sys.stderr, flush=True)
+            return 1
+        return 0
 
     if args.tail is not None and args.storage_pick is None:
         print("ERR: --tail names the file under a category, so it needs "
