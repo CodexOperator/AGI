@@ -18,52 +18,55 @@ town: core
 ---
 # doc:card-alive — alive's card (council, vision:alive, goal:g7.16.1)
 
-HEAD `doc:unified-head` · template `doc:unified-director-brief` · lens `vision:alive` · `~/t` · `posts/alive` · master sanctuary-master. Replaced whole. ≤ 100 lines. Mail = `AGI_POST=alive bin/box`. No session auto-rotation.
+HEAD `doc:unified-head` · template `doc:unified-director-brief` · lens `vision:alive` · `~/t` · `posts/alive` · master sanctuary-master. Mail = `AGI_POST=alive bin/box`. No auto-rotate. No push. ET only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 OWNER 2026-10-04 08:24Z, verbatim: "go"
 OWNER 2026-10-04 08:31Z, verbatim: "nc: read ~/.grok/graph-rules.md now. It is the shared head plus your seed docs from the graph. Skills stay skills/*/SKILL.md. No session auto-rotation. Stay on your open graph rows; mail peers with bin/box. Ask Prime only if Shael must decide."
-graph-rules.md at read = head + master-brief + STALE 10-01 card (agi-sync at start). Open row = goal:g7.16.1.11.8 (council). box read consumed AIO + SP. Measured 08:32Z: key: nodes=0; grow-gate 6335 B unwired (MAIN hooks = samples); engine.md 9379 whole / 7605 fences / 5407 before ## files; captive comment claude/pi only; no meter pin. HOLD ruling below.
+OWNER 2026-10-04 16:46Z, verbatim: "Owner nudge: you are stalled at the prompt. Continue graph work now. Run AGI_POST=alive box read, take the next open graph goal for this seat, and keep going autonomously. Do not wait. No push. Encryption-town only."
+OWNER 2026-10-04 16:50Z, verbatim: "go"
+Open row goal:g7.16.1.11.8. box read 16:46Z: AIO whole-doc check ask; DG1 probe; DG3 ack; SM waiting merge-ups. 16:49Z grow-check 5722 files: ok=0 locked=5421 wrong=299 notnode=2. Z4.A graph MET. HOLD stays. Recorded on doc:rse-aa1-boxes AA1.Z4a.
 <!-- THOUGHT:END -->
 
-## §0 State (08:32Z 10-04, date -u)
+## §0 State (16:51Z 10-04, date -u)
 | | |
 |---|---|
-| post | alive · council · engine.v 4 grok-bot grok-4.6 · rotate_pct 47 · no auto-rotate |
-| open | goal:g7.16.1.11.8 ROUND 7 growth order — BUILT, not HELD |
-| mail | `box` on refs/box (AGI_POST=alive). send.py MAIN inbox still PermissionError |
-| peers | SM · AIO · SP · DG1-3 adjacent; DT-2 / owner off-matrix |
+| post | alive · council · engine.v 4 grok-bot grok-4.6 · HEAD ab9995442 (trunk merge) |
+| open | goal:g7.16.1.11.8 — BUILT, not HELD |
+| mail | box. 16:51Z read empty after the 16:46Z consume |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post · agi-memory-guard |
 
 ## §1 Plan
 ```
-done   card rewrite · graph-rules read · box read (AIO CUT.8 + UNIFIED-TOOLS HOLD ask; SP CUT1/CUT2/Y2)
-next   HOLD ruling on one-brief; keep .8 UNHELD until Z2 wiring (sign -> report-only gate -> key: on adds -> grow-gate enforcing)
-never  dispatch · mint above g7.16.1 · Prime unless Shael must decide · rotate
+done   graph-rules · HOLD one-SoT · box read · Z4.a grow-check 5722 · AA1.Z4a
+next   box the numbers; SM places Z2 report-only gate; HOLD until key: on adds
+never  dispatch · MAIN hooks · Prime unless Shael · push · rotate
 ```
 
 ## §2 Landed
-- 08:32Z .8 true-state: key:=0 · grow-gate unwired · F21 rail MET (9379/7605; depth0+1 5407 OVER 4096) · grok Write/Edit unfenced · meter pin absent · hooks samples
-- HOLD (alive, vision:alive): one SoT = graph docs. Two injectors by wrap (Claude agi-brief · grok agi-sync --rules + go). HOLD that they are one injector = false. HOLD that SoT stays one = true.
+- Z4.A MET: town [goal,vision] · 148 shape 0 ladder · 5 towns locked under [goal+vision] nid 00b8ef0c7c6395ec
+- Z4.a: 5722 live md, 37s, sect grow-check 1298 B. ok 0 · locked 5421 · wrong 299 · notnode 2 payloads
+- HOLD stays. 0 ok = no row nid on nodes. 299 = Y1 ratchet (build-under-idea 182)
 
 ## 🔴 Where it stops
-.8 UNHELD. Wait AIO/SP lens ack on the HOLD. SM places the Z2 wiring on the board. No Prime line.
+Numbers boxed. Next read:
 ```
 AGI_POST=alive /var/lib/agi/alive/bin/box read
 ```
+Then the next open leaf under g7.16.1.11.8 / Z2 wiring when SM places it. No wait on ack to start the next measured row.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| box send | the body is the send; adjacency probe must not pipe a body |
-| AGI_POST | empty in the grok env; export alive before box |
-| send.py | MAIN inbox not ours; box is the route |
-| graph-rules | snapshot at start; live card may be newer |
-| shared doc thought | rewrites WHOLE; do not thought the RSE doc |
-| no auto-rotate | grok; stay under 0.47 by stopping, not rotate.py |
+| box send | a body is the send; no probe pipes |
+| AGI_POST | export alive |
+| `^key:` grep | a card line can match; count frontmatter on type nodes |
+| shared RSE thought | AIO lead; record on doc:rse-aa1-boxes |
+| MAIN hooks | belam:belam; not this uid |
+| no push | encryption-town posts/alive only |
 
 ## §5 Verification
-key: grep 0 · sect grow-gate 6335 B · engine.md 9379/7605 · MAIN hooks *.sample · box read rc 0
+grow-check n=5722 · towns 5 locked goal+vision · ladder.md wrong-order empty legal · growth.tsv 148
 
 ## §6 BANKED
 none that needs Shael this turn
