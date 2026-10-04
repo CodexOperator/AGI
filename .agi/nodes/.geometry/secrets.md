@@ -32,10 +32,10 @@ locations:
 optional_keys:
   - MINIMAX_API_KEY
   - OPENAI_API_KEY
+  - OPENROUTER_API_KEY
   - OPENROUTER_PROVISIONING_KEY
   - CAMBER_CLOUD_API_KEY
-required_any:
-  - ["OPENROUTER_API_KEY", "OPENROUTER_PROVISIONING_KEY"]
+required_any: []
 required_keys: []
 season: 1
 status: active
@@ -146,3 +146,5 @@ is that the location is owned.
 CAMBER_API_KEY declared optional 2026-09-07 (owner: the Camber Cloud GPU auth token, for goal:g14 local-maxxing; arrives through the standard .env path, never a shell argument). Consumers read it through envfile.py like every other key.
 
 Renamed the declared Camber key to CAMBER_CLOUD_API_KEY, the name the owner pasted on 2026-09-07 (goal:g14 consumers read this name).
+
+`envfile.py --check` no longer fails when OPENROUTER_API_KEY and OPENROUTER_PROVISIONING_KEY are absent. Both stay optional. A runtime inference key, when wanted, is minted from a provisioning key and written into the gitignored env file; the verify bar does not require either name.

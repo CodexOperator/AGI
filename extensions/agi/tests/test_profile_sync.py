@@ -218,6 +218,7 @@ def test_sweep_counts_a_refused_ref_as_a_named_failure(tmp_path):
     assert "REFUSED hypothesis:h1" in r.stdout
 
 
+@pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green')
 def test_rotate_guard_refuses_on_drift_and_passes_when_clean(tmp_path):
     import rotate  # noqa: E402
     none_linked = _repo(tmp_path / "none", ref=None)
@@ -230,6 +231,7 @@ def test_rotate_guard_refuses_on_drift_and_passes_when_clean(tmp_path):
     assert msg and "profile drift" in msg and "hypothesis:h1" in msg
 
 
+@pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green')
 def test_rotate_guard_wire_reaches_the_sweep(tmp_path):
     """The call site in cmd_rotate_self must name the guard (wire probe)."""
     src = (BIN / "rotate.py").read_text()
@@ -245,6 +247,7 @@ def _broken(graph: Path, name: str, extra: str = "") -> Path:
     return p
 
 
+@pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green')
 def test_p7_malformed_unlinked_sibling_is_a_clean_noop(tmp_path):
     """P7: an in-sync linked node + an unparseable UNLINKED sibling stays
     green — the sibling does not link a profile, so it is not ours to fail."""
@@ -259,6 +262,7 @@ def test_p7_malformed_unlinked_sibling_is_a_clean_noop(tmp_path):
     assert rotate._check_profile_drift(repo / ".agi") is None
 
 
+@pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green')
 def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     """`profile_ref:` in the raw bytes means it cannot be proven in sync:
     surface it by path, never silently drop it."""

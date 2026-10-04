@@ -34,6 +34,8 @@ NO_HELP = {
                        " no --help",
     "rotation_record.py": "library module (goal:g7.16.1.3 H4: the rotation record"
                           " + the live-node grep); no --help",
+    "parent_slots.py": "library module (committed slot defs vs occupancy); no --help",
+    "send_transport.py": "library module (rotation adapter for send.py); no --help",
 }
 
 

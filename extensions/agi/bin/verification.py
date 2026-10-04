@@ -61,8 +61,8 @@ PER_CHECK_TIMEOUT = 600
 #: The SUITE's own ceiling. One number for every check made the one check that
 #: legitimately takes minutes the one check that false-FAILs: the engine suite
 #: is ~2300 tests, and reporting a green suite as "timed out after 600s" is a
-#: failure the tool invented. A hang is still caught, three times further out.
-SUITE_TIMEOUT = 1800
+#: failure the tool invented. Measured 2026-10-04: the suite finished in 2043s, so 1800 false-FAILed it. 3600 leaves headroom. A hang is still a failure.
+SUITE_TIMEOUT = 3600
 
 #: How each level is composed. Names are COMMAND NAMES resolved through
 #: `commands.py` against the node — never argv written here.
