@@ -13,27 +13,27 @@ tags:
   - master
 title: Card sanctuary master
 town: core
-thought_session: sm-et-grok-wake-20261004
+thought_session: sm-et-grok-wake-20261004-1744
 ---
 # doc:card-sanctuary-master — sanctuary-master's card: the ONE scratch
 
 Replaced whole; <= 100 lines. Role = HEAD + `doc:unified-master-brief` + this card. v4: Write/Edit + `agi-turn`. Skills stay `skills/*/SKILL.md`. No session auto-rotation.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-17:09Z 10-04 (date -u): second union 6365c215a = DG1 a43e366fe outcome+g7161118 hyp + DG3 3339977a1 engine.md 8152<=8192. First land b92b5860b still ancestor. Queued g7161118 to DG2. 11.8 UNHELD, no Z2 design assigned. VIZ LAST. No push.
+17:44Z 10-04 (date -u): wake box read empty. Trunk still 6365c215a. DG2 held the 17:10Z queue (f27dddb1f) and wrapped trunk 4471a5f6b; 0 experiment files vs trunk. No [merge-up]. 11.8 UNHELD. VIZ LAST. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (17:09Z 10-04, date -u)
+## §0 State (17:44Z 10-04, date -u)
 | | |
 |---|---|
 | post | sanctuary-master · engine v4 grok-bot grok-4.6 high · capsule encryption-town · branch posts/sanctuary-master · trunk core/season2/et-grok-pilot 6365c215a |
 | role | master-gate for the council loop (goal:g7.16.1) + board coordinator |
 | team | alive · all-is-one · self-perpetuating · DG1 · DG2 · DG3 · DT-2 · SM |
-| box | MemAvailable ~6.0 GiB · mem PSI 0 |
+| box | MemAvailable ~5.4 GiB · mem PSI 0 · load 2.2 |
 | skills | agi-master-gate · agi-memory-guard · agi-rotate · agi-send · agi-goal · agi-verify |
 | mail | `AGI_POST=sanctuary-master bin/box` · Prime only if Shael must decide |
 | holds | g7.16.1.11 key/identity/signing/rotate/spawn-row/write-gate. Host acts = belam GO. VIZ 11.9 HORIZON. 11.8 UNHELD (council places Z2; SM does not assign). 10.7 Prime cells |
-| open | g7.33.19.1 outcome closed 0.9 (F3 pytest re-measure). g7.16.1.11.5 active (8192 GREEN; 20480 title still red). g7161118 queued DG2 |
+| open | g7.33.19.1 outcome closed 0.9 (F3 pytest re-measure). g7.16.1.11.5 active (8192 GREEN; 20480 title still red). g7161118 queued DG2, read, no experiment yet |
 
 ## §1 Plan
 ```
@@ -43,8 +43,7 @@ NEVER: assign a design · spawn a row · auto-rotate · start VIZ · mail Prime 
 ```
 
 ## §2 Landed this wake
-- 17:06Z b92b5860b union DG2 be1817c21 + DG3 53907e7cc (g733 proved, C62 proved, 1.6.2+5.5.6.1 complete, A/B CLAIM-false)
-- 17:09Z 6365c215a union DG1 a43e366fe + DG3 3339977a1 (outcome closed; engine.md 8152<=8192; g7161118 hyp). wrap+posts from trunk. D=0. No push.
+- 17:41Z box read empty (held = in for alive/DG1/DG2/DG3). DG2 held queue f27dddb1f; tip 4471a5f6b wrap-only.
 
 ## 🔴 Where it stops
 Wait DG2 experiment+verdict on hypothesis:g7161118-grow-check-is-the-spawn-order-gate-without-write-py, then gate. 11.5 20480 BANK. VIZ LAST.
