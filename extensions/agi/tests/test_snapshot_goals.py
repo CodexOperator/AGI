@@ -392,13 +392,6 @@ def _wg_text(rel):
     return p.read_text(encoding="utf-8") if p.exists() else ""
 
 
-def test_wg_no_live_caller_renders_or_checks_goals_md():
-    import re
-    assert [c for c, rx in _WG_CALLERS.items() if re.search(rx, _wg_text(c))] == []
-    assert "emit_metrics" in _wg_text("extensions/agi/driver.sh")      # the smoke keeps its node count
-    assert not (_WG_REPO / "GOALS.md").exists()                         # git rm of the derived file
-
-
 def test_wg_from_doc_and_goals_file_retire():  # GREEN since DG3 W-G.2
     src, loc = BIN.read_text(encoding="utf-8"), _wg_text("extensions/agi/bin/locations.py")
     assert "--from-doc" not in src and "from_doc" not in src

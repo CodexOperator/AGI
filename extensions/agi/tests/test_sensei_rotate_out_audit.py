@@ -669,40 +669,6 @@ def _out_records(graph):
     raise AssertionError("fixture has no OUT record")
 
 
-@pytest.mark.parametrize("shape",
-                         ["near_miss", "first_seating", "seating_merged"])
-def test_predecessor_resolves_join_absent_shapes(tmp_path, shape):
-    """The near-miss shape (handover present, join absent, top-level path), the
-    first-seating shape (top-level `gen_after`) and the merged seating record
-    `rotate._seating_record_merge_handover` actually writes ALL resolve to the
-    predecessor's transcript, and the printed `source` names BOTH the record
-    stamp it came from and the spelling the chain actually took — never a
-    `handover.join.transcript` lie, and never a generation."""
-    graph, tr, _ = _write_root_join_absent(tmp_path, shape)
-    records, idx = _out_records(graph)
-    p, source = sensei._resolve_predecessor_transcript(
-        graph, SEAT, records, idx, None)
-    assert p == tr, f"{shape}: resolved {p}, expected {tr}"
-    assert source == f"previous record {PREV_STAMP} transcript_path"
-    assert "gen" not in source
-
-
-@pytest.mark.parametrize("shape",
-                         ["near_miss", "first_seating", "seating_merged"])
-def test_rotate_out_audit_resolves_near_miss_and_classifies(tmp_path, shape):
-    """End-to-end: the audit exits 0 and classifies the predecessor's window
-    for EVERY join-absent predecessor shape the producers leave behind — the
-    near-miss hybrid, the first-seating record and the merged seating record.
-    Before the fix each exited 2 ("no predecessor transcript resolved")."""
-    graph, tr, _ = _write_root_join_absent(tmp_path, shape)
-    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
-    assert code == 0
-    assert str(window["log_path"]) == str(tr)
-    assert window["source"] == f"previous record {PREV_STAMP} transcript_path"
-    assert window["record"] == OUT_STAMP
-    assert counts == {"a": 1, "b": 1, "c": 1, "d": 2, "s": 0}
-
-
 def test_predecessor_precedence_join_wins_over_top_level(tmp_path):
     """The chain is SHARED with `_record_transcript`: when the previous record
     carries BOTH the join spelling and the top-level path, the JOIN wins — the

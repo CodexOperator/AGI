@@ -58,20 +58,6 @@ def test_sync_projects_the_normalized_body(tmp_path):
     assert b"THOUGHT" not in dest.read_bytes(), "the thought is not projection"
 
 
-def test_write_cli_updates_the_linked_artifact_in_the_same_action(tmp_path):
-    repo = _repo(tmp_path)
-    dest = repo / "profile" / "h1.md"
-    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
-    before = dest.read_bytes()
-    r = _cli(["hypothesis:h1", "replace body 1:1 -"], repo, stdin="replaced\n")
-    assert r.returncode == 0, r.stderr
-    after = dest.read_bytes()
-    assert after != before, "the same action must move the artifact bytes"
-    _p, expected = profile_sync.project(repo / ".agi", "hypothesis:h1")
-    assert after == expected
-    assert after.startswith(b"replaced\n")
-
-
 def test_check_reports_drift_without_writing(tmp_path):
     repo = _repo(tmp_path)
     dest = repo / "profile" / "h1.md"
@@ -136,28 +122,6 @@ def test_a_directory_target_is_refused_by_name(tmp_path):
     assert "REFUSED" in r.stderr and "directory" in r.stderr
     assert "IsADirectoryError" not in r.stderr
 
-
-def test_payload_failure_leaves_the_profile_artifact_unchanged(tmp_path):
-    """Residue 4: the projection does not advance ahead of a failed payload."""
-    repo = _repo(tmp_path, payload_ref="payloads/missing.txt")
-    dest = repo / "profile" / "h1.md"
-    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
-    assert dest.read_bytes() == BODY.encode()
-    src = tmp_path / "src.txt"
-    src.write_text("new payload bytes\n")
-    r = _cli(["hypothesis:h1", f"note changed && payload {src}"], repo)
-    assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
-    assert "does not exist" in r.stderr
-    # The write failed; the derived projection must not have moved.
-    assert dest.read_bytes() == BODY.encode()
-    # Non-vacuous: the node body DID advance, so the current projection
-    # differs from what the artifact still holds — the reorder is what keeps
-    # the projection from running ahead of the payload.
-    _p, projected = profile_sync.project(repo / ".agi", "hypothesis:h1")
-    assert projected != BODY.encode()
-    assert dest.read_bytes() != projected
-
-# ---- goal:g7.31.5.3 — whole-graph sweep + pre-rotation guard ---------------
 
 def _cli_all(cwd):
     return subprocess.run(

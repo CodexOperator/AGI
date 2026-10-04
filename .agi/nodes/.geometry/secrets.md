@@ -32,10 +32,10 @@ locations:
 optional_keys:
   - MINIMAX_API_KEY
   - OPENAI_API_KEY
-  - OPENROUTER_API_KEY
   - OPENROUTER_PROVISIONING_KEY
   - CAMBER_CLOUD_API_KEY
-required_any: []
+required_any:
+  - ["OPENROUTER_API_KEY", "OPENROUTER_PROVISIONING_KEY"]
 required_keys: []
 season: 1
 status: active
@@ -147,4 +147,4 @@ CAMBER_API_KEY declared optional 2026-09-07 (owner: the Camber Cloud GPU auth to
 
 Renamed the declared Camber key to CAMBER_CLOUD_API_KEY, the name the owner pasted on 2026-09-07 (goal:g14 consumers read this name).
 
-`envfile.py --check` no longer fails when OPENROUTER_API_KEY and OPENROUTER_PROVISIONING_KEY are absent. Both stay optional. A runtime inference key, when wanted, is minted from a provisioning key and written into the gitignored env file; the verify bar does not require either name.
+`envfile.py --check` requires at least one of OPENROUTER_API_KEY or OPENROUTER_PROVISIONING_KEY (`required_any`). The inference key is in the gitignored env file (Doppler). The provisioning key stays optional on its own and also satisfies the group.
