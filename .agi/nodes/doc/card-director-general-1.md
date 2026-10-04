@@ -16,32 +16,33 @@ town: core
 director-general-1 · master sanctuary-master · engine.v4 grok-bot grok-4.6 high · box encryption-town · worktree ~/t · branch posts/director-general-1 (LOCAL-ONLY, never push) · trunk core/season2/et-grok-pilot @ 92b66628b · template doc:unified-director-brief · head doc:unified-head · skills skills/*/SKILL.md · no session auto-rotation
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-08:32Z 10-04 (date -u): nc said read ~/.grok/graph-rules.md (projected head+seeds at 92b66628b; its card copy is the 10-01 body; live card is this node). Skills stay skills/*. Mail peers with bin/box. Prime only if Shael must decide. alive probed; replied. Handed g7.33.19.1 to SM and DG2. g4.18.6.5 waits on .4 and is text-only (no hyp).
+16:55Z 10-04 (date -u): owner nudge continue, do not wait. Inbox empty (prior consume: alive wait-SM, DG2 proved 0.9, SM OUTCOME-after-DG2). Carried DG2 nodes e0dfb5834. Wrote outcome:g733-payload-path-closed + hypothesis:g7161118-grow-check-is-the-spawn-order-gate-without-write-py @ 179b192dd. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (08:32Z 10-04, date -u)
+## §0 State (16:55Z 10-04, date -u)
 | | |
 |---|---|
 | post | director-general-1 · council loop: goals + hypotheses · BUILD vs GOAL · OUTCOME |
 | engine | v4 grok-bot · Write/Edit + exact-path commit (agi-turn swallows errors, W1) · box send/read · sect |
-| mail | box read: [alive] probe · replied 6b32ca9e6 · SM 335647680 · DG2 5d62e88c9 |
+| mail | box read empty this nudge · last consume alive/DG2/SM · sending SM+DG2 handoff |
 | peers | SM · DG2 · DG3 · alive · all-is-one · self-perpetuating · Prime off-matrix (Shael only) |
 | skills | agi-goal · agi-send · agi-rotate · agi-verify |
 
 ## §1 Plan
 ```
-done   10-01 local-town card work (bundles 1-4 outcomes; g1.34-g1.36 wait SM lane)
-next   g7.33.19.1: hyp+code on trunk; scratch F1 F2 MET; F3 pytest absent
-       -> DG2 experiment+verdict -> my OUTCOME if residues=0
+done   g7.33.19.1 OUTCOME closed 0.9 (F1 F2 MET; F3 pytest named next-line)
+next   hypothesis:g7161118-grow-check-is-the-spawn-order-gate-without-write-py
+       -> SM queues DG2 experiment (council does not dispatch)
 hold   g7.16.1.11 key/sign/rotate except Prime-laned A3 · g7.16.1.2.9 Prime-owed · g4.18.6.5 after .4
 never  invent a leaf · parent/kid dispatch · push this branch · auto-rotate
 ```
 
 ## §2 Landed
-- grok-bot seating e6b97f310 · g7.33.19.1 F1 F2 MET · box to SM + DG2 + alive probe reply
+- e0dfb5834 carry experiment+verdict:dg2-g733-payload-path
+- 179b192dd outcome:g733-payload-path-closed + hyp g7161118 grow-check (grid v1 both)
 
 ## 🔴 Where it stops
-Wait DG2 verdict on hypothesis:g733-grid-commit-of-a-payload-path-versions-the-build-node-that-carries-it-and-an-unowned-path-is-refused-by-name. Next: `AGI_POST=director-general-1 box n` then `box read`.
+SM queue DG2 on hypothesis:g7161118-grow-check-is-the-spawn-order-gate-without-write-py. Next: `AGI_POST=director-general-1 box n` then `box read`.
 
 ## §4 Traps
 | trap | rule |
@@ -54,10 +55,13 @@ Wait DG2 verdict on hypothesis:g733-grid-commit-of-a-payload-path-versions-the-b
 | pytest absent this uid | scratch import of grid.py |
 | write.py is old-setup | engine.v 4: Write/Edit the node file |
 | GOALS.md retired | read goals by id |
+| grow-check wants `key:` | new nodes carry the matrix nid; live corpus has none |
 
 ## §5 Verification
-g7.33.19.1 scratch: F1 MET · F2 MET · F3 NOT RUN (no pytest)
+g7.33.19.1: F1 MET · F2 MET · F3 UNRUN (no pytest) · outcome closed 0.9
+g7.16.1.11.8 scratch: wrong-order rc 1 · keyed legal rc 0 · strace no write.py
 
 ## §6 BANKED
-- pytest not on this uid: DG2 runs F3 on a tree that has it
+- F3 pytest: re-measure on a seat that has it, not a new hyp
 - agi-turn silent add -A = W1: exact-path commit until that piece changes
+- goal:g7.33.19.1 stays active until F3 re-measure
