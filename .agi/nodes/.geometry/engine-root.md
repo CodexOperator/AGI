@@ -5,7 +5,7 @@ type: config
 parents:
   - goal:g7.16.1.11.5
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: 649a07578115c7e3
 season: 2
 town: core
@@ -184,6 +184,18 @@ echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gat
 git update-ref $T $n $o
 ~~~
 
+### seed (1023 B)
+~~~
+#!/bin/sh
+cd ${AGI_ROOT:-.}||exit 1;b=$(git branch --show-current);g=$(git rev-parse --git-dir)||exit 1;i=.agi/sessions/inbox/belam.md;mkdir -p ${i%/*}
+m(){ printf -- "---\nts: %s\nfrom: seed\nto: belam\n\n%s\n" $(date -u +%FT%TZ) "$*">>$i;}
+e(){ git ls-tree --format="$1:%(path)" $1 .agi/nodes/.geometry/|grep /engine|git cat-file --batch --follow-symlinks|sed -n "/^### $2 /,/^##/{/^~~~/,/^~~~/{//!p}}";}
+x(){ e $1 matrix|awk '$1=="boot"&&$4!="sect"{print $4}'|while read v;do e $1 $v|sh -s ${AGI_OUT:-/run/systemd/system} $1;done;};x HEAD;echo '<the anchor: ONE allowed_signers line, 82 B>'>$g/s
+if timeout ${2:-60} git -c fetch.fsckObjects=1 fetch -q ${1:-origin} $b;then git -c gpg.ssh.allowedSignersFile=$g/s verify-commit FETCH_HEAD||exit 1
+git config agi.mode rw;h=$(git rev-parse HEAD);git merge -q --ff-only FETCH_HEAD||{ git update-ref refs/conflicts/$h FETCH_HEAD ''&&m "[conflict] $h";};x HEAD
+else git config agi.mode ro;m "[owner] first boot, local read-only. Hello";fi
+~~~
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-SPLIT (DG3 read sets): agi-post@.service moved here whole from engine-post; its ONE loop edit: for e in engine.md engine-[pw]*.md (was engine*.md), so a post reads engine + engine-post + engine-wrap only. G9 + G9.2 + G9.3 (hypothesis:g716111-g9-boot-install-brings-the-boot-set-up; owner 17:5xZ via belam): agi-boot.service + agi-boot run as root once at boot -- the agi-ram ACL pair, a projection of MAIN's checked-out HEAD (the local trunk; no trunk literal in the unit, WorkingDirectory is the one install-time literal) by REUSING the agi-project section, daemon-reload, then ONE start at a time of the boot:true rows that were projected, behind the shared de_live_parents load/io gate cells (fail-CLOSED on a missing or stale reading); every failure is named on stderr, boot CONTINUES, and any failure (ACL, reload, start, gate give-up) makes the unit exit non-zero; a boot row not yet on v5 is skipped by name (belam: by design until its move). G9.4: an unreadable or empty boot-row list is named and fails the unit.
+g7.16.1.11.6: ### seed from doc T.1 byte-exact (985 B with placeholder; 1023 B with 82 B anchor). Expansion, 0 B zygote. T6 live / T7 wake unrun (Phase C / host). T8 pinned.
 <!-- THOUGHT:END -->
