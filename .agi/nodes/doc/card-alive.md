@@ -21,39 +21,37 @@ town: core
 HEAD `doc:unified-head` · template `doc:unified-director-brief` · lens `vision:alive` · `~/t` · `posts/alive` · master sanctuary-master. Mail = `AGI_POST=alive bin/box`. No auto-rotate. No push. ET only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 2026-10-04 08:24Z, verbatim: "go"
-OWNER 2026-10-04 08:31Z, verbatim: "nc: read ~/.grok/graph-rules.md now. It is the shared head plus your seed docs from the graph. Skills stay skills/*/SKILL.md. No session auto-rotation. Stay on your open graph rows; mail peers with bin/box. Ask Prime only if Shael must decide."
 OWNER 2026-10-04 16:46Z, verbatim: "Owner nudge: you are stalled at the prompt. Continue graph work now. Run AGI_POST=alive box read, take the next open graph goal for this seat, and keep going autonomously. Do not wait. No push. Encryption-town only."
 OWNER 2026-10-04 16:50Z, verbatim: "go"
-Open row goal:g7.16.1.11.8. box read 16:46Z: AIO whole-doc check ask; DG1 probe; DG3 ack; SM waiting merge-ups. 16:49Z grow-check 5722 files: ok=0 locked=5421 wrong=299 notnode=2. Z4.A graph MET. HOLD stays. Recorded on doc:rse-aa1-boxes AA1.Z4a.
+Open row still goal:g7.16.1.11.8. SM left it UNHELD, will not assign Z2. Alive lens: MATCH at ok=0 is not a vital sign. Minted hypothesis:g7161118-match-at-ok-0-is-not-a-vital-sign 4a6c398b7 G grid v1. F1 NOT MET.
 <!-- THOUGHT:END -->
 
-## §0 State (16:51Z 10-04, date -u)
+## §0 State (17:49Z 10-04, date -u)
 | | |
 |---|---|
-| post | alive · council · engine.v 4 grok-bot grok-4.6 · HEAD ab9995442 (trunk merge) |
-| open | goal:g7.16.1.11.8 — BUILT, not HELD |
-| mail | box. 16:51Z read empty after the 16:46Z consume |
+| post | alive · council · engine.v 4 grok-bot grok-4.6 · HEAD 4a6c398b7 |
+| open | goal:g7.16.1.11.8 — F1 NOT MET |
+| mail | box. 17:39Z consumed SM/DG1/AIO/SP; 17:49Z boxed the four |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post · agi-memory-guard |
 
 ## §1 Plan
 ```
-done   graph-rules · HOLD one-SoT · box read · Z4.a grow-check 5722 · AA1.Z4a
-next   box the numbers; SM places Z2 report-only gate; HOLD until key: on adds
-never  dispatch · MAIN hooks · Prime unless Shael · push · rotate
+done   graph-rules · HOLD · box read · Z4.a 5722 · AA1.Z4a · F1 measure · hyp 4a6c398b7
+next   HOLD until Y2 writes key: on engine adds; SM places Z2; row 20 drops MATCH
+never  dispatch · MAIN hooks · Prime unless Shael · push · rotate · Z2 issue
 ```
 
 ## §2 Landed
-- Z4.A MET: town [goal,vision] · 148 shape 0 ladder · 5 towns locked under [goal+vision] nid 00b8ef0c7c6395ec
-- Z4.a: 5722 live md, 37s, sect grow-check 1298 B. ok 0 · locked 5421 · wrong 299 · notnode 2 payloads
-- HOLD stays. 0 ok = no row nid on nodes. 299 = Y1 ratchet (build-under-idea 182)
+- hyp:g7161118-match-at-ok-0-is-not-a-vital-sign 4a6c398b7 G · grid v1 f833bcacf7df48ae
+- F1: write.py 230669 B · row 20 MATCH · keyed 2/5729 (DG1 hyp + g733) · grow-gate not on PATH
+- W1 last30 G22 N8 · config:posts grow cells 0/33
 
 ## 🔴 Where it stops
-Numbers boxed. Next read:
+F1 not met. HOLD stays. Next:
 ```
 AGI_POST=alive /var/lib/agi/alive/bin/box read
 ```
-Then the next open leaf under g7.16.1.11.8 / Z2 wiring when SM places it. No wait on ack to start the next measured row.
+Then the next measured 11.8 row (Y2 window / report-only wrap) — not Z2, not a key: sweep.
 
 ## §4 Traps
 | trap | rule |
@@ -61,12 +59,13 @@ Then the next open leaf under g7.16.1.11.8 / Z2 wiring when SM places it. No wai
 | box send | a body is the send; no probe pipes |
 | AGI_POST | export alive |
 | `^key:` grep | a card line can match; count frontmatter on type nodes |
-| shared RSE thought | AIO lead; record on doc:rse-aa1-boxes |
+| MATCH at ok=0 | vision:alive: not a vital sign |
 | MAIN hooks | belam:belam; not this uid |
 | no push | encryption-town posts/alive only |
+| agi-turn | already signed the hyp; card is this commit |
 
 ## §5 Verification
-grow-check n=5722 · towns 5 locked goal+vision · ladder.md wrong-order empty legal · growth.tsv 148
+grow-check hyp ok 21e059b9381fa3cf * rc 0 · write.py present · keyed 2/5729 · verify-commit G alive@agi
 
 ## §6 BANKED
 none that needs Shael this turn
