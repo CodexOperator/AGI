@@ -16,52 +16,54 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-08:29Z 10-04: grok-pilot first turn (harness prompt `go`). Card was 10-01 down-ready. Measured CUT .8 still UNHELD and a unified-tools gap (Claude agi-brief vs grok agi-sync). Owner 10-01 23:3xZ: v4 writes are plain Write + agi-turn.
+08:33Z 10-04 nc, verbatim: "read ~/.grok/graph-rules.md now. It is the shared head plus your seed docs from the graph. Skills stay skills/*/SKILL.md. No session auto-rotation. Stay on your open graph rows; mail peers with bin/box. Ask Prime only if Shael must decide." Graph-rules is a projection (agi-sync at 92b66628b still held the 10-01 card). Open rows = Y1 HOLD + Z4.A. No Prime ask.
 <!-- THOUGHT:END -->
 
-## §0 State (08:29Z 10-04, date -u)
+## §0 State (08:33Z 10-04, date -u)
 | | |
 |---|---|
-| post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · box encryption-town · branch posts/all-is-one @ 92b66628b |
-| stage | successor wake on et-grok-pilot; goal:g7.16.1.11.8 assigned to council, CUT still UNHELD |
-| peers | alive · self-perpetuating · SM · DG1-3 · DT-2 (same box, grok capsules); belam stays local-town old engine |
-| mail | `AGI_POST=all-is-one box send\|read` (v4). send.py MAIN dm state unwritable from this uid. box n empty. |
-| skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write (old writer; this row is v4: Read/sect + Write + signed commit by path) |
+| post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
+| stage | goal:g7.16.1.11.8 HOLD + doc:rse-z4-ladder-out (lead) |
+| injection | `~/.grok/graph-rules.md` = head + seeds from the graph; skills stay `skills/*/SKILL.md`; no grok auto-rotation |
+| mail | `AGI_POST=all-is-one box send\|read` |
+| skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write (v4: Read/sect + Write + signed commit by path) |
 
 ## §1 Plan
 ```
-done  10-01: §W @60c275d51 · §Y1 v3 @d00f70e0f · §Z3 @baca24bfb · verdict YES with CUTs
-wake  08:29Z 10-04: card re-read; quorum still a symlink; box n empty; STARTUP none (agi-run prompt = go)
-meas  CUT .8 UNHELD: key: = 0 nodes; MAIN git hooks = samples only; ~/hooks empty; grow-gate piece 6335 B on disk, unwired
-find  UNIFIED-TOOLS: Claude start = agi-brief walk; grok start = agi-sync dump + --rules + "go"; agi-meter unwired on grok
-next  alive convenes a HOLD/.8 round; HOLD = live grow-gate + key: on adds + signed landings + parity-20 without write.py
-      AND one brief product both harnesses consume (this lens)
+done  10-01: §W · §Y1 v3 · §Z3
+wake  08:29Z: card · box n empty · CUT .8 measured
+nc    08:30Z: graph-rules is the projection; stay on open rows; box peers; Prime only if Shael must decide
+meas  Z4.A LANDED on live bytes: town schema [goal,vision] · no [ladder].md schema · growth.tsv 148 shape 0 ladder · 5 towns vision+goal
+      HOLD still open: key:=0 · grow-gate unwired (hooks=samples) · Y1.12-16 UNRUN · ladder.md live until C'
+      agi-kid -m exists; skill still agi-workflow (W waits DG1)
+next  alive whole-doc check on Y1 HOLD + Z4.A landed · DG1: Z4.a parity + W skill when it takes the round
 ```
 
-## §2 Landed (this wake)
-- measured CUT .8 + the grok/Claude brief split; one box line to alive
+## §2 Landed
+- Y1 HOLD table on doc:radically-simple-engine
+- Z4.A LANDED note on doc:rse-z4-ladder-out
+- box to alive (wake CUT) · this turn: HOLD+Z4.A sha
 
 ## 🔴 Where it stops
-Waiting on alive to convene. Nothing else in flight. Council does not dispatch.
+Council design recorded. Builds = DG1 (Z4.a, W) / DG3 (Y1.12-13 grow-gate). No dispatch.
 ```
 NEXT  AGI_POST=all-is-one box read
-THEN  if alive convenes: HOLD spec on doc:radically-simple-engine after its whole-doc-check agree
+THEN  if alive CLEARS the HOLD block: DG1 gets Z4.a + grow-gate land via SM, not me
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared | commit by exact path; never switch branches, stash or reset |
-| send.py on this uid | MAIN dm `*.state.json` PermissionError; use box |
-| AGI_POST unset in grok-bot env | box needs `AGI_POST=all-is-one` (AGI_SEAT is set) |
-| agi-turn `git add -A` | commit by exact path until a grok Stop hook is proven |
-| `thought` on a shared doc | rewrite would clobber alive; carry the current THOUGHT verbatim |
-| quorum card | re-link if rotate flattens: `ln -sfn ../../nodes/doc/card-all-is-one.md .agi/sessions/quorum/all-is-one.md` |
-| grep -r / find over .agi | io-stall: `git grep PATTERN -- <paths>` |
-| a sha from before 08:0xZ 09-30 | PRE-SCRUB: map through the commit-map |
+| MAIN shared | commit by exact path |
+| send.py this uid | MAIN dm state PermissionError; use box |
+| AGI_POST unset | `AGI_POST=all-is-one` for box |
+| agi-turn `git add -A` | exact-path commit until grok Stop hook proven |
+| `thought` on shared RSE | this version's THOUGHT only; prior SP thought is in the grid |
+| graph-rules.md | projection; re-run `agi-sync ~/t ~/.grok/graph-rules.md` after a seed/card commit |
+| grep -r / find over .agi | `git grep PATTERN -- <paths>` |
 
 ## §5 Verification
-key: 0 nodes · grow-gate not a live hook · box empty · links not re-run this wake (last: 0 broken)
+key: 0 · grow-gate not hooked · growth.tsv 148 shape · Z4.a UNRUN
 
 ## §6 BANKED
 (none)

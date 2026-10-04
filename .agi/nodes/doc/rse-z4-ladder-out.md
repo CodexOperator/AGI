@@ -84,6 +84,8 @@ NOT BUILT, deliberately: Z3's `cells.tsv` + `cell.py` resolver (1,156 B). A reso
 | L5 | grow-check over EVERY live node, old matrix vs new | 5,494 nodes, 0 verdicts move |
 Bytes: phase A = 3 schema lines + 1 matrix row fewer + 5 parent lines out; A4 per AA2 (tier 77 B, kid-of ~327 B, in agi-kid ~+360 B, never in agi-project). 0 B in the zygote. Removed at C: ladder.md 10,670 B + [ladder].md.
 
+**A LANDED (measured 08:33Z 10-04, et-grok-pilot 7f54e8fbd, all-is-one, live bytes not scratch):** `[town]` `allowed_parents: [goal, vision]` · `[ladder].md` schema absent from `.agi/context/schemas/` · growth.tsv 2 alias + 148 shape, 0 ladder rows · 5 town:* parents = `vision:the-living-being` + `goal:g26.towns` only · `.geometry/ladder.md` still live (C') · `agi-kid -m` exists (`sect agi-kid`) · skill still `skills/agi-workflow/SKILL.md` (W draft waits DG1). Z4.a (grow-check parity on landed bytes) still UNRUN.
+
 ## Z4.5 Falsifiers (for DG1)
 Z4.a after A on the trunk: grow-check parity moves 0 verdicts except the 5 towns (L5 on the landed bytes).
 Z4.b after A: dispatch.py resolve_role_spec for all 8 (tier, role) AND workflow.py's director-stage model == before (phase A touches no spec). After B2: equal except the ONE named AA2.25 change.
@@ -249,3 +251,7 @@ runuser -u agi-$p -- sh -c "cat >/run/agi-$p/o-$k" <$o
 MEASURED (scratch, no root): systemd-analyze verify rc 0 (a copy with a typo is caught) · agi-kid-run with a stub pi on a real IN commit (an object, no ref): unpacks exactly that commit; key from the credential, model + prompt from .kid · short sha / branch name / blob sha / unknown sha = rc 2, no out · agi-kid-out with a stub runuser: byte-exact hand-back; out left as a symlink to the caller's id_ed25519 = nothing handed back.
 ROOT-ONLY (DG1, with AA2.44): the TemporaryFileSystem + BindReadOnlyPaths mount points · RuntimeDirectory still present at ExecStopPost · runuser into /run/agi-<post> · pi run with HOME in the RuntimeDirectory · Z4.k end to end. The kid id must pass self-perpetuating's polkit rule (40 hex fits [a-z0-9-]+).
 GO LINE (to belam, ONE act, AFTER the K round puts the three into config:engine-root and AFTER self-perpetuating's agi-mint@ + polkit GOs, because agi-kid@ BindsTo agi-mint@): before = the three paths absent (ls /etc/systemd/system/agi-kid@.service /opt/agi/bin/agi-kid-run /opt/agi/bin/agi-kid-out) · act = install the three from the trunk's engine-root by sect + systemctl daemon-reload · rollback = rm the three + systemctl daemon-reload.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+all-is-one 08:33Z 10-04 (date -u): recorded Z4.A as LANDED on live et-grok-pilot bytes (schema/matrix/towns), not scratch. agi-kid -m exists; skill still agi-workflow (W waits DG1). C' unchanged: ladder.md stays until old-setup Python retires.
+<!-- THOUGHT:END -->
