@@ -41,8 +41,12 @@ ENGINE_ROOT = Path(__file__).resolve().parents[3]
 _B, _E = "THOUGHT:" + "BEGIN", "THOUGHT:" + "END"
 THOUGHT_RULE = "thought-marker-regex"
 MINT_RULE = "mint-id-assigner"
+HOME_TOKEN_RULE = "anonymize-home-token"
+HOME_LINT_RULE = "home-code-literal"
 THOUGHT_HOME = "extensions/agi/bin/node_writer.py"
 MINT_HOME = "extensions/agi/src/graph_core/identity.py"
+HOME_TOKEN_HOME = "extensions/agi/bin/anonymize.py"
+HOME_LINT_HOME = "extensions/agi/bin/paths.py"
 THOUGHT_PATTERN = _B + ".*" + _E
 MINT_PATTERN = (r'\[.mint_id.\] *= *mint|new_fm\[.mint_id.\] *=|'
                 r'"mint_id": *mint_permanent_id')
@@ -135,9 +139,34 @@ def test_the_live_cell_carries_the_first_two_rows_and_passes():
     assert cell is not None, "config:census is not in .agi/nodes/.geometry"
     fm = yaml.safe_load(node_writer.split_frontmatter(
         cell.read_text("utf-8"))[0])
-    assert {THOUGHT_RULE, MINT_RULE} <= set(fm["census"]["rules"])
+    rules = fm["census"]["rules"]
+    assert {THOUGHT_RULE, MINT_RULE} <= set(rules)
+    # goal:g7.16.1.1.6.2 -- two named homes, not one shared def
+    assert {HOME_TOKEN_RULE, HOME_LINT_RULE} <= set(rules)
+    assert rules[HOME_TOKEN_RULE]["home"] == HOME_TOKEN_HOME
+    assert rules[HOME_LINT_RULE]["home"] == HOME_LINT_HOME
+    assert "extensions/agi/tests" in fm["census"]["exclude"]
     r = verification.check_census(groot)
     assert r.status == "PASS", (r.note, r.message)
+    assert r.number["rules"] >= 4
+
+
+def test_a_scratch_home_token_copy_fails_naming_the_file():
+    """goal:g7.16.1.1.6.2 Falsifier 2: a third home-path regex under bin
+    makes the live census FAIL, naming that file:line."""
+    groot = ENGINE_ROOT / ".agi"
+    if not (groot / "nodes" / ".geometry").is_dir():
+        pytest.skip("engine checkout carries no .agi/nodes/.geometry")
+    scratch = ENGINE_ROOT / "extensions/agi/bin/zz_census_home_scratch.py"
+    try:
+        scratch.write_text("HOME_PATH_RE = _home_path_re()\n", encoding="utf-8")
+        r = verification.check_census(groot)
+        assert r.status == "FAIL", (r.note, r.message)
+        blob = f"{r.note}\n{r.message}"
+        assert "zz_census_home_scratch.py" in blob, blob
+        assert HOME_TOKEN_RULE in blob, blob
+    finally:
+        scratch.unlink(missing_ok=True)
 
 
 # --- (2) NEGATIVE: a second definition FAILs naming the copy's file:line -----
@@ -228,7 +257,8 @@ def test_the_check_carries_no_rule_literal():
         if name.startswith("_census") and callable(fn):
             src += inspect.getsource(fn)
     module = inspect.getsource(verification)
-    for literal in (THOUGHT_RULE, MINT_RULE, THOUGHT_HOME, MINT_HOME,
+    for literal in (THOUGHT_RULE, MINT_RULE, HOME_TOKEN_RULE, HOME_LINT_RULE,
+                    THOUGHT_HOME, MINT_HOME, HOME_TOKEN_HOME, HOME_LINT_HOME,
                     "node_writer.py", "graph_core/identity.py",
                     "mint_permanent_id", _B, _E):
         assert literal not in src, f"rule literal {literal!r} in check_census"
