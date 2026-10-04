@@ -18,62 +18,52 @@ town: core
 ---
 # doc:card-alive — alive's card (council, vision:alive, goal:g7.16.1)
 
-HEAD `doc:unified-head` · template `doc:unified-director-brief` · lens `vision:alive` · worktree `/var/lib/agi/alive/t` · branch `posts/alive` (local-only) · master `sanctuary-master`. Replaced whole. ≤ 100 lines.
+HEAD `doc:unified-head` · template `doc:unified-director-brief` · lens `vision:alive` · `~/t` · `posts/alive` · master sanctuary-master. Replaced whole. ≤ 100 lines. Mail = `AGI_POST=alive bin/box`. No session auto-rotation.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 2026-10-04 08:24Z, agi-run first prompt, verbatim: "go"
-First grok-bot turn on encryption-town trunk core/season2/et-grok-pilot@92b66628b. Prior card was 19:3xZ 10-01 Claude v5 MOVE 3. Measured this turn: send.py --from alive send sanctuary-master -> PermissionError mkdir /data/work/agi/.agi/sessions/inbox (MAIN sessions belam:belam 775; uid agi-alive in group agi only; inbox dir absent). whois UNVERIFIED. agi-run watches inbox only for claude*; grok start is agi-sync only; FIFO /run/agi-alive/i exists; graph-rules.md 23508 B; MemAvailable 6590240 kB, PSI mem avg10=0.00, io avg10=0.48.
+OWNER 2026-10-04 08:24Z, verbatim: "go"
+OWNER 2026-10-04 08:31Z, verbatim: "nc: read ~/.grok/graph-rules.md now. It is the shared head plus your seed docs from the graph. Skills stay skills/*/SKILL.md. No session auto-rotation. Stay on your open graph rows; mail peers with bin/box. Ask Prime only if Shael must decide."
+graph-rules.md at read = head + master-brief + STALE 10-01 card (agi-sync at start). Open row = goal:g7.16.1.11.8 (council). box read consumed AIO + SP. Measured 08:32Z: key: nodes=0; grow-gate 6335 B unwired (MAIN hooks = samples); engine.md 9379 whole / 7605 fences / 5407 before ## files; captive comment claude/pi only; no meter pin. HOLD ruling below.
 <!-- THOUGHT:END -->
 
-## §0 State (08:29Z 10-04, date -u)
+## §0 State (08:32Z 10-04, date -u)
 | | |
 |---|---|
-| post | alive · council · engine.v 4 grok-bot grok-4.6 high · capsule · rotate_pct 47 |
-| box | encryption-town · MemAvail ~6.3 GiB · PSI mem 0 · io avg10 0.48 · load ~3.5 |
-| trunk | core/season2/et-grok-pilot @ 92b66628b (agi-sync) |
-| mail | send.py mkdir MAIN inbox -> PermissionError (belam:belam 775; uid agi-alive) · grok has no inbox watcher |
-| whois | UNVERIFIED (origin/season2/main unreachable) · UNSIGNED |
-| peers | SM · all-is-one · self-perpetuating · DG1-3 · DT-2 on same engine/trunk; belam local-town claude |
+| post | alive · council · engine.v 4 grok-bot grok-4.6 · rotate_pct 47 · no auto-rotate |
+| open | goal:g7.16.1.11.8 ROUND 7 growth order — BUILT, not HELD |
+| mail | `box` on refs/box (AGI_POST=alive). send.py MAIN inbox still PermissionError |
+| peers | SM · AIO · SP · DG1-3 adjacent; DT-2 / owner off-matrix |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post · agi-memory-guard |
-| lens | vision:alive = the system reports its own TRUE state |
 
 ## §1 Plan
 ```
-done   this card rewrite from the 10-01 v5 MOVE 3 card
-next   council true-state of the grok-pilot; first bundle = live mail into grok panes (g7.32.2 / g7.32.4 marked complete 09-28; live falsifier fails)
-blocked  send.py cannot create MAIN inbox (uid); grok pane has no inbox watcher anyway
-never  dispatch · mint above g7.16.1 · write another post's tree · new top-level goal
+done   card rewrite · graph-rules read · box read (AIO CUT.8 + UNIFIED-TOOLS HOLD ask; SP CUT1/CUT2/Y2)
+next   HOLD ruling on one-brief; keep .8 UNHELD until Z2 wiring (sign -> report-only gate -> key: on adds -> grow-gate enforcing)
+never  dispatch · mint above g7.16.1 · Prime unless Shael must decide · rotate
 ```
 
 ## §2 Landed
-- 08:29Z 10-04: card rewritten for grok-pilot first turn; owner line "go" in THOUGHT.
-- 08:30Z: three send.py inbox sends EXIT 1 PermissionError mkdir MAIN `.agi/sessions/inbox`.
+- 08:32Z .8 true-state: key:=0 · grow-gate unwired · F21 rail MET (9379/7605; depth0+1 5407 OVER 4096) · grok Write/Edit unfenced · meter pin absent · hooks samples
+- HOLD (alive, vision:alive): one SoT = graph docs. Two injectors by wrap (Claude agi-brief · grok agi-sync --rules + go). HOLD that they are one injector = false. HOLD that SoT stays one = true.
 
 ## 🔴 Where it stops
-Mail is closed on this uid. Card holds the true-state. Next: SM/owner host path for capsule mail, or DG1 hypothesis under g7.32.2/.4 once a writable inbox exists.
+.8 UNHELD. Wait AIO/SP lens ack on the HOLD. SM places the Z2 wiring on the board. No Prime line.
 ```
-# after MAIN inbox is writable by group agi (host act, not mine):
-python3 extensions/agi/bin/send.py --from alive send sanctuary-master "$(cat /tmp/alive-sm.txt)"
+AGI_POST=alive /var/lib/agi/alive/bin/box read
 ```
-Until then: idle on comms; keep this card current; no second bundle.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN shared | commit via agi-turn (one per turn); never switch branches, stash, reset |
-| grok mail | send.py can write an inbox file; agi-run does not inject it into a grok pane |
-| whois | origin/season2/main is not this trunk; UNVERIFIED is expected here |
-| timestamps | date -u or git log in the same step |
-| `send.py read` empty | also stat the inbox file |
-| grep -r / find over .agi | `git grep PATTERN -- <paths>` |
-| config:* written_by | owner / prime_director; council authors docs |
-| index | `git diff --cached --name-only` must be only your paths if you commit by hand |
-| symlink card | quorum/alive.md -> nodes/doc/card-alive.md; re-link if rotate flattens it |
+| box send | the body is the send; adjacency probe must not pipe a body |
+| AGI_POST | empty in the grok env; export alive before box |
+| send.py | MAIN inbox not ours; box is the route |
+| graph-rules | snapshot at start; live card may be newer |
+| shared doc thought | rewrites WHOLE; do not thought the RSE doc |
+| no auto-rotate | grok; stay under 0.47 by stopping, not rotate.py |
 
 ## §5 Verification
-graph-rules.md present (23508 B) · git clean on posts/alive @ 92b66628b · MemAvail > 6 GiB · PSI mem 0
+key: grep 0 · sect grow-gate 6335 B · engine.md 9379/7605 · MAIN hooks *.sample · box read rc 0
 
 ## §6 BANKED
-| question | options | recommendation |
-|---|---|---|
-| reopen g7.32.2 / g7.32.4 against live grok-pilot | (a) Prime reopen (town:core reopen = Prime) (b) DG1 hypothesis under those ids without reopen | (a) if SM agrees the 09-28 complete does not cover live panes |
+none that needs Shael this turn
