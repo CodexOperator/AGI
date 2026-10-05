@@ -10,7 +10,8 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine — ZYGOTE (map + 4 readers). Prose: doc:radically-simple-engine §Q. Parity: doc:g716111-stage25-parity.
+# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 39 pieces (44 `###` in engine*.md; 5 unmapped: boot, boot.service, agi-sync, matrix, seed)
+Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
 ~~~
@@ -28,44 +29,45 @@ ZYGOTE = this · EXPANSION = engine-post|wrap|grow|root via sect @REV
 
 ## pieces — depth 1 (bytes on disk; 38 names, fetch timer+service folded)
 ~~~
-agi-post@.service 1801 B
-agi-run            501 B
-settings.json      342 B
-cccc.ts           1647 B
-agi-kid           2015 B
-agi-infer         1077 B
-agi-brief          938 B
-brief.py           810 B
-agi-meter          439 B
-agi-turn           269 B
-agi-link           358 B
-agi-wt             688 B
-agi-track           89 B
-agi-flush          181 B
-agi-out           3120 B
-gitconfig          198 B
-sysusers.conf       41 B
-agi.rules          211 B
-project.sh         161 B
-observe.sh         255 B
-tick.sh            254 B
-agi-project       1841 B
-agi-frontier       460 B
-agi-gate           404 B
-sect               214 B
-agi-fill          5973 B
-agi-captive        576 B
-grow-check        1298 B
-grow-gate         7088 B
-ckpt              3444 B
-grow-project      1185 B
-agi-land          1855 B
-box               2005 B
-box-carry         3246 B
-agi-signers       1727 B
-agi-carry@.path    149 B
-agi-carry@.service 287 B
-agi-carry-fetch    317 B
+agi-post@.service 1801 B  unit: uid, tree, key, pane
+agi-run           501 B  pane: .fresh or -c + strace
+settings.json      342 B  hooks: brief, meter, turn
+cccc.ts           1647 B  pi events -> CC hooks
+agi-kid           2037 B  pi-free kid in this unit
+agi-infer          1077 B  one OpenAI-compat chat call
+agi-brief          938 B  card+seeds+claims STARTUP
+brief.py           810 B  parent-edge walk
+agi-meter          439 B  rotate_pct out-line
+agi-turn           269 B  drop trees; signed commit
+agi-link           358 B  node <-> payload_ref
+agi-wt             688 B  per-node RAM tree
+agi-track           89 B  strace sink, path once
+agi-flush          181 B  exit: drop, commit, merge
+agi-out           3120 B  out-line keys + ring wrap
+gitconfig          198 B  signed commits + signers
+sysusers.conf       41 B  post user in group agi
+agi.rules          211 B  group agi starts units
+project.sh         161 B  body SHOULD
+observe.sh         255 B  body IS
+tick.sh            254 B  diff; start; commit
+agi-project       1841 B  genome: v4 units+cells
+agi-frontier       460 B  each goal's falsifier
+agi-gate           404 B  refuse a tip that would not regrow
+sect               214 B  one piece @REV, any engine*.md
+agi-fill          6106 B  captive fill window
+agi-captive        576 B  only agi-fill while open
+grow-check        1298 B  node vs matrix row+key
+grow-gate         7088 B  pre-receive ratchet
+ckpt              3444 B  signed hand-offs at one tip
+grow-project      1185 B  schemas -> matrix
+agi-land          1855 B  root ff-land, one parent up
+box               2005 B  signed ref mail, 5x CAS
+box-carry         3246 B  root: P refs -> store or hub
+agi-signers       1727 B  ONE allowed_signers
+agi-carry@.path     149 B  PathChanged refs/box/<P>
+agi-carry@.service  287 B  oneshot box-carry %i
+agi-carry-fetch.timer   88 B  60s carry local then hub
+agi-carry-fetch.service 229 B  oneshot box-carry --fetch
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
@@ -104,5 +106,5 @@ post	brief	card-<p>	brief
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-10-05 via liaison: two zygote reds (9651>8192, map 39>38). Cut = diagram/loop/map descriptions → pointers to doc:radically-simple-engine §Q + doc:g716111-stage25-parity; fold agi-carry-fetch.timer+.service to one map line (both ### headings stay in engine-root). Four reader fences byte-exact. grow-gate map 7088 = live heading.
+01:5xZ 10-05: merged trunk 00d5983fa (storage_trunk=refs/grid/et-grok-pilot). Map +ckpt (39). Short descriptions restored so whole <=8192. NEVER write refs/grid/local-maxxing from this checkout.
 <!-- THOUGHT:END -->

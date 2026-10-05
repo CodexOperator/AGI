@@ -5,11 +5,12 @@ type: config
 parents:
   - goal:g7.16.1.11.5
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: 649a07578115c7e3
 season: 2
 town: core
 ---
+
 # config:engine-root
 
 EXPANSION of config:engine: the unit template (root's agi-project reads it through sect; a post's extraction loop and the hub's gate do not)
@@ -66,14 +67,14 @@ ExecStart=sh -c 'echo HEAD:.agi/nodes/.geometry/engine-root.md|git cat-file --ba
 WantedBy=multi-user.target
 ~~~
 
-### agi-boot (1572 B)
+### agi-boot (1933 B)
 ~~~sh
 #!/bin/sh
 R=${AGI_RAM:-/mnt/agi-ram} t=${AGI_TRUNK:-HEAD} o=${AGI_BOOT_OUT:-/run/systemd/system};w=$o/multi-user.target.wants
 e=0;f(){ "$@"||{ echo "agi-boot: failed: $*">&2;e=1;};};f setfacl -m g:agi:x $R;f setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state};I=$PWD/.agi/sessions/inbox;f mkdir -p $I;f setfacl -m g:agi:rwx $I;f setfacl -d -m g:agi:rwx $I
 c(){ git show $t:.agi/config.json|jq -r ".values.local_maxxing.$1";};L=$(c de_live_parents.ceiling_if.loadavg1_lt) P=$(c de_live_parents.ceiling_if.io_psi_some_avg60_lt) N=$(c agi_boot.poll_s) M=$(c agi_boot.wait_max_s) S=$(c agi_boot.space_s)
 echo $t:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s $o $t||exit 3
-f systemctl daemon-reload
+f systemctl daemon-reload;s(){ git ls-tree --full-tree --name-only $t .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$t:|"|git cat-file --batch --follow-symlinks|sed -n "/^### $1 /,/^##/{/^~~~/,/^~~~/{//!p}}";};s xai-proxy>/opt/agi/bin/xai-proxy;chmod 755 /opt/agi/bin/xai-proxy;s xai-proxy.service>/etc/systemd/system/xai-proxy.service;systemctl enable --now xai-proxy.service
 ok(){ l=;read l _<${AGI_LOADAVG:-/proc/loadavg};i=$(sed -n 's/^some .*avg60=\([0-9.]*\).*/\1/p' ${AGI_PSI_IO:-/proc/pressure/io});[ -n "$l" ]&&[ -n "$i" ]&&awk -v l=$l -v i=$i -v L=$L -v P=$P 'BEGIN{exit !(l<L&&i<P)}';}
 rows=$(git show $t:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r 'select(.boot==true)|.name');[ -n "$rows" ]||{ echo "agi-boot: no boot rows read from $t">&2;e=1;};for p in $rows;do [ -L $w/agi-post@$p.service ]||{ echo "agi-boot: $p not projected (engine v4 row absent), skipped">&2;continue;};[ $n ]&&f sleep $S;s=$(date +%s)
 until ok;do [ $(($(date +%s)-s)) -ge $M ]&&{ echo "agi-boot: gate not open after ${M}s, skipping $p">&2;e=1;continue 2;};sleep $N;done
@@ -185,6 +186,101 @@ echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gat
 git update-ref $T $n $o
 ~~~
 
+### seed (1023 B)
+~~~
+#!/bin/sh
+cd ${AGI_ROOT:-.}||exit 1;b=$(git branch --show-current);g=$(git rev-parse --git-dir)||exit 1;i=.agi/sessions/inbox/belam.md;mkdir -p ${i%/*}
+m(){ printf -- "---\nts: %s\nfrom: seed\nto: belam\n\n%s\n" $(date -u +%FT%TZ) "$*">>$i;}
+e(){ git ls-tree --format="$1:%(path)" $1 .agi/nodes/.geometry/|grep /engine|git cat-file --batch --follow-symlinks|sed -n "/^### $2 /,/^##/{/^~~~/,/^~~~/{//!p}}";}
+x(){ e $1 matrix|awk '$1=="boot"&&$4!="sect"{print $4}'|while read v;do e $1 $v|sh -s ${AGI_OUT:-/run/systemd/system} $1;done;};x HEAD;echo '<the anchor: ONE allowed_signers line, 82 B>'>$g/s
+if timeout ${2:-60} git -c fetch.fsckObjects=1 fetch -q ${1:-origin} $b;then git -c gpg.ssh.allowedSignersFile=$g/s verify-commit FETCH_HEAD||exit 1
+git config agi.mode rw;h=$(git rev-parse HEAD);git merge -q --ff-only FETCH_HEAD||{ git update-ref refs/conflicts/$h FETCH_HEAD ''&&m "[conflict] $h";};x HEAD
+else git config agi.mode ro;m "[owner] first boot, local read-only. Hello";fi
+~~~
+
+### xai-proxy (2006 B)
+~~~py
+#!/usr/bin/env python3
+"""127.0.0.1 xAI bearer proxy: read auth.json on every request. No token in logs."""
+import http.client
+import json
+import os
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+AUTH = os.environ.get("XAI_AUTH", "/opt/agi/pi-agent/auth.json")
+UP = os.environ.get("XAI_UP", "api.x.ai")
+PORT = int(os.environ.get("XAI_PROXY_PORT", "18790"))
+
+
+class H(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+
+    def log_message(self, *a):
+        return
+
+    def do_GET(self):
+        self._go()
+
+    def do_POST(self):
+        self._go()
+
+    def do_PUT(self):
+        self._go()
+
+    def do_PATCH(self):
+        self._go()
+
+    def do_DELETE(self):
+        self._go()
+
+    def _go(self):
+        n = int(self.headers.get("Content-Length") or 0)
+        body = self.rfile.read(n) if n else b""
+        try:
+            key = json.load(open(AUTH)).get("xai", {}).get("key") or ""
+        except (OSError, json.JSONDecodeError, TypeError):
+            key = ""
+        hdrs = {k: v for k, v in self.headers.items()
+                if k.lower() not in ("host", "authorization")}
+        hdrs["Authorization"] = "Bearer " + key
+        conn = http.client.HTTPSConnection(UP, timeout=600)
+        try:
+            conn.request(self.command, self.path, body=body or None, headers=hdrs)
+            r = conn.getresponse()
+            self.send_response(r.status)
+            for k, v in r.getheaders():
+                if k.lower() not in ("transfer-encoding", "connection"):
+                    self.send_header(k, v)
+            self.send_header("Connection", "close")
+            self.close_connection = True
+            self.end_headers()
+            while True:
+                chunk = r.read1(65536)
+                if not chunk:
+                    break
+                self.wfile.write(chunk)
+                self.wfile.flush()
+        finally:
+            conn.close()
+
+
+if __name__ == "__main__":
+    ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()
+~~~
+
+### xai-proxy.service (169 B)
+~~~ini
+[Unit]
+After=network-online.target
+[Service]
+ExecStart=/usr/bin/python3 /opt/agi/bin/xai-proxy
+Restart=always
+RestartSec=5
+User=root
+[Install]
+WantedBy=multi-user.target
+~~~
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-10-05 GO rolling-restart 12 units to pick up new agi-run. Extract was t/ (post branch, often behind). Now $O MAIN so every restart gets current engine-wrap. agi-boot inbox ACL already uses $PWD. No new piece.
+g7.16.1.11.6: ### seed kept (T.1 985/1023). Trunk: xai-proxy hang patched (Connection: close) + unit; agi-boot installs. Do not bounce posts.
 <!-- THOUGHT:END -->
