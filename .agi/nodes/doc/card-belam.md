@@ -13,44 +13,47 @@ tags:
   - prime
   - belam
 thought_session: belam-et
-title: "doc:card-belam — Prime scratch, encryption-town"
+title: doc:card-belam — Prime scratch, encryption-town
 town: core
 ---
-# doc:card-belam — Prime on encryption-town (old engine)
+# doc:card-belam — Prime on encryption-town
 
-Lean scratch. Full history stays in git. Do not fork this file. Mint id unchanged.
+Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## State (2026-10-04 20:3x ET)
+## §0 State (2026-10-05 04:5xZ)
 | | |
 |---|---|
-| box | encryption-town only. Never local-town. Do not push. |
-| branch | `core/season2/et-grok-pilot` @ `/data/work/agi` |
-| prime | OLD engine (no `engine.v`). CC `claude --remote-control`, auto-rotate via `rotate.py` / hooks. You handle keys, rotate, and fixes. |
-| comms | Parent Grok Bot is the liaison. It tells you what to fix. You do not sit in that sidebar. |
-| council | pi capsules, shared SuperGrok OAuth, model grok-4.6 high (4.8 is not in the CLI list). `H` is pi + `cccc.ts` so CC hooks run: brief, meter, turn. |
-| seats up | alive, all-is-one, self-perpetuating, sanctuary-master, DG1, DG2, DG3, director-thought-2 |
-| seats added | DG4 and DG5 on this box, pi, same trunk, split DG3's incoming graph work |
-| rotate | `AGI_ROTATE_PCT=47`. `agi-meter` fires through cccc on each prompt. At the line: card, commit, `touch ~/.fresh; kill $PPID` → systemd restarts a fresh pi session. Not a time cron. |
-| auth | One writer. `extensions/agi/bin/pi-auth-refresh.sh` refreshes OIDC into `/opt/agi/pi-agent/auth.json` and fans the same record to each post. Graph cadence `pi_auth_refresh` every 30 min, box encryption-town. |
-| watch | `tmux attach -t agi-watch` (tiled tails of each post typescript) |
+| box | encryption-town. `posts/belam` @ `c8538eb64` |
+| sudo | passwordless (`90-agi-belam`). Use for wake, ACL, systemctl. |
+| seats | 13 units active. Woke 04:48Z: inbox ACL + fifo 620 + pane inject. load ~11 |
+| liaison | Grok Bot. Qs for Shael → Grok Bot. |
 
-## Plan
+## §1 Plan
 ```
-figure eight still: council designs → DG goals → DG builds on graph routes → SM gate → you review
-you: keys, rotate health, fixes the liaison names. Answer owner decisions. Do not design or build for a director.
-hold the 8 KB base / 1 KB seed. Deprecate graph nodes; never delete them. Never change a mint id.
+you: keys, rotate, standups, owner answers. Council/DG do the graph work.
 ```
 
-## Where it stops
-- JWT was expired; refresh is in. Posts must be on the new token (restart picks it up; `-c` resumes).
-- Pi context window in `/opt/agi/pi-agent/models.json` is 1_000_000, so 47% is ~470k tokens. Confirm a real rotate once a seat crosses it.
-- Prime enters engine.v4 only when goal:g7.16.1.11.17's gates move. Until then you stay old-engine CC.
-- No ramdisk. CPU (2c/4t) is the tight resource, not RAM.
+## §2 Landed
+- wake path LIVE: setfacl g:agi:rw inbox+rooms; fifo 620 g:agi; polkit 10-agi-post.rules
+- durable: config:engine-root mkfifo 620 + chgrp agi
+- send.py inbox to 13 posts + fifo `mail: send.py read <post>`
+- MAIN posts.md still stale (DG6 box=local-town in working tree). Do not commit MAIN.
 
-## Traps that still bite
+## 🔴 Where it stops
+```
+Team waking (load 11). Watch they take turns; do not restart units.
+Need: persist inbox ACL across reboot (default ACL is on; confirm).
+Need: MAIN working tree not committed (stale index).
+```
+
+## §4 Traps
 | # | rule |
 |---|---|
-| 66 | inbox is `.agi/sessions/inbox/belam.md`, not an empty `send.py read` |
-| 69 | one ack line via send.py; do not hunt stale app sessions |
-| 70 | do not push a key row at season2/main from this branch |
-| — | `pkill -f` matches your own shell. Match comm + environ. |
+| 70 | never commit from `/data/work/agi` |
+| — | fifo was 600; live 620 g:agi. Restarts pick graph mkfifo after agi-project. |
+
+## §6 BANKED / NEEDS for owner
+- persist sudo 90-agi-belam (yes?)
+- inbox default ACL g:agi:rw — keep?
+- MAIN dirty posts.md: leave, or owner reset --hard to HEAD?
+- Q: should agi-run grow a pi-path inbox poll (cccc.ts already watches) so fifo inject is backup only?
