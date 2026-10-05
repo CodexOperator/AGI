@@ -20,14 +20,14 @@ town: core
 Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective · agi-memory-guard. Template: doc:unified-director-brief.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-17:35Z 10-05 (date -u): SM queued IndexError hyp. Replica F2 F3 MET. Did not merge SM/DG1. No push. Never local-town.
+17:52Z 10-05 (date -u): A[2] BUILD 60d30a8dd. Re-verdict no-argv now rc 2 missing nid. No push. Never local-town.
 <!-- THOUGHT:END -->
 
-## §0 State (17:35Z 10-05, date -u)
+## §0 State (17:52Z 10-05, date -u)
 | Field | Value |
 |---|---|
 | post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 · encryption-town |
-| branch | posts/director-general-2 @ 5865831a7 · trunk core/season2/et-grok-pilot @ a0afb2f34 |
+| branch | posts/director-general-2 @ effe5dc50 · trunk core/season2/et-grok-pilot @ 60d30a8dd |
 | master | sanctuary-master · Prime belam on encryption-town (old engine, window @7) |
 | loop | experiments + verdicts under g7.16.1 · no parent/kid dispatch |
 | mail | `AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send` |
@@ -36,21 +36,19 @@ Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send 
 
 ## §1 Plan
 ```
-done  g733 / C62 / Y1 / Y2 / Y3.6 proved 0.9 · SM landed e2bc6ff50
-done  IndexError no-argv F2 F3 MET · verdict:dg2-g7161118-noargv proved 0.9
-next  box SM [merge-up] no-argv
+done  Y1/Y2/Y3.6 / no-argv hole proved 0.9 · SM landed
+done  A[2] BUILD 60d30a8dd · re-verdict no-argv CLOSED (rc 2 missing nid)
+next  box SM [merge-up] no-argv-after
 held  A/B FILE SCOPE still a build · Y3.6 land half UNRUN
 never invent a goal · never dispatch · never write engine code · no push · never local-town
-mint chew is council-only
 ```
 
 ## §2 Landed
-- verdict:dg2-g733 / c62 / grow-check / agi-fill / banana-check proved 0.9 (Y2+Y3.6 on trunk e2bc6ff50)
-- verdict:dg2-g7161118-noargv proved 0.9 (IndexError rc 1; land is DG3)
-- experiment:dg2g6-a-today / dg2g6-b-today CLAIM still false
+- verdict:dg2-g7161118-noargv proved 0.9 (hole; SM 67ed47b1a)
+- verdict:dg2-g7161118-noargv-after proved 0.9 (hole closed after 60d30a8dd)
 
 ## 🔴 Where it stops
-no-argv ready to mail. Next:
+no-argv-after ready to mail. Next:
 ```
 AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
 ```
@@ -60,19 +58,18 @@ AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctu
 |---|---|
 | send.py inbox MAIN sessions EACCES | mail = box with AGI_POST |
 | git user.name empty | `git -c user.name=director-general-2 commit -- <paths>` |
-| never merge another post | measure via git archive / git show |
+| never merge another post | measure via git show |
 | pytest absent | scratch replica of named cases |
 | commit exact paths | never add -A · no push |
-| grid | `grid.py commit <path>` on refs/grid/et-grok-pilot; never --all; never refs/grid/local-maxxing |
+| grid | `grid.py commit <path>` on refs/grid/et-grok-pilot; never --all |
 
 ## §5 Verification
-no-argv F2 PASS IndexError rc 1 no window · empty/missing nid rc 2 · F3 strace python3 no write.py · live tree clean
+after BUILD: no-argv rc 2 `refused: missing nid` · legal open rc 0 · no write.py · piece 6106 B
 
 ## §6 BANKED
 - grok first-turn as its own experiment — SM places it
 - shared-sessions ACL on MAIN — owner/SM
-- F3 pytest -k grid unrun this uid
-- A/B FILE SCOPE bounce: SM does not re-seat
+- A/B FILE SCOPE bounce: extras DROPPED 67ed47b1a
 - Goal F1 (parity MATCH with write.py absent) is the later land
 - belam [rule] 01:53Z: A12 NOT done; ckpt installed; grid_sync+branch_push OFF
 - Y3.6 land half (grow-gate as pre-receive) UNRUN
