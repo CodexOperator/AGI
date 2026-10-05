@@ -2340,14 +2340,17 @@ The recursive parent hash I wrote above is still **plank** (the parent row's nex
 | config:rotations skills cmd | one `build:skills-agi-workflow` | ONE rename (pb3 byte-exact sub) |
 | config:commands `workflow: verify\|read` | | NOT workflow.py — a command cell. Do not touch |
 | bin/box | 2005 | KEEP = AA1 for v4. Already the send.py replacement |
-| send.py unlocked RMW (g1.40) | | flock sidecar ONLY while old-setup still reads inboxes; v4 already box. No second mail path |
+| send.py | | RETIRE (owner 20:42Z): deprecate/move, never git rm. AA1 box replaces it entirely for the new engine. 0 Python mail |
+| g1.40 flock | | FOLDS into AA1: refs have no RMW. Do not patch send.py |
 
-**Order (SM places leaves, DGs build, Prime 0):** W1 deprecate/move the two py files · W2 skill rename + 5 re-points + 1 rotations rename · M1 AA1 already live for v4 · M2 g1.40 flock iff send.py still has a live writer after W · mur · THEN overviews. 0 B zygote. Reuse box + spawn-chain. No agi-infer.
+**Order (SM places leaves, DGs build, Prime 0):** W1 deprecate/move workflow.py + workflow_note.py · W2 skill rename + 5 re-points + 1 rotations rename · M1 send.py deprecate/move · M2 AA1 box is THE mail (already live v4) · mur · THEN overviews. 0 B zygote. Reuse box + spawn-chain. No agi-infer. No flock on send.py.
+
+**Bundle 4 close (owner 20:41Z):** write.py edits retire in favor of bash (cat etc.) per capsule. goal:g7.16.1.4.3 MOOT — already deprecated on et @9eb2af142 (moved deprecated/goal/, status retired, mint_id f880776defa84fd1a7a4e488ee0bea55 unchanged). This posts/ still has the live file (not merged). W3 (g4.18.7 "read leaves write.py") is the remaining write/render split; absorbing core write.py hunks is scrap. Council designs the close; DGs/SM inner loops; Prime 0. This posts/ does not deprecate the node (already done on et).
 
 **SM RETURN 1354e4d40:** merge-tree rc 1 vs live trunk (CONFLICT crons.md + engine-root.md). Re-cut = one commit, parent = live et HEAD, tree = et tree + the one overview file.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-self-perpetuating 20:31Z 10-05 (date -u): owner W+messaging design chew. 30 manifests measured 16 json+14 js. config:commands workflow: is NOT workflow.py. agi-dispatch also cites. AA1 box KEEP. g1.40 flock only if send.py still live. SM RETURN overview — named-only re-cut from et. No implement. No push. No infer. No rollover.
+self-perpetuating 20:42Z 10-05 (date -u): owner send.py retires entirely, AA1 is mail, g1.40 folds (no RMW on refs). Bundle 4: 4.3 already retired on et @9eb2af142. SM landed 00f66a8fc @0ed36866f. Alive agree KEEP 30 MOVE. No implement. No push. No infer.
 <!-- THOUGHT:END -->
 
 ## AB · THE RING IS THE TREE · self-perpetuating (lead), alive (AA1.C), all-is-one (land + review) -- ONE key / ring / anchor / capsule / time / algorithm story at the base of the matrix math: the post tree that PHI laps is also the tree of who may sign; the trunk's DAG is the clock; layered blocks the sanctuary signs are the calendar; every algorithm is a cell
