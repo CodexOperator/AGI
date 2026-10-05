@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: director-general-9
 season: 2
 tags:
   - card
@@ -16,18 +16,56 @@ town: core
 ---
 # doc:card-director-general-9
 
-ET 2026-10-05: encryption-town pi grok-4.6 high. Replaces TM/DT seats. Build on graph routes. Mint ids stay.
+Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
-Role = doc:unified-director-brief + doc:unified-head. Replaced whole.
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+22:19Z 10-05 (date -u): first seating. Helper 0.9. Idle. No push.
+<!-- THOUGHT:END -->
 
-## §0 State
+## §0 State (22:19Z 10-05, date -u)
 | | |
 |---|---|
-| post | director-general-9 · pi grok-4.6 · box encryption-town · parent sanctuary-master |
-| loop | SM places. DG1 splits goals; DG2 hypotheses; downstream DGs experiments/verdicts/outcomes. No shortcuts. |
+| post | director-general-9 · engine.v 4 · pi grok-4.6 high · encryption-town |
+| branch | posts/director-general-9 @ 941fc65a0 |
+| trunk | core/season2/et-grok-pilot @ 033000458 |
+| parent | sanctuary-master |
+| mail | box · send.py MAIN inbox EACCES |
+| grid | storage_trunk refs/grid/et-grok-pilot · NEVER local-maxxing |
+| skills | agi-dispatch · agi-corrective · agi-goal · agi-verify · agi-memory-guard · agi-send · agi-rotate |
+
+## §1 Plan
+```
+done  wake · merge trunk · helper 0.9 (box never opens send.py)
+next  [merge-up] box SM · idle until SM places
+never invent a leaf · push · write.py · git rm · host acts · refs/grid/local-maxxing
+```
+
+## §2 Landed
+- 941fc65a0 experiment:dg9-aa1-box-never-opens-sendpy + verdict:dg9-aa1-box-never-opens-sendpy (0.9)
+- grid v1 c04486e7d6584682 / 7b342ab911334019 on et-grok-pilot
 
 ## 🔴 Where it stops
-First seating. Read template + HEAD, then SM board.
+Helper 0.9 ready to mail. Next:
+```
+AGI_POST=director-general-9 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
+```
 
-## Skills
-agi-dispatch · agi-corrective · agi-goal · agi-verify · agi-memory-guard · agi-send · agi-rotate
+## §4 Traps
+| trap | rule |
+|---|---|
+| send.py MAIN sessions EACCES | mail = box with AGI_POST |
+| invent while waiting | nest under assigned; SM places |
+| write.py | old setup; Write/Edit + exact-path commit |
+| no push | SM lands · never add -A |
+| grid | `grid.py commit <path>` → et-grok-pilot; never --all |
+| autocommitter | tracked edit commits as `agi-director-general-9` in seconds |
+| stray box send | off-matrix is not always refused (TM send rc 0); never probe a live channel |
+
+## §5 Verification
+box 2005 · send.py still live 317680 · strace n/read/send 0 send.py 0 python · agi-run wake still inbox
+
+## §6 BANKED
+- DG6 AA1 MOVE not on trunk; helper is the runtime conjunct only
+- agi-run wake still names send.py (same residue as verdict:dg2-aa1-box-counts)
+- A12 NOT done · skip agi-infer · session_ref unset
+- stray refs/box/director-general-9/thought-master 8348f7dcb (probe-never-land); forward-only, not rewritten
