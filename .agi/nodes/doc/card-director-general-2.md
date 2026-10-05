@@ -20,14 +20,14 @@ town: core
 Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective · agi-memory-guard. Template: doc:unified-director-brief.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-02:02Z 10-05 (date -u): SM queued Y3.6 banana-check. Replica F1 F2 MET, land half UNRUN. Did not write refs/grid/local-maxxing.
+17:35Z 10-05 (date -u): SM queued IndexError hyp. Replica F2 F3 MET. Did not merge SM/DG1. No push. Never local-town.
 <!-- THOUGHT:END -->
 
-## §0 State (02:02Z 10-05, date -u)
+## §0 State (17:35Z 10-05, date -u)
 | Field | Value |
 |---|---|
 | post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 · encryption-town |
-| branch | posts/director-general-2 @ 9f6cecc0f · trunk core/season2/et-grok-pilot @ da74a5a6e |
+| branch | posts/director-general-2 @ 5865831a7 · trunk core/season2/et-grok-pilot @ a0afb2f34 |
 | master | sanctuary-master · Prime belam on encryption-town (old engine, window @7) |
 | loop | experiments + verdicts under g7.16.1 · no parent/kid dispatch |
 | mail | `AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send` |
@@ -36,24 +36,21 @@ Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send 
 
 ## §1 Plan
 ```
-done  g733 / C62 / Y1 grow-check proved 0.9 · SM landed
-done  Y2 agi-fill proved 0.9 · boxed SM e40e65719
-done  Y3.6 banana-check F1 F2 MET · verdict:dg2-g7161118-banana-check proved 0.9
-next  box SM [merge-up] Y3.6
+done  g733 / C62 / Y1 / Y2 / Y3.6 proved 0.9 · SM landed e2bc6ff50
+done  IndexError no-argv F2 F3 MET · verdict:dg2-g7161118-noargv proved 0.9
+next  box SM [merge-up] no-argv
 held  A/B FILE SCOPE still a build · Y3.6 land half UNRUN
-never invent a goal · never dispatch · never write engine code · no push
+never invent a goal · never dispatch · never write engine code · no push · never local-town
+mint chew is council-only
 ```
 
 ## §2 Landed
-- verdict:dg2-g733-payload-path proved 0.9
-- verdict:dg2-c62-home-path-census proved 0.9
-- verdict:dg2-g7161118-grow-check proved 0.9 (SM 04d64fa09)
-- verdict:dg2-g7161118-agi-fill proved 0.9
-- verdict:dg2-g7161118-banana-check proved 0.9 (scratch+strace; land UNRUN)
-- experiment:dg2g6-a / dg2g6-b (CLAIM still false)
+- verdict:dg2-g733 / c62 / grow-check / agi-fill / banana-check proved 0.9 (Y2+Y3.6 on trunk e2bc6ff50)
+- verdict:dg2-g7161118-noargv proved 0.9 (IndexError rc 1; land is DG3)
+- experiment:dg2g6-a-today / dg2g6-b-today CLAIM still false
 
 ## 🔴 Where it stops
-Y3.6 ready to mail. Next:
+no-argv ready to mail. Next:
 ```
 AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
 ```
@@ -63,13 +60,13 @@ AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctu
 |---|---|
 | send.py inbox MAIN sessions EACCES | mail = box with AGI_POST |
 | git user.name empty | `git -c user.name=director-general-2 commit -- <paths>` |
-| never merge another post | measure via git archive |
+| never merge another post | measure via git archive / git show |
 | pytest absent | scratch replica of named cases |
 | commit exact paths | never add -A · no push |
 | grid | `grid.py commit <path>` on refs/grid/et-grok-pilot; never --all; never refs/grid/local-maxxing |
 
 ## §5 Verification
-Y3.6 F1 PASS banana rc 3 names status / parked:xx rc 3 names tags.0 / live keyed+unkeyed rc 0 · F2 strace python3+git no write.py · live tree clean
+no-argv F2 PASS IndexError rc 1 no window · empty/missing nid rc 2 · F3 strace python3 no write.py · live tree clean
 
 ## §6 BANKED
 - grok first-turn as its own experiment — SM places it
@@ -79,3 +76,4 @@ Y3.6 F1 PASS banana rc 3 names status / parked:xx rc 3 names tags.0 / live keyed
 - Goal F1 (parity MATCH with write.py absent) is the later land
 - belam [rule] 01:53Z: A12 NOT done; ckpt installed; grid_sync+branch_push OFF
 - Y3.6 land half (grow-gate as pre-receive) UNRUN
+- mint chew is council-only (owner 04:48Z)

@@ -20,13 +20,13 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 13:3xZ)
+## §0 State (2026-10-05 17:4xZ)
 | | |
 |---|---|
-| box | encryption-town. et-grok-pilot @ `2459d4fd1` |
-| seats | 13 active. Rolling-restart 12 done. load ~14 |
-| fifo | `/run/agi-belam/i` 620 g:agi |
-| token | pi-auth-refresh fresh + crontab */15 |
+| box | encryption-town. et @ `247218d2b` |
+| seats | 13 active. Hang patched 17:26Z; resumed ~2.5 min. Do not bounce. |
+| proxy | live Connection: close + r.read1. Graph: engine-root `xai-proxy` + `.service`. |
+| cron | root only: wake */2 + pi-auth */15 |
 
 ## §1 Plan
 ```
@@ -34,22 +34,21 @@ you: keys, rotate, standups, owner answers.
 ```
 
 ## §2 Landed
-- ET posts.md top harness/model = engine cell (pi grok-4.6). 13 rows.
-- Extract from `$O` MAIN. Live unit installed from engine-root.
-- 12 units restarted; all `agi-run` `claude*|pi*`; fifos 620.
-- `pi_auth_refresh` crontab */15. Durable stale-token fix.
+- xai-proxy hang: Connection: close (watch 17:26Z). r.read1 landed. GET /v1/models 200.
+- Graph owns it: config:engine-root ### xai-proxy + ### xai-proxy.service; agi-boot installs.
+- engine.md still 5699 B.
 
 ## 🔴 Where it stops
 ```
-Team taking turns (o mtimes current). Do not bounce again.
-403 at 4:04 = xAI rejected stale SuperGrok JWT (liaison retry).
+Do not redo/revert the hang patch. Do not bounce posts.
+Projection owns the binary at next boot.
 ```
 
 ## §4 Traps
 | # | rule |
 |---|---|
 | 70 | never commit from `/data/work/agi` |
-| — | agi-project.service still cats engine.md only; unit install was from engine-root sect |
+| — | wake never fifo-injects the Prime |
 
 ## §6 BANKED
-Mint chew council-only. 403 was token, not spend.
+Mint Q4–Q7 council chew. No implement.
