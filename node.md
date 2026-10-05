@@ -16,37 +16,40 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-13:41Z 10-05 (date -u). Owner wake 04:48Z: zygote review + mint chew only. et e01d602ce 5699/38/fences-exact PROVED; 5 map-heading drifts; this tree 9532 uncopied. Mint chew: Theseus key = recursive row tree id. No implement. No merge et (would drop K2(a)). No push.
+20:31Z 10-05 (date -u). At the line 471519/1000000. Owner 20:30Z: council DESIGNS Phase W + messaging before season close; Prime does NOT build; skip agi-infer; no rollover --apply; no push. send.py MAIN PermissionError. Rotate: card, commit, touch ~/.fresh; kill $PPID.
 <!-- THOUGHT:END -->
 
-## §0 State (13:41Z 10-05, date -u)
+## §0 State (20:31Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
-| stage | zygote review landed · mint chew landed · K2(a) install still root |
+| meter | 471519/1000000 — at the line; rotate |
 | grid | `grid.storage_trunk` = `refs/grid/et-grok-pilot` · never `refs/grid/local-maxxing` |
 | mail | `AGI_POST=all-is-one box send\|read` · send.py MAIN PermissionError |
 | skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write (v4: Read/sect + Write + signed commit by path) |
 
 ## §1 Plan
 ```
-done  zygote review on et 5699/38/fences · mint chew Theseus=tree-id
-meas  et engine.md 5699 · this tree 9532 · 5 map≠heading
-      K2(a) three still here; et engine-root lacks them
-next  one line up (box belam + alive + SP)
-      wait SP mint + belam GO for K2(a) install
-      .8 HOLD: SM board
+done  zygote et 5699/38/fences PROVED · mint chew Theseus=tree-id
+      K3 proved · K2(a) no-root proved
+owner  skip agi-infer · no season.py rollover --apply · no push
+       council DESIGNS then DG/SM: Phase W UNHELD + messaging (g1.40, AA1)
+next  successor: design Phase W + messaging (hyp phase-w-and-messaging-…)
+      then season close: outcomes → bigger_outcomes → overviews
+      love overview is ours (alive minted faith 074c8487f)
 ```
 
 ## §2 Landed
-- verdict:aio-zygote-et-5699 proved 0.9 (Prime CLAIM on et)
+- verdict:aio-zygote-et-5699 proved 0.9 (et e01d602ce)
 - hypothesis:aio-mint-theseus-key-is-the-recursive-row-tree (chew)
-- K3 proved · K2(a) no-root proved (prior)
+- K3 proved · K2(a) no-root proved
+- box: belam 4083c94e6 · alive e39a65651 · SP 08051bce6 (zygote finding)
 
 ## 🔴 Where it stops
-K2(a) install + Z4.k = root. Council does not dispatch. No Prime. No et merge.
+At the line. Owner 20:30Z: council designs Phase W + messaging before season close. No implement mint. No agi-infer. No et merge (drops K2(a)). No Prime. No push.
 ```
-NEXT  box send (finding) then IDLE box read
+NEXT  successor reads this card · box read · design Phase W + AA1/g1.40
+THEN  touch ~/.fresh;kill $PPID  (this session, after this commit)
 ```
 
 ## §4 Traps
@@ -55,12 +58,13 @@ NEXT  box send (finding) then IDLE box read
 | MAIN shared | commit by exact path; agi-turn also commits |
 | send.py this uid | MAIN inbox/dm state PermissionError; use box |
 | grid | `grid.py commit <path>` → `refs/grid/et-grok-pilot`; NEVER local-maxxing |
-| et merge | et engine-root has no K2(a) three; do not merge to pick up 5699 |
-| grow-check | new nodes need `key:` = matrix nid |
+| et merge | et engine-root has no K2(a) three |
 | chew | mint hyp is not a land; no posts.md, no unit |
+| rollover | never `season.py rollover --apply` until SM.113/114 |
 
 ## §5 Verification
-et 5699 · map 38 · fences exact · this 9532 · grow-check ok on 4 new nodes
+et 5699 · map 38 · fences exact · this tree 9532 · storage_trunk et-grok-pilot
 
 ## §6 BANKED
 Shael Qs on mint chew hyp (via belam): tree-id vs mint_id+tree; lands:[]; PATH not bytes; remint vs re-sign.
+Owner 20:30Z hyp: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm (g7.16.1.11.15 + g1.40).
