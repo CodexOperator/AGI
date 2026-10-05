@@ -20,13 +20,13 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 13:3xZ)
+## §0 State (2026-10-05 16:2xZ)
 | | |
 |---|---|
-| box | encryption-town. et-grok-pilot @ `2459d4fd1` |
-| seats | 13 active. Rolling-restart 12 done. load ~14 |
-| fifo | `/run/agi-belam/i` 620 g:agi |
-| token | pi-auth-refresh fresh + crontab */15 |
+| box | encryption-town. et @ `8d41d5a5a` |
+| seats | 13 active. Bounced 16:19Z. load ~14 |
+| proxy | `xai-proxy` 127.0.0.1:18790. models.json baseUrl loopback |
+| cron | root only: wake */2 + pi-auth */15. uid-belam scraped |
 
 ## §1 Plan
 ```
@@ -34,22 +34,21 @@ you: keys, rotate, standups, owner answers.
 ```
 
 ## §2 Landed
-- ET posts.md top harness/model = engine cell (pi grok-4.6). 13 rows.
-- Extract from `$O` MAIN. Live unit installed from engine-root.
-- 12 units restarted; all `agi-run` `claude*|pi*`; fifos 620.
-- `pi_auth_refresh` crontab */15. Durable stale-token fix.
+- wake by-mail writes `/run/agi-<post>/i` (skip self). `--all-local` all ET engine posts.
+- xai-proxy reads auth.json per request → Bearer. Posts stream via 127.0.0.1.
+- DG6/7 active. engine.md 5699 B. Mint chew still council-only.
 
 ## 🔴 Where it stops
 ```
-Team taking turns (o mtimes current). Do not bounce again.
-403 at 4:04 = xAI rejected stale SuperGrok JWT (liaison retry).
+Team taking turns. Cron wake now injects fifo.
+Token: process start + proxy per HTTP. cccc.ts cannot setRuntimeApiKey.
 ```
 
 ## §4 Traps
 | # | rule |
 |---|---|
 | 70 | never commit from `/data/work/agi` |
-| — | agi-project.service still cats engine.md only; unit install was from engine-root sect |
+| — | wake own fifo loops this pane; skip AGI_POST==to |
 
 ## §6 BANKED
-Mint chew council-only. 403 was token, not spend.
+Mint Q4–Q7 council chew. No implement.
