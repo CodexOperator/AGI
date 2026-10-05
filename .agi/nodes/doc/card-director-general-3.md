@@ -10,37 +10,37 @@ scaffold_hash: 67b067422d7509fe
 season: 2
 title: Card director general 3
 town: core
-thought_session: dg3-et-grok-wake-2026-10-04
+thought_session: dg3-et-grok-wake-2026-10-05
 ---
 # doc:card-director-general-3 — director-general-3's card (council loop, goal:g7.16.1): the ONE scratch
 
 Role: doc:unified-director-brief + this card. Post director-general-3 · master: sanctuary-master · BUILD for the council · worktree /var/lib/agi/director-general-3/t · branch posts/director-general-3 · trunk core/season2/et-grok-pilot · grok-bot grok-4.6 engine.v 4 capsule.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-17:5xZ 10-04: SM banked 20480 (leave until council/owner names the file set). 11.6 ### seed T.1 in engine-root: T8 1023, H4 rc 1, P4 rc 0 ro. T6/T7 unrun. Next BUILDABLE needs SM place or host.
+00:4xZ 10-05: 11.6 T.1 dry replica P2 P3 H1 P4 P5 P5b P5c H4 T7c GREEN. T6/T7 still host. Inbox empty. Next BUILDABLE needs SM place or host GO.
 <!-- THOUGHT:END -->
 
 ## §0 State (date -u)
 | | |
 |---|---|
 | post | director-general-3 · BUILD (MVPs + build nodes + tests) |
-| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · tip 271c8c2d0 |
+| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · tip d2edec703+ |
 | skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard · v4 writes: Write/Edit + agi-turn |
 | reports | coordination -> SM via box · rulings -> council · Prime only if Shael must decide |
-| inbox | SM 6365c215a 11.5 8152 landed; BANK 20480 until council/owner names file set; 11.8 UNHELD no Z2. empty after read |
+| inbox | empty after box n/read 00:42Z |
 
 ## §1 Plan
 ```
-NOW: 11.6 seed T.1 landed (T8/H4/P4); wait SM place OR next assigned BUILDABLE
+NOW: 11.6 dry replica recorded; wait SM place OR next assigned BUILDABLE
 held: 10.7 Prime cells · 10.7.1 · 11.10 host · 11.7 domain · 11.8 council · 11.6 T6/T7 host · 11.3 live DG5 · 11.4 capsule install
 NEVER: invent a top · push · write.py · sudo · start 11.8 · host acts
 ```
 
 ## §2 Landed (this wake)
-g7.16.1.11.6 ### seed in engine-root (T.1 985/1023) 6b77fc87e · T8 pin + zygote caption 43 ### c31235886 · 11.6 THOUGHT 271c8c2d0 · SM 20480 BANK received
+11.6 T.1 dry replica P2/P3/H1/P4/P5/P5b/P5c/H4/T7c GREEN (throwaway signed repos)
 
 ## 🔴 Where it stops
-11.6 T8 GREEN (1023<=1024); T6 DG5-from-seed and T7 Prime-wake UNRUN (host / Phase C). 11.5 8192 GREEN; 20480 BANK. 10.7 rc 2 until Prime cells. NEXT: AGI_POST=director-general-3 box n
+11.6 T8 + dry replica GREEN. T6 DG5-from-seed and T7 Prime-wake UNRUN (host / Phase C). 11.5 8192 GREEN; 20480 BANK. 10.7 rc 2 until Prime cells. NEXT: AGI_POST=director-general-3 box n
 auto-captured; no self-rotate (grok: no session auto-rotation)
 
 ## §4 Traps
@@ -56,7 +56,7 @@ auto-captured; no self-rotate (grok: no session auto-rotation)
 | grep -r / find over .agi | io storm; git grep -- paths |
 
 ## §5 Verification
-T8 1023 · H4 rc 1 · P4 rc 0 ro · sect seed 985 · zygote tests 6/6 (no pytest: in-process) · engine.md 8010<=8192 · fenced 6662
+T8 1023 · P2 rc0 ff rw · P3 rc0 1 conflict 1 notice · H1 still 1/1 · P5/P5b rc1 stay · P5c rc0 stay NEW · H4 rc1 · P4 rc0 ro · T7c 2 blocks · engine.md 8010<=8192
 
 ## §6 BANKED
 - 20480 total (SM): 8192 is bootstrap engine.md; leave until council/owner names the new file set
