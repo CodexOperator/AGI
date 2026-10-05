@@ -5,7 +5,7 @@ type: config
 parents:
   - goal:g7.16.1.11.5
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: 649a07578115c7e3
 season: 2
 town: core
@@ -186,6 +186,18 @@ echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gat
 git update-ref $T $n $o
 ~~~
 
+### seed (1023 B)
+~~~
+#!/bin/sh
+cd ${AGI_ROOT:-.}||exit 1;b=$(git branch --show-current);g=$(git rev-parse --git-dir)||exit 1;i=.agi/sessions/inbox/belam.md;mkdir -p ${i%/*}
+m(){ printf -- "---\nts: %s\nfrom: seed\nto: belam\n\n%s\n" $(date -u +%FT%TZ) "$*">>$i;}
+e(){ git ls-tree --format="$1:%(path)" $1 .agi/nodes/.geometry/|grep /engine|git cat-file --batch --follow-symlinks|sed -n "/^### $2 /,/^##/{/^~~~/,/^~~~/{//!p}}";}
+x(){ e $1 matrix|awk '$1=="boot"&&$4!="sect"{print $4}'|while read v;do e $1 $v|sh -s ${AGI_OUT:-/run/systemd/system} $1;done;};x HEAD;echo '<the anchor: ONE allowed_signers line, 82 B>'>$g/s
+if timeout ${2:-60} git -c fetch.fsckObjects=1 fetch -q ${1:-origin} $b;then git -c gpg.ssh.allowedSignersFile=$g/s verify-commit FETCH_HEAD||exit 1
+git config agi.mode rw;h=$(git rev-parse HEAD);git merge -q --ff-only FETCH_HEAD||{ git update-ref refs/conflicts/$h FETCH_HEAD ''&&m "[conflict] $h";};x HEAD
+else git config agi.mode ro;m "[owner] first boot, local read-only. Hello";fi
+~~~
+
 ### xai-proxy (2006 B)
 ~~~py
 #!/usr/bin/env python3
@@ -269,7 +281,6 @@ User=root
 WantedBy=multi-user.target
 ~~~
 
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-10-05 via liaison: xai-proxy hang patched live (Connection: close). Land patched proxy + r.read1 into engine-root so projection owns it. agi-boot installs the binary and unit. Heading bytes = fence. Do not bounce posts.
+g7.16.1.11.6: ### seed kept (T.1 985/1023). Trunk: xai-proxy hang patched (Connection: close) + unit; agi-boot installs. Do not bounce posts.
 <!-- THOUGHT:END -->
