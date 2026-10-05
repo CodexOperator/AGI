@@ -539,16 +539,6 @@ excluded:
     reason: "library module: the cross-box migrate record kind; bare parser under __main__"
     side_effects: read
     proposable: false
-  ws_raw.py::
-    cli: ws_raw.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/ws_raw.py
-    args: []
-    reason: long-running websocket relay; manual argv, no argparse; never proposed
-    side_effects: spawn
-    proposable: false
   pi_edit_forgiveness.py::
     cli: pi_edit_forgiveness.py
     verb: ""
@@ -581,20 +571,6 @@ excluded:
     reason: one-time additive backfill; --write mints node frontmatter, operator-only
     side_effects: graph-write
     proposable: false
-  decompose-engine.py::
-    cli: decompose-engine.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/decompose-engine.py
-    args:
-      - {"name": "project", "type": "str", "required": false, "choices": []}
-      - {"name": "engine_root", "type": "str", "required": false, "choices": []}
-      - {"name": "goal_map", "type": "str", "required": false, "choices": []}
-      - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
-    reason: generates idea nodes from the engine tree and prunes stale ones; operator-only
-    side_effects: graph-write
-    proposable: false
   derive-commands.py::
     cli: derive-commands.py
     verb: ""
@@ -606,54 +582,6 @@ excluded:
       - {"name": "all", "type": "bool", "required": false, "choices": []}
       - {"name": "check", "type": "bool", "required": false, "choices": []}
     reason: rewrites marker-guarded prose files in the repo; operator-only
-    side_effects: graph-write
-    proposable: false
-  failures.py:ledger:
-    cli: failures.py
-    verb: ledger
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/failures.py
-      - ledger
-      - <root>
-    args:
-      - {"name": "root", "type": "str", "required": true, "choices": []}
-      - {"name": "since", "type": "str", "required": false, "choices": []}
-      - {"name": "out", "type": "str", "required": false, "choices": []}
-      - {"name": "write_node", "type": "str", "required": false, "choices": []}
-    reason: appends ledger rows on disk and can land a payload via --write-node; operator-only
-    side_effects: graph-write
-    proposable: false
-  failures.py:sensei:
-    cli: failures.py
-    verb: sensei
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/failures.py
-      - sensei
-      - <root>
-    args:
-      - {"name": "root", "type": "str", "required": true, "choices": []}
-      - {"name": "by", "type": "str", "required": false, "choices": ["role", "model", "harness", "agent_id"]}
-      - {"name": "in_path", "type": "str", "required": false, "choices": []}
-      - {"name": "out", "type": "str", "required": false, "choices": []}
-    reason: writes the derived rate table to disk; operator-only
-    side_effects: graph-write
-    proposable: false
-  glitch_master.py:format-record:
-    cli: glitch_master.py
-    verb: format-record
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/glitch_master.py
-      - format-record
-      - "--iter"
-      - <iter_data>
-    args:
-      - {"name": "iter_data", "type": "str", "required": true, "choices": []}
-      - {"name": "root", "type": "str", "required": false, "choices": []}
-      - {"name": "out", "type": "str", "required": false, "choices": []}
-    reason: reads workflow JSON on stdin and writes review/results.json; seat machinery, operator-only
     side_effects: graph-write
     proposable: false
   graphweb.py:serve:
@@ -684,17 +612,6 @@ excluded:
     reason: writes context/INJECTION.md; the writer half of the viewport seam, operator-only
     side_effects: graph-write
     proposable: false
-  lm_bench.py::
-    cli: lm_bench.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/lm_bench.py
-      - "--model"
-      - <model>
-    reason: runs llama-bench and spends local model compute; writes a benchmark JSONL row
-    side_effects: spend
-    proposable: false
   mail_alert.py::
     cli: mail_alert.py
     verb: ""
@@ -702,16 +619,6 @@ excluded:
       - python3
       - <engine>/extensions/agi/bin/mail_alert.py
     reason: stamps an alerted_at state record per seat+thread; hook-invoked side channel
-    side_effects: graph-write
-    proposable: false
-  plan_master.py:record-run:
-    cli: plan_master.py
-    verb: record-run
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/plan_master.py
-      - record-run
-    reason: appends a run line to the seat-local log
     side_effects: graph-write
     proposable: false
   stall_detect.py::
@@ -723,34 +630,6 @@ excluded:
       - <iter_dir>
     reason: "--record notes the stalled state on the agent.json record; detection-only"
     side_effects: graph-write
-    proposable: false
-  success_metrics.py::
-    cli: success_metrics.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/success_metrics.py
-    reason: writes the seven-metric recorded place by default; --json is the no-write path
-    side_effects: graph-write
-    proposable: false
-  telemetry_rollup.py::
-    cli: telemetry_rollup.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/telemetry_rollup.py
-      - <report_id>
-    reason: attaches summed telemetry to a report node via write.py; --dry-run only previews
-    side_effects: graph-write
-    proposable: false
-  ws_raw_client.py::
-    cli: ws_raw_client.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/ws_raw_client.py
-    reason: streams against a live model server and writes measurement rows
-    side_effects: network
     proposable: false
   verification.py::
     cli: verification.py
@@ -2744,22 +2623,6 @@ manifest:
     purpose: show the current handoff claims
     side_effects: read
     proposable: true
-  benchmark.py::
-    cli: benchmark.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/benchmark.py
-      - <chain_id>
-    args:
-      - {"name": "chain_id", "type": "str", "required": true, "choices": []}
-      - {"name": "model", "type": "str", "required": false, "choices": []}
-      - {"name": "timeout", "type": "str", "required": false, "choices": []}
-      - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
-    purpose: judge a chain with a local model
-    side_effects: spend
-    proposable: false
-    reason: spends model budget judging a chain; operator-only
   anonymize.py:check:
     cli: anonymize.py
     verb: check
@@ -2917,35 +2780,6 @@ manifest:
     purpose: read-only terminal view of the graph, built for a human
     side_effects: read
     proposable: true
-  drift_check.py::
-    cli: drift_check.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/drift_check.py
-    args:
-      - {"name": "start", "type": "str", "required": false, "choices": []}
-      - {"name": "engine_dir", "type": "str", "required": false, "choices": []}
-      - {"name": "strict", "type": "bool", "required": false, "choices": []}
-    purpose: compare the pinned engine_commit to the engine HEAD; warn, never block
-    side_effects: read
-    proposable: true
-  frontier.py:list:
-    cli: frontier.py
-    verb: list
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/frontier.py
-      - <cmd>
-    args:
-      - {"name": "cmd", "type": "str", "required": true, "choices": ["list"]}
-      - {"name": "nodes", "type": "str", "required": false, "choices": []}
-      - {"name": "count", "type": "bool", "required": false, "choices": []}
-      - {"name": "schemas", "type": "str", "required": false, "choices": []}
-      - {"name": "no_anchor", "type": "bool", "required": false, "choices": []}
-    purpose: print every active chain tip and the successor types its schema allows
-    side_effects: read
-    proposable: true
   grid_coverage_check.py::
     cli: grid_coverage_check.py
     verb: ""
@@ -2959,21 +2793,6 @@ manifest:
     purpose: every tracked engine file is inside the grid; exit nonzero on a remainder
     side_effects: read
     proposable: true
-  failures.py:rates:
-    cli: failures.py
-    verb: rates
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/failures.py
-      - rates
-      - <root>
-    args:
-      - {"name": "root", "type": "str", "required": true, "choices": []}
-      - {"name": "by", "type": "str", "required": true, "choices": ["model", "role", "harness"]}
-      - {"name": "in_path", "type": "str", "required": false, "choices": []}
-    purpose: per-axis failure counts from the ledger; exit 2 if they do not sum
-    side_effects: read
-    proposable: true
   payload_boundary.py::
     cli: payload_boundary.py
     verb: ""
@@ -2983,49 +2802,6 @@ manifest:
     args:
       - {"name": "repo", "type": "str", "required": false, "choices": []}
     purpose: classify every tracked engine file as a payload candidate (in) or out
-    side_effects: read
-    proposable: true
-  plan_master.py:trend:
-    cli: plan_master.py
-    verb: trend
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/plan_master.py
-      - trend
-    args:
-      - {"name": "last", "type": "str", "required": false, "choices": []}
-      - {"name": "tol", "type": "str", "required": false, "choices": []}
-      - {"name": "log", "type": "str", "required": false, "choices": []}
-    purpose: classify fixes_per_draft over the last N seat runs
-    side_effects: read
-    proposable: true
-  reconciler.py::
-    cli: reconciler.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/reconciler.py
-      - <iter_dir>
-    args:
-      - {"name": "iter_dir", "type": "str", "required": true, "choices": []}
-      - {"name": "style", "type": "str", "required": false, "choices": ["status", "ids"]}
-    purpose: derive an iteration agent records against the process table; repairs nothing
-    side_effects: read
-    proposable: true
-  rolslice.py::
-    cli: rolslice.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/rolslice.py
-    args:
-      - {"name": "role", "type": "str", "required": false, "choices": []}
-      - {"name": "tier", "type": "str", "required": false, "choices": []}
-      - {"name": "root", "type": "str", "required": false, "choices": []}
-      - {"name": "skill", "type": "str", "required": false, "choices": []}
-      - {"name": "measure", "type": "bool", "required": false, "choices": []}
-      - {"name": "all", "type": "bool", "required": false, "choices": []}
-    purpose: slice SKILL.md for one role from the machine-readable hierarchy
     side_effects: read
     proposable: true
   seat_status.py::
@@ -3062,61 +2838,6 @@ manifest:
     reason: runs the whole engine suite under the one-runner suite lock -- opt-in, never proposed
     side_effects: read
     proposable: false
-  council_report.py:add:
-    cli: council_report.py
-    verb: add
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/council_report.py
-      - add
-      - "--run"
-      - <run>
-      - "--args"
-      - <args>
-    args:
-      - {"name": "run", "type": "str", "required": true, "choices": []}
-      - {"name": "args", "type": "str", "required": true, "choices": []}
-      - {"name": "root", "type": "str", "required": false, "choices": []}
-    purpose: one report row per round, verify residues to owner leaves
-    side_effects: graph-write
-    proposable: false
-  reds.py:check:
-    cli: reds.py
-    verb: check
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/reds.py
-      - check
-      - <old>
-      - <new>
-    args:
-      - {"name": "old", "type": "str", "required": true, "choices": []}
-      - {"name": "new", "type": "str", "required": true, "choices": []}
-      - {"name": "root", "type": "str", "required": false, "choices": []}
-      - {"name": "repo", "type": "str", "required": false, "choices": []}
-    purpose: goal:g7.16.1.10.3 — a range's mechanical reds (secrets, node_deletion, broken_link) before any model; rc 1 = a RED, rc 2 = cannot answer
-    side_effects: read
-    proposable: false
-    reason: run by the merge gate over a landed range (goal:g7.16.1.10.7), never proposed at a seat
-  merge_gate.py:check:
-    cli: merge_gate.py
-    verb: check
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/merge_gate.py
-      - check
-      - <base>
-      - <tip>
-    args:
-      - {"name": "base", "type": "str", "required": true, "choices": []}
-      - {"name": "tip", "type": "str", "required": true, "choices": []}
-      - {"name": "prime_count", "type": "int", "required": false, "choices": []}
-      - {"name": "root", "type": "str", "required": false, "choices": []}
-      - {"name": "repo", "type": "str", "required": false, "choices": []}
-    purpose: "goal:g7.16.1.10.7 — ONE word from the council report before a merge: merge, or hold by name over a RED, an uncovered review-path commit or an unapproved budget row; rc 1 = hold, rc 2 = cannot answer"
-    side_effects: read
-    proposable: false
-    reason: run by the Prime's merge pass; NOT yet wired into the PASS -- the skill agi-merge-pass is restored to its merge-base (option A, corrective DH.DG3.65) and the wiring is its own leaf goal:g7.16.1.10.7.1, never proposed at a seat
 ordered:
   - verify
 placement:
@@ -3198,26 +2919,6 @@ placement:
     flag: "--season-parent"
   briefing.py:.root:
     kind: positional
-  frontier.py:list.cmd:
-    kind: positional
-  failures.py:ledger.root:
-    kind: positional
-  failures.py:rates.root:
-    kind: positional
-  failures.py:sensei.root:
-    kind: positional
-  failures.py:ledger.in_path:
-    kind: option
-    flag: "--in"
-  failures.py:rates.in_path:
-    kind: option
-    flag: "--in"
-  failures.py:sensei.in_path:
-    kind: option
-    flag: "--in"
-  glitch_master.py:format-record.iter_data:
-    kind: option
-    flag: "--iter"
   inject.py:.nodes_dir:
     kind: positional
   payload_boundary.py:.repo:

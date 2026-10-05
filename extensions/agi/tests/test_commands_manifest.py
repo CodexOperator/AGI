@@ -283,10 +283,7 @@ _LISTED_CLIS += [
 # EF.48 CLI GROUP B. Appended, like GROUP A, so sibling edits cannot collide.
 _LISTED_CLIS += [
     "sensei.py", "post_wire.py", "node_writer.py", "metrics.py",
-    "hierarchy.py", "handoff.py", "benchmark.py", "anonymize.py",
-    "council_report.py",   # DH.DG3.59: declared as `council_report.py:add` in
-                           # command:commands, not exempted from the survey
-    "merge_gate.py",       # DG3.60: declared as `merge_gate.py:check`
+    "hierarchy.py", "handoff.py", "anonymize.py",
 ]
 
 # EF.54 CLI GROUP C. Appended, like GROUP A/B, so sibling edits cannot collide.
@@ -296,7 +293,7 @@ _LISTED_CLIS += [
 _LISTED_CLIS += [
     "boxes.py", "branches.py", "completion.py", "mem_cap.py",
     "migrate_channel.py", "geometry_config.py", "spawn_gate.py", "towns.py",
-    "ws_raw.py", "pi_edit_forgiveness.py", "pi_trajectory.py",
+    "pi_edit_forgiveness.py", "pi_trajectory.py",
 ]
 
 # EF.54 CLI GROUP D. Appended, like GROUP C, so sibling edits cannot collide.
@@ -306,8 +303,7 @@ _LISTED_CLIS += [
 # argparse.
 _LISTED_CLIS += [
     "backfill-mint-ids.py", "briefing.py", "dashboard.py",
-    "decompose-engine.py", "derive-commands.py", "drift_check.py",
-    "failures.py", "frontier.py", "glitch_master.py", "graphweb.py",
+    "derive-commands.py", "graphweb.py",
     "grid_coverage_check.py", "inject.py",
 ]
 
@@ -315,10 +311,7 @@ _LISTED_CLIS += [
 # The 12 last engine CLIs whose parser is a plain module-level `main`; every
 # verb is declared or excluded BY NAME in `command:commands`.
 _LISTED_CLIS += [
-    "lm_bench.py", "mail_alert.py", "payload_boundary.py", "plan_master.py",
-    "reconciler.py", "rolslice.py", "seat_status.py", "stall_detect.py",
-    "success_metrics.py", "telemetry_rollup.py",
-    "ws_raw_client.py",
+    "mail_alert.py", "payload_boundary.py", "seat_status.py", "stall_detect.py",
 ]
 
 # EF.69 CLI GROUP F. Appended, like GROUP A-E, so sibling edits cannot collide.
@@ -335,10 +328,6 @@ _LISTED_CLIS += ["verification.py", "write_guard.py"]
 #: `command:commands` with that reason, never proposable.
 _LISTED_CLIS += ["memory_alarm.py"]
 
-#: `reds.py` (goal:g7.16.1.10.3): the merge gate's pre-model range check, declared
-#: as `reds.py:check` in `command:commands`, never proposable.
-_LISTED_CLIS += ["reds.py"]
-
 #: CLIs with NO argparse parser at all: `node_writer.py` is a library module
 #: with no `main`, `metrics.py` reads a manual argv, `pi_edit_forgiveness.py`
 #: and `pi_trajectory.py` parse argv by hand, and `ws_raw.py`'s `_parse_args`
@@ -350,7 +339,7 @@ _LISTED_CLIS += ["reds.py"]
 #: `SUBCOMMANDS` is the vocabulary the coverage test reads. `main` is never
 #: imported or run for these.
 _PARSERLESS_CLIS = {"node_writer.py", "metrics.py", "pi_edit_forgiveness.py",
-                    "pi_trajectory.py", "ws_raw.py", "write_guard.py"}
+                    "pi_trajectory.py", "write_guard.py"}
 
 
 def _declared_subcommands(cli: str) -> set[str] | None:
@@ -1120,20 +1109,7 @@ def test_drift_catches_a_declared_arity_the_cli_does_not_have(tmp_path):
 #: neither this map, `_LISTED_CLIS`, nor write.py fails
 #: `test_every_engine_cli_is_listed_write_py_or_named_outside` below.
 _OUTSIDE_CLIS = {
-    "analyze-chat-structure.py": "one-off transcript analysis, not an engine verb",
     "snapshot-build-site.py": "retired build-site generator; its inputs are gone and must not return",
-    "dm_address.py": "dm helper, not a commands.md choice-surface verb",
-    "dm_engine.py": "dm helper, not a commands.md choice-surface verb",
-    "dm_no_inbox.py": "dm helper, not a commands.md choice-surface verb",
-    "dm_nudge_gate.py": "dm helper, not a commands.md choice-surface verb",
-    "dm_read_version.py": "dm helper, not a commands.md choice-surface verb",
-    "dm_send_version.py": "dm helper, not a commands.md choice-surface verb",
-    "dm_sync_cron.py": "dm helper, not a commands.md choice-surface verb",
-    "kid_write_gate.py": "write gate helper, not a commands.md choice-surface verb",
-    "needs_rotate.py": "rotation helper, not a commands.md choice-surface verb",
-    "profile_sync.py": "profile helper, not a commands.md choice-surface verb",
-    "session_ingest.py": "session helper, not a commands.md choice-surface verb",
-    "spawn_refusal.py": "spawn helper, not a commands.md choice-surface verb",
 }
 
 

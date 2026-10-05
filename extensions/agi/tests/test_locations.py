@@ -590,13 +590,6 @@ def test_cli_missing_project_exits_nonzero(tmp_path, capsys):
 #: expression is carried as source, not as a callable, because these run in
 #: separate processes: varying cwd is the whole point and cwd is process state.
 CWD_RESOLVERS = {
-    "benchmark.py": (
-        # Refuses to load without `ollama`, which is not a test dependency. The
-        # stub goes in before the import so the resolver is reachable at all.
-        'sys.modules.setdefault("ollama", types.ModuleType("ollama"))\n'
-        "import benchmark\n"
-        "RESOLVED = benchmark._find_root()"
-    ),
     "cli.py": "import cli\nRESOLVED = cli._find_root()",
     "metrics.py": "import metrics\nRESOLVED = metrics._find_root(Path.cwd())",
     "post_wire.py": "import post_wire\nRESOLVED = post_wire._find_root()",
