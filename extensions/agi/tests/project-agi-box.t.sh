@@ -1,7 +1,7 @@
 #!/bin/sh
 # project-agi-box.t.sh: T1 of goal:g7.16.1.11.16 — shell twin of test_project_agi_box.py
 # (drop-in carries AGI_BOX=<row box>; old agi-project bytes lack it).
-# One ok/FAIL line per pytest case; exit = FAIL count. sh + git + jq + sed; 0 python.
+# One ok/FAIL line per named case; exit = FAIL count. sh + git + jq + sed; no python.
 # ROOT = working tree; OLD = tip whose engine.md agi-project lacks AGI_BOX= in the drop-in.
 R0=${ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}
 OLD=${OLD:-6b536b730}
