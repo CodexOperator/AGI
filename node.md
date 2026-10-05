@@ -20,19 +20,19 @@ tags:
   - aa1
   - mail
   - g7.16.1.11.11
-title: "G7.16.1.11.11.2: AA1 box KEEP as the living mail path; send.py retires after the last old-setup post moves"
+title: "G7.16.1.11.11.2: AA1 box KEEP as THE mail path; send.py MOVE never git rm; g1.40 FOLDS (flock SCRAP)"
 town: core
 ---
 # goal:g7.16.1.11.11.2
 
 ## Why this exists
-goal:g7.16.1.11.11 (AA1 boxes): SM [coord] 20:48Z 10-05 placed this nested leaf from hypothesis:aio-w-and-mail-one-living-path (AIO, trunk 703e7ad58). Parent already has AA1.M (goal:g7.16.1.11.11.1). AIO CLAIM: ONE living mail path = `box` (AA1 KEEP, 2005 B, 0 zygote); send.py stays old-setup only until those posts move; g1.40 flock on inbox RMW only while send.py still writes, never a second mail.
+goal:g7.16.1.11.11 (AA1 boxes): SM [coord] 20:48Z 10-05 placed this nested leaf from hypothesis:aio-w-and-mail-one-living-path (AIO, trunk 703e7ad58). Parent already has AA1.M (goal:g7.16.1.11.11.1). AIO CLAIM v1 had send.py KEEP-until-move + g1.40 flock. Owner 20:42Z (SM [coord] 20:56Z) superseded: send.py MOVE never git rm; AA1 box is THE mail; g1.40 FOLDS (refs no RMW, flock SCRAP).
 
 ## Target end-state
-- `box` KEEP (AA1 living mail). No new mail primitive beside it.
-- send.py KEEP until the last old-setup post is on v5, then retire (deprecate+move, never `git rm`).
+- `box` KEEP (AA1 THE mail). No new mail primitive beside it.
+- send.py MOVE (deprecate+move, never `git rm`) — owner 20:42Z; not KEEP-until-last-old-setup-moves.
 - A v4 post writes no `.agi/sessions/inbox`. Delivery is refs/box + refs/held.
-- g1.40 flock, if built, is a bandage on send.py inbox RMW only (copy `_foreign_memo_lock`), and closes when send.py retires. AA1 needs no flock (update-ref is the lock).
+- g1.40 FOLDS: refs have no RMW, so flock SCRAP. Do not copy `_foreign_memo_lock` onto inbox.
 - Host acts stay Prime GO, not this bundle.
 
 ## Invariants
@@ -45,11 +45,11 @@ goal:g7.16.1.11.11 (AA1 boxes): SM [coord] 20:48Z 10-05 placed this nested leaf 
 2. Negative: a v4 post's `box send` / `box read` path never opens send.py; `git grep -l send.py --` the v4 agi-run wake line prints 0.
 
 ## Out of scope
-goal:g7.16.1.11.15.1 (PHASE W) · goal:g7.16.1.11.11.1 (AA1.M already placed) · g1.40 flock build · host acts · agi-infer · season.py rollover --apply
+goal:g7.16.1.11.15.1 (PHASE W) · goal:g7.16.1.11.11.1 (AA1.M already placed) · host acts · agi-infer · season.py rollover --apply · g1.40 flock (SCRAP)
 
 ## Agent Notes
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-20:49Z 10-05 (date -u): SM [coord] mint nested leaf under goal:g7.16.1.11.11 from AIO W+mail design 703e7ad58. Chew only. No implement. No push.
+20:57Z 10-05 (date -u): SM [coord] residue re-cut. Owner 20:42Z: send.py MOVE never git rm; AA1 box is THE mail; g1.40 FOLDS, flock SCRAP. Chew only. No implement. No push.
 <!-- THOUGHT:END -->
