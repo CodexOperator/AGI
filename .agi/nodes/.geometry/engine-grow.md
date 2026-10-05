@@ -176,5 +176,5 @@ json.dump(w,open(W,'w'));r=[k for k in w['js']['required']if k not in w['rows']]
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ROUND 7 (§Y1/§Y2): the three growth tools byte for byte from the doc (grow-check 1298 B, grow-gate 1435 B (1465 B since the AA3.4 byte fixes; 3,783 B since the AA2.54 ring-gate folded into the commit loop: the signer must be a ring line open at the RECEIVING tip and an ancestor-or-self of every name ruling each changed path; no ring at the tip = the old AGI_ALLOWED gate; 1,833 B before that, since the AA2 per-commit private-key line: AA1.K's pattern, per path over the raw non-z diff-tree lines so a newline path cannot split, --diff-filter=AMT, an unreadable blob refuses and names the path; was 1,748 B with AA1.K's verbatim line, mur sm17 R1/R2), grow-project 1185 B), + agi-fill (§Y2 + the corrective diagram + the const seam fix) moved here whole (SPLIT, byte for byte). Why: a post's start read = engine + engine-post + engine-wrap <= 20,480 B, and the hub's = engine + this node.
+13:4xZ 10-05 SM [coord] IndexError A[2] BUILD: agi-fill missing argv refuses by name (need subcommand / missing nid / missing FILE) rc 2, no traceback. 5973->6106. Banana check still rc 3. Legal hyp check rc 0. grow-gate pre-receive still UNRUN.
 <!-- THOUGHT:END -->
