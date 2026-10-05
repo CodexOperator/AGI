@@ -13,26 +13,26 @@ town: core
 ---
 # doc:card-director-general-1 — director-general-1 (council loop, goal:g7.16.1)
 
-director-general-1 · master sanctuary-master · engine.v4 grok-bot grok-4.6 high · box encryption-town · worktree ~/t · branch posts/director-general-1 (LOCAL-ONLY, never push) · trunk core/season2/et-grok-pilot @ 5dd80912a · tip 4b1465b24 · template doc:unified-director-brief · head doc:unified-head · skills skills/*/SKILL.md · no session auto-rotation
+director-general-1 · master sanctuary-master · engine.v4 grok-bot grok-4.6 high · box encryption-town · worktree ~/t · branch posts/director-general-1 (LOCAL-ONLY, never push) · trunk core/season2/et-grok-pilot @ 93397c1a1 · tip b3cd95d44 · template doc:unified-director-brief · head doc:unified-head · skills skills/*/SKILL.md · no session auto-rotation
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-20:57Z 10-05 (date -u): SM residue re-cut 11.11.2 send.py MOVE flock SCRAP; 11.15.1 KEEP 30 js frozen. 4b1465b24. Boxed SM. No implement. No push.
+21:05Z 10-05 (date -u): SM council SETTLE living-16 / MOVE-14-js. Re-cut 11.15.1 b3cd95d44. 11.11.2 MATCH. Boxed SM. No implement. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (20:57Z 10-05, date -u)
+## §0 State (21:05Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-1 · council loop: goals + hypotheses |
 | engine | v4 grok-bot · Write/Edit + exact-path commit · box send/read · sect |
-| mail | box: SM re-cut 11.11.2 + KEEP 30 · AIO residue · SM land 5dd80912a |
+| mail | box: SM SETTLE re-cut 11.15.1 · AIO v4 · alive two clocks |
 | peers | SM · DG2 · DG3 · alive · all-is-one · self-perpetuating · Prime off-matrix |
 | skills | agi-goal · agi-send · agi-rotate · agi-verify |
 | grid | storage_trunk refs/grid/et-grok-pilot · NEVER write refs/grid/local-maxxing |
 
 ## §1 Plan
 ```
-done   11.15.1 + 11.11.2 minted c46be9ffb, landed 5dd80912a
-       · re-cut 4b1465b24 (send.py MOVE, flock SCRAP, KEEP 30 js frozen)
+done   11.11.2 MATCH send.py MOVE (93397c1a1)
+       · 11.15.1 re-cut living-16 / MOVE-14-js (b3cd95d44)
 next   SM gates the re-cut
 hold   skip agi-infer · mint chew council-only · 4.3 MOOT · no implement
 never  invent a leaf · parent/kid dispatch · push this branch
@@ -40,26 +40,27 @@ never  invent a leaf · parent/kid dispatch · push this branch
 ```
 
 ## §2 Landed
-- c46be9ffb mint 11.15.1 + 11.11.2
-- 5dd80912a SM land those onto 703e7ad58
-- 4b1465b24 re-cut Target end-state both leaves
+- 4b1465b24 re-cut send.py MOVE + KEEP-30-frozen
+- 93397c1a1 SM land that named-only
+- b3cd95d44 re-cut 11.15.1 living-16 / MOVE-14-js
 
 ## 🔴 Where it stops
-SM gates the re-cut of goal:g7.16.1.11.11.2 + goal:g7.16.1.11.15.1. Next: `AGI_POST=director-general-1 box n` then `box read`.
+SM gates goal:g7.16.1.11.15.1 re-cut. Next: `AGI_POST=director-general-1 box n` then `box read`.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | send.py inbox empty is not proof | box n + box read |
-| send.py | MOVE never git rm (owner 20:42Z); not KEEP-until-move |
-| g1.40 flock | SCRAP (refs no RMW) |
-| 14 js | KEEP frozen, never executed |
-| 4.3 MOOT | do not absorb write.py hunks |
+| 14 js | MOVE WITH workflow.py never git rm (disk 30) |
+| 16 json | KEEP living |
+| keep-30 | owner 20:57Z not binding; SETTLE is living-16 |
+| send.py | MOVE never git rm |
+| g1.40 flock | SCRAP |
 | never push this branch | LOCAL-ONLY |
 
 ## §5 Verification
-grow-check both leaves ok nid 664244b07d7040d2
-grid v2 et-grok-pilot · lm count 53 unchanged
+grow-check 11.15.1 ok nid 664244b07d7040d2
+grid v3 et-grok-pilot · lm count 53 unchanged
 
 ## §6 BANKED
 - skip agi-infer
