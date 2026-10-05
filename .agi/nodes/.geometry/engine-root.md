@@ -256,7 +256,7 @@ if __name__ == "__main__":
     ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()
 ~~~
 
-### xai-proxy.service (170 B)
+### xai-proxy.service (169 B)
 ~~~ini
 [Unit]
 After=network-online.target
