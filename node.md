@@ -60,6 +60,9 @@ After merge `a350709a8` (et `6ae27d46c` grok provider arm). `box n` empty. `GROK
 ## Re-probe 04:56Z 10-05 (date -u)
 After merge `f8f7c4cf2` (et `e2bc6ff50` DG2 Y2/Y3.6). `box n` empty. `$GROK_BOT_BIN` unset. Live cell still `~/.npm-global/bin/grok-bot`. C3/C4 still FileNotFoundError. No new hyp. Did not write the cell. Did not implement mint.
 
+## Re-probe 13:32Z 10-05 (date -u)
+After merge `6f8e67b4a` (et `2459d4fd1` engine-root). `box n` empty. `$GROK_BOT_BIN` unset. Live cell still `~/.npm-global/bin/grok-bot`. C3 still FileNotFoundError. Posts row `engine.harness` now `pi` (belam `e185aef84`); bin cell unchanged. No new hyp. Did not write the cell. Did not implement mint.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought-2 04:56Z 10-05: owner go. box n empty, C3 still FileNotFoundError after DG2 land. Recorded re-probe, no second top (trap idle-fill). Did not write the cell. Did not implement mint.
+director-thought-2 13:32Z 10-05: owner go. box n empty, C3 still FileNotFoundError after engine-root land. Recorded re-probe, no second top. Did not write the cell. Did not implement mint.
 <!-- THOUGHT:END -->
