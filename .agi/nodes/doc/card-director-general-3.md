@@ -17,30 +17,30 @@ thought_session: dg3-et-grok-wake-2026-10-05
 Role: doc:unified-director-brief + this card. Post director-general-3 · master: sanctuary-master · BUILD for the council · worktree /var/lib/agi/director-general-3/t · branch posts/director-general-3 · trunk core/season2/et-grok-pilot · grok-bot grok-4.6 engine.v 4 capsule.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-17:5xZ 10-05: SM landed A[2] 60d30a8dd replica PASS. Merged onto post branch d9281d70e. grow-gate pre-receive UNRUN. Next BUILDABLE needs SM place or host GO.
+21:3xZ 10-05: owner IMPLEMENT NOW (send.py MOVE + phase W). SM [coord]: idle; after DG2 verdicts BUILD 11.15.1 (MOVE workflow.py+note never git rm; RENAME agi-workflow->agi-spawn-chain; KEEP 16 json; MOVE 14 js WITH py). STANDARD LOOP. Wait verdict. Merged trunk 525cdce7c.
 <!-- THOUGHT:END -->
 
 ## §0 State (date -u)
 | | |
 |---|---|
 | post | director-general-3 · BUILD (MVPs + build nodes + tests) |
-| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · tip d9281d70e |
+| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · tip 525cdce7c |
 | skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard · v4 writes: Write/Edit + agi-turn |
 | reports | coordination -> SM via box · rulings -> council · Prime only if Shael must decide |
-| inbox | SM [merge-up] landed 60d30a8dd A[2] replica PASS. send.py empty |
+| inbox | owner IMPLEMENT NOW 21:34Z · SM idle until DG2 verdicts then BUILD 11.15.1 |
 
 ## §1 Plan
 ```
-NOW: A[2] landed; wait SM place OR next assigned BUILDABLE
-held: 10.7 Prime cells · 11.10 host · 11.7 domain · 11.8 council · 11.6 T6/T7 host · 11.3 live DG5 · 11.4 capsule · grow-gate pre-receive
-NEVER: invent a top · push · write.py · sudo · start 11.8 · host acts · refs/grid/local-maxxing · local-town · mint chew
+NOW: wait DG2 verdicts on 11.15.1 then BUILD (STANDARD LOOP)
+held: 11.15.1 until DG2 · 11.11.2 DG1 assigned · grow-gate pre-receive · 10.7 Prime cells · host acts
+NEVER: invent a top · push · write.py · sudo · git rm workflow.py · start 11.8 · host acts · refs/grid/local-maxxing · local-town · mint chew · agi-infer
 ```
 
 ## §2 Landed (this wake)
-A[2] BUILD landed 60d30a8dd replica PASS. Post branch merged d9281d70e.
+owner IMPLEMENT NOW consumed. SM place: idle wait DG2. Trunk merged. A[2] already closed.
 
 ## 🔴 Where it stops
-A[2] GREEN on trunk. grow-gate pre-receive UNRUN. NEXT: AGI_POST=director-general-3 box n
+WAIT DG2 verdicts then BUILD goal:g7.16.1.11.15.1. NEXT: AGI_POST=director-general-3 box n
 auto-captured; no self-rotate (grok: no session auto-rotation)
 
 ## §4 Traps
@@ -53,12 +53,12 @@ auto-captured; no self-rotate (grok: no session auto-rotation)
 | no push | SM lands; grid_sync + branch_push OFF |
 | mail | bin/box (signed refs); send.py MAIN PermissionError |
 | host acts | belam GO each |
-| no kid dispatch | AA2/AA3 unbuilt; build directly |
+| never git rm | workflow.py / js MOVE = deprecate+move |
 | never local-town | owner 04:48Z |
 | mint chew | council-only |
 
 ## §5 Verification
-SM replica PASS: no-args/open/check rc 2 named, IndexError 0 · banana rc 3 · legal rc 0 · engine.md 6967<=8192
+A[2] replica PASS on trunk 60d30a8dd · engine.md 6967<=8192 · workflows 16 json + 14 js · workflow.py 159516 live
 
 ## §6 BANKED
 - 20480 total (SM): 8192 is bootstrap engine.md; leave until council/owner names the new file set
