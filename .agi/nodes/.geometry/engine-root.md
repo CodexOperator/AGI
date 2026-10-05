@@ -34,7 +34,7 @@ ExecCondition=sh -c '[ ! -e .ssh/out-refused ]||[ .fresh -nt .ssh/out-refused ]|
 ExecStartPre=awk -F"[= ]" "/some/{exit $$3>40}" /proc/pressure/memory
 ExecStartPre=sh -c 'mkdir -p .ssh;[ -d t ]||[ -e .fresh ]||touch .fresh;[ .fresh -nt .ssh/id_ed25519 -a ! -f t/.agi/nodes/.geometry/ring ]&&rm -f .ssh/id_ed25519*;[ -f .ssh/id_ed25519 ]||ssh-keygen -qN "" -ted25519 -f.ssh/id_ed25519'
 ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i
-ExecStartPre=sh -c 'mkdir -p .ssh bin .claude hooks;git config --global safe.directory "*";[ -d t ]||{ git -C $O branch posts/%i $AGI_TRUNK;git -C $O worktree add -fq $PWD/t posts/%i;};for e in t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md;do for x in $(grep -o "^### [^ ]*" $e|cut -c5-);do sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}" $e>bin/$x;done;done;chmod +x bin/*;mv bin/gitconfig .gitconfig;mv bin/settings.json .claude;mkfifo -m620 %t/agi-%i/i;chgrp agi %t/agi-%i/i;[ -e o ]||install -m600 /dev/null o'
+ExecStartPre=sh -c 'mkdir -p .ssh bin .claude hooks;git config --global safe.directory "*";[ -d t ]||{ git -C $O branch posts/%i $AGI_TRUNK;git -C $O worktree add -fq $PWD/t posts/%i;};for e in $O/.agi/nodes/.geometry/engine.md $O/.agi/nodes/.geometry/engine-[pw]*.md;do for x in $(grep -o "^### [^ ]*" $e|cut -c5-);do sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}" $e>bin/$x;done;done;chmod +x bin/*;mv bin/gitconfig .gitconfig;mv bin/settings.json .claude;mkfifo -m620 %t/agi-%i/i;chgrp agi %t/agi-%i/i;[ -e o ]||install -m600 /dev/null o'
 ExecStartPre=sh -c 'ls bin/agi-out>/dev/null 2>&1&&exec agi-out;echo agi-out skipped, stale t>&2'
 ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i
 ExecStart=sh -c 'exec 3<>%t/agi-%i/i;exec script -qfaO$HOME/o -c agi-run <&3'
@@ -186,5 +186,5 @@ git update-ref $T $n $o
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-10-05 Q2: heading bytes follow the fence (1572). Inbox ACL on $PWD/.agi/sessions/inbox at boot.
+owner 2026-10-05 GO rolling-restart 12 units to pick up new agi-run. Extract was t/ (post branch, often behind). Now $O MAIN so every restart gets current engine-wrap. agi-boot inbox ACL already uses $PWD. No new piece.
 <!-- THOUGHT:END -->
