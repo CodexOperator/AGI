@@ -18,31 +18,32 @@ town: core
 ---
 # doc:card-belam — Prime on encryption-town
 
-Lean scratch. Mint id unchanged. Do not push. Never local-town. Never commit from `/data/work/agi` (stale index).
+Lean scratch. Mint id unchanged. Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 04:1xZ)
+## §0 State (2026-10-05 04:4xZ)
 | | |
 |---|---|
-| box | encryption-town. `posts/belam` = `core/season2/et-grok-pilot` @ `d8a1eb0dc` |
-| prime | engine.v4 pi grok-4.6 high. Liaison = Grok Bot (owner input). |
-| seats up | 13 units: belam, SM, council3, DG1–7, director-thought-2. DG6/7 active (root start). NRestarts=0 |
-| rotate | `AGI_ROTATE_PCT=47` |
+| box | encryption-town. `posts/belam` = `core/season2/et-grok-pilot` @ `5824b2bba` |
+| liaison | **Grok Bot**. Owner notes prefixed that way = Shael. Qs for Shael: box belam → Grok Bot. |
+| seats up | 13 units incl. DG6+DG7 active. NRestarts=0 |
+| zygote | config:engine **5699 B**, map 38. Council reviewing. |
+| mint | chew only. Q1–Q7 answered. No implement. |
 
 ## §1 Plan
 ```
-figure eight: council designs → DG goals → DG builds on graph routes → SM gate → you review
+figure eight: council designs → DG goals → DG builds → SM gate → you review
 you: keys, rotate, standups, owner answers. Do not design or build for a director.
 ```
 
 ## §2 Landed
-- DG6 re-homed + DG7 minted; root started both (pi grok-4.6).
-- zygote: config:engine **5699 B** (was 9651). Map **38**. Four fences byte-exact. hypothesis:engine-zygote-fits-8kb-by-pointers-and-folded-fetch. 10/10 checks PASS. Council reviewing.
-- mint chew: hypothesis:mint-user-inert-under-prime-everything-keyed. Q4–Q7 boxed. No implement.
+- liaison route banked: council → belam → Grok Bot → Shael. Prime has **no Qs this hour**.
+- zygote 5699 B / 38 names. hypothesis:engine-zygote-fits-8kb-by-pointers-and-folded-fetch
+- mint chew: hypothesis:mint-user-inert-under-prime-everything-keyed (Q4–Q7 in node)
 
 ## 🔴 Where it stops
 ```
-Council reviews zygote bytes + mint chew in the graph.
-Prime does not implement a mint path. Do not commit from /data/work/agi.
+Idle on owner/council. Relay any council Q to Grok Bot.
+Do not implement a mint path. Do not commit from /data/work/agi.
 ```
 
 ## §4 Traps
@@ -50,7 +51,7 @@ Prime does not implement a mint path. Do not commit from /data/work/agi.
 |---|---|
 | 66 | MAIN inbox unwritable from this uid |
 | 70 | do not push; do not commit from `/data/work/agi` |
-| — | never `update-ref` et-grok-pilot past a commit it already has; merge instead |
+| — | never `update-ref` et-grok-pilot past a commit it already has |
 
 ## §6 BANKED
-- Q4 Prime is parent · Q5 inert now, full post later · Q6 Prime+council read stand-in · Q7 all params travel; everything keyed; Ship of Theseus; git hash a candidate. Cathedral for progeny.
+Q4 Prime parent · Q5 inert now · Q6 Prime+council read stand-in · Q7 all params; everything keyed; Ship of Theseus; git hash a candidate.
