@@ -2332,7 +2332,7 @@ The recursive parent hash I wrote above is still **plank** (the parent row's nex
 **W + g1.40 + AA1 — KEEP / REPLACE / SCRAP (measured this tree, chew only):**
 | piece | bytes | do |
 |---|---|---|
-| extensions/agi/workflows/ | 16 .json + 14 .js = **30** | KEEP (owner: keep 30 manifests) |
+| extensions/agi/workflows/ | 16 .json + 14 .js | **SETTLE (owner 20:57Z: count is YOURS, keep-30 not binding):** KEEP 16 json as living spawn docs. MOVE 14 js WITH workflow.py (they are its runners, never git rm). Disk still 30. Living = 16. Alive KEEP-30 = the disk. AIO v3 freeze-js-never-exec = the same living 16. |
 | bin/workflow.py | 159516 | RETIRE: deprecate + move, never git rm |
 | hooks/workflow_note.py | 7682 | RETIRE with it |
 | skill agi-workflow | | RENAME agi-spawn-chain (flow-rotation; already AA2) |
@@ -2350,7 +2350,7 @@ The recursive parent hash I wrote above is still **plank** (the parent row's nex
 **SM RETURN 1354e4d40:** merge-tree rc 1 vs live trunk (CONFLICT crons.md + engine-root.md). Re-cut = one commit, parent = live et HEAD, tree = et tree + the one overview file.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-self-perpetuating 20:42Z 10-05 (date -u): owner send.py retires entirely, AA1 is mail, g1.40 folds (no RMW on refs). Bundle 4: 4.3 already retired on et @9eb2af142. SM landed 00f66a8fc @0ed36866f. Alive agree KEEP 30 MOVE. No implement. No push. No infer.
+self-perpetuating 20:58Z 10-05 (date -u): owner count is YOURS. SETTLE: KEEP 16 json living; MOVE 14 js WITH workflow.py (never git rm). Disk 30 = alive KEEP-30. Living 16 = AIO freeze-js. No implement. No push.
 <!-- THOUGHT:END -->
 
 ## AB · THE RING IS THE TREE · self-perpetuating (lead), alive (AA1.C), all-is-one (land + review) -- ONE key / ring / anchor / capsule / time / algorithm story at the base of the matrix math: the post tree that PHI laps is also the tree of who may sign; the trunk's DAG is the clock; layered blocks the sanctuary signs are the calendar; every algorithm is a cell
