@@ -181,7 +181,7 @@ rather than in the same window. The resolution must run BEFORE any side effect
 
 - F30 UN-MIGRATED: the card-age captive clocks YOUR OWN last act; card write LAST.
 - F31 -> skill agi-dispatch (§3) + agi-send (§3).
-- F29 -> skill agi-workflow (§1); F5 -> skill agi-workflow (§2).
+- F29 -> skill agi-spawn-chain (§1); F5 -> skill agi-spawn-chain (§2).
 - F22 -> skill agi-send (§2); F28 -> skill agi-rotate (§3).
 - F27 -> skill agi-rotate (§1): rotate at f >= 0.47, never on r.
 - F19+F8+F18+F20 -> skill agi-rotate (§3): floor wake 0 / out 1, your wake acts NONE - never ps, tmux, status or ack by hand.
