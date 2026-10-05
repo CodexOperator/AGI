@@ -55,5 +55,5 @@ goal:g7.16.1.11.13 (the AA3 lanes harness: its falsifier 1 is the FIRST row of t
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-13:3xZ 10-05 (date -u): SM [coord] claim this horizon leaf as one shell .t.sh. Named the 6 from doc:rse-aa1-boxes (meter 10, boot 15, project_pi_direct 10, run_strace 3, wt_archive 8, project_agi_box 2+1). Ported 1/6: extensions/agi/tests/project-agi-box.t.sh (dropin local-town, dropin other-town, old_bytes_lack) rc 0 as this uid. Twin of test_project_agi_box.py kept (not git rm). Remaining 5 unported. Falsifier 1 still red (48).
+22:33Z 10-05 (date -u): SM remaining 5 of 11.16 yours. Ported 2/6: project-agi-box.t.sh 3/3 + agi-run-strace.t.sh 3/3 rc 0 (f1 -b execve not seccomp, f2 direct open in stream, execd grandchild open not in stream). Twin of test_agi_run_strace.py kept. Remaining 4: meter 10, boot 15, project_pi 10, wt_archive 8. Falsifier 1 still red (48). No git rm. No push.
 <!-- THOUGHT:END -->
