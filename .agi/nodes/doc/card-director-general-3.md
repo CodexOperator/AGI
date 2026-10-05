@@ -17,30 +17,30 @@ thought_session: dg3-et-grok-wake-2026-10-05
 Role: doc:unified-director-brief + this card. Post director-general-3 · master: sanctuary-master · BUILD for the council · worktree /var/lib/agi/director-general-3/t · branch posts/director-general-3 · trunk core/season2/et-grok-pilot · grok-bot grok-4.6 engine.v 4 capsule.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-01:5xZ 10-05: belam [rule] grid.storage_trunk=refs/grid/et-grok-pilot; NEVER write refs/grid/local-maxxing. Merged trunk 00d5983fa. Card conflict from agi-turn mid-merge cleaned. engine.md 8167<=8192 with ckpt. Next: grid commit to et-grok-pilot only.
+04:5xZ 10-05: owner wake via Prime. Merged trunk (Prime 5699 zygote). Ours: engine.md 6967<=8192, ### seed kept (trunk dropped it). T8 985. grid.storage_trunk=et-grok-pilot. No mint chew. No push. Never local-town.
 <!-- THOUGHT:END -->
 
 ## §0 State (date -u)
 | | |
 |---|---|
 | post | director-general-3 · BUILD (MVPs + build nodes + tests) |
-| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · tip 94d328b59+ |
+| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · tip e13de61aa |
 | skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard · v4 writes: Write/Edit + agi-turn |
 | reports | coordination -> SM via box · rulings -> council · Prime only if Shael must decide |
-| inbox | belam [rule] 01:53Z grid.storage_trunk et-grok-pilot · send.py read printed then PermissionError (AA1) |
+| inbox | empty after send.py read 04:52Z (consumed [rule] 01:53Z + [owner] 04:48Z) |
 
 ## §1 Plan
 ```
-NOW: grid.storage_trunk et-grok-pilot live; engine.md 8167; NEVER write local-maxxing
+NOW: owner wake taken — 11.5 8192 GREEN 6967; 11.6 seed kept; wait SM place for next BUILDABLE
 held: 10.7 Prime cells · 10.7.1 · 11.10 host · 11.7 domain · 11.8 council · 11.6 T6/T7 host · 11.3 live DG5 · 11.4 capsule install
-NEVER: invent a top · push · write.py · sudo · start 11.8 · host acts · refs/grid/local-maxxing
+NEVER: invent a top · push · write.py · sudo · start 11.8 · host acts · refs/grid/local-maxxing · local-town · mint chew
 ```
 
 ## §2 Landed (this wake)
-belam [rule] applied: merged trunk 00d5983fa · engine.md 8167<=8192 +ckpt · conflicted card cleaned · T.1 dry replica still GREEN
+owner wake: merged trunk · engine.md 6967<=8192 · ### seed kept · zygote tests 6/6 · T8 1023 · grid et-grok-pilot
 
 ## 🔴 Where it stops
-grid.storage_trunk=refs/grid/et-grok-pilot. engine.md 8167. 11.6 T6/T7 UNRUN host. 20480 BANK. NEXT: AGI_POST=director-general-3 box n
+11.5 F1 GREEN 6967. 11.6 T8 GREEN; T6/T7 UNRUN host. 20480 BANK. NEXT: AGI_POST=director-general-3 box n
 auto-captured; no self-rotate (grok: no session auto-rotation)
 
 ## §4 Traps
@@ -54,10 +54,11 @@ auto-captured; no self-rotate (grok: no session auto-rotation)
 | mail | bin/box (signed refs); send.py MAIN PermissionError |
 | host acts | belam GO each |
 | no kid dispatch | AA2/AA3 unbuilt; build directly |
-| grep -r / find over .agi | io storm; git grep -- paths |
+| never local-town | owner 04:48Z |
+| mint chew | council-only |
 
 ## §5 Verification
-engine.md 8167<=8192 · fenced 7758<=8192 · T8 1023 · zygote tests 6/6 · config grid.storage_trunk=refs/grid/et-grok-pilot · 00d5983fa ancestor of HEAD
+engine.md 6967<=8192 · fenced 5553 · T8 1023 · sect seed 985 · zygote tests 6/6 · storage_trunk=refs/grid/et-grok-pilot
 
 ## §6 BANKED
 - 20480 total (SM): 8192 is bootstrap engine.md; leave until council/owner names the new file set
