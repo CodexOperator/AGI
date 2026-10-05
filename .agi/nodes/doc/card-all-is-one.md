@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-20:42Z 10-05 (date -u). Successor wake. Design landed: hypothesis:aio-w-and-mail-one-living-path. Dissent: MOVE 14 js with workflow.py (one living spawn path). Mail agrees box KEEP. No implement. No push.
+20:47Z 10-05 (date -u). Owner 20:42Z: send.py RETIRE; AA1 is THE mail; g1.40 FOLDS; 4.3 MOOT. Design v2 on aio-w-and-mail-one-living-path. No implement. No 4.3 deprecate here. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (20:42Z 10-05, date -u)
+## §0 State (20:47Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -31,10 +31,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done  zygote et 5699/38/fences PROVED · mint chew Theseus=tree-id
-      K3 proved · K2(a) no-root proved
-      W+mail DESIGN: aio-w-and-mail-one-living-path
-owner  skip agi-infer · no season.py rollover --apply · no push
-       council DESIGNS then DG/SM: Phase W UNHELD + messaging
+      W+mail DESIGN v2: send.py MOVE · g1.40 FOLDS · 4.3 already et
+owner  skip agi-infer · no rollover --apply · no push
+       finish send then season close (20:42Z)
 next  SM places leaves · DG inner loops · mur · land
       THEN season close: outcomes → bigger_outcomes → overviews
       love overview is ours (alive minted faith 074c8487f)
@@ -43,31 +42,33 @@ next  SM places leaves · DG inner loops · mur · land
 ## §2 Landed
 - verdict:aio-zygote-et-5699 proved 0.9 (et e01d602ce)
 - hypothesis:aio-mint-theseus-key-is-the-recursive-row-tree (chew)
-- hypothesis:aio-w-and-mail-one-living-path (design; dissent MOVE 14 js)
+- hypothesis:aio-w-and-mail-one-living-path v2 (owner 20:42Z fold)
 - K3 proved · K2(a) no-root proved
 
 ## 🔴 Where it stops
-W+mail design on this tree. SM places leaves. No implement. No agi-infer. No et merge. No Prime. No push.
+Owner 20:42Z folded into the design. SM places leaves. No implement. No 4.3 deprecate on this posts/. No flock. No push.
 ```
-NEXT  box SM/alive/SP the design id · wait SM leaves
-THEN  season close only after W+mail land
+NEXT  box SM/alive/SP v2 · wait SM leaves
+THEN  season close only after M1+W land
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN shared | commit by exact path; agi-turn also commits |
-| send.py this uid | MAIN inbox/dm state PermissionError; use box |
-| grid | `grid.py commit <path>` → `refs/grid/et-grok-pilot`; NEVER local-maxxing |
+| send.py this uid | MAIN PermissionError; use box; owner 20:42Z MOVE it |
+| grid | `grid.py commit <path>` → `refs/grid/et-grok-pilot` |
 | et merge | et engine-root has no K2(a) three |
-| chew | design hyp is not a land; no engine, no skill rename |
+| 4.3 | already retired et@9eb2af142; do not move it here |
+| flock | SCRAP — g1.40 folds into AA1 |
 | rollover | never `season.py rollover --apply` until SM.113/114 |
 | js | SP/alive KEEP-30-live; this lens MOVE 14 js with py |
 
 ## §5 Verification
-et 5699 · map 38 · fences exact · this tree 9532 · storage_trunk et-grok-pilot · manifests 30=16json+14js · box 2005 · workflow.py 159516 live
+et 5699 · map 38 · this tree 9532 · storage_trunk et-grok-pilot · manifests 30 · box 2005 · send.py 317096 live · 4.3 live here / retired et
 
 ## §6 BANKED
-Shael Qs on mint chew hyp (via belam): tree-id vs mint_id+tree; lands:[]; PATH not bytes; remint vs re-sign.
-Owner 20:30Z: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm (et, not copied).
-Dissent vs SP/alive: 14 js are the generated half — MOVE with workflow.py, not live beside json.
+Shael Qs on mint chew hyp (via belam).
+Owner 20:42Z: finish send then season close. AA1 replaces send.py. 4.3 MOOT close bundle 4.
+Dissent vs SP/alive: 14 js MOVE with workflow.py.
+W3 g4.18.7 remaining write/render of bundle 4.
