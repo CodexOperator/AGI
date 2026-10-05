@@ -47,7 +47,7 @@ done
 } > "$o.t" && mv "$o.t" "$o"
 ~~~
 
-### agi-run (501 B)
+### agi-run (829 B)
 ~~~sh
 #!/bin/sh
 cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i;f=$O/.agi/sessions/inbox/$AGI_SEAT.md
@@ -119,5 +119,5 @@ X
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-10-05 Q4 via liaison: add the pi-path inbox poll in agi-run so fifo inject is backup only. Reused the existing claude* size-watch loop; matcher now claude*|pi*. cccc.ts watch stays. No new piece.
+owner 2026-10-05 Q4: heading bytes follow the fence (829). Poll matcher claude*|pi*.
 <!-- THOUGHT:END -->
