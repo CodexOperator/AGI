@@ -76,14 +76,14 @@ def test_zygote_script_headings_still_in_engine_md():
     assert set(ZYGOTE_SCRIPTS) <= have
 
 
-def test_map_still_names_38_pieces_and_grow_gate_bytes_parse():
+def test_map_still_names_39_pieces_and_grow_gate_bytes_parse():
     text = ENGINE.read_text()
     names = _map_names(text)
-    assert len(names) == 38
+    assert len(names) == 39
     assert names[0] == "agi-post@.service"
     assert "grow-gate" in names
     m = re.search(r"^grow-gate *([0-9]*) B", text, re.M)
-    assert m and int(m.group(1)) == 6335
+    assert m and int(m.group(1)) == 7088
 
 
 SEED_PLACEHOLDER = "<the anchor: ONE allowed_signers line, 82 B>"

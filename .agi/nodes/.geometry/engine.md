@@ -10,7 +10,7 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 39 pieces (43 `###` in engine*.md; 5 unmapped: boot, boot.service, agi-sync, matrix, seed)
+# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 39 pieces (44 `###` in engine*.md; 5 unmapped: boot, boot.service, agi-sync, matrix, seed)
 Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
@@ -38,45 +38,45 @@ Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.ge
 
 ## pieces — depth 1, one line each (bytes on disk)
 ~~~
-agi-post@.service 1801 B  a post = one unit in agi.slice: own uid, tree, key, pane
-agi-run           501 B  pane cmd: .fresh or -c, under strace; claude: mail -> i
-settings.json      342 B  the ONE hook wiring: brief, meter, turn commit
-cccc.ts           1647 B  pi events -> those CC hooks; inbox growth -> a turn
-agi-kid           2037 B  a pi-free kid in this unit: own HOME, tree, cccc.ts
-agi-infer          1077 B  ONE chat call, OpenAI-compatible: stdin -> stdout
-agi-brief          938 B  walk card+seeds+claims; record; STARTUP
-brief.py           810 B  the complex walk over parents: edges
-agi-meter          439 B  past rotate_pct of the window: the out-line
-agi-turn           269 B  drop released trees; signed commit; agi-link
-agi-link           358 B  node <-> code file via payload_ref
-agi-wt             688 B  a node's tiny RAM tree: pull; drop = commit+purge
-agi-track           89 B  strace sink: each path once
-agi-flush          181 B  on exit: drop trees, commit, merge trunk
-agi-out           3120 B  the out-line: next keys, ONE ring commit, re-wrap, swap
-gitconfig          198 B  signed commits, verified against the root-owned allowed_signers, own hooks
-sysusers.conf       41 B  a post = one user in group agi
-agi.rules          211 B  group agi may start agi-post@ units
-project.sh         161 B  what the body SHOULD be
-observe.sh         255 B  what the body IS
-tick.sh            254 B  diff them; start the drift; commit
-agi-project       1841 B  the genome: units + cells for v4 rows
-agi-frontier       460 B  each active goal runs its falsifier
-agi-gate           404 B  refuse a tip whose body would not regrow; one name, one piece
-sect               214 B  ONE piece of any engine*.md node, byte-exact, any REV
-agi-fill          5973 B  a node key opens a captive fill window
-agi-captive        576 B  window open: only agi-fill passes
-grow-check        1298 B  one node vs its matrix row + key
-grow-gate         7088 B  pre-receive: added/changed nodes must pass
-ckpt              3444 B  a block = signed hand-offs at one tip; check lists those that hold
-grow-project      1185 B  schemas -> the growth matrix
-agi-land          1855 B  root: ff-lands a post range on the trunk, one parent edge up (ring-signed, grow-gate, agi-gate)
-box               2005 B  mail: one signed ref update per send (5x CAS), read from the store
-box-carry         3246 B  root: P's refs/box/P/<Q> -> the recipient's store (pipe, ff-only) or the hub; --fetch = the timer
-agi-signers       1727 B  root: the ONE allowed_signers, every key generation, valid-after/before; one strict key line
-agi-carry@.path     149 B  PathChanged on the sender's own refs/box/<P> (a unit on refs/box fires only on the first send)
-agi-carry@.service  287 B  oneshot: box-carry %i
-agi-carry-fetch.timer   88 B  every 60 s: carry each local post, then the hub      
-agi-carry-fetch.service 229 B  oneshot: box-carry --fetch
+agi-post@.service 1801 B  unit: uid, tree, key, pane
+agi-run           501 B  pane: .fresh or -c + strace
+settings.json      342 B  hooks: brief, meter, turn
+cccc.ts           1647 B  pi events -> CC hooks
+agi-kid           2037 B  pi-free kid in this unit
+agi-infer          1077 B  one OpenAI-compat chat call
+agi-brief          938 B  card+seeds+claims STARTUP
+brief.py           810 B  parent-edge walk
+agi-meter          439 B  rotate_pct out-line
+agi-turn           269 B  drop trees; signed commit
+agi-link           358 B  node <-> payload_ref
+agi-wt             688 B  per-node RAM tree
+agi-track           89 B  strace sink, path once
+agi-flush          181 B  exit: drop, commit, merge
+agi-out           3120 B  out-line keys + ring wrap
+gitconfig          198 B  signed commits + signers
+sysusers.conf       41 B  post user in group agi
+agi.rules          211 B  group agi starts units
+project.sh         161 B  body SHOULD
+observe.sh         255 B  body IS
+tick.sh            254 B  diff; start; commit
+agi-project       1841 B  genome: v4 units+cells
+agi-frontier       460 B  each goal's falsifier
+agi-gate           404 B  refuse a tip that would not regrow
+sect               214 B  one piece @REV, any engine*.md
+agi-fill          5973 B  captive fill window
+agi-captive        576 B  only agi-fill while open
+grow-check        1298 B  node vs matrix row+key
+grow-gate         7088 B  pre-receive ratchet
+ckpt              3444 B  signed hand-offs at one tip
+grow-project      1185 B  schemas -> matrix
+agi-land          1855 B  root ff-land, one parent up
+box               2005 B  signed ref mail, 5x CAS
+box-carry         3246 B  root: P refs -> store or hub
+agi-signers       1727 B  ONE allowed_signers
+agi-carry@.path     149 B  PathChanged refs/box/<P>
+agi-carry@.service  287 B  oneshot box-carry %i
+agi-carry-fetch.timer   88 B  60s carry local then hub
+agi-carry-fetch.service 229 B  oneshot box-carry --fetch
 ~~~
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
@@ -115,5 +115,5 @@ post	brief	card-<p>	brief
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-g7.16.1.11.6: seed is a ### in engine-root (T.1, expansion). Caption 42->43 unmapped (+seed). Zygote whole still <=8192; fenced unchanged. Merge trunk 00d5983fa storage_trunk=et-grok-pilot.
+01:5xZ 10-05: merged trunk 00d5983fa (storage_trunk=refs/grid/et-grok-pilot). Map +ckpt (39). Short descriptions restored so whole <=8192. NEVER write refs/grid/local-maxxing from this checkout.
 <!-- THOUGHT:END -->
