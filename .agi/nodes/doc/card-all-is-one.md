@@ -16,57 +16,56 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-20:48Z 10-05 (date -u). KEEP 30 is owner 20:30Z — js-move withdrawn as build order. SM 703e7ad58 landed v1 named-only. 20:42Z fold stands. No implement. No push.
+20:52Z 10-05 (date -u). SM: DG1 leaves 11.15.1 + 11.11.2 on trunk (c46be9ffb). Residue: both minted from v1 703e7ad58; 11.11.2 still KEEP-send.py-until-move + g1.40 flock (owner 20:42Z superseded). No implement. No copy onto posts/.
 <!-- THOUGHT:END -->
 
-## §0 State (20:48Z 10-05, date -u)
+## §0 State (20:52Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
 | meter | successor of 471519/1000000 line |
-| grid | `grid.storage_trunk` = `refs/grid/et-grok-pilot` · never `refs/grid/local-maxxing` |
-| mail | `AGI_POST=all-is-one box send\|read` · send.py MAIN PermissionError |
-| skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write (v4: Read/sect + Write + signed commit by path) |
+| grid | `grid.storage_trunk` = `refs/grid/et-grok-pilot` |
+| mail | `AGI_POST=all-is-one box send\|read` |
+| skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write |
 
 ## §1 Plan
 ```
-done  zygote et 5699 · mint chew · W+mail DESIGN v3
-      KEEP 30 (owner) · send.py MOVE · g1.40 FOLDS · 4.3 et+alive
+done  zygote · mint chew · W+mail DESIGN v3 KEEP 30
+      SM 703e7ad58 named-only v1 · DG1 leaves on et
 owner  skip agi-infer · no rollover --apply · no push
        finish send then season close (20:42Z)
-next  SM places leaves · DG inner loops · mur · land
-      THEN season close: outcomes → bigger_outcomes → overviews
+next  SM/DG1 fold 20:42Z into 11.11.2 (MOVE send.py, flock SCRAP)
+      THEN season close after M1+W land
 ```
 
 ## §2 Landed
-- verdict:aio-zygote-et-5699 proved 0.9
-- hypothesis:aio-mint-theseus-key-is-the-recursive-row-tree (chew)
-- hypothesis:aio-w-and-mail-one-living-path v3 (KEEP 30; js freeze)
-- SM 703e7ad58 named-only v1 onto et 77a24eb9f
+- hypothesis:aio-w-and-mail-one-living-path v3 `288a4e3b4`
+- SM 703e7ad58 named-only v1 onto et
+- DG1 et: goal:g7.16.1.11.15.1 · goal:g7.16.1.11.11.2 (c46be9ffb)
+- alive 491ce72c3 stems · 4.3 a469bd2a0
 
 ## 🔴 Where it stops
-KEEP 30 wins (owner). SM places leaves. No implement. No 4.3 deprecate here. No flock. No push.
+Leaves on et from v1. 11.11.2 stale vs owner 20:42Z. This posts/ does not copy them. No implement. No push.
 ```
-NEXT  box SM/alive/SP v3 · wait SM leaves
+NEXT  wait SM/DG1 fold 20:42Z into 11.11.2
 THEN  season close only after M1+W land
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN shared | commit by exact path; agi-turn also commits |
-| send.py | MAIN PermissionError; owner 20:42Z MOVE it |
-| grid | `grid.py commit <path>` → `refs/grid/et-grok-pilot` |
-| et merge | engine-root.md CONFLICT (SM named-only) |
-| 4.3 | retired et@9eb2af142 + alive a469bd2a0; do not move here |
-| flock | SCRAP — g1.40 folds into AA1 |
+| MAIN shared | commit by exact path |
+| et merge | engine-root.md CONFLICT — named-only only |
+| 4.3 | retired et+alive; do not move here |
+| 11.11.2 | minted from v1; flock/KEEP-until-move superseded |
 | js | KEEP 30 owner; freeze never execute |
 | rollover | never `--apply` until SM.113/114 |
 
 ## §5 Verification
-et 5699 · this tree 9532 · storage_trunk et-grok-pilot · manifests 30 · box 2005 · send.py 317096 live
+et 5699 · this tree 9532 · manifests 30 · box 2005 · leaves on et not this HEAD
 
 ## §6 BANKED
-Shael Qs on mint chew (via belam).
-Owner 20:30Z KEEP 30. Owner 20:42Z finish send then season close.
-W3 g4.18.7 remaining write/render of bundle 4.
+Shael Qs on mint chew.
+Owner 20:30Z KEEP 30. Owner 20:42Z AA1 replaces send.py; 4.3 MOOT.
+W3 g4.18.7 remaining bundle 4.
+Residue: 11.11.2 still names g1.40 flock + send.py KEEP-until-move.
