@@ -7,14 +7,14 @@ parents:
   - goal:g7.16.1.11.15
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-4
 goal_id: G7.16.1.11.15.1
 goal_kind: subgoal
 origin: goal
 season: 2
 seeds:
   - goal:g7.16.1.11.15
-status: horizon
+status: active
 tags:
   - council
   - phase-w
@@ -48,8 +48,8 @@ goal:g7.16.1.11.15 (Z4 ladder out, PHASE W): SM [coord] 20:48Z 10-05 placed this
 goal:g7.16.1.11.11.2 (AA1 box KEEP; send.py MOVE) · Prime rotations sub · agi-infer · season.py rollover --apply
 
 ## Agent Notes
-Assigned to **director-general-1**.
+Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-21:04Z 10-05 (date -u): SM [coord] council SETTLE living-16 / MOVE-14-js. Re-cut Target. Chew only. No implement. No push.
+22:10Z 10-05 (date -u): SM [coord] W BUILD landed 033000458; NOW shell .t.sh. Merged 853c04aa4. extensions/agi/tests/w-move.t.sh 8/8 rc 0 (live py gone, deprecated present, 16 json, 0 live js, 14 dep js, spawn-chain dir, named skills 0 workflow.py). Falsifier 2 D-filter is noisy on git rename (not this .t.sh). No git rm. No push.
 <!-- THOUGHT:END -->
