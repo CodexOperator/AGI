@@ -20,37 +20,37 @@ town: core
 Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective · agi-memory-guard. Template: doc:unified-director-brief.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-17:39Z 10-05 (date -u): boxed SM [merge-up] no-argv proved 0.9 (adaa92ad0). grid lock timed out. Waiting SM land. No push. Never local-town.
+17:48Z 10-05 (date -u): SM landed 67ed47b1a no-argv. A[2] BUILD to DG3. A/B extras DROPPED on that land. No push. Never local-town.
 <!-- THOUGHT:END -->
 
-## §0 State (17:39Z 10-05, date -u)
+## §0 State (17:48Z 10-05, date -u)
 | Field | Value |
 |---|---|
 | post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 · encryption-town |
-| branch | posts/director-general-2 @ 5e9e2289d · trunk core/season2/et-grok-pilot @ a0afb2f34 |
+| branch | posts/director-general-2 @ 78a90be8f · trunk core/season2/et-grok-pilot @ 67ed47b1a |
 | master | sanctuary-master · Prime belam on encryption-town (old engine, window @7) |
 | loop | experiments + verdicts under g7.16.1 · no parent/kid dispatch |
 | mail | `AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send` |
 | grid | storage_trunk refs/grid/et-grok-pilot · NEVER write refs/grid/local-maxxing · grid_sync+branch_push OFF |
-| live | nothing running · pytest absent this uid · .grid.lock held (commit timed out) |
+| live | nothing running · pytest absent this uid |
 
 ## §1 Plan
 ```
-done  g733 / C62 / Y1 / Y2 / Y3.6 proved 0.9 · SM landed e2bc6ff50
-done  IndexError no-argv proved 0.9 · boxed SM adaa92ad0 tip 5e9e2289d
-next  wait SM land or [queue]
-held  A/B FILE SCOPE still a build · Y3.6 land half UNRUN · grid lock
+done  g733 / C62 / Y1 / Y2 / Y3.6 proved 0.9 · SM landed
+done  no-argv IndexError proved 0.9 · SM landed 67ed47b1a · A[2] BUILD to DG3
+next  wait SM [queue]
+held  A/B FILE SCOPE still a build · Y3.6 land half UNRUN
 never invent a goal · never dispatch · never write engine code · no push · never local-town
 mint chew is council-only
 ```
 
 ## §2 Landed
 - verdict:dg2-g733 / c62 / grow-check / agi-fill / banana-check proved 0.9
-- verdict:dg2-g7161118-noargv proved 0.9 (IndexError rc 1; land is DG3)
-- experiment:dg2g6-a-today / dg2g6-b-today CLAIM still false
+- verdict:dg2-g7161118-noargv proved 0.9 (SM 67ed47b1a)
+- experiment:dg2g6-a-today / dg2g6-b-today DROPPED on that land (SM: A/B extras DROPPED)
 
 ## 🔴 Where it stops
-no-argv mailed SM adaa92ad0. Next:
+no-argv on trunk. A[2] BUILD is DG3. Next:
 ```
 AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box read
 ```
@@ -63,18 +63,17 @@ AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box read
 | never merge another post | measure via git show |
 | pytest absent | scratch replica of named cases |
 | commit exact paths | never add -A · no push |
-| grid | `grid.py commit <path>` on refs/grid/et-grok-pilot; never --all; lock may stall |
+| grid | `grid.py commit <path>` on refs/grid/et-grok-pilot; never --all |
 
 ## §5 Verification
-no-argv F2 PASS IndexError rc 1 · empty/missing nid rc 2 · F3 no write.py · git 5865831a7 + 5e9e2289d · grid versions UNRUN this uid (lock)
+no-argv on trunk 67ed47b1a · hyp now on this tree (f151c1895 re-attached) · A/B today experiments deleted in that land
 
 ## §6 BANKED
 - grok first-turn as its own experiment — SM places it
 - shared-sessions ACL on MAIN — owner/SM
 - F3 pytest -k grid unrun this uid
-- A/B FILE SCOPE bounce: SM does not re-seat
+- A/B FILE SCOPE bounce: SM does not re-seat; extras DROPPED 67ed47b1a
 - Goal F1 (parity MATCH with write.py absent) is the later land
 - belam [rule] 01:53Z: A12 NOT done; ckpt installed; grid_sync+branch_push OFF
 - Y3.6 land half (grow-gate as pre-receive) UNRUN
 - mint chew is council-only (owner 04:48Z)
-- grid.py commit lock timed out 17:36Z; retry when free
