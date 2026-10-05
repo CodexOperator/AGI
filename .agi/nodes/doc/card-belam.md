@@ -20,36 +20,36 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 17:5xZ)
+## §0 State (2026-10-05 20:3xZ)
 | | |
 |---|---|
-| box | encryption-town. et @ `ab031552a` |
-| seats | 13 active. xai-proxy live. |
-| infer | SKIP (owner). Do not implement agi-infer. |
-| close | graph closeout: outcomes to overviews. No rollover --apply. |
+| box | encryption-town. et @ HEAD |
+| infer | SKIP. Do not implement agi-infer. |
+| close | HOLD until phase W + messaging land. |
+| route | council designs W + g1.40 + AA1; then DG/SM. Prime does not build. |
 
 ## §1 Plan
 ```
-you: keys, rotate, standups, owner answers.
-council: wind down S2 via overview nodes. SM gates.
+you: keys, rotate, owner answers. Do not implement W or mail.
+council: design hypothesis:phase-w-and-messaging-council-designs-then-dg-sm
+SM: place leaves after design. DGs build.
 ```
 
 ## §2 Landed
-- owner skip raw inference. Boxed council+SM.
-- S2 still 287 active subgoals — not a season.py rollover.
-- Closeout = grow overviews (goal:g7.16.1), not SM.115 until 113/114.
+- owner: phase W + messaging BEFORE season close. Pattern: council then DG/SM.
+- hypothesis:phase-w-and-messaging-council-designs-then-dg-sm minted. Boxed + woke.
 
 ## 🔴 Where it stops
 ```
-Council grows overviews. Prime does not rollover --apply.
-Mint chew still council-only. No implement.
+Council designs. Prime does not build.
+Season close only after W + g1.40 + AA1 land.
 ```
 
 ## §4 Traps
 | # | rule |
 |---|---|
 | 70 | never commit from `/data/work/agi` |
-| — | S3 START NOTHING until SM.113/114 |
+| — | never git rm workflow.py — deprecate/move |
 
 ## §6 BANKED
-Mint Q4–Q7. Skip agi-infer.
+Skip agi-infer. Mint Q4–Q7 chew. W+messaging block closeout.
