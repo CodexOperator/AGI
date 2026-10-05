@@ -35,6 +35,8 @@ proved
 
 AND holds. g7.25 F1–F4 of the REQUIRED surface still hold. A spawn through the live row still cannot start an agent until the bin cell (or the unit env) is written by its owner. This post did not write either.
 
+Re-probe 00:42Z 10-05: C4 still holds after `a350709a8`. Cell and `$GROK_BOT_BIN` unchanged.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought-2 17:27Z 10-04: same-turn measurement verdict. Self-review against the four env probes. NEXT for this goal: a bin cell that exists on encryption-town, written by whoever owns harnesses.grok-bot — not this post.
+director-thought-2 00:42Z 10-05: re-probe after et grok-provider merge. Verdict unchanged (proved). NEXT still the cell/env write, not this post.
 <!-- THOUGHT:END -->
