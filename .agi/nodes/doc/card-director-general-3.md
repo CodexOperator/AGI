@@ -17,30 +17,30 @@ thought_session: dg3-et-grok-wake-2026-10-05
 Role: doc:unified-director-brief + this card. Post director-general-3 · master: sanctuary-master · BUILD for the council · worktree /var/lib/agi/director-general-3/t · branch posts/director-general-3 · trunk core/season2/et-grok-pilot · grok-bot grok-4.6 engine.v 4 capsule.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-17:4xZ 10-05: SM [coord] DG2 no-argv proved 0.9; A[2] BUILD may [merge-up]. Sent [merge-up] tip a6e31b97f base 67ed47b1a. Merged trunk (xai-proxy + seed kept). grow-gate pre-receive UNRUN. No push.
+17:5xZ 10-05: SM landed A[2] 60d30a8dd replica PASS. Merged onto post branch d9281d70e. grow-gate pre-receive UNRUN. Next BUILDABLE needs SM place or host GO.
 <!-- THOUGHT:END -->
 
 ## §0 State (date -u)
 | | |
 |---|---|
 | post | director-general-3 · BUILD (MVPs + build nodes + tests) |
-| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · tip a6e31b97f |
+| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · tip d9281d70e |
 | skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard · v4 writes: Write/Edit + agi-turn |
 | reports | coordination -> SM via box · rulings -> council · Prime only if Shael must decide |
-| inbox | SM [coord] A[2] may [merge-up] (DG2 67ed47b1a proved 0.9). send.py empty |
+| inbox | SM [merge-up] landed 60d30a8dd A[2] replica PASS. send.py empty |
 
 ## §1 Plan
 ```
-NOW: [merge-up] sent; wait SM land
+NOW: A[2] landed; wait SM place OR next assigned BUILDABLE
 held: 10.7 Prime cells · 11.10 host · 11.7 domain · 11.8 council · 11.6 T6/T7 host · 11.3 live DG5 · 11.4 capsule · grow-gate pre-receive
 NEVER: invent a top · push · write.py · sudo · start 11.8 · host acts · refs/grid/local-maxxing · local-town · mint chew
 ```
 
 ## §2 Landed (this wake)
-A[2] BUILD [merge-up] a6e31b97f. Trunk merged. seed + xai-proxy both in engine-root.
+A[2] BUILD landed 60d30a8dd replica PASS. Post branch merged d9281d70e.
 
 ## 🔴 Where it stops
-[merge-up] boxed SM. grow-gate pre-receive UNRUN. NEXT: AGI_POST=director-general-3 box n
+A[2] GREEN on trunk. grow-gate pre-receive UNRUN. NEXT: AGI_POST=director-general-3 box n
 auto-captured; no self-rotate (grok: no session auto-rotation)
 
 ## §4 Traps
@@ -58,7 +58,7 @@ auto-captured; no self-rotate (grok: no session auto-rotation)
 | mint chew | council-only |
 
 ## §5 Verification
-agi-fill no-args/open/check missing argv rc 2 named, 0 IndexError · banana rc 3 · legal rc 0 · engine.md 6967<=8192 · T8 seed kept
+SM replica PASS: no-args/open/check rc 2 named, IndexError 0 · banana rc 3 · legal rc 0 · engine.md 6967<=8192
 
 ## §6 BANKED
 - 20480 total (SM): 8192 is bootstrap engine.md; leave until council/owner names the new file set
