@@ -22,33 +22,34 @@ ET 2026-10-05: encryption-town pi seat, grok-4.6 high, splits DG3 BUILD with DG5
 Role = director template + HEAD. Scratch only; skills in skills/; progress on the board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-21:37Z 10-05 (date -u): owner IMPLEMENT NOW (send 11.11 + phase W 11.15 CLEARED). SM box: idle; after DG3 W BUILD, shell .t.sh that workflow.py is gone from live path and 16 json remain. Merged trunk 1e6d938c3. 11.15.1 not on this tip. Wait BUILD. No push.
+22:11Z 10-05 (date -u): SM W BUILD landed 033000458. Merged 853c04aa4. w-move.t.sh 8/8 rc 0. Claimed 11.15.1 active. 11.16 1/6 stands. No git rm. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (21:37Z 10-05, date -u)
+## §0 State (22:11Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-4 · BUILD split of DG3 · engine.v4 grok-4.6 high · capsule encryption-town |
-| branch | posts/director-general-4 @ 1e6d938c3 · trunk core/season2/et-grok-pilot @ 206c23cb5 |
-| claimed | goal:g7.16.1.11.16 (1/6) · next: 11.15.1 falsifier .t.sh AFTER DG3 W lands |
-| mail | box · send.py empty this turn |
-| skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard · v4: Write/Edit + exact-path commit |
+| branch | posts/director-general-4 @ a31d0b147 · trunk core/season2/et-grok-pilot @ 033000458 |
+| claimed | goal:g7.16.1.11.15.1 (W falsifier .t.sh) · goal:g7.16.1.11.16 (1/6) |
+| mail | box · send.py empty |
+| skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-spawn-chain · agi-dispatch · agi-memory-guard |
 
 ## §1 Plan
 ```
-now    wait DG3 W BUILD land; then .t.sh: workflow.py gone live + 16 json remain
+now    11.15.1 .t.sh landed; wait SM gate / next leaf
 rule   grid.py commit PATH -> refs/grid/et-grok-pilot · NEVER local-maxxing · no push
-owner  IMPLEMENT NOW · standard loop · mint chew council-only · skip agi-infer
-not    11.3-11.7/11.10 (DG3) · 11.8 (council) · implement 11.15.1 MOVE myself
-never  invent a top · push · write.py · sudo · git rm workflow.py/send.py · mint path
+owner  IMPLEMENT NOW · standard loop · skip agi-infer · mint chew council-only
+not    git rm workflow.py/send.py · 11.8 (council)
+never  invent a top · push · write.py · sudo · mint path
 ```
 
 ## §2 Landed
-- project-agi-box.t.sh 3/3 rc 0 (626d52be8)
-- owner 21:34Z received · SM wait-after-DG3 consumed · merge 1e6d938c3
+- w-move.t.sh 8/8 rc 0 (173b8b5fb) · 11.15.1 claimed (a31d0b147)
+- project-agi-box.t.sh 3/3 still stands
+- merge W land 853c04aa4
 
 ## 🔴 Where it stops
-Wait DG3 11.15.1 BUILD land. Next: `AGI_POST=director-general-4 AGI_TRUNK=core/season2/et-grok-pilot box n`
+11.15.1 .t.sh green. Next SM. `AGI_POST=director-general-4 AGI_TRUNK=core/season2/et-grok-pilot box n`
 
 ## §4 Traps
 | trap | rule |
@@ -56,11 +57,11 @@ Wait DG3 11.15.1 BUILD land. Next: `AGI_POST=director-general-4 AGI_TRUNK=core/s
 | grid.storage_trunk | refs/grid/et-grok-pilot; NEVER local-maxxing |
 | MAIN inbox EACCES | mail = bin/box |
 | git rm workflow.py / send.py | deprecate/move only |
-| 11.15.1 not on this tip | named-only land; wait merge-up |
+| Falsifier 2 D-filter | git rename lists as D; bytes still in deprecated/ |
 | no push | SM lands |
 
 ## §5 Verification
-workflow.py still live · 16 json / 14 js on disk · merge-tree rc 0
+w-move.t.sh rc 0 · live py 0 · 16 json · 0 live js · 14 dep js · spawn-chain dir
 
 ## §6 BANKED
 - pre-rule grid v1 card: refs/grid/local-maxxing/node/64d78a… @ 163991f01
