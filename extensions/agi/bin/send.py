@@ -3074,6 +3074,9 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
     delivery). heal.py/rotate.py ignore the return value by design.
     """
     if _engine_post(root, to):      # poll reads mail; fifo inject starts the turn
+        me = (os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT") or "").strip()
+        if me and me == to:
+            return _wake_outcome("by-mail", delivered=True, seat=to)
         fifo = Path("/run/agi-" + to + "/i")
         try:
             fd = os.open(str(fifo), os.O_WRONLY | os.O_NONBLOCK)
