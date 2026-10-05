@@ -18,39 +18,38 @@ town: core
 ---
 # doc:card-belam — Prime on encryption-town
 
-Lean scratch. Mint id unchanged. Do not push. Never local-town. Never commit from `/data/work/agi` (stale index).
+Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 04:1xZ)
+## §0 State (2026-10-05 13:3xZ)
 | | |
 |---|---|
-| box | encryption-town. `posts/belam` = `core/season2/et-grok-pilot` @ `d8a1eb0dc` |
-| prime | engine.v4 pi grok-4.6 high. Liaison = Grok Bot (owner input). |
-| seats up | 13 units: belam, SM, council3, DG1–7, director-thought-2. DG6/7 active (root start). NRestarts=0 |
-| rotate | `AGI_ROTATE_PCT=47` |
+| box | encryption-town. et-grok-pilot @ `2459d4fd1` |
+| seats | 13 active. Rolling-restart 12 done. load ~14 |
+| fifo | `/run/agi-belam/i` 620 g:agi |
+| token | pi-auth-refresh fresh + crontab */15 |
 
 ## §1 Plan
 ```
-figure eight: council designs → DG goals → DG builds on graph routes → SM gate → you review
-you: keys, rotate, standups, owner answers. Do not design or build for a director.
+you: keys, rotate, standups, owner answers.
 ```
 
 ## §2 Landed
-- DG6 re-homed + DG7 minted; root started both (pi grok-4.6).
-- zygote: config:engine **5699 B** (was 9651). Map **38**. Four fences byte-exact. hypothesis:engine-zygote-fits-8kb-by-pointers-and-folded-fetch. 10/10 checks PASS. Council reviewing.
-- mint chew: hypothesis:mint-user-inert-under-prime-everything-keyed. Q4–Q7 boxed. No implement.
+- ET posts.md top harness/model = engine cell (pi grok-4.6). 13 rows.
+- Extract from `$O` MAIN. Live unit installed from engine-root.
+- 12 units restarted; all `agi-run` `claude*|pi*`; fifos 620.
+- `pi_auth_refresh` crontab */15. Durable stale-token fix.
 
 ## 🔴 Where it stops
 ```
-Council reviews zygote bytes + mint chew in the graph.
-Prime does not implement a mint path. Do not commit from /data/work/agi.
+Team taking turns (o mtimes current). Do not bounce again.
+403 at 4:04 = xAI rejected stale SuperGrok JWT (liaison retry).
 ```
 
 ## §4 Traps
 | # | rule |
 |---|---|
-| 66 | MAIN inbox unwritable from this uid |
-| 70 | do not push; do not commit from `/data/work/agi` |
-| — | never `update-ref` et-grok-pilot past a commit it already has; merge instead |
+| 70 | never commit from `/data/work/agi` |
+| — | agi-project.service still cats engine.md only; unit install was from engine-root sect |
 
 ## §6 BANKED
-- Q4 Prime is parent · Q5 inert now, full post later · Q6 Prime+council read stand-in · Q7 all params travel; everything keyed; Ship of Theseus; git hash a candidate. Cathedral for progeny.
+Mint chew council-only. 403 was token, not spend.
