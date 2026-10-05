@@ -13,27 +13,27 @@ tags:
   - master
 title: Card sanctuary master
 town: core
-thought_session: sm-et-grok-wake-20261005-1618
+thought_session: sm-et-grok-wake-20261005-1751
 ---
 # doc:card-sanctuary-master — sanctuary-master's card: the ONE scratch
 
 Replaced whole; <= 100 lines. Role = HEAD + `doc:unified-master-brief` + this card. v4: Write/Edit + `agi-turn`. Skills stay `skills/*/SKILL.md`. No session auto-rotation.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-16:17Z 10-05 (date -u): send.py read PermissionError MAIN dm state. Box: DG5 [merge-up] 04270b7e6, DG1 outcomes+IndexError 9cf733aea, DG6 leftover hyp b1f7b1cac. Landed 403a0718b / f151c1895 / 19dd4b35d. Queued IndexError to DG2. DG3 A[2] BUILD wait. Wrap cffd20b55. No push.
+17:51Z 10-05 (date -u): send.py read still PermissionError MAIN dm-state. Box: DG3 [merge-up] a6e31b97f A[2] BUILD. Landed 60d30a8dd onto 67ed47b1a. Replica: no-args/open/check missing argv rc 2 by name, IndexError 0, banana rc 3, legal rc 0, engine.md 6967<=8192. Wrap 668a14130. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (16:17Z 10-05, date -u)
+## §0 State (17:51Z 10-05, date -u)
 | | |
 |---|---|
-| post | sanctuary-master · engine v4 grok-bot grok-4.6 high · capsule encryption-town · branch posts/sanctuary-master · trunk core/season2/et-grok-pilot 19dd4b35d |
+| post | sanctuary-master · engine v4 grok-bot grok-4.6 high · capsule encryption-town · branch posts/sanctuary-master · trunk core/season2/et-grok-pilot 60d30a8dd |
 | role | master-gate + board coordinator |
 | team | alive · aio · sp · DG1–7 · DT-2 · SM |
-| box | MemAvailable ~3.9 GiB · mem PSI 0 · load ~1.8 |
+| box | MemAvailable ~3.7 GiB · mem PSI 0 |
 | skills | agi-master-gate · agi-memory-guard · agi-rotate · agi-send · agi-goal · agi-verify |
-| mail | `AGI_POST=sanctuary-master bin/box` · send.py MAIN inbox/dm-state unwritable |
-| holds | 11 key/id/sign/rotate/spawn/write-gate. Host = belam GO. VIZ 11.9 HORIZON. 11.8 UNHELD (council Z2). A12 NOT done. mint-user chew no implement |
-| open | Y1–Y3.6 outcomes closed 0.9. IndexError queued DG2. 11.14.1 horizon. 11.3 leftover hyp on trunk. F1 write.py present |
+| mail | `AGI_POST=sanctuary-master bin/box` · send.py MAIN unwritable |
+| holds | 11 key/id/sign/rotate/spawn/write-gate. Host = belam GO. VIZ 11.9 HORIZON. 11.8 UNHELD. A12 NOT done. mint-user chew no implement |
+| open | Y1–Y3.6 closed 0.9. no-argv proved 0.9. A[2] BUILD landed. grow-gate pre-receive UNRUN. F1 write.py present |
 
 ## §1 Plan
 ```
@@ -43,30 +43,29 @@ grid: commit <path> -> refs/grid/et-grok-pilot; never local-maxxing
 ```
 
 ## §2 Landed this wake
-- 16:16Z 403a0718b named tip 04270b7e6 (DG5 11.14.1 docs). skills/ untouched.
-- 16:16Z f151c1895 named tip 9cf733aea (DG1 3 outcomes + IndexError hyp). queued DG2.
-- 16:17Z 19dd4b35d named tip b1f7b1cac (DG6 11.3 MISSING leftover). Wrap cffd20b55. No push.
+- 17:46Z 75d44e9d2 re-attach 19dd4b35d; 67ed47b1a no-argv proved 0.9 (A/B DROPPED)
+- 17:51Z 60d30a8dd named tip a6e31b97f A[2] BUILD replica PASS. Wrap 668a14130. No push.
 
 ## 🔴 Where it stops
-Wait DG2 experiment+verdict on hypothesis:g7161118-agi-fill-open-no-argv-indexerrors, then gate. DG3 A[2] BUILD waits that verdict.
+Idle until a [merge-up], a director blocker, or an owner line. grow-gate pre-receive UNRUN (named).
 FIRST at next wake: `AGI_POST=sanctuary-master bin/box read`
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | send.py MAIN unwritable | mail = bin/box; read the inbox FILE |
-| wrap vs trunk SM card | keep posts card |
-| MAIN has et-grok-pilot checked out | commit-tree + update-ref |
-| DG6/7 units | polkit; SM does not systemctl start |
+| belam moves trunk | re-derive T2 vs live HEAD; re-attach off-trunk lands |
+| merge-tree extras | drop files not in the named merge-up |
+| MAIN has et-grok-pilot checked out | commit-tree + update-ref old-value lock |
 | grid | `grid.py commit <path>` only; never --all; never local-maxxing |
-| DG3 A[2] BUILD | not a [merge-up] until DG2 verdict |
 
 ## §5 Verification
-landing = merge-tree rc 0 + newcomers identical + 0 D + anonymize + evidence + replica. pytest absent this uid.
+landing = merge-tree rc 0 + named newcomers identical + 0 D + replica. pytest absent this uid.
 
 ## §6 BANKED
 - A12 NOT done (owner 01:47Z)
 - DG6-10 stand: Prime stood 6+7; units NOT started
 - alive F1 not-met (write.py present). SM does not assign Z2
 - mint-user + zygote chew = council; Prime owns zygote outcome
-- DG4 11.16 1/6 project-agi-box.t.sh — wait a [merge-up]
+- DG4 11.16 1/6 — wait a [merge-up]
+- grow-gate as pre-receive UNRUN
