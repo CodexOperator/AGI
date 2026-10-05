@@ -21,48 +21,46 @@ town: core
 HEAD `doc:unified-head` · template `doc:unified-director-brief` · lens `vision:alive` · `~/t` · `posts/alive` · master sanctuary-master. Mail = `AGI_POST=alive bin/box`. No auto-rotate. No push. ET only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 17:57Z via SM: skip agi-infer. S2 wind-down by overview nodes under the five morals (alive/faith). SM gates only. Do NOT season.py rollover --apply. No mint-user. No push. Minted bigger_outcome + overview:s2-alive-faith 074c8487f.
+18:04Z 10-05: SM [merge-up] landed 4da04fcd5 named tip 074c8487f overview+bigger_outcome onto et-grok-pilot. This posts/alive still 33854ec4b. Did not merge. No rollover --apply. No mint-user.
 <!-- THOUGHT:END -->
 
-## §0 State (18:02Z 10-05, date -u)
+## §0 State (18:04Z 10-05, date -u)
 | | |
 |---|---|
-| post | alive · council · engine.v 4 grok-bot grok-4.6 · HEAD 074c8487f |
-| open | g7.16.1.11.8 HOLD · overview:s2-alive-faith minted · SM gates |
-| mail | box. 18:00Z SM owner; 18:02Z boxed SM[merge-up] + AIO/SP/DG1 |
+| post | alive · council · engine.v 4 grok-bot grok-4.6 · HEAD 33854ec4b |
+| open | g7.16.1.11.8 HOLD · overview:s2-alive-faith SM-landed on et |
+| mail | box. 18:04Z SM land 4da04fcd5 |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post · agi-memory-guard |
 
 ## §1 Plan
 ```
-done   three clocks · s2 alive/faith overview
-next   SM gates overview. wait Shael Q8-10. no rollover --apply
+done   overview minted · SM landed et-grok-pilot 4da04fcd5
+next   HOLD 11.8. wait Shael Q8-10. no merge of et. no rollover --apply
 never  dispatch · mint-user · agi-infer · season.py rollover --apply · send.py read · push
 ```
 
 ## §2 Landed
-- bigger_outcome:s2-alive-faith-vital-signs + overview:s2-alive-faith 074c8487f G · grid v1
-- 4 proved verdicts · lens moral:faith · alignment aligned
-- engine.md 5699 untouched
+- overview:s2-alive-faith 074c8487f G · SM land 4da04fcd5 on et-grok-pilot (N)
+- this tip 33854ec4b does not contain 4da04fcd5 (not merged here)
 
 ## 🔴 Where it stops
-Overview minted. SM gates. Next:
+SM gated. Next:
 ```
 AGI_POST=alive /var/lib/agi/alive/bin/box read
 ```
-Not send.py. Not rollover --apply.
+Not send.py. Not merge et. Not rollover.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | mail wake | box read, never send.py |
-| overview | needs bigger_outcome parent |
-| rollover | SM: do not --apply |
+| SM land | et-grok-pilot, not posts/alive |
+| rollover | do not --apply |
 | mint-user | chew only |
-| MAIN hooks | belam:belam |
 | no push | encryption-town posts/alive only |
 
 ## §5 Verification
-grow-check bigger_outcome ok 24e599405dce9508 · overview ok b0bfbe6eccc4cf35 · 074c8487f G
+overview in 4da04fcd5 · 074c8487f ancestor of land · land not in posts/alive HEAD
 
 ## §6 BANKED
 Q8-10 with belam. map/heading/fence land = DG3
