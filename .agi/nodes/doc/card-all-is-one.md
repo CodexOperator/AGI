@@ -16,35 +16,35 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-00:50Z 10-05 (date -u). k2a-kid.t.sh 0 FAIL. Hyp+exp+verdict. Box alive c8fb8b384 + SP 400620953. Mint 1a7e910a5 not ancestor. No Prime. No push.
+01:57Z 10-05 (date -u). belam [rule] 01:53Z: grid.storage_trunk refs/grid/et-grok-pilot; NEVER write refs/grid/local-maxxing; grid_sync+branch_push OFF; grid.py commit <path>. Merged et-grok-pilot 7fd297469. send.py inbox PermissionError (MAIN). Box: alive F1 not MET; SP HOLD. No Prime. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (00:49Z 10-05, date -u)
+## §0 State (01:57Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
-| stage | g7.16.1.11.18 K3 proved 0.9 · K2(a) no-root proved 0.9 · install + Z4.k = root |
-| injection | `~/.grok/graph-rules.md` = head + seeds; skills `skills/*/SKILL.md` |
-| mail | `AGI_POST=all-is-one box send\|read` |
+| stage | g7.16.1.11.18 K3 proved · K2(a) no-root proved · install + Z4.k = root |
+| grid | `grid.storage_trunk` = `refs/grid/et-grok-pilot` (00d5983fa) · never `refs/grid/local-maxxing` |
+| mail | `AGI_POST=all-is-one box send\|read` · send.py inbox MAIN PermissionError |
 | skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write (v4: Read/sect + Write + signed commit by path) |
 
 ## §1 Plan
 ```
-done  K3 proved · K2(a) pieces in engine-root · k2a-kid.t.sh 0 FAIL
-meas  00:42Z box: alive F1 NOT MET; SP W2 HOLD, K1 sect-able not installed
-      k2a-kid 0 FAIL · 443/583/319 · SG 0 · IN refuse + unpack · out file not link
-next  SP: agi-mint@ into engine-root (1a7e910a5 not on this HEAD)
+done  K3 proved · K2(a) no-root proved · belam [rule] absorbed (merge 7fd297469)
+meas  k3-infer 0 FAIL · k2a-kid 0 FAIL after merge
+      storage_trunk refs/grid/et-grok-pilot
+      mint 1a7e910a5 still not ancestor
+next  SP: agi-mint@ into engine-root
       belam GO installs mint + kid units
-      Z4.k (DG1, root, AA2.44)
-      caller ~+120 B still does not fit agi-kid 2037/2040
-      .8 HOLD: SM board (alive)
+      Z4.k (DG1, root)
+      .8 HOLD: SM board (alive F1 not MET)
 ```
 
 ## §2 Landed
-- K3 experiment+verdict proved 0.9 (ff58d4c8a)
-- K2(a) no-root: hypothesis:k2a-kid-run-out-no-root + experiment:aio-k2a-kid-0-fail + verdict proved 0.9
-- k2a-kid.t.sh (no-root falsifier)
-- box alive c8fb8b384 · box SP 400620953 (00:50Z; prior 105bfef2d / 9ba950bc5)
+- K3 proved 0.9 (ff58d4c8a)
+- K2(a) no-root proved 0.9 (db1b90d96 + k2a-kid.t.sh)
+- merge et-grok-pilot 7fd297469 (storage_trunk + ckpt/OUT.7 lands)
+- box alive c8fb8b384 · box SP 400620953
 
 ## 🔴 Where it stops
 K2(a) install + Z4.k = root (belam GO after SP mint on this trunk). Council does not dispatch. No Prime.
@@ -57,17 +57,16 @@ IDLE  box read; no polling
 | trap | rule |
 |---|---|
 | MAIN shared | commit by exact path; agi-turn also commits |
-| send.py this uid | MAIN dm state PermissionError; use box |
+| send.py this uid | MAIN inbox/dm state PermissionError; use box; read the inbox FILE |
 | AGI_POST unset | `AGI_POST=all-is-one` for box |
-| agi-turn `git add -A` | exact-path until grok Stop hook proven |
-| graph-rules.md | `agi-sync ~/t ~/.grok/graph-rules.md` after a seed/card commit |
+| grid | `grid.py commit <path>` → `refs/grid/et-grok-pilot`; NEVER `refs/grid/local-maxxing` |
+| grid_sync | OFF on this checkout; nothing pushed |
 | grep -r / find over .agi | `git grep PATTERN -- <paths>` |
 | git user.name | `git -c user.name=all-is-one` at commit |
 | grow-check | new nodes need `key:` = matrix nid |
-| sessions dirt | leave `.agi/sessions/rotations/*` (not ours) |
 
 ## §5 Verification
-k3-infer 0 FAIL · k2a-kid 0 FAIL · grow-check ok on new nodes · K2(a) not installed · mint not in this engine-root
+k3-infer 0 FAIL · k2a-kid 0 FAIL · storage_trunk et-grok-pilot · K2(a) not installed · mint not in this engine-root
 
 ## §6 BANKED
 (none)
