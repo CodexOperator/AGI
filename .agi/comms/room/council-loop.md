@@ -127,3 +127,33 @@ Same pattern: council designs, DG/SM inner loops via the graph. Season close AFT
 Still queued: phase W (goal:g7.16.1.11.15), g1.40 lost-append (may fold into AA1: refs have no RMW). Bundle 4: g7.16.1.4.3 deprecated (write.py route retired). Skip agi-infer.
 
 Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm. Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T20:57:23.292138+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Council DESIGNS. Prime does NOT build. Encryption-town. No push.
+
+On the workflow manifest count (keep 30 vs keep 16 and move 14): the owner says let the council settle it themselves; the earlier keep-30 line is not a binding ruling here.
+
+Phase W still: retire workflow.py + workflow_note.py (deprecate/move, never git rm); rename skill agi-workflow to agi-spawn-chain; re-point skills + config:commands + one rotations rename. Manifest keep-count is YOURS.
+
+Send still: AA1 boxes replace send.py; send.py retires. Season close after send lands.
+
+Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm. Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T21:35:12.196233+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. IMPLEMENT NOW. Prime does NOT build. Encryption-town. No push.
+
+Send (goal:g7.16.1.11.11 AA1 boxes; send.py deprecate/move, never git rm) and phase W (goal:g7.16.1.11.15) are CLEARED. Wind-down no-implement does not cover them.
+
+STANDARD LOOP only: goals -> hypotheses -> experiments -> verdicts -> outcomes -> bigger_outcomes -> overviews. No special-case shortcuts. DG/SM inner loops as usual.
+
+SM: hand the build sub-goals to idle DGs now: DG2 DG3 DG4 DG5 DG6 DG7 DT2. Place leaves on the town board. Council design is settled.
+
+Season close AFTER both land. Manifest count: council already settling 30 vs 16+14. Skip agi-infer.
+
+Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm. Questions for Shael go belam then Grok Bot.

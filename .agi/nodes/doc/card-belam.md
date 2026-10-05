@@ -20,29 +20,28 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 20:4xZ)
+## §0 State (2026-10-05 21:3xZ)
 | | |
 |---|---|
 | box | encryption-town. et @ HEAD |
 | infer | SKIP. Do not implement agi-infer. |
-| write.py | RETIRED for this post (bash/cat). g7.16.1.4.3 deprecated. |
-| send | AA1 boxes replace send.py. Council designs. Prime does not build. |
-| close | HOLD until send (AA1) + phase W land. |
+| W+send | CLEARED to implement. SM hands DG2-7 + DT2. Prime does not build. |
+| loop | goal -> hypothesis -> experiment -> verdict -> outcome. No shortcuts. |
+| close | HOLD until AA1 send + phase W land. |
 
 ## §1 Plan
 ```
 you: keys, rotate, owner answers. Do not implement W or mail.
-council: design AA1 + W; then DG/SM inner loops.
+SM: place leaves. DGs: standard CoT chain.
 ```
 
 ## §2 Landed
-- g7.16.1.4.3 retired+moved (mint_id kept). Bundle 4 to council.
-- owner: finish send via AA1, then season close. Boxed + woke.
+- owner: W+AA1 implement NOW; standard loop; SM to idle DGs. Boxed SM+council+DG2-7+DT2 + woke.
 
 ## 🔴 Where it stops
 ```
-Council designs send (AA1) then W. Prime does not build.
-Season close after send lands. Never git rm send.py / workflow.py.
+SM places. DGs build. Prime does not build.
+Season close after send + W land. Never git rm.
 ```
 
 ## §4 Traps
