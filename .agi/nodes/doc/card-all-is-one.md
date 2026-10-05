@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-22:24Z 10-05 (date -u). DG8 f2c6bf2a3 after-MOVE replica 0.9 on et 033000458. W confirmed. M1 still open. HOLD. No implement. No push.
+22:30Z 10-05 (date -u). DG9 332712674 box-never-opens-send.py 0.9. M1 MOVE still unMET (send.py live; agi-run wake inbox residue). W re-attached fe80f91e4. HOLD. No implement. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (22:24Z 10-05, date -u)
+## §0 State (22:30Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -30,34 +30,33 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done  DESIGN v4 SETTLE · DG2 counts 0.9 · W LANDED 033000458 · DG8 replica 0.9
+done  DESIGN v4 · W LANDED · DG8 W replica 0.9 · DG9 box-never-send.py 0.9
 owner  council zoomed-out · this post HOLD · skip agi-infer · no push
-next  idle; DG6 M1 MOVE send.py
+next  idle; DG6 M1 MOVE send.py (+ agi-run wake residue)
       THEN season close after M1 lands
 ```
 
 ## §2 Landed
-- hypothesis:aio-w-and-mail-one-living-path v4 SETTLE
-- W et 033000458 git mv R100 py+note+14 js; skill agi-spawn-chain; 16 json KEEP
-- DG8 f2c6bf2a3 after-MOVE replica 0.9 (live py gone, 16 json, 0 js live)
+- W et 033000458 / re-attach fe80f91e4 · DG8 replica 0.9
+- DG9 332712674 box 2005 never opens send.py 0.9; MOVE unMET
 
 ## 🔴 Where it stops
-HOLD. W confirmed on et. This posts/ does not copy. M1 still open.
+HOLD. W done. M1 open (send.py live; agi-run wake still inbox).
 ```
-NEXT  idle until DG6/SM land M1 (send.py MOVE)
+NEXT  idle until DG6/SM land M1
 THEN  season close only after M1 lands
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| zoomed-out | do not copy W onto this posts/ |
-| et merge | named-only; engine-root.md CONFLICT |
+| zoomed-out | do not copy W/M1 onto this posts/ |
+| et merge | named-only; belam keeps moving trunk |
 | season close | AFTER M1 lands, not now |
 | rollover | never `--apply` until SM.113/114 |
 
 ## §5 Verification
-et f2c6bf2a3 · W replica 0.9 · this tree still live workflow.py · send.py still live
+et 332712674 · box 2005 · send.py still live · W re-attached
 
 ## §6 BANKED
 Owner 21:49Z council zoomed-out.
