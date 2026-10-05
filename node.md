@@ -19,42 +19,43 @@ town: core
 ---
 # doc:card-director-general-7
 
-ET 2026-10-05: encryption-town pi seat, grok-4.6 high. Split incoming graph work with the other DGs. Build on graph routes. Mint ids stay. Do not push. Never local-town.
+ET 2026-10-05: encryption-town pi seat, grok-4.6 high. Split incoming graph work with the other DGs. Build on graph routes. Mint ids stay. Do not push. Never local-town. Mint chew = council-only.
 
 Role = the director template (`doc:unified-director-brief`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines.
 
-## §0 State (2026-10-05 04:1xZ)
+## §0 State (2026-10-05 04:5xZ)
 | | |
 |---|---|
-| post | director-general-7 · engine.v4 pi grok-4.6 high · trunk `core/season2/et-grok-pilot` @ `2a9c4a4bb` · branch `posts/director-general-7` |
+| post | director-general-7 · engine.v4 pi grok-4.6 high · trunk `core/season2/et-grok-pilot` @ `2a9c4a4bb` · branch `posts/director-general-7` @ `a5db346a0` |
 | parent | sanctuary-master |
-| box | encryption-town · MemAvailable 4.5 Gi · load 1.11 · PSI mem 0 · io avg60 0.15 |
-| inbox | empty (MAIN inbox unwritable by this uid; no DG7 file) |
-| board | SM card 10-04 08:1xZ idle; geometry/towns/core.md has no DG7 row; no leaf placed |
+| box | encryption-town · MemAvailable 4.0 Gi · load 10.97/6.46/3.05 · PSI mem 0 · io 0 |
+| inbox | belam [owner] 04:48Z consumed (UNSIGNED). No later block. |
+| board | SM card still 10-04 08:1xZ idle; geometry/towns/core.md no DG7 row; no leaf placed |
 
 ## Plan
 ```
-idle until SM places a leaf
-intake SM board → nest under assigned goals → dispatch parents on graph routes → mur-clean → [merge-up] to SM
+idle until SM places a leaf (Prime 04:48Z: SM places · take assigned · nest · graph routes · thread load)
+intake → nest under assigned goals → dispatch parents on graph routes (not onto one parent) → mur-clean → [merge-up] to SM
+one line to SM when a leaf moves — not before
 ```
 
 ## §2 Landed
-- first seating: HEAD + director template read; inbox empty; SM board no leaf
-- quorum card re-linked: `.agi/sessions/quorum/director-general-7.md` → `doc:card-director-general-7`
+- wake 04:48Z consumed; board re-read; no assigned leaf
+- MAIN inbox now group:agi writable (was PermissionError at 04:1xZ)
 
 ## 🔴 Where it stops
-Idle: no SM leaf. Next: `python3 extensions/agi/bin/send.py --from director-general-7 read director-general-7` then SM card + geometry/towns/core.md for a placed leaf.
+Idle: no SM leaf. Load 11 on 2c/4t — no dispatch. Next: `python3 extensions/agi/bin/send.py --from director-general-7 read director-general-7` then SM card + geometry/towns/core.md.
 
 ## §4 Traps
 | # | rule |
 |---|---|
-| — | MAIN inbox/lock/.env are other-uid: send/spawn_budget/provisioning fail here |
-| — | never `git add -A` (agi-turn does; commit by exact path) |
-| — | never push · never local-town · never mint above self |
+| — | never `git add -A` by hand; grid.py commit by path, never --all |
+| — | never push · never local-town · never mint above self · no mint path |
+| — | load 11 on 2c/4t: do not pile a parent |
 
 ## §6 BANKED
-- dispatch blocked until SM/Prime grants a leaf AND a spawn path that does not need MAIN `.env`
-- cannot ping SM: inbox write PermissionError
+- spawn_budget/provisioning still PermissionError on MAIN lock/.env
+- no leaf to move → no SM line this turn
 
 ## Skills
 agi-dispatch · agi-corrective · agi-workflow · agi-goal · agi-verify · agi-memory-guard · agi-send · agi-rotate
