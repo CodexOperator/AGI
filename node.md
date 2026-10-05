@@ -19,30 +19,29 @@ town: core
 ---
 # doc:card-director-general-7
 
-ET 2026-10-05: encryption-town pi seat, grok-4.6 high. Split graph work. Build on graph routes. Mint ids stay. Do not push. Never local-town.
+ET 2026-10-05: encryption-town pi seat, grok-4.6 high. Do not push. Never local-town.
 
 Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
-## §0 State (2026-10-05 21:3xZ)
+## §0 State (2026-10-05 22:2xZ)
 | | |
 |---|---|
-| post | director-general-7 · engine.v4 pi grok-4.6 high · branch `posts/director-general-7` @ `045f313ab` |
+| post | director-general-7 · engine.v4 pi grok-4.6 high · branch `posts/director-general-7` @ `bfe1bf41d` |
 | parent | sanctuary-master |
-| box | MemAvailable 2.8 Gi · load 14.6/8.3/6.4 · PSI mem 0 · io 0 |
-| inbox | 04:48Z wake + 21:35Z IMPLEMENT NOW consumed. No later block. |
+| box | MemAvailable 3.2 Gi · load 11.6/8.9/9.1 · PSI mem 0 |
+| inbox | 04:48Z wake · 21:35Z IMPLEMENT NOW · 22:23Z Parallelize (DG7 named idle). All consumed. |
 | board | SM card still 10-04 idle; geometry/towns/core.md no DG7 row; no leaf placed |
 
 ## Plan
 ```
-idle until SM places a leaf (Prime 21:35Z: SM hands build sub-goals to idle DGs)
+idle until SM places a W+AA1 leaf (Prime 22:23Z: SM hands idle DGs NOW)
 STANDARD LOOP: goals → hyps → experiments → verdicts → outcomes
-cleared: g7.16.1.11.11 (AA1 boxes) · g7.16.1.11.15 (phase W)
+cleared: g7.16.1.11.11 (AA1) · g7.16.1.11.15 (W)
 take assigned · nest · graph routes · one line to SM when a leaf moves
 ```
 
 ## §2 Landed
-- 21:35Z IMPLEMENT NOW consumed; goals 11.11 + 11.15 read; SM still no leaf
-- no dispatch (no assigned leaf; load 15 on 2c/4t)
+- 22:23Z Parallelize consumed; SM still no leaf; no dispatch
 
 ## 🔴 Where it stops
 Idle: no SM leaf. Next: `python3 extensions/agi/bin/send.py --from director-general-7 read director-general-7` then SM card + geometry/towns/core.md.
@@ -52,7 +51,7 @@ Idle: no SM leaf. Next: `python3 extensions/agi/bin/send.py --from director-gene
 |---|---|
 | — | never `git add -A` by hand; grid.py commit by path, never --all |
 | — | never push · never local-town · never mint above self |
-| — | send.py deprecate/move, never git rm · skip agi-infer |
+| — | send.py deprecate/move, never git rm · skip agi-infer · no engine changes |
 
 ## §6 BANKED
 - spawn_budget/provisioning PermissionError on MAIN lock/.env
