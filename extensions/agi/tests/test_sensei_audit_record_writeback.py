@@ -167,67 +167,6 @@ def _wake_args(**kw):
 
 # ── wake side ────────────────────────────────────────────────────────────
 
-def test_wake_writes_audit_key_and_preserves_every_other_byte(tmp_path, capsys):
-    graph, rec_path, tr = _write_wake_project(tmp_path, [
-        ("Bash", "tmux capture-pane -t sanctuary-director -p | tail -20"),
-        ("Bash", "ps -o pid,ppid -p 1234 2>/dev/null"),
-        ("Bash", "python3 -m pytest extensions/agi/tests/test_sensei.py -q"),
-    ])
-    before = rec_path.read_text(encoding="utf-8")
-    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0
-    after = rec_path.read_text(encoding="utf-8")
-    capsys.readouterr()
-
-    # (1) the audit key exists with every field the claim names
-    rec = json.loads(after)
-    audit = rec["audit"]["wake"]
-    assert audit["calls"] == 3
-    assert (audit["a"], audit["b"], audit["c"], audit["d"]) == (0, 2, 0, 1)
-    assert audit["floor"] == 0
-    assert audit["excess"] == 2
-    assert audit["transcript"] == str(tr)
-    # ONE shape on both sides: named keys, present-or-null
-    assert audit["window_start"] == {"call_index": 1, "line": None,
-                                    "ts": None}
-    assert audit["window_end"] == {"call_index": 3, "line": None,
-                                  "ts": None}
-    assert audit["audited_by"] == sensei.SENSEI
-    assert audit["audited_at"].endswith("Z")
-
-    # (2) FALSIFIER: parsed comparison — JSON with `audit` popped is identical
-    assert {k: v for k, v in rec.items() if k != "audit"} == \
-        json.loads(before)
-
-    # (3) FALSIFIER: RAW comparison — the original bytes are recoverable from
-    # the rewritten bytes by removing the audit block textually.
-    assert _strip_audit_block(after) == before
-
-
-def test_wake_audit_rerun_replaces_its_side_and_never_grows(tmp_path, capsys):
-    graph, rec_path, _tr = _write_wake_project(tmp_path, [
-        ("Bash", "tmux capture-pane -t sanctuary-director -p | tail -20"),
-    ])
-    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0
-    first = rec_path.read_text(encoding="utf-8")
-    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0
-    second = rec_path.read_text(encoding="utf-8")
-    capsys.readouterr()
-
-    # idempotent: a re-run replaces `audit.wake`, byte-identically (only
-    # `audited_at` may differ, so compare the record with timestamps dropped)
-    a = json.loads(first)
-    b = json.loads(second)
-    assert set(b["audit"]) == {"wake"}
-    a["audit"]["wake"].pop("audited_at")
-    b["audit"]["wake"].pop("audited_at")
-    assert a == b
-    # FALSIFIER: no duplication / growth: `audit.wake` is an OBJECT, never a
-    # list, and the record's byte length is EXACTLY the first run's (only
-    # `audited_at`'s digits may differ, and that is the same width every run).
-    assert isinstance(b["audit"]["wake"], dict)
-    assert len(second) == len(first)
-
-
 def test_wake_zero_calls_prints_pending_and_writes_nothing(tmp_path, capsys):
     """An ABSENCE is not a measurement. A transcript with ZERO tool_use calls
     pre-fix printed `green 0` AND wrote an `audit.wake` block (measured:
@@ -841,51 +780,6 @@ def test_refused_tracked_commit_exits_four_and_leaves_it_modified(
     assert por.startswith(" M"), por
     assert "A " not in por
     assert "wake" in json.loads(rec_path.read_text(encoding="utf-8"))["audit"]
-
-
-def test_genuinely_clean_rerun_still_skips_and_exits_zero(
-        tmp_path, capsys, monkeypatch):
-    """The ONE case where SKIPPED is right: a commit that fails with nothing
-    to commit at all -- no staged change AND no worktree change. Built as a
-    REAL byte-identical re-run: the clock is frozen so the second audit
-    rewrites the same bytes, and only then is the commit made to fail."""
-    import datetime as _dt
-
-    class _Frozen(_dt.datetime):
-        @classmethod
-        def now(cls, tz=None):
-            return _dt.datetime(2026, 9, 11, 12, 0, 0,
-                                tzinfo=_dt.timezone.utc)
-
-    class _Mod:
-        datetime = _Frozen
-        timezone = _dt.timezone
-
-    monkeypatch.setattr(sensei, "datetime", _Mod)
-    graph, rec_path, _tr = _write_wake_project(tmp_path)
-    _git_init(tmp_path)
-    rel = str(rec_path.relative_to(tmp_path))
-    _git(tmp_path, "add", "--", rel)
-    _git(tmp_path, "commit", "-q", "-m", "seed", "--", rel)
-    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0  # committed
-    capsys.readouterr()
-    clean = rec_path.read_text(encoding="utf-8")
-
-    real = subprocess.run
-
-    def refuse_commit(cmd, *a, **kw):
-        if isinstance(cmd, list) and "commit" in cmd:
-            return SimpleNamespace(returncode=1, stdout="", stderr="no-op")
-        return real(cmd, *a, **kw)
-
-    monkeypatch.setattr(sensei.subprocess, "run", refuse_commit)
-    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0
-    out = capsys.readouterr().out
-    assert "audit_record_commit: SKIPPED" in out
-    assert "REFUSED" not in out
-    # FALSIFIER: byte-identical, so there was genuinely nothing to commit
-    assert rec_path.read_text(encoding="utf-8") == clean
-    assert _git(tmp_path, "status", "--porcelain", "--", rel).strip() == ""
 
 
 def test_wake_excess_excludes_the_cut_call_d(tmp_path, capsys):

@@ -3,6 +3,7 @@
 import importlib.util, os
 import pytest  # skip-by-name: this module cannot run without numpy
 np = pytest.importorskip('numpy')
+pytest.importorskip('torch')  # skip-by-name when the ml venv is absent; not a collection error
 
 HERE = os.path.dirname(__file__)
 spec = importlib.util.spec_from_file_location("sweep", os.path.join(HERE, "osc_band_sweep_a00-31ae16be.py"))

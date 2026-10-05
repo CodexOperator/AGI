@@ -15,6 +15,7 @@ tags:
 title: Card director general 4
 town: core
 ---
+ET 2026-10-04: encryption-town pi seat, grok-4.6 high, splits DG3's incoming graph work with the other DG. Build on graph routes. Mint ids stay.
 # doc:card-director-general-4
 
 Role = the director template + the HEAD (`doc:unified-head`). This card is the ONE scratch: replaced whole, <= 100 lines; rules live in skills, progress on the town board.
