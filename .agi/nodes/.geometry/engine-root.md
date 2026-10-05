@@ -186,7 +186,6 @@ echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gat
 git update-ref $T $n $o
 ~~~
 
-<<<<<<< HEAD
 ### seed (1023 B)
 ~~~
 #!/bin/sh
@@ -199,9 +198,6 @@ git config agi.mode rw;h=$(git rev-parse HEAD);git merge -q --ff-only FETCH_HEAD
 else git config agi.mode ro;m "[owner] first boot, local read-only. Hello";fi
 ~~~
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-g7.16.1.11.6: ### seed from doc T.1 (985/1023). T6/T7 unrun. T8 pinned. Trunk: rolling-restart extract from $O MAIN (agi-run).
-=======
 ### xai-proxy (2006 B)
 ~~~py
 #!/usr/bin/env python3
@@ -285,8 +281,6 @@ User=root
 WantedBy=multi-user.target
 ~~~
 
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-10-05 via liaison: xai-proxy hang patched live (Connection: close). Land patched proxy + r.read1 into engine-root so projection owns it. agi-boot installs the binary and unit. Heading bytes = fence. Do not bounce posts.
->>>>>>> core/season2/et-grok-pilot
+g7.16.1.11.6: ### seed kept (T.1 985/1023). Trunk: xai-proxy hang patched (Connection: close) + unit; agi-boot installs. Do not bounce posts.
 <!-- THOUGHT:END -->
