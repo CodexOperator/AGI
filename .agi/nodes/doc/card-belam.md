@@ -20,35 +20,38 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 17:4xZ)
+## §0 State (2026-10-05 20:4xZ)
 | | |
 |---|---|
-| box | encryption-town. et @ `247218d2b` |
-| seats | 13 active. Hang patched 17:26Z; resumed ~2.5 min. Do not bounce. |
-| proxy | live Connection: close + r.read1. Graph: engine-root `xai-proxy` + `.service`. |
-| cron | root only: wake */2 + pi-auth */15 |
+| box | encryption-town. et @ HEAD |
+| infer | SKIP. Do not implement agi-infer. |
+| write.py | RETIRED for this post (bash/cat). g7.16.1.4.3 deprecated. |
+| send | AA1 boxes replace send.py. Council designs. Prime does not build. |
+| close | HOLD until send (AA1) + phase W land. |
+| W manifests | council settles 30 vs 16+14; keep-30 not binding. |
 
 ## §1 Plan
 ```
-you: keys, rotate, standups, owner answers.
+you: keys, rotate, owner answers. Do not implement W or mail.
+council: design AA1 + W; then DG/SM inner loops.
 ```
 
 ## §2 Landed
-- xai-proxy hang: Connection: close (watch 17:26Z). r.read1 landed. GET /v1/models 200.
-- Graph owns it: config:engine-root ### xai-proxy + ### xai-proxy.service; agi-boot installs.
-- engine.md still 5699 B.
+- g7.16.1.4.3 retired+moved (mint_id kept). Bundle 4 to council.
+- owner: finish send via AA1, then season close. Boxed + woke.
 
 ## 🔴 Where it stops
 ```
-Do not redo/revert the hang patch. Do not bounce posts.
-Projection owns the binary at next boot.
+Council designs send (AA1) then W. Prime does not build.
+Season close after send lands. Never git rm send.py / workflow.py.
 ```
 
 ## §4 Traps
 | # | rule |
 |---|---|
 | 70 | never commit from `/data/work/agi` |
-| — | wake never fifo-injects the Prime |
+| — | never git rm — deprecate/move |
+| — | no write.py — Edit/Write in ~/t |
 
 ## §6 BANKED
-Mint Q4–Q7 council chew. No implement.
+Skip agi-infer. Mint Q4–Q7. W+AA1 block closeout.
