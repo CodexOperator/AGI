@@ -13,27 +13,27 @@ tags:
   - master
 title: Card sanctuary master
 town: core
-thought_session: sm-et-grok-wake-20261005-2031
+thought_session: sm-et-grok-wake-20261005-2035
 ---
 # doc:card-sanctuary-master — sanctuary-master's card: the ONE scratch
 
 Replaced whole; <= 100 lines. Role = HEAD + `doc:unified-master-brief` + this card. v4: Write/Edit + `agi-turn`. Skills stay `skills/*/SKILL.md`. No session auto-rotation.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-20:30Z 10-05 (date -u): OWNER via Prime UNSIGNED, verbatim: "Council DESIGNS. Prime does NOT build. Encryption-town. No push. Before season close, land: 1) Phase W goal:g7.16.1.11.15 UNHELD: retire workflow.py + hooks/workflow_note.py (deprecate/move, never git rm); keep 30 manifests; rename skill agi-workflow to agi-spawn-chain (flow-rotation); re-point skills agi, agi-corrective, agi-master-gate, agi-merge-pass + config:commands; one config:rotations rename. 2) Messaging: g1.40 lost-append (send.py unlocked RMW, 8-22/900 lost); g7.16.1.11.11 AA1 git-ref mail (~2 KB box replacing send.py for v4). Pattern: council designs, then DG/SM inner loops via the graph. Reuse existing pieces. Stay lean. Season close only AFTER these land. Skip agi-infer. Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm (parents goal:g7.16.1.11.15 + goal:g1.40). Questions for Shael go belam then Grok Bot."
+20:35Z 10-05 (date -u): send.py still PermissionError. Box: SP [merge-up] 00f66a8fc named-only re-cut (RETURN 1354e4d40). Landed 0ed36866f onto 87e45f686. One file overview:s2-council-bundles-1-3-under-self-perpetuating. W chew noted, not a land. Wrap 6ef1a359d. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (20:31Z 10-05, date -u)
+## §0 State (20:35Z 10-05, date -u)
 | | |
 |---|---|
-| post | sanctuary-master · engine v4 grok-bot grok-4.6 high · capsule encryption-town · branch posts/sanctuary-master · trunk core/season2/et-grok-pilot 87e45f686 |
-| role | master-gate · SM: gate only · council designs, Prime does not build |
+| post | sanctuary-master · engine v4 grok-bot grok-4.6 high · capsule encryption-town · branch posts/sanctuary-master · trunk core/season2/et-grok-pilot 0ed36866f |
+| role | master-gate · SM: gate only · council designs |
 | team | alive · aio · sp · DG1–7 · DT-2 · SM |
-| box | MemAvailable ~2.4 GiB · mem PSI 0 · load ~15 |
+| box | MemAvailable ~2.4 GiB · mem PSI 0 |
 | skills | agi-master-gate · agi-memory-guard · agi-rotate · agi-send · agi-goal · agi-verify |
 | mail | `AGI_POST=sanctuary-master bin/box` · send.py MAIN unwritable |
-| holds | 11 key/id/sign/rotate/spawn/write-gate. Host = belam GO. A12 NOT done. mint-user no implement. agi-infer SKIP. no rollover --apply. season close AFTER W+messaging |
-| open | 11.15 UNHELD Phase W (council design). g1.40 + 11.11 AA1 (council design). hyp phase-w-and-messaging on trunk |
+| holds | 11 key/id/sign/rotate/spawn/write-gate. Host = belam GO. A12 NOT done. mint-user no implement. agi-infer SKIP. no rollover. season close AFTER W+messaging |
+| open | 11.15 UNHELD Phase W (council design). g1.40 + 11.11 AA1. overviews: alive-faith + SP bundles 1-3 |
 
 ## §1 Plan
 ```
@@ -44,16 +44,17 @@ grid: commit <path> -> refs/grid/et-grok-pilot
 ```
 
 ## §2 Landed this wake
-- 20:30Z owner 11.15 UNHELD + g1.40/AA1 before season close (verbatim THOUGHT). Wrap 300871a22. Board: council chew that hyp. SM does not design. No push.
+- 20:30Z owner 11.15 UNHELD + g1.40/AA1 before season close
+- 20:34Z 0ed36866f named tip 00f66a8fc overview:s2-council-bundles-1-3-under-self-perpetuating (named-only). Wrap 6ef1a359d. No push.
 
 ## 🔴 Where it stops
-Wait council design on hypothesis:phase-w-and-messaging-council-designs-then-dg-sm, then place DG leaves. SM gates only.
+Wait council design on hypothesis:phase-w-and-messaging, or aio overview, then gate. SM gates only.
 FIRST at next wake: `AGI_POST=sanctuary-master bin/box read`
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| send.py MAIN unwritable | mail = bin/box; this [owner] DID print |
+| send.py MAIN unwritable | mail = bin/box |
 | SM designs Phase W | no — council designs, SM places after |
 | git rm workflow.py | deprecate/move, never git rm |
 | season close before W+messaging | FORBIDDEN |
