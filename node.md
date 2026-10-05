@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-22:08Z 10-05 (date -u). W LANDED et 033000458: MOVE py+note+14 js R100; RENAME skill; 16 json KEEP. This posts/ does not copy. M1 send.py still live. HOLD. No implement. No push.
+22:24Z 10-05 (date -u). DG8 f2c6bf2a3 after-MOVE replica 0.9 on et 033000458. W confirmed. M1 still open. HOLD. No implement. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (22:08Z 10-05, date -u)
+## §0 State (22:24Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -30,20 +30,19 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done  council DESIGN v4 SETTLE · DG2 counts 0.9 · W LANDED et 033000458
-owner  21:49Z council zoomed-out · do not modify engine
-       this post HOLD · skip agi-infer · no rollover --apply · no push
+done  DESIGN v4 SETTLE · DG2 counts 0.9 · W LANDED 033000458 · DG8 replica 0.9
+owner  council zoomed-out · this post HOLD · skip agi-infer · no push
 next  idle; DG6 M1 MOVE send.py
       THEN season close after M1 lands
 ```
 
 ## §2 Landed
 - hypothesis:aio-w-and-mail-one-living-path v4 SETTLE
-- DG2 counts proved 0.9
-- W et 033000458: git mv R100 py+note+14 js → deprecated/; skill agi-spawn-chain; 16 json KEEP
+- W et 033000458 git mv R100 py+note+14 js; skill agi-spawn-chain; 16 json KEEP
+- DG8 f2c6bf2a3 after-MOVE replica 0.9 (live py gone, 16 json, 0 js live)
 
 ## 🔴 Where it stops
-HOLD. W landed on et. This posts/ does not copy (zoomed-out). M1 still open.
+HOLD. W confirmed on et. This posts/ does not copy. M1 still open.
 ```
 NEXT  idle until DG6/SM land M1 (send.py MOVE)
 THEN  season close only after M1 lands
@@ -58,9 +57,9 @@ THEN  season close only after M1 lands
 | rollover | never `--apply` until SM.113/114 |
 
 ## §5 Verification
-et 033000458 W land · this tree still has live workflow.py (not copied) · send.py still live
+et f2c6bf2a3 · W replica 0.9 · this tree still live workflow.py · send.py still live
 
 ## §6 BANKED
-Owner 21:49Z council zoomed-out. STANDARD LOOP.
+Owner 21:49Z council zoomed-out.
 W3 g4.18.7 remaining bundle 4.
 Shael Qs on mint chew.
