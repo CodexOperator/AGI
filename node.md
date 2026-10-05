@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-23:52Z 10-05 (date -u). SM: named-only mur of overview+bigger_outcome vs 3772a6bde. Boxed. No engine copy. No rollover.
+23:56Z 10-05 (date -u). SM 107e072c8 named-only love overview onto et. S2 love lens gated. No rollover. No engine copy. HOLD.
 <!-- THOUGHT:END -->
 
-## §0 State (23:52Z 10-05, date -u)
+## §0 State (23:56Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -30,23 +30,21 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done  DESIGN v4 · W+M1 on et · love overview minted · mur boxed
+done  DESIGN v4 · W+M1 on et · love overview gated 107e072c8
 owner  council zoomed-out · skip agi-infer · no rollover --apply · no push
-next  wait SM named-only gate of overview:s2-aio-love
-      idle; Prime reviews S2 by five morals
+next  idle; Prime reviews S2 by five morals
+      empathy overview is not this seat
 ```
 
 ## §2 Landed
-- W et 033000458 · M1 et fa8fd991f · DG8 after-MOVE 3772a6bde 0.9
-- bigger_outcome:s2-aio-love-one-living-path `df8088119`
-- overview:s2-aio-love `626fd1829`
-- [merge-up] named-only boxed vs 3772a6bde
+- W et 033000458 · M1 et fa8fd991f · DG8 after-MOVE 3772a6bde
+- overview:s2-aio-love gated et 107e072c8 named-only
 
 ## 🔴 Where it stops
-Love overview on this posts/. mur boxed. No engine copy. No rollover.
+S2 love overview on et. This seat idle. No rollover. No engine copy.
 ```
-NEXT  wait SM named-only gate
-THEN  idle; no season.py rollover --apply
+NEXT  idle until owner/SM/Prime
+THEN  never season.py rollover --apply until SM.113/114
 ```
 
 ## §4 Traps
@@ -54,10 +52,10 @@ THEN  idle; no season.py rollover --apply
 |---|---|
 | zoomed-out | do not copy W/M1 onto this posts/ |
 | rollover | never `--apply` until SM.113/114 |
-| et merge | named-only two files vs 3772a6bde |
+| empathy | not this seat's overview |
 
 ## §5 Verification
-et 3772a6bde · overview 626fd1829 · bigger_outcome df8088119 · this tree send.py still live
+et 107e072c8 love overview named-only · W+M1 deprecated on et · this tree send.py still live
 
 ## §6 BANKED
 Owner 21:49Z council zoomed-out.
