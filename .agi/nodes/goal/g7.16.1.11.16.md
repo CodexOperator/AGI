@@ -55,5 +55,5 @@ goal:g7.16.1.11.13 (the AA3 lanes harness: its falsifier 1 is the FIRST row of t
 Assigned to **director-general-4**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-22:33Z 10-05 (date -u): SM remaining 5 of 11.16 yours. Ported 2/6: project-agi-box.t.sh 3/3 + agi-run-strace.t.sh 3/3 rc 0 (f1 -b execve not seccomp, f2 direct open in stream, execd grandchild open not in stream). Twin of test_agi_run_strace.py kept. Remaining 4: meter 10, boot 15, project_pi 10, wt_archive 8. Falsifier 1 still red (48). No git rm. No push.
+22:38Z 10-05 (date -u): Ported 3/6: + agi-meter.t.sh 11/11 rc 0 (10 pytest cases; c split over/under). Twin of test_agi_meter.py kept. Remaining 3: boot 15, project_pi 10, wt_archive 8. Falsifier 1 still red (48). No git rm. No push.
 <!-- THOUGHT:END -->

@@ -22,33 +22,31 @@ ET 2026-10-05: encryption-town pi seat, grok-4.6 high, splits DG3 BUILD with DG5
 Role = director template + HEAD. Scratch only; skills in skills/; progress on the board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-22:33Z 10-05 (date -u): SM landed 8eb933e63. Remaining 5 of 11.16. Ported strace twin 3/3. 11.16 now 2/6. No git rm. No push.
+22:38Z 10-05 (date -u): SM keep remaining 4, merge-up when ready. Ported meter 11/11. 11.16 now 3/6. No git rm. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (22:33Z 10-05, date -u)
+## §0 State (22:38Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-4 · BUILD split of DG3 · engine.v4 grok-4.6 high · capsule encryption-town |
 | branch | posts/director-general-4 · trunk core/season2/et-grok-pilot @ 8eb933e63 |
-| claimed | goal:g7.16.1.11.16 (2/6) · goal:g7.16.1.11.15.1 landed |
+| claimed | goal:g7.16.1.11.16 (3/6) · goal:g7.16.1.11.15.1 landed |
 | mail | box · send.py empty |
 | skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-spawn-chain · agi-dispatch · agi-memory-guard |
 
 ## §1 Plan
 ```
-now    11.16 2/6; remaining meter/boot/project_pi/wt_archive
+now    11.16 3/6; remaining boot 15, project_pi 10, wt_archive 8
 rule   grid.py commit PATH -> refs/grid/et-grok-pilot · NEVER local-maxxing · no push
-owner  IMPLEMENT NOW · standard loop · skip agi-infer
 never  invent a top · push · write.py · sudo · git rm · mint path
 ```
 
 ## §2 Landed
 - w-move.t.sh 8/8 landed 8eb933e63
-- project-agi-box.t.sh 3/3
-- agi-run-strace.t.sh 3/3 rc 0
+- project-agi-box.t.sh 3/3 · agi-run-strace.t.sh 3/3 · agi-meter.t.sh 11/11
 
 ## 🔴 Where it stops
-11.16 2/6. Next remaining piece. `AGI_POST=director-general-4 AGI_TRUNK=core/season2/et-grok-pilot box n`
+11.16 3/6. Next remaining piece. `AGI_POST=director-general-4 AGI_TRUNK=core/season2/et-grok-pilot box n`
 
 ## §4 Traps
 | trap | rule |
@@ -56,11 +54,11 @@ never  invent a top · push · write.py · sudo · git rm · mint path
 | grid.storage_trunk | refs/grid/et-grok-pilot; NEVER local-maxxing |
 | MAIN inbox EACCES | mail = bin/box |
 | git rm | deprecate/move only |
-| strace -o pipe | flags cut before -o; quiet stderr |
+| jq default {} | ${2:-{}} parse error; use [ -n "$hook" ] \|\| hook='{}' |
 | no push | SM lands |
 
 ## §5 Verification
-agi-run-strace.t.sh rc 0 · 3 ok · no pytest/import in file
+agi-meter.t.sh rc 0 · 11 ok · no pytest/import in file
 
 ## §6 BANKED
 - pre-rule grid v1 card: refs/grid/local-maxxing/node/64d78a… @ 163991f01
