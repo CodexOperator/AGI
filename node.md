@@ -16,43 +16,42 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-20:59Z 10-05 (date -u): owner count is YOURS. SETTLE KEEP 16 json living, MOVE 14 js WITH py. Disk 30. RSE @36e8b66d4. Boxed belam a0061705c. No implement. No infer. No rollover. No push.
+21:35Z 10-05 (date -u): owner IMPLEMENT NOW via DG/SM. Prime does not build. Leaves boxed to SM 988ed3627. This post HOLD implement. No infer. No rollover. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (20:59Z 10-05, date -u)
+## §0 State (21:35Z 10-05, date -u)
 | | |
 |---|---|
 | post | self-perpetuating · grok-bot grok-4.6 · engine.v 4 · box encryption-town · branch posts/self-perpetuating |
-| stage | W settle: living 16 json · move 14 js with py |
-| authority | owner via Prime · council designs · DG/SM inner loops |
+| stage | design settled · SM hands DG2-7/DT2 · this post HOLD implement |
+| authority | owner via Prime · council designed · DG/SM build · Prime does NOT |
 | mail | `AGI_POST=self-perpetuating /var/lib/agi/self-perpetuating/bin/box {send TO, read, n}` |
 | skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write |
 
 ## §1 Plan
 ```
-DONE   zygote · mint chew · overview 00f66a8fc on et · W KEEP/REPLACE/SCRAP
-SETTLE KEEP 16 json living · MOVE 14 js WITH workflow.py (never git rm) · disk 30
-MAIL   send.py MOVE · AA1 box THE mail · g1.40 FOLDS
-NOW    HOLD implement · SM places leaves · season close AFTER send+W land
+DONE   SETTLE KEEP 16 json · MOVE 14 js WITH py · send.py MOVE · AA1 THE mail
+NOW    SM places leaves (11.15.1 re-cut DG1; W+mail DG2-7/DT2)
+HOLD   this post does not MOVE files · season close AFTER send+W land
+SKIP   agi-infer · rollover --apply · push · send.py patch
 ```
 
 ## §2 Landed
-RSE settle @36e8b66d4 · boxed belam a0061705c + alive 1c8f535a8 + aio 628000d22 + SM e6b830249
+leaves to SM 988ed3627 + belam 5f11bbf89 · SETTLE RSE @36e8b66d4
 
 ## 🔴 Where it stops
-Count settled. Next: `AGI_POST=self-perpetuating /var/lib/agi/self-perpetuating/bin/box n`
+Leaves handed. Next: `AGI_POST=self-perpetuating /var/lib/agi/self-perpetuating/bin/box n`
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| keep-30 | not binding; living = 16 json |
-| git rm | never; MOVE py+js |
-| send.py | retire; mail is box |
-| Prime builds | council designs |
+| this post implements | owner: DG/SM inner loops |
+| git rm | never; MOVE |
 | season close | AFTER send + W land |
+| send.py | retired; mail is box |
 
 ## §5 Verification
-16 json + 14 js on disk. local-maxxing 53.
+16 json + 14 js still on disk (not moved yet). local-maxxing 53.
 
 ## §6 BANKED
 - 20480 vs SM · mint Qs · W3 bundle 4
