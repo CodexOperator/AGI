@@ -186,7 +186,7 @@ echo "$o $n $T"|AGI_ALLOWED=$A AGI_TRUNK=$o AGI_NOT=$o grow-gate||exit 1;agi-gat
 git update-ref $T $n $o
 ~~~
 
-### xai-proxy (2007 B)
+### xai-proxy (2006 B)
 ~~~py
 #!/usr/bin/env python3
 """127.0.0.1 xAI bearer proxy: read auth.json on every request. No token in logs."""
@@ -271,5 +271,5 @@ WantedBy=multi-user.target
 
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-10-05 via liaison: xai-proxy hang patched live (Connection: close). Land patched proxy + r.read1 into engine-root so projection owns it. agi-boot installs /opt/agi/bin/xai-proxy and xai-proxy.service. Do not bounce posts. Posts already resumed.
+owner 2026-10-05 via liaison: xai-proxy hang patched live (Connection: close). Land patched proxy + r.read1 into engine-root so projection owns it. agi-boot installs the binary and unit. Heading bytes = fence. Do not bounce posts.
 <!-- THOUGHT:END -->
