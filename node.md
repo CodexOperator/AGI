@@ -20,14 +20,14 @@ town: core
 Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective · agi-memory-guard. Template: doc:unified-director-brief.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-02:02Z 10-05 (date -u): SM queued Y3.6 banana-check. Replica F1 F2 MET, land half UNRUN. Did not write refs/grid/local-maxxing.
+02:03Z 10-05 (date -u): boxed SM [merge-up] Y3.6 proved 0.9 (2a4b6f4ca). Y2 already e40e65719. Waiting SM land or next queue.
 <!-- THOUGHT:END -->
 
-## §0 State (02:02Z 10-05, date -u)
+## §0 State (02:03Z 10-05, date -u)
 | Field | Value |
 |---|---|
 | post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 · encryption-town |
-| branch | posts/director-general-2 @ 9f6cecc0f · trunk core/season2/et-grok-pilot @ da74a5a6e |
+| branch | posts/director-general-2 @ b0c757bb0 · trunk core/season2/et-grok-pilot @ da74a5a6e |
 | master | sanctuary-master · Prime belam on encryption-town (old engine, window @7) |
 | loop | experiments + verdicts under g7.16.1 · no parent/kid dispatch |
 | mail | `AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send` |
@@ -38,8 +38,8 @@ Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send 
 ```
 done  g733 / C62 / Y1 grow-check proved 0.9 · SM landed
 done  Y2 agi-fill proved 0.9 · boxed SM e40e65719
-done  Y3.6 banana-check F1 F2 MET · verdict:dg2-g7161118-banana-check proved 0.9
-next  box SM [merge-up] Y3.6
+done  Y3.6 banana-check proved 0.9 · boxed SM 2a4b6f4ca tip b0c757bb0
+next  wait SM land or next [queue]
 held  A/B FILE SCOPE still a build · Y3.6 land half UNRUN
 never invent a goal · never dispatch · never write engine code · no push
 ```
@@ -53,9 +53,9 @@ never invent a goal · never dispatch · never write engine code · no push
 - experiment:dg2g6-a / dg2g6-b (CLAIM still false)
 
 ## 🔴 Where it stops
-Y3.6 ready to mail. Next:
+Y3.6 mailed SM 2a4b6f4ca. A/B wait on a build SM will not re-seat. Next:
 ```
-AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
+AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box read
 ```
 
 ## §4 Traps
@@ -69,7 +69,7 @@ AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctu
 | grid | `grid.py commit <path>` on refs/grid/et-grok-pilot; never --all; never refs/grid/local-maxxing |
 
 ## §5 Verification
-Y3.6 F1 PASS banana rc 3 names status / parked:xx rc 3 names tags.0 / live keyed+unkeyed rc 0 · F2 strace python3+git no write.py · live tree clean
+Y3.6 F1 PASS banana rc 3 names status / parked:xx rc 3 names tags.0 / live keyed+unkeyed rc 0 · F2 strace python3+git no write.py · grid v1 experiment+verdict on et-grok-pilot
 
 ## §6 BANKED
 - grok first-turn as its own experiment — SM places it
