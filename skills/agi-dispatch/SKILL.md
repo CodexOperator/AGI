@@ -45,7 +45,7 @@ inbox = self-authorised: cut it. A kid's work is the kid's — brief, do not ste
 `season.py judge <report-id> --against <plan-id> --actor <post>` stamps the alignment:
 `continue` (keep going) · `adjust` (reword the plan node) · `done` (close the plan, mint the outcome).
 Judge against the plan node's PARENT (the lens this tier sees through), from the report AND the bytes.
-Reviews of a round run BY NAME with an EXPLICIT `--harness pi-free` (skill `agi-spawn-chain`), never inline -- bare `--harness pi` = the free default row since 37d8a473d, `pi:paid` is the PAID deepseek lane (TMM.291: 74 paid mur runs, ~12.8 USD, 09-24..27). Never shell workflow.py (retired, moved).
+Reviews of a round run BY NAME with an EXPLICIT `--harness pi-free` (skill `agi-spawn-chain`), never inline -- bare `--harness pi` = the free default row since 37d8a473d, `pi:paid` is the PAID deepseek lane (TMM.291: 74 paid mur runs, ~12.8 USD, 09-24..27). Never shell the retired runner.
 
 ## 5 · Orders and harvest — traps already paid for
 | trap | do · never |

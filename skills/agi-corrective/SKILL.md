@@ -100,6 +100,6 @@ git worktree add -b de-base-<N> .agi/worktrees/de-base-<N> <loop tip>
 cd .agi/worktrees/de-base-<N> && python3 extensions/agi/bin/dispatch.py . DH.<N> --target hypothesis:<id> --level small \
   --tier parent --role parent --ladder-tier 0 --branch --detach --orders <file> --from <post> --allow-stale-base "<reason>"
 ```
-Every re-mur: a SPAWN of the merge-up-review json manifest (skill agi-spawn-chain), never workflow.py (retired, moved). --harness pi-free EXPLICIT (bare `pi` = the free default row since 37d8a473d; the paid lane is `pi:paid`, TMM.291).
+Every re-mur: a SPAWN of the merge-up-review json manifest (skill agi-spawn-chain), never the retired runner. --harness pi-free EXPLICIT (bare `pi` = the free default row since 37d8a473d; the paid lane is `pi:paid`, TMM.291).
 The card's chain row gets the new tip (`<chain> <N> LIVE`). On harvest: agi-dispatch §5 traps → mur over `<prev tip>..<new tip>` only
 (skill agi-spawn-chain) → back to §2. A chain merges only at its LAST cleared tip, in the order the card names.

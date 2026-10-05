@@ -56,13 +56,13 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/send.py {send,read,peek} <target>` | One-verb agent comms via inbox file |
 | `bin/rotate.py {meter,spawn,status}` | Director rotation: meter context usage, launch successor in tmux |
 | `bin/write_guard.py {check,hook}` | Detect unsanctioned node writes; pre-commit hook |
-| ~~`bin/workflow.py`~~ | **RETIRED** goal:g7.16.1.11.15.1 — moved to `extensions/agi/deprecated/bin/workflow.py`, never git rm. A v4 review is a SPAWN (json manifest + agi-kid -m; skill agi-spawn-chain) |
+| ~~`bin/<retired-runner>`~~ | **RETIRED** goal:g7.16.1.11.15.1 — moved to `extensions/agi/deprecated/bin/` (same basename), never git rm. A v4 review is a SPAWN (json manifest + agi-kid -m; skill agi-spawn-chain) |
 
 **`grid.py checkout` is gone — never run it.** There is no staged copy to materialize; see "The git grid" below for what replaced the whole pipeline it belonged to.
 
 ## Workflows: registered as they run, dispatched only one way
 
-A review is a SPAWN: a living json manifest under `extensions/agi/workflows/` + a graph slice + `agi-kid -m` (skill agi-spawn-chain). workflow.py is RETIRED (moved to `extensions/agi/deprecated/bin/workflow.py`, never `git rm`; goal:g7.16.1.11.15.1). The 14 `.js` halves moved with it. 16 json KEEP living. Never shell workflow.py from a v4 post.
+A review is a SPAWN: a living json manifest under `extensions/agi/workflows/` + a graph slice + `agi-kid -m` (skill agi-spawn-chain). workflow.py is RETIRED (moved to `extensions/agi/deprecated/bin/` (same basename), never `git rm`; goal:g7.16.1.11.15.1). The 14 `.js` halves moved with it. 16 json KEEP living. Never shell workflow.py from a v4 post.
 
 ## Choosing a runtime
 
