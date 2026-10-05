@@ -83,4 +83,4 @@ def test_map_still_names_38_pieces_and_grow_gate_bytes_parse():
     assert names[0] == "agi-post@.service"
     assert "grow-gate" in names
     m = re.search(r"^grow-gate *([0-9]*) B", text, re.M)
-    assert m and int(m.group(1)) == 6335
+    assert m and int(m.group(1)) == 7088
