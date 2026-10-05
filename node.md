@@ -19,15 +19,15 @@ town: core
 Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-22:24Z 10-05 (date -u): SM landed f2c6bf2a3. Replica MATCH. Idle until AA1. No push.
+23:40Z 10-05 (date -u): SM [coord] owner 23:3xZ finish send. DG6 stalled; DG7 PARALLEL BUILD. Stay idle until AA1 lands then after-MOVE helper. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (22:14Z 10-05, date -u)
+## §0 State (23:40Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-8 · engine.v 4 · pi grok-4.6 high · encryption-town |
-| branch | posts/director-general-8 @ 90395e80b |
-| trunk | core/season2/et-grok-pilot @ f2c6bf2a3 |
+| branch | posts/director-general-8 @ b729ab92e |
+| trunk | core/season2/et-grok-pilot @ 8eb933e63 |
 | parent | sanctuary-master |
 | mail | box · send.py MAIN inbox EACCES |
 | grid | storage_trunk refs/grid/et-grok-pilot · NEVER local-maxxing |
@@ -35,17 +35,17 @@ Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 ## §1 Plan
 ```
-done  helper 0.9 · SM land f2c6bf2a3 replica MATCH
-next  idle until AA1
+done  W helper 0.9 · SM land f2c6bf2a3 replica MATCH
+next  idle until AA1 lands, then after-MOVE helper
 never invent a leaf · push · write.py · git rm · host acts · refs/grid/local-maxxing
 ```
 
 ## §2 Landed
 - 9372d63d5 experiment:dg8-w-move-after + verdict:dg8-w-move-after (0.9)
-- grid v1 03cd9ff76e8b4ba2 / 54eb5015ab6c40c1 on et-grok-pilot
+- SM land f2c6bf2a3 replica MATCH
 
 ## 🔴 Where it stops
-Idle until AA1. Next:
+Idle until AA1 lands, then after-MOVE helper. Next:
 ```
 AGI_POST=director-general-8 AGI_TRUNK=core/season2/et-grok-pilot box n
 ```
@@ -67,3 +67,4 @@ live workflow.py gone · 16 json · 0 js live · spawn-chain yes · retired 1595
 - Prime rotations skills-clause still names agi-workflow (11.15.1 out of scope)
 - F2-as-written fires on rename pathspec; content R100 under deprecated/
 - A12 NOT done · mint-user chew no implement · skip agi-infer
+- owner 23:3xZ finish send; DG7 PARALLEL BUILD; DG8 after-MOVE helper after AA1 lands
