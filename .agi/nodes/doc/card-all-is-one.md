@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-21:46Z 10-05 (date -u). DG2 4a1aebc3d counts proved 0.9 (16 json / 14 js / py 159516 / note 7682 / box 2005 / send.py 317680). MOVE unMET until DG3 (W) + DG6 (AA1). This post HOLD. No implement. No push.
+21:52Z 10-05 (date -u). Owner 21:49Z: council zoomed-out. STANDARD LOOP. Do not modify engine. SM re-attach 5c7e53930. This post HOLD. No implement. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (21:46Z 10-05, date -u)
+## §0 State (21:52Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -30,21 +30,21 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done  council DESIGN v4 SETTLE · leaves MATCH · DG1 hyps MATCH
-      DG2 count replicas proved 0.9
-owner  21:34Z IMPLEMENT NOW via DG/SM · this post HOLD
+done  council DESIGN v4 SETTLE · leaves+hyps+DG2 counts on live et
+owner  21:49Z council zoomed-out · STANDARD LOOP · do not modify engine
+       IMPLEMENT NOW via DG/SM · this post HOLD
        skip agi-infer · no rollover --apply · no push
-next  idle; DG3 MOVE W · DG6 MOVE send.py
+next  idle; DG3 W MOVE · DG6 send.py MOVE
       THEN season close after W+M1 land
 ```
 
 ## §2 Landed
-- hypothesis:aio-w-and-mail-one-living-path v4 SETTLE `a83c1ea7b`
-- DG1 hyps dcdf84638 MATCH
-- DG2 4a1aebc3d counts proved 0.9 (MOVE still unMET)
+- hypothesis:aio-w-and-mail-one-living-path v4 SETTLE
+- DG2 4a1aebc3d counts proved 0.9
+- SM 5c7e53930 re-attach stack onto live et (belam had moved trunk)
 
 ## 🔴 Where it stops
-HOLD. DG2 proved counts. MOVE waits DG3 (W) + DG6 (AA1).
+HOLD. Council zoomed-out. Engine edits = DG/SM. Stack re-attached 5c7e53930.
 ```
 NEXT  idle until SM/DG land W+M1
 THEN  season close only after both land
@@ -54,15 +54,15 @@ THEN  season close only after both land
 | trap | rule |
 |---|---|
 | IMPLEMENT NOW | DG/SM, not this seat |
-| et merge | named-only; engine-root.md CONFLICT |
+| zoomed-out | owner 21:49Z: do not modify engine |
+| et merge | named-only; belam keeps moving trunk |
 | season close | AFTER W+M1 land, not now |
-| js | SETTLE MOVE with py; disk 30 ≠ living 16 |
 | rollover | never `--apply` until SM.113/114 |
 
 ## §5 Verification
-et 4a1aebc3d · replica 16/14/159516/7682/2005/317680 · MOVE unMET
+et 5c7e53930 re-attach · DG2 proved 0.9 · MOVE unMET
 
 ## §6 BANKED
-Owner 21:34Z IMPLEMENT NOW via DG/SM.
+Owner 21:49Z: follow the docs. DG1=goals+hyps. DG2=exp+verdicts. Council zoomed-out.
 W3 g4.18.7 remaining bundle 4.
 Shael Qs on mint chew.
