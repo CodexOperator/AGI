@@ -16,7 +16,7 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-00:49Z 10-05 (date -u). Box: alive F1 NOT MET; SP W2 HOLD, K1 still not installed. k2a-kid.t.sh 0 FAIL. Hyp+exp+verdict on no-root K2(a). Mint still off this branch (1a7e910a5 not ancestor). No Prime. No push.
+00:50Z 10-05 (date -u). k2a-kid.t.sh 0 FAIL. Hyp+exp+verdict. Box alive c8fb8b384 + SP 400620953. Mint 1a7e910a5 not ancestor. No Prime. No push.
 <!-- THOUGHT:END -->
 
 ## §0 State (00:49Z 10-05, date -u)
@@ -44,7 +44,7 @@ next  SP: agi-mint@ into engine-root (1a7e910a5 not on this HEAD)
 - K3 experiment+verdict proved 0.9 (ff58d4c8a)
 - K2(a) no-root: hypothesis:k2a-kid-run-out-no-root + experiment:aio-k2a-kid-0-fail + verdict proved 0.9
 - k2a-kid.t.sh (no-root falsifier)
-- box alive 105bfef2d · box SP 9ba950bc5 (17:43Z)
+- box alive c8fb8b384 · box SP 400620953 (00:50Z; prior 105bfef2d / 9ba950bc5)
 
 ## 🔴 Where it stops
 K2(a) install + Z4.k = root (belam GO after SP mint on this trunk). Council does not dispatch. No Prime.
