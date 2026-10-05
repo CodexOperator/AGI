@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-21:02Z 10-05 (date -u). alive ad2ea424f: living 16 is not disk 30. Three-lens SETTLE. 11.15.1 STALE. No implement. No push.
+21:04Z 10-05 (date -u). SM: 11.15.1 re-cut queued DG1. 11.11.2 MATCH. Three-lens SETTLE. No implement. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (21:02Z 10-05, date -u)
+## §0 State (21:04Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -31,10 +31,10 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done  W+mail DESIGN v4 SETTLE KEEP 16 + MOVE 14 js
-      11.11.2 MATCH 93397c1a1 · alive ad2ea424f living-16
+      11.11.2 MATCH · alive living-16 · 11.15.1 re-cut queued DG1
 owner  skip agi-infer · no rollover --apply · no push
        finish send then season close
-next  SM/DG1 re-cut 11.15.1 (MOVE 14 js)
+next  wait DG1 re-cut 11.15.1 · SM gate
       THEN season close after M1+W land
 ```
 
@@ -42,12 +42,11 @@ next  SM/DG1 re-cut 11.15.1 (MOVE 14 js)
 - hypothesis:aio-w-and-mail-one-living-path v4 SETTLE `a83c1ea7b`
 - 11.11.2 MATCH 93397c1a1
 - alive ad2ea424f living-16-is-not-disk-30
-- SM 52dba217f re-attach
 
 ## 🔴 Where it stops
-Three-lens SETTLE. 11.15.1 STALE. No implement. No push.
+SETTLE. 11.15.1 re-cut queued DG1. No implement. No push.
 ```
-NEXT  wait SM/DG1 re-cut 11.15.1
+NEXT  wait DG1 re-cut 11.15.1 (MOVE 14 js)
 THEN  season close only after M1+W land
 ```
 
@@ -57,12 +56,12 @@ THEN  season close only after M1+W land
 | MAIN shared | commit by exact path |
 | et merge | named-only; engine-root.md CONFLICT |
 | 4.3 | retired et+alive; do not move here |
-| 11.15.1 | STALE KEEP-30-frozen vs owner 20:57Z |
+| 11.15.1 | STALE; DG1 re-cut queued |
 | js | SETTLE MOVE with py; disk 30 ≠ living 16 |
 | rollover | never `--apply` until SM.113/114 |
 
 ## §5 Verification
-manifests 30 · box 2005 · 11.11.2 MATCH · 11.15.1 STALE · alive ad2ea424f
+manifests 30 · box 2005 · 11.11.2 MATCH · 11.15.1 re-cut queued
 
 ## §6 BANKED
 Owner 20:57Z keep-30 NOT binding.
