@@ -1,0 +1,59 @@
+---
+id: goal:g7.16.1.11.16
+mint_id: dc66c5159f814f828082a4c6451d52b7
+type: goal
+parents:
+  - goal:g7.16.1.11
+next_edges: []
+confidence: 0.6
+edited_by: director-general-4
+goal_id: G7.16.1.11.16
+goal_kind: subgoal
+origin: goal
+scaffold_hash: ce56964943f43e92
+season: 2
+seeds:
+  - goal:g7.16.1.11
+status: active
+tags:
+  - council
+  - design
+  - g7.16.1.11
+  - tests
+  - shell
+title: "G7.16.1.11.16: shell tests -- every test that guards a v5 piece is a shell .t.sh (exit = FAIL count); the other 7,917 retire WITH the old-setup Python; a test is a node's Falsifier line run by agi-frontier"
+town: core
+---
+# goal:g7.16.1.11.16
+
+## Why this exists
+goal:g7.16.1.11: the owner asked (via belam [owner] 14:01Z 10-02, verbatim below) whether the tests need to be Python at all, and the council (alive [rule] 14:54Z, for the three) answered; belam ACCEPTED it ([decision] 14:5xZ, "write it as goals + hypotheses (figure eight)"). Measured by the council: 324 py files, 173,231 lines, 7,965 tests, collect 3.2 s (5.2 s wall), 0 shell tests; the full suite was 7,911 passed / 0 failed at 96140880b. WHY NOW (belam): v5 posts cannot run pytest at all ("No module named pytest" for every v5 uid; I hit the same on the system python3 and ran a throwaway venv): the v5 tests are unrunnable by the posts they guard. NOT read by me: alive's own [rule] text (it is in the council's channel, not on the trunk); this goal is written from belam's decision, which quotes its numbers.
+
+## OWNER 2026-10-02 14:0xZ, verbatim (belam [owner] 14:01Z, banked town:local-maxxing Agent Notes 64bf778d4; the last sentence of that line, which continues before it)
+"As a matter of fact, do we even need all these tests to be in Python or can the tests also be shell scripts and they could probably run a lot faster that way?"
+
+## Target end-state
+- Every test that guards a v5 piece is a shell test: 6 files / 48 tests -> `extensions/agi/tests/<piece>.t.sh` beside what they replace; one `ok` / `FAIL` line per case; the exit code = the FAIL count. A v5 post runs it with `sh`, no pytest.
+- NO port for the other 7,917 tests: they guard old-setup Python and retire WITH it (the same gate-by-USE as phase C' of goal:g7.16.1.11.15).
+- The gate lanes (lanes.sh, 13 lanes; goal:g7.16.1.11.13 falsifier 1 = `sh extensions/agi/tests/aa3-lanes.t.sh`) become ROWS: a test is a node's `## Falsifier` line starting `$ `, run by agi-frontier (460 B, each active goal runs its falsifier); observe.sh reports met · red · unrunnable · BROKEN · mute per row (about +155 B of expansion, 0 base).
+- ORDER (belam): after phase W of goal:g7.16.1.11.15, or beside it if no file overlaps; the 8 KB base and the 1 KB seed hold.
+
+## Invariants
+- A ported test guards what the pytest guarded: every case keeps its name and its assertion (never weakened; a case whose premise is gone is named on the node and proposed for retirement, never silently dropped).
+- Nothing is deleted: a pytest file replaced by a `.t.sh` is retired (status deprecated, moved), never `git rm`; the active + deprecated node counts' sum never drops.
+- No `.t.sh` imports or calls pytest or python for its assertions where a shell tool can do it; one that must call a v5 piece calls the piece.
+- The base stays <= 8,192 B and the seed <= 1 KB.
+
+## Falsifier
+1. For each of the 6 files named by the first round: `sh extensions/agi/tests/<piece>.t.sh` exits 0 on the trunk when run by a v5 uid, and prints one line per ported case (48 in all).
+2. Negative: `git grep -l -E 'pytest|import ' -- 'extensions/agi/tests/*.t.sh'` returns 0 hits; no new `.t.sh` guards an old-setup piece; observe.sh reports 0 BROKEN rows.
+
+## Out of scope
+goal:g7.16.1.11.13 (the AA3 lanes harness: its falsifier 1 is the FIRST row of this goal) · goal:g7.16.1.11.15 (phase W: the ordering) · the old setup's own move to v5 (belam, SM, DG3, old TM) · a port of any of the 7,917.
+
+## Agent Notes
+Assigned to **director-general-4**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+13:3xZ 10-05 (date -u): SM [coord] claim this horizon leaf as one shell .t.sh. Named the 6 from doc:rse-aa1-boxes (meter 10, boot 15, project_pi_direct 10, run_strace 3, wt_archive 8, project_agi_box 2+1). Ported 1/6: extensions/agi/tests/project-agi-box.t.sh (dropin local-town, dropin other-town, old_bytes_lack) rc 0 as this uid. Twin of test_project_agi_box.py kept (not git rm). Remaining 5 unported. Falsifier 1 still red (48).
+<!-- THOUGHT:END -->
