@@ -10,11 +10,7 @@ scaffold_hash: 1a5628596065214d
 season: 2
 town: core
 ---
-<<<<<<< HEAD
 # config:engine — the ZYGOTE: the code that runs before any post exists + the map of 39 pieces (43 `###` in engine*.md; 5 unmapped: boot, boot.service, agi-sync, matrix, seed)
-=======
-# config:engine — the ZYGOTE: the code that runs before any post exists + the map of 40 pieces (43 `###` blocks in engine*.md: agi-boot, agi-boot.service and matrix are not mapped)
->>>>>>> core/season2/et-grok-pilot
 Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.geometry/engine*.md`: this node, config:engine-post, config:engine-wrap, config:engine-grow, config:engine-root) · 3 = this file. Pieces are small templates over raw commands; parameters are cells: a row's ONE `engine` object is projected as AGI_<KEY> env. Parity: doc:g716111-stage25-parity.
 
 ## diagram — depth 0
@@ -119,9 +115,5 @@ post	brief	card-<p>	brief
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-<<<<<<< HEAD
-g7.16.1.11.6: seed is a ### in engine-root (T.1, expansion). Caption 42->43 unmapped (+seed). Zygote whole still <=8192; fenced unchanged.
-=======
-PROPOSED v5 (owner GO 06:1xZ; doc:radically-simple-engine §Q+§R): v4c cut by one rule: ZYGOTE = what runs before any post exists + the map; the rest is EXPANSION read by sect @REV. Only the 4 readers changed (sect, agi-project, agi-gate, agi-post@.service): every .geometry/engine*.md at the REV, ranges end at ^##; the gate refuses a duplicate name (2) and an empty unit (1). R7: + `### matrix` + engine-grow. SPLIT: the unit is in engine-root; a post's loop reads engine.md + engine-[pw]*.md. Scope add: post identity env (parity 42), pane trim (agi-run, pane_max_mb).
->>>>>>> core/season2/et-grok-pilot
+g7.16.1.11.6: seed is a ### in engine-root (T.1, expansion). Caption 42->43 unmapped (+seed). Zygote whole still <=8192; fenced unchanged. Merge trunk 00d5983fa storage_trunk=et-grok-pilot.
 <!-- THOUGHT:END -->
