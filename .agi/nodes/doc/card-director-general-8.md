@@ -19,15 +19,15 @@ town: core
 Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-22:15Z 10-05 (date -u): [merge-up] boxed SM. Helper 0.9. Idle. No push.
+22:24Z 10-05 (date -u): SM landed f2c6bf2a3. Replica MATCH. Idle until AA1. No push.
 <!-- THOUGHT:END -->
 
 ## §0 State (22:14Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-8 · engine.v 4 · pi grok-4.6 high · encryption-town |
-| branch | posts/director-general-8 @ 8bd723dcc |
-| trunk | core/season2/et-grok-pilot @ 033000458 |
+| branch | posts/director-general-8 @ 90395e80b |
+| trunk | core/season2/et-grok-pilot @ f2c6bf2a3 |
 | parent | sanctuary-master |
 | mail | box · send.py MAIN inbox EACCES |
 | grid | storage_trunk refs/grid/et-grok-pilot · NEVER local-maxxing |
@@ -35,8 +35,8 @@ Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 ## §1 Plan
 ```
-done  wake · merge trunk · helper 0.9 · [merge-up] boxed SM
-next  idle until SM places
+done  helper 0.9 · SM land f2c6bf2a3 replica MATCH
+next  idle until AA1
 never invent a leaf · push · write.py · git rm · host acts · refs/grid/local-maxxing
 ```
 
@@ -45,7 +45,7 @@ never invent a leaf · push · write.py · git rm · host acts · refs/grid/loca
 - grid v1 03cd9ff76e8b4ba2 / 54eb5015ab6c40c1 on et-grok-pilot
 
 ## 🔴 Where it stops
-[merge-up] boxed SM. Idle. Next:
+Idle until AA1. Next:
 ```
 AGI_POST=director-general-8 AGI_TRUNK=core/season2/et-grok-pilot box n
 ```
