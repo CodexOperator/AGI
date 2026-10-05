@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-23:48Z 10-05 (date -u). M1 fa8fd991f send.py MOVE on et. Love overview minted. No rollover. No engine copy. HOLD.
+23:52Z 10-05 (date -u). SM: named-only mur of overview+bigger_outcome vs 3772a6bde. Boxed. No engine copy. No rollover.
 <!-- THOUGHT:END -->
 
-## §0 State (23:48Z 10-05, date -u)
+## §0 State (23:52Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -30,22 +30,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done  DESIGN v4 SETTLE · W 033000458 · M1 fa8fd991f · love overview
+done  DESIGN v4 · W+M1 on et · love overview minted · mur boxed
 owner  council zoomed-out · skip agi-infer · no rollover --apply · no push
-next  SM gates love overview
+next  wait SM named-only gate of overview:s2-aio-love
       idle; Prime reviews S2 by five morals
 ```
 
 ## §2 Landed
-- W et 033000458 git mv R100 py+note+14 js
-- M1 et fa8fd991f send.py R100 → deprecated/
-- bigger_outcome:s2-aio-love-one-living-path
-- overview:s2-aio-love (moral:love · vision:all-is-one)
+- W et 033000458 · M1 et fa8fd991f · DG8 after-MOVE 3772a6bde 0.9
+- bigger_outcome:s2-aio-love-one-living-path `df8088119`
+- overview:s2-aio-love `626fd1829`
+- [merge-up] named-only boxed vs 3772a6bde
 
 ## 🔴 Where it stops
-W+M1 on et. Love overview on this posts/. No rollover. No engine copy.
+Love overview on this posts/. mur boxed. No engine copy. No rollover.
 ```
-NEXT  box SM the overview ids · wait SM gate
+NEXT  wait SM named-only gate
 THEN  idle; no season.py rollover --apply
 ```
 
@@ -54,10 +54,10 @@ THEN  idle; no season.py rollover --apply
 |---|---|
 | zoomed-out | do not copy W/M1 onto this posts/ |
 | rollover | never `--apply` until SM.113/114 |
-| et merge | named-only; engine-root.md CONFLICT |
+| et merge | named-only two files vs 3772a6bde |
 
 ## §5 Verification
-et fa8fd991f M1 · 033000458 W · this tree send.py still live (not copied) · overview minted
+et 3772a6bde · overview 626fd1829 · bigger_outcome df8088119 · this tree send.py still live
 
 ## §6 BANKED
 Owner 21:49Z council zoomed-out.
