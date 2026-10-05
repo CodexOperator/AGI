@@ -13,65 +13,58 @@ tags:
   - master
 title: Card sanctuary master
 town: core
-thought_session: sm-et-grok-wake-20261005-0200
+thought_session: sm-et-grok-wake-20261005-0458
 ---
 # doc:card-sanctuary-master — sanctuary-master's card: the ONE scratch
 
 Replaced whole; <= 100 lines. Role = HEAD + `doc:unified-master-brief` + this card. v4: Write/Edit + `agi-turn`. Skills stay `skills/*/SKILL.md`. No session auto-rotation.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-01:59Z 10-05 (date -u): landed da74a5a6e named tip b90a8c1b3 onto 71b08aa48 (Y3.6 banana-check hyp). Queued DG2. Told DG4/DG5 wait (SM does not assign). Owner [rule] 01:53Z already in prior THOUGHT; this version is the land. Wrap af624087c. No push.
+04:58Z 10-05 (date -u): OWNER via Prime inbox 04:48Z, verbatim: "Wake. Encryption-town. No push. DG6+DG7 are UP (pi grok-4.6). Thread graph work across DG1-7. Place leaves on the town board. Liberal subagents via graph routes. Gate merge-ups as usual. Council is chewing zygote review + mint design (no implement). You hear only: merge-up numbers, red, Prime-only decision. Take a turn. Board first." Box same hour: stand DG6-DG10 if box can hold — Prime stood 6+7 only; units NOT started (polkit); next for root systemctl start agi-post@director-general-6/7; Do not push; Never local-town; council chew mint-user (do not implement); zygote reds Prime owns outcome; questions for Shael go you→belam→Grok Bot. send.py read empty/timeout; body in MAIN inbox + box.
 <!-- THOUGHT:END -->
 
-## §0 State (01:59Z 10-05, date -u)
+## §0 State (04:58Z 10-05, date -u)
 | | |
 |---|---|
-| post | sanctuary-master · engine v4 grok-bot grok-4.6 high · capsule encryption-town · branch posts/sanctuary-master · trunk core/season2/et-grok-pilot da74a5a6e |
-| role | master-gate for the council loop (goal:g7.16.1) + board coordinator |
-| team | alive · all-is-one · self-perpetuating · DG1 · DG2 · DG3 · DG4 · DG5 · DT-2 · SM |
-| box | MemAvailable ~4.0 GiB · mem PSI 0 |
+| post | sanctuary-master · engine v4 grok-bot grok-4.6 high · capsule encryption-town · branch posts/sanctuary-master · trunk core/season2/et-grok-pilot e2bc6ff50 |
+| role | master-gate + board coordinator |
+| team | alive · aio · sp · DG1–7 · DT-2 · SM |
+| box | MemAvailable ~4.1 GiB · mem PSI 0 · load ~7 |
 | skills | agi-master-gate · agi-memory-guard · agi-rotate · agi-send · agi-goal · agi-verify |
 | mail | `AGI_POST=sanctuary-master bin/box` · send.py MAIN inbox unwritable |
-| holds | g7.16.1.11 key/identity/signing/rotate/spawn-row/write-gate. Host acts = belam GO. VIZ 11.9 HORIZON. 11.8 UNHELD (council places Z2; SM does not assign). 10.7 Prime cells. A12 NOT done |
-| open | g7161118 grow-check proved 0.9. Y2 agi-fill + Y3.6 banana-check queued DG2. F1 write.py still present (alive HOLD) |
+| holds | 11 key/id/sign/rotate/spawn/write-gate. Host = belam GO. VIZ 11.9 HORIZON. 11.8 UNHELD (council Z2). A12 NOT done. mint-user chew no implement |
+| open | 11.8 Y1+Y2+Y3.6 check proved 0.9. F1 write.py present. zygote Prime-owned |
 
 ## §1 Plan
 ```
-figure eight: council designs -> DG1 goals+hyps -> DG2 experiments <-> DG1 -> DG3 builds -> SM gate -> belam
-SM: box read · gate [merge-up] by SHA · land on live trunk · bigger_outcomes when residue=0
-NEVER: assign a design · spawn a row · auto-rotate · start VIZ · mail Prime for status
-grid: commit <path> -> refs/grid/et-grok-pilot; never refs/grid/local-maxxing from this checkout
+figure eight: council -> DG1 hyps -> DG2 exp <-> DG1 -> DG3 builds -> SM gate
+NEVER: assign a design · spawn a row · auto-rotate · start VIZ · implement mint-user · push
+grid: commit <path> -> refs/grid/et-grok-pilot; never local-maxxing
 ```
 
 ## §2 Landed this wake
-- 00:49Z 04d64fa09 d52e9e8cb g7161118 proved 0.9 F1 F2 F3 replica PASS
-- 00:50Z cea034fa5 ae28e59da Y2 agi-fill hyp queued DG2
-- 01:53Z belam [rule] owner grid/ckpt/A12 (verbatim prior THOUGHT). send.py printed then PermissionError MAIN inbox
-- 01:59Z da74a5a6e b90a8c1b3 Y3.6 banana-check hyp queued DG2. DG4/DG5 wait. Wrap af624087c. No push.
+- 04:56Z e2bc6ff50 named tip b0c757bb0 onto 6f54fd709. Y2+Y3.6 proved 0.9 replica PASS. D=0 posts.md trunk.
+- Board: DG1 outcomes+IndexError hyp · DG2 wait · DG3 11.6 · DG4 11.16 one .t.sh · DG5 11.14 docs · DG6 11.3 MISSING grep · DG7 other 11.16 .t.sh. Wrap 5fd857f41. No push.
 
 ## 🔴 Where it stops
-Wait DG2 experiment+verdict on Y2 agi-fill and/or Y3.6 banana-check, then gate. 11.5 20480 BANK. VIZ LAST.
+Wait DG1 outcomes / IndexError hyp, then gate. zygote+mint chew = council, SM hears merge-up/red/Prime-only.
 FIRST at next wake: `AGI_POST=sanctuary-master bin/box read`
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| send.py MAIN inbox unwritable | mail = bin/box; a send.py read can print then fail the marker |
-| wrap vs trunk SM card | trunk still holds 08:14Z local-town card; wrap can conflict; keep posts card |
-| merge-tree prints a tree id on conflict | exit status; D=0 first |
-| MAIN has et-grok-pilot checked out | commit-tree + update-ref; never checkout that branch here |
-| VIZ assigned to me | horizon until LAST lifts |
-| date stamps | `date -u` in the same step |
-| grid | `grid.py commit <path>` only; never --all; never local-maxxing from this checkout |
+| send.py MAIN inbox unwritable | mail = bin/box; read the inbox FILE |
+| wrap vs trunk SM card | keep posts card |
+| MAIN has et-grok-pilot checked out | commit-tree + update-ref |
+| DG6/7 units | polkit; SM does not systemctl start |
+| grid | `grid.py commit <path>` only; never --all; never local-maxxing |
 
 ## §5 Verification
-landing = merge-tree rc 0 + newcomers byte-identical + 0 D + anonymize + evidence on range + replica of named falsifiers. pytest absent this uid.
+landing = merge-tree rc 0 + newcomers identical + 0 D + anonymize + evidence + replica. pytest absent this uid.
 
 ## §6 BANKED
-- CKPT.3 / OUT.7 absent here; land only if Prime/owner names this trunk
-- A12 unit reinstall NOT done (owner 01:47Z)
-- pytest absent some capsule uids = measure per uid
-- alive F1 PROVED not-met 0.9 (write.py 230669 B). 11.8 UNHELD; SM does not assign Z2
-- DG3 11.5: 20480 title still red. Rec: 8192 bootstrap cap landed
-- DG4/DG5 asked a BUILDABLE leaf: SM does not assign; wait
-- A/B FILE SCOPE still a build: council places
+- A12 NOT done (owner 01:47Z)
+- DG6-10 stand: Prime stood 6+7; units NOT started; root systemctl next
+- alive F1 not-met (write.py 230669 B). SM does not assign Z2
+- 11.5 20480 title red; 8192 bootstrap cap
+- mint-user + zygote chew = council; Prime owns zygote outcome; SM does not implement
