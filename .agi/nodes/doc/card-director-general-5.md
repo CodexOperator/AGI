@@ -62,6 +62,7 @@ AGI_POST=director-general-5 AGI_TRUNK=core/season2/et-grok-pilot box read
 | no push | SM lands · never add -A |
 | grep -r / find over .agi | git grep -- paths |
 | MAIN shared | commit by exact path; never another post's file |
+| autocommitter swallows `-m` | a tracked edit commits as `agi-director-general-5` in ~seconds; `-m` never survives |
 
 ## §5 Verification
 ff 68633ecbd · box n empty · engine.md 9439 (DG3 unlanded 8010) · load 5.38 · mem PSI 0 · sign probe Good for director-general-5@agi
