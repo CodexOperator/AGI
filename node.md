@@ -16,57 +16,51 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-01:57Z 10-05 (date -u). belam [rule] 01:53Z: grid.storage_trunk refs/grid/et-grok-pilot; NEVER write refs/grid/local-maxxing; grid_sync+branch_push OFF; grid.py commit <path>. Merged et-grok-pilot 7fd297469. send.py inbox PermissionError (MAIN). Box: alive F1 not MET; SP HOLD. No Prime. No push.
+13:41Z 10-05 (date -u). Owner wake 04:48Z: zygote review + mint chew only. et e01d602ce 5699/38/fences-exact PROVED; 5 map-heading drifts; this tree 9532 uncopied. Mint chew: Theseus key = recursive row tree id. No implement. No merge et (would drop K2(a)). No push.
 <!-- THOUGHT:END -->
 
-## §0 State (01:57Z 10-05, date -u)
+## §0 State (13:41Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
-| stage | g7.16.1.11.18 K3 proved · K2(a) no-root proved · install + Z4.k = root |
-| grid | `grid.storage_trunk` = `refs/grid/et-grok-pilot` (00d5983fa) · never `refs/grid/local-maxxing` |
-| mail | `AGI_POST=all-is-one box send\|read` · send.py inbox MAIN PermissionError |
+| stage | zygote review landed · mint chew landed · K2(a) install still root |
+| grid | `grid.storage_trunk` = `refs/grid/et-grok-pilot` · never `refs/grid/local-maxxing` |
+| mail | `AGI_POST=all-is-one box send\|read` · send.py MAIN PermissionError |
 | skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write (v4: Read/sect + Write + signed commit by path) |
 
 ## §1 Plan
 ```
-done  K3 proved · K2(a) no-root proved · belam [rule] absorbed (merge 7fd297469)
-meas  k3-infer 0 FAIL · k2a-kid 0 FAIL after merge
-      storage_trunk refs/grid/et-grok-pilot
-      mint 1a7e910a5 still not ancestor
-next  SP: agi-mint@ into engine-root
-      belam GO installs mint + kid units
-      Z4.k (DG1, root)
-      .8 HOLD: SM board (alive F1 not MET)
+done  zygote review on et 5699/38/fences · mint chew Theseus=tree-id
+meas  et engine.md 5699 · this tree 9532 · 5 map≠heading
+      K2(a) three still here; et engine-root lacks them
+next  one line up (box belam + alive + SP)
+      wait SP mint + belam GO for K2(a) install
+      .8 HOLD: SM board
 ```
 
 ## §2 Landed
-- K3 proved 0.9 (ff58d4c8a)
-- K2(a) no-root proved 0.9 (db1b90d96 + k2a-kid.t.sh)
-- merge et-grok-pilot 7fd297469 (storage_trunk + ckpt/OUT.7 lands)
-- box alive c8fb8b384 · box SP 400620953
+- verdict:aio-zygote-et-5699 proved 0.9 (Prime CLAIM on et)
+- hypothesis:aio-mint-theseus-key-is-the-recursive-row-tree (chew)
+- K3 proved · K2(a) no-root proved (prior)
 
 ## 🔴 Where it stops
-K2(a) install + Z4.k = root (belam GO after SP mint on this trunk). Council does not dispatch. No Prime.
+K2(a) install + Z4.k = root. Council does not dispatch. No Prime. No et merge.
 ```
-NEXT  wait SP agi-mint@ in engine-root, then belam GO
-IDLE  box read; no polling
+NEXT  box send (finding) then IDLE box read
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN shared | commit by exact path; agi-turn also commits |
-| send.py this uid | MAIN inbox/dm state PermissionError; use box; read the inbox FILE |
-| AGI_POST unset | `AGI_POST=all-is-one` for box |
-| grid | `grid.py commit <path>` → `refs/grid/et-grok-pilot`; NEVER `refs/grid/local-maxxing` |
-| grid_sync | OFF on this checkout; nothing pushed |
-| grep -r / find over .agi | `git grep PATTERN -- <paths>` |
-| git user.name | `git -c user.name=all-is-one` at commit |
+| send.py this uid | MAIN inbox/dm state PermissionError; use box |
+| grid | `grid.py commit <path>` → `refs/grid/et-grok-pilot`; NEVER local-maxxing |
+| et merge | et engine-root has no K2(a) three; do not merge to pick up 5699 |
 | grow-check | new nodes need `key:` = matrix nid |
+| chew | mint hyp is not a land; no posts.md, no unit |
 
 ## §5 Verification
-k3-infer 0 FAIL · k2a-kid 0 FAIL · storage_trunk et-grok-pilot · K2(a) not installed · mint not in this engine-root
+et 5699 · map 38 · fences exact · this 9532 · grow-check ok on 4 new nodes
 
 ## §6 BANKED
-(none)
+Shael Qs on mint chew hyp (via belam): tree-id vs mint_id+tree; lands:[]; PATH not bytes; remint vs re-sign.
