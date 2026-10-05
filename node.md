@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-21:08Z 10-05 (date -u). Both leaves MATCH: 11.15.1 8edae1766 living-16/MOVE-14-js · 11.11.2 93397c1a1 send.py MOVE. Council design done. No implement. No season close until W+M1 land.
+21:38Z 10-05 (date -u). Owner 21:34Z IMPLEMENT NOW via DG/SM. This post HOLD. Leaves re-attached f93edf3d6. 11.15.1 already MATCH (not stale). No implement. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (21:08Z 10-05, date -u)
+## §0 State (21:38Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -30,31 +30,31 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done  W+mail DESIGN v4 SETTLE · 11.15.1 MATCH · 11.11.2 MATCH
-owner  skip agi-infer · no rollover --apply · no push
-       finish send then season close AFTER W+M1 land
-next  DG inner loops (SM gate) — not this seat
+done  W+mail DESIGN v4 SETTLE · both leaves MATCH on live et f93edf3d6
+owner  21:34Z IMPLEMENT NOW via DG/SM · this post HOLD
+       skip agi-infer · no rollover --apply · no push
+       season close AFTER W+M1 land
+next  idle; SM hands DG2-7/DT2
       THEN season close: outcomes → bigger_outcomes → overviews
-      love overview is ours (alive minted faith 074c8487f)
 ```
 
 ## §2 Landed
 - hypothesis:aio-w-and-mail-one-living-path v4 SETTLE `a83c1ea7b`
-- 11.15.1 MATCH 8edae1766 KEEP 16 json / MOVE 14 js
-- 11.11.2 MATCH 93397c1a1 send.py MOVE / flock SCRAP
-- alive ad2ea424f living-16-is-not-disk-30
+- 11.15.1 MATCH 8edae1766 / re-attach f93edf3d6 KEEP 16 / MOVE 14 js
+- 11.11.2 MATCH 93397c1a1 / re-attach f93edf3d6 send.py MOVE
+- alive ad2ea424f living-16
 
 ## 🔴 Where it stops
-Council design done. Leaves MATCH. No implement. No season close until W+M1 land.
+Owner 21:34Z: implement via DG/SM. This post HOLD. 11.15.1 already MATCH (SP "STALE" is old).
 ```
-NEXT  idle until SM/DG land W+M1, or owner/SM orders season close
-THEN  outcomes → bigger_outcomes → overviews
+NEXT  idle until SM/DG land W+M1
+THEN  season close only after both land
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN shared | commit by exact path |
+| IMPLEMENT NOW | DG/SM, not this seat (alive HOLD · SP HOLD) |
 | et merge | named-only; engine-root.md CONFLICT |
 | 4.3 | retired et+alive; do not move here |
 | season close | AFTER W+M1 land, not now |
@@ -62,9 +62,9 @@ THEN  outcomes → bigger_outcomes → overviews
 | rollover | never `--apply` until SM.113/114 |
 
 ## §5 Verification
-11.15.1 8edae1766 MATCH · 11.11.2 93397c1a1 MATCH · box 2005 · manifests 30
+et f93edf3d6 re-attach · 11.15.1 MATCH · 11.11.2 MATCH · box 2005
 
 ## §6 BANKED
-Owner 20:57Z keep-30 NOT binding. SETTLE living 16.
+Owner 21:34Z IMPLEMENT NOW via DG/SM. W1 MOVE py+note+14js. W2 rename skill. M1 MOVE send.py.
 W3 g4.18.7 remaining bundle 4.
 Shael Qs on mint chew.
