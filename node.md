@@ -21,52 +21,47 @@ town: core
 HEAD `doc:unified-head` · template `doc:unified-director-brief` · lens `vision:alive` · `~/t` · `posts/alive` · master sanctuary-master. Mail = `AGI_POST=alive bin/box`. No auto-rotate. No push. ET only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 2026-10-04 16:46Z, verbatim: "Owner nudge: you are stalled at the prompt. Continue graph work now. Run AGI_POST=alive box read, take the next open graph goal for this seat, and keep going autonomously. Do not wait. No push. Encryption-town only."
-OWNER 2026-10-04 16:50Z, verbatim: "go"
-01:53Z wake was `mail: send.py read alive`. This seat reads box (send.py PermissionError on MAIN dm state). AIO K2(a) proved. Residue IndexError 644f50fe4. HOLD stays.
+OWNER via belam 04:4xZ 10-05: chew mint (no implement) + zygote reds; report through the graph; Qs via liaison. 04:56Z: this tip engine 9439 B, Prime 5699 B not ancestor, did not copy. mint chew: three pulses. Q8-10 boxed belam.
 <!-- THOUGHT:END -->
 
-## §0 State (02:00Z 10-05, date -u)
+## §0 State (04:56Z 10-05, date -u)
 | | |
 |---|---|
-| post | alive · council · engine.v 4 grok-bot grok-4.6 · HEAD 644f50fe4 |
-| open | goal:g7.16.1.11.8 — F1 not-met · Y2 PATH absent · open-no-argv proved |
-| mail | box. 01:53Z AIO; 02:00Z boxed SM/DG1/AIO/SP |
+| post | alive · council · engine.v 4 grok-bot grok-4.6 · HEAD 4fafe4b34 |
+| open | g7.16.1.11.8 HOLD · g7.16.1.11.5 F1 not-met here · g1 mint chew |
+| mail | box. 04:48Z belam×5 + SP; 04:56Z boxed belam[owner] + SM/AIO/SP/DG1 |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post · agi-memory-guard |
 
 ## §1 Plan
 ```
-done   F1 wrap HOLD · Y2 PATH absent · Y1.14 scratch · open-no-argv IndexError
-next   HOLD. PATH/A[2] guard = DG3. SM places Z2. row 20 drops MATCH
-never  dispatch · MAIN hooks · Prime unless Shael · push · rotate · Z2 · live fill · send.py read
+done   F1/Y2/IndexError 11.8 · zygote bytes 11.5 · mint three-pulses chew
+next   HOLD 11.8. wait Shael on Q8-10. do not copy engine.md. do not mint-user
+never  dispatch · MAIN hooks · implement mint · push · rotate · send.py read
 ```
 
 ## §2 Landed
-- hyp+exp+verdict:g7161118-open-no-argv-indexerrors 644f50fe4 G · grid v1
-- open no-argv: IndexError A[2] rc 1, not doc rc 2; no window
-- captive: no-fill 0 · open ls/Write 2 · close 0 · chained 2
-- F1 wrap 87c566b2c · Y2 PATH 38a759cbf still stand
+- hyp+exp+verdict:g7161115-zygote-8kb-not-on-this-tip 4fafe4b34 G · grid v1
+- this tip 9439 B · Prime e01d602ce 5699 B not ancestor · map 38 unfolder vs folded+ckpt
+- hyp:g1-three-keys-are-not-one-pulse 4fafe4b34 · Q8-10 to belam
 
 ## 🔴 Where it stops
-HOLD. Next:
+Chew reported. Next:
 ```
 AGI_POST=alive /var/lib/agi/alive/bin/box read
 ```
-Not `send.py read alive`. Nothing left on 11.8 this uid can move without PATH/root.
+Not send.py. Not an engine.md copy.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | mail wake | box read, never send.py |
-| box send | a body is the send |
-| AGI_POST | export alive |
-| agi-fill open no argv | IndexError, not rc 2 |
+| Prime PASS | not this tip's bytes |
+| mint | chew only · no posts.md · no unit |
 | MAIN hooks | belam:belam |
 | no push | encryption-town posts/alive only |
-| scratch AGI_FILL | never $HOME/.fill |
 
 ## §5 Verification
-grow-check hyp ok 21e059b9381fa3cf · exp ok 261fc359f7563adc · verdict ok d4d7bf6c36587bca · 644f50fe4 G
+grow-check 4 nodes ok · 4fafe4b34 G alive@agi · engine.md 9439 untouched
 
 ## §6 BANKED
-PATH install of agi-fill / grow-gate + A[2] guard: DG3 or root
+Q8-10 with belam for Shael. PATH/A[2]/agi-fill = DG3
