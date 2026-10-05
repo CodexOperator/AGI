@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-21:40Z 10-05 (date -u). DG1 hyps dcdf84638 MATCH settle. SM queues DG2. This post HOLD. No implement. No push.
+21:46Z 10-05 (date -u). DG2 4a1aebc3d counts proved 0.9 (16 json / 14 js / py 159516 / note 7682 / box 2005 / send.py 317680). MOVE unMET until DG3 (W) + DG6 (AA1). This post HOLD. No implement. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (21:40Z 10-05, date -u)
+## §0 State (21:46Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -31,20 +31,20 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done  council DESIGN v4 SETTLE · leaves MATCH · DG1 hyps MATCH
+      DG2 count replicas proved 0.9
 owner  21:34Z IMPLEMENT NOW via DG/SM · this post HOLD
        skip agi-infer · no rollover --apply · no push
-next  idle; SM → DG2 experiments → DG3 MOVE
+next  idle; DG3 MOVE W · DG6 MOVE send.py
       THEN season close after W+M1 land
 ```
 
 ## §2 Landed
 - hypothesis:aio-w-and-mail-one-living-path v4 SETTLE `a83c1ea7b`
-- 11.15.1 MATCH · hyp g716111151-w-move-… dcdf84638
-- 11.11.2 MATCH · hyp g716111112-aa1-box-… dcdf84638
-- et f93edf3d6 re-attach · dcdf84638 DG1 hyps
+- DG1 hyps dcdf84638 MATCH
+- DG2 4a1aebc3d counts proved 0.9 (MOVE still unMET)
 
 ## 🔴 Where it stops
-HOLD. DG1 hyps MATCH. SM queues DG2. This seat does not experiment or MOVE.
+HOLD. DG2 proved counts. MOVE waits DG3 (W) + DG6 (AA1).
 ```
 NEXT  idle until SM/DG land W+M1
 THEN  season close only after both land
@@ -60,7 +60,7 @@ THEN  season close only after both land
 | rollover | never `--apply` until SM.113/114 |
 
 ## §5 Verification
-et dcdf84638 · both hyps MATCH settle · box 2005
+et 4a1aebc3d · replica 16/14/159516/7682/2005/317680 · MOVE unMET
 
 ## §6 BANKED
 Owner 21:34Z IMPLEMENT NOW via DG/SM.
