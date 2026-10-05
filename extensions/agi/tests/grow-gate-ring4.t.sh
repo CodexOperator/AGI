@@ -16,7 +16,7 @@ for n in belam1 sm1 dg1 dg2 atk;do ssh-keygen -qN "" -ted25519 -f$D/k/$n -C $n>/
 pk(){ cut -d' ' -f1,2 $D/k/$1.pub;}
 kb(){ pk $1|cut -d' ' -f2;}
 : >$D/over;for n in belam1 sm1 dg1 dg2 atk;do echo "${n%[0-9]}@agi namespaces=\"git\" $(pk $n)">>$D/over;done
-git init -q $D/r;echo $G/objects>$D/r/.git/objects/info/alternates;cd $D/r;export PATH=$D/b:$PATH
+git init -q $D/r;echo $G/objects>$D/r/.git/objects/info/alternates;cd $D/r;export PATH=$D/b:$PATH;[ -s $D/b/ckpt ]||{ printf '#!/bin/sh\nexit 0\n'>$D/b/ckpt;chmod +x $D/b/ckpt;}
 GEO=.agi/nodes/.geometry;RG=$GEO/ring;PM=$GEO/posts.md
 printf -- '---\n---\n  - {"name": "belam", "parent": "owner"}\n  - {"name": "keep", "parent": "belam"}\n  - {"name": "sm", "parent": "keep"}\n  - {"name": "dg1", "parent": "sm"}\n  - {"name": "dg2", "parent": "sm"}\n'>$D/posts.md
 printf 'belam ssh-ed25519 %s\nsm ssh-ed25519 %s\ndg1 ssh-ed25519 %s\ndg2 ssh-ed25519 %s\n' "$(kb belam1)" "$(kb sm1)" "$(kb dg1)" "$(kb dg2)">$D/ring
