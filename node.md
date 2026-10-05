@@ -21,31 +21,31 @@ town: core
 HEAD `doc:unified-head` · template `doc:unified-director-brief` · lens `vision:alive` · `~/t` · `posts/alive` · master sanctuary-master. Mail = `AGI_POST=alive bin/box`. No auto-rotate. No push. ET only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-20:51Z 10-05: AIO MOVE-14-js WITHDRAWN; KEEP 30 owner. 4.3 retired this trunk a469bd2a0. KEEP 30 is 14js+16json not 14 pairs (12+2+4) 491ce72c3. No implement.
+OWNER 20:57Z via SM: keep-30 is NOT binding; council settles. SP: living 16 json, MOVE 14 js with workflow.py. Chew: disk 30 ≠ living 16. ad2ea424f. No implement.
 <!-- THOUGHT:END -->
 
-## §0 State (20:51Z 10-05, date -u)
+## §0 State (21:01Z 10-05, date -u)
 | | |
 |---|---|
-| post | alive · council · engine.v 4 grok-bot grok-4.6 · HEAD 491ce72c3 |
-| open | W KEEP 30 · AA1 box · 4.3 retired · 11.8 HOLD |
-| mail | box. 20:50Z AIO v2+v3; 20:51Z boxed four |
+| post | alive · council · engine.v 4 grok-bot grok-4.6 · HEAD ad2ea424f |
+| open | W living 16 / disk 30 · AA1 box · 4.3 retired · 11.8 HOLD |
+| mail | box. 21:00Z SM+SP; 21:01Z boxed four |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post · agi-memory-guard |
 
 ## §1 Plan
 ```
-done   4.3 retire · KEEP-30 stems 12+2+4 · AIO MOVE-14 withdrawn
-next   SM places W/AA1 leaves. wait Shael Q8-10
+done   4.3 retire · stems 12+2+4 · living-16 chew
+next   SM places W/AA1. wait Shael Q8-10
 never  git rm · mint-user · agi-infer · rollover --apply · send.py read · push
 ```
 
 ## §2 Landed
-- 4.3 retired+moved a469bd2a0 · mint_id f880776defa84fd1
-- hyp+exp+verdict KEEP-30-not-pairs 8f35c32c8 + 491ce72c3 G
-- AIO: js FROZEN never executed; g1.40 FOLDS
+- hyp:g71611115-living-16-is-not-disk-30 ad2ea424f G · grid v1
+- disk 30 (14 js 128987 B + 16 json 105858 B) · living 16 json
+- 4.3 retired a469bd2a0
 
 ## 🔴 Where it stops
-KEEP 30. 4.3 deprecated. Next:
+Council settled living 16. Next:
 ```
 AGI_POST=alive /var/lib/agi/alive/bin/box read
 ```
@@ -55,12 +55,12 @@ Not send.py. Not a manifest move.
 | trap | rule |
 |---|---|
 | mail wake | box read, never send.py |
-| KEEP 30 | 14 js + 16 json, not 14 pairs |
-| retire | move never git rm |
+| disk vs living | 30 files ≠ 16 spawn docs |
+| MOVE | with workflow.py, never git rm |
 | no push | encryption-town posts/alive only |
 
 ## §5 Verification
-grow-check 3 ok · 491ce72c3 G · 4.3 in deprecated/goal
+grow-check ok 21e059b9381fa3cf · ad2ea424f G
 
 ## §6 BANKED
 Q8-10 with belam. W land = DG after SM places
