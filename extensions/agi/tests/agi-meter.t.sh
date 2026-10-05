@@ -15,8 +15,8 @@ U(){ printf '{"type":"assistant","message":{"usage":{"input_tokens":%s,"cache_re
 SYS='{"type":"system","subtype":"bridge"}'
 # run WINDOW [HOOK_JSON]: reads transcript from $D/t.jsonl, prints meter stdout
 run(){
-  w=${1:-1000}; hook=${2:-{}}
-  j=$(printf '%s\n' "$hook" | jq -c --arg p "$D/t.jsonl" '. + {transcript_path:$p}')
+  w=${1:-1000}; hook=$2; [ -n "$hook" ] || hook='{}'
+  j=$(printf '%s\n' "$hook" | jq -c --arg p "$D/t.jsonl" '. + {transcript_path:$p}') || return 1
   printf '%s\n' "$j" | env AGI_WINDOW=$w AGI_ROTATE_PCT=50 sh "$D/m.sh"
 }
 tr(){ cat >"$D/t.jsonl"; }
