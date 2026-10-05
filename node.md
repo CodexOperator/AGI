@@ -16,49 +16,45 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-01:59Z 10-05 (date -u): send.py read showed Prime [rule] then PermissionError MAIN inbox (unmarked; file still holds it). Owner via belam: storage_trunk refs/grid/et-grok-pilot; never write refs/grid/local-maxxing; grid_sync+branch_push OFF. Landed @76ce0d7b2. grid.py commit crons.md v1 on et-grok-pilot. Boxed alive 687514597 + aio 88f9cf865 + SM fbee3129d. HOLD. No push. No rotate.
+04:55Z 10-05 (date -u): send.py read once (owner wake 04:48Z + unmarked [rule]). Did not read twice. box read 4 [owner]. Zygote et MET 5699/38/fences EQ. Mint chew on RSE @c75cdb3f1. Boxed belam 3c41003fb + alive 3e88b66ea + aio 3dbea335f. No implement. No merge. No push. Never local-town.
 <!-- THOUGHT:END -->
 
-## §0 State (01:59Z 10-05, date -u)
+## §0 State (04:55Z 10-05, date -u)
 | | |
 |---|---|
 | post | self-perpetuating · grok-bot grok-4.6 · engine.v 4 · box encryption-town · branch posts/self-perpetuating |
-| stage | council: vision:self-perpetuating ONLY · .8 W2 F54.1 · K1 sect-able · Prime [rule] landed |
-| authority | alive HOLD · SM gates, does not assign Z2 · belam GO installs K · grow cells Prime/owner |
+| stage | owner wake: zygote review MET on et · mint chew only |
+| authority | owner via Prime · questions Shael → belam → Grok Bot |
 | mail | `AGI_POST=self-perpetuating /var/lib/agi/self-perpetuating/bin/box {send TO, read, n}` · send.py read cannot mark MAIN |
-| skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write (old writer; this row = Write/Edit + exact-path commit) |
+| skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write |
 
 ## §1 Plan
 ```
-DONE   Y2 · CUT1 F21 · Y1.14 · K1 sect-able · W2 F54 · F54.1 · Prime [rule] cells
-Y1.14  residue mint is DG3
-K1     agi-mint 1239 · unit 458 · agi.rules 345 · NOT installed
-W2     cannot issue: W1 not 100G · grow 0 · inert issuers 5
-GRID   storage_trunk refs/grid/et-grok-pilot · grid_sync/branch_push false · no push
-NOW    HOLD · belam GO for K · no live grow-gate · no live scope issue
+DONE   Prime [rule] cells · zygote review on et · mint chew (no implement)
+ZYGOTE et@e01d602ce 5699/38/grow-gate 7088/fences EQ pre-cut · posts/ still 9439
+MINT   inert under Prime · wrap host-only · mint+parent · recursive row hash · grow empty
+NOW    HOLD on implement · wait Shael on 4 Qs · no merge of et · no push
 ```
 
 ## §2 Landed
-Prime [rule] @76ce0d7b2 (config.json + cron:crons) · grid v1 refs/grid/et-grok-pilot/node/dc4da698… · boxed alive 687514597 + aio 88f9cf865 + SM fbee3129d
+RSE chew @c75cdb3f1 · grid v1 refs/grid/et-grok-pilot/node/ad68a997… · boxed belam 3c41003fb + alive 3e88b66ea + aio 3dbea335f
 
 ## 🔴 Where it stops
-Prime [rule] landed. HOLD. Next: `AGI_POST=self-perpetuating /var/lib/agi/self-perpetuating/bin/box n`
+Owner wake chewed. Next: `AGI_POST=self-perpetuating /var/lib/agi/self-perpetuating/bin/box n`
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| `send.py read` writes MAIN inbox + `.state.json` | this uid cannot; showed the body then PermissionError; mail is `bin/box` |
-| `agi-turn` is `git add -A` + message=$USER | never: commit by exact path (alive W1) |
+| `send.py read` twice | hides the first blocks; this uid cannot mark MAIN |
+| mint implement | owner: chew only |
+| merge et into posts/ | not asked; no push |
 | refs/grid/local-maxxing | NEVER written from this checkout |
-| grid.py commit | by path, lands on refs/grid/et-grok-pilot; never `--all` |
-| box send is matrix-adjacent only | council peers = alive · all-is-one · SM; Prime only if Shael must decide |
+| box send | matrix-adjacent; Shael Qs go belam |
 
 ## §5 Verification
-storage_trunk et-grok-pilot · grid_sync false · branch_push false · local-maxxing refs still 53 (untouched this write) · et-grok-pilot refs 8 incl crons v1 01:59:49Z. K1 hashes unchanged.
+et engine.md 5699 · map 38 · grow-gate 7088 · four fences EQ 94a59da01. local-maxxing refs 53 untouched.
 
 ## §6 BANKED
-- the 716 standing trees (~96 GB): pass 3 is irreversible → the owner's go
-- row `seeds` injects `doc:unified-master-brief` for this council director → Prime/row
-- inert-issuer: skip-inert vs §O ring for council/keep → council/owner
-- grow cells = owner/Prime
-- MAIN inbox still unmarked (PermissionError) → Prime/box
+- 4 Qs for Shael (mint-user no post key · parent re-key · stand-in PATH · 0 children)
+- 20480 vs SM (g7.16.1.11.5)
+- inert-issuer / grow cells / K1 install
