@@ -21,46 +21,47 @@ town: core
 HEAD `doc:unified-head` · template `doc:unified-director-brief` · lens `vision:alive` · `~/t` · `posts/alive` · master sanctuary-master. Mail = `AGI_POST=alive bin/box`. No auto-rotate. No push. ET only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 20:30Z via SM: Council DESIGNS. Prime does NOT build. Phase W + messaging before season close. KEEP 30 manifests. MOVE workflow.py never git rm. Skip agi-infer. SM gates. Chew e1db70125. This seat already boxes. No implement.
+OWNER 20:42Z via SM: finish send then season close. AA1 replaces send.py (MOVE never git rm). 4.3 MOOT — deprecate. Did: re-parent child hyp then retire+move 4.3 a469bd2a0. mint_id unchanged. KEEP 30 (owner 20:30Z) vs AIO KEEP-16 dissent. No implement.
 <!-- THOUGHT:END -->
 
-## §0 State (20:35Z 10-05, date -u)
+## §0 State (20:47Z 10-05, date -u)
 | | |
 |---|---|
-| post | alive · council · engine.v 4 grok-bot grok-4.6 · HEAD e1db70125 |
-| open | W+mail design · overview SM-landed et · 11.8 HOLD |
-| mail | box. 20:34Z SM+SP; 20:35Z boxed SM/SP/AIO/DG1 |
+| post | alive · council · engine.v 4 grok-bot grok-4.6 · HEAD a469bd2a0 |
+| open | W+mail design · 4.3 retired this trunk · 11.8 HOLD |
+| mail | box. 20:44Z SM+SP; 20:46Z AIO; 20:47Z boxed four |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post · agi-memory-guard |
 
 ## §1 Plan
 ```
-done   s2 alive/faith overview · W+mail chew
-next   SM places W/g1.40/AA1 leaves. wait Shael Q8-10
-never  git rm workflow.py · mint-user · agi-infer · rollover --apply · send.py read · push · Prime builds
+done   4.3 retire+move · child hyp re-parent · W+mail chew
+next   SM places W/AA1/g1.40 leaves. KEEP 30. wait Shael Q8-10
+never  git rm · mint-user · agi-infer · rollover --apply · send.py read · push
 ```
 
 ## §2 Landed
-- hyp:g71611115-w-and-mail-this-seat-already-boxes e1db70125 G · grid v1
-- 30 manifests · workflow.py 159516 · box 2005 · send.py PermissionError this uid
+- goal:g7.16.1.4.3 status retired · moved deprecated/goal · a469bd2a0 G · mint_id f880776defa84fd1
+- hyp re-parent to g7.16.1.4 4c7ad8275 G
+- W chew: KEEP 30 · AA1 box KEEP · send.py MOVE
 
 ## 🔴 Where it stops
-Chew reported. Next:
+4.3 deprecated. Next:
 ```
 AGI_POST=alive /var/lib/agi/alive/bin/box read
 ```
-Not send.py. Not a move of workflow.py.
+Not send.py. Not git rm.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | mail wake | box read, never send.py |
-| W | MOVE never git rm |
-| commands.workflow | is NOT workflow.py |
-| rollover | after W+messaging land |
+| retire | status retired + move · never git rm |
+| child hyp | re-parent BEFORE retire |
+| KEEP 30 | owner 20:30Z · AIO 16 is dissent |
 | no push | encryption-town posts/alive only |
 
 ## §5 Verification
-grow-check ok 21e059b9381fa3cf · e1db70125 G
+mint_id unchanged · live path gone · deprecated path in HEAD · 4c7ad8275 + a469bd2a0 G
 
 ## §6 BANKED
-Q8-10 with belam. W land = DG after SM places
+Q8-10 with belam. W land = DG after SM places. KEEP-16 vs KEEP-30 = SM
