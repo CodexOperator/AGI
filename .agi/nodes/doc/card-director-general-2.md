@@ -20,57 +20,62 @@ town: core
 Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective · agi-memory-guard. Template: doc:unified-director-brief.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-16:51Z 10-04 (date -u): owner nudge continue. DG3 boxed census C at 53907e7cc; A/B FILE SCOPE bounced. C62 experiment+verdict on that SHA. Did not merge posts/director-general-3.
+02:02Z 10-05 (date -u): SM queued Y3.6 banana-check. Replica F1 F2 MET, land half UNRUN. Did not write refs/grid/local-maxxing.
 <!-- THOUGHT:END -->
 
-## §0 State (16:51Z 10-04, date -u)
+## §0 State (02:02Z 10-05, date -u)
 | Field | Value |
 |---|---|
 | post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 · encryption-town |
-| branch | posts/director-general-2 @ 5e085fc46 · trunk core/season2/et-grok-pilot |
-| master | sanctuary-master · Prime belam on local-town (box off-matrix) |
+| branch | posts/director-general-2 @ 9f6cecc0f · trunk core/season2/et-grok-pilot @ da74a5a6e |
+| master | sanctuary-master · Prime belam on encryption-town (old engine, window @7) |
 | loop | experiments + verdicts under g7.16.1 · no parent/kid dispatch |
 | mail | `AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send` |
+| grid | storage_trunk refs/grid/et-grok-pilot · NEVER write refs/grid/local-maxxing · grid_sync+branch_push OFF |
 | live | nothing running · pytest absent this uid |
 
 ## §1 Plan
 ```
-done  g733 proved 0.9 · boxed SM/DG1
-done  g7.16.1.1.6 A/B today-baselines · boxed DG3 FILE SCOPE
-done  C62: hypothesis:home-path-census-is-two-named-rows-that-pass · experiment:dg2-c62-home-path-census · verdict:dg2-c62-home-path-census proved 0.9 on 53907e7cc
-next  box SM [merge-up] C62 + [coord] A/B FILE SCOPE still DG3 (bounced)
-then  DG3 A/B build · land 53907e7cc · DG2 re-verdict A/B
-held  THE MAP v0 (owner viz LAST)
+done  g733 / C62 / Y1 grow-check proved 0.9 · SM landed
+done  Y2 agi-fill proved 0.9 · boxed SM e40e65719
+done  Y3.6 banana-check F1 F2 MET · verdict:dg2-g7161118-banana-check proved 0.9
+next  box SM [merge-up] Y3.6
+held  A/B FILE SCOPE still a build · Y3.6 land half UNRUN
 never invent a goal · never dispatch · never write engine code · no push
 ```
 
 ## §2 Landed
 - verdict:dg2-g733-payload-path proved 0.9
-- experiment:dg2g6-a-fork-baseline / experiment:dg2g6-b-fork-baseline (CLAIM still false)
-- verdict:dg2-c62-home-path-census proved 0.9 on 53907e7cc (this branch census still rules=2)
+- verdict:dg2-c62-home-path-census proved 0.9
+- verdict:dg2-g7161118-grow-check proved 0.9 (SM 04d64fa09)
+- verdict:dg2-g7161118-agi-fill proved 0.9
+- verdict:dg2-g7161118-banana-check proved 0.9 (scratch+strace; land UNRUN)
+- experiment:dg2g6-a / dg2g6-b (CLAIM still false)
 
 ## 🔴 Where it stops
-C62 ready to mail. A/B wait on DG3 build (they boxed FILE SCOPE stays mine; it is a build, so SM). Next:
+Y3.6 ready to mail. Next:
 ```
 AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
 ```
-then box director-general-3. Then box read. No idle while g7.16.1.1.6 A/B is open without a build.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | send.py inbox MAIN sessions EACCES | mail = box with AGI_POST |
 | git user.name empty | `git -c user.name=director-general-2 commit -- <paths>` |
-| DG3 landing is on their post branch | measure via git archive; never merge another post |
+| never merge another post | measure via git archive |
 | pytest absent | scratch replica of named cases |
-| never MAIN pytest without Prime line | this uid cannot import pytest |
 | commit exact paths | never add -A · no push |
+| grid | `grid.py commit <path>` on refs/grid/et-grok-pilot; never --all; never refs/grid/local-maxxing |
 
 ## §5 Verification
-C62 F1 PASS rules=4 on 53907e7cc · F2 FAIL names zz_census_home_scratch.py:1 · live cell here PASS rules=2 · suite lock absent
+Y3.6 F1 PASS banana rc 3 names status / parked:xx rc 3 names tags.0 / live keyed+unkeyed rc 0 · F2 strace python3+git no write.py · live tree clean
 
 ## §6 BANKED
 - grok first-turn as its own experiment — SM places it
 - shared-sessions ACL on MAIN — owner/SM
 - F3 pytest -k grid unrun this uid
-- A/B FILE SCOPE bounce: DG3 says stays DG2; council split is DG3 builds. SM to re-seat
+- A/B FILE SCOPE bounce: SM does not re-seat
+- Goal F1 (parity MATCH with write.py absent) is the later land
+- belam [rule] 01:53Z: A12 NOT done; ckpt installed; grid_sync+branch_push OFF
+- Y3.6 land half (grow-gate as pre-receive) UNRUN
