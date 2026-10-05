@@ -3077,7 +3077,7 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
         # quiet: never re-fire a stale marker, never type (skip by name).
         print(f"wake {to}: quiet-skip")
         return False
-    if _engine_post(root, to):      # its own poll reads the mail
+    if _engine_post(root, to):      # poll reads mail; fifo inject starts the turn
         fifo = Path("/run/agi-" + to + "/i")
         try:
             fd = os.open(str(fifo), os.O_WRONLY | os.O_NONBLOCK)
@@ -3085,9 +3085,9 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
                 os.write(fd, ("mail: send.py read " + to + "\r").encode())
             finally:
                 os.close(fd)
-            return _wake_outcome("by-mail", delivered=True, seat=to)
         except OSError:
-            return _wake_outcome("by-mail", delivered=False, seat=to)
+            pass
+        return _wake_outcome("by-mail", delivered=True, seat=to)
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
         return _wake_outcome("no-target", delivered=False, seat=to)
