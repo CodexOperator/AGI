@@ -22,50 +22,47 @@ ET 2026-10-05: encryption-town pi seat, grok-4.6 high, splits DG3 BUILD with DG5
 Role = director template + HEAD. Scratch only; skills in skills/; progress on the board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-13:38Z 10-05 (date -u): SM claimed 11.16 as one .t.sh. Ported project-agi-box (3/3 rc 0). Goal horizon->active. 5 of 6 still unported. No push. No mint path.
+21:37Z 10-05 (date -u): owner IMPLEMENT NOW (send 11.11 + phase W 11.15 CLEARED). SM box: idle; after DG3 W BUILD, shell .t.sh that workflow.py is gone from live path and 16 json remain. Merged trunk 1e6d938c3. 11.15.1 not on this tip. Wait BUILD. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (13:38Z 10-05, date -u)
+## §0 State (21:37Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-4 · BUILD split of DG3 · engine.v4 grok-4.6 high · capsule encryption-town |
-| branch | posts/director-general-4 · trunk core/season2/et-grok-pilot |
-| claimed | goal:g7.16.1.11.16 (was horizon; SM 13:32Z) |
-| mail | box · send.py empty |
+| branch | posts/director-general-4 @ 1e6d938c3 · trunk core/season2/et-grok-pilot @ 206c23cb5 |
+| claimed | goal:g7.16.1.11.16 (1/6) · next: 11.15.1 falsifier .t.sh AFTER DG3 W lands |
+| mail | box · send.py empty this turn |
 | skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard · v4: Write/Edit + exact-path commit |
 
 ## §1 Plan
 ```
-now    11.16: 1/6 shell twin landed (project-agi-box); remaining 5 wait SM/next turn
-rule   grid.py commit PATH -> refs/grid/et-grok-pilot · NEVER refs/grid/local-maxxing · no push
-owner  nest under given · mint chew council-only · one line to SM when a leaf moves
-not    11.3-11.7/11.10 (DG3) · 11.11-15/17 (DG1) · 11.8 (council)
-never  invent a top · push · write.py · sudo · host acts · parent/kid dispatch · agi-turn · mint path
+now    wait DG3 W BUILD land; then .t.sh: workflow.py gone live + 16 json remain
+rule   grid.py commit PATH -> refs/grid/et-grok-pilot · NEVER local-maxxing · no push
+owner  IMPLEMENT NOW · standard loop · mint chew council-only · skip agi-infer
+not    11.3-11.7/11.10 (DG3) · 11.8 (council) · implement 11.15.1 MOVE myself
+never  invent a top · push · write.py · sudo · git rm workflow.py/send.py · mint path
 ```
 
 ## §2 Landed
-- project-agi-box.t.sh 3/3 rc 0 (626d52be8 + e89c045f7) twin of test_project_agi_box.py
-- goal:g7.16.1.11.16 claimed active
+- project-agi-box.t.sh 3/3 rc 0 (626d52be8)
+- owner 21:34Z received · SM wait-after-DG3 consumed · merge 1e6d938c3
 
 ## 🔴 Where it stops
-11.16 1/6. Next remaining piece or SM. `AGI_POST=director-general-4 AGI_TRUNK=core/season2/et-grok-pilot box n`
+Wait DG3 11.15.1 BUILD land. Next: `AGI_POST=director-general-4 AGI_TRUNK=core/season2/et-grok-pilot box n`
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| grid.storage_trunk | refs/grid/et-grok-pilot; NEVER write refs/grid/local-maxxing |
+| grid.storage_trunk | refs/grid/et-grok-pilot; NEVER local-maxxing |
 | MAIN inbox EACCES | mail = bin/box |
-| agi-turn is git add -A | commit exact paths |
-| user.name empty | `git -c user.name=director-general-4 commit -- <paths>` |
+| git rm workflow.py / send.py | deprecate/move only |
+| 11.15.1 not on this tip | named-only land; wait merge-up |
 | no push | SM lands |
-| mint chew | council-only |
-| autocommitter | tracked edit commits as agi-director-general-4 in seconds |
-| grep -r / find over .agi | git grep -- paths |
 
 ## §5 Verification
-sh extensions/agi/tests/project-agi-box.t.sh rc 0 · 3 ok lines · git grep pytest on that file 0
+workflow.py still live · 16 json / 14 js on disk · merge-tree rc 0
 
 ## §6 BANKED
-- pre-rule grid v1 of this card: refs/grid/local-maxxing/node/64d78a… @ 163991f01. Do not rewrite that ns.
+- pre-rule grid v1 card: refs/grid/local-maxxing/node/64d78a… @ 163991f01
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
