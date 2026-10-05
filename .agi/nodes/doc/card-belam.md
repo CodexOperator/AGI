@@ -20,30 +20,31 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 22:3xZ) first pi seating · inbox empty
+## §0 State (2026-10-05 23:3xZ)
 | | |
 |---|---|
-| box | encryption-town. et @ HEAD. uid agi-belam. posts/belam @ 1fcf08354 |
+| box | encryption-town. posts/belam @ 5ee126671 (goal:g5.4.1) |
 | infer | SKIP. |
-| seats | systemd agi-post@ UP: belam SM DG1–9 council. TM/DT/DT2 boot false. |
-| loop | SM 22:31Z: DG6 AA1 BUILD next; DG4 11.15.1 landed; DG5/7 after-MOVE queued; DG8/9 helpers 0.9 |
-| close | HOLD until AA1 send + phase W land. |
-| key | UNSIGNED. MAIN seats/belam.key 0600 other-uid; this uid has ~/.ssh for git only |
+| seats | SM DG1–9 council UP. TM/DT/DT2 down. |
+| send | NOT landed. DG6 90df7573f 22:32Z merge only. send.py 317680 live. |
+| close | goal:g5.4.1 set. Cut waits on send. |
+| mail | box belam→SM 8072ddaf9 [owner] re-kick + close chain |
 
 ## §1 Plan
 ```
-done   measured SM loop + DG4/5/7 leaves; no W/mail implement
-next   idle: SM gates DG6 AA1; Prime only merge-up / red / owner
-held   keys (host copy or named keygen lane) · Q4–Q10 · CHECK cron absent this uid
-never  implement W or send.py · git rm · rotate (no pin; not at line)
+done   owner finish-send + close-chain banked; goal:g5.4.1 minted; SM boxed
+next   idle: SM re-kicks DG6 or re-places; Prime gates [merge-up]
+held   keys · Q4–Q10 chew · CHECK cron absent
+never  implement W/send.py · git rm · rollover --apply · rotate
 ```
 
 ## §2 Landed this session
-- first pi seating: SM already parallelizing; DG4 has 11.15.1; DG5/7 queued after MOVE; DG6 holds AA1 BUILD
-- TM/DT down; DG8+DG9 UP. W+AA1 in SM/DG loop, not Prime
+- goal:g5.4.1 minted (grid v1 node/f0972bbe2ae64a1aae7b8d56e6051328)
+- box send SM [owner] 8072ddaf9: re-kick DG6 AA1 or re-place idle DG; then DG5/7; then close chain
+- owner authorized core/season3/main + master merge for this close only — after send + overviews
 
 ## 🔴 Where it stops
-Idle until SM [merge-up] or owner line. Do not implement W or send.py. Do not rotate.
+Idle until SM [merge-up] on AA1 send MOVE. Do not implement send.py. Do not rollover.
 FIRST at next wake: `AGI_POST=belam box read`
 
 ## §4 Traps
@@ -52,17 +53,15 @@ FIRST at next wake: `AGI_POST=belam box read`
 | 70 | never commit from `/data/work/agi` |
 | — | never git rm — deprecate/move |
 | — | no write.py — Edit/Write in ~/t |
-| — | wake never fifo-injects the Prime |
-| — | MAIN belam.key is other-uid; never print a key |
+| — | season.py rollover --apply mints 3 visions without --visions-from |
+| — | MAIN belam.key other-uid; never print a key |
 
 ## §5 Verification
-SM card 22:31Z 8eb933e63 · DG4 w-move.t.sh 8/8 · box n council-only · send.py whois UNSIGNED
+box 8072ddaf9 G belam@agi · grid v1 g5.4.1 · send.py still live · DG6 90df7573f merge not BUILD
 
 ## §6 BANKED
-Skip agi-infer. Mint Q4–Q7. Council Q8–Q10 chew only (box 22:3xZ). W+AA1 block closeout — SM/DG, not Prime.
-Seat key: MAIN `.agi/sessions/seats/belam.key` unreadable here; keygen under g7.16.1.11 HOLD except W+AA1.
-CHECK cron: no crontab this uid; no prime-merge.crons.md.
-Manifest: owner 20:57Z KEEP 16 json; MOVE 14 js with workflow.py.
+Skip agi-infer. Mint Q4–Q10 chew only. Seat key unreadable here.
+Owner 23:3xZ: close = outcomes → bigger_outcomes → 1 overview/vision → Prime → manual core/season2/main → core/season3/main → master after verify. No extra rollover machinery.
 
 ## Skills
 agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-memory-guard · agi-post · agi-goal · agi-dispatch · agi-workflow
