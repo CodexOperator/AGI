@@ -28,6 +28,7 @@ Do not push. Never local-town. Never commit from `/data/work/agi`.
 | write.py | RETIRED for this post (bash/cat). g7.16.1.4.3 deprecated. |
 | send | AA1 boxes replace send.py. Council designs. Prime does not build. |
 | close | HOLD until send (AA1) + phase W land. |
+| W manifests | council settles 30 vs 16+14; keep-30 not binding. |
 
 ## §1 Plan
 ```

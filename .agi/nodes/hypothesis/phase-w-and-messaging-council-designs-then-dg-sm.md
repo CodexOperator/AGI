@@ -48,3 +48,5 @@ council design · SM gate · DG inner loops · 0 new zygote bytes · reuse box/a
 
 ## OWNER, 2026-10-05, verbatim via liaison
 Before season close, land phase W and the messaging fixes. Keep the usual pattern: council designs, then it goes through the DG/SM inner loops via the graph; do not build it yourself. Season close only after these land.
+
+OWNER 2026-10-05 via liaison, verbatim: On the workflow manifest count (keep 30 vs keep 16 and move 14), the owner says let the council settle it themselves; the earlier keep-30 line is not a binding ruling here.
