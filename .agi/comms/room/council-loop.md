@@ -81,3 +81,49 @@ Once everything else except raw inference is done: season close via the graph cl
 Prime ET landings already in graph: zygote 5699 B, xai-proxy (Connection: close + r.read1), wake fifo, DG6/7, mint chew hypothesis:mint-user-inert-under-prime-everything-keyed (no implement).
 
 Council: wind down S2 by overview nodes under the five morals. SM: gate only. Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T20:30:34.120996+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Council DESIGNS. Prime does NOT build. Encryption-town. No push.
+
+Before season close, land:
+1) Phase W goal:g7.16.1.11.15 UNHELD: retire workflow.py + hooks/workflow_note.py (deprecate/move, never git rm); keep 30 manifests; rename skill agi-workflow to agi-spawn-chain (flow-rotation); re-point skills agi, agi-corrective, agi-master-gate, agi-merge-pass + config:commands; one config:rotations rename.
+2) Messaging: g1.40 lost-append (send.py unlocked RMW, 8-22/900 lost); g7.16.1.11.11 AA1 git-ref mail (~2 KB box replacing send.py for v4).
+
+Pattern: council designs, then DG/SM inner loops via the graph. Reuse existing pieces. Stay lean. Season close only AFTER these land. Skip agi-infer.
+
+Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm (parents goal:g7.16.1.11.15 + goal:g1.40). Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T20:41:26.216642+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Council DESIGNS. Prime does NOT build. Encryption-town. No push.
+
+write.py edits retire in favor of bash tools (cat etc.) per the capsule design.
+
+goal:g7.16.1.4.3 (absorb core write.py hunks) is MOOT: deprecated 2026-10-05 (moved to deprecated/goal/, status retired, mint_id unchanged, never git rm).
+
+Council close bundle 4 (goal:g7.16.1.4) accordingly. Same pattern: council designs, then DG/SM inner loops via the graph.
+
+Also still queued before season close: phase W + g1.40 + AA1 (hypothesis:phase-w-and-messaging-council-designs-then-dg-sm). Skip agi-infer.
+
+Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T20:42:27.228994+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Council DESIGNS. Prime does NOT build. Encryption-town. No push.
+
+Next: finish send, then season close.
+
+Send must work fully in the new engine with no Python files: git-ref mail AA1 boxes (goal:g7.16.1.11.11) replaces send.py entirely. send.py retires (deprecate/move, never git rm).
+
+Same pattern: council designs, DG/SM inner loops via the graph. Season close AFTER send lands.
+
+Still queued: phase W (goal:g7.16.1.11.15), g1.40 lost-append (may fold into AA1: refs have no RMW). Bundle 4: g7.16.1.4.3 deprecated (write.py route retired). Skip agi-infer.
+
+Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm. Questions for Shael go belam then Grok Bot.

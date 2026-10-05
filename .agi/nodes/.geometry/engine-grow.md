@@ -103,7 +103,7 @@ for f in sorted(glob.glob(sys.argv[1]+'/[[]*].md')):
     l='\t'.join([t,v,'+'.join(c) or '-','owner' if t=='moral' else '*']);print(hashlib.sha256(l.encode()).hexdigest()[:16]+'\t'+l)
 ~~~
 
-### agi-fill (5973 B)
+### agi-fill (6106 B)
 ~~~python
 #!/usr/bin/env python3
 # agi-fill open NID PARENT.. | call <TOOLCALL | row <"field: value".. | close -- the captive fill window a node key opens (§Y2): format FIRST, one tool call or row by row, closes on write, abort, timeout or N tries
@@ -143,7 +143,9 @@ def done(w,a):
  os.path.exists(p)and end('refused: '+p+' exists',5);os.makedirs(os.path.dirname(p),exist_ok=True);b=a.pop('body','# '+str(a.get('title',s)))
  fm={'id':w['child']+':'+s,'type':w['child'],'mint_id':uuid.uuid4().hex,'parents':w['parents'],'next_edges':[],'key':w['nid'],'schema':w['schema'],**a}
  open(p,'w').write('---\n'+yaml.safe_dump(fm,sort_keys=False,allow_unicode=True)+'---\n\n'+b.rstrip('\n')+'\n');end('written '+p)
+len(A)>1 or end('refused: need subcommand',2)
 if A[1]=='open':
+ len(A)>2 or end('refused: missing nid',2)
  G=[l.rstrip('\n').split('\t')for l in open(E('AGI_GROWTH','.agi/nodes/.geometry/growth.tsv'))];Z={l[0][1:]:l[1]for l in G if l[0][:1]=='@'}
  r=[l for l in G if l[0]==A[2]]or end('refused: no growth row '+A[2],2)
  n,c,v,par=r[0][:4];g='+'.join(sorted(Z.get(x.split(':')[0],x.split(':')[0])for x in A[3:]))
@@ -153,6 +155,7 @@ if A[1]=='open':
  print(json.dumps({'type':'function','function':{'name':'add_'+c,'parameters':js}}))
  print(f'send: agi-fill call (OpenAI, Anthropic or bare arguments) · row by row: agi-fill row "field: value", then "." · abort: agi-fill close · closes after {L}s or {N} failed tries');sys.exit()
 if A[1]=='check':
+ len(A)>2 or end('refused: missing FILE',2)
  fm=yaml.safe_load(open(A[2]).read().split('\n---',1)[0][4:]);c=fm['type'];k=(yaml.safe_load(open(f'.agi/context/schemas/[{c}].md').read().split('\n---',1)[0][4:]).get('spawn')or{}).get('discriminator')
  j=sch(c,str(fm.get(k))if k and fm.get(k)else'-')[1];e=list(jsonschema.Draft7Validator(j).iter_errors(json.loads(json.dumps({x:y for x,y in fm.items()if x not in X},default=str))));e and dia(j,e,A[2]);sys.exit(3 if e else 0)
 os.path.exists(W)or end('no window open',2);w=json.load(open(W))
@@ -173,5 +176,5 @@ json.dump(w,open(W,'w'));r=[k for k in w['js']['required']if k not in w['rows']]
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ROUND 7 (§Y1/§Y2): the three growth tools byte for byte from the doc (grow-check 1298 B, grow-gate 1435 B (1465 B since the AA3.4 byte fixes; 3,783 B since the AA2.54 ring-gate folded into the commit loop: the signer must be a ring line open at the RECEIVING tip and an ancestor-or-self of every name ruling each changed path; no ring at the tip = the old AGI_ALLOWED gate; 1,833 B before that, since the AA2 per-commit private-key line: AA1.K's pattern, per path over the raw non-z diff-tree lines so a newline path cannot split, --diff-filter=AMT, an unreadable blob refuses and names the path; was 1,748 B with AA1.K's verbatim line, mur sm17 R1/R2), grow-project 1185 B), + agi-fill (§Y2 + the corrective diagram + the const seam fix) moved here whole (SPLIT, byte for byte). Why: a post's start read = engine + engine-post + engine-wrap <= 20,480 B, and the hub's = engine + this node.
+13:4xZ 10-05 SM [coord] IndexError A[2] BUILD: agi-fill missing argv refuses by name (need subcommand / missing nid / missing FILE) rc 2, no traceback. 5973->6106. Banana check still rc 3. Legal hyp check rc 0. grow-gate pre-receive still UNRUN.
 <!-- THOUGHT:END -->
