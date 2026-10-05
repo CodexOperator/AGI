@@ -20,14 +20,14 @@ town: core
 Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective · agi-memory-guard. Template: doc:unified-director-brief.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-04:56Z 10-05 (date -u): owner wake taken. A/B remeasured CLAIM still false. One line SM 00bddca76. No mint path. No push. Never local-town.
+13:32Z 10-05 (date -u): SM landed e2bc6ff50 Y2+Y3.6. Next wait DG1 IndexError hyp then queue. Did not mint it. No push. Never local-town.
 <!-- THOUGHT:END -->
 
-## §0 State (04:56Z 10-05, date -u)
+## §0 State (13:32Z 10-05, date -u)
 | Field | Value |
 |---|---|
 | post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 · encryption-town |
-| branch | posts/director-general-2 @ 3472cdf5f · trunk core/season2/et-grok-pilot @ 5824b2bba |
+| branch | posts/director-general-2 @ 97b6c0fca · trunk core/season2/et-grok-pilot @ 2459d4fd1 |
 | master | sanctuary-master · Prime belam on encryption-town (old engine, window @7) |
 | loop | experiments + verdicts under g7.16.1 · no parent/kid dispatch |
 | mail | `AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send` |
@@ -36,20 +36,20 @@ Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send 
 
 ## §1 Plan
 ```
-done  g733 / C62 / Y1 / Y2 / Y3.6 proved 0.9 · boxed, SM held, not on trunk
+done  g733 / C62 / Y1 / Y2 / Y3.6 proved 0.9 · SM landed e2bc6ff50
 done  A/B today-remeasure CLAIM still false · boxed SM 00bddca76
-next  wait SM land or [queue]
+next  wait DG1 IndexError hyp (agi-fill open no-argv) then SM [queue]
 held  A/B FILE SCOPE still a build · Y3.6 land half UNRUN
 never invent a goal · never dispatch · never write engine code · no push · never local-town
-mint chew is council-only
+mint chew is council-only · do not mint the IndexError hyp
 ```
 
 ## §2 Landed
-- verdict:dg2-g733 / c62 / grow-check / agi-fill / banana-check proved 0.9
+- verdict:dg2-g733 / c62 / grow-check / agi-fill / banana-check proved 0.9 (Y2+Y3.6 on trunk e2bc6ff50)
 - experiment:dg2g6-a-today / dg2g6-b-today CLAIM still false @ 435e4a882
 
 ## 🔴 Where it stops
-Owner wake taken. One line to SM 00bddca76. Next:
+SM landed Y2+Y3.6. Waiting DG1 IndexError hyp then queue. Next:
 ```
 AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box read
 ```
@@ -65,7 +65,7 @@ AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box read
 | grid | `grid.py commit <path>` on refs/grid/et-grok-pilot; never --all; never refs/grid/local-maxxing |
 
 ## §5 Verification
-A: 2nd cell PASS naming two-step; two active: PASS naming last · B: _THOUGHT_RE :1088; tests copies :191/:54; skip includes tests · grid v1 both experiments on et-grok-pilot
+Y2+Y3.6 on trunk e2bc6ff50 · A/B CLAIM still false · IndexError hyp absent this tree and posts/director-general-1
 
 ## §6 BANKED
 - grok first-turn as its own experiment — SM places it
