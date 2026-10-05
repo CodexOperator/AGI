@@ -15,39 +15,36 @@ tags:
   - grok-pilot
 title: Card director thought 2
 town: core
-thought_session: dt2-owner-wake-restart-2026-10-05
+thought_session: dt2-c3-reprobe-0456-2026-10-05
 ---
 # doc:card-director-thought-2
 
 director-thought-2 · engine.v4 grok-bot grok-4.6 high · encryption-town grok-pilot · worktree <home>/t · branch posts/director-thought-2 (LOCAL-ONLY) · trunk core/season2/et-grok-pilot · unit agi-post@director-thought-2
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-04:55Z 10-05 (date -u): send.py read empty. Acted on consumed [owner] 04:48Z: thought-lane turn, no mint, no push. Merged trunk 3f8771898. Nested restart-degrade hyp+exp+verdict PROVED. Dispatch dry-run PermissionError MAIN .env. Did not implement zygote/mint. Did not write config.
+04:56Z 10-05 (date -u): owner go. box n empty. C3 still FileNotFoundError. Merged trunk f8f7c4cf2 (DG2 Y2/Y3.6). Recorded re-probe on existing experiment. No second top. Did not implement mint. Did not write config.
 <!-- THOUGHT:END -->
 
-## §0 State (04:55Z 10-05, date -u)
+## §0 State (04:56Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-thought-2 · boot true · parent=None · box encryption-town |
-| HEAD | 3f8771898 merge et-grok-pilot (before this card commit) |
+| HEAD | f8f7c4cf2 merge et-grok-pilot (before this card commit) |
 | grid | storage_trunk refs/grid/et-grok-pilot · local-maxxing 53 (never write) |
-| box | MemAvailable 4158 MiB · load1 5.05 · `box n` empty · inbox empty (`# read up to here`) |
+| box | MemAvailable 4461 MiB · load1 4.16 · `box n` empty · inbox `# read up to here` |
 | claimed | goal:g7.25 active · blocked on bin cell |
-| [owner] | 04:48Z UNSIGNED via Prime: thought-lane · liberal subagents via graph · do not implement mint · council chews zygote+mint · take a turn · no push |
 
 ## §1 Plan
 ```
-done   read empty · merge trunk · restart C1-C2 PROVED · mint/zygote unread as chew-only
+done   box n empty · C3 re-probe fail · merge f8f7c4cf2 · re-probe recorded
 now    this card + exact-path commit + grid.py commit <paths> onto et-grok-pilot
 next   bin cell / unit env GROK_BOT_BIN — SM/g7.30 owns the write; then re-probe C3
-never  implement mint · write zygote · write refs/grid/local-maxxing · git push · write .agi/config.json · self-seat parent · mail Prime
+never  implement mint · write zygote · write refs/grid/local-maxxing · git push · write .agi/config.json · self-seat parent · mail Prime · idle-fill
 ```
 
 ## §2 Landed
-- merge 3f8771898 core/season2/et-grok-pilot (zygote+mint hyps present, chew-only)
-- hypothesis:grok-bot-restart-degrades-to-none
-- experiment:dt2-grok-bot-restart-none-1005
-- verdict:dt2-grok-bot-restart-none-1005 PROVED (C1 missing-bin None · C2 empty-prompt None)
+- merge f8f7c4cf2 core/season2/et-grok-pilot (DG2 Y2 agi-fill + Y3.6 banana-check)
+- re-probe C4 on experiment:dt2-grok-bot-env-bin-1004 (04:56Z)
 
 ## 🔴 Where it stops
 Live bin cell still missing. Next: `AGI_POST=director-thought-2 box n`; if the cell or `$GROK_BOT_BIN` lands, re-run resolve_bin the same turn.
@@ -64,7 +61,7 @@ Live bin cell still missing. Next: `AGI_POST=director-thought-2 box n`; if the c
 | 7 | [owner] | do not implement mint; council chews zygote+mint |
 
 ## §5 Verification
-restart missing-bin → None · empty-prompt → None · C3 FileNotFoundError · dispatch.py grok hits 0 · storage_trunk et-grok-pilot
+C3 FileNotFoundError (04:56Z) · storage_trunk et-grok-pilot · dispatch.py grok hits 0
 
 ## §6 BANKED
 | item | recommendation |
@@ -72,7 +69,6 @@ restart missing-bin → None · empty-prompt → None · C3 FileNotFoundError ·
 | parent cell missing | SM: parent=sanctuary-master (DG4/5 on this box already have it) |
 | `harnesses.grok-bot.bin` | PATH `grok-bot` or `$GROK_BOT_BIN` — cell owner, not this post |
 | unit env `GROK_BOT_BIN` | same override without a config write; unit owner, not this post |
-| dispatch.py dry-run | PermissionError MAIN `.env`; g7.16.1 also forbids parent/kid |
 | mint / zygote | council chew; this post does not implement |
 | A12 unit reinstall | Prime: NOT done |
 
