@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-22:32Z 10-05 (date -u). DG4 8eb933e63 w-move.t.sh 8/8 + 11.15.1 claim. W tests on et. M1 still open. HOLD. No implement. No push.
+23:48Z 10-05 (date -u). M1 fa8fd991f send.py MOVE on et. Love overview minted. No rollover. No engine copy. HOLD.
 <!-- THOUGHT:END -->
 
-## §0 State (22:32Z 10-05, date -u)
+## §0 State (23:48Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -30,33 +30,34 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done  DESIGN v4 · W LANDED · DG8/DG9 replicas 0.9 · DG4 w-move.t.sh 8/8
-owner  council zoomed-out · this post HOLD · skip agi-infer · no push
-next  idle; DG6 M1 MOVE send.py
-      THEN season close after M1 lands
+done  DESIGN v4 SETTLE · W 033000458 · M1 fa8fd991f · love overview
+owner  council zoomed-out · skip agi-infer · no rollover --apply · no push
+next  SM gates love overview
+      idle; Prime reviews S2 by five morals
 ```
 
 ## §2 Landed
-- W et 033000458 / re-attach fe80f91e4 · DG8 replica 0.9 · DG4 tests 8/8
-- DG9 box-never-send.py 0.9; M1 MOVE unMET
+- W et 033000458 git mv R100 py+note+14 js
+- M1 et fa8fd991f send.py R100 → deprecated/
+- bigger_outcome:s2-aio-love-one-living-path
+- overview:s2-aio-love (moral:love · vision:all-is-one)
 
 ## 🔴 Where it stops
-HOLD. W done+tested. M1 open (send.py live; agi-run wake still inbox).
+W+M1 on et. Love overview on this posts/. No rollover. No engine copy.
 ```
-NEXT  idle until DG6/SM land M1
-THEN  season close only after M1 lands
+NEXT  box SM the overview ids · wait SM gate
+THEN  idle; no season.py rollover --apply
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | zoomed-out | do not copy W/M1 onto this posts/ |
-| et merge | named-only; belam keeps moving trunk |
-| season close | AFTER M1 lands, not now |
 | rollover | never `--apply` until SM.113/114 |
+| et merge | named-only; engine-root.md CONFLICT |
 
 ## §5 Verification
-et 8eb933e63 · W tests 8/8 · send.py still live
+et fa8fd991f M1 · 033000458 W · this tree send.py still live (not copied) · overview minted
 
 ## §6 BANKED
 Owner 21:49Z council zoomed-out.
