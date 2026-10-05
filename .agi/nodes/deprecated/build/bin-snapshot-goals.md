@@ -7,10 +7,12 @@ parents:
   - idea:engine-snapshot-goals
 build_kind: code
 confidence: 1.0
+deprecated_note: "Deprecated 2026-10-04 on encryption-town: owner retired the old-engine tests this piece built (profile sync / GOALS.md / pin-scrub / tmux shim / sensei path / workflow credential wording). Node kept; mint_id unchanged."
 edited_by: director-general-3
 origin: build-scan
 payload_ref: extensions/agi/bin/snapshot-goals.py
 season: 1
+status: deprecated
 tags:
   - build
   - code
