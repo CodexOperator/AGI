@@ -15,36 +15,36 @@ tags:
   - grok-pilot
 title: Card director thought 2
 town: core
-thought_session: dt2-c3-reprobe-0456-2026-10-05
+thought_session: dt2-c3-reprobe-1332-2026-10-05
 ---
 # doc:card-director-thought-2
 
-director-thought-2 · engine.v4 grok-bot grok-4.6 high · encryption-town grok-pilot · worktree <home>/t · branch posts/director-thought-2 (LOCAL-ONLY) · trunk core/season2/et-grok-pilot · unit agi-post@director-thought-2
+director-thought-2 · engine.v4 pi grok-4.6 high · encryption-town grok-pilot · worktree <home>/t · branch posts/director-thought-2 (LOCAL-ONLY) · trunk core/season2/et-grok-pilot · unit agi-post@director-thought-2
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-04:56Z 10-05 (date -u): owner go. box n empty. C3 still FileNotFoundError. Merged trunk f8f7c4cf2 (DG2 Y2/Y3.6). Recorded re-probe on existing experiment. No second top. Did not implement mint. Did not write config.
+13:32Z 10-05 (date -u): owner go. box n empty. C3 still FileNotFoundError. HEAD already on trunk 6f8e67b4a. Posts engine.harness now pi (belam). Recorded re-probe. No second top. Did not implement mint. Did not write config.
 <!-- THOUGHT:END -->
 
-## §0 State (04:56Z 10-05, date -u)
+## §0 State (13:32Z 10-05, date -u)
 | | |
 |---|---|
-| post | director-thought-2 · boot true · parent=None · box encryption-town |
-| HEAD | f8f7c4cf2 merge et-grok-pilot (before this card commit) |
+| post | director-thought-2 · boot true · parent=None · box encryption-town · engine.harness pi |
+| HEAD | 6f8e67b4a merge et-grok-pilot (before this card commit) |
 | grid | storage_trunk refs/grid/et-grok-pilot · local-maxxing 53 (never write) |
-| box | MemAvailable 4461 MiB · load1 4.16 · `box n` empty · inbox `# read up to here` |
+| box | MemAvailable 3695 MiB · load1 15.39 · `box n` empty · inbox `# read up to here` |
 | claimed | goal:g7.25 active · blocked on bin cell |
 
 ## §1 Plan
 ```
-done   box n empty · C3 re-probe fail · merge f8f7c4cf2 · re-probe recorded
+done   box n empty · C3 re-probe fail · trunk already merged · re-probe recorded
 now    this card + exact-path commit + grid.py commit <paths> onto et-grok-pilot
 next   bin cell / unit env GROK_BOT_BIN — SM/g7.30 owns the write; then re-probe C3
 never  implement mint · write zygote · write refs/grid/local-maxxing · git push · write .agi/config.json · self-seat parent · mail Prime · idle-fill
 ```
 
 ## §2 Landed
-- merge f8f7c4cf2 core/season2/et-grok-pilot (DG2 Y2 agi-fill + Y3.6 banana-check)
-- re-probe C4 on experiment:dt2-grok-bot-env-bin-1004 (04:56Z)
+- re-probe C3 on experiment:dt2-grok-bot-env-bin-1004 (13:32Z, post 6f8e67b4a)
+- noted posts `engine.harness=pi` (belam e185aef84); bin cell unchanged
 
 ## 🔴 Where it stops
 Live bin cell still missing. Next: `AGI_POST=director-thought-2 box n`; if the cell or `$GROK_BOT_BIN` lands, re-run resolve_bin the same turn.
@@ -61,7 +61,7 @@ Live bin cell still missing. Next: `AGI_POST=director-thought-2 box n`; if the c
 | 7 | [owner] | do not implement mint; council chews zygote+mint |
 
 ## §5 Verification
-C3 FileNotFoundError (04:56Z) · storage_trunk et-grok-pilot · dispatch.py grok hits 0
+C3 FileNotFoundError (13:32Z) · storage_trunk et-grok-pilot · dispatch.py grok hits 0
 
 ## §6 BANKED
 | item | recommendation |
