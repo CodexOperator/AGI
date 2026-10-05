@@ -15,28 +15,19 @@ Depth 0 = diagram · 1 = loop + pieces · 2 = one piece: `sect <name>` (any `.ge
 
 ## diagram — depth 0
 ~~~
-   GRAPH = git @trunk: .agi/nodes, edges = parents: · a post opts in by ONE row cell "engine": {"v": 4, ...}
-   root, once ──▶ agi-project (FROM this node @REV) ──▶ BODY: user · unit in agi.slice · env cells
-   unit ──▶ own uid · worktree ~/t of MAIN on posts/<p> · pane = fifo i + typescript o (script) · strace
-   start|resume|compact ──CC hooks, or pi via cccc.ts──▶ agi-brief: walk(card+seeds+claims) + STARTUP
-   prompt ──▶ agi-meter: at the line: card, .fresh, kill ──▶ Restart = a FRESH successor
-   turn end ──▶ agi-turn: one signed commit · agi-link · released agi-wt trees dropped · mail = a turn
-   stop ──▶ agi-flush ──▶ the master lands posts/<p> ──▶ agi-project re-runs ──▶ next brief sees it
-   harness: claude --remote-control <p> · grok-bot --model --effort --permission-mode (hooks native; the owner's app lists it) · pi + cccc.ts · agi-kid
-   tick: project(graph) == observe(body)? equal = alive · differ = start it + a drift commit
-   ZYGOTE = this read (map · sect · agi-project · agi-gate) ──sect @REV──▶ EXPANSION: config:engine-post · config:engine-wrap · config:engine-grow · config:engine-root
+GRAPH = git @trunk .agi/nodes · post opts in by engine.v 4
+root ─▶ agi-project @REV ─▶ user · unit · AGI_* cells
+unit ─▶ uid · ~/t · brief/meter/turn ─▶ flush ─▶ land
+ZYGOTE = this · EXPANSION = engine-post|wrap|grow|root via sect @REV
 ~~~
 
 ## loop — depth 1
 ~~~
-1 BOOT   root runs agi-project @REV: unit, user, cells for engine.v==4 rows; dropped rows unlinked
-2 START  PSI admission; key, worktree, tools from this node; .fresh = new session, else -c resumes
-3 WORK   brief in the system prompt; plain paths in ~/t; inbox, budget, records resolve to MAIN
-4 TURN   one signed commit; agi-link; at the line: card, touch ~/.fresh, kill $PPID = rotation
-5 LAND   ExecStopPost agi-flush; the master gates posts/<p> onto the trunk (skill agi-master-gate)
+1 BOOT agi-project  2 START PSI+key+tree  3 WORK ~/t
+4 TURN signed commit  5 LAND agi-flush → master
 ~~~
 
-## pieces — depth 1, one line each (bytes on disk)
+## pieces — depth 1 (bytes on disk; 38 names, fetch timer+service folded)
 ~~~
 agi-post@.service 1801 B  unit: uid, tree, key, pane
 agi-run           501 B  pane: .fresh or -c + strace
@@ -81,14 +72,14 @@ agi-carry-fetch.service 229 B  oneshot box-carry --fetch
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-project (2420 B)
+### agi-project (2539 B)
 ~~~sh
 #!/bin/sh
 o=$1 r=$2 w=$1/multi-user.target.wants;g(){ echo "$r:.agi/nodes/.geometry/$1"|git cat-file --batch --follow-symlinks|{ read a t s;[ "$t" = blob ]&&head -c $s;};};s(){ git ls-tree --full-tree --name-only $r .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$r:|"|git cat-file --batch --follow-symlinks|sed -n "/^### $1 /,/^##/{/^~~~/,/^~~~/{//!p}}";}
 u=$(s agi-post@.service);[ "$u" ]||exit 3;P=$(printf '%s\n' "$u"|sed -n 's/^Environment=PATH=\([^ ]*\).*/\1/p'|tr : '\n'|while read d;do [ -f $d/pi ]&&[ -x $d/pi ]&&echo $d&&break;done);[ "$P" ]||{ g posts.md|sed -n 's/^  - {/{/p'|jq -e --arg b ${AGI_BOX:-local-town} 'select(.box==$b and .engine.v==4)|.+.engine|select(.harness|test("^pi"))'>/dev/null;[ $? = 4 ]||exit 3;}
 mkdir -p $w;rm -f $w/agi-post@*;printf '%s\n' "$u">$o/agi-post@.service;:>$o/agi-users.conf
 g posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p "$P" --arg b ${AGI_BOX:-local-town} 'select(.box==$b and .engine.v==4)|.+.engine|[.name,if .harness|test("^pi") then "node \($p)/pi --provider \(if (.model|tostring)|test("^grok") then "xai" else "openrouter" end) --model \(.model) --thinking \(.effort) --skill skills -e ../bin/cccc.ts" elif .harness|test("^grok") then "grok-bot --model \(.model) --effort \(.effort) --permission-mode bypassPermissions" else "claude --remote-control \(.name) --model \(.model) --effort \(.effort) --permission-mode bypassPermissions" end,([.engine|to_entries[]|"\"AGI_\(.key|ascii_upcase)=\(.value)\""]+["AGI_ROLE=\(.role)","AGI_LADDER_TIER=\(.tier)","AGI_BOX=\(.box)"]|join(" ")),.boot==true]|@tsv'|while IFS='	' read p h e b;do [ $b = true ]&&ln -s ../agi-post@.service $w/agi-post@$p.service;mkdir -p $o/agi-post@$p.service.d;printf '[Service]\nEnvironment="H=%s" O=%s %s\n' "$h" "$(git rev-parse --show-toplevel)" "$e">$o/agi-post@$p.service.d/h.conf;s sysusers.conf|sed s/@/$p/g>>$o/agi-users.conf;done
-printf '[Service]\nType=oneshot\nWorkingDirectory=%s\nExecStart=sh -c "echo %s:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n \047/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}\047|sh -s %s %s&&ls %s/agi-post@*.service.d/h.conf>/dev/null&&systemctl daemon-reload&&systemd-sysusers %s/agi-users.conf"\n' $PWD $r $o $r $o $o>$o/agi-project.service
+printf '[Service]\nType=oneshot\nWorkingDirectory=%s\nEnvironment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=* AGI_BOX=%s\nExecStart=sh -c "echo %s:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n \047/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}\047|sh -s %s %s&&ls %s/agi-post@*.service.d/h.conf>/dev/null&&systemctl daemon-reload&&systemd-sysusers %s/agi-users.conf"\n' $PWD ${AGI_BOX:-local-town} $r $o $r $o $o>$o/agi-project.service
 printf '[Path]\nPathChanged=%s/logs/%s\n' $(git rev-parse --absolute-git-dir) $(git rev-parse --symbolic-full-name $r)>$o/agi-project.path;ln -sf ../agi-project.path $w
 ~~~
 

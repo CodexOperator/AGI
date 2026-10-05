@@ -977,47 +977,36 @@ def _w2cb_twin(tmp_path, mint: bool):  # goal:g <- hypothesis:h <- experiment:e;
     return root
 
 
-# goal:g4.18.6.3.2 B1 (frontier · chains · metrics): each calls the one resolver; the
+# goal:g4.18.6.3.2 B1 (chains · metrics; frontier retired 10-05): each calls the one resolver; the
 # remaining family-B readers stay in the strict xfail below until their group lands.
-def test_w2cb1_frontier_chains_metrics_read_a_mint_twin_as_its_address_twin(tmp_path, monkeypatch):
-    import frontier as fr, metrics
+def test_w2cb1_chains_metrics_read_a_mint_twin_as_its_address_twin(tmp_path, monkeypatch):
+    import metrics
     from chain_engine import chains
     seen, greps, real = [], [], links.mint_index
     monkeypatch.setattr(links, "mint_index", lambda root: (greps.append(root), real(root))[1])
     for mint in (False, True):
         root, ne = _w2cb_twin(tmp_path, mint), {}
-        ns = fr._load_nodes(root / "nodes")
         chains._load_next_edges_from_disk(str(root / "nodes"), ne)
-        seen.append((sorted(n["id"] for n in fr._tips(ns)), fr._anchor(ns, "experiment:e"), ne,
+        seen.append((ne,
                      metrics.goal_attribution(root / "nodes")["unattributed_nodes"],
                      sorted(metrics._load_graph(root).get_node("hypothesis:h").children)))
         if not mint:
             assert greps == [], "an address-only graph builds no mint index"
-    assert seen[1] == seen[0] and seen[0][2] == {"hypothesis:h": ["experiment:e"]}
-
-
-def test_w2cb1_frontier_reads_a_scalar_link_as_one_ref(tmp_path):
-    import frontier as fr   # hypothesis:l2w6-telemetry-rollup: `next_edges: <one id>` (09-30)
-    root = _w2cb_twin(tmp_path, False)
-    h = root / "nodes" / "hypothesis" / "h.md"
-    h.write_text(h.read_text().replace("next_edges:\n  - experiment:e", "next_edges: experiment:e"))
-    ns = fr._load_nodes(root / "nodes")
-    assert next(n for n in ns if n["id"] == "hypothesis:h")["next_edges"] == {"experiment:e"}
+    assert seen[1] == seen[0] and seen[0][0] == {"hypothesis:h": ["experiment:e"]}
 
 
 # GREEN since goal:g4.18.6.3.2 B1+B2; snapshot-goals' integrity pair split out below (BANKED 86)
 def test_w2cb_every_private_parse_reads_a_mint_twin_as_its_address_twin(tmp_path):
-    import brief, frontier as fr, graphweb as gw, metrics, telemetry_rollup as tr
+    import brief, graphweb as gw, metrics
     from chain_engine import chains
     seen = []
     for mint in (False, True):
         root, ne = _w2cb_twin(tmp_path, mint), {}
-        nodes, ns = root / "nodes", fr._load_nodes(root / "nodes")
+        nodes = root / "nodes"
         chains._load_next_edges_from_disk(str(nodes), ne)
         up = [q for p in brief._parents_of(root, "experiment:e") for q in brief._parents_of(root, p)]
         seen.append(dict(
-            tips=sorted(n["id"] for n in fr._tips(ns)), anchor=fr._anchor(ns, "experiment:e"), next=ne,
-            attr=metrics.goal_attribution(nodes)["unattributed_nodes"], brief=up, tel=sorted(tr._build_graph_index(root)[1]),
+            next=ne, attr=metrics.goal_attribution(nodes)["unattributed_nodes"], brief=up,
             web=sorted(gw.sanctuary_subtree(gw.load_nodes(root), "goal:g"))))
     assert seen[1] == seen[0], {k: (v, seen[1][k]) for k, v in seen[0].items() if v != seen[1][k]}
 
