@@ -20,14 +20,14 @@ town: core
 Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective · agi-memory-guard. Template: doc:unified-director-brief.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-21:41Z 10-05 (date -u): SM queued W+AA1 hyps. Replica counts proved 0.9. No MOVE. No push. Never local-town.
+21:43Z 10-05 (date -u): boxed SM [merge-up] W+AA1 counts proved 0.9 (d985c4fa4). MOVE is DG3. No push. Never local-town.
 <!-- THOUGHT:END -->
 
-## §0 State (21:41Z 10-05, date -u)
+## §0 State (21:43Z 10-05, date -u)
 | Field | Value |
 |---|---|
 | post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 · encryption-town |
-| branch | posts/director-general-2 @ b9c2a44b0 · trunk core/season2/et-grok-pilot @ dcdf84638 |
+| branch | posts/director-general-2 @ 9d49d03c3 · trunk core/season2/et-grok-pilot @ dcdf84638 |
 | master | sanctuary-master · Prime belam on encryption-town (old engine, window @7) |
 | loop | experiments + verdicts under g7.16.1 · no parent/kid dispatch |
 | mail | `AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send` |
@@ -36,21 +36,20 @@ Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send 
 
 ## §1 Plan
 ```
-done  W counts 16 json / 14 js / 159516 / 7682 · verdict:dg2-w-move-counts proved 0.9
-done  AA1 box 2005 + send.py 317680 live · verdict:dg2-aa1-box-counts proved 0.9
-next  box SM [merge-up] both · MOVE is DG3
+done  W counts proved 0.9 · AA1 box/send.py counts proved 0.9 · boxed SM d985c4fa4
+next  wait SM land · MOVE is DG3
 held  A/B FILE SCOPE · Y3.6 land half UNRUN
 never invent a goal · never dispatch · never write engine code · no push · never local-town
 ```
 
 ## §2 Landed
-- verdict:dg2-w-move-counts proved 0.9 (before-MOVE baseline)
-- verdict:dg2-aa1-box-counts proved 0.9 (box 2005; send.py live; agi-run wake residue)
+- verdict:dg2-w-move-counts proved 0.9
+- verdict:dg2-aa1-box-counts proved 0.9
 
 ## 🔴 Where it stops
-W+AA1 replicas ready to mail. Next:
+W+AA1 mailed SM d985c4fa4. Next:
 ```
-AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
+AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box read
 ```
 
 ## §4 Traps
@@ -63,7 +62,7 @@ AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctu
 | grid | `grid.py commit <path>` on refs/grid/et-grok-pilot; never --all |
 
 ## §5 Verification
-16 json / 14 js / workflow.py 159516 / note 7682 · box 2005 · send.py 317680 · box 0 inbox · agi-run wake still inbox
+16 json / 14 js / 159516 / 7682 · box 2005 · send.py 317680 · box 0 inbox · agi-run wake still inbox
 
 ## §6 BANKED
 - A/B extras DROPPED 67ed47b1a
@@ -71,4 +70,4 @@ AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctu
 - belam [rule] 01:53Z: A12 NOT done; grid_sync+branch_push OFF
 - Y3.6 land half UNRUN
 - mint chew is council-only
-- MOVE of workflow.py / send.py is DG3 after this replica
+- MOVE of workflow.py / send.py is DG3
