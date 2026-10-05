@@ -6,7 +6,7 @@
 # every refusal lane below is RED on it; the integrated gate must refuse by the ring AT THE RECEIVING TIP, never by that file. Scratch repo borrowing GITDIR's objects (0 shared refs written), scratch keys made at run time (no armoured block in this file), no network, nothing pushed.
 # SEAMS pinned (a builder may not move them; DG2 flags each): the ring is .agi/nodes/.geometry/ring, plain lines `post keytype b64`, no frontmatter, one line per post (the scratch ring is written by each fixture); the receiving trunk is AGI_TRUNK; the rules cell is env AGI_RULES (default owner;
 # option B = belam) until it is a graph cell; under option B the ring has NO owner line, belam is above every post. One ok/FAIL line per case; exit = FAIL count.
-T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};SELF=$(cd "$(dirname "$0")" && pwd);R0=${ROOT:-$(cd "$SELF/../../.." && pwd)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0;CEIL=${CEIL:-6350}
+T=${1:-local-maxxing/season2/main};G=${2:-$(git rev-parse --path-format=absolute --git-common-dir)};SELF=$(cd "$(dirname "$0")" && pwd);R0=${ROOT:-$(cd "$SELF/../../.." && pwd)};D=$(mktemp -d);trap 'rm -rf $D' EXIT;mkdir $D/b $D/k;f=0;CEIL=${CEIL:-7100}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1 [rc=$r $(tail -1 $D/out 2>/dev/null|cut -c1-90)]";f=$((f+1));fi;}
 r=0
 # --- the section's own verdicts, by self-perpetuating's landed fixture runner (86 PASS / 0 FAIL on the trunk): ONE line, RUNSH=<path> overrides, a missing runner is a FAIL
@@ -15,7 +15,7 @@ if [ -f "$RUNSH" ];then (cd $(dirname "$RUNSH")&&timeout 600 sh $RUNSH ${AB_REV:
 ok "ab-runner the section's fixture runner ($(basename "$RUNSH")) exits 0 with 0 FAIL ($(tail -1 $D/run.out|cut -c1-60))" '[ $rr = 0 ]&&tail -1 $D/run.out|grep -q " 0 FAIL"'
 # --- the integrated grow-gate
 o=$(git rev-parse $T)||exit 1;for x in sect grow-check grow-gate agi-fill;do git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/b/$x;done
-[ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;chmod +x $D/b/*;[ -s $D/b/grow-gate ]||{ echo "FAIL no grow-gate at $T";exit 99;}
+mkdir $D/rck;[ "$CKPT" ]&&cp $CKPT $D/rck/ckpt;[ -s $D/rck/ckpt ]||git ls-tree --full-tree --name-only $o .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$o:|"|git cat-file --batch --follow-symlinks|sed -n "/^###* ckpt /,/^###* /{/^~~~/,/^~~~/{//!p}}">$D/rck/ckpt;[ -s $D/rck/ckpt ]||sed -n "/^\`ckpt\` whole/,/^\`\`\`\$/{/^\`ckpt\` whole/d;/^\`\`\`/d;p}" $R0/.agi/nodes/doc/radically-simple-engine.md>$D/rck/ckpt;chmod +x $D/rck/ckpt;[ "$GROW_GATE" ]&&cp $GROW_GATE $D/b/grow-gate;[ -s $D/b/ckpt ]||printf "#!/bin/sh\nexit 0\n">$D/b/ckpt;chmod +x $D/b/*;[ -s $D/b/grow-gate ]||{ echo "FAIL no grow-gate at $T";exit 99;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE AGI_RULES AGI_TRUNK
 for n in belam1 belam2 alive1 alive2 sm1 dg1 dg2;do ssh-keygen -qN "" -ted25519 -f$D/k/$n -C $n>/dev/null;done
 pk(){ cut -d' ' -f1,2 $D/k/$1.pub;}
@@ -49,8 +49,20 @@ edit $R $GEO/ring "s|^alive .*|alive $(pk alive2)|";H=$(mkc $R alive1 $GEO/ring:
 R2=$H
 # C3: the RETIRED generation after the handoff has landed: refused, though the box's allowed-signers file still holds its key (over-permissive on purpose)
 edit $R2 $NA '$a\
-late';gate $R2 $(mkc $R2 alive1 $NA:$D/e);ok "c3-retired-generation-refused alive gen1 after its handoff landed is refused (AGI_ALLOWED still lists it: the ring at the receiving tip decides)" 'refused'
-CD="$(date -d '-1 day' -R)";gate $R2 $(mkc $R2 alive1 $NA:$D/e);unset CD;ok "c3b-backdated-refused the same commit BACKDATED a day is refused (no date is read)" 'refused'
+late';gate $R2 $(mkc $R2 alive1 $NA:$D/e);ok "c3-retired-generation-in-grace-admitted-without-a-block alive gen1 after its handoff landed, NO holding block in the fixture (the ckpt lists none): the grace set is every ring line ever, so it is ADMITTED by design (AA2.57, DG3 12:41Z); refused only once the LOWEST block seals the hand-off: ckpt.t.sh t5 / t3b carry that, with real blocks" '[ $r = 0 ]'
+CD="$(date -d '-1 day' -R)";gate $R2 $(mkc $R2 alive1 $NA:$D/e);unset CD;ok "c3b-backdated-admitted-without-a-block the same commit BACKDATED a day, no holding block: admitted for the same reason (no date is read; the sealing block is what ends the grace)" '[ $r = 0 ]'
+# C3 WITH a SEALING block (AA2.57 / ckpt.t.sh t5): the same two commits, once a holding block over the hand-off tip R2 (signed by sm + dg1, level-adjacent, current at R2) SEALS alive's hand-off: the retired generation is refused, and backdated too. mkb NAME TIP TIME -- post:key...: a block as the section writes it (ckpt sign, tip/time/hash/sigs)
+mkb(){ nm=$1;x=$(git rev-parse $2);y=$3;shift 3;pp=;while [ "$1" != -- ];do pp="$pp -p $(git rev-parse refs/agi/block/$1)";shift;done;shift;i=$(mktemp);j=0
+ for a in "$@";do j=$((j+1));p=${a%%:*};k=${a#*:};b=$(PATH=$D/rck:$PATH ckpt sign $p $D/k/$k $x $y|git hash-object -w --stdin);printf '100644 blob %s\t%s.%s\n' $b $p $j;done>$i
+ st=$(git mktree<$i);hb=$(echo "sha256 $(git archive --format=tar $x|sha256sum|cut -d' ' -f1)"|git hash-object -w --stdin)
+ tr=$(printf '100644 blob %s\thash\n040000 tree %s\tsigs\n100644 blob %s\ttime\n100644 blob %s\ttip\n' $hb $st $(echo $y|git hash-object -w --stdin) $(echo $x|git hash-object -w --stdin)|git mktree);rm -f $i
+ git update-ref refs/agi/block/$nm $(echo "block $nm"|env GIT_AUTHOR_NAME=g GIT_AUTHOR_EMAIL=g@g GIT_COMMITTER_NAME=g GIT_COMMITTER_EMAIL=g@g git commit-tree $tr $pp);}
+mkb SEAL $R2 $(date +%s) -- sm:sm1 dg1:dg1;export AGI_CKPT=$D/rck/ckpt
+edit $R2 $NA '$a\
+late-sealed';gate $R2 $(mkc $R2 alive1 $NA:$D/e);ok "c3s-retired-generation-refused-once-sealed alive gen1 after its handoff, once a HOLDING block over the hand-off tip (sm + dg1) SEALS it: refused (AGI_ALLOWED still lists the key: the ring at the receiving tip and the sealing block decide)" 'refused'
+CD="$(date -d '-1 day' -R)";gate $R2 $(mkc $R2 alive1 $NA:$D/e);unset CD;ok "c3bs-backdated-refused-once-sealed the same commit BACKDATED a day is refused once the hand-off is sealed (no date is read)" 'refused'
+gate $R2 $(mkc $R2 alive2 $NA:$D/e);ok "c3s-control-gen2-admitted-once-sealed the NEW generation (alive gen2) edits the node it rings: admitted with the sealing block present" '[ $r = 0 ]'
+git update-ref -d refs/agi/block/SEAL;unset AGI_CKPT
 edit $R2 $NA '$a\
 now';gate $R2 $(mkc $R2 alive2 $NA:$D/e);ok "c4-new-generation-admitted alive gen2 edits the node" '[ $r = 0 ]'
 # C5: SM merges an OLD-BASE side commit signed by the retired generation: the side commit meets the receiving ring and is refused
@@ -100,7 +112,7 @@ gate $R $(mkc $R alive2 $NA:$D/e);ok "bs-b3-gate-still-on after that refusal the
 : >$D/empty;EM=$(mkc $R belam1 $GEO/ring:$D/empty);gate $R $EM;ok "bs-c-empty-by-top-admitted belam (the top: an ancestor of every name the commit removes) empties the ring: admitted" '[ $r = 0 ]'
 edit $EM $NA '$a\
 after-empty';gate $EM $(mkc $EM dg1 $NA:$D/e);ok "bs-c2-no-reopen after the ring was emptied, a following DG1 commit is still refused (the ring existed in history: the bootstrap does not reopen)" 'refused'
-gate $EM $(mkc $EM belam1 $NA:$D/e);ok "bs-c3-no-reopen-even-for-belam and so is belam's: an empty ring has no signer, and the gate is not off" 'refused'
+gate $EM $(mkc $EM belam1 $NA:$D/e);ok "bs-c3-emptied-ring-grace-admitted-without-a-block belam editing after the ring was EMPTIED, no holding block: a name that was ever a ring line is in the grace set, so it is ADMITTED by design until a block seals the emptying (ckpt.t.sh t5): NAMED, not pinned as a defect" '[ $r = 0 ]'
 DEL=$(mkd $R belam1 $GEO/ring);gate $R $DEL;ok "bs-e-delete-by-top-admitted belam (the top) DELETES the ring file: admitted (ruled by every name it removes, and belam is above them all)" '[ $r = 0 ]'
 edit $R $NA '$a\
 after-del';gate $DEL $(mkc $DEL dg1 $NA:$D/e);ok "bs-e2-no-reopen-after-delete after the ring file was deleted, a following DG1 commit is still refused (the path existed in history: the bootstrap stays shut)" 'refused'

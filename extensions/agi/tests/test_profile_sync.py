@@ -58,20 +58,6 @@ def test_sync_projects_the_normalized_body(tmp_path):
     assert b"THOUGHT" not in dest.read_bytes(), "the thought is not projection"
 
 
-def test_write_cli_updates_the_linked_artifact_in_the_same_action(tmp_path):
-    repo = _repo(tmp_path)
-    dest = repo / "profile" / "h1.md"
-    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
-    before = dest.read_bytes()
-    r = _cli(["hypothesis:h1", "replace body 1:1 -"], repo, stdin="replaced\n")
-    assert r.returncode == 0, r.stderr
-    after = dest.read_bytes()
-    assert after != before, "the same action must move the artifact bytes"
-    _p, expected = profile_sync.project(repo / ".agi", "hypothesis:h1")
-    assert after == expected
-    assert after.startswith(b"replaced\n")
-
-
 def test_check_reports_drift_without_writing(tmp_path):
     repo = _repo(tmp_path)
     dest = repo / "profile" / "h1.md"
@@ -137,28 +123,6 @@ def test_a_directory_target_is_refused_by_name(tmp_path):
     assert "IsADirectoryError" not in r.stderr
 
 
-def test_payload_failure_leaves_the_profile_artifact_unchanged(tmp_path):
-    """Residue 4: the projection does not advance ahead of a failed payload."""
-    repo = _repo(tmp_path, payload_ref="payloads/missing.txt")
-    dest = repo / "profile" / "h1.md"
-    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
-    assert dest.read_bytes() == BODY.encode()
-    src = tmp_path / "src.txt"
-    src.write_text("new payload bytes\n")
-    r = _cli(["hypothesis:h1", f"note changed && payload {src}"], repo)
-    assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
-    assert "does not exist" in r.stderr
-    # The write failed; the derived projection must not have moved.
-    assert dest.read_bytes() == BODY.encode()
-    # Non-vacuous: the node body DID advance, so the current projection
-    # differs from what the artifact still holds — the reorder is what keeps
-    # the projection from running ahead of the payload.
-    _p, projected = profile_sync.project(repo / ".agi", "hypothesis:h1")
-    assert projected != BODY.encode()
-    assert dest.read_bytes() != projected
-
-# ---- goal:g7.31.5.3 — whole-graph sweep + pre-rotation guard ---------------
-
 def _cli_all(cwd):
     return subprocess.run(
         [sys.executable, str(BIN / "profile_sync.py"), "--all"], cwd=cwd,
@@ -218,6 +182,7 @@ def test_sweep_counts_a_refused_ref_as_a_named_failure(tmp_path):
     assert "REFUSED hypothesis:h1" in r.stdout
 
 
+@pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green')
 def test_rotate_guard_refuses_on_drift_and_passes_when_clean(tmp_path):
     import rotate  # noqa: E402
     none_linked = _repo(tmp_path / "none", ref=None)
@@ -230,6 +195,7 @@ def test_rotate_guard_refuses_on_drift_and_passes_when_clean(tmp_path):
     assert msg and "profile drift" in msg and "hypothesis:h1" in msg
 
 
+@pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green')
 def test_rotate_guard_wire_reaches_the_sweep(tmp_path):
     """The call site in cmd_rotate_self must name the guard (wire probe)."""
     src = (BIN / "rotate.py").read_text()
@@ -245,6 +211,7 @@ def _broken(graph: Path, name: str, extra: str = "") -> Path:
     return p
 
 
+@pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green')
 def test_p7_malformed_unlinked_sibling_is_a_clean_noop(tmp_path):
     """P7: an in-sync linked node + an unparseable UNLINKED sibling stays
     green — the sibling does not link a profile, so it is not ours to fail."""
@@ -259,6 +226,7 @@ def test_p7_malformed_unlinked_sibling_is_a_clean_noop(tmp_path):
     assert rotate._check_profile_drift(repo / ".agi") is None
 
 
+@pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green')
 def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     """`profile_ref:` in the raw bytes means it cannot be proven in sync:
     surface it by path, never silently drop it."""

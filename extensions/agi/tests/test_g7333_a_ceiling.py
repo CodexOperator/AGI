@@ -1,6 +1,10 @@
 """g7.33.3(a) NO-PI focused pins — CEILING engine-units wording + measured↔recorded."""
 from __future__ import annotations
 
+import pytest
+
+pytestmark = pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green: source-suffix ceiling wording is retired')
+
 import sys
 from pathlib import Path
 

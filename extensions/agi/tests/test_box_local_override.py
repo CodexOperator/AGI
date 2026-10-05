@@ -14,13 +14,15 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green: boxes local overlay API is gone')
+
 BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
 
 import boxes  # noqa: E402
 
 COMMITTED = {
-    "root": "/home/ubuntu/work/agi",
+    "root": "/srv/foreign-box/agi",
     "logs_dir": "/home/ubuntu/logs",
     "tmux_session": "agi-rc",
     "user": "ubuntu",

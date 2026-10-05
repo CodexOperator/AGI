@@ -5,6 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-b11f67e2-f2ed9b
 next_edges: []
+deprecated_note: "Deprecated 2026-10-04 on encryption-town: owner retired the old-engine tests this piece built (profile sync / GOALS.md / pin-scrub / tmux shim / sensei path / workflow credential wording). Node kept; mint_id unchanged."
 edited_by: a00-b11f67e2
 line_ceiling: 40
 loop: goal:g7.31.4.2@s2
@@ -14,6 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: 99989e47fa63037a
 season: 2
+status: deprecated
 testable_claim: Re-measuring test_send_surface_ssh_or_not.py and rewriting the stale six-test record from that measurement leaves both records agreeing at SEVEN with send.py unchanged.
 title: "DH.43 test-count alignment: seven tests measured, stale six-test record retired"
 town: core
