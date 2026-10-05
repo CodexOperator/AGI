@@ -580,7 +580,7 @@ def test_suite_has_its_own_ceiling_far_above_the_per_check_one():
     green suite gets reported as `timed out after 600s` — a failure the tool
     invented. The suite gets its own, larger ceiling; a hang is still caught."""
     assert verification.SUITE_TIMEOUT > verification.PER_CHECK_TIMEOUT
-    assert verification.SUITE_TIMEOUT == 1800
+    assert verification.SUITE_TIMEOUT == 3600
     assert verification.PER_CHECK_TIMEOUT == 600
 
 

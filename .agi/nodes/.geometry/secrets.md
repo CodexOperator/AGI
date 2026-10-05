@@ -146,3 +146,5 @@ is that the location is owned.
 CAMBER_API_KEY declared optional 2026-09-07 (owner: the Camber Cloud GPU auth token, for goal:g14 local-maxxing; arrives through the standard .env path, never a shell argument). Consumers read it through envfile.py like every other key.
 
 Renamed the declared Camber key to CAMBER_CLOUD_API_KEY, the name the owner pasted on 2026-09-07 (goal:g14 consumers read this name).
+
+`envfile.py --check` requires at least one of OPENROUTER_API_KEY or OPENROUTER_PROVISIONING_KEY (`required_any`). The inference key is in the gitignored env file (Doppler). The provisioning key stays optional on its own and also satisfies the group.

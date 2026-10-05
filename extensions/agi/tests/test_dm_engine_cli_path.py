@@ -5,6 +5,10 @@ makes every case here go RED.
 """
 from __future__ import annotations
 
+import pytest
+
+pytestmark = pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green: send.py dm-plan verbs are gone')
+
 import json
 import os
 import subprocess

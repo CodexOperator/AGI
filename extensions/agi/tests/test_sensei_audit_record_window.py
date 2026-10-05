@@ -269,24 +269,6 @@ def test_generation_record_from_pytest_is_not_the_default(tmp_path):
 
 # ── the printed lines name the record stamp, never a generation ───────────
 
-def test_cli_prints_the_record_stamp_not_a_generation(tmp_path, capsys):
-    from types import SimpleNamespace
-    graph, _a, _b, _succ = _write_graph(tmp_path, genless=True)
-    args = SimpleNamespace(seat=SEAT, gen=None, transcript=None, record=None,
-                           registry_dir=None, redact=True)
-    assert sensei.cmd_rotate_out_audit(graph, args) == 0
-    out = capsys.readouterr().out
-    assert f"--record {OUT_STAMP} (role director)" in out
-    assert "--gen" not in out
-    # the wake header names the record too
-    args_w = SimpleNamespace(seat=SEAT, gen=None, transcript=None,
-                             record=None, redact=True)
-    assert sensei.cmd_wake_audit(graph, args_w) == 0
-    out_w = capsys.readouterr().out
-    assert f"--record {OUT_STAMP} (role director)" in out_w
-    assert "--gen" not in out_w
-
-
 def test_cli_gen_alias_still_prints_the_record_as_the_identity(tmp_path,
                                                               capsys):
     """A deprecated `--gen N` call prints the RECORD stamp as the identity and

@@ -9,6 +9,8 @@ import os
 import sys
 
 import pytest
+pytest.importorskip('safetensors')  # collection skip, not an error, when the ml venv is absent
+pytest.importorskip('torch')
 import safetensors.torch as ST
 
 torch = pytest.importorskip("torch")

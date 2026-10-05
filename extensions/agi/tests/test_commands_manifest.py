@@ -1122,6 +1122,18 @@ def test_drift_catches_a_declared_arity_the_cli_does_not_have(tmp_path):
 _OUTSIDE_CLIS = {
     "analyze-chat-structure.py": "one-off transcript analysis, not an engine verb",
     "snapshot-build-site.py": "retired build-site generator; its inputs are gone and must not return",
+    "dm_address.py": "dm helper, not a commands.md choice-surface verb",
+    "dm_engine.py": "dm helper, not a commands.md choice-surface verb",
+    "dm_no_inbox.py": "dm helper, not a commands.md choice-surface verb",
+    "dm_nudge_gate.py": "dm helper, not a commands.md choice-surface verb",
+    "dm_read_version.py": "dm helper, not a commands.md choice-surface verb",
+    "dm_send_version.py": "dm helper, not a commands.md choice-surface verb",
+    "dm_sync_cron.py": "dm helper, not a commands.md choice-surface verb",
+    "kid_write_gate.py": "write gate helper, not a commands.md choice-surface verb",
+    "needs_rotate.py": "rotation helper, not a commands.md choice-surface verb",
+    "profile_sync.py": "profile helper, not a commands.md choice-surface verb",
+    "session_ingest.py": "session helper, not a commands.md choice-surface verb",
+    "spawn_refusal.py": "spawn helper, not a commands.md choice-surface verb",
 }
 
 
