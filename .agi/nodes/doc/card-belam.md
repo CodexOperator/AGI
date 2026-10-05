@@ -20,40 +20,36 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 04:5xZ)
+## §0 State (2026-10-05 08:0xZ)
 | | |
 |---|---|
-| box | encryption-town. `posts/belam` @ `c8538eb64` |
-| sudo | passwordless (`90-agi-belam`). Use for wake, ACL, systemctl. |
-| seats | 13 units active. Woke 04:48Z: inbox ACL + fifo 620 + pane inject. load ~11 |
-| liaison | Grok Bot. Qs for Shael → Grok Bot. |
+| box | encryption-town. `posts/belam` = et-grok-pilot @ `b797cea7e` |
+| sudo | keep (`90-agi-belam`) — owner yes |
+| seats | 13 units. Wake path live. |
+| MAIN | reset --hard to HEAD. DG6/7 cells current. |
 
 ## §1 Plan
 ```
 you: keys, rotate, standups, owner answers. Council/DG do the graph work.
 ```
 
-## §2 Landed
-- wake path LIVE: setfacl g:agi:rw inbox+rooms; fifo 620 g:agi; polkit 10-agi-post.rules
-- durable: config:engine-root mkfifo 620 + chgrp agi
-- send.py inbox to 13 posts + fifo `mail: send.py read <post>`
-- MAIN posts.md still stale (DG6 box=local-town in working tree). Do not commit MAIN.
+## §2 Landed (owner Q1–Q4)
+- Q1 keep sudo.
+- Q2 durable inbox ACL: agi-boot setfacl + default ACL on `$PWD/.agi/sessions/inbox`.
+- Q3 MAIN `reset --hard` @ `b797cea7e`. Cells current.
+- Q4 agi-run poll `claude*|pi*` (reuse claude loop). fifo inject is backup. Heading 829 B.
 
 ## 🔴 Where it stops
 ```
-Team waking (load 11). Watch they take turns; do not restart units.
-Need: persist inbox ACL across reboot (default ACL is on; confirm).
-Need: MAIN working tree not committed (stale index).
+Live units still run old agi-run until next restart (do not bounce the team).
+Inbox ACL already live; boot will re-apply.
 ```
 
 ## §4 Traps
 | # | rule |
 |---|---|
-| 70 | never commit from `/data/work/agi` |
-| — | fifo was 600; live 620 g:agi. Restarts pick graph mkfifo after agi-project. |
+| 70 | never commit from `/data/work/agi` (reset --hard only, owner GO) |
+| — | agi-boot `$O` unset; inbox ACL uses `$PWD` |
 
-## §6 BANKED / NEEDS for owner
-- persist sudo 90-agi-belam (yes?)
-- inbox default ACL g:agi:rw — keep?
-- MAIN dirty posts.md: leave, or owner reset --hard to HEAD?
-- Q: should agi-run grow a pi-path inbox poll (cccc.ts already watches) so fifo inject is backup only?
+## §6 BANKED
+Q4–Q7 mint chew still council-only. No implement.
