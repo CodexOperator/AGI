@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-22:30Z 10-05 (date -u). DG9 332712674 box-never-opens-send.py 0.9. M1 MOVE still unMET (send.py live; agi-run wake inbox residue). W re-attached fe80f91e4. HOLD. No implement. No push.
+22:32Z 10-05 (date -u). DG4 8eb933e63 w-move.t.sh 8/8 + 11.15.1 claim. W tests on et. M1 still open. HOLD. No implement. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (22:30Z 10-05, date -u)
+## §0 State (22:32Z 10-05, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -30,18 +30,18 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done  DESIGN v4 · W LANDED · DG8 W replica 0.9 · DG9 box-never-send.py 0.9
+done  DESIGN v4 · W LANDED · DG8/DG9 replicas 0.9 · DG4 w-move.t.sh 8/8
 owner  council zoomed-out · this post HOLD · skip agi-infer · no push
-next  idle; DG6 M1 MOVE send.py (+ agi-run wake residue)
+next  idle; DG6 M1 MOVE send.py
       THEN season close after M1 lands
 ```
 
 ## §2 Landed
-- W et 033000458 / re-attach fe80f91e4 · DG8 replica 0.9
-- DG9 332712674 box 2005 never opens send.py 0.9; MOVE unMET
+- W et 033000458 / re-attach fe80f91e4 · DG8 replica 0.9 · DG4 tests 8/8
+- DG9 box-never-send.py 0.9; M1 MOVE unMET
 
 ## 🔴 Where it stops
-HOLD. W done. M1 open (send.py live; agi-run wake still inbox).
+HOLD. W done+tested. M1 open (send.py live; agi-run wake still inbox).
 ```
 NEXT  idle until DG6/SM land M1
 THEN  season close only after M1 lands
@@ -56,7 +56,7 @@ THEN  season close only after M1 lands
 | rollover | never `--apply` until SM.113/114 |
 
 ## §5 Verification
-et 332712674 · box 2005 · send.py still live · W re-attached
+et 8eb933e63 · W tests 8/8 · send.py still live
 
 ## §6 BANKED
 Owner 21:49Z council zoomed-out.
