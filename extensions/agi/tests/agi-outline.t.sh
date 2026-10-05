@@ -13,7 +13,7 @@ docb(){ sed -n "/^\`$1\` whole/,/^\`\`\`\$/{/^\`$1\` whole/d;/^\`\`\`/d;p}" $R0/
 mkdir $T/b $T/gb $T/k $T/shim;ESCF=${ESC:-$T/esc};[ -n "$ESC" ]||{ sect esc>$ESCF;[ -s $ESCF ]||docb esc>$ESCF;}
 [ -n "$STEPS" ]||{ sed -n "/^### agi-post@.service/,/^~~~\$/{/^ExecStartPre=/p}" $GEO/engine-root.md>$T/steps;STEPS=$T/steps;}
 sed -n "/^ExecStartPre=sh -c /p" $STEPS|awk -v q="'" 'NR==1{sub("^ExecStartPre=sh -c "q,"");sub(q"$","");printf "%s",$0;next}{sub("^ExecStartPre=sh -c "q,"");sub(q"$","");printf ";%s",$0}END{print ""}'>$T/unit
-sect agi-signers>$T/signers.sh;for x in sect grow-check grow-gate agi-fill;do cat $GEO/engine*.md|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$T/gb/$x;done;[ "$GROW_GATE" ]&&cp $GROW_GATE $T/gb/grow-gate;chmod +x $T/gb/*
+sect agi-signers>$T/signers.sh;for x in sect grow-check grow-gate agi-fill;do cat $GEO/engine*.md|sed -n "/^###* $x /,/^###* /{/^~~~/,/^~~~/{//!p}}">$T/gb/$x;done;[ "$GROW_GATE" ]&&cp $GROW_GATE $T/gb/grow-gate;[ -s $T/gb/ckpt ]||printf '#!/bin/sh\nexit 0\n'>$T/gb/ckpt;chmod +x $T/gb/*
 [ -s $STEPS ]&&[ -s $ESCF ]&&[ -s $T/signers.sh ]||{ echo "FAIL extract: steps $(wc -c<$STEPS) B, esc $(wc -c<$ESCF) B, signers $(wc -c<$T/signers.sh) B";exit 99;}
 ok(){ if eval "$2";then echo "ok $1";else echo "FAIL $1";f=$((f+1));fi;}
 unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_DIR GIT_WORK_TREE GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM AGI_TRUNK
