@@ -20,13 +20,13 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 16:2xZ)
+## §0 State (2026-10-05 17:4xZ)
 | | |
 |---|---|
-| box | encryption-town. et @ `8d41d5a5a` |
-| seats | 13 active. Bounced 16:19Z. load ~14 |
-| proxy | `xai-proxy` 127.0.0.1:18790. models.json baseUrl loopback |
-| cron | root only: wake */2 + pi-auth */15. uid-belam scraped |
+| box | encryption-town. et @ `247218d2b` |
+| seats | 13 active. Hang patched 17:26Z; resumed ~2.5 min. Do not bounce. |
+| proxy | live Connection: close + r.read1. Graph: engine-root `xai-proxy` + `.service`. |
+| cron | root only: wake */2 + pi-auth */15 |
 
 ## §1 Plan
 ```
@@ -34,21 +34,21 @@ you: keys, rotate, standups, owner answers.
 ```
 
 ## §2 Landed
-- wake by-mail writes `/run/agi-<post>/i` (skip self). `--all-local` all ET engine posts.
-- xai-proxy reads auth.json per request → Bearer. Posts stream via 127.0.0.1.
-- DG6/7 active. engine.md 5699 B. Mint chew still council-only.
+- xai-proxy hang: Connection: close (watch 17:26Z). r.read1 landed. GET /v1/models 200.
+- Graph owns it: config:engine-root ### xai-proxy + ### xai-proxy.service; agi-boot installs.
+- engine.md still 5699 B.
 
 ## 🔴 Where it stops
 ```
-Team taking turns. Cron wake now injects fifo.
-Token: process start + proxy per HTTP. cccc.ts cannot setRuntimeApiKey.
+Do not redo/revert the hang patch. Do not bounce posts.
+Projection owns the binary at next boot.
 ```
 
 ## §4 Traps
 | # | rule |
 |---|---|
 | 70 | never commit from `/data/work/agi` |
-| — | wake own fifo loops this pane; skip AGI_POST==to |
+| — | wake never fifo-injects the Prime |
 
 ## §6 BANKED
 Mint Q4–Q7 council chew. No implement.
