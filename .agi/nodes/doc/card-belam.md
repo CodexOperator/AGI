@@ -20,36 +20,36 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 08:0xZ)
+## §0 State (2026-10-05 13:3xZ)
 | | |
 |---|---|
-| box | encryption-town. `posts/belam` = et-grok-pilot @ `b797cea7e` |
-| sudo | keep (`90-agi-belam`) — owner yes |
-| seats | 13 units. Wake path live. |
-| MAIN | reset --hard to HEAD. DG6/7 cells current. |
+| box | encryption-town. et-grok-pilot @ `2459d4fd1` |
+| seats | 13 active. Rolling-restart 12 done. load ~14 |
+| fifo | `/run/agi-belam/i` 620 g:agi |
+| token | pi-auth-refresh fresh + crontab */15 |
 
 ## §1 Plan
 ```
-you: keys, rotate, standups, owner answers. Council/DG do the graph work.
+you: keys, rotate, standups, owner answers.
 ```
 
-## §2 Landed (owner Q1–Q4)
-- Q1 keep sudo.
-- Q2 durable inbox ACL: agi-boot setfacl + default ACL on `$PWD/.agi/sessions/inbox`.
-- Q3 MAIN `reset --hard` @ `b797cea7e`. Cells current.
-- Q4 agi-run poll `claude*|pi*` (reuse claude loop). fifo inject is backup. Heading 829 B.
+## §2 Landed
+- ET posts.md top harness/model = engine cell (pi grok-4.6). 13 rows.
+- Extract from `$O` MAIN. Live unit installed from engine-root.
+- 12 units restarted; all `agi-run` `claude*|pi*`; fifos 620.
+- `pi_auth_refresh` crontab */15. Durable stale-token fix.
 
 ## 🔴 Where it stops
 ```
-Live units still run old agi-run until next restart (do not bounce the team).
-Inbox ACL already live; boot will re-apply.
+Team taking turns (o mtimes current). Do not bounce again.
+403 at 4:04 = xAI rejected stale SuperGrok JWT (liaison retry).
 ```
 
 ## §4 Traps
 | # | rule |
 |---|---|
-| 70 | never commit from `/data/work/agi` (reset --hard only, owner GO) |
-| — | agi-boot `$O` unset; inbox ACL uses `$PWD` |
+| 70 | never commit from `/data/work/agi` |
+| — | agi-project.service still cats engine.md only; unit install was from engine-root sect |
 
 ## §6 BANKED
-Q4–Q7 mint chew still council-only. No implement.
+Mint chew council-only. 403 was token, not spend.
