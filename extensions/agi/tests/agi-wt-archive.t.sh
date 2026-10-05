@@ -127,7 +127,7 @@ set -e
 echo \$rc >"\$HOME/../rc"
 git for-each-ref refs/archive >"\$HOME/../refs"
 EOS
-ok "m1_none_refuses" '[ "$(cat "$BASE/m1b/rc")" = 5 ] && grep -q "no AGI_POST/AGI_SEAT" "$BASE/m1b.err" && [ ! -s "$BASE/m1b/refs" ]'
+ok "m1_none_refuses" '[ "$(cat "$BASE/m1b/rc")" = 5 ] && grep -q "no AGI_POST/AGI_SEAT" "$BASE/m1b/err" && [ ! -s "$BASE/m1b/refs" ]'
 
 runiso m3 AGI_SEAT=p1 <<EOS
 $PRE
