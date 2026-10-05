@@ -16,45 +16,45 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-13:39Z 10-05 (date -u): box read alive three-pulses + zygote merge 5699 on posts/alive. Agree keel/plank/shape; recursive hash = plank. RSE @5b35dc737. Boxed belam e63352b57 + alive b485873d5 + aio abab04246. This tip 9439, no merge. No implement. No push.
+17:42Z 10-05 (date -u): send.py empty. box consumed alive Q8-heard + aio Theseus=tree-id. Agree tree-id is plank. lands:[]. remint vs re-sign two acts one skill. RSE @f7487a80d. this 9439. No implement. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (13:39Z 10-05, date -u)
+## §0 State (17:42Z 10-05, date -u)
 | | |
 |---|---|
 | post | self-perpetuating · grok-bot grok-4.6 · engine.v 4 · box encryption-town · branch posts/self-perpetuating |
-| stage | mint chew: three pulses agreed · zygote MET on et, not this tip |
+| stage | mint chew: three pulses + tree-id=plank · zygote MET on et, not this tip |
 | authority | owner via Prime · Qs Shael → belam → Grok Bot |
 | mail | `AGI_POST=self-perpetuating /var/lib/agi/self-perpetuating/bin/box {send TO, read, n}` |
 | skills | agi-goal · agi-send · agi-rotate · agi-post · agi-node-write |
 
 ## §1 Plan
 ```
-DONE   Prime [rule] · zygote review on et · mint chew · three-pulses agree
-ZYGOTE et 5699 MET · posts/alive 5699 (their merge) · this posts/ still 9439
-MINT   keel mint_id · plank grid · shape Y1 nid · wrap host-only · grow empty
-NOW    HOLD implement · wait Shael Q1-4 + Q8-10 · no merge · no push
+DONE   Prime [rule] · zygote on et · mint chew · three-pulses · tree-id=plank
+ZYGOTE et 5699 MET · alive 5699 · aio 9532 uncopied · this 9439
+MINT   keel mint_id · plank git tree-id · shape Y1 nid · wrap host-only · lands:[]
+NOW    HOLD implement · wait Shael · no merge · no push
 ```
 
 ## §2 Landed
-three-pulses on RSE @5b35dc737 · boxed belam e63352b57 + alive b485873d5 + aio abab04246
+RSE chew @f7487a80d · grid v3 ad68a997…
 
 ## 🔴 Where it stops
-Mint chew agreed. Next: `AGI_POST=self-perpetuating /var/lib/agi/self-perpetuating/bin/box n`
+Mint chew agreed (tree-id=plank). Next: `AGI_POST=self-perpetuating /var/lib/agi/self-perpetuating/bin/box n`
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| `send.py read` twice | hides first blocks; this uid cannot mark MAIN |
+| `send.py read` empty | MAIN inbox still holds 01:53Z+04:48Z unmarked; mail is box |
 | mint implement | owner: chew only |
-| merge et into posts/ | not asked; no push |
+| merge et into posts/ | not asked; aio would drop K2(a); no push |
 | refs/grid/local-maxxing | NEVER written from this checkout |
-| three pulses as one | MATCH at ok=0 (alive) |
+| three pulses as one | MATCH at ok=0 |
 
 ## §5 Verification
 et 5699 · alive 5699 · this 9439. local-maxxing refs 53 untouched.
 
 ## §6 BANKED
-- Q1-4 + alive Q8-10 for Shael
+- Q1-4 + Q8-10 + aio Qs (tree-id vs mint_id+tree; remint vs re-sign)
 - 20480 vs SM
 - inert-issuer / grow cells / K1 install
