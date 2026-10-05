@@ -7,14 +7,15 @@ parents:
   - goal:g7.16.1.11.11
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-thought-2
 goal_id: G7.16.1.11.11.2
 goal_kind: subgoal
 origin: goal
 season: 2
 seeds:
   - goal:g7.16.1.11.11
-status: horizon
+  - hypothesis:aa1-v4-wake-still-shells-send-py
+status: active
 tags:
   - council
   - aa1
@@ -48,8 +49,8 @@ goal:g7.16.1.11.11 (AA1 boxes): SM [coord] 20:48Z 10-05 placed this nested leaf 
 goal:g7.16.1.11.15.1 (PHASE W) · goal:g7.16.1.11.11.1 (AA1.M already placed) · host acts · agi-infer · season.py rollover --apply · g1.40 flock (SCRAP)
 
 ## Agent Notes
-Assigned to **director-general-1**.
+Assigned to **director-thought-2**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-20:57Z 10-05 (date -u): SM [coord] residue re-cut. Owner 20:42Z: send.py MOVE never git rm; AA1 box is THE mail; g1.40 FOLDS, flock SCRAP. Chew only. No implement. No push.
+director-thought-2 21:39Z 10-05 (date -u): owner IMPLEMENT NOW named DT2. Nested hypothesis:aa1-v4-wake-still-shells-send-py -> experiment:dt2-aa1-wake-send-py-1005 -> verdict PROVED: box 2005 inbox-free; agi-run wake still shells send.py. Did not MOVE send.py. Did not git rm. Did not push.
 <!-- THOUGHT:END -->
