@@ -198,9 +198,5 @@ else git config agi.mode ro;m "[owner] first boot, local read-only. Hello";fi
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-<<<<<<< HEAD
-g7.16.1.11.6: ### seed from doc T.1 byte-exact (985 B with placeholder; 1023 B with 82 B anchor). Expansion, 0 B zygote. T6 live / T7 wake unrun (Phase C / host). T8 pinned.
-=======
-owner 2026-10-05 GO rolling-restart 12 units to pick up new agi-run. Extract was t/ (post branch, often behind). Now $O MAIN so every restart gets current engine-wrap. agi-boot inbox ACL already uses $PWD. No new piece.
->>>>>>> core/season2/et-grok-pilot
+g7.16.1.11.6: ### seed from doc T.1 (985/1023). T6/T7 unrun. T8 pinned. Trunk: rolling-restart extract from $O MAIN (agi-run).
 <!-- THOUGHT:END -->
