@@ -15,39 +15,42 @@ tags:
   - grok-pilot
 title: Card director thought 2
 town: core
-thought_session: dt2-c3-reprobe-1332-2026-10-05
+thought_session: dt2-aa1-wake-send-2026-10-05
 ---
 # doc:card-director-thought-2
 
 director-thought-2 · engine.v4 pi grok-4.6 high · encryption-town grok-pilot · worktree <home>/t · branch posts/director-thought-2 (LOCAL-ONLY) · trunk core/season2/et-grok-pilot · unit agi-post@director-thought-2
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-13:32Z 10-05 (date -u): owner go. box n empty. C3 still FileNotFoundError. HEAD already on trunk 6f8e67b4a. Posts engine.harness now pi (belam). Recorded re-probe. No second top. Did not implement mint. Did not write config.
+21:39Z 10-05 (date -u): [owner] IMPLEMENT NOW. Merged trunk 0d5fa9fb4 then f93edf3d6. Claimed g7.16.1.11.11.2. Nested wake-still-send.py hyp+exp+verdict PROVED. Did not MOVE send.py. Did not git rm. Did not implement mint. Did not push. g7.25 still blocked on bin cell.
 <!-- THOUGHT:END -->
 
-## §0 State (13:32Z 10-05, date -u)
+## §0 State (21:39Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-thought-2 · boot true · parent=None · box encryption-town · engine.harness pi |
-| HEAD | 6f8e67b4a merge et-grok-pilot (before this card commit) |
-| grid | storage_trunk refs/grid/et-grok-pilot · local-maxxing 53 (never write) |
-| box | MemAvailable 3695 MiB · load1 15.39 · `box n` empty · inbox `# read up to here` |
-| claimed | goal:g7.25 active · blocked on bin cell |
+| HEAD | 0d5fa9fb4 then merge of 11.11.2/11.15.1 (before this card commit) |
+| grid | storage_trunk refs/grid/et-grok-pilot · local-maxxing never write |
+| box | MemAvailable 3036 MiB · load1 10.45 · `box n` empty · inbox `# read up to here` |
+| claimed | goal:g7.16.1.11.11.2 active · g7.25 still blocked on bin cell |
+| [owner] | 21:35Z IMPLEMENT NOW: send.py MOVE never git rm · phase W · standard loop · DT2 in idle-DG list · no push |
 
 ## §1 Plan
 ```
-done   box n empty · C3 re-probe fail · trunk already merged · re-probe recorded
+done   merge trunk · claim 11.11.2 · C1-C4 PROVED (box 2005; wake still send.py)
 now    this card + exact-path commit + grid.py commit <paths> onto et-grok-pilot
-next   bin cell / unit env GROK_BOT_BIN — SM/g7.30 owns the write; then re-probe C3
-never  implement mint · write zygote · write refs/grid/local-maxxing · git push · write .agi/config.json · self-seat parent · mail Prime · idle-fill
+next   re-point v4 agi-run wake to `box n` (capsule piece); then MOVE send.py never git rm
+never  git rm send.py · implement mint · write zygote · write refs/grid/local-maxxing · git push · write .agi/config.json · mail Prime
 ```
 
 ## §2 Landed
-- re-probe C3 on experiment:dt2-grok-bot-env-bin-1004 (13:32Z, post 6f8e67b4a)
-- noted posts `engine.harness=pi` (belam e185aef84); bin cell unchanged
+- merge 0d5fa9fb4 + 11.11.2 / 11.15.1 onto post branch
+- hypothesis:aa1-v4-wake-still-shells-send-py
+- experiment:dt2-aa1-wake-send-py-1005
+- verdict:dt2-aa1-wake-send-py-1005 PROVED (box 2005 · inbox-free · wake still send.py)
 
 ## 🔴 Where it stops
-Live bin cell still missing. Next: `AGI_POST=director-thought-2 box n`; if the cell or `$GROK_BOT_BIN` lands, re-run resolve_bin the same turn.
+11.11.2 F1/F2 not met: agi-run wake still shells send.py. Next: measure then MOVE send.py (deprecate+move, never `git rm`); do not edit agi-run this turn unless SM places it.
 
 ## §4 Traps
 | # | trap | rule |
@@ -55,22 +58,21 @@ Live bin cell still missing. Next: `AGI_POST=director-thought-2 box n`; if the c
 | 1 | `--help` head hides `-p` | full help: `-p` is `--single` |
 | 2 | L4.110 | do not write own parent |
 | 3 | grok no Stop hook | commit by exact path; agi-turn is `git add -A` |
-| 4 | config bin from another home | resolve_bin refuses by name; do not write the cell |
-| 5 | idle-fill | do not mint a second top while g7.25 is claimed-blocked |
-| 6 | [rule] | never write refs/grid/local-maxxing; grid.py commit by path → et-grok-pilot |
-| 7 | [owner] | do not implement mint; council chews zygote+mint |
+| 4 | [rule] | never write refs/grid/local-maxxing; grid.py commit by path → et-grok-pilot |
+| 5 | [owner] | do not implement mint; never git rm send.py or workflow.py |
+| 6 | idle-fill | 11.11.2 is claimed; do not open 11.15.1 until this leaf's MOVE lands or SM splits |
 
 ## §5 Verification
-C3 FileNotFoundError (13:32Z) · storage_trunk et-grok-pilot · dispatch.py grok hits 0
+box 2005 B · box inbox grep 0 · agi-run names send.py + inbox · storage_trunk et-grok-pilot · no git rm
 
 ## §6 BANKED
 | item | recommendation |
 |---|---|
-| parent cell missing | SM: parent=sanctuary-master (DG4/5 on this box already have it) |
-| `harnesses.grok-bot.bin` | PATH `grok-bot` or `$GROK_BOT_BIN` — cell owner, not this post |
-| unit env `GROK_BOT_BIN` | same override without a config write; unit owner, not this post |
+| agi-run wake | capsule piece: `box n` not `send.py read`; SM/DG3 owns the unit file |
+| send.py MOVE | deprecate+move after wake re-point; never git rm |
+| g7.25 bin cell | still missing; SM/g7.30 |
 | mint / zygote | council chew; this post does not implement |
-| A12 unit reinstall | Prime: NOT done |
+| 11.15.1 | living-16 / MOVE-14-js; not this turn |
 
 ## Skills
 agi-send · agi-goal · agi-dispatch · agi-rotate · agi-post · agi-verify · agi-workflow · agi-memory-guard
