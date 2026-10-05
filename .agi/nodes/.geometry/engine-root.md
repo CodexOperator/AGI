@@ -34,7 +34,7 @@ ExecCondition=sh -c '[ ! -e .ssh/out-refused ]||[ .fresh -nt .ssh/out-refused ]|
 ExecStartPre=awk -F"[= ]" "/some/{exit $$3>40}" /proc/pressure/memory
 ExecStartPre=sh -c 'mkdir -p .ssh;[ -d t ]||[ -e .fresh ]||touch .fresh;[ .fresh -nt .ssh/id_ed25519 -a ! -f t/.agi/nodes/.geometry/ring ]&&rm -f .ssh/id_ed25519*;[ -f .ssh/id_ed25519 ]||ssh-keygen -qN "" -ted25519 -f.ssh/id_ed25519'
 ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i
-ExecStartPre=sh -c 'mkdir -p .ssh bin .claude hooks;git config --global safe.directory "*";[ -d t ]||{ git -C $O branch posts/%i $AGI_TRUNK;git -C $O worktree add -fq $PWD/t posts/%i;};for e in t/.agi/nodes/.geometry/engine.md t/.agi/nodes/.geometry/engine-[pw]*.md;do for x in $(grep -o "^### [^ ]*" $e|cut -c5-);do sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}" $e>bin/$x;done;done;chmod +x bin/*;mv bin/gitconfig .gitconfig;mv bin/settings.json .claude;mkfifo -m620 %t/agi-%i/i;chgrp agi %t/agi-%i/i;[ -e o ]||install -m600 /dev/null o'
+ExecStartPre=sh -c 'mkdir -p .ssh bin .claude hooks;git config --global safe.directory "*";[ -d t ]||{ git -C $O branch posts/%i $AGI_TRUNK;git -C $O worktree add -fq $PWD/t posts/%i;};for e in $O/.agi/nodes/.geometry/engine.md $O/.agi/nodes/.geometry/engine-[pw]*.md;do for x in $(grep -o "^### [^ ]*" $e|cut -c5-);do sed -n "/^### $x /,/^##/{/^~~~/,/^~~~/{//!p}}" $e>bin/$x;done;done;chmod +x bin/*;mv bin/gitconfig .gitconfig;mv bin/settings.json .claude;mkfifo -m620 %t/agi-%i/i;chgrp agi %t/agi-%i/i;[ -e o ]||install -m600 /dev/null o'
 ExecStartPre=sh -c 'ls bin/agi-out>/dev/null 2>&1&&exec agi-out;echo agi-out skipped, stale t>&2'
 ExecStartPre=+/usr/bin/env -i PATH=/usr/sbin:/usr/bin:/bin /opt/agi/bin/agi-signers %i
 ExecStart=sh -c 'exec 3<>%t/agi-%i/i;exec script -qfaO$HOME/o -c agi-run <&3'
@@ -66,11 +66,11 @@ ExecStart=sh -c 'echo HEAD:.agi/nodes/.geometry/engine-root.md|git cat-file --ba
 WantedBy=multi-user.target
 ~~~
 
-### agi-boot (1477 B)
+### agi-boot (1572 B)
 ~~~sh
 #!/bin/sh
 R=${AGI_RAM:-/mnt/agi-ram} t=${AGI_TRUNK:-HEAD} o=${AGI_BOOT_OUT:-/run/systemd/system};w=$o/multi-user.target.wants
-e=0;f(){ "$@"||{ echo "agi-boot: failed: $*">&2;e=1;};};f setfacl -m g:agi:x $R;f setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state}
+e=0;f(){ "$@"||{ echo "agi-boot: failed: $*">&2;e=1;};};f setfacl -m g:agi:x $R;f setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state};I=$PWD/.agi/sessions/inbox;f mkdir -p $I;f setfacl -m g:agi:rwx $I;f setfacl -d -m g:agi:rwx $I
 c(){ git show $t:.agi/config.json|jq -r ".values.local_maxxing.$1";};L=$(c de_live_parents.ceiling_if.loadavg1_lt) P=$(c de_live_parents.ceiling_if.io_psi_some_avg60_lt) N=$(c agi_boot.poll_s) M=$(c agi_boot.wait_max_s) S=$(c agi_boot.space_s)
 echo $t:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s $o $t||exit 3
 f systemctl daemon-reload
@@ -186,5 +186,5 @@ git update-ref $T $n $o
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-10-05 via liaison: wake path broken — fifos 600 post-only, MAIN inbox belam:belam so send.py PermissionError, agi.rules not installed. Live: setfacl g:agi:rw inbox; fifo 620 g:agi; polkit 10-agi-post.rules. Durable: mkfifo 620 + chgrp agi in the unit so a restart keeps group-agi write. Prime can now send.py inbox and tee the fifo.
+owner 2026-10-05 GO rolling-restart 12 units to pick up new agi-run. Extract was t/ (post branch, often behind). Now $O MAIN so every restart gets current engine-wrap. agi-boot inbox ACL already uses $PWD. No new piece.
 <!-- THOUGHT:END -->
