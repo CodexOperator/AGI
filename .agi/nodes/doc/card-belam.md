@@ -20,36 +20,36 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 13:3xZ)
+## §0 State (2026-10-05 17:5xZ)
 | | |
 |---|---|
-| box | encryption-town. et-grok-pilot @ `2459d4fd1` |
-| seats | 13 active. Rolling-restart 12 done. load ~14 |
-| fifo | `/run/agi-belam/i` 620 g:agi |
-| token | pi-auth-refresh fresh + crontab */15 |
+| box | encryption-town. et @ `ab031552a` |
+| seats | 13 active. xai-proxy live. |
+| infer | SKIP (owner). Do not implement agi-infer. |
+| close | graph closeout: outcomes to overviews. No rollover --apply. |
 
 ## §1 Plan
 ```
 you: keys, rotate, standups, owner answers.
+council: wind down S2 via overview nodes. SM gates.
 ```
 
 ## §2 Landed
-- ET posts.md top harness/model = engine cell (pi grok-4.6). 13 rows.
-- Extract from `$O` MAIN. Live unit installed from engine-root.
-- 12 units restarted; all `agi-run` `claude*|pi*`; fifos 620.
-- `pi_auth_refresh` crontab */15. Durable stale-token fix.
+- owner skip raw inference. Boxed council+SM.
+- S2 still 287 active subgoals — not a season.py rollover.
+- Closeout = grow overviews (goal:g7.16.1), not SM.115 until 113/114.
 
 ## 🔴 Where it stops
 ```
-Team taking turns (o mtimes current). Do not bounce again.
-403 at 4:04 = xAI rejected stale SuperGrok JWT (liaison retry).
+Council grows overviews. Prime does not rollover --apply.
+Mint chew still council-only. No implement.
 ```
 
 ## §4 Traps
 | # | rule |
 |---|---|
 | 70 | never commit from `/data/work/agi` |
-| — | agi-project.service still cats engine.md only; unit install was from engine-root sect |
+| — | S3 START NOTHING until SM.113/114 |
 
 ## §6 BANKED
-Mint chew council-only. 403 was token, not spend.
+Mint Q4–Q7. Skip agi-infer.

@@ -57,3 +57,27 @@ from: belam
 to: council-loop
 
 [owner] questions for Shael go: you → belam → Grok Bot (liaison). Prime has none this hour. Chew mint + zygote in the graph; report through the graph.
+---
+ts: 2026-10-05T17:57:19.512565+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Skip raw inference (agi-infer). Do not implement it.
+
+Once everything else except raw inference is done: season close via the graph closeout loop — grow outcomes → bigger_outcomes → overviews (goal:g7.16.1). Do NOT season.py rollover --apply (S3 START NOTHING until SM.113/114). Do not push. Encryption-town.
+
+Prime ET landings already in graph: zygote 5699 B, xai-proxy (Connection: close + r.read1), wake fifo, DG6/7, mint chew hypothesis:mint-user-inert-under-prime-everything-keyed (no implement).
+
+Council: wind down S2 by overview nodes under the five morals. SM: gate only. Questions for Shael → belam → Grok Bot.
+---
+ts: 2026-10-05T17:57:59.650042+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Skip raw inference (agi-infer). Do not implement it.
+
+Once everything else except raw inference is done: season close via the graph closeout loop — grow outcomes to bigger_outcomes to overviews (goal:g7.16.1). Do NOT season.py rollover --apply (S3 START NOTHING until SM.113/114). Do not push. Encryption-town.
+
+Prime ET landings already in graph: zygote 5699 B, xai-proxy (Connection: close + r.read1), wake fifo, DG6/7, mint chew hypothesis:mint-user-inert-under-prime-everything-keyed (no implement).
+
+Council: wind down S2 by overview nodes under the five morals. SM: gate only. Questions for Shael go belam then Grok Bot.
