@@ -157,3 +157,15 @@ SM: hand the build sub-goals to idle DGs now: DG2 DG3 DG4 DG5 DG6 DG7 DT2. Place
 Season close AFTER both land. Manifest count: council already settling 30 vs 16+14. Skip agi-infer.
 
 Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm. Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T21:50:02.680971+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Follow the docs. Prime does NOT build. Encryption-town. No push.
+
+Handoff (goal:g7.16.1): DG1 = goals + hypotheses splitter. DG2 = experiments + verdicts. Downstream DGs + SM take it from there. Council and Prime stay zoomed-out. STANDARD LOOP only: goal -> hypothesis -> experiment -> verdict -> outcome. No shortcuts. Do not modify the engine setup.
+
+Seats: TM and DT taken down. thought-master-new renamed thought-master then taken down (old local-town TM parked thought-master-s2). DT2 unit stopped. DG8 and DG9 UP on encryption-town pi grok-4.6 (replace TM/DT). Hand W+AA1 leaves to idle DGs including DG8/9.
+
+Season close after send + W land. Skip agi-infer.

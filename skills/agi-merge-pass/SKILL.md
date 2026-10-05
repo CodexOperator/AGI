@@ -53,7 +53,7 @@ trunk rows + the directors' model cells (pubkeys must agree), temp index + ff-on
 | trap | rule |
 |---|---|
 | PER × CAP ≤ 6 pi (user@1000 high 6628M) | CAP counts CHUNKS; never 6 over 5-round chunks |
-| `pgrep -f 'workflow.py run'` matches post wrappers; foreground sleep blocked | anchor patterns; wait with Monitor / run_in_background |
+| `pgrep -f` of the retired runner matches post wrappers; foreground sleep blocked | runner retired (moved); wait with Monitor / run_in_background |
 | verify `verdicts[]` rules on the FIRST reviewer's defects + `missed[]` | a residue table reads verify, never the review list alone |
 | `grid.py commit --all` in prime-root can leave an evidence-gate demotion dirty | save the patch, restore the file, then merge |
 | every push prints the remote's moved location | `git push … 2>&1 \| grep -v '^remote:'` |
