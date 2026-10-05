@@ -7,11 +7,11 @@ parents:
 cadences:
   grid_sync:
     every_mins: 5
-    enabled: true
+    enabled: false
     mirror_towns: true
   branch_push:
     schedule: 7 * * * *
-    enabled: true
+    enabled: false
   mail_poll:
     every_mins: 5
     enabled: true
@@ -49,7 +49,7 @@ cadences:
     why_box: same reader as memory_alarm, pointed at the SYSTEM agi.slice where the pi-engine posts (agi-post@*) live; reads this box's cgroup, so it runs on this box only (stage-2.5 rootplan C3, parity row 45)
     cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam --cgroup /sys/fs/cgroup/agi.slice --state {root}/sessions/memory-alarm-posts.json
   pi_auth_refresh:
-    every_mins: 30
+    every_mins: 15
     enabled: true
     box: encryption-town
     why_box: "shared SuperGrok JWT for the pi posts lives only on encryption-town; one writer refreshes it for every post"
@@ -78,7 +78,12 @@ tags:
 thought_session: season
 title: Cron cadence declaration
 ---
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+<!-- THOUGHT:BEGIN
+2026-10-05 ~01:0xZ encryption-town: grid_sync and branch_push enabled false. The 5-minute line was still `grid.py commit --all` plus `push-changed` (refs/grid/local-maxxing, push rejected fetch-first) and the town mirror, and :07 pushed core/season2/et-grok-pilot. Branch HEAD commits are ordinary full-tree git commits, not grid commits; capsules are refs/capsule quorum pops, also not grid commits. pi_auth_refresh stays */15 on this box. nudge_sweep stays. Local-town-boxed jobs are unchanged and do not install here. crons_live stays true so apply still installs the keepers; with grid_sync off, later cadence edits need a manual apply.
+
+
+2026-10-05 ~01:3xZ encryption-town: grid.storage_trunk on this checkout is refs/grid/et-grok-pilot (was refs/grid/local-maxxing). grid.py ref_ns_for reads that cell from .agi/config.json; this geometry note is the record so a grid commit on core/season2/et-grok-pilot does not write refs/grid/local-maxxing. Existing refs/grid/local-maxxing were not migrated and not pushed. grid_sync stays enabled false. branch_push stays enabled false.
+ — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 goal:g7.16.1.4.1.2 (DG2's L2a config finding, re-read by DG1): the body said publish_engine and engine_push 'stay out ... because their own enabled is false', but de5507a17 removed the publish_engine cadence, so only engine_push still has an enabled. The kill-switch paragraph now says engine_push stays out and publish_engine no longer exists; the g11 race scenario is put in the past tense. Prose only: crons.py show output byte-identical before and after.
 <!-- THOUGHT:END -->
 
