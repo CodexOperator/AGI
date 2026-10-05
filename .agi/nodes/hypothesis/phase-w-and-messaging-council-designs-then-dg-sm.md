@@ -24,7 +24,7 @@ town: core
 
 ## Measured
 - Owner 2026-10-05 via liaison (resent after 403): before season close, land phase W + messaging. Council designs, then DG/SM inner loops. Prime does NOT build.
-- goal:g7.16.1.11.15 PHASE W UNHELD since 10-03: retire workflow.py + hooks/workflow_note.py (deprecate/move, never git rm); keep 30 manifests; rename skill agi-workflow → agi-spawn-chain (flow-rotation); re-point skills agi / agi-corrective / agi-master-gate / agi-merge-pass + config:commands; one config:rotations rename.
+- goal:g7.16.1.11.15 PHASE W UNHELD since 10-03: retire workflow.py + hooks/workflow_note.py (deprecate/move, never git rm); rename skill agi-workflow → agi-spawn-chain (flow-rotation); re-point skills agi / agi-corrective / agi-master-gate / agi-merge-pass + config:commands; one config:rotations rename. Manifest count: council settles keep-30 vs keep-16-and-move-14; keep-30 is NOT a binding ruling (owner 2026-10-05 via liaison).
 - goal:g1.40: send.py lost-append — unlocked RMW; harness 8–22/900 lost under concurrent read.
 - goal:g7.16.1.11.11: git-ref mail AA1 boxes — ~2 KB `box` replacing send.py for v4 posts.
 
