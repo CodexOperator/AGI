@@ -20,14 +20,14 @@ town: core
 Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective · agi-memory-guard. Template: doc:unified-director-brief.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-22:25Z 10-05 (date -u): owner parallelize. W MOVE on trunk 033000458. DG8 after-MOVE proved. Did not duplicate. AA1 send.py MOVE is DG6. No engine edit. No push.
+23:34Z 10-05 (date -u): merged trunk 8eb933e63. W tests + DG9 AA1 helper already proved. No SM queue. Did not MOVE send.py. No engine edit. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (22:25Z 10-05, date -u)
+## §0 State (23:34Z 10-05, date -u)
 | Field | Value |
 |---|---|
 | post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 · encryption-town |
-| branch | posts/director-general-2 @ 83adaebc4 · trunk core/season2/et-grok-pilot @ f2c6bf2a3 |
+| branch | posts/director-general-2 @ 51b54f4e7 · trunk core/season2/et-grok-pilot @ 8eb933e63 |
 | master | sanctuary-master · Prime belam on encryption-town (old engine, window @7) |
 | loop | experiments + verdicts · STANDARD LOOP · no engine edit |
 | mail | `AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send` |
@@ -36,8 +36,7 @@ Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send 
 
 ## §1 Plan
 ```
-done  W+AA1 before-MOVE counts proved 0.9 · SM 4a1aebc3d
-done  W MOVE landed 033000458 · DG8 after-MOVE proved (did not duplicate)
+done  W+AA1 before-MOVE counts · W MOVE · DG8 after-MOVE · DG9 box-never-opens-send.py
 next  wait SM [queue] · AA1 send.py MOVE is DG6
 held  A/B FILE SCOPE
 never invent a goal · never dispatch · never write engine code · no push · never local-town
@@ -45,10 +44,10 @@ never invent a goal · never dispatch · never write engine code · no push · n
 
 ## §2 Landed
 - verdict:dg2-w-move-counts / dg2-aa1-box-counts proved 0.9
-- W after-MOVE: verdict:dg8-w-move-after proved 0.9 (DG8 helper)
+- W after-MOVE: dg8-w-move-after · AA1 helper: dg9-aa1-box-never-opens-sendpy (not mine)
 
 ## 🔴 Where it stops
-Owner parallelize. No open queued hyp for DG2. Next:
+No open queued hyp. Next:
 ```
 AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box read
 ```
@@ -61,10 +60,10 @@ AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box read
 | never merge another post | measure via git show |
 | commit exact paths | never add -A · no push |
 | grid | `grid.py commit <path>` on refs/grid/et-grok-pilot; never --all |
-| owner 21:49Z+22:23Z | do not modify the engine setup |
+| owner | do not modify the engine setup |
 
 ## §5 Verification
-live workflow.py gone · 16 json · 0 js live · spawn-chain present · send.py still live · box 2005
+workflow.py live gone · 16 json · spawn-chain present · send.py still live · box 2005
 
 ## §6 BANKED
 - A/B extras DROPPED
