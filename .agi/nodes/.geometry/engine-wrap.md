@@ -47,12 +47,12 @@ done
 } > "$o.t" && mv "$o.t" "$o"
 ~~~
 
-### agi-run (501 B)
+### agi-run (829 B)
 ~~~sh
 #!/bin/sh
 cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i;f=$O/.agi/sessions/inbox/$AGI_SEAT.md
 (while sleep 300;do m=$((${AGI_PANE_MAX_MB:-64}<<20));[ $(stat -c%s ~/o 2>/dev/null||echo 0) -gt $m ]&&tail -c $((m/2)) ~/o>~/o.t&&cat ~/o.t>~/o;rm -f ~/o.t;done)&
-case $H in claude*)(s=$(stat -c%s $f 2>/dev/null||echo 0);while sleep 5;do n=$(stat -c%s $f 2>/dev/null||echo 0);[ $n -gt $s ]&&printf "mail: send.py read $AGI_SEAT">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
+case $H in claude*|pi*)(s=$(stat -c%s $f 2>/dev/null||echo 0);while sleep 5;do n=$(stat -c%s $f 2>/dev/null||echo 0);[ $n -gt $s ]&&printf "mail: send.py read $AGI_SEAT">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
 case $H in grok*) agi-sync "$PWD" "$HOME/.grok/graph-rules.md";; esac
 if [ "${H%% *}" = grok-bot ] && [ -s "$HOME/.grok/graph-rules.md" ]; then
  exec strace -qqf -b execve -e%file -o'|agi-track' $H --rules "$(cat "$HOME/.grok/graph-rules.md")" $c go
@@ -119,5 +119,5 @@ X
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PROPOSED v5 (round 5, §Q): v4c's wrapper pieces cut whole + agi-infer (owner 05:50Z): one OpenAI-compatible chat call; cells infer_url/infer_model/infer_key (a var NAME, never a key). ROUND 7: + agi-captive (the patched copy: the doc one lets `agi-fill close; cmd` through) + one PreToolUse line in settings.json + agi-infer cell infer_schema. agi-run + a pane trim loop (cell pane_max_mb, default 64). SPLIT: agi-fill moved to engine-grow.
+owner 2026-10-05 Q4: heading bytes follow the fence (829). Poll matcher claude*|pi*.
 <!-- THOUGHT:END -->
