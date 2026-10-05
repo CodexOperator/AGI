@@ -20,36 +20,36 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 13:3xZ)
+## §0 State (2026-10-05 21:3xZ)
 | | |
 |---|---|
-| box | encryption-town. et-grok-pilot @ `2459d4fd1` |
-| seats | 13 active. Rolling-restart 12 done. load ~14 |
-| fifo | `/run/agi-belam/i` 620 g:agi |
-| token | pi-auth-refresh fresh + crontab */15 |
+| box | encryption-town. et @ HEAD |
+| infer | SKIP. Do not implement agi-infer. |
+| W+send | CLEARED to implement. SM hands DG2-7 + DT2. Prime does not build. |
+| loop | goal -> hypothesis -> experiment -> verdict -> outcome. No shortcuts. |
+| close | HOLD until AA1 send + phase W land. |
 
 ## §1 Plan
 ```
-you: keys, rotate, standups, owner answers.
+you: keys, rotate, owner answers. Do not implement W or mail.
+SM: place leaves. DGs: standard CoT chain.
 ```
 
 ## §2 Landed
-- ET posts.md top harness/model = engine cell (pi grok-4.6). 13 rows.
-- Extract from `$O` MAIN. Live unit installed from engine-root.
-- 12 units restarted; all `agi-run` `claude*|pi*`; fifos 620.
-- `pi_auth_refresh` crontab */15. Durable stale-token fix.
+- owner: W+AA1 implement NOW; standard loop; SM to idle DGs. Boxed SM+council+DG2-7+DT2 + woke.
 
 ## 🔴 Where it stops
 ```
-Team taking turns (o mtimes current). Do not bounce again.
-403 at 4:04 = xAI rejected stale SuperGrok JWT (liaison retry).
+SM places. DGs build. Prime does not build.
+Season close after send + W land. Never git rm.
 ```
 
 ## §4 Traps
 | # | rule |
 |---|---|
 | 70 | never commit from `/data/work/agi` |
-| — | agi-project.service still cats engine.md only; unit install was from engine-root sect |
+| — | never git rm — deprecate/move |
+| — | no write.py — Edit/Write in ~/t |
 
 ## §6 BANKED
-Mint chew council-only. 403 was token, not spend.
+Skip agi-infer. Mint Q4–Q7. W+AA1 block closeout.
