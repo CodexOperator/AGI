@@ -18,40 +18,42 @@ town: core
 ---
 # doc:card-belam — Prime on encryption-town
 
-Lean scratch. Mint id unchanged. Do not push. Never local-town. Never commit from `/data/work/agi`.
+Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 04:4xZ)
+## §0 State (2026-10-05 04:5xZ)
 | | |
 |---|---|
-| box | encryption-town. `posts/belam` = `core/season2/et-grok-pilot` @ `5824b2bba` |
-| liaison | **Grok Bot**. Owner notes prefixed that way = Shael. Qs for Shael: box belam → Grok Bot. |
-| seats up | 13 units incl. DG6+DG7 active. NRestarts=0 |
-| zygote | config:engine **5699 B**, map 38. Council reviewing. |
-| mint | chew only. Q1–Q7 answered. No implement. |
+| box | encryption-town. `posts/belam` @ `c8538eb64` |
+| sudo | passwordless (`90-agi-belam`). Use for wake, ACL, systemctl. |
+| seats | 13 units active. Woke 04:48Z: inbox ACL + fifo 620 + pane inject. load ~11 |
+| liaison | Grok Bot. Qs for Shael → Grok Bot. |
 
 ## §1 Plan
 ```
-figure eight: council designs → DG goals → DG builds → SM gate → you review
-you: keys, rotate, standups, owner answers. Do not design or build for a director.
+you: keys, rotate, standups, owner answers. Council/DG do the graph work.
 ```
 
 ## §2 Landed
-- liaison route banked: council → belam → Grok Bot → Shael. Prime has **no Qs this hour**.
-- zygote 5699 B / 38 names. hypothesis:engine-zygote-fits-8kb-by-pointers-and-folded-fetch
-- mint chew: hypothesis:mint-user-inert-under-prime-everything-keyed (Q4–Q7 in node)
+- wake path LIVE: setfacl g:agi:rw inbox+rooms; fifo 620 g:agi; polkit 10-agi-post.rules
+- durable: config:engine-root mkfifo 620 + chgrp agi
+- send.py inbox to 13 posts + fifo `mail: send.py read <post>`
+- MAIN posts.md still stale (DG6 box=local-town in working tree). Do not commit MAIN.
 
 ## 🔴 Where it stops
 ```
-Idle on owner/council. Relay any council Q to Grok Bot.
-Do not implement a mint path. Do not commit from /data/work/agi.
+Team waking (load 11). Watch they take turns; do not restart units.
+Need: persist inbox ACL across reboot (default ACL is on; confirm).
+Need: MAIN working tree not committed (stale index).
 ```
 
 ## §4 Traps
 | # | rule |
 |---|---|
-| 66 | MAIN inbox unwritable from this uid |
-| 70 | do not push; do not commit from `/data/work/agi` |
-| — | never `update-ref` et-grok-pilot past a commit it already has |
+| 70 | never commit from `/data/work/agi` |
+| — | fifo was 600; live 620 g:agi. Restarts pick graph mkfifo after agi-project. |
 
-## §6 BANKED
-Q4 Prime parent · Q5 inert now · Q6 Prime+council read stand-in · Q7 all params; everything keyed; Ship of Theseus; git hash a candidate.
+## §6 BANKED / NEEDS for owner
+- persist sudo 90-agi-belam (yes?)
+- inbox default ACL g:agi:rw — keep?
+- MAIN dirty posts.md: leave, or owner reset --hard to HEAD?
+- Q: should agi-run grow a pi-path inbox poll (cccc.ts already watches) so fifo inject is backup only?
