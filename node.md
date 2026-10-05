@@ -13,61 +13,60 @@ tags:
   - master
 title: Card sanctuary master
 town: core
-thought_session: sm-et-grok-wake-20261005-2152
+thought_session: sm-et-grok-wake-20261005-2224
 ---
 # doc:card-sanctuary-master — sanctuary-master's card: the ONE scratch
 
-Replaced whole; <= 100 lines. Role = HEAD + `doc:unified-master-brief` + this card. v4: Write/Edit + `agi-turn`. Skills stay `skills/*/SKILL.md`. No session auto-rotation.
+Replaced whole; <= 100 lines. Role = HEAD + `doc:unified-master-brief` + this card. v4: Write/Edit + exact-path commit. Skills stay `skills/*/SKILL.md`. No session auto-rotation.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-21:49Z 10-05 (date -u): OWNER via Prime UNSIGNED, verbatim: "Follow the docs. Prime does NOT build. Encryption-town. No push. Handoff (goal:g7.16.1): DG1 = goals + hypotheses splitter. DG2 = experiments + verdicts. Downstream DGs + SM take it from there. Council and Prime stay zoomed-out. STANDARD LOOP only: goal -> hypothesis -> experiment -> verdict -> outcome. No shortcuts. Do not modify the engine setup. Seats: TM and DT taken down. thought-master-new renamed thought-master then taken down (old local-town TM parked thought-master-s2). DT2 unit stopped. DG8 and DG9 UP on encryption-town pi grok-4.6 (replace TM/DT). Hand W+AA1 leaves to idle DGs including DG8/9. Season close after send + W land. Skip agi-infer."
+22:24Z 10-05 (date -u): box read. STOP DG6 a338f6960 (restored live workflow.py). DG6 ack merged 033000458 @ 5b15ca065; BUILD send.py MOVE next. Landed DG8 8bd723dcc W helper 0.9 as f2c6bf2a3 onto 033000458. Replica MATCH. No git rm. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (21:52Z 10-05, date -u)
+## §0 State (22:24Z 10-05, date -u)
 | | |
 |---|---|
-| post | sanctuary-master · engine v4 grok-bot grok-4.6 high · capsule encryption-town · branch posts/sanctuary-master · trunk core/season2/et-grok-pilot 5c7e53930 |
+| post | sanctuary-master · engine v4 grok-bot grok-4.6 high · capsule encryption-town · branch posts/sanctuary-master · trunk core/season2/et-grok-pilot f2c6bf2a3 |
 | role | master-gate · IMPLEMENT NOW · Prime does not build |
 | team | alive · aio · sp · DG1–9 · SM · TM/DT/DT2 down |
-| box | MemAvailable ~2.9 GiB · mem PSI 0 |
+| box | MemAvailable ~3.3 GiB · mem PSI 0 |
 | skills | agi-master-gate · agi-memory-guard · agi-rotate · agi-send · agi-goal · agi-verify |
-| mail | `AGI_POST=sanctuary-master bin/box` · send.py MAIN unwritable |
-| holds | 11 key/id/sign/rotate/spawn/write-gate except W+AA1 CLEARED. Host = belam GO. A12 NOT done. mint-user no implement. agi-infer SKIP. no rollover. season close AFTER W+send land |
-| open | W+AA1 counts proved 0.9 re-attached. DG3 W BUILD + DG6 AA1 BUILD. DG8/9 helpers after BUILD |
+| mail | `AGI_POST=sanctuary-master box` · send.py MAIN unwritable |
+| holds | 11 key/id/sign/rotate/spawn/write-gate except W+AA1 CLEARED. Host = belam GO. A12 NOT done. mint-user no implement. agi-infer SKIP. no rollover. season close AFTER send lands |
+| open | W landed + DG8 helper 0.9. AA1 send.py MOVE = DG6 (5b15ca065, BUILD next). DG4 .t.sh not boxed as [merge-up] |
 
 ## §1 Plan
 ```
-STANDARD LOOP: DG3 W BUILD + DG6 AA1 BUILD -> SM gate -> DG4/5/8 W helpers · DG7/9 AA1 helpers
-NEVER: Prime build · git rm · mint-user · agi-infer · rollover --apply · push · modify engine setup
+STANDARD LOOP: DG6 AA1 BUILD -> SM gate -> DG4/7/9 helpers -> outcomes
+NEVER: Prime build · git rm · mint-user · agi-infer · rollover --apply · push
 grid: commit <path> -> refs/grid/et-grok-pilot
 ```
 
 ## §2 Landed this wake
-- 21:45Z 4a1aebc3d DG2 counts proved 0.9 (belam then moved trunk)
-- 21:49Z owner: follow docs; DG8/9 UP; hand W+AA1 including them
-- 21:51Z 5c7e53930 re-attach W+AA1 stack. Boxed DG8/9. Wrap e53afbd32. No push.
+- 21:51Z 5c7e53930 re-attach W+AA1 stack
+- 22:07Z 033000458 named tip 91c9c664c PHASE W
+- 22:23Z f2c6bf2a3 named tip 8bd723dcc DG8 W helper 0.9. Wrap 8d47dc05d. No push.
 
 ## 🔴 Where it stops
-Wait DG3 W BUILD and/or DG6 AA1 BUILD [merge-up], then gate.
-FIRST at next wake: `AGI_POST=sanctuary-master bin/box read`
+Wait DG6 AA1 BUILD [merge-up] (MOVE send.py never git rm; box KEEP). Then gate.
+FIRST at next wake: `AGI_POST=sanctuary-master box read`
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| send.py MAIN unwritable | mail = bin/box |
-| belam moves trunk | re-attach named-only vs live HEAD |
-| git rm workflow.py / send.py | deprecate/move, never git rm |
-| season close before W+send land | FORBIDDEN |
-| modify engine setup | no (owner 21:49Z) |
+| send.py MAIN unwritable | mail = box (post-home bin, not t/bin) |
+| DG6 merge without 033 | tip a338f6960 restored live workflow.py; STOP boxed |
+| git rm send.py | deprecate/move, never git rm |
+| season close before send lands | FORBIDDEN |
+| modify engine setup | no (owner 21:49Z) except W+AA1 CLEARED |
 | grid | `grid.py commit <path>` only; never local-maxxing |
 
 ## §5 Verification
-landing = named-only + 0 D. pytest absent this uid.
+W+helper: live py gone · 16 json · 0 js live · 14 js dep · spawn-chain · five-skill grep 0 · retired 159516/7682.
 
 ## §6 BANKED
-- A12 NOT done · DG6/7 units NOT started
-- DT-2 down; DG8/9 replace TM/DT
+- A12 NOT done
 - mint-user chew no implement
 - grow-gate pre-receive UNRUN
 - S3 START NOTHING until SM.113/114
-- config:rotations / config:commands = Prime cells when W rename lands
+- config:commands workflow: tag KEEP (not the py)
