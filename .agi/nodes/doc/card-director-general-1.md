@@ -13,63 +13,59 @@ town: core
 ---
 # doc:card-director-general-1 — director-general-1 (council loop, goal:g7.16.1)
 
-director-general-1 · master sanctuary-master · engine.v4 grok-bot grok-4.6 high · box encryption-town · worktree ~/t · branch posts/director-general-1 (LOCAL-ONLY, never push) · trunk core/season2/et-grok-pilot @ 3f2970147 · tip a826b7916 · template doc:unified-director-brief · head doc:unified-head · skills skills/*/SKILL.md · no session auto-rotation
+director-general-1 · master sanctuary-master · engine.v4 grok-bot grok-4.6 high · box encryption-town · worktree ~/t · branch posts/director-general-1 (LOCAL-ONLY, never push) · trunk core/season2/et-grok-pilot @ 703e7ad58 · tip c46be9ffb · template doc:unified-director-brief · head doc:unified-head · skills skills/*/SKILL.md · no session auto-rotation
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-18:02Z 10-05 (date -u): SM [coord] owner 17:57Z skip agi-infer; mint bigger_outcome from the three 11.8 outcomes. a826b7916. Boxed SM. grid v1 et-grok-pilot. Never local-maxxing. No push. No season.py rollover.
+20:50Z 10-05 (date -u): SM [coord] mint nested leaves under 11.15 and 11.11 from AIO W+mail. c46be9ffb. Boxed SM. No implement. 4.3 MOOT. Never local-maxxing. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (18:02Z 10-05, date -u)
+## §0 State (20:50Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-1 · council loop: goals + hypotheses · BUILD vs GOAL · OUTCOME |
-| engine | v4 grok-bot · Write/Edit + exact-path commit (agi-turn swallows errors, W1) · box send/read · sect |
-| mail | box: SM skip agi-infer, mint bigger_outcome from 3 outcomes · SM gates |
-| peers | SM · DG2 · DG3 · alive · all-is-one · self-perpetuating · Prime off-matrix (Shael only) |
+| engine | v4 grok-bot · Write/Edit + exact-path commit · box send/read · sect |
+| mail | box: SM mint 11.15.1 + 11.11.2 · 4.3 MOOT · alive 4.3 retired |
+| peers | SM · DG2 · DG3 · alive · all-is-one · self-perpetuating · Prime off-matrix |
 | skills | agi-goal · agi-send · agi-rotate · agi-verify |
-| grid | storage_trunk refs/grid/et-grok-pilot · grid_sync/branch_push OFF · NEVER write refs/grid/local-maxxing |
+| grid | storage_trunk refs/grid/et-grok-pilot · NEVER write refs/grid/local-maxxing |
 
 ## §1 Plan
 ```
-done   Y1 Y2 Y3.6 OUTCOMES closed 0.9
-       · IndexError hyp minted, on trunk, queued DG2
-       · bigger_outcome:g7161118-round7-y1-y2-y36-closed a826b7916
-next   SM gates the bigger_outcome. Next graph rung: overview when SM says
-hold   F1 write.py present · A12 unit reinstall NOT done · skip agi-infer
-       · mint chew council-only · no season.py rollover --apply
-never  invent a leaf · parent/kid dispatch · push this branch · auto-rotate
-       · write refs/grid/local-maxxing · implement a mint path · implement agi-infer
+done   Y1 Y2 Y3.6 OUTCOMES + bigger_outcome landed
+       · goal:g7.16.1.11.15.1 minted (W MOVE/RENAME)
+       · goal:g7.16.1.11.11.2 minted (AA1 KEEP)
+next   SM gates those leaves. KEEP-30 vs MOVE-14-js still council
+hold   F1 write.py present · skip agi-infer · mint chew council-only
+       · 4.3 MOOT — do not absorb write.py hunks · no implement
+never  invent a leaf · parent/kid dispatch · push this branch
+       · write refs/grid/local-maxxing · git rm workflow.py · implement agi-infer
 ```
 
 ## §2 Landed
-- 9cf733aea three OUTCOMES + IndexError hyp
-- f151c1895 / 75d44e9d2 SM land those onto trunk
-- a826b7916 bigger_outcome from the three 11.8 outcomes
-- grid v1 et-grok-pilot: bdadbb6b5dc645d7
+- a826b7916 bigger_outcome Y1-Y3.6
+- c46be9ffb goal:g7.16.1.11.15.1 + goal:g7.16.1.11.11.2
+- grid v1 et-grok-pilot: 3f73b949 · 61c6f5d8
 
 ## 🔴 Where it stops
-SM gates bigger_outcome:g7161118-round7-y1-y2-y36-closed. Next: `AGI_POST=director-general-1 box n` then `box read`.
+SM gates goal:g7.16.1.11.15.1 and goal:g7.16.1.11.11.2. Next: `AGI_POST=director-general-1 box n` then `box read`.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | send.py inbox empty is not proof | box n + box read |
-| Prime off-matrix | box SM/council; Shael-only to Prime |
-| refs/grid/local-maxxing | NEVER written from this checkout |
-| grid.py commit | path only; lands on refs/grid/et-grok-pilot |
-| skip agi-infer | owner 17:57Z; do not implement |
-| season close | graph only (outcomes → bigger_outcomes → overviews); never season.py rollover --apply |
-| mint chew | council-only |
+| 4.3 MOOT | do not absorb write.py hunks (owner 20:42Z) |
+| KEEP-30 vs MOVE-14-js | council, not this seat |
+| skip agi-infer | owner 17:57Z |
+| never git rm | MOVE = deprecate+move |
 | never push this branch | LOCAL-ONLY |
+| refs/grid/local-maxxing | NEVER written from this checkout |
 
 ## §5 Verification
-Y1 Y2 Y3.6 outcomes closed 0.9 · bigger_outcome grow-check ok nid 0b6905f84d9d338d
+grow-check both leaves ok nid 664244b07d7040d2
 grid.storage_trunk = refs/grid/et-grok-pilot · lm count 53 unchanged
-F1 HOLD: write.py present
 
 ## §6 BANKED
-- F3 pytest: re-measure on a seat that has it
-- A12 unit reinstall NOT done
-- skip agi-infer (owner 17:57Z)
+- skip agi-infer
 - mint chew council-only
 - no season.py rollover --apply
+- 4.3 retired (alive a469bd2a0)
