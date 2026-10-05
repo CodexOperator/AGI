@@ -3073,12 +3073,20 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
     something actually reached the pane (so `main()` exits 0 only on a
     delivery). heal.py/rotate.py ignore the return value by design.
     """
+    if _engine_post(root, to):      # poll reads mail; fifo inject starts the turn
+        fifo = Path("/run/agi-" + to + "/i")
+        try:
+            fd = os.open(str(fifo), os.O_WRONLY | os.O_NONBLOCK)
+            try:
+                os.write(fd, ("mail: send.py read " + to + "\r").encode())
+            finally:
+                os.close(fd)
+        except OSError:
+            pass
+        return _wake_outcome("by-mail", delivered=True, seat=to)
     if _row_is_quiet(root, to):
-        # quiet: never re-fire a stale marker, never type (skip by name).
         print(f"wake {to}: quiet-skip")
         return False
-    if _engine_post(root, to):      # its own poll reads the mail
-        return _wake_outcome("by-mail", delivered=True, seat=to)
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
         return _wake_outcome("no-target", delivered=False, seat=to)
@@ -3211,7 +3219,7 @@ def wake_all_local(root: Path, tmux_session: str | None = None) -> bool:
         if not name or not boxes.row_is_local(root, r):
             continue
         rec = _read_deferred(root, name)
-        if not (_seat_has_pending(root, name)
+        if not (_engine_post(root, name) or _seat_has_pending(root, name)
                 or _nudge_marker_stale(root, name)):
             continue
         ok = wake(root, name, tmux_session)

@@ -119,5 +119,5 @@ X
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-10-05 Q4: heading bytes follow the fence (829). Poll matcher claude*|pi*.
+owner 2026-10-05: in-process pi caches auth.json; cp cannot reload it. Token pick-up is process start (pi-auth-refresh + restart). Wake fifo inject starts turns. Reverted the no-op copy. Heading 829.
 <!-- THOUGHT:END -->
