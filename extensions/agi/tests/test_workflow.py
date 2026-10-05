@@ -2204,23 +2204,6 @@ def test_pi_dry_run_prints_credential_line_before_dispatch(monkeypatch):
     assert called == [], called
 
 
-def test_dry_run_credential_line_matches_live_decision():
-    """(d) the printed line and the live choice come from one helper — a
-    claude-code harness needs no credential, and its dry-run line says so."""
-    import workflow as _wf
-    from workflow import run_workflow
-    would, reason = _wf._credential_decision(REPO / ".agi",
-                                             _wf._load_config(REPO / ".agi"),
-                                             "claude-code")
-    assert would is False and "needs no credential" in reason, (would, reason)
-    buf = io.StringIO()
-    run_workflow(REPO / ".agi", "review", "claude-code",
-                 {"targets": [{"window": "t1"}]}, True, out=buf)
-    cred = [l for l in buf.getvalue().splitlines()
-            if l.startswith("[credential]")]
-    assert cred == [f"[credential] inherited env ({reason})"], cred
-
-
 def test_pi_fallback_prints_one_named_line_when_provisioning_absent(
         tmp_path_factory, monkeypatch, capsys):
     """(a)/(f): provisioning unavailable -> inherited env, EXACTLY ONE stderr

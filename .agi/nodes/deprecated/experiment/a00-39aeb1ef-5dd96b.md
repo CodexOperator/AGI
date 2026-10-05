@@ -6,6 +6,7 @@ parents:
   - hypothesis:l4-the-seating-merged-fixture-is-written-and-merged-by-both-rotate-producers-and-read-back-from-disk
 next_edges: []
 confidence: 0.85
+deprecated_note: "Deprecated 2026-10-04 on encryption-town: owner retired the old-engine tests this piece built (profile sync / GOALS.md / pin-scrub / tmux shim / sensei path / workflow credential wording). Node kept; mint_id unchanged."
 edited_by: a00-4fcaf2ee
 evidence_runs:
   - experiment:a00-39aeb1ef-5dd96b
@@ -20,6 +21,7 @@ profile: balanced
 role: kid
 scaffold_hash: 45159dfd6807f540
 season: 2
+status: deprecated
 testable_claim: The seating_merged fixture is written by rotate._write_seating_record and merged by rotate._seating_record_merge_handover, the merger returns the file the writer wrote, and the merged bytes are read back from the PREV_STAMP slot on disk -- so a renamed key in _seating_record or a filename suffix the merger glob misses fails the suite.
 title: A00 39aeb1ef 5dd96b
 town: core

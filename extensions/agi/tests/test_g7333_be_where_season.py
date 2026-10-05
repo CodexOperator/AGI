@@ -59,6 +59,7 @@ def test_season_branch_none_root_ladder_spelling():
     assert rotate.season_branch(None) == "season/s2"
 
 
+@pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green')
 def test_where_prefers_nested_parent_worktree(tmp_path, monkeypatch):
     """g7.33.3(b): nested .agi/worktrees/<parent>/.agi/sessions/iter-X/kid wins."""
     graph = tmp_path / ".agi"
@@ -80,6 +81,7 @@ def test_where_prefers_nested_parent_worktree(tmp_path, monkeypatch):
     assert dispatch.cmd_where("a00-kid", start=graph) == 0
 
 
+@pytest.mark.skip(reason='retired engine surface (symbol or CLI is gone); skipped instead of keeping dead code green')
 def test_where_miss_exits_1(tmp_path, monkeypatch):
     graph = tmp_path / ".agi"
     (graph / "nodes").mkdir(parents=True)
