@@ -66,7 +66,7 @@ ExecStart=sh -c 'echo HEAD:.agi/nodes/.geometry/engine-root.md|git cat-file --ba
 WantedBy=multi-user.target
 ~~~
 
-### agi-boot (1477 B)
+### agi-boot (1572 B)
 ~~~sh
 #!/bin/sh
 R=${AGI_RAM:-/mnt/agi-ram} t=${AGI_TRUNK:-HEAD} o=${AGI_BOOT_OUT:-/run/systemd/system};w=$o/multi-user.target.wants
@@ -186,5 +186,5 @@ git update-ref $T $n $o
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-10-05 Q2 via liaison: keep inbox default ACL g:agi:rw across reboot, durable via graph. agi-boot already setfacls the RAM tree; same f() now mkdir+setfacl+default ACL on $PWD/.agi/sessions/inbox (WorkingDirectory is MAIN). No new piece. $O is unset in this script.
+owner 2026-10-05 Q2: heading bytes follow the fence (1572). Inbox ACL on $PWD/.agi/sessions/inbox at boot.
 <!-- THOUGHT:END -->
