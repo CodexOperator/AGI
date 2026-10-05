@@ -157,6 +157,5 @@ residues     before routing a residue to ANOTHER director, read the newest dm of
              (harness, started_at, finished_at, death) in the director's worktree against the node BEFORE gating
 PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam 1d3aba877, 13:48Z) -- a /dev/shm gate worktree's suite holds one
              too -> never start a gate suite in a PASS start window; stop a returned tip's suite at once
-             · a PASS's mur runs import MAIN's LIVE workflow.py (3 runners, cwd MAIN, 16:0xZ): a workflow.py landing mid-PASS changes every chunk
-               launched after it -> land mid-PASS only when the mur shape (no extends, no round stage) runs unchanged (gen 27, merge-ups 9 + 10)
+             · a PASS's mur is a SPAWN of a json manifest (skill agi-spawn-chain); the old runner is retired (moved, never git rm; goal:g7.16.1.11.15.1)
 ```
