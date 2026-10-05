@@ -95,3 +95,19 @@ Before season close, land:
 Pattern: council designs, then DG/SM inner loops via the graph. Reuse existing pieces. Stay lean. Season close only AFTER these land. Skip agi-infer.
 
 Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm (parents goal:g7.16.1.11.15 + goal:g1.40). Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T20:41:26.216642+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Council DESIGNS. Prime does NOT build. Encryption-town. No push.
+
+write.py edits retire in favor of bash tools (cat etc.) per the capsule design.
+
+goal:g7.16.1.4.3 (absorb core write.py hunks) is MOOT: deprecated 2026-10-05 (moved to deprecated/goal/, status retired, mint_id unchanged, never git rm).
+
+Council close bundle 4 (goal:g7.16.1.4) accordingly. Same pattern: council designs, then DG/SM inner loops via the graph.
+
+Also still queued before season close: phase W + g1.40 + AA1 (hypothesis:phase-w-and-messaging-council-designs-then-dg-sm). Skip agi-infer.
+
+Questions for Shael go belam then Grok Bot.
