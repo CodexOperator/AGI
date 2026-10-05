@@ -70,7 +70,7 @@ WantedBy=multi-user.target
 ~~~sh
 #!/bin/sh
 R=${AGI_RAM:-/mnt/agi-ram} t=${AGI_TRUNK:-HEAD} o=${AGI_BOOT_OUT:-/run/systemd/system};w=$o/multi-user.target.wants
-e=0;f(){ "$@"||{ echo "agi-boot: failed: $*">&2;e=1;};};f setfacl -m g:agi:x $R;f setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state}
+e=0;f(){ "$@"||{ echo "agi-boot: failed: $*">&2;e=1;};};f setfacl -m g:agi:x $R;f setfacl -m g:agi:--- ${AGI_RAM_STATE:-$R/state};I=$PWD/.agi/sessions/inbox;f mkdir -p $I;f setfacl -m g:agi:rwx $I;f setfacl -d -m g:agi:rwx $I
 c(){ git show $t:.agi/config.json|jq -r ".values.local_maxxing.$1";};L=$(c de_live_parents.ceiling_if.loadavg1_lt) P=$(c de_live_parents.ceiling_if.io_psi_some_avg60_lt) N=$(c agi_boot.poll_s) M=$(c agi_boot.wait_max_s) S=$(c agi_boot.space_s)
 echo $t:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n '/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}'|sh -s $o $t||exit 3
 f systemctl daemon-reload
@@ -186,5 +186,5 @@ git update-ref $T $n $o
 ~~~
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-10-05 via liaison: wake path broken — fifos 600 post-only, MAIN inbox belam:belam so send.py PermissionError, agi.rules not installed. Live: setfacl g:agi:rw inbox; fifo 620 g:agi; polkit 10-agi-post.rules. Durable: mkfifo 620 + chgrp agi in the unit so a restart keeps group-agi write. Prime can now send.py inbox and tee the fifo.
+owner 2026-10-05 Q2 via liaison: keep inbox default ACL g:agi:rw across reboot, durable via graph. agi-boot already setfacls the RAM tree; same f() now mkdir+setfacl+default ACL on $PWD/.agi/sessions/inbox (WorkingDirectory is MAIN). No new piece. $O is unset in this script.
 <!-- THOUGHT:END -->
