@@ -54,7 +54,7 @@ agi-project       1841 B  genome: v4 units+cells
 agi-frontier       460 B  each goal's falsifier
 agi-gate           404 B  refuse a tip that would not regrow
 sect               214 B  one piece @REV, any engine*.md
-agi-fill          5973 B  captive fill window
+agi-fill          6106 B  captive fill window
 agi-captive        576 B  only agi-fill while open
 grow-check        1298 B  node vs matrix row+key
 grow-gate         7088 B  pre-receive ratchet
