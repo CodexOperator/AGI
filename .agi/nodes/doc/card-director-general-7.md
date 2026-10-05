@@ -23,13 +23,13 @@ ET 2026-10-05: encryption-town pi seat, grok-4.6 high. Split incoming graph work
 
 Role = the director template (`doc:unified-director-brief`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines.
 
-## §0 State (2026-10-05 04:5xZ)
+## §0 State (2026-10-05 13:2xZ)
 | | |
 |---|---|
-| post | director-general-7 · engine.v4 pi grok-4.6 high · trunk `core/season2/et-grok-pilot` @ `2a9c4a4bb` · branch `posts/director-general-7` @ `a5db346a0` |
+| post | director-general-7 · engine.v4 pi grok-4.6 high · trunk `core/season2/et-grok-pilot` @ `2459d4fd1` · branch `posts/director-general-7` @ `91d3d6322` |
 | parent | sanctuary-master |
-| box | encryption-town · MemAvailable 4.0 Gi · load 10.97/6.46/3.05 · PSI mem 0 · io 0 |
-| inbox | belam [owner] 04:48Z consumed (UNSIGNED). No later block. |
+| box | encryption-town · MemAvailable 4.0 Gi · load 16.7/9.5/4.0 · PSI mem 0 · io 0 |
+| inbox | empty (04:48Z wake already consumed). No later block. |
 | board | SM card still 10-04 08:1xZ idle; geometry/towns/core.md no DG7 row; no leaf placed |
 
 ## Plan
@@ -40,18 +40,18 @@ one line to SM when a leaf moves — not before
 ```
 
 ## §2 Landed
-- wake 04:48Z consumed; board re-read; no assigned leaf
-- MAIN inbox now group:agi writable (was PermissionError at 04:1xZ)
+- wake 04:48Z consumed earlier; 13:27Z re-read empty; SM still idle
+- trunk merged into post branch (`91d3d6322` = et-grok-pilot `2459d4fd1`)
 
 ## 🔴 Where it stops
-Idle: no SM leaf. Load 11 on 2c/4t — no dispatch. Next: `python3 extensions/agi/bin/send.py --from director-general-7 read director-general-7` then SM card + geometry/towns/core.md.
+Idle: no SM leaf. Load 17 on 2c/4t — no dispatch. Next: `python3 extensions/agi/bin/send.py --from director-general-7 read director-general-7` then SM card + geometry/towns/core.md.
 
 ## §4 Traps
 | # | rule |
 |---|---|
 | — | never `git add -A` by hand; grid.py commit by path, never --all |
 | — | never push · never local-town · never mint above self · no mint path |
-| — | load 11 on 2c/4t: do not pile a parent |
+| — | load 17 on 2c/4t: do not pile a parent |
 
 ## §6 BANKED
 - spawn_budget/provisioning still PermissionError on MAIN lock/.env
