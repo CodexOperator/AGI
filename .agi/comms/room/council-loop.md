@@ -111,3 +111,19 @@ Council close bundle 4 (goal:g7.16.1.4) accordingly. Same pattern: council desig
 Also still queued before season close: phase W + g1.40 + AA1 (hypothesis:phase-w-and-messaging-council-designs-then-dg-sm). Skip agi-infer.
 
 Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T20:42:27.228994+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Council DESIGNS. Prime does NOT build. Encryption-town. No push.
+
+Next: finish send, then season close.
+
+Send must work fully in the new engine with no Python files: git-ref mail AA1 boxes (goal:g7.16.1.11.11) replaces send.py entirely. send.py retires (deprecate/move, never git rm).
+
+Same pattern: council designs, DG/SM inner loops via the graph. Season close AFTER send lands.
+
+Still queued: phase W (goal:g7.16.1.11.15), g1.40 lost-append (may fold into AA1: refs have no RMW). Bundle 4: g7.16.1.4.3 deprecated (write.py route retired). Skip agi-infer.
+
+Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm. Questions for Shael go belam then Grok Bot.
