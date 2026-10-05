@@ -48,6 +48,12 @@ cadences:
     box: local-town
     why_box: same reader as memory_alarm, pointed at the SYSTEM agi.slice where the pi-engine posts (agi-post@*) live; reads this box's cgroup, so it runs on this box only (stage-2.5 rootplan C3, parity row 45)
     cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam --cgroup /sys/fs/cgroup/agi.slice --state {root}/sessions/memory-alarm-posts.json
+  pi_auth_refresh:
+    every_mins: 30
+    enabled: true
+    box: encryption-town
+    why_box: "shared SuperGrok JWT for the pi posts lives only on encryption-town; one writer refreshes it for every post"
+    cmd: sh {repo_root}/extensions/agi/bin/pi-auth-refresh.sh
 crons_live: true
 edited_by: a00-b465ec27
 season: 1
