@@ -3075,7 +3075,8 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
     """
     if _engine_post(root, to):      # poll reads mail; fifo inject starts the turn
         me = (os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT") or "").strip()
-        if me and me == to:
+        row = _seat_row_by_name(_locally_loaded_rows(root), to) or {}
+        if (me and me == to) or (row.get("role") in ("prime", "prime_director")):
             return _wake_outcome("by-mail", delivered=True, seat=to)
         fifo = Path("/run/agi-" + to + "/i")
         try:
