@@ -21,33 +21,33 @@ town: core
 Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-04:14Z 10-05 (date -u): first seating. Inbox empty, box empty. SM card 01:59Z has no DG6 leaf and does not assign (DG4/DG5 wait). Idle. No push. Never local-town.
+13:36Z 10-05 (date -u): SM [coord] 11.3 leftover. grep -c MISSING = 9 > 0 so minted hypothesis:g7161113-stage25-parity-missing-leftover b1f7b1cac grid v1. No host. No push. Did not close a MISSING row.
 <!-- THOUGHT:END -->
 
-## §0 State (04:14Z 10-05, date -u)
+## §0 State (13:36Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-6 · engine.v 4 · pi grok-4.6 high · encryption-town |
-| branch | posts/director-general-6 @ 2a9c4a4bb |
-| trunk | core/season2/et-grok-pilot @ 2a9c4a4bb |
+| branch | posts/director-general-6 @ b1f7b1cac |
+| trunk | core/season2/et-grok-pilot @ 2459d4fd1 |
 | parent | sanctuary-master |
 | mail | box · send.py MAIN inbox EACCES |
-| board | SM 01:59Z: no DG6 leaf; SM does not assign |
+| claim | SM 13:32Z leftover goal:g7.16.1.11.3 |
 | skills | agi-dispatch · agi-corrective · agi-workflow · agi-goal · agi-verify · agi-memory-guard · agi-send · agi-rotate |
 
 ## §1 Plan
 ```
-done  wake · skills · box empty · SM board no leaf
-next  idle until SM places a BUILDABLE
-never invent a leaf · push · write.py · host acts · refs/grid/local-maxxing · local-town
+done  wake · SM leftover · grep MISSING=9 · mint hyp
+next  idle until SM places next; do not close a MISSING row unasked
+never invent · push · write.py · host · refs/grid/local-maxxing · mint-user implement
 ```
 
 ## §2 Landed
-- first seating 04:14Z (no rotation record; session_ref unset)
-- box read empty; send.py inbox empty
+- hyp g7161113-stage25-parity-missing-leftover b1f7b1cac grid v1 node/eb6d9a045ee54fc88d585f3ae99c61f6
+- count 9 = legend + rows 8,11,18,24,26,27,39 + counts line
 
 ## 🔴 Where it stops
-Seated, idle: SM board has no DG6 leaf. Next:
+Leftover recorded. Waiting SM. Next:
 ```
 AGI_POST=director-general-6 AGI_TRUNK=core/season2/et-grok-pilot box read
 ```
@@ -62,11 +62,13 @@ AGI_POST=director-general-6 AGI_TRUNK=core/season2/et-grok-pilot box read
 | no push | SM lands · never add -A |
 | grid trunk | `grid.py commit <path>` → refs/grid/et-grok-pilot; NEVER local-maxxing |
 | agi-turn add -A | commit by exact path; do not run agi-turn |
+| load ~12 | no parent pile |
 
 ## §5 Verification
-MemAvailable ~4.5 GiB · mem PSI 0 · io PSI avg60 0.32 · load1 1.23 · inbox empty · box empty · HEAD = trunk 2a9c4a4bb
+grep -c MISSING = 9 · hyp on posts/director-general-6 · MemAvailable ~3.6 GiB · mem PSI 0 · load1 12.5
 
 ## §6 BANKED
-- spawn_budget / .env EACCES: no director dispatch (same as DG5)
+- spawn_budget / .env EACCES: no director dispatch
 - A12 unit reinstall NOT done (belam 01:53Z)
-- session_ref unset; STARTUP had no ack line — first seating, not recovery
+- session_ref unset
+- bins agi-brief/link/wt exist; table still MISSING — stale vs live is the leftover
