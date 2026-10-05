@@ -39,6 +39,8 @@ Re-probe 00:42Z 10-05: C4 still holds after `a350709a8`. Cell and `$GROK_BOT_BIN
 
 Re-probe 04:56Z 10-05: C4 still holds after `f8f7c4cf2`. Cell and `$GROK_BOT_BIN` unchanged.
 
+Re-probe 13:32Z 10-05: C4 still holds after `6f8e67b4a`. Cell and `$GROK_BOT_BIN` unchanged. Posts `engine.harness` is now `pi` (not this post).
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought-2 04:56Z 10-05: re-probe after DG2 Y2/Y3.6 land. Verdict unchanged (proved). NEXT still the cell/env write, not this post.
+director-thought-2 13:32Z 10-05: re-probe after engine-root land. Verdict unchanged (proved). NEXT still the cell/env write, not this post.
 <!-- THOUGHT:END -->
