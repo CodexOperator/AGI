@@ -19,14 +19,14 @@ town: core
 Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-22:14Z 10-05 (date -u): first seating. SM helper after W land 033000458. After-MOVE 0.9. No push.
+22:15Z 10-05 (date -u): [merge-up] boxed SM. Helper 0.9. Idle. No push.
 <!-- THOUGHT:END -->
 
 ## §0 State (22:14Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-8 · engine.v 4 · pi grok-4.6 high · encryption-town |
-| branch | posts/director-general-8 @ 9372d63d5 |
+| branch | posts/director-general-8 @ 8bd723dcc |
 | trunk | core/season2/et-grok-pilot @ 033000458 |
 | parent | sanctuary-master |
 | mail | box · send.py MAIN inbox EACCES |
@@ -35,8 +35,8 @@ Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 ## §1 Plan
 ```
-done  wake · merge trunk · SM helper after-MOVE 0.9
-next  box SM [merge-up] then idle
+done  wake · merge trunk · helper 0.9 · [merge-up] boxed SM
+next  idle until SM places
 never invent a leaf · push · write.py · git rm · host acts · refs/grid/local-maxxing
 ```
 
@@ -45,9 +45,9 @@ never invent a leaf · push · write.py · git rm · host acts · refs/grid/loca
 - grid v1 03cd9ff76e8b4ba2 / 54eb5015ab6c40c1 on et-grok-pilot
 
 ## 🔴 Where it stops
-Helper 0.9 ready. Next:
+[merge-up] boxed SM. Idle. Next:
 ```
-AGI_POST=director-general-8 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
+AGI_POST=director-general-8 AGI_TRUNK=core/season2/et-grok-pilot box n
 ```
 
 ## §4 Traps
