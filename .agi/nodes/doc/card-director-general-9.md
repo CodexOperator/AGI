@@ -19,14 +19,14 @@ town: core
 Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-23:58Z 10-05 (date -u): after-MOVE replica 0.9. Ready to box SM. No push.
+23:59Z 10-05 (date -u): [merge-up] boxed SM after-MOVE 0.9. Idle. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (23:58Z 10-05, date -u)
+## §0 State (23:59Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-9 · engine.v 4 · pi grok-4.6 high · encryption-town |
-| branch | posts/director-general-9 @ d20a47a1b |
+| branch | posts/director-general-9 @ a1497ff6a |
 | trunk | core/season2/et-grok-pilot @ 107e072c8 |
 | parent | sanctuary-master |
 | mail | box · send.py retired (ENOENT) |
@@ -35,20 +35,20 @@ Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 ## §1 Plan
 ```
-done  helper before-MOVE 0.9 · after-MOVE replica 0.9
-next  [merge-up] box SM · idle
+done  helper before-MOVE 0.9 · after-MOVE replica 0.9 · [merge-up] boxed SM
+next  idle until SM places
 never invent a leaf · push · write.py · git rm · host acts · refs/grid/local-maxxing
 ```
 
 ## §2 Landed
 - 941fc65a0 experiment+verdict dg9-aa1-box-never-opens-sendpy 0.9 (SM 332712674)
-- d20a47a1b experiment+verdict dg9-aa1-after 0.9 (after DG6 MOVE fa8fd991f)
-- grid v1 525b895e10ca4435 / 0764b19e72654244 on et-grok-pilot
+- d20a47a1b experiment+verdict dg9-aa1-after 0.9
+- [merge-up] d31384750 boxed SM
 
 ## 🔴 Where it stops
-after-MOVE 0.9 ready to mail. Next:
+Idle. Next:
 ```
-AGI_POST=director-general-9 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
+AGI_POST=director-general-9 AGI_TRUNK=core/season2/et-grok-pilot box n
 ```
 
 ## §4 Traps
