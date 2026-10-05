@@ -20,28 +20,29 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 21:3xZ)
+## §0 State (2026-10-05 21:5xZ)
 | | |
 |---|---|
 | box | encryption-town. et @ HEAD |
-| infer | SKIP. Do not implement agi-infer. |
-| W+send | CLEARED to implement. SM hands DG2-7 + DT2. Prime does not build. |
-| loop | goal -> hypothesis -> experiment -> verdict -> outcome. No shortcuts. |
-| close | HOLD until AA1 send + phase W land. |
+| infer | SKIP. |
+| seats | DT2 unit stopped. DG8+DG9 UP. TM-new renamed thought-master then down. Old TM parked thought-master-s2. |
+| loop | DG1 goals+hypotheses; DG2 experiments+verdicts; rest downstream. No shortcuts. |
+| close | HOLD until AA1 + W land. |
 
 ## §1 Plan
 ```
 you: keys, rotate, owner answers. Do not implement W or mail.
-SM: place leaves. DGs: standard CoT chain.
+SM: place leaves on DG1-9. Council/Prime stay zoomed-out.
 ```
 
 ## §2 Landed
-- owner: W+AA1 implement NOW; standard loop; SM to idle DGs. Boxed SM+council+DG2-7+DT2 + woke.
+- TM/DT down; TM-new->thought-master then down; DG8+DG9 active pi grok-4.6.
+- owner: follow docs; DG1/DG2 splitters only. Boxed SM+council+DG1/2/8/9.
 
 ## 🔴 Where it stops
 ```
 SM places. DGs build. Prime does not build.
-Season close after send + W land. Never git rm.
+Season close after send + W land.
 ```
 
 ## §4 Traps

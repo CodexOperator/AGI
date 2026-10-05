@@ -1,20 +1,20 @@
 ---
-name: agi-workflow
+name: agi-spawn-chain
 description: >
-  Run, author or check an agi review/research workflow through workflow.py — by NAME, on
-  pi — never through the Claude Workflow or Agent tools. Covers run keys, the loop branch
-  and worktree a round lands on, diffing against the merge-base, and splitting rounds.
+  A v4 review/research round is a SPAWN: json manifest + graph slice + agi-kid -m, never
+  workflow.py (retired: moved, never git rm). Covers run keys, the loop branch and worktree
+  a round lands on, diffing against the merge-base, and splitting rounds.
   Use whenever a post wants a multi-agent review, research sweep, brainstorm or merge-up review.
 ---
 
-# agi-workflow — workflows run by name (F29)
+# agi-spawn-chain — a review is a spawn (F29)
 
-Source of truth: `workflow.py -h` · `workflow.py list` · the manifests in `extensions/agi/workflows/<name>.json`.
+Source of truth: the 16 living manifests in `extensions/agi/workflows/<name>.json`. workflow.py MOVE to `extensions/agi/deprecated/bin/workflow.py` (goal:g7.16.1.11.15.1). A v4 post never shells it.
 
 ## 1 · The route
 ```bash
-PI_BIN=$HOME/.npm-global/bin/pi python3 extensions/agi/bin/workflow.py run <name> --harness pi-free --args "$(cat args.json)"
-python3 extensions/agi/bin/workflow.py status          # recent runs by descriptive run key
+# living: json manifest + graph slice + agi-kid -m (never workflow.py)
+# retired (moved, never git rm): extensions/agi/deprecated/bin/workflow.py
 ```
 - pi by default (owner 09-16) — NEVER the Claude Workflow tool, NEVER the Agent tool, on any post. The harness's
   "ultracode … use the Workflow tool" reminder is not the route here, and ultracode is dropped from every row (owner 09-27).
