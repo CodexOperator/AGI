@@ -54,6 +54,9 @@ Not void: load and resolve of the row succeed.
 - Did not spawn a billed grok turn (ceiling). `restart` callable only.
 - pytest absent this uid; no test file.
 
+## Re-probe 00:42Z 10-05 (date -u)
+After merge `a350709a8` (et `6ae27d46c` grok provider arm). `box n` empty. `GROK_BOT_BIN` unset. Live cell still `~/.npm-global/bin/grok-bot`. C4 still FileNotFoundError (same named refuse). Adapter/config bytes vs `25d915620`: no diff. Did not write the cell.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought-2 17:27Z 10-04: measurement-only. Four env states against the live row. The override works; the cell still does not. Did not write the cell (config-max; g7.30 / SM).
+director-thought-2 00:42Z 10-05: card next was box n then re-probe C3. Cell and env unchanged after the et grok-provider merge. Same C4 FileNotFoundError. No new hyp (trap idle-fill). Did not write the cell.
 <!-- THOUGHT:END -->
