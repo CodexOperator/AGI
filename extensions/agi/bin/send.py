@@ -3084,6 +3084,9 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
         except OSError:
             pass
         return _wake_outcome("by-mail", delivered=True, seat=to)
+    if _row_is_quiet(root, to):
+        print(f"wake {to}: quiet-skip")
+        return False
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
         return _wake_outcome("no-target", delivered=False, seat=to)
