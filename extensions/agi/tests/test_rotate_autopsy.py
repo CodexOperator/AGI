@@ -38,7 +38,7 @@ from types import SimpleNamespace
 import pytest
 
 import rotate  # noqa: E402
-import send  # noqa: E402  (same dir; for comms_root in the rewind test)
+import boxes as send  # AA1: boxes.box_send  # noqa: E402  (same dir; for comms_root in the rewind test)
 
 
 class _Proc:

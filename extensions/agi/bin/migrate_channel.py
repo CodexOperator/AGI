@@ -27,6 +27,15 @@ _KEYS = ("kind", "stage", "post", "mode", "source_box", "target_box", "branch",
 _KEYS_LEGACY = tuple(k for k in _KEYS if k != "stage")
 _UNSAFE = re.compile(r"[^A-Za-z0-9._-]+")
 
+import importlib.util as _ilu
+from pathlib import Path as _P
+_sp = _P(__file__).resolve().parent.parent / "deprecated" / "bin" / "send.py"
+_spec = _ilu.spec_from_file_location("_agi_deprecated_send", _sp)
+if _spec is None or _spec.loader is None:
+    raise ImportError(f"cannot load deprecated send: {_sp}")
+send = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(send)
+
 
 def record(*, post, mode, source_box, target_box, branch, tip, session_id, ts,
            stage="request"):
@@ -78,7 +87,7 @@ def format_record(rec, *, sign_root=None, signer=None) -> str:
     """
     fm = {k: rec.get(k, "") for k in _KEYS}
     if sign_root is not None and signer:
-        import send
+        import importlib.util as _ilu
         line = send._sign_line(Path(sign_root), signer, rec["ts"],
                                rec["target_box"], _canonical(rec))
         if line:
@@ -141,7 +150,7 @@ def verify_record(text: str, pub_hex: str, scheme_name: str | None = None) -> bo
     keys = _KEYS if str(rec.get("stage") or "").strip() else _KEYS_LEGACY
     try:
         import seatsig
-        import send
+        import importlib.util as _ilu
         msg = send._canonical_msg(str(rec.get("ts", "")),
                                  str(rec.get("post", "")),
                                  str(rec.get("target_box", "")),

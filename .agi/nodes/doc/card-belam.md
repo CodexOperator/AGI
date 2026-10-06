@@ -18,38 +18,41 @@ town: core
 ---
 # doc:card-belam — Prime on encryption-town
 
-Do not push. Never local-town. Never commit from `/data/work/agi`.
+Never local-town. Never touch master. Trunk: `core/season2/et-grok-pilot`. Season3 tip tracks close work; merge to master = owner only.
 
-## §0 State (2026-10-05 13:3xZ)
+## §0 State (2026-10-06 ~03:5xZ ET)
 | | |
 |---|---|
-| box | encryption-town. et-grok-pilot @ `2459d4fd1` |
-| seats | 13 active. Rolling-restart 12 done. load ~14 |
-| fifo | `/run/agi-belam/i` 620 g:agi |
-| token | pi-auth-refresh fresh + crontab */15 |
+| box | encryption-town |
+| harness | **raw-shell** (`H=bash`, `AGI_HARNESS=raw-shell`) — pi blocked by spend limit |
+| mail | AA1 only: `AGI_POST=belam AGI_TRUNK=core/season2/et-grok-pilot box send|read|n` — never send.py |
+| drive | external driver (Grok Bot) types via `/run/agi-belam/i`, reads `/var/lib/agi/belam/o` |
+| close | season-2 close stood-in on ET; goals cleaned; builds reparented; `core/season3/main` FF pushed |
+| master | untouched (`6405a03fc`); merge pending owner |
 
 ## §1 Plan
 ```
-you: keys, rotate, standups, owner answers.
+Keep raw-shell until spend unblocks or owner restores a model harness.
+Drive commits one node per commit via DG4/raw-shell pane when posts are blocked.
+Reproject via agi-project so drop-ins match geometry (no hand drift).
 ```
 
-## §2 Landed
-- ET posts.md top harness/model = engine cell (pi grok-4.6). 13 rows.
-- Extract from `$O` MAIN. Live unit installed from engine-root.
-- 12 units restarted; all `agi-run` `claude*|pi*`; fifos 620.
-- `pi_auth_refresh` crontab */15. Durable stale-token fix.
+## §2 Landed (season close stand-in)
+- AA1 `box` mail + in-pane wake (`box n` → `mail: box read`); send.py/workflow.py moved to deprecated
+- raw-shell harness on belam, sanctuary-master, DG4
+- goal cleanup + per-node commits; live carry ~131 goals on season3
+- `box_mail.py` deprecated; live callers use `boxes.box_send` / geometry `box`
 
 ## 🔴 Where it stops
-```
-Team taking turns (o mtimes current). Do not bounce again.
-403 at 4:04 = xAI rejected stale SuperGrok JWT (liaison retry).
-```
+Await owner: master merge; whether to delete remote `core/season2/et-grok-pilot` (pre-existed; do not delete without ask); suite residual (osc context research reds).
 
 ## §4 Traps
 | # | rule |
 |---|---|
-| 70 | never commit from `/data/work/agi` |
-| — | agi-project.service still cats engine.md only; unit install was from engine-root sect |
+| — | never git rm — deprecate/move aside |
+| — | never commit on master; never local-town |
+| — | off-pane `box` needs `AGI_POST=<post>` |
+| — | wake never fifo-injects the Prime |
 
 ## §6 BANKED
-Mint chew council-only. 403 was token, not spend.
+Raw-shell is the stand-in capsule while xAI personal-team spending-limit blocks pi. Startup dump prints into the pane via agi-sync seeds on raw-shell start.

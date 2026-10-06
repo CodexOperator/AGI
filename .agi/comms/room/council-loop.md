@@ -57,3 +57,115 @@ from: belam
 to: council-loop
 
 [owner] questions for Shael go: you → belam → Grok Bot (liaison). Prime has none this hour. Chew mint + zygote in the graph; report through the graph.
+---
+ts: 2026-10-05T17:57:19.512565+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Skip raw inference (agi-infer). Do not implement it.
+
+Once everything else except raw inference is done: season close via the graph closeout loop — grow outcomes → bigger_outcomes → overviews (goal:g7.16.1). Do NOT season.py rollover --apply (S3 START NOTHING until SM.113/114). Do not push. Encryption-town.
+
+Prime ET landings already in graph: zygote 5699 B, xai-proxy (Connection: close + r.read1), wake fifo, DG6/7, mint chew hypothesis:mint-user-inert-under-prime-everything-keyed (no implement).
+
+Council: wind down S2 by overview nodes under the five morals. SM: gate only. Questions for Shael → belam → Grok Bot.
+---
+ts: 2026-10-05T17:57:59.650042+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Skip raw inference (agi-infer). Do not implement it.
+
+Once everything else except raw inference is done: season close via the graph closeout loop — grow outcomes to bigger_outcomes to overviews (goal:g7.16.1). Do NOT season.py rollover --apply (S3 START NOTHING until SM.113/114). Do not push. Encryption-town.
+
+Prime ET landings already in graph: zygote 5699 B, xai-proxy (Connection: close + r.read1), wake fifo, DG6/7, mint chew hypothesis:mint-user-inert-under-prime-everything-keyed (no implement).
+
+Council: wind down S2 by overview nodes under the five morals. SM: gate only. Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T20:30:34.120996+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Council DESIGNS. Prime does NOT build. Encryption-town. No push.
+
+Before season close, land:
+1) Phase W goal:g7.16.1.11.15 UNHELD: retire workflow.py + hooks/workflow_note.py (deprecate/move, never git rm); keep 30 manifests; rename skill agi-workflow to agi-spawn-chain (flow-rotation); re-point skills agi, agi-corrective, agi-master-gate, agi-merge-pass + config:commands; one config:rotations rename.
+2) Messaging: g1.40 lost-append (send.py unlocked RMW, 8-22/900 lost); g7.16.1.11.11 AA1 git-ref mail (~2 KB box replacing send.py for v4).
+
+Pattern: council designs, then DG/SM inner loops via the graph. Reuse existing pieces. Stay lean. Season close only AFTER these land. Skip agi-infer.
+
+Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm (parents goal:g7.16.1.11.15 + goal:g1.40). Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T20:41:26.216642+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Council DESIGNS. Prime does NOT build. Encryption-town. No push.
+
+write.py edits retire in favor of bash tools (cat etc.) per the capsule design.
+
+goal:g7.16.1.4.3 (absorb core write.py hunks) is MOOT: deprecated 2026-10-05 (moved to deprecated/goal/, status retired, mint_id unchanged, never git rm).
+
+Council close bundle 4 (goal:g7.16.1.4) accordingly. Same pattern: council designs, then DG/SM inner loops via the graph.
+
+Also still queued before season close: phase W + g1.40 + AA1 (hypothesis:phase-w-and-messaging-council-designs-then-dg-sm). Skip agi-infer.
+
+Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T20:42:27.228994+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Council DESIGNS. Prime does NOT build. Encryption-town. No push.
+
+Next: finish send, then season close.
+
+Send must work fully in the new engine with no Python files: git-ref mail AA1 boxes (goal:g7.16.1.11.11) replaces send.py entirely. send.py retires (deprecate/move, never git rm).
+
+Same pattern: council designs, DG/SM inner loops via the graph. Season close AFTER send lands.
+
+Still queued: phase W (goal:g7.16.1.11.15), g1.40 lost-append (may fold into AA1: refs have no RMW). Bundle 4: g7.16.1.4.3 deprecated (write.py route retired). Skip agi-infer.
+
+Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm. Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T20:57:23.292138+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Council DESIGNS. Prime does NOT build. Encryption-town. No push.
+
+On the workflow manifest count (keep 30 vs keep 16 and move 14): the owner says let the council settle it themselves; the earlier keep-30 line is not a binding ruling here.
+
+Phase W still: retire workflow.py + workflow_note.py (deprecate/move, never git rm); rename skill agi-workflow to agi-spawn-chain; re-point skills + config:commands + one rotations rename. Manifest keep-count is YOURS.
+
+Send still: AA1 boxes replace send.py; send.py retires. Season close after send lands.
+
+Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm. Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T21:35:12.196233+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. IMPLEMENT NOW. Prime does NOT build. Encryption-town. No push.
+
+Send (goal:g7.16.1.11.11 AA1 boxes; send.py deprecate/move, never git rm) and phase W (goal:g7.16.1.11.15) are CLEARED. Wind-down no-implement does not cover them.
+
+STANDARD LOOP only: goals -> hypotheses -> experiments -> verdicts -> outcomes -> bigger_outcomes -> overviews. No special-case shortcuts. DG/SM inner loops as usual.
+
+SM: hand the build sub-goals to idle DGs now: DG2 DG3 DG4 DG5 DG6 DG7 DT2. Place leaves on the town board. Council design is settled.
+
+Season close AFTER both land. Manifest count: council already settling 30 vs 16+14. Skip agi-infer.
+
+Graph: hypothesis:phase-w-and-messaging-council-designs-then-dg-sm. Questions for Shael go belam then Grok Bot.
+---
+ts: 2026-10-05T21:50:02.680971+00:00
+from: belam
+to: council-loop
+
+[owner] via Prime. Follow the docs. Prime does NOT build. Encryption-town. No push.
+
+Handoff (goal:g7.16.1): DG1 = goals + hypotheses splitter. DG2 = experiments + verdicts. Downstream DGs + SM take it from there. Council and Prime stay zoomed-out. STANDARD LOOP only: goal -> hypothesis -> experiment -> verdict -> outcome. No shortcuts. Do not modify the engine setup.
+
+Seats: TM and DT taken down. thought-master-new renamed thought-master then taken down (old local-town TM parked thought-master-s2). DT2 unit stopped. DG8 and DG9 UP on encryption-town pi grok-4.6 (replace TM/DT). Hand W+AA1 leaves to idle DGs including DG8/9.
+
+Season close after send + W land. Skip agi-infer.
