@@ -340,7 +340,7 @@ def test_rc_label_and_stored_row_cell_carry_the_new_name(tmp_path, monkeypatch):
 
 def _mk_real_key(root, seat):
     """A REAL ed25519 seat key at `<sessions>/seats/<seat>.key` (0600)."""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     d = send._seats_dir(root)
     d.mkdir(parents=True, exist_ok=True)
     sch = send.seatsig.get("ed25519")
@@ -357,7 +357,7 @@ def test_rotate_successor_key_mints_under_new_name_and_preserves_old(tmp_path):
     PREDECESSOR is read from the seat's own (old-name) key file; the
     predecessor bytes are PRESERVED beside it, never destroyed by the
     replace. A no-rename mint is byte-identical to before (no backup)."""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     old_key, pred_priv, pred_pub = _mk_real_key(tmp_path, "old")
     row = {"pubkey": pred_pub, "role": "parent", "sig_scheme": "ed25519"}
     out = rotate._rotate_successor_key(tmp_path, "old", row, key_seat="new",
@@ -384,7 +384,7 @@ def test_rotate_successor_key_mints_under_new_name_and_preserves_old(tmp_path):
 def test_rotate_successor_key_no_rename_is_unchanged(tmp_path):
     """The fix is a NO-OP without a rename: the successor lands at
     `<seat>.key` exactly as before and NO `-pre-rename` sibling appears."""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     key, pred_priv, pred_pub = _mk_real_key(tmp_path, "solo")
     out = rotate._rotate_successor_key(
         tmp_path, "solo", {"pubkey": pred_pub, "role": "helper"},
@@ -405,7 +405,7 @@ def test_rename_rotation_successor_signs_as_the_new_seat(
     `AGI_SEAT=<new>` (send._sign_line resolves `<new>.key`) VERIFIES under
     the row's pubkey. Fails on the unfixed code, where `<new>.key` holds the
     predecessor key moved there by the boundary."""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     _graph_ready(tmp_path)
     _sessions(tmp_path, "adv-alive")
     # AFTER `_sessions` (which lays down a throwaway `adv-alive.key`): a REAL

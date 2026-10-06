@@ -41,7 +41,7 @@ except ImportError:  # runs as a plain script from a checkout
     import node_writer  # type: ignore
     import rotate  # type: ignore
     import rotation_record  # type: ignore
-    import send as _send  # type: ignore
+    import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
     import geometry_config  # type: ignore
     from frontmatter import split_frontmatter  # type: ignore
 

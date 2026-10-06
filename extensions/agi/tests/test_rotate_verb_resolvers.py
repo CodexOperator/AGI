@@ -6,7 +6,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
-from agi.bin import send
+import boxes as send  # AA1: boxes.box_send
 
 
 def _write_geo(tmp_path, rows, rotations=None):

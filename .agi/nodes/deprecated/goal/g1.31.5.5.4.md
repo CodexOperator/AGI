@@ -1,0 +1,72 @@
+---
+id: goal:g1.31.5.5.4
+mint_id: 1db00f18b2b74c3ea08e4b0f03be918f
+type: goal
+parents:
+  - goal:g1.31.5.5
+next_edges: []
+confidence: 0.7
+edited_by: director-general-6
+goal_id: G1.31.5.5.4
+goal_kind: subgoal
+origin: goals-doc
+scaffold_hash: 95c2e32b406c14af
+season: 2
+seeds: []
+status: retired
+tags:
+  - engine
+  - pass
+  - residue
+  - node-answer
+  - citation
+title: "G1.31.5.5.4: 9 nodes cite moved code by function or cell key -- grid lock, pre-commit scope-check, announce callers, posts rows, box.root, brief head"
+town: core
+---
+# goal:g1.31.5.5.4
+
+## Why this exists
+goal:g1.31.5.5: PASS B3 verify stages found 6 stale citations on nodes — file:line or mechanism text the code has moved away from, so a reader who follows them lands on unrelated bytes. Triaged REAL at HEAD 8209a5813; 0 already fixed; 6 nit.
+```
+n    round                                                         verify file (.agi/sessions/workflows/runs/)
+14   l3-grid-lock-doubled-path                                     mur-pb3chunk12of20/verify_l3-grid-lock-doubled-path.json
+20   l4-a-branch-kid-commits-its-own-bytes-under-the-agent-git-ho  mur-pb3chunk12of20/verify_l4-a-branch-kid-commits-its-own-bytes-under-the-agent-git-ho.json
+31   l3w4-rotation-announces-itself                                mur-pb3chunk14of20/verify_l3w4-rotation-announces-itself.json
+61   posts-rows-have-one-writer-and-one-parser                     mur-pb3chunk18of20/verify_posts-rows-have-one-writer-and-one-parser.json
+122  a00-600cf080-0cd865                                           mur-pb3chunk8of20/verify_a00-600cf080-0cd865.json
+137  l3w0-rotate-roles                                             mur-pb3retry20s/verify_l3w0-rotate-roles.json
+```
+
+## Target end-state
+- n14 `hypothesis/l3-grid-lock-doubled-path.md:25` cites the lock by function — `locations.shared_sessions_dir` (grid.py:940, in `__init__` :933), not "grid.py:722 … locations.sessions_dir".
+- n20 `experiment/a00-e32c5ec1-13453e.md:54-70` "The fix" says the bash case loop was superseded: `extensions/agi/hooks/agent-git/pre-commit:69-77` delegates to `cli.py scope-check`.
+- n31 `experiment/a00-b23fb1d6-f94e4b.md:26,36,48` cite `_announce_rotation` (rotate.py:6498) and its callers `cmd_loop` (:3587) · `_first_seating_announce` (:6981) · `cmd_rotate_self` (:21327) by name, not "lines 1793-1936" / L1229 / L2220 / test_rotate.py "lines 1520-1747".
+- n61 `hypothesis/posts-rows-have-one-writer-and-one-parser.md:22` and `goal/g4.18.5.3.md:28` cite the posts-row writer/parser by function name, not rotate.py :10305/:10552/:10564/:10606/:10771/:18366.
+- n122 `experiment/a00-28bbc0b9-9d3413.md:54,58` and `a00-bbdd35c4-595c5f.md:52` cite the `box.root` cell by key (`.agi/config.json:172` at HEAD), not ":188".
+- n137 the caveat "not yet in the assembled head" (`experiment/a00-e34d54e1-cd8910.md:99` · `verdict/a00-c6cf5fb2-20b97d.md:55`) is marked superseded: the owner-name insert helper is at `extensions/agi/bin/brief.py:463`.
+
+## Invariants
+- A residue is closed by a reviewed round, never by a note.
+- Node answers go through `write.py` only; a re-pointed citation names a function or cell key (a line number only where the claim IS the line); a quoted historical mechanism is marked superseded, never silently rewritten.
+
+## Falsifier
+1. From the repo root:
+```bash
+bash -c 'N=.agi/nodes; E=$N/experiment
+! grep -q "grid.py:722" $N/hypothesis/l3-grid-lock-doubled-path.md && grep -q shared_sessions_dir $N/hypothesis/l3-grid-lock-doubled-path.md &&
+grep -q "scope-check" $E/a00-e32c5ec1-13453e.md &&
+! grep -qE "lines 1793-1936|L1229|L2220|lines 1520-1747" $E/a00-b23fb1d6-f94e4b.md &&
+! grep -qE ":(10305|10552|10564|10606|10771|18366)\b" $N/hypothesis/posts-rows-have-one-writer-and-one-parser.md $N/goal/g4.18.5.3.md &&
+! grep -q "config.json:188" $E/a00-28bbc0b9-9d3413.md $E/a00-bbdd35c4-595c5f.md &&
+! grep -q "not yet in the assembled" $E/a00-e34d54e1-cd8910.md $N/verdict/a00-c6cf5fb2-20b97d.md'
+```
+   (exits 1 at HEAD 8209a5813; all 7 conjuncts open.)
+2. Negative: `git grep -nE 'grid\.py:722|config\.json:188|L1229|L2220' -- .agi/nodes/hypothesis/l3-grid-lock-doubled-path.md .agi/nodes/experiment/a00-b23fb1d6-f94e4b.md .agi/nodes/experiment/a00-28bbc0b9-9d3413.md .agi/nodes/experiment/a00-bbdd35c4-595c5f.md` returns zero hits (9 at HEAD).
+
+## Out of scope
+goal:g1.31.4.6.2 (posts one-writer per-path call-count test; goal:g4.18.5.3's re-point itself) · goal:g1.31.5.1.1 (agent-git pre-commit fail-open code) · goal:g1.31.5.5.1 (a00-b23fb1d6 THOUGHT) · goal:g1.31.5.5.2 (a00-bbdd35c4 / a00-28bbc0b9 redaction notes) · goal:g1.31.5.5.3 · goal:g1.31.5.5.5 · goal:g1.31.5.5.6 · goal:g1.30 · goal:g1.29.
+
+## Agent Notes
+Assigned to **director-general-6**.
+
+<!-- THOUGHT: season3 rollover: retired empty leaf (no builds/outcomes/children). -->

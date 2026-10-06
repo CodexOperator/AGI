@@ -486,7 +486,7 @@ def _overdue_repeat_s(root: Path) -> int:
     (default 30; absent/non-positive falls back, never a repeat storm)."""
     mins = _OVERDUE_REPEAT_MIN_DEFAULT
     try:
-        import send as _send  # noqa: PLC0415
+        import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
         comms = (locations.load_config(_send._main_graph_root(root))
                  or {}).get("comms") or {}
         if isinstance(comms, dict) and "overdue_repeat_min" in comms:
@@ -2310,7 +2310,7 @@ def _wake_repair_due(root: Path, now: float) -> bool:
     30 s poll untouched. Stamps the pass when it returns True."""
     global _LAST_WAKE_REPAIR_AT
     try:
-        import send as _send  # noqa: PLC0415
+        import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
         every = float(_send._comms_config(root).get("wake_repair_every_s", 3600))
     except Exception:  # noqa: BLE001 -- a config problem never blocks the watch
         every = 3600.0
@@ -2330,7 +2330,7 @@ def _repair_stranded_wakes(root: Path) -> None:
     pending. Best-effort and read-only: missing seats / no tmux / busy panes
     are silent no-ops; never touches the reaper logic, never raises."""
     try:
-        import send as _send
+        import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
     except Exception:                                     # noqa: BLE001
         return
     try:
@@ -3293,7 +3293,7 @@ def _pin_reap_pass(root: Path, *, registry_dir: str | None = None,
         # ONE dm to the REAP row's rotated_by holder (best-effort, never fatal)
         if holder:
             try:
-                import send as _send  # noqa: PLC0415
+                import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
                 ts = datetime.datetime.utcnow().isoformat() + "Z"
                 _send.send(root, holder,
                            f"[pin-reap] {j['seat']} window {j['window_id']} "
@@ -3497,7 +3497,7 @@ def _dm_crash_recovery(root: Path, row: dict, old_pid: int, cause: str,
             f"({cause}); respawned {name} gen {gen} @id {wid}; "
             f"after_join: service-owed")
     try:
-        import send as _send  # noqa: PLC0415
+        import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
     except Exception:  # noqa: BLE001
         return
     for to in recipients:
@@ -4130,7 +4130,7 @@ def _alert_deferred(root: Path, acted: list[dict], rows: list[dict]) -> None:
             if not prime:
                 continue
             try:
-                import send as _send  # noqa: PLC0415
+                import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
                 _send.send(root, prime, line, "heal")
             except Exception as exc:  # noqa: BLE001
                 print(f"warn: deferral [red] to {prime} failed: {exc}", file=sys.stderr)
@@ -4159,7 +4159,7 @@ def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path,
               "(l4-a-round-alarms-its-dispatcher-)", file=sys.stderr)
         return
     try:
-        import send as _send
+        import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
         body = f"iter={iter_n} agent={agent_id} reason={reason}"
         if detail:
             body = f"{body} {detail}"
