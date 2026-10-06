@@ -17,7 +17,7 @@ cadences:
     enabled: true
     box: local-town
     why_box: "the remote-box reader: mail_poll consumes inboxes fetched from the hub"
-    cmd: git -C {repo_root} fetch -q origin && python3 {engine_root}/extensions/agi/bin/send.py read --box-local --peek >> {log} 2>&1; python3 {engine_root}/extensions/agi/bin/rotate.py migrate --receive >> {log} 2>&1
+    cmd: git -C {repo_root} fetch -q origin && python3 {engine_root}/extensions/agi/deprecated/bin/send.py read --box-local --peek >> {log} 2>&1; python3 {engine_root}/extensions/agi/bin/rotate.py migrate --receive >> {log} 2>&1
   engine_push:
     schedule: 47 * * * *
     enabled: false

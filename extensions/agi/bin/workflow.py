@@ -11,6 +11,11 @@ _PATH = _BIN.parent / "deprecated" / "bin" / "workflow.py"
 for _p in (str(_BIN), str(_SRC)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
+
+if __name__ == "__main__":
+    import runpy
+    raise SystemExit(runpy.run_path(str(_PATH), run_name="__main__"))
+
 _spec = importlib.util.spec_from_file_location("_agi_workflow_deprecated", _PATH)
 if _spec is None or _spec.loader is None:
     raise ImportError(f"W shim: cannot load {_PATH}")
