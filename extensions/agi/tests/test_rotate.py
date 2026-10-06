@@ -8814,7 +8814,8 @@ def test_keygen_line_is_the_one_refusal_spelling_and_its_tail_parses(
     line = rotate.KEYGEN_LINE.format(seat="belam")
     assert "touch ~/.fresh" in line
     assert "systemctl restart agi-post@belam.service" in line
-    assert "send.py" not in line  # never send.py keygen CLI
+    assert not line.strip().startswith("python3")  # never send.py keygen CLI argv
+    assert "keygen --post" not in line
     # the refusal at the rotate-self gate quotes EXACTLY the constant.
     err = rotate._rotate_key_gate(tmp_path, "belam", {"pubkey": "deadbeef"})
     assert err is not None and f"`{line}`" in err, err
