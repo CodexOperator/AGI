@@ -20,31 +20,31 @@ town: core
 
 Do not push. Never local-town. Never commit from `/data/work/agi`.
 
-## §0 State (2026-10-05 23:3xZ)
+## §0 State (2026-10-06 00:2xZ)
 | | |
 |---|---|
-| box | encryption-town. posts/belam @ 5ee126671 (goal:g5.4.1) |
+| box | encryption-town. posts/belam |
 | infer | SKIP. |
-| seats | SM DG1–9 council UP. TM/DT/DT2 down. |
-| send | NOT landed. DG6 90df7573f 22:32Z merge only. send.py 317680 live. |
-| close | goal:g5.4.1 set. Cut waits on send. |
-| mail | box belam→SM 8072ddaf9 [owner] re-kick + close chain |
+| AA1 | LANDED trunk fa8fd991f. send.py → deprecated/bin 317680. DG8/9 after-MOVE 0.9 |
+| gap | SM never boxed Prime (refs/box/sanctuary-master/belam ABSENT). DG7 08d079f5b UNREAD; card still send.py read |
+| close | goal:g5.4.1 waits on DG7 wake cleanup |
+| mail | box belam→SM fbad4412f [owner] re-box DG7 + box Prime the land |
 
 ## §1 Plan
 ```
-done   owner finish-send + close-chain banked; goal:g5.4.1 minted; SM boxed
-next   idle: SM re-kicks DG6 or re-places; Prime gates [merge-up]
-held   keys · Q4–Q10 chew · CHECK cron absent
-never  implement W/send.py · git rm · rollover --apply · rotate
+done   measured AA1 on trunk; boxed SM the two undelivered handoffs
+next   idle: SM boxes Prime the land + re-boxes DG7; DG7 box read then agi-run
+then   goal:g5.4.1 outcomes → overviews → Prime cut
+never  implement send.py · git rm · rollover --apply · rotate
 ```
 
 ## §2 Landed this session
-- goal:g5.4.1 minted (grid v1 node/f0972bbe2ae64a1aae7b8d56e6051328)
-- box send SM [owner] 8072ddaf9: re-kick DG6 AA1 or re-place idle DG; then DG5/7; then close chain
-- owner authorized core/season3/main + master merge for this close only — after send + overviews
+- AA1 confirmed on SM tree: live send.py gone, deprecated 317680
+- box SM fbad4412f: re-box DG7 leaf; box Prime AA1 status; then g5.4.1
 
 ## 🔴 Where it stops
-Idle until SM [merge-up] on AA1 send MOVE. Do not implement send.py. Do not rollover.
+Idle until SM boxes Prime the AA1 land AND DG7 consumes agi-run leaf.
+Do not start season close until that mail is held.
 FIRST at next wake: `AGI_POST=belam box read`
 
 ## §4 Traps
@@ -52,16 +52,16 @@ FIRST at next wake: `AGI_POST=belam box read`
 |---|---|
 | 70 | never commit from `/data/work/agi` |
 | — | never git rm — deprecate/move |
-| — | no write.py — Edit/Write in ~/t |
+| — | agi-run still watches sessions/inbox; prints send.py read = DG7 leaf |
+| — | a coord in a commit message is not mail |
 | — | season.py rollover --apply mints 3 visions without --visions-from |
-| — | MAIN belam.key other-uid; never print a key |
 
 ## §5 Verification
-box 8072ddaf9 G belam@agi · grid v1 g5.4.1 · send.py still live · DG6 90df7573f merge not BUILD
+SM card 23:45Z fa8fd991f · DG7 held absent · Prime box from SM absent · fbad4412f G belam@agi
 
 ## §6 BANKED
-Skip agi-infer. Mint Q4–Q10 chew only. Seat key unreadable here.
-Owner 23:3xZ: close = outcomes → bigger_outcomes → 1 overview/vision → Prime → manual core/season2/main → core/season3/main → master after verify. No extra rollover machinery.
+Skip agi-infer. Q4–Q10 chew. Seat key unreadable here.
+Owner 23:3xZ close = outcomes → bigger_outcomes → 1 overview/vision → manual core/season3/main → master after verify.
 
 ## Skills
 agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-memory-guard · agi-post · agi-goal · agi-dispatch · agi-workflow
