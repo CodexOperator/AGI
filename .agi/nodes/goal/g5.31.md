@@ -1,0 +1,59 @@
+---
+id: goal:g5.31
+mint_id: 42c6ceb48143e70c8c6eba7f7bd68a08
+type: goal
+parents:
+  - goal:g5
+next_edges: []
+confidence: 0.8
+edited_by: belam
+goal_id: G5.31
+goal_kind: subgoal
+origin: goal
+scaffold_hash: 42c6ceb48143e70c
+season: 3
+seeds: []
+status: active
+tags:
+  - goal
+  - subgoal
+  - geometry
+  - grokbot
+  - restructure
+title: "G5.31: ET Grok Bot geometry — council raw-shell + grokbot bindings, plan-master row, thought-master on ET, DG subagent marks"
+town: core
+---
+# goal:g5.31
+
+## Why this exists
+goal:g5 (owner formation / unified head): owner 2026-10-06 via Owner Comms ordered the team restructure into new-engine geometry — Prime/council/masters as real Grok Bots named after posts; directors as internal subagents; posts rows written by Prime through the standard loop (never a direct engine patch outside the loop).
+
+## OWNER 2026-10-06 (via Owner Comms / Grok Bot), verbatim
+> team restructure, owner directive. (1) You (belam) are overall leader; the owner is setting you as the main bot. Owner Comms (me) stays the owner's main comms and touch point and also takes the old-engine Plan Master post, at the same level as sanctuary-master and thought-master (council is separate from the keep). (2) Prime, council and masters are real Grok Bots named exactly after their posts; directors (DGs) run as their internal subagents. Your bot is now named `belam`, and SM's is `sanctuary-master`. I've created the council bots: alive (69001b34-5a8f-4d25-9c65-6e3b941f8bdb), all-is-one (6d4c319f-4cf7-415d-b65a-bb8d1ec0a282), self-perpetuating (f5b6b97e-6370-4ed8-affe-c0ee3ebd0b2e). (3) Please put the geometry integration through the standard routine (posts rows are yours to write): add grokbot bindings for belam (0ecb89d7-6c8a-45f4-bbc8-aa11ef834251), sanctuary-master (32e56b1c-4e2c-48fe-94a3-128b8f2b444a) and the three council posts; flip the council rows to raw-shell (the same pattern as belam/SM/DG4, which unblocks them from the spending limit) and reproject; add a plan-master row bound to me, with its card from the old-engine Plan Master description (I'll send a proposal); re-home thought-master from local-town/LM onto ET raw-shell so it can get its own bot; mark DGs as subagent-run under their parent bots; and port any posts still on old fields to the current .geometry descriptions. Council design for g5.4.1.1 should go to the council bots; until their rows flip, they can work over SSH and box mail.
+
+## Target end-state
+- `config:posts` (`.agi/nodes/.geometry/posts.md`): belam + sanctuary-master + alive + all-is-one + self-perpetuating carry correct `grokbot` UUIDs; council three match belam/SM/DG4 raw-shell pattern (`harness`/`engine.harness` = raw-shell, model grok-4.6, box encryption-town, trunk core/season2/et-grok-pilot) and have been reprojected.
+- A `plan-master` row exists, parented at keep level with SM/TM, `grokbot` = Owner Comms id `f986c957-bfda-4a39-ab66-d76843591ed2`, card from OC's Plan Master proposal.
+- `thought-master` re-homed from local-town/LM claude-code onto ET raw-shell (ready for its own bot).
+- DG rows mark subagent-run under their parent bots; posts still on old fields ported to current .geometry descriptions.
+- Landed via standard loop: council design → DG1/DG2 leaves → SM gate → Prime writes posts rows. Master untouched unless owner GO.
+
+## Invariants
+- Geometry patches go through the standard loop; Prime writes posts rows, never a side-door patch.
+- Never git rm; deprecate/move when retiring fields/nodes.
+- Council may design g5.4.1.1 over SSH/box mail before their rows flip.
+- Spending-limit unblock for council = the raw-shell flip on this leaf.
+
+## Falsifier
+1. `git show HEAD:.agi/nodes/.geometry/posts.md | jq` (row parse) shows grokbot ids for belam/SM/alive/aio/self-perp; council three `engine.harness=="raw-shell"`; plan-master row present with OC grokbot; thought-master `box=="encryption-town"` and raw-shell; SM re-gate PASS on the posts tip.
+2. Negative: no direct posts.md commit on posts/belam without a judged outcome under this goal; master tip unchanged without owner GO.
+
+## Out of scope
+goal:g5.4.1.1 season.py port implementation · minting non-council bots beyond plan-master/TM readiness · waking spend-blocked pi posts without the flip
+
+## Agent Notes
+Assigned to **council** (design) then **sanctuary-master** (DG1/DG2 + gate). Prime writes the posts rows after SM gate. Waiting on Owner Comms for plan-master card proposal.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+belam 04:0xZ 10-06 (date -u): minted from owner restructure note. Near miss: editing posts.md on the Prime seat before council design — owner said standard routine; posts rows are Prime's to write as the landing step. Council bots already exist; g5.4.1.1 design can proceed over SSH/box until flip.
+<!-- THOUGHT:END -->
