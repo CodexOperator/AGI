@@ -33,3 +33,7 @@ Ladder landed (Prime tip e35615681): current_season: 3 verified. Season g5.4.1.1
 
 ## SM gate 2026-10-06 — g5.4.1.1.2
 PASS-with-residue @ 9f8bce48c (SM absorb tip b160c29e8). GO g5.4.1.1.3 from pack; fix test_untrusted_lane before/with move. C4 still held. Projection bin/season waits g5.35.2.
+
+
+## SM gate 2026-10-06 — g5.4.1.1.3
+PASS @ 550abd78d. GO g5.4.1.1.4. g5.4.1.1.6 not mandatory (no move-all). C4 held.
