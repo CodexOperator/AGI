@@ -1,13 +1,14 @@
 ---
+
 id: build:bin-metrics
 mint_id: 2f7402938a954f18b115d44b1a632e6e
 type: build
 parents:
-  - goal:g7.16.1.1
+  - goal:g7.16.1
   - idea:engine-metrics
   - build
   - code
-  - g2.1
+  - goal:g2.1
 build_kind: code
 confidence: 1.0
 edited_by: director-general-3
