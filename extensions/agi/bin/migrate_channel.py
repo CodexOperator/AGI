@@ -78,7 +78,7 @@ def format_record(rec, *, sign_root=None, signer=None) -> str:
     """
     fm = {k: rec.get(k, "") for k in _KEYS}
     if sign_root is not None and signer:
-        import send
+        import box_mail as send  # AA1: box mail, never send.py
         line = send._sign_line(Path(sign_root), signer, rec["ts"],
                                rec["target_box"], _canonical(rec))
         if line:
@@ -141,7 +141,7 @@ def verify_record(text: str, pub_hex: str, scheme_name: str | None = None) -> bo
     keys = _KEYS if str(rec.get("stage") or "").strip() else _KEYS_LEGACY
     try:
         import seatsig
-        import send
+        import box_mail as send  # AA1: box mail, never send.py
         msg = send._canonical_msg(str(rec.get("ts", "")),
                                  str(rec.get("post", "")),
                                  str(rec.get("target_box", "")),

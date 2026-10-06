@@ -2596,7 +2596,7 @@ def _cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                                 "skipping read-cursor rewind",
                                 file=sys.stderr)
                         else:
-                            import send  # local: same dir (send.py pattern)
+                            import box_mail as send  # AA1: box mail, never send.py
                             _tag = "would-rewind" if args.dry_run else "rewound"
                             for _conv, _old, _new in send.rewind_read_cursors(
                                     root, seat, _since,
@@ -3198,7 +3198,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
     # ref is harness-only and is NOT derivable from the row's session_id
     # (the zero-call lean SL1.06 kid 2 built on that derivation was measured
     # false at the harvest — see the fix-up notes below).
-    import send  # local: same dir, no import cycle (send.py pattern)
+    import box_mail as send  # AA1: box mail, never send.py
     ref = (args.ref or "").strip()
     # goal:g15.17 (c): snapshot whether the seat carried a PENDING ack BEFORE
     # this ack overwrites it — rotate-self wrote `answer: pending` before the
@@ -3612,7 +3612,7 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
               if reply == "diff-empty"
               else "handoff stood: successor acked `continue`.",
               file=sys.stderr)
-        import send  # local: same dir
+        import box_mail as send  # AA1: box mail, never send.py
         _announce_rotation(
             root=root,
             croot=send.comms_root(root, getattr(args, "comms_root", None)),
@@ -5017,7 +5017,7 @@ def cmd_merge_up(args: argparse.Namespace, root: Path) -> int:
         suite_s = (f"suite {_passed_n}/{_total_n}" if sc else "suite ok")
         nc = _node_counts(groot)
         nodes_s = (f"nodes {nc[0]}/{nc[1]}/{nc[2]}" if nc else "nodes n/a")
-        import send  # local: same dir
+        import box_mail as send  # AA1: box mail, never send.py
         line = (f"MERGE-UP {post}: {suite_s} | {nodes_s} | merge {branch} "
                 f"-> {target} @{tip} | mirror {minfo['ref']} @{minfo['sha'][:7]} "
                 f"(proved_by ls-remote)")
@@ -6543,7 +6543,7 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     failure is logged and NEVER fails the rotation — the announcement is the
     proof, not a gate. Returns the recipients reached.
     """
-    import send  # local: same dir
+    import box_mail as send  # AA1: box mail, never send.py
     seq = _next_sequence(root)
     # The receiver set is computed BEFORE the record is written so the record
     # can name who the announce told (dedup: the Sensei appears ONCE in the
@@ -6985,7 +6985,7 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
     history exactly as a rotation's handover does. A caller that only needs
     the announcement (cmd_ack / cmd_seats_launch) may discard it.
     """
-    import send  # local: same dir
+    import box_mail as send  # AA1: box mail, never send.py
     if croot is None:
         croot = send.comms_root(root)
     live_list = (live_names if live_names is not None
@@ -7046,7 +7046,7 @@ def _first_seating_key(root: Path, seat: str,
                 if r.get("name") == seat), None)
     if not row:
         return {}, ""
-    import send  # local: same dir, no import cycle (send.py pattern)
+    import box_mail as send  # AA1: box mail, never send.py
     # goal:g7.16.1.7.1.4 (run-27 residue 159): the seating keys from
     # key_template too -- a keyed row whose key file is absent takes the
     # own-box remint rule (its own rekey commit), an existing key file on an
@@ -9236,7 +9236,7 @@ def _grant_present_for_seat(root: Path, seat: str, prime: str,
     phase-1 quote-refusal posture of refusing the ABSENT, detectable case
     rather than silently trusting it.
     """
-    import send  # local: same dir (send.py pattern, no import cycle)
+    import box_mail as send  # AA1: box mail, never send.py
 
     def _grant_in_blocks(blocks) -> bool:
         for head, body in blocks:
@@ -9383,7 +9383,7 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
     (MAIN unresolvable, on another branch, dirty, a grant read elsewhere, a
     push that omits refs/grid) REFUSES BY NAME.
     """
-    import send  # local: same dir
+    import box_mail as send  # AA1: box mail, never send.py
 
     # The merge-up ASK's send time, shared with wait_grant: a grant written
     # BEFORE the ask (a STALE one) never counts (the claim's clause).
@@ -10931,7 +10931,7 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
     except Exception as exc:  # noqa: BLE001  (an unreadable veto cell gates)
         return f"authority: HELD -- veto cell is unreadable ({exc})"
     try:
-        import send as _send
+        import box_mail as _send  # AA1: box mail, never send.py
         ref = _send.authority_ref(root)
     except Exception as exc:  # noqa: BLE001
         return f"authority: SKIPPED -- no authority ref ({exc})"
@@ -13971,7 +13971,7 @@ def _strip_harness(text: str) -> str:
     delivered dm -- the ONE read of send's signature list, never a second
     spelling (hypothesis:l4-comms-never-re-deliver-harness-shaped-text-raw-a-
     quoted-block-reads-as-marked-data, conjunct 4)."""
-    import send as _send  # local: same dir (send.py pattern)
+    import box_mail as _send  # AA1: box mail, never send.py
     return _send.HARNESS_BLOCK_RE.sub("", text)
 
 
@@ -14339,7 +14339,7 @@ def _prime_pushed_seats(root: Path, ref: str):
     key = (str(root), ref)
     if key in _PUSHED_SEATS_FETCHED_ONCE:
         return _PUSHED_SEATS_FETCHED_ONCE[key]
-    import send  # local: same dir (send.py pattern, no import cycle)
+    import box_mail as send  # AA1: box mail, never send.py
     try:
         seeded = send._pushed_seats(root, ref, True)
     except Exception:                                       # noqa: BLE001
@@ -14398,7 +14398,7 @@ def _prime_row_authority(root: Path) -> tuple[dict | None, str]:
     the-pushed-ref-and-whois-key-with-sig-resolves-the-sig-row-by-pubkey).
     Returns (row, source) with source ``"pushed"`` or
     ``"worktree (pushed ref unreachable)"``."""
-    import send  # local: same dir (send.py pattern, no import cycle)
+    import box_mail as send  # AA1: box mail, never send.py
 
     def _pick(rows):
         for row in (rows or []):
@@ -15605,7 +15605,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
             # (seat, text) directly as (root, to) and losing `text`. The
             # closure is what makes a REAL successor pane receive the typing
             # through the REAL default, not through a test stub.
-            import send as _send
+            import box_mail as _send  # AA1: box mail, never send.py
             _ti = getattr(_send, "type_input", None)
             if _ti is not None:
                 _type_fn = lambda _seat, _text: _ti(root, _seat, _text)
@@ -15634,7 +15634,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
     sent = False
     if not dry_run and send_dm is None:
         def send_dm(to: str, text: str):
-            import send as _send
+            import box_mail as _send  # AA1: box mail, never send.py
             # silent gate (hypothesis:l4-rotation-alerts-follow-a-routing-
             # matrix...): a receiver NAME in config:rotations `alerts:`.silent
             # gets ZERO machine lines from the after_join sender too -- refuse
@@ -15670,7 +15670,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                 # re-nudges it (wake:idle) on its next idle pass (measured
                 # belam gen 21: typed 06:08Z, re-nudged 06:23Z).
                 try:
-                    import send as _send_mod
+                    import box_mail as _send_mod  # AA1: box mail, never send.py
                     _send_mod._record_announced(
                         root, seat, _send_mod._unread_digest(root, seat))
                 except Exception:  # noqa: BLE001 -- best-effort sidecar
@@ -17724,7 +17724,8 @@ def cmd_first_decision(args: argparse.Namespace, root: Path | None) -> int:
 #: straight into a usage error (hypothesis:l4-the-unkeyed-refusal-quotes-the-
 #: exact-keygen-line-and-a-seating-keys-the-successors-row-so-no-post-reaches-
 #: rotate-unkeyed, clause (1)).
-KEYGEN_LINE = "python3 extensions/agi/bin/send.py keygen --post {seat}"
+KEYGEN_LINE = ("touch ~/.fresh && systemctl restart agi-post@{seat}.service  "
+                "# agi-out out-line keygen; never send.py")
 
 
 def _rotate_key_gate(root: Path, seat: str, row: dict | None) -> str | None:
@@ -17742,7 +17743,7 @@ def _rotate_key_gate(root: Path, seat: str, row: dict | None) -> str | None:
     """
     if not row or not row.get("pubkey"):
         return None
-    import send  # local: same dir, no import cycle (send.py pattern)
+    import box_mail as send  # AA1: box mail, never send.py
     key_path = send._seat_key_path(root, seat)
     if key_path.exists():
         return None
@@ -17773,7 +17774,7 @@ def key_template(root: Path) -> dict:
     Never raises: a template that cannot be read is the default."""
     out = dict(KEY_TEMPLATE_DEFAULT)
     try:
-        import send  # local: same dir, no import cycle (send.py pattern)
+        import box_mail as send  # AA1: box mail, never send.py
         from node_writer import find_node_file
         path = find_node_file(send._main_graph_root(root), "config:key-authority")
         if path is not None:
@@ -17838,7 +17839,7 @@ def _key_finding(root: Path, seat: str, line: str) -> str:
     finding: a repeat stand-up of the same case sends nothing. Returns the
     line for the caller's note. Never raises."""
     try:
-        import send  # local: same dir, no import cycle (send.py pattern)
+        import box_mail as send  # AA1: box mail, never send.py
         mark = locations.shared_sessions_dir(root) / "seats" / f"{seat}.key-finding"
         if mark.is_file() and mark.read_text(encoding="utf-8") == line:
             return line
@@ -18087,7 +18088,7 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
     """
     if not row:
         return ""
-    import send  # local: same dir, no import cycle (send.py pattern)
+    import box_mail as send  # AA1: box mail, never send.py
     if row.get("pubkey"):
         if _key_present(send, root, seat):
             return ""
@@ -18206,7 +18207,7 @@ def _rotate_successor_key(root: Path, seat: str, row: dict | None, *,
     """
     if not row or not row.get("pubkey"):
         return None
-    import send  # local: same dir (send.py pattern, no import cycle)
+    import box_mail as send  # AA1: box mail, never send.py
     scheme_name = str(row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME)
     scheme = send.seatsig.get(scheme_name)  # KeyError names an unknown scheme
     key_path = send._seat_key_path(root, key_seat or seat)
@@ -18287,7 +18288,7 @@ def _apply_successor_key_pending(pending: dict) -> str:
     0600 via a temp + `os.replace` (no second key-writer format). Called by
     `_apply_successor_key_gated` ONLY after the successor spawn-row write and
     its ONE commit have SUCCEEDED. Returns a one-line outcome."""
-    import send  # local: same dir (send.py pattern, no import cycle)
+    import box_mail as send  # AA1: box mail, never send.py
     key_path = Path(pending["path"])
     payload = json.dumps({"scheme": pending["scheme"],
                           "priv_hex": pending["priv_hex"]})
@@ -18346,7 +18347,7 @@ def _persist_pending_key(key_rotation: dict, key_path: Path,
     row (once pushed) no longer names. Best-effort: if the file cannot be
     written we still report the deferred swap (never raise). Returns ONE
     line naming the pending path."""
-    import send  # local: same dir (send.py pattern, no import cycle)
+    import box_mail as send  # AA1: box mail, never send.py
     _pend = key_path.parent / f"{key_path.name}.pending"
     _pend.parent.mkdir(parents=True, exist_ok=True)
     _frag = {
@@ -18406,7 +18407,7 @@ def _complete_pending_key_swap(root: Path, seat: str,
     authority context, or a HELD/FAILED line, it refuses BY NAME and leaves
     the key file byte-identical. A `push`-deferred (or legacy reason-less)
     pending keeps the old push-only completion, back-compat. Never raises."""
-    import send  # local: same dir (send.py pattern)
+    import box_mail as send  # AA1: box mail, never send.py
     _key = send._seat_key_path(root, seat)
     _pend = _key.parent / f"{_key.name}.pending"
     if not _pend.is_file():
@@ -18505,7 +18506,7 @@ def _retry_authority_publish_for_pending_swap(root: Path, seat: str) -> str:
     on a non-gating line and refuses by name on FAILED/HELD. No pending, a
     push-deferred or a legacy reason-less pending -> '' (no authority publish
     is attempted, nothing changes). Never raises."""
-    import send  # local: same dir (send.py pattern)
+    import box_mail as send  # AA1: box mail, never send.py
     _key = send._seat_key_path(root, seat)
     _pend = _key.parent / f"{_key.name}.pending"
     if not _pend.is_file():
@@ -19211,7 +19212,7 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     a row's `worktree` cell (a worktree post). A resolved post must HOLD its
     own key -- the key file loads AND its pub equals the committed row's
     pubkey -- else refuse by name (unkeyed, missing, or fingerprint mismatch)."""
-    import send  # local: same dir, no import cycle (send.py pattern)
+    import box_mail as send  # AA1: box mail, never send.py
     seat = os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT")
     if seat:
         row = _find_seat(_seat_read_root(root, seat), seat)
@@ -19241,7 +19242,7 @@ def _caller_hold_key(root: Path, seat: str, row: dict | None,
                      how: str) -> tuple[str | None, dict | None, str]:
     """The KEY-HOLDER half of _caller_post (the falsifier: a resolver that
     reads a key file without comparing its pub to the committed row). """
-    import send  # local
+    import box_mail as send  # AA1: box mail, never send.py
     if not row or not row.get("pubkey"):
         return None, None, (f"post {seat!r} is unkeyed: "
                             f"{KEYGEN_LINE.format(seat=seat)} first")
@@ -19595,7 +19596,7 @@ def _dm_rotation_spawn_row_failed(root: Path, seat: str, reason: str) -> str:
     if not sup or sup == seat:
         return (f"no rotated_by supervisor addressable for seat {seat!r}; "
                 f"refusal recorded and rc non-zero")
-    import send  # local: same dir
+    import box_mail as send  # AA1: box mail, never send.py
     croot = send.comms_root(root)
     text = (f"[rotation-failed] spawn-row write REFUSED for seat {seat!r}: "
             f"{reason}")
@@ -21442,7 +21443,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # (6.5) the rotation succeeded: announce it to every live seat NOW, at
     #     the same moment the record was written, BEFORE the own-window kill
     #     (L3.39 ordering — evidence and announcement both survive cleanup).
-    import send  # local: same dir
+    import box_mail as send  # AA1: box mail, never send.py
     _announce_rotation(
         root=root,
         croot=send.comms_root(root, getattr(args, "comms_root", None)),
@@ -22142,7 +22143,7 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
     prints every step by alias and touches nothing. Refusals print BY NAME.
     """
     import migrate_channel
-    import send
+    import box_mail as send  # AA1: box mail, never send.py
     if root is None:
         print("ERR: migrate needs an agi project root.", file=sys.stderr)
         return 1
@@ -22370,7 +22371,7 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
     answers with ONE `stage: seated` line on the same channel. An unverified
     record or a row already live is REFUSED BY NAME and nothing is seated."""
     import migrate_channel
-    import send
+    import box_mail as send  # AA1: box mail, never send.py
     import write
     try:
         me = boxes.this_box(root)
