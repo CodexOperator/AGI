@@ -1,13 +1,14 @@
 ---
+
 id: build:bin-brief
 mint_id: 45c0ff4a2fe34d2aaa496f339ef96b70
 type: build
 parents:
-  - goal:g7.16.1.1
+  - goal:g7.16.1
   - mvp:dg3-b-one-thought-definition
   - build
   - code
-  - g2.1
+  - goal:g2.1
 build_kind: code
 confidence: 1.0
 edited_by: belam
