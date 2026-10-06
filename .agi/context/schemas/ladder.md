@@ -49,9 +49,7 @@ threshold. One ladder node lives at `.agi/nodes/.geometry/ladder.md`.
 
 ## What reads this
 
-`season.py` (G12.3) reads `current_season`, `tiers`, and `caps` to stamp
-season on every freshly-minted node, validate judgment records, and enforce
-caps from `caps_apply_from_season` onward. The portal and zoom readers read
+Projected `season judge` (engine-post) and `write.py` (inline ladder read) use `current_season`, `tiers`, and `caps` to stamp season on freshly-minted nodes and judgment records; caps apply from `caps_apply_from_season` onward. The deprecated season module under `extensions/agi/deprecated/bin/` held the old status/rollover paths. The portal and zoom readers read
 `read_order` to present tier-appropriate context to each role. The dispatcher
 reads `spawn_profiles` and `budget_usd_week` to select models for each spawn
 against the budget.
@@ -119,7 +117,7 @@ G12.3 asks a `.geometry` node to be.
 `min_parents: 1`, `max_parents: 1`, `allowed_parents: [goal]`. `ladder` is not
 in `[shape].md :: parentless_types`. A `.geometry` node describes the graph's
 own shape, and has a clear parent: `goal:g12.3` ("The tier ladder, seasons,
-and season.py"), the goal that asks for this ladder node to exist. Parenting
+and seasons"), the goal that asks for this ladder node to exist. Parenting
 it here also means it participates in chain depth and `outcome_coverage` like
 any other node.
 

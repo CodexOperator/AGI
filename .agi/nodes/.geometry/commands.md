@@ -1562,7 +1562,7 @@ manifest:
     verb: ask
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - ask
       - "--to"
       - <to>
@@ -1580,7 +1580,7 @@ manifest:
     verb: audience
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - audience
       - <target>
     args:
@@ -1599,7 +1599,7 @@ manifest:
     verb: escalate
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - escalate
       - <text>
     args:
@@ -1616,7 +1616,7 @@ manifest:
     verb: keygen
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - keygen
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1638,7 +1638,7 @@ manifest:
     verb: peek
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - peek
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1658,7 +1658,7 @@ manifest:
     verb: prime-excluded
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - prime-excluded
       - "--round"
       - <round>
@@ -1674,7 +1674,7 @@ manifest:
     verb: read
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - read
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1695,7 +1695,7 @@ manifest:
     verb: report
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - report
       - "--ref"
       - <ref>
@@ -1715,7 +1715,7 @@ manifest:
     verb: rooms
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - rooms
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1729,7 +1729,7 @@ manifest:
     verb: send
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - send
       - <send_args>
     args:
@@ -1747,7 +1747,7 @@ manifest:
     verb: status
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - status
       - <target>
     args:
@@ -1762,7 +1762,7 @@ manifest:
     verb: veto
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - veto
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1779,7 +1779,7 @@ manifest:
     verb: vote
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - vote
       - "--target"
       - <target>
@@ -1805,7 +1805,7 @@ manifest:
     verb: wake
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - wake
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1820,7 +1820,7 @@ manifest:
     verb: whois
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - whois
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1943,7 +1943,7 @@ manifest:
     verb: author
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - author
       - <name>
     args:
@@ -1961,7 +1961,7 @@ manifest:
     verb: link
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - link
     args:
       - {"name": "root", "type": "str", "required": false, "choices": []}
@@ -1973,7 +1973,7 @@ manifest:
     verb: list
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - list
     args:
       - {"name": "root", "type": "str", "required": false, "choices": []}
@@ -1985,7 +1985,7 @@ manifest:
     verb: note
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - note
       - "--harness-id"
       - <harness_id>
@@ -2002,7 +2002,7 @@ manifest:
     verb: register
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - register
       - "--script"
       - <script>
@@ -2020,7 +2020,7 @@ manifest:
     verb: run
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - run
       - <name>
     args:
@@ -2038,7 +2038,7 @@ manifest:
     verb: status
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - status
     args:
       - {"name": "key", "type": "str", "required": false, "choices": []}
@@ -2051,7 +2051,7 @@ manifest:
     verb: validate
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - validate
     args:
       - {"name": "root", "type": "str", "required": false, "choices": []}
@@ -2120,42 +2120,39 @@ manifest:
     reason: default scan prunes stale level3-scan build nodes; operator-only
   season.py:status:
     cli: season.py
+    # deprecated g5.4.1.1.3 — live judge is season:judge
     verb: status
     argv:
       - python3
-      - <engine>/extensions/agi/bin/season.py
+      - <engine>/extensions/agi/deprecated/bin/season.py
       - status
     args: []
-    purpose: print per-tier plan/report counts
+    purpose: print per-tier plan/report counts (deprecated; not projected)
     side_effects: read
-    proposable: true
-  season.py:judge:
-    cli: season.py
+    proposable: false
+    reason: held/deprecated after g5.4.1.1.2–.3; live verb is season:judge
+  season:judge:
+    cli: season
     verb: judge
     argv:
-      - python3
-      - <engine>/extensions/agi/bin/season.py
+      - season
       - judge
       - <report_id>
     args:
       - {"name": "report_id", "type": "str", "required": true, "choices": []}
       - {"name": "against", "type": "str", "required": false, "choices": []}
-      - {"name": "debug", "type": "bool", "required": false, "choices": []}
-      - {"name": "quorum", "type": "bool", "required": false, "choices": []}
-      - {"name": "room", "type": "str", "required": false, "choices": []}
-      - {"name": "judge_round", "type": "str", "required": false, "choices": []}
-      - {"name": "comms_root", "type": "str", "required": false, "choices": []}
       - {"name": "actor", "type": "str", "required": false, "choices": []}
       - {"name": "session", "type": "str", "required": false, "choices": []}
-    purpose: stamp a judgment record on a report node
+    purpose: stamp a judgment record on a report node (projected bin/season; no Python)
     side_effects: graph-write
     proposable: true
   season.py:rollover:
     cli: season.py
+    # deprecated g5.4.1.1.3 — live judge is season:judge
     verb: rollover
     argv:
       - python3
-      - <engine>/extensions/agi/bin/season.py
+      - <engine>/extensions/agi/deprecated/bin/season.py
       - rollover
     args:
       - {"name": "dry_run_explicit", "type": "bool", "required": false, "choices": []}
@@ -2177,10 +2174,11 @@ manifest:
     reason: rewrites the ladder and can open a branch; operator-only
   season.py:retag:
     cli: season.py
+    # deprecated g5.4.1.1.3 — live judge is season:judge
     verb: retag
     argv:
       - python3
-      - <engine>/extensions/agi/bin/season.py
+      - <engine>/extensions/agi/deprecated/bin/season.py
       - retag
     args:
       - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
@@ -2192,10 +2190,11 @@ manifest:
     reason: graph-wide batch stamp; operator-only
   season.py:merge-kids:
     cli: season.py
+    # deprecated g5.4.1.1.3 — live judge is season:judge
     verb: merge-kids
     argv:
       - python3
-      - <engine>/extensions/agi/bin/season.py
+      - <engine>/extensions/agi/deprecated/bin/season.py
       - merge-kids
     args:
       - {"name": "branches", "type": "str", "required": true, "choices": []}
@@ -2206,10 +2205,11 @@ manifest:
     reason: merges branches and can leave a merge in progress; operator-only
   season.py:merge-up:
     cli: season.py
+    # deprecated g5.4.1.1.3 — live judge is season:judge
     verb: merge-up
     argv:
       - python3
-      - <engine>/extensions/agi/bin/season.py
+      - <engine>/extensions/agi/deprecated/bin/season.py
       - merge-up
     args:
       - {"name": "branch", "type": "str", "required": true, "choices": []}
@@ -2890,9 +2890,9 @@ placement:
     flag: "--iter"
   paths.py:audit.dir:
     kind: positional
-  season.py:judge.judge_round:
+  season:judge.against:
     kind: option
-    flag: "--round"
+    flag: "--against"
   zoom.py:.target:
     kind: option
     flag: "--target"

@@ -1,0 +1,40 @@
+---
+id: config:metrics
+mint_id: d3c5039486a820cc66b3d04c2c3d9563
+type: config
+parents:
+  - goal:g3
+  - goal:g5.36
+next_edges: []
+edited_by: belam
+locations: {}
+season: 3
+title: "config:metrics -- the ONE metric definition cell"
+town: core
+---
+
+# config:metrics: the ONE metric definition cell (goal:g3 · goal:g5.36; council-gate-20261006-b M1/M2)
+
+Definitions and weights belong to the goal:g3 lineage, idea:engine-chain-engine and idea:l4b17-success-metrics; this cell is their single home. `### matrix` (config:engine) owns the row format, and the thin compute is `### metrics` in engine-post (g5.36.4). There is no second formula layer.
+
+Status rule (M3, frontmatter only, folder-blind): **scored** = status ∉ {retired, phasing-out}, which includes deprecated and complete. **retired_\*** is a separate descriptive count, never added into scored totals. Any other status gets its own bucket.
+
+## metrics: v1
+~~~
+metric_id	recipe	source	primary
+outcome_coverage	decisive hypotheses with verdict / all hypotheses, scored set; M7 KEEP: open-hyp-under-retired STAY in denominator (Belam confirmed 2026-10-06)	idea:engine-metrics	yes
+node_count	nodes at rev with status not in {retired,phasing-out}	goal:g3	no
+deprecated_node_count	nodes with status deprecated (COUNTED in node_count)	goal:g5.36	no
+retired_count	nodes with status retired|phasing-out (descriptive; never in scored totals)	goal:g5.36	no
+goal_tallies	goals by status: active horizon complete deprecated retired other	goal:g3	no
+evidence_fraction	scored nodes carrying evidence / scored nodes	idea:engine-metrics	no
+~~~
+
+## moved from .agi/config.json (zero metric_* keys left there)
+~~~
+metric_primary	outcome_coverage
+metric_unit	fraction
+secondary_metrics	longest_chain_length avg_chain_depth mvp_count chain_branching_factor
+attractiveness_weights	length=0.3 depth=0.2 recency=0.2 mvp_count=0.3
+~~~
+

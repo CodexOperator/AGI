@@ -7,7 +7,7 @@ both set the same dest. The notice goes to STDERR (these parsers feed hooks
 and shell callers that parse stdout).
 
 Before this landed (fix-only round 2, KID B) only dispatch.py fired the
-notice; rotate.py (13 sites), handoff.py, mail_alert.py, season.py and send.py
+notice; rotate.py (13 sites), handoff.py, mail_alert.py, deprecated season module and send.py
 carried `--seat` as a plain store, so the alias was silently accepted there.
 Regression guard: a NEW `--seat` add_argument that forgets the action fails
 the wiring scan below and is silently accepted no more.
@@ -37,7 +37,7 @@ _WIRED_MODULES = [
     ("handoff", ["claim", "sec"], ["claim", "sec", "--seat", "bob"], "holder"),
     # mail_alert.py — flat parser.
     ("mail_alert", [], ["--seat", "carol"], "seat"),
-    # season.py — merge-up carries the alias.
+    # deprecated season merge-up carries the alias.
     ("season", ["merge-up", "branch"], ["merge-up", "branch", "--seat", "dave"], "seat"),
     # send.py — keygen carries the alias.
     ("send", ["keygen"], ["keygen", "--seat", "erin"], "seat"),

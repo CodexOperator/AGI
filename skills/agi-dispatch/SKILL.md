@@ -3,13 +3,13 @@ name: agi-dispatch
 description: >
   Drive a goal through dispatched parents and judge what comes back: decompose, dispatch a
   parent with the exact tier/role flags, the spawn bound, the behind-origin refusal, kid
-  rebriefs, and season.py judge (continue | adjust | done). Use whenever a director spawns
+  rebriefs, and season judge (continue | adjust | done). Use whenever a director spawns
   a parent or kid, or judges a parent's report against its plan node.
 ---
 
 # agi-dispatch — decompose ▸ dispatch ▸ judge
 
-Source of truth: `dispatch.py -h` · `season.py judge -h` · `spawn_budget.py status`. A director JUDGES; it never does kid work.
+Source of truth: `dispatch.py -h` · `season judge -h` · `spawn_budget.py status`. A director JUDGES; it never does kid work.
 
 ## 1 · The loop
 ```
@@ -19,7 +19,7 @@ goal:gX ──decompose──▶ goal:gX.a  goal:gX.b          write.py create g
                           │          │
                        outcome    outcome
                           └────┬─────┘
-            season.py judge <outcome-id> --against goal:gX      → continue | adjust | done
+            season judge <outcome-id> --against goal:gX      → continue | adjust | done
 ```
 Nest rather than widen; sketch the leaves first; spawn parents ONLY against sketched leaves.
 
@@ -42,10 +42,9 @@ A parent that answers a kid's `rebrief_request` in-node dms its director the ans
 inbox = self-authorised: cut it. A kid's work is the kid's — brief, do not steer.
 
 ## 4 · Judge
-`season.py judge <report-id> --against <plan-id> --actor <post>` stamps the alignment:
-`continue` (keep going) · `adjust` (reword the plan node) · `done` (close the plan, mint the outcome).
+`season judge <report-id> --against <plan-id> [--actor <post>]` stamps `judged_against` / `lens` / `season` (continue | adjust | done is the director's reading of the lens — not an argv).
 Judge against the plan node's PARENT (the lens this tier sees through), from the report AND the bytes.
-Reviews of a round run BY NAME with an EXPLICIT `--harness pi-free` (skill `agi-workflow`), never inline -- bare `--harness pi` = the free default row since 37d8a473d, `pi:paid` is the PAID deepseek lane (TMM.291: 74 paid mur runs, ~12.8 USD, 09-24..27).
+Reviews of a round run BY NAME with an EXPLICIT `--harness pi-free` (skill `agi-spawn-chain`), never inline -- bare `--harness pi` = the free default row since 37d8a473d, `pi:paid` is the PAID deepseek lane (TMM.291: 74 paid mur runs, ~12.8 USD, 09-24..27). Never shell the retired runner.
 
 ## 5 · Orders and harvest — traps already paid for
 | trap | do · never |

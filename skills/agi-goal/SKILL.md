@@ -65,7 +65,7 @@ Progress on a goal is never written on the goal or a card: one numbers-only line
 | add a note | `write.py goal:<id> 'note <sentence>'` — notes land where the HEAD's notes line says; goals are trackers (owner 09-24) |
 | retire | `set status retired` + deprecate its seed node — NEVER delete, never `git rm`. NEVER while a child hypothesis is pending: place each child first (re-parent to the live goal it serves, or retire it too); a goal whose children PROVED it is `complete`, not retired (owner 04:4xZ 09-30, goal:s31) |
 | renumber (owner 09-23) | keep `mint_id`; re-point EVERY frontmatter reference in the SAME commit; old → new in the moved node's THOUGHT; a retired id is never reused |
-| decompose | one subgoal per leaf (§1), nest rather than widen; each is driven by a dispatched parent (skill `agi-dispatch`) and judged with `season.py judge <outcome> --against goal:<id>` |
+| decompose | one subgoal per leaf (§1), nest rather than widen; each is driven by a dispatched parent (skill `agi-dispatch`) and judged with `season judge <outcome> --against goal:<id>` |
 
 Every version's why goes in the `THOUGHT` block (`thought <text>`, rewritten whole, never appended;
 absent = empty, never fabricated). Mechanism-not-wording: (1) the instruction quoted, (2) what the machine

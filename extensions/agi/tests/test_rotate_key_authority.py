@@ -15,7 +15,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate  # noqa: E402
-from agi.bin import send  # noqa: E402
+import boxes as send  # AA1: boxes.box_send  # noqa: E402
 
 _OLD = "a" * 64
 _NEW = "b" * 64
@@ -460,7 +460,7 @@ def test_c3_swap_defers_unless_the_authority_publish_succeeded(tmp_path):
     the commit carries an `authority: OK` leg; an `authority: FAILED` refusal
     defers it and the seat key file stays byte-identical."""
     import json as _json
-    from agi.bin import send as bin_send
+    import boxes as send  # AA1: boxes.box_send as bin_send
     key_path = tmp_path / "seats" / "aa.key"
     key_path.parent.mkdir(parents=True, exist_ok=True)
     key_path.write_text(_json.dumps({"scheme": "ed25519",
@@ -497,7 +497,7 @@ def test_c3_persisted_swap_defers_when_the_authority_leg_fails(tmp_path):
     HELD (a frozen prime gate) defers the pending `<seat>.key.pending` swap
     even though the trunk push succeeded -- the key file stays identical."""
     import json as _json
-    from agi.bin import send as bin_send
+    import boxes as send  # AA1: boxes.box_send as bin_send
     repo, g, posts, _bare = _fixture(tmp_path)
     seat_key = bin_send._seat_key_path(g, "aa")
     seat_key.parent.mkdir(parents=True, exist_ok=True)
@@ -575,7 +575,7 @@ def test_ef56_no_authority_branch_skips_and_completes_the_swap(tmp_path):
     `<seat>.key.pending` swap completes via the trunk push exactly as before
     EF.51."""
     import json as _json
-    from agi.bin import send as bin_send
+    import boxes as send  # AA1: boxes.box_send as bin_send
     repo, g, posts, bare = _fixture(tmp_path)
     _git(bare, "update-ref", "-d", "refs/heads/season2/main")
     seat_key = bin_send._seat_key_path(g, "aa")
@@ -608,7 +608,7 @@ def test_ef56_refused_authority_push_fails_and_defers_the_swap(tmp_path):
     (`authority: FAILED`), and the C3 gate DEFERS the successor-key swap by
     name so the on-disk key never disagrees with the authority."""
     import json as _json
-    from agi.bin import send as bin_send
+    import boxes as send  # AA1: boxes.box_send as bin_send
     repo, g, posts, bare = _fixture(tmp_path)
     hook = bare / "hooks" / "pre-receive"
     hook.parent.mkdir(parents=True, exist_ok=True)
@@ -654,7 +654,7 @@ def test_ef73_unreachable_origin_fails_and_defers_the_swap(tmp_path):
     unreachable WITHOUT touching the network by pointing it at a path that
     does not exist."""
     import json as _json
-    from agi.bin import send as bin_send
+    import boxes as send  # AA1: boxes.box_send as bin_send
     repo, g, posts, bare = _fixture(tmp_path)
     # (a) the publish line itself: unreachable origin -> FAILED, not SKIPPED
     _git(repo, "remote", "set-url", "origin", str(tmp_path / "gone.git"))
@@ -738,7 +738,7 @@ def _stub_git_run(monkeypatch, *, fetch=None, probe=None, push=None,
 
 def _seed_authority_pending(g, seat="aa"):
     import json as _json
-    from agi.bin import send as bin_send
+    import boxes as send  # AA1: boxes.box_send as bin_send
     seat_key = bin_send._seat_key_path(g, seat)
     seat_key.parent.mkdir(parents=True, exist_ok=True)
     seat_key.write_text(_json.dumps({"scheme": "ed25519",

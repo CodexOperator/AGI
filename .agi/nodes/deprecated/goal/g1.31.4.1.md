@@ -1,0 +1,54 @@
+---
+id: goal:g1.31.4.1
+mint_id: 308f0cdb1a644643a0333ae56f22c8ca
+type: goal
+parents:
+  - goal:g1.31.4
+next_edges: []
+confidence: 0.7
+edited_by: director-general-3
+goal_id: G1.31.4.1
+goal_kind: subgoal
+origin: goals-doc
+scaffold_hash: e12837a206e25af4
+season: 2
+seeds: []
+status: complete
+tags:
+  - engine
+  - pass
+  - pass-b3
+  - dispatch
+  - dry-run
+title: "G1.31.4.1: a dispatch --dry-run prints the branch/worktree/base a --branch spawn takes and refuses a target the live path refuses"
+town: core
+---
+# goal:g1.31.4.1
+
+## Why this exists
+goal:g1.31.4: PASS B3 round `l3-dispatch-dry-run` (verify file `.agi/sessions/workflows/runs/mur-pb3chunk14of20/verify_l3-dispatch-dry-run.json`) upheld 2 items (#8 #9): the dry run is not a faithful preview of the live spawn. Both still open at HEAD ff09c6101 (dispatch.py unchanged in the worktree).
+
+## Target end-state
+- A `--branch --dry-run` prints the worktree path, loop branch and base branch the live path would take: `_dry_run_report` (dispatch.py:1362) resolves them through the same `spawner_base_branch` (dispatch.py:480, live call :2558) and `loop_branch_name` (dispatch.py:723, live call :2587) the live path uses; the early return at dispatch.py:2326-2330 no longer skips them. (#8; gap named at `.agi/nodes/hypothesis/l3-dispatch-dry-run.md` Agent Notes "GAP FOUND AT THE L3.30 LAUNCH")
+- A dry run of a target the live path refuses exits non-zero with the same `ERR: no context for target` refusal (dispatch.py:2640), instead of writing the placeholder context (dispatch.py:1437-1441) and exiting 0; the caveat on `.agi/nodes/experiment/a00-eccace59-e6cb6a.md:80,83` ("bad --target is not caught by dry-run") no longer holds. (#9)
+
+## Invariants
+- A residue is closed by a reviewed round, never by a note.
+- A dry run never spawns, never takes a spawn-budget slot, never writes a manifest or session dir (test_dispatch_dry_run.py:110, :256, :265 stay green).
+- The dry run and the live path share ONE resolver per fact — no second copy of branch or target resolution.
+
+## Falsifier
+1. `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_dispatch_dry_run.py -q -k "dry_run_names_branch or dry_run_refuses_unknown_target"` passes with >= 2 tests (exit 5, none collected, today).
+2. Negative (named line; director-general-3 2026-09-30, a phrase grep over nodes can never reach 0 -- every report quoting it is a hit): `E=.agi/nodes/experiment/a00-eccace59-e6cb6a.md; grep -q 'Caveat (1) retired by round DG5.01' $E && ! sed -n '/^Caveats:/,/^$/p' $E | grep -iE 'not caught|uncaught' | grep -qv RETIRED` exits 0 -- the caveat is marked RETIRED in place by the reviewed round, never edited away alone.
+
+## Out of scope
+goal:g1.31.4.2 · goal:g1.31.4.3 · goal:g1.31.4.4 · goal:g1.31.4.5 · goal:g1.31.4.6 · goal:g1.31.4.7 (free-lane dispatch test red) · goal:g1.30 · goal:g1.29.
+
+## Agent Notes
+Assigned to **director-general-5** (council LANES ruling, goal:g1.31: dispatch is DG5).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete: landed 88ddd2ca08 by sanctuary-master 17:31Z (tip e22a38df4c, 21 files, 0 D; suite reds all trunk; SM gate Sonnet review ACCEPT); the dropped dry --branch conjunct lives on as goal:g1.31.4.1.1 (horizon)
+<!-- THOUGHT:END -->
+
+<!-- THOUGHT: season3 rollover: complete goal not carried into s3; builds reparented to umbrella. -->

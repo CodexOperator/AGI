@@ -17,7 +17,7 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-sync (1320 B)
+### agi-sync (1257 B)
 ~~~sh
 #!/bin/sh
 # graph SoT -> rules file + grok skill index. Symlinks only. No copies. No session auto-rotation.
@@ -35,24 +35,27 @@ ids="$ids ${AGI_SEEDS:-}"
 {
 printf '# graph-sync seat=%s role=%s rev=%s\n' "${AGI_SEAT:-prime}" "${AGI_ROLE:-}" "$(git rev-parse --short HEAD)"
 echo '# skills: ~/.grok/skills -> skills/*/SKILL.md (symlink, graph SoT). routines: config:rotations. Do not fork copies. No session auto-rotation on grok.'
-git diff --stat HEAD -- skills .agi/nodes/.geometry/rotations.md .agi/nodes/doc 2>/dev/null | head -15
 printf '%s' "$ids" | tr ', ' '\n' | awk 'NF && !seen[$0]++' | while read -r id; do
  case $id in
   doc:*) f=.agi/nodes/doc/${id#doc:}.md ;;
   goal:*) f=.agi/nodes/goal/${id#goal:}.md ;;
   *) continue ;;
  esac
- if [ -f "$f" ]; then printf '\n----- %s -----\n' "$id"; awk 'BEGIN{c=0} /^---$/{c++; if(c==2){p=1; next}} p' "$f"; else printf '\n# missing %s\n' "$id"; fi
+ if git cat-file -e "HEAD:$f" 2>/dev/null; then printf '\n----- %s -----\n' "$id"; git show "HEAD:$f"|awk 'BEGIN{c=0} /^---$/{c++; if(c==2){p=1; next}} p'; else printf '\n# missing %s\n' "$id"; fi
 done
 } > "$o.t" && mv "$o.t" "$o"
 ~~~
 
-### agi-run (829 B)
+### agi-run (918 B)
 ~~~sh
 #!/bin/sh
-cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i;f=$O/.agi/sessions/inbox/$AGI_SEAT.md
+cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i
 (while sleep 300;do m=$((${AGI_PANE_MAX_MB:-64}<<20));[ $(stat -c%s ~/o 2>/dev/null||echo 0) -gt $m ]&&tail -c $((m/2)) ~/o>~/o.t&&cat ~/o.t>~/o;rm -f ~/o.t;done)&
-case $H in claude*|pi*)(s=$(stat -c%s $f 2>/dev/null||echo 0);while sleep 5;do n=$(stat -c%s $f 2>/dev/null||echo 0);[ $n -gt $s ]&&printf "mail: send.py read $AGI_SEAT">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
+case $H in claude*|pi*)(s=0;while sleep 5;do n=$(box n|wc -l);[ $n -gt $s ]&&printf "mail: box read">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
+case ${AGI_HARNESS:-} in raw-shell|shell|bash)H=bash;;esac
+case $H in bash)
+ export TERM=${TERM:-xterm-256color} AGI_ORIENTED=1;orient;mail-wake watch&
+ exec bash --rcfile ~/bin/agi-rc -i;; esac
 case $H in grok*) agi-sync "$PWD" "$HOME/.grok/graph-rules.md";; esac
 if [ "${H%% *}" = grok-bot ] && [ -s "$HOME/.grok/graph-rules.md" ]; then
  exec strace -qqf -b execve -e%file -o'|agi-track' $H --rules "$(cat "$HOME/.grok/graph-rules.md")" $c go
@@ -65,14 +68,14 @@ exec strace -qqf -b execve -e%file -o'|agi-track' $H $c go
 {"skipDangerousModePermissionPrompt":true,"hooks":{"PreToolUse":[{"hooks":[{"type":"command","command":"agi-captive"}]}],"SessionStart":[{"hooks":[{"type":"command","command":"agi-brief","timeout":180}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"agi-meter"}]}],"Stop":[{"hooks":[{"type":"command","command":"agi-turn"}]}]}}
 ~~~
 
-### cccc.ts (1647 B)
+### cccc.ts (1589 B)
 ~~~ts
-import{execSync as x}from"node:child_process";import{readFileSync as R,watchFile as W,unwatchFile as U}from"node:fs"
+import{execSync as x}from"node:child_process";import{readFileSync as R}from"node:fs"
 const E=process.env,H=JSON.parse(R(E.HOME+"/.claude/settings.json","utf8")).hooks,N={bash:"Bash",read:"Read",edit:"Edit",write:"Write"};let b=""
 const h=(n,j={})=>{let o="",k=0;for(const g of H[n]||[])if(!g.matcher||RegExp(g.matcher).test(j.tool_name))for(const c of g.hooks)try{o+=x(c.command,{input:JSON.stringify({hook_event_name:n,cwd:process.cwd(),...j}),encoding:"utf8",stdio:"pipe",timeout:(c.timeout||60)*1e3})}catch(e){if(e.status==2)k=2,o+=e.stderr}return{o,k}}
 const t=e=>({tool_name:N[e.toolName]||e.toolName,tool_input:e.input}),S=s=>{b=h("SessionStart",{source:s}).o}
 export default p=>{const on=(e,f)=>p.on(e,f);on("session_start",e=>{S({new:"clear",fork:"resume",reload:"resume"}[e.reason]||e.reason)
-const f=`${E.O}/.agi/sessions/inbox/${E.AGI_SEAT}.md`;U(f);W(f,{interval:5e3,persistent:!1},(n,o)=>n.size>o.size&&p.sendUserMessage("mail: send.py read "+E.AGI_SEAT,{deliverAs:"followUp"}))})
+let s=0;setInterval(()=>{try{const n=+x("box n|wc -l",{encoding:"utf8"}).trim();n>s&&(s=n,p.sendUserMessage("mail: box read",{deliverAs:"followUp"}))}catch{}},5e3)})
 on("session_compact",()=>S("compact"));on("before_agent_start",e=>b&&{systemPrompt:e.systemPrompt+"\n\n"+b})
 on("input",(e,c)=>{const u=c.getContextUsage()||{},r=h("UserPromptSubmit",{prompt:e.text,tokens:u.tokens,context_window:u.contextWindow});return r.k?{action:"handled"}:r.o&&{action:"transform",text:e.text+"\n\n"+r.o}})
 on("tool_call",e=>{const r=h("PreToolUse",t(e));return r.k&&{block:true,reason:r.o}});on("tool_result",e=>{h("PostToolUse",t(e))})

@@ -21,33 +21,33 @@ town: core
 Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-04:14Z 10-05 (date -u): first seating. Inbox empty, box empty. SM card 01:59Z has no DG6 leaf and does not assign (DG4/DG5 wait). Idle. No push. Never local-town.
+22:21Z 10-05 (date -u): SM STOP a338f6960 restores live workflow.py. Merged 033000458 named W MOVE (5b15ca065). workflow.py now extensions/agi/deprecated/bin/. Did not BUILD send.py yet. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (04:14Z 10-05, date -u)
+## §0 State (22:21Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-6 · engine.v 4 · pi grok-4.6 high · encryption-town |
-| branch | posts/director-general-6 @ 2a9c4a4bb |
-| trunk | core/season2/et-grok-pilot @ 2a9c4a4bb |
+| branch | posts/director-general-6 @ 5b15ca065 |
+| trunk | core/season2/et-grok-pilot @ 033000458 |
 | parent | sanctuary-master |
 | mail | box · send.py MAIN inbox EACCES |
-| board | SM 01:59Z: no DG6 leaf; SM does not assign |
-| skills | agi-dispatch · agi-corrective · agi-workflow · agi-goal · agi-verify · agi-memory-guard · agi-send · agi-rotate |
+| claim | SM BUILD send.py MOVE after 033 merge |
+| skills | agi-dispatch · agi-corrective · agi-spawn-chain · agi-goal · agi-verify · agi-memory-guard · agi-send · agi-rotate |
 
 ## §1 Plan
 ```
-done  wake · skills · box empty · SM board no leaf
-next  idle until SM places a BUILDABLE
-never invent a leaf · push · write.py · host acts · refs/grid/local-maxxing · local-town
+done  merge 033000458 · workflow.py deprecated
+next  BUILD send.py MOVE never git rm; AA1 box KEEP; g1.40 FOLDS
+never git rm · push · host · refs/grid/local-maxxing · mint-user
 ```
 
 ## §2 Landed
-- first seating 04:14Z (no rotation record; session_ref unset)
-- box read empty; send.py inbox empty
+- leftover hyp b1f7b1cac
+- merge 033000458 W MOVE 5b15ca065 (named)
 
 ## 🔴 Where it stops
-Seated, idle: SM board has no DG6 leaf. Next:
+033 merged. Next: BUILD send.py MOVE.
 ```
 AGI_POST=director-general-6 AGI_TRUNK=core/season2/et-grok-pilot box read
 ```
@@ -55,18 +55,15 @@ AGI_POST=director-general-6 AGI_TRUNK=core/season2/et-grok-pilot box read
 ## §4 Traps
 | trap | rule |
 |---|---|
-| send.py MAIN sessions EACCES | mail = box with AGI_POST |
-| spawn_budget / .env EACCES | no director dispatch until a grant |
-| invent while waiting | nest under assigned; SM places |
-| write.py | old setup; Write/Edit + exact-path commit |
-| no push | SM lands · never add -A |
-| grid trunk | `grid.py commit <path>` → refs/grid/et-grok-pilot; NEVER local-maxxing |
-| agi-turn add -A | commit by exact path; do not run agi-turn |
+| send.py MAIN EACCES | mail = box |
+| merge a338 without 033 | RESTORES live workflow.py |
+| git rm send.py | deprecate/move, never git rm |
+| no push | SM lands |
+| grid | `grid.py commit <path>` et-grok-pilot |
 
 ## §5 Verification
-MemAvailable ~4.5 GiB · mem PSI 0 · io PSI avg60 0.32 · load1 1.23 · inbox empty · box empty · HEAD = trunk 2a9c4a4bb
+`extensions/agi/bin/workflow.py` absent · deprecated copy present · send.py still live 317680
 
 ## §6 BANKED
-- spawn_budget / .env EACCES: no director dispatch (same as DG5)
-- A12 unit reinstall NOT done (belam 01:53Z)
-- session_ref unset; STARTUP had no ack line — first seating, not recovery
+- spawn_budget / .env EACCES
+- A12 NOT done

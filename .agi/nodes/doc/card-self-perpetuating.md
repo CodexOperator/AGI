@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: self-perpetuating
+edited_by: director-general-4
 scaffold_hash: c808a090daec9950
 season: 2
 title: Card self perpetuating
@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:3xZ 10-01 · f=0.38 · VERDICT YES sent, DOWN-READY for the v5 move)
+## §0 State — HISTORICAL; today (10-06): ET raw-shell systemd pane agi-post@self-perpetuating (fifo /run/agi-self-perpetuating/i, out /var/lib/agi/self-perpetuating/o; not CC/tmux), seeds doc:unified-master-brief, trunk core/season2/et-grok-pilot ≠ tip posts/self-perpetuating. Then (19:3xZ 10-01 · f=0.38 · VERDICT YES sent, DOWN-READY for the v5 move)
 | | |
 |---|---|
 | post | self-perpetuating · CC session agi-99 [b77b3e] (heal-resumed 15:0xZ, same session 06312a1a; seated 05:35Z) |
