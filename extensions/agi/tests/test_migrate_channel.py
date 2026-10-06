@@ -16,7 +16,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import migrate_channel, rotate  # noqa: E402
-import send  # noqa: E402 -- the module rotate's lazy `import send` resolves
+import boxes as send  # AA1: boxes.box_send  # noqa: E402 -- the module rotate's lazy `import send` resolves
 
 
 def _rec(**kw):

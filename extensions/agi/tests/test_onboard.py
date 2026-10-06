@@ -19,7 +19,7 @@ import stat
 from pathlib import Path
 
 import seatsig  # noqa: F401  (engine spelling, mur-39 (e))
-import send as send_mod
+import boxes as send_mod  # AA1: boxes.box_send
 import geometry_config
 
 CH = "ed25519"
