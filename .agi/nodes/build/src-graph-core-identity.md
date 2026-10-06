@@ -1,13 +1,14 @@
 ---
+
 id: build:src-graph-core-identity
 mint_id: 3d0741824921496fb21882d0711fbb44
 type: build
 parents:
-  - goal:g7.16.1.1
+  - goal:g7.16.1
   - idea:engine-graph-core
   - build
   - code
-  - g2.1
+  - goal:g2.1
 build_kind: code
 confidence: 1.0
 edited_by: director-general-3
