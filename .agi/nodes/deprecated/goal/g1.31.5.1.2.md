@@ -1,0 +1,83 @@
+---
+id: goal:g1.31.5.1.2
+mint_id: a33b2e4dadcf432ab7e46002204b3591
+type: goal
+parents:
+  - goal:g1.31.5.1
+next_edges: []
+confidence: 0.7
+edited_by: director-general-3
+goal_id: G1.31.5.1.2
+goal_kind: subgoal
+origin: goals-doc
+scaffold_hash: 9db154cfe6cc7c9a
+season: 2
+seeds: []
+status: complete
+tags:
+  - engine
+  - pass
+  - pass-b3
+  - missed
+  - red
+  - anonymize
+title: "G1.31.5.1.2: no email address in any tracked node (4 scrubbed forward via write.py), anonymize.py refuses an email by class, skills/ inside the home-path guard"
+town: core
+---
+# goal:g1.31.5.1.2
+
+## Why this exists
+goal:g1.31.5.1: 2 PASS B3 `missed` rows in one cluster (anonymize), re-measured at HEAD d4b7ead17 by count only:
+- n112 (red): round `a-second-director-ran-this-graph-uninvited`, `.agi/sessions/workflows/runs/mur-pb3chunk7of20/verify_a-second-director-ran-this-graph-uninvited.json`.
+- n88 (residue): round `engine-delta-6`, `.agi/sessions/workflows/runs/mur-pb3chunk3of20/verify_engine-delta-6.json`.
+```
+email-shaped lines in 4 tracked experiment bodies (count only, never printed)
+  a00-75e7c869-24b9f0.md :38 :113        owner address
+  a01-4a4d8f92-b02a7a.md :47 :93         owner address   + :47 :91  <user>@<host>
+  a01-9bc63860-d97453.md :46 :86         owner address
+  a00-9f8f7f3e-99d092.md :97             owner address
+  = 7 owner-address hits (1 distinct address) + 2 <user>@<host>; 0 elsewhere in the tree
+anonymize.py:12 CLASSES = hostname ip mac board secret home     <- no email class
+anonymize.py:113-118 scan(): generic class = HOME_PATH_RE only
+anonymize.py check --text '<synthetic address>'   rc 0          <- passes
+test_anonymize_guard.py:440 SCRUB_SCOPES = rotations · quorum · datasets · .agi/nodes   <- no skills/
+HOME_PATH_RE hits outside every scope: skills/agi/SKILL.md:769,773,774 · QUICKSTART.md:184
+  (the cited skills/agi-stream/SKILL.md is clean at HEAD; the class of leak remains)
+```
+
+## Target end-state
+- `.agi/nodes/experiment/a00-75e7c869-24b9f0.md`, `a01-4a4d8f92-b02a7a.md`, `a01-9bc63860-d97453.md` and `a00-9f8f7f3e-99d092.md` are scrubbed FORWARD through `write.py` (never a hand edit), with `<email>` for the address and `<user>@<host>` for the 2 user-at-host tokens. Each version's THOUGHT records the scrub. History is not rewritten here: that is the owner's call, routed to the Prime by SM (the Prime's card §6).
+- `extensions/agi/bin/anonymize.py` refuses an email address by class `email` inside `scan()` (a generic class like `home`, with no token source), judged on added lines and printing the class, never the value. The non-personal shapes already in the tree pass: reserved example domains, `…@openssh.com` key-type names and `user@<uid>.service` units. The allowed list lives in a config cell (`anonymize.email_allow`), not in code.
+- `extensions/agi/tests/test_anonymize_guard.py` pins the class with SYNTHETIC fixtures only: a synthetic address is refused, the allowed shapes pass, and no test prints or names a real address.
+- `SCRUB_SCOPES` (test_anonymize_guard.py:440) includes `skills`, and `HOME_PATH_RE` has 0 hits under `skills/` and in `QUICKSTART.md` (4 lines scrubbed to `<home>/`).
+
+## Invariants
+- A residue is closed by a reviewed round, never by a note.
+- The owner's address, a user name or a host name never appears in a probe, dm, commit message, test, pattern, cell or node. Falsifiers count, never print.
+- The scrub only goes forward. `git filter-*` and force-pushes are banked, never run (CLAUDE.md "Delegated authority" 6).
+
+## Falsifier
+1. From /data/work/agi (rc 1 at HEAD d4b7ead17, measured: all 4 conjuncts fail):
+```bash
+bash -c 'R="[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}"; E=.agi/nodes/experiment
+! git grep -qE "$R" -- $E/a00-75e7c869-24b9f0.md $E/a01-4a4d8f92-b02a7a.md $E/a01-9bc63860-d97453.md $E/a00-9f8f7f3e-99d092.md &&
+{ python3 extensions/agi/bin/anonymize.py check --root . --text "reach fixture.person$(printf "\x40")example.invalid" >/dev/null 2>&1; [ $? -eq 1 ]; } &&
+grep -qE "^SCRUB_SCOPES = .*\"skills\"" extensions/agi/tests/test_anonymize_guard.py &&
+python3 -c "import sys,subprocess; sys.path.insert(0,\"extensions/agi/bin\"); import anonymize as a; sys.exit(int(subprocess.run([\"git\",\"grep\",\"-qP\",a.HOME_PATH_RE.pattern,\"--\",\"skills\",\"QUICKSTART.md\"]).returncode == 0))" &&
+python3 -m pytest extensions/agi/tests/test_anonymize_guard.py -q -k email --basetemp /tmp/g13151b'
+```
+   (If the `example.invalid` fixture is on the allow list, swap in any other synthetic domain. The address is assembled at run time, so this node holds no address-shaped string.)
+2. Negative: `git grep -nE '[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}' -- <the 4 experiment files above>` returns zero hits (8 lines at HEAD).
+
+## Out of scope
+goal:g1.31.3.2 (its round `pb3-anonymize-refuses-a-hardware-model-fragment` adds the `hardware` + `user` classes to the same two files) · the n144 owner call (are user names in scope?) · rewriting history · goal:g1.31.5.1.1 · goal:g1.31.5.1.3 · goal:g1.31.5.2-.5 · goal:g1.31.1-.4 · goal:g1.30 · goal:g1.29.
+
+## Agent Notes
+Assigned to **director-general-6**.
+Coordinate with goal:g1.31.3.2: one writer at a time on `anonymize.py` and `test_anonymize_guard.py`. Cut this round from that round's tip, or fold the `email` class into it as one more conjunct.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete 08:4xZ 09-30 (director-general-3), sanctuary-master ACCEPT of 30175ea7e9 (kid 9327ce5d56): anonymize.py class email in scan(); an address must FULL-match an entry of the ONE cell anonymize.email_allow (.agi/config.json) -- reserved example.com/org/net, @openssh.com key types, @<uid>.service units; a missing or unreadable cell allows nothing; the refusal prints the class, never the value. SCRUB_SCOPES += skills; HOME_PATH_RE in skills/ + QUICKSTART.md 4 -> 0. Node scrub (bullet 1) done earlier. MAIN: test_anonymize_guard 37 passed; Falsifier 1 rc 0; Falsifier 2 0 hits. Out of scope, by design: obfuscated forms (name [at] domain). Note: has_email() with allow=None re-reads the config per call (time only).
+<!-- THOUGHT:END -->
+
+<!-- THOUGHT: season3 rollover: complete goal not carried into s3; builds reparented to umbrella. -->
