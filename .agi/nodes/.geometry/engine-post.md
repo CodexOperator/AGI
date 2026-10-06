@@ -204,6 +204,36 @@ printf 'orient %s rev=%s dump_sha256=%s pin=%s card=%s\n===== startup %s =====\n
 cat "$f";printf '===== end startup =====\n\n';rm -f "$f"
 ~~~
 
+### g5348-joint-falsify (1735 B)
+~~~sh
+#!/bin/sh
+# g5348-joint-falsify (g5.34.8.4): one run covering v6 bundle on one reproject.
+# Retire interim watches AT LAND (Belam): /workspace/*watch* (aio mailwatch, alive-watch, tm-pane-monitor, SM weekday ping). Never git rm.
+set -eu
+fail=0
+say(){ echo "$*";}
+chk(){ if "$@";then say "OK: $*";else say "FAIL: $*";fail=1;fi;}
+# 1 monitor piece exists once
+chk sh -c 'n=$(sect monitor HEAD 2>/dev/null|wc -c); [ "$n" -gt 50 ]'
+# 2 sm-dg-multiplex exists
+chk sh -c 'n=$(sect sm-dg-multiplex HEAD 2>/dev/null|wc -c); [ "$n" -gt 50 ]'
+# 3 K10 arming in agi-sync
+chk sh -c 'git show HEAD:.agi/nodes/.geometry/engine-wrap.md | grep -q "monitor wait <post>"'
+# 4 mail-wake no sleep>=5 SoT
+chk sh -c '! git show HEAD:.agi/nodes/.geometry/engine-post.md | sed -n "/^### mail-wake /,/^### /p" | grep -E "while sleep [5-9]|while sleep [0-9]{2,}"'
+# 5 agi-carry projected in agi-project
+chk sh -c 'git show HEAD:.agi/nodes/.geometry/engine.md | grep -q "agi-carry@.path"'
+# 6 interim watch retirement check (post-land): paths must be absent or inactive
+# Pre-land: record expected retire list (never git rm from this seat)
+RETIRE="/workspace/aio/mailwatch.sh /workspace/alive-watch.sh /workspace/tm-pane-monitor.sh"
+say "RETIRE_AT_LAND: $RETIRE"
+# 7 0 B to i across monitor/mail-wake
+chk sh -c '! git show HEAD:.agi/nodes/.geometry/engine-post.md | sed -n "/^### monitor /,/^### /p" | grep -E "/run/agi-|>\\$i"'
+chk sh -c '! git show HEAD:.agi/nodes/.geometry/engine-post.md | sed -n "/^### mail-wake /,/^### /p" | grep -E "/run/|>\\$i"'
+# 8 exec bash == 1
+chk sh -c 'c=$(git show HEAD:.agi/nodes/.geometry/engine-wrap.md | grep -c "exec bash"); [ "$c" = 1 ]'
+[ "$fail" = 0 ] && say "JOINT FALSIFY PASS" || { say "JOINT FALSIFY FAIL"; exit 1; }
+~~~
 ### mail-wake (1381 B)
 ~~~sh
 #!/bin/sh
