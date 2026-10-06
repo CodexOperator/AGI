@@ -1,13 +1,14 @@
 ---
+
 id: build:bin-snapshot-goals
 mint_id: aa00705c2b644965a9cba7e91c411188
 type: build
 parents:
-  - goal:g7.16.1.2
+  - goal:g7.16.1
   - idea:engine-snapshot-goals
   - build
   - code
-  - g2.1
+  - goal:g2.1
 build_kind: code
 confidence: 1.0
 deprecated_note: "Deprecated 2026-10-04 on encryption-town: owner retired the old-engine tests this piece built (profile sync / GOALS.md / pin-scrub / tmux shim / sensei path / workflow credential wording). Node kept; mint_id unchanged."
