@@ -6,22 +6,22 @@ mint_id: e4d37e3c2ddf4b59944dfe23f516a76f
 origin: build-scan
 parents:
   - mvp:tests
-payload_ref: extensions/agi/tests/test_mail_alert.py
+payload_ref: extensions/agi/deprecated/tests/test_mail_alert.py
 tags:
   - build
   - code
   - g2.1
-title: "Build: extensions/agi/tests/test_mail_alert.py"
+title: "Build: extensions/agi/deprecated/tests/test_mail_alert.py"
 type: build
 ---
 
-`extensions/agi/tests/test_mail_alert.py` — level-3 code node (one file, one canonical node).
+`extensions/agi/deprecated/tests/test_mail_alert.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `mvp:tests`.
 
 <!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
 ```yaml
-payload_ref: extensions/agi/tests/test_mail_alert.py
+payload_ref: extensions/agi/deprecated/tests/test_mail_alert.py
 parse_ok: true
 inputs:
 - name: __future__.annotations

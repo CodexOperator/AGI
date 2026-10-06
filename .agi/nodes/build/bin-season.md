@@ -6,22 +6,22 @@ mint_id: 2e990ee477294ab982ad6af5b9489187
 origin: build-scan
 parents:
   - mvp:bin-modules
-payload_ref: extensions/agi/bin/season.py
+payload_ref: extensions/agi/deprecated/bin/season.py
 tags:
   - build
   - code
   - g2.1
-title: "Build: extensions/agi/bin/season.py"
+title: "Build: extensions/agi/deprecated/bin/season.py"
 type: build
 ---
 
-`extensions/agi/bin/season.py` — level-3 code node (one file, one canonical node).
+`extensions/agi/deprecated/bin/season.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `mvp:bin-modules`.
 
 <!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
 ```yaml
-payload_ref: extensions/agi/bin/season.py
+payload_ref: extensions/agi/deprecated/bin/season.py
 parse_ok: true
 inputs:
 - name: __future__.annotations
