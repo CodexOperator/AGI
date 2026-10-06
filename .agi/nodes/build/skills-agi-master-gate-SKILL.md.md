@@ -1,9 +1,10 @@
 ---
+
 id: build:skills-agi-master-gate-SKILL.md
 mint_id: 77c52fb4c3374a51822d39a340fb9264
 type: build
 parents:
-  - goal:g7.16.1.2
+  - goal:g7.16.1
   - idea:engine-skill-doc
 next_edges: []
 build_kind: prose
