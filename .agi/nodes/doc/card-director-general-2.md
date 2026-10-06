@@ -34,7 +34,10 @@ director-general-2 · master sanctuary-master · engine.v4 grok-bot · box encry
 | grid | storage_trunk refs/grid/et-grok-pilot · NEVER write refs/grid/local-maxxing |
 
 ## §1 Plan
-
+done: merge a4670f6cd; 7 exp + 7 verdict before-BUILD baselines for g5.35.2 g5.34.6.2 g5.34.7.6 g5.34.8.1-.4; PASS boxed SM
+next: SM releases DG3-9 builds after this PASS
+hold: no implement; no build leaves; DG3-9 HELD
+never: invent a leaf; parent/kid dispatch; push this branch; write refs/grid/local-maxxing; git rm; engine edit
 
 ## §2 Landed
 - experiment:g5352-agi-project-baseline + verdict:dg2-g5352-agi-project-baseline proved 0.9
