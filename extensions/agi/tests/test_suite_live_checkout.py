@@ -13,7 +13,7 @@ import pytest
 
 import locations
 import rotate
-import send
+import boxes as send  # AA1: boxes.box_send
 import spawn_budget
 import verification
 

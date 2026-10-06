@@ -16,7 +16,7 @@ from agi.bin import brief
 
 
 def _mk_seat_key(tmp_path, seat, scheme="ed25519"):
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     kr = send._seats_dir(tmp_path)
     kr.mkdir(parents=True, exist_ok=True)
     scheme_obj = send.seatsig.get(scheme)
@@ -59,7 +59,7 @@ def test_rotate_first_key_mints_unkeyed_row(tmp_path):
     # line (1) minting half: an UNKEYED real row mints its first key IN THE
     # SAME rotate-self step (incremental fleet keying) -- a 0600 key file
     # appears at <sessions>/seats/<seat>.key and a note is returned.
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     note = rotate._rotate_first_key(tmp_path, tmp_path, "s1",
                                     {"role": "parent"})
     assert note
@@ -91,7 +91,7 @@ def test_rotate_first_key_mints_through_send_writer(tmp_path, monkeypatch):
     rotate._rotate_first_key(tmp_path, tmp_path, "s2", {"role": "helper"})
     assert seen.get("call") == (tmp_path, "s2",
                                  bin_send.seatsig.DEFAULT_SCHEME)
-    from agi.bin import send as send_pkg
+    import boxes as send  # AA1: boxes.box_send as send_pkg
     assert send_pkg._seat_key_path(tmp_path, "s2").is_file()
 
 
@@ -105,7 +105,7 @@ def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path, monkeypatch
                                     {"pubkey": "deadbeef", "role": "parent"}) == ""
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", {}) == ""
     assert rotate._rotate_first_key(tmp_path, tmp_path, "s1", None) == ""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     _mk_seat_key(tmp_path, "s3")
     # an existing key file on an unkeyed row: left alone only under the
     # template's `existing_key: leave` (the default ADOPTS it, test_stand_up)
@@ -120,7 +120,7 @@ def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path, monkeypatch
 def test_rotate_first_key_dry_run_leaves_no_key_and_no_row(tmp_path):
     """ORDER 1 (SL5.05): --dry-run on an unkeyed real row mints NOTHING and
     writes NO row cell; it still reports the mint it would perform."""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     note = rotate._rotate_first_key(tmp_path, tmp_path, "s1",
                                     {"role": "parent"}, dry_run=True)
     assert note
@@ -136,7 +136,7 @@ def test_rotate_successor_key_mints_and_replaces(tmp_path):
     the PREDECESSOR key until `_apply_successor_key_pending` runs (which the
     caller gates on the row write + commit succeeding). After apply the
     successor key is atomically in place (0600, valid JSON)."""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
     before = key_path.read_text()
     row = {"pubkey": pred_pub.hex(), "role": "parent",
@@ -174,7 +174,7 @@ def test_rotate_successor_key_gate_leaves_pred_key_on_failed_row_write(tmp_path)
     `_apply_successor_key_gated` records the refusal and does not flip the
     file. The failure seam is the existing try/except that records
     ``successor_row`` / ``spawn_row_commit`` as ``FAILED: ...`` lines."""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
     before = key_path.read_text()
     pred_priv = json.loads(before)["priv_hex"]
@@ -848,7 +848,7 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
 def test_rotate_successor_key_sig_verifies_under_retired_pub(tmp_path):
     """rotated_by_sig must verify under the RETIRED (predecessor) pub, and
     must fail under a corrupted record (the signature is specific)."""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     _key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
     row = {"pubkey": pred_pub.hex(), "role": "parent"}
     out = rotate._rotate_successor_key(tmp_path, "s1", row,
@@ -880,7 +880,7 @@ def test_rotate_successor_key_leaves_unkeyed_and_throwaway_alone(tmp_path):
 def test_rotate_successor_key_dry_run_touches_nothing(tmp_path):
     """ORDER 1: --dry-run on a keyed row mints nothing, replaces nothing,
     and still reports the retirement it would perform."""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     key_path, pred_pub = _mk_seat_key(tmp_path, "s1")
     before = key_path.read_text()
     row = {"pubkey": pred_pub.hex(), "role": "parent"}
@@ -1104,7 +1104,7 @@ def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path
     """ORDER 2, CRITICAL: the successor pubkey + key_history cells ride the ONE
     spawn-row write (`_successor_row_write`), appending EXACTLY ONE retired
     entry and never shrinking existing history."""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     existing_hist = [{"pub": "00" * 32, "fp": "deadbeef12345678",
                       "from": 0, "to": 1, "rotated_by_sig": "feed"}]
     rows = [{"name": "s1", "role": "director",
@@ -8833,7 +8833,7 @@ def test_first_seating_keys_unkeyed_row_in_the_one_seating_commit(
     (0600) through the ONE key writer and writes pubkey/sig_scheme/enc_scheme
     INTO THE SAME seating row write -- ONE `seating row` commit carries the
     identity cells AND the key cells."""
-    from agi.bin import send as _bin_send
+    import boxes as send  # AA1: boxes.box_send as _bin_send
     root, top, bare = _git_with_bare(tmp_path, lambda r: None)
     wins = tmp_path / "windows.txt"
     wins.write_text("@42 belam\n", encoding="utf-8")
@@ -8874,7 +8874,7 @@ def test_first_seating_leaves_a_keyed_row_untouched(tmp_path):
     """clause (2), negative half: a row that ALREADY names a pubkey is left
     alone by the seating -- no key minted (a re-seat never rotates a key),
     no pubkey cell overwritten, `keyed_at_seating` false."""
-    from agi.bin import send as _bin_send
+    import boxes as send  # AA1: boxes.box_send as _bin_send
     scheme = _bin_send.seatsig.get("ed25519")
     _priv, pub = scheme.keygen()
     root, top, bare = _git_with_bare(tmp_path, lambda r: None, seat_row={
@@ -8896,7 +8896,7 @@ def test_first_seating_dry_run_prints_would_key_and_writes_nothing(
         tmp_path, monkeypatch, capsys):
     """clause (3): `cmd_spawn --dry-run` on an unkeyed row prints the ONE
     `would key <seat>` plan line and mints / writes NOTHING."""
-    from agi.bin import send as _bin_send
+    import boxes as send  # AA1: boxes.box_send as _bin_send
     root, top, bare = _git_with_bare(tmp_path, lambda r: None)
     wins = tmp_path / "windows.txt"
     wins.write_text("@42 belam\n", encoding="utf-8")

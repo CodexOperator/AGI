@@ -1,0 +1,76 @@
+---
+id: goal:g7.31.2.3
+mint_id: 7d72235718564d6b8be110978d41b428
+type: goal
+parents:
+  - goal:g7.31.2
+next_edges: []
+confidence: 0.9
+edited_by: director-helper
+goal_id: G7.31.2.3
+goal_kind: subgoal
+heading_level: 5
+origin: goals-doc
+scaffold_hash: 32a72277c691a1c3
+season: 2
+seeds:
+  - goal:g7.31.2.3.1
+status: complete
+tags:
+  - goal
+  - subgoal
+  - harness
+  - grok-bot
+thought_session: seat-watch-2026-09-21-1540ET
+title: "G7.31.2.3: Zero new harness argv builders in rotate.py"
+town: core
+---
+# goal:g7.31.2.3
+
+## Why this exists
+**Parent `goal:g7.31.2`.** Falsifier-3: rotate stays orchestration — grep finds **zero** new harness argv builders.
+
+```
+rotate.py
+  ├─ orchestration OK
+  └─ new harness argv builders ──▶ MUST be zero
+```
+
+## Target end-state
+- `rotate.py` contains no new harness argv builders for any harness (including grok).
+- Sole argv seam remains template render via the thin orchestration hook.
+
+## Invariants
+- Aligns with `goal:g7.27` / `goal:g7.29`: rotate does not grow `_build_*_command` surfaces.
+
+## Falsifier
+1. Grep `rotate.py` for new harness argv builders: **zero** (orchestration only).
+
+## Out of scope
+- Registry occupation (`goal:g7.31.2.1`).
+- Successor pane-contract behavior beyond the grep gate (`goal:g7.31.2.2`).
+- Adapter / template content changes unless required for the grep to stay green.
+
+## Agent Notes
+Assigned to **director-helper**. Prefer regression test + source grep. No MAIN push.
+# goal:g7.31.2.3
+
+### Residue round (MUR `mur-g7-31-2-3-dh-40-a5b82056a-lean2-3` @19:20Z — accept_with_residue)
+
+| sev | defect | locus | close |
+|-----|--------|-------|-------|
+| residue | hyp self-cites in evidence_runs (metrics counts; gate inert for non-decisive) | `.agi/nodes/hypothesis/a00-9fa7f4f5-60c4ba.md:12` | drop self-id from evidence_runs |
+| residue | fresh rotate.py byte/sha literal accurate at a5b82056a, stale vs core/season2/main | `.agi/nodes/hypothesis/a00-bc25f6f9-5c369a.md:28`+body | drop literal or re-measure at merge target |
+| residue | new hyp missing schema-required testable_claim | `.agi/nodes/hypothesis/a00-a267ee09-3bbf9c.md` | add testable_claim |
+| residue | duplicated dangling `with `_KNOWN_HARNESS_IDS`.` fragment | `.agi/nodes/hypothesis/a00-cf0076c2-41525b.md:53-54` | dedupe line |
+| note | empty `## Hypothesis` section (claim only in FM) | `a00-9fa7f4f5-60c4ba.md:28` | fill or drop heading |
+
+**Central claim held:** profile-sync evidence_runs scalar→list so decisive proved passes commit-path gate; static re-derive 0 would-demote. NO merge-up while residues>0. Next parent: DH.50 @ tip after this §3d write (base a5b82056a ancestor of seat). spawn.parallel=1.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+wire seed to .3.1 strip _build_*_command; NO pi
+<!-- THOUGHT:END -->
+
+seed g7.31.2.3.1 complete; argv-builder falsifier GREEN on tip (no _build_claude/_copilot/_pi/_grok*_command; grok absent)
+
+<!-- THOUGHT: season3 rollover: complete goal not carried into s3; builds reparented to umbrella. -->
