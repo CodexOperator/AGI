@@ -204,20 +204,31 @@ printf 'orient %s rev=%s dump_sha256=%s pin=%s card=%s\n===== startup %s =====\n
 cat "$f";printf '===== end startup =====\n\n';rm -f "$f"
 ~~~
 
-### mail-wake (1381 B)
+### mail-wake (1860 B)
 ~~~sh
 #!/bin/sh
-# mail-wake (g5.34.6.2 W1-W7 R8): `mail-wake watch` = the ONE raw-shell watcher, started by agi-run AFTER orient; sourced by agi-rc for y/n.
-# Keys on unread tip shas (refs/box/*/P not at refs/held/P/*, the box n test). Notice to tty/o only, 0 B to i. Enter/anything else = HOLD.
+# mail-wake (g5.34.6.2 W1-W7 R8 + gate-e P2 W-A): ONE raw-shell watcher AFTER orient.
+# SoT: tip-sha mk() + PathChanged/agi-carry ping (~/.mail-wake-ping). Poll ≤2s packed-refs fallback only.
+# Notice tty/o only, 0 B to i. Enter/n/other = HOLD (W3/W4). V1: row grokbot else parent grokbot.
 mk(){ git for-each-ref --format='%(refname) %(objectname)' "refs/box/*/$AGI_POST"|while read r s;do f=${r#refs/box/};f=${f%/*};[ "$s" = "$(git rev-parse -q --verify refs/held/$AGI_POST/$f)" ]||echo "$f $s";done;}
-wk(){ g=$(git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p $AGI_POST 'select(.name==$p).grokbot//empty'|head -1)
- if command -v agi-wake >/dev/null;then agi-wake "${g:--}" "$*";else echo "[unwired] wake grokbot=${g:--}: $*";fi;}
+gb(){ git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p "$1" 'select(.name==$p)|.grokbot//empty'|head -1;}
+par(){ git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p "$1" 'select(.name==$p)|.parent//empty'|head -1;}
+wk(){ g=$(gb "$AGI_POST");[ -n "$g" ]||{ p=$(par "$AGI_POST");[ -n "$p" ]&&[ "$p" != owner ]&&[ "$p" != keep ]&&g=$(gb "$p");};if command -v agi-wake >/dev/null;then agi-wake "${g:--}" "$*";else echo "[unwired] wake grokbot=${g:--}: $*";fi;}
 y(){ [ -s ~/.mail-pending ]||{ echo "box: no mail pending";return 1;};rm -f ~/.mail-pending;(cd ~/t&&box read);}
 n(){ rm -f ~/.mail-pending;echo "box: held";};Y(){ y;};N(){ n;}
-[ "${1:-}" = watch ]&&{ cd ~/t||exit 1;while sleep 5;do pin 2>&1|while read -r l;do echo "$l";case $l in card-prompt*)wk "$l";;esac;done
- k=$(mk);[ -n "$k" ]&&[ "$k" != "$(cat ~/.mail-seen 2>/dev/null)" ]||continue;printf '%s\n' "$k">~/.mail-seen;printf '%s\n' "$k">~/.mail-pending
- f=$(printf '%s\n' "$k"|tail -n1|cut -d' ' -f1);printf '\nbox: mail from %s, read now? (y/N)\n' "$f";wk "box: mail from $f for $AGI_POST";done;}
+tick(){ pin 2>&1|while read -r l;do echo "$l";case $l in card-prompt*)wk "$l";;esac;done
+ k=$(mk);[ -n "$k" ]&&[ "$k" != "$(cat ~/.mail-seen 2>/dev/null)" ]||return 0;printf '%s
+' "$k">~/.mail-seen;printf '%s
+' "$k">~/.mail-pending
+ f=$(printf '%s
+' "$k"|tail -n1|cut -d' ' -f1);printf '
+box: mail from %s, read now? (y/N)
+' "$f";wk "box: mail from $f for $AGI_POST tip $(printf '%s
+' "$k"|tail -n1|cut -d' ' -f2)";}
+[ "${1:-}" = watch ]&&{ cd ~/t||exit 1;touch ~/.mail-wake-ping
+ while :;do tick;if command -v inotifywait >/dev/null;then inotifywait -qq -t 2 ~/.mail-wake-ping 2>/dev/null||true;else sleep 2;fi;done;}
 ~~~
+
 
 ### agi-rc (208 B)
 ~~~sh

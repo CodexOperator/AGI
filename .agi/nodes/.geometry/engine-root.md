@@ -82,7 +82,7 @@ systemctl start agi-post@$p</dev/null||{ echo "agi-boot: start failed $p">&2;e=1
 exit $e
 ~~~
 
-### box-carry (3246 B)
+### box-carry (3316 B)
 ~~~sh
 #!/bin/sh
 # box-carry P (ROOT, agi-carry@P.service, woken by P's own refs/box/P): P's refs/box/P/<Q> -> the store of each recipient on this box (pipe, ff-only, strict), or -> the hub when Q's box is elsewhere; re-scanned (max 5x) as long as P's tips keep moving; still moving after the last pass = exit 75 (the unit restarts it)
@@ -102,11 +102,11 @@ put(){ n=$(as $1 git -C $2 rev-parse "$5")||return;o=$(as $3 git -C $4 rev-parse
 if [ "$1" = --fetch ];then for p in $(echo "$W"|awk -v b=$B '$2==b{print $1}');do ok $p&&[ -d $S/$p/g.git ]&&timeout 10 sh $0 $p;done;[ -n "$H" ]||exit 0
  for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $f)" = $B ]&&[ "$(bx $q)" != $B ]&&a $f $q&&git -C $C push -q $H $r:$r;done
  git -C $C -c transfer.fsckObjects=1 fetch -q $H "$m/*:$m/*"
- for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $q)" = $B ]&&[ "$(bx $f)" != $B ]&&a $f $q&&put - $C $q $S/$q/g.git $r;done
+ for r in $(git -C $C for-each-ref --format='%(refname)' $m);do f=${r#$m/};f=${f%/*};q=${r##*/};ok $f&&ok $q&&[ "$(bx $q)" = $B ]&&[ "$(bx $f)" != $B ]&&a $f $q&&put - $C $q $S/$q/g.git $r&&as $q touch $S/$q/.mail-wake-ping;done
 else P=$1;ok $P&&[ -n "$(bx $P)" ]||exit 1;k=;i=0
  while [ $i -lt 5 ];do s=$(as $P git -C $S/$P/g.git for-each-ref --format='%(objectname) %(refname)' $m/$P/);[ "$s" = "$k" ]&&break;k=$s;i=$((i+1))
   for r in $(echo "$s"|cut -d' ' -f2);do q=${r##*/};[ $r = $m/$P/$q ]&&ok $q&&a $P $q||continue
-   if [ "$(bx $q)" = $B ];then put $P $S/$P/g.git $q $S/$q/g.git $r;elif [ -n "$H" ];then put $P $S/$P/g.git - $C $r&&git -C $C push -q $H $r:$r;fi;done;done;[ "$(as $P git -C $S/$P/g.git for-each-ref --format='%(objectname) %(refname)' $m/$P/)" = "$k" ]||exit 75;fi;:
+   if [ "$(bx $q)" = $B ];then put $P $S/$P/g.git $q $S/$q/g.git $r&&as $q touch $S/$q/.mail-wake-ping;elif [ -n "$H" ];then put $P $S/$P/g.git - $C $r&&git -C $C push -q $H $r:$r;fi;done;done;[ "$(as $P git -C $S/$P/g.git for-each-ref --format='%(objectname) %(refname)' $m/$P/)" = "$k" ]||exit 75;fi;:
 ~~~
 
 ### agi-signers (1727 B)
@@ -134,7 +134,7 @@ PathChanged=/var/lib/agi/%i/g.git/refs/box/%i
 WantedBy=paths.target
 ~~~
 
-### agi-carry@.service (287 B)
+### agi-carry@.service (288 B)
 ~~~ini
 [Unit]
 StartLimitIntervalSec=0
@@ -143,7 +143,7 @@ Type=oneshot
 TimeoutStartSec=120
 Restart=on-failure
 RestartSec=5
-EnvironmentFile=/etc/agi/carry.env
+EnvironmentFile=-/etc/agi/carry.env
 Environment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory PATH=/opt/agi/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/opt/agi/bin/box-carry %i
 ~~~
