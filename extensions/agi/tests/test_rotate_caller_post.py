@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import rotate  # noqa: E402
-import send  # noqa: E402
+import boxes as send  # AA1: boxes.box_send  # noqa: E402
 
 
 def _write_seats(root, rows):
