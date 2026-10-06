@@ -47,9 +47,9 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
                gated predicate + real --dry-runs of the routine writes (the briefs' own lines: brief.py, cli.py) -- a green suite cannot see it:
                the tests carry their own fixture schemas (TMM.171: 111 live (type, field) pairs would have been refused)
 push         (the Prime's [rule] 02:54Z, owner 09-25; doc:unified-director-brief §2) directors' post branches are LOCAL-ONLY, never pushed; a
-             merge-up names a LOCAL tip; my landing on local-maxxing/season2/main is the town's ONLY remote push; the Prime keeps local-maxxing/main
-             + season2/main by SHA from it · a push's output names the remote URL: print only the ref-update line · a new post's key row lands
-             on origin/season2/main (f82730feaf, gen 21): merge it ancestry-only (tree identical) so the rotation + dispatch guards read current
+             merge-up names a LOCAL tip; my landing on the town trunk (local-maxxing) is the town's ONLY remote push; the Prime keeps local-maxxing/main
+             + the season trunk by SHA from it · a push's output names the remote URL: print only the ref-update line · a new post's key row lands
+             on the origin town trunk (f82730feaf, gen 21): merge it ancestry-only (tree identical) so the rotation + dispatch guards read current
 mirror       rotate-self's prepare check 1 (rotate.py:16159) BLOCKS until origin's refs/agi/posts/<post> = the post branch HEAD; its
              clear = git push origin HEAD:refs/agi/posts/<post> (non-force) -- the engine's owner-ordered mirror for LOCAL-ONLY branches
              (branches.py:58-62, goal:g15.25), NOT the branch the 09-25 rule keeps off origin · precedent: DE gen 18 12:28Z, DT gen 28

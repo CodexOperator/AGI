@@ -30,7 +30,7 @@ python3 extensions/agi/bin/dispatch.py <project_root> <iter_n> --tier parent \
 ```
 - `--role parent --ladder-tier 0` is DELIBERATE: `--role` defaults to `kid`, so a bare `--tier parent` resolves
   the tier-0 KID row and spawns the parent on the wrong model (hypothesis:l3w1-tier0-director-brief).
-- Exit 3 = your post is behind `origin/season2/main`: that refusal IS the behind check (F9) — no hand fetch + rev-parse.
+- Exit 3 = your post is behind the origin town trunk: that refusal IS the behind check (F9) — no hand fetch + rev-parse.
 - `--push-further` re-dispatches at `--target` from its `push_further` text; refused at an overview/vision/moral node.
 - Bound: `spawn_budget.py status` (live agents vs the tree-wide cap); `provisioning.py status` (per-spawn keys).
 - A director dispatches from ITS OWN worktree; live parents ≤ the cap cell its master names (local-maxxing: `values.local_maxxing.de_live_parents`), ≤ 5 kids each.

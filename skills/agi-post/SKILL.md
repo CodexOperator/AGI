@@ -9,7 +9,9 @@ description: >
 
 # agi-post — stand up · take down (owner 09-29: "Need a post stand up/takedown skill")
 
-Source of truth: `heal.py _watch_seats` (crash-respawn) · `rotate.py cmd_spawn` (stand-up) · `brief.py render` (first turn) ·
+**ET pane SoT (live, one source):** every ET seat is systemd `agi-post@<post>.service` + fifo `/run/agi-<post>/i` + out `/var/lib/agi/<post>/o`. Stand-up / take-down / drive the seat through that unit + fifo only — never tmux spawn/kill/attach/send-keys.
+
+Source of truth: `heal.py _watch_seats` (crash-respawn) · systemd `agi-post@.service` (ET stand-up) · `brief.py render` (first turn) ·
 `.agi/context/schemas/[config].md` (row fields). Mapped 09-29 by belam-S2-L5-XV — the cites below are by function name (no line numbers); re-verify after engine edits.
 
 ## 1 · Take a post DOWN, and keep it down
@@ -17,8 +19,9 @@ Source of truth: `heal.py _watch_seats` (crash-respawn) · `rotate.py cmd_spawn`
 1. tell the post: finish the atomic step, write + commit its card, reply "[rotation] <post> down-ready"
 2. its row in MAIN posts.md: "recover": false (a JSON boolean: the STRING "false" reads true) AND "pid": 0
    one write.py config:posts write (--actor belam --role prime_director, --dry-run first) -> commit by exact path
-3. only then stop it: tmux kill-window -t agi-rc:<@window>        heal polls every 30 s: flags FIRST, kill second
+3. only then stop the ET seat: sudo systemctl stop agi-post@<post>     heal polls every 30 s: flags FIRST, stop second
 ```
+<!-- HISTORICAL/old-engine: pre-ET take-down killed the agi-rc window (kill-window verb). Not the ET stop verb. -->
 - heal relaunches a row when pid > 0 and box == AGI_BOX and its pid, window and pinned session are all gone and no newer or
   in-flight rotation exists (pid > 0 + local box: `heal.py _watch_seats`; the newer/in-flight-rotation skip: `heal.py _watch_one_seat`);
   `recover: false` = logged, never relaunched (`heal.py _watch_one_seat`).
@@ -26,23 +29,23 @@ Source of truth: `heal.py _watch_seats` (crash-respawn) · `rotate.py cmd_spawn`
   (`heal.py _live_seat_row`): `pid: 0` in MAIN excludes it outright; `recover: false` alone must also reach the worktree copy.
 - a merge-up from the post's branch can restore cells (skill agi-master-gate): re-check both cells after any merge.
 
-## 2 · Stand a post UP
+## 2 · Stand a post UP (ET SoT)
 ```
-0. its row in MAIN posts.md, committed BEFORE spawn: name · role (director | parent | …) · model · effort · settings · box = this box ·
+0. its row in MAIN posts.md, committed BEFORE start: name · role (director | parent | …) · model · effort · settings · box = this box ·
    town (a ladder town; `all` is refused) · template (masters: doc:unified-master-brief) · worktree ("" = MAIN) ·
    identity cells EMPTY (pid 0, window "", session_*) · pubkey "" unless its key file is on this box
 1. its card: write.py create doc card-<post> --parent goal:<g> --body-file <f>     the brief = HEAD + template + CARD (+ STARTUP)
-2. python3 extensions/agi/bin/rotate.py spawn --seat <post> --dry-run   ->   the same without --dry-run     (from MAIN, never on master)
+2. enable+start the ET unit: sudo systemctl enable --now agi-post@<post>
+   drive: printf %s\\r '<cmd>' | sudo tee /run/agi-<post>/i
+   read:  sudo tail -f /var/lib/agi/<post>/o
 ```
-- spawn reads name/role/model/effort/settings/worktree/pid/generation/pubkey/template; `--model`/`--effort` must match the row
-  (exit 3, `rotate.py _cmd_spawn`); the harness comes from the flag (default claude-code); the window lands in tmux agi-rc (`rotate.py spawn_window`).
-- it starts FRESH (no --resume), mints a key if the row has none, writes pid/window/session cells, commits ONLY its own row and
-  pushes the current branch: commit your own row edits first (a dirty posts.md refuses the later ack).
+- ET seat lands as systemd `agi-post@<post>.service` with fifo `/run/agi-<post>/i` and out `/var/lib/agi/<post>/o` — one pane SoT; never tmux.
+- Row/key/commit discipline still applies: commit your own row edits first; whois reads origin town-trunk rows until Prime PASS merges the new row.
 - never `seats-launch` for one post: it starts EVERY non-fire-and-forget row (council and other-box rows too) and writes no row,
   key or commit (`rotate.py cmd_seats_launch`).
-- the role must be one config:brief has parts for: a `council` role has none (spawn crashes) — a council post keeps `role: director`.
-- whois reads origin/season2/main rows: a new row answers NO-MATCH until the Prime's PASS merges it (`send.py whois`);
-  signed sends verify against MAIN's committed row.
+- the role must be one config:brief has parts for: a `council` role has none — a council post keeps `role: director`.
+
+<!-- HISTORICAL/old-engine: pre-ET stand-up was rotate.py spawn --seat <post> (claude-code harness); window landed under session agi-rc via rotate.py spawn_window. Not the ET stand-up verb. -->
 
 ## 3 · Re-home a row from another box
 Formal route: `rotate.py migrate --post <p> --to <box>`, run ON the source box. From this box instead: ONE row write that sets box
@@ -59,8 +62,9 @@ python3 extensions/agi/bin/rotate.py stand-up --post <p>        (from MAIN)
 - refuses a row with an `engine` cell by name (`stand-up refused: <post> is engine vN (systemd-owned)`: strip the cell first),
   a post whose row pid is alive or whose window @id is open, and a stand-up of the same post already in flight (lock
   held): never a second live session.
-- spawn · rotate-self · heal recover · stand-up are the four callers of ONE verb (goal:g7.16.1.7.1.1.4): never start a post's
-  `claude` by hand.
+- For ET seats the stand-up verb is systemd `agi-post@` (enable --now / stop). heal recover still owns crash-respawn flags.
+  <!-- HISTORICAL/old-engine: spawn · rotate-self · heal recover · stand-up were the four callers of ONE claude verb (goal:g7.16.1.7.1.1.4). -->
+  Never start a post's harness by hand outside the sanctioned verb for its engine.
 
 ## 5 · Never write signing config at the REPO level of MAIN (belam 10-03 04:2xZ, measured)
 MAIN's `.git/config` is shared by EVERY post's worktree, and a repo-level key OVERRIDES the post's own global cell (`~/.gitconfig`, `allowedSignersFile=~/.signers`).

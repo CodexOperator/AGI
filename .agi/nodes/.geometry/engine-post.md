@@ -427,6 +427,81 @@ echo "Judgment stamped on $R: judged_against=$A lens=$LENS season=$SEASON"
 exit 0
 ~~~
 
+### slice (5234 B)
+~~~sh
+#!/bin/sh
+# slice pack|show|ls|unpack|move|push|fetch — refs/slice/<n>; CAS tip; share blobs with grid
+# SoT: engine-post.md ### slice -> /var/lib/agi/$P/bin/slice (not extensions/agi/bin/)
+# Rollover hook: overview records slice_ref: refs/slice/season-N-archive (no --apply)
+P=${AGI_POST:?};T=${AGI_TRUNK:-HEAD};G=${AGI_GRID_TRUNK:-$(basename "$T")};NS=refs/slice
+x(){ echo "[refused] $*" >&2;exit 1;}
+u(){ echo "usage: slice pack N --mint ID...|--root ID|--range A..B|--path G... | show|ls|unpack N | move --to-grid|--from-grid|--to-branch REF|--from-branch REF N | push|fetch [R] N" >&2;exit 2;}
+cas(){ git update-ref "$1" "$2" ${3:+"$3"}||x CAS;}
+fm(){ git grep -l --full-name "^mint_id: $1$" "$T" -- .agi/nodes 2>/dev/null|head -1|sed "s|^$T:||";}
+fid(){ git grep -l --full-name "^id: $1$" "$T" -- .agi/nodes 2>/dev/null|head -1|sed "s|^$T:||";}
+mo(){ git show "$T:$1"|sed -n 's/^mint_id: //p'|head -1;}
+sel(){ M=;case $1 in
+--mint) shift;for i;do [ -n "$(fm "$i")" ]||x "mint $i";M="$M$i$";done;;
+--root) shift;r=$1;q=$r;s=;while [ -n "$q" ];do n=${q%% *};q=${q#"$n"};q=${q# };
+  case " $s " in *" $n "*) continue;; esac;s="$s $n";p=$(fid "$n");[ -n "$p" ]||x "id $n"
+  m=$(mo "$p");[ -n "$m" ]||x "mint $n";M="$M$m$"
+  for f in $(git grep -lF "  - $n" "$T" -- .agi/nodes 2>/dev/null|sed "s|^$T:||");do
+    q="$q $(git show "$T:$f"|sed -n 's/^id: //p'|head -1)";done;done;;
+--range) shift;for f in $(git diff-tree --diff-filter=AM -r --name-only "$1" -- .agi/nodes);do
+  m=$(mo "$f");[ -n "$m" ]&&M="$M$m$";done;;
+--path) shift;for g;do for f in $(git ls-tree -r --name-only "$T" -- "$g");do
+  m=$(mo "$f");[ -n "$m" ]&&M="$M$m$";done;done;;
+*) u;;esac;M=$(printf '%s' "$M"|tr '$' '\n'|awk 'NF&&!s[$0]++');[ -n "$M" ]||x empty;}
+ptree(){ d=$(mktemp -d);printf '%s\n' "$M">$d/m;mkdir $d/n
+  printf '%s\n' "$M"|while read m;do [ -n "$m" ]||continue;p=$(fm "$m");git cat-file blob "$(git rev-parse "$T:$p")" >$d/n/$m;done
+  export GIT_INDEX_FILE=$d/i;git read-tree --empty
+  git update-index --add --cacheinfo 100644,$(git hash-object -w $d/m),manifest
+  for f in $d/n/*;do [ -f "$f" ]||continue;git update-index --add --cacheinfo 100644,$(git hash-object -w "$f"),nodes/$(basename "$f");done
+  git write-tree;rm -rf $d;unset GIT_INDEX_FILE;}
+gtree(){ i=$(mktemp);export GIT_INDEX_FILE=$i;git read-tree --empty
+  git update-index --add --cacheinfo 100644,$1,node.md;t=$(git write-tree);rm -f $i;unset GIT_INDEX_FILE;echo $t;}
+c=${1:-};shift||u
+case $c in
+pack) n=$1;shift;sel "$@";echo "pack $n $(printf '%s\n' "$M"|grep -c .)";tr=$(ptree)
+  o=$(git rev-parse -q --verify $NS/$n||true);nw=$(git commit-tree $tr ${o:+-p $o} -m "slice $n pack @ $(git rev-parse --short=9 $T)")
+  cas $NS/$n $nw "$o";echo $NS/$n $nw;;
+show) n=$1;r=$NS/$n;git rev-parse -q --verify $r >/dev/null||x no
+  echo tip $(git rev-parse --short=9 $r);git cat-file blob $r:manifest;git ls-tree $r nested 2>/dev/null||:;;
+ls) git for-each-ref --format='%(refname) %(objectname:short)' $NS/;;
+unpack) git archive $NS/$1|tar -t;;
+move) op=$1;shift;case $op in --to-branch|--from-branch) br=$1;shift;;esac;n=$1;r=$NS/$n
+  git rev-parse -q --verify $r >/dev/null||x no
+  for ch in $(git ls-tree --name-only $r nested 2>/dev/null|sed 's|^nested/||');do
+    [ -n "${br:-}" ]&&slice move "$op" "$br" "$ch"||slice move "$op" "$ch";done
+  case $op in
+  --to-grid) printf '%s\n' "$(git cat-file blob $r:manifest)"|while read m;do [ -n "$m" ]||continue
+    b=$(git rev-parse $r:nodes/$m);gr=refs/grid/$G/node/$m;tr=$(gtree $b)
+    o=$(git rev-parse -q --verify $gr||true);k=1;[ -n "$o" ]&&k=$(($(git rev-list --count $o)+1))
+    nw=$(git commit-tree $tr ${o:+-p $o} -m "slice-move v$k $m");cas $gr $nw "$o";echo $gr $nw;done;;
+  --from-grid) M=$(git cat-file blob $r:manifest);d=$(mktemp -d);printf '%s\n' "$M">$d/m;mkdir $d/n
+    printf '%s\n' "$M"|while read m;do [ -n "$m" ]||continue
+      git cat-file blob "$(git rev-parse refs/grid/$G/node/$m:node.md)">$d/n/$m;done
+    export GIT_INDEX_FILE=$d/i;git read-tree --empty
+    git update-index --add --cacheinfo 100644,$(git hash-object -w $d/m),manifest
+    for f in $d/n/*;do git update-index --add --cacheinfo 100644,$(git hash-object -w "$f"),nodes/$(basename "$f");done
+    tr=$(git write-tree);o=$(git rev-parse -q --verify $r||true)
+    nw=$(git commit-tree $tr ${o:+-p $o} -m "slice $n from-grid");cas $r $nw "$o";rm -rf $d;echo $r $nw;;
+  --to-branch) d=$(mktemp -d);git archive $r nodes|tar -xC $d;export GIT_INDEX_FILE=$d/i
+    git read-tree $br 2>/dev/null||git read-tree --empty
+    printf '%s\n' "$(git cat-file blob $r:manifest)"|while read m;do [ -n "$m" ]||continue
+      p=$(fm "$m");[ -n "$p" ]||continue
+      git update-index --add --cacheinfo 100644,$(git hash-object -w $d/nodes/$m),"$p";done
+    tr=$(git write-tree);o=$(git rev-parse -q --verify $br||true)
+    nw=$(git commit-tree $tr ${o:+-p $o} -m "slice $n to-branch");cas $br $nw "$o";rm -rf $d;echo $br $nw;;
+  --from-branch) T=$br;M=$(git cat-file blob $r:manifest);tr=$(ptree)
+    o=$(git rev-parse -q --verify $r||true);nw=$(git commit-tree $tr ${o:+-p $o} -m "slice $n from-branch")
+    cas $r $nw "$o";echo $r $nw;;
+  *) u;;esac;;
+push) git push ${1:-origin} $NS/$2:$NS/$2;;
+fetch) git fetch ${1:-origin} $NS/$2:$NS/$2;;
+*) u;;esac
+~~~
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PROPOSED v5 (round 5, §Q): v4c's body pieces cut whole out of config:engine, byte for byte. SPLIT: agi-post@.service moved to engine-root (root reads it, a post does not).
 <!-- THOUGHT:END -->

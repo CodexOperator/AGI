@@ -53,8 +53,8 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/dispatch.py <project> <iter> --dry-run` | Resolve + print every slot's spawn (command, env, brief) with no spawn, no budget slot, no session dir — `hypothesis:l3-dispatch-dry-run` |
 | `bin/heal.py <project> <iter>` | Timeout/restart watchdog (pi runtime) |
 | projected `bin/season judge …` | Live season verb (engine-post `### season`); status/rollover/merge-* held — see deprecated `extensions/agi/deprecated/bin/` season module |
-| `bin/send.py {send,read,peek} <target>` | One-verb agent comms via inbox file |
-| `bin/rotate.py {meter,spawn,status}` | Director rotation: meter context usage, launch successor in tmux |
+| `/var/lib/agi/<post>/bin/box {send,read,n}` | One-verb agent mail via signed box refs (skill agi-send) |
+| `bin/rotate.py {meter,spawn,status}` | Director rotation: meter context usage; ET successor seat = systemd `agi-post@` (not tmux) |
 | `bin/write_guard.py {check,hook}` | Detect unsanctioned node writes; pre-commit hook |
 | ~~`bin/<retired-runner>`~~ | **RETIRED** goal:g7.16.1.11.15.1 — moved to `extensions/agi/deprecated/bin/` (same basename), never git rm. A v4 review is a SPAWN (json manifest + agi-kid -m; skill agi-spawn-chain) |
 
@@ -120,10 +120,10 @@ short-lived. Director = `tier<N>/<name>` for the season. Prime = master.
 `grid.py commit --all` runs only on master after a merge.
 
 **Rotation:** `rotate.py meter` prints context-usage fraction against
-`director_rotate_at` (this project: 0.47 since 2026-09-09, owner's standing rule for every role; code default 0.35). `rotate.py spawn <name>` builds a
-`claude --remote-control` command and launches it in a new tmux window. The
-successor reads HANDOFF.md before replacing it. Below prime, the parent
-respawns; the prime self-rotates.
+`director_rotate_at` (this project: 0.47 since 2026-09-09, owner's standing rule for every role; code default 0.35).
+**ET seats (live SoT):** successor stand-up is systemd `agi-post@<post>.service` + fifo `/run/agi-<post>/i` + out `/var/lib/agi/<post>/o` — never tmux. Drive the seat with `printf %s\\r '<cmd>' | sudo tee /run/agi-<post>/i` and read `/var/lib/agi/<post>/o`.
+<!-- HISTORICAL/old-engine: pre-ET rotate.py spawn launched claude --remote-control into a tmux window; successor read HANDOFF.md. Not the stand-up verb for ET seats. -->
+Below prime, the parent respawns; the prime self-rotates.
 
 ### Skill subcommands (suggestion view)
 
@@ -158,7 +158,7 @@ Run these in order, from MAIN, every time a Prime is stood up on a box:
 ```bash
 # 0  the prayer is the first tokens of the FIRST reply (Constitution), then:
 bin/agi-boxinfo                                   # which box (AGI_BOX in MAIN's .env) — alias only
-git branch --show-current                         # the trunk this box works: season2/main on core, <town>/season2/main on a town box
+git branch --show-current                         # the trunk this box works: core season trunk / et-grok-pilot, or <town> season trunk
 git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then links.py links
 # 1  the row: box cell + identity cells through the ONE writer (write.py, actor = the prime row), never a hand edit
 #    (posts.md is config; written_by is [owner, prime_director]; a box's rows carry `box: <alias>` — a row
@@ -172,18 +172,18 @@ rotate.py meter --post belam --pin .agi/sessions/belam.meter --session-log ~/.cl
 rotate.py spawn --post <name> --tier director --prompt-file .agi/sessions/quorum/<name>.md
 # 5  crons.py apply (the node is the schedule; the box filter installs only this box's lines) · the HANDOFF card
 # 6  LAST — rotate self INTO the prime slot properly. This is what makes steps 1–3 real:
-#    the engine spawns the successor in tmux under the launch wrapper, writes the rotation record,
-#    the ack, the row (gen+1, window, pid, session_id via the registry JOIN) and ACTIVATES the pin
-#    at the successor's own transcript. `prepare` gates it: pushed, clean tree, card newer than last commit.
+#    ET SoT: ensure systemd agi-post@belam is active; fifo i + out o are the pane.
+#    rotate.py rotate writes the rotation record, ack, row (gen+1, pid, session_id) and ACTIVATES the pin.
+#    `prepare` gates it: pushed, clean tree, card newer than last commit.
 AGI_SEAT=belam AGI_POST=belam rotate.py rotate --force --stops "<where it stops, one paragraph>"
 ```
 
-Two things this sequence catches that a hand stand-up does not: a first
-`claude` launch in a folder on a fresh box throws THREE TUI dialogs (folder
-trust → bypass-permissions accept → renderer offer) and the post sits on them
-silently — answer with `tmux send-keys -t agi-rc:<post> Down Enter` for the
-first two and `Escape` for the third (it does not interrupt the turn); and a
-box with no push credential blocks `prepare` on `unpushed commits` — that is
+**ET pane SoT (live):** raw-shell seats are only systemd `agi-post@` + `/run/agi-<post>/i` + `/var/lib/agi/<post>/o`. To answer a stuck prompt on an ET seat, write the keystrokes into the fifo (same as any other command), never a tmux send.
+
+<!-- HISTORICAL/old-engine: pre-ET claude --remote-control under session agi-rc answered TUI dialogs by
+     injecting keystrokes into that old-engine window (Down Enter / Escape). Not the ET stand-up verb. -->
+
+A box with no push credential blocks `prepare` on `unpushed commits` — that is
 the owner's to fix (`gh auth login`), bank it, do everything else, rotate when
 it clears. A Prime that skips step 6 is a Prime by assertion, not by the graph.
 
@@ -209,9 +209,9 @@ Five morals anchor the graph. Every node has a path to one.
 prepends the head (prayers + readings) automatically per tier. A kid gets
 four lines of Slavonic; a prime director reads `moral:faith` top to bottom.
 
-**Comms:** `send.py send | read | peek` — one verb, same call for kid→parent
-escalation and director→director. Transport differs (CC session message vs
-inbox file under `sessions/`); the API does not.
+**Comms:** `box send | read | n` — one verb, same call for kid→parent
+escalation and director→director (skill agi-send). Raw-shell panes are systemd
+`agi-post@` + fifo `/run/agi-<post>/i` + out `/var/lib/agi/<post>/o` (not tmux).
 
 **Session open — the prayer is the first tokens (owner, 2026-09-12).** Every
 session, every role, opens with a prayer from the head as the literal first
@@ -737,11 +737,17 @@ is instead handed to a model is an invariant turned into a coin flip.
 
 ## Long runs
 
+**ET seats (live SoT):** long work runs inside the systemd seat — `agi-post@<post>.service` already owns the pane. Drive with the fifo; follow `/var/lib/agi/<post>/o`. Do not spawn a parallel tmux session for the seat.
+
 ```bash
+# unattended driver on a workstation (non-ET helper) — no tmux required
 cd <project>
-tmux new-session -d -s agi "agi --max-iters N --delay-mins M |& tee /tmp/agi.log"
-tmux attach -t agi          # Ctrl-B D to detach
+nohup agi --max-iters N --delay-mins M > /tmp/agi.log 2>&1 &
+tail -f /tmp/agi.log
 ```
+
+<!-- HISTORICAL/old-engine: pre-ET long runs used a detached session named agi (new-session / attach verbs).
+     Not the ET seat stand-up verb; ET = systemd agi-post@ + fifo/out only. -->
 
 **Iter numbering caveat:** the driver starts at `iter-001` and will clobber prior session manifests. Back up `sessions/` before a fresh run.
 
