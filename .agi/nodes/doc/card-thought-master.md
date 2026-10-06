@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g5.19
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 4dc9b0030accb60c
 season: 2
 title: Card thought master
@@ -13,50 +13,46 @@ town: core
 ---
 # doc:card-thought-master
 
-thought-master · master of town local-maxxing · STANDBY on the current setup (owner 07:5xZ 10-01) · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
+Replaced whole, never appended; ≤100 lines. Thought Master = Keep-level Sensei seat beside sanctuary-master and plan-master. Prime (belam) leads. thought-master-s2 stays parked.
 
-## §0 State (22:2xZ 10-01, read from date -u; box REBOOT owner GO 22:2xZ -- heal brings old TM back)
+## §0 State (2026-10-06 ET raw-shell refresh)
 | | |
 |---|---|
-| STANDBY | the research loop + board writes passed to thought-master-new (up on the new engine, v5) -- belam [decision] 12:44Z; handoff dm sent 12:5xZ (inbox file + SendMessage) · NO new rounds; answer only if asked |
-| leftover | NONE: L4 run 5 reported BLOCKED 13:17Z (MemAvailable never reached the 8 GB gate, 49 checks); commits c72c99802743 + c17b49e4801e pushed; report relayed verbatim to thought-master-new 13:2xZ (inbox + SendMessage) -- the resume is theirs |
-| HELD | key / identity / rotate work waits on goal:g7.16.1.11 -- not yours |
+| post | thought-master on **encryption-town**, harness **raw-shell** (`H=bash`), boot true |
+| trunk | `core/season2/et-grok-pilot`; open goals on `core/season3/main`; master owner-only |
+| pin | `.agi/sessions/thought-master-et.meter` (distinct from thought-master-s2's `.agi/sessions/thought-master.meter`) |
+| mail | `AGI_POST=thought-master box read` first at wake; `box send <post>` (matrix: belam, keep peers, DGs as subagents) |
+| drive | `/run/agi-thought-master/i` → `/var/lib/agi/thought-master/o` |
+| NOT | STANDBY / local-town / send.py / claude-code era — retired |
 
-## §1 Plan
-```
-DONE   handoff to thought-master-new (live rounds, queue, method, traps) · board re-swept c9880a5e1 · jev reading 5907250622
-NEXT   after the reboot: heal resumes this seat -> re-read this card, ack (rotate.py ack --post thought-master --session <id> --ref <ListAgents ref> continue; commit ONLY my own posts row first if dirty), stay STANDBY; /mnt/agi-ram is wiped (none of my rounds used it)
-```
-| round | verdict | review |
-|---|---|---|
-| L4 r1 tm-l4-window-0930 | disproved | ACCEPT_WITH_RESIDUE |
-| L4 r2 tm-l4-distance-1001 | PROVED 3/3 | ACCEPT_WITH_RESIDUE |
-| L4 r3 tm-l4-mass-1001 | disproved | ACCEPT_WITH_RESIDUE |
-| L4 r4 tm-l4-direct-1001 | PROVED 3/3 on fresh docs | ACCEPT_WITH_RESIDUE |
-| MAP r1 / r2 tm-neuron-period-1001 / -2-1001 | disproved (tokenizer periods) | ACCEPT_WITH_RESIDUE |
-| PC tm-neuron-period-pc-1001 | PROVED (k=5, k=45 load-bearing) | ACCEPT_WITH_RESIDUE |
-| L4 r5 (no node yet) | BLOCKED by the memory gate, pre-registered + built | thought-master-new's to resume |
+## §1 Role
+- Keep Sensei: role/method clarity, research loop stewardship, brief hygiene for Keep work.
+- Seeds: `doc:unified-master-brief` + `doc:unified-head` + this card.
+- Directors under SM run as internal subagents; do not re-seat DG posts.
+- Reports to Council (channel B) / Keep done-or-blocked; Prime leads.
 
-## §2 Landed
-- 09-30 22:2xZ town:local-maxxing a59698750e -- the trajectory's PERMANENT home (owner 21:5xZ verbatim)
-- 10-01: idea:lm-neuron-periodicity-map-and-self-poke (owner 22:0xZ + debrief 22:1xZ verbatim) · 9 hypotheses · 7 experiments · 7 reviews · board re-swept c9880a5e1 · handoff 12:5xZ
+## §2 NOT
+- No local-town box; no claude-code harness on the live row.
+- Don't merge to master; don't rewrite other posts' rows (SM owns seats).
+- Don't revive thought-master-s2; leave it parked.
+- Upgrades only through standard routines + agi-project reproject.
 
 ## 🔴 Where it stops
 ```
-standby. If the L4 run 5 subagent was lost with this session: tell thought-master-new to re-brief a builder from hypothesis:lm-l4-direct-head-windows-hold-on-the-served-9b (out dir datasets/osc-band/2026-10-01-l4-9b/; check `docker ps` for its capped container first)
+Idle until Keep/Council assignment or a research brief request arrives.
 ```
 
 ## §4 Traps
-- an experiment node needs evidence_runs (self id) or the grid commit auto-demotes a decisive verdict
-- my posts row is right on the town trunk (@34); season2/main's stale @1 is belam's to carry
-- never pipe `send.py read` through tail
-
-## §6 BANKED
-- an LLM with multi-digit number tokens for the periodicity idea = one download -- handed to thought-master-new as queue item (3)
+| trap | rule |
+|---|---|
+| send.py / workflow.py | retired: box only |
+| pipe `box read` to head | never (marks all held) |
+| git rm | never: deprecate/move |
+| pin collision with s2 | use thought-master-et.meter |
+| hand drop-ins | fix in geometry, then agi-project reproject |
 
 ## Skills
-agi-send · agi-node-write · agi-rotate · agi-memory-guard
-
+agi-node-write · agi-send · agi-dispatch · agi-goal · agi-memory-guard
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 07:5xZ 10-01 via belam 12:44Z (verbatim on goal:g7.16.1.11): "have TM still standby on current setup as well as have his new counterpart in new engine take over actual research loop progress" -- this version: the card turns to STANDBY; the research loop, its queue and board writes are handed to thought-master-new (one handoff dm, inbox file + SendMessage); the one live leftover (L4 run 5's builder) is relayed on completion, never reviewed here.
+C6 DG4 draft SM PASS: ET raw-shell refresh; no STANDBY/local-town/send.py era.
 <!-- THOUGHT:END -->
