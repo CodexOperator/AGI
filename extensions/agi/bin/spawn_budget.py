@@ -631,7 +631,7 @@ def attach_branch(lease: Lease, branch_ref: dict) -> None:
     `hypothesis:l3w4-parent-branch-merge-up`. A `--branch` spawn cuts its
     own git worktree off the SPAWNER's branch; the lease is the object whose
     liveness governs the slot, so it is the right place to hang the target of
-    the eventual `season.py merge-up` — a lease that lingers past the agent
+    the eventual `deprecated-season merge-up` — a lease that lingers past the agent
     still says where its branch belongs, and `merge-up --record <lease>` can
     climb it into the recorded base. `branch`/`base_branch`/`worktree` are
     recorded verbatim (never the secret, never a path that later proves

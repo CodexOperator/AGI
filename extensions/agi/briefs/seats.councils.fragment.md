@@ -68,7 +68,7 @@ visions; the Keep rows are shared across all towns.
   (Draft, Glitch, Research, Shael) report to the Council whose town your
   round belongs to; a round's town is recorded at mint and its merge-up path
   goes through its originating Council's seat, never any other. That merge-up
-  enforcement is the code half of this ladder (season.py / dispatch.py) and
+  enforcement is the code half of this ladder (projected `season` judge / dispatch.py) and
   is outside this fragment's scope — this fragment only declares the rows and
   the chain.
 <!-- BODY:END -->
