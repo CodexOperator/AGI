@@ -2200,7 +2200,7 @@ def main(argv: list[str] | None = None) -> int:
     # The suite lock no longer lives here — it moved to the RESOURCE.
     # `extensions/agi/tests/conftest.py` acquires it (`hypothesis:l4-the-suite-
     # lock-belongs-to-pytest-not-its-caller`), so every path that starts the
-    # pytest suite — verification.py --suite, commands.py run tests, season.py
+    # pytest suite — verification.py --suite, commands.py run tests, deprecated-season
     # merge-up, a bare shell — contends for the SAME lock. This runner spawns
     # pytest as a child with no env= (so it inherits os.environ), and that
     # child acquires. Exactly one acquirer exists now.

@@ -368,7 +368,7 @@ def _no_real_tmux(monkeypatch):
     break those tests — see the L4.5x brief.
 
     Patch target: the real stdlib `subprocess.run`.
-    send.py/rotate.py/season.py `import subprocess`, and mail_alert.py
+    send.py/rotate.py/deprecated-season `import subprocess`, and mail_alert.py
     `import send` (whose module object `import subprocess` too), so every
     module's tmux call ultimately resolves through this one attribute — one
     fixture covers the whole suite. A per-module-alias patch would defeat
@@ -447,7 +447,7 @@ def _no_real_provisioning_call(monkeypatch):
 # --- the suite lock belongs to the resource, not a caller -------------------
 # `hypothesis:l4-the-suite-lock-belongs-to-pytest-not-its-caller`. Every path
 # that starts the pytest suite goes THROUGH this conftest (commands.py run
-# tests, verification.py --suite, season.py merge-up, a bare shell), so the
+# tests, verification.py --suite, deprecated-season merge-up, a bare shell), so the
 # lock lives here, resolved from Path(__file__) — never cwd — and every caller
 # contends for the one file.
 _BIN = Path(__file__).resolve().parent.parent / "bin"
