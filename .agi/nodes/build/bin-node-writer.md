@@ -1,13 +1,14 @@
 ---
+
 id: build:bin-node-writer
 mint_id: 125d31c7fdb24e5383883aa2e0fbe3b2
 type: build
 parents:
-  - goal:g7.16.1.2
+  - goal:g7.16.1
   - mvp:dg3-m-marker-strings
   - build
   - code
-  - g2.1
+  - goal:g2.1
 build_kind: code
 confidence: 1.0
 edited_by: director-general-3
