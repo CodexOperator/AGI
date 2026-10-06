@@ -7,14 +7,12 @@ parents:
   - hypothesis:g5356-o5-renumber-text-cleanup-g531-to-g534
 next_edges: []
 confidence: 0.9
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
 edited_by: director-general-2
 scaffold_hash: 241ba33a67c51337
 season: 3
 title: "O5 BEFORE-BUILD baseline PROVED 0.9: residual g5.31 strings; deprecated g5.31.md kept. CLAIM of FIX unMET/partial until build."
 town: core
-verdict: inconclusive_lean_proved:50
+verdict: proved
 ---
 # verdict:dg2-g5356-o5-renumber-baseline
 

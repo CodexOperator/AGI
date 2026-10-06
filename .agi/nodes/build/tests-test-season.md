@@ -6,22 +6,22 @@ mint_id: e84b2e52eae547d49b4b1dde52efbcd7
 origin: build-scan
 parents:
   - mvp:tests
-payload_ref: extensions/agi/tests/test_season.py
+payload_ref: extensions/agi/deprecated/tests/test_season.py
 tags:
   - build
   - code
   - g2.1
-title: "Build: extensions/agi/tests/test_season.py"
+title: "Build: extensions/agi/deprecated/tests/test_season.py"
 type: build
 ---
 
-`extensions/agi/tests/test_season.py` — level-3 code node (one file, one canonical node).
+`extensions/agi/deprecated/tests/test_season.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `mvp:tests`.
 
 <!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
 ```yaml
-payload_ref: extensions/agi/tests/test_season.py
+payload_ref: extensions/agi/deprecated/tests/test_season.py
 parse_ok: true
 inputs:
 - name: __future__.annotations
