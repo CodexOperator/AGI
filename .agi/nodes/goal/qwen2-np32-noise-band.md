@@ -20,7 +20,7 @@ season: 2
 seeds: []
 spawn_check: unverified
 spawn_check_reason: schema 'goal' is discriminated on 'goal_kind', which this node does not set
-status: active
+status: retired
 tags:
   - goal
   - subgoal
@@ -65,3 +65,5 @@ Assigned to **p1 (a00-e2d2e39a)** in swarm-osc35, iter 35.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 RENAMED (director-thought gen 32, TMM.198 resid 1): goal:g5.22.3-qwen2-np32-noise-band -> goal:qwen2-np32-noise-band. The old slug carried a number its goal_id (G5.22.1.3) contradicted. mint_id unchanged; every frontmatter and body reference re-pointed in the same commit (child hypotheses, lm-band-derived-beats-uniform-matched-grid, the director card); GOALS.md re-rendered.
 <!-- THOUGHT:END -->
+
+<!-- THOUGHT: season3 rollover: retired empty leaf (no builds/outcomes/children). -->

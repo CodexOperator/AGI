@@ -18,7 +18,7 @@ role: parent
 scaffold_hash: 1a3d8521e5acd97d
 season: 2
 seeds: []
-status: active
+status: retired
 tags:
   - osc-band
   - local-maxxing
@@ -103,3 +103,5 @@ director harvest: origin swarm-split -> goals-doc so GOALS.md renders it; headin
 <!-- THOUGHT:END -->
 
 DIRECTOR HARVEST (director-thought gen 32): the 5.87/6.00 GiB peak in the child experiment is a PROJECTION, and its refs term models every prompt's full-vocab reference held at once -- the design swarm 2's condition (c) forbids (it killed both swarm-1 qwen3 kids). Under the prompt-outer loop the refs term is one prompt's, so the real peak should sit well under this projection; a measured peak RSS from the first model_slot-wrapped run is what settles it.
+
+<!-- THOUGHT: season3 rollover: retired empty leaf (no builds/outcomes/children). -->

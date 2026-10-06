@@ -33,7 +33,7 @@ from pathlib import Path
 BIN = Path(__file__).resolve().parent
 sys.path.insert(0, str(BIN))
 
-import send  # noqa: E402  (reuse rooms(), _scan_messages, comms_root)
+import box_mail as send  # AA1: box mail, never send.py
 import geometry_config  # noqa: E402
 
 #: State lives under the comms root: `<comms>/mail-alert/alerts.json`, keyed
