@@ -31,27 +31,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-# AA1/W: send.py + workflow.py live under deprecated/bin (no live bin shims).
-# Suite tests still import those module names; put deprecated/bin on path so
-# collection resolves the real deprecated modules without resurrecting bin/*.
-_DEPR_BIN = Path(__file__).resolve().parents[1] / "deprecated" / "bin"
-if _DEPR_BIN.is_dir() and str(_DEPR_BIN) not in sys.path:
-    sys.path.insert(0, str(_DEPR_BIN))
-
-# No live bin/send.py or bin/workflow.py (AA1/W). Live bin first for rotate/heal;
-# deprecated/bin appended so `from agi.bin import send` resolves there.
-import types as _types
-_LIVE_BIN = Path(__file__).resolve().parents[1] / "bin"
-if "agi" not in sys.modules:
-    _agi = _types.ModuleType("agi")
-    _agi.__path__ = [str(Path(__file__).resolve().parents[1])]
-    sys.modules["agi"] = _agi
-if "agi.bin" not in sys.modules:
-    _agi_bin = _types.ModuleType("agi.bin")
-    _agi_bin.__path__ = [str(_LIVE_BIN), str(_DEPR_BIN)]
-    sys.modules["agi.bin"] = _agi_bin
-    sys.modules["agi"].bin = _agi_bin
-
 import pytest
 
 GATE_TIER = "kid"
