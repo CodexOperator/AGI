@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-BIN = Path(__file__).resolve().parents[1] / "bin"
+BIN = Path(__file__).resolve().parents[1] / "deprecated" / "bin"
 sys.path.insert(0, str(BIN))
 
 import send  # noqa: E402
