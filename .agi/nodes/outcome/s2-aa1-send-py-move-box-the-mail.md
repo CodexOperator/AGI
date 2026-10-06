@@ -27,7 +27,7 @@ town: core
 ## What landed
 - MOVE `extensions/agi/bin/send.py` → `extensions/agi/deprecated/bin/send.py` (317680 B, never git rm). Land tip fa8fd991f (DG6); after-MOVE DG8 3772a6bde + DG9 replica 56c9059e7, both 0.9.
 - AA1 `box` (2005 B) is THE mail path (refs/box + refs/held). g1.40 FOLDS (flock SCRAP).
-- Tiny import/CLI shims at `bin/send.py` (~1 KB) keep `import send` and `python3 bin/send.py <verb>` working for rotate/heal without restoring the live payload.
+- Import/CLI shims briefly tried at `bin/send.py` were course-corrected: moved to `deprecated/bin/send-import-shim.py` (never git rm). Owner: send runs in the new engine with NO Python; nothing live opens send.py.
 
 ## Evidence
 verdict:dg8-aa1-after · verdict:dg9-aa1-after · verdict:dg2-aa1-box-counts · trunk lands fa8fd991f / 3772a6bde / 56c9059e7.

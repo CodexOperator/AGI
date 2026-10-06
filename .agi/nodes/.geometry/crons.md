@@ -16,8 +16,8 @@ cadences:
     every_mins: 5
     enabled: true
     box: local-town
-    why_box: "the remote-box reader: mail_poll consumes inboxes fetched from the hub"
-    cmd: git -C {repo_root} fetch -q origin && python3 {engine_root}/extensions/agi/deprecated/bin/send.py read --box-local --peek >> {log} 2>&1; python3 {engine_root}/extensions/agi/bin/rotate.py migrate --receive >> {log} 2>&1
+    why_box: "the remote-box reader: mail_poll fetches refs/box + refs/held (AA1); no send.py"
+    cmd: git -C {repo_root} fetch -q origin 'refs/box/*:refs/box/*' 'refs/held/*:refs/held/*' >> {log} 2>&1; python3 {engine_root}/extensions/agi/bin/rotate.py migrate --receive >> {log} 2>&1
   engine_push:
     schedule: 47 * * * *
     enabled: false
@@ -85,6 +85,8 @@ title: Cron cadence declaration
 2026-10-05 ~01:3xZ encryption-town: grid.storage_trunk on this checkout is refs/grid/et-grok-pilot (was refs/grid/local-maxxing). grid.py ref_ns_for reads that cell from .agi/config.json; this geometry note is the record so a grid commit on core/season2/et-grok-pilot does not write refs/grid/local-maxxing. Existing refs/grid/local-maxxing were not migrated and not pushed. grid_sync stays enabled false. branch_push stays enabled false.
 
 2026-10-06 ~02:4xZ encryption-town (season-close stand-in): nudge_sweep enabled false. AA1 box is THE mail; agi-run/cccc.ts wake polls `box n` and types `mail: box read`. Central send.py wake --all-local is retired with send.py MOVE; in-pane wake replaces it. pi_auth_refresh stays. Manual crontab apply after this land.
+
+2026-10-06 ~02:5xZ encryption-town (course-correct): shims at bin/send.py and bin/workflow.py moved to deprecated/bin/*-import-shim.py (never git rm). mail_poll cmd fetches refs/box + refs/held only — no send.py. Owner: send runs fully in the new engine with NO Python; W retires workflow.py.
  — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 goal:g7.16.1.4.1.2 (DG2's L2a config finding, re-read by DG1): the body said publish_engine and engine_push 'stay out ... because their own enabled is false', but de5507a17 removed the publish_engine cadence, so only engine_push still has an enabled. The kill-switch paragraph now says engine_push stays out and publish_engine no longer exists; the g11 race scenario is put in the past tense. Prose only: crons.py show output byte-identical before and after.
 <!-- THOUGHT:END -->

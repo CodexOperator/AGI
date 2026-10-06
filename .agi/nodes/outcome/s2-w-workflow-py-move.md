@@ -25,7 +25,7 @@ town: core
 
 ## What landed
 - MOVE workflow.py + workflow_note + 14 js → deprecated/; living spawn path is 16 json + agi-spawn-chain skill. Land 033000458; DG8 after-MOVE 0.9.
-- Shim at bin/workflow.py mirrors AA1 (import + CLI).
+- A brief bin/workflow.py shim was course-corrected into deprecated/bin/workflow-import-shim.py (never git rm). W retires workflow.py; nothing live opens it.
 
 ## Evidence
 verdict:dg8-w-move-after · verdict:dg2-w-move-counts · trunk 033000458.
