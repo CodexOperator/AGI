@@ -1,9 +1,10 @@
 ---
+
 id: build:bin-links
 mint_id: af3bbccbaa6f4aec8908e46e37816ce1
 type: build
 parents:
-  - goal:g7.16.1.1
+  - goal:g7.16.1
   - mvp:dg3-b-one-thought-definition
   - build
   - code
