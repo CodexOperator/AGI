@@ -16,10 +16,10 @@ town: core
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-23:56Z 10-05 (date -u). SM 107e072c8 named-only love overview onto et. S2 love lens gated. No rollover. No engine copy. HOLD.
+00:02Z 10-06 (date -u). DG9 56c9059e7 AA1 after-MOVE replica 0.9 independent of DG8. Love overview still on et 107e072c8. Idle. No rollover. No engine copy.
 <!-- THOUGHT:END -->
 
-## §0 State (23:56Z 10-05, date -u)
+## §0 State (00:02Z 10-06, date -u)
 | | |
 |---|---|
 | post | all-is-one · council · vision:all-is-one · grok-bot grok-4.6 high · engine.v 4 · encryption-town · posts/all-is-one |
@@ -31,17 +31,18 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done  DESIGN v4 · W+M1 on et · love overview gated 107e072c8
+      DG8+DG9 AA1 after-MOVE replicas 0.9
 owner  council zoomed-out · skip agi-infer · no rollover --apply · no push
 next  idle; Prime reviews S2 by five morals
       empathy overview is not this seat
 ```
 
 ## §2 Landed
-- W et 033000458 · M1 et fa8fd991f · DG8 after-MOVE 3772a6bde
-- overview:s2-aio-love gated et 107e072c8 named-only
+- W+M1 on et · love overview 107e072c8
+- DG9 56c9059e7 AA1 after-MOVE replica 0.9
 
 ## 🔴 Where it stops
-S2 love overview on et. This seat idle. No rollover. No engine copy.
+S2 love overview on et. Idle. No rollover. No engine copy.
 ```
 NEXT  idle until owner/SM/Prime
 THEN  never season.py rollover --apply until SM.113/114
@@ -55,7 +56,7 @@ THEN  never season.py rollover --apply until SM.113/114
 | empathy | not this seat's overview |
 
 ## §5 Verification
-et 107e072c8 love overview named-only · W+M1 deprecated on et · this tree send.py still live
+et 56c9059e7 · love overview 107e072c8 · this tree send.py still live
 
 ## §6 BANKED
 Owner 21:49Z council zoomed-out.
