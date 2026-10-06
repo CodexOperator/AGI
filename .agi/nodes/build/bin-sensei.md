@@ -1,13 +1,14 @@
 ---
+
 id: build:bin-sensei
 mint_id: 7c11872781b84492832143ea0153b5fa
 type: build
 parents:
-  - goal:g7.16.1.2
+  - goal:g7.16.1
   - mvp:bin-modules
   - build
   - code
-  - g2.1
+  - goal:g2.1
 build_kind: code
 confidence: 1.0
 edited_by: director-general-3
