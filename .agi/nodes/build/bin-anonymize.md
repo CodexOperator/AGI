@@ -1,9 +1,10 @@
 ---
+
 id: build:bin-anonymize
 mint_id: e9d0cb583cac4f6a8acf0229b76a83e5
 type: build
 parents:
-  - goal:g7.16.1.2
+  - goal:g7.16.1
   - mvp:dg3-r3-generic-home-class
   - build
   - code
