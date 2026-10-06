@@ -8809,22 +8809,15 @@ def test_first_seating_writes_row_and_commits_seating_row_and_pushes(
 def test_keygen_line_is_the_one_refusal_spelling_and_its_tail_parses(
         tmp_path, monkeypatch):
     """clause (1): every refusal that sends an operator to key a seat quotes
-    the ONE module constant, and the tail it quotes PARSES under send.py's own
-    argparse (`keygen --post <seat>`), dispatching to `_cli_keygen` with the
-    seat resolved -- never a usage error."""
-    import send as _bin_send
+    the ONE module constant. AA1: send.py keygen CLI is retired — recovery is
+    agi-out fresh+restart (`touch ~/.fresh && systemctl restart agi-post@…`)."""
     line = rotate.KEYGEN_LINE.format(seat="belam")
-    assert line == "python3 extensions/agi/bin/send.py keygen --post belam"
+    assert "touch ~/.fresh" in line
+    assert "systemctl restart agi-post@belam.service" in line
+    assert "send.py" not in line  # never send.py keygen CLI
     # the refusal at the rotate-self gate quotes EXACTLY the constant.
     err = rotate._rotate_key_gate(tmp_path, "belam", {"pubkey": "deadbeef"})
     assert err is not None and f"`{line}`" in err, err
-    # the quoted tail IS send.py's argv[1:]: it parses and dispatches.
-    seen = {}
-    monkeypatch.setattr(_bin_send, "_cli_keygen",
-                        lambda root, args: seen.update(
-                            verb=args.verb, seat=args.seat) or 0)
-    assert _bin_send.main(line.split()[2:]) == 0
-    assert seen == {"verb": "keygen", "seat": "belam"}, seen
 
 
 def test_first_seating_keys_unkeyed_row_in_the_one_seating_commit(
@@ -8833,7 +8826,7 @@ def test_first_seating_keys_unkeyed_row_in_the_one_seating_commit(
     (0600) through the ONE key writer and writes pubkey/sig_scheme/enc_scheme
     INTO THE SAME seating row write -- ONE `seating row` commit carries the
     identity cells AND the key cells."""
-    import boxes as send  # AA1: boxes.box_send as _bin_send
+    import boxes as _bin_send  # AA1: boxes forwards mint/sign helpers
     root, top, bare = _git_with_bare(tmp_path, lambda r: None)
     wins = tmp_path / "windows.txt"
     wins.write_text("@42 belam\n", encoding="utf-8")
@@ -8874,7 +8867,7 @@ def test_first_seating_leaves_a_keyed_row_untouched(tmp_path):
     """clause (2), negative half: a row that ALREADY names a pubkey is left
     alone by the seating -- no key minted (a re-seat never rotates a key),
     no pubkey cell overwritten, `keyed_at_seating` false."""
-    import boxes as send  # AA1: boxes.box_send as _bin_send
+    import boxes as _bin_send  # AA1: boxes forwards mint/sign helpers
     scheme = _bin_send.seatsig.get("ed25519")
     _priv, pub = scheme.keygen()
     root, top, bare = _git_with_bare(tmp_path, lambda r: None, seat_row={
@@ -8896,7 +8889,7 @@ def test_first_seating_dry_run_prints_would_key_and_writes_nothing(
         tmp_path, monkeypatch, capsys):
     """clause (3): `cmd_spawn --dry-run` on an unkeyed row prints the ONE
     `would key <seat>` plan line and mints / writes NOTHING."""
-    import boxes as send  # AA1: boxes.box_send as _bin_send
+    import boxes as _bin_send  # AA1: boxes forwards mint/sign helpers
     root, top, bare = _git_with_bare(tmp_path, lambda r: None)
     wins = tmp_path / "windows.txt"
     wins.write_text("@42 belam\n", encoding="utf-8")
