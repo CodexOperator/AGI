@@ -3,7 +3,7 @@ name: agi-merge-pass
 description: >
   The Prime's merge routine: the 4-hourly CHECK, the notice, and a PASS that reviews every
   hypothesis/engine round landed on the town trunk since the last merge and merges it into
-  season2/main — trunk sync, chunked pi reviews under the memory guard, verdicts, reds,
+  the season trunk — trunk sync, chunked pi reviews under the memory guard, verdicts, reds,
   residues, the verify-and-push close. Use when the CHECK cron fires, a PASS is due, or a
   post's merge-up has to be judged. Prime only (belam).
 ---
@@ -16,8 +16,8 @@ pending PASS). The crons are POINTER prompts — edit the section, never the cro
 
 ## 1 · CHECK (cron "13 */4 * * *", re-armed at every wake)
 ```
-(A) read: dm files *belam* + the inbox FILE (ts > belam.lastcheck) + one send.py read belam → answer only what needs the Prime
-(B) N = rev-list BASE..TIP (TIP = local-maxxing/season2/main); landed = experiment files changed
+(A) read: dm files *belam* + the inbox FILE (ts > belam.lastcheck) + one `box read` as belam → answer only what needs the Prime
+(B) N = rev-list BASE..TIP (TIP = local-maxxing town trunk); landed = experiment files changed
     a. N==0 or landed==0 → nothing      b. pending, no notice → ONE [owner] 5 h notice dm to thought-master + a one-shot
     c. notice pending, now < run_at → nothing      d. now ≥ run_at, never fired (pass_started_at null) → run the PASS now
 (C) owner reply ≤ 5 lines; ONE line when nothing changed
@@ -26,12 +26,12 @@ pending PASS). The crons are POINTER prompts — edit the section, never the cro
 ## 2 · PASS (steps as numbered in section 2)
 ```
 0 stamp pass_started_at FIRST
-1 fetch · origin/season2/main must be an ancestor of TIP, else sync it into the trunk (below) · PIN TIP as a sha · credits (< 4 USD → engine-delta + 5 sampled rounds)
+1 fetch · origin town trunk must be an ancestor of TIP, else sync it into the trunk (below) · PIN TIP as a sha · credits (< 4 USD → engine-delta + 5 sampled rounds)
 2 build rounds: one per hypothesis with ≥1 experiment changed in BASE...TIP (files ≤ 12) + engine-delta-N over unlisted
   extensions/ skills/ src/ .agi/config.json .agi/nodes/.geometry paths (≤ 12 each; rotate test files dropped)
 3 launch chunks (≤ 2 rounds each) in the background, CAP chunks live; ONE Monitor (monitor.sh)
 4 verdicts ONLY from runs/<key>/{review,verify}_<label>.json → RED | demote | accept(_with_residue)
-5 clear → prime-root: pull --ff-only · merge --no-ff TIP (merge-tree preview) · commands.py run verify · push season2/main ·
+5 clear → prime-root: pull --ff-only · merge --no-ff TIP (merge-tree preview) · commands.py run verify · push the season trunk ·
   ff local-maxxing/main to TIP · grid.py commit --all (background)
 6 residues → a PASS LEAF goal (goal:g1.<next>: "PASS N residues", skill agi-goal §5) under goal:g1 or the goal they fit; under it ONE batch
   hypothesis + one hypothesis per real code defect (assigned: director-engine) → ONE [decision] dm to DE (owner 04:1xZ 09-27: subgoals, like directors)
@@ -57,6 +57,6 @@ trunk rows + the directors' model cells (pubkeys must agree), temp index + ff-on
 | verify `verdicts[]` rules on the FIRST reviewer's defects + `missed[]` | a residue table reads verify, never the review list alone |
 | `grid.py commit --all` in prime-root can leave an evidence-gate demotion dirty | save the patch, restore the file, then merge |
 | every push prints the remote's moved location | `git push … 2>&1 \| grep -v '^remote:'` |
-| the trunk push is thought-master's alone (owner 09-25) | belam pushes only season2/main + local-maxxing/main |
+| the trunk push is thought-master's alone (owner 09-25) | belam pushes only the season trunk + local-maxxing/main |
 | suite lock `.agi/sessions/<values.core.suite_lock.file>` | "free" = absent in MAIN and every post worktree (F7); no MAIN commit while it exists |
 | MAIN is shared with thought-master | commit by exact path; never switch branches, never touch others' uncommitted edits |
