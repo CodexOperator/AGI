@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-BIN = Path(__file__).resolve().parents[1] / "bin"
+BIN = Path(__file__).resolve().parents[1] / "deprecated" / "bin"
 REPO = Path(__file__).resolve().parents[3]
 WF = REPO / "extensions" / "agi" / "workflows"
 
