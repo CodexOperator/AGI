@@ -47,12 +47,12 @@ done
 } > "$o.t" && mv "$o.t" "$o"
 ~~~
 
-### agi-run (1248 B)
+### agi-run (1430 B)
 ~~~sh
 #!/bin/sh
 cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i
 (while sleep 300;do m=$((${AGI_PANE_MAX_MB:-64}<<20));[ $(stat -c%s ~/o 2>/dev/null||echo 0) -gt $m ]&&tail -c $((m/2)) ~/o>~/o.t&&cat ~/o.t>~/o;rm -f ~/o.t;done)&
-case $H in claude*|pi*)(s=0;while sleep 5;do n=$(box n|wc -l);[ $n -gt $s ]&&printf "mail: box read">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
+case $H in claude*|pi*|bash*)(s=0;while sleep 5;do l=$(box n);n=$(printf '%s' "$l"|grep -c .);[ $n -gt $s ]&&{ case $H in bash*)printf ' read -p "box: mail from %s, read now? (Y/n) " a;case $a in y|Y)box read;;esac' "$(printf '%s\n' "$l"|tail -n1)";;*)printf "mail: box read";;esac>$i;sleep 1;printf '\r'>$i;};s=$n;done)&;;esac
 case ${AGI_HARNESS:-} in raw-shell|shell|bash)
  export TERM=${TERM:-xterm-256color}
  f=$(mktemp);agi-sync "$PWD" "$f" 2>/dev/null&&{ printf '\n===== startup %s =====\n' "${AGI_SEAT:-${AGI_POST:-}}";cat "$f";printf '===== end startup =====\n\n';};rm -f "$f"
