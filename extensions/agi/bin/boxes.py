@@ -305,31 +305,34 @@ def whois(root, token: str, claim: str | None = None):
 
 
 def _deprecated_send():
-    """Lazy-load deprecated send.py for signing / DM / seating helpers.
+    """Return the ONE deprecated-send module object.
 
-    AA1 mail path is box_send above. Keygen *CLI recovery* remains the
-    KEYGEN_LINE (agi-out fresh+restart). Mint/sign/DM helpers still live on
-    the deprecated send module and must stay reachable for migrate/sensei/
-    rotate call sites that `import boxes as send`.
+    Prefer sys.modules["send"] (live bin/send.py AA1 shim) so test
+    monkeypatches on `import send` apply. Fall back to loading
+    deprecated/bin/send.py under a private name only if send is absent.
     """
     import importlib.util
     import sys
-    if "_agi_deprecated_send" in sys.modules:
-        return sys.modules["_agi_deprecated_send"]
+    if "send" in sys.modules:
+        return sys.modules["send"]
+    # Import via shim path if present
+    shim = Path(__file__).resolve().parent / "send.py"
+    if shim.is_file():
+        import importlib
+        return importlib.import_module("send")
     sp = Path(__file__).resolve().parent.parent / "deprecated" / "bin" / "send.py"
     spec = importlib.util.spec_from_file_location("_agi_deprecated_send", sp)
     if spec is None or spec.loader is None:
         raise ImportError(f"cannot load deprecated send: {sp}")
     mod = importlib.util.module_from_spec(spec)
-    # Ensure live bin + src on path before exec (locations, seatsig, …)
     agi = Path(__file__).resolve().parent.parent
     for p in (str(agi / "bin"), str(agi / "src")):
         if p not in sys.path:
             sys.path.insert(0, p)
     sys.modules["_agi_deprecated_send"] = mod
     spec.loader.exec_module(mod)
+    sys.modules.setdefault("send", mod)
     return mod
-
 
 def _mint_seat_key(root, seat: str, scheme=None, stage: bool = False):
     return _deprecated_send()._mint_seat_key(root, seat, scheme, stage=stage)

@@ -6543,7 +6543,7 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     failure is logged and NEVER fails the rotation — the announcement is the
     proof, not a gate. Returns the recipients reached.
     """
-    import boxes as send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
+    import send  # conversation/inbox SoT (tests patch this module); not boxes.box_send
     seq = _next_sequence(root)
     # The receiver set is computed BEFORE the record is written so the record
     # can name who the announce told (dedup: the Sensei appears ONCE in the
