@@ -17,7 +17,7 @@ EXPANSION of config:engine: the unit template (root's agi-project reads it throu
 Read only through `sect <name> [REV]`.
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
-### agi-post@.service (1977 B)
+### agi-post@.service (2012 B)
 ~~~ini
 [Unit]
 After=agi-ram-main.service
@@ -26,7 +26,7 @@ User=agi-%i
 StateDirectory=agi/%i
 WorkingDirectory=/var/lib/agi/%i
 EnvironmentFile=-/var/lib/agi/%i.env
-Environment=PATH=/var/lib/agi/%i/bin:/opt/agi/bin:/usr/local/bin:/usr/bin:/bin SHELL=/bin/sh DISABLE_AUTOUPDATER=1 AGI_SEAT=%i
+Environment=PATH=/var/lib/agi/%i/bin:/opt/agi/bin:/usr/local/bin:/usr/bin:/bin SHELL=/bin/sh DISABLE_AUTOUPDATER=1 AGI_SEAT=%i AGI_POST=%i
 Environment=GIT_AUTHOR_NAME=%i GIT_COMMITTER_NAME=%i GIT_AUTHOR_EMAIL=%i@agi GIT_COMMITTER_EMAIL=%i@agi
 Environment=PI_CODING_AGENT_DIR=/opt/agi/pi-agent PI_CODING_AGENT_SESSION_DIR=/var/lib/agi/%i/.pi/sessions
 RuntimeDirectory=agi-%i
