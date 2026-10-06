@@ -7,11 +7,11 @@ parents:
 cadences:
   grid_sync:
     every_mins: 5
-    enabled: false
+    enabled: true
     mirror_towns: true
   branch_push:
     schedule: 7 * * * *
-    enabled: false
+    enabled: true
   mail_poll:
     every_mins: 5
     enabled: true
