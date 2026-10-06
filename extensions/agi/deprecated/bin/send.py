@@ -57,9 +57,11 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-_BIN = Path(__file__).resolve().parent
+_BIN = Path(__file__).resolve().parent  # extensions/agi/deprecated/bin
+_AGI = _BIN.parent.parent  # extensions/agi
 sys.path.insert(0, str(_BIN))
-sys.path.insert(0, str(_BIN.parent / "src"))
+sys.path.insert(0, str(_AGI / "bin"))
+sys.path.insert(0, str(_AGI / "src"))
 import locations  # noqa: E402
 import spawn_gate  # noqa: E402
 import seatsig  # noqa: E402
