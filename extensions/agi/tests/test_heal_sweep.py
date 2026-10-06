@@ -107,7 +107,7 @@ def _cut(repo: Path, agent_id: str, branch: str,
 def _stamp_round(wt: Path, iter_name: str, agent_id: str, base: str) -> None:
     """Write the round's session records into a worktree, the same shape
     dispatch writes them: a top-level `agent.json` carrying `base_branch`
-    (the tuple season.py merge-up climbs) and a manifest with no running
+    (the tuple deprecated-season merge-up climbs) and a manifest with no running
     agents (so `_watch_round` over it is a pure no-op)."""
     it = wt / ".agi" / "sessions" / iter_name
     it.mkdir(parents=True, exist_ok=True)
@@ -458,7 +458,7 @@ def _stamp_complete_round(wt: Path, iter_name: str, agent_id: str,
     cli._iteration_agents_complete accepts) -- unlike the `agents: []` shape
     `_stamp_round` writes, which is NOT complete and would refuse to home. Also
     carries the top-level dispatcher `agent.json` with `base_branch` (the same
-    tuple season.py merge-up / the sweep's `_sweep_worktree_base` climb)."""
+    tuple deprecated-season merge-up / the sweep's `_sweep_worktree_base` climb)."""
     it = wt / ".agi" / "sessions" / iter_name
     (it / agent_id).mkdir(parents=True, exist_ok=True)
     (it / agent_id / "agent.json").write_text(json.dumps(
