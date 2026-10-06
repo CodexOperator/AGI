@@ -26,3 +26,7 @@ Locked choices verified in drafts:
 
 ## Non-goals
 Master · applying C4 before season · inventing Keep lands for TM/PM.
+
+
+## UPDATE 2026-10-06
+Ladder landed (Prime tip e35615681): current_season: 3 verified. Season g5.4.1.1.2 BLOCK lifted. SM tip after absorb: 255679c0a.
