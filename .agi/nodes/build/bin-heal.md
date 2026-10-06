@@ -1,13 +1,14 @@
 ---
+
 id: build:bin-heal
 mint_id: 2405ecff7d3a4584af5cd7ec815bc679
 type: build
 parents:
-  - goal:g7.16.1.2
+  - goal:g7.16.1
   - idea:engine-heal
   - build
   - code
-  - g2.1
+  - goal:g2.1
 build_kind: code
 confidence: 1.0
 edited_by: belam
