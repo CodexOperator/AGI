@@ -52,3 +52,7 @@ Bound for residual leaves g5.31.2–.5 (+ already-landed C3/C7):
 ## Non-goals (unchanged)
 
 Master merge without owner GO · inventing Keep lands YES · council writing posts.md · write.py shelling `season`.
+
+## Amendment — alive C1–C9 (post PASS)
+
+Season must-carry replaced: `### season` in engine-post.md; no alignment; exits 0/1/2; don't port status; ladder current_season prereq (g5.4.1.1.5); fixture+cat-file falsifier; rotate import-send residue (g5.4.1.1.6). Leaves .2–.4 reworded; .5/.6 minted. Geometry research residue bound on g5.31.* (TM meter, C4 after season builds, card season 3, DG on trunk 9011018d4).
