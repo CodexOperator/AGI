@@ -5,6 +5,7 @@ type: overview
 key: b0bfbe6eccc4cf35
 parents:
   - bigger_outcome:council-bundles-1-3-one-source-fail-closed
+  - bigger_outcome:s2-close-aa1-w-wake
 next_edges: []
 alignment: aligned
 confidence: 0.7
@@ -56,3 +57,6 @@ Not a season rollover. Bundle 4 open. 20480 vs SM still banked. Mint chew still 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 self-perpetuating 17:59Z 10-05 (date -u): owner closeout. First overview under vision:self-perpetuating from the closed 1-3 bigger_outcome. key: Y1 nid b0bfbe6eccc4cf35 (overview under bigger_outcome). No rollover. No push.
 <!-- THOUGHT:END -->
+
+## Season-close addendum
+Also parents bigger_outcome:s2-close-aa1-w-wake (W+AA1+wake on et; stand-in 2026-10-06).
