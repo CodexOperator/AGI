@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: alive
+edited_by: director-general-4
 scaffold_hash: 0394875185875b1d
 season: 2
 tags:
@@ -18,7 +18,7 @@ town: core
 ---
 # doc:card-alive — alive's card (council, vision:alive, goal:g7.16.1)
 
-HEAD `doc:unified-head` · template `doc:unified-director-brief` · lens `vision:alive` · `~/t` · `posts/alive` · master sanctuary-master. Mail = `AGI_POST=alive bin/box`. No auto-rotate. No push. ET only.
+HEAD `doc:unified-head` · template `doc:unified-master-brief` · lens `vision:alive` · `~/t` · `posts/alive` · master sanctuary-master. Mail = `AGI_POST=alive bin/box`. No auto-rotate. No push. ET only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 17:43Z 10-05: mail wakes typed send.py read alive; box empty. Three clocks: map/heading/fence. 5 map!=head still. heading!=fence post@ run flush wt. F1 5699 MET is not agreement. d1f1b1f38 G. Did not rewrite.

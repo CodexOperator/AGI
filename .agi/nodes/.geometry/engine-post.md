@@ -193,6 +193,55 @@ carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";
 esac
 ~~~
 
+### orient (818 B)
+~~~sh
+#!/bin/sh
+# orient (g5.34.7.2): the driver's connect verb on attach (all raw-shell incl DG/DT) + once at shell start (AGI_ORIENTED). Clear, header, dump of committed seed blobs. 0 B to i; never truncates o.
+cd ~/t||exit 1;P=${AGI_POST:?};f=$(mktemp);agi-sync "$PWD" "$f" >/dev/null 2>&1||{ rm -f "$f";echo "[refused] orient: agi-sync">&2;exit 1;}
+k=$(git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p $P 'select(.name==$p and has("grokbot"))|.engine.rotate_pct//empty'|head -1)
+c=$(git rev-parse -q --short HEAD:.agi/nodes/doc/card-$P.md);printf '\033c'
+printf 'orient %s rev=%s dump_sha256=%s pin=%s card=%s\n===== startup %s =====\n' $P $(git rev-parse --short HEAD) $(sha256sum<"$f"|cut -c1-64) ${k:--} ${c:--} $P
+cat "$f";printf '===== end startup =====\n\n';rm -f "$f"
+~~~
+
+### mail-wake (1381 B)
+~~~sh
+#!/bin/sh
+# mail-wake (g5.34.6.2 W1-W7 R8): `mail-wake watch` = the ONE raw-shell watcher, started by agi-run AFTER orient; sourced by agi-rc for y/n.
+# Keys on unread tip shas (refs/box/*/P not at refs/held/P/*, the box n test). Notice to tty/o only, 0 B to i. Enter/anything else = HOLD.
+mk(){ git for-each-ref --format='%(refname) %(objectname)' "refs/box/*/$AGI_POST"|while read r s;do f=${r#refs/box/};f=${f%/*};[ "$s" = "$(git rev-parse -q --verify refs/held/$AGI_POST/$f)" ]||echo "$f $s";done;}
+wk(){ g=$(git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p $AGI_POST 'select(.name==$p).grokbot//empty'|head -1)
+ if command -v agi-wake >/dev/null;then agi-wake "${g:--}" "$*";else echo "[unwired] wake grokbot=${g:--}: $*";fi;}
+y(){ [ -s ~/.mail-pending ]||{ echo "box: no mail pending";return 1;};rm -f ~/.mail-pending;(cd ~/t&&box read);}
+n(){ rm -f ~/.mail-pending;echo "box: held";};Y(){ y;};N(){ n;}
+[ "${1:-}" = watch ]&&{ cd ~/t||exit 1;while sleep 5;do pin 2>&1|while read -r l;do echo "$l";case $l in card-prompt*)wk "$l";;esac;done
+ k=$(mk);[ -n "$k" ]&&[ "$k" != "$(cat ~/.mail-seen 2>/dev/null)" ]||continue;printf '%s\n' "$k">~/.mail-seen;printf '%s\n' "$k">~/.mail-pending
+ f=$(printf '%s\n' "$k"|tail -n1|cut -d' ' -f1);printf '\nbox: mail from %s, read now? (y/N)\n' "$f";wk "box: mail from $f for $AGI_POST";done;}
+~~~
+
+### agi-rc (208 B)
+~~~sh
+# agi-rc (g5.34.7.2 + g5.34.6.2): bash --rcfile for raw-shell panes. Orient once per shell-start latch; y/Y read, n/N or Enter hold.
+[ -n "$AGI_ORIENTED" ]||{ export AGI_ORIENTED=1;orient;}
+. ~/bin/mail-wake
+~~~
+
+### pin (1434 B)
+~~~sh
+#!/bin/sh
+# pin (g5.34.7.3 Path A): the driver writes ~/meter "<0..1> <epoch>" each turn (1.0 after summarization). Bound grokbot rows only (DG/DT: none).
+# `pin` = check, prompt once per crossing; `pin rotate` = kill gate, refused unless card blob changed since prompt.
+P=${AGI_POST:?};c=.agi/nodes/doc/card-$P.md;cd ~/t||exit 1
+r=$(git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p $P 'select(.name==$p and has("grokbot"))|.engine.rotate_pct//empty'|head -1);[ "$r" ]||exit 0
+b=$(git rev-parse -q --verify HEAD:$c)
+[ "${1:-}" = rotate ]&&{ [ "$b" ]&&[ "$b" != "$(cat ~/.pin-card 2>/dev/null)" ]||{ echo "[refused] rotate: card-$P unchanged since prompt; write it, git commit it";rm -f ~/.pin-crossed;exit 1;};rm -f ~/.pin-card ~/.pin-crossed;touch ~/.fresh;kill $PPID;exit 0;}
+awk -v r=$r -v n=$(date +%s) '{f=$1;t=$2;k=NF} END{if(!NR||k!=2||f!~/^[0-9.]+$/||f+0>1||n-t>21600)exit 2;exit (f+0>=r/100)?0:1}' ~/meter 2>/dev/null;e=$?
+[ $e = 2 ]&&{ [ -e ~/.pin-refused ]||{ touch ~/.pin-refused;echo "[refused] meter";};exit 2;};rm -f ~/.pin-refused
+[ $e = 1 ]&&{ rm -f ~/.pin-crossed;exit 0;};[ -e ~/.pin-crossed ]&&exit 0;touch ~/.pin-crossed;echo "${b:-none}">~/.pin-card
+echo "card-prompt $P meter=$(cut -d' ' -f1 ~/meter) rev=$(git rev-parse --short HEAD)"
+echo "At the line: write your card, git commit it, then run: pin rotate   (= touch ~/.fresh;kill \$PPID, gated on the card blob)"
+~~~
+
 ### season (2648 B)
 ~~~sh
 #!/bin/sh

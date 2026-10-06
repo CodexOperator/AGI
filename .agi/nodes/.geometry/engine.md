@@ -50,7 +50,7 @@ agi.rules          211 B  group agi starts units
 project.sh         161 B  body SHOULD
 observe.sh         255 B  body IS
 tick.sh            254 B  diff; start; commit
-agi-project       1841 B  genome: v4 units+cells
+agi-project       2813 B  genome: v4 units+cells
 agi-frontier       460 B  each goal's falsifier
 agi-gate           404 B  refuse a tip that would not regrow
 sect               214 B  one piece @REV, any engine*.md
@@ -72,15 +72,15 @@ agi-carry-fetch.service 229 B  oneshot box-carry --fetch
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-project (2615 B)
+### agi-project (2813 B)
 ~~~sh
 #!/bin/sh
-o=$1 r=$2 w=$1/multi-user.target.wants;g(){ echo "$r:.agi/nodes/.geometry/$1"|git cat-file --batch --follow-symlinks|{ read a t s;[ "$t" = blob ]&&head -c $s;};};s(){ git ls-tree --full-tree --name-only $r .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$r:|"|git cat-file --batch --follow-symlinks|sed -n "/^### $1 /,/^##/{/^~~~/,/^~~~/{//!p}}";}
+o=$1 r=$2 w=$1/multi-user.target.wants;git rev-parse -q --verify "$r^{commit}">/dev/null||exit 4;g(){ echo "$r:.agi/nodes/.geometry/$1"|git cat-file --batch --follow-symlinks|{ read a t s;[ "$t" = blob ]&&head -c $s;};};s(){ git ls-tree --full-tree --name-only $r .agi/nodes/.geometry/|grep '/engine[^/]*\.md$'|sed "s|^|$r:|"|git cat-file --batch --follow-symlinks|sed -n "/^### $1 /,/^##/{/^~~~/,/^~~~/{//!p}}";}
 u=$(s agi-post@.service);[ "$u" ]||exit 3;P=$(printf '%s\n' "$u"|sed -n 's/^Environment=PATH=\([^ ]*\).*/\1/p'|tr : '\n'|while read d;do [ -f $d/pi ]&&[ -x $d/pi ]&&echo $d&&break;done);[ "$P" ]||{ g posts.md|sed -n 's/^  - {/{/p'|jq -e --arg b ${AGI_BOX:-local-town} 'select(.box==$b and .engine.v==4)|.+.engine|select(.harness|test("^pi"))'>/dev/null;[ $? = 4 ]||exit 3;}
 mkdir -p $w;rm -f $w/agi-post@*;printf '%s\n' "$u">$o/agi-post@.service;:>$o/agi-users.conf
 g posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p "$P" --arg b ${AGI_BOX:-local-town} 'select(.box==$b and .engine.v==4)|.+.engine|[.name,if .harness|test("^pi") then "node \($p)/pi --provider \(if (.model|tostring)|test("^grok") then "xai" else "openrouter" end) --model \(.model) --thinking \(.effort) --skill skills -e ../bin/cccc.ts" elif .harness|test("^grok") then "grok-bot --model \(.model) --effort \(.effort) --permission-mode bypassPermissions" elif .harness|test("^raw-shell|^shell$|^bash$") then "bash" else "claude --remote-control \(.name) --model \(.model) --effort \(.effort) --permission-mode bypassPermissions" end,([.engine|to_entries[]|"\"AGI_\(.key|ascii_upcase)=\(.value)\""]+["AGI_ROLE=\(.role)","AGI_LADDER_TIER=\(.tier)","AGI_BOX=\(.box)"]|join(" ")),.boot==true]|@tsv'|while IFS='	' read p h e b;do [ $b = true ]&&ln -s ../agi-post@.service $w/agi-post@$p.service;mkdir -p $o/agi-post@$p.service.d;printf '[Service]\nEnvironment="H=%s" O=%s AGI_POST=%s %s\n' "$h" "$(git rev-parse --show-toplevel)" "$p" "$e">$o/agi-post@$p.service.d/h.conf;s sysusers.conf|sed s/@/$p/g>>$o/agi-users.conf;done
-printf '[Service]\nType=oneshot\nWorkingDirectory=%s\nEnvironment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=* AGI_BOX=%s\nExecStart=sh -c "echo %s:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n \047/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}\047|sh -s %s %s&&ls %s/agi-post@*.service.d/h.conf>/dev/null&&systemctl daemon-reload&&systemd-sysusers %s/agi-users.conf"\n' $PWD ${AGI_BOX:-local-town} $r $o $r $o $o>$o/agi-project.service
-printf '[Path]\nPathChanged=%s/logs/%s\n' $(git rev-parse --absolute-git-dir) $(git rev-parse --symbolic-full-name $r)>$o/agi-project.path;ln -sf ../agi-project.path $w
+printf '[Unit]\nStartLimitIntervalSec=0\n[Service]\nType=oneshot\nWorkingDirectory=%s\nEnvironment=GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=%s AGI_BOX=%s\nExecStart=sh -c "git cat-file -e %s:.agi/nodes/.geometry/engine.md&&echo %s:.agi/nodes/.geometry/engine.md|git cat-file --batch --follow-symlinks|sed -n \047/^### agi-project /,/^### /{/^~~~/,/^~~~/{//!p}}\047|sh -s %s %s&&ls %s/agi-post@*.service.d/h.conf>/dev/null&&systemctl daemon-reload&&systemd-sysusers %s/agi-users.conf"\n' $PWD $(git rev-parse --show-toplevel) ${AGI_BOX:-local-town} $r $r $o $r $o $o>$o/agi-project.service
+printf '[Path]\nPathChanged=%s/logs/%s\n' $(git rev-parse --absolute-git-dir) $(git rev-parse --symbolic-full-name $r|grep .||echo HEAD)>$o/agi-project.path;ln -sf ../agi-project.path $w
 ~~~
 
 ### agi-gate (397 B)
