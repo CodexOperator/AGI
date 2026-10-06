@@ -8,48 +8,69 @@ next_edges: []
 edited_by: sanctuary-master
 scaffold_hash: 3e856c7e9b80c2ab
 season: 2
+tags:
+  - card
+  - master
 title: Card sanctuary master
 town: core
+thought_session: sm-et-grok-wake-20261005-2345
 ---
-# doc:card-sanctuary-master
+# doc:card-sanctuary-master — sanctuary-master's card: the ONE scratch
 
-Replaced whole, never appended; ≤100 lines. Board coordinator for encryption-town directors.
+Replaced whole; <= 100 lines. Role = HEAD + `doc:unified-master-brief` + this card. v4: Write/Edit + exact-path commit. Skills stay `skills/*/SKILL.md`. No session auto-rotation.
 
-## §0 State (2026-10-06 ~03:5xZ ET)
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+23:45Z 10-05 (date -u): owner finish-send. DG6 aa030dc83 R100 send.py -> deprecated/bin/ 317680 B. Landed fa8fd991f onto 8eb933e63. Never git rm. box KEEP. Card on tip stale (said BUILD next). DG5/7/8 after-MOVE helpers queued. Season close AFTER helpers. No push.
+<!-- THOUGHT:END -->
+
+## §0 State (23:45Z 10-05, date -u)
 | | |
 |---|---|
-| post | sanctuary-master on **encryption-town** |
-| trunk | `core/season2/et-grok-pilot` (season close stand-in); `core/season3/main` carries open goals |
-| harness | **raw-shell** (`H=bash`) — pi spend-blocked; session files kept |
-| mail | AA1: `AGI_POST=sanctuary-master AGI_TRUNK=core/season2/et-grok-pilot box read` first at wake — never send.py |
-| drive | `/run/agi-sanctuary-master/i` → `/var/lib/agi/sanctuary-master/o` |
-| role | sequencing/placement/gates; rulings = council; never the Prime |
-| master | untouched; merge-up pending owner |
+| post | sanctuary-master · engine v4 grok-bot grok-4.6 high · capsule encryption-town · branch posts/sanctuary-master · trunk core/season2/et-grok-pilot fa8fd991f |
+| role | master-gate · IMPLEMENT NOW · Prime does not build |
+| team | alive · aio · sp · DG1–9 · SM · TM/DT/DT2 down |
+| box | MemAvailable ~3.4 GiB · mem PSI 0 |
+| skills | agi-master-gate · agi-memory-guard · agi-rotate · agi-send · agi-goal · agi-verify |
+| mail | `AGI_POST=sanctuary-master box` · send.py MAIN unwritable (MOVED) |
+| holds | 11 key/id/sign/rotate/spawn/write-gate except W+AA1 CLEARED. Host = belam GO. A12 NOT done. mint-user no implement. agi-infer SKIP. no rollover until helpers then close |
+| open | W+AA1 on trunk. DG5/7/8 after-MOVE helpers. Then season close (outcomes → overviews). DG4 11.16 |
 
 ## §1 Plan
 ```
-FIRST at wake: AGI_POST=sanctuary-master AGI_TRUNK=core/season2/et-grok-pilot box read
-Coordinate directors on ET raw-shell while models blocked.
-Land only via named one-node commits; reproject units from geometry.
+NOW: DG5/7/8 after-MOVE helpers -> SM gate
+THEN season close (owner 23:3xZ): leaf outcomes → bigger_outcomes → 1 overview/vision
+NEVER: Prime build · git rm · mint-user · agi-infer · rollover --apply before close · push
+grid: commit <path> -> refs/grid/et-grok-pilot
 ```
 
-## §2 Landed
-- Season-2 close stood-in (goals retired/moved, builds reparented to live parents)
-- nudge_sweep off; mail_poll = refs/box+held only; pi_auth_refresh stays
-- belam + SM + DG4 on raw-shell; grokbot binding cells recorded on belam/SM rows
+## §2 Landed this wake
+- 22:07Z 033000458 DG3 PHASE W
+- 22:23Z f2c6bf2a3 DG8 W helper 0.9
+- 22:28Z fe80f91e4 re-attach W onto belam 1fcf08354
+- 22:29Z 332712674 DG9 AA1 helper 0.9
+- 22:30Z 8eb933e63 DG4 w-move.t.sh 8/8
+- 23:45Z fa8fd991f DG6 aa030dc83 AA1 MOVE send.py R100. Wrap 91da628f1. No push.
 
 ## 🔴 Where it stops
-```
-Idle for owner merge / spend restore. On [merge-up]: gate as usual, land on live HEAD, never master without owner.
-```
+Wait DG5/7/8 after-MOVE [merge-up] (live send.py gone + deprecated 317680 + box 2005; agi-run wake residue). Then season close.
+FIRST at next wake: `AGI_POST=sanctuary-master box read`
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| send.py / MAIN inbox era | retired — AA1 box only |
-| pipe `box read` to head | never — marks all held |
-| git rm | never — deprecate/move |
-| hand drop-ins | fix via geometry + agi-project reproject |
+| send.py MAIN unwritable | mail = box; send.py MOVED never git rm |
+| belam moves trunk | 1fcf08354 undid W; re-attach named-only vs live HEAD |
+| git rm send.py | deprecate/move, never git rm |
+| season close before helpers | wait after-MOVE then close |
+| grid | `grid.py commit <path>` only; never local-maxxing |
+
+## §5 Verification
+send.py live gone · deprecated 317680 · workflow.py still dep · box 2005 · w-move.t.sh 8/8.
 
 ## §6 BANKED
-Startup dump (unified-head + card + seeds) prints into the raw-shell pane on start for an attaching driver.
+- A12 NOT done
+- mint-user chew no implement
+- grow-gate pre-receive UNRUN
+- S3 START NOTHING until SM.113/114; owner 23:3xZ: season3/main this close only AFTER send+helpers
+- config:commands workflow: tag KEEP (not the py)
+- agi-run wake still inbox (DG7 after-MOVE)

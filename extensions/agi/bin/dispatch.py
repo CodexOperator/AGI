@@ -484,7 +484,7 @@ def _no_context_refusal(target, level, detail: str) -> str:
 # lives under the MAIN checkout's `.agi/worktrees/<agent>/` resolved through
 # `locations.git_common_root` (ADDENDUM item 4, so a spawner running inside a
 # worktree never nests one agent's tree inside another's), and the lease /
-# agent record carries `branch`/`base_branch`/`worktree` so `season.py
+# agent record carries `branch`/`base_branch`/`worktree` so `deprecated-season
 # merge-up` knows which base to climb into (item 2).
 
 
@@ -1889,7 +1889,7 @@ def main() -> int:
         help="Run each spawn in its own git worktree on "
              "loop/<slug>-<agent>@s<N>, cut from the SPAWNER's checked-out "
              "branch; the kid edits only that worktree and its lease/record "
-             "carries branch/base_branch/worktree for season.py merge-up "
+             "carries branch/base_branch/worktree for deprecated-season merge-up "
              "(hypothesis:l3w4-parent-branch-merge-up)",
     )
     ap.add_argument(
@@ -2631,7 +2631,7 @@ def main() -> int:
         # the SPAWNER's checked-out branch. The kid edits only that worktree
         # (child_graph for zoom/scaffold, cwd + AGI_TREE_PROJECT_ROOT for the
         # process), and the lease + agent record carry branch/base_branch/
-        # worktree so season.py merge-up knows which base this climbs into.
+        # worktree so deprecated-season merge-up knows which base this climbs into.
         # Shared state (budget dir, comms, meter pins) resolves to the MAIN
         # checkout through git_common_root, so the concurrency bound and the
         # rooms stay ONE directory even with N worktrees live.
@@ -3194,7 +3194,7 @@ def main() -> int:
             agent_record["ring_decision"] = _round_ring_decision
         if branch_ref:
             # hypothesis:l3w4-parent-branch-merge-up — the recorded
-            # base_branch is what season.py merge-up targets (ADDENDUM item
+            # base_branch is what deprecated-season merge-up targets (ADDENDUM item
             # 2), so this agent's branch climbs into the layer that cut it,
             # one rung at a time. Season.py reads these from --record.
             agent_record["branch"] = branch_ref["branch"]

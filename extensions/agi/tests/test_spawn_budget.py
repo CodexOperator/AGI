@@ -428,7 +428,7 @@ def test_budget_dir_is_shared_across_a_linked_worktree(tmp_path: Path):
 
 def test_attach_branch_records_branch_base_and_worktree_on_the_lease(root):
     """A `--branch` spawn records where its branch belongs on the LEASE, so
-    `season.py merge-up --record <lease>` (or the agent record) can climb the
+    `deprecated-season merge-up --record <lease>` (or the agent record) can climb the
     branch into its recorded base even after the agent has gone."""
     lease = spawn_budget.acquire(root, 2, "branch-agent")
     assert lease is not None
