@@ -393,7 +393,7 @@ def test_advisor_parent_at_tier3_adds_ultracode_tools(rig):
 def test_advisor_parent_at_tier3_drops_dispatch_rule_but_keeps_others(rig):
     blk = _advisor_tools(rig)
     assert "Bash(*dispatch.py*)" not in blk["denied"]
-    # rotate.py / send.py / season.py never blocked by the defaults anyway
+    # rotate.py / send.py / deprecated-season never blocked by the defaults anyway
     assert not any("rotate.py" in r or "send.py" in r or "season.py" in r
                    for r in blk["denied"])
     # git verbs and the handoff files stay refused below the prime

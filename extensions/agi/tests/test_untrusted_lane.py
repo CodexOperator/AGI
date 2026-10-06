@@ -11,7 +11,7 @@ negative control is the point -- a gate that refuses everyone proves
 nothing), and the budget cap is the row's `budget` cell, with a no-budget
 untrusted row keeping today's default exactly.
 
-FILE SCOPE (slice-cut): dispatch.py, season.py, provisioning.py -- tested
+FILE SCOPE (slice-cut): dispatch.py, geometry_config.py, provisioning.py -- tested
 through their helpers -- plus this test file only. send.py/rings.py/veto.py/
 rotate.py/verification.py/cli.py/write.py/brief.py are untouched.
 """
@@ -22,7 +22,6 @@ import json
 from pathlib import Path
 
 import dispatch
-import season
 import provisioning
 import geometry_config
 
@@ -38,7 +37,7 @@ def _rows_md(rows, key="posts"):
 
 def _project(tmp_path, rows):
     """A tmp project whose posts.md carries the given rows. Returns the
-    GRAPH dir (<proj>/.agi) -- the root the dispatch/season/provisioning
+    GRAPH dir (<proj>/.agi) -- the root the dispatch/geometry_config/provisioning
     helpers expect, exactly as the live callers pass it."""
     root = tmp_path / "proj"
     (root / ".agi").mkdir(parents=True)
@@ -85,13 +84,13 @@ def test_dispatch_unknown_seat_fails_open(tmp_path):
     assert dispatch._refuse_untrusted_spawner(root, "nobody") is None
 
 
-# --- (b) season.merge-kids refuses an untrusted branch --------------------
+# --- (b) untrusted-merge refuse (was season.merge-kids) -------------------
 
 def test_merge_kids_refuses_untrusted_branch_by_name(tmp_path):
     root = _project(tmp_path, [_TRUSTED, _UNTRUSTED])
     # the untrusted row's branch is its name or its worktree cell
     for branch in ("lurker", "worktrees/lurker"):
-        msg = season._refuse_untrusted_merge(root, branch)
+        msg = geometry_config._refuse_untrusted_merge(root, branch)
         assert msg is not None, f"branch {branch!r} should be refused"
         assert "lurker" in msg and "untrusted" in msg and "REFUSED" in msg
 
@@ -99,13 +98,13 @@ def test_merge_kids_refuses_untrusted_branch_by_name(tmp_path):
 def test_merge_kids_admits_trusted_branch(tmp_path):
     """Negative control: a trusted row's branch IS merged."""
     root = _project(tmp_path, [_TRUSTED, _UNTRUSTED])
-    assert season._refuse_untrusted_merge(root, "alice") is None
-    assert season._refuse_untrusted_merge(root, "belam") is None
+    assert geometry_config._refuse_untrusted_merge(root, "alice") is None
+    assert geometry_config._refuse_untrusted_merge(root, "belam") is None
 
 
 def test_merge_kids_unrelated_branch_admitted(tmp_path):
     root = _project(tmp_path, [_TRUSTED, _UNTRUSTED])
-    assert season._refuse_untrusted_merge(
+    assert geometry_config._refuse_untrusted_merge(
         root, "loop/research-a00b0000@s2") is None
 
 
@@ -142,7 +141,7 @@ def test_absent_post_fails_open(tmp_path):
 def test_worktree_only_is_a_convention_not_a_mechanism(tmp_path):
     """Honest reading of the worktree-only conjunct: the untrusted post's
     worktree cell exists on its row and is what the refusals key on, but no
-    mechanism in dispatch/season/provisioning here confines an untrusted
+    mechanism in dispatch/geometry_config/provisioning here confines an untrusted
     process's writes to that worktree -- that confinement (if it exists at
     all) lives in the spawn environment (AGI_TREE_PROJECT_ROOT), not in
     these three files. State it plainly rather than inventing a writer-gate.
