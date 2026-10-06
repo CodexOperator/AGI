@@ -17,7 +17,7 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-sync (1320 B)
+### agi-sync (1257 B)
 ~~~sh
 #!/bin/sh
 # graph SoT -> rules file + grok skill index. Symlinks only. No copies. No session auto-rotation.
@@ -35,32 +35,27 @@ ids="$ids ${AGI_SEEDS:-}"
 {
 printf '# graph-sync seat=%s role=%s rev=%s\n' "${AGI_SEAT:-prime}" "${AGI_ROLE:-}" "$(git rev-parse --short HEAD)"
 echo '# skills: ~/.grok/skills -> skills/*/SKILL.md (symlink, graph SoT). routines: config:rotations. Do not fork copies. No session auto-rotation on grok.'
-git diff --stat HEAD -- skills .agi/nodes/.geometry/rotations.md .agi/nodes/doc 2>/dev/null | head -15
 printf '%s' "$ids" | tr ', ' '\n' | awk 'NF && !seen[$0]++' | while read -r id; do
  case $id in
   doc:*) f=.agi/nodes/doc/${id#doc:}.md ;;
   goal:*) f=.agi/nodes/goal/${id#goal:}.md ;;
   *) continue ;;
  esac
- if [ -f "$f" ]; then printf '\n----- %s -----\n' "$id"; awk 'BEGIN{c=0} /^---$/{c++; if(c==2){p=1; next}} p' "$f"; else printf '\n# missing %s\n' "$id"; fi
+ if git cat-file -e "HEAD:$f" 2>/dev/null; then printf '\n----- %s -----\n' "$id"; git show "HEAD:$f"|awk 'BEGIN{c=0} /^---$/{c++; if(c==2){p=1; next}} p'; else printf '\n# missing %s\n' "$id"; fi
 done
 } > "$o.t" && mv "$o.t" "$o"
 ~~~
 
-### agi-run (1248 B)
+### agi-run (918 B)
 ~~~sh
 #!/bin/sh
 cd ~/t;c=-c;[ -e ~/.fresh ]&&rm ~/.fresh&&c=;stty cols 200 rows 50;i=$RUNTIME_DIRECTORY/i
 (while sleep 300;do m=$((${AGI_PANE_MAX_MB:-64}<<20));[ $(stat -c%s ~/o 2>/dev/null||echo 0) -gt $m ]&&tail -c $((m/2)) ~/o>~/o.t&&cat ~/o.t>~/o;rm -f ~/o.t;done)&
 case $H in claude*|pi*)(s=0;while sleep 5;do n=$(box n|wc -l);[ $n -gt $s ]&&printf "mail: box read">$i&&sleep 1&&printf '\r'>$i;s=$n;done)&;;esac
-case ${AGI_HARNESS:-} in raw-shell|shell|bash)
- export TERM=${TERM:-xterm-256color}
- f=$(mktemp);agi-sync "$PWD" "$f" 2>/dev/null&&{ printf '\n===== startup %s =====\n' "${AGI_SEAT:-${AGI_POST:-}}";cat "$f";printf '===== end startup =====\n\n';};rm -f "$f"
- exec bash -i;; esac
+case ${AGI_HARNESS:-} in raw-shell|shell|bash)H=bash;;esac
 case $H in bash)
- export TERM=${TERM:-xterm-256color}
- f=$(mktemp);agi-sync "$PWD" "$f" 2>/dev/null&&{ printf '\n===== startup %s =====\n' "${AGI_SEAT:-${AGI_POST:-}}";cat "$f";printf '===== end startup =====\n\n';};rm -f "$f"
- exec bash -i;; esac
+ export TERM=${TERM:-xterm-256color} AGI_ORIENTED=1;orient;mail-wake watch&
+ exec bash --rcfile ~/bin/agi-rc -i;; esac
 case $H in grok*) agi-sync "$PWD" "$HOME/.grok/graph-rules.md";; esac
 if [ "${H%% *}" = grok-bot ] && [ -s "$HOME/.grok/graph-rules.md" ]; then
  exec strace -qqf -b execve -e%file -o'|agi-track' $H --rules "$(cat "$HOME/.grok/graph-rules.md")" $c go

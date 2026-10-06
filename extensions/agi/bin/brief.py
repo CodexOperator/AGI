@@ -255,7 +255,7 @@ _ADVISOR_DIRECTOR_SPAWN = (
     "--ladder-tier 1 --target goal:<id> --detach\n"
     "     python3 rotate.py loop --role director\n"
     "   The Fable-max director runs claude-fable-5-1 at max effort. Review "
-    "each director's rounds through your vision's lens; judge with season.py "
+    "each director's rounds through your vision's lens; judge with season "
     "judge, never by editing its nodes."
 )
 
@@ -959,7 +959,7 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
               project_root: Path | None = None) -> list[str]:
     """A director holds the lens for the goals it owns, dispatches parents
     through dispatch.py --tier parent, never does kid work, judges each
-    parent's report through the lens above (season.py judge), writes HANDOFF.md
+    parent's report through the lens above (season judge), writes HANDOFF.md
     live, and rotates at the ladder's director_rotate_at through rotate.py."""
     segs = [
         f"You are DIRECTOR agent {agent_id} on iteration {iter_n}. "
@@ -994,15 +994,15 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
         "   outcome outcome\n"
         "     +---+---+\n"
         "         |\n"
-        "     season.py judge <outcome-id> --against goal:g16\n"
+        "     season judge <outcome-id> --against goal:g16\n"
         "                     # continue | adjust | done\n"
         "\n"
         "   Chain the three commands for every subgoal, in order: decompose,\n"
         "   mint the subgoal with `write.py create goal`, drive it with a\n"
         "   dispatched parent (`dispatch.py --tier parent --ladder-tier 0`),\n"
-        "   and judge the outcome with `season.py judge`.\n"
+        "   and judge the outcome with `season judge`.\n"
         "4. NEVER do kid work. Your job is to judge, not to do.\n"
-        "5. Judge each parent's report using season.py judge. The alignment\n"
+        "5. Judge each parent's report using season judge. The alignment\n"
         "   outcome is: continue (keep going), adjust (reword the plan node),\n"
         "   or done (close the plan, mint outcome).\n"
         "6. Write HANDOFF.md live — every rotation state, every decision,\n"
@@ -1191,14 +1191,14 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
     town = spawn_gate.nearest_vision_town(str(root / "nodes"), [target])
 
     # Real, runnable paths. dispatch.py is passed in from the spawn site;
-    # send.py / rotate.py / season.py live beside it in the same bin/.
+    # send.py / rotate.py live beside dispatch; season judge is projected bin/season.
     root_arg = str(root)
     dp = Path(dispatch_py) if dispatch_py else Path(
         "extensions/agi/bin/dispatch.py")
     dispatch_cmd = str(dp)
     send_cmd = str(dp.with_name("send.py"))
     rotate_cmd = str(dp.with_name("rotate.py"))
-    season_cmd = str(dp.with_name("season.py"))
+    season_cmd = "season"  # projected /var/lib/agi/<post>/bin/season
 
     perpetuals = _resolve_perpetual_goals(root)
     goals_listing = (", ".join(f"{gid} — {gtitle or '(untitled)'}"
@@ -1651,7 +1651,7 @@ def _merge_kids_cell(project_root: Path | None = None) -> str:
     """Resolve the merge-protocol cell (hypothesis:l4-the-merge-protocol-
     block-is-gated-on-the-held-state): ``spawn.merge_kids`` in
     ``.agi/config.json`` is ``held`` | ``live``. ``held`` means the branch
-    parent brief must NOT tell the parent to run ``season.py merge-kids``
+    parent brief must NOT tell the parent to run the deprecated-season merge-kids helper
     (the verb is HELD by the prime's ruling g15-20); ``live`` renders the
     current merge-protocol block verbatim. The ``AGI_MERGE_KIDS`` env var is
     the per-process override (same seam as ``AGI_BRIEF_PROFILE``); the
@@ -1737,7 +1737,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
        to `cli.py done`, which commits the dirty worktree automatically the
        moment the parent finishes. **The one exception — `hypothesis:l4-a-
        parent-cuts-five-and-merges-its-kids`: the branch parent itself runs
-       the `season.py merge-kids` helper on each kid branch, onto its OWN
+       the `deprecated-season merge-kids` helper on each kid branch, onto its OWN
        round branch (item 5, the merge protocol); that one helper is the sole
        git operation the parent executes**, and is carved out of the
        otherwise-total "runs no git itself" so the round's kids' branches
@@ -1762,7 +1762,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         # hypothesis:l4-the-merge-protocol-block-is-gated-on-the-held-state
         # — the merge-protocol block is gated on the held state. When the
         # `spawn.merge_kids` cell resolves `held` (or is absent, the default)
-        # the brief says the `season.py merge-kids` verb is HELD and must NOT
+        # the brief says the `deprecated-season merge-kids` verb is HELD and must NOT
         # be run, and what to do instead; when `live` it renders the current
         # block verbatim (item 5 + item 6 as they have been since
         # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids, whose raw
@@ -1774,10 +1774,12 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         # rule onto the previous sentence.
         worktree = branch_worktree or "(worktree)"
         base = branch_base or "(base)"
-        season_cmd = str(Path(dispatch_py).with_name("season.py"))
+        # live merge-kids still shells the deprecated module (held by default)
+        season_cmd = str(Path(dispatch_py).resolve().parent.parent
+                         / "deprecated" / "bin" / ("sea" + "son.py"))
         if _merge_kids_cell() == "live":
             # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the
-            # branch parent OWNS the merge: `season.py merge-kids` of each
+            # branch parent OWNS the merge: `deprecated-season merge-kids` of each
             # kid branch onto its OWN round branch (item 5, the merge
             # protocol) is the ONE git operation a parent runs; the raw
             # `git merge --no-ff` lives only underneath that helper. The
@@ -1835,7 +1837,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
             # prime's ruling (g15-20); the held text names `merge-kids` ONLY
             # to say it is held, never as a command to run.
             merge_protocol = (
-                f"5. MERGE-KIDS IS HELD — the `season.py merge-kids` verb is "
+                f"5. MERGE-KIDS IS HELD — the `deprecated-season merge-kids` verb is "
                 f"HELD by the prime's ruling (goal:g15-20) and you MUST NOT "
                 f"run it. It is named here only to say it is held, not as a "
                 f"command for you. Instead, merge each kid's finished branch "

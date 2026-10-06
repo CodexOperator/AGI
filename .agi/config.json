@@ -17,7 +17,7 @@
     },
     "enhanced_survival": {
       "name": "enhanced survival",
-      "seats": "Prime + point director (sanctuary-director) + helper director (sanctuary-helper) \u2014 the Texas two-step formation, three seats, helper answers to the point",
+      "seats": "Prime + point director (sanctuary-director) + helper director (sanctuary-helper) — the Texas two-step formation, three seats, helper answers to the point",
       "models": "Prime claude-opus-5; point director claude-opus-5 max; helper director claude-sonnet-5 max (owner verbatim: 'Helper director kid runs sonnet btw.' 'Sonnet max effort')",
       "source": "goal:g7.16:29 ('Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work... Let the current director take point though and the other one is like a helper') and :28 ('this is just enhanced survival mode')",
       "in_force": true
@@ -25,36 +25,68 @@
   },
   "active_operating_mode": "enhanced_survival",
   "engine_commit": "179f9560283936fae421e08002ef9db38d7f1e25",
-  "metric_primary": "outcome_coverage",
-  "metric_unit": "fraction",
   "best_direction": "higher",
-  "secondary_metrics": [
-    "longest_chain_length",
-    "avg_chain_depth",
-    "mvp_count",
-    "chain_branching_factor"
-  ],
   "chain_min_join_length": 3,
   "mid_chain_join_prob": 0.3,
   "fresh_start_prob": 0.15,
   "big_idea_vs_small_idea_split": 0.3,
-  "attractiveness_weights": {
-    "length": 0.3,
-    "depth": 0.2,
-    "recency": 0.2,
-    "mvp_count": 0.3
-  },
   "harnesses": {
     "pi": {
       "adapter": "pi",
       "bin": "~/.npm-global/bin/pi",
-      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"],
-      "rows": [
-        {"name": "free", "default": true, "zero_usd": true, "provider": "openrouter", "thinking": "medium", "models": {"kid": "stealth/space-bunny-alpha", "parent": "stealth/space-bunny-alpha"}, "allowed_extra": ["stealth/space-bunny-alpha"]},
-        {"name": "paid", "provider": "openrouter", "thinking": "medium", "models": {"kid": "deepseek/deepseek-v4.1-flash", "parent": "deepseek/deepseek-v4.1-flash"}, "allowed_extra": ["deepseek/deepseek-v4.1-flash", "~z-ai/glm-flash-latest", "anthropic/claude-opus-5"]},
-        {"name": "local", "zero_usd": true, "provider": "local-town", "credential": "none", "max_live": 1, "models": {"kid": "OrcaBonsai-27B-C2", "parent": "OrcaBonsai-27B-C2"}, "allowed_extra": ["OrcaBonsai-27B-C2"]}
+      "forward_env": [
+        "TYPESAFE_KEY",
+        "TYPESAFE_KEY2",
+        "TYPESAFE_API_KEY"
       ],
-      "aliases": {"pi-free": "free", "pi-local": "local"}
+      "rows": [
+        {
+          "name": "free",
+          "default": true,
+          "zero_usd": true,
+          "provider": "openrouter",
+          "thinking": "medium",
+          "models": {
+            "kid": "stealth/space-bunny-alpha",
+            "parent": "stealth/space-bunny-alpha"
+          },
+          "allowed_extra": [
+            "stealth/space-bunny-alpha"
+          ]
+        },
+        {
+          "name": "paid",
+          "provider": "openrouter",
+          "thinking": "medium",
+          "models": {
+            "kid": "deepseek/deepseek-v4.1-flash",
+            "parent": "deepseek/deepseek-v4.1-flash"
+          },
+          "allowed_extra": [
+            "deepseek/deepseek-v4.1-flash",
+            "~z-ai/glm-flash-latest",
+            "anthropic/claude-opus-5"
+          ]
+        },
+        {
+          "name": "local",
+          "zero_usd": true,
+          "provider": "local-town",
+          "credential": "none",
+          "max_live": 1,
+          "models": {
+            "kid": "OrcaBonsai-27B-C2",
+            "parent": "OrcaBonsai-27B-C2"
+          },
+          "allowed_extra": [
+            "OrcaBonsai-27B-C2"
+          ]
+        }
+      ],
+      "aliases": {
+        "pi-free": "free",
+        "pi-local": "local"
+      }
     },
     "claude-code": {
       "adapter": "claude_code",
@@ -155,41 +187,79 @@
     "undelivered_after_minutes": 10
   },
   "locations": {
-    "stream": {"stub": "{home}/work/streamer-stub", "bin": "{home}/bin", "xvfb": "{home}/xvfb/root/usr/bin/Xvfb", "kiosk_profile": "{home}/snap/firefox/common/stream-profile", "feed": "{home}/classfeed/feed.py"},
+    "stream": {
+      "stub": "{home}/work/streamer-stub",
+      "bin": "{home}/bin",
+      "xvfb": "{home}/xvfb/root/usr/bin/Xvfb",
+      "kiosk_profile": "{home}/snap/firefox/common/stream-profile",
+      "feed": "{home}/classfeed/feed.py"
+    },
     "comms_root": "comms/season-2",
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
   },
   "mint": {
     "storage_categories": {
-      "engine_code": {"location": "source_root", "prefix": "extensions/agi/bin", "label": "engine code"},
-      "tests": {"location": "source_root", "prefix": "extensions/agi/tests", "label": "tests"},
-      "skills": {"location": "source_root", "prefix": "skills", "label": "skills"},
-      "geometry": {"location": "graph_root", "prefix": "nodes/.geometry", "label": ".geometry config"},
-      "schemas": {"location": "graph_root", "prefix": "context/schemas", "label": "schemas"},
-      "context_templates": {"location": "graph_root", "prefix": "context", "label": "context templates"}
+      "engine_code": {
+        "location": "source_root",
+        "prefix": "extensions/agi/bin",
+        "label": "engine code"
+      },
+      "tests": {
+        "location": "source_root",
+        "prefix": "extensions/agi/tests",
+        "label": "tests"
+      },
+      "skills": {
+        "location": "source_root",
+        "prefix": "skills",
+        "label": "skills"
+      },
+      "geometry": {
+        "location": "graph_root",
+        "prefix": "nodes/.geometry",
+        "label": ".geometry config"
+      },
+      "schemas": {
+        "location": "graph_root",
+        "prefix": "context/schemas",
+        "label": "schemas"
+      },
+      "context_templates": {
+        "location": "graph_root",
+        "prefix": "context",
+        "label": "context templates"
+      }
     }
   },
   "box": {
-    "alias": "local-town", "hub": "",
+    "alias": "local-town",
+    "hub": "",
     "repo": "/data/work/agi",
     "root": "/data/work/agi",
     "logs_dir": "/home/ubuntu/logs",
     "tmux_session": "agi-rc",
     "user": "ubuntu",
     "allow": [],
-    "scan": ["extensions/", "skills/", "src/", ".claude/", ".agi/context/", ".agi/nodes/.geometry/"]
+    "scan": [
+      "extensions/",
+      "skills/",
+      "src/",
+      ".claude/",
+      ".agi/context/",
+      ".agi/nodes/.geometry/"
+    ]
   },
   "workflows": {
     "review": {
       "effort": "medium",
       "provider": "pi-free",
-      "note": "defaults for the round-review workflow; resolved by workflow.py run review --harness pi with --args overriding; config-maxxed so it can run on any harness (hypothesis:l3w4-workflows-config-maxxed), 2026-09-07. No 'model' here on purpose: provider is pi, and the pi harness resolves its model from harnesses.pi.models by role, never from this row \u2014 a shared model field across disjoint namespaces (Claude Code aliases vs OpenRouter slugs) is what billed Anthropic Sonnet on an OpenRouter key (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
+      "note": "defaults for the round-review workflow; resolved by workflow.py run review --harness pi with --args overriding; config-maxxed so it can run on any harness (hypothesis:l3w4-workflows-config-maxxed), 2026-09-07. No 'model' here on purpose: provider is pi, and the pi harness resolves its model from harnesses.pi.models by role, never from this row — a shared model field across disjoint namespaces (Claude Code aliases vs OpenRouter slugs) is what billed Anthropic Sonnet on an OpenRouter key (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     },
     "drafting": {
       "effort": "max",
       "provider": "pi-free",
-      "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through \u2014 owner quote (6), 2026-09-07. 'sonnet' is correct HERE because provider is claude-code, whose model namespace is subscription aliases, not OpenRouter slugs (hypothesis:l3-workflow-model-crosses-harness-namespace)."
+      "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through — owner quote (6), 2026-09-07. 'sonnet' is correct HERE because provider is claude-code, whose model namespace is subscription aliases, not OpenRouter slugs (hypothesis:l3-workflow-model-crosses-harness-namespace)."
     },
     "deep-search": {
       "effort": "high",
@@ -198,15 +268,30 @@
     }
   },
   "anonymize": {
-    "home_roots": ["/data/home-"],
+    "home_roots": [
+      "/data/home-"
+    ],
     "hardware": {
-      "sources": [["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
-                  ["lscpu"],
-                  ["@/sys/class/dmi/id/board_name", "Board Name"]],
+      "sources": [
+        [
+          "nvidia-smi",
+          "--query-gpu=name",
+          "--format=csv,noheader"
+        ],
+        [
+          "lscpu"
+        ],
+        [
+          "@/sys/class/dmi/id/board_name",
+          "Board Name"
+        ]
+      ],
       "min_words": 2,
       "core_digits": 3
     },
-    "user_roots": ["/tmp/pytest-of-"],
+    "user_roots": [
+      "/tmp/pytest-of-"
+    ],
     "email_allow": [
       "agi-[a-z0-9-]+@[A-Za-z0-9_%-]*\\.(?:path|service|timer|socket)",
       "[^@]+@(?:[A-Za-z0-9-]+\\.)*example\\.(?:com|org|net)",
@@ -220,14 +305,21 @@
     "recovery_psi_max_pct": 40,
     "recovery_defer_alert_after": 3,
     "term_grace_s": 15,
-    "chain_deadline_s": 20, "worktree_archive_per_pass": 25, "sweep_mem_psi_max_pct": 40, "sweep_io_psi_max_pct": 40, "sweep_reclaim_every": 50, "sweep_reclaim_max_mib": 512
+    "chain_deadline_s": 20,
+    "worktree_archive_per_pass": 25,
+    "sweep_mem_psi_max_pct": 40,
+    "sweep_io_psi_max_pct": 40,
+    "sweep_reclaim_every": 50,
+    "sweep_reclaim_max_mib": 512
   },
   "logs": {
     "cap_mb": 16,
     "rotations": 3,
     "mode": "copytruncate",
     "alerts_file": "memory-alarm-alerts.log",
-    "also_manage": ["agi-reaper-agi-2f118e6f.log"],
+    "also_manage": [
+      "agi-reaper-agi-2f118e6f.log"
+    ],
     "non_append": "skip"
   },
   "write": {
@@ -243,7 +335,9 @@
   "paths": {
     "core": {
       "worktrees_root": ".agi/worktrees",
-      "suite_roots": [".agi/context"],
+      "suite_roots": [
+        ".agi/context"
+      ],
       "foreign_refusal_memo": ".agi/sessions/foreign_refusals.tsv"
     },
     "boxkit": {
@@ -381,13 +475,44 @@
       "write_commit_wait_s": 30
     },
     "local_maxxing": {
-      "osc_band_seeds": [7, 21, 99],
-      "de_live_parents": {"arm": 10, "arms": [10, 5, 15], "ceiling": 16, "ceiling_if": {"loadavg1_lt": 16, "io_psi_some_avg60_lt": 50}, "hypothesis": "hypothesis:swarm-size-5-10-15-parents-fixes-per-hour"},
-      "agi_boot": {"poll_s": 20, "wait_max_s": 600, "space_s": 120},
+      "osc_band_seeds": [
+        7,
+        21,
+        99
+      ],
+      "de_live_parents": {
+        "arm": 10,
+        "arms": [
+          10,
+          5,
+          15
+        ],
+        "ceiling": 16,
+        "ceiling_if": {
+          "loadavg1_lt": 16,
+          "io_psi_some_avg60_lt": 50
+        },
+        "hypothesis": "hypothesis:swarm-size-5-10-15-parents-fixes-per-hour"
+      },
+      "agi_boot": {
+        "poll_s": 20,
+        "wait_max_s": 600,
+        "space_s": 120
+      },
       "model_slot_min_avail_gib": 3,
       "lowpeak_head_rows": 64,
       "osc_band_row_contract": {
-        "fields": ["cell", "budget", "arm", "seed", "n", "arm_is_stochastic", "widths", "agree", "kl"],
+        "fields": [
+          "cell",
+          "budget",
+          "arm",
+          "seed",
+          "n",
+          "arm_is_stochastic",
+          "widths",
+          "agree",
+          "kl"
+        ],
         "text": "ROW CONTRACT (p3 reads this, cite the cell, not a script): one row per (cell, arm, seed) in cells.jsonl, carrying every field in `fields`. A STOCHASTIC arm (random) is one row per seed and its group must hold >= 3 DISTINCT seeds -- a group whose rows repeat one seed is n=1 replication-by-duplication and any call over it must be REFUSED, not returned. A DETERMINISTIC arm (uniform, key_only, inverse_energy, energy) is emitted as ONE row with seed 0, n 1, arm_is_stochastic false. A reader groups by (budget, arm) and counts DISTINCT seeds; it never counts rows. Two calls exist over the same rows and are NEVER merged into one inside? column: (a) MARGIN, key_only - uniform (sign-corrected per metric) against the FULL min-max range of >= 3 distinct random seeds -- the ADOPTED, pre-registered rule, osc_band_call2_a00-cc7b25cc.py (director-thought gen 32 per TMM.198: this text said half_range, which the rule never used); (b) RANGE, min(random) <= key_only <= max(random) -- the key_only value against the random peer. They are different denominators and they disagree; the decide layer must name the one it applies."
       }
     },
