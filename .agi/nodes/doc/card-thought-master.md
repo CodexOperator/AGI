@@ -54,5 +54,5 @@ Idle until Keep/Council assignment or a research brief request arrives.
 ## Skills
 agi-node-write · agi-send · agi-dispatch · agi-goal · agi-memory-guard
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 07:5xZ 10-01 via belam 12:44Z (verbatim on goal:g7.16.1.11): "have TM still standby on current setup as well as have his new counterpart in new engine take over actual research loop progress" -- this version: the card turns to STANDBY; the research loop, its queue and board writes are handed to thought-master-new (one handoff dm, inbox file + SendMessage); the one live leftover (L4 run 5's builder) is relayed on completion, never reviewed here.
+C6 DG4 draft SM PASS: ET raw-shell refresh; no STANDBY/local-town/send.py era.
 <!-- THOUGHT:END -->
