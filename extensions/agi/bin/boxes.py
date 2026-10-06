@@ -303,21 +303,20 @@ def whois(root, token: str, claim: str | None = None):
 
 
 def _deprecated_send():
-    """Return the ONE deprecated-send module object.
+    """Return the ONE deprecated-send archival module object.
 
-    Prefer sys.modules["send"] (live bin/send.py AA1 shim) so test
-    monkeypatches on `import send` apply. Fall back to loading
-    deprecated/bin/send.py under a private name only if send is absent.
+    gate-t: live bin/send.py is a fail-closed stub→box (mail SoT = box only).
+    Load deprecated/bin/send.py for non-mail archival helpers (whois/mint/…).
+    Prefer sys.modules["send"] only when tests already patched a real module
+    (not the fail-closed stub).
     """
     import importlib.util
     import sys
-    if "send" in sys.modules:
-        return sys.modules["send"]
-    # Import via shim path if present
-    shim = Path(__file__).resolve().parent / "send.py"
-    if shim.is_file():
-        import importlib
-        return importlib.import_module("send")
+    existing = sys.modules.get("send")
+    if existing is not None and not getattr(existing, "__gate_t_retired_stub__", False):
+        # A test-patched or archival-loaded module — not the fail-closed stub.
+        if getattr(existing, "whois", None) is not None:
+            return existing
     sp = Path(__file__).resolve().parent.parent / "deprecated" / "bin" / "send.py"
     spec = importlib.util.spec_from_file_location("_agi_deprecated_send", sp)
     if spec is None or spec.loader is None:
@@ -329,6 +328,8 @@ def _deprecated_send():
             sys.path.insert(0, p)
     sys.modules["_agi_deprecated_send"] = mod
     spec.loader.exec_module(mod)
+    # Do NOT register as mail SoT name "send" for live callers — archival only.
+    # Tests that `import send` expecting whois may still setdefault after patch.
     sys.modules.setdefault("send", mod)
     return mod
 

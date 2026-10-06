@@ -6543,7 +6543,12 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     failure is logged and NEVER fails the rotation — the announcement is the
     proof, not a gate. Returns the recipients reached.
     """
-    import send  # conversation/inbox SoT (tests patch this module); not boxes.box_send
+    # gate-t: mail SoT=box; load deprecated send archival for this non-mail use
+    import importlib.util as _ilu
+    from pathlib import Path as _P
+    _sp = _P(__file__).resolve().parent.parent / "deprecated" / "bin" / "send.py"
+    _spec = _ilu.spec_from_file_location("_agi_deprecated_send_rotate", _sp)
+    send = _ilu.module_from_spec(_spec); _spec.loader.exec_module(send)  # archival; mail SoT=box
     seq = _next_sequence(root)
     # The receiver set is computed BEFORE the record is written so the record
     # can name who the announce told (dedup: the Sensei appears ONCE in the
@@ -22144,7 +22149,12 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
     """
     import migrate_channel
     import boxes
-    import send  # migrate channel/signing SoT (AA1 box mail ≠ migrate records)
+    # gate-t: mail SoT=box; load deprecated send archival for this non-mail use
+    import importlib.util as _ilu
+    from pathlib import Path as _P
+    _sp = _P(__file__).resolve().parent.parent / "deprecated" / "bin" / "send.py"
+    _spec = _ilu.spec_from_file_location("_agi_deprecated_send_rotate", _sp)
+    send = _ilu.module_from_spec(_spec); _spec.loader.exec_module(send)  # archival; mail SoT=box
     if root is None:
         print("ERR: migrate needs an agi project root.", file=sys.stderr)
         return 1
@@ -22373,7 +22383,12 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
     record or a row already live is REFUSED BY NAME and nothing is seated."""
     import migrate_channel
     import boxes
-    import send  # migrate channel/signing SoT (AA1 box mail ≠ migrate records)
+    # gate-t: mail SoT=box; load deprecated send archival for this non-mail use
+    import importlib.util as _ilu
+    from pathlib import Path as _P
+    _sp = _P(__file__).resolve().parent.parent / "deprecated" / "bin" / "send.py"
+    _spec = _ilu.spec_from_file_location("_agi_deprecated_send_rotate", _sp)
+    send = _ilu.module_from_spec(_spec); _spec.loader.exec_module(send)  # archival; mail SoT=box
     import write
     try:
         me = boxes.this_box(root)
