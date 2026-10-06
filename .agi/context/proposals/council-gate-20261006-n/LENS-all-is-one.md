@@ -16,7 +16,7 @@ git ls-remote origin refs/heads/season2/main refs/heads/belam/capsule-rows refs/
 | `refs/heads/belam/capsule-rows` | `1ea2129b51e844f156869e438f69d6b5c3100f75` |
 | `refs/heads/core/season3/main` (HOLD) | `4b8f28b5e16373dd4de6b58e25f099deed4a48f1` |
 
-Reconfirmed from `/data/work/agi` (box alias) — matches ASK / leaf measured tips exactly.
+Reconfirmed from `/data/work/agi` (belam@10.66.0.10) — matches ASK / leaf measured tips exactly.
 
 ## One-source lens (PASS)
 

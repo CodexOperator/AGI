@@ -23,7 +23,7 @@ python3 extensions/agi/bin/commands.py run verify
 # → bin-suite-fresh PASS (no SUITE REQUIRED line; no waive footnote)
 ```
 
-Skill binding: `~/agent-data/workflows/agi-verify/SKILL.md` §2 (suite). Rotation check is the same `commands.py run verify` surface that currently FAILs `bin-suite-fresh`.
+Skill binding: `/home/box/agent-data/workflows/agi-verify/SKILL.md` §2 (suite). Rotation check is the same `commands.py run verify` surface that currently FAILs `bin-suite-fresh`.
 
 ## Lock contract
 

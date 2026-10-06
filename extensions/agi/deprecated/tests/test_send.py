@@ -15,12 +15,12 @@ from pathlib import Path
 
 import pytest
 
-BIN = Path(__file__).resolve().parents[1] / "deprecated" / "bin"
+BIN = Path(__file__).resolve().parents[1] / "bin"  # AA1: test lives under deprecated/tests; bin is sibling
 sys.path.insert(0, str(BIN))
 
 import locations  # noqa: E402  (resolves through BIN, already on sys.path)
 
-FIXTURES = Path(__file__).resolve().parent / "fixtures"
+FIXTURES = Path(__file__).resolve().parents[2] / "tests" / "fixtures"  # AA1: fixtures stayed under live tests/
 
 
 def _fixture_text(name: str) -> str:
@@ -8255,30 +8255,53 @@ def test_g53_foreign_engine_row_is_refused_and_wake_status_agree(
 
 
 def _run_mail_poll(tmp_path: Path, create_inbox: bool):
-    """Run engine-wrap.md's mail-poll line under sh; return (typed, stderr)."""
-    node = (Path(__file__).resolve().parents[3] / ".agi" / "nodes"
+    """Run engine-wrap.md's AA1 mail-poll line under sh; return (typed, stderr).
+
+    Stub `box` on PATH: `box n` prints one line per call after create_inbox
+    trips, so the poll can observe a rising count without touching live mail.
+    """
+    node = (Path(__file__).resolve().parents[4] / ".agi" / "nodes"
             / ".geometry" / "engine-wrap.md").read_text()
     line = next(ln for ln in node.splitlines() if ln.startswith("case $H in"))
     line = (line.replace("sleep 5", "sleep 0.1").replace("sleep 1&", "sleep 0.1&")
             .replace(">$i", ">>$i"))     # a plain file stands in for the fifo
-    inbox, typed = tmp_path / "p.md", tmp_path / "i"
-    script = (f"f={inbox};i={typed};{line}\nsleep 0.5\n"
-              + (f"echo mail > {inbox}\nsleep 0.5\n" * create_inbox) + "kill $!")
-    cp = subprocess.run(["sh", "-c", script], capture_output=True, text=True,
-                        timeout=20, env={**os.environ, "H": "claude", "AGI_SEAT": "p"})
+    typed = tmp_path / "i"
+    stub = tmp_path / "stub-bin"
+    stub.mkdir(exist_ok=True)
+    state = tmp_path / "box-n-state"
+    # create_inbox True -> seed state so first `box n` already shows a line
+    if create_inbox:
+        state.write_text("1\n")
+    else:
+        state.write_text("")
+    (stub / "box").write_text(
+        "#!/bin/sh\n"
+        "if [ \"$1\" = n ]; then cat \"$BOX_N_STATE\" 2>/dev/null; exit 0; fi\n"
+        "exit 0\n"
+    )
+    (stub / "box").chmod(0o755)
+    path = f"{stub}:{os.environ.get('PATH', '')}"
+    script = f"i={typed};{line}\nsleep 0.5\nkill $! 2>/dev/null\n"
+    cp = subprocess.run(
+        ["sh", "-c", script], capture_output=True, text=True, timeout=20,
+        env={**os.environ, "H": "claude", "AGI_SEAT": "p", "AGI_POST": "p",
+             "PATH": path, "BOX_N_STATE": str(state)})
     return (typed.read_text() if typed.exists() else ""), cp.stderr
 
 
 def test_g53_mail_poll_types_nothing_while_the_inbox_is_absent(tmp_path):
-    """G5.3 #5: absent inbox -> nothing typed, no stderr; an append still types."""
+    """G5.3 #5 AA1: flat `box n` count -> nothing typed; rising count types
+    `mail: box read` into the pane fifo (replaces send.py read wake)."""
     assert _run_mail_poll(tmp_path, False) == ("", "")
     typed, err = _run_mail_poll(tmp_path, True)
-    assert "mail: send.py read p" in typed and err == ""
+    assert err == "", err
+    assert "mail: box read" in typed
+
 
 
 def test_g54_log_trim_loop_reads_an_absent_log_as_empty(tmp_path):
     """G5.4 #1: engine-wrap.md's log-trim loop (line 24), ~/o absent: no stderr."""
-    node = (Path(__file__).resolve().parents[3] / ".agi" / "nodes"
+    node = (Path(__file__).resolve().parents[4] / ".agi" / "nodes"
             / ".geometry" / "engine-wrap.md").read_text()
     line = next(ln for ln in node.splitlines() if ln.startswith("(while sleep 300"))
     def run(**env):
@@ -8382,9 +8405,10 @@ def test_captured_read_never_advances_the_cursor(project: Path, capsys):
 
 def test_mail_poll_cron_renders_the_capturing_read_as_peek(tmp_path,
                                                              monkeypatch):
-    """The NAMED advancer, pinned where it is rendered: crons.py's mail_poll
-    line redirects `read --box-local` into the cron LOG FILE, so it must
-    render with `--peek` or it retires every line no pane ever saw."""
+    """AA1: mail_poll default is hub fetch + rotate migrate --receive only.
+    In-pane `box read` replaced send.py `read --box-local --peek`; the cron
+    must NOT call send.py read (that would retire lines only the log saw).
+    Name kept: still pins the "cron must not retire unread mail" invariant."""
     import crons
     monkeypatch.setattr(crons, "_require_git_repo", lambda *a, **k: None)
     root = tmp_path / ".agi"
@@ -8393,23 +8417,17 @@ def test_mail_poll_cron_renders_the_capturing_read_as_peek(tmp_path,
     cfg = {"crons_live": True, "jobs": {"mail_poll": {
         "enabled": True, "every_mins": 5, "schedule": None}}}
     lines = crons.render_managed_lines(root, tmp_path, tmp_path, cfg)
-    poll = [ln for ln in lines if "--box-local" in ln]
+    poll = [ln for ln in lines if "migrate --receive" in ln]
     assert poll, lines
-    assert "--peek" in poll[0], \
-        "a cron whose stdout goes to a log file must not retire the cursor"
-    assert "migrate --receive" in poll[0]
+    assert "send.py" not in poll[0], \
+        "AA1: mail_poll must not invoke send.py read (box read is the printer)"
+    assert "--box-local" not in poll[0]
+    assert "fetch" in poll[0] and "refs/box" in poll[0]
 
 
-# ── the residual the third kid named: a CONCURRENT second `read` of the same
-# seat (hypothesis:g1-inbox-read-cursor-never-passes-an-unprinted-line,
-# experiment:a00-a238ee0a-cab2a6). `read` resolves `marker_index` from
-# `_scan_messages` and applies it to the file it RE-READS just before writing
-# the marker, so an append or a marker move between those two moments drifts
-# the index space. Measured across every interleaving: the drift can only make
-# `head` SMALLER (a marker that moves forward inserts a line before the stale
-# index and drops the same bytes out of `region`), so `cut` UNDER-shoots --
-# the reader leaves behind lines it already printed. Never over-shoots: no
-# line is retired that no pane printed.
+
+# residual: concurrent second read (hypothesis:g1-inbox-read-cursor-never-
+# passes-an-unprinted-line). Parametrize restored after AA1 path edits.
 @pytest.mark.parametrize("phase", ["before", "after"])
 @pytest.mark.parametrize("other", ["append", "read", "peek", "partial"])
 def test_concurrent_second_read_never_retires_an_unprinted_line(
