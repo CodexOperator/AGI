@@ -9,7 +9,7 @@ next_edges: []
 build_kind: code
 confidence: 1.0
 edited_by: a00-2b046d3e
-link_ref: extensions/agi/bin/workflow.py
+link_ref: extensions/agi/deprecated/bin/workflow.py
 location: source_root
 loop: hypothesis:l3w4-workflows-config-maxxed@s2
 model: ~deepseek/deepseek-v4-flash-latest
