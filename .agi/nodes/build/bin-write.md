@@ -1,9 +1,10 @@
 ---
+
 id: build:bin-write
 mint_id: e182844f902942749470304cda98f744
 type: build
 parents:
-  - goal:g7.16.1.2
+  - goal:g7.16.1
   - mvp:dg3-p-park-tag
   - build
   - code
