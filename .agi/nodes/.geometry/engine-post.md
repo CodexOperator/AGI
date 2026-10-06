@@ -204,6 +204,49 @@ printf 'orient %s rev=%s dump_sha256=%s pin=%s card=%s\n===== startup %s =====\n
 cat "$f";printf '===== end startup =====\n\n';rm -f "$f"
 ~~~
 
+### monitor (2596 B)
+~~~sh
+#!/bin/sh
+# monitor (g5.34.8.1 K1-K6/K8 A1-A7): check|wait. Tip-sha mail only; 0 B to i. Sole wake until agi-wake.
+# Usage: monitor check <post> · monitor wait <post>… [--cursor-dir D]
+set -eu
+CDIR=${MONITOR_CURSOR_DIR:-/var/lib/agi-monitor/${USER:-monitor}}
+# parse
+cmd=${1:-};shift||true
+posts="";while [ $# -gt 0 ];do case $1 in --cursor-dir)CDIR=$2;shift 2;;*)posts="$posts $1";shift;;esac;done
+posts=${posts# }
+[ -n "$cmd" ]&&[ -n "$posts" ]||{ echo "usage: monitor check|wait <post>… [--cursor-dir D]" >&2;exit 2;}
+mkdir -p "$CDIR";chmod 700 "$CDIR" 2>/dev/null||true
+mk(){ p=$1;git -C /var/lib/agi/$p/t for-each-ref --format='%(refname) %(objectname)' "refs/box/*/$p" 2>/dev/null|while read r s;do f=${r#refs/box/};f=${f%/*};h=$(git -C /var/lib/agi/$p/t rev-parse -q --verify refs/held/$p/$f 2>/dev/null||true);[ "$s" = "$h" ]||echo "$f $s";done;}
+seenf(){ echo "$CDIR/$1.seen";}
+cursf(){ echo "$CDIR/$1.cursor";}
+lastw(){ echo "$CDIR/$1.last-woken";}
+excerpt(){ git -C /var/lib/agi/$1/t log -1 --format=%s "$2" 2>/dev/null||echo "";}
+check_one(){ p=$1;sf=$(seenf $p);# mail
+ for pair in $(mk $p|tr ' ' ':');do f=${pair%%:*};s=${pair#*:};grep -qx "$s" "$sf" 2>/dev/null&&continue
+  if git -C /var/lib/agi/$p/t merge-base --is-ancestor "$s" "refs/held/$p/$f" 2>/dev/null;then continue;fi
+  echo "$p mail $s $(excerpt $p $s)";return 0;done
+ # mail-unhandled: last-woken tip still unread
+ if [ -f "$(lastw $p)" ];then lw=$(cat "$(lastw $p)");grep -qx "$lw" "$sf" 2>/dev/null||true
+  for pair in $(mk $p|tr ' ' ':');do s=${pair#*:};[ "$s" = "$lw" ]&&{ echo "$p mail-unhandled $s $(excerpt $p $s)";return 0;};done;fi
+ # card
+ if [ -f /var/lib/agi/$p/.pin-crossed ]&&[ -f /var/lib/agi/$p/.pin-card ];then
+  pc=$(stat -c %Y /var/lib/agi/$p/.pin-crossed 2>/dev/null||echo 0)
+  lwts=$(stat -c %Y "$(lastw $p)" 2>/dev/null||echo 0)
+  [ "$pc" -gt "$lwts" ]&&{ echo "$p card $pc pin-crossed";return 0;};fi
+ # orient-dirty / incomplete via o tail (corroboration)
+ o=/var/lib/agi/$p/o; [ -f "$o" ]||return 1
+ # heartbeat file age
+ hb=$CDIR/$p.heartbeat; [ -f "$hb" ]||touch "$hb"
+ age=$(( $(date +%s) - $(stat -c %Y "$hb") )); [ "$age" -ge 21600 ]&&{ echo "$p heartbeat $age 6h";touch "$hb";return 0;}
+ return 1;}
+mark_seen(){ p=$1;cls=$2;sha=$3;echo "$sha">>$(seenf $p);echo "$sha">$(lastw $p);printf '%s\n' "$sha" >>$(cursf $p);}
+case $cmd in
+ check) ok=1;for p in $posts;do check_one $p&&ok=0;done;exit $ok;;
+ wait) while :;do for p in $posts;do if out=$(check_one $p);then set -- $out;mark_seen "$1" "$2" "$3";echo "$out";exit 0;fi;done;sleep 2;done;;
+ *) echo "unknown $cmd" >&2;exit 2;;
+esac
+~~~
 ### mail-wake (1381 B)
 ~~~sh
 #!/bin/sh
