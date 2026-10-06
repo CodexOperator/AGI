@@ -1,13 +1,14 @@
 ---
+
 id: build:bin-backfill-mint-ids
 mint_id: f43bd8490f0642e0865e68f7f5a44099
 type: build
 parents:
-  - goal:g7.16.1.1
+  - goal:g7.16.1
   - mvp:dg3-d-one-mint-assigner
   - build
   - code
-  - g2.1
+  - goal:g2.1
 build_kind: code
 confidence: 1.0
 edited_by: director-general-3
