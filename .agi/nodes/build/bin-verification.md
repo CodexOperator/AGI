@@ -1,9 +1,10 @@
 ---
+
 id: build:bin-verification
 mint_id: 31f5d65b54e84282bd6c3e6b86ea4fb8
 type: build
 parents:
-  - goal:g7.16.1.2
+  - goal:g7.16.1
   - mvp:dg3-p-park-tag
   - build
   - code
