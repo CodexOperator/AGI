@@ -37,3 +37,7 @@ PASS-with-residue @ 9f8bce48c (SM absorb tip b160c29e8). GO g5.4.1.1.3 from pack
 
 ## SM gate 2026-10-06 — g5.4.1.1.3
 PASS @ 550abd78d. GO g5.4.1.1.4. g5.4.1.1.6 not mandatory (no move-all). C4 held.
+
+
+## SM gate 2026-10-06 — g5.4.1.1.4
+PASS @ bf825bdc4. Season .2-.4 done. **GO g5.34.4 C4** DG boot=false residual from pack.
