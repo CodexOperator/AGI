@@ -2294,10 +2294,13 @@ def _post_stamp(root, actor: str) -> dict:
     row = next((r for r in _load_seats(root) if r.get("name") == name), None)
     if not row:
         return {}
-    import season
+    # g5.4.1.1.2: inline ladder read (season module not imported; .3 deprecates it)
     try:
-        current = int(season._get_current_season(root))
-    except (TypeError, ValueError):
+        from graph_core.persistence import frontmatter as _fm  # noqa: PLC0415
+        _ladder = Path(root) / "nodes" / ".geometry" / "ladder.md"
+        current = int(_fm.load_node_file(_ladder, body=False).frontmatter.get(
+            "current_season", 1))
+    except (TypeError, ValueError, OSError, AttributeError, KeyError):
         current = None  # a corrupt ladder cell stamps nothing, never a bad row
     values = {"edited_by": str(row["name"]), "role": row.get("role"),
               "town": row.get("town"),

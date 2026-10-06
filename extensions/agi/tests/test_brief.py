@@ -483,7 +483,7 @@ def test_non_branch_parent_brief_still_forbids_all_git():
 def test_branch_parent_brief_carries_the_full_merge_protocol(monkeypatch):
     """hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — the branch
     parent's brief must carry the merge protocol in the brief's own words:
-    the `season.py merge-kids` helper merges each kid branch onto the round
+    the `deprecated-season merge-kids` helper merges each kid branch onto the round
     branch in dispatch order, union-resolving node-file conflicts onto the
     merged bytes and suite-gating them (a green kid branch is not a green
     union); a SOURCE conflict is resolved by the parent as an edit it owns
@@ -503,15 +503,15 @@ def test_branch_parent_brief_carries_the_full_merge_protocol(monkeypatch):
     assert "3way" in lower, "brief must forbid a blind git apply --3way"
     # source conflicts are the parent's own named edits
     assert "conflict in source" in lower
-    # kid 3: the NAMED verb is the supported helper (`season.py merge-kids`),
+    # kid 3: the NAMED verb is the supported helper (`deprecated-season merge-kids`),
     # not raw git. A parent must follow item 5 without inventing argv, so the
     # brief names the verb, a runnable path, and that it runs the suite on the
     # merged bytes so the parent does not re-run it separately.
     assert "merge-kids" in parent, (
         "branch brief must name the merge-kids helper as the parent's merge step"
     )
-    assert "season.py" in parent, (
-        "branch brief must give a runnable helper path (season.py), not ask "
+    assert "deprecated" in parent and "merge-kids" in parent, (
+        "branch brief must give a runnable deprecated-season merge-kids helper, not ask "
         "the parent to hand-roll the merge"
     )
     assert "raw git" in lower, (
@@ -570,7 +570,7 @@ def test_merge_kids_held_default_renders_held_block(monkeypatch):
     """hypothesis:l4-the-merge-protocol-block-is-gated-on-the-held-state —
     the merge-protocol block is gated on the held state, and the DEFAULT
     (no `spawn.merge_kids` cell) is held. A branch parent must be told the
-    `season.py merge-kids` verb is HELD and must NOT be run, and what to do
+    `deprecated-season merge-kids` verb is HELD and must NOT be run, and what to do
     instead (merge each kid branch into its own round branch with
     `git merge --no-ff` in its own worktree, union the ## Agent Notes blocks
     on node conflict, re-run the round's tests with their neighbours on the
@@ -598,20 +598,20 @@ def test_merge_kids_held_default_renders_held_block(monkeypatch):
     assert "merge-kids <kid-branch>" not in parent, (
         "held block must not instruct running merge-kids on a kid branch"
     )
-    assert "season.py merge-kids " not in parent.rstrip(), (
-        "held block must not give a runnable season.py merge-kids command"
+    assert "deprecated-season merge-kids " not in parent.rstrip(), (
+        "held block must not give a runnable deprecated-season merge-kids command"
     )
 
 
 def test_merge_kids_live_renders_current_block(monkeypatch):
     """An explicit `spawn.merge_kids: live` renders the current merge-
-    protocol block verbatim (item 5 + item 6, the `season.py merge-kids`
+    protocol block verbatim (item 5 + item 6, the `deprecated-season merge-kids`
     helper), even when the pinned config cell is ABSENT — the env override
     forces `live` regardless of the (hermetically pinned) cell."""
     parent = _branch_parent_text(monkeypatch, merge_kids="live",
                                  config_cell=_ABSENT_CELL)
-    assert "season.py merge-kids" in parent, (
-        "live cell must render the runnable season.py merge-kids helper"
+    assert "deprecated-season merge-kids" in parent, (
+        "live cell must render the runnable deprecated-season merge-kids helper"
     )
     assert "MERGE PROTOCOL" in parent, (
         "live cell must render the MERGE PROTOCOL block"
@@ -634,30 +634,30 @@ def test_merge_kids_live_config_cell_no_env_renders_runnable(monkeypatch):
     """HERMETIC (hypothesis:l4-the-merge-protocol-block-is-gated-on-the-
     held-state): when the config CELL is `spawn.merge_kids: live` and
     `AGI_MERGE_KIDS` env is UNSET, the brief renders the runnable
-    `season.py merge-kids <kid-branch>` instruction — the cell value, not
+    `deprecated-season merge-kids <kid-branch>` instruction — the cell value, not
     the ambient checkout, decides the DEFAULT. With the cell pinning `live`
     this must pass even if the live `.agi/config.json` says `held`."""
     parent = _branch_parent_text(monkeypatch, config_cell="live")
-    assert "season.py merge-kids" in parent, (
+    assert "deprecated-season merge-kids" in parent, (
         "a live config cell with no env override must render the runnable helper"
     )
     assert "MERGE PROTOCOL" in parent
     assert "MERGE-KIDS IS HELD" not in parent
-    assert "season.py merge-kids <kid-branch>" in parent, (
-        "live cell must give the runnable season.py merge-kids <kid-branch> command"
+    assert "deprecated-season merge-kids <kid-branch>" in parent, (
+        "live cell must give the runnable deprecated-season merge-kids <kid-branch> command"
     )
 
 
 def test_held_block_never_instructs_running_merge_kids(monkeypatch):
     """FALSIFIER (hypothesis:l4-the-merge-protocol-block-is-gated-on-the-
     held-state): the held block must never render an instruction to run
-    `merge-kids`. A held cell whose text named `season.py merge-kids
+    `merge-kids`. A held cell whose text named `deprecated-season merge-kids
     <kid-branch>` as a command to run would contradict the prime's ruling
     (g15-20), so this test fails on such a regression."""
     parent = _branch_parent_text(monkeypatch, config_cell=_ABSENT_CELL)
     # the only way the held text may name the verb is to say it is held
     assert "merge-kids" in parent, "held text must name merge-kids only to say it is held"
-    assert "season.py merge-kids <kid-branch>" not in parent, (
+    assert "deprecated-season merge-kids <kid-branch>" not in parent, (
         "held block must never render a runnable merge-kids instruction"
     )
     assert "merge-kids <kid-branch>" not in parent, (
@@ -912,7 +912,7 @@ def test_director_brief_carries_reasoning_section_with_ascii_diagram():
     assert "REASON BEFORE YOU ACT" in d
     assert "write.py create goal" in d
     assert "--ladder-tier 0" in d
-    assert "season.py judge" in d
+    assert "season judge" in d
     # the reasoner is taught, not handed machinery — the diagram is present
     assert "|" in d and "+" in d
     assert "continue" in d and "adjust" in d and "done" in d
