@@ -1,10 +1,13 @@
 ---
+
 id: build:bin-verification
 mint_id: 31f5d65b54e84282bd6c3e6b86ea4fb8
 type: build
 parents:
-  - goal:g7.16.1.2.6
+  - goal:g7.16.1
   - mvp:dg3-p-park-tag
+  - build
+  - code
 next_edges: []
 build_kind: code
 confidence: 1.0
@@ -28,3 +31,5 @@ town: core
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Council bundle 2 residues 49 + 52 (director-general-3): the THOUGHT-mark check matches the MARK shape on ANY THOUGHT line (re.M), at a line start or after a paren, and only on goal/hypothesis nodes. A tally or prose naming it passes. Row P's tag read-back is unchanged. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
+
+<!-- THOUGHT: season3 rollover: reparented past complete goal:g7.16.1.2.6 -> ['goal:g7.16.1.2', 'mvp:dg3-p-park-tag', 'build', 'code']. -->

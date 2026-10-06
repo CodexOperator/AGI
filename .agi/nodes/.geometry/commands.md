@@ -1562,7 +1562,7 @@ manifest:
     verb: ask
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - ask
       - "--to"
       - <to>
@@ -1580,7 +1580,7 @@ manifest:
     verb: audience
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - audience
       - <target>
     args:
@@ -1599,7 +1599,7 @@ manifest:
     verb: escalate
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - escalate
       - <text>
     args:
@@ -1616,7 +1616,7 @@ manifest:
     verb: keygen
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - keygen
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1638,7 +1638,7 @@ manifest:
     verb: peek
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - peek
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1658,7 +1658,7 @@ manifest:
     verb: prime-excluded
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - prime-excluded
       - "--round"
       - <round>
@@ -1674,7 +1674,7 @@ manifest:
     verb: read
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - read
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1695,7 +1695,7 @@ manifest:
     verb: report
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - report
       - "--ref"
       - <ref>
@@ -1715,7 +1715,7 @@ manifest:
     verb: rooms
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - rooms
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1729,7 +1729,7 @@ manifest:
     verb: send
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - send
       - <send_args>
     args:
@@ -1747,7 +1747,7 @@ manifest:
     verb: status
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - status
       - <target>
     args:
@@ -1762,7 +1762,7 @@ manifest:
     verb: veto
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - veto
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1779,7 +1779,7 @@ manifest:
     verb: vote
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - vote
       - "--target"
       - <target>
@@ -1805,7 +1805,7 @@ manifest:
     verb: wake
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - wake
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1820,7 +1820,7 @@ manifest:
     verb: whois
     argv:
       - python3
-      - <engine>/extensions/agi/bin/send.py
+      - <engine>/extensions/agi/deprecated/bin/send.py  # retired; mail=box
       - whois
     args:
       - {"name": "from_id", "type": "str", "required": false, "choices": []}
@@ -1943,7 +1943,7 @@ manifest:
     verb: author
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - author
       - <name>
     args:
@@ -1961,7 +1961,7 @@ manifest:
     verb: link
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - link
     args:
       - {"name": "root", "type": "str", "required": false, "choices": []}
@@ -1973,7 +1973,7 @@ manifest:
     verb: list
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - list
     args:
       - {"name": "root", "type": "str", "required": false, "choices": []}
@@ -1985,7 +1985,7 @@ manifest:
     verb: note
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - note
       - "--harness-id"
       - <harness_id>
@@ -2002,7 +2002,7 @@ manifest:
     verb: register
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - register
       - "--script"
       - <script>
@@ -2020,7 +2020,7 @@ manifest:
     verb: run
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - run
       - <name>
     args:
@@ -2038,7 +2038,7 @@ manifest:
     verb: status
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - status
     args:
       - {"name": "key", "type": "str", "required": false, "choices": []}
@@ -2051,7 +2051,7 @@ manifest:
     verb: validate
     argv:
       - python3
-      - <engine>/extensions/agi/bin/workflow.py
+      - <engine>/extensions/agi/deprecated/bin/workflow.py  # retired; spawn=agi-spawn-chain
       - validate
     args:
       - {"name": "root", "type": "str", "required": false, "choices": []}

@@ -1,0 +1,56 @@
+---
+id: goal:g4.18.1.6
+mint_id: 31f360ad580c416387cb4a94d2eecb36
+type: goal
+parents:
+  - goal:g4.18.1
+next_edges: []
+confidence: 0.6
+edited_by: director-general-3
+goal_id: G4.18.1.6
+goal_kind: subgoal
+origin: goals-doc
+scaffold_hash: 1c7cd722af6e1888
+season: 2
+seeds: []
+status: complete
+tags:
+  - council-loop
+  - owner-order
+title: "G4.18.1.6: write.py patch targets the node file itself when a node has no payload_ref"
+town: core
+---
+# goal:g4.18.1.6
+
+# goal:g4.18.1.6
+
+## OWNER 2026-09-30 02:5xZ (forwarded by the Prime, agi-79), verbatim
+"Also let's make it so write can patch config nodes as well. No reason it should have exceptions it is the universal node writer. The node location just becomes the node itself."
+
+## Why this exists
+goal:g4.18.1 (the one mint/write route): write.py is the universal node writer, yet `patch` refuses every node without a `payload_ref`. Measured 02:5xZ by the Prime on config:guard: `write.py config:guard 'patch -'` -> "ERR: config:guard has no payload_ref, so there are no bytes to replace." A config node's bytes ARE its node file, so the refusal is an exception the owner has ruled out.
+
+## Target end-state
+- `patch` on a node with no `payload_ref` targets the node file itself; a build node still patches its payload. `replace payload N:M` stays payload-only: on such a node it refuses and names the route (`replace body N:M` or `row`).
+- The patched node lands through the same gates as every write: the ring gate, the actor/spawn gate, the THOUGHT marker and BUILD-CONTRACT protections, and write.py's self-commit.
+
+## Invariants
+- A node with a `payload_ref` never has its node file patched by `patch`; the payload is the target.
+- A patch that would change a regenerated block (BUILD-CONTRACT) or break the THOUGHT markers is refused by name, dry and real.
+- The node's identity rows (id, mint_id) never change through a patch.
+
+## Falsifier
+1. `write.py config:<x> 'patch -'` with a one-line unified diff lands byte-exact on a canonical node (rc 0, dry == real), and the node is committed; a patch whose result the canonical render would alter refuses by name and prints `write.py <id> canonicalize`.
+2. Negative: a patch touching a BUILD-CONTRACT block, a THOUGHT marker line or an identity row refuses by name with nothing written.
+
+## Out of scope
+goal:g4.18.1.1 .. goal:g4.18.1.5 (the captive mint flow and its siblings)
+
+## Agent Notes
+Assigned to **director-general-3**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+complete 08:5xZ 09-30 (director-general-3) on sanctuary-master ACCEPT: council ruling (b) + SM residues R1-R4 + commit-message guard (91be4d21dc), R1b CRLF (04d765c817), R1c every splitlines separator (6894c783f3). SM re-review: 27 openers x 5 routes = 135 combos forged nothing; dry == real; mint_id/type/id/title unchanged after a second write; BOM/NBSP/ZWSP/space inert.
+<!-- THOUGHT:END -->
+
+<!-- THOUGHT: season3 rollover: complete goal not carried into s3; builds reparented to umbrella. -->

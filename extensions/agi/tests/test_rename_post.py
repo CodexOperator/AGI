@@ -265,7 +265,7 @@ def test_alias_resolves_in_send_and_prints(tmp_path, capsys):
     """Round 2 P3: send.py resolves old->new through the SAME aliases table
     and prints `deprecated alias used`; send/read/peek/whois/wake all route
     through _alias_canon."""
-    from agi.bin import send
+    import boxes as send  # AA1: boxes.box_send
     _geo(tmp_path, aliases={"old": "new"}, rows=[{"name": "new"}])
     assert send._alias_canon(tmp_path, "old") == "new"
     assert "deprecated alias used: old -> new" in capsys.readouterr().err
