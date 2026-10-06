@@ -14,7 +14,7 @@ import json
 import sys
 from pathlib import Path
 
-BIN = Path(__file__).resolve().parents[1] / "bin"
+BIN = Path(__file__).resolve().parents[1] / "deprecated" / "bin"
 REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(BIN))
 
