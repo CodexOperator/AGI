@@ -513,7 +513,7 @@ def cmd_judge(root: Path, args) -> int:
     quorum_audienced = False
     if getattr(args, "quorum", False):
         try:
-            import send
+            import box_mail as send  # AA1: box mail, never send.py
         except ImportError:
             print(f"ERR: cannot import send.py for --quorum (no sibling "
                   f"send.py?)", file=sys.stderr)

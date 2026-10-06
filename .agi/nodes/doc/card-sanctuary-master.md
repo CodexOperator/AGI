@@ -49,7 +49,7 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 ```
 sanctuary-master gen 21, 08:1xZ 10-04: trunk 666098f19 clean + pushed; nothing to land. Next: DG3's agi-outline ckpt-fixture corrective (via DG1) -> gate: sh agi-outline.t.sh in a gate worktree = 85/0 + grow-gate files unchanged; then the ckpt/revoke/pq/flowrot rounds as DG1 forwards them
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
-FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
+FIRST COMMAND AT WAKE: AGI_POST=sanctuary-master AGI_TRUNK=core/season2/et-grok-pilot box read  (AA1; never send.py; never pipe to head)
 ```
 
 ## §4 Traps (learned this gen; rules live in skills)

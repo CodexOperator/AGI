@@ -81,12 +81,12 @@ templates:
       first_turn:
         - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py status --post {seat} --record latest", "why": "call 1-2, 8: the record (with successor_row) + sequence read by hand; L4.179: status --record latest, whois was never a rotate.py verb"}
         - {"label": "facts", "cmd": "python3 extensions/agi/bin/write.py config:rotations 'read body 37:57'", "why": "calls 2, 4-10, 22-23, 26-30: 16 wake calls re-deriving facts F1-F4 (owner 2026-09-11 12:4xZ); printed by body range until 0b-b's facts emitter lands"}
-        - {"label": "prime-authority", "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} --claim belam", "why": "call 7: authority verified against the graph, never the message"}
+        - {"label": "prime-authority", "cmd": "git show-ref --verify refs/box/{prime_ref}/$(basename $(pwd)) || true", "why": "AA1: authority is the signed box-ref path, not send.py whois"}
         - {"label": "git-state", "cmd": "git -C {worktree} status -sb | head -5; git -C {repo} status -sb | head -3", "why": "call 6"}
         - {"label": "predecessor-log", "cmd": "git -C {worktree} log --oneline -12; git -C {repo} log --oneline -3", "why": "calls 24-25 (predecessor's landed commits by hand) + 26-27, 69, 79 (four fetch+rev-parse behind checks): main's tip is in your own log or it is not (master-sensei wake audit 2026-09-11, applied by the Prime L4-X; judged None)"}
-        - {"label": "inbox", "cmd": "python3 extensions/agi/bin/send.py read {seat}", "why": "unread dms are the first thing a seat owes a reply to"}
+        - {"label": "inbox", "cmd": "AGI_POST={seat} box read", "why": "AA1 box is THE mail; unread = refs/box/*/P --not held"}
         - {"label": "live-spawns", "cmd": "python3 extensions/agi/bin/spawn_budget.py status; python3 extensions/agi/bin/provisioning.py status | head -4", "why": "the seat inherits its predecessor's live spawns (owner 02:0xZ)"}
-        - {"label": "send-verbs", "cmd": "python3 extensions/agi/bin/send.py -h | sed -n 1,30p", "why": "sanctuary-director 122528Z calls 8-9, sanctuary-helper 152548Z call 7, sensei-director first seating calls 2-3: three seats learned send.py's verbs by hand"}
+        - {"label": "box-verbs", "cmd": "box 2>&1 | sed -n 1,5p || true", "why": "AA1: box send|read|n|carry replaces send.py verbs"}
         - {"label": "skills", "byte_cap": 7000, "cmd": "python3 extensions/agi/bin/write.py build:skills-agi-dispatch-SKILL.md 'read payload 2:7'; python3 extensions/agi/bin/write.py build:skills-agi-corrective-SKILL.md 'read payload 2:8'; python3 extensions/agi/bin/write.py build:skills-agi-goal-SKILL.md 'read payload 2:8'; python3 extensions/agi/bin/write.py build:skills-agi-master-gate-SKILL.md 'read payload 2:8'; python3 extensions/agi/bin/write.py build:skills-agi-merge-pass-SKILL.md 'read payload 2:8'; python3 extensions/agi/bin/write.py build:skills-agi-memory-guard-SKILL.md 'read payload 2:8'; python3 extensions/agi/bin/write.py build:skills-agi-node-write-SKILL.md 'read payload 2:7'; python3 extensions/agi/bin/write.py build:skills-agi-rotate-SKILL.md 'read payload 2:7'; python3 extensions/agi/bin/write.py build:skills-agi-send-SKILL.md 'read payload 2:7'; python3 extensions/agi/bin/write.py build:skills-agi-verify-SKILL.md 'read payload 2:7'; python3 extensions/agi/bin/write.py build:skills-agi-workflow-SKILL.md 'read payload 2:7'; python3 extensions/agi/bin/write.py build:skills-agi-post-SKILL.md 'read payload 2:7'; python3 extensions/agi/bin/write.py build:skills-agi-stream-SKILL.md 'read payload 2:7'; python3 extensions/agi/bin/write.py build:skills-agi-SKILL.md 'read payload 2:12'", "why": "the skill index loads at startup (OWNER 05:33Z 09-27 via TM: 'just change the load template ... No duplication needed'; doc:draft-skills-first-turn, DE 40dd3bdc7 + TM b660c3ee2); cap 7000 (belam ab864f427, pb3: 6205 B measured 14:5xZ 10-02 with agi-post + agi-stream; was 6000 per TM [rule] 19:4xZ); agi-corrective loaded since ee82066ec (its build node is on the trunk)"}
       after_join:
         - {"label": "join", "cmd": "tmux list-windows -t {tmux_session} -F '#{window_id} #{window_name}' | grep {succ_name}", "why": "(the ListAgents name<->ref join is the service's registry read, not a shell stage — judge-cleaned by the Prime L4-X 15:4xZ so the WHOLE templates value passes the L4.234 gate) call 4-5: the name<->ref<->@id join, derived by rotate-self at spawn (L4.114)"}
@@ -120,9 +120,9 @@ templates:
       first_turn:
         - {"label": "rotation-record", "cmd": "python3 extensions/agi/bin/rotate.py status --post {seat} --record latest", "why": "call 1-2, 8: the record (with successor_row) + sequence read by hand; L4.179: status --record latest, whois was never a rotate.py verb"}
         - {"label": "facts", "cmd": "python3 extensions/agi/bin/write.py config:rotations 'read body 37:57'", "why": "belam calls 5-9, 10-12, 25-26 (ack grammar from source, record polled 18x, lock path grepped) + that wake's F1-F5; master-sensei wake audit 13:1xZ; printed by body range until 0b-b's facts emitter lands"}
-        - {"label": "prime-authority", "cmd": "python3 extensions/agi/bin/send.py whois {prime_ref} --claim belam", "why": "call 7: authority verified against the graph, never the message"}
+        - {"label": "prime-authority", "cmd": "git show-ref --verify refs/box/{prime_ref}/$(basename $(pwd)) || true", "why": "AA1: authority is the signed box-ref path, not send.py whois"}
         - {"label": "git-state", "cmd": "git -C {repo} status -sb | head -8", "why": "call 6 · belam-S2-L5-IV 09-24 startup pass (owner 20:3xZ: cut dead first-turn output): ONE read: the Prime worktree IS the repo, so the two-read form printed the same tree twice"}
-        - {"label": "inbox", "cmd": "python3 extensions/agi/bin/send.py read {seat}", "why": "unread dms are the first thing a seat owes a reply to"}
+        - {"label": "inbox", "cmd": "AGI_POST={seat} box read", "why": "AA1 box is THE mail; unread = refs/box/*/P --not held"}
         - {"label": "live-spawns", "cmd": "python3 extensions/agi/bin/spawn_budget.py status; python3 extensions/agi/bin/provisioning.py status | head -4", "why": "the seat inherits its predecessor's live spawns (owner 02:0xZ)"}
         - {"label": "suite-lock", "cmd": "python3 extensions/agi/bin/verification.py window", "why": "master-sensei XVII->XVIII wake audit 22:12Z: the Prime paid 2 calls reading the lock pid + pgrep by hand at wake; `window` PRINTS lock holder + tip + baseline in one read, never sends (verification.py:1057)"}
         - {"label": "verify", "cmd": "python3 extensions/agi/bin/commands.py run verify", "why": "the prime's first duty is the tree's health; 26 s, no suite"}
@@ -181,13 +181,13 @@ rather than in the same window. The resolution must run BEFORE any side effect
 
 - F30 UN-MIGRATED: the card-age captive clocks YOUR OWN last act; card write LAST.
 - F31 -> skill agi-dispatch (§3) + agi-send (§3).
-- F29 -> skill agi-workflow (§1); F5 -> skill agi-workflow (§2).
+- F29 -> skill agi-spawn-chain (§1); F5 -> skill agi-spawn-chain (§2).
 - F22 -> skill agi-send (§2); F28 -> skill agi-rotate (§3).
 - F27 -> skill agi-rotate (§1): rotate at f >= 0.47, never on r.
 - F19+F8+F18+F20 -> skill agi-rotate (§3): floor wake 0 / out 1, your wake acts NONE - never ps, tmux, status or ack by hand.
 - F23 -> skill agi-rotate (§2): EMPTY/AMBIGUOUS where-it-stops refused, STALE is not.
 - F26+F14 -> skill agi-rotate (§2): never merge origin by hand, never rebase.
-- F25+F3 -> skill agi-send (§1): a post name is not a session token; `send.py whois <token>` resolves a session_ref or session_name. F10+F11 -> skill agi-send (§3).
+- F25+F3 -> skill agi-send (§1, historical): AA1 box refs replace send.py whois. F10+F11 -> skill agi-send (§3).
 - F24+F4 -> skill agi-node-write (§1); F17+F21 -> skill agi-node-write (§2).
 - F9 -> skill agi-dispatch (§2).
 - F7 -> skill agi-merge-pass (§4) + agi-verify (§2).
