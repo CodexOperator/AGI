@@ -24,7 +24,7 @@ import pytest
 from unittest import mock
 
 REPO = Path(__file__).resolve().parents[3]
-BIN = REPO / "extensions" / "agi" / "bin"
+BIN = REPO / "extensions" / "agi" / "deprecated" / "bin"
 sys.path.insert(0, str(BIN))
 
 import subprocess as _sp  # noqa: E402
