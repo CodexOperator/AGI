@@ -207,7 +207,7 @@ KEYGEN_LINE = (
     "# agi-out does out-line keygen; never send.py"
 )
 PRIME = "belam"
-WHOIS_NOT_AUTHORIZED = "WHOIS_NOT_AUTHORIZED"
+WHOIS_NOT_AUTHORIZED = 2  # send.WHOIS_NOT_AUTHORIZED
 SEAT_KEY_MODE = 0o600
 
 
@@ -291,17 +291,15 @@ def rewind_read_cursors(*_a, **_k):
 
 
 def _locally_loaded_rows(root) -> list:
-    return []
+    return _deprecated_send()._locally_loaded_rows(root)
 
 
 def _resolve_rows(rows, ref, claim=None):
-    if claim and ref and claim in str(ref):
-        return ("OK", ref)
-    return (WHOIS_NOT_AUTHORIZED, ref)
+    return _deprecated_send()._resolve_rows(rows, ref, claim=claim)
 
 
 def whois(root, token: str, claim: str | None = None):
-    return _resolve_rows([], token, claim=claim)
+    return _deprecated_send().whois(root, token, claim=claim)
 
 
 def _deprecated_send():
