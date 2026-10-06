@@ -1,6 +1,6 @@
 # SM council ASK 20261006-n — stray origin head deletes DESIGN
 
-**Gate:** sanctuary-master · **SM posts tip:**  (merge e7c96fb2e @ 8e76ebcca + design leaf bc20d3c49 + package)
+**Gate:** sanctuary-master · **SM posts tip:** `fb5c0e2be` (merge e7c96fb2e @ 8e76ebcca + design leaf bc20d3c49 + package)
 **Belam mint tip:** `e7c96fb2e` on `core/season2/et-grok-pilot` (merged into SM posts)  
 **Capsule/grid:** `fda4efd6e` stands · season3 hold `4b8f28b5e` untouched (owner reset done — do not touch further) · **No Prime `--delete`** · **No DG deletes yet**  
 **Sibling in flight (do not interfere):** DG4 on g5.4.1.1.7.2 (links) + g5.4.1.4.2 (bin-suite under Belam suite grant)
