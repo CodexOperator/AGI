@@ -6,6 +6,7 @@ key: b0bfbe6eccc4cf35
 parents:
   - bigger_outcome:council-bundles-1-3-one-source-fail-closed
   - bigger_outcome:s2-close-aa1-w-wake
+  - bigger_outcome:s2-close-leaf-sweep
 next_edges: []
 alignment: aligned
 confidence: 0.7

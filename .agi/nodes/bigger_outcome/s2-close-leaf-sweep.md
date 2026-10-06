@@ -1,0 +1,137 @@
+---
+id: bigger_outcome:s2-close-leaf-sweep
+mint_id: a218eddebef64c0499b0aed84db47914
+type: bigger_outcome
+parents:
+  - outcome:s2-leaf-g4-18-6-2-1
+  - outcome:s2-leaf-g7-16-1-2-6
+  - outcome:s2-leaf-g2-legacy-direct
+  - outcome:s2-leaf-g7-33-8
+  - outcome:s2-leaf-g7-33-9-2-1
+  - outcome:s2-leaf-g7-16-1-2-2
+  - outcome:s2-leaf-g7-16-1-7-1-1-4
+  - outcome:s2-leaf-g7-16-1-5-2-1-1
+  - outcome:s2-leaf-g7-legacy-direct
+  - outcome:s2-leaf-g7-16-1-10-5
+  - outcome:s2-leaf-g7-25-1
+  - outcome:s2-leaf-g7-16-1-10-3
+  - outcome:s2-leaf-g21-legacy-direct
+  - outcome:s2-leaf-g1-31-5-1-2
+  - outcome:s2-leaf-g7-33-11
+  - outcome:s2-leaf-g7-16-1-3-2-3-3
+  - outcome:s2-leaf-g7-16-1-2-1
+  - outcome:s2-leaf-g23
+  - outcome:s2-leaf-g7-16-1-2-4
+  - outcome:s2-leaf-g4-18-6-2-2
+  - outcome:s2-leaf-g7-16-1-5-4-1
+  - outcome:s2-leaf-g7-33-16
+  - outcome:s2-leaf-g7-25-2
+  - outcome:s2-leaf-g4-18-1-6
+  - outcome:s2-leaf-g7-16-1-3-2-3-1
+  - outcome:s2-leaf-g7-16-1-5-5-8
+  - outcome:s2-leaf-g7-33-15
+  - outcome:s2-leaf-g3-legacy-direct
+  - outcome:s2-leaf-g6-51
+  - outcome:s2-leaf-g7-16-1-4-2
+  - outcome:s2-leaf-g7-16-1-3-3-1
+  - outcome:s2-leaf-g6-41-2
+  - outcome:s2-leaf-g7-16-1-3-2-3-2
+  - outcome:s2-leaf-g24
+  - outcome:s2-leaf-g7-16-1-1-1
+  - outcome:s2-leaf-g7-16-1-2-5
+  - outcome:s2-leaf-g7-33-14
+  - outcome:s2-leaf-g7-16-1-3-5-1
+  - outcome:s2-leaf-g4-18-5-1-2
+  - outcome:s2-leaf-g7-16-1-3-2-2
+  - outcome:s2-leaf-g7-16-1-3-3-2
+  - outcome:s2-leaf-g7-16-1-2-8
+  - outcome:s2-leaf-g7-16-1-1-3
+  - outcome:s2-leaf-g1-31-1-2
+  - outcome:s2-leaf-g4-18-6-3-1
+  - outcome:s2-leaf-g7-16-1-3-5-2
+  - outcome:s2-leaf-g7-16-1-4-1-1
+  - outcome:s2-leaf-g4-18-3
+  - outcome:s2-leaf-g7-33-1-1
+  - outcome:s2-leaf-g7-33-20-2
+  - outcome:s2-leaf-g7-16-1-1-6-2
+  - outcome:s2-leaf-g4-legacy-direct
+  - outcome:s2-leaf-g7-16-1-7-1-1-1
+  - outcome:s2-leaf-g7-16-1-1-2-1
+  - outcome:s2-leaf-g19
+  - outcome:s2-leaf-g7-16-1-5-5-6-1
+  - outcome:s2-leaf-g7-16-1-7-1-3-1
+  - outcome:s2-leaf-g26-legacy-direct
+  - outcome:s2-leaf-g7-27-1
+  - outcome:s2-leaf-g7-16-1-5-5-3
+  - outcome:s2-leaf-g7-16-1-7-1-1-3
+  - outcome:s2-leaf-g22
+  - outcome:s2-leaf-g7-33-20-3
+  - outcome:s2-leaf-g7-16-1-1-6-1
+  - outcome:s2-leaf-g7-16-1-1-5
+  - outcome:s2-leaf-g1-31-5-2
+  - outcome:s2-leaf-g7-33-7
+  - outcome:s2-leaf-g7-16-1-7-1-3-2
+  - outcome:s2-leaf-g7-33-13
+  - outcome:s2-leaf-g7-16-1-4-1-2
+  - outcome:s2-leaf-g7-16-1-7-1-2-1
+  - outcome:s2-leaf-g4-18-5-2-1
+  - outcome:s2-leaf-g7-25-3
+  - outcome:s2-leaf-g26-towns
+  - outcome:s2-leaf-g7-16-1-2-7
+  - outcome:s2-leaf-g25-legacy-direct
+  - outcome:s2-leaf-g7-16-1-11-2
+  - outcome:s2-leaf-g7-16-1-3-2-1
+  - outcome:s2-leaf-g7-16-1-3-4
+  - outcome:s2-leaf-g4-18-5-1-1
+  - outcome:s2-leaf-g4-18-1-1
+  - outcome:s2-leaf-g18
+  - outcome:s2-leaf-g17
+  - outcome:s2-leaf-g1-31-4-3
+  - outcome:s2-leaf-g5-legacy-direct
+  - outcome:s2-leaf-g7-27-2
+  - outcome:s2-leaf-g24-legacy-direct
+  - outcome:s2-leaf-g4-18-1-3
+  - outcome:s2-leaf-g23-legacy-direct
+  - outcome:s2-leaf-g4-6-1
+  - outcome:s2-leaf-g25
+  - outcome:s2-leaf-g7-16-1-5-5-5
+  - outcome:s2-leaf-g22-legacy-direct
+  - outcome:s2-leaf-g6-legacy-direct
+  - outcome:s2-leaf-g7-16-1-3-1
+  - outcome:s2-leaf-g7-16-1-5-5-4
+  - outcome:s2-leaf-g7-16-1-7-1-1-2-1
+  - outcome:s2-leaf-g7-33-12
+  - outcome:s2-leaf-g1-legacy-direct
+  - outcome:s2-leaf-g20-legacy-direct
+  - outcome:s2-leaf-g1-32
+  - outcome:s2-leaf-g7-16-1-1-4
+  - outcome:s2-leaf-g7-16-1-2-3
+  - outcome:s2-leaf-g20
+  - outcome:s2-leaf-g4-18-6-1-1
+  - outcome:s2-leaf-g7-16-1-1-2-2
+  - outcome:s2-leaf-g21
+  - outcome:s2-leaf-g4-18-5-2-2
+  - outcome:s2-leaf-g7-16-1-11-1
+next_edges: []
+edited_by: belam
+season: 2
+status: closed
+confidence: 0.7
+judged_against: goal:g5.4.1
+lens: vision:self-perpetuating
+alignment: aligned
+adjust: "exhaustive leaf outcomes at close; overviews remain one per vision"
+tags:
+  - s2
+  - season-close
+  - leaf-sweep
+title: "S2 close: exhaustive leaf-outcome sweep (109 leaves)"
+town: core
+---
+# bigger_outcome:s2-close-leaf-sweep
+
+## Joint claim
+Every season-2 completed leaf goal missing an outcome received one in the close stand-in sweep (109 minted). Rolls under vision:self-perpetuating alongside bigger_outcome:s2-close-aa1-w-wake.
+
+## Counts
+minted=109 · deferred non-s2 done leaves=40
