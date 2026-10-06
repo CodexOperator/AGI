@@ -20,7 +20,7 @@ season: 2
 seeds: []
 spawn_check: unverified
 spawn_check_reason: schema 'goal' is discriminated on 'goal_kind', which this node does not set
-status: active
+status: retired
 tags:
   - osc-band
   - local-maxxing
@@ -64,3 +64,5 @@ Assigned to **post**. goal:band-call-rule-per-cell is the (C) DECIDE LAYER slice
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director harvest (director-thought gen 32): heading_level 5 added so GOALS.md renders (one below goal:g5.22.1 at 4); title prefix G5.22.1.c -> G5.22.1.1 to match goal_id (the schema regex admits no letter slot, as p2 measured in swarm-osc35). Body and scope unchanged -- p3 a00-553975e2 authored it; this node was left uncommitted in its worktree and is harvested verbatim otherwise.
 <!-- THOUGHT:END -->
+
+<!-- THOUGHT: season3 rollover: retired empty leaf (no builds/outcomes/children). -->
