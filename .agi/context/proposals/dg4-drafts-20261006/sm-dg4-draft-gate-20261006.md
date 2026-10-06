@@ -30,3 +30,6 @@ Master · applying C4 before season · inventing Keep lands for TM/PM.
 
 ## UPDATE 2026-10-06
 Ladder landed (Prime tip e35615681): current_season: 3 verified. Season g5.4.1.1.2 BLOCK lifted. SM tip after absorb: 255679c0a.
+
+## SM gate 2026-10-06 — g5.4.1.1.2
+PASS-with-residue @ 9f8bce48c (SM absorb tip b160c29e8). GO g5.4.1.1.3 from pack; fix test_untrusted_lane before/with move. C4 still held. Projection bin/season waits g5.35.2.
