@@ -1,4 +1,5 @@
 ---
+
 id: build:QUICKSTART.md
 mint_id: 7867cc7526ba4dceaffbdd48ad884316
 type: build
@@ -7,7 +8,7 @@ parents:
   - goal:g6
   - build
   - prose
-  - g2.1
+  - goal:g2.1
 next_edges: []
 build_kind: prose
 confidence: 1.0
