@@ -11,7 +11,7 @@ so a new hand-spelled spelling FAILS this test.
 
 THIS FROZEN LIST IS DEBT, NOT A LICENCE. Every hit below was triaged in
 L4.332 (a00-1997ae21): the season-first spellings in dispatch.py, rotate.py,
-heal.py, season.py, send.py, spawn_gate.py, grid.py and the cli.py
+heal.py, deprecated season module, send.py, spawn_gate.py, grid.py and the cli.py
 reshuffle/prune regions live in files FROZEN by that round — their rename to
 the v3 TOWN-FIRST names is a later Prime-only pass (the live tree is HELD by
 the owner), so this test pins them as the debt to burn down. verification.py
@@ -120,12 +120,6 @@ PINNED = {
         'season2/m',
         'season2/m',
         'season2/m',
-    ],
-    'season.py': [
-        'season/s<N',
-        'season/s<N',
-        'season/s<N',
-        'town/s',
     ],
     'send.py': [
         'season/s<N',

@@ -17,7 +17,7 @@ captive_rotate_ratio: 0.85
 capture_chain_log: capture-chain.log
 card_capture_minutes: 10
 current_loop: 5
-current_season: 2
+current_season: 3
 director_context_tokens: 1000000
 director_rotate_at: 0.47
 edited_by: belam
@@ -155,7 +155,7 @@ makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-tier-3 claude-code parent -> Sonnet 5.5 (belam gen 25, 03:0xZ 10-02; SM asked 00:5xZ: the tier-3 row is the ONLY claude-code parent allowed to run dispatch.py, so A+ Sonnet could not spawn kids). OWNER 02:27Z 10-01 verbatim (doc:unified-master-brief @940b2bc06 :82): "Everyone else on sonnet 5.5 for everything they need and DG3 on opus 5.6 medium subagents and everything". DG3’s Opus is its own subagents on v5, not this ladder row (v5 posts do not run dispatch.py until the keys piece). Model only; effort unchanged.
+g5.4.1.1.5: bump current_season 2→3 so season port stamps season 3 (SM/DG4 STATUS; blocks .2 until land).
 <!-- THOUGHT:END -->
 
 ## Agent Notes

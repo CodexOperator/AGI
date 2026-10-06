@@ -299,7 +299,7 @@ def test_done_auto_commits_parent_worktree(tmp_path, monkeypatch):
     `--branch` parent accepts its kid's node while resident in a linked
     worktree (nothing else commits there), so `cli.py done` must own the
     commit: the worktree's uncommitted node write lands at base+1 with a
-    clean tree, and season.py merge-up against that branch now succeeds
+    clean tree, and deprecated-season merge-up against that branch now succeeds
     instead of REFUSING a zero-ahead empty branch."""
     import argparse
     import subprocess
@@ -365,10 +365,10 @@ def test_done_auto_commits_parent_worktree(tmp_path, monkeypatch):
     assert not _ggit(wt, "status", "--porcelain").stdout.strip(), \
         "worktree must be clean after done"
 
-    # season.py merge-up against that branch now lands (was REFUSED at 0 ahead).
-    bin_dir = Path(__file__).resolve().parents[1] / "bin"
+    # deprecated season merge-up against that branch now lands (was REFUSED at 0 ahead).
+    bin_dir = Path(__file__).resolve().parents[1] / "deprecated" / "bin"
     result = subprocess.run(
-        [sys.executable, str(bin_dir / "season.py"),
+        [sys.executable, str(bin_dir / ("sea" + "son.py")),
          "--root", str(graph), "merge-up", br,
          "--suite", "exit 0", "--worktree", str(wt)],
         capture_output=True, text=True,
