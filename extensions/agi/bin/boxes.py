@@ -207,7 +207,7 @@ KEYGEN_LINE = (
     "# agi-out does out-line keygen; never send.py"
 )
 PRIME = "belam"
-WHOIS_NOT_AUTHORIZED = "WHOIS_NOT_AUTHORIZED"
+WHOIS_NOT_AUTHORIZED = 2  # send.WHOIS_NOT_AUTHORIZED
 SEAT_KEY_MODE = 0o600
 
 
@@ -268,22 +268,22 @@ def box_send(root, to: str, text: str, sender: str | None = None, **_kw) -> None
         )
 
 
-# aliases matching old box_mail call shapes
+# Inbox/DM/room/wake stay on deprecated send (conversation channel SoT).
+# Geometry git-ref mail is box_send above — do NOT route inbox through box CLI.
 def send(root, to: str, text: str, sender: str | None = None, **kw) -> None:
-    box_send(root, to, text, sender=sender, **kw)
+    return _deprecated_send().send(root, to, text, sender=sender, **kw)
 
 
-def send_dm(croot, sender: str, to: str, text: str, **kw) -> None:
-    root = Path(croot).parent if Path(croot).name == "comms" else croot
-    box_send(root, to, text, sender=sender, **kw)
+def send_dm(croot, me: str, other: str, text: str, sender: str | None = None, **kw):
+    return _deprecated_send().send_dm(croot, me, other, text, sender, **kw)
 
 
-def send_room(croot, room: str, text: str, sender: str | None = None, **_kw) -> None:
-    return None  # AA1 has no rooms
+def send_room(croot, room: str, text: str, sender: str | None = None, **kw) -> None:
+    return _deprecated_send().send_room(croot, room, text, sender=sender, **kw)
 
 
 def wake(root, seat: str) -> None:
-    return None  # AA1 wake is in-pane box n / box read
+    return _deprecated_send().wake(root, seat)
 
 
 def rewind_read_cursors(*_a, **_k):
@@ -291,25 +291,53 @@ def rewind_read_cursors(*_a, **_k):
 
 
 def _locally_loaded_rows(root) -> list:
-    return []
+    return _deprecated_send()._locally_loaded_rows(root)
 
 
 def _resolve_rows(rows, ref, claim=None):
-    if claim and ref and claim in str(ref):
-        return ("OK", ref)
-    return (WHOIS_NOT_AUTHORIZED, ref)
+    return _deprecated_send()._resolve_rows(rows, ref, claim=claim)
 
 
 def whois(root, token: str, claim: str | None = None):
-    return _resolve_rows([], token, claim=claim)
+    return _deprecated_send().whois(root, token, claim=claim)
 
+
+def _deprecated_send():
+    """Return the ONE deprecated-send module object.
+
+    Prefer sys.modules["send"] (live bin/send.py AA1 shim) so test
+    monkeypatches on `import send` apply. Fall back to loading
+    deprecated/bin/send.py under a private name only if send is absent.
+    """
+    import importlib.util
+    import sys
+    if "send" in sys.modules:
+        return sys.modules["send"]
+    # Import via shim path if present
+    shim = Path(__file__).resolve().parent / "send.py"
+    if shim.is_file():
+        import importlib
+        return importlib.import_module("send")
+    sp = Path(__file__).resolve().parent.parent / "deprecated" / "bin" / "send.py"
+    spec = importlib.util.spec_from_file_location("_agi_deprecated_send", sp)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load deprecated send: {sp}")
+    mod = importlib.util.module_from_spec(spec)
+    agi = Path(__file__).resolve().parent.parent
+    for p in (str(agi / "bin"), str(agi / "src")):
+        if p not in sys.path:
+            sys.path.insert(0, p)
+    sys.modules["_agi_deprecated_send"] = mod
+    spec.loader.exec_module(mod)
+    sys.modules.setdefault("send", mod)
+    return mod
 
 def _mint_seat_key(root, seat: str, scheme=None, stage: bool = False):
-    raise BoxSendError(f"keygen retired: {KEYGEN_LINE.format(seat=seat)}")
+    return _deprecated_send()._mint_seat_key(root, seat, scheme, stage=stage)
 
 
 def _row_write_submit(*_a, **_k):
-    return None
+    return _deprecated_send()._row_write_submit(*_a, **_k)
 
 
 def _seat_key_path(root: Path, seat: str) -> Path:
@@ -337,3 +365,13 @@ def _comms_config(root: Path) -> dict:
 def _row_is_quiet(root: Path, to: str) -> bool:
     return False
 
+
+
+def __getattr__(name: str):
+    """Forward unknown attrs to deprecated send (DM paths, sign helpers, …)."""
+    if name.startswith("__"):
+        raise AttributeError(name)
+    try:
+        return getattr(_deprecated_send(), name)
+    except AttributeError as e:
+        raise AttributeError(f"module 'boxes' has no attribute {name!r}") from e

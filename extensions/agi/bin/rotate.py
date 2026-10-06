@@ -6543,7 +6543,7 @@ def _announce_rotation(*, root: Path, croot, seat: str, successor: str,
     failure is logged and NEVER fails the rotation — the announcement is the
     proof, not a gate. Returns the recipients reached.
     """
-    import boxes as send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
+    import send  # conversation/inbox SoT (tests patch this module); not boxes.box_send
     seq = _next_sequence(root)
     # The receiver set is computed BEFORE the record is written so the record
     # can name who the announce told (dedup: the Sensei appears ONCE in the
@@ -22143,7 +22143,8 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
     prints every step by alias and touches nothing. Refusals print BY NAME.
     """
     import migrate_channel
-    import boxes as send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
+    import boxes
+    import send  # migrate channel/signing SoT (AA1 box mail ≠ migrate records)
     if root is None:
         print("ERR: migrate needs an agi project root.", file=sys.stderr)
         return 1
@@ -22371,7 +22372,8 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
     answers with ONE `stage: seated` line on the same channel. An unverified
     record or a row already live is REFUSED BY NAME and nothing is seated."""
     import migrate_channel
-    import boxes as send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
+    import boxes
+    import send  # migrate channel/signing SoT (AA1 box mail ≠ migrate records)
     import write
     try:
         me = boxes.this_box(root)

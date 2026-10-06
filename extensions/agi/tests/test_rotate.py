@@ -75,11 +75,9 @@ def test_rotate_first_key_mints_unkeyed_row(tmp_path):
 
 
 def test_rotate_first_key_mints_through_send_writer(tmp_path, monkeypatch):
-    # the mint MUST go through send._mint_seat_key (no second key writer, no
-    # ed25519 literal in rotate.py). rotate.py imports `send` as a TOP-LEVEL
-    # module (it pushes bin/ onto sys.path at import), which is a DIFFERENT
-    # module object from `agi.bin.send` -- so patch the one rotate binds.
-    import send as bin_send
+    # the mint MUST go through boxes._mint_seat_key (AA1: rotate binds boxes
+    # as send; boxes forwards to deprecated send's one key writer).
+    import boxes as bin_send
     orig = bin_send._mint_seat_key
     seen = {}
 
@@ -91,8 +89,7 @@ def test_rotate_first_key_mints_through_send_writer(tmp_path, monkeypatch):
     rotate._rotate_first_key(tmp_path, tmp_path, "s2", {"role": "helper"})
     assert seen.get("call") == (tmp_path, "s2",
                                  bin_send.seatsig.DEFAULT_SCHEME)
-    import boxes as send  # AA1: boxes.box_send as send_pkg
-    assert send_pkg._seat_key_path(tmp_path, "s2").is_file()
+    assert bin_send._seat_key_path(tmp_path, "s2").is_file()
 
 
 def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path, monkeypatch):
@@ -3217,7 +3214,12 @@ def test_stops_push_real_refusal_branch_receive_fails(
                     encoding="utf-8")
     bare = _init_git_remote(tmp_path)
     # make the REAL remote refuse receives: a pre-receive hook that exits 1
-    hook = bare / "hooks" / "pre-receive"
+    hooks_dir = bare / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    # Host may set core.hooksPath=~/hooks (bypasses bare/hooks); pin for this fixture.
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath",
+                    str(hooks_dir)], check=True)
+    hook = hooks_dir / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
     local_before = subprocess.run(
@@ -8250,6 +8252,8 @@ def test_ack_failed_commit_exits_nonzero_unstages_row_keeps_working_tree(
     monkeypatch.delenv("GIT_CONFIG_VALUE_0", raising=False)
     hooks = top / ".git" / "hooks"
     hooks.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "-C", str(top), "config", "core.hooksPath",
+                    str(hooks)], check=True)
     pre = hooks / "pre-commit"
     pre.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     pre.chmod(0o755)
@@ -8809,22 +8813,16 @@ def test_first_seating_writes_row_and_commits_seating_row_and_pushes(
 def test_keygen_line_is_the_one_refusal_spelling_and_its_tail_parses(
         tmp_path, monkeypatch):
     """clause (1): every refusal that sends an operator to key a seat quotes
-    the ONE module constant, and the tail it quotes PARSES under send.py's own
-    argparse (`keygen --post <seat>`), dispatching to `_cli_keygen` with the
-    seat resolved -- never a usage error."""
-    import send as _bin_send
+    the ONE module constant. AA1: send.py keygen CLI is retired — recovery is
+    agi-out fresh+restart (`touch ~/.fresh && systemctl restart agi-post@…`)."""
     line = rotate.KEYGEN_LINE.format(seat="belam")
-    assert line == "python3 extensions/agi/bin/send.py keygen --post belam"
+    assert "touch ~/.fresh" in line
+    assert "systemctl restart agi-post@belam.service" in line
+    assert not line.strip().startswith("python3")  # never send.py keygen CLI argv
+    assert "keygen --post" not in line
     # the refusal at the rotate-self gate quotes EXACTLY the constant.
     err = rotate._rotate_key_gate(tmp_path, "belam", {"pubkey": "deadbeef"})
     assert err is not None and f"`{line}`" in err, err
-    # the quoted tail IS send.py's argv[1:]: it parses and dispatches.
-    seen = {}
-    monkeypatch.setattr(_bin_send, "_cli_keygen",
-                        lambda root, args: seen.update(
-                            verb=args.verb, seat=args.seat) or 0)
-    assert _bin_send.main(line.split()[2:]) == 0
-    assert seen == {"verb": "keygen", "seat": "belam"}, seen
 
 
 def test_first_seating_keys_unkeyed_row_in_the_one_seating_commit(
@@ -8833,7 +8831,7 @@ def test_first_seating_keys_unkeyed_row_in_the_one_seating_commit(
     (0600) through the ONE key writer and writes pubkey/sig_scheme/enc_scheme
     INTO THE SAME seating row write -- ONE `seating row` commit carries the
     identity cells AND the key cells."""
-    import boxes as send  # AA1: boxes.box_send as _bin_send
+    import boxes as _bin_send  # AA1: boxes forwards mint/sign helpers
     root, top, bare = _git_with_bare(tmp_path, lambda r: None)
     wins = tmp_path / "windows.txt"
     wins.write_text("@42 belam\n", encoding="utf-8")
@@ -8874,7 +8872,7 @@ def test_first_seating_leaves_a_keyed_row_untouched(tmp_path):
     """clause (2), negative half: a row that ALREADY names a pubkey is left
     alone by the seating -- no key minted (a re-seat never rotates a key),
     no pubkey cell overwritten, `keyed_at_seating` false."""
-    import boxes as send  # AA1: boxes.box_send as _bin_send
+    import boxes as _bin_send  # AA1: boxes forwards mint/sign helpers
     scheme = _bin_send.seatsig.get("ed25519")
     _priv, pub = scheme.keygen()
     root, top, bare = _git_with_bare(tmp_path, lambda r: None, seat_row={
@@ -8896,7 +8894,7 @@ def test_first_seating_dry_run_prints_would_key_and_writes_nothing(
         tmp_path, monkeypatch, capsys):
     """clause (3): `cmd_spawn --dry-run` on an unkeyed row prints the ONE
     `would key <seat>` plan line and mints / writes NOTHING."""
-    import boxes as send  # AA1: boxes.box_send as _bin_send
+    import boxes as _bin_send  # AA1: boxes forwards mint/sign helpers
     root, top, bare = _git_with_bare(tmp_path, lambda r: None)
     wins = tmp_path / "windows.txt"
     wins.write_text("@42 belam\n", encoding="utf-8")
@@ -9905,7 +9903,12 @@ def test_rotate_out_mirror_push_failure_refuses_by_name(tmp_path, capsys):
     """goal:g15.25 (d): a mirror push the remote rejects REFUSES BY NAME
     (naming the mirror ref) and no head is created."""
     root, top, bare, _head = _git_with_post_branch(tmp_path)
-    hook = bare / "hooks" / "pre-receive"
+    hooks_dir = bare / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    # Host may set core.hooksPath=~/hooks (bypasses bare/hooks); pin for this fixture.
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath",
+                    str(hooks_dir)], check=True)
+    hook = hooks_dir / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
     err = rotate._stops_push(root, "stops")
@@ -9964,7 +9967,12 @@ def test_rename_apply_mirror_failure_refuses_and_keeps_old_head(
                     "season2/posts/adv"], check=True)
     subprocess.run(["git", "-C", str(top), "branch", "-m",
                     "season2/posts/adv", "season2/posts/adv2"], check=True)
-    hook = bare / "hooks" / "pre-receive"
+    hooks_dir = bare / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    # Host may set core.hooksPath=~/hooks (bypasses bare/hooks); pin for this fixture.
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath",
+                    str(hooks_dir)], check=True)
+    hook = hooks_dir / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
     capsys.readouterr()
@@ -10161,7 +10169,11 @@ def test_merge_up_mirror_failure_leaves_origin_head(tmp_path, capsys,
                     "season2/posts/adv"], check=True)
     monkeypatch.setattr(rotate, "_merge_up_suite",
                         lambda *a, **k: (True, "seam", {}))
-    hook = bare / "hooks" / "pre-receive"
+    hooks_dir = bare / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath",
+                    str(hooks_dir)], check=True)
+    hook = hooks_dir / "pre-receive"
     hook.write_text("#!/bin/sh\nwhile read _o _n ref; do\n"
                     "  case \"$ref\" in refs/agi/*) exit 1;; esac\n"
                     "done\nexit 0\n", encoding="utf-8")

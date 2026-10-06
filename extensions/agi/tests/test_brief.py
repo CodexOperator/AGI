@@ -1523,18 +1523,18 @@ def test_advisor_brief_lists_the_perpetual_goals_with_titles():
     t = _advisor_text()
     assert "perpetual goals" in t.lower()
     assert "goal_kind:" in t
-    assert "goal:g15" in t and "G15: Bugfix and optimization" in t, \
-        "a real perpetual goal and its title must be named"
+    assert "goal:g1" in t and "G1: Config-maxxing" in t, \
+        "a real perpetual goal and its title must be named (g15 retired->g1)"
     assert "READ THE ROOM FIRST" in t
 
 
 def test_advisor_goal_flag_pins_the_director_goal_with_title(monkeypatch):
     """`dispatch.py --goal goal:g15` threads into assemble so the brief pins
     which director the advisor spawns, naming the goal AND its title."""
-    monkeypatch.setenv("AGI_ADVISOR_GOAL", "goal:g15")
+    monkeypatch.setenv("AGI_ADVISOR_GOAL", "goal:g1")
     t = _advisor_text()
-    assert "--target goal:g15" in t
-    assert "goal:g15" in t and "G15: Bugfix and optimization" in t
+    assert "--target goal:g1" in t
+    assert "goal:g1" in t and "G1: Config-maxxing" in t
     assert "READ THE ROOM FIRST" not in t, "a pinned goal replaces the read-room default"
 
 
