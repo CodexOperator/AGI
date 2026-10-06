@@ -24,7 +24,7 @@ from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate  # noqa: E402
-from agi.bin import send  # noqa: E402
+import boxes as send  # AA1: boxes.box_send  # noqa: E402
 
 
 def _geo(root, rows, aliases=None):
@@ -172,7 +172,7 @@ def _push_failed_rotation(tmp_path, monkeypatch):
 
 def _patch_committed_rows(monkeypatch, rows):
     """Patch `_seats_committed_rows` on BOTH module aliases: test files load
-    `from agi.bin import send` while rotate.py's local `import send` resolves
+    `import boxes as send  # AA1: boxes.box_send` while rotate.py's local `import send` resolves
     the top-level `send` -- two module objects for one file (conftest's
     documented two-alias trap). Patching one leaves the other reading the
     real (gitless, empty) rows."""

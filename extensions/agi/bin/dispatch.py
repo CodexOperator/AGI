@@ -3565,7 +3565,7 @@ def _reaper_give_up(root, iter_dir):
                       file=sys.stderr)
                 continue
             try:
-                import box_mail as _send  # AA1: box mail, never send.py
+                import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
                 _send.send(root, dispatcher,
                            f"iter={iter_dir.name} still-running={','.join(still)}",
                            a.get("id"))

@@ -1150,7 +1150,7 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
                 _write_kid_report(holders, agent_id, line)
                 # (b) the PARENT hears it, never the seat. The lock is released
                 # before this send -- never hold it across delivery.
-                import box_mail as _send  # AA1: box mail, never send.py
+                import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
                 _send.send(root, parent, line, agent_id)
                 return
             print(f"warn: kid {agent_id}@{iter_n} has no spawned_by_agent "
@@ -1166,7 +1166,7 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
                       "no completion dm (l4-a-round-alarms-its-dispatcher-)",
                       file=sys.stderr)
                 return
-            import box_mail as _send  # AA1: box mail, never send.py
+            import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
             _send.send(root, dispatcher,
                        _parent_harvest_body(root, manifest, iter_n,
                                             agent_id, row, commit_failed),
@@ -1179,7 +1179,7 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
                   "no completion dm (l4-a-round-alarms-its-dispatcher-)",
                   file=sys.stderr)
             return
-        import box_mail as _send  # AA1: box mail, never send.py
+        import boxes as _send  # AA1: geometry box via boxes.box_send; never send.py/box_mail
         _send.send(root, dispatcher, line, agent_id)
     except Exception as exc:
         print(f"warn: completion dm to {dispatcher or 'dispatcher'} failed: "

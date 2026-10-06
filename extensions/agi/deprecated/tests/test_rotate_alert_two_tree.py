@@ -62,7 +62,7 @@ sys.path.insert(0, str(TST))
 
 from test_rotate_handover import _FakeTmux  # noqa: E402  (reused, never copied)
 
-import send as _send  # noqa: E402  (the top-level module rotate lazily binds)
+import boxes as _send  # AA1: boxes.box_send  # noqa: E402  (the top-level module rotate lazily binds)
 from agi.bin import rotate  # noqa: E402
 
 spec = importlib.util.spec_from_file_location("send_mod", BIN / "send.py")

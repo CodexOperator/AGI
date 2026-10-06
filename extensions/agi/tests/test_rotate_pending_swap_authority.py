@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate  # noqa: E402
-from agi.bin import send as bin_send  # noqa: E402
+import boxes as send  # AA1: boxes.box_send as bin_send  # noqa: E402
 
 
 def _mk_seat_key(root, seat):
@@ -85,7 +85,7 @@ def test_authority_deferred_pending_not_completed_by_push(tmp_path,
     site with NO authority context -- through the ONE helper AND the direct
     call. The key file stays byte-identical and the refusal names the
     authority leg."""
-    from agi.bin import send as s
+    import boxes as send  # AA1: boxes.box_send as s
     key_path, _pred_priv, _pred_pub = _mk_seat_key(tmp_path, "aa")
     succ_priv, succ_pub = s.seatsig.get("ed25519").keygen()
     key, pend = _pending(tmp_path, "aa", succ_priv.hex(), succ_pub.hex(),
@@ -130,7 +130,7 @@ def test_push_deferral_still_completes_on_push_ok(tmp_path, monkeypatch):
     """(c) back-compat: a `deferred_for: "push"` (and a legacy reason-less)
     pending still completes on a later push OK, and an `authority: SKIPPED`
     line (EF.56: no authority branch -- a non-attempt) does NOT gate."""
-    from agi.bin import send as s
+    import boxes as send  # AA1: boxes.box_send as s
     for seat, reason in (("cc", "push"), ("dd", None)):
         key_path, _p, _pub = _mk_seat_key(tmp_path, seat)
         succ_priv, succ_pub = s.seatsig.get("ed25519").keygen()
@@ -162,7 +162,7 @@ def test_gated_paths_leave_successor_key_bytes_frozen(tmp_path, monkeypatch):
     """(d) R-EF20 M2: freeze the successor key file bytes and assert EVERY
     gated path leaves them byte-identical -- push HELD, authority FAILED,
     authority HELD, push-OK with no authority context, direct completion."""
-    from agi.bin import send as s
+    import boxes as send  # AA1: boxes.box_send as s
     key_path, _pred_priv, _pred_pub = _mk_seat_key(tmp_path, "ff")
     succ_priv, succ_pub = s.seatsig.get("ed25519").keygen()
     kr = _rotation(key_path, succ_priv.hex(), succ_pub.hex())
@@ -203,7 +203,7 @@ def test_authority_ok_completes_an_authority_deferred_pending(
     """The gate is not a wall: an authority-deferred pending DOES complete
     when the caller supplies an `authority: OK` line -- the swap is deferred
     until the authority publish actually succeeds, then flips."""
-    from agi.bin import send as s
+    import boxes as send  # AA1: boxes.box_send as s
     key_path, _p, _pub = _mk_seat_key(tmp_path, "gg")
     succ_priv, succ_pub = s.seatsig.get("ed25519").keygen()
     key, pend = _pending(tmp_path, "gg", succ_priv.hex(), succ_pub.hex(),

@@ -1,4 +1,6 @@
 ---
+status: deprecated
+deprecated_note: "Deprecated 2026-10-06: tests for moved-aside Python (send/workflow); payload under extensions/agi/deprecated/tests."
 build_kind: code
 confidence: 1.0
 id: "build:tests-test-workflow"
@@ -6,22 +8,22 @@ mint_id: 34a23649621a48258c5941c0d15bc2f5
 origin: build-scan
 parents:
   - mvp:tests
-payload_ref: extensions/agi/tests/test_workflow.py
+payload_ref: extensions/agi/deprecated/tests/test_workflow.py
 tags:
   - build
   - code
   - g2.1
-title: "Build: extensions/agi/tests/test_workflow.py"
+title: "Build: extensions/agi/deprecated/tests/test_workflow.py"
 type: build
 ---
 
-`extensions/agi/tests/test_workflow.py` — level-3 code node (one file, one canonical node).
+`extensions/agi/deprecated/tests/test_workflow.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `mvp:tests`.
 
 <!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
 ```yaml
-payload_ref: extensions/agi/tests/test_workflow.py
+payload_ref: extensions/agi/deprecated/tests/test_workflow.py
 parse_ok: true
 inputs:
 - name: __future__.annotations

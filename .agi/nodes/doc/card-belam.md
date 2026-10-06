@@ -18,50 +18,41 @@ town: core
 ---
 # doc:card-belam — Prime on encryption-town
 
-Do not push. Never local-town. Never commit from `/data/work/agi`.
+Never local-town. Never touch master. Trunk: `core/season2/et-grok-pilot`. Season3 tip tracks close work; merge to master = owner only.
 
-## §0 State (2026-10-06 00:2xZ)
+## §0 State (2026-10-06 ~03:5xZ ET)
 | | |
 |---|---|
-| box | encryption-town. posts/belam |
-| infer | SKIP. |
-| AA1 | LANDED trunk fa8fd991f. send.py → deprecated/bin 317680. DG8/9 after-MOVE 0.9 |
-| gap | SM never boxed Prime (refs/box/sanctuary-master/belam ABSENT). DG7 08d079f5b UNREAD; card still send.py read |
-| close | goal:g5.4.1 waits on DG7 wake cleanup |
-| mail | box belam→SM fbad4412f [owner] re-box DG7 + box Prime the land |
+| box | encryption-town |
+| harness | **raw-shell** (`H=bash`, `AGI_HARNESS=raw-shell`) — pi blocked by spend limit |
+| mail | AA1 only: `AGI_POST=belam AGI_TRUNK=core/season2/et-grok-pilot box send|read|n` — never send.py |
+| drive | external driver (Grok Bot) types via `/run/agi-belam/i`, reads `/var/lib/agi/belam/o` |
+| close | season-2 close stood-in on ET; goals cleaned; builds reparented; `core/season3/main` FF pushed |
+| master | untouched (`6405a03fc`); merge pending owner |
 
 ## §1 Plan
 ```
-done   measured AA1 on trunk; boxed SM the two undelivered handoffs
-next   idle: SM boxes Prime the land + re-boxes DG7; DG7 box read then agi-run
-then   goal:g5.4.1 outcomes → overviews → Prime cut
-never  implement send.py · git rm · rollover --apply · rotate
+Keep raw-shell until spend unblocks or owner restores a model harness.
+Drive commits one node per commit via DG4/raw-shell pane when posts are blocked.
+Reproject via agi-project so drop-ins match geometry (no hand drift).
 ```
 
-## §2 Landed this session
-- AA1 confirmed on SM tree: live send.py gone, deprecated 317680
-- box SM fbad4412f: re-box DG7 leaf; box Prime AA1 status; then g5.4.1
+## §2 Landed (season close stand-in)
+- AA1 `box` mail + in-pane wake (`box n` → `mail: box read`); send.py/workflow.py moved to deprecated
+- raw-shell harness on belam, sanctuary-master, DG4
+- goal cleanup + per-node commits; live carry ~131 goals on season3
+- `box_mail.py` deprecated; live callers use `boxes.box_send` / geometry `box`
 
 ## 🔴 Where it stops
-Idle until SM boxes Prime the AA1 land AND DG7 consumes agi-run leaf.
-Do not start season close until that mail is held.
-FIRST at next wake: `AGI_POST=belam box read`
+Await owner: master merge; whether to delete remote `core/season2/et-grok-pilot` (pre-existed; do not delete without ask); suite residual (osc context research reds).
 
 ## §4 Traps
 | # | rule |
 |---|---|
-| 70 | never commit from `/data/work/agi` |
-| — | never git rm — deprecate/move |
-| — | agi-run still watches sessions/inbox; prints send.py read = DG7 leaf |
-| — | a coord in a commit message is not mail |
-| — | season.py rollover --apply mints 3 visions without --visions-from |
-
-## §5 Verification
-SM card 23:45Z fa8fd991f · DG7 held absent · Prime box from SM absent · fbad4412f G belam@agi
+| — | never git rm — deprecate/move aside |
+| — | never commit on master; never local-town |
+| — | off-pane `box` needs `AGI_POST=<post>` |
+| — | wake never fifo-injects the Prime |
 
 ## §6 BANKED
-Skip agi-infer. Q4–Q10 chew. Seat key unreadable here.
-Owner 23:3xZ close = outcomes → bigger_outcomes → 1 overview/vision → manual core/season3/main → master after verify.
-
-## Skills
-agi-rotate · agi-send · agi-merge-pass · agi-verify · agi-memory-guard · agi-post · agi-goal · agi-dispatch · agi-workflow
+Raw-shell is the stand-in capsule while xAI personal-team spending-limit blocks pi. Startup dump prints into the pane via agi-sync seeds on raw-shell start.

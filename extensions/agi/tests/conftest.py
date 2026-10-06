@@ -31,13 +31,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-# AA1/W: send.py + workflow.py live under deprecated/bin (no live bin shims).
-# Suite tests still import those module names; put deprecated/bin on path so
-# collection resolves the real deprecated modules without resurrecting bin/*.
-_DEPR_BIN = Path(__file__).resolve().parents[1] / "deprecated" / "bin"
-if _DEPR_BIN.is_dir() and str(_DEPR_BIN) not in sys.path:
-    sys.path.insert(0, str(_DEPR_BIN))
-
 import pytest
 
 GATE_TIER = "kid"

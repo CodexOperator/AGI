@@ -33,7 +33,15 @@ from pathlib import Path
 BIN = Path(__file__).resolve().parent
 sys.path.insert(0, str(BIN))
 
-import box_mail as send  # AA1: box mail, never send.py
+import importlib.util as _ilu
+from pathlib import Path as _P
+_sp = _P(__file__).resolve().parent.parent / "deprecated" / "bin" / "send.py"
+_spec = _ilu.spec_from_file_location("_agi_deprecated_send", _sp)
+if _spec is None or _spec.loader is None:
+    raise ImportError(f"cannot load deprecated send: {_sp}")
+send = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(send)
+
 import geometry_config  # noqa: E402
 
 #: State lives under the comms root: `<comms>/mail-alert/alerts.json`, keyed

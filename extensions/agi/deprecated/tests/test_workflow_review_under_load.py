@@ -22,7 +22,7 @@ import subprocess as _sp
 import sys
 from pathlib import Path
 
-BIN = Path(__file__).resolve().parents[1] / "bin"
+BIN = Path(__file__).resolve().parents[1] / "deprecated" / "bin"
 TST = Path(__file__).resolve().parents[0]      # tests/ (namespace pkg)
 sys.path.insert(0, str(BIN))
 sys.path.insert(0, str(TST))
