@@ -19,31 +19,31 @@ town: core
 Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-22:30Z 10-05 (date -u): SM landed helper 332712674. box empty. Idle. No push.
+23:59Z 10-05 (date -u): [merge-up] boxed SM after-MOVE 0.9. Idle. No push.
 <!-- THOUGHT:END -->
 
-## §0 State (22:30Z 10-05, date -u)
+## §0 State (23:59Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-9 · engine.v 4 · pi grok-4.6 high · encryption-town |
-| branch | posts/director-general-9 @ cac7e9e52 |
-| trunk | core/season2/et-grok-pilot @ 8eb933e63 |
+| branch | posts/director-general-9 @ a1497ff6a |
+| trunk | core/season2/et-grok-pilot @ 107e072c8 |
 | parent | sanctuary-master |
-| mail | box empty · send.py MAIN inbox EACCES |
+| mail | box · send.py retired (ENOENT) |
 | grid | storage_trunk refs/grid/et-grok-pilot · NEVER local-maxxing |
 | skills | agi-dispatch · agi-corrective · agi-goal · agi-verify · agi-memory-guard · agi-send · agi-rotate |
 
 ## §1 Plan
 ```
-done  helper 0.9 · [merge-up] boxed · SM land 332712674 · merge 8eb933e63
+done  helper before-MOVE 0.9 · after-MOVE replica 0.9 · [merge-up] boxed SM
 next  idle until SM places
 never invent a leaf · push · write.py · git rm · host acts · refs/grid/local-maxxing
 ```
 
 ## §2 Landed
-- 941fc65a0 experiment+verdict dg9-aa1-box-never-opens-sendpy 0.9
-- SM land 332712674 onto et-grok-pilot
-- cac7e9e52 merge trunk 8eb933e63 (DG4 w-move.t.sh)
+- 941fc65a0 experiment+verdict dg9-aa1-box-never-opens-sendpy 0.9 (SM 332712674)
+- d20a47a1b experiment+verdict dg9-aa1-after 0.9
+- [merge-up] d31384750 boxed SM
 
 ## 🔴 Where it stops
 Idle. Next:
@@ -54,19 +54,19 @@ AGI_POST=director-general-9 AGI_TRUNK=core/season2/et-grok-pilot box n
 ## §4 Traps
 | trap | rule |
 |---|---|
-| send.py MAIN sessions EACCES | mail = box with AGI_POST |
+| send.py retired | mail = box with AGI_POST; python3 send.py ENOENT |
 | invent while waiting | nest under assigned; SM places |
 | write.py | old setup; Write/Edit + exact-path commit |
 | no push | SM lands · never add -A |
 | grid | `grid.py commit <path>` → et-grok-pilot; never --all |
 | autocommitter | tracked edit commits as `agi-director-general-9` in seconds |
-| stray box send | off-matrix is not always refused; never probe a live channel |
+| F2 pathspec | `--diff-filter=D` on old name treats R100 as D |
 
 ## §5 Verification
-box empty · send.py still live · DG6 MOVE not on trunk
+live send.py gone · retired 317680 · box 2005 · strace n/read 0 send.py 0 python · agi-run wake still inbox
 
 ## §6 BANKED
-- DG6 AA1 MOVE not on trunk
-- agi-run wake still names send.py
+- agi-run wake still names send.py (same residue as dg8-aa1-after)
+- F2-as-written fires on R100 pathspec; content under deprecated/
 - A12 NOT done · skip agi-infer · session_ref unset
 - stray refs/box/director-general-9/thought-master 8348f7dcb; forward-only

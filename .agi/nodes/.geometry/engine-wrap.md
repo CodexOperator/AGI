@@ -17,7 +17,7 @@ Read through `sect <name> [REV]` (every `.geometry/engine*.md` at one REV) and t
 
 ## files — depth 2, each whole; extract: sect <name> [REV]
 
-### agi-sync (1257 B)
+### agi-sync (1642 B)
 ~~~sh
 #!/bin/sh
 # graph SoT -> rules file + grok skill index. Symlinks only. No copies. No session auto-rotation.
@@ -44,6 +44,11 @@ printf '%s' "$ids" | tr ', ' '\n' | awk 'NF && !seen[$0]++' | while read -r id; 
  if git cat-file -e "HEAD:$f" 2>/dev/null; then printf '\n----- %s -----\n' "$id"; git show "HEAD:$f"|awk 'BEGIN{c=0} /^---$/{c++; if(c==2){p=1; next}} p'; else printf '\n# missing %s\n' "$id"; fi
 done
 } > "$o.t" && mv "$o.t" "$o"
+# g5.34.8.3 K10: arm `monitor wait <post>` in background over belam SSH; on exit handle + re-arm; re-arm each turn if dead
+# g5.34.8.3 A7: until g5.35.2 + agi-wake land, monitor is the sole wake (A7); W1 tip-sha dedupe with monitor exit
+# g5.34.8.3 K11: pid-check each turn; 6h heartbeat; re-arm if dead
+# g5.34.8.3 K7: box read on mail wake; W4 pane keystroke only; W1 tip-sha dedupe
+
 ~~~
 
 ### agi-run (918 B)

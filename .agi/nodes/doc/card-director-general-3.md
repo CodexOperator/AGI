@@ -17,58 +17,52 @@ thought_session: dg3-et-grok-wake-2026-10-05
 Role: doc:unified-director-brief + this card. Post director-general-3 · master: sanctuary-master · BUILD for the council · worktree /var/lib/agi/director-general-3/t · branch posts/director-general-3 · trunk core/season2/et-grok-pilot · grok-bot grok-4.6 engine.v 4 capsule.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-21:3xZ 10-05: owner IMPLEMENT NOW (send.py MOVE + phase W). SM [coord]: idle; after DG2 verdicts BUILD 11.15.1 (MOVE workflow.py+note never git rm; RENAME agi-workflow->agi-spawn-chain; KEEP 16 json; MOVE 14 js WITH py). STANDARD LOOP. Wait verdict. Merged trunk 525cdce7c.
+00:0xZ 10-06 (date -u). Merged DG9 AA1 replica 56c9059e7. SM last 23:45Z: season close after helpers. DG7 has agi-run wake. No DG3 leaf. Idle. No push.
 <!-- THOUGHT:END -->
 
 ## §0 State (date -u)
 | | |
 |---|---|
 | post | director-general-3 · BUILD (MVPs + build nodes + tests) |
-| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · tip 525cdce7c |
-| skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-workflow · agi-dispatch · agi-memory-guard · v4 writes: Write/Edit + agi-turn |
+| box | encryption-town · grok-bot · AGI_TRUNK=core/season2/et-grok-pilot · tip 1dd659283 |
+| skills | agi-goal · agi-verify · agi-send · agi-rotate · agi-corrective · agi-master-gate · agi-post · agi-spawn-chain · agi-dispatch · agi-memory-guard · v4 writes: Write/Edit; exact-path commit |
 | reports | coordination -> SM via box · rulings -> council · Prime only if Shael must decide |
-| inbox | owner IMPLEMENT NOW 21:34Z · SM idle until DG2 verdicts then BUILD 11.15.1 |
+| inbox | empty · last SM 23:45Z: W+AA1 on trunk; season close after helpers |
 
 ## §1 Plan
 ```
-NOW: wait DG2 verdicts on 11.15.1 then BUILD (STANDARD LOOP)
-held: 11.15.1 until DG2 · 11.11.2 DG1 assigned · grow-gate pre-receive · 10.7 Prime cells · host acts
-NEVER: invent a top · push · write.py · sudo · git rm workflow.py · start 11.8 · host acts · refs/grid/local-maxxing · local-town · mint chew · agi-infer
+NOW: idle — SM places a BUILD leaf after helpers (DG7 agi-run wake)
+held: Prime rotations rename · grow-gate pre-receive · 10.7 Prime cells · host T6/T7
+NEVER: invent a top · push · git rm · sudo · host acts · refs/grid/local-maxxing · local-town · mint chew · agi-infer
 ```
 
 ## §2 Landed (this wake)
-owner IMPLEMENT NOW consumed. SM place: idle wait DG2. Trunk merged. A[2] already closed.
+Successor wake. Merged AA1 + DG8/DG9 after-MOVE + AIO overview:s2-aio-love. No BUILD.
 
 ## 🔴 Where it stops
-WAIT DG2 verdicts then BUILD goal:g7.16.1.11.15.1. NEXT: AGI_POST=director-general-3 box n
-auto-captured; no self-rotate (grok: no session auto-rotation)
+IDLE: no DG3 leaf. NEXT:
+AGI_POST=director-general-3 AGI_TRUNK=core/season2/et-grok-pilot box n
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN / this tree is shared | commit by exact path; never switch branches, stash or reset |
-| agi-turn is git add -A | leave only what should land; no .agi/keys; mid-merge can land conflict markers |
+| agi-turn is git add -A | leave only what should land; no .agi/keys |
 | v4 writes | Write/Edit; grid.py commit PATH never --all |
 | grid trunk | refs/grid/et-grok-pilot only; NEVER refs/grid/local-maxxing |
-| no push | SM lands; grid_sync + branch_push OFF |
-| mail | bin/box (signed refs); send.py MAIN PermissionError |
-| host acts | belam GO each |
-| never git rm | workflow.py / js MOVE = deprecate+move |
+| no push | SM lands |
+| never git rm | MOVE = git mv to deprecated/ |
 | never local-town | owner 04:48Z |
 | mint chew | council-only |
+| send.py | moved deprecated/bin/; mail = box |
 
 ## §5 Verification
-A[2] replica PASS on trunk 60d30a8dd · engine.md 6967<=8192 · workflows 16 json + 14 js · workflow.py 159516 live
+W+AA1 on trunk · DG9 replica 56c9059e7 · AIO love overview 107e072c8 · box n empty
 
 ## §6 BANKED
-- 20480 total (SM): 8192 is bootstrap engine.md; leave until council/owner names the new file set
-- OWNER night item 6: encryption-town cutover / Doppler / public pre-scrub branch
-- 86 (SM): report_integrity + warn_premature_complete have no caller
-- R1 slice: dedicated uncapped posts slice
-- g4.18.4 Falsifier 2: scope to recent commits
-- config_max via SM: merge_gate.review_paths · merge_gate.red_classes · council.residue_leaves (blocks 10.7.1)
-- AA1: send.py cannot mkdir MAIN inbox; box is the mail path
-- 11.6 T6/T7: live DG5 boot from seed + Prime conflicts wake — host / Phase C
-- grow-gate as pre-receive: UNRUN this uid (SM named)
+- 20480 total (SM)
+- Prime rotations skills-clause rename (11.15.1 out of scope)
+- grow-gate as pre-receive: UNRUN this uid
+- 11.6 T6/T7 host
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.

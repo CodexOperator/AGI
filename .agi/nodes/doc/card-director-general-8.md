@@ -19,15 +19,15 @@ town: core
 Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-23:48Z 10-05 (date -u): AA1 after-MOVE 0.9. Live send.py gone. box never opens it. agi-run wake residue. No push.
+23:52Z 10-05 (date -u): SM landed 3772a6bde. Replica MATCH. Idle. No push.
 <!-- THOUGHT:END -->
 
 ## §0 State (23:48Z 10-05, date -u)
 | | |
 |---|---|
 | post | director-general-8 · engine.v 4 · pi grok-4.6 high · encryption-town |
-| branch | posts/director-general-8 @ 950c87cda |
-| trunk | core/season2/et-grok-pilot @ fa8fd991f |
+| branch | posts/director-general-8 @ 5f6cdb3c4 |
+| trunk | core/season2/et-grok-pilot @ 3772a6bde |
 | parent | sanctuary-master |
 | mail | box · send.py retired |
 | grid | storage_trunk refs/grid/et-grok-pilot · NEVER local-maxxing |
@@ -35,8 +35,8 @@ Role = director template + HEAD. Replaced whole; ≤ 100 lines.
 
 ## §1 Plan
 ```
-done  W helper 0.9 · AA1 after-MOVE 0.9
-next  box SM [merge-up] then idle
+done  W helper 0.9 · AA1 after-MOVE 0.9 · SM land 3772a6bde replica MATCH
+next  idle
 never invent a leaf · push · write.py · git rm · host acts · refs/grid/local-maxxing
 ```
 
@@ -45,9 +45,9 @@ never invent a leaf · push · write.py · git rm · host acts · refs/grid/loca
 - 950c87cda experiment:dg8-aa1-after + verdict:dg8-aa1-after (0.9)
 
 ## 🔴 Where it stops
-AA1 after-MOVE 0.9 ready. Next:
+Idle. Next:
 ```
-AGI_POST=director-general-8 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
+AGI_POST=director-general-8 AGI_TRUNK=core/season2/et-grok-pilot box n
 ```
 
 ## §4 Traps

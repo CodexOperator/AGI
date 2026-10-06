@@ -193,31 +193,162 @@ carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";
 esac
 ~~~
 
-### orient (818 B)
+### orient (1010 B)
 ~~~sh
 #!/bin/sh
-# orient (g5.34.7.2): the driver's connect verb on attach (all raw-shell incl DG/DT) + once at shell start (AGI_ORIENTED). Clear, header, dump of committed seed blobs. 0 B to i; never truncates o.
+# orient (g5.34.7.2 + g5.34.7.6): connect verb + once at shell start. Clear, header, dump.
+# After ===== end startup =====: captive exact `ok` (gate-e C4). 0 B to i; never truncates o.
 cd ~/t||exit 1;P=${AGI_POST:?};f=$(mktemp);agi-sync "$PWD" "$f" >/dev/null 2>&1||{ rm -f "$f";echo "[refused] orient: agi-sync">&2;exit 1;}
 k=$(git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p $P 'select(.name==$p and has("grokbot"))|.engine.rotate_pct//empty'|head -1)
-c=$(git rev-parse -q --short HEAD:.agi/nodes/doc/card-$P.md);printf '\033c'
-printf 'orient %s rev=%s dump_sha256=%s pin=%s card=%s\n===== startup %s =====\n' $P $(git rev-parse --short HEAD) $(sha256sum<"$f"|cut -c1-64) ${k:--} ${c:--} $P
-cat "$f";printf '===== end startup =====\n\n';rm -f "$f"
+c=$(git rev-parse -q --short HEAD:.agi/nodes/doc/card-$P.md);printf 'c'
+printf 'orient %s rev=%s dump_sha256=%s pin=%s card=%s
+===== startup %s =====
+' $P $(git rev-parse --short HEAD) $(sha256sum<"$f"|cut -c1-64) ${k:--} ${c:--} $P
+cat "$f";printf '===== end startup =====
+
+';rm -f "$f"
+# g5.34.7.6 captive ok-gate (print AFTER end mark so dump_sha256 stays clean)
+printf 'orient ready — type ok to continue
+'
+while IFS= read -r line || [ -n "$line" ]; do [ "$line" = ok ] && break; done
 ~~~
 
-### mail-wake (1381 B)
+### monitor (2596 B)
 ~~~sh
 #!/bin/sh
-# mail-wake (g5.34.6.2 W1-W7 R8): `mail-wake watch` = the ONE raw-shell watcher, started by agi-run AFTER orient; sourced by agi-rc for y/n.
-# Keys on unread tip shas (refs/box/*/P not at refs/held/P/*, the box n test). Notice to tty/o only, 0 B to i. Enter/anything else = HOLD.
+# monitor (g5.34.8.1 K1-K6/K8 A1-A7): check|wait. Tip-sha mail only; 0 B to i. Sole wake until agi-wake.
+# Usage: monitor check <post> · monitor wait <post>… [--cursor-dir D]
+set -eu
+CDIR=${MONITOR_CURSOR_DIR:-/var/lib/agi-monitor/${USER:-monitor}}
+# parse
+cmd=${1:-};shift||true
+posts="";while [ $# -gt 0 ];do case $1 in --cursor-dir)CDIR=$2;shift 2;;*)posts="$posts $1";shift;;esac;done
+posts=${posts# }
+[ -n "$cmd" ]&&[ -n "$posts" ]||{ echo "usage: monitor check|wait <post>… [--cursor-dir D]" >&2;exit 2;}
+mkdir -p "$CDIR";chmod 700 "$CDIR" 2>/dev/null||true
+mk(){ p=$1;git -C /var/lib/agi/$p/t for-each-ref --format='%(refname) %(objectname)' "refs/box/*/$p" 2>/dev/null|while read r s;do f=${r#refs/box/};f=${f%/*};h=$(git -C /var/lib/agi/$p/t rev-parse -q --verify refs/held/$p/$f 2>/dev/null||true);[ "$s" = "$h" ]||echo "$f $s";done;}
+seenf(){ echo "$CDIR/$1.seen";}
+cursf(){ echo "$CDIR/$1.cursor";}
+lastw(){ echo "$CDIR/$1.last-woken";}
+excerpt(){ git -C /var/lib/agi/$1/t log -1 --format=%s "$2" 2>/dev/null||echo "";}
+check_one(){ p=$1;sf=$(seenf $p);# mail
+ for pair in $(mk $p|tr ' ' ':');do f=${pair%%:*};s=${pair#*:};grep -qx "$s" "$sf" 2>/dev/null&&continue
+  if git -C /var/lib/agi/$p/t merge-base --is-ancestor "$s" "refs/held/$p/$f" 2>/dev/null;then continue;fi
+  echo "$p mail $s $(excerpt $p $s)";return 0;done
+ # mail-unhandled: last-woken tip still unread
+ if [ -f "$(lastw $p)" ];then lw=$(cat "$(lastw $p)");grep -qx "$lw" "$sf" 2>/dev/null||true
+  for pair in $(mk $p|tr ' ' ':');do s=${pair#*:};[ "$s" = "$lw" ]&&{ echo "$p mail-unhandled $s $(excerpt $p $s)";return 0;};done;fi
+ # card
+ if [ -f /var/lib/agi/$p/.pin-crossed ]&&[ -f /var/lib/agi/$p/.pin-card ];then
+  pc=$(stat -c %Y /var/lib/agi/$p/.pin-crossed 2>/dev/null||echo 0)
+  lwts=$(stat -c %Y "$(lastw $p)" 2>/dev/null||echo 0)
+  [ "$pc" -gt "$lwts" ]&&{ echo "$p card $pc pin-crossed";return 0;};fi
+ # orient-dirty / incomplete via o tail (corroboration)
+ o=/var/lib/agi/$p/o; [ -f "$o" ]||return 1
+ # heartbeat file age
+ hb=$CDIR/$p.heartbeat; [ -f "$hb" ]||touch "$hb"
+ age=$(( $(date +%s) - $(stat -c %Y "$hb") )); [ "$age" -ge 21600 ]&&{ echo "$p heartbeat $age 6h";touch "$hb";return 0;}
+ return 1;}
+mark_seen(){ p=$1;cls=$2;sha=$3;echo "$sha">>$(seenf $p);echo "$sha">$(lastw $p);printf '%s\n' "$sha" >>$(cursf $p);}
+case $cmd in
+ check) ok=1;for p in $posts;do check_one $p&&ok=0;done;exit $ok;;
+ wait) while :;do for p in $posts;do if out=$(check_one $p);then set -- $out;mark_seen "$1" "$2" "$3";echo "$out";exit 0;fi;done;sleep 2;done;;
+ *) echo "unknown $cmd" >&2;exit 2;;
+esac
+~~~
+### sm-dg-multiplex (2182 B)
+~~~sh
+#!/bin/sh
+# sm-dg-multiplex (g5.34.8.2 O1/K3/A1/O4): SM arms ONE root monitor wait over belam SSH for manned DGs.
+# Usage: sm-dg-multiplex arm <dg…> · sm-dg-multiplex drop <dg> · sm-dg-multiplex status
+# Cursor: /var/lib/agi-monitor/sanctuary-master/ (700). Never SM-pane uid. Optional V3 /run/agi-<p>/driver lock.
+set -eu
+CDIR=${MONITOR_CURSOR_DIR:-/var/lib/agi-monitor/sanctuary-master}
+STATE=$CDIR/manned.list
+HOST=${BELAM_SSH_HOST:-belam}
+KEY=${BELAM_SSH_KEY:-$HOME/.ssh/sanctuary_ed25519}
+SSH="ssh -i $KEY -o StrictHostKeyChecking=no -o ServerAliveInterval=15 -o ServerAliveCountMax=3 $HOST"
+cmd=${1:-};shift||true
+mkdir -p "$CDIR";chmod 700 "$CDIR";touch "$STATE"
+arm(){ for p in "$@";do grep -qx "$p" "$STATE" 2>/dev/null||echo "$p">>"$STATE";done
+ posts=$(tr '\n' ' ' <"$STATE"); [ -n "$posts" ]||return 0
+ # kill prior multiplex pid if any
+ if [ -f "$CDIR/multiplex.pid" ];then kill "$(cat "$CDIR/multiplex.pid")" 2>/dev/null||true;fi
+ # root multiplex over belam SSH (A1)
+ $SSH "sudo MONITOR_CURSOR_DIR=$CDIR monitor wait $posts" &
+ echo $!> "$CDIR/multiplex.pid"; echo "armed: $posts pid=$(cat $CDIR/multiplex.pid)";}
+drop(){ p=$1;grep -vx "$p" "$STATE" >"$STATE.tmp" 2>/dev/null||true;mv "$STATE.tmp" "$STATE"
+ if [ -f "$CDIR/multiplex.pid" ];then kill "$(cat "$CDIR/multiplex.pid")" 2>/dev/null||true;fi
+ posts=$(tr '\n' ' ' <"$STATE"); [ -z "$posts" ]&&{ echo "dropped $p; none manned";return 0;}
+ $SSH "sudo MONITOR_CURSOR_DIR=$CDIR monitor wait $posts" &
+ echo $!> "$CDIR/multiplex.pid"; echo "re-armed without $p: $posts";}
+# V3 optional driver lock
+driver_lock(){ p=$1;id=$2;printf '%s\n' "$id">/run/agi-$p/driver;}
+driver_check(){ p=$1;id=$2;[ -f /run/agi-$p/driver ]||return 0;cur=$(cat /run/agi-$p/driver);[ "$cur" = "$id" ]||{ echo "[refused] driver lock held by $cur" >&2;return 1;};}
+case $cmd in
+ arm) arm "$@";;
+ drop) drop "$1";;
+ status) echo "manned: $(tr '\n' ' ' <"$STATE")"; [ -f $CDIR/multiplex.pid ]&&echo "pid=$(cat $CDIR/multiplex.pid)"||echo "pid=none";;
+ driver-lock) driver_lock "$1" "$2";;
+ driver-check) driver_check "$1" "$2";;
+ *) echo "usage: sm-dg-multiplex arm|drop|status|driver-lock|driver-check …" >&2;exit 2;;
+esac
+~~~
+### g5348-joint-falsify (1735 B)
+~~~sh
+#!/bin/sh
+# g5348-joint-falsify (g5.34.8.4): one run covering v6 bundle on one reproject.
+# Retire interim watches AT LAND (Belam): /workspace/*watch* (aio mailwatch, alive-watch, tm-pane-monitor, SM weekday ping). Never git rm.
+set -eu
+fail=0
+say(){ echo "$*";}
+chk(){ if "$@";then say "OK: $*";else say "FAIL: $*";fail=1;fi;}
+# 1 monitor piece exists once
+chk sh -c 'n=$(sect monitor HEAD 2>/dev/null|wc -c); [ "$n" -gt 50 ]'
+# 2 sm-dg-multiplex exists
+chk sh -c 'n=$(sect sm-dg-multiplex HEAD 2>/dev/null|wc -c); [ "$n" -gt 50 ]'
+# 3 K10 arming in agi-sync
+chk sh -c 'git show HEAD:.agi/nodes/.geometry/engine-wrap.md | grep -q "monitor wait <post>"'
+# 4 mail-wake no sleep>=5 SoT
+chk sh -c '! git show HEAD:.agi/nodes/.geometry/engine-post.md | sed -n "/^### mail-wake /,/^### /p" | grep -E "while sleep [5-9]|while sleep [0-9]{2,}"'
+# 5 agi-carry projected in agi-project
+chk sh -c 'git show HEAD:.agi/nodes/.geometry/engine.md | grep -q "agi-carry@.path"'
+# 6 interim watch retirement check (post-land): paths must be absent or inactive
+# Pre-land: record expected retire list (never git rm from this seat)
+RETIRE="/workspace/aio/mailwatch.sh /workspace/alive-watch.sh /workspace/tm-pane-monitor.sh"
+say "RETIRE_AT_LAND: $RETIRE"
+# 7 0 B to i across monitor/mail-wake
+chk sh -c '! git show HEAD:.agi/nodes/.geometry/engine-post.md | sed -n "/^### monitor /,/^### /p" | grep -E "/run/agi-|>\\$i"'
+chk sh -c '! git show HEAD:.agi/nodes/.geometry/engine-post.md | sed -n "/^### mail-wake /,/^### /p" | grep -E "/run/|>\\$i"'
+# 8 exec bash == 1
+chk sh -c 'c=$(git show HEAD:.agi/nodes/.geometry/engine-wrap.md | grep -c "exec bash"); [ "$c" = 1 ]'
+[ "$fail" = 0 ] && say "JOINT FALSIFY PASS" || { say "JOINT FALSIFY FAIL"; exit 1; }
+~~~
+### mail-wake (1860 B)
+~~~sh
+#!/bin/sh
+# mail-wake (g5.34.6.2 W1-W7 R8 + gate-e P2 W-A): ONE raw-shell watcher AFTER orient.
+# SoT: tip-sha mk() + PathChanged/agi-carry ping (~/.mail-wake-ping). Poll ≤2s packed-refs fallback only.
+# Notice tty/o only, 0 B to i. Enter/n/other = HOLD (W3/W4). V1: row grokbot else parent grokbot.
 mk(){ git for-each-ref --format='%(refname) %(objectname)' "refs/box/*/$AGI_POST"|while read r s;do f=${r#refs/box/};f=${f%/*};[ "$s" = "$(git rev-parse -q --verify refs/held/$AGI_POST/$f)" ]||echo "$f $s";done;}
-wk(){ g=$(git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p $AGI_POST 'select(.name==$p).grokbot//empty'|head -1)
- if command -v agi-wake >/dev/null;then agi-wake "${g:--}" "$*";else echo "[unwired] wake grokbot=${g:--}: $*";fi;}
+gb(){ git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p "$1" 'select(.name==$p)|.grokbot//empty'|head -1;}
+par(){ git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p "$1" 'select(.name==$p)|.parent//empty'|head -1;}
+wk(){ g=$(gb "$AGI_POST");[ -n "$g" ]||{ p=$(par "$AGI_POST");[ -n "$p" ]&&[ "$p" != owner ]&&[ "$p" != keep ]&&g=$(gb "$p");};if command -v agi-wake >/dev/null;then agi-wake "${g:--}" "$*";else echo "[unwired] wake grokbot=${g:--}: $*";fi;}
 y(){ [ -s ~/.mail-pending ]||{ echo "box: no mail pending";return 1;};rm -f ~/.mail-pending;(cd ~/t&&box read);}
 n(){ rm -f ~/.mail-pending;echo "box: held";};Y(){ y;};N(){ n;}
-[ "${1:-}" = watch ]&&{ cd ~/t||exit 1;while sleep 5;do pin 2>&1|while read -r l;do echo "$l";case $l in card-prompt*)wk "$l";;esac;done
- k=$(mk);[ -n "$k" ]&&[ "$k" != "$(cat ~/.mail-seen 2>/dev/null)" ]||continue;printf '%s\n' "$k">~/.mail-seen;printf '%s\n' "$k">~/.mail-pending
- f=$(printf '%s\n' "$k"|tail -n1|cut -d' ' -f1);printf '\nbox: mail from %s, read now? (y/N)\n' "$f";wk "box: mail from $f for $AGI_POST";done;}
+tick(){ pin 2>&1|while read -r l;do echo "$l";case $l in card-prompt*)wk "$l";;esac;done
+ k=$(mk);[ -n "$k" ]&&[ "$k" != "$(cat ~/.mail-seen 2>/dev/null)" ]||return 0;printf '%s
+' "$k">~/.mail-seen;printf '%s
+' "$k">~/.mail-pending
+ f=$(printf '%s
+' "$k"|tail -n1|cut -d' ' -f1);printf '
+box: mail from %s, read now? (y/N)
+' "$f";wk "box: mail from $f for $AGI_POST tip $(printf '%s
+' "$k"|tail -n1|cut -d' ' -f2)";}
+[ "${1:-}" = watch ]&&{ cd ~/t||exit 1;touch ~/.mail-wake-ping
+ while :;do tick;if command -v inotifywait >/dev/null;then inotifywait -qq -t 2 ~/.mail-wake-ping 2>/dev/null||true;else sleep 2;fi;done;}
 ~~~
+
 
 ### agi-rc (208 B)
 ~~~sh
