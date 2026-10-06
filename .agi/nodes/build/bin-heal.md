@@ -3,8 +3,11 @@ id: build:bin-heal
 mint_id: 2405ecff7d3a4584af5cd7ec815bc679
 type: build
 parents:
-  - goal:g7.16.1.2.1
+  - goal:g7.16.1.2
   - idea:engine-heal
+  - build
+  - code
+  - g2.1
 build_kind: code
 confidence: 1.0
 edited_by: belam
@@ -223,3 +226,5 @@ NOTICE TO THIS BRANCH: this version was NOT written by encryption-town's own pri
 
 goal:g7.16.1.7.1.2.1 (0706358c2): prime recovery drops rotate.DEFAULT_PROMPT_FILE -- every recovered post renders its row (prime: head + template + card + trajectory); prompt_file is always None here now. d52d4bfbb: director recovery renders with the seat tree card node as card_file.
 <!-- THOUGHT:END -->
+
+<!-- THOUGHT: season3 rollover: reparented past complete goal:g7.16.1.2.1 -> ['goal:g7.16.1.2', 'idea:engine-heal', 'build', 'code', 'g2.1']. -->
