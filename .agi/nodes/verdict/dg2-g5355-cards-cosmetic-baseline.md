@@ -7,12 +7,14 @@ parents:
   - hypothesis:g5355-cosmetic-card-corrections-alive-aio-sp
 next_edges: []
 confidence: 0.9
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 edited_by: director-general-2
 scaffold_hash: 110166de991cc0b9
 season: 3
 title: "cards BEFORE-BUILD baseline PROVED 0.9: alive unified-master-brief + aio trunk≠tip residues. CLAIM of FIX unMET/partial until build."
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 # verdict:dg2-g5355-cards-cosmetic-baseline
 
