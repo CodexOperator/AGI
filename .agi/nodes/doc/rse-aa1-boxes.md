@@ -393,6 +393,31 @@ Tested 12/12 (scratch, alive 03:2xZ): retired, live and unknown OpenSSH keys ref
 PLACEMENT CORRECTED (all-is-one 03:25Z, measured through the built agi-land, 9 lanes): in grow-gate's NODE loop (`.agi/nodes/**.md`, deprecated/ skipped) this pattern MISSES 4 that land: a key in extensions/, in a deprecated node, in a .geometry .tsv, and in a signed MERGE adding a key file in neither parent. The trunk is public, so the scope is EVERY path a commit adds or changes, binaries included: the line that ships lives in ONE place: doc:rse-aa3-land AA3.15 = DG1's ruled OPTION B (DG3 dg3-keygate eb6bee25e; the line 366 B, grow-gate 1,465 -> 1,833 B; recorded by all-is-one merge-up 29 b21c19473). History, said plainly: the per-commit v1 (merge-up 26; all-is-one 9/9, alive's re-run 8/8) FAILED OPEN on 3 cases neither suite had: a path containing a newline, a file -> symlink type change (T, outside --diff-filter=AM), and an unreadable blob (SM's refuter); all-is-one's v2 (merge-up 28, VOID) still failed open on the unreadable blob.
 WHY not narrower, measured on the same fixtures: an OPENSSH-only pattern passes RSA / EC / PKCS8 blocks; any step that runs `ssh-keygen -y` on the block (alive's 03:13Z 490 B line, kept "for the refusal message" in §AB.5's first text) HANGS on a passphrase-encrypted key, so one such block stalls every land; the 490 B line also checked only the FIRST block. The 630 B per-block ring-lookup line (alive 03:2xZ, 12/12) is NOT the trunk gate; refs/revoked is ruled by self-perpetuating's `revoke` (1,384 B), which may reuse its per-block + `-P ''` shape if it parses keys.
 
+## AA1.Z4a · WHOLE-DOC CHECK (16:49Z 10-04, posts/alive @ ab9995442, date -u)
+AIO asked a whole-doc check on Y1 HOLD + Z4.A. d4048393f is `posts/all-is-one`, not an ancestor of this tip. Measured here with `sect grow-check` (1298 B) over `git ls-files .agi/nodes/` `*.md` minus `deprecated/` (5722 files, 37 s). `^key:` on a card verification line is not a node key.
+
+Z4.A graph edge MET on this tip:
+- `[town]` `allowed_parents: [goal, vision]` · `parent_shapes: [[goal, vision]]` · min 2 · max 2
+- `[ladder].md` schema absent; `schemas/ladder.md` unbracketed remains
+- growth.tsv 2 alias + 148 shape, 0 ladder rows (projected 52d7fc4ca)
+- 5 town:* parents = `vision:the-living-being` + `goal:g26.towns`; grow-check: `locked: key none is not 00b8ef0c7c6395ec for town under [goal+vision]`
+- `.geometry/ladder.md` still live (C'): `wrong order: ladder (-) under [goal]; legal:` (empty)
+- `agi-kid -m` 2037 B, sect == bin; skill still `skills/agi-workflow/SKILL.md`
+- grow-gate 6335 B; MAIN hooks = `*.sample`; grow-gate bin absent
+
+Z4.a on the landed matrix (new matrix only; old-vs-new L5 not re-run):
+
+| bucket | n | meaning |
+|---|---|---|
+| ok | 0 | no live node carries the row nid |
+| locked key none | 5421 | legal shape, HOLD (key: still unwired) |
+| wrong order | 299 | Y1 ratchet set (legacy parents) |
+| not a node | 2 | `.agi/nodes/.payloads/goal/g7.32.2.1.{1,2}-body.md` (payloads, no `type:`) |
+
+wrong-order types: build code 151 · idea [-] 37 · build prose 31 · vision 17 · verdict 15 · hypothesis 15 · experiment 11 · mvp 10 · goal long-term 6 · goal perpetual 2 · bigger_outcome 2 · ladder 1 · doc 1.
+
+HOLD STAYS. 0 ok is `key:` = 0, not a Z4.A miss. Towns are the legal `[goal+vision]` shape + locked: L4 MET. Wiring stays Z2: sign landings -> report-only gate -> `key:` on adds -> grow-gate enforcing. Council does not dispatch; MAIN hooks are belam:belam.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-v6, alive 14:0xZ 10-02: AA1.L marked SUPERSEDED (owner 14:0xZ: no reader moves, workflow.py retires whole) + AA1.T tests true state (0.6% guard v5, pytest absent for v5 uids, one shell twin measured equal per case). v5, alive 04:4xZ 10-02: + AA1.L, the ladder's true reader count by AST (16 files, 5 new since Z3, 4 gone) and the do-not-strand drift by dispatch's own resolver (5/8 rows); a gate of four checks, not built. v4, alive 00:4xZ 10-02: + AA1.R, the real sizes for belam's ruling 2 (per-post object stores), measured from the box's own data; the plumbing is AA2's, not redone here. v3, alive 00:2xZ 10-02 (date -u): + AA1.V versioning, on belam's [decision] 00:25Z (owner 00:3xZ/00:4xZ: every turn is a grid commit from a tiny tree). The grid commit reuses box send's primitive with a one-node tree, so mail and versioning share ONE git shape. agi-link retires because a payload can only change inside its node's tree. ~/t becomes a detached read view whose stray edits are REPORTED rather than silently committed (true state over convenience). Scratch 19/19. v2, alive 23:5xZ 10-01 (date -u): three deltas. (1) principal form `<post>@agi` (all-is-one's vote; what the unit already sets), box re-tested 25/25, 1,769 -> 1,785 B. (2) belam's council row ec5daa28a computed through the elimination: members adjacent to belam only, stated as a consequence for belam to rule on, not chosen here. (3) owner 23:4xZ skills line: AA1.S = the agi-send delta only, as a table; no skill text changes before the bundle is built. Edited with plain Edit per belam's [rule] 23:49Z (write.py is old-setup only). FIRST VERSION 23:4xZ: own node, because doc:radically-simple-engine is 268,943 B and three branches appending at its tail would conflict; scratch only; the inert-row elimination is the smallest rule that keeps a crossing one clique without a new cell.
+alive 16:51Z 10-04 (date -u): AA1.Z4a whole-doc check after AIO's 16:46Z ask and owner continue/go. Ran grow-check on 5722 live node files at ab9995442. Z4.A graph MET; HOLD stays (0 ok, 5421 locked, 299 wrong order). Did not thought the RSE doc (AIO lead). Prior AA1 thought (v6 14:0xZ 10-02) stays in the grid on that version.
 <!-- THOUGHT:END -->

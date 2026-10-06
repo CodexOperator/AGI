@@ -935,7 +935,6 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
 
     if "mail_poll" in jobs and jobs["mail_poll"]["enabled"] and _on_this_box(jobs["mail_poll"], own):
         _require_git_repo(repo_root, "mail_poll's hub fetch")
-        send_py = Path(engine_root) / "extensions" / "agi" / "bin" / "send.py"
         rotate_py = Path(engine_root) / "extensions" / "agi" / "bin" / "rotate.py"
         sched = _schedule_expr(jobs["mail_poll"])
         # Fetch the hub, then read every LOCAL row's inbox. `read --box-local`
@@ -957,8 +956,7 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         # and a content-hashed name are computed values, not box cells.
         # Absent cell -> the built-in f-string; both replaces are no-ops.
         text = jobs["mail_poll"].get("cmd") or (
-            f"git -C {repo_root} fetch -q origin && "
-            f"python3 {send_py} read --box-local --peek >> {log} 2>&1; "
+            f"git -C {repo_root} fetch -q origin 'refs/box/*:refs/box/*' 'refs/held/*:refs/held/*' >> {log} 2>&1; "
             f"python3 {rotate_py} migrate --receive >> {log} 2>&1")
         for token, value in (("{engine_root}", engine_root), ("{log}", log)):
             text = text.replace(token, str(value))
@@ -966,15 +964,9 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
                      f"{_substitute(text, root, repo_root, own)}")
 
     if "nudge_sweep" in jobs and jobs["nudge_sweep"]["enabled"] and _on_this_box(jobs["nudge_sweep"], own):
-        # The sweep walks every LOCAL row itself (`wake --all-local`), so no
-        # seat list is hardcoded here: the whole point is that a busy pane's
-        # nudge is retried until it lands, box default = every box.
-        send_py = Path(engine_root) / "extensions" / "agi" / "bin" / "send.py"
-        sched = _schedule_expr(jobs["nudge_sweep"])
-        lines.append(
-            f"{sched} cd {root} && python3 {send_py} wake --all-local "
-            f">> {log} 2>&1"
-        )
+        # AA1: in-pane `box n` / `mail: box read` replaced send.py wake --all-local.
+        # Do not emit a crontab line. Keep geometry nudge_sweep.enabled false.
+        pass
 
     # Generic entries last, sorted by name: KNOWN_JOBS keep their own
     # special-cased renderers above (unchanged), and any other declared name

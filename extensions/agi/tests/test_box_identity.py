@@ -169,7 +169,7 @@ def test_seating_writes_no_box_when_the_graph_names_none(tmp_path):
 #      ONCE in total; (3b) it NAMES the box (or `(unset)`); (3c) it sends NO
 #      send-keys into that row's window. FAKED tmux only -- the fake SCREAMS.
 
-import send  # noqa: E402
+import boxes as send  # AA1: boxes.box_send  # noqa: E402
 
 FOREIGN = {"name": "far-seat", "role": "director", "model": "m",
            "session_ref": "", "generation": 1, "window": "@9", "pid": 4242,
