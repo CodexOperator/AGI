@@ -1,4 +1,5 @@
 ---
+
 id: build:bin-stitch@v2
 mint_id: 63c202d0c91a4ec4ade6734ec08af01f
 type: build
@@ -6,7 +7,6 @@ parents:
   - goal:g4
   - build
   - build-version
-  - g6.3
 build_kind: code
 confidence: 0.85
 edited_by: season.py
