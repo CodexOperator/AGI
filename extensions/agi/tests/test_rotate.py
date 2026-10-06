@@ -75,11 +75,9 @@ def test_rotate_first_key_mints_unkeyed_row(tmp_path):
 
 
 def test_rotate_first_key_mints_through_send_writer(tmp_path, monkeypatch):
-    # the mint MUST go through send._mint_seat_key (no second key writer, no
-    # ed25519 literal in rotate.py). rotate.py imports `send` as a TOP-LEVEL
-    # module (it pushes bin/ onto sys.path at import), which is a DIFFERENT
-    # module object from `agi.bin.send` -- so patch the one rotate binds.
-    import send as bin_send
+    # the mint MUST go through boxes._mint_seat_key (AA1: rotate binds boxes
+    # as send; boxes forwards to deprecated send's one key writer).
+    import boxes as bin_send
     orig = bin_send._mint_seat_key
     seen = {}
 
@@ -91,8 +89,7 @@ def test_rotate_first_key_mints_through_send_writer(tmp_path, monkeypatch):
     rotate._rotate_first_key(tmp_path, tmp_path, "s2", {"role": "helper"})
     assert seen.get("call") == (tmp_path, "s2",
                                  bin_send.seatsig.DEFAULT_SCHEME)
-    import boxes as send  # AA1: boxes.box_send as send_pkg
-    assert send_pkg._seat_key_path(tmp_path, "s2").is_file()
+    assert bin_send._seat_key_path(tmp_path, "s2").is_file()
 
 
 def test_rotate_first_key_leaves_keyed_and_throwaway_alone(tmp_path, monkeypatch):

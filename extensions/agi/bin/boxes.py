@@ -268,22 +268,22 @@ def box_send(root, to: str, text: str, sender: str | None = None, **_kw) -> None
         )
 
 
-# aliases matching old box_mail call shapes
+# Inbox/DM/room/wake stay on deprecated send (conversation channel SoT).
+# Geometry git-ref mail is box_send above — do NOT route inbox through box CLI.
 def send(root, to: str, text: str, sender: str | None = None, **kw) -> None:
-    box_send(root, to, text, sender=sender, **kw)
+    return _deprecated_send().send(root, to, text, sender=sender, **kw)
 
 
 def send_dm(croot, sender: str, to: str, text: str, **kw) -> None:
-    root = Path(croot).parent if Path(croot).name == "comms" else croot
-    box_send(root, to, text, sender=sender, **kw)
+    return _deprecated_send().send_dm(croot, sender, to, text, **kw)
 
 
-def send_room(croot, room: str, text: str, sender: str | None = None, **_kw) -> None:
-    return None  # AA1 has no rooms
+def send_room(croot, room: str, text: str, sender: str | None = None, **kw) -> None:
+    return _deprecated_send().send_room(croot, room, text, sender=sender, **kw)
 
 
 def wake(root, seat: str) -> None:
-    return None  # AA1 wake is in-pane box n / box read
+    return _deprecated_send().wake(root, seat)
 
 
 def rewind_read_cursors(*_a, **_k):
