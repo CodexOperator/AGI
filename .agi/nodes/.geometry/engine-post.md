@@ -193,15 +193,24 @@ carry)h=$2;shift 2;x=;for p;do git push -q $h "$m/$p/*:$m/$p/*";x="$x ^$m/$p/*";
 esac
 ~~~
 
-### orient (818 B)
+### orient (1010 B)
 ~~~sh
 #!/bin/sh
-# orient (g5.34.7.2): the driver's connect verb on attach (all raw-shell incl DG/DT) + once at shell start (AGI_ORIENTED). Clear, header, dump of committed seed blobs. 0 B to i; never truncates o.
+# orient (g5.34.7.2 + g5.34.7.6): connect verb + once at shell start. Clear, header, dump.
+# After ===== end startup =====: captive exact `ok` (gate-e C4). 0 B to i; never truncates o.
 cd ~/t||exit 1;P=${AGI_POST:?};f=$(mktemp);agi-sync "$PWD" "$f" >/dev/null 2>&1||{ rm -f "$f";echo "[refused] orient: agi-sync">&2;exit 1;}
 k=$(git show ${AGI_TRUNK:-HEAD}:.agi/nodes/.geometry/posts.md|sed -n 's/^  - {/{/p'|jq -r --arg p $P 'select(.name==$p and has("grokbot"))|.engine.rotate_pct//empty'|head -1)
-c=$(git rev-parse -q --short HEAD:.agi/nodes/doc/card-$P.md);printf '\033c'
-printf 'orient %s rev=%s dump_sha256=%s pin=%s card=%s\n===== startup %s =====\n' $P $(git rev-parse --short HEAD) $(sha256sum<"$f"|cut -c1-64) ${k:--} ${c:--} $P
-cat "$f";printf '===== end startup =====\n\n';rm -f "$f"
+c=$(git rev-parse -q --short HEAD:.agi/nodes/doc/card-$P.md);printf 'c'
+printf 'orient %s rev=%s dump_sha256=%s pin=%s card=%s
+===== startup %s =====
+' $P $(git rev-parse --short HEAD) $(sha256sum<"$f"|cut -c1-64) ${k:--} ${c:--} $P
+cat "$f";printf '===== end startup =====
+
+';rm -f "$f"
+# g5.34.7.6 captive ok-gate (print AFTER end mark so dump_sha256 stays clean)
+printf 'orient ready — type ok to continue
+'
+while IFS= read -r line || [ -n "$line" ]; do [ "$line" = ok ] && break; done
 ~~~
 
 ### mail-wake (1381 B)
