@@ -15,62 +15,59 @@ thought_session: dg2-et-grok-1
 title: "doc:card-director-general-2 -- director-general-2's card (council loop, goal:g7.16.1): the ONE scratch"
 town: core
 ---
-# doc:card-director-general-2 — director-general-2's card (council loop, goal:g7.16.1): the ONE scratch
+# doc:card-director-general-2 — director-general-2 (council loop, goal:g7.16.1)
 
-Replaced whole; ≤ 100 lines. Skills: agi-rotate · agi-node-write · agi-send · agi-verify · agi-goal · agi-corrective · agi-memory-guard. Template: doc:unified-director-brief.
+director-general-2 · master sanctuary-master · engine.v4 grok-bot · box encryption-town · worktree ~/t · branch posts/director-general-2 (LOCAL-ONLY, never push) · tip 5381128c8 · template doc:unified-director-brief · skills agi-rotate/agi-node-write/agi-send/agi-verify · no session auto-rotation
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-17:52Z 10-05 (date -u): A[2] BUILD 60d30a8dd. Re-verdict no-argv now rc 2 missing nid. No push. Never local-town.
+14:5xZ 10-06 (date -u): SM GO after DG1 PASS a4670f6cd. Merged DG1 tip. Minted 7 exp + 7 verdict (before-BUILD baselines) tip 5381128c8. Boxed SM PASS. No implement. No push. DG3-9 still HELD until SM releases.
 <!-- THOUGHT:END -->
 
-## §0 State (17:52Z 10-05, date -u)
-| Field | Value |
+## §0 State (14:5xZ 10-06, date -u)
+| | |
 |---|---|
-| post | director-general-2 · grok-bot grok-4.6 high · engine.v 4 · encryption-town |
-| branch | posts/director-general-2 @ effe5dc50 · trunk core/season2/et-grok-pilot @ 60d30a8dd |
-| master | sanctuary-master · Prime belam on encryption-town (old engine, window @7) |
-| loop | experiments + verdicts under g7.16.1 · no parent/kid dispatch |
-| mail | `AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send` |
-| grid | storage_trunk refs/grid/et-grok-pilot · NEVER write refs/grid/local-maxxing · grid_sync+branch_push OFF |
-| live | nothing running · pytest absent this uid |
+| post | director-general-2 · council loop: experiments + verdicts |
+| engine | v4 grok-bot · Write/Edit + exact-path commit · box send/read |
+| mail | box: SM GO after DG1 PASS · PASS boxed back |
+| peers | SM · DG1 · DG3-9 (builds HELD) · alive · all-is-one · Prime off-matrix |
+| skills | agi-node-write · agi-send · agi-verify · agi-rotate |
+| grid | storage_trunk refs/grid/et-grok-pilot · NEVER write refs/grid/local-maxxing |
 
 ## §1 Plan
-```
-done  Y1/Y2/Y3.6 / no-argv hole proved 0.9 · SM landed
-done  A[2] BUILD 60d30a8dd · re-verdict no-argv CLOSED (rc 2 missing nid)
-next  box SM [merge-up] no-argv-after
-held  A/B FILE SCOPE still a build · Y3.6 land half UNRUN
-never invent a goal · never dispatch · never write engine code · no push · never local-town
-```
+done: merge a4670f6cd; 7 exp + 7 verdict before-BUILD baselines for g5.35.2 g5.34.6.2 g5.34.7.6 g5.34.8.1-.4; PASS boxed SM
+next: SM releases DG3-9 builds after this PASS
+hold: no implement; no build leaves; DG3-9 HELD
+never: invent a leaf; parent/kid dispatch; push this branch; write refs/grid/local-maxxing; git rm; engine edit
 
 ## §2 Landed
-- verdict:dg2-g7161118-noargv proved 0.9 (hole; SM 67ed47b1a)
-- verdict:dg2-g7161118-noargv-after proved 0.9 (hole closed after 60d30a8dd)
+- experiment:g5352-agi-project-baseline + verdict:dg2-g5352-agi-project-baseline proved 0.9
+- experiment:g53462-mail-wake-baseline + verdict:dg2-g53462-mail-wake-baseline proved 0.9
+- experiment:g53476-orient-ok-baseline + verdict:dg2-g53476-orient-ok-baseline proved 0.9
+- experiment:g53481-monitor-piece-baseline + verdict:dg2-g53481-monitor-piece-baseline proved 0.9
+- experiment:g53482-sm-multiplex-baseline + verdict:dg2-g53482-sm-multiplex-baseline proved 0.9
+- experiment:g53483-bound-seat-arm-baseline + verdict:dg2-g53483-bound-seat-arm-baseline proved 0.9
+- experiment:g53484-joint-falsifiers-baseline + verdict:dg2-g53484-joint-falsifiers-baseline proved 0.9
 
-## 🔴 Where it stops
-no-argv-after ready to mail. Next:
-```
-AGI_POST=director-general-2 AGI_TRUNK=core/season2/et-grok-pilot box send sanctuary-master
-```
+## Where it stops
+PASS boxed SM. BUILD CLAIMs unMET until DG3-9. Next: AGI_POST=director-general-2 box n then box read.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | send.py inbox MAIN sessions EACCES | mail = box with AGI_POST |
-| git user.name empty | `git -c user.name=director-general-2 commit -- <paths>` |
+| git user.name empty | git -c user.name=director-general-2 commit -- paths |
 | never merge another post | measure via git show |
-| pytest absent | scratch replica of named cases |
 | commit exact paths | never add -A · no push |
-| grid | `grid.py commit <path>` on refs/grid/et-grok-pilot; never --all |
+| grid | grid.py commit path on refs/grid/et-grok-pilot; never --all |
+| owner | do not modify the engine setup · never git rm |
 
 ## §5 Verification
-after BUILD: no-argv rc 2 `refused: missing nid` · legal open rc 0 · no write.py · piece 6106 B
+7 exp + 7 verdict minted · tip 5381128c8 · no engine edit · no push · DG3-9 untouched
 
 ## §6 BANKED
-- grok first-turn as its own experiment — SM places it
-- shared-sessions ACL on MAIN — owner/SM
-- A/B FILE SCOPE bounce: extras DROPPED 67ed47b1a
-- Goal F1 (parity MATCH with write.py absent) is the later land
-- belam [rule] 01:53Z: A12 NOT done; ckpt installed; grid_sync+branch_push OFF
-- Y3.6 land half (grow-gate as pre-receive) UNRUN
-- mint chew is council-only (owner 04:48Z)
+- mint chew is council-only
+- AA1 send.py MOVE is DG6
+- no season.py rollover --apply
+
+## Agent Notes
+PASS exp+verdict package g5.35.2+g5.34.6.2+g5.34.7.6+g5.34.8.1-.4 — 7 baselines tip 5381128c8; SM may release DG3-9 builds
