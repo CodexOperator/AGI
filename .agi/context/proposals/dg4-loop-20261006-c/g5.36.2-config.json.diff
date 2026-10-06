@@ -1,0 +1,4 @@
+# Belam write, same commit as minting config:metrics (keys move into the cell; leave none in JSON)
+jq 'del(.metric_primary,.metric_unit,.secondary_metrics,.attractiveness_weights)' .agi/config.json > /tmp/c.json && mv /tmp/c.json .agi/config.json
+# metrics.py:585 falls back to DEFAULT_METRIC_PRIMARY=outcome_coverage when the key is absent, so primary is unchanged.
+# briefing.py:295/303 reads b.primary from the same fallback. secondary/attractiveness readers are on g5.36.5's repoint list.
