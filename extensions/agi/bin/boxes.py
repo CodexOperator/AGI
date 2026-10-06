@@ -274,8 +274,8 @@ def send(root, to: str, text: str, sender: str | None = None, **kw) -> None:
     return _deprecated_send().send(root, to, text, sender=sender, **kw)
 
 
-def send_dm(croot, sender: str, to: str, text: str, **kw) -> None:
-    return _deprecated_send().send_dm(croot, sender, to, text, **kw)
+def send_dm(croot, me: str, other: str, text: str, sender: str | None = None, **kw):
+    return _deprecated_send().send_dm(croot, me, other, text, sender, **kw)
 
 
 def send_room(croot, room: str, text: str, sender: str | None = None, **kw) -> None:
