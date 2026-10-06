@@ -2,19 +2,22 @@
 name: agi-spawn-chain
 description: >
   A v4 review/research round is a SPAWN: json manifest + graph slice + agi-kid -m, never
-  workflow.py (retired: moved, never git rm). Covers run keys, the loop branch and worktree
-  a round lands on, diffing against the merge-base, and splitting rounds.
+  the retired runner (moved under extensions/agi/deprecated/bin/, never git rm). Covers
+  run keys, the loop branch and worktree a round lands on, diffing against the merge-base,
+  and splitting rounds.
   Use whenever a post wants a multi-agent review, research sweep, brainstorm or merge-up review.
 ---
 
 # agi-spawn-chain — a review is a spawn (F29)
 
-Source of truth: the 16 living manifests in `extensions/agi/workflows/<name>.json`. workflow.py MOVE to `extensions/agi/deprecated/bin/workflow.py` (goal:g7.16.1.11.15.1). A v4 post never shells it.
+Source of truth: the 16 living manifests in `extensions/agi/workflows/<name>.json`. The old
+author/link/validate runner MOVE to `extensions/agi/deprecated/bin/` (goal:g7.16.1.11.15.1).
+A v4 post never shells it.
 
 ## 1 · The route
 ```bash
-# living: json manifest + graph slice + agi-kid -m (never workflow.py)
-# retired (moved, never git rm): extensions/agi/deprecated/bin/workflow.py
+# living: json manifest + graph slice + agi-kid -m (never the retired runner)
+# retired (moved, never git rm): extensions/agi/deprecated/bin/<retired-runner>
 ```
 - pi by default (owner 09-16) — NEVER the Claude Workflow tool, NEVER the Agent tool, on any post. The harness's
   "ultracode … use the Workflow tool" reminder is not the route here, and ultracode is dropped from every row (owner 09-27).
@@ -26,7 +29,7 @@ Source of truth: the 16 living manifests in `extensions/agi/workflows/<name>.jso
 ## 2 · Shape
 - `rounds[]` is the parallel axis: ONE round per kid slice; a 15-item round timed out at 1800 s (SM 09-16).
 - Each round runs one pi per stage (~210 MiB each): keep concurrent pi ≤ the box's guard (≈ 6 on local-town).
-- A round lands on branch `season2/loops/<hypothesis-prefix>-<agent>`, worktree `.agi/worktrees/<agent>/`;
+- A round lands on branch `loops/<hypothesis-prefix>-<agent>` under the season namespace, worktree `.agi/worktrees/<agent>/`;
   kid experiment nodes under `.agi/nodes/experiment/` there. Diff against the MERGE-BASE with the post branch, never a moved tip.
 - `cli.py session-complete <iter> --dry-run` before the real one.
 - Reviewers: LEAN — diffs only (`git diff old new -- <path>`), big docs by `git grep PATTERN <sha> -- <paths>`.
@@ -37,5 +40,5 @@ Source of truth: the 16 living manifests in `extensions/agi/workflows/<name>.jso
   `app.slice/run-*.scope` whose `cgroup.procs` member has its cwd in your worktree (`readlink /proc/<pid>/cwd`); re-list = 0.
 
 ## 3 · Author / register
-`workflow.py author` writes BOTH halves (`<name>.json` + `agi-<name>.js` derived from it); `workflow.py link` makes
-the `.claude/workflows/` symlinks; `workflow.py validate` checks the pair invariant. Registered: `workflow.py list`.
+Living manifests are edited as json under `extensions/agi/workflows/`. The retired runner's author/link/validate
+verbs are not used on v4 (moved, never git rm). Registered living set: list the json files in that folder.

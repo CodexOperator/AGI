@@ -41,7 +41,7 @@ Source of truth: `heal.py _watch_seats` (crash-respawn) · `rotate.py cmd_spawn`
 - never `seats-launch` for one post: it starts EVERY non-fire-and-forget row (council and other-box rows too) and writes no row,
   key or commit (`rotate.py cmd_seats_launch`).
 - the role must be one config:brief has parts for: a `council` role has none (spawn crashes) — a council post keeps `role: director`.
-- whois reads origin/season2/main rows: a new row answers NO-MATCH until the Prime's PASS merges it (`send.py whois`);
+- whois reads origin town-trunk rows: a new row answers NO-MATCH until the Prime's PASS merges it (identity via posts row);
   signed sends verify against MAIN's committed row.
 
 ## 3 · Re-home a row from another box

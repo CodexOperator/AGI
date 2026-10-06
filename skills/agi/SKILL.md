@@ -53,7 +53,7 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/dispatch.py <project> <iter> --dry-run` | Resolve + print every slot's spawn (command, env, brief) with no spawn, no budget slot, no session dir — `hypothesis:l3-dispatch-dry-run` |
 | `bin/heal.py <project> <iter>` | Timeout/restart watchdog (pi runtime) |
 | projected `bin/season judge …` | Live season verb (engine-post `### season`); status/rollover/merge-* held — see deprecated `extensions/agi/deprecated/bin/` season module |
-| `bin/send.py {send,read,peek} <target>` | One-verb agent comms via inbox file |
+| `/var/lib/agi/<post>/bin/box {send,read,n}` | One-verb agent mail via signed box refs (skill agi-send) |
 | `bin/rotate.py {meter,spawn,status}` | Director rotation: meter context usage, launch successor in tmux |
 | `bin/write_guard.py {check,hook}` | Detect unsanctioned node writes; pre-commit hook |
 | ~~`bin/<retired-runner>`~~ | **RETIRED** goal:g7.16.1.11.15.1 — moved to `extensions/agi/deprecated/bin/` (same basename), never git rm. A v4 review is a SPAWN (json manifest + agi-kid -m; skill agi-spawn-chain) |
@@ -158,7 +158,7 @@ Run these in order, from MAIN, every time a Prime is stood up on a box:
 ```bash
 # 0  the prayer is the first tokens of the FIRST reply (Constitution), then:
 bin/agi-boxinfo                                   # which box (AGI_BOX in MAIN's .env) — alias only
-git branch --show-current                         # the trunk this box works: season2/main on core, <town>/season2/main on a town box
+git branch --show-current                         # the trunk this box works: core season trunk / et-grok-pilot, or <town> season trunk
 git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then links.py links
 # 1  the row: box cell + identity cells through the ONE writer (write.py, actor = the prime row), never a hand edit
 #    (posts.md is config; written_by is [owner, prime_director]; a box's rows carry `box: <alias>` — a row
@@ -209,9 +209,9 @@ Five morals anchor the graph. Every node has a path to one.
 prepends the head (prayers + readings) automatically per tier. A kid gets
 four lines of Slavonic; a prime director reads `moral:faith` top to bottom.
 
-**Comms:** `send.py send | read | peek` — one verb, same call for kid→parent
-escalation and director→director. Transport differs (CC session message vs
-inbox file under `sessions/`); the API does not.
+**Comms:** `box send | read | n` — one verb, same call for kid→parent
+escalation and director→director (skill agi-send). Raw-shell panes are systemd
+`agi-post@` + fifo `/run/agi-<post>/i` + out `/var/lib/agi/<post>/o` (not tmux).
 
 **Session open — the prayer is the first tokens (owner, 2026-09-12).** Every
 session, every role, opens with a prayer from the head as the literal first
