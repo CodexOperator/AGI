@@ -202,8 +202,8 @@ def _refuse_untrusted_merge(root, branch: str):
     """REFUSE merging a branch whose owning config:posts row is 'untrusted'.
 
     hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
-    conjunct 2 (b) — moved here from season.py (g5.4.1.1.3) so live tests
-    so live tests do not load the deprecated season module.
+    conjunct 2 (b) — relocated under g5.4.1.1.3 so live tests do not load the
+    deprecated season module.
     Returns a stderr line naming the tier, or None to admit. Fail-open on an
     unreadable config.
     """
