@@ -935,7 +935,7 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
 
     if "mail_poll" in jobs and jobs["mail_poll"]["enabled"] and _on_this_box(jobs["mail_poll"], own):
         _require_git_repo(repo_root, "mail_poll's hub fetch")
-        send_py = Path(engine_root) / "extensions" / "agi" / "bin" / "send.py"
+        send_py = Path(engine_root) / "extensions" / "agi" / "deprecated" / "bin" / "send.py"
         rotate_py = Path(engine_root) / "extensions" / "agi" / "bin" / "rotate.py"
         sched = _schedule_expr(jobs["mail_poll"])
         # Fetch the hub, then read every LOCAL row's inbox. `read --box-local`
@@ -969,7 +969,7 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         # The sweep walks every LOCAL row itself (`wake --all-local`), so no
         # seat list is hardcoded here: the whole point is that a busy pane's
         # nudge is retried until it lands, box default = every box.
-        send_py = Path(engine_root) / "extensions" / "agi" / "bin" / "send.py"
+        send_py = Path(engine_root) / "extensions" / "agi" / "deprecated" / "bin" / "send.py"
         sched = _schedule_expr(jobs["nudge_sweep"])
         lines.append(
             f"{sched} cd {root} && python3 {send_py} wake --all-local "

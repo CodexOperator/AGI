@@ -1,4 +1,5 @@
 ---
+status: deprecated
 id: build:workflow.py
 mint_id: f5c03734719848489854d3e7cdd39630
 type: build
@@ -13,7 +14,7 @@ location: source_root
 loop: hypothesis:l3w4-workflows-config-maxxed@s2
 model: ~deepseek/deepseek-v4-flash-latest
 origin: mvp-minted
-payload_ref: extensions/agi/bin/workflow.py
+payload_ref: extensions/agi/deprecated/bin/workflow.py
 profile: balanced
 role: kid
 scaffold_hash: de20b368238357c6

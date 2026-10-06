@@ -1,4 +1,5 @@
 ---
+status: deprecated
 id: build:bin-send
 mint_id: 01dcd1503764446e91baa07990399551
 type: build
@@ -8,12 +9,12 @@ build_kind: code
 confidence: 1.0
 edited_by: sanctuary-director
 origin: build-scan
-payload_ref: extensions/agi/bin/send.py
+payload_ref: extensions/agi/deprecated/bin/send.py
 tags:
   - build
   - code
   - g2.1
-title: "Build: extensions/agi/bin/send.py"
+title: "Build: extensions/agi/deprecated/bin/send.py (MOVED; never git rm)"
 ---
 `extensions/agi/bin/send.py` — level-3 code node (one file, one canonical node).
 
@@ -21,7 +22,7 @@ Census parent: `mvp:bin-modules`.
 
 <!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
 ```yaml
-payload_ref: extensions/agi/bin/send.py
+payload_ref: extensions/agi/deprecated/bin/send.py
 parse_ok: true
 inputs:
 - name: __future__.annotations
