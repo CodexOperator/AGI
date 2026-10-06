@@ -196,3 +196,28 @@ def _main(argv=None) -> int:
 
 if __name__ == "__main__":
     sys.exit(_main())
+
+
+def _refuse_untrusted_merge(root, branch: str):
+    """REFUSE merging a branch whose owning config:posts row is 'untrusted'.
+
+    hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
+    conjunct 2 (b) — moved here from season.py (g5.4.1.1.3) so live tests
+    so live tests do not load the deprecated season module.
+    Returns a stderr line naming the tier, or None to admit. Fail-open on an
+    unreadable config.
+    """
+    try:
+        rows = load_rows(root)
+    except Exception:  # noqa: BLE001
+        return None
+    for row in rows:
+        if row.get("tier") != "untrusted":
+            continue
+        if (branch == row.get("name")
+                or branch == (row.get("worktree") or "")):
+            return (f"REFUSED: branch {branch!r} belongs to post "
+                    f"{row.get('name')!r} which is untrusted (tier "
+                    f"'untrusted') -- the untrusted lane's branch is never "
+                    f"merged")
+    return None

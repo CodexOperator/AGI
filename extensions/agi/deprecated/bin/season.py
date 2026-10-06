@@ -1712,20 +1712,8 @@ _ROUND_BRANCH_RE = re.compile(r"^loop/.+-[0-9a-fA-F]{8}@s\d+$")
 
 
 def _refuse_untrusted_merge(root: Path, branch: str) -> str | None:
-    """REFUSE merging a branch whose owning config:posts row is 'untrusted'.
-
-    hypothesis:l4-an-untrusted-lane-earns-tier-by-signed-verdicts rung 4
-    conjunct 2 (b) -- the untrusted lane's branch is never merged: the
-    merge-up recipe refuses it by name. The owning row is matched by the
-    branch equalling the untrusted row's `name` or its `worktree` cell.
-    Returns a stderr line naming the tier, or None to admit. Fail-open on an
-    unreadable config -- the ownership/base resolution above this is
-    untouched.
-    """
-    try:
-        rows = geometry_config.load_rows(root)
-    except Exception:  # noqa: BLE001
-        return None
+    """Delegate to geometry_config (g5.4.1.1.3); kept for deprecated callers."""
+    return geometry_config._refuse_untrusted_merge(root, branch)
     for row in rows:
         if row.get("tier") != "untrusted":
             continue
