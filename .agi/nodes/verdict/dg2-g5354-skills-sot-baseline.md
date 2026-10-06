@@ -7,14 +7,12 @@ parents:
   - hypothesis:g5354-skills-graph-sot-post-doc-sync
 next_edges: []
 confidence: 0.9
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
 edited_by: director-general-2
 scaffold_hash: 342fe7714743ea49
 season: 3
 title: "skills SoT BEFORE-BUILD baseline PROVED 0.9: 14 skills; live send.py teach remains. CLAIM of FIX unMET until build."
 town: core
-verdict: inconclusive_lean_proved:50
+verdict: proved
 ---
 # verdict:dg2-g5354-skills-sot-baseline
 

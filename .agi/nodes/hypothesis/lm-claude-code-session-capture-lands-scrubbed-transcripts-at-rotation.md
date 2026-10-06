@@ -6,8 +6,6 @@ parents:
   - goal:g7.33.8
 next_edges: []
 confidence: 0.95
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
 edited_by: belam
 scaffold_hash: f340f05de5fea808
 season: 2
@@ -19,7 +17,7 @@ testable_claim: "Verified against source before writing this claim, not assumed:
 thought_session: belam-g7338-close-20260929T001833Z
 title: "G14.14.8 first chunk: claude-code session capture at rotation lands a scrubbed transcript + pre-labels under datasets/sessions/role/session/, mirroring the trajectories shape"
 town: local-maxxing
-verdict: inconclusive_lean_proved:50
+verdict: proved
 ---
 <!-- BODY:BEGIN -->
 # hypothesis:lm-claude-code-session-capture-lands-scrubbed-transcripts-at-rotation

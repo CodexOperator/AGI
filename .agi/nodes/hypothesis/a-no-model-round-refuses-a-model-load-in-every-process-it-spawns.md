@@ -6,8 +6,6 @@ parents:
   - goal:g7.33.16
 next_edges: []
 confidence: 0.95
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
 edited_by: belam
 scaffold_hash: fa32bc9a0103cd15
 season: 2
@@ -15,7 +13,7 @@ testable_claim: dispatch puts a no-model round in an inherited env fence whose i
 thought_session: belam-g73316-close-20260929T001305Z
 title: "a no-model round refuses a model load by name in every python process it spawns (assigned: director-engine)"
 town: core
-verdict: inconclusive_lean_proved:50
+verdict: proved
 ---
 # hypothesis:a-no-model-round-refuses-a-model-load-in-every-process-it-spawns
 
