@@ -1,0 +1,72 @@
+---
+id: goal:g7.27
+mint_id: 16851767a106428e9fbd3c38873c3558
+type: goal
+parents:
+  - goal:g7
+next_edges: []
+confidence: 0.9
+edited_by: a00-07944731
+goal_id: G7.27
+goal_kind: subgoal
+heading_level: 3
+origin: goals-doc
+scaffold_hash: d584c8888a19d9cf
+season: 2
+seeds: []
+status: complete
+tags:
+  - goal
+  - subgoal
+  - harness
+  - template
+  - spawn
+thought_session: texas-two-step-belam-voice-2026-09-19
+title: "G7.27: Templates are the sole harness arg builders"
+town: core
+---
+# goal:g7.27
+
+## Why this exists
+
+**Parent `goal:g7` (Sanctuary / seat lineage).** Today argv construction is scattered: `rotate.py` has `_KNOWN_HARNESSES` + `_build_claude_command` / `_build_copilot_command` / `_build_harness_command`, `dispatch.py` calls per-adapter `build_command`, and each adapter embeds its own flag dance (Claude's `--append-system-prompt-file` + tools + `--` closing turn; pi's trajectory wrapper; copilot's `--allow-all --remote`). Adding Grok Bot (or any fourth seat harness) forces special-casing in rotate even when the dispatch adapter already exists.
+
+Owner ask 2026-09-19 (voice): templates become the **sole** arg builders.
+
+## Target end-state
+
+- Every harness's invocation logic (flags, brief assembly spelling, env exports that belong to the harness, closing line) lives in a **post/harness template**, not inline in `rotate.py`, `dispatch.py`, or thick adapter bodies.
+- The adapter's `build_command` either **becomes the template renderer** or is **retired in favor of it** — one seam.
+- Templates are rich enough to express peer flag dances (e.g. Claude's `--append-system-prompt-file` + tools + closing turn) **without becoming mini-programs**.
+- If the template format cannot capture something, keep a **thin adapter hook** rather than overloading the template.
+
+## Invariants
+
+- No harness argv builder remains in `rotate.py`.
+- `dispatch.py` does not grow harness string branches; it resolves a template (or thin hook) the same way for every harness.
+- Peer behavior (pi / claude-code / copilot-cli) stays byte-measurable after the move — no silent flag loss.
+
+## Falsifier
+
+1. For each of `pi`, `claude-code`, `copilot-cli`: spawn dry-run argv is produced only from the template (+ optional thin hook), with **zero** hits for that harness's flag construction inside `rotate.py`.
+2. A new harness can add a template (+ optional thin hook) without editing `rotate.py` allowlists or `_build_*_command`.
+3. Something the format cannot express is isolated behind a named thin hook, not a template "scripting" escape hatch.
+
+## Out of scope
+
+- Persistent seat watch/restart (`goal:g7.28`).
+- Deleting rotate's orchestration / pane layout (`goal:g7.29` consumes this).
+- Landing grok-bot on main (`goal:g7.30` consumes the grok post template from this).
+
+## Agent Notes
+
+Assigned to **director-helper**. Point director-belam stays on current batch — do not reassign or interrupt.
+Owner voice 2026-09-19: templates sole arg builders; thin hook only when format cannot capture.
+
+Owner 2026-09-20 voice: assigned to director-helper. Split into sub-goals as you see fit — reasonable and doable. Spawn parallel pi parents for those sub-goals (spawn.parallel=1 per command; soft ≤7 live via separate dispatches). Continue from harness-template land already on MAIN.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+THOUGHT REFRESH (DH.14 residue). The prior version quoted tip 9b00e0a5c / 71 passed. Re-measured at the lane tip d4750085a (full d4750085ad89b8d9d07752e7e3e452ba309cc788) this round: extensions/agi/tests/test_harness_template.py + test_harness_dispatch_shapes.py + test_rotate_copilot_harness.py collect and pass 70 (70 passed in 1.32s), down from 71 because goal:g7.27.1 deleted the dead per-harness builders and their tests. DH.13 re-measured the same 70 on 8b0234685 in experiment:a00-feb73f39-dh13-falsifier-remeasurement, and verdict:g7.27-harness-templates-falsifiers-hold now carries that experiment in evidence_runs in place of hypothesis:a00-6382dec2-2b48ef, breaking the verdict<->hypothesis evidence cycle. F1-F3 remain green; status complete.
+<!-- THOUGHT:END -->
+
+<!-- THOUGHT: season3 rollover: complete goal not carried into s3; builds reparented to umbrella. -->

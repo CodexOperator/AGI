@@ -197,3 +197,143 @@ def row_is_local(root: Path, row: dict) -> bool:
 if __name__ == "__main__":
     import argparse
     argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
+
+
+# --- AA1: geometry `box` CLI invoke (no box_mail / no send.py) -----------------
+# Mail is git-ref `box`; keygen recovery is agi-out fresh+restart.
+
+KEYGEN_LINE = (
+    "touch ~/.fresh && systemctl restart agi-post@{seat}.service  "
+    "# agi-out does out-line keygen; never send.py"
+)
+PRIME = "belam"
+WHOIS_NOT_AUTHORIZED = "WHOIS_NOT_AUTHORIZED"
+SEAT_KEY_MODE = 0o600
+
+
+class BoxSendError(RuntimeError):
+    pass
+
+
+def comms_root(root: Path, override=None) -> Path:
+    if override:
+        return Path(override)
+    return Path(root) / "comms"
+
+
+def _box_bin() -> str:
+    import os
+    home = os.environ.get("HOME", "")
+    cand = Path(home) / "bin" / "box"
+    if cand.is_file():
+        return str(cand)
+    post = os.environ.get("AGI_POST", "")
+    if post:
+        p = Path(f"/var/lib/agi/{post}/bin/box")
+        if p.is_file():
+            return str(p)
+    return "box"
+
+
+def _box_env(sender: str) -> dict:
+    import os
+    env = os.environ.copy()
+    env["AGI_POST"] = sender
+    env.setdefault(
+        "AGI_TRUNK",
+        os.environ.get("AGI_TRUNK", "core/season2/et-grok-pilot"),
+    )
+    return env
+
+
+def box_send(root, to: str, text: str, sender: str | None = None, **_kw) -> None:
+    """Send via geometry `box send TO` (stdin = body)."""
+    import os
+    import subprocess
+    sender = sender or os.environ.get("AGI_POST") or PRIME
+    cwd = Path(root)
+    if cwd.name == ".agi":
+        cwd = cwd.parent
+    proc = subprocess.run(
+        [_box_bin(), "send", to],
+        input=text if text.endswith("\n") else text + "\n",
+        text=True,
+        capture_output=True,
+        env=_box_env(sender),
+        cwd=str(cwd),
+    )
+    if proc.returncode != 0:
+        raise BoxSendError(
+            (proc.stderr or "").strip() or f"box send failed rc={proc.returncode}"
+        )
+
+
+# aliases matching old box_mail call shapes
+def send(root, to: str, text: str, sender: str | None = None, **kw) -> None:
+    box_send(root, to, text, sender=sender, **kw)
+
+
+def send_dm(croot, sender: str, to: str, text: str, **kw) -> None:
+    root = Path(croot).parent if Path(croot).name == "comms" else croot
+    box_send(root, to, text, sender=sender, **kw)
+
+
+def send_room(croot, room: str, text: str, sender: str | None = None, **_kw) -> None:
+    return None  # AA1 has no rooms
+
+
+def wake(root, seat: str) -> None:
+    return None  # AA1 wake is in-pane box n / box read
+
+
+def rewind_read_cursors(*_a, **_k):
+    return []
+
+
+def _locally_loaded_rows(root) -> list:
+    return []
+
+
+def _resolve_rows(rows, ref, claim=None):
+    if claim and ref and claim in str(ref):
+        return ("OK", ref)
+    return (WHOIS_NOT_AUTHORIZED, ref)
+
+
+def whois(root, token: str, claim: str | None = None):
+    return _resolve_rows([], token, claim=claim)
+
+
+def _mint_seat_key(root, seat: str, scheme=None, stage: bool = False):
+    raise BoxSendError(f"keygen retired: {KEYGEN_LINE.format(seat=seat)}")
+
+
+def _row_write_submit(*_a, **_k):
+    return None
+
+
+def _seat_key_path(root: Path, seat: str) -> Path:
+    import locations
+    return Path(locations.shared_sessions_dir(root)) / "seats" / f"{seat}.key"
+
+
+def _main_graph_root(root: Path) -> Path:
+    import locations
+    graph = locations.find_project_root(root) or root
+    main = locations.git_common_root(graph)
+    main_graph = locations.find_project_root(main) if main else None
+    return main_graph or graph
+
+
+def _now() -> str:
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _comms_config(root: Path) -> dict:
+    return {}
+
+
+def _row_is_quiet(root: Path, to: str) -> bool:
+    return False
+

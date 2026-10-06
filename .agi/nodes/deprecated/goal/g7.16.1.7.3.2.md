@@ -1,0 +1,61 @@
+---
+id: goal:g7.16.1.7.3.2
+mint_id: 39e1df6f04e7483baa05cf358e640acf
+type: goal
+parents:
+  - goal:g7.16.1.7.3
+next_edges: []
+confidence: 0.85
+edited_by: belam
+goal_id: G7.16.1.7.3.2
+goal_kind: subgoal
+heading_level: 5
+origin: goals-doc
+scaffold_hash: 33f57d92eceeb97b
+season: 2
+seeds: []
+status: complete
+tags:
+  - magic-pane
+  - tool-call
+  - pi
+  - free-lane
+  - cc-compat
+thought_session: belam-magic-pane-inject
+title: "G7.16.1.7.3.2: uniform tool-call inject (DM|engine) via ONE-pi free row + CC-hook-mirror compat"
+town: core
+---
+<!-- BODY:BEGIN -->
+# goal:g7.16.1.7.3.2
+
+# goal:g7.16.1.7.3.2
+
+## Why this exists
+goal:g7.16.1.7.3 (pane = tool-call-turn anchor) + owner 2026-09-30 update: inject ALL info via a uniform tool-call turn; the tool RETURN is the actual message; always tagged DM vs engine (further sub-marks as needed). Maximize free/ONE-pi templates and the pi adapter that consumes them. Pi extension events (session_start / before_agent_start / tool_result) mirror CC SessionStart / UserPromptSubmit / PostToolUse — use that CC-compat surface to prove the inject contract on free-pi before any CC cutover. Parent leaf goal:g7.16.1.7.3.1 landed the event-route SoT (v2 fixture); this leaf owns the first proveable inject path on that SoT.
+
+## Target end-state
+- One inject helper (pure, unit-tested) builds a tool-call-turn envelope from the v2 event-route row: `{channel: dm|engine, kind_tag, body}` where `body` is what the tool RETURN carries (the message).
+- Envelope is rendered only through `pi_adapter` + `extensions/agi/templates/harness/pi.toml` on the **free** ONE-pi row (zero_usd default) — never a second pi template and never a hand-built argv.
+- A CC-compat probe documents (and, when free-pi can load extensions in-test, exercises) that the same envelope is deliverable via pi `tool_result` / `session_start` events that mirror the four legacy CC/hook routes named on the parent.
+- `adapters.magic_pane` messaging route/deliver stays untouched (owner: pane anchor only).
+
+## Invariants
+- Channel is exactly `dm` or `engine`; kind_tag = `{channel}.{event_kind}`.
+- Tool return bytes ARE the message (no parallel chat-turn paste of the same body).
+- Build/dispatch lane = ONE-pi free row via harness_template.render through pi_adapter.build_command.
+- No box.root shared write; no WIP seat disturbance.
+
+## Falsifier
+1. Unit test: given each v2 fixture row, inject helper returns envelope with channel + kind_tag + body; body round-trips as the sole tool-return payload.
+2. Unit test: pi_adapter.build_command (or harness_template.render of pi.toml) for harness row `free` emits provider/model/thinking from the free row; grep for a second pi template / pi-free block = 0.
+3. Negative: inject helper + its tests import neither `adapters.magic_pane` nor `send.py` transport.
+
+## Out of scope
+goal:g7.16.1.7.3.1 (SoT already landed) · goal:g7.16.1.7.1 · goal:g7.16.1.7.2 · goal:g7.32.2 messaging · live CC settings.json install · engine CLIs as MCP tools
+
+## Agent Notes
+Assigned to **belam** (Prime; free-pi lane for parent work if build exceeds NO-PI). Further directors of goal:g7.16.1.7 may take follow-on leaves.
+
+Belam NO-PI: leaf LANDED — magic_pane_inject.build_envelope (dm|engine + kind_tag; tool_return IS message) + free-lane harness_template.render(pi.toml) via pi-free row + CC-compat probe (pi session_start/before_agent_start/tool_result ↔ CC SessionStart/UserPromptSubmit/PostToolUse; not npm cc-mirror). pytest test_magic_pane_inject 6/6 + event_routes 7/7. Messaging adapter untouched.
+
+<!-- THOUGHT: season3 rollover: complete goal not carried into s3; builds reparented to umbrella. -->
