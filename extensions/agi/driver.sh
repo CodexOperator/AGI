@@ -126,6 +126,31 @@ fi
 LOG="$PROJECT_ROOT/loop.log"
 mkdir -p "$PROJECT_ROOT/sessions" "$PROJECT_ROOT/context" "$PROJECT_ROOT/nodes"
 
+# goal:g5.4.1.4.12.1 — labeled SOFT_SKIP for .agi/loop.log WRITE/tee-append PE.
+# agi-belam (and other agi-* seats) often cannot append belam:belam 664 loop.log
+# without group/ACL write. Durable setfacl needs host Belam — DG must not invent
+# Belam wake / more ACL without SM ASK. READ alone is not enough; name write-PE.
+_LOOP_LOG_WRITE_PE_SKIPPED=0
+if ! ( : >>"$LOG" ) 2>/dev/null; then
+  echo "[smoke] SOFT_SKIP write-PE: cannot append $LOG (Permission denied) — goal:g5.4.1.4.12.1; durable agi write ACL/group needs host; labeled skip" >&2
+  _LOOP_LOG_WRITE_PE_SKIPPED=1
+fi
+tee_a() {
+  # Drop-in for tee -a "$LOG": on write-PE, label once and pass stdin to
+  # stdout without failing set -e pipefail (smoke exit must stay 0).
+  if [[ "${_LOOP_LOG_WRITE_PE_SKIPPED}" -eq 1 ]]; then
+    cat
+    return 0
+  fi
+  if command tee -a "$LOG"; then
+    return 0
+  fi
+  echo "[smoke] SOFT_SKIP write-PE: tee-append Permission denied on $LOG — goal:g5.4.1.4.12.1 naming write-PE; continuing without append" >&2
+  _LOOP_LOG_WRITE_PE_SKIPPED=1
+  return 0
+}
+
+
 # Engine drift check (L9 pinning gap, goal:g8.1). Reads engine_commit (or
 # engine_ref) from the project config and warns if the engine checkout's HEAD
 # does not match. Non-fatal: prints a warning line and continues. Silent when
@@ -177,7 +202,7 @@ if actual == engine_commit:
 else:
     print(f'[driver] DRIFT WARNING: engine HEAD is {actual[:12]} but config pins {engine_commit[:12]}', file=sys.stderr)
     print(f'[driver]   Fix: git -C $PLUGIN_ROOT pull, or update engine_commit in {cname}', file=sys.stderr)
-" 2>&1 | tee -a "$LOG" || true
+" 2>&1 | tee_a || true
 fi
 
 claim_iter() {
@@ -226,7 +251,7 @@ iter_run() {
   fi
   local ts
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-  echo "=== iter $n_display @ $ts ===" | tee -a "$LOG"
+  echo "=== iter $n_display @ $ts ===" | tee_a
 
   # 1a. (retired, goal:g7.16.1.4.1 W-G) GOALS.md is no longer rendered: the owner
   #     retired it 2026-09-29 17:3xZ. Goals are read by id through write.py;
@@ -238,7 +263,7 @@ iter_run() {
   [[ -x "$PROJECT_ROOT/bin/snapshot-build-site.py" ]] && SNAPSHOT_PY="$PROJECT_ROOT/bin/snapshot-build-site.py"
   if [[ -f "$SNAPSHOT_PY" ]]; then
     AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" \
-      python3 "$SNAPSHOT_PY" 2>&1 | tee -a "$LOG"
+      python3 "$SNAPSHOT_PY" 2>&1 | tee_a
   fi
 
   # 2. Render context → INJECTION.md, from the viewport's own frame stream.
@@ -257,7 +282,7 @@ iter_run() {
   [[ -x "$PROJECT_ROOT/bin/render-context.py" ]] && RENDER_PY="$PROJECT_ROOT/bin/render-context.py"
   if [[ -f "$RENDER_PY" ]]; then
     AGI_TREE_PROJECT_ROOT="$PROJECT_ROOT" AUTORESEARCH_TREE_PROJECT_ROOT="$PROJECT_ROOT" \
-      python3 "$RENDER_PY" "$PROJECT_ROOT/nodes" 2>&1 | tee -a "$LOG"
+      python3 "$RENDER_PY" "$PROJECT_ROOT/nodes" 2>&1 | tee_a
   fi
 
   # 3. Emit METRICs
@@ -285,17 +310,17 @@ iter_run() {
   # `chain_engine/queries.py` instead.
 
   # 4b. Write guard: detect unsanctioned node edits (warn only, non-fatal)
-  python3 "$PLUGIN_ROOT/bin/write_guard.py" check 2>&1 | tee -a "$LOG" || true
+  python3 "$PLUGIN_ROOT/bin/write_guard.py" check 2>&1 | tee_a || true
 
   # 4c. Grid coverage: tracked engine code file with no payload_ref and no
   # declared exclusion (hypothesis:l3-engine-files-outside-the-grid). Warn
   # only while the mint backlog is non-zero; exits 1 once the next kid's
   # additive mint lands and any file is left uncovered. Non-fatal so a live
   # loop never blocks on an honest red we already know about.
-  python3 "$PLUGIN_ROOT/bin/grid_coverage_check.py" --engine "$PROJECT_ROOT" 2>&1 | tee -a "$LOG" || true
+  python3 "$PLUGIN_ROOT/bin/grid_coverage_check.py" --engine "$PROJECT_ROOT" 2>&1 | tee_a || true
 
   if [[ "$SMOKE" == "true" ]]; then
-    echo "[smoke] skipping agent dispatch + heal" | tee -a "$LOG"
+    echo "[smoke] skipping agent dispatch + heal" | tee_a
     return
   fi
 
@@ -314,31 +339,31 @@ iter_run() {
   # model, with the kid brief. Found 2026-09-02 by checking before trusting it.
   [[ -n "$TIER" ]] && DISPATCH_ARGS+=(--tier "$TIER")
   python3 "$PLUGIN_ROOT/bin/dispatch.py" "$PROJECT_ROOT" "$n" \
-    "${DISPATCH_ARGS[@]+"${DISPATCH_ARGS[@]}"}" 2>&1 | tee -a "$LOG"
+    "${DISPATCH_ARGS[@]+"${DISPATCH_ARGS[@]}"}" 2>&1 | tee_a
 
   # 6. Monitor + heal
   if [[ "$NO_HEAL" != "true" ]]; then
-    python3 "$PLUGIN_ROOT/bin/heal.py" "$PROJECT_ROOT" "$n" 2>&1 | tee -a "$LOG"
+    python3 "$PLUGIN_ROOT/bin/heal.py" "$PROJECT_ROOT" "$n" 2>&1 | tee_a
   fi
 
   # 7. Post-wire: push agent verdicts back into node graph
-  python3 "$PLUGIN_ROOT/bin/post_wire.py" "$PROJECT_ROOT" "$n" 2>&1 | tee -a "$LOG" || true
+  python3 "$PLUGIN_ROOT/bin/post_wire.py" "$PROJECT_ROOT" "$n" 2>&1 | tee_a || true
 
   # 8. Print summary
-  python3 "$PLUGIN_ROOT/bin/cli.py" status "$n" 2>&1 | tee -a "$LOG" || true
+  python3 "$PLUGIN_ROOT/bin/cli.py" status "$n" 2>&1 | tee_a || true
 }
 
 emit_metrics() {
   local iter_n="$1"
   # Metric computation lives in bin/metrics.py (TODO.md H3) so it is testable
   # and so the primary metric is config-driven, never chain length.
-  python3 "$PLUGIN_ROOT/bin/metrics.py" "$PROJECT_ROOT" 2>&1 | tee -a "$LOG"
+  python3 "$PLUGIN_ROOT/bin/metrics.py" "$PROJECT_ROOT" 2>&1 | tee_a
 }
 
 for i in $(seq 1 "$MAX_ITERS"); do
   iter_run "$i"
   if [[ "$i" -lt "$MAX_ITERS" && "$DELAY_MINS" -gt 0 ]]; then
-    echo "[driver] sleeping ${DELAY_MINS}m before iter $((i+1))..." | tee -a "$LOG"
+    echo "[driver] sleeping ${DELAY_MINS}m before iter $((i+1))..." | tee_a
     sleep "$((DELAY_MINS * 60))"
   fi
 done

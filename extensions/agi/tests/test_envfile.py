@@ -269,6 +269,38 @@ def test_loose_mode_is_a_note_not_a_problem(tmp_path):
     assert any("mode 644" in n for n in notes)
 
 
+def test_acl_lean_a_soft_skips_expect_600(tmp_path):
+    """goal:g5.4.1.4.12.1 — mode 640 + ACL lean A (group:agi:r--) must NOT
+    nag chmod 600; emit labeled SOFT_SKIP expect-600 instead. Never strip ACL.
+    """
+    import subprocess
+    import shutil
+    if shutil.which("getfacl") is None or shutil.which("setfacl") is None:
+        import pytest
+        pytest.skip("getfacl/setfacl not available")
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    env_path = write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-test\n", mode=0o640)
+    # Apply ACL lean A on a file we own (DG can setfacl own files; MAIN .env
+    # is belam-owned and out of reach — this unit-tests the reconcile path).
+    r = subprocess.run(
+        ["setfacl", "-m", "g:agi:r--", str(env_path)],
+        capture_output=True, text=True,
+    )
+    if r.returncode != 0:
+        import pytest
+        pytest.skip(f"setfacl failed: {r.stderr.strip()}")
+    # Confirm lean A present
+    facl = subprocess.run(
+        ["getfacl", "-p", str(env_path)], capture_output=True, text=True,
+    )
+    assert "group:agi:r--" in facl.stdout
+    res = agi_secrets.resolve(tmp_path)
+    problems, notes = agi_secrets.check(res)
+    assert problems == []
+    assert any("SOFT_SKIP expect-600" in n and "ACL lean A" in n for n in notes), notes
+    assert not any("expected 600 — chmod 600 it" in n for n in notes), notes
+
 # --- parsing ---------------------------------------------------------------
 
 
@@ -280,6 +312,7 @@ def test_loose_mode_is_a_note_not_a_problem(tmp_path):
     ("FOO=sk-or-v1-a=b=c", "FOO", "sk-or-v1-a=b=c"),
     ("  FOO = bar  ", "FOO", "bar"),
 ])
+
 def test_read_env_line_shapes(tmp_path, line, key, value):
     path = write_env(tmp_path, line + "\n")
     assert agi_secrets.read_env(path)[key] == value

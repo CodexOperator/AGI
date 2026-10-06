@@ -42,6 +42,7 @@ import json
 import os
 import re
 import stat
+import subprocess
 import sys
 from pathlib import Path
 
@@ -428,6 +429,26 @@ def set_key(res: "Resolution", name: str) -> int:
     return 0
 
 
+
+def _acl_lean_a_group_agi_r(path: Path) -> bool:
+    """True when getfacl shows ACL lean A: group:agi:r-- (goal:g5.4.1.4.12.1).
+
+    MAIN .env keeps this ACL so group agi can read without mode 600. Detecting
+    it lets check() reconcile expect-600: do not nag chmod 600 (that drops the
+    group ACL). Missing getfacl / non-ACL files return False.
+    """
+    try:
+        r = subprocess.run(
+            ["getfacl", "-p", "--absolute-names", str(path)],
+            capture_output=True, text=True, timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    if r.returncode != 0:
+        return False
+    return "group:agi:r--" in (r.stdout or "")
+
+
 def fill_in_hint(res: Resolution) -> str:
     """What a missing `.env` should be told to fill in: every `required_key`,
     then each `required_any` GROUP as `at least one of A, B` -- a group is
@@ -470,7 +491,19 @@ def check(res: Resolution, verify: bool = False) -> tuple[list[str], list[str]]:
 
     mode = stat.S_IMODE(res.env_file.stat().st_mode)
     if mode != 0o600:
-        notes.append(f"{res.env_file} is mode {mode:03o}, expected 600 — chmod 600 it")
+        # goal:g5.4.1.4.12.1 — reconcile expect-600 with ACL lean A.
+        # Effective 640 + group:agi:r-- is the standing lean; never nag
+        # chmod 600 (that drops the group ACL). Labeled SOFT_SKIP names it.
+        if _acl_lean_a_group_agi_r(res.env_file):
+            notes.append(
+                f"{res.env_file} is mode {mode:03o} with ACL lean A "
+                f"(group:agi:r--) — SOFT_SKIP expect-600 "
+                f"(goal:g5.4.1.4.12.1); do not chmod 600 (drops group ACL)"
+            )
+        else:
+            notes.append(
+                f"{res.env_file} is mode {mode:03o}, expected 600 — chmod 600 it"
+            )
 
     env = read_env(res.env_file)
     for key in res.required_keys:
