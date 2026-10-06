@@ -2294,7 +2294,7 @@ def _post_stamp(root, actor: str) -> dict:
     row = next((r for r in _load_seats(root) if r.get("name") == name), None)
     if not row:
         return {}
-    # g5.4.1.1.2: inline ladder read (no import season; season.py moves in .3)
+    # g5.4.1.1.2: inline ladder read (season module not imported; .3 deprecates it)
     try:
         from graph_core.persistence import frontmatter as _fm  # noqa: PLC0415
         _ladder = Path(root) / "nodes" / ".geometry" / "ladder.md"
