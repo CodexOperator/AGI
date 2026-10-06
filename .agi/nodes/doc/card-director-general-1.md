@@ -68,3 +68,6 @@ lm count 53 unchanged
 - skip agi-infer
 - mint chew council-only
 - no season.py rollover --apply
+
+## Agent Notes
+PASS hyp/split package g5.35.2+g5.34.6.2+g5.34.7.6+g5.34.8.1-.4 — 7 hyps tip d5bf7172e; SM wake DG2 next
