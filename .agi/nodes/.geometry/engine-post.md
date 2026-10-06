@@ -204,6 +204,44 @@ printf 'orient %s rev=%s dump_sha256=%s pin=%s card=%s\n===== startup %s =====\n
 cat "$f";printf '===== end startup =====\n\n';rm -f "$f"
 ~~~
 
+### sm-dg-multiplex (2182 B)
+~~~sh
+#!/bin/sh
+# sm-dg-multiplex (g5.34.8.2 O1/K3/A1/O4): SM arms ONE root monitor wait over belam SSH for manned DGs.
+# Usage: sm-dg-multiplex arm <dg…> · sm-dg-multiplex drop <dg> · sm-dg-multiplex status
+# Cursor: /var/lib/agi-monitor/sanctuary-master/ (700). Never SM-pane uid. Optional V3 /run/agi-<p>/driver lock.
+set -eu
+CDIR=${MONITOR_CURSOR_DIR:-/var/lib/agi-monitor/sanctuary-master}
+STATE=$CDIR/manned.list
+HOST=${BELAM_SSH_HOST:-belam@10.66.0.10}
+KEY=${BELAM_SSH_KEY:-$HOME/.ssh/sanctuary_ed25519}
+SSH="ssh -i $KEY -o StrictHostKeyChecking=no -o ServerAliveInterval=15 -o ServerAliveCountMax=3 $HOST"
+cmd=${1:-};shift||true
+mkdir -p "$CDIR";chmod 700 "$CDIR";touch "$STATE"
+arm(){ for p in "$@";do grep -qx "$p" "$STATE" 2>/dev/null||echo "$p">>"$STATE";done
+ posts=$(tr '\n' ' ' <"$STATE"); [ -n "$posts" ]||return 0
+ # kill prior multiplex pid if any
+ if [ -f "$CDIR/multiplex.pid" ];then kill "$(cat "$CDIR/multiplex.pid")" 2>/dev/null||true;fi
+ # root multiplex over belam SSH (A1)
+ $SSH "sudo MONITOR_CURSOR_DIR=$CDIR monitor wait $posts" &
+ echo $!> "$CDIR/multiplex.pid"; echo "armed: $posts pid=$(cat $CDIR/multiplex.pid)";}
+drop(){ p=$1;grep -vx "$p" "$STATE" >"$STATE.tmp" 2>/dev/null||true;mv "$STATE.tmp" "$STATE"
+ if [ -f "$CDIR/multiplex.pid" ];then kill "$(cat "$CDIR/multiplex.pid")" 2>/dev/null||true;fi
+ posts=$(tr '\n' ' ' <"$STATE"); [ -z "$posts" ]&&{ echo "dropped $p; none manned";return 0;}
+ $SSH "sudo MONITOR_CURSOR_DIR=$CDIR monitor wait $posts" &
+ echo $!> "$CDIR/multiplex.pid"; echo "re-armed without $p: $posts";}
+# V3 optional driver lock
+driver_lock(){ p=$1;id=$2;printf '%s\n' "$id">/run/agi-$p/driver;}
+driver_check(){ p=$1;id=$2;[ -f /run/agi-$p/driver ]||return 0;cur=$(cat /run/agi-$p/driver);[ "$cur" = "$id" ]||{ echo "[refused] driver lock held by $cur" >&2;return 1;};}
+case $cmd in
+ arm) arm "$@";;
+ drop) drop "$1";;
+ status) echo "manned: $(tr '\n' ' ' <"$STATE")"; [ -f $CDIR/multiplex.pid ]&&echo "pid=$(cat $CDIR/multiplex.pid)"||echo "pid=none";;
+ driver-lock) driver_lock "$1" "$2";;
+ driver-check) driver_check "$1" "$2";;
+ *) echo "usage: sm-dg-multiplex arm|drop|status|driver-lock|driver-check …" >&2;exit 2;;
+esac
+~~~
 ### mail-wake (1381 B)
 ~~~sh
 #!/bin/sh
