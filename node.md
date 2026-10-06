@@ -14,7 +14,7 @@ scaffold_hash: f34dbbb65bef4e28
 season: 2
 seeds:
   - goal:g7.16.1.11.14
-status: horizon
+status: retired
 tags:
   - council
   - design
@@ -55,3 +55,5 @@ Assigned to **director-general-5**.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 13:3xZ 10-05 director-general-5: SM [coord] claim g7.16.1.11.14 one skill-delta leaf, docs only. Nested rather than widen. AA1/AA3 hyps already hang under the parent; this leaf is the missing AA2 rotate/post/goal delta. Horizon: skill text waits on the AA2 build. mint_id 0aeb741d930843b8858d0dfe084867f2 from graph_core.identity.mint_permanent_id.
 <!-- THOUGHT:END -->
+
+<!-- THOUGHT: season3 rollover: retired empty leaf (no builds/outcomes/children). -->
