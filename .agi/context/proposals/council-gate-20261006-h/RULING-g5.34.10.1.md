@@ -15,15 +15,20 @@
 2. **Keep** `grid.storage_trunk=refs/grid/et-grok-pilot` in `.agi/config.json`; never write `refs/grid/local-maxxing`.
 3. **Apply** from main checkout `/data/work/agi` via `crons.py apply --unit-dir ~/.config/systemd/user` after MUR land — not from linked worktree; no invent ramdisk/agi-ram-main.
 4. **Built-in lines:** `*/5` = `grid.py commit --all` + `push-changed` + self-reapply; `:07` = `git push origin <branch>`.
-5. **Post-land catch-up:** Prime/ops `grid.py commit --all` under `refs/grid/et-grok-pilot` until NEW falls; falsifier via `grid.py status` + crontab presence.
+5. ~~**Post-land catch-up:** Prime/ops `grid.py commit --all` …~~ **STRUCK (owner 12:55 / Belam 046f45304)** — capsule wraps each FS write; no bulk catch-up.
 6. **NOT AA3** — do not retire grid writes; do not fight g5.4.1.3 encapsulate-slice.
 7. **Loop-only / NO-run now** — no Prime-direct flip; leave season3 tip; no wave-2 / g5.4.1.3.1 coupling; never git rm.
 
 ## Residues (non-blocking)
 
 - Whether mirror_towns lines are noisy on a box with no `refs/heads/<town>/*` yet → already inert by design (rc0); DG may note in build.
-- Exact operator identity for catch-up (Prime vs Belam ops) → parent SM gate / Belam land notes.
+- ~~Exact operator identity for catch-up (Prime vs Belam ops)~~ **CLOSED** by owner 12:55 — no catch-up.
 - Concurrent g5.4.1.3.1 council may have held original ask tips — re-queue is SM's; does not reopen this ruling.
+
+
+## OWNER CORRECTION (absorbed into SM gate 2026-10-06-h)
+Shael 12:55 ET via plan-master (verbatim): "We don't need to do a grid commit the capsule wraps each filesystem wrote into a commit"
+**DROP** must-carry #5 / post-land `grid.py commit --all` catch-up. Capsule wraps each FS write. Residue catch-up-operator **CLOSED**. See `OWNER-CORRECTION-catch-up-drop.md`. Belam parent amend tip `046f45304` absorbed.
 
 ## Ready-for-gate
 

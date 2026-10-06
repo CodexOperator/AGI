@@ -18,3 +18,6 @@ Ask boxes (re-queue after g5.4.1.3.1 consumed prior): alive bdad7a870 · aio 33d
 Prior held asks: 7fa608c8d / b88d62771 / cda99f06a.
 
 **Not** an SM gate GO. Parent runs SM gate next. Belam not contacted. Wave-2 / g5.35.* / g5.4.1.3.1 / season3 tip untouched.
+
+## SM gate 2026-10-06-h
+Absorbed Belam `046f45304`. Owner catch-up DROP stamped. See `sm-council-gate-20261006-h.md`.
