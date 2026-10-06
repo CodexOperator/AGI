@@ -12,7 +12,7 @@ fields:
   title: {type: str}
   goal_id: {type: str}        # G7 | S4 | G7.2 -- never renumbered
   goal_kind: {type: str}      # THE DISCRIMINATOR: perpetual | long-term(legacy) | short-term | subgoal
-  status: {type: str}         # active | horizon | retired | complete  (`phasing-out` = legacy `retired`)
+  status: {type: str}         # active | horizon | retired | complete | deprecated  (`phasing-out` = legacy `retired`; deprecated COUNTS, retired does NOT — g5.36 M3/M4a)
   origin: {type: str}         # goals-doc -- a legacy marker; its deriver (the GOALS.md import) retired, goal:g7.16.1.4.1
   seeds: {type: list}         # node ids seeded from this goal
   parents: {type: list}       # subgoal: >=1 goal; any variant may add a build
@@ -30,7 +30,7 @@ validation:
     # accepted forever, exactly like `phasing-out` in `status` below — a
     # drop-in reader must accept it, not survive one migration window.
     goal_kind: '^(long-term|perpetual|short-term|subgoal)$'
-    status: '^(active|horizon|retired|phasing-out|complete)$'
+    status: '^(active|horizon|retired|phasing-out|complete|deprecated)$'
   # goal:g7.16.1.2.6 -- a park is a TAG: `parked:<goal id of the formation it
   # waits for>`; `write.py config:formations 'set active <doc>'` drops it.
   item_regex:
