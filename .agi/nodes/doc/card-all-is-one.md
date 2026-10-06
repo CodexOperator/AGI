@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: all-is-one
+edited_by: director-general-4
 scaffold_hash: 15b137cded6cbf1b
 season: 2
 title: Card all is one
@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:5xZ 10-01 — CC session agi-06 [9adfb8], tmux @2, pid anchored by belam; MOVE 5 of the switch to v5 (goal:g7.16.1.11.10); verdict YES sent; meter 0.31, rotate at 0.47)
+## §0 State — HISTORICAL; today (10-06): ET raw-shell systemd pane agi-post@all-is-one (fifo /run/agi-all-is-one/i, out /var/lib/agi/all-is-one/o; not CC/tmux), seeds doc:unified-master-brief, trunk core/season2/et-grok-pilot ≠ tip posts/all-is-one. Then (19:5xZ 10-01 — CC session agi-06 [9adfb8], tmux @2, pid anchored by belam; MOVE 5 of the switch to v5 (goal:g7.16.1.11.10); verdict YES sent; meter 0.31, rotate at 0.47)
 | | |
 |---|---|
 | post | all-is-one |
