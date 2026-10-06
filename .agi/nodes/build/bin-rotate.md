@@ -1,13 +1,14 @@
 ---
+
 id: build:bin-rotate
 mint_id: 37e33a765afd451797fcceff54c3157b
 type: build
 parents:
-  - goal:g7.16.1.2
+  - goal:g7.16.1
   - mvp:bin-modules
   - build
   - code
-  - g2.1
+  - goal:g2.1
 build_kind: code
 confidence: 1.0
 edited_by: belam
