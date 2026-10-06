@@ -3214,7 +3214,12 @@ def test_stops_push_real_refusal_branch_receive_fails(
                     encoding="utf-8")
     bare = _init_git_remote(tmp_path)
     # make the REAL remote refuse receives: a pre-receive hook that exits 1
-    hook = bare / "hooks" / "pre-receive"
+    hooks_dir = bare / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    # Host may set core.hooksPath=~/hooks (bypasses bare/hooks); pin for this fixture.
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath",
+                    str(hooks_dir)], check=True)
+    hook = hooks_dir / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
     local_before = subprocess.run(
@@ -8247,6 +8252,8 @@ def test_ack_failed_commit_exits_nonzero_unstages_row_keeps_working_tree(
     monkeypatch.delenv("GIT_CONFIG_VALUE_0", raising=False)
     hooks = top / ".git" / "hooks"
     hooks.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "-C", str(top), "config", "core.hooksPath",
+                    str(hooks)], check=True)
     pre = hooks / "pre-commit"
     pre.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     pre.chmod(0o755)
@@ -9896,7 +9903,12 @@ def test_rotate_out_mirror_push_failure_refuses_by_name(tmp_path, capsys):
     """goal:g15.25 (d): a mirror push the remote rejects REFUSES BY NAME
     (naming the mirror ref) and no head is created."""
     root, top, bare, _head = _git_with_post_branch(tmp_path)
-    hook = bare / "hooks" / "pre-receive"
+    hooks_dir = bare / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    # Host may set core.hooksPath=~/hooks (bypasses bare/hooks); pin for this fixture.
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath",
+                    str(hooks_dir)], check=True)
+    hook = hooks_dir / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
     err = rotate._stops_push(root, "stops")
@@ -9955,7 +9967,12 @@ def test_rename_apply_mirror_failure_refuses_and_keeps_old_head(
                     "season2/posts/adv"], check=True)
     subprocess.run(["git", "-C", str(top), "branch", "-m",
                     "season2/posts/adv", "season2/posts/adv2"], check=True)
-    hook = bare / "hooks" / "pre-receive"
+    hooks_dir = bare / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    # Host may set core.hooksPath=~/hooks (bypasses bare/hooks); pin for this fixture.
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath",
+                    str(hooks_dir)], check=True)
+    hook = hooks_dir / "pre-receive"
     hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     hook.chmod(0o755)
     capsys.readouterr()
@@ -10152,7 +10169,11 @@ def test_merge_up_mirror_failure_leaves_origin_head(tmp_path, capsys,
                     "season2/posts/adv"], check=True)
     monkeypatch.setattr(rotate, "_merge_up_suite",
                         lambda *a, **k: (True, "seam", {}))
-    hook = bare / "hooks" / "pre-receive"
+    hooks_dir = bare / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "-C", str(bare), "config", "core.hooksPath",
+                    str(hooks_dir)], check=True)
+    hook = hooks_dir / "pre-receive"
     hook.write_text("#!/bin/sh\nwhile read _o _n ref; do\n"
                     "  case \"$ref\" in refs/agi/*) exit 1;; esac\n"
                     "done\nexit 0\n", encoding="utf-8")
