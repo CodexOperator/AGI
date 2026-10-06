@@ -1,0 +1,13 @@
+--- a/~/work/.sanctuary/sanctuary/ssh/config   (box: /home/box/work/.sanctuary/sanctuary/ssh/config, not in repo)
++++ b/~/work/.sanctuary/sanctuary/ssh/config
+@@ -1,5 +1,5 @@
+-# ssh -F ~/work/.sanctuary/ssh/config <town>
++# ssh -F ~/work/.sanctuary/sanctuary/ssh/config <town>
+ Host *
+-  IdentityFile ~/work/.sanctuary/ssh/sanctuary_ed25519
++  IdentityFile ~/work/.sanctuary/sanctuary/ssh/sanctuary_ed25519
+   IdentitiesOnly yes
+-  UserKnownHostsFile ~/work/.sanctuary/ssh/known_hosts
++  UserKnownHostsFile ~/work/.sanctuary/sanctuary/ssh/known_hosts
+   StrictHostKeyChecking yes
+   ServerAliveInterval 30

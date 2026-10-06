@@ -1,5 +1,7 @@
 # SM gate — council ONE ruling (g5.4.1.1.1 + g5.31.1)
 
+> Renumber note (g5.35.6, 2026-10-06): read g5.31.1–.5 in this record as **g5.34.1–.5** (renumbered at 3b5b2c242; retired g5.31 = DIAGRAM-MAX, never reused). /workspace/council-design/ was scratch; bodies live in this folder and goal:g5.34.1.
+
 **Gate:** sanctuary-master · 2026-10-06 ~04:12Z  
 **Sources:** `/workspace/council-design/{RULING,g5.4.1.1.1-season-script,g5.31.1-geometry}.md`  
 **Trunk context:** `core/season2/et-grok-pilot` @ `9011018d4` (land posts/belam: goals + C3/C7). `core/season3/main` still observed @ `4b8f28b5e` on this box's fetch — join residue for Prime.
