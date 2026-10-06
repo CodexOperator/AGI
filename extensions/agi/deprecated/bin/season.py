@@ -32,8 +32,11 @@ from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+_HERE = Path(__file__).resolve().parent  # extensions/agi/deprecated/bin
+_AGI = _HERE.parent.parent  # extensions/agi
+sys.path.insert(0, str(_HERE))
+sys.path.insert(0, str(_AGI / "bin"))   # locations, branches, geometry_config, …
+sys.path.insert(0, str(_AGI / "src"))   # graph_core
 import locations  # noqa: E402
 import branches  # noqa: E402
 import geometry_config  # noqa: E402
