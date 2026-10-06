@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pytest
 
-BIN = Path(__file__).resolve().parents[1] / "bin"
+BIN = Path(__file__).resolve().parents[1] / "deprecated" / "bin"
 REPO = Path(__file__).resolve().parents[3]  # .../tests/.. = repo root
 sys.path.insert(0, str(BIN))
 
