@@ -2120,42 +2120,39 @@ manifest:
     reason: default scan prunes stale level3-scan build nodes; operator-only
   season.py:status:
     cli: season.py
+    # deprecated g5.4.1.1.3 — live judge is season:judge
     verb: status
     argv:
       - python3
-      - <engine>/extensions/agi/bin/season.py
+      - <engine>/extensions/agi/deprecated/bin/season.py
       - status
     args: []
-    purpose: print per-tier plan/report counts
+    purpose: print per-tier plan/report counts (deprecated; not projected)
     side_effects: read
-    proposable: true
-  season.py:judge:
-    cli: season.py
+    proposable: false
+    reason: held/deprecated after g5.4.1.1.2–.3; live verb is season:judge
+  season:judge:
+    cli: season
     verb: judge
     argv:
-      - python3
-      - <engine>/extensions/agi/bin/season.py
+      - season
       - judge
       - <report_id>
     args:
       - {"name": "report_id", "type": "str", "required": true, "choices": []}
       - {"name": "against", "type": "str", "required": false, "choices": []}
-      - {"name": "debug", "type": "bool", "required": false, "choices": []}
-      - {"name": "quorum", "type": "bool", "required": false, "choices": []}
-      - {"name": "room", "type": "str", "required": false, "choices": []}
-      - {"name": "judge_round", "type": "str", "required": false, "choices": []}
-      - {"name": "comms_root", "type": "str", "required": false, "choices": []}
       - {"name": "actor", "type": "str", "required": false, "choices": []}
       - {"name": "session", "type": "str", "required": false, "choices": []}
-    purpose: stamp a judgment record on a report node
+    purpose: stamp a judgment record on a report node (projected bin/season; no Python)
     side_effects: graph-write
     proposable: true
   season.py:rollover:
     cli: season.py
+    # deprecated g5.4.1.1.3 — live judge is season:judge
     verb: rollover
     argv:
       - python3
-      - <engine>/extensions/agi/bin/season.py
+      - <engine>/extensions/agi/deprecated/bin/season.py
       - rollover
     args:
       - {"name": "dry_run_explicit", "type": "bool", "required": false, "choices": []}
@@ -2177,10 +2174,11 @@ manifest:
     reason: rewrites the ladder and can open a branch; operator-only
   season.py:retag:
     cli: season.py
+    # deprecated g5.4.1.1.3 — live judge is season:judge
     verb: retag
     argv:
       - python3
-      - <engine>/extensions/agi/bin/season.py
+      - <engine>/extensions/agi/deprecated/bin/season.py
       - retag
     args:
       - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
@@ -2192,10 +2190,11 @@ manifest:
     reason: graph-wide batch stamp; operator-only
   season.py:merge-kids:
     cli: season.py
+    # deprecated g5.4.1.1.3 — live judge is season:judge
     verb: merge-kids
     argv:
       - python3
-      - <engine>/extensions/agi/bin/season.py
+      - <engine>/extensions/agi/deprecated/bin/season.py
       - merge-kids
     args:
       - {"name": "branches", "type": "str", "required": true, "choices": []}
@@ -2206,10 +2205,11 @@ manifest:
     reason: merges branches and can leave a merge in progress; operator-only
   season.py:merge-up:
     cli: season.py
+    # deprecated g5.4.1.1.3 — live judge is season:judge
     verb: merge-up
     argv:
       - python3
-      - <engine>/extensions/agi/bin/season.py
+      - <engine>/extensions/agi/deprecated/bin/season.py
       - merge-up
     args:
       - {"name": "branch", "type": "str", "required": true, "choices": []}
@@ -2890,9 +2890,9 @@ placement:
     flag: "--iter"
   paths.py:audit.dir:
     kind: positional
-  season.py:judge.judge_round:
+  season:judge.against:
     kind: option
-    flag: "--round"
+    flag: "--against"
   zoom.py:.target:
     kind: option
     flag: "--target"

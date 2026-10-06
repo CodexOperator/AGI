@@ -1200,7 +1200,7 @@ def _sweep_worktree_base(root: Path, wt: Path, season: int | None) -> str | None
     """The branch this round was cut from, for the ancestry check.
 
     Prefers the `base_branch` dispatch wrote into the worktree's own session
-    records (the same tuple season.py merge-up climbs); falls back to
+    records (the same tuple deprecated-season merge-up climbs); falls back to
     `origin/season/s<N>` from the loop branch. None means the round's base
     cannot be resolved, so its worktree is NOT removed (a round whose landing
     cannot be proven must not be reaped)."""

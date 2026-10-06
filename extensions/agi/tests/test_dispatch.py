@@ -1076,7 +1076,7 @@ def test_scaffold_stamps_the_child_row_not_the_spawner_env(tmp_path, monkeypatch
 # The dispatch half of the claim: `--branch` cuts each spawn its own git
 # worktree on loop/<slug>-<agent8>@s<N> OFF the SPAWNER's branch, the child
 # edits only that worktree (cwd + AGI_TREE_PROJECT_ROOT), and the lease /
-# agent record carry branch/base_branch/worktree for season.py merge-up.
+# agent record carry branch/base_branch/worktree for deprecated-season merge-up.
 # Red-first: these were written before the helpers existed; the real-git
 # tests fail when the worktree is missing or is rooted at the wrong layer.
 

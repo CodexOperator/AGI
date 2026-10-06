@@ -159,7 +159,7 @@ def test_crons_box_filter_core_unchanged_and_local_mail_only(tmp_path, monkeypat
 
 
 # (6) no RUNABLE literal box alias in any engine script (comments/docstrings
-# are prose, matching test_no_literal_town.py's AST rule; season.py carries
+# are prose, matching test_no_literal_town.py's AST rule; deprecated-season carries
 # 'core-town' in a comment and is not an offender).
 # (2b) FAIL CLOSED: a graph that cannot name its own box runs NO box-gated
 # job, and says so once in the crontab it renders.
