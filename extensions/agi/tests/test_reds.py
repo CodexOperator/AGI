@@ -425,3 +425,85 @@ def test_e2_a_non_md_deletion_beside_an_id_less_md_deletion_names_only_the_md(pr
     r = _run(proj, base)
     line = [l for l in r.stdout.splitlines() if l.startswith("RED node_deletion")]
     assert r.returncode == 1 and line == ["RED node_deletion 1: .agi/nodes/idea/noid.md"], r.stdout + r.stderr
+
+
+# goal:g1.41 RE3 (DG1 23:05Z): a nodes/*.md MOVED into nodes/deprecated/ is a D plus an A under --no-renames. DECISION (DG1, row a): an id-less, mint-less file cannot be proved to survive and the schema requires an id, so the move is REPORTED by its old path. A mint kept = alive (b), an id kept = alive (c); the DG3.54 mint-disguise rows stay as they are.
+def _move_to_deprecated(proj, text, name="moved.md"):
+    g = proj / ".agi" / "nodes"
+    (g / "idea" / name).write_text(text)
+    base = _commit(proj, "add a node file")
+    (g / "deprecated" / "idea").mkdir(parents=True, exist_ok=True)
+    _git(proj, "mv", f".agi/nodes/idea/{name}", f".agi/nodes/deprecated/idea/{name}")
+    _commit(proj, "move it to deprecated/")
+    return base
+
+
+@pytest.mark.parametrize("text,why", [
+    ("just prose, no front matter\n", "no front matter"),
+    ("---\ntype: idea\ntitle: t\n---\nbody\n", "front matter without id or mint"),
+])
+def test_re3_a_moved_id_less_mint_less_node_is_reported_by_its_path_by_decision(proj, text, why):
+    base = _move_to_deprecated(proj, text)
+    r = _run(proj, base)
+    assert r.returncode == 1, (why, r.stdout + r.stderr)
+    assert "RED node_deletion 1: .agi/nodes/idea/moved.md" in r.stdout, (why, r.stdout)
+
+
+def test_re3_a_moved_id_less_node_that_keeps_its_mint_is_no_deletion(proj):
+    base = _move_to_deprecated(proj, "---\nmint_id: " + "f" * 32 + "\ntype: idea\n---\nbody\n")
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED node_deletion" not in r.stdout, r.stdout + r.stderr
+
+
+def test_re3_a_moved_id_ful_node_is_no_deletion(proj):
+    base = _move_to_deprecated(proj, _node("idea:moved", "9" * 32, type="idea"))
+    r = _run(proj, base)
+    assert r.returncode == 0 and "RED node_deletion" not in r.stdout, r.stdout + r.stderr
+
+
+def test_re3_an_id_less_move_beside_an_id_ful_move_names_only_the_id_less(proj):
+    g = proj / ".agi" / "nodes"
+    (g / "idea" / "a.md").write_text("prose only\n")
+    (g / "idea" / "b.md").write_text(_node("idea:b", "8" * 32, type="idea"))
+    base = _commit(proj, "add two node files")
+    (g / "deprecated" / "idea").mkdir(parents=True)
+    for n in ("a.md", "b.md"):
+        _git(proj, "mv", f".agi/nodes/idea/{n}", f".agi/nodes/deprecated/idea/{n}")
+    _commit(proj, "move both")
+    r = _run(proj, base)
+    assert r.returncode == 1 and "RED node_deletion 1: .agi/nodes/idea/a.md" in r.stdout and "idea:b" not in r.stdout, r.stdout + r.stderr
+
+
+# goal:g1.41 RE2 (DG1 23:05Z): the committed CLI over the BUILD'S OWN range (the mur ran `reds.py check c99ac24ea3 7bd46defd8` and got RED secrets 2: two added lines of the lane's own test carried a user path). The range is named by ref so it keeps meaning; a clone that lacks the commits skips (vacuous there, said so). The check runs in-process with `anonymize.box_tokens` read when the box allows it and [] when it does not (a seat without the main .env): box tokens only ADD reds, so a green range here may still be red at a gate that holds them.
+TIP_BASE, TIP_REF = "6f9d7f742c", "d880746901"          # the build's own commit (RE1 recut) and its parent
+OLD_REF, PRE_RECUT_REF = "c99ac24ea3", "7bd46defd8"   # the range the mur ran: RED secrets 2
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
+def _own_range(monkeypatch, capsys, old, new, only=None):
+    import anonymize, reds
+    for r in (old, new):
+        if subprocess.run(["git", "-C", str(REPO_ROOT), "cat-file", "-e", r + "^{commit}"], capture_output=True).returncode != 0:
+            pytest.skip(f"{r} is not in this clone")
+    real = anonymize.box_tokens
+
+    def tokens(root=None):
+        try:
+            return real(root)
+        except OSError:
+            return []
+    monkeypatch.setattr(anonymize, "box_tokens", tokens)
+    if only:   # the slow classes extract two whole trees (about a minute each): the can-fail row narrows to the one class it is about
+        monkeypatch.setattr(reds, "_classes", lambda root: set(only))
+    rc = reds.main(["check", old, new, "--root", str(REPO_ROOT), "--repo", str(REPO_ROOT)])
+    return rc, capsys.readouterr().out
+
+
+def test_re2_the_builds_own_range_is_green(monkeypatch, capsys):
+    rc, out = _own_range(monkeypatch, capsys, TIP_BASE, TIP_REF)
+    assert rc == 0 and "RED none" in out, out
+
+
+def test_re2_the_same_check_is_red_on_the_pre_recut_range(monkeypatch, capsys):
+    rc, out = _own_range(monkeypatch, capsys, OLD_REF, PRE_RECUT_REF, only={"secrets"})
+    assert rc == 1 and "RED secrets 2" in out, out

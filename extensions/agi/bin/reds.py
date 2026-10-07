@@ -99,6 +99,8 @@ def _node_deletions(repo, old, new, old_graph, new_graph):
             # to compare, the mint alone must ride a node that did not exist at OLD.
             alive = (hit is not None and not (hit[0] != ident and hit[0] in at_old)
                      if mint else bool(node) and ident in ids)
+            if not alive and mint and not node:   # the mint index skips an id-less node: it survives when its mint still sits in a file of the NEW tree
+                alive = any(mint.group(1) in f.read_text(encoding="utf-8", errors="replace") for f in (Path(new_graph) / "nodes").rglob("*.md"))
         except Exception as exc:  # fail CLOSED: an index that cannot answer is rc 2
             raise RuntimeError(f"node_deletion: {type(exc).__name__}") from None
         if not alive:
