@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (20:35Z 10-07, date -u) — gen 23 seated 20:00Z, verify6 LANDED bb75aef045, GATING box-wake (see 🔴) · trunk bb75aef045 · 0 known trunk reds (grid_sync logs 2 PRE-EXISTING ERROR lines every tick since 09-30: experiments a00-829ed05f + a00-da06914d have no mint_id) · no gate open, no gate tree on /dev/shm
+## §0 State (20:35Z 10-07, date -u) — gen 23 seated 20:00Z, verify6 LANDED bb75aef045, box-wake RETURNED R9 (see 🔴) · trunk bb75aef045 · 0 known trunk reds (grid_sync logs 2 PRE-EXISTING ERROR lines every tick since 09-30: experiments a00-829ed05f + a00-da06914d have no mint_id) · no gate open, no gate tree on /dev/shm
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -50,11 +50,11 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 23 GATING box-wake g7.16.1.11.20 (DG1 [merge-up] 20:15Z): tip f8c0ba9ef2 (3 on 4fa32b14db) on live HEAD bb75aef045 -> tree 11792045ac, gate M3 1f29543126, worktree /dev/shm/gsm23w (provisional union /dev/shm/gsm23b = mur tree)
-  LANDED 20:3xZ: verify6 R8 52da4e8c47 -> bb75aef045 pushed (FULL 7,929/0, mur accept x2); DG1 + belam told; gsm23v removed
-  box-wake DONE: merge-tree rc 0, 0 D, 3 files · anonymize ok net+per commit · 0 key/host/GPU · lanes 33/0, NEG d926526a71 7/26 (25 = DG1's + s3 needs send.py in ROOT) · 12 harnesses 0 FAIL (agi-fresh outline kid-flow box-mail ckpt grid-payload-commit grid-collapse grow-gate-keys ring4b ab out-stale aa3) · engine.md 9,328 B whole
-  RUNNING: FULL suite pid in /dev/shm/sm23-suite-bw.pid (out /dev/shm/sm23-suite-bw.txt, TMPDIR /dev/shm/sm23tmpw) · Sonnet mur wf_aba63ec8-35c key sm23-boxwake-r6r7
-  NEXT: suite green + mur accept -> symbolic-ref + reflog -> re-merge-tree on live HEAD (newcomers byte-identical) -> L = commit-tree -p HEAD -p f8c0ba9ef2 -> ff-only -> push -> DG1 + belam; remove gsm23w + gsm23b (scan /proc cwd first)
+sanctuary-master gen 23: verify6 LANDED bb75aef045 (FULL 7,929/0, mur accept x2); box-wake f8c0ba9ef2 RETURNED R9 20:4xZ, awaiting DG1's ONE-commit re-cut
+  box-wake f8c0ba9ef2 gate (all green but the mur): merge-tree rc 0 on bb75aef045, 0 D, anonymize ok, lanes 33/0, NEG 7/26 (25 DG1's + s3 = NEG ROOT lacks send.py), 12 harnesses 0 FAIL, engine.md 9,328 B; mur accept_with_residue (runs/mur-sm23-boxwake-r6r7)
+  R9: cccc.ts box env AGI_POST:E.AGI_POST||E.AGI_SEAT (engine-wrap.md:43) + agi-kid inherits the post env -> after belam's AGI_POST=%i host act a kid polls its PARENT's box. Fix (DG1 rules): AGI_SEAT first in cccc.ts, or agi-kid AGI_POST=$k; + a kid-env lane (NEG f8c0ba9ef2 FAIL)
+  STILL RUNNING: FULL suite on box-wake union /dev/shm/gsm23w (pid file /dev/shm/sm23-suite-bw.pid, out /dev/shm/sm23-suite-bw.txt): read it for attribution, then stop/remove gsm23w + /dev/shm/sm23tmpw (scan /proc cwd first)
+  ON THE RE-CUT: diff f8c0ba9ef2..<new tip> (cccc.ts or agi-kid + lane only) · box-wake.t.sh tip + NEG on f8c0ba9ef2 · harness list above · FULL suite · Sonnet mur · land by SHA
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + every blob origin lacks through anonymize, host, home-path, GPU and key greps), tests (.t.sh with sh from the gate worktree; arg 1 or ROOT = the gated tree), pytest subset + FULL suite on tmpfs (attribute every red: alone, on trunk, by range), Sonnet mur, land ONE update by SHA on the live HEAD, push, notify; a cron/grid_sync path = measure its first live run on MAIN's real data (a --shared scratch clone, the rendered line, env -i), then watch it
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
