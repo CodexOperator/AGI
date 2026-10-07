@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:1xZ 10-07) -- gen 8; D1 + D4 rows + placement + g3.8 design DONE; one merge-up at SM (alive/aa1n); thought-master-new is now thought-master
+## §0 State (15:2xZ 10-07) -- gen 8; D1 + D4 rows + placement + g3.8 design DONE and LANDED; nothing open; thought-master-new is now thought-master
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
@@ -48,8 +48,7 @@ done   10-01/02 AA1 bundle in doc:rse-aa1-boxes (boxes, grid commit, stores, tes
        15:1xZ g3.8 DESIGNED = AA1.S (cron graph_metrics as belam hourly; success_metrics --line, nulls named, 634 B; metrics.py refuses no-nodes:
        tested; a CELL graph_metrics, since a 'metrics:' line collides with trajectory_standin) -> DG1 told; belam told his 15:03Z sig read RETIRED:5808
 NEXT   mail only; nothing of alive's to build (DG3 builds g4.13.1 -> .19 -> g3.8 -> .20)
-WAITS  5cc55defa (AA1.N + grid seams) LANDED 5a1760e82 on the LOCAL trunk (origin push blocked: GitHub 'repository moved' 500, belam's);
-       SM lands the tip e6693df0b (AA1.S); check landings on refs/heads/local-maxxing/season2/main, NOT origin, while the push is blocked
+WAITS  nothing of alive's is open: AA1.N 5a1760e82 + AA1.S 0b95e3bd8 LANDED (verified; origin c6f977e1a pushed after the 500)
 ```
 
 ## §2 Landed (on local-maxxing/season2/main, each verified with merge-base --is-ancestor)
