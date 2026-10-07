@@ -28,20 +28,21 @@ town: core
 ```
 OWNER 10-07 14:4xZ (via belam): old Python kept this season, shell rewrites = season 3, metrics back on, messaging needs a council pass; g7.16.1.11.17 RESTATED (horizon).
 ENGINE QUEUE = NEXT SEASON, not built: pq, revoke(+LC_ALL=C), flowrot, round B mail, sealer box side. THIS season only: agi-signers retires = the ring-install step (belam GO).
-LANDED (local trunk, pushed): CKPT.3, OUT.7, OUT.8, goals 1007d (SM 120296316; trunk c614f1f782 after).
-g3.8 metrics: SM returned 989d77684a (token, --help) -> re-cut dg3-gmetrics2 41956e53d5 (27/0, SM: both CLOSED, pytest 410/0) -> SM RETURNED it again 16:51Z (mur-sm21-dg3-gmetrics2): R1 "tokens" substring over the write-log; R2 job can leave town:local-maxxing dirty; R3 graph_metrics sorts next to edited_by (merge conflicts); R4 2 OpenRouter GETs/hour discarded. RULED + ordered 16:5xZ: R1 parse rows; R2 skip+one line when dirty or suite lock held, recover commit if rc 3, node clean in every branch; R3 CELL renamed `metrics_line` (job key graph_metrics stays); R4 no call in --line. DG2 LANES 211a0a00c7 (36 lanes) RUN by me on 41956e53d5 = 27 ok / 9 FAIL (his list), ACCEPTED; DG3 GO 17:0xZ. SM full suite on the 41956e53d5 union 7,914/0. Was: DG2 lanes first (one sha), DG3 ONE re-cut (diff vs 41956e53d5 = these). goals 1007e LANDED alone by SM = 5175738fb (16:54Z): nothing rides with g3.8. SM rotates soon (meter 0.40): his successor gates g4.13.1 #3, .19 re-cut, g3.8 #3 from his card; send [merge-up]s as usual. Every re-run: lanes + help probes at the sha.
-g7.16.1.11.19 verify: DG2 LANES c4d60a0b32 (verify-v5-uid.t.sh, 42 lanes) RUN by me on 23a6591f72 = 31 ok / 11 FAIL (his list); ACCEPTED; DG3 GO 16:5xZ (build in parallel, SEND after g3.8). dg3-verify5 23a6591f72 DEMOTED (D1 fail-open, D3 substring, D4 stale stamp, D2 owner-aware, D6 OSError) + RANGE red test_skip_only_is_green_too: RULED 16:4xZ: all-SKIP / SKIP+PASS suite is NOT green: rc 3, NO stamp; the test changes deliberately (rename test_skip_only_is_not_green, docstring + THOUGHT name the ruling). Sent to DG2 (lanes WIP) + DG3.
-g4.13.1 #2 dg3-gridcas f8e756801b: DG2 LANE 0563a18377 (grid-collapse.t.sh +1) RUN by me on f8e756801b = 52 ok / 1 FAIL (n1-lock-real), ACCEPTED, DG3 GO (send after g3.8 + verify). RETURNED (flatten the ONE ERROR line to git's first line; lane with the real 7-line lock text). SM's FULL suite on union: 0 range reds from it.
-g7.16.1.11.20 messaging: DG2 lanes a1425b7d5 (box-wake.t.sh, w8 pi, $T/hm) RUN by me on trunk: 6 ok / 16 FAIL; ACCEPTED. anonymize = SM's gate (no v5 uid has .env). Build (DG3) waits its turn.
-DG3 queue, one at a time, each after DG2's lanes sha: verify re-cut -> gridcas flatten -> .20 build. DG2 queue: verify lanes (WIP) -> gridcas lane.
+LANDED (local trunk, pushed): CKPT.3, OUT.7, OUT.8, goals 1007d (120296316) + 1007e (5175738fb).
+SM rotates (meter 0.40): his successor gates from his card; send [merge-up]s as usual. SM 17:00Z: FULL suite on the g3.8 union ad08961a4 = 7,914/0.
+.19 VERIFY: dg3-verify6 0c6fc2d9a3 (trunk 5f672d11e5) RUN by me: lanes 42/0 (c4d60a0b32 blob-identical), both rotate.py callers read only rc 0 as pass; DG3 pytest 125 passed + 8 fails identical on the trunk. [merge-up] SENT 17:2xZ ("pane busy", sweep retries); choices (a) suite-only SKIP vetoes, (b) rc 2 write error ACCEPTED. The skip-only test renamed test_skip_only_is_not_green (my 16:39Z ruling).
+g3.8 R1-R4: lanes 211a0a00c7 (36) ok; DG3 dg3-gmetrics2 ed0eae1462 (metrics_cell.py NEW, cell metrics_line, cmd via the helper): lanes 36/0, live line 632 B. MY PROBE: the helper COMMITS A HAND EDIT made during the 65 s run (check before cmd, recover after). SENT [return] to DG3 (re-check right before write.py; commit only write.py's own dirt) + DG2 lane r2e (hand edit during the run: HEAD unmoved, edit uncommitted, ONE skip/ERR line). metrics_cell.py needs NO build node (ruled). Then I run the re-cut + [merge-up].
+g4.13.1 #3 gridcas flatten: DG2 lane 0563a18377 RUN (52 ok / 1 FAIL n1-lock-real), DG3 GO; his sha comes after g3.8. 
+.20 messaging: DG2 lanes a1425b7d5 ACCEPTED (6 ok/16 FAIL on trunk); DG3 builds last (keep ~/o cap loop, cccc.ts s=n, pi types).
 A12 stays ROLLED BACK (belam's install GO).
 ```
 
 ## 🔴 Where it stops + the exact next command
-Waiting on mail. Next: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 16:37:49Z.
-1. DG2 g3.8 lanes (R1-R4) sha: run RED on 41956e53d5 (scratch worktree), old 27 green, mutants; DG3 re-cut: run lanes + `metrics.py -h`, a dirty-node cron probe, --line with no network; [merge-up] to SM.
-2. DG2 verify lanes sha: scratch worktree on 23a6591f72, RED on the new lanes, old 25 green, replacement test + mixed case, mutants; DG3 GO; run his return + a sibling probe (writer uid with a PermissionError line; pytest-less uid; stale stamp). Same for gridcas f8e756801b (old 52 green).
-3. .20: DG3 builds after verify+gridcas (keep ~/o cap loop; cccc.ts s=n; agi-run types for pi); I run it at his sha, then SM.
+Waiting on mail. Next: `cd /var/lib/agi/director-general-1/t && python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1`, then grep the inbox FILE after ts 17:16:17Z.
+1. DG2 lane r2e sha -> RED on ed0eae1462 (scratch worktree, `git show SHA:extensions/agi/tests/graph-metrics.t.sh` over it); DG3 re-cut: run the lanes, my hand-edit probe again (printf >> node inside the cmd: HEAD unmoved), the clean-node sanity, live `--line` once; then [merge-up] g3.8 #3 to SM.
+2. DG3 gridcas sha: run grid-collapse.t.sh 53 ok at it (MAIN + non-repo cwd), forward [merge-up] g4.13.1 #3.
+3. SM verdict on .19 (successor SM): a return = NEW DG3 commit, DG2 lane first for survivors.
+4. DG3 .20 build: run box-wake.t.sh at it (cap loop kept), a pi probe, then SM.
 Never invent goals; agi-signers retire = belam's GO.
 
 ## §4 Traps
@@ -55,6 +56,7 @@ Never invent goals; agi-signers retire = belam's GO.
 | my accepted falsifier pairs were green on defects the mur found (agi-out D1, W-1) | run the pair at the sha, then one mutation or sibling-file probe; a green is not a proof |
 | the rail counts ONLY engine.md (config:engine): fenced code <= 8,192 AND whole <= 12,288 | pieces in engine-grow/-root/-post/-wrap are expansion; measure `git show REV:.agi/nodes/.geometry/engine.md` |
 | a bin edit passes the range's pytest (test_bin_help_smoke reddened g3.8 after my lanes-only run) and NO v5 uid has pytest or .env | name what I could not run in the [merge-up]; SM's gate runs pytest + anonymize |
+| a helper that checks a precondition BEFORE a minute-long step and acts AFTER it (metrics_cell.py committed a hand edit made in between) | probe the gap: change the world inside the step (a cmd that edits the node) and watch HEAD |
 | a host act is belam's own GO | never run one; forward as ONE line (command, before-state, rollback) |
 | I mis-ruled twice by not checking my own record/bytes (the fenced count; the 7,100 ckpt bar vs a "split") | before a BAR or BYTES ruling: re-measure the RULED way (engine.md awk over the fences) and grep this card + git log of it for a standing ruling |
 | judging a falsifier file: a green is not a proof | build 4-8 mutants of the REAL piece (splice into the engine-*.md section, or GROW_GATE=<piece file>) and run every lane file; name what stays green (equivalent / fails-safe) |
