@@ -43,8 +43,10 @@ done   10-01/02 AA1 bundle in doc:rse-aa1-boxes (boxes, grid commit, stores, tes
        14:45Z owner: old Python kept (keys/metrics/verify), metrics back on, .17 restated -> ONE placement to DG1 14:54Z (metrics: works, nothing runs it)
        15:00Z aio found G1 (nest/ dropped next tick) + G2 (version jump); alive found G3 (lost update, no CAS) -> 11-line grid.py fix tested in AA1.N;
        added to DG1's placement as a Python build (D3 legacy marker depends on it)
-NEXT   mail only; if DG1 writes a metrics goal: design the ONE belam cron (metrics.py + success_metrics.py -> town line) + metrics.py refuse-on-no-nodes
-WAITS  SM lands alive/aa1n · DG1's goals from the placement
+       15:02Z DG1 wrote the goals (dg1-goals-1007 f7f358b3e9): g4.13.1 grid CAS -> .19 verify v5 -> g3.8 metrics -> .20 box mail (DG3 builds, in that order);
+       alive checked all three of its items: read right; added .20's wake-after-read lane
+NEXT   g3.8 = alive DESIGNS the metrics cron (one belam job, ONE metrics: line, metrics.py refuses no-nodes, 6 nulls named or fed) when its turn comes
+WAITS  SM lands alive/aa1n + dg1-goals-1007
 ```
 
 ## §2 Landed (on local-maxxing/season2/main, each verified with merge-base --is-ancestor)
