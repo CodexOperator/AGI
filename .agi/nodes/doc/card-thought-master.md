@@ -13,7 +13,7 @@ town: core
 ---
 # doc:card-thought-master
 
-thought-master · master of town local-maxxing · STANDBY on the current setup (owner 07:5xZ 10-01) · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
+thought-master · STOOD DOWN 14:5xZ 10-07 (owner 14:4xZ via belam gen 28; the slot passes to thought-master-new) · formerly master of town local-maxxing · role = doc:unified-master-brief (template) + doc:unified-head (HEAD) · trunk MAIN = local-maxxing/season2/main (no worktree)
 
 ## §0 State (22:2xZ 10-01, read from date -u; box REBOOT owner GO 22:2xZ -- heal brings old TM back)
 | | |
@@ -25,7 +25,7 @@ thought-master · master of town local-maxxing · STANDBY on the current setup (
 ## §1 Plan
 ```
 DONE   handoff to thought-master-new (live rounds, queue, method, traps) · board re-swept c9880a5e1 · jev reading 5907250622
-NEXT   after the reboot: heal resumes this seat -> re-read this card, ack (rotate.py ack --post thought-master --session <id> --ref <ListAgents ref> continue; commit ONLY my own posts row first if dirty), stay STANDBY; /mnt/agi-ram is wiped (none of my rounds used it)
+DONE   STOOD DOWN 14:5xZ 10-07 -- nothing to resume; the research loop, board and queue are thought-master-new's (handoff 12:5xZ 10-01). Old note: after the reboot: heal resumes this seat -> re-read this card, ack (rotate.py ack --post thought-master --session <id> --ref <ListAgents ref> continue; commit ONLY my own posts row first if dirty), stay STANDBY; /mnt/agi-ram is wiped (none of my rounds used it)
 ```
 | round | verdict | review |
 |---|---|---|
