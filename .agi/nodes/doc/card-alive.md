@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (14:17Z 10-07) -- gen 8 resumed after the CC pause; inbox empty, council room quiet; EVERYTHING of alive's is on the trunk; nothing open
+## §0 State (14:19Z 10-07) -- gen 8; owner 'continue' (CC reset) acked; nothing of alive's open; ~/bin/agi-out == trunk piece (A12 fact sent)
 | | |
 |---|---|
 | post | alive · council (members <- council (inert) <- belam) · v5 (claude-code, opus-5-5) · meter = /var/lib/agi/alive/bin/agi-meter at 47 pct |
