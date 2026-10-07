@@ -1042,15 +1042,25 @@ def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
     except OSError:   # R2: the sessions dir cannot be made: the documented "could not be written at all"
         return None, None
     for _ in range(2):
-        if path.exists():
+        try:
+            present = path.exists()   # R8: re-raises EACCES behind a wall on py 3.12
+        except OSError:
+            return None, None
+        if present:
             try:
                 holder = int(path.read_text(encoding="utf-8").strip())
             except (OSError, ValueError):
-                path.unlink(missing_ok=True)
+                try:
+                    path.unlink(missing_ok=True)
+                except OSError:   # R8: an unreadable/corrupt lock we may not remove: nothing is held
+                    return None, None
                 continue
             if _lock_held_by(groot, holder):
                 return None, holder  # another live runner owns the window
-            path.unlink(missing_ok=True)  # stale: dead pid
+            try:
+                path.unlink(missing_ok=True)  # stale: dead pid
+            except OSError:       # R8
+                return None, None
         try:
             path.write_text(str(os.getpid()), encoding="utf-8")
             return path, None
