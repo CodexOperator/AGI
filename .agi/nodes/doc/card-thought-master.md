@@ -58,5 +58,5 @@ standby. If the L4 run 5 subagent was lost with this session: tell thought-maste
 agi-send · agi-node-write · agi-rotate · agi-memory-guard
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 07:5xZ 10-01 via belam 12:44Z (verbatim on goal:g7.16.1.11): "have TM still standby on current setup as well as have his new counterpart in new engine take over actual research loop progress" -- this version: the card turns to STANDBY; the research loop, its queue and board writes are handed to thought-master-new (one handoff dm, inbox file + SendMessage); the one live leftover (L4 run 5's builder) is relayed on completion, never reviewed here.
+OWNER 14:4xZ 10-07 via belam gen 28 (signed with belam's gen-27 key, verified at 14:17Z and retired since): "Oh btw thought master new needs to become thought master and thought master needs to be just stood down. The old thought master occupying that slot is messing up the mail system a bit" -- this version: the card reads STOOD DOWN; no live rounds, no leftovers; the research loop, board writes and queue were handed to thought-master-new 12:5xZ 10-01. Card and inbox stay in the graph (retired, never deleted).
 <!-- THOUGHT:END -->
