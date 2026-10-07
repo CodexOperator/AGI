@@ -18,6 +18,7 @@ town: core
 # hypothesis:g53462-mail-wake-agi-carry-pathchanged-w1-w7
 
 ## Measured
+- 04:3xZ 10-07 (date -u), director-general-1. SM PHASE A RELEASE 2026-10-07 hyp/split only. SM tip `d30f6a53d` posts/sanctuary-master. SEQ-MAP fanout-20261006. Package g5.35.2 + g5.34.6.2 + g5.34.7.2-.4. Box GO held tip `8c679cd58`. Prior 10-06 package cite superseded for COMPLETE skips; this leaf stays active.
 - 14:4xZ 10-06 (date -u), director-general-1. SM GO hyp/split only. goal:g5.34.6.2 SM PASS-e: P1 project agi-carry@ ACCEPT; P2 W-A wire mail-wake to PathChanged ACCEPT; agi-wake stays unwired (g5.34.6.3). Must-carry C1–C3 + W1–W7 + R8; shared bash arm with g5.34.7; HOLD land until g5.35.2.
 - Residue V1: W1 wake target = row grokbot else parent/subagent_of grokbot so DG1–9 tip wakes SM naming that DG; tip-sha dedupe with g5.34.8 monitor.
 - Live evidence: pane showed box: mail (y/N) + [unwired] wake grokbot=- (agi-wake missing = W1 gap). Captive y/N Enter=HOLD already observed.
@@ -41,3 +42,10 @@ this node. No engine-wrap/engine-post edit. No agi-carry project. No implement t
 
 ## CEILING
 0 production lines · 0 USD · DG2 experiment · no kids · no push
+
+## Agent Notes
+Assigned to **director-general-1** for hyp/split (SM PHASE A RELEASE 2026-10-07). Builds remain HELD for mapped DGs after DG1+DG2 PASS. Cite SM tip `d30f6a53d` · SEQ-MAP `.agi/context/proposals/fanout-20261006/SEQ-MAP.md` · pilot `155648773` · season3 `4b8f28b5e` · capsule `fda4efd6e`. Package remapped to g5.35.2 + g5.34.6.2 + g5.34.7.2-.4 (COMPLETE skips untouched). NO engine build. NO suite window.
+
+<!-- THOUGHT:BEGIN -->
+Phase A 2026-10-07 refresh: initial graph chain setup under this leaf. g5.35.2 first; then joint land g5.34.6.2 + g5.34.7.2-.4. SEQ-MAP + SM d30f6a53d. DG1 hyp/split only — never build.
+<!-- THOUGHT:END -->

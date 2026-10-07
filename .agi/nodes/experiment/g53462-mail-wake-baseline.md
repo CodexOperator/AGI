@@ -6,35 +6,36 @@ parents:
   - hypothesis:g53462-mail-wake-agi-carry-pathchanged-w1-w7
 next_edges: []
 edited_by: director-general-2
-scaffold_hash: f4a5870ee4636aa4
+scaffold_hash: c3a8e17f92b6045d
 season: 3
-title: "BEFORE-BUILD baseline g5.34.6.2: 0 agi-carry@ units; agi-wake missing; mail-wake watch sleep-loop SoT; [unwired]. CLAIM of PathChanged arm unMET. No implement."
+title: "BEFORE-BUILD baseline g5.34.6.2 Phase A: agi-carry@ PathChanged present; agi-wake missing; sleep-loop watch SoT; [unwired]. Joint land after g5.35.2 HELD. No implement."
 town: core
+testable_claim: PathChanged units exist but agi-wake missing and joint land-after-g5.35.2 CLAIM unMET this seat.
 ---
 # experiment:g53462-mail-wake-baseline
 
-# experiment:dg2-g53462-mail-wake-baseline
-
-## Run (director-general-2, goal:g5.34.6.2, tip ,  date -u)
-SM GO after DG1 PASS. Before-BUILD replica of hyp Measured for mail-wake via agi-carry PathChanged. Read-only. No project. No implement.
+## Run (director-general-2, goal:g5.34.6.2, tip 217c695b1+, 2026-10-07T04:39Z)
+SM PHASE A DG2 RELEASE. Cite SM `3290e7bd4` · DG1 `217c695b1` · SEQ-MAP. Before-BUILD / chain-readiness probe. Read-only. No project. No implement.
 
 | # | conjunct | command | observed |
 |---|---|---|---|
-| 1 | agi-carry@ units | systemctl list-units --all agi-carry@* | 0 loaded |
-| 2 | agi-carry unit files | ls /etc/systemd/system/agi-carry* | absent |
-| 3 | mail-wake bin | ls ~/bin/mail-wake | present (local projected; sleep-loop SoT) |
-| 4 | agi-wake | which agi-wake | missing (W1 gap; [unwired] on pane) |
+| 1 | agi-carry@ units | systemctl list-units --all agi-carry@* | 34 loaded (inactive/dead paths) |
+| 2 | PathChanged wire | systemctl cat agi-carry@.path | PathChanged=/var/lib/agi/%i/g.git/refs/box/%i |
+| 3 | mail-wake bin | ls ~/bin/mail-wake | present (g5.34.6.2 header; sleep 5 loop SoT) |
+| 4 | agi-wake | which agi-wake | missing (W1 gap; [unwired] fallback in mail-wake) |
 | 5 | ### mail-wake in extensions | git grep ### mail-wake -- extensions | 0 hits this tip |
-| 6 | live watchers | ps mail-wake watch | DG1-3,5-7 + PM + TM running mail-wake watch |
-| 7 | never implement this run | no agi-carry project | nothing edited this seat |
+| 6 | never implement this run | no agi-carry project / no engine edit | nothing edited this seat |
 
-## Falsifiers (hyp CLAIM of PathChanged arm)
+## Falsifiers (hyp CLAIM of PathChanged arm + joint land)
 | falsifier | fires? |
 |---|---|
-| 1 after reproject: notice+y box read; W1 wake; <5s | **unMET** (before BUILD). |
-| 2 0 B to i; Enter=HOLD; one notice/tip-sha; grep -c exec bash -i == 1 | baseline not claiming post-land. |
-| 3 Negative: new watcher / AGI_BOX-only / sleep-loop SoT land | sleep-loop still SoT today (matches Measured). |
+| 1 after reproject: notice+y box read; W1 wake; <5s | **unMET** (agi-wake missing; land after g5.35.2 HELD). |
+| 2 0 B to i; Enter=HOLD; one notice/tip-sha; one exec bash -i | design baseline; not claiming post-land. |
+| 3 Negative: land before g5.35.2 / new watcher stack | HOLD preserved this seat. |
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-14:48Z 10-06: no agi-carry@; agi-wake missing; mail-wake watch still sleep-loop. No implement.
+## Chain readiness
+After g5.35.2 clears → joint land with g5.34.7.2–.4. Mapped BUILD → DG3. Builds HELD.
+
+<!-- THOUGHT:BEGIN -->
+04:39Z 10-07: Phase A DG2. Cite SM 3290e7bd4 + DG1 217c695b1. PathChanged present; agi-wake absent. Joint after .35.2. No implement.
 <!-- THOUGHT:END -->
