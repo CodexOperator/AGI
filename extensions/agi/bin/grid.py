@@ -357,6 +357,15 @@ def git(root: Path, *args: str, input_text: str | None = None, check: bool = Tru
     return res.stdout.strip()
 
 
+def git_try(root: Path, *args: str) -> "subprocess.CompletedProcess[str]":
+    """`git` for `root` WITHOUT exiting on failure: the caller reads returncode and
+    stderr (goal:g4.13.1: a refused compare-and-swap skips one node, not the run)."""
+    return subprocess.run(
+        ["git", *GIT_IDENT, "-C", str(repo_root(root)), *args],
+        capture_output=True, text=True,
+    )
+
+
 def _encode_component(s: str) -> str:
     """Percent-encode `s` into a single git-ref-safe, injective path component.
 
@@ -895,10 +904,7 @@ def commit_file(root: Path, path: Path, ref: str, msg_prefix: str,
     # CAS (goal:g4.13.1): the ref must still be at the tip read above ("" = must not
     # exist), so a collapse landed since is never overwritten. A refusal skips THIS
     # node only; the next tick re-versions it on the new tip.
-    res = subprocess.run(
-        ["git", *GIT_IDENT, "-C", str(repo_root(root)), "update-ref", ref, commit, tip or ""],
-        capture_output=True, text=True,
-    )
+    res = git_try(root, "update-ref", ref, commit, tip or "")
     if res.returncode != 0:
         print(f"skip (ref moved since read — a collapse or a concurrent write; "
               f"the next tick re-versions it): {ref}: {res.stderr.strip()}", file=sys.stderr)
