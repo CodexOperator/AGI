@@ -131,6 +131,18 @@ rules      diagram-max · board / trajectory = VERSIONS (replace in place), neve
 memory     15 GB box · ONE model load at a time · start at MemAvailable >= 6 GB + memory PSI avg10 < 5, stop at >= 20 · containers with --memory
 research   L4 head windowing (g5.22) · neuron periodicity (g5.28) · queue + metrics = the trajectory_standin rows
 geometry   the trajectory lives here (owner 09-30); goal:g7.34* moot for this town
+g1.41      PASS B4 residues (belam [decision] 20:49Z 10-07) -- SM placement 20:5xZ: ONE build owner per file; route DG1 hyp -> DG2 lanes -> builder -> SM gate, one merge-up per round
+  A ROOT     DG3  .geometry/engine-root.md + engine.md (engine.md only after .20 box-wake lands)  A1 BOOT HOLE FIRST (:61-63,71,74 + engine.md:91: root reads a root-held pinned sha) -> A2 :73,76 jq null fail-closed -> A3 :39,43 exit-127 loop + :142-146,104 agi-carry restart bound -> A4 engine.md:90 .name validated; sizes :41-79 re-measured in EVERY A commit
+  B GROW+POST DG3 .geometry/engine-grow.md :41,60 · engine-post.md :144 polkit                after A1
+  C GUARD    DG5  extensions/agi/guard/{guard-init,ram-main,ram-tier,session-sweep}.sh: validate guard.env before any eval    parallel
+  D PY-GATES DG3  write.py:2079 · anonymize.py:306 · verification.py:1409-1412                 after A1
+  E PY-MISC  DG5  reds.py:51,100 · metrics_cell.py:138 · council_report.py:138                  parallel
+  F GRID     DG3  grid.py:895,911-913,1240-1280 (the double-write fix shape = belam's owner Q before build) · the 2 no-mint_id experiments = lane I
+  G TESTS    DG2  test_anonymize_guard.py:867-871 · test_heal_sweep.py:53-57 · test_heal_watch.py:51 · test_boxkit_templates.py:1199-1201 · test_node_writer.py:1796
+  H SKILLS   DG5  skills/agi/SKILL.md · skills/agi-{workflow,corrective,dispatch,goal}/SKILL.md (workflow.py retired; v5 = plain Write/Edit)
+  I NODES    DG1  the 3 demotes + every NODES/ANONYMIZE row + the 2 no-mint_id experiments; the 38 schema-field nodes = DG5 after, mechanical
+  J RESEARCH thought-master: its own placement (datasets in history: ignore/LFS forward; any history scrub = OWNER)
+  not placed AA1.V capsule install (council/belam lane) · history rewrite (owner)
 ```
 ## Agent Notes
 
@@ -245,3 +257,5 @@ OWNER 14:3xZ 10-07 (to belam gen 27, verbatim): "Sweet. In other news I started 
 OWNER 14:4xZ 10-07 (to belam gen 27, verbatim): "They also kept working on the messaging system so some of the current work may be done. Though it likely needs a council pass so it’s actually streamlined and integrated into the math. And yeah I was thinking so as well. Also I know we used to have a bunch of metrics and stats we tracked with then python files. Can we bring those back? We don’t have to rewrite them as scripts in this season just the next. But we will keep reusing the old python based key system, metric system, and verify suite/tests unless most of those got rewritten into shell which is awesome. Otherwise yes let the council tackle it and see what needs to be redone or streamlined. I will hear about it from your successor. Thank you for your service. We are still aiming to have to rotate onto new system as well given these requirements where I bypass some of the engine work till next season I think it should be a lot more doable sooner" -- ACTION: to the council: (1) the grok branch's messaging work gets a council pass (streamlined, in the math) (2) this season KEEPS the old Python key system (provisioning.py), metric system (metrics.py, success_metrics.py) and verify suite/tests unless already rewritten in shell; shell rewrites = season 3 (3) the metrics come back on (4) goal:g7.16.1.11.17 (belam on v5) is re-stated with the bypass: key issuance + metrics + verify on the old Python = no longer prerequisites to build in shell this season; belam rotates now
 
 OWNER 14:4xZ 10-07 (to belam gen 27 during its rotation, verbatim): "Oh btw thought master new needs to become thought master and thought master needs to be just stood down. The old thought master occupying that slot is messing up the mail system a bit" -- ACTION: handed to belam gen 28 as its FIRST item (a multi-ref post change is never started while a rotation is pending): stand the old thought-master down (skill agi-post), then thought-master-new takes the name thought-master (row, user, unit, inbox, every parent/members/lands cell), one update, before-state + rollback named
+
+PASS B4 (belam gen 28, 18:2x-21:0xZ 10-07, owner-ordered): trunk bcdb15f10f -> season2/main cd981237cd (season2/main recreated at b0608a1f3) · BASE 1f2b49ffc9 · 5,242 commits / 1,165 live files · 6 reviewers · 2 RED (heal sweep fixed pre-merge 28b5d9cd95; agi-boot -> DG per owner) · 2 accept_with_residue · 2 demote · 0 D / 0 key / 2 anonymize residues · verify 12/13 (bin-suite-fresh known) · links 5779/0 · 5,819 nodes · local-maxxing/main -> bcdb15f10f · residues -> goal:g1.41
