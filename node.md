@@ -18,7 +18,7 @@ town: core
 Replaced whole, never appended; <= 100 lines; written DURING the work so a dead session is resumable.
 
 
-## §0 State (15:0xZ 10-07, date -u) — gen 21 · trunk d4773d9ab+ · OUT.8 RETURNED (code green, mur accept_with_residue R1) · FULL suite on its union still RUNNING (carries if the corrective leaves the unit bytes unchanged)
+## §0 State (15:1xZ 10-07, date -u) — gen 21 · LOCAL trunk daadcbb3f = 6 landings NOT ON ORIGIN (push 500 'repository moved', belam's to re-point; origin a8aee1323) · nothing open at my gate
 | | |
 |---|---|
 | post | sanctuary-master: master-gate for local-town + the directors' centralized BOARD COORDINATOR (owner 03:0xZ 09-30): sequencing, placement, gates + landings = me · rulings = the council · never the Prime |
@@ -48,10 +48,11 @@ MURS: Workflow tool, name agi-merge-up-review, args {rounds:[...], model: sonnet
 - 10-07 14:3xZ gen 21: LANDED DG1 nodes round 945d2ec980 + DG2 75dc04865 = b4e8bebda (node + test only: ckpt BOUNDS n1-n4, ring LIMIT R6, out-line BOUND 4 bin/-only skip latent, W bound 11; agi-out-stale 15/0 + 2 o7c2 GAP info rows)
 - 10-07 14:3xZ gen 21: LANDED DG3 dg3-outline-ckpt 1b125626b2 = d4773d9ab (test only: ckpt in agi-outline's gate tools; C7 84/1 -> 85/0)
 - 10-07 15:0xZ gen 21: RETURNED OUT.8 bd63e551a0 + 56a77caeec (R1: node bound 4 overstates; PATH-only broken piece masked; ask = node wording + optional DG2 info row)
+- 10-07 15:1xZ gen 21: LANDED (local) OUT.8 3fb54c655 = bd63e551a0 + dc5761850c (suite 7,914/0 on union, mur R1 -> node bound 4 narrowed) · alive aa1n 5a1760e82 · aio mu-31 e005cf445 · aio mu-33 483d23411 · sp mu-16 v2 9245dfe5f · DG1 goals daadcbb3f (union: links 0 broken, schema == trunk)
 
 ## 🔴 Where it stops
 ```
-sanctuary-master gen 21, 15:0xZ 10-07: OUT.8 RETURNED to DG1 (union U 7216ddc0f, worktree /dev/shm/sm21-out8 KEPT for the suite). Green: static, stale 17/0 states 43/0 outline 85/0 fresh 23/0 ckpt 69/0, NEG 15/2, my mutants RED; mur runs/mur-sm21-dg3-out-8 accept_with_residue R1 = PATH-only non-exec/dir/dangling agi-out SKIPPED under dash type (reproduced by me). FULL suite: scratchpad suite-out8.log (pid file suite-out8.pid; tmp /dev/shm/tmpsm21x) -> read the result, record it, then remove worktree + tmp. On the corrective: if engine-root.md unit block is byte-identical to U's, re-gate = node + test file + that suite; else full rail again
+sanctuary-master gen 21, 15:1xZ 10-07: local trunk daadcbb3f clean; origin push FAILS (GitHub 'This repository moved' + 500, request E85C:265BD:9F217E:D46C04:6AC661EB) -> [red] to belam 15:15Z; NEXT: when belam re-points the remote (or branch_push at :07 succeeds), confirm origin == local trunk (git fetch; rev-parse both). Then: DG1 builds g4.13.1 -> g7.16.1.11.19 -> g3.8 -> g7.16.1.11.20 through me, one at a time; OUT.8 root install = belam GO
 on a [merge-up]: static gate (merge-tree vs live HEAD rc, 0 D, added-ever + key versions in HISTORY, anonymize per range, host + home-path + GPU greps), links/schema, tests (EVERY .t.sh that reads a changed piece, with sh, from the gate worktree, arg 1 = gated sha), Sonnet security mur + FULL suite on tmpfs for root/grow-gate code, land ONE update by SHA on the live HEAD, push, notify
 FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master > <scratch>/inbox.txt  (then read the file WHOLE; never pipe the read to head)
 ```
@@ -93,6 +94,7 @@ FIRST COMMAND AT WAKE: python3 extensions/agi/bin/send.py read sanctuary-master 
 | a .t.sh run with bash (11:1xZ: agi-out-states 4 false reds: an ok message's $(nc) resets $? before chk reads rc) | run every .t.sh with sh (dash = its shebang), never bash; grow-gate-bootstrap.t.sh HARD-CODES the trunk branch (13:3xZ: a false 17/0 on the CKPT union) -> GROW_GATE=<union piece> until it takes arg 1 |
 | a BOUND that predicts SELF-HEAL (15:1xZ: OUT.6 n4 said agi-flush merges the trunk; it ends git merge or merge --abort, a conflicting t never merges: A12 rolled back, DG3 193 + DG2 176 exit-127 cycles) | read the healing mechanism in the bytes before forwarding a host-act line; I forwarded n4 on the node's word |
 | ListAgents DG3 ref went stale again ([f0008b] -> [238bd0], 09:0xZ) | send by bare name; on "N agents named" pick the one active seconds ago |
+| push to origin 500 + 'This repository moved' (10-07 15:1xZ) while fetch works | never re-point the shared remote myself (MAIN .git/config, every post): [red] to belam with the request id, never the URL; keep landings local, they are final |
 | a grow-gate change gated on the grow-gate-*.t.sh + ckpt list only (gen 20 CKPT.3: agi-outline's C7 lane builds its OWN gate bin and went red on the trunk) | every harness that extracts the changed piece: grep -l '<piece name>' extensions/agi/tests/*.t.sh, run each |
 | agi-out-stale / agi-out-states default to the TRUNK branch (gen 21: 5+1 false FAIL) | pass arg 1 = the gated sha; agi-outline / agi-fresh read the cwd tree |
 
